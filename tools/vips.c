@@ -332,7 +332,8 @@ vips2cpp( im_type_desc *ty )
 		IM_TYPE_DISPLAY,
 		IM_TYPE_IMAGEVEC,
 		IM_TYPE_DOUBLEVEC,
-		IM_TYPE_INTVEC
+		IM_TYPE_INTVEC,
+		IM_TYPE_INTERPOLATE
 	};
 
 	/* Corresponding C++ types.
@@ -348,7 +349,8 @@ vips2cpp( im_type_desc *ty )
 		"VDisplay",
 		"std::vector<VImage>",
 		"std::vector<double>",
-		"std::vector<int>"
+		"std::vector<int>",
+		"char*"
 	};
 
 	for( k = 0; k < IM_NUMBER( vtypes ); k++ )
@@ -771,6 +773,12 @@ print_cppdef( im_function *fn )
 		else if( strcmp( ty->type, IM_TYPE_INTVEC ) == 0 ) 
 			print_invec( j, fn->argv[j].name, 
 				"im_intvec_object", "int", "" );
+		else if( strcmp( ty->type, IM_TYPE_INTERPOLATE ) == 0 ) {
+			printf( "\tif( vips__input_interpolate_init( "
+				"&_vec.data(%d), %s ) )\n",
+				j, fn->argv[j].name );
+			printf( "\t\tverror();\n" );
+		}
 		else
 			/* Just use vips2cpp().
 			 */
@@ -1065,7 +1073,8 @@ main( int argc, char **argv )
 	 * since we don't want to use the vips7 compat wrappers in vips8
 	 * unless we have to. They don't support all args types.
 	 */
-	if( action && !handled && 
+	if( action && 
+		!handled && 
 		(fn = im_find_function( action )) ) {
 		(void) add_main_group( context, NULL );
 		parse_options( context, &argc, argv );
@@ -1079,11 +1088,17 @@ main( int argc, char **argv )
 
 		handled = TRUE;
 	}
-	im_error_clear();
+
+	/* im_find_function() set an error msg.
+	 */
+	if( action &&
+		!handled )
+		im_error_clear();
 
 	/* Could be a vips8 VipsOperation.
 	 */
-	if( action && !handled && 
+	if( action && 
+		!handled && 
 		(operation = vips_operation_new( action )) ) {
 		main_group = add_main_group( context, operation );
 		vips_call_options( main_group, operation );
@@ -1105,9 +1120,15 @@ main( int argc, char **argv )
 
 		handled = TRUE;
 	}
-	im_error_clear();
 
-	if( action && !handled ) {
+	/* vips_operation_new() set an error msg for unknown operation.
+	 */
+	if( action &&
+		!handled )
+		im_error_clear();
+
+	if( action && 
+		!handled ) {
 		printf( "%s", _( "possible actions:\n" ) );
 		for( i = 0; i < VIPS_NUMBER( actions ); i++ )
 			printf( "%10s - %s\n", 

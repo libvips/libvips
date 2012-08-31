@@ -22,6 +22,8 @@
  * 	- im_powtra() adapated to make math2.c
  * 12/11/11
  * 	- redone as a class
+ * 17/7/12
+ * 	- wopconst was broken
  */
 
 /*
@@ -401,7 +403,7 @@ vips_math2_const_class_init( VipsMath2ConstClass *class )
 		_( "Operation" ), 
 		_( "math to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsMath2, math2 ),
+		G_STRUCT_OFFSET( VipsMath2Const, math2 ),
 		VIPS_TYPE_OPERATION_MATH2, VIPS_OPERATION_MATH2_POW ); 
 }
 

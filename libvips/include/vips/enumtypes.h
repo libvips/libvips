@@ -57,6 +57,9 @@ GType vips_band_format_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_BAND_FORMAT (vips_band_format_get_type())
 GType vips_coding_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_CODING (vips_coding_get_type())
+/* enumerations from "../../../libvips/include/vips/operation.h" */
+GType vips_operation_flags_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_OPERATION_FLAGS (vips_operation_flags_get_type())
 /* enumerations from "../../../libvips/include/vips/object.h" */
 GType vips_argument_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_ARGUMENT_FLAGS (vips_argument_flags_get_type())

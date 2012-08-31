@@ -158,6 +158,7 @@ enum {
 	SIG_POSTEVAL,		
 	SIG_WRITTEN,		
 	SIG_INVALIDATE,		
+	SIG_MINIMISE,		
 	SIG_LAST
 };
 
@@ -285,9 +286,6 @@ vips_image_dispose( GObject *gobject )
 	if( image->fd != -1 ) {
 		VIPS_DEBUG_MSG( "vips_image_dispose: closing output file\n" );
 
-		if( image->dtype == VIPS_IMAGE_OPENOUT )
-			(void) vips__writehist( image );
-
 		if( vips_tracked_close( image->fd ) == -1 ) 
 			vips_error( "VipsImage", 
 				"%s", _( "unable to close fd" ) );
@@ -310,7 +308,7 @@ vips_image_new_from_file_object( const char *string )
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
 		"filename", string,
-		"mode", "rd",
+		"mode", "r",
 		NULL );
 
 	return( VIPS_OBJECT( image ) );
@@ -414,6 +412,8 @@ vips_image_summary( VipsObject *object, VipsBuf *buf )
 			vips_enum_nick( VIPS_TYPE_CODING, 
 				vips_image_get_coding( image ) ) );
 	}
+	vips_buf_appendf( buf, ", %s", 
+		vips_enum_nick( VIPS_TYPE_IMAGE_TYPE, image->dtype ) );
 
 	VIPS_OBJECT_CLASS( vips_image_parent_class )->summary( object, buf );
 }
@@ -508,7 +508,7 @@ vips_image_rewind( VipsObject *object )
 static void
 vips_image_save_cb( VipsImage *image, int *result )
 {
-	if( vips_foreign_save_options( image, image->filename ) )
+	if( vips_foreign_save_options( image, image->filename, NULL ) )
 		*result = -1;
 }
 
@@ -556,8 +556,9 @@ vips_image_posteval_cb( VipsImage *image, VipsProgress *progress )
 {
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
-	printf( _( "%s %s: done in %ds          \n" ), 
-		g_get_prgname(), image->filename, progress->run );
+	printf( _( "%s %s: done in %.3gs          \n" ), 
+		g_get_prgname(), image->filename, 
+		g_timer_elapsed( progress->start, NULL ) );
 
 	return( 0 );
 }
@@ -604,7 +605,8 @@ vips_image_build( VipsObject *object )
 	 */
 	switch( mode[0] ) {
         case 'v':
-		/* Used by 'r' for native open of vips, see below.
+		/* Used by 'r' for native open of vips, see below. Also by
+		 * vips_image_rewind_output().
 		 */
 		if( vips_image_open_input( image ) )
 			return( -1 );
@@ -654,8 +656,17 @@ vips_image_build( VipsObject *object )
 		else {
 			VipsImage *t;
 
-			if( vips_foreign_load_options( filename, &t ) )
-				return( -1 );
+			if( mode[1] == 's' ) {
+				if( vips_foreign_load_options( filename, &t, 
+					"sequential", TRUE,
+					NULL ) )
+					return( -1 );
+			}
+			else {
+				if( vips_foreign_load_options( filename, &t, 
+					NULL ) )
+					return( -1 );
+			}
 
 			image->dtype = VIPS_IMAGE_PARTIAL;
 			if( vips_image_write( t, image ) ) {
@@ -791,6 +802,24 @@ vips_image_real_invalidate( VipsImage *image )
 	g_mutex_unlock( image->sslock );
 }
 
+static void 
+vips_image_real_minimise( VipsImage *image )
+{
+	VIPS_DEBUG_MSG( "vips_image_real_minimise: %p\n", image );
+}
+
+static void 
+vips_image_real_written( VipsImage *image, int *result )
+{
+	VIPS_DEBUG_MSG( "vips_image_real_written: %p\n", image );
+
+	/* For vips image write, append the xml after the data.
+	 */
+	if( image->dtype == VIPS_IMAGE_OPENOUT &&
+		vips__writehist( image ) ) 
+		*result = -1;
+}
+
 static void
 vips_image_class_init( VipsImageClass *class )
 {
@@ -826,6 +855,8 @@ vips_image_class_init( VipsImageClass *class )
 	vobject_class->build = vips_image_build;
 
 	class->invalidate = vips_image_real_invalidate;
+	class->written = vips_image_real_written;
+	class->minimise = vips_image_real_minimise;
 
 	/* Create properties.
 	 */
@@ -996,6 +1027,15 @@ vips_image_class_init( VipsImageClass *class )
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0 );
+
+	vips_image_signals[SIG_MINIMISE] = g_signal_new( "minimise",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
+		G_STRUCT_OFFSET( VipsImageClass, minimise ), 
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0 );
+
 }
 
 static void
@@ -1051,14 +1091,48 @@ vips_image_invalidate_all_cb( VipsImage *image )
  * vips_image_invalidate_all:
  * @image: #VipsImage to invalidate
  *
- * Invalidate all pixel caches on an @image and any derived images. The 
- * "invalidate" callback is triggered for all invalidated images.
+ * Invalidate all pixel caches on an @image and any downstream images, that
+ * is, images which depend on this image. 
+ *
+ * The "invalidate" callback is triggered for all invalidated images.
  */
 void
 vips_image_invalidate_all( VipsImage *image )
 {
-	(void) vips__link_map( image, 
+	(void) vips__link_map( image, FALSE,
 		(VipsSListMap2Fn) vips_image_invalidate_all_cb, NULL, NULL );
+}
+
+void
+vips_image_minimise( VipsImage *image )
+{
+	VIPS_DEBUG_MSG( "vips_image_minimise: %p\n", image );
+
+	g_signal_emit( image, vips_image_signals[SIG_MINIMISE], 0 );
+}
+
+static void *
+vips_image_minimise_all_cb( VipsImage *image )
+{
+	vips_image_minimise( image );
+
+	return( NULL );
+}
+
+/**
+ * vips_image_minimise_all:
+ * @image: #VipsImage to minimise
+ *
+ * Minimise memory use on this image and any upstream images, that is, images
+ * which this image depends upon. 
+ *
+ * The "minimise" callback is triggered for all minimised images.
+ */
+void 
+vips_image_minimise_all( VipsImage *image )
+{
+	(void) vips__link_map( image, TRUE,
+		(VipsSListMap2Fn) vips_image_minimise_all_cb, NULL, NULL );
 }
 
 /* Attach a new time struct, if necessary, and reset it.
@@ -1306,27 +1380,19 @@ vips_image_new( void )
  *       VIPS format for your machine, vips_image_new_mode() 
  *       automatically converts the file for you. 
  *
- *       For some large files (eg. TIFF) this may 
- *       not be what you want, it can fill memory very quickly. Instead, you
- *       can either use "rd" mode (see below), or you can use the lower-level 
+ *       Some formats (eg. tiled tiff) are read directly. 
+ *
+ *       Some formats (eg. strip tiff) do not support random access and can't
+ *       be processed directly. Small images are decompressed to memory and
+ *       loaded from there, large images are decompressed to a disc file and
+ *       processed from that.
+ *
+ *       If the operations you intend to perform are sequential, that is, they
+ *       operate in a strict top-to-bottom manner, you can use sequential mode
+ *       instead, see "rs" below,
+ *       or you can use the lower-level 
  *       API and control the loading process yourself. See 
  *       #VipsForeign. 
- *
- *       vips_image_new_mode() can read files in most formats.
- *
- *       Note that <emphasis>"r"</emphasis> mode works in at least two stages. 
- *       It should return quickly and let you check header fields. It will
- *       only actually read in pixels when you first access them. 
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>
- *       <emphasis>"rd"</emphasis>
- *	 opens the named file for reading. If the uncompressed image is larger 
- *	 than a threshold and the file format does not support random access, 
- *	 rather than uncompressing to memory, vips_image_new_mode() will 
- *	 uncompress to a temporary disc file. This file will be automatically 
- *	 deleted when the VipsImage is closed.
  *
  *	 See im_system_image() for an explanation of how VIPS selects a
  *	 location for the temporary file.
@@ -1344,6 +1410,20 @@ vips_image_new( void )
  *
  *       will copy via disc if "fred.tif" is more than 500 Mbytes
  *       uncompressed. The default threshold is 100 MB.
+ *
+ *       Note that <emphasis>"r"</emphasis> mode works in at least two stages. 
+ *       It should return quickly and let you check header fields. It will
+ *       only actually read in pixels when you first access them. 
+ *     </para>
+ *   </listitem>
+ *   <listitem> 
+ *     <para>
+ *       <emphasis>"rs"</emphasis>
+ *	 opens the named file for reading sequentially. It reads the source
+ *	 image top-to-bottom and serves up pixels to the pipeline as required.
+ *	 Provided the operations that connect to the image all demand pixels
+*	 only top-to-bottom as well, everything is fine and you avoid the
+*	 separate decompress stage.
  *     </para>
  *   </listitem>
  *   <listitem> 
@@ -1415,7 +1495,7 @@ vips_image_new_buffer( void )
  * vips_image_new_from_file:
  * @filename: file to open
  *
- * vips_image_new_from_file() opens @filename for reading in mode "rd". See
+ * vips_image_new_from_file() opens @filename for reading in mode "r". See
  * vips_image_new_mode() for details.
  *
  * See also: vips_image_new_mode().
@@ -1425,7 +1505,7 @@ vips_image_new_buffer( void )
 VipsImage *
 vips_image_new_from_file( const char *filename )
 {
-	return( vips_image_new_mode( filename, "rd" ) ); 
+	return( vips_image_new_mode( filename, "r" ) ); 
 }
 
 /**
@@ -1561,7 +1641,7 @@ vips_image_new_array( int xsize, int ysize )
  * @delete_on_close: format of file
  *
  * Sets the delete_on_close flag for the image. If this flag is set, when
- * @image is finalized the filename held in @image->filename at the time of
+ * @image is finalized, the filename held in @image->filename at the time of
  * this call is unlinked.
  *
  * This function is clearly extremely dangerous, use with great caution.
@@ -1620,6 +1700,13 @@ vips_image_write_gen( VipsRegion *or,
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
+
+	/*
+	printf( "vips_image_write_gen: %p "
+		"left = %d, top = %d, width = %d, height = %d\n",
+		or->im,
+		r->left, r->top, r->width, r->height ); 
+	 */
 
 	/* Copy with pointers.
 	 */
@@ -1893,24 +1980,44 @@ vips_image_write_line( VipsImage *image, int ypos, VipsPel *linebuffer )
 	return( 0 );
 }
 
-/* Rewind an output file.
+/* Rewind an output file. VIPS images only.
  */
 static int
 vips_image_rewind_output( VipsImage *image ) 
 {
+	int fd;
+
+	g_assert( image->dtype == VIPS_IMAGE_OPENOUT );
+
 #ifdef DEBUG_IO
 	printf( "vips_image_rewind_output: %s\n", image->filename );
 #endif/*DEBUG_IO*/
+
+	/* We want to keep the fd across rewind. 
+	 *
+	 * On Windows, we open temp files with _O_TEMPORARY. We mustn't close
+	 * the file since this will delete it. 
+	 *
+	 * We could open the file again to keep a reference to it alive, but
+	 * this is also problematic on Windows. 
+	 */
+	fd = image->fd;
+	image->fd = -1;
 
 	/* Free any resources the image holds and reset to a base
 	 * state.
 	 */
 	vips_object_rewind( VIPS_OBJECT( image ) );
 
-	/* And reopen .. recurse to get a mmaped image.
+	/* And reopen ... recurse to get a mmaped image. 
+	 *
+	 * We use "v" mode to get it opened as a vips image, byopassing the
+	 * file type checks. They will fail on Windows becasue you can't open
+	 * fds more than once.
 	 */
+	image->fd = fd;
 	g_object_set( image,
-		"mode", "rd",
+		"mode", "v",
 		NULL );
 	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
 		vips_error( "VipsImage", 
@@ -1928,7 +2035,7 @@ vips_image_rewind_output( VipsImage *image )
 	 *
 	 * On Windows this will fail because the file is open and you can't
 	 * delete open files. However, on Windows we set O_TEMP, so the file
-	 * will be deleted anyway on exit.
+	 * will be deleted when the fd is finally closed.
 	 */
 	vips_image_delete( image );
 
@@ -2095,7 +2202,8 @@ vips__image_wio_output( VipsImage *image )
  * @image: image to make read-write
  *
  * Gets @image ready for an in-place operation, such as im_insertplace().
- * Operations like this both read and write with VIPS_IMAGE_ADDR().
+ * After calling this function you can both read and write the image with 
+ * VIPS_IMAGE_ADDR().
  *
  * See also: im_insertplace(), vips_image_wio_input().
  *

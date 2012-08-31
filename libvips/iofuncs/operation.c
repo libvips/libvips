@@ -85,7 +85,8 @@ vips_operation_class_usage_arg( VipsObjectClass *object_class,
 	 */
 	if( usage->required == 
 		((argument_class->flags & VIPS_ARGUMENT_REQUIRED) != 0) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) { 
 		if( usage->message && usage->n == 0 ) 
 			vips_buf_appendf( buf, "%s\n", usage->message );
 
@@ -148,6 +149,24 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 	vips_argument_class_map( object_class,
 		(VipsArgumentClassMapFn) vips_operation_class_usage_arg, 
 			buf, &usage );
+
+	/* Show flags.
+	 */
+	if( class->flags ) {
+		GFlagsValue *value;
+		VipsOperationFlags flags;
+		GFlagsClass *flags_class = 
+			g_type_class_ref( VIPS_TYPE_OPERATION_FLAGS );
+
+		vips_buf_appendf( buf, "operation flags: " );
+		flags = class->flags; 
+		while( flags && (value = 
+			g_flags_get_first_value( flags_class, flags )) ) {
+			vips_buf_appendf( buf, "%s ", value->value_nick );
+			flags &= ~value->value;
+		}
+		vips_buf_appends( buf, "\n" );
+	}
 }
 
 static void *
@@ -225,12 +244,20 @@ vips_operation_summary( VipsObject *object, VipsBuf *buf )
 	VipsOperation *operation = VIPS_OPERATION( object );
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 
-	vips_buf_appendf( buf, "%s", object_class->nickname ); 
+	vips_buf_appendf( buf, "- %s", object_class->nickname ); 
 	vips_argument_map( VIPS_OBJECT( operation ),
 		vips_operation_vips_operation_print_summary_arg, buf, NULL );
 
 	VIPS_OBJECT_CLASS( vips_operation_parent_class )->
 		summary( object, buf );
+}
+
+static VipsOperationFlags
+vips_operation_real_get_flags( VipsOperation *operation ) 
+{
+	VipsOperationClass *class = VIPS_OPERATION_GET_CLASS( operation );
+
+	return( class->flags );
 }
 
 static void
@@ -248,13 +275,28 @@ vips_operation_class_init( VipsOperationClass *class )
 	vobject_class->dump = vips_operation_dump;
 
 	class->usage = vips_operation_usage;
+	class->get_flags = vips_operation_real_get_flags;
 }
 
 static void
 vips_operation_init( VipsOperation *operation )
 {
-	/* Init our instance fields.
-	 */
+}
+
+/**
+ * vips_operation_get_flags:
+ * @operation: operation to fetch flags from
+ *
+ * Returns the set of flags for this operation.
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+VipsOperationFlags
+vips_operation_get_flags( VipsOperation *operation ) 
+{
+	VipsOperationClass *class = VIPS_OPERATION_GET_CLASS( operation );
+
+	return( class->get_flags( operation ) );
 }
 
 /**
@@ -343,41 +385,6 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 			VIPS_ARGUMENT_COLLECT_END
 		}
 	} VIPS_ARGUMENT_FOR_ALL_END
-
-	return( 0 );
-}
-
-static int
-vips_operation_set_valist_optional( VipsOperation *operation, va_list ap )
-{
-	char *name;
-
-	VIPS_DEBUG_MSG( "vips_operation_set_valist_optional:\n" );
-
-	name = va_arg( ap, char * );
-
-	while( name ) {
-		GParamSpec *pspec;
-		VipsArgumentClass *argument_class;
-		VipsArgumentInstance *argument_instance;
-
-		VIPS_DEBUG_MSG( "\tname = '%s' (%p)\n", name, name );
-
-		if( vips_object_get_argument( VIPS_OBJECT( operation ), name,
-			&pspec, &argument_class, &argument_instance ) )
-			return( -1 );
-
-		VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
-
-		g_object_set_property( G_OBJECT( operation ), 
-			name, &value );
-
-		VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, ap );
-
-		VIPS_ARGUMENT_COLLECT_END
-
-		name = va_arg( ap, char * );
-	}
 
 	return( 0 );
 }
@@ -506,7 +513,7 @@ vips_call_required_optional( VipsOperation **operation,
 	va_copy( a, required );
 	va_copy( b, optional );
 	result = vips_operation_set_valist_required( *operation, a ) ||
-		vips_operation_set_valist_optional( *operation, b );
+		vips_object_set_valist( VIPS_OBJECT( *operation ), b );
 	va_end( a );
 	va_end( b );
 
@@ -767,12 +774,16 @@ vips_call_options_add( VipsObject *object,
 
 		entry[0].long_name = name;
 		entry[0].short_name = name[0];
+		entry[0].description = g_param_spec_get_blurb( pspec );
+
 		entry[0].flags = 0;
 		if( !needs_string ) 
 			entry[0].flags |= G_OPTION_FLAG_NO_ARG;
+		if( argument_class->flags & VIPS_ARGUMENT_DEPRECATED ) 
+			entry[0].flags |= G_OPTION_FLAG_HIDDEN;
+
 		entry[0].arg = G_OPTION_ARG_CALLBACK;
 		entry[0].arg_data = (gpointer) vips_call_options_set;
-		entry[0].description = g_param_spec_get_blurb( pspec );
 		if( needs_string ) 
 			entry[0].arg_description = 
 				g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) );
@@ -829,7 +840,8 @@ vips_call_argv_input( VipsObject *object,
 	/* Loop over all required construct args.
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) { 
 		const char *name = g_param_spec_get_name( pspec );
 
 		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) {
@@ -864,7 +876,8 @@ vips_call_argv_output( VipsObject *object,
 	/* Loop over all required construct args.
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ) {
+		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) { 
 		if( (argument_class->flags & VIPS_ARGUMENT_INPUT) ) 
 			call->i += 1;
 		else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
@@ -947,25 +960,4 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 		return( -1 );
 
 	return( 0 );
-}
-
-/**
- * vips_operation_set_nocache: 
- * @operation: operation to set
- * @nocache: TRUE means don't cache this operation
- *
- * Set this before the end of _build() to stop this operation being cached.
- * Some operations, like sequential read from a TIFF file, for example, cannot
- * be reused.
- */
-void 
-vips_operation_set_nocache( VipsOperation *operation, gboolean nocache )
-{
-#ifdef VIPS_DEBUG
-	printf( "vips_operation_set_nocache: " );
-	vips_object_print_name( VIPS_OBJECT( operation ) );
-	printf( " %d\n", nocache );
-#endif /*VIPS_DEBUG*/
-
-	operation->nocache = nocache;
 }

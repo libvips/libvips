@@ -117,6 +117,10 @@ vips_join_build( VipsObject *object )
 
 		default:
 			g_assert( 0 );
+
+			/* Keep -Wall happy.
+			 */
+			return( 0 );
 		}
 
 		break;
@@ -139,12 +143,20 @@ vips_join_build( VipsObject *object )
 
 		default:
 			g_assert( 0 );
+
+			/* Keep -Wall happy.
+			 */
+			return( 0 );
 		}
 
 		break;
 
 	default:
 		g_assert( 0 );
+
+		/* Keep -Wall happy.
+		 */
+		return( 0 );
 	}
 
 	if( vips_insert( join->in1, join->in2, &t, x, y,
@@ -174,6 +186,10 @@ vips_join_build( VipsObject *object )
 
 		default:
 			g_assert( 0 );
+
+			/* Keep -Wall happy.
+			 */
+			return( 0 );
 		}
 
 		if( vips_extract_area( t, &t2, 
@@ -200,6 +216,7 @@ vips_join_class_init( VipsJoinClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_join_class_init\n" );
 
@@ -209,6 +226,8 @@ vips_join_class_init( VipsJoinClass *class )
 	vobject_class->nickname = "join";
 	vobject_class->description = _( "join a pair of images" );
 	vobject_class->build = vips_join_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in1", -1, 
 		_( "in1" ), 

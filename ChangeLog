@@ -1,9 +1,74 @@
+6/8/12 started 7.30.1
+- fixes to dzsave: shrink down to a 1x1 pixel tile, round image size up on 
+  shrink, write a .dzi file with the pyramid params, default tile size and 
+  overlap now matches the openslide writer
+- wrap VipsInterpolate for C++
+- so affinei and affinei_all appear in Python
+- be more cautious enabling YCbCr mode in tiff write
+- add "DEPRECATED" flag to arguments
+- jpeg load/save note and use the preferred resolution unit
+- better error msgs for enum args
+- fix compiler warnings in production build (thanks Dmitry)
+- fix spurious warnings about exif updates
+- VipsSequential has an integrated cache and stalls out of order threads
+- add a line cache ... sizes up dynamically with request size
+- tilecache / linecache use a hash table not a linear list
+
+20/7/12 started 7.30.0
+- support "rs" mode in vips7
+- add --vips-version cmdline arg
+- fix --without-tiff / exr / jpeg / png / magick
+- add --vips-fatal flag
+
 19/3/12 started 7.29.0
-- better PNG alpha handling
 - sanity-check PNG read geometry
 - nearest-neighbor interpolation rounds coordinates to nearest instead of 
   rounding down (thanks Nicolas)
 - add dzsave, save in deep zoom format
+- rework im_shrink() as a class
+- remove im_rightshift_size(), just a convenience function now
+- vipsthumbnail no longer removes profiles by default
+- much more gentle sharpening in thumbnails
+- added "minimise" signal, used by tilecache to drop
+- add :seq support to im_tiff2vips(), im_jpeg2vips() ... helps ruby-vips
+- better thread safety for vips8 operation dispatch
+- better thread safety for upstream / downstream image linking
+- added "rs" open mode, removed "rd"
+- added vips_operation_get_flags() ... system for attaching sets of flags to
+  operations
+- added VIPS_OPERATION_SEQUENTIAL flag
+- vips8 command-line interface uses this to turn sequential mode on
+  automatically when possible
+- better handling of input files in vips7 command-line interface
+- sequential can skip ahead, so extract / insert are now seq
+
+16/7/12 started 7.28.10
+- wopconst was broken
+- vips_sign() was broken
+- png save compression range was wrong
+- more/moreeq was wrong
+- vips7 ppm save with options was broken 
+<<<<<<< HEAD
+=======
+- don't cache write operations
+>>>>>>> origin/master
+
+18/6/12 started 7.28.9
+- slightly more memory debugging output
+- remove references to the static bicubic interpolator from the docs
+- fix temp file handling on Windows --- was breaking for non-vips files 
+  over 100mb
+- better support for using images from multiple threads
+
+18/6/12 started 7.28.8
+- fixes for centos5 portability
+
+18/6/12 started 7.28.7
+- add vips_flatten() -- flatten RGBA to RGB
+- better alpha handling in PNG load
+- don't save RGBA PNG as CMYK JPG (thanks Tobsn)
+- fix a crash with malformed jpg files (thanks Grigoriy)
+- vipsthumbnail enables sequential mode more and caches lines better
 
 19/4/12 started 7.28.6
 - better resolution unit handling in deprecated im_vips2tiff()

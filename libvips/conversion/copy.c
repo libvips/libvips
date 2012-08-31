@@ -304,6 +304,7 @@ vips_copy_class_init( VipsCopyClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_copy_class_init\n" );
 
@@ -313,6 +314,8 @@ vips_copy_class_init( VipsCopyClass *class )
 	vobject_class->nickname = "copy";
 	vobject_class->description = _( "copy an image" );
 	vobject_class->build = vips_copy_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

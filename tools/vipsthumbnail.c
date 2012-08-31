@@ -25,6 +25,12 @@
  * 	- use :seq mode for png images
  * 	- shrink to a scanline cache to ensure we request pixels sequentially
  * 	  from the input
+ * 13/6/12
+ * 	- update the sequential stuff to the general method
+ * 21/6/12
+ * 	- remove "--nodelete" option, have a --delete option instead, off by
+ * 	  default
+ * 	- much more gentle extra sharpening
  */
 
 #ifdef HAVE_CONFIG_H
@@ -46,30 +52,42 @@ static char *interpolator = "bilinear";;
 static gboolean nosharpen = FALSE;
 static char *export_profile = NULL;
 static char *import_profile = NULL;
+static gboolean delete_profile = FALSE;
 static gboolean nodelete_profile = FALSE;
 static gboolean verbose = FALSE;
 
 static GOptionEntry options[] = {
-	{ "size", 's', 0, G_OPTION_ARG_INT, &thumbnail_size, 
+	{ "size", 's', 0, 
+		G_OPTION_ARG_INT, &thumbnail_size, 
 		N_( "set thumbnail size to SIZE" ), 
 		N_( "SIZE" ) },
-	{ "output", 'o', 0, G_OPTION_ARG_STRING, &output_format, 
+	{ "output", 'o', 0, 
+		G_OPTION_ARG_STRING, &output_format, 
 		N_( "set output to FORMAT" ), 
 		N_( "FORMAT" ) },
-	{ "interpolator", 'p', 0, G_OPTION_ARG_STRING, &interpolator, 
+	{ "interpolator", 'p', 0, 
+		G_OPTION_ARG_STRING, &interpolator, 
 		N_( "resample with INTERPOLATOR" ), 
 		N_( "INTERPOLATOR" ) },
-	{ "nosharpen", 'n', 0, G_OPTION_ARG_NONE, &nosharpen, 
+	{ "nosharpen", 'n', 0, 
+		G_OPTION_ARG_NONE, &nosharpen, 
 		N_( "don't sharpen thumbnail" ), NULL },
-	{ "eprofile", 'e', 0, G_OPTION_ARG_STRING, &export_profile, 
+	{ "eprofile", 'e', 0, 
+		G_OPTION_ARG_STRING, &export_profile, 
 		N_( "export with PROFILE" ), 
 		N_( "PROFILE" ) },
-	{ "iprofile", 'i', 0, G_OPTION_ARG_STRING, &import_profile, 
+	{ "iprofile", 'i', 0, 
+		G_OPTION_ARG_STRING, &import_profile, 
 		N_( "import untagged images with PROFILE" ), 
 		N_( "PROFILE" ) },
-	{ "nodelete", 'l', 0, G_OPTION_ARG_NONE, &nodelete_profile, 
-		N_( "don't delete profile from exported image" ), NULL },
-	{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose, 
+	{ "delete", 'd', 0, 
+		G_OPTION_ARG_NONE, &delete_profile, 
+		N_( "delete profile from exported image" ), NULL },
+	{ "nodelete", 'l', G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_NONE, &nodelete_profile, 
+		N_( "(deprecated, does nothing)" ), NULL },
+	{ "verbose", 'v', 0, 
+		G_OPTION_ARG_NONE, &verbose, 
 		N_( "verbose output" ), NULL },
 	{ NULL }
 };
@@ -121,9 +139,9 @@ sharpen_filter( void )
 	if( !mask ) {
 		mask = im_create_imaskv( "sharpen.con", 3, 3, 
 			-1, -1, -1, 
-			-1, 16, -1, 
+			-1, 32, -1, 
 			-1, -1, -1 );
-		mask->scale = 8;
+		mask->scale = 24;
 	}
 
 	return( mask );
@@ -134,6 +152,8 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	int shrink, double residual, VipsInterpolate *interp )
 {
 	IMAGE *t[9];
+	VipsImage **s = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( out ), 1 );
 	IMAGE *x;
 
 	if( im_open_local_array( out, t, 9, "thumbnail", "p" ) )
@@ -161,23 +181,23 @@ shrink_factor( IMAGE *in, IMAGE *out,
 
 	/* Shrink! 
 	 *
-	 * We want to make sure we read the image sequentially
-	 * so that :seq mode works. However, the convolution we may be doing
-	 * later will force us into SMALLTILE mode and that will break
-	 * sequentiallity.
+	 * We want to make sure we read the image sequentially.
+	 * However, the convolution we may be doing later will force us 
+	 * into SMALLTILE or maybe FATSTRIP mode and that will break
+	 * sequentiality.
 	 *
 	 * So ... read into a cache where tiles are scanlines, and make sure
 	 * we keep enough scanlines to be able to serve a line of tiles.
 	 */
 	if( im_shrink( x, t[2], shrink, shrink ) ||
-		im_tile_cache( t[2], t[3], 
-			t[2]->Xsize, 1, 
-			VIPS__TILE_HEIGHT * 2 ) )
-		return( -1 );
-	x = t[3];
-
-	if( im_affinei_all( t[3], t[4], 
-		interp, residual, 0, 0, residual, 0, 0 ) )
+		vips_tilecache( t[2], &s[0], 
+			"tile_width", t[2]->Xsize,
+			"tile_height", 1,
+			"max_tiles", VIPS__TILE_HEIGHT * 2,
+			"strategy", VIPS_CACHE_SEQUENTIAL,
+			NULL ) ||
+		im_affinei_all( s[0], t[4], 
+			interp, residual, 0, 0, residual, 0, 0 ) )
 		return( -1 );
 	x = t[4];
 
@@ -230,7 +250,7 @@ shrink_factor( IMAGE *in, IMAGE *out,
 		x = t[7];
 	}
 
-	if( !nodelete_profile ) {
+	if( delete_profile ) {
 		if( verbose )
 			printf( "deleting profile from output image\n" );
 
@@ -311,15 +331,28 @@ make_thumbnail_name( const char *filename )
 }
 
 static int
-thumbnail2( const char *filename )
+thumbnail2( const char *filename, int shrink )
 {
 	IMAGE *in;
 	IMAGE *out;
 	char *tn_filename;
 	int result;
 
-	if( !(in = im_open( filename, "rd" )) )
-		return( -1 );
+	/* Open in sequential mode.
+	 */
+	if( shrink > 1 ) {
+		if( vips_foreign_load( filename, &in,
+			"sequential", TRUE,
+			"shrink", shrink,
+			NULL ) )
+			return( -1 );
+	}
+	else {
+		if( vips_foreign_load( filename, &in,
+			"sequential", TRUE,
+			NULL ) )
+			return( -1 );
+	}
 
 	tn_filename = make_thumbnail_name( filename );
 	if( !(out = im_open( tn_filename, "w" )) ) {
@@ -345,7 +378,7 @@ static int
 thumbnail( const char *filename )
 {
 	VipsFormatClass *format;
-	char buf[FILENAME_MAX];
+	int shrink;
 
 	if( verbose )
 		printf( "thumbnailing %s\n", filename );
@@ -357,9 +390,9 @@ thumbnail( const char *filename )
 		printf( "detected format as %s\n", 
 			VIPS_OBJECT_CLASS( format )->nickname );
 
+	shrink = 1;
 	if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, "jpeg" ) == 0 ) {
 		IMAGE *im;
-		int shrink;
 
 		/* This will just read in the header and is quick.
 		 */
@@ -377,24 +410,11 @@ thumbnail( const char *filename )
 		else 
 			shrink = 1;
 
-		im_snprintf( buf, FILENAME_MAX, "%s:%d", filename, shrink );
-
 		if( verbose )
 			printf( "using fast jpeg shrink, factor %d\n", shrink );
-
-		return( thumbnail2( buf ) );
 	}
-	else if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, "png" ) == 0 ) {
-		char buf[FILENAME_MAX];
 
-		if( verbose )
-			printf( "enabling sequential mode for png load\n" );
-		im_snprintf( buf, FILENAME_MAX, "%s:seq", filename );
-
-		return( thumbnail2( buf ) );
-	}
-	else 
-		return( thumbnail2( filename ) );
+	return( thumbnail2( filename, shrink ) );
 }
 
 int

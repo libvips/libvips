@@ -394,6 +394,10 @@ im_isnative( im_arch_type arch )
 	default:
 		g_assert( 0 );
 	}  
+
+	/* Keep -Wall happy.
+	 */
+	return( -1 );
 }
 
 int

@@ -170,8 +170,8 @@ vips_extract_area_build( VipsObject *object )
 	return( 0 );
 }
 
-/* xy range we sanity check on ... just to stop crazy numbers from 1/0 etc.
- * causing g_assert() failures later.
+/* xy range we sanity check on ... just to stop crazy numbers from divide by 0 
+ * etc. causing g_assert() failures later.
  */
 #define RANGE (100000000)
 
@@ -180,6 +180,7 @@ vips_extract_area_class_init( VipsExtractAreaClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_extract_area_class_init\n" );
 
@@ -189,6 +190,8 @@ vips_extract_area_class_init( VipsExtractAreaClass *class )
 	vobject_class->nickname = "extract_area";
 	vobject_class->description = _( "extract an area from an image" );
 	vobject_class->build = vips_extract_area_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "input", 0, 
 		_( "Input" ), 

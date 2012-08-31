@@ -776,6 +776,10 @@ vips_wrap7_subclass_class_init( VipsWrap7Class *class )
 
 		default:
 			g_assert( 0 );
+
+			/* Keep -Wall happy.
+			 */
+			return;
 		}
 
 		if( pspec ) {

@@ -157,6 +157,8 @@ int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_tilecache( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_linecache( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_sequential( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_cache( VipsImage *in, VipsImage **out, ... )
@@ -216,10 +218,12 @@ int vips_black( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 	__attribute__((sentinel));
+
 int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2, 
 	VipsImage **out, ... )
 	__attribute__((sentinel));
-
+int vips_flatten( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 
 

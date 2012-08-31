@@ -242,7 +242,7 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 
 	/* Paint the range we discovered.
 	 */
-	im__draw_scanline( DRAW( flood ), y, *x1, *x2 );
+	im__draw_scanline( draw, y, *x1, *x2 );
 
 	if( flood->dout ) {
 		flood->left = IM_MIN( flood->left, *x1 );

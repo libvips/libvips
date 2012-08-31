@@ -136,6 +136,10 @@ typedef struct _VipsForeignLoad {
 	 * disc foreign or a memory buffer. This must be set by ->load().
 	 */
 	VipsImage *real;
+
+	/* Set this to tag the operation as nocache.
+	 */
+	gboolean nocache;
 } VipsForeignLoad;
 
 typedef struct _VipsForeignLoadClass {
@@ -294,10 +298,10 @@ int vips_foreign_load( const char *filename, VipsImage **out, ... )
 int vips_foreign_save( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
-int vips_foreign_load_options( const char *filename, VipsImage **out );
-int vips_foreign_save_options( VipsImage *in, const char *filename );
-
-void vips_foreign_operation_init( void );
+int vips_foreign_load_options( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_foreign_save_options( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
 
 int vips_openslideload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -342,7 +346,7 @@ typedef enum {
 /**
  * VipsForeignTiffPredictor:
  * @VIPS_FOREIGN_TIFF_PREDICTOR_NONE: no prediction
- * @VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL: horizontal differenceing
+ * @VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL: horizontal differencing
  * @VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT: float predictor
  *
  * The predictor can help deflate and lzw compression. The values are fixed by
@@ -418,6 +422,9 @@ int vips_matload( const char *filename, VipsImage **out, ... )
 int vips_radload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_radsave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+
+int vips_dzsave( VipsImage *in, const char *basename, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus

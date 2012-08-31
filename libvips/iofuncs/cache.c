@@ -1,4 +1,9 @@
 /* cache vips operations
+ *
+ * 20/6/12
+ * 	- try to make it compile on centos5
+ * 7/7/12
+ * 	- add a lock so we can run operations from many threads
  */
 
 /*
@@ -30,9 +35,6 @@
 /*
 
    TODO
-
-	should the cache be thread-private? or lock? or say operations can 
-	only be made from the main thread?
 
 	listen for invalidate
 
@@ -100,6 +102,16 @@ static GHashTable *vips_cache_table = NULL;
  */
 static int vips_cache_time = 0;
 
+/* Protect cache access with this.
+ */
+static GMutex *vips_cache_lock = NULL;
+
+/* Old versions of glib are missing these. When we abandon centos 5, switch to
+ * g_int64_hash() and g_double_hash().
+ */
+#define INT64_HASH(X) (g_direct_hash(X))
+#define DOUBLE_HASH(X) (g_direct_hash(X))
+
 /* Pass in the pspec so we can get the generic type. For example, a 
  * held in a GParamSpec allowing OBJECT, but the value could be of type
  * VipsImage. generics are much faster to compare.
@@ -134,22 +146,22 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 	else if( generic == G_TYPE_PARAM_UINT64 ) {
 		guint64 i = g_value_get_uint64( value );
 
-		return( g_int64_hash( (gint64 *) &i ) );
+		return( INT64_HASH( (gint64 *) &i ) );
 	}
 	else if( generic == G_TYPE_PARAM_INT64 ) {
 		gint64 i = g_value_get_int64( value );
 
-		return( g_int64_hash( &i ) );
+		return( INT64_HASH( &i ) );
 	}
 	else if( generic == G_TYPE_PARAM_FLOAT ) {
 		float f = g_value_get_float( value );
 
-		return( *((unsigned int *) &f) );
+		return( g_direct_hash( (void *) &f ) );
 	}
 	else if( generic == G_TYPE_PARAM_DOUBLE ) {
 		double d = g_value_get_double( value );
 
-		return( g_double_hash( &d ) );
+		return( DOUBLE_HASH( &d ) );
 	}
 	else if( generic == G_TYPE_PARAM_STRING ) {
 		const char *s = g_value_get_string( value );
@@ -253,9 +265,15 @@ vips_value_equal( GParamSpec *pspec, GValue *v1, GValue *v2 )
 	if( generic == G_TYPE_PARAM_DOUBLE ) 
 		return( g_value_get_double( v1 ) ==
 			g_value_get_double( v2 ) );
-	if( generic == G_TYPE_PARAM_STRING ) 
-		return( strcmp( g_value_get_string( v1 ),
-			g_value_get_string( v2 ) ) == 0 );
+	if( generic == G_TYPE_PARAM_STRING ) {
+		const char *s1 = g_value_get_string( v1 );
+		const char *s2 = g_value_get_string( v2 );
+
+		if( s1 == s2 )
+			return( TRUE );
+		else
+			return( s1 && s2 && strcmp( s1, s2 ) == 0 );
+	}
 	if( generic == G_TYPE_PARAM_BOXED ) 
 		return( g_value_get_boxed( v1 ) ==
 			g_value_get_boxed( v2 ) );
@@ -394,10 +412,12 @@ vips_operation_equal( VipsOperation *a, VipsOperation *b )
 	return( FALSE );
 }
 
-static void
-vips_cache_init( void )
+void
+vips__cache_init( void )
 {
 	if( !vips_cache_table ) {
+		vips_cache_lock = g_mutex_new();
+
 		vips_cache_table = g_hash_table_new( 
 			(GHashFunc) vips_operation_hash, 
 			(GEqualFunc) vips_operation_equal );
@@ -416,24 +436,36 @@ vips_cache_init( void )
 	}
 }
 
-static void
-vips_cache_dump( void )
+static void *
+vips_cache_print_fn( void *value, void *a, void *b )
 {
+	char str[32768];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	vips_object_to_string( VIPS_OBJECT( value ), &buf );
+
+	printf( "%p - %s\n", value, vips_buf_all( &buf ) );
+
+	return( NULL );
+}
+
+/**
+ * vips_cache_print:
+ *
+ * Print the whole operation cache to stdout. Handy for debugging.
+ */
+void
+vips_cache_print( void )
+{
+	g_mutex_lock( vips_cache_lock );
+
 	if( vips_cache_table ) {
-		GHashTableIter iter;
-		gpointer key, value;
-
 		printf( "Operation cache:\n" );
-		g_hash_table_iter_init( &iter, vips_cache_table );
-		while( g_hash_table_iter_next( &iter, &key, &value ) ) {
-			char str[32768];
-			VipsBuf buf = VIPS_BUF_STATIC( str );
-
-			vips_object_to_string( VIPS_OBJECT( key ), &buf );
-
-			printf( "%p - %s\n", key, vips_buf_all( &buf ) );
-		}
+		vips_hash_table_map( vips_cache_table, 
+			vips_cache_print_fn, NULL, NULL ); 
 	}
+
+	g_mutex_unlock( vips_cache_lock );
 }
 
 static void *
@@ -485,6 +517,24 @@ vips_cache_drop( VipsOperation *operation )
 	vips_cache_unref( operation );
 }
 
+static void *
+vips_cache_get_first_fn( void *value, void *a, void *b )
+{
+	return( value );
+}
+
+/* Return the first item.
+ */
+static VipsOperation *
+vips_cache_get_first( void )
+{
+	if( vips_cache_table )
+		return( VIPS_OPERATION( vips_hash_table_map( vips_cache_table, 
+			vips_cache_get_first_fn, NULL, NULL ) ) );
+	else
+		return( NULL ); 
+}
+
 /**
  * vips_cache_drop_all:
  *
@@ -493,49 +543,48 @@ vips_cache_drop( VipsOperation *operation )
 void
 vips_cache_drop_all( void )
 {
+	g_mutex_lock( vips_cache_lock );
+
 	if( vips_cache_table ) {
+		VipsOperation *operation;
+
 		if( vips__cache_dump )
-			vips_cache_dump();
+			vips_cache_print();
 
 		/* We can't modify the hash in the callback from
 		 * g_hash_table_foreach() and friends. Repeatedly drop the
 		 * first item instead.
 		 */
-		for(;;) {
-			GHashTableIter iter;
-			gpointer key, value;
-
-			g_hash_table_iter_init( &iter, vips_cache_table );
-			if( !g_hash_table_iter_next( &iter, &key, &value ) )
-				break;
-
-			vips_cache_drop( (VipsOperation *) key );
-		}
+		while( (operation = vips_cache_get_first()) ) 
+			vips_cache_drop( operation );
 
 		VIPS_FREEF( g_hash_table_unref, vips_cache_table );
 	}
+
+	g_mutex_unlock( vips_cache_lock );
 }
 
 static void
-vips_cache_select_cb( VipsOperation *key, VipsOperation *value, 
+vips_cache_get_lru_cb( VipsOperation *key, VipsOperation *value, 
 	VipsOperation **best )
-
 {
 	if( !*best ||
 		(*best)->time > value->time )
 		*best = value;
 }
 
-/* Find an op to drop ... LRU for now.
+/* Get the least-recently-used cache item. 
+ *
+ * TODO ... will this be too expensive? probably not
  */
 static VipsOperation *
-vips_cache_select( void )
+vips_cache_get_lru( void )
 {
 	VipsOperation *operation;
 
 	operation = NULL;
 	g_hash_table_foreach( vips_cache_table,
-		(GHFunc) vips_cache_select_cb, &operation );
+		(GHFunc) vips_cache_get_lru_cb, &operation );
 
 	return( operation );
 }
@@ -547,17 +596,21 @@ vips_cache_trim( void )
 {
 	VipsOperation *operation;
 
+	g_mutex_lock( vips_cache_lock );
+
 	while( vips_cache_table &&
 		(g_hash_table_size( vips_cache_table ) > vips_cache_max ||
 		vips_tracked_get_files() > vips_cache_max_files ||
 		vips_tracked_get_mem() > vips_cache_max_mem) &&
-		(operation = vips_cache_select()) ) {
+		(operation = vips_cache_get_lru()) ) {
 #ifdef DEBUG
 		printf( "vips_cache_trim: trimming %p\n", operation );
 #endif /*DEBUG*/
 
 		vips_cache_drop( operation );
 	}
+
+	g_mutex_unlock( vips_cache_lock );
 }
 
 static void *
@@ -624,9 +677,9 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	vips_object_print_dump( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
 
-	vips_cache_init();
-
 	vips_cache_trim();
+
+	g_mutex_lock( vips_cache_lock );
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
 		if( vips__cache_trace ) {
@@ -641,9 +694,13 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 		*operation = hit;
 	}
-	else {
+
+	g_mutex_unlock( vips_cache_lock );
+
+	if( !hit ) {
 		if( vips__cache_trace ) {
-			if( (*operation)->nocache ) 
+			if( vips_operation_get_flags( *operation ) & 
+				VIPS_OPERATION_NOCACHE )
 				printf( "vips cache: uncacheable %p\n  ", 
 					*operation );
 			else
@@ -651,15 +708,21 @@ vips_cache_operation_buildp( VipsOperation **operation )
 			vips_object_print_summary( VIPS_OBJECT( *operation ) );
 		}
 
-		if( vips_object_build( VIPS_OBJECT( *operation ) ) )
+		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
 
-		if( !(*operation)->nocache ) {
+		g_mutex_lock( vips_cache_lock );
+
+		if( !(vips_operation_get_flags( *operation ) & 
+			VIPS_OPERATION_NOCACHE) ) {
 			vips_cache_ref( *operation );
 			g_hash_table_insert( vips_cache_table, 
 				*operation, *operation );
 		}
+
+		g_mutex_unlock( vips_cache_lock );
 	}
+
 
 	return( 0 );
 }
@@ -746,10 +809,17 @@ vips_cache_get_max( void )
 int
 vips_cache_get_size( void )
 {
+	guint size;
+
+	g_mutex_lock( vips_cache_lock );
+
+	size = 0;
 	if( vips_cache_table )
-		return( g_hash_table_size( vips_cache_table ) );
-	else
-		return( 0 );
+		size = g_hash_table_size( vips_cache_table );
+
+	g_mutex_unlock( vips_cache_lock );
+
+	return( size );
 }
 
 /**

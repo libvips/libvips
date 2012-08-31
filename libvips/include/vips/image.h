@@ -419,6 +419,16 @@ typedef struct _VipsImageClass {
 	 */
 	void (*invalidate)( VipsImage *image );
 
+	/* Minimise this pipeline. 
+	 *
+	 * This is triggered (sometimes) at the end of eval to signal that
+	 * we're probably done and that operations involved should try to
+	 * minimise memory use by, for example, dropping caches. 
+	 *
+	 * See vips_tilecache().
+	 */
+	void (*minimise)( VipsImage *image );
+
 } VipsImageClass;
 
 GType vips_image_get_type( void );
@@ -474,6 +484,8 @@ extern const guint64 vips__image_sizeof_bandformat[];
 int vips_image_written( VipsImage *image );
 
 void vips_image_invalidate_all( VipsImage *image );
+
+void vips_image_minimise_all( VipsImage *image );
 
 void vips_image_preeval( VipsImage *image );
 void vips_image_eval( VipsImage *image, guint64 processed );

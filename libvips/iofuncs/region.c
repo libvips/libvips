@@ -323,6 +323,9 @@ vips_region_summary( VipsObject *object, VipsBuf *buf )
 	vips_buf_appendf( buf, "width = %d, ", region->valid.width );
 	vips_buf_appendf( buf, "height = %d", region->valid.height );
 
+	if( region->buffer && region->buffer->buf )
+		vips_buf_appendf( buf, ", bytes = %zd", region->buffer->bsize );
+
 	VIPS_OBJECT_CLASS( vips_region_parent_class )->summary( object, buf );
 }
 

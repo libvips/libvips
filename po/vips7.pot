@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2012-05-29 13:36+0100\n"
+"POT-Creation-Date: 2012-08-14 13:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -46,9 +46,9 @@ msgstr ""
 
 #: ../libvips/arithmetic/avg.c:218 ../libvips/arithmetic/measure.c:202
 #: ../libvips/arithmetic/stats.c:423 ../libvips/arithmetic/deviate.c:219
-#: ../libvips/arithmetic/arithmetic.c:382 ../libvips/arithmetic/min.c:325
+#: ../libvips/arithmetic/arithmetic.c:385 ../libvips/arithmetic/min.c:325
 #: ../libvips/arithmetic/max.c:324 ../libvips/conversion/conversion.c:89
-#: ../libvips/foreign/foreign.c:897
+#: ../libvips/foreign/foreign.c:926 ../libvips/resample/resample.c:95
 msgid "Output"
 msgstr ""
 
@@ -314,49 +314,49 @@ msgid "Number of patches down chart"
 msgstr ""
 
 #: ../libvips/arithmetic/measure.c:222 ../libvips/arithmetic/binary.c:95
-#: ../libvips/conversion/extract.c:200
+#: ../libvips/conversion/extract.c:203
 msgid "Left"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:223 ../libvips/conversion/extract.c:201
+#: ../libvips/arithmetic/measure.c:223 ../libvips/conversion/extract.c:204
 msgid "Left edge of extract area"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:229 ../libvips/conversion/extract.c:207
+#: ../libvips/arithmetic/measure.c:229 ../libvips/conversion/extract.c:210
 msgid "Top"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:230 ../libvips/conversion/extract.c:208
+#: ../libvips/arithmetic/measure.c:230 ../libvips/conversion/extract.c:211
 msgid "Top edge of extract area"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:236 ../libvips/conversion/extract.c:214
-#: ../libvips/conversion/black.c:128 ../libvips/conversion/copy.c:331
-#: ../libvips/conversion/embed.c:536 ../libvips/foreign/rawload.c:122
-#: ../libvips/iofuncs/image.c:845
+#: ../libvips/arithmetic/measure.c:236 ../libvips/conversion/extract.c:217
+#: ../libvips/conversion/black.c:128 ../libvips/conversion/copy.c:334
+#: ../libvips/conversion/embed.c:544 ../libvips/foreign/rawload.c:122
+#: ../libvips/iofuncs/image.c:876
 msgid "Width"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:237 ../libvips/conversion/extract.c:215
+#: ../libvips/arithmetic/measure.c:237 ../libvips/conversion/extract.c:218
 msgid "Width of extract area"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:243 ../libvips/conversion/extract.c:221
-#: ../libvips/conversion/black.c:135 ../libvips/conversion/copy.c:338
-#: ../libvips/conversion/embed.c:543 ../libvips/foreign/rawload.c:129
-#: ../libvips/iofuncs/image.c:852
+#: ../libvips/arithmetic/measure.c:243 ../libvips/conversion/extract.c:224
+#: ../libvips/conversion/black.c:135 ../libvips/conversion/copy.c:341
+#: ../libvips/conversion/embed.c:551 ../libvips/foreign/rawload.c:129
+#: ../libvips/iofuncs/image.c:883
 msgid "Height"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:244 ../libvips/conversion/extract.c:222
+#: ../libvips/arithmetic/measure.c:244 ../libvips/conversion/extract.c:225
 msgid "Height of extract area"
 msgstr ""
 
-#: ../libvips/arithmetic/math2.c:196
+#: ../libvips/arithmetic/math2.c:198
 msgid "pow( left, right)"
 msgstr ""
 
-#: ../libvips/arithmetic/math2.c:204 ../libvips/arithmetic/math2.c:401
+#: ../libvips/arithmetic/math2.c:206 ../libvips/arithmetic/math2.c:403
 #: ../libvips/arithmetic/complex.c:222 ../libvips/arithmetic/complex.c:476
 #: ../libvips/arithmetic/math.c:205 ../libvips/arithmetic/relational.c:227
 #: ../libvips/arithmetic/relational.c:560 ../libvips/arithmetic/boolean.c:217
@@ -364,12 +364,12 @@ msgstr ""
 msgid "Operation"
 msgstr ""
 
-#: ../libvips/arithmetic/math2.c:205 ../libvips/arithmetic/math2.c:402
+#: ../libvips/arithmetic/math2.c:207 ../libvips/arithmetic/math2.c:404
 #: ../libvips/arithmetic/math.c:206
 msgid "math to perform"
 msgstr ""
 
-#: ../libvips/arithmetic/math2.c:393
+#: ../libvips/arithmetic/math2.c:395
 msgid "pow( @in, @c )"
 msgstr ""
 
@@ -391,18 +391,19 @@ msgstr ""
 
 #: ../libvips/arithmetic/unary.c:87 ../libvips/arithmetic/statistic.c:151
 #: ../libvips/conversion/flip.c:240 ../libvips/conversion/bandmean.c:197
-#: ../libvips/conversion/cast.c:476 ../libvips/conversion/extract.c:194
-#: ../libvips/conversion/extract.c:353 ../libvips/conversion/bandjoin.c:171
-#: ../libvips/conversion/copy.c:318 ../libvips/conversion/rot.c:355
-#: ../libvips/conversion/replicate.c:196 ../libvips/conversion/tilecache.c:422
-#: ../libvips/conversion/embed.c:516 ../libvips/conversion/cache.c:106
-#: ../libvips/conversion/recomb.c:200 ../libvips/conversion/sequential.c:153
-#: ../libvips/foreign/foreign.c:1379
+#: ../libvips/conversion/cast.c:479 ../libvips/conversion/flatten.c:375
+#: ../libvips/conversion/extract.c:197 ../libvips/conversion/extract.c:356
+#: ../libvips/conversion/bandjoin.c:171 ../libvips/conversion/copy.c:321
+#: ../libvips/conversion/rot.c:359 ../libvips/conversion/replicate.c:196
+#: ../libvips/conversion/tilecache.c:446 ../libvips/conversion/embed.c:524
+#: ../libvips/conversion/cache.c:106 ../libvips/conversion/recomb.c:203
+#: ../libvips/conversion/sequential.c:176 ../libvips/foreign/foreign.c:1442
+#: ../libvips/resample/resample.c:89
 msgid "Input"
 msgstr ""
 
 #: ../libvips/arithmetic/unary.c:88 ../libvips/conversion/bandmean.c:198
-#: ../libvips/conversion/recomb.c:201
+#: ../libvips/conversion/recomb.c:204 ../libvips/resample/resample.c:90
 msgid "Input image argument"
 msgstr ""
 
@@ -433,12 +434,13 @@ msgstr ""
 msgid "too many input images"
 msgstr ""
 
-#: ../libvips/arithmetic/arithmetic.c:378
+#: ../libvips/arithmetic/arithmetic.c:379
 msgid "arithmetic operations"
 msgstr ""
 
-#: ../libvips/arithmetic/arithmetic.c:383
-#: ../libvips/conversion/conversion.c:90 ../libvips/foreign/foreign.c:898
+#: ../libvips/arithmetic/arithmetic.c:386
+#: ../libvips/conversion/conversion.c:90 ../libvips/foreign/foreign.c:927
+#: ../libvips/resample/resample.c:96
 msgid "Output image"
 msgstr ""
 
@@ -447,7 +449,7 @@ msgid "find image minimum"
 msgstr ""
 
 #: ../libvips/arithmetic/min.c:332 ../libvips/arithmetic/max.c:331
-#: ../libvips/conversion/embed.c:522
+#: ../libvips/conversion/embed.c:530
 msgid "x"
 msgstr ""
 
@@ -456,7 +458,7 @@ msgid "Horizontal position of minimum"
 msgstr ""
 
 #: ../libvips/arithmetic/min.c:339 ../libvips/arithmetic/max.c:338
-#: ../libvips/conversion/embed.c:529
+#: ../libvips/conversion/embed.c:537
 msgid "y"
 msgstr ""
 
@@ -464,7 +466,7 @@ msgstr ""
 msgid "Vertical position of minimum"
 msgstr ""
 
-#: ../libvips/arithmetic/im_point_bilinear.c:74
+#: ../libvips/arithmetic/im_point_bilinear.c:75
 msgid "coords outside image"
 msgstr ""
 
@@ -562,11 +564,12 @@ msgid "VIPS statistic operations"
 msgstr ""
 
 #: ../libvips/arithmetic/statistic.c:152 ../libvips/conversion/flip.c:241
-#: ../libvips/conversion/cast.c:477 ../libvips/conversion/extract.c:195
-#: ../libvips/conversion/extract.c:354 ../libvips/conversion/copy.c:319
-#: ../libvips/conversion/rot.c:356 ../libvips/conversion/replicate.c:197
-#: ../libvips/conversion/tilecache.c:423 ../libvips/conversion/embed.c:517
-#: ../libvips/conversion/cache.c:107 ../libvips/conversion/sequential.c:154
+#: ../libvips/conversion/cast.c:480 ../libvips/conversion/flatten.c:376
+#: ../libvips/conversion/extract.c:198 ../libvips/conversion/extract.c:357
+#: ../libvips/conversion/copy.c:322 ../libvips/conversion/rot.c:360
+#: ../libvips/conversion/replicate.c:197 ../libvips/conversion/tilecache.c:447
+#: ../libvips/conversion/embed.c:525 ../libvips/conversion/cache.c:107
+#: ../libvips/conversion/sequential.c:177
 msgid "Input image"
 msgstr ""
 
@@ -612,10 +615,6 @@ msgstr ""
 
 #: ../libvips/colour/disp.c:537
 msgid "display unknown"
-msgstr ""
-
-#: ../libvips/colour/im_rad2float.c:186
-msgid "not a RAD image"
 msgstr ""
 
 #: ../libvips/colour/im_icc_transform.c:202
@@ -768,7 +767,7 @@ msgstr ""
 msgid "no input images"
 msgstr ""
 
-#: ../libvips/conversion/bandary.c:173
+#: ../libvips/conversion/bandary.c:174
 msgid "operations on image bands"
 msgstr ""
 
@@ -777,16 +776,16 @@ msgstr ""
 msgid "%d underflows and %d overflows detected"
 msgstr ""
 
-#: ../libvips/conversion/cast.c:472
+#: ../libvips/conversion/cast.c:473
 msgid "cast an image"
 msgstr ""
 
-#: ../libvips/conversion/cast.c:482 ../libvips/conversion/copy.c:352
-#: ../libvips/iofuncs/image.c:866
+#: ../libvips/conversion/cast.c:485 ../libvips/conversion/copy.c:355
+#: ../libvips/iofuncs/image.c:897
 msgid "Format"
 msgstr ""
 
-#: ../libvips/conversion/cast.c:483
+#: ../libvips/conversion/cast.c:486
 msgid "Format to cast to"
 msgstr ""
 
@@ -794,18 +793,30 @@ msgstr ""
 msgid "conversion operations"
 msgstr ""
 
+#: ../libvips/conversion/flatten.c:369
+msgid "flatten alpha out of an image"
+msgstr ""
+
+#: ../libvips/conversion/flatten.c:381 ../libvips/conversion/join.c:266
+#: ../libvips/conversion/insert.c:392
+msgid "Background"
+msgstr ""
+
+#: ../libvips/conversion/flatten.c:382
+msgid "Background value"
+msgstr ""
+
 #: ../libvips/conversion/im_subsample.c:202
 msgid "factors should both be >= 1"
 msgstr ""
 
-#: ../libvips/conversion/im_subsample.c:221
-#: ../libvips/resample/im_shrink.c:299
+#: ../libvips/conversion/im_subsample.c:221 ../libvips/resample/shrink.c:346
 msgid "image has shrunk to nothing"
 msgstr ""
 
 #: ../libvips/conversion/im_grid.c:164
 #: ../libvips/convolution/im_contrast_surface.c:140
-#: ../libvips/iofuncs/sinkscreen.c:1082 ../libvips/iofuncs/image.c:710
+#: ../libvips/iofuncs/sinkscreen.c:1082 ../libvips/iofuncs/image.c:721
 #: ../libvips/morphology/im_rank.c:342
 msgid "bad parameters"
 msgstr ""
@@ -818,31 +829,31 @@ msgstr ""
 msgid "bad extract area"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:190
+#: ../libvips/conversion/extract.c:191
 msgid "extract an area from an image"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:318
+#: ../libvips/conversion/extract.c:321
 msgid "bad extract band"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:347
+#: ../libvips/conversion/extract.c:350
 msgid "extract band from an image"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:359
+#: ../libvips/conversion/extract.c:362
 msgid "Band"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:360
+#: ../libvips/conversion/extract.c:363
 msgid "Band to extract"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:366
+#: ../libvips/conversion/extract.c:369
 msgid "n"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:367
+#: ../libvips/conversion/extract.c:370
 msgid "Number of bands to extract"
 msgstr ""
 
@@ -859,7 +870,6 @@ msgid "unknown coding"
 msgstr ""
 
 #: ../libvips/conversion/im_msb.c:169
-#: ../libvips/resample/im_rightshift_size.c:116
 msgid "bad arguments"
 msgstr ""
 
@@ -871,105 +881,105 @@ msgstr ""
 msgid "make a black image"
 msgstr ""
 
-#: ../libvips/conversion/black.c:129 ../libvips/conversion/copy.c:332
-#: ../libvips/conversion/embed.c:537 ../libvips/foreign/rawload.c:123
-#: ../libvips/iofuncs/image.c:846
+#: ../libvips/conversion/black.c:129 ../libvips/conversion/copy.c:335
+#: ../libvips/conversion/embed.c:545 ../libvips/foreign/rawload.c:123
+#: ../libvips/iofuncs/image.c:877
 msgid "Image width in pixels"
 msgstr ""
 
-#: ../libvips/conversion/black.c:136 ../libvips/conversion/copy.c:339
-#: ../libvips/conversion/embed.c:544 ../libvips/foreign/rawload.c:130
-#: ../libvips/iofuncs/image.c:853
+#: ../libvips/conversion/black.c:136 ../libvips/conversion/copy.c:342
+#: ../libvips/conversion/embed.c:552 ../libvips/foreign/rawload.c:130
+#: ../libvips/iofuncs/image.c:884
 msgid "Image height in pixels"
 msgstr ""
 
-#: ../libvips/conversion/black.c:142 ../libvips/conversion/copy.c:345
-#: ../libvips/foreign/rawload.c:136 ../libvips/iofuncs/image.c:859
+#: ../libvips/conversion/black.c:142 ../libvips/conversion/copy.c:348
+#: ../libvips/foreign/rawload.c:136 ../libvips/iofuncs/image.c:890
 msgid "Bands"
 msgstr ""
 
-#: ../libvips/conversion/black.c:143 ../libvips/conversion/copy.c:346
-#: ../libvips/foreign/rawload.c:137 ../libvips/iofuncs/image.c:860
+#: ../libvips/conversion/black.c:143 ../libvips/conversion/copy.c:349
+#: ../libvips/foreign/rawload.c:137 ../libvips/iofuncs/image.c:891
 msgid "Number of bands in image"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:314
+#: ../libvips/conversion/copy.c:315
 msgid "copy an image"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:324
+#: ../libvips/conversion/copy.c:327
 msgid "Swap"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:325
+#: ../libvips/conversion/copy.c:328
 msgid "Swap bytes in image between little and big-endian"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:353 ../libvips/iofuncs/image.c:867
+#: ../libvips/conversion/copy.c:356 ../libvips/iofuncs/image.c:898
 msgid "Pixel format in image"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:359 ../libvips/iofuncs/image.c:873
+#: ../libvips/conversion/copy.c:362 ../libvips/iofuncs/image.c:904
 msgid "Coding"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:360 ../libvips/iofuncs/image.c:874
+#: ../libvips/conversion/copy.c:363 ../libvips/iofuncs/image.c:905
 msgid "Pixel coding"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:366 ../libvips/iofuncs/image.c:880
+#: ../libvips/conversion/copy.c:369 ../libvips/iofuncs/image.c:911
 msgid "Interpretation"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:367 ../libvips/iofuncs/image.c:881
+#: ../libvips/conversion/copy.c:370 ../libvips/iofuncs/image.c:912
 msgid "Pixel interpretation"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:373 ../libvips/foreign/tiffsave.c:251
-#: ../libvips/iofuncs/image.c:887
+#: ../libvips/conversion/copy.c:376 ../libvips/foreign/tiffsave.c:251
+#: ../libvips/iofuncs/image.c:918
 msgid "Xres"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:374 ../libvips/foreign/tiffsave.c:252
-#: ../libvips/iofuncs/image.c:888
+#: ../libvips/conversion/copy.c:377 ../libvips/foreign/tiffsave.c:252
+#: ../libvips/iofuncs/image.c:919
 msgid "Horizontal resolution in pixels/mm"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:380 ../libvips/foreign/tiffsave.c:258
-#: ../libvips/iofuncs/image.c:894
+#: ../libvips/conversion/copy.c:383 ../libvips/foreign/tiffsave.c:258
+#: ../libvips/iofuncs/image.c:925
 msgid "Yres"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:381 ../libvips/foreign/tiffsave.c:259
-#: ../libvips/iofuncs/image.c:895
+#: ../libvips/conversion/copy.c:384 ../libvips/foreign/tiffsave.c:259
+#: ../libvips/iofuncs/image.c:926
 msgid "Vertical resolution in pixels/mm"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:387 ../libvips/iofuncs/image.c:901
+#: ../libvips/conversion/copy.c:390 ../libvips/iofuncs/image.c:932
 msgid "Xoffset"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:388 ../libvips/iofuncs/image.c:902
+#: ../libvips/conversion/copy.c:391 ../libvips/iofuncs/image.c:933
 msgid "Horizontal offset of origin"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:394 ../libvips/iofuncs/image.c:908
+#: ../libvips/conversion/copy.c:397 ../libvips/iofuncs/image.c:939
 msgid "Yoffset"
 msgstr ""
 
-#: ../libvips/conversion/copy.c:395 ../libvips/iofuncs/image.c:909
+#: ../libvips/conversion/copy.c:398 ../libvips/iofuncs/image.c:940
 msgid "Vertical offset of origin"
 msgstr ""
 
-#: ../libvips/conversion/rot.c:351
+#: ../libvips/conversion/rot.c:355
 msgid "rotate an image"
 msgstr ""
 
-#: ../libvips/conversion/rot.c:361
+#: ../libvips/conversion/rot.c:365
 msgid "Angle"
 msgstr ""
 
-#: ../libvips/conversion/rot.c:362
+#: ../libvips/conversion/rot.c:366
 msgid "Angle to rotate image"
 msgstr ""
 
@@ -985,63 +995,59 @@ msgstr ""
 msgid "Repeat this many times vertically"
 msgstr ""
 
-#: ../libvips/conversion/join.c:210
+#: ../libvips/conversion/join.c:227
 msgid "join a pair of images"
 msgstr ""
 
-#: ../libvips/conversion/join.c:214
+#: ../libvips/conversion/join.c:233
 msgid "in1"
 msgstr ""
 
-#: ../libvips/conversion/join.c:215
+#: ../libvips/conversion/join.c:234
 msgid "First input image"
 msgstr ""
 
-#: ../libvips/conversion/join.c:220
+#: ../libvips/conversion/join.c:239
 msgid "in2"
 msgstr ""
 
-#: ../libvips/conversion/join.c:221
+#: ../libvips/conversion/join.c:240
 msgid "Second input image"
 msgstr ""
 
-#: ../libvips/conversion/join.c:226
+#: ../libvips/conversion/join.c:245
 msgid "direction"
 msgstr ""
 
-#: ../libvips/conversion/join.c:227
+#: ../libvips/conversion/join.c:246
 msgid "Join left-right or up-down"
 msgstr ""
 
-#: ../libvips/conversion/join.c:233 ../libvips/conversion/insert.c:379
+#: ../libvips/conversion/join.c:252 ../libvips/conversion/insert.c:385
 msgid "Expand"
 msgstr ""
 
-#: ../libvips/conversion/join.c:234 ../libvips/conversion/insert.c:380
+#: ../libvips/conversion/join.c:253 ../libvips/conversion/insert.c:386
 msgid "Expand output to hold all of both inputs"
 msgstr ""
 
-#: ../libvips/conversion/join.c:240
+#: ../libvips/conversion/join.c:259
 msgid "Shim"
 msgstr ""
 
-#: ../libvips/conversion/join.c:241
+#: ../libvips/conversion/join.c:260
 msgid "Pixels between images"
 msgstr ""
 
-#: ../libvips/conversion/join.c:247 ../libvips/conversion/insert.c:386
-msgid "Background"
-msgstr ""
-
-#: ../libvips/conversion/join.c:248 ../libvips/conversion/insert.c:387
+#: ../libvips/conversion/join.c:267 ../libvips/conversion/insert.c:393
 msgid "Colour for new pixels"
 msgstr ""
 
-#: ../libvips/conversion/join.c:254
+#: ../libvips/conversion/join.c:273
 msgid "Align"
 msgstr ""
 
-#: ../libvips/conversion/join.c:255
+#: ../libvips/conversion/join.c:274
 msgid "Align on the low, centre or high coordinate edge"
 msgstr ""
 
@@ -1062,79 +1068,79 @@ msgstr ""
 msgid "vectors not same length"
 msgstr ""
 
-#: ../libvips/conversion/insert.c:349
+#: ../libvips/conversion/insert.c:353
 msgid "insert an image"
 msgstr ""
 
-#: ../libvips/conversion/insert.c:353
+#: ../libvips/conversion/insert.c:359
 msgid "Main"
 msgstr ""
 
-#: ../libvips/conversion/insert.c:354
+#: ../libvips/conversion/insert.c:360
 msgid "Main input image"
 msgstr ""
 
-#: ../libvips/conversion/insert.c:359
+#: ../libvips/conversion/insert.c:365
 msgid "Sub-image"
 msgstr ""
 
-#: ../libvips/conversion/insert.c:360
+#: ../libvips/conversion/insert.c:366
 msgid "Sub-image to insert into main image"
 msgstr ""
 
-#: ../libvips/conversion/insert.c:365
+#: ../libvips/conversion/insert.c:371
 msgid "X"
 msgstr ""
 
-#: ../libvips/conversion/insert.c:366
+#: ../libvips/conversion/insert.c:372
 msgid "Left edge of sub in main"
 msgstr ""
 
-#: ../libvips/conversion/insert.c:372
+#: ../libvips/conversion/insert.c:378
 msgid "Y"
 msgstr ""
 
-#: ../libvips/conversion/insert.c:373
+#: ../libvips/conversion/insert.c:379
 msgid "Top edge of sub in main"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:418 ../libvips/conversion/cache.c:102
+#: ../libvips/conversion/tilecache.c:442 ../libvips/conversion/cache.c:102
 msgid "cache an image"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:428 ../libvips/conversion/cache.c:112
-#: ../libvips/foreign/tiffsave.c:215
+#: ../libvips/conversion/tilecache.c:452 ../libvips/conversion/cache.c:112
+#: ../libvips/foreign/tiffsave.c:215 ../libvips/foreign/dzsave.c:889
 msgid "Tile width"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:429 ../libvips/conversion/cache.c:113
-#: ../libvips/foreign/tiffsave.c:216
+#: ../libvips/conversion/tilecache.c:453 ../libvips/conversion/cache.c:113
+#: ../libvips/foreign/tiffsave.c:216 ../libvips/foreign/dzsave.c:890
 msgid "Tile width in pixels"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:435 ../libvips/conversion/cache.c:119
-#: ../libvips/foreign/tiffsave.c:222
+#: ../libvips/conversion/tilecache.c:459 ../libvips/conversion/cache.c:119
+#: ../libvips/foreign/tiffsave.c:222 ../libvips/foreign/dzsave.c:896
 msgid "Tile height"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:436 ../libvips/conversion/cache.c:120
-#: ../libvips/foreign/tiffsave.c:223
+#: ../libvips/conversion/tilecache.c:460 ../libvips/conversion/cache.c:120
+#: ../libvips/foreign/tiffsave.c:223 ../libvips/foreign/dzsave.c:897
 msgid "Tile height in pixels"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:442 ../libvips/conversion/cache.c:126
+#: ../libvips/conversion/tilecache.c:466 ../libvips/conversion/cache.c:126
 msgid "Max tiles"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:443 ../libvips/conversion/cache.c:127
+#: ../libvips/conversion/tilecache.c:467 ../libvips/conversion/cache.c:127
 msgid "Maximum number of tiles to cache"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:449
+#: ../libvips/conversion/tilecache.c:473
 msgid "Strategy"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:450
+#: ../libvips/conversion/tilecache.c:474
 msgid "Expected access pattern"
 msgstr ""
 
@@ -1143,63 +1149,63 @@ msgstr ""
 msgid "command failed: \"%s\""
 msgstr ""
 
-#: ../libvips/conversion/embed.c:430 ../libvips/iofuncs/image.c:1777
+#: ../libvips/conversion/embed.c:435 ../libvips/iofuncs/image.c:1864
 msgid "bad dimensions"
 msgstr ""
 
-#: ../libvips/conversion/embed.c:512
+#: ../libvips/conversion/embed.c:518
 msgid "embed an image in a larger image"
 msgstr ""
 
-#: ../libvips/conversion/embed.c:523
+#: ../libvips/conversion/embed.c:531
 msgid "Left edge of input in output"
 msgstr ""
 
-#: ../libvips/conversion/embed.c:530
+#: ../libvips/conversion/embed.c:538
 msgid "Top edge of input in output"
 msgstr ""
 
-#: ../libvips/conversion/embed.c:550
+#: ../libvips/conversion/embed.c:558
 msgid "Extend"
 msgstr ""
 
-#: ../libvips/conversion/embed.c:551
+#: ../libvips/conversion/embed.c:559
 msgid "How to generate the extra pixels"
 msgstr ""
 
-#: ../libvips/conversion/ifthenelse.c:468
+#: ../libvips/conversion/ifthenelse.c:469
 msgid "ifthenelse an image"
 msgstr ""
 
-#: ../libvips/conversion/ifthenelse.c:472
+#: ../libvips/conversion/ifthenelse.c:475
 msgid "Condition"
 msgstr ""
 
-#: ../libvips/conversion/ifthenelse.c:473
+#: ../libvips/conversion/ifthenelse.c:476
 msgid "Condition input image"
 msgstr ""
 
-#: ../libvips/conversion/ifthenelse.c:478
+#: ../libvips/conversion/ifthenelse.c:481
 msgid "Then image"
 msgstr ""
 
-#: ../libvips/conversion/ifthenelse.c:479
+#: ../libvips/conversion/ifthenelse.c:482
 msgid "Source for TRUE pixels"
 msgstr ""
 
-#: ../libvips/conversion/ifthenelse.c:484
+#: ../libvips/conversion/ifthenelse.c:487
 msgid "Else image"
 msgstr ""
 
-#: ../libvips/conversion/ifthenelse.c:485
+#: ../libvips/conversion/ifthenelse.c:488
 msgid "Source for FALSE pixels"
 msgstr ""
 
-#: ../libvips/conversion/ifthenelse.c:490
+#: ../libvips/conversion/ifthenelse.c:493
 msgid "blend"
 msgstr ""
 
-#: ../libvips/conversion/ifthenelse.c:491
+#: ../libvips/conversion/ifthenelse.c:494
 msgid "Blend smoothly between then and else parts"
 msgstr ""
 
@@ -1207,26 +1213,33 @@ msgstr ""
 msgid "bands in must equal matrix width"
 msgstr ""
 
-#: ../libvips/conversion/recomb.c:196
+#: ../libvips/conversion/recomb.c:197
 msgid "linear recombination with matrix"
 msgstr ""
 
-#: ../libvips/conversion/recomb.c:206
+#: ../libvips/conversion/recomb.c:209
 msgid "M"
 msgstr ""
 
-#: ../libvips/conversion/recomb.c:207
+#: ../libvips/conversion/recomb.c:210
 msgid "matrix of coefficients"
 msgstr ""
 
-#: ../libvips/conversion/sequential.c:86
+#: ../libvips/conversion/sequential.c:88
 #, c-format
-msgid ""
-"non-sequential read --- at position %d in file, but position %d requested"
+msgid "at line %d in file, but line %d requested"
 msgstr ""
 
-#: ../libvips/conversion/sequential.c:149
+#: ../libvips/conversion/sequential.c:172
 msgid "check sequential access"
+msgstr ""
+
+#: ../libvips/conversion/sequential.c:182
+msgid "trace"
+msgstr ""
+
+#: ../libvips/conversion/sequential.c:183
+msgid "trace pixel requests"
 msgstr ""
 
 #: ../libvips/convolution/im_conv.c:215
@@ -1249,7 +1262,7 @@ msgid "expect 1xN or Nx1 input mask"
 msgstr ""
 
 #: ../libvips/convolution/im_fastcor.c:134
-#: ../libvips/convolution/im_spcor.c:247
+#: ../libvips/convolution/im_spcor.c:251
 msgid "ref not smaller than or equal to in"
 msgstr ""
 
@@ -1283,7 +1296,7 @@ msgstr ""
 #: ../libvips/foreign/jpegload.c:245 ../libvips/foreign/rawload.c:115
 #: ../libvips/foreign/matload.c:128 ../libvips/foreign/fitssave.c:128
 #: ../libvips/foreign/radsave.c:119 ../libvips/foreign/vipssave.c:125
-#: ../libvips/foreign/pngsave.c:166 ../libvips/iofuncs/image.c:915
+#: ../libvips/foreign/pngsave.c:168 ../libvips/iofuncs/image.c:946
 msgid "Filename"
 msgstr ""
 
@@ -1291,7 +1304,7 @@ msgstr ""
 #: ../libvips/foreign/tiffsave.c:172 ../libvips/foreign/jpegsave.c:194
 #: ../libvips/foreign/csvsave.c:122 ../libvips/foreign/fitssave.c:129
 #: ../libvips/foreign/radsave.c:120 ../libvips/foreign/vipssave.c:126
-#: ../libvips/foreign/pngsave.c:167
+#: ../libvips/foreign/pngsave.c:169
 msgid "Filename to save to"
 msgstr ""
 
@@ -1408,20 +1421,20 @@ msgstr ""
 msgid "datatype %d not supported"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:167
+#: ../libvips/foreign/jpeg2vips.c:168
 #, c-format
 msgid "read gave %ld warnings"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:489
+#: ../libvips/foreign/jpeg2vips.c:488
 msgid "error reading resolution"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:510
+#: ../libvips/foreign/jpeg2vips.c:513 ../libvips/foreign/vips2jpeg.c:374
 msgid "unknown EXIF resolution unit"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:718
+#: ../libvips/foreign/jpeg2vips.c:721
 msgid "unknown JFIF resolution unit"
 msgstr ""
 
@@ -1429,7 +1442,7 @@ msgstr ""
 msgid "error reading radiance header"
 msgstr ""
 
-#: ../libvips/foreign/radiance.c:959 ../libvips/foreign/tiff2vips.c:1343
+#: ../libvips/foreign/radiance.c:959 ../libvips/foreign/tiff2vips.c:1347
 msgid "read error"
 msgstr ""
 
@@ -1441,7 +1454,7 @@ msgstr ""
 msgid "save image to tiff file"
 msgstr ""
 
-#: ../libvips/foreign/tiffsave.c:178 ../libvips/foreign/pngsave.c:103
+#: ../libvips/foreign/tiffsave.c:178 ../libvips/foreign/pngsave.c:105
 msgid "Compression"
 msgstr ""
 
@@ -1509,6 +1522,51 @@ msgstr ""
 msgid "Write a bigtiff image"
 msgstr ""
 
+#: ../libvips/foreign/dzsave.c:232
+#, c-format
+msgid "Directory \"%s_files\" exists"
+msgstr ""
+
+#: ../libvips/foreign/dzsave.c:788
+msgid "overlap must be less than tile width and height"
+msgstr ""
+
+#: ../libvips/foreign/dzsave.c:841
+msgid "save image to deep zoom format"
+msgstr ""
+
+#: ../libvips/foreign/dzsave.c:851 ../libvips/foreign/dzsave.c:882
+msgid "Base name"
+msgstr ""
+
+#: ../libvips/foreign/dzsave.c:852 ../libvips/foreign/dzsave.c:883
+msgid "Base name to save to"
+msgstr ""
+
+#: ../libvips/foreign/dzsave.c:858
+msgid "suffix"
+msgstr ""
+
+#: ../libvips/foreign/dzsave.c:859
+msgid "Filename suffix for tiles"
+msgstr ""
+
+#: ../libvips/foreign/dzsave.c:865
+msgid "Overlap"
+msgstr ""
+
+#: ../libvips/foreign/dzsave.c:866
+msgid "Tile overlap in pixels"
+msgstr ""
+
+#: ../libvips/foreign/dzsave.c:872
+msgid "Tile size"
+msgstr ""
+
+#: ../libvips/foreign/dzsave.c:873
+msgid "Tile size in pixels"
+msgstr ""
+
 #: ../libvips/foreign/analyzeload.c:114
 msgid "load an Analyze6 image"
 msgstr ""
@@ -1526,11 +1584,11 @@ msgid "save image to jpeg buffer"
 msgstr ""
 
 #: ../libvips/foreign/jpegsave.c:260 ../libvips/foreign/jpegload.c:315
-#: ../libvips/foreign/pngsave.c:228
+#: ../libvips/foreign/pngsave.c:230
 msgid "Buffer"
 msgstr ""
 
-#: ../libvips/foreign/jpegsave.c:261 ../libvips/foreign/pngsave.c:229
+#: ../libvips/foreign/jpegsave.c:261 ../libvips/foreign/pngsave.c:231
 msgid "Buffer to save to"
 msgstr ""
 
@@ -1542,16 +1600,16 @@ msgstr ""
 msgid "save image to jpeg mime"
 msgstr ""
 
-#: ../libvips/foreign/vips2jpeg.c:132
+#: ../libvips/foreign/vips2jpeg.c:134
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: ../libvips/foreign/vips2jpeg.c:363
+#: ../libvips/foreign/vips2jpeg.c:385
 msgid "error setting JPEG resolution"
 msgstr ""
 
-#: ../libvips/foreign/vips2jpeg.c:510
+#: ../libvips/foreign/vips2jpeg.c:532
 msgid "error saving EXIF"
 msgstr ""
 
@@ -1571,11 +1629,11 @@ msgstr ""
 msgid "not whitespace before start of binary data"
 msgstr ""
 
-#: ../libvips/foreign/ppm.c:599 ../libvips/foreign/ppm.c:611
+#: ../libvips/foreign/ppm.c:603 ../libvips/foreign/ppm.c:615
 msgid "write error ... disc full?"
 msgstr ""
 
-#: ../libvips/foreign/ppm.c:716
+#: ../libvips/foreign/ppm.c:720
 msgid "binary >8 bit images must be float"
 msgstr ""
 
@@ -1696,11 +1754,11 @@ msgstr ""
 msgid "load raw data from a file"
 msgstr ""
 
-#: ../libvips/foreign/rawload.c:143 ../libvips/iofuncs/image.c:943
+#: ../libvips/foreign/rawload.c:143 ../libvips/iofuncs/image.c:974
 msgid "Size of header"
 msgstr ""
 
-#: ../libvips/foreign/rawload.c:144 ../libvips/iofuncs/image.c:944
+#: ../libvips/foreign/rawload.c:144 ../libvips/iofuncs/image.c:975
 msgid "Offset in bytes from start of file"
 msgstr ""
 
@@ -1709,91 +1767,94 @@ msgstr ""
 msgid "EXR error: %s"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:265 ../libvips/foreign/tiff2vips.c:288
-#: ../libvips/foreign/tiff2vips.c:306
+#: ../libvips/foreign/tiff2vips.c:269 ../libvips/foreign/tiff2vips.c:287
 #, c-format
 msgid "required field %d missing"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:269
+#: ../libvips/foreign/tiff2vips.c:307
 #, c-format
-msgid "required field %d=%d, not %d"
+msgid "required field %d = %d, not %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:653
+#: ../libvips/foreign/tiff2vips.c:651
 #, c-format
 msgid "%d bits per sample palette image not supported"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:662
+#: ../libvips/foreign/tiff2vips.c:660
 msgid "bad colormap"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:719 ../libvips/foreign/tiff2vips.c:750
+#: ../libvips/foreign/tiff2vips.c:717 ../libvips/foreign/tiff2vips.c:748
 msgid "3 or 4 bands RGB TIFF only"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:821
+#: ../libvips/foreign/tiff2vips.c:819
 msgid "4 or 5 bands CMYK TIFF only"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:872
+#: ../libvips/foreign/tiff2vips.c:870
 msgid "unknown resolution unit"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:877
+#: ../libvips/foreign/tiff2vips.c:875
 #, c-format
 msgid ""
 "no resolution information for TIFF image \"%s\" -- defaulting to 1 pixel per "
 "mm"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:949
+#: ../libvips/foreign/tiff2vips.c:907
+msgid "not a PLANARCONFIG_CONTIG image"
+msgstr ""
+
+#: ../libvips/foreign/tiff2vips.c:953
 #, c-format
 msgid "unsupported sample format %d for lab image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:959
+#: ../libvips/foreign/tiff2vips.c:963
 #, c-format
 msgid "unsupported depth %d for LAB image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:998
+#: ../libvips/foreign/tiff2vips.c:1002
 #, c-format
 msgid "unsupported sample format %d for greyscale image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1007
+#: ../libvips/foreign/tiff2vips.c:1011
 #, c-format
 msgid "unsupported depth %d for greyscale image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1055
+#: ../libvips/foreign/tiff2vips.c:1059
 #, c-format
 msgid "unsupported sample format %d for rgb image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1064
+#: ../libvips/foreign/tiff2vips.c:1068
 #, c-format
 msgid "unsupported depth %d for RGB image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1078
+#: ../libvips/foreign/tiff2vips.c:1082
 #, c-format
 msgid "unknown photometric interpretation %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1456
+#: ../libvips/foreign/tiff2vips.c:1465
 #, c-format
 msgid "bad page number %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1477 ../libvips/foreign/vips2tiff.c:289
+#: ../libvips/foreign/tiff2vips.c:1486 ../libvips/foreign/vips2tiff.c:294
 #, c-format
 msgid "unable to open \"%s\" for input"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1532 ../libvips/foreign/tiff2vips.c:1562
+#: ../libvips/foreign/tiff2vips.c:1541 ../libvips/foreign/tiff2vips.c:1571
 #, c-format
 msgid "TIFF file does not contain page %d"
 msgstr ""
@@ -1807,8 +1868,8 @@ msgstr ""
 msgid "end of file while skipping start"
 msgstr ""
 
-#: ../libvips/foreign/csv.c:246 ../libvips/iofuncs/util.c:1072
-#: ../libvips/iofuncs/util.c:1078
+#: ../libvips/foreign/csv.c:246 ../libvips/iofuncs/util.c:1084
+#: ../libvips/iofuncs/util.c:1090
 msgid "unable to seek"
 msgstr ""
 
@@ -1843,8 +1904,8 @@ msgid "save image to vips file"
 msgstr ""
 
 #: ../libvips/foreign/fits.c:178 ../libvips/foreign/matlab.c:106
-#: ../libvips/iofuncs/vips.c:143 ../libvips/mosaicing/global_balance.c:1181
-#: ../libvips/mosaicing/global_balance.c:1516
+#: ../libvips/iofuncs/vips.c:147 ../libvips/mosaicing/global_balance.c:1187
+#: ../libvips/mosaicing/global_balance.c:1522
 #, c-format
 msgid "unable to open \"%s\""
 msgstr ""
@@ -1863,7 +1924,7 @@ msgstr ""
 msgid "unsupported bitpix %d\n"
 msgstr ""
 
-#: ../libvips/foreign/fits.c:576 ../libvips/iofuncs/vips.c:171
+#: ../libvips/foreign/fits.c:576 ../libvips/iofuncs/vips.c:175
 #, c-format
 msgid "unable to write to \"%s\""
 msgstr ""
@@ -1908,144 +1969,148 @@ msgstr ""
 msgid "reading associated image: %s"
 msgstr ""
 
-#: ../libvips/foreign/pngsave.c:95
+#: ../libvips/foreign/pngsave.c:97
 msgid "save png"
 msgstr ""
 
-#: ../libvips/foreign/pngsave.c:104
+#: ../libvips/foreign/pngsave.c:106
 msgid "Compression factor"
 msgstr ""
 
-#: ../libvips/foreign/pngsave.c:110
+#: ../libvips/foreign/pngsave.c:112
 msgid "Interlace"
 msgstr ""
 
-#: ../libvips/foreign/pngsave.c:111
+#: ../libvips/foreign/pngsave.c:113
 msgid "Interlace image"
 msgstr ""
 
-#: ../libvips/foreign/pngsave.c:162
+#: ../libvips/foreign/pngsave.c:164
 msgid "save image to png file"
 msgstr ""
 
-#: ../libvips/foreign/pngsave.c:224
+#: ../libvips/foreign/pngsave.c:226
 msgid "save image to png buffer"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:273
+#: ../libvips/foreign/vips2tiff.c:278
 #, c-format
 msgid "unable to open \"%s\" for output"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:695
+#: ../libvips/foreign/vips2tiff.c:705
 msgid "layer buffer exhausted -- try making TIFF output tiles smaller"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:926
+#: ../libvips/foreign/vips2tiff.c:936
 msgid "TIFF write tile failed"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1002
+#: ../libvips/foreign/vips2tiff.c:1012
 msgid "internal error #9876345"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1255
+#: ../libvips/foreign/vips2tiff.c:1281
 msgid "tile size not a multiple of 16"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1261
+#: ../libvips/foreign/vips2tiff.c:1287
 msgid "can't have strip pyramid -- enabling tiling"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1272
+#: ../libvips/foreign/vips2tiff.c:1298
 msgid "can only pyramid LABQ and non-complex images"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1289
+#: ../libvips/foreign/vips2tiff.c:1315
 msgid "can't have 1-bit JPEG -- disabling JPEG"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1479
+#: ../libvips/foreign/vips2tiff.c:1511
 msgid "unsigned 8-bit int, 16-bit int, and 32-bit float only"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1486
+#: ../libvips/foreign/vips2tiff.c:1518
 msgid "1 to 5 bands only"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:384
+#: ../libvips/foreign/foreign.c:386
 msgid "load and save image files"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:525 ../libvips/mosaicing/im_remosaic.c:76
+#: ../libvips/foreign/foreign.c:527 ../libvips/mosaicing/im_remosaic.c:76
 #, c-format
 msgid "file \"%s\" not found"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:534 ../libvips/foreign/foreign.c:1022
+#: ../libvips/foreign/foreign.c:536 ../libvips/foreign/foreign.c:1053
 #, c-format
 msgid "\"%s\" is not a known file format"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:740
+#: ../libvips/foreign/foreign.c:746
 msgid "images do not match"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:826
+#: ../libvips/foreign/foreign.c:838
 msgid ""
 "VIPS_FOREIGN_PARTIAL and VIPS_FOREIGN_SEQUENTIAL both set -- using SEQUENTIAL"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:894
+#: ../libvips/foreign/foreign.c:921
 msgid "file loaders"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:903
+#: ../libvips/foreign/foreign.c:932
 msgid "Flags"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:904
+#: ../libvips/foreign/foreign.c:933
 msgid "Flags for this file"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:910
+#: ../libvips/foreign/foreign.c:939
 msgid "Disc"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:911
+#: ../libvips/foreign/foreign.c:940
 msgid "Open to disc"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:917
+#: ../libvips/foreign/foreign.c:946
 msgid "Sequential"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:918
+#: ../libvips/foreign/foreign.c:947
 msgid "Sequential read only"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:1370
+#: ../libvips/foreign/foreign.c:1425
 msgid "file savers"
 msgstr ""
 
-#: ../libvips/foreign/foreign.c:1380
+#: ../libvips/foreign/foreign.c:1443
 msgid "Image to save"
 msgstr ""
 
-#: ../libvips/foreign/vipspng.c:245
+#: ../libvips/foreign/vipspng.c:241
 msgid "unsupported color type"
 msgstr ""
 
-#: ../libvips/foreign/vipspng.c:621
+#: ../libvips/foreign/vipspng.c:351
+msgid "unable to read PNG header"
+msgstr ""
+
+#: ../libvips/foreign/vipspng.c:628
 msgid "compress should be in [0,9]"
 msgstr ""
 
-#: ../libvips/foreign/vipspng.c:714
+#: ../libvips/foreign/vipspng.c:725
 #, c-format
 msgid "unable to write \"%s\""
 msgstr ""
 
-#: ../libvips/foreign/vipspng.c:813
+#: ../libvips/foreign/vipspng.c:824
 msgid "unable to write to buffer"
 msgstr ""
 
@@ -2221,38 +2286,38 @@ msgstr ""
 msgid "ink image not 1x1 pixels"
 msgstr ""
 
-#: ../libvips/iofuncs/operation.c:97
+#: ../libvips/iofuncs/operation.c:98
 msgid "input"
 msgstr ""
 
-#: ../libvips/iofuncs/operation.c:97
+#: ../libvips/iofuncs/operation.c:98
 msgid "output"
 msgstr ""
 
-#: ../libvips/iofuncs/operation.c:246
+#: ../libvips/iofuncs/operation.c:273
 msgid "operations"
 msgstr ""
 
-#: ../libvips/iofuncs/operation.c:273
+#: ../libvips/iofuncs/operation.c:317
 msgid "usage:"
 msgstr ""
 
-#: ../libvips/iofuncs/operation.c:287 ../libvips/iofuncs/object.c:1239
-#: ../libvips/resample/interpolate.c:615
+#: ../libvips/iofuncs/operation.c:331 ../libvips/iofuncs/object.c:1242
+#: ../libvips/resample/interpolate.c:612
 #, c-format
 msgid "class \"%s\" not found"
 msgstr ""
 
-#: ../libvips/iofuncs/operation.c:699
+#: ../libvips/iofuncs/operation.c:708
 #, c-format
 msgid "unknown argument '%s'"
 msgstr ""
 
-#: ../libvips/iofuncs/operation.c:810
+#: ../libvips/iofuncs/operation.c:826
 msgid "too few arguments"
 msgstr ""
 
-#: ../libvips/iofuncs/operation.c:931
+#: ../libvips/iofuncs/operation.c:949
 msgid "too many arguments"
 msgstr ""
 
@@ -2261,65 +2326,65 @@ msgid "per-thread state for sinkdisc"
 msgstr ""
 
 #: ../libvips/iofuncs/sinkdisc.c:236 ../libvips/iofuncs/sinkscreen.c:537
-#: ../libvips/iofuncs/threadpool.c:606
+#: ../libvips/iofuncs/threadpool.c:640
 msgid "unable to create thread"
 msgstr ""
 
-#: ../libvips/iofuncs/sinkdisc.c:262 ../libvips/iofuncs/util.c:656
+#: ../libvips/iofuncs/sinkdisc.c:262 ../libvips/iofuncs/util.c:668
 msgid "write failed"
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:286
+#: ../libvips/iofuncs/vips.c:290
 #, c-format
 msgid "\"%s\" is not a VIPS image"
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:374
+#: ../libvips/iofuncs/vips.c:378
 msgid "unable to read history"
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:407
+#: ../libvips/iofuncs/vips.c:411
 msgid "more than a 10 megabytes of XML? sufferin' succotash!"
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:455
+#: ../libvips/iofuncs/vips.c:459
 msgid "incorrect namespace in XML"
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:579
+#: ../libvips/iofuncs/vips.c:583
 msgid "error transforming from save format"
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:680
+#: ../libvips/iofuncs/vips.c:684
 #, c-format
 msgid "unable to set property \"%s\" to value \"%s\"."
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:728
+#: ../libvips/iofuncs/vips.c:732
 msgid "error transforming to save format"
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:776 ../libvips/iofuncs/vips.c:973
+#: ../libvips/iofuncs/vips.c:780 ../libvips/iofuncs/vips.c:985
 #: ../libvips/iofuncs/window.c:237
 msgid "file has been truncated"
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:890 ../libvips/iofuncs/vips.c:899
-#: ../libvips/iofuncs/vips.c:922
+#: ../libvips/iofuncs/vips.c:894 ../libvips/iofuncs/vips.c:903
+#: ../libvips/iofuncs/vips.c:926
 msgid "xml save error"
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:959
+#: ../libvips/iofuncs/vips.c:971
 #, c-format
 msgid "unable to read header for \"%s\""
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:972 ../libvips/iofuncs/window.c:236
+#: ../libvips/iofuncs/vips.c:984 ../libvips/iofuncs/window.c:236
 #, c-format
 msgid "unable to read data for \"%s\", %s"
 msgstr ""
 
-#: ../libvips/iofuncs/vips.c:984
+#: ../libvips/iofuncs/vips.c:996
 #, c-format
 msgid "error reading XML: %s"
 msgstr ""
@@ -2337,7 +2402,7 @@ msgstr ""
 msgid "unknown band format %d"
 msgstr ""
 
-#: ../libvips/iofuncs/header.c:611 ../libvips/iofuncs/generate.c:343
+#: ../libvips/iofuncs/header.c:611 ../libvips/iofuncs/generate.c:376
 msgid "too many images"
 msgstr ""
 
@@ -2351,18 +2416,18 @@ msgstr ""
 msgid "field \"%s\" is of type %s, not %s"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:293
+#: ../libvips/iofuncs/image.c:291
 msgid "unable to close fd"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:373
+#: ../libvips/iofuncs/image.c:371
 #, c-format
 msgid "%dx%d %s, %d band, %s"
 msgid_plural "%dx%d %s, %d bands, %s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../libvips/iofuncs/image.c:403
+#: ../libvips/iofuncs/image.c:401
 #, c-format
 msgid " %s, %d band, %s"
 msgid_plural " %s, %d bands, %s"
@@ -2383,102 +2448,102 @@ msgstr ""
 #.
 #: ../libvips/iofuncs/image.c:559
 #, c-format
-msgid "%s %s: done in %ds          \n"
+msgid "%s %s: done in %.3gs          \n"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:738
+#: ../libvips/iofuncs/image.c:749
 #, c-format
 msgid "unable to open \"%s\", file too short"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:748
+#: ../libvips/iofuncs/image.c:759
 #, c-format
 msgid "%s is longer than expected"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:765
+#: ../libvips/iofuncs/image.c:776
 #, c-format
 msgid "bad mode \"%s\""
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:820
+#: ../libvips/iofuncs/image.c:849
 msgid "image class"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:916
+#: ../libvips/iofuncs/image.c:947
 msgid "Image filename"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:922
+#: ../libvips/iofuncs/image.c:953
 msgid "Mode"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:923
+#: ../libvips/iofuncs/image.c:954
 msgid "Open mode"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:929
+#: ../libvips/iofuncs/image.c:960
 msgid "Kill"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:930
+#: ../libvips/iofuncs/image.c:961
 msgid "Block evaluation on this image"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:936
+#: ../libvips/iofuncs/image.c:967
 msgid "Demand style"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:937
+#: ../libvips/iofuncs/image.c:968
 msgid "Preferred demand style for this image"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:950
+#: ../libvips/iofuncs/image.c:981
 msgid "Foreign buffer"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:951
+#: ../libvips/iofuncs/image.c:982
 msgid "Pointer to foreign pixels"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:1215
+#: ../libvips/iofuncs/image.c:1289
 #, c-format
 msgid "killed for image \"%s\""
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:1815
+#: ../libvips/iofuncs/image.c:1902
 msgid "bad image descriptor"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:1873 ../libvips/iofuncs/generate.c:682
+#: ../libvips/iofuncs/image.c:1960 ../libvips/iofuncs/generate.c:715
 #, c-format
 msgid "unable to output to a %s image"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:1917
+#: ../libvips/iofuncs/image.c:2024
 #, c-format
 msgid "auto-rewind for %s failed"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:1973 ../libvips/iofuncs/image.c:2168
-#: ../libvips/iofuncs/image.c:2185
+#: ../libvips/iofuncs/image.c:2080 ../libvips/iofuncs/image.c:2276
+#: ../libvips/iofuncs/image.c:2293
 msgid "no image data"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:2041 ../libvips/iofuncs/image.c:2208
+#: ../libvips/iofuncs/image.c:2148 ../libvips/iofuncs/image.c:2316
 msgid "image not readable"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:2062 ../libvips/iofuncs/image.c:2238
-#: ../libvips/iofuncs/image.c:2247
+#: ../libvips/iofuncs/image.c:2169 ../libvips/iofuncs/image.c:2346
+#: ../libvips/iofuncs/image.c:2355
 msgid "image already written"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:2086 ../libvips/iofuncs/image.c:2259
+#: ../libvips/iofuncs/image.c:2193 ../libvips/iofuncs/image.c:2367
 msgid "image not writeable"
 msgstr ""
 
-#: ../libvips/iofuncs/image.c:2132
+#: ../libvips/iofuncs/image.c:2240
 msgid "bad file type"
 msgstr ""
 
@@ -2487,41 +2552,41 @@ msgstr ""
 msgid "start function failed for image %s"
 msgstr ""
 
-#: ../libvips/iofuncs/region.c:528 ../libvips/iofuncs/region.c:598
-#: ../libvips/iofuncs/region.c:745 ../libvips/iofuncs/region.c:1241
+#: ../libvips/iofuncs/region.c:531 ../libvips/iofuncs/region.c:601
+#: ../libvips/iofuncs/region.c:748 ../libvips/iofuncs/region.c:1244
 msgid "valid clipped to nothing"
 msgstr ""
 
-#: ../libvips/iofuncs/region.c:642
+#: ../libvips/iofuncs/region.c:645
 msgid "bad image type"
 msgstr ""
 
-#: ../libvips/iofuncs/region.c:687
+#: ../libvips/iofuncs/region.c:690
 msgid "no pixel data on attached image"
 msgstr ""
 
-#: ../libvips/iofuncs/region.c:693
+#: ../libvips/iofuncs/region.c:696
 msgid "images do not match in pixel size"
 msgstr ""
 
-#: ../libvips/iofuncs/region.c:726 ../libvips/iofuncs/region.c:1223
+#: ../libvips/iofuncs/region.c:729 ../libvips/iofuncs/region.c:1226
 msgid "dest too small"
 msgstr ""
 
-#: ../libvips/iofuncs/region.c:813
+#: ../libvips/iofuncs/region.c:816
 msgid "bad position"
 msgstr ""
 
-#: ../libvips/iofuncs/region.c:1102 ../libvips/iofuncs/region.c:1294
+#: ../libvips/iofuncs/region.c:1105 ../libvips/iofuncs/region.c:1297
 #, c-format
 msgid "unable to input from a %s image"
 msgstr ""
 
-#: ../libvips/iofuncs/region.c:1126
+#: ../libvips/iofuncs/region.c:1129
 msgid "incomplete header"
 msgstr ""
 
-#: ../libvips/iofuncs/region.c:1197
+#: ../libvips/iofuncs/region.c:1200
 msgid "inappropriate region type"
 msgstr ""
 
@@ -2539,191 +2604,196 @@ msgstr ""
 msgid "per-thread state for sink"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:210
+#: ../libvips/iofuncs/error.c:213
 msgid "windows error"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:219
+#: ../libvips/iofuncs/error.c:222
 msgid "unix error"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:304 ../libvips/iofuncs/error.c:305
-#: ../libvips/iofuncs/error.c:354 ../libvips/iofuncs/error.c:355
+#: ../libvips/iofuncs/error.c:313 ../libvips/iofuncs/error.c:314
+#: ../libvips/iofuncs/error.c:363 ../libvips/iofuncs/error.c:364
 #, c-format
 msgid "%s: "
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:304
+#: ../libvips/iofuncs/error.c:313
 msgid "vips diagnostic"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:354
+#: ../libvips/iofuncs/error.c:363
 msgid "vips warning"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:438
+#: ../libvips/iofuncs/error.c:453
 msgid "image must be uncoded"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:466
+#: ../libvips/iofuncs/error.c:481
 msgid "image coding must be NONE or LABQ"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:494
+#: ../libvips/iofuncs/error.c:509
 msgid "unknown image coding"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:520
+#: ../libvips/iofuncs/error.c:535
 msgid "Radiance coding only"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:546
+#: ../libvips/iofuncs/error.c:561
 msgid "LABQ coding only"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:570
+#: ../libvips/iofuncs/error.c:585
 msgid "image must one band"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:595
+#: ../libvips/iofuncs/error.c:610
 #, c-format
 msgid "image must have %d bands"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:620
+#: ../libvips/iofuncs/error.c:635
 msgid "image must have one or three bands"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:648
+#: ../libvips/iofuncs/error.c:663
 msgid "images must have the same number of bands, or one must be single-band"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:675
+#: ../libvips/iofuncs/error.c:690
 #, c-format
 msgid "image must have 1 or %d bands"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:699
+#: ../libvips/iofuncs/error.c:714
 msgid "image must be non-complex"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:723
+#: ../libvips/iofuncs/error.c:738
 msgid "image must be complex"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:749
+#: ../libvips/iofuncs/error.c:764
 #, c-format
 msgid "image must be %s"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:774
+#: ../libvips/iofuncs/error.c:789
 msgid "image must be integer"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:799
+#: ../libvips/iofuncs/error.c:814
 msgid "image must be unsigned integer"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:827
+#: ../libvips/iofuncs/error.c:842
 msgid "image must be 8- or 16-bit integer, signed or unsigned"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:854
+#: ../libvips/iofuncs/error.c:869
 msgid "image must be 8- or 16-bit unsigned integer"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:880
+#: ../libvips/iofuncs/error.c:895
 msgid "image must be 8- or 16-bit unsigned integer, or float"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:908
+#: ../libvips/iofuncs/error.c:923
 msgid "image must be unsigned int or float"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:933
+#: ../libvips/iofuncs/error.c:948
 msgid "images must match in size"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:959
+#: ../libvips/iofuncs/error.c:974
 msgid "images must have the same number of bands"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1013
+#: ../libvips/iofuncs/error.c:1028
 msgid "images must have the same band format"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1039
+#: ../libvips/iofuncs/error.c:1054
 msgid "images must have the same coding"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1064
+#: ../libvips/iofuncs/error.c:1079
 #, c-format
 msgid "vector must have 1 or %d elements"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1089
+#: ../libvips/iofuncs/error.c:1104
 msgid "histograms must have width or height 1"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1094
+#: ../libvips/iofuncs/error.c:1109
 msgid "histograms must have not have more than 65536 elements"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1123 ../libvips/iofuncs/error.c:1151
+#: ../libvips/iofuncs/error.c:1138 ../libvips/iofuncs/error.c:1166
 msgid "nonsense mask parameters"
 msgstr ""
 
-#: ../libvips/iofuncs/error.c:1176
+#: ../libvips/iofuncs/error.c:1191
 msgid "mask must be 1D"
 msgstr ""
 
-#: ../libvips/iofuncs/util.c:639
+#: ../libvips/iofuncs/util.c:651
 msgid "unable to get file stats"
 msgstr ""
 
-#: ../libvips/iofuncs/util.c:720
+#: ../libvips/iofuncs/util.c:732
 #, c-format
 msgid "unable to open file \"%s\" for reading"
 msgstr ""
 
-#: ../libvips/iofuncs/util.c:742
+#: ../libvips/iofuncs/util.c:754
 #, c-format
 msgid "unable to open file \"%s\" for writing"
 msgstr ""
 
-#: ../libvips/iofuncs/util.c:767
+#: ../libvips/iofuncs/util.c:779
 #, c-format
 msgid "\"%s\" too long"
 msgstr ""
 
-#: ../libvips/iofuncs/util.c:784
+#: ../libvips/iofuncs/util.c:796
 msgid "out of memory"
 msgstr ""
 
-#: ../libvips/iofuncs/util.c:810
+#: ../libvips/iofuncs/util.c:822
 #, c-format
 msgid "error reading from file \"%s\""
 msgstr ""
 
-#: ../libvips/iofuncs/util.c:857
+#: ../libvips/iofuncs/util.c:869
 #, c-format
 msgid "write error (%zd out of %zd blocks written) ... disc full?"
 msgstr ""
 
-#: ../libvips/iofuncs/util.c:1106 ../libvips/iofuncs/util.c:1113
+#: ../libvips/iofuncs/util.c:1118 ../libvips/iofuncs/util.c:1125
 msgid "unable to truncate"
 msgstr ""
 
-#: ../libvips/iofuncs/util.c:1297
+#: ../libvips/iofuncs/util.c:1216
+#, c-format
+msgid "unable to create directory \"%s\", %s"
+msgstr ""
+
+#: ../libvips/iofuncs/util.c:1350
 msgid "unexpected end of string"
 msgstr ""
 
-#: ../libvips/iofuncs/util.c:1315
+#: ../libvips/iofuncs/util.c:1368
 #, c-format
 msgid "expected %s, saw %s"
 msgstr ""
 
-#: ../libvips/iofuncs/util.c:1485
+#: ../libvips/iofuncs/util.c:1538
 #, c-format
 msgid "unable to make temporary file %s"
 msgstr ""
@@ -2768,11 +2838,11 @@ msgstr ""
 msgid "too much data"
 msgstr ""
 
-#: ../libvips/iofuncs/generate.c:606
+#: ../libvips/iofuncs/generate.c:639
 msgid "demand hint not set"
 msgstr ""
 
-#: ../libvips/iofuncs/generate.c:625 ../libvips/iofuncs/generate.c:650
+#: ../libvips/iofuncs/generate.c:658 ../libvips/iofuncs/generate.c:683
 msgid "generate() called twice"
 msgstr ""
 
@@ -2828,134 +2898,153 @@ msgstr ""
 msgid "unable to mmap \"%s\" to same address"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:366
-msgid "evaluate with N concurrent threads"
-msgstr ""
-
-#: ../libvips/iofuncs/init.c:369
-msgid "set tile width to N (DEBUG)"
-msgstr ""
-
-#: ../libvips/iofuncs/init.c:372
-msgid "set tile height to N (DEBUG)"
-msgstr ""
-
-#: ../libvips/iofuncs/init.c:375
-msgid "set thinstrip height to N (DEBUG)"
-msgstr ""
-
-#: ../libvips/iofuncs/init.c:378
-msgid "set fatstrip height to N (DEBUG)"
-msgstr ""
-
-#: ../libvips/iofuncs/init.c:381
-msgid "show progress feedback"
-msgstr ""
-
-#: ../libvips/iofuncs/init.c:384
-msgid "leak-check on exit"
-msgstr ""
-
-#: ../libvips/iofuncs/init.c:387
-msgid "images larger than N are decompressed to disc"
-msgstr ""
-
-#: ../libvips/iofuncs/init.c:390
-msgid "disable vectorised versions of operations"
-msgstr ""
-
-#: ../libvips/iofuncs/init.c:393
-msgid "cache at most N operations"
-msgstr ""
-
-#: ../libvips/iofuncs/init.c:396
-msgid "cache at most N bytes in memory"
-msgstr ""
-
-#: ../libvips/iofuncs/init.c:399
-msgid "allow at most N open files"
-msgstr ""
-
 #: ../libvips/iofuncs/init.c:402
-msgid "trace operation cache"
+msgid "abort on first error or warning"
 msgstr ""
 
 #: ../libvips/iofuncs/init.c:405
+msgid "evaluate with N concurrent threads"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:408
+msgid "set tile width to N (DEBUG)"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:411
+msgid "set tile height to N (DEBUG)"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:414
+msgid "set thinstrip height to N (DEBUG)"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:417
+msgid "set fatstrip height to N (DEBUG)"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:420
+msgid "show progress feedback"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:423
+msgid "leak-check on exit"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:426
+msgid "images larger than N are decompressed to disc"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:429
+msgid "disable vectorised versions of operations"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:432
+msgid "cache at most N operations"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:435
+msgid "cache at most N bytes in memory"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:438
+msgid "allow at most N open files"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:441
+msgid "trace operation cache"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:444
 msgid "dump operation cache on exit"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:428
+#: ../libvips/iofuncs/init.c:447
+msgid "print libvips version"
+msgstr ""
+
+#: ../libvips/iofuncs/init.c:470
 msgid "VIPS Options"
 msgstr ""
 
-#: ../libvips/iofuncs/init.c:428
+#: ../libvips/iofuncs/init.c:470
 msgid "Show VIPS options"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:148
+#: ../libvips/iofuncs/object.c:151
 #, c-format
 msgid "parameter %s not set"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:500
+#: ../libvips/iofuncs/object.c:503
 #, c-format
 msgid "no property named `%s'"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:508
+#: ../libvips/iofuncs/object.c:511
 #, c-format
 msgid "no vips argument named `%s'"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:515
+#: ../libvips/iofuncs/object.c:518
 #, c-format
 msgid "argument `%s' has no instance"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1288
+#: ../libvips/iofuncs/object.c:1291
 msgid "base class"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1302
+#: ../libvips/iofuncs/object.c:1305
 msgid "Nickname"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1303
+#: ../libvips/iofuncs/object.c:1306
 msgid "Class nickname"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1309
+#: ../libvips/iofuncs/object.c:1312
 msgid "Description"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1310
+#: ../libvips/iofuncs/object.c:1313
 msgid "Class description"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1537
+#: ../libvips/iofuncs/object.c:1459
 #, c-format
-msgid "enum '%s' has no member '%s'"
+msgid "enum '%s' has no member '%s', should be one of: %s"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1797
+#: ../libvips/iofuncs/object.c:1564 ../libvips/iofuncs/object.c:1578
+#: ../libvips/iofuncs/object.c:1619
+#, c-format
+msgid "'%s' is not an integer"
+msgstr ""
+
+#: ../libvips/iofuncs/object.c:1590
+#, c-format
+msgid "'%s' is not a double"
+msgstr ""
+
+#: ../libvips/iofuncs/object.c:1949
 #, c-format
 msgid "unable to set '%s'"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1805
+#: ../libvips/iofuncs/object.c:1957
 msgid "not , or ) after parameter"
 msgstr ""
 
-#: ../libvips/iofuncs/object.c:1812
+#: ../libvips/iofuncs/object.c:1964
 msgid "extra tokens after ')'"
 msgstr ""
 
-#: ../libvips/iofuncs/threadpool.c:217
+#: ../libvips/iofuncs/threadpool.c:251
 #, c-format
 msgid "threads clipped to %d"
 msgstr ""
 
-#: ../libvips/iofuncs/threadpool.c:281
+#: ../libvips/iofuncs/threadpool.c:315
 msgid "per-thread state for vipsthreadpool"
 msgstr ""
 
@@ -3040,47 +3129,47 @@ msgstr ""
 msgid "too much overlap"
 msgstr ""
 
-#: ../libvips/mosaicing/global_balance.c:145
+#: ../libvips/mosaicing/global_balance.c:147
 msgid "no matching '>'"
 msgstr ""
 
-#: ../libvips/mosaicing/global_balance.c:154
+#: ../libvips/mosaicing/global_balance.c:156
 msgid "too many items"
 msgstr ""
 
-#: ../libvips/mosaicing/global_balance.c:448
+#: ../libvips/mosaicing/global_balance.c:450
 msgid "circularity detected"
 msgstr ""
 
-#: ../libvips/mosaicing/global_balance.c:482
-#: ../libvips/mosaicing/global_balance.c:538
+#: ../libvips/mosaicing/global_balance.c:484
+#: ../libvips/mosaicing/global_balance.c:540
 #, c-format
 msgid "image \"%s\" used twice as output"
 msgstr ""
 
-#: ../libvips/mosaicing/global_balance.c:587
+#: ../libvips/mosaicing/global_balance.c:589
 msgid "bad number of args in join line"
 msgstr ""
 
-#: ../libvips/mosaicing/global_balance.c:629
+#: ../libvips/mosaicing/global_balance.c:631
 msgid "bad number of args in join1 line"
 msgstr ""
 
-#: ../libvips/mosaicing/global_balance.c:665
+#: ../libvips/mosaicing/global_balance.c:667
 msgid "bad number of args in copy line"
 msgstr ""
 
-#: ../libvips/mosaicing/global_balance.c:723
+#: ../libvips/mosaicing/global_balance.c:725
 msgid ""
 "mosaic root not found in desc file\n"
 "is this really a mosaiced image?"
 msgstr ""
 
-#: ../libvips/mosaicing/global_balance.c:734
+#: ../libvips/mosaicing/global_balance.c:736
 msgid "more than one root"
 msgstr ""
 
-#: ../libvips/mosaicing/global_balance.c:1053
+#: ../libvips/mosaicing/global_balance.c:1055
 msgid "empty overlap!"
 msgstr ""
 
@@ -3143,35 +3232,51 @@ msgstr ""
 msgid "factor should be in [1,0)"
 msgstr ""
 
-#: ../libvips/resample/im_shrink.c:359
+#: ../libvips/resample/shrink.c:313
 msgid "shrink factors should be >= 1"
+msgstr ""
+
+#: ../libvips/resample/shrink.c:320
+msgid "not integer shrink factors, expect poor results"
+msgstr ""
+
+#: ../libvips/resample/shrink.c:371
+msgid "shrink an image"
+msgstr ""
+
+#: ../libvips/resample/shrink.c:377
+msgid "Xshrink"
+msgstr ""
+
+#: ../libvips/resample/shrink.c:378
+msgid "Horizontal shrink factor"
+msgstr ""
+
+#: ../libvips/resample/shrink.c:384
+msgid "Yshrink"
+msgstr ""
+
+#: ../libvips/resample/shrink.c:385
+msgid "Vertical shrink factor"
+msgstr ""
+
+#: ../libvips/resample/resample.c:85
+msgid "resample operations"
 msgstr ""
 
 #: ../libvips/resample/im_affine.c:410
 msgid "output coordinates out of range"
 msgstr ""
 
-#: ../libvips/resample/im_rightshift_size.c:120
-msgid "shift by zero: falling back to im_copy"
-msgstr ""
-
-#: ../libvips/resample/im_rightshift_size.c:124
-msgid "would result in zero size output image"
-msgstr ""
-
-#: ../libvips/resample/im_rightshift_size.c:132
-msgid "image and band_fmt must match in sign"
-msgstr ""
-
 #: ../libvips/resample/interpolate.c:180
 msgid "VIPS interpolators"
 msgstr ""
 
-#: ../libvips/resample/interpolate.c:361
+#: ../libvips/resample/interpolate.c:358
 msgid "Nearest-neighbour interpolation"
 msgstr ""
 
-#: ../libvips/resample/interpolate.c:532
+#: ../libvips/resample/interpolate.c:529
 msgid "Bilinear interpolation"
 msgstr ""
 
@@ -3390,88 +3495,92 @@ msgstr ""
 msgid "no package or function \"%s\""
 msgstr ""
 
-#: ../tools/vips.c:917
+#: ../tools/vips.c:925
 msgid "list classes|packages|all|package-name|operation-name"
 msgstr ""
 
-#: ../tools/vips.c:919
+#: ../tools/vips.c:927
 msgid "generate headers for C++ binding"
 msgstr ""
 
-#: ../tools/vips.c:921
+#: ../tools/vips.c:929
 msgid "generate bodies for C++ binding"
 msgstr ""
 
-#: ../tools/vips.c:923
+#: ../tools/vips.c:931
 msgid "generate links for vips/bin"
 msgstr ""
 
-#: ../tools/vips.c:1043
+#: ../tools/vips.c:1051
 msgid "[ACTION] [OPTIONS] [PARAMETERS] - VIPS driver program"
 msgstr ""
 
-#: ../tools/vips.c:1111
+#: ../tools/vips.c:1119
 msgid "possible actions:\n"
 msgstr ""
 
-#: ../tools/vips.c:1116
+#: ../tools/vips.c:1124
 msgid "execute named vips operation"
 msgstr ""
 
-#: ../tools/vips.c:1118
+#: ../tools/vips.c:1126
 #, c-format
 msgid "unknown action \"%s\""
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:54
+#: ../tools/vipsthumbnail.c:62
 msgid "set thumbnail size to SIZE"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:55
+#: ../tools/vipsthumbnail.c:63
 msgid "SIZE"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:57
+#: ../tools/vipsthumbnail.c:66
 msgid "set output to FORMAT"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:58
+#: ../tools/vipsthumbnail.c:67
 msgid "FORMAT"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:60
+#: ../tools/vipsthumbnail.c:70
 msgid "resample with INTERPOLATOR"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:61
+#: ../tools/vipsthumbnail.c:71
 msgid "INTERPOLATOR"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:63
+#: ../tools/vipsthumbnail.c:74
 msgid "don't sharpen thumbnail"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:65
+#: ../tools/vipsthumbnail.c:77
 msgid "export with PROFILE"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:66 ../tools/vipsthumbnail.c:69
+#: ../tools/vipsthumbnail.c:78 ../tools/vipsthumbnail.c:82
 msgid "PROFILE"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:68
+#: ../tools/vipsthumbnail.c:81
 msgid "import untagged images with PROFILE"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:71
-msgid "don't delete profile from exported image"
+#: ../tools/vipsthumbnail.c:85
+msgid "delete profile from exported image"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:73
+#: ../tools/vipsthumbnail.c:88
+msgid "(deprecated, does nothing)"
+msgstr ""
+
+#: ../tools/vipsthumbnail.c:91
 msgid "verbose output"
 msgstr ""
 
-#: ../tools/vipsthumbnail.c:412
+#: ../tools/vipsthumbnail.c:432
 msgid "- thumbnail generator"
 msgstr ""
 

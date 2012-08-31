@@ -401,8 +401,13 @@ vips_embed_build( VipsObject *object )
 	case VIPS_EXTEND_COPY:
 		if( vips_image_copy_fields( conversion->out, embed->in ) )
 			return( -1 );
+
+		/* embed is used in many places. SMALLTILE would force most
+		 * pipelines into SMALLTILE mode, so stick with THINSTRIP,
+		 * even though SMALLTILE might be a little faster for us.
+		 */
 		vips_demand_hint( conversion->out, 
-			VIPS_DEMAND_STYLE_SMALLTILE, embed->in, NULL );
+			VIPS_DEMAND_STYLE_FATSTRIP, embed->in, NULL );
 
 		conversion->out->Xsize = embed->width;
 		conversion->out->Ysize = embed->height;
@@ -502,6 +507,7 @@ vips_embed_class_init( VipsEmbedClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_embed_class_init\n" );
 
@@ -511,6 +517,8 @@ vips_embed_class_init( VipsEmbedClass *class )
 	vobject_class->nickname = "embed";
 	vobject_class->description = _( "embed an image in a larger image" );
 	vobject_class->build = vips_embed_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", -1, 
 		_( "Input" ), 

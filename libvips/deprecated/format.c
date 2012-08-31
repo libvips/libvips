@@ -379,18 +379,6 @@ file2vips( const char *filename, IMAGE *out )
 	return( 0 );
 }
 
-static int
-vips2file( IMAGE *im, const char *filename )
-{
-	IMAGE *out;
-
-	if( !(out = im_open_local( im, filename, "w" )) ||
-		im_copy( im, out ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 static VipsFormatFlags
 vips_flags( const char *filename )
 {
@@ -426,7 +414,7 @@ vips_format_vips_class_init( VipsFormatVipsClass *class )
 	format_class->is_a = im_isvips;
 	format_class->header = file2vips;
 	format_class->load = file2vips;
-	format_class->save = vips2file;
+	format_class->save = vips_image_write_to_file;
 	format_class->get_flags = vips_flags;
 	format_class->suffs = vips_suffs;
 }

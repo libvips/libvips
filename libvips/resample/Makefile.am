@@ -5,10 +5,11 @@
 if ENABLE_CXX
 
 libresample_la_SOURCES = \
+	resample.c \
+	resample.h \
+	shrink.c \
 	im_affine.c \
 	interpolate.c \
-	im_shrink.c \
-	im_rightshift_size.c \
 	transform.c \
 	resample_dispatch.c \
 	bicubic.cpp \
@@ -20,10 +21,11 @@ libresample_la_SOURCES = \
 else
 
 libresample_la_SOURCES = \
+	resample.c \
+	resample.h \
+	shrink.c \
 	im_affine.c \
 	interpolate.c \
-	im_shrink.c \
-	im_rightshift_size.c \
 	transform.c \
 	resample_dispatch.c 
 

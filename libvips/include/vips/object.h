@@ -53,6 +53,7 @@ typedef struct _VipsObjectClass VipsObjectClass;
  * @VIPS_ARGUMENT_SET_ALWAYS: don't do use-before-set checks
  * @VIPS_ARGUMENT_INPUT: is an input argument (one we depend on)
  * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
+ * @VIPS_ARGUMENT_DEPRECATED: just there for back-compat, hide 
  *
  * Flags we associate with each object argument.
  *
@@ -65,6 +66,11 @@ typedef struct _VipsObjectClass VipsObjectClass;
  * example, VipsImage::width is a property that gives access to the Xsize
  * member of struct _VipsImage. We default its 'assigned' to TRUE
  * since the field is always set directly by C.
+ *
+ * @VIPS_ARGUMENT_DEPRECATED arguments are not shown in help text, are not
+ * looked for if required, are not checked for "have-been-set". You can
+ * deprecate a required argument, but you must obviously add a new required
+ * argument if you do.
  */
 typedef enum /*< flags >*/ {
 	VIPS_ARGUMENT_NONE = 0,
@@ -73,7 +79,8 @@ typedef enum /*< flags >*/ {
 	VIPS_ARGUMENT_SET_ONCE = 4,
 	VIPS_ARGUMENT_SET_ALWAYS = 8,
 	VIPS_ARGUMENT_INPUT = 16,
-	VIPS_ARGUMENT_OUTPUT = 32
+	VIPS_ARGUMENT_OUTPUT = 32,
+	VIPS_ARGUMENT_DEPRECATED = 64
 } VipsArgumentFlags;
 
 /* Useful flag combinations. User-visible ones are:
@@ -325,7 +332,7 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 			(VipsArgumentClass *) p->data; \
 		VipsArgument *argument = (VipsArgument *) argument_class; \
 		GParamSpec *PSPEC = argument->pspec; \
-		VipsArgumentInstance *ARG_INSTANCE = \
+		VipsArgumentInstance *ARG_INSTANCE __attribute__ ((unused)) = \
 			vips__argument_get_instance( argument_class, \
 			VIPS_OBJECT( OBJECT ) ); \
 
@@ -540,6 +547,10 @@ int vips_object_set_required( VipsObject *object, const char *value );
 typedef void *(*VipsObjectSetArguments)( VipsObject *, void *, void * );
 VipsObject *vips_object_new( GType type, 
 	VipsObjectSetArguments set, void *a, void *b );
+
+int vips_object_set_valist( VipsObject *object, va_list ap );
+int vips_object_set( VipsObject *object, ... )
+	__attribute__((sentinel));
 
 VipsObject *vips_object_new_from_string( VipsObjectClass *object_class, 
 	const char *p );

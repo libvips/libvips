@@ -63,6 +63,7 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/conversion.h \
 	${top_srcdir}/libvips/include/vips/util.h \
 	${top_srcdir}/libvips/include/vips/image.h \
+	${top_srcdir}/libvips/include/vips/operation.h \
 	${top_srcdir}/libvips/include/vips/object.h
 
 enumtypes.h: $(vips_scan_headers) Makefile

@@ -44,36 +44,72 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-int
-im_png2vips( const char *name, IMAGE *out )
+#include "../foreign/vipspng.h"
+
+static int
+png2vips( const char *name, IMAGE *out, gboolean header_only )
 {
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
 	char *p, *q;
-	gboolean sequential;
-	VipsImage *x;
+	int seq;
 
 	im_filename_split( name, filename, mode );
 
-	sequential = FALSE;
+	seq = 0;
 	p = &mode[0];
 	if( (q = im_getnextoption( &p )) ) {
 		if( im_isprefix( "seq", q ) )
-			sequential = TRUE;
+			seq = 1;
 	}
 
-	if( vips_pngload( filename, &x, 
-		"sequential", sequential,
-		NULL ) )
-		return( -1 );
+	/* We need to be compatible with the pre-sequential mode 
+	 * im_png2vips(). This returned a "t" if given a "p" image, since it
+	 * used writeline.
+	 *
+	 * If we're writing the image to a "p", switch it to a "t".
+	 *
+	 * Don't do this for header read, since we don't want to force a
+	 * malloc if all we are doing is looking at fields.
+	 */
 
-	if( vips_image_write( x, out ) ) {
-		g_object_unref( x );
-		return( -1 );
+	if( !header_only && 
+		!seq &&
+		out->dtype == VIPS_IMAGE_PARTIAL ) {
+		if( vips__image_wio_output( out ) ) 
+			return( -1 );
 	}
-	g_object_unref( x );
+
+#ifdef HAVE_PNG
+	if( header_only ) {
+		if( vips__png_header( filename, out ) )
+			return( -1 );
+	}
+	else {
+		if( vips__png_read( filename, out ) )
+			return( -1 );
+	}
+#else
+	vips_error( "im_png2vips", _( "no PNG support in your libvips" ) ); 
+
+	return( -1 );
+#endif /*HAVE_PNG*/
 
 	return( 0 );
+}
+
+int
+im_png2vips( const char *name, IMAGE *out )
+{
+	return( png2vips( name, out, FALSE ) ); 
+}
+
+/* By having a separate header func, we get lazy.c to open via disc/mem.
+ */
+static int
+im_png2vips_header( const char *name, IMAGE *out )
+{
+	return( png2vips( name, out, TRUE ) ); 
 }
 
 static int
@@ -97,6 +133,7 @@ vips_format_png_class_init( VipsFormatPngClass *class )
 	object_class->description = _( "PNG" );
 
 	format_class->is_a = ispng;
+	format_class->header = im_png2vips_header;
 	format_class->load = im_png2vips;
 	format_class->save = im_vips2png;
 	format_class->suffs = png_suffs;

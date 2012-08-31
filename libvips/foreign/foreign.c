@@ -2,6 +2,8 @@
  *
  * 7/2/12
  * 	- add support for sequential reads
+ * 18/6/12
+ * 	- flatten alpha with vips_flatten()
  */
 
 /*
@@ -700,7 +702,7 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 
 		/* You can't reuse sequential operations.
 		 */
-		vips_operation_set_nocache( VIPS_OPERATION( load ), TRUE );
+		load->nocache = TRUE;
 
 		return( vips_image_new() );
 	}
@@ -780,6 +782,12 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		 */
 		if( !vips_foreign_load_iscompat( load->real, out ) )
 			return( NULL );
+
+		/* We have to tell vips that out depends on real. We've set
+		 * the demand hint below, but not given an input there.
+		 */
+		vips_demand_hint( load->out, load->out->dhint, 
+			load->real, NULL );
 	}
 
 	return( vips_region_new( load->real ) );
@@ -881,11 +889,26 @@ vips_foreign_load_build( VipsObject *object )
 	return( 0 );
 }
 
+static VipsOperationFlags 
+vips_foreign_load_operation_get_flags( VipsOperation *operation )
+{
+	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( operation );
+	VipsOperationFlags flags;
+
+	flags = VIPS_OPERATION_CLASS( vips_foreign_load_parent_class )->
+		get_flags( operation );
+	if( load->nocache )
+		flags |= VIPS_OPERATION_NOCACHE;
+
+	return( flags );
+}
+
 static void
 vips_foreign_load_class_init( VipsForeignLoadClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_dispose;
 	gobject_class->set_property = vips_object_set_property;
@@ -896,6 +919,8 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 	object_class->new_from_string = vips_foreign_load_new_from_string;
 	object_class->nickname = "fileload";
 	object_class->description = _( "file loaders" );
+
+	operation_class->get_flags = vips_foreign_load_operation_get_flags;
 
 	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Output" ), 
@@ -929,35 +954,6 @@ static void
 vips_foreign_load_init( VipsForeignLoad *load )
 {
 	load->disc = TRUE;
-}
-
-/* Make a sequential cache for a file reader. 
- */
-int
-vips_foreign_tilecache( VipsImage *in, VipsImage **out, int strip_height )
-{
-	int tile_width;
-	int tile_height;
-	int nlines;
-	int nstrips;
-
-	vips_get_tile_size( in, &tile_width, &tile_height, &nlines );
-
-	/* We need two buffers, each with enough strips to make a complete
-	 * buffer. And double to be safe, since input buffers must be larger
-	 * than output, and our buffers may not align exactly.
-	 */
-	nstrips = 2 * (1 + nlines / strip_height); 
-
-	if( vips_tilecache( in, out, 
-		"tile_width", in->Xsize, 
-		"tile_height", strip_height * nstrips,
-		"max_tiles", 2,
-		"strategy", VIPS_CACHE_SEQUENTIAL,
-		NULL ) )
-		return( -1 );
-
-	return( 0 );
 }
 
 /* Abstract base class for image savers.
@@ -1147,11 +1143,19 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	/* Get the bands right. 
 	 */
 	if( in->Coding == VIPS_CODING_NONE ) {
-		if( in->Bands == 2 && 
-			class->saveable != VIPS_SAVEABLE_RGBA ) {
+		/* Do we need to flatten out an alpha channel? There needs to
+		 * be an alpha there now, and this writer needs to not support
+		 * alpha.
+		 */
+		if( (in->Bands == 2 ||
+			(in->Bands == 4 && 
+			 in->Type != VIPS_INTERPRETATION_CMYK)) &&
+			(class->saveable == VIPS_SAVEABLE_MONO ||
+			 class->saveable == VIPS_SAVEABLE_RGB ||
+			 class->saveable == VIPS_SAVEABLE_RGB_CMYK) ) {
 			VipsImage *out;
 
-			if( vips_extract_band( in, &out, 0, NULL ) ) {
+			if( vips_flatten( in, &out, 0, NULL ) ) {
 				g_object_unref( in );
 				return( -1 );
 			}
@@ -1159,10 +1163,24 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 			in = out;
 		}
+
+		/* Other alpha removal strategies ... just drop the extra
+		 * bands.
+		 */
+
 		else if( in->Bands > 3 && 
-			class->saveable == VIPS_SAVEABLE_RGB ) {
+			(class->saveable == VIPS_SAVEABLE_RGB ||
+			 (class->saveable == VIPS_SAVEABLE_RGB_CMYK &&
+			  in->Type != VIPS_INTERPRETATION_CMYK)) ) { 
 			VipsImage *out;
 
+			/* Don't let 4 bands though unless the image really is
+			 * a CMYK.
+			 *
+			 * Consider a RGBA png being saved as JPG. We can
+			 * write CMYK jpg, but we mustn't do that for RGBA
+			 * images.
+			 */
 			if( vips_extract_band( in, &out, 0, 
 				"n", 3,
 				NULL ) ) {
@@ -1174,7 +1192,8 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 			in = out;
 		}
 		else if( in->Bands > 4 && 
-			(class->saveable == VIPS_SAVEABLE_RGB_CMYK || 
+			((class->saveable == VIPS_SAVEABLE_RGB_CMYK &&
+			  in->Type == VIPS_INTERPRETATION_CMYK) ||
 			 class->saveable == VIPS_SAVEABLE_RGBA) ) {
 			VipsImage *out;
 
@@ -1360,10 +1379,11 @@ vips_foreign_save_build( VipsObject *object )
 static void
 vips_foreign_save_class_init( VipsForeignSaveClass *class )
 {
-	int i;
-
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+
+	int i;
 
 	gobject_class->dispose = vips_foreign_save_dispose;
 	gobject_class->set_property = vips_object_set_property;
@@ -1374,6 +1394,14 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 	object_class->new_from_string = vips_foreign_save_new_from_string;
 	object_class->nickname = "filesave";
 	object_class->description = _( "file savers" );
+
+	/* I think all savers are sequential. Hopefully.
+	 */
+	operation_class->flags |= VIPS_OPERATION_SEQUENTIAL;
+
+	/* Must not cache savers.
+	 */
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	/* Default to no coding allowed.
 	 */
@@ -1458,28 +1486,40 @@ vips_foreign_save( VipsImage *in, const char *filename, ... )
  * vips_foreign_load_options:
  * @filename: file to load
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Loads @filename into @out using the loader recommended by
  * vips_foreign_find_load().
  *
  * Arguments to the loader may be embedded in the filename using the usual
- * syntax.
+ * syntax. They may also be given as a set of NULL-terminated optional
+ * arguments.
  *
  * See also: vips_foreign_load().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_foreign_load_options( const char *filename, VipsImage **out )
+vips_foreign_load_options( const char *filename, VipsImage **out, ... )
 {
 	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_LOAD );
 
 	VipsObject *object;
+	va_list ap;
+	int result;
 
 	/* This will use vips_foreign_load_new_from_string() to pick a loader,
 	 * then set options from the remains of the string.
 	 */
 	if( !(object = vips_object_new_from_string( oclass, filename )) )
+		return( -1 );
+
+	/* Also set options from args.
+	 */
+	va_start( ap, out );
+	result = vips_object_set_valist( object, ap );
+	va_end( ap );
+	if( result )
 		return( -1 );
 
 	if( vips_cache_operation_buildp( (VipsOperation **) &object ) ) {
@@ -1509,22 +1549,27 @@ vips_foreign_load_options( const char *filename, VipsImage **out )
  * vips_foreign_save_options:
  * @in: image to write
  * @filename: file to write to
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Saves @in to @filename using the saver recommended by
  * vips_foreign_find_save(). 
  *
  * Arguments to the saver may be embedded in the filename using the usual
- * syntax.
+ * syntax. They may also be given as a set of NULL-terminated optional
+ * arguments.
  *
  * See also: vips_foreign_save().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_foreign_save_options( VipsImage *in, const char *filename )
+vips_foreign_save_options( VipsImage *in, const char *filename, ... )
 {
 	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_SAVE );
+
 	VipsObject *object;
+	va_list ap;
+	int result;
 
 	/* This will use vips_foreign_save_new_from_string() to pick a saver,
 	 * then set options from the tail of the filename.
@@ -1533,6 +1578,14 @@ vips_foreign_save_options( VipsImage *in, const char *filename )
 		return( -1 );
 
 	g_object_set( object, "in", in, NULL );
+
+	/* Also set options from args.
+	 */
+	va_start( ap, filename );
+	result = vips_object_set_valist( object, ap );
+	va_end( ap );
+	if( result )
+		return( -1 );
 
 	/* ... and running _build() should save it.
 	 */
@@ -2300,46 +2353,3 @@ vips_matload( const char *filename, VipsImage **out, ... )
 
 	return( result );
 }
-
-/**
- * vips_dzsave:
- * @in: image to save 
- * @dirname: directory to save to 
- * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * @suffix: suffix for tile tiles (default ".jpg")
- * @overlap; set tile overlap
- * @tile_width; set tile size
- * @tile_height; set tile size
- *
- * Save an image to a deep zoom - style directory tree.
- *
- * The image is shrunk in a series of x2 reductions until it fits within a
- * tile. Each layer is written out to a separate subdirectory of @dirname,
- * with directory "0" holding the smallest, single tile image.
- *
- * Each tile is written as a separate file named as "@x_@y@suffix", where @x
- * and @y are the tile coordinates, with (0, 0) as the top-left tile.
- *
- * You can set @suffix to something like ".jpg[Q=85]" to set the tile write
- * options. 
- *
- * See also: vips_tiffsave().
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_dzsave( VipsImage *in, const char *dirname, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, dirname );
-	result = vips_call_split( "dzsave", ap, in, dirname ); 
-	va_end( ap );
-
-	return( result );
-}
-

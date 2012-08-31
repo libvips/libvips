@@ -2,20 +2,22 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT(vips, 7.29.0, vipsip@jiscmail.ac.uk)
+AC_INIT([vips], [7.30.1], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
-# gobject-introspection recommends this
-AM_INIT_AUTOMAKE([-Wno-portability])
+# gobject-introspection recommends -Wno-portability
+# foreign stops complaints about a missing README (we use README.md instead)
+# and missing INSTALL (the standard Gnu INSTALL is not very useful)
+AM_INIT_AUTOMAKE([-Wno-portability foreign])
 
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [7])
-m4_define([vips_minor_version], [29])
-m4_define([vips_micro_version], [0])
+m4_define([vips_minor_version], [30])
+m4_define([vips_micro_version], [1])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -34,9 +36,9 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=32
-LIBRARY_REVISION=0
-LIBRARY_AGE=0
+LIBRARY_CURRENT=33
+LIBRARY_REVISION=4
+LIBRARY_AGE=1
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
@@ -216,7 +218,7 @@ if test x"$enable_cxx" != x"no"; then
     AC_DEFINE(ENABLE_CXX,1,[build C++ components])
     AM_CONDITIONAL(ENABLE_CXX, true)
     # need -lstdc++ for (eg.) the C++ format loaders
-    # this gets added to vips-7.xx.pc to help mingw and friends link programs
+    # this gets added to vips.pc to help mingw and friends link programs
     # using libvips
     VIPS_CXX_LIBS="-lstdc++"
     enable_cxx=yes
@@ -449,13 +451,11 @@ AC_ARG_WITH([lcms],
 if test x"$with_lcms" != "xno"; then
   PKG_CHECK_MODULES(LCMS, lcms2,
     [AC_DEFINE(HAVE_LCMS2,1,[define if you have lcms2 installed.])
-     with_lcms=yes
-     with_lcms_ver=lcms2
+     with_lcms="yes (lcms2)"
      PACKAGES_USED="$PACKAGES_USED lcms2"],
     [PKG_CHECK_MODULES(LCMS, lcms,
      [AC_DEFINE(HAVE_LCMS,1,[define if you have lcms installed.])
-      with_lcms=yes
-      with_lcms_ver=lcms
+      with_lcms="yes (lcms1)"
       PACKAGES_USED="$PACKAGES_USED lcms"],
      [AC_MSG_WARN([lcms2/lcms not found; disabling lcms support])
       with_lcms=no])   
@@ -549,9 +549,10 @@ AC_ARG_WITH([tiff],
 if test x"$with_tiff" != "xno"; then
   PKG_CHECK_MODULES(TIFF, libtiff-4,
     [AC_DEFINE(HAVE_TIFF,1,[define if you have libtiff installed.])
-     with_tiff=yes
+     with_tiff="yes (pkg-config libtiff-4)"
      PACKAGES_USED="$PACKAGES_USED libtiff-4"],
-    [FIND_TIFF(,
+    [FIND_TIFF(
+     with_tiff="yes (found by search)",
      [AC_MSG_WARN([libtiff not found; disabling TIFF support])
       with_tiff=no
      ])
@@ -565,9 +566,10 @@ AC_ARG_WITH([png],
 if test x"$with_png" != "xno"; then
   PKG_CHECK_MODULES(PNG, libpng >= 1.2.9, 
     [AC_DEFINE(HAVE_PNG,1,[define if you have libpng installed.])
-     with_png=yes
+     with_png="yes (pkg-config libpng >= 1.2.9)"
      PACKAGES_USED="$PACKAGES_USED libpng"],
-    [FIND_PNG(,
+    [FIND_PNG(
+     with_png="yes (found by search)",
      [AC_MSG_WARN([libpng not found; disabling PNG support])
       with_png=no
      ])
@@ -683,12 +685,9 @@ AC_SUBST(VIPS_LIBS)
 AC_SUBST(VIPS_CXX_LIBS)
 AC_SUBST(PACKAGES_USED)
 
-# you'd think we could have 
-#	vips-$VIPS_MAJOR_VERSION.$VIPS_MINOR_VERSION.pc
-# in AC_OUTPUT, but that seems to break for some combinations of sh/m4
 AC_OUTPUT([
-	vips-7.29.pc
-	vipsCC-7.29.pc
+	vips.pc
+	vipsCC.pc
 	Makefile 
 	libvips/include/vips/version.h 
 	libvips/include/Makefile 
@@ -746,7 +745,7 @@ Magick package: 			$with_magickpackage
 file import with libMagick: 		$with_magick
 accelerate loops with orc: 		$with_orc
   (requires orc-0.4.11 or later)
-ICC profile support with lcms: 		$with_lcms (version $with_lcms_ver)
+ICC profile support with lcms: 		$with_lcms
 file import with OpenEXR: 		$with_OpenEXR
 file import with OpenSlide:		$with_openslide
   (requires openslide-3.2.5 or later)

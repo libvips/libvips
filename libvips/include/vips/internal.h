@@ -66,6 +66,10 @@ extern int vips__thinstrip_height;
  */
 extern int vips__concurrency;
 
+/* abort() on any error.
+ */
+extern int vips__fatal;
+
 /* Give progress feedback.
  */
 extern int vips__progress;
@@ -83,6 +87,8 @@ extern char *vips__cache_max_files;
 extern gboolean vips__cache_dump;
 extern gboolean vips__cache_trace;
 
+void vips__cache_init( void );
+
 typedef int (*im__fftproc_fn)( VipsImage *, VipsImage *, VipsImage * );
 
 /* iofuncs
@@ -93,7 +99,8 @@ int vips_image_open_input( VipsImage *image );
 int vips_image_open_output( VipsImage *image );
 
 void vips__link_break_all( VipsImage *im );
-void *vips__link_map( VipsImage *im, VipsSListMap2Fn fn, void *a, void *b );
+void *vips__link_map( VipsImage *image, gboolean upstream, 
+	VipsSListMap2Fn fn, void *a, void *b );
 
 char *vips__b64_encode( const unsigned char *data, size_t data_length );
 unsigned char *vips__b64_decode( const char *buffer, size_t *data_length );
@@ -131,10 +138,6 @@ int vips__sizealike( VipsImage *in1, VipsImage *in2,
 	VipsImage **out1, VipsImage **out2 );
 int vips__bandalike( const char *domain, 
 	VipsImage *in1, VipsImage *in2, VipsImage **out1, VipsImage **out2 );
-
-int vips_foreign_tilecache( VipsImage *in, VipsImage **out, int strip_height );
-
-
 
 
 void im__format_init( void );
@@ -270,7 +273,10 @@ int im__fmaskcir( VipsImage *out, VipsMaskType flag, va_list ap );
 /* inplace
  */
 
-VipsPel *im__vector_to_ink( const char *domain, VipsImage *im, int n, double *vec );
+VipsPel *vips__vector_to_ink( const char *domain, 
+	VipsImage *im, double *vec, int n );
+VipsPel *im__vector_to_ink( const char *domain, 
+	VipsImage *im, int n, double *vec );
 VipsImage *im__inplace_base( const char *domain, 
 	VipsImage *main, VipsImage *sub, VipsImage *out );
 
@@ -286,11 +292,15 @@ void vips__init_wrap7_classes( void );
  */
 void vips_arithmetic_operation_init( void );
 void vips_conversion_operation_init( void );
+void vips_resample_operation_init( void );
+void vips_foreign_operation_init( void );
 
 guint64 vips__parse_size( const char *size_string );
 
-IMAGE *vips__deprecated_open_read( const char *filename );
+IMAGE *vips__deprecated_open_read( const char *filename, gboolean sequential );
 IMAGE *vips__deprecated_open_write( const char *filename );
+
+int vips__input_interpolate_init( im_object *obj, char *str );
 
 #ifdef __cplusplus
 }

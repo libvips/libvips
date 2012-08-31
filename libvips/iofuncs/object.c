@@ -48,6 +48,8 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
+#include <gobject/gvaluecollector.h>
+
 /* Our signals. 
  */
 enum {
@@ -142,6 +144,7 @@ vips_object_check_required( VipsObject *object, GParamSpec *pspec,
 
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) &&
 		(argument_class->flags & *iomask) &&
 		!argument_instance->assigned ) {
 		vips_error( class->nickname, 
@@ -1212,7 +1215,7 @@ static void
 vips_object_real_rewind( VipsObject *object )
 {
 #ifdef DEBUG
-	printf( "vips_object_rewind\n" );
+	printf( "vips_object_real_rewind\n" );
 	vips_object_print_name( object );
 	printf( "\n" );
 #endif /*DEBUG*/
@@ -1435,6 +1438,29 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 #endif /*DEBUG*/
 }
 
+/* Make a bad-enum error. A common and fiddly case.
+ */
+static void
+vips_enum_error( VipsObjectClass *class, GType otype, const char *value )
+{
+	GEnumClass *genum = G_ENUM_CLASS( g_type_class_ref( otype ) );
+	int i;
+	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	/* -1 since we always have a "last" member.
+	 */
+	for( i = 0; i < genum->n_values - 1; i++ ) {
+		if( i > 0 )
+			vips_buf_appends( &buf, ", " );
+		vips_buf_appends( &buf, genum->values[i].value_nick );
+	}
+
+	vips_error( class->nickname, _( "enum '%s' has no member '%s', " 
+		"should be one of: %s" ),
+		g_type_name( otype ), value, vips_buf_all( &buf ) );
+}
+
 /* Set a named arg from a string.
  */
 int
@@ -1464,12 +1490,27 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
 		VipsImage *out;
+		VipsOperationFlags flags;
+
+		flags = 0;
+		if( VIPS_IS_OPERATION( object ) )
+			flags = vips_operation_get_flags( 
+				VIPS_OPERATION( object ) );
 
 		/* Read the filename. vips_foreign_load_options()
 		 * handles embedded options.
 		 */
-		if( vips_foreign_load_options( value, &out ) )
-			return( -1 );
+		if( flags & VIPS_OPERATION_SEQUENTIAL ) {
+			if( vips_foreign_load_options( value, &out, 
+				"sequential", TRUE,
+				NULL ) )
+				return( -1 );
+		}
+		else {
+			if( vips_foreign_load_options( value, &out, 
+				NULL ) )
+				return( -1 );
+		}
 
 		g_value_init( &gvalue, VIPS_TYPE_IMAGE );
 		g_value_set_object( &gvalue, out );
@@ -1560,9 +1601,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 			g_type_class_ref( otype ), value )) ) {
 			if( !(enum_value = g_enum_get_value_by_nick( 
 				g_type_class_ref( otype ), value )) ) {
-				vips_error( class->nickname, 
-					_( "enum '%s' has no member '%s'" ),
-					g_type_name( otype ), value );
+				vips_enum_error( class, otype, value ); 
 				return( -1 );
 			}
 		}
@@ -1682,7 +1721,7 @@ vips_object_get_argument_to_string( VipsObject *object,
 		 * vips_foreign_save_options() handles embedded options.
 		 */
 		g_object_get( object, name, &in, NULL );
-		if( vips_foreign_save_options( in, arg ) ) {
+		if( vips_foreign_save_options( in, arg, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}
@@ -1768,6 +1807,84 @@ vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
 	}
 
 	return( object );
+}
+
+/**
+ * vips_object_set_valist:
+ * @object: object to set arguments on
+ * @ap: %NULL-terminated list of argument/value pairs
+ *
+ * See vips_object_set().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_object_set_valist( VipsObject *object, va_list ap )
+{
+	char *name;
+
+	VIPS_DEBUG_MSG( "vips_object_set_valist:\n" );
+
+	name = va_arg( ap, char * );
+
+	while( name ) {
+		GParamSpec *pspec;
+		VipsArgumentClass *argument_class;
+		VipsArgumentInstance *argument_instance;
+
+		VIPS_DEBUG_MSG( "\tname = '%s' (%p)\n", name, name );
+
+		if( vips_object_get_argument( VIPS_OBJECT( object ), name,
+			&pspec, &argument_class, &argument_instance ) )
+			return( -1 );
+
+		VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
+
+		g_object_set_property( G_OBJECT( object ), 
+			name, &value );
+
+		VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, ap );
+
+		VIPS_ARGUMENT_COLLECT_END
+
+		name = va_arg( ap, char * );
+	}
+
+	return( 0 );
+}
+
+/**
+ * vips_object_set:
+ * @object: object to set arguments on
+ * @...: %NULL-terminated list of argument/value pairs
+ *
+ * Set a list of vips object arguments. For example:
+ *
+ * |[
+ * vips_object_set (operation,
+ *   "input", in,
+ *   "output", &out,
+ *   NULL);
+ * ]|
+ *
+ * Input arguments are given in-line, output arguments are given as pointers
+ * to where the output value should be written.
+ *
+ * See also: vips_object_set_valist().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_object_set( VipsObject *object, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, object );
+	result = vips_object_set_valist( object, ap );
+	va_end( ap );
+
+	return( result );
 }
 
 /* Set object args from a string. @p should be the initial left bracket and

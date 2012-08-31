@@ -370,6 +370,7 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -377,6 +378,8 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 	vobject_class->nickname = "arithmetic";
 	vobject_class->description = _( "arithmetic operations" );
 	vobject_class->build = vips_arithmetic_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 

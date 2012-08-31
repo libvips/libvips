@@ -462,6 +462,7 @@ vips_cast_class_init( VipsCastClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_cast_class_init\n" );
 
@@ -471,6 +472,8 @@ vips_cast_class_init( VipsCastClass *class )
 	vobject_class->nickname = "cast";
 	vobject_class->description = _( "cast an image" );
 	vobject_class->build = vips_cast_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

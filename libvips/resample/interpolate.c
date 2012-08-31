@@ -59,7 +59,7 @@
 
 /**
  * SECTION: interpolate
- * @short_description: various interpolators: nearest, bilinear, bicubic, and
+ * @short_description: various interpolators: nearest, bilinear, and
  * some non-linear
  * @stability: Stable
  * @include: vips/vips.h

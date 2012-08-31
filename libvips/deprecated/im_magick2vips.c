@@ -41,20 +41,19 @@
 
 #include <vips/vips.h>
 
+#include "../foreign/magick.h"
+
 int
 im_magick2vips( const char *filename, IMAGE *out )
 {
-	VipsImage *t;
+#ifdef HAVE_MAGICK
+	return( vips__magick_read( filename, out ) ); 
+#else
+	vips_error( "im_magick2vips", 
+		_( "no libMagick support in your libvips" ) ); 
 
-	if( vips_magickload( filename, &t, NULL ) )
-		return( -1 );
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		return( -1 );
-	}
-	g_object_unref( t );
-
-	return( 0 );
+	return( -1 );
+#endif /*HAVE_MAGICK*/
 }
 
 static int

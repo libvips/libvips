@@ -48,20 +48,18 @@
 #include <vips/thread.h>
 #include <vips/internal.h>
 
+#include "../foreign/openexr2vips.h"
+
 int
 im_exr2vips( const char *filename, IMAGE *out )
 {
-	VipsImage *t;
+#ifdef HAVE_OPENEXR
+	return( vips__openexr_read( filename, out ) ); 
+#else
+	vips_error( "im_exr2vips", _( "no OpenEXR support in your libvips" ) ); 
 
-	if( vips_openexrload( filename, &t, NULL ) )
-		return( -1 );
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		return( -1 );
-	}
-	g_object_unref( t );
-
-	return( 0 );
+	return( -1 );
+#endif /*HAVE_OPENEXR*/
 }
 
 static const char *exr_suffs[] = { ".exr", NULL };

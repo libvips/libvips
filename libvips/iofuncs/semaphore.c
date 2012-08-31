@@ -87,8 +87,14 @@ vips_semaphore_upn( VipsSemaphore *s, int n )
 	s->v += n;
 	value_after_op = s->v;
 #ifdef HAVE_THREADS
+	/* If we are only incrementing by one, we only need to wake a single
+	 * thread. If we are incrementing by a lot, we must wake all threads.
+	 */
+	if( n == 1 )
+		g_cond_signal( s->cond );
+	else
+		g_cond_broadcast( s->cond );
 	g_mutex_unlock( s->mutex );
-	g_cond_signal( s->cond );
 #endif /*HAVE_THREADS*/
 
 #ifdef DEBUG_IO

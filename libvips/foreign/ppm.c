@@ -244,6 +244,10 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 
 	default:
 		g_assert( 0 );
+
+		/* Keep -Wall happy.
+		 */
+		return( 0 );
 	}
 
 	if( bands == 1 ) {

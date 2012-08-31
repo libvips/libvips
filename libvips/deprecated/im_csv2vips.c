@@ -43,6 +43,8 @@
 
 #include <vips/vips.h>
 
+#include "../foreign/csv.h"
+
 int
 im_csv2vips( const char *filename, IMAGE *out )
 {
@@ -56,7 +58,6 @@ im_csv2vips( const char *filename, IMAGE *out )
 	char name[FILENAME_MAX];
 	char mode[FILENAME_MAX];
 	char *p, *q, *r;
-	VipsImage *t;
 
 	/* Parse mode string.
 	 */
@@ -73,18 +74,9 @@ im_csv2vips( const char *filename, IMAGE *out )
 			lines = atoi( r );
 	}
 
-	if( vips_csvload( filename, &t, 
-		"skip", start_skip,
-		"lines", lines,
-		"whitespace", whitespace,
-		"separator", separator,
-		NULL ) )
+	if( vips__csv_read( name, out, 
+		start_skip, lines, whitespace, separator ) )
 		return( -1 );
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
-		return( -1 );
-	}
-	g_object_unref( t );
 
 	return( 0 );
 }

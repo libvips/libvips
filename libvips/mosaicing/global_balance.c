@@ -55,6 +55,9 @@
  * 	- switch to new history thing, switch im_errormsg() too
  * 24/1/11
  * 	- gtk-doc
+ * 12/7/12
+ * 	- always allocate local to an output descriptor ... stops ref cycles
+ * 	  with the new base class
  */
 
 /*
@@ -101,7 +104,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <assert.h>
 #include <math.h>
 
 #include <vips/vips.h>
@@ -270,7 +272,7 @@ overlap_destroy( OverlapInfo *lap )
 	JoinNode *node = lap->node;
 
 	node->overlaps = g_slist_remove( node->overlaps, lap );
-	assert( node->st->novl > 0 );
+	g_assert( node->st->novl > 0 );
 	node->st->novl--;
 }
 
@@ -748,7 +750,7 @@ im__parse_desc( SymbolTable *st, IMAGE *in )
 	for( p = in->history_list; p; p = p->next ) {
 		GValue *value = (GValue *) p->data;
 
-		assert( G_VALUE_TYPE( value ) == IM_TYPE_REF_STRING );
+		g_assert( G_VALUE_TYPE( value ) == IM_TYPE_REF_STRING );
 
 		if( process_line( st, im_ref_string_get( value ) ) )
 			return( -1 );
@@ -978,12 +980,12 @@ extract_rect( IMAGE *in, IMAGE *out, Rect *r )
  * has 255 for every pixel where both images are non-zero.
  */
 static int
-make_overlap_mask( IMAGE *ref, IMAGE *sec, IMAGE *mask, 
+make_overlap_mask( IMAGE *mem, IMAGE *ref, IMAGE *sec, IMAGE *mask, 
 	Rect *rarea, Rect *sarea )
 {
 	IMAGE *t[6];
 
-	if( im_open_local_array( mask, t, 6, "mytemps", "p" ) ||
+	if( im_open_local_array( mem, t, 6, "mytemps", "p" ) ||
 		extract_rect( ref, t[0], rarea ) ||
 		extract_rect( sec, t[1], sarea ) ||
 		im_extract_band( t[0], t[2], 0 ) ||
@@ -1014,7 +1016,7 @@ count_nonzero( IMAGE *in, gint64 *count )
  * mask is true.
  */
 static DOUBLEMASK *
-find_image_stats( IMAGE *in, IMAGE *mask, Rect *area )
+find_image_stats( IMAGE *mem, IMAGE *in, IMAGE *mask, Rect *area )
 {
 	DOUBLEMASK *stats;
 	IMAGE *t[4];
@@ -1022,7 +1024,7 @@ find_image_stats( IMAGE *in, IMAGE *mask, Rect *area )
 
 	/* Extract area, build black image, mask out pixels we want.
 	 */
-	if( im_open_local_array( in, t, 4, "find_image_stats", "p" ) ||
+	if( im_open_local_array( mem, t, 4, "find_image_stats", "p" ) ||
 		extract_rect( in, t[0], area ) ||
 		im_black( t[1], t[0]->Xsize, t[0]->Ysize, t[0]->Bands ) ||
 		im_clip2fmt( t[1], t[2], t[0]->BandFmt ) ||
@@ -1031,7 +1033,7 @@ find_image_stats( IMAGE *in, IMAGE *mask, Rect *area )
 
 	/* Get stats from masked image.
 	 */
-	if( !(stats = im_local_dmask( in, im_stats( t[3] ) )) ) 
+	if( !(stats = im_local_dmask( mem, im_stats( t[3] ) )) ) 
 		return( NULL );
 
 	/* Number of non-zero pixels in mask.
@@ -1061,7 +1063,8 @@ find_image_stats( IMAGE *in, IMAGE *mask, Rect *area )
 static int
 find_overlap_stats( OverlapInfo *lap )
 {
-	IMAGE *t1 = im_open_local( lap->node->im, "find_overlap_stats:1", "p" );
+	IMAGE *mem = lap->node->st->im; 
+	IMAGE *t1 = im_open_local( mem, "find_overlap_stats:1", "p" );
 	Rect rarea, sarea;
 
 	/* Translate the overlap area into the coordinate scheme for the main
@@ -1080,15 +1083,17 @@ find_overlap_stats( OverlapInfo *lap )
 
 	/* Make a mask for the overlap.
 	 */
-	if( make_overlap_mask( lap->node->trnim, lap->other->trnim, t1,
-		&rarea, &sarea ) )
+	if( make_overlap_mask( mem, 
+		lap->node->trnim, lap->other->trnim, t1, &rarea, &sarea ) )
 		return( -1 );
 
 	/* Find stats for that area.
 	 */
-	if( !(lap->nstats = find_image_stats( lap->node->trnim, t1, &rarea )) )
+	if( !(lap->nstats = find_image_stats( mem, 
+		lap->node->trnim, t1, &rarea )) )
 		return( -1 );
-	if( !(lap->ostats = find_image_stats( lap->other->trnim, t1, &sarea )) )
+	if( !(lap->ostats = find_image_stats( mem, 
+		lap->other->trnim, t1, &sarea )) )
 		return( -1 );
 
 	return( 0 );
@@ -1144,9 +1149,10 @@ test_overlap( JoinNode *other, JoinNode *node )
 	if( !(lap = build_overlap( node, other, &overlap )) )
 		return( node );
 
-	/* Calculate overlap statistics.
+	/* Calculate overlap statistics. Open stuff relative to this, and 
+	 * free quickly.
 	 */
-	if( find_overlap_stats( lap ) )
+	if( find_overlap_stats( lap ) ) 
 		return( node );
 
 	/* If the pixel count either masked overlap is trivial, ignore this
@@ -1526,7 +1532,8 @@ generate_trn_leaves( JoinNode *node, SymbolTable *st )
 			node->trnim = node->im;
 		else
 			if( !(node->trnim = 
-				im_open_local( node->im, "trnleaf:1", "p" )) ||
+				im_open_local( node->st->im, 
+					"trnleaf:1", "p" )) ||
 				im__affine( node->im, node->trnim, 
 					&node->cumtrn ) ) 
 				return( node );

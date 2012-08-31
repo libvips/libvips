@@ -62,10 +62,16 @@ im_open( const char *filename, const char *mode )
 
 	/* We have to go via the old VipsFormat system so we can support the
 	 * "filename:option" syntax.
+	 *
+	 * Use "rs" to turn on seq mode.
 	 */
 	if( strcmp( mode, "r" ) == 0 ||
 		strcmp( mode, "rd" ) == 0 ) {
-		if( !(image = vips__deprecated_open_read( filename )) )
+		if( !(image = vips__deprecated_open_read( filename, FALSE )) )
+			return( NULL );
+	}
+	else if( strcmp( mode, "rs" ) == 0 ) { 
+		if( !(image = vips__deprecated_open_read( filename, TRUE )) )
 			return( NULL );
 	}
 	else if( strcmp( mode, "w" ) == 0 ) {
@@ -2105,4 +2111,35 @@ im_argb2rgba( VipsImage *in, VipsImage *out )
 	/* No longer exists, just a null op.
 	 */
 	return( im_copy( in, out ) );
+}
+
+int
+im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink )
+{
+	VipsImage *x;
+
+	if( vips_shrink( in, &x, xshrink, yshrink, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
+im_rightshift_size( IMAGE *in, IMAGE *out, 
+	int xshift, int yshift, int band_fmt )
+{
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( out ), 2 );
+
+	if( vips_shrink( in, &t[0], 1 << xshift, 1 << yshift, NULL ) ||
+		vips_cast( t[0], &t[1], band_fmt, NULL ) ||
+		vips_image_write( t[1], out ) ) 
+		return( -1 );
+
+	return( 0 );
 }

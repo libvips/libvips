@@ -65,6 +65,7 @@ int
 im_point( IMAGE *im, VipsInterpolate *interpolate, 
 	double x, double y, int band, double *out )
 {
+	IMAGE *mem;
 	IMAGE *t[2];
 
 	if( band >= im->Bands || 
@@ -75,15 +76,20 @@ im_point( IMAGE *im, VipsInterpolate *interpolate,
 		return( -1 );
 	}
 
-	if( im_open_local_array( im, t, 2, "im_point_bilinear", "p" ) ||
+	if( !(mem = im_open( "im_point", "p" )) )
+		return( -1 );
+	if( im_open_local_array( mem, t, 2, "im_point", "p" ) ||
 		im_extract_band( im, t[0], band ) ||
 		im_affinei( t[0], t[1], 
 			interpolate,
 			1, 0, 0, 1,
 			x - floor( x ), y - floor( y ),
 			floor( x ), floor( y ), 1, 1 ) ||
-		im_avg( t[1], out ) )
+		im_avg( t[1], out ) ) {
+		im_close( mem );
 		return( -1 );
+	}
+	im_close( mem );
 
 	return( 0 );
 }

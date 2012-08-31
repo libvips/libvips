@@ -131,6 +131,8 @@
  * 2/6/12
  * 	- copy jpeg pyramid in gather in RGB mode ... tiff4 doesn't do ycbcr
  * 	  mode
+ * 7/8/12
+ * 	- be more cautious enabling YCbCr mode
  */
 
 /*
@@ -160,6 +162,7 @@
  */
 
 /* 
+#define DEBUG_VERBOSE
 #define DEBUG
  */
 
@@ -457,16 +460,10 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 	TIFFSetField( tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
 	TIFFSetField( tif, TIFFTAG_COMPRESSION, tw->compression );
 
-	if( tw->compression == COMPRESSION_JPEG ) {
+	if( tw->compression == COMPRESSION_JPEG ) 
 		TIFFSetField( tif, TIFFTAG_JPEGQUALITY, tw->jpqual );
 
-		/* Enable rgb->ycbcr conversion in the jpeg write. See also
-		 * the photometric selection below.
-		 */
-		TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
-	}
-
-	if( tw->predictor != -1 ) 
+	if( tw->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
 		TIFFSetField( tif, TIFFTAG_PREDICTOR, tw->predictor );
 
 	/* Don't write mad resolutions (eg. zero), it confuses some programs.
@@ -514,6 +511,9 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 
 		case 3:
 		case 4:
+			/* could be: RGB, RGBA, CMYK, LAB, LABA, generic
+			 * multi-band image.
+			 */
 			if( tw->im->Type == VIPS_INTERPRETATION_LAB || 
 				tw->im->Type == VIPS_INTERPRETATION_LABS ) 
 				photometric = PHOTOMETRIC_CIELAB;
@@ -523,12 +523,16 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 					TIFFTAG_INKSET, INKSET_CMYK );
 			}
 			else if( tw->compression == COMPRESSION_JPEG &&
-				tw->im->Bands == 3 ) 
+				tw->im->Bands == 3 &&
+				tw->im->BandFmt == VIPS_FORMAT_UCHAR ) { 
 				/* This signals to libjpeg that it can do
 				 * YCbCr chrominance subsampling from RGB, not
 				 * that we will supply the image as YCbCr.
 				 */
 				photometric = PHOTOMETRIC_YCBCR;
+				TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE, 
+					JPEGCOLORMODE_RGB );
+			}
 			else
 				photometric = PHOTOMETRIC_RGB;
 
@@ -537,18 +541,22 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 				v[0] = EXTRASAMPLE_ASSOCALPHA;
 				TIFFSetField( tif, TIFFTAG_EXTRASAMPLES, 1, v );
 			}
+
 			break;
 
 		case 5:
-			if( tw->im->Type == VIPS_INTERPRETATION_CMYK ) {
-				photometric = PHOTOMETRIC_SEPARATED;
-				TIFFSetField( tif, 
-					TIFFTAG_INKSET, INKSET_CMYK );
-			}
+			/* Only CMYKA
+			 */
+			photometric = PHOTOMETRIC_SEPARATED;
+			TIFFSetField( tif, TIFFTAG_INKSET, INKSET_CMYK );
 			break;
 
 		default:
 			g_assert( 0 );
+
+			/* Keep -Wall happy.
+			 */
+			return( 0 );
 		}
 
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, photometric );
@@ -916,11 +924,11 @@ save_tile( TiffWrite *tw,
 	 */
 	pack2tiff( tw, reg, tbuf, area );
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "Writing %dx%d pixels at position %dx%d to image %s\n",
 		tw->tilew, tw->tileh, area->left, area->top,
 		TIFFFileName( tif ) );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	/* Write to TIFF! easy.
 	 */
@@ -1141,13 +1149,23 @@ delete_files( TiffWrite *tw )
 	PyramidLayer *layer = tw->layer;
 
 	if( tw->bname ) {
+#ifndef DEBUG
 		unlink( tw->bname );
+#else
+		printf( "delete_files: leaving %s\n", tw->bname );
+#endif /*DEBUG*/
+
 		tw->bname = NULL;
 	}
 
 	for( layer = tw->layer; layer; layer = layer->below ) 
 		if( layer->lname ) {
+#ifndef DEBUG
 			unlink( layer->lname );
+#else
+			printf( "delete_files: leaving %s\n", layer->lname );
+#endif /*DEBUG*/
+
 			layer->lname = NULL;
 		}
 }
@@ -1157,9 +1175,7 @@ delete_files( TiffWrite *tw )
 static void
 free_tiff_write( TiffWrite *tw )
 {
-#ifndef DEBUG
 	delete_files( tw );
-#endif /*DEBUG*/
 
 	VIPS_FREEF( TIFFClose, tw->tif );
 	VIPS_FREEF( vips_free, tw->tbuf );
@@ -1196,6 +1212,10 @@ get_compression( VipsForeignTiffCompression compression )
 	default:
 		g_assert( 0 );
 	}
+
+	/* Keep -Wall happy.
+	 */
+	return( -1 );
 }
 
 static int
@@ -1210,6 +1230,10 @@ get_resunit( VipsForeignTiffResunit resunit )
 	default:
 		g_assert( 0 );
 	}
+
+	/* Keep -Wall happy.
+	 */
+	return( -1 );
 }
 
 /* Make and init a TiffWrite.
@@ -1340,7 +1364,7 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 	CopyField( TIFFTAG_ROWSPERSTRIP, i32 );
 	CopyField( TIFFTAG_SUBFILETYPE, i32 );
 
-	if( tw->predictor != -1 ) 
+	if( tw->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
 		TIFFSetField( out, TIFFTAG_PREDICTOR, tw->predictor );
 
 	/* TIFFTAG_JPEGQUALITY is a pesudo-tag, so we can't copy it.
@@ -1349,16 +1373,22 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 	if( tw->compression == COMPRESSION_JPEG ) {
 		TIFFSetField( out, TIFFTAG_JPEGQUALITY, tw->jpqual );
 
-		/* Enable rgb->ycbcr conversion in the jpeg write. See also
-		 * the photometric selection below.
+		/* Only for three-band, 8-bit images.
 		 */
-		TIFFSetField( out, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+		if( tw->im->Bands == 3 &&
+			tw->im->BandFmt == VIPS_FORMAT_UCHAR ) { 
+			/* Enable rgb->ycbcr conversion in the jpeg write. 
+			 */
+			TIFFSetField( out, 
+				TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
 
-		/* And we want ycbcr expanded to rgb on read. Otherwise
-		 * TIFFTileSize() will give us the size of a chrominance
-		 * subsampled tile.
-		 */
-		TIFFSetField( in, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+			/* And we want ycbcr expanded to rgb on read. Otherwise
+			 * TIFFTileSize() will give us the size of a chrominance
+			 * subsampled tile.
+			 */
+			TIFFSetField( in, 
+				TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+		}
 	}
 
 	/* We can't copy profiles :( Set again from TiffWrite.

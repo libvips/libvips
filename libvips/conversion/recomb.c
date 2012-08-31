@@ -188,6 +188,7 @@ vips_recomb_class_init( VipsRecombClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -195,6 +196,8 @@ vips_recomb_class_init( VipsRecombClass *class )
 	object_class->nickname = "recomb";
 	object_class->description = _( "linear recombination with matrix" );
 	object_class->build = vips_recomb_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 

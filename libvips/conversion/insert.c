@@ -223,6 +223,9 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 	if( vips_check_vector( domain, n, im ) )
 		return( NULL );
 
+	/* This looks a bit dodgy, but the pipeline we are creating does not
+	 * depend upon im, so it's OK to make t depend on im.
+	 */
 	t = (VipsImage **) vips_object_local_array( VIPS_OBJECT( im ), 4 );
 	ones = VIPS_ARRAY( im, n, double );
 	for( i = 0; i < n; i++ )
@@ -339,6 +342,7 @@ vips_insert_class_init( VipsInsertClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_insert_class_init\n" );
 
@@ -348,6 +352,8 @@ vips_insert_class_init( VipsInsertClass *class )
 	vobject_class->nickname = "insert";
 	vobject_class->description = _( "insert an image" );
 	vobject_class->build = vips_insert_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "main", -1, 
 		_( "Main" ), 

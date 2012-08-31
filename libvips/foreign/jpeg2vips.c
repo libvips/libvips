@@ -45,6 +45,8 @@
  * 	- read jfif resolution as well as exif
  * 19/2/12
  * 	- switch to lazy reading
+ * 7/8/12
+ * 	- note EXIF resolution unit in VIPS_META_RESOLUTION_UNIT
  */
 
 /*
@@ -135,7 +137,6 @@ typedef struct _ReadJpeg {
 
 	/* Used for file input only.
 	 */
-	FILE *fp;
 	char *filename;
 
 	struct jpeg_decompress_struct cinfo;
@@ -166,7 +167,7 @@ readjpeg_free( ReadJpeg *jpeg )
 			vips_warn( "VipsJpeg", 
 				_( "read gave %ld warnings" ), 
 				jpeg->eman.pub.num_warnings );
-			vips_warn( "VipsJpeg", "%s", vips_error_buffer() );
+			vips_warn( NULL, "%s", vips_error_buffer() );
 		}
 
 		/* Make the message only appear once.
@@ -179,7 +180,7 @@ readjpeg_free( ReadJpeg *jpeg )
 		jpeg->decompressing = FALSE;
 	}
 
-	VIPS_FREEF( fclose, jpeg->fp );
+	VIPS_FREEF( fclose, jpeg->eman.fp );
 	VIPS_FREE( jpeg->filename );
 	jpeg->eman.fp = NULL;
 	jpeg_destroy_decompress( &jpeg->cinfo );
@@ -203,7 +204,6 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail )
 	jpeg->out = out;
 	jpeg->shrink = shrink;
 	jpeg->fail = fail;
-	jpeg->fp = NULL;
 	jpeg->filename = NULL;
 	jpeg->decompressing = FALSE;
 
@@ -225,10 +225,9 @@ static int
 readjpeg_file( ReadJpeg *jpeg, const char *filename )
 {
 	jpeg->filename = g_strdup( filename );
-        if( !(jpeg->fp = vips__file_open_read( filename, NULL, FALSE )) ) 
+        if( !(jpeg->eman.fp = vips__file_open_read( filename, NULL, FALSE )) ) 
                 return( -1 );
-	jpeg->eman.fp = jpeg->fp;
-        jpeg_stdio_src( &jpeg->cinfo, jpeg->fp );
+        jpeg_stdio_src( &jpeg->cinfo, jpeg->eman.fp );
 
 	return( 0 );
 }
@@ -496,6 +495,8 @@ set_vips_resolution( VipsImage *im, ExifData *ed )
 		 */
 		xres /= 25.4;
 		yres /= 25.4;
+		vips_image_set_string( im, 
+			VIPS_META_RESOLUTION_UNIT, "in" );
 		break;
 
 	case 3:
@@ -503,6 +504,8 @@ set_vips_resolution( VipsImage *im, ExifData *ed )
 		 */
 		xres /= 10.0;
 		yres /= 10.0;
+		vips_image_set_string( im, 
+			VIPS_META_RESOLUTION_UNIT, "cm" );
 		break;
 
 	default:
@@ -734,7 +737,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		interpretation,
 		xres, yres );
 
-	vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+	vips_demand_hint( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
 	/* Interlaced jpegs need lots of memory to read, so our caller needs
 	 * to know.
@@ -858,6 +861,11 @@ read_jpeg_generate( VipsRegion *or,
 	 */
 	g_assert( r->top % 8 == 0 );
 
+	/* Tiles should always be a strip in height, unless it's the final
+	 * strip.
+	 */
+	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
+
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
 	if( setjmp( jpeg->eman.jmp ) ) 
@@ -908,15 +916,16 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	jpeg->decompressing = TRUE;
 
 #ifdef DEBUG
-	printf( "read_jpeg_image: starting deompress\n" );
+	printf( "read_jpeg_image: starting decompress\n" );
 #endif /*DEBUG*/
 
 	if( vips_image_generate( t[0], 
-			NULL, read_jpeg_generate, NULL, 
-			jpeg, NULL ) ||
-		vips_sequential( t[0], &t[1], NULL ) ||
-		vips_foreign_tilecache( t[1], &t[2], 8 ) || 
-		vips_image_write( t[2], out ) )
+		NULL, read_jpeg_generate, NULL, 
+		jpeg, NULL ) ||
+		vips_sequential( t[0], &t[1], 
+			"tile_height", 8,
+			NULL ) ||
+		vips_image_write( t[1], out ) )
 		return( -1 );
 
 	return( 0 );

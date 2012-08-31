@@ -163,6 +163,7 @@ vips_bandary_class_init( VipsBandaryClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_bandary_class_init\n" );
 
@@ -173,6 +174,7 @@ vips_bandary_class_init( VipsBandaryClass *class )
 	vobject_class->description = _( "operations on image bands" );
 	vobject_class->build = vips_bandary_build;
 
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 }
 
 static void
