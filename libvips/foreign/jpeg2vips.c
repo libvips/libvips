@@ -167,7 +167,7 @@ readjpeg_free( ReadJpeg *jpeg )
 			vips_warn( "VipsJpeg", 
 				_( "read gave %ld warnings" ), 
 				jpeg->eman.pub.num_warnings );
-			vips_warn( "VipsJpeg", "%s", vips_error_buffer() );
+			vips_warn( NULL, "%s", vips_error_buffer() );
 		}
 
 		/* Make the message only appear once.
@@ -737,7 +737,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		interpretation,
 		xres, yres );
 
-	vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+	vips_demand_hint( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
 	/* Interlaced jpegs need lots of memory to read, so our caller needs
 	 * to know.
@@ -861,6 +861,11 @@ read_jpeg_generate( VipsRegion *or,
 	 */
 	g_assert( r->top % 8 == 0 );
 
+	/* Tiles should always be a strip in height, unless it's the final
+	 * strip.
+	 */
+	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
+
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
 	if( setjmp( jpeg->eman.jmp ) ) 
@@ -915,11 +920,12 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 #endif /*DEBUG*/
 
 	if( vips_image_generate( t[0], 
-			NULL, read_jpeg_generate, NULL, 
-			jpeg, NULL ) ||
-		vips_sequential( t[0], &t[1], NULL ) ||
-		vips_foreign_tilecache( t[1], &t[2], 8 ) || 
-		vips_image_write( t[2], out ) )
+		NULL, read_jpeg_generate, NULL, 
+		jpeg, NULL ) ||
+		vips_sequential( t[0], &t[1], 
+			"tile_height", 8,
+			NULL ) ||
+		vips_image_write( t[1], out ) )
 		return( -1 );
 
 	return( 0 );

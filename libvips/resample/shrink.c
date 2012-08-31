@@ -332,7 +332,7 @@ vips_shrink_build( VipsObject *object )
 	 * sequentiality.
 	 */
 	vips_demand_hint( resample->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, resample->in, NULL );
+		VIPS_DEMAND_STYLE_ANY, resample->in, NULL );
 
 	/* Size output. Note: we round the output width down!
 	 */

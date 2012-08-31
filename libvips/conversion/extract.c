@@ -170,8 +170,8 @@ vips_extract_area_build( VipsObject *object )
 	return( 0 );
 }
 
-/* xy range we sanity check on ... just to stop crazy numbers from 1/0 etc.
- * causing g_assert() failures later.
+/* xy range we sanity check on ... just to stop crazy numbers from divide by 0 
+ * etc. causing g_assert() failures later.
  */
 #define RANGE (100000000)
 

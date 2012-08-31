@@ -105,6 +105,7 @@ vips_conversion_operation_init( void )
 {
 	extern GType vips_copy_get_type( void ); 
 	extern GType vips_tile_cache_get_type( void ); 
+	extern GType vips_line_cache_get_type( void ); 
 	extern GType vips_sequential_get_type( void ); 
 	extern GType vips_cache_get_type( void ); 
 	extern GType vips_embed_get_type( void ); 
@@ -125,6 +126,7 @@ vips_conversion_operation_init( void )
 
 	vips_copy_get_type();
 	vips_tile_cache_get_type(); 
+	vips_line_cache_get_type(); 
 	vips_sequential_get_type(); 
 	vips_cache_get_type(); 
 	vips_embed_get_type();

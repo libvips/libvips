@@ -281,8 +281,6 @@ vips_operation_class_init( VipsOperationClass *class )
 static void
 vips_operation_init( VipsOperation *operation )
 {
-	/* Init our instance fields.
-	 */
 }
 
 /**

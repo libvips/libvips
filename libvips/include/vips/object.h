@@ -332,7 +332,7 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 			(VipsArgumentClass *) p->data; \
 		VipsArgument *argument = (VipsArgument *) argument_class; \
 		GParamSpec *PSPEC = argument->pspec; \
-		VipsArgumentInstance *ARG_INSTANCE = \
+		VipsArgumentInstance *ARG_INSTANCE __attribute__ ((unused)) = \
 			vips__argument_get_instance( argument_class, \
 			VIPS_OBJECT( OBJECT ) ); \
 

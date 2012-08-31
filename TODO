@@ -1,10 +1,3 @@
-carrierwave-vips-benchmark seems to fail for 200x200 images with a non-seq
-error
-
-see also the gist comparing oil and vips
-
-stop compile warnings for production build
-
 blocking bugs
 =============
 

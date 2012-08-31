@@ -9,6 +9,10 @@
  * 	- support skip forwards as well, so we can do extract/insert
  * 10/8/12
  * 	- add @trace option
+ * 21/8/12
+ * 	- remove skip forward, instead do thread stalling and have an
+ * 	  integrated cache
+ * 	- use linecache
  */
 
 /*
@@ -60,14 +64,35 @@ typedef struct _VipsSequential {
 	VipsConversion parent_instance;
 
 	VipsImage *in;
-
-	int y_pos;
+	int tile_height;
 	gboolean trace;
+
+	/* Lock access to y_pos with this, use the cond to wake up stalled
+	 * threads.
+	 */
+	GMutex *lock;
+	GCond *ready;
+
+	/* The next read from our source will fetch this scanline, ie. it's 0
+	 * when we start.
+	 */
+	int y_pos;
 } VipsSequential;
 
 typedef VipsConversionClass VipsSequentialClass;
 
 G_DEFINE_TYPE( VipsSequential, vips_sequential, VIPS_TYPE_CONVERSION );
+
+static void
+vips_sequential_dispose( GObject *gobject )
+{
+	VipsSequential *sequential = (VipsSequential *) gobject;
+
+	VIPS_FREEF( g_mutex_free, sequential->lock );
+	VIPS_FREEF( g_cond_free, sequential->ready );
+
+	G_OBJECT_CLASS( vips_sequential_parent_class )->dispose( gobject );
+}
 
 static int
 vips_sequential_generate( VipsRegion *or, 
@@ -77,55 +102,82 @@ vips_sequential_generate( VipsRegion *or,
         VipsRect *r = &or->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
+	VIPS_DEBUG_MSG( "thread %p request for %d lines, start line %d\n", 
+		g_thread_self(), r->height, r->top );
+
 	if( sequential->trace )
 		vips_diag( "VipsSequential", 
-			"%d lines, starting at line %d", r->height, r->top );
+			"request for %d lines, starting at line %d", 
+			r->height, r->top );
+retry:
 
-	/* We can't go backwards, but we can skip forwards.
+	g_mutex_lock( sequential->lock );
+
+	VIPS_DEBUG_MSG( "thread %p has lock ...\n", g_thread_self() ); 
+
+	if( r->top > sequential->y_pos && 
+		sequential->y_pos > 0 ) {
+		/* We have started reading (y_pos > 0) and this request is for 
+		 * stuff beyond that, stall.
+		 */
+		VIPS_DEBUG_MSG( "thread %p stalling ...\n", g_thread_self() ); 
+		g_cond_wait( sequential->ready, sequential->lock );
+		VIPS_DEBUG_MSG( "thread %p awake again, retrying ...\n", 
+			g_thread_self() ); 
+		g_mutex_unlock( sequential->lock );
+		goto retry;
+	}
+
+	/* This is a request for something some way down the image, and we've
+	 * not read anything yet. Probably the operation is something like
+	 * extract_area and we should skip the initial part of the image. In
+	 * fact we read to cache.
 	 */
-	if( r->top < sequential->y_pos ) {
-		vips_error( "VipsSequential", 
-			_( "at line %d in file, but line %d requested" ),
-			sequential->y_pos, r->top );
+	if( r->top > sequential->y_pos ) {
+		VipsRect area;
+
+		VIPS_DEBUG_MSG( "thread %p skipping to line %d ...\n", 
+			g_thread_self(),
+			r->top );
+
+		area.left = 0;
+		area.top = sequential->y_pos;
+		area.width = 1;
+		area.height = r->top - sequential->y_pos;
+		if( vips_region_prepare( ir, &area ) )
+			return( -1 );
+
+		sequential->y_pos = VIPS_RECT_BOTTOM( &area );
+	}
+
+	/* This is a request for old or present pixels -- serve from cache.
+	 * This may trigger further, sequential reads.
+	 */
+	VIPS_DEBUG_MSG( "thread %p reading ...\n", g_thread_self() ); 
+	if( vips_region_prepare( ir, r ) ||
+		vips_region_region( or, ir, r, r->left, r->top ) ) {
+		VIPS_DEBUG_MSG( "thread %p unlocking ...\n", g_thread_self() ); 
+		g_mutex_unlock( sequential->lock );
 		return( -1 );
 	}
 
-	/* We're inside a tilecache where tiles are the full image width, so
-	 * this should always be true.
-	 */
-	g_assert( r->left == 0 );
-	g_assert( r->width == or->im->Xsize );
-	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
+	if( VIPS_RECT_BOTTOM( r ) > sequential->y_pos ) {
+		/* This request has moved the read point. Update it, and wake 
+		 * up all stalled threads for a retry.
+		 */
+		sequential->y_pos = VIPS_RECT_BOTTOM( r );
 
-	/* Skip forwards, if necessary.
-	 */
-	while( sequential->y_pos < r->top ) {
-		VipsRect rect;
+		VIPS_DEBUG_MSG( "thread %p updating y_pos to %d and "
+			"waking stalled\n", 
+			g_thread_self(),
+			sequential->y_pos ); 
 
-		rect.top = sequential->y_pos;
-		rect.left = 0;
-		rect.width = or->im->Xsize;
-		rect.height = VIPS_MIN( r->top - sequential->y_pos, 
-				VIPS__FATSTRIP_HEIGHT );
-		if( vips_region_prepare( ir, &rect ) )
-			return( -1 );
-
-		sequential->y_pos += rect.height;
-
-		if( sequential->trace )
-			vips_diag( "VipsSequential", 
-				"skipping %d lines", rect.height );
+		g_cond_broadcast( sequential->ready );
 	}
 
-	g_assert( sequential->y_pos == r->top );
+	VIPS_DEBUG_MSG( "thread %p unlocking ...\n", g_thread_self() ); 
 
-	/* Pointer copy.
-	 */
-        if( vips_region_prepare( ir, r ) ||
-		vips_region_region( or, ir, r, r->left, r->top ) )
-                return( -1 );
-
-	sequential->y_pos += r->height;
+	g_mutex_unlock( sequential->lock );
 
 	return( 0 );
 }
@@ -136,6 +188,8 @@ vips_sequential_build( VipsObject *object )
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsSequential *sequential = (VipsSequential *) object;
 
+	VipsImage *t;
+
 	VIPS_DEBUG_MSG( "vips_sequential_build\n" );
 
 	if( VIPS_OBJECT_CLASS( vips_sequential_parent_class )->build( object ) )
@@ -144,14 +198,21 @@ vips_sequential_build( VipsObject *object )
 	if( vips_image_pio_input( sequential->in ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, sequential->in ) )
+	if( vips_linecache( sequential->in, &t, 
+		"tile_height", sequential->tile_height,
+		"strategy", VIPS_CACHE_SEQUENTIAL,
+		NULL ) )
 		return( -1 );
-        vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_FATSTRIP, sequential->in, NULL );
 
+	vips_object_local( object, t ); 
+
+	if( vips_image_copy_fields( conversion->out, t ) )
+		return( -1 );
+        vips_demand_hint( conversion->out,
+		VIPS_DEMAND_STYLE_THINSTRIP, t, NULL );
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_sequential_generate, vips_stop_one, 
-		sequential->in, sequential ) )
+		t, sequential ) )
 		return( -1 );
 
 	return( 0 );
@@ -165,6 +226,7 @@ vips_sequential_class_init( VipsSequentialClass *class )
 
 	VIPS_DEBUG_MSG( "vips_sequential_class_init\n" );
 
+	gobject_class->dispose = vips_sequential_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -184,12 +246,22 @@ vips_sequential_class_init( VipsSequentialClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSequential, trace ),
 		TRUE );
+
+	VIPS_ARG_INT( class, "tile_height", 3, 
+		_( "Tile height" ), 
+		_( "Tile height in pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsSequential, tile_height ),
+		1, 1000000, 1 );
 }
 
 static void
 vips_sequential_init( VipsSequential *sequential )
 {
 	sequential->trace = FALSE;
+	sequential->lock = g_mutex_new();
+	sequential->ready = g_cond_new();
+	sequential->tile_height = 1;
 }
 
 /**
@@ -201,17 +273,22 @@ vips_sequential_init( VipsSequential *sequential )
  * Optional arguments:
  *
  * @trace: trace requests
+ * @strip_height: height of cache strips
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it checks that pixels are only requested
- * top-to-bottom. If an out of order request is made, it throws an exception.
+ * top-to-bottom. If a thread makes an out of order request, it is stalled
+ * until the pack catches up.
  *
- * This operation is handy with tilecache for loading file formats which are 
+ * This operation is useful for loading file formats which are 
  * strictly top-to-bottom, like PNG. 
  *
  * If @trace is true, the operation will print diagnostic messages for each
  * block of pixels which are processed. This can help find the cause of
  * non-sequential accesses. 
+ *
+ * @strip_height can be used to set the size of the tiles that
+ * vips_sequential() uses. The default value is 1.
  *
  * See also: vips_image_cache().
  *

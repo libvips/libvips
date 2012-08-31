@@ -1097,12 +1097,6 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
-	/* Offer the most restrictive style. This can be changed downstream if
-	 * necessary.
-	 */
-        vips_demand_hint( out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
 	return( 0 );
 }
 
@@ -1270,14 +1264,12 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 	if( parse_header( rtiff, raw ) )
 		return( -1 );
 
-	/* Process and save as VIPS. 
-	 *
-	 * Even though this is a tiled reader, we hint thinstrip since with
+	/* Even though this is a tiled reader, we hint thinstrip since with
 	 * the cache we are quite happy serving that if anything downstream 
 	 * would like it.
 	 */
-        vips_demand_hint( raw, 
-		VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+        vips_demand_hint( raw, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
 	if( vips_image_generate( raw, 
 		tiff_seq_start, tiff_fill_region, tiff_seq_stop, 
 		rtiff, NULL ) )
@@ -1326,6 +1318,12 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 	/* Tiles should always be on a strip boundary.
 	 */
 	g_assert( r->top % rtiff->rows_per_strip == 0 );
+
+	/* Tiles should always be a strip in height, unless it's the final
+	 * strip.
+	 */
+	g_assert( r->height == 
+		VIPS_MIN( rtiff->rows_per_strip, or->im->Ysize - r->top ) ); 
 
 	for( y = 0; y < r->height; y += rtiff->rows_per_strip ) {
 		tdata_t dst;
@@ -1392,8 +1390,7 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	if( parse_header( rtiff, t[0] ) )
 		return( -1 );
 
-        vips_demand_hint( t[0], 
-		VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+        vips_demand_hint( t[0], VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	if( !tfget32( rtiff->tiff, 
 		TIFFTAG_ROWSPERSTRIP, &rtiff->rows_per_strip ) )
@@ -1428,9 +1425,10 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 		vips_image_generate( t[0], 
 			NULL, tiff2vips_stripwise_generate, NULL, 
 			rtiff, tbuf ) ||
-		vips_sequential( t[0], &t[1], NULL ) ||
-		vips_foreign_tilecache( t[1], &t[2], rtiff->rows_per_strip ) || 
-		vips_image_write( t[2], out ) )
+		vips_sequential( t[0], &t[1], 
+			"tile_height", rtiff->rows_per_strip,
+			NULL ) ||
+		vips_image_write( t[1], out ) )
 		return( -1 );
 
 	return( 0 );

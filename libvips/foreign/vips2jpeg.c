@@ -202,6 +202,7 @@ write_new( VipsImage *in )
         write->cinfo.err = jpeg_std_error( &write->eman.pub );
 	write->eman.pub.error_exit = vips__new_error_exit;
 	write->eman.pub.output_message = vips__new_output_message;
+	write->eman.pub.output_message = vips__new_output_message;
 	write->eman.fp = NULL;
 	write->profile_bytes = NULL;
 	write->profile_length = 0;
@@ -372,7 +373,7 @@ set_exif_resolution( ExifData *ed, VipsImage *im )
 	default:
 		vips_warn( "VipsJpeg", 
 			"%s", _( "unknown EXIF resolution unit" ) );
-		return;
+		return( 0 );
 	}
 
 	if( write_tag( ed, EXIF_TAG_X_RESOLUTION, EXIF_FORMAT_RATIONAL, 
@@ -453,8 +454,10 @@ vips_exif_update_entry( ExifEntry *entry, VipsExif *ve )
 	char *value;
 
 	vips_snprintf( name, 256, "exif-%s", exif_tag_get_title( entry->tag ) );
-	if( !vips_image_get_string( ve->image, name, &value ) )
+	if( vips_image_get_typeof( ve->image, name ) ) {
+		(void) vips_image_get_string( ve->image, name, &value );
 		vips_exif_from_s( ve->ed, entry, value ); 
+	}
 }
 
 static void

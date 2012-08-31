@@ -1607,8 +1607,7 @@ vips__parse_size( const char *size_string )
 	 */
 	unit = g_strdup( size_string );
 	n = sscanf( size_string, "%d %s", &i, unit );
-	if( n > 0 )
-		size = i;
+	size = i;
 	if( n > 1 ) {
 		for( j = 0; j < VIPS_NUMBER( units ); j++ )
 			if( tolower( unit[0] ) == units[j].unit ) {

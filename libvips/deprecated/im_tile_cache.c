@@ -57,12 +57,6 @@
 #include <vips/vips.h>
 #include <vips/thread.h>
 
-/* Lower and upper bounds for tile cache size. Choose an exact number based on
- * tile size.
- */
-#define IM_MAX_TILE_CACHE (250)
-#define IM_MIN_TILE_CACHE (5)
-
 /* A tile in our cache.
  */
 typedef struct {

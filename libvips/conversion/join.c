@@ -117,6 +117,10 @@ vips_join_build( VipsObject *object )
 
 		default:
 			g_assert( 0 );
+
+			/* Keep -Wall happy.
+			 */
+			return( 0 );
 		}
 
 		break;
@@ -139,12 +143,20 @@ vips_join_build( VipsObject *object )
 
 		default:
 			g_assert( 0 );
+
+			/* Keep -Wall happy.
+			 */
+			return( 0 );
 		}
 
 		break;
 
 	default:
 		g_assert( 0 );
+
+		/* Keep -Wall happy.
+		 */
+		return( 0 );
 	}
 
 	if( vips_insert( join->in1, join->in2, &t, x, y,
@@ -174,6 +186,10 @@ vips_join_build( VipsObject *object )
 
 		default:
 			g_assert( 0 );
+
+			/* Keep -Wall happy.
+			 */
+			return( 0 );
 		}
 
 		if( vips_extract_area( t, &t2, 

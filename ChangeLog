@@ -8,7 +8,11 @@
 - add "DEPRECATED" flag to arguments
 - jpeg load/save note and use the preferred resolution unit
 - better error msgs for enum args
-- test for gtk-doc in bootstrap
+- fix compiler warnings in production build (thanks Dmitry)
+- fix spurious warnings about exif updates
+- VipsSequential has an integrated cache and stalls out of order threads
+- add a line cache ... sizes up dynamically with request size
+- tilecache / linecache use a hash table not a linear list
 
 20/7/12 started 7.30.0
 - support "rs" mode in vips7
