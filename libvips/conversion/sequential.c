@@ -13,6 +13,8 @@
  * 	- remove skip forward, instead do thread stalling and have an
  * 	  integrated cache
  * 	- use linecache
+ * 4/9/12
+ * 	- stop all threads on error
  */
 
 /*
@@ -77,6 +79,11 @@ typedef struct _VipsSequential {
 	 * when we start.
 	 */
 	int y_pos;
+
+	/* If one thread gets an error, we must stop all threads, otherwise we
+	 * can stall and never wake.
+	 */
+	int error;
 } VipsSequential;
 
 typedef VipsConversionClass VipsSequentialClass;
@@ -115,6 +122,13 @@ retry:
 
 	VIPS_DEBUG_MSG( "thread %p has lock ...\n", g_thread_self() ); 
 
+	/* If we've seen an error, everything must stop or we'll deadlock.
+	 */
+	if( sequential->error ) {
+		g_mutex_unlock( sequential->lock );
+		return( -1 );
+	}
+
 	if( r->top > sequential->y_pos && 
 		sequential->y_pos > 0 ) {
 		/* We have started reading (y_pos > 0) and this request is for 
@@ -144,8 +158,14 @@ retry:
 		area.top = sequential->y_pos;
 		area.width = 1;
 		area.height = r->top - sequential->y_pos;
-		if( vips_region_prepare( ir, &area ) )
+		if( vips_region_prepare( ir, &area ) ) {
+			VIPS_DEBUG_MSG( "thread %p error, unlocking ...\n", 
+				g_thread_self() ); 
+			sequential->error = -1;
+			g_cond_broadcast( sequential->ready );
+			g_mutex_unlock( sequential->lock );
 			return( -1 );
+		}
 
 		sequential->y_pos = VIPS_RECT_BOTTOM( &area );
 	}
@@ -156,7 +176,10 @@ retry:
 	VIPS_DEBUG_MSG( "thread %p reading ...\n", g_thread_self() ); 
 	if( vips_region_prepare( ir, r ) ||
 		vips_region_region( or, ir, r, r->left, r->top ) ) {
-		VIPS_DEBUG_MSG( "thread %p unlocking ...\n", g_thread_self() ); 
+		VIPS_DEBUG_MSG( "thread %p error, unlocking ...\n", 
+			g_thread_self() ); 
+		sequential->error = -1;
+		g_cond_broadcast( sequential->ready );
 		g_mutex_unlock( sequential->lock );
 		return( -1 );
 	}
@@ -262,6 +285,7 @@ vips_sequential_init( VipsSequential *sequential )
 	sequential->lock = g_mutex_new();
 	sequential->ready = g_cond_new();
 	sequential->tile_height = 1;
+	sequential->error = 0;
 }
 
 /**
