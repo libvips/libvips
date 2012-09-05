@@ -48,7 +48,7 @@
 
 static int thumbnail_size = 128;
 static char *output_format = "tn_%s.jpg";
-static char *interpolator = "bilinear";;
+static char *interpolator = "bilinear";
 static gboolean nosharpen = FALSE;
 static char *export_profile = NULL;
 static char *import_profile = NULL;

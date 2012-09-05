@@ -325,7 +325,7 @@ vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
 
 #ifdef DEBUG
         printf( "vips_demand_hint_array: set dhint for \"%s\" to %s\n",
-		im->filename, 
+		image->filename, 
 		vips_enum_nick( VIPS_TYPE_DEMAND_STYLE, image->dhint ) );
 	printf( "\toperation requested %s\n", 
 		vips_enum_nick( VIPS_TYPE_DEMAND_STYLE, hint ) );

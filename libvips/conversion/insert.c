@@ -285,7 +285,7 @@ vips_insert_build( VipsObject *object )
 	if( vips_image_copy_fields_array( conversion->out, arry ) )
 		return( -1 );
         vips_demand_hint_array( conversion->out, 
-		VIPS_DEMAND_STYLE_SMALLTILE, arry );
+		VIPS_DEMAND_STYLE_ANY, arry );
 
 	/* Calculate geometry. 
 	 */
