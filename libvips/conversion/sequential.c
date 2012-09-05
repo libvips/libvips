@@ -15,6 +15,7 @@
  * 	- use linecache
  * 4/9/12
  * 	- stop all threads on error
+ * 	- don't stall forever, just delay ahead threads
  */
 
 /*
@@ -61,6 +62,10 @@
 #include <vips/debug.h>
 
 #include "conversion.h"
+
+/* Stall threads that run ahead for this long, in seconds.
+ */
+#define STALL_TIME (0.1)
 
 typedef struct _VipsSequential {
 	VipsConversion parent_instance;
@@ -116,13 +121,12 @@ vips_sequential_generate( VipsRegion *or,
 		vips_diag( "VipsSequential", 
 			"request for %d lines, starting at line %d", 
 			r->height, r->top );
-retry:
 
 	g_mutex_lock( sequential->lock );
 
 	VIPS_DEBUG_MSG( "thread %p has lock ...\n", g_thread_self() ); 
 
-	/* If we've seen an error, everything must stop or we'll deadlock.
+	/* If we've seen an error, everything must stop.
 	 */
 	if( sequential->error ) {
 		g_mutex_unlock( sequential->lock );
@@ -131,19 +135,27 @@ retry:
 
 	if( r->top > sequential->y_pos && 
 		sequential->y_pos > 0 ) {
+		GTimeVal time;
+
 		/* We have started reading (y_pos > 0) and this request is for 
-		 * stuff beyond that, stall.
+		 * stuff beyond that, stall for a short while to give other
+		 * threads time to catch up.
 		 */
-		VIPS_DEBUG_MSG( "thread %p stalling ...\n", g_thread_self() ); 
-		g_cond_wait( sequential->ready, sequential->lock );
-		VIPS_DEBUG_MSG( "thread %p awake again, retrying ...\n", 
+		VIPS_DEBUG_MSG( "thread %p stalling for up to %gs ...\n", 
+			STALL_TIME, g_thread_self() ); 
+		g_get_current_time( &time );
+		g_time_val_add( &time, STALL_TIME * 1000000 );
+		g_cond_timed_wait( sequential->ready, 
+			sequential->lock, &time );
+		VIPS_DEBUG_MSG( "thread %p awake again ...\n", 
 			g_thread_self() ); 
-		g_mutex_unlock( sequential->lock );
-		goto retry;
 	}
 
 	/* This is a request for something some way down the image, and we've
-	 * not read anything yet. Probably the operation is something like
+	 * either not read anything yet or fallen through from the stall
+	 * above. 
+	 *
+	 * Probably the operation is something like
 	 * extract_area and we should skip the initial part of the image. In
 	 * fact we read to cache.
 	 */
