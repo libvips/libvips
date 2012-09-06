@@ -1,5 +1,4 @@
 colour
-======
 
 colour operations:
 
@@ -69,7 +68,6 @@ how about a base colour class with 1 in, 1 out,
 - dzsave should maybe write some xml as well, see the Python dz writer?
 
 - the operation cache needs to detect invalidate
-
 
 
 

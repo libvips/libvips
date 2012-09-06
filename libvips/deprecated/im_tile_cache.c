@@ -401,7 +401,7 @@ im_tile_cache( IMAGE *in, IMAGE *out,
 
 	if( im_piocheck( in, out ) ||
 		im_cp_desc( out, in ) ||
-		im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
+		im_demand_hint( out, IM_ANY, in, NULL ) ||
 		!(read = read_new( in, out, 
 			tile_width, tile_height, max_tiles )) ||
 		im_generate( out, 

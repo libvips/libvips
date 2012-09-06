@@ -1,6 +1,10 @@
 31/8/12 started 7.31.0
 - work on moving colour to vips8
 
+4/9/12 started 7.30.2
+- sequential stops all threads on error
+- sequential delays ahead threads rather than blocking them completely
+
 6/8/12 started 7.30.1
 - fixes to dzsave: shrink down to a 1x1 pixel tile, round image size up on 
   shrink, write a .dzi file with the pyramid params, default tile size and 
@@ -51,10 +55,7 @@
 - png save compression range was wrong
 - more/moreeq was wrong
 - vips7 ppm save with options was broken 
-<<<<<<< HEAD
-=======
 - don't cache write operations
->>>>>>> origin/master
 
 18/6/12 started 7.28.9
 - slightly more memory debugging output

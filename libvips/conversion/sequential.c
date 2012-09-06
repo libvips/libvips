@@ -13,6 +13,9 @@
  * 	- remove skip forward, instead do thread stalling and have an
  * 	  integrated cache
  * 	- use linecache
+ * 4/9/12
+ * 	- stop all threads on error
+ * 	- don't stall forever, just delay ahead threads
  */
 
 /*
@@ -60,6 +63,10 @@
 
 #include "conversion.h"
 
+/* Stall threads that run ahead for this long, in seconds.
+ */
+#define STALL_TIME (0.1)
+
 typedef struct _VipsSequential {
 	VipsConversion parent_instance;
 
@@ -77,6 +84,11 @@ typedef struct _VipsSequential {
 	 * when we start.
 	 */
 	int y_pos;
+
+	/* If one thread gets an error, we must stop all threads, otherwise we
+	 * can stall and never wake.
+	 */
+	int error;
 } VipsSequential;
 
 typedef VipsConversionClass VipsSequentialClass;
@@ -109,27 +121,41 @@ vips_sequential_generate( VipsRegion *or,
 		vips_diag( "VipsSequential", 
 			"request for %d lines, starting at line %d", 
 			r->height, r->top );
-retry:
 
 	g_mutex_lock( sequential->lock );
 
 	VIPS_DEBUG_MSG( "thread %p has lock ...\n", g_thread_self() ); 
 
+	/* If we've seen an error, everything must stop.
+	 */
+	if( sequential->error ) {
+		g_mutex_unlock( sequential->lock );
+		return( -1 );
+	}
+
 	if( r->top > sequential->y_pos && 
 		sequential->y_pos > 0 ) {
+		GTimeVal time;
+
 		/* We have started reading (y_pos > 0) and this request is for 
-		 * stuff beyond that, stall.
+		 * stuff beyond that, stall for a short while to give other
+		 * threads time to catch up.
 		 */
-		VIPS_DEBUG_MSG( "thread %p stalling ...\n", g_thread_self() ); 
-		g_cond_wait( sequential->ready, sequential->lock );
-		VIPS_DEBUG_MSG( "thread %p awake again, retrying ...\n", 
+		VIPS_DEBUG_MSG( "thread %p stalling for up to %gs ...\n", 
+			STALL_TIME, g_thread_self() ); 
+		g_get_current_time( &time );
+		g_time_val_add( &time, STALL_TIME * 1000000 );
+		g_cond_timed_wait( sequential->ready, 
+			sequential->lock, &time );
+		VIPS_DEBUG_MSG( "thread %p awake again ...\n", 
 			g_thread_self() ); 
-		g_mutex_unlock( sequential->lock );
-		goto retry;
 	}
 
 	/* This is a request for something some way down the image, and we've
-	 * not read anything yet. Probably the operation is something like
+	 * either not read anything yet or fallen through from the stall
+	 * above. 
+	 *
+	 * Probably the operation is something like
 	 * extract_area and we should skip the initial part of the image. In
 	 * fact we read to cache.
 	 */
@@ -144,8 +170,14 @@ retry:
 		area.top = sequential->y_pos;
 		area.width = 1;
 		area.height = r->top - sequential->y_pos;
-		if( vips_region_prepare( ir, &area ) )
+		if( vips_region_prepare( ir, &area ) ) {
+			VIPS_DEBUG_MSG( "thread %p error, unlocking ...\n", 
+				g_thread_self() ); 
+			sequential->error = -1;
+			g_cond_broadcast( sequential->ready );
+			g_mutex_unlock( sequential->lock );
 			return( -1 );
+		}
 
 		sequential->y_pos = VIPS_RECT_BOTTOM( &area );
 	}
@@ -156,7 +188,10 @@ retry:
 	VIPS_DEBUG_MSG( "thread %p reading ...\n", g_thread_self() ); 
 	if( vips_region_prepare( ir, r ) ||
 		vips_region_region( or, ir, r, r->left, r->top ) ) {
-		VIPS_DEBUG_MSG( "thread %p unlocking ...\n", g_thread_self() ); 
+		VIPS_DEBUG_MSG( "thread %p error, unlocking ...\n", 
+			g_thread_self() ); 
+		sequential->error = -1;
+		g_cond_broadcast( sequential->ready );
 		g_mutex_unlock( sequential->lock );
 		return( -1 );
 	}
@@ -262,6 +297,7 @@ vips_sequential_init( VipsSequential *sequential )
 	sequential->lock = g_mutex_new();
 	sequential->ready = g_cond_new();
 	sequential->tile_height = 1;
+	sequential->error = 0;
 }
 
 /**
