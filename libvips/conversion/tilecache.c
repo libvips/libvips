@@ -19,6 +19,8 @@
  * 23/8/12
  * 	- split to line and tile cache
  * 	- use a hash table instead of a list
+ * 13/9/12
+ * 	- oops, linecache was oversized
  */
 
 /*
@@ -628,8 +630,11 @@ vips_line_cache_gen( VipsRegion *or,
 
 	/* We size up the cache to the largest request.
 	 */
-	if( or->valid.height > block_cache->max_tiles )
-		block_cache->max_tiles = or->valid.height;
+	if( or->valid.height > 
+		block_cache->max_tiles * block_cache->tile_height ) {
+		block_cache->max_tiles = 
+			1 + (or->valid.height / block_cache->tile_height);
+	}
 
 	g_mutex_unlock( block_cache->lock );
 
@@ -665,8 +670,10 @@ vips_line_cache_build( VipsObject *object )
 		&tile_width, &tile_height, &nlines );
 	block_cache->max_tiles = 2 * (1 + nlines / block_cache->tile_height);
 
-	VIPS_DEBUG_MSG( "vips_line_cache_build: max_tiles = %d\n",
-		block_cache->max_tiles );
+	VIPS_DEBUG_MSG( "vips_line_cache_build: max_tiles = %d, "
+		"tile_height = %d\n",
+		block_cache->max_tiles,
+		block_cache->tile_height );
 
 	if( vips_image_pio_input( block_cache->in ) )
 		return( -1 );
