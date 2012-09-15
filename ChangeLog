@@ -1,6 +1,9 @@
 31/8/12 started 7.31.0
 - work on moving colour to vips8
 
+13/9/12 started 7.30.3
+- linecache sized itself too large
+
 4/9/12 started 7.30.2
 - sequential stops all threads on error
 - sequential delays ahead threads rather than blocking them completely
