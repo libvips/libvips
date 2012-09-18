@@ -78,27 +78,6 @@ static float CI[ 3001 ];
 static float hI[ 101 ][ 361 ];
 
 /**
- * im_col_ab2Ch:
- * @a: CIE a* value
- * @b: CIE b* value
- * @C: return Chroma
- * @h: return Hue angle (degrees)
- *
- * Calculate Ch from ab, h in degrees.
- */
-void
-im_col_ab2Ch( float a, float b, float *C, float *h )
-{	
-	float in[3], out[3];
-
-	in[1] = a;
-	in[2] = b;
-	imb_Lab2LCh( in, out, 1 );
-	*C = out[1];
-	*h = out[2];
-}
-
-/**
  * im_col_Ch2ab:
  * @C: Chroma
  * @h: Hue angle (degrees)
@@ -543,43 +522,6 @@ im_col_dECMC( float L1, float a1, float b1,
 }
 
 /**
- * im_col_ab2h:
- * @a: CIE a
- * @b: CIE b
- *
- * Returns: Hue (degrees) 
- */
-double
-im_col_ab2h( double a, double b )
-{
-	double h;
-
-	/* We have to be careful we have the right quadrant!
-	 */
-	if( a == 0 ) {
-		if( b < 0.0 )
-			h = 270;
-		else if( b == 0.0 )
-			h = 0;
-		else
-			h = 90;
-	}
-	else {
-		double t = atan( b / a );
-
-		if( a > 0.0 )
-			if( b < 0.0 )
-				h = IM_DEG( t + IM_PI * 2.0 );
-			else
-				h = IM_DEG( t );
-		else
-			h = IM_DEG( t + IM_PI );
-	}
-
-	return( h );
-}
-
-/**
  * im_col_dE00:
  * @L1: Input coordinate 1
  * @a1: Input coordinate 1
@@ -878,4 +820,28 @@ vips_XYZ2disp( VipsImage *in, VipsImage **out,
 	return( result );
 }
 
+
+int
+im__colour_unary( const char *domain,
+	IMAGE *in, IMAGE *out, VipsType type,
+	im_wrapone_fn buffer_fn, void *a, void *b )
+{
+	IMAGE *t[1];
+
+	if( im_check_uncoded( domain, in ) ||
+		im_check_bands( domain, in, 3 ) ||
+		im_open_local_array( out, t, 1, domain, "p" ) ||
+		im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) )
+		return( -1 );
+
+	if( im_cp_desc( out, t[0] ) )
+		return( -1 );
+	out->Type = type;
+
+	if( im_wrapone( t[0], out, 
+		(im_wrapone_fn) buffer_fn, a, b ) )
+		return( -1 );
+
+	return( 0 );
+}
 

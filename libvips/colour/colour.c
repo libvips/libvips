@@ -239,6 +239,8 @@ void
 vips_colour_operation_init( void )
 {
 	extern GType vips_Lab2XYZ_get_type( void ); 
+	extern GType vips_Lab2LCh_get_type( void ); 
 
 	vips_Lab2XYZ_get_type();
+	vips_Lab2LCh_get_type();
 }

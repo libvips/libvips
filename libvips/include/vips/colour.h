@@ -109,6 +109,8 @@ int vips_Lab2LabQ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_LCh2Lab( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_Lab2LCh( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_Yxy2Lab( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_UCS2XYZ( VipsImage *in, VipsImage **out, ... )
@@ -121,7 +123,8 @@ int vips_XYZ2disp( VipsImage *in, VipsImage **out,
 
 void vips_col_Lab2XYZ( float L, float a, float b, 
 	float *X, float *Y, float *Z );
-
+double vips_col_ab2h( double a, double b );
+void vips_col_ab2Ch( float a, float b, float *C, float *h );
 
 
 
@@ -143,7 +146,6 @@ float im_col_C2Cucs( float C );
 float im_col_Cucs2C( float Cucs );
 float im_col_Ch2hucs( float C, float h );
 float im_col_Chucs2h( float C, float hucs );
-double im_col_ab2h( double a, double b );
 
 float im_col_dECMC( 
 	float L1, float a1, float b1, float L2, float a2, float b2 );
@@ -155,7 +157,6 @@ int im_LabQ2XYZ( VipsImage *in, VipsImage *out );
 int im_rad2float( VipsImage *in, VipsImage *out );
 int im_float2rad( VipsImage *in, VipsImage *out );
 int im_LCh2UCS( VipsImage *in, VipsImage *out );
-int im_Lab2LCh( VipsImage *in, VipsImage *out );
 int im_Lab2LabQ( VipsImage *in, VipsImage *out );
 int im_Lab2LabS( VipsImage *in, VipsImage *out );
 int im_Lab2UCS( VipsImage *in, VipsImage *out );

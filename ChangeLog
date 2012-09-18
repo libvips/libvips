@@ -1,5 +1,5 @@
 31/8/12 started 7.31.0
-- redone im_Lab2XYZ() as a class
+- redone im_Lab2XYZ(), im_Lab2LCh() as classes
 
 13/9/12 started 7.30.3
 - linecache sized itself too large

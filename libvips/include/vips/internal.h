@@ -227,7 +227,6 @@ int im__find_best_contrast( VipsImage *image,
 int im__balance( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	VipsImage **ref_out, VipsImage **sec_out, int dx, int dy, int balancetype );
 
-void imb_Lab2LCh( float *, float *, int );
 void imb_LCh2Lab( float *, float *, int );
 
 /* A colour temperature.
@@ -237,7 +236,6 @@ typedef struct {
 } im_colour_temperature;
 
 void imb_XYZ2Lab( float *, float *, int, im_colour_temperature * );
-void imb_Lab2XYZ( float *, float *, int, im_colour_temperature * );
 void imb_LabQ2Lab( VipsPel *, float *, int );
 void imb_Lab2LabQ( float *, VipsPel *, int );
 void imb_LabS2Lab( signed short *, float *, int );
@@ -294,6 +292,7 @@ void vips_arithmetic_operation_init( void );
 void vips_conversion_operation_init( void );
 void vips_resample_operation_init( void );
 void vips_foreign_operation_init( void );
+void vips_colour_operation_init( void );
 
 guint64 vips__parse_size( const char *size_string );
 
