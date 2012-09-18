@@ -168,6 +168,7 @@ vips_Lab2XYZ_class_init( VipsLab2XYZClass *class )
 	object_class->build = vips_Lab2XYZ_build;
 
 	colour_class->process_line = vips_Lab2XYZ_line;
+	colour_class->interpretation = VIPS_INTERPRETATION_XYZ;
 
 	VIPS_ARG_BOXED( class, "temp", 110, 
 		_( "Temperature" ), 

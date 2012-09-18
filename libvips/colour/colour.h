@@ -77,6 +77,10 @@ typedef struct _VipsColourClass {
 	/* The buffer processor.
 	 */
 	VipsColourProcessFn process_line;
+
+	/* What to set Type to for this subclass.
+	 */
+	VipsInterpretation interpretation;
 } VipsColourClass;
 
 GType vips_colour_get_type( void );

@@ -87,6 +87,8 @@ static int
 vips_colour_build( VipsObject *object )
 {
 	VipsColour *colour = VIPS_COLOUR( object );
+	VipsColourClass *class = VIPS_COLOUR_GET_CLASS( colour ); 
+
 	int i;
 
 #ifdef DEBUG
@@ -114,6 +116,7 @@ vips_colour_build( VipsObject *object )
 		return( -1 );
         vips_demand_hint_array( colour->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, colour->in );
+	out->Type = class->interpretation;
 
 	if( vips_image_generate( colour->out,
 		vips_start_many, vips_colour_gen, vips_stop_many, 
@@ -138,6 +141,8 @@ vips_colour_class_init( VipsColourClass *class )
 	vobject_class->build = vips_colour_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+
+	class->interpretation = VIPS_INTERPRETATION_sRGB;
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 

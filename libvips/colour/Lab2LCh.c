@@ -135,6 +135,7 @@ vips_Lab2LCh_class_init( VipsLab2LChClass *class )
 	object_class->description = _( "transform Lab to LCh" );
 
 	colour_class->process_line = vips_Lab2LCh_line;
+	colour_class->interpretation = VIPS_INTERPRETATION_LCH;
 }
 
 static void
