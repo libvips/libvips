@@ -1086,6 +1086,29 @@ vips_check_coding_same( const char *domain, VipsImage *im1, VipsImage *im2 )
 }
 
 /**
+ * vips_check_vector_length:
+ * @domain: the originating domain for the error message
+ * @n: number of elements in vector
+ * @len: number of elements vector should have
+ *
+ * Check that @n == @len. 
+ *
+ * See also: vips_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+vips_check_vector_length( const char *domain, int n, int len )
+{
+	if( n != len ) {
+		vips_error( domain, _( "vector must have %d elements" ), len );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * vips_check_vector:
  * @domain: the originating domain for the error message
  * @n: number of elements in vector

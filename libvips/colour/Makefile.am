@@ -6,13 +6,13 @@ libcolour_la_SOURCES = \
 	disp.c \
 	colour_dispatch.c \
 	derived.c \
+	Lab2XYZ.c \
 	im_icc_transform.c \
 	im_LCh2Lab.c \
 	im_LCh2UCS.c \
 	im_Lab2LCh.c \
 	im_Lab2LabQ.c \
 	im_Lab2LabS.c \
-	im_Lab2XYZ.c \
 	im_LabQ2Lab.c \
 	im_LabQ2LabS.c \
 	im_LabQ2disp.c \

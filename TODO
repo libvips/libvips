@@ -1,3 +1,15 @@
+- can we make DOUBLE ARRAY args easier from C?
+
+  at the moment they are horrible or ad-hoc, see vips_linear() etc. and
+  the im_Lab2XYZ_temp() wrapper
+
+  can the thing that collects args from the stack spot array objects? eg. 
+
+	double fred[3];
+
+	vips_Lab2XYZ( in, out, "temp", fred, 3, NULL );
+
+
 colour
 
 colour operations:
@@ -57,6 +69,8 @@ how about a base colour class with 1 in, 1 out,
   remove dECMC_fromLab etc. just have a pythag operation in arith? needs to
   pass extra bands through though
 
+
+- CMC(l:c) needs optional args for l and c
 
 
 

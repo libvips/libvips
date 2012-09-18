@@ -128,6 +128,7 @@ vips_colour_class_init( VipsColourClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -135,6 +136,8 @@ vips_colour_class_init( VipsColourClass *class )
 	vobject_class->nickname = "colour";
 	vobject_class->description = _( "colour operations" );
 	vobject_class->build = vips_colour_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 
@@ -158,7 +161,7 @@ vips_colorimetric_build( VipsObject *object )
 
 	VipsImage **t;
 
-	t = (VipsImage **) vips_object_local_array( object, 1 );
+	t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	colour->n = 1;
 	colour->in = (VipsImage **) vips_object_local_array( object, 1 );
@@ -178,7 +181,7 @@ vips_colorimetric_build( VipsObject *object )
 				"n", t[0]->Bands - 3, NULL ) )
 			return( -1 );
 
-		colour->in[0] = t[2];
+		colour->in[0] = t[1];
 	}
 
 	if( colour->in[0] )
@@ -190,9 +193,16 @@ vips_colorimetric_build( VipsObject *object )
 
 	/* Reattach higher bands, if necessary.
 	 */
-	if( t[0]->Bands > 3 ) 
-		if( vips_bandjoin2( colour->out, t[2], &colour->out, NULL ) )
+	if( t[0]->Bands > 3 ) {
+		VipsImage *x;
+
+		if( vips_bandjoin2( colour->out, t[2], &x, NULL ) )
 			return( -1 );
+
+		VIPS_UNREF( colour->out );
+
+		colour->out = x;
+	}
 
 	return( 0 );
 }
@@ -228,7 +238,7 @@ vips_colorimetric_init( VipsColorimetric *colorimetric )
 void
 vips_colour_operation_init( void )
 {
-	extern GType vips_add_get_type( void ); 
+	extern GType vips_Lab2XYZ_get_type( void ); 
 
-	vips_add_get_type();
+	vips_Lab2XYZ_get_type();
 }

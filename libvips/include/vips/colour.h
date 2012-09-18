@@ -35,12 +35,62 @@
 
  */
 
-#ifndef IM_COLOUR_H
-#define IM_COLOUR_H
+#ifndef VIPS_COLOUR_H
+#define VIPS_COLOUR_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
+
+/* Areas under curves for Dxx. 2 degree observer.
+ */
+#define VIPS_D93_X0 (89.7400)
+#define VIPS_D93_Y0 (100.0)
+#define VIPS_D93_Z0 (130.7700)
+
+#define VIPS_D75_X0 (94.9682)
+#define VIPS_D75_Y0 (100.0)
+#define VIPS_D75_Z0 (122.5710)
+
+/* D65 temp 6504.
+ */
+#define VIPS_D65_X0 (95.0470)
+#define VIPS_D65_Y0 (100.0)
+#define VIPS_D65_Z0 (108.8827)
+
+#define VIPS_D55_X0 (95.6831)
+#define VIPS_D55_Y0 (100.0)
+#define VIPS_D55_Z0 (92.0871)
+
+#define VIPS_D50_X0 (96.4250)
+#define VIPS_D50_Y0 (100.0)
+#define VIPS_D50_Z0 (82.4680)
+
+/* A temp 2856k.
+ */
+#define VIPS_A_X0 (109.8503)
+#define VIPS_A_Y0 (100.0)
+#define VIPS_A_Z0 (35.5849)
+
+/* B temp 4874k.
+ */
+#define VIPS_B_X0 (99.0720)
+#define VIPS_B_Y0 (100.0)
+#define VIPS_B_Z0 (85.2230)
+
+/* C temp 6774k.
+ */
+#define VIPS_C_X0 (98.0700)
+#define VIPS_C_Y0 (100.0)
+#define VIPS_C_Z0 (118.2300)
+
+#define VIPS_E_X0 (100.0)
+#define VIPS_E_Y0 (100.0)
+#define VIPS_E_Z0 (100.0)
+
+#define VIPS_D3250_X0 (105.6590)
+#define VIPS_D3250_Y0 (100.0)
+#define VIPS_D3250_Z0 (45.8501)
 
 struct im_col_display;
 
@@ -69,62 +119,19 @@ int vips_XYZ2disp( VipsImage *in, VipsImage **out,
 	struct im_col_display *disp, ... )
 	__attribute__((sentinel));
 
-/* Areas under curves for Dxx. 2 degree observer.
- */
-#define IM_D93_X0 (89.7400)
-#define IM_D93_Y0 (100.0)
-#define IM_D93_Z0 (130.7700)
+void vips_col_Lab2XYZ( float L, float a, float b, 
+	float *X, float *Y, float *Z );
 
-#define IM_D75_X0 (94.9682)
-#define IM_D75_Y0 (100.0)
-#define IM_D75_Z0 (122.5710)
 
-/* D65 temp 6504.
- */
-#define IM_D65_X0 (95.0470)
-#define IM_D65_Y0 (100.0)
-#define IM_D65_Z0 (108.8827)
 
-#define IM_D55_X0 (95.6831)
-#define IM_D55_Y0 (100.0)
-#define IM_D55_Z0 (92.0871)
 
-#define IM_D50_X0 (96.4250)
-#define IM_D50_Y0 (100.0)
-#define IM_D50_Z0 (82.4680)
 
-/* A temp 2856k.
- */
-#define IM_A_X0 (109.8503)
-#define IM_A_Y0 (100.0)
-#define IM_A_Z0 (35.5849)
-
-/* B temp 4874k.
- */
-#define IM_B_X0 (99.0720)
-#define IM_B_Y0 (100.0)
-#define IM_B_Z0 (85.2230)
-
-/* C temp 6774k.
- */
-#define IM_C_X0 (98.0700)
-#define IM_C_Y0 (100.0)
-#define IM_C_Z0 (118.2300)
-
-#define IM_E_X0 (100.0)
-#define IM_E_Y0 (100.0)
-#define IM_E_Z0 (100.0)
-
-#define IM_D3250_X0 (105.6590)
-#define IM_D3250_Y0 (100.0)
-#define IM_D3250_Z0 (45.8501)
 
 /* Colour loading and conversion functions.
  */
 void im_col_ab2Ch( float a, float b, float *C, float *h );
 void im_col_Ch2ab( float C, float h, float *a, float *b );
 void im_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b );
-void im_col_Lab2XYZ( float L, float a, float b, float *X, float *Y, float *Z );
 float im_col_pythagoras( float L1, float a1, float b1, 
 	float L2, float a2, float b2 );
 
@@ -151,9 +158,6 @@ int im_LCh2UCS( VipsImage *in, VipsImage *out );
 int im_Lab2LCh( VipsImage *in, VipsImage *out );
 int im_Lab2LabQ( VipsImage *in, VipsImage *out );
 int im_Lab2LabS( VipsImage *in, VipsImage *out );
-int im_Lab2XYZ( VipsImage *in, VipsImage *out );
-int im_Lab2XYZ_temp( VipsImage *in, VipsImage *out, 
-	double X0, double Y0, double Z0 );
 int im_Lab2UCS( VipsImage *in, VipsImage *out );
 int im_LabQ2Lab( VipsImage *in, VipsImage *out );
 int im_LabQ2LabS( VipsImage *in, VipsImage *out );
@@ -206,4 +210,4 @@ int im_icc_ac2rc( VipsImage *in, VipsImage *out, const char *profile_filename );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_COLOUR_H*/
+#endif /*VIPS_COLOUR_H*/

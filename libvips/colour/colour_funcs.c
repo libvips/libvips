@@ -151,37 +151,6 @@ im_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b )
 }
 
 /**
- * im_col_Lab2XYZ:
- * @L: Input CIE Lab value
- * @a: Input CIE Lab value
- * @b: Input CIE Lab value
- * @X: Return CIE XYZ colour
- * @Y: Return CIE XYZ colour
- * @Z: Return CIE XYZ colour
- *
- * Calculate XYZ from Lab, D65.
- * 
- * See also: im_Lab2XYZ_temp().
- */
-void
-im_col_Lab2XYZ( float L, float a, float b, float *X, float *Y, float *Z )
-{	
-	float in[3], out[3];
-	im_colour_temperature temp;
-
-	in[0] = L;
-	in[1] = a;
-	in[2] = b;
-	temp.X0 = IM_D65_X0;
-	temp.Y0 = IM_D65_Y0;
-	temp.Z0 = IM_D65_Z0;
-	imb_Lab2XYZ( in, out, 1, &temp );
-	*X = out[0];
-	*Y = out[1];
-	*Z = out[2];
-}
-
-/**
  * im_col_pythagoras:
  * @L1: Input coordinate 1
  * @a1: Input coordinate 1
@@ -890,19 +859,6 @@ vips_UCS2XYZ( VipsImage *in, VipsImage **out, ... )
 
 	va_start( ap, out );
 	result = vips_call_split( "im_UCS2XYZ", ap, in, out );
-	va_end( ap );
-
-	return( result );
-}
-
-int
-vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, out );
-	result = vips_call_split( "im_Lab2XYZ", ap, in, out );
 	va_end( ap );
 
 	return( result );

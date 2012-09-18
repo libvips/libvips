@@ -40,6 +40,48 @@ extern "C" {
 /* Renamed types.
  */
 
+#define IM_D93_X0 VIPS_D93_X0 
+#define IM_D93_Y0 VIPS_D93_Y0 
+#define IM_D93_Z0 VIPS_D93_Z0 
+
+#define IM_D75_X0 VIPS_D75_X0 
+#define IM_D75_Y0 VIPS_D75_Y0 
+#define IM_D75_Z0 VIPS_D75_Z0 
+
+#define IM_D65_X0 VIPS_D65_X0 
+#define IM_D65_Y0 VIPS_D65_Y0 
+#define IM_D65_Z0 VIPS_D65_Z0 
+
+#define IM_D55_X0 VIPS_D55_X0 
+#define IM_D55_Y0 VIPS_D55_Y0 
+#define IM_D55_Z0 VIPS_D55_Z0 
+
+#define IM_D50_X0 VIPS_D50_X0 
+#define IM_D50_Y0 VIPS_D50_Y0 
+#define IM_D50_Z0 VIPS_D50_Z0 
+
+#define IM_A_X0 VIPS_A_X0 
+#define IM_A_Y0 VIPS_A_Y0 
+#define IM_A_Z0 VIPS_A_Z0 
+
+#define IM_B_X0 VIPS_B_X0 
+#define IM_B_Y0 VIPS_B_Y0 
+#define IM_B_Z0 VIPS_B_Z0 
+
+#define IM_C_X0 VIPS_C_X0 
+#define IM_C_Y0 VIPS_C_Y0 
+#define IM_C_Z0 VIPS_C_Z0 
+
+#define IM_E_X0 VIPS_E_X0 
+#define IM_E_Y0 VIPS_E_Y0 
+#define IM_E_Z0 VIPS_E_Z0 
+
+#define IM_D3250_X0 VIPS_D3250_X0 
+#define IM_D3250_Y0 VIPS_D3250_Y0 
+#define IM_D3250_Z0 VIPS_D3250_Z0 
+
+#define im_col_Lab2XYZ vips_col_Lab2XYZ
+
 #define PEL VipsPel
 
 #define IM_BANDFMT_NOTSET VIPS_FORMAT_NOTSET
@@ -651,6 +693,9 @@ int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
 int im_argb2rgba( VipsImage *in, VipsImage *out );
 
 int im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink );
+
+int im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 );
+int im_Lab2XYZ( IMAGE *in, IMAGE *out );
 
 /* ruby-vips uses this
  */

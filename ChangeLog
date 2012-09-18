@@ -1,5 +1,5 @@
 31/8/12 started 7.31.0
-- work on moving colour to vips8
+- redone im_Lab2XYZ() as a class
 
 13/9/12 started 7.30.3
 - linecache sized itself too large

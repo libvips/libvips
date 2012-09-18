@@ -2143,3 +2143,45 @@ im_rightshift_size( IMAGE *in, IMAGE *out,
 
 	return( 0 );
 }
+
+int 
+im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
+{
+	double ary[3];
+	VipsArea *temp;
+	VipsImage *x;
+
+	ary[0] = X0;
+	ary[1] = Y0;
+	ary[2] = Z0;
+	temp = (VipsArea *) vips_array_double_new( ary, 3 ); 
+	if( vips_Lab2XYZ( in, &x, "temp", temp, NULL ) ) {
+		vips_area_unref( temp );
+		return( -1 );
+	}
+	vips_area_unref( temp );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_Lab2XYZ( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_Lab2XYZ( in, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
