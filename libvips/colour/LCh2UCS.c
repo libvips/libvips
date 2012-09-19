@@ -50,12 +50,6 @@ typedef VipsColorimetricClass VipsLCh2UCSClass;
 
 G_DEFINE_TYPE( VipsLCh2UCS, vips_LCh2UCS, VIPS_TYPE_COLORIMETRIC );
 
-/* Constants for Lucs.
- */
-#define c1 21.75
-#define c2 0.3838
-#define c3 38.54
-
 /**
  * vips_col_L2Lucs:
  * @L: CIE L*
@@ -70,20 +64,12 @@ vips_col_L2Lucs( float L )
 	float Lucs;
 
 	if( L >= 16.0 )
-		Lucs = (c1 * log( L ) + c2 * L - c3);
+		Lucs = (21.75 * log( L ) + 0.3838 * L - 38.54);
 	else
 		Lucs = 1.744 * L;
 
 	return( Lucs );
 }
-
-/* Constants for Cucs.
- */
-#define c4 0.162
-#define c5 10.92
-#define c6 0.638
-#define c7 0.07216
-#define c8 4.907
 
 /**
  * vips_col_C2Cucs:
@@ -98,7 +84,7 @@ vips_col_C2Cucs( float C )
 {	
 	float Cucs;
 
-	Cucs = c4 * C + c5 * log( c6 + c7 * C ) + c8;
+	Cucs = 0.162 * C + 10.92 * log( 0.638 + 0.07216 * C ) + 4.907;
 	if( Cucs < 0 ) 
 		Cucs = 0;
 

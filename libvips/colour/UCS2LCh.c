@@ -66,17 +66,18 @@ G_DEFINE_TYPE( VipsUCS2LCh, vips_UCS2LCh, VIPS_TYPE_COLORIMETRIC );
  */
 static void
 make_LI( void )
-{	
+{
 	int i;
-	float Ll[ 1001 ];
-	int j;
+	float Ll[1001];
 
 	for( i = 0; i < 1001; i++ ) 
 		Ll[i] = vips_col_L2Lucs( i / 10.0 ); 
 
-	for( j = 0, i = 0; i < 1001; i++ ) {
-		while( Ll[j] <= i / 10.0 && j < 1001 ) 
-			j++;
+	for( i = 0; i < 1001; i++ ) {
+		int j;
+
+		for( j = 0; j < 1001 && Ll[j] <= i / 10.0; j++ ) 
+			;
 
 		LI[i] = (j - 1) / 10.0 + 
 			(i / 10.0 - Ll[j - 1]) / ((Ll[j] - Ll[j - 1]) * 10.0);
@@ -87,7 +88,7 @@ make_LI( void )
  */
 static void
 make_CI( void )
-{	
+{
 	int i;
 	float Cl[3001];
 
@@ -96,12 +97,6 @@ make_CI( void )
 
 	for( i = 0; i < 3001; i++ ) {
 		int j;
-
-		/* 
-		 *
-		why isn't this loop the same as the one for L above
-			or for h below
-		 */
 
 		for( j = 0; j < 3001 && Cl[j] <= i / 10.0; j++ )
 			;
@@ -114,8 +109,8 @@ make_CI( void )
  */
 static void
 make_hI( void )
-{	
-	int i, j, k;
+{
+	int i, j;
 	float hl[101][361];
 
 	for( i = 0; i < 361; i++ ) 
@@ -123,10 +118,11 @@ make_hI( void )
 			hl[j][i] = vips_col_Ch2hucs( j * 2.0, i );
 
 	for( j = 0; j < 101; j++ ) {
-		k = 0;
 		for( i = 0; i < 361; i++ ) {
-			while( k < 361 && hl[j][k] <= i ) 
-				k++;
+			int k;
+
+			for( k = 0; k < 361 && hl[j][k] <= i; k++ ) 
+				;
 			hI[j][i] = k - 1 + (i - hl[j][k - 1]) / 
 				(hl[j][k] - hl[j][k - 1]);
 		}
@@ -145,7 +141,7 @@ make_hI( void )
 float
 vips_col_Lucs2L( float Lucs )
 {	
-	int known;	/* nearest input value in the table, <= Lucs */
+	int known;
 
 	known = floor( Lucs * 10.0 );
 	known = VIPS_CLIP( 0, known, 1000 );
@@ -167,7 +163,7 @@ vips_col_Lucs2L( float Lucs )
 float
 vips_col_Cucs2C( float Cucs )
 {	
-	int known;	/* nearest input value in the table, <= Cucs */
+	int known;
 
 	known = floor( Cucs * 10.0 );
 	known = VIPS_CLIP( 0, known, 3000 );
@@ -190,7 +186,8 @@ vips_col_Cucs2C( float Cucs )
 float
 vips_col_Chucs2h( float C, float hucs )
 {	
-	int r, known;	/* nearest input value in the table, <= hucs */
+	int r;
+	int known;
 
 	/* Which row of the table?
 	 */
