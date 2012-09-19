@@ -116,7 +116,7 @@ vips_colour_build( VipsObject *object )
 		return( -1 );
         vips_demand_hint_array( colour->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, colour->in );
-	out->Type = class->interpretation;
+	colour->out->Type = class->interpretation;
 
 	if( vips_image_generate( colour->out,
 		vips_start_many, vips_colour_gen, vips_stop_many, 
@@ -221,7 +221,7 @@ vips_colorimetric_class_init( VipsColorimetricClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "colour";
+	vobject_class->nickname = "colorimetric";
 	vobject_class->description = _( "colorimetric operations" );
 	vobject_class->build = vips_colorimetric_build;
 
@@ -245,7 +245,9 @@ vips_colour_operation_init( void )
 {
 	extern GType vips_Lab2XYZ_get_type( void ); 
 	extern GType vips_Lab2LCh_get_type( void ); 
+	extern GType vips_LCh2Lab_get_type( void ); 
 
 	vips_Lab2XYZ_get_type();
 	vips_Lab2LCh_get_type();
+	vips_LCh2Lab_get_type();
 }

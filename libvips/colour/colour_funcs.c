@@ -78,27 +78,6 @@ static float CI[ 3001 ];
 static float hI[ 101 ][ 361 ];
 
 /**
- * im_col_Ch2ab:
- * @C: Chroma
- * @h: Hue angle (degrees)
- * @a: return CIE a* value
- * @b: return CIE b* value
- *
- * Calculate ab from Ch, h in degrees.
- */
-void
-im_col_Ch2ab( float C, float h, float *a, float *b )
-{
-	float in[3], out[3];
-
-	in[1] = C;
-	in[2] = h;
-	imb_LCh2Lab( in, out, 1 );
-	*a = out[1];
-	*b = out[2];
-}
-
-/**
  * im_col_XYZ2Lab:
  * @X: Input CIE XYZ colour
  * @Y: Input CIE XYZ colour
@@ -762,19 +741,6 @@ vips_Lab2LabQ( VipsImage *in, VipsImage **out, ... )
 
 	va_start( ap, out );
 	result = vips_call_split( "im_Lab2LabQ", ap, in, out );
-	va_end( ap );
-
-	return( result );
-}
-
-int
-vips_LCh2Lab( VipsImage *in, VipsImage **out, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, out );
-	result = vips_call_split( "im_LCh2Lab", ap, in, out );
 	va_end( ap );
 
 	return( result );

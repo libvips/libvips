@@ -83,6 +83,7 @@ extern "C" {
 #define im_col_Lab2XYZ vips_col_Lab2XYZ
 #define im_col_ab2h vips_col_ab2h
 #define im_col_ab2Ch vips_col_ab2Ch
+#define im_col_Ch2ab vips_col_Ch2ab
 
 #define PEL VipsPel
 
@@ -699,6 +700,7 @@ int im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink );
 int im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 );
 int im_Lab2XYZ( IMAGE *in, IMAGE *out );
 int im_Lab2LCh( VipsImage *in, VipsImage *out );
+int im_LCh2Lab( VipsImage *in, VipsImage *out );
 
 /* ruby-vips uses this
  */

@@ -9,7 +9,7 @@ libcolour_la_SOURCES = \
 	Lab2XYZ.c \
 	Lab2LCh.c \
 	im_icc_transform.c \
-	im_LCh2Lab.c \
+	LCh2Lab.c \
 	im_LCh2UCS.c \
 	im_Lab2LabQ.c \
 	im_Lab2LabS.c \

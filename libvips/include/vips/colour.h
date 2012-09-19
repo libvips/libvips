@@ -125,6 +125,7 @@ void vips_col_Lab2XYZ( float L, float a, float b,
 	float *X, float *Y, float *Z );
 double vips_col_ab2h( double a, double b );
 void vips_col_ab2Ch( float a, float b, float *C, float *h );
+void vips_col_Ch2ab( float C, float h, float *a, float *b );
 
 
 
@@ -133,7 +134,6 @@ void vips_col_ab2Ch( float a, float b, float *C, float *h );
 /* Colour loading and conversion functions.
  */
 void im_col_ab2Ch( float a, float b, float *C, float *h );
-void im_col_Ch2ab( float C, float h, float *a, float *b );
 void im_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b );
 float im_col_pythagoras( float L1, float a1, float b1, 
 	float L2, float a2, float b2 );
@@ -152,7 +152,6 @@ float im_col_dECMC(
 float im_col_dE00( 
 	float L1, float a1, float b1, float L2, float a2, float b2 );
 
-int im_LCh2Lab( VipsImage *in, VipsImage *out );
 int im_LabQ2XYZ( VipsImage *in, VipsImage *out );
 int im_rad2float( VipsImage *in, VipsImage *out );
 int im_float2rad( VipsImage *in, VipsImage *out );
