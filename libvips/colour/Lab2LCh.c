@@ -124,12 +124,8 @@ vips_Lab2LCh_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 static void
 vips_Lab2LCh_class_init( VipsLab2LChClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
-
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "Lab2LCh";
 	object_class->description = _( "transform Lab to LCh" );
