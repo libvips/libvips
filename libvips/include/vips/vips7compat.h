@@ -85,6 +85,15 @@ extern "C" {
 #define im_col_ab2Ch vips_col_ab2Ch
 #define im_col_Ch2ab vips_col_Ch2ab
 
+#define im_col_L2Lucs vips_col_L2Lucs
+#define im_col_C2Cucs vips_col_C2Cucs
+#define im_col_Ch2hucs vips_col_Ch2hucs
+
+#define im_col_make_tables_UCS vips_col_make_tables_UCS
+#define im_col_Lucs2L vips_col_Lucs2L
+#define im_col_Cucs2C vips_col_Cucs2C
+#define im_col_Chucs2h vips_col_Chucs2h
+
 #define PEL VipsPel
 
 #define IM_BANDFMT_NOTSET VIPS_FORMAT_NOTSET
@@ -701,6 +710,8 @@ int im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 );
 int im_Lab2XYZ( IMAGE *in, IMAGE *out );
 int im_Lab2LCh( VipsImage *in, VipsImage *out );
 int im_LCh2Lab( VipsImage *in, VipsImage *out );
+int im_LCh2UCS( VipsImage *in, VipsImage *out );
+int im_UCS2LCh( VipsImage *in, VipsImage *out );
 
 /* ruby-vips uses this
  */

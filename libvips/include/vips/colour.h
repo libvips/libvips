@@ -120,12 +120,25 @@ int vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
 int vips_XYZ2disp( VipsImage *in, VipsImage **out, 
 	struct im_col_display *disp, ... )
 	__attribute__((sentinel));
+int vips_LCh2UCS( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_UCS2LCh( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 void vips_col_Lab2XYZ( float L, float a, float b, 
 	float *X, float *Y, float *Z );
 double vips_col_ab2h( double a, double b );
 void vips_col_ab2Ch( float a, float b, float *C, float *h );
 void vips_col_Ch2ab( float C, float h, float *a, float *b );
+
+float vips_col_L2Lucs( float L );
+float vips_col_C2Cucs( float C );
+float vips_col_Ch2hucs( float C, float h );
+
+void vips_col_make_tables_UCS( void );
+float vips_col_Lucs2L( float Lucs );
+float vips_col_Cucs2C( float Cucs );
+float vips_col_Chucs2h( float C, float hucs );
 
 
 
@@ -138,14 +151,6 @@ void im_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b );
 float im_col_pythagoras( float L1, float a1, float b1, 
 	float L2, float a2, float b2 );
 
-void im_col_make_tables_UCS( void );
-
-float im_col_L2Lucs( float L );
-float im_col_Lucs2L( float Lucs );
-float im_col_C2Cucs( float C );
-float im_col_Cucs2C( float Cucs );
-float im_col_Ch2hucs( float C, float h );
-float im_col_Chucs2h( float C, float hucs );
 
 float im_col_dECMC( 
 	float L1, float a1, float b1, float L2, float a2, float b2 );
@@ -155,17 +160,15 @@ float im_col_dE00(
 int im_LabQ2XYZ( VipsImage *in, VipsImage *out );
 int im_rad2float( VipsImage *in, VipsImage *out );
 int im_float2rad( VipsImage *in, VipsImage *out );
-int im_LCh2UCS( VipsImage *in, VipsImage *out );
 int im_Lab2LabQ( VipsImage *in, VipsImage *out );
 int im_Lab2LabS( VipsImage *in, VipsImage *out );
-int im_Lab2UCS( VipsImage *in, VipsImage *out );
 int im_LabQ2Lab( VipsImage *in, VipsImage *out );
 int im_LabQ2LabS( VipsImage *in, VipsImage *out );
 int im_LabS2LabQ( VipsImage *in, VipsImage *out );
 int im_LabS2Lab( VipsImage *in, VipsImage *out );
 int im_UCS2XYZ( VipsImage *in, VipsImage *out );
-int im_UCS2LCh( VipsImage *in, VipsImage *out );
 int im_UCS2Lab( VipsImage *in, VipsImage *out );
+int im_Lab2UCS( VipsImage *in, VipsImage *out );
 int im_XYZ2Lab( VipsImage *in, VipsImage *out );
 int im_XYZ2Lab_temp( VipsImage *in, VipsImage *out, 
 	double X0, double Y0, double Z0 );

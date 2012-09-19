@@ -1,3 +1,7 @@
+- see comment on make_CI() -- investigate
+
+  add l:c args
+
 - can we make DOUBLE ARRAY args easier from C?
 
   at the moment they are horrible or ad-hoc, see vips_linear() etc. and

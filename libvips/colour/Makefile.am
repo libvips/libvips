@@ -8,9 +8,10 @@ libcolour_la_SOURCES = \
 	derived.c \
 	Lab2XYZ.c \
 	Lab2LCh.c \
-	im_icc_transform.c \
 	LCh2Lab.c \
-	im_LCh2UCS.c \
+	LCh2UCS.c \
+	UCS2LCh.c \
+	im_icc_transform.c \
 	im_Lab2LabQ.c \
 	im_Lab2LabS.c \
 	im_LabQ2Lab.c \
@@ -19,7 +20,6 @@ libcolour_la_SOURCES = \
 	im_LabS2LabQ.c \
 	im_LabS2Lab.c \
 	im_lab_morph.c \
-	im_UCS2LCh.c \
 	im_XYZ2Lab.c \
 	im_XYZ2Yxy.c \
 	im_float2rad.c \
