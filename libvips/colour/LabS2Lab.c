@@ -41,16 +41,23 @@
 
 #include <vips/vips.h>
 
+#include "colour.h"
+
+typedef VipsColourCode VipsLabS2Lab;
+typedef VipsColourCodeClass VipsLabS2LabClass;
+
+G_DEFINE_TYPE( VipsLabS2Lab, vips_LabS2Lab, VIPS_TYPE_COLOUR_CODE );
+
 /* Convert n pels from signed short to Lab.
  */
-void
-imb_LabS2Lab( signed short *in, float *out, int n )        
+static void
+vips_LabS2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	signed short *p = in;
-	float *q = out;
-	int c;
+	signed short *p = (signed short *) in[0];
+	float *q = (float *) out;
+	int i;
 
-	for( c = 0; c < n; c++ ) {
+	for( i = 0; i < width; i++ ) {
 		q[0] = p[0] / (32767.0 / 100.0);
 		q[1] = p[1] / (32768.0 / 128.0);
 		q[2] = p[2] / (32768.0 / 128.0);
@@ -60,33 +67,52 @@ imb_LabS2Lab( signed short *in, float *out, int n )
 	}
 }
 
+static void
+vips_LabS2Lab_class_init( VipsLabS2LabClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
+
+	object_class->nickname = "LabS2Lab";
+	object_class->description = _( "transform signed short Lab to float" );
+
+	colour_class->process_line = vips_LabS2Lab_line;
+	colour_class->interpretation = VIPS_INTERPRETATION_LAB;
+	colour_class->format = VIPS_FORMAT_FLOAT;
+	colour_class->bands = 3;
+
+	code_class->input_coding = VIPS_CODING_NONE;
+	code_class->input_format = VIPS_FORMAT_SHORT;
+	code_class->input_bands = 3;
+}
+
+static void
+vips_LabS2Lab_init( VipsLabS2Lab *LabS2Lab )
+{
+}
+
 /**
- * im_LabS2Lab:
+ * vips_LabS2Lab:
  * @in: input image
  * @out: output image
  *
  * Convert a LabS three-band signed short image to a three-band float image.
  *
- * See also: im_Lab2LabS().
+ * See also: vips_LabS2Lab().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-im_LabS2Lab( IMAGE *in, IMAGE *out )
+vips_LabS2Lab( VipsImage *in, VipsImage **out, ... )
 {
-	if( im_check_uncoded( "im_LabS2Lab", in ) ||
-		im_check_bands( "im_LabS2Lab", in, 3 ) ||
-		im_check_format( "im_LabS2Lab", in, IM_BANDFMT_SHORT ) )
-		return( -1 );
+	va_list ap;
+	int result;
 
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	out->Type = IM_TYPE_LAB;
-	out->BandFmt = IM_BANDFMT_FLOAT;
+	va_start( ap, out );
+	result = vips_call_split( "LabS2Lab", ap, in, out );
+	va_end( ap );
 
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) imb_LabS2Lab, NULL, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( result );
 }
+

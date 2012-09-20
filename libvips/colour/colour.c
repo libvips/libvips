@@ -381,6 +381,12 @@ vips_colour_operation_init( void )
 	extern GType vips_UCS2LCh_get_type( void ); 
 	extern GType vips_Yxy2XYZ_get_type( void ); 
 	extern GType vips_XYZ2Yxy_get_type( void ); 
+	extern GType vips_LabQ2Lab_get_type( void ); 
+	extern GType vips_Lab2LabQ_get_type( void ); 
+	extern GType vips_LabS2Lab_get_type( void ); 
+	extern GType vips_Lab2LabS_get_type( void ); 
+	extern GType vips_rad2float_get_type( void ); 
+	extern GType vips_float2rad_get_type( void ); 
 
 	vips_Lab2XYZ_get_type();
 	vips_XYZ2Lab_get_type();
@@ -390,4 +396,10 @@ vips_colour_operation_init( void )
 	vips_UCS2LCh_get_type();
 	vips_XYZ2Yxy_get_type();
 	vips_Yxy2XYZ_get_type();
+	vips_LabQ2Lab_get_type();
+	vips_Lab2LabQ_get_type();
+	vips_LabS2Lab_get_type();
+	vips_Lab2LabS_get_type();
+	vips_rad2float_get_type();
+	vips_float2rad_get_type();
 }

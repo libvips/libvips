@@ -1,10 +1,12 @@
 /* im_Lab2LabS: quantise FLOAT Lab image into signed short format
  *
  * 12/12/02 JC
- *	- from im_Lab2LabQ
+ *	- from im_Lab2LabS
  * 1/11/09
  *	- gtkdoc
  *	- cleanups
+ * 20/9/12
+ * 	- redo as a class
  */
 
 /*
@@ -43,14 +45,21 @@
 
 #include <vips/vips.h>
 
-void
-imb_Lab2LabS( float *in, signed short *out, int n )
+#include "colour.h"
+
+typedef VipsColourCode VipsLab2LabS;
+typedef VipsColourCodeClass VipsLab2LabSClass;
+
+G_DEFINE_TYPE( VipsLab2LabS, vips_Lab2LabS, VIPS_TYPE_COLOUR_CODE );
+
+static void
+vips_Lab2LabS_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	float *p = in;
-	signed short *q = out;
-	int c;
-	
-	for( c = 0; c < n; c++ ) {
+	float *p = (float *) in[0];
+	signed short *q = (signed short *) out;
+	int i;
+
+	for( i = 0; i < width; i++ ) {
 		q[0] = p[0] * (32767.0 / 100.0);
 		q[1] = p[1] * (32768.0 / 128.0);
 		q[2] = p[2] * (32768.0 / 128.0);
@@ -60,34 +69,52 @@ imb_Lab2LabS( float *in, signed short *out, int n )
 	}
 }
 
+static void
+vips_Lab2LabS_class_init( VipsLab2LabSClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
+
+	object_class->nickname = "Lab2LabS";
+	object_class->description = _( "transform float Lab to signed short" );
+
+	colour_class->process_line = vips_Lab2LabS_line;
+	colour_class->interpretation = VIPS_INTERPRETATION_LABS;
+	colour_class->format = VIPS_FORMAT_SHORT;
+	colour_class->bands = 3;
+
+	code_class->input_coding = VIPS_CODING_NONE;
+	code_class->input_format = VIPS_FORMAT_FLOAT;
+	code_class->input_bands = 3;
+}
+
+static void
+vips_Lab2LabS_init( VipsLab2LabS *Lab2LabS )
+{
+}
+
 /**
- * im_Lab2LabS:
+ * vips_Lab2LabS:
  * @in: input image
  * @out: output image
  *
  * Turn Lab to LabS, signed 16-bit int fixed point.
  *
+ * See also: im_LabQ2Lab().
+ *
  * Returns: 0 on success, -1 on error.
  */
 int
-im_Lab2LabS( IMAGE *in, IMAGE *out )
+vips_Lab2LabS( VipsImage *in, VipsImage **out, ... )
 {
-	IMAGE *t[1];
+	va_list ap;
+	int result;
 
-	if( im_check_uncoded( "im_Lab2LabS", in ) ||
-		im_check_bands( "im_Lab2LabS", in, 3 ) ||
-		im_open_local_array( out, t, 1, "im_Lab2LabS", "p" ) ||
-		im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) )
-		return( -1 );
+	va_start( ap, out );
+	result = vips_call_split( "Lab2LabS", ap, in, out );
+	va_end( ap );
 
-	if( im_cp_desc( out, t[0] ) )
-		return( -1 );
-	out->Type = IM_TYPE_LABS;
-	out->BandFmt = IM_BANDFMT_SHORT;
-
-	if( im_wrapone( t[0], out, 
-		(im_wrapone_fn) imb_Lab2LabS, NULL, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( result );
 }
+

@@ -18,12 +18,12 @@ libcolour_la_SOURCES = \
 	rad2float.c \
 	Lab2LabQ.c \
 	LabQ2Lab.c \
+	LabS2Lab.c \
+	Lab2LabS.c \
 	im_icc_transform.c \
-	im_Lab2LabS.c \
 	im_LabQ2LabS.c \
 	im_LabQ2disp.c \
 	im_LabS2LabQ.c \
-	im_LabS2Lab.c \
 	im_lab_morph.c \
 	im_XYZ2disp.c \
 	im_dE00_fromLab.c \

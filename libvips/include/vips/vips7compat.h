@@ -726,6 +726,8 @@ int im_float2rad( VipsImage *in, VipsImage *out );
 int im_rad2float( VipsImage *in, VipsImage *out );
 int im_Lab2LabQ( VipsImage *in, VipsImage *out );
 int im_LabQ2Lab( VipsImage *in, VipsImage *out );
+int im_Lab2LabS( VipsImage *in, VipsImage *out );
+int im_LabS2Lab( VipsImage *in, VipsImage *out );
 
 /* ruby-vips uses this
  */
