@@ -68,37 +68,6 @@
 #include <vips/internal.h>
 
 /**
- * im_col_XYZ2Lab:
- * @X: Input CIE XYZ colour
- * @Y: Input CIE XYZ colour
- * @Z: Input CIE XYZ colour
- * @L: return CIE Lab value
- * @a: return CIE Lab value
- * @b: return CIE Lab value
- *
- * Calculate Lab from XYZ, D65.
- * 
- * See also: im_XYZ2Lab_temp().
- */
-void
-im_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b )
-{	
-	float in[3], out[3];
-	im_colour_temperature temp;
-
-	in[0] = X;
-	in[1] = Y;
-	in[2] = Z;
-	temp.X0 = IM_D65_X0;
-	temp.Y0 = IM_D65_Y0;
-	temp.Z0 = IM_D65_Z0;
-	imb_XYZ2Lab( in, out, 1, &temp );
-	*L = out[0];
-	*a = out[1];
-	*b = out[2];
-}
-
-/**
  * im_col_pythagoras:
  * @L1: Input coordinate 1
  * @a1: Input coordinate 1

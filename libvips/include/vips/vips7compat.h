@@ -81,6 +81,7 @@ extern "C" {
 #define IM_D3250_Z0 VIPS_D3250_Z0 
 
 #define im_col_Lab2XYZ vips_col_Lab2XYZ
+#define im_col_XYZ2Lab vips_col_XYZ2Lab
 #define im_col_ab2h vips_col_ab2h
 #define im_col_ab2Ch vips_col_ab2Ch
 #define im_col_Ch2ab vips_col_Ch2ab
@@ -708,6 +709,9 @@ int im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink );
 
 int im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 );
 int im_Lab2XYZ( IMAGE *in, IMAGE *out );
+int im_XYZ2Lab( VipsImage *in, VipsImage *out );
+int im_XYZ2Lab_temp( VipsImage *in, VipsImage *out, 
+	double X0, double Y0, double Z0 );
 int im_Lab2LCh( VipsImage *in, VipsImage *out );
 int im_LCh2Lab( VipsImage *in, VipsImage *out );
 int im_LCh2UCS( VipsImage *in, VipsImage *out );

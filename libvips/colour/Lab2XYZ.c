@@ -236,9 +236,9 @@ vips_col_Lab2XYZ( float L, float a, float b, float *X, float *Y, float *Z )
 	in[0] = L;
 	in[1] = a;
 	in[2] = b;
-	Lab2XYZ.X0 = IM_D65_X0;
-	Lab2XYZ.Y0 = IM_D65_Y0;
-	Lab2XYZ.Z0 = IM_D65_Z0;
+	Lab2XYZ.X0 = VIPS_D65_X0;
+	Lab2XYZ.Y0 = VIPS_D65_Y0;
+	Lab2XYZ.Z0 = VIPS_D65_Z0;
 	vips_Lab2XYZ_line( (VipsColour *) &Lab2XYZ, 
 		(VipsPel *) out, (VipsPel **) &in, 1 );
 	*X = out[0];

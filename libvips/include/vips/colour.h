@@ -117,6 +117,8 @@ int vips_UCS2XYZ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_XYZ2Lab( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_XYZ2disp( VipsImage *in, VipsImage **out, 
 	struct im_col_display *disp, ... )
 	__attribute__((sentinel));
@@ -127,6 +129,8 @@ int vips_UCS2LCh( VipsImage *in, VipsImage **out, ... )
 
 void vips_col_Lab2XYZ( float L, float a, float b, 
 	float *X, float *Y, float *Z );
+void vips_col_XYZ2Lab( float X, float Y, float Z, 
+	float *L, float *a, float *b );
 double vips_col_ab2h( double a, double b );
 void vips_col_ab2Ch( float a, float b, float *C, float *h );
 void vips_col_Ch2ab( float C, float h, float *a, float *b );
@@ -146,8 +150,6 @@ float vips_col_Chucs2h( float C, float hucs );
 
 /* Colour loading and conversion functions.
  */
-void im_col_ab2Ch( float a, float b, float *C, float *h );
-void im_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b );
 float im_col_pythagoras( float L1, float a1, float b1, 
 	float L2, float a2, float b2 );
 
@@ -169,9 +171,6 @@ int im_LabS2Lab( VipsImage *in, VipsImage *out );
 int im_UCS2XYZ( VipsImage *in, VipsImage *out );
 int im_UCS2Lab( VipsImage *in, VipsImage *out );
 int im_Lab2UCS( VipsImage *in, VipsImage *out );
-int im_XYZ2Lab( VipsImage *in, VipsImage *out );
-int im_XYZ2Lab_temp( VipsImage *in, VipsImage *out, 
-	double X0, double Y0, double Z0 );
 int im_XYZ2UCS( VipsImage *in, VipsImage *out );
 int im_sRGB2XYZ( VipsImage *in, VipsImage *out );
 int im_XYZ2sRGB( VipsImage *in, VipsImage *out );
