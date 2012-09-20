@@ -6,6 +6,8 @@
  * 	- convert "layer" to "level" where externally visible
  * 11/4/12
  * 	- convert remaining uses of "layer" to "level"
+ * 20/9/12
+ * 	- add Leica filename suffix
  */
 
 /*
@@ -141,6 +143,7 @@ vips_foreign_load_openslide_error_handler( const char *domain,
 static const char *vips_foreign_openslide_suffs[] = {
 	".svs", 	/* Aperio */
 	".vms", ".vmu", ".ndpi",  /* Hamamatsu */
+	".scn",		/* Leica */
 	".mrxs", 	/* MIRAX */
 	".tif", 	/* Trestle */
 	NULL
