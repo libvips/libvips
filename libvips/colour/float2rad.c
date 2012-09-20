@@ -5,7 +5,7 @@
  * 2/11/09
  * 	- gtkdoc 
  * 20/9/12
- * 	redo as a class
+ * 	- redo as a class
  */
 
 /*

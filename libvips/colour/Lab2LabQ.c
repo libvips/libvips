@@ -28,6 +28,8 @@
  * 1/11/09
  *	- gtkdoc
  *	- cleanups
+ * 20/9/12
+ * 	- redo as a class
  */
 
 /*
@@ -66,65 +68,91 @@
 
 #include <vips/vips.h>
 
+#include "colour.h"
+
+typedef VipsColourCode VipsLab2LabQ;
+typedef VipsColourCodeClass VipsLab2LabQClass;
+
+G_DEFINE_TYPE( VipsLab2LabQ, vips_Lab2LabQ, VIPS_TYPE_COLOUR_CODE );
+
 /* @(#) convert float Lab to packed Lab32 format 10 11 11 bits
  * works only on buffers, not IMAGEs
  * Copyright 1993 K.Martinez
  * Modified: 3/5/93, 16/6/93
  */
-void
-imb_Lab2LabQ( float *inp, unsigned char *outbuf, int n )
+static void
+vips_Lab2LabQ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	float *f, fval;
-	int lsbs, intv;
-	int Xc;
-	unsigned char *out;
+	float *p = (float *) in[0];
 
-	out = outbuf;
-	f = inp;
-	for( Xc = 0; Xc < n; Xc++) {
-		/* Scale L up to 10 bits. Add 0.5 rather than call IM_RINT for 
-		 * speed. This will not round negatives correctly! But this 
-		 * does not matter, since L is >0. L*=100.0 -> 1023.
+	float fval;
+	int lsbs;
+	int intv;
+	int i;
+
+	for( i = 0; i < width; i++) {
+		/* Scale L up to 10 bits. Add 0.5 rather than call VIPS_RINT 
+		 * for speed. This will not round negatives correctly! But 
+		 * this does not matter, since L is >0. L*=100.0 -> 1023.
 		 */
-		intv = 10.23 * f[0] + 0.5;	/* scale L up to 10 bits */
-		if( intv > 1023 )
-			intv = 1023;
-		if( intv < 0 )
-			intv = 0;
+		intv = 10.23 * p[0] + 0.5;	/* scale L up to 10 bits */
+		intv = VIPS_CLIP( 0, intv, 1023 );
 		lsbs = (intv & 0x3) << 6;       /* 00000011 -> 11000000 */
 		out[0] = (intv >> 2); 		/* drop bot 2 bits and store */
 
-		fval = 8.0 * f[1];              /* do a */
-		intv = IM_RINT( fval );
-		if( intv > 1023 )
-			intv = 1023;
-		else if( intv < -1024 )
-			intv = -1024;
-
-		/* Break into bits.
-		 */
+		fval = 8.0 * p[1];              /* do a */
+		intv = VIPS_RINT( fval );
+		intv = VIPS_CLIP( -1024, intv, 1023 );
 		lsbs |= (intv & 0x7) << 3;      /* 00000111 -> 00111000 */
 		out[1] = (intv >> 3);   	/* drop bot 3 bits & store */
 
-		fval = 8.0 * f[2];              /* do b */
-		intv = IM_RINT( fval );
-		if( intv > 1023 )
-			intv = 1023;
-		else if( intv < -1024 )
-			intv = -1024;
-
+		fval = 8.0 * p[2];              /* do b */
+		intv = VIPS_RINT( fval );
+		intv = VIPS_CLIP( -1024, intv, 1023 );
 		lsbs |= (intv & 0x7);
 		out[2] = (intv >> 3);
 
 		out[3] = lsbs;                /* store lsb band */
 
-		f += 3;
+		p += 3;
 		out += 4;
 	}
 }
 
+void
+vips__Lab2LabQ_vec( VipsPel *out, float *in, int width )
+{
+	vips_Lab2LabQ_line( NULL, out, (VipsPel **) &in, width );
+}
+
+static void
+vips_Lab2LabQ_class_init( VipsLab2LabQClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
+
+	object_class->nickname = "Lab2LabQ";
+	object_class->description = _( "transform float Lab to LabQ coding" );
+
+	colour_class->process_line = vips_Lab2LabQ_line;
+	colour_class->coding = VIPS_CODING_LABQ;
+	colour_class->interpretation = VIPS_INTERPRETATION_LABQ;
+	colour_class->format = VIPS_FORMAT_UCHAR;
+	colour_class->bands = 4;
+
+	code_class->input_coding = VIPS_CODING_NONE;
+	code_class->input_format = VIPS_FORMAT_FLOAT;
+	code_class->input_bands = 3;
+}
+
+static void
+vips_Lab2LabQ_init( VipsLab2LabQ *Lab2LabQ )
+{
+}
+
 /**
- * im_Lab2LabQ:
+ * vips_Lab2LabQ:
  * @in: input image
  * @out: output image
  *
@@ -135,26 +163,14 @@ imb_Lab2LabQ( float *inp, unsigned char *outbuf, int n )
  * Returns: 0 on success, -1 on error.
  */
 int
-im_Lab2LabQ( IMAGE *in, IMAGE *out )
+vips_Lab2LabQ( VipsImage *in, VipsImage **out, ... )
 {
-	IMAGE *t[1];
+	va_list ap;
+	int result;
 
-	if( im_check_uncoded( "im_Lab2LabQ", in ) ||
-		im_check_bands( "im_Lab2LabQ", in, 3 ) ||
-		im_open_local_array( out, t, 1, "im_Lab2LabQ", "p" ) ||
-		im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) )
-		return( -1 );
+	va_start( ap, out );
+	result = vips_call_split( "Lab2LabQ", ap, in, out );
+	va_end( ap );
 
-	if( im_cp_desc( out, t[0] ) )
-		return( -1 );
-	out->Bands = 4;
-	out->Type = IM_TYPE_LABQ;
-	out->BandFmt = IM_BANDFMT_UCHAR;
-	out->Coding = IM_CODING_LABQ;
-
-	if( im_wrapone( t[0], out, 
-		(im_wrapone_fn) imb_Lab2LabQ, NULL, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( result );
 }

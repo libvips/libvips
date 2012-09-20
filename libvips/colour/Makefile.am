@@ -16,10 +16,10 @@ libcolour_la_SOURCES = \
 	Yxy2XYZ.c \
 	float2rad.c \
 	rad2float.c \
+	Lab2LabQ.c \
+	LabQ2Lab.c \
 	im_icc_transform.c \
-	im_Lab2LabQ.c \
 	im_Lab2LabS.c \
-	im_LabQ2Lab.c \
 	im_LabQ2LabS.c \
 	im_LabQ2disp.c \
 	im_LabS2LabQ.c \

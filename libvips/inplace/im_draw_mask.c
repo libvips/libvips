@@ -180,7 +180,7 @@ mask_draw_labq( Mask *mask )
 		mask->image_clip.width * 3, float )) )
 		return( -1 );
 
-	imb_LabQ2Lab( DRAW( mask )->ink, ink_buffer, 1 );
+	vips__LabQ2Lab_vec( ink_buffer, DRAW( mask )->ink, 1 );
 
 	for( y = 0; y < mask->image_clip.height; y++ ) {
 		VipsPel *to = IM_IMAGE_ADDR( DRAW( mask )->im, 
@@ -188,9 +188,9 @@ mask_draw_labq( Mask *mask )
 		VipsPel *mask_line = IM_IMAGE_ADDR( mask->mask_im, 
 			mask->mask_clip.left, y + mask->mask_clip.top );
 
-		imb_LabQ2Lab( to, lab_buffer, mask->image_clip.width );
+		vips__LabQ2Lab_vec( lab_buffer, to, mask->image_clip.width );
 		DBLEND( float, lab_buffer, ink_buffer );
-		imb_Lab2LabQ( lab_buffer, to, mask->image_clip.width );
+		vips__Lab2LabQ_vec( to, lab_buffer, mask->image_clip.width );
 	}
 
 	im_free( lab_buffer );

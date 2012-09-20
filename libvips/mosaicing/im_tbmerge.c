@@ -593,8 +593,8 @@ tb_blend_labpack( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 
 		/* Unpack two bits we want.
 		 */
-		imb_LabQ2Lab( pr, r, oreg->width );
-		imb_LabQ2Lab( ps, s, oreg->width );
+		vips__LabQ2Lab_vec( r, pr, oreg->width );
+		vips__LabQ2Lab_vec( s, ps, oreg->width );
 
 		/* Blend as floats.
 		 */
@@ -602,7 +602,7 @@ tb_blend_labpack( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 
 		/* Re-pack to output buffer.
 		 */
-		imb_Lab2LabQ( inf->merge, q, oreg->width );
+		vips__Lab2LabQ_vec( q, inf->merge, oreg->width );
 	}
 
 	return( 0 );

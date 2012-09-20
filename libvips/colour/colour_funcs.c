@@ -335,32 +335,6 @@ vips_LabS2LabQ( VipsImage *in, VipsImage **out, ... )
 }
 
 int
-vips_LabQ2Lab( VipsImage *in, VipsImage **out, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, out );
-	result = vips_call_split( "im_LabQ2Lab", ap, in, out );
-	va_end( ap );
-
-	return( result );
-}
-
-int
-vips_Lab2LabQ( VipsImage *in, VipsImage **out, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, out );
-	result = vips_call_split( "im_Lab2LabQ", ap, in, out );
-	va_end( ap );
-
-	return( result );
-}
-
-int
 vips_Yxy2Lab( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;

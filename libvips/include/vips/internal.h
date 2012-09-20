@@ -236,10 +236,11 @@ typedef struct {
 } im_colour_temperature;
 
 void imb_XYZ2Lab( float *, float *, int, im_colour_temperature * );
-void imb_LabQ2Lab( VipsPel *, float *, int );
-void imb_Lab2LabQ( float *, VipsPel *, int );
 void imb_LabS2Lab( signed short *, float *, int );
 void imb_Lab2LabS( float *, signed short *, int n );
+
+void vips__Lab2LabQ_vec( VipsPel *out, float *in, int width );
+void vips__LabQ2Lab_vec( float *out, VipsPel *in, int width );
 
 void im_copy_dmask_matrix( DOUBLEMASK *mask, double **matrix );
 void im_copy_matrix_dmask( double **matrix, DOUBLEMASK *mask );

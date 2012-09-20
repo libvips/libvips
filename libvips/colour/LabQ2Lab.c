@@ -16,6 +16,8 @@
  *	- L* = 100.0 now handled correctly
  * 2/11/09
  * 	- gtkdoc
+ * 20/9/12
+ * 	- redo as a class
  */
 
 /*
@@ -53,6 +55,13 @@
 
 #include <vips/vips.h>
 
+#include "colour.h"
+
+typedef VipsColourCode VipsLabQ2Lab;
+typedef VipsColourCodeClass VipsLabQ2LabClass;
+
+G_DEFINE_TYPE( VipsLabQ2Lab, vips_LabQ2Lab, VIPS_TYPE_COLOUR_CODE );
+
 /* imb_LabQ2Lab: CONVERT n pels from packed 32bit Lab to float values
  * in a buffer
  * ARGS:   VipsPel *inp       pointer to first byte of Lab32 buffer
@@ -60,47 +69,76 @@
  *	int n           number of pels to process
  * (C) K.Martinez 2/5/93
  */
-void
-imb_LabQ2Lab( VipsPel *inp, float *outbuf, int n )        
+static void
+vips_LabQ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	signed char *b;		/* to read input bytes */
+	signed char *p = (signed char *) in[0];
+	float *q = (float *) out;
+
 	int l;
 	int lsbs;               /* for lsbs byte */
-	int c;                  /* counter      */
-	float *out;
+	int i;                  /* counter      */
 
 	/* Read input with a signed pointer to get signed ab easily.
 	 */
-	b = (signed char *) inp;
-	out = outbuf;
-	for( c = 0; c < n; c++ ) {
+	for( i = 0; i < width; i++ ) {
 		/* Get extra bits.
 		 */
-		lsbs = ((unsigned char *) b)[3];
+		lsbs = ((unsigned char *) p)[3];
 
 		/* Build L.
 		 */
-		l = ((unsigned char *)b)[0];
+		l = ((unsigned char *)p)[0];
 		l = (l << 2) | (lsbs >> 6);
-		out[0] = (float) l * (100.0 / 1023.0);
+		q[0] = (float) l * (100.0 / 1023.0);
 
 		/* Build a.
 		 */
-		l = (b[1] << 3) | ((lsbs >> 3) & 0x7);
-		out[1] = (float) l * 0.125;
+		l = (p[1] << 3) | ((lsbs >> 3) & 0x7);
+		q[1] = (float) l * 0.125;
 
 		/* And b.
 		 */
-		l = (b[2] << 3) | (lsbs & 0x7);
-		out[2] = (float) l * 0.125;        
+		l = (p[2] << 3) | (lsbs & 0x7);
+		q[2] = (float) l * 0.125;        
 
-		b += 4;
-		out += 3;
+		p += 4;
+		q += 3;
 	}
 }
 
+void
+vips__LabQ2Lab_vec( float *out, VipsPel *in, int width )
+{
+	vips_LabQ2Lab_line( NULL, (VipsPel *) out, &in, width );
+}
+
+static void
+vips_LabQ2Lab_class_init( VipsLabQ2LabClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
+
+	object_class->nickname = "LabQ2Lab";
+	object_class->description = _( "unpack a LabQ image to float Lab" );
+
+	colour_class->process_line = vips_LabQ2Lab_line;
+	colour_class->coding = VIPS_CODING_NONE;
+	colour_class->interpretation = VIPS_INTERPRETATION_LAB;
+	colour_class->format = VIPS_FORMAT_FLOAT;
+	colour_class->bands = 3;
+
+	code_class->input_coding = VIPS_CODING_LABQ;
+}
+
+static void
+vips_LabQ2Lab_init( VipsLabQ2Lab *LabQ2Lab )
+{
+}
+
 /**
- * im_LabQ2Lab:
+ * vips_LabQ2Lab:
  * @in: input image
  * @out: output image
  *
@@ -111,21 +149,14 @@ imb_LabQ2Lab( VipsPel *inp, float *outbuf, int n )
  * Returns: 0 on success, -1 on error.
  */
 int
-im_LabQ2Lab( IMAGE *in,  IMAGE *out )
+vips_LabQ2Lab( VipsImage *in, VipsImage **out, ... )
 {
-	if( im_check_coding_labq( "im_LabQ2Lab", in ) )
-		return( -1 );
+	va_list ap;
+	int result;
 
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	out->Bands = 3;
-	out->Type = IM_TYPE_LAB;
-	out->BandFmt = IM_BANDFMT_FLOAT;
-	out->Coding = IM_CODING_NONE;
+	va_start( ap, out );
+	result = vips_call_split( "LabQ2Lab", ap, in, out );
+	va_end( ap );
 
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) imb_LabQ2Lab, NULL, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( result );
 }
