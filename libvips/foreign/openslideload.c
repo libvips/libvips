@@ -8,6 +8,7 @@
  * 	- convert remaining uses of "layer" to "level"
  * 20/9/12
  * 	- add Leica filename suffix
+ *	- drop glib log handler (unneeded with >= 3.3.0)
  */
 
 /*
@@ -133,13 +134,6 @@ vips_foreign_load_openslide_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
-static void
-vips_foreign_load_openslide_error_handler( const char *domain, 
-	GLogLevelFlags level, const char *message, void *data )
-{
-	vips_error( "openslide", "%s", message );
-}
-
 static const char *vips_foreign_openslide_suffs[] = {
 	".svs", 	/* Aperio */
 	".vms", ".vmu", ".ndpi",  /* Hamamatsu */
@@ -197,12 +191,6 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, associated ),
 		NULL );
-
-	/* Catch just openslide errors. 
-	 */
-	g_log_set_handler( "Openslide",
-		G_LOG_LEVEL_CRITICAL | G_LOG_LEVEL_WARNING,
-		vips_foreign_load_openslide_error_handler, NULL );
 }
 
 static void

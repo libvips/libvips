@@ -33,6 +33,7 @@
  * 	- fail if both level and associated image are specified
  * 20/9/12
  *	- update openslide_open error handling for 3.3.0 semantics
+ *	- switch from deprecated _layer_ functions
  */
 
 /*
@@ -187,7 +188,7 @@ readslide_new( const char *filename, VipsImage *out,
 	}
 
 	if( level < 0 || 
-		level >= openslide_get_layer_count( rslide->osr ) ) {
+		level >= openslide_get_level_count( rslide->osr ) ) {
 		vips_error( "openslide2vips",
 			"%s", _( "invalid slide level" ) );
 		return( NULL );
@@ -205,9 +206,9 @@ readslide_new( const char *filename, VipsImage *out,
 		vips_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	} 
 	else {
-		openslide_get_layer_dimensions( rslide->osr, 
+		openslide_get_level_dimensions( rslide->osr,
 			level, &w, &h );
-		rslide->downsample = openslide_get_layer_downsample(
+		rslide->downsample = openslide_get_level_downsample(
 			rslide->osr, level );
 		vips_image_set_int( out, "slide-level", level );
 		vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
