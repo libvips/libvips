@@ -43,16 +43,23 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/internal.h>
 
-/* Process a buffer of data.
- */
+#include "colour.h"
+
+typedef VipsColorimetric VipsYxy2XYZ;
+typedef VipsColorimetricClass VipsYxy2XYZClass;
+
+G_DEFINE_TYPE( VipsYxy2XYZ, vips_Yxy2XYZ, VIPS_TYPE_COLORIMETRIC );
+
 void
-imb_Yxy2XYZ( float *p, float *q, int n )
+vips_Yxy2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
+	float *p = (float *) in[0];
+	float *q = (float *) out;
+
 	int i;
 
-	for( i = 0; i < n; i++ ) {
+	for( i = 0; i < width; i++ ) {
 		float Y = p[0];
 		float x = p[1];
 		float y = p[2];
@@ -73,19 +80,43 @@ imb_Yxy2XYZ( float *p, float *q, int n )
 	}
 }
 
+static void
+vips_Yxy2XYZ_class_init( VipsYxy2XYZClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+
+	object_class->nickname = "Yxy2XYZ";
+	object_class->description = _( "transform Yxy to XYZ" );
+
+	colour_class->process_line = vips_Yxy2XYZ_line;
+	colour_class->interpretation = VIPS_INTERPRETATION_XYZ;
+}
+
+static void
+vips_Yxy2XYZ_init( VipsYxy2XYZ *Yxy2XYZ )
+{
+}
+
 /**
- * im_Yxy2XYZ:
+ * vips_Yxy2XYZ:
  * @in: input image
  * @out: output image
  *
- * Turn Yxy to XYZ.
+ * Turn XYZ to Yxy.
  *
- * Returns: 0 on success, -1 on error.
+ * Returns: 0 on success, -1 on error
  */
-int 
-im_Yxy2XYZ( IMAGE *in, IMAGE *out )
+int
+vips_Yxy2XYZ( VipsImage *in, VipsImage **out, ... )
 {
-	return( im__colour_unary( "im_Yxy2XYZ", in, out, IM_TYPE_XYZ,
-		(im_wrapone_fn) imb_Yxy2XYZ, NULL, NULL ) );
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "Yxy2XYZ", ap, in, out );
+	va_end( ap );
+
+	return( result );
 }
 

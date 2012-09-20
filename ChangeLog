@@ -1,6 +1,6 @@
 31/8/12 started 7.31.0
 - redone im_Lab2XYZ(), im_XYZ2Lab(), im_Lab2LCh(), im_LCh2Lab(), im_UCS2LCh, 
-  im_LCh2UCS() as classes
+  im_LCh2UCS(), im_XYZ2Yxy(), im_Yxy2XYZ() as classes
 
 13/9/12 started 7.30.3
 - linecache sized itself too large

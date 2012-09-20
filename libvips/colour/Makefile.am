@@ -12,6 +12,8 @@ libcolour_la_SOURCES = \
 	LCh2UCS.c \
 	UCS2LCh.c \
 	XYZ2Lab.c \
+	XYZ2Yxy.c \
+	Yxy2XYZ.c \
 	im_icc_transform.c \
 	im_Lab2LabQ.c \
 	im_Lab2LabS.c \
@@ -21,9 +23,7 @@ libcolour_la_SOURCES = \
 	im_LabS2LabQ.c \
 	im_LabS2Lab.c \
 	im_lab_morph.c \
-	im_XYZ2Yxy.c \
 	im_float2rad.c \
-	im_Yxy2XYZ.c \
 	im_XYZ2disp.c \
 	im_dE00_fromLab.c \
 	im_dECMC_fromLab.c \

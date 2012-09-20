@@ -2291,3 +2291,35 @@ im_UCS2LCh( IMAGE *in, IMAGE *out )
 
 	return( 0 );
 }
+
+int 
+im_XYZ2Yxy( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_XYZ2Yxy( in, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_Yxy2XYZ( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_Yxy2XYZ( in, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

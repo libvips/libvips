@@ -716,6 +716,8 @@ int im_Lab2LCh( VipsImage *in, VipsImage *out );
 int im_LCh2Lab( VipsImage *in, VipsImage *out );
 int im_LCh2UCS( VipsImage *in, VipsImage *out );
 int im_UCS2LCh( VipsImage *in, VipsImage *out );
+int im_XYZ2Yxy( VipsImage *in, VipsImage *out );
+int im_Yxy2XYZ( VipsImage *in, VipsImage *out );
 
 /* ruby-vips uses this
  */
