@@ -2,7 +2,7 @@
  *
  * Benjamin Gilbert
  *
- * Copyright (c) 2011 Carnegie Mellon University
+ * Copyright (c) 2011-2012 Carnegie Mellon University
  *
  * 26/11/11
  *	- initial version
@@ -31,6 +31,9 @@
  * 	- small cleanups
  * 11/4/12
  * 	- fail if both level and associated image are specified
+ * 20/9/12
+ *	- update openslide_open error handling for 3.3.0 semantics
+ *	- switch from deprecated _layer_ functions
  */
 
 /*
@@ -108,6 +111,9 @@ vips__openslide_isslide( const char *filename )
 		 */
 		vendor = openslide_get_property_value( osr,
 			OPENSLIDE_PROPERTY_NAME_VENDOR );
+
+		/* vendor will be NULL if osr is in error state.
+		 */
 		if( vendor &&
 			strcmp( vendor, "generic-tiff" ) != 0 )
 			ok = 1;
@@ -148,6 +154,7 @@ readslide_new( const char *filename, VipsImage *out,
 {
 	ReadSlide *rslide;
 	int64_t w, h;
+	const char *error;
 	const char *background;
 	const char * const *properties;
 
@@ -169,12 +176,19 @@ readslide_new( const char *filename, VipsImage *out,
 	rslide->osr = openslide_open( filename );
 	if( rslide->osr == NULL ) {
 		vips_error( "openslide2vips", 
-			"%s", _( "failure opening slide" ) );
+			"%s", _( "unsupported slide format" ) );
+		return( NULL );
+	}
+
+	error = openslide_get_error( rslide->osr );
+	if( error ) {
+		vips_error( "openslide2vips",
+			_( "opening slide: %s" ), error );
 		return( NULL );
 	}
 
 	if( level < 0 || 
-		level >= openslide_get_layer_count( rslide->osr ) ) {
+		level >= openslide_get_level_count( rslide->osr ) ) {
 		vips_error( "openslide2vips",
 			"%s", _( "invalid slide level" ) );
 		return( NULL );
@@ -192,9 +206,9 @@ readslide_new( const char *filename, VipsImage *out,
 		vips_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	} 
 	else {
-		openslide_get_layer_dimensions( rslide->osr, 
+		openslide_get_level_dimensions( rslide->osr,
 			level, &w, &h );
-		rslide->downsample = openslide_get_layer_downsample(
+		rslide->downsample = openslide_get_level_downsample(
 			rslide->osr, level );
 		vips_image_set_int( out, "slide-level", level );
 		vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
