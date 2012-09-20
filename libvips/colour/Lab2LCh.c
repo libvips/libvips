@@ -45,10 +45,10 @@
 
 #include "colour.h"
 
-typedef VipsColorimetric VipsLab2LCh;
-typedef VipsColorimetricClass VipsLab2LChClass;
+typedef VipsColourSpace VipsLab2LCh;
+typedef VipsColourSpaceClass VipsLab2LChClass;
 
-G_DEFINE_TYPE( VipsLab2LCh, vips_Lab2LCh, VIPS_TYPE_COLORIMETRIC );
+G_DEFINE_TYPE( VipsLab2LCh, vips_Lab2LCh, VIPS_TYPE_COLOUR_SPACE );
 
 /**
  * vips_col_ab2h:

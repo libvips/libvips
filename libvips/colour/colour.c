@@ -156,13 +156,13 @@ vips_colour_init( VipsColour *colour )
 {
 }
 
-G_DEFINE_ABSTRACT_TYPE( VipsColorimetric, vips_colorimetric, VIPS_TYPE_COLOUR );
+G_DEFINE_ABSTRACT_TYPE( VipsColourSpace, vips_space, VIPS_TYPE_COLOUR );
 
 static int
-vips_colorimetric_build( VipsObject *object )
+vips_space_build( VipsObject *object )
 {
 	VipsColour *colour = VIPS_COLOUR( object );
-	VipsColorimetric *colorimetric = VIPS_COLORIMETRIC( object );
+	VipsColourSpace *space = VIPS_COLOUR_SPACE( object );
 
 	VipsImage **t;
 
@@ -173,7 +173,7 @@ vips_colorimetric_build( VipsObject *object )
 
 	/* We only process float.
 	 */
-	if( vips_cast_float( colorimetric->in, &t[0], NULL ) )
+	if( vips_cast_float( space->in, &t[0], NULL ) )
 		return( -1 );
 	colour->in[0] = t[0];
 
@@ -192,7 +192,7 @@ vips_colorimetric_build( VipsObject *object )
 	if( colour->in[0] )
 		g_object_ref( colour->in[0] );
 
-	if( VIPS_OBJECT_CLASS( vips_colorimetric_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_space_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -213,7 +213,7 @@ vips_colorimetric_build( VipsObject *object )
 }
 
 static void
-vips_colorimetric_class_init( VipsColorimetricClass *class )
+vips_space_class_init( VipsColourSpaceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -221,19 +221,19 @@ vips_colorimetric_class_init( VipsColorimetricClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "colorimetric";
-	vobject_class->description = _( "colorimetric operations" );
-	vobject_class->build = vips_colorimetric_build;
+	vobject_class->nickname = "space";
+	vobject_class->description = _( "colour space transformations" );
+	vobject_class->build = vips_space_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsColorimetric, in ) );
+		G_STRUCT_OFFSET( VipsColourSpace, in ) );
 }
 
 static void
-vips_colorimetric_init( VipsColorimetric *colorimetric )
+vips_space_init( VipsColourSpace *space )
 {
 }
 

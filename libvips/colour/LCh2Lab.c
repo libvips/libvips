@@ -51,10 +51,10 @@
 
 #include "colour.h"
 
-typedef VipsColorimetric VipsLCh2Lab;
-typedef VipsColorimetricClass VipsLCh2LabClass;
+typedef VipsColourSpace VipsLCh2Lab;
+typedef VipsColourSpaceClass VipsLCh2LabClass;
 
-G_DEFINE_TYPE( VipsLCh2Lab, vips_LCh2Lab, VIPS_TYPE_COLORIMETRIC );
+G_DEFINE_TYPE( VipsLCh2Lab, vips_LCh2Lab, VIPS_TYPE_COLOUR_SPACE );
 
 /* Process a buffer of data.
  */

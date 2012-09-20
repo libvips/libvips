@@ -61,7 +61,7 @@
 #include "colour.h"
 
 typedef struct _VipsLab2XYZ {
-	VipsColorimetric parent_instance;
+	VipsColourSpace parent_instance;
 
 	/* The colour temperature -- default to D65. 
 	 */
@@ -75,9 +75,9 @@ typedef struct _VipsLab2XYZ {
 
 } VipsLab2XYZ;
 
-typedef VipsColorimetricClass VipsLab2XYZClass;
+typedef VipsColourSpaceClass VipsLab2XYZClass;
 
-G_DEFINE_TYPE( VipsLab2XYZ, vips_Lab2XYZ, VIPS_TYPE_COLORIMETRIC );
+G_DEFINE_TYPE( VipsLab2XYZ, vips_Lab2XYZ, VIPS_TYPE_COLOUR_SPACE );
 
 /* Process a buffer of data.
  */

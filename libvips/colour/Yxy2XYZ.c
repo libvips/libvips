@@ -46,10 +46,10 @@
 
 #include "colour.h"
 
-typedef VipsColorimetric VipsYxy2XYZ;
-typedef VipsColorimetricClass VipsYxy2XYZClass;
+typedef VipsColourSpace VipsYxy2XYZ;
+typedef VipsColourSpaceClass VipsYxy2XYZClass;
 
-G_DEFINE_TYPE( VipsYxy2XYZ, vips_Yxy2XYZ, VIPS_TYPE_COLORIMETRIC );
+G_DEFINE_TYPE( VipsYxy2XYZ, vips_Yxy2XYZ, VIPS_TYPE_COLOUR_SPACE );
 
 void
 vips_Yxy2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )

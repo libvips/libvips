@@ -88,34 +88,34 @@ GType vips_colour_get_type( void );
 /* A three float bands in, three float bands out colourspace transformation.
  */
 
-#define VIPS_TYPE_COLORIMETRIC (vips_colorimetric_get_type())
-#define VIPS_COLORIMETRIC( obj ) \
+#define VIPS_TYPE_COLOUR_SPACE (vips_space_get_type())
+#define VIPS_COLOUR_SPACE( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-		VIPS_TYPE_COLORIMETRIC, VipsColorimetric ))
-#define VIPS_COLORIMETRIC_CLASS( klass ) \
+		VIPS_TYPE_COLOUR_SPACE, VipsColourSpace ))
+#define VIPS_COLOUR_SPACE_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-		VIPS_TYPE_COLORIMETRIC, VipsColorimetricClass))
-#define VIPS_IS_COLORIMETRIC( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_COLORIMETRIC ))
-#define VIPS_IS_COLORIMETRIC_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_COLORIMETRIC ))
-#define VIPS_COLORIMETRIC_GET_CLASS( obj ) \
+		VIPS_TYPE_COLOUR_SPACE, VipsColourSpaceClass))
+#define VIPS_IS_COLOUR_SPACE( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_COLOUR_SPACE ))
+#define VIPS_IS_COLOUR_SPACE_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_COLOUR_SPACE ))
+#define VIPS_COLOUR_SPACE_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-		VIPS_TYPE_COLORIMETRIC, VipsColorimetricClass ))
+		VIPS_TYPE_COLOUR_SPACE, VipsColourSpaceClass ))
 
-typedef struct _VipsColorimetric {
+typedef struct _VipsColourSpace {
 	VipsColour parent_instance;
 
 	VipsImage *in;
 
-} VipsColorimetric;
+} VipsColourSpace;
 
-typedef struct _VipsColorimetricClass {
+typedef struct _VipsColourSpaceClass {
 	VipsColourClass parent_class;
 
-} VipsColorimetricClass;
+} VipsColourSpaceClass;
 
-GType vips_colorimetric_get_type( void );
+GType vips_space_get_type( void );
 
 #ifdef __cplusplus
 }

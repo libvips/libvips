@@ -70,7 +70,7 @@
 float cbrt_table[QUANT_ELEMENTS];
 
 typedef struct _VipsXYZ2Lab {
-	VipsColorimetric parent_instance;
+	VipsColourSpace parent_instance;
 
 	/* The colour temperature -- default to D65. 
 	 */
@@ -84,9 +84,9 @@ typedef struct _VipsXYZ2Lab {
 
 } VipsXYZ2Lab;
 
-typedef VipsColorimetricClass VipsXYZ2LabClass;
+typedef VipsColourSpaceClass VipsXYZ2LabClass;
 
-G_DEFINE_TYPE( VipsXYZ2Lab, vips_XYZ2Lab, VIPS_TYPE_COLORIMETRIC );
+G_DEFINE_TYPE( VipsXYZ2Lab, vips_XYZ2Lab, VIPS_TYPE_COLOUR_SPACE );
 
 static void *
 table_init( void *client )
