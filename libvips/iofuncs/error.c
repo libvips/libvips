@@ -516,11 +516,12 @@ vips_check_coding_known( const char *domain, VipsImage *im )
 }
 
 /**
- * vips_check_coding_rad:
+ * vips_check_coding:
  * @domain: the originating domain for the error message
  * @im: image to check
+ * @coding: required coding
  *
- * Check that the image is in Radiance coding. 
+ * Check that the image has the required @coding.
  * If not, set an error message
  * and return non-zero.
  *
@@ -529,38 +530,11 @@ vips_check_coding_known( const char *domain, VipsImage *im )
  * Returns: 0 on OK, or -1 on error.
  */
 int
-vips_check_coding_rad( const char *domain, VipsImage *im )
+vips_check_coding( const char *domain, VipsImage *im, VipsCoding coding )
 {
-	if( im->Coding != VIPS_CODING_RAD ||
-		im->BandFmt != VIPS_FORMAT_UCHAR || 
-		im->Bands != 4 ) { 
-		vips_error( domain, "%s", _( "Radiance coding only" ) );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
-/**
- * vips_check_coding_labq:
- * @domain: the originating domain for the error message
- * @im: image to check
- *
- * Check that the image is in LABQ coding. 
- * If not, set an error message
- * and return non-zero.
- *
- * See also: vips_error().
- *
- * Returns: 0 on OK, or -1 on error.
- */
-int
-vips_check_coding_labq( const char *domain, VipsImage *im )
-{
-	if( im->Coding != VIPS_CODING_LABQ ||
-		im->BandFmt != VIPS_FORMAT_UCHAR || 
-		im->Bands != 4 ) { 
-		vips_error( domain, "%s", _( "LABQ coding only" ) );
+	if( im->Coding != coding ) {
+		vips_error( domain, _( "%s coding only" ), 
+			vips_enum_nick( VIPS_TYPE_CODING, coding ) );
 		return( -1 );
 	}
 
@@ -642,11 +616,12 @@ vips_check_bands_1or3( const char *domain, VipsImage *im )
 }
 
 /**
- * vips_check_bands_3ormore:
+ * vips_check_bands_atleast:
  * @domain: the originating domain for the error message
  * @im: image to check
+ * @bands: at least this many bands
  *
- * Check that the image has at least three bands. 
+ * Check that the image has at least @bands bands. 
  * Otherwise set an error message
  * and return non-zero.
  *
@@ -655,11 +630,11 @@ vips_check_bands_1or3( const char *domain, VipsImage *im )
  * Returns: 0 if OK, -1 otherwise.
  */
 int
-vips_check_bands_3ormore( const char *domain, VipsImage *im )
+vips_check_bands_atleast( const char *domain, VipsImage *im, int bands )
 {
-	if( im->Bands < 3 ) {
-		vips_error( domain, "%s", 
-			_( "image must have at least three bands" ) );
+	if( im->Bands < bands ) {
+		vips_error( domain, 
+			_( "image must have at least %d bands" ), bands );
 		return( -1 );
 	}
 

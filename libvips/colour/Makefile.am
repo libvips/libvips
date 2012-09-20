@@ -14,6 +14,8 @@ libcolour_la_SOURCES = \
 	XYZ2Lab.c \
 	XYZ2Yxy.c \
 	Yxy2XYZ.c \
+	float2rad.c \
+	rad2float.c \
 	im_icc_transform.c \
 	im_Lab2LabQ.c \
 	im_Lab2LabS.c \
@@ -23,12 +25,10 @@ libcolour_la_SOURCES = \
 	im_LabS2LabQ.c \
 	im_LabS2Lab.c \
 	im_lab_morph.c \
-	im_float2rad.c \
 	im_XYZ2disp.c \
 	im_dE00_fromLab.c \
 	im_dECMC_fromLab.c \
 	im_dE_fromLab.c \
-	im_disp2XYZ.c \
-	im_rad2float.c
+	im_disp2XYZ.c
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

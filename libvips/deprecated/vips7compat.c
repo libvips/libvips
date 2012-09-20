@@ -2323,3 +2323,35 @@ im_Yxy2XYZ( IMAGE *in, IMAGE *out )
 
 	return( 0 );
 }
+
+int 
+im_float2rad( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_float2rad( in, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_rad2float( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_rad2float( in, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

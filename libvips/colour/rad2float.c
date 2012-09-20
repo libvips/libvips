@@ -3,6 +3,8 @@
  * 	- from LabQ2Lab and Radiance sources
  * 2/11/09
  * 	- gtkdoc 
+ * 20/9/12
+ * 	redo as a class
  */
 
 /*
@@ -105,6 +107,8 @@
 
 #include <vips/vips.h>
 
+#include "colour.h"
+
 /* Begin copy-paste from Radiance sources.
  */
 
@@ -148,12 +152,19 @@ register COLR  clr;
 /* End copy-paste from Radiance sources.
  */
 
+typedef VipsColourCode VipsRad2float;
+typedef VipsColourCodeClass VipsRad2floatClass;
+
+G_DEFINE_TYPE( VipsRad2float, vips_rad2float, VIPS_TYPE_COLOUR_CODE );
 
 static void
-rad2float( COLR *inp, COLOR *outbuf, int n )        
+vips_rad2float_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
+	COLOR *inp = (COLOR *) in[0];
+	COLR *outbuf = (COLR *) out;
+
 	colr_color(outbuf[0], inp[0]);
-	while (--n > 0) {
+	while (--width > 0) {
 		outbuf++; inp++;
 		if (inp[0][RED] == inp[-1][RED] &&
 			    inp[0][GRN] == inp[-1][GRN] &&
@@ -165,9 +176,33 @@ rad2float( COLR *inp, COLOR *outbuf, int n )
 	}
 }
 
+static void
+vips_rad2float_class_init( VipsRad2floatClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
+
+	object_class->nickname = "rad2float";
+	object_class->description = 
+		_( "unpack Radiance coding to float RGB" );
+
+	colour_class->process_line = vips_rad2float_line;
+	colour_class->coding = VIPS_CODING_NONE;
+	colour_class->interpretation = VIPS_INTERPRETATION_sRGB;
+	colour_class->format = VIPS_FORMAT_FLOAT;
+	colour_class->bands = 3;
+
+	code_class->input_coding = VIPS_CODING_RAD;
+}
+
+static void
+vips_rad2float_init( VipsRad2float *rad2float )
+{
+}
 
 /**
- * im_rad2float:
+ * vips_rad2float:
  * @in: input image
  * @out: output image
  *
@@ -178,18 +213,14 @@ rad2float( COLR *inp, COLOR *outbuf, int n )
  * Returns: 0 on success, -1 on error.
  */
 int
-im_rad2float( IMAGE *in, IMAGE *out )
+vips_rad2float( VipsImage *in, VipsImage **out, ... )
 {
-	if( vips_check_coding_rad( "argb2rgba", in ) ||
-		im_cp_desc( out, in ) )
-		return( -1 );
-	out->Bands = 3;
-	out->BandFmt = IM_BANDFMT_FLOAT;
-	out->Coding = IM_CODING_NONE;
+	va_list ap;
+	int result;
 
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) rad2float, NULL, NULL ) )
-		return( -1 );
+	va_start( ap, out );
+	result = vips_call_split( "rad2float", ap, in, out );
+	va_end( ap );
 
-	return( 0 );
+	return( result );
 }

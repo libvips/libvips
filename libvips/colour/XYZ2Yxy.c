@@ -6,6 +6,8 @@
  * 2/11/09
  * 	- gtkdoc
  * 	- cleanups
+ * 20/9/12
+ * 	redo as a class
  */
 
 /*

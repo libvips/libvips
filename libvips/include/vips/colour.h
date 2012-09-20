@@ -164,8 +164,6 @@ float im_col_dE00(
 	float L1, float a1, float b1, float L2, float a2, float b2 );
 
 int im_LabQ2XYZ( VipsImage *in, VipsImage *out );
-int im_rad2float( VipsImage *in, VipsImage *out );
-int im_float2rad( VipsImage *in, VipsImage *out );
 int im_Lab2LabQ( VipsImage *in, VipsImage *out );
 int im_Lab2LabS( VipsImage *in, VipsImage *out );
 int im_LabQ2Lab( VipsImage *in, VipsImage *out );

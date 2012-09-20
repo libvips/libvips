@@ -1,6 +1,13 @@
-- see comment on make_CI() -- investigate
+- boolean.c has
 
-  add l:c args
+	vips_check_noncomplex( "VipsBoolean", binary->left ) )
+
+  why not
+
+	vips_check_noncomplex( VIPS_OBJECT_GET_CLASS( object )->nickname,
+		binary->left )
+
+  many other places too
 
 - can we make DOUBLE ARRAY args easier from C?
 

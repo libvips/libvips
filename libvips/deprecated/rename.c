@@ -705,3 +705,21 @@ im_flood_other( IMAGE *test, IMAGE *mark,
 {
 	return( im_draw_flood_other( mark, test, x, y, serial, dout ) );
 }
+
+int
+vips_check_coding_rad( const char *domain, VipsImage *im )
+{
+	return( vips_check_coding( domain, im, VIPS_CODING_RAD ) ); 
+}
+
+int
+vips_check_coding_labq( const char *domain, VipsImage *im )
+{
+	return( vips_check_coding( domain, im, VIPS_CODING_LABQ ) ); 
+}
+
+int
+vips_check_bands_3ormore( const char *domain, VipsImage *im )
+{
+	return( vips_check_bands_atleast( domain, im, 3 ) ); 
+}

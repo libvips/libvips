@@ -56,15 +56,14 @@ void vips_error_exit( const char *fmt, ... )
 	__attribute__((noreturn, format(printf, 1, 2)));
 
 int vips_check_uncoded( const char *domain, VipsImage *im );
+int vips_check_coding( const char *domain, VipsImage *im, VipsCoding coding );
 int vips_check_coding_known( const char *domain, VipsImage *im );
-int vips_check_coding_labq( const char *domain, VipsImage *im );
-int vips_check_coding_rad( const char *domain, VipsImage *im );
 int vips_check_coding_noneorlabq( const char *domain, VipsImage *im );
 int vips_check_coding_same( const char *domain, VipsImage *im1, VipsImage *im2 );
 int vips_check_mono( const char *domain, VipsImage *im );
 int vips_check_bands( const char *domain, VipsImage *im, int bands );
 int vips_check_bands_1or3( const char *domain, VipsImage *in );
-int vips_check_bands_3ormore( const char *domain, VipsImage *im );
+int vips_check_bands_atleast( const char *domain, VipsImage *im, int bands );
 int vips_check_bands_1orn( const char *domain, VipsImage *im1, VipsImage *im2 );
 int vips_check_bands_1orn_unary( const char *domain, VipsImage *im, int n );
 int vips_check_bands_same( const char *domain, VipsImage *im1, VipsImage *im2 );

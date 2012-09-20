@@ -4,6 +4,8 @@
  * 	- from im_rad2float and Radiance sources
  * 2/11/09
  * 	- gtkdoc 
+ * 20/9/12
+ * 	redo as a class
  */
 
 /*
@@ -106,6 +108,8 @@
 
 #include <vips/vips.h>
 
+#include "colour.h"
+
 /* Begin copy-paste from Radiance sources.
  */
 
@@ -162,25 +166,56 @@ setcolr( COLR clr, double r, double g, double b )           /* assign a short co
         clr[EXP] = e + COLXS;
 }
 
-
-
-
 /* End copy-paste from Radiance sources.
  */
 
+typedef VipsColourCode VipsFloat2rad;
+typedef VipsColourCodeClass VipsFloat2radClass;
+
+G_DEFINE_TYPE( VipsFloat2rad, vips_float2rad, VIPS_TYPE_COLOUR_CODE );
 
 static void
-float2rad( COLOR *inp, COLR *outbuf, int n )        
+vips_float2rad_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	while (n-- > 0) {
+	COLOR *inp = (COLOR *) in[0];
+	COLR *outbuf = (COLR *) out;
+
+	while( width-- > 0 ) {
 		setcolr( outbuf[0], inp[0][RED], inp[0][GRN], inp[0][BLU] );
 		inp++;
 		outbuf++;
 	}
 }
 
+static void
+vips_float2rad_class_init( VipsFloat2radClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
+
+	object_class->nickname = "float2rad";
+	object_class->description = 
+		_( "transform float RGB to Radiance coding" );
+
+	colour_class->process_line = vips_float2rad_line;
+	colour_class->coding = VIPS_CODING_RAD;
+	colour_class->interpretation = VIPS_INTERPRETATION_sRGB;
+	colour_class->format = VIPS_FORMAT_UCHAR;
+	colour_class->bands = 4;
+
+	code_class->input_coding = VIPS_CODING_NONE;
+	code_class->input_format = VIPS_FORMAT_FLOAT;
+	code_class->input_bands = 3;
+}
+
+static void
+vips_float2rad_init( VipsFloat2rad *float2rad )
+{
+}
+
 /**
- * im_float2rad:
+ * vips_float2rad:
  * @in: input image
  * @out: output image
  *
@@ -191,25 +226,14 @@ float2rad( COLOR *inp, COLR *outbuf, int n )
  * Returns: 0 on success, -1 on error.
  */
 int
-im_float2rad( IMAGE *in, IMAGE *out )
+vips_float2rad( VipsImage *in, VipsImage **out, ... )
 {
-	IMAGE *t[1];
+	va_list ap;
+	int result;
 
-	if( im_check_uncoded( "im_float2rad", in ) ||
-		im_check_bands( "im_float2rad", in, 3 ) ||
-		im_open_local_array( out, t, 1, "im_float2rad", "p" ) ||
-		im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) )
-		return( -1 );
+	va_start( ap, out );
+	result = vips_call_split( "float2rad", ap, in, out );
+	va_end( ap );
 
-	if( im_cp_desc( out, t[0] ) )
-		return( -1 );
-	out->Bands = 4;
-	out->BandFmt = IM_BANDFMT_UCHAR;
-	out->Coding = IM_CODING_RAD;
-
-	if( im_wrapone( t[0], out, 
-		(im_wrapone_fn) float2rad, NULL, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( result );
 }

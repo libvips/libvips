@@ -78,17 +78,20 @@ typedef struct _VipsColourClass {
 	 */
 	VipsColourProcessFn process_line;
 
-	/* What to set Type to for this subclass.
+	/* Set fields on ->out from these.
 	 */
+	VipsCoding coding;
 	VipsInterpretation interpretation;
+	VipsBandFormat format;
+	int bands;
 } VipsColourClass;
 
 GType vips_colour_get_type( void );
 
-/* A three float bands in, three float bands out colourspace transformation.
+/* A float in, float out colourspace transformation.
  */
 
-#define VIPS_TYPE_COLOUR_SPACE (vips_space_get_type())
+#define VIPS_TYPE_COLOUR_SPACE (vips_colour_space_get_type())
 #define VIPS_COLOUR_SPACE( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
 		VIPS_TYPE_COLOUR_SPACE, VipsColourSpace ))
@@ -115,7 +118,52 @@ typedef struct _VipsColourSpaceClass {
 
 } VipsColourSpaceClass;
 
-GType vips_space_get_type( void );
+GType vips_colour_space_get_type( void );
+
+/* Change colour encoding ... either in or out is not three-band float.
+ */
+
+#define VIPS_TYPE_COLOUR_CODE (vips_colour_code_get_type())
+#define VIPS_COLOUR_CODE( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+		VIPS_TYPE_COLOUR_CODE, VipsColourCode ))
+#define VIPS_COLOUR_CODE_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+		VIPS_TYPE_COLOUR_CODE, VipsColourCodeClass))
+#define VIPS_IS_COLOUR_CODE( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_COLOUR_CODE ))
+#define VIPS_IS_COLOUR_CODE_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_COLOUR_CODE ))
+#define VIPS_COLOUR_CODE_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+		VIPS_TYPE_COLOUR_CODE, VipsColourCodeClass ))
+
+typedef struct _VipsColourCode {
+	VipsColour parent_instance;
+
+	VipsImage *in;
+
+} VipsColourCode;
+
+typedef struct _VipsColourCodeClass {
+	VipsColourClass parent_class;
+
+	/* Input must be in this coding.
+	 */
+	VipsCoding input_coding;
+
+	/* If set, cast input to this.
+	 */
+	VipsBandFormat input_format;
+
+	/* If >0, the number of bands we process. Extra bands are removed and
+	 * reattached to the output, if it's uncoded. 
+	 */
+	int input_bands;
+
+} VipsColourCodeClass;
+
+GType vips_colour_code_get_type( void );
 
 #ifdef __cplusplus
 }

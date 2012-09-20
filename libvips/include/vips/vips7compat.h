@@ -428,6 +428,10 @@ G_STMT_START { \
 
 #define im__change_suffix vips__change_suffix
 
+int vips_check_coding_labq( const char *domain, VipsImage *im );
+int vips_check_coding_rad( const char *domain, VipsImage *im );
+int vips_check_bands_3ormore( const char *domain, VipsImage *im );
+
 /* Buffer processing.
  */
 typedef void (*im_wrapone_fn)( void *in, void *out, int width,
@@ -718,6 +722,8 @@ int im_LCh2UCS( VipsImage *in, VipsImage *out );
 int im_UCS2LCh( VipsImage *in, VipsImage *out );
 int im_XYZ2Yxy( VipsImage *in, VipsImage *out );
 int im_Yxy2XYZ( VipsImage *in, VipsImage *out );
+int im_float2rad( VipsImage *in, VipsImage *out );
+int im_rad2float( VipsImage *in, VipsImage *out );
 
 /* ruby-vips uses this
  */
