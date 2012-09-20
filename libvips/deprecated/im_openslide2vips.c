@@ -4,6 +4,8 @@
  * 	- just a stub
  * 11/4/12
  * 	- support :level,associated in filenames
+ * 20/9/12
+ *	- add Leica filename suffix
  */
 
 /*
@@ -93,6 +95,7 @@ im_openslide2vips( const char *name, IMAGE *out )
 static const char *openslide_suffs[] = { 
 	".svs", 	/* Aperio */
 	".vms", ".vmu", ".ndpi",  /* Hamamatsu */
+	".scn",		/* Leica */
 	".mrxs", 	/* MIRAX */
 	".tif", 	/* Trestle */
 	NULL

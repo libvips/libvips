@@ -482,11 +482,11 @@ AC_ARG_WITH([openslide],
   AS_HELP_STRING([--without-openslide], [build without OpenSlide (default: test)]))
 
 if test x"$with_openslide" != x"no"; then
-  PKG_CHECK_MODULES(OPENSLIDE, openslide >= 3.2.5,
-    [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.2.5 installed.])
+  PKG_CHECK_MODULES(OPENSLIDE, openslide >= 3.3.0,
+    [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
      with_openslide=yes
      PACKAGES_USED="$PACKAGES_USED openslide"],
-    [AC_MSG_WARN([OpenSlide >= 3.2.5 not found; disabling virtual slide support])
+    [AC_MSG_WARN([OpenSlide >= 3.3.0 not found; disabling virtual slide support])
      with_openslide=no
     ])
 fi
@@ -748,7 +748,7 @@ accelerate loops with orc: 		$with_orc
 ICC profile support with lcms: 		$with_lcms
 file import with OpenEXR: 		$with_OpenEXR
 file import with OpenSlide:		$with_openslide
-  (requires openslide-3.2.5 or later)
+  (requires openslide-3.3.0 or later)
 file import with matio: 		$with_matio
 file import with cfitsio: 		$with_cfitsio
 text rendering with pangoft2: 		$with_pangoft2
