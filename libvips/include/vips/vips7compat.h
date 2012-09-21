@@ -728,6 +728,8 @@ int im_Lab2LabQ( VipsImage *in, VipsImage *out );
 int im_LabQ2Lab( VipsImage *in, VipsImage *out );
 int im_Lab2LabS( VipsImage *in, VipsImage *out );
 int im_LabS2Lab( VipsImage *in, VipsImage *out );
+int im_LabQ2LabS( VipsImage *in, VipsImage *out );
+int im_LabS2LabQ( VipsImage *in, VipsImage *out );
 
 /* ruby-vips uses this
  */

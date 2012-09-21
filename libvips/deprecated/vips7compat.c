@@ -2419,3 +2419,35 @@ im_LabS2Lab( IMAGE *in, IMAGE *out )
 
 	return( 0 );
 }
+
+int 
+im_LabQ2LabS( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_LabQ2LabS( in, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_LabS2LabQ( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_LabS2LabQ( in, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

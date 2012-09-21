@@ -1,7 +1,7 @@
 /* im_LabS2LabQ()
  *
  * 17/11/93 JC
- * 	- adapted from im_LabQ2LabS()
+ * 	- adapted from im_LabS2LabQ()
  * 16/11/94 JC
  *	- adapted to new im_wrap_oneonebuf() function
  * 15/6/95 JC
@@ -13,6 +13,8 @@
  * 	- a/b ==0 rounding was broken
  * 2/11/09
  * 	- gtkdoc, cleanup
+ * 21/9/12
+ * 	- redo as a class
  */
 
 /*
@@ -50,25 +52,30 @@
 
 #include <vips/vips.h>
 
+#include "colour.h"
+
+typedef VipsColourCode VipsLabS2LabQ;
+typedef VipsColourCodeClass VipsLabS2LabQClass;
+
+G_DEFINE_TYPE( VipsLabS2LabQ, vips_LabS2LabQ, VIPS_TYPE_COLOUR_CODE );
+
 /* Convert n pels from signed short to IM_CODING_LABQ.
  */
-void
-imb_LabS2LabQ( signed short *in, unsigned char *out, int n )        
+static void
+vips_LabS2LabQ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	int c;
-	signed short *p = in;
+	signed short *p = (signed short *) in[0];
+	unsigned char *q = (unsigned char *) out;
+
+	int i;
 	int l, a, b;
-	unsigned char *q = out;
 	unsigned char ext;
 
-	for( c = 0; c < n; c++ ) {
+	for( i = 0; i < width; i++ ) {
 		/* Get LAB, rounding to 10, 11, 11. 
 		 */
 		l = p[0] + 16;
-		if( l < 0 )
-			l = 0;
-		else if( l > 32767 )
-			l = 32767;
+		l = VIPS_CLIP( 0, l, 32767 );
 		l >>= 5;
 
 		/* Make sure we round -ves in the right direction!
@@ -78,10 +85,7 @@ imb_LabS2LabQ( signed short *in, unsigned char *out, int n )
 			a += 16;
 		else
 			a -= 16;
-		if( a < -32768 )
-			a = -32768;
-		else if( a > 32767 )
-			a = 32767;
+		a = VIPS_CLIP( -32768, a, 32767 );
 		a >>= 5;
 
 		b = p[2];
@@ -89,10 +93,7 @@ imb_LabS2LabQ( signed short *in, unsigned char *out, int n )
 			b += 16;
 		else
 			b -= 16;
-		if( b < -32768 )
-			b = -32768;
-		else if( b > 32767 )
-			b = 32767;
+		b = VIPS_CLIP( -32768, b, 32767 );
 		b >>= 5;
 
 		p += 3;
@@ -109,44 +110,57 @@ imb_LabS2LabQ( signed short *in, unsigned char *out, int n )
 		ext |= (a << 3) & 0x38;
 		ext |= b & 0x7;
 		q[3] = ext;
+
 		q += 4;
 	}
 }
 
+static void
+vips_LabS2LabQ_class_init( VipsLabS2LabQClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
+
+	object_class->nickname = "LabS2LabQ";
+	object_class->description = _( "transform short Lab to LabQ coding" );
+
+	colour_class->process_line = vips_LabS2LabQ_line;
+	colour_class->coding = VIPS_CODING_LABQ;
+	colour_class->interpretation = VIPS_INTERPRETATION_LABQ;
+	colour_class->format = VIPS_FORMAT_UCHAR;
+	colour_class->bands = 4;
+
+	code_class->input_coding = VIPS_CODING_NONE;
+	code_class->input_format = VIPS_FORMAT_SHORT;
+	code_class->input_bands = 3;
+}
+
+static void
+vips_LabS2LabQ_init( VipsLabS2LabQ *LabS2LabQ )
+{
+}
+
 /**
- * im_LabS2LabQ:
+ * vips_LabS2LabQ:
  * @in: input image
  * @out: output image
  *
  * Convert a LabS three-band signed short image to LabQ
  *
- * See also: im_LabQ2LabS().
+ * See also: vips_LabQ2LabS().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-im_LabS2LabQ( IMAGE *in, IMAGE *out )
+vips_LabS2LabQ( VipsImage *in, VipsImage **out, ... )
 {
-	IMAGE *t[1];
+	va_list ap;
+	int result;
 
-	if( im_check_uncoded( "im_LabS2LabQ", in ) ||
-		im_check_bands( "im_LabS2LabQ", in, 3 ) ||
-		im_open_local_array( out, t, 1, "im_LabS2LabQ", "p" ) ||
-		im_clip2fmt( in, t[0], IM_BANDFMT_SHORT ) )
-		return( -1 );
+	va_start( ap, out );
+	result = vips_call_split( "LabS2LabQ", ap, in, out );
+	va_end( ap );
 
-	/* Set up output image 
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	out->Bands = 4;
-	out->Type = IM_TYPE_LABQ;
-	out->BandFmt = IM_BANDFMT_UCHAR;
-	out->Coding = IM_CODING_LABQ;
-
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) imb_LabS2LabQ, NULL, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( result );
 }

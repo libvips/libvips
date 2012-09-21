@@ -1,13 +1,15 @@
 /* im_LabQ2LabS
  *
  * 17/11/93 JC
- * 	- adapted from im_LabQ2Lab()
+ * 	- adapted from im_LabQ2LabS()
  * 16/11/94 JC
  *	- uses new im_wrap_oneonebuf() fn
  * 9/2/95 JC
  *	- new im_wrapone function
  * 2/11/09
  * 	- gtkdoc
+ * 21/9/12
+ * 	- redo as a class
  */
 
 /*
@@ -45,18 +47,26 @@
 
 #include <vips/vips.h>
 
+#include "colour.h"
+
+typedef VipsColourCode VipsLabQ2LabS;
+typedef VipsColourCodeClass VipsLabQ2LabSClass;
+
+G_DEFINE_TYPE( VipsLabQ2LabS, vips_LabQ2LabS, VIPS_TYPE_COLOUR_CODE );
+
 /* CONVERT n pels from packed 32bit Lab to signed short.
  */
-void
-imb_LabQ2LabS( unsigned char *in, signed short *out, int n )        
+static void
+vips_LabQ2LabS_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	int c;
-	unsigned char *p = in;
+	unsigned char *p = (unsigned char *) in[0];
+	signed short *q = (signed short *) out;
+
+	int i;
 	unsigned char ext;
-	signed short *q = out;
 	signed short l, a, b;
 
-	for( c = 0; c < n; c++ ) {
+	for( i = 0; i < width; i++ ) {
 		/* Get most significant 8 bits of lab.
 		 */
 		l = p[0] << 7;
@@ -83,37 +93,50 @@ imb_LabQ2LabS( unsigned char *in, signed short *out, int n )
 	}
 }
 
+static void
+vips_LabQ2LabS_class_init( VipsLabQ2LabSClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
+
+	object_class->nickname = "LabQ2LabS";
+	object_class->description = _( "unpack a LabQ image to short Lab" );
+
+	colour_class->process_line = vips_LabQ2LabS_line;
+	colour_class->coding = VIPS_CODING_NONE;
+	colour_class->interpretation = VIPS_INTERPRETATION_LABS;
+	colour_class->format = VIPS_FORMAT_SHORT;
+	colour_class->bands = 3;
+
+	code_class->input_coding = VIPS_CODING_LABQ;
+}
+
+static void
+vips_LabQ2LabS_init( VipsLabQ2LabS *LabQ2LabS )
+{
+}
+
 /**
- * im_LabQ2LabS:
+ * vips_LabQ2LabS:
  * @in: input image
  * @out: output image
  *
- * Unpack a LabQ (#IM_CODING_LABQ) image to a three-band signed short image.
+ * Unpack a LabQ (#IM_CODING_LABQ) image to a three-band short image.
  *
- * See also: im_LabS2LabQ(), im_LabQ2Lab(), im_rad2float().
+ * See also: im_LabS2LabQ(), im_LabQ2LabS(), im_rad2float().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-im_LabQ2LabS( IMAGE *in, IMAGE *out )
+vips_LabQ2LabS( VipsImage *in, VipsImage **out, ... )
 {
-	if( im_check_coding_labq( "im_LabQ2LabS", in ) )
-		return( -1 );
+	va_list ap;
+	int result;
 
-	/* set up output image 
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	out->Bands = 3;
-	out->Type = IM_TYPE_LABS;
-	out->BandFmt = IM_BANDFMT_SHORT;
-	out->Coding = IM_CODING_NONE;
+	va_start( ap, out );
+	result = vips_call_split( "LabQ2LabS", ap, in, out );
+	va_end( ap );
 
-	/* Produce output.
-	 */
-	if( im_wrapone( in, out, 
-		(im_wrapone_fn) imb_LabQ2LabS, NULL, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( result );
 }

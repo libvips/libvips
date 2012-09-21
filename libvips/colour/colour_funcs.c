@@ -322,19 +322,6 @@ vips_argb2rgba( VipsImage *in, VipsImage **out, ... )
 }
 
 int
-vips_LabS2LabQ( VipsImage *in, VipsImage **out, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, out );
-	result = vips_call_split( "im_LabS2LabQ", ap, in, out );
-	va_end( ap );
-
-	return( result );
-}
-
-int
 vips_Yxy2Lab( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;

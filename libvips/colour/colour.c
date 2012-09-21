@@ -383,6 +383,8 @@ vips_colour_operation_init( void )
 	extern GType vips_XYZ2Yxy_get_type( void ); 
 	extern GType vips_LabQ2Lab_get_type( void ); 
 	extern GType vips_Lab2LabQ_get_type( void ); 
+	extern GType vips_LabQ2LabS_get_type( void ); 
+	extern GType vips_LabS2LabQ_get_type( void ); 
 	extern GType vips_LabS2Lab_get_type( void ); 
 	extern GType vips_Lab2LabS_get_type( void ); 
 	extern GType vips_rad2float_get_type( void ); 
@@ -398,6 +400,8 @@ vips_colour_operation_init( void )
 	vips_Yxy2XYZ_get_type();
 	vips_LabQ2Lab_get_type();
 	vips_Lab2LabQ_get_type();
+	vips_LabQ2LabS_get_type();
+	vips_LabS2LabQ_get_type();
 	vips_LabS2Lab_get_type();
 	vips_Lab2LabS_get_type();
 	vips_rad2float_get_type();
