@@ -184,27 +184,6 @@ int im__colour_unary( const char *domain,
 VipsImage **im__insert_base( const char *domain, 
 	VipsImage *in1, VipsImage *in2, VipsImage *out );
 
-/* Structure for holding the lookup tables for XYZ<=>rgb conversion.
- * Also holds the luminance to XYZ matrix and the inverse one.
- */
-struct im_col_tab_disp {
-	/*< private >*/
-	float	t_Yr2r[1501];		/* Conversion of Yr to r */
-	float	t_Yg2g[1501];		/* Conversion of Yg to g */
-	float	t_Yb2b[1501];		/* Conversion of Yb to b */
-	float	t_r2Yr[1501];		/* Conversion of r to Yr */
-	float	t_g2Yg[1501];		/* Conversion of g to Yg */
-	float	t_b2Yb[1501];		/* Conversion of b to Yb */
-	float	mat_XYZ2lum[3][3];	/* XYZ to Yr, Yg, Yb matrix */
-	float	mat_lum2XYZ[3][3];	/* Yr, Yg, Yb to XYZ matrix */
-	float rstep, gstep, bstep;
-	float ristep, gistep, bistep;
-};
-
-struct im_col_tab_disp *im_col_make_tables_RGB( VipsImage *im, 
-	struct im_col_display *d );
-struct im_col_tab_disp *im_col_display_get_table( struct im_col_display *d );
-
 int im__fftproc( VipsImage *dummy, 
 	VipsImage *in, VipsImage *out, im__fftproc_fn fn );
 

@@ -132,7 +132,6 @@ extern "C" {
 #include <vips/freq_filt.h>
 #include <vips/resample.h>
 #include <vips/colour.h>
-#include <vips/disp.h>
 #include <vips/inplace.h>
 #include <vips/other.h>
 #include <vips/video.h>

@@ -10,7 +10,6 @@ pkginclude_HEADERS = \
 	convolution.h \
 	debug.h \
 	dispatch.h \
-	disp.h \
 	enumtypes.h \
 	error.h \
 	operation.h \

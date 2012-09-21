@@ -92,10 +92,7 @@ extern "C" {
 #define VIPS_D3250_Y0 (100.0)
 #define VIPS_D3250_Z0 (45.8501)
 
-struct im_col_display;
-
-int vips_LabQ2disp( VipsImage *in, VipsImage **out, 
-	struct im_col_display *disp, ... )
+int vips_LabQ2sRGB( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_rad2float( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -121,8 +118,7 @@ int vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_XYZ2Lab( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_XYZ2disp( VipsImage *in, VipsImage **out, 
-	struct im_col_display *disp, ... )
+int vips_XYZ2sRGB( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_LCh2UCS( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -154,6 +150,10 @@ float vips_col_Lucs2L( float Lucs );
 float vips_col_Cucs2C( float Cucs );
 float vips_col_Chucs2h( float C, float hucs );
 
+int vips_col_XYZ2sRGB( float X, float Y, float Z, 
+	int *r_ret, int *g_ret, int *b_ret, 
+	int *or_ret );
+int vips_col_sRGB2XYZ( int r, int g, int b, float *X, float *Y, float *Z );
 
 
 

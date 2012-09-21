@@ -3,7 +3,6 @@ noinst_LTLIBRARIES = libcolour.la
 libcolour_la_SOURCES = \
 	colour.c \
 	colour_funcs.c \
-	disp.c \
 	colour_dispatch.c \
 	derived.c \
 	Lab2XYZ.c \
@@ -22,7 +21,7 @@ libcolour_la_SOURCES = \
 	Lab2LabS.c \
 	LabS2LabQ.c \
 	LabQ2LabS.c \
-	im_LabQ2disp.c \
+	LabQ2sRGB.c \
 	im_icc_transform.c \
 	im_lab_morph.c \
 	im_XYZ2disp.c \
