@@ -143,7 +143,7 @@ OpenEXR images.
 ## OpenSlide
 
 If available, libvips can load OpenSlide-supported virtual slide
-files: Aperio, Hamamatsu VMS and VMU, MIRAX, and Trestle.
+files: Aperio, Hamamatsu VMS and VMU, Leica, MIRAX, and Trestle.
 
 ## swig, python, python-dev
 
