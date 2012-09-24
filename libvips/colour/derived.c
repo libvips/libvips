@@ -159,53 +159,6 @@ im_XYZ2UCS( IMAGE *in, IMAGE *out )
 }
 
 /**
- * im_XYZ2sRGB:
- * @in: input image
- * @out: output image
- *
- * Convert an image from XYZ to sRGB. The conversion is supposed to be quick
- * rather than accurate. Use an ICC profile with im_icc_transform() for more
- * precision.
- *
- * See also: im_icc_transform.
- *
- * Returns: 0 on success, -1 on error.
- */
-int 
-im_XYZ2sRGB( IMAGE *in, IMAGE *out )
-{	
-	if( im_XYZ2disp( in, out, im_col_displays( 7 ) ) )
-		return( -1 );
-
-	out->Type = IM_TYPE_sRGB;
-
-	return( 0 );
-}
-
-/**
- * im_sRGB2XYZ:
- * @in: input image
- * @out: output image
- *
- * Convert an image from sRGB to XYZ. 
- * The conversion is supposed to be quick
- * rather than accurate. Use an ICC profile with im_icc_transform() for more
- * precision.
- *
- * See also: im_icc_transform.
- *
- * Returns: 0 on success, -1 on error.
- */
-int 
-im_sRGB2XYZ( IMAGE *in, IMAGE *out )
-{
-	if( im_disp2XYZ( in, out, im_col_displays( 7 ) ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-/**
  * im_dE_fromXYZ:
  * @in1: first input image
  * @in2: second input image

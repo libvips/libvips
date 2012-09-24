@@ -2508,3 +2508,51 @@ im_disp2Lab( IMAGE *in, IMAGE *out, struct im_col_display *d )
 	
 	return( 0 );
 }
+
+int 
+im_sRGB2XYZ( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_sRGB2XYZ( in, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_XYZ2sRGB( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_XYZ2sRGB( in, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_LabQ2sRGB( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_LabQ2sRGB( in, &x, NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

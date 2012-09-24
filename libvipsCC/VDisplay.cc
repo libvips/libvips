@@ -52,28 +52,13 @@ VIPS_NAMESPACE_START
 static void
 free_display( im_col_display *d )
 {
-	if( d->d_name )
-		im_free( d->d_name );
-	im_free( d );
 }
 
 // Dupe an im_col_display
 static im_col_display *
 dup_display( im_col_display *in ) throw( VError )
 {
-	im_col_display *out;
-
-	if( !(out = IM_NEW( NULL, im_col_display )) )
-		verror();
-
-	*out = *in;
-	if( in->d_name )
-		if( !(out->d_name = strdup( in->d_name )) ) {
-			free_display( out );
-			verror( "out of memory" );
-		}
-
-	return( out );
+	return( in );
 }
 
 // Remove lut
@@ -109,9 +94,6 @@ void VDisplay::refblock::wready() throw( VError )
 // Check that luts are up-to-date
 void VDisplay::refblock::cluts() throw( VError )
 {
-	if( !luts )
-		if( !(luts = im_col_make_tables_RGB( NULL, disp )) )
-			verror();
 }
 
 VDisplay::~VDisplay()
@@ -140,30 +122,9 @@ VDisplay &VDisplay::operator=( const VDisplay &a )
 
 VDisplay::VDisplay( const char *name ) throw( VError )
 {
-	// Search for a matching name in the VIPS colour list
-        im_col_display *scr = im_col_display_name( name );
- 
-	if( !scr ) {
-		VError err;
-
-		err.app( "VDisplay error: " );
-		err.app( "unknown display type \"" ).app( name ).app( "\"\n" );
-		err.app( "display should be one of:" );
-
-		for( int i = 0; (scr = im_col_displays( i )); i++ ) {
-			err.app( " \"" );
-			err.app( im_col_displays( i )->d_name );
-			err.app( "\"" );
-		}
-
-		err.app( "\n" );
-
-		throw( err );
-	}
-
 	// Install display
 	ref = new refblock;
-	ref->disp = scr;
+	ref->disp = NULL;
 }
 
 VDisplay::VDisplay()

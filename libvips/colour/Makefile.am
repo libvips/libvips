@@ -22,12 +22,12 @@ libcolour_la_SOURCES = \
 	LabS2LabQ.c \
 	LabQ2LabS.c \
 	LabQ2sRGB.c \
+	XYZ2sRGB.c \
+	sRGB2XYZ.c \
 	im_icc_transform.c \
 	im_lab_morph.c \
-	im_XYZ2disp.c \
 	im_dE00_fromLab.c \
 	im_dECMC_fromLab.c \
-	im_dE_fromLab.c \
-	im_disp2XYZ.c
+	im_dE_fromLab.c
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

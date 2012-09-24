@@ -109,27 +109,27 @@ typedef enum {
 
 /**
  * VipsInterpretation: 
- * @VIPS_INTERPREATION_MULTIBAND: generic many-band image
- * @VIPS_INTERPREATION_B_W: some kind of single-band image
- * @VIPS_INTERPREATION_HISTOGRAM: a 1D image such as a histogram or lookup table
- * @VIPS_INTERPREATION_FOURIER: image is in fourier space
- * @VIPS_INTERPREATION_XYZ: the first three bands are CIE XYZ 
- * @VIPS_INTERPREATION_LAB: pixels are in CIE Lab space
- * @VIPS_INTERPREATION_CMYK: the first four bands are in CMYK space
- * @VIPS_INTERPREATION_LABQ: implies #VIPS_CODING_LABQ
- * @VIPS_INTERPREATION_RGB: generic RGB space
- * @VIPS_INTERPREATION_UCS: a uniform colourspace based on CMC
- * @VIPS_INTERPREATION_LCH: pixels are in CIE LCh space
- * @VIPS_INTERPREATION_LABS: CIE LAB coded as three signed 16-bit values
- * @VIPS_INTERPREATION_sRGB: pixels are sRGB
- * @VIPS_INTERPREATION_YXY: pixels are CIE Yxy
- * @VIPS_INTERPREATION_RGB16: generic 16-bit RGB
- * @VIPS_INTERPREATION_GREY16: generic 16-bit mono
- * @VIPS_INTERPREATION_ARRAY: an array
+ * @VIPS_INTERPRETATION_MULTIBAND: generic many-band image
+ * @VIPS_INTERPRETATION_B_W: some kind of single-band image
+ * @VIPS_INTERPRETATION_HISTOGRAM: a 1D image, eg. histogram or lookup table
+ * @VIPS_INTERPRETATION_FOURIER: image is in fourier space
+ * @VIPS_INTERPRETATION_XYZ: the first three bands are CIE XYZ 
+ * @VIPS_INTERPRETATION_LAB: pixels are in CIE Lab space
+ * @VIPS_INTERPRETATION_CMYK: the first four bands are in CMYK space
+ * @VIPS_INTERPRETATION_LABQ: implies #VIPS_CODING_LABQ
+ * @VIPS_INTERPRETATION_RGB: generic RGB space
+ * @VIPS_INTERPRETATION_UCS: a uniform colourspace based on CMC
+ * @VIPS_INTERPRETATION_LCH: pixels are in CIE LCh space
+ * @VIPS_INTERPRETATION_LABS: CIE LAB coded as three signed 16-bit values
+ * @VIPS_INTERPRETATION_sRGB: pixels are sRGB
+ * @VIPS_INTERPRETATION_YXY: pixels are CIE Yxy
+ * @VIPS_INTERPRETATION_RGB16: generic 16-bit RGB
+ * @VIPS_INTERPRETATION_GREY16: generic 16-bit mono
+ * @VIPS_INTERPRETATION_ARRAY: an array
  *
  * How the values in an image should be interpreted. For example, a
- * three-band float image of type #VIPS_INTERPREATION_LAB should have its pixels
- * interpreted as coordinates in CIE Lab space.
+ * three-band float image of type #VIPS_INTERPRETATION_LAB should have its 
+ * pixels interpreted as coordinates in CIE Lab space.
  *
  * These values are set by operations as hints to user-interfaces built on top 
  * of VIPS to help them show images to the user in a meaningful way. 
@@ -143,7 +143,6 @@ typedef enum {
 	VIPS_INTERPRETATION_MULTIBAND = 0,
 	VIPS_INTERPRETATION_B_W = 1,
 	VIPS_INTERPRETATION_HISTOGRAM = 10,
-	VIPS_INTERPRETATION_FOURIER = 24,
 	VIPS_INTERPRETATION_XYZ = 12,
 	VIPS_INTERPRETATION_LAB = 13,
 	VIPS_INTERPRETATION_CMYK = 15,
@@ -154,6 +153,7 @@ typedef enum {
 	VIPS_INTERPRETATION_LABS = 21,
 	VIPS_INTERPRETATION_sRGB = 22,
 	VIPS_INTERPRETATION_YXY = 23,
+	VIPS_INTERPRETATION_FOURIER = 24,
 	VIPS_INTERPRETATION_RGB16 = 25,
 	VIPS_INTERPRETATION_GREY16 = 26,
 	VIPS_INTERPRETATION_ARRAY = 27

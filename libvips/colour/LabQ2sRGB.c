@@ -47,6 +47,7 @@
 #include <math.h>
  
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "colour.h"
 
@@ -82,6 +83,23 @@ struct im_col_display {
 	float d_P;			/* 'Picture' (like contrast) */
 };
 
+/* Structure for holding the lookup tables for XYZ<=>rgb conversion.
+ * Also holds the luminance to XYZ matrix and the inverse one.
+ */
+struct im_col_tab_disp {
+	/*< private >*/
+	float	t_Yr2r[1501];		/* Conversion of Yr to r */
+	float	t_Yg2g[1501];		/* Conversion of Yg to g */
+	float	t_Yb2b[1501];		/* Conversion of Yb to b */
+	float	t_r2Yr[1501];		/* Conversion of r to Yr */
+	float	t_g2Yg[1501];		/* Conversion of g to Yg */
+	float	t_b2Yb[1501];		/* Conversion of b to Yb */
+	float	mat_XYZ2lum[3][3];	/* XYZ to Yr, Yg, Yb matrix */
+	float	mat_lum2XYZ[3][3];	/* Yr, Yg, Yb to XYZ matrix */
+	float rstep, gstep, bstep;
+	float ristep, gistep, bistep;
+};
+
 /* Do our own indexing of the arrays below to make sure we get efficient mults.
  */
 #define INDEX( L, A, B ) (L + (A << 6) + (B << 12))
@@ -115,8 +133,9 @@ static VipsPel vips_blue[64 * 64 * 64];
 /* Make look_up tables for the Yr,Yb,Yg <=> r,g,b conversions.
  */
 static void *
-calcul_tables( struct im_col_tab_disp *table )
+calcul_tables( void *client )
 {
+	struct im_col_tab_disp *table = client;
 	struct im_col_display *d = &srgb_profile;
 
 	int i, j;
@@ -253,10 +272,11 @@ vips_col_sRGB2XYZ( int r, int g, int b, float *X, float *Y, float *Z )
  * contain an approximation of the right colour.
  */
 int
-vips_col_XYZ2rgb( float X, float Y, float Z, 
+vips_col_XYZ2sRGB( float X, float Y, float Z, 
 	int *r_ret, int *g_ret, int *b_ret, 
 	int *or_ret )
 {
+	struct im_col_display *d = &srgb_profile;
 	struct im_col_tab_disp *table = vips_col_make_tables_RGB();
 	float *mat = &table->mat_XYZ2lum[0][0];
 
@@ -291,24 +311,15 @@ vips_col_XYZ2rgb( float X, float Y, float Z,
 	 * luminosity. 
 	 */
 	Yint = (Yr - d->d_Y0R) / table->rstep;
-	if( Yint > 1500 ) {
-		or = 1;
-		Yint = 1500;
-	}
+	Yint = VIPS_CLIP( 0, Yint, 1500 ); 
 	r = IM_RINT( table->t_Yr2r[Yint] );
 
 	Yint = (Yg - d->d_Y0G) / table->gstep;
-	if( Yint > 1500 ) {
-		or = 1;
-		Yint = 1500;
-	}
+	Yint = VIPS_CLIP( 0, Yint, 1500 ); 
 	g = IM_RINT( table->t_Yg2g[Yint] );
 
 	Yint = (Yb - d->d_Y0B) / table->bstep;
-	if( Yint > 1500 ) {
-		or = 1;
-		Yint = 1500;
-	}
+	Yint = VIPS_CLIP( 0, Yint, 1500 ); 
 	b = IM_RINT( table->t_Yb2b[Yint] );
 
 	*r_ret = r;
@@ -322,8 +333,8 @@ vips_col_XYZ2rgb( float X, float Y, float Z,
 
 /* Build Lab->disp tables. 
  */
-static void 
-build_tables( void )
+static void *
+build_tables( void *client )
 {
         int l, a, b;
 	int t;
@@ -341,7 +352,7 @@ build_tables( void )
                                 int oflow;
  
                                 vips_col_Lab2XYZ( L, A, B, &X, &Y, &Z );
-                                vips_col_XYZ2rgb( X, Y, Z, 
+                                vips_col_XYZ2sRGB( X, Y, Z, 
 					&rb, &gb, &bb, &oflow );
 
 				t = INDEX( l, a, b );
@@ -351,6 +362,8 @@ build_tables( void )
                         }
                 }
         }
+
+	return( NULL );
 }
 
 static void
@@ -358,7 +371,7 @@ vips_col_make_tables_LabQ2sRGB( void )
 {
 	static GOnce once = G_ONCE_INIT;
 
-	(void) g_once( &once, calcul_tables, NULL );
+	(void) g_once( &once, build_tables, NULL );
 }
 
 /* Process a buffer of data.

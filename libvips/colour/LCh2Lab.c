@@ -96,11 +96,14 @@ vips_LCh2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 void
 vips_col_Ch2ab( float C, float h, float *a, float *b )
 {
-	float in[3], out[3];
+	float in[3];
+	float out[3];
+	float *x;
 
 	in[1] = C;
 	in[2] = h;
-	vips_LCh2Lab_line( NULL, (VipsPel *) out, (VipsPel **) &in, 1 );
+	x = in;
+	vips_LCh2Lab_line( NULL, (VipsPel *) out, (VipsPel **) &x, 1 );
 	*a = out[1];
 	*b = out[2];
 }

@@ -1116,7 +1116,7 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	if( in->Coding == VIPS_CODING_LABQ ) {
 		VipsImage *out;
 
-		if( vips_LabQ2disp( in, &out, im_col_displays( 7 ), NULL ) ) {
+		if( vips_LabQ2sRGB( in, &out, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}
@@ -1300,7 +1300,7 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		in->Type == VIPS_INTERPRETATION_LAB ) {
 		VipsImage *out;
 
-		if( vips_XYZ2disp( in, &out, im_col_displays( 7 ), NULL ) ) {
+		if( vips_XYZ2sRGB( in, &out, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}

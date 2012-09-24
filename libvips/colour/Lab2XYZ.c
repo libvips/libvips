@@ -230,17 +230,20 @@ vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
 void
 vips_col_Lab2XYZ( float L, float a, float b, float *X, float *Y, float *Z )
 {	
-	float in[3], out[3];
+	float in[3];
+	float *x;
+	float out[3];
 	VipsLab2XYZ Lab2XYZ;
 
 	in[0] = L;
 	in[1] = a;
 	in[2] = b;
+	x = in;
 	Lab2XYZ.X0 = VIPS_D65_X0;
 	Lab2XYZ.Y0 = VIPS_D65_Y0;
 	Lab2XYZ.Z0 = VIPS_D65_Z0;
 	vips_Lab2XYZ_line( (VipsColour *) &Lab2XYZ, 
-		(VipsPel *) out, (VipsPel **) &in, 1 );
+		(VipsPel *) out, (VipsPel **) &x, 1 );
 	*X = out[0];
 	*Y = out[1];
 	*Z = out[2];

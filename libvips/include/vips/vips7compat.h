@@ -730,6 +730,25 @@ int im_Lab2LabS( VipsImage *in, VipsImage *out );
 int im_LabS2Lab( VipsImage *in, VipsImage *out );
 int im_LabQ2LabS( VipsImage *in, VipsImage *out );
 int im_LabS2LabQ( VipsImage *in, VipsImage *out );
+int im_LabQ2sRGB( VipsImage *in, VipsImage *out );
+
+int im_XYZ2sRGB( IMAGE *in, IMAGE *out );
+int im_sRGB2XYZ( IMAGE *in, IMAGE *out );
+
+struct im_col_display;
+#define im_col_displays(S) (NULL)
+#define im_LabQ2disp_build_table(A, B) (NULL)
+#define im_LabQ2disp_table(A, B, C) (im_LabQ2disp(A, B, C))
+
+int im_Lab2disp( IMAGE *in, IMAGE *out, struct im_col_display *disp );
+int im_disp2Lab( IMAGE *in, IMAGE *out, struct im_col_display *disp );
+
+int im_dE_fromdisp( IMAGE *, IMAGE *, IMAGE *, struct im_col_display * );
+int im_dECMC_fromdisp( IMAGE *, IMAGE *, IMAGE *, struct im_col_display * );
+
+#define im_disp2XYZ(A, B, C) (im_sRGB2XYZ(A, B))
+#define im_XYZ2disp(A, B, C) (im_XYZ2sRGB(A, B))
+#define im_LabQ2disp(A, B, C) (im_LabQ2sRGB(A, B))
 
 /* ruby-vips uses this
  */

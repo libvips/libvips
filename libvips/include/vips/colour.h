@@ -120,6 +120,8 @@ int vips_XYZ2Lab( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_XYZ2sRGB( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_sRGB2XYZ( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_LCh2UCS( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_UCS2LCh( VipsImage *in, VipsImage **out, ... )
@@ -174,8 +176,6 @@ int im_UCS2XYZ( VipsImage *in, VipsImage *out );
 int im_UCS2Lab( VipsImage *in, VipsImage *out );
 int im_Lab2UCS( VipsImage *in, VipsImage *out );
 int im_XYZ2UCS( VipsImage *in, VipsImage *out );
-int im_sRGB2XYZ( VipsImage *in, VipsImage *out );
-int im_XYZ2sRGB( VipsImage *in, VipsImage *out );
 
 int im_dECMC_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_dE00_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );

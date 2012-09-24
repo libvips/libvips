@@ -295,20 +295,6 @@ im_col_dE00( float L1, float a1, float b1,
  */
 
 int
-vips_LabQ2disp( VipsImage *in, VipsImage **out, 
-	struct im_col_display *disp, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, disp );
-	result = vips_call_split( "im_LabQ2disp", ap, in, out, disp );
-	va_end( ap );
-
-	return( result );
-}
-
-int
 vips_argb2rgba( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
@@ -346,21 +332,6 @@ vips_UCS2XYZ( VipsImage *in, VipsImage **out, ... )
 
 	return( result );
 }
-
-int
-vips_XYZ2disp( VipsImage *in, VipsImage **out, 
-	struct im_col_display *disp, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, disp );
-	result = vips_call_split( "im_XYZ2disp", ap, in, out, disp );
-	va_end( ap );
-
-	return( result );
-}
-
 
 int
 im__colour_unary( const char *domain,
