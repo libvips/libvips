@@ -160,8 +160,8 @@ G_DEFINE_TYPE( VipsRad2float, vips_rad2float, VIPS_TYPE_COLOUR_CODE );
 static void
 vips_rad2float_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	COLOR *inp = (COLOR *) in[0];
-	COLR *outbuf = (COLR *) out;
+	COLR *inp = (COLR *) in[0];
+	COLOR *outbuf = (COLOR *) out;
 
 	colr_color(outbuf[0], inp[0]);
 	while (--width > 0) {

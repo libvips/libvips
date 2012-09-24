@@ -932,8 +932,6 @@ vips_array_double_new( const double *array, int n )
 	VipsArea *area;
 	double *array_copy;
 
-	printf( "hello, world!\n" );
-
 	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
 	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
 	memcpy( array_copy, array, n * sizeof( double ) );
