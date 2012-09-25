@@ -141,6 +141,11 @@ extern "C" {
 #define IMAGE VipsImage
 #define REGION VipsRegion
 
+#define IM_INTENT_PERCEPTUAL VIPS_INTENT_PERCEPTUAL
+#define IM_INTENT_RELATIVE_COLORIMETRIC VIPS_INTENT_RELATIVE_COLORIMETRIC
+#define IM_INTENT_SATURATION VIPS_INTENT_SATURATION
+#define IM_INTENT_ABSOLUTE_COLORIMETRIC VIPS_INTENT_ABSOLUTE_COLORIMETRIC
+
 /* Renamed macros.
  */
 
@@ -749,6 +754,20 @@ int im_dECMC_fromdisp( IMAGE *, IMAGE *, IMAGE *, struct im_col_display * );
 #define im_disp2XYZ(A, B, C) (im_sRGB2XYZ(A, B))
 #define im_XYZ2disp(A, B, C) (im_XYZ2sRGB(A, B))
 #define im_LabQ2disp(A, B, C) (im_LabQ2sRGB(A, B))
+
+int im_icc_transform( VipsImage *in, VipsImage *out, 
+	const char *input_profile_filename,
+	const char *output_profile_filename,
+	VipsIntent intent );
+
+#define im_icc_present vips_icc_present
+
+int im_icc_import( VipsImage *in, VipsImage *out, 
+	const char *input_profile_filename, VipsIntent intent );
+int im_icc_import_embedded( VipsImage *in, VipsImage *out, VipsIntent intent );
+int im_icc_export_depth( VipsImage *in, VipsImage *out, int depth,
+	const char *output_profile_filename, VipsIntent intent );
+int im_icc_ac2rc( VipsImage *in, VipsImage *out, const char *profile_filename );
 
 /* ruby-vips uses this
  */

@@ -69,6 +69,17 @@ typedef struct _VipsColour {
 	int n;
 
 	VipsImage *out;
+
+	/* Set fields on ->out from these.
+	 */
+	VipsCoding coding;
+	VipsInterpretation interpretation;
+	VipsBandFormat format;
+	int bands;
+
+	/* Attach this profile, if set.
+	 */
+	char *profile_filename;
 } VipsColour;
 
 typedef struct _VipsColourClass {
@@ -78,12 +89,13 @@ typedef struct _VipsColourClass {
 	 */
 	VipsColourProcessFn process_line;
 
-	/* Set fields on ->out from these.
+	/* Init fields on instance from these.
 	 */
 	VipsCoding coding;
 	VipsInterpretation interpretation;
 	VipsBandFormat format;
 	int bands;
+
 } VipsColourClass;
 
 GType vips_colour_get_type( void );
@@ -143,6 +155,12 @@ typedef struct _VipsColourCode {
 
 	VipsImage *in;
 
+	/* Test in against these, init them from class. 
+	 */
+	VipsCoding input_coding;
+	VipsBandFormat input_format;
+	int input_bands;
+
 } VipsColourCode;
 
 typedef struct _VipsColourCodeClass {
@@ -170,5 +188,4 @@ GType vips_colour_code_get_type( void );
 #endif /*__cplusplus*/
 
 #endif /*VIPS__COLOUR_H*/
-
 

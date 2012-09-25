@@ -62,6 +62,7 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/conversion.h \
 	${top_srcdir}/libvips/include/vips/util.h \
 	${top_srcdir}/libvips/include/vips/image.h \
+	${top_srcdir}/libvips/include/vips/colour.h \
 	${top_srcdir}/libvips/include/vips/operation.h \
 	${top_srcdir}/libvips/include/vips/object.h
 

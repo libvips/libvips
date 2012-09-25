@@ -92,6 +92,24 @@ extern "C" {
 #define VIPS_D3250_Y0 (100.0)
 #define VIPS_D3250_Z0 (45.8501)
 
+/**
+ * VipsIntent:
+ * @VIPS_INTENT_PERCEPTUAL: perceptual rendering intent
+ * @VIPS_INTENT_RELATIVE: relative colorimetric rendering intent
+ * @VIPS_INTENT_SATURATION: saturation rendering intent
+ * @VIPS_INTENT_ABSOLUTE: absolute colorimetric rendering intent
+ *
+ * The rendering intent. #VIPS_INTENT_ABSOLUTE is best for
+ * scientific work, #VIPS_INTENT_RELATIVE is usually best for 
+ * accurate communication with other imaging libraries.
+ */
+typedef enum {
+	VIPS_INTENT_PERCEPTUAL = 0,
+	VIPS_INTENT_RELATIVE,
+	VIPS_INTENT_SATURATION,
+	VIPS_INTENT_ABSOLUTE
+} VipsIntent;
+
 int vips_LabQ2sRGB( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_rad2float( VipsImage *in, VipsImage **out, ... )
@@ -134,6 +152,18 @@ int vips_LabS2Lab( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_Lab2LabS( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+
+int vips_icc_present( void );
+int vips_icc_transform( VipsImage *in, VipsImage **out, 
+	const char *output_profile_filename, ... )
+	__attribute__((sentinel));
+int vips_icc_import( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_icc_export( VipsImage *in, VipsImage **out, 
+	const char *output_profile, ... )
+	__attribute__((sentinel));
+int vips_icc_ac2rc( VipsImage *in, VipsImage *out, 
+	const char *profile_filename );
 
 void vips_col_Lab2XYZ( float L, float a, float b, 
 	float *X, float *Y, float *Z );
@@ -186,27 +216,6 @@ int im_lab_morph( VipsImage *in, VipsImage *out,
 	DOUBLEMASK *mask,
 	double L_offset, double L_scale,
 	double a_scale, double b_scale );
-
-/* Render intents for icc wrappers.
- */
-typedef enum {
-	IM_INTENT_PERCEPTUAL = 0,
-	IM_INTENT_RELATIVE_COLORIMETRIC,
-	IM_INTENT_SATURATION,
-	IM_INTENT_ABSOLUTE_COLORIMETRIC
-} VipsIntent;
-
-int im_icc_present( void );
-int im_icc_transform( VipsImage *in, VipsImage *out, 
-	const char *input_profile_filename,
-	const char *output_profile_filename,
-	VipsIntent intent );
-int im_icc_import( VipsImage *in, VipsImage *out, 
-	const char *input_profile_filename, VipsIntent intent );
-int im_icc_import_embedded( VipsImage *in, VipsImage *out, VipsIntent intent );
-int im_icc_export_depth( VipsImage *in, VipsImage *out, int depth,
-	const char *output_profile_filename, VipsIntent intent );
-int im_icc_ac2rc( VipsImage *in, VipsImage *out, const char *profile_filename );
 
 #ifdef __cplusplus
 }

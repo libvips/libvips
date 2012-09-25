@@ -1,3 +1,6 @@
+- im_icc_ac2rc needs doing once we have a general 'convert' operator
+
+
 - boolean.c has
 
 	vips_check_noncomplex( "VipsBoolean", binary->left ) )

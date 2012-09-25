@@ -84,10 +84,25 @@ vips_colour_gen( VipsRegion *or,
 }
 
 static int
+vips_colour_attach_profile( VipsImage *im, const char *filename )
+{
+	char *data;
+	unsigned int data_length;
+
+	if( !(data = vips__file_read_name( filename, VIPS_ICC_DIR, 
+		&data_length )) ) 
+		return( -1 );
+	vips_image_set_blob( im, VIPS_META_ICC_NAME, 
+		(VipsCallbackFn) g_free, data, data_length );
+
+	return( 0 );
+}
+
+static int
 vips_colour_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsColour *colour = VIPS_COLOUR( object );
-	VipsColourClass *class = VIPS_COLOUR_GET_CLASS( colour ); 
 
 	int i;
 
@@ -104,7 +119,7 @@ vips_colour_build( VipsObject *object )
 	g_object_set( colour, "out", vips_image_new(), NULL ); 
 
 	if( colour->n > MAX_INPUT_IMAGES ) {
-		vips_error( "VipsColour",
+		vips_error( class->nickname,
 			"%s", _( "too many input images" ) );
 		return( -1 );
 	}
@@ -116,10 +131,15 @@ vips_colour_build( VipsObject *object )
 		return( -1 );
         vips_demand_hint_array( colour->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, colour->in );
-	colour->out->Coding = class->coding;
-	colour->out->Type = class->interpretation;
-	colour->out->BandFmt = class->format;
-	colour->out->Bands = class->bands;
+	colour->out->Coding = colour->coding;
+	colour->out->Type = colour->interpretation;
+	colour->out->BandFmt = colour->format;
+	colour->out->Bands = colour->bands;
+
+	if( colour->profile_filename ) 
+		if( vips_colour_attach_profile( colour->out, 
+			colour->profile_filename ) )
+			return( -1 );
 
 	if( vips_image_generate( colour->out,
 		vips_start_many, vips_colour_gen, vips_stop_many, 
@@ -160,6 +180,12 @@ vips_colour_class_init( VipsColourClass *class )
 static void
 vips_colour_init( VipsColour *colour )
 {
+	VipsColourClass *class = VIPS_COLOUR_GET_CLASS( colour ); 
+
+	colour->coding = class->coding;
+	colour->interpretation = class->interpretation;
+	colour->format = class->format;
+	colour->bands = class->bands;
 }
 
 G_DEFINE_ABSTRACT_TYPE( VipsColourSpace, vips_colour_space, VIPS_TYPE_COLOUR );
@@ -266,7 +292,6 @@ vips_colour_code_build( VipsObject *object )
 	VipsColour *colour = VIPS_COLOUR( object );
 	VipsColourCode *code = VIPS_COLOUR_CODE( object );
 	VipsColourCodeClass *class = VIPS_COLOUR_CODE_GET_CLASS( object ); 
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class ); 
 
 	VipsImage **t;
 	VipsImage *in;
@@ -279,22 +304,22 @@ vips_colour_code_build( VipsObject *object )
 
 	if( in && 
 		vips_check_coding( VIPS_OBJECT_CLASS( class )->nickname,
-			in, class->input_coding ) )
+			in, code->input_coding ) )
 		return( -1 );
 
 	/* Extra band processing. don't do automatic detach/reattach if either
 	 * input or output will be coded.
 	 */
 	if( in &&
-		class->input_coding == VIPS_CODING_NONE &&
-		colour_class->coding == VIPS_CODING_NONE &&
-		class->input_bands > 0 ) { 
-		if( in->Bands > class->input_bands ) { 
+		code->input_coding == VIPS_CODING_NONE &&
+		colour->coding == VIPS_CODING_NONE &&
+		code->input_bands > 0 ) { 
+		if( in->Bands > code->input_bands ) { 
 			if( vips_extract_band( in, &t[1], 0, 
-				"n", class->input_bands, NULL ) )
+				"n", code->input_bands, NULL ) )
 				return( -1 );
-			if( vips_extract_band( in, &t[2], class->input_bands, 
-				"n", in->Bands - class->input_bands, 
+			if( vips_extract_band( in, &t[2], code->input_bands, 
+				"n", in->Bands - code->input_bands, 
 				NULL ) )
 				return( -1 );
 			in = t[1];
@@ -302,14 +327,14 @@ vips_colour_code_build( VipsObject *object )
 		}
 		else if( vips_check_bands_atleast( 
 			VIPS_OBJECT_CLASS( class )->nickname,
-			in, class->input_bands ) )
+			in, code->input_bands ) )
 			return( -1 );
 	}
 
 	if( in &&
-		class->input_coding == VIPS_CODING_NONE &&
-		class->input_format != VIPS_FORMAT_NOTSET ) {
-		if( vips_cast( in, &t[3], class->input_format, NULL ) )
+		code->input_coding == VIPS_CODING_NONE &&
+		code->input_format != VIPS_FORMAT_NOTSET ) {
+		if( vips_cast( in, &t[3], code->input_format, NULL ) )
 			return( -1 );
 		in = t[3];
 	}
@@ -365,6 +390,11 @@ vips_colour_code_class_init( VipsColourCodeClass *class )
 static void
 vips_colour_code_init( VipsColourCode *code )
 {
+	VipsColourCodeClass *class = VIPS_COLOUR_CODE_GET_CLASS( code ); 
+
+	code->input_coding = class->input_coding;
+	code->input_format = class->input_format;
+	code->input_bands = class->input_bands;
 }
 
 /* Called from iofuncs to init all operations in this dir. Use a plugin system
@@ -392,6 +422,11 @@ vips_colour_operation_init( void )
 	extern GType vips_LabQ2sRGB_get_type( void ); 
 	extern GType vips_XYZ2sRGB_get_type( void ); 
 	extern GType vips_sRGB2XYZ_get_type( void ); 
+#if defined(HAVE_LCMS) || defined(HAVE_LCMS2)
+	extern GType vips_icc_import_get_type( void ); 
+	extern GType vips_icc_export_get_type( void ); 
+	extern GType vips_icc_transform_get_type( void ); 
+#endif
 
 	vips_Lab2XYZ_get_type();
 	vips_XYZ2Lab_get_type();
@@ -412,4 +447,9 @@ vips_colour_operation_init( void )
 	vips_LabQ2sRGB_get_type();
 	vips_XYZ2sRGB_get_type();
 	vips_sRGB2XYZ_get_type();
+#if defined(HAVE_LCMS) || defined(HAVE_LCMS2)
+	vips_icc_import_get_type();
+	vips_icc_export_get_type();
+	vips_icc_transform_get_type();
+#endif
 }

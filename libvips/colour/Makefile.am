@@ -24,7 +24,7 @@ libcolour_la_SOURCES = \
 	LabQ2sRGB.c \
 	XYZ2sRGB.c \
 	sRGB2XYZ.c \
-	im_icc_transform.c \
+	icc_transform.c \
 	im_lab_morph.c \
 	im_dE00_fromLab.c \
 	im_dECMC_fromLab.c \

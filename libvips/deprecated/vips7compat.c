@@ -2556,3 +2556,84 @@ im_LabQ2sRGB( IMAGE *in, IMAGE *out )
 
 	return( 0 );
 }
+
+int 
+im_icc_transform( VipsImage *in, VipsImage *out, 
+	const char *input_profile_filename,
+	const char *output_profile_filename,
+	VipsIntent intent )
+{
+	VipsImage *x;
+
+	if( vips_icc_transform( in, &x, output_profile_filename,
+		"input_profile", input_profile_filename,
+		"intent", intent,
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_icc_import( VipsImage *in, VipsImage *out, 
+	const char *input_profile_filename, VipsIntent intent )
+{
+	VipsImage *x;
+
+	if( vips_icc_import( in, &x, 
+		"input_profile", input_profile_filename,
+		"intent", intent,
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_icc_import_embedded( VipsImage *in, VipsImage *out, VipsIntent intent )
+{
+	VipsImage *x;
+
+	if( vips_icc_import( in, &x, 
+		"embedded", TRUE,
+		"intent", intent,
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_icc_export_depth( VipsImage *in, VipsImage *out, int depth,
+	const char *output_profile_filename, VipsIntent intent )
+{
+	VipsImage *x;
+
+	if( vips_icc_export( in, &x, output_profile_filename,
+		"depth", depth,
+		"intent", intent,
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

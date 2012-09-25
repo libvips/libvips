@@ -249,7 +249,12 @@ vips_XYZ2Lab_init( VipsXYZ2Lab *XYZ2Lab )
  * @in: input image
  * @out: output image
  *
- * Turn XYZ to D65 Lab.
+ * optional arguments:
+ *
+ * @temp: colour temperature
+ *
+ * Turn XYZ to Lab, optionally specifying the colour temperature. @temp
+ * defaults to D65. 
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -195,9 +195,8 @@ vips_Lab2XYZ_init( VipsLab2XYZ *Lab2XYZ )
  *
  * @temp: colour temperature
  *
- * Turn Lab to XYZ.
- *
- * The colour temperature defaults to D65, but can be specified with @temp.
+ * Turn Lab to XYZ. The colour temperature defaults to D65, but can be 
+ * specified with @temp.
  *
  * Returns: 0 on success, -1 on error
  */
