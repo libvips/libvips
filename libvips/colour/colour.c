@@ -165,11 +165,6 @@ vips_colour_class_init( VipsColourClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	class->coding = VIPS_CODING_NONE;
-	class->interpretation = VIPS_INTERPRETATION_sRGB;
-	class->format = VIPS_FORMAT_UCHAR;
-	class->bands = 3;
-
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 
 		_( "Output image" ),
@@ -180,12 +175,10 @@ vips_colour_class_init( VipsColourClass *class )
 static void
 vips_colour_init( VipsColour *colour )
 {
-	VipsColourClass *class = VIPS_COLOUR_GET_CLASS( colour ); 
-
-	colour->coding = class->coding;
-	colour->interpretation = class->interpretation;
-	colour->format = class->format;
-	colour->bands = class->bands;
+	colour->coding = VIPS_CODING_NONE;
+	colour->interpretation = VIPS_INTERPRETATION_sRGB;
+	colour->format = VIPS_FORMAT_UCHAR;
+	colour->bands = 3;
 }
 
 G_DEFINE_ABSTRACT_TYPE( VipsColourSpace, vips_colour_space, VIPS_TYPE_COLOUR );
@@ -258,7 +251,6 @@ vips_colour_space_class_init( VipsColourSpaceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -266,11 +258,6 @@ vips_colour_space_class_init( VipsColourSpaceClass *class )
 	vobject_class->nickname = "space";
 	vobject_class->description = _( "colour space transformations" );
 	vobject_class->build = vips_colour_space_build;
-
-	colour_class->coding = VIPS_CODING_NONE;
-	colour_class->interpretation = VIPS_INTERPRETATION_sRGB;
-	colour_class->format = VIPS_FORMAT_FLOAT;
-	colour_class->bands = 3;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
@@ -282,6 +269,15 @@ vips_colour_space_class_init( VipsColourSpaceClass *class )
 static void
 vips_colour_space_init( VipsColourSpace *space )
 {
+	VipsColour *colour = (VipsColour *) space; 
+
+	/* What we write. interpretation should be overwritten in subclass
+	 * builds.
+	 */
+	colour->coding = VIPS_CODING_NONE;
+	colour->interpretation = VIPS_INTERPRETATION_LAB;
+	colour->format = VIPS_FORMAT_FLOAT;
+	colour->bands = 3;
 }
 
 G_DEFINE_ABSTRACT_TYPE( VipsColourCode, vips_colour_code, VIPS_TYPE_COLOUR );
@@ -301,6 +297,16 @@ vips_colour_code_build( VipsObject *object )
 
 	in = code->in;
 	extra = NULL;
+
+	/* If this is a LABQ and the coder wants uncoded, unpack.
+	 */
+	if( in && 
+		in->Coding == VIPS_CODING_LABQ &&
+		code->input_coding == VIPS_CODING_NONE ) {
+		if( vips_LabQ2Lab( in, &t[0], NULL ) )
+			return( -1 );
+		in = t[0];
+	}
 
 	if( in && 
 		vips_check_coding( VIPS_OBJECT_CLASS( class )->nickname,
@@ -378,8 +384,6 @@ vips_colour_code_class_init( VipsColourCodeClass *class )
 	vobject_class->description = _( "change colour coding" );
 	vobject_class->build = vips_colour_code_build;
 
-	class->input_coding = VIPS_CODING_ERROR;
-
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
@@ -390,11 +394,6 @@ vips_colour_code_class_init( VipsColourCodeClass *class )
 static void
 vips_colour_code_init( VipsColourCode *code )
 {
-	VipsColourCodeClass *class = VIPS_COLOUR_CODE_GET_CLASS( code ); 
-
-	code->input_coding = class->input_coding;
-	code->input_format = class->input_format;
-	code->input_bands = class->input_bands;
 }
 
 /* Called from iofuncs to init all operations in this dir. Use a plugin system

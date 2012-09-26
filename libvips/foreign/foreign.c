@@ -1095,12 +1095,23 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	 */
 	g_object_ref( in );
 
-	/* Can this class save the coding we are in now? Nothing to do.
-	 * Uncoded images may need to have their formats and bands clipped 
-	 * though.
+	/* For coded images, can this class save the coding we are in now? 
+	 * Nothing to do.
 	 */
 	if( in->Coding != VIPS_CODING_NONE &&
 		class->coding[in->Coding] ) {
+		VIPS_UNREF( save->ready );
+		save->ready = in;
+
+		return( 0 );
+	}
+
+	/* For uncoded images, if this saver supports ANY bands and this 
+	 * format we have nothing to do.
+	 */
+	if( in->Coding == VIPS_CODING_NONE &&
+	        class->saveable == VIPS_SAVEABLE_ANY &&
+		class->format_table[in->BandFmt] == in->BandFmt ) {
 		VIPS_UNREF( save->ready );
 		save->ready = in;
 
@@ -1298,6 +1309,19 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 	if( in->Bands == 3 && 
 		in->Type == VIPS_INTERPRETATION_LAB ) {
+		VipsImage *out;
+
+		if( vips_Lab2XYZ( in, &out, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
+		}
+		g_object_unref( in );
+
+		in = out;
+	}
+
+	if( in->Bands == 3 && 
+		in->Type == VIPS_INTERPRETATION_XYZ ) {
 		VipsImage *out;
 
 		if( vips_XYZ2sRGB( in, &out, NULL ) ) {

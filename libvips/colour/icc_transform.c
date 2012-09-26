@@ -189,26 +189,6 @@ vips_icc_build( VipsObject *object )
 	}
 
 	if( icc->in_profile &&
-		!cmsIsIntentSupported( icc->in_profile, 
-			icc->intent, LCMS_USED_AS_INPUT ) )
-		vips_warn( class->nickname,
-			_( "intent %d (%s) not supported by "
-			"input profile; falling back to default intent "
-			"(usually PERCEPTUAL)" ), 
-			icc->intent,
-			vips_enum_nick( VIPS_TYPE_INTENT, icc->intent ) );
-
-	if( icc->out_profile &&
-		!cmsIsIntentSupported( icc->out_profile, 
-			icc->intent, LCMS_USED_AS_OUTPUT ) )
-		vips_warn( class->nickname, 
-			_( "intent %d (%s) not supported by "
-			"profile; falling back to default intent "
-			"(usually PERCEPTUAL)" ), 
-			icc->intent, 
-			vips_enum_nick( VIPS_TYPE_INTENT, icc->intent ) );
-
-	if( icc->in_profile &&
 		code->in ) {
 		switch( cmsGetColorSpace( icc->in_profile ) ) {
 		case cmsSigRgbData:
@@ -281,14 +261,14 @@ vips_icc_build( VipsObject *object )
 			return( -1 );
 		}
 
-	/* At least one must be a device profile, see the buffer processor.
+	/* At least one must be a device profile.
 	 */
 	if( icc->in_profile &&
 		icc->out_profile &&
 		cmsGetColorSpace( icc->in_profile ) == cmsSigLabData &&
 		cmsGetColorSpace( icc->out_profile ) == cmsSigLabData ) {
 		vips_error( class->nickname,
-			"%s", _( "no device profiles" ) ); 
+			"%s", _( "no device profile" ) ); 
 		return( -1 );
 	}
 
@@ -360,6 +340,20 @@ typedef VipsIccClass VipsIccImportClass;
 
 G_DEFINE_TYPE( VipsIccImport, vips_icc_import, VIPS_TYPE_ICC );
 
+static void
+vips_check_intent( const char *domain, 
+	cmsHPROFILE profile, VipsIntent intent, int direction )
+{
+	if( profile &&
+		!cmsIsIntentSupported( profile, intent, direction ) )
+		vips_warn( domain,
+			_( "intent %d (%s) not supported by "
+			"%s profile; falling back to default intent" ), 
+			intent, vips_enum_nick( VIPS_TYPE_INTENT, intent ),
+			direction == LCMS_USED_AS_INPUT ?
+				_( "input" ) : _( "output" ) );
+}
+
 static int
 vips_icc_import_build( VipsObject *object )
 {
@@ -368,12 +362,24 @@ vips_icc_import_build( VipsObject *object )
 	VipsIcc *icc = (VipsIcc *) object;
 	VipsIccImport *import = (VipsIccImport *) object;
 
+	/* We read the input profile like this:
+	 *
+	 *	embedded	filename	action
+	 *	0		0 		image
+	 *	1		0		image
+	 *	0		1		file
+	 *	1		1		image, then fall back to file
+	 *	
+	 * see also import_build.
+	 */
+
 	if( code->in &&
-		import->embedded &&
+		(import->embedded ||
+			!import->input_profile_filename) &&
 		vips_image_get_typeof( code->in, VIPS_META_ICC_NAME ) ) {
 		void *data;
 		size_t data_length;
-		
+
 		if( vips_image_get_blob( code->in, VIPS_META_ICC_NAME, 
 			&data, &data_length ) ||
 			!(icc->in_profile = cmsOpenProfileFromMem( 
@@ -397,6 +403,9 @@ vips_icc_import_build( VipsObject *object )
 		return( -1 );
 	}
 
+	vips_check_intent( class->nickname, 
+		icc->in_profile, icc->intent, LCMS_USED_AS_INPUT );
+
 #ifdef HAVE_LCMS2
 {
 	cmsCIExyY white;
@@ -415,7 +424,7 @@ vips_icc_import_build( VipsObject *object )
 }
 
 static void 
-decode_lab( float *lab, guint16 *fixed, int n )
+decode_lab( guint16 *fixed, float *lab, int n )
 {
 	int i;
 
@@ -448,14 +457,14 @@ vips_icc_import_line( VipsColour *colour,
 		const int chunk = VIPS_MIN( width, PIXEL_BUFFER_SIZE );
 
 #ifdef HAVE_LCMS2
-		cmsDoTransform( icc->trans, encoded, p, chunk );
+		cmsDoTransform( icc->trans, p, encoded, chunk );
 #else
 		g_mutex_lock( icc->lock );
-		cmsDoTransform( icc->trans, encoded, p, chunk );
+		cmsDoTransform( icc->trans, p, encoded, chunk );
 		g_mutex_unlock( icc->lock );
 #endif
 
-		decode_lab( q, encoded, chunk );
+		decode_lab( encoded, q, chunk );
 
 		p += chunk * VIPS_IMAGE_SIZEOF_PEL( colour->out );
 		q += chunk * 3;
@@ -551,6 +560,7 @@ vips_icc_export_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsColour *colour = (VipsColour *) object;
+	VipsColourCode *code = (VipsColourCode *) object;
 	VipsIcc *icc = (VipsIcc *) object;
 	VipsIccExport *export = (VipsIccExport *) object;
 
@@ -565,7 +575,22 @@ vips_icc_export_build( VipsObject *object )
 	icc->in_profile = cmsCreateLabProfile( NULL );
 #endif
 
-	if( export->output_profile_filename ) {
+	if( code->in &&
+		!export->output_profile_filename &&
+		vips_image_get_typeof( code->in, VIPS_META_ICC_NAME ) ) {
+		void *data;
+		size_t data_length;
+
+		if( vips_image_get_blob( code->in, VIPS_META_ICC_NAME, 
+			&data, &data_length ) ||
+			!(icc->out_profile = cmsOpenProfileFromMem( 
+				data, data_length )) ) {
+			vips_error( class->nickname,
+				"%s", _( "unable to load embedded profile" ) );
+			return( -1 );
+		}
+	}
+	else if( export->output_profile_filename ) {
 		if( !(icc->out_profile = cmsOpenProfileFromFile(
 			export->output_profile_filename, "r" )) ) {
 			vips_error( class->nickname,
@@ -576,6 +601,13 @@ vips_icc_export_build( VipsObject *object )
 
 		colour->profile_filename = export->output_profile_filename;
 	}
+	else {
+		vips_error( class->nickname, "%s", _( "no output profile" ) ); 
+		return( -1 );
+	}
+
+	vips_check_intent( class->nickname, 
+		icc->out_profile, icc->intent, LCMS_USED_AS_OUTPUT );
 
 	if( VIPS_OBJECT_CLASS( vips_icc_export_parent_class )->build( object ) )
 		return( -1 );
@@ -587,7 +619,7 @@ vips_icc_export_build( VipsObject *object )
  * lcms-1.0.8.
  */
 static void 
-encode_lab( guint16 *fixed, float *lab, int n )
+encode_lab( float *lab, guint16 *fixed, int n )
 {
 	int i;
 
@@ -637,13 +669,13 @@ vips_icc_export_line( VipsColour *colour,
 	while( width > 0 ) {
 		const int chunk = VIPS_MIN( width, PIXEL_BUFFER_SIZE );
 
-		encode_lab( encoded, p, chunk );
+		encode_lab( p, encoded, chunk );
 
 #ifdef HAVE_LCMS2
-		cmsDoTransform( icc->trans, q, encoded, chunk );
+		cmsDoTransform( icc->trans, encoded, q, chunk );
 #else
 		g_mutex_lock( icc->lock );
-		cmsDoTransform( icc->trans, q, encoded, chunk );
+		cmsDoTransform( icc->trans, encoded, q, chunk );
 		g_mutex_unlock( icc->lock );
 #endif
 
@@ -672,7 +704,7 @@ vips_icc_export_class_init( VipsIccExportClass *class )
 	VIPS_ARG_STRING( class, "output_profile", 110, 
 		_( "Output profile" ),
 		_( "Filename to load output profile from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsIccExport, output_profile_filename ),
 		NULL );
 
@@ -693,27 +725,28 @@ vips_icc_export_init( VipsIccExport *export )
  * vips_icc_export:
  * @in: input image
  * @out: output image
- * @output_profile: get the output profile from here
  *
  * Optional arguments:
  *
  * @intent: transform with this intent
  * @depth: depth of output image in bits
+ * @output_profile: get the output profile from here
  *
- * Export an image from D65 LAB to device space with an ICC profile.
- * @output_profile is attached to the output image. 
+ * Export an image from D65 LAB to device space with an ICC profile. 
+ * If @output_profile is not set, use the embedded profile, if any. 
+ * If @output_profile is set, export with that and attach it to the output 
+ * image. 
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_icc_export( VipsImage *in, VipsImage **out, 
-	const char *output_profile, ... )
+vips_icc_export( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, output_profile );
-	result = vips_call_split( "icc_export", ap, in, out, output_profile );
+	va_start( ap, out );
+	result = vips_call_split( "icc_export", ap, in, out );
 	va_end( ap );
 
 	return( result );
@@ -741,12 +774,24 @@ vips_icc_transform_build( VipsObject *object )
 	VipsIcc *icc = (VipsIcc *) object;
 	VipsIccTransform *transform = (VipsIccTransform *) object;
 
+	/* We read the input profile like this:
+	 *
+	 *	embedded	filename	action
+	 *	0		0 		image
+	 *	1		0		image
+	 *	0		1		file
+	 *	1		1		image, then fall back to file
+	 *	
+	 * see also import_build.
+	 */
+
 	if( code->in &&
-		transform->embedded &&
+		(transform->embedded ||
+			!transform->input_profile_filename) &&
 		vips_image_get_typeof( code->in, VIPS_META_ICC_NAME ) ) {
 		void *data;
 		size_t data_length;
-		
+
 		if( vips_image_get_blob( code->in, VIPS_META_ICC_NAME, 
 			&data, &data_length ) ||
 			!(icc->in_profile = cmsOpenProfileFromMem( 
@@ -782,6 +827,11 @@ vips_icc_transform_build( VipsObject *object )
 		colour->profile_filename = transform->output_profile_filename;
 	}
 
+	vips_check_intent( class->nickname, 
+		icc->in_profile, icc->intent, LCMS_USED_AS_INPUT );
+	vips_check_intent( class->nickname, 
+		icc->out_profile, icc->intent, LCMS_USED_AS_OUTPUT );
+
 	if( VIPS_OBJECT_CLASS( vips_icc_transform_parent_class )->
 		build( object ) )
 		return( -1 );
@@ -798,10 +848,10 @@ vips_icc_transform_line( VipsColour *colour,
 	VipsIcc *icc = (VipsIcc *) colour;
 
 #ifdef HAVE_LCMS2
-	cmsDoTransform( icc->trans, out, in[0], width );
+	cmsDoTransform( icc->trans, in[0], out, width );
 #else
 	g_mutex_lock( icc->lock );
-	cmsDoTransform( icc->trans, out, in[0], width );
+	cmsDoTransform( icc->trans, in[0], out, width );
 	g_mutex_unlock( icc->lock );
 #endif
 }

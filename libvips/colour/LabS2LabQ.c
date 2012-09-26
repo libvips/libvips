@@ -120,25 +120,27 @@ vips_LabS2LabQ_class_init( VipsLabS2LabQClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
-	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
 
 	object_class->nickname = "LabS2LabQ";
 	object_class->description = _( "transform short Lab to LabQ coding" );
 
 	colour_class->process_line = vips_LabS2LabQ_line;
-	colour_class->coding = VIPS_CODING_LABQ;
-	colour_class->interpretation = VIPS_INTERPRETATION_LABQ;
-	colour_class->format = VIPS_FORMAT_UCHAR;
-	colour_class->bands = 4;
-
-	code_class->input_coding = VIPS_CODING_NONE;
-	code_class->input_format = VIPS_FORMAT_SHORT;
-	code_class->input_bands = 3;
 }
 
 static void
 vips_LabS2LabQ_init( VipsLabS2LabQ *LabS2LabQ )
 {
+	VipsColour *colour = VIPS_COLOUR( LabS2LabQ );
+	VipsColourCode *code = VIPS_COLOUR_CODE( LabS2LabQ );
+
+	colour->coding = VIPS_CODING_LABQ;
+	colour->interpretation = VIPS_INTERPRETATION_LABQ;
+	colour->format = VIPS_FORMAT_UCHAR;
+	colour->bands = 4;
+
+	code->input_coding = VIPS_CODING_NONE;
+	code->input_format = VIPS_FORMAT_SHORT;
+	code->input_bands = 3;
 }
 
 /**

@@ -74,24 +74,26 @@ vips_Lab2LabS_class_init( VipsLab2LabSClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
-	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
 
 	object_class->nickname = "Lab2LabS";
 	object_class->description = _( "transform float Lab to signed short" );
 
 	colour_class->process_line = vips_Lab2LabS_line;
-	colour_class->interpretation = VIPS_INTERPRETATION_LABS;
-	colour_class->format = VIPS_FORMAT_SHORT;
-	colour_class->bands = 3;
-
-	code_class->input_coding = VIPS_CODING_NONE;
-	code_class->input_format = VIPS_FORMAT_FLOAT;
-	code_class->input_bands = 3;
 }
 
 static void
 vips_Lab2LabS_init( VipsLab2LabS *Lab2LabS )
 {
+	VipsColour *colour = VIPS_COLOUR( Lab2LabS );
+	VipsColourCode *code = VIPS_COLOUR_CODE( Lab2LabS );
+
+	colour->interpretation = VIPS_INTERPRETATION_LABS;
+	colour->format = VIPS_FORMAT_SHORT;
+	colour->bands = 3;
+
+	code->input_coding = VIPS_CODING_NONE;
+	code->input_format = VIPS_FORMAT_FLOAT;
+	code->input_bands = 3;
 }
 
 /**

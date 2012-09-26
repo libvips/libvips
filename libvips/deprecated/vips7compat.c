@@ -2624,7 +2624,8 @@ im_icc_export_depth( VipsImage *in, VipsImage *out, int depth,
 {
 	VipsImage *x;
 
-	if( vips_icc_export( in, &x, output_profile_filename,
+	if( vips_icc_export( in, &x, 
+		"output_profile", output_profile_filename,
 		"depth", depth,
 		"intent", intent,
 		NULL ) )

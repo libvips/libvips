@@ -91,12 +91,14 @@ vips_XYZ2Yxy_class_init( VipsXYZ2YxyClass *class )
 	object_class->description = _( "transform XYZ to Yxy" );
 
 	colour_class->process_line = vips_XYZ2Yxy_line;
-	colour_class->interpretation = VIPS_INTERPRETATION_YXY;
 }
 
 static void
 vips_XYZ2Yxy_init( VipsXYZ2Yxy *XYZ2Yxy )
 {
+	VipsColour *colour = VIPS_COLOUR( XYZ2Yxy );
+
+	colour->interpretation = VIPS_INTERPRETATION_YXY;
 }
 
 /**

@@ -118,12 +118,14 @@ vips_LCh2Lab_class_init( VipsLCh2LabClass *class )
 	object_class->description = _( "transform LCh to Lab" );
 
 	colour_class->process_line = vips_LCh2Lab_line;
-	colour_class->interpretation = VIPS_INTERPRETATION_LAB;
 }
 
 static void
 vips_LCh2Lab_init( VipsLCh2Lab *LCh2Lab )
 {
+	VipsColour *colour = VIPS_COLOUR( LCh2Lab );
+
+	colour->interpretation = VIPS_INTERPRETATION_LAB;
 }
 
 /**

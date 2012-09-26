@@ -1,5 +1,16 @@
 - im_icc_ac2rc needs doing once we have a general 'convert' operator
 
+- auto cast to float in XYZ2sRGB seems broken?
+
+- should we have a better thing to stop convert_saveable running for vips
+  images?
+
+- convert_saveable should become a lot simpler with a general colourspace
+  converter
+
+- export should allow use of the embedded profile as an output?
+
+
 
 - boolean.c has
 

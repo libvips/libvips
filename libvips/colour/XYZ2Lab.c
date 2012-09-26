@@ -226,7 +226,6 @@ vips_XYZ2Lab_class_init( VipsXYZ2LabClass *class )
 	object_class->build = vips_XYZ2Lab_build;
 
 	colour_class->process_line = vips_XYZ2Lab_line;
-	colour_class->interpretation = VIPS_INTERPRETATION_LAB;
 
 	VIPS_ARG_BOXED( class, "temp", 110, 
 		_( "Temperature" ), 
@@ -239,9 +238,13 @@ vips_XYZ2Lab_class_init( VipsXYZ2LabClass *class )
 static void
 vips_XYZ2Lab_init( VipsXYZ2Lab *XYZ2Lab )
 {
+	VipsColour *colour = VIPS_COLOUR( XYZ2Lab );
+
 	XYZ2Lab->X0 = VIPS_D65_X0;
 	XYZ2Lab->Y0 = VIPS_D65_Y0;
 	XYZ2Lab->Z0 = VIPS_D65_Z0;
+
+	colour->interpretation = VIPS_INTERPRETATION_LAB;
 }
 
 /**

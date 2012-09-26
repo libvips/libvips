@@ -155,12 +155,11 @@ int vips_Lab2LabS( VipsImage *in, VipsImage **out, ... )
 
 int vips_icc_present( void );
 int vips_icc_transform( VipsImage *in, VipsImage **out, 
-	const char *output_profile_filename, ... )
+	const char *output_profile, ... )
 	__attribute__((sentinel));
 int vips_icc_import( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_icc_export( VipsImage *in, VipsImage **out, 
-	const char *output_profile, ... )
+int vips_icc_export( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_icc_ac2rc( VipsImage *in, VipsImage *out, 
 	const char *profile_filename );

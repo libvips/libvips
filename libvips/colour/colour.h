@@ -89,13 +89,6 @@ typedef struct _VipsColourClass {
 	 */
 	VipsColourProcessFn process_line;
 
-	/* Init fields on instance from these.
-	 */
-	VipsCoding coding;
-	VipsInterpretation interpretation;
-	VipsBandFormat format;
-	int bands;
-
 } VipsColourClass;
 
 GType vips_colour_get_type( void );
@@ -155,7 +148,7 @@ typedef struct _VipsColourCode {
 
 	VipsImage *in;
 
-	/* Test in against these, init them from class. 
+	/* Test in against these.
 	 */
 	VipsCoding input_coding;
 	VipsBandFormat input_format;
@@ -165,19 +158,6 @@ typedef struct _VipsColourCode {
 
 typedef struct _VipsColourCodeClass {
 	VipsColourClass parent_class;
-
-	/* Input must be in this coding.
-	 */
-	VipsCoding input_coding;
-
-	/* If set, cast input to this.
-	 */
-	VipsBandFormat input_format;
-
-	/* If >0, the number of bands we process. Extra bands are removed and
-	 * reattached to the output, if it's uncoded. 
-	 */
-	int input_bands;
 
 } VipsColourCodeClass;
 

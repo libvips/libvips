@@ -87,9 +87,6 @@ vips_foreign_save_vips_build( VipsObject *object )
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Type promotion for division. Sign and value preserving. Make sure 
- * these match the case statement in complexform_buffer() above.
- */
 static int vips_bandfmt_vips[10] = {
 /* UC  C   US  S   UI  I  F  X  D  DX */
    UC, C,  US, S,  UI, I, F, X, D, DX

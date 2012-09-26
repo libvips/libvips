@@ -480,7 +480,7 @@ vips_check_coding_noneorlabq( const char *domain, VipsImage *im )
 	if( im->Coding != VIPS_CODING_NONE && 
 		im->Coding != VIPS_CODING_LABQ ) {
 		vips_error( domain, 
-			"%s", _( "image coding must be NONE or LABQ" ) );
+			"%s", _( "image coding must be 'none' or 'labq'" ) );
 		return( -1 );
 	}
 
@@ -533,7 +533,7 @@ int
 vips_check_coding( const char *domain, VipsImage *im, VipsCoding coding )
 {
 	if( im->Coding != coding ) {
-		vips_error( domain, _( "%s coding only" ), 
+		vips_error( domain, _( "coding '%s' only" ), 
 			vips_enum_nick( VIPS_TYPE_CODING, coding ) );
 		return( -1 );
 	}

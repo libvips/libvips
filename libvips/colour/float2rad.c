@@ -192,26 +192,28 @@ vips_float2rad_class_init( VipsFloat2radClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
-	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
 
 	object_class->nickname = "float2rad";
 	object_class->description = 
 		_( "transform float RGB to Radiance coding" );
 
 	colour_class->process_line = vips_float2rad_line;
-	colour_class->coding = VIPS_CODING_RAD;
-	colour_class->interpretation = VIPS_INTERPRETATION_sRGB;
-	colour_class->format = VIPS_FORMAT_UCHAR;
-	colour_class->bands = 4;
-
-	code_class->input_coding = VIPS_CODING_NONE;
-	code_class->input_format = VIPS_FORMAT_FLOAT;
-	code_class->input_bands = 3;
 }
 
 static void
 vips_float2rad_init( VipsFloat2rad *float2rad )
 {
+	VipsColour *colour = VIPS_COLOUR( float2rad );
+	VipsColourCode *code = VIPS_COLOUR_CODE( float2rad );
+
+	colour->coding = VIPS_CODING_RAD;
+	colour->interpretation = VIPS_INTERPRETATION_sRGB;
+	colour->format = VIPS_FORMAT_UCHAR;
+	colour->bands = 4;
+
+	code->input_coding = VIPS_CODING_NONE;
+	code->input_format = VIPS_FORMAT_FLOAT;
+	code->input_bands = 3;
 }
 
 /**

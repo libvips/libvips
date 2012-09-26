@@ -178,12 +178,14 @@ vips_LCh2UCS_class_init( VipsLCh2UCSClass *class )
 	object_class->description = _( "transform LCh to UCS" );
 
 	colour_class->process_line = vips_LCh2UCS_line;
-	colour_class->interpretation = VIPS_INTERPRETATION_UCS;
 }
 
 static void
 vips_LCh2UCS_init( VipsLCh2UCS *LCh2UCS )
 {
+	VipsColour *colour = VIPS_COLOUR( LCh2UCS );
+
+	colour->interpretation = VIPS_INTERPRETATION_UCS;
 }
 
 /**

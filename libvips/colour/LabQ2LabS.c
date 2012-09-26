@@ -98,23 +98,25 @@ vips_LabQ2LabS_class_init( VipsLabQ2LabSClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
-	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
 
 	object_class->nickname = "LabQ2LabS";
 	object_class->description = _( "unpack a LabQ image to short Lab" );
 
 	colour_class->process_line = vips_LabQ2LabS_line;
-	colour_class->coding = VIPS_CODING_NONE;
-	colour_class->interpretation = VIPS_INTERPRETATION_LABS;
-	colour_class->format = VIPS_FORMAT_SHORT;
-	colour_class->bands = 3;
-
-	code_class->input_coding = VIPS_CODING_LABQ;
 }
 
 static void
 vips_LabQ2LabS_init( VipsLabQ2LabS *LabQ2LabS )
 {
+	VipsColour *colour = VIPS_COLOUR( LabQ2LabS );
+	VipsColourCode *code = VIPS_COLOUR_CODE( LabQ2LabS );
+
+	colour->coding = VIPS_CODING_NONE;
+	colour->interpretation = VIPS_INTERPRETATION_LABS;
+	colour->format = VIPS_FORMAT_SHORT;
+	colour->bands = 3;
+
+	code->input_coding = VIPS_CODING_LABQ;
 }
 
 /**

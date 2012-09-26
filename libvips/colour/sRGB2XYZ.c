@@ -87,25 +87,27 @@ vips_sRGB2XYZ_class_init( VipssRGB2XYZClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
-	VipsColourCodeClass *code_class = VIPS_COLOUR_CODE_CLASS( class );
 
 	object_class->nickname = "sRGB2XYZ";
 	object_class->description = _( "convert an sRGB image to XYZ" );
 
 	colour_class->process_line = vips_sRGB2XYZ_line;
-	colour_class->coding = VIPS_CODING_NONE;
-	colour_class->interpretation = VIPS_INTERPRETATION_XYZ;
-	colour_class->format = VIPS_FORMAT_FLOAT;
-	colour_class->bands = 3;
-
-	code_class->input_coding = VIPS_CODING_NONE;
-	code_class->input_bands = 3;
-	code_class->input_format = VIPS_FORMAT_UCHAR;
 }
 
 static void
 vips_sRGB2XYZ_init( VipssRGB2XYZ *sRGB2XYZ )
 {
+	VipsColour *colour = VIPS_COLOUR( sRGB2XYZ );
+	VipsColourCode *code = VIPS_COLOUR_CODE( sRGB2XYZ );
+
+	colour->coding = VIPS_CODING_NONE;
+	colour->interpretation = VIPS_INTERPRETATION_XYZ;
+	colour->format = VIPS_FORMAT_FLOAT;
+	colour->bands = 3;
+
+	code->input_coding = VIPS_CODING_NONE;
+	code->input_bands = 3;
+	code->input_format = VIPS_FORMAT_UCHAR;
 }
 
 /**
