@@ -110,6 +110,10 @@ typedef enum {
 	VIPS_INTENT_ABSOLUTE
 } VipsIntent;
 
+int vips_colour_convert( VipsImage *in, VipsImage **out, 
+	VipsInterpretation space, ... )
+	__attribute__((sentinel));
+
 int vips_LabQ2sRGB( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_rad2float( VipsImage *in, VipsImage **out, ... )
@@ -187,24 +191,15 @@ int vips_col_XYZ2sRGB( float X, float Y, float Z,
 int vips_col_sRGB2XYZ( int r, int g, int b, float *X, float *Y, float *Z );
 
 
-
-
 /* Colour loading and conversion functions.
  */
 float im_col_pythagoras( float L1, float a1, float b1, 
 	float L2, float a2, float b2 );
 
-
 float im_col_dECMC( 
 	float L1, float a1, float b1, float L2, float a2, float b2 );
 float im_col_dE00( 
 	float L1, float a1, float b1, float L2, float a2, float b2 );
-
-int im_LabQ2XYZ( VipsImage *in, VipsImage *out );
-int im_UCS2XYZ( VipsImage *in, VipsImage *out );
-int im_UCS2Lab( VipsImage *in, VipsImage *out );
-int im_Lab2UCS( VipsImage *in, VipsImage *out );
-int im_XYZ2UCS( VipsImage *in, VipsImage *out );
 
 int im_dECMC_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_dE00_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );

@@ -396,6 +396,234 @@ vips_colour_code_init( VipsColourCode *code )
 {
 }
 
+/* A colour-transforming function.
+ */
+typedef int (*VipsColourTransformFn)( VipsImage *in, VipsImage **out, ... );
+
+/* Maximum number of steps we allow in a route. 10 steps should be enough 
+ * for anyone. 
+ */
+#define MAX_STEPS (10)
+
+/* A route between two colour spaces.
+ *
+ * 10 steps should be enough for anyone. 
+ */
+typedef struct _VipsColourRoute {
+	VipsInterpretation from;
+	VipsInterpretation to;
+	VipsColourTransformFn route[MAX_STEPS + 1];
+} VipsColourRoute;
+
+/* Some defines to save typing. These are the colour spaces we support
+ * conversions between.
+ */
+#define XYZ VIPS_INTERPRETATION_XYZ
+#define LAB VIPS_INTERPRETATION_LAB
+#define LABQ VIPS_INTERPRETATION_LABQ
+#define LCH VIPS_INTERPRETATION_LCH
+#define UCS VIPS_INTERPRETATION_UCS
+#define LABS VIPS_INTERPRETATION_LABS
+#define sRGB VIPS_INTERPRETATION_sRGB
+#define YXY VIPS_INTERPRETATION_YXY
+
+/* All the routes we know about.
+ */
+static VipsColourRoute vips_colour_routes[] = {
+	{ XYZ, LAB, { vips_XYZ2Lab, NULL } },
+	{ XYZ, LABQ, { vips_XYZ2Lab, vips_Lab2LabQ, NULL } },
+	{ XYZ, LCH, { vips_XYZ2Lab, vips_Lab2LCh, NULL } },
+	{ XYZ, UCS, { vips_XYZ2Lab, vips_Lab2LCh, vips_LCh2UCS, NULL } },
+	{ XYZ, LABS, { vips_XYZ2Lab, vips_Lab2LabS, NULL } },
+	{ XYZ, sRGB, { vips_XYZ2sRGB, NULL } },
+	{ XYZ, YXY, { vips_XYZ2Yxy, NULL } },
+
+	{ LAB, XYZ, { vips_Lab2XYZ, NULL } },
+	{ LAB, LABQ, { vips_Lab2LabQ, NULL } },
+	{ LAB, LCH, { vips_Lab2LCh, NULL } },
+	{ LAB, UCS, { vips_Lab2LCh, vips_LCh2UCS, NULL } },
+	{ LAB, LABS, { vips_Lab2LabS, NULL } },
+	{ LAB, sRGB, { vips_Lab2XYZ, vips_XYZ2sRGB, NULL } },
+	{ LAB, YXY, { vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
+
+	{ LABQ, XYZ, { vips_LabQ2Lab, vips_Lab2XYZ, NULL } },
+	{ LABQ, LAB, { vips_LabQ2Lab, NULL } },
+	{ LABQ, LCH, { vips_LabQ2Lab, vips_Lab2LCh, NULL } },
+	{ LABQ, UCS, { vips_LabQ2Lab, vips_Lab2LCh, vips_LCh2UCS, NULL } },
+	{ LABQ, LABS, { vips_LabQ2LabS, NULL } },
+	{ LABQ, sRGB, { vips_LabQ2sRGB, NULL } },
+	{ LABQ, YXY, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
+
+	{ LCH, XYZ, { vips_LCh2Lab, vips_Lab2XYZ, NULL } },
+	{ LCH, LAB, { vips_LCh2Lab, NULL } },
+	{ LCH, LABQ, { vips_LCh2Lab, vips_Lab2LabQ, NULL } },
+	{ LCH, UCS, { vips_LCh2UCS, NULL } },
+	{ LCH, LABS, { vips_LCh2Lab, vips_Lab2LabS, NULL } },
+	{ LCH, sRGB, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2sRGB, NULL } },
+	{ LCH, YXY, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
+
+	{ UCS, XYZ, { vips_UCS2LCh, vips_LCh2Lab, vips_Lab2XYZ, NULL } },
+	{ UCS, LAB, { vips_UCS2LCh, vips_LCh2Lab, NULL } },
+	{ UCS, LABQ, { vips_UCS2LCh, vips_LCh2Lab, vips_Lab2LabQ, NULL } },
+	{ UCS, LCH, { vips_UCS2LCh, NULL } },
+	{ UCS, LABS, { vips_UCS2LCh, vips_LCh2Lab, vips_Lab2LabS, NULL } },
+	{ UCS, sRGB, { vips_UCS2LCh, vips_LCh2Lab, vips_Lab2XYZ, 
+		vips_XYZ2sRGB, NULL } },
+	{ UCS, YXY, { vips_UCS2LCh, vips_LCh2Lab, vips_Lab2XYZ, 
+		vips_XYZ2Yxy, NULL } },
+
+	{ LABS, XYZ, { vips_LabS2Lab, vips_Lab2XYZ, NULL } },
+	{ LABS, LAB, { vips_LabS2Lab, NULL } },
+	{ LABS, LABQ, { vips_LabS2LabQ, NULL } },
+	{ LABS, LCH, { vips_LabS2Lab, vips_Lab2LCh, NULL } },
+	{ LABS, UCS, { vips_LabS2Lab, vips_Lab2LCh, vips_LCh2UCS, NULL } },
+	{ LABS, sRGB, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2sRGB, NULL } },
+	{ LABS, YXY, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
+
+	{ sRGB, XYZ, { vips_sRGB2XYZ, NULL } },
+	{ sRGB, LAB, { vips_sRGB2XYZ, vips_XYZ2Lab, NULL } },
+	{ sRGB, LABQ, { vips_sRGB2XYZ, vips_XYZ2Lab, vips_Lab2LabQ, NULL } },
+	{ sRGB, LCH, { vips_sRGB2XYZ, vips_XYZ2Lab, vips_Lab2LCh, NULL } },
+	{ sRGB, UCS, { vips_sRGB2XYZ, vips_XYZ2Lab, vips_Lab2LCh, 
+		vips_LCh2UCS, NULL } },
+	{ sRGB, LABS, { vips_sRGB2XYZ, vips_XYZ2Lab, vips_Lab2LabS, NULL } },
+	{ sRGB, YXY, { vips_sRGB2XYZ, vips_XYZ2Yxy, NULL } },
+
+	{ YXY, XYZ, { vips_Yxy2XYZ, NULL } },
+	{ YXY, LAB, { vips_Yxy2XYZ, vips_XYZ2Lab, NULL } },
+	{ YXY, LABQ, { vips_Yxy2XYZ, vips_XYZ2Lab, vips_Lab2LabQ, NULL } },
+	{ YXY, LCH, { vips_Yxy2XYZ, vips_XYZ2Lab, vips_Lab2LCh, NULL } },
+	{ YXY, UCS, { vips_Yxy2XYZ, vips_XYZ2Lab, vips_Lab2LCh, 
+		vips_LCh2UCS, NULL } },
+	{ YXY, LABS, { vips_Yxy2XYZ, vips_XYZ2Lab, vips_Lab2LabS, NULL } },
+	{ YXY, sRGB, { vips_Yxy2XYZ, vips_XYZ2sRGB, NULL } },
+};
+
+typedef struct _VipsColourConvert {
+	VipsOperation parent_instance;
+
+	VipsImage *in;
+	VipsImage *out;
+	VipsInterpretation space;
+} VipsColourConvert;
+
+typedef VipsOperationClass VipsColourConvertClass;
+
+G_DEFINE_TYPE( VipsColourConvert, vips_colour_convert, VIPS_TYPE_OPERATION );
+
+static int
+vips_colour_convert_build( VipsObject *object )
+{
+	VipsColourConvert *convert = (VipsColourConvert *) object; 
+
+	int i, j;
+	VipsImage *x;
+	VipsImage **t;
+
+	t = (VipsImage **) vips_object_local_array( object, MAX_STEPS );
+
+	/* Verify that all input args have been set.
+	 */
+	if( VIPS_OBJECT_CLASS( vips_colour_convert_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	x = convert->in;
+
+	for( i = 0; i < VIPS_NUMBER( vips_colour_routes ); i++ )
+		if( vips_colour_routes[i].from == x->Type &&
+			vips_colour_routes[i].to == convert->space )
+			break;
+	if( i == VIPS_NUMBER( vips_colour_routes ) ) {
+		vips_error( "vips_colour_convert", 
+			_( "no known route between '%s' and '%s'" ),
+			vips_enum_nick( VIPS_TYPE_INTERPRETATION, x->Type ),
+			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
+				convert->space ) );
+		return( -1 );
+	}
+
+	for( j = 0; vips_colour_routes[i].route[j]; j++ ) {
+		if( vips_colour_routes[i].route[j]( x, &t[j], NULL ) ) 
+			return( -1 );
+		x = t[j];
+	}
+
+	g_object_set( convert, "out", vips_image_new(), NULL ); 
+	if( vips_image_write( x, convert->out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_colour_convert_class_init( VipsColourConvertClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "convert";
+	vobject_class->description = _( "convert to a new colourspace" );
+	vobject_class->build = vips_colour_convert_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsColourConvert, in ) );
+
+	VIPS_ARG_IMAGE( class, "out", 2, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsColourConvert, out ) );
+
+	VIPS_ARG_ENUM( class, "space", 6, 
+		_( "Space" ), 
+		_( "Destination colour space" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsColourConvert, space ),
+		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_sRGB );
+}
+
+static void
+vips_colour_convert_init( VipsColourConvert *convert )
+{
+}
+
+/**
+ * vips_colour_convert:
+ * @in: input image
+ * @out: output image
+ * @space: convert to this colour space
+ *
+ * This convenience function looks at the interpretation field of @in and runs
+ * a set of colourspace conversion functions to move it to @space. 
+ *
+ * For example, given an image tagged as #VIPS_INTERPRETATION_YXY, running
+ * vips_colour_convert() with @space set to #VIPS_INTERPRETATION_LAB will
+ * convert with vips_Yxy2XYZ() and vips_XYZ2Lab().
+ */
+int
+vips_colour_convert( VipsImage *in, VipsImage **out, 
+	VipsInterpretation space, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, space );
+	result = vips_call_split( "convert", ap, in, out, space );
+	va_end( ap );
+
+	return( result );
+}
+
 /* Called from iofuncs to init all operations in this dir. Use a plugin system
  * instead?
  */
@@ -427,6 +655,7 @@ vips_colour_operation_init( void )
 	extern GType vips_icc_transform_get_type( void ); 
 #endif
 
+	vips_colour_convert_get_type();
 	vips_Lab2XYZ_get_type();
 	vips_XYZ2Lab_get_type();
 	vips_Lab2LCh_get_type();

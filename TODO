@@ -1,6 +1,6 @@
 - im_icc_ac2rc needs doing once we have a general 'convert' operator
 
-- auto cast to float in XYZ2sRGB seems broken?
+- test new icc stuff with lcms1
 
 - should we have a better thing to stop convert_saveable running for vips
   images?
@@ -8,7 +8,8 @@
 - convert_saveable should become a lot simpler with a general colourspace
   converter
 
-- export should allow use of the embedded profile as an output?
+- why do we need the extra vips_image_write() at the end of
+  vips_colour_convert_build()? why can't we just g_object_set() x?
 
 
 

@@ -769,6 +769,12 @@ int im_icc_export_depth( VipsImage *in, VipsImage *out, int depth,
 	const char *output_profile_filename, VipsIntent intent );
 int im_icc_ac2rc( VipsImage *in, VipsImage *out, const char *profile_filename );
 
+int im_LabQ2XYZ( VipsImage *in, VipsImage *out );
+int im_UCS2XYZ( VipsImage *in, VipsImage *out );
+int im_UCS2Lab( VipsImage *in, VipsImage *out );
+int im_Lab2UCS( VipsImage *in, VipsImage *out );
+int im_XYZ2UCS( VipsImage *in, VipsImage *out );
+
 /* ruby-vips uses this
  */
 #define vips_class_map_concrete_all vips_class_map_all

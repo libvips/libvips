@@ -4,7 +4,7 @@ libcolour_la_SOURCES = \
 	colour.c \
 	colour_funcs.c \
 	colour_dispatch.c \
-	derived.c \
+	icc_transform.c \
 	Lab2XYZ.c \
 	Lab2LCh.c \
 	LCh2Lab.c \
@@ -24,7 +24,6 @@ libcolour_la_SOURCES = \
 	LabQ2sRGB.c \
 	XYZ2sRGB.c \
 	sRGB2XYZ.c \
-	icc_transform.c \
 	im_lab_morph.c \
 	im_dE00_fromLab.c \
 	im_dECMC_fromLab.c \

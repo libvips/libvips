@@ -2638,3 +2638,138 @@ im_icc_export_depth( VipsImage *in, VipsImage *out, int depth,
 
 	return( 0 );
 }
+
+/**
+ * im_LabQ2XYZ:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from LabQ (Coding == IM_CODING_LABQ) to XYZ.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+im_LabQ2XYZ( IMAGE *in, IMAGE *out )
+{	
+	IMAGE *t[1];
+
+	if( im_open_local_array( out, t, 1, "im_LabQ2XYZ:1", "p" ) ||
+		im_LabQ2Lab( in, t[0] ) ||
+		im_Lab2XYZ( t[0], out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * im_Lab2UCS:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from Lab to UCS.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+im_Lab2UCS( IMAGE *in, IMAGE *out )
+{	
+	IMAGE *t[1];
+
+	if( im_open_local_array( out, t, 1, "im_Lab2UCS:1", "p" ) ||
+		im_Lab2LCh( in, t[0] ) ||
+		im_LCh2UCS( t[0], out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * im_UCS2Lab:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from UCS to Lab.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+im_UCS2Lab( IMAGE *in, IMAGE *out )
+{	
+	IMAGE *t[1];
+
+	if( im_open_local_array( out, t, 1, "im_UCS2Lab:1", "p" ) ||
+		im_UCS2LCh( in, t[0] ) ||
+		im_LCh2Lab( t[0], out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * im_UCS2XYZ:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from UCS to XYZ.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+im_UCS2XYZ( IMAGE *in, IMAGE *out )
+{
+	IMAGE *t[1];
+
+	if( im_open_local_array( out, t, 1, "im_UCS2XYZ:1", "p" ) ||
+		im_UCS2Lab( in, t[0] ) ||
+		im_Lab2XYZ( t[0], out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+
+/**
+ * im_XY2UCS:
+ * @in: input image
+ * @out: output image
+ *
+ * Convert an image from XYZ to UCS.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+im_XYZ2UCS( IMAGE *in, IMAGE *out )
+{	
+	IMAGE *t[1];
+
+	if( im_open_local_array( out, t, 1, "im_XYZ2UCS:1", "p" ) ||
+		im_XYZ2Lab( in, t[0] ) ||
+		im_Lab2UCS( t[0], out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * im_dE_fromXYZ:
+ * @in1: first input image
+ * @in2: second input image
+ * @out: output image
+ *
+ * Calculate CIELAB dE 1976 from a pair of XYZ images. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+im_dE_fromXYZ( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{	
+	IMAGE *t[2];
+
+	if( im_open_local_array( out, t, 2, "im_dE_fromXYZ:1", "p" ) ||
+		im_XYZ2Lab( in1, t[0] ) ||
+		im_XYZ2Lab( in2, t[1] ) ||
+		im_dE_fromLab( t[0], t[1], out ) )
+		return( -1 );
+
+	return( 0 );
+}
