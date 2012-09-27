@@ -46,6 +46,31 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+int
+im__colour_unary( const char *domain,
+	IMAGE *in, IMAGE *out, VipsType type,
+	im_wrapone_fn buffer_fn, void *a, void *b )
+{
+	IMAGE *t[1];
+
+	if( im_check_uncoded( domain, in ) ||
+		im_check_bands( domain, in, 3 ) ||
+		im_open_local_array( out, t, 1, domain, "p" ) ||
+		im_clip2fmt( in, t[0], IM_BANDFMT_FLOAT ) )
+		return( -1 );
+
+	if( im_cp_desc( out, t[0] ) )
+		return( -1 );
+	out->Type = type;
+
+	if( im_wrapone( t[0], out, 
+		(im_wrapone_fn) buffer_fn, a, b ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+
 typedef struct {
 	IMAGE *in, *out;
 

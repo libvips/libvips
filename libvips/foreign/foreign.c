@@ -1237,94 +1237,11 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 	/* Interpret the Type field for colorimetric images.
 	 */
-	if( in->Bands == 3 && 
-		in->BandFmt == VIPS_FORMAT_SHORT && 
-		in->Type == VIPS_INTERPRETATION_LABS ) {
+	if( in->Bands == 3 ) {
 		VipsImage *out;
 
-		if( vips_LabS2LabQ( in, &out, NULL ) ) {
-			g_object_unref( in );
-			return( -1 );
-		}
-		g_object_unref( in );
-
-		in = out;
-	}
-
-	if( in->Coding == VIPS_CODING_LABQ ) {
-		VipsImage *out;
-
-		if( vips_LabQ2Lab( in, &out, NULL ) ) {
-			g_object_unref( in );
-			return( -1 );
-		}
-		g_object_unref( in );
-
-		in = out;
-	}
-
-	if( in->Coding != VIPS_CODING_NONE ) {
-		g_object_unref( in );
-		return( -1 );
-	}
-
-	if( in->Bands == 3 && 
-		in->Type == VIPS_INTERPRETATION_LCH ) {
-		VipsImage *out;
-
-                if( vips_LCh2Lab( in, &out, NULL ) ) {
-			g_object_unref( in );
-			return( -1 );
-		}
-		g_object_unref( in );
-
-		in = out;
-	}
-
-	if( in->Bands == 3 && 
-		in->Type == VIPS_INTERPRETATION_YXY ) {
-		VipsImage *out;
-
-                if( vips_Yxy2Lab( in, &out, NULL ) ) {
-			g_object_unref( in );
-			return( -1 );
-		}
-		g_object_unref( in );
-
-		in = out;
-	}
-
-	if( in->Bands == 3 && 
-		in->Type == VIPS_INTERPRETATION_UCS ) {
-		VipsImage *out;
-
-                if( vips_UCS2XYZ( in, &out, NULL ) ) {
-			g_object_unref( in );
-			return( -1 );
-		}
-		g_object_unref( in );
-
-		in = out;
-	}
-
-	if( in->Bands == 3 && 
-		in->Type == VIPS_INTERPRETATION_LAB ) {
-		VipsImage *out;
-
-		if( vips_Lab2XYZ( in, &out, NULL ) ) {
-			g_object_unref( in );
-			return( -1 );
-		}
-		g_object_unref( in );
-
-		in = out;
-	}
-
-	if( in->Bands == 3 && 
-		in->Type == VIPS_INTERPRETATION_XYZ ) {
-		VipsImage *out;
-
-		if( vips_XYZ2sRGB( in, &out, NULL ) ) {
+		if( vips_colour_convert( in, &out, 
+			VIPS_INTERPRETATION_sRGB, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}

@@ -566,7 +566,7 @@ vips_colour_convert_class_init( VipsColourConvertClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "convert";
+	vobject_class->nickname = "colour_convert";
 	vobject_class->description = _( "convert to a new colourspace" );
 	vobject_class->build = vips_colour_convert_build;
 
@@ -618,7 +618,7 @@ vips_colour_convert( VipsImage *in, VipsImage **out,
 	int result;
 
 	va_start( ap, space );
-	result = vips_call_split( "convert", ap, in, out, space );
+	result = vips_call_split( "colour_convert", ap, in, out, space );
 	va_end( ap );
 
 	return( result );
