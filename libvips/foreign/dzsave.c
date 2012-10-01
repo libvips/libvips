@@ -17,6 +17,9 @@
  * 	- reorganise the directory structure
  * 	- rename to basename and tile_size
  * 	- deprecate tile_width/_height and dirname 
+ * 1/10/12
+ * 	- did not write low pyramid layers for images with an odd number of
+ * 	  scan lines (thanks Martin)
  */
 
 /*
@@ -46,10 +49,10 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define DEBUG
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -218,6 +221,14 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int width, int height )
 	}
 	else
 		layer->n = 0;
+
+#ifdef DEBUG
+	printf( "pyramid_build:\n" );
+	printf( "\tn = %d\n", layer->n );
+	printf( "\twidth = %d, height = %d\n", width, height );
+	printf( "\tXsize = %d, Ysize = %d\n", 
+		layer->image->Xsize, layer->image->Ysize );
+#endif
 
 	return( layer );
 }
@@ -522,6 +533,10 @@ strip_save( Layer *layer )
 {
 	Strip strip;
 
+#ifdef DEBUG
+	printf( "strip_save: n = %d, y = %d\n", layer->n, layer->y );
+#endif /*DEBUG*/
+
 	strip_init( &strip, layer );
 	if( vips_threadpool_run( strip.image, 
 		vips_thread_state_new, strip_allocate, strip_work, NULL, 
@@ -535,9 +550,9 @@ strip_save( Layer *layer )
 }
 
 /* A strip has filled, but the rightmost column and the bottom-most row may
- * not have if we've rounded the size up!
+ * not have been if we've rounded the size up.
  *
- * Fill them, if necessary, by copyping the previous row/column.
+ * Fill them, if necessary, by copying the previous row/column.
  */
 static void
 layer_generate_extras( Layer *layer )
@@ -729,7 +744,13 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
 	Layer *layer = dz->layer;
 
+#ifdef DEBUG
+	printf( "pyramid_strip: strip at %d, height %d\n", 
+		area->top, area->height );
+#endif/*DEBUG*/
+
 	for(;;) {
+		VipsRect *to = &layer->strip->valid;
 		VipsRect target;
 
 		/* The bit of strip that needs filling.
@@ -737,9 +758,8 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 		target.left = 0;
 		target.top = layer->write_y;
 		target.width = layer->image->Xsize;
-		target.height = layer->strip->valid.height;
-		vips_rect_intersectrect( &target, 
-			&layer->strip->valid, &target );
+		target.height = to->height;
+		vips_rect_intersectrect( &target, to, &target );
 
 		/* Clip against what we have available.
 		 */
@@ -761,12 +781,16 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 
 		layer->write_y += target.height;
 
-		/* If we've filled the strip, let it know.
+		/* If we've filled the strip of the layer below, let it know.
+		 * We can either fill the region, if it's somewhere half-way
+		 * down the image, or, if it's at the bottom, get to the last
+		 * writeable line.
 		 */
-		if( layer->write_y == 
-			VIPS_RECT_BOTTOM( &layer->strip->valid ) &&
-			strip_arrived( layer ) )
-			return( -1 );
+		if( layer->write_y == VIPS_RECT_BOTTOM( to ) ||
+			layer->write_y == layer->height ) {
+			if( strip_arrived( layer ) )
+				return( -1 );
+		}
 	}
 
 	return( 0 );
