@@ -1,3 +1,6 @@
+2/10/12 started 7.30.4
+- remove options from format string in .dzi (thanks Martin)
+
 13/9/12 started 7.30.3
 - linecache sized itself too large
 - fix a compile failure if libtiff was not found (thanks Martin)
