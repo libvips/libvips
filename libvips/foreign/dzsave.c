@@ -20,6 +20,8 @@
  * 1/10/12
  * 	- did not write low pyramid layers for images with an odd number of
  * 	  scan lines (thanks Martin)
+ * 2/10/12
+ * 	- remove filename options from format string in .dzi (thanks Martin)
  * 3/10/12
  * 	- add zoomify and google maps output
  */
@@ -293,15 +295,20 @@ write_dzi( VipsForeignSaveDz *dz )
 {
 	FILE *fp;
 	char buf[PATH_MAX];
+	char *p;
 
 	vips_snprintf( buf, PATH_MAX, "%s.dzi", dz->basename );
 	if( !(fp = vips__file_open_write( buf, TRUE )) )
 		return( -1 );
 
+	vips_snprintf( buf, PATH_MAX, "%s", dz->suffix + 1 );
+	if( (p = (char *) vips__find_rightmost_brackets( buf )) )
+		*p = '\0';
+
 	fprintf( fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ); 
 	fprintf( fp, "<Image "
 		"xmlns=\"http://schemas.microsoft.com/deepzoom/2008\"\n" );
-	fprintf( fp, "  Format=\"%s\"\n", dz->suffix + 1 );
+	fprintf( fp, "  Format=\"%s\"\n", buf );
 	fprintf( fp, "  Overlap=\"%d\"\n", dz->overlap );
 	fprintf( fp, "  TileSize=\"%d\"\n", dz->tile_size );
 	fprintf( fp, "  >\n" ); 
