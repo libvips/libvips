@@ -105,6 +105,25 @@ vips_foreign_tiff_resunit_get_type( void )
 
 	return( etype );
 }
+GType
+vips_foreign_dz_layout_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FOREIGN_DZ_LAYOUT_DZ, "VIPS_FOREIGN_DZ_LAYOUT_DZ", "dz"},
+			{VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY, "VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY", "zoomify"},
+			{VIPS_FOREIGN_DZ_LAYOUT_GOOGLE, "VIPS_FOREIGN_DZ_LAYOUT_GOOGLE", "google"},
+			{VIPS_FOREIGN_DZ_LAYOUT_LAST, "VIPS_FOREIGN_DZ_LAYOUT_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsForeignDzLayout", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/conversion.h" */
 GType
 vips_extend_get_type( void )
