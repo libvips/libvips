@@ -83,6 +83,7 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 	 * malloc if all we are doing is looking at fields.
 	 */
 
+#ifdef HAVE_TIFF
 	if( !header_only &&
 		!seq &&
 		!vips__istifftiled( filename ) &&
@@ -91,7 +92,6 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 			return( -1 );
 	}
 
-#ifdef HAVE_TIFF
 	if( header_only ) {
 		if( vips__tiff_read_header( filename, out, page ) )
 			return( -1 );

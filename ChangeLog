@@ -1,5 +1,8 @@
 13/9/12 started 7.30.3
 - linecache sized itself too large
+- fix a compile failure if libtiff was not found (thanks Martin)
+- dzsave did not work for images with an odd number of scanlines 
+  (thanks Martin)
 
 4/9/12 started 7.30.2
 - sequential stops all threads on error
