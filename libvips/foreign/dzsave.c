@@ -266,7 +266,7 @@ write_dzi( VipsForeignSaveDz *dz )
 		return( -1 );
 
 	vips_snprintf( buf, PATH_MAX, "%s", dz->suffix + 1 );
-	if( (p = vips__find_rightmost_brackets( buf )) )
+	if( (p = (char *) vips__find_rightmost_brackets( buf )) )
 		*p = '\0';
 
 	fprintf( fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ); 
