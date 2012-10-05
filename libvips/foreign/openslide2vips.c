@@ -34,6 +34,9 @@
  * 20/9/12
  *	- update openslide_open error handling for 3.3.0 semantics
  *	- switch from deprecated _layer_ functions
+ * 4/10/12
+ * 	- open the image once for each thread, so we get some parallelism on
+ * 	  decode
  */
 
 /*
@@ -87,6 +90,8 @@
 
 typedef struct {
 	openslide_t *osr;
+	char *filename;
+
 	char *associated;
 
 	/* Only valid if associated == NULL.
@@ -170,10 +175,11 @@ readslide_new( const char *filename, VipsImage *out,
 	g_signal_connect( out, "close", G_CALLBACK( readslide_destroy_cb ),
 		rslide );
 
+	rslide->filename = g_strdup( filename );
 	rslide->level = level;
 	rslide->associated = g_strdup( associated );
 
-	rslide->osr = openslide_open( filename );
+	rslide->osr = openslide_open( rslide->filename );
 	if( rslide->osr == NULL ) {
 		vips_error( "openslide2vips", 
 			"%s", _( "unsupported slide format" ) );
@@ -259,38 +265,79 @@ vips__openslide_read_header( const char *filename, VipsImage *out,
 	return( 0 );
 }
 
+/* One of these for each thread.
+ */
+typedef struct {
+	openslide_t *osr;
+
+	/* A mem buffer we can read to. This must be continuous.
+	 */
+	uint32_t *buf;
+	size_t size;
+
+} Seq;
+
+static void *
+vips__openslide_start( VipsImage *out, void *_rslide, void *unused )
+{
+	ReadSlide *rslide = _rslide;
+	Seq *seq;
+
+	if( !(seq = VIPS_NEW( out, Seq )) )
+		return( NULL );
+	seq->buf = NULL;
+	if( !(seq->osr = openslide_open( rslide->filename )) ) {
+		vips_error( "openslide2vips", 
+			"%s", _( "unsupported slide format" ) );
+		return( NULL );
+	}
+
+	return( (void *) seq );
+}
+
 static int
 vips__openslide_generate( VipsRegion *out, 
-	void *seq, void *_rslide, void *unused, gboolean *stop )
+	void *_seq, void *_rslide, void *unused, gboolean *stop )
 {
+	Seq *seq = (Seq *) _seq;
 	ReadSlide *rslide = _rslide;
 	uint32_t bg = rslide->bg;
 	VipsRect *r = &out->valid;
-	int n = r->width * r->height;
-	uint32_t *buf = (uint32_t *) VIPS_REGION_ADDR( out, r->left, r->top );
+	uint32_t *p;
 
 	const char *error;
-	int i;
+	int x, y;
 
 	VIPS_DEBUG_MSG( "vips__openslide_generate: %dx%d @ %dx%d\n",
 		r->width, r->height, r->left, r->top );
 
+	/* Make sure our buffer is large enough.
+	 */
+	if( !seq->buf ||
+		(size_t) r->width * r->height > seq->size ) {
+		seq->size = (size_t) r->width * r->height;
+		VIPS_FREE( seq->buf );
+		if( !(seq->buf = (uint32_t *) VIPS_ARRAY( NULL, seq->size,
+			uint32_t )) )
+			return( -1 );
+	}
+
 	/* We're inside a cache, so requests should always be TILE_WIDTH by
 	 * TILE_HEIGHT pixels and on a tile boundary.
-	 */
 	g_assert( (r->left % TILE_WIDTH) == 0 );
 	g_assert( (r->height % TILE_HEIGHT) == 0 );
 	g_assert( r->width <= TILE_WIDTH );
 	g_assert( r->height <= TILE_HEIGHT );
+	 */
 
-	openslide_read_region( rslide->osr, 
-		buf,
+	openslide_read_region( seq->osr, 
+		seq->buf,
 		r->left * rslide->downsample, 
 		r->top * rslide->downsample, 
 		rslide->level,
 		r->width, r->height ); 
 
-	error = openslide_get_error( rslide->osr );
+	error = openslide_get_error( seq->osr );
 	if( error ) {
 		vips_error( "openslide2vips", 
 			_( "reading region: %s" ), error );
@@ -300,26 +347,43 @@ vips__openslide_generate( VipsRegion *out,
 
 	/* Convert from ARGB to RGBA and undo premultiplication.
 	 */
-	for( i = 0; i < n; i++ ) {
-		uint32_t x = buf[i];
-		uint8_t a = x >> 24;
-		VipsPel *out = (VipsPel *) (buf + i);
+	for( p = seq->buf, y = 0; y < r->height; p += r->width, y++ ) {
+		VipsPel *q = (VipsPel *) 
+			VIPS_REGION_ADDR( out, r->left, r->top + y ); 
 
-		if( a != 0 ) {
-			out[0] = 255 * ((x >> 16) & 255) / a;
-			out[1] = 255 * ((x >> 8) & 255) / a;
-			out[2] = 255 * (x & 255) / a;
-			out[3] = a;
-		} 
-		else {
-			/* Use background color.
-			 */
-			out[0] = (bg >> 16) & 255;
-			out[1] = (bg >> 8) & 255;
-			out[2] = bg & 255;
-			out[3] = 0;
+		for( x = 0; x < r->width; x++ ) {
+			uint32_t b = p[x];
+			uint8_t a = x >> 24;
+
+			if( a != 0 ) {
+				q[0] = 255 * ((b >> 16) & 255) / a;
+				q[1] = 255 * ((b >> 8) & 255) / a;
+				q[2] = 255 * (b & 255) / a;
+				q[3] = b;
+			} 
+			else {
+				/* Use background color.
+				 */
+				q[0] = (bg >> 16) & 255;
+				q[1] = (bg >> 8) & 255;
+				q[2] = bg & 255;
+				q[3] = 0;
+			}
+
+			q += 4;
 		}
 	}
+
+	return( 0 );
+}
+
+static int
+vips__openslide_stop( void *_seq, void *a, void *b )
+{
+	Seq *seq = (Seq *) _seq;
+
+	VIPS_FREEF( openslide_close, seq->osr );
+	VIPS_FREE( seq->buf );
 
 	return( 0 );
 }
@@ -328,8 +392,6 @@ int
 vips__openslide_read( const char *filename, VipsImage *out, int level )
 {
 	ReadSlide *rslide;
-	VipsImage *raw;
-	VipsImage *t;
 
 	VIPS_DEBUG_MSG( "vips__openslide_read: %s %d\n", 
 		filename, level );
@@ -337,20 +399,27 @@ vips__openslide_read( const char *filename, VipsImage *out, int level )
 	/* Tile cache: keep enough for two complete rows of tiles. OpenSlide
 	 * has its own tile cache, but it's not large enough for a complete
 	 * scan line.
-	 */
+	VipsImage *raw;
+	VipsImage *t;
 	raw = vips_image_new();
 	vips_object_local( out, raw );
 
 	if( !(rslide = readslide_new( filename, raw, level, NULL )) )
 		return( -1 );
+	 */
 
-	if( vips_image_generate( raw, 
-		NULL, vips__openslide_generate, NULL, rslide, NULL ) )
+	if( !(rslide = readslide_new( filename, out, level, NULL )) )
+		return( -1 );
+
+	if( vips_image_generate( out, 
+		vips__openslide_start, 
+		vips__openslide_generate, 
+		vips__openslide_stop, 
+			rslide, NULL ) )
 		return( -1 );
 
 	/* Copy to out, adding a cache. Enough tiles for a complete row, plus
 	 * 50%.
-	 */
 	if( vips_tilecache( raw, &t, 
 		"tile_width", TILE_WIDTH, 
 		"tile_height", TILE_WIDTH,
@@ -362,6 +431,7 @@ vips__openslide_read( const char *filename, VipsImage *out, int level )
 		return( -1 );
 	}
 	g_object_unref( t );
+	 */
 
 	return( 0 );
 }
