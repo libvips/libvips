@@ -419,10 +419,11 @@ vips__openslide_read( const char *filename, VipsImage *out, int level )
 	/* Copy to out, adding a cache. Enough tiles for a complete row, plus
 	 * 50%.
 	 */
-	if( vips_threadcache( raw, &t, 
+	if( vips_tilecache( raw, &t, 
 		"tile_width", 256, 
 		"tile_height", 256,
 		"max_tiles", (int) (1.5 * (1 + raw->Xsize / TILE_WIDTH)),
+		"threaded", TRUE,
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
