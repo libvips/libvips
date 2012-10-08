@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libconversion.la
 
 libconversion_la_SOURCES = \
+	threadcache.c \
 	conversion.c \
 	conversion.h \
 	tilecache.c \

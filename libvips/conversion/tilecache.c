@@ -226,7 +226,7 @@ typedef struct _VipsTileSearch {
 	int topmost;
 } VipsTileSearch;
 
-void 
+static void 
 vips_tile_oldest( gpointer key, gpointer value, gpointer user_data )
 {
 	VipsTile *tile = (VipsTile *) value;
@@ -238,7 +238,7 @@ vips_tile_oldest( gpointer key, gpointer value, gpointer user_data )
 	}
 }
 
-void 
+static void 
 vips_tile_topmost( gpointer key, gpointer value, gpointer user_data )
 {
 	VipsTile *tile = (VipsTile *) value;

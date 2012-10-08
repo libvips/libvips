@@ -159,6 +159,8 @@ int vips_tilecache( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_linecache( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_threadcache( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_sequential( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_cache( VipsImage *in, VipsImage **out, ... )

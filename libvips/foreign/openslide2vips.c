@@ -399,19 +399,17 @@ vips__openslide_read( const char *filename, VipsImage *out, int level )
 	/* Tile cache: keep enough for two complete rows of tiles. OpenSlide
 	 * has its own tile cache, but it's not large enough for a complete
 	 * scan line.
+	 */
 	VipsImage *raw;
 	VipsImage *t;
+
 	raw = vips_image_new();
 	vips_object_local( out, raw );
 
 	if( !(rslide = readslide_new( filename, raw, level, NULL )) )
 		return( -1 );
-	 */
 
-	if( !(rslide = readslide_new( filename, out, level, NULL )) )
-		return( -1 );
-
-	if( vips_image_generate( out, 
+	if( vips_image_generate( raw, 
 		vips__openslide_start, 
 		vips__openslide_generate, 
 		vips__openslide_stop, 
@@ -420,9 +418,10 @@ vips__openslide_read( const char *filename, VipsImage *out, int level )
 
 	/* Copy to out, adding a cache. Enough tiles for a complete row, plus
 	 * 50%.
-	if( vips_tilecache( raw, &t, 
-		"tile_width", TILE_WIDTH, 
-		"tile_height", TILE_WIDTH,
+	 */
+	if( vips_threadcache( raw, &t, 
+		"tile_width", 256, 
+		"tile_height", 256,
 		"max_tiles", (int) (1.5 * (1 + raw->Xsize / TILE_WIDTH)),
 		NULL ) ) 
 		return( -1 );
@@ -431,7 +430,6 @@ vips__openslide_read( const char *filename, VipsImage *out, int level )
 		return( -1 );
 	}
 	g_object_unref( t );
-	 */
 
 	return( 0 );
 }
