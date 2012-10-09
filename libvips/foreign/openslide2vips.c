@@ -84,6 +84,9 @@
 
 /* We run our own tile cache. The OpenSlide one can't always keep enough for a
  * complete lines of pixels.
+ *
+ * These numbers need to align with the tiles used in the underlying openslide
+ * image. We need to add something to openslide to output this data.
  */
 #define TILE_WIDTH (256)
 #define TILE_HEIGHT (256)
@@ -122,6 +125,7 @@ vips__openslide_isslide( const char *filename )
 		if( vendor &&
 			strcmp( vendor, "generic-tiff" ) != 0 )
 			ok = 1;
+
 		openslide_close( osr );
 	} 
 
@@ -324,11 +328,11 @@ vips__openslide_generate( VipsRegion *out,
 
 	/* We're inside a cache, so requests should always be TILE_WIDTH by
 	 * TILE_HEIGHT pixels and on a tile boundary.
+	 */
 	g_assert( (r->left % TILE_WIDTH) == 0 );
-	g_assert( (r->height % TILE_HEIGHT) == 0 );
+	g_assert( (r->top % TILE_HEIGHT) == 0 );
 	g_assert( r->width <= TILE_WIDTH );
 	g_assert( r->height <= TILE_HEIGHT );
-	 */
 
 	openslide_read_region( seq->osr, 
 		seq->buf,
@@ -347,13 +351,14 @@ vips__openslide_generate( VipsRegion *out,
 
 	/* Convert from ARGB to RGBA and undo premultiplication.
 	 */
-	for( p = seq->buf, y = 0; y < r->height; p += r->width, y++ ) {
+	p = seq->buf;
+	for( y = 0; y < r->height; y++ ) {
 		VipsPel *q = (VipsPel *) 
 			VIPS_REGION_ADDR( out, r->left, r->top + y ); 
 
 		for( x = 0; x < r->width; x++ ) {
 			uint32_t b = p[x];
-			uint8_t a = x >> 24;
+			uint8_t a = b >> 24;
 
 			if( a != 0 ) {
 				q[0] = 255 * ((b >> 16) & 255) / a;
@@ -372,6 +377,8 @@ vips__openslide_generate( VipsRegion *out,
 
 			q += 4;
 		}
+
+		p += r->width;
 	}
 
 	return( 0 );
@@ -420,8 +427,8 @@ vips__openslide_read( const char *filename, VipsImage *out, int level )
 	 * 50%.
 	 */
 	if( vips_tilecache( raw, &t, 
-		"tile_width", 256, 
-		"tile_height", 256,
+		"tile_width", TILE_WIDTH, 
+		"tile_height", TILE_HEIGHT,
 		"max_tiles", (int) (1.5 * (1 + raw->Xsize / TILE_WIDTH)),
 		"threaded", TRUE,
 		NULL ) ) 

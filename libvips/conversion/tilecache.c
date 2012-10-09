@@ -404,6 +404,7 @@ vips_block_cache_class_init( VipsBlockCacheClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_block_cache_class_init\n" );
 
@@ -415,27 +416,29 @@ vips_block_cache_class_init( VipsBlockCacheClass *class )
 	vobject_class->description = _( "cache an image" );
 	vobject_class->build = vips_block_cache_build;
 
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBlockCache, in ) );
 
-	VIPS_ARG_INT( class, "tile_height", 3, 
+	VIPS_ARG_INT( class, "tile_height", 4, 
 		_( "Tile height" ), 
 		_( "Tile height in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsBlockCache, tile_height ),
 		1, 1000000, 128 );
 
-	VIPS_ARG_BOOL( class, "threaded", 3, 
+	VIPS_ARG_BOOL( class, "threaded", 7, 
 		_( "Threaded" ), 
 		_( "Allow threaded access" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsBlockCache, threaded ),
 		FALSE );
 
-	VIPS_ARG_ENUM( class, "strategy", 3, 
+	VIPS_ARG_ENUM( class, "strategy", 6, 
 		_( "Strategy" ), 
 		_( "Expected access pattern" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -546,7 +549,11 @@ vips_tile_cache_ref( VipsBlockCache *cache, VipsRect *r )
 			}
 
 			tile->ref_count += 1;
-			work = g_slist_prepend( work, tile );
+
+			/* We must append, since we want to keep tile ordering
+			 * for sequential sources.
+			 */
+			work = g_slist_append( work, tile );
 
 			VIPS_DEBUG_MSG( "vips_tile_cache_gen: "
 				"tile %d, %d (%p)\n", x, y, tile ); 
@@ -726,7 +733,7 @@ vips_tile_cache_class_init( VipsTileCacheClass *class )
 		G_STRUCT_OFFSET( VipsBlockCache, tile_width ),
 		1, 1000000, 128 );
 
-	VIPS_ARG_INT( class, "max_tiles", 3, 
+	VIPS_ARG_INT( class, "max_tiles", 5, 
 		_( "Max tiles" ), 
 		_( "Maximum number of tiles to cache" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

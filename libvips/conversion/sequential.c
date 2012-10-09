@@ -155,9 +155,8 @@ vips_sequential_generate( VipsRegion *or,
 	 * either not read anything yet or fallen through from the stall
 	 * above. 
 	 *
-	 * Probably the operation is something like
-	 * extract_area and we should skip the initial part of the image. In
-	 * fact we read to cache.
+	 * Probably the operation is something like extract_area and we should 
+	 * skip the initial part of the image. In fact, we read to cache.
 	 */
 	if( r->top > sequential->y_pos ) {
 		VipsRect area;
