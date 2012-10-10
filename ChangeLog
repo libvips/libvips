@@ -1,5 +1,7 @@
 3/10/12 started 7.31.0
 - dzsave can write zoomify and google maps layout as well
+- embed has 'background' option
+- dzsave --layout google has a @background option
 
 2/10/12 started 7.30.4
 - remove options from format string in .dzi (thanks Martin)
