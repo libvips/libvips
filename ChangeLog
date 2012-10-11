@@ -2,6 +2,7 @@
 - dzsave can write zoomify and google maps layout as well
 - openslide2vips now opens the input once for each thread
 - tilecache supports threaded access
+- openslide2vips gets underlying tile size from openslide
 
 2/10/12 started 7.30.4
 - remove options from format string in .dzi (thanks Martin)
