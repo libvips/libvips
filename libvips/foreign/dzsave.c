@@ -24,6 +24,8 @@
  * 	- remove filename options from format string in .dzi (thanks Martin)
  * 3/10/12
  * 	- add zoomify and google maps output
+ * 10/10/12
+ * 	- add @background option
  */
 
 /*
@@ -131,6 +133,7 @@ struct _VipsForeignSaveDz {
 	int overlap;
 	int tile_size;
 	VipsForeignDzLayout layout;
+	VipsArea *background;
 
 	Layer *layer;			/* x2 shrink pyr layer */
 
@@ -703,7 +706,7 @@ strip_work( VipsThreadState *state, void *a )
 		VipsImage *z;
 
 		if( vips_embed( x, &z, 0, 0, dz->tile_size, dz->tile_size,
-			"extend", VIPS_EXTEND_WHITE,
+			"background", dz->background,
 			NULL ) ) {
 			g_object_unref( x );
 			return( -1 );
@@ -1133,6 +1136,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
 		1, 1024, 256 );
 
+	VIPS_ARG_BOXED( class, "background", 12, 
+		_( "Background" ), 
+		_( "Colour for background pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
@@ -1167,6 +1177,9 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->overlap = 1;
 	dz->tile_size = 256;
 	dz->tile_count = 0;
+	dz->background = 
+		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
+	((double *) (dz->background->data))[0] = 255;
 }
 
 /**
@@ -1181,6 +1194,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * @suffix: suffix for tile tiles 
  * @overlap; set tile overlap 
  * @tile_size; set tile size 
+ * @background: background colour
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -1194,6 +1208,10 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  *
  * You can set @suffix to something like ".jpg[Q=85]" to set the tile write
  * options. 
+ * 
+ * In Google layout mode, edge tiles are expanded to @tile_size by @tile_size 
+ * pixels. Normally they are filled with white, but you can set another colour
+ * with @background.
  *
  * You can set the size and overlap of tiles with @tile_size and @overlap.
  * They default to the correct settings for the selected @layout. 

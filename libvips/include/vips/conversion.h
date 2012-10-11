@@ -44,6 +44,7 @@ extern "C" {
  * @VIPS_EXTEND_REPEAT: repeat the whole image
  * @VIPS_EXTEND_MIRROR: mirror the whole image
  * @VIPS_EXTEND_WHITE: extend with white (all bits set) pixels
+ * @VIPS_EXTEND_BACKGROUND: extend with colour from the @background property
  *
  * See vips_embed(), vips_conv(), vips_affine() and so on.
  *
@@ -61,6 +62,8 @@ extern "C" {
  * edges
  *
  * #VIPS_EXTEND_WHITE --- new pixels are white, ie. all bits are set
+
+ * #VIPS_EXTEND_BACKGROUND --- colour set from the @background property
  *
  * We have to specify the exact value of each enum member since we have to 
  * keep these frozen for back compat with vips7.
@@ -68,12 +71,13 @@ extern "C" {
  * See also: vips_embed().
  */
 typedef enum {
-	VIPS_EXTEND_BLACK = 0,
-	VIPS_EXTEND_COPY = 1,
-	VIPS_EXTEND_REPEAT = 2,
-	VIPS_EXTEND_MIRROR = 3,
-	VIPS_EXTEND_WHITE = 4,
-	VIPS_EXTEND_LAST = 5
+	VIPS_EXTEND_BLACK,
+	VIPS_EXTEND_COPY,
+	VIPS_EXTEND_REPEAT,
+	VIPS_EXTEND_MIRROR,
+	VIPS_EXTEND_WHITE,
+	VIPS_EXTEND_BACKGROUND,
+	VIPS_EXTEND_LAST
 } VipsExtend;
 
 /** 
