@@ -279,7 +279,7 @@ vips__openslide_generate( VipsRegion *out,
 	 * TILE_HEIGHT pixels and on a tile boundary.
 	 */
 	g_assert( (r->left % TILE_WIDTH) == 0 );
-	g_assert( (r->height % TILE_HEIGHT) == 0 );
+	g_assert( (r->top % TILE_HEIGHT) == 0 );
 	g_assert( r->width <= TILE_WIDTH );
 	g_assert( r->height <= TILE_HEIGHT );
 
