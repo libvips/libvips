@@ -693,9 +693,11 @@ strip_work( VipsThreadState *state, void *a )
 		state->x / dz->tile_size, state->y / dz->tile_size ) )
 		return( -1 );
 
+	vips_object_sanity( VIPS_OBJECT( strip->image ) );
+
 	/* Extract relative to the strip top-left corner.
 	 */
-	if( vips_extract_area( state->im, &x, 
+	if( vips_extract_area( strip->image, &x, 
 		state->pos.left, 0, 
 		state->pos.width, state->pos.height, NULL ) ) 
 		return( -1 );

@@ -306,6 +306,7 @@ vips__openslide_generate( VipsRegion *out,
 	g_assert( (r->left % rslide->tile_width) == 0 );
 	g_assert( (r->top % rslide->tile_height) == 0 );
 	g_assert( r->width <= rslide->tile_width );
+	g_assert( r->height <= rslide->tile_height );
 
 	/* The memory on the region should be contiguous for our ARGB->RGBA
 	 * loop below.
