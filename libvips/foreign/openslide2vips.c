@@ -36,6 +36,7 @@
  *	- switch from deprecated _layer_ functions
  * 11/10/12
  * 	- look for tile-width and tile-height properties
+ * 	- use threaded tile cache
  */
 
 /*
