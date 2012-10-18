@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: vips-@VIPS_MAJOR_VERSION@.@VIPS_MINOR_VERSION@
+Name: vips
 Description: Image processing library
 Version: @VERSION@
 Requires: @PACKAGES_USED@
