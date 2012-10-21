@@ -39,7 +39,7 @@ $(PDF): $(SRC)
 	pdflatex vipsmanual.tex
 	pdflatex vipsmanual.tex
 
-.PHONEY: html
+.PHONY: html
 html: 
 	-rm -rf vipsmanual 
 	mkdir vipsmanual
@@ -48,7 +48,7 @@ html:
 	-rm vipsmanual/figs/*.svg
 	-rm vipsmanual/*.png
 
-.PHONEY: clean 
+.PHONY: clean 
 clean:
 	-rm -f *.4ct
 	-rm -f *.4tc
