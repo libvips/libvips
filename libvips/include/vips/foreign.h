@@ -424,6 +424,21 @@ int vips_radload( const char *filename, VipsImage **out, ... )
 int vips_radsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
+/**
+ * VipsForeignDzLayout:
+ * @VIPS_FOREIGN_DZ_LAYOUT_DZ: use DeepZoom directory layout
+ * @VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY: use Zoomify directory layout
+ * @VIPS_FOREIGN_DZ_LAYOUT_GOOGLE: use Google maps directory layout
+ *
+ * Use inches or centimeters as the resolution unit for a tiff file.
+ */
+typedef enum {
+	VIPS_FOREIGN_DZ_LAYOUT_DZ,
+	VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY,
+	VIPS_FOREIGN_DZ_LAYOUT_GOOGLE,
+	VIPS_FOREIGN_DZ_LAYOUT_LAST
+} VipsForeignDzLayout;
+
 int vips_dzsave( VipsImage *in, const char *basename, ... )
 	__attribute__((sentinel));
 

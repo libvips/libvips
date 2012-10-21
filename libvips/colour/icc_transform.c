@@ -83,8 +83,9 @@
 #ifdef HAVE_LCMS
 typedef DWORD cmsUInt32Number;
 
-#define cmsSigRgbData icSigRgbData:
-#define cmsSigCmykData icSigCmykData:
+/* This doesn't exist in lcms1, just set it to zero.
+ */
+#define cmsFLAGS_NOCACHE (0)
 #endif
 
 /**
@@ -191,7 +192,7 @@ vips_icc_build( VipsObject *object )
 	if( icc->in_profile &&
 		code->in ) {
 		switch( cmsGetColorSpace( icc->in_profile ) ) {
-		case cmsSigRgbData:
+		case icSigRgbData:
 			code->input_bands = 3;
 			code->input_format = 
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
@@ -201,7 +202,7 @@ vips_icc_build( VipsObject *object )
 				TYPE_RGB_16 : TYPE_RGB_8;
 			break;
 
-		case cmsSigCmykData:
+		case icSigCmykData:
 			code->input_bands = 4;
 			code->input_format = 
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
@@ -211,7 +212,7 @@ vips_icc_build( VipsObject *object )
 				TYPE_CMYK_16 : TYPE_CMYK_8;
 			break;
 
-		case cmsSigLabData:
+		case icSigLabData:
 			code->input_bands = 3;
 			code->input_format = VIPS_FORMAT_FLOAT;
 			icc->in_icc_format = TYPE_Lab_16;
@@ -265,8 +266,8 @@ vips_icc_build( VipsObject *object )
 	 */
 	if( icc->in_profile &&
 		icc->out_profile &&
-		cmsGetColorSpace( icc->in_profile ) == cmsSigLabData &&
-		cmsGetColorSpace( icc->out_profile ) == cmsSigLabData ) {
+		cmsGetColorSpace( icc->in_profile ) == icSigLabData &&
+		cmsGetColorSpace( icc->out_profile ) == icSigLabData ) {
 		vips_error( class->nickname,
 			"%s", _( "no device profile" ) ); 
 		return( -1 );

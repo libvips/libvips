@@ -1,3 +1,8 @@
+- get rid of no-threads mode, glib no longer supports this
+
+- argh g_mutex_new() is now deprecated, make our own vips_mutex_new()
+  compatibility function that uses g_mutex_init() internally, if available
+
 - add mono as a colourspace? also rad?
 
 - something to test if an image is in a supported colourspace?

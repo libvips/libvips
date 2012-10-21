@@ -122,7 +122,7 @@
  */
 #define MAX_IMAGES (1000)
 
-/* Make a upstream/downstream link. upstream is one of downstream's inputs.
+/* Make an upstream/downstream link. upstream is one of downstream's inputs.
  */
 static void 
 vips__link_make( VipsImage *image_up, VipsImage *image_down )
@@ -183,10 +183,10 @@ vips__link_break_all( VipsImage *image )
 	vips_slist_map2( image->downstream, 
 		(VipsSListMap2Fn) vips__link_break_rev, image, NULL );
 
-	g_mutex_unlock( vips__global_lock );
-
 	g_assert( !image->upstream );
 	g_assert( !image->downstream );
+
+	g_mutex_unlock( vips__global_lock );
 }
 
 typedef struct _LinkMap {
@@ -264,6 +264,7 @@ vips__link_map( VipsImage *image, gboolean upstream,
 	g_mutex_unlock( vips__global_lock );
 
 	result = vips_slist_map2( images, fn, a, b );
+
 	for( p = images; p; p = p->next ) 
 		g_object_unref( p->data );
 	g_slist_free( images );

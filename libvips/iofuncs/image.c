@@ -465,12 +465,18 @@ vips_image_sanity( VipsObject *object, VipsBuf *buf )
 			vips_buf_appends( buf, "bad resolution\n" );
 	}
 
+	/* Must lock around inter-image links.
+	 */
+	g_mutex_lock( vips__global_lock );
+
 	if( vips_slist_map2( image->upstream, 
 		(VipsSListMap2Fn) vips_image_sanity_upstream, image, NULL ) )
 		vips_buf_appends( buf, "upstream broken\n" );
 	if( vips_slist_map2( image->downstream, 
 		(VipsSListMap2Fn) vips_image_sanity_downstream, image, NULL ) )
 		vips_buf_appends( buf, "downstream broken\n" );
+
+	g_mutex_unlock( vips__global_lock );
 
 	VIPS_OBJECT_CLASS( vips_image_parent_class )->sanity( object, buf );
 }

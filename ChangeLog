@@ -5,9 +5,21 @@
   im_LabS2LabQ(), im_LabQ2disp(), im_XYZ2disp(), im_disp2XYZ(),
   im_icc_import*(), im_icc_export*(), im_icc_transform*()  as classes
 - added vips_colour_convert(), replaces all derived conversions
+- dzsave can write zoomify and google maps layout as well
+- tilecache supports threaded access
+- openslide2vips gets underlying tile size from openslide
+- embed has 'background' option
+- dzsave --layout google has a @background option
+
+2/10/12 started 7.30.4
+- remove options from format string in .dzi (thanks Martin)
+- vipsCC.pc required the wrong version of vips (thanks Alessandro)
 
 13/9/12 started 7.30.3
 - linecache sized itself too large
+- fix a compile failure if libtiff was not found (thanks Martin)
+- dzsave did not work for images with an odd number of scanlines 
+  (thanks Martin)
 
 4/9/12 started 7.30.2
 - sequential stops all threads on error

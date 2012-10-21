@@ -34,6 +34,9 @@
  * 20/9/12
  *	- update openslide_open error handling for 3.3.0 semantics
  *	- switch from deprecated _layer_ functions
+ * 11/10/12
+ * 	- look for tile-width and tile-height properties
+ * 	- use threaded tile cache
  */
 
 /*
@@ -79,14 +82,9 @@
 
 #include "openslide2vips.h"
 
-/* We run our own tile cache. The OpenSlide one can't always keep enough for a
- * complete lines of pixels.
- */
-#define TILE_WIDTH (256)
-#define TILE_HEIGHT (256)
-
 typedef struct {
 	openslide_t *osr;
+
 	char *associated;
 
 	/* Only valid if associated == NULL.
@@ -94,6 +92,11 @@ typedef struct {
 	int32_t level;
 	double downsample;
 	uint32_t bg;
+
+	/* Try to get these from openslide properties.
+	 */
+	int tile_width;
+	int tile_height;
 } ReadSlide;
 
 int
@@ -117,6 +120,7 @@ vips__openslide_isslide( const char *filename )
 		if( vendor &&
 			strcmp( vendor, "generic-tiff" ) != 0 )
 			ok = 1;
+
 		openslide_close( osr );
 	} 
 
@@ -173,6 +177,11 @@ readslide_new( const char *filename, VipsImage *out,
 	rslide->level = level;
 	rslide->associated = g_strdup( associated );
 
+	/* Non-crazy defaults, override below if we can.
+	 */
+	rslide->tile_width = 256;
+	rslide->tile_height = 256;
+
 	rslide->osr = openslide_open( filename );
 	if( rslide->osr == NULL ) {
 		vips_error( "openslide2vips", 
@@ -206,12 +215,29 @@ readslide_new( const char *filename, VipsImage *out,
 		vips_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	} 
 	else {
+		char buf[256];
+		const char *value;
+
 		openslide_get_level_dimensions( rslide->osr,
 			level, &w, &h );
 		rslide->downsample = openslide_get_level_downsample(
 			rslide->osr, level );
 		vips_image_set_int( out, "slide-level", level );
 		vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+
+		/* Try to get tile width/height. An undocumented, experimental
+		 * feature.
+		 */
+		vips_snprintf( buf, 256, 
+			"openslide.level[%d].tile-width", level );
+		if( (value = openslide_get_property_value( rslide->osr, buf )) )
+			rslide->tile_width = atoi( value );
+		vips_snprintf( buf, 256, 
+			"openslide.level[%d].tile-height", level );
+		if( (value = openslide_get_property_value( rslide->osr, buf )) )
+			rslide->tile_height = atoi( value );
+		if( value )
+			VIPS_DEBUG_MSG( "readslide_new: found tile-size\n" );
 	}
 
 	rslide->bg = 0xffffff;
@@ -261,7 +287,7 @@ vips__openslide_read_header( const char *filename, VipsImage *out,
 
 static int
 vips__openslide_generate( VipsRegion *out, 
-	void *seq, void *_rslide, void *unused, gboolean *stop )
+	void *_seq, void *_rslide, void *unused, gboolean *stop )
 {
 	ReadSlide *rslide = _rslide;
 	uint32_t bg = rslide->bg;
@@ -275,13 +301,18 @@ vips__openslide_generate( VipsRegion *out,
 	VIPS_DEBUG_MSG( "vips__openslide_generate: %dx%d @ %dx%d\n",
 		r->width, r->height, r->left, r->top );
 
-	/* We're inside a cache, so requests should always be TILE_WIDTH by
-	 * TILE_HEIGHT pixels and on a tile boundary.
+	/* We're inside a cache, so requests should always be
+	 * tile_width by tile_height pixels and on a tile boundary.
 	 */
-	g_assert( (r->left % TILE_WIDTH) == 0 );
-	g_assert( (r->height % TILE_HEIGHT) == 0 );
-	g_assert( r->width <= TILE_WIDTH );
-	g_assert( r->height <= TILE_HEIGHT );
+	g_assert( (r->left % rslide->tile_width) == 0 );
+	g_assert( (r->top % rslide->tile_height) == 0 );
+	g_assert( r->width <= rslide->tile_width );
+	g_assert( r->height <= rslide->tile_height );
+
+	/* The memory on the region should be contiguous for our ARGB->RGBA
+	 * loop below.
+	 */
+	g_assert( VIPS_REGION_LSKIP( out ) == r->width * 4 );
 
 	openslide_read_region( rslide->osr, 
 		buf,
@@ -298,12 +329,14 @@ vips__openslide_generate( VipsRegion *out,
 		return( -1 );
 	}
 
-	/* Convert from ARGB to RGBA and undo premultiplication.
+	/* Convert from ARGB to RGBA and undo premultiplication. Since we are
+	 * inside a cache, we know buf must be continuous.
 	 */
 	for( i = 0; i < n; i++ ) {
-		uint32_t x = buf[i];
+		uint32_t *p = buf + i;
+		uint32_t x = *p;
 		uint8_t a = x >> 24;
-		VipsPel *out = (VipsPel *) (buf + i);
+		VipsPel *out = (VipsPel *) p;
 
 		if( a != 0 ) {
 			out[0] = 255 * ((x >> 16) & 255) / a;
@@ -334,10 +367,6 @@ vips__openslide_read( const char *filename, VipsImage *out, int level )
 	VIPS_DEBUG_MSG( "vips__openslide_read: %s %d\n", 
 		filename, level );
 
-	/* Tile cache: keep enough for two complete rows of tiles. OpenSlide
-	 * has its own tile cache, but it's not large enough for a complete
-	 * scan line.
-	 */
 	raw = vips_image_new();
 	vips_object_local( out, raw );
 
@@ -352,9 +381,11 @@ vips__openslide_read( const char *filename, VipsImage *out, int level )
 	 * 50%.
 	 */
 	if( vips_tilecache( raw, &t, 
-		"tile_width", TILE_WIDTH, 
-		"tile_height", TILE_WIDTH,
-		"max_tiles", (int) (1.5 * (1 + raw->Xsize / TILE_WIDTH)),
+		"tile_width", rslide->tile_width, 
+		"tile_height", rslide->tile_height,
+		"max_tiles", 
+			(int) (1.5 * (1 + raw->Xsize / rslide->tile_width)),
+		"threaded", TRUE,
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t, out ) ) {

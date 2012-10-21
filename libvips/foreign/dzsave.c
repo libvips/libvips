@@ -17,6 +17,15 @@
  * 	- reorganise the directory structure
  * 	- rename to basename and tile_size
  * 	- deprecate tile_width/_height and dirname 
+ * 1/10/12
+ * 	- did not write low pyramid layers for images with an odd number of
+ * 	  scan lines (thanks Martin)
+ * 2/10/12
+ * 	- remove filename options from format string in .dzi (thanks Martin)
+ * 3/10/12
+ * 	- add zoomify and google maps output
+ * 10/10/12
+ * 	- add @background option
  */
 
 /*
@@ -46,10 +55,10 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define DEBUG
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -61,6 +70,15 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
+
+/* Round N down to P boundary. 
+ */
+#define ROUND_DOWN(N,P) ((N) - ((N) % P)) 
+
+/* Round N up to P boundary. 
+ */
+#define ROUND_UP(N,P) (ROUND_DOWN( (N) + (P) - 1, (P) ))
 
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
 typedef struct _Layer Layer;
@@ -76,6 +94,12 @@ struct _Layer {
 	 */
 	int width;
 	int height;
+
+	/* Number of tiles across and down in this layer. Zoomify needs this
+	 * to calculate the directory to put each tile in.
+	 */
+	int tiles_across;
+	int tiles_down;
 
 	VipsImage *image;		/* The image we build */
 
@@ -108,8 +132,14 @@ struct _VipsForeignSaveDz {
 	char *suffix;
 	int overlap;
 	int tile_size;
+	VipsForeignDzLayout layout;
+	VipsArea *background;
 
 	Layer *layer;			/* x2 shrink pyr layer */
+
+	/* Count zoomify tiles we write.
+	 */
+	int tile_count;
 };
 
 typedef VipsForeignSaveClass VipsForeignSaveDzClass;
@@ -148,10 +178,14 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int width, int height )
 	Layer *layer = VIPS_NEW( dz, Layer );
 
 	VipsRect strip;
+	int limit; 
 
 	layer->dz = dz;
 	layer->width = width;
 	layer->height = height;
+
+	layer->tiles_across = ROUND_UP( width, dz->tile_size ) / dz->tile_size;
+	layer->tiles_down = ROUND_UP( height, dz->tile_size ) / dz->tile_size;
 
 	layer->image = NULL;
 	layer->strip = NULL;
@@ -204,8 +238,16 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int width, int height )
 		return( NULL );
 	}
 
-	if( width > 1 ||
-		height > 1 ) {
+	/* DeepZoom stops at 1x1 pixels, others when the image fits within a
+	 * tile.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) 
+		limit = 1;
+	else
+		limit = dz->tile_size;
+
+	if( width > limit || 
+		height > limit ) {
 		/* Round up, so eg. a 5 pixel wide image becomes 3 a layer
 		 * down.
 		 */
@@ -219,24 +261,34 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int width, int height )
 	else
 		layer->n = 0;
 
+#ifdef DEBUG
+	printf( "pyramid_build:\n" );
+	printf( "\tn = %d\n", layer->n );
+	printf( "\twidth = %d, height = %d\n", width, height );
+	printf( "\tXsize = %d, Ysize = %d\n", 
+		layer->image->Xsize, layer->image->Ysize );
+#endif
+
 	return( layer );
 }
 
 static int
 pyramid_mkdir( VipsForeignSaveDz *dz )
 {
-	Layer *layer;
+	char buf[PATH_MAX];
 
-	if( vips_existsf( "%s_files", dz->basename ) ) { 
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ )
+		vips_snprintf( buf, PATH_MAX, "%s_files", dz->basename );
+	else
+		vips_snprintf( buf, PATH_MAX, "%s", dz->basename );
+
+	if( vips_existsf( "%s", buf ) ) { 
 		vips_error( "dzsave", 
-			_( "Directory \"%s_files\" exists" ), dz->basename );
+			_( "Directory \"%s\" exists" ), buf );
 		return( -1 );
 	}
-	if( vips_mkdirf( "%s_files", dz->basename ) ) 
+	if( vips_mkdirf( "%s", buf ) ) 
 		return( -1 );
-	for( layer = dz->layer; layer; layer = layer->below )
-		if( vips_mkdirf( "%s_files/%d", dz->basename, layer->n ) ) 
-			return( -1 );
 
 	return( 0 );
 }
@@ -246,15 +298,20 @@ write_dzi( VipsForeignSaveDz *dz )
 {
 	FILE *fp;
 	char buf[PATH_MAX];
+	char *p;
 
 	vips_snprintf( buf, PATH_MAX, "%s.dzi", dz->basename );
 	if( !(fp = vips__file_open_write( buf, TRUE )) )
 		return( -1 );
 
+	vips_snprintf( buf, PATH_MAX, "%s", dz->suffix + 1 );
+	if( (p = (char *) vips__find_rightmost_brackets( buf )) )
+		*p = '\0';
+
 	fprintf( fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ); 
 	fprintf( fp, "<Image "
 		"xmlns=\"http://schemas.microsoft.com/deepzoom/2008\"\n" );
-	fprintf( fp, "  Format=\"%s\"\n", dz->suffix + 1 );
+	fprintf( fp, "  Format=\"%s\"\n", buf );
 	fprintf( fp, "  Overlap=\"%d\"\n", dz->overlap );
 	fprintf( fp, "  TileSize=\"%d\"\n", dz->tile_size );
 	fprintf( fp, "  >\n" ); 
@@ -265,6 +322,49 @@ write_dzi( VipsForeignSaveDz *dz )
 	fprintf( fp, "</Image>\n" );
 
 	fclose( fp );
+
+	return( 0 );
+}
+
+static int
+write_properties( VipsForeignSaveDz *dz )
+{
+	FILE *fp;
+	char buf[PATH_MAX];
+
+	vips_snprintf( buf, PATH_MAX, "%s/ImageProperties.xml", dz->basename );
+	if( !(fp = vips__file_open_write( buf, TRUE )) )
+		return( -1 );
+
+	fprintf( fp, "<IMAGE_PROPERTIES "
+		"WIDTH=\"%d\" HEIGHT=\"%d\" NUMTILES=\"%d\" "
+		"NUMIMAGES=\"1\" VERSION=\"1.8\" TILESIZE=\"%d\" />\n",
+		dz->layer->width,
+		dz->layer->height,
+		dz->tile_count,
+		dz->tile_size );
+
+	fclose( fp );
+
+	return( 0 );
+}
+
+static int
+write_blank( VipsForeignSaveDz *dz )
+{
+	char buf[PATH_MAX];
+	VipsImage *black;
+
+	vips_snprintf( buf, PATH_MAX, "%s/blank.png", dz->basename );
+	if( vips_black( &black, dz->tile_size, dz->tile_size, 
+		"bands", 3, 
+		NULL ) )
+		return( -1 );
+	if( vips_image_write_to_file( black, buf ) ) {
+		g_object_unref( black );
+		return( -1 );
+	}
+	g_object_unref( black );
 
 	return( 0 );
 }
@@ -481,6 +581,104 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	return( 0 );
 }
 
+/* Create a tile name in the current layout.
+ */
+static int
+tile_name( Layer *layer, char *buf, int x, int y )
+{
+	VipsForeignSaveDz *dz = layer->dz;
+
+	char dirname[PATH_MAX];
+	char dirname2[PATH_MAX];
+	Layer *p;
+	int n;
+
+	/* We have to lock or there's a race between exists() and mkdir().
+	 */
+	g_mutex_lock( vips__global_lock );
+
+	switch( dz->layout ) {
+	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
+		vips_snprintf( dirname, PATH_MAX, "%s_files/%d", 
+			dz->basename, layer->n );
+		vips_snprintf( buf, PATH_MAX, "%s/%d_%d%s", 
+			dirname, x, y, dz->suffix );
+
+		if( !vips_existsf( "%s", dirname ) &&
+			vips_mkdirf( "%s", dirname ) ) {
+			g_mutex_unlock( vips__global_lock );
+			return( -1 );
+		}
+
+		break;
+
+	case VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY:
+		/* We need to work out the tile number so we can calculate the
+		 * directory to put this tile in.
+		 *
+		 * Tiles are numbered from 0 for the most-zoomed-out tile. 
+		 */
+		n = 0;
+
+		/* Count all tiles in layers below this one. 
+		 */
+		for( p = layer->below; p; p = p->below )
+			n += p->tiles_across * p->tiles_down;
+
+		/* And count tiles so far in this layer.
+		 */
+		n += y * layer->tiles_across + x;
+
+		vips_snprintf( dirname, PATH_MAX, "%s/TileGroup%d", 
+			dz->basename, n / 256 );
+		vips_snprintf( buf, PATH_MAX, "%s/%d-%d-%d%s", 
+			dirname, layer->n, x, y, dz->suffix );
+
+		/* Used at the end in ImageProperties.xml
+		 */
+		dz->tile_count += 1;
+
+		if( !vips_existsf( "%s", dirname ) &&
+			vips_mkdirf( "%s", dirname ) ) {
+			g_mutex_unlock( vips__global_lock );
+			return( -1 );
+		}
+
+		break;
+
+	case VIPS_FOREIGN_DZ_LAYOUT_GOOGLE:
+		vips_snprintf( dirname, PATH_MAX, "%s/%d", 
+			dz->basename, layer->n );
+		vips_snprintf( dirname2, PATH_MAX, "%s/%d", 
+			dirname, y );
+		vips_snprintf( buf, PATH_MAX, "%s/%d%s", 
+			dirname2, x, dz->suffix );
+
+		if( !vips_existsf( "%s", dirname ) &&
+			vips_mkdirf( "%s", dirname ) ) {
+			g_mutex_unlock( vips__global_lock );
+			return( -1 );
+		}
+
+		if( !vips_existsf( "%s", dirname2 ) &&
+			vips_mkdirf( "%s", dirname2 ) ) {
+			g_mutex_unlock( vips__global_lock );
+			return( -1 );
+		}
+
+		break;
+
+	default:
+		g_assert( 0 );
+		g_mutex_unlock( vips__global_lock );
+		return( -1 );
+	}
+
+	g_mutex_unlock( vips__global_lock );
+
+	return( 0 );
+}
+
 static int
 strip_work( VipsThreadState *state, void *a )
 {
@@ -488,29 +686,43 @@ strip_work( VipsThreadState *state, void *a )
 	Layer *layer = strip->layer;
 	VipsForeignSaveDz *dz = layer->dz;
 
-	VipsImage *extr;
-	char str[1000];
-	VipsBuf buf = VIPS_BUF_STATIC( str );
+	VipsImage *x;
+	char buf[PATH_MAX];
+
+	if( tile_name( layer, buf, 
+		state->x / dz->tile_size, state->y / dz->tile_size ) )
+		return( -1 );
+
+	vips_object_sanity( VIPS_OBJECT( strip->image ) );
 
 	/* Extract relative to the strip top-left corner.
 	 */
-	if( vips_extract_area( state->im, &extr, 
+	if( vips_extract_area( strip->image, &x, 
 		state->pos.left, 0, 
 		state->pos.width, state->pos.height, NULL ) ) 
 		return( -1 );
 
-	vips_buf_appendf( &buf, "%s_files/%d/%d_%d%s",
-		dz->basename, layer->n,
-		state->x / dz->tile_size, 
-		state->y / dz->tile_size, 
-		dz->suffix );
+	/* Google tiles need to be padded up to tilesize.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
+		VipsImage *z;
 
-	if( vips_image_write_to_file( extr, vips_buf_all( &buf ) ) ) {
-		g_object_unref( extr );
-		return( -1 );
+		if( vips_embed( x, &z, 0, 0, dz->tile_size, dz->tile_size,
+			"background", dz->background,
+			NULL ) ) {
+			g_object_unref( x );
+			return( -1 );
+		}
+		g_object_unref( x );
+
+		x = z;
 	}
 
-	g_object_unref( extr );
+	if( vips_image_write_to_file( x, buf ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
 
 	return( 0 );
 }
@@ -521,6 +733,10 @@ static int
 strip_save( Layer *layer )
 {
 	Strip strip;
+
+#ifdef DEBUG
+	printf( "strip_save: n = %d, y = %d\n", layer->n, layer->y );
+#endif /*DEBUG*/
 
 	strip_init( &strip, layer );
 	if( vips_threadpool_run( strip.image, 
@@ -535,9 +751,9 @@ strip_save( Layer *layer )
 }
 
 /* A strip has filled, but the rightmost column and the bottom-most row may
- * not have if we've rounded the size up!
+ * not have been if we've rounded the size up.
  *
- * Fill them, if necessary, by copyping the previous row/column.
+ * Fill them, if necessary, by copying the previous row/column.
  */
 static void
 layer_generate_extras( Layer *layer )
@@ -729,7 +945,13 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
 	Layer *layer = dz->layer;
 
+#ifdef DEBUG
+	printf( "pyramid_strip: strip at %d, height %d\n", 
+		area->top, area->height );
+#endif/*DEBUG*/
+
 	for(;;) {
+		VipsRect *to = &layer->strip->valid;
 		VipsRect target;
 
 		/* The bit of strip that needs filling.
@@ -737,9 +959,8 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 		target.left = 0;
 		target.top = layer->write_y;
 		target.width = layer->image->Xsize;
-		target.height = layer->strip->valid.height;
-		vips_rect_intersectrect( &target, 
-			&layer->strip->valid, &target );
+		target.height = to->height;
+		vips_rect_intersectrect( &target, to, &target );
 
 		/* Clip against what we have available.
 		 */
@@ -761,12 +982,16 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 
 		layer->write_y += target.height;
 
-		/* If we've filled the strip, let it know.
+		/* If we've filled the strip of the layer below, let it know.
+		 * We can either fill the region, if it's somewhere half-way
+		 * down the image, or, if it's at the bottom, get to the last
+		 * writeable line.
 		 */
-		if( layer->write_y == 
-			VIPS_RECT_BOTTOM( &layer->strip->valid ) &&
-			strip_arrived( layer ) )
-			return( -1 );
+		if( layer->write_y == VIPS_RECT_BOTTOM( to ) ||
+			layer->write_y == layer->height ) {
+			if( strip_arrived( layer ) )
+				return( -1 );
+		}
 	}
 
 	return( 0 );
@@ -777,6 +1002,16 @@ vips_foreign_save_dz_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) object;
+
+	/* Google and zoomify default to zero overlap, ".jpg".
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY ||
+		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
+		if( !vips_object_get_argument_assigned( object, "overlap" ) )
+			dz->overlap = 0;
+		if( !vips_object_get_argument_assigned( object, "suffix" ) )
+			VIPS_SETSTR( dz->suffix, ".jpg" );
+	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_parent_class )->
 		build( object ) )
@@ -795,12 +1030,32 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( !(dz->layer = pyramid_build( dz, 
 		NULL, save->ready->Xsize, save->ready->Ysize )) )
 		return( -1 );
-	if( pyramid_mkdir( dz ) ||
-		write_dzi( dz ) )
+	if( pyramid_mkdir( dz ) )
 		return( -1 );
 
 	if( vips_sink_disc( save->ready, pyramid_strip, dz ) )
 		return( -1 );
+
+	switch( dz->layout ) {
+	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
+		if( write_dzi( dz ) )
+			return( -1 );
+		break;
+
+	case VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY:
+		if( write_properties( dz ) )
+			return( -1 );
+		break;
+
+	case VIPS_FOREIGN_DZ_LAYOUT_GOOGLE:
+		if( write_blank( dz ) )
+			return( -1 );
+		break;
+
+	default:
+		g_assert( 0 );
+		return( -1 );
+	}
 
 	return( 0 );
 }
@@ -854,6 +1109,14 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, basename ),
 		NULL );
 
+	VIPS_ARG_ENUM( class, "layout", 8, 
+		_( "Layout" ), 
+		_( "Directory layout" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, layout ),
+		VIPS_TYPE_FOREIGN_DZ_LAYOUT, 
+			VIPS_FOREIGN_DZ_LAYOUT_DZ ); 
+
 	VIPS_ARG_STRING( class, "suffix", 9, 
 		_( "suffix" ), 
 		_( "Filename suffix for tiles" ),
@@ -874,6 +1137,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
 		1, 1024, 256 );
+
+	VIPS_ARG_BOXED( class, "background", 12, 
+		_( "Background" ), 
+		_( "Colour for background pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
 
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
@@ -905,8 +1175,13 @@ static void
 vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 {
 	VIPS_SETSTR( dz->suffix, ".jpeg" );
+	dz->layout = VIPS_FOREIGN_DZ_LAYOUT_DZ; 
 	dz->overlap = 1;
 	dz->tile_size = 256;
+	dz->tile_count = 0;
+	dz->background = 
+		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
+	((double *) (dz->background->data))[0] = 255;
 }
 
 /**
@@ -917,23 +1192,31 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  *
  * Optional arguments:
  *
- * @suffix: suffix for tile tiles (default ".jpg")
- * @overlap; set tile overlap (default 1)
- * @tile_size; set tile size (default 256)
+ * @layout; directory layout convention
+ * @suffix: suffix for tile tiles 
+ * @overlap; set tile overlap 
+ * @tile_size; set tile size 
+ * @background: background colour
  *
- * Save an image to a deep zoom - style directory tree. A directory called
+ * Save an image as a set of tiles at various resolutions. By default dzsave
+ * uses DeepZoom layout -- use @layout to pick other conventions.
+ *
+ * In DeepZoom layout a directory called
  * "@basename_files" is created to hold the tiles, and an XML file called
- * "@basename.dzi" is written with the image metadata,
+ * "@basename.dzi" is written with the image metadata, 
  *
- * The image is shrunk in a series of x2 reductions until it fits within a
- * single pixel. Each layer is written out to a separate subdirectory of 
- * @dirname_files, with directory "0" holding the smallest, single pixel image.
- *
- * Each tile is written as a separate file named as "@x_@y@suffix", where @x
- * and @y are the tile coordinates, with (0, 0) as the top-left tile.
+ * In Zoomify and Google layout, a directory called @basename is created to 
+ * hold the tile structure. 
  *
  * You can set @suffix to something like ".jpg[Q=85]" to set the tile write
  * options. 
+ * 
+ * In Google layout mode, edge tiles are expanded to @tile_size by @tile_size 
+ * pixels. Normally they are filled with white, but you can set another colour
+ * with @background.
+ *
+ * You can set the size and overlap of tiles with @tile_size and @overlap.
+ * They default to the correct settings for the selected @layout. 
  *
  * See also: vips_tiffsave().
  *

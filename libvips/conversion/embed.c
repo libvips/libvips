@@ -23,6 +23,8 @@
  * 	- cleanups
  * 15/10/11
  * 	- rewrite as a class
+ * 10/10/12
+ *	- add @background
  */
 
 /*
@@ -79,10 +81,15 @@ typedef struct _VipsEmbed {
 	VipsImage *in;
 
 	VipsExtend extend;
+	VipsArea *background;
 	int x;
 	int y;
 	int width;
 	int height;
+
+	/* Pixel we paint calculated from background.
+	 */
+	VipsPel *ink;
 
 	/* Geometry calculations. 
 	 */
@@ -257,6 +264,14 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 				embed->extend == 0 ? 0 : 255 );
 		break;
 
+	case VIPS_EXTEND_BACKGROUND:
+		/* Paint the borders a solid value.
+		 */
+		for( i = 0; i < 8; i++ )
+			vips_region_paint_pel( or, &embed->border[i], 
+				embed->ink ); 
+		break;
+
 	case VIPS_EXTEND_COPY:
 		/* Extend the borders.
 		 */
@@ -326,6 +341,15 @@ vips_embed_build( VipsObject *object )
 
 	if( vips_image_pio_input( embed->in ) )
 		return( -1 );
+
+	if( !(embed->ink = vips__vector_to_ink( 
+		"VipsEmbed", embed->in,
+		embed->background->data, embed->background->n )) )
+		return( -1 );
+
+	if( !vips_object_get_argument_assigned( object, "extend" ) &&
+		vips_object_get_argument_assigned( object, "background" ) )
+		embed->extend = VIPS_EXTEND_BACKGROUND; 
 
 	switch( embed->extend ) {
 	case VIPS_EXTEND_REPEAT:
@@ -398,6 +422,7 @@ vips_embed_build( VipsObject *object )
 
 	case VIPS_EXTEND_BLACK:
 	case VIPS_EXTEND_WHITE:
+	case VIPS_EXTEND_BACKGROUND:
 	case VIPS_EXTEND_COPY:
 		if( vips_image_copy_fields( conversion->out, embed->in ) )
 			return( -1 );
@@ -559,13 +584,22 @@ vips_embed_class_init( VipsEmbedClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, extend ),
 		VIPS_TYPE_EXTEND, VIPS_EXTEND_BLACK );
+
+	VIPS_ARG_BOXED( class, "background", 12, 
+		_( "Background" ), 
+		_( "Colour for background pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsEmbed, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
 }
 
 static void
 vips_embed_init( VipsEmbed *embed )
 {
-	/* Init our instance fields.
-	 */
+	embed->extend = VIPS_EXTEND_BLACK;
+	embed->background = 
+		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
+	((double *) (embed->background->data))[0] = 0;
 }
 
 /**
@@ -581,6 +615,7 @@ vips_embed_init( VipsEmbed *embed )
  * Optional arguments:
  *
  * @extend: how to generate the edge pixels
+ * @background: colour for edge pixels
  *
  * The opposite of vips_extract_area(): embed @in within an image of size 
  * @width by @height at position @x, @y.  @extend
