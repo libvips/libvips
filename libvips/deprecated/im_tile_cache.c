@@ -105,7 +105,7 @@ tile_destroy( Tile *tile )
 static void
 read_destroy( Read *read )
 {
-	IM_FREEF( g_mutex_free, read->lock );
+	IM_FREEF( vips_mutex_free, read->lock );
 
 	while( read->cache ) {
 		Tile *tile = (Tile *) read->cache->data;
@@ -131,7 +131,7 @@ read_new( IMAGE *in, IMAGE *out,
 	read->max_tiles = max_tiles;
 	read->time = 0;
 	read->ntiles = 0;
-	read->lock = g_mutex_new();
+	read->lock = vips_mutex_new();
 	read->cache = NULL;
 
 	if( im_add_close_callback( out, 

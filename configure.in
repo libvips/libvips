@@ -318,16 +318,10 @@ AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 >= 2.4 libxml-2.0 gobject-2.0)
 PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 libxml-2.0 gobject-2.0"
 
-# option to eval without threads
-AC_ARG_ENABLE(threads, 
-  AS_HELP_STRING([--enable-threads], [evaluate with threads (default: yes)]))
-
-if test x"$enable_threads" != "xno"; then
-  AC_DEFINE(HAVE_THREADS,1,[threaded evaluation])
-  PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
-  PACKAGES_USED="$PACKAGES_USED gthread-2.0"
-  enable_threads=yes
-fi
+# after 2.32 g_mutex_new() becomes g_mutex_init(), annoyingly
+PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
+  AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
+])
 
 # check for gtk-doc
 GTK_DOC_CHECK(1.9)
@@ -734,7 +728,6 @@ native win32:				$vips_os_win32
 native OS X:				$vips_os_darwin
 open files in binary mode: 		$vips_binary_open
 enable debug:				$enable_debug
-evaluate with threads: 			$enable_threads
 build C++ components:			$enable_cxx
 build docs with gtkdoc:			$enable_gtk_doc
 gobject introspection: 			$found_introspection

@@ -201,7 +201,7 @@ vips_init( const char *argv0 )
 #endif /*G_THREADS_ENABLED*/
 
 	if( !vips__global_lock )
-		vips__global_lock = g_mutex_new();
+		vips__global_lock = vips_mutex_new();
 
 	VIPS_SETSTR( vips__argv0, argv0 );
 

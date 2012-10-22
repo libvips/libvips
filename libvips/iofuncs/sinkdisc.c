@@ -171,7 +171,6 @@ wbuffer_write( WriteBuffer *wbuffer )
 		&wbuffer->area, write->a );
 }
 
-#ifdef HAVE_THREADS
 /* Run this as a thread to do a BG write.
  */
 static void *
@@ -200,7 +199,6 @@ wbuffer_write_thread( void *data )
 
 	return( NULL );
 }
-#endif /*HAVE_THREADS*/
 
 static WriteBuffer *
 wbuffer_new( Write *write )
@@ -227,7 +225,6 @@ wbuffer_new( Write *write )
 	 */
 	vips__region_no_ownership( wbuffer->region );
 
-#ifdef HAVE_THREADS
 	/* Make this last (picks up parts of wbuffer on startup).
 	 */
 	if( !(wbuffer->thread = g_thread_create( wbuffer_write_thread, wbuffer, 
@@ -237,7 +234,6 @@ wbuffer_new( Write *write )
 		wbuffer_free( wbuffer );
 		return( NULL );
 	}
-#endif /*HAVE_THREADS*/
 
 	return( wbuffer );
 }
@@ -266,13 +262,7 @@ wbuffer_flush( Write *write )
 
 	/* Set the background writer going for this buffer.
 	 */
-#ifdef HAVE_THREADS
 	vips_semaphore_up( &write->buf->go );
-#else
-	/* No threads? Write ourselves synchronously.
-	 */
-	wbuffer_write( write->buf );
-#endif /*HAVE_THREADS*/
 
 	return( 0 );
 }

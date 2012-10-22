@@ -72,15 +72,8 @@ static GSList *vips__buffers_all = NULL;
 static int buffer_cache_n = 0; 
 #endif /*DEBUG_CREATE*/
 
-#ifdef HAVE_THREADS
 static GPrivate *thread_buffer_cache_key = NULL;
-#else /*!HAVE_THREADS*/
-static VipsBufferCache *thread_buffer_cache = NULL;
-#endif /*HAVE_THREADS*/
 
-/* Only need this if we're threading and need to do a lot of start/stop.
- */
-#ifdef HAVE_THREADS
 static void
 buffer_cache_free( VipsBufferCache *cache )
 {
@@ -95,7 +88,6 @@ buffer_cache_free( VipsBufferCache *cache )
 	VIPS_FREEF( g_hash_table_destroy, cache->hash );
 	VIPS_FREE( cache );
 }
-#endif /*HAVE_THREADS*/
 
 static void
 buffer_cache_list_free( VipsBufferCacheList *cache_list )
@@ -163,16 +155,10 @@ buffer_cache_get( void )
 {
 	VipsBufferCache *cache;
 
-#ifdef HAVE_THREADS
 	if( !(cache = g_private_get( thread_buffer_cache_key )) ) {
 		cache = buffer_cache_new();
 		g_private_set( thread_buffer_cache_key, cache );
 	}
-#else /*!HAVE_THREADS*/
-	if( !thread_buffer_cache )
-		thread_buffer_cache = buffer_cache_new();
-	cache = thread_buffer_cache;
-#endif /*HAVE_THREADS*/
 
 	return( cache );
 }
@@ -474,9 +460,7 @@ vips_buffer_print( VipsBuffer *buffer )
 void
 vips__buffer_init( void )
 {
-#ifdef HAVE_THREADS
 	if( !thread_buffer_cache_key ) 
 		thread_buffer_cache_key = g_private_new( 
 			(GDestroyNotify) buffer_cache_free );
-#endif /*HAVE_THREADS*/
 }

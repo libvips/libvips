@@ -416,7 +416,7 @@ void
 vips__cache_init( void )
 {
 	if( !vips_cache_table ) {
-		vips_cache_lock = g_mutex_new();
+		vips_cache_lock = vips_mutex_new();
 
 		vips_cache_table = g_hash_table_new( 
 			(GHashFunc) vips_operation_hash, 

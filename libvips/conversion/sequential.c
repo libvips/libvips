@@ -100,7 +100,7 @@ vips_sequential_dispose( GObject *gobject )
 {
 	VipsSequential *sequential = (VipsSequential *) gobject;
 
-	VIPS_FREEF( g_mutex_free, sequential->lock );
+	VIPS_FREEF( vips_mutex_free, sequential->lock );
 	VIPS_FREEF( g_cond_free, sequential->ready );
 
 	G_OBJECT_CLASS( vips_sequential_parent_class )->dispose( gobject );
@@ -293,7 +293,7 @@ static void
 vips_sequential_init( VipsSequential *sequential )
 {
 	sequential->trace = FALSE;
-	sequential->lock = g_mutex_new();
+	sequential->lock = vips_mutex_new();
 	sequential->ready = g_cond_new();
 	sequential->tile_height = 1;
 	sequential->error = 0;

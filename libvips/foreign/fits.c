@@ -133,7 +133,7 @@ static void
 vips_fits_close( VipsFits *fits )
 {
 	VIPS_FREE( fits->filename );
-	VIPS_FREEF( g_mutex_free, fits->lock );
+	VIPS_FREEF( vips_mutex_free, fits->lock );
 
 	if( fits->fptr ) {
 		int status;
@@ -180,7 +180,7 @@ vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 		return( NULL );
 	}
 
-	fits->lock = g_mutex_new();
+	fits->lock = vips_mutex_new();
 
 	return( fits );
 }
@@ -578,7 +578,7 @@ vips_fits_new_write( VipsImage *in, const char *filename )
 		return( NULL );
 	}
 
-	fits->lock = g_mutex_new();
+	fits->lock = vips_mutex_new();
 
 	return( fits );
 }
