@@ -460,7 +460,14 @@ vips_buffer_print( VipsBuffer *buffer )
 void
 vips__buffer_init( void )
 {
+#ifdef HAVE_PRIVATE_INIT
+	static GPrivate private = 
+		G_PRIVATE_INIT( (GDestroyNotify) buffer_cache_free );
+
+	thread_buffer_cache_key = &private;
+#else
 	if( !thread_buffer_cache_key ) 
 		thread_buffer_cache_key = g_private_new( 
 			(GDestroyNotify) buffer_cache_free );
+#endif
 }

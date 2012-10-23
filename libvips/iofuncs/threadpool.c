@@ -187,7 +187,7 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 	thread = g_thread_create( func, data, TRUE, &error );
 #endif
 
-	if( !thread )
+	if( !thread ) {
 		if( error ) {
 			vips_error( domain, "%s", error->message );
 			g_error_free( error );
@@ -195,6 +195,7 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 		else
 			vips_error( domain, 
 				"%s", _( "unable to create thread" ) );
+	}
 
 	return( thread );
 }

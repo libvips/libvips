@@ -323,6 +323,7 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
   AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
   AC_DEFINE(HAVE_COND_INIT,1,[define if your glib has g_cond_init().])
   AC_DEFINE(HAVE_THREAD_NEW,1,[define if your glib has g_thread_new().])
+  AC_DEFINE(HAVE_PRIVATE_INIT,1,[define if your glib has G_PRIVATE_INIT().])
 ])
 
 # check for gtk-doc
