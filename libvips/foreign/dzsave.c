@@ -897,7 +897,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Tile overlap in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, overlap ),
-		0, 1024, 0 );
+		0, 8192, 0 );
 
 	VIPS_ARG_INT( class, "tile_size", 11, 
 		_( "Tile size" ), 
