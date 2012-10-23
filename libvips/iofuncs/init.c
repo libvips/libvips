@@ -195,13 +195,13 @@ vips_init( const char *argv0 )
 
 	/* Older glibs need this.
 	 */
-#ifdef G_THREADS_ENABLED
+#ifndef HAVE_THREAD_NEW
 	if( !g_thread_supported() ) 
 		g_thread_init( NULL );
-#endif /*G_THREADS_ENABLED*/
+#endif 
 
 	if( !vips__global_lock )
-		vips__global_lock = vips_mutex_new();
+		vips__global_lock = vips_g_mutex_new();
 
 	VIPS_SETSTR( vips__argv0, argv0 );
 

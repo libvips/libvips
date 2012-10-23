@@ -105,7 +105,7 @@ int vips__concurrency = 0;
  */
 
 GMutex *
-vips_mutex_new( void )
+vips_g_mutex_new( void )
 {
 	GMutex *mutex;
 
@@ -120,7 +120,7 @@ vips_mutex_new( void )
 }
 
 void
-vips_mutex_free( GMutex *mutex )
+vips_g_mutex_free( GMutex *mutex )
 {
 #ifdef HAVE_MUTEX_INIT
 	g_mutex_clear( mutex );
@@ -131,7 +131,7 @@ vips_mutex_free( GMutex *mutex )
 }
 
 GCond *
-vips_cond_new( void )
+vips_g_cond_new( void )
 {
 	GCond *cond;
 
@@ -146,7 +146,7 @@ vips_cond_new( void )
 }
 
 void
-vips_cond_free( GCond *cond )
+vips_g_cond_free( GCond *cond )
 {
 #ifdef HAVE_COND_INIT
 	g_cond_clear( cond );
@@ -161,12 +161,11 @@ vips_cond_free( GCond *cond )
  * You can get spurious wakeups, use this in a loop.
  */
 void 
-vips_cond_timed_wait( GCond *cond, GMutex *mutex, gint64 timeout )
+vips_g_cond_timed_wait( GCond *cond, GMutex *mutex, gint64 timeout )
 {
 #ifdef HAVE_COND_INIT
-	gint64 end_time = g_get_monotonic_time() + timeout;
-
-	g_cond_wait_until( cond, mutex, end_time );
+	g_cond_wait_until( cond, mutex, 
+		g_get_monotonic_time() + timeout );
 #else
 	GTimeVal time;
 
@@ -174,6 +173,30 @@ vips_cond_timed_wait( GCond *cond, GMutex *mutex, gint64 timeout )
 	g_time_val_add( &time, timeout );
 	g_cond_timed_wait( cond, mutex, &time );
 #endif
+}
+
+GThread *
+vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
+{
+	GThread *thread;
+	GError *error = NULL;
+
+#ifdef HAVE_THREAD_NEW
+	thread = g_thread_try_new( domain, func, data, &error );
+#else
+	thread = g_thread_create( func, data, TRUE, &error );
+#endif
+
+	if( !thread )
+		if( error ) {
+			vips_error( domain, "%s", error->message );
+			g_error_free( error );
+		}
+		else
+			vips_error( domain, 
+				"%s", _( "unable to create thread" ) );
+
+	return( thread );
 }
 
 /**
@@ -681,20 +704,13 @@ vips_thread_new( VipsThreadpool *pool )
 	}
 #endif /*TIME_THREAD*/
 
-	/* Make a worker thread. We have to use g_thread_create_full() because
-	 * we need to insist on a non-tiny stack. Some platforms default to
-	 * very small values (eg. various BSDs).
-	 */
-	if( !(thr->thread = g_thread_create_full( vips_thread_main_loop, thr, 
-		VIPS__DEFAULT_STACK_SIZE, TRUE, FALSE, 
-		G_THREAD_PRIORITY_NORMAL, NULL )) ) {
-		vips_error( "vips_thread_new", 
-			"%s", _( "unable to create thread" ) );
+	if( !(thr->thread = vips_g_thread_new( "worker", 
+		vips_thread_main_loop, thr )) ) {  
 		vips_thread_free( thr );
 		return( NULL );
 	}
 
-	VIPS_DEBUG_MSG_RED( "vips_thread_new: g_thread_create_full()\n" );
+	VIPS_DEBUG_MSG_RED( "vips_thread_new: vips_g_thread_new()\n" );
 
 	return( thr );
 }
@@ -725,7 +741,7 @@ vips_threadpool_free( VipsThreadpool *pool )
 		pool->im->filename, pool );
 
 	vips_threadpool_kill_threads( pool );
-	VIPS_FREEF( vips_mutex_free, pool->allocate_lock );
+	VIPS_FREEF( vips_g_mutex_free, pool->allocate_lock );
 	vips_semaphore_destroy( &pool->finish );
 	vips_semaphore_destroy( &pool->tick );
 
@@ -750,7 +766,7 @@ vips_threadpool_new( VipsImage *im )
 	pool->im = im;
 	pool->allocate = NULL;
 	pool->work = NULL;
-	pool->allocate_lock = vips_mutex_new();
+	pool->allocate_lock = vips_g_mutex_new();
 	pool->nthr = vips_concurrency_get();
 	pool->thr = NULL;
 	vips_semaphore_init( &pool->finish, 0, "finish" );

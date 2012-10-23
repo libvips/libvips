@@ -227,10 +227,8 @@ wbuffer_new( Write *write )
 
 	/* Make this last (picks up parts of wbuffer on startup).
 	 */
-	if( !(wbuffer->thread = g_thread_create( wbuffer_write_thread, wbuffer, 
-		TRUE, NULL )) ) {
-		vips_error( "wbuffer_new", 
-			"%s", _( "unable to create thread" ) );
+	if( !(wbuffer->thread = vips_g_thread_new( "wbuffer", 
+		wbuffer_write_thread, wbuffer )) ) {  
 		wbuffer_free( wbuffer );
 		return( NULL );
 	}

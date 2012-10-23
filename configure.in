@@ -322,6 +322,7 @@ PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 libxml-2.0 gobject-2.0"
 PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
   AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
   AC_DEFINE(HAVE_COND_INIT,1,[define if your glib has g_cond_init().])
+  AC_DEFINE(HAVE_THREAD_NEW,1,[define if your glib has g_thread_new().])
 ])
 
 # check for gtk-doc

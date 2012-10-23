@@ -58,15 +58,15 @@ vips_semaphore_init( VipsSemaphore *s, int v, char *name )
 {
 	s->v = v;
 	s->name = name;
-	s->mutex = vips_mutex_new();
-	s->cond = vips_cond_new();
+	s->mutex = vips_g_mutex_new();
+	s->cond = vips_g_cond_new();
 }
 
 void
 vips_semaphore_destroy( VipsSemaphore *s )
 {
-	VIPS_FREEF( vips_mutex_free, s->mutex );
-	VIPS_FREEF( vips_cond_free, s->cond );
+	VIPS_FREEF( vips_g_mutex_free, s->mutex );
+	VIPS_FREEF( vips_g_cond_free, s->cond );
 }
 
 /* Add n to the semaphore and signal any threads that are blocked waiting 

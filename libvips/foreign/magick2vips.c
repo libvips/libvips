@@ -131,7 +131,7 @@ read_destroy( VipsImage *im, Read *read )
 	VIPS_FREEF( DestroyImageInfo, read->image_info ); 
 	VIPS_FREE( read->frames );
 	DestroyExceptionInfo( &read->exception );
-	VIPS_FREEF( vips_mutex_free, read->lock );
+	VIPS_FREEF( vips_g_mutex_free, read->lock );
 
 	return( 0 );
 }
@@ -161,7 +161,7 @@ read_new( const char *filename, VipsImage *im )
 	read->n_frames = 0;
 	read->frames = NULL;
 	read->frame_height = 0;
-	read->lock = vips_mutex_new();
+	read->lock = vips_g_mutex_new();
 
 	g_signal_connect( im, "close", G_CALLBACK( read_destroy ), read );
 

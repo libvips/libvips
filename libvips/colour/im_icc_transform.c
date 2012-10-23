@@ -147,7 +147,7 @@ icc_destroy( Icc *icc )
 	IM_FREEF( cmsDeleteTransform, icc->trans );
 	IM_FREEF( cmsCloseProfile, icc->in_profile );
 	IM_FREEF( cmsCloseProfile, icc->out_profile );
-	IM_FREEF( vips_mutex_free, icc->lock );
+	IM_FREEF( vips_g_mutex_free, icc->lock );
 
 	return( 0 );
 }
@@ -173,7 +173,7 @@ icc_new( IMAGE *in, IMAGE *out, VipsIntent intent )
 	icc->in_profile = 0;
 	icc->out_profile = 0;
 	icc->trans = 0;
-	icc->lock = vips_mutex_new();
+	icc->lock = vips_g_mutex_new();
 
 	if( im_add_close_callback( out, 
 		(im_callback_fn) icc_destroy, icc, NULL ) )
@@ -945,7 +945,7 @@ icc_destroy( Icc *icc )
 	IM_FREEF( cmsDeleteTransform, icc->trans );
 	IM_FREEF( cmsCloseProfile, icc->in_profile );
 	IM_FREEF( cmsCloseProfile, icc->out_profile );
-	IM_FREEF( vips_mutex_free, icc->lock );
+	IM_FREEF( vips_g_mutex_free, icc->lock );
 
 	return( 0 );
 }
@@ -970,7 +970,7 @@ icc_new( IMAGE *in, IMAGE *out, VipsIntent intent )
 	icc->in_profile = 0;
 	icc->out_profile = 0;
 	icc->trans = 0;
-	icc->lock = vips_mutex_new();
+	icc->lock = vips_g_mutex_new();
 
 	if( im_add_close_callback( out, 
 		(im_callback_fn) icc_destroy, icc, NULL ) )

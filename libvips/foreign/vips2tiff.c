@@ -1075,7 +1075,7 @@ write_tif_tilewise( TiffWrite *tw )
 		return( -1 );
 
 	g_assert( !tw->write_lock );
-	tw->write_lock = vips_mutex_new();
+	tw->write_lock = vips_g_mutex_new();
 
 	/* Write pyramid too? Only bother if bigger than tile size.
 	 */
@@ -1179,7 +1179,7 @@ free_tiff_write( TiffWrite *tw )
 
 	VIPS_FREEF( TIFFClose, tw->tif );
 	VIPS_FREEF( vips_free, tw->tbuf );
-	VIPS_FREEF( vips_mutex_free, tw->write_lock );
+	VIPS_FREEF( vips_g_mutex_free, tw->write_lock );
 	VIPS_FREEF( free_pyramid, tw->layer );
 	VIPS_FREEF( vips_free, tw->icc_profile );
 }

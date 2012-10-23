@@ -35,25 +35,21 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/* Stack size for each thread. We need to set this explicitly because some
- * systems have a very low default.
-
- 	FIXME ...  should have an environment variable for this?
-
- */
-#define VIPS__DEFAULT_STACK_SIZE (2 * 1024 * 1024)
-
 /* We need wrappers over g_mutex_new(), it was replaced by g_mutex_init() in
  * glib 2.32+
  */
-GMutex *vips_mutex_new( void );
-void vips_mutex_free( GMutex * );
+GMutex *vips_g_mutex_new( void );
+void vips_g_mutex_free( GMutex * );
 
 /* Same for GCond. And we need a wrapper for waiting too.
  */
-GCond *vips_cond_new( void );
-void vips_cond_free( GCond * );
-void vips_cond_timed_wait( GCond *, GMutex *, gint64 );
+GCond *vips_g_cond_new( void );
+void vips_g_cond_free( GCond * );
+void vips_g_cond_timed_wait( GCond *, GMutex *, gint64 );
+
+/* ... and for GThread.
+ */
+GThread *vips_g_thread_new( const char *, GThreadFunc, gpointer );
 
 #ifdef __cplusplus
 }

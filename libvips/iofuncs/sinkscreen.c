@@ -220,8 +220,8 @@ render_free( Render *render )
 	}
 	g_mutex_unlock( render_dirty_lock );
 
-	vips_mutex_free( render->ref_count_lock );
-	vips_mutex_free( render->lock );
+	vips_g_mutex_free( render->ref_count_lock );
+	vips_g_mutex_free( render->lock );
 
 	vips_slist_map2( render->all, (VipsSListMap2Fn) tile_free, NULL, NULL );
 	VIPS_FREEF( g_slist_free, render->all );
@@ -513,19 +513,14 @@ static int
 render_thread_create( void )
 {
 	if( !render_dirty_lock ) {
-		render_dirty_lock = vips_mutex_new();
+		render_dirty_lock = vips_g_mutex_new();
 		vips_semaphore_init( &render_dirty_sem, 0, "render_dirty_sem" );
 	}
 
 	if( !render_thread ) {
-		if( !(render_thread = g_thread_create_full( 
-			render_thread_main, NULL, 
-			VIPS__DEFAULT_STACK_SIZE, TRUE, FALSE, 
-			G_THREAD_PRIORITY_NORMAL, NULL )) ) {
-			vips_error( "sink_screen", 
-				"%s", _( "unable to create thread" ) );
+		if( !(render_thread = vips_g_thread_new( "sink_screen",
+			render_thread_main, NULL )) ) 
 			return( -1 );
-		}
 	}
 
 	return( 0 );
@@ -584,7 +579,7 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 		return( NULL );
 
 	render->ref_count = 1;
-	render->ref_count_lock = vips_mutex_new();
+	render->ref_count_lock = vips_g_mutex_new();
 
 	render->in = in;
 	render->out = out;
@@ -596,7 +591,7 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 	render->notify = notify;
 	render->a = a;
 
-	render->lock = vips_mutex_new();
+	render->lock = vips_g_mutex_new();
 
 	render->all = NULL;
 	render->ntiles = 0;

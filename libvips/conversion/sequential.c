@@ -100,8 +100,8 @@ vips_sequential_dispose( GObject *gobject )
 {
 	VipsSequential *sequential = (VipsSequential *) gobject;
 
-	VIPS_FREEF( vips_mutex_free, sequential->lock );
-	VIPS_FREEF( vips_cond_free, sequential->ready );
+	VIPS_FREEF( vips_g_mutex_free, sequential->lock );
+	VIPS_FREEF( vips_g_cond_free, sequential->ready );
 
 	G_OBJECT_CLASS( vips_sequential_parent_class )->dispose( gobject );
 }
@@ -143,7 +143,7 @@ vips_sequential_generate( VipsRegion *or,
 		 */
 		VIPS_DEBUG_MSG( "thread %p stalling for up to %gs ...\n", 
 			STALL_TIME, g_thread_self() ); 
-		vips_cond_timed_wait( sequential->ready, 
+		vips_g_cond_timed_wait( sequential->ready, 
 			sequential->lock, STALL_TIME * 1000000 );
 		VIPS_DEBUG_MSG( "thread %p awake again ...\n", 
 			g_thread_self() ); 
@@ -292,8 +292,8 @@ static void
 vips_sequential_init( VipsSequential *sequential )
 {
 	sequential->trace = FALSE;
-	sequential->lock = vips_mutex_new();
-	sequential->ready = vips_cond_new();
+	sequential->lock = vips_g_mutex_new();
+	sequential->ready = vips_g_cond_new();
 	sequential->tile_height = 1;
 	sequential->error = 0;
 }
