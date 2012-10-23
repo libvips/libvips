@@ -49,6 +49,12 @@ extern "C" {
 GMutex *vips_mutex_new( void );
 void vips_mutex_free( GMutex * );
 
+/* Same for GCond. And we need a wrapper for waiting too.
+ */
+GCond *vips_cond_new( void );
+void vips_cond_free( GCond * );
+void vips_cond_timed_wait( GCond *, GMutex *, gint64 );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

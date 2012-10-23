@@ -130,6 +130,52 @@ vips_mutex_free( GMutex *mutex )
 #endif
 }
 
+GCond *
+vips_cond_new( void )
+{
+	GCond *cond;
+
+#ifdef HAVE_COND_INIT
+	cond = g_new( GCond, 1 );
+	g_cond_init( cond );
+#else
+	cond = g_cond_new();
+#endif
+
+	return( cond );
+}
+
+void
+vips_cond_free( GCond *cond )
+{
+#ifdef HAVE_COND_INIT
+	g_cond_clear( cond );
+	g_free( cond );
+#else
+	g_cond_free( cond );
+#endif
+}
+
+/* Wait until cond is signalled, or timeout us have passed. 
+ *
+ * You can get spurious wakeups, use this in a loop.
+ */
+void 
+vips_cond_timed_wait( GCond *cond, GMutex *mutex, gint64 timeout )
+{
+#ifdef HAVE_COND_INIT
+	gint64 end_time = g_get_monotonic_time() + timeout;
+
+	g_cond_wait_until( cond, mutex, end_time );
+#else
+	GTimeVal time;
+
+	g_get_current_time( &time );
+	g_time_val_add( &time, timeout );
+	g_cond_timed_wait( cond, mutex, &time );
+#endif
+}
+
 /**
  * vips_concurrency_set:
  * @concurrency: number of threads to run

@@ -4,7 +4,7 @@
 - openslide2vips gets underlying tile size from openslide
 - embed has 'background' option
 - dzsave --layout google has a @background option
-- use vips_mutex_new()/_free() over g_mutex_new()/_free()
+- update for new glib threading API
 - remove no threads option
 
 2/10/12 started 7.30.4

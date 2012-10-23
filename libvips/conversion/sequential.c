@@ -101,7 +101,7 @@ vips_sequential_dispose( GObject *gobject )
 	VipsSequential *sequential = (VipsSequential *) gobject;
 
 	VIPS_FREEF( vips_mutex_free, sequential->lock );
-	VIPS_FREEF( g_cond_free, sequential->ready );
+	VIPS_FREEF( vips_cond_free, sequential->ready );
 
 	G_OBJECT_CLASS( vips_sequential_parent_class )->dispose( gobject );
 }
@@ -135,18 +135,16 @@ vips_sequential_generate( VipsRegion *or,
 
 	if( r->top > sequential->y_pos && 
 		sequential->y_pos > 0 ) {
-		GTimeVal time;
-
 		/* We have started reading (y_pos > 0) and this request is for 
 		 * stuff beyond that, stall for a short while to give other
 		 * threads time to catch up.
+		 *
+		 * The stall can be cancelled by a signal on @ready.
 		 */
 		VIPS_DEBUG_MSG( "thread %p stalling for up to %gs ...\n", 
 			STALL_TIME, g_thread_self() ); 
-		g_get_current_time( &time );
-		g_time_val_add( &time, STALL_TIME * 1000000 );
-		g_cond_timed_wait( sequential->ready, 
-			sequential->lock, &time );
+		vips_cond_timed_wait( sequential->ready, 
+			sequential->lock, STALL_TIME * 1000000 );
 		VIPS_DEBUG_MSG( "thread %p awake again ...\n", 
 			g_thread_self() ); 
 	}
@@ -156,7 +154,8 @@ vips_sequential_generate( VipsRegion *or,
 	 * above. 
 	 *
 	 * Probably the operation is something like extract_area and we should 
-	 * skip the initial part of the image. In fact, we read to cache.
+	 * skip the initial part of the image. In fact, we read to cache,
+	 * since it may be useful.
 	 */
 	if( r->top > sequential->y_pos ) {
 		VipsRect area;
@@ -294,7 +293,7 @@ vips_sequential_init( VipsSequential *sequential )
 {
 	sequential->trace = FALSE;
 	sequential->lock = vips_mutex_new();
-	sequential->ready = g_cond_new();
+	sequential->ready = vips_cond_new();
 	sequential->tile_height = 1;
 	sequential->error = 0;
 }
