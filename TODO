@@ -1,8 +1,3 @@
-- get rid of no-threads mode, glib no longer supports this
-
-- argh g_mutex_new() is now deprecated, make our own vips_mutex_new()
-  compatibility function that uses g_mutex_init() internally, if available
-
 - add mono as a colourspace? also rad?
 
 - something to test if an image is in a supported colourspace?
@@ -18,7 +13,7 @@
 
 - im_icc_ac2rc needs doing once we have a general 'convert' operator
 
-- test new icc stuff with lcms1
+- test new icc stuff with lcms1 and lcms2
 
 - should we have a better thing to stop convert_saveable running for vips
   images?

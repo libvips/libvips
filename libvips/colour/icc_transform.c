@@ -64,8 +64,13 @@
  */
 #ifdef HAVE_LCMS2
 #include <lcms2.h>
+
+/* This is slightly different in lcms2.
+ */
+#define SIG_LAB ((cmsColorSpaceSignature) icSigLabData)
 #else /*HAVE_LCMS*/
 #include <lcms.h>
+#define SIG_LAB icSigLabData
 #endif
 
 #include <icc34.h>
@@ -266,8 +271,8 @@ vips_icc_build( VipsObject *object )
 	 */
 	if( icc->in_profile &&
 		icc->out_profile &&
-		cmsGetColorSpace( icc->in_profile ) == icSigLabData &&
-		cmsGetColorSpace( icc->out_profile ) == icSigLabData ) {
+		cmsGetColorSpace( icc->in_profile ) == SIG_LAB &&
+		cmsGetColorSpace( icc->out_profile ) == SIG_LAB ) {
 		vips_error( class->nickname,
 			"%s", _( "no device profile" ) ); 
 		return( -1 );

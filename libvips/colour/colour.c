@@ -528,6 +528,14 @@ vips_colour_convert_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	/* No conversion necessary.
+	 */
+	if( convert->in->Type == convert->space ) {
+		g_object_set( convert, "out", vips_image_new(), NULL ); 
+
+		return( vips_image_write( convert->in, convert->out ) );
+	}
+
 	x = convert->in;
 
 	for( i = 0; i < VIPS_NUMBER( vips_colour_routes ); i++ )
