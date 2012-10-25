@@ -89,6 +89,7 @@ extern "C" {
 #define im_col_L2Lucs vips_col_L2Lucs
 #define im_col_C2Cucs vips_col_C2Cucs
 #define im_col_Ch2hucs vips_col_Ch2hucs
+#define im_col_pythagoras vips_pythagoras
 
 #define im_col_make_tables_UCS vips_col_make_tables_UCS
 #define im_col_Lucs2L vips_col_Lucs2L
@@ -774,6 +775,8 @@ int im_UCS2XYZ( VipsImage *in, VipsImage *out );
 int im_UCS2Lab( VipsImage *in, VipsImage *out );
 int im_Lab2UCS( VipsImage *in, VipsImage *out );
 int im_XYZ2UCS( VipsImage *in, VipsImage *out );
+
+int im_dE_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );
 
 /* ruby-vips uses this
  */

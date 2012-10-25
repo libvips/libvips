@@ -6,6 +6,8 @@
  * 31/10/09
  * 	- use im__colour_binary() 
  * 	- gtkdoc comment
+ * 25/10/12
+ * 	- redone as a class
  */
 
 /*
@@ -40,19 +42,32 @@
 #include <vips/intl.h>
 
 #include <vips/vips.h>
-#include <vips/internal.h>
+#include <vips/debug.h>
+
+#include "colour.h"
+
+typedef struct _VipsdE76 {
+	VipsColourDifference parent_instance;
+
+} VipsdE76;
+
+typedef VipsColourSpaceClass VipsdE76Class;
+
+G_DEFINE_TYPE( VipsdE76, vips_dE76, VIPS_TYPE_COLOUR_DIFFERENCE );
 
 /* Find the difference between two buffers of LAB data.
  */
-void
-imb_dE_fromLab( float **p, float *q, int n )
+static void
+vips_dE76_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	float *p1 = p[0];
-	float *p2 = p[1];
+	float *p1 = (float *) in[0];
+	float *p2 = (float *) in[1];
+	float *q = (float *) out;
+
 	int x;
 
-	for( x = 0; x < n; x++ ) {
-		q[x] = im_col_pythagoras( 
+	for( x = 0; x < width; x++ ) {
+		q[x] = vips_pythagoras( 
 			p1[0], p1[1], p1[2], p2[0], p2[1], p2[2] );
 
 		p1 += 3;
@@ -60,20 +75,41 @@ imb_dE_fromLab( float **p, float *q, int n )
 	}
 }
 
+static void
+vips_dE76_class_init( VipsdE76Class *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+
+	object_class->nickname = "dE76";
+	object_class->description = _( "calculate dE76" );
+
+	colour_class->process_line = vips_dE76_line;
+}
+
+static void
+vips_dE76_init( VipsdE76 *dE76 )
+{
+}
+
 /**
- * im_dE_fromLab:
- * @in1: first input image
- * @in2: second input image
+ * vips_dE76:
+ * @in: input image
  * @out: output image
  *
- * Calculate CIE dE 1976 from two Lab images.
+ * Calculate dE 76.
  *
- * Returns: 0 on success, -1 on error.
+ * Returns: 0 on success, -1 on error
  */
-int 
-im_dE_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
+int
+vips_dE76( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 {
-	return( im__colour_difference( "im_dE_fromLab",
-		in1, in2, out, 
-		(im_wrapmany_fn) imb_dE_fromLab, NULL, NULL ) );
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "dE76", ap, left, right, out );
+	va_end( ap );
+
+	return( result );
 }

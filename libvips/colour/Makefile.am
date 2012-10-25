@@ -4,6 +4,7 @@ libcolour_la_SOURCES = \
 	colour.c \
 	colour_funcs.c \
 	colour_dispatch.c \
+	dE76.c \
 	icc_transform.c \
 	Lab2XYZ.c \
 	Lab2LCh.c \
@@ -26,7 +27,6 @@ libcolour_la_SOURCES = \
 	sRGB2XYZ.c \
 	im_lab_morph.c \
 	im_dE00_fromLab.c \
-	im_dECMC_fromLab.c \
-	im_dE_fromLab.c
+	im_dECMC_fromLab.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

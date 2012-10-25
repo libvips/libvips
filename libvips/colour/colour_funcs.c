@@ -68,7 +68,7 @@
 #include <vips/internal.h>
 
 /**
- * im_col_pythagoras:
+ * vips_pythagoras:
  * @L1: Input coordinate 1
  * @a1: Input coordinate 1
  * @b1: Input coordinate 1
@@ -79,13 +79,13 @@
  * Pythagorean distance between two points in colour space. Lab/XYZ/UCS etc.
  */
 float
-im_col_pythagoras( float L1, float a1, float b1, float L2, float a2, float b2 )
+vips_pythagoras( float L1, float a1, float b1, float L2, float a2, float b2 )
 {
 	float dL = L1 - L2;
 	float da = a1 - a2;
 	float db = b1 - b2;
 
-	return( sqrt( dL*dL + da*da + db*db ) );
+	return( sqrt( dL * dL + da * da + db * db ) );
 }
 
 /* Functions to convert from Lab to uniform colour space and back.  

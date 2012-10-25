@@ -163,6 +163,43 @@ typedef struct _VipsColourCodeClass {
 
 GType vips_colour_code_get_type( void );
 
+/* Difference between two colour images. 
+ */
+
+#define VIPS_TYPE_COLOUR_DIFFERENCE (vips_colour_difference_get_type())
+#define VIPS_COLOUR_DIFFERENCE( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+		VIPS_TYPE_COLOUR_DIFFERENCE, VipsColourDifference ))
+#define VIPS_COLOUR_DIFFERENCE_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+		VIPS_TYPE_COLOUR_DIFFERENCE, VipsColourDifferenceClass))
+#define VIPS_IS_COLOUR_DIFFERENCE( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_COLOUR_DIFFERENCE ))
+#define VIPS_IS_COLOUR_DIFFERENCE_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_COLOUR_DIFFERENCE ))
+#define VIPS_COLOUR_DIFFERENCE_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+		VIPS_TYPE_COLOUR_DIFFERENCE, VipsColourDifferenceClass ))
+
+typedef struct _VipsColourDifference {
+	VipsColour parent_instance;
+
+	VipsImage *left;
+	VipsImage *right;
+
+	/* Both get converted to this space.
+	 */
+	VipsInterpretation interpretation;
+
+} VipsColourDifference;
+
+typedef struct _VipsColourDifferenceClass {
+	VipsColourClass parent_class;
+
+} VipsColourDifferenceClass;
+
+GType vips_colour_difference_get_type( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

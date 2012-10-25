@@ -396,6 +396,179 @@ vips_colour_code_init( VipsColourCode *code )
 {
 }
 
+G_DEFINE_ABSTRACT_TYPE( VipsColourDifference, vips_colour_difference, 
+	VIPS_TYPE_COLOUR );
+
+static int
+vips_colour_difference_build( VipsObject *object )
+{
+	VipsColour *colour = VIPS_COLOUR( object );
+	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( object );
+	VipsColourDifferenceClass *class = 
+		VIPS_COLOUR_DIFFERENCE_GET_CLASS( object ); 
+
+	VipsImage **t;
+	VipsImage *left;
+	VipsImage *right;
+	VipsImage *extra;
+
+	t = (VipsImage **) vips_object_local_array( object, 10 );
+
+	left = difference->left;
+	right = difference->right;
+	extra = NULL;
+
+	/* Unpack LABQ images, 
+	 */
+	if( left && 
+		left->Coding == VIPS_CODING_LABQ ) { 
+		if( vips_LabQ2Lab( left, &t[0], NULL ) )
+			return( -1 );
+		left = t[0];
+	}
+	if( right && 
+		right->Coding == VIPS_CODING_LABQ ) { 
+		if( vips_LabQ2Lab( right, &t[1], NULL ) )
+			return( -1 );
+		right = t[1];
+	}
+
+	if( left && 
+		vips_check_uncoded( VIPS_OBJECT_CLASS( class )->nickname,
+			left ) )
+		return( -1 );
+	if( right && 
+		vips_check_uncoded( VIPS_OBJECT_CLASS( class )->nickname,
+			right ) )
+		return( -1 );
+
+	/* Detach and reattach extra bands, if any. If both left and right
+	 * have extra bands, give up.
+	 */
+	if( left &&
+		left->Bands > 3 &&
+		right &&
+		right->Bands > 3 ) {
+		vips_error( VIPS_OBJECT_CLASS( class )->nickname,
+			"%s", "both images have extra bands" );
+		return( -1 );
+	}
+
+	if( left &&
+		left->Bands > 3 ) {
+		if( vips_extract_band( left, &t[2], 0, 
+			"n", 3, 
+			NULL ) )
+			return( -1 );
+		if( vips_extract_band( left, &t[3], 3, 
+			"n", left->Bands - 3, 
+			NULL ) )
+			return( -1 );
+		left = t[2];
+		extra = t[3];
+	}
+
+	if( right &&
+		right->Bands > 3 ) {
+		if( vips_extract_band( right, &t[4], 0, 
+			"n", 3, 
+			NULL ) )
+			return( -1 );
+		if( vips_extract_band( right, &t[5], 3, 
+			"n", right->Bands - 3, 
+			NULL ) )
+			return( -1 );
+		right = t[4];
+		extra = t[5];
+	}
+
+	if( vips_check_bands_atleast( VIPS_OBJECT_CLASS( class )->nickname,
+		left, 3 ) )
+		return( -1 );
+	if( vips_check_bands_atleast( VIPS_OBJECT_CLASS( class )->nickname,
+		right, 3 ) )
+		return( -1 );
+
+	if( vips_colour_convert( left, &t[6], 
+		difference->interpretation, NULL ) )
+		return( -1 );
+	left = t[6];
+	if( vips_colour_convert( right, &t[7], 
+		difference->interpretation, NULL ) )
+		return( -1 );
+	right = t[7];
+
+	/* We only process float.
+	 */
+	if( vips_cast_float( left, &t[8], NULL ) )
+		return( -1 );
+	left = t[8];
+	if( vips_cast_float( right, &t[9], NULL ) )
+		return( -1 );
+	right = t[9];
+
+	colour->n = 2;
+	colour->in = (VipsImage **) vips_object_local_array( object, 2 );
+	colour->in[0] = left;
+	colour->in[1] = right;
+	if( colour->in[0] )
+		g_object_ref( colour->in[0] );
+	if( colour->in[1] )
+		g_object_ref( colour->in[1] );
+
+	if( VIPS_OBJECT_CLASS( vips_colour_space_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	/* Reattach higher bands, if necessary.
+	 */
+	if( extra ) {
+		VipsImage *x;
+
+		if( vips_bandjoin2( colour->out, extra, &x, NULL ) )
+			return( -1 );
+
+		VIPS_UNREF( colour->out );
+
+		colour->out = x;
+	}
+
+	return( 0 );
+}
+
+static void
+vips_colour_difference_class_init( VipsColourDifferenceClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "difference";
+	vobject_class->description = _( "calculate colour difference" );
+	vobject_class->build = vips_colour_difference_build;
+
+	VIPS_ARG_IMAGE( class, "left", 1, 
+		_( "Left" ), 
+		_( "Left-hand input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsColourDifference, left ) );
+
+	VIPS_ARG_IMAGE( class, "right", 2, 
+		_( "Right" ), 
+		_( "Right-hand input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsColourDifference, right ) );
+
+}
+
+static void
+vips_colour_difference_init( VipsColourDifference *difference )
+{
+}
+
+
 /* A colour-transforming function.
  */
 typedef int (*VipsColourTransformFn)( VipsImage *in, VipsImage **out, ... );
