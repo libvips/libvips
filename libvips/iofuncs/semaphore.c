@@ -58,19 +58,15 @@ vips_semaphore_init( VipsSemaphore *s, int v, char *name )
 {
 	s->v = v;
 	s->name = name;
-#ifdef HAVE_THREADS
-	s->mutex = g_mutex_new();
-	s->cond = g_cond_new();
-#endif /*HAVE_THREADS*/
+	s->mutex = vips_g_mutex_new();
+	s->cond = vips_g_cond_new();
 }
 
 void
 vips_semaphore_destroy( VipsSemaphore *s )
 {
-#ifdef HAVE_THREADS
-	VIPS_FREEF( g_mutex_free, s->mutex );
-	VIPS_FREEF( g_cond_free, s->cond );
-#endif /*HAVE_THREADS*/
+	VIPS_FREEF( vips_g_mutex_free, s->mutex );
+	VIPS_FREEF( vips_g_cond_free, s->cond );
 }
 
 /* Add n to the semaphore and signal any threads that are blocked waiting 
@@ -81,12 +77,10 @@ vips_semaphore_upn( VipsSemaphore *s, int n )
 {
 	int value_after_op;
 
-#ifdef HAVE_THREADS
 	g_mutex_lock( s->mutex );
-#endif /*HAVE_THREADS*/
 	s->v += n;
 	value_after_op = s->v;
-#ifdef HAVE_THREADS
+
 	/* If we are only incrementing by one, we only need to wake a single
 	 * thread. If we are incrementing by a lot, we must wake all threads.
 	 */
@@ -95,7 +89,6 @@ vips_semaphore_upn( VipsSemaphore *s, int n )
 	else
 		g_cond_broadcast( s->cond );
 	g_mutex_unlock( s->mutex );
-#endif /*HAVE_THREADS*/
 
 #ifdef DEBUG_IO
 	printf( "vips_semaphore_upn(\"%s\",%d) = %d\n", 
@@ -122,16 +115,14 @@ vips_semaphore_downn( VipsSemaphore *s, int n )
 {
 	int value_after_op;
 
-#ifdef HAVE_THREADS
 	g_mutex_lock( s->mutex );
+
 	while( s->v < n )
 		g_cond_wait( s->cond, s->mutex );
-#endif /*HAVE_THREADS*/
 	s->v -= n;
 	value_after_op = s->v;
-#ifdef HAVE_THREADS
+
 	g_mutex_unlock( s->mutex );
-#endif /*HAVE_THREADS*/
 
 #ifdef DEBUG_IO
 	printf( "vips_semaphore_downn(\"%s\",%d): %d\n", 

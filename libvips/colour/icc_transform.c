@@ -169,7 +169,7 @@ vips_icc_dispose( GObject *gobject )
 	VIPS_FREEF( cmsDeleteTransform, icc->trans );
 	VIPS_FREEF( cmsCloseProfile, icc->in_profile );
 	VIPS_FREEF( cmsCloseProfile, icc->out_profile );
-	VIPS_FREEF( g_mutex_free, icc->lock );
+	VIPS_FREEF( vips_g_mutex_free, icc->lock );
 
 	G_OBJECT_CLASS( vips_icc_parent_class )->dispose( gobject );
 }
@@ -324,7 +324,7 @@ vips_icc_class_init( VipsIccClass *class )
 static void
 vips_icc_init( VipsIcc *icc )
 {
-	icc->lock = g_mutex_new();
+	icc->lock = vips_g_mutex_new();
 	icc->intent = VIPS_INTENT_RELATIVE;
 	icc->depth = 8;
 }

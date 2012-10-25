@@ -24,7 +24,6 @@ libvipsCC_la_LIBADD = \
 # swap the 'awk' line for this:
 # awk '{if($$1!="deprecated") print $$1}'` ; \
 # to not generate the wrappers for deprecated functions
-.PHONEY:
 vipsc++.cc:
 	packages=`vips list packages | \
 	  awk '{print $$1}'` ; \

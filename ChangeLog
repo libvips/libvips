@@ -10,10 +10,13 @@
 - openslide2vips gets underlying tile size from openslide
 - embed has 'background' option
 - dzsave --layout google has a @background option
+- update for new glib threading API
+- remove no threads option
 
 2/10/12 started 7.30.4
 - remove options from format string in .dzi (thanks Martin)
 - vipsCC.pc required the wrong version of vips (thanks Alessandro)
+- larger max tile size for dzsave
 
 13/9/12 started 7.30.3
 - linecache sized itself too large

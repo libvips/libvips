@@ -144,8 +144,8 @@ vips_block_cache_dispose( GObject *gobject )
 	VipsBlockCache *cache = (VipsBlockCache *) gobject;
 
 	vips_block_cache_drop_all( cache );
-	VIPS_FREEF( g_mutex_free, cache->lock );
-	VIPS_FREEF( g_cond_free, cache->new_tile );
+	VIPS_FREEF( vips_g_mutex_free, cache->lock );
+	VIPS_FREEF( vips_g_cond_free, cache->new_tile );
 
 	G_OBJECT_CLASS( vips_block_cache_parent_class )->dispose( gobject );
 }
@@ -489,8 +489,8 @@ vips_block_cache_init( VipsBlockCache *cache )
 
 	cache->time = 0;
 	cache->ntiles = 0;
-	cache->lock = g_mutex_new();
-	cache->new_tile = g_cond_new();
+	cache->lock = vips_g_mutex_new();
+	cache->new_tile = vips_g_cond_new();
 	cache->tiles = g_hash_table_new_full( 
 		(GHashFunc) vips_rect_hash, 
 		(GEqualFunc) vips_rect_equal,

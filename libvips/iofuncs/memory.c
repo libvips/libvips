@@ -240,21 +240,13 @@ vips_tracked_free( void *s )
 	g_free( s );
 }
 
-/* g_mutex_new() is a macro.
- */
-static void *
-vips_tracked_mutex_new( void *data )
-{
-	return( g_mutex_new() );
-}
-
 static void
 vips_tracked_init( void )
 {
 	static GOnce vips_tracked_once = G_ONCE_INIT;
 
 	vips_tracked_mutex = g_once( &vips_tracked_once, 
-		vips_tracked_mutex_new, NULL );
+		(GThreadFunc) vips_g_mutex_new, NULL );
 }
 
 /**

@@ -680,7 +680,7 @@ lr_blend_labpack( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 static void *
 lock_free( GMutex *lock )
 {
-	g_mutex_free( lock );
+	vips_g_mutex_free( lock );
 
 	return( NULL );
 }
@@ -767,10 +767,10 @@ im__build_mergestate( const char *domain,
 	for( x = 0; x < ovlap->flsize; x++ )
 		ovlap->first[x] = -1;
 
-	ovlap->fl_lock = g_mutex_new();
+	ovlap->fl_lock = vips_g_mutex_new();
 	if( im_add_close_callback( out, 
 		(im_callback_fn) lock_free, ovlap->fl_lock, NULL ) ) {
-		g_mutex_free( ovlap->fl_lock );
+		vips_g_mutex_free( ovlap->fl_lock );
 		return( NULL );
 	}
 

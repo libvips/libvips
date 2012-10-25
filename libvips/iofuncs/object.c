@@ -1271,7 +1271,7 @@ vips_object_class_init( VipsObjectClass *class )
 	if( !vips__object_all ) {
 		vips__object_all = g_hash_table_new( 
 			g_direct_hash, g_direct_equal );
-		vips__object_all_lock = g_mutex_new();
+		vips__object_all_lock = vips_g_mutex_new();
 	}
 
 	gobject_class->dispose = vips_object_dispose;

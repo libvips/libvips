@@ -241,7 +241,7 @@ vips_image_finalize( GObject *gobject )
 	 */
 	vips_image_delete( image );
 
-	VIPS_FREEF( g_mutex_free, image->sslock );
+	VIPS_FREEF( vips_g_mutex_free, image->sslock );
 
 	VIPS_FREE( image->Hist );
 	VIPS_FREEF( vips__gslist_gvalue_free, image->history_list );
@@ -1057,7 +1057,7 @@ vips_image_init( VipsImage *image )
 	image->Yres = 1.0;
 
 	image->fd = -1;			/* since 0 is stdout */
-	image->sslock = g_mutex_new();
+	image->sslock = vips_g_mutex_new();
 
 	image->sizeof_header = VIPS_SIZEOF_HEADER;
 

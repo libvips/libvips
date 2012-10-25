@@ -112,6 +112,14 @@ static GMutex *vips_cache_lock = NULL;
 #define INT64_HASH(X) (g_direct_hash(X))
 #define DOUBLE_HASH(X) (g_direct_hash(X))
 
+/* Old glibs use g_value_get_char(), new ones g_value_get_schar().
+ */
+#ifdef HAVE_VALUE_GET_SCHAR
+#define VIPS_VALUE_GET_CHAR g_value_get_schar
+#else 
+#define VIPS_VALUE_GET_CHAR g_value_get_char
+#endif 
+
 /* Pass in the pspec so we can get the generic type. For example, a 
  * held in a GParamSpec allowing OBJECT, but the value could be of type
  * VipsImage. generics are much faster to compare.
@@ -128,7 +136,7 @@ vips_value_hash( GParamSpec *pspec, GValue *value )
 	if( generic == G_TYPE_PARAM_BOOLEAN )
 		return( (unsigned int) g_value_get_boolean( value ) );
 	else if( generic == G_TYPE_PARAM_CHAR )
-		return( (unsigned int) g_value_get_char( value ) );
+		return( (unsigned int) VIPS_VALUE_GET_CHAR( value ) );
 	else if( generic == G_TYPE_PARAM_UCHAR )
 		return( (unsigned int) g_value_get_uchar( value ) );
 	else if( generic == G_TYPE_PARAM_INT )
@@ -230,8 +238,8 @@ vips_value_equal( GParamSpec *pspec, GValue *v1, GValue *v2 )
 		return( g_value_get_boolean( v1 ) == 
 			g_value_get_boolean( v2 ) );
 	else if( generic == G_TYPE_PARAM_CHAR ) 
-		return( g_value_get_char( v1 ) ==
-			g_value_get_char( v2 ) );
+		return( VIPS_VALUE_GET_CHAR( v1 ) ==
+			VIPS_VALUE_GET_CHAR( v2 ) );
 	if( generic == G_TYPE_PARAM_UCHAR ) 
 		return( g_value_get_uchar( v1 ) ==
 			g_value_get_uchar( v2 ) );
@@ -416,7 +424,7 @@ void
 vips__cache_init( void )
 {
 	if( !vips_cache_table ) {
-		vips_cache_lock = g_mutex_new();
+		vips_cache_lock = vips_g_mutex_new();
 
 		vips_cache_table = g_hash_table_new( 
 			(GHashFunc) vips_operation_hash, 
