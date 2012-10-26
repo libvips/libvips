@@ -130,6 +130,8 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 			buf, &usage );
 	vips_buf_appends( buf, "\n" );
 
+	vips_buf_appendf( buf, "%s\n", object_class->description );
+
 	/* Show required types.
 	 */
 	usage.message = "where:";

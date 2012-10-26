@@ -90,6 +90,9 @@ vips_dE76_class_init( VipsdE76Class *class )
 static void
 vips_dE76_init( VipsdE76 *dE76 )
 {
+	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( dE76 ); 
+
+	difference->interpretation = VIPS_INTERPRETATION_LAB;
 }
 
 /**
