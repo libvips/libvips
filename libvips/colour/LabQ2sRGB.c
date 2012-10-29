@@ -228,12 +228,20 @@ calcul_tables( void *client )
 static struct im_col_tab_disp *
 vips_col_make_tables_RGB( void )
 {
-	static GOnce once = G_ONCE_INIT;
-	static struct im_col_tab_disp table;
+	static struct im_col_tab_disp *table = NULL;
 
-	(void) g_once( &once, calcul_tables, &table );
+	/* We want to avoid having a mutex in this path, so use gonce and a
+	 * static var instead.
+	 */
+	if( !table ) {
+		static GOnce once = G_ONCE_INIT;
+		static struct im_col_tab_disp table_memory;
 
-	return( &table );
+		(void) g_once( &once, calcul_tables, &table_memory );
+		table = &table_memory;
+	}
+
+	return( table );
 }
 
 /* Computes the transform: r,g,b => Yr,Yg,Yb. It finds Y values in 
@@ -248,9 +256,9 @@ vips_col_sRGB2XYZ( int r, int g, int b, float *X, float *Y, float *Z )
 	float Yr, Yg, Yb;
 	int i;
 
-	r = VIPS_CLIP( 0, r, 255 );
-	g = VIPS_CLIP( 0, g, 255 );
-	b = VIPS_CLIP( 0, b, 255 );
+  	r = VIPS_CLIP( 0, r, 255 );
+  	g = VIPS_CLIP( 0, g, 255 );
+  	b = VIPS_CLIP( 0, b, 255 );
 
 	i = r / table->ristep;
 	Yr = table->t_r2Yr[i];

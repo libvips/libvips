@@ -691,8 +691,9 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
 		if( vips__cache_trace ) {
-			printf( "vips cache: hit %p\n  ", hit );
-			vips_object_print_summary( VIPS_OBJECT( *operation ) );
+			printf( "vips cache: hit\n" );
+			printf( "\t" );
+			vips_object_print_summary( VIPS_OBJECT( hit ) );
 		}
 
 		/* Ref before unref in case *operation == hit.
@@ -706,18 +707,20 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	g_mutex_unlock( vips_cache_lock );
 
 	if( !hit ) {
+		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
+			return( -1 );
+
+		/* Has to be after _build() so we can see output args.
+		 */
 		if( vips__cache_trace ) {
 			if( vips_operation_get_flags( *operation ) & 
 				VIPS_OPERATION_NOCACHE )
-				printf( "vips cache: uncacheable %p\n  ", 
-					*operation );
+				printf( "vips cache: uncacheable\n" );
 			else
-				printf( "vips cache: miss %p\n  ", *operation );
+				printf( "vips cache: miss\n" );
+			printf( "\t" );
 			vips_object_print_summary( VIPS_OBJECT( *operation ) );
 		}
-
-		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
-			return( -1 );
 
 		g_mutex_lock( vips_cache_lock );
 

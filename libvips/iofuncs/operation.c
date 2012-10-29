@@ -221,7 +221,6 @@ vips_operation_vips_operation_print_summary_arg( VipsObject *object,
 	 */
 	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		(argument_class->flags & VIPS_ARGUMENT_INPUT) && 
 		argument_instance->assigned ) {
 		const char *name = g_param_spec_get_name( pspec );
 		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
@@ -232,7 +231,7 @@ vips_operation_vips_operation_print_summary_arg( VipsObject *object,
 		g_value_init( &gvalue, type );
 		g_object_get_property( G_OBJECT( object ), name, &gvalue ); 
 		str = g_strdup_value_contents( &gvalue );
-		vips_buf_appendf( buf, " %s", str );
+		vips_buf_appendf( buf, " %s=%s", name, str );
 		g_free( str );
 		g_value_unset( &gvalue ); 
 	}
@@ -246,9 +245,11 @@ vips_operation_summary( VipsObject *object, VipsBuf *buf )
 	VipsOperation *operation = VIPS_OPERATION( object );
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 
-	vips_buf_appendf( buf, "- %s", object_class->nickname ); 
+	vips_buf_appendf( buf, "%s", object_class->nickname ); 
 	vips_argument_map( VIPS_OBJECT( operation ),
 		vips_operation_vips_operation_print_summary_arg, buf, NULL );
+
+	vips_buf_appends( buf, " -" );
 
 	VIPS_OBJECT_CLASS( vips_operation_parent_class )->
 		summary( object, buf );

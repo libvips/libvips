@@ -127,6 +127,11 @@ vips_colour_build( VipsObject *object )
 		if( vips_image_pio_input( colour->in[i] ) )
 			return( -1 );
 
+	/* colour->in[] must be NULL-terminated, we use it as an arg to
+	 * vips_start_many().
+	 */
+	g_assert( !colour->in[colour->n] ); 
+
 	if( vips_image_copy_fields_array( colour->out, colour->in ) ) 
 		return( -1 );
         vips_demand_hint_array( colour->out, 
@@ -221,8 +226,9 @@ vips_colour_space_build( VipsObject *object )
 		return( -1 );
 
 	colour->n = 1;
-	colour->in = (VipsImage **) vips_object_local_array( object, 1 );
+	colour->in = (VipsImage **) vips_object_local_array( object, 2 );
 	colour->in[0] = in;
+	colour->in[1] = NULL;
 	if( colour->in[0] )
 		g_object_ref( colour->in[0] );
 
@@ -346,8 +352,9 @@ vips_colour_code_build( VipsObject *object )
 	}
 
 	colour->n = 1;
-	colour->in = (VipsImage **) vips_object_local_array( object, 1 );
+	colour->in = (VipsImage **) vips_object_local_array( object, 2 );
 	colour->in[0] = in;
+	colour->in[1] = NULL;
 	if( colour->in[0] )
 		g_object_ref( colour->in[0] );
 
@@ -508,9 +515,10 @@ vips_colour_difference_build( VipsObject *object )
 	right = t[9];
 
 	colour->n = 2;
-	colour->in = (VipsImage **) vips_object_local_array( object, 2 );
+	colour->in = (VipsImage **) vips_object_local_array( object, 3 );
 	colour->in[0] = left;
 	colour->in[1] = right;
+	colour->in[2] = NULL;
 	if( colour->in[0] )
 		g_object_ref( colour->in[0] );
 	if( colour->in[1] )
