@@ -41,6 +41,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "colour.h"
 
@@ -419,7 +420,7 @@ vips_colour_difference_build( VipsObject *object )
 	VipsImage *right;
 	VipsImage *extra;
 
-	t = (VipsImage **) vips_object_local_array( object, 10 );
+	t = (VipsImage **) vips_object_local_array( object, 12 );
 
 	left = difference->left;
 	right = difference->right;
@@ -514,6 +515,11 @@ vips_colour_difference_build( VipsObject *object )
 		return( -1 );
 	right = t[9];
 
+	if( vips__sizealike( left, right, &t[10], &t[11] ) )
+		return( -1 );
+	left = t[10];
+	right = t[11];
+
 	colour->n = 2;
 	colour->in = (VipsImage **) vips_object_local_array( object, 3 );
 	colour->in[0] = left;
@@ -574,8 +580,13 @@ vips_colour_difference_class_init( VipsColourDifferenceClass *class )
 static void
 vips_colour_difference_init( VipsColourDifference *difference )
 {
-}
+	VipsColour *colour = VIPS_COLOUR( difference );
 
+	colour->coding = VIPS_CODING_NONE;
+	colour->interpretation = VIPS_INTERPRETATION_B_W;
+	colour->format = VIPS_FORMAT_FLOAT;
+	colour->bands = 1;
+}
 
 /* A colour-transforming function.
  */

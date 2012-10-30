@@ -204,8 +204,8 @@ int
 vips__formatalike( VipsImage *in1, VipsImage *in2, 
 	VipsImage **out1, VipsImage **out2 )
 {
-	IMAGE *in[2];
-	IMAGE *out[2];
+	VipsImage *in[2];
+	VipsImage *out[2];
 
 	in[0] = in1;
 	in[1] = in2;
@@ -223,8 +223,8 @@ int
 vips__sizealike( VipsImage *in1, VipsImage *in2, 
 	VipsImage **out1, VipsImage **out2 )
 {
-	IMAGE *in[2];
-	IMAGE *out[2];
+	VipsImage *in[2];
+	VipsImage *out[2];
 
 	in[0] = in1;
 	in[1] = in2;
