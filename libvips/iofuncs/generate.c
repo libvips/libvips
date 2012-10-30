@@ -586,6 +586,7 @@ write_vips( VipsRegion *region, VipsRect *area, void *a, void *b )
 
 	count = region->bpl * area->height;
 	buf = VIPS_REGION_ADDR( region, 0, area->top );
+
 	do {
 		nwritten = write( region->im->fd, buf, count ); 
 		if( nwritten == (size_t) -1 ) 
@@ -699,8 +700,23 @@ vips_image_generate( VipsImage *image,
                 if( image->dtype == VIPS_IMAGE_OPENOUT ) 
 			res = vips_sink_disc( image,
 				(VipsRegionWrite) write_vips, NULL );
-                else
+                else {
+			int x, y;
+			int sum;
+
                         res = vips_sink_memory( image );
+
+			printf( "testing mem buffer %p for uninit\n",
+				VIPS_IMAGE_ADDR( image, 0, 0 ) );
+			sum = 0;
+			for( y = 1; y < image->Ysize; y++ )
+				for( x = 0; x < image->Xsize; x++ ) {
+					printf( "x = %d\n", 
+					*VIPS_IMAGE_ADDR( image, x, y ) );
+					sum += *VIPS_IMAGE_ADDR( image, x, y );
+				}
+			printf( "sum = %d\n", sum );
+		}
 
                 /* Error?
                  */
@@ -721,6 +737,19 @@ vips_image_generate( VipsImage *image,
 
 	if( vips_image_written( image ) )
 		return( -1 );
+
+        if( image->dtype == VIPS_IMAGE_SETBUF ) { 
+		int x, y;
+		int sum;
+
+		printf( "testing mem buffer #2 %p for uninit\n",
+			VIPS_IMAGE_ADDR( image, 0, 0 ) );
+		sum = 0;
+		for( y = 0; y < image->Ysize; y++ )
+			for( x = 0; x < image->Xsize; x++ )
+				sum += *VIPS_IMAGE_ADDR( image, x, y );
+		printf( "sum = %d\n", sum );
+	}
 
         return( 0 );
 }

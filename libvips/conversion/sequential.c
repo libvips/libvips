@@ -142,7 +142,7 @@ vips_sequential_generate( VipsRegion *or,
 		 * The stall can be cancelled by a signal on @ready.
 		 */
 		VIPS_DEBUG_MSG( "thread %p stalling for up to %gs ...\n", 
-			STALL_TIME, g_thread_self() ); 
+			g_thread_self(), STALL_TIME ); 
 		vips_g_cond_timed_wait( sequential->ready, 
 			sequential->lock, STALL_TIME * 1000000 );
 		VIPS_DEBUG_MSG( "thread %p awake again ...\n", 

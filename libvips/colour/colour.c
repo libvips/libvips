@@ -65,20 +65,31 @@ vips_colour_gen( VipsRegion *or,
 
 	/* Prepare all input regions and make buffer pointers.
 	 */
-	for( i = 0; ir[i]; i++ ) {
+	for( i = 0; ir[i]; i++ ) 
 		if( vips_region_prepare( ir[i], r ) ) 
 			return( -1 );
-		p[i] = (VipsPel *) VIPS_REGION_ADDR( ir[i], r->left, r->top );
-	}
-	p[i] = NULL;
-	q = (VipsPel *) VIPS_REGION_ADDR( or, r->left, r->top );
+
+	int x;
+	int sum;
+
+	printf( "vips_colour_gen: testing mem buffer #5 %p for uninit\n",
+		VIPS_REGION_ADDR( ir[0], r->left, r->top ) );
+	sum = 0;
+	for( y = 0; y < r->height; y++ )
+		for( x = 0; x < r->width; x++ )
+			sum += 
+			VIPS_REGION_ADDR( ir[0], x + r->left, y + r->top )[0] +
+			VIPS_REGION_ADDR( ir[0], x + r->left, y + r->top )[1] +
+			VIPS_REGION_ADDR( ir[0], x + r->left, y + r->top )[2];
+	printf( "sum = %d\n", sum );
 
 	for( y = 0; y < r->height; y++ ) {
-		class->process_line( colour, q, p, r->width );
-
 		for( i = 0; ir[i]; i++ )
-			p[i] += VIPS_REGION_LSKIP( ir[i] );
-		q += VIPS_REGION_LSKIP( or );
+			p[i] = VIPS_REGION_ADDR( ir[i], r->left, r->top + y );
+		p[i] = NULL;
+		q = VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+		class->process_line( colour, q, p, r->width );
 	}
 
 	return( 0 );
@@ -169,7 +180,7 @@ vips_colour_class_init( VipsColourClass *class )
 	vobject_class->description = _( "colour operations" );
 	vobject_class->build = vips_colour_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	//operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 
@@ -761,7 +772,6 @@ vips_colour_convert_class_init( VipsColourConvertClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -769,8 +779,6 @@ vips_colour_convert_class_init( VipsColourConvertClass *class )
 	vobject_class->nickname = "colour_convert";
 	vobject_class->description = _( "convert to a new colourspace" );
 	vobject_class->build = vips_colour_convert_build;
-
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Output" ), 

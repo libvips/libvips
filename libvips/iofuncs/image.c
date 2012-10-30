@@ -31,8 +31,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1895,6 +1895,9 @@ vips_image_write_prepare( VipsImage *image )
 			!(image->data = vips_tracked_malloc( 
 				VIPS_IMAGE_SIZEOF_IMAGE( image ))) ) 
 			return( -1 );
+
+		printf( "vips_image_write_prepare: memory image at %p\n", 
+				image->data );
 
 		break;
 

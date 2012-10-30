@@ -869,8 +869,9 @@ vips_region_paint( VipsRegion *reg, VipsRect *r, int value )
 	vips_rect_intersectrect( r, &reg->valid, &ovl );
 	if( !vips_rect_isempty( &ovl ) ) {
 		VipsPel *q = VIPS_REGION_ADDR( reg, ovl.left, ovl.top );
-		int wd = ovl.width * VIPS_IMAGE_SIZEOF_PEL( reg->im );
-		int ls = VIPS_REGION_LSKIP( reg );
+		size_t wd = ovl.width * VIPS_IMAGE_SIZEOF_PEL( reg->im );
+		size_t ls = VIPS_REGION_LSKIP( reg );
+
 		int y;
 
 		for( y = 0; y < ovl.height; y++ ) {

@@ -353,8 +353,7 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 			/* Position buf at the new y.
 			 */
 			if( wbuffer_position( write->buf, 
-				//sink_base->y, sink_base->nlines ) )
-				sink_base->y, sink_base->tile_height ) )
+				sink_base->y, sink_base->nlines ) )
 				return( -1 );
 		}
 	}
@@ -484,8 +483,7 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 	result = 0;
 	if( !write.buf || 
 		!write.buf_back || 
-		//wbuffer_position( write.buf, 0, write.sink_base.nlines ) ||
-		wbuffer_position( write.buf, 0, write.sink_base.tile_height ) ||
+		wbuffer_position( write.buf, 0, write.sink_base.nlines ) ||
 		vips_threadpool_run( im, 
 			write_thread_state_new, 
 			wbuffer_allocate_fn, 
