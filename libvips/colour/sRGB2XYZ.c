@@ -64,18 +64,6 @@ vips_sRGB2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 	int i;
 
-	printf( "vips_sRGB2XYZ_line: out = %p, in = %p\n",
-		out, p );
-
-	int sum;
-
-	printf( "vips_sRGB2XYZ_line: testing mem buffer #6 %p for uninit\n",
-		p ); 
-	sum = 0;
-	for( i = 0; i < width; i++ )
-		sum += p[0] + p[1] + p[2];
-	printf( "sum = %d\n", sum );
-
 	for( i = 0; i < width; i++ ) {
 		int r = p[0];
 		int g = p[1];

@@ -69,20 +69,6 @@ vips_colour_gen( VipsRegion *or,
 		if( vips_region_prepare( ir[i], r ) ) 
 			return( -1 );
 
-	int x;
-	int sum;
-
-	printf( "vips_colour_gen: testing mem buffer #5 %p for uninit\n",
-		VIPS_REGION_ADDR( ir[0], r->left, r->top ) );
-	sum = 0;
-	for( y = 0; y < r->height; y++ )
-		for( x = 0; x < r->width; x++ )
-			sum += 
-			VIPS_REGION_ADDR( ir[0], x + r->left, y + r->top )[0] +
-			VIPS_REGION_ADDR( ir[0], x + r->left, y + r->top )[1] +
-			VIPS_REGION_ADDR( ir[0], x + r->left, y + r->top )[2];
-	printf( "sum = %d\n", sum );
-
 	for( y = 0; y < r->height; y++ ) {
 		for( i = 0; ir[i]; i++ )
 			p[i] = VIPS_REGION_ADDR( ir[i], r->left, r->top + y );
@@ -180,7 +166,7 @@ vips_colour_class_init( VipsColourClass *class )
 	vobject_class->description = _( "colour operations" );
 	vobject_class->build = vips_colour_build;
 
-	//operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 

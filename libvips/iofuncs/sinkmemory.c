@@ -324,8 +324,6 @@ vips_sink_memory( VipsImage *image )
 	SinkMemory memory;
 	int result;
 
-	printf( "vips_sink_memory: writing to %p\n", image->data );
-
 	if( sink_memory_init( &memory, image ) )
 		return( -1 );
 
@@ -345,7 +343,6 @@ vips_sink_memory( VipsImage *image )
 
 	sink_memory_free( &memory );
 
-	printf( "vips_sink_memory: done\n" );
 	VIPS_DEBUG_MSG( "vips_sink_memory: done\n" );
 
 	return( result );

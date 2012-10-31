@@ -33,8 +33,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -791,19 +791,6 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 			load->real, NULL );
 	}
 
-        if( load->real->dtype == VIPS_IMAGE_SETBUF ) { 
-		int x, y;
-		int sum;
-
-		printf( "testing mem buffer #3 %p for uninit\n",
-			VIPS_IMAGE_ADDR( load->real, 0, 0 ) );
-		sum = 0;
-		for( y = 0; y < load->real->Ysize; y++ )
-			for( x = 0; x < load->real->Xsize; x++ )
-				sum += *VIPS_IMAGE_ADDR( load->real, x, y );
-		printf( "sum = %d\n", sum );
-	}
-
 	return( vips_region_new( load->real ) );
 }
 
@@ -826,22 +813,6 @@ vips_foreign_load_generate( VipsRegion *or,
          */
         if( vips_region_region( or, ir, r, r->left, r->top ) )
                 return( -1 );
-
-{ 
-	int x, y;
-	int sum;
-
-	printf( "vips_foreign_load_generate: testing mem buffer #4 %p for uninit\n",
-		VIPS_REGION_ADDR( or, r->left, r->top ) );
-	sum = 0;
-	for( y = 0; y < r->height; y++ )
-		for( x = 0; x < r->width; x++ )
-			sum += 
-			VIPS_REGION_ADDR( or, x + r->left, y + r->top )[0] +
-			VIPS_REGION_ADDR( or, x + r->left, y + r->top )[1] +
-			VIPS_REGION_ADDR( or, x + r->left, y + r->top )[2];
-	printf( "sum = %d\n", sum );
-}
 
         return( 0 );
 }

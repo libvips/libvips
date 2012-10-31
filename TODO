@@ -4,37 +4,6 @@
 
 	trim this down!
 
-- seq is disabled in colour.c
-
-
-
-- try:
-
-	$ valgrind --db-attach=yes vips sRGB2XYZ kylie110.jpg x2.v --vips-cache-trace --vips-concurrency=1 --vips-progress
-
-  get:
-
-	==22629== Thread 4:
-	==22629== Conditional jump or move depends on uninitialised value(s)
-	==22629==    at 0x4EDA287: vips_col_sRGB2XYZ (LabQ2sRGB.c:259)
-	==22629==    by 0x4EDB1DC: vips_sRGB2XYZ_line (sRGB2XYZ.c:78)
-
-
-  the .jpg is read to a mem buffer, we then process from that
-
-  the mem buffer is created OK and we don't get unint errors if we read from
-  there during create
-
-  the vips_sRGB2XYZ_line() is called with p pointing to the start of the mem
-  buffer and triggers the uninit
-
-  therefore something during the rewind must be causing uninit to be set
-
-
-
-
-
-
 
 - add mono as a colourspace? also rad?
 
