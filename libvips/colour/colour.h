@@ -200,6 +200,9 @@ typedef struct _VipsColourDifferenceClass {
 
 GType vips_colour_difference_get_type( void );
 
+void vips__pythagoras_line( VipsColour *colour, 
+	VipsPel *out, VipsPel **in, int width );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

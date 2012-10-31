@@ -1,13 +1,8 @@
-/* im_dE_fromLab.c
+/* dECMC.c
  *
  * Modified:
- * 16/11/94 JC
- *	- partialed!
- * 31/10/09
- * 	- use im__colour_binary() 
- * 	- gtkdoc comment
- * 25/10/12
- * 	- redone as a class
+ * 31/10/12
+ * 	- from dE76.c
  */
 
 /*
@@ -46,73 +41,59 @@
 
 #include "colour.h"
 
-typedef struct _VipsdE76 {
+typedef struct _VipsdECMC {
 	VipsColourDifference parent_instance;
 
-} VipsdE76;
+} VipsdECMC;
 
-typedef VipsColourSpaceClass VipsdE76Class;
+typedef VipsColourSpaceClass VipsdECMCClass;
 
-G_DEFINE_TYPE( VipsdE76, vips_dE76, VIPS_TYPE_COLOUR_DIFFERENCE );
-
-/* Find the difference between two buffers of LAB data.
- */
-void
-vips__pythagoras_line( VipsColour *colour, 
-	VipsPel *out, VipsPel **in, int width )
-{
-	float *p1 = (float *) in[0];
-	float *p2 = (float *) in[1];
-	float *q = (float *) out;
-
-	int x;
-
-	for( x = 0; x < width; x++ ) {
-		q[x] = vips_pythagoras( 
-			p1[0], p1[1], p1[2], p2[0], p2[1], p2[2] );
-
-		p1 += 3;
-		p2 += 3;
-	}
-}
+G_DEFINE_TYPE( VipsdECMC, vips_dECMC, VIPS_TYPE_COLOUR_DIFFERENCE );
 
 static void
-vips_dE76_class_init( VipsdE76Class *class )
+vips_dECMC_class_init( VipsdECMCClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
 
-	object_class->nickname = "dE76";
-	object_class->description = _( "calculate dE76" );
+	object_class->nickname = "dECMC";
+	object_class->description = _( "calculate dECMC" );
 
 	colour_class->process_line = vips__pythagoras_line;
 }
 
 static void
-vips_dE76_init( VipsdE76 *dE76 )
+vips_dECMC_init( VipsdECMC *dECMC )
 {
-	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( dE76 ); 
+	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( dECMC ); 
 
-	difference->interpretation = VIPS_INTERPRETATION_LAB;
+	difference->interpretation = VIPS_INTERPRETATION_UCS;
 }
 
 /**
- * vips_dE76:
+ * vips_dECMC:
  * @in: input image
  * @out: output image
  *
- * Calculate dE 76.
+ * Calculate dE CMC. The input images are transformed to UCS colour space and
+ * the euclidean distance between corresponding pixels calculated. 
+ *
+ * To calculate a colour difference with values for (l:c) other than (1:1),
+ * transform the two source images to UCS yourself, scale the channels
+ * appropriately, and call this function.
+ *
+ * See also: vips_colour_convert()
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_dE76( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+vips_dECMC( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "dE76", ap, left, right, out );
+	result = vips_call_split( "dECMC", ap, left, right, out );
 	va_end( ap );
 
 	return( result );

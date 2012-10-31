@@ -92,55 +92,6 @@ vips_pythagoras( float L1, float a1, float b1, float L2, float a2, float b2 )
  */
 
 /**
- * im_col_dECMC:
- * @L1: Input coordinate 1
- * @a1: Input coordinate 1
- * @b1: Input coordinate 1
- * @L2: Input coordinate 2
- * @a2: Input coordinate 2
- * @b2: Input coordinate 2
- * 
- * CMC colour difference from a pair of Lab values.
- *
- * Returns: CMC(1:1) colour difference
- */
-float 
-im_col_dECMC( float L1, float a1, float b1, 
-	float L2, float a2, float b2 )
-{
-	float h1, C1;
-	float h2, C2;
-	float Lucs1, Cucs1, hucs1;
-	float Lucs2, Cucs2, hucs2;
-	float aucs1, bucs1;
-	float aucs2, bucs2;
-
-	/* Turn to LCh.
-	 */
-	im_col_ab2Ch( a1, b1, &C1, &h1 );
-	im_col_ab2Ch( a2, b2, &C2, &h2 );
-
-	/* Turn to LCh in CMC space.
-	 */
-	Lucs1 = im_col_L2Lucs( L1 );
-	Cucs1 = im_col_C2Cucs( C1 );
-	hucs1 = im_col_Ch2hucs( C1, h1 );
-
-	Lucs2 = im_col_L2Lucs( L2 );
-	Cucs2 = im_col_C2Cucs( C2 );
-	hucs2 = im_col_Ch2hucs( C2, h2 );
-
-	/* Turn to Lab in CMC space.
-	 */
-	im_col_Ch2ab( Cucs1, hucs1, &aucs1, &bucs1 );
-	im_col_Ch2ab( Cucs2, hucs2, &aucs2, &bucs2 );
-
-	/* Find difference.
-	 */
-	return( im_col_pythagoras( Lucs1, aucs1, bucs1, Lucs2, aucs2, bucs2 ) );
-}
-
-/**
  * im_col_dE00:
  * @L1: Input coordinate 1
  * @a1: Input coordinate 1

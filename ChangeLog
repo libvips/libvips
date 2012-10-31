@@ -3,7 +3,8 @@
   im_LCh2UCS(), im_XYZ2Yxy(), im_Yxy2XYZ(), im_float2rad(), im_rad2float(),
   im_Lab2LabQ(), im_LabQ2Lab(), im_Lab2LabS(), im_LabS2Lab(), im_LabQ2LabS(),
   im_LabS2LabQ(), im_LabQ2disp(), im_XYZ2disp(), im_disp2XYZ(),
-  im_icc_import*(), im_icc_export*(), im_icc_transform*(), im_dE_fromLab()
+  im_icc_import*(), im_icc_export*(), im_icc_transform*(), im_dE_fromLab(),
+  im_dECMC_fromLab().
   as classes
 - added vips_colour_convert(), replaces all derived conversions
 - dzsave can write zoomify and google maps layout as well

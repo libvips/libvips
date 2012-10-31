@@ -170,6 +170,8 @@ int vips_icc_ac2rc( VipsImage *in, VipsImage *out,
 
 int vips_dE76( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_dECMC( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 void vips_col_Lab2XYZ( float L, float a, float b, 
 	float *X, float *Y, float *Z );
@@ -198,15 +200,10 @@ int vips_col_sRGB2XYZ( int r, int g, int b, float *X, float *Y, float *Z );
  */
 float vips_pythagoras( float L1, float a1, float b1, 
 	float L2, float a2, float b2 );
-
-float im_col_dECMC( 
-	float L1, float a1, float b1, float L2, float a2, float b2 );
 float im_col_dE00( 
 	float L1, float a1, float b1, float L2, float a2, float b2 );
 
-int im_dECMC_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_dE00_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );
-int im_dE_fromXYZ( VipsImage *in1, VipsImage *in2, VipsImage *out );
 
 int im_lab_morph( VipsImage *in, VipsImage *out,
 	DOUBLEMASK *mask,
