@@ -849,6 +849,8 @@ vips_colour_operation_init( void )
 	extern GType vips_icc_transform_get_type( void ); 
 #endif
 	extern GType vips_dE76_get_type( void ); 
+	extern GType vips_dE00_get_type( void ); 
+	extern GType vips_dECMC_get_type( void ); 
 
 	vips_colour_convert_get_type();
 	vips_Lab2XYZ_get_type();
@@ -876,4 +878,6 @@ vips_colour_operation_init( void )
 	vips_icc_transform_get_type();
 #endif
 	vips_dE76_get_type(); 
+	vips_dE00_get_type(); 
+	vips_dECMC_get_type(); 
 }

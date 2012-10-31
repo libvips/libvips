@@ -779,6 +779,14 @@ int im_XYZ2UCS( VipsImage *in, VipsImage *out );
 int im_dE_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_dECMC_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_dE_fromXYZ( VipsImage *in1, VipsImage *in2, VipsImage *out );
+int im_dE00_fromLab( VipsImage *in1, VipsImage *in2, VipsImage *out );
+
+int im_lab_morph( VipsImage *in, VipsImage *out,
+	DOUBLEMASK *mask,
+	double L_offset, double L_scale,
+	double a_scale, double b_scale );
+
+#define im_col_dE00 vips_col_dE00
 
 /* ruby-vips uses this
  */

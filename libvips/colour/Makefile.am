@@ -2,9 +2,9 @@ noinst_LTLIBRARIES = libcolour.la
 
 libcolour_la_SOURCES = \
 	colour.c \
-	colour_funcs.c \
 	colour_dispatch.c \
 	dE76.c \
+	dE00.c \
 	dECMC.c \
 	icc_transform.c \
 	Lab2XYZ.c \
@@ -25,8 +25,6 @@ libcolour_la_SOURCES = \
 	LabQ2LabS.c \
 	LabQ2sRGB.c \
 	XYZ2sRGB.c \
-	sRGB2XYZ.c \
-	im_lab_morph.c \
-	im_dE00_fromLab.c 
+	sRGB2XYZ.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

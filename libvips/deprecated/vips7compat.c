@@ -2807,3 +2807,20 @@ im_dECMC_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 	return( 0 );
 }
+
+int 
+im_dE00_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_dE00( in1, in2, &x, 
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

@@ -2,6 +2,7 @@ noinst_LTLIBRARIES = libdeprecated.la
 
 libdeprecated_la_SOURCES = \
 	im_openslide2vips.c \
+	im_lab_morph.c \
 	deprecated_dispatch.c \
 	wrapvips7.c \
 	lazy.c \

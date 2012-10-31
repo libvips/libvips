@@ -1,31 +1,8 @@
-/* Convert colours in various ways.
+/* dE00.c
  *
- * Written: January 1990
- * Modified .. innumerable times
- * Code by: DS, JC, J-Ph.L.
- * 18/7/93 JC
- *	- final tidies before v7 release
- *	- ANSIfied
- *	- code for samples removed
- * 5/5/94 JC
- *	- nint() -> rint() to make ANSI easier
- * 14/3/96 JC
- *	- new display characterisation
- *	- speed-up to im_col_XYZ2rgb() and im_col_rgb2XYZ()
- * 4/3/98 JC
- *	- new display profile for ultra2
- *	- new sRGB profile
- * 17/8/98 JC
- *	- error_exit() removed, now clips
- * 26/11/03 Andrey Kiselev
- * 	- tiny clean-up for calcul_tables()
- * 	- some reformatting
- * 23/7/07
- * 	- tiny cleanup for make_hI() prevents cond jump on ui in valgrind
- * 14/3/08
- * 	- more tiny cond jump valgrind fixes
- * 23/10/09
- * 	- gtkdoc comments
+ * Modified:
+ * 31/10/12
+ * 	- from dE76.c
  */
 
 /*
@@ -59,40 +36,24 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/internal.h>
+#include <vips/debug.h>
+
+#include "colour.h"
+
+typedef struct _VipsdE00 {
+	VipsColourDifference parent_instance;
+
+} VipsdE00;
+
+typedef VipsColourSpaceClass VipsdE00Class;
+
+G_DEFINE_TYPE( VipsdE00, vips_dE00, VIPS_TYPE_COLOUR_DIFFERENCE );
 
 /**
- * vips_pythagoras:
- * @L1: Input coordinate 1
- * @a1: Input coordinate 1
- * @b1: Input coordinate 1
- * @L2: Input coordinate 2
- * @a2: Input coordinate 2
- * @b2: Input coordinate 2
- *
- * Pythagorean distance between two points in colour space. Lab/XYZ/UCS etc.
- */
-float
-vips_pythagoras( float L1, float a1, float b1, float L2, float a2, float b2 )
-{
-	float dL = L1 - L2;
-	float da = a1 - a2;
-	float db = b1 - b2;
-
-	return( sqrt( dL * dL + da * da + db * db ) );
-}
-
-/* Functions to convert from Lab to uniform colour space and back.  
- */
-
-/**
- * im_col_dE00:
+ * vips_col_dE00:
  * @L1: Input coordinate 1
  * @a1: Input coordinate 1
  * @b1: Input coordinate 1
@@ -108,7 +69,7 @@ vips_pythagoras( float L1, float a1, float b1, float L2, float a2, float b2 )
  * Returns: CIE dE2000 colour difference.
  */
 float 
-im_col_dE00( float L1, float a1, float b1, 
+vips_col_dE00( float L1, float a1, float b1, 
 	float L2, float a2, float b2 )
 {
 /* Code if you want XYZ params and the colour temp used in the reference
@@ -240,4 +201,68 @@ im_col_dE00( float L1, float a1, float b1,
 	 */
 
 	return( dE00 );
+}
+
+/* Find the difference between two buffers of LAB data.
+ */
+void
+vips_dE00_line( VipsColour *colour, 
+	VipsPel *out, VipsPel **in, int width )
+{
+	float *p1 = (float *) in[0];
+	float *p2 = (float *) in[1];
+	float *q = (float *) out;
+
+	int x;
+
+	for( x = 0; x < width; x++ ) {
+		q[x] = vips_col_dE00( p1[0], p1[1], p1[2], 
+			p2[0], p2[1], p2[2] );
+
+		p1 += 3;
+		p2 += 3;
+	}
+}
+
+static void
+vips_dE00_class_init( VipsdE00Class *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+
+	object_class->nickname = "dE00";
+	object_class->description = _( "calculate dE00" );
+
+	colour_class->process_line = vips_dE00_line;
+}
+
+static void
+vips_dE00_init( VipsdE00 *dE00 )
+{
+	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( dE00 ); 
+
+	difference->interpretation = VIPS_INTERPRETATION_LAB;
+}
+
+/**
+ * vips_dE00:
+ * @left: first input image
+ * @right: second input image
+ * @out: output image
+ *
+ * Calculate dE 00.
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_dE00( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "dE00", ap, left, right, out );
+	va_end( ap );
+
+	return( result );
 }

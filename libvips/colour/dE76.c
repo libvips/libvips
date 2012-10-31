@@ -41,6 +41,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#include <math.h>
+
 #include <vips/vips.h>
 #include <vips/debug.h>
 
@@ -55,6 +57,27 @@ typedef VipsColourSpaceClass VipsdE76Class;
 
 G_DEFINE_TYPE( VipsdE76, vips_dE76, VIPS_TYPE_COLOUR_DIFFERENCE );
 
+/**
+ * vips_pythagoras:
+ * @L1: Input coordinate 1
+ * @a1: Input coordinate 1
+ * @b1: Input coordinate 1
+ * @L2: Input coordinate 2
+ * @a2: Input coordinate 2
+ * @b2: Input coordinate 2
+ *
+ * Pythagorean distance between two points in colour space. Lab/XYZ/UCS etc.
+ */
+float
+vips_pythagoras( float L1, float a1, float b1, float L2, float a2, float b2 )
+{
+	float dL = L1 - L2;
+	float da = a1 - a2;
+	float db = b1 - b2;
+
+	return( sqrt( dL * dL + da * da + db * db ) );
+}
+
 /* Find the difference between two buffers of LAB data.
  */
 void
@@ -68,8 +91,11 @@ vips__pythagoras_line( VipsColour *colour,
 	int x;
 
 	for( x = 0; x < width; x++ ) {
-		q[x] = vips_pythagoras( 
-			p1[0], p1[1], p1[2], p2[0], p2[1], p2[2] );
+		float dL = p1[0] - p2[0];
+		float da = p1[1] - p2[1];
+		float db = p1[2] - p2[2];
+
+		q[x] = sqrt( dL * dL + da * da + db * db );
 
 		p1 += 3;
 		p2 += 3;
@@ -98,7 +124,8 @@ vips_dE76_init( VipsdE76 *dE76 )
 
 /**
  * vips_dE76:
- * @in: input image
+ * @left: first input image
+ * @right: second input image
  * @out: output image
  *
  * Calculate dE 76.

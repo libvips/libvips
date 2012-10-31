@@ -72,7 +72,8 @@ vips_dECMC_init( VipsdECMC *dECMC )
 
 /**
  * vips_dECMC:
- * @in: input image
+ * @left: first input image
+ * @right: second input image
  * @out: output image
  *
  * Calculate dE CMC. The input images are transformed to UCS colour space and
