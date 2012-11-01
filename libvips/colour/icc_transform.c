@@ -973,15 +973,14 @@ vips_icc_transform( VipsImage *in, VipsImage **out,
  * Returns: 0 on success, -1 on error.
  */
 int
-im_icc_ac2rc( VipsImage *in, VipsImage *out, const char *profile_filename )
+vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 {
+	VipsImage *t;
 	cmsHPROFILE profile;
 	double X, Y, Z;
-
-	double add[3];
-	double mul[3];
-
-	IMAGE *t[2];
+	double *add;
+	double *mul;
+	int i;
 
 	if( !(profile = cmsOpenProfileFromFile( profile_filename, "r" )) )
 		return( -1 );
@@ -1018,41 +1017,36 @@ im_icc_ac2rc( VipsImage *in, VipsImage *out, const char *profile_filename )
 
 	cmsCloseProfile( profile );
 
-	add[0] = 0.0;
-	add[1] = 0.0;
-	add[2] = 0.0;
+	/* We need XYZ so we can adjust the white balance.
+	 */
+	if( vips_colourspace( in, &t, VIPS_INTERPRETATION_XYZ, NULL ) )
+		return( -1 );
+	in = t;
+
+	if( !(add = VIPS_ARRAY( in, in->Bands, double )) ||
+		!(mul = VIPS_ARRAY( in, in->Bands, double )) )
+		return( -1 );
+
+	/* There might be extra bands off to the right somewhere.
+	 */
+	for( i = 0; i < in->Bands; i++ ) 
+		add[i] = 0.0;
 
 	mul[0] = VIPS_D50_X0 / (X * 100.0);
 	mul[1] = VIPS_D50_Y0 / (Y * 100.0);
 	mul[2] = VIPS_D50_Z0 / (Z * 100.0);
 
-	/* Do IM_CODING_LABQ too.
-	 */
-	if( in->Coding == IM_CODING_LABQ ) {
-		IMAGE *t1 = im_open_local( out, "im_icc_ac2rc-1", "p" );
+	for( i = 3; i < in->Bands; i++ ) 
+		mul[i] = 1.0;
 
-		if( !t1 || im_LabQ2Lab( in, t1 ) )
-			return( -1 );
-
-		in = t1;
-	}
-
-	/* Do IM_CODING_RAD.
-	 */
-	if( in->Coding == IM_CODING_RAD ) {
-		IMAGE *t1 = im_open_local( out, "im_icc_export:1", "p" );
-
-		if( !t1 || im_rad2float( in, t1 ) )
-			return( -1 );
-
-		in = t1;
-	}
-
-	if( im_open_local_array( out, t, 2, "im_icc_ac2rc-2", "p" ) ||
-		im_Lab2XYZ_temp( in, t[0], IM_D50_X0, IM_D50_Y0, IM_D50_Z0 ) ||
-		im_lintra_vec( 3, mul, t[0], add, t[1] ) || 
-		im_XYZ2Lab_temp( t[1], out, IM_D50_X0, IM_D50_Y0, IM_D50_Z0 ) )
+	if( vips_linear( in, &t, add, mul, in->Bands, NULL ) ) {
+		g_object_unref( in );
 		return( -1 );
+	}
+	g_object_unref( in );
+	in = t;
+
+	*out = in;
 
 	return( 0 );
 }

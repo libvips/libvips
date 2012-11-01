@@ -110,7 +110,7 @@ typedef enum {
 	VIPS_INTENT_ABSOLUTE
 } VipsIntent;
 
-int vips_colour_convert( VipsImage *in, VipsImage **out, 
+int vips_colourspace( VipsImage *in, VipsImage **out, 
 	VipsInterpretation space, ... )
 	__attribute__((sentinel));
 
@@ -165,7 +165,7 @@ int vips_icc_import( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_icc_export( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_icc_ac2rc( VipsImage *in, VipsImage *out, 
+int vips_icc_ac2rc( VipsImage *in, VipsImage **out, 
 	const char *profile_filename );
 
 int vips_dE76( VipsImage *left, VipsImage *right, VipsImage **out, ... )

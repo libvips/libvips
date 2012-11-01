@@ -1241,7 +1241,7 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	if( in->Bands == 3 ) {
 		VipsImage *out;
 
-		if( vips_colour_convert( in, &out, 
+		if( vips_colourspace( in, &out, 
 			VIPS_INTERPRETATION_sRGB, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );

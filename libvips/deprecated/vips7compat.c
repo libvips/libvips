@@ -2777,3 +2777,19 @@ im_dE00_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 	return( 0 );
 }
+
+int
+im_icc_ac2rc( VipsImage *in, VipsImage *out, const char *profile_filename )
+{
+	VipsImage *x;
+
+	if( vips_icc_ac2rc( in, &x, profile_filename ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
