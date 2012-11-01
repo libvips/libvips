@@ -134,7 +134,7 @@ int vips_Lab2LCh( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_Yxy2Lab( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_UCS2XYZ( VipsImage *in, VipsImage **out, ... )
+int vips_CMC2XYZ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -144,9 +144,9 @@ int vips_XYZ2sRGB( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_sRGB2XYZ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_LCh2UCS( VipsImage *in, VipsImage **out, ... )
+int vips_LCh2CMC( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_UCS2LCh( VipsImage *in, VipsImage **out, ... )
+int vips_CMC2LCh( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_XYZ2Yxy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -183,14 +183,14 @@ double vips_col_ab2h( double a, double b );
 void vips_col_ab2Ch( float a, float b, float *C, float *h );
 void vips_col_Ch2ab( float C, float h, float *a, float *b );
 
-float vips_col_L2Lucs( float L );
-float vips_col_C2Cucs( float C );
-float vips_col_Ch2hucs( float C, float h );
+float vips_col_L2Lcmc( float L );
+float vips_col_C2Ccmc( float C );
+float vips_col_Ch2hcmc( float C, float h );
 
-void vips_col_make_tables_UCS( void );
-float vips_col_Lucs2L( float Lucs );
-float vips_col_Cucs2C( float Cucs );
-float vips_col_Chucs2h( float C, float hucs );
+void vips_col_make_tables_CMC( void );
+float vips_col_Lcmc2L( float Lcmc );
+float vips_col_Ccmc2C( float Ccmc );
+float vips_col_Chcmc2h( float C, float hcmc );
 
 int vips_col_XYZ2sRGB( float X, float Y, float Z, 
 	int *r_ret, int *g_ret, int *b_ret, 

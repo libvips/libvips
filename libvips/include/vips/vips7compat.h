@@ -86,15 +86,15 @@ extern "C" {
 #define im_col_ab2Ch vips_col_ab2Ch
 #define im_col_Ch2ab vips_col_Ch2ab
 
-#define im_col_L2Lucs vips_col_L2Lucs
-#define im_col_C2Cucs vips_col_C2Cucs
-#define im_col_Ch2hucs vips_col_Ch2hucs
+#define im_col_L2Lucs vips_col_L2Lcmc
+#define im_col_C2Cucs vips_col_C2Ccmc
+#define im_col_Ch2hucs vips_col_Ch2hcmc
 #define im_col_pythagoras vips_pythagoras
 
-#define im_col_make_tables_UCS vips_col_make_tables_UCS
-#define im_col_Lucs2L vips_col_Lucs2L
-#define im_col_Cucs2C vips_col_Cucs2C
-#define im_col_Chucs2h vips_col_Chucs2h
+#define im_col_make_tables_UCS vips_col_make_tables_CMC
+#define im_col_Lucs2L vips_col_Lcmc2L
+#define im_col_Cucs2C vips_col_Ccmc2C
+#define im_col_Chucs2h vips_col_Chcmc2h
 
 #define PEL VipsPel
 
@@ -130,7 +130,7 @@ extern "C" {
 #define IM_TYPE_CMYK VIPS_INTERPRETATION_CMYK
 #define IM_TYPE_LABQ VIPS_INTERPRETATION_LABQ
 #define IM_TYPE_RGB VIPS_INTERPRETATION_RGB
-#define IM_TYPE_UCS VIPS_INTERPRETATION_UCS
+#define IM_TYPE_UCS VIPS_INTERPRETATION_CMC
 #define IM_TYPE_LCH VIPS_INTERPRETATION_LCH
 #define IM_TYPE_LABS VIPS_INTERPRETATION_LABS
 #define IM_TYPE_sRGB VIPS_INTERPRETATION_sRGB

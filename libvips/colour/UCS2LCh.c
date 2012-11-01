@@ -1,4 +1,4 @@
-/* Turn UCS to LCh
+/* Turn CMC to LCh
  *
  * 15/11/94 JC
  *	- error messages added
@@ -8,7 +8,7 @@
  * 2/11/09
  * 	- gtkdoc
  * 30/11/09
- * 	- argh, im_col_make_tables_UCS(); missing, thanks Peter
+ * 	- argh, im_col_make_tables_CMC(); missing, thanks Peter
  * 19/9/12
  * 	- redone as a class
  */
@@ -57,10 +57,10 @@ static float LI[1001];
 static float CI[3001];
 static float hI[101][361];
 
-typedef VipsColourSpace VipsUCS2LCh;
-typedef VipsColourSpaceClass VipsUCS2LChClass;
+typedef VipsColourSpace VipsCMC2LCh;
+typedef VipsColourSpaceClass VipsCMC2LChClass;
 
-G_DEFINE_TYPE( VipsUCS2LCh, vips_UCS2LCh, VIPS_TYPE_COLOUR_SPACE );
+G_DEFINE_TYPE( VipsCMC2LCh, vips_CMC2LCh, VIPS_TYPE_COLOUR_SPACE );
 
 /* Generate LI (inverse) tables. 
  */
@@ -71,7 +71,7 @@ make_LI( void )
 	float Ll[1001];
 
 	for( i = 0; i < 1001; i++ ) 
-		Ll[i] = vips_col_L2Lucs( i / 10.0 ); 
+		Ll[i] = vips_col_L2Lcmc( i / 10.0 ); 
 
 	for( i = 0; i < 1001; i++ ) {
 		int j;
@@ -84,7 +84,7 @@ make_LI( void )
 	}
 }
 
-/* Generate Cucs table. 
+/* Generate Ccmc table. 
  */
 static void
 make_CI( void )
@@ -93,7 +93,7 @@ make_CI( void )
 	float Cl[3001];
 
 	for( i = 0; i < 3001; i++ ) 
-		Cl[i] = vips_col_C2Cucs( i / 10.0 ); 
+		Cl[i] = vips_col_C2Ccmc( i / 10.0 ); 
 
 	for( i = 0; i < 3001; i++ ) {
 		int j;
@@ -105,7 +105,7 @@ make_CI( void )
 	}
 }
 
-/* The difficult one: hucs. 
+/* The difficult one: hcmc. 
  */
 static void
 make_hI( void )
@@ -115,7 +115,7 @@ make_hI( void )
 
 	for( i = 0; i < 361; i++ ) 
 		for( j = 0; j < 101; j++ ) 
-			hl[j][i] = vips_col_Ch2hucs( j * 2.0, i );
+			hl[j][i] = vips_col_Ch2hcmc( j * 2.0, i );
 
 	for( j = 0; j < 101; j++ ) {
 		for( i = 0; i < 361; i++ ) {
@@ -130,61 +130,61 @@ make_hI( void )
 }
 
 /**
- * vips_col_Lucs2L:
- * @Lucs: L ucs
+ * vips_col_Lcmc2L:
+ * @Lcmc: L cmc
  *
- * Calculate L from Lucs using a table. Call vips_col_make_tables_UCS() at
+ * Calculate L from Lcmc using a table. Call vips_col_make_tables_CMC() at
  * least once before using this function.
  *
  * Returns: L*
  */
 float
-vips_col_Lucs2L( float Lucs )
+vips_col_Lcmc2L( float Lcmc )
 {	
 	int known;
 
-	known = floor( Lucs * 10.0 );
+	known = floor( Lcmc * 10.0 );
 	known = VIPS_CLIP( 0, known, 1000 );
 
 	return( LI[known] + 
-		(LI[known + 1] - LI[known]) * (Lucs * 10.0 - known) );
+		(LI[known + 1] - LI[known]) * (Lcmc * 10.0 - known) );
 }
 
 /**
- * vips_col_Cucs2C:
- * @Cucs: Cucs
+ * vips_col_Ccmc2C:
+ * @Ccmc: Ccmc
  *
- * Calculate C from Cucs using a table. 
- * Call vips_col_make_tables_UCS() at
+ * Calculate C from Ccmc using a table. 
+ * Call vips_col_make_tables_CMC() at
  * least once before using this function.
  *
  * Returns: C.
  */
 float
-vips_col_Cucs2C( float Cucs )
+vips_col_Ccmc2C( float Ccmc )
 {	
 	int known;
 
-	known = floor( Cucs * 10.0 );
+	known = floor( Ccmc * 10.0 );
 	known = VIPS_CLIP( 0, known, 3000 );
 
 	return( CI[known] + 
-		(CI[known + 1] - CI[known]) * (Cucs * 10.0 - known) );
+		(CI[known + 1] - CI[known]) * (Ccmc * 10.0 - known) );
 }
 
 /**
- * vips_col_Chucs2h:
+ * vips_col_Chcmc2h:
  * @C: Chroma
- * @hucs: Hue ucs (degrees)
+ * @hcmc: Hue cmc (degrees)
  *
- * Calculate h from C and hucs, using a table.
- * Call vips_col_make_tables_UCS() at
+ * Calculate h from C and hcmc, using a table.
+ * Call vips_col_make_tables_CMC() at
  * least once before using this function.
  *
  * Returns: h.
  */
 float
-vips_col_Chucs2h( float C, float hucs )
+vips_col_Chcmc2h( float C, float hcmc )
 {	
 	int r;
 	int known;
@@ -194,11 +194,11 @@ vips_col_Chucs2h( float C, float hucs )
 	r = (int) ((C + 1.0) / 2.0);
 	r = VIPS_CLIP( 0, r, 100 ); 
 
-	known = floor( hucs );
+	known = floor( hcmc );
 	known = VIPS_CLIP( 0, known, 360 ); 
 
 	return( hI[r][known] + 
-		(hI[r][(known + 1) % 360] - hI[r][known]) * (hucs - known) );
+		(hI[r][(known + 1) % 360] - hI[r][known]) * (hcmc - known) );
 }
 
 static void *
@@ -212,12 +212,12 @@ tables_init( void *client )
 }
 
 /**
- * vips_col_make_tables_UCS:
+ * vips_col_make_tables_CMC:
  * 
- * Make the lookup tables for ucs.
+ * Make the lookup tables for cmc.
  */
 void
-vips_col_make_tables_UCS( void )
+vips_col_make_tables_CMC( void )
 {
 	static GOnce once = G_ONCE_INIT;
 
@@ -227,7 +227,7 @@ vips_col_make_tables_UCS( void )
 /* Process a buffer of data.
  */
 void
-vips_UCS2LCh_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_CMC2LCh_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
 	float *p = (float *) in[0];
 	float *q = (float *) out;
@@ -235,15 +235,15 @@ vips_UCS2LCh_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 	int x;
 
 	for( x = 0; x < width; x++ ) {
-		float Lucs = p[0];
-		float Cucs = p[1];
-		float hucs = p[2];
+		float Lcmc = p[0];
+		float Ccmc = p[1];
+		float hcmc = p[2];
 
-		/* Turn from UCS.
+		/* Turn from CMC.
 		 */
-		float C = vips_col_Cucs2C( Cucs );
-		float h = vips_col_Chucs2h( C, hucs );
-		float L = vips_col_Lucs2L( Lucs );
+		float C = vips_col_Ccmc2C( Ccmc );
+		float h = vips_col_Chcmc2h( C, hcmc );
+		float L = vips_col_Lcmc2L( Lcmc );
 
 		p += 3;
 
@@ -256,43 +256,43 @@ vips_UCS2LCh_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 }
 
 static void
-vips_UCS2LCh_class_init( VipsUCS2LChClass *class )
+vips_CMC2LCh_class_init( VipsCMC2LChClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
 
-	object_class->nickname = "UCS2LCh";
-	object_class->description = _( "transform LCh to UCS" );
+	object_class->nickname = "CMC2LCh";
+	object_class->description = _( "transform LCh to CMC" );
 
-	colour_class->process_line = vips_UCS2LCh_line;
+	colour_class->process_line = vips_CMC2LCh_line;
 }
 
 static void
-vips_UCS2LCh_init( VipsUCS2LCh *UCS2LCh )
+vips_CMC2LCh_init( VipsCMC2LCh *CMC2LCh )
 {
-	VipsColour *colour = VIPS_COLOUR( UCS2LCh );
+	VipsColour *colour = VIPS_COLOUR( CMC2LCh );
 
-	vips_col_make_tables_UCS();
+	vips_col_make_tables_CMC();
 	colour->interpretation = VIPS_INTERPRETATION_LCH;
 }
 
 /**
- * vips_UCS2LCh:
+ * vips_CMC2LCh:
  * @in: input image
  * @out: output image
  *
- * Turn LCh to UCS.
+ * Turn LCh to CMC.
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_UCS2LCh( VipsImage *in, VipsImage **out, ... )
+vips_CMC2LCh( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "UCS2LCh", ap, in, out );
+	result = vips_call_split( "CMC2LCh", ap, in, out );
 	va_end( ap );
 
 	return( result );

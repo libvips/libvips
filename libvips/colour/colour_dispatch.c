@@ -61,7 +61,7 @@
  * <emphasis>XYZ</emphasis>, <emphasis>Yxy</emphasis>, 
  * <emphasis>Lab</emphasis>, <emphasis>LabQ</emphasis>, 
  * <emphasis>LabS</emphasis>, <emphasis>LCh</emphasis> and
- * <emphasis>UCS</emphasis>). Secondly, there are a set of operations for 
+ * <emphasis>CMC</emphasis>). Secondly, there are a set of operations for 
  * calculating colour difference metrics. Finally, VIPS wraps LittleCMS and
  * uses it to provide a set of operations for reading and writing images with
  * ICC profiles.
@@ -150,12 +150,12 @@
  *   </listitem>
  *   <listitem>
  *     <para>
- *       <emphasis><code>UCS</code></emphasis>
+ *       <emphasis><code>CMC</code></emphasis>
  *
  *       A colour space based on the CMC(1:1) colour difference measurement. 
  *       This is a highly uniform colour space, much better than CIELAB for 
  *       expressing small differences. Conversions to and from 
- *       <code>UCS</code> are extremely slow.
+ *       <code>CMC</code> are extremely slow.
  *     </para>
  *   </listitem>
  * </itemizedlist>

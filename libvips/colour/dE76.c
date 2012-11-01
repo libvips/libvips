@@ -66,7 +66,7 @@ G_DEFINE_TYPE( VipsdE76, vips_dE76, VIPS_TYPE_COLOUR_DIFFERENCE );
  * @a2: Input coordinate 2
  * @b2: Input coordinate 2
  *
- * Pythagorean distance between two points in colour space. Lab/XYZ/UCS etc.
+ * Pythagorean distance between two points in colour space. Lab/XYZ/CMC etc.
  */
 float
 vips_pythagoras( float L1, float a1, float b1, float L2, float a2, float b2 )

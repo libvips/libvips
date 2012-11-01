@@ -1,4 +1,4 @@
-/* im_LCh2UCS
+/* im_LCh2CMC
  *
  * Modified:
  * 2/11/09
@@ -45,67 +45,67 @@
 
 #include "colour.h"
 
-typedef VipsColourSpace VipsLCh2UCS;
-typedef VipsColourSpaceClass VipsLCh2UCSClass;
+typedef VipsColourSpace VipsLCh2CMC;
+typedef VipsColourSpaceClass VipsLCh2CMCClass;
 
-G_DEFINE_TYPE( VipsLCh2UCS, vips_LCh2UCS, VIPS_TYPE_COLOUR_SPACE );
+G_DEFINE_TYPE( VipsLCh2CMC, vips_LCh2CMC, VIPS_TYPE_COLOUR_SPACE );
 
 /**
- * vips_col_L2Lucs:
+ * vips_col_L2Lcmc:
  * @L: CIE L*
  *
- * Calculate Lucs from L.
+ * Calculate Lcmc from L.
  *
- * Returns: Lucs
+ * Returns: Lcmc
  */
 float
-vips_col_L2Lucs( float L )
+vips_col_L2Lcmc( float L )
 {	
-	float Lucs;
+	float Lcmc;
 
 	if( L >= 16.0 )
-		Lucs = (21.75 * log( L ) + 0.3838 * L - 38.54);
+		Lcmc = (21.75 * log( L ) + 0.3838 * L - 38.54);
 	else
-		Lucs = 1.744 * L;
+		Lcmc = 1.744 * L;
 
-	return( Lucs );
+	return( Lcmc );
 }
 
 /**
- * vips_col_C2Cucs:
+ * vips_col_C2Ccmc:
  * @C: Chroma
  *
- * Calculate Cucs from C.
+ * Calculate Ccmc from C.
  *
- * Returns: Cucs.
+ * Returns: Ccmc.
  */
 float
-vips_col_C2Cucs( float C )
+vips_col_C2Ccmc( float C )
 {	
-	float Cucs;
+	float Ccmc;
 
-	Cucs = 0.162 * C + 10.92 * log( 0.638 + 0.07216 * C ) + 4.907;
-	if( Cucs < 0 ) 
-		Cucs = 0;
+	Ccmc = 0.162 * C + 10.92 * log( 0.638 + 0.07216 * C ) + 4.907;
+	if( Ccmc < 0 ) 
+		Ccmc = 0;
 
-	return( Cucs );
+	return( Ccmc );
 }
 
 /**
- * vips_col_Ch2hucs:
+ * vips_col_Ch2hcmc:
  * @C: Chroma
  * @h: Hue (degrees)
  *
- * Calculate hucs from C and h.
+ * Calculate hcmc from C and h.
  *
- * Returns: hucs.
+ * Returns: hcmc.
  */
 float
-vips_col_Ch2hucs( float C, float h )
+vips_col_Ch2hcmc( float C, float h )
 {	
 	float P, D, f, g;
 	float k4, k5, k6, k7, k8;
-	float hucs;
+	float hcmc;
 
 	if( h < 49.1 ) {
 		k4 = 133.87;
@@ -140,13 +140,13 @@ vips_col_Ch2hucs( float C, float h )
 	D = k4 + k5 * P * pow( fabs( P ), k6 );
 	g = C * C * C * C;
 	f = sqrt( g / (g + 1900.0) );
-	hucs = h + D * f;
+	hcmc = h + D * f;
 
-	return( hucs );
+	return( hcmc );
 }
 
 static void
-vips_LCh2UCS_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_LCh2CMC_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
 	float *p = (float *) in[0];
 	float *q = (float *) out;
@@ -160,51 +160,51 @@ vips_LCh2UCS_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 		p += 3;
 
-		q[0] = vips_col_L2Lucs( L );
-		q[1] = vips_col_C2Cucs( C );
-		q[2] = vips_col_Ch2hucs( C, h );
+		q[0] = vips_col_L2Lcmc( L );
+		q[1] = vips_col_C2Ccmc( C );
+		q[2] = vips_col_Ch2hcmc( C, h );
 
 		q += 3;
 	}
 }
 
 static void
-vips_LCh2UCS_class_init( VipsLCh2UCSClass *class )
+vips_LCh2CMC_class_init( VipsLCh2CMCClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
 
-	object_class->nickname = "LCh2UCS";
-	object_class->description = _( "transform LCh to UCS" );
+	object_class->nickname = "LCh2CMC";
+	object_class->description = _( "transform LCh to CMC" );
 
-	colour_class->process_line = vips_LCh2UCS_line;
+	colour_class->process_line = vips_LCh2CMC_line;
 }
 
 static void
-vips_LCh2UCS_init( VipsLCh2UCS *LCh2UCS )
+vips_LCh2CMC_init( VipsLCh2CMC *LCh2CMC )
 {
-	VipsColour *colour = VIPS_COLOUR( LCh2UCS );
+	VipsColour *colour = VIPS_COLOUR( LCh2CMC );
 
-	colour->interpretation = VIPS_INTERPRETATION_UCS;
+	colour->interpretation = VIPS_INTERPRETATION_CMC;
 }
 
 /**
- * vips_LCh2UCS:
+ * vips_LCh2CMC:
  * @in: input image
  * @out: output image
  *
- * Turn LCh to UCS.
+ * Turn LCh to CMC.
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_LCh2UCS( VipsImage *in, VipsImage **out, ... )
+vips_LCh2CMC( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "LCh2UCS", ap, in, out );
+	result = vips_call_split( "LCh2CMC", ap, in, out );
 	va_end( ap );
 
 	return( result );

@@ -2265,7 +2265,7 @@ im_LCh2UCS( IMAGE *in, IMAGE *out )
 {
 	VipsImage *x;
 
-	if( vips_LCh2UCS( in, &x, NULL ) )
+	if( vips_LCh2CMC( in, &x, NULL ) )
 		return( -1 );
 	if( im_copy( x, out ) ) {
 		g_object_unref( x );
@@ -2281,7 +2281,7 @@ im_UCS2LCh( IMAGE *in, IMAGE *out )
 {
 	VipsImage *x;
 
-	if( vips_UCS2LCh( in, &x, NULL ) )
+	if( vips_CMC2LCh( in, &x, NULL ) )
 		return( -1 );
 	if( im_copy( x, out ) ) {
 		g_object_unref( x );
@@ -2661,15 +2661,6 @@ im_LabQ2XYZ( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-/**
- * im_Lab2UCS:
- * @in: input image
- * @out: output image
- *
- * Convert an image from Lab to UCS.
- *
- * Returns: 0 on success, -1 on error.
- */
 int 
 im_Lab2UCS( IMAGE *in, IMAGE *out )
 {	
@@ -2683,15 +2674,6 @@ im_Lab2UCS( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-/**
- * im_UCS2Lab:
- * @in: input image
- * @out: output image
- *
- * Convert an image from UCS to Lab.
- *
- * Returns: 0 on success, -1 on error.
- */
 int 
 im_UCS2Lab( IMAGE *in, IMAGE *out )
 {	
@@ -2705,15 +2687,6 @@ im_UCS2Lab( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-/**
- * im_UCS2XYZ:
- * @in: input image
- * @out: output image
- *
- * Convert an image from UCS to XYZ.
- *
- * Returns: 0 on success, -1 on error.
- */
 int 
 im_UCS2XYZ( IMAGE *in, IMAGE *out )
 {
@@ -2727,16 +2700,6 @@ im_UCS2XYZ( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-
-/**
- * im_XY2UCS:
- * @in: input image
- * @out: output image
- *
- * Convert an image from XYZ to UCS.
- *
- * Returns: 0 on success, -1 on error.
- */
 int 
 im_XYZ2UCS( IMAGE *in, IMAGE *out )
 {	
@@ -2750,16 +2713,6 @@ im_XYZ2UCS( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-/**
- * im_dE_fromXYZ:
- * @in1: first input image
- * @in2: second input image
- * @out: output image
- *
- * Calculate CIELAB dE 1976 from a pair of XYZ images. 
- *
- * Returns: 0 on success, -1 on error.
- */
 int 
 im_dE_fromXYZ( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {	

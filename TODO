@@ -3,8 +3,6 @@
 
 - add mono as a colourspace? also rad?
 
-- rename INTERPRETATION_UCS to _CMC
-
 - something to test if an image is in a supported colourspace?
 
   at the moment we only look at interpretation, but for things like labq 

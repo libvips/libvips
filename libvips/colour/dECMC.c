@@ -67,7 +67,7 @@ vips_dECMC_init( VipsdECMC *dECMC )
 {
 	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( dECMC ); 
 
-	difference->interpretation = VIPS_INTERPRETATION_UCS;
+	difference->interpretation = VIPS_INTERPRETATION_CMC;
 }
 
 /**
@@ -76,11 +76,11 @@ vips_dECMC_init( VipsdECMC *dECMC )
  * @right: second input image
  * @out: output image
  *
- * Calculate dE CMC. The input images are transformed to UCS colour space and
+ * Calculate dE CMC. The input images are transformed to CMC colour space and
  * the euclidean distance between corresponding pixels calculated. 
  *
  * To calculate a colour difference with values for (l:c) other than (1:1),
- * transform the two source images to UCS yourself, scale the channels
+ * transform the two source images to CMC yourself, scale the channels
  * appropriately, and call this function.
  *
  * See also: vips_colour_convert()

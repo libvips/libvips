@@ -8,6 +8,7 @@
   as classes
 - added vips_colour_convert(), replaces all derived conversions
 - faster and more accurate sRGB <-> XYZ conversion
+- rename UCS colourspace as CMC
 - dzsave can write zoomify and google maps layout as well
 - tilecache supports threaded access
 - openslide2vips gets underlying tile size from openslide
