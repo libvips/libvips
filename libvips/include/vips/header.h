@@ -85,6 +85,7 @@ int vips_image_get_bands( const VipsImage *image );
 VipsBandFormat vips_image_get_format( const VipsImage *image );
 VipsCoding vips_image_get_coding( const VipsImage *image );
 VipsInterpretation vips_image_get_interpretation( const VipsImage *image );
+VipsInterpretation vips_image_guess_interpretation( const VipsImage *image );
 double vips_image_get_xres( const VipsImage *image );
 double vips_image_get_yres( const VipsImage *image );
 int vips_image_get_xoffset( const VipsImage *image );

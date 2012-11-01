@@ -364,10 +364,131 @@ vips_image_get_coding( const VipsImage *image )
 	return( image->Coding );
 }
 
+/* vips_image_get_interpretation:
+ * @image: image to guess for
+ *
+ * Return the #VipsInterpretation set in the image header.
+ * Use vips_image_guess_interpretation() is you want a sanity-checked value.
+ *
+ * Returns: the #VipsInterpretation from the image header.
+ */
 VipsInterpretation
 vips_image_get_interpretation( const VipsImage *image )
 {
 	return( image->Type );
+}
+
+/* Try to pick a sane value for interpretation, assuming Type has been set
+ * incorrectly.
+ */
+static VipsInterpretation
+vips_image_default_interpretation( const VipsImage *image )
+{
+	switch( image->Coding ) {
+	case VIPS_CODING_LABQ:
+		return( VIPS_INTERPRETATION_LABQ );
+	case VIPS_CODING_RAD:
+		return( VIPS_INTERPRETATION_RGB );
+	default:
+		break;
+	}
+
+	if( image->Bands == 1 )
+		return( VIPS_INTERPRETATION_B_W );
+	else
+		return( VIPS_INTERPRETATION_MULTIBAND );
+}
+
+/* vips_image_guess_interpretation:
+ * @image: image to guess for
+ *
+ * Return the #VipsInterpretation for an image, guessing a default value if
+ * the set value looks wrong.
+ *
+ * Returns: a sensible #VipsInterpretation for the image.
+ */
+VipsInterpretation
+vips_image_guess_interpretation( const VipsImage *image )
+{
+	gboolean sane;
+
+	sane = TRUE;
+	switch( image->Type ) {
+
+	case VIPS_INTERPRETATION_MULTIBAND: 
+		if( image->Bands == 1 )
+			sane = FALSE;
+		break;
+
+	case VIPS_INTERPRETATION_B_W: 
+		if( image->Bands > 1 )
+			sane = FALSE;
+		break;
+
+	case VIPS_INTERPRETATION_HISTOGRAM: 
+		if( image->Xsize > 1 && image->Ysize > 1 )
+			sane = FALSE;
+		break;
+
+	case VIPS_INTERPRETATION_FOURIER: 
+		if( !vips_band_format_iscomplex( image->BandFmt ) )
+			sane = FALSE;
+		break;
+
+	case VIPS_INTERPRETATION_XYZ: 
+	case VIPS_INTERPRETATION_LAB: 
+	case VIPS_INTERPRETATION_RGB: 
+	case VIPS_INTERPRETATION_CMC: 
+	case VIPS_INTERPRETATION_LCH: 
+	case VIPS_INTERPRETATION_sRGB: 
+	case VIPS_INTERPRETATION_YXY: 
+		if( image->Bands < 3 )
+			sane = FALSE;
+		break;
+
+	case VIPS_INTERPRETATION_CMYK: 
+		if( image->Bands < 4 )
+			sane = FALSE;
+		break;
+
+	case  VIPS_INTERPRETATION_LABQ:
+		if( image->Coding != VIPS_CODING_LABQ )
+			sane = FALSE;
+		break;
+
+	case  VIPS_INTERPRETATION_LABS:
+		if( image->BandFmt != VIPS_FORMAT_SHORT )
+			sane = FALSE;
+		break;
+
+	case  VIPS_INTERPRETATION_RGB16:
+		if( image->BandFmt == VIPS_FORMAT_CHAR ||
+			image->BandFmt == VIPS_FORMAT_UCHAR ||
+			image->Bands < 3 )
+			sane = FALSE;
+		break;
+
+	case  VIPS_INTERPRETATION_GREY16:
+		if( image->BandFmt == VIPS_FORMAT_CHAR ||
+			image->BandFmt == VIPS_FORMAT_UCHAR )
+			sane = FALSE;
+		break;
+
+	case  VIPS_INTERPRETATION_ARRAY:
+		if( image->Bands != 1 )
+			sane = FALSE;
+		break;
+	
+	default:
+		g_assert( 0 );
+		sane = FALSE;
+		break;
+	}
+
+	if( sane )
+		return( vips_image_get_interpretation( image ) );
+	else
+		return( vips_image_default_interpretation( image ) );
 }
 
 double

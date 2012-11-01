@@ -3,15 +3,6 @@
 
 - add mono as a colourspace? also rad?
 
-- something to test if an image is in a supported colourspace?
-
-  at the moment we only look at interpretation, but for things like labq 
-  we should check coding too
-
-  labs needs more checks than that
-
-  _RGB and _sRGB as well
-
   move colour_convert into a separate file
 
 - im_icc_ac2rc needs doing once we have a general 'convert' operator

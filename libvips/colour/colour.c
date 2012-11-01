@@ -709,6 +709,8 @@ vips_colour_convert_build( VipsObject *object )
 	VipsImage *x;
 	VipsImage **t;
 
+	VipsInterpretation interpretation;
+
 	t = (VipsImage **) vips_object_local_array( object, MAX_STEPS );
 
 	/* Verify that all input args have been set.
@@ -717,9 +719,11 @@ vips_colour_convert_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	interpretation = vips_image_guess_interpretation( convert->in );
+
 	/* No conversion necessary.
 	 */
-	if( convert->in->Type == convert->space ) {
+	if( interpretation == convert->space ) {
 		g_object_set( convert, "out", vips_image_new(), NULL ); 
 
 		return( vips_image_write( convert->in, convert->out ) );
@@ -728,13 +732,14 @@ vips_colour_convert_build( VipsObject *object )
 	x = convert->in;
 
 	for( i = 0; i < VIPS_NUMBER( vips_colour_routes ); i++ )
-		if( vips_colour_routes[i].from == x->Type &&
+		if( vips_colour_routes[i].from == interpretation &&
 			vips_colour_routes[i].to == convert->space )
 			break;
 	if( i == VIPS_NUMBER( vips_colour_routes ) ) {
 		vips_error( "vips_colour_convert", 
 			_( "no known route between '%s' and '%s'" ),
-			vips_enum_nick( VIPS_TYPE_INTERPRETATION, x->Type ),
+			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
+				interpretation ),
 			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
 				convert->space ) );
 		return( -1 );
