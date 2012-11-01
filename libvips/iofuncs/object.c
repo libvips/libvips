@@ -2284,7 +2284,7 @@ vips_type_find( const char *basename, const char *nickname )
 void
 vips_object_local_cb( VipsObject *vobject, GObject *gobject )
 {
-	g_object_unref( gobject );
+	VIPS_FREEF( g_object_unref, gobject );
 }
 
 typedef struct {
@@ -2301,8 +2301,7 @@ vips_object_local_array_cb( GObject *parent, VipsObjectLocal *local )
 		VIPS_FREEF( g_object_unref, local->array[i] );
 
 	VIPS_FREEF( g_free, local->array );
-
-	g_free( local );
+	VIPS_FREEF( g_free, local );
 }
 
 /** 

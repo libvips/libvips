@@ -1,18 +1,6 @@
 - add something to dzsave to control pyramid depth ... can then use it for
   straight tiling
 
-- add mono as a colourspace? also rad? unpack to RGB with rad2float
-
-  grey16 too? rgb16?
-
-- should we have a better thing to stop convert_saveable running for vips
-  images?
-
-- why do we need the extra vips_image_write() at the end of
-  vips_colour_convert_build()? why can't we just g_object_set() x?
-
-
-
 - boolean.c has
 
 	vips_check_noncomplex( "VipsBoolean", binary->left ) )
@@ -36,76 +24,13 @@
 	vips_Lab2XYZ( in, out, "temp", fred, 3, NULL );
 
 
-colour
-
-colour operations:
-
-	process just first three bands
-	one in, one out
-	float only
-	uncoded only
-
-		LabS2Lab, LCh2UCS etc. etc.
-
-	uncoded
-	one in, one out
-
-		icc ops
-		disp2XYZ
-		XYZ2disp
-
-	uncoded
-	two in, one out
-	float output
-	possibly auto-convert inputs to LAB
-
-		dE, dE00, dECMC
-
-	one in, one out
-
-		rad2float, LabQ2Lab, LabQ2disp
-
-
-
-
-
-
 - lab [100,0,0] -> srgb [255, 255, 254]? how odd
 
 - use D65 in cmsCreateLab4Profile() ? not sure
 
-how about a base colour class with 1 in, 1 out, 
-
-    PCS operations all operate on three float bands
-
-    first three bands passed through the operation, other bands bypass
-
-
-    import ops go from device space to PCS
-
-
-    export ops go from PCS to n-band device space
-
-    how do we handle alpha in import/export ops? op must declare the number of 
-    bands required (eg. 4 for cmyk import, or 1 for greyscale), other bands
-    appended
-
-- can we do CMC(2:1) by warping UCS space?
-
-  remove dECMC_fromLab etc. just have a pythag operation in arith? needs to
-  pass extra bands through though
-
-
-- CMC(l:c) needs optional args for l and c
-
-
-
-
 
 - add a simple wrapping of im_affinei_all() to the po db, perhaps the name of
   the interpolator as a string?
-
-- dzsave should maybe write some xml as well, see the Python dz writer?
 
 - the operation cache needs to detect invalidate
 
