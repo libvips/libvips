@@ -124,6 +124,25 @@ vips_foreign_dz_layout_get_type( void )
 
 	return( etype );
 }
+GType
+vips_foreign_dz_depth_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FOREIGN_DZ_DEPTH_1PIXEL, "VIPS_FOREIGN_DZ_DEPTH_1PIXEL", "1pixel"},
+			{VIPS_FOREIGN_DZ_DEPTH_1TILE, "VIPS_FOREIGN_DZ_DEPTH_1TILE", "1tile"},
+			{VIPS_FOREIGN_DZ_DEPTH_1, "VIPS_FOREIGN_DZ_DEPTH_1", "1"},
+			{VIPS_FOREIGN_DZ_DEPTH_LAST, "VIPS_FOREIGN_DZ_DEPTH_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsForeignDzDepth", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/conversion.h" */
 GType
 vips_extend_get_type( void )

@@ -1,5 +1,4 @@
-- add something to dzsave to control pyramid depth ... can then use it for
-  straight tiling
+- test dzsave depth option
 
 - boolean.c has
 

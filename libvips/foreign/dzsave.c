@@ -26,6 +26,8 @@
  * 	- add zoomify and google maps output
  * 10/10/12
  * 	- add @background option
+ * 1/11/12
+ * 	- add @depth option
  */
 
 /*
@@ -134,6 +136,7 @@ struct _VipsForeignSaveDz {
 	int tile_size;
 	VipsForeignDzLayout layout;
 	VipsArea *background;
+	VipsForeignDzDepth depth;
 
 	Layer *layer;			/* x2 shrink pyr layer */
 
@@ -238,13 +241,24 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int width, int height )
 		return( NULL );
 	}
 
-	/* DeepZoom stops at 1x1 pixels, others when the image fits within a
-	 * tile.
-	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) 
+	switch( dz->depth ) {
+	case VIPS_FOREIGN_DZ_DEPTH_1PIXEL:
 		limit = 1;
-	else
+		break;
+
+	case VIPS_FOREIGN_DZ_DEPTH_1TILE:
 		limit = dz->tile_size;
+		break;
+
+	case VIPS_FOREIGN_DZ_DEPTH_1:
+		limit = VIPS_MAX( width, height );
+		break;
+
+	default:
+		g_assert( 0 );
+		limit = dz->tile_size;
+		break;
+	}
 
 	if( width > limit || 
 		height > limit ) {
@@ -982,8 +996,7 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 
 		layer->write_y += target.height;
 
-		/* If we've filled the strip of the layer below, let it know.
-		 * We can either fill the region, if it's somewhere half-way
+		/* We can either fill the region, if it's somewhere half-way
 		 * down the image, or, if it's at the bottom, get to the last
 		 * writeable line.
 		 */
@@ -1013,10 +1026,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 			VIPS_SETSTR( dz->suffix, ".jpg" );
 	}
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_parent_class )->
-		build( object ) )
-		return( -1 );
-
 	if( dz->overlap >= dz->tile_size || 
 		dz->overlap >= dz->tile_size ) {
 		vips_error( "dzsave", 
@@ -1024,6 +1033,21 @@ vips_foreign_save_dz_build( VipsObject *object )
 				"width and height" ) ) ;
 		return( -1 );
 	}
+
+	/* DeepZoom stops at 1x1 pixels, others when the image fits within a
+	 * tile.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) {
+		if( !vips_object_get_argument_assigned( object, "depth" ) )
+			dz->depth = VIPS_FOREIGN_DZ_DEPTH_1PIXEL;
+	}
+	else
+		if( !vips_object_get_argument_assigned( object, "depth" ) )
+			dz->depth = VIPS_FOREIGN_DZ_DEPTH_1TILE;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_parent_class )->
+		build( object ) )
+		return( -1 );
 
 	/* Build the skeleton of the image pyramid.
 	 */
@@ -1145,6 +1169,14 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
+	VIPS_ARG_ENUM( class, "depth", 13, 
+		_( "Depth" ), 
+		_( "Pyramid depth" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, depth ),
+		VIPS_TYPE_FOREIGN_DZ_DEPTH, 
+			VIPS_FOREIGN_DZ_DEPTH_1PIXEL ); 
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
@@ -1182,6 +1214,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->background = 
 		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
 	((double *) (dz->background->data))[0] = 255;
+	dz->depth = VIPS_FOREIGN_DZ_DEPTH_1PIXEL; 
 }
 
 /**
@@ -1197,6 +1230,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * @overlap; set tile overlap 
  * @tile_size; set tile size 
  * @background: background colour
+ * @depth: how deep to make the pyramid
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -1208,7 +1242,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * In Zoomify and Google layout, a directory called @basename is created to 
  * hold the tile structure. 
  *
- * You can set @suffix to something like ".jpg[Q=85]" to set the tile write
+ * You can set @suffix to something like ".jpg[Q=85]" to control the tile write
  * options. 
  * 
  * In Google layout mode, edge tiles are expanded to @tile_size by @tile_size 
@@ -1217,6 +1251,9 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  *
  * You can set the size and overlap of tiles with @tile_size and @overlap.
  * They default to the correct settings for the selected @layout. 
+ *
+ * Use @depth to control how low the pyramid goes. This defaults to the
+ * correct setting for the @layout you select.
  *
  * See also: vips_tiffsave().
  *

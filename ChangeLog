@@ -14,6 +14,7 @@
 - openslide2vips gets underlying tile size from openslide
 - embed has 'background' option
 - dzsave --layout google has a @background option
+- dzsave has a --depth option
 - update for new glib threading API
 - remove no threads option
 
