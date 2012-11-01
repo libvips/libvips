@@ -1,10 +1,9 @@
-- see vips_col_sRGB2XYZ()
-
-	t_r2Yr[] is a 1501 element array, but we just index with a uchar
-
-	trim this down!
+- add something to dzsave to control pyramid depth ... can then use it for
+  straight tiling
 
 - add mono as a colourspace? also rad?
+
+- rename INTERPRETATION_UCS to _CMC
 
 - something to test if an image is in a supported colourspace?
 

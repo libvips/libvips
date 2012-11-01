@@ -10,6 +10,8 @@
  * 21/9/12
  * 	- redone as a class
  * 	- sRGB only, support for other RGBs is now via lcms
+ * 1/11/12
+ * 	- faster and more accurate sRGB <-> XYZ conversion
  */
 
 /*
@@ -51,6 +53,8 @@
 
 #include "colour.h"
 
+#define TABLE_SIZE (20000)
+
 typedef VipsColourCode VipsLabQ2sRGB;
 typedef VipsColourCodeClass VipsLabQ2sRGBClass;
 
@@ -88,16 +92,11 @@ struct im_col_display {
  */
 struct im_col_tab_disp {
 	/*< private >*/
-	float	t_Yr2r[1501];		/* Conversion of Yr to r */
-	float	t_Yg2g[1501];		/* Conversion of Yg to g */
-	float	t_Yb2b[1501];		/* Conversion of Yb to b */
-	float	t_r2Yr[1501];		/* Conversion of r to Yr */
-	float	t_g2Yg[1501];		/* Conversion of g to Yg */
-	float	t_b2Yb[1501];		/* Conversion of b to Yb */
+	float	t_Y2v[TABLE_SIZE];	/* Conversion of Y to v */
+	float	t_v2Y[256];		/* Conversion of v to Y */
 	float	mat_XYZ2lum[3][3];	/* XYZ to Yr, Yg, Yb matrix */
 	float	mat_lum2XYZ[3][3];	/* Yr, Yg, Yb to XYZ matrix */
-	float rstep, gstep, bstep;
-	float ristep, gistep, bistep;
+	float rstep;			/* Scale Y by this to fit TABLE_SIZE */
 };
 
 /* Do our own indexing of the arrays below to make sure we get efficient mults.
@@ -140,7 +139,6 @@ calcul_tables( void *client )
 
 	int i, j;
 	float a, ga_i, ga, c, f, yo, p;
-	float maxr, maxg, maxb;
 	double **temp;
 
 	c = (d->d_B - 100.0) / 500.0;
@@ -153,54 +151,13 @@ calcul_tables( void *client )
 	p = d->d_P / 100.0;
 	f = d->d_Vrwr / p;
 
-	maxr = (float) d->d_Vrwr;
-	table->ristep = maxr / 1500.0;
-	table->rstep = a / 1500.0;
+	table->rstep = a / (TABLE_SIZE - 1);
 
-	for( i = 0; i < 1501; i++ )
-		table->t_Yr2r[i] = f * (pow( i * table->rstep / a, ga_i ) - c);
+	for( i = 0; i < TABLE_SIZE; i++ )
+		table->t_Y2v[i] = f * (pow( i * table->rstep / a, ga_i ) - c);
 
-	for( i = 0; i < 1501; i++ )
-		table->t_r2Yr[i] = yo + 
-			a * pow( i * table->ristep / f + c, ga );
-
-	/**** Green ****/
-	yo = d->d_Y0G;
-	a = d->d_YCG - yo;
-	ga = d->d_gammaG;
-	ga_i = 1.0 / ga;
-	p = d->d_P / 100.0;
-	f = d->d_Vrwg / p;
-
-	maxg = (float)d->d_Vrwg;
-	table->gistep = maxg / 1500.0;
-	table->gstep = a / 1500.0;
-
-	for( i = 0; i < 1501; i++ )
-		table->t_Yg2g[i] = f * (pow( i * table->gstep / a, ga_i ) - c);
-
-	for( i = 0; i < 1501; i++ )
-		table->t_g2Yg[i] = yo + 
-			a * pow( i * table->gistep / f + c, ga );
-
-	/**** Blue ****/
-	yo = d->d_Y0B;
-	a = d->d_YCB - yo;
-	ga = d->d_gammaB;
-	ga_i = 1.0 / ga;
-	p = d->d_P / 100.0;
-	f = d->d_Vrwb / p;
-
-	maxb = (float)d->d_Vrwb;
-	table->bistep = maxb / 1500.0;
-	table->bstep = a / 1500.0;
-
-	for( i = 0; i < 1501; i++ )
-		table->t_Yb2b[i] = f * (pow( i * table->bstep / a, ga_i ) - c);
-
-	for( i = 0; i < 1501; i++ )
-		table->t_b2Yb[i] = yo + 
-			a * pow( i * table->bistep / f + c, ga );
+	for( i = 0; i < 256; i++ )
+		table->t_v2Y[i] = yo + a * pow( i / f + c, ga );
 
 	if( !(temp = im_dmat_alloc( 0, 2, 0, 2 )) )
 		return( NULL );
@@ -256,18 +213,14 @@ vips_col_sRGB2XYZ( int r, int g, int b, float *X, float *Y, float *Z )
 	float Yr, Yg, Yb;
 	int i;
 
-  	r = VIPS_CLIP( 0, r, 255 );
-  	g = VIPS_CLIP( 0, g, 255 );
-  	b = VIPS_CLIP( 0, b, 255 );
+  	i = VIPS_CLIP( 0, r, 255 );
+	Yr = table->t_v2Y[i];
 
-	i = r / table->ristep;
-	Yr = table->t_r2Yr[i];
+  	i = VIPS_CLIP( 0, g, 255 );
+	Yg = table->t_v2Y[i];
 
-	i = g / table->gistep;
-	Yg = table->t_g2Yg[i];
-
-	i = b / table->bistep;
-	Yb = table->t_b2Yb[i];
+  	i = VIPS_CLIP( 0, b, 255 );
+	Yb = table->t_v2Y[i];
 
 	*X = mat[0] * Yr + mat[1] * Yg + mat[2] * Yb;
 	*Y = mat[3] * Yr + mat[4] * Yg + mat[5] * Yb;
@@ -300,35 +253,33 @@ vips_col_XYZ2sRGB( float X, float Y, float Z,
 	Yg = mat[3] * X + mat[4] * Y + mat[5] * Z;
 	Yb = mat[6] * X + mat[7] * Y + mat[8] * Z;
 
-	/* Any negatives? If yes, set the out-of-range flag and bump up.
+	/* Clip range, set the out-of-range flag.
 	 */
-	if( Yr < d->d_Y0R ) { 
-		or = 1; 
-		Yr = d->d_Y0R; 
-	}
-	if( Yg < d->d_Y0G ) { 
-		or = 1; 
-		Yg = d->d_Y0G; 
-	}
-	if( Yb < d->d_Y0B ) { 
-		or = 1; 
-		Yb = d->d_Y0B; 
-	}
+#define CLIP( L, V, H ) { \
+	if( (V) < (L) ) { \
+		(V) = (L); \
+		or = 1; \
+	} \
+	if( (V) > (H) ) { \
+		(V) = (H); \
+		or = 1; \
+	} \
+}
 
 	/* Work out colour value (0-Vrw) to feed the tube to get that
 	 * luminosity. 
 	 */
 	Yint = (Yr - d->d_Y0R) / table->rstep;
-	Yint = VIPS_CLIP( 0, Yint, 1500 ); 
-	r = IM_RINT( table->t_Yr2r[Yint] );
+	CLIP( 0, Yint, TABLE_SIZE - 1);
+	r = VIPS_RINT( table->t_Y2v[Yint] );
 
-	Yint = (Yg - d->d_Y0G) / table->gstep;
-	Yint = VIPS_CLIP( 0, Yint, 1500 ); 
-	g = IM_RINT( table->t_Yg2g[Yint] );
+	Yint = (Yg - d->d_Y0G) / table->rstep;
+	CLIP( 0, Yint, TABLE_SIZE - 1);
+	g = VIPS_RINT( table->t_Y2v[Yint] );
 
-	Yint = (Yb - d->d_Y0B) / table->bstep;
-	Yint = VIPS_CLIP( 0, Yint, 1500 ); 
-	b = IM_RINT( table->t_Yb2b[Yint] );
+	Yint = (Yb - d->d_Y0B) / table->rstep;
+	CLIP( 0, Yint, TABLE_SIZE - 1);
+	b = VIPS_RINT( table->t_Y2v[Yint] );
 
 	*r_ret = r;
 	*g_ret = g;
@@ -468,9 +419,9 @@ vips_LabQ2sRGB_init( VipsLabQ2sRGB *LabQ2sRGB )
  * @in: input image
  * @out: output image
  *
- * Unpack a LabQ (#IM_CODING_LABQ) image to a three-band short image.
+ * Unpack a LabQ (#VIPS_CODING_LABQ) image to a three-band short image.
  *
- * See also: im_LabS2LabQ(), im_LabQ2sRGB(), im_rad2float().
+ * See also: vips_LabS2LabQ(), vips_LabQ2sRGB(), vips_rad2float().
  *
  * Returns: 0 on success, -1 on error.
  */
