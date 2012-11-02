@@ -339,6 +339,28 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 #define VIPS_ARGUMENT_FOR_ALL_END } }
 
 /* And some macros to collect args from a va list. 
+ *
+ * Use something like this:
+
+	GParamSpec *pspec;
+	VipsArgumentClass *argument_class;
+	VipsArgumentInstance *argument_instance;
+
+	if( vips_object_get_argument( VIPS_OBJECT( operation ), name,
+		&pspec, &argument_class, &argument_instance ) )
+		return( -1 );
+
+	VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
+
+		GValue value holds the value of an input argument, do 
+		something with it
+
+	VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, ap );
+
+		void **arg points to where to write an output argument
+
+	VIPS_ARGUMENT_COLLECT_END
+ 
  */
 #define VIPS_ARGUMENT_COLLECT_SET( PSPEC, ARG_CLASS, AP ) \
 	if( (ARG_CLASS->flags & VIPS_ARGUMENT_INPUT) ) { \

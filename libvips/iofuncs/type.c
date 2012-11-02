@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -135,7 +136,7 @@ vips_thing_get_type( void )
  * function. It also keeps a count and a GType, so the area can be an array.
  *
  * This type is used for things like passing an array of double or an array of
- * VipsObject pointers to operations, and for reference-countred immutable
+ * VipsObject pointers to operations, and for reference-counted immutable
  * strings. 
  */
 
@@ -935,6 +936,37 @@ vips_array_double_new( const double *array, int n )
 	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
 	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
 	memcpy( array_copy, array, n * sizeof( double ) );
+
+	return( area );
+}
+
+/**
+ * vips_array_double_newv:
+ * @n: number of doubles
+ * @...: list of double arguments
+ *
+ * Allocate a new array of @n doubles and copy @... into it. Free with
+ * vips_area_unref().
+ *
+ * See also: vips_array_double_new()
+ *
+ * Returns: (transfer full): A new #VipsArrayDouble.
+ */
+VipsArrayDouble *
+vips_array_double_newv( int n, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	double *array;
+	int i;
+
+	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
+	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+
+	va_start( ap, n );
+	for( i = 0; i < n; i++ )
+		array[i] = va_arg( ap, double ); 
+	va_end( ap );
 
 	return( area );
 }

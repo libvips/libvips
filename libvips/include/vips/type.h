@@ -137,6 +137,7 @@ GType vips_blob_get_type( void );
 #define VIPS_TYPE_ARRAY_DOUBLE (vips_array_double_get_type())
 typedef VipsArea VipsArrayDouble;
 VipsArrayDouble *vips_array_double_new( const double *array, int n );
+VipsArrayDouble *vips_array_double_newv( int n, ... );
 GType vips_array_double_get_type( void );
 
 /**

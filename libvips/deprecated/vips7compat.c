@@ -2147,14 +2147,10 @@ im_rightshift_size( IMAGE *in, IMAGE *out,
 int 
 im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
 {
-	double ary[3];
 	VipsArea *temp;
 	VipsImage *x;
 
-	ary[0] = X0;
-	ary[1] = Y0;
-	ary[2] = Z0;
-	temp = (VipsArea *) vips_array_double_new( ary, 3 ); 
+	temp = (VipsArea *) vips_array_double_newv( 3, X0, Y0, Z0 ); 
 	if( vips_Lab2XYZ( in, &x, "temp", temp, NULL ) ) {
 		vips_area_unref( temp );
 		return( -1 );

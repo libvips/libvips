@@ -569,6 +569,10 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 
 	VipsRect image;
 
+#ifdef DEBUG
+	printf( "strip_allocate\n" );
+#endif /*DEBUG*/
+
 	image.left = 0;
 	image.top = 0;
 	image.width = layer->width;
@@ -589,6 +593,10 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 
 	if( vips_rect_isempty( &state->pos ) ) {
 		*stop = TRUE;
+#ifdef DEBUG
+		printf( "strip_allocate: done\n" );
+#endif /*DEBUG*/
+
 		return( 0 );
 	}
 
@@ -703,6 +711,10 @@ strip_work( VipsThreadState *state, void *a )
 	VipsImage *x;
 	char buf[PATH_MAX];
 
+#ifdef DEBUG
+	printf( "strip_work\n" );
+#endif /*DEBUG*/
+
 	if( tile_name( layer, buf, 
 		state->x / dz->tile_size, state->y / dz->tile_size ) )
 		return( -1 );
@@ -732,11 +744,19 @@ strip_work( VipsThreadState *state, void *a )
 		x = z;
 	}
 
+#ifdef DEBUG
+	printf( "strip_work: writing to %s\n", buf );
+#endif /*DEBUG*/
+
 	if( vips_image_write_to_file( x, buf ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
 	g_object_unref( x );
+
+#ifdef DEBUG
+	printf( "strip_work: success\n" );
+#endif /*DEBUG*/
 
 	return( 0 );
 }

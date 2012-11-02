@@ -280,19 +280,10 @@ vips_linearv( VipsImage *in, VipsImage **out,
 {
 	VipsArea *area_a;
 	VipsArea *area_b;
-	double *array; 
 	int result;
-	int i;
 
-	area_a = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n ); 
-	array = (double *) area_a->data;
-	for( i = 0; i < n; i++ ) 
-		array[i] = a[i];
-
-	area_b = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n ); 
-	array = (double *) area_b->data;
-	for( i = 0; i < n; i++ ) 
-		array[i] = b[i];
+	area_a = (VipsArea *) vips_array_double_new( a, n );
+	area_b = (VipsArea *) vips_array_double_new( b, n );
 
 	result = vips_call_split( "linear", ap, in, out, area_a, area_b );
 
@@ -306,8 +297,8 @@ vips_linearv( VipsImage *in, VipsImage **out,
  * vips_linear:
  * @in: image to transform
  * @out: output image
- * @a: array of constants for multiplication
- * @b: array of constants for addition
+ * @a: (array length=n): array of constants for multiplication
+ * @b: (array length=n): array of constants for addition
  * @n: length of constant arrays
  * @...: %NULL-terminated list of optional named arguments
  *
