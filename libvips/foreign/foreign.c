@@ -1238,7 +1238,8 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 	/* Interpret the Type field for colorimetric images.
 	 */
-	if( in->Bands == 3 ) {
+	if( in->Bands == 3 &&
+		vips_colourspace_issupported( in ) ) {
 		VipsImage *out;
 
 		if( vips_colourspace( in, &out, 

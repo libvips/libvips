@@ -5,7 +5,8 @@
   im_LabS2LabQ(), im_LabQ2disp(), im_XYZ2disp(), im_disp2XYZ(),
   im_icc_import*(), im_icc_export*(), im_icc_transform*(), im_dE_fromLab(),
   im_dECMC_fromLab(), im_dE00_from_Lab(), im_icc_ac2rc() as classes
-- added vips_colourspace(), replaces all derived conversions
+- added vips_colourspace(), vips_colourspace_issupported(), replaces all 
+  derived conversions
 - faster and more accurate sRGB <-> XYZ conversion
 - rename UCS colourspace as CMC
 - dzsave can write zoomify and google maps layout as well

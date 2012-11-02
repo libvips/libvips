@@ -148,6 +148,34 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ YXY, sRGB, { vips_Yxy2XYZ, vips_XYZ2sRGB, NULL } },
 };
 
+/* Is an image in a supported colourspace.
+ */
+
+/**
+ * vips_colourspace_issupported:
+ * @in: input image
+ *
+ * Test if @image is in a colourspace that vips_colourspace() can process. For
+ * example, #VIPS_INTERPRETATION_RGB images are not in a well-defined 
+ * colourspace, but #VIPS_INTERPRETATION_sRGB ones are.
+ *
+ * Returns: %TRUE if @image is in a supported colourspace.
+ */
+gboolean
+vips_colourspace_issupported( const VipsImage *image )
+{
+	VipsInterpretation interpretation = 
+		vips_image_guess_interpretation( image );
+	int i;
+
+	for( i = 0; i < VIPS_NUMBER( vips_colour_routes ); i++ )
+		if( vips_colour_routes[i].from == interpretation )
+			return( TRUE );
+
+	return( FALSE );
+}
+
+
 typedef struct _VipsColourspace {
 	VipsOperation parent_instance;
 
@@ -262,12 +290,17 @@ vips_colourspace_init( VipsColourspace *colourspace )
  * @out: output image
  * @space: convert to this colour space
  *
- * This convenience function looks at the interpretation field of @in and runs
+ * This operation looks at the interpretation field of @in and runs
  * a set of colourspace conversion functions to move it to @space. 
  *
  * For example, given an image tagged as #VIPS_INTERPRETATION_YXY, running
  * vips_colourspace() with @space set to #VIPS_INTERPRETATION_LAB will
  * convert with vips_Yxy2XYZ() and vips_XYZ2Lab().
+ *
+ * See also: vips_colourspace_issupported(),
+ * vips_image_guess_interpretation().
+ *
+ * Returns: 0 on success, -1 on error.
  */
 int
 vips_colourspace( VipsImage *in, VipsImage **out, 

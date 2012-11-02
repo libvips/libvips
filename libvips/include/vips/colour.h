@@ -110,6 +110,7 @@ typedef enum {
 	VIPS_INTENT_ABSOLUTE
 } VipsIntent;
 
+gboolean vips_colourspace_issupported( const VipsImage *image );
 int vips_colourspace( VipsImage *in, VipsImage **out, 
 	VipsInterpretation space, ... )
 	__attribute__((sentinel));
