@@ -1,22 +1,4 @@
-- can we make DOUBLE ARRAY args easier from C?
-
-  at the moment they are horrible or ad-hoc, see vips_linear() etc. and
-  the im_Lab2XYZ_temp() wrapper
-
-  can the thing that collects args from the stack spot array objects? eg. 
-
-	double fred[3];
-
-	vips_Lab2XYZ( in, out, "temp", fred, 3, NULL );
-
-
-- lab [100,0,0] -> srgb [255, 255, 254]? how odd
-
 - use D65 in cmsCreateLab4Profile() ? not sure
-
-
-- add a simple wrapping of im_affinei_all() to the po db, perhaps the name of
-  the interpolator as a string?
 
 - the operation cache needs to detect invalidate
 
