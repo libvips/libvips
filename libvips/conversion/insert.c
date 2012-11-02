@@ -253,6 +253,7 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 static int
 vips_insert_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsInsert *insert = (VipsInsert *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 6 );
@@ -264,17 +265,17 @@ vips_insert_build( VipsObject *object )
 
 	if( vips_image_pio_input( insert->main ) || 
 		vips_image_pio_input( insert->sub ) || 
-		vips_check_bands_1orn( "VipsInsert", 
+		vips_check_bands_1orn( class->nickname, 
 			insert->main, insert->sub ) ||
-		vips_check_coding_known( "VipsInsert", insert->main ) ||
-		vips_check_coding_same( "VipsInsert", 
+		vips_check_coding_known( class->nickname, insert->main ) ||
+		vips_check_coding_same( class->nickname, 
 			insert->main, insert->sub ) )
 		return( -1 );
 
 	/* Cast our input images up to a common format and bands.
 	 */
 	if( vips__formatalike( insert->main, insert->sub, &t[0], &t[1] ) ||
-		vips__bandalike( "VipsInsert", t[0], t[1], &t[2], &t[3] ) )
+		vips__bandalike( class->nickname, t[0], t[1], &t[2], &t[3] ) )
 		return( -1 );
 	insert->main_processed = t[2];
 	insert->sub_processed = t[3];
@@ -320,7 +321,7 @@ vips_insert_build( VipsObject *object )
 	conversion->out->Ysize = insert->rout.height;
 
 	if( !(insert->ink = vips__vector_to_ink( 
-		"VipsInsert", conversion->out,
+		class->nickname, conversion->out,
 		insert->background->data, insert->background->n )) )
 		return( -1 );
 

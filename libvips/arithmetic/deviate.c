@@ -88,6 +88,7 @@ G_DEFINE_TYPE( VipsDeviate, vips_deviate, VIPS_TYPE_STATISTIC );
 static int
 vips_deviate_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
 	VipsDeviate *deviate = (VipsDeviate *) object;
 
@@ -95,7 +96,7 @@ vips_deviate_build( VipsObject *object )
 	double s, s2;
 
 	if( statistic->in &&
-		vips_check_noncomplex( "VipsDeviate", statistic->in ) )
+		vips_check_noncomplex( class->nickname, statistic->in ) )
 		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_deviate_parent_class )->build( object ) )

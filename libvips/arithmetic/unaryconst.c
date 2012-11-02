@@ -145,6 +145,7 @@ make_pixel( VipsObject *obj, int m, VipsBandFmt fmt, int n, double *p )
 static int
 vips_unary_const_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
 	VipsUnary *unary = (VipsUnary *) object;
 	VipsUnaryConst *uconst = (VipsUnaryConst *) object;
@@ -160,7 +161,7 @@ vips_unary_const_build( VipsObject *object )
 	arithmetic->base_bands = uconst->n;
 
 	if( unary->in && uconst->c ) {
-		if( vips_check_vector( "VipsRelationalConst", 
+		if( vips_check_vector( class->nickname, 
 			uconst->c->n, unary->in ) )
 		return( -1 );
 	}

@@ -108,6 +108,7 @@ enum {
 static int
 vips_stats_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
 	VipsStats *stats = (VipsStats *) object;
 
@@ -118,7 +119,7 @@ vips_stats_build( VipsObject *object )
 	if( statistic->in ) {
 		int bands = vips_image_get_bands( statistic->in );
 
-		if( vips_check_noncomplex( "VipsStats", statistic->in ) )
+		if( vips_check_noncomplex( class->nickname, statistic->in ) )
 			return( -1 );
 
 		g_object_set( object, 

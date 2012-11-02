@@ -90,13 +90,14 @@ G_DEFINE_TYPE( VipsBoolean, vips_boolean, VIPS_TYPE_BINARY );
 static int
 vips_boolean_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsBinary *binary = (VipsBinary *) object;
 
 	if( binary->left &&
-		vips_check_noncomplex( "VipsBoolean", binary->left ) )
+		vips_check_noncomplex( class->nickname, binary->left ) )
 		return( -1 );
 	if( binary->right &&
-		vips_check_noncomplex( "VipsBoolean", binary->right ) )
+		vips_check_noncomplex( class->nickname, binary->right ) )
 		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_boolean_parent_class )->build( object ) )
@@ -423,11 +424,12 @@ G_DEFINE_TYPE( VipsBooleanConst,
 static int
 vips_boolean_const_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsUnary *unary = (VipsUnary *) object;
 	VipsUnaryConst *uconst = (VipsUnaryConst *) object;
 
 	if( unary->in &&
-		vips_check_noncomplex( "VipsBoolean", unary->in ) )
+		vips_check_noncomplex( class->nickname, unary->in ) )
 		return( -1 );
 
 	uconst->const_format = VIPS_FORMAT_INT;

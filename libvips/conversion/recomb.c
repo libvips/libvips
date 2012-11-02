@@ -139,6 +139,7 @@ vips_recomb_gen( VipsRegion *or,
 static int
 vips_recomb_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = (VipsConversion *) object;
 	VipsRecomb *recomb = (VipsRecomb *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
@@ -147,16 +148,16 @@ vips_recomb_build( VipsObject *object )
 		return( -1 );
 
 	if( vips_image_pio_input( recomb->in ) || 
-		vips_check_uncoded( "VipsRecomb", recomb->in ) ||
-		vips_check_noncomplex( "VipsRecomb", recomb->in ) )
+		vips_check_uncoded( class->nickname, recomb->in ) ||
+		vips_check_noncomplex( class->nickname, recomb->in ) )
 		return( -1 );
 	if( vips_image_pio_input( recomb->m ) || 
-		vips_check_uncoded( "VipsRecomb", recomb->m ) ||
-		vips_check_noncomplex( "VipsRecomb", recomb->m ) ||
-		vips_check_mono( "VipsRecomb", recomb->m ) )
+		vips_check_uncoded( class->nickname, recomb->m ) ||
+		vips_check_noncomplex( class->nickname, recomb->m ) ||
+		vips_check_mono( class->nickname, recomb->m ) )
 		return( -1 );
 	if( recomb->in->Bands != recomb->m->Xsize ) {
-		vips_error( "VipsRecomb", 
+		vips_error( class->nickname, 
 			"%s", _( "bands in must equal matrix width" ) );
 		return( -1 );
 	}

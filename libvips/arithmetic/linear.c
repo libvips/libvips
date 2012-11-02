@@ -106,6 +106,7 @@ G_DEFINE_TYPE( VipsLinear, vips_linear, VIPS_TYPE_UNARY );
 static int
 vips_linear_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
 	VipsUnary *unary = (VipsUnary *) object;
 	VipsLinear *linear = (VipsLinear *) object;
@@ -124,9 +125,9 @@ vips_linear_build( VipsObject *object )
 	arithmetic->base_bands = linear->n;
 
 	if( unary->in && linear->a && linear->b ) {
-		if( vips_check_vector( "VipsLinear", 
+		if( vips_check_vector( class->nickname, 
 			linear->a->n, unary->in ) ||
-			vips_check_vector( "VipsLinear", 
+			vips_check_vector( class->nickname, 
 				linear->b->n, unary->in ) )
 		return( -1 );
 	}

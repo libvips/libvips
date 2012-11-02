@@ -297,6 +297,7 @@ vips_arithmetic_gen( VipsRegion *or,
 static int
 vips_arithmetic_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_GET_CLASS( arithmetic );
 
@@ -320,13 +321,13 @@ vips_arithmetic_build( VipsObject *object )
 	/* No need to check input bands, bandalike will do this for us.
 	 */
 	if( arithmetic->n > MAX_INPUT_IMAGES ) {
-		vips_error( "VipsArithmetic",
+		vips_error( class->nickname,
 			"%s", _( "too many input images" ) );
 		return( -1 );
 	}
 	for( i = 0; i < arithmetic->n; i++ )
 		if( vips_image_pio_input( arithmetic->in[i] ) || 
-			vips_check_uncoded( "VipsArithmetic", 
+			vips_check_uncoded( class->nickname, 
 				arithmetic->in[i] ) ) 
 			return( -1 );
 
@@ -340,7 +341,7 @@ vips_arithmetic_build( VipsObject *object )
 	/* Cast our input images up to a common format, bands and size.
 	 */
 	if( vips__formatalike_vec( arithmetic->in, format, arithmetic->n ) ||
-		vips__bandalike_vec( "VipsArithmetic", 
+		vips__bandalike_vec( class->nickname, 
 			format, band, arithmetic->n, arithmetic->base_bands ) ||
 		vips__sizealike_vec( band, size, arithmetic->n ) ) 
 		return( -1 );

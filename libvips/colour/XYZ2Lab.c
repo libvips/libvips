@@ -194,10 +194,11 @@ vips_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b )
 static int
 vips_XYZ2Lab_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsXYZ2Lab *XYZ2Lab = (VipsXYZ2Lab *) object;
 
 	if( XYZ2Lab->temp ) {
-		if( vips_check_vector_length( "VipsXYZ2Lab", 
+		if( vips_check_vector_length( class->nickname, 
 			XYZ2Lab->temp->n, 3 ) )
 			return( -1 );
 		XYZ2Lab->X0 = ((double *) XYZ2Lab->temp->data)[0];

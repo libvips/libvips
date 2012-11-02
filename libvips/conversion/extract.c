@@ -134,22 +134,24 @@ vips_extract_area_gen( VipsRegion *or, void *seq, void *a, void *b,
 static int
 vips_extract_area_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsExtractArea *extract = (VipsExtractArea *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_extract_area_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_extract_area_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	if( extract->left + extract->width > extract->in->Xsize ||
 		extract->top + extract->height > extract->in->Ysize ||
 		extract->left < 0 || extract->top < 0 ||
 		extract->width <= 0 || extract->height <= 0 ) {
-		vips_error( "VipsExtractArea", "%s", _( "bad extract area" ) );
+		vips_error( class->nickname, "%s", _( "bad extract area" ) );
 		return( -1 );
 	}
 
 	if( vips_image_pio_input( extract->in ) || 
-		vips_check_coding_known( "VipsExtractArea", extract->in ) )  
+		vips_check_coding_known( class->nickname, extract->in ) )  
 		return( -1 );
 
 	if( vips_image_copy_fields( conversion->out, extract->in ) )
@@ -308,6 +310,7 @@ vips_extract_band_buffer( VipsBandary *bandary,
 static int
 vips_extract_band_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsBandary *bandary = (VipsBandary *) object;
 	VipsExtractBand *extract = (VipsExtractBand *) object;
 
@@ -317,7 +320,7 @@ vips_extract_band_build( VipsObject *object )
 		bandary->out_bands = extract->n;
 
 		if( extract->band + extract->n > extract->in->Bands ) {
-			vips_error( "VipsExtractBand", 
+			vips_error( class->nickname, 
 				"%s", _( "bad extract band" ) );
 			return( -1 );
 		}

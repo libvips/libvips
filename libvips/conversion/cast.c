@@ -120,8 +120,10 @@ vips_cast_preeval( VipsImage *image, VipsProgress *progress, VipsCast *cast )
 static void
 vips_cast_posteval( VipsImage *image, VipsProgress *progress, VipsCast *cast )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( cast );
+
 	if( cast->overflow || cast->underflow ) 
-		vips_warn( "VipsCast", 
+		vips_warn( class->nickname, 
 			_( "%d underflows and %d overflows detected" ),
 			cast->underflow, cast->overflow );
 }
@@ -422,6 +424,7 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 static int
 vips_cast_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsCast *cast = (VipsCast *) object;
 
@@ -433,7 +436,7 @@ vips_cast_build( VipsObject *object )
 	if( cast->in->BandFmt == cast->format ) 
 		return( vips_image_write( cast->in, conversion->out ) );
 
-	if( vips_check_uncoded( "VipsCast", cast->in ) ||
+	if( vips_check_uncoded( class->nickname, cast->in ) ||
 		vips_image_pio_input( cast->in ) )
 		return( -1 );
 

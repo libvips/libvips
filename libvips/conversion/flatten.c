@@ -296,6 +296,7 @@ vips_flatten_gen( VipsRegion *or, void *vseq, void *a, void *b,
 static int
 vips_flatten_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsFlatten *flatten = (VipsFlatten *) object;
 	int i;
@@ -309,8 +310,8 @@ vips_flatten_build( VipsObject *object )
 	if( flatten->in->Bands == 1 ) 
 		return( vips_image_write( flatten->in, conversion->out ) );
 
-	if( vips_check_uncoded( "VipsFlatten", flatten->in ) ||
-		vips_check_noncomplex( "VipsFlatten", flatten->in ) ||
+	if( vips_check_uncoded( class->nickname, flatten->in ) ||
+		vips_check_noncomplex( class->nickname, flatten->in ) ||
 		vips_image_pio_input( flatten->in ) )
 		return( -1 );
 
@@ -340,7 +341,7 @@ vips_flatten_build( VipsObject *object )
 		/* Convert the background to the image's format.
 		 */
 		if( !(flatten->ink = vips__vector_to_ink( 
-			"VipsFlatten", conversion->out,
+			class->nickname, conversion->out,
 			flatten->background->data, flatten->background->n )) )
 			return( -1 );
 

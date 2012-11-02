@@ -322,6 +322,7 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 static int
 vips_embed_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsEmbed *embed = (VipsEmbed *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
@@ -331,7 +332,7 @@ vips_embed_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_embed_parent_class )->build( object ) )
 		return( -1 );
 
-	/* nip can generate this quite often ... just copy.
+	/* nip2 can generate this quite often ... just copy.
 	 */
 	if( embed->x == 0 && 
 		embed->y == 0 && 
@@ -343,7 +344,7 @@ vips_embed_build( VipsObject *object )
 		return( -1 );
 
 	if( !(embed->ink = vips__vector_to_ink( 
-		"VipsEmbed", embed->in,
+		class->nickname, embed->in,
 		embed->background->data, embed->background->n )) )
 		return( -1 );
 
@@ -456,7 +457,8 @@ vips_embed_build( VipsObject *object )
 		 * and remove this test.
 		 */
 		if( vips_rect_isempty( &embed->rsub ) ) {
-			vips_error( "VipsEmbed", "%s", _( "bad dimensions" ) );
+			vips_error( class->nickname, 
+				"%s", _( "bad dimensions" ) );
 			return( -1 );
 		}
 

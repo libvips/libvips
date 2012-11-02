@@ -820,8 +820,9 @@ vips_foreign_load_generate( VipsRegion *or,
 static int
 vips_foreign_load_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( object );
-	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_GET_CLASS( object );
+	VipsForeignLoadClass *fclass = VIPS_FOREIGN_LOAD_GET_CLASS( object );
 
 	VipsForeignFlags flags;
 
@@ -830,12 +831,12 @@ vips_foreign_load_build( VipsObject *object )
 #endif /*DEBUG*/
 
 	flags = 0;
-	if( class->get_flags )
-		flags |= class->get_flags( load );
+	if( fclass->get_flags )
+		flags |= fclass->get_flags( load );
 
 	if( (flags & VIPS_FOREIGN_PARTIAL) &&
 		(flags & VIPS_FOREIGN_SEQUENTIAL) ) {
-		vips_warn( "VipsForeign", "%s", 
+		vips_warn( class->nickname, "%s", 
 			_( "VIPS_FOREIGN_PARTIAL and VIPS_FOREIGN_SEQUENTIAL "
 			"both set -- using SEQUENTIAL" ) );
 		flags ^= VIPS_FOREIGN_PARTIAL;
@@ -855,8 +856,8 @@ vips_foreign_load_build( VipsObject *object )
 
 	/* Read the header into @out.
 	 */
-	if( class->header &&
-		class->header( load ) ) 
+	if( fclass->header &&
+		fclass->header( load ) ) 
 		return( -1 );
 
 	/* If there's no ->load() method then the header read has done
@@ -866,7 +867,7 @@ vips_foreign_load_build( VipsObject *object )
 	 * Delay the load until the first pixel is requested by doing the work
 	 * in the start function of the copy.
 	 */
-	if( class->load ) {
+	if( fclass->load ) {
 #ifdef DEBUG
 		printf( "vips_foreign_load_build: delaying read ...\n" );
 #endif /*DEBUG*/

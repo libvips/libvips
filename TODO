@@ -1,16 +1,3 @@
-- test dzsave depth option
-
-- boolean.c has
-
-	vips_check_noncomplex( "VipsBoolean", binary->left ) )
-
-  why not
-
-	vips_check_noncomplex( VIPS_OBJECT_GET_CLASS( object )->nickname,
-		binary->left )
-
-  many other places too
-
 - can we make DOUBLE ARRAY args easier from C?
 
   at the moment they are horrible or ad-hoc, see vips_linear() etc. and

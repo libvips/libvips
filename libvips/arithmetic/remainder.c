@@ -72,13 +72,14 @@ G_DEFINE_TYPE( VipsRemainder, vips_remainder, VIPS_TYPE_BINARY );
 static int
 vips_remainder_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsBinary *binary = (VipsBinary *) object;
 
 	if( binary->left &&
-		vips_check_noncomplex( "VipsRemainder", binary->left ) )
+		vips_check_noncomplex( class->nickname, binary->left ) )
 		return( -1 );
 	if( binary->right &&
-		vips_check_noncomplex( "VipsRemainder", binary->right ) )
+		vips_check_noncomplex( class->nickname, binary->right ) )
 		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_remainder_parent_class )->build( object ) )
@@ -239,11 +240,12 @@ G_DEFINE_TYPE( VipsRemainderConst,
 static int
 vips_remainder_const_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsUnary *unary = (VipsUnary *) object;
 	VipsUnaryConst *uconst = (VipsUnaryConst *) object;
 
 	if( unary->in &&
-		vips_check_noncomplex( "VipsRemainder", unary->in ) )
+		vips_check_noncomplex( class->nickname, unary->in ) )
 		return( -1 );
 
 	if( unary->in )

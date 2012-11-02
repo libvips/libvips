@@ -136,10 +136,11 @@ vips_Lab2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 static int
 vips_Lab2XYZ_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsLab2XYZ *Lab2XYZ = (VipsLab2XYZ *) object;
 
 	if( Lab2XYZ->temp ) {
-		if( vips_check_vector_length( "VipsLab2XYZ", 
+		if( vips_check_vector_length( class->nickname, 
 			Lab2XYZ->temp->n, 3 ) )
 			return( -1 );
 		Lab2XYZ->X0 = ((double *) Lab2XYZ->temp->data)[0];

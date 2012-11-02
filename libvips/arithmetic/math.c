@@ -82,10 +82,11 @@ G_DEFINE_TYPE( VipsMath, vips_math, VIPS_TYPE_UNARY );
 static int
 vips_math_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsUnary *unary = (VipsUnary *) object;
 
 	if( unary->in &&
-		vips_check_noncomplex( "VipsMath", unary->in ) )
+		vips_check_noncomplex( class->nickname, unary->in ) )
 		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_math_parent_class )->build( object ) )

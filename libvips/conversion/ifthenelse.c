@@ -400,6 +400,7 @@ vips_ifthenelse_gen( VipsRegion *or, void *seq, void *client1, void *client2,
 static int
 vips_ifthenelse_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsIfthenelse *ifthenelse = (VipsIfthenelse *) object;
 	VipsGenerateFn generate_fn = ifthenelse->blend ? 
@@ -429,7 +430,7 @@ vips_ifthenelse_build( VipsObject *object )
 
 	/* Cast our input images up to a common bands and size.
 	 */
-	if( vips__bandalike_vec( "VipsIfthenelse", all, band, 3, 0 ) ||
+	if( vips__bandalike_vec( class->nickname, all, band, 3, 0 ) ||
 		vips__sizealike_vec( band, size, 3 ) )
 		return( -1 );
 

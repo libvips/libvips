@@ -91,6 +91,7 @@ G_DEFINE_TYPE( VipsMeasure, vips_measure, VIPS_TYPE_OPERATION );
 static int
 vips_measure_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsMeasure *measure = (VipsMeasure *) object;
 
 	int bands;
@@ -159,7 +160,7 @@ vips_measure_build( VipsObject *object )
 				 * measure on IM_TYPE_LAB images).
 				 */
 				if( dev * 5 > fabs( avg ) && fabs( avg ) > 3 )
-					vips_warn( "VipsMeasure",
+					vips_warn( class->nickname,
 						_( "patch %d x %d, band %d: " 
 						   "avg = %g, sdev = %g" ), 
 						i, j, avg, dev );
