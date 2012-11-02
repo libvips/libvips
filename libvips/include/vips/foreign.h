@@ -430,7 +430,7 @@ int vips_radsave( VipsImage *in, const char *filename, ... )
  * @VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY: use Zoomify directory layout
  * @VIPS_FOREIGN_DZ_LAYOUT_GOOGLE: use Google maps directory layout
  *
- * Use inches or centimeters as the resolution unit for a tiff file.
+ * What directory layout and metadata standard to use. 
  */
 typedef enum {
 	VIPS_FOREIGN_DZ_LAYOUT_DZ,
@@ -438,6 +438,21 @@ typedef enum {
 	VIPS_FOREIGN_DZ_LAYOUT_GOOGLE,
 	VIPS_FOREIGN_DZ_LAYOUT_LAST
 } VipsForeignDzLayout;
+
+/**
+ * VipsForeignDzDepth:
+ * @VIPS_FOREIGN_DZ_DEPTH_1PIXEL: create layers down to 1x1 pixel
+ * @VIPS_FOREIGN_DZ_DEPTH_1TILE: create layers down to 1x1 tile
+ * @VIPS_FOREIGN_DZ_DEPTH_1: only create a single layer
+ *
+ * How many pyramid layers to create.
+ */
+typedef enum {
+	VIPS_FOREIGN_DZ_DEPTH_1PIXEL,
+	VIPS_FOREIGN_DZ_DEPTH_1TILE,
+	VIPS_FOREIGN_DZ_DEPTH_1,
+	VIPS_FOREIGN_DZ_DEPTH_LAST
+} VipsForeignDzDepth;
 
 int vips_dzsave( VipsImage *in, const char *basename, ... )
 	__attribute__((sentinel));
