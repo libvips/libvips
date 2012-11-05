@@ -84,7 +84,7 @@ vips_XYZ2sRGB_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		int r, g, b;
 		int or;
 
-		vips_col_XYZ2sRGB( X, Y, Z, &r, &g, &b, &or );
+		vips_col_XYZ2sRGB_8( X, Y, Z, &r, &g, &b, &or );
 
 		p += 3;
 
