@@ -53,75 +53,27 @@
 
 #include "colour.h"
 
-#define TABLE_SIZE (20000)
+/* The number of elements in the linear float -> sRGB table.
+ */
+#define TABLE_SIZE (256)
 
 typedef VipsColourCode VipsLabQ2sRGB;
 typedef VipsColourCodeClass VipsLabQ2sRGBClass;
 
 G_DEFINE_TYPE( VipsLabQ2sRGB, vips_LabQ2sRGB, VIPS_TYPE_COLOUR_CODE );
 
-/* Structure for holding information about a display device. See the BARCO
- * papers for details on the fields.
+/* linear -> sRGB lut. There's an extra element at the end to let us do a +1
+ * for interpolation.
  */
-struct im_col_display {
-	/* All private.
-	 */
-	char *d_name;			/* Display name */
-	float d_mat[3][3]; 		/* XYZ -> luminance matrix */
-	float d_YCW;			/* Luminosity of reference white */
-	float d_xCW;			/* x, y for reference white */
-	float d_yCW;
-	float d_YCR;			/* Light o/p for reference white */
-	float d_YCG;
-	float d_YCB;
-	int d_Vrwr;			/* Pixel values for ref. white */
-	int d_Vrwg;
-	int d_Vrwb;
-	float d_Y0R;			/* Residual light for black pixel */
-	float d_Y0G;
-	float d_Y0B;
-	float d_gammaR;			/* Gamma values for the three guns */
-	float d_gammaG;
-	float d_gammaB;
-	float d_B;			/* 'Background' (like brightness) */
-	float d_P;			/* 'Picture' (like contrast) */
-};
+static int vips_Y2v[TABLE_SIZE + 1];
 
-/* Structure for holding the lookup tables for XYZ<=>rgb conversion.
- * Also holds the luminance to XYZ matrix and the inverse one.
+/* sRGB -> linear lut.
  */
-struct im_col_tab_disp {
-	/*< private >*/
-	float	t_Y2v[TABLE_SIZE];	/* Conversion of Y to v */
-	float	t_v2Y[256];		/* Conversion of v to Y */
-	float	mat_XYZ2lum[3][3];	/* XYZ to Yr, Yg, Yb matrix */
-	float	mat_lum2XYZ[3][3];	/* Yr, Yg, Yb to XYZ matrix */
-	float rstep;			/* Scale Y by this to fit TABLE_SIZE */
-};
+static float vips_v2Y[256];
 
 /* Do our own indexing of the arrays below to make sure we get efficient mults.
  */
 #define INDEX( L, A, B ) (L + (A << 6) + (B << 12))
-
-/* We used to have loads of these, now just sRGB.
- */
-static struct im_col_display srgb_profile = {
-	"sRGB",
-	{			/* XYZ -> luminance matrix */
-		{  3.2410, -1.5374, -0.4986 },
-		{  -0.9692, 1.8760, 0.0416 },
-		{  0.0556, -0.2040, 1.0570 }
-	},	
-
-	80.0,			/* Luminosity of reference white */
-	.3127, .3291,		/* x, y for reference white */
-	100, 100, 100,		/* Light o/p for reference white */
-	255, 255, 255,		/* Pixel values for ref. white */
-	1, 1, 1,		/* Residual light o/p for black pixel */
-	2.4, 2.4, 2.4,		/* Gamma values for the three guns */
-	100,			/* 'Background' (like brightness) */
-	100			/* 'Picture' (like contrast) */
-};
 
 /* A set of LUTs for quick LabQ->sRGB transforms.
  */
@@ -129,76 +81,56 @@ static VipsPel vips_red[64 * 64 * 64];
 static VipsPel vips_green[64 * 64 * 64];
 static VipsPel vips_blue[64 * 64 * 64];
 
-/* Make look_up tables for the Yr,Yb,Yg <=> r,g,b conversions.
+/* Create the sRGB linear and unlinear luts.
  */
 static void *
 calcul_tables( void *client )
 {
-	struct im_col_tab_disp *table = client;
-	struct im_col_display *d = &srgb_profile;
+	int i;
 
-	int i, j;
-	float a, ga_i, ga, c, f, yo, p;
-	double **temp;
+	for( i = 0; i < TABLE_SIZE; i++ ) {
+		float f = (float) i / (TABLE_SIZE - 1);
+		float v;
 
-	c = (d->d_B - 100.0) / 500.0;
+		if( f <= 0.0031308 )
+			v = 12.92 * f; 
+		else
+			v = (1.0 + 0.055) * pow( f, 1.0 / 2.4 ) - 0.055;
 
-	/**** Red ****/
-	yo = d->d_Y0R;
-	a = d->d_YCR - yo;
-	ga = d->d_gammaR;
-	ga_i = 1.0 / ga;
-	p = d->d_P / 100.0;
-	f = d->d_Vrwr / p;
-
-	table->rstep = a / (TABLE_SIZE - 1);
-
-	for( i = 0; i < TABLE_SIZE; i++ )
-		table->t_Y2v[i] = f * (pow( i * table->rstep / a, ga_i ) - c);
-
-	for( i = 0; i < 256; i++ )
-		table->t_v2Y[i] = yo + a * pow( i / f + c, ga );
-
-	if( !(temp = im_dmat_alloc( 0, 2, 0, 2 )) )
-		return( NULL );
-
-	for( i = 0; i < 3; i++ )
-		for( j = 0; j < 3; j++ ) {
-			table->mat_XYZ2lum[i][j] = d->d_mat[i][j];
-			temp[i][j] = d->d_mat[i][j];
-		}
-
-	if( im_invmat( temp, 3 ) ) {
-		im_free_dmat( temp, 0, 2, 0, 2 );
-		return( NULL );
+		vips_Y2v[i] = 255.0 * v;
 	}
 
-	for( i = 0; i < 3; i++ )
-		for( j = 0; j < 3; j++ )
-			table->mat_lum2XYZ[i][j] = temp[i][j];
+	/* Copy the final element. This is used in the piecewise linear
+	 * interpolator below.
+	 */
+	vips_Y2v[TABLE_SIZE] = vips_Y2v[TABLE_SIZE - 1];
 
-	im_free_dmat( temp, 0, 2, 0, 2 );
+	for( i = 0; i < 256; i++ ) {
+		float f = i / 255.0;
+
+		if( f <= 0.04045 )
+			vips_v2Y[i] = f / 12.92;
+		else
+			vips_v2Y[i] = pow( (f + 0.055) / (1 + 0.055), 2.4 );
+	}
 
 	return( NULL );
 }
 
-static struct im_col_tab_disp *
+static void
 vips_col_make_tables_RGB( void )
 {
-	static struct im_col_tab_disp *table = NULL;
+	static gboolean made_tables = FALSE;
 
 	/* We want to avoid having a mutex in this path, so use gonce and a
 	 * static var instead.
 	 */
-	if( !table ) {
+	if( !made_tables ) {
 		static GOnce once = G_ONCE_INIT;
-		static struct im_col_tab_disp table_memory;
 
-		(void) g_once( &once, calcul_tables, &table_memory );
-		table = &table_memory;
+		(void) g_once( &once, calcul_tables, NULL );
+		made_tables = TRUE;
 	}
-
-	return( table );
 }
 
 /* Computes the transform: r,g,b => Yr,Yg,Yb. It finds Y values in 
@@ -207,24 +139,33 @@ vips_col_make_tables_RGB( void )
 int
 vips_col_sRGB2XYZ( int r, int g, int b, float *X, float *Y, float *Z )
 {
-	struct im_col_tab_disp *table = vips_col_make_tables_RGB();
-	float *mat = &table->mat_lum2XYZ[0][0];
+	/* linear RGB -> XYZ matrix.
+	 */
+	static float mat[3][3] = {
+		{ 0.4124, 0.3576, 0.18056 }, 
+		{ 0.2126, 0.7152, 0.0722 },
+		{ 0.0193, 0.1192, 0.9505 }
+	};
 
 	float Yr, Yg, Yb;
 	int i;
 
+	vips_col_make_tables_RGB();
+
   	i = VIPS_CLIP( 0, r, 255 );
-	Yr = table->t_v2Y[i];
+	Yr = vips_v2Y[i];
 
   	i = VIPS_CLIP( 0, g, 255 );
-	Yg = table->t_v2Y[i];
+	Yg = vips_v2Y[i];
 
   	i = VIPS_CLIP( 0, b, 255 );
-	Yb = table->t_v2Y[i];
+	Yb = vips_v2Y[i];
 
-	*X = mat[0] * Yr + mat[1] * Yg + mat[2] * Yb;
-	*Y = mat[3] * Yr + mat[4] * Yg + mat[5] * Yb;
-	*Z = mat[6] * Yr + mat[7] * Yg + mat[8] * Yb;
+	/* The matrix already includes D65 channel weighting.
+	 */
+	*X = VIPS_D65_Y0 * (mat[0][0] * Yr + mat[0][1] * Yg + mat[0][2] * Yb);
+	*Y = VIPS_D65_Y0 * (mat[1][0] * Yr + mat[1][1] * Yg + mat[1][2] * Yb);
+	*Z = VIPS_D65_Y0 * (mat[2][0] * Yr + mat[2][1] * Yg + mat[2][2] * Yb);
 
 	return( 0 );
 }
@@ -237,21 +178,36 @@ vips_col_XYZ2sRGB( float X, float Y, float Z,
 	int *r_ret, int *g_ret, int *b_ret, 
 	int *or_ret )
 {
-	struct im_col_display *d = &srgb_profile;
-	struct im_col_tab_disp *table = vips_col_make_tables_RGB();
-	float *mat = &table->mat_XYZ2lum[0][0];
+	/* XYZ -> linear RGB matrix.
+	 */
+	static float mat[3][3] = {
+		{ 3.2406, -1.5372, -0.4986 },
+		{ -0.9689, 1.8758, 0.0415, },
+		{ 0.0557, -0.2040, 1.0570 }
+	};
 
-	int or = 0;		/* Out of range flag */
+	int or;
 
 	float Yr, Yg, Yb;
-	int Yint;
+	float Yf;
+	int Yi;
+	float v;
 	int r, g, b;
+
+	vips_col_make_tables_RGB();
+
+	/* The matrix already includes D65 channel weighting, just change from
+	 * 0 - 100 to 0 - 1.
+	 */
+	X = X / VIPS_D65_Y0;
+	Y = Y / VIPS_D65_Y0;
+	Z = Z / VIPS_D65_Y0;
 
 	/* Multiply through the matrix to get luminosity values. 
 	 */
-	Yr = mat[0] * X + mat[1] * Y + mat[2] * Z;
-	Yg = mat[3] * X + mat[4] * Y + mat[5] * Z;
-	Yb = mat[6] * X + mat[7] * Y + mat[8] * Z;
+	Yr = mat[0][0] * X + mat[0][1] * Y + mat[0][2] * Z;
+	Yg = mat[1][0] * X + mat[1][1] * Y + mat[1][2] * Z;
+	Yb = mat[2][0] * X + mat[2][1] * Y + mat[2][2] * Z;
 
 	/* Clip range, set the out-of-range flag.
 	 */
@@ -268,18 +224,29 @@ vips_col_XYZ2sRGB( float X, float Y, float Z,
 
 	/* Work out colour value (0-Vrw) to feed the tube to get that
 	 * luminosity. 
+	 *
+	 * The +1 on the index is safe, see above.
 	 */
-	Yint = (Yr - d->d_Y0R) / table->rstep;
-	CLIP( 0, Yint, TABLE_SIZE - 1);
-	r = VIPS_RINT( table->t_Y2v[Yint] );
 
-	Yint = (Yg - d->d_Y0G) / table->rstep;
-	CLIP( 0, Yint, TABLE_SIZE - 1);
-	g = VIPS_RINT( table->t_Y2v[Yint] );
+	or = 0;
 
-	Yint = (Yb - d->d_Y0B) / table->rstep;
-	CLIP( 0, Yint, TABLE_SIZE - 1);
-	b = VIPS_RINT( table->t_Y2v[Yint] );
+	Yf = Yr * (TABLE_SIZE - 1);
+	CLIP( 0, Yf, TABLE_SIZE - 1);
+	Yi = (int) Yf;
+	v = vips_Y2v[Yi] + (vips_Y2v[Yi + 1] - vips_Y2v[Yi]) * (Yf - Yi);
+	r = VIPS_RINT( v );
+
+	Yf = Yg * (TABLE_SIZE - 1);
+	CLIP( 0, Yf, TABLE_SIZE - 1);
+	Yi = (int) Yf;
+	v = vips_Y2v[Yi] + (vips_Y2v[Yi + 1] - vips_Y2v[Yi]) * (Yf - Yi);
+	g = VIPS_RINT( v );
+
+	Yf = Yb * (TABLE_SIZE - 1);
+	CLIP( 0, Yf, TABLE_SIZE - 1);
+	Yi = (int) Yf;
+	v = vips_Y2v[Yi] + (vips_Y2v[Yi + 1] - vips_Y2v[Yi]) * (Yf - Yi);
+	b = VIPS_RINT( v );
 
 	*r_ret = r;
 	*g_ret = g;
