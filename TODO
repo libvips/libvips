@@ -1,5 +1,7 @@
 - use D65 in cmsCreateLab4Profile() ? not sure
 
+- support 16-bit sRGB <-> XYZ
+
 - the operation cache needs to detect invalidate
 
 - see
