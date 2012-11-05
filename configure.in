@@ -315,8 +315,8 @@ AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 
 # have to have these
 # need glib 2.6 for GOption
-PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 >= 2.4 libxml-2.0 gobject-2.0)
-PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 libxml-2.0 gobject-2.0"
+PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 libxml-2.0)
+PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0"
 
 # after 2.32 there are a new set of thread functions, annoyingly
 PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
@@ -325,7 +325,10 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
   AC_DEFINE(HAVE_THREAD_NEW,1,[define if your glib has g_thread_new().])
   AC_DEFINE(HAVE_PRIVATE_INIT,1,[define if your glib has G_PRIVATE_INIT().])
   AC_DEFINE(HAVE_VALUE_GET_SCHAR,1,[define if your glib has g_value_get_schar().])
-])
+  ],[
+     # no action if not found
+  ]
+)
 
 # check for gtk-doc
 GTK_DOC_CHECK(1.9)
