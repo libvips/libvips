@@ -842,7 +842,6 @@ read_jpeg_generate( VipsRegion *or,
 	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
 	int sz = cinfo->output_width * cinfo->output_components;
 
-	JSAMPROW row_pointer[8];
 	int y;
 
 #ifdef DEBUG
@@ -871,18 +870,20 @@ read_jpeg_generate( VipsRegion *or,
 	if( setjmp( jpeg->eman.jmp ) ) 
 		return( -1 );
 
-	for( y = 0; y < r->height; y++ ) 
-		row_pointer[y] = (JSAMPLE *) 
+	for( y = 0; y < r->height; y++ ) {
+		JSAMPROW row_pointer[1];
+
+		row_pointer[0] = (JSAMPLE *) 
 			VIPS_REGION_ADDR( or, 0, r->top + y );
 
-	jpeg_read_scanlines( cinfo, &row_pointer[0], r->height );
+		jpeg_read_scanlines( cinfo, &row_pointer[0], 1 );
 
-	if( jpeg->invert_pels ) {
-		int x;
+		if( jpeg->invert_pels ) {
+			int x;
 
-		for( y = 0; y < r->height; y++ )
 			for( x = 0; x < sz; x++ )
-				row_pointer[y][x] = 255 - row_pointer[y][x];
+				row_pointer[0][x] = 255 - row_pointer[0][x];
+		}
 	}
 
 	return( 0 );
