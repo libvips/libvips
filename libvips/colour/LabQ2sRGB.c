@@ -86,7 +86,7 @@ static float vips_v2Y_16[65536];
  * The matrix already includes the D65 channel weighting, so we just scale by
  * Y.
  */
-#define SCALE (VIPS_D65_Y0 / 3.0)
+#define SCALE (VIPS_D65_Y0)
 
 /* linear RGB -> XYZ matrix. 
  */

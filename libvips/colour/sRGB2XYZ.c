@@ -9,6 +9,8 @@
  * 21/9/12
  * 	- redone as a class
  * 	- sRGB only, support for other RGBs is now via lcms
+ * 6/11/12
+ * 	- add 15-bit sRGB import
  */
 
 /*
@@ -57,12 +59,8 @@ G_DEFINE_TYPE( VipssRGB2XYZ, vips_sRGB2XYZ, VIPS_TYPE_COLOUR_CODE );
 /* Convert a buffer of 8-bit pixels.
  */
 static void
-vips_sRGB2XYZ_line_8( VipsColour *colour, 
-	VipsPel *out, VipsPel **in, int width )
+vips_sRGB2XYZ_line_8( float *q, VipsPel *p, int width )
 {
-	VipsPel *p = in[0];
-	float *q = (float *) out;
-
 	int i;
 
 	for( i = 0; i < width; i++ ) {
@@ -86,12 +84,8 @@ vips_sRGB2XYZ_line_8( VipsColour *colour,
 /* Convert a buffer of 16-bit pixels.
  */
 static void
-vips_sRGB2XYZ_line_16( VipsColour *colour, 
-	VipsPel *out, VipsPel **in, int width )
+vips_sRGB2XYZ_line_16( float *q, unsigned short *p, int width )
 {
-	unsigned short *p = in[0];
-	float *q = (float *) out;
-
 	int i;
 
 	for( i = 0; i < width; i++ ) {
@@ -113,6 +107,35 @@ vips_sRGB2XYZ_line_16( VipsColour *colour,
 }
 
 static void
+vips_sRGB2XYZ_line( VipsColour *colour, 
+	VipsPel *out, VipsPel **in, int width )
+{
+	if( colour->in[0]->BandFmt == VIPS_FORMAT_UCHAR )
+		vips_sRGB2XYZ_line_8( (float *) out, 
+			(VipsPel *) in[0], width );
+	else
+		vips_sRGB2XYZ_line_16( (float *) out, 
+			(unsigned short *) in[0], width );
+}
+
+static int
+vips_sRGB2XYZ_build( VipsObject *object )
+{
+	VipsColourCode *code = (VipsColourCode *) object;
+
+	if( code->in ) 
+		code->input_format = 
+			code->in->BandFmt == VIPS_FORMAT_USHORT ? 
+			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
+
+	if( VIPS_OBJECT_CLASS( vips_sRGB2XYZ_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
 vips_sRGB2XYZ_class_init( VipssRGB2XYZClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -120,6 +143,7 @@ vips_sRGB2XYZ_class_init( VipssRGB2XYZClass *class )
 
 	object_class->nickname = "sRGB2XYZ";
 	object_class->description = _( "convert an sRGB image to XYZ" );
+	object_class->build = vips_sRGB2XYZ_build;
 
 	colour_class->process_line = vips_sRGB2XYZ_line;
 }
@@ -137,6 +161,10 @@ vips_sRGB2XYZ_init( VipssRGB2XYZ *sRGB2XYZ )
 
 	code->input_coding = VIPS_CODING_NONE;
 	code->input_bands = 3;
+
+	/* The default. This can get changed above ^^ if we see a 
+	 * 16-bit input.
+	 */
 	code->input_format = VIPS_FORMAT_UCHAR;
 }
 

@@ -164,9 +164,18 @@ static VipsColourRoute vips_colour_routes[] = {
 gboolean
 vips_colourspace_issupported( const VipsImage *image )
 {
-	VipsInterpretation interpretation = 
-		vips_image_guess_interpretation( image );
+	VipsInterpretation interpretation;
 	int i;
+
+	/* Treat RGB and RGB16 as sRGB. If you want some other treatment,
+	 * you'll need to use the icc funcs.
+	 *
+	 * sRGB2XYZ can handle 8 and 16-bit images. 
+	 */
+	interpretation = vips_image_guess_interpretation( image );
+	if( interpretation == VIPS_INTERPRETATION_RGB || 
+		interpretation == VIPS_INTERPRETATION_RGB16 )
+		interpretation = VIPS_INTERPRETATION_sRGB;
 
 	for( i = 0; i < VIPS_NUMBER( vips_colour_routes ); i++ )
 		if( vips_colour_routes[i].from == interpretation )
@@ -208,6 +217,15 @@ vips_colourspace_build( VipsObject *object )
 		return( -1 );
 
 	interpretation = vips_image_guess_interpretation( colourspace->in );
+
+	/* Treat RGB and RGB16 as sRGB. If you want some other treatment,
+	 * you'll need to use the icc funcs.
+	 *
+	 * sRGB2XYZ can handle 8 and 16-bit images. 
+	 */
+	if( interpretation == VIPS_INTERPRETATION_RGB || 
+		interpretation == VIPS_INTERPRETATION_RGB16 )
+		interpretation = VIPS_INTERPRETATION_sRGB;
 
 	/* No conversion necessary.
 	 */

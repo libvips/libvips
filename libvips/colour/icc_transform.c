@@ -234,8 +234,13 @@ vips_icc_build( VipsObject *object )
 	if( icc->out_profile ) 
 		switch( cmsGetColorSpace( icc->out_profile ) ) {
 		case icSigRgbData:
-			colour->interpretation = VIPS_INTERPRETATION_RGB;
-			colour->format = VIPS_FORMAT_UCHAR;
+			colour->interpretation = 
+				icc->depth == 8 ? 
+				VIPS_INTERPRETATION_RGB : 
+					VIPS_INTERPRETATION_RGB16;
+			colour->format = 
+				icc->depth == 8 ? 
+				VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
 			colour->bands = 3;
 			icc->out_icc_format = 
 				icc->depth == 16 ? 
