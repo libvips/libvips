@@ -2,6 +2,10 @@
  * inaccurate: for display only! Note especially that this dithers and will
  * give different results on different runs.
  *
+ * The XYZ <-> sRGB transform implemented is this one:
+ *
+ * http://en.wikipedia.org/wiki/SRGB
+ *
  * 5/11/97 Steve Perry
  *	- adapted from old ip code
  * 7/11/97 JC
@@ -130,7 +134,7 @@ calcul_tables( int range, int *Y2v, float *v2Y )
 		else
 			v = (1.0 + 0.055) * pow( f, 1.0 / 2.4 ) - 0.055;
 
-		Y2v[i] = (range - 1) * v;
+		Y2v[i] = VIPS_RINT( (range - 1) * v );
 	}
 
 	/* Copy the final element. This is used in the piecewise linear
@@ -172,8 +176,7 @@ vips_col_make_tables_RGB_8( void )
 	}
 }
 
-/* Computes the transform: r,g,b => Yr,Yg,Yb. It finds Y values in 
- * lookup tables and calculates X, Y, Z.
+/* RGB to XYZ. 
  *
  * @range is eg. 256 for 8-bit data,
  */
@@ -204,11 +207,6 @@ vips_col_sRGB2XYZ( int range, float *lut,
 	return( 0 );
 }
 
-/* Computes the transform: r,g,b => Yr,Yg,Yb. It finds Y values in 
- * lookup tables and calculates X, Y, Z.
- *
- * rgb are in the range 0 to 255,
- */
 int
 vips_col_sRGB2XYZ_8( int r, int g, int b, float *X, float *Y, float *Z )
 {
@@ -241,11 +239,6 @@ vips_col_make_tables_RGB_16( void )
 	}
 }
 
-/* Computes the transform: r,g,b => Yr,Yg,Yb. It finds Y values in 
- * lookup tables and calculates X, Y, Z.
- *
- * rgb are in the range 0 to 65535,
- */
 int
 vips_col_sRGB2XYZ_16( int r, int g, int b, float *X, float *Y, float *Z )
 {
@@ -325,11 +318,6 @@ vips_col_XYZ2sRGB( int range, int *lut,
 	return( 0 ); 
 } 
 
-/* Turn XYZ into display colour. Return or=1 for out of gamut - rgb will
- * contain an approximation of the right colour.
- *
- * r, g, b are scaled to fit the range 0 - 255.
- */
 int
 vips_col_XYZ2sRGB_8( float X, float Y, float Z, 
 	int *r, int *g, int *b, 
@@ -340,11 +328,6 @@ vips_col_XYZ2sRGB_8( float X, float Y, float Z,
 	return( vips_col_XYZ2sRGB( 256, vips_Y2v_8, X, Y, Z, r, g, b, or ) ); 
 }
 
-/* Turn XYZ into display colour. Return or=1 for out of gamut - rgb will
- * contain an approximation of the right colour.
- *
- * r, g, b are scaled to fit the range 0 - 65535.
- */
 int
 vips_col_XYZ2sRGB_16( float X, float Y, float Z, 
 	int *r, int *g, int *b, 
@@ -356,7 +339,7 @@ vips_col_XYZ2sRGB_16( float X, float Y, float Z,
 		X, Y, Z, r, g, b, or ) ); 
 }
 
-/* Build Lab->disp tables. 
+/* Build Lab->disp dither tables. 
  */
 static void *
 build_tables( void *client )
