@@ -1,4 +1,7 @@
 /* convert between colourspaces
+ *
+ * 6/11/12
+ * 	- add RGB16 as a destination
  */
 
 /*
@@ -45,6 +48,12 @@
 
 #include "colour.h"
 
+static int
+vips_XYZ2RGB16( VipsImage *in, VipsImage **out, ... )
+{
+	return( vips_XYZ2sRGB( in, out, "depth", 16, NULL ) );
+}
+
 /* A colour-transforming function.
  */
 typedef int (*VipsColourTransformFn)( VipsImage *in, VipsImage **out, ... );
@@ -74,6 +83,7 @@ typedef struct _VipsColourRoute {
 #define CMC VIPS_INTERPRETATION_CMC
 #define LABS VIPS_INTERPRETATION_LABS
 #define sRGB VIPS_INTERPRETATION_sRGB
+#define RGB16 VIPS_INTERPRETATION_RGB16
 #define YXY VIPS_INTERPRETATION_YXY
 
 /* All the routes we know about.
@@ -85,6 +95,7 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ XYZ, CMC, { vips_XYZ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
 	{ XYZ, LABS, { vips_XYZ2Lab, vips_Lab2LabS, NULL } },
 	{ XYZ, sRGB, { vips_XYZ2sRGB, NULL } },
+	{ XYZ, RGB16, { vips_XYZ2RGB16, NULL } },
 	{ XYZ, YXY, { vips_XYZ2Yxy, NULL } },
 
 	{ LAB, XYZ, { vips_Lab2XYZ, NULL } },
@@ -93,6 +104,7 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LAB, CMC, { vips_Lab2LCh, vips_LCh2CMC, NULL } },
 	{ LAB, LABS, { vips_Lab2LabS, NULL } },
 	{ LAB, sRGB, { vips_Lab2XYZ, vips_XYZ2sRGB, NULL } },
+	{ LAB, RGB16, { vips_Lab2XYZ, vips_XYZ2RGB16, NULL } },
 	{ LAB, YXY, { vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
 
 	{ LABQ, XYZ, { vips_LabQ2Lab, vips_Lab2XYZ, NULL } },
@@ -101,6 +113,7 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LABQ, CMC, { vips_LabQ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
 	{ LABQ, LABS, { vips_LabQ2LabS, NULL } },
 	{ LABQ, sRGB, { vips_LabQ2sRGB, NULL } },
+	{ LABQ, RGB16, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2RGB16, NULL } },
 	{ LABQ, YXY, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
 
 	{ LCH, XYZ, { vips_LCh2Lab, vips_Lab2XYZ, NULL } },
@@ -109,6 +122,7 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LCH, CMC, { vips_LCh2CMC, NULL } },
 	{ LCH, LABS, { vips_LCh2Lab, vips_Lab2LabS, NULL } },
 	{ LCH, sRGB, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2sRGB, NULL } },
+	{ LCH, RGB16, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2RGB16, NULL } },
 	{ LCH, YXY, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
 
 	{ CMC, XYZ, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, NULL } },
@@ -118,6 +132,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ CMC, LABS, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2LabS, NULL } },
 	{ CMC, sRGB, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, 
 		vips_XYZ2sRGB, NULL } },
+	{ CMC, RGB16, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, 
+		vips_XYZ2RGB16, NULL } },
 	{ CMC, YXY, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, 
 		vips_XYZ2Yxy, NULL } },
 
@@ -127,6 +143,7 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LABS, LCH, { vips_LabS2Lab, vips_Lab2LCh, NULL } },
 	{ LABS, CMC, { vips_LabS2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
 	{ LABS, sRGB, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2sRGB, NULL } },
+	{ LABS, RGB16, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2RGB16, NULL } },
 	{ LABS, YXY, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
 
 	{ sRGB, XYZ, { vips_sRGB2XYZ, NULL } },
@@ -136,6 +153,7 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ sRGB, CMC, { vips_sRGB2XYZ, vips_XYZ2Lab, vips_Lab2LCh, 
 		vips_LCh2CMC, NULL } },
 	{ sRGB, LABS, { vips_sRGB2XYZ, vips_XYZ2Lab, vips_Lab2LabS, NULL } },
+	{ sRGB, RGB16, { vips_sRGB2XYZ, vips_XYZ2RGB16, NULL } },
 	{ sRGB, YXY, { vips_sRGB2XYZ, vips_XYZ2Yxy, NULL } },
 
 	{ YXY, XYZ, { vips_Yxy2XYZ, NULL } },
@@ -146,6 +164,7 @@ static VipsColourRoute vips_colour_routes[] = {
 		vips_LCh2CMC, NULL } },
 	{ YXY, LABS, { vips_Yxy2XYZ, vips_XYZ2Lab, vips_Lab2LabS, NULL } },
 	{ YXY, sRGB, { vips_Yxy2XYZ, vips_XYZ2sRGB, NULL } },
+	{ YXY, RGB16, { vips_Yxy2XYZ, vips_XYZ2RGB16, NULL } },
 };
 
 /* Is an image in a supported colourspace.
