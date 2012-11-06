@@ -8,6 +8,7 @@
 - added vips_colourspace(), vips_colourspace_issupported(), replaces all 
   derived conversions
 - faster and more accurate sRGB <-> XYZ conversion
+- support 16-bit sRGB import and export
 - rename UCS colourspace as CMC
 - dzsave can write zoomify and google maps layout as well
 - tilecache supports threaded access

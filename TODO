@@ -1,6 +1,11 @@
 - use D65 in cmsCreateLab4Profile() ? not sure
 
-- support 16-bit sRGB <-> XYZ
+- how about:
+
+	 $ vips colourspace k2.jpg x.v rgb16
+	 vips_colourspace: no known route between 'srgb' and 'rgb16'
+
+  hmm mysterious
 
 - the operation cache needs to detect invalidate
 
