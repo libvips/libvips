@@ -54,10 +54,11 @@ typedef VipsColourCodeClass VipssRGB2XYZClass;
 
 G_DEFINE_TYPE( VipssRGB2XYZ, vips_sRGB2XYZ, VIPS_TYPE_COLOUR_CODE );
 
-/* Convert a buffer.
+/* Convert a buffer of 8-bit pixels.
  */
 static void
-vips_sRGB2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_sRGB2XYZ_line_8( VipsColour *colour, 
+	VipsPel *out, VipsPel **in, int width )
 {
 	VipsPel *p = in[0];
 	float *q = (float *) out;
@@ -73,6 +74,35 @@ vips_sRGB2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		p += 3;
 
 		vips_col_sRGB2XYZ_8( r, g, b, &X, &Y, &Z );
+
+		q[0] = X;
+		q[1] = Y;
+		q[2] = Z;
+
+		q += 3;
+	}
+}
+
+/* Convert a buffer of 16-bit pixels.
+ */
+static void
+vips_sRGB2XYZ_line_16( VipsColour *colour, 
+	VipsPel *out, VipsPel **in, int width )
+{
+	unsigned short *p = in[0];
+	float *q = (float *) out;
+
+	int i;
+
+	for( i = 0; i < width; i++ ) {
+		int r = p[0];
+		int g = p[1];
+		int b = p[2];
+		float X, Y, Z;
+
+		p += 3;
+
+		vips_col_sRGB2XYZ_16( r, g, b, &X, &Y, &Z );
 
 		q[0] = X;
 		q[1] = Y;

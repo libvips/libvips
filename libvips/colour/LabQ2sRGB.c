@@ -12,6 +12,8 @@
  * 	- sRGB only, support for other RGBs is now via lcms
  * 1/11/12
  * 	- faster and more accurate sRGB <-> XYZ conversion
+ * 6/11/12
+ * 	- added a 16-bit path
  */
 
 /*
@@ -72,26 +74,34 @@ static float vips_v2Y_8[256];
  *
  * There's an extra element at the end to let us do a +1 for interpolation.
  */
-static int vips_16_Y2v[65536 + 1];
+static int vips_Y2v_16[65536 + 1];
 
 /* 16-bit sRGB -> linear lut.
  */
-static float vips_16_v2Y[65536];
+static float vips_v2Y_16[65536];
 
-/* linear RGB -> XYZ matrix.
+/* We need Y in 0 - 100. We can save three muls later if we pre-scale the
+ * matrix.
+ *
+ * The matrix already includes the D65 channel weighting, so we just scale by
+ * Y.
+ */
+#define SCALE (VIPS_D65_Y0 / 3.0)
+
+/* linear RGB -> XYZ matrix. 
  */
 static float vips_mat_RGB2XYZ[3][3] = {
-	{ 0.4124, 0.3576, 0.18056 }, 
-	{ 0.2126, 0.7152, 0.0722 },
-	{ 0.0193, 0.1192, 0.9505 }
+	{ SCALE * 0.4124, SCALE * 0.3576, SCALE * 0.18056 }, 
+	{ SCALE * 0.2126, SCALE * 0.7152, SCALE * 0.0722 },
+	{ SCALE * 0.0193, SCALE * 0.1192, SCALE * 0.9505 }
 };
 
 /* XYZ -> linear RGB matrix.
  */
 static float vips_mat_XYZ2RGB[3][3] = {
-	{ 3.2406, -1.5372, -0.4986 },
-	{ -0.9689, 1.8758, 0.0415, },
-	{ 0.0557, -0.2040, 1.0570 }
+	{ 3.2406 / SCALE, -1.5372 / SCALE, -0.4986 / SCALE },
+	{ -0.9689 / SCALE, 1.8758 / SCALE, 0.0415 / SCALE },
+	{ 0.0557 / SCALE, -0.2040 / SCALE, 1.0570 / SCALE }
 };
 
 /* Do our own indexing of the arrays below to make sure we get efficient mults.
@@ -104,15 +114,15 @@ static VipsPel vips_red[64 * 64 * 64];
 static VipsPel vips_green[64 * 64 * 64];
 static VipsPel vips_blue[64 * 64 * 64];
 
-/* Create the sRGB linear and unlinear luts.
+/* Create the sRGB linear and unlinear luts. @range is eg. 256 for 8-bit luts.
  */
-static void *
-calcul_tables_8( void *client )
+static void 
+calcul_tables( int range, int *Y2v, float *v2Y )
 {
 	int i;
 
-	for( i = 0; i < 256; i++ ) {
-		float f = (float) i / (256 - 1);
+	for( i = 0; i < range; i++ ) {
+		float f = (float) i / (range - 1);
 		float v;
 
 		if( f <= 0.0031308 )
@@ -120,22 +130,28 @@ calcul_tables_8( void *client )
 		else
 			v = (1.0 + 0.055) * pow( f, 1.0 / 2.4 ) - 0.055;
 
-		vips_Y2v_8[i] = 255.0 * v;
+		Y2v[i] = (range - 1) * v;
 	}
 
 	/* Copy the final element. This is used in the piecewise linear
 	 * interpolator below.
 	 */
-	vips_Y2v_8[256] = vips_Y2v_8[256 - 1];
+	Y2v[range] = Y2v[range - 1];
 
-	for( i = 0; i < 256; i++ ) {
-		float f = i / 255.0;
+	for( i = 0; i < range; i++ ) {
+		float f = (float) i / (range - 1);
 
 		if( f <= 0.04045 )
-			vips_v2Y_8[i] = f / 12.92;
+			v2Y[i] = f / 12.92;
 		else
-			vips_v2Y_8[i] = pow( (f + 0.055) / (1 + 0.055), 2.4 );
+			v2Y[i] = pow( (f + 0.055) / (1 + 0.055), 2.4 );
 	}
+}
+
+static void *
+calcul_tables_8( void *client )
+{
+	calcul_tables( 256, vips_Y2v_8, vips_v2Y_8 ); 
 
 	return( NULL );
 }
@@ -158,28 +174,26 @@ vips_col_make_tables_RGB_8( void )
 
 /* Computes the transform: r,g,b => Yr,Yg,Yb. It finds Y values in 
  * lookup tables and calculates X, Y, Z.
+ *
+ * @range is eg. 256 for 8-bit data,
  */
-int
-vips_col_sRGB2XYZ_8( int r, int g, int b, float *X, float *Y, float *Z )
+static int
+vips_col_sRGB2XYZ( int range, float *lut, 
+	int r, int g, int b, float *X, float *Y, float *Z )
 {
-	float *lut = vips_v2Y_8;
-
+	int maxval = range - 1;
 	float Yr, Yg, Yb;
 	int i;
 
-	vips_col_make_tables_RGB_8();
-
-  	i = VIPS_CLIP( 0, r, 255 );
+  	i = VIPS_CLIP( 0, r, maxval );
 	Yr = lut[i];
 
-  	i = VIPS_CLIP( 0, g, 255 );
+  	i = VIPS_CLIP( 0, g, maxval );
 	Yg = lut[i];
 
-  	i = VIPS_CLIP( 0, b, 255 );
+  	i = VIPS_CLIP( 0, b, maxval );
 	Yb = lut[i];
 
-	/* The matrix already includes D65 channel weighting.
-	 */
 	*X = vips_mat_RGB2XYZ[0][0] * Yr + 
 		vips_mat_RGB2XYZ[0][1] * Yg + vips_mat_RGB2XYZ[0][2] * Yb;
 	*Y = vips_mat_RGB2XYZ[1][0] * Yr + 
@@ -187,39 +201,75 @@ vips_col_sRGB2XYZ_8( int r, int g, int b, float *X, float *Y, float *Z )
 	*Z = vips_mat_RGB2XYZ[2][0] * Yr + 
 		vips_mat_RGB2XYZ[2][1] * Yg + vips_mat_RGB2XYZ[2][2] * Yb;
 
-	*X *= VIPS_D65_Y0;
-	*Y *= VIPS_D65_Y0;
-	*Z *= VIPS_D65_Y0;
-
 	return( 0 );
+}
+
+/* Computes the transform: r,g,b => Yr,Yg,Yb. It finds Y values in 
+ * lookup tables and calculates X, Y, Z.
+ *
+ * rgb are in the range 0 to 255,
+ */
+int
+vips_col_sRGB2XYZ_8( int r, int g, int b, float *X, float *Y, float *Z )
+{
+	vips_col_make_tables_RGB_8();
+
+	return( vips_col_sRGB2XYZ( 256, vips_v2Y_8, r, g, b, X, Y, Z ) );
+}
+
+static void *
+calcul_tables_16( void *client )
+{
+	calcul_tables( 65536, vips_Y2v_16, vips_v2Y_16 ); 
+
+	return( NULL );
+}
+
+static void
+vips_col_make_tables_RGB_16( void )
+{
+	static gboolean made_tables = FALSE;
+
+	/* We want to avoid having a mutex in this path, so use gonce and a
+	 * static var instead.
+	 */
+	if( !made_tables ) {
+		static GOnce once = G_ONCE_INIT;
+
+		(void) g_once( &once, calcul_tables_16, NULL );
+		made_tables = TRUE;
+	}
+}
+
+/* Computes the transform: r,g,b => Yr,Yg,Yb. It finds Y values in 
+ * lookup tables and calculates X, Y, Z.
+ *
+ * rgb are in the range 0 to 65535,
+ */
+int
+vips_col_sRGB2XYZ_16( int r, int g, int b, float *X, float *Y, float *Z )
+{
+	vips_col_make_tables_RGB_16();
+
+	return( vips_col_sRGB2XYZ( 65536, vips_v2Y_16, r, g, b, X, Y, Z ) );
 }
 
 /* Turn XYZ into display colour. Return or=1 for out of gamut - rgb will
  * contain an approximation of the right colour.
  */
-int
-vips_col_XYZ2sRGB_8( float X, float Y, float Z, 
-	int *r_ret, int *g_ret, int *b_ret, 
+static int
+vips_col_XYZ2sRGB( int range, int *lut, 
+	float X, float Y, float Z, 
+	int *r, int *g, int *b, 
 	int *or_ret )
 {
-	int *lut = vips_Y2v_8;
-
-	int or;
+	int maxval = range - 1;
 
 	float Yr, Yg, Yb;
+	int or;
 	float Yf;
 	int Yi;
 	float v;
-	int r, g, b;
-
-	vips_col_make_tables_RGB_8();
-
-	/* The matrix already includes D65 channel weighting, just change from
-	 * 0 - 100 to 0 - 1.
-	 */
-	X = X / VIPS_D65_Y0;
-	Y = Y / VIPS_D65_Y0;
-	Z = Z / VIPS_D65_Y0;
 
 	/* Multiply through the matrix to get luminosity values. 
 	 */
@@ -251,32 +301,60 @@ vips_col_XYZ2sRGB_8( float X, float Y, float Z,
 
 	or = 0;
 
-	Yf = Yr * (256 - 1);
-	CLIP( 0, Yf, 256 - 1);
+	Yf = Yr * maxval;
+	CLIP( 0, Yf, maxval);
 	Yi = (int) Yf;
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
-	r = VIPS_RINT( v );
+	*r = VIPS_RINT( v );
 
-	Yf = Yg * (256 - 1);
-	CLIP( 0, Yf, 256 - 1);
+	Yf = Yg * maxval;
+	CLIP( 0, Yf, maxval);
 	Yi = (int) Yf;
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
-	g = VIPS_RINT( v );
+	*g = VIPS_RINT( v );
 
-	Yf = Yb * (256 - 1);
-	CLIP( 0, Yf, 256 - 1);
+	Yf = Yb * maxval;
+	CLIP( 0, Yf, maxval);
 	Yi = (int) Yf;
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
-	b = VIPS_RINT( v );
+	*b = VIPS_RINT( v );
 
-	*r_ret = r;
-	*g_ret = g;
-	*b_ret = b;
-
-	*or_ret = or; 
+	if( or_ret )
+		*or_ret = or; 
 
 	return( 0 ); 
 } 
+
+/* Turn XYZ into display colour. Return or=1 for out of gamut - rgb will
+ * contain an approximation of the right colour.
+ *
+ * r, g, b are scaled to fit the range 0 - 255.
+ */
+int
+vips_col_XYZ2sRGB_8( float X, float Y, float Z, 
+	int *r, int *g, int *b, 
+	int *or )
+{
+	vips_col_make_tables_RGB_8();
+
+	return( vips_col_XYZ2sRGB( 256, vips_Y2v_8, X, Y, Z, r, g, b, or ) ); 
+}
+
+/* Turn XYZ into display colour. Return or=1 for out of gamut - rgb will
+ * contain an approximation of the right colour.
+ *
+ * r, g, b are scaled to fit the range 0 - 65535.
+ */
+int
+vips_col_XYZ2sRGB_16( float X, float Y, float Z, 
+	int *r, int *g, int *b, 
+	int *or )
+{
+	vips_col_make_tables_RGB_16();
+
+	return( vips_col_XYZ2sRGB( 65536, vips_Y2v_16, 
+		X, Y, Z, r, g, b, or ) ); 
+}
 
 /* Build Lab->disp tables. 
  */

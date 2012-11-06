@@ -194,9 +194,12 @@ float vips_col_Ccmc2C( float Ccmc );
 float vips_col_Chcmc2h( float C, float hcmc );
 
 int vips_col_XYZ2sRGB_8( float X, float Y, float Z, 
-	int *r_ret, int *g_ret, int *b_ret, 
-	int *or_ret );
+	int *r, int *g, int *b, int *or_ret );
 int vips_col_sRGB2XYZ_8( int r, int g, int b, float *X, float *Y, float *Z );
+
+int vips_col_XYZ2sRGB_16( float X, float Y, float Z, 
+	int *r, int *g, int *b, int *or_ret );
+int vips_col_sRGB2XYZ_16( int r, int g, int b, float *X, float *Y, float *Z );
 
 float vips_pythagoras( float L1, float a1, float b1, 
 	float L2, float a2, float b2 );
