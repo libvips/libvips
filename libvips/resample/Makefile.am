@@ -5,6 +5,7 @@
 if ENABLE_CXX
 
 libresample_la_SOURCES = \
+	im_transform.c \
 	resample.c \
 	resample.h \
 	shrink.c \
