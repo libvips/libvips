@@ -288,6 +288,7 @@ vips_colourspace_class_init( VipsColourspaceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -295,6 +296,8 @@ vips_colourspace_class_init( VipsColourspaceClass *class )
 	vobject_class->nickname = "colourspace";
 	vobject_class->description = _( "convert to a new colourspace" );
 	vobject_class->build = vips_colourspace_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

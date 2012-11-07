@@ -1,6 +1,11 @@
+
 - use D65 in cmsCreateLab4Profile() ? not sure
 
 - the operation cache needs to detect invalidate
+
+- move resample part of transform plugin into libvips
+
+- check CMC equations against web
 
 - see
 
