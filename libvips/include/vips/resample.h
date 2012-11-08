@@ -44,7 +44,7 @@ int im_affinei( VipsImage *in, VipsImage *out,
 int im_affinei_all( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy ) ;
 
-int im_transform2( VipsImage *in, VipsImage *out, DOUBLEMASK *vec );
+int vips_quadratic( VipsImage *in, VipsImage **out, VipsImage *coeff, ... );
 
 int im_rightshift_size( VipsImage *in, VipsImage *out, 
 	int xshift, int yshift, int band_fmt );

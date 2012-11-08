@@ -130,6 +130,18 @@ extern int _vips__argument_id;
 		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
+#define VIPS_ARG_INTERPOLATE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) { \
+	GParamSpec *pspec; \
+	\
+	pspec = g_param_spec_object( (NAME), (LONG), (DESC),  \
+		VIPS_TYPE_INTERPOLATE, \
+		G_PARAM_READWRITE ); \
+	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
+		_vips__argument_id++, pspec ); \
+	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
+		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+}
+
 #define VIPS_ARG_BOOL( CLASS, NAME, PRIORITY, LONG, DESC, \
 	FLAGS, OFFSET, VALUE ) { \
 	GParamSpec *pspec; \

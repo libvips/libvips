@@ -1139,6 +1139,47 @@ vips_check_hist( const char *domain, VipsImage *im )
 	return( 0 );
 }
 
+/** 
+ * vips_check_matrix: 
+ * @domain: the originating domain for the error message
+ * @im: image to check 
+ * @out: put image as in-memory doubles here
+ *
+ * Matrix images must have width and height less than 1000 and have 1 band.
+ *
+ * Return 0 if the image will pass as a matrix, or -1 and set an error 
+ * message otherwise.
+ *
+ * @out is set to be @im cast to double and stored in memory. Use
+ * VIPS_IMAGE_ADDR() to address values in @out. @out is unreffed for you 
+ * when @im is unreffed.
+ *
+ * See also: vips_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
+{
+	if( im->Xsize > 1000 || im->Ysize > 1000 ) {
+		vips_error( domain, "%s", _( "matrix image too large" ) );
+		return( -1 );
+	}
+	if( im->Bands != 1 ) {
+		vips_error( domain, 
+			"%s", _( "matrix image must have one band" ) ); 
+		return( -1 );
+	}
+
+	if( vips_cast( im, out, VIPS_FORMAT_DOUBLE, NULL ) )
+                return( -1 );
+	vips_object_local( im, *out );
+        if( vips_image_wio_input( *out ) )
+                return( -1 );
+
+	return( 0 );
+}
+
 /**
  * vips_check_imask: (skip)
  * @domain: the originating domain for the error message

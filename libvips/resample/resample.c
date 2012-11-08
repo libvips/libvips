@@ -69,6 +69,9 @@ vips_resample_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_resample_parent_class )->build( object ) )
 		return( -1 );
 
+	if( vips_image_copy_fields( resample->out, resample->in ) )
+		return( -1 );
+
 	return( 0 );
 }
 
@@ -111,7 +114,9 @@ void
 vips_resample_operation_init( void )
 {
 	extern GType vips_shrink_get_type( void ); 
+	extern GType vips_quadratic_get_type( void ); 
 
 	vips_shrink_get_type(); 
+	vips_quadratic_get_type(); 
 }
 

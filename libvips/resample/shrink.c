@@ -294,6 +294,7 @@ vips_shrink_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 static int
 vips_shrink_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsShrink *shrink = (VipsShrink *) object;
 
@@ -304,19 +305,19 @@ vips_shrink_build( VipsObject *object )
 	shrink->mh = ceil( shrink->yshrink );
 	shrink->np = shrink->mw * shrink->mh;
 
-	if( im_check_noncomplex( "VipsShrink", resample->in ) )
+	if( im_check_noncomplex( class->nickname, resample->in ) )
 		return( -1 );
 
 	if( shrink->xshrink < 1.0 || 
 		shrink->yshrink < 1.0 ) {
-		vips_error( "VipsShrink", 
+		vips_error( class->nickname, 
 			"%s", _( "shrink factors should be >= 1" ) );
 		return( -1 );
 	}
 
 	if( (int) shrink->xshrink != shrink->xshrink || 
 		(int) shrink->yshrink != shrink->yshrink ) 
-		vips_warn( "VipsShrink", 
+		vips_warn( class->nickname, 
 			"%s", _( "not integer shrink factors, "
 				"expect poor results" ) ); 
 
@@ -342,7 +343,7 @@ vips_shrink_build( VipsObject *object )
 	resample->out->Yres = resample->in->Yres / shrink->yshrink;
 	if( resample->out->Xsize <= 0 || 
 		resample->out->Ysize <= 0 ) {
-		vips_error( "VipsShrink", 
+		vips_error( class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
 		return( -1 );
 	}

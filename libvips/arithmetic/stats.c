@@ -130,8 +130,7 @@ vips_stats_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_stats_parent_class )->build( object ) )
 		return( -1 );
 
-	pels = (gint64) 
-		vips_image_get_width( statistic->in ) * 
+	pels = (gint64) vips_image_get_width( statistic->in ) * 
 		vips_image_get_height( statistic->in );
 	vals = pels * vips_image_get_bands( statistic->in );
 

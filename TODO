@@ -1,3 +1,18 @@
+- rename
+
+  gboolean vips_object_get_argument_assigned( VipsObject *, const char * )
+
+  as
+
+  gboolean vips_object_argument_isassigned( VipsObject *, const char * )
+
+  hmm or maybe
+
+  gboolean vips_object_isset( VipsObject *, const char * )
+
+  cf. g_object_set()
+
+  any other object_get funcs that return gboolean? they should change too
 
 - the operation cache needs to detect invalidate
 
