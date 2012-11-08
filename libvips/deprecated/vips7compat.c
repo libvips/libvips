@@ -2789,3 +2789,20 @@ im_icc_ac2rc( VipsImage *in, VipsImage *out, const char *profile_filename )
 
 	return( 0 );
 }
+
+int 
+im_quadratic( IMAGE *in, IMAGE *out, IMAGE *coeff )
+{
+	VipsImage *x;
+
+	if( vips_quadratic( in, &x, coeff, 
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

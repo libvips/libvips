@@ -44,6 +44,27 @@ static im_arg_desc one_in_one_out[] = {
 	IM_OUTPUT_IMAGE( "out" )
 };
 
+static im_arg_desc quadratic_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_OUTPUT_IMAGE( "out" ),
+	IM_INPUT_IMAGE( "coeff" )
+};
+
+static int
+quadratic_vec( im_object *argv )
+{
+	return( im_quadratic( argv[0], argv[1], argv[2] ) );
+}
+
+static im_function quadratic_desc = {
+	"im_quadratic", 		/* Name */
+	"transform via quadratic",
+	IM_FN_PIO,			/* Flags */
+	quadratic_vec, 			/* Dispatch function */
+	IM_NUMBER( quadratic_args ), 	/* Size of arg list */
+	quadratic_args 			/* Arg list */
+};
+
 /* Two images in, one out.
  */
 static im_arg_desc two_in_one_out[] = {
@@ -2295,7 +2316,8 @@ static im_function *deprecated_list[] = {
 	&moreeqconst_desc,
 	&notequal_desc,
 	&notequal_vec_desc,
-	&notequalconst_desc
+	&notequalconst_desc,
+	&quadratic_desc
 };
 
 /* Package of functions.

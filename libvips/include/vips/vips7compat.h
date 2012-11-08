@@ -788,6 +788,8 @@ int im_lab_morph( VipsImage *in, VipsImage *out,
 
 #define im_col_dE00 vips_col_dE00
 
+int im_quadratic( IMAGE *in, IMAGE *out, IMAGE *coeff );
+
 /* ruby-vips uses this
  */
 #define vips_class_map_concrete_all vips_class_map_all

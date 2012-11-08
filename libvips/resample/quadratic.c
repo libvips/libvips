@@ -52,26 +52,23 @@
 
 #include "resample.h"
 
-/* **************************************************************************
-/@ imtranf.c
-/@
-/@      ALGORITHM
-/@
-/@      x',y' = coordinates of srcim
-/@      x,y   = coordinates of dstim
-/@
-/@
-/@      x = x' + srcvec[0]                     : order 0     image shift only
-/@             + srcvec[2]x'   + srcvec[4]y'   : order 1     + affine transf.
-/@             + srcvec[6]x'y'                 : order 2     + bilinear transf.
-/@             + srcvec[8]x'x' + srcvec[10]y'y': order 3     + quadratic transf.
-/@
-/@      y = y' + srcvec[1]
-/@             + srcvec[3]x'   + srcvec[5]y'
-/@             + srcvec[7]x'y'
-/@             + srcvec[9]x'x' + srcvec[11]y'y'
-/@
-************************************************************************/
+/* The transform we compute:
+
+x',y'  = coordinates of srcim
+x,y    = coordinates of dstim
+a .. l = coefficients
+
+x = x' + a              : order 0     image shift only
+  + b x' + c y'   	: order 1     + affine transf.
+  + d x' y'             : order 2     + bilinear transf.
+  + e x' x' + f y' y'   : order 3     + quadratic transf.
+
+y = y' + g            
+  + h y' + i x'   
+  + j y' x'             
+  + k y' y' + l x' x'  
+
+ */
 
 typedef struct _VipsQuadratic {
 	VipsResample parent_instance;
@@ -203,6 +200,10 @@ vips_quadratic_gen( VipsRegion *or, void *vseq,
 			fyi += vec[5] * yo + vec[3] * xlow;
 			dx += vec[2];
 			dy += vec[3];
+
+		case 0: 
+			/* See above for order 0.
+			 */
 			break;
 
 		default:
@@ -225,7 +226,6 @@ vips_quadratic_gen( VipsRegion *or, void *vseq,
 			if( xi < 0 || xi >= sizex1 || yi < 0 || yi >= sizey1 ) {
 				for( z = 0; z < ps; z++ ) 
 					q[z] = 0;
-				q += ps;
 			}
 			else {
 				/*
@@ -251,6 +251,8 @@ vips_quadratic_gen( VipsRegion *or, void *vseq,
 
 				TYPE_SWITCH_IPOL;
 			}
+
+			q += ps;
 
 			fxi += dx;
 			fyi += dy;
