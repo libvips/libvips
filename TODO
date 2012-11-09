@@ -3,13 +3,14 @@
   start to get jaggies on lines --- the 3rd differential isn't being 
   initialised correctly for the sub-region?
 
-  seems fine vertically, only get horizontal in tile boundaries
+  seems fine vertically, only get errors on horizontal tile boundaries
+
+  because we step across tiles left to right: y doesn't change, only x does
 
 - seems to leak with vips_check_matrix()?
 
-- use interpolate arg if set
+- test with interpolators
 
-- perhaps keep inline bilinear as an option? benchmark
 
 
 
@@ -23,8 +24,6 @@
   cache then just needs to watch for "invalidate" on operations it tracks
 
   need to add an "invalidate" signal to operation
-
-- move resample part of transform plugin into libvips
 
 - check CMC equations against web
 

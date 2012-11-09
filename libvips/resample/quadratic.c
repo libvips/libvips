@@ -89,90 +89,49 @@ typedef VipsResampleClass VipsQuadraticClass;
 
 G_DEFINE_TYPE( VipsQuadratic, vips_quadratic, VIPS_TYPE_RESAMPLE );
 
-/* Inner bilinear interpolation loop. Integer types.
- */
-#define IPOL_INNERI( TYPE ) { \
-	TYPE *from = (TYPE *) p; \
-	TYPE *to = (TYPE *) q; \
-	int i; \
-	\
-	for( i = 0; i < bands; i++ ) { \
-		double value = \
-			f1 * from[t2 + t4 + i] + \
-			f2 * from[t2 + t5 + i] + \
-			f3 * from[t3 + t4 + i] + \
-			f4 * from[t3 + t5 + i]; \
-		to[i] = (int) (value + 0.5); \
-	} \
-}
-
-/* Inner bilinear interpolation loop. Float types.
- */
-#define IPOL_INNERF( TYPE ) { \
-	TYPE *from = (TYPE *) p; \
-	TYPE *to = (TYPE *) q; \
-	int i; \
-	\
-	for( i = 0; i < bands; i++ ) { \
-		double value = \
-			f1 * from[t2 + t4 + i] + \
-			f2 * from[t2 + t5 + i] + \
-			f3 * from[t3 + t4 + i] + \
-			f4 * from[t3 + t5 + i]; \
-		to[i] = value; \
-	} \
-}
-
-#define TYPE_SWITCH_IPOL \
-	switch( bandfmt ) { \
-	case IM_BANDFMT_UCHAR:	IPOL_INNERI( unsigned char ); break; \
-	case IM_BANDFMT_USHORT:	IPOL_INNERI( unsigned short ); break; \
-	case IM_BANDFMT_UINT:	IPOL_INNERI( unsigned int ); break; \
-	case IM_BANDFMT_CHAR:	IPOL_INNERI( signed char ); break; \
-	case IM_BANDFMT_SHORT:	IPOL_INNERI( signed short ); break; \
-	case IM_BANDFMT_INT:	IPOL_INNERI( signed int ); break; \
-	case IM_BANDFMT_FLOAT:	IPOL_INNERF( float ); break; \
-	case IM_BANDFMT_DOUBLE:	IPOL_INNERF( double ); break; \
- 	\
-	default: \
-		g_assert( 0 ); \
-		/*NOTREACHED*/ \
-	}
-
 static int
 vips_quadratic_gen( VipsRegion *or, void *vseq, 
 	void *a, void *b, gboolean *stop )
 {
-	const VipsImage *in = (VipsImage *) a;
+	VipsRegion *ir = (VipsRegion *) vseq;
 	VipsQuadratic *quadratic = (VipsQuadratic *) b;
+	VipsResample *resample = VIPS_RESAMPLE( quadratic );
+	VipsInterpolateMethod interpolate_fn = 
+		vips_interpolate_get_method( quadratic->interpolate );
+
+	/* @in is the enlarged image (borders on, after vips_embed()). Use
+	 * @resample->in for the original, not-expanded image. 
+	 */
+	const VipsImage *in = (VipsImage *) a;
+
 	const int ps = VIPS_IMAGE_SIZEOF_PEL( in );
 
 	double *vec = (double *) VIPS_IMAGE_ADDR( quadratic->mat, 0, 0 );
 
-	int sizex = in->Xsize;
-	int sizey = in->Ysize;
-	int bands = in->Bands;
-	int bandfmt = in->BandFmt;
-
-	const int sizex1 = sizex - 1;
-	const int sizey1 = sizey - 1;
+	int clip_width = resample->in->Xsize;
+	int clip_height = resample->in->Ysize;
 
 	int xlow = or->valid.left;
 	int ylow = or->valid.top;
-	int xhigh = IM_RECT_RIGHT( &or->valid );
-	int yhigh = IM_RECT_BOTTOM( &or->valid );
+	int xhigh = VIPS_RECT_RIGHT( &or->valid );
+	int yhigh = VIPS_RECT_BOTTOM( &or->valid );
 
-	PEL *p = VIPS_IMAGE_ADDR( in, 0, 0 );
-	PEL *q;
+	VipsPel *q;
 
-	int xi1, yi1;		/* 1 + input coordinates */
 	int xo, yo;		/* output coordinates, dstimage */
 	int z;
 	double fxi, fyi; 	/* input coordinates */
-	double frx, fry;      	/* fractinal part of input coord. */
-	double frx1, fry1; 	/* 1.0 - fract. part of input coord. */
 	double dx, dy;        	/* xo derivative of input coord. */
 	double ddx, ddy;      	/* 2nd xo derivative of input coord. */
+
+	VipsRect image;
+
+	image.left = 0;
+	image.top = 0;
+	image.width = in->Xsize;
+	image.height = in->Ysize;
+	if( vips_region_image( ir, &image ) )
+		return( -1 );
 
 	for( yo = ylow; yo < yhigh; yo++ ) {
 		fxi = xlow + vec[0];                /* order 0 */
@@ -211,11 +170,9 @@ vips_quadratic_gen( VipsRegion *or, void *vseq,
 		    	return(-7);
 		}
 
-		q = (PEL *) IM_REGION_ADDR( or, xlow, yo );
+		q = VIPS_REGION_ADDR( or, xlow, yo );
 
 		for( xo = xlow; xo < xhigh; xo++ ) {
-			int t1, t2, t3, t4, t5;
-			double f1, f2, f3, f4;
 			int xi, yi; 	
 
 			xi = fxi;
@@ -223,34 +180,16 @@ vips_quadratic_gen( VipsRegion *or, void *vseq,
 
 			/* Clipping! 
 			 */
-			if( xi < 0 || xi >= sizex1 || yi < 0 || yi >= sizey1 ) {
+			if( xi < 0 || 
+				yi < 0 || 
+				xi >= clip_width || 
+				yi >= clip_height ) {
 				for( z = 0; z < ps; z++ ) 
 					q[z] = 0;
 			}
-			else {
-				/*
-				interpolate( affine->interpolate, 
+			else 
+				interpolate_fn( quadratic->interpolate, 
 					q, ir, fxi, fyi );
-				 */
-				frx = fxi - xi;
-				frx1 = 1.0 - frx;
-				fry = fyi - yi;
-				fry1 = 1.0 - fry;
-				xi1 = xi + 1;
-				yi1 = yi + 1;
-
-				t1 = sizex * bands;
-				t2 = yi * t1;
-				t3 = yi1 * t1;
-				t4 = xi * bands;
-				t5 = xi1 * bands;
-				f1 = frx1 * fry1;
-				f2 = frx * fry1;
-				f3 = frx1 * fry;
-				f4 = frx * fry;
-
-				TYPE_SWITCH_IPOL;
-			}
 
 			q += ps;
 
@@ -274,22 +213,19 @@ vips_quadratic_build( VipsObject *object )
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsQuadratic *quadratic = (VipsQuadratic *) object;
 
-	/* Default to "bilinear".
-	 */
-	if( !vips_object_argument_isset( object, "interpolate" ) )
-		g_object_set( object, 
-			"interpolate", vips_interpolate_new( "bilinear" ), 
-			NULL ); 
+	VipsInterpolate *interpolate;
+	int window_size;
+	int window_offset;
+	VipsImage *in;
+	VipsImage *t;
 
 	if( VIPS_OBJECT_CLASS( vips_quadratic_parent_class )->build( object ) )
 		return( -1 );
 
-        /* We need random access to our input.
-         */
-        if( vips_image_wio_input( resample->in ) )
-                return( -1 );
-        if( vips_check_uncoded( class->nickname, resample->in ) ||
-		vips_check_noncomplex( class->nickname, resample->in ) ||
+	in = resample->in;
+
+        if( vips_check_uncoded( class->nickname, in ) ||
+		vips_check_noncomplex( class->nickname, in ) ||
 		vips_check_matrix( class->nickname, 
 			quadratic->coeff, &quadratic->mat  ) )
                 return( -1 );
@@ -323,6 +259,32 @@ vips_quadratic_build( VipsObject *object )
 		return( -1 );
 	} 
 
+	if( !vips_object_argument_isset( object, "interpolator" ) )
+		g_object_set( object, 
+			"interpolator", vips_interpolate_new( "bilinear" ),
+			NULL );
+	interpolate = quadratic->interpolate;
+
+	window_size = vips_interpolate_get_window_size( interpolate );
+	window_offset = vips_interpolate_get_window_offset( interpolate );
+
+	/* Enlarge the input image. 
+	 */
+	if( vips_embed( in, &t, 
+		window_offset, window_offset, 
+		in->Xsize + window_size, in->Ysize + window_size,
+		"extend", VIPS_EXTEND_COPY,
+		NULL ) )
+		return( -1 );
+	vips_object_local( object, t );
+
+	in = t;
+
+        /* We need random access to our input.
+         */
+        if( vips_image_wio_input( in ) )
+                return( -1 );
+
 	/* We have the whole of the input in memory, so we can generate any
 	 * output.
 	 */
@@ -330,8 +292,8 @@ vips_quadratic_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_ANY, resample->in, NULL );
 
 	if( vips_image_generate( resample->out,
-		NULL, vips_quadratic_gen, NULL, 
-		resample->in, quadratic ) )
+		vips_start_one, vips_quadratic_gen, vips_stop_one, 
+			in, quadratic ) )
 		return( -1 );
 
         return( 0 );
