@@ -443,7 +443,7 @@ vips_arithmetic_get_vector( VipsArithmeticClass *class, VipsBandFormat fmt )
 {
 	g_assert( fmt >= 0 && fmt < VIPS_FORMAT_LAST );
 
-	if( !vips_vector_get_enabled() ||
+	if( !vips_vector_isenabled() ||
 		!class->vector_program[fmt] )
 		return( NULL );
 

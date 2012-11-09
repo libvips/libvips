@@ -200,7 +200,7 @@ void
 vips_sink_base_init( SinkBase *sink_base, VipsImage *image )
 {
 	/* Always clear kill before we start looping. See the 
-	 * call to vips_image_get_kill() below.
+	 * call to vips_image_iskilled() below.
 	 */
 	vips_image_set_kill( image, FALSE );
 
@@ -317,7 +317,7 @@ vips_sink_base_progress( void *a )
 	 * check for errors.
 	 */
 	vips_image_eval( sink_base->im, sink_base->processed );
-	if( vips_image_get_kill( sink_base->im ) )
+	if( vips_image_iskilled( sink_base->im ) )
 		return( -1 );
 
 	return( 0 );

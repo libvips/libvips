@@ -348,8 +348,8 @@ vips_embed_build( VipsObject *object )
 		embed->background->data, embed->background->n )) )
 		return( -1 );
 
-	if( !vips_object_get_argument_assigned( object, "extend" ) &&
-		vips_object_get_argument_assigned( object, "background" ) )
+	if( !vips_object_argument_isset( object, "extend" ) &&
+		vips_object_argument_isset( object, "background" ) )
 		embed->extend = VIPS_EXTEND_BACKGROUND; 
 
 	switch( embed->extend ) {

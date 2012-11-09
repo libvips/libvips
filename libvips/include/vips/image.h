@@ -492,7 +492,7 @@ void vips_image_eval( VipsImage *image, guint64 processed );
 void vips_image_posteval( VipsImage *image );
 void vips_image_set_progress( VipsImage *image, gboolean progress );
 
-gboolean vips_image_get_kill( VipsImage *image );
+gboolean vips_image_iskilled( VipsImage *image );
 void vips_image_set_kill( VipsImage *image, gboolean kill );
 
 VipsImage *vips_image_new( void );

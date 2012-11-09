@@ -100,7 +100,7 @@ typedef struct {
 extern gboolean vips__vector_enabled;
 
 void vips_vector_init( void );
-gboolean vips_vector_get_enabled( void );
+gboolean vips_vector_isenabled( void );
 void vips_vector_set_enabled( gboolean enabled );
 
 void vips_vector_free( VipsVector *vector );

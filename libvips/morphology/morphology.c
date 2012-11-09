@@ -333,7 +333,7 @@ morph_new( IMAGE *in, IMAGE *out, INTMASK *mask, MorphOp op )
 
 	/* Generate code for this mask / image, if possible.
 	 */
-	if( vips_vector_get_enabled() ) {
+	if( vips_vector_isenabled() ) {
 		if( pass_compile( morph ) )
 			pass_free( morph );
 	}

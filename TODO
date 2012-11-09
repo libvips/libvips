@@ -1,18 +1,17 @@
-- rename
+- quadratic doesn't work for order 3
 
-  gboolean vips_object_get_argument_assigned( VipsObject *, const char * )
+  start to get jaggies on lines --- the 3rd differential isn't being 
+  initialised correctly for the sub-region?
 
-  as
+  seems fine vertically, only get horizontal in tile boundaries
 
-  gboolean vips_object_argument_isassigned( VipsObject *, const char * )
+- seems to leak with vips_check_matrix()?
 
-  hmm or maybe
+- use interpolate arg if set
 
-  gboolean vips_object_isset( VipsObject *, const char * )
+- perhaps keep inline bilinear as an option? benchmark
 
-  cf. g_object_set()
 
-  any other object_get funcs that return gboolean? they should change too
 
 - the operation cache needs to detect invalidate
 

@@ -276,7 +276,7 @@ vips_quadratic_build( VipsObject *object )
 
 	/* Default to "bilinear".
 	 */
-	if( !vips_object_get_argument_assigned( object, "interpolate" ) )
+	if( !vips_object_argument_isset( object, "interpolate" ) )
 		g_object_set( object, 
 			"interpolate", vips_interpolate_new( "bilinear" ), 
 			NULL ); 

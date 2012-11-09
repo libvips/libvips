@@ -772,7 +772,7 @@ vips_call_options_add( VipsObject *object,
 		!argument_instance->assigned ) {
 		const char *name = g_param_spec_get_name( pspec );
 		gboolean needs_string = 
-			vips_object_get_argument_needs_string( object, name );
+			vips_object_argument_needsstring( object, name );
 		GOptionEntry entry[2];
 
 		entry[0].long_name = name;
@@ -858,8 +858,7 @@ vips_call_argv_input( VipsObject *object,
 			call->i += 1;
 		}
 		else if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) ) {
-			if( vips_object_get_argument_needs_string( object,
-				name ) )
+			if( vips_object_argument_needsstring( object, name ) )
 				call->i += 1;
 		}
 	}
@@ -888,8 +887,7 @@ vips_call_argv_output( VipsObject *object,
 			const char *arg;
 
 			arg = NULL;
-			if( vips_object_get_argument_needs_string( object,
-				name ) ) {
+			if( vips_object_argument_needsstring( object, name ) ) {
 				arg = vips_call_get_arg( call, call->i );
 				if( !arg )
 					return( pspec );

@@ -325,8 +325,7 @@ int vips_object_get_argument( VipsObject *object, const char *name,
 	GParamSpec **pspec,
 	VipsArgumentClass **argument_class,
 	VipsArgumentInstance **argument_instance );
-gboolean vips_object_get_argument_assigned( VipsObject *object, 
-	const char *name );
+gboolean vips_object_argument_isset( VipsObject *object, const char *name );
 VipsArgumentFlags vips_object_get_argument_flags( VipsObject *object, 
 	const char *name );
 int vips_object_get_argument_priority( VipsObject *object, const char *name );
@@ -572,7 +571,7 @@ void vips_object_class_install_argument( VipsObjectClass *, GParamSpec *pspec,
 	VipsArgumentFlags flags, int priority, guint offset );
 int vips_object_set_argument_from_string( VipsObject *object, 
 	const char *name, const char *value );
-gboolean vips_object_get_argument_needs_string( VipsObject *object, 
+gboolean vips_object_argument_needsstring( VipsObject *object, 
 	const char *name );
 int vips_object_get_argument_to_string( VipsObject *object, 
 	const char *name, const char *arg );

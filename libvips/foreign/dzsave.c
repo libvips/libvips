@@ -1040,9 +1040,9 @@ vips_foreign_save_dz_build( VipsObject *object )
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY ||
 		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
-		if( !vips_object_get_argument_assigned( object, "overlap" ) )
+		if( !vips_object_argument_isset( object, "overlap" ) )
 			dz->overlap = 0;
-		if( !vips_object_get_argument_assigned( object, "suffix" ) )
+		if( !vips_object_argument_isset( object, "suffix" ) )
 			VIPS_SETSTR( dz->suffix, ".jpg" );
 	}
 
@@ -1058,11 +1058,11 @@ vips_foreign_save_dz_build( VipsObject *object )
 	 * tile.
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) {
-		if( !vips_object_get_argument_assigned( object, "depth" ) )
+		if( !vips_object_argument_isset( object, "depth" ) )
 			dz->depth = VIPS_FOREIGN_DZ_DEPTH_1PIXEL;
 	}
 	else
-		if( !vips_object_get_argument_assigned( object, "depth" ) )
+		if( !vips_object_argument_isset( object, "depth" ) )
 			dz->depth = VIPS_FOREIGN_DZ_DEPTH_1TILE;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_parent_class )->

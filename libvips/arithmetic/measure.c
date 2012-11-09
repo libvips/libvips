@@ -112,11 +112,11 @@ vips_measure_build( VipsObject *object )
 
 	/* left/top/width/height default to the size of the image.
 	 */
-	if( !vips_object_get_argument_assigned( object, "width" ) )
+	if( !vips_object_argument_isset( object, "width" ) )
 		g_object_set( object, 
 			"width", vips_image_get_width( measure->in ),
 			NULL );
-	if( !vips_object_get_argument_assigned( object, "height" ) )
+	if( !vips_object_argument_isset( object, "height" ) )
 		g_object_set( object, 
 			"height", vips_image_get_height( measure->in ),
 			NULL );

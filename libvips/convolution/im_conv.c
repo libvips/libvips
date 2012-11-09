@@ -524,7 +524,7 @@ conv_new( IMAGE *in, IMAGE *out, INTMASK *mask )
 
 	/* Generate code for this mask / image, if possible.
 	 */
-	if( vips_vector_get_enabled() ) {
+	if( vips_vector_isenabled() ) {
 		if( conv_compile_convolution_u8s16( conv ) ||
 			conv_compile_scale_s16u8( conv ) ) 
 			conv_vector_free( conv );
@@ -608,7 +608,7 @@ conv_start( IMAGE *out, void *a, void *b )
 		return( NULL );
 	}
 
-	if( vips_vector_get_enabled() && 
+	if( vips_vector_isenabled() && 
 		conv->n_pass ) {
 		seq->t1 = IM_ARRAY( NULL, IM_IMAGE_N_ELEMENTS( in ), short );
 		seq->t2 = IM_ARRAY( NULL, IM_IMAGE_N_ELEMENTS( in ), short );

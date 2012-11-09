@@ -524,7 +524,7 @@ vips_object_get_argument( VipsObject *object, const char *name,
 }
 
 /**
- * vips_object_get_argument_assigned:
+ * vips_object_argument_isset:
  * @object: the object to fetch the args from
  * @name: arg to fetch
  *
@@ -533,7 +533,7 @@ vips_object_get_argument( VipsObject *object, const char *name,
  * Returns: %TRUE if the argument has been assigned.
  */
 gboolean
-vips_object_get_argument_assigned( VipsObject *object, const char *name )
+vips_object_argument_isset( VipsObject *object, const char *name )
 {
 	GParamSpec *pspec;
 	VipsArgumentClass *argument_class;
@@ -1639,7 +1639,7 @@ vips_object_set_argument_from_string( VipsObject *object,
  * output needs a filename, a double output just prints.
  */
 gboolean
-vips_object_get_argument_needs_string( VipsObject *object, const char *name )
+vips_object_argument_needsstring( VipsObject *object, const char *name )
 {
 	GParamSpec *pspec;
 	GType otype;
@@ -1648,7 +1648,7 @@ vips_object_get_argument_needs_string( VipsObject *object, const char *name )
 	VipsObjectClass *oclass;
 
 #ifdef DEBUG
-	printf( "vips_object_get_argument_needs_string: %s\n", name );
+	printf( "vips_object_argument_needsstring: %s\n", name );
 #endif /*DEBUG*/
 
 	if( vips_object_get_argument( object, name,
