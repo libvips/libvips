@@ -2,6 +2,7 @@
 - remove options from format string in .dzi (thanks Martin)
 - vipsCC.pc required the wrong version of vips (thanks Alessandro)
 - larger max tile size for dzsave
+- linecache is 50% larger to leave some slop room
 
 13/9/12 started 7.30.3
 - linecache sized itself too large
