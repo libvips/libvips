@@ -63,7 +63,7 @@
 
 #include "conversion.h"
 
-/* Stall threads that run ahead for this long, in seconds.
+/* Stall threads that run ahead for up to this long, in seconds.
  */
 #define STALL_TIME (0.1)
 
