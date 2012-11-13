@@ -2,6 +2,7 @@ man_MANS = \
 	batch_crop.1 \
 	batch_image_convert.1 \
 	batch_rubber_sheet.1 \
+	batch_image_shrink.1 \
 	edvips.1 \
 	header.1 \
 	light_correct.1 \

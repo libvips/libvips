@@ -1,0 +1,27 @@
+.TH BATCH_CROP 1 "13 Nov 2012"
+.SH NAME
+batch_image_shrink \- shrink a set of images
+.SH SYNOPSIS
+.B batch_image_shrink xfac [ yfac ] image1 image2 ...
+.SH DESCRIPTION
+Each image is shrinked along the x-axis by the factor xfac and along the
+y-axis by the factor yfac, the result is saved in a file of the same name,
+but prefixed by "shrink_". Existing images will not be overwritten. If yfac 
+has not been specified, yfac is set to the same value as xfac.
+
+For example:
+
+  batch_image_shrink 2 3 fred.jpg jim.png
+
+will make two images, shrink_fred.jpg and shrink_jim.png, each shrinked by
+factor 2 along the x-axis and by factor 3 along the y-axis.
+
+  batch_image_shrink 2 john.jpg rob.png
+
+will make shrink_john.jpg and shrink_rob.png, however, this time, each image
+will be shrinked by factor 2 along both the x-axis and the y-axis.
+
+.SH RETURN VALUE
+returns 0 on success and non-zero on error.
+.SH SEE ALSO
+header(1), im_shrink(3)

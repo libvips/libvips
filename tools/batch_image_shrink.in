@@ -1,0 +1,56 @@
+#!/bin/sh
+
+# Crop a set of image files
+#
+# usage:
+#
+#       example% batch_image_shrink xfac [ yfac ] image1 image2 etc
+#
+# writes output images shrink_image1, shrink_image2
+#
+# shrink each image along x by xfac and along y by yfac
+# if yfac is missing, yfac is set to xfac
+
+set -o nounset
+set -o errexit
+
+# default prefix
+VIPSHOME=${VIPSHOME-@prefix@}
+
+name=`basename $0`
+
+# check args
+if [ $# -lt 2 ]; then
+	echo "usage: $name xfac [ yfac ] image1 image2 ..."
+	echo 
+	echo "$name writes a new set of images called shrink_image1, "
+	echo "shrink_image2, etc., each shrinked by the specified"
+        echo "factor(s); xfac and yfac are doubles, yfac is optional;"
+        echo "if no yfac is given, use the value of xfac for yfac"
+
+	exit 1
+fi
+
+# parse xfac and yfac (optional)
+# if the 2nd argument is a file, no yfac has been given
+xfac="$1"
+shift
+yfac="$xfac"
+if [ ! -f "$1" ] ; then
+    yfac="$1"
+    shift
+fi
+
+# shrink each argument
+for i in $*; do
+	dir=`dirname $i`
+	file=`basename $i`
+	new="${dir}/shrink_${file}"
+	echo "Shrinking ${file} as ${new} ..." 
+
+        if [ -f "${new}" ]; then
+                echo "$new exists, skipping"
+        else
+                $VIPSHOME/bin/vips im_shrink "$i" "$new" "$xfac" "$yfac"
+        fi
+done
