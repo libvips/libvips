@@ -12,11 +12,9 @@
 VIPSHOME=${VIPSHOME-@prefix@}
 
 name=`basename $0`
-type=$1
-shift
 
 # check args
-if [ $# -lt 1 ]; then
+if [ $# -lt 2 ]; then
 	echo "usage: $name <new image type> image1 image2 ..."
 	echo 
 	echo "$name uses VIPS to convert a group of image files of"
@@ -26,6 +24,9 @@ if [ $# -lt 1 ]; then
 
 	exit 1
 fi
+
+type=$1
+shift
 
 # convert each argument
 for i in $*; do
