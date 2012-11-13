@@ -720,6 +720,7 @@ AC_OUTPUT([
 	tools/batch_crop 
 	tools/batch_image_convert 
 	tools/batch_rubber_sheet 
+        tools/batch_image_shrink
 	tools/light_correct 
 	tools/shrink_width 
 	swig/Makefile 
