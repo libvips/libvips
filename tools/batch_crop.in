@@ -12,14 +12,9 @@
 VIPSHOME=${VIPSHOME-@prefix@}
 
 name=`basename $0`
-left=$1
-top=$2
-width=$3
-height=$4
-shift 4
 
 # check args
-if [ $# -lt 1 ]; then
+if [ $# -lt 5 ]; then
 	echo "usage: $name left top width height image1 image2 ..."
 	echo 
 	echo "$name writes a new set of images called crop_image1, "
@@ -27,6 +22,12 @@ if [ $# -lt 1 ]; then
 
 	exit 1
 fi
+
+left=$1
+top=$2
+width=$3
+height=$4
+shift 4
 
 # convert each argument
 for i in $*; do
