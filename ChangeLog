@@ -19,6 +19,7 @@
 - update for new glib threading API
 - remove no threads option, glib no longer support it
 - better --help output for vips driver prog
+- vipsthumbnail -o allows absolute file names
 
 2/10/12 started 7.30.4
 - remove options from format string in .dzi (thanks Martin)
