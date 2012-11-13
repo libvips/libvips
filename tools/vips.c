@@ -905,6 +905,20 @@ print_cppdefs( int argc, char **argv )
 	return( 0 );
 }
 
+static void action_list( VipsBuf *buf );
+
+static int
+print_help( int argc, char **argv ) 
+{
+	char txt[1024];
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
+
+	action_list( &buf ); 
+	printf( "%s", vips_buf_all( &buf ) );
+
+	return( 0 );
+}
+
 /* All our built-in actions.
  */
 
@@ -930,11 +944,28 @@ static ActionEntry actions[] = {
 		&empty_options[0], print_cppdefs },
 	{ "links", N_( "generate links for vips/bin" ),
 		&empty_options[0], print_links },
+	{ "help", N_( "list possible actions" ),
+		&empty_options[0], print_help },
 };
+
+static void
+action_list( VipsBuf *buf )
+{
+	int i;
+
+	vips_buf_appends( buf, _( "possible actions:\n" ) );
+	for( i = 0; i < VIPS_NUMBER( actions ); i++ )
+		vips_buf_appendf( buf, "%7s - %s\n", 
+			actions[i].name, _( actions[i].description ) ); 
+	vips_buf_appendf( buf, "%7s - %s\n", 
+		"OP", _( "execute vips operation OP" ) );
+}
 
 static void
 parse_options( GOptionContext *context, int *argc, char **argv )
 {
+	char txt[1024];
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	GError *error = NULL;
 	int i, j;
 
@@ -943,6 +974,9 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 	for( i = 0; i < *argc; i++ )
 		printf( "%d) %s\n", i, argv[i] );
 #endif /*DEBUG*/
+
+	action_list( &buf ); 
+	g_option_context_set_summary( context, vips_buf_all( &buf ) );
 
 	if( !g_option_context_parse( context, argc, &argv, &error ) ) {
 		if( error ) {
@@ -1128,13 +1162,7 @@ main( int argc, char **argv )
 
 	if( action && 
 		!handled ) {
-		printf( "%s", _( "possible actions:\n" ) );
-		for( i = 0; i < VIPS_NUMBER( actions ); i++ )
-			printf( "%10s - %s\n", 
-				actions[i].name, _( actions[i].description ) ); 
-		printf( "%10s - %s\n", 
-			"<operation>", _( "execute named vips operation" ) );
-
+		print_help( argc, argv );
 		error_exit( _( "unknown action \"%s\"" ), action );
 	}
 
