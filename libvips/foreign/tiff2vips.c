@@ -229,19 +229,29 @@ typedef struct {
  * more than one thread, but vips_error and vips_warn have mutexes in, so that's
  * OK.
  */
-void 
+static void 
 vips__thandler_error( const char *module, const char *fmt, va_list ap )
 {
 	vips_verror( module, fmt, ap );
 }
 
-void 
+static void 
 vips__thandler_warning( const char *module, const char *fmt, va_list ap )
 {
 	char buf[256];
 
 	vips_vsnprintf( buf, 256, fmt, ap );
 	vips_warn( module, "%s", buf );
+}
+
+/* Call this during startup. Other libraries may be using libtiff and we want
+ * to capture any messages they send as well.
+ */
+void
+vips__tiff_init( void )
+{
+	TIFFSetErrorHandler( vips__thandler_error );
+	TIFFSetWarningHandler( vips__thandler_warning );
 }
 
 /* Test for field exists.
@@ -1506,8 +1516,7 @@ istiffpyramid( const char *name )
 {
 	TIFF *tif;
 
-	TIFFSetErrorHandler( vips__thandler_error );
-	TIFFSetWarningHandler( vips__thandler_warning );
+	vips__tiff_init();
 
 	if( (tif = get_directory( name, 2 )) ) {
 		// We can see page 2 ... assume it is.
@@ -1529,8 +1538,7 @@ vips__tiff_read( const char *filename, VipsImage *out, int page )
 	printf( "tiff2vips: libtiff starting for %s\n", filename );
 #endif /*DEBUG*/
 
-	TIFFSetErrorHandler( vips__thandler_error );
-	TIFFSetWarningHandler( vips__thandler_warning );
+	vips__tiff_init();
 
 	if( !(rtiff = readtiff_new( filename, out, page )) )
 		return( -1 );
@@ -1558,8 +1566,7 @@ vips__tiff_read_header( const char *filename, VipsImage *out, int page )
 {
 	ReadTiff *rtiff;
 
-	TIFFSetErrorHandler( vips__thandler_error );
-	TIFFSetWarningHandler( vips__thandler_warning );
+	vips__tiff_init();
 
 	if( !(rtiff = readtiff_new( filename, out, page )) )
 		return( -1 );
@@ -1583,10 +1590,7 @@ vips__istifftiled( const char *filename )
 	TIFF *tif;
 	gboolean tiled;
 
-	/* Override the default TIFF error handler.
-	 */
-	TIFFSetErrorHandler( vips__thandler_error );
-	TIFFSetWarningHandler( vips__thandler_warning );
+	vips__tiff_init();
 
 	if( !(tif = TIFFOpen( filename, "rm" )) ) {
 		vips_error_clear();
