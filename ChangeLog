@@ -1,3 +1,6 @@
+14/11/12 started 7.30.5
+- fix libtool version mess up (thanks Benjamin)
+
 2/10/12 started 7.30.4
 - remove options from format string in .dzi (thanks Martin)
 - vipsCC.pc required the wrong version of vips (thanks Alessandro)

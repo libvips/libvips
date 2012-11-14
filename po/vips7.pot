@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2012-10-01 14:17+0100\n"
+"POT-Creation-Date: 2012-11-14 09:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -395,7 +395,7 @@ msgstr ""
 #: ../libvips/conversion/extract.c:197 ../libvips/conversion/extract.c:356
 #: ../libvips/conversion/bandjoin.c:171 ../libvips/conversion/copy.c:321
 #: ../libvips/conversion/rot.c:359 ../libvips/conversion/replicate.c:196
-#: ../libvips/conversion/tilecache.c:357 ../libvips/conversion/embed.c:523
+#: ../libvips/conversion/tilecache.c:359 ../libvips/conversion/embed.c:523
 #: ../libvips/conversion/cache.c:100 ../libvips/conversion/recomb.c:203
 #: ../libvips/conversion/sequential.c:273 ../libvips/foreign/foreign.c:1413
 #: ../libvips/resample/resample.c:89
@@ -567,7 +567,7 @@ msgstr ""
 #: ../libvips/conversion/cast.c:480 ../libvips/conversion/flatten.c:376
 #: ../libvips/conversion/extract.c:198 ../libvips/conversion/extract.c:357
 #: ../libvips/conversion/copy.c:322 ../libvips/conversion/rot.c:360
-#: ../libvips/conversion/replicate.c:197 ../libvips/conversion/tilecache.c:358
+#: ../libvips/conversion/replicate.c:197 ../libvips/conversion/tilecache.c:360
 #: ../libvips/conversion/embed.c:524 ../libvips/conversion/cache.c:101
 #: ../libvips/conversion/sequential.c:274
 msgid "Input image"
@@ -1104,53 +1104,53 @@ msgstr ""
 msgid "Top edge of sub in main"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:353 ../libvips/conversion/cache.c:96
+#: ../libvips/conversion/tilecache.c:355 ../libvips/conversion/cache.c:96
 msgid "cache an image"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:363 ../libvips/conversion/cache.c:113
+#: ../libvips/conversion/tilecache.c:365 ../libvips/conversion/cache.c:113
 #: ../libvips/conversion/sequential.c:286 ../libvips/foreign/tiffsave.c:222
-#: ../libvips/foreign/dzsave.c:920
+#: ../libvips/foreign/dzsave.c:927
 msgid "Tile height"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:364 ../libvips/conversion/cache.c:114
+#: ../libvips/conversion/tilecache.c:366 ../libvips/conversion/cache.c:114
 #: ../libvips/conversion/sequential.c:287 ../libvips/foreign/tiffsave.c:223
-#: ../libvips/foreign/dzsave.c:921
+#: ../libvips/foreign/dzsave.c:928
 msgid "Tile height in pixels"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:370
+#: ../libvips/conversion/tilecache.c:372
 msgid "Strategy"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:371
+#: ../libvips/conversion/tilecache.c:373
 msgid "Expected access pattern"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:540
+#: ../libvips/conversion/tilecache.c:542
 msgid "cache an image as a set of tiles"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:544 ../libvips/conversion/cache.c:106
-#: ../libvips/foreign/tiffsave.c:215 ../libvips/foreign/dzsave.c:913
+#: ../libvips/conversion/tilecache.c:546 ../libvips/conversion/cache.c:106
+#: ../libvips/foreign/tiffsave.c:215 ../libvips/foreign/dzsave.c:920
 msgid "Tile width"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:545 ../libvips/conversion/cache.c:107
-#: ../libvips/foreign/tiffsave.c:216 ../libvips/foreign/dzsave.c:914
+#: ../libvips/conversion/tilecache.c:547 ../libvips/conversion/cache.c:107
+#: ../libvips/foreign/tiffsave.c:216 ../libvips/foreign/dzsave.c:921
 msgid "Tile width in pixels"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:551 ../libvips/conversion/cache.c:120
+#: ../libvips/conversion/tilecache.c:553 ../libvips/conversion/cache.c:120
 msgid "Max tiles"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:552 ../libvips/conversion/cache.c:121
+#: ../libvips/conversion/tilecache.c:554 ../libvips/conversion/cache.c:121
 msgid "Maximum number of tiles to cache"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:706
+#: ../libvips/conversion/tilecache.c:709
 msgid "cache an image as a set of lines"
 msgstr ""
 
@@ -1527,48 +1527,48 @@ msgstr ""
 msgid "Write a bigtiff image"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:243
+#: ../libvips/foreign/dzsave.c:245
 #, c-format
 msgid "Directory \"%s_files\" exists"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:812
+#: ../libvips/foreign/dzsave.c:819
 msgid "overlap must be less than tile width and height"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:865
+#: ../libvips/foreign/dzsave.c:872
 msgid "save image to deep zoom format"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:875 ../libvips/foreign/dzsave.c:906
+#: ../libvips/foreign/dzsave.c:882 ../libvips/foreign/dzsave.c:913
 msgid "Base name"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:876 ../libvips/foreign/dzsave.c:907
+#: ../libvips/foreign/dzsave.c:883 ../libvips/foreign/dzsave.c:914
 msgid "Base name to save to"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:882
+#: ../libvips/foreign/dzsave.c:889
 msgid "suffix"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:883
+#: ../libvips/foreign/dzsave.c:890
 msgid "Filename suffix for tiles"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:889
+#: ../libvips/foreign/dzsave.c:896
 msgid "Overlap"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:890
+#: ../libvips/foreign/dzsave.c:897
 msgid "Tile overlap in pixels"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:896
+#: ../libvips/foreign/dzsave.c:903
 msgid "Tile size"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:897
+#: ../libvips/foreign/dzsave.c:904
 msgid "Tile size in pixels"
 msgstr ""
 
