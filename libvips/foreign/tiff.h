@@ -36,8 +36,7 @@ extern "C" {
 
 extern const char *vips__foreign_tiff_suffs[];
 
-void vips__thandler_error( const char *module, const char *fmt, va_list ap );
-void vips__thandler_warning( const char *module, const char *fmt, va_list ap );
+void vips__tiff_init( void );
 
 int vips__tiff_write( VipsImage *in, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 

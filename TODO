@@ -13,6 +13,7 @@
   perhaps it should be part of vips.c
 
 
+- check libtool version number, should be binary-compat with 7.30 
 
 - quadratic doesn't work for order 3
 
