@@ -1474,7 +1474,6 @@ gather_pyramid( TiffWrite *tw )
 	return( 0 );
 }
 
-
 int 
 vips__tiff_write( VipsImage *in, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 
@@ -1493,10 +1492,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	printf( "tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
 #endif /*DEBUG*/
 
-	/* Override the default TIFF error handler.
-	 */
-	TIFFSetErrorHandler( vips__thandler_error );
-	TIFFSetWarningHandler( vips__thandler_warning );
+	vips__tiff_init();
 
 	/* Check input image.
 	 */

@@ -123,6 +123,13 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
+	/* Other libraries may be using libtiff, we want to capture tiff
+	 * warning and error as soon as we can.
+	 *
+	 * This class init will be triggered during startup.
+	 */
+	vips__tiff_init();
+
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 

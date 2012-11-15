@@ -17,7 +17,15 @@
 - dzsave --layout google has a @background option
 - dzsave has a --depth option
 - update for new glib threading API
-- remove no threads option
+- remove no threads option, glib no longer support it
+- better --help output for vips driver prog
+- vipsthumbnail -o allows absolute file names
+
+14/11/12 started 7.30.6
+- capture tiff warnings earlier
+
+14/11/12 started 7.30.5
+- fix libtool version mess up (thanks Benjamin)
 
 2/10/12 started 7.30.4
 - remove options from format string in .dzi (thanks Martin)

@@ -40,7 +40,7 @@ Then for a debug build:
 # Dependencies 
 
 libvips has to have gettext, glib-2.x and libxml-2.0. The build system needs 
-sh, pkg-config and gnu make.
+sh, pkg-config, swig, gtk-doc-tools, automake, gobject-introspection and gnu make.
 
 # Optional dependencies
 

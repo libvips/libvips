@@ -1,3 +1,20 @@
+
+- have a web page with a list of the python member names
+
+	$ vips cpph all | grep join
+	VImage bandjoin( VImage bandjoin_in2 ) throw( VError );
+	static VImage 
+		gbandjoin( std::vector<VImage> gbandjoin_in ) throw( VError );
+	VImage lrjoin( VImage lrjoin_in2 ) throw( VError );
+	VImage tbjoin( VImage tbjoin_in2 ) throw( VError );
+
+  could generate some docs too?
+
+  perhaps it should be part of vips.c
+
+
+- check libtool version number, should be binary-compat with 7.30 
+
 - quadratic doesn't work for order 3
 
   start to get jaggies on lines --- the 3rd differential isn't being 

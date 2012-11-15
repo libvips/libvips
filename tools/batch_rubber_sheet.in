@@ -14,11 +14,9 @@ VIPSHOME=${VIPSHOME-@prefix@}
 
 # get name we were run as
 name=`basename $0`
-rec=$1
-shift
 
 # check args
-if [ $# -lt 1 ]; then
+if [ $# -lt 2 ]; then
 	echo "usage: $name matrix image1 image2 ..."
 	echo "writes rsc_image1, rsc_image2, ..."
 	echo
@@ -27,6 +25,9 @@ if [ $# -lt 1 ]; then
 
         exit 1
 fi
+
+rec=$1
+shift
 
 # transform each argument
 for i in $*; do

@@ -31,6 +31,8 @@
  * 	- remove "--nodelete" option, have a --delete option instead, off by
  * 	  default
  * 	- much more gentle extra sharpening
+ * 13/11/12
+ * 	- allow absolute paths in -o (thanks fuho)
  */
 
 #ifdef HAVE_CONFIG_H
@@ -306,25 +308,35 @@ thumbnail3( IMAGE *in, IMAGE *out )
 static char *
 make_thumbnail_name( const char *filename )
 {
-	char *dir;
 	char *file;
 	char *p;
 	char buf[FILENAME_MAX];
 	char *result;
 
-	dir = g_path_get_dirname( filename );
 	file = g_path_get_basename( filename );
 
+	/* Remove the suffix from the file portion.
+	 */
 	if( (p = strrchr( file, '.' )) ) 
 		*p = '\0';
 
+	/* output_format can be an absolute path, in which case we discard the
+	 * path from the incoming file.
+	 */
 	im_snprintf( buf, FILENAME_MAX, output_format, file );
-	result = g_build_filename( dir, buf, NULL );
+	if( g_path_is_absolute( output_format ) ) 
+		result = g_strdup( buf );
+	else {
+		char *dir;
+
+		dir = g_path_get_dirname( filename );
+		result = g_build_filename( dir, buf, NULL );
+		g_free( dir );
+	}
 
 	if( verbose )
-		printf( "thumbnailing %s as %s\n", filename, buf );
+		printf( "thumbnailing %s as %s\n", filename, result );
 
-	g_free( dir );
 	g_free( file );
 
 	return( result );
