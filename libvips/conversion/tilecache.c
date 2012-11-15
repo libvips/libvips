@@ -21,6 +21,8 @@
  * 	- use a hash table instead of a list
  * 13/9/12
  * 	- oops, linecache was oversized
+ * 12/11/12
+ * 	- make linecache 50% larger to give some slop room
  * 8/10/12
  * 	- make it optionally threaded
  */
@@ -849,13 +851,14 @@ vips_line_cache_build( VipsObject *object )
 	 */
 	block_cache->tile_width = block_cache->in->Xsize;
 
-	/* Enough lines for two complete buffers.
+	/* Enough lines for two complete buffers would be exactly right. Make
+	 * it 3 to give us some slop room. 
 	 *
 	 * This can go up with request size, see vips_line_cache_gen().
 	 */
 	vips_get_tile_size( block_cache->in, 
 		&tile_width, &tile_height, &nlines );
-	block_cache->max_tiles = 2 * (1 + nlines / block_cache->tile_height);
+	block_cache->max_tiles = 3 * (1 + nlines / block_cache->tile_height);
 
 	VIPS_DEBUG_MSG( "vips_line_cache_build: max_tiles = %d, "
 		"tile_height = %d\n",
