@@ -34,6 +34,8 @@
  * 	- redone as a class
  * 	- warn about non-int shrinks
  * 	- some tuning .. tried an int coordinate path, not worthwhile
+ * 16/11/12
+ * 	- don't change xres/yres, see comment below
  */
 
 /*
@@ -336,11 +338,13 @@ vips_shrink_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_ANY, resample->in, NULL );
 
 	/* Size output. Note: we round the output width down!
+	 *
+	 * Don't change xres/yres, leave that to the application layer. For
+	 * example, vipsthumbnail knows the true shrink factor (including the
+	 * fractional part), we just see the integer part here.
 	 */
 	resample->out->Xsize = resample->in->Xsize / shrink->xshrink;
 	resample->out->Ysize = resample->in->Ysize / shrink->yshrink;
-	resample->out->Xres = resample->in->Xres / shrink->xshrink;
-	resample->out->Yres = resample->in->Yres / shrink->yshrink;
 	if( resample->out->Xsize <= 0 || 
 		resample->out->Ysize <= 0 ) {
 		vips_error( class->nickname, 

@@ -281,25 +281,28 @@ show_entry( ExifEntry *entry, void *client )
 static void
 show_ifd( ExifContent *content, void *client )
 {
+	int *ifd = (int *) client;
+
+        printf( "- ifd %d\n", *ifd );
         exif_content_foreach_entry( content, show_entry, client );
-        printf( "-\n" );
+
+	*ifd += 1;
 }
 
 void
 show_values( ExifData *data )
 {
         ExifByteOrder order;
+	int ifd;
 
         order = exif_data_get_byte_order( data );
         printf( "EXIF tags in '%s' byte order\n", 
 		exif_byte_order_get_name( order ) );
 
-	printf( "%-20.20s", "Tag" );
-        printf( "|" );
-	printf( "%-58.58s", "Value" );
-        printf( "\n" );
+	printf( "Title|Value|Format|Size\n" ); 
 
-        exif_data_foreach_content( data, show_ifd, NULL );
+	ifd = 0;
+        exif_data_foreach_content( data, show_ifd, &ifd );
 
         if( data->size ) 
                 printf( "contains thumbnail of %d bytes\n", data->size );
@@ -416,7 +419,9 @@ attach_exif_entry( ExifEntry *entry, VipsExif *ve )
 	char value_txt[256];
 	VipsBuf value = VIPS_BUF_STATIC( value_txt );
 
-	vips_buf_appendf( &name, "exif-%s", exif_tag_get_title( entry->tag ) );
+	vips_buf_appendf( &name, "exif-ifd%d-%s", 
+		exif_entry_get_ifd( entry ),
+		exif_tag_get_title( entry->tag ) );
 	vips_exif_to_s( ve->ed, entry, &value ); 
 
 	/* Can't do anything sensible with the error return.
@@ -432,29 +437,12 @@ attach_exif_content( ExifContent *content, VipsExif *ve )
 		(ExifContentForeachEntryFunc) attach_exif_entry, ve );
 }
 
-/* Just find the first occurence of the tag (is this correct?)
- */
-static ExifEntry *
-find_entry( ExifData *ed, ExifTag tag )
-{
-	int i;
-
-	for( i = 0; i < EXIF_IFD_COUNT; i++ ) {
-		ExifEntry *entry;
-
-		if( (entry = exif_content_get_entry( ed->ifd[i], tag )) )
-			return( entry );
-	}
-
-	return( NULL );
-}
-
 static int
-get_entry_rational( ExifData *ed, ExifTag tag, double *out )
+get_entry_rational( ExifData *ed, int ifd, ExifTag tag, double *out )
 {
 	ExifEntry *entry;
 
-	if( !(entry = find_entry( ed, tag )) ||
+	if( !(entry = exif_content_get_entry( ed->ifd[ifd], tag )) ||
 		entry->format != EXIF_FORMAT_RATIONAL ||
 		entry->components != 1 )
 		return( -1 );
@@ -463,11 +451,11 @@ get_entry_rational( ExifData *ed, ExifTag tag, double *out )
 }
 
 static int
-get_entry_short( ExifData *ed, ExifTag tag, int *out )
+get_entry_short( ExifData *ed, int ifd, ExifTag tag, int *out )
 {
 	ExifEntry *entry;
 
-	if( !(entry = find_entry( ed, tag )) ||
+	if( !(entry = exif_content_get_entry( ed->ifd[ifd], tag )) ||
 		entry->format != EXIF_FORMAT_SHORT ||
 		entry->components != 1 )
 		return( -1 );
@@ -481,13 +469,21 @@ set_vips_resolution( VipsImage *im, ExifData *ed )
 	double xres, yres;
 	int unit;
 
-	if( get_entry_rational( ed, EXIF_TAG_X_RESOLUTION, &xres ) ||
-		get_entry_rational( ed, EXIF_TAG_Y_RESOLUTION, &yres ) ||
-		get_entry_short( ed, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
+	/* The main image xres/yres are in ifd0. ifd1 has xres/yres of the
+	 * image thumbnail, if any.
+	 */
+	if( get_entry_rational( ed, 0, EXIF_TAG_X_RESOLUTION, &xres ) ||
+		get_entry_rational( ed, 0, EXIF_TAG_Y_RESOLUTION, &yres ) ||
+		get_entry_short( ed, 0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
 		vips_warn( "VipsJpeg", 
 			"%s", _( "error reading resolution" ) );
 		return;
 	}
+
+#ifdef DEBUG
+	printf( "set_vips_resolution: seen exif tags "
+		"xres = %g, yres = %g, unit = %d\n", xres, yres, unit );
+#endif /*DEBUG*/
 
 	switch( unit ) {
 	case 2:
@@ -701,6 +697,11 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	if( cinfo->saw_JFIF_marker &&
 		cinfo->X_density != 1U && 
 		cinfo->Y_density != 1U ) {
+#ifdef DEBUG
+		printf( "read_jpeg_header: seen jfif _density %d, %d\n",
+			cinfo->X_density, cinfo->Y_density );
+#endif /*DEBUG*/
+
 		switch( cinfo->density_unit ) {
 		case 1:
 			/* Pixels per inch.

@@ -80,6 +80,7 @@
 
 /*
 #define DEBUG
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -282,6 +283,10 @@ vips_exif_set_double( ExifData *ed,
 		rational.numerator = value * scale;
 		rational.denominator = scale;
 
+		VIPS_DEBUG_MSG( "vips_exif_set_double: %g / %g\n", 
+			(double) rational.numerator, 
+			(double) rational.denominator ); 
+
 		exif_set_rational( entry->data + offset, bo, rational );
 	}
 	else if( entry->format == EXIF_FORMAT_SRATIONAL ) {
@@ -293,6 +298,9 @@ vips_exif_set_double( ExifData *ed,
 		rational.numerator = value * scale;
 		rational.denominator = scale;
 
+		VIPS_DEBUG_MSG( "vips_exif_set_double: %d / %d\n", 
+			rational.numerator, rational.denominator ); 
+
 		exif_set_srational( entry->data + offset, bo, rational );
 	}
 }
@@ -300,38 +308,26 @@ vips_exif_set_double( ExifData *ed,
 typedef void (*write_fn)( ExifData *ed, 
 	ExifEntry *entry, unsigned long component, void *data );
 
-/* Write a component in a tag everywhere it appears.
+/* Write a tag. Update what's there, or make a new one.
  */
 static int
-write_tag( ExifData *ed, 
+write_tag( ExifData *ed, int ifd, 
 	ExifTag tag, ExifFormat format, write_fn fn, void *data )
 {
-	int found;
-	int i;
+	ExifEntry *entry;
 
-	found = 0;
-	for( i = 0; i < EXIF_IFD_COUNT; i++ ) {
-		ExifEntry *entry;
-
-		if( (entry = exif_content_get_entry( ed->ifd[i], tag )) &&
-			entry->format == format ) {
+	if( (entry = exif_content_get_entry( ed->ifd[ifd], tag )) ) {
+		if( entry->format == format ) 
 			fn( ed, entry, 0, data );
-			found = 1;
-		}
 	}
-
-	if( !found ) {
-		/* There was no tag we could update ... make one in ifd[0].
-		 */
-		ExifEntry *entry;
-
+	else {
 		entry = exif_entry_new();
 
 		/* tag must be set before calling exif_content_add_entry.
 		 */
 		entry->tag = tag; 
 
-		exif_content_add_entry( ed->ifd[0], entry );
+		exif_content_add_entry( ed->ifd[ifd], entry );
 		exif_entry_initialize( entry, tag );
 		exif_entry_unref( entry );
 
@@ -350,6 +346,9 @@ set_exif_resolution( ExifData *ed, VipsImage *im )
 	double xres, yres;
 	char *p;
 	int unit;
+
+	VIPS_DEBUG_MSG( "set_exif_resolution: vips res of %g, %g\n",
+		im->Xres, im->Yres );
 
 	/* Default to inches, more progs support it.
 	 */
@@ -376,11 +375,14 @@ set_exif_resolution( ExifData *ed, VipsImage *im )
 		return( 0 );
 	}
 
-	if( write_tag( ed, EXIF_TAG_X_RESOLUTION, EXIF_FORMAT_RATIONAL, 
+	/* Main image xres/yres/unit are in ifd0. ifd1 has the thumbnail
+	 * xres/yres/unit.
+	 */
+	if( write_tag( ed, 0, EXIF_TAG_X_RESOLUTION, EXIF_FORMAT_RATIONAL, 
 		vips_exif_set_double, (void *) &xres ) ||
-		write_tag( ed, EXIF_TAG_Y_RESOLUTION, EXIF_FORMAT_RATIONAL, 
+		write_tag( ed, 0, EXIF_TAG_Y_RESOLUTION, EXIF_FORMAT_RATIONAL, 
 			vips_exif_set_double, (void *) &yres ) ||
-		write_tag( ed, EXIF_TAG_RESOLUTION_UNIT, EXIF_FORMAT_SHORT, 
+		write_tag( ed, 0, EXIF_TAG_RESOLUTION_UNIT, EXIF_FORMAT_SHORT, 
 			vips_exif_set_int, (void *) &unit ) ) {
 		vips_error( "VipsJpeg", 
 			"%s", _( "error setting JPEG resolution" ) );
@@ -453,7 +455,9 @@ vips_exif_update_entry( ExifEntry *entry, VipsExif *ve )
 	char name[256];
 	char *value;
 
-	vips_snprintf( name, 256, "exif-%s", exif_tag_get_title( entry->tag ) );
+	vips_snprintf( name, 256, "exif-ifd%d-%s", 
+		exif_entry_get_ifd( entry ),
+		exif_tag_get_title( entry->tag ) );
 	if( vips_image_get_typeof( ve->image, name ) ) {
 		(void) vips_image_get_string( ve->image, name, &value );
 		vips_exif_from_s( ve->ed, entry, value ); 
@@ -539,7 +543,7 @@ write_exif( Write *write )
 	data_length = idl;
 
 #ifdef DEBUG
-	printf( "VipsJpeg: attaching %zd bytes of EXIF\n", data_length  );
+	printf( "write_exif: attaching %zd bytes of EXIF\n", data_length  );
 #endif /*DEBUG*/
 
 	exif_data_free( ed );
@@ -554,7 +558,7 @@ write_exif( Write *write )
 			return( -1 );
 
 #ifdef DEBUG
-		printf( "VipsJpeg: attaching %zd bytes of EXIF\n", 
+		printf( "write_exif: attaching %zd bytes of EXIF\n", 
 			data_length  );
 #endif /*DEBUG*/
 
@@ -580,7 +584,7 @@ write_xmp( Write *write )
 			return( -1 );
 
 #ifdef DEBUG
-		printf( "VipsJpeg: attaching %zd bytes of XMP\n", 
+		printf( "write_xmp: attaching %zd bytes of XMP\n", 
 			data_length  );
 #endif /*DEBUG*/
 
@@ -677,7 +681,7 @@ write_profile_file( Write *write, const char *profile )
 		(JOCTET *) write->profile_bytes, write->profile_length );
 
 #ifdef DEBUG
-	printf( "VipsJpeg: attached profile \"%s\"\n", profile );
+	printf( "write_profile_file: attached profile \"%s\"\n", profile );
 #endif /*DEBUG*/
 
 	return( 0 );
@@ -696,7 +700,7 @@ write_profile_meta( Write *write )
 	write_profile_data( &write->cinfo, data, data_length );
 
 #ifdef DEBUG
-	printf( "VipsJpeg: attached %zd byte profile from VIPS header\n",
+	printf( "write_profile_meta: attached %zd byte profile from header\n",
 		data_length );
 #endif /*DEBUG*/
 

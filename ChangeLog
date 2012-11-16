@@ -20,6 +20,7 @@
 - remove no threads option, glib no longer support it
 - better --help output for vips driver prog
 - vipsthumbnail -o allows absolute file names
+- much better exif handling for jpg images (thanks Gary)
 
 14/11/12 started 7.30.6
 - capture tiff warnings earlier
