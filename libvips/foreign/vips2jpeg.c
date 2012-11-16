@@ -53,6 +53,7 @@
  * 16/11/12
  * 	- read ifds from exif fields 
  * 	- optionally parse rationals as a/b
+ * 	- update exif image dimensions
  */
 
 /*
@@ -496,6 +497,26 @@ set_exif_resolution( ExifData *ed, VipsImage *im )
 	return( 0 );
 }
 
+/* Exif also tracks image dimensions. 
+ */
+static int
+set_exif_dimensions( ExifData *ed, VipsImage *im )
+{
+	VIPS_DEBUG_MSG( "set_exif_dimensions: vips size of %g, %g\n",
+		im->Xsize, im->Ysize );
+
+	if( write_tag( ed, 2, EXIF_TAG_PIXEL_X_DIMENSION, 
+		vips_exif_set_int, (void *) &im->Xsize ) ||
+		write_tag( ed, 2, EXIF_TAG_PIXEL_Y_DIMENSION, 
+			vips_exif_set_int, (void *) &im->Ysize ) ) { 
+		vips_error( "VipsJpeg", 
+			"%s", _( "error setting JPEG dimensions" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
 /* See also vips_exif_to_s() ... keep in sync.
  */
 static void
@@ -625,9 +646,16 @@ write_exif( Write *write )
 	 */
 	vips_exif_update( ed, write->in );
 
-	/* Update EXIF resolution from the vips image header..
+	/* Update EXIF resolution from the vips image header.
 	 */
 	if( set_exif_resolution( ed, write->in ) ) {
+		exif_data_free( ed );
+		return( -1 );
+	}
+
+	/* Update EXIF image dimensions from the vips image header.
+	 */
+	if( set_exif_dimensions( ed, write->in ) ) {
 		exif_data_free( ed );
 		return( -1 );
 	}
