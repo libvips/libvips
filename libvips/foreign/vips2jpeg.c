@@ -50,6 +50,9 @@
  * 	- turn into a set of write fns ready to be called from a class
  * 7/8/12
  * 	- use VIPS_META_RESOLUTION_UNIT to select resoltuion unit
+ * 16/11/12
+ * 	- read ifds from exif fields 
+ * 	- optionally parse rationals as a/b
  */
 
 /*
@@ -248,17 +251,69 @@ vips_exif_set_int( ExifData *ed,
 }
 
 static void
-vips_exif_set_double( ExifData *ed, 
+vips_exif_double_to_rational( double value, ExifRational *rv )
+{
+	unsigned int scale;
+
+	/* We scale up to fill uint32, then set that as the
+	 * denominator. Try to avoid generating 0.
+	 */
+	scale = (unsigned int) ((UINT_MAX - 1000) / value);
+	scale = scale == 0 ? 1 : scale;
+	rv->numerator = value * scale;
+	rv->denominator = scale;
+}
+
+static void
+vips_exif_double_to_srational( double value, ExifSRational *srv )
+{
+	int scale;
+
+	/* We scale up to fill int32, then set that as the
+	 * denominator. Try to avoid generating 0.
+	 */
+	scale = (int) ((INT_MAX - 1000) / value);
+	scale = scale == 0 ? 1 : scale;
+	srv->numerator = value * scale;
+	srv->denominator = scale;
+}
+
+/* Parse a char* into an ExifRational. We allow floats as well.
+ */
+static void
+vips_exif_parse_rational( const char *str, ExifRational *rv )
+{
+	if( sscanf( str, " %u / %u ", &rv->numerator, &rv->denominator ) == 2 )
+		return;
+	vips_exif_double_to_rational( g_ascii_strtod( str, NULL ), rv );
+}
+
+/* Parse a char* into an ExifSRational. We allow floats as well.
+ */
+static void
+vips_exif_parse_srational( const char *str, ExifSRational *srv )
+{
+	if( sscanf( str, " %d / %d ", 
+		&srv->numerator, &srv->denominator ) == 2 )
+		return;
+	vips_exif_double_to_srational( g_ascii_strtod( str, NULL ), srv );
+}
+
+/* Does both signed and unsigned rationals from a char*.
+ */
+static void
+vips_exif_set_rational( ExifData *ed, 
 	ExifEntry *entry, unsigned long component, void *data )
 {
-	double value = *((double *) data);
+	char *value = (char *) data;
 
 	ExifByteOrder bo;
 	size_t sizeof_component;
 	size_t offset;
 
 	if( entry->components <= component ) {
-		VIPS_DEBUG_MSG( "vips_exif_set_int: too few components\n" );
+		VIPS_DEBUG_MSG( "vips_exif_set_rational: "
+			"too few components\n" );
 		return;
 	}
 
@@ -268,40 +323,91 @@ vips_exif_set_double( ExifData *ed,
 	sizeof_component = entry->size / entry->components;
 	offset = component * sizeof_component;
 
-	VIPS_DEBUG_MSG( "vips_exif_set_double: %s = %g\n",
+	VIPS_DEBUG_MSG( "vips_exif_set_rational: %s = \"%s\"\n",
 		exif_tag_get_title( entry->tag ), value );
 
 	if( entry->format == EXIF_FORMAT_RATIONAL ) {
-		ExifRational rational;
-		unsigned int scale;
+		ExifRational rv;
 
-		/* We scale up to fill uint32, then set that as the
-		 * denominator. Try to avoid generating 0.
-		 */
-		scale = (int) ((UINT_MAX - 1000) / value);
-		scale = scale == 0 ? 1 : scale;
-		rational.numerator = value * scale;
-		rational.denominator = scale;
+		vips_exif_parse_rational( value, &rv ); 
 
-		VIPS_DEBUG_MSG( "vips_exif_set_double: %g / %g\n", 
-			(double) rational.numerator, 
-			(double) rational.denominator ); 
+		VIPS_DEBUG_MSG( "vips_exif_set_rational: %u / %u\n", 
+			rv.numerator, 
+			rv.denominator ); 
 
-		exif_set_rational( entry->data + offset, bo, rational );
+		exif_set_rational( entry->data + offset, bo, rv );
 	}
 	else if( entry->format == EXIF_FORMAT_SRATIONAL ) {
-		ExifSRational rational;
-		int scale;
+		ExifSRational srv;
 
-		scale = (int) ((INT_MAX - 1000) / value);
-		scale = scale == 0 ? 1 : scale;
-		rational.numerator = value * scale;
-		rational.denominator = scale;
+		vips_exif_parse_srational( value, &srv ); 
 
-		VIPS_DEBUG_MSG( "vips_exif_set_double: %d / %d\n", 
-			rational.numerator, rational.denominator ); 
+		VIPS_DEBUG_MSG( "vips_exif_set_rational: %d / %d\n", 
+			srv.numerator, srv.denominator ); 
 
-		exif_set_srational( entry->data + offset, bo, rational );
+		exif_set_srational( entry->data + offset, bo, srv );
+	}
+}
+
+/* Does both signed and unsigned rationals from a double*.
+ *
+ * Don't change the exit entry if the value currently there is a good
+ * approximation of the double we are trying to set.
+ */
+static void
+vips_exif_set_double( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, void *data )
+{
+	double value = *((double *) data);
+
+	ExifByteOrder bo;
+	size_t sizeof_component;
+	size_t offset;
+	double old_value;
+
+	if( entry->components <= component ) {
+		VIPS_DEBUG_MSG( "vips_exif_set_double: "
+			"too few components\n" );
+		return;
+	}
+
+	/* Wait until after the component check to make sure we cant get /0.
+	 */
+	bo = exif_data_get_byte_order( ed );
+	sizeof_component = entry->size / entry->components;
+	offset = component * sizeof_component;
+
+	VIPS_DEBUG_MSG( "vips_exif_set_double: %s = \"%s\"\n",
+		exif_tag_get_title( entry->tag ), value );
+
+	if( entry->format == EXIF_FORMAT_RATIONAL ) {
+		ExifRational rv;
+
+		rv = exif_get_rational( entry->data + offset, bo );
+		old_value = (double) rv.numerator / rv.denominator;
+		if( abs( old_value - value ) > 0.0001 ) {
+			vips_exif_double_to_rational( value, &rv ); 
+
+			VIPS_DEBUG_MSG( "vips_exif_set_double: %u / %u\n", 
+				rv.numerator, 
+				rv.denominator ); 
+
+			exif_set_rational( entry->data + offset, bo, rv );
+		}
+	}
+	else if( entry->format == EXIF_FORMAT_SRATIONAL ) {
+		ExifSRational srv;
+
+		srv = exif_get_srational( entry->data + offset, bo );
+		old_value = (double) srv.numerator / srv.denominator;
+		if( abs( old_value - value ) > 0.0001 ) {
+			vips_exif_double_to_srational( value, &srv ); 
+
+			VIPS_DEBUG_MSG( "vips_exif_set_double: %d / %d\n", 
+				srv.numerator, srv.denominator ); 
+
+			exif_set_srational( entry->data + offset, bo, srv );
+		}
 	}
 }
 
@@ -426,11 +532,8 @@ vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 			vips_exif_set_int( ed, entry, i, &value );
 		}
 		else if( entry->format == EXIF_FORMAT_RATIONAL || 
-			entry->format == EXIF_FORMAT_SRATIONAL ) {
-			double value = g_ascii_strtod( p, NULL );
-
-			vips_exif_set_double( ed, entry, i, &value );
-		}
+			entry->format == EXIF_FORMAT_SRATIONAL ) 
+			vips_exif_set_rational( ed, entry, i, (void *) p );
 
 		/* Skip to the next set of spaces, then to the beginning of
 		 * the next item.

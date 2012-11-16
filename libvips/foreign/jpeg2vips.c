@@ -47,6 +47,9 @@
  * 	- switch to lazy reading
  * 7/8/12
  * 	- note EXIF resolution unit in VIPS_META_RESOLUTION_UNIT
+ * 16/11/12
+ * 	- tag exif fields with their ifd
+ * 	- attach rationals as a/b, don't convert to double
  */
 
 /*
@@ -337,25 +340,50 @@ vips_exif_get_int( ExifData *ed,
 }
 
 static int
+vips_exif_get_rational( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, ExifRational *out )
+{
+	if( entry->format == EXIF_FORMAT_RATIONAL ) {
+		ExifByteOrder bo = exif_data_get_byte_order( ed );
+		size_t sizeof_component = entry->size / entry->components;
+		size_t offset = component * sizeof_component;
+
+		*out = exif_get_rational( entry->data + offset, bo );
+	}
+	else
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_exif_get_srational( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, ExifSRational *out )
+{
+	if( entry->format == EXIF_FORMAT_SRATIONAL ) {
+		ExifByteOrder bo = exif_data_get_byte_order( ed );
+		size_t sizeof_component = entry->size / entry->components;
+		size_t offset = component * sizeof_component;
+
+		*out = exif_get_srational( entry->data + offset, bo );
+	}
+	else
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
 vips_exif_get_double( ExifData *ed, 
 	ExifEntry *entry, unsigned long component, double *out )
 {
-	ExifByteOrder bo = exif_data_get_byte_order( ed );
-	size_t sizeof_component = entry->size / entry->components;
-	size_t offset = component * sizeof_component;
+	ExifRational rv;
+	ExifSRational srv;
 
-	if( entry->format == EXIF_FORMAT_RATIONAL ) {
-		ExifRational value;
-
-		value = exif_get_rational( entry->data + offset, bo );
-		*out = (double) value.numerator / value.denominator;
-	}
-	else if( entry->format == EXIF_FORMAT_SRATIONAL ) {
-		ExifSRational value;
-
-		value = exif_get_srational( entry->data + offset, bo );
-		*out = (double) value.numerator / value.denominator;
-	}
+	if( !vips_exif_get_rational( ed, entry, component, &rv ) ) 
+		*out = (double) rv.numerator / rv.denominator;
+	else if( !vips_exif_get_srational( ed, entry, component, &srv ) ) 
+		*out = (double) srv.numerator / srv.denominator;
 	else
 		return( -1 );
 
@@ -372,12 +400,12 @@ vips_exif_to_s(  ExifData *ed, ExifEntry *entry, VipsBuf *buf )
 {
 	unsigned long i;
 	int iv;
-	double dv;
+	ExifRational rv;
+	ExifSRational srv;
 	char txt[256];
 
 	if( entry->format == EXIF_FORMAT_ASCII ) 
 		vips_buf_appendf( buf, "%s ", entry->data );
-
 	else if( entry->components < 10 &&
 		!vips_exif_get_int( ed, entry, 0, &iv ) ) {
 		for( i = 0; i < entry->components; i++ ) {
@@ -386,13 +414,19 @@ vips_exif_to_s(  ExifData *ed, ExifEntry *entry, VipsBuf *buf )
 		}
 	}
 	else if( entry->components < 10 &&
-		!vips_exif_get_double( ed, entry, 0, &dv ) ) {
+		!vips_exif_get_rational( ed, entry, 0, &rv ) ) {
 		for( i = 0; i < entry->components; i++ ) {
-			vips_exif_get_double( ed, entry, i, &dv );
-			/* Need to be locale independent.
-			 */
-			g_ascii_dtostr( txt, 256, dv );
-			vips_buf_appendf( buf, "%s ", txt );
+			vips_exif_get_rational( ed, entry, i, &rv );
+			vips_buf_appendf( buf, "%u/%u ", 
+				rv.numerator, rv.denominator );
+		}
+	}
+	else if( entry->components < 10 &&
+		!vips_exif_get_srational( ed, entry, 0, &srv ) ) {
+		for( i = 0; i < entry->components; i++ ) {
+			vips_exif_get_srational( ed, entry, i, &srv );
+			vips_buf_appendf( buf, "%d/%d ", 
+				srv.numerator, srv.denominator );
 		}
 	}
 	else 
@@ -438,12 +472,11 @@ attach_exif_content( ExifContent *content, VipsExif *ve )
 }
 
 static int
-get_entry_rational( ExifData *ed, int ifd, ExifTag tag, double *out )
+get_entry_double( ExifData *ed, int ifd, ExifTag tag, double *out )
 {
 	ExifEntry *entry;
 
 	if( !(entry = exif_content_get_entry( ed->ifd[ifd], tag )) ||
-		entry->format != EXIF_FORMAT_RATIONAL ||
 		entry->components != 1 )
 		return( -1 );
 
@@ -472,8 +505,8 @@ set_vips_resolution( VipsImage *im, ExifData *ed )
 	/* The main image xres/yres are in ifd0. ifd1 has xres/yres of the
 	 * image thumbnail, if any.
 	 */
-	if( get_entry_rational( ed, 0, EXIF_TAG_X_RESOLUTION, &xres ) ||
-		get_entry_rational( ed, 0, EXIF_TAG_Y_RESOLUTION, &yres ) ||
+	if( get_entry_double( ed, 0, EXIF_TAG_X_RESOLUTION, &xres ) ||
+		get_entry_double( ed, 0, EXIF_TAG_Y_RESOLUTION, &yres ) ||
 		get_entry_short( ed, 0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
 		vips_warn( "VipsJpeg", 
 			"%s", _( "error reading resolution" ) );

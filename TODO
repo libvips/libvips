@@ -28,9 +28,6 @@
 
 - test with interpolators
 
-
-
-
 - the operation cache needs to detect invalidate
 
   tricky!
