@@ -417,14 +417,12 @@ typedef void (*write_fn)( ExifData *ed,
 /* Write a tag. Update what's there, or make a new one.
  */
 static int
-write_tag( ExifData *ed, int ifd, 
-	ExifTag tag, ExifFormat format, write_fn fn, void *data )
+write_tag( ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data )
 {
 	ExifEntry *entry;
 
 	if( (entry = exif_content_get_entry( ed->ifd[ifd], tag )) ) {
-		if( entry->format == format ) 
-			fn( ed, entry, 0, data );
+		fn( ed, entry, 0, data );
 	}
 	else {
 		entry = exif_entry_new();
@@ -484,11 +482,11 @@ set_exif_resolution( ExifData *ed, VipsImage *im )
 	/* Main image xres/yres/unit are in ifd0. ifd1 has the thumbnail
 	 * xres/yres/unit.
 	 */
-	if( write_tag( ed, 0, EXIF_TAG_X_RESOLUTION, EXIF_FORMAT_RATIONAL, 
+	if( write_tag( ed, 0, EXIF_TAG_X_RESOLUTION, 
 		vips_exif_set_double, (void *) &xres ) ||
-		write_tag( ed, 0, EXIF_TAG_Y_RESOLUTION, EXIF_FORMAT_RATIONAL, 
+		write_tag( ed, 0, EXIF_TAG_Y_RESOLUTION, 
 			vips_exif_set_double, (void *) &yres ) ||
-		write_tag( ed, 0, EXIF_TAG_RESOLUTION_UNIT, EXIF_FORMAT_SHORT, 
+		write_tag( ed, 0, EXIF_TAG_RESOLUTION_UNIT, 
 			vips_exif_set_int, (void *) &unit ) ) {
 		vips_error( "VipsJpeg", 
 			"%s", _( "error setting JPEG resolution" ) );

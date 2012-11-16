@@ -484,12 +484,11 @@ get_entry_double( ExifData *ed, int ifd, ExifTag tag, double *out )
 }
 
 static int
-get_entry_short( ExifData *ed, int ifd, ExifTag tag, int *out )
+get_entry_int( ExifData *ed, int ifd, ExifTag tag, int *out )
 {
 	ExifEntry *entry;
 
 	if( !(entry = exif_content_get_entry( ed->ifd[ifd], tag )) ||
-		entry->format != EXIF_FORMAT_SHORT ||
 		entry->components != 1 )
 		return( -1 );
 
@@ -507,7 +506,7 @@ set_vips_resolution( VipsImage *im, ExifData *ed )
 	 */
 	if( get_entry_double( ed, 0, EXIF_TAG_X_RESOLUTION, &xres ) ||
 		get_entry_double( ed, 0, EXIF_TAG_Y_RESOLUTION, &yres ) ||
-		get_entry_short( ed, 0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
+		get_entry_int( ed, 0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
 		vips_warn( "VipsJpeg", 
 			"%s", _( "error reading resolution" ) );
 		return;
