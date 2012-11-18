@@ -2,6 +2,7 @@ noinst_LTLIBRARIES = libcolour.la
 
 libcolour_la_SOURCES = \
 	colour.c \
+	colour.h \
 	colourspace.c \
 	colour_dispatch.c \
 	dE76.c \

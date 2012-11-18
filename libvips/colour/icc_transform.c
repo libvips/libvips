@@ -65,16 +65,15 @@
  */
 #ifdef HAVE_LCMS2
 #include <lcms2.h>
-
-/* This is slightly different in lcms2.
- */
-#define SIG_LAB ((cmsColorSpaceSignature) icSigLabData)
 #else /*HAVE_LCMS*/
 #include <lcms.h>
-#define SIG_LAB icSigLabData
-#endif
 
-#include <icc34.h>
+/* Use the lcms2 names.
+ */
+#define icSigRgbData cmsSigRgbData
+#define icSigLabData cmsSigLabData
+#define icSigCmykData cmsSigCmykData
+#endif
 
 #include <vips/vips.h>
 
@@ -198,7 +197,7 @@ vips_icc_build( VipsObject *object )
 	if( icc->in_profile &&
 		code->in ) {
 		switch( cmsGetColorSpace( icc->in_profile ) ) {
-		case icSigRgbData:
+		case cmsSigRgbData:
 			code->input_bands = 3;
 			code->input_format = 
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
@@ -208,7 +207,7 @@ vips_icc_build( VipsObject *object )
 				TYPE_RGB_16 : TYPE_RGB_8;
 			break;
 
-		case icSigCmykData:
+		case cmsSigCmykData:
 			code->input_bands = 4;
 			code->input_format = 
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
@@ -218,7 +217,7 @@ vips_icc_build( VipsObject *object )
 				TYPE_CMYK_16 : TYPE_CMYK_8;
 			break;
 
-		case icSigLabData:
+		case cmsSigLabData:
 			code->input_bands = 3;
 			code->input_format = VIPS_FORMAT_FLOAT;
 			icc->in_icc_format = TYPE_Lab_16;
@@ -234,7 +233,7 @@ vips_icc_build( VipsObject *object )
 
 	if( icc->out_profile ) 
 		switch( cmsGetColorSpace( icc->out_profile ) ) {
-		case icSigRgbData:
+		case cmsSigRgbData:
 			colour->interpretation = 
 				icc->depth == 8 ? 
 				VIPS_INTERPRETATION_RGB : 
@@ -248,7 +247,7 @@ vips_icc_build( VipsObject *object )
 				TYPE_RGB_16 : TYPE_RGB_8;
 			break;
 
-		case icSigCmykData:
+		case cmsSigCmykData:
 			colour->interpretation = VIPS_INTERPRETATION_CMYK;
 			colour->format = 
 				icc->depth == 8 ? 
@@ -259,7 +258,7 @@ vips_icc_build( VipsObject *object )
 				TYPE_CMYK_16 : TYPE_CMYK_8;
 			break;
 
-		case icSigLabData:
+		case cmsSigLabData:
 			colour->interpretation = VIPS_INTERPRETATION_LAB;
 			colour->format = VIPS_FORMAT_FLOAT;
 			colour->bands = 3;
@@ -277,8 +276,8 @@ vips_icc_build( VipsObject *object )
 	 */
 	if( icc->in_profile &&
 		icc->out_profile &&
-		cmsGetColorSpace( icc->in_profile ) == SIG_LAB &&
-		cmsGetColorSpace( icc->out_profile ) == SIG_LAB ) {
+		cmsGetColorSpace( icc->in_profile ) == cmsSigLabData &&
+		cmsGetColorSpace( icc->out_profile ) == cmsSigLabData ) {
 		vips_error( class->nickname,
 			"%s", _( "no device profile" ) ); 
 		return( -1 );
