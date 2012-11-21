@@ -70,9 +70,9 @@
 
 /* Use the lcms2 names.
  */
-#define icSigRgbData cmsSigRgbData
-#define icSigLabData cmsSigLabData
-#define icSigCmykData cmsSigCmykData
+#define cmsSigRgbData icSigRgbData 
+#define cmsSigLabData icSigLabData 
+#define cmsSigCmykData icSigCmykData 
 #endif
 
 #include <vips/vips.h>
