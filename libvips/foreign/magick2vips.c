@@ -231,11 +231,11 @@ parse_header( Read *read )
 
 #ifdef DEBUG
 	printf( "parse_header: filename = %s\n", read->filename );
-	printf( "GetImageChannelDepth(AllChannels) = %d\n",
+	printf( "GetImageChannelDepth(AllChannels) = %zd\n",
 		GetImageChannelDepth( image, AllChannels, &image->exception ) );
-	printf( "GetImageDepth() = %ld\n",
+	printf( "GetImageDepth() = %zd\n",
 		GetImageDepth( image, &image->exception ) );
-	printf( "image->depth = %u\n", image->depth );
+	printf( "image->depth = %zd\n", image->depth );
 	printf( "GetImageType() = %d\n",
 		GetImageType( image, &image->exception ) );
 	printf( "IsGrayImage() = %d\n",
@@ -653,6 +653,10 @@ vips__magick_read( const char *filename, VipsImage *out )
   	SetImageOption( read->image_info, "dcm:display-range", "reset" );
 #endif /*HAVE_SETIMAGEOPTION*/
 
+#ifdef DEBUG
+	printf( "magick2vips: calling ReadImage() ...\n" );
+#endif /*DEBUG*/
+
 	read->image = ReadImage( read->image_info, &read->exception );
 	if( !read->image ) {
 		vips_error( "magick2vips", _( "unable to read file \"%s\"\n"
@@ -681,11 +685,15 @@ vips__magick_read_header( const char *filename, VipsImage *im )
 	Read *read;
 
 #ifdef DEBUG
-	printf( "magick2vips: vips__magick_read_header: %s\n", filename );
+	printf( "vips__magick_read_header: %s\n", filename );
 #endif /*DEBUG*/
 
 	if( !(read = read_new( filename, im )) )
 		return( -1 );
+
+#ifdef DEBUG
+	printf( "vips__magick_read_header: pinging image ...\n" );
+#endif /*DEBUG*/
 
 	read->image = PingImage( read->image_info, &read->exception );
 	if( !read->image ) {
