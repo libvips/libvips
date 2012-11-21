@@ -79,9 +79,9 @@
  */
 
 /*
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -598,39 +598,36 @@ read_exif( VipsImage *im, void *data, int data_length )
 #ifdef HAVE_EXIF
 {
 	ExifData *ed;
+	VipsExif ve;
 
 	if( !(ed = exif_data_new_from_data( data, data_length )) )
 		return( -1 );
 
-	if( ed->size > 0 ) {
-		VipsExif ve;
-
 #ifdef DEBUG_VERBOSE
-		show_tags( ed );
-		show_values( ed );
+	show_tags( ed );
+	show_values( ed );
 #endif /*DEBUG_VERBOSE*/
 
-		/* Attach informational fields for what we find.
+	/* Attach informational fields for what we find.
 
-			FIXME ... better to have this in the UI layer?
+		FIXME ... better to have this in the UI layer?
 
-			Or we could attach non-human-readable tags here (int, 
-			double etc) and then move the human stuff to the UI 
-			layer?
+		Or we could attach non-human-readable tags here (int, 
+		double etc) and then move the human stuff to the UI 
+		layer?
 
-		 */
-		ve.image = im;
-		ve.ed = ed;
-		exif_data_foreach_content( ed, 
-			(ExifDataForeachContentFunc) attach_exif_content, &ve );
+	 */
+	ve.image = im;
+	ve.ed = ed;
+	exif_data_foreach_content( ed, 
+		(ExifDataForeachContentFunc) attach_exif_content, &ve );
 
-		/* Look for resolution fields and use them to set the VIPS 
-		 * xres/yres fields.
-		 */
-		set_vips_resolution( im, ed );
+	/* Look for resolution fields and use them to set the VIPS 
+	 * xres/yres fields.
+	 */
+	set_vips_resolution( im, ed );
 
-		attach_thumbnail( im, ed );
-	}
+	attach_thumbnail( im, ed );
 
 	exif_data_free( ed );
 }
