@@ -54,6 +54,8 @@
  * 	- read ifds from exif fields 
  * 	- optionally parse rationals as a/b
  * 	- update exif image dimensions
+ * 21/11/12
+ * 	- attach IPCT data (app13), thanks Gary
  */
 
 /*
@@ -705,8 +707,6 @@ write_xmp( Write *write )
 	unsigned char *data;
 	size_t data_length;
 
-	/* No libexif ... just copy the embedded EXIF over.
-	 */
 	if( vips_image_get_typeof( write->in, VIPS_META_XMP_NAME ) ) {
 		if( vips_image_get_blob( write->in, VIPS_META_XMP_NAME, 
 			(void *) &data, &data_length ) )
@@ -718,6 +718,29 @@ write_xmp( Write *write )
 #endif /*DEBUG*/
 
 		jpeg_write_marker( &write->cinfo, JPEG_APP0 + 1, 
+			data, data_length );
+	}
+
+	return( 0 );
+}
+
+static int
+write_ipct( Write *write )
+{
+	unsigned char *data;
+	size_t data_length;
+
+	if( vips_image_get_typeof( write->in, VIPS_META_IPCT_NAME ) ) {
+		if( vips_image_get_blob( write->in, VIPS_META_IPCT_NAME, 
+			(void *) &data, &data_length ) )
+			return( -1 );
+
+#ifdef DEBUG
+		printf( "write_ipct: attaching %zd bytes of IPCT\n", 
+			data_length  );
+#endif /*DEBUG*/
+
+		jpeg_write_marker( &write->cinfo, JPEG_APP0 + 13, 
 			data, data_length );
 	}
 
@@ -919,10 +942,9 @@ write_vips( Write *write, int qfac, const char *profile )
 
 	/* Write any APP markers we need.
 	 */
-	if( write_exif( write ) )
-		return( -1 );
-
-	if( write_xmp( write ) )
+	if( write_exif( write ) ||
+		write_xmp( write ) ||
+		write_ipct( write ) )
 		return( -1 );
 
 	/* A profile supplied as an argument overrides an embedded profile.

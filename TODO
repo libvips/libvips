@@ -1,5 +1,3 @@
-- look into preserving IPTC data
-
 - check libtool version number, should be binary-compat with 7.30 
 
 - quadratic doesn't work for order 3

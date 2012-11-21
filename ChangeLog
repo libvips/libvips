@@ -21,6 +21,7 @@
 - better --help output for vips driver prog
 - vipsthumbnail -o allows absolute file names
 - much better exif handling for jpg images (thanks Gary)
+- preserve jpeg app13 (photoshop ipct)
 
 14/11/12 started 7.30.6
 - capture tiff warnings earlier

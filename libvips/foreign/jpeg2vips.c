@@ -50,6 +50,9 @@
  * 16/11/12
  * 	- tag exif fields with their ifd
  * 	- attach rationals as a/b, don't convert to double
+ * 21/11/12
+ * 	- don't insist exif must have data
+ * 	- attach IPCT data (app13), thanks Gary
  */
 
 /*
@@ -79,9 +82,9 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -666,6 +669,34 @@ read_xmp( VipsImage *im, void *data, size_t data_length )
 	return( 0 );
 }
 
+static int
+read_ipct( VipsImage *im, void *data, size_t data_length )
+{
+	char *data_copy;
+
+	/* Only use the first one.
+	 */
+	if( vips_image_get_typeof( im, VIPS_META_IPCT_NAME ) ) {
+#ifdef DEBUG
+		printf( "read_ipct: second IPCT block, ignoring\n" );
+#endif /*DEBUG*/
+
+		return( 0 );
+	}
+
+#ifdef DEBUG
+	printf( "read_ipct: attaching %zd bytes of IPCT\n", data_length );
+#endif /*DEBUG*/
+
+	if( !(data_copy = vips_malloc( NULL, data_length )) )
+		return( -1 );
+	memcpy( data_copy, data, data_length );
+	vips_image_set_blob( im, VIPS_META_IPCT_NAME, 
+		(VipsCallbackFn) vips_free, data_copy, data_length );
+
+	return( 0 );
+}
+
 /* Number of app2 sections we can capture. Each one can be 64k, so 6400k should
  * be enough for anyone (haha).
  */
@@ -780,8 +811,6 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	for( p = cinfo->marker_list; p; p = p->next ) {
 #ifdef DEBUG
 {
-		int i;
-
 		printf( "read_jpeg_header: seen %d bytes of APP%d\n",
 			p->data_length,
 			p->marker - JPEG_APP0 );
@@ -826,6 +855,15 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 						p->data_length - 14;
 				}
 			}
+			break;
+
+		case JPEG_APP0 + 13:
+			/* Possible IPCT data block.
+			 */
+			if( p->data_length > 5 &&
+				vips_isprefix( "Photo", (char *) p->data ) &&
+				read_ipct( out, p->data, p->data_length ) )
+				return( -1 );
 			break;
 
 		default:
@@ -987,10 +1025,12 @@ vips__jpeg_read_file( const char *filename, VipsImage *out,
 		return( -1 );
 	}
 
-	/* Need to read in APP1 (EXIF metadata) and APP2 (ICC profile).
+	/* Need to read in APP1 (EXIF metadata), APP2 (ICC profile), APP13
+	 * (photoshop IPCT).
 	 */
 	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 1, 0xffff );
 	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 2, 0xffff );
+	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 13, 0xffff );
 
 	/* Convert!
 	 */
