@@ -626,18 +626,12 @@ vips_wrap7_summary_class( VipsObjectClass *oclass, VipsBuf *buf )
 	im_function *fn = class->fn;
 
 	if( fn )
-		vips_buf_appendf( buf, "%s ", fn->name );
+		vips_buf_appends( buf, fn->name );
 	else
-		vips_buf_appendf( buf, "%s ", G_OBJECT_CLASS_NAME( class ) );
+		vips_buf_appends( buf, G_OBJECT_CLASS_NAME( class ) );
 
-	if( oclass->nickname )
-		vips_buf_appendf( buf, "(%s), ", oclass->nickname );
 	if( oclass->description )
-		vips_buf_appendf( buf, "%s", oclass->description );
-
-	if( fn )
-		vips_buf_appendf( buf, ", from package \"%s\"", 
-			im_package_of_function( fn->name )->name );
+		vips_buf_appendf( buf, " - %s", oclass->description );
 }
 
 static void
