@@ -7,8 +7,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-11-16 21:34+0000\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2012-11-21 21:39+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -628,117 +629,117 @@ msgstr ""
 msgid "calculate dE00"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:194 ../libvips/colour/XYZ2sRGB.c:160
+#: ../libvips/colour/icc_transform.c:193 ../libvips/colour/XYZ2sRGB.c:160
 msgid "depth must be 8 or 16"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:229
+#: ../libvips/colour/icc_transform.c:228
 #, c-format
 msgid "unimplemented input color space 0x%x"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:271
+#: ../libvips/colour/icc_transform.c:270
 #, c-format
 msgid "unimplemented output color space 0x%x"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:283
+#: ../libvips/colour/icc_transform.c:282
 msgid "no device profile"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:314
+#: ../libvips/colour/icc_transform.c:313
 msgid "transform using ICC profiles"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:318
+#: ../libvips/colour/icc_transform.c:317
 msgid "Intent"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:319
+#: ../libvips/colour/icc_transform.c:318
 msgid "Rendering intent"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:362
+#: ../libvips/colour/icc_transform.c:361
 #, c-format
 msgid ""
 "intent %d (%s) not supported by %s profile; falling back to default intent"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:366 ../libvips/iofuncs/operation.c:98
+#: ../libvips/colour/icc_transform.c:365 ../libvips/iofuncs/operation.c:98
 msgid "input"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:366 ../libvips/iofuncs/operation.c:98
+#: ../libvips/colour/icc_transform.c:365 ../libvips/iofuncs/operation.c:98
 msgid "output"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:400 ../libvips/colour/icc_transform.c:601
-#: ../libvips/colour/icc_transform.c:812
+#: ../libvips/colour/icc_transform.c:399 ../libvips/colour/icc_transform.c:600
+#: ../libvips/colour/icc_transform.c:811
 msgid "unable to load embedded profile"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:408 ../libvips/colour/icc_transform.c:609
-#: ../libvips/colour/icc_transform.c:820 ../libvips/colour/icc_transform.c:834
+#: ../libvips/colour/icc_transform.c:407 ../libvips/colour/icc_transform.c:608
+#: ../libvips/colour/icc_transform.c:819 ../libvips/colour/icc_transform.c:833
 #, c-format
 msgid "unable to open profile \"%s\""
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:414 ../libvips/colour/icc_transform.c:826
+#: ../libvips/colour/icc_transform.c:413 ../libvips/colour/icc_transform.c:825
 msgid "no input profile"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:498
+#: ../libvips/colour/icc_transform.c:497
 msgid "import from device with ICC profile"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:504 ../libvips/colour/icc_transform.c:896
+#: ../libvips/colour/icc_transform.c:503 ../libvips/colour/icc_transform.c:895
 msgid "Embedded"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:505 ../libvips/colour/icc_transform.c:897
+#: ../libvips/colour/icc_transform.c:504 ../libvips/colour/icc_transform.c:896
 msgid "Use embedded input profile, if available"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:511 ../libvips/colour/icc_transform.c:903
+#: ../libvips/colour/icc_transform.c:510 ../libvips/colour/icc_transform.c:902
 msgid "Input profile"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:512 ../libvips/colour/icc_transform.c:904
+#: ../libvips/colour/icc_transform.c:511 ../libvips/colour/icc_transform.c:903
 msgid "Filename to load input profile from"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:617
+#: ../libvips/colour/icc_transform.c:616
 msgid "no output profile"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:711
+#: ../libvips/colour/icc_transform.c:710
 msgid "output to device with ICC profile"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:717 ../libvips/colour/icc_transform.c:889
+#: ../libvips/colour/icc_transform.c:716 ../libvips/colour/icc_transform.c:888
 msgid "Output profile"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:718 ../libvips/colour/icc_transform.c:890
+#: ../libvips/colour/icc_transform.c:717 ../libvips/colour/icc_transform.c:889
 msgid "Filename to load output profile from"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:724 ../libvips/colour/icc_transform.c:910
+#: ../libvips/colour/icc_transform.c:723 ../libvips/colour/icc_transform.c:909
 #: ../libvips/colour/XYZ2sRGB.c:187 ../libvips/foreign/dzsave.c:1193
 msgid "Depth"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:725 ../libvips/colour/icc_transform.c:911
+#: ../libvips/colour/icc_transform.c:724 ../libvips/colour/icc_transform.c:910
 #: ../libvips/colour/XYZ2sRGB.c:188
 msgid "Output device space depth in bits"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:883
+#: ../libvips/colour/icc_transform.c:882
 msgid "transform between devices with ICC profiles"
 msgstr ""
 
-#: ../libvips/colour/icc_transform.c:999
-#: ../libvips/colour/icc_transform.c:1013
+#: ../libvips/colour/icc_transform.c:998
+#: ../libvips/colour/icc_transform.c:1012
 msgid "unable to get media white point"
 msgstr ""
 
@@ -1409,20 +1410,20 @@ msgstr ""
 msgid "parameters would result in zero size output image"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:171
+#: ../libvips/foreign/jpeg2vips.c:174
 #, c-format
 msgid "read gave %ld warnings"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:511
+#: ../libvips/foreign/jpeg2vips.c:514
 msgid "error reading resolution"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:541 ../libvips/foreign/vips2jpeg.c:479
+#: ../libvips/foreign/jpeg2vips.c:544 ../libvips/foreign/vips2jpeg.c:481
 msgid "unknown EXIF resolution unit"
 msgstr ""
 
-#: ../libvips/foreign/jpeg2vips.c:754
+#: ../libvips/foreign/jpeg2vips.c:782
 msgid "unknown JFIF resolution unit"
 msgstr ""
 
@@ -1434,20 +1435,20 @@ msgstr ""
 msgid "read error"
 msgstr ""
 
-#: ../libvips/foreign/vips2jpeg.c:139
+#: ../libvips/foreign/vips2jpeg.c:141
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: ../libvips/foreign/vips2jpeg.c:493
+#: ../libvips/foreign/vips2jpeg.c:495
 msgid "error setting JPEG resolution"
 msgstr ""
 
-#: ../libvips/foreign/vips2jpeg.c:513
+#: ../libvips/foreign/vips2jpeg.c:515
 msgid "error setting JPEG dimensions"
 msgstr ""
 
-#: ../libvips/foreign/vips2jpeg.c:668
+#: ../libvips/foreign/vips2jpeg.c:670
 msgid "error saving EXIF"
 msgstr ""
 
@@ -2184,21 +2185,21 @@ msgstr ""
 msgid "unable to read pixels"
 msgstr ""
 
-#: ../libvips/foreign/magick2vips.c:658
+#: ../libvips/foreign/magick2vips.c:662
 #, c-format
 msgid ""
 "unable to read file \"%s\"\n"
 "libMagick error: %s %s"
 msgstr ""
 
-#: ../libvips/foreign/magick2vips.c:692
+#: ../libvips/foreign/magick2vips.c:700
 #, c-format
 msgid ""
 "unable to ping file \"%s\"\n"
 "libMagick error: %s %s"
 msgstr ""
 
-#: ../libvips/foreign/magick2vips.c:703
+#: ../libvips/foreign/magick2vips.c:711
 msgid "bad image size"
 msgstr ""
 

@@ -607,17 +607,37 @@ vips_exif_update( ExifData *ed, VipsImage *image )
 	exif_data_foreach_content( ed, 
 		(ExifDataForeachContentFunc) vips_exif_update_content, &ve );
 }
-
-
 #endif /*HAVE_EXIF*/
+
+static int
+write_blob( Write *write, const char *field, int app )
+{
+	unsigned char *data;
+	size_t data_length;
+
+	if( vips_image_get_typeof( write->in, field ) ) {
+		if( vips_image_get_blob( write->in, field, 
+			(void *) &data, &data_length ) )
+			return( -1 );
+
+#ifdef DEBUG
+		printf( "write_blob: attaching %zd bytes of %s\n", 
+			data_length, field );
+#endif /*DEBUG*/
+
+		jpeg_write_marker( &write->cinfo, app, data, data_length );
+	}
+
+	return( 0 );
+}
 
 static int
 write_exif( Write *write )
 {
+#ifdef HAVE_EXIF
 	unsigned char *data;
 	size_t data_length;
 	unsigned int idl;
-#ifdef HAVE_EXIF
 	ExifData *ed;
 
 	/* Either parse from the embedded EXIF, or if there's none, make
@@ -683,66 +703,9 @@ write_exif( Write *write )
 #else /*!HAVE_EXIF*/
 	/* No libexif ... just copy the embedded EXIF over.
 	 */
-	if( vips_image_get_typeof( write->in, VIPS_META_EXIF_NAME ) ) {
-		if( vips_image_get_blob( write->in, VIPS_META_EXIF_NAME, 
-			(void *) &data, &data_length ) )
-			return( -1 );
-
-#ifdef DEBUG
-		printf( "write_exif: attaching %zd bytes of EXIF\n", 
-			data_length  );
-#endif /*DEBUG*/
-
-		jpeg_write_marker( &write->cinfo, JPEG_APP0 + 1, 
-			data, data_length );
-	}
+	if( write_blob( write, VIPS_META_EXIF_NAME, JPEG_APP0 + 1 ) )
+		return( -1 );
 #endif /*!HAVE_EXIF*/
-
-	return( 0 );
-}
-
-static int
-write_xmp( Write *write )
-{
-	unsigned char *data;
-	size_t data_length;
-
-	if( vips_image_get_typeof( write->in, VIPS_META_XMP_NAME ) ) {
-		if( vips_image_get_blob( write->in, VIPS_META_XMP_NAME, 
-			(void *) &data, &data_length ) )
-			return( -1 );
-
-#ifdef DEBUG
-		printf( "write_xmp: attaching %zd bytes of XMP\n", 
-			data_length  );
-#endif /*DEBUG*/
-
-		jpeg_write_marker( &write->cinfo, JPEG_APP0 + 1, 
-			data, data_length );
-	}
-
-	return( 0 );
-}
-
-static int
-write_ipct( Write *write )
-{
-	unsigned char *data;
-	size_t data_length;
-
-	if( vips_image_get_typeof( write->in, VIPS_META_IPCT_NAME ) ) {
-		if( vips_image_get_blob( write->in, VIPS_META_IPCT_NAME, 
-			(void *) &data, &data_length ) )
-			return( -1 );
-
-#ifdef DEBUG
-		printf( "write_ipct: attaching %zd bytes of IPCT\n", 
-			data_length  );
-#endif /*DEBUG*/
-
-		jpeg_write_marker( &write->cinfo, JPEG_APP0 + 13, 
-			data, data_length );
-	}
 
 	return( 0 );
 }
@@ -943,8 +906,8 @@ write_vips( Write *write, int qfac, const char *profile )
 	/* Write any APP markers we need.
 	 */
 	if( write_exif( write ) ||
-		write_xmp( write ) ||
-		write_ipct( write ) )
+		write_blob( write, VIPS_META_XMP_NAME, JPEG_APP0 + 1 ) ||
+		write_blob( write, VIPS_META_IPCT_NAME, JPEG_APP0 + 13 ) )
 		return( -1 );
 
 	/* A profile supplied as an argument overrides an embedded profile.

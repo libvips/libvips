@@ -317,7 +317,6 @@ show_values( ExifData *data )
 #endif /*HAVE_EXIF*/
 
 #ifdef HAVE_EXIF
-
 static int
 vips_exif_get_int( ExifData *ed, 
 	ExifEntry *entry, unsigned long component, int *out )
@@ -499,7 +498,7 @@ get_entry_int( ExifData *ed, int ifd, ExifTag tag, int *out )
 }
 
 static void
-set_vips_resolution( VipsImage *im, ExifData *ed )
+res_from_exif( VipsImage *im, ExifData *ed )
 {
 	double xres, yres;
 	int unit;
@@ -516,7 +515,7 @@ set_vips_resolution( VipsImage *im, ExifData *ed )
 	}
 
 #ifdef DEBUG
-	printf( "set_vips_resolution: seen exif tags "
+	printf( "res_from_exif: seen exif tags "
 		"xres = %g, yres = %g, unit = %d\n", xres, yres, unit );
 #endif /*DEBUG*/
 
@@ -546,7 +545,7 @@ set_vips_resolution( VipsImage *im, ExifData *ed )
 	}
 
 #ifdef DEBUG
-	printf( "set_vips_resolution: seen exif resolution %g, %g p/mm\n",
+	printf( "res_from_exif: seen exif resolution %g, %g p/mm\n",
 		       xres, yres );
 #endif /*DEBUG*/
 
@@ -572,32 +571,8 @@ attach_thumbnail( VipsImage *im, ExifData *ed )
 #endif /*HAVE_EXIF*/
 
 static int
-read_exif( VipsImage *im, void *data, int data_length )
+parse_exif( VipsImage *im, void *data, int data_length )
 {
-	char *data_copy;
-
-	/* Only use the first one.
-	 */
-	if( vips_image_get_typeof( im, VIPS_META_EXIF_NAME ) ) {
-#ifdef DEBUG
-		printf( "read_exif: second EXIF block, ignoring\n" );
-#endif /*DEBUG*/
-
-		return( 0 );
-	}
-
-#ifdef DEBUG
-	printf( "read_exif: attaching %d bytes of exif\n", data_length );
-#endif /*DEBUG*/
-
-	/* Always attach a copy of the unparsed exif data.
-	 */
-	if( !(data_copy = vips_malloc( NULL, data_length )) )
-		return( -1 );
-	memcpy( data_copy, data, data_length );
-	vips_image_set_blob( im, VIPS_META_EXIF_NAME, 
-		(VipsCallbackFn) vips_free, data_copy, data_length );
-
 #ifdef HAVE_EXIF
 {
 	ExifData *ed;
@@ -628,7 +603,7 @@ read_exif( VipsImage *im, void *data, int data_length )
 	/* Look for resolution fields and use them to set the VIPS 
 	 * xres/yres fields.
 	 */
-	set_vips_resolution( im, ed );
+	res_from_exif( im, ed );
 
 	attach_thumbnail( im, ed );
 
@@ -640,22 +615,22 @@ read_exif( VipsImage *im, void *data, int data_length )
 }
 
 static int
-read_xmp( VipsImage *im, void *data, size_t data_length )
+attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 {
 	char *data_copy;
 
-	/* XMP sections start "http". Only use the first one.
+	/* Only use the first one.
 	 */
-	if( vips_image_get_typeof( im, VIPS_META_XMP_NAME ) ) {
+	if( vips_image_get_typeof( im, field ) ) {
 #ifdef DEBUG
-		printf( "read_xmp: second XMP block, ignoring\n" );
+		printf( "attach_blob: second %s block, ignoring\n", field );
 #endif /*DEBUG*/
 
 		return( 0 );
 	}
 
 #ifdef DEBUG
-	printf( "read_xmp: attaching %zd bytes of XMP\n", data_length );
+	printf( "attach_blob: attaching %d bytes of %s\n", data_length, field );
 #endif /*DEBUG*/
 
 	/* Always attach a copy of the unparsed exif data.
@@ -663,35 +638,7 @@ read_xmp( VipsImage *im, void *data, size_t data_length )
 	if( !(data_copy = vips_malloc( NULL, data_length )) )
 		return( -1 );
 	memcpy( data_copy, data, data_length );
-	vips_image_set_blob( im, VIPS_META_XMP_NAME, 
-		(VipsCallbackFn) vips_free, data_copy, data_length );
-
-	return( 0 );
-}
-
-static int
-read_ipct( VipsImage *im, void *data, size_t data_length )
-{
-	char *data_copy;
-
-	/* Only use the first one.
-	 */
-	if( vips_image_get_typeof( im, VIPS_META_IPCT_NAME ) ) {
-#ifdef DEBUG
-		printf( "read_ipct: second IPCT block, ignoring\n" );
-#endif /*DEBUG*/
-
-		return( 0 );
-	}
-
-#ifdef DEBUG
-	printf( "read_ipct: attaching %zd bytes of IPCT\n", data_length );
-#endif /*DEBUG*/
-
-	if( !(data_copy = vips_malloc( NULL, data_length )) )
-		return( -1 );
-	memcpy( data_copy, data, data_length );
-	vips_image_set_blob( im, VIPS_META_IPCT_NAME, 
+	vips_image_set_blob( im, field, 
 		(VipsCallbackFn) vips_free, data_copy, data_length );
 
 	return( 0 );
@@ -826,19 +773,24 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			/* Possible EXIF or XMP data.
 			 */
 			if( p->data_length > 4 &&
-				vips_isprefix( "Exif", (char *) p->data ) &&
-				read_exif( out, p->data, p->data_length ) )
+				vips_isprefix( "Exif", (char *) p->data ) ) {
+				if( parse_exif( out, 
+					p->data, p->data_length ) ||
+					attach_blob( out, VIPS_META_EXIF_NAME, 
+						p->data, p->data_length ) )
 				return( -1 );
+			}
 
 			if( p->data_length > 4 &&
 				vips_isprefix( "http", (char *) p->data ) &&
-				read_xmp( out, p->data, p->data_length ) )
+				attach_blob( out, VIPS_META_XMP_NAME, 
+					p->data, p->data_length ) )
 				return( -1 );
 
 			break;
 
 		case JPEG_APP0 + 2:
-			/* ICC profile.
+			/* Possible ICC profile.
 			 */
 			if( p->data_length > 14 &&
 				vips_isprefix( "ICC_PROFILE", 
@@ -862,7 +814,8 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			 */
 			if( p->data_length > 5 &&
 				vips_isprefix( "Photo", (char *) p->data ) &&
-				read_ipct( out, p->data, p->data_length ) )
+				attach_blob( out, VIPS_META_IPCT_NAME,
+					p->data, p->data_length ) )
 				return( -1 );
 			break;
 
