@@ -1,3 +1,8 @@
+- now we've removed round-to-nearest from NN, we need something extra in the
+  affine transform to displace the input cods
+
+  dx/dy displace output
+
 - check libtool version number, should be binary-compat with 7.30 
 
 - quadratic doesn't work for order 3
