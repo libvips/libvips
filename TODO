@@ -1,4 +1,3 @@
-- check libtool version number, should be binary-compat with 7.30 
 
 - quadratic doesn't work for order 3
 
@@ -11,7 +10,11 @@
 
 - seems to leak with vips_check_matrix()?
 
-- test with interpolators
+- test with interpolators, do we add margins correctly?
+
+
+
+- check libtool version number, should be binary-compat with 7.30 
 
 - the operation cache needs to detect invalidate
 

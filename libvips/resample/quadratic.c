@@ -68,6 +68,20 @@ y = y' + g
   + j y' x'             
   + k y' y' + l x' x'  
 
+input matrix:
+
+  a g
+  --
+  b h
+  c i
+  --
+  d j
+  --
+  e k
+  f l
+
+matrix height may be 1, 3, 4, 6
+
  */
 
 typedef struct _VipsQuadratic {
@@ -134,19 +148,21 @@ vips_quadratic_gen( VipsRegion *or, void *vseq,
 		return( -1 );
 
 	for( yo = ylow; yo < yhigh; yo++ ) {
-		fxi = xlow + vec[0];                /* order 0 */
-		fyi = yo + vec[1];    
-		dx = 1.0;
+		fxi = 0.0;
+		fyi = 0.0;
+		dx = 0.0;
 		dy = 0.0;
+		ddx = 0.0;
+		ddy = 0.0;
 
 		switch( quadratic->order ) {
 		case 3: 
 			fxi += vec[10] * yo * yo + vec[8] * xlow * xlow;
 			fyi += vec[11] * yo * yo + vec[9] * xlow * xlow;
 			dx += vec[8];
-			ddx = vec[8] * 2.0;
+			ddx += vec[8] * 2.0;
 			dy += vec[9];
-			ddy = vec[9] * 2.0;
+			ddy += vec[9] * 2.0;
 
 		case 2: 
 			fxi += vec[6] * xlow * yo;
@@ -161,14 +177,16 @@ vips_quadratic_gen( VipsRegion *or, void *vseq,
 			dy += vec[3];
 
 		case 0: 
-			/* See above for order 0.
-			 */
+			fxi += vec[0];
+			fyi += vec[1];    
 			break;
 
 		default:
 		    	g_assert( 0 );
-		    	return(-7);
+		    	return( -7 );
 		}
+
+		printf( "dx = %g, dy = %g\n", dx, dy );
 
 		q = VIPS_REGION_ADDR( or, xlow, yo );
 
@@ -261,7 +279,7 @@ vips_quadratic_build( VipsObject *object )
 
 	if( !vips_object_argument_isset( object, "interpolator" ) )
 		g_object_set( object, 
-			"interpolator", vips_interpolate_new( "bilinear" ),
+			"interpolate", vips_interpolate_new( "bilinear" ),
 			NULL );
 	interpolate = quadratic->interpolate;
 

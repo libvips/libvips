@@ -68,20 +68,99 @@
 
 #include "statistic.h"
 
+/* Track max values and position here. We need one of these for each thread,
+ * and one for the main value.
+ *
+ * We will generally only be tracking a small (<10?) number of values, so
+ * simple arrays will be fastest.
+ */
+typedef struct _VipsValues {
+	struct _VipsMax *max;
+
+	/* The max number of values we track.
+	 */
+	int size;
+
+	/* How many values we have in the arrays.
+	 */
+	int n;
+
+	/* Position and values. We track mod**2 for complex and do a sqrt() at
+	 * the end. The three arrays are sorted by values, smallest first.
+	 */
+	double *value;
+	int *x_pos;
+	int *y_pos;
+} VipsValues;
+
 typedef struct _VipsMax {
 	VipsStatistic parent_instance;
 
-	gboolean set;		/* FALSE means no value yet */
-
-	/* The current maximum. When scanning complex images, we keep the
-	 * square of the modulus here and do a single sqrt() right at the end.
+	/* Max number of values we track.
 	 */
-	double max;
+	int max_values;
 
-	/* And its position.
+	/* Global state here.
 	 */
-	int x, y;
+	VipsValues values;
 } VipsMax;
+
+static void
+vips_values_init( VipsValues *values, VipsMax *max )
+{
+	values->max = max;
+
+	values->size = max->max_values;
+	values->n = 0;
+	values->value = VIPS_ARRAY( max, values->size, double );
+	values->x_pos = VIPS_ARRAY( max, values->size, int );
+	values->y_pos = VIPS_ARRAY( max, values->size, int );
+}
+
+/* Add a value. Do nothing if the value is too small.
+ */
+static void
+vips_values_add( VipsValues *values, double v, int x, int y )
+{
+	int i, j;
+
+	/* Find insertion point.
+	 */
+	for( i = 0; i < values->n; i++ )
+		if( values->value[i] > v ) 
+			break;
+
+	/* Array full? 
+	 */
+	if( values->n == values->size ) {
+		if( i > 0 ) {
+			/* We need to move stuff to the left to make space,
+			 * shunting the smallest out.
+			 */
+			for( j = 0; j < i - 1; j++ ) {
+				values->value[j] = values->value[j + 1];
+				values->x_pos[j] = values->x_pos[j + 1];
+				values->y_pos[j] = values->y_pos[j + 1];
+			}
+			values->value[i - 1] = v;
+			values->x_pos[i - 1] = x;
+			values->y_pos[i - 1] = y;
+		}
+	}
+	else {
+		/* Not full, move stuff to the right into empty space.
+		 */
+		for( j = values->n + 1; j > i; j-- ) {
+			values->value[j] = values->value[j - 1];
+			values->x_pos[j] = values->x_pos[j - 1];
+			values->y_pos[j] = values->y_pos[j - 1];
+		}
+		values->value[i] = v;
+		values->x_pos[i] = x;
+		values->y_pos[i] = y;
+		values->n += 1;
+	}
+}
 
 typedef VipsStatisticClass VipsMaxClass;
 
@@ -92,6 +171,8 @@ vips_max_build( VipsObject *object )
 {
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
 	VipsMax *max = (VipsMax *) object;
+
+	vips_values_init( *max->values, max );
 
 	if( VIPS_OBJECT_CLASS( vips_max_parent_class )->build( object ) )
 		return( -1 );
@@ -122,17 +203,17 @@ vips_max_build( VipsObject *object )
 	return( 0 );
 }
 
-/* New sequence value. Make a private VipsMax for this thread.
+/* New sequence value. Make a private VipsValues for this thread.
  */
 static void *
 vips_max_start( VipsStatistic *statistic )
 {
-	VipsMax *max;
+	VipsValues *values;
 
-	max = g_new( VipsMax, 1 );
-	max->set = FALSE;
+	values = g_new( VipsValues, 1 );
+	vips_values_init( values, (VipsMax *) statistic ); 
 
-	return( (void *) max );
+	return( (void *) values );
 }
 
 /* Merge the sequence value back into the per-call state.
@@ -140,18 +221,16 @@ vips_max_start( VipsStatistic *statistic )
 static int
 vips_max_stop( VipsStatistic *statistic, void *seq )
 {
-	VipsMax *global = (VipsMax *) statistic;
-	VipsMax *local = (VipsMax *) seq;
+	VipsMax *max = (VipsMax *) statistic;
+	VipsValues *values = (VipsValues *) seq;
 
-	if( local->set &&
-		(!global->set || local->max > global->max) ) {
-		global->max = local->max;
-		global->x = local->x;
-		global->y = local->y;
-		global->set = TRUE;
-	}
+	int i;
 
-	g_free( local );
+	for( i = 0; i < values->n; i++ )
+		vips_values_add( &max->values, 
+			values->value[i], values->x_pos[i], values->y_pos[i] );
+
+	g_free( values );
 
 	return( 0 );
 }
