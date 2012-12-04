@@ -4,6 +4,7 @@ libdeprecated_la_SOURCES = \
 	im_openslide2vips.c \
 	im_lab_morph.c \
 	deprecated_dispatch.c \
+	colour_dispatch.c \
 	wrapvips7.c \
 	lazy.c \
 	im_dif_std.c \
