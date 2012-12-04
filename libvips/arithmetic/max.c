@@ -21,6 +21,8 @@
  * 24/2/12
  * 	- avoid NaN in float/double/complex images
  * 	- allow +/- INFINITY as a result
+ * 4/12/12
+ * 	- track top n values
  */
 
 /*
@@ -98,7 +100,14 @@ typedef struct _VipsMax {
 
 	/* Max number of values we track.
 	 */
-	int max_values;
+	int size;
+
+	/* The single max. Can be unset if, for example, the whole image is
+	 * NaN.
+	 */
+	double max;
+	int x;
+	int y;
 
 	/* Global state here.
 	 */
@@ -110,7 +119,7 @@ vips_values_init( VipsValues *values, VipsMax *max )
 {
 	values->max = max;
 
-	values->size = max->max_values;
+	values->size = max->size;
 	values->n = 0;
 	values->value = VIPS_ARRAY( max, values->size, double );
 	values->x_pos = VIPS_ARRAY( max, values->size, int );
@@ -171,32 +180,31 @@ vips_max_build( VipsObject *object )
 {
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
 	VipsMax *max = (VipsMax *) object;
+	VipsValues *values = &max->values;
+	int i;
 
-	vips_values_init( *max->values, max );
+	vips_values_init( values, max );
 
 	if( VIPS_OBJECT_CLASS( vips_max_parent_class )->build( object ) )
 		return( -1 );
 
+	/* For speed we accumulate max ** 2 for complex.
+	 */
+	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) ) 
+		for( i = 0; i < values->n; i++ ) 
+			values->value[i] = sqrt( values->value[i] );
+
 	/* Don't set if there's no value (eg. if every pixel is NaN). This
 	 * will trigger an error later.
 	 */
-	if( max->set ) {
-		double m;
-
-		/* For speed we accumulate max^2 for complex.
-		 */
-		m = max->max;
-		if( vips_bandfmt_iscomplex( 
-			vips_image_get_format( statistic->in ) ) )
-			m = sqrt( m );
-
+	if( values->n > 0 ) {
 		/* We have to set the props via g_object_set() to stop vips
 		 * complaining they are unset.
 		 */
 		g_object_set( max, 
-			"out", m,
-			"x", max->x,
-			"y", max->y,
+			"out", values->value[values->n - 1],
+			"x", values->x_pos[values->n - 1],
+			"y", values->y_pos[values->n - 1],
 			NULL );
 	}
 
@@ -235,34 +243,29 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 	return( 0 );
 }
 
-/* real max with an upper bound.
+/* Real max with an upper bound. Stop if our array fills with maxval.
  */
 #define LOOPU( TYPE, UPPER ) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE m; \
 	\
-	if( max->set ) \
-		m = max->max; \
+	if( values->n ) \
+		m = values->value[0]; \
 	else { \
 		m = p[0]; \
-		max->x = x; \
-		max->y = y; \
 	} \
 	\
 	for( i = 0; i < sz; i++ ) { \
 		if( p[i] > m ) { \
-			m = p[i]; \
-			max->x = x + i / bands; \
-			max->y = y; \
+			vips_values_add( values, p[i], x + i / bands, y ); \
+			m = values->value[0]; \
+			\
 			if( m >= UPPER ) { \
 				statistic->stop = TRUE; \
 				break; \
 			} \
 		} \
 	} \
-	\
-	max->max = m; \
-	max->set = TRUE; \
 } 
 
 /* float/double max ... no limits, and we have to avoid NaN.
@@ -276,28 +279,17 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 	TYPE m; \
 	gboolean set; \
 	\
-	set = max->set; \
-	m = max->max; \
+	set = values->n > 0; \
+	if( set ) \
+		m = values->value[0]; \
 	\
 	for( i = 0; i < sz; i++ ) { \
-		if( set ) { \
-			if( p[i] > m ) { \
-				m = p[i]; \
-				max->x = x + i / bands; \
-				max->y = y; \
-			} \
-		} \
-		else if( !isnan( p[i] ) ) {  \
-			m = p[i]; \
-			max->x = x + i / bands; \
-			max->y = y; \
+		if( (set && p[i] > m) || \
+			(!set && !isnan( p[i] )) ) { \
+			vips_values_add( values, p[i], x + i / bands, y ); \
+			m = values->value[0]; \
 			set = TRUE; \
 		} \
-	} \
-	\
-	if( set ) { \
-		max->max = m; \
-		max->set = TRUE; \
 	} \
 } 
 
@@ -308,8 +300,9 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 	TYPE m; \
 	gboolean set; \
 	\
-	set = max->set; \
-	m = max->max; \
+	set = values->n > 0; \
+	if( set ) \
+		m = values->value[0]; \
 	\
 	for( i = 0; i < sz; i++ ) { \
 		TYPE mod; \
@@ -317,24 +310,12 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 		mod = p[0] * p[0] + p[1] * p[1]; \
 		p += 2; \
 		\
-		if( set ) { \
-			if( mod > m ) { \
-				m = mod; \
-				max->x = x + i / bands; \
-				max->y = y; \
-			} \
-		} \
-		else if( !isnan( mod ) ) {  \
-			m = mod; \
-			max->x = x + i / bands; \
-			max->y = y; \
+		if( (set && mod > m) || \
+			(!set && !isnan( mod )) ) { \
+			vips_values_add( values, mod, x + i / bands, y ); \
+			m = values->value[0]; \
 			set = TRUE; \
 		} \
-	} \
-	\
-	if( set ) { \
-		max->max = m; \
-		max->set = TRUE; \
 	} \
 } 
 
@@ -344,7 +325,7 @@ static int
 vips_max_scan( VipsStatistic *statistic, void *seq, 
 	int x, int y, void *in, int n )
 {
-	VipsMax *max = (VipsMax *) seq;
+	VipsValues *values = (VipsValues *) seq;
 	const int bands = vips_image_get_bands( statistic->in );
 	const int sz = n * bands;
 
@@ -413,17 +394,26 @@ vips_max_class_init( VipsMaxClass *class )
 		G_STRUCT_OFFSET( VipsMax, x ),
 		0, 1000000, 0 );
 
-	VIPS_ARG_INT( class, "y", 2, 
+	VIPS_ARG_INT( class, "y", 3, 
 		_( "y" ), 
 		_( "Vertical position of maximum" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsMax, y ),
 		0, 1000000, 0 );
+
+	VIPS_ARG_INT( class, "size", 4, 
+		_( "Size" ), 
+		_( "Number of maximum values to find" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsMax, size ),
+		0, 1000000, 10 );
+
 }
 
 static void
 vips_max_init( VipsMax *max )
 {
+	max->size = 10;
 }
 
 /**
@@ -436,17 +426,20 @@ vips_max_init( VipsMax *max )
  *
  * @x: horizontal position of maximum
  * @y: vertical position of maximum
+ * @size: number of maxima to find
  *
  * This operation finds the maximum value in an image. 
  *
- * If the image contains several maximum values, only the first one found is
- * returned.
+ * If the image contains several maximum values, only the first @size 
+ * found are returned.
  *
  * It operates on all 
  * bands of the input image: use vips_stats() if you need to find an 
  * maximum for each band. 
  *
  * For complex images, this operation finds the maximum modulus.
+ *
+ * You can read out the position of the maximum with @x and @y.
  *
  * See also: vips_min(), vips_stats().
  *

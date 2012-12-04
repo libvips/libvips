@@ -9,7 +9,6 @@ libarithmetic_la_SOURCES = \
 	divide.c \
 	im_linreg.c \
 	im_maxpos_avg.c \
-	im_maxpos_vec.c \
 	measure.c \
 	multiply.c \
 	im_point_bilinear.c \
