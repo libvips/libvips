@@ -667,6 +667,8 @@ int im_moreeqconst( VipsImage *in, VipsImage *out, double c );
 int im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n );
 int im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n );
 
+int im_maxpos_avg( VipsImage *im, double *xpos, double *ypos, double *out );
+
 int im_copy( VipsImage *in, VipsImage *out );
 int im_copy_set( VipsImage *in, VipsImage *out, 
 	VipsInterpretation interpretation, 

@@ -360,11 +360,6 @@ int vips_stats( VipsImage *in, VipsImage **out, ... )
 int vips_measure( VipsImage *in, VipsImage **out, int h, int v, ... )
 	__attribute__((sentinel));
 
-
-
-
-int im_maxpos_avg( VipsImage *im, double *xpos, double *ypos, double *out );
-
 int im_linreg( VipsImage **ins, VipsImage *out, double *xs );
 int im_point( VipsImage *im, VipsInterpolate *interpolate, 
 	double x, double y, int band, double *out );

@@ -6,6 +6,7 @@ libdeprecated_la_SOURCES = \
 	deprecated_dispatch.c \
 	colour_dispatch.c \
 	arith_dispatch.c \
+	im_maxpos_avg.c \
 	wrapvips7.c \
 	lazy.c \
 	im_dif_std.c \

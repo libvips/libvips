@@ -2810,13 +2810,66 @@ im_quadratic( IMAGE *in, IMAGE *out, IMAGE *coeff )
 int 
 im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n )
 {
-	printf( "im_maxpos_vec: fixme\n" );
-	return( -1 );
+	double max;
+	VipsArrayDouble *out_array;
+	VipsArrayInt *x_array;
+	VipsArrayInt *y_array;
+
+	if( vips_max( im, &max, 
+		"size", n,
+		"out_array", &out_array, 
+		"x_array", &x_array, 
+		"y_array", &y_array, 
+		NULL ) )
+		return( -1 );
+
+	memcpy( xpos, 
+		vips_area_get_data( x_array, NULL, NULL, NULL, NULL ),
+		n * sizeof( int ) );
+	memcpy( ypos, 
+		vips_area_get_data( y_array, NULL, NULL, NULL, NULL ),
+		n * sizeof( int ) );
+	memcpy( maxima, 
+		vips_area_get_data( out_array, NULL, NULL, NULL, NULL ),
+		n * sizeof( double ) );
+
+	vips_area_unref( (VipsArea *) out_array );
+	vips_area_unref( (VipsArea *) x_array );
+	vips_area_unref( (VipsArea *) y_array );
+
+	return( 0 );
 }
 
 int 
 im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n )
 {
-	printf( "im_minpos_vec: fixme\n" );
-	return( -1 );
+	double min;
+	VipsArrayDouble *out_array;
+	VipsArrayInt *x_array;
+	VipsArrayInt *y_array;
+
+	if( vips_min( im, &min, 
+		"size", n,
+		"out_array", &out_array, 
+		"x_array", &x_array, 
+		"y_array", &y_array, 
+		NULL ) )
+		return( -1 );
+
+	memcpy( xpos, 
+		vips_area_get_data( x_array, NULL, NULL, NULL, NULL ),
+		n * sizeof( int ) );
+	memcpy( ypos, 
+		vips_area_get_data( y_array, NULL, NULL, NULL, NULL ),
+		n * sizeof( int ) );
+	memcpy( minima, 
+		vips_area_get_data( out_array, NULL, NULL, NULL, NULL ),
+		n * sizeof( double ) );
+
+	vips_area_unref( (VipsArea *) out_array );
+	vips_area_unref( (VipsArea *) x_array );
+	vips_area_unref( (VipsArea *) y_array );
+
+	return( 0 );
 }
+
