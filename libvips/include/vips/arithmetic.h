@@ -364,8 +364,6 @@ int vips_measure( VipsImage *in, VipsImage **out, int h, int v, ... )
 
 
 int im_maxpos_avg( VipsImage *im, double *xpos, double *ypos, double *out );
-int im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n );
-int im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n );
 
 int im_linreg( VipsImage **ins, VipsImage *out, double *xs );
 int im_point( VipsImage *im, VipsInterpolate *interpolate, 

@@ -2806,3 +2806,13 @@ im_quadratic( IMAGE *in, IMAGE *out, IMAGE *coeff )
 
 	return( 0 );
 }
+
+int 
+im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n )
+{
+}
+
+int 
+im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n )
+{
+}

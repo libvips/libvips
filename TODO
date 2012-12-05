@@ -1,3 +1,5 @@
+- im_maxpos_vec()/im_minpos_vec() wrappers need doing
+
 - im_maxpos_avg() should be NaN-avoiding?
 
 - now we've removed round-to-nearest from NN, we need something extra in the
