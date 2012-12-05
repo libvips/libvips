@@ -24,6 +24,7 @@
 - preserve jpeg app13 (photoshop ipct)
 - nearest neighbour goes back to round down ... round to nearest caused a
   range of annoying problems, such as strange half-pixels along edges
+- vips_max() tracks the top n maxima
 
 14/11/12 started 7.30.6
 - capture tiff warnings earlier

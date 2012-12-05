@@ -547,6 +547,78 @@ vips_blob_get_type( void )
 }
 
 static void
+transform_array_int_g_string( const GValue *src_value, GValue *dest_value )
+{
+	int n;
+	int *array = vips_value_get_array_int( src_value, &n );
+
+	char txt[1024];
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
+	int i;
+
+	for( i = 0; i < n; i++ ) 
+		/* Use space as a separator since ',' may be a decimal point
+		 * in this locale.
+		 */
+		vips_buf_appendf( &buf, "%d ", array[i] );
+
+	g_value_set_string( dest_value, vips_buf_all( &buf ) );
+}
+
+/* It'd be great to be able to write a generic string->array function, but
+ * it doesn't seem possible.
+ */
+static void
+transform_g_string_array_int( const GValue *src_value, GValue *dest_value )
+{
+	char *str;
+	int n;
+	char *p, *q;
+	int i;
+	int *array;
+
+	/* Walk the string to get the number of elements. 
+	 * We need a copy of the string, since we insert \0 during
+	 * scan.
+	 *
+	 * We can't allow ',' as a separator, since some locales use it as a
+	 * decimal point.
+	 */
+	str = g_value_dup_string( src_value );
+	n = 0;
+	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) 
+		n += 1;
+	g_free( str );
+
+	vips_value_set_array( dest_value, n, G_TYPE_INT, sizeof( int ) );
+	array = (int *) vips_value_get_array( dest_value, NULL, NULL, NULL );
+
+	str = g_value_dup_string( src_value );
+	i = 0;
+	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) 
+		array[i++] = atoi( p );
+	g_free( str );
+}
+
+GType
+vips_array_int_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		type = g_boxed_type_register_static( "VipsArrayInt",
+			(GBoxedCopyFunc) vips_area_copy, 
+			(GBoxedFreeFunc) vips_area_unref );
+		g_value_register_transform_func( type, G_TYPE_STRING,
+			transform_array_int_g_string );
+		g_value_register_transform_func( G_TYPE_STRING, type,
+			transform_g_string_array_int );
+	}
+
+	return( type );
+}
+
+static void
 transform_array_double_g_string( const GValue *src_value, GValue *dest_value )
 {
 	int n;
@@ -913,6 +985,105 @@ vips_value_get_array( const GValue *value,
 		*sizeof_type = area->sizeof_type;
 
 	return( area->data );
+}
+
+/**
+ * vips_array_int_new:
+ * @array: (array length=n): array of int
+ * @n: number of ints
+ *
+ * Allocate a new array of ints and copy @array into it. Free with
+ * vips_area_unref().
+ *
+ * See also: #VipsArea.
+ *
+ * Returns: (transfer full): A new #VipsArrayInt.
+ */
+VipsArrayInt *
+vips_array_int_new( const int *array, int n )
+{
+	VipsArea *area;
+	int *array_copy;
+
+	area = vips_area_new_array( G_TYPE_INT, sizeof( int ), n );
+	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+	memcpy( array_copy, array, n * sizeof( int ) );
+
+	return( area );
+}
+
+/**
+ * vips_array_int_newv:
+ * @n: number of ints
+ * @...: list of int arguments
+ *
+ * Allocate a new array of @n ints and copy @... into it. Free with
+ * vips_area_unref().
+ *
+ * See also: vips_array_int_new()
+ *
+ * Returns: (transfer full): A new #VipsArrayInt.
+ */
+VipsArrayInt *
+vips_array_int_newv( int n, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int *array;
+	int i;
+
+	area = vips_area_new_array( G_TYPE_INT, sizeof( int ), n );
+	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+
+	va_start( ap, n );
+	for( i = 0; i < n; i++ )
+		array[i] = va_arg( ap, int ); 
+	va_end( ap );
+
+	return( area );
+}
+
+/** 
+ * vips_value_get_array_int:
+ * @value: %GValue to get from
+ * @n: (allow-none): return the number of elements here, optionally
+ *
+ * Return the start of the array of ints held by @value.
+ * optionally return the number of elements in @n.
+ *
+ * See also: vips_array_int_set().
+ *
+ * Returns: (transfer none): The array address.
+ */
+int *
+vips_value_get_array_int( const GValue *value, int *n )
+{
+	return( vips_value_get_array( value, n, NULL, NULL ) );
+}
+
+/** 
+ * vips_value_set_array_int:
+ * @value: (out): %GValue to get from
+ * @array: (array length=n): array of ints
+ * @n: the number of elements 
+ *
+ * Set @value to hold a copy of @array. Pass in the array length in @n. 
+ *
+ * See also: vips_array_int_get().
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_value_set_array_int( GValue *value, const int *array, int n )
+{
+	int *array_copy;
+
+	g_value_init( value, VIPS_TYPE_ARRAY_INT );
+	vips_value_set_array( value, n, G_TYPE_INT, sizeof( int ) );
+	array_copy = vips_value_get_array_int( value, NULL );
+	memcpy( array_copy, array, n * sizeof( int ) );
+
+	return( 0 );
 }
 
 /**

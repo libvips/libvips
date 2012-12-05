@@ -2810,9 +2810,13 @@ im_quadratic( IMAGE *in, IMAGE *out, IMAGE *coeff )
 int 
 im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n )
 {
+	printf( "im_maxpos_vec: fixme\n" );
+	return( -1 );
 }
 
 int 
 im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n )
 {
+	printf( "im_minpos_vec: fixme\n" );
+	return( -1 );
 }

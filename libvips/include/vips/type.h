@@ -128,7 +128,6 @@ GType vips_ref_string_get_type( void );
 #define VIPS_TYPE_BLOB (vips_blob_get_type())
 GType vips_blob_get_type( void );
 
-
 /**
  * VIPS_TYPE_ARRAY_DOUBLE:
  *
@@ -139,6 +138,17 @@ typedef VipsArea VipsArrayDouble;
 VipsArrayDouble *vips_array_double_new( const double *array, int n );
 VipsArrayDouble *vips_array_double_newv( int n, ... );
 GType vips_array_double_get_type( void );
+
+/**
+ * VIPS_TYPE_ARRAY_INT:
+ *
+ * The #GType for a #VipsArrayInt.
+ */
+#define VIPS_TYPE_ARRAY_INT (vips_array_int_get_type())
+typedef VipsArea VipsArrayInt;
+VipsArrayInt *vips_array_int_new( const int *array, int n );
+VipsArrayInt *vips_array_int_newv( int n, ... );
+GType vips_array_int_get_type( void );
 
 /**
  * VIPS_TYPE_ARRAY_IMAGE:
@@ -170,6 +180,9 @@ void *vips_value_get_array( const GValue *value,
 
 double *vips_value_get_array_double( const GValue *value, int *n );
 int vips_value_set_array_double( GValue *value, const double *array, int n );
+
+int *vips_value_get_array_int( const GValue *value, int *n );
+int vips_value_set_array_int( GValue *value, const int *array, int n );
 
 GObject **vips_value_get_array_object( const GValue *value, int *n );
 int vips_value_set_array_object( GValue *value, int n );
