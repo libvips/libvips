@@ -79,7 +79,7 @@
 typedef struct _VipsValues {
 	struct _VipsMax *max;
 
-	/* The max number of values we track.
+	/* Number of values we track.
 	 */
 	int size;
 
@@ -88,7 +88,7 @@ typedef struct _VipsValues {
 	int n;
 
 	/* Position and values. We track mod**2 for complex and do a sqrt() at
-	 * the end. The three arrays are sorted by values, smallest first.
+	 * the end. The three arrays are sorted by @value, smallest first.
 	 */
 	double *value;
 	int *x_pos;
@@ -109,8 +109,8 @@ typedef struct _VipsMax {
 	int x;
 	int y;
 
-	/* And the postions and values we found as VipsArrays for returning to
-	 * our caller.
+	/* And the positions and values we found as VipsArrays for returning 
+	 * to our caller.
 	 */
 	VipsArrayDouble *max_array;
 	VipsArrayInt *x_array;
@@ -143,7 +143,7 @@ vips_values_add( VipsValues *values, double v, int x, int y )
 	/* Find insertion point.
 	 */
 	for( i = 0; i < values->n; i++ )
-		if( values->value[i] > v ) 
+		if( v <= values->value[i] ) 
 			break;
 
 	/* Array full? 
@@ -307,9 +307,8 @@ vips_max_stop( VipsStatistic *statistic, void *seq )
 
 /* float/double max ... no limits, and we have to avoid NaN.
  *
- * NaN compares false to every float value, so if we were to take the first
- * point in this buffer as our start max (as we do above) and it was NaN, we'd
- * never replace it with a true value.
+ * NaN compares false to every float value, so we don't need to test for NaN
+ * in the second loop. 
  */
 #define LOOPF( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
