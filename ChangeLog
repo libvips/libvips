@@ -25,6 +25,7 @@
 - nearest neighbour goes back to round down ... round to nearest caused a
   range of annoying problems, such as strange half-pixels along edges
 - vips_max() / _min() track the top n maxima / minima
+- deprecate im_maxpos_avg(): too specialised to be worth maintaining
 
 14/11/12 started 7.30.6
 - capture tiff warnings earlier
