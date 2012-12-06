@@ -368,6 +368,23 @@ vips_operation_complex_get_type( void )
 	return( etype );
 }
 GType
+vips_operation_complex2_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_COMPLEX2_CROSS_PHASE, "VIPS_OPERATION_COMPLEX2_CROSS_PHASE", "cross-phase"},
+			{VIPS_OPERATION_COMPLEX2_LAST, "VIPS_OPERATION_COMPLEX2_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationComplex2", values );
+	}
+
+	return( etype );
+}
+GType
 vips_operation_complexget_get_type( void )
 {
 	static GType etype = 0;

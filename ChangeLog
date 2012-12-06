@@ -28,6 +28,7 @@
 - deprecate im_maxpos_avg(): too specialised to be worth maintaining
 - deprecate im_linreg(): easily done by combining other operators
 - deprecate im_point(): easily done by combining other operators
+- add binary complex operations, with cross_phase as the only one so far
 
 14/11/12 started 7.30.6
 - capture tiff warnings earlier

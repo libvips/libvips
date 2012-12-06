@@ -148,6 +148,17 @@ typedef enum {
 } VipsOperationComplex;
 
 /** 
+ * VipsOperationComplex2:
+ * @VIPS_OPERATION_COMPLEX2_CROSS_PHASE: convert to polar coordinates
+ *
+ * See also: vips_complex2().
+ */
+typedef enum {
+	VIPS_OPERATION_COMPLEX2_CROSS_PHASE,
+	VIPS_OPERATION_COMPLEX2_LAST
+} VipsOperationComplex2;
+
+/** 
  * VipsOperationComplexget:
  * @VIPS_OPERATION_COMPLEXGET_REAL: get real component
  * @VIPS_OPERATION_COMPLEXGET_IMAG: get imaginary component
@@ -228,6 +239,12 @@ int vips_polar( VipsImage *in, VipsImage **out, ... )
 int vips_rect( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_conj( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+
+int vips_complex2( VipsImage *left, VipsImage *right, VipsImage **out, 
+	VipsOperationComplex2 cmplx, ... )
+	__attribute__((sentinel));
+int vips_cross_phase( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int vips_complexget( VipsImage *in, VipsImage **out, 

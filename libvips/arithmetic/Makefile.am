@@ -3,7 +3,6 @@ noinst_LTLIBRARIES = libarithmetic.la
 libarithmetic_la_SOURCES = \
 	abs.c \
 	complex.c \
-	im_cross_phase.c \
 	deviate.c \
 	divide.c \
 	measure.c \

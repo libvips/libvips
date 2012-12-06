@@ -1,4 +1,4 @@
-- im_cross_phase.c needs a rewrite?
+- im_cross_phase.c needs a vips7 compat wrapper
 
 - add vips_band()/vips_bor()
 

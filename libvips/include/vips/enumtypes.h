@@ -34,6 +34,8 @@ GType vips_operation_boolean_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_BOOLEAN (vips_operation_boolean_get_type())
 GType vips_operation_complex_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_COMPLEX (vips_operation_complex_get_type())
+GType vips_operation_complex2_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_OPERATION_COMPLEX2 (vips_operation_complex2_get_type())
 GType vips_operation_complexget_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_COMPLEXGET (vips_operation_complexget_get_type())
 /* enumerations from "../../../libvips/include/vips/conversion.h" */

@@ -196,7 +196,7 @@ vips_math2_class_init( VipsMath2Class *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "math2";
-	object_class->description = _( "pow( left, right)" );
+	object_class->description = _( "binary math operations" );
 	object_class->build = vips_math2_build;
 
 	vips_arithmetic_set_format_table( aclass, vips_bandfmt_math2 );

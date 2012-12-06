@@ -27,44 +27,46 @@
 
  */
 
-#ifndef IM_INLINE_H
-#define IM_INLINE_H
+#ifndef VIPS_INLINE_H
+#define VIPS_INLINE_H
 
-/* glib promises to define inline in a portable way */
+/* glib promises to define inline in a portable way 
+ */
 
 #include <glib.h>
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-
 #ifdef HAVE_HYPOT
 
-#define im__hypot hypot
+#define vips__hypot hypot
 
 #else /* HAVE_HYPOT */
 
-static inline double im__hypot( double a, double b ){
-  double ta= fabs( a );
-  double tb= fabs( b );
+static inline double 
+vips__hypot( double a, double b ) 
+{
+	double ta = fabs( a );
+	double tb = fabs( b );
 
-  if( ta > tb ){
-    tb= b / a;
-    return ta * sqrt( 1.0 + tb * tb );
-  }
-  else {
-    ta= a / b;
-    return tb * sqrt( 1.0 + ta * ta );
-  }
+	if( ta > tb ) {
+		tb = b / a;
+
+		return( ta * sqrt( 1.0 + tb * tb ) );
+	}
+	else {
+		ta = a / b;
+
+		return( tb * sqrt( 1.0 + ta * ta ) );
+	}
 }
 
 #endif /* HAVE_HYPOT */
-
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_INLINE_H*/
+#endif /*VIPS_INLINE_H*/

@@ -334,6 +334,245 @@ vips_conj( VipsImage *in, VipsImage **out, ... )
 	return( result );
 }
 
+typedef struct _VipsComplex2 {
+	VipsUnary parent_instance;
+
+	VipsOperationComplex2 cmplx;
+
+} VipsComplex2;
+
+typedef VipsUnaryClass VipsComplex2Class;
+
+G_DEFINE_TYPE( VipsComplex2, vips_complex2, VIPS_TYPE_BINARY );
+
+#define LOOP2( IN, OUT, OP ) { \
+	IN *p1 = (IN *) in[0]; \
+	IN *p2 = (IN *) in[1]; \
+	OUT *q = (OUT *) out; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		OP( q, p1[x], 0.0, p2[x], 0.0 ); \
+		\
+		q += 2; \
+	} \
+}
+
+#define CLOOP2( IN, OUT, OP ) { \
+	IN *p1 = (IN *) in[0]; \
+	IN *p2 = (IN *) in[1]; \
+	OUT *q = (OUT *) out; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		OP( q, p1[0], p1[1], p2[0], p2[1] ); \
+		\
+		p1 += 2; \
+		p2 += 2; \
+		q += 2; \
+	} \
+}
+
+#define SWITCH2( OP ) \
+	switch( vips_image_get_format( im ) ) { \
+	case VIPS_FORMAT_UCHAR: \
+		LOOP2( unsigned char, float, OP ); break; \
+	case VIPS_FORMAT_CHAR: \
+		LOOP2( signed char, float, OP ); break; \
+	case VIPS_FORMAT_USHORT: \
+		LOOP2( unsigned short, float, OP ); break; \
+	case VIPS_FORMAT_SHORT: \
+		LOOP2( signed short, float, OP ); break; \
+	case VIPS_FORMAT_UINT: \
+		LOOP2( unsigned int, float, OP ); break; \
+	case VIPS_FORMAT_INT: \
+		LOOP2( signed int, float, OP ); break; \
+	case VIPS_FORMAT_FLOAT: \
+		LOOP2( float, float, OP ); break; \
+	case VIPS_FORMAT_DOUBLE: \
+		LOOP2( double, double, OP ); break;\
+	case VIPS_FORMAT_COMPLEX: \
+		CLOOP2( float, float, OP ); break; \
+	case VIPS_FORMAT_DPCOMPLEX: \
+		CLOOP2( double, double, OP ); break;\
+ 	\
+	default: \
+		g_assert( 0 ); \
+	} 
+
+/* There doesn't seem to be much difference in speed between these two methods 
+ * (on an Athlon64), so I use the modulus argument version, since atan2() is 
+ * in c89 but hypot() is c99.
+ *
+ * If you think that it might be faster on your platform, uncomment the 
+ * following:
+ */
+#define USE_MODARG_DIV
+
+#ifdef USE_MODARG_DIV
+
+#define CROSS( Q, X1, Y1, X2, Y2 ) { \
+	double arg = atan2( X2, X1 ) - atan2( Y2, Y1 ); \
+	\
+	Q[0] = cos( arg ); \
+	Q[1] = sin( arg ); \
+}
+
+#else /* USE_MODARG_DIV */
+
+#define CROSS( Q, X1, Y1, X2, Y2 ) { \
+	if( ABS( Y1 ) > ABS( Y2 ) ) { \
+		double a = Y2 / Y1; \
+		double b = Y1 + Y2 * a; \
+		double re = (X1 + X2 * a) / b; \
+		double im = (X2 - X1 * a) / b; \
+		double mod = vips__hypot( re, im ); \
+		\
+		Q[0] = re / mod; \
+		Q[1] = im / mod; \
+	} \
+	else { \
+		double a = Y1 / Y2; \
+		double b = Y2 + Y1 * a; \
+		double re = (X1 * a + X2) / b; \
+		double im = (X2 * a - X1) / b; \
+		double mod = vips__hypot( re, im ); \
+		\
+		Q[0] = re / mod; \
+		Q[1] = im / mod; \
+	} \
+}
+
+#endif /* USE_MODARG_DIV */
+
+static void
+vips_complex2_buffer( VipsArithmetic *arithmetic, 
+	VipsPel *out, VipsPel **in, int width )
+{
+	VipsComplex2 *cmplx = (VipsComplex2 *) arithmetic;
+	VipsImage *im = arithmetic->ready[0];
+	const int sz = width * vips_image_get_bands( im );
+
+	int x;
+
+	switch( cmplx->cmplx ) {
+	case VIPS_OPERATION_COMPLEX2_CROSS_PHASE:	SWITCH2( CROSS ); break;
+
+	default:
+		g_assert( 0 );
+	}
+}
+
+/* Save a bit of typing.
+ */
+#define UC VIPS_FORMAT_UCHAR
+#define C VIPS_FORMAT_CHAR
+#define US VIPS_FORMAT_USHORT
+#define S VIPS_FORMAT_SHORT
+#define UI VIPS_FORMAT_UINT
+#define I VIPS_FORMAT_INT
+#define F VIPS_FORMAT_FLOAT
+#define X VIPS_FORMAT_COMPLEX
+#define D VIPS_FORMAT_DOUBLE
+#define DX VIPS_FORMAT_DPCOMPLEX
+
+static const VipsBandFormat vips_bandfmt_complex2[10] = {
+/* UC  C   US  S   UI  I   F   X   D   DX */
+   X,  X,  X,  X,  X,  X,  X,  X,  DX, DX 
+};
+
+static void
+vips_complex2_class_init( VipsComplex2Class *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "complex2";
+	object_class->description = 
+		_( "perform a binary complex operation on two images" );
+
+	vips_arithmetic_set_format_table( aclass, vips_bandfmt_complex2 );
+
+	aclass->process_line = vips_complex2_buffer;
+
+	VIPS_ARG_ENUM( class, "cmplx", 200, 
+		_( "Operation" ), 
+		_( "binary complex operation to perform" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsComplex2, cmplx ),
+		VIPS_TYPE_OPERATION_COMPLEX, 
+			VIPS_OPERATION_COMPLEX2_CROSS_PHASE ); 
+}
+
+static void
+vips_complex2_init( VipsComplex2 *cmplx )
+{
+}
+
+static int
+vips_complex2v( VipsImage *left, VipsImage *right, VipsImage **out, 
+	VipsOperationComplex2 cmplx, va_list ap )
+{
+	return( vips_call_split( "complex2", ap, left, right, out, cmplx ) );
+}
+
+/**
+ * vips_complex2:
+ * @left: input #VipsImage
+ * @right: input #VipsImage
+ * @out: output #VipsImage
+ * @cmplx: complex2 operation to perform
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform various binary operations on complex images.
+ *
+ * Angles are expressed in degrees. The output type is complex unless the 
+ * input is double or dpcomplex, in which case the output is dpcomplex.  
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_complex2( VipsImage *left, VipsImage *right, VipsImage **out, 
+	VipsOperationComplex2 cmplx, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, cmplx );
+	result = vips_complex2v( left, right, out, cmplx, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_cross_phase:
+ * @left: input #VipsImage
+ * @right: input #VipsImage
+ * @out: output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_COMPLEX2_CROSS_PHASE on an image. 
+ * See vips_complex2().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_cross_phase( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_complex2v( left, right, out, 
+		VIPS_OPERATION_COMPLEX2_CROSS_PHASE, ap );
+	va_end( ap );
+
+	return( result );
+}
+
 typedef struct _VipsComplexget {
 	VipsUnary parent_instance;
 
