@@ -673,12 +673,16 @@ vips_call_option_output( VipsObject *object,
 	VipsArgumentInstance *argument_instance = output->argument_instance;
 	GParamSpec *pspec = ((VipsArgument *) argument_instance)->pspec;
 
-	if( vips_object_get_argument_to_string( object, 
-		g_param_spec_get_name( pspec ), output->value ) ) {
-		/* FIXME .. Hmm what can we do here? If an arg is image
-		 * output, for example, we will lose the error.
-		 */
-	}
+	/* Don't look at the output arg if _build() hasn't run sucessfully, it
+	 * probably won't have been set. 
+	 */
+	if( object->constructed )
+		if( vips_object_get_argument_to_string( object, 
+			g_param_spec_get_name( pspec ), output->value ) ) {
+			/* FIXME .. Hmm what can we do here? If an arg is image
+			 * output, for example, we will lose the error.
+			 */
+		}
 
 	g_free( output );
 }

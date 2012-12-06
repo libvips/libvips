@@ -1,13 +1,3 @@
-- try
-
-	$ vips max test.v --x-array 10
-	(vips:28662): VIPS-WARNING **: object.c:1073: 
-		VipsMax.x-array attempt to read
-		unset VipsArrayInt property
-	Trace/breakpoint trap (core dumped)
-
-  mysterious
-
 - im_cross_phase.c, im_linreg.c, im_point_bilinear.c need deprecating?
 
 - add vips_band()/vips_bor()
