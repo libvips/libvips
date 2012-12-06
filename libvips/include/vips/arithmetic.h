@@ -377,8 +377,6 @@ int vips_stats( VipsImage *in, VipsImage **out, ... )
 int vips_measure( VipsImage *in, VipsImage **out, int h, int v, ... )
 	__attribute__((sentinel));
 
-int im_cross_phase( VipsImage *a, VipsImage *b, VipsImage *out );
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
