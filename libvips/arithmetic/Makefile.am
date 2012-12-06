@@ -6,10 +6,8 @@ libarithmetic_la_SOURCES = \
 	im_cross_phase.c \
 	deviate.c \
 	divide.c \
-	im_linreg.c \
 	measure.c \
 	multiply.c \
-	im_point_bilinear.c \
 	remainder.c \
 	sign.c \
 	stats.c \

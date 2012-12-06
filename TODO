@@ -1,4 +1,4 @@
-- im_cross_phase.c, im_linreg.c, im_point_bilinear.c need deprecating?
+- im_cross_phase.c needs a rewrite?
 
 - add vips_band()/vips_bor()
 

@@ -669,6 +669,13 @@ int im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n );
 
 int im_maxpos_avg( VipsImage *im, double *xpos, double *ypos, double *out );
 
+int im_linreg( VipsImage **ins, VipsImage *out, double *xs );
+
+int im_point( VipsImage *im, VipsInterpolate *interpolate, 
+	double x, double y, int band, double *out );
+int im_point_bilinear( VipsImage *im, 
+	double x, double y, int band, double *out );
+
 int im_copy( VipsImage *in, VipsImage *out );
 int im_copy_set( VipsImage *in, VipsImage *out, 
 	VipsInterpretation interpretation, 
