@@ -359,7 +359,7 @@ vips__bandup( const char *domain, VipsImage *in, VipsImage **out, int n )
 		return( -1 );
 	}
 	if( n > 256 || n < 1 ) {
-		im_error( domain, "%s", _( "bad bands" ) );
+		vips_error( domain, "%s", _( "bad bands" ) );
 		return( -1 );
 	}
 

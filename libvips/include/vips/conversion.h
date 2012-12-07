@@ -216,8 +216,20 @@ int vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_bandmean( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+
+int vips_bandbool( VipsImage *in, VipsImage **out, 
+	VipsOperationBoolean operation, ... )
+	__attribute__((sentinel));
+int vips_bandand( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_bandor( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_bandeor( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
 	__attribute__((sentinel));
+
 int vips_black( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )

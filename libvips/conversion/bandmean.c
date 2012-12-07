@@ -161,15 +161,13 @@ vips_bandmean_build( VipsObject *object )
 	VipsBandary *bandary = (VipsBandary *) object;
 	VipsBandmean *bandmean = (VipsBandmean *) object;
 
+	if( bandmean->in &&
+		bandmean->in->Bands == 1 ) 
+		return( vips_bandary_copy( bandary ) );
+
 	bandary->out_bands = 1;
-
-	if( bandmean->in ) {
-		bandary->n = 1;
-		bandary->in = &bandmean->in;
-
-		if( bandmean->in->Bands == 1 ) 
-			return( vips_bandary_copy( bandary ) );
-	}
+	bandary->n = 1;
+	bandary->in = &bandmean->in;
 
 	if( VIPS_OBJECT_CLASS( vips_bandmean_parent_class )->build( object ) )
 		return( -1 );

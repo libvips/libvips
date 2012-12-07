@@ -19,6 +19,7 @@ libconversion_la_SOURCES = \
 	black.c \
 	recomb.c \
 	bandmean.c \
+	bandbool.c \
 	bandary.h \
 	bandary.c \
 	rot.c \

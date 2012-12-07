@@ -206,8 +206,7 @@ vips_boolean_class_init( VipsBooleanClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "boolean";
-	object_class->description = 
-		_( "a boolean operation on a pair of images" );
+	object_class->description = _( "boolean operation on two images" );
 	object_class->build = vips_boolean_build;
 
 	vips_arithmetic_set_format_table( aclass, vips_bandfmt_boolean );

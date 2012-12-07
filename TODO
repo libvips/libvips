@@ -1,3 +1,7 @@
+- vips_invert() on complex should just invert real part
+
+- boolean.c ... operator member should be called @operation, not @boolean
+
 - add vips_band()/vips_bor()
 
 - now we've removed round-to-nearest from NN, we need something extra in the
