@@ -79,7 +79,7 @@
 typedef struct _VipsBoolean {
 	VipsBinary parent_instance;
 
-	VipsOperationBoolean boolean;
+	VipsOperationBoolean operation;
 
 } VipsBoolean;
 
@@ -149,7 +149,7 @@ vips_boolean_buffer( VipsArithmetic *arithmetic,
 
 	int x;
 
-	switch( boolean->boolean ) {
+	switch( boolean->operation ) {
 	case VIPS_OPERATION_BOOLEAN_AND: 	
 		SWITCH( LOOP, FLOOP, & ); 
 		break;
@@ -217,7 +217,7 @@ vips_boolean_class_init( VipsBooleanClass *class )
 		_( "Operation" ), 
 		_( "boolean to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsBoolean, boolean ),
+		G_STRUCT_OFFSET( VipsBoolean, operation ),
 		VIPS_TYPE_OPERATION_BOOLEAN, 
 			VIPS_OPERATION_BOOLEAN_AND ); 
 }
@@ -229,10 +229,10 @@ vips_boolean_init( VipsBoolean *boolean )
 
 static int
 vips_booleanv( VipsImage *left, VipsImage *right, VipsImage **out, 
-	VipsOperationBoolean boolean, va_list ap )
+	VipsOperationBoolean operation, va_list ap )
 {
 	return( vips_call_split( "boolean", ap, left, right, out, 
-		boolean ) );
+		operation ) );
 }
 
 /**
@@ -240,7 +240,7 @@ vips_booleanv( VipsImage *left, VipsImage *right, VipsImage **out,
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: output #VipsImage
- * @boolean: boolean operation to perform
+ * @operation: boolean operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform various boolean operations on pairs of images. 
@@ -267,13 +267,13 @@ vips_booleanv( VipsImage *left, VipsImage *right, VipsImage **out,
  */
 int
 vips_boolean( VipsImage *left, VipsImage *right, VipsImage **out, 
-	VipsOperationBoolean boolean, ... )
+	VipsOperationBoolean operation, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, boolean );
-	result = vips_booleanv( left, right, out, boolean, ap );
+	va_start( ap, operation );
+	result = vips_booleanv( left, right, out, operation, ap );
 	va_end( ap );
 
 	return( result );
@@ -412,7 +412,7 @@ vips_rshift( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 typedef struct _VipsBooleanConst {
 	VipsUnaryConst parent_instance;
 
-	VipsOperationBoolean boolean;
+	VipsOperationBoolean operation;
 } VipsBooleanConst;
 
 typedef VipsUnaryConstClass VipsBooleanConstClass;
@@ -471,7 +471,7 @@ vips_boolean_const_buffer( VipsArithmetic *arithmetic,
 
 	int i, x, b;
 
-	switch( bconst->boolean ) {
+	switch( bconst->operation ) {
 	case VIPS_OPERATION_BOOLEAN_AND: 	
 		SWITCH( LOOPC, FLOOPC, & ); 
 		break;
@@ -520,7 +520,7 @@ vips_boolean_const_class_init( VipsBooleanConstClass *class )
 		_( "Operation" ), 
 		_( "boolean to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsBooleanConst, boolean ),
+		G_STRUCT_OFFSET( VipsBooleanConst, operation ),
 		VIPS_TYPE_OPERATION_BOOLEAN, 
 			VIPS_OPERATION_BOOLEAN_AND ); 
 }
@@ -532,7 +532,7 @@ vips_boolean_const_init( VipsBooleanConst *boolean_const )
 
 static int
 vips_boolean_constv( VipsImage *in, VipsImage **out, 
-	VipsOperationBoolean boolean, double *c, int n, va_list ap )
+	VipsOperationBoolean operation, double *c, int n, va_list ap )
 {
 	VipsArea *area_c;
 	double *array; 
@@ -545,7 +545,7 @@ vips_boolean_constv( VipsImage *in, VipsImage **out,
 		array[i] = c[i];
 
 	result = vips_call_split( "boolean_const", ap, 
-		in, out, boolean, area_c );
+		in, out, operation, area_c );
 
 	vips_area_unref( area_c );
 
@@ -556,7 +556,7 @@ vips_boolean_constv( VipsImage *in, VipsImage **out,
  * vips_boolean_const:
  * @in: input image
  * @out: output image
- * @boolean: boolean operation to perform
+ * @operation: boolean operation to perform
  * @c: array of constants 
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
@@ -579,13 +579,13 @@ vips_boolean_constv( VipsImage *in, VipsImage **out,
  */
 int
 vips_boolean_const( VipsImage *in, VipsImage **out, 
-	VipsOperationBoolean boolean, double *c, int n, ... )
+	VipsOperationBoolean operation, double *c, int n, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, n );
-	result = vips_boolean_constv( in, out, boolean, c, n, ap );
+	result = vips_boolean_constv( in, out, operation, c, n, ap );
 	va_end( ap );
 
 	return( result );

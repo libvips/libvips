@@ -254,6 +254,9 @@ vips_bandboolv( VipsImage *in, VipsImage **out,
  *
  * The output image always has one band. 
  *
+ * This operation is useful in conjuction with vips_relational(). You can use
+ * it to see if all image bands match exactly. 
+ *
  * See also: vips_boolean_const().
  *
  * Returns: 0 on success, -1 on error

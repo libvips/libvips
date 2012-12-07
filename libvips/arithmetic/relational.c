@@ -271,7 +271,11 @@ vips_relationalv( VipsImage *left, VipsImage *right, VipsImage **out,
  * Smallest common format in 
  * <link linkend="VIPS-arithmetic">arithmetic</link>).
  *
- * See also: vips_boolean(), vips_relational_const().
+ * To decide if pixels match exactly, that is have the same value in every
+ * band, use vips_bandbool() after this operation to AND or OR image bands 
+ * together. 
+ *
+ * See also: vips_boolean(), vips_bandbool(), vips_relational_const().
  *
  * Returns: 0 on success, -1 on error
  */
