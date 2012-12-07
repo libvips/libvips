@@ -93,7 +93,7 @@ G_DEFINE_TYPE( VipsInvert, vips_invert, VIPS_TYPE_UNARY );
  		\
 		p += 2; \
 		q += 2; \
-	}
+	} \
 }
 
 static void
