@@ -1,5 +1,3 @@
-- vips_invert() on complex should just invert real part
-
 - now we've removed round-to-nearest from NN, we need something extra in the
   affine transform to displace the input cods
 

@@ -15,6 +15,8 @@
  * 	- gtk-doc comment
  * 23/8/11
  * 	- rewrite as a class 
+ * 7/12/12
+ * 	- only invert real part of complex
  */
 
 /*
@@ -81,17 +83,25 @@ G_DEFINE_TYPE( VipsInvert, vips_invert, VIPS_TYPE_UNARY );
 		q[x] = -1 * p[x]; \
 }
 
+#define LOOPC( TYPE ) { \
+	TYPE *p = (TYPE *) in[0]; \
+	TYPE *q = (TYPE *) out; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		q[0] = -1 * p[0]; \
+		q[1] = p[1]; \
+ 		\
+		p += 2; \
+		q += 2; \
+	}
+}
+
 static void
 vips_invert_buffer( VipsArithmetic *arithmetic, 
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsImage *im = arithmetic->ready[0];
-
-	/* Complex just doubles the size.
-	 */
-	const int sz = width * vips_image_get_bands( im ) * 
-		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
-		 	2 : 1);
+	const int sz = width * vips_image_get_bands( im );
 
 	int x;
 
@@ -110,12 +120,14 @@ vips_invert_buffer( VipsArithmetic *arithmetic,
 		LOOPN( signed int ); break; 
 
 	case VIPS_FORMAT_FLOAT: 		
-	case VIPS_FORMAT_COMPLEX: 
 		LOOPN( float ); break; 
-
 	case VIPS_FORMAT_DOUBLE:	
-	case VIPS_FORMAT_DPCOMPLEX: 
 		LOOPN( double ); break;
+
+	case VIPS_FORMAT_COMPLEX: 
+		LOOPC( float ); break;
+	case VIPS_FORMAT_DPCOMPLEX: 
+		LOOPC( double ); break;
 
 	default:
 		g_assert( 0 );
@@ -169,7 +181,9 @@ vips_invert_init( VipsInvert *invert )
  *
  * For unsigned formats, this operation calculates (max - @in), eg. (255 -
  * @in) for uchar. For signed and float formats, this operation calculates (-1
- * * @in). 
+ * @in). 
+ *
+ * For complex images, only the real part is inverted. See also vips_conj().
  *
  * See also: vips_linear().
  *
