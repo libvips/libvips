@@ -37,7 +37,7 @@ class Argument:
         self.name = prop.name;
         self.flags = op.get_argument_flags(self.name)
         self.priority = op.get_argument_priority(self.name)
-        self.assigned = op.get_argument_assigned(self.name)
+        self.isset = op.argument_isset(self.name)
 
 def _call_base(name, self, required, optional):
     logging.debug('_call_base name=%s, self=%s, required=%s optional=%s' % 
@@ -57,7 +57,7 @@ def _call_base(name, self, required, optional):
     # find all required, unassigned input args
     required_input = [x for x in args if x.flags & enm.INPUT and 
                       x.flags & enm.REQUIRED and 
-                      not x.assigned]
+                      not x.isset]
 
     # do we have a non-NULL self pointer? this is used to set the first
     # compatible input arg
@@ -80,14 +80,16 @@ def _call_base(name, self, required, optional):
                     (name, len(required_input), len(required)))
 
     for i in range(len(required_input)):
-        print 'assigning', required[i], 'to', required_input[i].name
-        print required_input[i].name, 'needs a', required_input[i].prop.value_type
+        logging.debug('assigning %s to %s' % (required[i],
+                                               required_input[i].name))
+        logging.debug('%s needs a %s' % (required_input[i].name,
+                                         required_input[i].prop.value_type))
         op.props.__setattr__(required_input[i].name, required[i])
 
     # find all optional, unassigned input args ... just need the names
     optional_input = [x.name for x in args if x.flags & enm.INPUT and 
                       not x.flags & enm.REQUIRED and 
-                      not x.assigned]
+                      not x.isset]
 
     for key in optional.keys():
             if not key in optional_input:

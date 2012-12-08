@@ -37,7 +37,7 @@ for prop in op.props:
         print '\tinput'
     if flags & Vips.ArgumentFlags.REQUIRED:
         print '\trequired'
-    print '\tassigned', op.get_argument_assigned(prop.name)
+    print '\tisset', op.argument_isset(prop.name)
 
 op.props.left = a
 op.props.right = b
