@@ -264,6 +264,19 @@ vips_col_XYZ2sRGB( int range, int *lut,
 	int Yi;
 	float v;
 
+	/* XYZ can be Nan, Inf etc. Throw those values out, they will break
+	 * our clipping.
+	 */
+	if( !isnormal( X ) ||
+		!isnormal( Y ) ||
+		!isnormal( Z ) ) {
+		*r = 0; 
+		*g = 0; 
+		*b = 0; 
+
+		return( -1 );
+	}
+
 	/* Multiply through the matrix to get luminosity values. 
 	 */
 	Yr = vips_mat_XYZ2RGB[0][0] * X + 
