@@ -98,6 +98,29 @@ static VipsPel vips_red[64 * 64 * 64];
 static VipsPel vips_green[64 * 64 * 64];
 static VipsPel vips_blue[64 * 64 * 64];
 
+/* sRGB to scRGB. 
+ *
+ * @range is eg. 256 for 8-bit data.
+ */
+static int
+vips_col_sRGB2scRGB( int range, float *lut, 
+	int r, int g, int b, float *R, float *G, float *B )
+{
+	int maxval = range - 1;
+	int i;
+
+  	i = VIPS_CLIP( 0, r, maxval );
+	*R = lut[i];
+
+  	i = VIPS_CLIP( 0, g, maxval );
+	*G = lut[i];
+
+  	i = VIPS_CLIP( 0, b, maxval );
+	*B = lut[i];
+
+	return( 0 );
+}
+
 /* Create the sRGB linear and unlinear luts. @range is eg. 256 for 8-bit luts.
  */
 static void 
@@ -156,58 +179,12 @@ vips_col_make_tables_RGB_8( void )
 	}
 }
 
-/* sRGB to scRGB. 
- *
- * @range is eg. 256 for 8-bit data.
- */
-static int
-vips_col_sRGB2scRGB( int range, float *lut, 
-	int r, int g, int b, float *R, float *G, float *B )
-{
-	int maxval = range - 1;
-	int i;
-
-  	i = VIPS_CLIP( 0, r, maxval );
-	*R = lut[i];
-
-  	i = VIPS_CLIP( 0, g, maxval );
-	*G = lut[i];
-
-  	i = VIPS_CLIP( 0, b, maxval );
-	*B = lut[i];
-
-	return( 0 );
-}
-
-/* We need Y in 0 - 100. We can save three muls later if we pre-scale the
- * matrix.
- *
- * The matrix already includes the D65 channel weighting, so we just scale by
- * Y.
- */
-#define SCALE (VIPS_D65_Y0)
-
-/* scRGB to XYZ. 
- */
-static int
-vips_col_scRGB2XYZ( float R, float G, float B, float *X, float *Y, float *Z )
-{
-	*X = SCALE * 0.4124 * R + SCALE * 0.3576 * G + SCALE * 0.18056 * B;
-	*Y = SCALE * 0.2126 * R + SCALE * 0.7152 * G + SCALE * 0.07220 * B;
-	*Z = SCALE * 0.0193 * R + SCALE * 0.1192 * G + SCALE * 0.9505 * B;
-
-	return( 0 );
-}
-
 int
-vips_col_sRGB2XYZ_8( int r, int g, int b, float *X, float *Y, float *Z )
+vips_col_sRGB2scRGB_8( int r, int g, int b, float *R, float *G, float *B )
 {
-	float R, G, B;
-
 	vips_col_make_tables_RGB_8();
 
-	return( vips_col_sRGB2scRGB( 256, vips_v2Y_8, r, g, b, &R, &G, &B ) ||
-		vips_col_scRGB2XYZ( R, G, B, X, Y, Z ) );
+	return( vips_col_sRGB2scRGB( 256, vips_v2Y_8, r, g, b, R, G, B ) ); 
 }
 
 static void *
@@ -235,20 +212,33 @@ vips_col_make_tables_RGB_16( void )
 }
 
 int
-vips_col_sRGB2XYZ_16( int r, int g, int b, float *X, float *Y, float *Z )
+vips_col_sRGB2scRGB_16( int r, int g, int b, float *R, float *G, float *B )
 {
-	float R, G, B;
-
 	vips_col_make_tables_RGB_16();
 
-	return( vips_col_sRGB2scRGB( 65536, vips_v2Y_16, 
-			r, g, b, &R, &G, &B ) ||
-		vips_col_scRGB2XYZ( R, G, B, X, Y, Z ) );
+	return( vips_col_sRGB2scRGB( 65536, vips_v2Y_16, r, g, b, R, G, B ) ); 
+}
+
+/* The matrix already includes the D65 channel weighting, so we just scale by
+ * Y.
+ */
+#define SCALE (VIPS_D65_Y0)
+
+/* scRGB to XYZ. 
+ */
+int
+vips_col_scRGB2XYZ( float R, float G, float B, float *X, float *Y, float *Z )
+{
+	*X = SCALE * 0.4124 * R + SCALE * 0.3576 * G + SCALE * 0.18056 * B;
+	*Y = SCALE * 0.2126 * R + SCALE * 0.7152 * G + SCALE * 0.07220 * B;
+	*Z = SCALE * 0.0193 * R + SCALE * 0.1192 * G + SCALE * 0.9505 * B;
+
+	return( 0 );
 }
 
 /* Turn XYZ into scRGB. 
  */
-static int
+int
 vips_col_XYZ2scRGB( float X, float Y, float Z, float *R, float *G, float *B ) 
 {
 	*R =  3.2406 / SCALE * X + -1.5372 / SCALE * Y + -0.4986 / SCALE * Z;
@@ -335,31 +325,24 @@ vips_col_scRGB2sRGB( int range, int *lut,
 } 
 
 int
-vips_col_XYZ2sRGB_8( float X, float Y, float Z, 
+vips_col_scRGB2sRGB_8( float R, float G, float B, 
 	int *r, int *g, int *b, 
 	int *or )
 {
-	float R, G, B;
-
 	vips_col_make_tables_RGB_8();
 
-	return( vips_col_XYZ2scRGB( X, Y, Z, &R, &G, &B ) ||
-		vips_col_scRGB2sRGB( 256, vips_Y2v_8, 
-			R, G, B, r, g, b, or ) ); 
+	return( vips_col_scRGB2sRGB( 256, vips_Y2v_8, R, G, B, r, g, b, or ) ); 
 }
 
 int
-vips_col_XYZ2sRGB_16( float X, float Y, float Z, 
+vips_col_scRGB2sRGB_16( float R, float G, float B, 
 	int *r, int *g, int *b, 
 	int *or )
 {
-	float R, G, B;
-
 	vips_col_make_tables_RGB_16();
 
-	return( vips_col_XYZ2scRGB( X, Y, Z, &R, &G, &B ) ||
-		vips_col_scRGB2sRGB( 65536, vips_Y2v_16, 
-			R, G, B, r, g, b, or ) ); 
+	return( vips_col_scRGB2sRGB( 65536, vips_Y2v_16, 
+		R, G, B, r, g, b, or ) ); 
 }
 
 /* Build Lab->disp dither tables. 
@@ -379,11 +362,13 @@ build_tables( void *client )
                                 float A = (signed char) (a << 2);
                                 float B = (signed char) (b << 2);
                                 float X, Y, Z;
+                                float Rf, Gf, Bf;
                                 int rb, gb, bb;
                                 int oflow;
  
                                 vips_col_Lab2XYZ( L, A, B, &X, &Y, &Z );
-                                vips_col_XYZ2sRGB_8( X, Y, Z, 
+                                vips_col_XYZ2scRGB( X, Y, Z, &Rf, &Gf, &Bf );
+                                vips_col_scRGB2sRGB_8( Rf, Gf, Bf,
 					&rb, &gb, &bb, &oflow );
 
 				t = INDEX( l, a, b );

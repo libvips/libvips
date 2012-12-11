@@ -26,6 +26,10 @@ libcolour_la_SOURCES = \
 	LabQ2LabS.c \
 	LabQ2sRGB.c \
 	XYZ2sRGB.c \
-	sRGB2XYZ.c 
+	sRGB2XYZ.c \
+	sRGB2scRGB.c \
+	scRGB2XYZ.c \
+	XYZ2scRGB.c \
+	scRGB2sRGB.c 
 
 INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

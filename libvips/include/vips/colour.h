@@ -141,10 +141,21 @@ int vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_XYZ2Lab( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+
+int vips_XYZ2scRGB( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_scRGB2sRGB( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_XYZ2sRGB( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+
 int vips_sRGB2XYZ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_sRGB2scRGB( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_scRGB2XYZ( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 int vips_LCh2CMC( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_CMC2LCh( VipsImage *in, VipsImage **out, ... )
@@ -193,13 +204,20 @@ float vips_col_Lcmc2L( float Lcmc );
 float vips_col_Ccmc2C( float Ccmc );
 float vips_col_Chcmc2h( float C, float hcmc );
 
-int vips_col_XYZ2sRGB_8( float X, float Y, float Z, 
-	int *r, int *g, int *b, int *or_ret );
-int vips_col_sRGB2XYZ_8( int r, int g, int b, float *X, float *Y, float *Z );
+int vips_col_sRGB2scRGB_8( int r, int g, int b, float *R, float *G, float *B );
+int vips_col_sRGB2scRGB_16( int r, int g, int b, float *R, float *G, float *B );
 
-int vips_col_XYZ2sRGB_16( float X, float Y, float Z, 
-	int *r, int *g, int *b, int *or_ret );
-int vips_col_sRGB2XYZ_16( int r, int g, int b, float *X, float *Y, float *Z );
+int vips_col_scRGB2XYZ( float R, float G, float B, 
+	float *X, float *Y, float *Z );
+int vips_col_XYZ2scRGB( float X, float Y, float Z, 
+	float *R, float *G, float *B );
+
+int vips_col_scRGB2sRGB_8( float R, float G, float B, 
+	int *r, int *g, int *b, 
+	int *or_ret );
+int vips_col_scRGB2sRGB_16( float R, float G, float B, 
+	int *r, int *g, int *b, 
+	int *or_ret );
 
 float vips_pythagoras( float L1, float a1, float b1, 
 	float L2, float a2, float b2 );
