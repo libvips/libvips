@@ -829,8 +829,6 @@ vips_colour_operation_init( void )
 	vips_rad2float_get_type();
 	vips_float2rad_get_type();
 	vips_LabQ2sRGB_get_type();
-	vips_XYZ2sRGB_get_type();
-	vips_sRGB2XYZ_get_type();
 	vips_sRGB2scRGB_get_type();
 	vips_scRGB2XYZ_get_type();
 	vips_XYZ2scRGB_get_type();

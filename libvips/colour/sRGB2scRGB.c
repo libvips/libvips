@@ -1,7 +1,18 @@
 /* Turn displayable rgb files to scRGB.
  *
+ * Modified:
+ * 15/11/94 JC
+ *	- memory leak fixed
+ *	- error message added
+ * 16/11/94 JC
+ *	- partialed
+ * 21/9/12
+ * 	- redone as a class
+ * 	- sRGB only, support for other RGBs is now via lcms
+ * 6/11/12
+ * 	- add 16-bit sRGB import
  * 11/12/12
- * 	- from sRGB2XYZ.c
+ * 	- cut about to make sRGB2scRGB.c
  */
 
 /*

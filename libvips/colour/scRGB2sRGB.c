@@ -1,7 +1,30 @@
 /* Turn scRGB files into displayable rgb.
  *
+ * Author: J-P. Laurent
+ * Modified:
+ * 15/11/94 JC
+ *	- error message added
+ *	- out->Type set to IM_TYPE_RGB
+ *	- memory leak fixed
+ * 16/11/94 JC
+ *	- uses im_wrapone()
+ * 15/2/95 JC
+ *	- oops! now uses PEL, not float for output pointer
+ * 2/1/96 JC
+ *	- sometimes produced incorrect result at extrema
+ *	- reformatted
+ *	- now uses IM_RINT() and clip()
+ * 18/9/96 JC
+ *	- some speed-ups ... 3x faster
+ *	- slightly less accurate, but who cares
+ *	- added out-of-mem check for table build
+ * 21/9/12
+ * 	- redone as a class
+ * 	- sRGB only, support for other RGBs is now via lcms
+ * 6/11/12
+ * 	- added 16-bit option
  * 11/12/12
- * 	- from XYZ2sRGB.c
+ * 	- cut about to make scRGB2sRGB.c
  */
 
 /*
