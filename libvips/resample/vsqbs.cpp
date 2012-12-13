@@ -178,8 +178,8 @@ typedef struct _VipsInterpolateVsqbsClass {
  */
 #define VSQBS_CONVERSION( conversion )               \
   template <typename T> static void inline           \
-  vsqbs_ ## conversion(       void*  restrict pout,  \
-                        const PEL*   restrict pin,   \
+  vsqbs_ ## conversion(       void*    restrict pout, \
+                        const VipsPel* restrict pin,  \
                         const int             bands, \
                         const int             lskip, \
                         const double          x_0,   \
@@ -308,28 +308,20 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
                                     double                    absolute_x,
                                     double                    absolute_y )
 {
-  /*
-   * Floor's surrogate FAST_PSEUDO_FLOOR is used to make sure that the
-   * transition through 0 is smooth. If it is known that absolute_x
-   * and absolute_y will never be less than 0, plain cast---that is,
-   * const int ix = absolute_x---should be used instead.  Actually,
-   * any function which agrees with floor for non-integer values, and
-   * picks one of the two possibilities for integer values, can be
-   * used. FAST_PSEUDO_FLOOR fits the bill.
+  /* absolute_x and absolute_y are always >= 1.0 (see double-check assert
+   * below), so we don't need floor(). 
    *
-   * Then, x is the x-coordinate of the sampling point relative to the
-   * position of the center of the convex hull of the 2x2 block of
-   * closest pixels. Similarly for y. Range of values: [-.5,.5).
+   * It's 1 not 0 since we ask for a window_offset of 1 at the bottom.
    */
-  const int ix = FAST_PSEUDO_FLOOR( absolute_x + .5 );
-  const int iy = FAST_PSEUDO_FLOOR( absolute_y + .5 );
+  const int ix = (int) absolute_x;
+  const int iy = (int) absolute_y;
 
   /*
    * Move the pointer to (the first band of) the top/left pixel of the
    * 2x2 group of pixel centers which contains the sampling location
    * in its convex hull:
    */
-  const PEL* restrict p = (PEL *) IM_REGION_ADDR( in, ix, iy );
+  const VipsPel* restrict p = VIPS_REGION_ADDR( in, ix, iy );
 
   const double relative_x = absolute_x - ix;
   const double relative_y = absolute_y - iy;
@@ -337,50 +329,57 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
   /*
    * VIPS versions of Nicolas's pixel addressing values.
    */
-  const int actual_bands = in->im->Bands;
-  const int lskip = IM_REGION_LSKIP( in ) / IM_IMAGE_SIZEOF_ELEMENT( in->im );
+  const int lskip = VIPS_REGION_LSKIP( in ) / 
+	  VIPS_IMAGE_SIZEOF_ELEMENT( in->im );
+
   /*
    * Double the bands for complex images to account for the real and
    * imaginary parts being computed independently:
    */
+  const int actual_bands = in->im->Bands;
   const int bands =
     vips_bandfmt_iscomplex( in->im->BandFmt ) ? 2 * actual_bands : actual_bands;
 
+  /* Confirm that absolute_x and absolute_y are >= 1, see above. 
+   */
+  g_assert( absolute_x >= 1.0 );
+  g_assert( absolute_y >= 1.0 );
+
   switch( in->im->BandFmt ) {
-  case IM_BANDFMT_UCHAR:
+  case VIPS_FORMAT_UCHAR:
     CALL( unsigned char, nosign );
     break;
 
-  case IM_BANDFMT_CHAR:
+  case VIPS_FORMAT_CHAR:
     CALL( signed char, withsign );
     break;
 
-  case IM_BANDFMT_USHORT:
+  case VIPS_FORMAT_USHORT:
     CALL( unsigned short, nosign );
     break;
 
-  case IM_BANDFMT_SHORT:
+  case VIPS_FORMAT_SHORT:
     CALL( signed short, withsign );
     break;
 
-  case IM_BANDFMT_UINT:
+  case VIPS_FORMAT_UINT:
     CALL( unsigned int, nosign );
     break;
 
-  case IM_BANDFMT_INT:
+  case VIPS_FORMAT_INT:
     CALL( signed int, withsign );
     break;
 
   /*
    * Complex images are handled by doubling bands:
    */
-  case IM_BANDFMT_FLOAT:
-  case IM_BANDFMT_COMPLEX:
+  case VIPS_FORMAT_FLOAT:
+  case VIPS_FORMAT_COMPLEX:
     CALL( float, fptypes );
     break;
 
-  case IM_BANDFMT_DOUBLE:
-  case IM_BANDFMT_DPCOMPLEX:
+  case VIPS_FORMAT_DOUBLE:
+  case VIPS_FORMAT_DPCOMPLEX:
     CALL( double, fptypes );
     break;
 

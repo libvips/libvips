@@ -22,8 +22,6 @@
 - vipsthumbnail -o allows absolute file names
 - much better exif handling for jpg images (thanks Gary)
 - preserve jpeg app13 (photoshop ipct)
-- nearest neighbour goes back to round down ... round to nearest caused a
-  range of annoying problems, such as strange half-pixels along edges
 - vips_max() / _min() track the top n maxima / minima
 - deprecate im_maxpos_avg(): too specialised to be worth maintaining
 - deprecate im_linreg(): easily done by combining other operators
@@ -32,6 +30,8 @@
 - added vips_bandbool(), with vips_bandand(), _bandor(), _bandeor() as
   convenience functions
 - added scRGB colourspace, linear light float space with sRGB primaries
+- all interpolators use corner convention ... we had round-to-nearest in
+  several of them before, causing a range of annoying problems
 
 14/11/12 started 7.30.6
 - capture tiff warnings earlier

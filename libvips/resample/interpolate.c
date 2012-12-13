@@ -78,7 +78,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT );
  * @y: interpolate value at this position
  *
  * An interpolation function. It should read source pixels from @in with
- * IM_REGION_ADDR(), it can look left and up from (x, y) by @window_offset
+ * VIPS_REGION_ADDR(), it can look left and up from (x, y) by @window_offset
  * pixels and it can access pixels in a window of size @window_size.
  *
  * The interpolated value should be written to the pixel pointed to by @out.
@@ -159,7 +159,7 @@ vips_interpolate_real_get_window_offset( VipsInterpolate *interpolate )
 
 		/* Don't go -ve, of course, for window_size 1.
 		 */
-		return( IM_MAX( 0, window_size / 2 - 1 ) );
+		return( VIPS_MAX( 0, window_size / 2 - 1 ) );
 	}
 }
 
@@ -211,7 +211,7 @@ vips_interpolate_init( VipsInterpolate *interpolate )
  */
 void
 vips_interpolate( VipsInterpolate *interpolate,
-	void *out, REGION *in, double x, double y )
+	void *out, VipsRegion *in, double x, double y )
 {
 	VipsInterpolateClass *class = VIPS_INTERPOLATE_GET_CLASS( interpolate );
 
@@ -329,14 +329,14 @@ G_DEFINE_TYPE( VipsInterpolateNearest, vips_interpolate_nearest,
 
 static void
 vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate,
-	void *out, REGION *in, double x, double y )
+	void *out, VipsRegion *in, double x, double y )
 {
-	const int ps = IM_IMAGE_SIZEOF_PEL( in->im );
+	const int ps = VIPS_IMAGE_SIZEOF_PEL( in->im );
 
 	const int xi = (int) x;
 	const int yi = (int) y;
 
-	const VipsPel *p = IM_REGION_ADDR( in, xi, yi );
+	const VipsPel *p = VIPS_REGION_ADDR( in, xi, yi );
 	VipsPel *q = (VipsPel *) out;
 
 	int z;
@@ -479,14 +479,14 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
  */
 #define SWITCH_INTERPOLATE( FMT, INT, FLOAT ) { \
 	switch( (FMT) ) { \
-	case IM_BANDFMT_UCHAR:	INT( unsigned char ); break; \
-	case IM_BANDFMT_CHAR: 	INT( char ); break;  \
-	case IM_BANDFMT_USHORT: INT( unsigned short ); break;  \
-	case IM_BANDFMT_SHORT: 	INT( short ); break;  \
-	case IM_BANDFMT_UINT: 	FLOAT( unsigned int ); break;  \
-	case IM_BANDFMT_INT: 	FLOAT( int );  break;  \
-	case IM_BANDFMT_FLOAT: 	FLOAT( float ); break;  \
-	case IM_BANDFMT_DOUBLE:	FLOAT( double ); break;  \
+	case VIPS_FORMAT_UCHAR:	INT( unsigned char ); break; \
+	case VIPS_FORMAT_CHAR: 	INT( char ); break;  \
+	case VIPS_FORMAT_USHORT:INT( unsigned short ); break;  \
+	case VIPS_FORMAT_SHORT: INT( short ); break;  \
+	case VIPS_FORMAT_UINT: 	FLOAT( unsigned int ); break;  \
+	case VIPS_FORMAT_INT: 	FLOAT( int );  break;  \
+	case VIPS_FORMAT_FLOAT: FLOAT( float ); break;  \
+	case VIPS_FORMAT_DOUBLE:FLOAT( double ); break;  \
 	default: \
 		g_assert( FALSE ); \
 	} \
@@ -494,18 +494,18 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 
 static void
 vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
-	void *out, REGION *in, double x, double y )
+	void *out, VipsRegion *in, double x, double y )
 {
 	/* Pel size and line size.
 	 */
-	const int ps = IM_IMAGE_SIZEOF_PEL( in->im );
-	const int ls = IM_REGION_LSKIP( in );
+	const int ps = VIPS_IMAGE_SIZEOF_PEL( in->im );
+	const int ls = VIPS_REGION_LSKIP( in );
 	const int b = in->im->Bands;
 
 	const int ix = (int) x;
 	const int iy = (int) y;
 
-	const VipsPel *p1 = IM_REGION_ADDR( in, ix, iy );
+	const VipsPel *p1 = VIPS_REGION_ADDR( in, ix, iy );
 	const VipsPel *p2 = p1 + ps;
 	const VipsPel *p3 = p1 + ls;
 	const VipsPel *p4 = p3 + ps;

@@ -105,7 +105,7 @@ G_DEFINE_TYPE( VipsInterpolateBicubic, vips_interpolate_bicubic,
  */
 template <typename T, int min_value, int max_value>
 static void inline
-bicubic_int_tab( void *pout, const PEL *pin,
+bicubic_int_tab( void *pout, const VipsPel *pin,
 	const int bands, const int lskip,
 	const int *cx, const int *cy )
 {
@@ -173,7 +173,7 @@ bicubic_int_tab( void *pout, const PEL *pin,
  */
 template <typename T>
 static void inline
-bicubic_float_tab( void *pout, const PEL *pin,
+bicubic_float_tab( void *pout, const VipsPel *pin,
 	const int bands, const int lskip,
 	const double *cx, const double *cy )
 {
@@ -236,7 +236,7 @@ bicubic_float_tab( void *pout, const PEL *pin,
  */
 template <typename T>
 static void inline
-bicubic_notab( void *pout, const PEL *pin,
+bicubic_notab( void *pout, const VipsPel *pin,
 	const int bands, const int lskip,
 	double x, double y )
 {
@@ -303,7 +303,7 @@ bicubic_notab( void *pout, const PEL *pin,
 
 static void
 vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
-	void *out, REGION *in, double x, double y )
+	void *out, VipsRegion *in, double x, double y )
 {
 	/* Find the mask index. We round-to-nearest, so we need to generate 
 	 * indexes in 0 to VIPS_TRANSFORM_SCALE, 2^n + 1 values. We multiply 
@@ -326,7 +326,7 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 
 	/* Back and up one to get the top-left of the 4x4.
 	 */
-	const PEL *p = (PEL *) IM_REGION_ADDR( in, ix - 1, iy - 1 ); 
+	const VipsPel *p = VIPS_REGION_ADDR( in, ix - 1, iy - 1 ); 
 
 	/* Look up the tables we need.
 	 */
@@ -338,7 +338,7 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	/* Pel size and line size.
 	 */
 	const int bands = in->im->Bands;
-	const int lskip = IM_REGION_LSKIP( in );
+	const int lskip = VIPS_REGION_LSKIP( in );
 
 #ifdef DEBUG
 	printf( "vips_interpolate_bicubic_interpolate: %g %g\n", x, y );
@@ -348,7 +348,7 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 #endif /*DEBUG*/
 
 	switch( in->im->BandFmt ) {
-	case IM_BANDFMT_UCHAR:
+	case VIPS_FORMAT_UCHAR:
 		bicubic_int_tab<unsigned char, 0, UCHAR_MAX>(
 			out, p, bands, lskip,
 			cxi, cyi );
@@ -366,50 +366,50 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	 */
 		break;
 
-	case IM_BANDFMT_CHAR:
+	case VIPS_FORMAT_CHAR:
 		bicubic_int_tab<signed char, SCHAR_MIN, SCHAR_MAX>(
 			out, p, bands, lskip,
 			cxi, cyi );
 		break;
 
-	case IM_BANDFMT_USHORT:
+	case VIPS_FORMAT_USHORT:
 		bicubic_int_tab<unsigned short, 0, USHRT_MAX>(
 			out, p, bands, lskip,
 			cxi, cyi );
 		break;
 
-	case IM_BANDFMT_SHORT:
+	case VIPS_FORMAT_SHORT:
 		bicubic_int_tab<signed short, SHRT_MIN, SHRT_MAX>(
 			out, p, bands, lskip,
 			cxi, cyi );
 		break;
 
-	case IM_BANDFMT_UINT:
+	case VIPS_FORMAT_UINT:
 		bicubic_float_tab<unsigned int>( out, p, bands, lskip,
 			cxf, cyf );
 		break;
 
-	case IM_BANDFMT_INT:
+	case VIPS_FORMAT_INT:
 		bicubic_float_tab<signed int>( out, p, bands, lskip,
 			cxf, cyf );
 		break;
 
-	case IM_BANDFMT_FLOAT:
+	case VIPS_FORMAT_FLOAT:
 		bicubic_float_tab<float>( out, p, bands, lskip,
 			cxf, cyf );
 		break;
 
-	case IM_BANDFMT_DOUBLE:
+	case VIPS_FORMAT_DOUBLE:
 		bicubic_notab<double>( out, p, bands, lskip,
 			x - ix, y - iy );
 		break;
 
-	case IM_BANDFMT_COMPLEX:
+	case VIPS_FORMAT_COMPLEX:
 		bicubic_float_tab<float>( out, p, bands * 2, lskip,
 			cxf, cyf );
 		break;
 
-	case IM_BANDFMT_DPCOMPLEX:
+	case VIPS_FORMAT_DPCOMPLEX:
 		bicubic_notab<double>( out, p, bands * 2, lskip,
 			x - ix, y - iy );
 		break;

@@ -4,7 +4,7 @@
 
   dx/dy displace output
 
-- switch to corner convention everywhere
+- make affinei into a class
 
 
 

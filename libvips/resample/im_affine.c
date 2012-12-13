@@ -150,8 +150,8 @@
 /* Per-call state.
  */
 typedef struct _Affine {
-	IMAGE *in;
-	IMAGE *out;
+	VipsImage *in;
+	VipsImage *out;
 	VipsInterpolate *interpolate;
 	Transformation trn;
 } Affine;
@@ -159,7 +159,7 @@ typedef struct _Affine {
 static int
 affine_free( Affine *affine )
 {
-	IM_FREEF( g_object_unref, affine->interpolate );
+	VIPS_FREEF( g_object_unref, affine->interpolate );
 
 	return( 0 );
 }
@@ -171,7 +171,7 @@ affine_free( Affine *affine )
  *
  * 2. This is embedded in a larger image to provide borders for the
  * interpolator. iarea->left/top give the offset. These are the coordinates we
- * pass to IM_REGION_ADDR()/im_prepare() for the input image. 
+ * pass to VIPS_REGION_ADDR()/im_prepare() for the input image. 
  *
  * The borders are sized by the interpolator's window_size property and offset 
  * by the interpolator's window_offset property. For example,
@@ -190,15 +190,15 @@ affine_free( Affine *affine )
  * can be negative, since a rotated image can go up and left of the origin.
  *
  * 5. Output image space. This is the wh of the xywh passed to im_affine()
- * below. These are the coordinates we pass to IM_REGION_ADDR() for the 
+ * below. These are the coordinates we pass to VIPS_REGION_ADDR() for the 
  * output image, and that affinei_gen() is asked for.
  */
 
 static int
-affinei_gen( REGION *or, void *seq, void *a, void *b )
+affinei_gen( VipsRegion *or, void *seq, void *a, void *b )
 {
-	REGION *ir = (REGION *) seq;
-	const IMAGE *in = (IMAGE *) a;
+	VipsRegion *ir = (VipsRegion *) seq;
+	const VipsImage *in = (VipsImage *) a;
 	const Affine *affine = (Affine *) b;
 	const int window_size = 
 		vips_interpolate_get_window_size( affine->interpolate );
@@ -211,14 +211,14 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 	 */
 	const Rect *r = &or->valid;
 	const int le = r->left;
-	const int ri = IM_RECT_RIGHT( r );
+	const int ri = VIPS_RECT_RIGHT( r );
 	const int to = r->top;
-	const int bo = IM_RECT_BOTTOM( r );
+	const int bo = VIPS_RECT_BOTTOM( r );
 
 	const Rect *iarea = &affine->trn.iarea;
 	const Rect *oarea = &affine->trn.oarea;
 
-	int ps = IM_IMAGE_SIZEOF_PEL( in );
+	int ps = VIPS_IMAGE_SIZEOF_PEL( in );
 	int x, y, z;
 	
 	Rect image, want, need, clipped;
@@ -327,7 +327,7 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 		ix += iarea->left;
 		iy += iarea->top;
 
-		q = IM_REGION_ADDR( or, le, y );
+		q = VIPS_REGION_ADDR( or, le, y );
 
 		for( x = le; x < ri; x++ ) {
 			int fx, fy; 	
@@ -356,7 +356,7 @@ affinei_gen( REGION *or, void *seq, void *a, void *b )
 }
 
 static int 
-affinei( IMAGE *in, IMAGE *out, 
+affinei( VipsImage *in, VipsImage *out, 
 	VipsInterpolate *interpolate, Transformation *trn )
 {
 	Affine *affine;
@@ -370,7 +370,7 @@ affinei( IMAGE *in, IMAGE *out,
 
 	/* Need a copy of the params for the lifetime of out.
 	 */
-	if( !(affine = IM_NEW( out, Affine )) )
+	if( !(affine = VIPS_NEW( out, Affine )) )
 		return( -1 );
 	affine->interpolate = NULL;
 	if( im_add_close_callback( out, 
@@ -391,11 +391,11 @@ affinei( IMAGE *in, IMAGE *out,
 	/* Normally SMALLTILE ... except if this is a size up/down affine.
 	 */
 	if( affine->trn.b == 0.0 && affine->trn.c == 0.0 ) {
-		if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
+		if( im_demand_hint( out, VIPS_DEMAND_STYLE_FATSTRIP, in, NULL ) )
 			return( -1 );
 	}
 	else {
-		if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) )
+		if( im_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 			return( -1 );
 	}
 
@@ -404,8 +404,8 @@ affinei( IMAGE *in, IMAGE *out,
 	 */
 	edge = INT_MAX / VIPS_TRANSFORM_SCALE;
 	if( affine->trn.oarea.left < -edge || affine->trn.oarea.top < -edge ||
-		IM_RECT_RIGHT( &affine->trn.oarea ) > edge || 
-		IM_RECT_BOTTOM( &affine->trn.oarea ) > edge ) {
+		VIPS_RECT_RIGHT( &affine->trn.oarea ) > edge || 
+		VIPS_RECT_BOTTOM( &affine->trn.oarea ) > edge ) {
 		im_error( "im_affinei", 
 			"%s", _( "output coordinates out of range" ) );
 		return( -1 );
@@ -420,13 +420,13 @@ affinei( IMAGE *in, IMAGE *out,
 	return( 0 );
 }
 
-/* As above, but do IM_CODING_LABQ too. And embed the input.
+/* As above, but do VIPS_CODING_LABQ too. And embed the input.
  */
 static int 
-im__affinei( IMAGE *in, IMAGE *out, 
+im__affinei( VipsImage *in, VipsImage *out, 
 	VipsInterpolate *interpolate, Transformation *trn )
 {
-	IMAGE *t3 = im_open_local( out, "im_affine:3", "p" );
+	VipsImage *t3 = im_open_local( out, "im_affine:3", "p" );
 	const int window_size = 
 		vips_interpolate_get_window_size( interpolate );
 	const int window_offset = 
@@ -452,8 +452,8 @@ im__affinei( IMAGE *in, IMAGE *out,
 	im__transform_print( &trn2 );
 #endif /*DEBUG_GEOMETRY*/
 
-	if( in->Coding == IM_CODING_LABQ ) {
-		IMAGE *t[2];
+	if( in->Coding == VIPS_CODING_LABQ ) {
+		VipsImage *t[2];
 
 		if( im_open_local_array( out, t, 2, "im_affine:2", "p" ) ||
 			im_LabQ2LabS( t3, t[0] ) ||
@@ -461,7 +461,7 @@ im__affinei( IMAGE *in, IMAGE *out,
 			im_LabS2LabQ( t[1], out ) )
 			return( -1 );
 	}
-	else if( in->Coding == IM_CODING_NONE ) {
+	else if( in->Coding == VIPS_CODING_NONE ) {
 		if( affinei( t3, out, interpolate, &trn2 ) )
 			return( -1 );
 	}
@@ -514,7 +514,7 @@ im__affinei( IMAGE *in, IMAGE *out,
  * Returns: 0 on success, -1 on error
  */
 int 
-im_affinei( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
+im_affinei( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy, 
 	int ox, int oy, int ow, int oh )
 {
@@ -560,7 +560,7 @@ im_affinei( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
  * Returns: 0 on success, -1 on error
  */
 int 
-im_affinei_all( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
+im_affinei_all( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
 	double a, double b, double c, double d, double dx, double dy ) 
 {
 	Transformation trn;
@@ -584,7 +584,7 @@ im_affinei_all( IMAGE *in, IMAGE *out, VipsInterpolate *interpolate,
 /* Still needed by some parts of mosaic.
  */
 int 
-im__affine( IMAGE *in, IMAGE *out, Transformation *trn )
+im__affine( VipsImage *in, VipsImage *out, Transformation *trn )
 {
 	return( im__affinei( in, out, 
 		vips_interpolate_bilinear_static(), trn ) );
