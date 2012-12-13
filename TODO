@@ -1,13 +1,13 @@
-- does radiance import give 0-1 RGB images? we could tag them as scRGB
 
 - now we've removed round-to-nearest from NN, we need something extra in the
   affine transform to displace the input cods
 
   dx/dy displace output
 
-- check Nicolas's follow-up mail
+- switch to corner convention everywhere
 
-- check libtool version number, should be binary-compat with 7.30 
+
+
 
 - quadratic doesn't work for order 3
 
@@ -21,6 +21,7 @@
 - seems to leak with vips_check_matrix()?
 
 - test with interpolators, do we add margins correctly?
+
 
 
 
