@@ -1,10 +1,13 @@
 /* Convert Radiance 32bit packed format to float.
+ *
  * 3/3/09
  * 	- from LabQ2Lab and Radiance sources
  * 2/11/09
  * 	- gtkdoc 
  * 20/9/12
- * 	redo as a class
+ * 	- redo as a class
+ * 13/12/12
+ * 	- tag output as scRGB, since it'll be 0-1
  */
 
 /*
@@ -196,7 +199,7 @@ vips_rad2float_init( VipsRad2float *rad2float )
 	VipsColourCode *code = VIPS_COLOUR_CODE( rad2float );
 
 	colour->coding = VIPS_CODING_NONE;
-	colour->interpretation = VIPS_INTERPRETATION_sRGB;
+	colour->interpretation = VIPS_INTERPRETATION_scRGB;
 	colour->format = VIPS_FORMAT_FLOAT;
 	colour->bands = 3;
 

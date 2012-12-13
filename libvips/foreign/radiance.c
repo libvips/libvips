@@ -6,6 +6,8 @@
  * 	- add radiance write
  * 20/12/11
  * 	- reworked as some fns ready for new-style classes
+ * 13/12/12
+ * 	- tag RGB rad images as scRGB
  */
 
 /*
@@ -900,7 +902,7 @@ rad2vips_get_header( Read *read, FILE *fin, VipsImage *out )
 	vips_image_set_string( out, "rad-format", read->format );
 
 	if( strcmp( read->format, COLRFMT ) == 0 )
-		out->Type = VIPS_INTERPRETATION_RGB;
+		out->Type = VIPS_INTERPRETATION_scRGB;
 	else if( strcmp( read->format, CIEFMT ) == 0 )
 		out->Type = VIPS_INTERPRETATION_XYZ;
 	else
