@@ -1,3 +1,5 @@
+- does radiance import give 0-1 RGB images? we could tag them as scRGB
+
 - now we've removed round-to-nearest from NN, we need something extra in the
   affine transform to displace the input cods
 

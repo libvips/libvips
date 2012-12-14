@@ -1,4 +1,4 @@
-/* Turn XYZ files into displayable rgb.
+/* Turn scRGB files into displayable rgb.
  *
  * Author: J-P. Laurent
  * Modified:
@@ -23,6 +23,8 @@
  * 	- sRGB only, support for other RGBs is now via lcms
  * 6/11/12
  * 	- added 16-bit option
+ * 11/12/12
+ * 	- cut about to make scRGB2sRGB.c
  */
 
 /*
@@ -63,32 +65,32 @@
 
 #include "colour.h"
 
-typedef struct _VipsXYZ2sRGB {
+typedef struct _VipsscRGB2sRGB {
 	VipsColourCode parent_instance;
 	
 	int depth;
-} VipsXYZ2sRGB;
+} VipsscRGB2sRGB;
 
-typedef VipsColourCodeClass VipsXYZ2sRGBClass;
+typedef VipsColourCodeClass VipsscRGB2sRGBClass;
 
-G_DEFINE_TYPE( VipsXYZ2sRGB, vips_XYZ2sRGB, VIPS_TYPE_COLOUR_CODE );
+G_DEFINE_TYPE( VipsscRGB2sRGB, vips_scRGB2sRGB, VIPS_TYPE_COLOUR_CODE );
 
 /* Process a buffer of data.
  */
 static void
-vips_XYZ2sRGB_line_8( VipsPel *q, float *p, int width )
+vips_scRGB2sRGB_line_8( VipsPel *q, float *p, int width )
 {
 	int i;
 
 	for( i = 0; i < width; i++ ) {
-		float X = p[0];
-		float Y = p[1];
-		float Z = p[2];
+		float R = p[0];
+		float G = p[1];
+		float B = p[2];
 
 		int r, g, b;
 		int or;
 
-		vips_col_XYZ2sRGB_8( X, Y, Z, &r, &g, &b, &or );
+		vips_col_scRGB2sRGB_8( R, G, B, &r, &g, &b, &or );
 
 		p += 3;
 
@@ -101,19 +103,19 @@ vips_XYZ2sRGB_line_8( VipsPel *q, float *p, int width )
 }
 
 static void
-vips_XYZ2sRGB_line_16( unsigned short *q, float *p, int width )
+vips_scRGB2sRGB_line_16( unsigned short *q, float *p, int width )
 {
 	int i;
 
 	for( i = 0; i < width; i++ ) {
-		float X = p[0];
-		float Y = p[1];
-		float Z = p[2];
+		float R = p[0];
+		float G = p[1];
+		float B = p[2];
 
 		int r, g, b;
 		int or;
 
-		vips_col_XYZ2sRGB_16( X, Y, Z, &r, &g, &b, &or );
+		vips_col_scRGB2sRGB_16( R, G, B, &r, &g, &b, &or );
 
 		p += 3;
 
@@ -126,25 +128,27 @@ vips_XYZ2sRGB_line_16( unsigned short *q, float *p, int width )
 }
 
 static void
-vips_XYZ2sRGB_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+vips_scRGB2sRGB_line( VipsColour *colour, 
+	VipsPel *out, VipsPel **in, int width )
 {
-	VipsXYZ2sRGB *XYZ2sRGB = (VipsXYZ2sRGB *) colour;
+	VipsscRGB2sRGB *scRGB2sRGB = (VipsscRGB2sRGB *) colour;
 
-	if( XYZ2sRGB->depth == 16 ) 
-		vips_XYZ2sRGB_line_16( (unsigned short *) out, (float *) in[0], 
-			width );
+	if( scRGB2sRGB->depth == 16 ) 
+		vips_scRGB2sRGB_line_16( (unsigned short *) out, 
+			(float *) in[0], width );
 	else
-		vips_XYZ2sRGB_line_8( (VipsPel *) out, (float *) in[0], width );
+		vips_scRGB2sRGB_line_8( (VipsPel *) out, 
+			(float *) in[0], width );
 }
 
 static int
-vips_XYZ2sRGB_build( VipsObject *object )
+vips_scRGB2sRGB_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
-	VipsXYZ2sRGB *XYZ2sRGB = (VipsXYZ2sRGB *) object;
-	VipsColour *colour = VIPS_COLOUR( XYZ2sRGB );
+	VipsscRGB2sRGB *scRGB2sRGB = (VipsscRGB2sRGB *) object;
+	VipsColour *colour = VIPS_COLOUR( scRGB2sRGB );
 
-	switch( XYZ2sRGB->depth ) { 
+	switch( scRGB2sRGB->depth ) { 
 	case 16:
 		colour->interpretation = VIPS_INTERPRETATION_RGB16;
 		colour->format = VIPS_FORMAT_USHORT;
@@ -161,14 +165,14 @@ vips_XYZ2sRGB_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( VIPS_OBJECT_CLASS( vips_XYZ2sRGB_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_scRGB2sRGB_parent_class )->build( object ) )
 		return( -1 );
 
 	return( 0 );
 }
 
 static void
-vips_XYZ2sRGB_class_init( VipsXYZ2sRGBClass *class )
+vips_scRGB2sRGB_class_init( VipsscRGB2sRGBClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -177,25 +181,25 @@ vips_XYZ2sRGB_class_init( VipsXYZ2sRGBClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "XYZ2sRGB";
-	object_class->description = _( "convert an XYZ image to sRGB" ); 
-	object_class->build = vips_XYZ2sRGB_build;
+	object_class->nickname = "scRGB2sRGB";
+	object_class->description = _( "convert an scRGB image to sRGB" ); 
+	object_class->build = vips_scRGB2sRGB_build;
 
-	colour_class->process_line = vips_XYZ2sRGB_line;
+	colour_class->process_line = vips_scRGB2sRGB_line;
 
 	VIPS_ARG_INT( class, "depth", 130, 
 		_( "Depth" ),
 		_( "Output device space depth in bits" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsXYZ2sRGB, depth ),
+		G_STRUCT_OFFSET( VipsscRGB2sRGB, depth ),
 		8, 16, 8 );
 }
 
 static void
-vips_XYZ2sRGB_init( VipsXYZ2sRGB *XYZ2sRGB )
+vips_scRGB2sRGB_init( VipsscRGB2sRGB *scRGB2sRGB )
 {
-	VipsColour *colour = VIPS_COLOUR( XYZ2sRGB );
-	VipsColourCode *code = VIPS_COLOUR_CODE( XYZ2sRGB );
+	VipsColour *colour = VIPS_COLOUR( scRGB2sRGB );
+	VipsColourCode *code = VIPS_COLOUR_CODE( scRGB2sRGB );
 
 	/* Just the default, can be overridden, see above.
 	 */
@@ -208,11 +212,11 @@ vips_XYZ2sRGB_init( VipsXYZ2sRGB *XYZ2sRGB )
 	code->input_bands = 3;
 	code->input_format = VIPS_FORMAT_FLOAT;
 
-	XYZ2sRGB->depth = 8;
+	scRGB2sRGB->depth = 8;
 }
 
 /**
- * vips_XYZ2sRGB:
+ * vips_scRGB2sRGB:
  * @in: input image
  * @out: output image
  *
@@ -220,20 +224,20 @@ vips_XYZ2sRGB_init( VipsXYZ2sRGB *XYZ2sRGB )
  *
  * @depth: depth of output image in bits
  *
- * Convert an XYZ image to sRGB. Set @depth to 16 to get 16-bit output.
+ * Convert an scRGB image to sRGB. Set @depth to 16 to get 16-bit output.
  *
- * See also: im_LabS2LabQ(), im_XYZ2sRGB(), im_rad2float().
+ * See also: im_LabS2LabQ(), im_scRGB2sRGB(), im_rad2float().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_XYZ2sRGB( VipsImage *in, VipsImage **out, ... )
+vips_scRGB2sRGB( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "XYZ2sRGB", ap, in, out );
+	result = vips_call_split( "scRGB2sRGB", ap, in, out );
 	va_end( ap );
 
 	return( result );

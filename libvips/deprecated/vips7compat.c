@@ -2495,7 +2495,7 @@ im_dE_fromdisp( IMAGE *im1, IMAGE *im2, IMAGE *out, struct im_col_display *d )
 int 
 im_disp2Lab( IMAGE *in, IMAGE *out, struct im_col_display *d )
 {
-	IMAGE *t[1];
+	VipsImage *t[1];
 
 	if( im_open_local_array( out, t, 1, "im_disp2Lab:1", "p" ) ||
 		im_disp2XYZ( in, t[0], d ) ||
@@ -2508,15 +2508,13 @@ im_disp2Lab( IMAGE *in, IMAGE *out, struct im_col_display *d )
 int 
 im_sRGB2XYZ( IMAGE *in, IMAGE *out )
 {
-	VipsImage *x;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( (VipsObject *) out, 2 );
 
-	if( vips_sRGB2XYZ( in, &x, NULL ) )
+	if( vips_sRGB2scRGB( in, &t[0], NULL ) ||
+		vips_scRGB2XYZ( t[0], &t[1], NULL ) ||
+		im_copy( t[1], out ) ) 
 		return( -1 );
-	if( im_copy( x, out ) ) {
-		g_object_unref( x );
-		return( -1 );
-	}
-	g_object_unref( x );
 
 	return( 0 );
 }
@@ -2524,15 +2522,13 @@ im_sRGB2XYZ( IMAGE *in, IMAGE *out )
 int 
 im_XYZ2sRGB( IMAGE *in, IMAGE *out )
 {
-	VipsImage *x;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( (VipsObject *) out, 2 );
 
-	if( vips_XYZ2sRGB( in, &x, NULL ) )
+	if( vips_XYZ2scRGB( in, &t[0], NULL ) ||
+		vips_scRGB2sRGB( t[0], &t[1], NULL ) ||
+		im_copy( t[1], out ) ) 
 		return( -1 );
-	if( im_copy( x, out ) ) {
-		g_object_unref( x );
-		return( -1 );
-	}
-	g_object_unref( x );
 
 	return( 0 );
 }
