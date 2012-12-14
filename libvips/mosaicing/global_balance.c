@@ -214,7 +214,7 @@ build_node( SymbolTable *st, char *name )
 	node->dirty = 0;
 	node->mwidth = -2;
 	node->st = st;
-	im__transform_init( &node->cumtrn );
+	vips__transform_init( &node->cumtrn );
 	node->trnim = NULL;
 	node->arg1 = NULL;
 	node->arg2 = NULL;
@@ -407,7 +407,7 @@ calc_geometry( JoinNode *node )
 		node->cumtrn.iarea.top = 0;
 		node->cumtrn.iarea.width = um.width;
 		node->cumtrn.iarea.height = um.height;
-		im__transform_set_area( &node->cumtrn );
+		vips__transform_set_area( &node->cumtrn );
 		break;
 
 	case JOIN_CP:
@@ -424,7 +424,7 @@ calc_geometry( JoinNode *node )
 			node->cumtrn.iarea.top = 0;
 			node->cumtrn.iarea.width = node->im->Xsize;
 			node->cumtrn.iarea.height = node->im->Ysize;
-			im__transform_set_area( &node->cumtrn );
+			vips__transform_set_area( &node->cumtrn );
 		}
 		break;
 
@@ -440,7 +440,7 @@ calc_geometry( JoinNode *node )
  * have circularity.
  */
 static int
-propogate_transform( JoinNode *node, Transformation *trn )
+propogate_transform( JoinNode *node, VipsTransformation *trn )
 {
 	if( !node )
 		return( 0 );
@@ -460,7 +460,7 @@ propogate_transform( JoinNode *node, Transformation *trn )
 
 	/* Transform us, and recalculate our position and size.
 	 */
-	im__transform_add( &node->cumtrn, trn, &node->cumtrn );
+	vips__transform_add( &node->cumtrn, trn, &node->cumtrn );
 	calc_geometry( node );
 
 	return( 0 );
@@ -475,7 +475,7 @@ make_join( SymbolTable *st, JoinType type,
 	JoinNode *arg1, JoinNode *arg2, JoinNode *out, 
 	double a, double b, double dx, double dy, int mwidth )
 {
-	Transformation trn;
+	VipsTransformation trn;
 
 	/* Check output is ok.
 	 */
@@ -1528,13 +1528,13 @@ generate_trn_leaves( JoinNode *node, SymbolTable *st )
 		/* Special case: if this is an untransformed leaf (there will
 		 * always be at least one), then skip the affine.
 		 */
-		if( im__transform_isidentity( &node->cumtrn ) )
+		if( vips__transform_isidentity( &node->cumtrn ) )
 			node->trnim = node->im;
 		else
 			if( !(node->trnim = 
 				im_open_local( node->st->im, 
 					"trnleaf:1", "p" )) ||
-				im__affine( node->im, node->trnim, 
+				vips__affine( node->im, node->trnim, 
 					&node->cumtrn ) ) 
 				return( node );
 	}

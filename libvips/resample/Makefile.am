@@ -5,11 +5,11 @@
 if ENABLE_CXX
 
 libresample_la_SOURCES = \
+	affine.c \
 	quadratic.c \
 	resample.c \
 	resample.h \
 	shrink.c \
-	im_affine.c \
 	interpolate.c \
 	transform.c \
 	resample_dispatch.c \

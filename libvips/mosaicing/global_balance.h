@@ -83,13 +83,13 @@ struct _JoinNode {
 	 * cumtrn.area is position and size of us, thistrn.area is pos and
 	 * size of arg2.
 	 */
-	Transformation cumtrn;
+	VipsTransformation cumtrn;
 
 	/* X-tras for LR/TB. thistrn is what we do to arg2.
 	 */
 	JoinNode *arg1;		/* Left or up thing to join */
 	JoinNode *arg2;		/* Right or down thing to join */
-	Transformation thistrn;	/* Transformation for arg2 */
+	VipsTransformation thistrn;	/* Transformation for arg2 */
 
 	/* Special for leaves: all the join_nodes we overlap with, the
 	 * IMAGE for that file, and the index.

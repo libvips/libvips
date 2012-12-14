@@ -69,7 +69,7 @@
 /* Like im_similarity(), but return the transform we generated. 
  */
 static int 
-apply_similarity( Transformation *trn, IMAGE *in, IMAGE *out, 
+apply_similarity( VipsTransformation *trn, IMAGE *in, IMAGE *out, 
 	double a, double b, double dx, double dy )
 {
 	trn->iarea.left = 0;
@@ -82,11 +82,11 @@ apply_similarity( Transformation *trn, IMAGE *in, IMAGE *out,
 	trn->d = a;
 	trn->dx = dx;
 	trn->dy = dy;
-	im__transform_set_area( trn );
-	if( im__transform_calc_inverse( trn ) )
+	vips__transform_set_area( trn );
+	if( vips__transform_calc_inverse( trn ) )
 		return( -1 );
 
-	if( im__affine( in, out, trn ) )
+	if( vips__affine( in, out, trn ) )
 		return( -1 );
 
 	return( 0 );
@@ -103,7 +103,7 @@ int
 im__lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	double a, double b, double dx, double dy, int mwidth )
 {
-	Transformation trn;
+	VipsTransformation trn;
 	IMAGE *t1 = im_open_local( out, "im_lrmosaic1:1", "p" );
 	VipsBuf buf;
 	char text[1024];
@@ -145,7 +145,7 @@ int
 im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	double a, double b, double dx, double dy, int mwidth )
 {
-	Transformation trn;
+	VipsTransformation trn;
 	IMAGE *t1 = im_open_local( out, "im_lrmosaic1:2", "p" );
 	VipsBuf buf;
 	char text[1024];
@@ -316,7 +316,7 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 	int balancetype,
 	int mwidth )
 { 
-	Transformation trn;
+	VipsTransformation trn;
 	double cor1, cor2;
 	double a, b, dx, dy;
 	double xs3, ys3;
@@ -357,11 +357,11 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 
 	/* Map points on sec to rotated image.
 	 */
-	im__transform_forward_point( &trn, xs1, ys1, &xs3, &ys3 );
-	im__transform_forward_point( &trn, xs2, ys2, &xs4, &ys4 );
+	vips__transform_forward_point( &trn, xs1, ys1, &xs3, &ys3 );
+	vips__transform_forward_point( &trn, xs2, ys2, &xs4, &ys4 );
 
 	/* Refine tie-points on rotated image. Remember the clip
-	 * im__transform_set_area() has set, and move the sec tie-points 
+	 * vips__transform_set_area() has set, and move the sec tie-points 
 	 * accordingly.
 	 */
 	if( im_correl( t[0], t[2], xr1, yr1, 
@@ -391,8 +391,8 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 
 	/* ... and now back to input space again.
 	 */
-	im__transform_invert_point( &trn, xs5, ys5, &xs7, &ys7 );
-	im__transform_invert_point( &trn, xs6, ys6, &xs8, &ys8 );
+	vips__transform_invert_point( &trn, xs5, ys5, &xs7, &ys7 );
+	vips__transform_invert_point( &trn, xs6, ys6, &xs8, &ys8 );
 
 	/* Recalc the transform using the refined points.
 	 */
@@ -548,7 +548,7 @@ old_lrmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	int balancetype,
 	int mwidth )
 { 
-	Transformation trn1, trn2;
+	VipsTransformation trn1, trn2;
 	int dx0, dy0;
 	double a, b, dx, dy;
 	double a1, b1, dx1, dy1;

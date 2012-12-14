@@ -27,6 +27,13 @@
 
  */
 
+#ifndef VIPS_TRANSFORM_H
+#define VIPS_TRANSFORM_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /*__cplusplus*/
+
 /* Params for an affine transformation.
  */
 typedef struct {
@@ -46,24 +53,31 @@ typedef struct {
 	double dx, dy;
 
 	double ia, ib, ic, id;		/* Inverse of matrix abcd */
-} Transformation;
+} VipsTransformation;
 
-void im__transform_init( Transformation *trn );
-int im__transform_calc_inverse( Transformation *trn );
-int im__transform_isidentity( const Transformation *trn );
-int im__transform_add( const Transformation *in1, const Transformation *in2, 
-	Transformation *out );
-void im__transform_print( const Transformation *trn );
+void vips__transform_init( VipsTransformation *trn );
+int vips__transform_calc_inverse( VipsTransformation *trn );
+int vips__transform_isidentity( const VipsTransformation *trn );
+int vips__transform_add( const VipsTransformation *in1, 
+	const VipsTransformation *in2, 
+	VipsTransformation *out );
+void vips__transform_print( const VipsTransformation *trn );
 
-void im__transform_forward_point( const Transformation *trn, 
+void vips__transform_forward_point( const VipsTransformation *trn, 
 	const double x, const double y, double *ox, double *oy );
-void im__transform_invert_point( const Transformation *trn, 
+void vips__transform_invert_point( const VipsTransformation *trn, 
 	const double x, const double y, double *ox, double *oy );
-void im__transform_forward_rect( const Transformation *trn,
+void vips__transform_forward_rect( const VipsTransformation *trn,
 	const VipsRect *in, VipsRect *out );
-void im__transform_invert_rect( const Transformation *trn, 
+void vips__transform_invert_rect( const VipsTransformation *trn, 
 	const VipsRect *in, VipsRect *out );
 
-void im__transform_set_area( Transformation * );
+void vips__transform_set_area( VipsTransformation * );
 
-int im__affine( VipsImage *in, VipsImage *out, Transformation *trn );
+int vips__affine( VipsImage *in, VipsImage *out, VipsTransformation *trn );
+
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
+
+#endif /*VIPS_TRANSFORM_H*/

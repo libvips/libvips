@@ -47,6 +47,7 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 #include <vips/vector.h>
+#include <vips/transform.h>
 
 VipsImage *
 im_open( const char *filename, const char *mode )
@@ -2885,3 +2886,94 @@ im_cross_phase( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	return( 0 );
 }
 
+static int 
+im__affinei( VipsImage *in, VipsImage *out, 
+	VipsInterpolate *interpolate, VipsTransformation *trn )
+{
+	VipsImage *x;
+	VipsArea *oarea;
+
+	oarea = (VipsArea *) vips_array_int_newv( 4, 
+		trn->oarea.left, trn->oarea.top,
+		trn->oarea.width, trn->oarea.height );
+
+	if( vips_affine( in, &x, 
+		trn->a, trn->b, trn->c, trn->d,
+		"interpolate", interpolate,
+		"oarea", oarea,
+		"odx", trn->dx,
+		"ody", trn->dy,
+		NULL ) ) {
+		vips_area_unref( oarea );
+		return( -1 );
+	}
+
+	vips_area_unref( oarea );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_affinei( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
+	double a, double b, double c, double d, double dx, double dy, 
+	int ox, int oy, int ow, int oh )
+{
+	VipsTransformation trn;
+
+	trn.iarea.left = 0;
+	trn.iarea.top = 0;
+	trn.iarea.width = in->Xsize;
+	trn.iarea.height = in->Ysize;
+
+	trn.oarea.left = ox;
+	trn.oarea.top = oy;
+	trn.oarea.width = ow;
+	trn.oarea.height = oh;
+
+	trn.a = a;
+	trn.b = b;
+	trn.c = c;
+	trn.d = d;
+	trn.dx = dx;
+	trn.dy = dy;
+
+	return( im__affinei( in, out, interpolate, &trn ) );
+}
+
+int 
+im_affinei_all( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
+	double a, double b, double c, double d, double dx, double dy ) 
+{
+	VipsTransformation trn;
+
+	trn.iarea.left = 0;
+	trn.iarea.top = 0;
+	trn.iarea.width = in->Xsize;
+	trn.iarea.height = in->Ysize;
+	trn.a = a;
+	trn.b = b;
+	trn.c = c;
+	trn.d = d;
+	trn.dx = dx;
+	trn.dy = dy;
+
+	vips__transform_set_area( &trn );
+
+	return( im__affinei( in, out, interpolate, &trn ) );
+}
+
+/* Still needed by some parts of mosaic.
+ */
+int 
+vips__affine( VipsImage *in, VipsImage *out, VipsTransformation *trn )
+{
+	return( im__affinei( in, out, 
+		vips_interpolate_bilinear_static(), trn ) );
+}

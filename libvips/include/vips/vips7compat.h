@@ -730,6 +730,14 @@ int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
 int im_argb2rgba( VipsImage *in, VipsImage *out );
 
 int im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink );
+int im_affinei( VipsImage *in, VipsImage *out, 
+	VipsInterpolate *interpolate,
+	double a, double b, double c, double d, double dx, double dy, 
+	int ox, int oy, int ow, int oh );
+int im_affinei_all( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
+	double a, double b, double c, double d, double dx, double dy ) ;
+int im_rightshift_size( VipsImage *in, VipsImage *out, 
+	int xshift, int yshift, int band_fmt );
 
 int im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 );
 int im_Lab2XYZ( IMAGE *in, IMAGE *out );

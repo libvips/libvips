@@ -307,7 +307,7 @@ vips_shrink_build( VipsObject *object )
 	shrink->mh = ceil( shrink->yshrink );
 	shrink->np = shrink->mw * shrink->mh;
 
-	if( im_check_noncomplex( class->nickname, resample->in ) )
+	if( vips_check_noncomplex( class->nickname, resample->in ) )
 		return( -1 );
 
 	if( shrink->xshrink < 1.0 || 
@@ -326,9 +326,6 @@ vips_shrink_build( VipsObject *object )
 	if( shrink->xshrink == 1.0 &&
 		shrink->yshrink == 1.0 )
 		return( vips_image_write( resample->in, resample->out ) );
-
-	if( vips_image_copy_fields( resample->out, resample->in ) )
-		return( -1 );
 
 	/* THINSTRIP will work, FATSTRIP will break seq mode. If you combine
 	 * shrink with conv you'll need to use a line cache to maintain
@@ -410,10 +407,10 @@ vips_shrink_init( VipsShrink *shrink )
  *
  * You will get aliasing for non-integer shrinks. In this case, shrink with
  * this function to the nearest integer size above the target shrink, then
- * downsample to the exact size with im_affinei() and your choice of
+ * downsample to the exact size with vips_affine() and your choice of
  * interpolator.
  *
- * See also: im_affinei().
+ * See also: vips_affine().
  *
  * Returns: 0 on success, -1 on error
  */

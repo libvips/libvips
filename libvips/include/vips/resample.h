@@ -30,24 +30,12 @@
 
  */
 
-#ifndef IM_RESAMPLE_H
-#define IM_RESAMPLE_H
+#ifndef VIPS_RESAMPLE_H
+#define VIPS_RESAMPLE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
-
-int im_affinei( VipsImage *in, VipsImage *out, 
-	VipsInterpolate *interpolate,
-	double a, double b, double c, double d, double dx, double dy, 
-	int ox, int oy, int ow, int oh );
-int im_affinei_all( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
-	double a, double b, double c, double d, double dx, double dy ) ;
-
-int vips_quadratic( VipsImage *in, VipsImage **out, VipsImage *coeff, ... );
-
-int im_rightshift_size( VipsImage *in, VipsImage *out, 
-	int xshift, int yshift, int band_fmt );
 
 int im_match_linear( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int xr1, int yr1, int xs1, int ys1,
@@ -59,13 +47,17 @@ int im_match_linear_search( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 
 
-
+int vips_quadratic( VipsImage *in, VipsImage **out, VipsImage *coeff, ... )
+	__attribute__((sentinel));
 int vips_shrink( VipsImage *in, VipsImage **out, 
 	double xshrink, double yshrink, ... )
+	__attribute__((sentinel));
+int vips_affine( VipsImage *in, VipsImage **out, 
+	double a, double b, double c, double d, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_RESAMPLE_H*/
+#endif /*VIPS_RESAMPLE_H*/
