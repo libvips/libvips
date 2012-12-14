@@ -479,7 +479,7 @@ vips_affine_build( VipsObject *object )
 	 */
 	if( vips_image_generate( resample->out, 
 		vips_start_one, vips_affine_gen, vips_stop_one, 
-		resample->in, affine ) )
+		in, affine ) )
 		return( -1 );
 
 	/* Finally: can now set Xoffset/Yoffset.
