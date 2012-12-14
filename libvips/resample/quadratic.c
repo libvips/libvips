@@ -278,9 +278,7 @@ vips_quadratic_build( VipsObject *object )
 	} 
 
 	if( !vips_object_argument_isset( object, "interpolator" ) )
-		g_object_set( object, 
-			"interpolate", vips_interpolate_new( "bilinear" ),
-			NULL );
+		quadratic->interpolate = vips_interpolate_new( "bilinear" );
 	interpolate = quadratic->interpolate;
 
 	window_size = vips_interpolate_get_window_size( interpolate );
