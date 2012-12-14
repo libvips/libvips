@@ -619,7 +619,7 @@ vips_affine( VipsImage *in, VipsImage **out,
 	matrix = (VipsArea *) vips_array_double_newv( 4, a, b, c, d );
 
 	va_start( ap, d );
-	result = vips_call_split( "shrink", ap, in, out, matrix );
+	result = vips_call_split( "affine", ap, in, out, matrix );
 	va_end( ap );
 
 	vips_area_unref( matrix );
