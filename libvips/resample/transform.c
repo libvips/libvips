@@ -87,8 +87,10 @@ vips__transform_init( VipsTransformation *trn )
 	trn->b = 0.0;
 	trn->c = 0.0;
 	trn->d = 1.0;
-	trn->dx = 0.0;
-	trn->dy = 0.0;
+	trn->idx = 0.0;
+	trn->idy = 0.0;
+	trn->odx = 0.0;
+	trn->ody = 0.0;
 
 	(void) vips__transform_calc_inverse( trn );
 }
@@ -98,8 +100,10 @@ vips__transform_init( VipsTransformation *trn )
 int
 vips__transform_isidentity( const VipsTransformation *trn )
 {
-	if( trn->a == 1.0 && trn->b == 0.0 && trn->c == 0.0 &&
-		trn->d == 1.0 && trn->dx == 0.0 && trn->dy == 0.0 )
+	if( trn->a == 1.0 && trn->b == 0.0 && 
+		trn->c == 0.0 && trn->d == 1.0 && 
+		trn->idx == 0.0 && trn->idy == 0.0 &&
+		trn->odx == 0.0 && trn->ody == 0.0 )
 		return( 1 );
 	else
 		return( 0 );
@@ -116,8 +120,10 @@ vips__transform_add( const VipsTransformation *in1,
 	out->c = in1->a * in2->c + in1->c * in2->d;
 	out->d = in1->b * in2->c + in1->d * in2->d;
 
-	out->dx = in1->dx * in2->a + in1->dy * in2->b + in2->dx;
-	out->dy = in1->dx * in2->c + in1->dy * in2->d + in2->dy;
+	// fixme: do idx/idy as well
+
+	out->odx = in1->odx * in2->a + in1->ody * in2->b + in2->odx;
+	out->ody = in1->odx * in2->c + in1->ody * in2->d + in2->ody;
 
 	if( vips__transform_calc_inverse( out ) )
 		return( -1 );
@@ -141,33 +147,36 @@ vips__transform_print( const VipsTransformation *trn )
 		trn->oarea.height );
 	printf( " mat: a=%g, b=%g, c=%g, d=%g\n",
 		trn->a, trn->b, trn->c, trn->d );
-	printf( " off: dx=%g, dy=%g\n",
-		trn->dx, trn->dy );
+	printf( " off: odx=%g, ody=%g, idx=%g, idy=%g\n",
+		trn->odx, trn->ody, trn->idx, trn->idy );
 }
 
 /* Map a pixel coordinate through the transform. 
  */
 void
 vips__transform_forward_point( const VipsTransformation *trn, 
-	const double x, const double y,		/* In input space */
+	double x, double y,			/* In input space */
 	double *ox, double *oy )		/* In output space */
 {
-	*ox = trn->a * x + trn->b * y + trn->dx;
-	*oy = trn->c * x + trn->d * y + trn->dy;
+	x += trn->idx;
+	y += trn->idy;
+
+	*ox = trn->a * x + trn->b * y + trn->odx;
+	*oy = trn->c * x + trn->d * y + trn->ody;
 }
 
 /* Map a pixel coordinate through the inverse transform. 
  */
 void
 vips__transform_invert_point( const VipsTransformation *trn, 
-	const double x, const double y,		/* In output space */
+	double x, double y,			/* In output space */
 	double *ox, double *oy )		/* In input space */
 {
-	double mx = x - trn->dx;
-	double my = y - trn->dy;
+	x -=  trn->odx;
+	y -=  trn->ody;
 
-	*ox = trn->ia * mx + trn->ib * my;
-	*oy = trn->ic * mx + trn->id * my;
+	*ox = trn->ia * x + trn->ib * y - trn->idx;
+	*oy = trn->ic * x + trn->id * y - trn->idy;
 }
 
 typedef void (*transform_fn)( const VipsTransformation *, 

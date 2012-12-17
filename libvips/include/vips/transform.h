@@ -50,7 +50,8 @@ typedef struct {
 	/* The transform.
 	 */
 	double a, b, c, d;		
-	double dx, dy;
+	double idx, idy;
+	double odx, ody;
 
 	double ia, ib, ic, id;		/* Inverse of matrix abcd */
 } VipsTransformation;

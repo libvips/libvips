@@ -2901,8 +2901,8 @@ im__affinei( VipsImage *in, VipsImage *out,
 		trn->a, trn->b, trn->c, trn->d,
 		"interpolate", interpolate,
 		"oarea", oarea,
-		"odx", trn->dx,
-		"ody", trn->dy,
+		"odx", trn->odx,
+		"ody", trn->ody,
 		NULL ) ) {
 		vips_area_unref( oarea );
 		return( -1 );
@@ -2922,7 +2922,7 @@ im__affinei( VipsImage *in, VipsImage *out,
 
 int 
 im_affinei( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
-	double a, double b, double c, double d, double dx, double dy, 
+	double a, double b, double c, double d, double odx, double ody, 
 	int ox, int oy, int ow, int oh )
 {
 	VipsTransformation trn;
@@ -2941,15 +2941,15 @@ im_affinei( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
 	trn.b = b;
 	trn.c = c;
 	trn.d = d;
-	trn.dx = dx;
-	trn.dy = dy;
+	trn.odx = odx;
+	trn.ody = ody;
 
 	return( im__affinei( in, out, interpolate, &trn ) );
 }
 
 int 
 im_affinei_all( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
-	double a, double b, double c, double d, double dx, double dy ) 
+	double a, double b, double c, double d, double odx, double ody ) 
 {
 	VipsTransformation trn;
 
@@ -2961,8 +2961,8 @@ im_affinei_all( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
 	trn.b = b;
 	trn.c = c;
 	trn.d = d;
-	trn.dx = dx;
-	trn.dy = dy;
+	trn.odx = odx;
+	trn.ody = ody;
 
 	vips__transform_set_area( &trn );
 

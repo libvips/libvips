@@ -315,8 +315,8 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 		/* Continuous cods in transformed space.
 		 */
-		const double ox = le + oarea->left - affine->trn.dx;
-		const double oy = y + oarea->top - affine->trn.dy;
+		const double ox = le + oarea->left - affine->trn.odx;
+		const double oy = y + oarea->top - affine->trn.ody;
 
 		/* Continuous cods in input space.
 		 */
@@ -411,8 +411,10 @@ vips_affine_build( VipsObject *object )
 	affine->trn.b = ((double *) affine->matrix->data)[1];
 	affine->trn.c = ((double *) affine->matrix->data)[2];
 	affine->trn.d = ((double *) affine->matrix->data)[3];
-	affine->trn.dx = 0;
-	affine->trn.dy = 0;
+	affine->trn.idx = 0;
+	affine->trn.idy = 0;
+	affine->trn.odx = 0;
+	affine->trn.ody = 0;
 
 	vips__transform_set_area( &affine->trn );
 	if( vips_object_argument_isset( object, "oarea" ) ) {
@@ -423,12 +425,15 @@ vips_affine_build( VipsObject *object )
 	}
 
 	if( vips_object_argument_isset( object, "odx" ) )
-		affine->trn.dx = affine->odx;
+		affine->trn.odx = affine->odx;
 	if( vips_object_argument_isset( object, "ody" ) )
-		affine->trn.dx = affine->ody;
+		affine->trn.ody = affine->ody;
 
 	if( vips__transform_calc_inverse( &affine->trn ) )
 		return( -1 );
+	
+	if( vips__transform_isidentity( &affine->trn ) )
+		return( vips_image_write( in, resample->out ) );
 
 	resample->out->Xsize = affine->trn.oarea.width;
 	resample->out->Ysize = affine->trn.oarea.height;
@@ -484,8 +489,8 @@ vips_affine_build( VipsObject *object )
 
 	/* Finally: can now set Xoffset/Yoffset.
 	 */
-	resample->out->Xoffset = affine->trn.dx - affine->trn.oarea.left;
-	resample->out->Yoffset = affine->trn.dy - affine->trn.oarea.top;
+	resample->out->Xoffset = affine->trn.odx - affine->trn.oarea.left;
+	resample->out->Yoffset = affine->trn.ody - affine->trn.oarea.top;
 
 	if( repack ) {
 		if( vips_LabS2LabQ( resample->out, &t[2], NULL ) )
@@ -501,7 +506,6 @@ vips_affine_class_init( VipsAffineClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_affine_class_init\n" );
 
