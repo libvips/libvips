@@ -12,7 +12,6 @@ libresample_la_SOURCES = \
 	shrink.c \
 	interpolate.c \
 	transform.c \
-	resample_dispatch.c \
 	bicubic.cpp \
 	lbb.cpp \
 	nohalo.cpp \
@@ -25,10 +24,9 @@ libresample_la_SOURCES = \
 	resample.c \
 	resample.h \
 	shrink.c \
-	im_affine.c \
+	affine.c \
 	interpolate.c \
-	transform.c \
-	resample_dispatch.c 
+	transform.c 
 
 EXTRA_DIST = \
 	bicubic.cpp \

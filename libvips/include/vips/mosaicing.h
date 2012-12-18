@@ -39,6 +39,14 @@ extern "C" {
 
 #include <vips/vips.h>
 
+int im_match_linear( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int xr1, int yr1, int xs1, int ys1,
+	int xr2, int yr2, int xs2, int ys2 );
+int im_match_linear_search( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int xr1, int yr1, int xs1, int ys1,
+	int xr2, int yr2, int xs2, int ys2,
+	int hwindowsize, int hsearchsize );
+
 int im_lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int dx, int dy, int mwidth );
 int im_tbmerge( VipsImage *ref, VipsImage *sec, VipsImage *out,

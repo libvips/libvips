@@ -37,23 +37,14 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_match_linear( VipsImage *ref, VipsImage *sec, VipsImage *out,
-	int xr1, int yr1, int xs1, int ys1,
-	int xr2, int yr2, int xs2, int ys2 );
-int im_match_linear_search( VipsImage *ref, VipsImage *sec, VipsImage *out,
-	int xr1, int yr1, int xs1, int ys1,
-	int xr2, int yr2, int xs2, int ys2,
-	int hwindowsize, int hsearchsize );
-
-
-
-int vips_quadratic( VipsImage *in, VipsImage **out, VipsImage *coeff, ... )
-	__attribute__((sentinel));
 int vips_shrink( VipsImage *in, VipsImage **out, 
 	double xshrink, double yshrink, ... )
 	__attribute__((sentinel));
 int vips_affine( VipsImage *in, VipsImage **out, 
 	double a, double b, double c, double d, ... )
+	__attribute__((sentinel));
+
+int vips_quadratic( VipsImage *in, VipsImage **out, VipsImage *coeff, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus
