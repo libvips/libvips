@@ -33,6 +33,7 @@
 - all interpolators use corner convention ... we had round-to-nearest in
   several of them before, causing a range of annoying problems
 - redone im_affine*() as a class
+- added input space displacement to affine
 
 14/11/12 started 7.30.6
 - capture tiff warnings earlier

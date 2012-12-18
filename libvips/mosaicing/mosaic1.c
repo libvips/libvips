@@ -80,8 +80,10 @@ apply_similarity( VipsTransformation *trn, IMAGE *in, IMAGE *out,
 	trn->b = -b;
 	trn->c = b;
 	trn->d = a;
-	trn->dx = dx;
-	trn->dy = dy;
+	trn->idx = 0;
+	trn->idy = 0;
+	trn->odx = dx;
+	trn->ody = dy;
 	vips__transform_set_area( trn );
 	if( vips__transform_calc_inverse( trn ) )
 		return( -1 );

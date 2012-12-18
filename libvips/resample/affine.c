@@ -78,6 +78,7 @@
  * 	- gtk-doc
  * 14/12/12
  * 	- redone as a class
+ * 	- added input space translation
  */
 
 /*
@@ -334,6 +335,11 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		ix += iarea->left;
 		iy += iarea->top;
 
+		/* And the input offset.
+		 */
+		ix -= affine->trn.idx;
+		iy -= affine->trn.idy;
+
 		q = VIPS_REGION_ADDR( or, le, y );
 
 		for( x = le; x < ri; x++ ) {
@@ -428,6 +434,11 @@ vips_affine_build( VipsObject *object )
 		affine->trn.odx = affine->odx;
 	if( vips_object_argument_isset( object, "ody" ) )
 		affine->trn.ody = affine->ody;
+
+	if( vips_object_argument_isset( object, "idx" ) )
+		affine->trn.idx = affine->idx;
+	if( vips_object_argument_isset( object, "idy" ) )
+		affine->trn.idy = affine->idy;
 
 	if( vips__transform_calc_inverse( &affine->trn ) )
 		return( -1 );
@@ -541,28 +552,28 @@ vips_affine_class_init( VipsAffineClass *class )
 		_( "Horizontal output displacement" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsAffine, odx ),
-		0, 10000000, 0 );
+		-10000000, 10000000, 0 );
 
 	VIPS_ARG_DOUBLE( class, "ody", 113, 
 		_( "Output offset" ), 
 		_( "Vertical output displacement" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsAffine, ody ),
-		0, 10000000, 0 );
+		-10000000, 10000000, 0 );
 
-	VIPS_ARG_DOUBLE( class, "idx", 112, 
+	VIPS_ARG_DOUBLE( class, "idx", 114, 
 		_( "Input offset" ), 
 		_( "Horizontal input displacement" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsAffine, idx ),
-		0, 10000000, 0 );
+		-10000000, 10000000, 0 );
 
-	VIPS_ARG_DOUBLE( class, "idy", 113, 
+	VIPS_ARG_DOUBLE( class, "idy", 115, 
 		_( "Input offset" ), 
 		_( "Vertical input displacement" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsAffine, idy ),
-		0, 10000000, 0 );
+		-10000000, 10000000, 0 );
 }
 
 static void

@@ -499,8 +499,10 @@ make_join( SymbolTable *st, JoinType type,
 	out->thistrn.b = -b;
 	out->thistrn.c = b;
 	out->thistrn.d = a;
-	out->thistrn.dx = dx;
-	out->thistrn.dy = dy;
+	out->thistrn.idx = 0;
+	out->thistrn.idy = 0;
+	out->thistrn.odx = dx;
+	out->thistrn.ody = dy;
 
 	/* Clean the table and propogate the transform down the RHS of the
 	 * graph.
@@ -519,8 +521,10 @@ make_join( SymbolTable *st, JoinType type,
 	trn.b = 0.0;
 	trn.c = 0.0;
 	trn.d = 1.0;
-	trn.dx = -out->cumtrn.oarea.left;
-	trn.dy = -out->cumtrn.oarea.top;
+	trn.idx = 0;
+	trn.idy = 0;
+	trn.odx = -out->cumtrn.oarea.left;
+	trn.ody = -out->cumtrn.oarea.top;
 	clean_table( st );
 	if( propogate_transform( out, &trn ) )
 		return( -1 );
