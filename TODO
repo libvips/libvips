@@ -1,3 +1,5 @@
+- im_benchmarkn segvs, im_affine wraopper is dropping a reference too early?
+
 - test affine labq processing
 
 
