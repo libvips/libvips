@@ -1046,6 +1046,17 @@ vips_foreign_save_dz_build( VipsObject *object )
 			VIPS_SETSTR( dz->suffix, ".jpg" );
 	}
 
+	/* Default to white background. 
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
+		!vips_object_argument_isset( object, "background" ) ) {
+		VipsArrayDouble *background; 
+
+		background = vips_array_double_newv( 1, 255.0 );
+		g_object_set( object, "background", background, NULL );
+		vips_area_unref( background ); 
+	}
+
 	if( dz->overlap >= dz->tile_size || 
 		dz->overlap >= dz->tile_size ) {
 		vips_error( "dzsave", 
@@ -1231,9 +1242,6 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->overlap = 1;
 	dz->tile_size = 256;
 	dz->tile_count = 0;
-	dz->background = 
-		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
-	((double *) (dz->background->data))[0] = 255;
 	dz->depth = VIPS_FOREIGN_DZ_DEPTH_1PIXEL; 
 }
 

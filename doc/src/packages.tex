@@ -21,7 +21,7 @@ in the manual pages.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list arithmetic
+$ vips list arithmetic
 im_abs               - absolute value
 im_acostra           - acos of image (result in degrees)
 im_add               - add two images
@@ -92,7 +92,7 @@ condition is true (or false) for a whole image.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list relational
+$ vips list relational
 im_blend             - use cond image to blend between images in1 and in2
 im_equal             - two images equal in value
 im_equal_vec         - image equals doublevec
@@ -129,7 +129,7 @@ the relational and morphological functions. You can use
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list boolean
+$ vips list boolean
 im_andimage          - bitwise and of two images
 im_andimageconst     - bitwise and of an image with a constant
 im_andimage_vec      - bitwise and of an image with a vector constant
@@ -228,7 +228,7 @@ or \verb+disp+ colour space.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list colour
+$ vips list colour
 im_LCh2Lab           - convert LCh to Lab
 im_LCh2UCS           - convert LCh to UCS
 im_Lab2LCh           - convert Lab to LCh
@@ -295,7 +295,7 @@ join of many images at the same time. See the manual pages.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list conversion
+$ vips list conversion
 im_bandjoin          - bandwise join of two images
 im_bernd             - extract from pyramid as jpeg
 im_black             - generate black image
@@ -423,7 +423,7 @@ sections.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list matrix
+$ vips list matrix
 im_matcat          - append matrix in2 to the end of matrix in1
 im_matinv          - invert matrix
 im_matmul          - multiply matrix in1 by matrix in2
@@ -469,7 +469,7 @@ expect.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list convolution
+$ vips list convolution
 im_addgnoise         - add gaussian noise with mean 0 and std. dev. sigma
 im_compass           - convolve with 8-way rotating integer mask
 im_contrast_surface  - find high-contrast points in an image
@@ -535,7 +535,7 @@ not.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list inplace
+$ vips list inplace
 im_circle          - plot circle on image
 im_flood_blob_copy - flood while pixel == start pixel
 im_insertplace     - draw image sub inside image main at position (x,y)
@@ -574,7 +574,7 @@ for an image.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list freq_filt    
+$ vips list freq_filt    
 im_create_fmask    - create frequency domain filter mask
 im_disp_ps         - make displayable power spectrum
 im_flt_image_freq  - frequency domain filter image
@@ -614,7 +614,7 @@ functions are useful combinations of these basic operations.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list histograms_lut
+$ vips list histograms_lut
 im_gammacorrect      - gamma-correct image
 im_heq               - histogram-equalise image
 im_hist              - find and graph histogram of image
@@ -695,7 +695,7 @@ union operations.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list morphology
+$ vips list morphology
 im_cntlines        - count horizontal or vertical lines
 im_dilate          - dilate image with mask, adding a black border
 im_dilate_raw      - dilate image with mask
@@ -747,7 +747,7 @@ images.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list mosaicing
+$ vips list mosaicing
 im_align_bands       - align the bands of an image
 im_correl            - search area around sec for match for area around ref
 im__find_lroverlap   - search for left-right overlap of ref and sec
@@ -780,7 +780,7 @@ They are useful for removing noise from images.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list cimg
+$ vips list cimg
 im_greyc           - noise-removing filter
 im_greyc_mask      - noise-removing filter, with a mask
 \end{verbatim}
@@ -799,7 +799,7 @@ The \verb+im_benchmark*()+ operations are for testing the VIPS SMP system.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list other
+$ vips list other
 im_benchmark       - do something complicated for testing
 im_benchmark2      - do something complicated for testing
 im_benchmarkn      - do something complicated for testing
@@ -823,7 +823,7 @@ These functions are related to the image IO system.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list iofuncs
+$ vips list iofuncs
 im_binfile         - open a headerless binary file
 im_cache           - cache results of an operation
 im_guess_prefix    - guess install area
@@ -849,7 +849,7 @@ formats, see the man page for \verb+VipsFormat+.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list format
+$ vips list format
 im_csv2vips          - read a file in csv format
 im_jpeg2vips         - convert from jpeg
 im_magick2vips       - load file with libMagick
@@ -877,7 +877,7 @@ These functions resample images with various interpolators.
 
 \begin{fig2}
 \begin{verbatim}
-$ vips --list resample
+$ vips list resample
 im_affine            - affine transform
 im_affinei           - affine transform
 im_affinei_all       - affine transform of whole image
