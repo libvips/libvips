@@ -1,6 +1,13 @@
 - im_benchmarkn segvs, im_affine wraopper is dropping a reference too early?
 
-- test affine labq processing
+  try 
+
+  $ vips colourspace k2.jpg x.v
+  $ vips affine x.v x2.v "1 0 0 1.1"
+  Segmentation fault (core dumped)
+
+  oo labq problem?
+
 
 
 - quadratic doesn't work for order 3

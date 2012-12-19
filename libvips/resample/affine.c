@@ -486,10 +486,10 @@ vips_affine_build( VipsObject *object )
 	if( affine->trn.b == 0.0 && 
 		affine->trn.c == 0.0 ) 
 		vips_demand_hint( resample->out, 
-			VIPS_DEMAND_STYLE_FATSTRIP, resample->in, NULL );
+			VIPS_DEMAND_STYLE_FATSTRIP, in, NULL );
 	else 
 		vips_demand_hint( resample->out, 
-			VIPS_DEMAND_STYLE_SMALLTILE, resample->in, NULL );
+			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL );
 
 	/* Generate!
 	 */
@@ -498,16 +498,23 @@ vips_affine_build( VipsObject *object )
 		in, affine ) )
 		return( -1 );
 
+	/*
+	if( repack ) {
+		VipsImage *x;
+
+		if( vips_LabS2LabQ( resample->out, &x, NULL ) )
+			return( -1 );
+
+		VIPS_UNREF( resample->out );
+
+		resample->out = x;
+	}
+	 */
+
 	/* Finally: can now set Xoffset/Yoffset.
 	 */
 	resample->out->Xoffset = affine->trn.odx - affine->trn.oarea.left;
 	resample->out->Yoffset = affine->trn.ody - affine->trn.oarea.top;
-
-	if( repack ) {
-		if( vips_LabS2LabQ( resample->out, &t[2], NULL ) )
-			return( -1 );
-		resample->out = t[2];
-	}
 
 	return( 0 );
 }
