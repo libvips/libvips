@@ -32,6 +32,7 @@
 - added vips_bandbool(), with vips_bandand(), _bandor(), _bandeor() as
   convenience functions
 - added scRGB colourspace, linear light float space with sRGB primaries
+- VipsArea is threadsafe
 
 14/11/12 started 7.30.6
 - capture tiff warnings earlier

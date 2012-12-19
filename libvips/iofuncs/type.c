@@ -147,6 +147,8 @@ static int vips_area_number = 0;
 VipsArea *
 vips_area_copy( VipsArea *area )
 {
+	g_mutex_lock( area->lock );
+
 	g_assert( area->count >= 0 );
 
 	area->count += 1;
@@ -155,12 +157,16 @@ vips_area_copy( VipsArea *area )
 	printf( "vips_area_copy: %p count = %d\n", area, area->count );
 #endif /*DEBUG*/
 
+	g_mutex_unlock( area->lock );
+
 	return( area );
 }
 
 void
 vips_area_unref( VipsArea *area )
 {
+	g_mutex_lock( area->lock );
+
 	g_assert( area->count > 0 );
 
 	area->count -= 1;
@@ -176,6 +182,10 @@ vips_area_unref( VipsArea *area )
 			area->free_fn = NULL;
 		}
 
+		g_mutex_unlock( area->lock );
+
+		VIPS_FREEF( vips_g_mutex_free, area->lock );
+
 		g_free( area );
 
 #ifdef DEBUG
@@ -184,6 +194,8 @@ vips_area_unref( VipsArea *area )
 			vips_area_number );
 #endif /*DEBUG*/
 	}
+	else
+		g_mutex_unlock( area->lock );
 }
 
 /**
@@ -205,6 +217,7 @@ vips_area_new( VipsCallbackFn free_fn, void *data )
 
 	area = g_new( VipsArea, 1 );
 	area->count = 1;
+	area->lock = vips_g_mutex_new();
 	area->length = 0;
 	area->data = data;
 	area->free_fn = free_fn;

@@ -66,9 +66,13 @@ typedef struct _VipsArea {
 
 	/*< private >*/
 
-	/* Reference count.
+	/* Reference count and lock. 
+	 *
+	 * We could use an atomic int, but this is not a high-traffic data
+	 * structure, so a simple GMutex is OK.
 	 */
 	int count;
+	GMutex *lock;		
 
 	/* Things like ICC profiles need their own free functions.
 	 */
