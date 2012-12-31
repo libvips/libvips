@@ -162,7 +162,7 @@ vips_measure_build( VipsObject *object )
 					vips_warn( "VipsMeasure",
 						_( "patch %d x %d, band %d: " 
 						   "avg = %g, sdev = %g" ), 
-						i, j, avg, dev );
+						i, j, b, avg, dev );
 
 				*ARY( measure->out, b, i + j * measure->h ) = 
 					avg;
