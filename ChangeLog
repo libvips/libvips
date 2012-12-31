@@ -1,3 +1,6 @@
+31/12/12 started 7.30.7
+- better option parsing for "vips", thanks Haida
+
 14/11/12 started 7.30.6
 - capture tiff warnings earlier
 
