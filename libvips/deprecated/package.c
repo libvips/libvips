@@ -38,6 +38,10 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -631,6 +635,10 @@ im_load_plugin( const char *name )
 {
 	Plugin *plug;
 
+#ifdef DEBUG
+	printf( "im_load_plugin: \"%s\"\n", name );
+#endif /*DEBUG*/
+
 	if( !g_module_supported() ) {
 		vips_error( "plugin",	
 			"%s", _( "plugins not supported on this platform" ) );
@@ -683,7 +691,7 @@ im_load_plugin( const char *name )
 	}
 
 #ifdef DEBUG
-	printf( "added package \"%s\" ...\n", plug->pack->name );
+	printf( "added package \"%s\"\n", plug->pack->name );
 #endif /*DEBUG*/
 
 	return( plug->pack );
@@ -709,6 +717,10 @@ im_load_plugins( const char *fmt, ... )
         va_start( ap, fmt );
         (void) im_vsnprintf( dir_name, PATH_MAX - 1, fmt, ap );
         va_end( ap );
+
+#ifdef DEBUG
+	printf( "im_load_plugins: searching \"%s\"\n", dir_name );
+#endif /*DEBUG*/
 
         if( !(dir = g_dir_open( dir_name, 0, NULL )) ) 
 		/* Silent success for dir not there.

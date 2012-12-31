@@ -38,6 +38,8 @@
  * 6/2/12
  * 	- long arg names in decls to help SWIG
  * 	- don't wrap im_remainderconst_vec()
+ * 31/12/12
+ * 	- parse options in two passes (thanks Haida)
  */
 
 /*
@@ -987,16 +989,6 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 		error_exit( NULL );
 	}
 
-	/* We support --plugin and --version for all cases.
-	 */
-	if( main_option_plugin ) {
-		if( !im_load_plugin( main_option_plugin ) )
-			error_exit( NULL ); 
-	}
-
-	if( main_option_version ) 
-		printf( "vips-%s\n", im_version_string() );
-
 	/* Remove any "--" argument. If one of our arguments is a negative
 	 * number, the user will need to have added the "--" flag to stop
 	 * GOption parsing. But "--" is still passed down to us and we need to
@@ -1012,17 +1004,16 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 }
 
 static GOptionGroup *
-add_main_group( GOptionContext *context, VipsOperation *user_data )
+add_operation_group( GOptionContext *context, VipsOperation *user_data )
 {
-	GOptionGroup *main_group;
+	GOptionGroup *group;
 
-	main_group = g_option_group_new( NULL, NULL, NULL, user_data, NULL );
-	g_option_group_add_entries( main_group, main_option );
-	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
-	g_option_context_set_main_group( context, main_group );
-	g_option_context_add_group( context, im_get_option_group() );
+	group = g_option_group_new( "operation", 
+		_( "Operation" ), _( "Operation help" ), user_data, NULL );
+	g_option_group_set_translation_domain( group, GETTEXT_PACKAGE );
+	g_option_context_add_group( context, group );
 
-	return( main_group );
+	return( group );
 }
 
 /* VIPS universal main program. 
@@ -1033,10 +1024,13 @@ main( int argc, char **argv )
 	char *action;
 	GOptionContext *context;
 	GOptionGroup *main_group;
+	GOptionGroup *group;
 	VipsOperation *operation;
 	im_function *fn;
 	int i, j;
 	gboolean handled;
+
+	GError *error = NULL;
 
 	if( im_init_world( argv[0] ) )
 	        error_exit( NULL );
@@ -1054,8 +1048,59 @@ main( int argc, char **argv )
 		G_LOG_LEVEL_WARNING );
 #endif /*!DEBUG_FATAL*/
 
+	context = g_option_context_new( _( "[ACTION] [OPTIONS] [PARAMETERS] - "
+		"VIPS driver program" ) );
+
+	/* Add and parse the outermost options: the ones this program uses.
+	 * For example, we need
+	 * to be able to spot that in the case of "--plugin ./poop.plg" we
+	 * must remove two args.
+	 */
+	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
+	g_option_group_add_entries( main_group, main_option );
+	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
+	g_option_context_set_main_group( context, main_group );
+
+	/* Add the libvips options too.
+	 */
+	g_option_context_add_group( context, im_get_option_group() );
+
+	/* We add more options later, for example as options to vips8
+	 * operations. Ignore any unknown options in this first parse.
+	 */
+	g_option_context_set_ignore_unknown_options( context, TRUE );
+
+	/* Also disable help output: we want to be able to display full help
+	 * in a second pass after all options have been created.
+	 */
+	g_option_context_set_help_enabled( context, FALSE );
+
+	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
+		if( error ) {
+			fprintf( stderr, "%s\n", error->message );
+			g_error_free( error );
+		}
+
+		error_exit( NULL );
+	}
+
+	if( main_option_plugin ) {
+		if( !im_load_plugin( main_option_plugin ) )
+			error_exit( NULL ); 
+	}
+
+	if( main_option_version ) 
+		printf( "vips-%s\n", im_version_string() );
+
+	/* Reenable help and unknown option detection ready for the second
+	 * option parse.
+	 */
+	g_option_context_set_ignore_unknown_options( context, FALSE );
+	g_option_context_set_help_enabled( context, TRUE );
+
 	/* Try to find our action.
 	 */
+	handled = FALSE;
 	action = NULL;
 
 	/* Should we try to run the thing we are named as?
@@ -1065,7 +1110,8 @@ main( int argc, char **argv )
 
 	if( !action ) {
 		/* Look for the first non-option argument, if any, and make 
-		 * that our action.
+		 * that our action. The parse above will have removed most of
+		 * them, but --help (for example) could still remain. 
 		 */
 		for( i = 1; i < argc; i++ )
 			if( argv[i][0] != '-' ) {
@@ -1081,17 +1127,13 @@ main( int argc, char **argv )
 			}
 	}
 
-	context = g_option_context_new( _( "[ACTION] [OPTIONS] [PARAMETERS] - "
-		"VIPS driver program" ) );
-	handled = FALSE;
-
 	/* Could be one of our built-in actions.
 	 */
 	if( action ) 
 		for( i = 0; i < VIPS_NUMBER( actions ); i++ )
 			if( strcmp( action, actions[i].name ) == 0 ) {
-				main_group = add_main_group( context, NULL );
-				g_option_group_add_entries( main_group, 
+				group = add_operation_group( context, NULL );
+				g_option_group_add_entries( group, 
 					actions[i].group );
 				parse_options( context, &argc, argv );
 
@@ -1109,9 +1151,6 @@ main( int argc, char **argv )
 	if( action && 
 		!handled && 
 		(fn = im_find_function( action )) ) {
-		(void) add_main_group( context, NULL );
-		parse_options( context, &argc, argv );
-
 		if( im_run_command( action, argc - 1, argv + 1 ) ) {
 			if( argc == 1 ) 
 				usage( fn );
@@ -1133,8 +1172,8 @@ main( int argc, char **argv )
 	if( action && 
 		!handled && 
 		(operation = vips_operation_new( action )) ) {
-		main_group = add_main_group( context, operation );
-		vips_call_options( main_group, operation );
+		group = add_operation_group( context, operation );
+		vips_call_options( group, operation );
 		parse_options( context, &argc, argv );
 
 		if( vips_call_argv( operation, argc - 1, argv + 1 ) ) {
@@ -1154,21 +1193,22 @@ main( int argc, char **argv )
 		handled = TRUE;
 	}
 
-	/* vips_operation_new() set an error msg for unknown operation.
+	/* vips_operation_new() sets an error msg for unknown operation.
 	 */
 	if( action &&
 		!handled )
 		im_error_clear();
 
+	/* Still not handled? We may not have called parse_options(), so
+	 * --help args may not have been processed.
+	 */
+	if( !handled )
+		parse_options( context, &argc, argv );
+
 	if( action && 
 		!handled ) {
 		print_help( argc, argv );
 		error_exit( _( "unknown action \"%s\"" ), action );
-	}
-
-	if( !handled ) {
-		(void) add_main_group( context, NULL );
-		parse_options( context, &argc, argv );
 	}
 
 	g_option_context_free( context );
