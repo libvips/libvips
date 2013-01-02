@@ -14,8 +14,6 @@
 
 
 
-- check libtool version number, should be binary-compat with 7.30 
-
 - the operation cache needs to detect invalidate
 
   tricky!
