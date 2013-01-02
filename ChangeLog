@@ -11,7 +11,7 @@
 - support 16-bit sRGB import and export
 - rename UCS colourspace as CMC
 - dzsave can write zoomify and google maps layout as well
-- tilecache supports threaded access
+- tilecache supports threaded access, so openslide read now threads
 - openslide2vips gets underlying tile size from openslide
 - embed has 'background' option
 - dzsave --layout google has a @background option
@@ -35,6 +35,9 @@
 - redone im_affine*() as a class
 - added input space displacement to affine
 - VipsArea is threadsafe
+
+31/12/12 started 7.30.7
+- better option parsing for "vips", thanks Haida
 
 14/11/12 started 7.30.6
 - capture tiff warnings earlier
