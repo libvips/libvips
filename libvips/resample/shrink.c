@@ -327,6 +327,9 @@ vips_shrink_build( VipsObject *object )
 		shrink->yshrink == 1.0 )
 		return( vips_image_write( resample->in, resample->out ) );
 
+	if( vips_image_copy_fields( resample->out, resample->in ) )
+		return( -1 );
+
 	/* THINSTRIP will work, FATSTRIP will break seq mode. If you combine
 	 * shrink with conv you'll need to use a line cache to maintain
 	 * sequentiality.

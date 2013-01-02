@@ -443,11 +443,10 @@ vips_affine_build( VipsObject *object )
 	if( vips__transform_calc_inverse( &affine->trn ) )
 		return( -1 );
 	
+	/*
 	if( vips__transform_isidentity( &affine->trn ) )
 		return( vips_image_write( in, resample->out ) );
-
-	resample->out->Xsize = affine->trn.oarea.width;
-	resample->out->Ysize = affine->trn.oarea.height;
+	 */
 
 	/* Check for coordinate overflow ... we want to be able to hold the
 	 * output space inside INT_MAX / TRANSFORM_SCALE.
@@ -481,6 +480,12 @@ vips_affine_build( VipsObject *object )
 		return( -1 );
 	in = t[1];
 
+	if( vips_image_copy_fields( resample->out, in ) )
+		return( -1 );
+
+	resample->out->Xsize = affine->trn.oarea.width;
+	resample->out->Ysize = affine->trn.oarea.height;
+
 	/* Normally SMALLTILE ... except if this is a size up/down affine.
 	 */
 	if( affine->trn.b == 0.0 && 
@@ -498,7 +503,6 @@ vips_affine_build( VipsObject *object )
 		in, affine ) )
 		return( -1 );
 
-	/*
 	if( repack ) {
 		VipsImage *x;
 
@@ -509,7 +513,6 @@ vips_affine_build( VipsObject *object )
 
 		resample->out = x;
 	}
-	 */
 
 	/* Finally: can now set Xoffset/Yoffset.
 	 */

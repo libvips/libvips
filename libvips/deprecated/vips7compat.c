@@ -2941,6 +2941,8 @@ im_affinei( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
 	trn.b = b;
 	trn.c = c;
 	trn.d = d;
+	trn.idx = 0;
+	trn.idy = 0;
 	trn.odx = odx;
 	trn.ody = ody;
 
@@ -2961,6 +2963,8 @@ im_affinei_all( VipsImage *in, VipsImage *out, VipsInterpolate *interpolate,
 	trn.b = b;
 	trn.c = c;
 	trn.d = d;
+	trn.idx = 0;
+	trn.idy = 0;
 	trn.odx = odx;
 	trn.ody = ody;
 

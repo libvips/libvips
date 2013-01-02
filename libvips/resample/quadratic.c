@@ -240,6 +240,9 @@ vips_quadratic_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_quadratic_parent_class )->build( object ) )
 		return( -1 );
 
+	if( vips_image_copy_fields( resample->out, resample->in ) )
+		return( -1 );
+
 	in = resample->in;
 
         if( vips_check_uncoded( class->nickname, in ) ||
