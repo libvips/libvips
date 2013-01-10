@@ -137,7 +137,8 @@ vips_extract_area_build( VipsObject *object )
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsExtractArea *extract = (VipsExtractArea *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_extract_area_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_extract_area_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	if( extract->left + extract->width > extract->in->Xsize ||

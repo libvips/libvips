@@ -45,8 +45,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -65,7 +65,7 @@
 
 /* Stall threads that run ahead for this long, in seconds.
  */
-#define STALL_TIME (0.1)
+#define STALL_TIME (1.0)
 
 typedef struct _VipsSequential {
 	VipsConversion parent_instance;
@@ -133,8 +133,9 @@ vips_sequential_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	if( r->top > sequential->y_pos && 
-		sequential->y_pos > 0 ) {
+	if( r->top > sequential->y_pos 
+			//&& sequential->y_pos > 0 
+			) {
 		GTimeVal time;
 
 		/* We have started reading (y_pos > 0) and this request is for 
@@ -145,8 +146,15 @@ vips_sequential_generate( VipsRegion *or,
 			STALL_TIME, g_thread_self() ); 
 		g_get_current_time( &time );
 		g_time_val_add( &time, STALL_TIME * 1000000 );
-		g_cond_timed_wait( sequential->ready, 
-			sequential->lock, &time );
+
+		/* Exit the loop on timeout or condition passes. We have to
+		 * be wary of spurious wakeups. 
+		 */
+		while( r->top > sequential->y_pos )
+			if( !g_cond_timed_wait( sequential->ready, 
+				sequential->lock, &time ) )
+				break;
+
 		VIPS_DEBUG_MSG( "thread %p awake again ...\n", 
 			g_thread_self() ); 
 	}

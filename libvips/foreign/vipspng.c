@@ -124,6 +124,7 @@ typedef struct {
 	VipsImage *out;
 
 	FILE *fp;
+	int y_pos;
 	png_structp pPng;
 	png_infop pInfo;
 	png_bytep *row_pointer;
@@ -149,6 +150,7 @@ read_new( const char *name, VipsImage *out )
 	read->name = vips_strdup( VIPS_OBJECT( out ), name );
 	read->out = out;
 	read->fp = NULL;
+	read->y_pos = 0;
 	read->pPng = NULL;
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
@@ -405,9 +407,9 @@ png2vips_generate( VipsRegion *or,
 	int y;
 
 #ifdef DEBUG
+#endif /*DEBUG*/
 	printf( "png2vips_generate: line %d, %d rows\n", 
 		r->top, r->height );
-#endif /*DEBUG*/
 
 	/* We're inside a tilecache where tiles are the full image width, so
 	 * this should always be true.
@@ -421,10 +423,23 @@ png2vips_generate( VipsRegion *or,
 	 */
 	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
 
+	/* And check that y_pos is correct. It should be, since we are inside
+	 * a vips_sequential().
+	 */
+	if( r->top != read->y_pos ) { 
+		printf( "png2vips_generate: y_pos == %d, top == %d\n",
+			read->y_pos, r->top ); 
+		g_assert( r->top == read->y_pos ); 
+	}
+
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
 #ifdef DEBUG
-		printf( "png2vips_generate: failing in setjmp\n" ); 
 #endif /*DEBUG*/
+		printf( "png2vips_generate: failing in setjmp\n" ); 
+		printf( "png2vips_generate: line %d, %d rows\n", 
+			r->top, r->height );
+		printf( "png2vips_generate: file %s\n", read->name );
+		printf( "png2vips_generate: thread %p\n", g_thread_self() );
 
 		return( -1 );
 	}
@@ -433,6 +448,8 @@ png2vips_generate( VipsRegion *or,
 		png_bytep q = (png_bytep) VIPS_REGION_ADDR( or, 0, r->top + y );
 
 		png_read_row( read->pPng, q, NULL );
+
+		read->y_pos += 1;
 	}
 
 	return( 0 );
@@ -460,7 +477,7 @@ vips__png_isinterlaced( const char *filename )
 }
 
 int
-vips__png_read( const char *name, VipsImage *out )
+vips__png_read( const char *filename, VipsImage *out )
 {
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
@@ -469,10 +486,10 @@ vips__png_read( const char *name, VipsImage *out )
 	int interlace_type;
 
 #ifdef DEBUG
-	printf( "png2vips: reading \"%s\"\n", name );
+	printf( "vips__png_read: reading \"%s\"\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( name, out )) )
+	if( !(read = read_new( filename, out )) )
 		return( -1 );
 
 	interlace_type = png_get_interlace_type( read->pPng, read->pInfo );
@@ -501,7 +518,7 @@ vips__png_read( const char *name, VipsImage *out )
 	}
 
 #ifdef DEBUG
-	printf( "png2vips: done\n" );
+	printf( "vips__png_read: done\n" );
 #endif /*DEBUG*/
 
 	return( 0 );
@@ -718,6 +735,10 @@ vips__png_write( VipsImage *in, const char *filename,
 {
 	Write *write;
 
+#ifdef DEBUG
+	printf( "vips__png_write: writing \"%s\"\n", filename );
+#endif /*DEBUG*/
+
 	if( !(write = write_new( in )) )
 		return( -1 );
 
@@ -737,6 +758,10 @@ vips__png_write( VipsImage *in, const char *filename,
 	}
 
 	write_finish( write );
+
+#ifdef DEBUG
+	printf( "vips__png_write: done\n" ); 
+#endif /*DEBUG*/
 
 	return( 0 );
 }
