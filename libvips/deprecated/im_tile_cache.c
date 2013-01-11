@@ -392,6 +392,7 @@ int
 im_tile_cache( IMAGE *in, IMAGE *out,
 	int tile_width, int tile_height, int max_tiles )
 {
+	/*
 	Read *read;
 
 	if( tile_width <= 0 || tile_height <= 0 || max_tiles < -1 ) {
@@ -409,4 +410,7 @@ im_tile_cache( IMAGE *in, IMAGE *out,
 		return( -1 );
 
 	return( 0 );
+	 */
+
+	return( im_copy( in, out ) ); 
 }

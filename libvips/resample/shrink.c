@@ -63,8 +63,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -346,6 +346,14 @@ vips_shrink_build( VipsObject *object )
 			"%s", _( "image has shrunk to nothing" ) );
 		return( -1 );
 	}
+
+#ifdef DEBUG
+	printf( "vips_shrink_build: shrinking %d x %d image to %d x %d\n", 
+		resample->in->Xsize, resample->in->Ysize, 
+		resample->out->Xsize, resample->out->Ysize );  
+	printf( "vips_shrink_build: %d x %d block average\n", 
+		shrink->mw, shrink->mh ); 
+#endif /*DEBUG*/
 
 	if( vips_image_generate( resample->out,
 		vips_shrink_start, vips_shrink_gen, vips_shrink_stop, 

@@ -45,8 +45,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -64,8 +64,11 @@
 #include "conversion.h"
 
 /* Stall threads that run ahead for this long, in seconds.
+ *
+ * This has to be a long time: if we're trying to use all cores on a busy 
+ * system it could be ages until all the other threads get a chance to run. 
  */
-#define STALL_TIME (1.0)
+#define STALL_TIME (10000.0)
 
 typedef struct _VipsSequential {
 	VipsConversion parent_instance;
@@ -133,14 +136,11 @@ vips_sequential_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	if( r->top > sequential->y_pos 
-			//&& sequential->y_pos > 0 
-			) {
+	if( r->top > sequential->y_pos ) {
 		GTimeVal time;
 
-		/* We have started reading (y_pos > 0) and this request is for 
-		 * stuff beyond that, stall for a short while to give other
-		 * threads time to catch up.
+		/* This read is ahead of the current read point. 
+		 * Stall for a while to give other threads time to catch up.
 		 */
 		VIPS_DEBUG_MSG( "thread %p stalling for up to %gs ...\n", 
 			STALL_TIME, g_thread_self() ); 

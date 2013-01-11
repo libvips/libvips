@@ -1,3 +1,41 @@
+- carrierwave-vips is doing
+
+	im_png2vips
+		vips_sequential	
+			vips_linecache
+				vips_blockcache(), but upsizes
+			vips_sequential_generate() to delay ahead threads
+	im_shrink
+	im_tile_cache (old single-threaded vips7 tile cache)
+	im_affine
+	im_conv
+	im_vips2png
+
+  the im_tile_cache() single-threads, so one threads get out of order there,
+  no amount of delay in vips_sequential_generate() is going to fix it ...
+  we've deadlocked
+
+  vipsthumbnail does exactly the same thing
+
+  the comment there says that im_tile_cache() is necessary, since the conv
+  will force SMALLTILE, and that will break sequentiality
+
+  turning the im_tile_cache() into an im_copy() fixes the deadlock, but might
+  break for large shrink factors
+
+  try with im_tile_cache() disabled with vipsthumbnail and huge shrinks
+
+  perhaps swap the im_tile_cache() for another vips_sequential()? could we
+  then remove the one from png2vips?
+
+
+
+
+
+
+
+
+
 blocking bugs
 =============
 
