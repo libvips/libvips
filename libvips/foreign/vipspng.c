@@ -103,7 +103,7 @@
 static void
 user_error_function( png_structp png_ptr, png_const_charp error_msg )
 {
-	vips_error( "png2vips", "%s", error_msg );
+	vips_error( "vipspng", "%s", error_msg );
 
 	/* This function must not return, or the default error handler will be
 	 * invoked.
@@ -114,7 +114,7 @@ user_error_function( png_structp png_ptr, png_const_charp error_msg )
 static void
 user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
 {
-	vips_error( "png2vips", "%s", warning_msg );
+	vips_error( "vipspng", "%s", warning_msg );
 }
 
 /* What we track during a PNG read.
@@ -611,8 +611,6 @@ write_vips( Write *write, int compress, int interlace )
 	int color_type;
 	int interlace_type;
 	int i, nb_passes;
-	void *profile;
-	size_t profile_length;
 
         g_assert( in->BandFmt == VIPS_FORMAT_UCHAR || 
 		in->BandFmt == VIPS_FORMAT_USHORT );
@@ -668,8 +666,14 @@ write_vips( Write *write, int compress, int interlace )
 
 	/* Set ICC Profile.
 	 */
-	if( !vips_image_get_blob( in, VIPS_META_ICC_NAME, 
-		&profile, &profile_length ) ) {
+	if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+		void *profile;
+		size_t profile_length;
+
+		if( !vips_image_get_blob( in, VIPS_META_ICC_NAME, 
+			&profile, &profile_length ) ) 
+			return( -1 ); 
+
 #ifdef DEBUG
 		printf( "write_vips: attaching %zd bytes of ICC profile\n",
 			profile_length );
