@@ -3,6 +3,9 @@
 - small fixes to help OS X
 - removed sequential skip-ahead, it was not reliable on machines under 
   heavy load
+- backported threaded tile cache from next version, im_tile_cache() now uses
+it to prevent a deadlock 
+
 
 14/11/12 started 7.30.6
 - capture tiff warnings earlier

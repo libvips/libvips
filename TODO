@@ -23,14 +23,39 @@
   turning the im_tile_cache() into an im_copy() fixes the deadlock, but might
   break for large shrink factors
 
-  try with im_tile_cache() disabled with vipsthumbnail and huge shrinks
+	yes, try eg. $ vipsthumbnail Chicago.png --verbose --size 20
+	fails with a shrink of 1462
 
-  perhaps swap the im_tile_cache() for another vips_sequential()? could we
-  then remove the one from png2vips?
+  there seems to be a good speed improvement from deleting the tile cache
+
+	ruby-vips, jpeg image: 55ms
+	ruby-vips, png image: 1853ms
+
+  compared to 
+
+  	ruby-vips, jpeg image:          50ms
+	ruby-vips, png image:           2401ms
+
+  from the README ... benchmark again after tests
 
 
+  how about using the threaded tile cache from master? would that fix it?
 
+  	seems to!
 
+	remove the old im_tile_cache() code
+
+	benchmark again
+
+	check the way we disabled extract/insert skipahead
+
+	check vips_sequential skipahead code
+
+	add a comment to the im_tile_cache() wrapper explaining why it turns
+	on threading
+
+	when we port forward again, we'll need to re-add the vips_ prefix to
+	g_mutex_new() in tilecache.c
 
 
 

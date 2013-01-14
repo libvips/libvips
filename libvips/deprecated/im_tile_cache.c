@@ -392,6 +392,24 @@ int
 im_tile_cache( IMAGE *in, IMAGE *out,
 	int tile_width, int tile_height, int max_tiles )
 {
+	VipsImage *x;
+
+	if( vips_tilecache( in, &x, 
+		"tile_width", tile_width, 
+		"tile_height", tile_height, 
+		"max_tiles", max_tiles, 
+		"strategy", VIPS_CACHE_SEQUENTIAL,
+		"threaded", TRUE, 
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+
 	/*
 	Read *read;
 
