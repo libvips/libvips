@@ -181,6 +181,7 @@ vips_extract_area_class_init( VipsExtractAreaClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_extract_area_class_init\n" );
 
@@ -190,6 +191,8 @@ vips_extract_area_class_init( VipsExtractAreaClass *class )
 	vobject_class->nickname = "extract_area";
 	vobject_class->description = _( "extract an area from an image" );
 	vobject_class->build = vips_extract_area_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "input", 0, 
 		_( "Input" ), 

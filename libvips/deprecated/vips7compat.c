@@ -2143,3 +2143,42 @@ im_rightshift_size( IMAGE *in, IMAGE *out,
 
 	return( 0 );
 }
+
+/* This is used by vipsthumbnail and the carrierwave shrinker to cache the
+ * output of shrink before doing the final affine.
+ *
+ * We use the vips8 threaded tilecache to avoid a deadlock: suppose thread1,
+ * evaluating the top block of the output is delayed, and thread2, evaluating
+ * the second block gets here first (this can happen on a heavily-loaded
+ * system). 
+ *
+ * With an unthreaded tilecache (as we had before), thread2 will get
+ * the cache lock and start evaling the second block of the shrink. When it
+ * reaches the png reader it will stall untilthe first block has been used ...
+ * but it never will, since thread1 will block on this cache lock. 
+ *
+ * This function is only used in those two places (I think), so it's OK to
+ * hard-wire this to be a sequential threaded cache. 
+ */
+int
+im_tile_cache( IMAGE *in, IMAGE *out,
+	int tile_width, int tile_height, int max_tiles )
+{
+	VipsImage *x;
+
+	if( vips_tilecache( in, &x, 
+		"tile_width", tile_width, 
+		"tile_height", tile_height, 
+		"max_tiles", max_tiles, 
+		"strategy", VIPS_CACHE_SEQUENTIAL,
+		"threaded", TRUE, 
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

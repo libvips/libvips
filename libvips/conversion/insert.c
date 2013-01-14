@@ -342,6 +342,7 @@ vips_insert_class_init( VipsInsertClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_insert_class_init\n" );
 
@@ -351,6 +352,8 @@ vips_insert_class_init( VipsInsertClass *class )
 	vobject_class->nickname = "insert";
 	vobject_class->description = _( "insert an image" );
 	vobject_class->build = vips_insert_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "main", -1, 
 		_( "Main" ), 
