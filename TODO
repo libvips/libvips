@@ -1,3 +1,16 @@
+- look at
+	
+	There is an order 1 algorithm for doing medians over boxes (truly O(1)
+	per pixel: I checked it carefully; it's like doing means over boxes in
+	order 1 per pixel) in OpenCV since February 2012 I think, due to
+	Perreault (and Hebert).
+
+	It appears to be well respected, at least for 8-bit medians. Very
+	memory intensive. Simple and elegant. No clue if it fits VIPS well
+	(probably not?).
+
+	Article: nomis80.org/ctmf.pdf
+
 - update the INCLUDES etc. stuff, see OS X build
 
 - quadratic doesn't work for order 3
