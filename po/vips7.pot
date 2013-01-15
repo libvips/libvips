@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2012-11-14 09:36+0000\n"
+"POT-Creation-Date: 2013-01-15 13:40+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -314,41 +314,41 @@ msgid "Number of patches down chart"
 msgstr ""
 
 #: ../libvips/arithmetic/measure.c:222 ../libvips/arithmetic/binary.c:95
-#: ../libvips/conversion/extract.c:203
+#: ../libvips/conversion/extract.c:204
 msgid "Left"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:223 ../libvips/conversion/extract.c:204
+#: ../libvips/arithmetic/measure.c:223 ../libvips/conversion/extract.c:205
 msgid "Left edge of extract area"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:229 ../libvips/conversion/extract.c:210
+#: ../libvips/arithmetic/measure.c:229 ../libvips/conversion/extract.c:211
 msgid "Top"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:230 ../libvips/conversion/extract.c:211
+#: ../libvips/arithmetic/measure.c:230 ../libvips/conversion/extract.c:212
 msgid "Top edge of extract area"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:236 ../libvips/conversion/extract.c:217
+#: ../libvips/arithmetic/measure.c:236 ../libvips/conversion/extract.c:218
 #: ../libvips/conversion/black.c:128 ../libvips/conversion/copy.c:334
 #: ../libvips/conversion/embed.c:543 ../libvips/foreign/rawload.c:122
 #: ../libvips/iofuncs/image.c:876
 msgid "Width"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:237 ../libvips/conversion/extract.c:218
+#: ../libvips/arithmetic/measure.c:237 ../libvips/conversion/extract.c:219
 msgid "Width of extract area"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:243 ../libvips/conversion/extract.c:224
+#: ../libvips/arithmetic/measure.c:243 ../libvips/conversion/extract.c:225
 #: ../libvips/conversion/black.c:135 ../libvips/conversion/copy.c:341
 #: ../libvips/conversion/embed.c:550 ../libvips/foreign/rawload.c:129
 #: ../libvips/iofuncs/image.c:883
 msgid "Height"
 msgstr ""
 
-#: ../libvips/arithmetic/measure.c:244 ../libvips/conversion/extract.c:225
+#: ../libvips/arithmetic/measure.c:244 ../libvips/conversion/extract.c:226
 msgid "Height of extract area"
 msgstr ""
 
@@ -360,7 +360,7 @@ msgstr ""
 #: ../libvips/arithmetic/complex.c:222 ../libvips/arithmetic/complex.c:476
 #: ../libvips/arithmetic/math.c:205 ../libvips/arithmetic/relational.c:227
 #: ../libvips/arithmetic/relational.c:560 ../libvips/arithmetic/boolean.c:217
-#: ../libvips/arithmetic/boolean.c:519
+#: ../libvips/arithmetic/boolean.c:519 ../tools/vips.c:978
 msgid "Operation"
 msgstr ""
 
@@ -392,12 +392,12 @@ msgstr ""
 #: ../libvips/arithmetic/unary.c:87 ../libvips/arithmetic/statistic.c:151
 #: ../libvips/conversion/flip.c:240 ../libvips/conversion/bandmean.c:197
 #: ../libvips/conversion/cast.c:479 ../libvips/conversion/flatten.c:375
-#: ../libvips/conversion/extract.c:197 ../libvips/conversion/extract.c:356
+#: ../libvips/conversion/extract.c:198 ../libvips/conversion/extract.c:357
 #: ../libvips/conversion/bandjoin.c:171 ../libvips/conversion/copy.c:321
 #: ../libvips/conversion/rot.c:359 ../libvips/conversion/replicate.c:196
-#: ../libvips/conversion/tilecache.c:359 ../libvips/conversion/embed.c:523
+#: ../libvips/conversion/tilecache.c:424 ../libvips/conversion/embed.c:523
 #: ../libvips/conversion/cache.c:100 ../libvips/conversion/recomb.c:203
-#: ../libvips/conversion/sequential.c:273 ../libvips/foreign/foreign.c:1413
+#: ../libvips/conversion/sequential.c:288 ../libvips/foreign/foreign.c:1413
 #: ../libvips/resample/resample.c:89
 msgid "Input"
 msgstr ""
@@ -565,11 +565,11 @@ msgstr ""
 
 #: ../libvips/arithmetic/statistic.c:152 ../libvips/conversion/flip.c:241
 #: ../libvips/conversion/cast.c:480 ../libvips/conversion/flatten.c:376
-#: ../libvips/conversion/extract.c:198 ../libvips/conversion/extract.c:357
+#: ../libvips/conversion/extract.c:199 ../libvips/conversion/extract.c:358
 #: ../libvips/conversion/copy.c:322 ../libvips/conversion/rot.c:360
-#: ../libvips/conversion/replicate.c:197 ../libvips/conversion/tilecache.c:360
+#: ../libvips/conversion/replicate.c:197 ../libvips/conversion/tilecache.c:425
 #: ../libvips/conversion/embed.c:524 ../libvips/conversion/cache.c:101
-#: ../libvips/conversion/sequential.c:274
+#: ../libvips/conversion/sequential.c:289
 msgid "Input image"
 msgstr ""
 
@@ -825,35 +825,35 @@ msgstr ""
 msgid "bad grid geometry"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:147
+#: ../libvips/conversion/extract.c:148
 msgid "bad extract area"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:191
+#: ../libvips/conversion/extract.c:192
 msgid "extract an area from an image"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:321
+#: ../libvips/conversion/extract.c:322
 msgid "bad extract band"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:350
+#: ../libvips/conversion/extract.c:351
 msgid "extract band from an image"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:362
+#: ../libvips/conversion/extract.c:363
 msgid "Band"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:363
+#: ../libvips/conversion/extract.c:364
 msgid "Band to extract"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:369
+#: ../libvips/conversion/extract.c:370
 msgid "n"
 msgstr ""
 
-#: ../libvips/conversion/extract.c:370
+#: ../libvips/conversion/extract.c:371
 msgid "Number of bands to extract"
 msgstr ""
 
@@ -1104,53 +1104,61 @@ msgstr ""
 msgid "Top edge of sub in main"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:355 ../libvips/conversion/cache.c:96
+#: ../libvips/conversion/tilecache.c:418 ../libvips/conversion/cache.c:96
 msgid "cache an image"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:365 ../libvips/conversion/cache.c:113
-#: ../libvips/conversion/sequential.c:286 ../libvips/foreign/tiffsave.c:222
+#: ../libvips/conversion/tilecache.c:430 ../libvips/conversion/cache.c:113
+#: ../libvips/conversion/sequential.c:301 ../libvips/foreign/tiffsave.c:222
 #: ../libvips/foreign/dzsave.c:927
 msgid "Tile height"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:366 ../libvips/conversion/cache.c:114
-#: ../libvips/conversion/sequential.c:287 ../libvips/foreign/tiffsave.c:223
+#: ../libvips/conversion/tilecache.c:431 ../libvips/conversion/cache.c:114
+#: ../libvips/conversion/sequential.c:302 ../libvips/foreign/tiffsave.c:223
 #: ../libvips/foreign/dzsave.c:928
 msgid "Tile height in pixels"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:372
+#: ../libvips/conversion/tilecache.c:437
+msgid "Threaded"
+msgstr ""
+
+#: ../libvips/conversion/tilecache.c:438
+msgid "Allow threaded access"
+msgstr ""
+
+#: ../libvips/conversion/tilecache.c:444
 msgid "Strategy"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:373
+#: ../libvips/conversion/tilecache.c:445
 msgid "Expected access pattern"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:542
+#: ../libvips/conversion/tilecache.c:728
 msgid "cache an image as a set of tiles"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:546 ../libvips/conversion/cache.c:106
+#: ../libvips/conversion/tilecache.c:732 ../libvips/conversion/cache.c:106
 #: ../libvips/foreign/tiffsave.c:215 ../libvips/foreign/dzsave.c:920
 msgid "Tile width"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:547 ../libvips/conversion/cache.c:107
+#: ../libvips/conversion/tilecache.c:733 ../libvips/conversion/cache.c:107
 #: ../libvips/foreign/tiffsave.c:216 ../libvips/foreign/dzsave.c:921
 msgid "Tile width in pixels"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:553 ../libvips/conversion/cache.c:120
+#: ../libvips/conversion/tilecache.c:739 ../libvips/conversion/cache.c:120
 msgid "Max tiles"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:554 ../libvips/conversion/cache.c:121
+#: ../libvips/conversion/tilecache.c:740 ../libvips/conversion/cache.c:121
 msgid "Maximum number of tiles to cache"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:709
+#: ../libvips/conversion/tilecache.c:896
 msgid "cache an image as a set of lines"
 msgstr ""
 
@@ -1235,15 +1243,15 @@ msgstr ""
 msgid "matrix of coefficients"
 msgstr ""
 
-#: ../libvips/conversion/sequential.c:269
+#: ../libvips/conversion/sequential.c:284
 msgid "check sequential access"
 msgstr ""
 
-#: ../libvips/conversion/sequential.c:279
+#: ../libvips/conversion/sequential.c:294
 msgid "trace"
 msgstr ""
 
-#: ../libvips/conversion/sequential.c:280
+#: ../libvips/conversion/sequential.c:295
 msgid "trace pixel requests"
 msgstr ""
 
@@ -1291,7 +1299,7 @@ msgid "save image to raw file"
 msgstr ""
 
 #: ../libvips/foreign/rawsave.c:166 ../libvips/foreign/radload.c:126
-#: ../libvips/foreign/tiffload.c:142 ../libvips/foreign/ppmsave.c:118
+#: ../libvips/foreign/tiffload.c:149 ../libvips/foreign/ppmsave.c:118
 #: ../libvips/foreign/vipsload.c:133 ../libvips/foreign/pngload.c:136
 #: ../libvips/foreign/openexrload.c:137 ../libvips/foreign/tiffsave.c:171
 #: ../libvips/foreign/analyzeload.c:126 ../libvips/foreign/jpegsave.c:193
@@ -1329,7 +1337,7 @@ msgstr ""
 msgid "load a Radiance image from a file"
 msgstr ""
 
-#: ../libvips/foreign/radload.c:127 ../libvips/foreign/tiffload.c:143
+#: ../libvips/foreign/radload.c:127 ../libvips/foreign/tiffload.c:150
 #: ../libvips/foreign/vipsload.c:134 ../libvips/foreign/pngload.c:137
 #: ../libvips/foreign/openexrload.c:138 ../libvips/foreign/analyzeload.c:127
 #: ../libvips/foreign/fitsload.c:117 ../libvips/foreign/ppmload.c:127
@@ -1339,15 +1347,15 @@ msgstr ""
 msgid "Filename to load from"
 msgstr ""
 
-#: ../libvips/foreign/tiffload.c:130
+#: ../libvips/foreign/tiffload.c:137
 msgid "load tiff from file"
 msgstr ""
 
-#: ../libvips/foreign/tiffload.c:149
+#: ../libvips/foreign/tiffload.c:156
 msgid "Page"
 msgstr ""
 
-#: ../libvips/foreign/tiffload.c:150
+#: ../libvips/foreign/tiffload.c:157
 msgid "Load this page from the file"
 msgstr ""
 
@@ -1447,7 +1455,7 @@ msgstr ""
 msgid "error reading radiance header"
 msgstr ""
 
-#: ../libvips/foreign/radiance.c:959 ../libvips/foreign/tiff2vips.c:1345
+#: ../libvips/foreign/radiance.c:959 ../libvips/foreign/tiff2vips.c:1355
 msgid "read error"
 msgstr ""
 
@@ -1772,94 +1780,94 @@ msgstr ""
 msgid "EXR error: %s"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:269 ../libvips/foreign/tiff2vips.c:287
+#: ../libvips/foreign/tiff2vips.c:279 ../libvips/foreign/tiff2vips.c:297
 #, c-format
 msgid "required field %d missing"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:307
+#: ../libvips/foreign/tiff2vips.c:317
 #, c-format
 msgid "required field %d = %d, not %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:651
+#: ../libvips/foreign/tiff2vips.c:661
 #, c-format
 msgid "%d bits per sample palette image not supported"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:660
+#: ../libvips/foreign/tiff2vips.c:670
 msgid "bad colormap"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:717 ../libvips/foreign/tiff2vips.c:748
+#: ../libvips/foreign/tiff2vips.c:727 ../libvips/foreign/tiff2vips.c:758
 msgid "3 or 4 bands RGB TIFF only"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:819
+#: ../libvips/foreign/tiff2vips.c:829
 msgid "4 or 5 bands CMYK TIFF only"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:870
+#: ../libvips/foreign/tiff2vips.c:880
 msgid "unknown resolution unit"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:875
+#: ../libvips/foreign/tiff2vips.c:885
 #, c-format
 msgid ""
 "no resolution information for TIFF image \"%s\" -- defaulting to 1 pixel per "
 "mm"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:907
+#: ../libvips/foreign/tiff2vips.c:917
 msgid "not a PLANARCONFIG_CONTIG image"
-msgstr ""
-
-#: ../libvips/foreign/tiff2vips.c:953
-#, c-format
-msgid "unsupported sample format %d for lab image"
 msgstr ""
 
 #: ../libvips/foreign/tiff2vips.c:963
 #, c-format
+msgid "unsupported sample format %d for lab image"
+msgstr ""
+
+#: ../libvips/foreign/tiff2vips.c:973
+#, c-format
 msgid "unsupported depth %d for LAB image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1002
+#: ../libvips/foreign/tiff2vips.c:1012
 #, c-format
 msgid "unsupported sample format %d for greyscale image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1011
+#: ../libvips/foreign/tiff2vips.c:1021
 #, c-format
 msgid "unsupported depth %d for greyscale image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1059
+#: ../libvips/foreign/tiff2vips.c:1069
 #, c-format
 msgid "unsupported sample format %d for rgb image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1068
+#: ../libvips/foreign/tiff2vips.c:1078
 #, c-format
 msgid "unsupported depth %d for RGB image"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1082
+#: ../libvips/foreign/tiff2vips.c:1092
 #, c-format
 msgid "unknown photometric interpretation %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1463
+#: ../libvips/foreign/tiff2vips.c:1473
 #, c-format
 msgid "bad page number %d"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1484 ../libvips/foreign/vips2tiff.c:294
+#: ../libvips/foreign/tiff2vips.c:1494 ../libvips/foreign/vips2tiff.c:294
 #, c-format
 msgid "unable to open \"%s\" for input"
 msgstr ""
 
-#: ../libvips/foreign/tiff2vips.c:1539 ../libvips/foreign/tiff2vips.c:1569
+#: ../libvips/foreign/tiff2vips.c:1547 ../libvips/foreign/tiff2vips.c:1576
 #, c-format
 msgid "TIFF file does not contain page %d"
 msgstr ""
@@ -2031,11 +2039,11 @@ msgstr ""
 msgid "can't have 1-bit JPEG -- disabling JPEG"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1511
+#: ../libvips/foreign/vips2tiff.c:1507
 msgid "unsigned 8-bit int, 16-bit int, and 32-bit float only"
 msgstr ""
 
-#: ../libvips/foreign/vips2tiff.c:1518
+#: ../libvips/foreign/vips2tiff.c:1514
 msgid "1 to 5 bands only"
 msgstr ""
 
@@ -2098,24 +2106,24 @@ msgstr ""
 msgid "Image to save"
 msgstr ""
 
-#: ../libvips/foreign/vipspng.c:241
+#: ../libvips/foreign/vipspng.c:243
 msgid "unsupported color type"
 msgstr ""
 
-#: ../libvips/foreign/vipspng.c:350
+#: ../libvips/foreign/vipspng.c:352
 msgid "unable to read PNG header"
 msgstr ""
 
-#: ../libvips/foreign/vipspng.c:633
+#: ../libvips/foreign/vipspng.c:648
 msgid "compress should be in [0,9]"
 msgstr ""
 
-#: ../libvips/foreign/vipspng.c:730
+#: ../libvips/foreign/vipspng.c:755
 #, c-format
 msgid "unable to write \"%s\""
 msgstr ""
 
-#: ../libvips/foreign/vipspng.c:829
+#: ../libvips/foreign/vipspng.c:858
 msgid "unable to write to buffer"
 msgstr ""
 
@@ -3245,23 +3253,23 @@ msgstr ""
 msgid "not integer shrink factors, expect poor results"
 msgstr ""
 
-#: ../libvips/resample/shrink.c:371
+#: ../libvips/resample/shrink.c:379
 msgid "shrink an image"
 msgstr ""
 
-#: ../libvips/resample/shrink.c:377
+#: ../libvips/resample/shrink.c:385
 msgid "Xshrink"
 msgstr ""
 
-#: ../libvips/resample/shrink.c:378
+#: ../libvips/resample/shrink.c:386
 msgid "Horizontal shrink factor"
 msgstr ""
 
-#: ../libvips/resample/shrink.c:384
+#: ../libvips/resample/shrink.c:392
 msgid "Yshrink"
 msgstr ""
 
-#: ../libvips/resample/shrink.c:385
+#: ../libvips/resample/shrink.c:393
 msgid "Vertical shrink factor"
 msgstr ""
 
@@ -3483,52 +3491,56 @@ msgstr ""
 msgid "Need more than one image"
 msgstr ""
 
-#: ../tools/vips.c:101
+#: ../tools/vips.c:103
 msgid "load PLUGIN"
 msgstr ""
 
-#: ../tools/vips.c:102
+#: ../tools/vips.c:104
 msgid "PLUGIN"
 msgstr ""
 
-#: ../tools/vips.c:104
+#: ../tools/vips.c:106
 msgid "print version"
 msgstr ""
 
-#: ../tools/vips.c:147
+#: ../tools/vips.c:149
 #, c-format
 msgid "no package or function \"%s\""
 msgstr ""
 
-#: ../tools/vips.c:925
+#: ../tools/vips.c:927
 msgid "list classes|packages|all|package-name|operation-name"
 msgstr ""
 
-#: ../tools/vips.c:927
+#: ../tools/vips.c:929
 msgid "generate headers for C++ binding"
 msgstr ""
 
-#: ../tools/vips.c:929
+#: ../tools/vips.c:931
 msgid "generate bodies for C++ binding"
 msgstr ""
 
-#: ../tools/vips.c:931
+#: ../tools/vips.c:933
 msgid "generate links for vips/bin"
 msgstr ""
 
-#: ../tools/vips.c:1051
+#: ../tools/vips.c:978
+msgid "Operation help"
+msgstr ""
+
+#: ../tools/vips.c:1018
 msgid "[ACTION] [OPTIONS] [PARAMETERS] - VIPS driver program"
 msgstr ""
 
-#: ../tools/vips.c:1132
+#: ../tools/vips.c:1177
 msgid "possible actions:\n"
 msgstr ""
 
-#: ../tools/vips.c:1137
+#: ../tools/vips.c:1182
 msgid "execute named vips operation"
 msgstr ""
 
-#: ../tools/vips.c:1139
+#: ../tools/vips.c:1184
 #, c-format
 msgid "unknown action \"%s\""
 msgstr ""
