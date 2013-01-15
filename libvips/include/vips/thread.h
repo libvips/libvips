@@ -41,11 +41,10 @@ extern "C" {
 GMutex *vips_g_mutex_new( void );
 void vips_g_mutex_free( GMutex * );
 
-/* Same for GCond. And we need a wrapper for waiting too.
+/* Same for GCond.
  */
 GCond *vips_g_cond_new( void );
 void vips_g_cond_free( GCond * );
-void vips_g_cond_timed_wait( GCond *, GMutex *, gint64 );
 
 /* ... and for GThread.
  */

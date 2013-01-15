@@ -149,20 +149,34 @@ vips_sequential_generate( VipsRegion *or,
 		 * deadlock, and we don't fail on timeout, since the timeout 
 		 * may be harmless.
 		 */
+#ifdef HAVE_COND_INIT
+		gint64 time;
+
+		time = g_get_monotonic_time () + 
+			STALL_TIME * G_TIME_SPAN_SECOND;
+#else
 		GTimeVal time;
+
+		g_get_current_time( &time );
+		g_time_val_add( &time, STALL_TIME * 1000000 );
+#endif
 
 		VIPS_DEBUG_MSG( "thread %p stalling for up to %gs ...\n", 
 			g_thread_self(), STALL_TIME ); 
-		g_get_current_time( &time );
-		g_time_val_add( &time, STALL_TIME * 1000000 );
 
 		/* Exit the loop on timeout or condition passes. We have to
 		 * be wary of spurious wakeups. 
 		 */
 		while( r->top > sequential->y_pos )
+#ifdef HAVE_COND_INIT
+			if( !g_cond_wait_until( sequential->ready, 
+				sequential->lock, time ) )
+				break;
+#else
 			if( !g_cond_timed_wait( sequential->ready, 
 				sequential->lock, &time ) )
 				break;
+#endif
 
 		VIPS_DEBUG_MSG( "thread %p awake again ...\n", 
 			g_thread_self() ); 

@@ -156,25 +156,6 @@ vips_g_cond_free( GCond *cond )
 #endif
 }
 
-/* Wait until cond is signalled, or timeout us have passed. 
- *
- * You can get spurious wakeups, use this in a loop.
- */
-void 
-vips_g_cond_timed_wait( GCond *cond, GMutex *mutex, gint64 timeout )
-{
-#ifdef HAVE_COND_INIT
-	g_cond_wait_until( cond, mutex, 
-		g_get_monotonic_time() + timeout );
-#else
-	GTimeVal time;
-
-	g_get_current_time( &time );
-	g_time_val_add( &time, timeout );
-	g_cond_timed_wait( cond, mutex, &time );
-#endif
-}
-
 GThread *
 vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 {
