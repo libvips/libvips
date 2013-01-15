@@ -38,6 +38,9 @@
 
 31/12/12 started 7.30.7
 - better option parsing for "vips", thanks Haida
+- small fixes to help OS X
+- backported threaded tile cache from next version, im_tile_cache() now 
+  uses it to prevent a deadlock, see comment there
 
 14/11/12 started 7.30.6
 - capture tiff warnings earlier

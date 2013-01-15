@@ -64,8 +64,11 @@
 #include "conversion.h"
 
 /* Stall threads that run ahead for up to this long, in seconds.
+ *
+ * This has to be a long time: if we're trying to use all cores on a busy 
+ * system, it could be ages until all the other threads get a chance to run. 
  */
-#define STALL_TIME (0.1)
+#define STALL_TIME (1.0)
 
 typedef struct _VipsSequential {
 	VipsConversion parent_instance;
@@ -134,31 +137,45 @@ vips_sequential_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	if( r->top > sequential->y_pos && 
+	if( r->top > sequential->y_pos &&
 		sequential->y_pos > 0 ) {
-		/* We have started reading (y_pos > 0) and this request is for 
-		 * stuff beyond that, stall for a short while to give other
+		/* We have started reading (y_pos > 0) and this request is for
+		 * stuff beyond that, stall for a while to give other
 		 * threads time to catch up.
-		 *
+		 * 
 		 * The stall can be cancelled by a signal on @ready.
+		 *
+		 * We don't stall forever, since an error would be better than
+		 * deadlock, and we don't fail on timeout, since the timeout 
+		 * may be harmless.
 		 */
+		GTimeVal time;
+
 		VIPS_DEBUG_MSG( "thread %p stalling for up to %gs ...\n", 
 			g_thread_self(), STALL_TIME ); 
-		vips_g_cond_timed_wait( sequential->ready, 
-			sequential->lock, STALL_TIME * 1000000 );
+		g_get_current_time( &time );
+		g_time_val_add( &time, STALL_TIME * 1000000 );
+
+		/* Exit the loop on timeout or condition passes. We have to
+		 * be wary of spurious wakeups. 
+		 */
+		while( r->top > sequential->y_pos )
+			if( !g_cond_timed_wait( sequential->ready, 
+				sequential->lock, &time ) )
+				break;
+
 		VIPS_DEBUG_MSG( "thread %p awake again ...\n", 
 			g_thread_self() ); 
 	}
 
-	/* This is a request for something some way down the image, and we've
-	 * either not read anything yet or fallen through from the stall
-	 * above. 
-	 *
-	 * Probably the operation is something like extract_area and we should 
-	 * skip the initial part of the image. In fact, we read to cache,
-	 * since it may be useful.
-	 */
 	if( r->top > sequential->y_pos ) {
+		/* This is a request for something some way down the image, 
+		 * and we've fallen through from the stall above. 
+		 *
+		 * Probably the operation is something like extract_area and 
+		 * we should skip the initial part of the image. In fact, 
+		 * we read to cache, since it may be useful.
+		 */
 		VipsRect area;
 
 		VIPS_DEBUG_MSG( "thread %p skipping to line %d ...\n", 

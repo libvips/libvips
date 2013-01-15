@@ -374,8 +374,9 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	 */
 	wstate->buf = write->buf;
 
-	VIPS_DEBUG_MSG( "  allocated "
+	VIPS_DEBUG_MSG( "  thread %p allocated "
 		"left = %d, top = %d, width = %d, height = %d\n", 
+		g_thread_self(), 
 		tile.left, tile.top, tile.width, tile.height );
 
 	/* Add to the number of writers on the buffer.
@@ -402,13 +403,15 @@ wbuffer_work_fn( VipsThreadState *state, void *a )
 
 	int result;
 
-	VIPS_DEBUG_MSG( "wbuffer_work_fn: %p %d x %d\n", 
-		state, state->pos.left, state->pos.top );
+	VIPS_DEBUG_MSG( "wbuffer_work_fn: thread %p, %d x %d\n", 
+		g_thread_self(), 
+		state->pos.left, state->pos.top );
 
 	result = vips_region_prepare_to( state->reg, wstate->buf->region, 
 		&state->pos, state->pos.left, state->pos.top );
 
-	VIPS_DEBUG_MSG( "wbuffer_work_fn: %p result = %d\n", state, result );
+	VIPS_DEBUG_MSG( "wbuffer_work_fn: thread %p result = %d\n", 
+		g_thread_self(), result );
 
 	/* Tell the bg write thread we've left.
 	 */

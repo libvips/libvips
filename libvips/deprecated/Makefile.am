@@ -63,7 +63,6 @@ libdeprecated_la_SOURCES = \
 	im_png2vips.c \
 	im_ppm2vips.c \
 	im_tiff2vips.c \
-	im_tile_cache.c \
 	im_vips2csv.c \
 	im_vips2jpeg.c \
 	im_vips2png.c \
