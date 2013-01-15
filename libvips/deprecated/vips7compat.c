@@ -2145,7 +2145,6 @@ im_rightshift_size( IMAGE *in, IMAGE *out,
 	return( 0 );
 }
 
-<<<<<<< HEAD
 int 
 im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
 {
