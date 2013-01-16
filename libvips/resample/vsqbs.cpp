@@ -313,8 +313,8 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
    *
    * It's 1 not 0 since we ask for a window_offset of 1 at the bottom.
    */
-  const int ix = (int) absolute_x;
-  const int iy = (int) absolute_y;
+  const int ix = (int) (absolute_x + 0.5);
+  const int iy = (int) (absolute_y + 0.5);
 
   /*
    * Move the pointer to (the first band of) the top/left pixel of the

@@ -230,6 +230,10 @@
  * http://doi.acm.org/10.1145/1557626.1557657.
  */
 
+/* Uncomment to enable bounds checking for VIPS_REGION_ADDR().
+ */
+#define DEBUG
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -1489,8 +1493,8 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate* restrict interpolate,
    *
    * It's 2 not 0 since we ask for a window_offset of 2 at the bottom.
    */
-  const int ix = (int) absolute_x;
-  const int iy = (int) absolute_y;
+  const int ix = (int) (absolute_x + 0.5);
+  const int iy = (int) (absolute_y + 0.5);
 
   /*
    * Move the pointer to (the first band of) the top/left pixel of the
