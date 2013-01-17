@@ -947,6 +947,17 @@ strip_arrived( Layer *layer )
 	new_strip.width = layer->image->Xsize;
 	new_strip.height = dz->tile_size + 2 * dz->overlap + 1;
 
+	/* We may exactly hit the bottom of the real image (ie. before borders
+	 * have been possibly expanded by 1 pixel). In this case, we'll not 
+	 * be able to do the expansion in layer_generate_extras(), since the 
+	 * region won't be large enough, and we'll not get another chance 
+	 * since this is the bottom. 
+	 *
+	 * Add another scanline if this has happened.
+	 */
+	if( VIPS_RECT_BOTTOM( &new_strip ) == layer->height )
+		new_strip.height = layer->image->Ysize - new_strip.top;
+
 	/* What pixels that we will need do we already have? Save them in 
 	 * overlap.
 	 */
