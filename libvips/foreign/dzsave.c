@@ -28,6 +28,8 @@
  * 	- add @background option
  * 1/11/12
  * 	- add @depth option
+ * 21/1/13
+ * 	- add @centre option
  */
 
 /*
@@ -135,8 +137,9 @@ struct _VipsForeignSaveDz {
 	int overlap;
 	int tile_size;
 	VipsForeignDzLayout layout;
-	VipsArea *background;
+	VipsArrayDouble *background;
 	VipsForeignDzDepth depth;
+	gboolean centre;
 
 	Layer *layer;			/* x2 shrink pyr layer */
 
@@ -367,18 +370,39 @@ static int
 write_blank( VipsForeignSaveDz *dz )
 {
 	char buf[PATH_MAX];
-	VipsImage *black;
+	VipsImage *x, *t;
+	int n;
+	VipsArea *ones;
+	double *d;
+	int i;
 
 	vips_snprintf( buf, PATH_MAX, "%s/blank.png", dz->basename );
-	if( vips_black( &black, dz->tile_size, dz->tile_size, 
-		"bands", 3, 
-		NULL ) )
+	if( vips_black( &x, dz->tile_size, dz->tile_size, NULL ) ) 
 		return( -1 );
-	if( vips_image_write_to_file( black, buf ) ) {
-		g_object_unref( black );
+
+	vips_area_get_data( (VipsArea *) dz->background, NULL, &n, NULL, NULL );
+	ones = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
+	d = (double *) vips_area_get_data( ones, NULL, NULL, NULL, NULL );
+	for( i = 0; i < n; i++ )
+		d[i] = 1.0; 
+	if( vips_linear( x, &t, 
+		d, 
+		(double *) vips_area_get_data( (VipsArea *) dz->background, 
+			NULL, NULL, NULL, NULL ),
+		n, NULL ) ) {
+		vips_area_unref( ones );
+		g_object_unref( x );
 		return( -1 );
 	}
-	g_object_unref( black );
+	vips_area_unref( ones );
+	g_object_unref( x );
+	x = t;
+
+	if( vips_image_write_to_file( x, buf ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
 
 	return( 0 );
 }
@@ -708,8 +732,9 @@ strip_work( VipsThreadState *state, void *a )
 	Layer *layer = strip->layer;
 	VipsForeignSaveDz *dz = layer->dz;
 
-	VipsImage *x;
 	char buf[PATH_MAX];
+	VipsImage *x;
+	VipsImage *t;
 
 #ifdef DEBUG
 	printf( "strip_work\n" );
@@ -731,9 +756,7 @@ strip_work( VipsThreadState *state, void *a )
 	/* Google tiles need to be padded up to tilesize.
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
-		VipsImage *z;
-
-		if( vips_embed( x, &z, 0, 0, dz->tile_size, dz->tile_size,
+		if( vips_embed( x, &t, 0, 0, dz->tile_size, dz->tile_size,
 			"background", dz->background,
 			NULL ) ) {
 			g_object_unref( x );
@@ -741,7 +764,35 @@ strip_work( VipsThreadState *state, void *a )
 		}
 		g_object_unref( x );
 
-		x = z;
+		x = t;
+	}
+
+	/* If we are centreing we may have a tile which is entirely blank.
+	 * Skip the write in this case, the viewer will use blank.png instead.
+	 */
+	if( dz->centre ) {
+		double *d;
+		int n;
+		double m;
+
+		d = (double *) vips_area_get_data( (VipsArea *) dz->background, 
+			NULL, &n, NULL, NULL );
+		if( vips_equal_const( x, &t, d, n, NULL ) ) {
+			g_object_unref( x );
+			return( -1 );
+		}
+
+		if( vips_min( t, &m, NULL ) ) {
+			g_object_unref( x );
+			g_object_unref( t );
+			return( -1 );
+		}
+		g_object_unref( t );
+
+		if( m == 255 ) {
+			g_object_unref( x );
+			return( 0 );
+		}
 	}
 
 #ifdef DEBUG
@@ -1091,6 +1142,45 @@ vips_foreign_save_dz_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	/* For centred images, imagine shrinking so that the image fits in a
+	 * single tile, centering in that tile, then expanding back again.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
+		dz->centre ) {
+		VipsImage *z;
+		Layer *layer;
+		int n_layers;
+		int size;
+
+		if( !(layer = pyramid_build( dz, 
+			NULL, save->ready->Xsize, save->ready->Ysize )) )
+			return( -1 );
+		n_layers = layer->n;
+		/* This would cause interesting problems.
+		 */
+		g_assert( n_layers < 30 );
+		layer_free( layer );
+		size = dz->tile_size * (1 << n_layers);
+
+		if( vips_embed( save->ready, &z, 
+			(size - save->ready->Xsize) / 2, 
+			(size - save->ready->Ysize) / 2, 
+			size, size,
+			"background", dz->background,
+			NULL ) ) 
+			return( -1 );
+
+		VIPS_UNREF( save->ready );
+		save->ready = z;
+
+
+#ifdef DEBUG
+		printf( "centre: centreing within a %d x %d image\n", 
+			size, size );
+#endif
+
+	}
+
 	/* Build the skeleton of the image pyramid.
 	 */
 	if( !(dz->layer = pyramid_build( dz, 
@@ -1219,6 +1309,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		VIPS_TYPE_FOREIGN_DZ_DEPTH, 
 			VIPS_FOREIGN_DZ_DEPTH_1PIXEL ); 
 
+	VIPS_ARG_BOOL( class, "centre", 13, 
+		_( "Center" ), 
+		_( "Center image in tile" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, centre ),
+		FALSE );
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
@@ -1270,6 +1367,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * @tile_size; set tile size 
  * @background: background colour
  * @depth: how deep to make the pyramid
+ * @centre: centre the tiles 
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -1286,7 +1384,8 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * 
  * In Google layout mode, edge tiles are expanded to @tile_size by @tile_size 
  * pixels. Normally they are filled with white, but you can set another colour
- * with @background.
+ * with @background. Images are usually placed at the top-left of the tile,
+ * but you can have them centred by turning on @centre. 
  *
  * You can set the size and overlap of tiles with @tile_size and @overlap.
  * They default to the correct settings for the selected @layout. 

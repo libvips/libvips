@@ -7,8 +7,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-01-15 14:43+0000\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2013-01-17 13:26+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -186,7 +187,7 @@ msgstr ""
 #: ../libvips/conversion/rot.c:359 ../libvips/conversion/replicate.c:196
 #: ../libvips/conversion/tilecache.c:424 ../libvips/conversion/embed.c:550
 #: ../libvips/conversion/cache.c:100 ../libvips/conversion/recomb.c:204
-#: ../libvips/conversion/sequential.c:289 ../libvips/foreign/foreign.c:1357
+#: ../libvips/conversion/sequential.c:303 ../libvips/foreign/foreign.c:1357
 #: ../libvips/resample/resample.c:89
 msgid "Input"
 msgstr ""
@@ -389,7 +390,7 @@ msgstr ""
 #: ../libvips/conversion/extract.c:360 ../libvips/conversion/copy.c:322
 #: ../libvips/conversion/rot.c:360 ../libvips/conversion/replicate.c:197
 #: ../libvips/conversion/tilecache.c:425 ../libvips/conversion/embed.c:551
-#: ../libvips/conversion/cache.c:101 ../libvips/conversion/sequential.c:290
+#: ../libvips/conversion/cache.c:101 ../libvips/conversion/sequential.c:304
 msgid "Input image"
 msgstr ""
 
@@ -643,7 +644,7 @@ msgid "Filename to load output profile from"
 msgstr ""
 
 #: ../libvips/colour/icc_transform.c:723 ../libvips/colour/icc_transform.c:909
-#: ../libvips/colour/scRGB2sRGB.c:191 ../libvips/foreign/dzsave.c:1204
+#: ../libvips/colour/scRGB2sRGB.c:191 ../libvips/foreign/dzsave.c:1215
 msgid "Depth"
 msgstr ""
 
@@ -739,7 +740,7 @@ msgstr ""
 
 #: ../libvips/conversion/flatten.c:382 ../libvips/conversion/join.c:266
 #: ../libvips/conversion/insert.c:393 ../libvips/conversion/embed.c:591
-#: ../libvips/foreign/dzsave.c:1197
+#: ../libvips/foreign/dzsave.c:1208
 msgid "Background"
 msgstr ""
 
@@ -1059,14 +1060,14 @@ msgid "cache an image"
 msgstr ""
 
 #: ../libvips/conversion/tilecache.c:430 ../libvips/conversion/cache.c:113
-#: ../libvips/conversion/sequential.c:302 ../libvips/foreign/tiffsave.c:222
-#: ../libvips/foreign/dzsave.c:1229
+#: ../libvips/conversion/sequential.c:316 ../libvips/foreign/tiffsave.c:222
+#: ../libvips/foreign/dzsave.c:1240
 msgid "Tile height"
 msgstr ""
 
 #: ../libvips/conversion/tilecache.c:431 ../libvips/conversion/cache.c:114
-#: ../libvips/conversion/sequential.c:303 ../libvips/foreign/tiffsave.c:223
-#: ../libvips/foreign/dzsave.c:1230
+#: ../libvips/conversion/sequential.c:317 ../libvips/foreign/tiffsave.c:223
+#: ../libvips/foreign/dzsave.c:1241
 msgid "Tile height in pixels"
 msgstr ""
 
@@ -1091,12 +1092,12 @@ msgid "cache an image as a set of tiles"
 msgstr ""
 
 #: ../libvips/conversion/tilecache.c:732 ../libvips/conversion/cache.c:106
-#: ../libvips/foreign/tiffsave.c:215 ../libvips/foreign/dzsave.c:1222
+#: ../libvips/foreign/tiffsave.c:215 ../libvips/foreign/dzsave.c:1233
 msgid "Tile width"
 msgstr ""
 
 #: ../libvips/conversion/tilecache.c:733 ../libvips/conversion/cache.c:107
-#: ../libvips/foreign/tiffsave.c:216 ../libvips/foreign/dzsave.c:1223
+#: ../libvips/foreign/tiffsave.c:216 ../libvips/foreign/dzsave.c:1234
 msgid "Tile width in pixels"
 msgstr ""
 
@@ -1141,7 +1142,7 @@ msgstr ""
 msgid "How to generate the extra pixels"
 msgstr ""
 
-#: ../libvips/conversion/embed.c:592 ../libvips/foreign/dzsave.c:1198
+#: ../libvips/conversion/embed.c:592 ../libvips/foreign/dzsave.c:1209
 msgid "Colour for background pixels"
 msgstr ""
 
@@ -1197,15 +1198,15 @@ msgstr ""
 msgid "matrix of coefficients"
 msgstr ""
 
-#: ../libvips/conversion/sequential.c:285
+#: ../libvips/conversion/sequential.c:299
 msgid "check sequential access"
 msgstr ""
 
-#: ../libvips/conversion/sequential.c:295
+#: ../libvips/conversion/sequential.c:309
 msgid "trace"
 msgstr ""
 
-#: ../libvips/conversion/sequential.c:296
+#: ../libvips/conversion/sequential.c:310
 msgid "trace pixel requests"
 msgstr ""
 
@@ -1494,55 +1495,55 @@ msgstr ""
 msgid "Directory \"%s\" exists"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1063
+#: ../libvips/foreign/dzsave.c:1074
 msgid "overlap must be less than tile width and height"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1151
+#: ../libvips/foreign/dzsave.c:1162
 msgid "save image to deep zoom format"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1161 ../libvips/foreign/dzsave.c:1215
+#: ../libvips/foreign/dzsave.c:1172 ../libvips/foreign/dzsave.c:1226
 msgid "Base name"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1162 ../libvips/foreign/dzsave.c:1216
+#: ../libvips/foreign/dzsave.c:1173 ../libvips/foreign/dzsave.c:1227
 msgid "Base name to save to"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1168
+#: ../libvips/foreign/dzsave.c:1179
 msgid "Layout"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1169
+#: ../libvips/foreign/dzsave.c:1180
 msgid "Directory layout"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1176
+#: ../libvips/foreign/dzsave.c:1187
 msgid "suffix"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1177
+#: ../libvips/foreign/dzsave.c:1188
 msgid "Filename suffix for tiles"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1183
+#: ../libvips/foreign/dzsave.c:1194
 msgid "Overlap"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1184
+#: ../libvips/foreign/dzsave.c:1195
 msgid "Tile overlap in pixels"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1190
+#: ../libvips/foreign/dzsave.c:1201
 msgid "Tile size"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1191
+#: ../libvips/foreign/dzsave.c:1202
 msgid "Tile size in pixels"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1205
+#: ../libvips/foreign/dzsave.c:1216
 msgid "Pyramid depth"
 msgstr ""
 
@@ -2818,13 +2819,13 @@ msgstr ""
 msgid "TB"
 msgstr ""
 
-#: ../libvips/iofuncs/base64.c:170
+#: ../libvips/iofuncs/base64.c:168
 msgid "too little data"
 msgstr ""
 
 #. We shouldn't really be used for large amounts of data.
 #.
-#: ../libvips/iofuncs/base64.c:176 ../libvips/iofuncs/base64.c:241
+#: ../libvips/iofuncs/base64.c:174 ../libvips/iofuncs/base64.c:239
 msgid "too much data"
 msgstr ""
 
@@ -3029,16 +3030,16 @@ msgstr ""
 msgid "extra tokens after ')'"
 msgstr ""
 
-#: ../libvips/iofuncs/threadpool.c:197
+#: ../libvips/iofuncs/threadpool.c:178
 msgid "unable to create thread"
 msgstr ""
 
-#: ../libvips/iofuncs/threadpool.c:330
+#: ../libvips/iofuncs/threadpool.c:311
 #, c-format
 msgid "threads clipped to %d"
 msgstr ""
 
-#: ../libvips/iofuncs/threadpool.c:394
+#: ../libvips/iofuncs/threadpool.c:375
 msgid "per-thread state for vipsthreadpool"
 msgstr ""
 
@@ -3665,7 +3666,7 @@ msgstr ""
 msgid "B-Splines with antialiasing smoothing"
 msgstr ""
 
-#: ../libvips/resample/nohalo.cpp:1576
+#: ../libvips/resample/nohalo.cpp:1580
 msgid "Edge sharpening resampler with halo reduction"
 msgstr ""
 

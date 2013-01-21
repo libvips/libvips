@@ -35,6 +35,7 @@
 - redone im_affine*() as a class
 - added input space displacement to affine
 - VipsArea is threadsafe
+- dzsave has a --centre option
 
 31/12/12 started 7.30.7
 - better option parsing for "vips", thanks Haida
