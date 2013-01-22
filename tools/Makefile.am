@@ -26,7 +26,7 @@ bin_SCRIPTS = \
 	batch_image_convert \
 	batch_rubber_sheet \
 	batch_crop \
-	vips-7.31
+	vips-7.32
 
 EXTRA_DIST = \
 	vips-7.31 \
