@@ -11,7 +11,7 @@ AC_PREREQ(2.62)
 # and missing INSTALL (the standard Gnu INSTALL is not very useful)
 AM_INIT_AUTOMAKE([-Wno-portability foreign])
 
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning

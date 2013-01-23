@@ -23,4 +23,4 @@ libmosaicing_la_SOURCES = \
 	global_balance.h \
 	mosaic.h
 
-INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
+AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

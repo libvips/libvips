@@ -1,6 +1,6 @@
 # Let make substitute the value of PYTHON_INCLUDES rather than auto*
 # this makes it easier to support multiple python installs
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I${top_srcdir}/libvips/include \
 	-I${top_srcdir}/libvipsCC/include \
 	@VIPS_CFLAGS@ \

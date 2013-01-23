@@ -24,4 +24,4 @@ endif
 # used by the final libvips link rather than us
 EXTRA_DIST = dummy2.cc
 
-INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
+AM_CPPFLAGS += -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

@@ -39,4 +39,4 @@ libconversion_la_SOURCES = \
 	im_wrap.c \
 	im_zoom.c
 
-INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
+AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@

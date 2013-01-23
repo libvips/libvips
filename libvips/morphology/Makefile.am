@@ -10,4 +10,4 @@ libmorphology_la_SOURCES = \
 	im_label_regions.c \
 	im_profile.c
 
-INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
+AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

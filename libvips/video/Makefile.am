@@ -5,4 +5,4 @@ libvideo_la_SOURCES = \
 	im_video_v4l1.c \
 	im_video_test.c 
 
-INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
+AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

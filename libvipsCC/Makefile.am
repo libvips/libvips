@@ -1,7 +1,7 @@
 SUBDIRS = \
 	include 
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(top_srcdir)/libvips/include \
 	-I$(top_srcdir)/libvipsCC/include \
 	@VIPS_CFLAGS@ 

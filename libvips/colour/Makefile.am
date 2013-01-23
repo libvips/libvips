@@ -30,4 +30,4 @@ libcolour_la_SOURCES = \
 	XYZ2scRGB.c \
 	scRGB2sRGB.c 
 
-INCLUDES = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
+AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
