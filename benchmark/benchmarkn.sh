@@ -29,7 +29,6 @@ echo "max cpus = $max_cpus"
 echo "starting benchmark ..."
 echo /usr/bin/time -f %e vips \
   --vips-concurrency=xx \
-  --vips-tile-width=64 --vips-tile-height=64 \
   im_benchmarkn temp.v temp2.v $chain
 echo reported real-time is best of three runs
 echo cpus real-time
@@ -37,7 +36,6 @@ echo cpus real-time
 for((cpus = 1; cpus <= max_cpus; cpus++)); do
   t1=`/usr/bin/time -f %e vips \
 	  --vips-concurrency=$cpus \
-	  --vips-tile-width=64 --vips-tile-height=64 \
 	  im_benchmarkn temp.v temp2.v $chain 2>&1`
   if [ $? != 0 ]; then
     echo "benchmark failed -- install problem?"
@@ -45,11 +43,9 @@ for((cpus = 1; cpus <= max_cpus; cpus++)); do
   fi
   t2=`/usr/bin/time -f %e vips \
 	  --vips-concurrency=$cpus \
-	  --vips-tile-width=64 --vips-tile-height=64 \
 	  im_benchmarkn temp.v temp2.v $chain 2>&1`
   t3=`/usr/bin/time -f %e vips \
 	  --vips-concurrency=$cpus \
-	  --vips-tile-width=64 --vips-tile-height=64 \
 	  im_benchmarkn temp.v temp2.v $chain 2>&1`
 
   # echo $t1 $t2 $t3
