@@ -632,7 +632,7 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 static int
 tile_name( Layer *layer, char *buf, int x, int y )
 {
-	/* Need to lock around some file operations.
+	/* Need to lock around exists()/mkdir() or there's a race. 
 	 */
 	static GMutex *file_lock = NULL;
 	static GOnce file_lock_once = G_ONCE_INIT;
@@ -644,8 +644,6 @@ tile_name( Layer *layer, char *buf, int x, int y )
 	Layer *p;
 	int n;
 
-	/* We have to lock or there's a race between exists() and mkdir().
-	 */
 	file_lock = g_once( &file_lock_once, 
 		(GThreadFunc) vips_g_mutex_new, NULL );
 	g_mutex_lock( file_lock );

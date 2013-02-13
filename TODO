@@ -11,8 +11,6 @@
 
 	Article: nomis80.org/ctmf.pdf
 
-- update the INCLUDES etc. stuff, see OS X build
-
 - quadratic doesn't work for order 3
 
   start to get jaggies on lines --- the 3rd differential isn't being 
