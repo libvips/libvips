@@ -632,6 +632,11 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 static int
 tile_name( Layer *layer, char *buf, int x, int y )
 {
+	/* Need to lock around some file operations.
+	 */
+	static GMutex *file_lock = NULL;
+	static GOnce file_lock_once = G_ONCE_INIT;
+
 	VipsForeignSaveDz *dz = layer->dz;
 
 	char dirname[PATH_MAX];
@@ -641,7 +646,9 @@ tile_name( Layer *layer, char *buf, int x, int y )
 
 	/* We have to lock or there's a race between exists() and mkdir().
 	 */
-	g_mutex_lock( vips__global_lock );
+	file_lock = g_once( &file_lock_once, 
+		(GThreadFunc) vips_g_mutex_new, NULL );
+	g_mutex_lock( file_lock );
 
 	switch( dz->layout ) {
 	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
@@ -652,7 +659,7 @@ tile_name( Layer *layer, char *buf, int x, int y )
 
 		if( !vips_existsf( "%s", dirname ) &&
 			vips_mkdirf( "%s", dirname ) ) {
-			g_mutex_unlock( vips__global_lock );
+			g_mutex_unlock( file_lock );
 			return( -1 );
 		}
 
@@ -686,7 +693,7 @@ tile_name( Layer *layer, char *buf, int x, int y )
 
 		if( !vips_existsf( "%s", dirname ) &&
 			vips_mkdirf( "%s", dirname ) ) {
-			g_mutex_unlock( vips__global_lock );
+			g_mutex_unlock( file_lock );
 			return( -1 );
 		}
 
@@ -702,13 +709,13 @@ tile_name( Layer *layer, char *buf, int x, int y )
 
 		if( !vips_existsf( "%s", dirname ) &&
 			vips_mkdirf( "%s", dirname ) ) {
-			g_mutex_unlock( vips__global_lock );
+			g_mutex_unlock( file_lock );
 			return( -1 );
 		}
 
 		if( !vips_existsf( "%s", dirname2 ) &&
 			vips_mkdirf( "%s", dirname2 ) ) {
-			g_mutex_unlock( vips__global_lock );
+			g_mutex_unlock( file_lock );
 			return( -1 );
 		}
 
@@ -716,11 +723,11 @@ tile_name( Layer *layer, char *buf, int x, int y )
 
 	default:
 		g_assert( 0 );
-		g_mutex_unlock( vips__global_lock );
+		g_mutex_unlock( file_lock );
 		return( -1 );
 	}
 
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_unlock( file_lock );
 
 	return( 0 );
 }
