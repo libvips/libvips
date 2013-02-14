@@ -29,7 +29,7 @@ bin_SCRIPTS = \
 	vips-7.32
 
 EXTRA_DIST = \
-	vips-7.31 \
+	vips-7.32 \
 	light_correct.in \
 	shrink_width.in \
 	batch_image_convert.in \

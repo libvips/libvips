@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2013-01-22 13:22+0000\n"
+"POT-Creation-Date: 2013-02-13 21:59+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -644,7 +644,7 @@ msgid "Filename to load output profile from"
 msgstr ""
 
 #: ../libvips/colour/icc_transform.c:723 ../libvips/colour/icc_transform.c:909
-#: ../libvips/colour/scRGB2sRGB.c:191 ../libvips/foreign/dzsave.c:1305
+#: ../libvips/colour/scRGB2sRGB.c:191 ../libvips/foreign/dzsave.c:1310
 msgid "Depth"
 msgstr ""
 
@@ -740,7 +740,7 @@ msgstr ""
 
 #: ../libvips/conversion/flatten.c:382 ../libvips/conversion/join.c:266
 #: ../libvips/conversion/insert.c:393 ../libvips/conversion/embed.c:591
-#: ../libvips/foreign/dzsave.c:1298
+#: ../libvips/foreign/dzsave.c:1303
 msgid "Background"
 msgstr ""
 
@@ -1061,13 +1061,13 @@ msgstr ""
 
 #: ../libvips/conversion/tilecache.c:430 ../libvips/conversion/cache.c:113
 #: ../libvips/conversion/sequential.c:316 ../libvips/foreign/tiffsave.c:222
-#: ../libvips/foreign/dzsave.c:1337
+#: ../libvips/foreign/dzsave.c:1342
 msgid "Tile height"
 msgstr ""
 
 #: ../libvips/conversion/tilecache.c:431 ../libvips/conversion/cache.c:114
 #: ../libvips/conversion/sequential.c:317 ../libvips/foreign/tiffsave.c:223
-#: ../libvips/foreign/dzsave.c:1338
+#: ../libvips/foreign/dzsave.c:1343
 msgid "Tile height in pixels"
 msgstr ""
 
@@ -1092,12 +1092,12 @@ msgid "cache an image as a set of tiles"
 msgstr ""
 
 #: ../libvips/conversion/tilecache.c:732 ../libvips/conversion/cache.c:106
-#: ../libvips/foreign/tiffsave.c:215 ../libvips/foreign/dzsave.c:1330
+#: ../libvips/foreign/tiffsave.c:215 ../libvips/foreign/dzsave.c:1335
 msgid "Tile width"
 msgstr ""
 
 #: ../libvips/conversion/tilecache.c:733 ../libvips/conversion/cache.c:107
-#: ../libvips/foreign/tiffsave.c:216 ../libvips/foreign/dzsave.c:1331
+#: ../libvips/foreign/tiffsave.c:216 ../libvips/foreign/dzsave.c:1336
 msgid "Tile width in pixels"
 msgstr ""
 
@@ -1142,7 +1142,7 @@ msgstr ""
 msgid "How to generate the extra pixels"
 msgstr ""
 
-#: ../libvips/conversion/embed.c:592 ../libvips/foreign/dzsave.c:1299
+#: ../libvips/conversion/embed.c:592 ../libvips/foreign/dzsave.c:1304
 msgid "Colour for background pixels"
 msgstr ""
 
@@ -1495,63 +1495,63 @@ msgstr ""
 msgid "Directory \"%s\" exists"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1125
+#: ../libvips/foreign/dzsave.c:1130
 msgid "overlap must be less than tile width and height"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1252
+#: ../libvips/foreign/dzsave.c:1257
 msgid "save image to deep zoom format"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1262 ../libvips/foreign/dzsave.c:1323
+#: ../libvips/foreign/dzsave.c:1267 ../libvips/foreign/dzsave.c:1328
 msgid "Base name"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1263 ../libvips/foreign/dzsave.c:1324
+#: ../libvips/foreign/dzsave.c:1268 ../libvips/foreign/dzsave.c:1329
 msgid "Base name to save to"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1269
+#: ../libvips/foreign/dzsave.c:1274
 msgid "Layout"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1270
+#: ../libvips/foreign/dzsave.c:1275
 msgid "Directory layout"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1277
+#: ../libvips/foreign/dzsave.c:1282
 msgid "suffix"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1278
+#: ../libvips/foreign/dzsave.c:1283
 msgid "Filename suffix for tiles"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1284
+#: ../libvips/foreign/dzsave.c:1289
 msgid "Overlap"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1285
+#: ../libvips/foreign/dzsave.c:1290
 msgid "Tile overlap in pixels"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1291
+#: ../libvips/foreign/dzsave.c:1296
 msgid "Tile size"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1292
+#: ../libvips/foreign/dzsave.c:1297
 msgid "Tile size in pixels"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1306
+#: ../libvips/foreign/dzsave.c:1311
 msgid "Pyramid depth"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1313
+#: ../libvips/foreign/dzsave.c:1318
 msgid "Center"
 msgstr ""
 
-#: ../libvips/foreign/dzsave.c:1314
+#: ../libvips/foreign/dzsave.c:1319
 msgid "Center image in tile"
 msgstr ""
 
