@@ -368,7 +368,7 @@ vips_image_get_coding( const VipsImage *image )
  * @image: image to guess for
  *
  * Return the #VipsInterpretation set in the image header.
- * Use vips_image_guess_interpretation() is you want a sanity-checked value.
+ * Use vips_image_guess_interpretation() if you want a sanity-checked value.
  *
  * Returns: the #VipsInterpretation from the image header.
  */
@@ -413,8 +413,25 @@ vips_image_guess_interpretation( const VipsImage *image )
 	gboolean sane;
 
 	sane = TRUE;
-	switch( image->Type ) {
 
+	/* Coding overrides interpretation.
+	 */
+	switch( image->Coding ) {
+	case VIPS_CODING_LABQ:
+		if( image->Type != VIPS_INTERPRETATION_LABQ )
+			sane = FALSE;
+		break;
+
+	case VIPS_CODING_RAD:
+		if( image->Type != VIPS_INTERPRETATION_RGB )
+			sane = FALSE;
+		break;
+
+	default:
+		break;
+	}
+
+	switch( image->Type ) {
 	case VIPS_INTERPRETATION_MULTIBAND: 
 		if( image->Bands == 1 )
 			sane = FALSE;
