@@ -642,9 +642,6 @@ vips_tile_cache_gen( VipsRegion *or,
 					g_mutex_lock( cache->lock );
 
 				if( result ) {
-					printf( "vips_tile_cache_gen: "
-						"error on tile %p\n", tile ); 
-
 					VIPS_DEBUG_MSG( "vips_tile_cache_gen: "
 						"error on tile %p\n", tile ); 
 					tile->state = VIPS_TILE_STATE_PEND;

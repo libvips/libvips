@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2013-02-13 21:59+0000\n"
+"POT-Creation-Date: 2013-02-21 18:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -185,7 +185,7 @@ msgstr ""
 #: ../libvips/conversion/extract.c:359 ../libvips/conversion/bandjoin.c:171
 #: ../libvips/conversion/bandbool.c:211 ../libvips/conversion/copy.c:321
 #: ../libvips/conversion/rot.c:359 ../libvips/conversion/replicate.c:196
-#: ../libvips/conversion/tilecache.c:424 ../libvips/conversion/embed.c:550
+#: ../libvips/conversion/tilecache.c:391 ../libvips/conversion/embed.c:550
 #: ../libvips/conversion/cache.c:100 ../libvips/conversion/recomb.c:204
 #: ../libvips/conversion/sequential.c:303 ../libvips/foreign/foreign.c:1357
 #: ../libvips/resample/resample.c:89
@@ -389,7 +389,7 @@ msgstr ""
 #: ../libvips/conversion/flatten.c:377 ../libvips/conversion/extract.c:200
 #: ../libvips/conversion/extract.c:360 ../libvips/conversion/copy.c:322
 #: ../libvips/conversion/rot.c:360 ../libvips/conversion/replicate.c:197
-#: ../libvips/conversion/tilecache.c:425 ../libvips/conversion/embed.c:551
+#: ../libvips/conversion/tilecache.c:392 ../libvips/conversion/embed.c:551
 #: ../libvips/conversion/cache.c:101 ../libvips/conversion/sequential.c:304
 msgid "Input image"
 msgstr ""
@@ -1055,61 +1055,61 @@ msgstr ""
 msgid "Top edge of sub in main"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:418 ../libvips/conversion/cache.c:96
+#: ../libvips/conversion/tilecache.c:385 ../libvips/conversion/cache.c:96
 msgid "cache an image"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:430 ../libvips/conversion/cache.c:113
+#: ../libvips/conversion/tilecache.c:397 ../libvips/conversion/cache.c:113
 #: ../libvips/conversion/sequential.c:316 ../libvips/foreign/tiffsave.c:222
 #: ../libvips/foreign/dzsave.c:1342
 msgid "Tile height"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:431 ../libvips/conversion/cache.c:114
+#: ../libvips/conversion/tilecache.c:398 ../libvips/conversion/cache.c:114
 #: ../libvips/conversion/sequential.c:317 ../libvips/foreign/tiffsave.c:223
 #: ../libvips/foreign/dzsave.c:1343
 msgid "Tile height in pixels"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:437
+#: ../libvips/conversion/tilecache.c:404
 msgid "Threaded"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:438
+#: ../libvips/conversion/tilecache.c:405
 msgid "Allow threaded access"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:444
+#: ../libvips/conversion/tilecache.c:411
 msgid "Strategy"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:445
+#: ../libvips/conversion/tilecache.c:412
 msgid "Expected access pattern"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:728
+#: ../libvips/conversion/tilecache.c:741
 msgid "cache an image as a set of tiles"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:732 ../libvips/conversion/cache.c:106
+#: ../libvips/conversion/tilecache.c:745 ../libvips/conversion/cache.c:106
 #: ../libvips/foreign/tiffsave.c:215 ../libvips/foreign/dzsave.c:1335
 msgid "Tile width"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:733 ../libvips/conversion/cache.c:107
+#: ../libvips/conversion/tilecache.c:746 ../libvips/conversion/cache.c:107
 #: ../libvips/foreign/tiffsave.c:216 ../libvips/foreign/dzsave.c:1336
 msgid "Tile width in pixels"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:739 ../libvips/conversion/cache.c:120
+#: ../libvips/conversion/tilecache.c:752 ../libvips/conversion/cache.c:120
 msgid "Max tiles"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:740 ../libvips/conversion/cache.c:121
+#: ../libvips/conversion/tilecache.c:753 ../libvips/conversion/cache.c:121
 msgid "Maximum number of tiles to cache"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:896
+#: ../libvips/conversion/tilecache.c:909
 msgid "cache an image as a set of lines"
 msgstr ""
 
@@ -2386,16 +2386,16 @@ msgstr ""
 msgid "unknown band format %d"
 msgstr ""
 
-#: ../libvips/iofuncs/header.c:733 ../libvips/iofuncs/generate.c:377
+#: ../libvips/iofuncs/header.c:750 ../libvips/iofuncs/generate.c:377
 msgid "too many images"
 msgstr ""
 
-#: ../libvips/iofuncs/header.c:903
+#: ../libvips/iofuncs/header.c:920
 #, c-format
 msgid "field \"%s\" not found"
 msgstr ""
 
-#: ../libvips/iofuncs/header.c:1071
+#: ../libvips/iofuncs/header.c:1088
 #, c-format
 msgid "field \"%s\" is of type %s, not %s"
 msgstr ""

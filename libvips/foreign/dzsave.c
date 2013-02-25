@@ -59,10 +59,22 @@
  */
 
 /*
+
+we +1 valid.height to make sure that we always have ebnough lines for a x2 
+shrink, even if tile_size is odd, or (tile_size + overlap) is odd, or 
+(tile_size + 2 * overlap) is odd
+
+so valid->height cannot be used to tell whether we have enough rows to be 
+able to write a line of tiles, since we could be under but still OK:wq
+
+
+*/
+
+/*
 #define DEBUG_VERBOSE
+ */
 #define DEBUG
 #define VIPS_DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -593,9 +605,9 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 
 	VipsRect image;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "strip_allocate\n" );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	image.left = 0;
 	image.top = 0;
@@ -617,9 +629,9 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 
 	if( vips_rect_isempty( &state->pos ) ) {
 		*stop = TRUE;
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 		printf( "strip_allocate: done\n" );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 		return( 0 );
 	}
@@ -741,9 +753,9 @@ strip_work( VipsThreadState *state, void *a )
 	VipsImage *x;
 	VipsImage *t;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "strip_work\n" );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	if( tile_name( layer, buf, 
 		state->x / dz->tile_size, state->y / dz->tile_size ) )
@@ -800,9 +812,9 @@ strip_work( VipsThreadState *state, void *a )
 		}
 	}
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "strip_work: writing to %s\n", buf );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	if( vips_image_write_to_file( x, buf ) ) {
 		g_object_unref( x );
@@ -810,9 +822,9 @@ strip_work( VipsThreadState *state, void *a )
 	}
 	g_object_unref( x );
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "strip_work: success\n" );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	return( 0 );
 }
@@ -850,6 +862,8 @@ layer_generate_extras( Layer *layer )
 {
 	VipsRegion *strip = layer->strip;
 
+	printf( "layer_generate_extras: layer->n == %d\n", layer->n ); 
+
 	/* We only work for full-width strips.
 	 */
 	g_assert( strip->valid.width == layer->image->Xsize );
@@ -858,6 +872,8 @@ layer_generate_extras( Layer *layer )
 		int ps = VIPS_IMAGE_SIZEOF_PEL( strip->im );
 
 		int b, y;
+
+		printf( "layer_generate_extras: adding column on right\n" ); 
 
 		/* Need to add a right-most column.
 		 */
@@ -874,6 +890,11 @@ layer_generate_extras( Layer *layer )
 	if( layer->height < layer->image->Ysize ) {
 		VipsRect last;
 
+		printf( "layer->height = %d\n", layer->height ); 
+		printf( "layer->image->Ysize = %d\n", layer->image->Ysize ); 
+		printf( "strip->valid.top = %d\n", strip->valid.top ); 
+		printf( "strip->valid.height = %d\n", strip->valid.height ); 
+
 		/* The last two lines of the image.
 		 */
 		last.left = 0;
@@ -886,6 +907,8 @@ layer_generate_extras( Layer *layer )
 		vips_rect_intersectrect( &last, &strip->valid, &last );
 		if( last.height == 2 ) {
 			last.height = 1;
+
+			printf( "layer_generate_extras: adding row on bot\n" ); 
 
 			vips_region_copy( strip, strip, &last, 
 				0, last.top + 1 );
@@ -927,6 +950,14 @@ strip_shrink( Layer *layer )
 		target.height = to->valid.height;
 		vips_rect_intersectrect( &target, &to->valid, &target );
 
+		printf( "strip_shrink: n == %d\n", layer->n ); 
+
+		printf( "from.top == %d\n", from->valid.top ); 
+		printf( "from.height == %d\n", from->valid.height ); 
+
+		printf( "target.top == %d\n", target.top ); 
+		printf( "target.height == %d\n", target.height ); 
+
 		/* Those pixels need this area of this layer. 
 		 */
 		source.left = target.left * 2;
@@ -938,12 +969,18 @@ strip_shrink( Layer *layer )
 		 */
 		vips_rect_intersectrect( &source, &from->valid, &source );
 
+		printf( "source.top == %d\n", source.top ); 
+		printf( "source.height == %d\n", source.height ); 
+
 		/* So these are the pixels in the layer below we can provide.
 		 */
 		target.left = source.left / 2;
 		target.top = source.top / 2;
 		target.width = source.width / 2;
 		target.height = source.height / 2;
+
+		printf( "target.top == %d\n", target.top ); 
+		printf( "target.height == %d\n", target.height ); 
 
 		/* None? All done.
 		 */
@@ -1185,6 +1222,13 @@ vips_foreign_save_dz_build( VipsObject *object )
 #endif
 
 	}
+
+#ifdef DEBUG
+	printf( "vips_foreign_save_dz_build: tile_size == %d\n", 
+		dz->tile_size );
+	printf( "vips_foreign_save_dz_build: overlap == %d\n", 
+		dz->overlap );
+#endif
 
 	/* Build the skeleton of the image pyramid.
 	 */
