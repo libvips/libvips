@@ -1,3 +1,20 @@
+- on tilecache region error, black out the dead tile and issue a warning,
+  don't pass the error up the chain
+
+  issue a warning too
+
+- fix
+
+	$ header test.v
+	test.v: 14016x16448 uchar, 3 bands, srgb, openin VipsImage (0x907060)
+
+  the ", openin VipsImage (0x907060)" is annoying and useless
+
+  some hint about the image format might be useful perhaps?
+
+
+
+
 - look at
 	
 	There is an order 1 algorithm for doing medians over boxes (truly O(1)

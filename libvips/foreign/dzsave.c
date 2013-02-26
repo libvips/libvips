@@ -30,6 +30,8 @@
  * 	- add @depth option
  * 21/1/13
  * 	- add @centre option
+ * 26/2/13
+ * 	- fix another corner case, thanks Martin
  */
 
 /*
@@ -60,21 +62,37 @@
 
 /*
 
-we +1 valid.height to make sure that we always have ebnough lines for a x2 
-shrink, even if tile_size is odd, or (tile_size + overlap) is odd, or 
-(tile_size + 2 * overlap) is odd
+   This is difficult to test, there are so many options.
 
-so valid->height cannot be used to tell whether we have enough rows to be 
-able to write a line of tiles, since we could be under but still OK:wq
+   It's failed in the past in these cases. These have layers with strips which 
+   exactly align with image edges, or which have orphan scanlines which need 
+   adding for the shrink. 
 
+   1.	$ header test.v
+	test.v: 14016x16448 uchar, 3 bands, srgb, openin VipsImage (0x11e7060)
+	$ time vips dzsave test.v x --overlap 0
 
-*/
+	Not all layers written.
+
+   2.	$ header ~/Desktop/leicaimage.scn 
+	/home/john/Desktop/leicaimage.scn: 4225x7905 uchar, 4 bands, rgb
+
+	Not all layers written. 
+
+    3.	$ header ~/leicatest1.scn 
+	/home/john/leicatest1.scn: 11585x8449 uchar, 4 bands, rgb
+
+	Not all layers written. 
+
+   various combinations of odd and even tile-size and overlap need testing too.
+
+ */
 
 /*
 #define DEBUG_VERBOSE
- */
 #define DEBUG
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -242,15 +260,17 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int width, int height )
 	/* Build a line of tiles here. Normally strips are height + 2 *
 	 * overlap, but the first row is missing the top edge.
 	 *
-	 * We add one so that we will have the extra scan line for the shrink 
-	 * in case tile_size is odd and there's no overlap. 
+	 * Expand the strip if necessary to make sure we have an even 
+	 * number of lines. 
 	 */
 	layer->y = 0;
 	layer->write_y = 0;
 	strip.left = 0;
 	strip.top = 0;
 	strip.width = layer->image->Xsize;
-	strip.height = dz->tile_size + dz->overlap + 1;
+	strip.height = dz->tile_size + dz->overlap;
+	if( (strip.height & 1) == 1 )
+		strip.height += 1;
 	if( vips_region_buffer( layer->strip, &strip ) ) {
 		layer_free( layer );
 		return( NULL );
@@ -862,8 +882,6 @@ layer_generate_extras( Layer *layer )
 {
 	VipsRegion *strip = layer->strip;
 
-	printf( "layer_generate_extras: layer->n == %d\n", layer->n ); 
-
 	/* We only work for full-width strips.
 	 */
 	g_assert( strip->valid.width == layer->image->Xsize );
@@ -872,8 +890,6 @@ layer_generate_extras( Layer *layer )
 		int ps = VIPS_IMAGE_SIZEOF_PEL( strip->im );
 
 		int b, y;
-
-		printf( "layer_generate_extras: adding column on right\n" ); 
 
 		/* Need to add a right-most column.
 		 */
@@ -890,11 +906,6 @@ layer_generate_extras( Layer *layer )
 	if( layer->height < layer->image->Ysize ) {
 		VipsRect last;
 
-		printf( "layer->height = %d\n", layer->height ); 
-		printf( "layer->image->Ysize = %d\n", layer->image->Ysize ); 
-		printf( "strip->valid.top = %d\n", strip->valid.top ); 
-		printf( "strip->valid.height = %d\n", strip->valid.height ); 
-
 		/* The last two lines of the image.
 		 */
 		last.left = 0;
@@ -908,8 +919,6 @@ layer_generate_extras( Layer *layer )
 		if( last.height == 2 ) {
 			last.height = 1;
 
-			printf( "layer_generate_extras: adding row on bot\n" ); 
-
 			vips_region_copy( strip, strip, &last, 
 				0, last.top + 1 );
 		}
@@ -918,8 +927,8 @@ layer_generate_extras( Layer *layer )
 
 static int strip_arrived( Layer *layer );
 
-/* Shrink what pixels we can from this layer into the layer below. If the
- * layer below fills, recurse.
+/* Shrink what pixels we can from this strip into the layer below. If the
+ * strip below fills, recurse.
  */
 static int
 strip_shrink( Layer *layer )
@@ -950,14 +959,6 @@ strip_shrink( Layer *layer )
 		target.height = to->valid.height;
 		vips_rect_intersectrect( &target, &to->valid, &target );
 
-		printf( "strip_shrink: n == %d\n", layer->n ); 
-
-		printf( "from.top == %d\n", from->valid.top ); 
-		printf( "from.height == %d\n", from->valid.height ); 
-
-		printf( "target.top == %d\n", target.top ); 
-		printf( "target.height == %d\n", target.height ); 
-
 		/* Those pixels need this area of this layer. 
 		 */
 		source.left = target.left * 2;
@@ -969,9 +970,6 @@ strip_shrink( Layer *layer )
 		 */
 		vips_rect_intersectrect( &source, &from->valid, &source );
 
-		printf( "source.top == %d\n", source.top ); 
-		printf( "source.height == %d\n", source.height ); 
-
 		/* So these are the pixels in the layer below we can provide.
 		 */
 		target.left = source.left / 2;
@@ -979,12 +977,9 @@ strip_shrink( Layer *layer )
 		target.width = source.width / 2;
 		target.height = source.height / 2;
 
-		printf( "target.top == %d\n", target.top ); 
-		printf( "target.height == %d\n", target.height ); 
-
 		/* None? All done.
 		 */
-		if( source.height < 2 ) 
+		if( vips_rect_isempty( &target ) ) 
 			break;
 
 		if( save->ready->Coding == VIPS_CODING_NONE )
@@ -994,10 +989,10 @@ strip_shrink( Layer *layer )
 
 		below->write_y += target.height;
 
-		/* If we've filled the strip of the layer below, let it know.
+		/* If we've filled the strip below, let it know.
 		 * We can either fill the region, if it's somewhere half-way
 		 * down the image, or, if it's at the bottom, get to the last
-		 * writeable line.
+		 * real line of pixels.
 		 */
 		if( below->write_y == VIPS_RECT_BOTTOM( &to->valid ) ||
 			below->write_y == below->height ) {
@@ -1009,12 +1004,13 @@ strip_shrink( Layer *layer )
 	return( 0 );
 }
 
-/* A new strip of pixels has arrived! The strip region has enough pixels in to
- * write a line of tiles. 
+/* A new strip has arrived! The strip has enough pixels in to write a line of 
+ * tiles. 
  *
  * - write a line of tiles
  * - shrink what we can to the layer below
- * - move our strip down ready for more stuff, copying the overlap
+ * - move our strip down by the tile height
+ * - copy the overlap with the previous strip
  */
 static int
 strip_arrived( Layer *layer )
@@ -1030,15 +1026,18 @@ strip_arrived( Layer *layer )
 		strip_shrink( layer ) )
 		return( -1 );
 
-	/* Position our strip down the image.  We add one to the strip height
-	 * to make sure we will have enough pixels for any shrinking even if
-	 * tile_size is odd and there's no overlap.
+	/* Position our strip down the image.  
+	 *
+	 * Expand the strip if necessary to make sure we have an even 
+	 * number of lines. 
 	 */
 	layer->y += dz->tile_size;
 	new_strip.left = 0;
 	new_strip.top = layer->y - dz->overlap;
 	new_strip.width = layer->image->Xsize;
-	new_strip.height = dz->tile_size + 2 * dz->overlap + 1;
+	new_strip.height = dz->tile_size + 2 * dz->overlap;
+	if( (new_strip.height & 1) == 1 )
+		new_strip.height += 1;
 
 	/* We may exactly hit the bottom of the real image (ie. before borders
 	 * have been possibly expanded by 1 pixel). In this case, we'll not 
@@ -1120,9 +1119,9 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 
 		layer->write_y += target.height;
 
-		/* We can either fill the region, if it's somewhere half-way
+		/* We can either fill the strip, if it's somewhere half-way
 		 * down the image, or, if it's at the bottom, get to the last
-		 * writeable line.
+		 * real line of pixels.
 		 */
 		if( layer->write_y == VIPS_RECT_BOTTOM( to ) ||
 			layer->write_y == layer->height ) {
