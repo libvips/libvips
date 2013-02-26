@@ -569,6 +569,7 @@ vips_tile_cache_gen( VipsRegion *or,
 {
 	VipsRegion *in = (VipsRegion *) seq;
 	VipsBlockCache *cache = (VipsBlockCache *) b;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( cache );
 	VipsRect *r = &or->valid;
 
 	VipsTile *tile;
@@ -641,21 +642,25 @@ vips_tile_cache_gen( VipsRegion *or,
 				if( cache->threaded ) 
 					g_mutex_lock( cache->lock );
 
+				/* If there was an error calculating this
+				 * tile, just warn and carry on.
+				 *
+				 * This can happen with things like reading
+				 * .scn files via openslide. We don't want the
+				 * read to fail because of one broken tile.
+				 */
 				if( result ) {
 					VIPS_DEBUG_MSG( "vips_tile_cache_gen: "
 						"error on tile %p\n", tile ); 
-					tile->state = VIPS_TILE_STATE_PEND;
-					vips_tile_cache_unref( work );
 
-					/* Someone might have blocked when
-					 * this tile was a CALC. It's now a
-					 * PEND again, so they must wake up.
-					 */
-					g_cond_broadcast( cache->new_tile );
+					vips_warn( class->nickname,
+						_( "error reading tile %dx%d: "
+							"%s" ),
+						tile->pos.left, tile->pos.top,
+						vips_error_buffer() ); 
+					vips_error_clear();
 
-					g_mutex_unlock( cache->lock );
-
-					return( -1 );
+					vips_region_black( tile->region );
 				}
 
 				tile->state = VIPS_TILE_STATE_DATA;

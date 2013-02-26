@@ -1,6 +1,8 @@
 22/1/13 started 7.32.0
 - tilecache in threaded mode could deadlock if the downstream pixel source
   raised an error (thanks Todd)
+- fix another dzsave corner-case (thanks Martin)
+- neater output for "header"
 
 31/8/12 started 7.31.0
 - redone im_Lab2XYZ(), im_XYZ2Lab(), im_Lab2LCh(), im_LCh2Lab(), im_UCS2LCh, 

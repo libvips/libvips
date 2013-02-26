@@ -460,7 +460,9 @@ struct _VipsObjectClass {
 	 */
 	void (*summary_class)( struct _VipsObjectClass *, VipsBuf * );
 
-	/* Try to print a one-line summary for the object, handy for debugging.
+	/* Try to print a one-line summary for the object, the user can see
+	 * this output via things like "header fred.tif", --vips-cache-trace,
+	 * etc. 
 	 */
 	void (*summary)( VipsObject *, VipsBuf * );
 

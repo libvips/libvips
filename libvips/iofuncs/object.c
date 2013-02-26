@@ -1197,14 +1197,13 @@ vips_object_real_summary_class( VipsObjectClass *class, VipsBuf *buf )
 static void
 vips_object_real_summary( VipsObject *object, VipsBuf *buf )
 {
-	vips_buf_appendf( buf, " %s (%p)", 
-		G_OBJECT_TYPE_NAME( object ), object );
 }
 
 static void
 vips_object_real_dump( VipsObject *object, VipsBuf *buf )
 {
-	vips_buf_appendf( buf, " (%p)", object );
+	vips_buf_appendf( buf, " %s (%p)", 
+		G_OBJECT_TYPE_NAME( object ), object );
 }
 
 static void
