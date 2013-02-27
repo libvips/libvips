@@ -43,6 +43,9 @@
 - VipsArea is threadsafe
 - dzsave has a --centre option
 
+31/12/12 started 7.30.8
+- png icc profile write was broken
+
 31/12/12 started 7.30.7
 - better option parsing for "vips", thanks Haida
 - small fixes to help OS X
