@@ -687,7 +687,7 @@ write_vips( Write *write, int compress, int interlace )
 		void *profile;
 		size_t profile_length;
 
-		if( !vips_image_get_blob( in, VIPS_META_ICC_NAME, 
+		if( vips_image_get_blob( in, VIPS_META_ICC_NAME, 
 			&profile, &profile_length ) ) 
 			return( -1 ); 
 
