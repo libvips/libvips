@@ -426,20 +426,16 @@ png2vips_generate( VipsRegion *or,
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
 	 */
-	if( r->top != read->y_pos ) { 
-		printf( "png2vips_generate: y_pos == %d, top == %d\n",
-			read->y_pos, r->top ); 
-		g_assert( r->top == read->y_pos ); 
-	}
+	g_assert( r->top == read->y_pos ); 
 
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
 #ifdef DEBUG
-#endif /*DEBUG*/
 		printf( "png2vips_generate: failing in setjmp\n" ); 
 		printf( "png2vips_generate: line %d, %d rows\n", 
 			r->top, r->height );
 		printf( "png2vips_generate: file %s\n", read->name );
 		printf( "png2vips_generate: thread %p\n", g_thread_self() );
+#endif /*DEBUG*/
 
 		return( -1 );
 	}
