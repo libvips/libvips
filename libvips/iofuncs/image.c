@@ -395,6 +395,7 @@ static void
 vips_image_summary( VipsObject *object, VipsBuf *buf )
 {
 	VipsImage *image = VIPS_IMAGE( object );
+	char *p;
 
 	vips_buf_appendf( buf, "%dx%d",
 		vips_image_get_width( image ), vips_image_get_height( image ) );
@@ -415,6 +416,10 @@ vips_image_summary( VipsObject *object, VipsBuf *buf )
 			vips_enum_nick( VIPS_TYPE_CODING, 
 				vips_image_get_coding( image ) ) );
 	}
+
+	if( vips_image_get_typeof( image, VIPS_META_LOADER ) &&
+		!vips_image_get_string( image, VIPS_META_LOADER, &p ) ) 
+		vips_buf_appendf( buf, ", %s", p );
 
 	VIPS_OBJECT_CLASS( vips_image_parent_class )->summary( object, buf );
 }

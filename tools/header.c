@@ -36,6 +36,8 @@
  * 6/11/09
  * 	- added im_history_get(), im_getexp(), im_printdesc() as wrapped
  * 	  functions, so "header" is now obsolete
+ * 27/2/13
+ * 	- convert to vips8 API
  */
 
 /*
@@ -95,8 +97,8 @@ static GOptionEntry main_option[] = {
 static void
 print_error( void )
 {
-        fprintf( stderr, "%s: %s", g_get_prgname(), im_error_buffer() );
-	im_error_clear();
+        fprintf( stderr, "%s: %s", g_get_prgname(), vips_error_buffer() );
+	vips_error_clear();
 }
 
 static void *
@@ -137,7 +139,7 @@ print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 /* Print header, or parts of header.
  */
 static int
-print_header( IMAGE *im, gboolean many )
+print_header( VipsImage *im, gboolean many )
 {
 	if( !main_option_field ) {
 		printf( "%s: ", im->filename );
@@ -148,47 +150,25 @@ print_header( IMAGE *im, gboolean many )
 			(void) vips_image_map( im, print_field_fn, &many );
 	}
 	else if( strcmp( main_option_field, "getext" ) == 0 ) {
-		if( im__has_extension_block( im ) ) {
+		if( vips__has_extension_block( im ) ) {
 			void *buf;
 			int size;
 
-			if( !(buf = im__read_extension_block( im, &size )) )
+			if( !(buf = vips__read_extension_block( im, &size )) )
 				return( -1 );
 			printf( "%s", (char *) buf );
-			im_free( buf );
+			g_free( buf );
 		}
 	}
 	else if( strcmp( main_option_field, "Hist" ) == 0 ) 
-		printf( "%s", im_history_get( im ) );
+		printf( "%s", vips_image_get_history( im ) );
 	else {
-		GValue value = { 0 };
-		GType type;
+		char *str;
 
-		if( im_header_get( im, main_option_field, &value ) )
+		if( vips_image_get_as_string( im, main_option_field, &str ) )
 			return( -1 );
-
-		/* Display the save form, if there is one. This way we display
-		 * something useful for ICC profiles, xml fields, etc.
-		 */
-		type = G_VALUE_TYPE( &value );
-		if( g_value_type_transformable( type, IM_TYPE_SAVE_STRING ) ) {
-			GValue save_value = { 0 };
-
-			g_value_init( &save_value, IM_TYPE_SAVE_STRING );
-			if( !g_value_transform( &value, &save_value ) ) 
-				return( -1 );
-			printf( "%s\n", im_save_string_get( &save_value ) );
-			g_value_unset( &save_value );
-		}
-		else {
-			char *str_value;
-
-			str_value = g_strdup_value_contents( &value );
-			printf( "%s\n", str_value );
-			g_free( str_value );
-		}
-
-		g_value_unset( &value );
+		printf( "%s\n", str );
+		g_free( str );
 	}
 
 	return( 0 );
@@ -202,8 +182,8 @@ main( int argc, char *argv[] )
 	int i;
 	int result;
 
-	if( im_init_world( argv[0] ) )
-	        error_exit( "unable to start VIPS" );
+	if( vips_init( argv[0] ) )
+	        vips_error_exit( "unable to start VIPS" );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
@@ -211,7 +191,7 @@ main( int argc, char *argv[] )
 
 	g_option_context_add_main_entries( context,
 		main_option, GETTEXT_PACKAGE );
-	g_option_context_add_group( context, im_get_option_group() );
+	g_option_context_add_group( context, vips_get_option_group() );
 
 	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
 		if( error ) {
@@ -219,7 +199,7 @@ main( int argc, char *argv[] )
 			g_error_free( error );
 		}
 
-		error_exit( "try \"%s --help\"", g_get_prgname() );
+		vips_error_exit( "try \"%s --help\"", g_get_prgname() );
 	}
 
 	g_option_context_free( context );
@@ -227,9 +207,9 @@ main( int argc, char *argv[] )
 	result = 0;
 
 	for( i = 1; i < argc; i++ ) {
-		IMAGE *im;
+		VipsImage *im;
 
-		if( !(im = im_open( argv[i], "r" )) ) {
+		if( !(im = vips_image_new_from_file( argv[i] )) ) {
 			print_error();
 			result = 1;
 		}
@@ -241,7 +221,7 @@ main( int argc, char *argv[] )
 		}
 
 		if( im )
-			im_close( im );
+			g_object_unref( im );
 	}
 
 	vips_shutdown();

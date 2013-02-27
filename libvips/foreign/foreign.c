@@ -850,6 +850,9 @@ vips_foreign_load_build( VipsObject *object )
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
+	vips_image_set_string( load->out, 
+		VIPS_META_LOADER, class->nickname );
+
 #ifdef DEBUG
 	printf( "vips_foreign_load_build: triggering ->header()\n" );
 #endif /*DEBUG*/

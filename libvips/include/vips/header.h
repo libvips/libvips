@@ -84,6 +84,14 @@ extern "C" {
  */
 #define VIPS_META_RESOLUTION_UNIT "resolution-unit"
 
+/**
+ * VIPS_META_LOADER:
+ *
+ * Record the name of the original loader here. Handy for hinting file formats
+ * and for debugging.
+ */
+#define VIPS_META_LOADER "vips-loader"
+
 guint64 vips_format_sizeof( VipsBandFormat format );
 
 int vips_image_get_width( const VipsImage *image );
