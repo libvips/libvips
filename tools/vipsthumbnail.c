@@ -157,6 +157,9 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	VipsImage **s = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 1 );
 	IMAGE *x;
+	int tile_width;
+	int tile_height;
+	int nlines;
 
 	if( im_open_local_array( out, t, 9, "thumbnail", "p" ) )
 		return( -1 );
@@ -181,9 +184,10 @@ shrink_factor( IMAGE *in, IMAGE *out,
 		x = t[1];
 	}
 
-	/* Shrink! 
-	 *
-	 * We want to make sure we read the image sequentially.
+	if( im_shrink( x, t[2], shrink, shrink ) )
+		return( -1 );
+
+	/* We want to make sure we read the image sequentially.
 	 * However, the convolution we may be doing later will force us 
 	 * into SMALLTILE or maybe FATSTRIP mode and that will break
 	 * sequentiality.
@@ -191,13 +195,14 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	 * So ... read into a cache where tiles are scanlines, and make sure
 	 * we keep enough scanlines to be able to serve a line of tiles.
 	 */
-	if( im_shrink( x, t[2], shrink, shrink ) ||
-		vips_tilecache( t[2], &s[0], 
-			"tile_width", t[2]->Xsize,
-			"tile_height", 1,
-			"max_tiles", VIPS__TILE_HEIGHT * 2,
-			"strategy", VIPS_CACHE_SEQUENTIAL,
-			NULL ) ||
+	vips_get_tile_size( t[2], 
+		&tile_width, &tile_height, &nlines );
+	if( vips_tilecache( t[2], &s[0], 
+		"tile_width", t[2]->Xsize,
+		"tile_height", 1,
+		"max_tiles", nlines * 2,
+		"strategy", VIPS_CACHE_SEQUENTIAL,
+		NULL ) ||
 		im_affinei_all( s[0], t[4], 
 			interp, residual, 0, 0, residual, 0, 0 ) )
 		return( -1 );
@@ -256,9 +261,6 @@ shrink_factor( IMAGE *in, IMAGE *out,
 		if( verbose )
 			printf( "deleting profile from output image\n" );
 
-		/* Only try to remove if it exists to avoid extra error
-		 * messages.
-		 */
 		if( im_meta_get_typeof( x, IM_META_ICC_NAME ) &&
 			!im_meta_remove( x, IM_META_ICC_NAME ) )
 			return( -1 );
