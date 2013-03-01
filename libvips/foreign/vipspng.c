@@ -87,6 +87,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -105,7 +106,7 @@ user_error_function( png_structp png_ptr, png_const_charp error_msg )
 {
 	vips_error( "vipspng", "%s", error_msg );
 
-	/* This function must not return, or the default error handler will be
+	/* This function must not return or the default error handler will be
 	 * invoked.
 	 */
 	longjmp( png_jmpbuf( png_ptr ), -1 ); 
