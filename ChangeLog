@@ -4,7 +4,8 @@
 - fix another dzsave corner-case (thanks Martin)
 - neater output for "header"
 - added VIPS_META_LOADER: record the loader name
-= header displays this hint
+= header displays this loader hint
+- vipsthumbnail is better at cache sizing
 
 31/8/12 started 7.31.0
 - redone im_Lab2XYZ(), im_XYZ2Lab(), im_Lab2LCh(), im_LCh2Lab(), im_UCS2LCh, 
