@@ -199,8 +199,8 @@ shrink_factor( IMAGE *in, IMAGE *out,
 		&tile_width, &tile_height, &nlines );
 	if( vips_tilecache( t[2], &s[0], 
 		"tile_width", t[2]->Xsize,
-		"tile_height", 1,
-		"max_tiles", nlines * 2,
+		"tile_height", 10,
+		"max_tiles", (nlines * 2) / 10,
 		"strategy", VIPS_CACHE_SEQUENTIAL,
 		NULL ) ||
 		im_affinei_all( s[0], t[4], 
