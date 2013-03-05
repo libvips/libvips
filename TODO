@@ -1,14 +1,3 @@
-- argh vipsthumbnail
-
-	vips copy wtc.jpg wtc.png
-	vipsthumbnail wtc.png -s 1024
-
-  $ time vipsthumbnail wtc.png -s 1024
-  vips warning: linecache: error reading tile 0x8064: vipspng: Not enough image data
-  vips warning: linecache: error reading tile 0x8072: vipspng: Read Error
-  vips warning: linecache: error reading tile 0x8080: vipspng: Read Error
-  etc. 
-
 
 - look at
 	
