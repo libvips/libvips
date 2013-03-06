@@ -519,42 +519,6 @@ vips_icc_import_init( VipsIccImport *import )
 {
 }
 
-/**
- * vips_icc_import:
- * @in: input image
- * @out: output image
- *
- * Optional arguments:
- *
- * @input_profile: get the input profile from here
- * @intent: transform with this intent
- * @embedded: use profile embedded in input image
- *
- * Import an image from device space to D65 LAB with an ICC profile. 
- *
- * If @embedded is set, the input profile is taken from the input image
- * metadata. If there is no embedded profile,
- * @input_profile_filename is used as a fall-back.
- *
- * If @embedded is not set, the input profile is taken from
- * @input_profile. If @input_profile is not supplied, the
- * metadata profile, if any, is used as a fall-back. 
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_icc_import( VipsImage *in, VipsImage **out, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, out );
-	result = vips_call_split( "icc_import", ap, in, out );
-	va_end( ap );
-
-	return( result );
-}
-
 typedef struct _VipsIccExport {
 	VipsIcc parent_instance;
 
@@ -732,37 +696,6 @@ vips_icc_export_init( VipsIccExport *export )
 {
 }
 
-/**
- * vips_icc_export:
- * @in: input image
- * @out: output image
- *
- * Optional arguments:
- *
- * @intent: transform with this intent
- * @depth: depth of output image in bits
- * @output_profile: get the output profile from here
- *
- * Export an image from D65 LAB to device space with an ICC profile. 
- * If @output_profile is not set, use the embedded profile, if any. 
- * If @output_profile is set, export with that and attach it to the output 
- * image. 
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_icc_export( VipsImage *in, VipsImage **out, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, out );
-	result = vips_call_split( "icc_export", ap, in, out );
-	va_end( ap );
-
-	return( result );
-}
-
 typedef struct _VipsIccTransform {
 	VipsIcc parent_instance;
 
@@ -920,51 +853,6 @@ vips_icc_transform_init( VipsIccTransform *transform )
 }
 
 /**
- * vips_icc_transform:
- * @in: input image
- * @out: output image
- * @output_profile: get the output profile from here
- *
- * Optional arguments:
- *
- * @input_profile: get the input profile from here
- * @intent: transform with this intent
- * @depth: depth of output image in bits
- * @embedded: use profile embedded in input image
- *
- * Transform an image with a pair of ICC profiles. The input image is moved to
- * profile-connection space with the input profile and then to the output
- * space with the output profile.
- *
- * If @embedded is set, the input profile is taken from the input image
- * metadata, if present. If there is no embedded profile,
- * @input_profile_filename is used as a fall-back.
- *
- * If @embedded is not set, the input profile is taken from
- * @input_profile_filename. If @input_profile_filename is not supplied, the
- * metadata profile, if any, is used as a fall-back. 
- *
- * Use vips_icc_import() and vips_icc_export() to do either the first or 
- * second half of this operation in isolation.
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_icc_transform( VipsImage *in, VipsImage **out, 
-	const char *output_profile, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, output_profile );
-	result = vips_call_split( "icc_transform", ap, 
-		in, out, output_profile );
-	va_end( ap );
-
-	return( result );
-}
-
-/**
  * vips_icc_ac2rc:
  * @in: input image
  * @out: output image
@@ -1066,4 +954,125 @@ vips_icc_present( void )
 	return( 0 );
 }
 
+int
+vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
+{
+	vips_error( "VipsIcc", "%s", 
+		_( "libvips configured without lcms support" ) );
+
+	return( -1 );
+}
+
 #endif /*HAVE_LCMS*/
+
+/**
+ * vips_icc_import:
+ * @in: input image
+ * @out: output image
+ *
+ * Optional arguments:
+ *
+ * @input_profile: get the input profile from here
+ * @intent: transform with this intent
+ * @embedded: use profile embedded in input image
+ *
+ * Import an image from device space to D65 LAB with an ICC profile. 
+ *
+ * If @embedded is set, the input profile is taken from the input image
+ * metadata. If there is no embedded profile,
+ * @input_profile_filename is used as a fall-back.
+ *
+ * If @embedded is not set, the input profile is taken from
+ * @input_profile. If @input_profile is not supplied, the
+ * metadata profile, if any, is used as a fall-back. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_icc_import( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "icc_import", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_icc_export:
+ * @in: input image
+ * @out: output image
+ *
+ * Optional arguments:
+ *
+ * @intent: transform with this intent
+ * @depth: depth of output image in bits
+ * @output_profile: get the output profile from here
+ *
+ * Export an image from D65 LAB to device space with an ICC profile. 
+ * If @output_profile is not set, use the embedded profile, if any. 
+ * If @output_profile is set, export with that and attach it to the output 
+ * image. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_icc_export( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "icc_export", ap, in, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_icc_transform:
+ * @in: input image
+ * @out: output image
+ * @output_profile: get the output profile from here
+ *
+ * Optional arguments:
+ *
+ * @input_profile: get the input profile from here
+ * @intent: transform with this intent
+ * @depth: depth of output image in bits
+ * @embedded: use profile embedded in input image
+ *
+ * Transform an image with a pair of ICC profiles. The input image is moved to
+ * profile-connection space with the input profile and then to the output
+ * space with the output profile.
+ *
+ * If @embedded is set, the input profile is taken from the input image
+ * metadata, if present. If there is no embedded profile,
+ * @input_profile_filename is used as a fall-back.
+ *
+ * If @embedded is not set, the input profile is taken from
+ * @input_profile_filename. If @input_profile_filename is not supplied, the
+ * metadata profile, if any, is used as a fall-back. 
+ *
+ * Use vips_icc_import() and vips_icc_export() to do either the first or 
+ * second half of this operation in isolation.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_icc_transform( VipsImage *in, VipsImage **out, 
+	const char *output_profile, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, output_profile );
+	result = vips_call_split( "icc_transform", ap, 
+		in, out, output_profile );
+	va_end( ap );
+
+	return( result );
+}
