@@ -1871,8 +1871,12 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Any embedded ICC profiles are ignored: you always just get the RGB from 
  * the file. Instead, the embedded profile will be attached to the image as 
- * metadata.  You need to use something like im_icc_import() to get CIE 
- * values from the file. Any EXIF data is also attached as VIPS metadata.
+ * @VIPS_META_ICC_NAME ("icc-profile-data"). You need to use something like 
+ * vips_icc_import() to get CIE values from the file. 
+ *
+ * EXIF metadata is attached as @VIPS_META_EXIF_NAME ("exif-data"), IPCT as
+ * @VIPS_META_IPCT_NAME ("ipct-data"), and XMP as VIPS_META_XMP_NAME
+ * ("xmp-data").
  *
  * The int metadata item "jpeg-multiscan" is set to the result of 
  * jpeg_has_multiple_scans(). Interlaced jpeg images need a large amount of
@@ -1992,7 +1996,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  *
  * Use @Q to set the JPEG compression factor. Default 75.
  *
- * Use @profile to give the filename of a profile to be em,bedded in the JPEG.
+ * Use @profile to give the filename of a profile to be embedded in the JPEG.
  * This does not affect the pixels which are written, just the way 
  * they are tagged. You can use the special string "none" to mean 
  * "don't attach a profile".
@@ -2002,7 +2006,14 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * profile from the VIPS header will be attached.
  *
  * The image is automatically converted to RGB, Monochrome or CMYK before 
- * saving. Any metadata attached to the image is saved as EXIF, if possible.
+ * saving. 
+ *
+ * EXIF data is constructed from @VIPS_META_EXIF_NAME ("exif-data"), then
+ * modified with any other related tags on the image before being written to
+ * the file. 
+ *
+ * IPCT as @VIPS_META_IPCT_NAME ("ipct-data") and XMP as VIPS_META_XMP_NAME
+ * ("xmp-data") are coded and attached. 
  *
  * See also: vips_jpegsave_buffer(), vips_image_write_file().
  *
