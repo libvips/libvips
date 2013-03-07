@@ -18,7 +18,15 @@ rm -f benchmark/temp*
 # glib-gettextize asks us to copy these files to m4 if they aren't there
 # I don't have $ACDIR/isc-posix.m4, how mysterious
 ACDIR=`aclocal --print-ac-dir`
-mkdir m4
+
+# OS X with brew sets ACDIR to
+# /usr/local/Cellar/automake/1.13.1/share/aclocal, the staging area, which is
+# totally wrong argh
+if [ ! -f $ACDIR ]; then
+	ACDIR=/usr/local/share/aclocal
+fi
+
+mkdir -p m4
 cp $ACDIR/codeset.m4 m4
 cp $ACDIR/gettext.m4 m4
 cp $ACDIR/glibc21.m4 m4
