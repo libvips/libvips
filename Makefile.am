@@ -49,7 +49,9 @@ install-exec-hook:
 
 dist-hook:
 # make sure we don't get any .svn dirs from EXTRA_DIST
+# also "fred" gets left around occasionally
 	-find $(distdir) -name .svn -exec rm -rf {} \;
+	-find $(distdir) -name fred -exec rm {} \;
 
 uninstall-hook:
 # make sure we have write permission for 'rm'
