@@ -1,5 +1,8 @@
 6/2/13 started 7.32.1
 - fix --without-lcms, thanks speckins
+- updates to licence, thanks Benjamin
+- remove "fred" from dist
+- better bootstrap on OS X
 
 22/1/13 started 7.32.0
 - tilecache in threaded mode could deadlock if the downstream pixel source
