@@ -412,6 +412,7 @@ vips_format_vips_class_init( VipsFormatVipsClass *class )
 	object_class->nickname = "vips";
 	object_class->description = _( "VIPS" );
 
+	format_class->priority = 200;
 	format_class->is_a = im_isvips;
 	format_class->header = file2vips;
 	format_class->load = file2vips;
