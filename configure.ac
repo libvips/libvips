@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [7.32.1], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [7.32.2], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # user-visible library versioning
 m4_define([vips_major_version], [7])
 m4_define([vips_minor_version], [32])
-m4_define([vips_micro_version], [1])
+m4_define([vips_micro_version], [2])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -448,9 +448,6 @@ if test x"$with_lcms" != "xno"; then
   PKG_CHECK_MODULES(LCMS, lcms2,
     [AC_DEFINE(HAVE_LCMS2,1,[define if you have lcms2 installed.])
      with_lcms="yes (lcms2)"
-     echo seen LCMS_CFLAGS=$LCMS_CFLAGS
-     echo seen LCMS_INCLUDES=$LCMS_INCLUDES
-     echo seen LCMS_LIBS=$LCMS_LIBS
      PACKAGES_USED="$PACKAGES_USED lcms2"],
     [PKG_CHECK_MODULES(LCMS, lcms,
      [AC_DEFINE(HAVE_LCMS,1,[define if you have lcms installed.])
