@@ -957,11 +957,11 @@ action_list( VipsBuf *buf )
 	int i;
 
 	vips_buf_appends( buf, _( "possible actions:\n" ) );
+	vips_buf_appendf( buf, "%7s - %s\n", 
+		"OPER", _( "execute vips operation OPER" ) );
 	for( i = 0; i < VIPS_NUMBER( actions ); i++ )
 		vips_buf_appendf( buf, "%7s - %s\n", 
 			actions[i].name, _( actions[i].description ) ); 
-	vips_buf_appendf( buf, "%7s - %s\n", 
-		"OP", _( "execute vips operation OP" ) );
 }
 
 static void
@@ -1200,17 +1200,17 @@ main( int argc, char **argv )
 		!handled )
 		im_error_clear();
 
-	/* Still not handled? We may not have called parse_options(), so
-	 * --help args may not have been processed.
-	 */
-	if( !handled )
-		parse_options( context, &argc, argv );
-
 	if( action && 
 		!handled ) {
 		print_help( argc, argv );
 		error_exit( _( "unknown action \"%s\"" ), action );
 	}
+
+	/* Still not handled? We may not have called parse_options(), so
+	 * --help args may not have been processed.
+	 */
+	if( !handled )
+		parse_options( context, &argc, argv );
 
 	g_option_context_free( context );
 
