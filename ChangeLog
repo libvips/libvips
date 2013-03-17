@@ -1,5 +1,6 @@
 6/2/13 started 7.32.2
 - removed some left-over debugging code from configure.ac
+- better handling of args without values, thanks Ruven
 
 6/2/13 started 7.32.1
 - fix --without-lcms, thanks speckins
