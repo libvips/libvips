@@ -44,13 +44,15 @@
 #include <vips/intl.h>
 
 #include <stdlib.h>
+#include <setjmp.h>
 
 #include <vips/vips.h>
 
-#include <setjmp.h>
+#ifdef HAVE_JPEG
 #include <jpeglib.h>
 #include <jerror.h>
 #include "../foreign/jpeg.h"
+#endif /*HAVE_JPEG*/
 
 static int
 jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
@@ -116,7 +118,8 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 		header_only, shrink, fail_on_warn ) )
 		return( -1 );
 #else
-	vips_error( "im_jpeg2vips", _( "no JPEG support in your libvips" ) ); 
+	vips_error( "im_jpeg2vips", 
+		"%s", _( "no JPEG support in your libvips" ) ); 
 
 	return( -1 );
 #endif /*HAVE_JPEG*/
