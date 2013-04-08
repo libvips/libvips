@@ -539,8 +539,10 @@ vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 
 	vips_get_tile_size( image, 
 		&tile_width, &tile_height, &nlines );
-	printf( _( "%s %s: %d threads, %d x %d tiles, groups of %d scanlines" ),
+	printf( _( "%s %s: %d x %d pixels, %d threads, %d x %d tiles, "
+		"%d lines in buffer" ),
 		g_get_prgname(), image->filename,
+		image->Xsize, image->Ysize,
 		vips_concurrency_get(),
 		tile_width, tile_height, nlines );
 	printf( "\n" );
