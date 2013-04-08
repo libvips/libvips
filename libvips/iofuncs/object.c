@@ -1462,6 +1462,29 @@ vips_enum_error( VipsObjectClass *class, GType otype, const char *value )
 		g_type_name( otype ), value, vips_buf_all( &buf ) );
 }
 
+static void
+vips_object_no_value( VipsObject *object, const char *name )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	GParamSpec *pspec;
+	VipsArgumentClass *argument_class;
+	VipsArgumentInstance *argument_instance;
+
+	if( vips_object_get_argument( object, name,
+		&pspec, &argument_class, &argument_instance ) )
+		g_assert( 0 );
+
+	if( strcmp( name, g_param_spec_get_name( pspec ) ) == 0 )
+		vips_error( class->nickname,
+			_( "no value supplied for argument '%s'" ), name );
+	else
+		vips_error( class->nickname,
+			_( "no value supplied for argument '%s' ('%s')" ), 
+			name,
+			g_param_spec_get_name( pspec ) );
+}
+
 /* Set a named arg from a string.
  */
 int
@@ -1498,6 +1521,11 @@ vips_object_set_argument_from_string( VipsObject *object,
 			flags = vips_operation_get_flags( 
 				VIPS_OPERATION( object ) );
 
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
+
 		/* Read the filename. vips_foreign_load_options()
 		 * handles embedded options.
 		 */
@@ -1524,6 +1552,11 @@ vips_object_set_argument_from_string( VipsObject *object,
 	else if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
 		(oclass = g_type_class_ref( otype )) ) { 
 		VipsObject *new_object;
+
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
 
 		if( !(new_object = 
 			vips_object_new_from_string( oclass, value )) )
@@ -1560,6 +1593,11 @@ vips_object_set_argument_from_string( VipsObject *object,
 	else if( G_IS_PARAM_SPEC_INT( pspec ) ) {
 		int i;
 
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
+
 		if( sscanf( value, "%d", &i ) != 1 ) {
 			vips_error( class->nickname,
 				_( "'%s' is not an integer" ), value );
@@ -1574,6 +1612,11 @@ vips_object_set_argument_from_string( VipsObject *object,
 		 */
 		long long l;
 
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
+
 		if( sscanf( value, "%Ld", &l ) != 1 ) {
 			vips_error( class->nickname,
 				_( "'%s' is not an integer" ), value );
@@ -1586,6 +1629,11 @@ vips_object_set_argument_from_string( VipsObject *object,
 	else if( G_IS_PARAM_SPEC_DOUBLE( pspec ) ) {
 		double d;
 
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
+
 		if( sscanf( value, "%lg", &d ) != 1 ) {
 			vips_error( class->nickname,
 				_( "'%s' is not a double" ), value );
@@ -1597,6 +1645,11 @@ vips_object_set_argument_from_string( VipsObject *object,
 	}
 	else if( G_IS_PARAM_SPEC_ENUM( pspec ) ) {
 		GEnumValue *enum_value;
+
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
 
 		if( !(enum_value = g_enum_get_value_by_name( 
 			g_type_class_ref( otype ), value )) ) {
@@ -1615,6 +1668,11 @@ vips_object_set_argument_from_string( VipsObject *object,
 		 */
 		int i;
 
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
+
 		if( sscanf( value, "%d", &i ) != 1 ) {
 			vips_error( class->nickname,
 				_( "'%s' is not an integer" ), value );
@@ -1625,6 +1683,11 @@ vips_object_set_argument_from_string( VipsObject *object,
 		g_value_set_flags( &gvalue, i );
 	}
 	else {
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
+
 		g_value_init( &gvalue, G_TYPE_STRING );
 		g_value_set_string( &gvalue, value );
 	}

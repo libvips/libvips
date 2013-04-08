@@ -1,7 +1,9 @@
 12/3/13 started 7.32.2
 - removed some left-over debugging code from configure.ac
+- better handling of args without values, thanks Ruven
 - better error messages from vips.c
 - fix demand hints so "vips shrink" works again, thanks Jan
+- im_jpeg2vips.c builds without jpeglib.h, thanks Alessandro
 
 6/2/13 started 7.32.1
 - fix --without-lcms, thanks speckins
