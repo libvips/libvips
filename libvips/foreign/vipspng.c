@@ -318,9 +318,10 @@ png2vips_header( Read *read, VipsImage *out )
 		VIPS_CODING_NONE, interpretation, 
 		Xres, Yres );
 
-	/* We're always supposed to set dhint.
+	/* Sequential mode needs thinstrip to work with things like
+	 * vips_shrink().
 	 */
-        vips_demand_hint( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+        vips_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	/* Fetch the ICC profile. @name is useless, something like "icc" or
 	 * "ICC Profile" etc.  Ignore it.

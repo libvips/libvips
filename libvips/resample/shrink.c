@@ -36,6 +36,8 @@
  * 	- some tuning .. tried an int coordinate path, not worthwhile
  * 16/11/12
  * 	- don't change xres/yres, see comment below
+ * 8/4/13
+ * 	- oops demand_hint was incorrect, thanks Jan
  */
 
 /*
@@ -331,12 +333,12 @@ vips_shrink_build( VipsObject *object )
 	if( vips_image_copy_fields( resample->out, resample->in ) )
 		return( -1 );
 
-	/* THINSTRIP will work, FATSTRIP will break seq mode. If you combine
-	 * shrink with conv you'll need to use a line cache to maintain
+	/* THINSTRIP will work, anything else will break seq mode. If you 
+	 * combine shrink with conv you'll need to use a line cache to maintain
 	 * sequentiality.
 	 */
 	vips_demand_hint( resample->out, 
-		VIPS_DEMAND_STYLE_ANY, resample->in, NULL );
+		VIPS_DEMAND_STYLE_THINSTRIP, resample->in, NULL );
 
 	/* Size output. Note: we round the output width down!
 	 *
