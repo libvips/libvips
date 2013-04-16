@@ -34,7 +34,7 @@ find */* -name "*.cpp" >> po/POTFILES.in
 
 intltool-update --pot
 
-	make a new vips7.pot translation template from the sources
+	make a new vips7.32.pot translation template from the sources
 
 :%s/msgstr ""/msgstr "Malkovich"/
 :%s/msgstr\[0\] ""/msgstr[0] "Malkovich"/
@@ -57,7 +57,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-	edits to make vips7.pot into test.po
+	edits to make vips7.32.pot into test.po
 
 msgfmt -cv -o /dev/null test.po
 

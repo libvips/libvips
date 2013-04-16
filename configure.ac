@@ -259,7 +259,11 @@ AC_DEFINE_UNQUOTED(VIPS_PREFIX,"$prefix",[configure-time install prefix])
 AC_DEFINE_UNQUOTED(VIPS_LIBDIR,"$VIPS_LIBDIR",[configure-time library directory])
 
 # i18n
-GETTEXT_PACKAGE=vips7
+# we need to name our .mo with major.minor so we can have multiple versions
+# installed in parallel on Debian
+expand vips$VIPS_MAJOR_VERSION.$VIPS_MINOR_VERSION
+GETTEXT_PACKAGE=$expanded_value
+
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
         [The prefix for our gettext translation domains.])
