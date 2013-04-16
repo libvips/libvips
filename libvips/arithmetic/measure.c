@@ -191,7 +191,7 @@ vips_measure_class_init( VipsMeasureClass *class )
 
 	object_class->nickname = "measure";
 	object_class->description = 
-		_( "measure a set of patches on a colour chart" );
+		_( "measure a set of patches on a color chart" );
 	object_class->build = vips_measure_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1,

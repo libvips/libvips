@@ -1,22 +1,23 @@
-# UK English translation of vips.
-# Copyright (C) 1990-2010 Imperial College, London and others.
-# This file is distributed under the same license as the vips package.
-# John Cupitt <jcupitt@gmail.com>
-# See also http://www.gnu-darwin.org/www001/src/ports/graphics/vips/work/
-#                 vips-7.12.4/doc/pdf/vipsmanual.pdf
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: libvips-doc 7.22.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-08 21:02+0000\n"
-"PO-Revision-Date: 2010-05-26 12:11+0100\n"
-"Last-Translator: John Cupitt <jcupitt@gmail.com>\n"
-"Language-Team: \n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=glib&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2013-04-16 14:14+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
 #: ../libvips/arithmetic/linear.c:251
 msgid "calculate (a * in + b)"
@@ -68,7 +69,7 @@ msgstr ""
 
 #: ../libvips/arithmetic/measure.c:194
 msgid "measure a set of patches on a color chart"
-msgstr "measure a set of patches on a colour chart"
+msgstr ""
 
 #: ../libvips/arithmetic/measure.c:198
 msgid "in"
@@ -554,12 +555,12 @@ msgstr ""
 #: ../libvips/colour/icc_transform.c:229
 #, c-format
 msgid "unimplemented input color space 0x%x"
-msgstr "unimplemented input colour space 0x%x"
+msgstr ""
 
 #: ../libvips/colour/icc_transform.c:271
 #, c-format
 msgid "unimplemented output color space 0x%x"
-msgstr "unimplemented output colour space 0x%x"
+msgstr ""
 
 #: ../libvips/colour/icc_transform.c:283
 msgid "no device profile"
@@ -1334,7 +1335,7 @@ msgstr ""
 #: ../libvips/foreign/magick2vips.c:308
 #, c-format
 msgid "unsupported colorspace %d"
-msgstr "unsupported colourspace %d"
+msgstr ""
 
 #: ../libvips/foreign/magick2vips.c:623
 msgid "unable to read pixels"
@@ -1783,7 +1784,7 @@ msgstr ""
 
 #: ../libvips/foreign/tiff2vips.c:671
 msgid "bad colormap"
-msgstr "bad colourmap"
+msgstr ""
 
 #: ../libvips/foreign/tiff2vips.c:728 ../libvips/foreign/tiff2vips.c:759
 msgid "3 or 4 bands RGB TIFF only"
@@ -2099,7 +2100,7 @@ msgstr ""
 
 #: ../libvips/foreign/vipspng.c:245
 msgid "unsupported color type"
-msgstr "unsupported colour type"
+msgstr ""
 
 #: ../libvips/foreign/vipspng.c:355
 msgid "unable to read PNG header"

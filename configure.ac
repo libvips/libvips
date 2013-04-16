@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [7.32.2], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [7.32.3], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # user-visible library versioning
 m4_define([vips_major_version], [7])
 m4_define([vips_minor_version], [32])
-m4_define([vips_micro_version], [2])
+m4_define([vips_micro_version], [3])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -259,7 +259,11 @@ AC_DEFINE_UNQUOTED(VIPS_PREFIX,"$prefix",[configure-time install prefix])
 AC_DEFINE_UNQUOTED(VIPS_LIBDIR,"$VIPS_LIBDIR",[configure-time library directory])
 
 # i18n
-GETTEXT_PACKAGE=vips7
+# we need to name our .mo with major.minor so we can have multiple versions
+# installed in parallel on Debian
+expand vips$VIPS_MAJOR_VERSION.$VIPS_MINOR_VERSION
+GETTEXT_PACKAGE=$expanded_value
+
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
         [The prefix for our gettext translation domains.])
