@@ -27,6 +27,8 @@
  * 	- make it optionally threaded
  * 21/2/13
  * 	- could deadlock if downstream raised an error (thanks Todd)
+ * 25/4/13
+ * 	- cache minimisation is optional, see "persistent" flag
  */
 
 /*
@@ -119,6 +121,7 @@ typedef struct _VipsBlockCache {
 	int max_tiles;
 	VipsCacheStrategy strategy;
 	gboolean threaded;
+	gboolean persistent;
 
 	int time;			/* Update ticks for LRU here */
 	int ntiles;			/* Current cache size */
@@ -290,13 +293,18 @@ vips_tile_find( VipsBlockCache *cache, int x, int y )
 
 	/* In cache already?
 	 */
-	if( (tile = vips_tile_search( cache, x, y )) ) 
+	if( (tile = vips_tile_search( cache, x, y )) ) {
+		VIPS_DEBUG_MSG( "vips_tile_find: tile %d x %d in cache\n", 
+			x, y ); 
 		return( tile );
+	}
 
 	/* VipsBlockCache not full?
 	 */
 	if( cache->max_tiles == -1 ||
 		cache->ntiles < cache->max_tiles ) {
+		VIPS_DEBUG_MSG( "vips_tile_find: making new tile at %d x %d\n", 
+			x, y ); 
 		if( !(tile = vips_tile_new( cache, x, y )) )
 			return( NULL );
 
@@ -363,8 +371,9 @@ vips_block_cache_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	g_signal_connect( conversion->out, "minimise", 
-		G_CALLBACK( vips_block_cache_minimise ), cache );
+	if( !cache->persistent )
+		g_signal_connect( conversion->out, "minimise", 
+			G_CALLBACK( vips_block_cache_minimise ), cache );
 
 	return( 0 );
 }
@@ -401,6 +410,13 @@ vips_block_cache_class_init( VipsBlockCacheClass *class )
 		G_STRUCT_OFFSET( VipsBlockCache, tile_height ),
 		1, 1000000, 128 );
 
+	VIPS_ARG_ENUM( class, "strategy", 6, 
+		_( "Strategy" ), 
+		_( "Expected access pattern" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsBlockCache, strategy ),
+		VIPS_TYPE_CACHE_STRATEGY, VIPS_CACHE_RANDOM );
+
 	VIPS_ARG_BOOL( class, "threaded", 7, 
 		_( "Threaded" ), 
 		_( "Allow threaded access" ),
@@ -408,12 +424,12 @@ vips_block_cache_class_init( VipsBlockCacheClass *class )
 		G_STRUCT_OFFSET( VipsBlockCache, threaded ),
 		FALSE );
 
-	VIPS_ARG_ENUM( class, "strategy", 6, 
-		_( "Strategy" ), 
-		_( "Expected access pattern" ),
+	VIPS_ARG_BOOL( class, "persistent", 8, 
+		_( "Persistent" ), 
+		_( "Keep cache between evaluations" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsBlockCache, strategy ),
-		VIPS_TYPE_CACHE_STRATEGY, VIPS_CACHE_RANDOM );
+		G_STRUCT_OFFSET( VipsBlockCache, persistent ),
+		FALSE );
 }
 
 static unsigned int
@@ -442,6 +458,9 @@ vips_tile_destroy( VipsTile *tile )
 {
 	VipsBlockCache *cache = tile->cache;
 
+	VIPS_DEBUG_MSG( "vips_tile_destroy: tile %d, %d (%p)\n", 
+		tile->pos.left, tile->pos.top, tile ); 
+
 	cache->ntiles -= 1;
 	g_assert( cache->ntiles >= 0 );
 	tile->cache = NULL;
@@ -459,6 +478,7 @@ vips_block_cache_init( VipsBlockCache *cache )
 	cache->max_tiles = 1000;
 	cache->strategy = VIPS_CACHE_RANDOM;
 	cache->threaded = FALSE;
+	cache->persistent = FALSE;
 
 	cache->time = 0;
 	cache->ntiles = 0;
@@ -781,6 +801,7 @@ vips_tile_cache_init( VipsTileCache *cache )
  * @max_tiles: maximum number of tiles to cache
  * @strategy: hint expected access pattern #VipsCacheStrategy
  * @threaded: allow many threads
+ * @persistent: don't drop cache at end of computation
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it keeps a cache of computed pixels. 
@@ -801,6 +822,9 @@ vips_tile_cache_init( VipsTileCache *cache )
  * Normally, only a single thread at once is allowed to calculate tiles. If
  * you set @threaded to %TRUE, vips_tilecache() will allow many threads to
  * calculate tiles at once, and share the cache between them.
+ *
+ * Normally the cache is dropped when computation finishes. Set @persistent to
+ * %TRUE to keep the cache between computations.
  *
  * See also: vips_cache(), vips_linecache().
  *
