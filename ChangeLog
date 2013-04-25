@@ -1,5 +1,6 @@
 16/4/13 started 7.32.3
 - rename GETTEXT_PACKAGE as vips7.32 to help Debian (thanks Jay)
+- added "persistent" option to tilecache
 
 12/3/13 started 7.32.2
 - removed some left-over debugging code from configure.ac

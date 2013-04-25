@@ -1039,7 +1039,7 @@ mask_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
  * vips_region_prepare() on @out will always block until the pixels have been
  * calculated.
  *
- * See also: vips_image_cache(), im_tile_cache(), vips_region_prepare(), 
+ * See also: vips_tilecache(), vips_region_prepare(), 
  * vips_sink_disc(), vips_sink().
  *
  * Returns: 0 on sucess, -1 on error.
