@@ -791,12 +791,16 @@ vips__file_read( FILE *fp, const char *filename, unsigned int *length_out )
 		len = 0;
 		size = 0;
 		do {
+			char *str2;
+
 			size += 1024;
-			if( !(str = realloc( str, size )) ) {
+			if( !(str2 = realloc( str, size )) ) {
+				free( str ); 
 				vips_error( "vips__file_read", 
 					"%s", _( "out of memory" ) );
 				return( NULL );
 			}
+			str = str2;
 
 			/* -1 to allow space for an extra NULL we add later.
 			 */
@@ -1601,7 +1605,7 @@ vips__parse_size( const char *size_string )
 
 	guint64 size;
 	int n;
-	int i, j;
+	int i;
 	char *unit;
 
 	/* An easy way to alloc a buffer large enough.
@@ -1610,6 +1614,8 @@ vips__parse_size( const char *size_string )
 	n = sscanf( size_string, "%d %s", &i, unit );
 	size = i;
 	if( n > 1 ) {
+		int j;
+
 		for( j = 0; j < VIPS_NUMBER( units ); j++ )
 			if( tolower( unit[0] ) == units[j].unit ) {
 				size *= units[j].multiplier;

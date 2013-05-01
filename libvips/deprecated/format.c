@@ -284,13 +284,14 @@ static void
 vips_format_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 {
 	VipsFormatClass *class = VIPS_FORMAT_CLASS( object_class );
-	const char **p;
 
 	VIPS_OBJECT_CLASS( vips_format_parent_class )->
 		summary_class( object_class, buf );
 	vips_buf_appends( buf, ", " );
 
 	if( class->suffs ) {
+		const char **p;
+
 		vips_buf_appends( buf, "(" );
 		for( p = class->suffs; *p; p++ ) {
 			vips_buf_appendf( buf, "%s", *p );

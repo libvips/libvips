@@ -1161,8 +1161,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		vips_area_unref( background ); 
 	}
 
-	if( dz->overlap >= dz->tile_size || 
-		dz->overlap >= dz->tile_size ) {
+	if( dz->overlap >= dz->tile_size ) {
 		vips_error( "dzsave", 
 			"%s", _( "overlap must be less than tile "
 				"width and height" ) ) ;

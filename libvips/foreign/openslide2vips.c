@@ -104,11 +104,12 @@ int
 vips__openslide_isslide( const char *filename )
 {
 	openslide_t *osr;
-	const char *vendor;
 	int ok;
 
 	ok = 0;
 	if( (osr = openslide_open( filename )) ) {
+		const char *vendor;
+
 		/* Generic tiled tiff images can be opened by openslide as
 		 * well. Only offer to load this file if it's not a generic
 		 * tiff since we want vips_tiffload() to handle these.
@@ -278,9 +279,7 @@ int
 vips__openslide_read_header( const char *filename, VipsImage *out, 
 	int level, char *associated )
 {
-	ReadSlide *rslide;
-
-	if( !(rslide = readslide_new( filename, out, level, associated )) )
+	if( !readslide_new( filename, out, level, associated ) )
 		return( -1 );
 
 	return( 0 );

@@ -848,7 +848,6 @@ static void
 tile_copy( Tile *tile, VipsRegion *to )
 {
 	VipsRect ovlap;
-	int y;
 
 	/* Find common pixels.
 	 */
@@ -860,6 +859,8 @@ tile_copy( Tile *tile, VipsRegion *to )
 	 */
 	if( tile->painted && !tile->region->invalid ) {
 		int len = VIPS_IMAGE_SIZEOF_PEL( to->im ) * ovlap.width;
+
+		int y;
 
 		VIPS_DEBUG_MSG( "tile_copy: "
 			"copying calculated pixels for %p %dx%d\n",

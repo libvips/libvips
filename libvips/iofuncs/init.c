@@ -636,7 +636,7 @@ find_file( const char *name )
 static const char *
 guess_prefix( const char *argv0, const char *name )
 {
-        char *prefix;
+	char *prefix;
 
 	/* Try to guess from argv0.
 	 */

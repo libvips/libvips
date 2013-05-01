@@ -80,7 +80,7 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 {
 	int sz;
 	unsigned short *buf;
-	int x, y, b;
+	int x, y;
 
 	/* If in is not uchar, do (!=0) to make a uchar image.
 	 */
@@ -148,6 +148,8 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 		 */
 		for( y = 0; y < in->Ysize; y++ ) {
 			VipsPel *p = IM_IMAGE_ADDR( in, 0, y );
+
+			int b; 
 
 			for( b = 0; b < in->Bands; b++ ) {
 				VipsPel *p1;

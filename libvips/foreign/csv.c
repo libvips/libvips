@@ -172,7 +172,7 @@ read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
 
 	if( ch == '"' ) {
 		(void) fgetc( fp );
-		ch = skip_to_quote( fp );
+		(void) skip_to_quote( fp );
 		ch = fgetc( fp );
 	}
 	else if( !sepmap[ch] && 

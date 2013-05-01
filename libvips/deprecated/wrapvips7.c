@@ -317,13 +317,13 @@ vips_wrap7_object_set_property( GObject *gobject,
 		vips__argument_table_lookup( oclass->argument_table, pspec );
 	VipsArgumentInstance *argument_instance =
 		vips__argument_get_instance( argument_class, object );
-
 	VipsWrap7 *wrap7 = VIPS_WRAP7( gobject );
 	VipsWrap7Class *class = VIPS_WRAP7_GET_CLASS( wrap7 );
-	int i = argument_class->offset;
-	im_arg_desc *arg = &class->fn->argv[i];
-	im_type_desc *type = arg->desc;
-	im_arg_type vt = type->type;
+
+	int i;
+	im_arg_desc *arg;
+	im_type_desc *type;
+	im_arg_type vt;
 
 	g_assert( argument_instance );
 
@@ -332,6 +332,11 @@ vips_wrap7_object_set_property( GObject *gobject,
 			property_id, pspec );
 		return;
 	}
+
+	i = argument_class->offset;
+	arg = &class->fn->argv[i];
+	type = arg->desc;
+	vt = type->type;
 
 #ifdef DEBUG
 {
@@ -418,19 +423,24 @@ vips_wrap7_object_get_property( GObject *gobject,
 		vips__argument_table_lookup( class->argument_table, pspec );
 	VipsArgumentInstance *argument_instance =
 		vips__argument_get_instance( argument_class, object );
-
 	VipsWrap7 *wrap7 = VIPS_WRAP7( gobject );
 	VipsWrap7Class *wclass = VIPS_WRAP7_GET_CLASS( wrap7 );
-	int i = argument_class->offset;
-	im_arg_desc *arg = &wclass->fn->argv[i];
-	im_type_desc *type = arg->desc;
-	im_arg_type vt = type->type;
+
+	int i;
+	im_arg_desc *arg;
+	im_type_desc *type;
+	im_arg_type vt;
 
 	if( !argument_class ) {
 		G_OBJECT_WARN_INVALID_PROPERTY_ID( gobject,
 			property_id, pspec );
 		return;
 	}
+
+	i = argument_class->offset;
+	arg = &wclass->fn->argv[i];
+	type = arg->desc;
+	vt = type->type;
 
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
 

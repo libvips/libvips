@@ -80,21 +80,18 @@ normalise( IMAGE *in, IMAGE *out )
 			return( -1 );
 	}
 	else if( vips_bandfmt_isint( in->BandFmt ) ) {
-		IMAGE *t1;
 		double min;
 
 		/* Move min up to 0. 
 		 */
-		if( !(t1 = im_open_local( out, "im_histplot", "p" )) ||
-			im_min( in, &min ) ||
-			im_lintra( 1.0, in, -min, t1 ) )
+		if( im_min( in, &min ) ||
+			im_lintra( 1.0, in, -min, out ) )
 			return( -1 );
 	}
 	else {
 		/* Float image: scale min--max to 0--any. Output square
 		 * graph.
 		 */
-		IMAGE *t1;
 		DOUBLEMASK *stats;
 		double min, max;
 		int any;
@@ -110,9 +107,8 @@ normalise( IMAGE *in, IMAGE *out )
 		max = VIPS_MASK( stats, 1, 0 );
 		im_free_dmask( stats );
 
-		if( !(t1 = im_open_local( out, "im_histplot", "p" )) ||
-			im_lintra( any / (max - min), in, 
-				-min * any / (max - min), out ) )
+		if( im_lintra( any / (max - min), in, 
+			-min * any / (max - min), out ) )
 			return( -1 );
 	}
 

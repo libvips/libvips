@@ -89,11 +89,12 @@ compare( const void *a, const void *b )
 static void
 free_state( State *state )
 {
-	int i;
+	if( state->data ) {
+		int i;
 
-	if( state->data )
 		for( i = 0; i < state->input->ysize; i++ ) 
 			IM_FREE( state->data[i] );
+	}
 
 	IM_FREE( state->data );
 	IM_FREE( state->buf );

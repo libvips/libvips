@@ -774,14 +774,16 @@ im_map_packages( VSListMap2Fn fn, void *a )
 {
 	void *r = im_slist_map2( plugin_list, 
 		(VSListMap2Fn) apply_plugin, (void *) fn, a );
-	int i;
 
 	/* If not there, try main VIPS package list.
 	 */
-	if( !r )
+	if( !r ) {
+		int i;
+
 		for( i = 0; i < VIPS_NUMBER( built_in ); i++ )
 			if( (r = fn( built_in[i], a, NULL )) )
 				return( r );
+	}
 
 	return( r );
 }
@@ -1089,8 +1091,6 @@ add_hist( im_function *fn, im_object *vargv, int argc, char **argv )
 static int
 dispatch_function( im_function *fn, im_object *vargv, int argc, char **argv )
 {
-	int i;
-
 	/* Init memory from command line arguments.
 	 */
 	if( build_args( fn, vargv, argc, argv ) ) 
@@ -1107,7 +1107,9 @@ dispatch_function( im_function *fn, im_object *vargv, int argc, char **argv )
 	 *			- create a region on the input, closed by a
 	 *			  close callback on the output image
 	 */
-	if( fn->flags & IM_FN_PIO )
+	if( fn->flags & IM_FN_PIO ) {
+		int i;
+
 		for( i = 0; i < fn->argc; i++ ) {
 			im_type_desc *type = fn->argv[i].desc;
 
@@ -1116,6 +1118,7 @@ dispatch_function( im_function *fn, im_object *vargv, int argc, char **argv )
 				if( note_dependencies( fn, vargv, i ) )
 					return( -1 );
 		}
+	}
 
 	/* Call function.
 	 */

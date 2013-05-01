@@ -81,9 +81,7 @@
 static void 
 skip_line( FILE *fp )
 {
-        int ch;
-
-        while( (ch = fgetc( fp )) != '\n' )
+        while( fgetc( fp ) != '\n' )
 		;
 }
 

@@ -230,10 +230,11 @@ vips_tracked_free( void *s )
 	if( vips_tracked_allocs <= 0 ) 
 		vips_warn( "vips_tracked", 
 			"%s", _( "vips_free: too many frees" ) );
-	vips_tracked_mem -= size;
-	if( vips_tracked_mem < 0 ) 
+	if( vips_tracked_mem < size )
 		vips_warn( "vips_tracked", 
 			"%s", _( "vips_free: too much free" ) );
+
+	vips_tracked_mem -= size;
 	vips_tracked_allocs -= 1;
 
 	g_mutex_unlock( vips_tracked_mutex );

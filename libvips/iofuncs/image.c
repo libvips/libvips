@@ -468,7 +468,8 @@ vips_image_sanity( VipsObject *object, VipsBuf *buf )
 			image->dtype > VIPS_IMAGE_PARTIAL || 
 			image->dhint > VIPS_DEMAND_STYLE_ANY ) 
 			vips_buf_appends( buf, "bad enum\n" );
-		if( image->Xres < 0 || image->Xres < 0 ) 
+		if( image->Xres < 0 || 
+			image->Yres < 0 ) 
 			vips_buf_appends( buf, "bad resolution\n" );
 	}
 

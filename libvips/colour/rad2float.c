@@ -141,12 +141,11 @@ colr_color(col, clr)		/* convert short to float color */
 register COLOR  col;
 register COLR  clr;
 {
-	double  f;
-	
 	if (clr[EXP] == 0)
 		col[RED] = col[GRN] = col[BLU] = 0.0;
 	else {
-		f = ldexp(1.0, (int)clr[EXP]-(COLXS+8));
+		double  f = ldexp(1.0, (int)clr[EXP]-(COLXS+8));
+
 		col[RED] = (clr[RED] + 0.5)*f;
 		col[GRN] = (clr[GRN] + 0.5)*f;
 		col[BLU] = (clr[BLU] + 0.5)*f;

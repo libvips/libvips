@@ -509,13 +509,12 @@ vips_allocate_input_array( VipsImage *image, ... )
 {
 	va_list ap;
 	VipsImage **ar;
-	VipsImage *im;
 	int i, n;
 
 	/* Count input images.
 	 */
 	va_start( ap, image );
-	for( n = 0; (im = va_arg( ap, VipsImage * )); n++ )
+	for( n = 0; va_arg( ap, VipsImage * ); n++ )
 		;
 	va_end( ap );
 

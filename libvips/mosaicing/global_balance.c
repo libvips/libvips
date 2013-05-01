@@ -712,7 +712,6 @@ static JoinNode *
 find_root( SymbolTable *st )
 {
 	JoinNode *root;
-	JoinNode *notroot;
 
 	/* Clean the table, then scan it, setting all pointed-to nodes dirty.
 	 */
@@ -736,7 +735,7 @@ find_root( SymbolTable *st )
 	 * more than one root.
 	 */
 	root->dirty = 1;
-	if( (notroot = im__map_table( st, is_root, NULL, NULL )) ) {
+	if( im__map_table( st, is_root, NULL, NULL ) ) {
 		im_error( "im_global_balance", 
 			"%s", _( "more than one root" ) );
 		return( NULL );

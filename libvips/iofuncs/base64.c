@@ -137,7 +137,7 @@ encode24( char *p, int bits, size_t remaining )
 	int i;
 
 	for( i = 0; i < 4; i++ ) {
-		if( remaining <= 0 )
+		if( remaining == 0 )
 			p[i] = '=';
 		else {
 			/* Take the top 6 bits of 24.
@@ -165,7 +165,7 @@ vips__b64_encode( const unsigned char *data, size_t data_length )
 	size_t i;
 	int cursor;
 
-	if( data_length <= 0 ) {
+	if( data_length == 0 ) {
 		vips_error( "vips__b64_encode", "%s", _( "too little data" ) );
 		return( NULL );
 	}
@@ -209,7 +209,7 @@ vips__b64_encode( const unsigned char *data, size_t data_length )
 	for( total = 0, i = 0; i < data_length; i++ )
 		total += data[i];
 
-	printf( "vips__b64_encode: length = %d, checksum 0x%x\n", 
+	printf( "vips__b64_encode: length = %u, checksum 0x%x\n", 
 		data_length, total & 0xffff );
 }
 #endif /*DEBUG*/

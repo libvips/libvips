@@ -104,11 +104,12 @@ rank_stop( void *vseq, void *a, void *b )
 	RankSequence *seq = (RankSequence *) vseq;
 	Rank *rank = (Rank *) b;
 
-	int i;
+	if( seq->ir ) {
+		int i;
 
-	if( seq->ir )
 		for( i = 0; i < rank->n; i++ ) 
 			IM_FREEF( im_region_free, seq->ir[i] );
+	}
 
 	return( 0 );
 }

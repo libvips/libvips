@@ -37,6 +37,10 @@ Then for a debug build:
 	$ make
 	$ make install
 
+Static analysis with:
+
+	$ cppcheck --force --enable=style . &> cppcheck.log
+
 # Dependencies 
 
 libvips has to have gettext, glib-2.x and libxml-2.0. The build system needs 
