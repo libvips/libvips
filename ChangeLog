@@ -1,4 +1,5 @@
 12/3/13 started 7.33.0
+- vipsthumbnail lets you specify the sharpening mask
 
 16/4/13 started 7.32.3
 - rename GETTEXT_PACKAGE as vips7.32 to help Debian (thanks Jay)

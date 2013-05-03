@@ -33,6 +33,8 @@
  * 	- much more gentle extra sharpening
  * 13/11/12
  * 	- allow absolute paths in -o (thanks fuho)
+ * 3/5/13
+ * 	- add optional sharpening mask from file
  */
 
 #ifdef HAVE_CONFIG_H
@@ -51,12 +53,16 @@
 static int thumbnail_size = 128;
 static char *output_format = "tn_%s.jpg";
 static char *interpolator = "bilinear";
-static gboolean nosharpen = FALSE;
 static char *export_profile = NULL;
 static char *import_profile = NULL;
+static char *convolution_mask = NULL;
 static gboolean delete_profile = FALSE;
-static gboolean nodelete_profile = FALSE;
 static gboolean verbose = FALSE;
+
+/* Deprecated and unused.
+ */
+static gboolean nosharpen = FALSE;
+static gboolean nodelete_profile = FALSE;
 
 static GOptionEntry options[] = {
 	{ "size", 's', 0, 
@@ -71,9 +77,10 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_STRING, &interpolator, 
 		N_( "resample with INTERPOLATOR" ), 
 		N_( "INTERPOLATOR" ) },
-	{ "nosharpen", 'n', 0, 
-		G_OPTION_ARG_NONE, &nosharpen, 
-		N_( "don't sharpen thumbnail" ), NULL },
+	{ "sharpen", 'r', 0, 
+		G_OPTION_ARG_STRING, &convolution_mask, 
+		N_( "sharpen with MASKFILE" ), 
+		N_( "MASKFILE" ) },
 	{ "eprofile", 'e', 0, 
 		G_OPTION_ARG_STRING, &export_profile, 
 		N_( "export with PROFILE" ), 
@@ -85,12 +92,15 @@ static GOptionEntry options[] = {
 	{ "delete", 'd', 0, 
 		G_OPTION_ARG_NONE, &delete_profile, 
 		N_( "delete profile from exported image" ), NULL },
-	{ "nodelete", 'l', G_OPTION_FLAG_HIDDEN, 
-		G_OPTION_ARG_NONE, &nodelete_profile, 
-		N_( "(deprecated, does nothing)" ), NULL },
 	{ "verbose", 'v', 0, 
 		G_OPTION_ARG_NONE, &verbose, 
 		N_( "verbose output" ), NULL },
+	{ "nodelete", 'l', G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_NONE, &nodelete_profile, 
+		N_( "(deprecated, does nothing)" ), NULL },
+	{ "nosharpen", 'n', G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_NONE, &nosharpen, 
+		N_( "(deprecated, does nothing)" ), NULL },
 	{ NULL }
 };
 
@@ -138,12 +148,17 @@ sharpen_filter( void )
 {
 	static INTMASK *mask = NULL;
 
-	if( !mask ) {
-		mask = im_create_imaskv( "sharpen.con", 3, 3, 
-			-1, -1, -1, 
-			-1, 32, -1, 
-			-1, -1, -1 );
-		mask->scale = 24;
+	if( !mask )  {
+		if( strcmp( convolution_mask, "mild" ) == 0 ) {
+			mask = im_create_imaskv( "sharpen.con", 3, 3,
+				-1, -1, -1,
+				-1, 32, -1,
+				-1, -1, -1 );
+			mask->scale = 24;
+		}
+		else
+			if( !(mask = im_read_imask( convolution_mask )) )
+				error_exit( "unable to load sharpen mask" );
 	}
 
 	return( mask );
@@ -211,7 +226,9 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
 	 * sharpened.
 	 */
-	if( shrink > 1 && residual <= 1.0 && !nosharpen ) {
+	if( shrink > 1 && 
+		residual <= 1.0 && 
+		convolution_mask ) {
 		if( verbose ) 
 			printf( "sharpening thumbnail\n" );
 

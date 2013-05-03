@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=glib&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2013-04-16 14:14+0100\n"
+"POT-Creation-Date: 2013-04-26 12:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -185,7 +185,7 @@ msgstr ""
 #: ../libvips/conversion/extract.c:360 ../libvips/conversion/bandjoin.c:172
 #: ../libvips/conversion/bandbool.c:212 ../libvips/conversion/copy.c:322
 #: ../libvips/conversion/rot.c:360 ../libvips/conversion/replicate.c:197
-#: ../libvips/conversion/tilecache.c:392 ../libvips/conversion/embed.c:551
+#: ../libvips/conversion/tilecache.c:400 ../libvips/conversion/embed.c:551
 #: ../libvips/conversion/cache.c:101 ../libvips/conversion/recomb.c:205
 #: ../libvips/conversion/sequential.c:304 ../libvips/foreign/foreign.c:1361
 #: ../libvips/resample/resample.c:90
@@ -389,7 +389,7 @@ msgstr ""
 #: ../libvips/conversion/flatten.c:378 ../libvips/conversion/extract.c:201
 #: ../libvips/conversion/extract.c:361 ../libvips/conversion/copy.c:323
 #: ../libvips/conversion/rot.c:361 ../libvips/conversion/replicate.c:198
-#: ../libvips/conversion/tilecache.c:393 ../libvips/conversion/embed.c:552
+#: ../libvips/conversion/tilecache.c:401 ../libvips/conversion/embed.c:552
 #: ../libvips/conversion/cache.c:102 ../libvips/conversion/sequential.c:305
 msgid "Input image"
 msgstr ""
@@ -1058,66 +1058,74 @@ msgstr ""
 msgid "Top edge of sub in main"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:386 ../libvips/conversion/cache.c:97
+#: ../libvips/conversion/tilecache.c:394 ../libvips/conversion/cache.c:97
 msgid "cache an image"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:398 ../libvips/conversion/cache.c:114
+#: ../libvips/conversion/tilecache.c:406 ../libvips/conversion/cache.c:114
 #: ../libvips/conversion/sequential.c:317 ../libvips/foreign/tiffsave.c:223
 #: ../libvips/foreign/dzsave.c:1386
 msgid "Tile height"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:399 ../libvips/conversion/cache.c:115
+#: ../libvips/conversion/tilecache.c:407 ../libvips/conversion/cache.c:115
 #: ../libvips/conversion/sequential.c:318 ../libvips/foreign/tiffsave.c:224
 #: ../libvips/foreign/dzsave.c:1387
 msgid "Tile height in pixels"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:405
-msgid "Threaded"
-msgstr ""
-
-#: ../libvips/conversion/tilecache.c:406
-msgid "Allow threaded access"
-msgstr ""
-
-#: ../libvips/conversion/tilecache.c:412
+#: ../libvips/conversion/tilecache.c:413
 msgid "Strategy"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:413
+#: ../libvips/conversion/tilecache.c:414
 msgid "Expected access pattern"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:658
+#: ../libvips/conversion/tilecache.c:420
+msgid "Threaded"
+msgstr ""
+
+#: ../libvips/conversion/tilecache.c:421
+msgid "Allow threaded access"
+msgstr ""
+
+#: ../libvips/conversion/tilecache.c:427
+msgid "Persistent"
+msgstr ""
+
+#: ../libvips/conversion/tilecache.c:428
+msgid "Keep cache between evaluations"
+msgstr ""
+
+#: ../libvips/conversion/tilecache.c:677
 #, c-format
 msgid "error reading tile %dx%d: %s"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:747
+#: ../libvips/conversion/tilecache.c:766
 msgid "cache an image as a set of tiles"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:751 ../libvips/conversion/cache.c:107
+#: ../libvips/conversion/tilecache.c:770 ../libvips/conversion/cache.c:107
 #: ../libvips/foreign/tiffsave.c:216 ../libvips/foreign/dzsave.c:1379
 msgid "Tile width"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:752 ../libvips/conversion/cache.c:108
+#: ../libvips/conversion/tilecache.c:771 ../libvips/conversion/cache.c:108
 #: ../libvips/foreign/tiffsave.c:217 ../libvips/foreign/dzsave.c:1380
 msgid "Tile width in pixels"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:758 ../libvips/conversion/cache.c:121
+#: ../libvips/conversion/tilecache.c:777 ../libvips/conversion/cache.c:121
 msgid "Max tiles"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:759 ../libvips/conversion/cache.c:122
+#: ../libvips/conversion/tilecache.c:778 ../libvips/conversion/cache.c:122
 msgid "Maximum number of tiles to cache"
 msgstr ""
 
-#: ../libvips/conversion/tilecache.c:915
+#: ../libvips/conversion/tilecache.c:938
 msgid "cache an image as a set of lines"
 msgstr ""
 

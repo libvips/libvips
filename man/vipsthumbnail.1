@@ -33,15 +33,6 @@ will read image file
 and write a 64 x 64 pixel thumbnail to the file 
 .B thumbnails/fred.png.
 
-On Unix machines, vips
-will create temporary files in "/tmp" by default. Use the environment variable
-TMPDIR to change this location. On Windows, vips uses GetTempPath() to pick a
-location, see the MS documentation.
-
-Use the --vips-disc-threshold command-line switch, or the IM_DISC_THRESHOLD
-environment variable, to make vipsthumbnail use memory rather than temporary
-files.
-
 .SH OPTIONS
 .TP
 .B -s N, --size=N
@@ -77,11 +68,15 @@ to see a list of valid interpolators. The default is
 .B bilinear.
 
 .TP
-.B -n, --nosharpen
-By default, 
-.B vipsthumbnail(1)
-will sharpen thumbnails slightly to make them look more pleasing. This option
-disables this sharpening.
+.B -r, --sharpen=MASKFILE
+Images can look a little soft after shrinking. This option lets you specify a
+sharpening mask. Use "mild" to select a built-in mask which sharpens slightly.
+The built-in mask is:
+
+ 3 3 24 0
+ -1 -1 -1
+ -1 32 -1
+ -1 -1 -1
 
 .TP
 .B -e PROFILE, --eprofile=PROFILE        
@@ -101,11 +96,9 @@ should be supplied with the
 option.
 
 .TP
-.B -l, --nodelete
-Don't delete the profile from the output image. Since all output images will
-generally have the same profile, 
-.B vipsthumbnail(1)
-will usually delete it. This option leaves the profile inside the image.
+.B -d, --delete
+Delete the output profile from the image. This can save a small amount of
+space. 
 
 .TP
 .B -v, --verbose
