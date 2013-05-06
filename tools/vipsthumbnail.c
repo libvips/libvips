@@ -55,7 +55,7 @@ static char *output_format = "tn_%s.jpg";
 static char *interpolator = "bilinear";
 static char *export_profile = NULL;
 static char *import_profile = NULL;
-static char *convolution_mask = NULL;
+static char *convolution_mask = "mild";
 static gboolean delete_profile = FALSE;
 static gboolean verbose = FALSE;
 
@@ -79,8 +79,8 @@ static GOptionEntry options[] = {
 		N_( "INTERPOLATOR" ) },
 	{ "sharpen", 'r', 0, 
 		G_OPTION_ARG_STRING, &convolution_mask, 
-		N_( "sharpen with MASKFILE" ), 
-		N_( "MASKFILE" ) },
+		N_( "sharpen with none|mild|MASKFILE" ), 
+		N_( "none|mild|MASKFILE" ) },
 	{ "eprofile", 'e', 0, 
 		G_OPTION_ARG_STRING, &export_profile, 
 		N_( "export with PROFILE" ), 
@@ -149,7 +149,10 @@ sharpen_filter( void )
 	static INTMASK *mask = NULL;
 
 	if( !mask )  {
-		if( strcmp( convolution_mask, "mild" ) == 0 ) {
+		if( strcmp( convolution_mask, "none" ) == 0 ) {
+			mask = NULL; 
+		}
+		else if( strcmp( convolution_mask, "mild" ) == 0 ) {
 			mask = im_create_imaskv( "sharpen.con", 3, 3,
 				-1, -1, -1,
 				-1, 32, -1,
@@ -228,7 +231,7 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	 */
 	if( shrink > 1 && 
 		residual <= 1.0 && 
-		convolution_mask ) {
+		sharpen_filter() ) { 
 		if( verbose ) 
 			printf( "sharpening thumbnail\n" );
 

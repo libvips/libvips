@@ -68,10 +68,11 @@ to see a list of valid interpolators. The default is
 .B bilinear.
 
 .TP
-.B -r, --sharpen=MASKFILE
-Images can look a little soft after shrinking. This option lets you specify a
-sharpening mask. Use "mild" to select a built-in mask which sharpens slightly.
-The built-in mask is:
+.B -r, --sharpen=none|mild|MASKFILE
+Images can look a little soft after shrinking.  This option lets you specify
+a sharpening mask. Use "none" to disable sharpening, or "mild" to sharpen
+lightly, or give the filename of a custom mask file to use. The default is
+"mild".  The built-in mild sharpen mask is:
 
  3 3 24 0
  -1 -1 -1
