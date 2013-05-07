@@ -1889,9 +1889,7 @@ vips_object_set_valist( VipsObject *object, va_list ap )
 
 	VIPS_DEBUG_MSG( "vips_object_set_valist:\n" );
 
-	name = va_arg( ap, char * );
-
-	while( name ) {
+	for( name = va_arg( ap, char * ); name; name = va_arg( ap, char * ) ) {
 		GParamSpec *pspec;
 		VipsArgumentClass *argument_class;
 		VipsArgumentInstance *argument_instance;
@@ -1910,8 +1908,6 @@ vips_object_set_valist( VipsObject *object, va_list ap )
 		VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, ap );
 
 		VIPS_ARGUMENT_COLLECT_END
-
-		name = va_arg( ap, char * );
 	}
 
 	return( 0 );

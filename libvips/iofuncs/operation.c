@@ -444,9 +444,7 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 
 	VIPS_DEBUG_MSG( "vips_operation_get_valist_optional:\n" );
 
-	name = va_arg( ap, char * );
-
-	while( name ) {
+	for( name = va_arg( ap, char * ); name; name = va_arg( ap, char * ) ) { 
 		GParamSpec *pspec;
 		VipsArgumentClass *argument_class;
 		VipsArgumentInstance *argument_instance;
@@ -493,8 +491,6 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 		}
 
 		VIPS_ARGUMENT_COLLECT_END
-
-		name = va_arg( ap, char * );
 	}
 
 	return( 0 );

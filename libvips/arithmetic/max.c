@@ -189,7 +189,6 @@ vips_max_build( VipsObject *object )
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
 	VipsMax *max = (VipsMax *) object;
 	VipsValues *values = &max->values;
-	int i;
 
 	vips_values_init( values, max );
 
@@ -198,9 +197,12 @@ vips_max_build( VipsObject *object )
 
 	/* For speed we accumulate max ** 2 for complex.
 	 */
-	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) ) 
+	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) ) {
+		int i;
+
 		for( i = 0; i < values->n; i++ ) 
 			values->value[i] = sqrt( values->value[i] );
+	}
 
 	/* Don't set if there's no value (eg. if every pixel is NaN). This
 	 * will trigger an error later.
@@ -232,12 +234,15 @@ vips_max_build( VipsObject *object )
 	}
 
 #ifdef DEBUG
+{	int i;
+
 	printf( "vips_max_build: %d values found\n", values->n );
 	for( i = 0; i < values->n; i++ )
 		printf( "%d) %g\t%d\t%d\n", 
 			i, 
 			values->value[i], 
 			values->x_pos[i], values->y_pos[i] ); 
+}
 #endif /*DEBUG*/
 
 	return( 0 );
