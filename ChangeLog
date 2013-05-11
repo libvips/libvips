@@ -1,5 +1,7 @@
 12/3/13 started 7.33.0
 - vipsthumbnail lets you specify the sharpening mask
+- turn off caching for im_copy()/vips_copy(), we use copy to stop sharing, and
+it's cheap so caching doesn't help anyway
 
 16/4/13 started 7.32.3
 - rename GETTEXT_PACKAGE as vips7.32 to help Debian (thanks Jay)

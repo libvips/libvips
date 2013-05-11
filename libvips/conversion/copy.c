@@ -316,7 +316,12 @@ vips_copy_class_init( VipsCopyClass *class )
 	vobject_class->description = _( "copy an image" );
 	vobject_class->build = vips_copy_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	/* We use copy to make fresh vipsimages to stop sharing, so don't
+	 * cache it. Plus copy is cheap.
+	 */
+	operation_class->flags = 
+		VIPS_OPERATION_SEQUENTIAL | 
+		VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

@@ -751,8 +751,10 @@ static im_function copy_desc = {
 
 	/* Can't set PTOP ... we don't want to zap the LUT, we want the real
 	 * image.
+	 *
+	 * Don't cache, since we use copy to stop sharing.
 	 */
-	IM_FN_PIO,			/* Flags */
+	IM_FN_PIO | IM_FN_NOCACHE,
 
 	copy_vec, 			/* Dispatch function */
 	IM_NUMBER( one_in_one_out ), 	/* Size of arg list */
