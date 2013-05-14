@@ -22,6 +22,8 @@
  * 	- import and export cast @in to an appropriate format for you
  * 25/9/12
  * 	- redo as a class
+ * 14/5/13
+ * 	- import and export would segv on very wide images
  */
 
 /*
@@ -458,15 +460,18 @@ vips_icc_import_line( VipsColour *colour,
 {
 	VipsIcc *icc = (VipsIcc *) colour;
 
-	VipsPel *p = (VipsPel *) in[0];
-	float *q = (float *) out;
+	VipsPel *p;
+	float *q;
+	int i;
 
 	/* Buffer of encoded 16-bit pixels we transform.
 	 */
 	guint16 encoded[3 * PIXEL_BUFFER_SIZE];
 
-	while( width > 0 ) {
-		const int chunk = VIPS_MIN( width, PIXEL_BUFFER_SIZE );
+	p = (VipsPel *) in[0];
+	q = (float *) out;
+	for( i = 0; i < width; i += PIXEL_BUFFER_SIZE ) {
+		const int chunk = VIPS_MIN( width - i, PIXEL_BUFFER_SIZE );
 
 #ifdef HAVE_LCMS2
 		cmsDoTransform( icc->trans, p, encoded, chunk );
@@ -478,9 +483,8 @@ vips_icc_import_line( VipsColour *colour,
 
 		decode_lab( encoded, q, chunk );
 
-		p += chunk * VIPS_IMAGE_SIZEOF_PEL( colour->out );
-		q += chunk * 3;
-		width -= chunk;
+		p += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL( colour->in[0] );
+		q += PIXEL_BUFFER_SIZE * 3;
 	}
 }
 
@@ -635,15 +639,18 @@ vips_icc_export_line( VipsColour *colour,
 {
 	VipsIcc *icc = (VipsIcc *) colour;
 
-	float *p = (float *) in[0];
-	VipsPel *q = (VipsPel *) out;
+	float *p;
+	VipsPel *q;
+	int x;
 
 	/* Buffer of encoded 16-bit pixels we transform.
 	 */
 	guint16 encoded[3 * PIXEL_BUFFER_SIZE];
 
-	while( width > 0 ) {
-		const int chunk = VIPS_MIN( width, PIXEL_BUFFER_SIZE );
+	p = (float *) in[0];
+	q = (VipsPel *) out;
+	for( x = 0; x < width; x += PIXEL_BUFFER_SIZE ) {
+		const int chunk = VIPS_MIN( width - x, PIXEL_BUFFER_SIZE );
 
 		encode_lab( p, encoded, chunk );
 
@@ -655,9 +662,8 @@ vips_icc_export_line( VipsColour *colour,
 		g_mutex_unlock( icc->lock );
 #endif
 
-		p += chunk * 3;
-		q += chunk * VIPS_IMAGE_SIZEOF_PEL( colour->out );
-		width -= chunk;
+		p += PIXEL_BUFFER_SIZE * 3;
+		q += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL( colour->out );
 	}
 }
 
