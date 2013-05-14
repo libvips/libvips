@@ -3,6 +3,9 @@
 - turn off caching for im_copy()/vips_copy(), we use copy to stop sharing, and
 it's cheap so caching doesn't help anyway
 
+14/5/13 started 7.32.4
+- icc import and export could segv on very wide images
+
 16/4/13 started 7.32.3
 - rename GETTEXT_PACKAGE as vips7.32 to help Debian (thanks Jay)
 - added "persistent" option to tilecache
