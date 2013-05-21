@@ -1,4 +1,6 @@
 
+- save 16bit RGB as jpg, does not drop bottom 8 bits, should it?
+
 - look at
 	
 	There is an order 1 algorithm for doing medians over boxes (truly O(1)
