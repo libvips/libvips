@@ -7,6 +7,9 @@
  * 	- generate image rather than doublemask (arrg)
  * 23/3/10
  * 	- gtkdoc
+ * 23/5/13
+ * 	- fix 1 high input matrices
+ * 	- fix file output
  */
 
 /*
@@ -59,6 +62,7 @@ typedef struct {
 	int lut_size;		/* Number of output elements to generate */
 
 	double **data;		/* Rows of unpacked matrix */
+	double *buf;		/* Output buffer */
 } State;
 
 /* Use this to sort our input rows by the first column.
@@ -110,6 +114,9 @@ build_state( State *state, DOUBLEMASK *input, IMAGE *output, int lut_size )
 	state->lut_size = lut_size;
 	state->data = NULL;
 
+	if( !(state->buf = im_malloc( NULL, IM_IMAGE_SIZEOF_LINE( output ) )) )
+		return( -1 );
+
 	if( !(state->data = IM_ARRAY( NULL, input->ysize, double * )) )
 		return( -1 );
 	for( y = 0; y < input->ysize; y++ ) 
@@ -129,8 +136,10 @@ build_state( State *state, DOUBLEMASK *input, IMAGE *output, int lut_size )
 		for( x = 0; x < input->xsize; x++ ) 
 			if( state->data[y][x] > 1.0 || 
 				state->data[y][x] < 0.0 ) {
-				im_error( "im_invertlut", "%s", 
-					_( "element out of range [0,1]" ) );
+				im_error( "im_invertlut", 
+					_( "element (%d, %d) is %g, "
+						"outside range [0,1]" ),
+					x, y, state->data[y][x] );
 				return( -1 );
 			}
 
@@ -159,40 +168,48 @@ invertlut( State *state )
 	DOUBLEMASK *input = state->input;
 	int ysize = input->ysize;
 	int xsize = input->xsize;
-	IMAGE *output = state->output;
-	double *odata = (double *) output->data;
+	double *buf = state->buf;
 	int bands = xsize - 1;
-
 	double **data = state->data;
 	int lut_size = state->lut_size;
 
-	int i;
+	int b;
 
 	/* Do each output channel separately.
 	 */
-	for( i = 0; i < bands; i++ ) {
+	for( b = 0; b < bands; b++ ) {
 		/* The first and last lut positions we know real values for.
 		 */
-		int first = data[0][i + 1] * (lut_size - 1);
-		int last = data[ysize - 1][i + 1] * (lut_size - 1);
+		int first = data[0][b + 1] * (lut_size - 1);
+		int last = data[ysize - 1][b + 1] * (lut_size - 1);
 
 		int k;
-		double fac;
 
 		/* Extrapolate bottom and top segments to (0,0) and (1,1).
 		 */
-		fac = data[0][0] / first;
-		for( k = 0; k < first; k++ )
-			odata[i + k * bands] = k * fac;
+		for( k = 0; k < first; k++ ) {
+			/* Have this inside the loop to avoid /0 errors if
+			 * first == 0.
+			 */
+			double fac = data[0][0] / first;
 
-		fac = (1 - data[ysize - 1][0]) / ((lut_size - 1) - last);
-		for( k = last + 1; k < lut_size; k++ )
-			odata[i + k * bands] = 
+			buf[b + k * bands] = k * fac;
+		}
+
+		for( k = last; k < lut_size; k++ ) {
+			/* Inside the loop to avoid /0 errors for last ==
+			 * (lut_size - 1).
+			 */
+			double fac = (1 - data[ysize - 1][0]) / 
+				((lut_size - 1) - last);
+
+			buf[b + k * bands] = 
 				data[ysize - 1][0] + (k - last) * fac;
+		}
 
-		/* Interpolate the data setions.
+		/* Interpolate the data sections.
 		 */
-		for( k = first; k <= last; k++ ) {
+		for( k = first; k < last; k++ ) {
 			/* Where we're at in the [0,1] range.
 			 */
 			double ki = (double) k / (lut_size - 1);
@@ -204,7 +221,7 @@ invertlut( State *state )
 			 * not be one: if not, just use 0. Tiny error.
 			 */
 			for( j = ysize - 1; j >= 0; j-- )
-				if( data[j][i + 1] < ki )
+				if( data[j][b + 1] < ki )
 					break;
 			if( j == -1 )
 				j = 0;
@@ -212,11 +229,11 @@ invertlut( State *state )
 			/* Interpolate k as being between row data[j] and row
 			 * data[j + 1].
 			 */
-			irange = data[j + 1][i + 1] - data[j][i + 1];
+			irange = data[j + 1][b + 1] - data[j][b + 1];
 			orange = data[j + 1][0] - data[j][0];
 
-			odata[i + k * bands] = data[j][0] +
-				orange * ((ki - data[j][i + 1]) / irange);
+			buf[b + k * bands] = data[j][0] +
+				orange * ((ki - data[j][b + 1]) / irange);
 		}
 	}
 
@@ -302,7 +319,8 @@ im_invertlut( DOUBLEMASK *input, IMAGE *output, int lut_size )
                 return( -1 );
 
 	if( build_state( &state, input, output, lut_size ) ||
-		invertlut( &state ) ) {
+		invertlut( &state ) ||
+		im_writeline( 0, output, (VipsPel *) state.buf ) ) {
 		free_state( &state );
 		return( -1 );
 	}
