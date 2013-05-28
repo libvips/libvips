@@ -526,6 +526,7 @@ int vips_image_write_line( VipsImage *image, int ypos, VipsPel *linebuffer );
 
 gboolean vips_band_format_isint( VipsBandFormat format );
 gboolean vips_band_format_isuint( VipsBandFormat format );
+gboolean vips_band_format_is8bit( VipsBandFormat format );
 gboolean vips_band_format_isfloat( VipsBandFormat format );
 gboolean vips_band_format_iscomplex( VipsBandFormat format );
 

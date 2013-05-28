@@ -4,6 +4,8 @@
  * 	- add support for sequential reads
  * 18/6/12
  * 	- flatten alpha with vips_flatten()
+ * 28/5/13
+ * 	- auto rshift down to 8 bits during save
  */
 
 /*
@@ -1250,6 +1252,27 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 		if( vips_colourspace( in, &out, 
 			VIPS_INTERPRETATION_sRGB, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
+		}
+		g_object_unref( in );
+
+		in = out;
+	}
+
+	/* Shift down to 8 bits. Handy for 8-bit-only formats like jpeg.
+	 *
+	 * If the operation wants to write 8 bits for this format and this
+	 * image is 16 bits or more and Type is RGB16 or GREY16 ...
+	 * automatically shift down.
+	 */
+	if( vips_band_format_is8bit( class->format_table[in->BandFmt] ) &&
+		!vips_band_format_is8bit( in->BandFmt ) &&
+		(in->Type == VIPS_INTERPRETATION_RGB16 ||
+			in->Type == VIPS_INTERPRETATION_GREY16) ) {
+		VipsImage *out;
+
+		if( vips_rshift_const1( in, &out, 8, NULL ) ) { 
 			g_object_unref( in );
 			return( -1 );
 		}

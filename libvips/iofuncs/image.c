@@ -2448,6 +2448,36 @@ vips_band_format_isuint( VipsBandFormat format )
 }
 
 /**
+ * vips_band_format_is8bit:
+ * @format: format to test
+ *
+ * Return %TRUE if @format is uchar or schar.
+ */
+gboolean
+vips_band_format_is8bit( VipsBandFormat format )
+{
+	switch( format ) {
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_CHAR:
+		return( TRUE );
+
+	case VIPS_FORMAT_USHORT:
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_UINT:
+	case VIPS_FORMAT_INT:
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_DOUBLE:
+	case VIPS_FORMAT_COMPLEX:
+	case VIPS_FORMAT_DPCOMPLEX:
+		return( FALSE );
+
+	default:
+		g_assert( 0 );
+		return( -1 );
+	}
+}
+
+/**
  * vips_band_format_isfloat:
  * @format: format to test
  *

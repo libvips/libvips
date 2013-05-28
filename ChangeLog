@@ -2,6 +2,7 @@
 - vipsthumbnail lets you specify the sharpening mask
 - turn off caching for im_copy()/vips_copy(), we use copy to stop sharing, and
 it's cheap so caching doesn't help anyway
+- auto rshift down to 8 bits on save, if necessary
 
 14/5/13 started 7.32.4
 - icc import and export could segv on very wide images
