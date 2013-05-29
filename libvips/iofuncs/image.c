@@ -1410,7 +1410,7 @@ vips_image_new( void )
  *       API and control the loading process yourself. See 
  *       #VipsForeign. 
  *
- *	 See im_system_image() for an explanation of how VIPS selects a
+ *	 See vips_image_new_temp_file() for an explanation of how VIPS selects a
  *	 location for the temporary file.
  *
  *	 The disc threshold can be set with the "--vips-disc-threshold"
@@ -1662,7 +1662,7 @@ vips_image_new_array( int xsize, int ysize )
  *
  * This function is clearly extremely dangerous, use with great caution.
  *
- * See also: vips__temp_name(), vips_image_new_disc_temp().
+ * See also: vips__temp_name(), vips_image_new_temp_file().
  */
 void
 vips_image_set_delete_on_close( VipsImage *image, gboolean delete_on_close )
@@ -1677,7 +1677,7 @@ vips_image_set_delete_on_close( VipsImage *image, gboolean delete_on_close )
 }
 
 /**
- * vips_image_new_disc_temp:
+ * vips_image_new_temp_file:
  * @format: format of file
  *
  * Make a "w" disc #VipsImage which will be automatically unlinked when it is
@@ -1690,7 +1690,7 @@ vips_image_set_delete_on_close( VipsImage *image, gboolean delete_on_close )
  * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_disc_temp( const char *format )
+vips_image_new_temp_file( const char *format )
 {
 	char *name;
 	VipsImage *image;

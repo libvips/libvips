@@ -214,7 +214,7 @@ extern "C" {
 #define im_cp_desc_array vips_image_copy_fields_array
 #define im_image vips_image_new_from_memory
 #define im_binfile vips_image_new_from_file_raw
-#define im__open_temp vips_image_new_disc_temp
+#define im__open_temp vips_image_new_temp_file
 #define im__test_kill( I ) (vips_image_get_kill( I ))
 #define im__start_eval( I ) (vips_image_preeval( I ), vips_image_get_kill( I ))
 #define im__handle_eval( I, W, H ) \
@@ -688,6 +688,7 @@ int im_copy_set_meta( VipsImage *in, VipsImage *out,
 int im_copy_morph( VipsImage *in, VipsImage *out, 
 	int bands, VipsBandFormat format, VipsCoding coding );
 int im_copy_swap( VipsImage *in, VipsImage *out );
+int im_copy_file( VipsImage *in, VipsImage *out );
 int im_copy_native( VipsImage *in, VipsImage *out, gboolean is_msb_first );
 int im_embed( VipsImage *in, VipsImage *out, 
 	int type, int x, int y, int width, int height );

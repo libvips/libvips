@@ -459,3 +459,39 @@ vips_copy( VipsImage *in, VipsImage **out, ... )
 
 	return( result );
 }
+
+/**
+ * vips_copy_file:
+ * @in: input image
+ * @out: output image
+ *
+ * A simple convenience function to copy an image to a file, then copy 
+ * again to output. If the image is already a file, just copy straight 
+ * through.
+ *
+ * The file is allocated with vips_image_new_temp_file(). 
+ * The file is automatically deleted when @out is closed.
+ *
+ * See also: vips_copy(), vips_image_new_temp_file().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_copy_file( VipsImage *in, VipsImage **out )
+{
+	VipsImage *file;
+
+	if( vips_image_isfile( in ) ) 
+		return( vips_copy( in, out, NULL ) ); 
+
+	if( !(file = vips_image_new_temp_file( "%s.v" )) )
+		return( -1 ); 
+	if( vips_image_write( in, file ) ||
+		vips_copy( file, out, NULL ) ) {
+		g_object_unref( file );
+		return( -1 );
+	}
+	g_object_unref( file );
+
+	return( 0 );
+}

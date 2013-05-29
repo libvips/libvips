@@ -144,7 +144,7 @@ lazy_real_image( Lazy *lazy )
 	        !(vips_format_get_flags( lazy->format, lazy->filename ) & 
 			VIPS_FORMAT_PARTIAL) &&
 		VIPS_IMAGE_SIZEOF_IMAGE( lazy->image ) > disc_threshold() ) 
-			if( !(real = vips_image_new_disc_temp( "%s.v" )) )
+			if( !(real = vips_image_new_temp_file( "%s.v" )) )
 				return( NULL );
 
 	/* Otherwise, fall back to a "p".

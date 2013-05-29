@@ -168,6 +168,7 @@ int vips_sequential( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_cache( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_copy_file( VipsImage *in, VipsImage **out );
 
 int vips_embed( VipsImage *in, VipsImage **out, 
 	int x, int y, int width, int height, ... )
@@ -247,8 +248,6 @@ int vips_flatten( VipsImage *in, VipsImage **out, ... )
 
 
 
-
-int im_copy_file( VipsImage *in, VipsImage *out );
 
 int im_scale( VipsImage *in, VipsImage *out );
 int im_msb( VipsImage *in, VipsImage *out );

@@ -725,7 +725,7 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 		printf( "vips_foreign_load_temp: disc temp\n" );
 #endif /*DEBUG*/
 
-		return( vips_image_new_disc_temp( "%s.v" ) );
+		return( vips_image_new_temp_file( "%s.v" ) );
 	}
 
 #ifdef DEBUG

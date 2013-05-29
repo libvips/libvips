@@ -3042,3 +3042,19 @@ vips__affine( VipsImage *in, VipsImage *out, VipsTransformation *trn )
 	return( im__affinei( in, out, 
 		vips_interpolate_bilinear_static(), trn ) );
 }
+
+int
+im_copy_file( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_copy_file( in, &x ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

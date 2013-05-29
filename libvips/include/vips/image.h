@@ -509,7 +509,7 @@ VipsImage *vips_image_new_from_memory( void *buffer,
 VipsImage *vips_image_new_array( int xsize, int ysize );
 void vips_image_set_delete_on_close( VipsImage *image, 
 	gboolean delete_on_close );
-VipsImage *vips_image_new_disc_temp( const char *format );
+VipsImage *vips_image_new_temp_file( const char *format );
 int vips_image_write( VipsImage *image, VipsImage *out );
 int vips_image_write_to_file( VipsImage *image, const char *filename );
 
