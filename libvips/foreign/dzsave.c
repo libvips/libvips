@@ -32,6 +32,8 @@
  * 	- add @centre option
  * 26/2/13
  * 	- fix another corner case, thanks Martin
+ * 29/5/13
+ * 	- add --angle option
  */
 
 /*
@@ -171,6 +173,7 @@ struct _VipsForeignSaveDz {
 	VipsArrayDouble *background;
 	VipsForeignDzDepth depth;
 	gboolean centre;
+	VipsAngle angle;
 
 	Layer *layer;			/* x2 shrink pyr layer */
 
@@ -1183,6 +1186,18 @@ vips_foreign_save_dz_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	/* Optional rotate.
+	 */
+{
+	VipsImage *z;
+
+	if( vips_rot( save->ready, &z, dz->angle, NULL ) )
+		return( -1 );
+
+	VIPS_UNREF( save->ready );
+	save->ready = z;
+}
+
 	/* For centred images, imagine shrinking so that the image fits in a
 	 * single tile, centering in that tile, then expanding back again.
 	 */
@@ -1364,6 +1379,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, centre ),
 		FALSE );
 
+	VIPS_ARG_ENUM( class, "angle", 14, 
+		_( "Angle" ), 
+		_( "Rotate image during save" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, angle ),
+		VIPS_TYPE_ANGLE, VIPS_ANGLE_0 ); 
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
@@ -1399,6 +1421,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->tile_size = 256;
 	dz->tile_count = 0;
 	dz->depth = VIPS_FOREIGN_DZ_DEPTH_1PIXEL; 
+	dz->angle = VIPS_ANGLE_0; 
 }
 
 /**
@@ -1416,6 +1439,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * @background: background colour
  * @depth: how deep to make the pyramid
  * @centre: centre the tiles 
+ * @angle: rotate the image by this much
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
