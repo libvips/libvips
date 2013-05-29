@@ -56,7 +56,7 @@ libvips/conversion/flip.c
 libvips/conversion/bandmean.c
 libvips/conversion/im_zoom.c
 libvips/conversion/im_system.c
-libvips/conversion/im_gaussnoise.c
+libvips/conversion/gaussnoise.c
 libvips/conversion/bandary.c
 libvips/conversion/cast.c
 libvips/conversion/conversion.c
