@@ -18,6 +18,8 @@
  * 29/1/10
  * 	- cleanups
  * 	- gtkdoc
+ * 29/5/13
+ * 	- redo as a class
  */
 
 /*
@@ -73,6 +75,18 @@ typedef VipsConversionClass VipsGaussnoiseClass;
 
 G_DEFINE_TYPE( VipsGaussnoise, vips_gaussnoise, VIPS_TYPE_CONVERSION );
 
+/* Make a random number in 0 - 1. Prefer random(). 
+ */
+#ifdef HAVE_RANDOM
+#define VIPS_RND() ((double) random() / RAND_MAX)
+#else /*!HAVE_RANDOM*/
+#ifdef HAVE_RAND
+#define VIPS_RND() ((double) rand() / RAND_MAX)
+#else /*!HAVE_RAND*/
+#error "no random number generator found"
+#endif /*HAVE_RAND*/
+#endif /*HAVE_RANDOM*/
+
 static int
 vips_gaussnoise_gen( VipsRegion *or, void *seq, void *a, void *b,
 	gboolean *stop )
@@ -80,27 +94,24 @@ vips_gaussnoise_gen( VipsRegion *or, void *seq, void *a, void *b,
 	VipsGaussnoise *gaussnoise = (VipsGaussnoise *) a;
 	int sz = VIPS_REGION_N_ELEMENTS( or );
 
-	int x, y, i;
+	int y;
 
 	for( y = 0; y < or->valid.height; y++ ) {
 		float *q = (float *) VIPS_REGION_ADDR( or, 
 			or->valid.left, y + or->valid.top );
 
+		int x;
+
 		for( x = 0; x < sz; x++ ) {
-			double sum = 0.0;
+			double sum;
+			int i;
 
+			sum = 0.0;
 			for( i = 0; i < 12; i++ ) 
-#ifdef HAVE_RANDOM
-				sum += (double) random() / RAND_MAX;
-#else /*HAVE_RANDOM*/
-#ifdef HAVE_RAND
-				sum += (double) rand() / RAND_MAX;
-#else /*HAVE_RAND*/
-#error "no random number generator found"
-#endif /*HAVE_RAND*/
-#endif /*HAVE_RAND*/
+				sum += VIPS_RND(); 
 
-			q[x] = (sum - 6.0) * gin->sigma + gin->mean;
+			q[x] = (sum - 6.0) * gaussnoise->sigma + 
+				gaussnoise->mean;
 		}
 	}
 
@@ -117,11 +128,9 @@ vips_gaussnoise_build( VipsObject *object )
 		return( -1 );
 
 	vips_image_init_fields( conversion->out,
-		gaussnoise->width, gaussnoise->height, gaussnoise->bands, 
-		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
-                gaussnoise->bands == 1 ? 
-			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_MULTIBAND,
-		1.0, 1.0 );
+		gaussnoise->width, gaussnoise->height, 1,
+		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE,
+		VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
 	vips_demand_hint( conversion->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
 
@@ -137,8 +146,6 @@ vips_gaussnoise_class_init( VipsGaussnoiseClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-
-	VIPS_DEBUG_MSG( "vips_gaussnoise_class_init\n" );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -166,22 +173,22 @@ vips_gaussnoise_class_init( VipsGaussnoiseClass *class )
 		_( "Mean of pixels in generated image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsGaussnoise, mean ),
-		-10000000, 1000000, 1 );
+		-10000000, 1000000, 128 );
 
 	VIPS_ARG_DOUBLE( class, "sigma", 6, 
 		_( "Sigma" ), 
 		_( "Standard deviation of pixels in generated image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsGaussnoise, sigma ),
-		1, 100000, 1 );
+		0, 100000, 30 );
 
 }
 
 static void
 vips_gaussnoise_init( VipsGaussnoise *gaussnoise )
 {
-	gaussnoise->mean = 1.0;
-	gaussnoise->sigma = 1.0;
+	gaussnoise->mean = 128.0;
+	gaussnoise->sigma = 30.0;
 }
 
 /**
@@ -215,88 +222,4 @@ vips_gaussnoise( VipsImage **out, int width, int height, ... )
 	va_end( ap );
 
 	return( result );
-}
-
-/* Generate function --- just fill the region with noise. "dummy" is our
- * sequence value: we don't need one.
- */
-/*ARGSUSED*/
-static int
-gnoise_gen( REGION *or, void *seq, void *a, void *b )
-{
-	GnoiseInfo *gin = (GnoiseInfo *) a;
-	int x, y, i;
-	int sz = IM_REGION_N_ELEMENTS( or );
-
-	for( y = 0; y < or->valid.height; y++ ) {
-		float *q = (float *) 
-			IM_REGION_ADDR( or, or->valid.left, y + or->valid.top );
-
-		for( x = 0; x < sz; x++ ) {
-			double sum = 0.0;
-
-			for( i = 0; i < 12; i++ ) 
-#ifdef HAVE_RANDOM
-				sum += (double) random() / RAND_MAX;
-#else /*HAVE_RANDOM*/
-#ifdef HAVE_RAND
-				sum += (double) rand() / RAND_MAX;
-#else /*HAVE_RAND*/
-#error "no random number generator found"
-#endif /*HAVE_RAND*/
-#endif /*HAVE_RAND*/
-
-			q[x] = (sum - 6.0) * gin->sigma + gin->mean;
-		}
-	}
-
-	return( 0 );
-}
-
-/**
- * im_gaussnoise:
- * @out: output image
- * @x: output width
- * @y: output height
- * @mean: average value in output
- * @sigma: standard deviation in output
- *
- * Make a one band float image of gaussian noise with the specified
- * distribution. The noise distribution is created by averaging 12 random 
- * numbers with the appropriate weights.
- *
- * See also: im_addgnoise(), im_make_xy(), im_text(), im_gaussnoise().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-im_gaussnoise( IMAGE *out, int x, int y, double mean, double sigma )
-{	
-	GnoiseInfo *gin;
-
-	if( x <= 0 || y <= 0 ) {
-		im_error( "im_gaussnoise", "%s", _( "bad parameter" ) );
-		return( -1 );
-	}
-
-	if( im_poutcheck( out ) )
-		return( -1 );
-	im_initdesc( out, 
-		x, y, 1, 
-		IM_BBITS_FLOAT, IM_BANDFMT_FLOAT, IM_CODING_NONE, IM_TYPE_B_W,
-		1.0, 1.0, 0, 0 );
-	if( im_demand_hint( out, IM_ANY, NULL ) )
-		return( -1 );
-	
-	/* Save parameters.
-	 */
-	if( !(gin = IM_NEW( out, GnoiseInfo )) )
-		return( -1 );
-	gin->mean = mean;
-	gin->sigma = sigma;
-
-	if( im_generate( out, NULL, gnoise_gen, NULL, gin, NULL ) )
-		return( -1 );
-	
-	return( 0 );
 }

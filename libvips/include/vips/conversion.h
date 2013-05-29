@@ -233,6 +233,8 @@ int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
 
 int vips_black( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
+int vips_gaussnoise( VipsImage **out, int width, int height, ... )
+	__attribute__((sentinel));
 int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 	__attribute__((sentinel));
 
@@ -255,7 +257,6 @@ int im_msb_band( VipsImage *in, VipsImage *out, int band );
 int im_scaleps( VipsImage *in, VipsImage *out );
 
 int im_falsecolour( VipsImage *in, VipsImage *out );
-int im_gaussnoise( VipsImage *out, int x, int y, double mean, double sigma );
 
 int im_text( VipsImage *out, const char *text, const char *font,
 	int width, int alignment, int dpi );

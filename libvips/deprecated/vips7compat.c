@@ -1476,6 +1476,25 @@ im_black( IMAGE *out, int x, int y, int bands )
 	return( 0 );
 }
 
+int 
+im_gaussnoise( IMAGE *out, int x, int y, double mean, double sigma )
+{
+	VipsImage *t;
+
+	if( vips_gaussnoise( &t, x, y,
+		"mean", mean,
+		"sigma", sigma,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
 static int
 vips__math( VipsImage *in, VipsImage *out, VipsOperationMath math )
 {

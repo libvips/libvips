@@ -22,6 +22,7 @@ libconversion_la_SOURCES = \
 	bandbool.c \
 	bandary.h \
 	bandary.c \
+	gaussnoise.c \
 	rot.c \
 	ifthenelse.c \
 	conver_dispatch.c \
@@ -35,7 +36,6 @@ libconversion_la_SOURCES = \
 	im_system.c \
 	im_system_image.c \
 	im_text.c \
-	im_gaussnoise.c \
 	im_wrap.c \
 	im_zoom.c
 
