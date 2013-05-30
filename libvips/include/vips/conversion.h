@@ -258,8 +258,6 @@ int vips_flatten( VipsImage *in, VipsImage **out, ... )
 int im_msb( VipsImage *in, VipsImage *out );
 int im_msb_band( VipsImage *in, VipsImage *out, int band );
 
-int im_scaleps( VipsImage *in, VipsImage *out );
-
 int im_falsecolour( VipsImage *in, VipsImage *out );
 
 int im_text( VipsImage *out, const char *text, const char *font,

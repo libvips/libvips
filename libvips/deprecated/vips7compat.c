@@ -1527,6 +1527,22 @@ im_scale( VipsImage *in, VipsImage *out )
 	return( 0 );
 }
 
+int 
+im_scaleps( VipsImage *in, VipsImage *out )
+{
+	VipsImage *t;
+
+	if( vips_scale( in, &t, "log", TRUE, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
 static int
 vips__math( VipsImage *in, VipsImage *out, VipsOperationMath math )
 {

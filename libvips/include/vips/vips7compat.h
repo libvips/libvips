@@ -712,6 +712,7 @@ int im_black( VipsImage *out, int x, int y, int bands );
 int im_gaussnoise( VipsImage *out, int x, int y, double mean, double sigma );
 int im_grid( VipsImage *in, VipsImage *out, int tile_height, int across, int down );
 int im_scale( VipsImage *in, VipsImage *out );
+int im_scaleps( VipsImage *in, VipsImage *out );
 
 int im_c2amph( VipsImage *in, VipsImage *out );
 int im_c2rect( VipsImage *in, VipsImage *out );

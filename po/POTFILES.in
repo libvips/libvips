@@ -75,7 +75,6 @@ libvips/conversion/replicate.c
 libvips/conversion/join.c
 libvips/conversion/im_text.c
 libvips/conversion/conver_dispatch.c
-libvips/conversion/im_scaleps.c
 libvips/conversion/im_wrap.c
 libvips/conversion/insert.c
 libvips/conversion/tilecache.c

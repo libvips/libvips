@@ -17,6 +17,7 @@
  * 	- gtkdoc
  * 30/5/13
  * 	- redo as a class
+ * 	- add log scale and exponent as an option
  */
 
 /*
@@ -63,6 +64,9 @@ typedef struct _VipsScale {
 
 	VipsImage *in;
 
+	gboolean log;
+	double exp;
+
 } VipsScale;
 
 typedef VipsConversionClass VipsScaleClass;
@@ -98,6 +102,17 @@ vips_scale_build( VipsObject *object )
 			vips_image_write( t[1], conversion->out ) )
 			return( -1 );
 	}
+	else if( scale->log ) { 
+		double f = 255.0 / log10( 1.0 + pow( mx, scale->exp ) );
+
+		if( vips_pow_const1( scale->in, &t[2], scale->exp, NULL ) ||
+			vips_linear1( t[2], &t[3], 1.0, 1.0, NULL ) ||
+			vips_log10( t[3], &t[4], NULL ) ||
+			vips_linear1( t[4], &t[5], f, 0.0, NULL ) ||
+			vips_cast( t[5], &t[6], VIPS_FORMAT_UCHAR, NULL ) ||
+			vips_image_write( t[6], conversion->out ) )
+			return( -1 );
+	}
 	else {
 		double f = 255.0 / (mx - mn);
 		double a = -(mn * f);
@@ -130,11 +145,26 @@ vips_scale_class_init( VipsScaleClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsScale, in ) );
 
+	VIPS_ARG_BOOL( class, "log", 3, 
+		_( "Log" ), 
+		_( "Log scale" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsScale, log ),
+		FALSE );
+
+	VIPS_ARG_DOUBLE( class, "exp", 3, 
+		_( "Exponent" ), 
+		_( "Exponent for log scale" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsScale, exp ),
+		0.00001, 10000, 0.25 );
+
 }
 
 static void
 vips_scale_init( VipsScale *scale )
 {
+	scale->exp = 0.25;
 }
 
 /**
@@ -143,9 +173,17 @@ vips_scale_init( VipsScale *scale )
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @log: log scale pixels
+ * @exp: exponent for log scale
+ *
  * Search the image for the maximum and minimum value, then return the image
  * as unsigned 8-bit, scaled so that the maximum value is 255 and the
  * minimum is zero.
+ *
+ * If @log is set, transform with log10(1.0 + pow(x, @exp)) + .5, 
+ * then scale so max == 255. By default, @exp is 0.25.
  *
  * See also: vips_cast().
  *

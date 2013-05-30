@@ -30,7 +30,6 @@ libconversion_la_SOURCES = \
 	im_msb.c \
 	grid.c \
 	scale.c \
-	im_scaleps.c \
 	im_subsample.c \
 	im_system.c \
 	im_system_image.c \
