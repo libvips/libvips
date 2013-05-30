@@ -1511,6 +1511,22 @@ im_grid( VipsImage *in, VipsImage *out, int tile_height, int across, int down )
 	return( 0 );
 }
 
+int 
+im_scale( VipsImage *in, VipsImage *out )
+{
+	VipsImage *t;
+
+	if( vips_scale( in, &t, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
 static int
 vips__math( VipsImage *in, VipsImage *out, VipsOperationMath math )
 {
@@ -3064,7 +3080,7 @@ im_copy_file( IMAGE *in, IMAGE *out )
 {
 	VipsImage *x;
 
-	if( vips_copy_file( in, &x ) )
+	if( vips_copy_file( in, &x, NULL ) )
 		return( -1 );
 	if( im_copy( x, out ) ) {
 		g_object_unref( x );

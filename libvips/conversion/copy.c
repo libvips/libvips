@@ -464,6 +464,7 @@ vips_copy( VipsImage *in, VipsImage **out, ... )
  * vips_copy_file:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * A simple convenience function to copy an image to a file, then copy 
  * again to output. If the image is already a file, just copy straight 
@@ -477,7 +478,7 @@ vips_copy( VipsImage *in, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_copy_file( VipsImage *in, VipsImage **out )
+vips_copy_file( VipsImage *in, VipsImage **out, ... )
 {
 	VipsImage *file;
 

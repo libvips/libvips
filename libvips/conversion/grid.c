@@ -1,4 +1,4 @@
-/* im_grid
+/* vips_grid
  *
  * 4/8/05
  * 7/9/05
@@ -6,6 +6,8 @@
  * 30/1/10
  * 	- gtkdoc
  * 	- small cleanups
+ * 30/5/13
+ * 	- redo as a class
  */
 
 /*

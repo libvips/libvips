@@ -3,7 +3,7 @@
 - turn off caching for im_copy()/vips_copy(), we use copy to stop sharing, and
 it's cheap so caching doesn't help anyway
 - auto rshift down to 8 bits on save, if necessary
-- im_gaussnoise(), im_copy_file(), im_grid() redone as classes
+- im_gaussnoise(), im_copy_file(), im_grid(), im_scale() redone as classes
 - add --angle option to dzsave
 
 14/5/13 started 7.32.4

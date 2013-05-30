@@ -29,7 +29,7 @@ libconversion_la_SOURCES = \
 	im_falsecolour.c \
 	im_msb.c \
 	grid.c \
-	im_scale.c \
+	scale.c \
 	im_scaleps.c \
 	im_subsample.c \
 	im_system.c \

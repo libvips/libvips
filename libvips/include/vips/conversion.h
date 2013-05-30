@@ -168,7 +168,8 @@ int vips_sequential( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_cache( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_copy_file( VipsImage *in, VipsImage **out );
+int vips_copy_file( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_embed( VipsImage *in, VipsImage **out, 
 	int x, int y, int width, int height, ... )
@@ -214,6 +215,8 @@ int vips_cast_complex( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_cast_dpcomplex( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_scale( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
@@ -252,7 +255,6 @@ int vips_flatten( VipsImage *in, VipsImage **out, ... )
 
 
 
-int im_scale( VipsImage *in, VipsImage *out );
 int im_msb( VipsImage *in, VipsImage *out );
 int im_msb_band( VipsImage *in, VipsImage *out, int band );
 
