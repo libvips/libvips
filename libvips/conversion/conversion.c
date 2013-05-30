@@ -126,6 +126,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_flatten_get_type( void ); 
 	extern GType vips_bandbool_get_type( void ); 
 	extern GType vips_gaussnoise_get_type( void ); 
+	extern GType vips_grid_get_type( void ); 
 
 	vips_copy_get_type();
 	vips_tile_cache_get_type(); 
@@ -149,6 +150,7 @@ vips_conversion_operation_init( void )
 	vips_flatten_get_type(); 
 	vips_bandbool_get_type(); 
 	vips_gaussnoise_get_type(); 
+	vips_grid_get_type(); 
 }
 
 /* The common part of most binary conversion
@@ -159,7 +161,6 @@ vips_conversion_operation_init( void )
  * - equalise bands 
  * - make an input array
  * - return the matched images in vec[0] and vec[1]
- *
  *
  * A left-over, remove soon.
  */

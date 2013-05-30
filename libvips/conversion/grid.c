@@ -67,13 +67,14 @@ static int
 vips_grid_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	gboolean *stop )
 {
-	REGION *ir = (REGION *) seq;
-	Grid *grid = (Grid *) b;
-	Rect *r = &or->valid;
+	VipsRegion *ir = (VipsRegion *) vseq;
+	VipsGrid *grid = (VipsGrid *) b;
+	VipsRect *r = &or->valid;
 	int twidth = grid->in->Xsize;
 	int theight = grid->tile_height;
+
 	int x, y;
-	Rect tile;
+	VipsRect tile;
 
 	/* Find top left of tiles we need.
 	 */
@@ -89,7 +90,7 @@ vips_grid_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 	/* If the request fits inside a single tile, we can just pointer-copy.
 	 */
-	if( im_rect_includesrect( &tile, r ) ) {
+	if( vips_rect_includesrect( &tile, r ) ) {
 		Rect irect;
 
 		/* Translate request to input space.
@@ -99,17 +100,17 @@ vips_grid_gen( VipsRegion *or, void *vseq, void *a, void *b,
 		irect.top -= ys;
 		irect.top += grid->across * ys + theight * (xs / twidth);
 
-		if( im_prepare( ir, &irect ) ||
-			im_region_region( or, ir, r, irect.left, irect.top ) )
+		if( vips_region_prepare( ir, &irect ) ||
+			vips_region_region( or, ir, r, irect.left, irect.top ) )
 			return( -1 );
 
 		return( 0 );
 	}
 
-	for( y = ys; y < IM_RECT_BOTTOM( r ); y += theight )
-		for( x = xs; x < IM_RECT_RIGHT( r ); x += twidth ) {
-			Rect paint;
-			Rect input;
+	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += theight )
+		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += twidth ) {
+			VipsRect paint;
+			VipsRect input;
 
 			/* Whole tile at x, y
 			 */
@@ -121,9 +122,9 @@ vips_grid_gen( VipsRegion *or, void *vseq, void *a, void *b,
 			/* Which parts touch the area of the output we are
 			 * building.
 			 */
-			im_rect_intersectrect( &tile, r, &paint );
+			vips_rect_intersectrect( &tile, r, &paint );
 
-			g_assert( !im_rect_isempty( &paint ) );
+			g_assert( !vips_rect_isempty( &paint ) );
 
 			/* Translate back to ir coordinates.
 			 */
@@ -134,7 +135,7 @@ vips_grid_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 			/* Render into or.
 			 */
-			if( im_prepare_to( ir, or, &input,
+			if( vips_region_prepare_to( ir, or, &input,
 				paint.left, paint.top ) )
 				return( -1 );
 		}
@@ -149,8 +150,6 @@ vips_grid_build( VipsObject *object )
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsGrid *grid = (VipsGrid *) object;
 
-	int n_tiles;
-
 	if( VIPS_OBJECT_CLASS( vips_grid_parent_class )->build( object ) )
 		return( -1 );
 
@@ -158,21 +157,9 @@ vips_grid_build( VipsObject *object )
 		vips_image_pio_input( grid->in ) )
 		return( -1 );
 
-		!vips_object_argument_isset( object, "background" ) ) {
-
-	if( grid->in->Ysize % grid->tile_height != 0 ) {
-		vips_error( class->nickname, "%s", _( "geometry" ) );
-		return( -1 );
-	}
-	n_tiles = grid->in->Ysize / grid->tile_height;
-
-	if( grid->across <= 0 || 
-		grid->down <= 0 ) {
-		vips_error( class->nickname, "%s", _( "bad parameters" ) );
-		return( -1 );
-	}
 	if( grid->in->Ysize % grid->tile_height != 0 ||
-		grid->in->Ysize / grid->tile_height != grid->across * grid->down ) {
+		grid->in->Ysize / grid->tile_height != 
+			grid->across * grid->down ) {
 		vips_error( class->nickname, "%s", _( "bad grid geometry" ) );
 		return( -1 );
 	}
@@ -183,8 +170,8 @@ vips_grid_build( VipsObject *object )
 	 */
 	vips_demand_hint( conversion->out, 
 		VIPS_DEMAND_STYLE_SMALLTILE, grid->in, NULL );
-	out->Xsize = grid->in->Xsize * grid->across;
-	out->Ysize = grid->tile_height * grid->down;
+	conversion->out->Xsize = grid->in->Xsize * grid->across;
+	conversion->out->Ysize = grid->tile_height * grid->down;
 
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_grid_gen, vips_stop_one, 
@@ -199,9 +186,6 @@ vips_grid_class_init( VipsGridClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
-
-	VIPS_DEBUG_MSG( "vips_grid_class_init\n" );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -223,11 +207,18 @@ vips_grid_class_init( VipsGridClass *class )
 		G_STRUCT_OFFSET( VipsGrid, tile_height ),
 		1, 10000000, 128 );
 
-	VIPS_ARG_INT( class, "across", 3, 
+	VIPS_ARG_INT( class, "across", 4, 
 		_( "Across" ), 
 		_( "number of tiles across" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGrid, across ),
+		1, 10000000, 1 );
+
+	VIPS_ARG_INT( class, "down", 5, 
+		_( "Down" ), 
+		_( "number of tiles down" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsGrid, down ),
 		1, 10000000, 1 );
 
 }
@@ -244,13 +235,10 @@ vips_grid_init( VipsGrid *grid )
  * vips_grid:
  * @in: input image
  * @out: output image
- * @...: %NULL-terminated list of optional named arguments
- *
- * Optional args:
- *
  * @tile_height: chop into tiles this high
  * @across: tiles across
  * @down: tiles down
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Chop a tall thin image up into a set of tiles, lay the tiles out in a grid. 
  *
@@ -260,18 +248,24 @@ vips_grid_init( VipsGrid *grid )
  * pixels high and the width of @in. The tiles are then rearranged into a grid
  * @across tiles across and @down tiles down in row-major order.
  *
- * See also: im_embed(), im_insert(), im_lrjoin().
+ * Supplying @tile_height, @across and @down is not strictly necessary, we
+ * only really need two of these. Requiring three is a double-check that the
+ * image has the expected geometry. 
+ *
+ * See also: vips_embed(), vips_insert(), vips_join().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_grid( VipsImage *in, VipsImage **out, ... )
+vips_grid( VipsImage *in, VipsImage **out, 
+	int tile_height, int across, int down, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, format );
-	result = vips_call( "grid", in, out, ap );
+	va_start( ap, down );
+	result = vips_call_split( "grid", ap, 
+		in, out, tile_height, across, down );
 	va_end( ap );
 
 	return( result );

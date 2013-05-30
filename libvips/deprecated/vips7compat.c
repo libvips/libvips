@@ -1495,6 +1495,22 @@ im_gaussnoise( IMAGE *out, int x, int y, double mean, double sigma )
 	return( 0 );
 }
 
+int 
+im_grid( VipsImage *in, VipsImage *out, int tile_height, int across, int down )
+{
+	VipsImage *t;
+
+	if( vips_grid( in, &t, tile_height, across, down, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
 static int
 vips__math( VipsImage *in, VipsImage *out, VipsOperationMath math )
 {
