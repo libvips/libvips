@@ -11,7 +11,6 @@ libfreq_filt_la_SOURCES = \
 	im_freqflt.c \
 	im_fwfft.c \
 	im_invfft.c \
-	im_invfftr.c \
-	im_rotquad.c
+	im_invfftr.c 
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

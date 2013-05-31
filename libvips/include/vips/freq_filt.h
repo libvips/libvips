@@ -71,7 +71,6 @@ int im_invfftr( VipsImage *in, VipsImage *out );
 
 int im_freqflt( VipsImage *in, VipsImage *mask, VipsImage *out );
 int im_disp_ps( VipsImage *in, VipsImage *out );
-int im_rotquad( VipsImage *in, VipsImage *out );
 int im_phasecor_fft( VipsImage *in1, VipsImage *in2, VipsImage *out );
 
 int im_flt_image_freq( VipsImage *in, VipsImage *out, VipsMaskType flag, ... );

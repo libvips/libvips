@@ -75,7 +75,7 @@ libvips/conversion/replicate.c
 libvips/conversion/join.c
 libvips/conversion/im_text.c
 libvips/conversion/conver_dispatch.c
-libvips/conversion/im_wrap.c
+libvips/conversion/wrap.c
 libvips/conversion/insert.c
 libvips/conversion/tilecache.c
 libvips/conversion/im_system_image.c
@@ -147,7 +147,6 @@ libvips/freq_filt/im_invfftr.c
 libvips/freq_filt/fmaskcir.c
 libvips/freq_filt/fmask4th.c
 libvips/freq_filt/im_invfft.c
-libvips/freq_filt/im_rotquad.c
 libvips/histograms_lut/im_histeq.c
 libvips/histograms_lut/im_buildlut.c
 libvips/histograms_lut/im_histnD.c

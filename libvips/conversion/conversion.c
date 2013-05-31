@@ -128,6 +128,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_gaussnoise_get_type( void ); 
 	extern GType vips_grid_get_type( void ); 
 	extern GType vips_scale_get_type( void ); 
+	extern GType vips_wrap_get_type( void ); 
 
 	vips_copy_get_type();
 	vips_tile_cache_get_type(); 
@@ -153,6 +154,7 @@ vips_conversion_operation_init( void )
 	vips_gaussnoise_get_type(); 
 	vips_grid_get_type(); 
 	vips_scale_get_type(); 
+	vips_wrap_get_type(); 
 }
 
 /* The common part of most binary conversion

@@ -30,11 +30,11 @@ libconversion_la_SOURCES = \
 	im_msb.c \
 	grid.c \
 	scale.c \
+	wrap.c \
 	im_subsample.c \
 	im_system.c \
 	im_system_image.c \
 	im_text.c \
-	im_wrap.c \
 	im_zoom.c
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
