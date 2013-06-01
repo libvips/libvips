@@ -196,6 +196,8 @@ int vips_wrap( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_zoom( VipsImage *in, VipsImage **out, int xfac, int yfac, ... )
 	__attribute__((sentinel));
+int vips_subsample( VipsImage *in, VipsImage **out, int xfac, int yfac, ... )
+	__attribute__((sentinel));
 
 int vips_cast( VipsImage *in, VipsImage **out, VipsBandFormat format, ... )
 	__attribute__((sentinel));
@@ -268,8 +270,6 @@ int im_text( VipsImage *out, const char *text, const char *font,
 	int width, int alignment, int dpi );
 
 int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x, int *y );
-
-int im_subsample( VipsImage *in, VipsImage *out, int xshrink, int yshrink );
 
 int im_system( VipsImage *im, const char *cmd, char **out );
 VipsImage *im_system_image( VipsImage *im, 

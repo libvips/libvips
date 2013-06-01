@@ -31,7 +31,7 @@ libconversion_la_SOURCES = \
 	grid.c \
 	scale.c \
 	wrap.c \
-	im_subsample.c \
+	subsample.c \
 	im_system.c \
 	im_system_image.c \
 	im_text.c \

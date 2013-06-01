@@ -54,14 +54,14 @@ libvips/colour/dECMC.c
 libvips/colour/scRGB2sRGB.c
 libvips/conversion/flip.c
 libvips/conversion/bandmean.c
-libvips/conversion/im_zoom.c
+libvips/conversion/zoom.c
 libvips/conversion/im_system.c
 libvips/conversion/gaussnoise.c
 libvips/conversion/bandary.c
 libvips/conversion/cast.c
 libvips/conversion/conversion.c
 libvips/conversion/flatten.c
-libvips/conversion/im_subsample.c
+libvips/conversion/subsample.c
 libvips/conversion/grid.c
 libvips/conversion/extract.c
 libvips/conversion/bandjoin.c

@@ -716,6 +716,7 @@ int im_grid( VipsImage *in, VipsImage *out, int tile_height, int across, int dow
 int im_scale( VipsImage *in, VipsImage *out );
 int im_scaleps( VipsImage *in, VipsImage *out );
 int im_zoom( VipsImage *in, VipsImage *out, int xfac, int yfac );
+int im_subsample( VipsImage *in, VipsImage *out, int xshrink, int yshrink );
 
 int im_c2amph( VipsImage *in, VipsImage *out );
 int im_c2rect( VipsImage *in, VipsImage *out );
