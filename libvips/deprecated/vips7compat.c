@@ -1565,6 +1565,22 @@ im_scaleps( VipsImage *in, VipsImage *out )
 	return( 0 );
 }
 
+int 
+im_zoom( VipsImage *in, VipsImage *out, int xfac, int yfac )
+{
+	VipsImage *t;
+
+	if( vips_zoom( in, &t, xfac, yfac, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
 static int
 vips__math( VipsImage *in, VipsImage *out, VipsOperationMath math )
 {
