@@ -27,7 +27,7 @@ libconversion_la_SOURCES = \
 	ifthenelse.c \
 	conver_dispatch.c \
 	im_falsecolour.c \
-	im_msb.c \
+	msb.c \
 	grid.c \
 	scale.c \
 	wrap.c \

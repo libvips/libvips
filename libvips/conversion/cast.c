@@ -332,7 +332,7 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	VipsRect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;
-	int bo = VIPS_RECT_BOTTOM(r);
+	int bo = VIPS_RECT_BOTTOM( r );
 	int sz = VIPS_REGION_N_ELEMENTS( or );
 	int x, y;
 

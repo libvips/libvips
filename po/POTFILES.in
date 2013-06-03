@@ -65,7 +65,7 @@ libvips/conversion/subsample.c
 libvips/conversion/grid.c
 libvips/conversion/extract.c
 libvips/conversion/bandjoin.c
-libvips/conversion/im_msb.c
+libvips/conversion/msb.c
 libvips/conversion/black.c
 libvips/conversion/bandbool.c
 libvips/conversion/copy.c

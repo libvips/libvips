@@ -67,10 +67,6 @@ vips_bandbool_build( VipsObject *object )
 	VipsBandary *bandary = (VipsBandary *) object;
 	VipsBandbool *bandbool = (VipsBandbool *) object;
 
-	if( bandbool->in &&
-		vips_check_noncomplex( class->nickname, bandbool->in ) )
-		return( -1 );
-
 	/* << and >> don't work over bands.
 	 */
 	if( bandbool->operation == VIPS_OPERATION_BOOLEAN_LSHIFT ||
@@ -82,9 +78,13 @@ vips_bandbool_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( bandbool->in &&
-		bandbool->in->Bands == 1 ) 
-		return( vips_bandary_copy( bandary ) );
+	if( bandbool->in ) {
+		if( vips_check_noncomplex( class->nickname, bandbool->in ) )
+			return( -1 );
+
+		if( bandbool->in->Bands == 1 ) 
+			return( vips_bandary_copy( bandary ) );
+	}
 
 	bandary->out_bands = 1;
 	bandary->n = 1;

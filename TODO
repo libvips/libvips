@@ -1,3 +1,4 @@
+- can we get rid of the extra copy in vips_scale() etc. 
 
 - look at
 	

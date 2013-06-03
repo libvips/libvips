@@ -223,6 +223,8 @@ int vips_cast_dpcomplex( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_scale( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_msb( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
@@ -260,9 +262,6 @@ int vips_flatten( VipsImage *in, VipsImage **out, ... )
 
 
 
-
-int im_msb( VipsImage *in, VipsImage *out );
-int im_msb_band( VipsImage *in, VipsImage *out, int band );
 
 int im_falsecolour( VipsImage *in, VipsImage *out );
 

@@ -1527,6 +1527,38 @@ im_scale( VipsImage *in, VipsImage *out )
 	return( 0 );
 }
 
+int 
+im_msb( VipsImage *in, VipsImage *out )
+{
+	VipsImage *t;
+
+	if( vips_msb( in, &t, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_msb_band( VipsImage *in, VipsImage *out, int band )
+{
+	VipsImage *t;
+
+	if( vips_msb( in, &t, "band", band, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
 int
 im_wrap( IMAGE *in, IMAGE *out, int x, int y )
 {

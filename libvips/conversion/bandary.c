@@ -182,10 +182,9 @@ vips_bandary_class_init( VipsBandaryClass *class )
 }
 
 static void
-vips_bandary_init( VipsBandary *bandjoin )
+vips_bandary_init( VipsBandary *bandary )
 {
-	/* Init our instance fields.
-	 */
+	bandary->out_bands = -1;
 }
 
 /* Call this before chaining up in _build() to make the operation fall back to
