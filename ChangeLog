@@ -4,7 +4,7 @@
 it's cheap so caching doesn't help anyway
 - auto rshift down to 8 bits on save, if necessary
 - im_gaussnoise(), im_copy_file(), im_grid(), im_scale(), im_scaleps(),
-  im_wrap(), im_rotquad(), im_zoom(), im_subsample(), im_msb() 
+  im_wrap(), im_rotquad(), im_zoom(), im_subsample(), im_msb() , im_text()
   redone as classes
 - add --angle option to dzsave
 

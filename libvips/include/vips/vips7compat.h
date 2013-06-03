@@ -719,6 +719,8 @@ int im_msb( VipsImage *in, VipsImage *out );
 int im_msb_band( VipsImage *in, VipsImage *out, int band );
 int im_zoom( VipsImage *in, VipsImage *out, int xfac, int yfac );
 int im_subsample( VipsImage *in, VipsImage *out, int xshrink, int yshrink );
+int im_text( VipsImage *out, const char *text, const char *font,
+	int width, int alignment, int dpi );
 
 int im_c2amph( VipsImage *in, VipsImage *out );
 int im_c2rect( VipsImage *in, VipsImage *out );

@@ -110,6 +110,8 @@ typedef enum {
  * Operations like vips_join() need to be told whether to align images on the
  * low or high coordinate edge, or centre.
  *
+ *
+ *
  * See also: vips_join().
  */
 typedef enum {
@@ -194,6 +196,8 @@ int vips_grid( VipsImage *in, VipsImage **out,
 	__attribute__((sentinel));
 int vips_wrap( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
+	__attribute__((sentinel));
 int vips_zoom( VipsImage *in, VipsImage **out, int xfac, int yfac, ... )
 	__attribute__((sentinel));
 int vips_subsample( VipsImage *in, VipsImage **out, int xfac, int yfac, ... )
@@ -248,9 +252,9 @@ int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
 
 int vips_black( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
-int vips_gaussnoise( VipsImage **out, int width, int height, ... )
+int vips_text( VipsImage **out, const char *text, ... )
 	__attribute__((sentinel));
-int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
+int vips_gaussnoise( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 
 int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2, 
@@ -264,9 +268,6 @@ int vips_flatten( VipsImage *in, VipsImage **out, ... )
 
 
 int im_falsecolour( VipsImage *in, VipsImage *out );
-
-int im_text( VipsImage *out, const char *text, const char *font,
-	int width, int alignment, int dpi );
 
 int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x, int *y );
 

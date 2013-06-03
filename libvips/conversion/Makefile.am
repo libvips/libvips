@@ -34,7 +34,7 @@ libconversion_la_SOURCES = \
 	subsample.c \
 	im_system.c \
 	im_system_image.c \
-	im_text.c \
+	text.c \
 	zoom.c
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@

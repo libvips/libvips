@@ -1,4 +1,4 @@
-- can we get rid of the extra copy in vips_scale() etc. 
+- move other/im_makexy.c into copnversion? should sit with bvips_black()?
 
 - look at
 	

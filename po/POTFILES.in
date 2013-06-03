@@ -73,7 +73,7 @@ libvips/conversion/rot.c
 libvips/conversion/scale.c
 libvips/conversion/replicate.c
 libvips/conversion/join.c
-libvips/conversion/im_text.c
+libvips/conversion/text.c
 libvips/conversion/conver_dispatch.c
 libvips/conversion/wrap.c
 libvips/conversion/insert.c
