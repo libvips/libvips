@@ -32,8 +32,6 @@ libconversion_la_SOURCES = \
 	scale.c \
 	wrap.c \
 	subsample.c \
-	im_system.c \
-	im_system_image.c \
 	text.c \
 	zoom.c
 

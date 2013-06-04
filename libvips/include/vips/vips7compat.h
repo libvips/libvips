@@ -722,6 +722,11 @@ int im_subsample( VipsImage *in, VipsImage *out, int xshrink, int yshrink );
 int im_text( VipsImage *out, const char *text, const char *font,
 	int width, int alignment, int dpi );
 
+int im_system( VipsImage *im, const char *cmd, char **out );
+VipsImage *im_system_image( VipsImage *im, 
+	const char *in_format, const char *out_format, const char *cmd_format, 
+	char **log );
+
 int im_c2amph( VipsImage *in, VipsImage *out );
 int im_c2rect( VipsImage *in, VipsImage *out );
 int im_c2imag( VipsImage *in, VipsImage *out );

@@ -265,16 +265,9 @@ int vips_flatten( VipsImage *in, VipsImage **out, ... )
 
 
 
-
-
 int im_falsecolour( VipsImage *in, VipsImage *out );
 
 int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x, int *y );
-
-int im_system( VipsImage *im, const char *cmd, char **out );
-VipsImage *im_system_image( VipsImage *im, 
-	const char *in_format, const char *out_format, const char *cmd_format, 
-	char **log );
 
 #ifdef __cplusplus
 }

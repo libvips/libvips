@@ -55,7 +55,6 @@ libvips/colour/scRGB2sRGB.c
 libvips/conversion/flip.c
 libvips/conversion/bandmean.c
 libvips/conversion/zoom.c
-libvips/conversion/im_system.c
 libvips/conversion/gaussnoise.c
 libvips/conversion/bandary.c
 libvips/conversion/cast.c
@@ -78,7 +77,6 @@ libvips/conversion/conver_dispatch.c
 libvips/conversion/wrap.c
 libvips/conversion/insert.c
 libvips/conversion/tilecache.c
-libvips/conversion/im_system_image.c
 libvips/conversion/embed.c
 libvips/conversion/cache.c
 libvips/conversion/im_falsecolour.c
@@ -204,6 +202,7 @@ libvips/iofuncs/object.c
 libvips/iofuncs/threadpool.c
 libvips/iofuncs/memory.c
 libvips/iofuncs/cache.c
+libvips/iofuncs/system.c
 libvips/morphology/im_cntlines.c
 libvips/morphology/im_profile.c
 libvips/morphology/morph_dispatch.c

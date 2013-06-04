@@ -530,6 +530,9 @@ gboolean vips_band_format_is8bit( VipsBandFormat format );
 gboolean vips_band_format_isfloat( VipsBandFormat format );
 gboolean vips_band_format_iscomplex( VipsBandFormat format );
 
+int vips_system( const char *cmd_format, ... )
+	__attribute__((sentinel));
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

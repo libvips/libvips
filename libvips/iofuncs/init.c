@@ -168,6 +168,8 @@ vips_get_argv0( void )
 int
 vips_init( const char *argv0 )
 {
+	extern GType vips_system_get_type( void );
+
 	static gboolean started = FALSE;
 	static gboolean done = FALSE;
 	char *prgname;
@@ -238,6 +240,7 @@ vips_init( const char *argv0 )
 
 	/* Start up packages.
 	 */
+	(void) vips_system_get_type();
 	vips_arithmetic_operation_init();
 	vips_conversion_operation_init();
 	vips_foreign_operation_init();

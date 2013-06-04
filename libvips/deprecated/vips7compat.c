@@ -1581,6 +1581,47 @@ im_text( IMAGE *out, const char *text, const char *font,
 	return( 0 );
 }
 
+int 
+im_system( VipsImage *im, const char *cmd, char **out )
+{
+	char *str;
+
+	if( vips_system( cmd, 
+		"in", im,
+		"in_format", "%s.v",
+		"log", &str,
+		NULL ) )
+		return( -1 );
+
+	if( out )
+		*out = str;
+
+	return( 0 );
+}
+
+VipsImage *
+im_system_image( VipsImage *im,
+	const char *in_format, const char *out_format, const char *cmd_format,
+	char **log )
+{
+	char *str;
+	VipsImage *out; 
+
+	if( vips_system( cmd_format, 
+		"in", im,
+		"out", &out,
+		"in_format", in_format,
+		"out_format", out_format,
+		"log", &str,
+		NULL ) )
+		return( NULL );
+
+	if( log )
+		*log = str;
+
+	return( out );
+}
+
 int
 im_wrap( IMAGE *in, IMAGE *out, int x, int y )
 {

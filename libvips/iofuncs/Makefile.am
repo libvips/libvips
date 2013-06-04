@@ -29,6 +29,7 @@ libiofuncs_la_SOURCES = \
 	buf.c \
 	window.c \
 	vector.c \
+	system.c \
 	buffer.c 
 
 EXTRA_DIST = enumtemplate
