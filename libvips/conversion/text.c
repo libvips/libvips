@@ -179,8 +179,11 @@ vips_text_build( VipsObject *object )
 		PANGO_FONT_MAP( vips_text_fontmap ) );
 
 	if( !(text->layout = text_layout_new( text->context, 
-		text->text, text->font, text->width, text->align, text->dpi )) )
+		text->text, text->font, 
+		text->width, text->align, text->dpi )) ) {
+		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
+	}
 
 	pango_layout_get_extents( text->layout, NULL, &logical_rect );
 
@@ -201,6 +204,7 @@ vips_text_build( VipsObject *object )
 	 */
 	if( width == 0 || height == 0 ) {
 		vips_error( class->nickname, "%s", _( "no text to render" ) );
+		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
 	}
 
@@ -208,8 +212,10 @@ vips_text_build( VipsObject *object )
 	text->bitmap.pitch = (text->bitmap.width + 3) & ~3;
 	text->bitmap.rows = height;
 	if( !(text->bitmap.buffer = 
-		im_malloc( NULL, text->bitmap.pitch * text->bitmap.rows )) )
+		im_malloc( NULL, text->bitmap.pitch * text->bitmap.rows )) ) {
+		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
+	}
 	text->bitmap.num_grays = 256;
 	text->bitmap.pixel_mode = ft_pixel_mode_grays;
 	memset( text->bitmap.buffer, 0x00, 
@@ -220,6 +226,8 @@ vips_text_build( VipsObject *object )
 			-left, -top );
 	else
 		pango_ft2_render_layout( &text->bitmap, text->layout, 0, 0 );
+
+	g_mutex_unlock( vips_text_lock ); 
 
 	vips_image_init_fields( conversion->out,
 		text->bitmap.width, text->bitmap.rows, 1, 
