@@ -863,10 +863,9 @@ vips_line_cache_gen( VipsRegion *or,
 	/* We size up the cache to the largest request.
 	 */
 	if( or->valid.height > 
-		block_cache->max_tiles * block_cache->tile_height ) {
+		block_cache->max_tiles * block_cache->tile_height ) 
 		block_cache->max_tiles = 
 			1 + (or->valid.height / block_cache->tile_height);
-	}
 
 	g_mutex_unlock( block_cache->lock );
 

@@ -38,6 +38,9 @@
  * 	- don't change xres/yres, see comment below
  * 8/4/13
  * 	- oops demand_hint was incorrect, thanks Jan
+ * 6/6/13
+ * 	- don't chunk horizontally, fixes seq problems with large shrink
+ * 	  factors
  */
 
 /*
@@ -255,43 +258,46 @@ vips_shrink_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 	 * pixels, so we walk *r in chunks which map to the tile size.
 	 *
 	 * Make sure we can't ask for a zero step.
+	 *
+	 * We don't chunk horizontally. We want "vips shrink x.jpg b.jpg 100
+	 * 100" to run sequentially. If we chunk horizontally, we will fetch
+	 * 100x100 lines from the top of the image, then 100x100 100 lines
+	 * down, etc. for each thread, then when they've finished, fetch
+	 * 100x100, 100 pixels across from the top of the image. This will
+	 * break sequentiality. 
 	 */
-	int xstep = shrink->mw > VIPS__TILE_WIDTH ? 
-		1 : VIPS__TILE_WIDTH / shrink->mw;
 	int ystep = shrink->mh > VIPS__TILE_HEIGHT ? 
 		1 : VIPS__TILE_HEIGHT / shrink->mh;
 
-	int x, y;
+	int y;
 
 #ifdef DEBUG
 	printf( "vips_shrink_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top ); 
 #endif /*DEBUG*/
 
-	for( y = 0; y < r->height; y += ystep )  
-		for( x = 0; x < r->width; x += xstep ) { 
-			/* Clip the this rect against the demand size.
-			 */
-			int width = VIPS_MIN( xstep, r->width - x );
-			int height = VIPS_MIN( ystep, r->height - y );
+	for( y = 0; y < r->height; y += ystep ) {
+		/* Clip the this rect against the demand size.
+		 */
+		int height = VIPS_MIN( ystep, r->height - y );
 
-			VipsRect s;
+		VipsRect s;
 
-			s.left = (r->left + x) * shrink->xshrink;
-			s.top = (r->top + y) * shrink->yshrink;
-			s.width = ceil( width * shrink->xshrink );
-			s.height = ceil( height * shrink->yshrink );
+		s.left = r->left * shrink->xshrink;
+		s.top = (r->top + y) * shrink->yshrink;
+		s.width = ceil( r->width * shrink->xshrink );
+		s.height = ceil( height * shrink->yshrink );
 #ifdef DEBUG
-			printf( "shrink_gen: requesting %d x %d at %d x %d\n",
-				s.width, s.height, s.left, s.top ); 
+		printf( "shrink_gen: requesting %d x %d at %d x %d\n",
+			s.width, s.height, s.left, s.top ); 
 #endif /*DEBUG*/
-			if( vips_region_prepare( ir, &s ) )
-				return( -1 );
+		if( vips_region_prepare( ir, &s ) )
+			return( -1 );
 
-			vips_shrink_gen2( shrink, seq, 
-				or, ir, 
-				r->left + x, r->top + y, width, height );
-		}
+		vips_shrink_gen2( shrink, seq, 
+			or, ir, 
+			r->left, r->top + y, r->width, height );
+	}
 
 	return( 0 );
 }

@@ -119,13 +119,13 @@ vips_sequential_generate( VipsRegion *or,
         VipsRect *r = &or->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
-	VIPS_DEBUG_MSG( "thread %p request for %d lines, start line %d\n", 
-		g_thread_self(), r->height, r->top );
+	VIPS_DEBUG_MSG( "thread %p request for line %d, height %d\n", 
+		g_thread_self(), r->top, r->height );
 
 	if( sequential->trace )
 		vips_diag( class->nickname, 
-			"request for %d lines, starting at line %d", 
-			r->height, r->top );
+			"request for line %d, height %d", 
+			r->top, r->height );
 
 	g_mutex_lock( sequential->lock );
 

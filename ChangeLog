@@ -1,13 +1,14 @@
 12/3/13 started 7.33.0
 - vipsthumbnail lets you specify the sharpening mask
 - turn off caching for im_copy()/vips_copy(), we use copy to stop sharing, and
-it's cheap so caching doesn't help anyway
+  it's cheap so caching doesn't help anyway
 - auto rshift down to 8 bits on save, if necessary
 - im_gaussnoise(), im_copy_file(), im_grid(), im_scale(), im_scaleps(),
   im_wrap(), im_rotquad(), im_zoom(), im_subsample(), im_msb(), im_text(),
   im_system(), im_system_image()
   redone as classes
 - add --angle option to dzsave
+- another vips_shrink() fix argh
 
 14/5/13 started 7.32.4
 - icc import and export could segv on very wide images
