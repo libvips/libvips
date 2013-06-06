@@ -418,7 +418,8 @@ render_work( VipsThreadState *state, void *a )
 	if( vips_region_prepare_to( state->reg, tile->region, 
 		&tile->area, tile->area.left, tile->area.top ) ) {
 		VIPS_DEBUG_MSG_RED( "render_work: "
-			"vips_region_prepare_to() failed\n" ); 
+			"vips_region_prepare_to() failed: %s\n",
+			vips_error_buffer() ); 
 		return( -1 );
 	}
 	tile->painted = TRUE;
