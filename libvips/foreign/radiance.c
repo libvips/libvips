@@ -394,8 +394,11 @@ getheader(		/* get header from file */
 )
 {
 	char  buf[MAXLINE];
+	int n;
 
-	for ( ; ; ) {
+	/* give up if there are more than 1,000 lines of header, prevents 
+	 * us scanning entire files when testing for israd */
+	for (n = 0; n < 1000; n++) {
 		buf[MAXLINE-2] = '\n';
 		if (fgets(buf, MAXLINE, fp) == NULL)
 			return(-1);
@@ -412,6 +415,8 @@ getheader(		/* get header from file */
 		if (f != NULL && (*f)(buf, p) < 0)
 			return(-1);
 	}
+
+	return(0);
 }
 
 
