@@ -1,4 +1,4 @@
-po/vips7.33.pot
+po/vips7.*.pot
 test-driver
 vips-*.tar.gz
 doc/reference/setup-build.stamp
