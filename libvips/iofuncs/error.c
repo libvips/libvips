@@ -136,6 +136,15 @@ vips_error_buffer( void )
 	return( msg );
 }
 
+/* Some systems do not have va_copy() ... this might work (it does on MSVC),
+ * apparently.
+ *
+ * FIXME ... this should be in configure.in
+ */
+#ifndef va_copy
+#define va_copy(d,s) ((d) = (s))
+#endif
+
 /**
  * vips_verror: 
  * @domain: the source of the error
@@ -149,13 +158,25 @@ vips_error_buffer( void )
 void 
 vips_verror( const char *domain, const char *fmt, va_list ap )
 {
+#ifdef VIPS_DEBUG
+{
+	char txt[256];
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
+	va_list ap2;
+
+	vips_buf_appendf( &buf, "%s: ", domain );
+	va_copy( ap2, ap );
+	vips_buf_vappendf( &buf, fmt, ap2 );
+	vips_buf_appends( &buf, "\n" );
+	VIPS_DEBUG_MSG( "vips_verror: %s", vips_buf_all( &buf ) );
+}
+#endif /*VIPS_DEBUG*/
+
 	g_mutex_lock( vips__global_lock );
 	vips_buf_appendf( &vips_error_buf, "%s: ", domain );
 	vips_buf_vappendf( &vips_error_buf, fmt, ap );
 	vips_buf_appends( &vips_error_buf, "\n" );
 	g_mutex_unlock( vips__global_lock );
-
-	VIPS_DEBUG_MSG( "vips_verror: %s\n", fmt );
 
 	if( vips__fatal )
 		vips_error_exit( "vips__fatal" );
