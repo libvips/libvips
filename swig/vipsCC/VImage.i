@@ -194,9 +194,9 @@ public:
 def PIL_mode_from_vips (vim):
   if vim.Bands () == 3 and vim.BandFmt () == VImage.FMTUCHAR:
     return 'RGB'
-  elif vim.Bands () == 4 and vim.BandFmt () == VImage.FMTUCHAR and vim.Type == VImage.VImage.RGB:
+  elif vim.Bands () == 4 and vim.BandFmt () == VImage.FMTUCHAR and vim.Type () == VImage.RGB:
     return 'RGBA'
-  elif vim.Bands () == 4 and vim.BandFmt () == VImage.FMTUCHAR and vim.Type == VImage.CMYK:
+  elif vim.Bands () == 4 and vim.BandFmt () == VImage.FMTUCHAR and vim.Type () == VImage.CMYK:
     return 'CMYK'
   elif vim.Bands () == 1 and vim.BandFmt () == VImage.FMTUCHAR:
     return 'L'
