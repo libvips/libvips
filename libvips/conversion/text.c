@@ -46,12 +46,12 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_PANGOFT2
-
 #include <stdio.h>
 #include <string.h>
 
 #include <vips/vips.h>
+
+#ifdef HAVE_PANGOFT2
 
 #include <pango/pango.h>
 #include <pango/pangoft2.h>
@@ -317,6 +317,8 @@ vips_text_init( VipsText *text )
 	text->bitmap.buffer = NULL;
 }
 
+#endif /*HAVE_PANGOFT2*/
+
 /**
  * vips_text:
  * @out: output image
@@ -364,5 +366,3 @@ vips_text( VipsImage **out, const char *text, ... )
 
 	return( result );
 }
-
-#endif /*HAVE_PANGOFT2*/
