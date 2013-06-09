@@ -1,5 +1,6 @@
 14/5/13 started 7.32.4
 - icc import and export could segv on very wide images
+- fix centos 5 build, thanks re-boot
 
 16/4/13 started 7.32.3
 - rename GETTEXT_PACKAGE as vips7.32 to help Debian (thanks Jay)
