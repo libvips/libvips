@@ -6,6 +6,8 @@
  * 	- gtkdoc 
  * 20/9/12
  * 	- redo as a class
+ * 13/12/12
+ * 	- tag as scRGB rather than XYZ
  */
 
 /*
@@ -208,7 +210,7 @@ vips_float2rad_init( VipsFloat2rad *float2rad )
 	VipsColourCode *code = VIPS_COLOUR_CODE( float2rad );
 
 	colour->coding = VIPS_CODING_RAD;
-	colour->interpretation = VIPS_INTERPRETATION_sRGB;
+	colour->interpretation = VIPS_INTERPRETATION_scRGB;
 	colour->format = VIPS_FORMAT_UCHAR;
 	colour->bands = 4;
 
