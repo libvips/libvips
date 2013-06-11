@@ -4,6 +4,8 @@
  * 	- from openslideload.c
  * 17/1/12
  * 	- remove header-only loads
+ * 11/6/13
+ * 	- add @all_frames option, off by default
  */
 
 /*

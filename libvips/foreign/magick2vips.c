@@ -38,6 +38,8 @@
  * 	- use new API stuff, argh
  * 17/12/11
  * 	- turn into a set of read fns ready to be called from a class
+ * 11/6/13
+ * 	- add @all_frames option, off by default
  */
 
 /*
@@ -68,8 +70,8 @@
  */
 
 /* Turn on debugging output.
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
