@@ -331,6 +331,13 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
   ]
 )
 
+# after 2.36 the type system inits itself
+PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,[
+  AC_DEFINE(NEED_TYPE_INIT,1,[define if your glib needs g_type_init().])
+  ],[
+  ]
+)
+
 # check for gtk-doc
 GTK_DOC_CHECK(1.9)
 
