@@ -21,7 +21,6 @@ SRC = \
 	vmask.tex \
 	wio.tex
 
-mkinstalldirs = $(SHELL) ../../mkinstalldirs
 destdir = ../
 
 all: $(PDF) html
@@ -30,8 +29,8 @@ install: all $(PDF) html
 	-rm -rf ${destdir}/pdf/*.pdf
 	-rm -rf ${destdir}/html/vips*
 	-rm -rf ${destdir}/html/figs
-	$(mkinstalldirs) ${destdir}/pdf
-	$(mkinstalldirs) ${destdir}/html
+	-mkdir -p ${destdir}/pdf
+	-mkdir -p ${destdir}/html
 	-cp $(PDF) ${destdir}/pdf
 	-cp -r vipsmanual/* ${destdir}/html
 
