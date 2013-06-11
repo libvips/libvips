@@ -35,8 +35,10 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int vips__magick_read( const char *filename, VipsImage *out );
-int vips__magick_read_header( const char *filename, VipsImage *out );
+int vips__magick_read( const char *filename, 
+	VipsImage *out, gboolean all_frames );
+int vips__magick_read_header( const char *filename, 
+	VipsImage *out, gboolean all_frames );
 
 #ifdef __cplusplus
 }

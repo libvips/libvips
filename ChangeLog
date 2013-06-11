@@ -3,6 +3,7 @@
 - oops, VImage.PIL_mode_from_vips() failed for CMYK, thanks Alessandro
 - fix no-pango build
 - add im_vips2dz(): run the deepzoom writer from vips7
+- vips_magickload() has an option to read all images in a sequence
 
 12/3/13 started 7.33.0
 - vipsthumbnail lets you specify the sharpening mask

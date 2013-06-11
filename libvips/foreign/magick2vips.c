@@ -68,8 +68,8 @@
  */
 
 /* Turn on debugging output.
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -106,6 +106,7 @@
 typedef struct _Read {
 	char *filename;
 	VipsImage *im;
+	gboolean all_frames;
 
 	Image *image;
 	ImageInfo *image_info;
@@ -138,7 +139,7 @@ read_destroy( VipsImage *im, Read *read )
 }
 
 static Read *
-read_new( const char *filename, VipsImage *im )
+read_new( const char *filename, VipsImage *im, gboolean all_frames )
 {
 	Read *read;
 	static int inited = 0;
@@ -155,6 +156,7 @@ read_new( const char *filename, VipsImage *im )
 	if( !(read = VIPS_NEW( im, Read )) )
 		return( NULL );
 	read->filename = g_strdup( filename );
+	read->all_frames = all_frames;
 	read->im = im;
 	read->image = NULL;
 	read->image_info = CloneImageInfo( NULL );
@@ -245,6 +247,8 @@ parse_header( Read *read )
 		IsMonochromeImage( image, &image->exception ) );
 	printf( "IsOpaqueImage() = %d\n",
 		IsOpaqueImage( image, &image->exception ) );
+	printf( "image->columns = %zd\n", image->columns ); 
+	printf( "image->rows = %zd\n", image->rows ); 
 #endif /*DEBUG*/
 
 	im->Xsize = image->columns;
@@ -403,6 +407,15 @@ parse_header( Read *read )
 	if( p ) 
 		/* Nope ... just do the first image in the list.
 		 */
+		read->n_frames = 1;
+
+#ifdef DEBUG
+	printf( "image has %d frames\n", read->n_frames );
+#endif /*DEBUG*/
+
+	/* If all_frames is off, just get the first one.
+	 */
+	if( !read->all_frames )
 		read->n_frames = 1;
 
 	/* Record frame pointers.
@@ -632,7 +645,7 @@ magick_fill_region( VipsRegion *out,
 }
 
 int
-vips__magick_read( const char *filename, VipsImage *out )
+vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames )
 {
 	Read *read;
 
@@ -640,7 +653,7 @@ vips__magick_read( const char *filename, VipsImage *out )
 	printf( "magick2vips: vips__magick_read: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out )) )
+	if( !(read = read_new( filename, out, all_frames )) )
 		return( -1 );
 
 #ifdef HAVE_SETIMAGEOPTION
@@ -681,7 +694,8 @@ vips__magick_read( const char *filename, VipsImage *out )
  * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=20017
  */
 int
-vips__magick_read_header( const char *filename, VipsImage *im )
+vips__magick_read_header( const char *filename, VipsImage *im, 
+	gboolean all_frames )
 {
 	Read *read;
 
@@ -689,7 +703,7 @@ vips__magick_read_header( const char *filename, VipsImage *im )
 	printf( "vips__magick_read_header: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, im )) )
+	if( !(read = read_new( filename, im, all_frames )) )
 		return( -1 );
 
 #ifdef DEBUG
