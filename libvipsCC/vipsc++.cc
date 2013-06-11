@@ -1,7 +1,7 @@
 
 // bodies for package arithmetic
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_abs: absolute value
 VImage VImage::abs() throw( VError )
 {
@@ -761,7 +761,7 @@ VImage VImage::tan() throw( VError )
 
 // bodies for package cimg
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_greyc: noise-removing filter
 VImage VImage::greyc( int iterations, double amplitude, double sharpness, double anisotropy, double alpha, double sigma, double dl, double da, double gauss_prec, int interpolation, int fast_approx ) throw( VError )
 {
@@ -821,7 +821,7 @@ VImage VImage::greyc_mask( VImage mask, int iterations, double amplitude, double
 
 // bodies for package colour
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_LCh2Lab: convert LCh to Lab
 VImage VImage::LCh2Lab() throw( VError )
 {
@@ -1537,7 +1537,7 @@ VImage VImage::sRGB2XYZ() throw( VError )
 
 // bodies for package conversion
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_gaussnoise: generate image of gaussian noise with specified statistics
 VImage VImage::gaussnoise( int xsize, int ysize, double mean, double sigma ) throw( VError )
 {
@@ -2321,7 +2321,7 @@ VImage VImage::zoom( int xfac, int yfac ) throw( VError )
 
 // bodies for package convolution
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_aconvsep: approximate separable convolution
 VImage VImage::aconvsep( VDMask matrix, int n_layers ) throw( VError )
 {
@@ -2624,7 +2624,7 @@ VImage VImage::spcor( VImage in2 ) throw( VError )
 
 // bodies for package deprecated
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_argb2rgba: convert pre-multipled argb to png-style rgba
 VImage VImage::argb2rgba() throw( VError )
 {
@@ -4095,10 +4095,28 @@ VImage VImage::notequal( double c ) throw( VError )
 	return( out );
 }
 
+// im_quadratic: transform via quadratic
+VImage VImage::quadratic( VImage coeff ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_quadratic" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	_vec.data(2) = coeff.image();
+	_vec.call();
+	out._ref->addref( in._ref );
+	out._ref->addref( coeff._ref );
+
+	return( out );
+}
+
 
 // bodies for package format
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_csv2vips: read a file in csv format
 VImage VImage::csv2vips( char* filename ) throw( VError )
 {
@@ -4236,6 +4254,17 @@ void VImage::vips2csv( char* filename ) throw( VError )
 	_vec.call();
 }
 
+// im_vips2dz: save as deepzoom
+void VImage::vips2dz( char* out ) throw( VError )
+{
+	VImage in = *this;
+	Vargv _vec( "im_vips2dz" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = (im_object) out;
+	_vec.call();
+}
+
 // im_vips2jpeg: convert to jpeg
 void VImage::vips2jpeg( char* out ) throw( VError )
 {
@@ -4294,7 +4323,7 @@ void VImage::vips2tiff( char* out ) throw( VError )
 
 // bodies for package freq_filt
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_create_fmask: create frequency domain filter mask
 VImage VImage::create_fmask( int width, int height, int type, double p1, double p2, double p3, double p4, double p5 ) throw( VError )
 {
@@ -4462,7 +4491,7 @@ VImage VImage::invfftr() throw( VError )
 
 // bodies for package histograms_lut
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_gammacorrect: gamma-correct image
 VImage VImage::gammacorrect( double exponent ) throw( VError )
 {
@@ -4909,7 +4938,7 @@ VImage VImage::tone_map( VImage lut ) throw( VError )
 
 // bodies for package inplace
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_draw_circle: draw circle on image
 void VImage::draw_circle( int cx, int cy, int radius, int fill, std::vector<double> ink ) throw( VError )
 {
@@ -5107,7 +5136,7 @@ VImage VImage::line( VImage mask, VImage ink, std::vector<int> x1, std::vector<i
 
 // bodies for package iofuncs
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_binfile: open a headerless binary file
 VImage VImage::binfile( char* filename, int width, int height, int bands, int offset ) throw( VError )
 {
@@ -5251,11 +5280,11 @@ void VImage::printdesc() throw( VError )
 
 // bodies for package mask
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 
 // bodies for package morphology
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_cntlines: count horizontal or vertical lines
 double VImage::cntlines( int direction ) throw( VError )
 {
@@ -5416,7 +5445,7 @@ VImage VImage::profile( int direction ) throw( VError )
 
 // bodies for package mosaicing
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_align_bands: align the bands of an image
 VImage VImage::align_bands() throw( VError )
 {
@@ -5849,7 +5878,7 @@ VImage VImage::tbmosaic1( VImage sec, int bandno, int xr1, int yr1, int xs1, int
 
 // bodies for package other
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_benchmark: do something complicated for testing
 VImage VImage::benchmark() throw( VError )
 {
@@ -6023,7 +6052,7 @@ VImage VImage::zone( int size ) throw( VError )
 
 // bodies for package resample
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_rightshift_size: decrease size by a power-of-two factor
 VImage VImage::rightshift_size( int xshift, int yshift, int band_fmt ) throw( VError )
 {
@@ -6134,7 +6163,7 @@ VImage VImage::affinei_all( char* interpolate, double a, double b, double c, dou
 
 // bodies for package video
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 // im_video_test: test video grabber
 VImage VImage::video_test( int brightness, int error ) throw( VError )
 {

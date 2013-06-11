@@ -1341,7 +1341,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Filename suffix for tiles" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, suffix ),
-		".jpg" );
+		".jpeg" );
 
 	VIPS_ARG_INT( class, "overlap", 10, 
 		_( "Overlap" ), 
@@ -1392,7 +1392,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 	VIPS_ARG_STRING( class, "dirname", 1, 
 		_( "Base name" ),
 		_( "Base name to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED, 
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED, 
 		G_STRUCT_OFFSET( VipsForeignSaveDz, basename ),
 		NULL );
 

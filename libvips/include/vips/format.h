@@ -165,6 +165,8 @@ int im_vips2rad( VipsImage *in, const char *filename );
 int im_fits2vips( const char *filename, VipsImage *out );
 int im_vips2fits( VipsImage *in, const char *filename );
 
+int im_vips2dz( VipsImage *in, const char *filename );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

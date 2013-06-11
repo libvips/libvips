@@ -64,6 +64,32 @@ static im_function jpeg2vips_desc = {
 };
 
 static int
+vips2dz_vec( im_object *argv )
+{
+	IMAGE *in = argv[0];
+	char *out = argv[1];
+
+	if( im_vips2dz( in, out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static im_arg_desc vips2dz_args[] = {
+	IM_INPUT_IMAGE( "in" ),
+	IM_INPUT_STRING( "out" )
+};
+
+static im_function vips2dz_desc = {
+	"im_vips2dz",			/* Name */
+	"save as deepzoom",		/* Description */
+	0,				/* Flags */
+	vips2dz_vec,			/* Dispatch function */
+	IM_NUMBER( vips2dz_args ), 	/* Size of arg list */
+	vips2dz_args 			/* Arg list */
+};
+
+static int
 vips2jpeg_vec( im_object *argv )
 {
 	IMAGE *in = argv[0];
@@ -425,6 +451,7 @@ static im_function *list[] = {
 	&analyze2vips_desc,
 	&tiff2vips_desc,
 	&vips2csv_desc,
+	&vips2dz_desc,
 	&vips2jpeg_desc,
 	&vips2mimejpeg_desc,
 	&vips2png_desc,

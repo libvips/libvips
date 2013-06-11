@@ -1,7 +1,7 @@
 
 // headers for package arithmetic
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 VImage abs() throw( VError );
 VImage acos() throw( VError );
 VImage add( VImage add_in2 ) throw( VError );
@@ -49,13 +49,13 @@ VImage tan() throw( VError );
 
 // headers for package cimg
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 VImage greyc( int greyc_iterations, double greyc_amplitude, double greyc_sharpness, double greyc_anisotropy, double greyc_alpha, double greyc_sigma, double greyc_dl, double greyc_da, double greyc_gauss_prec, int greyc_interpolation, int greyc_fast_approx ) throw( VError );
 VImage greyc_mask( VImage greyc_mask_mask, int greyc_mask_iterations, double greyc_mask_amplitude, double greyc_mask_sharpness, double greyc_mask_anisotropy, double greyc_mask_alpha, double greyc_mask_sigma, double greyc_mask_dl, double greyc_mask_da, double greyc_mask_gauss_prec, int greyc_mask_interpolation, int greyc_mask_fast_approx ) throw( VError );
 
 // headers for package colour
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 VImage LCh2Lab() throw( VError );
 VImage LCh2UCS() throw( VError );
 VImage Lab2LCh() throw( VError );
@@ -101,7 +101,7 @@ VImage sRGB2XYZ() throw( VError );
 
 // headers for package conversion
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 static VImage gaussnoise( int gaussnoise_xsize, int gaussnoise_ysize, double gaussnoise_mean, double gaussnoise_sigma ) throw( VError );
 VImage bandjoin( VImage bandjoin_in2 ) throw( VError );
 static VImage black( int black_x_size, int black_y_size, int black_bands ) throw( VError );
@@ -149,7 +149,7 @@ VImage zoom( int zoom_xfac, int zoom_yfac ) throw( VError );
 
 // headers for package convolution
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 VImage aconvsep( VDMask aconvsep_matrix, int aconvsep_n_layers ) throw( VError );
 VImage aconv( VDMask aconv_matrix, int aconv_n_layers, int aconv_cluster ) throw( VError );
 VImage addgnoise( double addgnoise_sigma ) throw( VError );
@@ -170,7 +170,7 @@ VImage spcor( VImage spcor_in2 ) throw( VError );
 
 // headers for package deprecated
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 VImage argb2rgba() throw( VError );
 VImage flood_copy( int flood_copy_start_x, int flood_copy_start_y, std::vector<double> flood_copy_ink ) throw( VError );
 VImage flood_blob_copy( int flood_blob_copy_start_x, int flood_blob_copy_start_y, std::vector<double> flood_blob_copy_ink ) throw( VError );
@@ -253,10 +253,11 @@ VImage moreeq( double moreeq_c ) throw( VError );
 VImage notequal( VImage notequal_in2 ) throw( VError );
 VImage notequal( std::vector<double> notequal_vec ) throw( VError );
 VImage notequal( double notequal_c ) throw( VError );
+VImage quadratic( VImage quadratic_coeff ) throw( VError );
 
 // headers for package format
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 static VImage csv2vips( char* csv2vips_filename ) throw( VError );
 static VImage fits2vips( char* fits2vips_in ) throw( VError );
 static VImage jpeg2vips( char* jpeg2vips_in ) throw( VError );
@@ -267,6 +268,7 @@ static VImage ppm2vips( char* ppm2vips_filename ) throw( VError );
 static VImage analyze2vips( char* analyze2vips_filename ) throw( VError );
 static VImage tiff2vips( char* tiff2vips_in ) throw( VError );
 void vips2csv( char* vips2csv_filename ) throw( VError );
+void vips2dz( char* vips2dz_out ) throw( VError );
 void vips2jpeg( char* vips2jpeg_out ) throw( VError );
 void vips2mimejpeg( int vips2mimejpeg_qfac ) throw( VError );
 void vips2png( char* vips2png_out ) throw( VError );
@@ -275,7 +277,7 @@ void vips2tiff( char* vips2tiff_out ) throw( VError );
 
 // headers for package freq_filt
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 static VImage create_fmask( int create_fmask_width, int create_fmask_height, int create_fmask_type, double create_fmask_p1, double create_fmask_p2, double create_fmask_p3, double create_fmask_p4, double create_fmask_p5 ) throw( VError );
 VImage disp_ps() throw( VError );
 VImage flt_image_freq( int flt_image_freq_type, double flt_image_freq_p1, double flt_image_freq_p2, double flt_image_freq_p3, double flt_image_freq_p4, double flt_image_freq_p5 ) throw( VError );
@@ -289,7 +291,7 @@ VImage invfftr() throw( VError );
 
 // headers for package histograms_lut
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 VImage gammacorrect( double gammacorrect_exponent ) throw( VError );
 VImage heq( int heq_band_number ) throw( VError );
 VImage hist( int hist_band_number ) throw( VError );
@@ -319,7 +321,7 @@ VImage tone_map( VImage tone_map_lut ) throw( VError );
 
 // headers for package inplace
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 void draw_circle( int draw_circle_cx, int draw_circle_cy, int draw_circle_radius, int draw_circle_fill, std::vector<double> draw_circle_ink ) throw( VError );
 void draw_rect( int draw_rect_left, int draw_rect_top, int draw_rect_width, int draw_rect_height, int draw_rect_fill, std::vector<double> draw_rect_ink ) throw( VError );
 void draw_line( int draw_line_x1, int draw_line_y1, int draw_line_x2, int draw_line_y2, std::vector<double> draw_line_ink ) throw( VError );
@@ -334,7 +336,7 @@ VImage line( VImage line_mask, VImage line_ink, std::vector<int> line_x1, std::v
 
 // headers for package iofuncs
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 static VImage binfile( char* binfile_filename, int binfile_width, int binfile_height, int binfile_bands, int binfile_offset ) throw( VError );
 VImage cache( int cache_tile_width, int cache_tile_height, int cache_max_tiles ) throw( VError );
 char* getext() throw( VError );
@@ -347,11 +349,11 @@ void printdesc() throw( VError );
 
 // headers for package mask
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 
 // headers for package morphology
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 double cntlines( int cntlines_direction ) throw( VError );
 VImage dilate( VIMask dilate_mask ) throw( VError );
 VImage rank( int rank_xsize, int rank_ysize, int rank_n ) throw( VError );
@@ -364,7 +366,7 @@ VImage profile( int profile_direction ) throw( VError );
 
 // headers for package mosaicing
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 VImage align_bands() throw( VError );
 double correl( VImage correl_sec, int correl_xref, int correl_yref, int correl_xsec, int correl_ysec, int correl_hwindowsize, int correl_hsearchsize, int& correl_x, int& correl_y ) throw( VError );
 int _find_lroverlap( VImage _find_lroverlap_sec, int _find_lroverlap_bandno, int _find_lroverlap_xr, int _find_lroverlap_yr, int _find_lroverlap_xs, int _find_lroverlap_ys, int _find_lroverlap_halfcorrelation, int _find_lroverlap_halfarea, int& _find_lroverlap_dy0, double& _find_lroverlap_scale1, double& _find_lroverlap_angle1, double& _find_lroverlap_dx1, double& _find_lroverlap_dy1 ) throw( VError );
@@ -386,7 +388,7 @@ VImage tbmosaic1( VImage tbmosaic1_sec, int tbmosaic1_bandno, int tbmosaic1_xr1,
 
 // headers for package other
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 VImage benchmark() throw( VError );
 double benchmark2() throw( VError );
 VImage benchmarkn( int benchmarkn_n ) throw( VError );
@@ -401,7 +403,7 @@ static VImage zone( int zone_size ) throw( VError );
 
 // headers for package resample
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 VImage rightshift_size( int rightshift_size_xshift, int rightshift_size_yshift, int rightshift_size_band_fmt ) throw( VError );
 VImage shrink( double shrink_xfac, double shrink_yfac ) throw( VError );
 VImage stretch3( double stretch3_xdisp, double stretch3_ydisp ) throw( VError );
@@ -410,7 +412,7 @@ VImage affinei_all( char* affinei_all_interpolate, double affinei_all_a, double 
 
 // headers for package video
 // this file automatically generated from
-// VIPS library 7.30.1-Mon Aug  6 21:21:06 BST 2012
+// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
 static VImage video_test( int video_test_brightness, int video_test_error ) throw( VError );
 static VImage video_v4l1( char* video_v4l1_device, int video_v4l1_channel, int video_v4l1_brightness, int video_v4l1_colour, int video_v4l1_contrast, int video_v4l1_hue, int video_v4l1_ngrabs ) throw( VError );
 
