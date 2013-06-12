@@ -325,7 +325,16 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
   AC_DEFINE(HAVE_PRIVATE_INIT,1,[define if your glib has G_PRIVATE_INIT().])
   AC_DEFINE(HAVE_VALUE_GET_SCHAR,1,[define if your glib has g_value_get_schar().])
   ],[
-     # no action if not found
+    # the old threading system ... we need to link against gthread
+    PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
+    PACKAGES_USED="$PACKAGES_USED gthread-2.0"
+  ]
+)
+
+# after 2.36 the type system inits itself
+PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,[
+  AC_DEFINE(NEED_TYPE_INIT,1,[define if your glib needs g_type_init().])
+  ],[
   ]
 )
 

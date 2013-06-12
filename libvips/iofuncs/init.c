@@ -192,9 +192,11 @@ vips_init( const char *argv0 )
 		return( 0 );
 	started = TRUE;
 
-	/* Need gobject etc.
+#ifdef NEED_TYPE_INIT
+	/* Before glib 2.36 you have to call this on startup.
 	 */
 	g_type_init();
+#endif /*NEED_TYPE_INIT*/
 
 	/* Older glibs need this.
 	 */

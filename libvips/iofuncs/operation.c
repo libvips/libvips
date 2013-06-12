@@ -549,7 +549,7 @@ vips_call( const char *operation_name, ... )
 
 #ifdef VIPS_DEBUG
 	VIPS_DEBUG_MSG( "where:\n" );
-	vips_object_print( VIPS_OBJECT( operation ) );
+	vips_object_print_dump( VIPS_OBJECT( operation ) );
 #endif /*VIPS_DEBUG*/
 
 	/* We have to break the va_list into separate required and optional 

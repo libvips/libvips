@@ -68,6 +68,7 @@ libdeprecated_la_SOURCES = \
 	im_vips2png.c \
 	im_vips2ppm.c \
 	im_vips2tiff.c \
+	im_vips2dz.c \
 	matlab.c \
 	radiance.c \
 	raw.c

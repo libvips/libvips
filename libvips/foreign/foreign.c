@@ -1668,6 +1668,10 @@ vips_foreign_operation_init( void )
  * @out: decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @all_frames: load all frames in sequence
+ *
  * Read in an image using libMagick, the ImageMagick library. This library can
  * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many 
  * others.
@@ -1677,6 +1681,9 @@ vips_foreign_operation_init( void )
  *
  * The reader should also work with most versions of GraphicsMagick. See the
  * "--with-magickpackage" configure option.
+ *
+ * Normally it will only load the first image in a many-image sequence (such
+ * as a GIF). Set @all_frames to true to read the whole image sequence. 
  *
  * See also: vips_image_new_from_file().
  *

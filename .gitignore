@@ -1,5 +1,6 @@
 po/vips7.*.pot
 test-driver
+po/vips*.pot
 vips-*.tar.gz
 doc/reference/setup-build.stamp
 doc/reference/tmpl-build.stamp

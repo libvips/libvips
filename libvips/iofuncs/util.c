@@ -1653,3 +1653,39 @@ vips_enum_nick( GType enm, int v )
 
 	return( value->value_nick );
 }
+
+int
+vips_enum_from_nick( const char *domain, GType type, const char *nick )
+{
+	GTypeClass *class;
+	GEnumClass *genum;
+	GEnumValue *enum_value;
+	int i;
+	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	if( !(class = g_type_class_ref( type )) ) {
+		vips_error( domain, "%s", _( "no such enum type" ) ); 
+		return( -1 );
+	}
+	genum = G_ENUM_CLASS( class );
+
+	if( (enum_value = g_enum_get_value_by_name( genum, nick )) ) 
+		return( enum_value->value );
+	if( (enum_value = g_enum_get_value_by_nick( genum, nick )) ) 
+		return( enum_value->value );
+
+	/* -1 since we always have a "last" member.
+	 */
+	for( i = 0; i < genum->n_values - 1; i++ ) {
+		if( i > 0 )
+			vips_buf_appends( &buf, ", " );
+		vips_buf_appends( &buf, genum->values[i].value_nick );
+	}
+
+	vips_error( domain, _( "enum '%s' has no member '%s', " 
+		"should be one of: %s" ),
+		g_type_name( type ), nick, vips_buf_all( &buf ) );
+
+	return( -1 );
+}
