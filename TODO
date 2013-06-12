@@ -1,5 +1,8 @@
 
-- move other/im_makexy.c into copnversion? should sit with bvips_black()?
+- move im_make_xy() to deprecated, add something to make higher-dimension
+  images too
+
+  use in heart analysis
 
 - look at
 	

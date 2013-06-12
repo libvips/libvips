@@ -252,6 +252,8 @@ int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
 
 int vips_black( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
+int vips_xyz( VipsImage **out, int width, int height, ... )
+	__attribute__((sentinel));
 int vips_text( VipsImage **out, const char *text, ... )
 	__attribute__((sentinel));
 int vips_gaussnoise( VipsImage **out, int width, int height, ... )

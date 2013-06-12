@@ -4,6 +4,7 @@
 - fix no-pango build
 - add im_vips2dz(): run the deepzoom writer from vips7
 - vips_magickload() has an option to read all images in a sequence
+- im_make_xy() -> vips_xyz()
 
 12/3/13 started 7.33.0
 - vipsthumbnail lets you specify the sharpening mask
