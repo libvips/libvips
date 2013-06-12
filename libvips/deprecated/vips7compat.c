@@ -1559,6 +1559,22 @@ im_msb_band( VipsImage *in, VipsImage *out, int band )
 	return( 0 );
 }
 
+int
+im_make_xy( IMAGE *out, const int xsize, const int ysize )
+{
+	VipsImage *t;
+
+	if( vips_xyz( &t, xsize, ysize, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
 int 
 im_text( IMAGE *out, const char *text, const char *font, 
 	int width, int align, int dpi )

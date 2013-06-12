@@ -558,28 +558,28 @@ vips_embed_class_init( VipsEmbedClass *class )
 		_( "Left edge of input in output" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, x ),
-		-1000000, 1000000, 0 );
+		-1000000000, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "y", 3, 
 		_( "y" ), 
 		_( "Top edge of input in output" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, y ),
-		-1000000, 1000000, 0 );
+		-1000000000, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "width", 4, 
 		_( "Width" ), 
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, width ),
-		1, 1000000, 1 );
+		1, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "height", 5, 
 		_( "Height" ), 
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, height ),
-		1, 1000000, 1 );
+		1, 1000000000, 1 );
 
 	VIPS_ARG_ENUM( class, "extend", 6, 
 		_( "Extend" ), 

@@ -40,7 +40,6 @@ extern "C" {
 
 int im_grey( VipsImage *out, const int xsize, const int ysize );
 int im_fgrey( VipsImage *out, const int xsize, const int ysize );
-int im_make_xy( VipsImage *out, const int xsize, const int ysize );
 
 int im_feye( VipsImage *out,
 	const int xsize, const int ysize, const double factor );

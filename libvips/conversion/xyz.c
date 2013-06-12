@@ -88,29 +88,29 @@ vips_xyz_gen( VipsRegion *or, void *seq, void *a, void *b,
 		unsigned int *q = (unsigned int *) 
 			VIPS_REGION_ADDR( or, le, y );
 
-		unsigned int dims[4];
+		unsigned int dims[5];
 		int r;
 		int h;
 
 		h = xyz->height * xyz->csize * xyz->dsize; 
-		dims[3] = y / h;
+		dims[4] = y / h;
 		r = y % h;
 
 		h /= xyz->dsize; 
-		dims[2] = r / h;
+		dims[3] = r / h;
 		r %= h;
 
 		h /= xyz->csize; 
-		dims[1] = r / h;
+		dims[2] = r / h;
 		r %= h;
 
-		dims[0] = r;
+		dims[1] = r;
 
 		for( x = le; x < ri; x++ ) {
-			q[0] = x;
+			dims[0] = x;
+			for( i = 0; i < xyz->dimensions; i++ )
+				q[i] = dims[i];
 
-			for( i = 1; i < xyz->dimensions; i++ )
-				q[1] = dims[i - 1];
 			q += xyz->dimensions;
 		}
 	}
@@ -208,21 +208,21 @@ vips_xyz_class_init( VipsXyzClass *class )
 		_( "Size of third dimension" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsXyz, csize ),
-		1, 1000000, 0 );
+		1, 1000000, 1 );
 
 	VIPS_ARG_INT( class, "dsize", 7, 
 		_( "dsize" ), 
 		_( "Size of fourth dimension" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsXyz, dsize ),
-		1, 1000000, 0 );
+		1, 1000000, 1 );
 
 	VIPS_ARG_INT( class, "esize", 8, 
 		_( "esize" ), 
 		_( "Size of fifth dimension" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsXyz, esize ),
-		1, 1000000, 0 );
+		1, 1000000, 1 );
 
 }
 

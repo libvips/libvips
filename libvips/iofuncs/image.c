@@ -895,21 +895,21 @@ vips_image_class_init( VipsImageClass *class )
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Xsize ),
-		0, 1000000, 0 );
+		1, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "height", 3, 
 		_( "Height" ), 
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Ysize ),
-		0, 1000000, 0 );
+		1, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "bands", 4, 
 		_( "Bands" ), 
 		_( "Number of bands in image" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Bands ),
-		0, 1000000, 0 );
+		1, 1000000000, 1 );
 
 	VIPS_ARG_ENUM( class, "format", 5, 
 		_( "Format" ), 
@@ -1064,6 +1064,10 @@ vips_image_init( VipsImage *image )
 	/* Default to native order.
 	 */
 	image->magic = vips_amiMSBfirst() ? VIPS_MAGIC_SPARC : VIPS_MAGIC_INTEL;
+
+	image->Xsize = 1;
+	image->Ysize = 1;
+	image->Bands = 1;
 
 	image->Xres = 1.0;
 	image->Yres = 1.0;
