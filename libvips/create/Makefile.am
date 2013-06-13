@@ -4,14 +4,13 @@ libcreate_la_SOURCES = \
 	create.c \
 	eye.c \
 	grey.c \
-	zone.c \
 	xyz.c \
 	black.c \
 	text.c \
 	gaussnoise.c \
 	im_benchmark.c \
 	im_sines.c \
-	im_zone.c \
+	zone.c \
 	other_dispatch.c
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

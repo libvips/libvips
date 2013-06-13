@@ -1575,6 +1575,40 @@ im_make_xy( IMAGE *out, const int xsize, const int ysize )
 	return( 0 );
 }
 
+int
+im_zone( IMAGE *out, int size )
+{
+	VipsImage *t;
+
+	if( vips_zone( &t, size, size, 
+		"uchar", TRUE,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int
+im_fzone( IMAGE *out, int size )
+{
+	VipsImage *t;
+
+	if( vips_zone( &t, size, size, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
 int 
 im_text( IMAGE *out, const char *text, const char *font, 
 	int width, int align, int dpi )

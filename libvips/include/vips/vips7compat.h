@@ -710,9 +710,6 @@ int im_rotquad( VipsImage *in, VipsImage *out );
 int im_clip2fmt( VipsImage *in, VipsImage *out, VipsBandFormat fmt );
 int im_bandjoin( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_gbandjoin( VipsImage **in, VipsImage *out, int n );
-int im_black( VipsImage *out, int x, int y, int bands );
-int im_make_xy( VipsImage *out, const int xsize, const int ysize );
-int im_gaussnoise( VipsImage *out, int x, int y, double mean, double sigma );
 int im_grid( VipsImage *in, VipsImage *out, int tile_height, int across, int down );
 int im_scale( VipsImage *in, VipsImage *out );
 int im_scaleps( VipsImage *in, VipsImage *out );
@@ -720,8 +717,20 @@ int im_msb( VipsImage *in, VipsImage *out );
 int im_msb_band( VipsImage *in, VipsImage *out, int band );
 int im_zoom( VipsImage *in, VipsImage *out, int xfac, int yfac );
 int im_subsample( VipsImage *in, VipsImage *out, int xshrink, int yshrink );
+
+int im_gaussnoise( VipsImage *out, int x, int y, double mean, double sigma );
 int im_text( VipsImage *out, const char *text, const char *font,
 	int width, int alignment, int dpi );
+int im_black( VipsImage *out, int x, int y, int bands );
+int im_make_xy( VipsImage *out, const int xsize, const int ysize );
+int im_zone( VipsImage *out, int size );
+int im_fzone( VipsImage *out, int size );
+int im_feye( VipsImage *out,
+	const int xsize, const int ysize, const double factor );
+int im_eye( VipsImage *out,
+	const int xsize, const int ysize, const double factor );
+int im_grey( VipsImage *out, const int xsize, const int ysize );
+int im_fgrey( VipsImage *out, const int xsize, const int ysize );
 
 int im_system( VipsImage *im, const char *cmd, char **out );
 VipsImage *im_system_image( VipsImage *im, 
@@ -740,13 +749,6 @@ int im_rot270( VipsImage *in, VipsImage *out );
 
 int im_ifthenelse( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
 int im_blend( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
-
-int im_feye( VipsImage *out,
-	const int xsize, const int ysize, const double factor );
-int im_eye( VipsImage *out,
-	const int xsize, const int ysize, const double factor );
-int im_grey( VipsImage *out, const int xsize, const int ysize );
-int im_fgrey( VipsImage *out, const int xsize, const int ysize );
 
 DOUBLEMASK *im_vips2mask( VipsImage *in, const char *filename );
 int im_mask2vips( DOUBLEMASK *in, VipsImage *out );

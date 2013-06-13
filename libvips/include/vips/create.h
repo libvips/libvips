@@ -60,8 +60,6 @@ int vips_zone( VipsImage **out, int width, int height, ... )
 
 
 
-int im_zone( VipsImage *out, int size );
-int im_fzone( VipsImage *out, int size );
 int im_sines( VipsImage *out,
 	int xsize, int ysize, double horfreq, double verfreq );
 
