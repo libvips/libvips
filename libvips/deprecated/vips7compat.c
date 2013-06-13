@@ -2364,6 +2364,43 @@ im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink )
 }
 
 int
+im_eye( IMAGE *out, const int xsize, const int ysize, const double factor )
+{
+	VipsImage *x;
+
+	if( vips_eye( &x, xsize, ysize, 
+		"factor", factor,
+		"uchar", TRUE,
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
+im_feye( IMAGE *out, const int xsize, const int ysize, const double factor )
+{
+	VipsImage *x;
+
+	if( vips_eye( &x, xsize, ysize, 
+		"factor", factor,
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
 im_rightshift_size( IMAGE *in, IMAGE *out, 
 	int xshift, int yshift, int band_fmt )
 {

@@ -48,6 +48,8 @@ int vips_text( VipsImage **out, const char *text, ... )
 	__attribute__((sentinel));
 int vips_gaussnoise( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
+int vips_eye( VipsImage **out, int width, int height, ... )
+	__attribute__((sentinel));
 
 
 
@@ -55,10 +57,6 @@ int vips_gaussnoise( VipsImage **out, int width, int height, ... )
 int im_grey( VipsImage *out, const int xsize, const int ysize );
 int im_fgrey( VipsImage *out, const int xsize, const int ysize );
 
-int im_feye( VipsImage *out,
-	const int xsize, const int ysize, const double factor );
-int im_eye( VipsImage *out,
-	const int xsize, const int ysize, const double factor );
 int im_zone( VipsImage *out, int size );
 int im_fzone( VipsImage *out, int size );
 int im_sines( VipsImage *out,

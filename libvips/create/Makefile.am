@@ -2,12 +2,12 @@ noinst_LTLIBRARIES = libcreate.la
 
 libcreate_la_SOURCES = \
 	create.c \
+	eye.c \
 	xyz.c \
 	black.c \
 	text.c \
 	gaussnoise.c \
 	im_benchmark.c \
-	im_eye.c \
 	im_grey.c \
 	im_sines.c \
 	im_zone.c \
