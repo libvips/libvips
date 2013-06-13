@@ -1610,6 +1610,25 @@ im_fzone( IMAGE *out, int size )
 }
 
 int 
+im_sines( IMAGE *out, int xsize, int ysize, double horfreq, double verfreq )
+{
+	VipsImage *t;
+
+	if( vips_sines( &t, xsize, ysize, 
+		"hfreq", horfreq, 
+		"vfreq", verfreq, 
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
 im_text( IMAGE *out, const char *text, const char *font, 
 	int width, int align, int dpi )
 {

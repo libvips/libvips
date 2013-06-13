@@ -731,6 +731,8 @@ int im_eye( VipsImage *out,
 	const int xsize, const int ysize, const double factor );
 int im_grey( VipsImage *out, const int xsize, const int ysize );
 int im_fgrey( VipsImage *out, const int xsize, const int ysize );
+int im_sines( VipsImage *out,
+	int xsize, int ysize, double horfreq, double verfreq );
 
 int im_system( VipsImage *im, const char *cmd, char **out );
 VipsImage *im_system_image( VipsImage *im, 

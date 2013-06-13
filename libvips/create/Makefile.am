@@ -9,7 +9,7 @@ libcreate_la_SOURCES = \
 	text.c \
 	gaussnoise.c \
 	im_benchmark.c \
-	im_sines.c \
+	sines.c \
 	zone.c \
 	other_dispatch.c
 

@@ -55,13 +55,10 @@ int vips_gaussnoise( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 int vips_eye( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
+int vips_sines( VipsImage **out, int width, int height, ... )
+	__attribute__((sentinel));
 int vips_zone( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
-
-
-
-int im_sines( VipsImage *out,
-	int xsize, int ysize, double horfreq, double verfreq );
 
 int im_benchmarkn( VipsImage *in, VipsImage *out, int n );
 int im_benchmark2( VipsImage *in, double *out );

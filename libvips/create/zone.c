@@ -96,7 +96,7 @@ vips_zone_gen( VipsRegion *or, void *seq, void *a, void *b,
 		int vp = (y - vsize) * (y - vsize);
 
 		for( x = le; x < ri; x++ ) 
-			q[x] = cos( c * (vp + ((x - hsize) * (x - hsize))) );
+			*q++ = cos( c * (vp + ((x - hsize) * (x - hsize))) );
 	}
 
 	return( 0 );

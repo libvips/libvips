@@ -107,6 +107,7 @@ vips_create_operation_init( void )
 	extern GType vips_eye_get_type( void ); 
 	extern GType vips_grey_get_type( void ); 
 	extern GType vips_zone_get_type( void ); 
+	extern GType vips_sines_get_type( void ); 
 
 	vips_black_get_type();
 	vips_gaussnoise_get_type(); 
@@ -117,5 +118,6 @@ vips_create_operation_init( void )
 	vips_eye_get_type(); 
 	vips_grey_get_type(); 
 	vips_zone_get_type(); 
+	vips_sines_get_type(); 
 }
 
