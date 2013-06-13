@@ -4,6 +4,7 @@ libcreate_la_SOURCES = \
 	create.c \
 	eye.c \
 	grey.c \
+	zone.c \
 	xyz.c \
 	black.c \
 	text.c \

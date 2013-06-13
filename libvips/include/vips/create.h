@@ -55,6 +55,8 @@ int vips_gaussnoise( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 int vips_eye( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
+int vips_zone( VipsImage **out, int width, int height, ... )
+	__attribute__((sentinel));
 
 
 
