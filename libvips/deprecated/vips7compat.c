@@ -2401,6 +2401,41 @@ im_feye( IMAGE *out, const int xsize, const int ysize, const double factor )
 }
 
 int
+im_grey( IMAGE *out, const int xsize, const int ysize )
+{
+	VipsImage *x;
+
+	if( vips_grey( &x, xsize, ysize, 
+		"uchar", TRUE,
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
+im_fgrey( IMAGE *out, const int xsize, const int ysize )
+{
+	VipsImage *x;
+
+	if( vips_grey( &x, xsize, ysize, 
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
 im_rightshift_size( IMAGE *in, IMAGE *out, 
 	int xshift, int yshift, int band_fmt )
 {
