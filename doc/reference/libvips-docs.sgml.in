@@ -44,7 +44,7 @@
     <xi:include href="xml/mask.xml"/>
     <xi:include href="xml/morphology.xml"/>
     <xi:include href="xml/mosaicing.xml"/>
-    <xi:include href="xml/other.xml"/>
+    <xi:include href="xml/create.xml"/>
     <xi:include href="xml/resample.xml"/>
     <xi:include href="xml/video.xml"/>
   </chapter>

@@ -25,7 +25,7 @@ SUBDIRS = \
 	iofuncs \
 	morphology \
 	mosaicing \
-	other \
+	create \
 	video \
 	.
 
@@ -58,7 +58,7 @@ libvips_la_LIBADD = \
 	iofuncs/libiofuncs.la \
 	morphology/libmorphology.la \
 	mosaicing/libmosaicing.la \
-	other/libother.la \
+	create/libcreate.la \
 	video/libvideo.la \
 	@VIPS_LIBS@
 

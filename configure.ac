@@ -715,7 +715,7 @@ AC_OUTPUT([
 	libvips/iofuncs/Makefile 
 	libvips/morphology/Makefile 
 	libvips/mosaicing/Makefile 
-	libvips/other/Makefile 
+	libvips/create/Makefile 
 	libvips/resample/Makefile 
 	libvips/video/Makefile 
 	libvipsCC/include/Makefile 

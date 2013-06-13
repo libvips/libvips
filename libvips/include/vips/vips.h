@@ -134,7 +134,7 @@ extern "C" {
 #include <vips/resample.h>
 #include <vips/colour.h>
 #include <vips/inplace.h>
-#include <vips/other.h>
+#include <vips/create.h>
 #include <vips/video.h>
 #include <vips/cimg_funcs.h>
 

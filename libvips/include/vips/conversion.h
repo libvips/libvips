@@ -250,15 +250,6 @@ int vips_bandeor( VipsImage *in, VipsImage **out, ... )
 int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
 	__attribute__((sentinel));
 
-int vips_black( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
-int vips_xyz( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
-int vips_text( VipsImage **out, const char *text, ... )
-	__attribute__((sentinel));
-int vips_gaussnoise( VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
-
 int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2, 
 	VipsImage **out, ... )
 	__attribute__((sentinel));

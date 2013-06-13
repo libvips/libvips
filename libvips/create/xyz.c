@@ -52,10 +52,10 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include "conversion.h"
+#include "create.h"
 
 typedef struct _VipsXyz {
-	VipsConversion parent_instance;
+	VipsCreate parent_instance;
 
 	int width;
 	int height;
@@ -67,9 +67,9 @@ typedef struct _VipsXyz {
 
 } VipsXyz;
 
-typedef VipsConversionClass VipsXyzClass;
+typedef VipsCreateClass VipsXyzClass;
 
-G_DEFINE_TYPE( VipsXyz, vips_xyz, VIPS_TYPE_CONVERSION );
+G_DEFINE_TYPE( VipsXyz, vips_xyz, VIPS_TYPE_CREATE );
 
 static int
 vips_xyz_gen( VipsRegion *or, void *seq, void *a, void *b,
@@ -122,7 +122,7 @@ static int
 vips_xyz_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsConversion *conversion = VIPS_CONVERSION( object );
+	VipsCreate *create = VIPS_CREATE( object );
 	VipsXyz *xyz = (VipsXyz *) object;
 
 	double d;
@@ -158,15 +158,15 @@ vips_xyz_build( VipsObject *object )
 	}
 	ysize = d;
 
-	vips_image_init_fields( conversion->out,
+	vips_image_init_fields( create->out,
 		xyz->width, ysize, xyz->dimensions, 
 		VIPS_FORMAT_UINT, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 );
-	vips_demand_hint( conversion->out, 
+	vips_demand_hint( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
 
-	if( vips_image_generate( conversion->out, 
+	if( vips_image_generate( create->out, 
 		NULL, vips_xyz_gen, NULL, xyz, NULL ) )
 		return( -1 );
 

@@ -56,10 +56,10 @@
 #include <pango/pango.h>
 #include <pango/pangoft2.h>
 
-#include "conversion.h"
+#include "create.h"
 
 typedef struct _VipsText {
-	VipsConversion parent_instance;
+	VipsCreate parent_instance;
 
 	char *text;
 	char *font;
@@ -73,9 +73,9 @@ typedef struct _VipsText {
 
 } VipsText;
 
-typedef VipsConversionClass VipsTextClass;
+typedef VipsCreateClass VipsTextClass;
 
-G_DEFINE_TYPE( VipsText, vips_text, VIPS_TYPE_CONVERSION );
+G_DEFINE_TYPE( VipsText, vips_text, VIPS_TYPE_CREATE );
 
 /* Just have one of these and reuse it.
  *
@@ -146,7 +146,7 @@ static int
 vips_text_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsConversion *conversion = VIPS_CONVERSION( object );
+	VipsCreate *create = VIPS_CREATE( object );
 	VipsText *text = (VipsText *) object;
 
 	PangoRectangle logical_rect;
@@ -229,15 +229,15 @@ vips_text_build( VipsObject *object )
 
 	g_mutex_unlock( vips_text_lock ); 
 
-	vips_image_init_fields( conversion->out,
+	vips_image_init_fields( create->out,
 		text->bitmap.width, text->bitmap.rows, 1, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
 		1.0, 1.0 ); 
-	vips_demand_hint( conversion->out, 
+	vips_demand_hint( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
 
 	for( y = 0; y < text->bitmap.rows; y++ ) 
-		if( vips_image_write_line( conversion->out, y, 
+		if( vips_image_write_line( create->out, y, 
 			(VipsPel *) text->bitmap.buffer + 
 				y * text->bitmap.pitch ) )
 			return( -1 );

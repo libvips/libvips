@@ -1,10 +1,7 @@
 /* base class for all conversion operations
  *
  * properties:
- * 	- unary, binary or binary with one arg a constant
- * 	- cast binary args to match
- * 	- not point-to-point
- * 	- format, bands etc. can all change
+ * 	- single output image
  */
 
 /*

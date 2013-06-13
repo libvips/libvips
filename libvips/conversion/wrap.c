@@ -112,7 +112,7 @@ vips_wrap_class_init( VipsWrapClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "wrap";
-	vobject_class->description = _( "wrap an image to uchar" );
+	vobject_class->description = _( "wrap image origin" );
 	vobject_class->build = vips_wrap_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 

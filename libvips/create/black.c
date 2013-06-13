@@ -61,10 +61,10 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include "conversion.h"
+#include "create.h"
 
 typedef struct _VipsBlack {
-	VipsConversion parent_instance;
+	VipsCreate parent_instance;
 
 	int width;
 	int height;
@@ -72,9 +72,9 @@ typedef struct _VipsBlack {
 
 } VipsBlack;
 
-typedef VipsConversionClass VipsBlackClass;
+typedef VipsCreateClass VipsBlackClass;
 
-G_DEFINE_TYPE( VipsBlack, vips_black, VIPS_TYPE_CONVERSION );
+G_DEFINE_TYPE( VipsBlack, vips_black, VIPS_TYPE_CREATE );
 
 static int
 vips_black_gen( VipsRegion *or, void *seq, void *a, void *b,
@@ -88,22 +88,22 @@ vips_black_gen( VipsRegion *or, void *seq, void *a, void *b,
 static int
 vips_black_build( VipsObject *object )
 {
-	VipsConversion *conversion = VIPS_CONVERSION( object );
+	VipsCreate *create = VIPS_CREATE( object );
 	VipsBlack *black = (VipsBlack *) object;
 
 	if( VIPS_OBJECT_CLASS( vips_black_parent_class )->build( object ) )
 		return( -1 );
 
-	vips_image_init_fields( conversion->out,
+	vips_image_init_fields( create->out,
 		black->width, black->height, black->bands, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
                 black->bands == 1 ? 
 			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 );
-	vips_demand_hint( conversion->out, 
+	vips_demand_hint( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
 
-	if( vips_image_generate( conversion->out, 
+	if( vips_image_generate( create->out, 
 		NULL, vips_black_gen, NULL, NULL, NULL ) )
 		return( -1 );
 

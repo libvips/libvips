@@ -1,6 +1,11 @@
-noinst_LTLIBRARIES = libother.la
+noinst_LTLIBRARIES = libcreate.la
 
-libother_la_SOURCES = \
+libcreate_la_SOURCES = \
+	create.c \
+	xyz.c \
+	black.c \
+	text.c \
+	gaussnoise.c \
 	im_benchmark.c \
 	im_eye.c \
 	im_grey.c \

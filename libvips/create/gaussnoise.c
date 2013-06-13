@@ -59,10 +59,10 @@
 
 #include <vips/vips.h>
 
-#include "conversion.h"
+#include "create.h"
 
 typedef struct _VipsGaussnoise {
-	VipsConversion parent_instance;
+	VipsCreate parent_instance;
 
 	int width;
 	int height;
@@ -71,9 +71,9 @@ typedef struct _VipsGaussnoise {
 
 } VipsGaussnoise;
 
-typedef VipsConversionClass VipsGaussnoiseClass;
+typedef VipsCreateClass VipsGaussnoiseClass;
 
-G_DEFINE_TYPE( VipsGaussnoise, vips_gaussnoise, VIPS_TYPE_CONVERSION );
+G_DEFINE_TYPE( VipsGaussnoise, vips_gaussnoise, VIPS_TYPE_CREATE );
 
 /* Make a random number in 0 - 1. Prefer random(). 
  */
@@ -121,20 +121,20 @@ vips_gaussnoise_gen( VipsRegion *or, void *seq, void *a, void *b,
 static int
 vips_gaussnoise_build( VipsObject *object )
 {
-	VipsConversion *conversion = VIPS_CONVERSION( object );
+	VipsCreate *create = VIPS_CREATE( object );
 	VipsGaussnoise *gaussnoise = (VipsGaussnoise *) object;
 
 	if( VIPS_OBJECT_CLASS( vips_gaussnoise_parent_class )->build( object ) )
 		return( -1 );
 
-	vips_image_init_fields( conversion->out,
+	vips_image_init_fields( create->out,
 		gaussnoise->width, gaussnoise->height, 1,
 		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
-	vips_demand_hint( conversion->out, 
+	vips_demand_hint( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
 
-	if( vips_image_generate( conversion->out, 
+	if( vips_image_generate( create->out, 
 		NULL, vips_gaussnoise_gen, NULL, gaussnoise, NULL ) )
 		return( -1 );
 

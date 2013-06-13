@@ -16,13 +16,11 @@ libconversion_la_SOURCES = \
 	replicate.c \
 	cast.c \
 	bandjoin.c \
-	black.c \
 	recomb.c \
 	bandmean.c \
 	bandbool.c \
 	bandary.h \
 	bandary.c \
-	gaussnoise.c \
 	rot.c \
 	ifthenelse.c \
 	im_falsecolour.c \
@@ -31,8 +29,6 @@ libconversion_la_SOURCES = \
 	scale.c \
 	wrap.c \
 	subsample.c \
-	text.c \
-	xyz.c \
 	zoom.c
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@

@@ -245,6 +245,7 @@ vips_init( const char *argv0 )
 	(void) vips_system_get_type();
 	vips_arithmetic_operation_init();
 	vips_conversion_operation_init();
+	vips_create_operation_init();
 	vips_foreign_operation_init();
 	vips_resample_operation_init();
 	vips_colour_operation_init();

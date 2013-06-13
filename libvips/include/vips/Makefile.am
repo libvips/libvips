@@ -27,7 +27,7 @@ pkginclude_HEADERS = \
 	memory.h \
 	morphology.h \
 	mosaicing.h \
-	other.h \
+	create.h \
 	video.h \
 	cimg_funcs.h \
 	object.h \
