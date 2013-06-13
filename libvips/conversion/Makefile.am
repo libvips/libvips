@@ -25,7 +25,6 @@ libconversion_la_SOURCES = \
 	gaussnoise.c \
 	rot.c \
 	ifthenelse.c \
-	conver_dispatch.c \
 	im_falsecolour.c \
 	msb.c \
 	grid.c \

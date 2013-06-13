@@ -37,26 +37,6 @@
 
 #include <vips/vips.h>
 
-/** 
- * SECTION: conversion
- * @short_description: convert images in some way: change band format, change header, insert, extract, join
- * @see_also: <link linkend="libvips-resample">resample</link>
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These operations convert an image in some way. They can be split into a two
- * main groups.
- *
- * The first set of operations change an image's format in some way. You
- * can change the band format (for example, cast to 32-bit unsigned
- * int), form complex images from real images, convert images to
- * matrices and back, change header fields, and a few others.
- *
- * The second group move pixels about in some way. You can flip, rotate,
- * extract, insert and join pairs of images in various ways.
- *
- */
-
 static int
 system_vec( im_object *argv )
 {
