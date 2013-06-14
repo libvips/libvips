@@ -26,6 +26,7 @@ libresample_la_SOURCES = \
 	shrink.c \
 	affine.c \
 	interpolate.c \
+	quadratic.c \
 	transform.c 
 
 EXTRA_DIST = \
