@@ -1,6 +1,11 @@
 
-- the rest of "create" can be classed quickly 
-
+- we can have a base class for these four
+	 
+	john@bambam ~/GIT/libvips/libvips/create (master) $ grep -l '"uchar' *.c
+	eye.c
+	grey.c
+	sines.c
+	zone.c
 
 
 
