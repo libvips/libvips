@@ -58,87 +58,51 @@
 #include <vips/vips.h>
 
 #include "create.h"
+#include "point.h"
 
 typedef struct _VipsSines {
-	VipsCreate parent_instance;
-
-	int width;
-	int height;
+	VipsPoint parent_instance;
 
 	double hfreq;
 	double vfreq;
-	gboolean uchar;
+
+	double c;
+	double sintheta;
+	double costheta;
 
 } VipsSines;
 
-typedef VipsCreateClass VipsSinesClass;
+typedef VipsPointClass VipsSinesClass;
 
-G_DEFINE_TYPE( VipsSines, vips_sines, VIPS_TYPE_CREATE );
+G_DEFINE_TYPE( VipsSines, vips_sines, VIPS_TYPE_POINT );
 
-static int
-vips_sines_gen( VipsRegion *or, void *seq, void *a, void *b,
-	gboolean *stop )
+static float
+vips_sines_point( VipsPoint *point, int x, int y ) 
 {
-	VipsSines *sines = (VipsSines *) a;
-	VipsRect *r = &or->valid;
-	int le = r->left;
-	int to = r->top;
-	int ri = VIPS_RECT_RIGHT( r );
-	int bo = VIPS_RECT_BOTTOM( r );
+	VipsSines *sines = (VipsSines *) point;
 
-	double theta = sines->hfreq == 0.0 ? 
-		VIPS_PI / 2.0 : atan( sines->vfreq / sines->hfreq );
-	double costheta = cos( theta ); 
-	double sintheta = sin( theta );
-	double factor = sqrt( sines->hfreq * sines->hfreq + 
-		sines->vfreq * sines->vfreq );
-	double cons = factor * VIPS_PI * 2.0 / sines->width;
-
-	int x, y;
-
-	for( y = to; y < bo; y++ ) {
-		float *q = (float *) VIPS_REGION_ADDR( or, le, y );
-		double ysintheta = y * sintheta;
-
-		for( x = le; x < ri; x++ ) 
-			*q++ = cos( cons * (x * costheta - ysintheta) );
-	}
-
-	return( 0 );
+	return( cos( sines->c * (x * sines->costheta - y * sines->sintheta) ) );
 }
 
 static int
 vips_sines_build( VipsObject *object )
 {
-	VipsCreate *create = VIPS_CREATE( object );
+	VipsPoint *point = VIPS_POINT( object );
 	VipsSines *sines = (VipsSines *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
-	VipsImage *in;
+
+	double theta;
+	double factor;
 
 	if( VIPS_OBJECT_CLASS( vips_sines_parent_class )->build( object ) )
 		return( -1 );
 
-	t[0] = vips_image_new();
-	vips_image_init_fields( t[0],
-		sines->width, sines->height, 1,
-		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
-		1.0, 1.0 );
-	vips_demand_hint( t[0], 
-		VIPS_DEMAND_STYLE_ANY, NULL );
-	if( vips_image_generate( t[0], 
-		NULL, vips_sines_gen, NULL, sines, NULL ) )
-		return( -1 );
-
-	in = t[0];
-	if( sines->uchar ) {
-		if( vips_linear1( in, &t[1], 127.5, 127.5, NULL ) ||
-			vips_cast( t[1], &t[2], VIPS_FORMAT_UCHAR, NULL ) )
-			return( -1 );
-		in = t[2];
-	}
-
-	if( vips_image_write( in, create->out ) )
-		return( -1 );
+	theta = sines->hfreq == 0.0 ? 
+		VIPS_PI / 2.0 : atan( sines->vfreq / sines->hfreq );
+	factor = sqrt( sines->hfreq * sines->hfreq + 
+		sines->vfreq * sines->vfreq );
+	sines->costheta = cos( theta ); 
+	sines->sintheta = sin( theta );
+	sines->c = factor * VIPS_PI * 2.0 / point->width;
 
 	return( 0 );
 }
@@ -148,6 +112,7 @@ vips_sines_class_init( VipsSinesClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsPointClass *point_class = VIPS_POINT_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -156,19 +121,7 @@ vips_sines_class_init( VipsSinesClass *class )
 	vobject_class->description = _( "make a 2D sine wave" );
 	vobject_class->build = vips_sines_build;
 
-	VIPS_ARG_INT( class, "width", 4, 
-		_( "Width" ), 
-		_( "Image width in pixels" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsSines, width ),
-		1, 1000000, 1 );
-
-	VIPS_ARG_INT( class, "height", 5, 
-		_( "Height" ), 
-		_( "Image height in pixels" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsSines, height ),
-		1, 1000000, 1 );
+	point_class->point = vips_sines_point;
 
 	VIPS_ARG_DOUBLE( class, "hfreq", 6, 
 		_( "hfreq" ), 
@@ -183,14 +136,6 @@ vips_sines_class_init( VipsSinesClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSines, vfreq ),
 		0.0, 10000.0, 0.5 );
-
-	VIPS_ARG_BOOL( class, "uchar", 8, 
-		_( "Uchar" ), 
-		_( "Output an unsigned char image" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsSines, uchar ),
-		FALSE );
-
 }
 
 static void
@@ -199,7 +144,6 @@ vips_sines_init( VipsSines *sines )
 	sines->hfreq = 0.5;
 	sines->vfreq = 0.5;
 }
-
 
 /**
  * vips_sines:

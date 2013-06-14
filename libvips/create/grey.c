@@ -66,90 +66,29 @@
 #include <vips/vips.h>
 
 #include "create.h"
+#include "point.h"
 
-typedef struct _VipsGrey {
-	VipsCreate parent_instance;
+typedef VipsPoint VipsGrey;
+typedef VipsPointClass VipsGreyClass;
 
-	int width;
-	int height;
+G_DEFINE_TYPE( VipsGrey, vips_grey, VIPS_TYPE_POINT );
 
-	gboolean uchar;
-
-} VipsGrey;
-
-typedef VipsCreateClass VipsGreyClass;
-
-G_DEFINE_TYPE( VipsGrey, vips_grey, VIPS_TYPE_CREATE );
-
-static int
-vips_grey_build( VipsObject *object )
+static float
+vips_grey_point( VipsPoint *point, int x, int y ) 
 {
-	VipsCreate *create = VIPS_CREATE( object );
-	VipsGrey *grey = (VipsGrey *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
-	VipsImage *in;
-
-	if( VIPS_OBJECT_CLASS( vips_grey_parent_class )->build( object ) )
-		return( -1 );
-
-	if( vips_xyz( &t[0], grey->width, grey->height, NULL ) ||
-		vips_extract_band( t[0], &t[1], 0, NULL ) )
-		return( -1 );
-	
-	if( grey->uchar ) {
-		if( vips_linear1( t[1], &t[2], 
-				255.0 / (grey->width - 1), 0.0, NULL ) ||
-			vips_cast( t[2], &t[3], VIPS_FORMAT_UCHAR, NULL ) )
-			return( -1 );
-		in = t[3];
-	}
-	else {
-		if( vips_linear1( t[1], &t[2], 
-			1.0 / (grey->width - 1), 0, NULL ) )
-			return( -1 );
-		in = t[2];
-	}
-	
-	if( vips_image_write( in, create->out ) )
-		return( -1 );
-
-	return( 0 );
+	return( (double) x / (point->width - 1) );
 }
 
 static void
 vips_grey_class_init( VipsGreyClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
+	VipsPointClass *point_class = VIPS_POINT_CLASS( class );
 
 	vobject_class->nickname = "grey";
 	vobject_class->description = _( "make a grey ramp image" );
-	vobject_class->build = vips_grey_build;
 
-	VIPS_ARG_INT( class, "width", 4, 
-		_( "Width" ), 
-		_( "Image width in pixels" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsGrey, width ),
-		1, 1000000, 1 );
-
-	VIPS_ARG_INT( class, "height", 5, 
-		_( "Height" ), 
-		_( "Image height in pixels" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsGrey, height ),
-		1, 1000000, 1 );
-
-	VIPS_ARG_BOOL( class, "uchar", 7, 
-		_( "Uchar" ), 
-		_( "Output an unsigned char image" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsGrey, uchar ),
-		FALSE );
-
+	point_class->point = vips_grey_point;
 }
 
 static void

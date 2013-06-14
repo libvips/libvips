@@ -59,126 +59,43 @@
 #include <vips/vips.h>
 
 #include "create.h"
+#include "point.h"
 
-typedef struct _VipsZone {
-	VipsCreate parent_instance;
+typedef VipsPoint VipsZone;
+typedef VipsPointClass VipsZoneClass;
 
-	int width;
-	int height;
+G_DEFINE_TYPE( VipsZone, vips_zone, VIPS_TYPE_POINT );
 
-	gboolean uchar;
-
-} VipsZone;
-
-typedef VipsCreateClass VipsZoneClass;
-
-G_DEFINE_TYPE( VipsZone, vips_zone, VIPS_TYPE_CREATE );
-
-static int
-vips_zone_gen( VipsRegion *or, void *seq, void *a, void *b,
-	gboolean *stop )
+static float
+vips_zone_point( VipsPoint *point, int x, int y ) 
 {
-	VipsZone *zone = (VipsZone *) a;
-	VipsRect *r = &or->valid;
-	int le = r->left;
-	int to = r->top;
-	int ri = VIPS_RECT_RIGHT( r );
-	int bo = VIPS_RECT_BOTTOM( r );
+	VipsZone *zone = (VipsZone *) point;
 
-	int hsize = zone->width / 2;
+	int hwidth = point->width / 2;
+	int hheight = point->height / 2;
+	int h2 = (x - hwidth) * (x - hwidth);
+	int v2 = (y - hheight) * (y - hheight);
 	double c = VIPS_PI / zone->width;
-	int vsize = zone->height / 2;
 
-	int x, y;
-
-	for( y = to; y < bo; y++ ) {
-		float *q = (float *) VIPS_REGION_ADDR( or, le, y );
-		int vp = (y - vsize) * (y - vsize);
-
-		for( x = le; x < ri; x++ ) 
-			*q++ = cos( c * (vp + ((x - hsize) * (x - hsize))) );
-	}
-
-	return( 0 );
-}
-
-static int
-vips_zone_build( VipsObject *object )
-{
-	VipsCreate *create = VIPS_CREATE( object );
-	VipsZone *zone = (VipsZone *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
-	VipsImage *in;
-
-	if( VIPS_OBJECT_CLASS( vips_zone_parent_class )->build( object ) )
-		return( -1 );
-
-	t[0] = vips_image_new();
-	vips_image_init_fields( t[0],
-		zone->width, zone->height, 1,
-		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
-		1.0, 1.0 );
-	vips_demand_hint( t[0], 
-		VIPS_DEMAND_STYLE_ANY, NULL );
-	if( vips_image_generate( t[0], 
-		NULL, vips_zone_gen, NULL, zone, NULL ) )
-		return( -1 );
-
-	in = t[0];
-	if( zone->uchar ) {
-		if( vips_linear1( in, &t[1], 127.5, 127.5, NULL ) ||
-			vips_cast( t[1], &t[2], VIPS_FORMAT_UCHAR, NULL ) )
-			return( -1 );
-		in = t[2];
-	}
-
-	if( vips_image_write( in, create->out ) )
-		return( -1 );
-
-	return( 0 );
+	return( cos( c * (v2 + h2) ) );
 }
 
 static void
 vips_zone_class_init( VipsZoneClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
+	VipsPointClass *point_class = VIPS_POINT_CLASS( class );
 
 	vobject_class->nickname = "zone";
 	vobject_class->description = _( "make a zone plate" );
-	vobject_class->build = vips_zone_build;
 
-	VIPS_ARG_INT( class, "width", 4, 
-		_( "Width" ), 
-		_( "Image width in pixels" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsZone, width ),
-		1, 1000000, 1 );
-
-	VIPS_ARG_INT( class, "height", 5, 
-		_( "Height" ), 
-		_( "Image height in pixels" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsZone, height ),
-		1, 1000000, 1 );
-
-	VIPS_ARG_BOOL( class, "uchar", 7, 
-		_( "Uchar" ), 
-		_( "Output an unsigned char image" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsZone, uchar ),
-		FALSE );
-
+	point_class->point = vips_zone_point;
 }
 
 static void
 vips_zone_init( VipsZone *zone )
 {
 }
-
 
 /**
  * vips_zone:
