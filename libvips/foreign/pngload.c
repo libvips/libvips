@@ -73,9 +73,9 @@ vips_foreign_load_png_get_flags_filename( const char *filename )
 
 	flags = 0;
 	if( vips__png_isinterlaced( filename ) )
-		flags = VIPS_FOREIGN_PARTIAL;
+		flags |= VIPS_FOREIGN_PARTIAL;
 	else
-		flags = VIPS_FOREIGN_SEQUENTIAL;
+		flags |= VIPS_FOREIGN_SEQUENTIAL;
 
 	return( flags );
 }
@@ -146,4 +146,72 @@ vips_foreign_load_png_init( VipsForeignLoadPng *png )
 {
 }
 
+typedef struct _VipsForeignLoadPngBuffer {
+	VipsForeignLoad parent_object;
+
+	/* Load from a buffer.
+	 */
+	VipsArea *buf;
+
+} VipsForeignLoadPngBuffer;
+
+typedef VipsForeignLoadClass VipsForeignLoadPngBufferClass;
+
+G_DEFINE_TYPE( VipsForeignLoadPngBuffer, vips_foreign_load_png_buffer, 
+	VIPS_TYPE_FOREIGN_LOAD );
+
+static int
+vips_foreign_load_png_buffer_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadPngBuffer *png = (VipsForeignLoadPngBuffer *) load;
+
+	if( vips__png_header_buffer( load->out, 
+		png->buf->data, png->buf->length ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_png_buffer_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadPngBuffer *png = (VipsForeignLoadPngBuffer *) load;
+
+	if( vips__png_read_buffer( load->out, 
+		png->buf->data, png->buf->length ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "pngload_buffer";
+	object_class->description = _( "load png from buffer" );
+
+	load_class->header = vips_foreign_load_png_buffer_header;
+	load_class->load = vips_foreign_load_png_buffer_load;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, buf ),
+		VIPS_TYPE_BLOB );
+}
+
+static void
+vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *png )
+{
+}
+
 #endif /*HAVE_PNG*/
+

@@ -1583,6 +1583,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_ppm_get_type( void ); 
 	extern GType vips_foreign_save_ppm_get_type( void ); 
 	extern GType vips_foreign_load_png_get_type( void ); 
+	extern GType vips_foreign_load_png_buffer_get_type( void ); 
 	extern GType vips_foreign_save_png_file_get_type( void ); 
 	extern GType vips_foreign_save_png_buffer_get_type( void ); 
 	extern GType vips_foreign_load_csv_get_type( void ); 
@@ -1623,6 +1624,7 @@ vips_foreign_operation_init( void )
 
 #ifdef HAVE_PNG
 	vips_foreign_load_png_get_type(); 
+	vips_foreign_load_png_buffer_get_type(); 
 	vips_foreign_save_png_file_get_type(); 
 	vips_foreign_save_png_buffer_get_type(); 
 #endif /*HAVE_PNG*/
@@ -2220,6 +2222,47 @@ vips_pngload( const char *filename, VipsImage **out, ... )
 	va_start( ap, out );
 	result = vips_call_split( "pngload", ap, filename, out );
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_pngload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read a PNG-formatted memory block into a VIPS image. It can read all png 
+ * images, including 8- and 16-bit images, 1 and 3 channel, with and without 
+ * an alpha channel.
+ *
+ * Any ICC profile is read and attached to the VIPS image.
+ *
+ * Caution: on return only the header will have been read, the pixel data is
+ * not decompressed until the first pixel is read. Therefore you must not free
+ * @buf until you have read pixel data from @out.
+ *
+ * See also: vips_pngload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	area = vips_area_new_blob( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "pngload_buffer", ap, area, out );
+	va_end( ap );
+
+	vips_area_unref( area );
 
 	return( result );
 }

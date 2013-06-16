@@ -125,11 +125,20 @@ typedef struct {
 	char *name;
 	VipsImage *out;
 
-	FILE *fp;
 	int y_pos;
 	png_structp pPng;
 	png_infop pInfo;
 	png_bytep *row_pointer;
+
+	/* For FILE input.
+	 */
+	FILE *fp;
+
+	/* For memory input.
+	 */
+	char *buffer;
+	size_t length;
+	size_t read_pos;
 } Read;
 
 static void
@@ -142,26 +151,26 @@ read_destroy( VipsImage *out, Read *read )
 }
 
 static Read *
-read_new( const char *name, VipsImage *out )
+read_new( VipsImage *out )
 {
 	Read *read;
 
 	if( !(read = VIPS_NEW( out, Read )) )
 		return( NULL );
 
-	read->name = vips_strdup( VIPS_OBJECT( out ), name );
+	read->name = NULL;
 	read->out = out;
-	read->fp = NULL;
 	read->y_pos = 0;
 	read->pPng = NULL;
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
+	read->fp = NULL;
+	read->buffer = NULL;
+	read->length = 0;
+	read->read_pos = 0;
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_destroy ), read ); 
-
-        if( !(read->fp = vips__file_open_read( name, NULL, FALSE )) ) 
-		return( NULL );
 
 	if( !(read->pPng = png_create_read_struct( 
 		PNG_LIBPNG_VER_STRING, NULL,
@@ -174,6 +183,22 @@ read_new( const char *name, VipsImage *out )
 		return( NULL );
 
 	if( !(read->pInfo = png_create_info_struct( read->pPng )) ) 
+		return( NULL );
+
+	return( read );
+}
+
+static Read *
+read_new_filename( VipsImage *out, const char *name )
+{
+	Read *read;
+
+	if( !(read = read_new( out )) )
+		return( NULL );
+
+	read->name = vips_strdup( VIPS_OBJECT( out ), name );
+
+        if( !(read->fp = vips__file_open_read( name, NULL, FALSE )) ) 
 		return( NULL );
 
 	/* Read enough of the file that png_get_interlace_type() will start
@@ -366,7 +391,7 @@ vips__png_header( const char *name, VipsImage *out )
 {
 	Read *read;
 
-	if( !(read = read_new( name, out )) ||
+	if( !(read = read_new_filename( out, name )) ||
 		png2vips_header( read, out ) ) 
 		return( -1 );
 
@@ -465,7 +490,7 @@ vips__png_isinterlaced( const char *filename )
 	int interlace_type;
 
 	image = vips_image_new();
-	if( !(read = read_new( filename, image )) ) {
+	if( !(read = read_new_filename( image, filename )) ) {
 		g_object_unref( image );
 		return( -1 );
 	}
@@ -475,23 +500,12 @@ vips__png_isinterlaced( const char *filename )
 	return( interlace_type != PNG_INTERLACE_NONE );
 }
 
-int
-vips__png_read( const char *filename, VipsImage *out )
+static int
+read_all( Read *read, VipsImage *out )
 {
+	int interlace_type = png_get_interlace_type( read->pPng, read->pInfo );
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
-
-	Read *read;
-	int interlace_type;
-
-#ifdef DEBUG
-	printf( "vips__png_read: reading \"%s\"\n", filename );
-#endif /*DEBUG*/
-
-	if( !(read = read_new( filename, out )) )
-		return( -1 );
-
-	interlace_type = png_get_interlace_type( read->pPng, read->pInfo );
 
 	if( interlace_type != PNG_INTERLACE_NONE ) { 
 		/* Arg awful interlaced image. We have to load to a huge mem 
@@ -516,6 +530,22 @@ vips__png_read( const char *filename, VipsImage *out )
 			return( -1 );
 	}
 
+	return( 0 );
+}
+
+int
+vips__png_read( const char *filename, VipsImage *out )
+{
+	Read *read;
+
+#ifdef DEBUG
+	printf( "vips__png_read: reading \"%s\"\n", filename );
+#endif /*DEBUG*/
+
+	if( !(read = read_new_filename( out, filename )) ||
+		read_all( read, out ) )
+		return( -1 ); 
+
 #ifdef DEBUG
 	printf( "vips__png_read: done\n" );
 #endif /*DEBUG*/
@@ -530,6 +560,63 @@ vips__png_ispng( const char *filename )
 
 	return( vips__get_bytes( filename, buf, 8 ) &&
 		!png_sig_cmp( buf, 0, 8 ) );
+}
+
+static void
+vips_png_read_buffer( png_structp pPng, png_bytep data, png_size_t length )
+{
+	Read *read = png_get_io_ptr( pPng ); 
+
+	if( read->read_pos + length > read->length )
+		png_error( pPng, "not enough data in buffer" );
+
+	memcpy( data, read->buffer + read->read_pos, length );
+	read->read_pos += length;
+}
+
+static Read *
+read_new_buffer( VipsImage *out, char *buffer, size_t length )
+{
+	Read *read;
+
+	if( !(read = read_new( out )) )
+		return( NULL );
+
+	read->buffer = buffer;
+	read->length = length;
+
+	png_set_read_fn( read->pPng, read, vips_png_read_buffer ); 
+
+	/* Read enough of the file that png_get_interlace_type() will start
+	 * working.
+	 */
+	png_read_info( read->pPng, read->pInfo );
+
+	return( read );
+}
+
+int
+vips__png_header_buffer( VipsImage *out, char *buffer, size_t length )
+{
+	Read *read;
+
+	if( !(read = read_new_buffer( out, buffer, length )) ||
+		png2vips_header( read, out ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+int
+vips__png_read_buffer( VipsImage *out, char *buffer, size_t length  )
+{
+	Read *read;
+
+	if( !(read = read_new_buffer( out, buffer, length )) ||
+		read_all( read, out ) )
+		return( -1 ); 
+
+	return( 0 );
 }
 
 const char *vips__png_suffs[] = { ".png", NULL };
