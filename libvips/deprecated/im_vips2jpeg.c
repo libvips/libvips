@@ -94,8 +94,9 @@ im_vips2bufjpeg( IMAGE *in, IMAGE *out, int qfac, char **obuf, int *olen )
 
 	if( vips_jpegsave_buffer( in, (void **) obuf, &len, "Q", qfac, NULL ) )
 		return( -1 );
-	im_add_callback( out, "close", 
-		(im_callback_fn) vips_free, obuf, NULL ); 
+	if( out )
+		im_add_callback( out, "close", 
+			(im_callback_fn) vips_free, obuf, NULL ); 
 
 	if( olen )
 		*olen = len;

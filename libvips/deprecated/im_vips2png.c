@@ -85,8 +85,10 @@ im_vips2bufpng( IMAGE *in, IMAGE *out,
 		"interlace", interlace, 
 		NULL ) )
 		return( -1 );
-	im_add_callback( out, "close", 
-		(im_callback_fn) vips_free, obuf, NULL ); 
+
+	if( out )
+		im_add_callback( out, "close", 
+			(im_callback_fn) vips_free, obuf, NULL ); 
 
 	return( 0 );
 }

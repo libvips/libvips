@@ -1,14 +1,4 @@
 
-- we can have a base class for these four
-	 
-	john@bambam ~/GIT/libvips/libvips/create (master) $ grep -l '"uchar' *.c
-	eye.c
-	grey.c
-	sines.c
-	zone.c
-
-
-
 - look at
 	
 	There is an order 1 algorithm for doing medians over boxes (truly O(1)

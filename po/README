@@ -34,7 +34,7 @@ find */* -name "*.cpp" >> po/POTFILES.in
 
 intltool-update --pot
 
-	make a new vips7.32.pot translation template from the sources
+	make a new vips7.34.pot translation template from the sources
 
 :%s/msgstr ""/msgstr "Malkovich"/
 :%s/msgstr\[0\] ""/msgstr[0] "Malkovich"/
