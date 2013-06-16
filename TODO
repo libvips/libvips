@@ -1,3 +1,25 @@
+- need png load from buffer?
+
+- could we support streaming read? how would it work?
+
+	chunk_buffer = []
+
+	reader = JPEGReader.new_buffer(chunk_buffer, ..)
+	image = reader.read_buffero
+
+	writer = JPEGWriter.new(image, ...)
+	output = writer.to_memory
+	IO.write('fred.jpg', output)
+
+	bucket.objects['key'].read do |chunk|
+	  chunk_buffer << chunk
+
+	  # tell the reader more bytes are available?
+	  reader.kick
+	end
+
+
+
 
 - look at
 	
