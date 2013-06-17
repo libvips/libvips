@@ -28,12 +28,8 @@
 
  */
 
-/* We don't want to get confused with the point.h in include, put an
- * extra _ in there.
- */
-
-#ifndef VIPS__POINT_H
-#define VIPS__POINT_H
+#ifndef VIPS_POINT_H
+#define VIPS_POINT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,4 +73,4 @@ GType vips_point_get_type( void );
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS__POINT_H*/
+#endif /*VIPS_POINT_H*/

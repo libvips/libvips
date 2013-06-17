@@ -50,7 +50,7 @@
 
 #include <vips/vips.h>
 
-#include "conversion.h"
+#include "pconversion.h"
 
 typedef struct _VipsSubsample {
 	VipsConversion parent_instance;

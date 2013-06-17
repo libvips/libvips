@@ -35,7 +35,7 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include "conversion.h"
+#include "pconversion.h"
 
 #define VIPS_TYPE_BANDARY (vips_bandary_get_type())
 #define VIPS_BANDARY( obj ) \

@@ -47,7 +47,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "conversion.h"
+#include "pconversion.h"
 
 /** 
  * SECTION: conversion

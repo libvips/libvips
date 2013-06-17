@@ -59,7 +59,62 @@ EXTRA_HFILES=
 
 # Header files to ignore when scanning. Use base file name, no paths
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
-IGNORE_HFILES=merge.h debug.h internal.h intl.h CImg.h im_video_v4l1.h global_balance.h dbh.h base64.h templates.h mosaic.h deprecated.h thread.h private.h internal.h almostdeprecated.h inlines.h struct.h disp.h vector.h
+
+# we only want to document public API, so have all .h files not in
+# libvips/include in here ... and a few from libvips/include as well
+
+IGNORE_VIPS_INCLUDE = \
+	almostdeprecated.h \
+	cimg_funcs.h \
+	deprecated.h \
+	vips7compat.h \
+	dispatch.h \
+	enumtypes.h \
+	internal.h \
+	thread.h \
+	intl.h \
+	format.h \
+	mask.h \
+	private.h \
+	video.h
+
+# ignore all .h files in libvips/*, theese are internal
+IGNORE_VIPS_C = \
+	binary.h \
+	parithmetic.h \
+	statistic.h \
+	unaryconst.h \
+	unary.h \
+	CImg.h \
+	pcolour.h \
+	bandary.h \
+	pconversion.h \
+	pcreate.h \
+	point.h \
+	analyze2vips.h \
+	csv.h \
+	dbh.h \
+	fits.h \
+	jpeg.h \
+	magick.h \
+	matlab.h \
+	openexr2vips.h \
+	openslide2vips.h \
+	ppm.h \
+	radiance.h \
+	tiff.h \
+	vipspng.h \
+	draw.h \
+	base64.h \
+	sink.h \
+	global_balance.h \
+	merge.h \
+	mosaic.h \
+	presample.h \
+	templates.h \
+	im_video_v4l1.h
+
+IGNORE_HFILES = $(IGNORE_VIPS_INCLUDE) $(IGNORE_VIPS_C)
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png

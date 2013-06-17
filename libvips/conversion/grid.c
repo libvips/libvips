@@ -48,7 +48,7 @@
 
 #include <vips/vips.h>
 
-#include "conversion.h"
+#include "pconversion.h"
 
 typedef struct _VipsGrid {
 	VipsConversion parent_instance;

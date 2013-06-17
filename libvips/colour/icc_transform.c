@@ -80,7 +80,7 @@
 
 #include <vips/vips.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 /* Call lcms with up to this many pixels at once.
  */

@@ -47,7 +47,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "create.h"
+#include "pcreate.h"
 
 /** 
  * SECTION: create

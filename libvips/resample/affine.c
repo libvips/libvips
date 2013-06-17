@@ -129,7 +129,7 @@
 #include <vips/internal.h>
 #include <vips/transform.h>
 
-#include "resample.h"
+#include "presample.h"
 
 typedef struct _VipsAffine {
 	VipsResample parent_instance;

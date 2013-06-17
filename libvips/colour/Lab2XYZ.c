@@ -59,7 +59,7 @@
 #include <vips/vips.h>
 #include <vips/debug.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 typedef struct _VipsLab2XYZ {
 	VipsColourSpace parent_instance;

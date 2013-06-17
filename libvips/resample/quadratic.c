@@ -51,7 +51,7 @@
 #include <vips/vips.h>
 #include <vips/debug.h>
 
-#include "resample.h"
+#include "presample.h"
 
 /* The transform we compute:
 

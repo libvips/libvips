@@ -56,7 +56,7 @@
 #include <pango/pango.h>
 #include <pango/pangoft2.h>
 
-#include "create.h"
+#include "pcreate.h"
 
 typedef struct _VipsText {
 	VipsCreate parent_instance;

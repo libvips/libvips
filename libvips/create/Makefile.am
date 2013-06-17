@@ -2,7 +2,7 @@ noinst_LTLIBRARIES = libcreate.la
 
 libcreate_la_SOURCES = \
 	create.c \
-	create.h \
+	pcreate.h \
 	point.c \
 	point.h \
 	eye.c \

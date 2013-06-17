@@ -18,7 +18,7 @@ libarithmetic_la_SOURCES = \
 	subtract.c \
 	math.c \
 	arithmetic.c \
-	arithmetic.h \
+	parithmetic.h \
 	binary.c \
 	binary.h \
 	unary.c \

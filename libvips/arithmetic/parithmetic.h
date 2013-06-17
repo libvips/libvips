@@ -28,12 +28,8 @@
 
  */
 
-/* We don't want to get confused with the arithmetic.h in include, put an
- * extra _ in there.
- */
-
-#ifndef VIPS__ARITHMETIC_H
-#define VIPS__ARITHMETIC_H
+#ifndef VIPS_PARITHMETIC_H
+#define VIPS_PARITHMETIC_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -118,6 +114,6 @@ VipsVector *vips_arithmetic_get_program( VipsArithmeticClass *klass,
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS__ARITHMETIC_H*/
+#endif /*VIPS_PARITHMETIC_H*/
 
 

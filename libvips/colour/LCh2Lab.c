@@ -50,7 +50,7 @@
 
 #include <vips/vips.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 typedef VipsColourSpace VipsLCh2Lab;
 typedef VipsColourSpaceClass VipsLCh2LabClass;

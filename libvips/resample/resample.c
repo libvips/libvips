@@ -50,7 +50,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "resample.h"
+#include "presample.h"
 
 G_DEFINE_ABSTRACT_TYPE( VipsResample, vips_resample, VIPS_TYPE_OPERATION );
 

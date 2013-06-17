@@ -40,7 +40,7 @@
 #include <vips/vips.h>
 #include <vips/debug.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 typedef struct _VipsdECMC {
 	VipsColourDifference parent_instance;

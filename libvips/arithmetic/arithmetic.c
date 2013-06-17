@@ -52,7 +52,7 @@
 
 #include <vips/vips.h>
 
-#include "arithmetic.h"
+#include "parithmetic.h"
 
 /** 
  * SECTION: arithmetic

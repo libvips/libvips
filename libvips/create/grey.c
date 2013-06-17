@@ -65,7 +65,7 @@
 
 #include <vips/vips.h>
 
-#include "create.h"
+#include "pcreate.h"
 #include "point.h"
 
 typedef VipsPoint VipsGrey;

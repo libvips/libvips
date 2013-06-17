@@ -50,7 +50,7 @@
 
 #include <vips/vips.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 /* Arrays for lookup tables for the inverse function.
  */

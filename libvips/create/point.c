@@ -58,7 +58,7 @@
 
 #include <vips/vips.h>
 
-#include "create.h"
+#include "pcreate.h"
 #include "point.h"
 
 G_DEFINE_ABSTRACT_TYPE( VipsPoint, vips_point, VIPS_TYPE_CREATE );

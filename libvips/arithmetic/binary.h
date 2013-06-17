@@ -33,13 +33,11 @@
 
 #include <vips/vips.h>
 
-#include "arithmetic.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-#include "arithmetic.h"
+#include "parithmetic.h"
 
 #define VIPS_TYPE_BINARY (vips_binary_get_type())
 #define VIPS_BINARY( obj ) \

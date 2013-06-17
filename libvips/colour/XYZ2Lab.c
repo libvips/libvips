@@ -58,7 +58,7 @@
 
 #include <vips/vips.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 #ifndef HAVE_CBRT
 #define cbrt( X ) pow( (X), 1.0 / 3.0 )

@@ -47,7 +47,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 static int
 vips_scRGB2RGB16( VipsImage *in, VipsImage **out, ... )

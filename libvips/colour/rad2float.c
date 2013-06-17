@@ -111,7 +111,7 @@
 
 #include <vips/vips.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 /* Begin copy-paste from Radiance sources.
  */

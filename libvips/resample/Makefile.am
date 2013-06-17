@@ -8,7 +8,7 @@ libresample_la_SOURCES = \
 	affine.c \
 	quadratic.c \
 	resample.c \
-	resample.h \
+	presample.h \
 	shrink.c \
 	interpolate.c \
 	transform.c \
@@ -22,7 +22,7 @@ else
 
 libresample_la_SOURCES = \
 	resample.c \
-	resample.h \
+	presample.h \
 	shrink.c \
 	affine.c \
 	interpolate.c \

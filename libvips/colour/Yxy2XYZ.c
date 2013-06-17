@@ -47,7 +47,7 @@
 
 #include <vips/vips.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 typedef VipsColourSpace VipsYxy2XYZ;
 typedef VipsColourSpaceClass VipsYxy2XYZClass;

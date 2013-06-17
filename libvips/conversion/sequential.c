@@ -62,7 +62,7 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include "conversion.h"
+#include "pconversion.h"
 
 /* Stall threads that run ahead for up to this long, in seconds.
  *

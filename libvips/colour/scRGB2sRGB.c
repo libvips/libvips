@@ -64,7 +64,7 @@
 
 #include <vips/vips.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 typedef struct _VipsscRGB2sRGB {
 	VipsColourCode parent_instance;

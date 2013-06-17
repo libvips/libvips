@@ -94,7 +94,7 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include "conversion.h"
+#include "pconversion.h"
 
 typedef struct _VipsCast {
 	VipsConversion parent_instance;

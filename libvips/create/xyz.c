@@ -52,7 +52,7 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include "create.h"
+#include "pcreate.h"
 
 typedef struct _VipsXyz {
 	VipsCreate parent_instance;

@@ -61,7 +61,7 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include "create.h"
+#include "pcreate.h"
 
 typedef struct _VipsBlack {
 	VipsCreate parent_instance;

@@ -28,12 +28,8 @@
 
  */
 
-/* We don't want to get confused with the resample.h in include, put an
- * extra _ in there.
- */
-
-#ifndef VIPS__RESAMPLE_H
-#define VIPS__RESAMPLE_H
+#ifndef VIPS_PRESAMPLE_H
+#define VIPS_PRESAMPLE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,6 +69,6 @@ GType vips_resample_get_type( void );
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS__RESAMPLE_H*/
+#endif /*VIPS_PRESAMPLE_H*/
 
 

@@ -53,7 +53,7 @@
 
 #include <vips/vips.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 typedef VipsColourCode VipsLabS2LabQ;
 typedef VipsColourCodeClass VipsLabS2LabQClass;

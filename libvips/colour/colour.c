@@ -44,7 +44,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "colour.h"
+#include "pcolour.h"
 
 /**
  * SECTION: colour

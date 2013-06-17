@@ -86,7 +86,7 @@
 #include <vips/vips.h>
 #include <vips/debug.h>
 
-#include "resample.h"
+#include "presample.h"
 
 typedef struct _VipsShrink {
 	VipsResample parent_instance;

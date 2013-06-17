@@ -2,7 +2,7 @@ noinst_LTLIBRARIES = libconversion.la
 
 libconversion_la_SOURCES = \
 	conversion.c \
-	conversion.h \
+	pconversion.h \
 	tilecache.c \
 	sequential.c \
 	flatten.c \

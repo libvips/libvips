@@ -52,7 +52,7 @@
 
 #include <vips/vips.h>
 
-#include "conversion.h"
+#include "pconversion.h"
 
 #include "bandary.h"
 

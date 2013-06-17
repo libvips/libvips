@@ -35,7 +35,7 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include "arithmetic.h"
+#include "parithmetic.h"
 
 #define VIPS_TYPE_UNARY (vips_unary_get_type())
 #define VIPS_UNARY( obj ) \

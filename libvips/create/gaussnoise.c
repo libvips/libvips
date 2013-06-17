@@ -59,7 +59,7 @@
 
 #include <vips/vips.h>
 
-#include "create.h"
+#include "pcreate.h"
 
 typedef struct _VipsGaussnoise {
 	VipsCreate parent_instance;

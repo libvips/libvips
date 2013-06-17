@@ -1,4 +1,4 @@
-/* base class for all conversion operations
+/* base class for all create operations
  */
 
 /*
@@ -28,54 +28,48 @@
 
  */
 
-/* We don't want to get confused with the conversion.h in include, put an
- * extra _ in there.
- */
-
-#ifndef VIPS__CONVERSION_H
-#define VIPS__CONVERSION_H
+#ifndef VIPS_PCREATE_H
+#define VIPS_PCREATE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <vips/vector.h>
-
-#define VIPS_TYPE_CONVERSION (vips_conversion_get_type())
-#define VIPS_CONVERSION( obj ) \
+#define VIPS_TYPE_CREATE (vips_create_get_type())
+#define VIPS_CREATE( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-		VIPS_TYPE_CONVERSION, VipsConversion ))
-#define VIPS_CONVERSION_CLASS( klass ) \
+		VIPS_TYPE_CREATE, VipsCreate ))
+#define VIPS_CREATE_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-		VIPS_TYPE_CONVERSION, VipsConversionClass))
-#define VIPS_IS_CONVERSION( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_CONVERSION ))
-#define VIPS_IS_CONVERSION_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_CONVERSION ))
-#define VIPS_CONVERSION_GET_CLASS( obj ) \
+		VIPS_TYPE_CREATE, VipsCreateClass))
+#define VIPS_IS_CREATE( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_CREATE ))
+#define VIPS_IS_CREATE_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_CREATE ))
+#define VIPS_CREATE_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-		VIPS_TYPE_CONVERSION, VipsConversionClass ))
+		VIPS_TYPE_CREATE, VipsCreateClass ))
 
-typedef struct _VipsConversion {
+typedef struct _VipsCreate {
 	VipsOperation parent_instance;
 
 	/* All have an output image.
 	 */
 	VipsImage *out;
 
-} VipsConversion;
+} VipsCreate;
 
-typedef struct _VipsConversionClass {
+typedef struct _VipsCreateClass {
 	VipsOperationClass parent_class;
 
-} VipsConversionClass;
+} VipsCreateClass;
 
-GType vips_conversion_get_type( void );
+GType vips_create_get_type( void );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS__CONVERSION_H*/
+#endif /*VIPS_PCREATE_H*/
 
 

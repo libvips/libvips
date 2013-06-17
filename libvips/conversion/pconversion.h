@@ -1,4 +1,4 @@
-/* base class for all create operations
+/* base class for all conversion operations
  */
 
 /*
@@ -28,52 +28,50 @@
 
  */
 
-/* We don't want to get confused with the create.h in include, put an
- * extra _ in there.
- */
-
-#ifndef VIPS__CREATE_H
-#define VIPS__CREATE_H
+#ifndef VIPS_PCONVERSION_H
+#define VIPS_PCONVERSION_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-#define VIPS_TYPE_CREATE (vips_create_get_type())
-#define VIPS_CREATE( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-		VIPS_TYPE_CREATE, VipsCreate ))
-#define VIPS_CREATE_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-		VIPS_TYPE_CREATE, VipsCreateClass))
-#define VIPS_IS_CREATE( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_CREATE ))
-#define VIPS_IS_CREATE_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_CREATE ))
-#define VIPS_CREATE_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-		VIPS_TYPE_CREATE, VipsCreateClass ))
+#include <vips/vector.h>
 
-typedef struct _VipsCreate {
+#define VIPS_TYPE_CONVERSION (vips_conversion_get_type())
+#define VIPS_CONVERSION( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+		VIPS_TYPE_CONVERSION, VipsConversion ))
+#define VIPS_CONVERSION_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+		VIPS_TYPE_CONVERSION, VipsConversionClass))
+#define VIPS_IS_CONVERSION( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_CONVERSION ))
+#define VIPS_IS_CONVERSION_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_CONVERSION ))
+#define VIPS_CONVERSION_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+		VIPS_TYPE_CONVERSION, VipsConversionClass ))
+
+typedef struct _VipsConversion {
 	VipsOperation parent_instance;
 
 	/* All have an output image.
 	 */
 	VipsImage *out;
 
-} VipsCreate;
+} VipsConversion;
 
-typedef struct _VipsCreateClass {
+typedef struct _VipsConversionClass {
 	VipsOperationClass parent_class;
 
-} VipsCreateClass;
+} VipsConversionClass;
 
-GType vips_create_get_type( void );
+GType vips_conversion_get_type( void );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS__CREATE_H*/
+#endif /*VIPS_PCONVERSION_H*/
 
 

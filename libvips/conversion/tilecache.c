@@ -75,7 +75,7 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include "conversion.h"
+#include "pconversion.h"
 
 /* A tile in cache can be in one of three states:
  *

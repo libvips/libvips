@@ -28,12 +28,8 @@
 
  */
 
-/* We don't want to get confused with the colour.h in include, put an
- * extra _ in there.
- */
-
-#ifndef VIPS__COLOUR_H
-#define VIPS__COLOUR_H
+#ifndef VIPS_PCOLOUR_H
+#define VIPS_PCOLOUR_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -208,5 +204,5 @@ void vips__pythagoras_line( VipsColour *colour,
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS__COLOUR_H*/
+#endif /*VIPS_PCOLOUR_H*/
 

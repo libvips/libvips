@@ -46,7 +46,7 @@
 
 #include <vips/vips.h>
 
-#include "conversion.h"
+#include "pconversion.h"
 
 typedef struct _VipsWrap {
 	VipsConversion parent_instance;
