@@ -52,6 +52,33 @@
 
 #include <gobject/gvaluecollector.h>
 
+/**
+ * SECTION: object
+ * @short_description: the VIPS base object class
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-operation">operation</link>
+ * @include: vips/vips.h
+ *
+ * The #VipsObject class and associated types and macros.
+ *
+ * #VipsObject is the base class for all objects in libvips. It has the
+ * following major features:
+ *
+ * <emphasis>Functional class creation</emphasis> Vips objects have a very 
+ * regular
+ * lifecycle: initialise, build, use, destroy. They behave rather like
+ * function calls and are free of side-effects. 
+ *
+ * <emphasis>Run-time introspection</emphasis> Vips objects can be fully 
+ * introspected at
+ * run-time. There is not need for a separate source-code analysis. 
+ *
+ * <emphasis>Command-line interface</emphasis> Vips objects have an 
+ * automatic command-line
+ * line interface with a set of virtual methods. 
+ *
+ */
+
 /* Our signals. 
  */
 enum {

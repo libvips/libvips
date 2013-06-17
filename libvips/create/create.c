@@ -49,6 +49,18 @@
 
 #include "create.h"
 
+/** 
+ * SECTION: create
+ * @short_description: create #VipsImage in various ways
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * These functions generate various test images. You can combine them with
+ * the arithmetic and rotate functions to build more complicated images.
+ *
+ * The im_benchmark() operations are for testing the VIPS SMP system.
+ */
+
 G_DEFINE_ABSTRACT_TYPE( VipsCreate, vips_create, VIPS_TYPE_OPERATION );
 
 static int

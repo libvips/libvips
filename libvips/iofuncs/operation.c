@@ -47,6 +47,24 @@
 
 #include <gobject/gvaluecollector.h>
 
+/**
+ * SECTION: operation
+ * @short_description: the VIPS operation base object class
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-object">object</link>
+ * @include: vips/vips.h
+ *
+ * The #VipsOperation class and associated types and macros.
+ *
+ * #VipsOperation is the base class for all operations in libvips. It builds
+ * on #VipsObject to provide the introspection and command-line interface to
+ * libvips. 
+ *
+ * It also maintains a cache of recent operations. You can tune the cache
+ * behaviour in various ways. 
+ *
+ */
+
 /* Abstract base class for operations.
  */
 
