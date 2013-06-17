@@ -501,7 +501,7 @@ vips__png_isinterlaced( const char *filename )
 }
 
 static int
-read_all( Read *read, VipsImage *out )
+png2vips_image( Read *read, VipsImage *out )
 {
 	int interlace_type = png_get_interlace_type( read->pPng, read->pInfo );
 	VipsImage **t = (VipsImage **) 
@@ -543,7 +543,7 @@ vips__png_read( const char *filename, VipsImage *out )
 #endif /*DEBUG*/
 
 	if( !(read = read_new_filename( out, filename )) ||
-		read_all( read, out ) )
+		png2vips_image( read, out ) )
 		return( -1 ); 
 
 #ifdef DEBUG
@@ -566,6 +566,10 @@ static void
 vips_png_read_buffer( png_structp pPng, png_bytep data, png_size_t length )
 {
 	Read *read = png_get_io_ptr( pPng ); 
+
+#ifdef DEBUG
+	printf( "vips_png_read_buffer: read %zd bytes\n", length ); 
+#endif /*DEBUG*/
 
 	if( read->read_pos + length > read->length )
 		png_error( pPng, "not enough data in buffer" );
@@ -596,7 +600,7 @@ read_new_buffer( VipsImage *out, char *buffer, size_t length )
 }
 
 int
-vips__png_header_buffer( VipsImage *out, char *buffer, size_t length )
+vips__png_header_buffer( char *buffer, size_t length, VipsImage *out )
 {
 	Read *read;
 
@@ -608,12 +612,12 @@ vips__png_header_buffer( VipsImage *out, char *buffer, size_t length )
 }
 
 int
-vips__png_read_buffer( VipsImage *out, char *buffer, size_t length  )
+vips__png_read_buffer( char *buffer, size_t length, VipsImage *out  )
 {
 	Read *read;
 
 	if( !(read = read_new_buffer( out, buffer, length )) ||
-		read_all( read, out ) )
+		png2vips_image( read, out ) )
 		return( -1 ); 
 
 	return( 0 );

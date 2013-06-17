@@ -1,4 +1,3 @@
-- need png load from buffer?
 
 - could we support streaming read? how would it work?
 
@@ -17,6 +16,13 @@
 	  # tell the reader more bytes are available?
 	  reader.kick
 	end
+
+  looks ugly and stupid :( 
+
+  could maybe read from a socket? would we need to be able to pass file ids
+  in? can named sockets work like this?
+
+
 
 
 

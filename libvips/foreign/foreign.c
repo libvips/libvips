@@ -1999,18 +1999,23 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 	VipsArea *area;
 	int result;
 
+	area = NULL; 
+
 	va_start( ap, len );
 	result = vips_call_split( "jpegsave_buffer", ap, in, &area );
 	va_end( ap );
 
-	if( buf ) {
-		*buf = area->data;
-		area->free_fn = NULL;
-	}
-	if( buf ) 
-		*len = area->length;
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( buf ) 
+			*len = area->length;
 
-	vips_area_unref( area );
+		vips_area_unref( area );
+	}
 
 	return( result );
 }
@@ -2341,18 +2346,23 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 	VipsArea *area;
 	int result;
 
+	area = NULL; 
+
 	va_start( ap, len );
 	result = vips_call_split( "pngsave_buffer", ap, in, &area );
 	va_end( ap );
 
-	if( buf ) {
-		*buf = area->data;
-		area->free_fn = NULL;
-	}
-	if( buf ) 
-		*len = area->length;
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( buf ) 
+			*len = area->length;
 
-	vips_area_unref( area );
+		vips_area_unref( area );
+	}
 
 	return( result );
 }
