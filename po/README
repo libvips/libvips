@@ -57,7 +57,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-	edits to make vips7.32.pot into test.po
+	edits to make vips7.34.pot into test.po
 
 msgfmt -cv -o /dev/null test.po
 
