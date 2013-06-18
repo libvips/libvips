@@ -1,6 +1,6 @@
 /* array type 
  *
- * Unlike GArray, this has fixed length, tracks a GType for emements, and has
+ * Unlike GArray, this has fixed length, tracks a GType for elements, and has
  * a per-element free function.
  *
  * 27/10/11
@@ -599,18 +599,34 @@ transform_g_string_array_int( const GValue *src_value, GValue *dest_value )
 	 * decimal point.
 	 */
 	str = g_value_dup_string( src_value );
+
 	n = 0;
 	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) 
 		n += 1;
+
 	g_free( str );
 
 	vips_value_set_array( dest_value, n, G_TYPE_INT, sizeof( int ) );
 	array = (int *) vips_value_get_array( dest_value, NULL, NULL, NULL );
 
 	str = g_value_dup_string( src_value );
+
 	i = 0;
-	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) 
-		array[i++] = atoi( p );
+	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) {
+		if( sscanf( p, "%d", &array[i] ) != 1 ) { 
+			/* Set array to length zero to indicate an error.
+			 */
+			vips_error( "vipstype", 
+				_( "unable to convert \"%s\" to int" ), p );
+			vips_value_set_array( dest_value, 
+				0, G_TYPE_INT, sizeof( int ) );
+			g_free( str );
+			return;
+		}
+
+		i += 1;
+	}
+
 	g_free( str );
 }
 
@@ -664,25 +680,41 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 	double *array;
 
 	/* Walk the string to get the number of elements. 
-	 * We need a copy of the string, since we insert \0 during
+	 * We need a copy of the string since we insert \0 during
 	 * scan.
 	 *
-	 * We can't allow ',' as a separator, since some locales use it as a
+	 * We can't allow ',' as a separator since some locales use it as a
 	 * decimal point.
 	 */
 	str = g_value_dup_string( src_value );
+
 	n = 0;
 	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) 
 		n += 1;
+
 	g_free( str );
 
 	vips_value_set_array( dest_value, n, G_TYPE_DOUBLE, sizeof( double ) );
 	array = (double *) vips_value_get_array( dest_value, NULL, NULL, NULL );
 
 	str = g_value_dup_string( src_value );
+
 	i = 0;
-	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) 
-		array[i++] = atof( p );
+	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) {
+		if( sscanf( p, "%lf", &array[i] ) != 1 ) { 
+			/* Set array to length zero to indicate an error.
+			 */
+			vips_error( "vipstype", 
+				_( "unable to convert \"%s\" to float" ), p );
+			vips_value_set_array( dest_value, 
+				0, G_TYPE_DOUBLE, sizeof( double ) );
+			g_free( str );
+			return;
+		}
+
+		i += 1;
+	}
+
 	g_free( str );
 }
 
@@ -717,15 +749,18 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 	 * scan.
 	 */
 	str = g_value_dup_string( src_value );
+
 	n = 0;
 	for( p = str; (q = vips_break_token( p, " " )); p = q ) 
 		n += 1;
+
 	g_free( str );
 
 	vips_value_set_array_object( dest_value, n );
 	array = vips_value_get_array_object( dest_value, NULL );
 
 	str = g_value_dup_string( src_value );
+
 	for( i = 0, p = str; (q = vips_break_token( p, " " )); i++, p = q )
 		if( !(array[i] = G_OBJECT( vips_image_new_from_file( p ) )) ) {
 			/* Set the dest to length zero to indicate error.
@@ -734,6 +769,7 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 			g_free( str );
 			return;
 		}
+
 	g_free( str );
 }
 
