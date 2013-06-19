@@ -34,6 +34,8 @@
  * 	- fix another corner case, thanks Martin
  * 29/5/13
  * 	- add --angle option
+ * 19/6/13
+ * 	- faster --centre logic, thanks Kacey
  */
 
 /*
@@ -138,7 +140,14 @@ struct _Layer {
 	int tiles_across;
 	int tiles_down;
 
-	VipsImage *image;		/* The image we build */
+	/* The rect within width/height that contains real image, as opposed
+	 * to background. In centre mode we can have large image borders.
+	 */
+	VipsRect real_pixels; 
+
+	/* The image we build.
+	 */
+	VipsImage *image;
 
 	/* The top of this strip of tiles, excluding the overlap. Go up from
 	 * this to get to the top pixel we write in each one.
@@ -210,9 +219,13 @@ vips_foreign_save_dz_dispose( GObject *gobject )
 }
 
 /* Build a pyramid. 
+ *
+ * width/height is the size of this layer, real_* the subsection of the layer
+ * which is real pixels (as opposed to background). 
  */
 static Layer *
-pyramid_build( VipsForeignSaveDz *dz, Layer *above, int width, int height )
+pyramid_build( VipsForeignSaveDz *dz, Layer *above, 
+	int width, int height, VipsRect *real_pixels )
 {
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE( dz );
 	Layer *layer = VIPS_NEW( dz, Layer );
@@ -226,6 +239,8 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int width, int height )
 
 	layer->tiles_across = ROUND_UP( width, dz->tile_size ) / dz->tile_size;
 	layer->tiles_down = ROUND_UP( height, dz->tile_size ) / dz->tile_size;
+
+	layer->real_pixels = *real_pixels; 
 
 	layer->image = NULL;
 	layer->strip = NULL;
@@ -303,9 +318,22 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int width, int height )
 		height > limit ) {
 		/* Round up, so eg. a 5 pixel wide image becomes 3 a layer
 		 * down.
+		 *
+		 * For the rect, round left/top down, round bottom/right up,
+		 * so we get all possible pixels. 
 		 */
-		if( !(layer->below = pyramid_build( dz, 
-			layer, (width + 1) / 2, (height + 1) / 2 )) ) {
+		VipsRect halfrect;
+
+		halfrect.left = real_pixels->left / 2;
+		halfrect.top = real_pixels->top / 2;
+		halfrect.width = (VIPS_RECT_RIGHT( real_pixels ) + 1) / 2 - 
+			halfrect.left;
+		halfrect.height = (VIPS_RECT_BOTTOM( real_pixels ) + 1) / 2 - 
+			halfrect.top;
+
+		if( !(layer->below = pyramid_build( dz, layer, 
+			(width + 1) / 2, (height + 1) / 2,
+			&halfrect )) ) { 
 			layer_free( layer );
 			return( NULL );
 		}
@@ -320,6 +348,10 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above, int width, int height )
 	printf( "\twidth = %d, height = %d\n", width, height );
 	printf( "\tXsize = %d, Ysize = %d\n", 
 		layer->image->Xsize, layer->image->Ysize );
+	printf( "\treal_pixels.left = %d, real_pixels.top = %d\n", 
+		real_pixels->left, real_pixels->top ); 
+	printf( "\treal_pixels.width = %d, real_pixels.height = %d\n", 
+		real_pixels->width, real_pixels->height ); 
 #endif
 
 	return( layer );
@@ -781,6 +813,28 @@ strip_work( VipsThreadState *state, void *a )
 	printf( "strip_work\n" );
 #endif /*DEBUG_VERBOSE*/
 
+	/* If we are centreing we may be outside the real pixels. Skip in 
+	 * this case, and the viewer will display blank.png for us. 
+	 */
+	if( dz->centre ) {
+		VipsRect tile; 
+
+		tile.left = state->x;
+		tile.top = state->y;
+		tile.width = dz->tile_size;
+		tile.height = dz->tile_size;
+		vips_rect_intersectrect( &tile, &layer->real_pixels, &tile );
+		if( vips_rect_isempty( &tile ) ) {
+#ifdef DEBUG_VERBOSE
+			printf( "strip_work: skipping tile %d x %d\n", 
+				state->x / dz->tile_size, 
+				state->y / dz->tile_size ); 
+#endif /*DEBUG_VERBOSE*/
+
+			return( 0 ); 
+		}
+	}
+
 	if( tile_name( layer, buf, 
 		state->x / dz->tile_size, state->y / dz->tile_size ) )
 		return( -1 );
@@ -806,34 +860,6 @@ strip_work( VipsThreadState *state, void *a )
 		g_object_unref( x );
 
 		x = t;
-	}
-
-	/* If we are centreing we may have a tile which is entirely blank.
-	 * Skip the write in this case, the viewer will use blank.png instead.
-	 */
-	if( dz->centre ) {
-		double *d;
-		int n;
-		double m;
-
-		d = (double *) vips_area_get_data( (VipsArea *) dz->background, 
-			NULL, &n, NULL, NULL );
-		if( vips_equal_const( x, &t, d, n, NULL ) ) {
-			g_object_unref( x );
-			return( -1 );
-		}
-
-		if( vips_min( t, &m, NULL ) ) {
-			g_object_unref( x );
-			g_object_unref( t );
-			return( -1 );
-		}
-		g_object_unref( t );
-
-		if( m == 255 ) {
-			g_object_unref( x );
-			return( 0 );
-		}
 	}
 
 #ifdef DEBUG_VERBOSE
@@ -1142,6 +1168,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) object;
+	VipsRect real_pixels; 
 
 	/* Google and zoomify default to zero overlap, ".jpg".
 	 */
@@ -1198,6 +1225,15 @@ vips_foreign_save_dz_build( VipsObject *object )
 	save->ready = z;
 }
 
+
+	/* The real pixels we have from our input. This is about to get
+	 * expanded with background. 
+	 */
+	real_pixels.left = 0;
+	real_pixels.top = 0;
+	real_pixels.width = save->ready->Xsize;
+	real_pixels.height = save->ready->Ysize;
+
 	/* For centred images, imagine shrinking so that the image fits in a
 	 * single tile, centering in that tile, then expanding back again.
 	 */
@@ -1208,8 +1244,9 @@ vips_foreign_save_dz_build( VipsObject *object )
 		int n_layers;
 		int size;
 
-		if( !(layer = pyramid_build( dz, 
-			NULL, save->ready->Xsize, save->ready->Ysize )) )
+		if( !(layer = pyramid_build( dz, NULL, 
+			save->ready->Xsize, save->ready->Ysize,
+			&real_pixels )) )
 			return( -1 );
 		n_layers = layer->n;
 		/* This would cause interesting problems.
@@ -1218,9 +1255,11 @@ vips_foreign_save_dz_build( VipsObject *object )
 		layer_free( layer );
 		size = dz->tile_size * (1 << n_layers);
 
+		real_pixels.left = (size - save->ready->Xsize) / 2;
+		real_pixels.top = (size - save->ready->Ysize) / 2;
+
 		if( vips_embed( save->ready, &z, 
-			(size - save->ready->Xsize) / 2, 
-			(size - save->ready->Ysize) / 2, 
+			real_pixels.left, real_pixels.top,
 			size, size,
 			"background", dz->background,
 			NULL ) ) 
@@ -1228,7 +1267,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 		VIPS_UNREF( save->ready );
 		save->ready = z;
-
 
 #ifdef DEBUG
 		printf( "centre: centreing within a %d x %d image\n", 
@@ -1246,8 +1284,8 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 	/* Build the skeleton of the image pyramid.
 	 */
-	if( !(dz->layer = pyramid_build( dz, 
-		NULL, save->ready->Xsize, save->ready->Ysize )) )
+	if( !(dz->layer = pyramid_build( dz, NULL, 
+		save->ready->Xsize, save->ready->Ysize, &real_pixels )) )
 		return( -1 );
 	if( pyramid_mkdir( dz ) )
 		return( -1 );
