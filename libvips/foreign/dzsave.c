@@ -813,7 +813,7 @@ strip_work( VipsThreadState *state, void *a )
 	printf( "strip_work\n" );
 #endif /*DEBUG_VERBOSE*/
 
-	/* If we are centreing we may be outside the real pixels. Skip in 
+	/* If we are centring we may be outside the real pixels. Skip in 
 	 * this case, and the viewer will display blank.png for us. 
 	 */
 	if( dz->centre ) {
@@ -839,7 +839,9 @@ strip_work( VipsThreadState *state, void *a )
 		state->x / dz->tile_size, state->y / dz->tile_size ) )
 		return( -1 );
 
+#ifdef DEBUG
 	vips_object_sanity( VIPS_OBJECT( strip->image ) );
+#endif /*DEBUG*/
 
 	/* Extract relative to the strip top-left corner.
 	 */
@@ -1269,7 +1271,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		save->ready = z;
 
 #ifdef DEBUG
-		printf( "centre: centreing within a %d x %d image\n", 
+		printf( "centre: centring within a %d x %d image\n", 
 			size, size );
 #endif
 

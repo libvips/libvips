@@ -1,8 +1,4 @@
 
-- could we just not assign dest in the transform function? would that signal
-  an error to the converter?
-
-
 - look at
 	
 	There is an order 1 algorithm for doing medians over boxes (truly O(1)
