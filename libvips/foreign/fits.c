@@ -21,6 +21,8 @@
  * 	- bandsplit for write 
  * 13/12/11
  * 	- redo as a set of fns ready for wrapping in a new-style class
+ * 23/6/13
+ * 	- fix ushort save with values >32k, thanks weaverwb
  */
 
 /*
@@ -191,8 +193,10 @@ vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
  */
 static int fits2vips_formats[][3] = {
 	{ BYTE_IMG, VIPS_FORMAT_UCHAR, TBYTE },
-	{ SHORT_IMG,  VIPS_FORMAT_USHORT, TUSHORT },
-	{ LONG_IMG,  VIPS_FORMAT_UINT, TUINT },
+	{ SHORT_IMG,  VIPS_FORMAT_SHORT, TSHORT },
+	{ USHORT_IMG,  VIPS_FORMAT_USHORT, TUSHORT },
+	{ LONG_IMG,  VIPS_FORMAT_INT, TINT },
+	{ ULONG_IMG,  VIPS_FORMAT_UINT, TUINT },
 	{ FLOAT_IMG,  VIPS_FORMAT_FLOAT, TFLOAT },
 	{ DOUBLE_IMG, VIPS_FORMAT_DOUBLE, TDOUBLE }
 };
