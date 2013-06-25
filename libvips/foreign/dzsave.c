@@ -36,6 +36,9 @@
  * 	- add --angle option
  * 19/6/13
  * 	- faster --centre logic, thanks Kacey
+ * 25/6/13
+ * 	- ping classes beore starting workers, see comment below, thanks
+ * 	  Kacey
  */
 
 /*
@@ -1165,6 +1168,38 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 	return( 0 );
 }
 
+static void *
+vips_class_ping( VipsObjectClass *class, void *dummy )
+{
+        return( NULL );
+}
+
+/* Loop over all classes. This will make sure they are all built.
+ *
+ * vips_dzsave() runs a set of pipelines from worker threads, and if the
+ * operations it uses have not all been used previously, they can run their
+ * class_init in parallel.
+ *
+ * This should be safe, but seems not to be for reasons I don't understand.
+ * For now, just ping all classes from the main thread before we set the
+ * workers going. 
+ *
+ * This stops a crash on very many core machines, see
+ *
+ * https://github.com/jcupitt/libvips/issues/64
+ */
+static void
+vips_class_ping_all( void )
+{
+        GType base;
+
+        if( !(base = g_type_from_name( "VipsObject" )) )
+                return;
+        vips_class_map_all( base, 
+		(VipsClassMapFn) vips_class_ping, NULL );
+}
+
+
 static int
 vips_foreign_save_dz_build( VipsObject *object )
 {
@@ -1291,6 +1326,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 		return( -1 );
 	if( pyramid_mkdir( dz ) )
 		return( -1 );
+
+	/* Build all vips classes, see comment above. 
+	 */
+	vips_class_ping_all();
 
 	if( vips_sink_disc( save->ready, pyramid_strip, dz ) )
 		return( -1 );
