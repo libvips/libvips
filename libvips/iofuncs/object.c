@@ -2314,9 +2314,6 @@ test_name( VipsObjectClass *class, const char *nickname )
 VipsObjectClass *
 vips_class_find( const char *basename, const char *nickname )
 {
-	static GOnce vips_class_find_once = G_ONCE_INIT;
-	static GMutex *vips_class_find_lock = NULL; 
-
 	const char *classname = basename ? basename : "VipsObject";
 
 	VipsObjectClass *class;
@@ -2324,21 +2321,8 @@ vips_class_find( const char *basename, const char *nickname )
 
 	if( !(base = g_type_from_name( classname )) )
 		return( NULL );
-
-	if( !vips_class_find_lock ) 
-		vips_class_find_lock = g_once( &vips_class_find_once, 
-			(GThreadFunc) vips_g_mutex_new, NULL );
-
-	/* We have to single-thread class lookup. The first time this runs on
-	 * a class, the g_type_class_ref() in vips_class_map_all() will
-	 * trigger class build and construct the arg table. We musn't have
-	 * this run more than once.
-	 */
-
-	g_mutex_lock( vips_class_find_lock );
 	class = vips_class_map_all( base, 
 		(VipsClassMapFn) test_name, (void *) nickname );
-	g_mutex_unlock( vips_class_find_lock );
 
 	return( class );
 }
