@@ -1191,14 +1191,13 @@ vips_class_ping( VipsObjectClass *class, void *dummy )
 static void
 vips_class_ping_all( void )
 {
-        GType base;
+	GType base;
 
-        if( !(base = g_type_from_name( "VipsObject" )) )
-                return;
-        vips_class_map_all( base, 
+	if( !(base = g_type_from_name( "VipsObject" )) )
+		return;
+	vips_class_map_all( base, 
 		(VipsClassMapFn) vips_class_ping, NULL );
 }
-
 
 static int
 vips_foreign_save_dz_build( VipsObject *object )
