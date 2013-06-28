@@ -1,3 +1,6 @@
+- 3-way dilate on a float image seems to be broken
+
+
 - object construction is threadsafe, but class construction is not
 
   https://github.com/jcupitt/libvips/issues/64
