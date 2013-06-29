@@ -1,3 +1,6 @@
+28/6/13 started 7.34.1
+- fix morphological operators on non-uchar images
+
 7/6/13 started 7.34.0
 - version bump
 - oops, VImage.PIL_mode_from_vips() failed for CMYK, thanks Alessandro
