@@ -1,11 +1,10 @@
-- 3-way dilate on a float image seems to be broken
 
 
 - object construction is threadsafe, but class construction is not
 
   https://github.com/jcupitt/libvips/issues/64
 
-  we worked around this bu adding vips_class_ping_all() to dsave build, but
+  we worked around this by adding vips_class_ping_all() to dsave build, but
   this is not a good fix
 
   find out why vips class construct fails, test on seurat, kirk's 12-core
