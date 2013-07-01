@@ -2,6 +2,8 @@
  *
  * 11/12/12
  * 	- from Yxy2XYZ.c
+ * 1/7/13
+ * 	- remove any ICC profile
  */
 
 /*
@@ -48,6 +50,21 @@ typedef VipsColourSpaceClass VipsXYZ2scRGBClass;
 
 G_DEFINE_TYPE( VipsXYZ2scRGB, vips_XYZ2scRGB, VIPS_TYPE_COLOUR_SPACE );
 
+static int
+vips_XYZ2scRGB_build( VipsObject *object )
+{
+	if( VIPS_OBJECT_CLASS( vips_XYZ2scRGB_parent_class )->build( object ) )
+		return( -1 );
+
+	/* We've converted to sRGB without a profile. We must remove any ICC
+	 * profile left over from import or there will be a mismatch between
+	 * pixel values and the attached profile. 
+	 */
+	vips_image_remove( VIPS_COLOUR( object )->out, VIPS_META_ICC_NAME );
+
+	return( 0 );
+}
+
 void
 vips_XYZ2scRGB_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
@@ -83,6 +100,7 @@ vips_XYZ2scRGB_class_init( VipsXYZ2scRGBClass *class )
 
 	object_class->nickname = "XYZ2scRGB";
 	object_class->description = _( "transform XYZ to scRGB" );
+	object_class->build = vips_XYZ2scRGB_build;
 
 	colour_class->process_line = vips_XYZ2scRGB_line;
 }
