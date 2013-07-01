@@ -64,6 +64,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <vips/vips.h>
 
@@ -167,7 +168,8 @@ read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
 	*out = 0;
 
 	ch = skip_white( fp, whitemap );
-	if( ch == EOF || ch == '\n' ) 
+	if( ch == EOF || 
+		ch == '\n' ) 
 		return( ch );
 
 	if( ch == '"' ) {
@@ -195,7 +197,8 @@ read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
 
 	/* If it's a separator, we have to step over it. 
 	 */
-	if( ch != EOF && sepmap[ch] ) 
+	if( ch != EOF && 
+		sepmap[ch] ) 
 		(void) fgetc( fp );
 
 	return( 0 );
@@ -258,10 +261,6 @@ read_csv( FILE *fp, VipsImage *out,
 		vips_error( "csv2vips", "%s", _( "empty line" ) );
 		return( -1 );
 	}
-	if( ch == -2 ) 
-		/* Failed to parse a number.
-		 */
-		return( -1 );
 
 	/* If lines is -1, we have to scan the whole file to get the
 	 * number of lines out.
@@ -360,6 +359,116 @@ vips__csv_read_header( const char *filename, VipsImage *out,
 	fclose( fp );
 
 	return( 0 );
+}
+
+/* Read the header. Two numbers for width and height, and two optional
+ * numbers for scale and offset. 
+ */
+static VipsImage *
+vips__array_header( char *whitemap, char *sepmap, FILE *fp )
+{
+	double header[4];
+	int i;
+	int ch;
+	VipsImage *out; 
+
+	for( i = 0; i < 4 && 
+		(ch = read_double( fp, whitemap, sepmap, 
+			1, i + 1, &header[i] )) == 0; 
+		i++ )
+		;
+
+	if( i < 2 ) {
+		vips_error( "mask2vips", "%s", _( "no width / height" ) );
+		return( NULL );
+	}
+	if( floor( header[0] ) != header[0] ||
+		floor( header[1] ) != header[1] ) {
+		vips_error( "mask2vips", "%s", _( "width / height not int" ) );
+		return( NULL );
+	}
+
+	if( !(out = vips_image_new_array( header[0], header[1] )) )
+		return( NULL );
+	vips_image_set_double( out, "scale", i > 2 ?  header[2] : 1.0 );
+	vips_image_set_double( out, "offset", i > 3 ?  header[3] : 0.0 );
+
+	skip_line( fp );
+
+	return( out );
+}
+
+static int
+vips__array_body( char *whitemap, char *sepmap, VipsImage *out, FILE *fp )
+{
+	int x, y;
+	int ch;
+
+	for( y = 0; y < out->Ysize; y++ ) {
+		for( x = 0; x < out->Xsize; x++ ) {
+			double *d = (double *) VIPS_IMAGE_ADDR( out, x, y ); 
+
+			ch = read_double( fp, whitemap, sepmap,
+				y + 1, x + 1, d );
+			if( ch == EOF ) {
+				vips_error( "mask2vips", 
+					_( "unexpected EOF, line %d col %d" ), 
+					y + 1, x + 1 );
+				return( -1 );
+			}
+			else if( ch == '\n' ) {
+				vips_error( "mask2vips", 
+					_( "unexpected EOL, line %d col %d" ), 
+					y + 1, x + 1 );
+				return( -1 );
+			}
+			else if( ch )
+				/* Parse error.
+				 */
+				return( -1 );
+		}
+
+		skip_line( fp );
+	}
+
+	return( 0 );
+}
+
+VipsImage * 
+vips__array_read( const char *filename )
+{
+	char whitemap[256];
+	char sepmap[256];
+	int i;
+	char *p;
+	FILE *fp;
+	VipsImage *out; 
+
+	/* Make our char maps. 
+	 */
+	for( i = 0; i < 256; i++ ) {
+		whitemap[i] = 0;
+		sepmap[i] = 0;
+	}
+	for( p = " \t\n"; *p; p++ )
+		whitemap[(int) *p] = 1;
+	for( p = ";,"; *p; p++ )
+		sepmap[(int) *p] = 1;
+
+	if( !(fp = vips__file_open_read( filename, NULL, TRUE )) ) 
+		return( NULL );
+	if( !(out = vips__array_header( whitemap, sepmap, fp )) ) {
+		fclose( fp );
+		return( NULL );
+	}
+	if( vips__array_body( whitemap, sepmap, out, fp ) ) {
+		g_object_unref( out );
+		fclose( fp );
+		return( NULL );
+	}
+	fclose( fp );
+
+	return( out ); 
 }
 
 const char *vips__foreign_csv_suffs[] = { ".csv", NULL };
