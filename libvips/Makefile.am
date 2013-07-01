@@ -20,7 +20,7 @@ SUBDIRS = \
 	convolution \
 	$(C_COMPILE_DIR) \
 	freq_filt \
-	histograms_lut \
+	histogram \
 	inplace \
 	iofuncs \
 	morphology \
@@ -53,7 +53,7 @@ libvips_la_LIBADD = \
 	$(C_LIB) \
 	foreign/libforeign.la \
 	freq_filt/libfreq_filt.la \
-	histograms_lut/libhistograms_lut.la \
+	histogram/libhistogram.la \
 	inplace/libinplace.la \
 	iofuncs/libiofuncs.la \
 	morphology/libmorphology.la \

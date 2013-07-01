@@ -1,6 +1,6 @@
-noinst_LTLIBRARIES = libhistograms_lut.la
+noinst_LTLIBRARIES = libhistogram.la
 
-libhistograms_lut_la_SOURCES = \
+libhistogram_la_SOURCES = \
 	hist_dispatch.c \
 	im_gammacorrect.c \
 	im_heq.c \
