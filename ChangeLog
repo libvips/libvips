@@ -1,4 +1,5 @@
 1/7/13 started 7.35.0
+- added vips_matrixload() and vips_matrixsave(), load and save vips mat format
 
 28/6/13 started 7.34.1
 - fix morphological operators on non-uchar images

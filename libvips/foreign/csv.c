@@ -25,6 +25,8 @@
  * 	- rework as a set of fns ready for wrapping as a class
  * 23/2/12
  * 	- report positions for EOF/EOL errors
+ * 2/7/13
+ * 	- add array read/write
  */
 
 /*
@@ -88,7 +90,8 @@ skip_line( FILE *fp )
 
 	/* If we hit EOF and no \n, wait until the next call to report EOF.
 	 */
-        while( (ch = fgetc( fp )) != '\n' && ch != EOF )
+        while( (ch = fgetc( fp )) != '\n' && 
+		ch != EOF )
 		;
 
 	return( -1 );
@@ -101,7 +104,9 @@ skip_white( FILE *fp, const char whitemap[256] )
 
 	do {
 		ch = fgetc( fp );
-	} while (ch != EOF && ch != '\n' && whitemap[ch] );
+	} while( ch != EOF && 
+		ch != '\n' && 
+		whitemap[ch] );
 
 	ungetc( ch, fp );
 
@@ -122,7 +127,8 @@ skip_to_quote( FILE *fp )
 			ch = fgetc( fp );
 		else if( ch == '"' )
 			break;
-	} while( ch != EOF && ch != '\n' );
+	} while( ch != EOF && 
+		ch != '\n' );
 
 	ungetc( ch, fp );
 
@@ -136,7 +142,9 @@ skip_to_sep( FILE *fp, const char sepmap[256] )
 
 	do {
 		ch = fgetc( fp );
-	} while (ch != EOF && ch != '\n' && !sepmap[ch] );
+	} while( ch != EOF && 
+		ch != '\n' && 
+		!sepmap[ch] );
 
 	ungetc( ch, fp );
 
@@ -361,116 +369,6 @@ vips__csv_read_header( const char *filename, VipsImage *out,
 	return( 0 );
 }
 
-/* Read the header. Two numbers for width and height, and two optional
- * numbers for scale and offset. 
- */
-static VipsImage *
-vips__array_header( char *whitemap, char *sepmap, FILE *fp )
-{
-	double header[4];
-	int i;
-	int ch;
-	VipsImage *out; 
-
-	for( i = 0; i < 4 && 
-		(ch = read_double( fp, whitemap, sepmap, 
-			1, i + 1, &header[i] )) == 0; 
-		i++ )
-		;
-
-	if( i < 2 ) {
-		vips_error( "mask2vips", "%s", _( "no width / height" ) );
-		return( NULL );
-	}
-	if( floor( header[0] ) != header[0] ||
-		floor( header[1] ) != header[1] ) {
-		vips_error( "mask2vips", "%s", _( "width / height not int" ) );
-		return( NULL );
-	}
-
-	if( !(out = vips_image_new_array( header[0], header[1] )) )
-		return( NULL );
-	vips_image_set_double( out, "scale", i > 2 ?  header[2] : 1.0 );
-	vips_image_set_double( out, "offset", i > 3 ?  header[3] : 0.0 );
-
-	skip_line( fp );
-
-	return( out );
-}
-
-static int
-vips__array_body( char *whitemap, char *sepmap, VipsImage *out, FILE *fp )
-{
-	int x, y;
-	int ch;
-
-	for( y = 0; y < out->Ysize; y++ ) {
-		for( x = 0; x < out->Xsize; x++ ) {
-			double *d = (double *) VIPS_IMAGE_ADDR( out, x, y ); 
-
-			ch = read_double( fp, whitemap, sepmap,
-				y + 1, x + 1, d );
-			if( ch == EOF ) {
-				vips_error( "mask2vips", 
-					_( "unexpected EOF, line %d col %d" ), 
-					y + 1, x + 1 );
-				return( -1 );
-			}
-			else if( ch == '\n' ) {
-				vips_error( "mask2vips", 
-					_( "unexpected EOL, line %d col %d" ), 
-					y + 1, x + 1 );
-				return( -1 );
-			}
-			else if( ch )
-				/* Parse error.
-				 */
-				return( -1 );
-		}
-
-		skip_line( fp );
-	}
-
-	return( 0 );
-}
-
-VipsImage * 
-vips__array_read( const char *filename )
-{
-	char whitemap[256];
-	char sepmap[256];
-	int i;
-	char *p;
-	FILE *fp;
-	VipsImage *out; 
-
-	/* Make our char maps. 
-	 */
-	for( i = 0; i < 256; i++ ) {
-		whitemap[i] = 0;
-		sepmap[i] = 0;
-	}
-	for( p = " \t\n"; *p; p++ )
-		whitemap[(int) *p] = 1;
-	for( p = ";,"; *p; p++ )
-		sepmap[(int) *p] = 1;
-
-	if( !(fp = vips__file_open_read( filename, NULL, TRUE )) ) 
-		return( NULL );
-	if( !(out = vips__array_header( whitemap, sepmap, fp )) ) {
-		fclose( fp );
-		return( NULL );
-	}
-	if( vips__array_body( whitemap, sepmap, out, fp ) ) {
-		g_object_unref( out );
-		fclose( fp );
-		return( NULL );
-	}
-	fclose( fp );
-
-	return( out ); 
-}
-
 const char *vips__foreign_csv_suffs[] = { ".csv", NULL };
 
 #define PRINT_INT( TYPE ) fprintf( fp, "%d", *((TYPE*)p) );
@@ -549,4 +447,259 @@ vips__csv_write( VipsImage *in, const char *filename, const char *separator )
 	return( 0 );
 }
 
+/* Read to non-whitespace, or buffer overflow.
+ */
+static int
+fetch_nonwhite( FILE *fp, const char whitemap[256], char *buf, int max )
+{
+	int ch;
+	int i;
+
+	for( i = 0; i < max - 1; i++ ) {
+		ch = fgetc( fp );
+
+		if( ch == EOF || ch == '\n' || whitemap[ch] )
+			break;
+
+		buf[i] = ch;
+	}
+
+	buf[i] = '\0';
+
+	/* We mustn't skip the terminator.
+	 */
+	ungetc( ch, fp );
+
+	return( ch ); 
+}
+
+/* Read a single double in ascii (not locale) encoding.
+ *
+ * Return the char that caused failure on fail (EOF or \n).
+ */
+static int
+read_ascii_double( FILE *fp, const char whitemap[256], double *out )
+{
+	int ch;
+	char buf[256];
+
+	ch = skip_white( fp, whitemap );
+
+	if( ch == EOF || 
+		ch == '\n' ) 
+		return( ch );
+
+	fetch_nonwhite( fp, whitemap, buf, 256 );
+
+	*out = g_ascii_strtod( buf, NULL );
+
+	return( 0 );
+}
+
+/* Read the header. Two numbers for width and height, and two optional
+ * numbers for scale and offset. 
+ */
+static int
+vips__array_header( char *whitemap, FILE *fp,
+	int *width, int *height, double *scale, double *offset )   
+{
+	double header[4];
+	double d;
+	int i;
+	int ch;
+
+	for( i = 0; i < 4 && 
+		(ch = read_ascii_double( fp, whitemap, &header[i] )) == 0; 
+		i++ )
+		;
+
+	if( i < 2 ) {
+		vips_error( "mask2vips", "%s", _( "no width / height" ) );
+		return( -1 );
+	}
+	if( floor( header[0] ) != header[0] ||
+		floor( header[1] ) != header[1] ) {
+		vips_error( "mask2vips", "%s", _( "width / height not int" ) );
+		return( -1 );
+	}
+	if( i == 3 ) { 
+		vips_error( "mask2vips", "%s", _( "bad scale / offset" ) );
+		return( -1 );
+	}
+	if( (ch = read_ascii_double( fp, whitemap, &d )) != '\n' ) {
+		vips_error( "mask2vips", "%s", _( "extra chars in header" ) );
+		return( -1 );
+	}
+	if( i > 2 && 
+		header[2] == 0.0 ) {
+		vips_error( "mask2vips", "%s", _( "zero scale" ) );
+		return( -1 );
+	}
+
+	*width = header[0];
+	*height = header[0];
+	*scale = i > 2 ?  header[2] : 1.0;
+	*offset = i > 2 ?  header[3] : 0.0;
+
+	skip_line( fp );
+
+	return( 0 );
+}
+
+#define WHITESPACE " \"\t\n;,"
+
+/* Get the header from an array file. 
+ *
+ * Also read the first line and make sure there are the right number of
+ * entries. 
+ */
+int
+vips__array_read_header( const char *filename,
+	int *width, int *height, double *scale, double *offset )
+{
+	char whitemap[256];
+	int i;
+	char *p;
+	FILE *fp;
+	int ch;
+	double d;
+
+	for( i = 0; i < 256; i++ ) 
+		whitemap[i] = 0;
+	for( p = WHITESPACE; *p; p++ )
+		whitemap[(int) *p] = 1;
+
+	if( !(fp = vips__file_open_read( filename, NULL, TRUE )) ) 
+		return( -1 );
+	if( vips__array_header( whitemap, fp,
+		width, height, scale, offset ) ) {  
+		fclose( fp );
+		return( -1 );
+	}
+
+	for( i = 0; i < *width; i++ ) {
+		ch = read_ascii_double( fp, whitemap, &d );
+
+		if( ch ) {
+			fclose( fp );
+			vips_error( "mask2vips", "%s", _( "line too short" ) );
+			return( -1 );
+		}
+	}
+
+	/* Deliberately don't check for line too long.
+	 */
+
+	fclose( fp );
+
+	return( 0 );
+}
+
+static int
+vips__array_body( char *whitemap, VipsImage *out, FILE *fp )
+{
+	int x, y;
+
+	for( y = 0; y < out->Ysize; y++ ) {
+		for( x = 0; x < out->Xsize; x++ ) {
+			int ch;
+			double d;
+
+			ch = read_ascii_double( fp, whitemap, &d );
+			if( ch == EOF ||
+				ch == '\n' ) {
+				vips_error( "mask2vips", 
+					_( "line %d too short" ), y + 1 );
+				return( -1 );
+			}
+			*((double *) VIPS_IMAGE_ADDR( out, x, y )) = d; 
+
+			/* Deliberately don't check for line too long.
+			 */
+		}
+
+		skip_line( fp );
+	}
+
+	return( 0 );
+}
+
+VipsImage * 
+vips__array_read( const char *filename )
+{
+	char whitemap[256];
+	int i;
+	char *p;
+	FILE *fp;
+	int width;
+	int height;
+	double scale;
+	double offset;
+	VipsImage *out; 
+
+	for( i = 0; i < 256; i++ ) 
+		whitemap[i] = 0;
+	for( p = WHITESPACE; *p; p++ )
+		whitemap[(int) *p] = 1;
+
+	if( !(fp = vips__file_open_read( filename, NULL, TRUE )) ) 
+		return( NULL );
+	if( vips__array_header( whitemap, fp,
+		&width, &height, &scale, &offset ) ) {  
+		fclose( fp );
+		return( NULL );
+	}
+
+	if( !(out = vips_image_new_array( width, height )) )
+		return( NULL );
+	vips_image_set_double( out, "scale", scale ); 
+	vips_image_set_double( out, "offset", offset ); 
+
+	if( vips__array_body( whitemap, out, fp ) ) {
+		g_object_unref( out );
+		fclose( fp );
+		return( NULL );
+	}
+	fclose( fp );
+
+	return( out ); 
+}
+
+int
+vips__array_write( VipsImage *in, const char *filename )
+{
+	VipsImage *mask;
+	FILE *fp;
+	int x, y; 
+
+	if( vips_check_matrix( "vips2mask", in, &mask ) )
+		return( -1 );
+
+	if( !(fp = vips__file_open_write( filename, TRUE )) ) {
+		g_object_unref( mask ); 
+		return( -1 );
+	}
+	fprintf( fp, "%d %d ", mask->Xsize, mask->Ysize ); 
+	if( vips_image_get_typeof( mask, "scale" ) && 
+		vips_image_get_typeof( mask, "offset" ) ) 
+		fprintf( fp, "%g %g ", 
+			vips_image_get_scale( mask ),
+			vips_image_get_offset( mask ) );
+	fprintf( fp, "\n" ); 
+
+	for( y = 0; y < mask->Ysize; y++ ) { 
+		for( x = 0; x < mask->Xsize; x++ ) 
+			fprintf( fp, "%g ", 
+				*((double *) VIPS_IMAGE_ADDR( mask, x, y )) ); 
+
+		fprintf( fp, "\n" ); 
+	}
+
+	g_object_unref( mask ); 
+	fclose( fp ); 
+
+	return( 0 );
+}
+
+const char *vips__foreign_matrix_suffs[] = { ".mat", NULL };
 

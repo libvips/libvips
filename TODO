@@ -1,4 +1,6 @@
-- 3-way dilate on a float image seems to be broken
+- move im_buildlut() to create package
+
+  others too? identity?
 
 
 - object construction is threadsafe, but class construction is not
@@ -36,8 +38,6 @@
   seems fine vertically, only get errors on horizontal tile boundaries
 
   because we step across tiles left to right: y doesn't change, only x does
-
-- seems to leak with vips_check_matrix()?
 
 - test with interpolators, do we add margins correctly?
 

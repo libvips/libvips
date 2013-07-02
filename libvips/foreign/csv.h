@@ -45,6 +45,13 @@ int vips__csv_read_header( const char *filename, VipsImage *out,
 int vips__csv_write( VipsImage *in, const char *filename, 
 	const char *separator );
 
+int vips__array_read_header( const char *filename,
+	int *width, int *height, double *scale, double *offset );
+VipsImage *vips__array_read( const char *filename );
+int vips__array_write( VipsImage *in, const char *filename );
+
+extern const char *vips__foreign_matrix_suffs[];
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

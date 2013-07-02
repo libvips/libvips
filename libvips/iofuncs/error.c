@@ -1173,8 +1173,9 @@ vips_check_hist( const char *domain, VipsImage *im )
  * message otherwise.
  *
  * @out is set to be @im cast to double and stored in memory. Use
- * VIPS_IMAGE_ADDR() to address values in @out. @out is unreffed for you 
- * when @im is unreffed.
+ * VIPS_IMAGE_ADDR() to address values in @out. 
+ *
+ * You must unref @out when you are done with it.
  *
  * See also: vips_error().
  *
@@ -1183,6 +1184,8 @@ vips_check_hist( const char *domain, VipsImage *im )
 int
 vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
 {
+	*out = NULL;
+
 	if( im->Xsize > 1000 || im->Ysize > 1000 ) {
 		vips_error( domain, "%s", _( "matrix image too large" ) );
 		return( -1 );
@@ -1195,7 +1198,6 @@ vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
 
 	if( vips_cast( im, out, VIPS_FORMAT_DOUBLE, NULL ) )
                 return( -1 );
-	vips_object_local( im, *out );
         if( vips_image_wio_input( *out ) )
                 return( -1 );
 

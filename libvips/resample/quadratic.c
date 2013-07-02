@@ -104,6 +104,16 @@ typedef VipsResampleClass VipsQuadraticClass;
 
 G_DEFINE_TYPE( VipsQuadratic, vips_quadratic, VIPS_TYPE_RESAMPLE );
 
+static void
+vips_quadratic_dispose( GObject *gobject )
+{
+	VipsQuadratic *quadratic = (VipsQuadratic *) gobject;
+
+	VIPS_UNREF( quadratic->mat ); 
+
+	G_OBJECT_CLASS( vips_quadratic_parent_class )->dispose( gobject );
+}
+
 static int
 vips_quadratic_gen( VipsRegion *or, void *vseq, 
 	void *a, void *b, gboolean *stop )
@@ -327,6 +337,7 @@ vips_quadratic_class_init( VipsQuadraticClass *class )
 
 	VIPS_DEBUG_MSG( "vips_quadratic_class_init\n" );
 
+	gobject_class->dispose = vips_quadratic_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
