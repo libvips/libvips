@@ -124,7 +124,7 @@ vips_stats_build( VipsObject *object )
 			return( -1 );
 
 		g_object_set( object, 
-			"out", vips_image_new_array( COL_LAST, bands + 1 ),
+			"out", vips_image_new_matrix( COL_LAST, bands + 1 ),
 			NULL );
 	}
 
@@ -236,7 +236,7 @@ vips_stats_start( VipsStatistic *statistic )
 	VipsStats *stats;
 
 	stats = g_new( VipsStats, 1 );
-	if( !(stats->out = vips_image_new_array( COL_LAST, bands + 1 )) ) {
+	if( !(stats->out = vips_image_new_matrix( COL_LAST, bands + 1 )) ) {
 		g_free( stats );
 		return( NULL );
 	}

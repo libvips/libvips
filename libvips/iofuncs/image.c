@@ -1616,11 +1616,11 @@ vips_image_new_from_memory( void *buffer,
 }
 
 /**
- * vips_image_new_array:
+ * vips_image_new_matrix:
  * @xsize: image width
  * @ysize: image height
  *
- * This convenience function makes an image which is an array: a one-band
+ * This convenience function makes an image which is a matrix: a one-band
  * VIPS_FORMAT_DOUBLE image held in memory.
  *
  * Use VIPS_IMAGE_ADDR() to address pixels in the image.
@@ -1628,7 +1628,7 @@ vips_image_new_from_memory( void *buffer,
  * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_array( int xsize, int ysize )
+vips_image_new_matrix( int xsize, int ysize )
 {
 	VipsImage *image;
 
@@ -1636,13 +1636,13 @@ vips_image_new_array( int xsize, int ysize )
 
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
-		"filename", "vips_image_new_array",
+		"filename", "vips_image_new_matrix",
 		"mode", "t",
 		"width", xsize,
 		"height", ysize,
 		"bands", 1,
 		"format", VIPS_FORMAT_DOUBLE,
-		"interpretation", VIPS_INTERPRETATION_ARRAY,
+		"interpretation", VIPS_INTERPRETATION_MATRIX,
 		NULL );
 	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
 		VIPS_UNREF( image );

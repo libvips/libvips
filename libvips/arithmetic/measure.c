@@ -108,7 +108,7 @@ vips_measure_build( VipsObject *object )
 	bands = vips_image_get_bands( measure->in );
 
 	g_object_set( object, 
-		"out", vips_image_new_array( bands, measure->h * measure->v ),
+		"out", vips_image_new_matrix( bands, measure->h * measure->v ),
 		NULL );
 
 	/* left/top/width/height default to the size of the image.

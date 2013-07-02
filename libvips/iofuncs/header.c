@@ -493,11 +493,11 @@ vips_image_guess_interpretation( const VipsImage *image )
 			sane = FALSE;
 		break;
 
-	case  VIPS_INTERPRETATION_ARRAY:
+	case  VIPS_INTERPRETATION_MATRIX:
 		if( image->Bands != 1 )
 			sane = FALSE;
 		break;
-	
+
 	default:
 		g_assert( 0 );
 		sane = FALSE;

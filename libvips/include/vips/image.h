@@ -127,7 +127,7 @@ typedef enum {
  * @VIPS_INTERPRETATION_YXY: pixels are CIE Yxy
  * @VIPS_INTERPRETATION_RGB16: generic 16-bit RGB
  * @VIPS_INTERPRETATION_GREY16: generic 16-bit mono
- * @VIPS_INTERPRETATION_ARRAY: an array
+ * @VIPS_INTERPRETATION_MATRIX: a matrix
  *
  * How the values in an image should be interpreted. For example, a
  * three-band float image of type #VIPS_INTERPRETATION_LAB should have its 
@@ -158,7 +158,7 @@ typedef enum {
 	VIPS_INTERPRETATION_FOURIER = 24,
 	VIPS_INTERPRETATION_RGB16 = 25,
 	VIPS_INTERPRETATION_GREY16 = 26,
-	VIPS_INTERPRETATION_ARRAY = 27,
+	VIPS_INTERPRETATION_MATRIX = 27,
 	VIPS_INTERPRETATION_scRGB = 28
 } VipsInterpretation;
 
@@ -506,7 +506,7 @@ VipsImage *vips_image_new_from_file_raw( const char *filename,
 	int xsize, int ysize, int bands, guint64 offset );
 VipsImage *vips_image_new_from_memory( void *buffer, 
 	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
-VipsImage *vips_image_new_array( int xsize, int ysize );
+VipsImage *vips_image_new_matrix( int xsize, int ysize );
 void vips_image_set_delete_on_close( VipsImage *image, 
 	gboolean delete_on_close );
 VipsImage *vips_image_new_temp_file( const char *format );

@@ -650,7 +650,7 @@ vips__array_read( const char *filename )
 		return( NULL );
 	}
 
-	if( !(out = vips_image_new_array( width, height )) )
+	if( !(out = vips_image_new_matrix( width, height )) )
 		return( NULL );
 	vips_image_set_double( out, "scale", scale ); 
 	vips_image_set_double( out, "offset", offset ); 
