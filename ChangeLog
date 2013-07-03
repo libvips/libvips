@@ -2,7 +2,7 @@
 - added vips_matrixload() and vips_matrixsave(), load and save vips mat format
 - rename image arrays as image matrices ... INTERPRETATION_ARRAY ->
   INTERPRETATION_MATRIX etc. 
-- convert im_buildlut() to a class
+- convert im_buildlut(), im_identity*() to classes
 
 3/7/13 started 7.34.2
 - lower priority for Matlab load to reduce segvs from Mat_Open(), thanks

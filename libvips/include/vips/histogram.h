@@ -42,8 +42,6 @@ int im_histgr( VipsImage *in, VipsImage *out, int bandno );
 int im_histnD( VipsImage *in, VipsImage *out, int bins );
 int im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out );
 
-int im_identity( VipsImage *lut, int bands );
-int im_identity_ushort( VipsImage *lut, int bands, int sz );
 int im_invertlut( DOUBLEMASK *input, VipsImage *output, int lut_size );
 int im_project( VipsImage *in, VipsImage *hout, VipsImage *vout );
 

@@ -1477,7 +1477,45 @@ im_black( IMAGE *out, int x, int y, int bands )
 }
 
 int 
-im_gaussnoise( IMAGE *out, int x, int y, double mean, double sigma )
+im_identity_ushort( VipsImage *lut, int bands, int sz )
+{
+	VipsImage *t;
+
+	if( vips_identity( &t, 
+		"bands", bands,
+		"ushort", TRUE,
+		"size", sz,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, lut ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_identity( VipsImage *lut, int bands )
+{
+	VipsImage *t;
+
+	if( vips_identity( &t, 
+		"bands", bands,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, lut ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_gaussnoise( VipsImage *out, int x, int y, double mean, double sigma )
 {
 	VipsImage *t;
 

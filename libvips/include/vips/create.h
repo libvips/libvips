@@ -62,6 +62,8 @@ int vips_zone( VipsImage **out, int width, int height, ... )
 
 int vips_buildlut( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_identity( VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int im_benchmarkn( VipsImage *in, VipsImage *out, int n );
 int im_benchmark2( VipsImage *in, double *out );

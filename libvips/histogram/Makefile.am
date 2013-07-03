@@ -15,7 +15,6 @@ libhistogram_la_SOURCES = \
 	im_histspec.c \
 	im_hsp.c \
 	im_mpercent.c \
-	im_identity.c \
 	im_invertlut.c \
 	im_lhisteq.c \
 	im_maplut.c \
