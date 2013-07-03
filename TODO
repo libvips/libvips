@@ -7,7 +7,7 @@
 
   https://github.com/jcupitt/libvips/issues/64
 
-  we worked around this bu adding vips_class_ping_all() to dsave build, but
+  we worked around this by adding vips_class_ping_all() to dsave build, but
   this is not a good fix
 
   find out why vips class construct fails, test on seurat, kirk's 12-core
