@@ -142,13 +142,33 @@
  * @X: x coordinate
  * @Y: y coordinate
  *
- * This macro returns a pointer to a pixel in an image. It only works for
+ * This macro returns a pointer to a pixel in an image, cast to a #VipsPel *. 
+ * It only works for
  * images which are fully available in memory, so memory buffers and small
  * mapped images only.
  * 
  * If VIPS_DEBUG is defined, you get a version that checks bounds for you.
  *
  * See also: VIPS_REGION_ADDR().
+ *
+ * Returns: The address of pixel (x,y) in the image.
+ */
+
+/**
+ * VIPS_MATRIX:
+ * @I: a #VipsImage
+ * @X: x coordinate
+ * @Y: y coordinate
+ *
+ * This macro returns a pointer to a pixel in an image, cast to a double*. The
+ * image must have a single band, be #VIPS_FORMAT_DOUBLE and be 
+ * fully available in memory, so memory buffers and small
+ * mapped images only.
+ * 
+ * If VIPS_DEBUG is defined, you get a version that checks bounds and image
+ * type for you.
+ *
+ * See also: VIPS_IMAGE_ADDR().
  *
  * Returns: The address of pixel (x,y) in the image.
  */
@@ -1623,7 +1643,7 @@ vips_image_new_from_memory( void *buffer,
  * This convenience function makes an image which is a matrix: a one-band
  * VIPS_FORMAT_DOUBLE image held in memory.
  *
- * Use VIPS_IMAGE_ADDR() to address pixels in the image.
+ * Use VIPS_IMAGE_ADDR(), or VIPS_MATRIX() to address pixels in the image.
  * 
  * Returns: the new #VipsImage, or %NULL on error.
  */

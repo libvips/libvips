@@ -26,7 +26,7 @@
  * 23/2/12
  * 	- report positions for EOF/EOL errors
  * 2/7/13
- * 	- add array read/write
+ * 	- add matrix read/write
  */
 
 /*
@@ -500,7 +500,7 @@ read_ascii_double( FILE *fp, const char whitemap[256], double *out )
  * numbers for scale and offset. 
  */
 static int
-vips__array_header( char *whitemap, FILE *fp,
+vips__matrix_header( char *whitemap, FILE *fp,
 	int *width, int *height, double *scale, double *offset )   
 {
 	double header[4];
@@ -548,13 +548,13 @@ vips__array_header( char *whitemap, FILE *fp,
 
 #define WHITESPACE " \"\t\n;,"
 
-/* Get the header from an array file. 
+/* Get the header from an matrix file. 
  *
  * Also read the first line and make sure there are the right number of
  * entries. 
  */
 int
-vips__array_read_header( const char *filename,
+vips__matrix_read_header( const char *filename,
 	int *width, int *height, double *scale, double *offset )
 {
 	char whitemap[256];
@@ -571,7 +571,7 @@ vips__array_read_header( const char *filename,
 
 	if( !(fp = vips__file_open_read( filename, NULL, TRUE )) ) 
 		return( -1 );
-	if( vips__array_header( whitemap, fp,
+	if( vips__matrix_header( whitemap, fp,
 		width, height, scale, offset ) ) {  
 		fclose( fp );
 		return( -1 );
@@ -596,7 +596,7 @@ vips__array_read_header( const char *filename,
 }
 
 static int
-vips__array_body( char *whitemap, VipsImage *out, FILE *fp )
+vips__matrix_body( char *whitemap, VipsImage *out, FILE *fp )
 {
 	int x, y;
 
@@ -612,7 +612,7 @@ vips__array_body( char *whitemap, VipsImage *out, FILE *fp )
 					_( "line %d too short" ), y + 1 );
 				return( -1 );
 			}
-			*((double *) VIPS_IMAGE_ADDR( out, x, y )) = d; 
+			*VIPS_MATRIX( out, x, y ) = d; 
 
 			/* Deliberately don't check for line too long.
 			 */
@@ -625,7 +625,7 @@ vips__array_body( char *whitemap, VipsImage *out, FILE *fp )
 }
 
 VipsImage * 
-vips__array_read( const char *filename )
+vips__matrix_read( const char *filename )
 {
 	char whitemap[256];
 	int i;
@@ -644,7 +644,7 @@ vips__array_read( const char *filename )
 
 	if( !(fp = vips__file_open_read( filename, NULL, TRUE )) ) 
 		return( NULL );
-	if( vips__array_header( whitemap, fp,
+	if( vips__matrix_header( whitemap, fp,
 		&width, &height, &scale, &offset ) ) {  
 		fclose( fp );
 		return( NULL );
@@ -655,7 +655,7 @@ vips__array_read( const char *filename )
 	vips_image_set_double( out, "scale", scale ); 
 	vips_image_set_double( out, "offset", offset ); 
 
-	if( vips__array_body( whitemap, out, fp ) ) {
+	if( vips__matrix_body( whitemap, out, fp ) ) {
 		g_object_unref( out );
 		fclose( fp );
 		return( NULL );
@@ -666,7 +666,7 @@ vips__array_read( const char *filename )
 }
 
 int
-vips__array_write( VipsImage *in, const char *filename )
+vips__matrix_write( VipsImage *in, const char *filename )
 {
 	VipsImage *mask;
 	FILE *fp;
@@ -689,8 +689,7 @@ vips__array_write( VipsImage *in, const char *filename )
 
 	for( y = 0; y < mask->Ysize; y++ ) { 
 		for( x = 0; x < mask->Xsize; x++ ) 
-			fprintf( fp, "%g ", 
-				*((double *) VIPS_IMAGE_ADDR( mask, x, y )) ); 
+			fprintf( fp, "%g ", *VIPS_MATRIX( mask, x, y ) ); 
 
 		fprintf( fp, "\n" ); 
 	}

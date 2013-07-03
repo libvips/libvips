@@ -60,9 +60,9 @@ typedef struct _VipsRecomb {
 	VipsImage *in;
 	VipsImage *m;
 
-	/* m converted to a one-band double.
+	/* Our input matrix as a one-band double. 
 	 */
-	double *coeff;
+	VipsImage *coeff;
 
 } VipsRecomb;
 
@@ -77,9 +77,7 @@ G_DEFINE_TYPE( VipsRecomb, vips_recomb, VIPS_TYPE_CONVERSION );
 	OUT *q = (OUT *) out; \
 	\
 	for( x = 0; x < or->valid.width; x++ ) { \
-		double *m; \
-		\
-		m = recomb->coeff; \
+		double *m = VIPS_MATRIX( recomb->coeff, 0, 0 ); \
 		\
 		for( v = 0; v < mheight; v++ ) { \
 			double t; \
@@ -163,10 +161,9 @@ vips_recomb_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( vips_cast( recomb->m, &t[0], VIPS_FORMAT_DOUBLE, NULL ) ||
-		vips_image_wio_input( t[0] ) )
-		return( -1 );
-	recomb->coeff = (double *) VIPS_IMAGE_ADDR( t[0], 0, 0 );
+	if( vips_check_matrix( class->nickname, recomb->m, &t[0] ) )
+		return( -1 ); 
+	recomb->coeff = t[0]; 
 
 	if( vips_image_copy_fields( conversion->out, recomb->in ) )
 		return( -1 );

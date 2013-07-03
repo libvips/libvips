@@ -102,10 +102,6 @@ enum {
 	COL_LAST = 10
 };
 
-/* Address a double in our array image.
- */
-#define ARY( im, x, y ) ((double *) VIPS_IMAGE_ADDR( im, x, y ))
-
 static int
 vips_stats_build( VipsObject *object )
 {
@@ -135,13 +131,13 @@ vips_stats_build( VipsObject *object )
 		vips_image_get_height( statistic->in );
 	vals = pels * vips_image_get_bands( statistic->in );
 
-	row0 = ARY( stats->out, 0, 0 ); 
-	row = ARY( stats->out, 0, 1 ); 
+	row0 = VIPS_MATRIX( stats->out, 0, 0 ); 
+	row = VIPS_MATRIX( stats->out, 0, 1 ); 
 	for( i = 0; i < COL_LAST; i++ )
 		row0[i] = row[i];
 
 	for( b = 1; b < vips_image_get_bands( statistic->in ); b++ ) {
-		row = ARY( stats->out, 0, b + 1 ); 
+		row = VIPS_MATRIX( stats->out, 0, b + 1 ); 
 
 		if( row[COL_MIN] < row0[COL_MIN] ) {
 			row0[COL_MIN] = row[COL_MIN];
@@ -160,7 +156,7 @@ vips_stats_build( VipsObject *object )
 	}
 
 	for( y = 1; y < vips_image_get_height( stats->out ); y++ ) {
-		double *row = ARY( stats->out, 0, y ); 
+		double *row = VIPS_MATRIX( stats->out, 0, y ); 
 
 		row[COL_AVG] = row[COL_SUM] / pels;
 		row[COL_SD] = sqrt( fabs( row[COL_SUM2] - 
@@ -187,8 +183,8 @@ vips_stats_stop( VipsStatistic *statistic, void *seq )
 
 	if( local->set && !global->set ) {
 		for( b = 0; b < bands; b++ ) {
-			double *p = ARY( local->out, 0, b + 1 );
-			double *q = ARY( global->out, 0, b + 1 );
+			double *p = VIPS_MATRIX( local->out, 0, b + 1 );
+			double *q = VIPS_MATRIX( global->out, 0, b + 1 );
 
 			int i;
 
@@ -200,8 +196,8 @@ vips_stats_stop( VipsStatistic *statistic, void *seq )
 	}
 	else if( local->set && global->set ) {
 		for( b = 0; b < bands; b++ ) {
-			double *p = ARY( local->out, 0, b + 1 );
-			double *q = ARY( global->out, 0, b + 1 );
+			double *p = VIPS_MATRIX( local->out, 0, b + 1 );
+			double *q = VIPS_MATRIX( global->out, 0, b + 1 );
 
 			if( p[COL_MIN] < q[COL_MIN] ) {
 				q[COL_MIN] = p[COL_MIN];
@@ -251,7 +247,7 @@ vips_stats_start( VipsStatistic *statistic )
 #define LOOP( TYPE ) { \
 	for( b = 0; b < bands; b++ ) { \
 		TYPE *p = ((TYPE *) in) + b; \
-		double *q = ARY( local->out, 0, b + 1 ); \
+		double *q = VIPS_MATRIX( local->out, 0, b + 1 ); \
 		TYPE small, big; \
 		double sum, sum2; \
 		int xmin, ymin; \
@@ -315,7 +311,7 @@ vips_stats_start( VipsStatistic *statistic )
 #define LOOPF( TYPE ) { \
 	for( b = 0; b < bands; b++ ) { \
 		TYPE *p = ((TYPE *) in) + b; \
-		double *q = ARY( local->out, 0, b + 1 ); \
+		double *q = VIPS_MATRIX( local->out, 0, b + 1 ); \
 		TYPE small, big; \
 		double sum, sum2; \
 		int xmin, ymin; \

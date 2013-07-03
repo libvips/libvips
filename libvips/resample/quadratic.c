@@ -131,7 +131,7 @@ vips_quadratic_gen( VipsRegion *or, void *vseq,
 
 	const int ps = VIPS_IMAGE_SIZEOF_PEL( in );
 
-	double *vec = (double *) VIPS_IMAGE_ADDR( quadratic->mat, 0, 0 );
+	double *vec = VIPS_MATRIX( quadratic->mat, 0, 0 );
 
 	int clip_width = resample->in->Xsize;
 	int clip_height = resample->in->Ysize;

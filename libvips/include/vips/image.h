@@ -484,6 +484,17 @@ extern const guint64 vips__image_sizeof_bandformat[];
 	 (X) * VIPS_IMAGE_SIZEOF_PEL( I ))
 #endif /*VIPS_DEBUG*/
 
+#ifdef VIPS_DEBUG
+#define VIPS_MATRIX( I, X, Y ) \
+	(((I)->BandFmt == VIPS_FORMAT_DOUBLE && (I)->Bands == 1) ? \
+	 ((double *) VIPS_IMAGE_ADDR( I, X, Y )) : \
+	 (fprintf( stderr, "VIPS_MATRIX: not a matrix image\n" ), \
+	  	(VipsPel *) NULL)) 
+#else /*!VIPS_DEBUG*/
+#define VIPS_MATRIX( I, X, Y ) \
+	((double *) VIPS_IMAGE_ADDR( I, X, Y ))
+#endif /*VIPS_DEBUG*/
+
 int vips_image_written( VipsImage *image );
 
 void vips_image_invalidate_all( VipsImage *image );

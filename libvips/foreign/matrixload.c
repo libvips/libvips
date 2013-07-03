@@ -88,7 +88,7 @@ vips_foreign_load_matrix_header( VipsForeignLoad *load )
 	double scale;
 	double offset;
 
-	if( vips__array_read_header( matrix->filename,
+	if( vips__matrix_read_header( matrix->filename,
 		&width, &height, &scale, &offset ) )
 		return( -1 );
 
@@ -109,7 +109,7 @@ vips_foreign_load_matrix_load( VipsForeignLoad *load )
 
 	VipsImage *out; 
 
-	if( !(out = vips__array_read( matrix->filename )) )
+	if( !(out = vips__matrix_read( matrix->filename )) )
 		return( -1 );
 	if( vips_image_write( out, load->real ) ) {
 		g_object_unref( out );

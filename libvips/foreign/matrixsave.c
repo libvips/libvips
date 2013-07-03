@@ -73,7 +73,7 @@ vips_foreign_save_matrix_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__array_write( save->ready, matrix->filename ) )
+	if( vips__matrix_write( save->ready, matrix->filename ) )
 		return( -1 );
 
 	return( 0 );

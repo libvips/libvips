@@ -74,8 +74,6 @@ typedef VipsConversionClass VipsScaleClass;
 
 G_DEFINE_TYPE( VipsScale, vips_scale, VIPS_TYPE_CONVERSION );
 
-#define ARY( im, x, y ) *((double *) VIPS_IMAGE_ADDR( im, x, y ))
-
 static int
 vips_scale_build( VipsObject *object )
 {
@@ -91,8 +89,8 @@ vips_scale_build( VipsObject *object )
 
 	if( vips_stats( scale->in, &t[0], NULL ) )
 		return( -1 );
-	mn = ARY( t[0], 0, 0 );
-	mx = ARY( t[0], 1, 0 );
+	mn = *VIPS_MATRIX( t[0], 0, 0 );
+	mx = *VIPS_MATRIX( t[0], 1, 0 );
 
 	if( mn == mx ) {
 		/* Range of zero: just return black.
