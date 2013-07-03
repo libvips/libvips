@@ -129,7 +129,7 @@ extern "C" {
 #include <vips/convolution.h>
 #include <vips/morphology.h>
 #include <vips/mosaicing.h>
-#include <vips/histograms_lut.h>
+#include <vips/histogram.h>
 #include <vips/freq_filt.h>
 #include <vips/resample.h>
 #include <vips/colour.h>

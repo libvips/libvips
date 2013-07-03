@@ -19,7 +19,6 @@ libhistogram_la_SOURCES = \
 	im_invertlut.c \
 	im_lhisteq.c \
 	im_maplut.c \
-	im_buildlut.c \
 	im_project.c \
 	im_stdif.c \
 	tone.c

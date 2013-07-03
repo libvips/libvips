@@ -31,8 +31,8 @@
 
  */
 
-#ifndef IM_HIST_H
-#define IM_HIST_H
+#ifndef VIPS_HISTOGRAM_H
+#define VIPS_HISTOGRAM_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,7 +45,6 @@ int im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out );
 int im_identity( VipsImage *lut, int bands );
 int im_identity_ushort( VipsImage *lut, int bands, int sz );
 int im_invertlut( DOUBLEMASK *input, VipsImage *output, int lut_size );
-int im_buildlut( DOUBLEMASK *input, VipsImage *output );
 int im_project( VipsImage *in, VipsImage *hout, VipsImage *vout );
 
 int im_histnorm( VipsImage *in, VipsImage *out );
@@ -83,4 +82,4 @@ int im_tone_map( VipsImage *in, VipsImage *out, VipsImage *lut );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_HIST_H*/
+#endif /*VIPS_HISTOGRAM_H*/

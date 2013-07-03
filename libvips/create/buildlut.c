@@ -60,8 +60,6 @@
 
 #include "pcreate.h"
 
-/* Our state.
- */
 typedef struct _VipsBuildlut {
 	VipsCreate parent_instance;
 
@@ -69,7 +67,7 @@ typedef struct _VipsBuildlut {
 	 */
 	VipsImage *in;	
 
-	/* Cast to a matrix.
+	/* .. and cast to a matrix.
 	 */
 	VipsImage *mat;
 
@@ -253,7 +251,7 @@ vips_buildlut_class_init( VipsBuildlutClass *class )
 	vobject_class->description = _( "build a look-up table" );
 	vobject_class->build = vips_buildlut_build;
 
-	VIPS_ARG_IMAGE( class, "in", 4, 
+	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
 		_( "Matrix of XY coordinates" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,

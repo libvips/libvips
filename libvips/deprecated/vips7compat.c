@@ -2489,6 +2489,30 @@ im_fgrey( IMAGE *out, const int xsize, const int ysize )
 }
 
 int
+im_buildlut( DOUBLEMASK *input, VipsImage *out )
+{
+	VipsImage *mat;
+	VipsImage *x;
+
+	mat = vips_image_new();
+	if( im_mask2vips( input, mat ) )
+		return( -1 );
+	if( vips_buildlut( mat, &x, 
+		NULL ) ) {
+		g_object_unref( mat );
+		return( -1 );
+	}
+	g_object_unref( mat );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
 im_rightshift_size( IMAGE *in, IMAGE *out, 
 	int xshift, int yshift, int band_fmt )
 {

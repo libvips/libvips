@@ -733,6 +733,7 @@ int im_grey( VipsImage *out, const int xsize, const int ysize );
 int im_fgrey( VipsImage *out, const int xsize, const int ysize );
 int im_sines( VipsImage *out,
 	int xsize, int ysize, double horfreq, double verfreq );
+int im_buildlut( DOUBLEMASK *input, VipsImage *output );
 
 int im_system( VipsImage *im, const char *cmd, char **out );
 VipsImage *im_system_image( VipsImage *im, 

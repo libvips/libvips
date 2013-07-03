@@ -18,7 +18,7 @@ pkginclude_HEADERS = \
 	inplace.h \
 	generate.h \
 	header.h \
-	histograms_lut.h \
+	histogram.h \
 	freq_filt.h \
 	image.h \
 	interpolate.h \
