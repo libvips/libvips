@@ -58,16 +58,24 @@
 
 #include <vips/vips.h>
 
+#include "pcreate.h"
+
 /* Our state.
  */
 typedef struct _VipsBuildlut {
 	VipsCreate parent_instance;
 
-	VipsImage *input;	/* Input matrix */
+	/* Input image.
+	 */
+	VipsImage *in;	
+
+	/* Cast to a matrix.
+	 */
+	VipsImage *mat;
 
 	int xlow;		/* Index 0 in output is this x */
 	int lut_size;		/* Number of output elements to generate */
-	double **data;		/* Rows of unpacked matrix */
+	double **data;		/* Matrix row pointers */
 	double *buf;		/* Ouput buffer */
 } VipsBuildlut;
 
@@ -80,15 +88,9 @@ vips_buildlut_dispose( GObject *gobject )
 {
 	VipsBuildlut *lut = (VipsBuildlut *) gobject;
 
-	if( lut->data ) {
-		int i;
-
-		for( i = 0; i < lut->input->Ysize; i++ ) 
-			VIPS_FREE( lut->data[i] );
-	}
-
 	VIPS_FREE( lut->data );
 	VIPS_FREE( lut->buf );
+	VIPS_UNREF( lut->mat );
 
 	G_OBJECT_CLASS( vips_buildlut_parent_class )->dispose( gobject );
 }
@@ -115,19 +117,18 @@ static int
 vips_buildlut_build_init( VipsBuildlut *lut )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( lut );
-	VipsCreate *create = VIPS_CREATE( lut );
 
-	int x, y, i;
+	int y;
 	int xlow, xhigh;
 
 	/* Need xlow and xhigh to get the size of the LUT we build.
 	 */
-	xlow = xhigh = input->coeff[0];
-	for( y = 0; y < input->ysize; y++ ) {
-		double v = input->coeff[y * input->xsize];
-
+	xlow = xhigh = *VIPS_MATRIX( lut->mat, 0, 0 ); 
+	for( y = 0; y < lut->mat->Ysize; y++ ) {
+		double v = *VIPS_MATRIX( lut->mat, 0, y ); 
+			
 		if( floor( v ) != v ) {
-			im_error( "im_buildlut", 
+			vips_error( class->nickname,
 				"%s", _( "x value not an int" ) );
 			return( -1 );
 		}
@@ -137,41 +138,35 @@ vips_buildlut_build_init( VipsBuildlut *lut )
 		if( v > xhigh )
 			xhigh = v;
 	}
-	state->xlow = xlow;
-	state->lut_size = xhigh - xlow + 1;
+	lut->xlow = xlow;
+	lut->lut_size = xhigh - xlow + 1;
 
-	if( state->lut_size < 1 ) {
-		im_error( "im_buildlut", "%s", _( "x range too small" ) );
+	if( lut->lut_size < 1 ) {
+		vips_error( class->nickname, "%s", _( "x range too small" ) );
 		return( -1 );
 	}
 
-	if( !(state->data = IM_ARRAY( NULL, input->ysize, double * )) )
+	if( !(lut->data = VIPS_ARRAY( NULL, lut->mat->Ysize, double * )) )
 		return( -1 );
-	for( y = 0; y < input->ysize; y++ ) 
-		state->data[y] = NULL;
-	for( y = 0; y < input->ysize; y++ ) 
-		if( !(state->data[y] = IM_ARRAY( NULL, input->xsize, double )) )
-			return( -1 );
+	for( y = 0; y < lut->mat->Ysize; y++ ) 
+		lut->data[y] = VIPS_MATRIX( lut->mat, 0, y );
 
-	for( i = 0, y = 0; y < input->ysize; y++ ) 
-		for( x = 0; x < input->xsize; x++, i++ ) 
-			state->data[y][x] = input->coeff[i];
-
-	if( !(state->buf = IM_ARRAY( NULL, 
-		state->lut_size * (input->xsize - 1), double )) )
+	if( !(lut->buf = VIPS_ARRAY( NULL, 
+		lut->lut_size * (lut->mat->Xsize - 1), double )) )
 		return( -1 );
 
 	/* Sort by 1st column in input.
 	 */
-	qsort( state->data, input->ysize, sizeof( double * ), compare );
+	qsort( lut->data, lut->mat->Ysize, 
+		sizeof( double * ), vips_buildlut_compare );
 
 #ifdef DEBUG
 	printf( "Input table, sorted by 1st column\n" );
-	for( y = 0; y < input->ysize; y++ ) {
+	for( y = 0; y < lut->mat->Ysize; y++ ) {
 		printf( "%.4d ", y );
 
-		for( x = 0; x < input->xsize; x++ )
-			printf( "%.9f ", state->data[y][x] );
+		for( x = 0; x < lut->mat->Xsize; x++ )
+			printf( "%.9f ", lut->data[y][x] );
 
 		printf( "\n" );
 	}
@@ -180,8 +175,43 @@ vips_buildlut_build_init( VipsBuildlut *lut )
 	return( 0 );
 }
 
-/* Fill our state.
- */
+static int
+vips_buildlut_build_create( VipsBuildlut *lut )
+{
+	const int xlow = lut->xlow;
+	const VipsImage *mat = lut->mat;
+	const int xsize = mat->Xsize;
+	const int ysize = mat->Ysize;
+	const int bands = xsize - 1;
+	const int xlast = lut->data[ysize - 1][0];
+
+	int b, i, x;
+
+	/* Do each output channel separately.
+	 */
+	for( b = 0; b < bands; b++ ) {
+		for( i = 0; i < ysize - 1; i++ ) {
+			const int x1 = lut->data[i][0];
+			const int x2 = lut->data[i + 1][0];
+			const int dx = x2 - x1;
+			const double y1 = lut->data[i][b + 1];
+			const double y2 = lut->data[i + 1][b + 1];
+			const double dy = y2 - y1;
+
+			for( x = 0; x < dx; x++ ) 
+				lut->buf[b + (x + x1 - xlow) * bands] = 
+					y1 + x * dy / dx;
+		}
+
+		/* We are inclusive: pop the final value in by hand.
+		 */
+		lut->buf[b + (xlast - xlow) * bands] =
+			lut->data[ysize - 1][b + 1];
+	}
+
+	return( 0 );
+}
+
 static int
 vips_buildlut_build( VipsObject *object )
 {
@@ -192,14 +222,25 @@ vips_buildlut_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_buildlut_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_buildlut_build_init( lut ) )
+	if( vips_check_matrix( class->nickname, lut->in, &lut->mat ) )
 		return( -1 ); 
+
+	if( vips_buildlut_build_init( lut ) ||
+		vips_buildlut_build_create( lut ) )
+		return( -1 ); 
+
+        vips_image_init_fields( create->out,
+                lut->lut_size, 1, lut->mat->Xsize - 1, 
+		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE, 
+		VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0 );
+        if( vips_image_write_line( create->out, 0, (VipsPel *) lut->buf ) ) 
+		return( -1 );
 
 	return( 0 );
 }
 
 static void
-vips_buildlut_class_init( VipsTextClass *class )
+vips_buildlut_class_init( VipsBuildlutClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -216,52 +257,20 @@ vips_buildlut_class_init( VipsTextClass *class )
 		_( "Input" ), 
 		_( "Matrix of XY coordinates" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsImage, input ),
-		NULL ); 
+		G_STRUCT_OFFSET( VipsBuildlut, in ) ); 
 
 }
 
-static int
-buildlut( State *state )
+static void
+vips_buildlut_init( VipsBuildlut *lut )
 {
-	const int xlow = state->xlow;
-	const DOUBLEMASK *input = state->input;
-	const int ysize = input->ysize;
-	const int xsize = input->xsize;
-	const int bands = xsize - 1;
-	const int xlast = state->data[ysize - 1][0];
-
-	int b, i, x;
-
-	/* Do each output channel separately.
-	 */
-	for( b = 0; b < bands; b++ ) {
-		for( i = 0; i < ysize - 1; i++ ) {
-			const int x1 = state->data[i][0];
-			const int x2 = state->data[i + 1][0];
-			const int dx = x2 - x1;
-			const double y1 = state->data[i][b + 1];
-			const double y2 = state->data[i + 1][b + 1];
-			const double dy = y2 - y1;
-
-			for( x = 0; x < dx; x++ ) 
-				state->buf[b + (x + x1 - xlow) * bands] = 
-					y1 + x * dy / dx;
-		}
-
-		/* We are inclusive: pop the final value in by hand.
-		 */
-		state->buf[b + (xlast - xlow) * bands] =
-			state->data[ysize - 1][b + 1];
-	}
-
-	return( 0 );
 }
 
 /**
- * im_buildlut:
- * @input: input mask
- * @output: output image
+ * vips_buildlut:
+ * @in: input matrix
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * This operation builds a lookup table from a set of points. Intermediate
  * values are generated by piecewise linear interpolation. 
@@ -317,37 +326,19 @@ buildlut( State *state )
  * several Ys, each becomes a band in the output LUT. You don't need to
  * start at zero, any integer will do, including negatives.
  *
- * See also: im_identity(), im_invertlut().
+ * See also: vips_identity(), vips_invertlut().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-im_buildlut( DOUBLEMASK *input, IMAGE *output )
+vips_buildlut( VipsImage *in, VipsImage **out, ... )
 {
-	State state;
+	va_list ap;
+	int result;
 
-	if( !input || input->xsize < 2 || input->ysize < 1 ) {
-		im_error( "im_buildlut", "%s", _( "bad input matrix size" ) );
-		return( -1 );
-	}
+	va_start( ap, out );
+	result = vips_call_split( "buildlut", ap, in, out );
+	va_end( ap );
 
-	if( build_state( &state, input ) ||
-		buildlut( &state ) ) {
-		free_state( &state );
-                return( -1 );
-	}
-
-        im_initdesc( output,
-                state.lut_size, 1, input->xsize - 1, 
-		IM_BBITS_DOUBLE, IM_BANDFMT_DOUBLE,
-                IM_CODING_NONE, IM_TYPE_HISTOGRAM, 1.0, 1.0, 0, 0 );
-        if( im_setupout( output ) ||
-		im_writeline( 0, output, (VipsPel *) state.buf ) ) {
-		free_state( &state );
-		return( -1 );
-	}
-
-	free_state( &state );
-
-	return( 0 );
+	return( result );
 }

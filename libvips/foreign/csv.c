@@ -522,6 +522,16 @@ vips__matrix_header( char *whitemap, FILE *fp,
 		vips_error( "mask2vips", "%s", _( "width / height not int" ) );
 		return( -1 );
 	}
+	*width = header[0];
+	*height = header[0];
+	if( *width <= 0 || 
+		*width > 100000 ||
+		*height <= 0 || 
+		*height > 100000 ) { 
+		vips_error( "mask2vips", 
+			"%s", _( "width / height out of range" ) );
+		return( -1 );
+	}
 	if( i == 3 ) { 
 		vips_error( "mask2vips", "%s", _( "bad scale / offset" ) );
 		return( -1 );
@@ -536,8 +546,6 @@ vips__matrix_header( char *whitemap, FILE *fp,
 		return( -1 );
 	}
 
-	*width = header[0];
-	*height = header[0];
 	*scale = i > 2 ?  header[2] : 1.0;
 	*offset = i > 2 ?  header[3] : 0.0;
 

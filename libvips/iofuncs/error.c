@@ -1167,17 +1167,17 @@ vips_check_hist( const char *domain, VipsImage *im )
  * @im: image to check 
  * @out: put image as in-memory doubles here
  *
- * Matrix images must have width and height less than 1000 and have 1 band.
+ * Matrix images must have width and height less than 100000 and have 1 band.
  *
  * Return 0 if the image will pass as a matrix, or -1 and set an error 
  * message otherwise.
  *
  * @out is set to be @im cast to double and stored in memory. Use
- * VIPS_IMAGE_ADDR() to address values in @out. 
+ * VIPS_MATRIX() to address values in @out. 
  *
  * You must unref @out when you are done with it.
  *
- * See also: vips_error().
+ * See also: VIPS_MATRIX(), vips_object_local()
  *
  * Returns: 0 if OK, -1 otherwise.
  */
@@ -1186,7 +1186,7 @@ vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
 {
 	*out = NULL;
 
-	if( im->Xsize > 1000 || im->Ysize > 1000 ) {
+	if( im->Xsize > 100000 || im->Ysize > 100000 ) {
 		vips_error( domain, "%s", _( "matrix image too large" ) );
 		return( -1 );
 	}
