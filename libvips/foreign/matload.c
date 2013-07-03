@@ -2,6 +2,8 @@
  *
  * 5/12/11
  * 	- from tiffload.c
+ * 3/7/13
+ * 	- lower priority to reduce segvs from Mat_Open()
  */
 
 /*
@@ -117,6 +119,11 @@ vips_foreign_load_mat_class_init( VipsForeignLoadMatClass *class )
 	object_class->description = _( "load mat from file" );
 
 	foreign_class->suffs = vips__mat_suffs;
+
+	/* We need to be lower priority than the jpeg loader, since some jpegs
+	 * can make libmatio segv on Mat_Open(). 
+	 */
+	foreign_class->priority = -50;
 
 	load_class->is_a = vips__mat_ismat;
 	load_class->get_flags_filename = 
