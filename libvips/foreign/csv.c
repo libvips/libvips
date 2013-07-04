@@ -482,6 +482,7 @@ read_ascii_double( FILE *fp, const char whitemap[256], double *out )
 {
 	int ch;
 	char buf[256];
+	char *p;
 
 	ch = skip_white( fp, whitemap );
 
@@ -490,6 +491,16 @@ read_ascii_double( FILE *fp, const char whitemap[256], double *out )
 		return( ch );
 
 	fetch_nonwhite( fp, whitemap, buf, 256 );
+
+	/* The str we fetched must contain at least 1 digit. This helps stop
+	 * us trying to convert "MATLAB" (for example) to a number and 
+	 * getting zero.
+	 */
+	for( p = buf; *p; p++ )
+		if( isdigit( *p ) )
+			break;
+	if( !*p ) 
+		return( *buf ); 
 
 	*out = g_ascii_strtod( buf, NULL );
 
@@ -601,6 +612,23 @@ vips__matrix_read_header( const char *filename,
 	fclose( fp );
 
 	return( 0 );
+}
+
+int
+vips__matrix_ismatrix( const char *filename )
+{
+	int width;
+	int height;
+	double scale;
+	double offset;
+	int result;
+
+	vips_error_freeze();
+	result = vips__matrix_read_header( filename, 
+		&width, &height, &scale, &offset ); 
+	vips_error_thaw();
+
+	return( result == 0 ); 
 }
 
 static int

@@ -38,6 +38,9 @@ extern "C" {
 const char *vips_error_buffer( void );
 void vips_error_clear( void );
 
+void vips_error_freeze( void );
+void vips_error_thaw( void );
+
 void vips_error( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 void vips_verror( const char *domain, const char *fmt, va_list ap );

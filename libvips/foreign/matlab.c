@@ -300,11 +300,12 @@ vips__mat_ismat( const char *filename )
 {
 	mat_t *mat;
 
-	if( !(mat = Mat_Open( filename, MAT_ACC_RDONLY )) )
-		return( 0 );
+	vips_error_freeze();
+	mat = Mat_Open( filename, MAT_ACC_RDONLY );
 	Mat_Close( mat );
+	vips_error_thaw();
 
-	return( 1 );
+	return( mat != NULL );
 }
 
 const char *vips__mat_suffs[] = { ".mat", NULL };

@@ -3,6 +3,8 @@
 - rename image arrays as image matrices ... INTERPRETATION_ARRAY ->
   INTERPRETATION_MATRIX etc. 
 - convert im_buildlut(), im_identity*() to classes
+- added vips_error_freeze()/vips_error_thaw()
+- used freeze()/thaw() to stop file format sniffers logging spurious errors
 
 3/7/13 started 7.34.2
 - lower priority for Matlab load to reduce segvs from Mat_Open(), thanks

@@ -110,9 +110,39 @@
 #define VIPS_MAX_ERROR (10240)
 static char vips_error_text[VIPS_MAX_ERROR] = "";
 static VipsBuf vips_error_buf = VIPS_BUF_STATIC( vips_error_text );
+static int vips_error_freeze_count = 0;
 
 #define IM_DIAGNOSTICS "IM_DIAGNOSTICS"
 #define IM_WARNING "IM_WARNING"
+
+/**
+ * vips_error_freeze:
+ *
+ * Stop errors being logged. Use vips_error_thaw() to unfreeze. You can
+ * nest freeze/thaw pairs.
+ */
+void
+vips_error_freeze( void )
+{
+	g_mutex_lock( vips__global_lock );
+	g_assert( vips_error_freeze_count >= 0 );
+	vips_error_freeze_count += 1;
+	g_mutex_unlock( vips__global_lock );
+}
+
+/**
+ * vips_error_thaw:
+ *
+ * Reenable error logging. 
+ */
+void
+vips_error_thaw( void )
+{
+	g_mutex_lock( vips__global_lock );
+	vips_error_freeze_count -= 1;
+	g_assert( vips_error_freeze_count >= 0 );
+	g_mutex_unlock( vips__global_lock );
+}
 
 /**
  * vips_error_buffer: 
@@ -173,9 +203,12 @@ vips_verror( const char *domain, const char *fmt, va_list ap )
 #endif /*VIPS_DEBUG*/
 
 	g_mutex_lock( vips__global_lock );
-	vips_buf_appendf( &vips_error_buf, "%s: ", domain );
-	vips_buf_vappendf( &vips_error_buf, fmt, ap );
-	vips_buf_appends( &vips_error_buf, "\n" );
+	g_assert( vips_error_freeze_count >= 0 );
+	if( !vips_error_freeze_count ) {
+		vips_buf_appendf( &vips_error_buf, "%s: ", domain );
+		vips_buf_vappendf( &vips_error_buf, fmt, ap );
+		vips_buf_appends( &vips_error_buf, "\n" );
+	}
 	g_mutex_unlock( vips__global_lock );
 
 	if( vips__fatal )

@@ -492,24 +492,29 @@ vips__isanalyze( const char *filename )
 	int width, height;
 	int bands;
 	VipsBandFormat fmt;
+	int result;
 
 	generate_filenames( filename, header, image );
 	if( !vips_existsf( "%s", header ) )
 		return( 0 );
-	if( !(d = read_header( header )) )
+
+	vips_error_freeze();
+	d = read_header( header );
+	vips_error_thaw();
+	if( !d )
 		return( 0 );
 
 #ifdef DEBUG
 	print_dsr( d );
 #endif /*DEBUG*/
 
-	if( get_vips_properties( d, &width, &height, &bands, &fmt ) ) {
-		vips_free( d );
-		return( 0 );
-	}
+	vips_error_freeze();
+	result = get_vips_properties( d, &width, &height, &bands, &fmt );
+	vips_error_thaw();
+
 	vips_free( d );
 
-	return( 1 );
+	return( result == 0 );
 }
 
 int

@@ -73,15 +73,15 @@ static gboolean
 ismagick( const char *filename )
 {
 	VipsImage *t;
+	int result;
 
 	t = vips_image_new();
-	if( vips__magick_read_header( filename, t, FALSE ) ) {
-		g_object_unref( t );
-		return( FALSE );
-	}
+	vips_error_freeze();
+	result = vips__magick_read_header( filename, t, FALSE );
 	g_object_unref( t );
+	vips_error_thaw();
 
-	return( TRUE );
+	return( result == 0 );
 }
 
 static VipsForeignFlags
