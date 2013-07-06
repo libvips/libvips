@@ -53,6 +53,8 @@
  * 21/11/12
  * 	- don't insist exif must have data
  * 	- attach IPCT data (app13), thanks Gary
+ * 6/7/13
+ * 	- null-terminate exif strings, thanks Mike
  */
 
 /*
@@ -407,8 +409,16 @@ vips_exif_to_s(  ExifData *ed, ExifEntry *entry, VipsBuf *buf )
 	ExifSRational srv;
 	char txt[256];
 
-	if( entry->format == EXIF_FORMAT_ASCII ) 
-		vips_buf_appendf( buf, "%s ", entry->data );
+	if( entry->format == EXIF_FORMAT_ASCII )  {
+		/* libexif does not null-terminate strings. Copy out and add
+		 * the \0 ourselves.
+		 */
+		int len = VIPS_MIN( 254, entry->size ); 
+
+		memcpy( txt, entry->data, len );
+		txt[len] = '\0';
+		vips_buf_appendf( buf, "%s ", txt );
+	}
 	else if( entry->components < 10 &&
 		!vips_exif_get_int( ed, entry, 0, &iv ) ) {
 		for( i = 0; i < entry->components; i++ ) {
