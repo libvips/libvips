@@ -1,3 +1,7 @@
+- could VipsConversion now have an @in member?
+
+  we've moved all the no-input ones of to create now, I think
+
 - move im_buildlut() to create package
 
   others too? identity?

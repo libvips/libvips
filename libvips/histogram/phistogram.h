@@ -55,8 +55,10 @@ extern "C" {
 typedef struct _VipsHistogram {
 	VipsOperation parent_instance;
 
-	/* All have an output image.
+	/* @in is checked to be a histogram.
 	 */
+	VipsImage *in;
+
 	VipsImage *out;
 
 } VipsHistogram;

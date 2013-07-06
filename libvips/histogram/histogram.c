@@ -78,6 +78,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsHistogram, vips_histogram, VIPS_TYPE_OPERATION );
 static int
 vips_histogram_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
 
 #ifdef DEBUG
@@ -90,6 +91,9 @@ vips_histogram_build( VipsObject *object )
 
 	if( VIPS_OBJECT_CLASS( vips_histogram_parent_class )->build( object ) )
 		return( -1 );
+
+	if( vips_check_hist( class->nickname, histogram->in ) )
+		return( -1 ); 
 
 	return( 0 );
 }
@@ -107,11 +111,18 @@ vips_histogram_class_init( VipsHistogramClass *class )
 	vobject_class->description = _( "histogram operations" );
 	vobject_class->build = vips_histogram_build;
 
+	VIPS_ARG_IMAGE( class, "in", 0, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsHistogram, in ) );
+
 	VIPS_ARG_IMAGE( class, "out", 1, 
 		_( "Output" ), 
 		_( "Output image" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsHistogram, out ) );
+
 }
 
 static void
