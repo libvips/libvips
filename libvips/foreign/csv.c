@@ -484,6 +484,8 @@ read_ascii_double( FILE *fp, const char whitemap[256], double *out )
 	char buf[256];
 	char *p;
 
+	*out = 0.0;
+
 	ch = skip_white( fp, whitemap );
 
 	if( ch == EOF || 
