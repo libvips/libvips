@@ -2281,7 +2281,8 @@ vips_type_depth( GType type )
 	int depth;
 
 	depth = 0;
-	while( type != VIPS_TYPE_OBJECT && (type = g_type_parent( type )) )
+	while( type != VIPS_TYPE_OBJECT && 
+		(type = g_type_parent( type )) )
 		depth += 1;
 
 	return( depth );

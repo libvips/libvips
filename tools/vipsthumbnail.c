@@ -35,6 +35,9 @@
  * 	- allow absolute paths in -o (thanks fuho)
  * 3/5/13
  * 	- add optional sharpening mask from file
+ * 10/7/13
+ * 	- rewrite for vips8
+ * 	- handle embedded jpeg thumbnails
  */
 
 #ifdef HAVE_CONFIG_H
@@ -140,70 +143,199 @@ calculate_shrink( int width, int height, double *residual )
 	return( shrink );
 }
 
-/* Some interpolators look a little soft, so we have an optional sharpening
- * stage.
+/* Find the best jpeg preload shrink.
  */
-static INTMASK *
-sharpen_filter( void )
+static int
+thumbnail_find_jpegshrink( VipsImage *im )
 {
-	static INTMASK *mask = NULL;
+	int shrink;
 
-	if( !mask )  {
-		if( strcmp( convolution_mask, "none" ) == 0 ) {
-			mask = NULL; 
-		}
-		else if( strcmp( convolution_mask, "mild" ) == 0 ) {
-			mask = im_create_imaskv( "sharpen.con", 3, 3,
-				-1, -1, -1,
-				-1, 32, -1,
-				-1, -1, -1 );
-			mask->scale = 24;
-		}
-		else
-			if( !(mask = im_read_imask( convolution_mask )) )
-				error_exit( "unable to load sharpen mask" );
-	}
+	shrink = calculate_shrink( im->Xsize, im->Ysize, NULL );
 
-	return( mask );
+	if( shrink >= 8 )
+		return( 8 );
+	else if( shrink >= 4 )
+		return( 4 );
+	else if( shrink >= 2 )
+		return( 2 );
+	else 
+		return( 1 );
 }
 
-static int
-shrink_factor( IMAGE *in, IMAGE *out, 
-	int shrink, double residual, VipsInterpolate *interp )
+#define THUMBNAIL "jpeg-thumbnail-data"
+
+/* Try to read an embedded thumbnail. 
+ */
+static VipsImage *
+thumbnail_get_thumbnail( VipsImage *im )
 {
-	IMAGE *t[9];
-	VipsImage **s = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( out ), 1 );
-	IMAGE *x;
+	void *ptr;
+	size_t size;
+	VipsImage *thumb;
+	double residual;
+	int jpegshrink;
+
+	if( !vips_image_get_typeof( im, THUMBNAIL ) ||
+		vips_image_get_blob( im, THUMBNAIL, &ptr, &size ) ||
+		vips_jpegload_buffer( ptr, size, &thumb, NULL ) ) {
+		if( verbose )
+			printf( "no jpeg thumbnail\n" ); 
+		return( NULL ); 
+	}
+
+	calculate_shrink( thumb->Xsize, thumb->Ysize, &residual );
+	if( residual > 1.0 ) { 
+		if( verbose )
+			printf( "jpeg thumbnail too small\n" ); 
+		g_object_unref( thumb ); 
+		return( NULL ); 
+	}
+
+	/* Reload with the correct downshrink.
+	 */
+	jpegshrink = thumbnail_find_jpegshrink( thumb );
+	if( verbose )
+		printf( "loading jpeg thumbnail with factor %d pre-shrink\n", 
+			jpegshrink );
+	g_object_unref( thumb );
+	if( vips_jpegload_buffer( ptr, size, &thumb, 
+		"shrink", jpegshrink,
+		NULL ) ) {
+		if( verbose )
+			printf( "jpeg thumbnail reload failed\n" ); 
+		return( NULL ); 
+	}
+
+	if( verbose )
+		printf( "using %dx%d jpeg thumbnail\n", 
+			thumb->Xsize, thumb->Ysize ); 
+
+	return( thumb );
+}
+
+/* Open an image, returning the best version of that image for thumbnailing. 
+ *
+ * jpegs can have embedded thumbnails ... use that if it's large enough.
+ *
+ * libjpeg supports fast shrink-on-read, so if we have a JPEG, we can ask 
+ * VIPS to load a lower resolution version.
+ */
+static VipsImage *
+thumbnail_open( VipsObject *thumbnail, const char *filename )
+{
+	const char *loader;
+	VipsImage *im;
+
+	if( verbose )
+		printf( "thumbnailing %s\n", filename );
+
+	if( !(loader = vips_foreign_find_load( filename )) )
+		return( NULL );
+
+	if( verbose )
+		printf( "selected loader is \"%s\"\n", loader ); 
+
+	if( strcmp( loader, "VipsForeignLoadJpegFile" ) == 0 ) {
+		VipsImage *thumb;
+
+		/* This will just read in the header and is quick.
+		 */
+		if( !(im = vips_image_new_from_file( filename )) )
+			return( NULL );
+
+		/* Try to read an embedded thumbnail. If we find one, use that
+		 * instead.
+		 */
+		if( (thumb = thumbnail_get_thumbnail( im )) ) { 
+			/* @thumb has not been fully decoded yet ... 
+			 * we must not close @im
+			 * until we're done with @thumb.
+			 */
+			vips_object_local( VIPS_OBJECT( thumb ), im );
+
+			im = thumb;
+		}
+		else {
+			int jpegshrink;
+
+			if( verbose )
+				printf( "processing main jpeg image\n" );
+
+			jpegshrink = thumbnail_find_jpegshrink( im );
+
+			g_object_unref( im );
+
+			if( verbose )
+				printf( "loading jpeg with factor %d "
+					"pre-shrink\n", jpegshrink ); 
+
+			if( vips_foreign_load( filename, &im,
+				"sequential", TRUE,
+				"shrink", jpegshrink,
+				NULL ) )
+				return( NULL );
+		}
+	}
+	else {
+		/* All other formats.
+		 */
+		if( vips_foreign_load( filename, &im,
+			"sequential", TRUE,
+			NULL ) )
+			return( NULL );
+	}
+
+	vips_object_local( thumbnail, im );
+
+	return( im ); 
+}
+
+static VipsImage *
+thumbnail_shrink( VipsObject *thumbnail, VipsImage *in, 
+	VipsInterpolate *interp, INTMASK *sharpen )
+{
+	VipsImage **t = (VipsImage **) vips_object_local_array( thumbnail, 10 );
+
+	int shrink; 
+	double residual; 
 	int tile_width;
 	int tile_height;
 	int nlines;
 
-	if( im_open_local_array( out, t, 9, "thumbnail", "p" ) )
-		return( -1 );
-	x = in;
-
-	/* Unpack the two coded formats we support to float for processing.
+	/* Unpack the two coded formats we support.
 	 */
-	if( x->Coding == IM_CODING_LABQ ) {
+	if( in->Coding == VIPS_CODING_LABQ ) {
 		if( verbose ) 
 			printf( "unpacking LAB to RGB\n" );
 
-		if( im_LabQ2disp( x, t[1], im_col_displays( 7 ) ) )
-			return( -1 );
-		x = t[1];
+		if( vips_colourspace( in, &t[0], 
+			VIPS_INTERPRETATION_sRGB, NULL ) ) 
+			return( NULL ); 
+
+		in = t[0];
 	}
-	else if( x->Coding == IM_CODING_RAD ) {
+	else if( in->Coding == IM_CODING_RAD ) {
 		if( verbose ) 
 			printf( "unpacking Rad to float\n" );
 
-		if( im_rad2float( x, t[1] ) )
-			return( -1 );
-		x = t[1];
+		/* rad is scrgb.
+		 */
+		if( vips_rad2float( in, &t[1], NULL ) ||
+			vips_colourspace( t[1], &t[2], 
+				VIPS_INTERPRETATION_sRGB, NULL ) ) 
+			return( NULL );
+
+		in = t[2];
 	}
 
-	if( im_shrink( x, t[2], shrink, shrink ) )
-		return( -1 );
+	shrink = calculate_shrink( in->Xsize, in->Ysize, &residual );
+
+	if( verbose ) 
+		printf( "integer shrink by %d\n", shrink );
+
+	if( vips_shrink( in, &t[3], shrink, shrink, NULL ) ) 
+		return( NULL );
+	in = t[3];
 
 	/* We want to make sure we read the image sequentially.
 	 * However, the convolution we may be doing later will force us 
@@ -213,31 +345,39 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	 * So ... read into a cache where tiles are scanlines, and make sure
 	 * we keep enough scanlines to be able to serve a line of tiles.
 	 */
-	vips_get_tile_size( t[2], 
+	vips_get_tile_size( in, 
 		&tile_width, &tile_height, &nlines );
-	if( vips_tilecache( t[2], &s[0], 
-		"tile_width", t[2]->Xsize,
+	if( vips_tilecache( in, &t[4], 
+		"tile_width", in->Xsize,
 		"tile_height", 10,
 		"max_tiles", (nlines * 2) / 10,
 		"strategy", VIPS_CACHE_SEQUENTIAL,
 		NULL ) ||
-		im_affinei_all( s[0], t[4], 
-			interp, residual, 0, 0, residual, 0, 0 ) )
-		return( -1 );
-	x = t[4];
+		vips_affine( t[4], &t[5], residual, 0, 0, residual, NULL, 
+			"interpolate", interp,
+			NULL ) )  
+		return( NULL );
+	in = t[5];
+
+	if( verbose ) {
+		printf( "residual scale by %g\n", residual );
+		printf( "%s interpolation\n", 
+			VIPS_OBJECT_GET_CLASS( interp )->nickname );
+	}
 
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
 	 * sharpened.
 	 */
-	if( shrink > 1 && 
+	if( shrink >= 1 && 
 		residual <= 1.0 && 
-		sharpen_filter() ) { 
+		sharpen ) { 
 		if( verbose ) 
 			printf( "sharpening thumbnail\n" );
 
-		if( im_conv( x, t[5], sharpen_filter() ) )
-			return( -1 );
-		x = t[5];
+		t[6] = vips_image_new();
+		if( im_conv( in, t[6], sharpen ) ) 
+			return( NULL );
+		in = t[6];
 	}
 
 	/* Colour management: we can transform the image if we have an output
@@ -245,62 +385,46 @@ shrink_factor( IMAGE *in, IMAGE *out,
 	 * image, or if there is no profile there, supplied by the user.
 	 */
 	if( export_profile &&
-		(im_header_get_typeof( x, IM_META_ICC_NAME ) || 
+		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
 		 import_profile) ) {
-		if( im_header_get_typeof( x, IM_META_ICC_NAME ) ) {
-			if( verbose ) 
+		if( verbose ) {
+			if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) )
 				printf( "importing with embedded profile\n" );
-
-			if( im_icc_import_embedded( x, t[6], 
-				IM_INTENT_RELATIVE_COLORIMETRIC ) )
-				return( -1 );
-		}
-		else {
-			if( verbose ) 
+			else
 				printf( "importing with profile %s\n",
 					import_profile );
 
-			if( im_icc_import( x, t[6], 
-				import_profile, 
-				IM_INTENT_RELATIVE_COLORIMETRIC ) )
-				return( -1 );
+			printf( "exporting with profile %s\n", export_profile );
 		}
 
-		if( verbose ) 
-			printf( "exporting with profile %s\n", export_profile );
+		if( vips_icc_transform( in, &t[7], export_profile,
+			"input_profile", import_profile,
+			"embedded", TRUE,
+			NULL ) )  
+			return( NULL );
 
-		if( im_icc_export_depth( t[6], t[7], 
-			8, export_profile, 
-			IM_INTENT_RELATIVE_COLORIMETRIC ) )
-			return( -1 );
-
-		x = t[7];
+		in = t[7];
 	}
 
-	if( delete_profile ) {
+	if( delete_profile &&
+		vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
 		if( verbose )
 			printf( "deleting profile from output image\n" );
 
-		if( im_meta_get_typeof( x, IM_META_ICC_NAME ) &&
-			!im_meta_remove( x, IM_META_ICC_NAME ) )
-			return( -1 );
+		if( vips_image_remove( in, VIPS_META_ICC_NAME ) ) 
+			return( NULL );
 	}
 
-	if( im_copy( x, out ) )
-		return( -1 );
-
-	return( 0 );
+	return( in );
 }
 
-static int
-thumbnail3( IMAGE *in, IMAGE *out )
+static VipsInterpolate *
+thumbnail_interpolator( VipsObject *thumbnail, VipsImage *in )
 {
-	int shrink;
 	double residual;
 	VipsInterpolate *interp;
-	int result;
 
-	shrink = calculate_shrink( in->Xsize, in->Ysize, &residual );
+	calculate_shrink( in->Xsize, in->Ysize, &residual );
 
 	/* For images smaller than the thumbnail, we upscale with nearest
 	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
@@ -308,32 +432,49 @@ thumbnail3( IMAGE *in, IMAGE *out )
 	if( !(interp = VIPS_INTERPOLATE( vips_object_new_from_string( 
 		g_type_class_ref( VIPS_TYPE_INTERPOLATE ), 
 		residual > 1.0 ? "nearest" : interpolator ) )) )
-		return( -1 );
+		return( NULL );
 
-	if( verbose ) {
-		printf( "integer shrink by %d\n", shrink );
-		printf( "residual scale by %g\n", residual );
-		printf( "%s interpolation\n", 
-			VIPS_OBJECT_GET_CLASS( interp )->nickname );
-	}
+	vips_object_local( thumbnail, interp );
 
-	result = shrink_factor( in, out, shrink, residual, interp );
-
-	g_object_unref( interp );
-
-	return( result );
+	return( interp );
 }
 
-/* Given (eg.) "/poop/somefile.png", make the thumbnail name,
- * "/poop/tn_somefile.jpg".
+/* Some interpolators look a little soft, so we have an optional sharpening
+ * stage.
  */
-static char *
-make_thumbnail_name( const char *filename )
+static INTMASK *
+thumbnail_sharpen( void )
+{
+	static INTMASK *mask = NULL;
+
+	if( !mask )  {
+		if( strcmp( convolution_mask, "none" ) == 0 ) 
+			mask = NULL; 
+		else if( strcmp( convolution_mask, "mild" ) == 0 ) {
+			mask = im_create_imaskv( "sharpen.con", 3, 3,
+				-1, -1, -1,
+				-1, 32, -1,
+				-1, -1, -1 );
+			mask->scale = 24;
+		}
+		else
+			if( !(mask = im_read_imask( convolution_mask )) )
+				vips_error_exit( "unable to load sharpen" );
+	}
+
+	return( mask );
+}
+
+/* Given (eg.) "/poop/somefile.png", write @im to the thumbnail name,
+ * (eg.) "/poop/tn_somefile.jpg".
+ */
+static int
+thumbnail_write( VipsImage *im, const char *filename )
 {
 	char *file;
 	char *p;
 	char buf[FILENAME_MAX];
-	char *result;
+	char *output_name;
 
 	file = g_path_get_basename( filename );
 
@@ -345,110 +486,50 @@ make_thumbnail_name( const char *filename )
 	/* output_format can be an absolute path, in which case we discard the
 	 * path from the incoming file.
 	 */
-	im_snprintf( buf, FILENAME_MAX, output_format, file );
+	vips_snprintf( buf, FILENAME_MAX, output_format, file );
 	if( g_path_is_absolute( output_format ) ) 
-		result = g_strdup( buf );
+		output_name = g_strdup( buf );
 	else {
 		char *dir;
 
 		dir = g_path_get_dirname( filename );
-		result = g_build_filename( dir, buf, NULL );
+		output_name = g_build_filename( dir, buf, NULL );
 		g_free( dir );
 	}
 
 	if( verbose )
-		printf( "thumbnailing %s as %s\n", filename, result );
+		printf( "thumbnailing %s as %s\n", filename, output_name );
 
 	g_free( file );
 
-	return( result );
+	if( vips_image_write_to_file( im, output_name ) ) {
+		g_free( output_name );
+		return( -1 );
+	}
+	g_free( output_name );
+
+	return( 0 );
 }
 
 static int
-thumbnail2( const char *filename, int shrink )
+thumbnail_process( VipsObject *thumbnail, const char *filename )
 {
-	IMAGE *in;
-	IMAGE *out;
-	char *tn_filename;
-	int result;
+	VipsImage *in;
+	VipsInterpolate *interp;
+	INTMASK *sharpen;
+	VipsImage *thumb;
 
-	/* Open in sequential mode.
-	 */
-	if( shrink > 1 ) {
-		if( vips_foreign_load( filename, &in,
-			"sequential", TRUE,
-			"shrink", shrink,
-			NULL ) )
-			return( -1 );
-	}
-	else {
-		if( vips_foreign_load( filename, &in,
-			"sequential", TRUE,
-			NULL ) )
-			return( -1 );
-	}
-
-	tn_filename = make_thumbnail_name( filename );
-	if( !(out = im_open( tn_filename, "w" )) ) {
-		im_close( in );
-		g_free( tn_filename );
+	if( !(in = thumbnail_open( thumbnail, filename )) )
 		return( -1 );
-	}
-
-	result = thumbnail3( in, out );
-
-	g_free( tn_filename );
-	im_close( out );
-	im_close( in );
-
-	return( result );
-}
-
-/* JPEGs get special treatment. libjpeg supports fast shrink-on-read,
- * so if we have a JPEG, we can ask VIPS to load a lower resolution
- * version.
- */
-static int
-thumbnail( const char *filename )
-{
-	VipsFormatClass *format;
-	int shrink;
-
-	if( verbose )
-		printf( "thumbnailing %s\n", filename );
-
-	if( !(format = vips_format_for_file( filename )) )
+	if( !(interp = thumbnail_interpolator( thumbnail, in )) )
+		return( -1 );
+	sharpen = thumbnail_sharpen();
+	if( !(thumb = thumbnail_shrink( thumbnail, in, interp, sharpen )) )
+		return( -1 );
+	if( thumbnail_write( thumb, filename ) )
 		return( -1 );
 
-	if( verbose )
-		printf( "detected format as %s\n", 
-			VIPS_OBJECT_CLASS( format )->nickname );
-
-	shrink = 1;
-	if( strcmp( VIPS_OBJECT_CLASS( format )->nickname, "jpeg" ) == 0 ) {
-		IMAGE *im;
-
-		/* This will just read in the header and is quick.
-		 */
-		if( !(im = im_open( filename, "r" )) )
-			return( -1 );
-		shrink = calculate_shrink( im->Xsize, im->Ysize, NULL );
-		im_close( im );
-
-		if( shrink > 8 )
-			shrink = 8;
-		else if( shrink > 4 )
-			shrink = 4;
-		else if( shrink > 2 )
-			shrink = 2;
-		else 
-			shrink = 1;
-
-		if( verbose )
-			printf( "using fast jpeg shrink, factor %d\n", shrink );
-	}
-
-	return( thumbnail2( filename, shrink ) );
+	return( 0 );
 }
 
 int
@@ -458,15 +539,15 @@ main( int argc, char **argv )
 	GError *error = NULL;
 	int i;
 
-	if( im_init_world( argv[0] ) )
-	        error_exit( "unable to start VIPS" );
+	if( vips_init( argv[0] ) )
+	        vips_error_exit( "unable to start VIPS" );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
         context = g_option_context_new( _( "- thumbnail generator" ) );
 
 	g_option_context_add_main_entries( context, options, GETTEXT_PACKAGE );
-	g_option_context_add_group( context, im_get_option_group() );
+	g_option_context_add_group( context, vips_get_option_group() );
 
 	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
 		if( error ) {
@@ -474,18 +555,25 @@ main( int argc, char **argv )
 			g_error_free( error );
 		}
 
-		error_exit( "try \"%s --help\"", g_get_prgname() );
+		vips_error_exit( "try \"%s --help\"", g_get_prgname() );
 	}
 
 	g_option_context_free( context );
 
-	for( i = 1; i < argc; i++ )
-		if( thumbnail( argv[i] ) ) {
+	for( i = 1; i < argc; i++ ) {
+		/* Hang resources for this processing off this.
+		 */
+		VipsObject *thumbnail = VIPS_OBJECT( vips_image_new() ); 
+
+		if( thumbnail_process( thumbnail, argv[i] ) ) {
 			fprintf( stderr, "%s: unable to thumbnail %s\n", 
 				argv[0], argv[i] );
-			fprintf( stderr, "%s", im_error_buffer() );
-			im_error_clear();
+			fprintf( stderr, "%s", vips_error_buffer() );
+			vips_error_clear();
 		}
+
+		g_object_unref( thumbnail );
+	}
 
 	vips_shutdown();
 

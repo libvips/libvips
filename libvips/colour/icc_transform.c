@@ -1058,10 +1058,10 @@ vips_icc_export( VipsImage *in, VipsImage **out, ... )
  *
  * If @embedded is set, the input profile is taken from the input image
  * metadata, if present. If there is no embedded profile,
- * @input_profile_filename is used as a fall-back.
+ * @input_profile is used as a fall-back.
  *
  * If @embedded is not set, the input profile is taken from
- * @input_profile_filename. If @input_profile_filename is not supplied, the
+ * @input_profile. If @input_profile is not supplied, the
  * metadata profile, if any, is used as a fall-back. 
  *
  * Use vips_icc_import() and vips_icc_export() to do either the first or 
