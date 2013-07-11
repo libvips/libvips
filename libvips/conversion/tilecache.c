@@ -903,9 +903,8 @@ vips_line_cache_build( VipsObject *object )
 	block_cache->max_tiles = 3 * (1 + nlines / block_cache->tile_height);
 
 	VIPS_DEBUG_MSG( "vips_line_cache_build: max_tiles = %d, "
-		"tile_height = %d\n",
-		block_cache->max_tiles,
-		block_cache->tile_height );
+		"tile_height = %d, nlines = %d\n",
+		block_cache->max_tiles, block_cache->tile_height, nlines );
 
 	if( vips_image_pio_input( block_cache->in ) )
 		return( -1 );
@@ -974,7 +973,7 @@ vips_line_cache_init( VipsLineCache *cache )
  * vips_linecache() uses. The default is 1 (a single scanline).
  *
  * Normally, only a single thread at once is allowed to calculate tiles. If
- * you set @threaded to %TRUE, vips_tilecache() will allow many threads to
+ * you set @threaded to %TRUE, vips_linecache() will allow many threads to
  * calculate tiles at once, and share the cache between them.
  *
  * See also: vips_cache(), vips_tilecache(). 

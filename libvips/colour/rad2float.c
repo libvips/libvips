@@ -213,7 +213,7 @@ vips_rad2float_init( VipsRad2float *rad2float )
  *
  * Unpack a RAD (#IM_CODING_RAD) image to a three-band float image.
  *
- * See also: im_rad2float(), im_LabQ2LabS().
+ * See also: vips_float2rad(), vips_LabQ2LabS().
  *
  * Returns: 0 on success, -1 on error.
  */

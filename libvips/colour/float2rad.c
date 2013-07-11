@@ -226,7 +226,7 @@ vips_float2rad_init( VipsFloat2rad *float2rad )
  *
  * Convert a three-band float image to Radiance 32-bit packed format.
  *
- * See also: im_rad2float(), #VipsFormatRad, im_LabQ2Lab().
+ * See also: vips_rad2float(), #VipsFormatRad, vips_LabQ2Lab().
  *
  * Returns: 0 on success, -1 on error.
  */

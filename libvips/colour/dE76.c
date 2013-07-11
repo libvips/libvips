@@ -1,4 +1,4 @@
-/* im_dE_fromLab.c
+/* dE76.c
  *
  * Modified:
  * 16/11/94 JC

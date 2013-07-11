@@ -1,4 +1,4 @@
-/* im_LabQ2LabS
+/* LabQ2LabS
  *
  * 17/11/93 JC
  * 	- adapted from im_LabQ2LabS()
@@ -127,7 +127,7 @@ vips_LabQ2LabS_init( VipsLabQ2LabS *LabQ2LabS )
  *
  * Unpack a LabQ (#IM_CODING_LABQ) image to a three-band short image.
  *
- * See also: im_LabS2LabQ(), im_LabQ2LabS(), im_rad2float().
+ * See also: vips_LabS2LabQ(), vips_LabQ2LabS(), vips_rad2float().
  *
  * Returns: 0 on success, -1 on error.
  */

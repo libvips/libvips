@@ -76,7 +76,7 @@ vips_col_dE00( float L1, float a1, float b1,
 /* Code if you want XYZ params and the colour temp used in the reference
 
 	float 
-	im_col_dE00( float X1, float Y1, float Z1, 
+	vips_col_dE00( float X1, float Y1, float Z1, 
 		float X2, float Y2, float Z2 )
 	{
 		const double X0 = 94.811;
@@ -120,13 +120,13 @@ vips_col_dE00( float L1, float a1, float b1,
 	double a1d = (1 + G) * a1;
 	double b1d = b1;
 	double C1d = sqrt( a1d * a1d + b1d * b1d );
-	double h1d = im_col_ab2h( a1d, b1d );
+	double h1d = vips_col_ab2h( a1d, b1d );
 
 	double L2d = L2;
 	double a2d = (1 + G) * a2;
 	double b2d = b2;
 	double C2d = sqrt( a2d * a2d + b2d * b2d );
-	double h2d = im_col_ab2h( a2d, b2d );
+	double h2d = vips_col_ab2h( a2d, b2d );
 
 	/* L' bar, C' bar, h' bar
 	 */

@@ -1,4 +1,4 @@
-/* im_LabQ2Lab
+/* LabQ2Lab
  *
  * Copyright Kirk Martinez 2/5/1993
  *
@@ -147,7 +147,7 @@ vips_LabQ2Lab_init( VipsLabQ2Lab *LabQ2Lab )
  *
  * Unpack a LabQ (#IM_CODING_LABQ) image to a three-band float image.
  *
- * See also: im_LabQ2Lab(), im_LabQ2LabS(), im_rad2float().
+ * See also: vips_LabQ2Lab(), vips_LabQ2LabS(), vips_rad2float().
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -1,4 +1,4 @@
-/* im_LabS2LabQ()
+/* LabS2LabQ()
  *
  * 17/11/93 JC
  * 	- adapted from im_LabS2LabQ()

@@ -132,7 +132,7 @@
  *
  * @VIPS_FOREIGN_BIGENDIAN means that image pixels are most-significant byte
  * first. Depending on the native byte order of the host machine, you may
- * need to swap bytes. See copy_swap().
+ * need to swap bytes. See vips_copy().
  */
 
 /**

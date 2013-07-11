@@ -868,7 +868,7 @@ vips_icc_transform_init( VipsIccTransform *transform )
  * Transform an image from absolute to relative colorimetry using the
  * MediaWhitePoint stored in the ICC profile.
  *
- * See also: im_icc_transform(), im_icc_import().
+ * See also: vips_icc_transform(), vips_icc_import().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -890,8 +890,8 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 	cmsCIEXYZ *media;
 
 	if( !(media = cmsReadTag( profile, cmsSigMediaWhitePointTag )) ) {
-		im_error( "im_icc_ac2rc", "%s", _( "unable to get media "
-			"white point" ) );
+		vips_error( "vips_icc_ac2rc", 
+			"%s", _( "unable to get media white point" ) );
 		return( -1 );
 	}
 
@@ -904,8 +904,8 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 	cmsCIEXYZ media;
 
 	if( !cmsTakeMediaWhitePoint( &media, profile ) ) {
-		im_error( "im_icc_ac2rc", "%s", _( "unable to get media "
-			"white point" ) );
+		vips_error( "vips_icc_ac2rc", 
+			"%s", _( "unable to get media white point" ) );
 		return( -1 );
 	}
 

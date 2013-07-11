@@ -1,4 +1,5 @@
-/* @(#) im_Lab2LabQ: quantise FLOAT Lab image into 10 11 11 format
+/* Lab2LabQ: quantise FLOAT Lab image into 10 11 11 format
+ *
  * 4 bytes per pel: l a b lsbs
  * this is an image wrapper which calls line-wise packing
  * Copyright K.Martinez 3/5/93
@@ -161,7 +162,7 @@ vips_Lab2LabQ_init( VipsLab2LabQ *Lab2LabQ )
  *
  * Convert a Lab three-band float image to LabQ (#IM_CODING_LABQ).
  *
- * See also: im_LabQ2Lab().
+ * See also: vips_LabQ2Lab().
  *
  * Returns: 0 on success, -1 on error.
  */

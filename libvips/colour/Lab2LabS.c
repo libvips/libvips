@@ -1,4 +1,4 @@
-/* im_Lab2LabS: quantise FLOAT Lab image into signed short format
+/* Lab2LabS: quantise FLOAT Lab image into signed short format
  *
  * 12/12/02 JC
  *	- from im_Lab2LabS
@@ -104,7 +104,7 @@ vips_Lab2LabS_init( VipsLab2LabS *Lab2LabS )
  *
  * Turn Lab to LabS, signed 16-bit int fixed point.
  *
- * See also: im_LabQ2Lab().
+ * See also: vips_LabQ2Lab().
  *
  * Returns: 0 on success, -1 on error.
  */
