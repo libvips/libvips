@@ -1,3 +1,8 @@
+- support multiscan jpeg write? see
+
+	https://github.com/jcupitt/ruby-vips/issues/41
+
+
 - doc comments in colour refer to im_LabQ2disp() etc. 
 
 - could VipsConversion now have an @in member?
