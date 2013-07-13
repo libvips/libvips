@@ -368,7 +368,7 @@ double VImage::meta_get_double( const char *field )
 const char *VImage::meta_get_string( const char *field ) 
 	throw( VError )
 {
-	char *result;
+	const char *result;
 
 	if( im_meta_get_string( _ref->im, field, &result ) )
 		verror();
