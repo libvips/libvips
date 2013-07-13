@@ -1357,7 +1357,8 @@ vips_image_set_double( VipsImage *image, const char *field, double d )
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_image_get_string( const VipsImage *image, const char *field, char **out )
+vips_image_get_string( const VipsImage *image, const char *field, 
+	const char **out )
 {
 	int i;
 	GValue value_copy = { 0 };

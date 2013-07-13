@@ -88,7 +88,7 @@ vips_foreign_save_tiff_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) object;
 
-	char *p;
+	const char *p;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_tiff_parent_class )->
 		build( object ) )

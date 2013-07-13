@@ -1056,7 +1056,7 @@ write_new( VipsImage *in, const char *filename )
 static int
 vips2rad_put_header( Write *write )
 {
-	char *str;
+	const char *str;
 	int i, j;
 	double d;
 

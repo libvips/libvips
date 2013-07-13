@@ -418,7 +418,7 @@ static void
 vips_image_summary( VipsObject *object, VipsBuf *buf )
 {
 	VipsImage *image = VIPS_IMAGE( object );
-	char *p;
+	const char *p;
 
 	vips_buf_appendf( buf, "%dx%d",
 		vips_image_get_width( image ), vips_image_get_height( image ) );

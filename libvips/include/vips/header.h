@@ -149,7 +149,7 @@ int vips_image_get_double( const VipsImage *image,
 	const char *field, double *out );
 void vips_image_set_double( VipsImage *image, const char *field, double d );
 int vips_image_get_string( const VipsImage *image, 
-	const char *field, char **out );
+	const char *field, const char **out );
 void vips_image_set_string( VipsImage *image, 
 	const char *field, const char *str );
 

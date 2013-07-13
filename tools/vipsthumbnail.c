@@ -148,9 +148,7 @@ calculate_shrink( int width, int height, double *residual )
 static int
 thumbnail_find_jpegshrink( VipsImage *im )
 {
-	int shrink;
-
-	shrink = calculate_shrink( im->Xsize, im->Ysize, NULL );
+	int shrink = calculate_shrink( im->Xsize, im->Ysize, NULL );
 
 	if( shrink >= 8 )
 		return( 8 );

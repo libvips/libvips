@@ -452,7 +452,7 @@ static int
 set_exif_resolution( ExifData *ed, VipsImage *im )
 {
 	double xres, yres;
-	char *p;
+	const char *p;
 	int unit;
 
 	VIPS_DEBUG_MSG( "set_exif_resolution: vips res of %g, %g\n",
@@ -578,7 +578,7 @@ static void
 vips_exif_update_entry( ExifEntry *entry, VipsExif *ve )
 {
 	char name[256];
-	char *value;
+	const char *value;
 
 	vips_snprintf( name, 256, "exif-ifd%d-%s", 
 		exif_entry_get_ifd( entry ),
