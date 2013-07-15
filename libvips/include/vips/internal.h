@@ -90,6 +90,8 @@ extern gboolean vips__cache_trace;
 
 void vips__cache_init( void );
 
+void vips__type_leak( void );
+
 typedef int (*im__fftproc_fn)( VipsImage *, VipsImage *, VipsImage * );
 
 /* iofuncs

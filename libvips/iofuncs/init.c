@@ -327,6 +327,8 @@ vips_leak( void )
 	vips_buf_appends( &buf, "\n" );
 
 	fprintf( stderr, "%s", vips_buf_all( &buf ) );
+
+	vips__type_leak();
 }
 
 /**

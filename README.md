@@ -33,13 +33,22 @@ Checkout the latest sources with:
 Then for a debug build:
 
 	$ ./bootstrap.sh
-	$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" ./configure --prefix=/home/john/vips --enable-gtk-doc
+	$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
+		./configure --prefix=/home/john/vips --enable-gtk-doc
 	$ make
 	$ make install
 
 Static analysis with:
 
 	$ cppcheck --force --enable=style . &> cppcheck.log
+
+Leak check:
+
+        $ export G_DEBUG=gc-friendly
+	$ export G_SLICE=always-malloc
+	$ valgrind --suppressions=/home/john/nip2.supp \
+		--leak-check=yes \
+		vips ... > vips-vg.log 2>&1
 
 # Dependencies 
 

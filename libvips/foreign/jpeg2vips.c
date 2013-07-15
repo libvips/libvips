@@ -164,9 +164,6 @@ readjpeg_free( ReadJpeg *jpeg )
 
 	result = 0;
 
-	if( setjmp( jpeg->eman.jmp ) ) 
-		return( -1 );
-
 	if( jpeg->eman.pub.num_warnings != 0 ) {
 		if( jpeg->fail ) {
 			vips_error( "VipsJpeg", "%s", vips_error_buffer() );
@@ -185,13 +182,20 @@ readjpeg_free( ReadJpeg *jpeg )
 	}
 
 	if( jpeg->decompressing ) {
-		jpeg_finish_decompress( &jpeg->cinfo );
+		/* jpeg_finish_decompress() can fail ... catch any errors.
+		 */
+		if( !setjmp( jpeg->eman.jmp ) ) 
+			jpeg_finish_decompress( &jpeg->cinfo );
+
 		jpeg->decompressing = FALSE;
 	}
 
 	VIPS_FREEF( fclose, jpeg->eman.fp );
 	VIPS_FREE( jpeg->filename );
 	jpeg->eman.fp = NULL;
+
+	/* I don't think this can fail.
+	 */
 	jpeg_destroy_decompress( &jpeg->cinfo );
 
 	return( result );
@@ -210,6 +214,7 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail )
 
 	if( !(jpeg = VIPS_NEW( out, ReadJpeg )) )
 		return( NULL );
+
 	jpeg->out = out;
 	jpeg->shrink = shrink;
 	jpeg->fail = fail;

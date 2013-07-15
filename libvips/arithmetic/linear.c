@@ -135,8 +135,8 @@ vips_linear_build( VipsObject *object )
 
 	/* Make up-banded versions of our constants.
 	 */
-	linear->a_ready = g_new( double, linear->n );
-	linear->b_ready = g_new( double, linear->n );
+	linear->a_ready = VIPS_ARRAY( linear, linear->n, double );
+	linear->b_ready = VIPS_ARRAY( linear, linear->n, double );
 
 	for( i = 0; i < linear->n; i++ ) {
 		if( linear->a ) {

@@ -237,8 +237,8 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 		return( -1 );
 
 	area = vips_area_new_blob( (VipsCallbackFn) vips_free, obuf, olen );
-
 	g_object_set( file, "buffer", area, NULL );
+	vips_area_unref( area );
 
 	return( 0 );
 }
