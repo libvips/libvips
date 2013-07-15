@@ -128,7 +128,7 @@ static void
 vips_interpolate_finalize( GObject *gobject )
 {
 	printf( "vips_interpolate_finalize: " );
-	vips_object_print( VIPS_OBJECT( gobject ) );
+	vips_object_print_name( VIPS_OBJECT( gobject ) );
 
 	G_OBJECT_CLASS( vips_interpolate_parent_class )->finalize( gobject );
 }
@@ -192,7 +192,7 @@ vips_interpolate_init( VipsInterpolate *interpolate )
 {
 #ifdef DEBUG
 	printf( "vips_interpolate_init: " );
-	vips_object_print( VIPS_OBJECT( interpolate ) );
+	vips_object_print_name( VIPS_OBJECT( interpolate ) );
 #endif /*DEBUG*/
 }
 
@@ -365,7 +365,7 @@ vips_interpolate_nearest_init( VipsInterpolateNearest *nearest )
 {
 #ifdef DEBUG
 	printf( "vips_interpolate_nearest_init: " );
-	vips_object_print( VIPS_OBJECT( nearest ) );
+	vips_object_print_name( VIPS_OBJECT( nearest ) );
 #endif /*DEBUG*/
 }
 
@@ -536,7 +536,7 @@ vips_interpolate_bilinear_init( VipsInterpolateBilinear *bilinear )
 {
 #ifdef DEBUG
 	printf( "vips_interpolate_bilinear_init: " );
-	vips_object_print( VIPS_OBJECT( bilinear ) );
+	vips_object_print_name( VIPS_OBJECT( bilinear ) );
 #endif /*DEBUG*/
 
 }

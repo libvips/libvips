@@ -460,9 +460,10 @@ extern const guint64 vips__image_sizeof_bandformat[];
  */
 #ifdef VIPS_DEBUG
 #define VIPS_IMAGE_ADDR( I, X, Y ) \
-	( ((X) >= 0 && (X) < (I)->Xsize && \
-	   (Y) >= 0 && (Y) < (I)->Ysize) ? \
-	     ((I)->data + \
+	( ((X) >= 0 && (X) < VIPS_IMAGE( I )->Xsize && \
+	   (Y) >= 0 && (Y) < VIPS_IMAGE( I )->Ysize && \
+	   VIPS_IMAGE( I )->data) ? \
+	     (VIPS_IMAGE( I )->data + \
 	       (Y) * VIPS_IMAGE_SIZEOF_LINE( I ) + \
 	       (X) * VIPS_IMAGE_SIZEOF_PEL( I )) : \
 	     (fprintf( stderr, \
@@ -474,8 +475,8 @@ extern const guint64 vips__image_sizeof_bandformat[];
 		__FILE__, __LINE__, \
 		(X), (Y), \
 		0, 0, \
-		(I)->Xsize, \
-		(I)->Ysize ), abort(), (VipsPel *) NULL) \
+		VIPS_IMAGE( I )->Xsize, \
+		VIPS_IMAGE( I )->Ysize ), (VipsPel *) NULL) \
 	)
 #else /*!VIPS_DEBUG*/
 #define VIPS_IMAGE_ADDR( I, X, Y ) \
@@ -486,10 +487,11 @@ extern const guint64 vips__image_sizeof_bandformat[];
 
 #ifdef VIPS_DEBUG
 #define VIPS_MATRIX( I, X, Y ) \
-	(((I)->BandFmt == VIPS_FORMAT_DOUBLE && (I)->Bands == 1) ? \
+	((VIPS_IMAGE( I )->BandFmt == VIPS_FORMAT_DOUBLE && \
+	  VIPS_IMAGE( I )->Bands == 1) ? \
 	 ((double *) VIPS_IMAGE_ADDR( I, X, Y )) : \
 	 (fprintf( stderr, "VIPS_MATRIX: not a matrix image\n" ), \
-	  	(VipsPel *) NULL)) 
+	  	(double *) NULL)) 
 #else /*!VIPS_DEBUG*/
 #define VIPS_MATRIX( I, X, Y ) \
 	((double *) VIPS_IMAGE_ADDR( I, X, Y ))

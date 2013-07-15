@@ -37,7 +37,17 @@ extern "C" {
 
 /* Handy!
  */
+#ifdef VIPS_DEBUG
+#define VIPS_UNREF( X ) G_STMT_START { \
+	if( X ) { \
+		g_assert( G_OBJECT( X )->ref_count > 0 ); \
+		g_object_unref( X ); \
+		(X) = 0; \
+	} \
+} G_STMT_END
+#else /*!VIPS_DEBUG*/
 #define VIPS_UNREF( X ) VIPS_FREEF( g_object_unref, (X) )
+#endif /*VIPS_DEBUG*/
 
 typedef struct _VipsObject VipsObject;
 typedef struct _VipsObjectClass VipsObjectClass;

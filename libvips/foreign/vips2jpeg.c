@@ -381,7 +381,7 @@ vips_exif_set_double( ExifData *ed,
 	sizeof_component = entry->size / entry->components;
 	offset = component * sizeof_component;
 
-	VIPS_DEBUG_MSG( "vips_exif_set_double: %s = \"%s\"\n",
+	VIPS_DEBUG_MSG( "vips_exif_set_double: %s = %g\n",
 		exif_tag_get_title( entry->tag ), value );
 
 	if( entry->format == EXIF_FORMAT_RATIONAL ) {
@@ -505,7 +505,7 @@ set_exif_resolution( ExifData *ed, VipsImage *im )
 static int
 set_exif_dimensions( ExifData *ed, VipsImage *im )
 {
-	VIPS_DEBUG_MSG( "set_exif_dimensions: vips size of %g, %g\n",
+	VIPS_DEBUG_MSG( "set_exif_dimensions: vips size of %d, %d\n",
 		im->Xsize, im->Ysize );
 
 	if( write_tag( ed, 2, EXIF_TAG_PIXEL_X_DIMENSION, 

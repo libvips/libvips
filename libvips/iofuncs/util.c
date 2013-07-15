@@ -1624,7 +1624,7 @@ vips__parse_size( const char *size_string )
 	}
 	g_free( unit );
 
-	VIPS_DEBUG_MSG( "parse_size: parsed \"%s\" as %lld\n", 
+	VIPS_DEBUG_MSG( "parse_size: parsed \"%s\" as %" G_GUINT64_FORMAT "\n", 
 		size_string, size );
 
 	return( size );

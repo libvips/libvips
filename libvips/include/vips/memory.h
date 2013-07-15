@@ -37,8 +37,7 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#define VIPS_FREEF( F, S ) \
-G_STMT_START { \
+#define VIPS_FREEF( F, S ) G_STMT_START { \
         if( S ) { \
                 (void) F( (S) ); \
                 (S) = 0; \
