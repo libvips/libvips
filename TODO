@@ -1,3 +1,9 @@
+- do we always call copy_fields and demand_hint with ALL input images? what
+  about the operators in conversion?
+
+  could we add something to check that the two calls agree on the image lists?
+  I think they should
+
 - need a new uncached mode for open via disc
 
 	currently we have a huge linecache for "vips copy x.png x.v", in

@@ -688,7 +688,7 @@ meta_cp( VipsImage *dst, const VipsImage *src )
  * on @out.
  *
  * Image history is completely copied from all @in. @out will have the history
- * of all the intput images.
+ * of all the input images.
  *
  * See also: vips_image_copy_fieldsv(), vips_image_copy_fields().
  *
