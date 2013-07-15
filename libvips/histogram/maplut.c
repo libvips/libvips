@@ -572,8 +572,8 @@ vips_maplut_build( VipsObject *object )
 		histogram->in->Bands, VipsPel * )) ) 
                 return( NULL );
 	for( i = 0; i < histogram->in->Bands; i++ )
-		if( !(maplut->table[i] = 
-			VIPS_ARRAY( maplut, maplut->sz * maplut->es, VipsPel )) )
+		if( !(maplut->table[i] = VIPS_ARRAY( maplut, 
+			maplut->sz * maplut->es, VipsPel )) )
 			return( NULL );
 
 	/* Scan LUT and fill table.
@@ -581,7 +581,8 @@ vips_maplut_build( VipsObject *object )
 	q = (VipsPel *) histogram->in->data;
 	for( x = 0; x < maplut->sz; x++ )
 		for( i = 0; i < maplut->nb; i++ ) {
-			memcpy( maplut->table[i] + x * maplut->es, q, maplut->es );
+			memcpy( maplut->table[i] + x * maplut->es, q, 
+				maplut->es );
 			q += maplut->es;
 		}
 
