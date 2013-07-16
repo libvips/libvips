@@ -44,7 +44,7 @@ Static analysis with:
 
 Leak check:
 
-        $ export G_DEBUG=gc-friendly
+	$ export G_DEBUG=gc-friendly
 	$ export G_SLICE=always-malloc
 	$ valgrind --suppressions=/home/john/nip2.supp \
 		--leak-check=yes \

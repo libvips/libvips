@@ -71,6 +71,10 @@ extern int vips__concurrency;
  */
 extern int vips__fatal;
 
+/* Enable leak check.
+ */
+extern int vips__leak;
+
 /* Give progress feedback.
  */
 extern int vips__progress;

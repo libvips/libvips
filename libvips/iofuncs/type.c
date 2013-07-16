@@ -5,6 +5,8 @@
  *
  * 27/10/11
  * 	- from header.c
+ * 16/7/13
+ * 	- leakcheck VipsArea
  */
 
 /*
@@ -141,9 +143,7 @@ vips_thing_get_type( void )
  * strings. 
  */
 
-#ifdef DEBUG
 static GSList *vips_area_all = NULL;
-#endif /*DEBUG*/
 
 VipsArea *
 vips_area_copy( VipsArea *area )
@@ -174,8 +174,10 @@ vips_area_unref( VipsArea *area )
 
 #ifdef DEBUG
 	printf( "vips_area_unref: %p count = %d\n", area, area->count );
-	g_assert( g_slist_find( vips_area_all, area ) ); 
 #endif /*DEBUG*/
+
+	if( vips__leak )
+		g_assert( g_slist_find( vips_area_all, area ) ); 
 
 	if( area->count == 0 ) {
 		if( area->free_fn && area->data ) {
@@ -190,8 +192,10 @@ vips_area_unref( VipsArea *area )
 
 		g_free( area );
 
+		if( vips__leak )
+			vips_area_all = g_slist_remove( vips_area_all, area ); 
+
 #ifdef DEBUG
-		vips_area_all = g_slist_remove( vips_area_all, area ); 
 		printf( "vips_area_unref: free .. total = %d\n", 
 			g_slist_length( vips_area_all ) );
 #endif /*DEBUG*/
@@ -226,8 +230,10 @@ vips_area_new( VipsCallbackFn free_fn, void *data )
 	area->type = 0;
 	area->sizeof_type = 0;
 
+	if( vips__leak )
+		vips_area_all = g_slist_prepend( vips_area_all, area ); 
+
 #ifdef DEBUG
-	vips_area_all = g_slist_prepend( vips_area_all, area ); 
 	printf( "vips_area_new: %p count = %d (%d in total)\n", 
 		area, area->count, 
 		g_slist_length( vips_area_all ) );
@@ -239,7 +245,6 @@ vips_area_new( VipsCallbackFn free_fn, void *data )
 void
 vips__type_leak( void )
 {
-#ifdef DEBUG
 	if( vips_area_all ) {
 		GSList *p; 
 
@@ -251,7 +256,6 @@ vips__type_leak( void )
 		}
 		printf( "%d in total\n", g_slist_length( vips_area_all ) );
 	}
-#endif /*DEBUG*/
 }
 
 /**
