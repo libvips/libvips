@@ -46,6 +46,8 @@
  * 17/6/12
  * 	- more alpha fixes ... some images have no transparency chunk but
  * 	  still set color_type to alpha
+ * 16/7/13
+ * 	- more robust error handling from libpng
  */
 
 /*
@@ -371,7 +373,7 @@ png2vips_header( Read *read, VipsImage *out )
 			(VipsCallbackFn) vips_free, profile_copy, proflen );
 	}
 
-	/* Sanity-check lines sizes.
+	/* Sanity-check line size.
 	 */
 	png_read_update_info( read->pPng, read->pInfo );
 	if( png_get_rowbytes( read->pPng, read->pInfo ) != 
@@ -456,22 +458,22 @@ png2vips_generate( VipsRegion *or,
 	 */
 	g_assert( r->top == read->y_pos ); 
 
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
-#ifdef DEBUG
-		printf( "png2vips_generate: failing in setjmp\n" ); 
-		printf( "png2vips_generate: line %d, %d rows\n", 
-			r->top, r->height );
-		printf( "png2vips_generate: file %s\n", read->name );
-		printf( "png2vips_generate: thread %p\n", g_thread_self() );
-#endif /*DEBUG*/
-
-		return( -1 );
-	}
-
 	for( y = 0; y < r->height; y++ ) {
 		png_bytep q = (png_bytep) VIPS_REGION_ADDR( or, 0, r->top + y );
 
-		png_read_row( read->pPng, q, NULL );
+		/* We need to catch and ignore errors from read_row().
+		 */
+		if( !setjmp( png_jmpbuf( read->pPng ) ) ) 
+			png_read_row( read->pPng, q, NULL );
+		else { 
+#ifdef DEBUG
+			printf( "png2vips_generate: png_read_row() failed, "
+				"line %d\n", r->top + y ); 
+			printf( "png2vips_generate: file %s\n", read->name );
+			printf( "png2vips_generate: thread %p\n", 
+				g_thread_self() );
+#endif /*DEBUG*/
+		}
 
 		read->y_pos += 1;
 	}
