@@ -3307,7 +3307,24 @@ im_cross_phase( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	return( 0 );
 }
 
-/* This is used by vipsthumbnail and the carrierwave shrinker to cache the
+int 
+im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
+{
+	VipsImage *x;
+
+	if( vips_maplut( in, &x, lut, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+/* This is used by the carrierwave shrinker to cache the
  * output of shrink before doing the final affine.
  *
  * We use the vips8 threaded tilecache to avoid a deadlock: suppose thread1,
@@ -3317,10 +3334,10 @@ im_cross_phase( IMAGE *in1, IMAGE *in2, IMAGE *out )
  *
  * With an unthreaded tilecache (as we had before), thread2 will get
  * the cache lock and start evaling the second block of the shrink. When it
- * reaches the png reader it will stall untilthe first block has been used ...
+ * reaches the png reader it will stall until the first block has been used ...
  * but it never will, since thread1 will block on this cache lock. 
  *
- * This function is only used in those two places (I think), so it's OK to
+ * This function is only used in this place (I think), so it's OK to
  * hard-wire this to be a sequential threaded cache. 
  */
 int

@@ -136,7 +136,7 @@ vips_histogram_init( VipsHistogram *histogram )
 void
 vips_histogram_operation_init( void )
 {
-	extern GType vips_xyz_get_type( void ); 
+	extern GType vips_maplut_get_type( void ); 
 
-	vips_xyz_get_type(); 
+	vips_maplut_get_type(); 
 }

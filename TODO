@@ -1,3 +1,11 @@
+- rename vips_diag() as vips_info(), make it work like a log thing ... 
+  normally no output, can be turned on with a --vips-verbose flag
+
+  handy with vipsthumbnail
+
+- what's the difference between buildlut and invertlut? can we make invertlut
+  by just swapping the channels before calling buildlut?
+
 - do we always call copy_fields and demand_hint with ALL input images? what
   about the operators in conversion?
 
@@ -21,10 +29,6 @@
 - could VipsConversion now have an @in member?
 
   we've moved all the no-input ones of to create now, I think
-
-- move im_buildlut() to create package
-
-  others too? identity?
 
 
 - object construction is threadsafe, but class construction is not

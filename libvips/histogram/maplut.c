@@ -74,11 +74,11 @@
 #include "phistogram.h"
 
 typedef struct _VipsMaplut {
-	VipsHistogram parent_instance;
+	VipsOperation parent_instance;
 
-	/* Process this image (@in is the LUT).
-	 */
-	VipsImage *process;
+	VipsImage *in;
+	VipsImage *out;
+	VipsImage *lut;
 
 	int fmt;		/* LUT image BandFmt */
 	int nb;			/* Number of bands in lut */
@@ -90,9 +90,9 @@ typedef struct _VipsMaplut {
 
 } VipsMaplut;
 
-typedef VipsHistogramClass VipsMaplutClass;
+typedef VipsOperationClass VipsMaplutClass;
 
-G_DEFINE_TYPE( VipsMaplut, vips_maplut, VIPS_TYPE_HISTOGRAM );
+G_DEFINE_TYPE( VipsMaplut, vips_maplut, VIPS_TYPE_OPERATION );
 
 static void
 vips_maplut_preeval( VipsImage *image, VipsProgress *progress, 
@@ -143,7 +143,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 
 /* Map through n non-complex luts.
  */
-#define loop(OUT) { \
+#define loop( OUT ) { \
 	int b = st->nb; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -160,7 +160,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 
 /* Map through n complex luts.
  */
-#define loopc(OUT) { \
+#define loopc( OUT ) { \
 	int b = in->Bands; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -180,7 +180,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 	} \
 }
 
-#define loopg(IN,OUT) { \
+#define loopg( IN, OUT ) { \
 	int b = st->nb; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -203,7 +203,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 	} \
 }
 
-#define loopcg(IN,OUT) { \
+#define loopcg( IN, OUT ) { \
 	int b = in->Bands; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -231,7 +231,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 
 /* Map image through one non-complex lut.
  */
-#define loop1(OUT) { \
+#define loop1( OUT ) { \
 	OUT *tlut = (OUT *) st->table[0]; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -245,7 +245,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 
 /* Map image through one complex lut.
  */
-#define loop1c(OUT) { \
+#define loop1c( OUT ) { \
 	OUT *tlut = (OUT *) st->table[0]; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -265,7 +265,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 /* As above, but the input image may be any unsigned integer type. We have to
  * index the lut carefully, and record the number of overflows we detect.
  */
-#define loop1g(IN,OUT) { \
+#define loop1g( IN, OUT ) { \
 	OUT *tlut = (OUT *) st->table[0]; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -285,7 +285,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 	} \
 }
 
-#define loop1cg(IN,OUT) { \
+#define loop1cg( IN, OUT ) { \
 	OUT *tlut = (OUT *) st->table[0]; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -309,7 +309,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 
 /* Map 1-band image through a many-band non-complex lut.
  */
-#define loop1m(OUT) { \
+#define loop1m( OUT ) { \
 	OUT **tlut = (OUT **) st->table; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -327,7 +327,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 
 /* Map 1-band image through many-band complex lut.
  */
-#define loop1cm(OUT) { \
+#define loop1cm( OUT ) { \
 	OUT **tlut = (OUT **) st->table; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -348,7 +348,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 
 /* Map 1-band uint or ushort image through a many-band non-complex LUT.
  */
-#define loop1gm(IN,OUT) { \
+#define loop1gm( IN, OUT ) { \
 	OUT **tlut = (OUT **) st->table; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -371,7 +371,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 
 /* Map 1-band uint or ushort image through a many-band complex LUT.
  */
-#define loop1cgm(IN,OUT) { \
+#define loop1cgm( IN, OUT ) { \
 	OUT **tlut = (OUT **) st->table; \
 	\
 	for( y = to; y < bo; y++ ) { \
@@ -400,7 +400,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 #define inner_switch( UCHAR, GEN, OUT ) \
 	switch( ir->im->BandFmt ) { \
 	case VIPS_FORMAT_UCHAR:		UCHAR( OUT ); break; \
-	case VIPS_FORMAT_USHORT:		GEN( unsigned short, OUT ); break; \
+	case VIPS_FORMAT_USHORT:	GEN( unsigned short, OUT ); break; \
 	case VIPS_FORMAT_UINT:		GEN( unsigned int, OUT ); break; \
 	default: \
 		g_assert( 0 ); \
@@ -413,25 +413,25 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 #define outer_switch( UCHAR_F, UCHAR_FC, GEN_F, GEN_FC ) \
 	switch( st->fmt ) { \
 	case VIPS_FORMAT_UCHAR:		inner_switch( UCHAR_F, GEN_F, \
-					unsigned char ); break; \
+						unsigned char ); break; \
 	case VIPS_FORMAT_CHAR:		inner_switch( UCHAR_F, GEN_F, \
-					char ); break; \
-	case VIPS_FORMAT_USHORT:		inner_switch( UCHAR_F, GEN_F, \
-					unsigned short ); break; \
+						char ); break; \
+	case VIPS_FORMAT_USHORT:	inner_switch( UCHAR_F, GEN_F, \
+						unsigned short ); break; \
 	case VIPS_FORMAT_SHORT:		inner_switch( UCHAR_F, GEN_F, \
-					short ); break; \
+						short ); break; \
 	case VIPS_FORMAT_UINT:		inner_switch( UCHAR_F, GEN_F, \
-					unsigned int ); break; \
+						unsigned int ); break; \
 	case VIPS_FORMAT_INT:		inner_switch( UCHAR_F, GEN_F, \
-					int ); break; \
+						int ); break; \
 	case VIPS_FORMAT_FLOAT:		inner_switch( UCHAR_F, GEN_F, \
-					float ); break; \
-	case VIPS_FORMAT_DOUBLE:		inner_switch( UCHAR_F, GEN_F, \
-					double ); break; \
+						float ); break; \
+	case VIPS_FORMAT_DOUBLE:	inner_switch( UCHAR_F, GEN_F, \
+						double ); break; \
 	case VIPS_FORMAT_COMPLEX:	inner_switch( UCHAR_FC, GEN_FC, \
-					float ); break; \
+						float ); break; \
 	case VIPS_FORMAT_DPCOMPLEX:	inner_switch( UCHAR_FC, GEN_FC, \
-					double ); break; \
+						double ); break; \
 	default: \
 		g_assert( 0 ); \
 	}
@@ -446,17 +446,18 @@ vips_maplut_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	VipsImage *in = (VipsImage *) a;
 	VipsMaplut *st = (VipsMaplut *) b;
 	VipsRegion *ir = seq->ir;
-	Rect *r = &or->valid;
+	VipsRect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
 	int np = r->width;			/* Pels across region */
 	int ne = VIPS_REGION_N_ELEMENTS( or );	/* Number of elements */
+
 	int x, y, z, i;
 
 	/* Get input ready.
 	 */
-	if( im_prepare( ir, r ) )
+	if( vips_region_prepare( ir, r ) )
 		return( -1 );
 
 	/* Process!
@@ -512,73 +513,76 @@ static int
 vips_maplut_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
 	VipsMaplut *maplut = (VipsMaplut *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
 
+	VipsImage *in;
+	VipsImage *lut;
 	int i, x;
 	VipsPel *q;
+
+	g_object_set( maplut, "out", vips_image_new(), NULL ); 
 
 	if( VIPS_OBJECT_CLASS( vips_maplut_parent_class )->build( object ) )
 		return( -1 );
 
-	/* @in is the LUT.
+	in = maplut->in;
+	lut = maplut->lut;
+
+	if( vips_check_hist( class->nickname, lut ) ||
+		vips_check_uncoded( class->nickname, lut ) ||
+		vips_image_wio_input( lut ) )
+		return( -1 );
+
+	/* Cast @in to u8/u16/u32 to make the index image.
 	 */
-	if( vips_check_uncoded( class->nickname, histogram->in ) ||
-		vips_image_wio_input( histogram->in ) )
+	if( vips_cast( in, &t[0], bandfmt_maplut[in->BandFmt], NULL ) )
+		return( -1 );
+	in = t[0];
+
+	if( vips_check_uncoded( class->nickname, in ) ||
+		vips_check_bands_1orn( class->nickname, in, lut ) ||
+		vips_image_pio_input( in ) )
 		return( -1 );
 
-	/* Cast @process to u8/u16/u32.
-	 */
-	if( !(t = im_open_local( out, "im_maplut", "p" )) ||
-		im_clip2fmt( in, t, bandfmt_maplut[in->BandFmt] ) )
+	if( vips_image_copy_fieldsv( maplut->out, in, lut, NULL ) )
 		return( -1 );
-
-	if( vips_check_uncoded( class->nickname, maplut->process ) ||
-		vips_check_bands_1orn( class->nickname, 
-			maplut->process, histogram->in ) ||
-		vips_image_pio_input( maplut->process ) )
-		return( -1 );
-
-	if( vips_image_copy_fieldsv( histogram->out, 
-		maplut->process, histogram->in, NULL ) )
-		return( -1 );
-	vips_demand_hint( histogram->out, VIPS_DEMAND_STYLE_THINSTRIP, 
-		maplut->process, histogram->in, NULL );
-	histogram->out->BandFmt = histogram->in->BandFmt;
+	vips_demand_hint( maplut->out, VIPS_DEMAND_STYLE_THINSTRIP, 
+		in, lut, NULL );
+	maplut->out->BandFmt = lut->BandFmt;
 
 	/* Output has same number of bands as LUT, unless LUT has 1 band, in
 	 * which case output has same number of bands as input.
 	 */
-	if( histogram->in->Bands != 1 )
-		histogram->out->Bands = histogram->in->Bands;
+	if( lut->Bands != 1 )
+		maplut->out->Bands = lut->Bands;
 
-	g_signal_connect( maplut->in, "preeval", 
+	g_signal_connect( in, "preeval", 
 		G_CALLBACK( vips_maplut_preeval ), maplut );
-	g_signal_connect( maplut->in, "posteval", 
+	g_signal_connect( in, "posteval", 
 		G_CALLBACK( vips_maplut_posteval ), maplut );
 
-	/* Make luts. We unpack the LUT image into a C 2D array to speed
+	/* Make luts. We unpack the LUT image into a 2D C array to speed
 	 * processing.
 	 */
-	maplut->fmt = histogram->in->BandFmt;
-	maplut->es = VIPS_IMAGE_SIZEOF_ELEMENT( histogram->in );
-	maplut->nb = histogram->in->Bands;
-	maplut->sz = histogram->in->Xsize * histogram->in->Ysize;
+	maplut->fmt = lut->BandFmt;
+	maplut->es = VIPS_IMAGE_SIZEOF_ELEMENT( lut );
+	maplut->nb = lut->Bands;
+	maplut->sz = lut->Xsize * lut->Ysize;
 	maplut->clp = maplut->sz - 1;
 
 	/* Attach tables.
 	 */
-	if( !(maplut->table = VIPS_ARRAY( maplut, 
-		histogram->in->Bands, VipsPel * )) ) 
-                return( NULL );
-	for( i = 0; i < histogram->in->Bands; i++ )
+	if( !(maplut->table = VIPS_ARRAY( maplut, lut->Bands, VipsPel * )) ) 
+                return( -1 );
+	for( i = 0; i < lut->Bands; i++ )
 		if( !(maplut->table[i] = VIPS_ARRAY( maplut, 
 			maplut->sz * maplut->es, VipsPel )) )
-			return( NULL );
+			return( -1 );
 
 	/* Scan LUT and fill table.
 	 */
-	q = (VipsPel *) histogram->in->data;
+	q = (VipsPel *) lut->data;
 	for( x = 0; x < maplut->sz; x++ )
 		for( i = 0; i < maplut->nb; i++ ) {
 			memcpy( maplut->table[i] + x * maplut->es, q, 
@@ -586,22 +590,20 @@ vips_maplut_build( VipsObject *object )
 			q += maplut->es;
 		}
 
-	if( vips_image_generate( histogram->out,
+	if( vips_image_generate( maplut->out,
 		vips_maplut_start, vips_maplut_gen, vips_maplut_stop, 
-		maplut->process, maplut ) )
+		in, maplut ) )
 		return( -1 );
 
 	return( 0 );
 }
 
 static void
-vips_maplut_class_init( VipsCastClass *class )
+vips_maplut_class_init( VipsMaplutClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
-
-	VIPS_DEBUG_MSG( "vips_maplut_class_init\n" );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -612,27 +614,40 @@ vips_maplut_class_init( VipsCastClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "process", 2, 
-		_( "Process" ), 
-		_( "Image to pass through LUT" ),
+	VIPS_ARG_IMAGE( class, "in", 0, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsHistogram, in ) );
+
+	VIPS_ARG_IMAGE( class, "out", 1, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsHistogram, out ) );
+
+	VIPS_ARG_IMAGE( class, "lut", 2, 
+		_( "LUT" ), 
+		_( "Look-up table image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsMaplut, process ) );
+		G_STRUCT_OFFSET( VipsMaplut, lut ) );
 
 }
 
 static void
-vips_maplut_init( VipsCast *maplut )
+vips_maplut_init( VipsMaplut *maplut )
 {
 }
 
 /**
- * im_maplut:
+ * vips_maplut:
  * @in: input image
  * @out: output image
  * @lut: look-up table
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Map an image through another image acting as a LUT (Look Up Table). 
- * The lut may have any type, and the output image will be that type.
+ * The lut may have any type and the output image will be that type.
  * 
  * The input image will be cast to one of the unsigned integer types, that is,
  * VIPS_FORMAT_UCHAR, VIPS_FORMAT_USHORT or VIPS_FORMAT_UINT.
@@ -648,61 +663,20 @@ vips_maplut_init( VipsCast *maplut )
  * separately. If @in has one band, then @lut may have many bands and
  * the output will have the same number of bands as @lut.
  *
- * See also: im_histgr(), im_identity().
+ * See also: im_histgr(), vips_identity().
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-im_maplut( VipsImage *in, VipsImage *out, VipsImage *lut )
+int
+vips_maplut( VipsImage *in, VipsImage **out, VipsImage *lut, ... )
 {
-	VipsImage *t;
-	VipsMaplut *st;
+	va_list ap;
+	int result;
 
-	/* Check input output. Old-style IO from lut, for simplicity.
-	 */
-	if( im_check_hist( "im_maplut", lut ) ||
-		im_check_uncoded( "im_maplut", lut ) ||
-		im_check_uncoded( "im_maplut", in ) ||
-		im_check_bands_1orn( "im_maplut", in, lut ) ||
-		im_piocheck( in, out ) || 
-		im_incheck( lut ) )
-		return( -1 );
+	va_start( ap, lut );
+	result = vips_call_split( "maplut", ap, in, out, lut );
+	va_end( ap );
 
-	/* Cast in to u8/u16/u32.
-	 */
-	if( !(t = im_open_local( out, "im_maplut", "p" )) ||
-		im_clip2fmt( in, t, bandfmt_maplut[in->BandFmt] ) )
-		return( -1 );
-
-	/* Prepare the output header.
-	 */
-        if( im_cp_descv( out, t, lut, NULL ) )
-                return( -1 );
-
-	/* Force output to be the same type as lut.
-	 */
-	out->BandFmt = lut->BandFmt;
-
-	/* Output has same number of bands as LUT, unless LUT has 1 band, in
-	 * which case output has same number of bands as input.
-	 */
-	if( lut->Bands != 1 )
-		out->Bands = lut->Bands;
-
-	/* Make tables.
-	 */
-	if( !(st = build_luts( out, lut )) )
-		return( -1 );
-
-	/* Set demand hints.
-	 */
-	if( im_demand_hint( out, VIPS_THINSTRIP, t, NULL ) )
-		return( -1 );
-
-	/* Process!
-	 */
-        if( im_generate( out, maplut_start, maplut_gen, maplut_stop, t, st ) )
-                return( -1 );
-
-        return( 0 );
+	return( result );
 }
+
