@@ -342,6 +342,17 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 	 *
 	 * So ... read into a cache where tiles are scanlines, and make sure
 	 * we keep enough scanlines to be able to serve a line of tiles.
+	 *
+	 * We use a threaded tilecache to avoid a deadlock: suppose thread1,
+	 * evaluating the top block of the output, is delayed, and thread2, 
+	 * evaluating the second block, gets here first (this can happen on 
+	 * a heavily-loaded system). 
+	 *
+	 * With an unthreaded tilecache (as we had before), thread2 will get
+	 * the cache lock and start evaling the second block of the shrink. 
+	 * When it reaches the png reader it will stall until the first block 
+	 * has been used ... but it never will, since thread1 will block on 
+	 * this cache lock. 
 	 */
 	vips_get_tile_size( in, 
 		&tile_width, &tile_height, &nlines );
@@ -350,6 +361,7 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 		"tile_height", 10,
 		"max_tiles", (nlines * 2) / 10,
 		"strategy", VIPS_CACHE_SEQUENTIAL,
+		"threaded", TRUE, 
 		NULL ) ||
 		vips_affine( t[4], &t[5], residual, 0, 0, residual, NULL, 
 			"interpolate", interp,
