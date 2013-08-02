@@ -6,7 +6,6 @@ libhistogram_la_SOURCES = \
 	phistogram.h \
 	hist_dispatch.c \
 	im_heq.c \
-	im_hist.c \
 	im_histeq.c \
 	im_histgr.c \
 	im_histnD.c \

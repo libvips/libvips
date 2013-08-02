@@ -3325,6 +3325,19 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 }
 
 int 
+im_hist( IMAGE *in, IMAGE *out, int bandno )
+{
+	IMAGE *hist;
+
+	if( !(hist = im_open_local( out, "im_hist", "p" )) ||
+		im_histgr( in, hist, bandno ) ||
+		im_histplot( hist, out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+int 
 im_falsecolour( IMAGE *in, IMAGE *out )
 {
 	VipsImage *x;

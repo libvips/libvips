@@ -41,6 +41,9 @@ extern "C" {
 int vips_maplut( VipsImage *in, VipsImage **out, VipsImage *lut, ... )
 	__attribute__((sentinel));
 
+
+
+
 int im_histgr( VipsImage *in, VipsImage *out, int bandno );
 int im_histnD( VipsImage *in, VipsImage *out, int bins );
 int im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out );
@@ -55,7 +58,6 @@ int im_histspec( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_ismonotonic( VipsImage *lut, int *out );
 int im_histplot( VipsImage *in, VipsImage *out );
 
-int im_hist( VipsImage *in, VipsImage *out, int bandno );
 int im_hsp( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_mpercent( VipsImage *in, double percent, int *out );
 int im_mpercent_hist( VipsImage *hist, double percent, int *out );
