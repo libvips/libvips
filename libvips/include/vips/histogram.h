@@ -57,7 +57,6 @@ int im_histplot( VipsImage *in, VipsImage *out );
 
 int im_hist( VipsImage *in, VipsImage *out, int bandno );
 int im_hsp( VipsImage *in, VipsImage *ref, VipsImage *out );
-int im_gammacorrect( VipsImage *in, VipsImage *out, double exponent );
 int im_mpercent( VipsImage *in, double percent, int *out );
 int im_mpercent_hist( VipsImage *hist, double percent, int *out );
 

@@ -3324,6 +3324,42 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 	return( 0 );
 }
 
+int 
+im_falsecolour( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_falsecolour( in, &x, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_gammacorrect( IMAGE *in, IMAGE *out, double exponent )
+{
+	VipsImage *x;
+
+	if( vips_gammacorrect( in, &x, 
+		"exponent", exponent,
+		NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
 /* This is used by the carrierwave shrinker to cache the
  * output of shrink before doing the final affine.
  *

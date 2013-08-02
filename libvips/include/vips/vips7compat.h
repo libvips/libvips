@@ -763,6 +763,9 @@ int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
 
 int im_argb2rgba( VipsImage *in, VipsImage *out );
 
+int im_falsecolour( VipsImage *in, VipsImage *out );
+int im_gammacorrect( VipsImage *in, VipsImage *out, double exponent );
+
 int im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink );
 int im_affinei( VipsImage *in, VipsImage *out, 
 	VipsInterpolate *interpolate,

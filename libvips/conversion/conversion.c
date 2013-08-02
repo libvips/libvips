@@ -153,6 +153,8 @@ vips_conversion_operation_init( void )
 	extern GType vips_text_get_type( void ); 
 #endif /*HAVE_PANGOFT2*/
 	extern GType vips_xyz_get_type( void ); 
+	extern GType vips_falsecolour_get_type( void ); 
+	extern GType vips_gammacorrect_get_type( void ); 
 
 	vips_copy_get_type();
 	vips_tile_cache_get_type(); 
@@ -186,6 +188,8 @@ vips_conversion_operation_init( void )
 	vips_text_get_type(); 
 #endif /*HAVE_PANGOFT2*/
 	vips_xyz_get_type(); 
+	vips_falsecolour_get_type(); 
+	vips_gammacorrect_get_type(); 
 }
 
 /* The common part of most binary conversion

@@ -2,9 +2,10 @@
 - added vips_matrixload() and vips_matrixsave(), load and save vips mat format
 - rename image arrays as image matrices ... INTERPRETATION_ARRAY ->
   INTERPRETATION_MATRIX etc. 
-- rewrite im_buildlut(), im_identity*(), im_maplut() as classes
-- added vips_error_freeze()/vips_error_thaw()
-- used freeze()/thaw() to stop file format sniffers logging spurious errors
+- rewrite im_buildlut(), im_identity*(), im_maplut(), im_falsecolour(),
+  im_gammacorrect() as classes
+- added vips_error_freeze() / vips_error_thaw()
+- used freeze() / thaw() to stop file format sniffers logging spurious errors
 - vipsthumbnail uses embedded jpg thumbnails if it can 
 
 3/7/13 started 7.34.2

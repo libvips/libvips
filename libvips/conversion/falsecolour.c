@@ -12,6 +12,8 @@
  * 	- gtkdoc
  * 12/7/11
  * 	- force input to mono 8-bit for the user
+ * 1/8/13
+ * 	- redone as a class
  */
 
 /*
@@ -51,9 +53,21 @@
 
 #include <vips/vips.h>
 
+#include "pconversion.h"
+
+typedef struct _VipsFalsecolour {
+	VipsConversion parent_instance;
+
+	VipsImage *in;
+} VipsFalsecolour;
+
+typedef VipsConversionClass VipsFalsecolourClass;
+
+G_DEFINE_TYPE( VipsFalsecolour, vips_falsecolour, VIPS_TYPE_CONVERSION );
+
 /* Falsecolour scale nicked from a PET scan.
  */
-static unsigned char PET_colour[][3] = {
+static unsigned char vips_falsecolour_pet[][3] = {
 	{ 12, 0, 25 },
 	{ 17, 0, 34 },
 	{ 20, 0, 41 },
@@ -312,45 +326,88 @@ static unsigned char PET_colour[][3] = {
 	{ 174, 0, 0 }
 };
 
+static int
+vips_falsecolour_build( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsConversion *conversion = VIPS_CONVERSION( object );
+	VipsFalsecolour *falsecolour = (VipsFalsecolour *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
+
+	if( VIPS_OBJECT_CLASS( vips_falsecolour_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( !(t[0] = vips_image_new_from_memory( (void *) vips_falsecolour_pet, 
+		1, VIPS_NUMBER( vips_falsecolour_pet ), 3, 
+		VIPS_FORMAT_UCHAR )) )
+		return( -1 );
+
+	/* Force to mono 8-bit. 
+	 */
+	if( vips_check_uncoded( class->nickname, falsecolour->in ) ||
+		vips_extract_band( falsecolour->in, &t[1], 0, NULL ) ||
+		vips_cast( t[1], &t[2], VIPS_FORMAT_UCHAR, NULL ) ||
+		vips_maplut( falsecolour->in, &t[3], t[0], NULL ) ||
+		vips_image_write( t[3], conversion->out ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_falsecolour_class_init( VipsFalsecolourClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "falsecolour";
+	vobject_class->description = _( "false colour an image" );
+	vobject_class->build = vips_falsecolour_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+
+	VIPS_ARG_IMAGE( class, "in", 0, 
+		_( "in" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsFalsecolour, in ) );
+
+}
+
+static void
+vips_falsecolour_init( VipsFalsecolour *falsecolour )
+{
+}
+
 /**
- * im_falsecolour:
- * @in: input image
+ * vips_falsecolour:
+ * @in: input image 
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Force @in to 1 band, 8-bit, then transform to 
- * 3-band 8-bit image with a false colour
+ * a 3-band 8-bit image with a false colour
  * map. The map is supposed to make small differences in brightness more
  * obvious.
  *
- * See also: im_maplut().
+ * See also: vips_maplut().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-im_falsecolour( IMAGE *in, IMAGE *out )
+vips_falsecolour( VipsImage *in, VipsImage **out, ... )
 {
-	IMAGE *t[2];
-	IMAGE *lut;
+	va_list ap;
+	int result;
 
-	/* Check our args, force to mono 8-bit. 
-	 */
-	if( im_piocheck( in, out ) || 
-		im_check_uncoded( "im_falsecolour", in ) ||
-		im_open_local_array( out, t, 2, "im_falsecolour", "p" ) ||
-		im_extract_band( in, t[0], 0 ) ||
-		im_clip2fmt( t[0], t[1], IM_BANDFMT_UCHAR ) )
-		return( -1 );
-	in = t[1];
+	va_start( ap, out );
+	result = vips_call_split( "falsecolour", ap, in, out );
+	va_end( ap );
 
-	if( !(lut = im_image( (VipsPel *) PET_colour, 
-		1, 256, 3, IM_BANDFMT_UCHAR )) )
-		return( -1 );
-	if( im_maplut( in, out, lut ) ) {
-		im_close( lut );
-		return( -1 );
-	}
-
-	im_close( lut );
-
-	return( 0 );
+	return( result );
 }

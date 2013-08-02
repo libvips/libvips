@@ -4,6 +4,7 @@ libconversion_la_SOURCES = \
 	conversion.c \
 	pconversion.h \
 	tilecache.c \
+	gammacorrect.c \
 	sequential.c \
 	flatten.c \
 	cache.c \
@@ -23,7 +24,7 @@ libconversion_la_SOURCES = \
 	bandary.c \
 	rot.c \
 	ifthenelse.c \
-	im_falsecolour.c \
+	falsecolour.c \
 	msb.c \
 	grid.c \
 	scale.c \
