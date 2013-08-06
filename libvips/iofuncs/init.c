@@ -96,7 +96,7 @@ static char *vips__argv0 = NULL;
 
 /* Leak check on exit.
  */
-static int vips__leak = 0;
+int vips__leak = 0;
 
 /**
  * vips_get_argv0:
@@ -327,6 +327,8 @@ vips_leak( void )
 	vips_buf_appends( &buf, "\n" );
 
 	fprintf( stderr, "%s", vips_buf_all( &buf ) );
+
+	vips__type_leak();
 }
 
 /**

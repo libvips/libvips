@@ -75,6 +75,10 @@ extern int vips__fatal;
  */
 extern int vips__progress;
 
+/* Leak check on exit.
+ */
+extern int vips__leak;
+
 /* A string giving the image size (in bytes of uncompressed image) above which 
  * we decompress to disc on open. 
  */

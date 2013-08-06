@@ -5,6 +5,8 @@
  *
  * 27/10/11
  * 	- from header.c
+ * 16/7/13
+ * 	- leakcheck VipsArea
  */
 
 /*
@@ -35,9 +37,9 @@
  */
 
 /*
+ */
 #define VIPS_DEBUG
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -141,16 +143,14 @@ vips_thing_get_type( void )
  * strings. 
  */
 
-#ifdef DEBUG
-static int vips_area_number = 0;
-#endif /*DEBUG*/
+static GSList *vips_area_all = NULL;
 
 VipsArea *
 vips_area_copy( VipsArea *area )
 {
 	g_mutex_lock( area->lock );
 
-	g_assert( area->count >= 0 );
+	g_assert( area->count > 0 );
 
 	area->count += 1;
 
@@ -176,6 +176,12 @@ vips_area_unref( VipsArea *area )
 	printf( "vips_area_unref: %p count = %d\n", area, area->count );
 #endif /*DEBUG*/
 
+	if( vips__leak ) {
+		g_mutex_lock( vips__global_lock );
+		g_assert( g_slist_find( vips_area_all, area ) ); 
+		g_mutex_unlock( vips__global_lock );
+	}
+
 	if( area->count == 0 ) {
 		if( area->free_fn && area->data ) {
 			area->free_fn( area->data, area );
@@ -189,10 +195,17 @@ vips_area_unref( VipsArea *area )
 
 		g_free( area );
 
+		if( vips__leak ) {
+			g_mutex_lock( vips__global_lock );
+			vips_area_all = g_slist_remove( vips_area_all, area ); 
+			g_mutex_unlock( vips__global_lock );
+		}
+
 #ifdef DEBUG
-		vips_area_number -= 1;
+		g_mutex_lock( vips__global_lock );
 		printf( "vips_area_unref: free .. total = %d\n", 
-			vips_area_number );
+			g_slist_length( vips_area_all ) );
+		g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG*/
 	}
 	else
@@ -225,13 +238,37 @@ vips_area_new( VipsCallbackFn free_fn, void *data )
 	area->type = 0;
 	area->sizeof_type = 0;
 
+	if( vips__leak ) {
+		g_mutex_lock( vips__global_lock );
+		vips_area_all = g_slist_prepend( vips_area_all, area ); 
+		g_mutex_unlock( vips__global_lock );
+	}
+
 #ifdef DEBUG
-	vips_area_number += 1;
+	g_mutex_lock( vips__global_lock );
 	printf( "vips_area_new: %p count = %d (%d in total)\n", 
-		area, area->count, vips_area_number );
+		area, area->count, 
+		g_slist_length( vips_area_all ) );
+	g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG*/
 
 	return( area );
+}
+
+void
+vips__type_leak( void )
+{
+	if( vips_area_all ) {
+		GSList *p; 
+
+		printf( "VipsArea leaks:\n" ); 
+		for( p = vips_area_all; p; p = p->next ) {
+			VipsArea *area = (VipsArea *) p->data;
+
+			printf( "\t%p count = %d\n", area, area->count );
+		}
+		printf( "%d in total\n", g_slist_length( vips_area_all ) );
+	}
 }
 
 /**
