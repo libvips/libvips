@@ -37,6 +37,8 @@
  * 11/10/12
  * 	- look for tile-width and tile-height properties
  * 	- use threaded tile cache
+ * 6/8/13
+ * 	- always output solid (not transparent) pixels
  */
 
 /*
@@ -259,6 +261,7 @@ readslide_new( const char *filename, VipsImage *out,
 		return( NULL );
 	}
 
+
 	vips_image_init_fields( out, w, h, 4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB, 1.0, 1.0 );
 
@@ -331,6 +334,15 @@ vips__openslide_generate( VipsRegion *out,
 
 	/* Convert from ARGB to RGBA and undo premultiplication. Since we are
 	 * inside a cache, we know buf must be continuous.
+	 *
+	 * We throw away transparency. Formats like Mirax use transparent + bg
+	 * colour for areas with no useful pixels. But if we output
+	 * transparent pixels and then convert to RGB for jpeg write later, we
+	 * would have to pass the bg colour down the pipe somehow. The
+	 * structure of dzsave makes this tricky.
+	 *
+	 * We could output plain RGB instead, but that would break
+	 * compatibility with older vipses.
 	 */
 	for( i = 0; i < n; i++ ) {
 		uint32_t *p = buf + i;
@@ -342,7 +354,7 @@ vips__openslide_generate( VipsRegion *out,
 			out[0] = 255 * ((x >> 16) & 255) / a;
 			out[1] = 255 * ((x >> 8) & 255) / a;
 			out[2] = 255 * (x & 255) / a;
-			out[3] = a;
+			out[3] = 255;
 		} 
 		else {
 			/* Use background color.
@@ -350,7 +362,7 @@ vips__openslide_generate( VipsRegion *out,
 			out[0] = (bg >> 16) & 255;
 			out[1] = (bg >> 8) & 255;
 			out[2] = bg & 255;
-			out[3] = 0;
+			out[3] = 255;
 		}
 	}
 
