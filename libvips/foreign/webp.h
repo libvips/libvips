@@ -45,8 +45,10 @@ int vips__webp_read_file( const char *name, VipsImage *out );
 int vips__webp_read_buffer_header( void *buf, size_t len, VipsImage *out ); 
 int vips__webp_read_buffer( void *buf, size_t len, VipsImage *out ); 
 
-int vips__webp_write_file( VipsImage *out, const char *filename, int Q );
-int vips__webp_write_buffer( VipsImage *out, void **buf, size_t *len, int Q );
+int vips__webp_write_file( VipsImage *out, const char *filename, 
+	int Q, gboolean lossless );
+int vips__webp_write_buffer( VipsImage *out, void **buf, size_t *len, 
+	int Q, gboolean lossless );
 
 #ifdef __cplusplus
 }

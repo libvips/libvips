@@ -55,10 +55,13 @@ typedef size_t (*webp_encoder)( const uint8_t *rgb,
 	int width, int height, int stride, 
 	float quality_factor, uint8_t **output );
 
+typedef size_t (*webp_encoder_lossless)( const uint8_t *rgb, 
+	int width, int height, int stride, uint8_t **output );
+
 int
-vips__webp_write_file( VipsImage *in, const char *filename, int Q )
+vips__webp_write_file( VipsImage *in, const char *filename, 
+	int Q, gboolean lossless )
 {
-	webp_encoder encoder;
 	size_t len;
 	uint8_t *buffer;
 	FILE *fp;
@@ -66,17 +69,39 @@ vips__webp_write_file( VipsImage *in, const char *filename, int Q )
 	if( vips_image_wio_input( in ) )
 		return( -1 );
 
-	if( in->Bands == 4 )
-		encoder = WebPEncodeRGBA;
-	else
-		encoder = WebPEncodeRGB;
+	if( lossless ) {
+		webp_encoder_lossless encoder;
 
-	if( !(len = encoder( VIPS_IMAGE_ADDR( in, 0, 0 ), 
-		in->Xsize, in->Ysize, 
-		VIPS_IMAGE_SIZEOF_LINE( in ),
-		Q, &buffer )) ) {
-		vips_error( "vips2webp", "%s", _( "unable to encode" ) ); 
-		return( -1 );
+		if( in->Bands == 4 )
+			encoder = WebPEncodeLosslessRGBA;
+		else
+			encoder = WebPEncodeLosslessRGB;
+
+		if( !(len = encoder( VIPS_IMAGE_ADDR( in, 0, 0 ), 
+			in->Xsize, in->Ysize, 
+			VIPS_IMAGE_SIZEOF_LINE( in ),
+			&buffer )) ) {
+			vips_error( "vips2webp", 
+				"%s", _( "unable to encode" ) ); 
+			return( -1 );
+		}
+	}
+	else {
+		webp_encoder encoder;
+
+		if( in->Bands == 4 )
+			encoder = WebPEncodeRGBA;
+		else
+			encoder = WebPEncodeRGB;
+
+		if( !(len = encoder( VIPS_IMAGE_ADDR( in, 0, 0 ), 
+			in->Xsize, in->Ysize, 
+			VIPS_IMAGE_SIZEOF_LINE( in ),
+			Q, &buffer )) ) {
+			vips_error( "vips2webp", 
+				"%s", _( "unable to encode" ) ); 
+			return( -1 );
+		}
 	}
 
 	if( !(fp = vips__file_open_write( filename, FALSE )) ) {
@@ -97,7 +122,8 @@ vips__webp_write_file( VipsImage *in, const char *filename, int Q )
 }
 
 int
-vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen, int Q )
+vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen, 
+	int Q, gboolean lossless )
 {
 	webp_encoder encoder;
 
