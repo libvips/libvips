@@ -176,8 +176,11 @@ vips_area_unref( VipsArea *area )
 	printf( "vips_area_unref: %p count = %d\n", area, area->count );
 #endif /*DEBUG*/
 
-	if( vips__leak )
+	if( vips__leak ) {
+		g_mutex_lock( vips__global_lock );
 		g_assert( g_slist_find( vips_area_all, area ) ); 
+		g_mutex_unlock( vips__global_lock );
+	}
 
 	if( area->count == 0 ) {
 		if( area->free_fn && area->data ) {
