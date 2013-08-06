@@ -2,6 +2,7 @@
 - lower priority for Matlab load to reduce segvs from Mat_Open(), thanks
   Michael
 - null-terminate libexif strings, thanks Mike
+- openslide always outputs solid pixels
 
 28/6/13 started 7.34.1
 - fix morphological operators on non-uchar images
