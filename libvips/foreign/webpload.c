@@ -60,9 +60,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadWebp, vips_foreign_load_webp,
 static VipsForeignFlags
 vips_foreign_load_webp_get_flags( VipsForeignLoad *load )
 {
-	/* The libwebp reader supports sequential read.
-	 */
-	return( VIPS_FOREIGN_SEQUENTIAL );
+	return( 0 );
 }
 
 static int
@@ -117,9 +115,7 @@ G_DEFINE_TYPE( VipsForeignLoadWebpFile, vips_foreign_load_webp_file,
 static VipsForeignFlags
 vips_foreign_load_webp_file_get_flags_filename( const char *filename )
 {
-	/* The webp reader supports sequential read.
-	 */
-	return( VIPS_FOREIGN_SEQUENTIAL );
+	return( 0 );
 }
 
 static gboolean
@@ -152,7 +148,7 @@ vips_foreign_load_webp_file_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
-static const char *webp_suffs[] = { ".webp", NULL };
+const char *vips__webp_suffs[] = { ".webp", NULL };
 
 static void
 vips_foreign_load_webp_file_class_init( VipsForeignLoadWebpFileClass *class )
@@ -168,7 +164,7 @@ vips_foreign_load_webp_file_class_init( VipsForeignLoadWebpFileClass *class )
 	object_class->nickname = "webpload";
 	object_class->description = _( "load webp from file" );
 
-	foreign_class->suffs = webp_suffs;
+	foreign_class->suffs = vips__webp_suffs;
 
 	load_class->get_flags_filename = 
 		vips_foreign_load_webp_file_get_flags_filename;

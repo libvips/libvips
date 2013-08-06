@@ -52,7 +52,9 @@ libforeign_la_SOURCES = \
 	openslideload.c \
 	webp.h \
 	webpload.c \
+	webpsave.c \
 	webp2vips.c \
+	vips2webp.c \
 	vips2jpeg.c \
 	jpeg2vips.c \
 	jpeg.h \
