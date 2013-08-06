@@ -91,6 +91,7 @@ typedef struct _VipsArea {
 
 VipsArea *vips_area_copy( VipsArea *area );
 void vips_area_unref( VipsArea *area );
+void vips__type_leak( void );
 
 VipsArea *vips_area_new( VipsCallbackFn free_fn, void *data );
 VipsArea *vips_area_new_blob( VipsCallbackFn free_fn, 
