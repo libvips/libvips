@@ -51,10 +51,47 @@
 
 #include "webp.h"
 
+typedef size_t (*webp_encoder)( const uint8_t *rgb, 
+	int width, int height, int stride, 
+	float quality_factor, uint8_t **output );
+
 int
 vips__webp_write_file( VipsImage *in, const char *filename, int Q )
 {
-	printf( "vips__webp_write_file:\n" ); 
+	webp_encoder encoder;
+	size_t len;
+	uint8_t *buffer;
+	FILE *fp;
+
+	if( vips_image_wio_input( in ) )
+		return( -1 );
+
+	if( in->Bands == 4 )
+		encoder = WebPEncodeRGBA;
+	else
+		encoder = WebPEncodeRGB;
+
+	if( !(len = encoder( VIPS_IMAGE_ADDR( in, 0, 0 ), 
+		in->Xsize, in->Ysize, 
+		VIPS_IMAGE_SIZEOF_LINE( in ),
+		Q, &buffer )) ) {
+		vips_error( "vips2webp", "%s", _( "unable to encode" ) ); 
+		return( -1 );
+	}
+
+	if( !(fp = vips__file_open_write( filename, FALSE )) ) {
+		free( buffer );
+		return( -1 );
+	}
+
+	if( vips__file_write( buffer, len, 1, fp ) ) {
+		fclose( fp );
+		free( buffer );
+		return( -1 );
+	}
+
+	fclose( fp );
+	free( buffer );
 
 	return( 0 );
 }
@@ -62,7 +99,23 @@ vips__webp_write_file( VipsImage *in, const char *filename, int Q )
 int
 vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen, int Q )
 {
-	printf( "vips__webp_write_buffer:\n" ); 
+	webp_encoder encoder;
+
+	if( vips_image_wio_input( in ) )
+		return( -1 );
+
+	if( in->Bands == 4 )
+		encoder = WebPEncodeRGBA;
+	else
+		encoder = WebPEncodeRGB;
+
+	if( !(*olen = encoder( VIPS_IMAGE_ADDR( in, 0, 0 ), 
+		in->Xsize, in->Ysize, 
+		VIPS_IMAGE_SIZEOF_LINE( in ),
+		Q, (uint8_t **) obuf )) ) {
+		vips_error( "vips2webp", "%s", _( "unable to encode" ) ); 
+		return( -1 );
+	}
 
 	return( 0 );
 }

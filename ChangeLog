@@ -7,7 +7,8 @@
 - added vips_error_freeze() / vips_error_thaw()
 - used freeze() / thaw() to stop file format sniffers logging spurious errors
 - vipsthumbnail uses embedded jpg thumbnails if it can 
-- added vips_webpload(), vips_webpload_buffer()
+- added vips_webpload(), vips_webpload_buffer(), vips_webpsave(),
+  vips_webpsave_buffer(), vips_webpsave_mime()
 
 3/7/13 started 7.34.2
 - lower priority for Matlab load to reduce segvs from Mat_Open(), thanks

@@ -176,7 +176,7 @@ vips__webp_read_file_header( const char *filename, VipsImage *out )
 	return( 0 );
 }
 
-typedef uint8_t *(*webp_reader)( const uint8_t* data, size_t data_size,
+typedef uint8_t *(*webp_decoder)( const uint8_t* data, size_t data_size,
 	   uint8_t* output_buffer, size_t output_buffer_size, 
 	   int output_stride );
 
@@ -187,7 +187,7 @@ read_image( Read *read, VipsImage *out )
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
 	char *data; 
 	unsigned int len;
-	webp_reader reader;
+	webp_decoder decoder;
 
 	/* libwebp makes streaming very hard. We have to read to a full memory
 	 * buffer, then copy to out.
@@ -202,11 +202,11 @@ read_image( Read *read, VipsImage *out )
 		return( -1 );
 
 	if( t[0]->Bands == 3 )
-		reader = WebPDecodeRGBInto;
+		decoder = WebPDecodeRGBInto;
 	else
-		reader = WebPDecodeRGBAInto;
+		decoder = WebPDecodeRGBAInto;
 
-	if( !reader( (uint8_t *) data, len, 
+	if( !decoder( (uint8_t *) data, len, 
 		VIPS_IMAGE_ADDR( t[0], 0, 0 ), 
 		VIPS_IMAGE_SIZEOF_IMAGE( t[0] ),
 		VIPS_IMAGE_SIZEOF_LINE( t[0] ) ) ) { 
