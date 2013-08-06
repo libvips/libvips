@@ -1,3 +1,6 @@
+- use the webp advanced encoding api to set a write function for webp save to
+  file
+
 - rename vips_diag() as vips_info(), make it work like a log thing ... 
   normally no output, can be turned on with a --vips-verbose flag
 
