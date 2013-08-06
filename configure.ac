@@ -528,6 +528,20 @@ if test x"$with_cfitsio" != "xno"; then
     ])
 fi
 
+# libwebp
+AC_ARG_WITH([libwebp], 
+  AS_HELP_STRING([--without-libwebp], [build without libwebp (default: test)]))
+
+if test x"$with_libwebp" != "xno"; then
+  PKG_CHECK_MODULES(LIBWEBP, libwebp,
+    [AC_DEFINE(HAVE_LIBWEBP,1,[define if you have libwebp installed.])
+     with_libwebp=yes
+     PACKAGES_USED="$PACKAGES_USED libwebp"],
+    [AC_MSG_WARN([libwebp not found; disabling libwebp support])
+     with_libwebp=no
+    ])
+fi
+
 # pangoft2
 AC_ARG_WITH([pangoft2], 
   AS_HELP_STRING([--without-pangoft2], 
@@ -759,6 +773,7 @@ file import with OpenSlide:		$with_openslide
   (requires openslide-3.3.0 or later)
 file import with matio: 		$with_matio
 file import with cfitsio: 		$with_cfitsio
+file import/export with libwebp:	$with_libwebp
 text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)

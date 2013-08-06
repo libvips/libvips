@@ -1609,6 +1609,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_raw_fd_get_type( void ); 
 	extern GType vips_foreign_load_magick_get_type( void ); 
 	extern GType vips_foreign_save_dz_get_type( void ); 
+	extern GType vips_foreign_load_webp_file_get_type( void ); 
+	extern GType vips_foreign_load_webp_buffer_get_type( void ); 
 
 	vips_foreign_load_rad_get_type(); 
 	vips_foreign_save_rad_get_type(); 
@@ -1644,6 +1646,11 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_jpeg_buffer_get_type(); 
 	vips_foreign_save_jpeg_mime_get_type(); 
 #endif /*HAVE_JPEG*/
+
+#ifdef HAVE_LIBWEBP
+	vips_foreign_load_webp_file_get_type(); 
+	vips_foreign_load_webp_buffer_get_type(); 
+#endif /*HAVE_LIBWEBP*/
 
 #ifdef HAVE_TIFF
 	vips_foreign_load_tiff_get_type(); 
@@ -2070,6 +2077,34 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
 
 	va_start( ap, filename );
 	result = vips_call_split( "jpegsave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_webpload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ *
+ * Read a webp file into a VIPS image. 
+ *
+ * See also: 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_webpload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "webpload", ap, filename, out );
 	va_end( ap );
 
 	return( result );
