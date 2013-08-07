@@ -60,7 +60,6 @@ static char *export_profile = NULL;
 static char *import_profile = NULL;
 static char *convolution_mask = "mild";
 static gboolean delete_profile = FALSE;
-static gboolean verbose = FALSE;
 
 /* Deprecated and unused.
  */
@@ -95,9 +94,9 @@ static GOptionEntry options[] = {
 	{ "delete", 'd', 0, 
 		G_OPTION_ARG_NONE, &delete_profile, 
 		N_( "delete profile from exported image" ), NULL },
-	{ "verbose", 'v', 0, 
-		G_OPTION_ARG_NONE, &verbose, 
-		N_( "verbose output" ), NULL },
+	{ "verbose", 'v', G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_NONE, NULL, 
+		N_( "(deprecated, does nothing)" ), NULL },
 	{ "nodelete", 'l', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_NONE, &nodelete_profile, 
 		N_( "(deprecated, does nothing)" ), NULL },
@@ -176,15 +175,13 @@ thumbnail_get_thumbnail( VipsImage *im )
 	if( !vips_image_get_typeof( im, THUMBNAIL ) ||
 		vips_image_get_blob( im, THUMBNAIL, &ptr, &size ) ||
 		vips_jpegload_buffer( ptr, size, &thumb, NULL ) ) {
-		if( verbose )
-			printf( "no jpeg thumbnail\n" ); 
+		vips_info( "vipsthumbnail", "no jpeg thumbnail" ); 
 		return( NULL ); 
 	}
 
 	calculate_shrink( thumb->Xsize, thumb->Ysize, &residual );
 	if( residual > 1.0 ) { 
-		if( verbose )
-			printf( "jpeg thumbnail too small\n" ); 
+		vips_info( "vipsthumbnail", "jpeg thumbnail too small" ); 
 		g_object_unref( thumb ); 
 		return( NULL ); 
 	}
@@ -192,21 +189,19 @@ thumbnail_get_thumbnail( VipsImage *im )
 	/* Reload with the correct downshrink.
 	 */
 	jpegshrink = thumbnail_find_jpegshrink( thumb );
-	if( verbose )
-		printf( "loading jpeg thumbnail with factor %d pre-shrink\n", 
-			jpegshrink );
+	vips_info( "vipsthumbnail", 
+		"loading jpeg thumbnail with factor %d pre-shrink", 
+		jpegshrink );
 	g_object_unref( thumb );
 	if( vips_jpegload_buffer( ptr, size, &thumb, 
 		"shrink", jpegshrink,
 		NULL ) ) {
-		if( verbose )
-			printf( "jpeg thumbnail reload failed\n" ); 
+		vips_info( "vipsthumbnail", "jpeg thumbnail reload failed" ); 
 		return( NULL ); 
 	}
 
-	if( verbose )
-		printf( "using %dx%d jpeg thumbnail\n", 
-			thumb->Xsize, thumb->Ysize ); 
+	vips_info( "vipsthumbnail", "using %dx%d jpeg thumbnail", 
+		thumb->Xsize, thumb->Ysize ); 
 
 	return( thumb );
 }
@@ -224,14 +219,12 @@ thumbnail_open( VipsObject *thumbnail, const char *filename )
 	const char *loader;
 	VipsImage *im;
 
-	if( verbose )
-		printf( "thumbnailing %s\n", filename );
+	vips_info( "vipsthumbnail", "thumbnailing %s", filename );
 
 	if( !(loader = vips_foreign_find_load( filename )) )
 		return( NULL );
 
-	if( verbose )
-		printf( "selected loader is \"%s\"\n", loader ); 
+	vips_info( "vipsthumbnail", "selected loader is %s", loader ); 
 
 	if( strcmp( loader, "VipsForeignLoadJpegFile" ) == 0 ) {
 		VipsImage *thumb;
@@ -256,16 +249,16 @@ thumbnail_open( VipsObject *thumbnail, const char *filename )
 		else {
 			int jpegshrink;
 
-			if( verbose )
-				printf( "processing main jpeg image\n" );
+			vips_info( "vipsthumbnail", 
+				"processing main jpeg image" );
 
 			jpegshrink = thumbnail_find_jpegshrink( im );
 
 			g_object_unref( im );
 
-			if( verbose )
-				printf( "loading jpeg with factor %d "
-					"pre-shrink\n", jpegshrink ); 
+			vips_info( "vipsthumbnail", 
+				"loading jpeg with factor %d pre-shrink", 
+				jpegshrink ); 
 
 			if( vips_foreign_load( filename, &im,
 				"sequential", TRUE,
@@ -303,8 +296,7 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 	/* Unpack the two coded formats we support.
 	 */
 	if( in->Coding == VIPS_CODING_LABQ ) {
-		if( verbose ) 
-			printf( "unpacking LAB to RGB\n" );
+		vips_info( "vipsthumbnail", "unpacking LAB to RGB" );
 
 		if( vips_colourspace( in, &t[0], 
 			VIPS_INTERPRETATION_sRGB, NULL ) ) 
@@ -313,8 +305,7 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 		in = t[0];
 	}
 	else if( in->Coding == IM_CODING_RAD ) {
-		if( verbose ) 
-			printf( "unpacking Rad to float\n" );
+		vips_info( "vipsthumbnail", "unpacking Rad to float" );
 
 		/* rad is scrgb.
 		 */
@@ -328,8 +319,7 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 
 	shrink = calculate_shrink( in->Xsize, in->Ysize, &residual );
 
-	if( verbose ) 
-		printf( "integer shrink by %d\n", shrink );
+	vips_info( "vipsthumbnail", "integer shrink by %d", shrink );
 
 	if( vips_shrink( in, &t[3], shrink, shrink, NULL ) ) 
 		return( NULL );
@@ -369,11 +359,9 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 		return( NULL );
 	in = t[5];
 
-	if( verbose ) {
-		printf( "residual scale by %g\n", residual );
-		printf( "%s interpolation\n", 
-			VIPS_OBJECT_GET_CLASS( interp )->nickname );
-	}
+	vips_info( "vipsthumbnail", "residual scale by %g", residual );
+	vips_info( "vipsthumbnail", "%s interpolation", 
+		VIPS_OBJECT_GET_CLASS( interp )->nickname );
 
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
 	 * sharpened.
@@ -381,9 +369,7 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 	if( shrink >= 1 && 
 		residual <= 1.0 && 
 		sharpen ) { 
-		if( verbose ) 
-			printf( "sharpening thumbnail\n" );
-
+		vips_info( "vipsthumbnail", "sharpening thumbnail" );
 		t[6] = vips_image_new();
 		if( im_conv( in, t[6], sharpen ) ) 
 			return( NULL );
@@ -397,15 +383,15 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 	if( export_profile &&
 		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
 		 import_profile) ) {
-		if( verbose ) {
-			if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) )
-				printf( "importing with embedded profile\n" );
-			else
-				printf( "importing with profile %s\n",
-					import_profile );
+		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) )
+			vips_info( "vipsthumbnail", 
+				"importing with embedded profile" );
+		else
+			vips_info( "vipsthumbnail", 
+				"importing with profile %s", import_profile );
 
-			printf( "exporting with profile %s\n", export_profile );
-		}
+		vips_info( "vipsthumbnail", 
+			"exporting with profile %s", export_profile );
 
 		if( vips_icc_transform( in, &t[7], export_profile,
 			"input_profile", import_profile,
@@ -418,9 +404,8 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 
 	if( delete_profile &&
 		vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-		if( verbose )
-			printf( "deleting profile from output image\n" );
-
+		vips_info( "vipsthumbnail", 
+			"deleting profile from output image" );
 		if( vips_image_remove( in, VIPS_META_ICC_NAME ) ) 
 			return( NULL );
 	}
@@ -507,8 +492,8 @@ thumbnail_write( VipsImage *im, const char *filename )
 		g_free( dir );
 	}
 
-	if( verbose )
-		printf( "thumbnailing %s as %s\n", filename, output_name );
+	vips_info( "vipsthumbnail", 
+		"thumbnailing %s as %s", filename, output_name );
 
 	g_free( file );
 

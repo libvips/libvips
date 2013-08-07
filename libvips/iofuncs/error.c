@@ -355,7 +355,7 @@ vips_error_clear( void )
  *
  * Sends a formatted informational message to stderr if the --vips-info flag
  * has been given to the program or the environment variable IM_INFO has been
- * set. 
+ * defined. 
  *
  * Informational messages are used to report details about the operation of
  * functions.
@@ -367,7 +367,7 @@ vips_vinfo( const char *domain, const char *fmt, va_list ap )
 {
 	if( vips__info ) { 
 		g_mutex_lock( vips__global_lock );
-		(void) fprintf( stderr, _( "%s: " ), _( "vips info" ) );
+		(void) fprintf( stderr, _( "%s: " ), _( "info" ) );
 		if( domain )
 			(void) fprintf( stderr, _( "%s: " ), domain );
 		(void) vfprintf( stderr, fmt, ap );
@@ -382,10 +382,11 @@ vips_vinfo( const char *domain, const char *fmt, va_list ap )
  * @fmt: printf()-style format string for the message
  * @Varargs: arguments to the format string
  *
- * Sends a formatted diagnostic message to stderr. If you define the
- * environment variable IM_DIAGNOSTICS, these message are surpressed.
+ * Sends a formatted informational message to stderr if the --vips-info flag
+ * has been given to the program or the environment variable IM_INFO has been
+ * defined. 
  *
- * Diagnostic messages are used to report details about the operation of
+ * Informational messages are used to report details about the operation of
  * functions.
  *
  * See also: vips_vdiag(), vips_warn().
