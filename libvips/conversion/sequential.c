@@ -123,7 +123,7 @@ vips_sequential_generate( VipsRegion *or,
 		g_thread_self(), r->top, r->height );
 
 	if( sequential->trace )
-		vips_diag( class->nickname, 
+		vips_info( class->nickname, 
 			"request for line %d, height %d", 
 			r->top, r->height );
 

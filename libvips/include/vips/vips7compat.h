@@ -196,8 +196,8 @@ extern "C" {
 #define im_error_clear vips_error_clear
 #define im_warn vips_warn
 #define im_vwarn vips_vwarn
-#define im_diag vips_diag
-#define im_vdiag vips_vdiag
+#define im_diag vips_info
+#define im_vdiag vips_vinfo
 #define error_exit vips_error_exit
 
 #define im_get_argv0 vips_get_argv0

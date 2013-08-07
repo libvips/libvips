@@ -228,6 +228,11 @@ vips_init( const char *argv0 )
 	bindtextdomain( GETTEXT_PACKAGE, name );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
 
+	/* Default info setting from env.
+	 */
+	if( g_getenv( "IM_INFO" ) ) 
+		vips__info = 1;
+
 	/* Register base vips types.
 	 */
 	(void) vips_image_get_type();
@@ -408,6 +413,9 @@ vips_set_fatal_cb( const gchar *option_name, const gchar *value,
 }
 
 static GOptionEntry option_entries[] = {
+	{ "vips-info", 0, G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_NONE, &vips__info, 
+		N_( "show informative messages" ), NULL },
 	{ "vips-fatal", 0, G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG, 
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_set_fatal_cb, 
 		N_( "abort on first error or warning" ), NULL },

@@ -1,11 +1,3 @@
-- support webp, see:
-
-	https://github.com/jcupitt/libvips/issues/68
-
-- rename vips_diag() as vips_info(), make it work like a log thing ... 
-  normally no output, can be turned on with a --vips-verbose flag
-
-  handy with vipsthumbnail
 
 - what's the difference between buildlut and invertlut? can we make invertlut
   by just swapping the channels before calling buildlut?

@@ -105,15 +105,16 @@
  * supposed to indicate the component which failed.
  */
 
+/* Show info messages. Handy for debugging. 
+ */
+int vips__info = 0;
+
 /* Make global array to keep the error message buffer.
  */
 #define VIPS_MAX_ERROR (10240)
 static char vips_error_text[VIPS_MAX_ERROR] = "";
 static VipsBuf vips_error_buf = VIPS_BUF_STATIC( vips_error_text );
 static int vips_error_freeze_count = 0;
-
-#define IM_DIAGNOSTICS "IM_DIAGNOSTICS"
-#define IM_WARNING "IM_WARNING"
 
 /**
  * vips_error_freeze:
@@ -347,25 +348,26 @@ vips_error_clear( void )
 }
 
 /**
- * vips_vdiag: 
- * @domain: the source of the diagnostic message
+ * vips_vinfo: 
+ * @domain: the source of the message
  * @fmt: printf()-style format string for the message
  * @ap: arguments to the format string
  *
- * Sends a formatted diagnostic message to stderr. If you define the
- * environment variable IM_DIAGNOSTICS, these message are surpressed.
+ * Sends a formatted informational message to stderr if the --vips-info flag
+ * has been given to the program or the environment variable IM_INFO has been
+ * set. 
  *
- * Diagnostic messages are used to report details about the operation of
+ * Informational messages are used to report details about the operation of
  * functions.
  *
- * See also: vips_diag(), vips_warn().
+ * See also: vips_info(), vips_warn().
  */
 void 
-vips_vdiag( const char *domain, const char *fmt, va_list ap )
+vips_vinfo( const char *domain, const char *fmt, va_list ap )
 {
-	if( !g_getenv( IM_DIAGNOSTICS ) ) {
+	if( vips__info ) { 
 		g_mutex_lock( vips__global_lock );
-		(void) fprintf( stderr, _( "%s: " ), _( "vips diagnostic" ) );
+		(void) fprintf( stderr, _( "%s: " ), _( "vips info" ) );
 		if( domain )
 			(void) fprintf( stderr, _( "%s: " ), domain );
 		(void) vfprintf( stderr, fmt, ap );
@@ -375,7 +377,7 @@ vips_vdiag( const char *domain, const char *fmt, va_list ap )
 }
 
 /**
- * vips_diag: 
+ * vips_info: 
  * @domain: the source of the diagnostic message
  * @fmt: printf()-style format string for the message
  * @Varargs: arguments to the format string
@@ -389,12 +391,12 @@ vips_vdiag( const char *domain, const char *fmt, va_list ap )
  * See also: vips_vdiag(), vips_warn().
  */
 void 
-vips_diag( const char *domain, const char *fmt, ... )
+vips_info( const char *domain, const char *fmt, ... )
 {
 	va_list ap;
 
 	va_start( ap, fmt );
-	vips_vdiag( domain, fmt, ap );
+	vips_vinfo( domain, fmt, ap );
 	va_end( ap );
 }
 
@@ -409,12 +411,12 @@ vips_diag( const char *domain, const char *fmt, ... )
  *
  * Warning messages are used to report things like overflow counts.
  *
- * See also: vips_diag(), vips_warn().
+ * See also: vips_info(), vips_warn().
  */
 void 
 vips_vwarn( const char *domain, const char *fmt, va_list ap )
 {	
-	if( !g_getenv( IM_WARNING ) ) {
+	if( !g_getenv( "IM_WARNING" ) ) {
 		g_mutex_lock( vips__global_lock );
 		(void) fprintf( stderr, _( "%s: " ), _( "vips warning" ) );
 		if( domain )
@@ -439,7 +441,7 @@ vips_vwarn( const char *domain, const char *fmt, va_list ap )
  *
  * Warning messages are used to report things like overflow counts.
  *
- * See also: vips_diag(), vips_vwarn().
+ * See also: vips_info(), vips_vwarn().
  */
 void 
 vips_warn( const char *domain, const char *fmt, ... )

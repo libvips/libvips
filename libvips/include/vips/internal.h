@@ -83,6 +83,10 @@ extern int vips__progress;
  */
 extern int vips__leak;
 
+/* Show info messages. Handy for debugging. 
+ */
+extern int vips__info;
+
 /* A string giving the image size (in bytes of uncompressed image) above which 
  * we decompress to disc on open. 
  */
