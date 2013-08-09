@@ -109,8 +109,10 @@ static int
 vips_statistic_build( VipsObject *object )
 {
 	VipsStatistic *statistic = VIPS_STATISTIC( object );
+	VipsStatisticClass *sclass = VIPS_STATISTIC_GET_CLASS( statistic );
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	const char *domain = class->nickname;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
 
 #ifdef DEBUG
 	printf( "vips_statistic_build: " );
@@ -121,11 +123,22 @@ vips_statistic_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_statistic_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( statistic->in ) || 
-		vips_check_uncoded( domain, statistic->in ) )
+	/* If there's a format table, cast the input.
+	 */
+	if( sclass->format_table ) {
+		if( vips_cast( statistic->in, &t[0], 
+			sclass->format_table[statistic->in->BandFmt], NULL ) )
+			return( -1 );
+		statistic->ready = t[0];
+	}
+	else
+		statistic->ready = statistic->in;
+
+	if( vips_image_pio_input( statistic->ready ) || 
+		vips_check_uncoded( domain, statistic->ready ) )
 		return( -1 );
 
-	if( vips_sink( statistic->in, 
+	if( vips_sink( statistic->ready, 
 		vips_statistic_scan_start, 
 		vips_statistic_scan, 
 		vips_statistic_scan_stop, 

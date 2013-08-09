@@ -67,6 +67,10 @@ struct _VipsStatistic {
 	 */
 	VipsImage *in;
 
+	/* The input image cast and ready for processing. 
+	 */
+	VipsImage *ready;
+
 	/* Set this to stop computation early.
 	 */
 	gboolean stop;
@@ -85,6 +89,10 @@ struct _VipsStatisticClass {
 	VipsStatisticStartFn start; 
 	VipsStatisticScanFn scan; 
 	VipsStatisticStopFn stop;
+
+	/* For each input format, what output format. If NULL, no casting.
+	 */
+	const VipsBandFormat *format_table;
 };
 
 GType vips_statistic_get_type( void );
