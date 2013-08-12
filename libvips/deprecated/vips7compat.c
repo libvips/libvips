@@ -3338,6 +3338,25 @@ im_hist( IMAGE *in, IMAGE *out, int bandno )
 }
 
 int 
+im_histgr( IMAGE *in, IMAGE *out, int bandno )
+{
+	VipsImage *x;
+
+	if( vips_hist_find( in, &x, 
+		"band", bandno,
+		NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
 im_falsecolour( IMAGE *in, IMAGE *out )
 {
 	VipsImage *x;

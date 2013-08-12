@@ -7,7 +7,6 @@ libhistogram_la_SOURCES = \
 	hist_dispatch.c \
 	im_heq.c \
 	im_histeq.c \
-	im_histgr.c \
 	im_histnD.c \
 	im_histplot.c \
 	im_histindexed.c \

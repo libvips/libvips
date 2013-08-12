@@ -42,9 +42,6 @@ int vips_maplut( VipsImage *in, VipsImage **out, VipsImage *lut, ... )
 	__attribute__((sentinel));
 
 
-
-
-int im_histgr( VipsImage *in, VipsImage *out, int bandno );
 int im_histnD( VipsImage *in, VipsImage *out, int bins );
 int im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out );
 

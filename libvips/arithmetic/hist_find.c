@@ -22,6 +22,8 @@
  * 	- small cleanups
  * 25/1/12
  * 	- cast @in to u8/u16.
+ * 12/8/13
+ * 	- redo as a class
  */
 
 /*
@@ -56,7 +58,11 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#include <string.h>
+
 #include <vips/vips.h>
+
+#include "statistic.h"
 
 /* Accumulate a histogram in one of these.
  */
@@ -119,7 +125,7 @@ vips_hist_find_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
-	VipsStats *hist_find = (VipsStats *) object;
+	VipsHistFind *hist_find = (VipsHistFind *) object;
 
 	unsigned int *obuffer;
 	unsigned int *q;
@@ -128,6 +134,11 @@ vips_hist_find_build( VipsObject *object )
 	g_object_set( object, 
 		"out", vips_image_new(),
 		NULL );
+
+	if( statistic->in &&
+		vips_check_bandno( class->nickname, 
+			statistic->in, hist_find->band ) )
+		return( -1 ); 
 
 	/* main hist made on first thread start.
 	 */
@@ -142,7 +153,7 @@ vips_hist_find_build( VipsObject *object )
 	vips_image_init_fields( hist_find->out,
 		hist_find->hist->mx + 1, 1, hist_find->hist->bands, 
 		VIPS_FORMAT_UINT, 
-		VIPS_CODING_NONE, VIPS_TYPE_HISTOGRAM, 1.0, 1.0 );
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0 );
 
 	/* Interleave for output.
 	 */
@@ -151,7 +162,7 @@ vips_hist_find_build( VipsObject *object )
 		return( -1 );
 	for( q = obuffer, j = 0; j < hist_find->out->Xsize; j++ )
 		for( i = 0; i < hist_find->out->Bands; i++ )
-			*q++ = mhist->bins[i][j];
+			*q++ = hist_find->hist->bins[i][j];
 
 	if( vips_image_write_line( hist_find->out, 0, (VipsPel *) obuffer ) )
 		return( -1 );
@@ -170,9 +181,9 @@ vips_hist_find_start( VipsStatistic *statistic )
 	 */
 	if( !hist_find->hist ) 
 		hist_find->hist = histogram_new( hist_find, 
-			hist_find->bandno == -1 ?
+			hist_find->band == -1 ?
 				statistic->ready->Bands : 1,
-			hist_find->bandno, 
+			hist_find->band, 
 			statistic->ready->BandFmt == VIPS_FORMAT_UCHAR ? 
 				256 : 65536 );
 
@@ -218,19 +229,18 @@ static int
 vips_hist_find_uchar_scan( VipsStatistic *statistic, 
 	void *seq, int x, int y, void *in, int n )
 {
-	VipsHistFind *hist_find = (VipsHistFind *) statistic;
 	Histogram *hist = (Histogram *) seq;
-	int nb = hist_find->in->Bands;
+	int nb = statistic->ready->Bands;
 	VipsPel *p = (VipsPel *) in;
 
-	int x, z, i;
+	int i, j, z;
 
 	/* FIXME 
 	 *
 	 * Try swapping these loops, we could remove an indexing operation.
 	 */
 
-	for( i = 0, x = 0; x < n; x++ )
+	for( i = 0, j = 0; j < n; j++ )
 		for( z = 0; z < nb; z++, i++ )
 			hist->bins[z][p[i]] += 1;
 
@@ -247,17 +257,16 @@ static int
 vips_hist_find_uchar_extract_scan( VipsStatistic *statistic, 
 	void *seq, int x, int y, void *in, int n )
 {
-	VipsHistFind *hist_find = (VipsHistFind *) statistic;
 	Histogram *hist = (Histogram *) seq;
-	int nb = hist_find->in->Bands;
+	int nb = statistic->ready->Bands;
 	int max = n * nb;
 	unsigned int *bins = hist->bins[0];
 	VipsPel *p = (VipsPel *) in;
 
-	int x;
+	int i;
 
-	for( x = hist->which; x < max; x += nb ) 
-		bins[p[x]] += 1;
+	for( i = hist->which; i < max; i += nb ) 
+		bins[p[i]] += 1;
 
 	/* Note the maximum.
 	 */
@@ -273,16 +282,13 @@ vips_hist_find_ushort_scan( VipsStatistic *statistic,
 	void *seq, int x, int y, void *in, int n )
 {
 	Histogram *hist = (Histogram *) seq;
-	VipsRect *r = &reg->valid;
-	VipsImage *im = reg->im;
 	int mx = hist->mx;
-	int nb = im->Bands;
+	int nb = statistic->ready->Bands;
 	unsigned short *p = (unsigned short *) in; 
 
-	int x, y, z;
-	int i;
+	int i, j, z; 
 
-	for( i = 0, x = 0; x < n; x++ )
+	for( i = 0, j = 0; j < n; j++ )
 		for( z = 0; z < nb; z++, i++ ) {
 			int v = p[i];
 
@@ -308,18 +314,16 @@ vips_hist_find_ushort_extract_scan( VipsStatistic *statistic,
 	void *seq, int x, int y, void *in, int n )
 {
 	Histogram *hist = (Histogram *) seq;
-	VipsRect *r = &reg->valid;
-	VipsImage *im = reg->im;
 	int mx = hist->mx;
 	unsigned int *bins = hist->bins[0];
 	unsigned short *p = (unsigned short *) in;
-	int nb = im->Bands;
+	int nb = statistic->ready->Bands;
 	int max = nb * n;
 
-	int x;
+	int i; 
 
-	for( x = hist->which; x < max; x += nb ) {
-		int v = p[x];
+	for( i = hist->which; i < max; i += nb ) {
+		int v = p[i];
 
 		/* Adjust maximum.
 		 */
@@ -373,7 +377,7 @@ static const VipsBandFormat bandfmt_histgr[10] = {
 };
 
 static void
-vips_hist_find_class_init( VipsStatsClass *class )
+vips_hist_find_class_init( VipsHistFindClass *class )
 {
 	GObjectClass *gobject_class = (GObjectClass *) class;
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -395,27 +399,36 @@ vips_hist_find_class_init( VipsStatsClass *class )
 		_( "Output" ), 
 		_( "Output histogram" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsStats, out ) );
+		G_STRUCT_OFFSET( VipsHistFind, out ) );
+
+	VIPS_ARG_INT( class, "band", 110, 
+		_( "Band" ), 
+		_( "Find histogram of band" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsHistFind, band ),
+		-1, 100000, -1 );
+
 }
 
 static void
-vips_hist_find_init( VipsStats *stats )
+vips_hist_find_init( VipsHistFind *hist_find )
 {
+	hist_find->band = -1;
 }
 
 /**
  * vips_hist_find:
  * @in: input image
  * @out: output image
- * @bandno: band to equalise
+ * @band: band to equalise
  *
- * Find the histogram of @in. Find the histogram for band @bandno (producing a
+ * Find the histogram of @in. Find the histogram for band @band (producing a
  * one-band histogram), or for all bands (producing an n-band histogram) if 
- * @bandno is -1. 
+ * @band is -1. 
  *
  * @in is cast to u8 or u16. @out is always u32.
  *
- * See also: im_hist_indexed(), im_histeq().
+ * See also: vips_hist_find_indexed().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -430,95 +443,4 @@ vips_hist_find( VipsImage *in, VipsImage **out, ... )
 	va_end( ap );
 
 	return( result );
-}
-
-
-
-
-
-int 
-im_histgr( VipsImage *in, VipsImage *out, int bandno )
-{
-	VipsImage *t;
-	int size;		/* Length of hist */
-	int bands;		/* Number of bands in output */
-	Histogram *mhist;
-	VipsGenerateFn scanfn;
-	int i, j;
-	unsigned int *obuffer, *q;
-
-	/* Check images. PIO from in, WIO to out.
-	 */
-	if( im_check_uncoded( "im_histgr", in ) || 
-		im_check_bandno( "im_histgr", in, bandno ) ||
-		im_pincheck( in ) || 
-		im_outcheck( out ) )
-		return( -1 );
-
-	/* Cast in to u8/u16.
-	 */
-	if( !(t = im_open_local( out, "im_histgr", "p" )) ||
-		im_clip2fmt( in, t, bandfmt_histgr[in->BandFmt] ) )
-		return( -1 );
-	in = t;
-
-	/* Find the range of pixel values we must handle.
-	 */
-	size = in->BandFmt == VIPS_FORMAT_UCHAR ? 256 : 65536;
-
-	/* How many output bands?
-	 */
-	if( bandno == -1 ) 
-		bands = in->Bands;
-	else 
-		bands = 1;
-
-	/* Build main hist we accumulate data in.
-	 */
-	if( !(mhist = build_hist( out, bands, bandno, size )) )
-		return( -1 );
-
-	/* Select scan function.
-	 */
-	if( in->BandFmt == VIPS_FORMAT_UCHAR && bandno == -1 ) 
-		scanfn = vips_hist_find_uchar_hist;
-	else if( in->BandFmt == VIPS_FORMAT_UCHAR )
-		scanfn = vips_hist_find_uchar_hist_extract;
-	else if( in->BandFmt == VIPS_FORMAT_USHORT && bandno == -1 )
-		scanfn = vips_hist_find_ushort_hist;
-	else
-		scanfn = vips_hist_find_ushort_hist_extract;
-
-	/* Accumulate data.
-	 */
-	if( vips_sink( in, 
-		vips_hist_find_start, scanfn, vips_hist_find_stop, 
-		mhist, NULL ) )
-		return( -1 );
-
-	/* Make the output image.
-	 */
-	if( vips_image_copy_fields( hist_find->out, statistic->ready ) ) 
-		return( -1 );
-	im_initdesc( out,
-		mhist->mx + 1, 1, bands, VIPS_FORMAT_UINT, 
-		VIPS_CODING_NONE, VIPS_TYPE_HISTOGRAM, 1.0, 1.0, 0, 0 );
-	if( im_setupout( out ) )
-		return( -1 );
-
-	/* Interleave for output.
-	 */
-	if( !(obuffer = VIPS_ARRAY( out, 
-		VIPS_IMAGE_N_ELEMENTS( out ), unsigned int )) )
-		return( -1 );
-	for( q = obuffer, j = 0; j < out->Xsize; j++ )
-		for( i = 0; i < out->Bands; i++ )
-			*q++ = mhist->bins[i][j];
-
-	/* Write interleaved buffer into hist.
-	 */
-	if( im_writeline( 0, out, (VipsPel *) obuffer ) )
-		return( -1 );
-
-	return( 0 );
 }

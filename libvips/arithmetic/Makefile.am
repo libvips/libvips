@@ -9,12 +9,13 @@ libarithmetic_la_SOURCES = \
 	multiply.c \
 	remainder.c \
 	sign.c \
-	stats.c \
 	statistic.c \
 	statistic.h \
+	stats.c \
 	avg.c \
 	min.c \
 	max.c \
+	hist_find.c \
 	subtract.c \
 	math.c \
 	arithmetic.c \
