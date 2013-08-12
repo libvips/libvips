@@ -77,7 +77,9 @@ typedef struct {
 typedef struct _VipsHistFind {
 	VipsStatistic parent_instance;
 
-	int band;
+	/* -1 for all bands, or the band we scan.
+	 */
+	int which;
 
 	/* Main image histogram. Subhists accumulate to this.
 	 */
@@ -137,7 +139,7 @@ vips_hist_find_build( VipsObject *object )
 
 	if( statistic->in &&
 		vips_check_bandno( class->nickname, 
-			statistic->in, hist_find->band ) )
+			statistic->in, hist_find->which ) )
 		return( -1 ); 
 
 	/* main hist made on first thread start.
@@ -181,9 +183,9 @@ vips_hist_find_start( VipsStatistic *statistic )
 	 */
 	if( !hist_find->hist ) 
 		hist_find->hist = histogram_new( hist_find, 
-			hist_find->band == -1 ?
+			hist_find->which == -1 ?
 				statistic->ready->Bands : 1,
-			hist_find->band, 
+			hist_find->which, 
 			statistic->ready->BandFmt == VIPS_FORMAT_UCHAR ? 
 				256 : 65536 );
 
@@ -235,9 +237,7 @@ vips_hist_find_uchar_scan( VipsStatistic *statistic,
 
 	int i, j, z;
 
-	/* FIXME 
-	 *
-	 * Try swapping these loops, we could remove an indexing operation.
+	/* Tried swapping these loops, no meaningful speedup. 
 	 */
 
 	for( i = 0, j = 0; j < n; j++ )
@@ -347,7 +347,7 @@ vips_hist_find_scan( VipsStatistic *statistic, void *seq,
 	VipsHistFind *hist_find = (VipsHistFind *) statistic;
 	VipsStatisticScanFn scan;
 
-	if( hist_find->band < 0 ) {
+	if( hist_find->which < 0 ) {
 		if( statistic->in->BandFmt == VIPS_FORMAT_UCHAR ) 
 			scan = vips_hist_find_uchar_scan;
 		else
@@ -405,7 +405,7 @@ vips_hist_find_class_init( VipsHistFindClass *class )
 		_( "Band" ), 
 		_( "Find histogram of band" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsHistFind, band ),
+		G_STRUCT_OFFSET( VipsHistFind, which ),
 		-1, 100000, -1 );
 
 }
@@ -413,7 +413,7 @@ vips_hist_find_class_init( VipsHistFindClass *class )
 static void
 vips_hist_find_init( VipsHistFind *hist_find )
 {
-	hist_find->band = -1;
+	hist_find->which = -1;
 }
 
 /**
