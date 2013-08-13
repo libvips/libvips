@@ -1,7 +1,8 @@
 /* base class for all histogram operations
  *
  * properties:
- * 	- single output image
+ * 	- one input image
+ * 	- one output image
  */
 
 /*
@@ -78,7 +79,6 @@ G_DEFINE_ABSTRACT_TYPE( VipsHistogram, vips_histogram, VIPS_TYPE_OPERATION );
 static int
 vips_histogram_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
 
 #ifdef DEBUG
@@ -87,13 +87,10 @@ vips_histogram_build( VipsObject *object )
 	printf( "\n" );
 #endif /*DEBUG*/
 
-	g_object_set( histogram, "out", vips_image_new(), NULL ); 
-
 	if( VIPS_OBJECT_CLASS( vips_histogram_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_check_hist( class->nickname, histogram->in ) )
-		return( -1 ); 
+	g_object_set( histogram, "out", vips_image_new(), NULL ); 
 
 	return( 0 );
 }
@@ -137,6 +134,12 @@ void
 vips_histogram_operation_init( void )
 {
 	extern GType vips_maplut_get_type( void ); 
+	extern GType vips_hist_cum_get_type( void ); 
+	extern GType vips_hist_norm_get_type( void ); 
+	extern GType vips_hist_equal_get_type( void ); 
 
 	vips_maplut_get_type(); 
+	vips_hist_cum_get_type(); 
+	vips_hist_norm_get_type(); 
+	vips_hist_equal_get_type(); 
 }

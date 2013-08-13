@@ -71,11 +71,11 @@
 
 #include <vips/vips.h>
 
-typedef struct _VipsMaplut {
-	VipsOperation parent_instance;
+#include "phistogram.h"
 
-	VipsImage *in;
-	VipsImage *out;
+typedef struct _VipsMaplut {
+	VipsHistogram parent_instance;
+
 	VipsImage *lut;
 
 	int fmt;		/* LUT image BandFmt */
@@ -88,9 +88,9 @@ typedef struct _VipsMaplut {
 
 } VipsMaplut;
 
-typedef VipsOperationClass VipsMaplutClass;
+typedef VipsHistogramClass VipsMaplutClass;
 
-G_DEFINE_TYPE( VipsMaplut, vips_maplut, VIPS_TYPE_OPERATION );
+G_DEFINE_TYPE( VipsMaplut, vips_maplut, VIPS_TYPE_HISTOGRAM );
 
 static void
 vips_maplut_preeval( VipsImage *image, VipsProgress *progress, 
@@ -142,13 +142,13 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 /* Map through n non-complex luts.
  */
 #define loop( OUT ) { \
-	int b = st->nb; \
+	int b = maplut->nb; \
 	\
 	for( y = to; y < bo; y++ ) { \
 		for( z = 0; z < b; z++ ) { \
 			VipsPel *p = VIPS_REGION_ADDR( ir, le, y ); \
 			OUT *q = (OUT *) VIPS_REGION_ADDR( or, le, y ); \
-			OUT *tlut = (OUT *) st->table[z]; \
+			OUT *tlut = (OUT *) maplut->table[z]; \
 			\
 			for( x = z; x < ne; x += b ) \
 				q[x] = tlut[p[x]]; \
@@ -165,7 +165,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 		for( z = 0; z < b; z++ ) { \
 			VipsPel *p = VIPS_REGION_ADDR( ir, le, y ) + z; \
 			OUT *q = (OUT *) VIPS_REGION_ADDR( or, le, y ) + z * 2; \
-			OUT *tlut = (OUT *) st->table[z]; \
+			OUT *tlut = (OUT *) maplut->table[z]; \
 			\
 			for( x = 0; x < ne; x += b ) { \
 				int n = p[x] * 2; \
@@ -179,19 +179,19 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 }
 
 #define loopg( IN, OUT ) { \
-	int b = st->nb; \
+	int b = maplut->nb; \
 	\
 	for( y = to; y < bo; y++ ) { \
 		for( z = 0; z < b; z++ ) { \
 			IN *p = (IN *) VIPS_REGION_ADDR( ir, le, y ); \
 			OUT *q = (OUT *) VIPS_REGION_ADDR( or, le, y ); \
-			OUT *tlut = (OUT *) st->table[z]; \
+			OUT *tlut = (OUT *) maplut->table[z]; \
 			\
 			for( x = z; x < ne; x += b ) { \
 				int index = p[x]; \
 				\
-				if( index > st->clp ) { \
-					index = st->clp; \
+				if( index > maplut->clp ) { \
+					index = maplut->clp; \
 					seq->overflow++; \
 				} \
 				\
@@ -208,13 +208,13 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 		for( z = 0; z < b; z++ ) { \
 			IN *p = (IN *) VIPS_REGION_ADDR( ir, le, y ) + z; \
 			OUT *q = (OUT *) VIPS_REGION_ADDR( or, le, y ) + z * 2; \
-			OUT *tlut = (OUT *) st->table[z]; \
+			OUT *tlut = (OUT *) maplut->table[z]; \
 			\
 			for( x = 0; x < ne; x += b ) { \
 				int index = p[x]; \
 				\
-				if( index > st->clp ) { \
-					index = st->clp; \
+				if( index > maplut->clp ) { \
+					index = maplut->clp; \
 					seq->overflow++; \
 				} \
 				\
@@ -230,7 +230,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 /* Map image through one non-complex lut.
  */
 #define loop1( OUT ) { \
-	OUT *tlut = (OUT *) st->table[0]; \
+	OUT *tlut = (OUT *) maplut->table[0]; \
 	\
 	for( y = to; y < bo; y++ ) { \
 		OUT *q = (OUT *) VIPS_REGION_ADDR( or, le, y ); \
@@ -244,7 +244,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 /* Map image through one complex lut.
  */
 #define loop1c( OUT ) { \
-	OUT *tlut = (OUT *) st->table[0]; \
+	OUT *tlut = (OUT *) maplut->table[0]; \
 	\
 	for( y = to; y < bo; y++ ) { \
 		OUT *q = (OUT *) VIPS_REGION_ADDR( or, le, y ); \
@@ -264,7 +264,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
  * index the lut carefully, and record the number of overflows we detect.
  */
 #define loop1g( IN, OUT ) { \
-	OUT *tlut = (OUT *) st->table[0]; \
+	OUT *tlut = (OUT *) maplut->table[0]; \
 	\
 	for( y = to; y < bo; y++ ) { \
 		OUT *q = (OUT *) VIPS_REGION_ADDR( or, le, y ); \
@@ -273,8 +273,8 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 		for( x = 0; x < ne; x++ ) { \
 			int index = p[x]; \
 			\
-			if( index > st->clp ) { \
-				index = st->clp; \
+			if( index > maplut->clp ) { \
+				index = maplut->clp; \
 				seq->overflow++; \
 			} \
 			\
@@ -284,7 +284,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 }
 
 #define loop1cg( IN, OUT ) { \
-	OUT *tlut = (OUT *) st->table[0]; \
+	OUT *tlut = (OUT *) maplut->table[0]; \
 	\
 	for( y = to; y < bo; y++ ) { \
 		OUT *q = (OUT *) VIPS_REGION_ADDR( or, le, y ); \
@@ -293,8 +293,8 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 		for( x = 0; x < ne; x++ ) { \
 			int index = p[x]; \
 			\
-			if( index > st->clp ) { \
-				index = st->clp; \
+			if( index > maplut->clp ) { \
+				index = maplut->clp; \
 				seq->overflow++; \
 			} \
 			\
@@ -308,7 +308,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 /* Map 1-band image through a many-band non-complex lut.
  */
 #define loop1m( OUT ) { \
-	OUT **tlut = (OUT **) st->table; \
+	OUT **tlut = (OUT **) maplut->table; \
 	\
 	for( y = to; y < bo; y++ ) { \
 		OUT *q = (OUT *) VIPS_REGION_ADDR( or, le, y ); \
@@ -317,7 +317,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 		for( i = 0, x = 0; x < np; x++ ) { \
 			int n = p[x]; \
 			\
-			for( z = 0; z < st->nb; z++, i++ ) \
+			for( z = 0; z < maplut->nb; z++, i++ ) \
 				q[i] = tlut[z][n]; \
 		} \
 	} \
@@ -326,7 +326,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 /* Map 1-band image through many-band complex lut.
  */
 #define loop1cm( OUT ) { \
-	OUT **tlut = (OUT **) st->table; \
+	OUT **tlut = (OUT **) maplut->table; \
 	\
 	for( y = to; y < bo; y++ ) { \
 		OUT *q = (OUT *) VIPS_REGION_ADDR( or, le, y ); \
@@ -335,7 +335,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 		for( x = 0; x < np; x++ ) { \
 			int n = p[x] * 2; \
 			\
-			for( z = 0; z < st->nb; z++ ) { \
+			for( z = 0; z < maplut->nb; z++ ) { \
 				q[0] = tlut[z][n]; \
 				q[1] = tlut[z][n+1]; \
 				q += 2; \
@@ -347,7 +347,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 /* Map 1-band uint or ushort image through a many-band non-complex LUT.
  */
 #define loop1gm( IN, OUT ) { \
-	OUT **tlut = (OUT **) st->table; \
+	OUT **tlut = (OUT **) maplut->table; \
 	\
 	for( y = to; y < bo; y++ ) { \
 		IN *p = (IN *) VIPS_REGION_ADDR( ir, le, y ); \
@@ -356,12 +356,12 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 		for( i = 0, x = 0; x < np; x++ ) { \
 			int n = p[x]; \
 			\
-			if( n > st->clp ) { \
-				n = st->clp; \
+			if( n > maplut->clp ) { \
+				n = maplut->clp; \
 				seq->overflow++; \
 			} \
 			\
-			for( z = 0; z < st->nb; z++, i++ ) \
+			for( z = 0; z < maplut->nb; z++, i++ ) \
 				q[i] = tlut[z][n]; \
 		} \
 	} \
@@ -370,7 +370,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 /* Map 1-band uint or ushort image through a many-band complex LUT.
  */
 #define loop1cgm( IN, OUT ) { \
-	OUT **tlut = (OUT **) st->table; \
+	OUT **tlut = (OUT **) maplut->table; \
 	\
 	for( y = to; y < bo; y++ ) { \
 		IN *p = (IN *) VIPS_REGION_ADDR( ir, le, y ); \
@@ -379,12 +379,12 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 		for( x = 0; x < np; x++ ) { \
 			int n = p[x]; \
 			\
-			if( n > st->clp ) { \
-				n = st->clp; \
+			if( n > maplut->clp ) { \
+				n = maplut->clp; \
 				seq->overflow++; \
 			} \
 			\
-			for( z = 0; z < st->nb; z++ ) { \
+			for( z = 0; z < maplut->nb; z++ ) { \
 				q[0] = tlut[z][n * 2]; \
 				q[1] = tlut[z][n * 2 + 1]; \
 				q += 2; \
@@ -409,7 +409,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
  * uchar.
  */
 #define outer_switch( UCHAR_F, UCHAR_FC, GEN_F, GEN_FC ) \
-	switch( st->fmt ) { \
+	switch( maplut->fmt ) { \
 	case VIPS_FORMAT_UCHAR:		inner_switch( UCHAR_F, GEN_F, \
 						unsigned char ); break; \
 	case VIPS_FORMAT_CHAR:		inner_switch( UCHAR_F, GEN_F, \
@@ -442,32 +442,28 @@ vips_maplut_gen( VipsRegion *or, void *vseq, void *a, void *b,
 {
 	VipsMaplutSequence *seq = (VipsMaplutSequence *) vseq;
 	VipsImage *in = (VipsImage *) a;
-	VipsMaplut *st = (VipsMaplut *) b;
+	VipsMaplut *maplut = (VipsMaplut *) b;
 	VipsRegion *ir = seq->ir;
 	VipsRect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;
-	int bo = VIPS_RECT_BOTTOM(r);
+	int bo = VIPS_RECT_BOTTOM( r );
 	int np = r->width;			/* Pels across region */
 	int ne = VIPS_REGION_N_ELEMENTS( or );	/* Number of elements */
 
 	int x, y, z, i;
 
-	/* Get input ready.
-	 */
 	if( vips_region_prepare( ir, r ) )
 		return( -1 );
 
-	/* Process!
-	 */
-	if( st->nb == 1 )
+	if( maplut->nb == 1 )
 		/* One band lut.
 		 */
 		outer_switch( loop1, loop1c, loop1g, loop1cg ) 
 	else 
 		/* Many band lut.
 		 */
-		if( ir->im->Bands == 1 )
+		if( in->Bands == 1 )
 			/* ... but 1 band input.
 			 */
 			outer_switch( loop1m, loop1cm, loop1gm, loop1cgm ) 
@@ -511,6 +507,7 @@ static int
 vips_maplut_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
 	VipsMaplut *maplut = (VipsMaplut *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
 
@@ -519,12 +516,10 @@ vips_maplut_build( VipsObject *object )
 	int i, x;
 	VipsPel *q;
 
-	g_object_set( maplut, "out", vips_image_new(), NULL ); 
-
 	if( VIPS_OBJECT_CLASS( vips_maplut_parent_class )->build( object ) )
 		return( -1 );
 
-	in = maplut->in;
+	in = histogram->in;
 	lut = maplut->lut;
 
 	if( vips_check_hist( class->nickname, lut ) ||
@@ -543,17 +538,17 @@ vips_maplut_build( VipsObject *object )
 		vips_image_pio_input( in ) )
 		return( -1 );
 
-	if( vips_image_copy_fieldsv( maplut->out, in, lut, NULL ) )
+	if( vips_image_copy_fieldsv( histogram->out, in, lut, NULL ) )
 		return( -1 );
-	vips_demand_hint( maplut->out, VIPS_DEMAND_STYLE_THINSTRIP, 
+	vips_demand_hint( histogram->out, VIPS_DEMAND_STYLE_THINSTRIP, 
 		in, lut, NULL );
-	maplut->out->BandFmt = lut->BandFmt;
+	histogram->out->BandFmt = lut->BandFmt;
 
 	/* Output has same number of bands as LUT, unless LUT has 1 band, in
 	 * which case output has same number of bands as input.
 	 */
 	if( lut->Bands != 1 )
-		maplut->out->Bands = lut->Bands;
+		histogram->out->Bands = lut->Bands;
 
 	g_signal_connect( in, "preeval", 
 		G_CALLBACK( vips_maplut_preeval ), maplut );
@@ -588,7 +583,7 @@ vips_maplut_build( VipsObject *object )
 			q += maplut->es;
 		}
 
-	if( vips_image_generate( maplut->out,
+	if( vips_image_generate( histogram->out,
 		vips_maplut_start, vips_maplut_gen, vips_maplut_stop, 
 		in, maplut ) )
 		return( -1 );
@@ -600,29 +595,17 @@ static void
 vips_maplut_class_init( VipsMaplutClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "maplut";
-	vobject_class->description = _( "map an image though a lut" );
-	vobject_class->build = vips_maplut_build;
+	object_class->nickname = "maplut";
+	object_class->description = _( "map an image though a lut" );
+	object_class->build = vips_maplut_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
-
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
-		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsMaplut, in ) );
-
-	VIPS_ARG_IMAGE( class, "out", 1, 
-		_( "Output" ), 
-		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsMaplut, out ) );
 
 	VIPS_ARG_IMAGE( class, "lut", 2, 
 		_( "LUT" ), 

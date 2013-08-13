@@ -3325,6 +3325,70 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 }
 
 int 
+im_histcum( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_hist_cum( in, &x, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_histnorm( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_hist_norm( in, &x, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_histeq( IMAGE *in, IMAGE *out )
+{
+	IMAGE *t1;
+
+	if( !(t1 = im_open_local( out, "im_histeq", "p" )) ||
+		im_histcum( in, t1 ) || 
+		im_histnorm( t1, out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+int 
+im_heq( VipsImage *in, VipsImage *out, int bandno )
+{
+	VipsImage *x;
+
+	if( vips_hist_equal( in, &x, "band", bandno, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 ); 
+}
+
+int 
 im_hist( IMAGE *in, IMAGE *out, int bandno )
 {
 	IMAGE *hist;
