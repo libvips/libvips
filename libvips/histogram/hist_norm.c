@@ -8,7 +8,7 @@
  *	- smartened up again
  *	- now works for hists >256 elements
  * 3/3/01 JC
- *	- broken into cum and norm ... helps im_histspec()
+ *	- broken into norm and norm ... helps im_histspec()
  *	- better behaviour for >8 bit hists
  * 31/10/05 JC
  * 	- was broken for vertical histograms, gah
@@ -16,12 +16,12 @@
  * 23/7/07
  * 	- eek, off by 1 for more than 1 band hists
  * 12/5/08
- * 	- histcum works for signed hists now as well
+ * 	- histnorm works for signed hists now as well
  * 24/3/10
  * 	- gtkdoc
  * 	- small cleanups
  * 12/8/13	
- * 	- redone im_histcum() as a class, vips_hist_cum()
+ * 	- redone im_histnorm() as a class, vips_hist_norm()
  */
 
 /*
@@ -62,117 +62,97 @@
 
 #include "phistogram.h"
 
-typedef VipsHistogram VipsHistCum;
-typedef VipsHistogramClass VipsHistCumClass;
+typedef VipsHistogram VipsHistNorm;
+typedef VipsHistogramClass VipsHistNormClass;
 
-G_DEFINE_TYPE( VipsHistCum, vips_hist_cum, VIPS_TYPE_HISTOGRAM );
+G_DEFINE_TYPE( VipsHistNorm, vips_hist_norm, VIPS_TYPE_HISTOGRAM );
 
-#define ACCUMULATE( ITYPE, OTYPE ) { \
-	for( b = 0; b < nb; b++ ) { \
-		ITYPE *p = (ITYPE *) in; \
-		OTYPE *q = (OTYPE *) out; \
-		OTYPE total; \
-		\
-		total = 0; \
-		for( x = b; x < mx; x += nb ) { \
-			total += p[x]; \
-			q[x] = total; \
-		} \
-	} \
-}
-
-static void
-vips_hist_cum_buffer( VipsHistogram *histogram, 
-	VipsPel *out, VipsPel *in, int width )
+static int
+vips_hist_norm_build( VipsObject *object )
 {
-	const int bands = vips_image_get_bands( histogram->in );
-	const int nb = vips_bandfmt_iscomplex( histogram->in->BandFmt ) ? 
-		bands * 2 : bands;
-	int mx = width * nb;
+	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
 
-	int x, b; 
+	guint64 px;
+	int bands; 
+	double *a, *b;
+	int y;
+	VipsBandFormat fmt;
 
-	switch( vips_image_get_format( histogram->in ) ) {
-        case VIPS_FORMAT_CHAR: 		
-		ACCUMULATE( signed char, signed int ); break; 
-        case VIPS_FORMAT_UCHAR: 		
-		ACCUMULATE( unsigned char, unsigned int ); break; 
-        case VIPS_FORMAT_SHORT: 		
-		ACCUMULATE( signed short, signed int ); break; 
-        case VIPS_FORMAT_USHORT: 	
-		ACCUMULATE( unsigned short, unsigned int ); break; 
-        case VIPS_FORMAT_INT: 		
-		ACCUMULATE( signed int, signed int ); break; 
-        case VIPS_FORMAT_UINT: 		
-		ACCUMULATE( unsigned int, unsigned int ); break; 
+	if( VIPS_OBJECT_CLASS( vips_hist_norm_parent_class )->build( object ) )
+		return( -1 );
 
-        case VIPS_FORMAT_FLOAT: 		
-        case VIPS_FORMAT_COMPLEX:	
-		ACCUMULATE( float, float ); break;
-        case VIPS_FORMAT_DOUBLE:		
-        case VIPS_FORMAT_DPCOMPLEX:	
-		ACCUMULATE( double, double ); break;
+	/* Need max for each channel.
+	 */
+	if( vips_stats( histogram->in, &t[0], NULL ) )
+		return( -1 ); 
 
-        default:
-		g_assert( 0 );
-        }
+	/* Scale each channel by px / channel max
+	 */
+	px = VIPS_IMAGE_N_PELS( histogram->in );
+	bands = histogram->in->Bands;
+	if( !(a = VIPS_ARRAY( object, bands, double )) ||
+		!(b = VIPS_ARRAY( object, bands, double )) )
+		return( -1 );
+	for( y = 0; y < bands; y++ ) {
+		a[y] = px / *VIPS_MATRIX( t[0], 1, y + 1 );
+		b[y] = 0;
+	}
+
+	if( vips_linear( histogram->in, &t[1], a, b, bands, NULL ) )
+		return( -1 );
+
+	/* Make output format as small as we can.
+	 */
+	if( px <= 256 ) 
+		fmt = VIPS_FORMAT_UCHAR;
+	else if( px <= 65536 ) 
+		fmt = VIPS_FORMAT_USHORT;
+	else 
+		fmt = VIPS_FORMAT_UINT;
+
+	if( vips_cast( t[1], &t[2], fmt, NULL ) ||
+		vips_image_write( t[2], histogram->out ) )
+		return( -1 );
+
+	return( 0 );
 }
 
-/* Save a bit of typing.
- */
-#define UC VIPS_FORMAT_UCHAR
-#define C VIPS_FORMAT_CHAR
-#define US VIPS_FORMAT_USHORT
-#define S VIPS_FORMAT_SHORT
-#define UI VIPS_FORMAT_UINT
-#define I VIPS_FORMAT_INT
-#define F VIPS_FORMAT_FLOAT
-#define X VIPS_FORMAT_COMPLEX
-#define D VIPS_FORMAT_DOUBLE
-#define DX VIPS_FORMAT_DPCOMPLEX
-
-static const VipsBandFormat vips_bandfmt_hist_cum[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UI, I,  UI, I,  UI, I,  F,  F,  D,  D 
-};
-
 static void
-vips_hist_cum_class_init( VipsHistCumClass *class )
+vips_hist_norm_class_init( VipsHistNormClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsHistogramClass *hclass = VIPS_HISTOGRAM_CLASS( class );
 
-	object_class->nickname = "hist_cum";
-	object_class->description = _( "form cumulative histogram" );
-
-	hclass->format_table = vips_bandfmt_hist_cum;
-	hclass->process = vips_hist_cum_buffer;
+	object_class->nickname = "hist_norm";
+	object_class->description = _( "normalise histogram" );
+	object_class->build = vips_hist_norm_build;
 }
 
 static void
-vips_hist_cum_init( VipsHistCum *hist_cum )
+vips_hist_norm_init( VipsHistNorm *hist_norm )
 {
 }
 
 /**
- * vips_hist_cum:
+ * vips_hist_norm:
  * @in: input image
  * @out: output image
  *
- * Form cumulative histogram. 
+ * Normalise histogram ... normalise range to make it square (ie. max ==
+ * number of elements). Normalise each band separately.
  *
- * See also: vips_hist_norm().
+ * See also: vips_hist_cum().
  *
  * Returns: 0 on success, -1 on error
  */
 int 
-vips_hist_cum( VipsImage *in, VipsImage **out, ... )
+vips_hist_norm( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "hist_cum", ap, in, out );
+	result = vips_call_split( "hist_norm", ap, in, out );
 	va_end( ap );
 
 	return( result );

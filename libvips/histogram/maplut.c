@@ -595,15 +595,15 @@ static void
 vips_maplut_class_init( VipsMaplutClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "maplut";
-	vobject_class->description = _( "map an image though a lut" );
-	vobject_class->build = vips_maplut_build;
+	object_class->nickname = "maplut";
+	object_class->description = _( "map an image though a lut" );
+	object_class->build = vips_maplut_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
