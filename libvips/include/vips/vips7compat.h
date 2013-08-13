@@ -855,6 +855,7 @@ int im_histgr( VipsImage *in, VipsImage *out, int bandno );
 int im_histcum( VipsImage *in, VipsImage *out );
 int im_histnorm( VipsImage *in, VipsImage *out );
 int im_histeq( VipsImage *in, VipsImage *out );
+int im_heq( VipsImage *in, VipsImage *out, int bandno );
 
 /* ruby-vips uses this
  */

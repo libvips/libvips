@@ -3,7 +3,8 @@
 - rename image arrays as image matrices ... INTERPRETATION_ARRAY ->
   INTERPRETATION_MATRIX etc. 
 - rewrite im_buildlut(), im_identity*(), im_maplut(), im_falsecolour(),
-  im_gammacorrect(), im_histgr(), im_histcum(), im_histnorm() as classes
+  im_gammacorrect(), im_histgr(), im_histcum(), im_histnorm(), im_heq() 
+  as classes
 - added vips_error_freeze() / vips_error_thaw()
 - used freeze() / thaw() to stop file format sniffers logging spurious errors
 - vipsthumbnail uses embedded jpg thumbnails if it can 

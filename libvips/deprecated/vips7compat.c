@@ -3372,6 +3372,23 @@ im_histeq( IMAGE *in, IMAGE *out )
 }
 
 int 
+im_heq( VipsImage *in, VipsImage *out, int bandno )
+{
+	VipsImage *x;
+
+	if( vips_hist_equal( in, &x, "band", bandno, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 ); 
+}
+
+int 
 im_hist( IMAGE *in, IMAGE *out, int bandno )
 {
 	IMAGE *hist;

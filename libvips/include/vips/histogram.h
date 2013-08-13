@@ -44,6 +44,8 @@ int vips_hist_cum( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_hist_norm( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_hist_equal( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 
 int im_histnD( VipsImage *in, VipsImage *out, int bins );
@@ -60,7 +62,6 @@ int im_hsp( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_mpercent( VipsImage *in, double percent, int *out );
 int im_mpercent_hist( VipsImage *hist, double percent, int *out );
 
-int im_heq( VipsImage *in, VipsImage *out, int bandno );
 int im_lhisteq( VipsImage *in, VipsImage *out, int xwin, int ywin );
 int im_stdif( VipsImage *in, VipsImage *out,
 	double a, double m0, double b, double s0, int xwin, int ywin );
