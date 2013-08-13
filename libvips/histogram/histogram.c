@@ -80,6 +80,9 @@ vips_histogram_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
+	VipsHistogramClass *hclass = VIPS_HISTOGRAM_GET_CLASS( histogram );
+
+	VipsPel *outbuf;		
 
 #ifdef DEBUG
 	printf( "vips_histogram_build: " );
@@ -87,12 +90,34 @@ vips_histogram_build( VipsObject *object )
 	printf( "\n" );
 #endif /*DEBUG*/
 
-	g_object_set( histogram, "out", vips_image_new(), NULL ); 
-
 	if( VIPS_OBJECT_CLASS( vips_histogram_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_check_hist( class->nickname, histogram->in ) )
+	g_object_set( histogram, "out", vips_image_new(), NULL ); 
+
+	if( vips_check_hist( class->nickname, histogram->in ) ||
+		vips_check_uncoded( class->nickname, histogram->in ) )
+		return( -1 ); 
+
+	if( vips_image_wio_input( histogram->in ) ||
+		vips_image_copy_fields( histogram->out, histogram->in ) ) 
+		return( -1 );
+
+	histogram->out->Xsize = VIPS_IMAGE_N_PELS( histogram->in );
+	histogram->out->Ysize = 1;
+	if( hclass->format_table ) 
+		histogram->out->BandFmt = 
+			hclass->format_table[histogram->in->BandFmt];
+
+	if( !(outbuf = vips_malloc( object, 
+		VIPS_IMAGE_SIZEOF_LINE( histogram->out ))) )
+                return( -1 );
+
+	hclass->process( histogram, 
+		outbuf, VIPS_IMAGE_ADDR( histogram->in, 0, 0 ), 
+		histogram->in->Xsize );
+
+	if( vips_image_write_line( histogram->out, 0, outbuf ) )
 		return( -1 ); 
 
 	return( 0 );
@@ -137,6 +162,8 @@ void
 vips_histogram_operation_init( void )
 {
 	extern GType vips_maplut_get_type( void ); 
+	extern GType vips_hist_cum_get_type( void ); 
 
 	vips_maplut_get_type(); 
+	vips_hist_cum_get_type(); 
 }

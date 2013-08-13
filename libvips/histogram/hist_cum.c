@@ -62,10 +62,15 @@
 
 #include "phistogram.h"
 
+typedef VipsHistogram VipsHistCum;
+typedef VipsHistogramClass VipsHistCumClass;
+
+G_DEFINE_TYPE( VipsHistCum, vips_hist_cum, VIPS_TYPE_HISTOGRAM );
+
 #define ACCUMULATE( ITYPE, OTYPE ) { \
 	for( b = 0; b < nb; b++ ) { \
-		ITYPE *p = (ITYPE *) in->data; \
-		OTYPE *q = (OTYPE *) outbuf; \
+		ITYPE *p = (ITYPE *) in; \
+		OTYPE *q = (OTYPE *) out; \
 		OTYPE total; \
 		\
 		total = 0; \
@@ -76,74 +81,99 @@
 	} \
 }
 
-/**
- * im_histcum:
- * @in: input image
- * @out: output image
- *
- * Form cumulative histogram. 
- *
- * See also: im_histnorm().
- *
- * Returns: 0 on success, -1 on error
- */
-int 
-im_histcum( IMAGE *in, IMAGE *out )
+static void
+vips_hist_cum_buffer( VipsHistogram *histogram, 
+	VipsPel *out, VipsPel *in, int width )
 {
-	const guint64 px = VIPS_IMAGE_N_PELS( in );
-	const int nb = vips_bandfmt_iscomplex( in->BandFmt ) ? 
-		in->Bands * 2 : in->Bands;
-	const guint64 mx = px * nb;
+	const int bands = vips_image_get_bands( histogram->in );
+	const int nb = vips_bandfmt_iscomplex( histogram->in->BandFmt ) ? 
+		bands * 2 : bands;
+	int mx = width * nb;
 
-	VipsPel *outbuf;		
-	guint64 b, x;
+	int x, b; 
 
-	if( im_check_uncoded( "im_histcum", in ) ||
-		im_check_hist( "im_histcum", in ) ||
-		im_iocheck( in, out ) )
-		return( -1 );
-
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	out->Xsize = px;
-	out->Ysize = 1;
-	if( vips_bandfmt_isuint( in->BandFmt ) )
-		out->BandFmt = IM_BANDFMT_UINT;
-	else if( vips_bandfmt_isint( in->BandFmt ) )
-		out->BandFmt = IM_BANDFMT_INT;
-	if( im_setupout( out ) )
-		return( -1 );
-
-	if( !(outbuf = im_malloc( out, IM_IMAGE_SIZEOF_LINE( out ))) )
-                return( -1 );
-
-        switch( in->BandFmt ) {
-        case IM_BANDFMT_CHAR: 		
+	switch( vips_image_get_format( histogram->in ) ) {
+        case VIPS_FORMAT_CHAR: 		
 		ACCUMULATE( signed char, signed int ); break; 
-        case IM_BANDFMT_UCHAR: 		
+        case VIPS_FORMAT_UCHAR: 		
 		ACCUMULATE( unsigned char, unsigned int ); break; 
-        case IM_BANDFMT_SHORT: 		
+        case VIPS_FORMAT_SHORT: 		
 		ACCUMULATE( signed short, signed int ); break; 
-        case IM_BANDFMT_USHORT: 	
+        case VIPS_FORMAT_USHORT: 	
 		ACCUMULATE( unsigned short, unsigned int ); break; 
-        case IM_BANDFMT_INT: 		
+        case VIPS_FORMAT_INT: 		
 		ACCUMULATE( signed int, signed int ); break; 
-        case IM_BANDFMT_UINT: 		
+        case VIPS_FORMAT_UINT: 		
 		ACCUMULATE( unsigned int, unsigned int ); break; 
 
-        case IM_BANDFMT_FLOAT: 		
-        case IM_BANDFMT_COMPLEX:	
+        case VIPS_FORMAT_FLOAT: 		
+        case VIPS_FORMAT_COMPLEX:	
 		ACCUMULATE( float, float ); break;
-        case IM_BANDFMT_DOUBLE:		
-        case IM_BANDFMT_DPCOMPLEX:	
+        case VIPS_FORMAT_DOUBLE:		
+        case VIPS_FORMAT_DPCOMPLEX:	
 		ACCUMULATE( double, double ); break;
 
         default:
 		g_assert( 0 );
         }
+}
 
-	if( im_writeline( 0, out, outbuf ) )
-		return( -1 );
+/* Save a bit of typing.
+ */
+#define UC VIPS_FORMAT_UCHAR
+#define C VIPS_FORMAT_CHAR
+#define US VIPS_FORMAT_USHORT
+#define S VIPS_FORMAT_SHORT
+#define UI VIPS_FORMAT_UINT
+#define I VIPS_FORMAT_INT
+#define F VIPS_FORMAT_FLOAT
+#define X VIPS_FORMAT_COMPLEX
+#define D VIPS_FORMAT_DOUBLE
+#define DX VIPS_FORMAT_DPCOMPLEX
 
-	return( 0 );
+static const VipsBandFormat vips_bandfmt_hist_cum[10] = {
+/* UC  C   US  S   UI  I   F   X   D   DX */
+   UI, I,  UI, I,  UI, I,  F,  F,  D,  D 
+};
+
+static void
+vips_hist_cum_class_init( VipsHistCumClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsHistogramClass *hclass = VIPS_HISTOGRAM_CLASS( class );
+
+	object_class->nickname = "hist_cum";
+	object_class->description = _( "form cumulative histogram" );
+
+	hclass->format_table = vips_bandfmt_hist_cum;
+	hclass->process = vips_hist_cum_buffer;
+}
+
+static void
+vips_hist_cum_init( VipsHistCum *hist_cum )
+{
+}
+
+/**
+ * vips_hist_cum:
+ * @in: input image
+ * @out: output image
+ *
+ * Form cumulative histogram. 
+ *
+ * See also: vips_hist_norm().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int 
+vips_hist_cum( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "hist_cum", ap, in, out );
+	va_end( ap );
+
+	return( result );
 }

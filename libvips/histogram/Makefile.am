@@ -2,6 +2,7 @@ noinst_LTLIBRARIES = libhistogram.la
 
 libhistogram_la_SOURCES = \
 	maplut.c \
+	hist_cum.c \
 	histogram.c \
 	phistogram.h \
 	hist_dispatch.c \

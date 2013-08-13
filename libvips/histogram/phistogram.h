@@ -52,6 +52,10 @@ extern "C" {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 		VIPS_TYPE_HISTOGRAM, VipsHistogramClass ))
 
+struct _VipsHistogram;
+typedef void (*VipsHistogramProcessFn)( struct _VipsHistogram *histogram, 
+	VipsPel *out, VipsPel *in, int width );
+
 typedef struct _VipsHistogram {
 	VipsOperation parent_instance;
 
@@ -66,6 +70,11 @@ typedef struct _VipsHistogram {
 typedef struct _VipsHistogramClass {
 	VipsOperationClass parent_class;
 
+	/* For each input format, what output format. 
+	 */
+	const VipsBandFormat *format_table;
+
+	VipsHistogramProcessFn process;
 } VipsHistogramClass;
 
 GType vips_histogram_get_type( void );

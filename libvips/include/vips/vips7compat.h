@@ -852,6 +852,7 @@ int im_quadratic( IMAGE *in, IMAGE *out, IMAGE *coeff );
 int im_maplut( VipsImage *in, VipsImage *out, VipsImage *lut );
 int im_hist( VipsImage *in, VipsImage *out, int bandno );
 int im_histgr( VipsImage *in, VipsImage *out, int bandno );
+int im_histcum( VipsImage *in, VipsImage *out );
 
 /* ruby-vips uses this
  */

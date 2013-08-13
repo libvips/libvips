@@ -3325,6 +3325,23 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 }
 
 int 
+im_histcum( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_hist_cum( in, &x, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
 im_hist( IMAGE *in, IMAGE *out, int bandno )
 {
 	IMAGE *hist;

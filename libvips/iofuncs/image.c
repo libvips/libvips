@@ -1923,8 +1923,6 @@ vips_image_write_prepare( VipsImage *image )
 		break;
 
 	case VIPS_IMAGE_SETBUF:
-		/* Allocate memory.
-		 */
 		if( !image->data && 
 			!(image->data = vips_tracked_malloc( 
 				VIPS_IMAGE_SIZEOF_IMAGE( image ))) ) 
