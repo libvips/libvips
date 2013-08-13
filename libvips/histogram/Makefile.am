@@ -1,10 +1,13 @@
 noinst_LTLIBRARIES = libhistogram.la
 
 libhistogram_la_SOURCES = \
-	maplut.c \
-	hist_cum.c \
 	histogram.c \
 	phistogram.h \
+	maplut.c \
+	hist_buffer.c \
+	hist_buffer.h \
+	hist_cum.c \
+	\
 	hist_dispatch.c \
 	im_heq.c \
 	im_histeq.c \

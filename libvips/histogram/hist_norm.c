@@ -1,4 +1,4 @@
-/* histogram cumulativisation
+/* histogram normalisation
  *
  * Author: N. Dessipris
  * Written on: 02/08/1990
@@ -61,12 +61,11 @@
 #include <vips/vips.h>
 
 #include "phistogram.h"
-#include "hist_buffer.h"
 
-typedef VipsHistBuffer VipsHistCum;
-typedef VipsHistBufferClass VipsHistCumClass;
+typedef VipsHistogram VipsHistCum;
+typedef VipsHistogramClass VipsHistCumClass;
 
-G_DEFINE_TYPE( VipsHistCum, vips_hist_cum, VIPS_TYPE_HIST_BUFFER );
+G_DEFINE_TYPE( VipsHistCum, vips_hist_cum, VIPS_TYPE_HISTOGRAM );
 
 #define ACCUMULATE( ITYPE, OTYPE ) { \
 	for( b = 0; b < nb; b++ ) { \
@@ -83,10 +82,9 @@ G_DEFINE_TYPE( VipsHistCum, vips_hist_cum, VIPS_TYPE_HIST_BUFFER );
 }
 
 static void
-vips_hist_cum_buffer( VipsHistBuffer *hist_buffer, 
+vips_hist_cum_buffer( VipsHistogram *histogram, 
 	VipsPel *out, VipsPel *in, int width )
 {
-	VipsHistogram *histogram = VIPS_HISTOGRAM( hist_buffer );
 	const int bands = vips_image_get_bands( histogram->in );
 	const int nb = vips_bandfmt_iscomplex( histogram->in->BandFmt ) ? 
 		bands * 2 : bands;
@@ -142,7 +140,7 @@ static void
 vips_hist_cum_class_init( VipsHistCumClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsHistBufferClass *hclass = VIPS_HIST_BUFFER_CLASS( class );
+	VipsHistogramClass *hclass = VIPS_HISTOGRAM_CLASS( class );
 
 	object_class->nickname = "hist_cum";
 	object_class->description = _( "form cumulative histogram" );

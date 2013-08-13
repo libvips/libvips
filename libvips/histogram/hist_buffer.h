@@ -1,4 +1,4 @@
-/* base class for all histogram operations
+/* base class for all hist_buffer operations
  */
 
 /*
@@ -28,8 +28,8 @@
 
  */
 
-#ifndef VIPS_PHISTOGRAM_H
-#define VIPS_PHISTOGRAM_H
+#ifndef VIPS_PHIST_BUFFER_H
+#define VIPS_PHIST_BUFFER_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,41 +37,46 @@ extern "C" {
 
 #include <vips/vector.h>
 
-#define VIPS_TYPE_HISTOGRAM (vips_histogram_get_type())
-#define VIPS_HISTOGRAM( obj ) \
+#define VIPS_TYPE_HIST_BUFFER (vips_hist_buffer_get_type())
+#define VIPS_HIST_BUFFER( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-		VIPS_TYPE_HISTOGRAM, VipsHistogram ))
-#define VIPS_HISTOGRAM_CLASS( klass ) \
+		VIPS_TYPE_HIST_BUFFER, VipsHistBuffer ))
+#define VIPS_HIST_BUFFER_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-		VIPS_TYPE_HISTOGRAM, VipsHistogramClass))
-#define VIPS_IS_HISTOGRAM( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_HISTOGRAM ))
-#define VIPS_IS_HISTOGRAM_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_HISTOGRAM ))
-#define VIPS_HISTOGRAM_GET_CLASS( obj ) \
+		VIPS_TYPE_HIST_BUFFER, VipsHistBufferClass))
+#define VIPS_IS_HIST_BUFFER( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_HIST_BUFFER ))
+#define VIPS_IS_HIST_BUFFER_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_HIST_BUFFER ))
+#define VIPS_HIST_BUFFER_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-		VIPS_TYPE_HISTOGRAM, VipsHistogramClass ))
+		VIPS_TYPE_HIST_BUFFER, VipsHistBufferClass ))
 
-typedef struct _VipsHistogram {
-	VipsOperation parent_instance;
+struct _VipsHistBuffer;
+typedef void (*VipsHistBufferProcessFn)( struct _VipsHistBuffer *hist_buffer, 
+	VipsPel *out, VipsPel *in, int width );
 
-	VipsImage *in;
+typedef struct _VipsHistBuffer {
+	VipsHistogram parent_instance;
 
-	VipsImage *out;
+} VipsHistBuffer;
 
-} VipsHistogram;
+typedef struct _VipsHistBufferClass {
+	VipsHistogramClass parent_class;
 
-typedef struct _VipsHistogramClass {
-	VipsOperationClass parent_class;
+	/* For each input format, what output format. 
+	 */
+	const VipsBandFormat *format_table;
 
-} VipsHistogramClass;
+	VipsHistBufferProcessFn process;
+} VipsHistBufferClass;
 
-GType vips_histogram_get_type( void );
+GType vips_hist_buffer_get_type( void );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS_PHISTOGRAM_H*/
+#endif /*VIPS_PHIST_BUFFER_H*/
 
 
