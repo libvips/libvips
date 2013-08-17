@@ -420,6 +420,9 @@ vips_hist_find_init( VipsHistFind *hist_find )
  * vips_hist_find:
  * @in: input image
  * @out: output image
+ *
+ * Optional arguments:
+ *
  * @band: band to equalise
  *
  * Find the histogram of @in. Find the histogram for band @band (producing a

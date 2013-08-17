@@ -11,7 +11,6 @@ libhistogram_la_SOURCES = \
 	hist_equal.c \
 	\
 	hist_dispatch.c \
-	im_histnD.c \
 	im_histplot.c \
 	im_histindexed.c \
 	im_histspec.c \

@@ -3421,6 +3421,25 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 }
 
 int 
+im_histnD( VipsImage *in, VipsImage *out, int bins )
+{
+	VipsImage *x;
+
+	if( vips_hist_find_ndim( in, &x, 
+		"bins", bins,
+		NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
 im_falsecolour( IMAGE *in, IMAGE *out )
 {
 	VipsImage *x;
