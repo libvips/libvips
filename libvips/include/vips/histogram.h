@@ -48,8 +48,6 @@ int vips_hist_equal( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 
-int im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out );
-
 int im_invertlut( DOUBLEMASK *input, VipsImage *output, int lut_size );
 int im_project( VipsImage *in, VipsImage *hout, VipsImage *vout );
 

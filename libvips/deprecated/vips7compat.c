@@ -3440,6 +3440,23 @@ im_histnD( VipsImage *in, VipsImage *out, int bins )
 }
 
 int 
+im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out )
+{
+	VipsImage *x;
+
+	if( vips_hist_find_indexed( value, index, &x, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
 im_falsecolour( IMAGE *in, IMAGE *out )
 {
 	VipsImage *x;

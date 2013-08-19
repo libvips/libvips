@@ -367,12 +367,11 @@ vips_hist_find_scan( VipsStatistic *statistic, void *seq,
  */
 #define UC VIPS_FORMAT_UCHAR
 #define US VIPS_FORMAT_USHORT
-#define UI VIPS_FORMAT_UINT
 
 /* Type mapping: go to uchar or ushort.
  */
 static const VipsBandFormat bandfmt_histgr[10] = {
-/* UC   C  US   S  UI   I   F   X  D   DX */
+/* UC   C  US   S  UI   I   F   X   D  DX */
    UC, UC, US, US, US, US, US, US, US, US
 };
 
@@ -431,7 +430,7 @@ vips_hist_find_init( VipsHistFind *hist_find )
  *
  * @in is cast to u8 or u16. @out is always u32.
  *
- * See also: vips_hist_find_indexed().
+ * See also: vips_hist_find_ndim(), vips_hist_find_indexed().
  *
  * Returns: 0 on success, -1 on error
  */

@@ -63,7 +63,6 @@ vips_statistic_scan_start( VipsImage *in, void *a, void *b )
 
 	return( class->start( statistic ) );
 }
-
 static int
 vips_statistic_scan( VipsRegion *region, 
 	void *seq, void *a, void *b, gboolean *stop )

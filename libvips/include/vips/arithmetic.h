@@ -381,6 +381,9 @@ int vips_hist_find( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_hist_find_ndim( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_hist_find_indexed( VipsImage *in, VipsImage *index, 
+	VipsImage **out, ... )
+	__attribute__((sentinel));
 
 #ifdef __cplusplus
 }

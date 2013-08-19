@@ -324,7 +324,7 @@ vips_leak( void )
 		vips_tracked_get_files() ) {
 		vips_buf_appendf( &buf, "memory: %d allocations, %zd bytes\n",
 			vips_tracked_get_allocs(), vips_tracked_get_mem() );
-		vips_buf_appendf( &buf, "\nfiles: %d open\n",
+		vips_buf_appendf( &buf, "files: %d open\n",
 			vips_tracked_get_files() );
 	}
 

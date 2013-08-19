@@ -48,21 +48,28 @@
 
 #include "statistic.h"
 
+struct _VipsHistFindIndexed;
+
 /* Accumulate a histogram in one of these.
  */
 typedef struct {
-	REGION *vreg;		/* Get index pixels with this */
+	struct _VipsHistFindIndexed *indexed;
 
-	int bands;		/* Number of bands in output */
+	VipsRegion *reg;	/* Get index pixels with this */
+
 	int size;		/* Length of bins */
 	int mx;			/* Maximum value we have seen */
 	double *bins;		/* All the bins! */
 } Histogram;
 
-typedef struct _VipsHistFind {
+typedef struct _VipsHistFindIndexed {
 	VipsStatistic parent_instance;
 
 	VipsImage *index;
+
+	/* Index image, cast to uchar/ushort.
+	 */
+	VipsImage *index_ready; 
 
 	/* Main image histogram. Subhists accumulate to this.
 	 */
@@ -72,83 +79,140 @@ typedef struct _VipsHistFind {
 	 */
 	VipsImage *out; 
 
-} VipsHistFind;
+} VipsHistFindIndexed;
 
-typedef VipsStatisticClass VipsHistFindClass;
+typedef VipsStatisticClass VipsHistFindIndexedClass;
 
-G_DEFINE_TYPE( VipsHistFind, vips_hist_find, VIPS_TYPE_STATISTIC );
+G_DEFINE_TYPE( VipsHistFindIndexed, 
+	vips_hist_find_indexed, VIPS_TYPE_STATISTIC );
 
-/* Free a Histogram.
- */
-static void
-histogram_free( Histogram *hist )
-{
-	IM_FREE( hist->bins );
-	IM_FREEF( im_region_free, hist->vreg );
-	IM_FREE( hist );
-}
-
-/* Build a Histogram.
- */
 static Histogram *
-histogram_new( IMAGE *index, IMAGE *value, IMAGE *out, int bands, int size )
+histogram_new( VipsHistFindIndexed *indexed )
 {
+	VipsStatistic *statistic = VIPS_STATISTIC( indexed ); 
+	int bands = statistic->ready->Bands; 
 	Histogram *hist;
 
-	if( !(hist = IM_NEW( NULL, Histogram )) )
+	if( !(hist = VIPS_NEW( indexed, Histogram )) )
 		return( NULL );
 
-	hist->index = index;
-	hist->value = value;
-	hist->out = out;
-	hist->vreg = NULL;
-	hist->bands = bands;
-	hist->size = size;
+	hist->indexed = indexed;
+	hist->reg = NULL;
+	hist->size = indexed->index_ready->BandFmt == VIPS_FORMAT_UCHAR ? 
+		256 : 65536;
 	hist->mx = 0;
 	hist->bins = NULL;
 
-	if( !(hist->bins = IM_ARRAY( NULL, bands * size, double )) ||
-		!(hist->vreg = im_region_create( value )) ) {
-		hist_free( hist );
+	if( !(hist->bins = VIPS_ARRAY( indexed, bands * hist->size, double )) ||
+		!(hist->reg = vips_region_new( indexed->index_ready )) ) 
 		return( NULL );
-	}
 
-	memset( hist->bins, 0, bands * size * sizeof( double ) );
+	memset( hist->bins, 0, bands * hist->size * sizeof( double ) );
 
 	return( hist );
 }
 
-/* Build a sub-hist, based on the main hist.
+/* Save a bit of typing.
  */
-static void *
-hist_start( IMAGE *out, void *a, void *b )
-{
-	Histogram *mhist = (Histogram *) a;
+#define UC VIPS_FORMAT_UCHAR
+#define US VIPS_FORMAT_USHORT
 
-	return( (void *) 
-		hist_build( mhist->index, mhist->value, mhist->out, 
-			mhist->bands, mhist->size ) );
+/* Type mapping: go to uchar or ushort.
+ */
+static const VipsBandFormat vips_hist_find_indexed_format[10] = {
+/* UC   C  US   S  UI   I   F   X   D  DX */
+   UC, UC, US, US, US, US, US, US, US, US
+};
+
+static int
+vips_hist_find_indexed_build( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
+	VipsHistFindIndexed *indexed = (VipsHistFindIndexed *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
+
+	g_object_set( object, 
+		"out", vips_image_new(),
+		NULL );
+
+	/* main hist made on first thread start.
+	 */
+
+	/* index image must be cast to uchar/ushort.
+	 */
+	if( indexed->index &&
+		statistic->in ) { 
+		if( vips_check_uncoded( class->nickname, indexed->index ) ||
+			vips_check_size_same( class->nickname, 
+				indexed->index, statistic->in ) ||
+			vips_check_mono( class->nickname, indexed->index ) )
+			return( -1 );
+
+		if( vips_cast( indexed->index, &t[0], 
+			vips_hist_find_indexed_format[indexed->index->BandFmt],
+			NULL ) )
+			return( -1 );
+
+		indexed->index_ready = t[0];
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_hist_find_indexed_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	VIPS_UNREF( indexed->hist->reg );
+
+	if( vips_image_copy_fieldsv( indexed->out, 
+		statistic->ready, indexed->index_ready, NULL ) ) 
+		return( -1 );
+	vips_image_init_fields( indexed->out,
+		indexed->hist->mx + 1, 1, statistic->ready->Bands, 
+		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE, 
+		VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0 ); 
+
+	if( vips_image_write_line( indexed->out, 0, 
+		(VipsPel *) indexed->hist->bins ) )
+		return( -1 );
+
+	return( 0 );
 }
 
-/* Join a sub-hist onto the main hist, then free it.
+static void *
+vips_hist_find_indexed_start( VipsStatistic *statistic )
+{
+	VipsHistFindIndexed *indexed = (VipsHistFindIndexed *) statistic;
+
+	/* Make the main hist, if necessary.
+	 */
+	if( !indexed->hist ) 
+		indexed->hist = histogram_new( indexed );  
+
+	return( (void *) histogram_new( indexed ) );
+}
+
+/* Join a sub-hist onto the main hist.
  */
 static int
-hist_stop( void *seq, void *a, void *b )
+vips_hist_find_indexed_stop( VipsStatistic *statistic, void *seq )
 {
-	Histogram *shist = (Histogram *) seq;
-	Histogram *mhist = (Histogram *) a;
-	int i;
+	Histogram *sub_hist = (Histogram *) seq;
+	VipsHistFindIndexed *indexed = (VipsHistFindIndexed *) statistic;
+	Histogram *hist = indexed->hist; 
+	int bands = statistic->ready->Bands; 
 
-	g_assert( shist->bands == mhist->bands && shist->size == mhist->size );
+	int i;
 
 	/* Add on sub-data.
 	 */
-	mhist->mx = IM_MAX( mhist->mx, shist->mx );
-	for( i = 0; i < mhist->bands * mhist->size; i++ )
-		mhist->bins[i] += shist->bins[i];
+	hist->mx = VIPS_MAX( hist->mx, sub_hist->mx );
+	for( i = 0; i < bands * hist->size; i++ ) {
+		hist->bins[i] += sub_hist->bins[i];
+		sub_hist->bins[i] = 0;
+	}
 
-	hist_free( shist );
-	
+	VIPS_UNREF( sub_hist->reg );
+
 	return( 0 );
 }
 
@@ -156,9 +220,9 @@ hist_stop( void *seq, void *a, void *b )
  */
 #define ACCUMULATE_UCHAR( TYPE ) { \
 	int x, z; \
-	TYPE *tv = (TYPE *) v; \
+	TYPE *tv = (TYPE *) in; \
 	\
-	for( x = 0; x < width; x++ ) { \
+	for( x = 0; x < n; x++ ) { \
 		double *bin = hist->bins + i[x] * bands; \
 		\
 		for( z = 0; z < bands; z++ ) \
@@ -170,66 +234,48 @@ hist_stop( void *seq, void *a, void *b )
 
 /* A uchar index image.
  */
-static int
-hist_scan_uchar( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
+static void 
+vips_hist_find_indexed_uchar_scan( VipsHistFindIndexed *indexed,
+	Histogram *hist, void *in, void *index, int n )
 {
-	Histogram *hist = (Histogram *) seq;
-	Rect *r = &reg->valid;
-	IMAGE *value = hist->value;
-	int bands = value->Bands;
-	int width = r->width;
+	VipsStatistic *statistic = VIPS_STATISTIC( indexed ); 
+	int bands = statistic->ready->Bands;
+	unsigned char *i = (unsigned char *) index;
 
-	int y;
+	switch( statistic->ready->BandFmt ) {
+	case VIPS_FORMAT_UCHAR: 	
+		ACCUMULATE_UCHAR( unsigned char ); break; 
+	case VIPS_FORMAT_CHAR: 	
+		ACCUMULATE_UCHAR( signed char ); break; 
+	case VIPS_FORMAT_USHORT: 
+		ACCUMULATE_UCHAR( unsigned short ); break; 
+	case VIPS_FORMAT_SHORT: 	
+		ACCUMULATE_UCHAR( signed short ); break; 
+	case VIPS_FORMAT_UINT: 	
+		ACCUMULATE_UCHAR( unsigned int ); break; 
+	case VIPS_FORMAT_INT: 	
+		ACCUMULATE_UCHAR( signed int ); break; 
+	case VIPS_FORMAT_FLOAT: 		
+		ACCUMULATE_UCHAR( float ); break; 
+	case VIPS_FORMAT_DOUBLE:	
+		ACCUMULATE_UCHAR( double ); break; 
 
-	/* Need the correspondiing area of the value image.
-	 */
-	if( im_prepare( hist->vreg, r ) )
-		return( -1 );
-
-	/* Accumulate!
-	 */
-	for( y = 0; y < r->height; y++ ) {
-		VipsPel *i = IM_REGION_ADDR( reg, r->left, r->top + y );
-		VipsPel *v = IM_REGION_ADDR( hist->vreg, 
-			r->left, r->top + y );
-
-		switch( value->BandFmt ) {
-		case IM_BANDFMT_UCHAR: 	
-			ACCUMULATE_UCHAR( unsigned char ); break; 
-		case IM_BANDFMT_CHAR: 	
-			ACCUMULATE_UCHAR( signed char ); break; 
-		case IM_BANDFMT_USHORT: 
-			ACCUMULATE_UCHAR( unsigned short ); break; 
-		case IM_BANDFMT_SHORT: 	
-			ACCUMULATE_UCHAR( signed short ); break; 
-		case IM_BANDFMT_UINT: 	
-			ACCUMULATE_UCHAR( unsigned int ); break; 
-		case IM_BANDFMT_INT: 	
-			ACCUMULATE_UCHAR( signed int ); break; 
-		case IM_BANDFMT_FLOAT: 		
-			ACCUMULATE_UCHAR( float ); break; 
-		case IM_BANDFMT_DOUBLE:	
-			ACCUMULATE_UCHAR( double ); break; 
-
-		default:
-			g_assert( 0 );
-		}
+	default:
+		g_assert( 0 );
 	}
 
 	/* Max is always 255.
 	 */
 	hist->mx = 255;
-
-	return( 0 );
 }
 
 /* Accumulate a buffer of pels, ushort index.
  */
 #define ACCUMULATE_USHORT( TYPE ) { \
 	int x, z; \
-	TYPE *tv = (TYPE *) v; \
+	TYPE *tv = (TYPE *) in; \
 	\
-	for( x = 0; x < width; x++ ) { \
+	for( x = 0; x < n; x++ ) { \
 		int ix = i[x]; \
 		double *bin = hist->bins + ix * bands; \
 		\
@@ -245,87 +291,118 @@ hist_scan_uchar( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 
 /* A ushort index image.
  */
-static int
-hist_scan_ushort( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
+static void 
+vips_hist_find_indexed_ushort_scan( VipsHistFindIndexed *indexed,
+	Histogram *hist, void *in, void *index, int n )
 {
-	Histogram *hist = (Histogram *) seq;
-	Rect *r = &reg->valid;
-	IMAGE *value = hist->value;
-	int bands = value->Bands;
-	int width = r->width;
+	VipsStatistic *statistic = VIPS_STATISTIC( indexed ); 
+	int bands = statistic->ready->Bands;
+	unsigned short *i = (unsigned short *) index;
 
-	int y, mx;
+	int mx;
 
-	/* Need the correspondiing area of the value image.
-	 */
-	if( im_prepare( hist->vreg, r ) )
-		return( -1 );
-
-	/* Accumulate!
-	 */
 	mx = hist->mx;
-	for( y = 0; y < r->height; y++ ) {
-		unsigned short *i = (unsigned short *) IM_REGION_ADDR( reg, 
-				r->left, r->top + y );
-		VipsPel *v = IM_REGION_ADDR( hist->vreg, 
-			r->left, r->top + y );
 
-		switch( value->BandFmt ) {
-		case IM_BANDFMT_UCHAR: 	
-			ACCUMULATE_USHORT( unsigned char ); break; 
-		case IM_BANDFMT_CHAR: 	
-			ACCUMULATE_USHORT( signed char ); break; 
-		case IM_BANDFMT_USHORT: 
-			ACCUMULATE_USHORT( unsigned short ); break; 
-		case IM_BANDFMT_SHORT: 	
-			ACCUMULATE_USHORT( signed short ); break; 
-		case IM_BANDFMT_UINT: 	
-			ACCUMULATE_USHORT( unsigned int ); break; 
-		case IM_BANDFMT_INT: 	
-			ACCUMULATE_USHORT( signed int ); break; 
-		case IM_BANDFMT_FLOAT: 		
-			ACCUMULATE_USHORT( float ); break; 
-		case IM_BANDFMT_DOUBLE:	
-			ACCUMULATE_USHORT( double ); break; 
+	switch( statistic->ready->BandFmt ) {
+	case VIPS_FORMAT_UCHAR: 	
+		ACCUMULATE_USHORT( unsigned char ); break; 
+	case VIPS_FORMAT_CHAR: 	
+		ACCUMULATE_USHORT( signed char ); break; 
+	case VIPS_FORMAT_USHORT: 
+		ACCUMULATE_USHORT( unsigned short ); break; 
+	case VIPS_FORMAT_SHORT: 	
+		ACCUMULATE_USHORT( signed short ); break; 
+	case VIPS_FORMAT_UINT: 	
+		ACCUMULATE_USHORT( unsigned int ); break; 
+	case VIPS_FORMAT_INT: 	
+		ACCUMULATE_USHORT( signed int ); break; 
+	case VIPS_FORMAT_FLOAT: 		
+		ACCUMULATE_USHORT( float ); break; 
+	case VIPS_FORMAT_DOUBLE:	
+		ACCUMULATE_USHORT( double ); break; 
 
-		default:
-			g_assert( 0 );
-		}
+	default:
+		g_assert( 0 );
 	}
 
 	/* Note the maximum.
 	 */
 	hist->mx = mx;
-
-	return( 0 );
 }
 
+typedef void (*VipsHistFindIndexedScanFn)( VipsHistFindIndexed *indexed,
+	Histogram *hist, void *in, void *index, int n );
+
 static int
-hist_write( IMAGE *out, Histogram *hist )
+vips_hist_find_indexed_scan( VipsStatistic *statistic, void *seq, 
+	int x, int y, void *in, int n )
 {
-	if( im_cp_descv( out, hist->index, hist->value, NULL ) ) 
-		return( -1 );
-	im_initdesc( out,
-		hist->mx + 1, 1, hist->value->Bands, 
-		IM_BBITS_DOUBLE, IM_BANDFMT_DOUBLE, 
-		IM_CODING_NONE, IM_TYPE_HISTOGRAM, 1.0, 1.0, 0, 0 );
-	if( im_setupout( out ) )
+	Histogram *hist = (Histogram *) seq;
+	VipsHistFindIndexed *indexed = (VipsHistFindIndexed *) statistic;
+
+	VipsRect r = { x, y, n, 1 }; 
+	VipsHistFindIndexedScanFn scan;
+
+	/* Need the corresponding area of the index image.
+	 */
+	if( vips_region_prepare( hist->reg, &r ) )
 		return( -1 );
 
-	if( im_writeline( 0, out, (VipsPel *) hist->bins ) )
-		return( -1 );
+	if( indexed->index_ready->BandFmt == VIPS_FORMAT_UCHAR ) 
+		scan = vips_hist_find_indexed_uchar_scan;
+	else
+		scan = vips_hist_find_indexed_ushort_scan;
 
-	return( 0 );
+	scan( indexed, hist, in, VIPS_REGION_ADDR( hist->reg, x, y ), n );
+
+	return( 0 ); 
+}
+
+static void
+vips_hist_find_indexed_class_init( VipsHistFindIndexedClass *class )
+{
+	GObjectClass *gobject_class = (GObjectClass *) class;
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsStatisticClass *sclass = VIPS_STATISTIC_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "hist_find_indexed";
+	object_class->description = _( "find indexed image histogram" );
+	object_class->build = vips_hist_find_indexed_build;
+
+	sclass->start = vips_hist_find_indexed_start;
+	sclass->scan = vips_hist_find_indexed_scan;
+	sclass->stop = vips_hist_find_indexed_stop;
+
+	VIPS_ARG_IMAGE( class, "index", 90, 
+		_( "Index" ), 
+		_( "Index image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsHistFindIndexed, index ) );
+
+	VIPS_ARG_IMAGE( class, "out", 100, 
+		_( "Output" ), 
+		_( "Output histogram" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsHistFindIndexed, out ) );
+
+}
+
+static void
+vips_hist_find_indexed_init( VipsHistFindIndexed *hist_find )
+{
 }
 
 /**
- * im_hist_indexed:
- * @index: input image
- * @value: input image
+ * vips_hist_find_indexed:
+ * @in: input image
+ * @index: input index image 
  * @out: output image
  *
- * Make a histogram of @value, but use image @index to pick the bins. In other
- * words, element zero in @out contains the sum of all the pixels in @value
+ * Make a histogram of @in, but use image @index to pick the bins. In other
+ * words, element zero in @out contains the sum of all the pixels in @in
  * whose corresponding pixel in @index is zero.
  *
  * @index must have just one band and be u8 or u16. @value must be
@@ -334,56 +411,19 @@ hist_write( IMAGE *out, Histogram *hist )
  * This operation is useful in conjunction with im_label_regions(). You can
  * use it to find the centre of gravity of blobs in an image, for example.
  *
- * See also: im_histgr(), im_label_regions().
+ * See also: vips_hist_find(), im_label_regions().
  *
  * Returns: 0 on success, -1 on error
  */
-int 
-im_hist_indexed( IMAGE *index, IMAGE *value, IMAGE *out )
+int
+vips_hist_find_indexed( VipsImage *in, VipsImage *index, VipsImage **out, ... )
 {
-	int size;		/* Length of hist */
-	Histogram *mhist;
-	VipsGenerateFn scanfn;
+	va_list ap;
+	int result;
 
-	/* Check images. PIO from in, WIO to out.
-	 */
-	if( im_pincheck( index ) || 
-		im_pincheck( value ) || 
-		im_outcheck( out ) ||
-		im_check_uncoded( "im_hist_indexed", index ) ||
-		im_check_uncoded( "im_hist_indexed", value ) ||
-		im_check_noncomplex( "im_hist_indexed", value ) ||
-		im_check_size_same( "im_hist_indexed", index, value ) ||
-		im_check_u8or16( "im_hist_indexed", index ) ||
-		im_check_mono( "im_hist_indexed", index ) )
-		return( -1 );
+	va_start( ap, out );
+	result = vips_call_split( "hist_find_indexed", ap, in, index, out );
+	va_end( ap );
 
-	/* Find the range of pixel values we must handle.
-	 */
-	if( index->BandFmt == IM_BANDFMT_UCHAR ) {
-		size = 256;
-		scanfn = hist_scan_uchar;
-	}
-	else {
-		size = 65536;
-		scanfn = hist_scan_ushort;
-	}
-
-	/* Build main hist we accumulate data in.
-	 */
-	if( !(mhist = hist_build( index, value, out, value->Bands, size )) )
-		return( -1 );
-
-	/* Accumulate data.
-	 */
-	if( vips_sink( index, 
-		hist_start, scanfn, hist_stop, mhist, NULL ) ||
-		hist_write( out, mhist ) ) {
-		hist_free( mhist );
-		return( -1 );
-	}
-
-	hist_free( mhist );
-
-	return( 0 );
+	return( result );
 }
