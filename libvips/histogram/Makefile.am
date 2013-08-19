@@ -9,9 +9,9 @@ libhistogram_la_SOURCES = \
 	hist_cum.c \
 	hist_norm.c \
 	hist_equal.c \
+	hist_plot.c \
 	\
 	hist_dispatch.c \
-	im_histplot.c \
 	im_histspec.c \
 	im_hsp.c \
 	im_mpercent.c \

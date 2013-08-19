@@ -46,6 +46,8 @@ int vips_hist_norm( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_hist_equal( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_hist_plot( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 
 int im_invertlut( DOUBLEMASK *input, VipsImage *output, int lut_size );
@@ -53,7 +55,6 @@ int im_project( VipsImage *in, VipsImage *hout, VipsImage *vout );
 
 int im_histspec( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_ismonotonic( VipsImage *lut, int *out );
-int im_histplot( VipsImage *in, VipsImage *out );
 
 int im_hsp( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_mpercent( VipsImage *in, double percent, int *out );

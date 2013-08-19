@@ -858,6 +858,7 @@ int im_histeq( VipsImage *in, VipsImage *out );
 int im_heq( VipsImage *in, VipsImage *out, int bandno );
 int im_histnD( VipsImage *in, VipsImage *out, int bins );
 int im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out );
+int im_histplot( VipsImage *in, VipsImage *out );
 
 /* ruby-vips uses this
  */

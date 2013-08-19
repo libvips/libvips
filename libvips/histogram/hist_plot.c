@@ -26,6 +26,8 @@
  * 	- gtkdoc
  * 	- small cleanups
  * 	- oop, would fail for signed int histograms
+ * 19/8/13
+ * 	- wrap as a class, left a rewrite for now
  */
 
 /*
@@ -66,10 +68,10 @@
 
 #include <vips/vips.h>
 
-/* Normalise an image using the rules noted above.
- */
+#include "phistogram.h"
+
 static int
-normalise( IMAGE *in, IMAGE *out )
+plotalise( IMAGE *in, IMAGE *out )
 {
 	if( im_check_uncoded( "im_histplot", in ) ||
 		im_check_noncomplex( "im_histplot", in ) )
@@ -280,8 +282,58 @@ plot( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
+int 
+im_histplot( IMAGE *in, IMAGE *out )
+{
+	IMAGE *t1;
+
+	if( im_check_hist( "im_histplot", in ) )
+		return( -1 );
+
+	if( !(t1 = im_open_local( out, "im_histplot:1", "p" )) ||
+		plotalise( in, t1 ) ||
+		plot( t1, out ) )
+		return( -1 );
+	
+	return( 0 );
+}
+
+typedef VipsHistogram VipsHistPlot;
+typedef VipsHistogramClass VipsHistPlotClass;
+
+G_DEFINE_TYPE( VipsHistPlot, vips_hist_plot, VIPS_TYPE_HISTOGRAM );
+
+static int
+vips_hist_plot_build( VipsObject *object )
+{
+	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
+
+	if( VIPS_OBJECT_CLASS( vips_hist_plot_parent_class )->build( object ) )
+		return( -1 );
+
+	if( im_histplot( histogram->in, histogram->out ) )
+		return( -1 ); 
+
+	return( 0 );
+}
+
+static void
+vips_hist_plot_class_init( VipsHistPlotClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	object_class->nickname = "hist_plot";
+	object_class->description = _( "plot histogram" );
+	object_class->build = vips_hist_plot_build;
+}
+
+static void
+vips_hist_plot_init( VipsHistPlot *hist_plot )
+{
+}
+
 /**
- * im_histplot:
+ * vips_hist_plot:
  * @in: input image
  * @out: output image
  *
@@ -298,22 +350,19 @@ plot( IMAGE *in, IMAGE *out )
  * <emphasis>float types</emphasis> min moved to 0, max moved to any 
  * (square output)
  *
- * See also: im_hist_indexed(), im_histeq().
- *
  * Returns: 0 on success, -1 on error
  */
 int 
-im_histplot( IMAGE *in, IMAGE *out )
+vips_hist_plot( VipsImage *in, VipsImage **out, ... )
 {
-	IMAGE *t1;
+	va_list ap;
+	int result;
 
-	if( im_check_hist( "im_histplot", in ) )
-		return( -1 );
+	va_start( ap, out );
+	result = vips_call_split( "hist_plot", ap, in, out );
+	va_end( ap );
 
-	if( !(t1 = im_open_local( out, "im_histplot:1", "p" )) ||
-		normalise( in, t1 ) ||
-		plot( t1, out ) )
-		return( -1 );
-	
-	return( 0 );
+	return( result );
 }
+
+
