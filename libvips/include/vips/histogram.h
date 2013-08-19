@@ -56,7 +56,6 @@ int im_project( VipsImage *in, VipsImage *hout, VipsImage *vout );
 int im_histspec( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_ismonotonic( VipsImage *lut, int *out );
 
-int im_hsp( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_mpercent( VipsImage *in, double percent, int *out );
 int im_mpercent_hist( VipsImage *hist, double percent, int *out );
 
