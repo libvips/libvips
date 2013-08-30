@@ -470,7 +470,8 @@ int im_wrapmany( VipsImage **in, VipsImage *out,
 
 #define im_header_int vips_image_get_int
 #define im_header_double vips_image_get_double
-#define im_header_string vips_image_get_string
+#define im_header_string( IMAGE, FIELD, STRING ) \
+	vips_image_get_string( IMAGE, FIELD, (const char **) STRING )
 #define im_header_as_string vips_image_get_as_string
 #define im_header_get_typeof vips_image_get_typeof
 #define im_header_get vips_image_get
