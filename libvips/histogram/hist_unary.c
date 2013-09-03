@@ -1,7 +1,7 @@
-/* base class for all unary operations
+/* a hist operation implemented as a unary processor
  *
- * 30/10/11
- * 	- from binary.c
+ * properties:
+ * 	- single hist to single hist
  */
 
 /*
@@ -45,31 +45,35 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
-#include "unary.h"
+#include "phistogram.h"
+#include "hist_unary.h"
 
-G_DEFINE_ABSTRACT_TYPE( VipsUnary, vips_unary, VIPS_TYPE_ARITHMETIC );
+G_DEFINE_ABSTRACT_TYPE( VipsHistUnary, vips_hist_unary, VIPS_TYPE_HISTOGRAM );
 
 static int
-vips_unary_build( VipsObject *object )
+vips_hist_unary_build( VipsObject *object )
 {
-	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
-	VipsUnary *unary = VIPS_UNARY( object );
+	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
+	VipsHistUnary *unary = VIPS_HIST_UNARY( object );
 
-	arithmetic->n = 1;
-	arithmetic->in = (VipsImage **) vips_object_local_array( object, 1 );
-	arithmetic->in[0] = unary->in;
-	if( arithmetic->in[0] )
-		g_object_ref( arithmetic->in[0] );
+	histogram->n = 1;
+	histogram->in = (VipsImage **) vips_object_local_array( object, 1 );
+	histogram->in[0] = unary->in;
 
-	if( VIPS_OBJECT_CLASS( vips_unary_parent_class )->build( object ) )
+	if( histogram->in[0] )
+		g_object_ref( histogram->in[0] );
+
+	if( VIPS_OBJECT_CLASS( vips_hist_unary_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	return( 0 );
 }
 
 static void
-vips_unary_class_init( VipsUnaryClass *class )
+vips_hist_unary_class_init( VipsHistUnaryClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -77,42 +81,19 @@ vips_unary_class_init( VipsUnaryClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "unary";
-	vobject_class->description = _( "unary operations" );
-	vobject_class->build = vips_unary_build;
-
-	/* Create properties.
-	 */
+	vobject_class->nickname = "hist_unary";
+	vobject_class->description = _( "hist_unary operations" );
+	vobject_class->build = vips_hist_unary_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsUnary, in ) );
+		G_STRUCT_OFFSET( VipsHistUnary, in ) );
 
 }
 
 static void
-vips_unary_init( VipsUnary *unary )
+vips_hist_unary_init( VipsHistUnary *hist_unary )
 {
-	/* Init our instance fields.
-	 */
-}
-
-/* Call this before chaining up in _build() to make the operation fall back to
- * copy.
- */
-int
-vips_unary_copy( VipsUnary *unary )
-{
-	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( unary );
-
-	/* This isn't set by arith until build(), so we have to set
-	 * again here.
-	 *
-	 * Should arith set out in _init()?
-	 */
-	g_object_set( unary, "out", vips_image_new(), NULL ); 
-
-	return( vips_image_write( unary->in, arithmetic->out ) );
 }

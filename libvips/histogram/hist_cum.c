@@ -61,16 +61,16 @@
 #include <vips/vips.h>
 
 #include "phistogram.h"
-#include "hist_buffer.h"
+#include "hist_unary.h"
 
-typedef VipsHistBuffer VipsHistCum;
-typedef VipsHistBufferClass VipsHistCumClass;
+typedef VipsHistUnary VipsHistCum;
+typedef VipsHistUnaryClass VipsHistCumClass;
 
-G_DEFINE_TYPE( VipsHistCum, vips_hist_cum, VIPS_TYPE_HIST_BUFFER );
+G_DEFINE_TYPE( VipsHistCum, vips_hist_cum, VIPS_TYPE_HIST_UNARY );
 
 #define ACCUMULATE( ITYPE, OTYPE ) { \
 	for( b = 0; b < nb; b++ ) { \
-		ITYPE *p = (ITYPE *) in; \
+		ITYPE *p = (ITYPE *) in[0]; \
 		OTYPE *q = (OTYPE *) out; \
 		OTYPE total; \
 		\
@@ -83,18 +83,17 @@ G_DEFINE_TYPE( VipsHistCum, vips_hist_cum, VIPS_TYPE_HIST_BUFFER );
 }
 
 static void
-vips_hist_cum_buffer( VipsHistBuffer *hist_buffer, 
-	VipsPel *out, VipsPel *in, int width )
+vips_hist_cum_buffer( VipsHistogram *histogram, 
+	VipsPel *out, VipsPel **in, int width )
 {
-	VipsHistogram *histogram = VIPS_HISTOGRAM( hist_buffer );
-	const int bands = vips_image_get_bands( histogram->in );
-	const int nb = vips_bandfmt_iscomplex( histogram->in->BandFmt ) ? 
+	const int bands = vips_image_get_bands( histogram->ready[0] );
+	const int nb = vips_bandfmt_iscomplex( histogram->ready[0]->BandFmt ) ? 
 		bands * 2 : bands;
 	int mx = width * nb;
 
 	int x, b; 
 
-	switch( vips_image_get_format( histogram->in ) ) {
+	switch( vips_image_get_format( histogram->ready[0] ) ) {
         case VIPS_FORMAT_CHAR: 		
 		ACCUMULATE( signed char, signed int ); break; 
         case VIPS_FORMAT_UCHAR: 		
@@ -142,7 +141,7 @@ static void
 vips_hist_cum_class_init( VipsHistCumClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsHistBufferClass *hclass = VIPS_HIST_BUFFER_CLASS( class );
+	VipsHistogramClass *hclass = VIPS_HISTOGRAM_CLASS( class );
 
 	object_class->nickname = "hist_cum";
 	object_class->description = _( "form cumulative histogram" );

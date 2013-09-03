@@ -60,17 +60,21 @@
 
 #include <vips/vips.h>
 
-#include "phistogram.h"
+typedef struct _VipsHistNorm {
+	VipsOperation parent_instance;
 
-typedef VipsHistogram VipsHistNorm;
-typedef VipsHistogramClass VipsHistNormClass;
+	VipsImage *in;
+	VipsImage *out;
+} VipsHistNorm;
 
-G_DEFINE_TYPE( VipsHistNorm, vips_hist_norm, VIPS_TYPE_HISTOGRAM );
+typedef VipsOperationClass VipsHistNormClass;
+
+G_DEFINE_TYPE( VipsHistNorm, vips_hist_norm, VIPS_TYPE_OPERATION );
 
 static int
 vips_hist_norm_build( VipsObject *object )
 {
-	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
+	VipsHistNorm *norm = (VipsHistNorm *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
 
 	guint64 px;
@@ -79,18 +83,20 @@ vips_hist_norm_build( VipsObject *object )
 	int y;
 	VipsBandFormat fmt;
 
+	g_object_set( norm, "out", vips_image_new(), NULL ); 
+
 	if( VIPS_OBJECT_CLASS( vips_hist_norm_parent_class )->build( object ) )
 		return( -1 );
 
 	/* Need max for each channel.
 	 */
-	if( vips_stats( histogram->in, &t[0], NULL ) )
+	if( vips_stats( norm->in, &t[0], NULL ) )
 		return( -1 ); 
 
 	/* Scale each channel by px / channel max
 	 */
-	px = VIPS_IMAGE_N_PELS( histogram->in );
-	bands = histogram->in->Bands;
+	px = VIPS_IMAGE_N_PELS( norm->in );
+	bands = norm->in->Bands;
 	if( !(a = VIPS_ARRAY( object, bands, double )) ||
 		!(b = VIPS_ARRAY( object, bands, double )) )
 		return( -1 );
@@ -99,7 +105,7 @@ vips_hist_norm_build( VipsObject *object )
 		b[y] = 0;
 	}
 
-	if( vips_linear( histogram->in, &t[1], a, b, bands, NULL ) )
+	if( vips_linear( norm->in, &t[1], a, b, bands, NULL ) )
 		return( -1 );
 
 	/* Make output format as small as we can.
@@ -112,7 +118,7 @@ vips_hist_norm_build( VipsObject *object )
 		fmt = VIPS_FORMAT_UINT;
 
 	if( vips_cast( t[1], &t[2], fmt, NULL ) ||
-		vips_image_write( t[2], histogram->out ) )
+		vips_image_write( t[2], norm->out ) )
 		return( -1 );
 
 	return( 0 );
@@ -121,11 +127,27 @@ vips_hist_norm_build( VipsObject *object )
 static void
 vips_hist_norm_class_init( VipsHistNormClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "hist_norm";
 	object_class->description = _( "normalise histogram" );
 	object_class->build = vips_hist_norm_build;
+
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsHistNorm, in ) );
+
+	VIPS_ARG_IMAGE( class, "out", 2, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsHistNorm, out ) );
 }
 
 static void

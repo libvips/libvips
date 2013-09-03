@@ -1,4 +1,6 @@
 /* base class for all histogram operations
+ *
+ * many hists in, one hist out, a buffer processing function in the class
  */
 
 /*
@@ -52,17 +54,34 @@ extern "C" {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 		VIPS_TYPE_HISTOGRAM, VipsHistogramClass ))
 
-typedef struct _VipsHistogram {
-	VipsOperation parent_instance;
+typedef struct _VipsHistogram VipsHistogram;
 
-	VipsImage *in;
+typedef void (*VipsHistogramProcessFn)( VipsHistogram *histogram, 
+	VipsPel *out, VipsPel **in, int width );
+
+struct _VipsHistogram {
+	VipsOperation parent_instance;
 
 	VipsImage *out;
 
-} VipsHistogram;
+	/* NULL-terminated array of input images. 
+	 */
+	VipsImage **in;
+	int n;
+
+	/* ... and transformed ready for processing.
+	 */
+	VipsImage **ready; 
+};
 
 typedef struct _VipsHistogramClass {
 	VipsOperationClass parent_class;
+
+	/* For each input format, what output format. 
+	 */
+	const VipsBandFormat *format_table;
+
+	VipsHistogramProcessFn process;
 
 } VipsHistogramClass;
 

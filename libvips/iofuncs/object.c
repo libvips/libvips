@@ -2370,10 +2370,11 @@ vips_object_local_array_cb( GObject *parent, VipsObjectLocal *local )
  * @n: array size
  *
  * Make an array of NULL VipsObject pointers. When @parent closes, every
- * non-NULL pointer in the array will be unreffed and the arraqy will be
- * freed.
- * Handy for creating a 
- * set of temporary images for a function.
+ * non-NULL pointer in the array will be unreffed and the array will be
+ * freed. Handy for creating a set of temporary images for a function.
+ *
+ * The array is NULL-terminated, ie. contains an extra NULL element at the
+ * end. 
  *
  * Example:
  *

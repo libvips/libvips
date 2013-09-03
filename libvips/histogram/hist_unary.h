@@ -1,4 +1,4 @@
-/* base class for all hist_buffer operations
+/* base class for all hist_unary operations
  */
 
 /*
@@ -28,8 +28,8 @@
 
  */
 
-#ifndef VIPS_PHIST_BUFFER_H
-#define VIPS_PHIST_BUFFER_H
+#ifndef VIPS_PHIST_UNARY_H
+#define VIPS_PHIST_UNARY_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,46 +37,39 @@ extern "C" {
 
 #include <vips/vector.h>
 
-#define VIPS_TYPE_HIST_BUFFER (vips_hist_buffer_get_type())
-#define VIPS_HIST_BUFFER( obj ) \
+#define VIPS_TYPE_HIST_UNARY (vips_hist_unary_get_type())
+#define VIPS_HIST_UNARY( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-		VIPS_TYPE_HIST_BUFFER, VipsHistBuffer ))
-#define VIPS_HIST_BUFFER_CLASS( klass ) \
+		VIPS_TYPE_HIST_UNARY, VipsHistUnary ))
+#define VIPS_HIST_UNARY_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-		VIPS_TYPE_HIST_BUFFER, VipsHistBufferClass))
-#define VIPS_IS_HIST_BUFFER( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_HIST_BUFFER ))
-#define VIPS_IS_HIST_BUFFER_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_HIST_BUFFER ))
-#define VIPS_HIST_BUFFER_GET_CLASS( obj ) \
+		VIPS_TYPE_HIST_UNARY, VipsHistUnaryClass))
+#define VIPS_IS_HIST_UNARY( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_HIST_UNARY ))
+#define VIPS_IS_HIST_UNARY_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_HIST_UNARY ))
+#define VIPS_HIST_UNARY_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-		VIPS_TYPE_HIST_BUFFER, VipsHistBufferClass ))
+		VIPS_TYPE_HIST_UNARY, VipsHistUnaryClass ))
 
-struct _VipsHistBuffer;
-typedef void (*VipsHistBufferProcessFn)( struct _VipsHistBuffer *hist_buffer, 
-	VipsPel *out, VipsPel *in, int width );
-
-typedef struct _VipsHistBuffer {
+typedef struct _VipsHistUnary {
 	VipsHistogram parent_instance;
 
-} VipsHistBuffer;
+	VipsImage *in;
 
-typedef struct _VipsHistBufferClass {
+} VipsHistUnary;
+
+typedef struct _VipsHistUnaryClass {
 	VipsHistogramClass parent_class;
 
-	/* For each input format, what output format. 
-	 */
-	const VipsBandFormat *format_table;
+} VipsHistUnaryClass;
 
-	VipsHistBufferProcessFn process;
-} VipsHistBufferClass;
-
-GType vips_hist_buffer_get_type( void );
+GType vips_hist_unary_get_type( void );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS_PHIST_BUFFER_H*/
+#endif /*VIPS_PHIST_UNARY_H*/
 
 

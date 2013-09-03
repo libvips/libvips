@@ -298,20 +298,28 @@ im_histplot( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
-typedef VipsHistogram VipsHistPlot;
-typedef VipsHistogramClass VipsHistPlotClass;
+typedef struct _VipsHistPlot {
+	VipsOperation parent_instance;
 
-G_DEFINE_TYPE( VipsHistPlot, vips_hist_plot, VIPS_TYPE_HISTOGRAM );
+	VipsImage *in;
+	VipsImage *out;
+} VipsHistPlot;
+
+typedef VipsOperationClass VipsHistPlotClass;
+
+G_DEFINE_TYPE( VipsHistPlot, vips_hist_plot, VIPS_TYPE_OPERATION );
 
 static int
 vips_hist_plot_build( VipsObject *object )
 {
-	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
+	VipsHistPlot *plot = (VipsHistPlot *) object;
+
+	g_object_set( plot, "out", vips_image_new(), NULL ); 
 
 	if( VIPS_OBJECT_CLASS( vips_hist_plot_parent_class )->build( object ) )
 		return( -1 );
 
-	if( im_histplot( histogram->in, histogram->out ) )
+	if( im_histplot( plot->in, plot->out ) )
 		return( -1 ); 
 
 	return( 0 );
@@ -320,11 +328,27 @@ vips_hist_plot_build( VipsObject *object )
 static void
 vips_hist_plot_class_init( VipsHistPlotClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "hist_plot";
 	object_class->description = _( "plot histogram" );
 	object_class->build = vips_hist_plot_build;
+
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsHistPlot, in ) );
+
+	VIPS_ARG_IMAGE( class, "out", 2, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsHistPlot, out ) );
 }
 
 static void

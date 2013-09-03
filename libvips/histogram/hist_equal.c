@@ -53,37 +53,39 @@
 
 #include <vips/vips.h>
 
-#include "phistogram.h"
-
 typedef struct _VipsHistEqual { 
-	VipsHistogram parent_instance;
+	VipsOperation parent_instance;
+
+	VipsImage *in;
+	VipsImage *out;
 
 	/* -1 for all bands, or the band we scan.
 	 */
 	int which;
 } VipsHistEqual;
 
-typedef VipsHistogramClass VipsHistEqualClass;
+typedef VipsOperationClass VipsHistEqualClass;
 
-G_DEFINE_TYPE( VipsHistEqual, vips_hist_equal, VIPS_TYPE_HISTOGRAM );
+G_DEFINE_TYPE( VipsHistEqual, vips_hist_equal, VIPS_TYPE_OPERATION );
 
 static int
 vips_hist_equal_build( VipsObject *object )
 {
-	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
-	VipsHistEqual *hist_equal = (VipsHistEqual *) histogram; 
+	VipsHistEqual *equal = (VipsHistEqual *) object; 
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
+
+	g_object_set( equal, "out", vips_image_new(), NULL ); 
 
 	if( VIPS_OBJECT_CLASS( vips_hist_equal_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_hist_find( histogram->in, &t[0], 
-			"band", hist_equal->which,
+	if( vips_hist_find( equal->in, &t[0], 
+			"band", equal->which,
 			NULL ) ||
 		vips_hist_cum( t[0], &t[1], NULL ) ||
 		vips_hist_norm( t[1], &t[2], NULL ) ||
-		vips_maplut( histogram->in, &t[3], t[2], NULL ) ||
-		vips_image_write( t[3], histogram->out ) )
+		vips_maplut( equal->in, &t[3], t[2], NULL ) ||
+		vips_image_write( t[3], equal->out ) )
 		return( -1 );
 
 	return( 0 );
@@ -102,6 +104,18 @@ vips_hist_equal_class_init( VipsHistEqualClass *class )
 	object_class->description = _( "histogram equalisation" );
 	object_class->build = vips_hist_equal_build;
 
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsHistEqual, in ) );
+
+	VIPS_ARG_IMAGE( class, "out", 2, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsHistEqual, out ) );
+
 	VIPS_ARG_INT( class, "band", 110, 
 		_( "Band" ), 
 		_( "Equalise with this band" ),
@@ -111,9 +125,9 @@ vips_hist_equal_class_init( VipsHistEqualClass *class )
 }
 
 static void
-vips_hist_equal_init( VipsHistEqual *hist_equal )
+vips_hist_equal_init( VipsHistEqual *equal )
 {
-	hist_equal->which = -1;
+	equal->which = -1;
 }
 
 /**

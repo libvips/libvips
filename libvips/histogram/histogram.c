@@ -76,10 +76,50 @@
 
 G_DEFINE_ABSTRACT_TYPE( VipsHistogram, vips_histogram, VIPS_TYPE_OPERATION );
 
+/* sizealike by expanding in just one dimension.
+ */
+static int
+vips__hist_sizealike_vec( VipsImage **in, VipsImage **out, int n )
+{
+	int i;
+	int max_size;
+
+	g_assert( n >= 1 );
+
+	max_size = VIPS_MAX( in[0]->Xsize, in[0]->Ysize );
+	for( i = 1; i < n; i++ ) 
+		max_size = VIPS_MAX( max_size, 
+			VIPS_MAX( in[0]->Xsize, in[0]->Ysize ) );
+
+	for( i = 0; i < n; i++ ) 
+		if( in[i]->Ysize == 1 ) {
+			if( vips_embed( in[i], &out[i], 
+				0, 0, max_size, 1, NULL ) )
+				return( -1 );
+		}
+		else {
+			if( vips_embed( in[i], &out[i], 
+				0, 0, 1, max_size, NULL ) )
+				return( -1 );
+		}
+
+	return( 0 );
+}
+
 static int
 vips_histogram_build( VipsObject *object )
 {
 	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsHistogramClass *hclass = VIPS_HISTOGRAM_GET_CLASS( histogram );
+
+	VipsImage **format;
+	VipsImage **band;
+	VipsImage **size;
+
+	VipsPel *outbuf;		
+	VipsPel **inbuf;		
+	int i;
 
 #ifdef DEBUG
 	printf( "vips_histogram_build: " );
@@ -90,7 +130,63 @@ vips_histogram_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_histogram_parent_class )->build( object ) )
 		return( -1 );
 
+	g_assert( histogram->n > 0 ); 
+
+	/* Must be NULL-terminated.
+	 */
+	g_assert( !histogram->in[histogram->n] ); 
+
+	format = (VipsImage **) vips_object_local_array( object, histogram->n );
+	band = (VipsImage **) vips_object_local_array( object, histogram->n );
+	size = (VipsImage **) vips_object_local_array( object, histogram->n );
+
 	g_object_set( histogram, "out", vips_image_new(), NULL ); 
+
+	for( i = 0; i < histogram->n; i++ ) 
+		if( vips_check_uncoded( class->nickname, histogram->in[i] ) ||
+			vips_check_hist( class->nickname, histogram->in[i] ) )
+			return( -1 ); 
+
+	/* Cast our input images up to a common format, bands and size.
+	 */
+	if( vips__formatalike_vec( histogram->in, format, histogram->n ) ||
+		vips__bandalike_vec( class->nickname, 
+			format, band, histogram->n, 1 ) ||
+		vips__hist_sizealike_vec( band, size, histogram->n ) ) 
+		return( -1 );
+
+	/* Keep a copy of the processed images here for subclasses.
+	 */
+	histogram->ready = size;
+
+	if( vips_image_copy_fields_array( histogram->out, histogram->ready ) ) 
+		return( -1 );
+        vips_demand_hint_array( histogram->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, histogram->ready );
+
+	histogram->out->Xsize = VIPS_IMAGE_N_PELS( histogram->ready[0] );
+	histogram->out->Ysize = 1;
+	if( hclass->format_table ) 
+		histogram->out->BandFmt = 
+			hclass->format_table[histogram->ready[0]->BandFmt];
+
+	if( !(outbuf = vips_malloc( object, 
+		VIPS_IMAGE_SIZEOF_LINE( histogram->out ))) )
+                return( -1 );
+
+	if( !(inbuf = VIPS_ARRAY( object, histogram->n + 1, VipsPel * )) )
+                return( -1 );
+	for( i = 0; i < histogram->n; i++ ) {
+		if( vips_image_wio_input( histogram->ready[i] ) )
+			return( -1 ); 
+		inbuf[i] = VIPS_IMAGE_ADDR( histogram->in[i], 0, 0 );
+	}
+	inbuf[i] = NULL; 
+
+	hclass->process( histogram, outbuf, inbuf, histogram->ready[0]->Xsize );
+
+	if( vips_image_write_line( histogram->out, 0, outbuf ) )
+		return( -1 ); 
 
 	return( 0 );
 }
@@ -108,13 +204,10 @@ vips_histogram_class_init( VipsHistogramClass *class )
 	vobject_class->description = _( "histogram operations" );
 	vobject_class->build = vips_histogram_build;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
-		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsHistogram, in ) );
+	/* Inputs set by subclassess.
+	 */
 
-	VIPS_ARG_IMAGE( class, "out", 1, 
+	VIPS_ARG_IMAGE( class, "out", 10, 
 		_( "Output" ), 
 		_( "Output image" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
@@ -125,6 +218,9 @@ vips_histogram_class_init( VipsHistogramClass *class )
 static void
 vips_histogram_init( VipsHistogram *histogram )
 {
+	/* Sanity check this above.
+	 */
+	histogram->n = -1;
 }
 
 /* Called from iofuncs to init all operations in this dir. Use a plugin system

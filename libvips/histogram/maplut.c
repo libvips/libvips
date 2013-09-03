@@ -71,11 +71,11 @@
 
 #include <vips/vips.h>
 
-#include "phistogram.h"
-
 typedef struct _VipsMaplut {
-	VipsHistogram parent_instance;
+	VipsOperation parent_instance;
 
+	VipsImage *in;
+	VipsImage *out;
 	VipsImage *lut;
 
 	int fmt;		/* LUT image BandFmt */
@@ -88,9 +88,9 @@ typedef struct _VipsMaplut {
 
 } VipsMaplut;
 
-typedef VipsHistogramClass VipsMaplutClass;
+typedef VipsOperationClass VipsMaplutClass;
 
-G_DEFINE_TYPE( VipsMaplut, vips_maplut, VIPS_TYPE_HISTOGRAM );
+G_DEFINE_TYPE( VipsMaplut, vips_maplut, VIPS_TYPE_OPERATION );
 
 static void
 vips_maplut_preeval( VipsImage *image, VipsProgress *progress, 
@@ -410,26 +410,26 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
  */
 #define outer_switch( UCHAR_F, UCHAR_FC, GEN_F, GEN_FC ) \
 	switch( maplut->fmt ) { \
-	case VIPS_FORMAT_UCHAR:		inner_switch( UCHAR_F, GEN_F, \
-						unsigned char ); break; \
-	case VIPS_FORMAT_CHAR:		inner_switch( UCHAR_F, GEN_F, \
-						char ); break; \
-	case VIPS_FORMAT_USHORT:	inner_switch( UCHAR_F, GEN_F, \
-						unsigned short ); break; \
-	case VIPS_FORMAT_SHORT:		inner_switch( UCHAR_F, GEN_F, \
-						short ); break; \
-	case VIPS_FORMAT_UINT:		inner_switch( UCHAR_F, GEN_F, \
-						unsigned int ); break; \
-	case VIPS_FORMAT_INT:		inner_switch( UCHAR_F, GEN_F, \
-						int ); break; \
-	case VIPS_FORMAT_FLOAT:		inner_switch( UCHAR_F, GEN_F, \
-						float ); break; \
-	case VIPS_FORMAT_DOUBLE:	inner_switch( UCHAR_F, GEN_F, \
-						double ); break; \
-	case VIPS_FORMAT_COMPLEX:	inner_switch( UCHAR_FC, GEN_FC, \
-						float ); break; \
-	case VIPS_FORMAT_DPCOMPLEX:	inner_switch( UCHAR_FC, GEN_FC, \
-						double ); break; \
+	case VIPS_FORMAT_UCHAR: \
+		inner_switch( UCHAR_F, GEN_F, unsigned char ); break; \
+	case VIPS_FORMAT_CHAR:\
+		inner_switch( UCHAR_F, GEN_F, char ); break; \
+	case VIPS_FORMAT_USHORT: \
+		inner_switch( UCHAR_F, GEN_F, unsigned short ); break; \
+	case VIPS_FORMAT_SHORT: \
+		inner_switch( UCHAR_F, GEN_F, short ); break; \
+	case VIPS_FORMAT_UINT: \
+		inner_switch( UCHAR_F, GEN_F, unsigned int ); break; \
+	case VIPS_FORMAT_INT: \
+		inner_switch( UCHAR_F, GEN_F, int ); break; \
+	case VIPS_FORMAT_FLOAT: \
+		inner_switch( UCHAR_F, GEN_F, float ); break; \
+	case VIPS_FORMAT_DOUBLE: \
+		inner_switch( UCHAR_F, GEN_F, double ); break; \
+	case VIPS_FORMAT_COMPLEX: \
+		inner_switch( UCHAR_FC, GEN_FC, float ); break; \
+	case VIPS_FORMAT_DPCOMPLEX: \
+		inner_switch( UCHAR_FC, GEN_FC, double ); break; \
 	default: \
 		g_assert( 0 ); \
 	}
@@ -507,7 +507,6 @@ static int
 vips_maplut_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsHistogram *histogram = VIPS_HISTOGRAM( object );
 	VipsMaplut *maplut = (VipsMaplut *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
 
@@ -519,7 +518,7 @@ vips_maplut_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_maplut_parent_class )->build( object ) )
 		return( -1 );
 
-	in = histogram->in;
+	in = maplut->in;
 	lut = maplut->lut;
 
 	if( vips_check_hist( class->nickname, lut ) ||
@@ -538,17 +537,17 @@ vips_maplut_build( VipsObject *object )
 		vips_image_pio_input( in ) )
 		return( -1 );
 
-	if( vips_image_copy_fieldsv( histogram->out, in, lut, NULL ) )
+	if( vips_image_copy_fieldsv( maplut->out, in, lut, NULL ) )
 		return( -1 );
-	vips_demand_hint( histogram->out, VIPS_DEMAND_STYLE_THINSTRIP, 
+	vips_demand_hint( maplut->out, VIPS_DEMAND_STYLE_THINSTRIP, 
 		in, lut, NULL );
-	histogram->out->BandFmt = lut->BandFmt;
+	maplut->out->BandFmt = lut->BandFmt;
 
 	/* Output has same number of bands as LUT, unless LUT has 1 band, in
 	 * which case output has same number of bands as input.
 	 */
 	if( lut->Bands != 1 )
-		histogram->out->Bands = lut->Bands;
+		maplut->out->Bands = lut->Bands;
 
 	g_signal_connect( in, "preeval", 
 		G_CALLBACK( vips_maplut_preeval ), maplut );
@@ -583,7 +582,7 @@ vips_maplut_build( VipsObject *object )
 			q += maplut->es;
 		}
 
-	if( vips_image_generate( histogram->out,
+	if( vips_image_generate( maplut->out,
 		vips_maplut_start, vips_maplut_gen, vips_maplut_stop, 
 		in, maplut ) )
 		return( -1 );
@@ -607,7 +606,19 @@ vips_maplut_class_init( VipsMaplutClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "lut", 2, 
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMaplut, in ) );
+
+	VIPS_ARG_IMAGE( class, "out", 2, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsMaplut, out ) );
+
+	VIPS_ARG_IMAGE( class, "lut", 3, 
 		_( "LUT" ), 
 		_( "Look-up table image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
