@@ -515,6 +515,8 @@ vips_maplut_build( VipsObject *object )
 	int i, x;
 	VipsPel *q;
 
+	g_object_set( object, "out", vips_image_new(), NULL ); 
+
 	if( VIPS_OBJECT_CLASS( vips_maplut_parent_class )->build( object ) )
 		return( -1 );
 

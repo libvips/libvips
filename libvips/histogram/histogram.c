@@ -179,7 +179,7 @@ vips_histogram_build( VipsObject *object )
 	for( i = 0; i < histogram->n; i++ ) {
 		if( vips_image_wio_input( histogram->ready[i] ) )
 			return( -1 ); 
-		inbuf[i] = VIPS_IMAGE_ADDR( histogram->in[i], 0, 0 );
+		inbuf[i] = VIPS_IMAGE_ADDR( histogram->ready[i], 0, 0 );
 	}
 	inbuf[i] = NULL; 
 

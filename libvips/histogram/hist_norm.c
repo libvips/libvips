@@ -83,7 +83,7 @@ vips_hist_norm_build( VipsObject *object )
 	int y;
 	VipsBandFormat fmt;
 
-	g_object_set( norm, "out", vips_image_new(), NULL ); 
+	g_object_set( object, "out", vips_image_new(), NULL ); 
 
 	if( VIPS_OBJECT_CLASS( vips_hist_norm_parent_class )->build( object ) )
 		return( -1 );
