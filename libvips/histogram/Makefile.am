@@ -10,6 +10,7 @@ libhistogram_la_SOURCES = \
 	hist_norm.c \
 	hist_equal.c \
 	hist_plot.c \
+	hist_match.c \
 	\
 	hist_dispatch.c \
 	im_histspec.c \

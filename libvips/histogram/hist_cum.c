@@ -83,7 +83,7 @@ G_DEFINE_TYPE( VipsHistCum, vips_hist_cum, VIPS_TYPE_HIST_UNARY );
 }
 
 static void
-vips_hist_cum_buffer( VipsHistogram *histogram, 
+vips_hist_cum_process( VipsHistogram *histogram, 
 	VipsPel *out, VipsPel **in, int width )
 {
 	const int bands = vips_image_get_bands( histogram->ready[0] );
@@ -132,7 +132,7 @@ vips_hist_cum_buffer( VipsHistogram *histogram,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static const VipsBandFormat vips_bandfmt_hist_cum[10] = {
+static const VipsBandFormat vips_hist_cum_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    UI, I,  UI, I,  UI, I,  F,  F,  D,  D 
 };
@@ -146,8 +146,8 @@ vips_hist_cum_class_init( VipsHistCumClass *class )
 	object_class->nickname = "hist_cum";
 	object_class->description = _( "form cumulative histogram" );
 
-	hclass->format_table = vips_bandfmt_hist_cum;
-	hclass->process = vips_hist_cum_buffer;
+	hclass->format_table = vips_hist_cum_format_table;
+	hclass->process = vips_hist_cum_process;
 }
 
 static void
