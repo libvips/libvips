@@ -164,13 +164,13 @@ vips_hist_match_class_init( VipsHistMatchClass *class )
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
-		_( "Input image" ),
+		_( "Input histogram" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistMatch, in ) );
 
 	VIPS_ARG_IMAGE( class, "ref", 2, 
 		_( "Reference" ), 
-		_( "Reference image" ),
+		_( "Reference histogram" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistMatch, ref ) );
 
@@ -186,12 +186,14 @@ vips_hist_match_init( VipsHistMatch *match )
  * @in: input histogram
  * @ref: reference histogram 
  * @out: output histogram
+ * @...: %NULL-terminated list of optional named arguments
  *
- * Creates a lut which, when applied to the image from which histogram @in was
- * formed, will produce an image whose PDF matches that of the image from 
- * which @ref was formed.
+ * Adjust @in to match @ref. If @in and @ref are normalised
+ * cumulative histograms, @out will be a LUT that adjusts the PDF of the image
+ * from which @in was made to match the PDF of @ref's image. 
  *
- * See also: im_hsp(), im_histgr(), im_maplut().
+ * See also: vips_maplut(), vips_hist_find(), vips_hist_norm(),
+ * vips_hist_cum(). 
  *
  * Returns: 0 on success, -1 on error
  */

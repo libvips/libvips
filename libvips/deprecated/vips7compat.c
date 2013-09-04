@@ -3471,6 +3471,55 @@ im_hsp( IMAGE *in, IMAGE *ref, IMAGE *out )
 	return( 0 );
 }
 
+static int
+match( VipsImage *in, VipsImage *ref, VipsImage *out )
+{
+	VipsImage *x;
+
+	if( vips_hist_match( in, ref, &x, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_histspec( IMAGE *in, IMAGE *ref, IMAGE *out )
+{
+	IMAGE *t[5];
+	VipsImage *x;
+	guint64 px;
+	int fmt;
+
+	if( im_check_uint( "im_histspec", in ) ||
+		im_check_uint( "im_histspec", ref ) )
+		return( -1 );
+
+	if( im_open_local_array( out, t, 5, "im_histspec", "p" ) ||
+		im_histeq( in, t[0] ) || 
+		im_histeq( ref, t[2] ) ||
+		match( t[0], t[2], t[4] ) )
+		return( -1 );
+
+	px = VIPS_IMAGE_N_PELS( t[4] );
+	if( px <= 256 ) 
+		fmt = IM_BANDFMT_UCHAR;
+	else if( px <= 65536 ) 
+		fmt = IM_BANDFMT_USHORT;
+	else 
+		fmt = IM_BANDFMT_UINT;
+
+	if( im_clip2fmt( t[4], out, fmt ) )
+		return( -1 );
+
+        return( 0 );
+}
+
 int 
 im_falsecolour( IMAGE *in, IMAGE *out )
 {

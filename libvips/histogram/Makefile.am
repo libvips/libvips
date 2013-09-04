@@ -13,7 +13,6 @@ libhistogram_la_SOURCES = \
 	hist_match.c \
 	\
 	hist_dispatch.c \
-	im_histspec.c \
 	im_mpercent.c \
 	im_invertlut.c \
 	im_lhisteq.c \

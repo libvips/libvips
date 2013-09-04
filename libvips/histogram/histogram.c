@@ -76,7 +76,7 @@
 
 G_DEFINE_ABSTRACT_TYPE( VipsHistogram, vips_histogram, VIPS_TYPE_OPERATION );
 
-/* sizealike by expanding in just one dimension.
+/* sizealike by expanding in just one dimension and copying the final element. 
  */
 static int
 vips__hist_sizealike_vec( VipsImage **in, VipsImage **out, int n )
@@ -93,13 +93,15 @@ vips__hist_sizealike_vec( VipsImage **in, VipsImage **out, int n )
 
 	for( i = 0; i < n; i++ ) 
 		if( in[i]->Ysize == 1 ) {
-			if( vips_embed( in[i], &out[i], 
-				0, 0, max_size, 1, NULL ) )
+			if( vips_embed( in[i], &out[i], 0, 0, max_size, 1, 
+				"extend", VIPS_EXTEND_COPY,
+				NULL ) )
 				return( -1 );
 		}
 		else {
-			if( vips_embed( in[i], &out[i], 
-				0, 0, 1, max_size, NULL ) )
+			if( vips_embed( in[i], &out[i], 0, 0, 1, max_size, 
+				"extend", VIPS_EXTEND_COPY,
+				NULL ) )
 				return( -1 );
 		}
 
@@ -235,10 +237,12 @@ vips_histogram_operation_init( void )
 	extern GType vips_hist_norm_get_type( void ); 
 	extern GType vips_hist_equal_get_type( void ); 
 	extern GType vips_hist_plot_get_type( void ); 
+	extern GType vips_hist_match_get_type( void ); 
 
 	vips_maplut_get_type(); 
 	vips_hist_cum_get_type(); 
 	vips_hist_norm_get_type(); 
 	vips_hist_equal_get_type(); 
 	vips_hist_plot_get_type(); 
+	vips_hist_match_get_type(); 
 }
