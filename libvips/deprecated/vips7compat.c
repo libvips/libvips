@@ -3446,6 +3446,23 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 }
 
 int 
+im_lhisteq( VipsImage *in, VipsImage *out, int width, int height )
+{
+	VipsImage *x;
+
+	if( vips_hist_local( in, &x, width, height, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
 im_histnD( VipsImage *in, VipsImage *out, int bins )
 {
 	VipsImage *x;

@@ -4,7 +4,8 @@
   INTERPRETATION_MATRIX etc. 
 - rewrite im_buildlut(), im_identity*(), im_maplut(), im_falsecolour(),
   im_gammacorrect(), im_histgr(), im_histcum(), im_histnorm(), im_heq(),
-  im_histnD(), im_histindexed(), im_histspec(), im_invertlut() as classes
+  im_histnD(), im_histindexed(), im_histspec(), im_invertlut(), im_lhisteq()
+  as classes
 - thin vips8 wrapper for im_histplot()
 - added vips_error_freeze() / vips_error_thaw()
 - used freeze() / thaw() to stop file format sniffers logging spurious errors

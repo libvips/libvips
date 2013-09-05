@@ -11,10 +11,10 @@ libhistogram_la_SOURCES = \
 	hist_equal.c \
 	hist_plot.c \
 	hist_match.c \
+	hist_local.c \
 	\
 	hist_dispatch.c \
 	im_mpercent.c \
-	im_lhisteq.c \
 	im_project.c \
 	im_stdif.c \
 	tone.c

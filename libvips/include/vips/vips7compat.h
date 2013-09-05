@@ -863,6 +863,11 @@ int im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out );
 int im_histplot( VipsImage *in, VipsImage *out );
 int im_hsp( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_histspec( VipsImage *in, VipsImage *ref, VipsImage *out );
+int im_lhisteq( VipsImage *in, VipsImage *out, int xwin, int ywin );
+
+/* Not really correct, but who uses this.
+ */
+#define im_lhisteq_raw im_lhisteq
 
 /* ruby-vips uses this
  */

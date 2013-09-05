@@ -1,3 +1,9 @@
+- is vips_hist_local() correct? it seems to leave white dots everywhere
+
+- use VipsInterpolate to generate intermediate values in buildlut etc.
+
+  need to pull out columns of input matrix into separate image and expand each
+  one
 
 - use g_log() instead of vips_info()
 
@@ -12,10 +18,6 @@
 	currently we have a huge linecache for "vips copy x.png x.v", in
 	effect what vips does for open-via-disc, and therefore see >100mb ram
 	use even in open-via-disc mode
-
-- why doesn't this work sequentially?
-
-  	vips flip Chicago.png x.png horizontal --vips-progress
 
 - support multiscan jpeg write? see
 
