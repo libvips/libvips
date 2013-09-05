@@ -52,7 +52,6 @@ int vips_hist_match( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 
-int im_invertlut( DOUBLEMASK *input, VipsImage *output, int lut_size );
 int im_project( VipsImage *in, VipsImage *hout, VipsImage *vout );
 
 int im_ismonotonic( VipsImage *lut, int *out );

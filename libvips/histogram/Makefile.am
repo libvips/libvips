@@ -14,7 +14,6 @@ libhistogram_la_SOURCES = \
 	\
 	hist_dispatch.c \
 	im_mpercent.c \
-	im_invertlut.c \
 	im_lhisteq.c \
 	im_project.c \
 	im_stdif.c \

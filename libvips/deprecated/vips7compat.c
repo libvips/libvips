@@ -2551,6 +2551,31 @@ im_buildlut( DOUBLEMASK *input, VipsImage *out )
 }
 
 int
+im_invertlut( DOUBLEMASK *input, VipsImage *out, int size )
+{
+	VipsImage *mat;
+	VipsImage *x;
+
+	mat = vips_image_new();
+	if( im_mask2vips( input, mat ) )
+		return( -1 );
+	if( vips_invertlut( mat, &x, 
+		"size", size, 
+		NULL ) ) {
+		g_object_unref( mat );
+		return( -1 );
+	}
+	g_object_unref( mat );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
 im_rightshift_size( IMAGE *in, IMAGE *out, 
 	int xshift, int yshift, int band_fmt )
 {
@@ -3492,7 +3517,6 @@ int
 im_histspec( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
 	IMAGE *t[5];
-	VipsImage *x;
 	guint64 px;
 	int fmt;
 

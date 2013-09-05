@@ -71,7 +71,7 @@ typedef struct _VipsInvertlut {
 	 */
 	VipsImage *mat;
 
-	int lut_size;		/* Number of output elements to generate */
+	int size;		/* Number of output elements to generate */
 
 	double **data;		/* Rows of unpacked matrix */
 	double *buf;		/* Output buffer */
@@ -84,17 +84,9 @@ G_DEFINE_TYPE( VipsInvertlut, vips_invertlut, VIPS_TYPE_CREATE );
 static void
 vips_invertlut_dispose( GObject *gobject )
 {
-	VipsBuildlut *lut = (VipsBuildlut *) gobject;
+	VipsInvertlut *lut = (VipsInvertlut *) gobject;
 
-	if( lut->data ) {
-		int i;
-
-		for( i = 0; i < lut->input->ysize; i++ )
-			VIPS_FREE( lut->data[i] );
-
-		VIPS_FREE( lut->data );
-	}
-
+	VIPS_FREE( lut->data );
 	VIPS_FREE( lut->buf );
 	VIPS_UNREF( lut->mat );
 
@@ -123,59 +115,55 @@ static int
 vips_invertlut_build_init( VipsInvertlut *lut )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( lut );
+	VipsCreate *create = VIPS_CREATE( lut );
 
-/* Fill our state.
- */
-static int
-build_state( State *state, DOUBLEMASK *input, IMAGE *output, int lut_size )
-{
-	int x, y, i;
+	int x, y;
 
-	state->input = input;
-	state->output = output;
-	state->lut_size = lut_size;
-	state->data = NULL;
+	if( !lut->mat ||
+		lut->mat->Xsize < 2 || 
+		lut->mat->Ysize < 1 ) {
+		vips_error( class->nickname, "%s", _( "bad input matrix" ) );
+		return( -1 );
+	}
+	if( lut->size < 1 || 
+		lut->size > 65536 ) {
+		vips_error( class->nickname, "%s", _( "bad size" ) );
+		return( -1 );
+	}
 
-	if( !(state->buf = im_malloc( NULL, IM_IMAGE_SIZEOF_LINE( output ) )) )
+	if( !(lut->buf = 
+		vips_malloc( NULL, VIPS_IMAGE_SIZEOF_LINE( create->out ) )) )
 		return( -1 );
 
-	if( !(state->data = IM_ARRAY( NULL, input->ysize, double * )) )
+	if( !(lut->data = VIPS_ARRAY( NULL, lut->mat->Ysize, double * )) )
 		return( -1 );
-	for( y = 0; y < input->ysize; y++ ) 
-		state->data[y] = NULL;
-
-	for( y = 0; y < input->ysize; y++ ) 
-		if( !(state->data[y] = IM_ARRAY( NULL, input->xsize, double )) )
-			return( -1 );
-
-	for( i = 0, y = 0; y < input->ysize; y++ ) 
-		for( x = 0; x < input->xsize; x++, i++ ) 
-			state->data[y][x] = input->coeff[i];
+	for( y = 0; y < lut->mat->Ysize; y++ ) 
+		lut->data[y] = VIPS_MATRIX( lut->mat, 0, y );
 
 	/* Sanity check for data range.
 	 */
-	for( y = 0; y < input->ysize; y++ ) 
-		for( x = 0; x < input->xsize; x++ ) 
-			if( state->data[y][x] > 1.0 || 
-				state->data[y][x] < 0.0 ) {
-				im_error( "im_invertlut", 
+	for( y = 0; y < lut->mat->Ysize; y++ ) 
+		for( x = 0; x < lut->mat->Xsize; x++ ) 
+			if( lut->data[y][x] > 1.0 || 
+				lut->data[y][x] < 0.0 ) {
+				vips_error( class->nickname,
 					_( "element (%d, %d) is %g, "
 						"outside range [0,1]" ),
-					x, y, state->data[y][x] );
+					x, y, lut->data[y][x] );
 				return( -1 );
 			}
 
 	/* Sort by 1st column in input.
 	 */
-	qsort( state->data, input->ysize, sizeof( double * ), compare );
+	qsort( lut->data, lut->mat->Ysize, sizeof( double * ), compare );
 
 #ifdef DEBUG
 	printf( "Input table, sorted by 1st column\n" );
-	for( y = 0; y < input->ysize; y++ ) {
+	for( y = 0; y < lut->mat->Ysize; y++ ) {
 		printf( "%.4d ", y );
 
-		for( x = 0; x < input->xsize; x++ )
-			printf( "%.9f ", state->data[y][x] );
+		for( x = 0; x < lut->mat->Xsize; x++ )
+			printf( "%.9f ", lut->data[y][x] );
 
 		printf( "\n" );
 	}
@@ -185,15 +173,10 @@ build_state( State *state, DOUBLEMASK *input, IMAGE *output, int lut_size )
 }
 
 static int
-vips_invertlut_build_create( VipsBuildlut *lut )
+vips_invertlut_build_create( VipsInvertlut *lut )
 {
-	DOUBLEMASK *input = state->input;
-	int ysize = input->ysize;
-	int xsize = input->xsize;
-	double *buf = state->buf;
-	int bands = xsize - 1;
-	double **data = state->data;
-	int lut_size = state->lut_size;
+	int bands = lut->mat->Xsize - 1;
+	int height = lut->mat->Ysize;
 
 	int b;
 
@@ -202,8 +185,8 @@ vips_invertlut_build_create( VipsBuildlut *lut )
 	for( b = 0; b < bands; b++ ) {
 		/* The first and last lut positions we know real values for.
 		 */
-		int first = data[0][b + 1] * (lut_size - 1);
-		int last = data[ysize - 1][b + 1] * (lut_size - 1);
+		int first = lut->data[0][b + 1] * (lut->size - 1);
+		int last = lut->data[height - 1][b + 1] * (lut->size - 1);
 
 		int k;
 
@@ -213,20 +196,20 @@ vips_invertlut_build_create( VipsBuildlut *lut )
 			/* Have this inside the loop to avoid /0 errors if
 			 * first == 0.
 			 */
-			double fac = data[0][0] / first;
+			double fac = lut->data[0][0] / first;
 
-			buf[b + k * bands] = k * fac;
+			lut->buf[b + k * bands] = k * fac;
 		}
 
-		for( k = last; k < lut_size; k++ ) {
+		for( k = last; k < lut->size; k++ ) {
 			/* Inside the loop to avoid /0 errors for last ==
-			 * (lut_size - 1).
+			 * (size - 1).
 			 */
-			double fac = (1 - data[ysize - 1][0]) / 
-				((lut_size - 1) - last);
+			double fac = (1 - lut->data[height - 1][0]) / 
+				((lut->size - 1) - last);
 
-			buf[b + k * bands] = 
-				data[ysize - 1][0] + (k - last) * fac;
+			lut->buf[b + k * bands] = 
+				lut->data[height - 1][0] + (k - last) * fac;
 		}
 
 		/* Interpolate the data sections.
@@ -234,7 +217,7 @@ vips_invertlut_build_create( VipsBuildlut *lut )
 		for( k = first; k < last; k++ ) {
 			/* Where we're at in the [0,1] range.
 			 */
-			double ki = (double) k / (lut_size - 1);
+			double ki = (double) k / (lut->size - 1);
 
 			double irange, orange;
 			int j;
@@ -242,8 +225,8 @@ vips_invertlut_build_create( VipsBuildlut *lut )
 			/* Search for the lowest real value < ki. There may
 			 * not be one: if not, just use 0. Tiny error.
 			 */
-			for( j = ysize - 1; j >= 0; j-- )
-				if( data[j][b + 1] < ki )
+			for( j = height - 1; j >= 0; j-- )
+				if( lut->data[j][b + 1] < ki )
 					break;
 			if( j == -1 )
 				j = 0;
@@ -251,11 +234,11 @@ vips_invertlut_build_create( VipsBuildlut *lut )
 			/* Interpolate k as being between row data[j] and row
 			 * data[j + 1].
 			 */
-			irange = data[j + 1][b + 1] - data[j][b + 1];
-			orange = data[j + 1][0] - data[j][0];
+			irange = lut->data[j + 1][b + 1] - lut->data[j][b + 1];
+			orange = lut->data[j + 1][0] - lut->data[j][0];
 
-			buf[b + k * bands] = data[j][0] +
-				orange * ((ki - data[j][b + 1]) / irange);
+			lut->buf[b + k * bands] = lut->data[j][0] +
+				orange * ((ki - lut->data[j][b + 1]) / irange);
 		}
 	}
 
@@ -267,7 +250,7 @@ vips_invertlut_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsCreate *create = VIPS_CREATE( object );
-	VipsBuildlut *lut = (VipsBuildlut *) object;
+	VipsInvertlut *lut = (VipsInvertlut *) object;
 
 	if( VIPS_OBJECT_CLASS( vips_invertlut_parent_class )->build( object ) )
 		return( -1 );
@@ -280,7 +263,7 @@ vips_invertlut_build( VipsObject *object )
 		return( -1 ); 
 
         vips_image_init_fields( create->out,
-                lut->lut_size, 1, lut->mat->Xsize - 1, 
+                lut->size, 1, lut->mat->Xsize - 1, 
 		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE, 
 		VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0 );
         if( vips_image_write_line( create->out, 0, (VipsPel *) lut->buf ) ) 
@@ -290,7 +273,7 @@ vips_invertlut_build( VipsObject *object )
 }
 
 static void
-vips_invertlut_class_init( VipsBuildlutClass *class )
+vips_invertlut_class_init( VipsInvertlutClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -307,20 +290,32 @@ vips_invertlut_class_init( VipsBuildlutClass *class )
 		_( "Input" ), 
 		_( "Matrix of XY coordinates" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsBuildlut, in ) ); 
+		G_STRUCT_OFFSET( VipsInvertlut, in ) ); 
+
+	VIPS_ARG_INT( class, "size", 5, 
+		_( "Size" ), 
+		_( "LUT size to generate" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsInvertlut, size ),
+		1, 1000000, 256 );
 
 }
 
 static void
-vips_invertlut_init( VipsBuildlut *lut )
+vips_invertlut_init( VipsInvertlut *lut )
 {
+	lut->size = 256; 
 }
 
 /**
- * im_invertlut:
- * @input: input mask
- * @output: output LUT
- * @lut_size: generate this much
+ * vips_invertlut:
+ * @in: input mask
+ * @out: output LUT
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @size: generate this much
  *
  * Given a mask of target values and real values, generate a LUT which
  * will map reals to targets. Handy for linearising images from
@@ -360,7 +355,7 @@ vips_invertlut_init( VipsBuildlut *lut )
  * channel 1, 30% in channel 2, and 10% in channel 3, and so on.
  * 
  * Inputs don't need to be sorted (we do that). Generate any precision
- * LUT, typically you might ask for 256 elements.
+ * LUT, default to 256 elements.
  *
  * It won't work too well for non-monotonic camera responses 
  * (we should fix this). Interpolation is simple piecewise linear; we ought to 
@@ -381,45 +376,4 @@ vips_invertlut( VipsImage *in, VipsImage **out, ... )
 	va_end( ap );
 
 	return( result );
-}
-
-
-
-
-
-
-
-int
-im_invertlut( DOUBLEMASK *input, IMAGE *output, int lut_size )
-{
-	State state;
-
-	if( !input || 
-		input->xsize < 2 || 
-		input->ysize < 1 ) {
-		im_error( "im_invertlut", "%s", _( "bad input matrix" ) );
-		return( -1 );
-	}
-	if( lut_size < 1 || 
-		lut_size > 65536 ) {
-		im_error( "im_invertlut", "%s", _( "bad lut_size" ) );
-		return( -1 );
-	}
-
-        im_initdesc( output,
-                lut_size, 1, input->xsize - 1, 
-		IM_BBITS_DOUBLE, IM_BANDFMT_DOUBLE,
-                IM_CODING_NONE, IM_TYPE_HISTOGRAM, 1.0, 1.0, 0, 0 );
-        if( im_setupout( output ) )
-                return( -1 );
-
-	if( build_state( &state, input, output, lut_size ) ||
-		invertlut( &state ) ||
-		im_writeline( 0, output, (VipsPel *) state.buf ) ) {
-		free_state( &state );
-		return( -1 );
-	}
-	free_state( &state );
-
-	return( 0 );
 }

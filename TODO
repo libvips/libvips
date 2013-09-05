@@ -1,19 +1,5 @@
-- VipsHistogram takes many inputs, all of them hists and includes a
-  buffer-processing class member 
-
-  VipsHistUnary adds a single input
-
-  VipsHistNorm subclasses that
-
-
-
-- im_histspec() is a binary hist operator ... need many inputs for
-  VipsHistogram and VipsHistBuffer
 
 - use g_log() instead of vips_info()
-
-- what's the difference between buildlut and invertlut? can we make invertlut
-  by just swapping the channels before calling buildlut?
 
 - do we always call copy_fields and demand_hint with ALL input images? what
   about the operators in conversion?
