@@ -22,7 +22,7 @@ ACDIR=`aclocal --print-ac-dir`
 # OS X with brew sets ACDIR to
 # /usr/local/Cellar/automake/1.13.1/share/aclocal, the staging area, which is
 # totally wrong argh
-if [ ! -f $ACDIR ]; then
+if [ ! -d $ACDIR ]; then
 	ACDIR=/usr/local/share/aclocal
 fi
 
