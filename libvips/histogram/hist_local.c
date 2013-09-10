@@ -19,6 +19,8 @@
  * 	- small cleanups
  * 5/9/13
  * 	- redo as a class
+ * 9/9/13
+ * 	- any number of bands
  */
 
 /*
@@ -74,13 +76,72 @@ typedef VipsOperationClass VipsHistLocalClass;
 
 G_DEFINE_TYPE( VipsHistLocal, vips_hist_local, VIPS_TYPE_OPERATION );
 
+/* Our sequence value: the region this sequence is using, and local stats.
+ */
+typedef struct {
+	VipsRegion *ir;		/* Input region */
+
+	/* A 256-element hist for evry band.
+	 */
+	unsigned int **hist;
+} VipsHistLocalSequence;
+
 static int
-vips_hist_local_gen( VipsRegion *or, 
-	void *seq, void *a, void *b, gboolean *stop )
+vips_hist_local_stop( void *vseq, void *a, void *b )
 {
-	VipsRegion *ir = (VipsRegion *) seq;
+	VipsHistLocalSequence *seq = (VipsHistLocalSequence *) vseq;
+	VipsImage *in = (VipsImage *) a;
+
+	VIPS_UNREF( seq->ir );
+	if( seq->hist ) {
+		int i; 
+
+		for( i = 0; i < in->Bands; i++ )
+			VIPS_FREE( seq->hist[i] );
+		VIPS_FREE( seq->hist );
+	}
+	VIPS_FREE( seq );
+
+	return( 0 );
+}
+
+static void *
+vips_hist_local_start( VipsImage *out, void *a, void *b )
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsHistLocalSequence *seq;
+
+	int i;
+
+	if( !(seq = VIPS_NEW( NULL, VipsHistLocalSequence )) )
+		 return( NULL );
+	seq->ir = NULL;
+	seq->hist = NULL;
+
+	if( !(seq->ir = vips_region_new( in )) || 
+		!(seq->hist = VIPS_ARRAY( NULL, in->Bands, unsigned int * )) ) {
+		vips_hist_local_stop( seq, NULL, NULL );
+		return( NULL ); 
+	}
+
+	for( i = 0; i < in->Bands; i++ )
+		if( !(seq->hist[i] = VIPS_ARRAY( NULL, 256, unsigned int )) ) {
+		vips_hist_local_stop( seq, NULL, NULL );
+		return( NULL ); 
+	}
+
+	return( seq );
+}
+
+static int
+vips_hist_local_generate( VipsRegion *or, 
+	void *vseq, void *a, void *b, gboolean *stop )
+{
+	VipsHistLocalSequence *seq = (VipsHistLocalSequence *) vseq;
+	VipsImage *in = (VipsImage *) a;
 	const VipsHistLocal *local = (VipsHistLocal *) b;
 	VipsRect *r = &or->valid;
+	int bands = in->Bands; 
 
 	VipsRect irect;
 	int y;
@@ -93,29 +154,31 @@ vips_hist_local_gen( VipsRegion *or,
 	irect.top = r->top;
 	irect.width = r->width + local->width; 
 	irect.height = r->height + local->height; 
-	if( vips_region_prepare( ir, &irect ) )
+	if( vips_region_prepare( seq->ir, &irect ) )
 		return( -1 );
 
-	lsk = VIPS_REGION_LSKIP( ir );
-	centre = lsk * (local->height / 2) + local->width / 2;
+	lsk = VIPS_REGION_LSKIP( seq->ir );
+	centre = lsk * (local->height / 2) + bands * local->width / 2;
 
 	for( y = 0; y < r->height; y++ ) {
 		/* Get input and output pointers for this line.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, r->top + y );
+		VipsPel *p = VIPS_REGION_ADDR( seq->ir, r->left, r->top + y );
 		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		VipsPel *p1;
-		int hist[256];
-		int x, i, j;
+		int x, i, j, b;
 
 		/* Find histogram for start of this line.
 		 */
-		memset( hist, 0, 256 * sizeof( int ) );
+		for( b = 0; b < bands; b++ )
+			memset( seq->hist[b], 0, 256 * sizeof( unsigned int ) );
 		p1 = p;
 		for( j = 0; j < local->height; j++ ) {
-			for( i = 0; i < local->width; i++ )
-				hist[p1[i]] += 1;
+			i = 0; 
+			for( x = 0; x < local->width; x++ )
+				for( b = 0; b < bands; b++ )
+					seq->hist[b][p1[i++]] += 1;
 			
 			p1 += lsk;
 		}
@@ -123,30 +186,34 @@ vips_hist_local_gen( VipsRegion *or,
 		/* Loop for output pels.
 		 */
 		for( x = 0; x < r->width; x++ ) {
-			/* Sum histogram up to current pel.
-			 */
-			int target = p[centre];
-			int sum;
+			for( b = 0; b < bands; b++ ) {
+				/* Sum histogram up to current pel.
+				 */
+				unsigned int *hist = seq->hist[b]; 
+				int target = p[centre];
+				int sum;
 
-			sum = 0;
-			for( i = 0; i < target; i++ )
-				sum += hist[i];
+				sum = 0;
+				for( i = 0; i < target; i++ )
+					sum += hist[i];
 
-			q[x] = 256 * sum / (local->width * local->height);
+				*q++ = 256 * sum / 
+					(local->width * local->height);
 
-			/* Adapt histogram --- remove the pels from the left 
-			 * hand column, add in pels for a new right-hand 
-			 * column.
-			 */
-			p1 = p;
-			for( j = 0; j < local->height; j++ ) {
-				hist[p1[0]] -= 1;
-				hist[p1[local->width]] += 1;
+				/* Adapt histogram --- remove the pels from 
+				 * the left hand column, add in pels for a 
+				 * new right-hand column.
+				 */
+				p1 = p;
+				for( j = 0; j < local->height; j++ ) {
+					hist[p1[0]] -= 1;
+					hist[p1[bands * local->width]] += 1;
 
-				p1 += lsk;
+					p1 += lsk;
+				}
+
+				p += 1;
 			}
-
-			p += 1;
 		}
 	}
 
@@ -167,8 +234,7 @@ vips_hist_local_build( VipsObject *object )
 
 	in = local->in; 
 
-	if( vips_check_mono( class->nickname, in ) ||
-		vips_check_uncoded( class->nickname, in ) ||
+	if( vips_check_uncoded( class->nickname, in ) ||
 		vips_check_format( class->nickname, in, VIPS_FORMAT_UCHAR ) )
 		return( -1 );
 
@@ -207,7 +273,9 @@ vips_hist_local_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL );
 
 	if( vips_image_generate( local->out, 
-		vips_start_one, vips_hist_local_gen, vips_stop_one, 
+		vips_hist_local_start, 
+		vips_hist_local_generate, 
+		vips_hist_local_stop, 
 		in, local ) )
 		return( -1 );
 
@@ -271,8 +339,7 @@ vips_hist_local_init( VipsHistLocal *local )
  * @...: %NULL-terminated list of optional named arguments
  *
  * Performs local histogram equalisation on @in using a
- * window of size @xwin by @ywin centered on the input pixel. Works only on 
- * monochrome images.
+ * window of size @xwin by @ywin centered on the input pixel. 
  *
  * The output image is the same size as the input image. The edge pixels are
  * created by copy edge pixels of the input image outwards.
