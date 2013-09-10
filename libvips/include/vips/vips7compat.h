@@ -867,9 +867,10 @@ int im_lhisteq( VipsImage *in, VipsImage *out, int xwin, int ywin );
 int im_stdif( VipsImage *in, VipsImage *out,
 	double a, double m0, double b, double s0, int xwin, int ywin );
 
-/* Not really correct, but who uses this.
+/* Not really correct, but who uses these.
  */
 #define im_lhisteq_raw im_lhisteq
+#define im_stdif_raw im_stdif
 
 /* ruby-vips uses this
  */
