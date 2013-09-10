@@ -864,6 +864,8 @@ int im_histplot( VipsImage *in, VipsImage *out );
 int im_hsp( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_histspec( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_lhisteq( VipsImage *in, VipsImage *out, int xwin, int ywin );
+int im_stdif( VipsImage *in, VipsImage *out,
+	double a, double m0, double b, double s0, int xwin, int ywin );
 
 /* Not really correct, but who uses this.
  */

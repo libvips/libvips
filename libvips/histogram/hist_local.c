@@ -243,11 +243,6 @@ vips_hist_local_build( VipsObject *object )
 		vips_error( class->nickname, "%s", _( "window too large" ) );
 		return( -1 );
 	}
-	if( local->width <= 0 || 
-		local->height <= 0 ) {
-		vips_error( class->nickname, "%s", _( "window too small" ) );
-		return( -1 );
-	}
 
 	/* Expand the input. 
 	 */

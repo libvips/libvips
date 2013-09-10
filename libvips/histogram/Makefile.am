@@ -12,11 +12,11 @@ libhistogram_la_SOURCES = \
 	hist_plot.c \
 	hist_match.c \
 	hist_local.c \
+	stdif.c \
 	\
 	hist_dispatch.c \
 	im_mpercent.c \
 	im_project.c \
-	im_stdif.c \
 	tone.c
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
