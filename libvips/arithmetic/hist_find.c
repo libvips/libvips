@@ -419,6 +419,7 @@ vips_hist_find_init( VipsHistFind *hist_find )
  * vips_hist_find:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

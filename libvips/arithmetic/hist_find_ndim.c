@@ -318,6 +318,7 @@ vips_hist_find_ndim_init( VipsHistFindNDim *ndim )
  * vips_hist_find_ndim:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

@@ -56,8 +56,6 @@ int vips_hist_local( VipsImage *in, VipsImage **out,
 int vips_stdif( VipsImage *in, VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 
-int im_project( VipsImage *in, VipsImage *hout, VipsImage *vout );
-
 int im_ismonotonic( VipsImage *lut, int *out );
 
 int im_mpercent( VipsImage *in, double percent, int *out );

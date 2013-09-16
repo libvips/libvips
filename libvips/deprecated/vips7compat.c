@@ -3523,6 +3523,29 @@ im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out )
 }
 
 int 
+im_project( IMAGE *in, IMAGE *hout, IMAGE *vout )
+{
+	VipsImage *x, *y;
+
+	if( vips_project( in, &x, &y, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, hout ) ) {
+		g_object_unref( x );
+		g_object_unref( y );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	if( im_copy( y, vout ) ) {
+		g_object_unref( y );
+		return( -1 );
+	}
+	g_object_unref( y );
+
+	return( 0 );
+}
+int 
 im_hsp( IMAGE *in, IMAGE *ref, IMAGE *out )
 {
 	IMAGE *t[3];

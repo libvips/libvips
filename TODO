@@ -1,3 +1,19 @@
+- try:
+
+	$ vips extract_band 50310.svs x.tif[pyramid,tile,compression=jpeg,tile-width=256,tile-height=256] 0 --n 3
+	** VIPS:ERROR:buffer.c:216:vips_buffer_undone: assertion failed: (cache->thread == g_thread_self())
+	Aborted (core dumped)
+
+  not showing in 7.34, perhaps because asserts are off?
+
+- support planar config in tiff reader
+
+- support GA (greyscale with alpha) in tiff reader
+
+	$ vips extract_band shark.jpg x.tif 0 -n 2
+	$ header x.tif
+	header: tiff2vips: required field 277 = 2, not 1
+
 - is vips_hist_local() correct? it seems to leave white dots everywhere
 
 - use VipsInterpolate to generate intermediate values in buildlut etc.

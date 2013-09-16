@@ -400,6 +400,7 @@ vips_hist_find_indexed_init( VipsHistFindIndexed *hist_find )
  * @in: input image
  * @index: input index image 
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Make a histogram of @in, but use image @index to pick the bins. In other
  * words, element zero in @out contains the sum of all the pixels in @in

@@ -15,7 +15,6 @@ libhistogram_la_SOURCES = \
 	stdif.c \
 	\
 	im_mpercent.c \
-	im_project.c \
 	tone.c
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

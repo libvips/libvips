@@ -18,6 +18,7 @@ libarithmetic_la_SOURCES = \
 	hist_find.c \
 	hist_find_ndim.c \
 	hist_find_indexed.c \
+	project.c \
 	subtract.c \
 	math.c \
 	arithmetic.c \
