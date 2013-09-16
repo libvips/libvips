@@ -135,6 +135,8 @@
  * 	- clip rows_per_strip down to image height to avoid overflows for huge
  * 	  values (thanks Nicolas)
  * 	- better error msg for not PLANARCONFIG_CONTIG images
+ * 16/9/13
+ * 	- support alpha for 8, 16 and 32-bit greyscale images, thanks Robert
  */
 
 /*
@@ -224,6 +226,10 @@ typedef struct {
 	tsize_t scanline_size;
 	tsize_t strip_size;
 	int number_of_strips;
+
+	/* EOR greyscale images with this on read.
+	 */
+	int mask; 
 } ReadTiff;
 
 /* Handle TIFF errors here. Shared with vips2tiff.c. These can be called from
@@ -464,17 +470,26 @@ parse_onebit( ReadTiff *rtiff, int pm, VipsImage *out )
 /* Per-scanline process function for 8-bit greyscale images.
  */
 static void
-greyscale8_line( VipsPel *q, VipsPel *p, int n, void *flg )
+greyscale8_line( VipsPel *q, VipsPel *p, int n, void *client )
 {
-	/* Extract swap mask.
-	 */
-	VipsPel mask = *((VipsPel *) flg);
+	ReadTiff *rtiff = (ReadTiff *) client; 
+	int bands = rtiff->out->Bands; 
+
 	int x;
 
 	/* Read bytes, swapping sense if necessary.
 	 */
-	for( x = 0; x < n; x++ ) 
-		q[x] = p[x] ^ mask;
+	for( x = 0; x < n; x++ ) {
+		q[0] = p[0] ^ rtiff->mask;
+
+		/* Process alpha, if any. Don't swap this.
+		 */
+		if( bands == 2 )
+			q[1] = p[1];
+
+		q += bands;
+		p += bands; 
+	}
 }
 
 /* Read a 8-bit grey-scale TIFF image. 
@@ -482,25 +497,31 @@ greyscale8_line( VipsPel *q, VipsPel *p, int n, void *flg )
 static int
 parse_greyscale8( ReadTiff *rtiff, int pm, VipsImage *out )
 {
-	VipsPel *mask;
+	int bands; 
 
-	if( !tfequals( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 1 ) ||
-		!tfequals( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 8 ) )
+	/* Can have an extra alpha band. 
+	 */
+	if( !tfequals( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 8 ) ||
+		!tfget16( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, &bands ) )
 		return( -1 );
+	if( bands != 1 && 
+		bands != 2 ) {
+		vips_error( "tiff2vips", 
+			"%s", _( "1 or 2 bands greyscale TIFF only" ) );
+		return( -1 );
+	}
 
 	/* Eor each pel with this later.
 	 */
-	if( !(mask = VIPS_ARRAY( out, 1, VipsPel )) )
-		return( -1 );
-	*mask = (pm == PHOTOMETRIC_MINISBLACK) ? 0 : 255;
+	rtiff->mask = (pm == PHOTOMETRIC_MINISBLACK) ? 0 : -1;
 
-	out->Bands = 1; 
+	out->Bands = bands; 
 	out->BandFmt = VIPS_FORMAT_UCHAR; 
 	out->Coding = VIPS_CODING_NONE; 
 	out->Type = VIPS_INTERPRETATION_B_W; 
 
 	rtiff->sfn = greyscale8_line;
-	rtiff->client = mask;
+	rtiff->client = rtiff;
 
 	return( 0 );
 }
@@ -508,19 +529,30 @@ parse_greyscale8( ReadTiff *rtiff, int pm, VipsImage *out )
 /* Per-scanline process function for 16-bit greyscale images.
  */
 static void
-greyscale16_line( VipsPel *q, VipsPel *p, int n, void *flg )
+greyscale16_line( VipsPel *q, VipsPel *p, int n, void *client )
 {
-	/* Extract swap mask.
-	 */
-	unsigned short mask = *((unsigned short *) flg);
-	unsigned short *p1 = (unsigned short *) p;
-	unsigned short *q1 = (unsigned short *) q;
+	ReadTiff *rtiff = (ReadTiff *) client; 
+	int bands = rtiff->out->Bands; 
+
+	unsigned short *p1;
+	unsigned short *q1;
 	int x;
 
 	/* Read bytes, swapping sense if necessary.
 	 */
-	for( x = 0; x < n; x++ ) 
-		q1[x] = p1[x] ^ mask;
+	p1 = (unsigned short *) p;
+	q1 = (unsigned short *) q;
+	for( x = 0; x < n; x++ ) {
+		q1[0] = p1[0] ^ rtiff->mask;
+
+		/* Process alpha, if any. Don't swap this.
+		 */
+		if( bands == 2 )
+			q1[1] = p1[1];
+
+		q1 += bands;
+		p1 += bands; 
+	}
 }
 
 /* Read a 16-bit grey-scale TIFF image. 
@@ -528,25 +560,29 @@ greyscale16_line( VipsPel *q, VipsPel *p, int n, void *flg )
 static int
 parse_greyscale16( ReadTiff *rtiff, int pm, VipsImage *out )
 {
-	unsigned short *mask;
+	int bands; 
 
-	if( !tfequals( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 1 ) ||
-		!tfequals( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 16 ) )
-		return( -1 );
-
-	/* Eor each pel with this later.
+	/* Can have an extra alpha band. 
 	 */
-	if( !(mask = VIPS_ARRAY( out, 1, unsigned short )) )
+	if( !tfequals( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 16 ) ||
+		!tfget16( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, &bands ) )
 		return( -1 );
-	mask[0] = (pm == PHOTOMETRIC_MINISBLACK) ? 0 : 65535;
+	if( bands != 1 && 
+		bands != 2 ) {
+		vips_error( "tiff2vips", 
+			"%s", _( "1 or 2 bands greyscale TIFF only" ) );
+		return( -1 );
+	}
 
-	out->Bands = 1; 
+	rtiff->mask = (pm == PHOTOMETRIC_MINISBLACK) ? 0 : -1;
+
+	out->Bands = bands; 
 	out->BandFmt = VIPS_FORMAT_USHORT; 
 	out->Coding = VIPS_CODING_NONE; 
 	out->Type = VIPS_INTERPRETATION_GREY16; 
 
 	rtiff->sfn = greyscale16_line;
-	rtiff->client = mask;
+	rtiff->client = rtiff;
 
 	return( 0 );
 }
@@ -568,11 +604,21 @@ memcpy_line( VipsPel *q, VipsPel *p, int n, void *client )
 static int
 parse_greyscale32f( ReadTiff *rtiff, int pm, VipsImage *out )
 {
-	if( !tfequals( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 1 ) ||
-		!tfequals( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 32 ) )
-		return( -1 );
+	int bands; 
 
-	out->Bands = 1; 
+	/* Can have an extra alpha band. 
+	 */
+	if( !tfequals( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 32 ) ||
+		!tfget16( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, &bands ) )
+		return( -1 );
+	if( bands != 1 && 
+		bands != 2 ) {
+		vips_error( "tiff2vips", 
+			"%s", _( "1 or 2 bands greyscale TIFF only" ) );
+		return( -1 );
+	}
+
+	out->Bands = bands; 
 	out->BandFmt = VIPS_FORMAT_FLOAT;
 	out->Coding = VIPS_CODING_NONE; 
 	out->Type = VIPS_INTERPRETATION_B_W; 

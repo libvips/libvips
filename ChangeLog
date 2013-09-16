@@ -13,6 +13,7 @@
 - vipsthumbnail uses embedded jpg thumbnails if it can 
 - rename vips_diag() as vips_info(), add --vips-info flag
 - deprecate im_hsp()
+- support alpha for 8, 16 and 32-bit greyscale tiff images, thanks Robert
 
 3/7/13 started 7.34.2
 - lower priority for Matlab load to reduce segvs from Mat_Open(), thanks

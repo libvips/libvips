@@ -8,18 +8,7 @@
 
 - support planar config in tiff reader
 
-- support GA (greyscale with alpha) in tiff reader
-
-	$ vips extract_band shark.jpg x.tif 0 -n 2
-	$ header x.tif
-	header: tiff2vips: required field 277 = 2, not 1
-
 - is vips_hist_local() correct? it seems to leave white dots everywhere
-
-- use VipsInterpolate to generate intermediate values in buildlut etc.
-
-  need to pull out columns of input matrix into separate image and expand each
-  one
 
 - use g_log() instead of vips_info()
 
