@@ -137,6 +137,8 @@
  * 	- better error msg for not PLANARCONFIG_CONTIG images
  * 16/9/13
  * 	- support alpha for 8, 16 and 32-bit greyscale images, thanks Robert
+ * 17/9/13
+ * 	- support separate planes for strip read
  */
 
 /*
@@ -226,10 +228,25 @@ typedef struct {
 	tsize_t scanline_size;
 	tsize_t strip_size;
 	int number_of_strips;
+	int samples_per_pixel;
+	int bits_per_sample;
 
 	/* EOR greyscale images with this on read.
 	 */
 	int mask; 
+
+	/* Turn on separate plane reading.
+	 */
+	gboolean separate; 
+
+	/* Hold a single strip or tile, possibly just an image plane.
+	 */
+	tdata_t plane_buf;
+
+	/* Hold a plane-assembled strip or tile ... a set of samples_per_pixel 
+	 * strips or tiles interleaved. 
+	 */
+	tdata_t contig_buf;
 } ReadTiff;
 
 /* Handle TIFF errors here. Shared with vips2tiff.c. These can be called from
@@ -953,17 +970,12 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	uint32 width, height;
 	void *data;
 
-	/* Ban separate planes, too annoying.
-	 */
 	if( tfexists( rtiff->tiff, TIFFTAG_PLANARCONFIG ) ) {
 		int v; 
 
 		tfget16( rtiff->tiff, TIFFTAG_PLANARCONFIG, &v );
-		if( v != PLANARCONFIG_CONTIG ) {
-			vips_error( "tiff2vips",
-				"%s", _( "not a PLANARCONFIG_CONTIG image" ) );
-			return( -1 );
-		}
+		if( v == PLANARCONFIG_SEPARATE )
+			rtiff->separate = TRUE; 
 	}
 
 	/* Always need dimensions.
@@ -1350,15 +1362,75 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 }
 
 static int
+tiff2vips_strip_read( TIFF *tiff, int strip, tdata_t buf )
+{
+	tsize_t length;
+
+	length = TIFFReadEncodedStrip( tiff, strip, buf, (tsize_t) -1 );
+	if( length == -1 ) {
+		vips_error( "tiff2vips", "%s", _( "read error" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/* Read a strip. If the image is in separate planes, read each plane and
+ * interleave to the output.
+ */
+static int
+tiff2vips_strip_read_interleaved( ReadTiff *rtiff, int y, tdata_t buf )
+{
+	tstrip_t strip = y / rtiff->rows_per_strip;
+
+	if( rtiff->separate ) {
+		int strips_per_plane = 1 + (rtiff->out->Ysize - 1) / 
+			rtiff->rows_per_strip;
+		int strip_height = VIPS_MIN( rtiff->rows_per_strip,
+			rtiff->out->Ysize - y ); 
+		int pels_per_strip = rtiff->out->Xsize * strip_height;
+		int bytes_per_sample = rtiff->bits_per_sample >> 3; 
+
+		int i, j, k;
+
+		for( i = 0; i < rtiff->samples_per_pixel; i++ ) { 
+			VipsPel *p;
+			VipsPel *q;
+
+			if( tiff2vips_strip_read( rtiff->tiff,
+				strips_per_plane * i + strip, 
+				rtiff->plane_buf ) )
+				return( -1 );
+
+			p = (VipsPel *) rtiff->plane_buf;
+			q = (VipsPel *) buf;
+			for( j = 0; j < pels_per_strip; j++ ) {
+				for( k = 0; k < bytes_per_sample; k++ ) 
+					q[k] = p[k];
+
+				p += bytes_per_sample;
+				q += bytes_per_sample * 
+					rtiff->samples_per_pixel;
+			}
+		}
+	}
+	else { 
+		if( tiff2vips_strip_read( rtiff->tiff, 
+			y / rtiff->rows_per_strip, buf ) )
+			return( -1 );
+	}
+
+	return( 0 ); 
+}
+
+static int
 tiff2vips_stripwise_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	ReadTiff *rtiff = (ReadTiff *) a;
-	tdata_t tbuf = (tdata_t) b; 
         VipsRect *r = &or->valid;
 
 	int y;
-	tsize_t length;
 
 #ifdef DEBUG
 	printf( "tiff2vips: read_stripwise_generate: top = %d, height = %d\n",
@@ -1384,7 +1456,6 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 
 	for( y = 0; y < r->height; y += rtiff->rows_per_strip ) {
 		tdata_t dst;
-		tstrip_t strip;
 
 		/* Read directly into the image if we can. Otherwise, we must 
 		 * read to a temp buffer then unpack into the image.
@@ -1392,26 +1463,25 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 		if( rtiff->memcpy ) 
 			dst = VIPS_REGION_ADDR( or, 0, r->top + y );
 		else
-			dst = tbuf;
+			dst = rtiff->contig_buf;
 
-		strip = (r->top + y) / rtiff->rows_per_strip;
-
-		length = TIFFReadEncodedStrip( rtiff->tiff, 
-			strip, dst, (tsize_t) -1 );
-		if( length == -1 ) {
-			vips_error( "tiff2vips", "%s", _( "read error" ) );
-			return( -1 );
-		}
+		if( tiff2vips_strip_read_interleaved( rtiff, r->top + y, dst ) )
+			return( -1 ); 
 
 		/* If necessary, unpack to destination.
 		 */
 		if( !rtiff->memcpy ) {
 			int height = VIPS_MIN( VIPS_MIN( rtiff->rows_per_strip,
 				or->im->Ysize - (r->top + y) ), r->height );
+			int bytes_per_line = (rtiff->bits_per_sample >> 3) * 
+				rtiff->samples_per_pixel *
+				or->im->Xsize; 
+
 			int z;
 
 			for( z = 0; z < height; z++ ) { 
-				VipsPel *p = tbuf + z * rtiff->scanline_size;
+				VipsPel *p = rtiff->contig_buf + 
+					z * bytes_per_line;
 				VipsPel *q = VIPS_REGION_ADDR( or, 
 					0, r->top + y + z );
 
@@ -1436,8 +1506,6 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
 
-	tdata_t tbuf;
-
 #ifdef DEBUG
 	printf( "tiff2vips: read_stripwise\n" );
 #endif /*DEBUG*/
@@ -1455,6 +1523,10 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	rtiff->scanline_size = TIFFScanlineSize( rtiff->tiff );
 	rtiff->strip_size = TIFFStripSize( rtiff->tiff );
 	rtiff->number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
+	(void) tfget16( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 
+		&rtiff->samples_per_pixel );
+	(void) tfget16( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 
+		&rtiff->bits_per_sample );
 
 	/* rows_per_strip can be 2**32-1, meaning the whole image. Clip this
 	 * down to ysize to avoid confusing vips. 
@@ -1464,24 +1536,52 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 #ifdef DEBUG
 	printf( "read_stripwise: rows_per_strip = %u\n", 
 		rtiff->rows_per_strip );
-	printf( "read_stripwise: scanline_size = %d\n", 
+	printf( "read_stripwise: scanline_size = %zd\n", 
 		rtiff->scanline_size );
-	printf( "read_stripwise: strip_size = %d\n", 
+	printf( "read_stripwise: strip_size = %zd\n", 
 		rtiff->strip_size );
 	printf( "read_stripwise: number_of_strips = %d\n", 
 		rtiff->number_of_strips );
+	printf( "read_stripwise: samples_per_pixel = %d\n", 
+		rtiff->samples_per_pixel );
+	printf( "read_stripwise: bits_per_sample = %d\n", 
+		rtiff->bits_per_sample );
 #endif /*DEBUG*/
 
-	/* Read each strip to this. We only need one for stripwise_generate)(_
-	 * since it's single-threaded by tilecache().
+	/* If we have separate image planes, we must read to a plane buffer,
+	 * then interleave to the output.
+	 *
+	 * We don't need a separate buffer per thread since the _generate()
+	 * function runs inside the cache lock. 
 	 */
-	if( !(tbuf = vips_malloc( VIPS_OBJECT( out ), rtiff->strip_size )) ) 
-		return( -1 );
+	if( rtiff->separate ) {
+		if( !(rtiff->plane_buf = 
+			vips_malloc( VIPS_OBJECT( out ), rtiff->strip_size )) ) 
+			return( -1 );
+	}
+
+	/* If we need to manipulate pixels, we must read to an interleaved
+	 * plane buffer before repacking to the output.
+	 *
+	 * We don't need a separate buffer per thread since the _generate()
+	 * function runs inside the cache lock. 
+	 */
+	if( rtiff->memcpy ) { 
+		tsize_t size;
+
+		size = rtiff->strip_size;
+		if( rtiff->separate )
+			size *= rtiff->samples_per_pixel;
+
+		if( !(rtiff->contig_buf = 
+			vips_malloc( VIPS_OBJECT( out ), size )) ) 
+			return( -1 );
+	}
 
 	if( 
 		vips_image_generate( t[0], 
 			NULL, tiff2vips_stripwise_generate, NULL, 
-			rtiff, tbuf ) ||
+			rtiff, NULL ) ||
 		vips_sequential( t[0], &t[1], 
 			"tile_height", rtiff->rows_per_strip,
 			NULL ) ||
@@ -1504,6 +1604,7 @@ readtiff_new( const char *filename, VipsImage *out, int page )
 
 	if( !(rtiff = VIPS_NEW( out, ReadTiff )) )
 		return( NULL );
+
 	rtiff->filename = vips_strdup( VIPS_OBJECT( out ), filename );
 	rtiff->out = out;
 	rtiff->page = page;
@@ -1513,6 +1614,11 @@ readtiff_new( const char *filename, VipsImage *out, int page )
 	rtiff->memcpy = FALSE;
 	rtiff->twidth = 0;
 	rtiff->theight = 0;
+	rtiff->mask = 0;
+	rtiff->separate = FALSE;
+	rtiff->plane_buf = NULL;
+	rtiff->contig_buf = NULL;
+
 	g_signal_connect( out, "close", 
 		G_CALLBACK( readtiff_destroy ), rtiff ); 
 

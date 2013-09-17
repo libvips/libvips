@@ -17,6 +17,7 @@
 - support alpha for 8, 16 and 32-bit greyscale tiff images, thanks Robert
 - added vips_webpload(), vips_webpload_buffer(), vips_webpsave(),
   vips_webpsave_buffer(), vips_webpsave_mime()
+- tiff reader allows separate planes for strip read
 
 3/7/13 started 7.34.2
 - lower priority for Matlab load to reduce segvs from Mat_Open(), thanks
