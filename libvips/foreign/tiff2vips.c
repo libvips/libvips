@@ -1403,7 +1403,7 @@ tiff2vips_strip_read_interleaved( ReadTiff *rtiff, int y, tdata_t buf )
 				return( -1 );
 
 			p = (VipsPel *) rtiff->plane_buf;
-			q = (VipsPel *) buf;
+			q = i * bytes_per_sample + (VipsPel *) buf;
 			for( j = 0; j < pels_per_strip; j++ ) {
 				for( k = 0; k < bytes_per_sample; k++ ) 
 					q[k] = p[k];
