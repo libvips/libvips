@@ -115,7 +115,6 @@ static int
 vips_invertlut_build_init( VipsInvertlut *lut )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( lut );
-	VipsCreate *create = VIPS_CREATE( lut );
 
 	int x, y;
 
@@ -132,7 +131,7 @@ vips_invertlut_build_init( VipsInvertlut *lut )
 	}
 
 	if( !(lut->buf = 
-		vips_malloc( NULL, VIPS_IMAGE_SIZEOF_LINE( create->out ) )) )
+		VIPS_ARRAY( NULL, lut->size * (lut->mat->Xsize - 1), double )) )
 		return( -1 );
 
 	if( !(lut->data = VIPS_ARRAY( NULL, lut->mat->Ysize, double * )) )

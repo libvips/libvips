@@ -652,8 +652,6 @@ vips__matrix_body( char *whitemap, VipsImage *out, FILE *fp )
 			}
 			*VIPS_MATRIX( out, x, y ) = d; 
 
-			printf( "%d, %d = %g\n", x, y, d ); 
-
 			/* Deliberately don't check for line too long.
 			 */
 		}
