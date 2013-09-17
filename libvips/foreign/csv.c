@@ -536,7 +536,7 @@ vips__matrix_header( char *whitemap, FILE *fp,
 		return( -1 );
 	}
 	*width = header[0];
-	*height = header[0];
+	*height = header[1];
 	if( *width <= 0 || 
 		*width > 100000 ||
 		*height <= 0 || 
@@ -651,6 +651,8 @@ vips__matrix_body( char *whitemap, VipsImage *out, FILE *fp )
 				return( -1 );
 			}
 			*VIPS_MATRIX( out, x, y ) = d; 
+
+			printf( "%d, %d = %g\n", x, y, d ); 
 
 			/* Deliberately don't check for line too long.
 			 */
