@@ -1609,6 +1609,10 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_raw_fd_get_type( void ); 
 	extern GType vips_foreign_load_magick_get_type( void ); 
 	extern GType vips_foreign_save_dz_get_type( void ); 
+	extern GType vips_foreign_load_webp_file_get_type( void ); 
+	extern GType vips_foreign_load_webp_buffer_get_type( void ); 
+	extern GType vips_foreign_save_webp_file_get_type( void ); 
+	extern GType vips_foreign_save_webp_buffer_get_type( void ); 
 
 	vips_foreign_load_rad_get_type(); 
 	vips_foreign_save_rad_get_type(); 
@@ -1644,6 +1648,13 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_jpeg_buffer_get_type(); 
 	vips_foreign_save_jpeg_mime_get_type(); 
 #endif /*HAVE_JPEG*/
+
+#ifdef HAVE_LIBWEBP
+	vips_foreign_load_webp_file_get_type(); 
+	vips_foreign_load_webp_buffer_get_type(); 
+	vips_foreign_save_webp_file_get_type(); 
+	vips_foreign_save_webp_buffer_get_type(); 
+#endif /*HAVE_LIBWEBP*/
 
 #ifdef HAVE_TIFF
 	vips_foreign_load_tiff_get_type(); 
@@ -1946,29 +1957,51 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
 }
 
 /**
- * vips_jpegsave_mime:
+ * vips_jpegsave:
  * @in: image to save 
+ * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
- * @Q: JPEG quality factor
+ * @Q: quality factor
  * @profile: attach this ICC profile
  *
- * As vips_jpegsave(), but save as a mime jpeg on stdout.
+ * Write a VIPS image to a file as JPEG.
  *
- * See also: vips_jpegsave(), vips_image_write_to_file().
+ * Use @Q to set the JPEG compression factor. Default 75.
+ *
+ * Use @profile to give the filename of a profile to be embedded in the JPEG.
+ * This does not affect the pixels which are written, just the way 
+ * they are tagged. You can use the special string "none" to mean 
+ * "don't attach a profile".
+ *
+ * If no profile is specified and the VIPS header 
+ * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
+ * profile from the VIPS header will be attached.
+ *
+ * The image is automatically converted to RGB, Monochrome or CMYK before 
+ * saving. 
+ *
+ * EXIF data is constructed from @VIPS_META_EXIF_NAME ("exif-data"), then
+ * modified with any other related tags on the image before being written to
+ * the file. 
+ *
+ * IPCT as @VIPS_META_IPCT_NAME ("ipct-data") and XMP as VIPS_META_XMP_NAME
+ * ("xmp-data") are coded and attached. 
+ *
+ * See also: vips_jpegsave_buffer(), vips_image_write_file().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_jpegsave_mime( VipsImage *in, ... )
+vips_jpegsave( VipsImage *in, const char *filename, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, in );
-	result = vips_call_split( "jpegsave_mime", ap, in );
+	va_start( ap, filename );
+	result = vips_call_split( "jpegsave", ap, in, filename );
 	va_end( ap );
 
 	return( result );
@@ -2025,7 +2058,95 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 }
 
 /**
- * vips_jpegsave:
+ * vips_jpegsave_mime:
+ * @in: image to save 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @Q: JPEG quality factor
+ * @profile: attach this ICC profile
+ *
+ * As vips_jpegsave(), but save as a mime jpeg on stdout.
+ *
+ * See also: vips_jpegsave(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegsave_mime( VipsImage *in, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, in );
+	result = vips_call_split( "jpegsave_mime", ap, in );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_webpload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ *
+ * Read a webp file into a VIPS image. 
+ *
+ * See also: 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_webpload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "webpload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_webpload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * See also: 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	area = vips_area_new_blob( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "webpload_buffer", ap, area, out );
+	va_end( ap );
+
+	vips_area_unref( area );
+
+	return( result );
+}
+
+/**
+ * vips_webpsave:
  * @in: image to save 
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
@@ -2033,43 +2154,88 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * Optional arguments:
  *
  * @Q: quality factor
- * @profile: attach this ICC profile
  *
- * Write a VIPS image to a file as JPEG.
- *
- * Use @Q to set the JPEG compression factor. Default 75.
- *
- * Use @profile to give the filename of a profile to be embedded in the JPEG.
- * This does not affect the pixels which are written, just the way 
- * they are tagged. You can use the special string "none" to mean 
- * "don't attach a profile".
- *
- * If no profile is specified and the VIPS header 
- * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
- * profile from the VIPS header will be attached.
- *
- * The image is automatically converted to RGB, Monochrome or CMYK before 
- * saving. 
- *
- * EXIF data is constructed from @VIPS_META_EXIF_NAME ("exif-data"), then
- * modified with any other related tags on the image before being written to
- * the file. 
- *
- * IPCT as @VIPS_META_IPCT_NAME ("ipct-data") and XMP as VIPS_META_XMP_NAME
- * ("xmp-data") are coded and attached. 
- *
- * See also: vips_jpegsave_buffer(), vips_image_write_file().
+ * See also: 
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_jpegsave( VipsImage *in, const char *filename, ... )
+vips_webpsave( VipsImage *in, const char *filename, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, filename );
-	result = vips_call_split( "jpegsave", ap, in, filename );
+	result = vips_call_split( "webpsave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_webpsave_buffer:
+ * @in: image to save 
+ * @buf: return output buffer here
+ * @len: return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @Q: JPEG quality factor
+ *
+ * See also: 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	area = NULL; 
+
+	va_start( ap, len );
+	result = vips_call_split( "webpsave_buffer", ap, in, &area );
+	va_end( ap );
+
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( buf ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
+
+	return( result );
+}
+
+/**
+ * vips_webpsave_mime:
+ * @in: image to save 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @Q: quality factor
+ *
+ * See also: 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_webpsave_mime( VipsImage *in, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, in );
+	result = vips_call_split( "webpsave_mime", ap, in );
 	va_end( ap );
 
 	return( result );
