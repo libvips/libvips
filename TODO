@@ -11,15 +11,8 @@
 
   does vips_malloc() used the tracked mem system?
 
-- ban separate planes in tiled mode
-
-- look up stuff for "safe" add / multiply, or perhaps clip tiff fields to a
-  sane range
-
 - use the webp advanced encoding api to set a write function for webp save to
   file
-
-- support planar config in tiff reader
 
 - is vips_hist_local() correct? it seems to leave white dots everywhere
 
