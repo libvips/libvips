@@ -6,6 +6,16 @@
 
   not showing in 7.34, perhaps because asserts are off?
 
+- with VIPS_ARRAY() etc., we could note the mem use on the object we alloc
+  local to, might make for interesting stats
+
+  does vips_malloc() used the tracked mem system?
+
+- ban separate planes in tiled mode
+
+- look up stuff for "safe" add / multiply, or perhaps clip tiff fields to a
+  sane range
+
 - use the webp advanced encoding api to set a write function for webp save to
   file
 
