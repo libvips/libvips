@@ -66,6 +66,8 @@ int vips_buildlut( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_invertlut( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_tonelut( VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int im_benchmarkn( VipsImage *in, VipsImage *out, int n );
 int im_benchmark2( VipsImage *in, double *out );

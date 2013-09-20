@@ -361,6 +361,7 @@ vips_stdif_init( VipsStdif *stdif )
  * @out: output image
  * @width: width of region
  * @height: height of region
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

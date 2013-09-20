@@ -134,6 +134,7 @@ vips_hist_equal_init( VipsHistEqual *equal )
  * vips_hist_equal:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

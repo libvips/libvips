@@ -66,8 +66,6 @@ vips_foreign_load_webp_get_flags( VipsForeignLoad *load )
 static int
 vips_foreign_load_webp_build( VipsObject *object )
 {
-	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) object;
-
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_webp_parent_class )->
 		build( object ) )
 		return( -1 );
@@ -127,7 +125,6 @@ vips_foreign_load_webp_file_is_a( const char *filename )
 static int
 vips_foreign_load_webp_file_header( VipsForeignLoad *load )
 {
-	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) load;
 
 	if( vips__webp_read_file_header( file->filename, load->out ) )
@@ -139,7 +136,6 @@ vips_foreign_load_webp_file_header( VipsForeignLoad *load )
 static int
 vips_foreign_load_webp_file_load( VipsForeignLoad *load )
 {
-	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) load;
 
 	if( vips__webp_read_file( file->filename, load->real ) )
@@ -202,7 +198,6 @@ G_DEFINE_TYPE( VipsForeignLoadWebpBuffer, vips_foreign_load_webp_buffer,
 static int
 vips_foreign_load_webp_buffer_header( VipsForeignLoad *load )
 {
-	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpBuffer *buffer = (VipsForeignLoadWebpBuffer *) load;
 
 	if( vips__webp_read_buffer_header( buffer->buf->data, 
@@ -215,7 +210,6 @@ vips_foreign_load_webp_buffer_header( VipsForeignLoad *load )
 static int
 vips_foreign_load_webp_buffer_load( VipsForeignLoad *load )
 {
-	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpBuffer *buffer = (VipsForeignLoadWebpBuffer *) load;
 
 	if( vips__webp_read_buffer( buffer->buf->data, buffer->buf->length, 

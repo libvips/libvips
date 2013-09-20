@@ -1,3 +1,5 @@
+- need to do im_profile() before we can finish hist_percent()
+
 - try:
 
 	$ vips extract_band 50310.svs x.tif[pyramid,tile,compression=jpeg,tile-width=256,tile-height=256] 0 --n 3

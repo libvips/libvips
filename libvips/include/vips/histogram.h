@@ -61,13 +61,6 @@ int im_ismonotonic( VipsImage *lut, int *out );
 int im_mpercent( VipsImage *in, double percent, int *out );
 int im_mpercent_hist( VipsImage *hist, double percent, int *out );
 
-int im_tone_build_range( VipsImage *out,
-	int in_max, int out_max,
-	double Lb, double Lw, double Ps, double Pm, double Ph,
-	double S, double M, double H );
-int im_tone_build( VipsImage *out,
-	double Lb, double Lw, double Ps, double Pm, double Ph,
-	double S, double M, double H );
 int im_tone_analyse( VipsImage *in, VipsImage *out,
 	double Ps, double Pm, double Ph, double S, double M, double H );
 int im_tone_map( VipsImage *in, VipsImage *out, VipsImage *lut );

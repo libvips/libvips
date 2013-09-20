@@ -2575,6 +2575,54 @@ im_invertlut( DOUBLEMASK *input, VipsImage *out, int size )
 	return( 0 );
 }
 
+int 
+im_tone_build_range( IMAGE *out, 
+	int in_max, int out_max,
+	double Lb, double Lw,
+	double Ps, double Pm, double Ph, 
+	double S, double M, double H )
+{
+	VipsImage *t;
+
+	if( vips_tonelut( &t, 
+		"in_max", in_max,
+		"out_max", out_max,
+		"Lb", Lb,
+		"Lw", Lw,
+		"Ps", Ps,
+		"Pm", Pm,
+		"Ph", Ph,
+		"S", S,
+		"M", M,
+		"H", H,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int 
+im_tone_build( IMAGE *out, 
+	double Lb, double Lw,
+	double Ps, double Pm, double Ph, 
+	double S, double M, double H )
+{
+	IMAGE *t1;
+
+	if( !(t1 = im_open_local( out, "im_tone_build", "p" )) ||
+		im_tone_build_range( t1, 32767, 32767,
+			Lb, Lw, Ps, Pm, Ph, S, M, H ) ||
+		im_clip2fmt( t1, out, IM_BANDFMT_SHORT ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 int
 im_rightshift_size( IMAGE *in, IMAGE *out, 
 	int xshift, int yshift, int band_fmt )

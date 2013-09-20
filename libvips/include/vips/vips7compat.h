@@ -739,6 +739,14 @@ int im_invertlut( DOUBLEMASK *input, VipsImage *output, int lut_size );
 int im_identity( VipsImage *lut, int bands );
 int im_identity_ushort( VipsImage *lut, int bands, int sz );
 
+int im_tone_build_range( VipsImage *out,
+	int in_max, int out_max,
+	double Lb, double Lw, double Ps, double Pm, double Ph,
+	double S, double M, double H );
+int im_tone_build( VipsImage *out,
+	double Lb, double Lw, double Ps, double Pm, double Ph,
+	double S, double M, double H );
+
 int im_system( VipsImage *im, const char *cmd, char **out );
 VipsImage *im_system_image( VipsImage *im, 
 	const char *in_format, const char *out_format, const char *cmd_format, 

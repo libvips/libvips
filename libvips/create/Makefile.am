@@ -5,6 +5,7 @@ libcreate_la_SOURCES = \
 	pcreate.h \
 	buildlut.c \
 	invertlut.c \
+	tonelut.c \
 	identity.c \
 	point.c \
 	point.h \
