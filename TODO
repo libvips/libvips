@@ -1,5 +1,7 @@
 - finish hist_ismonotonic()
 
+	needs im_conv()
+
 - need to do im_profile() before we can finish hist_percent()
 
 - try:

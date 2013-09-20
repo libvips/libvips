@@ -1637,18 +1637,22 @@ vips_image_new_from_memory( void *buffer,
 
 /**
  * vips_image_new_matrix:
- * @xsize: image width
- * @ysize: image height
+ * @width: image width
+ * @height: image height
  *
  * This convenience function makes an image which is a matrix: a one-band
  * VIPS_FORMAT_DOUBLE image held in memory.
  *
  * Use VIPS_IMAGE_ADDR(), or VIPS_MATRIX() to address pixels in the image.
+ *
+ * Use vips_image_set_double() to set "scale" and "offset", if required. 
+ *
+ * See also: vips_image_new_matrixv()
  * 
  * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_matrix( int xsize, int ysize )
+vips_image_new_matrix( int width, int height )
 {
 	VipsImage *image;
 
@@ -1658,8 +1662,8 @@ vips_image_new_matrix( int xsize, int ysize )
 	g_object_set( image,
 		"filename", "vips_image_new_matrix",
 		"mode", "t",
-		"width", xsize,
-		"height", ysize,
+		"width", width,
+		"height", height,
 		"bands", 1,
 		"format", VIPS_FORMAT_DOUBLE,
 		"interpretation", VIPS_INTERPRETATION_MATRIX,
@@ -1675,6 +1679,40 @@ vips_image_new_matrix( int xsize, int ysize )
 	}
 
 	return( image );
+}
+
+/**
+ * vips_image_new_matrixv:
+ * @width: image width
+ * @height: image height
+ * @...: matrix coefficients
+ *
+ * As vips_image_new_matrix(), but initialise the matrix from the argument
+ * list. After @height should be @width * @height double constants which are
+ * used to set the matrix elements. 
+ *
+ * See also: vips_image_new_matrix()
+ * 
+ * Returns: the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_matrixv( int width, int height, ... )
+{
+	va_list ap;
+	VipsImage *matrix;
+	int x, y;
+
+	vips_check_init();
+
+	matrix = vips_image_new_matrix( width, height ); 
+
+	va_start( ap, height );
+	for( y = 0; y < height; y++ )
+		for( x = 0; x < width; x++ )
+			*VIPS_MATRIX( matrix, x, y ) = va_arg( ap, double );
+	va_end( ap );
+
+	return( matrix ); 
 }
 
 /**

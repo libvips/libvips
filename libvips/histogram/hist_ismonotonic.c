@@ -63,11 +63,13 @@ typedef struct _VipsHistIsmonotonic {
 
 typedef VipsOperationClass VipsHistIsmonotonicClass;
 
-G_DEFINE_TYPE( VipsHistIsmonotonic, vips_hist_ismonotonic, VIPS_TYPE_OPERATION );
+G_DEFINE_TYPE( VipsHistIsmonotonic, vips_hist_ismonotonic, 
+	VIPS_TYPE_OPERATION );
 
 static int
 vips_hist_ismonotonic_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsHistIsmonotonic *ismonotonic = (VipsHistIsmonotonic *) object; 
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
@@ -75,17 +77,14 @@ vips_hist_ismonotonic_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( im_check_hist( "im_ismonotonic", lut ) ||
-		im_open_local_array( lut, t, 2, "im_ismonotonic", "p" ) )
+	if( vips_check_hist( class->nickname, ismonotonic->in ) )
 		return( -1 );
 
-	if( lut->Xsize == 1 ) 
-		mask = im_create_imaskv( "im_ismonotonic", 1, 2, -1, 1 );
+	if( ismonotonic->in->Xsize == 1 ) 
+		t[0] = vips_image_new_matrixv( 1, 2, -1, 1 );
 	else 
-		mask = im_create_imaskv( "im_ismonotonic", 2, 1, -1, 1 );
-	if( !(mask = im_local_imask( lut, mask )) )
-		return( -1 );
-	mask->offset = 128;
+		t[0] = vips_image_new_matrixv( 2, 1, -1, 1 );
+        vips_image_set_double( t[0], "offset", 128 );
 
 	/* We want >=128 everywhere, ie. no -ve transitions.
 	 */
@@ -133,13 +132,12 @@ vips_hist_ismonotonic_init( VipsHistIsmonotonic *ismonotonic )
 }
 
 /**
- * im_ismonotonic:
- * @lut: lookup-table to test
- * @out: set non-zero if @lut is monotonic 
+ * vips_ismonotonic:
+ * @in: lookup-table to test
+ * @out: set non-zero if @in is monotonic 
+ * @...: %NULL-terminated list of optional named arguments
  *
- * Test @lut for monotonicity. @out is set non-zero if @lut is monotonic.
- *
- * See also: im_tone_build_range().
+ * Test @in for monotonicity. @out is set non-zero if @in is monotonic.
  *
  * Returns: 0 on success, -1 on error
  */

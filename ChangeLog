@@ -17,6 +17,7 @@
 - added vips_webpload(), vips_webpload_buffer(), vips_webpsave(),
   vips_webpsave_buffer(), vips_webpsave_mime()
 - tiff reader allows separate planes for strip read
+- added vips_image_new_matrixv()
 
 3/7/13 started 7.34.2
 - lower priority for Matlab load to reduce segvs from Mat_Open(), thanks

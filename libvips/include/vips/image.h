@@ -519,7 +519,8 @@ VipsImage *vips_image_new_from_file_raw( const char *filename,
 	int xsize, int ysize, int bands, guint64 offset );
 VipsImage *vips_image_new_from_memory( void *buffer, 
 	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
-VipsImage *vips_image_new_matrix( int xsize, int ysize );
+VipsImage *vips_image_new_matrix( int width, int height );
+VipsImage *vips_image_new_matrixv( int width, int height, ... );
 void vips_image_set_delete_on_close( VipsImage *image, 
 	gboolean delete_on_close );
 VipsImage *vips_image_new_temp_file( const char *format );
