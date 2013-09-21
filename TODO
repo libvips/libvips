@@ -2,8 +2,6 @@
 
 	needs im_conv()
 
-- need to do im_profile() before we can finish hist_percent()
-
 - try:
 
 	$ vips extract_band 50310.svs x.tif[pyramid,tile,compression=jpeg,tile-width=256,tile-height=256] 0 --n 3
@@ -35,6 +33,11 @@
 	currently we have a huge linecache for "vips copy x.png x.v", in
 	effect what vips does for open-via-disc, and therefore see >100mb ram
 	use even in open-via-disc mode
+
+	add SEQUENTIAL_UNBUFFERED?
+
+	could we spot from the demand style? they do almost the same thing,
+	though one is static and one dynamic, I guess
 
 - support multiscan jpeg write? see
 

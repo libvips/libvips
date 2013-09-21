@@ -3626,6 +3626,25 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 	return( 0 ); 
 }
 
+int
+im_mpercent( IMAGE *in, double percent, int *out )
+{
+	if( vips_hist_percent( in, percent, out, NULL ) )
+		return( -1 ); 
+
+	return( 0 );
+}
+
+int
+im_mpercent_hist( IMAGE *in, double percent, int *out )
+{
+	/* Hard to do this in a wrapper.
+	 */
+	vips_error( "im_mpercent_hist", "%s", _( "no compat implemented" ) ); 
+
+	return( -1 ); 
+}
+
 int 
 im_hsp( IMAGE *in, IMAGE *ref, IMAGE *out )
 {

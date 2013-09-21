@@ -876,6 +876,8 @@ int im_histspec( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_lhisteq( VipsImage *in, VipsImage *out, int xwin, int ywin );
 int im_stdif( VipsImage *in, VipsImage *out,
 	double a, double m0, double b, double s0, int xwin, int ywin );
+int im_mpercent( VipsImage *in, double percent, int *out );
+int im_mpercent_hist( VipsImage *hist, double percent, int *out );
 
 /* Not really correct, but who uses these.
  */

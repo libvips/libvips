@@ -53,13 +53,12 @@ int vips_hist_match( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 int vips_hist_local( VipsImage *in, VipsImage **out, 
 	int width, int height, ... )
 	__attribute__((sentinel));
+int vips_hist_percent( VipsImage *in, double percent, int *threshold, ... )
+	__attribute__((sentinel));
 int vips_stdif( VipsImage *in, VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 
 int im_ismonotonic( VipsImage *lut, int *out );
-
-int im_mpercent( VipsImage *in, double percent, int *out );
-int im_mpercent_hist( VipsImage *hist, double percent, int *out );
 
 int im_tone_analyse( VipsImage *in, VipsImage *out,
 	double Ps, double Pm, double Ph, double S, double M, double H );

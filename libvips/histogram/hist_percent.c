@@ -14,6 +14,7 @@
  * 	- gtkdoc
  * 20/9/13
  * 	- wrap as a class
+ * 	- more accurate
  */
 
 /*
@@ -70,7 +71,7 @@ static int
 vips_hist_percent_build( VipsObject *object )
 {
 	VipsHistPercent *percent = (VipsHistPercent *) object; 
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 6 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
 
 	double threshold;
 
@@ -81,14 +82,13 @@ vips_hist_percent_build( VipsObject *object )
 	if( vips_hist_find( percent->in, &t[0], NULL ) ||
 		vips_hist_cum( t[0], &t[1], NULL ) ||
 		vips_hist_norm( t[1], &t[2], NULL ) ||
-		vips_less_const1( t[2], &t[3], 
-			percent->percent * t[2]->Xsize, NULL ) ||
-		vips_flip( t[3], &t[4], VIPS_DIRECTION_HORIZONTAL, NULL ) ||
-		im_profile( t[4], &t[5], 1 ) ||
-		vips_avg( t[5], &threshold ) ) 
+		vips_more_const1( t[2], &t[3], 
+			(percent->percent / 100.0) * t[2]->Xsize, NULL ) ||
+		vips_profile( t[3], &t[5], &t[6], NULL ) ||
+		vips_avg( t[6], &threshold, NULL ) ) 
 		return( -1 );
 
-	percent->threshold = threshold;
+	g_object_set( object, "threshold", (int) threshold, NULL );
 
 	return( 0 );
 }
@@ -119,7 +119,7 @@ vips_hist_percent_class_init( VipsHistPercentClass *class )
 		G_STRUCT_OFFSET( VipsHistPercent, percent ),
 		0, 100, 50 );
 
-	VIPS_ARG_INT( class, "threshold", 2, 
+	VIPS_ARG_INT( class, "threshold", 3, 
 		_( "threshold" ), 
 		_( "threshold above which lie percent of pixels" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
