@@ -3593,6 +3593,39 @@ im_project( IMAGE *in, IMAGE *hout, IMAGE *vout )
 
 	return( 0 );
 }
+
+int 
+im_profile( IMAGE *in, IMAGE *out, int dir )
+{
+	VipsImage *columns, *rows;
+	VipsImage *t1, *t2;
+
+	if( vips_profile( in, &columns, &rows, NULL ) )
+		return( -1 );
+	if( dir == 0 ) {
+		t1 = columns;
+		g_object_unref( rows );
+	}
+	else {
+		t1 = rows;
+		g_object_unref( columns );
+	}
+
+	if( vips_cast( t1, &t2, VIPS_FORMAT_USHORT, NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+
+	if( im_copy( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 ); 
+}
+
 int 
 im_hsp( IMAGE *in, IMAGE *ref, IMAGE *out )
 {

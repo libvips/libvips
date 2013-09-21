@@ -47,7 +47,6 @@ int im_maxvalue( VipsImage **in, VipsImage *out, int n );
 
 int im_cntlines( VipsImage *im, double *nolines, int flag );
 int im_zerox( VipsImage *in, VipsImage *out, int sign );
-int im_profile( VipsImage *in, VipsImage *out, int dir );
 int im_label_regions( VipsImage *test, VipsImage *mask, int *segments );
 
 #ifdef __cplusplus

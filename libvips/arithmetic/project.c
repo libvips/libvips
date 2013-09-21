@@ -183,11 +183,11 @@ vips_project_start( VipsStatistic *statistic )
 /* Add a line of pixels.
  */
 #define ADD_PIXELS( OUT, IN ) { \
-	OUT *row_sums = ((OUT *) project->hist->row_sums) + y * nb; \
+	OUT *row_sums = ((OUT *) hist->row_sums) + y * nb; \
 	OUT *column_sums; \
 	IN *p; \
 	\
-	column_sums = ((OUT *) project->hist->column_sums) + x * nb; \
+	column_sums = ((OUT *) hist->column_sums) + x * nb; \
 	p = (IN *) in; \
 	for( i = 0; i < n; i++ ) { \
 		for( j = 0; j < nb; j++ ) { \
@@ -206,32 +206,13 @@ static int
 vips_project_scan( VipsStatistic *statistic, void *seq, 
 	int x, int y, void *in, int n )
 {
-	VipsProject *project = (VipsProject *) statistic;
 	int nb = statistic->ready->Bands;
+	Histogram *hist = (Histogram *) seq;
 	int i, j;
 
 	switch( statistic->ready->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
-		//ADD_PIXELS( guint, guchar );
-
-		{ 
-	guint *row_sums = ((guint *) project->hist->row_sums) + y * nb; 
-	guint *column_sums; 
-	guchar *p; 
-	
-	column_sums = ((guint *) project->hist->column_sums) + x * nb; 
-	p = (guchar *) in; 
-	for( i = 0; i < n; i++ ) { 
-		for( j = 0; j < nb; j++ ) { 
-			column_sums[j] += p[j]; 
-			row_sums[j] += p[j]; 
-		} 
-		
-		p += nb; 
-		column_sums += nb; 
-	} 
-}
-
+		ADD_PIXELS( guint, guchar );
 		break;
 
 	case VIPS_FORMAT_CHAR:
@@ -289,7 +270,6 @@ vips_project_stop( VipsStatistic *statistic, void *seq )
 	Histogram *sub_hist = (Histogram *) seq;
 	VipsImage *in = statistic->ready;
 	VipsBandFormat outfmt = vips_project_format_table[in->BandFmt];
-	int psize = vips__image_sizeof_bandformat[outfmt] * in->Bands; 
 	int hsz = in->Xsize * in->Bands;
 	int vsz = in->Ysize * in->Bands;
 
@@ -320,8 +300,8 @@ vips_project_stop( VipsStatistic *statistic, void *seq )
 
 	/* Blank out sub-project to make sure we can't add it again.
 	 */
-	memset( sub_hist->column_sums, 0, psize * in->Xsize );
-	memset( sub_hist->row_sums, 0, psize * in->Ysize );
+	sub_hist->column_sums = NULL; 
+	sub_hist->row_sums = NULL; 
 
 	return( 0 );
 }
@@ -346,7 +326,7 @@ vips_project_class_init( VipsProjectClass *class )
 
 	VIPS_ARG_IMAGE( class, "columns", 100, 
 		_( "Columns" ), 
-		_( "Sums of colums" ),
+		_( "Sums of columns" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsProject, columns ) );
 
@@ -366,8 +346,8 @@ vips_project_init( VipsProject *project )
 /**
  * vips_project:
  * @in: input image
- * @hout: sums of rows
- * @vout: sums of columns
+ * @columns: sums of columns
+ * @rows: sums of rows
  * @...: %NULL-terminated list of optional named arguments
  *
  * Find the horizontal and vertical projections of an image, ie. the sum
@@ -381,13 +361,13 @@ vips_project_init( VipsProject *project )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_project( VipsImage *in, VipsImage **hout, VipsImage **vout, ... )
+vips_project( VipsImage *in, VipsImage **columns, VipsImage **rows, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, vout );
-	result = vips_call_split( "project", ap, in, hout, vout );
+	va_start( ap, rows );
+	result = vips_call_split( "project", ap, in, columns, rows );
 	va_end( ap );
 
 	return( result );

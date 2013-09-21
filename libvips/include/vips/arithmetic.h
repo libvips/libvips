@@ -384,7 +384,9 @@ int vips_hist_find_ndim( VipsImage *in, VipsImage **out, ... )
 int vips_hist_find_indexed( VipsImage *in, VipsImage *index, 
 	VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_project( VipsImage *in, VipsImage **hout, VipsImage **vout, ... )
+int vips_project( VipsImage *in, VipsImage **columns, VipsImage **rows, ... )
+	__attribute__((sentinel));
+int vips_profile( VipsImage *in, VipsImage **columns, VipsImage **rows, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus

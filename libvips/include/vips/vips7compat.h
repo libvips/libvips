@@ -870,6 +870,7 @@ int im_histnD( VipsImage *in, VipsImage *out, int bins );
 int im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out );
 int im_histplot( VipsImage *in, VipsImage *out );
 int im_project( VipsImage *in, VipsImage *hout, VipsImage *vout );
+int im_profile( IMAGE *in, IMAGE *out, int dir );
 int im_hsp( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_histspec( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_lhisteq( VipsImage *in, VipsImage *out, int xwin, int ywin );

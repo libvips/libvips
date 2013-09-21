@@ -5,7 +5,7 @@
 - rewrite im_buildlut(), im_identity*(), im_maplut(), im_falsecolour(),
   im_gammacorrect(), im_histgr(), im_histcum(), im_histnorm(), im_heq(),
   im_histnD(), im_histindexed(), im_histspec(), im_invertlut(), im_lhisteq(),
-  im_stdif(), im_project(), im_tone_build*() as classes
+  im_stdif(), im_project(), im_profile(), im_tone_build*() as classes
 - vips_hist_local(), vips_stdif() do any number of bands
 - thin vips8 wrapper for im_histplot()
 - added vips_error_freeze() / vips_error_thaw()
