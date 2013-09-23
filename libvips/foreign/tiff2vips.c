@@ -140,6 +140,7 @@
  * 17/9/13
  * 	- support separate planes for strip read
  * 	- big cleanup
+ * 	- support for many more formats, eg. 32-bit int etc. 
  */
 
 /*
@@ -170,8 +171,8 @@
  */
 
 /* 
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -233,6 +234,7 @@ typedef struct _ReadTiff {
 	int samples_per_pixel;
 	int bits_per_sample;
 	int photometric_interpretation;
+	int sample_format;
 
 	/* Turn on separate plane reading.
 	 */
@@ -326,24 +328,6 @@ tfget16( TIFF *tif, ttag_t tag, int *out )
 	return( 1 );
 }
 
-/* Test a uint16 field. Field must be defined and equal to the value.
- */
-static int
-tfequals( TIFF *tif, ttag_t tag, uint16 val )
-{
-	int v; 
-
-	if( !tfget16( tif, tag, &v ) )
-		return( 0 );
-	if( v != val ) {
-		vips_error( "tiff2vips", 
-			_( "required field %d = %d, not %d" ), tag, v, val );
-		return( 0 );
-	}
-
-	return( 1 );
-}
-
 static int
 check_samples( ReadTiff *rtiff, int samples_per_pixel )
 {
@@ -359,13 +343,25 @@ check_samples( ReadTiff *rtiff, int samples_per_pixel )
 /* Check n and n+1 so we can have an alpha.
  */
 static int
-check_samples_alpha( ReadTiff *rtiff, int samples_per_pixel )
+check_min_samples( ReadTiff *rtiff, int samples_per_pixel )
 {
-	if( rtiff->samples_per_pixel != samples_per_pixel && 
-		rtiff->samples_per_pixel != samples_per_pixel + 1 ) {
+	if( rtiff->samples_per_pixel < samples_per_pixel ) { 
 		vips_error( "tiff2vips", 
-			_( "not %d or %d bands" ), 
-			samples_per_pixel, samples_per_pixel + 1 );
+			_( "not at least %d samples per pixel" ), 
+			samples_per_pixel ); 
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
+check_interpretation( ReadTiff *rtiff, int photometric_interpretation )
+{
+	if( rtiff->photometric_interpretation != photometric_interpretation ) { 
+		vips_error( "tiff2vips", 
+			_( "not photometric interpretation %d" ), 
+			photometric_interpretation ); 
 		return( -1 );
 	}
 
@@ -400,20 +396,55 @@ check_bits_palette( ReadTiff *rtiff )
 	return( 0 );
 }
 
-static int
-check_float(  ReadTiff *rtiff )
+static VipsBandFormat
+guess_format( ReadTiff *rtiff )
 {
-	int format; 
+	switch( rtiff->bits_per_sample ) {
+	case 1:
+	case 2:
+	case 4:
+	case 8:
+		if( rtiff->sample_format == SAMPLEFORMAT_INT )
+			return( VIPS_FORMAT_CHAR );
+		if( rtiff->sample_format == SAMPLEFORMAT_UINT )
+			return( VIPS_FORMAT_UCHAR );
+		break;
 
-	if( !tfget16( rtiff->tiff, TIFFTAG_SAMPLEFORMAT, &format ) ) 
-		return( -1 );
-	if( format != SAMPLEFORMAT_IEEEFP ) {
-		vips_error( "tiff2vips", 
-			"%s", _( "not a floating-point image" ) );
-		return( -1 );
+	case 16:
+		if( rtiff->sample_format == SAMPLEFORMAT_INT )
+			return( VIPS_FORMAT_SHORT );
+		if( rtiff->sample_format == SAMPLEFORMAT_UINT )
+			return( VIPS_FORMAT_USHORT );
+		break;
+
+	case 32:
+		if( rtiff->sample_format == SAMPLEFORMAT_INT )
+			return( VIPS_FORMAT_INT );
+		if( rtiff->sample_format == SAMPLEFORMAT_UINT )
+			return( VIPS_FORMAT_UINT );
+		if( rtiff->sample_format == SAMPLEFORMAT_IEEEFP )
+			return( VIPS_FORMAT_FLOAT );
+		break;
+
+	case 64:
+		if( rtiff->sample_format == SAMPLEFORMAT_IEEEFP )
+			return( VIPS_FORMAT_DOUBLE );
+		if( rtiff->sample_format == SAMPLEFORMAT_COMPLEXIEEEFP )
+			return( VIPS_FORMAT_COMPLEX );
+		break;
+
+	case 128:
+		if( rtiff->sample_format == SAMPLEFORMAT_COMPLEXIEEEFP )
+			return( VIPS_FORMAT_DPCOMPLEX );
+		break;
+
+	default:
+		break;
 	}
 
-	return( 0 );
+	vips_error( "tiff2vips", "%s", _( "unsupported image format\n" ) ); 
+
+	return( VIPS_FORMAT_NOTSET ); 
 }
 
 /* Per-scanline process function for VIPS_CODING_LABQ.
@@ -439,8 +470,9 @@ labpack_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *dummy )
 static int
 parse_labpack( ReadTiff *rtiff, VipsImage *out )
 {
-	if( check_samples_alpha( rtiff, 3 ) ||
-		check_bits( rtiff, 8 ) )
+	if( check_min_samples( rtiff, 3 ) ||
+		check_bits( rtiff, 8 ) ||
+		check_interpretation( rtiff, PHOTOMETRIC_CIELAB ) )
 		return( -1 );
 
 	out->Bands = 4; 
@@ -461,13 +493,17 @@ labs_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *dummy )
 	int x;
 	unsigned short *p1 = (unsigned short *) p;
 	short *q1 = (short *) q;
+	int i; 
 
 	for( x = 0; x < n; x++ ) {
+		/* We use a signed int16 for L.
+		 */
 		q1[0] = p1[0] >> 1;
-		q1[1] = p1[1];
-		q1[2] = p1[2];
 
-		q1 += 3;
+		for( i = 1; i < rtiff->samples_per_pixel; i++ ) 
+			q1[i] = p1[i];
+
+		q1 += rtiff->samples_per_pixel;
 		p1 += rtiff->samples_per_pixel;
 	}
 }
@@ -477,11 +513,12 @@ labs_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *dummy )
 static int
 parse_labs( ReadTiff *rtiff, VipsImage *out )
 {
-	if( check_samples_alpha( rtiff, 3 ) ||
-		check_bits( rtiff, 16 ) )
+	if( check_min_samples( rtiff, 3 ) ||
+		check_bits( rtiff, 16 ) ||
+		check_interpretation( rtiff, PHOTOMETRIC_CIELAB ) )
 		return( -1 );
 
-	out->Bands = 3; 
+	out->Bands = rtiff->samples_per_pixel; 
 	out->BandFmt = VIPS_FORMAT_SHORT; 
 	out->Coding = VIPS_CODING_NONE; 
 	out->Type = VIPS_INTERPRETATION_LABS; 
@@ -526,7 +563,7 @@ onebit_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 	}
 }
 
-/* Read a 1-bit TIFF image. Pass in pixel values to use for black and white.
+/* Read a 1-bit TIFF image. 
  */
 static int
 parse_onebit( ReadTiff *rtiff, VipsImage *out )
@@ -545,129 +582,98 @@ parse_onebit( ReadTiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
-/* Per-scanline process function for 8-bit greyscale images.
+/* Swap the sense of the first channel, if necessary. 
+ */
+#define GREY_LOOP( TYPE, MAX ) { \
+	TYPE *p1; \
+	TYPE *q1; \
+	\
+	p1 = (TYPE *) p; \
+	q1 = (TYPE *) q; \
+	for( x = 0; x < n; x++ ) { \
+		if( invert ) \
+			q1[0] = MAX - p1[0]; \
+		else \
+			q1[0] = p1[0]; \
+		\
+		for( i = 1; i < rtiff->samples_per_pixel; i++ ) \
+			q1[i] = p1[i]; \
+		\
+		q1 += rtiff->samples_per_pixel; \
+		p1 += rtiff->samples_per_pixel; \
+	} \
+}
+
+/* Per-scanline process function for greyscale images.
  */
 static void
-greyscale8_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
+greyscale_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
 {
-	int mask = 
-		rtiff->photometric_interpretation == PHOTOMETRIC_MINISBLACK ? 
-		0 : -1;
+	gboolean invert = 
+		rtiff->photometric_interpretation == PHOTOMETRIC_MINISWHITE;
+	VipsBandFormat format = guess_format( rtiff ); 
 
-	int x;
+	int x, i;
 
-	/* Read bytes, swapping sense if necessary.
-	 */
-	for( x = 0; x < n; x++ ) {
-		q[0] = p[0] ^ mask;
+	switch( format ) {
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_CHAR:
+		GREY_LOOP( guchar, UCHAR_MAX ); 
+		break;
 
-		/* Process alpha, if any. Don't swap this.
-		 */
-		if( rtiff->samples_per_pixel == 2 )
-			q[1] = p[1];
+	case VIPS_FORMAT_SHORT:
+		GREY_LOOP( gshort, SHRT_MAX ); 
+		break;
 
-		q += rtiff->samples_per_pixel;
-		p += rtiff->samples_per_pixel; 
+	case VIPS_FORMAT_USHORT:
+		GREY_LOOP( gushort, USHRT_MAX ); 
+		break;
+
+	case VIPS_FORMAT_INT:
+		GREY_LOOP( gint, INT_MAX ); 
+		break;
+
+	case VIPS_FORMAT_UINT:
+		GREY_LOOP( guint, UINT_MAX ); 
+		break;
+
+	case VIPS_FORMAT_FLOAT:
+		GREY_LOOP( float, 1.0 ); 
+		break;
+
+	case VIPS_FORMAT_DOUBLE:
+		GREY_LOOP( double, 1.0 ); 
+		break;
+
+	default:
+		g_assert( 0 );
 	}
 }
 
-/* Read a 8-bit grey-scale TIFF image. 
+/* Read a grey-scale TIFF image. We have to invert the first band if
+ * PHOTOMETRIC_MINISBLACK is set. 
  */
 static int
-parse_greyscale8( ReadTiff *rtiff, VipsImage *out )
+parse_greyscale( ReadTiff *rtiff, VipsImage *out )
 {
-	if( check_samples_alpha( rtiff, 1 ) ||
-		check_bits( rtiff, 8 ) )
+	if( check_min_samples( rtiff, 1 ) )
 		return( -1 );
 
 	out->Bands = rtiff->samples_per_pixel; 
-	out->BandFmt = VIPS_FORMAT_UCHAR; 
+	out->BandFmt = guess_format( rtiff ); 
 	out->Coding = VIPS_CODING_NONE; 
-	out->Type = VIPS_INTERPRETATION_B_W; 
 
-	rtiff->sfn = greyscale8_line;
+	if( rtiff->bits_per_sample == 16 )
+		out->Type = VIPS_INTERPRETATION_GREY16; 
+	else
+		out->Type = VIPS_INTERPRETATION_B_W; 
 
-	return( 0 );
-}
-
-/* Per-scanline process function for 16-bit greyscale images.
- */
-static void
-greyscale16_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
-{
-	int mask = 
-		rtiff->photometric_interpretation == PHOTOMETRIC_MINISBLACK ? 
-		0 : -1;
-
-	unsigned short *p1;
-	unsigned short *q1;
-	int x;
-
-	/* Read bytes, swapping sense if necessary.
+	/* greyscale_line() doesn't do complex.
 	 */
-	p1 = (unsigned short *) p;
-	q1 = (unsigned short *) q;
-	for( x = 0; x < n; x++ ) {
-		q1[0] = p1[0] ^ mask;
+	if( vips_check_noncomplex( "tiff2vips", out ) )
+		return( -1 ); 
 
-		/* Process alpha, if any. Don't swap this.
-		 */
-		if( rtiff->samples_per_pixel == 2 )
-			q1[1] = p1[1];
-
-		q1 += rtiff->samples_per_pixel;
-		p1 += rtiff->samples_per_pixel; 
-	}
-}
-
-/* Read a 16-bit grey-scale TIFF image. 
- */
-static int
-parse_greyscale16( ReadTiff *rtiff, VipsImage *out )
-{
-	if( check_samples_alpha( rtiff, 1 ) ||
-		check_bits( rtiff, 16 ) )
-		return( -1 );
-
-	out->Bands = rtiff->samples_per_pixel; 
-	out->BandFmt = VIPS_FORMAT_USHORT; 
-	out->Coding = VIPS_CODING_NONE; 
-	out->Type = VIPS_INTERPRETATION_GREY16; 
-
-	rtiff->sfn = greyscale16_line;
-
-	return( 0 );
-}
-
-/* Per-scanline process function when we just need to copy.
- */
-static void
-memcpy_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
-{
-	VipsImage *im = (VipsImage *) client;
-	size_t len = n * VIPS_IMAGE_SIZEOF_PEL( im );
-
-	memcpy( q, p, len ); 
-}
-
-/* Read a 32-bit floating point greyscale TIFF image. What do we do about
- * MINISWHITE/MINISBLACK (pm)? Not sure ... just ignore it.
- */
-static int
-parse_greyscale32f( ReadTiff *rtiff, VipsImage *out )
-{
-	if( check_samples_alpha( rtiff, 1 ) ||
-		check_bits( rtiff, 32 ) )
-		return( -1 );
-
-	out->Bands = rtiff->samples_per_pixel; 
-	out->BandFmt = VIPS_FORMAT_FLOAT;
-	out->Coding = VIPS_CODING_NONE; 
-	out->Type = VIPS_INTERPRETATION_B_W; 
-
-	rtiff->sfn = memcpy_line;
-	rtiff->client = out;
-	rtiff->memcpy = TRUE;
+	rtiff->sfn = greyscale_line;
 
 	return( 0 );
 }
@@ -787,96 +793,43 @@ parse_palette( ReadTiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
-/* Read an 8-bit RGB/RGBA image.
+/* Per-scanline process function when we just need to copy.
  */
-static int
-parse_rgb8( ReadTiff *rtiff, VipsImage *out )
+static void
+memcpy_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
 {
-	if( check_samples_alpha( rtiff, 3 ) ||
-		check_bits( rtiff, 8 ) )
-		return( -1 );
+	VipsImage *im = (VipsImage *) client;
+	size_t len = n * VIPS_IMAGE_SIZEOF_PEL( im );
 
-	out->Bands = rtiff->samples_per_pixel; 
-	out->BandFmt = VIPS_FORMAT_UCHAR; 
-	out->Coding = VIPS_CODING_NONE; 
-	out->Type = VIPS_INTERPRETATION_sRGB; 
-
-	rtiff->sfn = memcpy_line;
-	rtiff->client = out;
-	rtiff->memcpy = TRUE;
-
-	return( 0 );
+	memcpy( q, p, len ); 
 }
 
-/* Read a 16-bit RGB/RGBA image.
+/* Read a regular multiband image where we can just copy pixels from the tiff
+ * buffer.
  */
 static int
-parse_rgb16( ReadTiff *rtiff, VipsImage *out )
+parse_copy( ReadTiff *rtiff, VipsImage *out )
 {
-	if( check_samples_alpha( rtiff, 3 ) ||
-		check_bits( rtiff, 16 ) )
-		return( -1 );
-
 	out->Bands = rtiff->samples_per_pixel; 
-	out->BandFmt = VIPS_FORMAT_USHORT; 
-	out->Coding = VIPS_CODING_NONE; 
-	out->Type = VIPS_INTERPRETATION_RGB16; 
-
-	rtiff->sfn = memcpy_line;
-	rtiff->client = out;
-	rtiff->memcpy = TRUE;
-
-	return( 0 );
-}
-
-/* Read a 32-bit float image. RGB or LAB, with or without alpha.
- */
-static int
-parse_32f( ReadTiff *rtiff, VipsImage *out )
-{
-	if( check_samples_alpha( rtiff, 3 ) ||
-		check_bits( rtiff, 32 ) ||
-		check_float( rtiff ) )
-		return( -1 );
-
-	out->Bands = rtiff->samples_per_pixel; 
-	out->BandFmt = VIPS_FORMAT_FLOAT; 
+	out->BandFmt = guess_format( rtiff ); 
 	out->Coding = VIPS_CODING_NONE; 
 
-	switch( rtiff->photometric_interpretation ) {
-	case PHOTOMETRIC_CIELAB:
-		out->Type = VIPS_INTERPRETATION_LAB; 
-		break;
-
-	case PHOTOMETRIC_RGB:
-		out->Type = VIPS_INTERPRETATION_sRGB; 
-		break;
-
-	default:
-		g_assert( 0 );
+	if( rtiff->samples_per_pixel >= 3 &&
+		(rtiff->photometric_interpretation == PHOTOMETRIC_RGB ||
+		 rtiff->photometric_interpretation == PHOTOMETRIC_YCBCR) ) {
+		if( rtiff->bits_per_sample == 16 )
+			out->Type = VIPS_INTERPRETATION_RGB16; 
+		else
+			out->Type = VIPS_INTERPRETATION_sRGB; 
 	}
 
-	rtiff->sfn = memcpy_line;
-	rtiff->client = out;
-	rtiff->memcpy = TRUE;
+	if( rtiff->samples_per_pixel >= 3 &&
+		rtiff->photometric_interpretation == PHOTOMETRIC_CIELAB )
+		out->Type = VIPS_INTERPRETATION_LAB; 
 
-	return( 0 );
-}
-
-/* Read a CMYK image.
- */
-static int
-parse_cmyk( ReadTiff *rtiff, VipsImage *out )
-{
-	if( check_samples_alpha( rtiff, 4 ) ||
-		check_bits( rtiff, 8 ) ||
-		!tfequals( rtiff->tiff, TIFFTAG_INKSET, INKSET_CMYK ) )
-		return( -1 );
-
-	out->Bands = rtiff->samples_per_pixel; 
-	out->BandFmt = VIPS_FORMAT_UCHAR; 
-	out->Coding = VIPS_CODING_NONE; 
-	out->Type = VIPS_INTERPRETATION_CMYK; 
+	if( rtiff->samples_per_pixel >= 4 &&
+		rtiff->photometric_interpretation == PHOTOMETRIC_SEPARATED )
+		out->Type = VIPS_INTERPRETATION_CMYK; 
 
 	rtiff->sfn = memcpy_line;
 	rtiff->client = out;
@@ -938,13 +891,49 @@ parse_resolution( TIFF *tiff, VipsImage *out )
 	return( 0 );
 }
 
+typedef int (*reader_fn)( ReadTiff *rtiff, VipsImage *out );
+
+/* We have a range of output paths. Look at the tiff header and try to
+ * route the input image to the best output path.
+ */
+static reader_fn
+pick_reader( ReadTiff *rtiff )
+{
+	if( rtiff->photometric_interpretation == PHOTOMETRIC_CIELAB ) {
+		if( rtiff->bits_per_sample == 8 )
+			return( parse_labpack );
+		if( rtiff->bits_per_sample == 16 )
+			return( parse_labs );
+	}
+
+	if( rtiff->photometric_interpretation == PHOTOMETRIC_MINISWHITE ||
+		rtiff->photometric_interpretation == PHOTOMETRIC_MINISBLACK ) {
+		if( rtiff->bits_per_sample == 1 )
+			return( parse_onebit ); 
+		else
+			return( parse_greyscale ); 
+	}
+
+	if( rtiff->photometric_interpretation == PHOTOMETRIC_PALETTE ) 
+		return( parse_palette ); 
+
+	if( rtiff->photometric_interpretation == PHOTOMETRIC_YCBCR ) { 
+		/* Sometimes JPEG in TIFF images are tagged as YCBCR. Ask
+		 * libtiff to convert to RGB for us.
+		 */
+		TIFFSetField( rtiff->tiff, 
+			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+	}
+
+	return( parse_copy );
+}
+
 /* Look at PhotometricInterpretation and BitsPerPixel and try to figure out 
  * which of the image classes this is.
  */
 static int
 parse_header( ReadTiff *rtiff, VipsImage *out )
 {
-	int format;
 	uint32 data_length;
 	uint32 width, height;
 	void *data;
@@ -969,6 +958,15 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 		!tfget16( rtiff->tiff, TIFFTAG_PHOTOMETRIC, 
 			&rtiff->photometric_interpretation ) )
 		return( -1 );
+
+	/* Some optional fields. 
+	 */
+{
+	uint16 v;
+
+	TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_SAMPLEFORMAT, &v );
+	rtiff->sample_format = v;
+}
 
 	/* Arbitrary sanity-checking limits.
 	 */
@@ -999,140 +997,15 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 		rtiff->samples_per_pixel );
 	printf( "parse_header: bits_per_sample = %d\n", 
 		rtiff->bits_per_sample );
+	printf( "parse_header: sample_format = %d\n", 
+		rtiff->sample_format );
 #endif /*DEBUG*/
 
-	switch( rtiff->photometric_interpretation ) {
-	case PHOTOMETRIC_CIELAB:
-		switch( rtiff->bits_per_sample ) {
-		case 8:
-			if( parse_labpack( rtiff, out ) )
-				return( -1 );
-			break;
-
-		case 16:
-			if( parse_labs( rtiff, out ) )
-				return( -1 );
-			break;
-
-		case 32:
-			if( parse_32f( rtiff, out ) )
-				return( -1 );
-			break;
-
-		default:
-			vips_error( "tiff2vips", 
-				_( "unsupported depth %d for LAB image" ), 
-				rtiff->bits_per_sample );
-			return( -1 );
-		}
-
-		break;
-
-	case PHOTOMETRIC_MINISWHITE:
-	case PHOTOMETRIC_MINISBLACK:
-		switch( rtiff->bits_per_sample ) {
-		case 1:
-			if( parse_onebit( rtiff, out ) )
-				return( -1 );
-
-			break;
-
-		case 8:
-			if( parse_greyscale8( rtiff, out ) )
-				return( -1 );
-
-			break;
-
-		case 16:
-			if( parse_greyscale16( rtiff, out ) )
-				return( -1 );
-
-			break;
-
-		case 32:
-			if( !tfget16( rtiff->tiff, 
-				TIFFTAG_SAMPLEFORMAT, &format ) ) 
-				return( -1 );
-
-			if( format == SAMPLEFORMAT_IEEEFP ) {
-				if( parse_greyscale32f( rtiff, out ) )
-					return( -1 );
-			}
-			else {
-				vips_error( "tiff2vips", 
-					_( "unsupported sample format "
-					"%d for greyscale image" ),
-					format );
-				return( -1 );
-			}
-
-			break;
-
-		default:
-			vips_error( "tiff2vips", 
-				_( "unsupported depth %d for greyscale image" ),
-				rtiff->bits_per_sample );
-			return( -1 );
-		}
-
-		break;
-
-	case PHOTOMETRIC_PALETTE:
-		/* Full colour pallette.
-		 */
-		if( parse_palette( rtiff, out ) )
-			return( -1 );
-
-		break;
-
-	case PHOTOMETRIC_YCBCR:
-		/* Sometimes JPEG in TIFF images are tagged as YCBCR. Ask
-		 * libtiff to convert to RGB for us.
-		 */
-		TIFFSetField( rtiff->tiff, 
-			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
-		if( parse_rgb8( rtiff, out ) )
-			return( -1 );
-		break;
-
-	case PHOTOMETRIC_RGB:
-		switch( rtiff->bits_per_sample ) {
-		case 8:
-			if( parse_rgb8( rtiff, out ) )
-				return( -1 );
-			break;
-
-		case 16:
-			if( parse_rgb16( rtiff, out ) )
-				return( -1 );
-			break;
-
-		case 32:
-			if( parse_32f( rtiff, out ) )
-				return( -1 );
-			break;
-
-		default:
-			vips_error( "tiff2vips", 
-				_( "unsupported depth %d for RGB image" ), 
-				rtiff->bits_per_sample );
-			return( -1 );
-		}
-
-		break;
-
-	case PHOTOMETRIC_SEPARATED:
-		if( parse_cmyk( rtiff, out ) )
-			return( -1 );
-
-		break;
-
-	default:
-		vips_error( "tiff2vips", 
-			_( "unknown photometric interpretation %d" ), 
-			rtiff->photometric_interpretation );
-		return( -1 );
-	}
+	/* We have a range of output paths. Look at the tiff header and try to
+	 * route the input image to the best output path.
+	 */
+	if( pick_reader( rtiff )( rtiff, out ) ) 
+		return( -1 ); 
 
 	/* Read any ICC profile.
 	 */

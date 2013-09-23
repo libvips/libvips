@@ -18,6 +18,7 @@
 - added vips_webpload(), vips_webpload_buffer(), vips_webpsave(),
   vips_webpsave_buffer(), vips_webpsave_mime()
 - tiff reader allows separate planes for strip read
+- tiff reader allows many more formats, eg. 32-bit int, complex, etc. 
 - added vips_image_new_matrixv()
 
 3/7/13 started 7.34.2
