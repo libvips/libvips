@@ -124,27 +124,6 @@ vips_foreign_save_raw_build( VipsObject *object )
 	return( 0 );
 }
 
-/* Save a bit of typing.
- */
-#define UC VIPS_FORMAT_UCHAR
-#define C VIPS_FORMAT_CHAR
-#define US VIPS_FORMAT_USHORT
-#define S VIPS_FORMAT_SHORT
-#define UI VIPS_FORMAT_UINT
-#define I VIPS_FORMAT_INT
-#define F VIPS_FORMAT_FLOAT
-#define X VIPS_FORMAT_COMPLEX
-#define D VIPS_FORMAT_DOUBLE
-#define DX VIPS_FORMAT_DPCOMPLEX
-
-/* Type promotion for division. Sign and value preserving. Make sure 
- * these match the case statement in complexform_buffer() above.
- */
-static int vips_bandfmt_raw[10] = {
-/* UC  C   US  S   UI  I  F  X  D  DX */
-   UC, C,  US, S,  UI, I, F, X, D, DX
-};
-
 static void
 vips_foreign_save_raw_class_init( VipsForeignSaveRawClass *class )
 {
@@ -161,7 +140,6 @@ vips_foreign_save_raw_class_init( VipsForeignSaveRawClass *class )
 	object_class->build = vips_foreign_save_raw_build;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
-	save_class->format_table = vips_bandfmt_raw;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -268,7 +246,6 @@ vips_foreign_save_raw_fd_class_init( VipsForeignSaveRawFdClass *class )
 	object_class->build = vips_foreign_save_raw_fd_build;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
-	save_class->format_table = vips_bandfmt_raw;
 
 	VIPS_ARG_INT( class, "fd", 1, 
 		_( "File descriptor" ),

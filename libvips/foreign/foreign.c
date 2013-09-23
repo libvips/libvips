@@ -292,22 +292,6 @@ vips_foreign_save_csv_build( VipsObject *object )
 	return( 0 );
 }
 
-#define UC VIPS_FORMAT_UCHAR
-#define C VIPS_FORMAT_CHAR
-#define US VIPS_FORMAT_USHORT
-#define S VIPS_FORMAT_SHORT
-#define UI VIPS_FORMAT_UINT
-#define I VIPS_FORMAT_INT
-#define F VIPS_FORMAT_FLOAT
-#define X VIPS_FORMAT_COMPLEX
-#define D VIPS_FORMAT_DOUBLE
-#define DX VIPS_FORMAT_DPCOMPLEX
-
-static int bandfmt_csv[10] = {
-// UC  C   US  S   UI  I  F  X  D  DX 
-   UC, C,  US, S,  UI, I, F, X, D, DX
-};
-
 static void
 vips_foreign_save_csv_class_init( VipsForeignSaveCsvClass *class )
 {
@@ -326,7 +310,8 @@ vips_foreign_save_csv_class_init( VipsForeignSaveCsvClass *class )
 	foreign_class->suffs = vips__foreign_csv_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_MONO;
-	save_class->format_table = bandfmt_csv;
+	// no need to define ->format_table, we don't want the input 
+	// cast for us
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -1348,6 +1333,22 @@ vips_foreign_save_build( VipsObject *object )
 	return( 0 );
 }
 
+#define UC VIPS_FORMAT_UCHAR
+#define C VIPS_FORMAT_CHAR
+#define US VIPS_FORMAT_USHORT
+#define S VIPS_FORMAT_SHORT
+#define UI VIPS_FORMAT_UINT
+#define I VIPS_FORMAT_INT
+#define F VIPS_FORMAT_FLOAT
+#define X VIPS_FORMAT_COMPLEX
+#define D VIPS_FORMAT_DOUBLE
+#define DX VIPS_FORMAT_DPCOMPLEX
+
+static int vips_foreign_save_format_table[10] = {
+// UC  C   US  S   UI  I  F  X  D  DX 
+   UC, C,  US, S,  UI, I, F, X, D, DX
+};
+
 static void
 vips_foreign_save_class_init( VipsForeignSaveClass *class )
 {
@@ -1380,6 +1381,10 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 	for( i = 0; i < VIPS_CODING_LAST; i++ )
 		class->coding[i] = FALSE;
 	class->coding[VIPS_CODING_NONE] = TRUE;
+
+	/* Default to no cast on save.
+	 */
+	class->format_table = vips_foreign_save_format_table; 
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 

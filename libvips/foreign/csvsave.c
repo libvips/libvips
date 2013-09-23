@@ -80,24 +80,6 @@ vips_foreign_save_csv_build( VipsObject *object )
 	return( 0 );
 }
 
-/* Save a bit of typing.
- */
-#define UC VIPS_FORMAT_UCHAR
-#define C VIPS_FORMAT_CHAR
-#define US VIPS_FORMAT_USHORT
-#define S VIPS_FORMAT_SHORT
-#define UI VIPS_FORMAT_UINT
-#define I VIPS_FORMAT_INT
-#define F VIPS_FORMAT_FLOAT
-#define X VIPS_FORMAT_COMPLEX
-#define D VIPS_FORMAT_DOUBLE
-#define DX VIPS_FORMAT_DPCOMPLEX
-
-static int bandfmt_csv[10] = {
-/* UC  C   US  S   UI  I  F  X  D  DX */
-   UC, C,  US, S,  UI, I, F, X, D, DX
-};
-
 static void
 vips_foreign_save_csv_class_init( VipsForeignSaveCsvClass *class )
 {
@@ -116,7 +98,6 @@ vips_foreign_save_csv_class_init( VipsForeignSaveCsvClass *class )
 	foreign_class->suffs = vips__foreign_csv_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_MONO;
-	save_class->format_table = bandfmt_csv;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),

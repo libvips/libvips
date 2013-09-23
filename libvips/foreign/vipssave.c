@@ -75,24 +75,6 @@ vips_foreign_save_vips_build( VipsObject *object )
 	return( 0 );
 }
 
-/* Save a bit of typing.
- */
-#define UC VIPS_FORMAT_UCHAR
-#define C VIPS_FORMAT_CHAR
-#define US VIPS_FORMAT_USHORT
-#define S VIPS_FORMAT_SHORT
-#define UI VIPS_FORMAT_UINT
-#define I VIPS_FORMAT_INT
-#define F VIPS_FORMAT_FLOAT
-#define X VIPS_FORMAT_COMPLEX
-#define D VIPS_FORMAT_DOUBLE
-#define DX VIPS_FORMAT_DPCOMPLEX
-
-static int vips_bandfmt_vips[10] = {
-/* UC  C   US  S   UI  I  F  X  D  DX */
-   UC, C,  US, S,  UI, I, F, X, D, DX
-};
-
 static const char *vips_suffs[] = { ".v", NULL };
 
 static void
@@ -115,7 +97,6 @@ vips_foreign_save_vips_class_init( VipsForeignSaveVipsClass *class )
 	foreign_class->suffs = vips_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
-	save_class->format_table = vips_bandfmt_vips;
 	for( i = 0; i < VIPS_CODING_LAST; i++ )
 		save_class->coding[i] = TRUE;
 

@@ -129,24 +129,6 @@ vips_foreign_save_tiff_build( VipsObject *object )
 	return( 0 );
 }
 
-/* Save a bit of typing.
- */
-#define UC VIPS_FORMAT_UCHAR
-#define C VIPS_FORMAT_CHAR
-#define US VIPS_FORMAT_USHORT
-#define S VIPS_FORMAT_SHORT
-#define UI VIPS_FORMAT_UINT
-#define I VIPS_FORMAT_INT
-#define F VIPS_FORMAT_FLOAT
-#define X VIPS_FORMAT_COMPLEX
-#define D VIPS_FORMAT_DOUBLE
-#define DX VIPS_FORMAT_DPCOMPLEX
-
-static int bandfmt_tiff[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, US, S,  US, US, F,  F,  F,  F
-};
-
 static void
 vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 {
@@ -165,7 +147,6 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 	foreign_class->suffs = vips__foreign_tiff_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
-	save_class->format_table = bandfmt_tiff;
 	save_class->coding[VIPS_CODING_LABQ] = TRUE;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
