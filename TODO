@@ -1,3 +1,9 @@
+- tiff save needs relaxing too
+
+	support all vips numeric formats, including complex and double comples
+
+	tiffsave.c and vips2tiff.c both need work
+
 - finish hist_ismonotonic()
 
 	needs im_conv()
