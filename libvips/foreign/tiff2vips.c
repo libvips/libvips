@@ -171,8 +171,8 @@
  */
 
 /* 
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -660,7 +660,8 @@ parse_greyscale( ReadTiff *rtiff, VipsImage *out )
 		return( -1 );
 
 	out->Bands = rtiff->samples_per_pixel; 
-	out->BandFmt = guess_format( rtiff ); 
+	if( (out->BandFmt = guess_format( rtiff )) == VIPS_FORMAT_NOTSET )
+		return( -1 ); 
 	out->Coding = VIPS_CODING_NONE; 
 
 	if( rtiff->bits_per_sample == 16 )
@@ -811,7 +812,8 @@ static int
 parse_copy( ReadTiff *rtiff, VipsImage *out )
 {
 	out->Bands = rtiff->samples_per_pixel; 
-	out->BandFmt = guess_format( rtiff ); 
+	if( (out->BandFmt = guess_format( rtiff )) == VIPS_FORMAT_NOTSET )
+		return( -1 ); 
 	out->Coding = VIPS_CODING_NONE; 
 
 	if( rtiff->samples_per_pixel >= 3 &&
@@ -965,6 +967,12 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	uint16 v;
 
 	TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_SAMPLEFORMAT, &v );
+
+	/* Some images have this set to void, bizarre.
+	 */
+	if( v == SAMPLEFORMAT_VOID )
+		v = SAMPLEFORMAT_UINT;
+
 	rtiff->sample_format = v;
 }
 
@@ -1006,6 +1014,17 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	 */
 	if( pick_reader( rtiff )( rtiff, out ) ) 
 		return( -1 ); 
+
+	/* Double check: in memcpy mode, the vips linesize should exactly
+	 * match the tiff line size.
+	 */
+	if( rtiff->memcpy &&
+		TIFFScanlineSize( rtiff->tiff ) != 
+			VIPS_IMAGE_SIZEOF_LINE( out ) ) {
+		vips_error( "tiff2vips", 
+			"%s", _( "unsupported tiff image type" ) );
+		return( -1 );
+	}
 
 	/* Read any ICC profile.
 	 */
