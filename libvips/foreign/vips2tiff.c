@@ -596,17 +596,6 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 
 	TIFFSetField( tif, TIFFTAG_SAMPLEFORMAT, format );
 
-	/* Double check: buffers should match in size. 
-	 */
-	if( tw->im->Coding != VIPS_CODING_LABQ &&
-		!tw->onebit &&
-		TIFFScanlineSize( tif ) != 
-			VIPS_IMAGE_SIZEOF_LINE( tw->im ) ) {
-		vips_error( "vips2tiff", 
-			"%s", _( "unsupported image format" ) );
-		return( -1 );
-	}
-
 	return( 0 );
 }
 
@@ -1096,6 +1085,22 @@ write_tif_tilewise( TiffWrite *tw )
 {
 	VipsImage *im = tw->im;
 
+	/* Double check: buffers should match in size, except for onebit and
+	 * labq modes.  
+	 */
+{
+	size_t vips_tile_size = 
+		VIPS_IMAGE_SIZEOF_PEL( im ) * tw->tilew * tw->tileh; 
+
+	if( tw->im->Coding != VIPS_CODING_LABQ &&
+		!tw->onebit &&
+		TIFFTileSize( tw->tif ) != vips_tile_size ) { 
+		vips_error( "vips2tiff", 
+			"%s", _( "unsupported image format" ) );
+		return( -1 );
+	}
+}
+
 	g_assert( !tw->tbuf );
 	if( !(tw->tbuf = vips_malloc( NULL, TIFFTileSize( tw->tif ) )) ) 
 		return( -1 );
@@ -1157,6 +1162,17 @@ static int
 write_tif_stripwise( TiffWrite *tw )
 {
 	g_assert( !tw->tbuf );
+
+	/* Double check: buffers should match in size, except for onebit and
+	 * labq modes.  
+	 */
+	if( tw->im->Coding != VIPS_CODING_LABQ &&
+		!tw->onebit &&
+		TIFFTileSize( tw->tif ) != VIPS_IMAGE_SIZEOF_LINE( tw->im ) ) { 
+		vips_error( "vips2tiff", 
+			"%s", _( "unsupported image format" ) );
+		return( -1 );
+	}
 
 	if( !(tw->tbuf = vips_malloc( NULL, TIFFScanlineSize( tw->tif ) )) ) 
 		return( -1 );
