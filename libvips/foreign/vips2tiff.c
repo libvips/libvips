@@ -133,6 +133,9 @@
  * 	  mode
  * 7/8/12
  * 	- be more cautious enabling YCbCr mode
+ * 24/9/13
+ * 	- support many more vips formats, eg. complex, 32-bit int, any number
+ * 	  of bands, etc., see the tiff loader
  */
 
 /*
@@ -452,6 +455,7 @@ static int
 write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 {
 	uint16 v[1];
+	int format; 
 
 	/* Output base header fields.
 	 */
@@ -550,14 +554,15 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 			 */
 			photometric = PHOTOMETRIC_SEPARATED;
 			TIFFSetField( tif, TIFFTAG_INKSET, INKSET_CMYK );
+			v[0] = EXTRASAMPLE_ASSOCALPHA;
+			TIFFSetField( tif, TIFFTAG_EXTRASAMPLES, 1, v );
 			break;
 
 		default:
-			g_assert( 0 );
-
-			/* Keep -Wall happy.
+			/* Who knows. Just call it RGB.
 			 */
-			return( 0 );
+			photometric = PHOTOMETRIC_RGB;
+			break; 
 		}
 
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, photometric );
@@ -577,10 +582,30 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 		TIFFSetField( tif, TIFFTAG_SUBFILETYPE, FILETYPE_REDUCEDIMAGE );
 	}
 
-	/* Sample format ... for float, we write IEEE.
+	/* Sample format.
 	 */
-	if( tw->im->BandFmt == VIPS_FORMAT_FLOAT )
-		TIFFSetField( tif, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP );
+	format = SAMPLEFORMAT_UINT;
+	if( vips_band_format_isuint( tw->im->BandFmt ) )
+		format = SAMPLEFORMAT_UINT;
+	else if( vips_band_format_isint( tw->im->BandFmt ) )
+		format = SAMPLEFORMAT_INT;
+	else if( vips_band_format_isfloat( tw->im->BandFmt ) )
+		format = SAMPLEFORMAT_IEEEFP;
+	else if( vips_band_format_iscomplex( tw->im->BandFmt ) )
+		format = SAMPLEFORMAT_COMPLEXIEEEFP;
+
+	TIFFSetField( tif, TIFFTAG_SAMPLEFORMAT, format );
+
+	/* Double check: buffers should match in size. 
+	 */
+	if( tw->im->Coding != VIPS_CODING_LABQ &&
+		!tw->onebit &&
+		TIFFScanlineSize( tif ) != 
+			VIPS_IMAGE_SIZEOF_LINE( tw->im ) ) {
+		vips_error( "vips2tiff", 
+			"%s", _( "unsupported image format" ) );
+		return( -1 );
+	}
 
 	return( 0 );
 }
@@ -1304,14 +1329,18 @@ make_tiff_write( VipsImage *im, const char *filename,
 
 	/* Only 1-bit-ize 8 bit mono images.
 	 */
-	if( tw->onebit ) {
-		if( im->Coding != VIPS_CODING_NONE || 
+	if( tw->onebit &&
+		(im->Coding != VIPS_CODING_NONE || 
 			im->BandFmt != VIPS_FORMAT_UCHAR ||
-			im->Bands != 1 ) 
-			tw->onebit = 0;
+			im->Bands != 1) ) {
+		vips_warn( "vips2tiff", 
+			"%s", _( "can only squash 1 band uchar images -- "
+				"disabling squash" ) );
+		tw->onebit = 0;
 	}
 
-	if( tw->onebit && tw->compression == COMPRESSION_JPEG ) {
+	if( tw->onebit && 
+		tw->compression == COMPRESSION_JPEG ) {
 		vips_warn( "vips2tiff", 
 			"%s", _( "can't have 1-bit JPEG -- disabling JPEG" ) );
 		tw->compression = COMPRESSION_NONE;
@@ -1499,23 +1528,6 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	 */
 	if( vips_check_coding_known( "vips2tiff", in ) )
 		return( -1 );
-	if( in->BandFmt != VIPS_FORMAT_UCHAR && 
-		!(in->BandFmt == VIPS_FORMAT_SHORT && 
-			in->Type == VIPS_INTERPRETATION_LABS) &&
-		in->BandFmt != VIPS_FORMAT_USHORT &&
-		in->BandFmt != VIPS_FORMAT_FLOAT ) {
-		vips_error( "vips2tiff", "%s", 
-			_( "unsigned 8-bit int, 16-bit int, "
-			"and 32-bit float only" ) );
-		return( -1 );
-	}
-	if( in->Coding == VIPS_CODING_NONE ) {
-		if( in->Bands < 1 || in->Bands > 5 ) {
-			vips_error( "vips2tiff", 
-				"%s", _( "1 to 5 bands only" ) );
-			return( -1 );
-		}
-	}
 
 	/* Make output image. If this is a pyramid, write the base image to
 	 * tmp/xx.tif rather than fred.tif.

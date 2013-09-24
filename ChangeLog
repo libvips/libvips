@@ -14,11 +14,11 @@
 - vipsthumbnail uses embedded jpg thumbnails if it can 
 - rename vips_diag() as vips_info(), add --vips-info flag
 - deprecate im_hsp()
-- support alpha for 8, 16 and 32-bit greyscale tiff images, thanks Robert
 - added vips_webpload(), vips_webpload_buffer(), vips_webpsave(),
   vips_webpsave_buffer(), vips_webpsave_mime()
 - tiff reader allows separate planes for strip read
-- tiff reader allows many more formats, eg. 32-bit int, complex, etc. 
+- tiff reader and writer allow many more formats, eg. 32-bit int, complex, etc. 
+- tiff reader and writer allow any number of bands
 - added vips_image_new_matrixv()
 - dzsave basename param now called filename, so you can use .dz as a
   destination (basename is still there but deprecated)
