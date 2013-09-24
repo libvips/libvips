@@ -1399,9 +1399,9 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 	save_class->format_table = bandfmt_dz;
 	save_class->coding[VIPS_CODING_LABQ] = TRUE;
 
-	VIPS_ARG_STRING( class, "basename", 1, 
-		_( "Base name" ),
-		_( "Base name to save to" ),
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignSaveDz, basename ),
 		NULL );
@@ -1468,6 +1468,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 	 */
 
 	VIPS_ARG_STRING( class, "dirname", 1, 
+		_( "Base name" ),
+		_( "Base name to save to" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED, 
+		G_STRUCT_OFFSET( VipsForeignSaveDz, basename ),
+		NULL );
+
+	VIPS_ARG_STRING( class, "basename", 1, 
 		_( "Base name" ),
 		_( "Base name to save to" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED, 

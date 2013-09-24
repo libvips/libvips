@@ -20,6 +20,8 @@
 - tiff reader allows separate planes for strip read
 - tiff reader allows many more formats, eg. 32-bit int, complex, etc. 
 - added vips_image_new_matrixv()
+- dzsave basename param now called filename, so you can use .dz as a
+  destination (basename is still there but deprecated)
 
 3/7/13 started 7.34.2
 - lower priority for Matlab load to reduce segvs from Mat_Open(), thanks
