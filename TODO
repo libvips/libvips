@@ -1,49 +1,9 @@
+
 - finish hist_ismonotonic()
 
 	needs im_conv()
 
 - do conv and morph quickly as simple wrappers over the vips7 operations
-
-- try:
-
-	$ vips extract_band 50310.svs x.tif[pyramid,tile,compression=jpeg,tile-width=256,tile-height=256] 0 --n 3
-	** VIPS:ERROR:buffer.c:216:vips_buffer_undone: assertion failed: (cache->thread == g_thread_self())
-	Aborted (core dumped)
-
-  not showing in 7.34, perhaps because asserts are off?
-
-  valgrind can trigger it:
-
-  $ valgrind --db-attach=yes vips extract_band 50310.svs
-  x.tif[pyramid,tile,compression=jpeg,tile-width=256,tile-height=256] 0 --n 3
-  --vips-concurrency=99 > log
-
-  arg though then fails to attach
-
-  does not show up in gdb
-
-  ref_count == 1, so it's not happening during unref
-
-  could be caused by vips__region_no_ownership() ? nope
-
-  it's caused by buffer_move(), which in turn is called by
-  vips_buffer_unref_ref() which in turn is called by vips_region_buffer()
-
-  vips_region_buffer() has region->thread == NULL in the crash case
-
-  that means we've not taken ownership
-
-  ooo crash shows up in gdb on work PC
-
-  vips_region_buffer() is being called from find_tile() in vips2tiff.c
-
-  vips_sink_tile() calls the work function from many threads with
-  start/gen/stop, so we have to be careful when moving regions between threads
-
-  find_tile() now tags regions as unowned after vips_region_buffer(), is that
-  enough? also, benchmark
-
-
 
 - with VIPS_ARRAY() etc., we could note the mem use on the object we alloc
   local to, might make for interesting stats
