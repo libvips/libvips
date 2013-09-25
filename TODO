@@ -2,6 +2,8 @@
 
 	needs im_conv()
 
+- do conv and morph quickly as simple wrappers over the vips7 operations
+
 - try:
 
 	$ vips extract_band 50310.svs x.tif[pyramid,tile,compression=jpeg,tile-width=256,tile-height=256] 0 --n 3
@@ -9,6 +11,39 @@
 	Aborted (core dumped)
 
   not showing in 7.34, perhaps because asserts are off?
+
+  valgrind can trigger it:
+
+  $ valgrind --db-attach=yes vips extract_band 50310.svs
+  x.tif[pyramid,tile,compression=jpeg,tile-width=256,tile-height=256] 0 --n 3
+  --vips-concurrency=99 > log
+
+  arg though then fails to attach
+
+  does not show up in gdb
+
+  ref_count == 1, so it's not happening during unref
+
+  could be caused by vips__region_no_ownership() ? nope
+
+  it's caused by buffer_move(), which in turn is called by
+  vips_buffer_unref_ref() which in turn is called by vips_region_buffer()
+
+  vips_region_buffer() has region->thread == NULL in the crash case
+
+  that means we've not taken ownership
+
+  so it's probably ->strip or ->copy in dzsave, since we don't pass ownership
+  in a strict manner
+
+  add take_ownership to dzsave and see if the ->NULL on the thread changes
+
+  vips_region_buffer() is called directly by dzsave ... could it be one of
+  those?
+
+
+
+
 
 - with VIPS_ARRAY() etc., we could note the mem use on the object we alloc
   local to, might make for interesting stats
