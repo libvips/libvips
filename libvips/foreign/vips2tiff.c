@@ -697,7 +697,7 @@ find_new_tile( PyramidLayer *layer )
 {
 	int i;
 
-	/* Exisiting buffer we have finished with? 
+	/* Existing buffer we have finished with? 
 	 */
 	for( i = 0; i < MAX_LAYER_BUFFER; i++ )
 		if( layer->tiles[i].bits == PYR_ALL ) 
@@ -710,7 +710,7 @@ find_new_tile( PyramidLayer *layer )
 			if( !(layer->tiles[i].tile = 
 				vips_region_new( layer->tw->im )) )
 				return( -1 );
-			vips__region_no_ownership( layer->tiles[i].tile );
+
 			return( i );
 		}
 
@@ -749,6 +749,7 @@ find_tile( PyramidLayer *layer, VipsRect *pos )
 		return( -1 );
 	if( vips_region_buffer( layer->tiles[i].tile, pos ) )
 		return( -1 );
+	vips__region_no_ownership( layer->tiles[i].tile );
 	layer->tiles[i].bits = PYR_NONE;
 
 	/* Do any quadrants of this tile fall entirely outside the image? 

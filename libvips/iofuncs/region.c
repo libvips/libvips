@@ -373,7 +373,8 @@ vips__region_take_ownership( VipsRegion *region )
 		 * Not sure if this will ever happen: if it does, we'll 
 		 * need to dup the buffer.
 		 */
-		g_assert( !region->buffer || region->buffer->ref_count == 1 );
+		g_assert( !region->buffer || 
+			region->buffer->ref_count == 1 );
 
 		region->thread = g_thread_self();
 	}

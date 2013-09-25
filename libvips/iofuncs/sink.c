@@ -338,11 +338,9 @@ vips_sink_base_progress( void *a )
  * Loops over an image. @generate is called for every pixel in the image, with
  * the @reg argument being a region of pixels for processing. 
  *
- * Each set of
- * pixels is @tile_width by @tile_height pixels (less at the image edges). 
- * This is handy for things like
- * writing a tiled TIFF image, where tiles have to be generated with a certain
- * size.
+ * Each set of pixels is @tile_width by @tile_height pixels (less at the 
+ * image edges). This is handy for things like writing a tiled TIFF image, 
+ * where tiles have to be generated with a certain size.
  *
  * See also: vips_sink(), vips_get_tile_size().
  *

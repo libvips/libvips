@@ -33,15 +33,15 @@
 
   that means we've not taken ownership
 
-  so it's probably ->strip or ->copy in dzsave, since we don't pass ownership
-  in a strict manner
+  ooo crash shows up in gdb on work PC
 
-  add take_ownership to dzsave and see if the ->NULL on the thread changes
+  vips_region_buffer() is being called from find_tile() in vips2tiff.c
 
-  vips_region_buffer() is called directly by dzsave ... could it be one of
-  those?
+  vips_sink_tile() calls the work function from many threads with
+  start/gen/stop, so we have to be careful when moving regions between threads
 
-
+  find_tile() now tags regions as unowned after vips_region_buffer(), is that
+  enough? also, benchmark
 
 
 
