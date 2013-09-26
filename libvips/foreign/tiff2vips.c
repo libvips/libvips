@@ -1018,12 +1018,22 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	/* Double check: in memcpy mode, the vips linesize should exactly
 	 * match the tiff line size.
 	 */
-	if( rtiff->memcpy &&
-		TIFFScanlineSize( rtiff->tiff ) != 
-			VIPS_IMAGE_SIZEOF_LINE( out ) ) {
-		vips_error( "tiff2vips", 
-			"%s", _( "unsupported tiff image type" ) );
-		return( -1 );
+	if( rtiff->memcpy ) {
+		size_t vips_line_size;
+
+		/* Lines are smaller in plane-separated mode.
+		 */
+		if( rtiff->separate )
+			vips_line_size = 
+				VIPS_IMAGE_SIZEOF_ELEMENT( out ) * width; 
+		else
+			vips_line_size = VIPS_IMAGE_SIZEOF_LINE( out );
+
+		if( TIFFScanlineSize( rtiff->tiff ) != vips_line_size ) { 
+			vips_error( "tiff2vips", 
+				"%s", _( "unsupported tiff image type" ) );
+			return( -1 );
+		}
 	}
 
 	/* Read any ICC profile.
