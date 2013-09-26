@@ -1015,27 +1015,6 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	if( pick_reader( rtiff )( rtiff, out ) ) 
 		return( -1 ); 
 
-	/* Double check: in memcpy mode, the vips linesize should exactly
-	 * match the tiff line size.
-	 */
-	if( rtiff->memcpy ) {
-		size_t vips_line_size;
-
-		/* Lines are smaller in plane-separated mode.
-		 */
-		if( rtiff->separate )
-			vips_line_size = 
-				VIPS_IMAGE_SIZEOF_ELEMENT( out ) * width; 
-		else
-			vips_line_size = VIPS_IMAGE_SIZEOF_LINE( out );
-
-		if( TIFFScanlineSize( rtiff->tiff ) != vips_line_size ) { 
-			vips_error( "tiff2vips", 
-				"%s", _( "unsupported tiff image type" ) );
-			return( -1 );
-		}
-	}
-
 	/* Read any ICC profile.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
@@ -1223,6 +1202,22 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 	 */
 	if( parse_header( rtiff, raw ) )
 		return( -1 );
+
+	/* Double check: in memcpy mode, the vips tilesize should exactly
+	 * match the tifftile size.
+	 */
+	if( rtiff->memcpy ) {
+		size_t vips_tile_size;
+
+		vips_tile_size = VIPS_IMAGE_SIZEOF_PEL( raw ) * 
+			rtiff->twidth * rtiff->theight; 
+
+		if( TIFFTileSize( rtiff->tiff ) != vips_tile_size ) { 
+			vips_error( "tiff2vips", 
+				"%s", _( "unsupported tiff image type" ) );
+			return( -1 );
+		}
+	}
 
 	/* Even though this is a tiled reader, we hint thinstrip since with
 	 * the cache we are quite happy serving that if anything downstream 
@@ -1430,6 +1425,27 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	printf( "read_stripwise: number_of_strips = %d\n", 
 		rtiff->number_of_strips );
 #endif /*DEBUG*/
+
+	/* Double check: in memcpy mode, the vips linesize should exactly
+	 * match the tiff line size.
+	 */
+	if( rtiff->memcpy ) {
+		size_t vips_line_size;
+
+		/* Lines are smaller in plane-separated mode.
+		 */
+		if( rtiff->separate )
+			vips_line_size = VIPS_IMAGE_SIZEOF_ELEMENT( t[0] ) * 
+				t[0]->Xsize; 
+		else
+			vips_line_size = VIPS_IMAGE_SIZEOF_LINE( t[0] );
+
+		if( rtiff->scanline_size != vips_line_size ) { 
+			vips_error( "tiff2vips", 
+				"%s", _( "unsupported tiff image type" ) );
+			return( -1 );
+		}
+	}
 
 	/* If we have separate image planes, we must read to a plane buffer,
 	 * then interleave to the output.
