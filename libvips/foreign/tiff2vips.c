@@ -442,7 +442,7 @@ guess_format( ReadTiff *rtiff )
 		break;
 	}
 
-	vips_error( "tiff2vips", "%s", _( "unsupported image format\n" ) ); 
+	vips_error( "tiff2vips", "%s", _( "unsupported tiff image type\n" ) ); 
 
 	return( VIPS_FORMAT_NOTSET ); 
 }
@@ -1031,6 +1031,19 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
+/* The size of the buffer written by TIFFReadTile(). We can't use 
+ * TIFFTileSize() since that ignores the setting of TIFFTAG_JPEGCOLORMODE. If
+ * this pseudo tag has been set and the tile is encoded with YCbCr, the tile
+ * is returned with chrominance upsampled. 
+ *
+ * This seems not to happen for old-style jpeg-compressed tiles. 
+ */
+static size_t
+tiff_tile_size( ReadTiff *rtiff )
+{
+	return( TIFFTileRowSize( rtiff->tiff ) * rtiff->theight );
+}
+
 /* Allocate a tile buffer. Have one of these for each thread so we can unpack
  * to vips in parallel.
  */
@@ -1041,7 +1054,7 @@ tiff_seq_start( VipsImage *out, void *a, void *b )
 	tsize_t size;
 	tdata_t *buf;
 
-	size = TIFFTileSize( rtiff->tiff );
+	size = tiff_tile_size( rtiff );
 	if( !(buf = vips_malloc( NULL, size )) )
 		return( NULL );
 
@@ -1096,7 +1109,7 @@ tiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 
 	/* Sizeof a line of bytes in the TIFF tile.
 	 */
-	int tls = TIFFTileSize( rtiff->tiff ) / rtiff->theight;
+	int tls = tiff_tile_size( rtiff ) / rtiff->theight;
 
 	/* Sizeof a pel in the TIFF file. This won't work for formats which
 	 * are <1 byte per pel, like onebit :-( Fortunately, it's only used
@@ -1212,7 +1225,7 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 		vips_tile_size = VIPS_IMAGE_SIZEOF_PEL( raw ) * 
 			rtiff->twidth * rtiff->theight; 
 
-		if( TIFFTileSize( rtiff->tiff ) != vips_tile_size ) { 
+		if( tiff_tile_size( rtiff ) != vips_tile_size ) { 
 			vips_error( "tiff2vips", 
 				"%s", _( "unsupported tiff image type" ) );
 			return( -1 );

@@ -1,5 +1,3 @@
-- assert fail with john.tif
-
 - finish hist_ismonotonic()
 
 	needs im_conv()
