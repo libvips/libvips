@@ -26,6 +26,24 @@ vips_foreign_flags_get_type( void )
 	return( etype );
 }
 GType
+vips_foreign_access_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FOREIGN_ACCESS_RANDOM, "VIPS_FOREIGN_ACCESS_RANDOM", "random"},
+			{VIPS_FOREIGN_ACCESS_SEQUENTIAL, "VIPS_FOREIGN_ACCESS_SEQUENTIAL", "sequential"},
+			{VIPS_FOREIGN_ACCESS_SEQUENTIAL_UNBUFFERED, "VIPS_FOREIGN_ACCESS_SEQUENTIAL_UNBUFFERED", "sequential-unbuffered"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsForeignAccess", values );
+	}
+
+	return( etype );
+}
+GType
 vips_saveable_get_type( void )
 {
 	static GType etype = 0;

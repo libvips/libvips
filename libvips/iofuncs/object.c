@@ -1535,7 +1535,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 		 */
 		if( flags & VIPS_OPERATION_SEQUENTIAL ) {
 			if( vips_foreign_load_options( value, &out, 
-				"sequential", TRUE,
+				"access", VIPS_FOREIGN_ACCESS_SEQUENTIAL,
 				NULL ) )
 				return( -1 );
 		}

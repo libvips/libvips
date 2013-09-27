@@ -110,6 +110,12 @@ typedef enum /*< flags >*/ {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_FOREIGN_LOAD, VipsForeignLoadClass ))
 
+typedef enum {
+	VIPS_FOREIGN_ACCESS_RANDOM,
+	VIPS_FOREIGN_ACCESS_SEQUENTIAL,
+	VIPS_FOREIGN_ACCESS_SEQUENTIAL_UNBUFFERED
+} VipsForeignAccess;
+
 typedef struct _VipsForeignLoad {
 	VipsForeign parent_object;
 	/*< private >*/
@@ -118,14 +124,17 @@ typedef struct _VipsForeignLoad {
 	 */
 	gboolean disc;
 
-	/* Setting this means "I promise to only read sequentially from this
-	 * image". 
+	/* Type of access the reader requires. 
 	 */
-	gboolean sequential;
+	VipsForeignAccess access;
 
 	/* Flags for this load operation.
 	 */
 	VipsForeignFlags flags;
+
+	/* Deprecated and unused, just here for compat.
+	 */
+	gboolean sequential;
 
 	/*< public >*/
 

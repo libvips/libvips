@@ -9,6 +9,8 @@ G_BEGIN_DECLS
 /* enumerations from "../../../libvips/include/vips/foreign.h" */
 GType vips_foreign_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_FLAGS (vips_foreign_flags_get_type())
+GType vips_foreign_access_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_FOREIGN_ACCESS (vips_foreign_access_get_type())
 GType vips_saveable_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_SAVEABLE (vips_saveable_get_type())
 GType vips_foreign_tiff_compression_get_type (void) G_GNUC_CONST;

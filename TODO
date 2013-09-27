@@ -1,3 +1,49 @@
+
+- need a new uncached mode for open via disc
+
+	currently we have a huge linecache for "vips copy x.png x.v", in
+	effect what vips does for open-via-disc, and therefore see >100mb ram
+	use even in open-via-disc mode
+
+	add SEQUENTIAL_UNBUFFERED?
+
+	could we spot from the demand style? they do almost the same thing,
+	though one is static and one dynamic, I guess
+
+
+  vips_object_set_argument_from_string() looks at the operation class and 
+  sets ("sequential", TRUE) for image arguments
+
+  the "seq" arg needs to be an enum with various settings
+
+  	"access", 
+		RANDOM, SEQUENTIAL, SEQUENTIAL_UNBUFFERED
+
+
+
+
+  todo:
+
+  add a new operation flag, try setting it on vips_copy(), pass the flag down
+  to "access"
+
+  in foreign/*.c, evey place that uses vips_sequential() needs to be passed a
+  copy of "access"
+
+  when it calls vips_sequential(), it needs to set an access hint
+
+  vips_sequential() needs to pass this down to vips_linecache()
+
+  vips_linecache_build() needs to use this to adjust the setting of
+  max_tiles
+
+
+
+
+
+
+
+
 - finish hist_ismonotonic()
 
 	needs im_conv()
@@ -21,17 +67,6 @@
 
   could we add something to check that the two calls agree on the image lists?
   I think they should
-
-- need a new uncached mode for open via disc
-
-	currently we have a huge linecache for "vips copy x.png x.v", in
-	effect what vips does for open-via-disc, and therefore see >100mb ram
-	use even in open-via-disc mode
-
-	add SEQUENTIAL_UNBUFFERED?
-
-	could we spot from the demand style? they do almost the same thing,
-	though one is static and one dynamic, I guess
 
 - support multiscan jpeg write? see
 
