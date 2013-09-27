@@ -539,16 +539,18 @@ onebit_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 	int black = 
 		rtiff->photometric_interpretation == PHOTOMETRIC_MINISBLACK ?
 		0 : 255;
-	int white = black ^ -1;
+	int white = black ^ 0xff;
 
 	/* (sigh) how many times have I written this?
 	 */
-	for( x = 0, i = 0; i < (n >> 3); i++ ) {
+	x = 0; 
+	for( i = 0; i < (n >> 3); i++ ) {
 		bits = (VipsPel) p[i];
 
-		for( z = 0; z < 8; z++, x++ ) {
+		for( z = 0; z < 8; z++ ) {
 			q[x] = (bits & 128) ? white : black;
 			bits <<= 1;
+			x += 1;
 		}
 	}
 
@@ -1372,20 +1374,19 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 		if( !rtiff->memcpy ) {
 			int height = VIPS_MIN( VIPS_MIN( rtiff->rows_per_strip,
 				or->im->Ysize - (r->top + y) ), r->height );
-			int bytes_per_line = (rtiff->bits_per_sample >> 3) * 
-				rtiff->samples_per_pixel *
-				or->im->Xsize; 
 
+			VipsPel *p;
+			VipsPel *q;
 			int z;
 
+			p = rtiff->contig_buf;
+			q = VIPS_REGION_ADDR( or, 0, r->top + y );
 			for( z = 0; z < height; z++ ) { 
-				VipsPel *p = rtiff->contig_buf + 
-					z * bytes_per_line;
-				VipsPel *q = VIPS_REGION_ADDR( or, 
-					0, r->top + y + z );
-
 				rtiff->sfn( rtiff, 
 					q, p, or->im->Xsize, rtiff->client );
+
+				p += rtiff->scanline_size;
+				q += VIPS_REGION_LSKIP( or ); 
 			}
 		}
 	}
@@ -1423,8 +1424,8 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	rtiff->strip_size = TIFFStripSize( rtiff->tiff );
 	rtiff->number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
 
-	/* rows_per_strip can be 2**32-1, meaning the whole image. Clip this
-	 * down to ysize to avoid confusing vips. 
+	/* rows_per_strip can be 2 ** 32 - 1, meaning the whole image. Clip 
+	 * this down to ysize to avoid confusing vips. 
 	 */
 	rtiff->rows_per_strip = VIPS_MIN( rtiff->rows_per_strip, t[0]->Ysize );
 
