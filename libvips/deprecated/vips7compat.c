@@ -3770,7 +3770,7 @@ im_tile_cache( IMAGE *in, IMAGE *out,
 		"tile_width", tile_width, 
 		"tile_height", tile_height, 
 		"max_tiles", max_tiles, 
-		"strategy", VIPS_CACHE_SEQUENTIAL,
+		"access", VIPS_ACCESS_SEQUENTIAL,
 		"threaded", TRUE, 
 		NULL ) )
 		return( -1 );

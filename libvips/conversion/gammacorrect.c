@@ -105,7 +105,7 @@ vips_gammacorrect_class_init( VipsGammacorrectClass *class )
 	vobject_class->description = _( "gammacorrect a pair of images" );
 	vobject_class->build = vips_gammacorrect_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "in", -1, 
 		_( "in" ), 

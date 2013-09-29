@@ -1519,6 +1519,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
 		VipsImage *out;
 		VipsOperationFlags flags;
+		VipsAccess access;
 
 		flags = 0;
 		if( VIPS_IS_OPERATION( object ) )
@@ -1533,17 +1534,17 @@ vips_object_set_argument_from_string( VipsObject *object,
 		/* Read the filename. vips_foreign_load_options()
 		 * handles embedded options.
 		 */
-		if( flags & VIPS_OPERATION_SEQUENTIAL ) {
-			if( vips_foreign_load_options( value, &out, 
-				"access", VIPS_FOREIGN_ACCESS_SEQUENTIAL,
-				NULL ) )
-				return( -1 );
-		}
-		else {
-			if( vips_foreign_load_options( value, &out, 
-				NULL ) )
-				return( -1 );
-		}
+		if( flags & VIPS_OPERATION_SEQUENTIAL_UNBUFFERED ) 
+			access = VIPS_ACCESS_SEQUENTIAL_UNBUFFERED;
+		else if( flags & VIPS_OPERATION_SEQUENTIAL ) 
+			access = VIPS_ACCESS_SEQUENTIAL;
+		else
+			access = VIPS_ACCESS_RANDOM; 
+
+		if( vips_foreign_load_options( value, &out, 
+			"access", access,
+			NULL ) )
+			return( -1 );
 
 		g_value_init( &gvalue, VIPS_TYPE_IMAGE );
 		g_value_set_object( &gvalue, out );

@@ -37,25 +37,11 @@ extern "C" {
 
 #include <vips/vips.h>
 
-/** 
- * VipsOperationFlags:
- * @VIPS_OPERATION_NONE: no flags
- * @VIPS_OPERATION_SEQUENTIAL: can work sequentially
- * @VIPS_OPERATION_NOCACHE: must not be cached
- *
- * Flags we associate with an operation.
- *
- * @VIPS_OPERATION_SEQUENTIAL means that the operation works like vips_copy:
- * it can happily process images top-to-bottom with only small non-local
- * references.
- *
- * @VIPS_OPERATION_NOCACHE means that the operation must not be cached by
- * vips. 
- */
 typedef enum /*< flags >*/ {
 	VIPS_OPERATION_NONE = 0,
 	VIPS_OPERATION_SEQUENTIAL = 1,
-	VIPS_OPERATION_NOCACHE = 2
+	VIPS_OPERATION_SEQUENTIAL_UNBUFFERED = 2,
+	VIPS_OPERATION_NOCACHE = 3
 } VipsOperationFlags;
 
 #define VIPS_TYPE_OPERATION (vips_operation_get_type())

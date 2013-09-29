@@ -135,26 +135,6 @@
  * need to swap bytes. See vips_copy().
  */
 
-/** 
- * VipsForeignAccess:
- * @VIPS_FOREIGN_ACCESS_RANDOM: can read anywhere
- * @VIPS_FOREIGN_ACCESS_SEQUENTIAL: top-to-bottom reading only, but with a small buffer
- * @VIPS_FOREIGN_ACCESS_SEQUENTIAL_UNBUFFERED: top-to-bottom reading only
- *
- * Set this flag on a loader to indicate the type of access you need. 
- *
- * @VIPS_FOREIGN_ACCESS_RANDOM means you require full random access to the 
- * image. This is usually the most expensive type of access to provide. 
- *
- * @VIPS_FOREIGN_ACCESS_SEQUENTIAL means you only need need top-to-bottom 
- * reading, but you need a smll buffer (a few hundred scanlines) behind the 
- * read point. 
- *
- * @VIPS_FOREIGN_ACCESS_SEQUENTIAL_UNBUFFERED means you only need 
- * top-to-bottom access. This is usually the cheapest type of access to 
- * provide. 
- */
-
 /**
  * VipsForeignClass:
  *
@@ -705,7 +685,7 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 	 * directly.
 	 */
 	if( (load->flags & VIPS_FOREIGN_SEQUENTIAL) && 
-		load->access != VIPS_FOREIGN_ACCESS_RANDOM ) {
+		load->access != VIPS_ACCESS_RANDOM ) {
 #ifdef DEBUG
 		printf( "vips_foreign_load_temp: partial sequential temp\n" );
 #endif /*DEBUG*/
@@ -961,7 +941,7 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		_( "Required access pattern for this file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoad, access ),
-		VIPS_TYPE_FOREIGN_ACCESS, VIPS_FOREIGN_ACCESS_RANDOM ); 
+		VIPS_TYPE_ACCESS, VIPS_ACCESS_RANDOM ); 
 
 	VIPS_ARG_BOOL( class, "sequential", 10, 
 		_( "Sequential" ), 
@@ -976,7 +956,7 @@ static void
 vips_foreign_load_init( VipsForeignLoad *load )
 {
 	load->disc = TRUE;
-	load->access = VIPS_FOREIGN_ACCESS_RANDOM;
+	load->access = VIPS_ACCESS_RANDOM;
 }
 
 /* Abstract base class for image savers.

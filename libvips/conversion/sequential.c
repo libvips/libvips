@@ -76,6 +76,7 @@ typedef struct _VipsSequential {
 
 	VipsImage *in;
 	int tile_height;
+	VipsAccess access;
 	gboolean trace;
 
 	/* Lock access to y_pos with this, use the cond to wake up stalled
@@ -266,7 +267,7 @@ vips_sequential_build( VipsObject *object )
 
 	if( vips_linecache( sequential->in, &t, 
 		"tile_height", sequential->tile_height,
-		"strategy", VIPS_CACHE_SEQUENTIAL,
+		"access", sequential->access,
 		NULL ) )
 		return( -1 );
 
@@ -319,12 +320,20 @@ vips_sequential_class_init( VipsSequentialClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSequential, tile_height ),
 		1, 1000000, 1 );
+
+	VIPS_ARG_ENUM( class, "access", 6, 
+		_( "Strategy" ), 
+		_( "Expected access pattern" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsSequential, access ),
+		VIPS_TYPE_ACCESS, VIPS_ACCESS_SEQUENTIAL );
 }
 
 static void
 vips_sequential_init( VipsSequential *sequential )
 {
 	sequential->trace = FALSE;
+	sequential->access = VIPS_ACCESS_SEQUENTIAL;
 	sequential->lock = vips_g_mutex_new();
 	sequential->ready = vips_g_cond_new();
 	sequential->tile_height = 1;
@@ -341,6 +350,7 @@ vips_sequential_init( VipsSequential *sequential )
  *
  * @trace: trace requests
  * @strip_height: height of cache strips
+ * @access: access pattern
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it checks that pixels are only requested
@@ -356,6 +366,9 @@ vips_sequential_init( VipsSequential *sequential )
  *
  * @strip_height can be used to set the size of the tiles that
  * vips_sequential() uses. The default value is 1.
+ *
+ * @access can be set to #VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, meaning don't
+ * keep a large cache behind the read point. This can save some memory. 
  *
  * See also: vips_image_cache().
  *

@@ -9,8 +9,6 @@ G_BEGIN_DECLS
 /* enumerations from "../../../libvips/include/vips/foreign.h" */
 GType vips_foreign_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_FLAGS (vips_foreign_flags_get_type())
-GType vips_foreign_access_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_FOREIGN_ACCESS (vips_foreign_access_get_type())
 GType vips_saveable_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_SAVEABLE (vips_saveable_get_type())
 GType vips_foreign_tiff_compression_get_type (void) G_GNUC_CONST;
@@ -49,8 +47,6 @@ GType vips_align_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_ALIGN (vips_align_get_type())
 GType vips_angle_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_ANGLE (vips_angle_get_type())
-GType vips_cache_strategy_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_CACHE_STRATEGY (vips_cache_strategy_get_type())
 /* enumerations from "../../../libvips/include/vips/util.h" */
 GType vips_token_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_TOKEN (vips_token_get_type())
@@ -65,6 +61,8 @@ GType vips_band_format_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_BAND_FORMAT (vips_band_format_get_type())
 GType vips_coding_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_CODING (vips_coding_get_type())
+GType vips_access_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_ACCESS (vips_access_get_type())
 /* enumerations from "../../../libvips/include/vips/colour.h" */
 GType vips_intent_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_INTENT (vips_intent_get_type())

@@ -81,6 +81,132 @@
  */
 
 /** 
+ * VipsAccess:
+ * @VIPS_ACCESS_RANDOM: can read anywhere
+ * @VIPS_ACCESS_SEQUENTIAL: top-to-bottom reading only, but with a small buffer
+ * @VIPS_ACCESS_SEQUENTIAL_UNBUFFERED: top-to-bottom reading only
+ *
+ * The type of access an operation has to supply. See vips_tilecache()
+ * and #VipsForeign. 
+ *
+ * @VIPS_ACCESS_RANDOM means requests can come in any order. 
+ *
+ * @VIPS_ACCESS_SEQUENTIAL means requests will be top-to-bottom, but with some
+ * amount of buffering behind the read point for small non-local accesses. 
+ *
+ * @VIPS_ACCESS_SEQUENTIAL_UNBUFFERED means requests will be strictly
+ * top-to-bottom with no read-behind. This can save some memory. 
+ */
+
+/** 
+ * VipsDemandStyle:
+ * @VIPS_DEMAND_STYLE_SMALLTILE: demand in small (typically 64x64 pixel) tiles
+ * @VIPS_DEMAND_STYLE_FATSTRIP: demand in fat (typically 10 pixel high) strips
+ * @VIPS_DEMAND_STYLE_THINSTRIP: demand in thin (typically 1 pixel high) strips
+ * @VIPS_DEMAND_STYLE_ANY: demand geometry does not matter
+ *
+ * See vips_demand_hint(). Operations can hint to the VIPS image IO system about
+ * the kind of demand geometry they prefer. 
+ *
+ * These demand styles are given below in order of increasing
+ * restrictiveness.  When demanding output from a pipeline, 
+ * vips_image_generate()
+ * will use the most restrictive of the styles requested by the operations 
+ * in the pipeline.
+ *
+ * #VIPS_DEMAND_STYLE_THINSTRIP --- This operation would like to output strips 
+ * the width of the image and a few pels high. This is option suitable for 
+ * point-to-point operations, such as those in the arithmetic package.
+ *
+ * This option is only efficient for cases where each output pel depends 
+ * upon the pel in the corresponding position in the input image.
+ *
+ * #VIPS_DEMAND_STYLE_FATSTRIP --- This operation would like to output strips 
+ * the width of the image and as high as possible. This option is suitable 
+ * for area operations which do not violently transform coordinates, such 
+ * as im_conv(). 
+ *
+ * #VIPS_DEMAND_STYLE_SMALLTILE --- This is the most general demand format.
+ * Output is demanded in small (around 100x100 pel) sections. This style works 
+ * reasonably efficiently, even for bizzare operations like 45 degree rotate.
+ *
+ * #VIPS_DEMAND_STYLE_ANY --- This image is not being demand-read from a disc 
+ * file (even indirectly) so any demand style is OK. It's used for things like
+ * im_black() where the pixels are calculated.
+ *
+ * See also: vips_demand_hint().
+ */
+
+/**
+ * VipsInterpretation: 
+ * @VIPS_INTERPRETATION_MULTIBAND: generic many-band image
+ * @VIPS_INTERPRETATION_B_W: some kind of single-band image
+ * @VIPS_INTERPRETATION_HISTOGRAM: a 1D image, eg. histogram or lookup table
+ * @VIPS_INTERPRETATION_FOURIER: image is in fourier space
+ * @VIPS_INTERPRETATION_XYZ: the first three bands are CIE XYZ 
+ * @VIPS_INTERPRETATION_LAB: pixels are in CIE Lab space
+ * @VIPS_INTERPRETATION_CMYK: the first four bands are in CMYK space
+ * @VIPS_INTERPRETATION_LABQ: implies #VIPS_CODING_LABQ
+ * @VIPS_INTERPRETATION_RGB: generic RGB space
+ * @VIPS_INTERPRETATION_CMC: a uniform colourspace based on CMC(1:1)
+ * @VIPS_INTERPRETATION_LCH: pixels are in CIE LCh space
+ * @VIPS_INTERPRETATION_LABS: CIE LAB coded as three signed 16-bit values
+ * @VIPS_INTERPRETATION_sRGB: pixels are sRGB
+ * @VIPS_INTERPRETATION_scRGB: pixels are scRGB
+ * @VIPS_INTERPRETATION_YXY: pixels are CIE Yxy
+ * @VIPS_INTERPRETATION_RGB16: generic 16-bit RGB
+ * @VIPS_INTERPRETATION_GREY16: generic 16-bit mono
+ * @VIPS_INTERPRETATION_MATRIX: a matrix
+ *
+ * How the values in an image should be interpreted. For example, a
+ * three-band float image of type #VIPS_INTERPRETATION_LAB should have its 
+ * pixels interpreted as coordinates in CIE Lab space.
+ *
+ * These values are set by operations as hints to user-interfaces built on top 
+ * of VIPS to help them show images to the user in a meaningful way. 
+ * Operations do not use these values to decide their action.
+ *
+ * The gaps in the numbering are historical and must be maintained. Allocate 
+ * new numbers from the end.
+ */
+
+/**
+ * VipsBandFormat: 
+ * @VIPS_FORMAT_NOTSET: invalid setting
+ * @VIPS_FORMAT_UCHAR: unsigned char format
+ * @VIPS_FORMAT_CHAR: char format
+ * @VIPS_FORMAT_USHORT: unsigned short format
+ * @VIPS_FORMAT_SHORT: short format
+ * @VIPS_FORMAT_UINT: unsigned int format
+ * @VIPS_FORMAT_INT: int format
+ * @VIPS_FORMAT_FLOAT: float format
+ * @VIPS_FORMAT_COMPLEX: complex (two floats) format
+ * @VIPS_FORMAT_DOUBLE: double float format
+ * @VIPS_FORMAT_DPCOMPLEX: double complex (two double) format
+ *
+ * The format used for each band element. 
+ *
+ * Each corresponnds to a native C type for the current machine. For example,
+ * #VIPS_FORMAT_USHORT is <type>unsigned short</type>.
+ */
+
+/**
+ * VipsCoding: 
+ * @VIPS_CODING_NONE: pixels are not coded
+ * @VIPS_CODING_LABQ: pixels encode 3 float CIELAB values as 4 uchar
+ * @VIPS_CODING_RAD: pixels encode 3 float RGB as 4 uchar (Radiance coding)
+ *
+ * How pixels are coded. 
+ *
+ * Normally, pixels are uncoded and can be manipulated as you would expect.
+ * However some file formats code pixels for compression, and sometimes it's
+ * useful to be able to manipulate images in the coded format.
+ *
+ * The gaps in the numbering are historical and must be maintained. Allocate 
+ * new numbers from the end.
+ */
+
+/** 
  * VipsProgress:
  * @run: Time we have been running 
  * @eta: Estimated seconds of computation left 

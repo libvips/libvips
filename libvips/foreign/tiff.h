@@ -49,7 +49,8 @@ int vips__tiff_write( VipsImage *in, const char *filename,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff );
 
-int vips__tiff_read( const char *filename, VipsImage *out, int page );
+int vips__tiff_read( const char *filename, VipsImage *out, int page, 
+	gboolean readbehind );
 int vips__tiff_read_header( const char *filename, VipsImage *out, int page );
 gboolean vips__istifftiled( const char *filename );
 gboolean vips__istiff( const char *filename );

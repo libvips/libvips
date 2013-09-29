@@ -26,24 +26,6 @@ vips_foreign_flags_get_type( void )
 	return( etype );
 }
 GType
-vips_foreign_access_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_FOREIGN_ACCESS_RANDOM, "VIPS_FOREIGN_ACCESS_RANDOM", "random"},
-			{VIPS_FOREIGN_ACCESS_SEQUENTIAL, "VIPS_FOREIGN_ACCESS_SEQUENTIAL", "sequential"},
-			{VIPS_FOREIGN_ACCESS_SEQUENTIAL_UNBUFFERED, "VIPS_FOREIGN_ACCESS_SEQUENTIAL_UNBUFFERED", "sequential-unbuffered"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsForeignAccess", values );
-	}
-
-	return( etype );
-}
-GType
 vips_saveable_get_type( void )
 {
 	static GType etype = 0;
@@ -237,24 +219,6 @@ vips_angle_get_type( void )
 		};
 		
 		etype = g_enum_register_static( "VipsAngle", values );
-	}
-
-	return( etype );
-}
-GType
-vips_cache_strategy_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_CACHE_RANDOM, "VIPS_CACHE_RANDOM", "random"},
-			{VIPS_CACHE_SEQUENTIAL, "VIPS_CACHE_SEQUENTIAL", "sequential"},
-			{VIPS_CACHE_LAST, "VIPS_CACHE_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsCacheStrategy", values );
 	}
 
 	return( etype );
@@ -567,6 +531,25 @@ vips_coding_get_type( void )
 
 	return( etype );
 }
+GType
+vips_access_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_ACCESS_RANDOM, "VIPS_ACCESS_RANDOM", "random"},
+			{VIPS_ACCESS_SEQUENTIAL, "VIPS_ACCESS_SEQUENTIAL", "sequential"},
+			{VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, "VIPS_ACCESS_SEQUENTIAL_UNBUFFERED", "sequential-unbuffered"},
+			{VIPS_ACCESS_LAST, "VIPS_ACCESS_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsAccess", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/operation.h" */
 GType
 vips_operation_flags_get_type( void )
@@ -577,6 +560,7 @@ vips_operation_flags_get_type( void )
 		static const GFlagsValue values[] = {
 			{VIPS_OPERATION_NONE, "VIPS_OPERATION_NONE", "none"},
 			{VIPS_OPERATION_SEQUENTIAL, "VIPS_OPERATION_SEQUENTIAL", "sequential"},
+			{VIPS_OPERATION_SEQUENTIAL_UNBUFFERED, "VIPS_OPERATION_SEQUENTIAL_UNBUFFERED", "sequential-unbuffered"},
 			{VIPS_OPERATION_NOCACHE, "VIPS_OPERATION_NOCACHE", "nocache"},
 			{0, NULL, NULL}
 		};

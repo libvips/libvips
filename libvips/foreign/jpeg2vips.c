@@ -144,6 +144,10 @@ typedef struct _ReadJpeg {
 	 */
 	gboolean fail;
 
+	/* Use a read behind buffer.
+	 */
+	gboolean readbehind; 
+
 	/* Used for file input only.
 	 */
 	char *filename;
@@ -208,7 +212,7 @@ readjpeg_close( VipsObject *object, ReadJpeg *jpeg )
 }
 
 static ReadJpeg *
-readjpeg_new( VipsImage *out, int shrink, gboolean fail )
+readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean readbehind )
 {
 	ReadJpeg *jpeg;
 
@@ -218,6 +222,7 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail )
 	jpeg->out = out;
 	jpeg->shrink = shrink;
 	jpeg->fail = fail;
+	jpeg->readbehind = readbehind;
 	jpeg->filename = NULL;
 	jpeg->decompressing = FALSE;
 
@@ -959,6 +964,9 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 		jpeg, NULL ) ||
 		vips_sequential( t[0], &t[1], 
 			"tile_height", 8,
+			"access", jpeg->readbehind ? 
+				VIPS_ACCESS_SEQUENTIAL : 
+				VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 			NULL ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
@@ -970,12 +978,12 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
  */
 int
 vips__jpeg_read_file( const char *filename, VipsImage *out, 
-	gboolean header_only, int shrink, gboolean fail )
+	gboolean header_only, int shrink, gboolean fail, gboolean readbehind )
 {
 	ReadJpeg *jpeg;
 	int result;
 
-	if( !(jpeg = readjpeg_new( out, shrink, fail )) )
+	if( !(jpeg = readjpeg_new( out, shrink, fail, readbehind )) )
 		return( -1 );
 
 	/* Here for longjmp() from vips__new_error_exit() during startup.
@@ -1189,12 +1197,12 @@ readjpeg_buffer (ReadJpeg *jpeg, void *buf, size_t len)
 
 int
 vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out, 
-	gboolean header_only, int shrink, int fail )
+	gboolean header_only, int shrink, int fail, gboolean readbehind )
 {
 	ReadJpeg *jpeg;
 	int result;
 
-	if( !(jpeg = readjpeg_new( out, shrink, fail )) )
+	if( !(jpeg = readjpeg_new( out, shrink, fail, readbehind )) )
 		return( -1 );
 
 	if( setjmp( jpeg->eman.jmp ) ) {

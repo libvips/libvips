@@ -206,10 +206,8 @@ typedef struct _ReadTiff {
 	 */
 	char *filename;
 	VipsImage *out;
-
-	/* From filename.
-	 */
 	int page;
+	gboolean readbehind; 
 
 	/* The TIFF we read.
 	 */
@@ -1497,6 +1495,9 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 			rtiff, NULL ) ||
 		vips_sequential( t[0], &t[1], 
 			"tile_height", rtiff->rows_per_strip,
+			"access", rtiff->readbehind ? 
+				VIPS_ACCESS_SEQUENTIAL : 
+				VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 			NULL ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
@@ -1511,7 +1512,8 @@ readtiff_destroy( VipsObject *object, ReadTiff *rtiff )
 }
 
 static ReadTiff *
-readtiff_new( const char *filename, VipsImage *out, int page )
+readtiff_new( const char *filename, VipsImage *out, int page, 
+	gboolean readbehind )
 {
 	ReadTiff *rtiff;
 
@@ -1521,6 +1523,7 @@ readtiff_new( const char *filename, VipsImage *out, int page )
 	rtiff->filename = vips_strdup( VIPS_OBJECT( out ), filename );
 	rtiff->out = out;
 	rtiff->page = page;
+	rtiff->readbehind = readbehind;
 	rtiff->tiff = NULL;
 	rtiff->sfn = NULL;
 	rtiff->client = NULL;
@@ -1594,7 +1597,8 @@ istiffpyramid( const char *name )
  */
 
 int
-vips__tiff_read( const char *filename, VipsImage *out, int page )
+vips__tiff_read( const char *filename, VipsImage *out, int page, 
+	gboolean readbehind )
 {
 	ReadTiff *rtiff;
 
@@ -1605,7 +1609,7 @@ vips__tiff_read( const char *filename, VipsImage *out, int page )
 
 	vips__tiff_init();
 
-	if( !(rtiff = readtiff_new( filename, out, page )) )
+	if( !(rtiff = readtiff_new( filename, out, page, readbehind )) )
 		return( -1 );
 
 	if( !(rtiff->tiff = get_directory( rtiff->filename, rtiff->page )) ) {
@@ -1633,7 +1637,7 @@ vips__tiff_read_header( const char *filename, VipsImage *out, int page )
 
 	vips__tiff_init();
 
-	if( !(rtiff = readtiff_new( filename, out, page )) )
+	if( !(rtiff = readtiff_new( filename, out, page, FALSE )) )
 		return( -1 );
 
 	if( !(rtiff->tiff = get_directory( rtiff->filename, rtiff->page )) ) {

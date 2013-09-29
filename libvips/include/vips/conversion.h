@@ -38,39 +38,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-/** 
- * VipsExtend:
- * @VIPS_EXTEND_BLACK: extend with black (all 0) pixels
- * @VIPS_EXTEND_COPY: copy the image edges
- * @VIPS_EXTEND_REPEAT: repeat the whole image
- * @VIPS_EXTEND_MIRROR: mirror the whole image
- * @VIPS_EXTEND_WHITE: extend with white (all bits set) pixels
- * @VIPS_EXTEND_BACKGROUND: extend with colour from the @background property
- *
- * See vips_embed(), vips_conv(), vips_affine() and so on.
- *
- * When the edges of an image are extended, you can specify
- * how you want the extension done. 
- *
- * #VIPS_EXTEND_BLACK --- new pixels are black, ie. all bits are zero. 
- *
- * #VIPS_EXTEND_COPY --- each new pixel takes the value of the nearest edge
- * pixel
- *
- * #VIPS_EXTEND_REPEAT --- the image is tiled to fill the new area
- *
- * #VIPS_EXTEND_MIRROR --- the image is reflected and tiled to reduce hash
- * edges
- *
- * #VIPS_EXTEND_WHITE --- new pixels are white, ie. all bits are set
-
- * #VIPS_EXTEND_BACKGROUND --- colour set from the @background property
- *
- * We have to specify the exact value of each enum member since we have to 
- * keep these frozen for back compat with vips7.
- *
- * See also: vips_embed().
- */
 typedef enum {
 	VIPS_EXTEND_BLACK,
 	VIPS_EXTEND_COPY,
@@ -81,39 +48,12 @@ typedef enum {
 	VIPS_EXTEND_LAST
 } VipsExtend;
 
-/** 
- * VipsDirection:
- * @VIPS_DIRECTION_HORIZONTAL: left-right 
- * @VIPS_DIRECTION_VERTICAL: top-bottom
- *
- * See vips_flip(), vips_join() and so on.
- *
- * Operations like vips_flip() need to be told whether to flip left-right or
- * top-bottom. 
- *
- * See also: vips_flip(), vips_join().
- */
 typedef enum {
 	VIPS_DIRECTION_HORIZONTAL,
 	VIPS_DIRECTION_VERTICAL,
 	VIPS_DIRECTION_LAST
 } VipsDirection;
 
-/** 
- * VipsAlign:
- * @VIPS_ALIGN_LOW: align low coordinate edge
- * @VIPS_ALIGN_CENTRE: align centre
- * @VIPS_ALIGN_HIGH: align high coordinate edge
- *
- * See vips_join() and so on.
- *
- * Operations like vips_join() need to be told whether to align images on the
- * low or high coordinate edge, or centre.
- *
- *
- *
- * See also: vips_join().
- */
 typedef enum {
 	VIPS_ALIGN_LOW,
 	VIPS_ALIGN_CENTRE,
@@ -121,19 +61,6 @@ typedef enum {
 	VIPS_ALIGN_LAST
 } VipsAlign;
 
-/** 
- * VipsAngle:
- * @VIPS_ANGLE_0: no rotate
- * @VIPS_ANGLE_90: 90 degrees anti-clockwise
- * @VIPS_ANGLE_180: 180 degree rotate
- * @VIPS_ANGLE_270: 90 degrees clockwise
- *
- * See vips_rot() and so on.
- *
- * Fixed rotate angles.
- *
- * See also: vips_rot().
- */
 typedef enum {
 	VIPS_ANGLE_0,
 	VIPS_ANGLE_90,
@@ -141,24 +68,6 @@ typedef enum {
 	VIPS_ANGLE_270,
 	VIPS_ANGLE_LAST
 } VipsAngle;
-
-/** 
- * VipsCacheStrategy:
- * @VIPS_CACHE_RANDOM: expect random access
- * @VIPS_CACHE_SEQUENTIAL: expect sequential access
- *
- * See vips_tilecache() and friends.
- *
- * Used to hint to caches about the expected access pattern. RANDOM might mean
- * LRU eviction, SEQUENTIAL might mean top-most eviction.
- *
- * See also: vips_tilecache().
- */
-typedef enum {
-	VIPS_CACHE_RANDOM,
-	VIPS_CACHE_SEQUENTIAL,
-	VIPS_CACHE_LAST
-} VipsCacheStrategy;
 
 int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));

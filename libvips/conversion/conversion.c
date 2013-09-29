@@ -69,6 +69,81 @@
  *
  */
 
+/** 
+ * VipsAlign:
+ * @VIPS_ALIGN_LOW: align low coordinate edge
+ * @VIPS_ALIGN_CENTRE: align centre
+ * @VIPS_ALIGN_HIGH: align high coordinate edge
+ *
+ * See vips_join() and so on.
+ *
+ * Operations like vips_join() need to be told whether to align images on the
+ * low or high coordinate edge, or centre.
+ *
+ * See also: vips_join().
+ */
+
+/** 
+ * VipsAngle:
+ * @VIPS_ANGLE_0: no rotate
+ * @VIPS_ANGLE_90: 90 degrees anti-clockwise
+ * @VIPS_ANGLE_180: 180 degree rotate
+ * @VIPS_ANGLE_270: 90 degrees clockwise
+ *
+ * See vips_rot() and so on.
+ *
+ * Fixed rotate angles.
+ *
+ * See also: vips_rot().
+ */
+
+/** 
+ * VipsExtend:
+ * @VIPS_EXTEND_BLACK: extend with black (all 0) pixels
+ * @VIPS_EXTEND_COPY: copy the image edges
+ * @VIPS_EXTEND_REPEAT: repeat the whole image
+ * @VIPS_EXTEND_MIRROR: mirror the whole image
+ * @VIPS_EXTEND_WHITE: extend with white (all bits set) pixels
+ * @VIPS_EXTEND_BACKGROUND: extend with colour from the @background property
+ *
+ * See vips_embed(), vips_conv(), vips_affine() and so on.
+ *
+ * When the edges of an image are extended, you can specify
+ * how you want the extension done. 
+ *
+ * #VIPS_EXTEND_BLACK --- new pixels are black, ie. all bits are zero. 
+ *
+ * #VIPS_EXTEND_COPY --- each new pixel takes the value of the nearest edge
+ * pixel
+ *
+ * #VIPS_EXTEND_REPEAT --- the image is tiled to fill the new area
+ *
+ * #VIPS_EXTEND_MIRROR --- the image is reflected and tiled to reduce hash
+ * edges
+ *
+ * #VIPS_EXTEND_WHITE --- new pixels are white, ie. all bits are set
+ *
+ * #VIPS_EXTEND_BACKGROUND --- colour set from the @background property
+ *
+ * We have to specify the exact value of each enum member since we have to 
+ * keep these frozen for back compat with vips7.
+ *
+ * See also: vips_embed().
+ */
+
+/** 
+ * VipsDirection:
+ * @VIPS_DIRECTION_HORIZONTAL: left-right 
+ * @VIPS_DIRECTION_VERTICAL: top-bottom
+ *
+ * See vips_flip(), vips_join() and so on.
+ *
+ * Operations like vips_flip() need to be told whether to flip left-right or
+ * top-bottom. 
+ *
+ * See also: vips_flip(), vips_join().
+ */
+
 G_DEFINE_ABSTRACT_TYPE( VipsConversion, vips_conversion, VIPS_TYPE_OPERATION );
 
 static int

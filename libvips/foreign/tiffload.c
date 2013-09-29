@@ -108,7 +108,8 @@ vips_foreign_load_tiff_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 
-	if( vips__tiff_read( tiff->filename, load->real, tiff->page ) )
+	if( vips__tiff_read( tiff->filename, load->real, tiff->page, 
+		load->access == VIPS_ACCESS_SEQUENTIAL ) )
 		return( -1 );
 
 	return( 0 );

@@ -1,4 +1,4 @@
-/* im_msb
+/* vips_msb()
  *
  * Copyright: 2006, The Nottingham Trent University
  *
@@ -239,7 +239,7 @@ vips_msb_class_init( VipsMsbClass *class )
 		_( "pick most-significant byte from an image" );
 	vobject_class->build = vips_msb_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 

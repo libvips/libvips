@@ -65,6 +65,26 @@
  *
  */
 
+/** 
+ * VipsOperationFlags:
+ * @VIPS_OPERATION_NONE: no flags
+ * @VIPS_OPERATION_SEQUENTIAL: can work sequentially
+ * @VIPS_OPERATION_NOCACHE: must not be cached
+ *
+ * Flags we associate with an operation.
+ *
+ * @VIPS_OPERATION_SEQUENTIAL means that the operation works like vips_conv():
+ * it can happily process images top-to-bottom with only small non-local
+ * references.
+ *
+ * @VIPS_OPERATION_SEQUENTIAL_UNBUFFERED means that the operation works like 
+ * vips_copy(): it can happily process images top-to-bottom and makes no 
+ * non-local references. 
+ *
+ * @VIPS_OPERATION_NOCACHE means that the operation must not be cached by
+ * vips. 
+ */
+
 /* Abstract base class for operations.
  */
 

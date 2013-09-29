@@ -110,12 +110,6 @@ typedef enum /*< flags >*/ {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_FOREIGN_LOAD, VipsForeignLoadClass ))
 
-typedef enum {
-	VIPS_FOREIGN_ACCESS_RANDOM,
-	VIPS_FOREIGN_ACCESS_SEQUENTIAL,
-	VIPS_FOREIGN_ACCESS_SEQUENTIAL_UNBUFFERED
-} VipsForeignAccess;
-
 typedef struct _VipsForeignLoad {
 	VipsForeign parent_object;
 	/*< private >*/
@@ -124,9 +118,9 @@ typedef struct _VipsForeignLoad {
 	 */
 	gboolean disc;
 
-	/* Type of access the reader requires. 
+	/* Type of access upstream wants and the loader must supply. 
 	 */
-	VipsForeignAccess access;
+	VipsAccess access;
 
 	/* Flags for this load operation.
 	 */

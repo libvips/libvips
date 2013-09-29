@@ -371,7 +371,7 @@ vips_flatten_class_init( VipsFlattenClass *class )
 	vobject_class->description = _( "flatten alpha out of an image" );
 	vobject_class->build = vips_flatten_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

@@ -471,7 +471,7 @@ vips_ifthenelse_class_init( VipsIfthenelseClass *class )
 	vobject_class->description = _( "ifthenelse an image" );
 	vobject_class->build = vips_ifthenelse_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "cond", -2, 
 		_( "Condition" ), 
