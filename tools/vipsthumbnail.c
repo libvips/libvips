@@ -350,7 +350,7 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 		"tile_width", in->Xsize,
 		"tile_height", 10,
 		"max_tiles", (nlines * 2) / 10,
-		"strategy", VIPS_CACHE_SEQUENTIAL,
+		"strategy", VIPS_ACCESS_SEQUENTIAL,
 		"threaded", TRUE, 
 		NULL ) ||
 		vips_affine( t[4], &t[5], residual, 0, 0, residual, NULL, 
