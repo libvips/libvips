@@ -54,9 +54,9 @@ void vips__new_output_message( j_common_ptr cinfo );
 void vips__new_error_exit( j_common_ptr cinfo );
 
 int vips__jpeg_write_file( VipsImage *in, 
-	const char *filename, int Q, const char *profile );
+	const char *filename, int Q, const char *profile, gboolean optimize_coding );
 int vips__jpeg_write_buffer( VipsImage *in, 
-	void **obuf, size_t *olen, int Q, const char *profile );
+	void **obuf, size_t *olen, int Q, const char *profile, gboolean optimize_coding );
 
 int vips__isjpeg( const char *filename );
 int vips__jpeg_read_file( const char *name, VipsImage *out, 

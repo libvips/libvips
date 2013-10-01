@@ -847,7 +847,7 @@ write_jpeg_block( REGION *region, Rect *area, void *a )
 /* Write a VIPS image to a JPEG compress struct.
  */
 static int
-write_vips( Write *write, int qfac, const char *profile )
+write_vips( Write *write, int qfac, const char *profile, gboolean optimize_coding )
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -900,6 +900,10 @@ write_vips( Write *write, int qfac, const char *profile )
         jpeg_set_defaults( &write->cinfo );
         jpeg_set_quality( &write->cinfo, qfac, TRUE );
 
+ 	/* Compute optimal Huffman coding tables.
+	 */
+	write->cinfo.optimize_coding = optimize_coding;
+
 	/* Build compress tables.
 	 */
 	jpeg_start_compress( &write->cinfo, TRUE );
@@ -942,7 +946,7 @@ write_vips( Write *write, int qfac, const char *profile )
  */
 int
 vips__jpeg_write_file( VipsImage *in, 
-	const char *filename, int Q, const char *profile )
+	const char *filename, int Q, const char *profile, gboolean optimize_coding )
 {
 	Write *write;
 
@@ -972,7 +976,7 @@ vips__jpeg_write_file( VipsImage *in,
 
 	/* Convert!
 	 */
-	if( write_vips( write, Q, profile ) ) {
+	if( write_vips( write, Q, profile, optimize_coding ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
@@ -1218,7 +1222,7 @@ buf_dest( j_compress_ptr cinfo, void **obuf, size_t *olen )
 
 int
 vips__jpeg_write_buffer( VipsImage *in, 
-	void **obuf, size_t *olen, int Q, const char *profile )
+	void **obuf, size_t *olen, int Q, const char *profile, gboolean optimize_coding )
 {
 	Write *write;
 
@@ -1247,7 +1251,7 @@ vips__jpeg_write_buffer( VipsImage *in,
 
 	/* Convert!
 	 */
-	if( write_vips( write, Q, profile ) ) {
+	if( write_vips( write, Q, profile, optimize_coding ) ) {
 		write_destroy( write );
 
 		return( -1 );
