@@ -1169,7 +1169,8 @@ write_tif_stripwise( TiffWrite *tw )
 	 */
 	if( tw->im->Coding != VIPS_CODING_LABQ &&
 		!tw->onebit &&
-		TIFFTileSize( tw->tif ) != VIPS_IMAGE_SIZEOF_LINE( tw->im ) ) { 
+		TIFFScanlineSize( tw->tif ) != 
+			VIPS_IMAGE_SIZEOF_LINE( tw->im ) ) { 
 		vips_error( "vips2tiff", 
 			"%s", _( "unsupported image format" ) );
 		return( -1 );
