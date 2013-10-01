@@ -837,6 +837,13 @@ vips_foreign_load_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	if( load->sequential ) {
+		vips_warn( class->nickname, "%s", 
+			_( "ignoring deprecated \"sequential\" mode" ) ); 
+		vips_warn( class->nickname, "%s", 
+			_( "please use \"access\" instead" ) ); 
+	}
+
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
 	vips_image_set_string( load->out, 

@@ -261,7 +261,7 @@ thumbnail_open( VipsObject *thumbnail, const char *filename )
 				jpegshrink ); 
 
 			if( vips_foreign_load( filename, &im,
-				"sequential", TRUE,
+				"access", VIPS_ACCESS_SEQUENTIAL,
 				"shrink", jpegshrink,
 				NULL ) )
 				return( NULL );
@@ -271,7 +271,7 @@ thumbnail_open( VipsObject *thumbnail, const char *filename )
 		/* All other formats.
 		 */
 		if( vips_foreign_load( filename, &im,
-			"sequential", TRUE,
+			"access", VIPS_ACCESS_SEQUENTIAL,
 			NULL ) )
 			return( NULL );
 	}
