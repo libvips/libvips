@@ -39,17 +39,6 @@
 
 #include <vips/vips.h>
 
-/** 
- * SECTION: convolution
- * @short_description: convolve and correlate images
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These operations convolve an image in some way, or are operations based on
- * simple convolution, or are useful with convolution.
- *
- */
-
 /* One image in, one out.
  */
 static im_arg_desc one_in_one_out[] = {

@@ -550,6 +550,26 @@ vips_access_get_type( void )
 
 	return( etype );
 }
+/* enumerations from "../../libvips/include/vips/colour.h" */
+GType
+vips_intent_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_INTENT_PERCEPTUAL, "VIPS_INTENT_PERCEPTUAL", "perceptual"},
+			{VIPS_INTENT_RELATIVE, "VIPS_INTENT_RELATIVE", "relative"},
+			{VIPS_INTENT_SATURATION, "VIPS_INTENT_SATURATION", "saturation"},
+			{VIPS_INTENT_ABSOLUTE, "VIPS_INTENT_ABSOLUTE", "absolute"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsIntent", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/operation.h" */
 GType
 vips_operation_flags_get_type( void )
@@ -570,22 +590,21 @@ vips_operation_flags_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/colour.h" */
+/* enumerations from "../../libvips/include/vips/convolution.h" */
 GType
-vips_intent_get_type( void )
+vips_precision_get_type( void )
 {
 	static GType etype = 0;
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
-			{VIPS_INTENT_PERCEPTUAL, "VIPS_INTENT_PERCEPTUAL", "perceptual"},
-			{VIPS_INTENT_RELATIVE, "VIPS_INTENT_RELATIVE", "relative"},
-			{VIPS_INTENT_SATURATION, "VIPS_INTENT_SATURATION", "saturation"},
-			{VIPS_INTENT_ABSOLUTE, "VIPS_INTENT_ABSOLUTE", "absolute"},
+			{VIPS_PRECISION_INTEGER, "VIPS_PRECISION_INTEGER", "integer"},
+			{VIPS_PRECISION_FLOAT, "VIPS_PRECISION_FLOAT", "float"},
+			{VIPS_PRECISION_APPROXIMATE, "VIPS_PRECISION_APPROXIMATE", "approximate"},
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsIntent", values );
+		etype = g_enum_register_static( "VipsPrecision", values );
 	}
 
 	return( etype );

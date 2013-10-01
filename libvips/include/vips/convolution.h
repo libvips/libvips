@@ -38,6 +38,21 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+typedef enum {
+	VIPS_PRECISION_INTEGER,
+	VIPS_PRECISION_FLOAT,
+	VIPS_PRECISION_APPROXIMATE
+} VipsPrecision;
+
+int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
+
+void vips_convolution_operation_init( void );
+
+
+
+
+
 int im_aconvsep( VipsImage *in, VipsImage *out, 
 	DOUBLEMASK *mask, int n_layers );
 int im_aconv( VipsImage *in, VipsImage *out, 

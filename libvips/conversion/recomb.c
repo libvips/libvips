@@ -1,5 +1,4 @@
-/* recomb.c ... pass an image though a matrix
- *
+/* recomb.c ... pass an image though a matrix *
  * 21/6/95 JC
  *	- mildly modernised
  * 14/3/96 JC

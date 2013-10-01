@@ -1,3 +1,7 @@
+- why is memuse so high?
+
+	$ vips shrink wtc.png x.v 230 230
+	memory: high-water mark 322.13 MB
 
 - finish hist_ismonotonic()
 

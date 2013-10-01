@@ -23,6 +23,7 @@
 - dzsave basename param now called filename, so you can use .dz as a
   destination (basename is still there but deprecated)
 - new _UNBUFFERED sequential mode saves memory in some important cases
+- start vips_conv() as a simple wrapper over the old convolution functions
 
 3/7/13 started 7.34.2
 - lower priority for Matlab load to reduce segvs from Mat_Open(), thanks

@@ -1,8 +1,4 @@
 /* base class for all histogram operations
- *
- * properties:
- * 	- one input image
- * 	- one output image
  */
 
 /*
