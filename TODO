@@ -10,6 +10,9 @@
 
   does vips_malloc() used the tracked mem system?
 
+- do much fancier profiling with timing on all locks saved in memory and
+  dumped on exit
+
 - use the webp advanced encoding api to set a write function for webp save to
   file
 
