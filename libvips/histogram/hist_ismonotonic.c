@@ -144,7 +144,7 @@ vips_hist_ismonotonic_init( VipsHistIsmonotonic *ismonotonic )
  * Returns: 0 on success, -1 on error
  */
 int 
-vips_hist_ismonotonic( VipsImage *in, int *monotonic, ... )
+vips_hist_ismonotonic( VipsImage *in, gboolean *monotonic, ... )
 {
 	va_list ap;
 	int result;

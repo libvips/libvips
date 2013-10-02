@@ -40,6 +40,10 @@ extern "C" {
 
 int vips_maplut( VipsImage *in, VipsImage **out, VipsImage *lut, ... )
 	__attribute__((sentinel));
+int vips_percent( VipsImage *in, double percent, int *threshold, ... )
+	__attribute__((sentinel));
+int vips_stdif( VipsImage *in, VipsImage **out, int width, int height, ... )
+	__attribute__((sentinel));
 int vips_hist_cum( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_hist_norm( VipsImage *in, VipsImage **out, ... )
@@ -53,11 +57,7 @@ int vips_hist_match( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 int vips_hist_local( VipsImage *in, VipsImage **out, 
 	int width, int height, ... )
 	__attribute__((sentinel));
-int vips_hist_percent( VipsImage *in, double percent, int *threshold, ... )
-	__attribute__((sentinel));
-int vips_stdif( VipsImage *in, VipsImage **out, int width, int height, ... )
-	__attribute__((sentinel));
-int vips_hist_ismonotonic( VipsImage *in, int *monotonic, ... )
+int vips_hist_ismonotonic( VipsImage *in, gboolean *monotonic, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus
