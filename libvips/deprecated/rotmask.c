@@ -132,30 +132,6 @@ im_offsets45( int size )
 	return( pnt );
 }
 
-/* Creates the offsets to rotate any mask by 90 degrees.
- */
-int *
-im_offsets90( int size )
-{
-	int temp;
-	int x, y, k;
-	int *offsets;
-
-	if( !(offsets = IM_ARRAY( NULL, size * size, int )) )
-		return( NULL );
-
-	for( k = 0, y = 0; y < size; y++ ) {
-		temp = size * (size - 1) + y;
-
-		for( x = 0; x < size; x++, k++ ) {
-			offsets[k] = temp;
-			temp -= size;
-		}
-	}
-
-	return( offsets );
-}
-
 /**
  * im_rotate_dmask45:
  * @in: input matrix 
