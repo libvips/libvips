@@ -54,28 +54,28 @@
 
 #include <vips/vips.h>
 
-typedef struct _VipsHistPercent { 
+typedef struct _VipsPercent { 
 	VipsOperation parent_instance;
 
 	VipsImage *in;
 	double percent;
 	int threshold;
 
-} VipsHistPercent;
+} VipsPercent;
 
-typedef VipsOperationClass VipsHistPercentClass;
+typedef VipsOperationClass VipsPercentClass;
 
-G_DEFINE_TYPE( VipsHistPercent, vips_hist_percent, VIPS_TYPE_OPERATION );
+G_DEFINE_TYPE( VipsPercent, vips_percent, VIPS_TYPE_OPERATION );
 
 static int
-vips_hist_percent_build( VipsObject *object )
+vips_percent_build( VipsObject *object )
 {
-	VipsHistPercent *percent = (VipsHistPercent *) object; 
+	VipsPercent *percent = (VipsPercent *) object; 
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
 
 	double threshold;
 
-	if( VIPS_OBJECT_CLASS( vips_hist_percent_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_percent_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -94,7 +94,7 @@ vips_hist_percent_build( VipsObject *object )
 }
 
 static void
-vips_hist_percent_class_init( VipsHistPercentClass *class )
+vips_percent_class_init( VipsPercentClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -102,34 +102,34 @@ vips_hist_percent_class_init( VipsHistPercentClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "hist_percent";
+	object_class->nickname = "percent";
 	object_class->description = _( "find threshold for percent of pixels" );
-	object_class->build = vips_hist_percent_build;
+	object_class->build = vips_percent_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsHistPercent, in ) );
+		G_STRUCT_OFFSET( VipsPercent, in ) );
 
 	VIPS_ARG_DOUBLE( class, "percent", 2, 
 		_( "Percent" ), 
-		_( "percent of pixels" ),
+		_( "Percent of pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsHistPercent, percent ),
+		G_STRUCT_OFFSET( VipsPercent, percent ),
 		0, 100, 50 );
 
 	VIPS_ARG_INT( class, "threshold", 3, 
-		_( "threshold" ), 
-		_( "threshold above which lie percent of pixels" ),
+		_( "Threshold" ), 
+		_( "Threshold above which lie percent of pixels" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsHistPercent, threshold ),
+		G_STRUCT_OFFSET( VipsPercent, threshold ),
 		0, 65535, 0 );
 
 }
 
 static void
-vips_hist_percent_init( VipsHistPercent *percent )
+vips_percent_init( VipsPercent *percent )
 {
 }
 
@@ -141,7 +141,7 @@ vips_hist_percent_init( VipsHistPercent *percent )
  * @...: %NULL-terminated list of optional named arguments
  *
  * vips_percent() returns (through the @threshold parameter) the threshold 
- * above which there are @percent values of @in. If for example percent=.1, the
+ * above which there are @percent values of @in. If for example percent=10, the
  * number of pels of the input image with values greater than @threshold
  * will correspond to 10% of all pels of the image.
  *
@@ -153,13 +153,13 @@ vips_hist_percent_init( VipsHistPercent *percent )
  * Returns: 0 on success, -1 on error
  */
 int 
-vips_hist_percent( VipsImage *in, double percent, int *threshold, ... )
+vips_percent( VipsImage *in, double percent, int *threshold, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, threshold );
-	result = vips_call_split( "hist_percent", ap, in, percent, threshold );
+	result = vips_call_split( "percent", ap, in, percent, threshold );
 	va_end( ap );
 
 	return( result );

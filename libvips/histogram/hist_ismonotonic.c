@@ -58,7 +58,7 @@ typedef struct _VipsHistIsmonotonic {
 
 	VipsImage *in;
 
-	int *monotonic;
+	gboolean monotonic;
 } VipsHistIsmonotonic;
 
 typedef VipsOperationClass VipsHistIsmonotonicClass;
@@ -73,6 +73,8 @@ vips_hist_ismonotonic_build( VipsObject *object )
 	VipsHistIsmonotonic *ismonotonic = (VipsHistIsmonotonic *) object; 
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
+	double m; 
+
 	if( VIPS_OBJECT_CLASS( vips_hist_ismonotonic_parent_class )->
 		build( object ) )
 		return( -1 );
@@ -81,19 +83,19 @@ vips_hist_ismonotonic_build( VipsObject *object )
 		return( -1 );
 
 	if( ismonotonic->in->Xsize == 1 ) 
-		t[0] = vips_image_new_matrixv( 1, 2, -1, 1 );
+		t[0] = vips_image_new_matrixv( 1, 2, -1.0, 1.0 );
 	else 
-		t[0] = vips_image_new_matrixv( 2, 1, -1, 1 );
+		t[0] = vips_image_new_matrixv( 2, 1, -1.0, 1.0 );
         vips_image_set_double( t[0], "offset", 128 );
 
 	/* We want >=128 everywhere, ie. no -ve transitions.
 	 */
-	if( im_conv( lut, t[0], mask ) ||
-		im_moreeqconst( t[0], t[1], 128 ) ||
-		im_min( t[1], &m ) )
+	if( vips_conv( ismonotonic->in, &t[1], t[0], NULL ) ||
+		vips_moreeq_const1( t[1], &t[2], 128, NULL ) ||
+		vips_min( t[2], &m, NULL ) )
 		return( -1 );
 
-	*out = m;
+	g_object_set( ismonotonic, "monotonic", (int) m == 255, NULL ); 
 
 	return( 0 );
 }
@@ -113,16 +115,16 @@ vips_hist_ismonotonic_class_init( VipsHistIsmonotonicClass *class )
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
-		_( "Input image" ),
+		_( "Input histogram image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistIsmonotonic, in ) );
 
-	VIPS_ARG_INT( class, "monotonic", 2, 
+	VIPS_ARG_BOOL( class, "monotonic", 2, 
 		_( "Monotonic" ), 
-		_( "non-zero if in is monotonic" ),
+		_( "true if in is monotonic" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsHistIsmonotonic, monotonic ),
-		0, 1, 0 );
+		FALSE ); 
 
 }
 
@@ -132,7 +134,7 @@ vips_hist_ismonotonic_init( VipsHistIsmonotonic *ismonotonic )
 }
 
 /**
- * vips_ismonotonic:
+ * vips_hist_ismonotonic:
  * @in: lookup-table to test
  * @out: set non-zero if @in is monotonic 
  * @...: %NULL-terminated list of optional named arguments

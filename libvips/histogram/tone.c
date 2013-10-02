@@ -54,48 +54,6 @@
 #include <vips/vips.h>
 
 /**
- * im_ismonotonic:
- * @lut: lookup-table to test
- * @out: set non-zero if @lut is monotonic 
- *
- * Test @lut for monotonicity. @out is set non-zero if @lut is monotonic.
- *
- * See also: im_tone_build_range().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-im_ismonotonic( IMAGE *lut, int *out )
-{
-	IMAGE *t[2];
-	INTMASK *mask;
-	double m;
-
-	if( im_check_hist( "im_ismonotonic", lut ) ||
-		im_open_local_array( lut, t, 2, "im_ismonotonic", "p" ) )
-		return( -1 );
-
-	if( lut->Xsize == 1 ) 
-		mask = im_create_imaskv( "im_ismonotonic", 1, 2, -1, 1 );
-	else 
-		mask = im_create_imaskv( "im_ismonotonic", 2, 1, -1, 1 );
-	if( !(mask = im_local_imask( lut, mask )) )
-		return( -1 );
-	mask->offset = 128;
-
-	/* We want >=128 everywhere, ie. no -ve transitions.
-	 */
-	if( im_conv( lut, t[0], mask ) ||
-		im_moreeqconst( t[0], t[1], 128 ) ||
-		im_min( t[1], &m ) )
-		return( -1 );
-
-	*out = m;
-
-	return( 0 );
-}
-
-/**
  * im_tone_map:
  * @in: input image
  * @out: output image

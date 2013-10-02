@@ -3397,6 +3397,19 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 	return( 0 );
 }
 
+int
+im_ismonotonic( IMAGE *lut, int *out )
+{
+	gboolean monotonic;
+
+	if( vips_hist_ismonotonic( lut, &monotonic, NULL ) )
+		return( -1 );
+
+	*out = monotonic ? 255 : 0; 
+
+	return( 0 );
+}
+
 int 
 im_histcum( IMAGE *in, IMAGE *out )
 {

@@ -12,7 +12,8 @@ libhistogram_la_SOURCES = \
 	hist_plot.c \
 	hist_match.c \
 	hist_local.c \
-	hist_percent.c \
+	percent.c \
+	hist_ismonotonic.c \
 	stdif.c \
 	\
 	tone.c

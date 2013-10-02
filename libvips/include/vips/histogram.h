@@ -57,8 +57,8 @@ int vips_hist_percent( VipsImage *in, double percent, int *threshold, ... )
 	__attribute__((sentinel));
 int vips_stdif( VipsImage *in, VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
-
-int im_ismonotonic( VipsImage *lut, int *out );
+int vips_hist_ismonotonic( VipsImage *in, int *monotonic, ... )
+	__attribute__((sentinel));
 
 int im_tone_analyse( VipsImage *in, VipsImage *out,
 	double Ps, double Pm, double Ph, double S, double M, double H );

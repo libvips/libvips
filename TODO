@@ -3,10 +3,6 @@
 	$ vips shrink wtc.png x.v 230 230
 	memory: high-water mark 322.13 MB
 
-- finish hist_ismonotonic()
-
-	needs im_conv()
-
 - do conv and morph quickly as simple wrappers over the vips7 operations
 
 - with VIPS_ARRAY() etc., we could note the mem use on the object we alloc

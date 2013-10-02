@@ -879,6 +879,7 @@ int im_stdif( VipsImage *in, VipsImage *out,
 	double a, double m0, double b, double s0, int xwin, int ywin );
 int im_mpercent( VipsImage *in, double percent, int *out );
 int im_mpercent_hist( VipsImage *hist, double percent, int *out );
+int im_ismonotonic( VipsImage *lut, int *out );
 
 /* Not really correct, but who uses these.
  */
