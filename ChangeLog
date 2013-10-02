@@ -27,6 +27,7 @@
 - new optimize_coding param for jpeg write produces optimal Huffman tables,
   thanks Lovell 
 - im_tone_map() and im_tone_analyse() deprecated
+- new --band arg to vips_maplut() replaces im_tone_map() functionality
 
 3/7/13 started 7.34.2
 - lower priority for Matlab load to reduce segvs from Mat_Open(), thanks
