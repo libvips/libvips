@@ -1232,6 +1232,9 @@ vips_object_real_dump( VipsObject *object, VipsBuf *buf )
 {
 	vips_buf_appendf( buf, " %s (%p)", 
 		G_OBJECT_TYPE_NAME( object ), object );
+
+	if( object->local_memory )
+		vips_buf_appendf( buf, " %zd bytes", object->local_memory ); 
 }
 
 static void
@@ -2448,8 +2451,11 @@ vips_object_print_all_cb( VipsObject *object, int *n )
 	char str[32768];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
-	fprintf( stderr, "%d) %s (%p)\n", 
+	fprintf( stderr, "%d) %s (%p)", 
 		*n, G_OBJECT_TYPE_NAME( object ), object );
+	if( object->local_memory )
+		fprintf( stderr, " %zd bytes", object->local_memory ); 
+	fprintf( stderr, "\n" ); 
 
 	vips_object_summary_class( class, &buf );
 	vips_buf_appends( &buf, " " );

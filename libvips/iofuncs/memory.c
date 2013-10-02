@@ -150,9 +150,11 @@ vips_malloc( VipsObject *object, size_t size )
 
 	buf = g_malloc( size );
 
-        if( object )
+        if( object ) {
 		g_signal_connect( object, "postclose", 
 			G_CALLBACK( vips_malloc_cb ), buf );
+		object->local_memory += size;
+	}
 
 	return( buf );
 }
@@ -179,9 +181,11 @@ vips_strdup( VipsObject *object, const char *str )
 
 	str_dup = g_strdup( str );
 
-        if( object )
+        if( object ) {
 		g_signal_connect( object, "postclose", 
 			G_CALLBACK( vips_malloc_cb ), str_dup );
+		object->local_memory += strlen( str );
+	}
 
 	return( str_dup );
 }

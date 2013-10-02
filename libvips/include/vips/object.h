@@ -456,6 +456,11 @@ struct _VipsObject {
 	gboolean preclose;
 	gboolean close;
 	gboolean postclose;
+
+	/* Total memory allocated relative to this object, handy for
+	 * profiling.
+	 */
+	size_t local_memory;
 };
 
 struct _VipsObjectClass {

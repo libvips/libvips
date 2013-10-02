@@ -5,11 +5,6 @@
 
 - do conv and morph quickly as simple wrappers over the vips7 operations
 
-- with VIPS_ARRAY() etc., we could note the mem use on the object we alloc
-  local to, might make for interesting stats
-
-  does vips_malloc() used the tracked mem system?
-
 - do much fancier profiling with timing on all locks saved in memory and
   dumped on exit
 
