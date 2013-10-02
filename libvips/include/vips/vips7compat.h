@@ -766,6 +766,7 @@ int im_ifthenelse( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
 int im_blend( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
 
 DOUBLEMASK *im_vips2mask( VipsImage *in, const char *filename );
+INTMASK *im_vips2imask( IMAGE *in, const char *filename );
 int im_mask2vips( DOUBLEMASK *in, VipsImage *out );
 
 int im_bandmean( VipsImage *in, VipsImage *out );

@@ -131,6 +131,81 @@ im_vips2mask( IMAGE *in, const char *filename )
 		memcpy( out->coeff, in->data, 
 			width * height * sizeof( double ) );
 
+	out->scale = vips_image_get_scale( in );
+	out->offset = vips_image_get_offset( in );
+
+	return( out );
+}
+
+INTMASK *
+im_vips2imask( IMAGE *in, const char *filename )
+{
+	int width, height;
+	INTMASK *out;
+
+	double *data;
+	int x, y;
+
+	/* double* only: cast if necessary.
+	 */
+	if( in->BandFmt != IM_BANDFMT_DOUBLE ) {
+		IMAGE *t;
+
+		if( !(t = im_open( "im_vips2imask", "p" )) )
+			return( NULL );
+		if( im_clip2fmt( in, t, IM_BANDFMT_DOUBLE ) ||
+			!(out = im_vips2imask( t, filename )) ) {
+			im_close( t );
+			return( NULL );
+		}
+		im_close( t );
+
+		return( out );
+	}
+
+	/* Check the image.
+	 */
+	if( im_incheck( in ) ||
+		im_check_uncoded( "im_vips2imask", in ) )
+		return( NULL );
+
+	if( in->Bands == 1 ) {
+		width = in->Xsize;
+		height = in->Ysize;
+	}
+	else if( in->Xsize == 1 ) {
+		width = in->Bands;
+		height = in->Ysize;
+	}
+	else if( in->Ysize == 1 ) {
+		width = in->Xsize;
+		height = in->Bands;
+	}
+	else {
+		im_error( "im_vips2imask", 
+			"%s", _( "one band, nx1, or 1xn images only" ) );
+		return( NULL );
+	}
+
+	data = (double *) in->data;
+	if( !(out = im_create_imask( filename, width, height )) )
+		return( NULL );
+
+	for( y = 0; y < height; y++ )
+		for( x = 0; x < width; x++ )
+			if( in->Bands > 1 && in->Ysize == 1 ) 
+				/* Need to transpose: the image is RGBRGBRGB, 
+				 * we need RRRGGGBBB.
+				 */
+				out->coeff[x + y * width] =
+					VIPS_RINT( data[x * height + y] );
+			else
+				out->coeff[x + y * width] =
+					VIPS_RINT( data[x + y * width] );
+
+	out->scale = vips_image_get_scale( in );
+	out->offset = vips_image_get_offset( in );
+
 	return( out );
 }
 

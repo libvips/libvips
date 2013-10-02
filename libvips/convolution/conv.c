@@ -66,11 +66,58 @@ typedef struct {
 	VipsConvolution parent_instance;
 
 	VipsPrecision precision; 
+	int layers; 
+	int cluster; 
 } VipsConv;
 
 typedef VipsConvolutionClass VipsConvClass;
 
 G_DEFINE_TYPE( VipsConv, vips_conv, VIPS_TYPE_CONVOLUTION );
+
+static int
+vips_conv_build( VipsObject *object )
+{
+	VipsConvolution *convolution = (VipsConvolution *) object;
+	VipsConv *conv = (VipsConv *) object;
+
+	INTMASK *imsk;
+	DOUBLEMASK *dmsk;
+
+	g_object_set( conv, "out", vips_image_new(), NULL ); 
+
+	if( VIPS_OBJECT_CLASS( vips_conv_parent_class )->build( object ) )
+		return( -1 );
+
+
+	switch( conv->precision ) { 
+	case VIPS_PRECISION_INTEGER:
+		if( !(imsk = im_vips2imask( convolution->M, "im_stats" )) || 
+			!im_local_imask( convolution->out, imsk ) ||
+			im_conv( convolution->in, convolution->out, imsk ) )
+			return( -1 ); 
+		break;
+
+	case VIPS_PRECISION_FLOAT:
+		if( !(dmsk = im_vips2mask( convolution->M, "im_stats" )) || 
+			!im_local_dmask( convolution->out, dmsk ) ||
+			im_conv_f( convolution->in, convolution->out, dmsk ) )
+			return( -1 ); 
+		break;
+
+	case VIPS_PRECISION_APPROXIMATE:
+		if( !(dmsk = im_vips2mask( convolution->M, "im_stats" )) || 
+			!im_local_dmask( convolution->out, dmsk ) ||
+			im_aconv( convolution->in, convolution->out, dmsk, 
+				conv->layers, conv->cluster ) )
+			return( -1 ); 
+		break;
+
+	default:
+		g_assert( 0 );
+	}
+
+	return( 0 );
+}
 
 static void
 vips_conv_class_init( VipsConvClass *class )
@@ -83,6 +130,7 @@ vips_conv_class_init( VipsConvClass *class )
 
 	object_class->nickname = "conv";
 	object_class->description = _( "convolution operation" );
+	object_class->build = vips_conv_build;
 
 	VIPS_ARG_ENUM( class, "precision", 103, 
 		_( "Precision" ), 
@@ -91,11 +139,28 @@ vips_conv_class_init( VipsConvClass *class )
 		G_STRUCT_OFFSET( VipsConv, precision ), 
 		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER ); 
 
+	VIPS_ARG_INT( class, "layers", 103, 
+		_( "Layers" ), 
+		_( "Use this many layers in approximation" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsConv, layers ), 
+		1, 1000, 5 ); 
+
+	VIPS_ARG_INT( class, "cluster", 103, 
+		_( "Cluster" ), 
+		_( "Cluster lines closer than this in approximation" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsConv, cluster ), 
+		1, 100, 1 ); 
+
 }
 
 static void
 vips_conv_init( VipsConv *conv )
 {
+	conv->precision = VIPS_PRECISION_INTEGER;
+	conv->layers = 5;
+	conv->cluster = 1;
 }
 
 /**
@@ -105,9 +170,27 @@ vips_conv_init( VipsConv *conv )
  * @mask: convolve with this mask
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @precision: calculation accuracy
+ * @layers: number of layers for approximation
+ * @cluster: cluster lines closer than this distance
+ *
  * Convolution. 
  *
- * See also: vips_hist_norm().
+ * Perform a convolution of @in with @mask.
+ *
+ * The output image 
+ * always has the same #VipsBandFmt as the input image. 
+ *
+ * Larger values for @n_layers give more accurate
+ * results, but are slower. As @n_layers approaches the mask radius, the
+ * accuracy will become close to exact convolution and the speed will drop to 
+ * match. For many large masks, such as Gaussian, @n_layers need be only 10% of
+ * this value and accuracy will still be good.
+ *
+ * Smaller values of @cluster will give more accurate results, but be slower
+ * and use more memory. 10% of the mask radius is a good rule of thumb.
  *
  * Returns: 0 on success, -1 on error
  */
