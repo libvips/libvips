@@ -23,7 +23,7 @@
 - dzsave basename param now called filename, so you can use .dz as a
   destination (basename is still there but deprecated)
 - new _UNBUFFERED sequential mode saves memory in some important cases
-- start vips_conv() as a simple wrapper over the old convolution functions
+- vips_conv() is a simple wrapper over the old convolution functions
 - new optimize_coding param for jpeg write produces optimal Huffman tables,
   thanks Lovell 
 

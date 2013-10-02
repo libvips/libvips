@@ -139,14 +139,14 @@ vips_conv_class_init( VipsConvClass *class )
 		G_STRUCT_OFFSET( VipsConv, precision ), 
 		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER ); 
 
-	VIPS_ARG_INT( class, "layers", 103, 
+	VIPS_ARG_INT( class, "layers", 104, 
 		_( "Layers" ), 
 		_( "Use this many layers in approximation" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsConv, layers ), 
 		1, 1000, 5 ); 
 
-	VIPS_ARG_INT( class, "cluster", 103, 
+	VIPS_ARG_INT( class, "cluster", 105, 
 		_( "Cluster" ), 
 		_( "Cluster lines closer than this in approximation" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
@@ -179,12 +179,28 @@ vips_conv_init( VipsConv *conv )
  * Convolution. 
  *
  * Perform a convolution of @in with @mask.
+ * Each output pixel is
+ * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
+ * and offset are part of @mask. 
  *
- * The output image 
+ * If @precision is #VIPS_PRECISION_INTEGER then the convolution is performed
+ * with integer arithmetic and the output image 
  * always has the same #VipsBandFmt as the input image. 
  *
- * Larger values for @n_layers give more accurate
- * results, but are slower. As @n_layers approaches the mask radius, the
+ * Convolutions on unsigned 8-bit images are calculated with the 
+ * processor's vector unit, if possible. Disable this with --vips-novector or 
+ * IM_NOVECTOR.
+ *
+ * If @precision is #VIPS_PRECISION_FLOAT then the convolution is performed
+ * with floating-point arithmetic. The output image 
+ * is always %VIPS_FORMAT_FLOAT unless @in is %VIPS_FORMAT_DOUBLE, in which case
+ * @out is also %VIPS_FORMAT_DOUBLE. 
+ *
+ * If @precision is #VIPS_PRECISION_APPROXIMATE then the output image 
+ * always has the same #VipsBandFmt as the input image. 
+ *
+ * Larger values for @layers give more accurate
+ * results, but are slower. As @layers approaches the mask radius, the
  * accuracy will become close to exact convolution and the speed will drop to 
  * match. For many large masks, such as Gaussian, @n_layers need be only 10% of
  * this value and accuracy will still be good.
