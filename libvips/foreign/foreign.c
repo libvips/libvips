@@ -1987,6 +1987,7 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  *
  * @Q: quality factor
  * @profile: attach this ICC profile
+ * @optimize_coding: compute optimal Huffman coding tables
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -2039,6 +2040,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  *
  * @Q: JPEG quality factor
  * @profile: attach this ICC profile
+ * @optimize_coding: compute optimal Huffman coding tables
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
@@ -2087,6 +2089,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  *
  * @Q: JPEG quality factor
  * @profile: attach this ICC profile
+ * @optimize_coding: compute optimal Huffman coding tables
  *
  * As vips_jpegsave(), but save as a mime jpeg on stdout.
  *
