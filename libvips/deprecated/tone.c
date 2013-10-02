@@ -171,12 +171,11 @@ im_tone_analyse(
 		return( -1 );
 
 	if( im_extract_band( t[0], t[1], 0 ) ||
-		im_clip2fmt( t[1], t[2], IM_BANDFMT_USHORT ) ||
-		im_histgr( t[2], t[3], -1 ) )
+		im_clip2fmt( t[1], t[2], IM_BANDFMT_USHORT ) )
 		return( -1 );
 
-	if( im_mpercent_hist( t[3], 0.1 / 100.0, &high ) ||
-		im_mpercent_hist( t[3], 99.9 / 100.0, &low ) )
+	if( im_mpercent( t[2], 0.1 / 100.0, &high ) ||
+		im_mpercent( t[2], 99.9 / 100.0, &low ) )
 		return( -1 );
 
 	Lb = 100 * low / 32768;

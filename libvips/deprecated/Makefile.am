@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libdeprecated.la
 
 libdeprecated_la_SOURCES = \
+	tone.c \
 	im_linreg.c \
 	im_point_bilinear.c \
 	resample_dispatch.c \

@@ -60,10 +60,6 @@ int vips_stdif( VipsImage *in, VipsImage **out, int width, int height, ... )
 int vips_hist_ismonotonic( VipsImage *in, int *monotonic, ... )
 	__attribute__((sentinel));
 
-int im_tone_analyse( VipsImage *in, VipsImage *out,
-	double Ps, double Pm, double Ph, double S, double M, double H );
-int im_tone_map( VipsImage *in, VipsImage *out, VipsImage *lut );
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

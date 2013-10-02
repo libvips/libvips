@@ -328,7 +328,7 @@ vips_tonelut_init( VipsTonelut *lut )
  *
  * vips_tonelut() generates a tone curve for the adjustment of image 
  * levels. It is mostly designed for adjusting the L* part of a LAB image in
- * way suitable for print work, but you can use it for other things too.
+ * a way suitable for print work, but you can use it for other things too.
  *
  * The curve is an unsigned 16-bit image with (@in_max + 1) entries, 
  * each in the range [0, @out_max].
@@ -336,8 +336,6 @@ vips_tonelut_init( VipsTonelut *lut )
  * @Lb, @Lw are expressed as 0-100, as in LAB colour space. You 
  * specify the scaling for the input and output images with the @in_max and 
  * @out_max parameters.
- *
- * See also: vips_tone_map(), vips_tone_analyse().
  *
  * Returns: 0 on success, -1 on error
  */

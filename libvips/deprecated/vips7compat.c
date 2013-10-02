@@ -3642,7 +3642,7 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 int
 im_mpercent( IMAGE *in, double percent, int *out )
 {
-	if( vips_hist_percent( in, percent, out, NULL ) )
+	if( vips_hist_percent( in, percent / 100.0, out, NULL ) )
 		return( -1 ); 
 
 	return( 0 );
