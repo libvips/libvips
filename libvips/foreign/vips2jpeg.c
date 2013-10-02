@@ -56,6 +56,8 @@
  * 	- update exif image dimensions
  * 21/11/12
  * 	- attach IPCT data (app13), thanks Gary
+ * 2/10/13 Lovell Fuller
+ * 	- add optimize_coding parameter
  */
 
 /*
@@ -847,7 +849,8 @@ write_jpeg_block( REGION *region, Rect *area, void *a )
 /* Write a VIPS image to a JPEG compress struct.
  */
 static int
-write_vips( Write *write, int qfac, const char *profile, gboolean optimize_coding )
+write_vips( Write *write, int qfac, const char *profile, 
+	gboolean optimize_coding )
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -946,7 +949,8 @@ write_vips( Write *write, int qfac, const char *profile, gboolean optimize_codin
  */
 int
 vips__jpeg_write_file( VipsImage *in, 
-	const char *filename, int Q, const char *profile, gboolean optimize_coding )
+	const char *filename, int Q, const char *profile, 
+	gboolean optimize_coding )
 {
 	Write *write;
 
@@ -1222,7 +1226,8 @@ buf_dest( j_compress_ptr cinfo, void **obuf, size_t *olen )
 
 int
 vips__jpeg_write_buffer( VipsImage *in, 
-	void **obuf, size_t *olen, int Q, const char *profile, gboolean optimize_coding )
+	void **obuf, size_t *olen, int Q, const char *profile, 
+	gboolean optimize_coding )
 {
 	Write *write;
 
