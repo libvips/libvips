@@ -1,3 +1,6 @@
+3/10/13	started 7.36.0
+- version bump
+
 1/7/13 started 7.35.0
 - added vips_matrixload() and vips_matrixsave(), load and save vips mat format
 - rename image arrays as image matrices ... INTERPRETATION_ARRAY ->
