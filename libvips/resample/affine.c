@@ -398,7 +398,7 @@ vips_affine_build( VipsObject *object )
 			affine->oarea->n, 4 ) )
 		return( -1 );
 
-	if( !vips_object_argument_isset( object, "interpolate" ) )
+	if( !affine->interpolate )
 		affine->interpolate = vips_interpolate_new( "bilinear" );
 
 	in = resample->in;
@@ -443,11 +443,9 @@ vips_affine_build( VipsObject *object )
 
 	if( vips__transform_calc_inverse( &affine->trn ) )
 		return( -1 );
-	
-	/*
+
 	if( vips__transform_isidentity( &affine->trn ) )
 		return( vips_image_write( in, resample->out ) );
-	 */
 
 	/* Check for coordinate overflow ... we want to be able to hold the
 	 * output space inside INT_MAX / TRANSFORM_SCALE.

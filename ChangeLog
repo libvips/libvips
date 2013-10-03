@@ -28,6 +28,8 @@
   thanks Lovell 
 - im_tone_map() and im_tone_analyse() deprecated
 - new --band arg to vips_maplut() replaces im_tone_map() functionality
+- added vips_similarity(), simple wrapper for vips_affine() that lets you
+  give a scale and rotate
 
 3/7/13 started 7.34.2
 - lower priority for Matlab load to reduce segvs from Mat_Open(), thanks

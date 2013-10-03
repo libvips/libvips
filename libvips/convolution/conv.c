@@ -1,27 +1,7 @@
-/* histogram cumulativisation
+/* convolution
  *
- * Author: N. Dessipris
- * Written on: 02/08/1990
- * 24/5/95 JC
- *	- tidied up and ANSIfied
- * 20/7/95 JC
- *	- smartened up again
- *	- now works for hists >256 elements
- * 3/3/01 JC
- *	- broken into cum and norm ... helps im_histspec()
- *	- better behaviour for >8 bit hists
- * 31/10/05 JC
- * 	- was broken for vertical histograms, gah
- * 	- neater im_histnorm()
- * 23/7/07
- * 	- eek, off by 1 for more than 1 band hists
- * 12/5/08
- * 	- histcum works for signed hists now as well
- * 24/3/10
- * 	- gtkdoc
- * 	- small cleanups
  * 12/8/13	
- * 	- redone im_histcum() as a class, vips_conv()
+ * 	- from vips_hist_cum()
  */
 
 /*
@@ -49,6 +29,11 @@
 
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
+ */
+
+/* This is a simple wrapper over the old vips7 functions. At some point we
+ * should rewrite this as a pure vips8 class and redo the vips7 functions as
+ * wrappers over this.
  */
 
 #ifdef HAVE_CONFIG_H
