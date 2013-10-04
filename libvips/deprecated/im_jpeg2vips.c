@@ -49,9 +49,7 @@
 #include <vips/vips.h>
 
 #ifdef HAVE_JPEG
-#include <jpeglib.h>
-#include <jerror.h>
-#include "../foreign/jpeg.h"
+#include "../foreign/vipsjpeg.h"
 #endif /*HAVE_JPEG*/
 
 static int

@@ -119,17 +119,8 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-/* jpeglib includes jconfig.h, which can define HAVE_STDLIB_H ... which we
- * also define. Make sure it's turned off.
- */
-#ifdef HAVE_STDLIB_H
-#undef HAVE_STDLIB_H
-#endif /*HAVE_STDLIB_H*/
-
-#include <jpeglib.h>
-#include <jerror.h>
-
 #include "jpeg.h"
+#include "vipsjpeg.h"
 
 /* Stuff we track during a read.
  */

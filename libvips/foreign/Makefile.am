@@ -58,6 +58,7 @@ libforeign_la_SOURCES = \
 	vips2jpeg.c \
 	jpeg2vips.c \
 	jpeg.h \
+	vipsjpeg.h \
 	jpegload.c \
 	jpegsave.c 
 
