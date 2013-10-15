@@ -1,4 +1,4 @@
-/* im_rot90
+/* rotate by 0/90/180/270 degrees
  *
  * Copyright: 1991, N. Dessipris
  * Written on: 28/10/91
