@@ -1,4 +1,4 @@
-/* wrap jpeg libray for read
+/* wrap jpeg library for read
  *
  * 28/11/03 JC
  *	- better no-overshoot on tile loop
@@ -221,6 +221,13 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean readbehind )
 	jpeg->eman.pub.error_exit = vips__new_error_exit;
 	jpeg->eman.pub.output_message = vips__new_output_message;
 	jpeg->eman.fp = NULL;
+
+	/* jpeg_create_decompress() can fail on some sanity checks. Don't
+	 * readjpeg_free() since we don't want to jpeg_destroy_decompress().
+	 */
+	if( setjmp( jpeg->eman.jmp ) ) 
+		return( NULL );
+
         jpeg_create_decompress( &jpeg->cinfo );
 
 	g_signal_connect( out, "close", 
