@@ -44,9 +44,11 @@ extern "C" {
 
 /* jpeglib defines its own boolean type which then clashes with everyone
  * elses. Turn it off and make our own.
+ *
+ * It has to be uchar to match imagemagick's expectations. 
  */
 #define HAVE_BOOLEAN
-typedef int boolean;
+typedef unsigned char boolean;
 
 #include <jpeglib.h>
 #include <jerror.h>
