@@ -1,3 +1,7 @@
+3/10/13	started 7.36.2
+- better jpeg startup
+- change jpeg bool type to uchar to match IM's expectations, thanks MvGulik
+
 3/10/13	started 7.36.1
 - fix to help OS X build
 
