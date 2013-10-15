@@ -43,12 +43,9 @@ extern "C" {
 #endif /*HAVE_STDLIB_H*/
 
 /* jpeglib defines its own boolean type which then clashes with everyone
- * elses. Turn it off and make our own.
- *
- * It has to be uchar to match imagemagick's expectations. 
+ * elses. Rename it as jboolean. 
  */
-#define HAVE_BOOLEAN
-typedef unsigned char boolean;
+#define boolean jboolean
 
 #include <jpeglib.h>
 #include <jerror.h>
