@@ -42,10 +42,21 @@ extern "C" {
 #undef HAVE_STDLIB_H
 #endif /*HAVE_STDLIB_H*/
 
-/* jpeglib defines its own boolean type which then clashes with everyone
- * elses. Rename it as jboolean. 
+/* jpeglib defines its own boolean type as an enum which then clashes with 
+ * everyone elses. Rename it as jboolean. 
  */
 #define boolean jboolean
+
+/* Any TRUE/FALSE macros which have crept in will cause terrible confusion as
+ * well.
+ */
+#ifdef TRUE
+#undef TRUE
+#endif /*TRUE*/
+
+#ifdef FALSE
+#undef FALSE
+#endif /*FALSE*/
 
 #include <jpeglib.h>
 #include <jerror.h>
