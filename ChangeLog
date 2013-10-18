@@ -1,4 +1,7 @@
-3/10/13	started 7.36.2
+18/10/13	started 7.36.3
+- fix compiler warnings in ubuntu 13.10
+
+10/10/13	started 7.36.2
 - better jpeg startup
 - rename jpeg bool type to reduce confusion between libraries
 

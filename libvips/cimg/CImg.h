@@ -17860,8 +17860,11 @@ namespace cimg_library {
     static CImg get_load_pandore(std::FILE *const file, const char *const filename=0) {
       std::FILE *const nfile = file?file:cimg::fopen(filename,"rb");
       typedef unsigned char uchar;
+      /* Don't use these two and they cause warnings.
+       *
       typedef unsigned short ushort;
       typedef unsigned int uint;
+       */
       typedef unsigned long ulong;
       CImg dest;
       char tmp[32];
