@@ -223,6 +223,30 @@ vips_angle_get_type( void )
 
 	return( etype );
 }
+GType
+vips_angle45_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_ANGLE45_0, "VIPS_ANGLE45_0", "0"},
+			{VIPS_ANGLE45_45, "VIPS_ANGLE45_45", "45"},
+			{VIPS_ANGLE45_90, "VIPS_ANGLE45_90", "90"},
+			{VIPS_ANGLE45_135, "VIPS_ANGLE45_135", "135"},
+			{VIPS_ANGLE45_180, "VIPS_ANGLE45_180", "180"},
+			{VIPS_ANGLE45_225, "VIPS_ANGLE45_225", "225"},
+			{VIPS_ANGLE45_270, "VIPS_ANGLE45_270", "270"},
+			{VIPS_ANGLE45_315, "VIPS_ANGLE45_315", "315"},
+			{VIPS_ANGLE45_LAST, "VIPS_ANGLE45_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsAngle45", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/arithmetic.h" */
 GType
 vips_operation_math_get_type( void )

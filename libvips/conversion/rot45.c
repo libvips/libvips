@@ -1,4 +1,4 @@
-/* 'lossless' 45 degree rot45ate ... odd-sized square images only
+/* 'lossless' 45 degree rotate ... odd-sized square images only
  *
  * Author: N. Dessipris (Copyright, N. Dessipris 1991)
  * Written on: 08/05/1991
@@ -13,7 +13,7 @@
  * 1/12/10
  * 	- allow any size mask for the 90 degree rot45ates by using im_rot4590().
  * 12/10/13
- * 	- redone as a class from im_offsets45()
+ * 	- rewritten as a class 
  */
 
 /*
@@ -73,99 +73,115 @@ typedef struct _VipsRot45 {
 	 */
 	VipsAngle45 angle;
 
-	/* Output memory buffer ... copy this to ->out.
-	 */
-	VipsImage *outbuf; 
-
 } VipsRot45;
 
 typedef VipsConversionClass VipsRot45Class;
 
 G_DEFINE_TYPE( VipsRot45, vips_rot45, VIPS_TYPE_CONVERSION );
 
-
-/* Creates the offsets to rotate by 45 degrees an odd size square mask 
- */
-int *
-im_offsets45( int size )
-{
-	int temp;
-	int x, y;
-	int size2 = size * size;
-	int size_2 = size / 2;
-	int *pnt, *cpnt1, *cpnt2;
-
-	if( size%2 == 0 ) {
-		im_error( "im_offsets45", "%s", _( "size not odd" ) );
-		return( NULL );
-	}
-	if( !(pnt = IM_ARRAY( NULL, size2, int )) ) 
-		return( NULL );
-
-	/* point at the beginning and end of the buffer
-	 */
-	cpnt1 = pnt; cpnt2 = pnt + size2 - 1;
-
-	for( y = 0; y < size_2; y++ ) {
-		temp = (size_2 + y) * size;
-		*cpnt1++ = temp; 
-		*cpnt2-- = size2 - 1 - temp;
-
-		for( x = 0; x < y; x++ ) {
-			temp -= (size-1);
-			*cpnt1++ = temp; 
-			*cpnt2-- = size2 - 1 - temp;
-		}
-
-		for( x = 0; x < size_2 - y; x++ ) {
-			temp -= size;
-			*cpnt1++ = temp; 
-			*cpnt2-- = size2 - 1 - temp;
-		}
-
-		for( x = 0; x < size_2 - y; x++ ) {
-			temp++;
-			*cpnt1++ = temp; 
-			*cpnt2-- = size2 - 1 - temp;
-		}
-
-		for( x = 0; x < y; x++ ) {
-			temp -= ( size - 1 );
-			*cpnt1++ = temp; 
-			*cpnt2-- = size2 - 1 - temp;
-		}
-	}
-
-	/* the diagonal now 
-	 */
-	temp = size * (size - 1);
-	cpnt1 = pnt + size_2 * size;
-	for( x = 0; x < size; x++ ) {
-		*cpnt1++ = temp; 
-		temp -= (size-1);
-	}
-
-#ifdef PIM_RINT
-	temp = 0;
-	for( y = 0; y < size; y++ ) {
-		for( x = 0; x < size; x++ ) {
-			fprintf( stderr, "%4d", *(pnt+temp) );
-			temp++;
-		}
-		fprintf(stderr, "\n");
-	}
-	fprintf(stderr, "\n");
-#endif
-
-	return( pnt );
+#define ASSIGN( Xout, Yout, Xin, Yin ) { \
+	VipsPel *q = VIPS_IMAGE_ADDR( out, Xout, Yout ); \
+	VipsPel *p = VIPS_IMAGE_ADDR( in, Xin, Yin ); \
+	int b;\
+	\
+	for( b = 0; b < ps; b++ )\
+		q[b] = p[b];\
 }
 
+#define POINT_TO_TEMP( q, Xin, Yin ) { \
+	VipsPel *p = VIPS_IMAGE_ADDR( in, Xin, Yin ); \
+	int b;\
+	\
+	for( b = 0; b < ps; b++ )\
+		q[b] = p[b];\
+}
+
+#define TEMP_TO_POINT( Xout, Yout, p ) { \
+	VipsPel *q = VIPS_IMAGE_ADDR( out, Xout, Yout ); \
+	int b;\
+	\
+	for( b = 0; b < ps; b++ )\
+		q[b] = p[b];\
+}
+
+/* This can work inplace, ie. in == out is allowed.
+ */
 static void
-vips_rot45_45( VipsRot45 *rot45 )
+vips_rot45_rot45( VipsImage *out, VipsImage *in )
 {
-	int x, y, i;
+	size_t ps = VIPS_IMAGE_SIZEOF_PEL( in ); 
+	VipsPel *temp = VIPS_ARRAY( in, ps, VipsPel ); 
+	int size = in->Xsize; 
+	int size_2 = size / 2;
 
+	int x, y;
 
+	g_assert( in->Xsize == in->Ysize ); 
+	g_assert( out->Xsize == out->Ysize ); 
+	g_assert( in->Xsize == out->Ssize ); 
+	g_assert( in->Xsize % 2 == 0 );
+
+	/* Split the square into 8 triangles. Loop over the top-left one,
+	 * reflect into the others.
+	 *
+	 * 	1 1 2 2 3
+	 * 	8 1 2 3 3
+	 * 	8 8 x 4 4
+	 * 	7 7 6 5 4
+	 * 	7 6 6 5 5 
+	 *
+	 * do the centre separately.
+	 */
+
+	for( y = 0; y < size_2; y++ )  
+		for( x = y; x < size_2; x++ ) {
+			/* Save 1, it goes into 8 at the end.
+			 */
+			POINT_TO_TEMP( temp, x, y ); 
+
+			/* Fill 1 from 2.
+			 */
+			ASSIGN( x, y, 
+				(x - y) + size_2, y ); 
+
+			/* 2 from 3.
+			 */
+			ASSIGN( (x - y) + size_2, y, 
+				(size - 1) - y, x ); 
+
+			/* 3 from 4.
+			 */
+			ASSIGN( (size - 1) - y, x, 
+				(size - 1) - y, (x - y) + size_2 );
+
+			/* 4 from 5.
+			 */
+			ASSIGN( (size - 1) - y, (x - y) + size_2, 
+				(size - 1) - x, (size - 1) - y ); 
+
+			/* 5 from 6. 
+			 */
+			ASSIGN( (size - 1) - x, (size - 1) - y,
+				size_2 - (x - y), (size - 1) - y );
+
+			/* 6 from 7. 
+			 */
+			ASSIGN( size_2 - (x - y), (size - 1) - y,
+				y, (size - 1) - x ); 
+
+			/* 7 from 8.
+			 */
+			ASSIGN( y, (size - 1) - x,
+				y, size_2 - (x - y) );
+
+			/* 8 from saved 1. 
+			 */
+			TEMP_TO_POINT( y, size_2 - (x - y), temp ); 
+		}
+
+	/* Centre.
+	 */
+	ASSIGN( size_2, size_2, size_2, size_2 ); 
 }
 
 static int
@@ -173,8 +189,10 @@ vips_rot45_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
-	VipsRot45 *rot45 = (VipsRot *) object;
+	VipsRot45 *rot45 = (VipsRot45 *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
+
+	VipsImage *from;
 
 	if( VIPS_OBJECT_CLASS( vips_rot45_parent_class )->build( object ) )
 		return( -1 );
@@ -188,11 +206,41 @@ vips_rot45_build( VipsObject *object )
 	if( vips_image_wio_input( rot45->in ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, rot45->in ) )
+	t[0] = vips_image_new_buffer();
+	if( vips_image_copy_fields( t[0], rot45->in ) ||
+		vips_image_write_prepare( t[0] ) )
 		return( -1 );
 
+	from = rot45->in;
+
 	switch( rot45->angle ) {
+	case VIPS_ANGLE45_315:
+		vips_rot45_rot45( t[0], from );
+		from = t[0];
+		
+	case VIPS_ANGLE45_270:
+		vips_rot45_rot45( t[0], from );
+		from = t[0];
+
+	case VIPS_ANGLE45_225:
+		vips_rot45_rot45( t[0], from );
+		from = t[0];
+
+	case VIPS_ANGLE45_180:
+		vips_rot45_rot45( t[0], from );
+		from = t[0];
+
+	case VIPS_ANGLE45_135:
+		vips_rot45_rot45( t[0], from );
+		from = t[0];
+
+	case VIPS_ANGLE45_90:
+		vips_rot45_rot45( t[0], from );
+		from = t[0];
+
 	case VIPS_ANGLE45_45:
+		vips_rot45_rot45( t[0], from );
+		from = t[0];
 		break;
 
 	default:
@@ -202,6 +250,9 @@ vips_rot45_build( VipsObject *object )
 		 */
 		return( 0 );
 	}
+
+	if( vips_image_write( t[0], conversion->out ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -232,12 +283,13 @@ vips_rot45_class_init( VipsRot45Class *class )
 		_( "Angle to rotate image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRot45, angle ),
-		VIPS_TYPE_ANGLE45, VIPS_ANGLE_45 ); 
+		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_45 ); 
 }
 
 static void
 vips_rot45_init( VipsRot45 *rot45 )
 {
+	rot45->angle = VIPS_ANGLE45_45;
 }
 
 /**
@@ -255,7 +307,7 @@ vips_rot45_init( VipsRot45 *rot45 )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_rot45( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
+vips_rot45( VipsImage *in, VipsImage **out, VipsAngle45 angle, ... )
 {
 	va_list ap;
 	int result;

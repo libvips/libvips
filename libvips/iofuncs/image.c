@@ -2358,7 +2358,7 @@ int
 vips__image_wio_output( VipsImage *image )
 {
 #ifdef DEBUG_IO
-	printf( "vips_image_wio_output: WIO output for %s\n", 
+	printf( "vips__image_wio_output: WIO output for %s\n", 
 		image->filename );
 #endif/*DEBUG_IO*/
 
@@ -2367,7 +2367,7 @@ vips__image_wio_output( VipsImage *image )
 		/* Make sure nothing is attached.
 		 */
 		if( image->generate_fn ) {
-			vips_error( "vips_image_wio_output", 
+			vips_error( "vips__image_wio_output", 
 				"%s", _( "image already written" ) );
 			return( -1 );
 		}
@@ -2391,7 +2391,7 @@ vips__image_wio_output( VipsImage *image )
 		break;
 
 	default:
-		vips_error( "vips_image_wio_output", 
+		vips_error( "vips__image_wio_output", 
 			"%s", _( "image not writeable" ) );
 		return( -1 );
 	}

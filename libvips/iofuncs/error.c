@@ -1029,7 +1029,7 @@ int
 vips_check_oddsquare( const char *domain, VipsImage *im )
 {
 	if( im->Xsize != im->Ysize || 
-		im->Xsize % 2 != 0 ) { 
+		im->Xsize % 2 == 0 ) { 
 		vips_error( domain, 
 			"%s", _( "images must be odd and square" ) );
 		return( -1 );
