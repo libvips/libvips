@@ -1,6 +1,9 @@
-3/10/13	started 7.36.2
+18/10/13	started 7.36.3
+- fix compiler warnings in ubuntu 13.10
+
+10/10/13	started 7.36.2
 - better jpeg startup
-- change jpeg bool type to uchar to match IM's expectations, thanks MvGulik
+- rename jpeg bool type to reduce confusion between libraries
 
 3/10/13	started 7.36.1
 - fix to help OS X build

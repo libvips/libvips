@@ -87,7 +87,14 @@ struct dsr                        /*      dsr              */
     };                     	       /* total=348 */
 
 /* Acceptable values for hdr.dime.datatype */
+
+/*
+ * commented this one out: we don't use it, and dirent.h defines this on some
+ * platforms.
+ *
 #define DT_UNKNOWN			0
+ */
+
 #define DT_BINARY			1
 #define DT_UNSIGNED_CHAR		2
 #define DT_SIGNED_SHORT			4
