@@ -1894,6 +1894,82 @@ im_stats( VipsImage *in )
 	return( msk );
 }
 
+DOUBLEMASK *
+im_gauss_dmask( const char *filename, double sigma, double min_ampl )
+{
+	VipsImage *t;
+	DOUBLEMASK *msk;
+
+	if( vips_gauss( &t, sigma, min_ampl,
+		NULL ) )
+		return( NULL );
+	if( !(msk = im_vips2mask( t, filename )) ) {
+		g_object_unref( t );
+		return( NULL );
+	}
+	g_object_unref( t );
+
+	return( msk );
+}
+
+DOUBLEMASK *
+im_gauss_dmask_sep( const char *filename, double sigma, double min_ampl )
+{
+	VipsImage *t;
+	DOUBLEMASK *msk;
+
+	if( vips_gauss( &t, sigma, min_ampl,
+		"seperable", TRUE,
+		NULL ) )
+		return( NULL );
+	if( !(msk = im_vips2mask( t, filename )) ) {
+		g_object_unref( t );
+		return( NULL );
+	}
+	g_object_unref( t );
+
+	return( msk );
+}
+
+INTMASK *
+im_gauss_imask( const char *filename, double sigma, double min_ampl )
+{
+	VipsImage *t;
+	INTMASK *msk;
+
+	if( vips_gauss( &t, sigma, min_ampl,
+		"integer", TRUE,
+		NULL ) )
+		return( NULL );
+	if( !(msk = im_vips2imask( t, filename )) ) {
+		g_object_unref( t );
+		return( NULL );
+	}
+	g_object_unref( t );
+
+	return( msk );
+}
+
+INTMASK *
+im_gauss_imask_sep( const char *filename, double sigma, double min_ampl )
+{
+	VipsImage *t;
+	INTMASK *msk;
+
+	if( vips_gauss( &t, sigma, min_ampl,
+		"integer", TRUE,
+		"seperable", TRUE,
+		NULL ) )
+		return( NULL );
+	if( !(msk = im_vips2imask( t, filename )) ) {
+		g_object_unref( t );
+		return( NULL );
+	}
+	g_object_unref( t );
+
+	return( msk );
+}
+
 int 
 im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb )
 {

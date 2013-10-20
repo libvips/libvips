@@ -45,7 +45,6 @@ libdeprecated_la_SOURCES = \
 	im_mask2vips.c \
 	im_vips2mask.c \
 	rotmask.c \
-	im_gaussmasks.c \
 	im_logmasks.c \
 	rw_mask.c \
 	im_matcat.c \

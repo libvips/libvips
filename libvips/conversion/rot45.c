@@ -79,30 +79,24 @@ typedef VipsConversionClass VipsRot45Class;
 
 G_DEFINE_TYPE( VipsRot45, vips_rot45, VIPS_TYPE_CONVERSION );
 
-#define ASSIGN( Xout, Yout, Xin, Yin ) { \
-	VipsPel *q = VIPS_IMAGE_ADDR( out, Xout, Yout ); \
-	VipsPel *p = VIPS_IMAGE_ADDR( in, Xin, Yin ); \
+#define COPY( Q, P ) { \
+	VipsPel *q = (Q); \
+	VipsPel *p = (P); \
 	int b;\
 	\
 	for( b = 0; b < ps; b++ )\
 		q[b] = p[b];\
 }
 
-#define POINT_TO_TEMP( q, Xin, Yin ) { \
-	VipsPel *p = VIPS_IMAGE_ADDR( in, Xin, Yin ); \
-	int b;\
-	\
-	for( b = 0; b < ps; b++ )\
-		q[b] = p[b];\
-}
+#define ASSIGN( Xout, Yout, Xin, Yin ) \
+	COPY( VIPS_IMAGE_ADDR( out, Xout, Yout ), \
+		VIPS_IMAGE_ADDR( in, Xin, Yin ) )
 
-#define TEMP_TO_POINT( Xout, Yout, p ) { \
-	VipsPel *q = VIPS_IMAGE_ADDR( out, Xout, Yout ); \
-	int b;\
-	\
-	for( b = 0; b < ps; b++ )\
-		q[b] = p[b];\
-}
+#define POINT_TO_TEMP( q, Xin, Yin ) \
+	COPY( q, VIPS_IMAGE_ADDR( in, Xin, Yin ) )
+
+#define TEMP_TO_POINT( Xout, Yout, p ) \
+	COPY( VIPS_IMAGE_ADDR( out, Xout, Yout ), p )
 
 /* This can work inplace, ie. in == out is allowed.
  */
@@ -118,7 +112,7 @@ vips_rot45_rot45( VipsImage *out, VipsImage *in )
 
 	g_assert( in->Xsize == in->Ysize ); 
 	g_assert( out->Xsize == out->Ysize ); 
-	g_assert( in->Xsize == out->Ssize ); 
+	g_assert( in->Xsize == out->Xsize ); 
 	g_assert( in->Xsize % 2 == 0 );
 
 	/* Split the square into 8 triangles. Loop over the top-left one,

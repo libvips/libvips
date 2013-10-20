@@ -1,3 +1,7 @@
+19/10/13 started 7.37.0
+- added vips_rot45()
+- redone im_gauss_*mask*() as classes
+
 18/10/13	started 7.36.3
 - fix compiler warnings in ubuntu 13.10
 

@@ -111,6 +111,7 @@ void
 vips_create_operation_init( void )
 {
 	extern GType vips_black_get_type( void ); 
+	extern GType vips_gauss_get_type( void ); 
 	extern GType vips_gaussnoise_get_type( void ); 
 #ifdef HAVE_PANGOFT2
 	extern GType vips_text_get_type( void ); 
@@ -126,6 +127,7 @@ vips_create_operation_init( void )
 	extern GType vips_identity_get_type( void ); 
 
 	vips_black_get_type();
+	vips_gauss_get_type();
 	vips_gaussnoise_get_type(); 
 #ifdef HAVE_PANGOFT2
 	vips_text_get_type(); 
