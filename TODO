@@ -1,6 +1,4 @@
-
-Next version
-============
+- do log mask generation, common base class with the gauss mask builder?
 
 - make vips_init() into a macro, check sizes of important structs against size
   at library compile time

@@ -275,7 +275,7 @@ vips_rot45_class_init( VipsRot45Class *class )
 	VIPS_ARG_ENUM( class, "angle", 6, 
 		_( "Angle" ), 
 		_( "Angle to rotate image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsRot45, angle ),
 		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_45 ); 
 }
@@ -290,8 +290,11 @@ vips_rot45_init( VipsRot45 *rot45 )
  * vips_rot45:
  * @in: input image
  * @out: output image
- * @angle: rotation angle
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @angle: rotation angle
  *
  * Rotate @in by a multiple of 45 degrees. Odd-length sides and square images
  * only. 
@@ -301,13 +304,13 @@ vips_rot45_init( VipsRot45 *rot45 )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_rot45( VipsImage *in, VipsImage **out, VipsAngle45 angle, ... )
+vips_rot45( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, angle );
-	result = vips_call_split( "rot45", ap, in, out, angle );
+	va_start( ap, out );
+	result = vips_call_split( "rot45", ap, in, out );
 	va_end( ap );
 
 	return( result );
