@@ -47,7 +47,9 @@ int vips_xyz( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 int vips_grey( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
-int vips_gauss( VipsImage **out, double sigma, double min_ampl, ... )
+int vips_gaussmat( VipsImage **out, double sigma, double min_ampl, ... )
+	__attribute__((sentinel));
+int vips_logmat( VipsImage **out, double sigma, double min_ampl, ... )
 	__attribute__((sentinel));
 
 int vips_text( VipsImage **out, const char *text, ... )

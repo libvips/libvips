@@ -1,20 +1,19 @@
-/* generate gaussian images
+/* laplacian of logmatian
  *
- * Written on: 30/11/1989 by Nicos
+ * Written on: 30/11/1989
  * Updated on: 6/12/1991
  * 7/8/96 JC
  *	- ansified, mem leaks plugged
  * 20/11/98 JC
  *	- mask too large check added
- * 18/3/09
- * 	- bumped max mask size *40
- * 	- added _sep variant
- * 30/3/09
- * 	- set scale in _sep variant, why not
- * 21/10/10
+ * 26/3/02 JC
+ *	- ahem, was broken since '96, thanks matt
+ * 16/7/03 JC
+ *	- makes mask out to zero, not out to minimum, thanks again matt
+ * 22/10/10
  * 	- gtkdoc
- * 20/10/10
- * 	- redone as a class 
+ * 20/10/13
+ * 	- redone as a class from logmat.c
  */
 
 /*
@@ -62,7 +61,7 @@
 
 #include "pcreate.h"
 
-typedef struct _VipsGauss {
+typedef struct _VipsLogmat {
 	VipsCreate parent_instance;
 
 	double sigma;
@@ -71,48 +70,69 @@ typedef struct _VipsGauss {
 	gboolean separable;
 	gboolean integer;
 
-} VipsGauss;
+} VipsLogmat;
 
-typedef struct _VipsGaussClass {
+typedef struct _VipsLogmatClass {
 	VipsCreateClass parent_class;
 
-} VipsGaussClass;
+} VipsLogmatClass;
 
-G_DEFINE_TYPE( VipsGauss, vips_gauss, VIPS_TYPE_CREATE );
+G_DEFINE_TYPE( VipsLogmat, vips_logmat, VIPS_TYPE_CREATE );
 
 static int
-vips_gauss_build( VipsObject *object )
+vips_logmat_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsCreate *create = VIPS_CREATE( object );
-	VipsGauss *gauss = (VipsGauss *) object;
+	VipsLogmat *logmat = (VipsLogmat *) object;
+	double sig2 = logmat->sigma * logmat->sigma; 
 
+	double last; 
 	int x, y;
-	int max_x;
 	int width, height; 
-	double sig2; /* sig2 = 2. * sigma * sigma */
 	double sum; 
 
-	if( VIPS_OBJECT_CLASS( vips_gauss_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_logmat_parent_class )->build( object ) )
 		return( -1 );
 
-	/* Find the size of the mask. Limit the mask size to 10k x 10k for 
-	 * sanity. 
+	/* Find the size of the mask. We want to eval the mask out to the 
+	 * flat zero part, ie. beyond the minimum and to the point where it 
+	 * comes back up towards zero.
 	 */
-	sig2 =  2. * gauss->sigma * gauss->sigma;
-	max_x =  8 * gauss->sigma > 5000 ? 5000 : 8 * gauss->sigma ;
-	for( x = 0; x < max_x; x++ ) {
-		double v = exp( - ((double)(x * x)) / sig2 );
+	last = 0.0;
+	for( x = 0; x < 5000; x++ ) {
+		const double distance = x * x;
+		double val;
 
-		if( v < gauss->min_ampl ) 
+		/* Handbook of Pattern Recognition and image processing
+		 * by Young and Fu AP 1986 pp 220-221
+		 * temp =  (1.0 / (2.0 * IM_PI * sig4)) *
+			(2.0 - (distance / sig2)) * 
+			exp( (-1.0) * distance / (2.0 * sig2) )
+
+		   .. use 0.5 to normalise
+		 */
+		val = 0.5 * 
+			(2.0 - (distance / sig2)) * 
+			exp( -distance / (2.0 * sig2) );
+
+		/* Stop when change in value (ie. difference from the last
+		 * point) is positive (ie. we are going up) and absolute value 
+		 * is less than the min.
+		 */
+		if( val - last >= 0 &&
+			fabs( val ) < logmat->min_ampl )
 			break;
+
+		last = val;
 	}
-	if( x == max_x ) {
+	if( x == 5000 ) {
 		vips_error( class->nickname, "%s", _( "mask too large" ) );
 		return( -1 );
 	}
+
 	width = x * 2 + 1;
-	height = gauss->separable ? 1 : width; 
+	height = logmat->separable ? 1 : width; 
 
 	vips_image_init_fields( create->out,
 		width, height, 1, 
@@ -129,9 +149,11 @@ vips_gauss_build( VipsObject *object )
 			int xo = x - width / 2;
 			int yo = y - height / 2;
 			double distance = xo * xo + yo * yo;
-			double v = exp( -distance / sig2 );
+			double v = 0.5 *
+				(2.0 - (distance / sig2)) *
+				exp( -distance / (2.0 * sig2) );
 
-			if( gauss->integer )
+			if( logmat->integer )
 				v = VIPS_RINT( 20 * v );
 
 			*VIPS_MATRIX( create->out, x, y ) = v;
@@ -146,7 +168,7 @@ vips_gauss_build( VipsObject *object )
 }
 
 static void
-vips_gauss_class_init( VipsGaussClass *class )
+vips_logmat_class_init( VipsLogmatClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -154,90 +176,97 @@ vips_gauss_class_init( VipsGaussClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "gauss";
-	vobject_class->description = _( "make a gaussian image" );
-	vobject_class->build = vips_gauss_build;
+	vobject_class->nickname = "logmat";
+	vobject_class->description = _( "make a laplacian of gaussian image" );
+	vobject_class->build = vips_logmat_build;
 
 	VIPS_ARG_DOUBLE( class, "sigma", 2, 
 		_( "Radius" ), 
-		_( "Radius of Gaussian" ),
+		_( "Radius of Logmatian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsGauss, sigma ),
+		G_STRUCT_OFFSET( VipsLogmat, sigma ),
 		0.000001, 10000.0, 1.0 );
 
 	VIPS_ARG_DOUBLE( class, "min_ampl", 3, 
 		_( "Width" ), 
-		_( "Minimum amplitude of Gaussian" ),
+		_( "Minimum amplitude of Logmatian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsGauss, min_ampl ),
+		G_STRUCT_OFFSET( VipsLogmat, min_ampl ),
 		0.000001, 10000.0, 0.1 );
 
 	VIPS_ARG_BOOL( class, "separable", 4, 
 		_( "Separable" ), 
-		_( "Generate separable Gaussian" ),
+		_( "Generate separable Logmatian" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsGauss, separable ),
+		G_STRUCT_OFFSET( VipsLogmat, separable ),
 		FALSE );
 
 	VIPS_ARG_BOOL( class, "integer", 5, 
 		_( "Integer" ), 
-		_( "Generate integer Gaussian" ),
+		_( "Generate integer Logmatian" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsGauss, integer ),
+		G_STRUCT_OFFSET( VipsLogmat, integer ),
 		FALSE );
 
 }
 
 static void
-vips_gauss_init( VipsGauss *gauss )
+vips_logmat_init( VipsLogmat *logmat )
 {
-	gauss->sigma = 1;
-	gauss->min_ampl = 0.1;
+	logmat->sigma = 1;
+	logmat->min_ampl = 0.1;
 }
 
 /**
- * vips_gauss:
+ * vips_logmat:
  * @sigma: standard deviation of mask
  * @min_ampl: minimum amplitude
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
- * @separable: generate a separable gaussian
- * @integer: generate an integer gaussian
+ * @separable: generate a separable logmatian
+ * @integer: generate an integer logmatian
  *
- * Creates a circularly symmetric Gaussian image of radius 
+ * Creates a circularly symmetric Laplacian of Gaussian mask 
+ * of radius 
  * @sigma.  The size of the mask is determined by the variable @min_ampl; 
  * if for instance the value .1 is entered this means that the produced mask 
- * is clipped at values less than 10 percent of the maximum amplitude.
+ * is clipped at values within 10 persent of zero, and where the change 
+ * between mask elements is less than 10%.
  *
- * The program uses the following equation:
+ * The program uses the following equation: (from Handbook of Pattern 
+ * Recognition and image processing by Young and Fu, AP 1986 pages 220-221):
  *
- *   H(r) = exp( -(r * r) / (2 * @sigma * @sigma) )
+ *  H(r) = (1 / (2 * M_PI * s4)) *
+ * 	(2 - (r2 / s2)) * 
+ * 	exp(-r2 / (2 * s2))
  *
- * The generated image has odd size and its maximum value is normalised to
+ * where s2 = @sigma * @sigma, s4 = s2 * s2, r2 = r * r.  
+ *
+ * The generated mask has odd size and its maximum value is normalised to 
  * 1.0, unless @integer is set.
  *
  * If @separable is set, only the centre horizontal is generated. This is
  * useful for separable convolutions. 
  *
- * If @integer is set, an integer gaussian is generated. This is useful for
+ * If @integer is set, an integer logmatian is generated. This is useful for
  * integer convolutions. 
  *
  * "scale" is set to the sum of all the mask elements.
  *
- * See also: im_log_dmask(), vips_conv().
+ * See also: vips_gauss(), vips_conv().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_gauss( VipsImage **out, double sigma, double min_ampl, ... )
+vips_logmat( VipsImage **out, double sigma, double min_ampl, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, min_ampl );
-	result = vips_call_split( "gauss", ap, out, sigma, min_ampl );
+	result = vips_call_split( "logmat", ap, out, sigma, min_ampl );
 	va_end( ap );
 
 	return( result );
