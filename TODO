@@ -1,3 +1,10 @@
+- get rid of vips_image_copy_fields(out, in) ... very confusing
+
+  just have 
+
+  	vips_image_copy_fieldsv( out, in1, in2, .. NULL )
+
+  makes arg order clearer
 
 - do conv and morph quickly as simple wrappers over the vips7 operations
 
@@ -14,6 +21,8 @@
 
   could we add something to check that the two calls agree on the image lists?
   I think they should
+
+  combine the two into one call?
 
 - support multiscan jpeg write? see
 
