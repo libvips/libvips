@@ -203,7 +203,6 @@ extern "C" {
 #define im_get_argv0 vips_get_argv0
 #define im_version_string vips_version_string
 #define im_version vips_version
-#define im_init_world vips_init
 #define im_get_option_group vips_get_option_group
 #define im_guess_prefix vips_guess_prefix
 #define im_guess_libdir vips_guess_libdir
@@ -585,6 +584,8 @@ size_t im_ref_string_get_length( const GValue *value );
 
 #define im_concurrency_set vips_concurrency_set
 #define im_concurrency_get vips_concurrency_get
+
+int im_init_world( const char *argv0 ); 
 
 int im_add( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_subtract( VipsImage *in1, VipsImage *in2, VipsImage *out );

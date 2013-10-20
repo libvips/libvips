@@ -50,6 +50,12 @@
 #include <vips/vector.h>
 #include <vips/transform.h>
 
+int 
+im_init_world( const char *argv0 )
+{
+	return( vips_init( argv0 ) ); 
+}
+
 VipsImage *
 im_open( const char *filename, const char *mode )
 {

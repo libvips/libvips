@@ -149,8 +149,20 @@ extern "C" {
 #include <vips/almostdeprecated.h>
 #include <vips/dispatch.h>
 
+#define vips_init( ARGV0 ) \
+	(sizeof( VipsObject ) != vips__get_sizeof_vipsobject() ? ( \
+		vips_info( "vips_init", "%s", _( "ABI mismatch" ) ), \
+		vips_info( "vips_init", \
+			_( "library has sizeof(VipsObject) == %zd" ), \
+			vips__get_sizeof_vipsobject() ), \
+		vips_info( "vips_init", \
+			_( "application has sizeof(VipsObject) == %zd" ), \
+			sizeof( VipsObject() ) ), \
+		vips_error( "vips_init", "%s", _( "ABI mismatch" ) ), \
+		-1 ) : \
+		vips__init( ARGV0 ))
+
 const char *vips_get_argv0( void );
-int vips_init( const char *argv0 );
 void vips_check_init( void );
 void vips_shutdown( void );
 GOptionGroup *vips_get_option_group( void );

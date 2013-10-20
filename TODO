@@ -1,15 +1,3 @@
-- do log mask generation, common base class with the gauss mask builder?
-
-- make vips_init() into a macro, check sizes of important structs against size
-  at library compile time
-
-  add a new API call like vips__get_sizeof_image() which returns
-  sizeof(VipsImage) from library compile time, compare that to the application
-  compile-time value
-
-  vips_init() macro then passes control on to vips__init() for real startup
-
-  breaks binary API sadly
 
 - do conv and morph quickly as simple wrappers over the vips7 operations
 
