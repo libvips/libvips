@@ -841,7 +841,7 @@ write_jpeg_block( REGION *region, Rect *area, void *a )
  */
 static int
 write_vips( Write *write, int qfac, const char *profile, 
-	gboolean optimize_coding )
+	gboolean optimize_coding, gboolean progressive )
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -898,6 +898,11 @@ write_vips( Write *write, int qfac, const char *profile,
 	 */
 	write->cinfo.optimize_coding = optimize_coding;
 
+	/* Enable progressive write.
+	 */
+	if( progressive ) 
+		jpeg_simple_progression( &write->cinfo ); 
+
 	/* Build compress tables.
 	 */
 	jpeg_start_compress( &write->cinfo, TRUE );
@@ -941,7 +946,7 @@ write_vips( Write *write, int qfac, const char *profile,
 int
 vips__jpeg_write_file( VipsImage *in, 
 	const char *filename, int Q, const char *profile, 
-	gboolean optimize_coding )
+	gboolean optimize_coding, gboolean progressive )
 {
 	Write *write;
 
@@ -971,7 +976,7 @@ vips__jpeg_write_file( VipsImage *in,
 
 	/* Convert!
 	 */
-	if( write_vips( write, Q, profile, optimize_coding ) ) {
+	if( write_vips( write, Q, profile, optimize_coding, progressive ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
@@ -1218,7 +1223,7 @@ buf_dest( j_compress_ptr cinfo, void **obuf, size_t *olen )
 int
 vips__jpeg_write_buffer( VipsImage *in, 
 	void **obuf, size_t *olen, int Q, const char *profile, 
-	gboolean optimize_coding )
+	gboolean optimize_coding, gboolean progressive )
 {
 	Write *write;
 
@@ -1247,7 +1252,7 @@ vips__jpeg_write_buffer( VipsImage *in,
 
 	/* Convert!
 	 */
-	if( write_vips( write, Q, profile, optimize_coding ) ) {
+	if( write_vips( write, Q, profile, optimize_coding, progressive ) ) {
 		write_destroy( write );
 
 		return( -1 );

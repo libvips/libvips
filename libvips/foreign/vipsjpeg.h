@@ -39,10 +39,10 @@ extern const char *vips__jpeg_suffs[];
 
 int vips__jpeg_write_file( VipsImage *in, 
 	const char *filename, int Q, const char *profile, 
-	gboolean optimize_coding );
+	gboolean optimize_coding, gboolean progressive );
 int vips__jpeg_write_buffer( VipsImage *in, 
 	void **obuf, size_t *olen, int Q, const char *profile, 
-	gboolean optimize_coding );
+	gboolean optimize_coding, gboolean progressive );
 
 int vips__isjpeg( const char *filename );
 int vips__jpeg_read_file( const char *name, VipsImage *out, 

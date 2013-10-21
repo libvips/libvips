@@ -1988,6 +1988,7 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  * @Q: quality factor
  * @profile: attach this ICC profile
  * @optimize_coding: compute optimal Huffman coding tables
+ * @interlace: write an interlaced (progressive) jpeg
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -2011,6 +2012,13 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  *
  * IPCT as @VIPS_META_IPCT_NAME ("ipct-data") and XMP as VIPS_META_XMP_NAME
  * ("xmp-data") are coded and attached. 
+ *
+ * If @optimize_coding is set, the Huffman tables are optimised. This is
+ * sllightly slower and produces slightly smaller files. 
+ *
+ * If @interlace is set, the jpeg files will be interlaced (progressive jpeg,
+ * in jpg parlance). These files may be better for display over a slow network
+ * conection, but need much more memory to encode and decode. 
  *
  * See also: vips_jpegsave_buffer(), vips_image_write_file().
  *
@@ -2041,6 +2049,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * @Q: JPEG quality factor
  * @profile: attach this ICC profile
  * @optimize_coding: compute optimal Huffman coding tables
+ * @interlace: write an interlaced (progressive) jpeg
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
