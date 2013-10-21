@@ -24,10 +24,6 @@
 
   combine the two into one call?
 
-- support multiscan jpeg write? see
-
-	https://github.com/jcupitt/ruby-vips/issues/41
-
 - object construction is threadsafe, but class construction is not
 
   https://github.com/jcupitt/libvips/issues/64
