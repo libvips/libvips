@@ -141,8 +141,10 @@ vips_project_build( VipsObject *object )
 
 	/* Make the output image.
 	 */
-	if( vips_image_copy_fields( project->columns, statistic->ready ) || 
-		vips_image_copy_fields( project->rows, statistic->ready ) ) 
+	if( vips_image_pipelinev( project->columns, 
+			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) || 
+		vips_image_pipelinev( project->rows, 
+			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ) 
 		return( -1 );
 	project->columns->Ysize = 1;
 	project->columns->BandFmt = 

@@ -153,7 +153,7 @@ read_header( Read *read, VipsImage *out )
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
 
-	vips_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	return( 0 );
 }

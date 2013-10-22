@@ -118,11 +118,6 @@ void vips_image_init_fields( VipsImage *image,
 	VipsInterpretation interpretation, 
 	double xres, double yres );
 
-int vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] );
-int vips_image_copy_fieldsv( VipsImage *out, VipsImage *in1, ... )
-	__attribute__((sentinel));
-int vips_image_copy_fields( VipsImage *out, VipsImage *in );
-
 void vips_image_set( VipsImage *image, const char *field, GValue *value );
 int vips_image_get( const VipsImage *image, 
 	const char *field, GValue *value_copy );

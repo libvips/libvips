@@ -764,7 +764,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		interpretation,
 		xres, yres );
 
-	vips_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	/* Interlaced jpegs need lots of memory to read, so our caller needs
 	 * to know.

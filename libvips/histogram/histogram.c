@@ -157,10 +157,9 @@ vips_histogram_build( VipsObject *object )
 	 */
 	histogram->ready = size;
 
-	if( vips_image_copy_fields_array( histogram->out, histogram->ready ) ) 
+	if( vips_image_pipeline_array( histogram->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, histogram->ready ) ) 
 		return( -1 );
-        vips_demand_hint_array( histogram->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, histogram->ready );
 
 	histogram->out->Xsize = VIPS_IMAGE_N_PELS( histogram->ready[0] );
 	histogram->out->Ysize = 1;

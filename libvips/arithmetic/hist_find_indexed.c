@@ -163,7 +163,8 @@ vips_hist_find_indexed_build( VipsObject *object )
 
 	VIPS_UNREF( indexed->hist->reg );
 
-	if( vips_image_copy_fieldsv( indexed->out, 
+	if( vips_image_pipelinev( indexed->out, 
+		VIPS_DEMAND_STYLE_ANY, 
 		statistic->ready, indexed->index_ready, NULL ) ) 
 		return( -1 );
 	vips_image_init_fields( indexed->out,

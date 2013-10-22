@@ -381,6 +381,7 @@ vips_affine_build( VipsObject *object )
 
 	VipsImage *in;
 	gboolean repack;
+	VipsDemandStyle hint; 
 	int window_size;
 	int window_offset;
 	double edge;
@@ -479,21 +480,19 @@ vips_affine_build( VipsObject *object )
 		return( -1 );
 	in = t[1];
 
-	if( vips_image_copy_fields( resample->out, in ) )
-		return( -1 );
-
-	resample->out->Xsize = affine->trn.oarea.width;
-	resample->out->Ysize = affine->trn.oarea.height;
-
 	/* Normally SMALLTILE ... except if this is a size up/down affine.
 	 */
 	if( affine->trn.b == 0.0 && 
 		affine->trn.c == 0.0 ) 
-		vips_demand_hint( resample->out, 
-			VIPS_DEMAND_STYLE_FATSTRIP, in, NULL );
+		hint = VIPS_DEMAND_STYLE_FATSTRIP; 
 	else 
-		vips_demand_hint( resample->out, 
-			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL );
+		hint = VIPS_DEMAND_STYLE_SMALLTILE;
+
+	if( vips_image_pipelinev( resample->out, hint, in, NULL ) )
+		return( -1 );
+
+	resample->out->Xsize = affine->trn.oarea.width;
+	resample->out->Ysize = affine->trn.oarea.height;
 
 	/* Generate!
 	 */

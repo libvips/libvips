@@ -221,7 +221,7 @@ vips_image_open_lazy( VipsImage *image,
 		/* Then 'start' creates the real image and 'gen' paints 'image' 
 		 * with pixels from the real image on demand.
 		 */
-		vips_demand_hint( image, image->dhint, NULL );
+		vips_image_pipelinev( image, image->dhint, NULL );
 		if( vips_image_generate( image, 
 			open_lazy_start, open_lazy_generate, vips_stop_one, 
 			lazy, NULL ) )

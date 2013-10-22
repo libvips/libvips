@@ -164,10 +164,9 @@ vips_recomb_build( VipsObject *object )
 		return( -1 ); 
 	recomb->coeff = t[0]; 
 
-	if( vips_image_copy_fields( conversion->out, recomb->in ) )
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, recomb->in, NULL ) )
 		return( -1 );
-        vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, recomb->in, NULL );
 
 	conversion->out->Bands = recomb->m->Ysize;
 	if( vips_bandfmt_isint( recomb->in->BandFmt ) ) 

@@ -113,7 +113,7 @@ vips_rot45_rot45( VipsImage *out, VipsImage *in )
 	g_assert( in->Xsize == in->Ysize ); 
 	g_assert( out->Xsize == out->Ysize ); 
 	g_assert( in->Xsize == out->Xsize ); 
-	g_assert( in->Xsize % 2 == 0 );
+	g_assert( in->Xsize % 2 == 1 );
 
 	/* Split the square into 8 triangles. Loop over the top-left one,
 	 * reflect into the others.
@@ -201,8 +201,10 @@ vips_rot45_build( VipsObject *object )
 		return( -1 );
 
 	t[0] = vips_image_new_buffer();
-	if( vips_image_copy_fields( t[0], rot45->in ) ||
-		vips_image_write_prepare( t[0] ) )
+	if( vips_image_pipelinev( t[0], 
+		VIPS_DEMAND_STYLE_ANY, rot45->in, NULL ) )
+		return( -1 );
+	if( vips_image_write_prepare( t[0] ) )
 		return( -1 );
 
 	from = rot45->in;

@@ -1067,14 +1067,14 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	}
 
 	if( vips_image_pio_input( in ) ||
-		vips_image_copy_fields( out, in ) )
+		vips_image_pipelinev( out, 
+			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
-	vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, in, NULL );
 
 	if( mask ) {
-		if( vips_image_copy_fields( mask, in ) )
+		if( vips_image_pipelinev( mask, 
+			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 			return( -1 );
-		vips_demand_hint( mask, VIPS_DEMAND_STYLE_SMALLTILE, in, NULL );
 
 		mask->Bands = 1;
 		mask->BandFmt = VIPS_FORMAT_UCHAR;

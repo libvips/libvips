@@ -100,7 +100,7 @@ vips_black_build( VipsObject *object )
                 black->bands == 1 ? 
 			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 );
-	vips_demand_hint( create->out, 
+	vips_image_pipelinev( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
 
 	if( vips_image_generate( create->out, 

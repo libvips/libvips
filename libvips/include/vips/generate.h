@@ -73,9 +73,9 @@ int vips_image_generate( VipsImage *im,
 	void *a, void *b
 );
 
-void vips_demand_hint_array( VipsImage *image, 
+int vips_image_pipeline_array( VipsImage *image, 
 	VipsDemandStyle hint, VipsImage **in );
-void vips_demand_hint( VipsImage *image, VipsDemandStyle hint, ... )
+int vips_image_pipelinev( VipsImage *image, VipsDemandStyle hint, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus

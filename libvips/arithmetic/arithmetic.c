@@ -545,11 +545,9 @@ vips_arithmetic_build( VipsObject *object )
 	 */
 	arithmetic->ready = size;
 
-	if( vips_image_copy_fields_array( arithmetic->out, 
-		arithmetic->ready ) ) 
+	if( vips_image_pipeline_array( arithmetic->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, arithmetic->ready ) ) 
 		return( -1 );
-        vips_demand_hint_array( arithmetic->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, arithmetic->ready );
 
 	arithmetic->out->Bands = arithmetic->ready[0]->Bands;
 	arithmetic->out->BandFmt = 

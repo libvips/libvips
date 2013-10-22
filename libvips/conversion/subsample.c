@@ -209,10 +209,14 @@ vips_subsample_build( VipsObject *object )
 		vips_check_coding_known( class->nickname, subsample->in ) )  
 		return( -1 );
 
+	/* Set demand hints. We want THINSTRIP, as we will be demanding a
+	 * large area of input for each output line.
+	 */
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, subsample->in, NULL ) )
+		return( -1 );
 	/* Prepare output. Note: we round the output width down!
 	 */
-	if( vips_image_copy_fields( conversion->out, subsample->in ) )
-		return( -1 );
 	conversion->out->Xsize = subsample->in->Xsize / subsample->xfac;
 	conversion->out->Ysize = subsample->in->Ysize / subsample->yfac;
 	conversion->out->Xres = subsample->in->Xres / subsample->xfac;
@@ -223,12 +227,6 @@ vips_subsample_build( VipsObject *object )
 			"%s", _( "image has shrunk to nothing" ) );
 		return( -1 );
 	}
-
-	/* Set demand hints. We want THINSTRIP, as we will be demanding a
-	 * large area of input for each output line.
-	 */
-	vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, subsample->in, NULL );
 
 	/* Generate! If this is a very large shrink, then it's
 	 * probably faster to do it a pixel at a time. 

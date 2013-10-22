@@ -250,10 +250,9 @@ vips_copy_build( VipsObject *object )
 	if( vips_image_pio_input( copy->in ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, copy->in ) )
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, copy->in, NULL ) )
 		return( -1 );
-        vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, copy->in, NULL );
 
 	/* Use props to adjust header fields.
 	 */

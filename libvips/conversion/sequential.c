@@ -273,10 +273,9 @@ vips_sequential_build( VipsObject *object )
 
 	vips_object_local( object, t ); 
 
-	if( vips_image_copy_fields( conversion->out, t ) )
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, t, NULL ) )
 		return( -1 );
-        vips_demand_hint( conversion->out,
-		VIPS_DEMAND_STYLE_THINSTRIP, t, NULL );
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_sequential_generate, vips_stop_one, 
 		t, sequential ) )

@@ -1236,7 +1236,7 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 	 * the cache we are quite happy serving that if anything downstream 
 	 * would like it.
 	 */
-        vips_demand_hint( raw, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+        vips_image_pipelinev( raw, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	if( vips_image_generate( raw, 
 		tiff_seq_start, tiff_fill_region, tiff_seq_stop, 
@@ -1413,7 +1413,7 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	if( parse_header( rtiff, t[0] ) )
 		return( -1 );
 
-        vips_demand_hint( t[0], VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+        vips_image_pipelinev( t[0], VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	if( !tfget32( rtiff->tiff, 
 		TIFFTAG_ROWSPERSTRIP, &rtiff->rows_per_strip ) )

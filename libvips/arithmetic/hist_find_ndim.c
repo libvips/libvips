@@ -154,7 +154,8 @@ vips_hist_find_ndim_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( ndim->out, statistic->ready ) ) 
+	if( vips_image_pipelinev( ndim->out, 
+		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ) 
 		return( -1 );
 	vips_image_init_fields( ndim->out,
 		ndim->bins, 

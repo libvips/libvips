@@ -163,7 +163,7 @@ vips_xyz_build( VipsObject *object )
 		VIPS_FORMAT_UINT, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 );
-	vips_demand_hint( create->out, 
+	vips_image_pipelinev( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
 
 	if( vips_image_generate( create->out, 

@@ -336,15 +336,13 @@ vips_shrink_build( VipsObject *object )
 		shrink->yshrink == 1.0 )
 		return( vips_image_write( resample->in, resample->out ) );
 
-	if( vips_image_copy_fields( resample->out, resample->in ) )
-		return( -1 );
-
 	/* THINSTRIP will work, anything else will break seq mode. If you 
 	 * combine shrink with conv you'll need to use a line cache to maintain
 	 * sequentiality.
 	 */
-	vips_demand_hint( resample->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, resample->in, NULL );
+	if( vips_image_pipelinev( resample->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, resample->in, NULL ) )
+		return( -1 );
 
 	/* Size output. Note: we round the output width down!
 	 *

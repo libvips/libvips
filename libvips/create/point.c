@@ -103,7 +103,7 @@ vips_point_build( VipsObject *object )
 		point->width, point->height, 1,
 		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
 		1.0, 1.0 );
-	vips_demand_hint( t[0], 
+	vips_image_pipelinev( t[0], 
 		VIPS_DEMAND_STYLE_ANY, NULL );
 	if( vips_image_generate( t[0], 
 		NULL, vips_point_gen, NULL, point, NULL ) )

@@ -170,6 +170,11 @@ VipsArgumentInstance *vips__argument_get_instance(
 VipsArgument *vips__argument_table_lookup( VipsArgumentTable *table, 
 	GParamSpec *pspec);
 
+void vips__demand_hint_array( struct _VipsImage *image, 
+	int hint, struct _VipsImage **in );
+int vips__image_copy_fields_array( struct _VipsImage *out, 
+	struct _VipsImage *in[] );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

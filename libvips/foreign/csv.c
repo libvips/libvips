@@ -280,11 +280,11 @@ read_csv( FILE *fp, VipsImage *out,
 		fsetpos( fp, &pos );
 	}
 
+	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	vips_image_init_fields( out,
 		columns, lines, 1, 
 		VIPS_FORMAT_DOUBLE, 
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
-	vips_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	/* Just reading the header? We are done.
 	 */

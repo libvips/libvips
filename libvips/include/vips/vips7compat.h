@@ -208,9 +208,12 @@ extern "C" {
 #define im_guess_libdir vips_guess_libdir
 #define im__global_lock vips__global_lock
 
-#define im_cp_desc vips_image_copy_fields
-#define im_cp_descv vips_image_copy_fieldsv
-#define im_cp_desc_array vips_image_copy_fields_array
+int im_cp_desc(IMAGE *out, IMAGE *in );
+int im_cp_descv (IMAGE * im, ...);
+#define im_cp_desc_array(I, A) vips__image_copy_fields_array(I, A)
+int im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...);
+#define im_demand_hint_array( A, B, C ) (vips__demand_hint_array( A, B, C ), 0)
+
 #define im_image vips_image_new_from_memory
 #define im_binfile vips_image_new_from_file_raw
 #define im__open_temp vips_image_new_temp_file
@@ -323,9 +326,6 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_rect_equalsrect vips_rect_equalsrect
 #define im_rect_dup vips_rect_dup
 #define im_rect_normalise vips_rect_normalise
-
-int im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...);
-#define im_demand_hint_array( A, B, C ) (vips_demand_hint_array( A, B, C ), 0)
 
 #define im_start_one vips_start_one
 #define im_stop_one vips_stop_one

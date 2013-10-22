@@ -256,16 +256,14 @@ vips_hist_local_build( VipsObject *object )
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
-	if( vips_image_copy_fields( local->out, in ) )
-		return( -1 );
-	local->out->Xsize -= local->width - 1;
-	local->out->Ysize -= local->height - 1;
-
 	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
 	 * too many recalculations on overlaps.
 	 */
-	vips_demand_hint( local->out, 
-		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL );
+	if( vips_image_pipelinev( local->out, 
+		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL ) )
+		return( -1 );
+	local->out->Xsize -= local->width - 1;
+	local->out->Ysize -= local->height - 1;
 
 	if( vips_image_generate( local->out, 
 		vips_hist_local_start, 

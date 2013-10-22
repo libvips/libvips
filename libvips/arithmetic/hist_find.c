@@ -150,7 +150,8 @@ vips_hist_find_build( VipsObject *object )
 
 	/* Make the output image.
 	 */
-	if( vips_image_copy_fields( hist_find->out, statistic->ready ) ) 
+	if( vips_image_pipelinev( hist_find->out, 
+		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ) 
 		return( -1 );
 	vips_image_init_fields( hist_find->out,
 		hist_find->hist->mx + 1, 1, hist_find->hist->bands, 

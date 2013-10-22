@@ -249,16 +249,14 @@ vips_stdif_build( VipsObject *object )
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
-	if( vips_image_copy_fields( stdif->out, in ) )
-		return( -1 );
-	stdif->out->Xsize -= stdif->width - 1;
-	stdif->out->Ysize -= stdif->height - 1;
-
 	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
 	 * too many recalculations on overlaps.
 	 */
-	vips_demand_hint( stdif->out, 
-		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL );
+	if( vips_image_pipelinev( stdif->out, 
+		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL ) )
+		return( -1 );
+	stdif->out->Xsize -= stdif->width - 1;
+	stdif->out->Ysize -= stdif->height - 1;
 
 	if( vips_image_generate( stdif->out, 
 		vips_start_one, 

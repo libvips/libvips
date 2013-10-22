@@ -212,9 +212,9 @@ read_header( Read *read, VipsImage *out )
 		 VIPS_FORMAT_FLOAT,
 		 VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
 	if( read->tiles )
-		vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	else
-		vips_demand_hint( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 }
 
 int

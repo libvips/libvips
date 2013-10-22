@@ -604,13 +604,13 @@ vips_image_get_data( VipsImage *image )
  * @yres: vertical resolution, pixels per millimetre
  *
  * A convenience function to set the header fields after creating an image.
- * Normally you copy the fields from one of your input images with
- * vips_image_copy_fields() and then make
+ * Normally you copy the fields from your input images with
+ * vips_image_pipelinev() and then make
  * any adjustments you need, but if you are creating an image from scratch,
  * for example im_black() or im_jpeg2vips(), you do need to set all the
  * fields yourself.
  *
- * See also: vips_image_copy_fields().
+ * See also: vips_image_pipelinev().
  */
 void 
 vips_image_init_fields( VipsImage *image, 
@@ -655,7 +655,7 @@ meta_cp_field( VipsMeta *meta, VipsImage *dst )
 	return( NULL );
 }
 
-/* Copy meta on to dst. Called from vips_cp_desc().
+/* Copy meta on to dst. 
  */
 static int
 meta_cp( VipsImage *dst, const VipsImage *src )
@@ -671,31 +671,11 @@ meta_cp( VipsImage *dst, const VipsImage *src )
 	return( 0 );
 }
 
-/**
- * vips_image_copy_fields_array:
- * @out: image to copy to
- * @in: %NULL-terminated array of images to copy from
- *
- * Copy fields from all the input images to the output image. There must be at
- * least one input image. 
- *
- * The first input image is used to set the main fields of @out (@width,
- * @coding and so on). 
- *
- * Metadata from all the images is merged on to @out, with lower-numbered items 
- * overriding higher. So for example, if @in[0] and @in[1] both have an item
- * called "icc-profile", it's the profile attached to @in[0] that will end up
- * on @out.
- *
- * Image history is completely copied from all @in. @out will have the history
- * of all the input images.
- *
- * See also: vips_image_copy_fieldsv(), vips_image_copy_fields().
- *
- * Returns: 0 on success, -1 on error.
+/* We have to have this as a separate entry point so we can support the old
+ * vips7 API.
  */
 int 
-vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] )
+vips__image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 {
 	int i;
 	int ni;
@@ -738,63 +718,6 @@ vips_image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 			out->history_list, in[i]->history_list );
 
 	return( 0 );
-}
-
-/* Max number of images we can handle.
- */
-#define MAX_IMAGES (1000)
-
-/**
- * vips_image_copy_fieldsv:
- * @out: image to copy to
- * @in1: first image to copy from
- * @Varargs: %NULL-terminated list of images to copy from
- *
- * Copy fields from all the input images to the output image. A convenience
- * function over vips_image_copy_fields_array(). 
- *
- * See also: vips_image_copy_fields_array(), vips_image_copy_fields().
- *
- * Returns: 0 on success, -1 on error.
- */
-int 
-vips_image_copy_fieldsv( VipsImage *out, VipsImage *in1, ... )
-{
-	va_list ap;
-	int i;
-	VipsImage *in[MAX_IMAGES];
-
-	in[0] = in1;
-	va_start( ap, in1 );
-	for( i = 1; i < MAX_IMAGES && 
-		(in[i] = va_arg( ap, VipsImage * )); i++ ) 
-		;
-	va_end( ap );
-	if( i == MAX_IMAGES ) {
-		vips_error( "vips_image_copy_fieldsv", 
-			"%s", _( "too many images" ) );
-		return( -1 );
-	}
-
-	return( vips_image_copy_fields_array( out, in ) );
-}
-
-/**
- * vips_image_copy_fields:
- * @out: image to copy to
- * @in: image to copy from
- *
- * Copy fields from @in to @out. A convenience
- * function over vips_image_copy_fields_array(). 
- *
- * See also: vips_image_copy_fields_array(), vips_image_copy_fieldsv().
- *
- * Returns: 0 on success, -1 on error.
- */
-int 
-vips_image_copy_fields( VipsImage *out, VipsImage *in )
-{
-	return( vips_image_copy_fieldsv( out, in, NULL ) ); 
 }
 
 /** 

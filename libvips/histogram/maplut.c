@@ -564,10 +564,9 @@ vips_maplut_build( VipsObject *object )
 		vips_image_pio_input( in ) )
 		return( -1 );
 
-	if( vips_image_copy_fieldsv( maplut->out, in, lut, NULL ) )
+	if( vips_image_pipelinev( maplut->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, in, lut, NULL ) )
 		return( -1 );
-	vips_demand_hint( maplut->out, VIPS_DEMAND_STYLE_THINSTRIP, 
-		in, lut, NULL );
 	maplut->out->BandFmt = lut->BandFmt;
 
 	/* Output has same number of bands as LUT, unless LUT has 1 band, in

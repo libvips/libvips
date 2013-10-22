@@ -3,6 +3,8 @@
 - vips_init() now does some ABI compat checking, though this change requires
   an ABI break
 - add "interlace" option to vips_jpegsave()
+- remove vips_image_copy_fields() and vips_demand_hint() and add 
+  vips_image_pipeline() to do both jobs
 
 18/10/13	started 7.36.3
 - fix compiler warnings in ubuntu 13.10

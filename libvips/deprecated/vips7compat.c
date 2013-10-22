@@ -486,7 +486,7 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 		if( vips_image_pio_input( in[i] ) )
 			return( -1 );
 	}
-        vips_demand_hint_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in );
+        vips_image_pipeline_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in );
 
 	/* Generate!
 	 */
@@ -959,7 +959,35 @@ im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...)
       return (-1);
     }
 
-  return (im_demand_hint_array (im, hint, ar));
+  vips__demand_hint_array (im, hint, ar);
+
+  return (0);
+}
+
+int
+im_cp_descv (IMAGE * im, ...)
+{
+  va_list ap;
+  int i;
+  IMAGE *ar[MAX_IMAGES];
+
+  va_start (ap, im);
+  for (i = 0; i < MAX_IMAGES && (ar[i] = va_arg (ap, IMAGE *)); i++)
+    ;
+  va_end (ap);
+  if (i == MAX_IMAGES)
+    {
+      im_error ("im_cp_descv", "%s", _("too many images"));
+      return (-1);
+    }
+
+  return (vips__image_copy_fields_array (im, ar));
+}
+
+int
+im_cp_desc(IMAGE *out, IMAGE *in )
+{
+	return( im_cp_descv( out, in, NULL)); 
 }
 
 int 
@@ -1925,7 +1953,7 @@ im_gauss_dmask_sep( const char *filename, double sigma, double min_ampl )
 	DOUBLEMASK *msk;
 
 	if( vips_gaussmat( &t, sigma, min_ampl,
-		"seperable", TRUE,
+		"separable", TRUE,
 		NULL ) )
 		return( NULL );
 	if( !(msk = im_vips2mask( t, filename )) ) {
@@ -1964,7 +1992,7 @@ im_gauss_imask_sep( const char *filename, double sigma, double min_ampl )
 
 	if( vips_gaussmat( &t, sigma, min_ampl,
 		"integer", TRUE,
-		"seperable", TRUE,
+		"separable", TRUE,
 		NULL ) )
 		return( NULL );
 	if( !(msk = im_vips2imask( t, filename )) ) {

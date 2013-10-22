@@ -1,11 +1,3 @@
-- get rid of vips_image_copy_fields(out, in) ... very confusing
-
-  just have 
-
-  	vips_image_copy_fieldsv( out, in1, in2, .. NULL )
-
-  makes arg order clearer
-
 - do conv and morph quickly as simple wrappers over the vips7 operations
 
 - do much fancier profiling with timing on all locks saved in memory and
@@ -23,6 +15,13 @@
   I think they should
 
   combine the two into one call?
+
+  hist_find at least does not call demand_hint, same for all writeline output
+  operators I guess
+
+  how about
+
+  	vips_image_pipelinev( out, hint, in1, ... )
 
 - object construction is threadsafe, but class construction is not
 

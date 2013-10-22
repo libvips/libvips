@@ -441,10 +441,9 @@ vips_cast_build( VipsObject *object )
 		vips_image_pio_input( cast->in ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, cast->in ) )
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, cast->in, NULL ) )
 		return( -1 );
-	vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, cast->in, NULL );
 
 	conversion->out->BandFmt = cast->format;
 
