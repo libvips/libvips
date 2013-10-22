@@ -57,15 +57,15 @@ Run a vips8 operation. Operation options must follow the operation name.
 Get a "usage" message for an operation
 
   $ vips add 
-  VipsAdd (add), add two images
-    add left right out
+  usage:
+     add left right out
+     add two images
   where:
-    left :: VipsImage (input)
-    right :: VipsImage (input)
-    out :: VipsImage (output)
-  optional arguments:
-    imtest :: VipsImage (input)
-    booltest :: gboolean (input)
+     left         - Left-hand image argument, input VipsImage
+     right        - Right-hand image argument, input VipsImage
+     out          - Output image, output VipsImage
+  operation flags: sequential-unbuffered 
+  add: too few arguments
 
 .SH RETURN VALUE
 returns 0 on success and non-zero on error.
