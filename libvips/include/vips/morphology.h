@@ -66,8 +66,6 @@ int im_dilate( VipsImage *in, VipsImage *out, INTMASK *mask );
 int im_erode( VipsImage *in, VipsImage *out, INTMASK *mask );
 
 int im_rank( VipsImage *in, VipsImage *out, int width, int height, int index );
-int im_rank_image( VipsImage **in, VipsImage *out, int n, int index );
-int im_maxvalue( VipsImage **in, VipsImage *out, int n );
 
 int im_cntlines( VipsImage *im, double *nolines, int flag );
 int im_zerox( VipsImage *in, VipsImage *out, int sign );

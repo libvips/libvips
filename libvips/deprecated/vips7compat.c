@@ -1390,6 +1390,30 @@ im_gbandjoin( VipsImage **in, VipsImage *out, int n )
 	return( 0 );
 }
 
+int
+im_rank_image( VipsImage **in, VipsImage *out, int n, int index )
+{
+	VipsImage *t;
+
+	if( vips_bandrank( in, &t, n,
+		"index", index,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int
+im_maxvalue( IMAGE **in, IMAGE *out, int n )
+{
+	return( im_rank_image( in, out, n, n - 1 ) );
+}
+
 int 
 im_invert( IMAGE *in, IMAGE *out )
 {

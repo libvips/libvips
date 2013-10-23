@@ -17,6 +17,7 @@ libconversion_la_SOURCES = \
 	replicate.c \
 	cast.c \
 	bandjoin.c \
+	bandrank.c \
 	recomb.c \
 	bandmean.c \
 	bandbool.c \

@@ -712,6 +712,8 @@ int im_rotquad( VipsImage *in, VipsImage *out );
 int im_clip2fmt( VipsImage *in, VipsImage *out, VipsBandFormat fmt );
 int im_bandjoin( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_gbandjoin( VipsImage **in, VipsImage *out, int n );
+int im_rank_image( VipsImage **in, VipsImage *out, int n, int index );
+int im_maxvalue( VipsImage **in, VipsImage *out, int n );
 int im_grid( VipsImage *in, VipsImage *out, int tile_height, int across, int down );
 int im_scale( VipsImage *in, VipsImage *out );
 int im_scaleps( VipsImage *in, VipsImage *out );
