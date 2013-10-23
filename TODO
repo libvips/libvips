@@ -1,6 +1,3 @@
-- vipsthumbnail needs non-square BBs, perhaps
-
-	--size 200x300
 
 - do conv and morph quickly as simple wrappers over the vips7 operations
 

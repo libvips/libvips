@@ -633,6 +633,25 @@ vips_precision_get_type( void )
 
 	return( etype );
 }
+/* enumerations from "../../libvips/include/vips/morphology.h" */
+GType
+vips_operation_morphology_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_MORPHOLOGY_ERODE, "VIPS_OPERATION_MORPHOLOGY_ERODE", "erode"},
+			{VIPS_OPERATION_MORPHOLOGY_DILATE, "VIPS_OPERATION_MORPHOLOGY_DILATE", "dilate"},
+			{VIPS_OPERATION_MORPHOLOGY_LAST, "VIPS_OPERATION_MORPHOLOGY_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationMorphology", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/object.h" */
 GType
 vips_argument_flags_get_type( void )

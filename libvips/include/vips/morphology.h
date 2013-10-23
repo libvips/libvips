@@ -31,12 +31,36 @@
 
  */
 
-#ifndef IM_MORPHOLOGY_H
-#define IM_MORPHOLOGY_H
+#ifndef VIPS_MORPHOLOGY_H
+#define VIPS_MORPHOLOGY_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
+
+/** 
+ * VipsOperationMorphology:
+ * @VIPS_OPERATION_MORPHOLOGY_ERODE: true if all set
+ * @VIPS_OPERATION_MORPHOLOGY_DILATE: true if one set
+ *
+ * More like hit-miss, really. 
+ *
+ * See also: vips_morph().
+ */
+
+typedef enum {
+	VIPS_OPERATION_MORPHOLOGY_ERODE,
+	VIPS_OPERATION_MORPHOLOGY_DILATE,
+	VIPS_OPERATION_MORPHOLOGY_LAST
+} VipsOperationMorphology;
+
+int vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask, 
+	VipsOperationMorphology morph, ... )
+	__attribute__((sentinel));
+
+
+
+
 
 int im_dilate( VipsImage *in, VipsImage *out, INTMASK *mask );
 int im_erode( VipsImage *in, VipsImage *out, INTMASK *mask );
@@ -53,4 +77,4 @@ int im_label_regions( VipsImage *test, VipsImage *mask, int *segments );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_MORPHOLOGY_H*/
+#endif /*VIPS_MORPHOLOGY_H*/

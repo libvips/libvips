@@ -50,6 +50,7 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/colour.h \
 	${top_srcdir}/libvips/include/vips/operation.h \
 	${top_srcdir}/libvips/include/vips/convolution.h \
+	${top_srcdir}/libvips/include/vips/morphology.h \
 	${top_srcdir}/libvips/include/vips/object.h
 
 enumtypes.c: $(vips_scan_headers) Makefile
