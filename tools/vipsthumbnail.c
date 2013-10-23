@@ -53,7 +53,9 @@
 
 #include <vips/vips.h>
 
-static int thumbnail_size = 128;
+static char *thumbnail_size = "128";
+static int thumbnail_width = 128;
+static int thumbnail_height = 128;
 static char *output_format = "tn_%s.jpg";
 static char *interpolator = "bilinear";
 static char *export_profile = NULL;
@@ -68,8 +70,8 @@ static gboolean nodelete_profile = FALSE;
 
 static GOptionEntry options[] = {
 	{ "size", 's', 0, 
-		G_OPTION_ARG_INT, &thumbnail_size, 
-		N_( "set thumbnail size to SIZE" ), 
+		G_OPTION_ARG_STRING, &thumbnail_size, 
+		N_( "shrink to SIZE or to WIDTHxHEIGHT" ), 
 		N_( "SIZE" ) },
 	{ "output", 'o', 0, 
 		G_OPTION_ARG_STRING, &output_format, 
@@ -115,13 +117,14 @@ static GOptionEntry options[] = {
 static int
 calculate_shrink( int width, int height, double *residual )
 {
-	/* We shrink to make the largest dimension equal to size.
+	/* Calculate the horizontal and vertical shrink we'd need to fit the
+	 * image to the bounding box, and pick the biggest.
 	 */
-	int dimension = IM_MAX( width, height );
+	double horizontal = (double) width / thumbnail_width;
+	double vertical = (double) height / thumbnail_height;
+	double factor = VIPS_MAX( horizontal, vertical ); 
 
-	double factor = dimension / (double) thumbnail_size;
-
-	/* If the shrink factor is <=1.0, we need to zoom rather than shrink.
+	/* If the shrink factor is <= 1.0, we need to zoom rather than shrink.
 	 * Just set the factor to 1 in this case.
 	 */
 	double factor2 = factor < 1.0 ? 1.0 : factor;
@@ -130,14 +133,15 @@ calculate_shrink( int width, int height, double *residual )
 	 */
 	int shrink = floor( factor2 );
 
-	/* Size after int shrink.
-	 */
-	int isize = floor( dimension / shrink );
+	if( residual ) {
+		/* Width after int shrink.
+		 */
+		int iwidth = width / shrink;
 
-	/* Therefore residual scale factor is.
-	 */
-	if( residual )
-		*residual = thumbnail_size / (double) isize;
+		/* Therefore residual scale factor is.
+		 */
+		*residual = (width / factor) / iwidth; 
+	}
 
 	return( shrink );
 }
@@ -554,6 +558,15 @@ main( int argc, char **argv )
 	}
 
 	g_option_context_free( context );
+
+	if( sscanf( thumbnail_size, "%d x %d", 
+		&thumbnail_width, &thumbnail_height ) != 2 ) {
+		if( sscanf( thumbnail_size, "%d", &thumbnail_width ) != 1 ) 
+			vips_error_exit( "unable to parse size \"%s\" -- "
+				"use eg. 128 or 200x300", thumbnail_size );
+
+		thumbnail_height = thumbnail_width;
+	}
 
 	for( i = 1; i < argc; i++ ) {
 		/* Hang resources for this processing off this.
