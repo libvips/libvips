@@ -2088,6 +2088,82 @@ im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb )
 	return( 0 );
 }
 
+/*
+int 
+im_compass( VipsImage *in, VipsImage *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_compass( in, &t2, t1, 
+		"times", 8, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int 
+im_lindetect( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_compass( in, &t2, t1, 
+		"times", 4, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_gradient( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_compass( in, &t2, t1, 
+		"times", 2, 
+		"angle", VIPS_ANGLE45_90, 
+		"combine", VIPS_COMBINE_SUM, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+ */
+
 static int
 vips__round( VipsImage *in, VipsImage *out, VipsOperationRound round )
 {

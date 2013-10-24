@@ -127,7 +127,7 @@ vips_convolution_class_init( VipsConvolutionClass *class )
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsConvolution, out ) );
 
-	VIPS_ARG_IMAGE( class, "mask", 102, 
+	VIPS_ARG_IMAGE( class, "mask", 20, 
 		_( "Mask" ), 
 		_( "Input matrix image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
@@ -148,7 +148,9 @@ vips_convolution_operation_init( void )
 {
 	extern int vips_conv_get_type( void ); 
 	extern int vips_morph_get_type( void ); 
+	extern int vips_compass_get_type( void ); 
 
 	vips_conv_get_type(); 
 	vips_morph_get_type(); 
+	vips_compass_get_type(); 
 }

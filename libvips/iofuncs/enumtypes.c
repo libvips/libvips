@@ -625,6 +625,7 @@ vips_precision_get_type( void )
 			{VIPS_PRECISION_INTEGER, "VIPS_PRECISION_INTEGER", "integer"},
 			{VIPS_PRECISION_FLOAT, "VIPS_PRECISION_FLOAT", "float"},
 			{VIPS_PRECISION_APPROXIMATE, "VIPS_PRECISION_APPROXIMATE", "approximate"},
+			{VIPS_PRECISION_LAST, "VIPS_PRECISION_LAST", "last"},
 			{0, NULL, NULL}
 		};
 		
@@ -633,7 +634,24 @@ vips_precision_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/morphology.h" */
+GType
+vips_combine_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_COMBINE_MAX, "VIPS_COMBINE_MAX", "max"},
+			{VIPS_COMBINE_SUM, "VIPS_COMBINE_SUM", "sum"},
+			{VIPS_COMBINE_LAST, "VIPS_COMBINE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsCombine", values );
+	}
+
+	return( etype );
+}
 GType
 vips_operation_morphology_get_type( void )
 {

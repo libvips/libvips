@@ -41,10 +41,39 @@ extern "C" {
 typedef enum {
 	VIPS_PRECISION_INTEGER,
 	VIPS_PRECISION_FLOAT,
-	VIPS_PRECISION_APPROXIMATE
+	VIPS_PRECISION_APPROXIMATE,
+	VIPS_PRECISION_LAST
 } VipsPrecision;
 
+typedef enum {
+	VIPS_COMBINE_MAX,
+	VIPS_COMBINE_SUM,
+	VIPS_COMBINE_LAST
+} VipsCombine;
+
+/** 
+ * VipsOperationMorphology:
+ * @VIPS_OPERATION_MORPHOLOGY_ERODE: true if all set
+ * @VIPS_OPERATION_MORPHOLOGY_DILATE: true if one set
+ *
+ * More like hit-miss, really. 
+ *
+ * See also: vips_morph().
+ */
+
+typedef enum {
+	VIPS_OPERATION_MORPHOLOGY_ERODE,
+	VIPS_OPERATION_MORPHOLOGY_DILATE,
+	VIPS_OPERATION_MORPHOLOGY_LAST
+} VipsOperationMorphology;
+
 int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
+int vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
+
+int vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask, 
+	VipsOperationMorphology morph, ... )
 	__attribute__((sentinel));
 
 void vips_convolution_operation_init( void );
