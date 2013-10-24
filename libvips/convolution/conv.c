@@ -62,6 +62,7 @@ G_DEFINE_TYPE( VipsConv, vips_conv, VIPS_TYPE_CONVOLUTION );
 static int
 vips_conv_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConvolution *convolution = (VipsConvolution *) object;
 	VipsConv *conv = (VipsConv *) object;
 
@@ -73,27 +74,27 @@ vips_conv_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_conv_parent_class )->build( object ) )
 		return( -1 );
 
+	if( !(imsk = im_vips2imask( convolution->M, class->nickname )) || 
+		!im_local_imask( convolution->out, imsk ) )
+		return( -1 ); 
+	if( !(dmsk = im_vips2mask( convolution->M, class->nickname )) || 
+		!im_local_dmask( convolution->out, dmsk ) )
+		return( -1 ); 
 
 	switch( conv->precision ) { 
 	case VIPS_PRECISION_INTEGER:
-		if( !(imsk = im_vips2imask( convolution->M, "im_stats" )) || 
-			!im_local_imask( convolution->out, imsk ) ||
-			im_conv( convolution->in, convolution->out, imsk ) )
+		if( im_conv( convolution->in, convolution->out, imsk ) )
 			return( -1 ); 
 		break;
 
 	case VIPS_PRECISION_FLOAT:
-		if( !(dmsk = im_vips2mask( convolution->M, "im_stats" )) || 
-			!im_local_dmask( convolution->out, dmsk ) ||
-			im_conv_f( convolution->in, convolution->out, dmsk ) )
+		if( im_conv_f( convolution->in, convolution->out, dmsk ) )
 			return( -1 ); 
 		break;
 
 	case VIPS_PRECISION_APPROXIMATE:
-		if( !(dmsk = im_vips2mask( convolution->M, "im_stats" )) || 
-			!im_local_dmask( convolution->out, dmsk ) ||
-			im_aconv( convolution->in, convolution->out, dmsk, 
-				conv->layers, conv->cluster ) )
+		if( im_aconv( convolution->in, convolution->out, dmsk, 
+			conv->layers, conv->cluster ) )
 			return( -1 ); 
 		break;
 

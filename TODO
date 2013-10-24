@@ -1,3 +1,6 @@
+- started compass .. convolution with a rotating mask
+
+  need to do sep
 
 - do conv and morph quickly as simple wrappers over the vips7 operations
 
