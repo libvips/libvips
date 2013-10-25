@@ -71,6 +71,8 @@ int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
 int vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
+int vips_convsep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
 
 int vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask, 
 	VipsOperationMorphology morph, ... )
@@ -80,12 +82,6 @@ void vips_convolution_operation_init( void );
 
 
 
-
-int im_aconvsep( VipsImage *in, VipsImage *out, 
-	DOUBLEMASK *mask, int n_layers );
-
-int im_convsep( VipsImage *in, VipsImage *out, INTMASK *mask );
-int im_convsep_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
 
 int im_sharpen( VipsImage *in, VipsImage *out, 
 	int mask_size, 

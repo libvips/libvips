@@ -1267,6 +1267,33 @@ vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
 }
 
 /**
+ * vips_check_separable:
+ * @domain: the originating domain for the error message
+ * @im: image to check 
+ *
+ * Separable matrix images must have width or height 1.
+ * Return 0 if the image will pass, or -1 and
+ * set an error message otherwise.
+ *
+ * See also: vips_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+vips_check_separable( const char *domain, VipsImage *im )
+{
+	if( im->Xsize != 1 && 
+		im->Ysize != 1 ) {
+		vips_error( domain, 
+			"%s", _( "separable matrix images must have "
+			"width or height 1" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * vips_check_imask: (skip)
  * @domain: the originating domain for the error message
  * @mask: mask to check

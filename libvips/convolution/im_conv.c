@@ -1075,28 +1075,6 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 	return( 0 );
 }
 
-/**
- * im_conv:
- * @in: input image
- * @out: output image
- * @mask: convolution mask
- *
- * Convolve @in with @mask using integer arithmetic. The output image 
- * always has the same #VipsBandFmt as the input image. 
- *
- * Each output pixel is
- * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
- * and offset are part of @mask. For integer @in, the division by scale
- * includes round-to-nearest.
- *
- * Convolutions on unsigned 8-bit images are calculated with the 
- * processor's vector unit,
- * if possible. Disable this with --vips-novector or IM_NOVECTOR.
- *
- * See also: im_conv_f(), im_convsep(), im_create_imaskv().
- *
- * Returns: 0 on success, -1 on error
- */
 int 
 im_conv( IMAGE *in, IMAGE *out, INTMASK *mask )
 {
@@ -1107,75 +1085,6 @@ im_conv( IMAGE *in, IMAGE *out, INTMASK *mask )
 			in->Xsize + mask->xsize - 1, 
 			in->Ysize + mask->ysize - 1 ) ||
 		im_conv_raw( t1, out, mask ) )
-		return( -1 );
-
-	out->Xoffset = 0;
-	out->Yoffset = 0;
-
-	return( 0 );
-}
-
-int
-im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
-{
-	IMAGE *t;
-	INTMASK *rmask;
-
-	if( mask->xsize != 1 && mask->ysize != 1 ) {
-                im_error( "im_convsep", 
-			"%s", _( "expect 1xN or Nx1 input mask" ) );
-                return( -1 );
-	}
-
-	if( !(t = im_open_local( out, "im_convsep", "p" )) ||
-		!(rmask = (INTMASK *) im_local( out, 
-		(im_construct_fn) im_dup_imask,
-		(im_callback_fn) im_free_imask, mask, mask->filename, NULL )) )
-		return( -1 );
-
-	rmask->xsize = mask->ysize;
-	rmask->ysize = mask->xsize;
-        rmask->offset = 0.;
-
-	if( im_conv_raw( in, t, rmask ) ||
-		im_conv_raw( t, out, mask ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-/**
- * im_convsep:
- * @in: input image
- * @out: output image
- * @mask: convolution mask
- *
- * Perform a separable convolution of @in with @mask using integer arithmetic. 
- * See im_conv() for a detailed description.
- *
- * The mask must be 1xn or nx1 elements. 
- * The output image 
- * always has the same #VipsBandFmt as the input image. 
- *
- * The image is convolved twice: once with @mask and then again with @mask 
- * rotated by 90 degrees. This is much faster for certain types of mask
- * (gaussian blur, for example) than doing a full 2D convolution.
- *
- * See also: im_convsep_f(), im_conv(), im_create_imaskv().
- *
- * Returns: 0 on success, -1 on error
- */
-int 
-im_convsep( IMAGE *in, IMAGE *out, INTMASK *mask )
-{
-	IMAGE *t1 = im_open_local( out, "im_convsep intermediate", "p" );
-	int n_mask = mask->xsize * mask->ysize;
-
-	if( !t1 || 
-		im_embed( in, t1, 1, n_mask / 2, n_mask / 2, 
-			in->Xsize + n_mask - 1, 
-			in->Ysize + n_mask - 1 ) ||
-		im_convsep_raw( t1, out, mask ) )
 		return( -1 );
 
 	out->Xoffset = 0;

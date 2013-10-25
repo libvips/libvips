@@ -1,7 +1,7 @@
 19/10/13 started 7.37.0
 - redone im_rotate_*mask45(), im_gauss_*mask*(), im_log_*mask(), im_dilate(),
-  im_erode(), im_rank_image(), im_compass(), im_linedet(), im_gradient() 
-  as classes
+  im_erode(), im_rank_image(), im_compass(), im_linedet(), im_gradient(),
+  im_convsep(), im_convsep_f() as classes
 - vips_init() now does some ABI compat checking, though this change requires
   an ABI break
 - add "interlace" option to vips_jpegsave()

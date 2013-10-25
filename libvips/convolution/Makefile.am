@@ -4,6 +4,7 @@ libconvolution_la_SOURCES = \
 	convolution.c \
 	pconvolution.h \
 	conv.c \
+	convsep.c \
 	compass.c \
 	morph.c \
 	convol_dispatch.c \
