@@ -116,7 +116,7 @@ vips_rot45_rot45( VipsImage *out, VipsImage *in )
 	g_assert( in->Xsize % 2 == 1 );
 
 	/* Split the square into 8 triangles. Loop over the top-left one,
-	 * reflect into the others.
+	 * reflect to index the others.
 	 *
 	 * 	1 1 2 2 3
 	 * 	8 1 2 3 3
@@ -129,48 +129,48 @@ vips_rot45_rot45( VipsImage *out, VipsImage *in )
 
 	for( y = 0; y < size_2; y++ )  
 		for( x = y; x < size_2; x++ ) {
-			/* Save 1, it goes into 8 at the end.
+			/* Save 1, it goes into 2 at the end.
 			 */
 			POINT_TO_TEMP( temp, x, y ); 
 
-			/* Fill 1 from 2.
+			/* Fill 1 from 8.
 			 */
 			ASSIGN( x, y, 
-				(x - y) + size_2, y ); 
-
-			/* 2 from 3.
-			 */
-			ASSIGN( (x - y) + size_2, y, 
-				(size - 1) - y, x ); 
-
-			/* 3 from 4.
-			 */
-			ASSIGN( (size - 1) - y, x, 
-				(size - 1) - y, (x - y) + size_2 );
-
-			/* 4 from 5.
-			 */
-			ASSIGN( (size - 1) - y, (x - y) + size_2, 
-				(size - 1) - x, (size - 1) - y ); 
-
-			/* 5 from 6. 
-			 */
-			ASSIGN( (size - 1) - x, (size - 1) - y,
-				size_2 - (x - y), (size - 1) - y );
-
-			/* 6 from 7. 
-			 */
-			ASSIGN( size_2 - (x - y), (size - 1) - y,
-				y, (size - 1) - x ); 
-
-			/* 7 from 8.
-			 */
-			ASSIGN( y, (size - 1) - x,
 				y, size_2 - (x - y) );
 
-			/* 8 from saved 1. 
+			/* 8 from 7.
 			 */
-			TEMP_TO_POINT( y, size_2 - (x - y), temp ); 
+			ASSIGN( y, size_2 - (x - y),
+				y, (size - 1) - x ); 
+
+			/* 7 from 6.
+			 */
+			ASSIGN( y, (size - 1) - x,
+				size_2 - (x - y), (size - 1) - y );
+
+			/* 6 from 5.
+			 */
+			ASSIGN( size_2 - (x - y), (size - 1) - y,
+				(size - 1) - x, (size - 1) - y ); 
+
+			/* 5 from 4. 
+			 */
+			ASSIGN( (size - 1) - x, (size - 1) - y,
+				(size - 1) - y, (x - y) + size_2 );
+
+			/* 4 from 3. 
+			 */
+			ASSIGN( (size - 1) - y, (x - y) + size_2,
+				(size - 1) - y, x );
+
+			/* 3 from 2.
+			 */
+			ASSIGN( (size - 1) - y, x,
+				(x - y) + size_2, y );
+
+			/* 2 from saved 1. 
+			 */
+			TEMP_TO_POINT( (x - y) + size_2, y, temp ); 
 		}
 
 	/* Centre.
