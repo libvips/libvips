@@ -1011,9 +1011,9 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 	im_generate_fn generate;
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 	printf( "im_conv_raw: starting with matrix:\n" );
 	im_print_imask( mask );
+#endif /*DEBUG*/
 
 	/* Check parameters.
 	 */

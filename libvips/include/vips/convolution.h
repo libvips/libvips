@@ -81,19 +81,11 @@ void vips_convolution_operation_init( void );
 
 
 
-
 int im_aconvsep( VipsImage *in, VipsImage *out, 
 	DOUBLEMASK *mask, int n_layers );
-int im_aconv( VipsImage *in, VipsImage *out, 
-	DOUBLEMASK *mask, int n_layers, int cluster );
-int im_conv( VipsImage *in, VipsImage *out, INTMASK *mask );
-int im_conv_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
+
 int im_convsep( VipsImage *in, VipsImage *out, INTMASK *mask );
 int im_convsep_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
-
-int im_compass( VipsImage *in, VipsImage *out, INTMASK *mask );
-int im_gradient( VipsImage *in, VipsImage *out, INTMASK *mask );
-int im_lindetect( VipsImage *in, VipsImage *out, INTMASK *mask );
 
 int im_sharpen( VipsImage *in, VipsImage *out, 
 	int mask_size, 

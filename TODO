@@ -1,13 +1,4 @@
-- started compass .. convolution with a rotating mask
-
-  vips im_gradient k2.jpg x.v line.mat
-  vips compass k2.jpg x2.v line.mat --times 2 --angle 90 --combine sum
-
-  should give the same result, you'd think
-
-  deprecated/vips7compat.c defs for compass/grad/lindet commented out for now
-
-  need to do sep
+- need to do conv sep
 
 - do conv and morph quickly as simple wrappers over the vips7 operations
 

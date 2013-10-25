@@ -2088,7 +2088,6 @@ im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb )
 	return( 0 );
 }
 
-/*
 int 
 im_compass( VipsImage *in, VipsImage *out, INTMASK *mask )
 {
@@ -2162,7 +2161,6 @@ im_gradient( IMAGE *in, IMAGE *out, INTMASK *mask )
 
 	return( 0 );
 }
- */
 
 static int
 vips__round( VipsImage *in, VipsImage *out, VipsOperationRound round )

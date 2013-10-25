@@ -897,6 +897,18 @@ int im_tone_map( VipsImage *in, VipsImage *out, VipsImage *lut );
  */
 #define vips_class_map_concrete_all vips_class_map_all
 
+int im_dilate( VipsImage *in, VipsImage *out, INTMASK *mask );
+int im_erode( VipsImage *in, VipsImage *out, INTMASK *mask );
+
+int im_aconv( VipsImage *in, VipsImage *out, 
+	DOUBLEMASK *mask, int n_layers, int cluster );
+int im_conv( VipsImage *in, VipsImage *out, INTMASK *mask );
+int im_conv_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
+
+int im_compass( VipsImage *in, VipsImage *out, INTMASK *mask );
+int im_gradient( VipsImage *in, VipsImage *out, INTMASK *mask );
+int im_lindetect( VipsImage *in, VipsImage *out, INTMASK *mask );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

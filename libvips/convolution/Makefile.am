@@ -8,7 +8,6 @@ libconvolution_la_SOURCES = \
 	morph.c \
 	convol_dispatch.c \
 	im_addgnoise.c \
-	im_compass.c \
 	im_aconv.c \
 	im_aconvsep.c \
 	im_conv.c \
