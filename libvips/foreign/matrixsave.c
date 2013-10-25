@@ -155,3 +155,75 @@ vips_matrixsave( VipsImage *in, const char *filename, ... )
 
 	return( result );
 }
+
+typedef struct _VipsForeignPrintMatrix {
+	VipsForeignSave parent_object;
+
+} VipsForeignPrintMatrix;
+
+typedef VipsForeignSaveClass VipsForeignPrintMatrixClass;
+
+G_DEFINE_TYPE( VipsForeignPrintMatrix, vips_foreign_print_matrix, 
+	VIPS_TYPE_FOREIGN_SAVE );
+
+static int
+vips_foreign_print_matrix_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_print_matrix_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__matrix_write_file( save->ready, stdout ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_print_matrix_class_init( VipsForeignPrintMatrixClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
+
+	object_class->nickname = "matrixprint";
+	object_class->description = _( "print matrix" );
+	object_class->build = vips_foreign_print_matrix_build;
+
+	foreign_class->suffs = vips__foreign_matrix_suffs;
+
+	save_class->saveable = VIPS_SAVEABLE_MONO;
+	save_class->format_table = bandfmt_matrix;
+}
+
+static void
+vips_foreign_print_matrix_init( VipsForeignPrintMatrix *matrix )
+{
+}
+
+/**
+ * vips_matrixprint:
+ * @in: image to print 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Print @in to %stdout in matrix format. See vips_matrixload() for a
+ * description of the format.
+ *
+ * See also: vips_matrixload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_matrixprint( VipsImage *in, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, in );
+	result = vips_call_split( "matrixprint", ap, in );
+	va_end( ap );
+
+	return( result );
+}

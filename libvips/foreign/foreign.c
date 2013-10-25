@@ -1611,6 +1611,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_csv_get_type( void ); 
 	extern GType vips_foreign_load_matrix_get_type( void ); 
 	extern GType vips_foreign_save_matrix_get_type( void ); 
+	extern GType vips_foreign_print_matrix_get_type( void ); 
 	extern GType vips_foreign_load_fits_get_type( void ); 
 	extern GType vips_foreign_save_fits_get_type( void ); 
 	extern GType vips_foreign_load_analyze_get_type( void ); 
@@ -1643,6 +1644,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_csv_get_type(); 
 	vips_foreign_load_matrix_get_type(); 
 	vips_foreign_save_matrix_get_type(); 
+	vips_foreign_print_matrix_get_type(); 
 	vips_foreign_load_analyze_get_type(); 
 	vips_foreign_load_raw_get_type(); 
 	vips_foreign_save_raw_get_type(); 

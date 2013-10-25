@@ -74,6 +74,11 @@ vips_conv_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_conv_parent_class )->build( object ) )
 		return( -1 );
 
+	/*
+	printf( "vips_conv_build: convolving with:\n" );
+	vips_matrixprint( convolution->M, NULL ); 
+ 	 */
+
 	if( !(imsk = im_vips2imask( convolution->M, class->nickname )) || 
 		!im_local_imask( convolution->out, imsk ) )
 		return( -1 ); 

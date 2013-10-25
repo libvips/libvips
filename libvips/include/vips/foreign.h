@@ -421,6 +421,8 @@ int vips_matrixload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_matrixsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
+int vips_matrixprint( VipsImage *in, ... )
+	__attribute__((sentinel));
 
 int vips_magickload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
