@@ -97,8 +97,6 @@ int im_gradcor( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_contrast_surface( VipsImage *in, VipsImage *out, 
 	int half_win_size, int spacing );
 
-int im_addgnoise( VipsImage *in, VipsImage *out, double sigma );
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

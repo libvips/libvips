@@ -8,6 +8,8 @@
   now we can get rid of im_aconvsep() since it's just vips_convsep() with prec
   set to approx
 
+  aconv needs some more work, get it going at least with gaussian
+
 - do conv and morph quickly as simple wrappers over the vips7 operations
 
 - add vips_gaussian_blur() with approx / int / float precision, maybe

@@ -916,6 +916,8 @@ int im_compass( VipsImage *in, VipsImage *out, INTMASK *mask );
 int im_gradient( VipsImage *in, VipsImage *out, INTMASK *mask );
 int im_lindetect( VipsImage *in, VipsImage *out, INTMASK *mask );
 
+int im_addgnoise( VipsImage *in, VipsImage *out, double sigma );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

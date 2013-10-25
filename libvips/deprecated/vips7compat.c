@@ -2221,6 +2221,19 @@ im_convsep_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	return( 0 );
 }
 
+int
+im_addgnoise( IMAGE *in, IMAGE *out, double sigma )
+{
+	IMAGE *t;
+
+	if( !(t = im_open_local( out, "im_addgnoise", "p" )) ||
+		im_gaussnoise( t, in->Xsize, in->Ysize, 0, sigma ) ||
+		im_add( in, t, out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 static int
 vips__round( VipsImage *in, VipsImage *out, VipsOperationRound round )
 {
