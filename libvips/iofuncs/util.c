@@ -1185,23 +1185,6 @@ vips_popenf( const char *fmt, const char *mode, ... )
 	return( fp );
 }
 
-/* Handle broken mkdirs()
- */
-#if HAVE_MKDIR
-# if MKDIR_TAKES_ONE_ARG
-   /* Mingw32 */
-#  define mkdir(a,b) mkdir(a)
-# endif
-#else
-# ifdef HAVE__MKDIR
-   /* plain Win32 */
-#  include <direct.h>
-#  define mkdir(a,b) _mkdir(a)
-# else
-#  error "Don't know how to create a directory on this system."
-# endif
-#endif
-
 /* Make a directory.
  */
 int
@@ -1216,7 +1199,7 @@ vips_mkdirf( const char *name, ... )
 
         /* Try that.
          */
-        if( mkdir( buf1, 0755 ) ) {
+        if( g_mkdir( buf1, 0755 ) ) {
 		vips_error( "mkdirf", 
 			_( "unable to create directory \"%s\", %s" ), 
 			buf1, strerror( errno ) );
