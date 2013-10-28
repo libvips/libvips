@@ -109,9 +109,7 @@ vips__openslide_isslide( const char *filename )
 	int ok;
 
 	ok = 0;
-	vips_error_freeze();
 	osr = openslide_open( filename );
-	vips_error_thaw();
 
 	if( osr ) {
 		const char *vendor;
