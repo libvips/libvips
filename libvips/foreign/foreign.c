@@ -2357,7 +2357,7 @@ vips_openexrload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @layer: load this layer
+ * @level: load this level
  * @associated: load this associated image
  *
  * Read a virtual slide supported by the OpenSlide library into a VIPS image.
@@ -2366,9 +2366,8 @@ vips_openexrload( const char *filename, VipsImage **out, ... )
  *
  * To facilitate zooming, virtual slide formats include multiple scaled-down
  * versions of the high-resolution image.  These are typically called
- * "levels", though OpenSlide and im_openslide2vips() call them "layers".
- * By default, vips_openslideload() reads the highest-resolution layer
- * (layer 0).  Set @layer to the layer number you want.
+ * "levels".  By default, vips_openslideload() reads the highest-resolution
+ * level (level 0).  Set @level to the level number you want.
  *
  * In addition to the slide image itself, virtual slide formats sometimes
  * include additional images, such as a scan of the slide's barcode.
