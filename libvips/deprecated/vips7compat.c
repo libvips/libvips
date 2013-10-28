@@ -2195,6 +2195,8 @@ im_convsep( IMAGE *in, IMAGE *out, INTMASK *mask )
 int
 im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 {
+	im_error( "im_convsep_raw", "no compat function" );
+	return( -1 );
 }
 
 int 
@@ -2203,7 +2205,7 @@ im_convsep_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	VipsImage *t1, *t2;
 
 	if( !(t1 = vips_image_new()) ||
-		im_imask2vips( mask, t1 ) )
+		im_mask2vips( mask, t1 ) )
 		return( -1 );
 	if( vips_convsep( in, &t2, t1, 
 		"precision", VIPS_PRECISION_FLOAT,
