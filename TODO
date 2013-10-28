@@ -1,14 +1,3 @@
-- we have aconv and aconvsep
-
-  test timing, make sure it;s worth having a separate aconvsep version
-
-  if it is, make im_aconvsep an optimisation: call im_aconvsep_raw() from
-  vips_conv() if mask width or height == 1 and prec == APPROX
-
-  now we can get rid of im_aconvsep() since it's just vips_convsep() with prec
-  set to approx
-
-  aconv needs some more work, get it going at least with gaussian
 
 - do conv and morph quickly as simple wrappers over the vips7 operations
 
@@ -146,6 +135,18 @@ convolution
   that as the base for morph and conv
 
   wait for vipsobject for this
+
+- we have aconv and aconvsep
+
+  test timing, make sure it;s worth having a separate aconvsep version
+
+  if it is, make im_aconvsep an optimisation: call im_aconvsep_raw() from
+  vips_conv() if mask width or height == 1 and prec == APPROX
+
+  now we can get rid of im_aconvsep() since it's just vips_convsep() with prec
+  set to approx
+
+  aconv needs some more work, get it going at least with gaussian
 
 
 arithmetic
