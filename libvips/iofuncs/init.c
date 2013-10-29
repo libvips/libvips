@@ -140,7 +140,7 @@ vips_get_argv0( void )
  *     </para>
  *   </listitem>
  *   <listitem> 
- *     <para>loads any plugins from $libdir/vips-x.y, where x and y are the
+ *     <para>loads any plugins from $libdir/vips-x.y/, where x and y are the
  *     major and minor version numbers for this VIPS.
  *     </para>
  *   </listitem>
@@ -165,8 +165,13 @@ vips_get_argv0( void )
  *
  * Returns: 0 on success, -1 otherwise
  */
+
+/* vips_init() is actually a macro which checks library and application
+ * compatibility before calling vips__init().
+ */
+
 int
-vips_init( const char *argv0 )
+vips__init( const char *argv0 )
 {
 	extern GType vips_system_get_type( void );
 
@@ -297,6 +302,20 @@ vips_init( const char *argv0 )
 	done = TRUE;
 
 	return( 0 );
+}
+
+/* Return the sizeof() various important data structures. These are checked
+ * against the headers used to build our caller by vips_init().
+ *
+ * We allow direct access to members of VipsImage and VipsRegion (mostly for
+ * reasons of history), so any change to a superclass of either of these
+ * objects will break our ABI.
+ */
+
+size_t
+vips__get_sizeof_vipsobject( void )
+{
+	return( sizeof( VipsObject ) ); 
 }
 
 /* Call this before vips stuff that uses stuff we need to have inited.

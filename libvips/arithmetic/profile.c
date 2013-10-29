@@ -136,8 +136,10 @@ vips_profile_build( VipsObject *object )
 
 	/* Make the output image.
 	 */
-	if( vips_image_copy_fields( profile->columns, statistic->ready ) || 
-		vips_image_copy_fields( profile->rows, statistic->ready ) ) 
+	if( vips_image_pipelinev( profile->columns, 
+			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) || 
+		vips_image_pipelinev( profile->rows, 
+			VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ) 
 		return( -1 );
 	profile->columns->Ysize = 1;
 	profile->columns->BandFmt = VIPS_FORMAT_INT; 

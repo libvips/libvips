@@ -78,8 +78,8 @@ G_DEFINE_ABSTRACT_TYPE( VipsConvolution, vips_convolution,
 static int
 vips_convolution_build( VipsObject *object )
 {
-	VipsConvolution *convolution = VIPS_CONVOLUTION( object );
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsConvolution *convolution = VIPS_CONVOLUTION( object );
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 #ifdef DEBUG
@@ -127,7 +127,7 @@ vips_convolution_class_init( VipsConvolutionClass *class )
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsConvolution, out ) );
 
-	VIPS_ARG_IMAGE( class, "mask", 102, 
+	VIPS_ARG_IMAGE( class, "mask", 20, 
 		_( "Mask" ), 
 		_( "Input matrix image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
@@ -147,6 +147,12 @@ void
 vips_convolution_operation_init( void )
 {
 	extern int vips_conv_get_type( void ); 
+	extern int vips_morph_get_type( void ); 
+	extern int vips_compass_get_type( void ); 
+	extern int vips_convsep_get_type( void ); 
 
 	vips_conv_get_type(); 
+	vips_morph_get_type(); 
+	vips_compass_get_type(); 
+	vips_convsep_get_type(); 
 }

@@ -776,7 +776,7 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		/* We have to tell vips that out depends on real. We've set
 		 * the demand hint below, but not given an input there.
 		 */
-		vips_demand_hint( load->out, load->out->dhint, 
+		vips_image_pipelinev( load->out, load->out->dhint, 
 			load->real, NULL );
 	}
 
@@ -874,7 +874,7 @@ vips_foreign_load_build( VipsObject *object )
 		/* ->header() should set the dhint. It'll default to the safe
 		 * SMALLTILE if header() did not set it.
 		 */
-		vips_demand_hint( load->out, load->out->dhint, NULL );
+		vips_image_pipelinev( load->out, load->out->dhint, NULL );
 
 		/* Then 'start' creates the real image and 'gen' fetches 
 		 * pixels for @out from @real on demand.
@@ -1611,6 +1611,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_csv_get_type( void ); 
 	extern GType vips_foreign_load_matrix_get_type( void ); 
 	extern GType vips_foreign_save_matrix_get_type( void ); 
+	extern GType vips_foreign_print_matrix_get_type( void ); 
 	extern GType vips_foreign_load_fits_get_type( void ); 
 	extern GType vips_foreign_save_fits_get_type( void ); 
 	extern GType vips_foreign_load_analyze_get_type( void ); 
@@ -1643,6 +1644,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_csv_get_type(); 
 	vips_foreign_load_matrix_get_type(); 
 	vips_foreign_save_matrix_get_type(); 
+	vips_foreign_print_matrix_get_type(); 
 	vips_foreign_load_analyze_get_type(); 
 	vips_foreign_load_raw_get_type(); 
 	vips_foreign_save_raw_get_type(); 
@@ -1988,6 +1990,7 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  * @Q: quality factor
  * @profile: attach this ICC profile
  * @optimize_coding: compute optimal Huffman coding tables
+ * @interlace: write an interlaced (progressive) jpeg
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -2011,6 +2014,13 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  *
  * IPCT as @VIPS_META_IPCT_NAME ("ipct-data") and XMP as VIPS_META_XMP_NAME
  * ("xmp-data") are coded and attached. 
+ *
+ * If @optimize_coding is set, the Huffman tables are optimised. This is
+ * sllightly slower and produces slightly smaller files. 
+ *
+ * If @interlace is set, the jpeg files will be interlaced (progressive jpeg,
+ * in jpg parlance). These files may be better for display over a slow network
+ * conection, but need much more memory to encode and decode. 
  *
  * See also: vips_jpegsave_buffer(), vips_image_write_file().
  *
@@ -2041,6 +2051,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * @Q: JPEG quality factor
  * @profile: attach this ICC profile
  * @optimize_coding: compute optimal Huffman coding tables
+ * @interlace: write an interlaced (progressive) jpeg
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *

@@ -56,166 +56,6 @@
 
 #include <vips/vips.h>
 
-/* Creates the offsets to rotate by 45 degrees an odd size square mask 
- */
-int *
-im_offsets45( int size )
-{
-	int temp;
-	int x, y;
-	int size2 = size * size;
-	int size_2 = size / 2;
-	int *pnt, *cpnt1, *cpnt2;
-
-	if( size%2 == 0 ) {
-		im_error( "im_offsets45", "%s", _( "size not odd" ) );
-		return( NULL );
-	}
-	if( !(pnt = IM_ARRAY( NULL, size2, int )) ) 
-		return( NULL );
-
-	/* point at the beginning and end of the buffer
-	 */
-	cpnt1 = pnt; cpnt2 = pnt + size2 - 1;
-
-	for( y = 0; y < size_2; y++ ) {
-		temp = (size_2 + y) * size;
-		*cpnt1++ = temp; 
-		*cpnt2-- = size2 - 1 - temp;
-
-		for( x = 0; x < y; x++ ) {
-			temp -= (size-1);
-			*cpnt1++ = temp; 
-			*cpnt2-- = size2 - 1 - temp;
-		}
-
-		for( x = 0; x < size_2 - y; x++ ) {
-			temp -= size;
-			*cpnt1++ = temp; 
-			*cpnt2-- = size2 - 1 - temp;
-		}
-
-		for( x = 0; x < size_2 - y; x++ ) {
-			temp++;
-			*cpnt1++ = temp; 
-			*cpnt2-- = size2 - 1 - temp;
-		}
-
-		for( x = 0; x < y; x++ ) {
-			temp -= ( size - 1 );
-			*cpnt1++ = temp; 
-			*cpnt2-- = size2 - 1 - temp;
-		}
-	}
-
-	/* the diagonal now 
-	 */
-	temp = size * (size - 1);
-	cpnt1 = pnt + size_2 * size;
-	for( x = 0; x < size; x++ ) {
-		*cpnt1++ = temp; 
-		temp -= (size-1);
-	}
-
-#ifdef PIM_RINT
-	temp = 0;
-	for( y = 0; y < size; y++ ) {
-		for( x = 0; x < size; x++ ) {
-			fprintf( stderr, "%4d", *(pnt+temp) );
-			temp++;
-		}
-		fprintf(stderr, "\n");
-	}
-	fprintf(stderr, "\n");
-#endif
-
-	return( pnt );
-}
-
-/**
- * im_rotate_dmask45:
- * @in: input matrix 
- * @filename: name for output matrix
- *
- * Returns a mask which is the argument mask rotated by 45 degrees.  
- * Pass the filename to set for the output.
- *
- * See also: im_rotate_dmask90().
- *
- * Returns: the result matrix on success, or %NULL on error.
- */
-DOUBLEMASK *
-im_rotate_dmask45( DOUBLEMASK *in, const char *filename )
-{
-	DOUBLEMASK *out;
-	int size = in->xsize * in->ysize;
-	int *offsets;
-	int i;
-
-	if( in->xsize != in->ysize || (in->xsize % 2) == 0 ) {
-		im_error( "im_rotate_dmask45", "%s", 
-			_( "mask should be square of odd size" ) );
-		return( NULL );
-	}
-	if( !(offsets = im_offsets45( in->xsize )) )
-		return( NULL );
-	if( !(out = im_create_dmask( filename, in->xsize, in->ysize )) ) {
-		im_free( offsets );
-		return( NULL );
-	}
-	out->scale = in->scale;
-	out->offset = in->offset;
-
-	for( i = 0; i < size; i++ )
-		out->coeff[i] = in->coeff[offsets[i]];
-
-	im_free( offsets );
-
-	return( out );
-}
-
-/**
- * im_rotate_imask45:
- * @in: input matrix 
- * @filename: name for output matrix
- *
- * Returns a mask which is the argument mask rotated by 45 degrees.  
- * Pass the filename to set for the output.
- *
- * See also: im_rotate_imask90().
- *
- * Returns: the result matrix on success, or %NULL on error.
- */
-INTMASK *
-im_rotate_imask45( INTMASK *in, const char *filename )
-{
-	INTMASK *out;
-	int size = in->xsize * in->ysize;
-	int *offsets;
-	int i;
-
-	if( in->xsize != in->ysize || (in->xsize % 2) == 0 ) {
-		im_error( "im_rotate_imask45", "%s", 
-			_( "mask should be square of odd size" ) );
-		return( NULL );
-	}
-	if( !(offsets = im_offsets45( in->xsize )) )
-		return( NULL );
-	if( !(out = im_create_imask( filename, in->xsize, in->ysize )) ) {
-		im_free( offsets );
-		return( NULL );
-	}
-	out->scale = in->scale;
-	out->offset = in->offset;
-
-	for( i = 0; i < size; i++ )
-		out->coeff[i] = in->coeff[offsets[i]];
-
-	im_free( offsets );
-
-	return( out );
-}
-
 /* The type of the vips operations we support.
  */
 typedef int (*vips_fn)( IMAGE *in, IMAGE *out );
@@ -273,38 +113,42 @@ vapplydmask( DOUBLEMASK *in, const char *name, vips_fn fn )
 	return( out );
 }
 
-/**
- * im_rotate_imask90:
- * @in: input matrix 
- * @filename: name for output matrix
- *
- * Returns a mask which is the argument mask rotated by 90 degrees.  
- * Pass the filename to set for the output.
- *
- * See also: im_rotate_imask45().
- *
- * Returns: the result matrix on success, or %NULL on error.
- */
 INTMASK *
 im_rotate_imask90( INTMASK *in, const char *filename )
 {
 	return( vapplyimask( in, filename, im_rot90 ) );
 }
 
-/**
- * im_rotate_dmask90:
- * @in: input matrix 
- * @filename: name for output matrix
- *
- * Returns a mask which is the argument mask rotated by 90 degrees.  
- * Pass the filename to set for the output.
- *
- * See also: im_rotate_dmask45().
- *
- * Returns: the result matrix on success, or %NULL on error.
- */
 DOUBLEMASK *
 im_rotate_dmask90( DOUBLEMASK *in, const char *filename )
 {
 	return( vapplydmask( in, filename, im_rot90 ) );
+}
+
+static int 
+im_rot45( IMAGE *in, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_rot45( in, &t, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+INTMASK *
+im_rotate_imask45( INTMASK *in, const char *filename )
+{
+	return( vapplyimask( in, filename, im_rot45 ) );
+}
+
+DOUBLEMASK *
+im_rotate_dmask45( DOUBLEMASK *in, const char *filename )
+{
+	return( vapplydmask( in, filename, im_rot45 ) );
 }

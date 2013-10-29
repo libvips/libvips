@@ -349,13 +349,12 @@ vips_zoom_build( VipsObject *object )
 		vips_check_coding_known( class->nickname, zoom->in ) )  
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, zoom->in ) )
-		return( -1 );
 	/* Set demand hints. THINSTRIP will prevent us from using
 	 * vips_zoom_paint_whole() much ... so go for FATSTRIP.
 	 */
-	vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_FATSTRIP, zoom->in, NULL );
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_FATSTRIP, zoom->in, NULL ) )
+		return( -1 );
 	conversion->out->Xsize = zoom->in->Xsize * zoom->xfac;
 	conversion->out->Ysize = zoom->in->Ysize * zoom->yfac;
 

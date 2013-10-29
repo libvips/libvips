@@ -740,10 +740,9 @@ vips_tile_cache_build( VipsObject *object )
 	if( vips_image_pio_input( block_cache->in ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, block_cache->in ) )
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_SMALLTILE, block_cache->in, NULL ) )
 		return( -1 );
-        vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_SMALLTILE, block_cache->in, NULL );
 
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_tile_cache_gen, vips_stop_one, 
@@ -926,10 +925,9 @@ vips_line_cache_build( VipsObject *object )
 	if( vips_image_pio_input( block_cache->in ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, block_cache->in ) )
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, block_cache->in, NULL ) )
 		return( -1 );
-        vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, block_cache->in, NULL );
 
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_line_cache_gen, vips_stop_one, 

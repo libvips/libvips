@@ -3,6 +3,8 @@ noinst_LTLIBRARIES = libcreate.la
 libcreate_la_SOURCES = \
 	create.c \
 	pcreate.h \
+	gaussmat.c \
+	logmat.c \
 	buildlut.c \
 	invertlut.c \
 	tonelut.c \

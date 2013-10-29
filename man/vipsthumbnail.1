@@ -40,7 +40,8 @@ Set the output thumbnail size to
 .B N 
 x 
 .B N 
-pixels. The image is shrunk so that it just fits within this area, Images
+pixels. You can use MxN to specify a rectangular bounding box.
+The image is shrunk so that it just fits within this area, images
 which are smaller than this are expanded.
 
 .TP
@@ -55,7 +56,7 @@ The default value is
 meaning JPEG output, with
 .B tn_
 prepended. You can add format options too, for example
-.B tn_%s.jpg:20
+.B tn_%s.jpg[Q=20]
 will write JPEG images with Q set to 20.
 
 .TP

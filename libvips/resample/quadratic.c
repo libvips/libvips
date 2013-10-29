@@ -251,7 +251,11 @@ vips_quadratic_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_quadratic_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( resample->out, resample->in ) )
+	/* We have the whole of the input in memory, so we can generate any
+	 * output.
+	 */
+	if( vips_image_pipelinev( resample->out, 
+		VIPS_DEMAND_STYLE_ANY, resample->in, NULL ) )
 		return( -1 );
 
 	in = resample->in;
@@ -314,12 +318,6 @@ vips_quadratic_build( VipsObject *object )
          */
         if( vips_image_wio_input( in ) )
                 return( -1 );
-
-	/* We have the whole of the input in memory, so we can generate any
-	 * output.
-	 */
-	vips_demand_hint( resample->out, 
-		VIPS_DEMAND_STYLE_ANY, resample->in, NULL );
 
 	if( vips_image_generate( resample->out,
 		vips_start_one, vips_quadratic_gen, vips_stop_one, 

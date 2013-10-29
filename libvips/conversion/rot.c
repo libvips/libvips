@@ -1,4 +1,4 @@
-/* im_rot90
+/* rotate by 0/90/180/270 degrees
  *
  * Copyright: 1991, N. Dessipris
  * Written on: 28/10/91
@@ -294,13 +294,16 @@ vips_rot_build( VipsObject *object )
 	if( vips_image_pio_input( rot->in ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, rot->in ) )
+	hint = rot->angle == VIPS_ANGLE_180 ? 
+		VIPS_DEMAND_STYLE_THINSTRIP :
+		VIPS_DEMAND_STYLE_SMALLTILE; 
+
+	if( vips_image_pipelinev( conversion->out, hint, rot->in, NULL ) )
 		return( -1 );
 
 	switch( rot->angle ) {
 	case VIPS_ANGLE_90:
 		generate_fn = vips_rot90_gen;
-		hint = VIPS_DEMAND_STYLE_SMALLTILE;
 		conversion->out->Xsize = rot->in->Ysize;
 		conversion->out->Ysize = rot->in->Xsize;
 		conversion->out->Xoffset = rot->in->Ysize;
@@ -309,14 +312,12 @@ vips_rot_build( VipsObject *object )
 
 	case VIPS_ANGLE_180:
 		generate_fn = vips_rot180_gen;
-		hint = VIPS_DEMAND_STYLE_THINSTRIP;
 		conversion->out->Xoffset = rot->in->Xsize;
 		conversion->out->Yoffset = rot->in->Ysize;
 		break;
 
 	case VIPS_ANGLE_270:
 		generate_fn = vips_rot270_gen;
-		hint = VIPS_DEMAND_STYLE_SMALLTILE;
 		conversion->out->Xsize = rot->in->Ysize;
 		conversion->out->Ysize = rot->in->Xsize;
 		conversion->out->Xoffset = 0;
@@ -330,8 +331,6 @@ vips_rot_build( VipsObject *object )
 		 */
 		return( 0 );
 	}
-
-	vips_demand_hint( conversion->out, hint, rot->in, NULL );
 
 	if( vips_image_generate( conversion->out,
 		vips_start_one, generate_fn, vips_stop_one, 

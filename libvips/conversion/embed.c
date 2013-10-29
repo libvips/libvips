@@ -426,14 +426,12 @@ vips_embed_build( VipsObject *object )
 	case VIPS_EXTEND_WHITE:
 	case VIPS_EXTEND_BACKGROUND:
 	case VIPS_EXTEND_COPY:
-		if( vips_image_copy_fields( conversion->out, embed->in ) )
-			return( -1 );
-
 		/* embed is used in many places. We don't really care about
 		 * geometry, so use ANY to avoid disturbing all pipelines. 
 		 */
-		vips_demand_hint( conversion->out, 
-			VIPS_DEMAND_STYLE_ANY, embed->in, NULL );
+		if( vips_image_pipelinev( conversion->out, 
+			VIPS_DEMAND_STYLE_ANY, embed->in, NULL ) )
+			return( -1 );
 
 		conversion->out->Xsize = embed->width;
 		conversion->out->Ysize = embed->height;

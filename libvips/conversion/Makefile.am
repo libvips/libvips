@@ -17,12 +17,14 @@ libconversion_la_SOURCES = \
 	replicate.c \
 	cast.c \
 	bandjoin.c \
+	bandrank.c \
 	recomb.c \
 	bandmean.c \
 	bandbool.c \
 	bandary.h \
 	bandary.c \
 	rot.c \
+	rot45.c \
 	ifthenelse.c \
 	falsecolour.c \
 	msb.c \

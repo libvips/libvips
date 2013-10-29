@@ -198,10 +198,9 @@ vips_flip_build( VipsObject *object )
 	if( vips_image_pio_input( flip->in ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, flip->in ) )
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, flip->in, NULL ) )
 		return( -1 );
-	vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, flip->in, NULL );
 
 	if( flip->direction == VIPS_DIRECTION_HORIZONTAL ) {
 		generate_fn = vips_flip_horizontal_gen;

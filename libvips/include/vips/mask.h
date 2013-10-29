@@ -4,6 +4,9 @@
  * 	- from proto.h
  */
 
+/* All deprecated.
+ */
+
 /*
 
     This file is part of VIPS.

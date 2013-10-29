@@ -83,6 +83,10 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	gboolean optimize_coding;
 
+	/* Generate an interlaced (progressive, in jpg terminology) file.
+	 */
+	gboolean interlace;
+
 } VipsForeignSaveJpeg;
 
 typedef VipsForeignSaveClass VipsForeignSaveJpegClass;
@@ -135,6 +139,13 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, optimize_coding ),
 		FALSE );
+
+	VIPS_ARG_BOOL( class, "interlace", 13,
+		_( "interlace" ),
+		_( "Generate an interlaced (progressive) jpeg" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, interlace ),
+		FALSE );
 }
 
 static void
@@ -169,7 +180,8 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__jpeg_write_file( save->ready, file->filename,
-		jpeg->Q, jpeg->profile, jpeg->optimize_coding ) )
+		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
+		jpeg->interlace ) )
 		return( -1 );
 
 	return( 0 );
@@ -234,7 +246,8 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__jpeg_write_buffer( save->ready, 
-		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding ) )
+		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
+		jpeg->interlace ) )
 		return( -1 );
 
 	area = vips_area_new_blob( (VipsCallbackFn) vips_free, obuf, olen );
@@ -295,7 +308,8 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__jpeg_write_buffer( save->ready, 
-		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding ) )
+		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
+		jpeg->interlace ) )
 		return( -1 );
 
 	printf( "Content-length: %zd\r\n", olen );

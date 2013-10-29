@@ -105,7 +105,7 @@
  * @VIPS_DEMAND_STYLE_THINSTRIP: demand in thin (typically 1 pixel high) strips
  * @VIPS_DEMAND_STYLE_ANY: demand geometry does not matter
  *
- * See vips_demand_hint(). Operations can hint to the VIPS image IO system about
+ * See vips_image_pipelinev(). Operations can hint to the VIPS image IO system about
  * the kind of demand geometry they prefer. 
  *
  * These demand styles are given below in order of increasing
@@ -134,7 +134,7 @@
  * file (even indirectly) so any demand style is OK. It's used for things like
  * im_black() where the pixels are calculated.
  *
- * See also: vips_demand_hint().
+ * See also: vips_image_pipelinev().
  */
 
 /**
@@ -1939,10 +1939,9 @@ int
 vips_image_write( VipsImage *image, VipsImage *out )
 {
 	if( vips_image_pio_input( image ) || 
-		vips_image_copy_fields( out, image ) )
+		vips_image_pipelinev( out, 
+			VIPS_DEMAND_STYLE_THINSTRIP, image, NULL ) )
 		return( -1 );
-        vips_demand_hint( out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, image, NULL );
 
 	/* We generate from @image partially, so we need to keep it about as
 	 * long as @out is about. 
@@ -2358,7 +2357,7 @@ int
 vips__image_wio_output( VipsImage *image )
 {
 #ifdef DEBUG_IO
-	printf( "vips_image_wio_output: WIO output for %s\n", 
+	printf( "vips__image_wio_output: WIO output for %s\n", 
 		image->filename );
 #endif/*DEBUG_IO*/
 
@@ -2367,7 +2366,7 @@ vips__image_wio_output( VipsImage *image )
 		/* Make sure nothing is attached.
 		 */
 		if( image->generate_fn ) {
-			vips_error( "vips_image_wio_output", 
+			vips_error( "vips__image_wio_output", 
 				"%s", _( "image already written" ) );
 			return( -1 );
 		}
@@ -2391,7 +2390,7 @@ vips__image_wio_output( VipsImage *image )
 		break;
 
 	default:
-		vips_error( "vips_image_wio_output", 
+		vips_error( "vips__image_wio_output", 
 			"%s", _( "image not writeable" ) );
 		return( -1 );
 	}

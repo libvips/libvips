@@ -280,11 +280,11 @@ read_csv( FILE *fp, VipsImage *out,
 		fsetpos( fp, &pos );
 	}
 
+	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	vips_image_init_fields( out,
 		columns, lines, 1, 
 		VIPS_FORMAT_DOUBLE, 
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
-	vips_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	/* Just reading the header? We are done.
 	 */
@@ -663,12 +663,11 @@ vips__matrix_body( char *whitemap, VipsImage *out, FILE *fp )
 }
 
 VipsImage * 
-vips__matrix_read( const char *filename )
+vips__matrix_read_file( FILE *fp )
 {
 	char whitemap[256];
 	int i;
 	char *p;
-	FILE *fp;
 	int width;
 	int height;
 	double scale;
@@ -680,13 +679,9 @@ vips__matrix_read( const char *filename )
 	for( p = WHITESPACE; *p; p++ )
 		whitemap[(int) *p] = 1;
 
-	if( !(fp = vips__file_open_read( filename, NULL, TRUE )) ) 
-		return( NULL );
 	if( vips__matrix_header( whitemap, fp,
-		&width, &height, &scale, &offset ) ) {  
-		fclose( fp );
+		&width, &height, &scale, &offset ) )   
 		return( NULL );
-	}
 
 	if( !(out = vips_image_new_matrix( width, height )) )
 		return( NULL );
@@ -695,28 +690,35 @@ vips__matrix_read( const char *filename )
 
 	if( vips__matrix_body( whitemap, out, fp ) ) {
 		g_object_unref( out );
-		fclose( fp );
 		return( NULL );
 	}
-	fclose( fp );
 
 	return( out ); 
 }
 
+VipsImage * 
+vips__matrix_read( const char *filename )
+{
+	FILE *fp;
+	VipsImage *out; 
+
+	if( !(fp = vips__file_open_read( filename, NULL, TRUE )) ) 
+		return( NULL );
+	out = vips__matrix_read_file( fp ); 
+	fclose( fp );
+
+	return( out );
+}
+
 int
-vips__matrix_write( VipsImage *in, const char *filename )
+vips__matrix_write_file( VipsImage *in, FILE *fp )
 {
 	VipsImage *mask;
-	FILE *fp;
 	int x, y; 
 
 	if( vips_check_matrix( "vips2mask", in, &mask ) )
 		return( -1 );
 
-	if( !(fp = vips__file_open_write( filename, TRUE )) ) {
-		g_object_unref( mask ); 
-		return( -1 );
-	}
 	fprintf( fp, "%d %d ", mask->Xsize, mask->Ysize ); 
 	if( vips_image_get_typeof( mask, "scale" ) && 
 		vips_image_get_typeof( mask, "offset" ) ) 
@@ -733,9 +735,22 @@ vips__matrix_write( VipsImage *in, const char *filename )
 	}
 
 	g_object_unref( mask ); 
-	fclose( fp ); 
 
 	return( 0 );
+}
+
+int
+vips__matrix_write( VipsImage *in, const char *filename )
+{
+	FILE *fp;
+	int result;
+
+	if( !(fp = vips__file_open_write( filename, TRUE )) ) 
+		return( -1 );
+	result = vips__matrix_write_file( in, fp );
+	fclose( fp ); 
+
+	return( result );
 }
 
 const char *vips__foreign_matrix_suffs[] = { ".mat", NULL };

@@ -50,6 +50,12 @@
 #include <vips/vector.h>
 #include <vips/transform.h>
 
+int 
+im_init_world( const char *argv0 )
+{
+	return( vips_init( argv0 ) ); 
+}
+
 VipsImage *
 im_open( const char *filename, const char *mode )
 {
@@ -480,7 +486,7 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 		if( vips_image_pio_input( in[i] ) )
 			return( -1 );
 	}
-        vips_demand_hint_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in );
+        vips_image_pipeline_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in );
 
 	/* Generate!
 	 */
@@ -953,7 +959,35 @@ im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...)
       return (-1);
     }
 
-  return (im_demand_hint_array (im, hint, ar));
+  vips__demand_hint_array (im, hint, ar);
+
+  return (0);
+}
+
+int
+im_cp_descv (IMAGE * im, ...)
+{
+  va_list ap;
+  int i;
+  IMAGE *ar[MAX_IMAGES];
+
+  va_start (ap, im);
+  for (i = 0; i < MAX_IMAGES && (ar[i] = va_arg (ap, IMAGE *)); i++)
+    ;
+  va_end (ap);
+  if (i == MAX_IMAGES)
+    {
+      im_error ("im_cp_descv", "%s", _("too many images"));
+      return (-1);
+    }
+
+  return (vips__image_copy_fields_array (im, ar));
+}
+
+int
+im_cp_desc(IMAGE *out, IMAGE *in )
+{
+	return( im_cp_descv( out, in, NULL)); 
 }
 
 int 
@@ -1354,6 +1388,30 @@ im_gbandjoin( VipsImage **in, VipsImage *out, int n )
 	g_object_unref( t );
 
 	return( 0 );
+}
+
+int
+im_rank_image( VipsImage **in, VipsImage *out, int n, int index )
+{
+	VipsImage *t;
+
+	if( vips_bandrank( in, &t, n,
+		"index", index,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}
+
+int
+im_maxvalue( IMAGE **in, IMAGE *out, int n )
+{
+	return( im_rank_image( in, out, n, n - 1 ) );
 }
 
 int 
@@ -1894,6 +1952,119 @@ im_stats( VipsImage *in )
 	return( msk );
 }
 
+DOUBLEMASK *
+im_gauss_dmask( const char *filename, double sigma, double min_ampl )
+{
+	VipsImage *t;
+	DOUBLEMASK *msk;
+
+	if( vips_gaussmat( &t, sigma, min_ampl,
+		NULL ) )
+		return( NULL );
+	if( !(msk = im_vips2mask( t, filename )) ) {
+		g_object_unref( t );
+		return( NULL );
+	}
+	g_object_unref( t );
+
+	return( msk );
+}
+
+DOUBLEMASK *
+im_gauss_dmask_sep( const char *filename, double sigma, double min_ampl )
+{
+	VipsImage *t;
+	DOUBLEMASK *msk;
+
+	if( vips_gaussmat( &t, sigma, min_ampl,
+		"separable", TRUE,
+		NULL ) )
+		return( NULL );
+	if( !(msk = im_vips2mask( t, filename )) ) {
+		g_object_unref( t );
+		return( NULL );
+	}
+	g_object_unref( t );
+
+	return( msk );
+}
+
+INTMASK *
+im_gauss_imask( const char *filename, double sigma, double min_ampl )
+{
+	VipsImage *t;
+	INTMASK *msk;
+
+	if( vips_gaussmat( &t, sigma, min_ampl,
+		"integer", TRUE,
+		NULL ) )
+		return( NULL );
+	if( !(msk = im_vips2imask( t, filename )) ) {
+		g_object_unref( t );
+		return( NULL );
+	}
+	g_object_unref( t );
+
+	return( msk );
+}
+
+INTMASK *
+im_gauss_imask_sep( const char *filename, double sigma, double min_ampl )
+{
+	VipsImage *t;
+	INTMASK *msk;
+
+	if( vips_gaussmat( &t, sigma, min_ampl,
+		"integer", TRUE,
+		"separable", TRUE,
+		NULL ) )
+		return( NULL );
+	if( !(msk = im_vips2imask( t, filename )) ) {
+		g_object_unref( t );
+		return( NULL );
+	}
+	g_object_unref( t );
+
+	return( msk );
+}
+
+INTMASK *
+im_log_imask( const char *filename, double sigma, double min_ampl )
+{
+	VipsImage *t;
+	INTMASK *msk;
+
+	if( vips_logmat( &t, sigma, min_ampl,
+		"integer", TRUE,
+		NULL ) )
+		return( NULL );
+	if( !(msk = im_vips2imask( t, filename )) ) {
+		g_object_unref( t );
+		return( NULL );
+	}
+	g_object_unref( t );
+
+	return( msk );
+}
+
+DOUBLEMASK *
+im_log_dmask( const char *filename, double sigma, double min_ampl )
+{
+	VipsImage *t;
+	DOUBLEMASK *msk;
+
+	if( vips_logmat( &t, sigma, min_ampl,
+		NULL ) )
+		return( NULL );
+	if( !(msk = im_vips2mask( t, filename )) ) {
+		g_object_unref( t );
+		return( NULL );
+	}
+	g_object_unref( t );
+
+	return( msk );
+}
+
 int 
 im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb )
 {
@@ -1913,6 +2084,154 @@ im_recomb( IMAGE *in, IMAGE *out, DOUBLEMASK *recomb )
 		return( -1 );
 	}
 	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int 
+im_compass( VipsImage *in, VipsImage *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_compass( in, &t2, t1, 
+		"times", 8, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int 
+im_lindetect( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_compass( in, &t2, t1, 
+		"times", 4, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_gradient( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_compass( in, &t2, t1, 
+		"times", 2, 
+		"angle", VIPS_ANGLE45_90, 
+		"combine", VIPS_COMBINE_SUM, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_convsep_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	im_error( "im_convsep_raw", "no compat function" );
+	return( -1 );
+}
+
+int 
+im_convsep( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_convsep( in, &t2, t1, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_convsep_f_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
+{
+	im_error( "im_convsep_raw", "no compat function" );
+	return( -1 );
+}
+
+int 
+im_convsep_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_mask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_convsep( in, &t2, t1, 
+		"precision", VIPS_PRECISION_FLOAT,
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_addgnoise( IMAGE *in, IMAGE *out, double sigma )
+{
+	IMAGE *t;
+
+	if( !(t = im_open_local( out, "im_addgnoise", "p" )) ||
+		im_gaussnoise( t, in->Xsize, in->Ysize, 0, sigma ) ||
+		im_add( in, t, out ) )
+		return( -1 );
 
 	return( 0 );
 }

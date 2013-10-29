@@ -233,7 +233,7 @@ vips_text_build( VipsObject *object )
 		text->bitmap.width, text->bitmap.rows, 1, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
 		1.0, 1.0 ); 
-	vips_demand_hint( create->out, 
+	vips_image_pipelinev( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
 
 	for( y = 0; y < text->bitmap.rows; y++ ) 

@@ -162,10 +162,9 @@ vips_replicate_build( VipsObject *object )
 	if( vips_image_pio_input( replicate->in ) )
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, replicate->in ) )
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_SMALLTILE, replicate->in, NULL ) )
 		return( -1 );
-	vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_SMALLTILE, replicate->in, NULL );
 
 	conversion->out->Xsize *= replicate->across;
 	conversion->out->Ysize *= replicate->down;

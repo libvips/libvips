@@ -220,7 +220,7 @@ readslide_new( const char *filename, VipsImage *out,
 			associated, &w, &h );
 		vips_image_set_string( out, "slide-associated-image",
 			associated );
-		vips_demand_hint( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	} 
 	else {
 		char buf[256];
@@ -231,7 +231,7 @@ readslide_new( const char *filename, VipsImage *out,
 		rslide->downsample = openslide_get_level_downsample(
 			rslide->osr, level );
 		vips_image_set_int( out, "slide-level", level );
-		vips_demand_hint( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 
 		/* Try to get tile width/height. An undocumented, experimental
 		 * feature.

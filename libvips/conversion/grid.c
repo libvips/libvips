@@ -166,12 +166,11 @@ vips_grid_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( vips_image_copy_fields( conversion->out, grid->in ) )
-		return( -1 );
 	/* We can render small tiles with pointer copies.
 	 */
-	vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_SMALLTILE, grid->in, NULL );
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_SMALLTILE, grid->in, NULL ) )
+		return( -1 );
 	conversion->out->Xsize = grid->in->Xsize * grid->across;
 	conversion->out->Ysize = grid->tile_height * grid->down;
 

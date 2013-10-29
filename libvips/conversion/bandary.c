@@ -147,10 +147,9 @@ vips_bandary_build( VipsObject *object )
 		return( -1 );
 	bandary->ready = size;
 
-	if( vips_image_copy_fields_array( conversion->out, bandary->ready ) )
+	if( vips_image_pipeline_array( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, bandary->ready ) )
 		return( -1 );
-        vips_demand_hint_array( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, bandary->ready );
 
 	conversion->out->Bands = bandary->out_bands;
 

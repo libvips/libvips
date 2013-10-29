@@ -1,19 +1,8 @@
 
-Next version
-============
-
-- make vips_init() into a macro, check sizes of important structs against size
-  at library compile time
-
-  add a new API call like vips__get_sizeof_image() which returns
-  sizeof(VipsImage) from library compile time, compare that to the application
-  compile-time value
-
-  vips_init() macro then passes control on to vips__init() for real startup
-
-  breaks binary API sadly
-
 - do conv and morph quickly as simple wrappers over the vips7 operations
+
+- add vips_gaussian_blur() with approx / int / float precision, maybe
+  vips_resize() as well?
 
 - do much fancier profiling with timing on all locks saved in memory and
   dumped on exit
@@ -22,16 +11,6 @@ Next version
   file
 
 - use g_log() instead of vips_info()
-
-- do we always call copy_fields and demand_hint with ALL input images? what
-  about the operators in conversion?
-
-  could we add something to check that the two calls agree on the image lists?
-  I think they should
-
-- support multiscan jpeg write? see
-
-	https://github.com/jcupitt/ruby-vips/issues/41
 
 - object construction is threadsafe, but class construction is not
 
@@ -156,6 +135,18 @@ convolution
   that as the base for morph and conv
 
   wait for vipsobject for this
+
+- we have aconv and aconvsep
+
+  test timing, make sure it;s worth having a separate aconvsep version
+
+  if it is, make im_aconvsep an optimisation: call im_aconvsep_raw() from
+  vips_conv() if mask width or height == 1 and prec == APPROX
+
+  now we can get rid of im_aconvsep() since it's just vips_convsep() with prec
+  set to approx
+
+  aconv needs some more work, get it going at least with gaussian
 
 
 arithmetic

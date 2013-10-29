@@ -442,10 +442,9 @@ vips_ifthenelse_build( VipsObject *object )
 	if( vips__formatalike_vec( size, format, 2 ) ) 
 		return( -1 ); 
 
-	if( vips_image_copy_fields_array( conversion->out, format ) )
+	if( vips_image_pipeline_array( conversion->out, 
+		VIPS_DEMAND_STYLE_SMALLTILE, format ) )
 		return( -1 );
-        vips_demand_hint_array( conversion->out, 
-		VIPS_DEMAND_STYLE_SMALLTILE, format );
 
 	if( vips_image_generate( conversion->out,
 		vips_start_many, generate_fn, vips_stop_many, 

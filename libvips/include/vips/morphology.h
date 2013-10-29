@@ -31,19 +31,18 @@
 
  */
 
-#ifndef IM_MORPHOLOGY_H
-#define IM_MORPHOLOGY_H
+#ifndef VIPS_MORPHOLOGY_H
+#define VIPS_MORPHOLOGY_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-int im_dilate( VipsImage *in, VipsImage *out, INTMASK *mask );
-int im_erode( VipsImage *in, VipsImage *out, INTMASK *mask );
+
+
+
 
 int im_rank( VipsImage *in, VipsImage *out, int width, int height, int index );
-int im_rank_image( VipsImage **in, VipsImage *out, int n, int index );
-int im_maxvalue( VipsImage **in, VipsImage *out, int n );
 
 int im_cntlines( VipsImage *im, double *nolines, int flag );
 int im_zerox( VipsImage *in, VipsImage *out, int sign );
@@ -53,4 +52,4 @@ int im_label_regions( VipsImage *test, VipsImage *mask, int *segments );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_MORPHOLOGY_H*/
+#endif /*VIPS_MORPHOLOGY_H*/

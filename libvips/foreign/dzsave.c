@@ -263,7 +263,8 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	 * easy.
 	 */
 	layer->image = vips_image_new();
-	if( vips_image_copy_fields( layer->image, save->ready ) ) {
+	if( vips_image_pipelinev( layer->image, 
+		VIPS_DEMAND_STYLE_ANY, save->ready, NULL ) ) {
 		layer_free( layer );
 		return( NULL );
 	}

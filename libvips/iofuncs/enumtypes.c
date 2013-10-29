@@ -223,6 +223,30 @@ vips_angle_get_type( void )
 
 	return( etype );
 }
+GType
+vips_angle45_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_ANGLE45_0, "VIPS_ANGLE45_0", "0"},
+			{VIPS_ANGLE45_45, "VIPS_ANGLE45_45", "45"},
+			{VIPS_ANGLE45_90, "VIPS_ANGLE45_90", "90"},
+			{VIPS_ANGLE45_135, "VIPS_ANGLE45_135", "135"},
+			{VIPS_ANGLE45_180, "VIPS_ANGLE45_180", "180"},
+			{VIPS_ANGLE45_225, "VIPS_ANGLE45_225", "225"},
+			{VIPS_ANGLE45_270, "VIPS_ANGLE45_270", "270"},
+			{VIPS_ANGLE45_315, "VIPS_ANGLE45_315", "315"},
+			{VIPS_ANGLE45_LAST, "VIPS_ANGLE45_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsAngle45", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/arithmetic.h" */
 GType
 vips_operation_math_get_type( void )
@@ -601,10 +625,47 @@ vips_precision_get_type( void )
 			{VIPS_PRECISION_INTEGER, "VIPS_PRECISION_INTEGER", "integer"},
 			{VIPS_PRECISION_FLOAT, "VIPS_PRECISION_FLOAT", "float"},
 			{VIPS_PRECISION_APPROXIMATE, "VIPS_PRECISION_APPROXIMATE", "approximate"},
+			{VIPS_PRECISION_LAST, "VIPS_PRECISION_LAST", "last"},
 			{0, NULL, NULL}
 		};
 		
 		etype = g_enum_register_static( "VipsPrecision", values );
+	}
+
+	return( etype );
+}
+GType
+vips_combine_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_COMBINE_MAX, "VIPS_COMBINE_MAX", "max"},
+			{VIPS_COMBINE_SUM, "VIPS_COMBINE_SUM", "sum"},
+			{VIPS_COMBINE_LAST, "VIPS_COMBINE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsCombine", values );
+	}
+
+	return( etype );
+}
+GType
+vips_operation_morphology_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_MORPHOLOGY_ERODE, "VIPS_OPERATION_MORPHOLOGY_ERODE", "erode"},
+			{VIPS_OPERATION_MORPHOLOGY_DILATE, "VIPS_OPERATION_MORPHOLOGY_DILATE", "dilate"},
+			{VIPS_OPERATION_MORPHOLOGY_LAST, "VIPS_OPERATION_MORPHOLOGY_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationMorphology", values );
 	}
 
 	return( etype );

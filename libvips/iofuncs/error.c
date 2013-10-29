@@ -1013,6 +1013,32 @@ vips_check_size_same( const char *domain, VipsImage *im1, VipsImage *im2 )
 }
 
 /**
+ * vips_check_oddsquare:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image is square and that the sides are odd. 
+ * If not, set an error message
+ * and return non-zero.
+ *
+ * See also: vips_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+vips_check_oddsquare( const char *domain, VipsImage *im )
+{
+	if( im->Xsize != im->Ysize || 
+		im->Xsize % 2 == 0 ) { 
+		vips_error( domain, 
+			"%s", _( "images must be odd and square" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * vips_check_bands_same:
  * @domain: the originating domain for the error message
  * @im1: first image to check
@@ -1236,6 +1262,33 @@ vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
                 return( -1 );
         if( vips_image_wio_input( *out ) )
                 return( -1 );
+
+	return( 0 );
+}
+
+/**
+ * vips_check_separable:
+ * @domain: the originating domain for the error message
+ * @im: image to check 
+ *
+ * Separable matrix images must have width or height 1.
+ * Return 0 if the image will pass, or -1 and
+ * set an error message otherwise.
+ *
+ * See also: vips_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+vips_check_separable( const char *domain, VipsImage *im )
+{
+	if( im->Xsize != 1 && 
+		im->Ysize != 1 ) {
+		vips_error( domain, 
+			"%s", _( "separable matrix images must have "
+			"width or height 1" ) );
+		return( -1 );
+	}
 
 	return( 0 );
 }

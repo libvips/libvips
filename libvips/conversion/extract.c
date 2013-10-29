@@ -155,10 +155,9 @@ vips_extract_area_build( VipsObject *object )
 		vips_check_coding_known( class->nickname, extract->in ) )  
 		return( -1 );
 
-	if( vips_image_copy_fields( conversion->out, extract->in ) )
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, extract->in, NULL ) )
 		return( -1 );
-	vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, extract->in, NULL );
 
         conversion->out->Xsize = extract->width;
         conversion->out->Ysize = extract->height;

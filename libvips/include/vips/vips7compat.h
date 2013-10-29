@@ -203,15 +203,17 @@ extern "C" {
 #define im_get_argv0 vips_get_argv0
 #define im_version_string vips_version_string
 #define im_version vips_version
-#define im_init_world vips_init
 #define im_get_option_group vips_get_option_group
 #define im_guess_prefix vips_guess_prefix
 #define im_guess_libdir vips_guess_libdir
 #define im__global_lock vips__global_lock
 
-#define im_cp_desc vips_image_copy_fields
-#define im_cp_descv vips_image_copy_fieldsv
-#define im_cp_desc_array vips_image_copy_fields_array
+int im_cp_desc(IMAGE *out, IMAGE *in );
+int im_cp_descv (IMAGE * im, ...);
+#define im_cp_desc_array(I, A) vips__image_copy_fields_array(I, A)
+int im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...);
+#define im_demand_hint_array( A, B, C ) (vips__demand_hint_array( A, B, C ), 0)
+
 #define im_image vips_image_new_from_memory
 #define im_binfile vips_image_new_from_file_raw
 #define im__open_temp vips_image_new_temp_file
@@ -324,9 +326,6 @@ VipsDemandStyle im_char2dhint( const char *str );
 #define im_rect_equalsrect vips_rect_equalsrect
 #define im_rect_dup vips_rect_dup
 #define im_rect_normalise vips_rect_normalise
-
-int im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...);
-#define im_demand_hint_array( A, B, C ) (vips_demand_hint_array( A, B, C ), 0)
 
 #define im_start_one vips_start_one
 #define im_stop_one vips_stop_one
@@ -586,6 +585,8 @@ size_t im_ref_string_get_length( const GValue *value );
 #define im_concurrency_set vips_concurrency_set
 #define im_concurrency_get vips_concurrency_get
 
+int im_init_world( const char *argv0 ); 
+
 int im_add( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_subtract( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_multiply( VipsImage *in1, VipsImage *in2, VipsImage *out );
@@ -711,6 +712,8 @@ int im_rotquad( VipsImage *in, VipsImage *out );
 int im_clip2fmt( VipsImage *in, VipsImage *out, VipsBandFormat fmt );
 int im_bandjoin( VipsImage *in1, VipsImage *in2, VipsImage *out );
 int im_gbandjoin( VipsImage **in, VipsImage *out, int n );
+int im_rank_image( VipsImage **in, VipsImage *out, int n, int index );
+int im_maxvalue( VipsImage **in, VipsImage *out, int n );
 int im_grid( VipsImage *in, VipsImage *out, int tile_height, int across, int down );
 int im_scale( VipsImage *in, VipsImage *out );
 int im_scaleps( VipsImage *in, VipsImage *out );
@@ -768,6 +771,7 @@ int im_blend( VipsImage *c, VipsImage *a, VipsImage *b, VipsImage *out );
 DOUBLEMASK *im_vips2mask( VipsImage *in, const char *filename );
 INTMASK *im_vips2imask( IMAGE *in, const char *filename );
 int im_mask2vips( DOUBLEMASK *in, VipsImage *out );
+int im_imask2vips( INTMASK *in, VipsImage *out );
 
 int im_bandmean( VipsImage *in, VipsImage *out );
 int im_recomb( VipsImage *in, VipsImage *out, DOUBLEMASK *recomb );
@@ -893,6 +897,26 @@ int im_tone_map( VipsImage *in, VipsImage *out, VipsImage *lut );
 /* ruby-vips uses this
  */
 #define vips_class_map_concrete_all vips_class_map_all
+
+int im_dilate( VipsImage *in, VipsImage *out, INTMASK *mask );
+int im_erode( VipsImage *in, VipsImage *out, INTMASK *mask );
+
+int im_aconv( VipsImage *in, VipsImage *out, 
+	DOUBLEMASK *mask, int n_layers, int cluster );
+int im_conv( VipsImage *in, VipsImage *out, INTMASK *mask );
+int im_conv_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
+
+int im_aconvsep( VipsImage *in, VipsImage *out, 
+	DOUBLEMASK *mask, int n_layers );
+
+int im_convsep( VipsImage *in, VipsImage *out, INTMASK *mask );
+int im_convsep_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
+
+int im_compass( VipsImage *in, VipsImage *out, INTMASK *mask );
+int im_gradient( VipsImage *in, VipsImage *out, INTMASK *mask );
+int im_lindetect( VipsImage *in, VipsImage *out, INTMASK *mask );
+
+int im_addgnoise( VipsImage *in, VipsImage *out, double sigma );
 
 #ifdef __cplusplus
 }

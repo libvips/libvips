@@ -201,10 +201,9 @@ vips_msb_build( VipsObject *object )
 		msb->in->BandFmt == VIPS_FORMAT_UCHAR )
 		return( vips_image_write( msb->in, conversion->out ) );
 
-	if( vips_image_copy_fields( conversion->out, msb->in ) )
+	if( vips_image_pipelinev( conversion->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, msb->in, NULL ) )
 		return( -1 );
-	vips_demand_hint( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, msb->in, NULL );
 
 	if( msb->band != -1 )
 		conversion->out->Bands = 1;

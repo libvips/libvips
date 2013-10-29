@@ -320,10 +320,9 @@ vips_colour_build( VipsObject *object )
 	 */
 	g_assert( !colour->in[colour->n] ); 
 
-	if( vips_image_copy_fields_array( colour->out, colour->in ) ) 
+	if( vips_image_pipeline_array( colour->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, colour->in ) ) 
 		return( -1 );
-        vips_demand_hint_array( colour->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, colour->in );
 	colour->out->Coding = colour->coding;
 	colour->out->Type = colour->interpretation;
 	colour->out->BandFmt = colour->format;

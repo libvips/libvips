@@ -101,3 +101,17 @@ im_mask2vips( DOUBLEMASK *in, IMAGE *out )
 	return( 0 );
 }
 
+int
+im_imask2vips( INTMASK *in, IMAGE *out )
+{
+	DOUBLEMASK *d;
+	int result;
+
+	if( !(d = im_imask2dmask( in, in->filename )) )
+		return( -1 );
+	result = im_mask2vips( d, out );
+	im_free_dmask( d );
+
+	return( result ); 
+}
+

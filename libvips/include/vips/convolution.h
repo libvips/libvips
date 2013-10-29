@@ -41,30 +41,47 @@ extern "C" {
 typedef enum {
 	VIPS_PRECISION_INTEGER,
 	VIPS_PRECISION_FLOAT,
-	VIPS_PRECISION_APPROXIMATE
+	VIPS_PRECISION_APPROXIMATE,
+	VIPS_PRECISION_LAST
 } VipsPrecision;
 
+typedef enum {
+	VIPS_COMBINE_MAX,
+	VIPS_COMBINE_SUM,
+	VIPS_COMBINE_LAST
+} VipsCombine;
+
+/** 
+ * VipsOperationMorphology:
+ * @VIPS_OPERATION_MORPHOLOGY_ERODE: true if all set
+ * @VIPS_OPERATION_MORPHOLOGY_DILATE: true if one set
+ *
+ * More like hit-miss, really. 
+ *
+ * See also: vips_morph().
+ */
+
+typedef enum {
+	VIPS_OPERATION_MORPHOLOGY_ERODE,
+	VIPS_OPERATION_MORPHOLOGY_DILATE,
+	VIPS_OPERATION_MORPHOLOGY_LAST
+} VipsOperationMorphology;
+
 int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
+int vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
+int vips_convsep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
+
+int vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask, 
+	VipsOperationMorphology morph, ... )
 	__attribute__((sentinel));
 
 void vips_convolution_operation_init( void );
 
 
 
-
-
-int im_aconvsep( VipsImage *in, VipsImage *out, 
-	DOUBLEMASK *mask, int n_layers );
-int im_aconv( VipsImage *in, VipsImage *out, 
-	DOUBLEMASK *mask, int n_layers, int cluster );
-int im_conv( VipsImage *in, VipsImage *out, INTMASK *mask );
-int im_conv_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
-int im_convsep( VipsImage *in, VipsImage *out, INTMASK *mask );
-int im_convsep_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
-
-int im_compass( VipsImage *in, VipsImage *out, INTMASK *mask );
-int im_gradient( VipsImage *in, VipsImage *out, INTMASK *mask );
-int im_lindetect( VipsImage *in, VipsImage *out, INTMASK *mask );
 
 int im_sharpen( VipsImage *in, VipsImage *out, 
 	int mask_size, 
@@ -79,8 +96,6 @@ int im_spcor( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_gradcor( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_contrast_surface( VipsImage *in, VipsImage *out, 
 	int half_win_size, int spacing );
-
-int im_addgnoise( VipsImage *in, VipsImage *out, double sigma );
 
 #ifdef __cplusplus
 }

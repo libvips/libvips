@@ -69,6 +69,18 @@ typedef enum {
 	VIPS_ANGLE_LAST
 } VipsAngle;
 
+typedef enum {
+	VIPS_ANGLE45_0,
+	VIPS_ANGLE45_45,
+	VIPS_ANGLE45_90,
+	VIPS_ANGLE45_135,
+	VIPS_ANGLE45_180,
+	VIPS_ANGLE45_225,
+	VIPS_ANGLE45_270,
+	VIPS_ANGLE45_315,
+	VIPS_ANGLE45_LAST
+} VipsAngle45;
+
 int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_tilecache( VipsImage *in, VipsImage **out, ... )
@@ -107,6 +119,8 @@ int vips_wrap( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 	__attribute__((sentinel));
+int vips_rot45( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_zoom( VipsImage *in, VipsImage **out, int xfac, int yfac, ... )
 	__attribute__((sentinel));
 int vips_subsample( VipsImage *in, VipsImage **out, int xfac, int yfac, ... )
@@ -143,7 +157,7 @@ int vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
 int vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_bandmean( VipsImage *in, VipsImage **out, ... )
+int vips_bandrank( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
 
 int vips_bandbool( VipsImage *in, VipsImage **out, 
@@ -154,6 +168,8 @@ int vips_bandand( VipsImage *in, VipsImage **out, ... )
 int vips_bandor( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_bandeor( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_bandmean( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )

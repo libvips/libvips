@@ -56,6 +56,11 @@ extern "C" {
  */
 #define VIPS_SIZEOF_HEADER (64)
 
+/* Startup plus ABI check.
+ */
+int vips__init( const char *argv0 );
+size_t vips__get_sizeof_vipsobject( void );
+
 /* What we track for each mmap window. Have a list of these on an openin
  * VipsImage.
  */
@@ -164,6 +169,11 @@ VipsArgumentInstance *vips__argument_get_instance(
 	VipsObject *object);
 VipsArgument *vips__argument_table_lookup( VipsArgumentTable *table, 
 	GParamSpec *pspec);
+
+void vips__demand_hint_array( struct _VipsImage *image, 
+	int hint, struct _VipsImage **in );
+int vips__image_copy_fields_array( struct _VipsImage *out, 
+	struct _VipsImage *in[] );
 
 #ifdef __cplusplus
 }

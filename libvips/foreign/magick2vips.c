@@ -337,7 +337,7 @@ parse_header( Read *read )
 	 */
 	im->Coding = VIPS_CODING_NONE;
 
-	vips_demand_hint( im, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+	vips_image_pipelinev( im, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 
 	/* Three ways to loop over attributes / properties :-(
 	 */

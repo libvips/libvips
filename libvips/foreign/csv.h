@@ -48,8 +48,10 @@ int vips__csv_write( VipsImage *in, const char *filename,
 int vips__matrix_read_header( const char *filename,
 	int *width, int *height, double *scale, double *offset );
 int vips__matrix_ismatrix( const char *filename );
+VipsImage *vips__matrix_read_file( FILE *fp );
 VipsImage *vips__matrix_read( const char *filename );
 int vips__matrix_write( VipsImage *in, const char *filename );
+int vips__matrix_write_file( VipsImage *in, FILE *fp );
 
 extern const char *vips__foreign_matrix_suffs[];
 

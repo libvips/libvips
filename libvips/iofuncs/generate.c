@@ -274,26 +274,12 @@ vips__link_map( VipsImage *image, gboolean upstream,
 	return( result );
 }
 
-/**
- * vips_demand_hint_array: 
- * @image: image to set hint for
- * @hint: hint for this image
- * @in: array of input images to this operation
- *
- * Operations can set demand hints, that is, hints to the VIPS IO system about
- * the type of region geometry this operation works best with. For example,
- * operations which transform coordinates will usually work best with
- * %VIPS_DEMAND_STYLE_SMALLTILE, operations which work on local windows of 
- * pixels will like %VIPS_DEMAND_STYLE_FATSTRIP.
- *
- * VIPS uses the list of input images to build the tree of operations it needs
- * for the cache invalidation system. You have to call this function, or its
- * varargs friend vips_demand_hint().
- *
- * See also: vips_demand_hint(), vips_image_generate().
+/* We have to have this as a separate entry point so we can support the old
+ * vips7 API.
  */
 void 
-vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
+vips__demand_hint_array( VipsImage *image, 
+	VipsDemandStyle hint, VipsImage **in )
 {
 	int i, len, nany;
 	VipsDemandStyle set_hint;
@@ -327,7 +313,7 @@ vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
 	image->dhint = set_hint;
 
 #ifdef DEBUG
-        printf( "vips_demand_hint_array: set dhint for \"%s\" to %s\n",
+        printf( "vips_image_pipeline_array: set dhint for \"%s\" to %s\n",
 		image->filename, 
 		vips_enum_nick( VIPS_TYPE_DEMAND_STYLE, image->dhint ) );
 	printf( "\toperation requested %s\n", 
@@ -354,17 +340,62 @@ vips_demand_hint_array( VipsImage *image, VipsDemandStyle hint, VipsImage **in )
 }
 
 /**
- * vips_demand_hint:
- * @image: image to set hint for
- * @hint: hint for this image
- * @Varargs: %NULL-terminated list of input images to this operation
+ * vips_image_pipeline_array: 
+ * @image: output image
+ * @hint: demand hint for @image
+ * @in: %NULL-terminated array of input images 
  *
- * Build an array and call vips_demand_hint_array().
+ * Add an image to a pipeline. @image depends on all of the images in @in,
+ * @image prefers to supply pixels according to @hint.
  *
- * See also: vips_demand_hint(), vips_image_generate().
+ * Operations can set demand hints, that is, hints to the VIPS IO system about
+ * the type of region geometry this operation works best with. For example,
+ * operations which transform coordinates will usually work best with
+ * %VIPS_DEMAND_STYLE_SMALLTILE, operations which work on local windows of 
+ * pixels will like %VIPS_DEMAND_STYLE_FATSTRIP.
+ *
+ * Header fields in @image are set from the fields in @in, with lower-numbered
+ * images in @in taking priority. 
+ * For example, if @in[0] and @in[1] both have an item
+ * called "icc-profile", it's the profile attached to @in[0] that will end up
+ * on @image.
+ * Image history is completely copied from all @in. @image will have the history
+ * of all the input images.
+ * The array of input images can be empty, meaning @image is at the start of a
+ * pipeline.
+ *
+ * VIPS uses the list of input images to build the tree of operations it needs
+ * for the cache invalidation system. 
+ *
+ * See also: vips_image_pipelinev(), vips_image_generate().
+ *
+ * Returns: 0 on success, -1 on error.
  */
-void 
-vips_demand_hint( VipsImage *image, VipsDemandStyle hint, ... )
+int 
+vips_image_pipeline_array( VipsImage *image, 
+	VipsDemandStyle hint, VipsImage **in )
+{
+	vips__demand_hint_array( image, hint, in );
+
+	if( in[0] && 
+		vips__image_copy_fields_array( image, in ) )
+		return( -1 ); 
+
+	return( 0 );
+}
+
+/**
+ * vips_image_pipelinev:
+ * @image: output image of pipeline
+ * @hint: hint for this image
+ * @...: %NULL-terminated list of input images 
+ *
+ * Build an array and call vips_image_pipeline_array().
+ *
+ * See also: vips_image_generate().
+ */
+int 
+vips_image_pipelinev( VipsImage *image, VipsDemandStyle hint, ... )
 {
 	va_list ap;
 	int i;
@@ -376,14 +407,14 @@ vips_demand_hint( VipsImage *image, VipsDemandStyle hint, ... )
 		;
 	va_end( ap );
 	if( i == MAX_IMAGES ) {
-		vips_warn( "vips_demand_hint", "%s", _( "too many images" ) );
+		vips_warn( "vips_image_pipeline", "%s", _( "too many images" ) );
 
 		/* Make sure we have a sentinel there.
 		 */
 		ar[i - 1] = NULL;
 	}
 
-	vips_demand_hint_array( image, hint, ar );
+	return( vips_image_pipeline_array( image, hint, ar ) );
 }
 
 /**
