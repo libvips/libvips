@@ -9,6 +9,7 @@
   vips_image_pipeline() to do both jobs
 - vipsthumbnail allows non-square bounding boxes, thanks seth
 - add vips_matrixprint()
+- add @point subsample mode to vips_subsample()
 
 18/10/13	started 7.36.3
 - fix compiler warnings in ubuntu 13.10

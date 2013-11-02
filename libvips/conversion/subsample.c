@@ -11,6 +11,8 @@
  * 	- gtkdoc
  * 1/6/13
  * 	- redo as a class
+ * 2/11/13
+ * 	- add @point to force point sample mode
  */
 
 /*
@@ -55,12 +57,10 @@
 typedef struct _VipsSubsample {
 	VipsConversion parent_instance;
 
-	/* The input image.
-	 */
 	VipsImage *in;
-
-	int xfac;		/* Subsample factors */
+	int xfac;	
 	int yfac;
+	gboolean point;
 
 } VipsSubsample;
 
@@ -215,6 +215,7 @@ vips_subsample_build( VipsObject *object )
 	if( vips_image_pipelinev( conversion->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, subsample->in, NULL ) )
 		return( -1 );
+
 	/* Prepare output. Note: we round the output width down!
 	 */
 	conversion->out->Xsize = subsample->in->Xsize / subsample->xfac;
@@ -228,13 +229,15 @@ vips_subsample_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* Generate! If this is a very large shrink, then it's
-	 * probably faster to do it a pixel at a time. 
+	/* Generate! If this is a very large shrink, then it's probably faster 
+	 * to do it a pixel at a time. 
 	 */
-	if( subsample->xfac > 10 ) 
+	if( subsample->point ||
+		subsample->xfac > 10 ) 
 		subsample_fn = vips_subsample_point_gen;
 	else 
 		subsample_fn = vips_subsample_line_gen;
+
 	if( vips_image_generate( conversion->out, 
 		vips_start_one, subsample_fn, vips_stop_one,
 		subsample->in, subsample ) )
@@ -284,6 +287,13 @@ vips_subsample_class_init( VipsSubsampleClass *class )
 		G_STRUCT_OFFSET( VipsSubsample, yfac ),
 		1, RANGE, 1 );
 
+	VIPS_ARG_BOOL( class, "point", 2, 
+		_( "Point" ), 
+		_( "Point sample" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsSubsample, point ),
+		FALSE );
+
 }
 
 static void
@@ -299,8 +309,19 @@ vips_subsample_init( VipsSubsample *subsample )
  * @yfac: vertical shrink factor
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @point: turn on point sample mode
+ *
  * Subsample an image by an integer fraction. This is fast, nearest-neighbour
  * shrink.
+ *
+ * For small horizontal shrinks, this operation will fetch lines of pixels
+ * from @in and then subsample that line. For large shrinks it will fetch
+ * single pixels.
+ *
+ * If @point is set, @in will always be sampled in points. This can be faster 
+ * if the previous operations in the pipeline are very slow.
  *
  * See also: vips_affine(), vips_shrink(), vips_zoom().
  * 
