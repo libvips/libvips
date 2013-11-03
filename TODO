@@ -1,4 +1,3 @@
-
 - do conv and morph quickly as simple wrappers over the vips7 operations
 
 - add vips_gaussian_blur() with approx / int / float precision, maybe

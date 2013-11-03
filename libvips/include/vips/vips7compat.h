@@ -918,6 +918,9 @@ int im_lindetect( VipsImage *in, VipsImage *out, INTMASK *mask );
 
 int im_addgnoise( VipsImage *in, VipsImage *out, double sigma );
 
+int im_contrast_surface( VipsImage *in, VipsImage *out, 
+	int half_win_size, int spacing );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

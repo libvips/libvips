@@ -10,6 +10,8 @@
 - vipsthumbnail allows non-square bounding boxes, thanks seth
 - add vips_matrixprint()
 - add @point subsample mode to vips_subsample()
+- im_contrast_surface() deprecated: it was slower than calling conv a few
+  times
 
 18/10/13	started 7.36.3
 - fix compiler warnings in ubuntu 13.10

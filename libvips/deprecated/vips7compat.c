@@ -2236,6 +2236,41 @@ im_addgnoise( IMAGE *in, IMAGE *out, double sigma )
 	return( 0 );
 }
 
+/* This replaces some custom code in 7.36 and earlier. The hand-made one was
+ * slower for spacing == 1, though faster for large values of spacing. 
+ *
+ * Not worth maintaining a special operator for. 
+ */
+int
+im_contrast_surface (IMAGE * in, IMAGE * out, int half_win_size, int spacing)
+{
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( out ), 10 );
+	int size = half_win_size * 2; 
+
+	int x, y;
+
+	t[0] = vips_image_new_matrixv( 1, 2, -1.0, 1.0 );
+	t[1] = vips_image_new_matrixv( 2, 1, -1.0, 1.0 );
+	t[8] = vips_image_new_matrix( size, size ); 
+
+	for( y = 0; y < size; y++ )
+		for( x = 0; x < size; x++ )
+			*VIPS_MATRIX( t[8], x, y ) = 1.0;
+
+	if( vips_conv( in, &t[2], t[0], NULL ) ||
+		vips_conv( in, &t[3], t[1], NULL ) ||
+		vips_abs( t[2], &t[4], NULL ) ||
+		vips_abs( t[3], &t[5], NULL ) ||
+		vips_add( t[4], t[5], &t[6], NULL ) ||
+		vips_conv( t[6], &t[7], t[8], NULL ) ||
+		vips_subsample( t[7], &t[9], spacing, spacing, NULL ) ||
+		vips_image_write( t[9], out ) )
+		return( -1 ); 
+
+	return( 0 );
+}
+
 static int
 vips__round( VipsImage *in, VipsImage *out, VipsOperationRound round )
 {

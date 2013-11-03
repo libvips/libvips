@@ -94,8 +94,6 @@ int im_grad_y( VipsImage *in, VipsImage *out );
 int im_fastcor( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_spcor( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_gradcor( VipsImage *in, VipsImage *ref, VipsImage *out );
-int im_contrast_surface( VipsImage *in, VipsImage *out, 
-	int half_win_size, int spacing );
 
 #ifdef __cplusplus
 }
