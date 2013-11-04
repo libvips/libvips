@@ -2236,13 +2236,20 @@ im_addgnoise( IMAGE *in, IMAGE *out, double sigma )
 	return( 0 );
 }
 
+int
+im_contrast_surface_raw( IMAGE *in, IMAGE *out, int half_win_size, int spacing )
+{
+	im_error( "im_contrast_surface_raw", "no compat function" );
+	return( -1 );
+}
+
 /* This replaces some custom code in 7.36 and earlier. The hand-made one was
  * slower for spacing == 1, though faster for large values of spacing. 
  *
  * Not worth maintaining a special operator for. 
  */
 int
-im_contrast_surface (IMAGE * in, IMAGE * out, int half_win_size, int spacing)
+im_contrast_surface( IMAGE *in, IMAGE *out, int half_win_size, int spacing )
 {
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 10 );

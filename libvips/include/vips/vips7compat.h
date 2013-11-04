@@ -918,6 +918,8 @@ int im_lindetect( VipsImage *in, VipsImage *out, INTMASK *mask );
 
 int im_addgnoise( VipsImage *in, VipsImage *out, double sigma );
 
+int im_contrast_surface_raw( IMAGE *in, IMAGE *out, 
+	int half_win_size, int spacing );
 int im_contrast_surface( VipsImage *in, VipsImage *out, 
 	int half_win_size, int spacing );
 
