@@ -67,7 +67,9 @@ G_DEFINE_TYPE( VipsForeignLoadRad, vips_foreign_load_rad,
 static VipsForeignFlags
 vips_foreign_load_rad_get_flags_filename( const char *filename )
 {
-	return( 0 );
+	/* The rad reader supports sequential read.
+	 */
+	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
 static VipsForeignFlags
@@ -94,7 +96,8 @@ vips_foreign_load_rad_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
 
-	if( vips__rad_load( rad->filename, load->real ) )
+	if( vips__rad_load( rad->filename, load->real,
+		load->access == VIPS_ACCESS_SEQUENTIAL ) )
 		return( -1 );
 
 	return( 0 );

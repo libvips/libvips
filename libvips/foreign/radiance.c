@@ -8,6 +8,8 @@
  * 	- reworked as some fns ready for new-style classes
  * 13/12/12
  * 	- tag RGB rad images as scRGB
+ * 4/11/13
+ * 	- support sequential read
  */
 
 /*
@@ -772,8 +774,6 @@ typedef struct {
 	double aspect;
 	RGBPRIMS prims;
 	RESOLU rs;
-
-	COLR *buf;
 } Read;
 
 int
@@ -797,13 +797,10 @@ vips__rad_israd( const char *filename )
 }
 
 static void
-read_destroy( Read *read )
+read_destroy( VipsObject *object, Read *read )
 {
 	VIPS_FREE( read->filename );
 	VIPS_FREEF( fclose, read->fin );
-	VIPS_FREE( read->buf );
-
-	vips_free( read );
 }
 
 static Read *
@@ -812,7 +809,7 @@ read_new( const char *filename, VipsImage *out )
 	Read *read;
 	int i;
 
-	if( !(read = VIPS_NEW( NULL, Read )) )
+	if( !(read = VIPS_NEW( out, Read )) )
 		return( NULL );
 
 	read->filename = vips_strdup( NULL, filename );
@@ -831,12 +828,12 @@ read_new( const char *filename, VipsImage *out )
 	read->prims[2][1] = CIE_y_b;
 	read->prims[3][0] = CIE_x_w;
 	read->prims[3][1] = CIE_y_w;
-	read->buf = NULL;
 
-	if( !(read->fin = vips__file_open_read( filename, NULL, FALSE )) ) {
-		read_destroy( read );
+	g_signal_connect( out, "close", 
+		G_CALLBACK( read_destroy ), read );
+
+	if( !(read->fin = vips__file_open_read( filename, NULL, FALSE )) ) 
 		return( NULL );
-	}
 
 	return( read );
 }
@@ -883,36 +880,35 @@ static const char *colcor_name[3] = {
 };
 
 static int
-rad2vips_get_header( Read *read, FILE *fin, VipsImage *out )
+rad2vips_get_header( Read *read, VipsImage *out )
 {
 	int i, j;
+	VipsInterpretation interpretation;
 
-	if( getheader( fin, (gethfunc *) rad2vips_process_line, read ) ||
-		!fgetsresolu( &read->rs, fin ) ) {
+	if( getheader( read->fin, (gethfunc *) rad2vips_process_line, read ) ||
+		!fgetsresolu( &read->rs, read->fin ) ) {
 		vips_error( "rad2vips", "%s", 
 			_( "error reading radiance header" ) );
 		return( -1 );
 	}
-	out->Xsize = scanlen( &read->rs );
-	out->Ysize = numscans( &read->rs );
-
-	out->Bands = 4;
-	out->BandFmt = VIPS_FORMAT_UCHAR;
-
-	out->Coding = VIPS_CODING_RAD;
-	out->Xres = 1.0;
-	out->Yres = read->aspect;
-	out->Xoffset = 0.0;
-	out->Yoffset = 0.0;
-
-	vips_image_set_string( out, "rad-format", read->format );
 
 	if( strcmp( read->format, COLRFMT ) == 0 )
-		out->Type = VIPS_INTERPRETATION_scRGB;
+		interpretation = VIPS_INTERPRETATION_scRGB;
 	else if( strcmp( read->format, CIEFMT ) == 0 )
-		out->Type = VIPS_INTERPRETATION_XYZ;
+		interpretation = VIPS_INTERPRETATION_XYZ;
 	else
-		out->Type = VIPS_INTERPRETATION_MULTIBAND;
+		interpretation = VIPS_INTERPRETATION_MULTIBAND;
+
+	vips_image_init_fields( out,
+		scanlen( &read->rs ), numscans( &read->rs ),
+		4,
+		VIPS_FORMAT_UCHAR, VIPS_CODING_RAD,
+		interpretation,
+		1, read->aspect );
+
+	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
+	vips_image_set_string( out, "rad-format", read->format );
 
 	vips_image_set_double( out, "rad-expos", read->expos );
 
@@ -941,42 +937,44 @@ vips__rad_header( const char *filename, VipsImage *out )
 
 	if( !(read = read_new( filename, out )) ) 
 		return( -1 );
-	if( rad2vips_get_header( read, read->fin, read->out ) ) {
-		read_destroy( read );
+	if( rad2vips_get_header( read, read->out ) ) 
 		return( -1 );
-	}
-	read_destroy( read );
 
 	return( 0 );
 }
 
 static int
-rad2vips_get_data( Read *read, FILE *fin, VipsImage *im )
+rad2vips_generate( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
+        VipsRect *r = &or->valid;
+	Read *read = (Read *) a;
+
 	int y;
 
 #ifdef DEBUG
 	printf( "rad2vips_get_data\n" );
 #endif /*DEBUG*/
 
-	if( !(read->buf = VIPS_ARRAY( NULL, im->Xsize, COLR )) )
-		return( -1 );
+	for( y = 0; y < r->height; y++ ) {
+		COLR *buf = (COLR *) 
+			VIPS_REGION_ADDR( or, 0, r->top + y );
 
-	for( y = 0; y < im->Ysize; y++ ) {
-		if( freadcolrs( read->buf, im->Xsize, fin ) ) {
+		if( freadcolrs( buf, or->im->Xsize, read->fin ) ) {
 			vips_error( "rad2vips", "%s", _( "read error" ) );
 			return( -1 );
 		}
-		if( vips_image_write_line( im, y, (void *) read->buf ) )
-			return( -1 );
 	}
 
 	return( 0 );
 }
 
 int
-vips__rad_load( const char *filename, VipsImage *out )
+vips__rad_load( const char *filename, VipsImage *out, gboolean readbehind )
 {
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( out ), 3 );
+
 	Read *read;
 
 #ifdef DEBUG
@@ -985,17 +983,27 @@ vips__rad_load( const char *filename, VipsImage *out )
 
 	if( !(read = read_new( filename, out )) ) 
 		return( -1 );
-	if( rad2vips_get_header( read, read->fin, read->out ) ||
-		rad2vips_get_data( read, read->fin, read->out ) ) {
-		read_destroy( read );
+
+	t[0] = vips_image_new();
+	if( rad2vips_get_header( read, t[0] ) )
 		return( -1 );
-	}
-	read_destroy( read );
+
+	if( vips_image_generate( t[0], 
+		NULL, rad2vips_generate, NULL, 
+		read, NULL ) ||
+		vips_sequential( t[0], &t[1], 
+			"tile_height", 8,
+			"access", readbehind ? 
+				VIPS_ACCESS_SEQUENTIAL : 
+				VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
+			NULL ) ||
+		vips_image_write( t[1], out ) )
+		return( -1 );
 
 	return( 0 );
 }
 
-/* What we track during an radiance-file write.
+/* What we track during a radiance file write.
  */
 typedef struct {
 	VipsImage *in;
