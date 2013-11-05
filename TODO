@@ -1,11 +1,4 @@
-- check rad write again
-
-	vips copy x.jpg x.hdr
-	vips copy x.hdr x2.jpg
-
-  should this be an identity op?
-
-  drag display control slider, broken
+- drag display control slider, broken
 
 - do conv and morph quickly as simple wrappers over the vips7 operations
 

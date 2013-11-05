@@ -11,7 +11,7 @@
  * 4/11/13
  * 	- support sequential read
  * 5/11/13
- * 	- rewritten read and write, now much faster
+ * 	- rewritten scanline encode and decode, now much faster
  */
 
 /*
@@ -803,61 +803,51 @@ scanline_write( COLR *scanline, int width, FILE *fp )
 	PUTC( width >> 8 ); 
 	PUTC( width & 255 ); 
 
-	cnt = 1;
 	for( i = 0; i < 4; i++ ) {
-		for( j = 0; j < width; j += cnt ) {
-			/* Search for next run.
+		for( j = 0; j < width; ) {
+			/* Set beg / cnt to the start and length of the next 
+			 * run longer than MINRUN.
 			 */
 			for( beg = j; beg < width; beg += cnt ) {
-				for( cnt = 1; cnt < 127 && 
+				for( cnt = 1; 
+					cnt < 127 && 
 					beg + cnt < width &&
 					scanline[beg + cnt][i] == 
-						scanline[beg][i]; cnt++ )
+						scanline[beg][i]; 
+					cnt++ )
 					;
 
 				if( cnt >= MINRUN )
 					break;
 			}
 
-			if( beg - j > 1 && 
-				beg - j < MINRUN ) {
-				c2 = j + 1;
-				while( scanline[c2++][i] == scanline[j][i] )
-					if( c2 == beg ) {
-						/* Short run.
-						 */
-						PUTC( 128 + beg - j );
-						PUTC( scanline[j][i] );
-						j = beg;
-						break;
-					}
+			/* Code pixels leading up to the run as a set of
+			 * non-runs. 
+			 */
+			while( j < beg ) {
+				int len = VIPS_MIN( 128, beg - j ); 
+				COLR *p = scanline + j; 
+
+				int k;
+
+				PUTC( len ); 
+				for( k = 0; k < len; k++ )
+					PUTC( p[k][i] );
+				j += len;
 			}
 
-			while( j < beg ) {	
-				/* Non-run.
-				 */
-				c2 = VIPS_MIN( beg - j, 128 );
-				PUTC( c2 );
-				while( c2-- )
-					PUTC( scanline[j++][i] ); 
-			}
-
+			/* Code the run we found, if any
+			 */
 			if( cnt >= MINRUN ) {
-				/* Run.
-				 */
 				PUTC( 128 + cnt ); 
-				PUTC( scanline[beg][i] ); 
+				PUTC( scanline[j][i] ); 
+				j += cnt; 
 			} 
-			else
-				cnt = 0;
 		}
 	}
 
 	return( fwrite( buffer, 1, buffer_pos, fp ) - buffer_pos );
 }
-
-
-
 
 /* What we track during radiance file read.
  */
@@ -899,6 +889,7 @@ read_destroy( VipsObject *object, Read *read )
 {
 	VIPS_FREE( read->filename );
 	VIPS_FREEF( fclose, read->fin );
+	buffer_init( NULL );
 }
 
 static Read *
@@ -1047,7 +1038,6 @@ rad2vips_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
         VipsRect *r = &or->valid;
-	Read *read = (Read *) a;
 
 	int y;
 
@@ -1216,8 +1206,8 @@ vips2rad_put_data_block( VipsRegion *region, Rect *area, void *a )
 	for( i = 0; i < area->height; i++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
 
-		//if( fwritecolrs( p, area->width, write->fout ) ) 
 		if( scanline_write( (COLR *) p, area->width, write->fout ) ) 
+		//if( scanline_write_old( (COLR *) p, area->width, write->fout ) ) 
 			return( -1 );
 	}
 
