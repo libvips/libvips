@@ -10,6 +10,8 @@
  * 	- tag RGB rad images as scRGB
  * 4/11/13
  * 	- support sequential read
+ * 5/11/13
+ * 	- rewritten read, now much faster
  */
 
 /*
@@ -582,97 +584,161 @@ char  *buf;
 #define  MAXELEN	0x7fff	/* maximum scanline length for encoding */
 #define  MINRUN		4	/* minimum run length */
 
+#define BUFFER_SIZE (4096)
+#define BUFFER_MARGIN (256)
 
+static unsigned char buffer[BUFFER_SIZE + BUFFER_MARGIN];
+static int buffer_length = 0;
+static int buffer_position = 0;
+static FILE *buffer_fp = NULL;
+
+static void
+buffer_init( FILE *fp )
+{
+	buffer_length = 0;
+	buffer_position = 0;
+	buffer_fp = fp;
+}
 
 static int
-oldreadcolrs(scanline, len, fp)		/* read in an old colr scanline */
-register COLR  *scanline;
-int  len;
-register FILE  *fp;
+buffer_need( int require )
 {
-	int  rshift;
-	register int  i;
-	
+	int remaining;
+
+	g_assert( require < BUFFER_MARGIN ); 
+
+	remaining = buffer_length - buffer_position;
+	if( remaining < require ) {
+		size_t len;
+
+		memcpy( buffer, buffer + buffer_position, remaining ); 
+		buffer_position = 0;
+		buffer_length = remaining;
+
+		len = fread( buffer + buffer_length, 1, BUFFER_SIZE, 
+			buffer_fp );
+		buffer_length += len;
+		remaining = buffer_length - buffer_position;
+
+		if( remaining < require ) {
+			vips_error( "rad2vips", "%s", _( "end of file" ) ); 
+			return( -1 );
+		}
+	}
+
+	return( 0 );
+}
+
+#define BUFFER_FETCH (buffer[buffer_position++])
+#define BUFFER_PEEK (buffer[buffer_position])
+
+/* Read a single scanlne, encoded in the old style.
+ */
+static int
+scanline_read_old( COLR *scanline, int width )
+{
+	int rshift;
+
 	rshift = 0;
 	
-	while (len > 0) {
-		scanline[0][RED] = getc(fp);
-		scanline[0][GRN] = getc(fp);
-		scanline[0][BLU] = getc(fp);
-		scanline[0][EXP] = getc(fp);
-		if (feof(fp) || ferror(fp))
-			return(-1);
-		if (scanline[0][RED] == 1 &&
-				scanline[0][GRN] == 1 &&
-				scanline[0][BLU] == 1) {
-			for (i = scanline[0][EXP] << rshift; i > 0; i--) {
-				copycolr(scanline[0], scanline[-1]);
-				scanline++;
-				len--;
+	while( width > 0 ) {
+		if( buffer_need( 4 ) )
+			return( -1 ); 
+
+		scanline[0][RED] = BUFFER_FETCH;
+		scanline[0][GRN] = BUFFER_FETCH;
+		scanline[0][BLU] = BUFFER_FETCH;
+		scanline[0][EXP] = BUFFER_FETCH;
+
+		if( scanline[0][RED] == 1 &&
+			scanline[0][GRN] == 1 &&
+			scanline[0][BLU] == 1 ) {
+			int i;
+
+			for( i = scanline[0][EXP] << rshift; i > 0; i-- ) {
+				copycolr( scanline[0], scanline[-1] );
+				scanline += 1;
+				width -= 1;
 			}
+
 			rshift += 8;
-		} else {
-			scanline++;
-			len--;
+		} 
+		else {
+			scanline += 1;
+			width -= 1;
 			rshift = 0;
 		}
 	}
-	return(0);
+
+	return( 0 );
 }
 
-
+/* Read a single encoded scanline.
+ */
 static int
-freadcolrs(scanline, len, fp)		/* read in an encoded colr scanline */
-register COLR  *scanline;
-int  len;
-register FILE  *fp;
+scanline_read( COLR *scanline, int width )
 {
-	register int  i, j;
-	int  code, val;
-					/* determine scanline type */
-	if ((len < MINELEN) | (len > MAXELEN))
-		return(oldreadcolrs(scanline, len, fp));
-	if ((i = getc(fp)) == EOF)
-		return(-1);
-	if (i != 2) {
-		ungetc(i, fp);
-		return(oldreadcolrs(scanline, len, fp));
+	int i, j;
+
+	/* Detect old-style scanlines.
+	 */
+	if( width < MINELEN ||
+		width > MAXELEN )
+		return( scanline_read_old( scanline, width ) );
+
+	if( buffer_need( 4 ) )
+		return( -1 ); 
+
+	if( BUFFER_PEEK != 2 ) 
+		return( scanline_read_old( scanline, width ) );
+
+	scanline[0][RED] = BUFFER_FETCH;
+	scanline[0][GRN] = BUFFER_FETCH;
+	scanline[0][BLU] = BUFFER_FETCH;
+	scanline[0][EXP] = BUFFER_FETCH;
+	if( scanline[0][GRN] != 2 || 
+		scanline[0][BLU] & 128 ) 
+		return( scanline_read_old( scanline + 1, width - 1 ) );
+
+	if( ((scanline[0][BLU] << 8) | scanline[0][EXP]) != width ) {
+		vips_error( "rad2vips", "%s", _( "scanline length mismatch" ) );
+		return( -1 ); 
 	}
-	scanline[0][GRN] = getc(fp);
-	scanline[0][BLU] = getc(fp);
-	if ((i = getc(fp)) == EOF)
-		return(-1);
-	if (scanline[0][GRN] != 2 || scanline[0][BLU] & 128) {
-		scanline[0][RED] = 2;
-		scanline[0][EXP] = i;
-		return(oldreadcolrs(scanline+1, len-1, fp));
-	}
-	if ((scanline[0][BLU]<<8 | i) != len)
-		return(-1);		/* length mismatch! */
-					/* read each component */
-	for (i = 0; i < 4; i++)
-	    for (j = 0; j < len; ) {
-		if ((code = getc(fp)) == EOF)
-		    return(-1);
-		if (code > 128) {	/* run */
-		    code &= 127;
-		    if ((val = getc(fp)) == EOF)
-			return -1;
-		    if (j + code > len)
-		    	return -1;	/* overrun */
-		    while (code--)
-			scanline[j++][i] = val;
-		} else {		/* non-run */
-		    if (j + code > len)
-		    	return -1;	/* overrun */
-		    while (code--) {
-			if ((val = getc(fp)) == EOF)
-			    return -1;
-			scanline[j++][i] = val;
-		    }
+
+	for( i = 0; i < 4; i++ ) {
+		for( j = 0; j < width; ) {
+			int code, len;
+			gboolean run;
+
+			if( buffer_need( 2 ) )
+				return( -1 ); 
+
+			code = BUFFER_FETCH; 
+			run = code > 128;
+			len = run ? code & 127 : code; 
+
+			if( j + len > width ) {
+				vips_error( "rad2vips", "%s", _( "overrun" ) ); 
+				return( -1 );
+			}
+
+			if( run ) { 
+				int val;
+
+				val = BUFFER_FETCH; 
+				while( len-- )
+					scanline[j++][i] = val;
+			} 
+			else {
+				if( buffer_need( len ) )
+					return( -1 ); 
+				while( len-- ) 
+					scanline[j++][i] = BUFFER_FETCH;
+			}
 		}
-	    }
-	return(0);
+	}
+
+	return( 0 );
 }
 
 static void
@@ -834,6 +900,7 @@ read_new( const char *filename, VipsImage *out )
 
 	if( !(read->fin = vips__file_open_read( filename, NULL, FALSE )) ) 
 		return( NULL );
+	buffer_init( read->fin );
 
 	return( read );
 }
@@ -960,8 +1027,9 @@ rad2vips_generate( VipsRegion *or,
 		COLR *buf = (COLR *) 
 			VIPS_REGION_ADDR( or, 0, r->top + y );
 
-		if( freadcolrs( buf, or->im->Xsize, read->fin ) ) {
-			vips_error( "rad2vips", "%s", _( "read error" ) );
+		if( scanline_read( buf, or->im->Xsize ) ) {
+			vips_error( "rad2vips", 
+				_( "read error line %d" ), r->top + y );
 			return( -1 );
 		}
 	}
