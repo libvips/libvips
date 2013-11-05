@@ -11,7 +11,7 @@
  * 4/11/13
  * 	- support sequential read
  * 5/11/13
- * 	- rewritten read, now much faster
+ * 	- rewritten read and write, now much faster
  */
 
 /*
@@ -584,6 +584,36 @@ char  *buf;
 #define  MAXELEN	0x7fff	/* maximum scanline length for encoding */
 #define  MINRUN		4	/* minimum run length */
 
+static void
+fputformat(		/* put out a format value */
+	char  *s,
+	FILE  *fp
+)
+{
+	fputs(FMTSTR, fp);
+	fputs(s, fp);
+	putc('\n', fp);
+}
+
+char *
+resolu2str(buf, rp)		/* convert resolution struct to line */
+char  *buf;
+register RESOLU  *rp;
+{
+	if (rp->rt&YMAJOR)
+		sprintf(buf, "%cY %d %cX %d\n",
+				rp->rt&YDECR ? '-' : '+', rp->yr,
+				rp->rt&XDECR ? '-' : '+', rp->xr);
+	else
+		sprintf(buf, "%cX %d %cY %d\n",
+				rp->rt&XDECR ? '-' : '+', rp->xr,
+				rp->rt&YDECR ? '-' : '+', rp->yr);
+	return(buf);
+}
+
+/* End copy-paste from Radiance sources.
+ */
+
 #define BUFFER_SIZE (4096)
 #define BUFFER_MARGIN (256)
 
@@ -705,7 +735,7 @@ scanline_read( COLR *scanline, int width )
 		return( -1 ); 
 	}
 
-	for( i = 0; i < 4; i++ ) {
+	for( i = 0; i < 4; i++ ) 
 		for( j = 0; j < width; ) {
 			int code, len;
 			gboolean run;
@@ -736,96 +766,98 @@ scanline_read( COLR *scanline, int width )
 					scanline[j++][i] = BUFFER_FETCH;
 			}
 		}
-	}
 
 	return( 0 );
 }
 
-static void
-fputformat(		/* put out a format value */
-	char  *s,
-	FILE  *fp
-)
-{
-	fputs(FMTSTR, fp);
-	fputs(s, fp);
-	putc('\n', fp);
-}
-
-char *
-resolu2str(buf, rp)		/* convert resolution struct to line */
-char  *buf;
-register RESOLU  *rp;
-{
-	if (rp->rt&YMAJOR)
-		sprintf(buf, "%cY %d %cX %d\n",
-				rp->rt&YDECR ? '-' : '+', rp->yr,
-				rp->rt&XDECR ? '-' : '+', rp->xr);
-	else
-		sprintf(buf, "%cX %d %cY %d\n",
-				rp->rt&XDECR ? '-' : '+', rp->xr,
-				rp->rt&YDECR ? '-' : '+', rp->yr);
-	return(buf);
-}
-
-static int
-fwritecolrs(scanline, len, fp)		/* write out a colr scanline */
-register COLR  *scanline;
-int  len;
-register FILE  *fp;
-{
-	register int  i, j, beg, cnt = 1;
-	int  c2;
-	
-	if ((len < MINELEN) | (len > MAXELEN))	/* OOBs, write out flat */
-		return(fwrite((char *)scanline,sizeof(COLR),len,fp) - len);
-					/* put magic header */
-	putc(2, fp);
-	putc(2, fp);
-	putc(len>>8, fp);
-	putc(len&255, fp);
-					/* put components seperately */
-	for (i = 0; i < 4; i++) {
-	    for (j = 0; j < len; j += cnt) {	/* find next run */
-		for (beg = j; beg < len; beg += cnt) {
-		    for (cnt = 1; cnt < 127 && beg+cnt < len &&
-			    scanline[beg+cnt][i] == scanline[beg][i]; cnt++)
-			;
-		    if (cnt >= MINRUN)
-			break;			/* long enough */
-		}
-		if (beg-j > 1 && beg-j < MINRUN) {
-		    c2 = j+1;
-		    while (scanline[c2++][i] == scanline[j][i])
-			if (c2 == beg) {	/* short run */
-			    putc(128+beg-j, fp);
-			    putc(scanline[j][i], fp);
-			    j = beg;
-			    break;
-			}
-		}
-		while (j < beg) {		/* write out non-run */
-		    if ((c2 = beg-j) > 128) c2 = 128;
-		    putc(c2, fp);
-		    while (c2--)
-			putc(scanline[j++][i], fp);
-		}
-		if (cnt >= MINRUN) {		/* write out run */
-		    putc(128+cnt, fp);
-		    putc(scanline[beg][i], fp);
-		} else
-		    cnt = 0;
-	    }
-	}
-	return(ferror(fp) ? -1 : 0);
-}
-
-
-
-
-
-/* End copy-paste from Radiance sources.
+/* An encoded scanline can't be larger than this.
  */
+#define MAX_LINE (2 * MAXELEN * sizeof( COLR ))
+
+/* Write a single scanline.
+ */
+static int
+scanline_write( COLR *scanline, int width, FILE *fp )
+{
+	unsigned char buffer[MAX_LINE];
+	int buffer_pos = 0;
+
+#define PUTC( CH ) { \
+	buffer[buffer_pos++] = (CH); \
+	g_assert( buffer_pos <= MAX_LINE ); \
+}
+
+	int i, j, beg, cnt;
+	int c2;
+
+	if( width < MINELEN || 
+		width > MAXELEN )
+		/* Write as a flat scanline.
+		 */
+		return( fwrite( scanline, sizeof( COLR ), width, fp ) - width );
+
+	/* An RLE scanline. Write magic header.
+	 */
+	PUTC( 2 ); 
+	PUTC( 2 ); 
+	PUTC( width >> 8 ); 
+	PUTC( width & 255 ); 
+
+	cnt = 1;
+	for( i = 0; i < 4; i++ ) {
+		for( j = 0; j < width; j += cnt ) {
+			/* Search for next run.
+			 */
+			for( beg = j; beg < width; beg += cnt ) {
+				for( cnt = 1; cnt < 127 && 
+					beg + cnt < width &&
+					scanline[beg + cnt][i] == 
+						scanline[beg][i]; cnt++ )
+					;
+
+				if( cnt >= MINRUN )
+					break;
+			}
+
+			if( beg - j > 1 && 
+				beg - j < MINRUN ) {
+				c2 = j + 1;
+				while( scanline[c2++][i] == scanline[j][i] )
+					if( c2 == beg ) {
+						/* Short run.
+						 */
+						PUTC( 128 + beg - j );
+						PUTC( scanline[j][i] );
+						j = beg;
+						break;
+					}
+			}
+
+			while( j < beg ) {	
+				/* Non-run.
+				 */
+				c2 = VIPS_MIN( beg - j, 128 );
+				PUTC( c2 );
+				while( c2-- )
+					PUTC( scanline[j++][i] ); 
+			}
+
+			if( cnt >= MINRUN ) {
+				/* Run.
+				 */
+				PUTC( 128 + cnt ); 
+				PUTC( scanline[beg][i] ); 
+			} 
+			else
+				cnt = 0;
+		}
+	}
+
+	return( fwrite( buffer, 1, buffer_pos, fp ) - buffer_pos );
+}
+
+
+
 
 /* What we track during radiance file read.
  */
@@ -1184,7 +1216,8 @@ vips2rad_put_data_block( VipsRegion *region, Rect *area, void *a )
 	for( i = 0; i < area->height; i++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
 
-		if( fwritecolrs( p, area->width, write->fout ) ) 
+		//if( fwritecolrs( p, area->width, write->fout ) ) 
+		if( scanline_write( (COLR *) p, area->width, write->fout ) ) 
 			return( -1 );
 	}
 
