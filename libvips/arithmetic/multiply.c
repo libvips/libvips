@@ -158,7 +158,7 @@ vips_multiply_buffer( VipsArithmetic *arithmetic,
 /* Type promotion for multiplication. Sign and value preserving. Make sure 
  * these match the case statement in multiply_buffer() above.
  */
-static int vips_bandfmt_multiply[10] = {
+static int vips_multiply_format_table[10] = {
 /* UC  C   US  S   UI  I  F  X  D  DX */
    US, S,  UI, I,  UI, I, F, X, D, DX
 };
@@ -172,7 +172,7 @@ vips_multiply_class_init( VipsMultiplyClass *class )
 	object_class->nickname = "multiply";
 	object_class->description = _( "multiply two images" );
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_multiply );
+	vips_arithmetic_set_format_table( aclass, vips_multiply_format_table );
 
 	aclass->process_line = vips_multiply_buffer;
 }
@@ -198,7 +198,7 @@ vips_multiply_init( VipsMultiply *multiply )
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common type (see table 
+ * The two input images are cast up to the smallest common format (see table 
  * Smallest common format in 
  * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
  * following table is used to determine the output type:

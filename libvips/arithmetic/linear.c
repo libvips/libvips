@@ -180,7 +180,7 @@ vips_linear_build( VipsObject *object )
 	for( x = 0; x < width; x++ ) \
 		for( k = 0; k < nb; k++ ) { \
 			q[0] = a[k] * p[0] + b[k]; \
-			q[1] = a[k] * p[1]; \
+			q[1] = p[1]; \
 			q += 2; \
 			p += 2; \
 		} \

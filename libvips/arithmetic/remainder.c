@@ -210,7 +210,7 @@ vips_remainder_init( VipsRemainder *remainder )
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common type (see table 
+ * The two input images are cast up to the smallest common format (see table 
  * Smallest common format in 
  * <link linkend="VIPS-arithmetic">arithmetic</link>), and that format is the
  * result type.

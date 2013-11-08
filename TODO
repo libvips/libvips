@@ -1,3 +1,15 @@
+- look again at gcc auto-vectorisation, what would we need to do to use this?
+
+- how about
+
+	top -d 0.1 | grep vips > log
+
+  to watch RES at 0.1s intervals?
+
+- add "crop" as a synonym for "extract_area"
+
+- add vips_gamma(), see rad etc. 
+
 - drag display control slider, broken
 
 - do conv and morph quickly as simple wrappers over the vips7 operations

@@ -615,7 +615,7 @@ vips_embed_init( VipsEmbed *embed )
  *
  * Optional arguments:
  *
- * @extend: how to generate the edge pixels
+ * @extend: how to generate the edge pixels (default: black)
  * @background: colour for edge pixels
  *
  * The opposite of vips_extract_area(): embed @in within an image of size 

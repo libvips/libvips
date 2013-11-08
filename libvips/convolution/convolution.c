@@ -150,9 +150,13 @@ vips_convolution_operation_init( void )
 	extern int vips_morph_get_type( void ); 
 	extern int vips_compass_get_type( void ); 
 	extern int vips_convsep_get_type( void ); 
+	extern int vips_fastcor_get_type( void ); 
+	extern int vips_spcor_get_type( void ); 
 
 	vips_conv_get_type(); 
 	vips_morph_get_type(); 
 	vips_compass_get_type(); 
 	vips_convsep_get_type(); 
+	vips_fastcor_get_type(); 
+	vips_spcor_get_type(); 
 }

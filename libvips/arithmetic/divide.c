@@ -256,7 +256,7 @@ vips_divide_init( VipsDivide *divide )
  * one-band image by joining n copies of the one-band image together, and then
  * the two n-band images are operated upon.
  *
- * The two input images are cast up to the smallest common type (see table 
+ * The two input images are cast up to the smallest common format (see table 
  * Smallest common format in 
  * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
  * following table is used to determine the output type:

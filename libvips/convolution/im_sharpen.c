@@ -96,10 +96,10 @@ typedef struct {
 static SharpenLut *
 build_lut( IMAGE *out, int x1, int x2, int x3, double m1, double m2 )
 {
+	SharpenLut *slut;
 	int i;
-	SharpenLut *slut = IM_NEW( out, SharpenLut );
 
-	if( !slut )
+	if( !(slut = IM_NEW( out, SharpenLut )) )
 		return( NULL );
 
 	if( !(slut->lut = IM_ARRAY( out, x2 + x3 + 1, int )) )
@@ -109,13 +109,13 @@ build_lut( IMAGE *out, int x1, int x2, int x3, double m1, double m2 )
 	slut->x3 = x3;
 
 	for( i = 0; i < x1; i++ ) {
-		slut->lut[x3 + i] = i*m1;
-		slut->lut[x3 - i] = -i*m1;
+		slut->lut[x3 + i] = i * m1;
+		slut->lut[x3 - i] = -i * m1;
 	}
 	for( i = x1; i <= x2; i++ ) 
-		slut->lut[x3 + i] = x1*m1 + (i-x1)*m2; 
+		slut->lut[x3 + i] = x1 * m1 + (i - x1) * m2; 
 	for( i = x1; i <= x3; i++ )
-		slut->lut[x3 - i] = -(x1*m1 + (i-x1)*m2);
+		slut->lut[x3 - i] = -(x1 * m1 + (i - x1) * m2);
 
 	return( slut );
 }

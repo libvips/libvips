@@ -788,7 +788,6 @@ scanline_write( COLR *scanline, int width, FILE *fp )
 }
 
 	int i, j, beg, cnt;
-	int c2;
 
 	if( width < MINELEN || 
 		width > MAXELEN )

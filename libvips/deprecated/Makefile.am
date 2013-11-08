@@ -9,6 +9,7 @@ libdeprecated_la_SOURCES = \
 	im_lab_morph.c \
 	deprecated_dispatch.c \
 	colour_dispatch.c \
+	convol_dispatch.c \
 	arith_dispatch.c \
 	hist_dispatch.c \
 	im_maxpos_avg.c \
@@ -24,6 +25,7 @@ libdeprecated_la_SOURCES = \
 	im_fav4.c \
 	im_gadd.c \
 	im_gaddim.c \
+	im_gradcor.c \
 	im_cmulnorm.c \
 	im_printlines.c \
 	im_convsub.c \
