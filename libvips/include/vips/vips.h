@@ -149,16 +149,19 @@ extern "C" {
 #include <vips/almostdeprecated.h>
 #include <vips/dispatch.h>
 
+/* We can't use _ here since this will be compiled by our clients and they may
+ * not have _().
+ */
 #define vips_init( ARGV0 ) \
 	(sizeof( VipsObject ) != vips__get_sizeof_vipsobject() ? ( \
-		vips_info( "vips_init", "%s", _( "ABI mismatch" ) ), \
+		vips_info( "vips_init", "ABI mismatch" ), \
 		vips_info( "vips_init", \
-			_( "library has sizeof(VipsObject) == %zd" ), \
+			"library has sizeof(VipsObject) == %zd", \
 			vips__get_sizeof_vipsobject() ), \
 		vips_info( "vips_init", \
-			_( "application has sizeof(VipsObject) == %zd" ), \
+			"application has sizeof(VipsObject) == %zd", \
 			sizeof( VipsObject() ) ), \
-		vips_error( "vips_init", "%s", _( "ABI mismatch" ) ), \
+		vips_error( "vips_init", "ABI mismatch" ), \
 		-1 ) : \
 		vips__init( ARGV0 ))
 
