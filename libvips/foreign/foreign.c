@@ -690,10 +690,6 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 		printf( "vips_foreign_load_temp: partial sequential temp\n" );
 #endif /*DEBUG*/
 
-		/* You can't reuse sequential operations.
-		 */
-		load->nocache = TRUE;
-
 		return( vips_image_new() );
 	}
 
@@ -832,6 +828,13 @@ vips_foreign_load_build( VipsObject *object )
 	}
 
 	g_object_set( load, "flags", flags, NULL );
+
+	/* If the loader can do sequential mode and sequential has been
+	 * requested, we need to block caching.
+	 */
+	if( (load->flags & VIPS_FOREIGN_SEQUENTIAL) && 
+		load->access != VIPS_ACCESS_RANDOM ) 
+		load->nocache = TRUE;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_parent_class )->
 		build( object ) )

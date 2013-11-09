@@ -67,6 +67,7 @@ static gboolean delete_profile = FALSE;
  */
 static gboolean nosharpen = FALSE;
 static gboolean nodelete_profile = FALSE;
+static gboolean verbose = FALSE;
 
 static GOptionEntry options[] = {
 	{ "size", 's', 0, 
@@ -97,7 +98,7 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_NONE, &delete_profile, 
 		N_( "delete profile from exported image" ), NULL },
 	{ "verbose", 'v', G_OPTION_FLAG_HIDDEN, 
-		G_OPTION_ARG_NONE, NULL, 
+		G_OPTION_ARG_NONE, &verbose, 
 		N_( "(deprecated, does nothing)" ), NULL },
 	{ "nodelete", 'l', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_NONE, &nodelete_profile, 
@@ -410,7 +411,7 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 		vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
 		vips_info( "vipsthumbnail", 
 			"deleting profile from output image" );
-		if( vips_image_remove( in, VIPS_META_ICC_NAME ) ) 
+		if( !vips_image_remove( in, VIPS_META_ICC_NAME ) ) 
 			return( NULL );
 	}
 
