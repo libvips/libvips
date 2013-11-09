@@ -4,6 +4,7 @@
   elsewhere in vips
 - fix blocked caching of sequential load operations
 - fix cache flags
+- fix --delete option to vipsthumbnail
 
 10/10/13	started 7.36.2
 - better jpeg startup
