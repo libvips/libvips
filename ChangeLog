@@ -3,6 +3,7 @@
 - reverse similarity rotation direction to match the convention used 
   elsewhere in vips
 - fix blocked caching of sequential load operations
+- fix cache flags
 
 10/10/13	started 7.36.2
 - better jpeg startup

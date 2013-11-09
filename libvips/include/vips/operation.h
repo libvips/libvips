@@ -41,7 +41,7 @@ typedef enum /*< flags >*/ {
 	VIPS_OPERATION_NONE = 0,
 	VIPS_OPERATION_SEQUENTIAL = 1,
 	VIPS_OPERATION_SEQUENTIAL_UNBUFFERED = 2,
-	VIPS_OPERATION_NOCACHE = 3
+	VIPS_OPERATION_NOCACHE = 4
 } VipsOperationFlags;
 
 #define VIPS_TYPE_OPERATION (vips_operation_get_type())
