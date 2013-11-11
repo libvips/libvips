@@ -267,6 +267,65 @@ vips_extract_area( VipsImage *in, VipsImage **out,
 	return( result );
 }
 
+/* A synonym for extract_area.
+ */
+
+GType
+vips_crop_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		static const GTypeInfo info = {
+			sizeof( VipsExtractAreaClass ),
+			NULL,           /* base_init */
+			NULL,           /* base_finalize */
+			(GClassInitFunc) vips_extract_area_class_init,
+			NULL,           /* class_finalize */
+			NULL,           /* class_data */
+			sizeof( VipsExtractArea ),
+			32,             /* n_preallocs */
+			(GInstanceInitFunc) vips_extract_area_init,
+		};
+
+		type = g_type_register_static( VIPS_TYPE_CONVERSION, 
+			"crop", &info, 0 );
+	}
+
+	return( type );
+}
+
+/**
+ * vips_crop:
+ * @in: input image
+ * @out: output image
+ * @left: left edge of area to extract
+ * @top: top edge of area to extract
+ * @width: width of area to extract
+ * @height: height of area to extract
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * A synonym for vips_extract_area(). 
+ *
+ * See also: vips_extract_bands().
+ * 
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_crop( VipsImage *in, VipsImage **out, 
+	int left, int top, int width, int height, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, height );
+	result = vips_call_split( "crop", ap, in, out, 
+		left, top, width, height );
+	va_end( ap );
+
+	return( result );
+}
+
 typedef struct _VipsExtractBand {
 	VipsBandary parent_instance;
 

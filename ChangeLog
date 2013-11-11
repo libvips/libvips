@@ -15,6 +15,7 @@
   times
 - radiance load supports sequential read
 - rewritten radiance decode is much faster
+- add vips_crop(), a synonym for vips_extract_area()
 
 18/10/13	started 7.36.3
 - fix compiler warnings in ubuntu 13.10

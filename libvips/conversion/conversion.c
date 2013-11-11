@@ -206,6 +206,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_insert_get_type( void ); 
 	extern GType vips_join_get_type( void ); 
 	extern GType vips_extract_area_get_type( void ); 
+	extern GType vips_crop_get_type( void ); 
 	extern GType vips_extract_band_get_type( void ); 
 	extern GType vips_replicate_get_type( void ); 
 	extern GType vips_cast_get_type( void ); 
@@ -243,6 +244,7 @@ vips_conversion_operation_init( void )
 	vips_insert_get_type();
 	vips_join_get_type();
 	vips_extract_area_get_type();
+	vips_crop_get_type();
 	vips_extract_band_get_type();
 	vips_replicate_get_type();
 	vips_cast_get_type();

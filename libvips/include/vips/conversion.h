@@ -108,6 +108,9 @@ int vips_join( VipsImage *main, VipsImage *sub, VipsImage **out,
 int vips_extract_area( VipsImage *input, VipsImage **output, 
 	int left, int top, int width, int height, ... )
 	__attribute__((sentinel));
+int vips_crop( VipsImage *input, VipsImage **output, 
+	int left, int top, int width, int height, ... )
+	__attribute__((sentinel));
 int vips_extract_band( VipsImage *input, VipsImage **output, int band, ... )
 	__attribute__((sentinel));
 int vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
