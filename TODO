@@ -1,10 +1,3 @@
-- drag display control slider, broken
-
-  works if you use im_lintra() instead of im_lintrauc(), must be a problem
-  with im_wrapmany()
-
-  perhaps it's missing the new pipeline stuff?
-
 - add a --linear option to vipsthumbnail
 
   also something to delete metadata?
