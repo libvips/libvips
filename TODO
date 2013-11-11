@@ -1,16 +1,27 @@
+- drag display control slider, broken
+
+  works if you use im_lintra() instead of im_lintrauc(), must be a problem
+  with im_wrapmany()
+
+  perhaps it's missing the new pipeline stuff?
+
+- add a --linear option to vipsthumbnail
+
+  also something to delete metadata?
+
 - look again at gcc auto-vectorisation, what would we need to do to use this?
 
 - how about
 
-	top -d 0.1 | grep vips > log
+	top -d 0.01 | grep vips > log
 
-  to watch RES at 0.1s intervals?
+  to watch RES at 0.01s intervals?
+
+  note on memuse page
 
 - add "crop" as a synonym for "extract_area"
 
 - add vips_gamma(), see rad etc. 
-
-- drag display control slider, broken
 
 - do conv and morph quickly as simple wrappers over the vips7 operations
 
