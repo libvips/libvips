@@ -93,10 +93,10 @@ vips_gamma_build( VipsObject *object )
 		return( -1 );
 
 	scale = pow( vips_gamma_maxval[in->BandFmt], 
-			gamma->exponent ) / 
+			1.0 / gamma->exponent ) / 
 			vips_gamma_maxval[in->BandFmt];
 
-	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
+	if( in->BandFmt == VIPS_FORMAT_UCHAR ||
 		in->BandFmt == VIPS_FORMAT_USHORT ) {
 		if( vips_identity( &t[0], 
 				"ushort", in->BandFmt == VIPS_FORMAT_USHORT,

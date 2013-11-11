@@ -4,7 +4,7 @@ libconversion_la_SOURCES = \
 	conversion.c \
 	pconversion.h \
 	tilecache.c \
-	gammacorrect.c \
+	gamma.c \
 	sequential.c \
 	flatten.c \
 	cache.c \
