@@ -4150,8 +4150,8 @@ im_gammacorrect( IMAGE *in, IMAGE *out, double exponent )
 {
 	VipsImage *x;
 
-	if( vips_gammacorrect( in, &x, 
-		"exponent", exponent,
+	if( vips_gamma( in, &x, 
+		"exponent", 1.0 / exponent,
 		NULL ) )
 		return( -1 );
 

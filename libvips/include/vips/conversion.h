@@ -186,7 +186,7 @@ int vips_flatten( VipsImage *in, VipsImage **out, ... )
 
 int vips_falsecolour( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_gammacorrect( VipsImage *in, VipsImage **out, ... )
+int vips_gamma( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x, int *y );
