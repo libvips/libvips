@@ -68,6 +68,8 @@ GType vips_access_get_type (void) G_GNUC_CONST;
 /* enumerations from "../../../libvips/include/vips/colour.h" */
 GType vips_intent_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_INTENT (vips_intent_get_type())
+GType vips_pcs_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_PCS (vips_pcs_get_type())
 /* enumerations from "../../../libvips/include/vips/operation.h" */
 GType vips_operation_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_FLAGS (vips_operation_flags_get_type())

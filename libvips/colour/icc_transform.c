@@ -76,6 +76,7 @@
 #define cmsSigRgbData icSigRgbData 
 #define cmsSigLabData icSigLabData 
 #define cmsSigCmykData icSigCmykData 
+#define cmsSigXYZData icSigXYZData 
 #endif
 
 #include <vips/vips.h>
@@ -95,6 +96,28 @@ typedef DWORD cmsUInt32Number;
  */
 #define cmsFLAGS_NOCACHE (0)
 #endif
+
+/**
+ * VipsIntent:
+ * @VIPS_INTENT_PERCEPTUAL: perceptual rendering intent
+ * @VIPS_INTENT_RELATIVE: relative colorimetric rendering intent
+ * @VIPS_INTENT_SATURATION: saturation rendering intent
+ * @VIPS_INTENT_ABSOLUTE: absolute colorimetric rendering intent
+ *
+ * The rendering intent. #VIPS_INTENT_ABSOLUTE is best for
+ * scientific work, #VIPS_INTENT_RELATIVE is usually best for 
+ * accurate communication with other imaging libraries.
+ */
+
+/**
+ * VipsPCS:
+ * @VIPS_PCS_LAB: use CIELAB D65 as the Profile Connection Space
+ * @VIPS_PCS_XYZ: use XYZ as the Profile Connection Space
+ *
+ * Pick a Profile Connection Space for vips_icc_import() and
+ * vips_icc_export(). LAB is usually best, XYZ can be more convenient in some 
+ * cases. 
+ */
 
 /**
  * vips_icc_present:
@@ -129,6 +152,7 @@ typedef struct _VipsIcc {
 	VipsColourCode parent_instance;
 
 	VipsIntent intent;
+	VipsPCS pcs;
 	int depth;
 
 	cmsHPROFILE in_profile;
@@ -182,6 +206,15 @@ vips_icc_dispose( GObject *gobject )
 	G_OBJECT_CLASS( vips_icc_parent_class )->dispose( gobject );
 }
 
+/* Is a profile just a pcs stub.
+ */
+static gboolean
+is_pcs( cmsHPROFILE profile )
+{
+	return( cmsGetColorSpace( profile ) == cmsSigLabData ||
+		cmsGetColorSpace( profile ) == cmsSigXYZData ); 
+}
+
 static int
 vips_icc_build( VipsObject *object )
 {
@@ -223,7 +256,17 @@ vips_icc_build( VipsObject *object )
 		case cmsSigLabData:
 			code->input_bands = 3;
 			code->input_format = VIPS_FORMAT_FLOAT;
+			code->input_interpretation = 
+				VIPS_INTERPRETATION_LAB;
 			icc->in_icc_format = TYPE_Lab_16;
+			break;
+
+		case cmsSigXYZData:
+			code->input_bands = 3;
+			code->input_format = VIPS_FORMAT_FLOAT;
+			code->input_interpretation = 
+				VIPS_INTERPRETATION_XYZ;
+			icc->in_icc_format = TYPE_XYZ_16;
 			break;
 
 		default:
@@ -268,6 +311,13 @@ vips_icc_build( VipsObject *object )
 			icc->out_icc_format = TYPE_Lab_16;
 			break;
 
+		case cmsSigXYZData:
+			colour->interpretation = VIPS_INTERPRETATION_XYZ;
+			colour->format = VIPS_FORMAT_FLOAT;
+			colour->bands = 3;
+			icc->out_icc_format = TYPE_XYZ_16;
+			break;
+
 		default:
 			vips_error( class->nickname, 
 				_( "unimplemented output color space 0x%x" ), 
@@ -279,8 +329,8 @@ vips_icc_build( VipsObject *object )
 	 */
 	if( icc->in_profile &&
 		icc->out_profile &&
-		cmsGetColorSpace( icc->in_profile ) == cmsSigLabData &&
-		cmsGetColorSpace( icc->out_profile ) == cmsSigLabData ) {
+		is_pcs( icc->in_profile ) &&
+		is_pcs( icc->out_profile ) ) { 
 		vips_error( class->nickname,
 			"%s", _( "no device profile" ) ); 
 		return( -1 );
@@ -323,6 +373,13 @@ vips_icc_class_init( VipsIccClass *class )
 		G_STRUCT_OFFSET( VipsIcc, intent ),
 		VIPS_TYPE_INTENT, VIPS_INTENT_RELATIVE );
 
+	VIPS_ARG_ENUM( class, "pcs", 6, 
+		_( "PCS" ), 
+		_( "Set Profile Connection Space" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsIcc, pcs ),
+		VIPS_TYPE_PCS, VIPS_PCS_LAB );
+
 #ifdef HAVE_LCMS2
 	cmsSetLogErrorHandler( icc_error );
 #else
@@ -339,6 +396,7 @@ vips_icc_init( VipsIcc *icc )
 {
 	icc->lock = vips_g_mutex_new();
 	icc->intent = VIPS_INTENT_RELATIVE;
+	icc->pcs = VIPS_PCS_LAB;
 	icc->depth = 8;
 }
 
@@ -420,16 +478,18 @@ vips_icc_import_build( VipsObject *object )
 	vips_check_intent( class->nickname, 
 		icc->in_profile, icc->intent, LCMS_USED_AS_INPUT );
 
+	if( icc->pcs == VIPS_PCS_LAB ) { 
 #ifdef HAVE_LCMS2
-{
-	cmsCIExyY white;
-	cmsWhitePointFromTemp( &white, 6500 );
+		cmsCIExyY white;
+		cmsWhitePointFromTemp( &white, 6500 );
 
-	icc->out_profile = cmsCreateLab4Profile( &white );
-}
+		icc->out_profile = cmsCreateLab4Profile( &white );
 #else
-	icc->out_profile = cmsCreateLabProfile( NULL );
+		icc->out_profile = cmsCreateLabProfile( NULL );
 #endif
+	}
+	else 
+		icc->out_profile = cmsCreateXYZProfile();
 
 	if( VIPS_OBJECT_CLASS( vips_icc_import_parent_class )->build( object ) )
 		return( -1 );
@@ -448,6 +508,21 @@ decode_lab( guint16 *fixed, float *lab, int n )
                 lab[2] = ((double) fixed[2] / 256.0) - 128.0;
 
                 lab += 3;
+                fixed += 3;
+        }
+}
+
+static void 
+decode_xyz( guint16 *fixed, float *xyz, int n )
+{
+	int i;
+
+        for( i = 0; i < n; i++ ) {
+                xyz[0] = (double) fixed[0] / 652.800;
+                xyz[1] = (double) fixed[1] / 652.800;
+                xyz[2] = (double) fixed[2] / 652.800;
+
+                xyz += 3;
                 fixed += 3;
         }
 }
@@ -481,7 +556,10 @@ vips_icc_import_line( VipsColour *colour,
 		g_mutex_unlock( icc->lock );
 #endif
 
-		decode_lab( encoded, q, chunk );
+		if( icc->pcs == VIPS_PCS_LAB ) 
+			decode_lab( encoded, q, chunk );
+		else
+			decode_xyz( encoded, q, chunk );
 
 		p += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL( colour->in[0] );
 		q += PIXEL_BUFFER_SIZE * 3;
@@ -517,6 +595,7 @@ vips_icc_import_class_init( VipsIccImportClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsIccImport, input_profile_filename ),
 		NULL );
+
 }
 
 static void
@@ -544,16 +623,18 @@ vips_icc_export_build( VipsObject *object )
 	VipsIcc *icc = (VipsIcc *) object;
 	VipsIccExport *export = (VipsIccExport *) object;
 
+	if( icc->pcs == VIPS_PCS_LAB ) { 
 #ifdef HAVE_LCMS2
-{
-	cmsCIExyY white;
-	cmsWhitePointFromTemp( &white, 6500 );
+		cmsCIExyY white;
+		cmsWhitePointFromTemp( &white, 6500 );
 
-	icc->in_profile = cmsCreateLab4Profile( &white );
-}
+		icc->in_profile = cmsCreateLab4Profile( &white );
 #else
-	icc->in_profile = cmsCreateLabProfile( NULL );
+		icc->in_profile = cmsCreateLabProfile( NULL );
 #endif
+	}
+	else 
+		icc->in_profile = cmsCreateXYZProfile();
 
 	if( code->in &&
 		!export->output_profile_filename &&
@@ -631,6 +712,44 @@ encode_lab( float *lab, guint16 *fixed, int n )
 	}
 }
 
+#define MAX_ENCODEABLE_XYZ  (100 * (1.0 + 32767.0 / 32768.0))
+
+// 1.15 fixed point for XYZ
+
+static void 
+encode_xyz( float *xyz, guint16 *fixed, int n )
+{
+	int i;
+
+	for( i = 0; i < n; i++ ) {
+		float X = xyz[0];
+		float Y = xyz[1];
+		float Z = xyz[2];
+
+		if( X < 0 ) 
+			X = 0;
+		if( X > MAX_ENCODEABLE_XYZ ) 
+			X = MAX_ENCODEABLE_XYZ;
+
+		if( Y < 0 ) 
+			Y = 0;
+		if( Y > MAX_ENCODEABLE_XYZ ) 
+			Y = MAX_ENCODEABLE_XYZ;
+
+		if( Z < 0 ) 
+			Z = 0;
+		if( Z > MAX_ENCODEABLE_XYZ ) 
+			Z = MAX_ENCODEABLE_XYZ;
+
+		fixed[0] = X * 652.800 + 0.5;
+		fixed[1] = Y * 652.800 + 0.5;
+		fixed[2] = Z * 652.800 + 0.5;
+
+		xyz += 3;
+		fixed += 3;
+	}
+}
+
 /* Process a buffer of data.
  */
 static void
@@ -652,7 +771,10 @@ vips_icc_export_line( VipsColour *colour,
 	for( x = 0; x < width; x += PIXEL_BUFFER_SIZE ) {
 		const int chunk = VIPS_MIN( width - x, PIXEL_BUFFER_SIZE );
 
-		encode_lab( p, encoded, chunk );
+		if( icc->pcs == VIPS_PCS_LAB )
+			encode_lab( p, encoded, chunk );
+		else
+			encode_xyz( p, encoded, chunk );
 
 #ifdef HAVE_LCMS2
 		cmsDoTransform( icc->trans, encoded, q, chunk );
@@ -982,8 +1104,10 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
  * @input_profile: get the input profile from here
  * @intent: transform with this intent
  * @embedded: use profile embedded in input image
+ * @pcs: use XYZ or LAB PCS
  *
- * Import an image from device space to D65 LAB with an ICC profile. 
+ * Import an image from device space to D65 LAB with an ICC profile. If @pcs is
+ * set to #VIPS_PCS_XYZ, use CIE XYZ PCS instead. 
  *
  * If @embedded is set, the input profile is taken from the input image
  * metadata. If there is no embedded profile,
@@ -1018,8 +1142,11 @@ vips_icc_import( VipsImage *in, VipsImage **out, ... )
  * @intent: transform with this intent
  * @depth: depth of output image in bits
  * @output_profile: get the output profile from here
+ * @pcs: use XYZ or LAB PCS
  *
  * Export an image from D65 LAB to device space with an ICC profile. 
+ * If @pcs is
+ * set to #VIPS_PCS_XYZ, use CIE XYZ PCS instead. 
  * If @output_profile is not set, use the embedded profile, if any. 
  * If @output_profile is set, export with that and attach it to the output 
  * image. 

@@ -150,6 +150,7 @@ typedef struct _VipsColourCode {
 	VipsCoding input_coding;
 	VipsBandFormat input_format;
 	int input_bands;
+	VipsInterpretation input_interpretation;
 
 } VipsColourCode;
 

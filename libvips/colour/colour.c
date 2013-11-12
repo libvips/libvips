@@ -486,7 +486,7 @@ vips_colour_code_build( VipsObject *object )
 	VipsImage *in;
 	VipsImage *extra;
 
-	t = (VipsImage **) vips_object_local_array( object, 4 );
+	t = (VipsImage **) vips_object_local_array( object, 5 );
 
 	in = code->in;
 	extra = NULL;
@@ -536,6 +536,15 @@ vips_colour_code_build( VipsObject *object )
 		if( vips_cast( in, &t[3], code->input_format, NULL ) )
 			return( -1 );
 		in = t[3];
+	}
+
+	if( in &&
+		code->input_coding == VIPS_CODING_NONE &&
+		code->input_interpretation != VIPS_INTERPRETATION_ERROR ) {
+		if( vips_colourspace( in, &t[4], 
+			code->input_interpretation, NULL ) )
+			return( -1 );
+		in = t[4];
 	}
 
 	colour->n = 1;
@@ -588,6 +597,7 @@ vips_colour_code_class_init( VipsColourCodeClass *class )
 static void
 vips_colour_code_init( VipsColourCode *code )
 {
+	code->input_interpretation = VIPS_INTERPRETATION_ERROR;
 }
 
 G_DEFINE_ABSTRACT_TYPE( VipsColourDifference, vips_colour_difference, 

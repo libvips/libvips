@@ -93,23 +93,18 @@ extern "C" {
 #define VIPS_D3250_Y0 (100.0)
 #define VIPS_D3250_Z0 (45.8501)
 
-/**
- * VipsIntent:
- * @VIPS_INTENT_PERCEPTUAL: perceptual rendering intent
- * @VIPS_INTENT_RELATIVE: relative colorimetric rendering intent
- * @VIPS_INTENT_SATURATION: saturation rendering intent
- * @VIPS_INTENT_ABSOLUTE: absolute colorimetric rendering intent
- *
- * The rendering intent. #VIPS_INTENT_ABSOLUTE is best for
- * scientific work, #VIPS_INTENT_RELATIVE is usually best for 
- * accurate communication with other imaging libraries.
- */
 typedef enum {
 	VIPS_INTENT_PERCEPTUAL = 0,
 	VIPS_INTENT_RELATIVE,
 	VIPS_INTENT_SATURATION,
 	VIPS_INTENT_ABSOLUTE
 } VipsIntent;
+
+typedef enum {
+	VIPS_PCS_LAB,
+	VIPS_PCS_XYZ,
+	VIPS_PCS_LAST
+} VipsPCS;
 
 gboolean vips_colourspace_issupported( const VipsImage *image );
 int vips_colourspace( VipsImage *in, VipsImage **out, 

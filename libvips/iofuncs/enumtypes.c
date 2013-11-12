@@ -594,6 +594,24 @@ vips_intent_get_type( void )
 
 	return( etype );
 }
+GType
+vips_pcs_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_PCS_LAB, "VIPS_PCS_LAB", "lab"},
+			{VIPS_PCS_XYZ, "VIPS_PCS_XYZ", "xyz"},
+			{VIPS_PCS_LAST, "VIPS_PCS_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsPCS", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/operation.h" */
 GType
 vips_operation_flags_get_type( void )
