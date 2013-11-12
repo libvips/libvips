@@ -58,6 +58,8 @@
  * 	- attach IPCT data (app13), thanks Gary
  * 2/10/13 Lovell Fuller
  * 	- add optimize_coding parameter
+ * 12/11/13
+ * 	- add "strip" option to remove all metadata
  */
 
 /*
@@ -841,7 +843,7 @@ write_jpeg_block( REGION *region, Rect *area, void *a )
  */
 static int
 write_vips( Write *write, int qfac, const char *profile, 
-	gboolean optimize_coding, gboolean progressive )
+	gboolean optimize_coding, gboolean progressive, gboolean strip )
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -909,22 +911,26 @@ write_vips( Write *write, int qfac, const char *profile,
 
 	/* Write any APP markers we need.
 	 */
-	if( write_exif( write ) ||
-		write_blob( write, VIPS_META_XMP_NAME, JPEG_APP0 + 1 ) ||
-		write_blob( write, VIPS_META_IPCT_NAME, JPEG_APP0 + 13 ) )
-		return( -1 );
+	if( !strip ) { 
+		if( write_exif( write ) ||
+			write_blob( write, 
+				VIPS_META_XMP_NAME, JPEG_APP0 + 1 ) ||
+			write_blob( write, 
+				VIPS_META_IPCT_NAME, JPEG_APP0 + 13 ) )
+			return( -1 );
 
-	/* A profile supplied as an argument overrides an embedded profile.
-	 * "none" means don't attach a profile.
-	 */
-	if( profile && 
-		strcmp( profile, "none" ) != 0 &&
-		write_profile_file( write, profile ) )
-		return( -1 );
-	if( !profile && 
-		vips_image_get_typeof( in, VIPS_META_ICC_NAME ) && 
-		write_profile_meta( write ) )
-		return( -1 );
+		/* A profile supplied as an argument overrides an embedded 
+		 * profile. "none" means don't attach a profile.
+		 */
+		if( profile && 
+			strcmp( profile, "none" ) != 0 &&
+			write_profile_file( write, profile ) )
+			return( -1 );
+		if( !profile && 
+			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) && 
+			write_profile_meta( write ) )
+			return( -1 );
+	}
 
 	/* Write data. Note that the write function grabs the longjmp()!
 	 */
@@ -946,7 +952,7 @@ write_vips( Write *write, int qfac, const char *profile,
 int
 vips__jpeg_write_file( VipsImage *in, 
 	const char *filename, int Q, const char *profile, 
-	gboolean optimize_coding, gboolean progressive )
+	gboolean optimize_coding, gboolean progressive, gboolean strip )
 {
 	Write *write;
 
@@ -976,7 +982,8 @@ vips__jpeg_write_file( VipsImage *in,
 
 	/* Convert!
 	 */
-	if( write_vips( write, Q, profile, optimize_coding, progressive ) ) {
+	if( write_vips( write, 
+		Q, profile, optimize_coding, progressive, strip ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
@@ -1223,7 +1230,8 @@ buf_dest( j_compress_ptr cinfo, void **obuf, size_t *olen )
 int
 vips__jpeg_write_buffer( VipsImage *in, 
 	void **obuf, size_t *olen, int Q, const char *profile, 
-	gboolean optimize_coding, gboolean progressive )
+	gboolean optimize_coding, gboolean progressive,
+	gboolean strip )
 {
 	Write *write;
 
@@ -1252,7 +1260,8 @@ vips__jpeg_write_buffer( VipsImage *in,
 
 	/* Convert!
 	 */
-	if( write_vips( write, Q, profile, optimize_coding, progressive ) ) {
+	if( write_vips( write, 
+		Q, profile, optimize_coding, progressive, strip ) ) {
 		write_destroy( write );
 
 		return( -1 );

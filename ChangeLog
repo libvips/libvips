@@ -20,6 +20,7 @@
 - vips_gamma() works for any format
 - add --linear mode to vipsthumbnail
 - support XYZ as a PCS for vips_icc_import() and vips_icc_export()
+- add --strip option to jpegsave
 
 18/10/13	started 7.36.3
 - fix compiler warnings in ubuntu 13.10

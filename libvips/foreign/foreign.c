@@ -1994,6 +1994,7 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  * @profile: attach this ICC profile
  * @optimize_coding: compute optimal Huffman coding tables
  * @interlace: write an interlaced (progressive) jpeg
+ * @strip: remove all metadata from image
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -2025,6 +2026,9 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  * in jpg parlance). These files may be better for display over a slow network
  * conection, but need much more memory to encode and decode. 
  *
+ * If @strip is set, no EXIF data, IPCT data, ICC profile or XMP metadata is 
+ * written into the output file. 
+ *
  * See also: vips_jpegsave_buffer(), vips_image_write_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -2055,6 +2059,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * @profile: attach this ICC profile
  * @optimize_coding: compute optimal Huffman coding tables
  * @interlace: write an interlaced (progressive) jpeg
+ * @strip: remove all metadata from image
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
@@ -2104,6 +2109,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * @Q: JPEG quality factor
  * @profile: attach this ICC profile
  * @optimize_coding: compute optimal Huffman coding tables
+ * @strip: remove all metadata from image
  *
  * As vips_jpegsave(), but save as a mime jpeg on stdout.
  *
