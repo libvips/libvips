@@ -12,6 +12,12 @@
 
 - jpegsave needs a --strip option
 
+- jpegsave needs chroma subsampling controls, see:
+
+	http://www.dpreview.com/forums/post/52488292
+
+  jpegsave only has 2x2, this person wants 2x1 for better quality
+
 - look again at gcc auto-vectorisation, what would we need to do to use this?
 
 - how about
