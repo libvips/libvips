@@ -303,7 +303,7 @@ thumbnail_open( VipsObject *thumbnail, const char *filename )
 
 static VipsImage *
 thumbnail_shrink( VipsObject *thumbnail, VipsImage *in, 
-	VipsInterpolate *interp, INTMASK *sharpen )
+	VipsInterpolate *interp, VipsImage *sharpen )
 {
 	VipsImage **t = (VipsImage **) vips_object_local_array( thumbnail, 10 );
 	VipsInterpretation interpretation = linear_processing ?
@@ -317,7 +317,7 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 
 	/* RAD needs special unpacking.
 	 */
-	if( in->Coding == IM_CODING_RAD ) {
+	if( in->Coding == VIPS_CODING_RAD ) {
 		vips_info( "vipsthumbnail", "unpacking Rad to float" );
 
 		/* rad is scrgb.
@@ -463,8 +463,7 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 		residual <= 1.0 && 
 		sharpen ) { 
 		vips_info( "vipsthumbnail", "sharpening thumbnail" );
-		t[8] = vips_image_new();
-		if( im_conv( in, t[8], sharpen ) ) 
+		if( vips_conv( in, &t[8], sharpen, NULL ) ) 
 			return( NULL );
 		in = t[8];
 	}
@@ -504,23 +503,24 @@ thumbnail_interpolator( VipsObject *thumbnail, VipsImage *in )
 /* Some interpolators look a little soft, so we have an optional sharpening
  * stage.
  */
-static INTMASK *
+static VipsImage *
 thumbnail_sharpen( void )
 {
-	static INTMASK *mask = NULL;
+	static VipsImage *mask = NULL;
 
 	if( !mask )  {
 		if( strcmp( convolution_mask, "none" ) == 0 ) 
 			mask = NULL; 
 		else if( strcmp( convolution_mask, "mild" ) == 0 ) {
-			mask = im_create_imaskv( "sharpen.con", 3, 3,
-				-1, -1, -1,
-				-1, 32, -1,
-				-1, -1, -1 );
-			mask->scale = 24;
+			mask = vips_image_new_matrixv( 3, 3,
+				-1.0, -1.0, -1.0,
+				-1.0, 32.0, -1.0,
+				-1.0, -1.0, -1.0 );
+			vips_image_set_double( mask, "scale", 24 );
 		}
 		else
-			if( !(mask = im_read_imask( convolution_mask )) )
+			if( !(mask = 
+				vips_image_new_from_file( convolution_mask )) )
 				vips_error_exit( "unable to load sharpen" );
 	}
 
@@ -578,7 +578,7 @@ thumbnail_process( VipsObject *thumbnail, const char *filename )
 {
 	VipsImage *in;
 	VipsInterpolate *interp;
-	INTMASK *sharpen;
+	VipsImage *sharpen;
 	VipsImage *thumb;
 
 	if( !(in = thumbnail_open( thumbnail, filename )) )
