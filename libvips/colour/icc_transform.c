@@ -24,6 +24,8 @@
  * 	- redo as a class
  * 14/5/13
  * 	- import and export would segv on very wide images
+ * 12/11/13
+ * 	- support XYZ as an alternative PCS
  */
 
 /*
@@ -512,15 +514,19 @@ decode_lab( guint16 *fixed, float *lab, int n )
         }
 }
 
+#define X_FAC (VIPS_D50_X0 * 32768 / (VIPS_D65_X0 * 100))
+#define Y_FAC (VIPS_D50_Y0 * 32768 / (VIPS_D65_Y0 * 100))
+#define Z_FAC (VIPS_D50_Z0 * 32768 / (VIPS_D65_Z0 * 100))
+
 static void 
 decode_xyz( guint16 *fixed, float *xyz, int n )
 {
 	int i;
 
         for( i = 0; i < n; i++ ) {
-                xyz[0] = (double) fixed[0] / 652.800;
-                xyz[1] = (double) fixed[1] / 652.800;
-                xyz[2] = (double) fixed[2] / 652.800;
+                xyz[0] = (double) fixed[0] / X_FAC;
+                xyz[1] = (double) fixed[1] / Y_FAC;
+                xyz[2] = (double) fixed[2] / Z_FAC;
 
                 xyz += 3;
                 fixed += 3;
@@ -622,6 +628,14 @@ vips_icc_export_build( VipsObject *object )
 	VipsColourCode *code = (VipsColourCode *) object;
 	VipsIcc *icc = (VipsIcc *) object;
 	VipsIccExport *export = (VipsIccExport *) object;
+
+	/* If icc->pcs hasn't been set and this image is tagged as XYZ, swap
+	 * to XYZ pcs. This will save a XYZ->LAB conversion when we chain up.
+	 */
+	if( !vips_object_argument_isset( object, "pcs" ) &&
+		code->in &&
+		code->in->Type == VIPS_INTERPRETATION_XYZ )  
+		icc->pcs = VIPS_INTERPRETATION_XYZ; 
 
 	if( icc->pcs == VIPS_PCS_LAB ) { 
 #ifdef HAVE_LCMS2
@@ -741,9 +755,9 @@ encode_xyz( float *xyz, guint16 *fixed, int n )
 		if( Z > MAX_ENCODEABLE_XYZ ) 
 			Z = MAX_ENCODEABLE_XYZ;
 
-		fixed[0] = X * 652.800 + 0.5;
-		fixed[1] = Y * 652.800 + 0.5;
-		fixed[2] = Z * 652.800 + 0.5;
+		fixed[0] = X * X_FAC + 0.5;
+		fixed[1] = Y * Y_FAC + 0.5;
+		fixed[2] = Z * Z_FAC + 0.5;
 
 		xyz += 3;
 		fixed += 3;

@@ -349,6 +349,7 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 		if( vips_icc_import( in, &t[1], 
 			"input_profile", import_profile,
 			"embedded", TRUE,
+			"pcs", VIPS_PCS_XYZ,
 			NULL ) )  
 			return( NULL );
 
@@ -419,10 +420,8 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
 			vips_info( "vipsthumbnail", 
 				"exporting to device space with a profile" );
-			if( vips_colourspace( in, &t[6], 
-				VIPS_INTERPRETATION_LAB, NULL ) ||
-				vips_icc_export( t[6], &t[7], 
-					"output_profile", export_profile,
+			if( vips_icc_export( in, &t[7], 
+				"output_profile", export_profile,
 				NULL ) )  
 				return( NULL );
 			in = t[7];

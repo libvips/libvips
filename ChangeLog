@@ -19,6 +19,7 @@
 - rename vips_gammacorrect() as vips_gamma(), now takes 1 / exp
 - vips_gamma() works for any format
 - add --linear mode to vipsthumbnail
+- support XYZ as a PCS for vips_icc_import() and vips_icc_export()
 
 18/10/13	started 7.36.3
 - fix compiler warnings in ubuntu 13.10
