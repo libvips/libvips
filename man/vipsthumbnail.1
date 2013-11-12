@@ -98,6 +98,12 @@ should be supplied with the
 option.
 
 .TP
+.B -a, --linear
+Process in linear space. The input image is transformed to CIE XYZ on load,
+shrunk, and then converted back to device space for write. This can increase
+quality at the cost of processing time. 
+
+.TP
 .B -d, --delete
 Delete the output profile from the image. This can save a small amount of
 space. 

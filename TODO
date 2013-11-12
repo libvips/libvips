@@ -1,6 +1,16 @@
-- add a --linear option to vipsthumbnail
+- vipsthumbnail could shrink-on-load openslide and pyr tiff as well?
 
-  also something to delete metadata?
+- vipsthumbnail can use vips_conv() now and get rid of the INTMASK
+
+- vips_icc_import() could offer XYZ as well as LAB? it'd save two conversions
+  in vipsthumbnail
+
+  vips_icc_export() would need to be able to accept both types as well
+
+  at the moment, icc_export() assumes LAB, it needs a vips_colourspace() on
+  the input to do an automatic transform for you see vips_dE00() etc. 
+
+- jpegsave needs a --strip option
 
 - look again at gcc auto-vectorisation, what would we need to do to use this?
 

@@ -38,6 +38,8 @@
  * 10/7/13
  * 	- rewrite for vips8
  * 	- handle embedded jpeg thumbnails
+ * 12/11/13
+ * 	- add --linear option
  */
 
 #ifdef HAVE_CONFIG_H
@@ -62,6 +64,7 @@ static char *export_profile = NULL;
 static char *import_profile = NULL;
 static char *convolution_mask = "mild";
 static gboolean delete_profile = FALSE;
+static gboolean linear_processing = FALSE;
 
 /* Deprecated and unused.
  */
@@ -94,6 +97,9 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_STRING, &import_profile, 
 		N_( "import untagged images with PROFILE" ), 
 		N_( "PROFILE" ) },
+	{ "linear", 'a', 0, 
+		G_OPTION_ARG_NONE, &linear_processing, 
+		N_( "process in linear space" ), NULL },
 	{ "delete", 'd', 0, 
 		G_OPTION_ARG_NONE, &delete_profile, 
 		N_( "delete profile from exported image" ), NULL },
@@ -154,7 +160,13 @@ thumbnail_find_jpegshrink( VipsImage *im )
 {
 	int shrink = calculate_shrink( im->Xsize, im->Ysize, NULL );
 
-	if( shrink >= 8 )
+	/* We can't use pre-shrunk images in linear mode. libjpeg shrinks in Y
+	 * (of YCbCR), not linear space.
+	 */
+
+	if( linear_processing )
+		return( 1 ); 
+	else if( shrink >= 8 )
 		return( 8 );
 	else if( shrink >= 4 )
 		return( 4 );
@@ -226,6 +238,9 @@ thumbnail_open( VipsObject *thumbnail, const char *filename )
 
 	vips_info( "vipsthumbnail", "thumbnailing %s", filename );
 
+	if( linear_processing )
+		vips_info( "vipsthumbnail", "linear mode" ); 
+
 	if( !(loader = vips_foreign_find_load( filename )) )
 		return( NULL );
 
@@ -291,6 +306,8 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 	VipsInterpolate *interp, INTMASK *sharpen )
 {
 	VipsImage **t = (VipsImage **) vips_object_local_array( thumbnail, 10 );
+	VipsInterpretation interpretation = linear_processing ?
+		VIPS_INTERPRETATION_XYZ : VIPS_INTERPRETATION_sRGB; 
 
 	int shrink; 
 	double residual; 
@@ -298,29 +315,53 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 	int tile_height;
 	int nlines;
 
-	/* Unpack the two coded formats we support.
+	/* RAD needs special unpacking.
 	 */
-	if( in->Coding == VIPS_CODING_LABQ ) {
-		vips_info( "vipsthumbnail", "unpacking LAB to RGB" );
-
-		if( vips_colourspace( in, &t[0], 
-			VIPS_INTERPRETATION_sRGB, NULL ) ) 
-			return( NULL ); 
-
-		in = t[0];
-	}
-	else if( in->Coding == IM_CODING_RAD ) {
+	if( in->Coding == IM_CODING_RAD ) {
 		vips_info( "vipsthumbnail", "unpacking Rad to float" );
 
 		/* rad is scrgb.
 		 */
-		if( vips_rad2float( in, &t[1], NULL ) ||
-			vips_colourspace( t[1], &t[2], 
-				VIPS_INTERPRETATION_sRGB, NULL ) ) 
+		if( vips_rad2float( in, &t[0], NULL ) )
+			return( NULL );
+		in = t[0];
+	}
+
+	/* In linear mode, we import right at the start. 
+	 *
+	 * This is only going to work for images in device space. If you have
+	 * an image in PCS which also has an attached profile, strange things
+	 * will happen. 
+	 */
+	if( linear_processing &&
+		in->Coding == VIPS_CODING_NONE &&
+		(in->BandFmt == VIPS_FORMAT_UCHAR ||
+		 in->BandFmt == VIPS_FORMAT_USHORT) &&
+		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
+		 import_profile) ) {
+		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) )
+			vips_info( "vipsthumbnail", 
+				"importing with embedded profile" );
+		else
+			vips_info( "vipsthumbnail", 
+				"importing with profile %s", import_profile );
+
+		if( vips_icc_import( in, &t[1], 
+			"input_profile", import_profile,
+			"embedded", TRUE,
+			NULL ) )  
 			return( NULL );
 
-		in = t[2];
+		in = t[1];
 	}
+
+	/* To the processing colourspace. This will unpack LABQ as well.
+	 */
+	vips_info( "vipsthumbnail", "converting to processing space %s",
+		vips_enum_nick( VIPS_TYPE_INTERPRETATION, interpretation ) ); 
+	if( vips_colourspace( in, &t[2], interpretation, NULL ) ) 
+		return( NULL ); 
+	in = t[2];
 
 	shrink = calculate_shrink( in->Xsize, in->Ysize, &residual );
 
@@ -368,24 +409,33 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 	vips_info( "vipsthumbnail", "%s interpolation", 
 		VIPS_OBJECT_GET_CLASS( interp )->nickname );
 
-	/* If we are upsampling, don't sharpen, since nearest looks dumb
-	 * sharpened.
+	/* Colour management.
+	 *
+	 * In linear mode, just export. In device space mode, do a combined
+	 * import/export to transform to the target space.
 	 */
-	if( shrink >= 1 && 
-		residual <= 1.0 && 
-		sharpen ) { 
-		vips_info( "vipsthumbnail", "sharpening thumbnail" );
-		t[6] = vips_image_new();
-		if( im_conv( in, t[6], sharpen ) ) 
-			return( NULL );
-		in = t[6];
+	if( linear_processing ) {
+		if( export_profile ||
+			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+			vips_info( "vipsthumbnail", 
+				"exporting to device space with a profile" );
+			if( vips_colourspace( in, &t[6], 
+				VIPS_INTERPRETATION_LAB, NULL ) ||
+				vips_icc_export( t[6], &t[7], 
+					"output_profile", export_profile,
+				NULL ) )  
+				return( NULL );
+			in = t[7];
+		}
+		else {
+			vips_info( "vipsthumbnail", "converting to sRGB" );
+			if( vips_colourspace( in, &t[6], 
+				VIPS_INTERPRETATION_sRGB, NULL ) ) 
+				return( NULL ); 
+			in = t[6];
+		}
 	}
-
-	/* Colour management: we can transform the image if we have an output
-	 * profile and an input profile. The input profile can be in the
-	 * image, or if there is no profile there, supplied by the user.
-	 */
-	if( export_profile &&
+	else if( export_profile &&
 		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
 		 import_profile) ) {
 		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) )
@@ -398,13 +448,26 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 		vips_info( "vipsthumbnail", 
 			"exporting with profile %s", export_profile );
 
-		if( vips_icc_transform( in, &t[7], export_profile,
+		if( vips_icc_transform( in, &t[6], export_profile,
 			"input_profile", import_profile,
 			"embedded", TRUE,
 			NULL ) )  
 			return( NULL );
 
-		in = t[7];
+		in = t[6];
+	}
+
+	/* If we are upsampling, don't sharpen, since nearest looks dumb
+	 * sharpened.
+	 */
+	if( shrink >= 1 && 
+		residual <= 1.0 && 
+		sharpen ) { 
+		vips_info( "vipsthumbnail", "sharpening thumbnail" );
+		t[8] = vips_image_new();
+		if( im_conv( in, t[8], sharpen ) ) 
+			return( NULL );
+		in = t[8];
 	}
 
 	if( delete_profile &&
