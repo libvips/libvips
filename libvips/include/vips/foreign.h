@@ -246,6 +246,10 @@ typedef enum {
 typedef struct _VipsForeignSave {
 	VipsForeign parent_object;
 
+	/* Dont't attach metadata.
+	 */
+	gboolean strip;
+
 	/*< public >*/
 
 	/* The image we are to save, as supplied by our caller. 

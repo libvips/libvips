@@ -1,3 +1,5 @@
+- support --strip for other writers
+
 - vipstumbnail is broken for the gamma trick png on eric brasseur's page
 
 - vipsthumbnail could shrink-on-load openslide and pyr tiff as well?

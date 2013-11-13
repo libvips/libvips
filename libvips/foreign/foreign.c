@@ -1410,6 +1410,13 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 		_( "Image to save" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSave, in ) );
+
+	VIPS_ARG_BOOL( class, "strip", 100,
+		_( "Strip" ),
+		_( "Strip all metadata from image" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSave, strip ),
+		FALSE );
 }
 
 static void

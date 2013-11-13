@@ -231,7 +231,7 @@ thumbnail_get_thumbnail( VipsImage *im )
  * VIPS to load a lower resolution version.
  */
 static VipsImage *
-thumbnail_open( VipsObject *thumbnail, const char *filename )
+thumbnail_open( VipsObject *process, const char *filename )
 {
 	const char *loader;
 	VipsImage *im;
@@ -296,7 +296,7 @@ thumbnail_open( VipsObject *thumbnail, const char *filename )
 			return( NULL );
 	}
 
-	vips_object_local( thumbnail, im );
+	vips_object_local( process, im );
 
 	return( im ); 
 }
@@ -480,7 +480,7 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 }
 
 static VipsInterpolate *
-thumbnail_interpolator( VipsObject *thumbnail, VipsImage *in )
+thumbnail_interpolator( VipsObject *process, VipsImage *in )
 {
 	double residual;
 	VipsInterpolate *interp;
@@ -495,7 +495,7 @@ thumbnail_interpolator( VipsObject *thumbnail, VipsImage *in )
 		residual > 1.0 ? "nearest" : interpolator ) )) )
 		return( NULL );
 
-	vips_object_local( thumbnail, interp );
+	vips_object_local( process, interp );
 
 	return( interp );
 }
@@ -504,25 +504,26 @@ thumbnail_interpolator( VipsObject *thumbnail, VipsImage *in )
  * stage.
  */
 static VipsImage *
-thumbnail_sharpen( void )
+thumbnail_sharpen( VipsObject *process )
 {
-	static VipsImage *mask = NULL;
+	VipsImage *mask;
 
-	if( !mask )  {
-		if( strcmp( convolution_mask, "none" ) == 0 ) 
-			mask = NULL; 
-		else if( strcmp( convolution_mask, "mild" ) == 0 ) {
-			mask = vips_image_new_matrixv( 3, 3,
-				-1.0, -1.0, -1.0,
-				-1.0, 32.0, -1.0,
-				-1.0, -1.0, -1.0 );
-			vips_image_set_double( mask, "scale", 24 );
-		}
-		else
-			if( !(mask = 
-				vips_image_new_from_file( convolution_mask )) )
-				vips_error_exit( "unable to load sharpen" );
+	if( strcmp( convolution_mask, "none" ) == 0 ) 
+		mask = NULL; 
+	else if( strcmp( convolution_mask, "mild" ) == 0 ) {
+		mask = vips_image_new_matrixv( 3, 3,
+			-1.0, -1.0, -1.0,
+			-1.0, 32.0, -1.0,
+			-1.0, -1.0, -1.0 );
+		vips_image_set_double( mask, "scale", 24 );
 	}
+	else
+		if( !(mask = 
+			vips_image_new_from_file( convolution_mask )) )
+			vips_error_exit( "unable to load sharpen mask" ); 
+
+	if( mask )
+		vips_object_local( process, mask );
 
 	return( mask );
 }
@@ -574,21 +575,19 @@ thumbnail_write( VipsImage *im, const char *filename )
 }
 
 static int
-thumbnail_process( VipsObject *thumbnail, const char *filename )
+thumbnail_process( VipsObject *process, const char *filename )
 {
 	VipsImage *in;
 	VipsInterpolate *interp;
 	VipsImage *sharpen;
-	VipsImage *thumb;
+	VipsImage *thumbnail;
 
-	if( !(in = thumbnail_open( thumbnail, filename )) )
-		return( -1 );
-	if( !(interp = thumbnail_interpolator( thumbnail, in )) )
-		return( -1 );
-	sharpen = thumbnail_sharpen();
-	if( !(thumb = thumbnail_shrink( thumbnail, in, interp, sharpen )) )
-		return( -1 );
-	if( thumbnail_write( thumb, filename ) )
+	if( !(in = thumbnail_open( process, filename )) ||
+		!(interp = thumbnail_interpolator( process, in )) ||
+		!(sharpen = thumbnail_sharpen( process )) ||
+		!(thumbnail = 
+			thumbnail_shrink( process, in, interp, sharpen )) ||
+		thumbnail_write( thumbnail, filename ) )
 		return( -1 );
 
 	return( 0 );
@@ -634,16 +633,16 @@ main( int argc, char **argv )
 	for( i = 1; i < argc; i++ ) {
 		/* Hang resources for this processing off this.
 		 */
-		VipsObject *thumbnail = VIPS_OBJECT( vips_image_new() ); 
+		VipsObject *process = VIPS_OBJECT( vips_image_new() ); 
 
-		if( thumbnail_process( thumbnail, argv[i] ) ) {
+		if( thumbnail_process( process, argv[i] ) ) {
 			fprintf( stderr, "%s: unable to thumbnail %s\n", 
 				argv[0], argv[i] );
 			fprintf( stderr, "%s", vips_error_buffer() );
 			vips_error_clear();
 		}
 
-		g_object_unref( thumbnail );
+		g_object_unref( process );
 	}
 
 	vips_shutdown();

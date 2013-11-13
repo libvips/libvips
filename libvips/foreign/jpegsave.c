@@ -87,10 +87,6 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	gboolean interlace;
 
-	/* Remove all metadata from the image. 
-	 */
-	gboolean strip;
-
 } VipsForeignSaveJpeg;
 
 typedef VipsForeignSaveClass VipsForeignSaveJpegClass;
@@ -151,12 +147,6 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, interlace ),
 		FALSE );
 
-	VIPS_ARG_BOOL( class, "strip", 14,
-		_( "Strip" ),
-		_( "Strip all metadata from image" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveJpeg, strip ),
-		FALSE );
 }
 
 static void
@@ -192,7 +182,7 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 
 	if( vips__jpeg_write_file( save->ready, file->filename,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, jpeg->strip ) )
+		jpeg->interlace, save->strip ) )
 		return( -1 );
 
 	return( 0 );
@@ -258,7 +248,7 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 
 	if( vips__jpeg_write_buffer( save->ready, 
 		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, jpeg->strip ) )
+		jpeg->interlace, save->strip ) )
 		return( -1 );
 
 	area = vips_area_new_blob( (VipsCallbackFn) vips_free, obuf, olen );
@@ -320,7 +310,7 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 
 	if( vips__jpeg_write_buffer( save->ready, 
 		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, jpeg->strip ) )
+		jpeg->interlace, save->strip ) )
 		return( -1 );
 
 	printf( "Content-length: %zd\r\n", olen );
