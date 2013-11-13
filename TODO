@@ -1,27 +1,5 @@
-- large alpha PNGs seem to need huge amounts of ram to process
-
-john@bambam ~/pics $ vipsthumbnail wtc.png
-memory: high-water mark 31.37 MB
-john@bambam ~/pics $ vipsthumbnail wtc.png --linear
-memory: high-water mark 47.83 MB
-
-john@bambam ~/pics $ vipsthumbnail wtc_alpha.png 
-memory: high-water mark 41.85 MB
-john@bambam ~/pics $ vipsthumbnail wtc_alpha.png --linear
-memory: high-water mark 101.59 MB
-john@bambam ~/pics $ 
-
-  it seems to be the vips_colourspace() cast from sRGB to XYZ that's doing it?
-  how odd
-
-  maybe the thing that detaches and reattaches the alpha?
-
-- still don't get progress feedback in nip2 for a long png save, eg. make a
-  4-band wtc, save as png
 
 - support --strip for other writers
-
-- vipstumbnail is broken for the gamma trick png on eric brasseur's page
 
 - vipsthumbnail could shrink-on-load openslide and pyr tiff as well?
 

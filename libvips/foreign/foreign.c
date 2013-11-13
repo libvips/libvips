@@ -1389,7 +1389,7 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 
 	/* I think all savers are sequential. Hopefully.
 	 */
-	operation_class->flags |= VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags |= VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	/* Must not cache savers.
 	 */
