@@ -41,6 +41,7 @@
  * 	- cleanups
  * 13/11/13
  * 	- redo as a class
+ * 	- does any type, any number of bands
  */
 
 /*
@@ -91,7 +92,7 @@ typedef struct _VipsSharpen {
 	VipsImage *in;
 	VipsImage *out;
 
-	int mask_size, 
+	int mask_size; 
 	double x1;
 	double y2;
 	double y3;
@@ -108,7 +109,7 @@ typedef struct _VipsSharpen {
 	 */
 	int ix1;
 	int ix2;
-	int ix3;		
+	int ix3;
 
 	/* The lut we build.
 	 */
@@ -120,171 +121,6 @@ typedef VipsOperationClass VipsSharpenClass;
 
 G_DEFINE_TYPE( VipsSharpen, vips_sharpen, VIPS_TYPE_OPERATION );
 
-/* Take the difference of in1 and in2 and LUT it.
- */
-static void
-buf_difflut( short **in, short *out, int n, SharpenLut *slut )
-{
-	int range = slut->x2 + slut->x3;
-	int *lut = slut->lut;
-	int x3 = slut->x3;
-	short *p1 = in[1];
-	short *p2 = in[0];
-	int i;
-
-	for( i = 0; i < n; i++ ) {
-		int v1 = p1[i];
-		int v2 = p2[i];
-
-		/* v2 is the area average. If this is zero, then we pass the
-		 * original image through unaltered.
-		 */
-		if( v2 == 0 ) 
-			out[i] = v1;
-		else {
-			/* Find difference. Offset by x3 to get the expected 
-			 * range of values.
-			 */
-			int s1 = x3 + (v1 - v2);
-			int s2;
-
-			/* Clip to LUT range.
-			 */
-			if( s1 < 0 )
-				s1 = 0;
-			else if( s1 > range )
-				s1 = range;
-
-			/* Transform!
-			 */
-			s2 = v1 + lut[s1];
-
-			/* Clip to LabS range.
-			 */
-			if( s2 < 0 ) 
-				s2 = 0;
-			else if( s2 > 32767 ) 
-				s2 = 32767;
-
-			/* And write.
-			 */
-			out[i] = s2;
-		}
-	}
-}
-
-int
-im_sharpen( IMAGE *in, IMAGE *out, 
-	int mask_size, 
-	double x1, double y2, double y3, 
-	double m1, double m2 )
-{
-	IMAGE *arry[3];
-	IMAGE *t[4];
-	VipsImage *mask;
-
-	/* Turn y parameters into xs.
-	 */
-	double x2 = (y2 - x1 * (m1 - m2)) / m2;
-	double x3 = (y3 - x1 * (m1 - m2)) / m2;
-
-	if( in->Coding == IM_CODING_LABQ ) {
-		IMAGE *tc[2];
-
-		if( im_open_local_array( out, tc, 2, "im_sharpen:1", "p" ) ||
-			im_LabQ2LabS( in, tc[0] ) ||
-			im_sharpen( tc[0], tc[1], 
-				mask_size, x1, y2, y3, m1, m2 ) ||
-			im_LabS2LabQ( tc[1], out ) )
-			return( -1 );
-
-		return( 0 );
-	}
-
-	/* Check IMAGE parameters 
-	 */
-  	if( im_piocheck( in, out ) ||
-		im_check_uncoded( "im_sharpen", in ) ||
-		im_check_bands( "im_gradcor", in, 3 ) || 
-		im_check_format( "im_gradcor", in, IM_BANDFMT_SHORT ) )
-  		return( -1 );
-
-	/* Check number range.
-	 */
-	if( x1 < 0 || x1 > 99 || 
-		x2 < 0 || x2 > 99 || 
-		x1 > x2 ||
-		x3 < 0 || x3 > 99 || 
-		x1 > x3 ) {
-		im_error( "im_sharpen", "%s", _( "parameters out of range" ) );
-		return( -1 );
-	}
-
-	/* Open a set of local image descriptors.
-	 */
-	if( im_open_local_array( out, t, 4, "im_sharpen:2", "p" ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-/* Our sequence value: the region this sequence is using, and local stats.
- */
-typedef struct {
-	VipsRegion *ir;		/* Input region */
-
-	/* A 256-element hist for evry band.
-	 */
-	unsigned int **hist;
-} VipsSharpenSequence;
-
-static int
-vips_sharpen_stop( void *vseq, void *a, void *b )
-{
-	VipsSharpenSequence *seq = (VipsSharpenSequence *) vseq;
-	VipsImage *in = (VipsImage *) a;
-
-	VIPS_UNREF( seq->ir );
-	if( seq->hist ) {
-		int i; 
-
-		for( i = 0; i < in->Bands; i++ )
-			VIPS_FREE( seq->hist[i] );
-		VIPS_FREE( seq->hist );
-	}
-	VIPS_FREE( seq );
-
-	return( 0 );
-}
-
-static void *
-vips_sharpen_start( VipsImage *out, void *a, void *b )
-{
-	VipsImage *in = (VipsImage *) a;
-	VipsSharpenSequence *seq;
-
-	int i;
-
-	if( !(seq = VIPS_NEW( NULL, VipsSharpenSequence )) )
-		 return( NULL );
-	seq->ir = NULL;
-	seq->hist = NULL;
-
-	if( !(seq->ir = vips_region_new( in )) || 
-		!(seq->hist = VIPS_ARRAY( NULL, in->Bands, unsigned int * )) ) {
-		vips_sharpen_stop( seq, NULL, NULL );
-		return( NULL ); 
-	}
-
-	for( i = 0; i < in->Bands; i++ )
-		if( !(seq->hist[i] = VIPS_ARRAY( NULL, 256, unsigned int )) ) {
-		vips_sharpen_stop( seq, NULL, NULL );
-		return( NULL ); 
-	}
-
-	return( seq );
-}
-
 static int
 vips_sharpen_generate( VipsRegion *or, 
 	void *vseq, void *a, void *b, gboolean *stop )
@@ -292,22 +128,53 @@ vips_sharpen_generate( VipsRegion *or,
 	VipsRegion **in = (VipsRegion **) vseq;
 	VipsSharpen *sharpen = (VipsSharpen *) b;
 	VipsRect *r = &or->valid;
+	int ix3 = sharpen->ix3;
+	int range = sharpen->ix2 + sharpen->ix3;
+	int *lut = sharpen->lut;
 
-	VipsRect irect;
+	int x, y; 
 
 	if( vips_region_prepare( in[0], r ) ||
 		vips_region_prepare( in[1], r ) )
 		return( -1 );
 
-	lsk = VIPS_REGION_LSKIP( seq->ir );
-	centre = lsk * (local->height / 2) + bands * local->width / 2;
-
 	for( y = 0; y < r->height; y++ ) {
-		/* Get input and output pointers for this line.
-		 */
-		VipsPel *p = VIPS_REGION_ADDR( seq->ir, r->left, r->top + y );
-		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y );
+		short *p1 = (short *) 
+			VIPS_REGION_ADDR( in[0], r->left, r->top + y );
+		short *p2 = (short *) 
+			VIPS_REGION_ADDR( in[1], r->left, r->top + y );
+		short *q = (short *) 
+			VIPS_REGION_ADDR( or, r->left, r->top + y );
 
+		for( x = 0; x < r->width; x++ ) {
+			int v1 = p1[x];
+			int v2 = p2[x];
+
+			/* v2 is the area average. If this is zero, then we 
+			 * pass the original image through unaltered.
+			 */
+			if( v2 == 0 ) 
+				q[x] = v1;
+			else {
+				/* Find difference. Offset by x3 to get the 
+				 * expected range of values.
+				 */
+				int s1 = ix3 + (v1 - v2);
+				int s2;
+
+				if( s1 < 0 )
+					s1 = 0;
+				else if( s1 > range )
+					s1 = range;
+
+				s2 = v1 + lut[s1];
+
+				if( s2 < 0 ) 
+					s2 = 0;
+				else if( s2 > 32767 ) 
+					s2 = 32767;
+
+				q[x] = s2;
 			}
 		}
 	}
@@ -319,11 +186,13 @@ static int
 vips_sharpen_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsSharpen *local = (VipsSharpen *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
+	VipsSharpen *sharpen = (VipsSharpen *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
 	VipsImage **args = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *in;
+	int ix1, ix2, ix3;
+	int i;
 
 	if( VIPS_OBJECT_CLASS( vips_sharpen_parent_class )->build( object ) )
 		return( -1 );
@@ -342,7 +211,7 @@ vips_sharpen_build( VipsObject *object )
 	in = t[0];
 
   	if( vips_check_uncoded( class->nickname, in ) ||
-		vips_check_bands( class->nickname, in, 3 ) || 
+		vips_check_bands_atleast( class->nickname, in, 3 ) || 
 		vips_check_format( class->nickname, in, VIPS_FORMAT_SHORT ) )
   		return( -1 );
 
@@ -359,7 +228,7 @@ vips_sharpen_build( VipsObject *object )
 	/* Stop at 20% of max ... bit mean, but means mask radius is roughly
 	 * right.
 	 */
-	if( vips_gaussmat( &t[1], radius / 2, 0.2, 
+	if( vips_gaussmat( &t[1], sharpen->mask_size / 2, 0.2, 
 		"separable", TRUE,
 		"integer", TRUE,
 		NULL ) )
@@ -367,31 +236,28 @@ vips_sharpen_build( VipsObject *object )
 
 	/* Build the int lut.
 	 */
-	sharpen->ix1 = x1 * 327.67;
-	sharpen->ix2 = x2 * 327.67;
-	sharpen->ix3 = x3 * 327.67;
+	sharpen->ix1 = ix1 = sharpen->x1 * 327.67;
+	sharpen->ix2 = ix2 = sharpen->x2 * 327.67;
+	sharpen->ix3 = ix3 = sharpen->x3 * 327.67;
 
-	if( !(sharpen->lut = VIPS_ARRAY( sharpen->out, 
-		sharpen->ix2 + sharpen->ix3 + 1, int )) )
+	if( !(sharpen->lut = VIPS_ARRAY( sharpen->out, ix2 + ix3 + 1, int )) )
 		return( -1 );
 
-	for( i = 0; i < sharpen->ix1; i++ ) {
-		slut->lut[sharpen->ix3 + i] = i * m1;
-		slut->lut[sharpen->ix3 - i] = -i * m1;
+	for( i = 0; i < ix1; i++ ) {
+		sharpen->lut[ix3 + i] = i * sharpen->m1;
+		sharpen->lut[ix3 - i] = -i * sharpen->m1;
 	}
-	for( i = sharpen->ix1; i <= sharpen->ix2; i++ ) 
-		slut->lut[sharpen->ix3 + i] = 
-			sharpen->ix1 * sharpen->m1 + 
-				(i - sharpen->ix1) * sharpen->m2; 
-	for( i = sharpen->ix1; i <= sharpen->ix3; i++ )
-		slut->lut[sharpen->ix3 - i] = 
-			-(sharpen->ix1 * sharpen->m1 + 
-				(i - sharpen->ix1) * sharpen->m2);
+	for( i = ix1; i <= ix2; i++ ) 
+		sharpen->lut[ix3 + i] = 
+			ix1 * sharpen->m1 + (i - ix1) * sharpen->m2; 
+	for( i = ix1; i <= ix3; i++ )
+		sharpen->lut[ix3 - i] = 
+			-(ix1 * sharpen->m1 + (i - ix1) * sharpen->m2);
 
-	/* Extract L and ab, convolve L.
+	/* Extract L and the rest, convolve L.
 	 */
 	if( vips_extract_band( in, &args[0], 0, NULL ) ||
-		vips_extract_bands( in, &t[3], 1, "n", 2, NULL ) ||
+		vips_extract_band( in, &t[3], 1, "n", in->Bands - 1, NULL ) ||
 		vips_convsep( args[0], &args[1], t[1], NULL ) )
 		return( -1 );
 
@@ -410,7 +276,7 @@ vips_sharpen_build( VipsObject *object )
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
-	/* Reattach ab.
+	/* Reattach the rest.
 	 */
 	if( vips_bandjoin2( t[5], t[3], &t[6], NULL ) ||
 		vips_image_write( t[6], sharpen->out ) )
@@ -444,45 +310,45 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsSharpen, out ) );
 
-	VIPS_ARG_INT( class, "mask_size", 4, 
+	VIPS_ARG_INT( class, "mask_size", 3, 
 		_( "mask_size" ), 
 		_( "Mask radius" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsSharpen, mask_radius ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsSharpen, mask_size ),
 		1, 1000000, 7 );
 
 	VIPS_ARG_DOUBLE( class, "x1", 4, 
 		_( "x1" ), 
 		_( "Flat/jaggy threshold" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, x1 ),
 		1, 1000000, 1.5 );
 
 	VIPS_ARG_DOUBLE( class, "y2", 5, 
 		_( "y2" ), 
 		_( "Maximum brightening" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, y2 ),
 		1, 1000000, 20 );
 
 	VIPS_ARG_DOUBLE( class, "y3", 6, 
 		_( "y3" ), 
 		_( "Maximum darkening" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, y3 ),
 		1, 1000000, 50 );
 
-	VIPS_ARG_DOUBLE( class, "m1", 6, 
+	VIPS_ARG_DOUBLE( class, "m1", 7, 
 		_( "m1" ), 
 		_( "Slope for flat areas" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, m1 ),
 		1, 1000000, 1 );
 
-	VIPS_ARG_DOUBLE( class, "m2", 7, 
+	VIPS_ARG_DOUBLE( class, "m2", 8, 
 		_( "m2" ), 
 		_( "Slope for jaggy areas" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, m2 ),
 		1, 1000000, 2 );
 
@@ -503,21 +369,24 @@ vips_sharpen_init( VipsSharpen *sharpen )
  * vips_sharpen:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
  * @mask_size: how large a mask to use
  * @x1: flat/jaggy threshold
  * @y2: maximum amount of brightening
  * @y3: maximum amount of darkening
  * @m1: slope for flat areas
  * @m2: slope for jaggy areas
- * @...: %NULL-terminated list of optional named arguments
  *
- * Selectively sharpen the L channel of a LAB image. Works for 
- * #VIPS_CODING_LABQ and LABS images. 
+ * Selectively sharpen the L channel of a LAB image. The input image is
+ * transformed to #VIPS_INTERPRETATION_LABS. 
  *
  * The operation performs a gaussian blur of size @mask_size and subtracts 
- * from @in to
- * generate a high-frequency signal. This signal is passed through a lookup
- * table formed from the five parameters and added back to @in.
+ * from @in to generate a high-frequency signal. This signal is passed 
+ * through a lookup table formed from the five parameters and added back to 
+ * @in.
  *
  * The lookup table is formed like this:
  *
@@ -541,7 +410,7 @@ vips_sharpen_init( VipsSharpen *sharpen )
                       |
  * ]|
  *
- * For printing, we recommend the following settings:
+ * For printing, we recommend the following settings (the defaults):
  *
  * |[
    mask_size == 7
@@ -568,17 +437,13 @@ vips_sharpen_init( VipsSharpen *sharpen )
  * Returns: 0 on success, -1 on error.
  */
 int 
-vips_sharpen( VipsImage *in, VipsImage **out, 
-	int mask_size, 
-	double x1, double y2, double y3, double m1, double m2,
-	... )
+vips_sharpen( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, m2 );
-	result = vips_call_split( "sharpen", ap, in, out, 
-		mask_size, x1, y2, y3, m1, m2 ); 
+	va_start( ap, out );
+	result = vips_call_split( "sharpen", ap, in, out );  
 	va_end( ap );
 
 	return( result );

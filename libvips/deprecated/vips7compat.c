@@ -2324,6 +2324,32 @@ im_fastcor( IMAGE *in, IMAGE *ref, IMAGE *out )
 	return( 0 );
 }
 
+int
+im_sharpen( IMAGE *in, IMAGE *out, 
+	int mask_size, 
+	double x1, double y2, double y3, 
+	double m1, double m2 )
+{
+	VipsImage *x;
+
+	if( vips_call( "sharpen", in, &x, 
+		"mask_size", mask_size,
+		"x1", x1,
+		"y2", y2,
+		"y3", y3,
+		"m1", m1,
+		"m2", m2,
+		NULL ) )
+		return( -1 );
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
 static int
 vips__round( VipsImage *in, VipsImage *out, VipsOperationRound round )
 {

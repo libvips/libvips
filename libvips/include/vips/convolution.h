@@ -78,15 +78,10 @@ int vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask,
 	VipsOperationMorphology morph, ... )
 	__attribute__((sentinel));
 
+int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 
+	__attribute__((sentinel));
+
 void vips_convolution_operation_init( void );
-
-
-
-
-int im_sharpen( VipsImage *in, VipsImage *out, 
-	int mask_size, 
-	double x1, double y2, double y3, 
-	double m1, double m2 );
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,10 @@
-- finish sharpen.c
+- try:
+
+	$ vips colourspace Opera-icon-high-res.png x.v labs
+	$ header x.v
+	x.v: 3056x3325 float, 4 bands, labs, pngload
+
+  o.O should be short innit?
 
 - support --strip for other writers
 
