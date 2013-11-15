@@ -9,7 +9,13 @@
 	user	0m10.016s
 	sys	0m0.480s
 
-  almost 50% of CPU!
+  almost 50% of CPU! ouch
+
+- vips_gaussblur() should switch to float prec if given a float image?
+
+  same for vips_conv()?
+
+  maybe precision is a dumb thing
 
 - do morph quickly as simple wrappers over the vips7 operations
 
