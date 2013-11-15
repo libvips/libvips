@@ -12,6 +12,7 @@ libconvolution_la_SOURCES = \
 	fastcor.c \
 	spcor.c \
 	sharpen.c \
+	gaussblur.c \
 	im_aconv.c \
 	im_aconvsep.c \
 	im_conv.c \

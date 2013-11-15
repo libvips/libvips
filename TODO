@@ -1,8 +1,15 @@
+- we're spending a lot of time on threading
 
-- add vips_gaussian_blur() with approx / int / float precision, maybe
-  vips_resize() as well?
+	$ time vips sharpen x.v x2.v
+	real	0m6.925s
+	user	0m18.240s
+	sys	0m0.996s
+	$ time vips sharpen x.v x2.v --vips-concurrency=1
+	real	0m12.831s
+	user	0m10.016s
+	sys	0m0.480s
 
-  could share a base class with vips_sharpen()/
+  almost 50% of CPU!
 
 - do morph quickly as simple wrappers over the vips7 operations
 

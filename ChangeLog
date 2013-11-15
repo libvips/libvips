@@ -22,6 +22,7 @@
 - add --linear mode to vipsthumbnail
 - support XYZ as a PCS for vips_icc_import() and vips_icc_export()
 - add --strip option to jpegsave
+- added vips_gaussblur() convenience function
 
 18/10/13	started 7.36.3
 - fix compiler warnings in ubuntu 13.10

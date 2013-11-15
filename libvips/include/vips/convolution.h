@@ -80,6 +80,8 @@ int vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask,
 
 int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 
 	__attribute__((sentinel));
+int vips_gaussblur( VipsImage *in, VipsImage **out, int radius, ... )
+	__attribute__((sentinel));
 
 void vips_convolution_operation_init( void );
 

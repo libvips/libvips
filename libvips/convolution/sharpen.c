@@ -92,7 +92,7 @@ typedef struct _VipsSharpen {
 	VipsImage *in;
 	VipsImage *out;
 
-	int mask_size; 
+	int radius; 
 	double x1;
 	double y2;
 	double y3;
@@ -226,13 +226,18 @@ vips_sharpen_build( VipsObject *object )
 	}
 
 	/* Stop at 20% of max ... bit mean, but means mask radius is roughly
-	 * right.
+	 * right. We always sharpen a short, so no point using a float mask. 
 	 */
-	if( vips_gaussmat( &t[1], sharpen->mask_size / 2, 0.2, 
+	if( vips_gaussmat( &t[1], sharpen->radius / 2, 0.2, 
 		"separable", TRUE,
 		"integer", TRUE,
 		NULL ) )
 		return( -1 ); 
+
+#ifdef DEBUG
+	printf( "sharpen: blurring with:\n" ); 
+	vips_matrixprint( t[1], NULL ); 
+#endif /*DEBUG*/
 
 	/* Build the int lut.
 	 */
@@ -310,42 +315,42 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsSharpen, out ) );
 
-	VIPS_ARG_INT( class, "mask_size", 3, 
-		_( "mask_size" ), 
+	VIPS_ARG_INT( class, "radius", 3, 
+		_( "Radius" ), 
 		_( "Mask radius" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsSharpen, mask_size ),
-		1, 1000000, 7 );
+		G_STRUCT_OFFSET( VipsSharpen, radius ),
+		1, 1000000, 3 );
 
-	VIPS_ARG_DOUBLE( class, "x1", 4, 
+	VIPS_ARG_DOUBLE( class, "x1", 5, 
 		_( "x1" ), 
 		_( "Flat/jaggy threshold" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, x1 ),
 		1, 1000000, 1.5 );
 
-	VIPS_ARG_DOUBLE( class, "y2", 5, 
+	VIPS_ARG_DOUBLE( class, "y2", 6, 
 		_( "y2" ), 
 		_( "Maximum brightening" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, y2 ),
 		1, 1000000, 20 );
 
-	VIPS_ARG_DOUBLE( class, "y3", 6, 
+	VIPS_ARG_DOUBLE( class, "y3", 7, 
 		_( "y3" ), 
 		_( "Maximum darkening" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, y3 ),
 		1, 1000000, 50 );
 
-	VIPS_ARG_DOUBLE( class, "m1", 7, 
+	VIPS_ARG_DOUBLE( class, "m1", 8, 
 		_( "m1" ), 
 		_( "Slope for flat areas" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, m1 ),
 		1, 1000000, 1 );
 
-	VIPS_ARG_DOUBLE( class, "m2", 8, 
+	VIPS_ARG_DOUBLE( class, "m2", 9, 
 		_( "m2" ), 
 		_( "Slope for jaggy areas" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -357,7 +362,7 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 static void
 vips_sharpen_init( VipsSharpen *sharpen )
 {
-	sharpen->mask_size = 7; 
+	sharpen->radius = 3; 
 	sharpen->x1 = 1.5; 
 	sharpen->y2 = 20; 
 	sharpen->y3 = 50; 
@@ -373,7 +378,7 @@ vips_sharpen_init( VipsSharpen *sharpen )
  *
  * Optional arguments:
  *
- * @mask_size: how large a mask to use
+ * @radius: how large a mask to use
  * @x1: flat/jaggy threshold
  * @y2: maximum amount of brightening
  * @y3: maximum amount of darkening
@@ -383,7 +388,7 @@ vips_sharpen_init( VipsSharpen *sharpen )
  * Selectively sharpen the L channel of a LAB image. The input image is
  * transformed to #VIPS_INTERPRETATION_LABS. 
  *
- * The operation performs a gaussian blur of size @mask_size and subtracts 
+ * The operation performs a gaussian blur of radius @radius and subtracts 
  * from @in to generate a high-frequency signal. This signal is passed 
  * through a lookup table formed from the five parameters and added back to 
  * @in.
@@ -413,7 +418,7 @@ vips_sharpen_init( VipsSharpen *sharpen )
  * For printing, we recommend the following settings (the defaults):
  *
  * |[
-   mask_size == 7
+   radius == 3
    x1 == 1.5
    y2 == 20         (don't brighten by more than 20 L*)
    y3 == 50         (can darken by up to 50 L*)
@@ -425,10 +430,10 @@ vips_sharpen_init( VipsSharpen *sharpen )
  * If you want more or less sharpening, we suggest you just change the m1 
  * and m2 parameters. 
  *
- * The @mask_size parameter changes the width of the fringe and can be 
+ * The @radius parameter changes the width of the fringe and can be 
  * adjusted according to the output printing resolution. As an approximate 
- * guideline, use 3 for 4 pixels/mm (CRT display resolution), 5 for 8 
- * pixels/mm, 7 for 12 pixels/mm and 9 for 16 pixels/mm (300 dpi == 12 
+ * guideline, use 1 for 4 pixels/mm (CRT display resolution), 2 for 8 
+ * pixels/mm, 3 for 12 pixels/mm and 4 for 16 pixels/mm (300 dpi == 12 
  * pixels/mm). These figures refer to the image raster, not the half-tone 
  * resolution.
  *
