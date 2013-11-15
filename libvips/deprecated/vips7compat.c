@@ -2333,7 +2333,7 @@ im_sharpen( IMAGE *in, IMAGE *out,
 	VipsImage *x;
 
 	if( vips_call( "sharpen", in, &x, 
-		"mask_size", mask_size,
+		"radius", mask_size / 2,
 		"x1", x1,
 		"y2", y2,
 		"y3", y3,
