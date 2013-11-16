@@ -32,7 +32,7 @@
  */
 
 #ifndef VIPS_VIPS7COMPAT_H
-#define VIPS_VIP7COMPATS_H
+#define VIPS_VIPS7COMPAT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -257,6 +257,8 @@ int im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...);
 
 /* Compat functions.
  */
+
+int im_init_world( const char *argv0 ); 
 
 VipsImage *im_open( const char *filename, const char *mode );
 
