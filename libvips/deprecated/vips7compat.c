@@ -232,6 +232,17 @@ im_init( const char *filename )
 	return( image );
 }
 
+/* We can't do this with a rename macro since the C++ interface needs
+ * this entrypoint, see VImage.h.
+ *
+ * As a result our fancy ABI check will not work with the vips7 interface.
+ */
+int
+im_init_world( const char *argv0 )
+{
+	return( vips_init( argv0 ) );
+}
+
 /* Prettyprint various header fields. Just for vips7 compat, use
  * vips_enum_value() instead.
  */

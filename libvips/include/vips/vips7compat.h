@@ -32,7 +32,7 @@
  */
 
 #ifndef VIPS_VIPS7COMPAT_H
-#define VIPS_VIP7COMPATS_H
+#define VIPS_VIPS7COMPAT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -203,7 +203,6 @@ extern "C" {
 #define im_get_argv0 vips_get_argv0
 #define im_version_string vips_version_string
 #define im_version vips_version
-#define im_init_world vips_init
 #define im_get_option_group vips_get_option_group
 #define im_guess_prefix vips_guess_prefix
 #define im_guess_libdir vips_guess_libdir
@@ -255,6 +254,8 @@ extern "C" {
 
 /* Compat functions.
  */
+
+int im_init_world( const char *argv0 ); 
 
 VipsImage *im_open( const char *filename, const char *mode );
 
