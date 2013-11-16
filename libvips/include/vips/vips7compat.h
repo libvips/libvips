@@ -932,6 +932,11 @@ int im_fastcor( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_spcor( VipsImage *in, VipsImage *ref, VipsImage *out );
 int im_gradcor( VipsImage *in, VipsImage *ref, VipsImage *out );
 
+int im_sharpen( VipsImage *in, VipsImage *out, 
+	int mask_size, 
+	double x1, double y2, double y3, 
+	double m1, double m2 );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

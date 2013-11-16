@@ -1,27 +1,25 @@
-- large alpha PNGs seem to need huge amounts of ram to process
+- we're spending a lot of time on threading
 
-john@bambam ~/pics $ vipsthumbnail wtc.png
-memory: high-water mark 31.37 MB
-john@bambam ~/pics $ vipsthumbnail wtc.png --linear
-memory: high-water mark 47.83 MB
+	$ time vips sharpen x.v x2.v
+	real	0m6.925s
+	user	0m18.240s
+	sys	0m0.996s
+	$ time vips sharpen x.v x2.v --vips-concurrency=1
+	real	0m12.831s
+	user	0m10.016s
+	sys	0m0.480s
 
-john@bambam ~/pics $ vipsthumbnail wtc_alpha.png 
-memory: high-water mark 41.85 MB
-john@bambam ~/pics $ vipsthumbnail wtc_alpha.png --linear
-memory: high-water mark 101.59 MB
-john@bambam ~/pics $ 
+  almost 50% of CPU! ouch
 
-  it seems to be the vips_colourspace() cast from sRGB to XYZ that's doing it?
-  how odd
+- vips_gaussblur() should switch to float prec if given a float image?
 
-  maybe the thing that detaches and reattaches the alpha?
+  same for vips_conv()?
 
-- still don't get progress feedback in nip2 for a long png save, eg. make a
-  4-band wtc, save as png
+  maybe precision is a dumb thing
+
+- do morph quickly as simple wrappers over the vips7 operations
 
 - support --strip for other writers
-
-- vipstumbnail is broken for the gamma trick png on eric brasseur's page
 
 - vipsthumbnail could shrink-on-load openslide and pyr tiff as well?
 
@@ -34,11 +32,6 @@ john@bambam ~/pics $
   to watch RES at 0.01s intervals?
 
   note on memuse page
-
-- do conv and morph quickly as simple wrappers over the vips7 operations
-
-- add vips_gaussian_blur() with approx / int / float precision, maybe
-  vips_resize() as well?
 
 - do much fancier profiling with timing on all locks saved in memory and
   dumped on exit

@@ -1389,7 +1389,7 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 
 	/* I think all savers are sequential. Hopefully.
 	 */
-	operation_class->flags |= VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags |= VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	/* Must not cache savers.
 	 */
@@ -2002,6 +2002,7 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  * @optimize_coding: compute optimal Huffman coding tables
  * @interlace: write an interlaced (progressive) jpeg
  * @strip: remove all metadata from image
+ * @no-subsample: disable chroma subsampling
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -2036,6 +2037,9 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  * If @strip is set, no EXIF data, IPCT data, ICC profile or XMP metadata is 
  * written into the output file. 
  *
+ * If @no-subsample is set, chrominance subsampling is disabled. This will 
+ * improve quality at the cost of larger file size. Useful for high Q factors. 
+ *
  * See also: vips_jpegsave_buffer(), vips_image_write_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -2067,6 +2071,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * @optimize_coding: compute optimal Huffman coding tables
  * @interlace: write an interlaced (progressive) jpeg
  * @strip: remove all metadata from image
+ * @no-subsample: disable chroma subsampling
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
@@ -2117,6 +2122,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * @profile: attach this ICC profile
  * @optimize_coding: compute optimal Huffman coding tables
  * @strip: remove all metadata from image
+ * @no-subsample: disable chroma subsampling
  *
  * As vips_jpegsave(), but save as a mime jpeg on stdout.
  *

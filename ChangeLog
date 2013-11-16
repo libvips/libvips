@@ -1,7 +1,8 @@
 19/10/13 started 7.37.0
 - redone im_rotate_*mask45(), im_gauss_*mask*(), im_log_*mask(), im_dilate(),
   im_erode(), im_rank_image(), im_compass(), im_linedet(), im_gradient(),
-  im_convsep(), im_convsep_f(), im_fastcor(), im_spcor() as classes
+  im_convsep(), im_convsep_f(), im_fastcor(), im_spcor(), im_sharpen()
+  as classes
 - im_gradcor() deprecated
 - vips_init() now does some ABI compat checking, though this change requires
   an ABI break
@@ -21,6 +22,7 @@
 - add --linear mode to vipsthumbnail
 - support XYZ as a PCS for vips_icc_import() and vips_icc_export()
 - add --strip option to jpegsave
+- added vips_gaussblur() convenience function
 
 15/11/13	started 7.36.4
 - improve compat with im_init_world()

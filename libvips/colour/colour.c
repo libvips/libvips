@@ -481,12 +481,11 @@ vips_colour_code_build( VipsObject *object )
 	VipsColour *colour = VIPS_COLOUR( object );
 	VipsColourCode *code = VIPS_COLOUR_CODE( object );
 	VipsColourCodeClass *class = VIPS_COLOUR_CODE_GET_CLASS( object ); 
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 6 );
 
-	VipsImage **t;
 	VipsImage *in;
 	VipsImage *extra;
 
-	t = (VipsImage **) vips_object_local_array( object, 5 );
 
 	in = code->in;
 	extra = NULL;
@@ -559,15 +558,19 @@ vips_colour_code_build( VipsObject *object )
 		return( -1 );
 
 	/* Reattach higher bands, if necessary.
+	 *
+	 * Our processing on the first three bands may have changed the image
+	 * format. For example, converting LAB to LABS will make a short
+	 * image. We need to force the extra bands to match this new type. 
 	 */
 	if( extra ) {
 		VipsImage *x;
 
-		if( vips_bandjoin2( colour->out, extra, &x, NULL ) )
+		if( vips_cast( extra, &t[5], colour->out->BandFmt, NULL ) ||
+			vips_bandjoin2( colour->out, t[5], &x, NULL ) )
 			return( -1 );
 
 		VIPS_UNREF( colour->out );
-
 		colour->out = x;
 	}
 

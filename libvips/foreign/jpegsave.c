@@ -87,6 +87,10 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	gboolean interlace;
 
+	/* Disable chroma subsampling. 
+	 */
+	gboolean no_subsample;
+
 } VipsForeignSaveJpeg;
 
 typedef VipsForeignSaveClass VipsForeignSaveJpegClass;
@@ -127,24 +131,31 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 		1, 100, 75 );
 
 	VIPS_ARG_STRING( class, "profile", 11, 
-		_( "profile" ), 
+		_( "Profile" ), 
 		_( "ICC profile to embed" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, profile ),
 		NULL );
 
 	VIPS_ARG_BOOL( class, "optimize_coding", 12,
-		_( "optimize_coding" ),
+		_( "Optimize_coding" ),
 		_( "Compute optimal Huffman coding tables" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, optimize_coding ),
 		FALSE );
 
 	VIPS_ARG_BOOL( class, "interlace", 13,
-		_( "interlace" ),
+		_( "Interlace" ),
 		_( "Generate an interlaced (progressive) jpeg" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, interlace ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "no_subsample", 14,
+		_( "No subsample" ),
+		_( "Disable chroma subsample" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, no_subsample ),
 		FALSE );
 
 }
@@ -182,7 +193,7 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 
 	if( vips__jpeg_write_file( save->ready, file->filename,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, save->strip ) )
+		jpeg->interlace, save->strip, jpeg->no_subsample ) )
 		return( -1 );
 
 	return( 0 );
@@ -248,7 +259,7 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 
 	if( vips__jpeg_write_buffer( save->ready, 
 		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, save->strip ) )
+		jpeg->interlace, save->strip, jpeg->no_subsample ) )
 		return( -1 );
 
 	area = vips_area_new_blob( (VipsCallbackFn) vips_free, obuf, olen );
@@ -310,7 +321,7 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 
 	if( vips__jpeg_write_buffer( save->ready, 
 		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, save->strip ) )
+		jpeg->interlace, save->strip, jpeg->no_subsample ) )
 		return( -1 );
 
 	printf( "Content-length: %zd\r\n", olen );

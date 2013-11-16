@@ -60,6 +60,8 @@
  * 	- add optimize_coding parameter
  * 12/11/13
  * 	- add "strip" option to remove all metadata
+ * 13/11/13
+ * 	- add a "no_subsample" option to disable chroma subsample
  */
 
 /*
@@ -843,7 +845,8 @@ write_jpeg_block( REGION *region, Rect *area, void *a )
  */
 static int
 write_vips( Write *write, int qfac, const char *profile, 
-	gboolean optimize_coding, gboolean progressive, gboolean strip )
+	gboolean optimize_coding, gboolean progressive, gboolean strip, 
+	gboolean no_subsample )
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -905,6 +908,17 @@ write_vips( Write *write, int qfac, const char *profile,
 	if( progressive ) 
 		jpeg_simple_progression( &write->cinfo ); 
 
+	/* Turn off chroma subsampling.
+	 */
+	if( no_subsample ) { 
+		int i;
+
+		for( i = 0; i < in->Bands; i++ ) { 
+			write->cinfo.comp_info[i].h_samp_factor = 1;
+			write->cinfo.comp_info[i].v_samp_factor = 1;
+		}
+	}
+
 	/* Build compress tables.
 	 */
 	jpeg_start_compress( &write->cinfo, TRUE );
@@ -952,7 +966,8 @@ write_vips( Write *write, int qfac, const char *profile,
 int
 vips__jpeg_write_file( VipsImage *in, 
 	const char *filename, int Q, const char *profile, 
-	gboolean optimize_coding, gboolean progressive, gboolean strip )
+	gboolean optimize_coding, gboolean progressive, gboolean strip, 
+	gboolean no_subsample )
 {
 	Write *write;
 
@@ -983,7 +998,8 @@ vips__jpeg_write_file( VipsImage *in,
 	/* Convert!
 	 */
 	if( write_vips( write, 
-		Q, profile, optimize_coding, progressive, strip ) ) {
+		Q, profile, optimize_coding, progressive, strip, 
+		no_subsample ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
@@ -1231,7 +1247,7 @@ int
 vips__jpeg_write_buffer( VipsImage *in, 
 	void **obuf, size_t *olen, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
-	gboolean strip )
+	gboolean strip, gboolean no_subsample )
 {
 	Write *write;
 
@@ -1261,7 +1277,8 @@ vips__jpeg_write_buffer( VipsImage *in,
 	/* Convert!
 	 */
 	if( write_vips( write, 
-		Q, profile, optimize_coding, progressive, strip ) ) {
+		Q, profile, optimize_coding, progressive, strip, 
+		no_subsample ) ) {
 		write_destroy( write );
 
 		return( -1 );
