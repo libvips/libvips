@@ -43,7 +43,6 @@
  */
 
 /* 
-#define TIME_THREAD
 #define VIPS_DEBUG_RED
 #define VIPS_DEBUG
  */
@@ -157,16 +156,43 @@ vips_g_cond_free( GCond *cond )
 #endif
 }
 
+typedef struct {
+	const char *domain; 
+	GThreadFunc func; 
+	gpointer data;
+} VipsThreadInfo; 
+
+static void *
+vips_thread_run( gpointer data )
+{
+	VipsThreadInfo *info = (VipsThreadInfo *) data;
+
+	void *result;
+
+	if( vips__thread_profile ) 
+		vips__thread_profile_attach( info->domain );
+
+	result = info->func( info->data );
+
+	return( result ); 
+}
+
 GThread *
 vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 {
 	GThread *thread;
+	VipsThreadInfo *info; 
 	GError *error = NULL;
 
+	info = g_new( VipsThreadInfo, 1 ); 
+	info->domain = domain;
+	info->func = func;
+	info->data = data;
+
 #ifdef HAVE_THREAD_NEW
-	thread = g_thread_try_new( domain, func, data, &error );
+	thread = g_thread_try_new( domain, vips_thread_run, info, &error );
 #else
-	thread = g_thread_create( func, data, TRUE, &error );
+	thread = g_thread_create( vips_thread_run, data, info, &error );
 #endif
 
 	if( !thread ) {
@@ -430,10 +456,6 @@ typedef struct {
 	 */
 	gboolean error;	
 
-#ifdef TIME_THREAD
-	double *btime, *etime;
-	int tpos;
-#endif /*TIME_THREAD*/
 } VipsThread;
 
 /* What we track for a group of threads working together.
@@ -474,37 +496,6 @@ typedef struct _VipsThreadpool {
 	gboolean stop;
 } VipsThreadpool;
 
-#ifdef TIME_THREAD
-/* Size of time buffers.
- */
-#define TBUF_SIZE (20000)
-static GTimer *thread_timer = NULL;
-#endif /*TIME_THREAD*/
-
-#ifdef TIME_THREAD
-/* Save time buffers.
- */
-static int
-vips_thread_save_time_buffers( VipsThread *thr )
-{
-	int i;
-	static int rn = 1;
-	FILE *fp;
-	char name[256];
-
-	vips_snprintf( name, 256, "time%d", rn++ );
-	printf( "vips_thread_save_time_buffers: "
-		"saving buffer to \"%s\"\n", name );
-	if( !(fp = vips__file_open_write( name, TRUE )) ) 
-		return( -1 );
-	for( i = 0; i < thr->tpos; i++ )
-		fprintf( fp, "%g, %g\n", thr->btime[i], thr->etime[i] );
-	fclose( fp );
-
-	return( 0 );
-}
-#endif /*TIME_THREAD*/
-
 /* Junk a thread.
  */
 static void
@@ -524,11 +515,6 @@ vips_thread_free( VipsThread *thr )
 
 	VIPS_FREEF( g_object_unref, thr->state );
 	thr->pool = NULL;
-
-#ifdef TIME_THREAD
-	if( thr->btime )
-		(void) vips_thread_save_time_buffers( thr );
-#endif /*TIME_THREAD*/
 }
 
 static int
@@ -549,38 +535,6 @@ vips_thread_allocate( VipsThread *thr )
 	return( 0 );
 }
 
-static int
-vips_thread_work( VipsThread *thr )
-{
-	VipsThreadpool *pool = thr->pool;
-	int result;
-
-	result = 0;
-
-#ifdef TIME_THREAD
-	/* Note start time.
-	 */
-	if( thr->btime && thr->tpos < TBUF_SIZE )
-		thr->btime[thr->tpos] = 
-			g_timer_elapsed( thread_timer, NULL );
-#endif /*TIME_THREAD*/
-
-	if( pool->work( thr->state, pool->a ) ) 
-		result = -1;
-
-#ifdef TIME_THREAD
-	/* Note stop time.
-	 */
-	if( thr->etime && thr->tpos < TBUF_SIZE ) {
-		thr->etime[thr->tpos] = 
-			g_timer_elapsed( thread_timer, NULL );
-		thr->tpos += 1;
-	}
-#endif /*TIME_THREAD*/
-
-	return( result );
-}
-
 /* The main loop: get some work, do it! Can run from many worker threads, or 
  * from the main thread if threading is off. 
  */
@@ -592,7 +546,11 @@ vips_thread_work_unit( VipsThread *thr )
 	if( thr->error )
 		return;
 
+	VIPS_GATE_START( "vips_thread_work_unit: allocate-wait" ); 
+
 	g_mutex_lock( pool->allocate_lock );
+
+	VIPS_GATE_STOP( "vips_thread_work_unit: allocate-wait" ); 
 
 	/* Has another worker signaled stop while we've been working?
 	 */
@@ -619,10 +577,12 @@ vips_thread_work_unit( VipsThread *thr )
 
 	/* Process a work unit.
 	 */
-	if( vips_thread_work( thr ) ) {
+	VIPS_GATE_START( "vips_thread_work_unit: work" ); 
+	if( pool->work( thr->state, pool->a ) ) { 
 		thr->error = TRUE;
 		pool->error = TRUE;
 	}
+	VIPS_GATE_STOP( "vips_thread_work_unit: work" ); 
 }
 
 /* What runs as a thread ... loop, waiting to be told to do stuff.
@@ -634,6 +594,8 @@ vips_thread_main_loop( void *a )
 	VipsThreadpool *pool = thr->pool;
 
 	g_assert( pool == thr->pool );
+
+	VIPS_GATE_START( "vips_thread_main_loop:" ); 
 
 	/* Process work units! Always tick, even if we are stopping, so the
 	 * main thread will wake up for exit. 
@@ -649,6 +611,8 @@ vips_thread_main_loop( void *a )
 	/* We are exiting: tell the main thread. 
 	 */
 	vips_semaphore_up( &pool->finish );
+
+	VIPS_GATE_STOP( "vips_thread_main_loop:" ); 
 
         return( NULL );
 }
@@ -667,25 +631,11 @@ vips_thread_new( VipsThreadpool *pool )
 	thr->thread = NULL;
 	thr->exit = 0;
 	thr->error = 0;
-#ifdef TIME_THREAD
-	thr->btime = NULL;
-	thr->etime = NULL;
-	thr->tpos = 0;
-#endif /*TIME_THREAD*/
 
 	/* We can't build the state here, it has to be done by the worker
 	 * itself the first time that allocate runs so that any regions are 
 	 * owned by the correct thread.
 	 */
-
-#ifdef TIME_THREAD
-	thr->btime = VIPS_ARRAY( pool->im, TBUF_SIZE, double );
-	thr->etime = VIPS_ARRAY( pool->im, TBUF_SIZE, double );
-	if( !thr->btime || !thr->etime ) {
-		vips_thread_free( thr );
-		return( NULL );
-	}
-#endif /*TIME_THREAD*/
 
 	if( !(thr->thread = vips_g_thread_new( "worker", 
 		vips_thread_main_loop, thr )) ) {  
@@ -907,11 +857,6 @@ vips_threadpool_run( VipsImage *im,
 {
 	VipsThreadpool *pool; 
 	int result;
-
-#ifdef TIME_THREAD
-	if( !thread_timer )
-		thread_timer = g_timer_new();
-#endif /*TIME_THREAD*/
 
 	if( !(pool = vips_threadpool_new( im )) )
 		return( -1 );

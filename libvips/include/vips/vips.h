@@ -101,6 +101,7 @@ extern "C" {
 #include <vips/util.h>
 #include <vips/object.h>
 #include <vips/type.h>
+#include <vips/gate.h>
 
 #include <vips/version.h>
 #include <vips/rect.h>
@@ -160,7 +161,7 @@ extern "C" {
 			vips__get_sizeof_vipsobject() ), \
 		vips_info( "vips_init", \
 			"application has sizeof(VipsObject) == %zd", \
-			sizeof( VipsObject() ) ), \
+			sizeof( VipsObject ) ), \
 		vips_error( "vips_init", "ABI mismatch" ), \
 		-1 ) : \
 		vips__init( ARGV0 ))

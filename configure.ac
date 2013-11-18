@@ -316,6 +316,13 @@ AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 libxml-2.0 gobject-2.0)
 PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0 gmodule-2.0 gobject-2.0"
 
+# after 2.28 we have a monotonic timer
+PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.28,[
+  AC_DEFINE(HAVE_MONOTONIC_TIME,1,[define if your glib has g_get_monotonic_time().])
+  ],[
+  ]
+)
+
 # after 2.32 there are a new set of thread functions, annoyingly
 PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
   AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])

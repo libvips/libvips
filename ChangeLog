@@ -23,6 +23,7 @@
 - support XYZ as a PCS for vips_icc_import() and vips_icc_export()
 - add --strip option to jpegsave
 - added vips_gaussblur() convenience function
+- added --vips-profile, records and dumps thread timing info 
 
 15/11/13	started 7.36.4
 - improve compat with im_init_world()

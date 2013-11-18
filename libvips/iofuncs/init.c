@@ -371,7 +371,10 @@ vips_shutdown( void )
 #endif /*DEBUG*/
 
 	vips_cache_drop_all();
+
 	im_close_plugins();
+
+	vips__thread_profile_stop();
 
 	/* In dev releases, always show leaks. But not more than once, it's
 	 * annoying.
@@ -460,6 +463,9 @@ static GOptionEntry option_entries[] = {
 	{ "vips-leak", 0, 0, 
 		G_OPTION_ARG_NONE, &vips__leak, 
 		N_( "leak-check on exit" ), NULL },
+	{ "vips-profile", 0, 0, 
+		G_OPTION_ARG_NONE, &vips__thread_profile, 
+		N_( "profile and dump timing on exit" ), NULL },
 	{ "vips-disc-threshold", 0, 0, 
 		G_OPTION_ARG_STRING, &vips__disc_threshold, 
 		N_( "images larger than N are decompressed to disc" ), "N" },

@@ -1,6 +1,7 @@
 pkginclude_HEADERS = \
 	basic.h \
 	type.h \
+	gate.h \
 	almostdeprecated.h \
 	deprecated.h \
 	arithmetic.h \

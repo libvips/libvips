@@ -168,8 +168,10 @@ wbuffer_write( WriteBuffer *wbuffer )
 	VIPS_DEBUG_MSG( "wbuffer_write: %d bytes from wbuffer %p\n", 
 		wbuffer->region->bpl * wbuffer->area.height, wbuffer );
 
+	VIPS_GATE_START( "wbuffer_write: " ); 
 	wbuffer->write_errno = write->write_fn( wbuffer->region, 
 		&wbuffer->area, write->a );
+	VIPS_GATE_STOP( "wbuffer_write: " ); 
 }
 
 /* Run this as a thread to do a BG write.
@@ -182,14 +184,18 @@ wbuffer_write_thread( void *data )
 	for(;;) {
 		/* Wait to be told to write.
 		 */
+		VIPS_GATE_START( "wbuffer_write_thread: wait go" ); 
 		vips_semaphore_down( &wbuffer->go );
+		VIPS_GATE_STOP( "wbuffer_write_thread: wait go" ); 
 
 		if( wbuffer->kill )
 			break;
 
 		/* Now block until the last worker finishes on this buffer.
 		 */
+		VIPS_GATE_START( "wbuffer_write_thread: wait tile" ); 
 		vips_semaphore_downn( &wbuffer->nwrite, 0 );
+		VIPS_GATE_STOP( "wbuffer_write_thread: wait tile" ); 
 
 		wbuffer_write( wbuffer );
 

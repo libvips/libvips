@@ -1,3 +1,6 @@
+
+- parse and graph vips-profile data 
+
 - we're spending a lot of time on threading
 
 	$ time vips sharpen x.v x2.v
@@ -10,6 +13,19 @@
 	sys	0m0.480s
 
   almost 50% of CPU! ouch
+
+  could be just overcalculation on overlaps? do we get more overcalculation
+  with more threads?
+
+  valgrind finds no interesting functions in the profile for vips sharpen,
+  just 
+
+  	Lab2XYZ			20% 
+	conv_gen		15% 
+	extract_band		8%
+	etc. 
+
+  nor any difference between 1 thread and n thread runs
 
 - vips_gaussblur() should switch to float prec if given a float image?
 
@@ -32,9 +48,6 @@
   to watch RES at 0.01s intervals?
 
   note on memuse page
-
-- do much fancier profiling with timing on all locks saved in memory and
-  dumped on exit
 
 - use the webp advanced encoding api to set a write function for webp save to
   file

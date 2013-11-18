@@ -93,7 +93,16 @@ G_DEFINE_ABSTRACT_TYPE( VipsOperation, vips_operation, VIPS_TYPE_OBJECT );
 static void
 vips_operation_finalize( GObject *gobject )
 {
+	VipsOperation *operation = VIPS_OPERATION( gobject );
+
 	VIPS_DEBUG_MSG( "vips_operation_finalize: %p\n", gobject );
+
+	if( operation->pixels ) {
+		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gobject );
+
+		vips_info( class->nickname, 
+			_( "%d pixels calculated" ), operation->pixels ); 
+	}
 
 	G_OBJECT_CLASS( vips_operation_parent_class )->finalize( gobject );
 }

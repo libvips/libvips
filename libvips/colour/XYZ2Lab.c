@@ -57,6 +57,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pcolour.h"
 
@@ -106,26 +107,24 @@ table_init( void *client )
 	return( NULL );
 }
 
-static void
-vips_XYZ2Lab_make_tables( void )
-{
-	static GOnce once = G_ONCE_INIT;
-
-	(void) g_once( &once, table_init, NULL );
-}
-
 /* Process a buffer of data.
  */
 static void
 vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	VipsXYZ2Lab *XYZ2Lab = (VipsXYZ2Lab *) colour;
 	float *p = (float *) in[0];
 	float *q = (float *) out;
 
 	int x;
 
-        vips_XYZ2Lab_make_tables();
+	(void) g_once( &once, table_init, NULL );
+
+	g_mutex_lock( vips__global_lock );
+	VIPS_OPERATION( colour )->pixels += width;
+	g_mutex_unlock( vips__global_lock );
 
 	for( x = 0; x < width; x++ ) {
 		float nX, nY, nZ;

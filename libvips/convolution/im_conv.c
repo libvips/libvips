@@ -199,9 +199,14 @@ static int
 conv_evalstart( Conv *conv )
 {
 	/* Reset underflow/overflow count.
-	 */
+	 *
+	 * This often doesn't get called until eval has already finished, so
+	 * resetting here just wipes all records. 
+	 *
 	conv->overflow = 0;
 	conv->underflow = 0;
+	 *
+	 */
 
         return( 0 );
 }
@@ -209,12 +214,12 @@ conv_evalstart( Conv *conv )
 static int
 conv_evalend( Conv *conv )
 {
-	/* Print underflow/overflow count.
-	 */
-	if( conv->overflow || conv->underflow )
-		im_warn( "im_conv", 
-			_( "%d overflows and %d underflows detected" ),
-			conv->overflow, conv->underflow );
+	if( conv->overflow ) 
+		vips_info( "im_conv", 
+			_( "%d overflows detected" ), conv->overflow ); 
+	if( conv->underflow )
+		vips_info( "im_conv", 
+			_( "%d underflows detected" ), conv->underflow );
 
         return( 0 );
 }
