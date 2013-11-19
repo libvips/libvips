@@ -24,6 +24,7 @@
 - add --strip option to jpegsave
 - added vips_gaussblur() convenience function
 - added --vips-profile, records and dumps thread timing info 
+- added vipsprofile.py, visualises --vips-profile output
 
 15/11/13	started 7.36.4
 - improve compat with im_init_world()

@@ -1,3 +1,8 @@
+- seen some leaks from 
+
+	vips dzsave --layout google wtc.jpg x
+
+  investigate
 
 - parse and graph vips-profile data 
 
