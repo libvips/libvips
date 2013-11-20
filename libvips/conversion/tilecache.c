@@ -899,7 +899,12 @@ vips_line_cache_build( VipsObject *object )
 	block_cache->access = cache->access; 
 
 	if( cache->access == VIPS_ACCESS_SEQUENTIAL_UNBUFFERED )
-		block_cache->max_tiles = 1; 
+		/* A tile per thread. 
+		 *
+		 * Imagine scanline tiles and four threads. And add a bit for
+		 * slop. 
+		 */
+		block_cache->max_tiles = 2 * vips_concurrency_get();
 	else { 
 		/* Enough lines for two complete buffers would be exactly 
 		 * right. Make it 3 to give us some slop room. 
