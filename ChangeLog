@@ -26,6 +26,7 @@
 
 20/11/13	started 7.36.5
 - better cache sizing in unbuffered sequential mode
+- allow larger tile_size in dzsave
 
 15/11/13	started 7.36.4
 - improve compat with im_init_world()
