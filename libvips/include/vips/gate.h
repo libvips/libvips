@@ -37,36 +37,6 @@ extern "C" {
 
 #include <vips/vips.h>
 
-#define VIPS_GATE_SIZE (10000)
-
-/* A set of timing records. i is the index of the next slot we fill. 
- */
-typedef struct _VipsThreadGateBlock {
-	struct _VipsThreadGateBlock *prev;
-
-	gint64 time[VIPS_GATE_SIZE];
-	int i;
-} VipsThreadGateBlock; 
-
-/* What we track for each gate-name.
- */
-typedef struct _VipsThreadGate {
-	const char *name;
-	VipsThreadGateBlock *start;
-	VipsThreadGateBlock *stop;
-} VipsThreadGate; 
-
-/* One of these in per-thread private storage. 
- */
-
-typedef struct _VipsThreadProfile {
-	/*< private >*/
-
-	const char *name;
-	GThread *thread;
-	GHashTable *gates;
-} VipsThreadProfile; 
-
 #define VIPS_GATE_START( NAME ) \
 G_STMT_START { \
 	if( vips__thread_profile ) \

@@ -31,24 +31,25 @@ def read_times(rf):
         match = re.match('[0-9]+ ', rf.line)
         if not match:
             break
-        times.append([int(x) for x in re.split(' ', rf.line.rstrip())])
+        times += [int(x) for x in re.split(' ', rf.line.rstrip())]
         rf.getnext()
 
     return times[::-1]
 
 class Event:
-    def __init__(self, thread_name, thread_addr, gate_name, start, end):
+    def __init__(self, thread_name, thread_addr, gate_name, start, stop):
         self.thread_name = thread_name
         self.thread_addr = thread_addr
         self.gate_name = gate_name
         self.start = start
-        self.end = end
+        self.stop = stop
 
         if re.match(': work', gate_name):
             self.work = True
         if re.match(': wait', gate_name):
             self.wait = True
 
+events = []
 with ReadFile('vips-profile.txt') as rf:
     while rf:
         match = re.match('thread: (.*) \(0x([0-9a-f]+)\)', rf.line)
@@ -81,3 +82,11 @@ with ReadFile('vips-profile.txt') as rf:
 
             if len(start) != len(stop):
                 print 'start and stop length mismatch'
+
+            for a, b in zip(start, stop):
+                event = Event(thread_name, thread_addr, gate_name, a, b)
+                events.append(event)
+
+events.sort(lambda x, y: cmp(x.start, y.start))
+
+print 'loaded %d events' % len(events)
