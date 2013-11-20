@@ -46,6 +46,7 @@
  */
 
 /*
+#define VIPS_DEBUG_GREEN
 #define VIPS_DEBUG
  */
 
@@ -120,7 +121,7 @@ vips_sequential_generate( VipsRegion *or,
         VipsRect *r = &or->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
-	VIPS_DEBUG_MSG( "thread %p request for line %d, height %d\n", 
+	VIPS_DEBUG_MSG_GREEN( "thread %p request for line %d, height %d\n", 
 		g_thread_self(), r->top, r->height );
 
 	if( sequential->trace )
@@ -130,7 +131,7 @@ vips_sequential_generate( VipsRegion *or,
 
 	g_mutex_lock( sequential->lock );
 
-	VIPS_DEBUG_MSG( "thread %p has lock ...\n", g_thread_self() ); 
+	VIPS_DEBUG_MSG_GREEN( "thread %p has lock ...\n", g_thread_self() ); 
 
 	/* If we've seen an error, everything must stop.
 	 */
@@ -163,7 +164,7 @@ vips_sequential_generate( VipsRegion *or,
 		g_time_val_add( &time, STALL_TIME * 1000000 );
 #endif
 
-		VIPS_DEBUG_MSG( "thread %p stalling for up to %gs ...\n", 
+		VIPS_DEBUG_MSG_GREEN( "thread %p stalling for up to %gs ...\n", 
 			g_thread_self(), STALL_TIME ); 
 
 		/* Exit the loop on timeout or condition passes. We have to
@@ -180,7 +181,7 @@ vips_sequential_generate( VipsRegion *or,
 				break;
 #endif
 
-		VIPS_DEBUG_MSG( "thread %p awake again ...\n", 
+		VIPS_DEBUG_MSG_GREEN( "thread %p awake again ...\n", 
 			g_thread_self() ); 
 	}
 
@@ -194,7 +195,7 @@ vips_sequential_generate( VipsRegion *or,
 		 */
 		VipsRect area;
 
-		VIPS_DEBUG_MSG( "thread %p skipping to line %d ...\n", 
+		VIPS_DEBUG_MSG_GREEN( "thread %p skipping to line %d ...\n", 
 			g_thread_self(),
 			r->top );
 
@@ -217,7 +218,7 @@ vips_sequential_generate( VipsRegion *or,
 	/* This is a request for old or present pixels -- serve from cache.
 	 * This may trigger further, sequential reads.
 	 */
-	VIPS_DEBUG_MSG( "thread %p reading ...\n", g_thread_self() ); 
+	VIPS_DEBUG_MSG_GREEN( "thread %p reading ...\n", g_thread_self() ); 
 	if( vips_region_prepare( ir, r ) ||
 		vips_region_region( or, ir, r, r->left, r->top ) ) {
 		VIPS_DEBUG_MSG( "thread %p error, unlocking ...\n", 
@@ -234,7 +235,7 @@ vips_sequential_generate( VipsRegion *or,
 		 */
 		sequential->y_pos = VIPS_RECT_BOTTOM( r );
 
-		VIPS_DEBUG_MSG( "thread %p updating y_pos to %d and "
+		VIPS_DEBUG_MSG_GREEN( "thread %p updating y_pos to %d and "
 			"waking stalled\n", 
 			g_thread_self(),
 			sequential->y_pos ); 
@@ -242,7 +243,7 @@ vips_sequential_generate( VipsRegion *or,
 		g_cond_broadcast( sequential->ready );
 	}
 
-	VIPS_DEBUG_MSG( "thread %p unlocking ...\n", g_thread_self() ); 
+	VIPS_DEBUG_MSG_GREEN( "thread %p unlocking ...\n", g_thread_self() ); 
 
 	g_mutex_unlock( sequential->lock );
 
