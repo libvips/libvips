@@ -260,7 +260,7 @@ double scale1, angle1, dx1, dy1;
         		}
 
 			if( ( inp[curr_im]->Xsize < xoff ) || ( inp[curr_im+1]->Xsize < xoff ) ||
-			    ( inp[curr_im]->Ysize < yoff ) || ( inp[curr_im]->Ysize < yoff) ){
+			    ( inp[curr_im]->Ysize < yoff ) || ( inp[curr_im+1]->Ysize < yoff) ){
 				++curr_disp_x;
 				hxdisp[curr_disp_x] = 0;
 				hydisp[curr_disp_x] = 0;
