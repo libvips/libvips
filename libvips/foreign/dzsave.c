@@ -1433,7 +1433,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Tile size in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
-		1, 1024, 256 );
+		1, 8192, 256 );
 
 	VIPS_ARG_BOXED( class, "background", 12, 
 		_( "Background" ), 
@@ -1486,14 +1486,14 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Tile width in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
-		1, 1024, 256 );
+		1, 8192, 256 );
 
 	VIPS_ARG_INT( class, "tile_height", 12, 
 		_( "Tile height" ), 
 		_( "Tile height in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
-		1, 1024, 256 );
+		1, 8192, 256 );
 
 }
 
