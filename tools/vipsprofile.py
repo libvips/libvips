@@ -1,6 +1,10 @@
 #!/usr/bin/python
 
 import re
+import math
+import cairo
+
+WIDTH, HEIGHT = 256, 256
 
 class ReadFile:
     def __init__(self, filename):
@@ -37,9 +41,8 @@ def read_times(rf):
     return times[::-1]
 
 class Event:
-    def __init__(self, thread_name, thread_addr, gate_name, start, stop):
+    def __init__(self, thread_name, gate_name, start, stop):
         self.thread_name = thread_name
-        self.thread_addr = thread_addr
         self.gate_name = gate_name
         self.start = start
         self.stop = stop
@@ -50,13 +53,14 @@ class Event:
             self.wait = True
 
 events = []
+thread_id = 0
 with ReadFile('vips-profile.txt') as rf:
     while rf:
-        match = re.match('thread: (.*) \(0x([0-9a-f]+)\)', rf.line)
+        match = re.match('thread: (.*)', rf.line)
         if not match:
             print 'parse error line %d, expected "thread"' % rf.lineno
-        thread_name = match.group(1)
-        thread_addr = match.group(2)
+        thread_name = match.group(1) + " " + str(thread_id)
+        thread_id += 1
         rf.getnext()
 
         while True:
@@ -84,9 +88,54 @@ with ReadFile('vips-profile.txt') as rf:
                 print 'start and stop length mismatch'
 
             for a, b in zip(start, stop):
-                event = Event(thread_name, thread_addr, gate_name, a, b)
+                event = Event(thread_name, gate_name, a, b)
                 events.append(event)
 
 events.sort(lambda x, y: cmp(x.start, y.start))
 
 print 'loaded %d events' % len(events)
+
+# normalise time axis to secs of computation
+ticks_per_sec = 1000000.0
+start_time = events[0].start
+for event in events:
+    event.start = (event.start - start_time) / ticks_per_sec
+    event.stop = (event.stop - start_time) / ticks_per_sec
+last_time = events[-1].stop
+print 'last time =', last_time
+
+# within each thread, allocate a Y position
+threads = []
+for event in events:
+    if not event.thread_name in threads:
+        threads.append(event.thread_name)
+
+
+
+
+surface = cairo.ImageSurface (cairo.FORMAT_ARGB32, WIDTH, HEIGHT)
+ctx = cairo.Context (surface)
+
+ctx.scale (WIDTH, HEIGHT) # Normalizing the canvas
+
+pat = cairo.LinearGradient (0.0, 0.0, 0.0, 1.0)
+pat.add_color_stop_rgba (1, 0.7, 0, 0, 0.5) # First stop, 50% opacity
+pat.add_color_stop_rgba (0, 0.9, 0.7, 0.2, 1) # Last stop, 100% opacity
+
+ctx.rectangle (0, 0, 1, 1) # Rectangle(x0, y0, x1, y1)
+ctx.set_source (pat)
+ctx.fill ()
+
+ctx.translate (0.1, 0.1) # Changing the current transformation matrix
+
+ctx.move_to (0, 0)
+ctx.arc (0.2, 0.1, 0.1, -math.pi/2, 0) # Arc(cx, cy, radius, start_angle, stop_angle)
+ctx.line_to (0.5, 0.1) # Line to (x,y)
+ctx.curve_to (0.5, 0.2, 0.5, 0.4, 0.2, 0.8) # Curve(x1, y1, x2, y2, x3, y3)
+ctx.close_path ()
+
+ctx.set_source_rgb (0.3, 0.2, 0.5) # Solid color
+ctx.set_line_width (0.02)
+ctx.stroke ()
+
+surface.write_to_png ("example.png") # Output to PNG
