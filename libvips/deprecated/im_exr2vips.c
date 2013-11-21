@@ -74,7 +74,8 @@ exr_flags( const char *name )
 
 	im_filename_split( name, filename, mode );
 
-	return( vips_foreign_flags( "openexrload", filename ) );
+	return( (VipsFormatFlags) 
+		vips_foreign_flags( "openexrload", filename ) );
 }
 
 static int

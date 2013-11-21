@@ -67,7 +67,7 @@ G_DEFINE_TYPE( VipsForeignLoadPpm, vips_foreign_load_ppm,
 static VipsForeignFlags
 vips_foreign_load_ppm_get_flags_filename( const char *filename )
 {
-	return( vips__ppm_flags( filename ) );
+	return( (VipsForeignFlags) vips__ppm_flags( filename ) );
 }
 
 static VipsForeignFlags

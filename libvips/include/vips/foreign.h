@@ -86,12 +86,15 @@ void *vips_foreign_map( const char *base,
 	VipsSListMap2Fn fn, void *a, void *b );
 
 /* Image file load properties. 
+ *
+ * Keep in sync with the deprecated VipsFormatFlags, we need to be able to
+ * cast between them.
  */
 typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_NONE = 0,		/* No flags set */
 	VIPS_FOREIGN_PARTIAL = 1,	/* Lazy read OK (eg. tiled tiff) */
-	VIPS_FOREIGN_SEQUENTIAL = 2,	/* Top-to-bottom lazy read OK */
-	VIPS_FOREIGN_BIGENDIAN = 4,	/* Most-significant byte first */
+	VIPS_FOREIGN_BIGENDIAN = 2,	/* Most-significant byte first */
+	VIPS_FOREIGN_SEQUENTIAL = 4,	/* Top-to-bottom lazy read OK */
 	VIPS_FOREIGN_ALL = 7		/* All flags set */
 } VipsForeignFlags;
 

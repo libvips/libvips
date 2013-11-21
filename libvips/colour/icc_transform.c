@@ -635,7 +635,7 @@ vips_icc_export_build( VipsObject *object )
 	if( !vips_object_argument_isset( object, "pcs" ) &&
 		code->in &&
 		code->in->Type == VIPS_INTERPRETATION_XYZ )  
-		icc->pcs = VIPS_INTERPRETATION_XYZ; 
+		icc->pcs = VIPS_PCS_XYZ; 
 
 	if( icc->pcs == VIPS_PCS_LAB ) { 
 #ifdef HAVE_LCMS2

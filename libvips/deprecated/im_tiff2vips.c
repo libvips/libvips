@@ -132,7 +132,8 @@ tiff_flags( const char *name )
 
 	im_filename_split( name, filename, mode );
 
-	return( vips_foreign_flags( "tiffload", filename ) );
+	return( (VipsFormatFlags)
+		vips_foreign_flags( "tiffload", filename ) );
 }
 
 static int
