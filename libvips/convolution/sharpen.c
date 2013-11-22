@@ -295,6 +295,7 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -302,6 +303,8 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 	object_class->nickname = "sharpen";
 	object_class->description = _( "Unsharp masking for print" );
 	object_class->build = vips_sharpen_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
