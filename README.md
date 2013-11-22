@@ -56,8 +56,9 @@ Clang build:
 
 Clang static analysis:
 
-	$ CC=... scan-build ./configure ...
+	$ scan-build ./configure --disable-introspection
 	$ scan-build -o scan -v make 
+	$ scan-view scan/2013-11-22-2
 
 Clang dynamic analysis:
 

@@ -236,7 +236,6 @@ vips_rot45_build( VipsObject *object )
 
 	case VIPS_ANGLE45_45:
 		vips_rot45_rot45( t[0], from );
-		from = t[0];
 		break;
 
 	default:

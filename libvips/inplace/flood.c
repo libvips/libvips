@@ -127,10 +127,9 @@ typedef struct {
 static Buffer *
 buffer_build( void )
 {
-	Buffer *buf = IM_NEW( NULL, Buffer );
+	Buffer *buf;
 
-	if( !buf )
-		return( NULL );
+	buf = g_new( Buffer, 1 );
 	buf->next = NULL;
 	buf->n = 0;
 
@@ -146,7 +145,7 @@ buffer_free( Buffer *buf )
 		Buffer *p;
 
 		p = buf->next;
-		im_free( buf );
+		g_free( buf );
 		buf = p;
 	}
 }
@@ -175,8 +174,7 @@ buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
 	if( buf->n == PBUFSIZE ) { 
 		Buffer *new;
 
-		if( !(new = buffer_build()) ) 
-			return( NULL ); 
+		new = buffer_build();
 		new->next = buf;
 		buf = new;
 	} 
@@ -382,13 +380,10 @@ flood_new( IMAGE *image, IMAGE *test, int x, int y, VipsPel *ink, Rect *dout )
 	flood->top = y;
 	flood->right = x;
 	flood->bottom = y;
+	flood->in = buffer_build();
+	flood->out = buffer_build();
 
-	flood->in = NULL;
-	flood->out = NULL;
-
-	if( !(flood->edge = (VipsPel *) im_malloc( NULL, flood->tsize )) ||
-		!(flood->in = buffer_build()) ||
-		!(flood->out = buffer_build()) ) {
+	if( !(flood->edge = (VipsPel *) im_malloc( NULL, flood->tsize )) ) {
 		flood_free( flood );
 		return( NULL );
 	}

@@ -225,7 +225,6 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 		VIPS_DEBUG_MSG( "%d) %lld\n", i, fits->naxes[i] );
 #endif /*VIPS_DEBUG*/
 
-	width = 1;
 	height = 1;
 	bands = 1;
 	switch( fits->naxis ) {

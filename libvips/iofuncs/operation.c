@@ -555,6 +555,9 @@ vips_call_required_optional( VipsOperation **operation,
 	va_end( a );
 	va_end( b );
 
+	if( result )
+		return( -1 );
+
 	/* Build from cache.
 	 */
 	if( vips_cache_operation_buildp( operation ) )
