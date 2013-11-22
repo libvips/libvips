@@ -50,6 +50,31 @@ Leak check:
 		--leak-check=yes \
 		vips ... > vips-vg.log 2>&1
 
+Clang build:
+
+	$ CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
+
+Clang dynamic analysis:
+
+	$ CC=clang CXX=clang++ LD=clang \
+		CCFLAGS="-O1 -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
+		CXXFLAGS="-O1 -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
+		LDFLAGS=-fsanitize=address \
+		./configure --prefix=/home/john/vips --disable-introspection
+
+	$ CC=clang CXX=clang++ LD=clang \
+		CCFLAGS="-O1 -fsanitize=thread -fPIC -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
+		CXXFLAGS="-O1 -fsanitize=thread -fPIC -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
+		LDFLAGS="-fsanitize=thread -pie" \
+		./configure --prefix=/home/john/vips --disable-introspection
+
+Clang static analysis:
+
+	$ configure as you please
+	$ scan-build -o scan make ...
+
+
+
 # Dependencies 
 
 libvips has to have gettext, glib-2.x and libxml-2.0. The build system needs 
