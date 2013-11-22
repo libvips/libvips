@@ -54,6 +54,11 @@ Clang build:
 
 	$ CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
 
+Clang static analysis:
+
+	$ CC=... scan-build ./configure ...
+	$ scan-build -o scan -v make 
+
 Clang dynamic analysis:
 
 	$ CC=clang CXX=clang++ LD=clang \
@@ -67,13 +72,6 @@ Clang dynamic analysis:
 		CXXFLAGS="-O1 -fsanitize=thread -fPIC -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
 		LDFLAGS="-fsanitize=thread -pie" \
 		./configure --prefix=/home/john/vips --disable-introspection
-
-Clang static analysis:
-
-	$ configure as you please
-	$ scan-build -o scan make ...
-
-
 
 # Dependencies 
 
