@@ -71,7 +71,7 @@ Clang dynamic analysis:
 	$ CC=clang CXX=clang++ LD=clang \
 		CCFLAGS="-O1 -fsanitize=thread -fPIC -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
 		CXXFLAGS="-O1 -fsanitize=thread -fPIC -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
-		LDFLAGS="-fsanitize=thread -pie" \
+		LDFLAGS="-fsanitize=thread -fPIC -pie" \
 		./configure --prefix=/home/john/vips --disable-introspection
 
 # Dependencies 
