@@ -63,14 +63,14 @@ Clang static analysis:
 Clang dynamic analysis:
 
 	$ CC=clang CXX=clang++ LD=clang \
-		CCFLAGS="-O1 -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
+		CFLAGS="-O1 -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
 		CXXFLAGS="-O1 -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
 		LDFLAGS=-fsanitize=address \
 		./configure --prefix=/home/john/vips --disable-introspection
 
 	$ CC=clang CXX=clang++ LD=clang \
-		CCFLAGS="-O1 -fsanitize=thread -fPIC -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
-		CXXFLAGS="-O1 -fsanitize=thread -fPIC -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
+		CFLAGS="-g -O1 -fsanitize=thread -fPIC -pie -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
+		CXXFLAGS="-g -O1 -fsanitize=thread -fPIC -pie -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
 		LDFLAGS="-fsanitize=thread -fPIC -pie" \
 		./configure --prefix=/home/john/vips --disable-introspection
 
