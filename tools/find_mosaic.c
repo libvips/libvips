@@ -132,11 +132,13 @@ char *name;
 /* Find the x position of a file name (extract n from <root>.nxm.v).
  */
 static int
-find_x( name )
-char *name;
-{	int n;
+find_x( char *name )
+{
+	int n;
 	char *p;
-	char *out = strdup( name );
+	char *out;
+
+	out = strdup( name );
 
 	/* Chop off '.v'.
 	 */
@@ -166,17 +168,21 @@ char *name;
 		return( -1 );
 	}
 
+	free( out );
+
 	return( n );
 }
 
 /* Find the y position of a file name (extract m from <root>.nxm.v).
  */
 static int
-find_y( name )
-char *name;
-{	int m;
+find_y( char *name )
+{
+	int m;
 	char *p;
-	char *out = strdup( name );
+	char *out;
+
+	out = strdup( name );
 
 	/* Chop off '.v'.
 	 */
@@ -207,11 +213,9 @@ char *name;
 	}
 
 	free( out );
+
 	return( m );
 }
-
-
- 
 
 static int
 mosaic_analysis(int width, int height,IMAGE **inp, IMAGE *out, 
@@ -260,7 +264,7 @@ double scale1, angle1, dx1, dy1;
         		}
 
 			if( ( inp[curr_im]->Xsize < xoff ) || ( inp[curr_im+1]->Xsize < xoff ) ||
-			    ( inp[curr_im]->Ysize < yoff ) || ( inp[curr_im]->Ysize < yoff) ){
+			    ( inp[curr_im]->Ysize < yoff ) || ( inp[curr_im+1]->Ysize < yoff) ){
 				++curr_disp_x;
 				hxdisp[curr_disp_x] = 0;
 				hydisp[curr_disp_x] = 0;

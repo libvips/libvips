@@ -183,7 +183,7 @@ read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
 	if( ch == '"' ) {
 		(void) fgetc( fp );
 		(void) skip_to_quote( fp );
-		ch = fgetc( fp );
+		(void) fgetc( fp );
 	}
 	else if( !sepmap[ch] && 
 		fscanf( fp, "%lf", out ) != 1 ) {
@@ -196,7 +196,7 @@ read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
 
 		/* Step over the bad data to the next separator.
 		 */
-		ch = skip_to_sep( fp, sepmap );
+		(void) skip_to_sep( fp, sepmap );
 	}
 
 	/* Don't need to check result, we have read a field successfully.

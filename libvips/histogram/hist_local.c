@@ -93,7 +93,8 @@ vips_hist_local_stop( void *vseq, void *a, void *b )
 	VipsImage *in = (VipsImage *) a;
 
 	VIPS_UNREF( seq->ir );
-	if( seq->hist ) {
+	if( seq->hist &&
+		in ) {
 		int i; 
 
 		for( i = 0; i < in->Bands; i++ )

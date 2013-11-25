@@ -879,9 +879,9 @@ vips_image_build( VipsObject *object )
                 break;
 
 	case 'a':
-		/* Check parameters.
+		/* Ban crazy numbers. 
 		 */
-		if( image->sizeof_header < 0 ) {
+		if( image->sizeof_header > 1000000 ) {
 			vips_error( "VipsImage", "%s", _( "bad parameters" ) );
 			return( -1 );
 		}

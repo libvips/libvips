@@ -104,6 +104,7 @@ vips_convolution_class_init( VipsConvolutionClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -111,6 +112,8 @@ vips_convolution_class_init( VipsConvolutionClass *class )
 	vobject_class->nickname = "convolution";
 	vobject_class->description = _( "convolution operations" );
 	vobject_class->build = vips_convolution_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	/* Inputs set by subclassess.
 	 */

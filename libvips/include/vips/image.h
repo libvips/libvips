@@ -235,7 +235,7 @@ typedef struct _VipsImage {
 	 * file start. Usually VIPS_SIZEOF_HEADER, but can be something else
 	 * for binary file read.
 	 *
-	 * gint64 so that we can guarantee to work even on systems with
+	 * guint64 so that we can guarantee to work even on systems with
 	 * strange ideas about large files.
 	 */
 	guint64 sizeof_header;

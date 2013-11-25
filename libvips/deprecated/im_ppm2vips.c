@@ -63,7 +63,8 @@ isppm( const char *filename )
 static VipsFormatFlags
 ppm_flags( const char *filename )
 {
-	return( vips_foreign_flags( "ppmload", filename ) );
+	return( (VipsFormatFlags)
+		vips_foreign_flags( "ppmload", filename ) );
 }
 
 static const char *ppm_suffs[] = { ".ppm", ".pgm", ".pbm", ".pfm", NULL };

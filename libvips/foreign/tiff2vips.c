@@ -1424,8 +1424,11 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 
 	/* rows_per_strip can be 2 ** 32 - 1, meaning the whole image. Clip 
 	 * this down to ysize to avoid confusing vips. 
+	 *
+	 * And it musn't be zero.
 	 */
-	rtiff->rows_per_strip = VIPS_MIN( rtiff->rows_per_strip, t[0]->Ysize );
+	rtiff->rows_per_strip = 
+		VIPS_CLIP( 1, rtiff->rows_per_strip, t[0]->Ysize );
 
 #ifdef DEBUG
 	printf( "read_stripwise: rows_per_strip = %u\n", 

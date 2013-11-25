@@ -258,11 +258,13 @@ char *name;
 /* Find the x position of a file name (extract n from <root>.nxm.v).
  */
 static int
-find_x( name )
-char *name;
-{	int n;
+find_x( char *name )
+{
+	int n;
 	char *p;
-	char *out = strdup( name );
+	char *out;
+
+	out = strdup( name );
 
 	/* Chop off '.v'.
 	 */
@@ -292,17 +294,21 @@ char *name;
 		return( -1 );
 	}
 
+	free( out );
+
 	return( n );
 }
 
 /* Find the y position of a file name (extract m from <root>.nxm.v).
  */
 static int
-find_y( name )
-char *name;
-{	int m;
+find_y( char *name )
+{
+	int m;
 	char *p;
-	char *out = strdup( name );
+	char *out;
+
+	out = strdup( name );
 
 	/* Chop off '.v'.
 	 */
@@ -333,14 +339,10 @@ char *name;
 	}
 
 	free( out );
+
 	return( m );
 }
 
-
-
-
-
- 
 /* Join two frames left-right. Have to open them and find their sizes.
  */
 static int

@@ -1190,7 +1190,7 @@ write_tif_stripwise( TiffWrite *tw )
 static void
 delete_files( TiffWrite *tw )
 {
-	PyramidLayer *layer = tw->layer;
+	PyramidLayer *layer;
 
 	if( tw->bname ) {
 #ifndef DEBUG

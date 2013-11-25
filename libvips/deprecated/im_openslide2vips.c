@@ -110,7 +110,8 @@ openslide_flags( const char *name )
 
 	im_filename_split( name, filename, mode );
 
-	return( vips_foreign_flags( "openslideload", filename ) );
+	return( (VipsFormatFlags) 
+		vips_foreign_flags( "openslideload", filename ) );
 }
 
 static int

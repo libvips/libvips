@@ -172,7 +172,7 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 	seq->underflow = 0;
 
 	if( !seq->ir ) {
-		vips_cast_stop( seq, NULL, NULL );
+		vips_cast_stop( seq, a, b );
 		return( NULL );
 	}
 

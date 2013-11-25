@@ -1,3 +1,4 @@
+scan
 po/*.pot
 test-driver
 vips-*.tar.gz

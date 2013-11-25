@@ -102,6 +102,7 @@ vips_gaussblur_class_init( VipsGaussblurClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -109,6 +110,8 @@ vips_gaussblur_class_init( VipsGaussblurClass *class )
 	object_class->nickname = "gaussblur";
 	object_class->description = _( "Unsharp masking for print" );
 	object_class->build = vips_gaussblur_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

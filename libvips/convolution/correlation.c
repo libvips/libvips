@@ -131,6 +131,7 @@ vips_correlation_class_init( VipsCorrelationClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -138,6 +139,8 @@ vips_correlation_class_init( VipsCorrelationClass *class )
 	object_class->nickname = "correlation";
 	object_class->description = _( "correlation operation" );
 	object_class->build = vips_correlation_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
