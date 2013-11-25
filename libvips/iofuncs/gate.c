@@ -114,7 +114,6 @@ vips_thread_profile_save( VipsThreadProfile *profile, FILE *fp )
 	g_mutex_unlock( vips__global_lock );
 }
 
-
 static void
 vips_thread_profile_free( VipsThreadProfile *profile )
 {
@@ -193,6 +192,21 @@ static VipsThreadProfile *
 vips_thread_profile_get( void )
 {
 	return( g_private_get( vips_thread_profile_key ) ); 
+}
+
+/* This usually happens automatically when a thread shuts down, see 
+ * vips__thread_profile_init() where we set a GDestroyNotify, but will not
+ * happen for the main thread. 
+ *
+ * Shut down any stats on the main thread with this, see vips_shutdown()
+ */
+void
+vips__thread_profile_detach( void ) 
+{
+	VipsThreadProfile *profile;
+
+	if( (profile = vips_thread_profile_get()) )
+		vips_thread_profile_free( profile );
 }
 
 static VipsThreadGate *

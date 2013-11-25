@@ -219,6 +219,9 @@ vips__init( const char *argv0 )
 	g_set_prgname( prgname );
 	g_free( prgname );
 
+	vips__thread_profile_attach( "main" );
+	VIPS_GATE_START( "main" ); 
+
 	/* Try to discover our prefix. 
 	 */
 	if( !(prefix = vips_guess_prefix( argv0, "VIPSHOME" )) || 
@@ -374,7 +377,8 @@ vips_shutdown( void )
 
 	im_close_plugins();
 
-	vips__thread_profile_stop();
+	VIPS_GATE_STOP( "main" ); 
+	vips__thread_profile_detach();
 
 	/* In dev releases, always show leaks. But not more than once, it's
 	 * annoying.

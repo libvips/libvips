@@ -10,21 +10,19 @@ class ReadFile:
 
     def __enter__(self):
         self.f = open(self.filename, 'r') 
-        self.source = iter(self.f.readline, '')
         self.lineno = 0
         self.getnext();
         return self
 
     def __exit__(self, type, value, traceback):
         self.f.close()
-        return isinstance(value, StopIteration)
 
     def __nonzero__(self):
         return self.line != ""
 
     def getnext(self):
         self.lineno += 1
-        self.line = self.source.next()
+        self.line = self.f.readline()
 
 def read_times(rf):
     times = []
@@ -56,18 +54,29 @@ class Event:
 
         self.work = False
         self.wait = False
-        if re.match('.*: .*work.*', gate_name):
+        if re.match('.*?: .*work.*', gate_name):
             self.work = True
-        if re.match('.*: .*wait.*', gate_name):
+        if re.match('.*?: .*wait.*', gate_name):
             self.wait = True
 
         thread.events.append(self)
 
+
+input_filename = 'vips-profile.txt'
+
 thread_id = 0
 threads = []
 n_events = 0
-with ReadFile('vips-profile.txt') as rf:
+print 'reading from', input_filename
+with ReadFile(input_filename) as rf:
     while rf:
+        if rf.line.rstrip() == "":
+            rf.getnext()
+            continue
+        if rf.line[0] == "#":
+            rf.getnext()
+            continue
+
         match = re.match('thread: (.*)', rf.line)
         if not match:
             print 'parse error line %d, expected "thread"' % rf.lineno
@@ -82,6 +91,9 @@ with ReadFile('vips-profile.txt') as rf:
             if not match:
                 break
             gate_name = match.group(1)
+            match = re.match('vips_(.*)', gate_name)
+            if match:
+                gate_name = match.group(1)
             rf.getnext()
 
             match = re.match('start:', rf.line)
@@ -145,58 +157,79 @@ def is_overlap(events, gate_name1, gate_name2):
 # allocate a y position for each gate
 total_y = 0
 for thread in threads:
+    thread.total_y = total_y
+
     y = 1
     gate_positions = {}
     for event in thread.events:
         if event.work or event.wait:
             gate_positions[event.gate_name] = 0
         elif not event.gate_name in gate_positions:
-            overlap = True
+            no_overlap = False
             for gate_name in gate_positions:
                 if not is_overlap(thread.events, gate_name, event.gate_name):
                     gate_positions[event.gate_name] = gate_positions[gate_name]
-                    overlap = False
+                    no_overlap = True
                     break
 
-            if overlap:
+            if not no_overlap:
                 gate_positions[event.gate_name] = y
                 y += 1
 
         event.y = gate_positions[event.gate_name]
-        event.total_y = total_y + y
+        event.total_y = total_y + event.y
 
     total_y += y
 
 PIXELS_PER_SECOND = 1000
 PIXELS_PER_GATE = 20
-WIDTH = int(last_time * PIXELS_PER_SECOND) + 100
-HEIGHT = int(total_y * PIXELS_PER_GATE) + 100
+LEFT_BORDER = 320
+BAR_HEIGHT = 5
+WIDTH = int(LEFT_BORDER + last_time * PIXELS_PER_SECOND)
+HEIGHT = int((total_y + 1) * PIXELS_PER_GATE)
 
-surface = cairo.ImageSurface (cairo.FORMAT_ARGB32, WIDTH, HEIGHT)
-ctx = cairo.Context (surface)
+surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, WIDTH + 50, HEIGHT)
+ctx = cairo.Context(surface)
+ctx.select_font_face('Sans')
+ctx.set_font_size(15)
 
-ctx.scale (PIXELS_PER_SECOND, PIXELS_PER_GATE) 
+def draw_event(ctx, event):
+    left = event.start * PIXELS_PER_SECOND + LEFT_BORDER
+    top = event.total_y * PIXELS_PER_GATE 
+    width = (event.stop - event.start) * PIXELS_PER_SECOND - 1
+    height = BAR_HEIGHT
+
+    ctx.rectangle(left, top, width, height)
+
+    if event.wait:
+        ctx.set_source_rgb(0.9, 0.1, 0.1)
+    elif event.work:
+        ctx.set_source_rgb(0.1, 0.9, 0.1)
+    else:
+        ctx.set_source_rgb(0.1, 0.1, 0.9)
+
+    ctx.fill()
+
+    if not event.wait and not event.work:
+        xbearing, ybearing, twidth, theight, xadvance, yadvance = \
+                ctx.text_extents(event.gate_name)
+
+        ctx.move_to(left + width / 2 - twidth / 2, top + theight)
+        ctx.set_source_rgb(1.00, 0.83, 0.00)
+        ctx.show_text(event.gate_name)
+        ctx.stroke()
 
 for thread in threads:
+    xbearing, ybearing, twidth, theight, xadvance, yadvance = \
+            ctx.text_extents(thread.thread_name)
+    ctx.move_to(0, theight + thread.total_y * PIXELS_PER_GATE)
+    ctx.set_source_rgb(1.00, 1.00, 1.00)
+    ctx.show_text(thread.thread_name)
+    ctx.stroke()
+
     for event in thread.events:
-        ctx.move_to (event.start, event.total_y)
-        ctx.line_to (event.stop, event.total_y)
-        ctx.close_path ()
-        ctx.set_line_width (0.1)
+        draw_event(ctx, event)
 
-        if event.wait:
-            ctx.set_source_rgb (0.9, 0.1, 0.1)
-        elif event.work:
-            ctx.set_source_rgb (0.1, 0.9, 0.1)
-        else:
-            ctx.set_source_rgb (0.1, 0.1, 0.9)
-
-        ctx.stroke ()
-
-        ctx.select_font_face('Georgia')
-        ctx.set_font_size(0.9)
-        ctx.move_to(event.start, event.total_y + 0.5)
-        ctx.set_source_rgb(1, 1, 1)
-        ctx.show_text(event.gate_name)
-
-surface.write_to_png ("example.png") # Output to PNG
+output_filename = "example.png"
+print 'writing to', output_filename
+surface.write_to_png(output_filename) 
