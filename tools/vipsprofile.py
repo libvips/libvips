@@ -169,8 +169,8 @@ for thread in threads:
 
 PIXELS_PER_SECOND = 1000
 PIXELS_PER_GATE = 20
-WIDTH = int(last_time * PIXELS_PER_SECOND)
-HEIGHT = int(total_y * PIXELS_PER_GATE)
+WIDTH = int(last_time * PIXELS_PER_SECOND) + 100
+HEIGHT = int(total_y * PIXELS_PER_GATE) + 100
 
 surface = cairo.ImageSurface (cairo.FORMAT_ARGB32, WIDTH, HEIGHT)
 ctx = cairo.Context (surface)
@@ -182,7 +182,7 @@ for thread in threads:
         ctx.move_to (event.start, event.total_y)
         ctx.line_to (event.stop, event.total_y)
         ctx.close_path ()
-        ctx.set_line_width (0.5)
+        ctx.set_line_width (0.1)
 
         if event.wait:
             ctx.set_source_rgb (0.9, 0.1, 0.1)
@@ -192,5 +192,11 @@ for thread in threads:
             ctx.set_source_rgb (0.1, 0.1, 0.9)
 
         ctx.stroke ()
+
+        ctx.select_font_face('Georgia')
+        ctx.set_font_size(0.9)
+        ctx.move_to(event.start, event.total_y + 0.5)
+        ctx.set_source_rgb(1, 1, 1)
+        ctx.show_text(event.gate_name)
 
 surface.write_to_png ("example.png") # Output to PNG
