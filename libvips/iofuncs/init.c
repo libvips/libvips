@@ -220,7 +220,12 @@ vips__init( const char *argv0 )
 	g_free( prgname );
 
 	vips__thread_profile_attach( "main" );
-	VIPS_GATE_START( "main" ); 
+
+	/* We can't do VIPS_GATE_START() until command-line processing
+	 * happens, since vips__thread_profile may not be set yet. Call
+	 * directly. 
+	 */
+	vips__thread_gate_start( "main" ); 
 
 	/* Try to discover our prefix. 
 	 */
@@ -377,8 +382,17 @@ vips_shutdown( void )
 
 	im_close_plugins();
 
-	VIPS_GATE_STOP( "main" ); 
+	/* Mustn't run this more than once.
+	 */
+{
+	static gboolean done = FALSE;
+
+	if( !done ) 
+		VIPS_GATE_STOP( "main" ); 
+}
+
 	vips__thread_profile_detach();
+	vips__thread_profile_stop();
 
 	/* In dev releases, always show leaks. But not more than once, it's
 	 * annoying.

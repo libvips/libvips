@@ -61,7 +61,6 @@ class Event:
 
         thread.events.append(self)
 
-
 input_filename = 'vips-profile.txt'
 
 thread_id = 0
@@ -217,7 +216,7 @@ def draw_event(ctx, event):
         ctx.move_to(left + width / 2 - twidth / 2, top + theight)
         ctx.set_source_rgb(1.00, 0.83, 0.00)
         ctx.show_text(event.gate_name)
-        ctx.stroke()
+        #ctx.stroke()
 
 for thread in threads:
     xbearing, ybearing, twidth, theight, xadvance, yadvance = \
@@ -225,7 +224,7 @@ for thread in threads:
     ctx.move_to(0, theight + thread.total_y * PIXELS_PER_GATE)
     ctx.set_source_rgb(1.00, 1.00, 1.00)
     ctx.show_text(thread.thread_name)
-    ctx.stroke()
+    #ctx.stroke()
 
     for event in thread.events:
         draw_event(ctx, event)
