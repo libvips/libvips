@@ -136,11 +136,12 @@ for thread in threads:
 print 'last time =', last_time
 
 # calculate some simple stats
-print 'name\t\t\talive\twait\twait%'
+print 'name\t\t\t\talive\twait%\twork%\tunk%'
 for thread in threads:
     start = last_time
     stop = 0
     wait = 0
+    work = 0
     for event in thread.events:
         if event.start < start:
             start = event.start
@@ -148,9 +149,14 @@ for thread in threads:
             stop = event.stop
         if event.wait:
             wait += event.stop - event.start
+        if event.work:
+            work += event.stop - event.start
 
     alive = stop - start
-    print thread.thread_name, alive, wait, 100 * wait / alive
+    wait_percent = 100 * wait / alive
+    work_percent = 100 * work / alive
+    unkn_percent = 100 - (wait_percent + work_percent)
+    print '%30s\t%6.2g\t%.3g\t%.3g\t%.3g' % (thread.thread_name, alive, wait_percent, work_percent, unkn_percent)
 
 # do two gates overlap?
 def is_overlap(events, gate_name1, gate_name2):
@@ -175,12 +181,31 @@ total_y = 0
 for thread in threads:
     thread.total_y = total_y
 
-    y = 1
+    # first pass .. move work and wait events to y == 0
     gate_positions = {}
     for event in thread.events:
-        if event.work or event.wait:
+        if not event.work and not event.wait:
+            continue
+
+        # no works and waits must overlap
+        if not event.gate_name in gate_positions:
+            for gate_name in gate_positions:
+                if is_overlap(thread.events, event.gate_name, gate_name):
+                    print 'gate', event.gate_name, 'and', gate_name, 'overlap'
+                    break
+
             gate_positions[event.gate_name] = 0
-        elif not event.gate_name in gate_positions:
+
+        event.y = gate_positions[event.gate_name] 
+        event.total_y = total_y + event.y
+
+    # second pass: move all other events to non-overlapping ys
+    y = 1
+    for event in thread.events:
+        if event.work or event.wait:
+            continue
+
+        if not event.gate_name in gate_positions:
             no_overlap = False
             for gate_name in gate_positions:
                 if not is_overlap(thread.events, gate_name, event.gate_name):

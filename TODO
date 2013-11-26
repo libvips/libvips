@@ -4,34 +4,6 @@
 
   investigate
 
-- parse and graph vips-profile data 
-
-- we're spending a lot of time on threading
-
-	$ time vips sharpen x.v x2.v
-	real	0m6.925s
-	user	0m18.240s
-	sys	0m0.996s
-	$ time vips sharpen x.v x2.v --vips-concurrency=1
-	real	0m12.831s
-	user	0m10.016s
-	sys	0m0.480s
-
-  almost 50% of CPU! ouch
-
-  could be just overcalculation on overlaps? do we get more overcalculation
-  with more threads?
-
-  valgrind finds no interesting functions in the profile for vips sharpen,
-  just 
-
-  	Lab2XYZ			20% 
-	conv_gen		15% 
-	extract_band		8%
-	etc. 
-
-  nor any difference between 1 thread and n thread runs
-
 - vips_gaussblur() should switch to float prec if given a float image?
 
   same for vips_conv()?
