@@ -126,7 +126,8 @@ vips_embed_find_edge( VipsEmbed *embed, VipsRect *r, int i, VipsRect *out )
 	 * right edge. If we're strictly up/down/left/right of the image, we
 	 * can trim.
 	 */
-	if( i == 0 || i == 2 ) {
+	if( i == 0 || 
+		i == 2 ) {
 		VipsRect extend;
 
 		/* Above or below.
@@ -136,7 +137,8 @@ vips_embed_find_edge( VipsEmbed *embed, VipsRect *r, int i, VipsRect *out )
 		extend.height = embed->height;
 		vips_rect_intersectrect( out, &extend, out );
 	}
-	if( i == 1 || i == 3 ) {
+	if( i == 1 || 
+		i == 3 ) {
 		VipsRect extend;
 
 		/* Left or right.
@@ -176,6 +178,8 @@ vips_embed_paint_edge( VipsEmbed *embed,
 	VipsPel *q;
 	int y;
 
+	VIPS_GATE_START( "vips_embed_paint_edge: work" );
+
 	/* Pixels left to paint.
 	 */
 	todo = *r;
@@ -209,6 +213,8 @@ vips_embed_paint_edge( VipsEmbed *embed,
 			memcpy( q, p, bs * todo.width );
 		}
 	}
+
+	VIPS_GATE_STOP( "vips_embed_paint_edge: work" );
 }
 
 static int
@@ -258,19 +264,29 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	switch( embed->extend ) {
 	case VIPS_EXTEND_BLACK:
 	case VIPS_EXTEND_WHITE:
+		VIPS_GATE_START( "vips_embed_gen: work1" );
+
 		/* Paint the borders a solid value.
 		 */
 		for( i = 0; i < 8; i++ )
 			vips_region_paint( or, &embed->border[i], 
 				embed->extend == 0 ? 0 : 255 );
+
+		VIPS_GATE_STOP( "vips_embed_gen: work1" );
+
 		break;
 
 	case VIPS_EXTEND_BACKGROUND:
+		VIPS_GATE_START( "vips_embed_gen: work2" );
+
 		/* Paint the borders a solid value.
 		 */
 		for( i = 0; i < 8; i++ )
 			vips_region_paint_pel( or, &embed->border[i], 
 				embed->ink ); 
+
+		VIPS_GATE_STOP( "vips_embed_gen: work2" );
+
 		break;
 
 	case VIPS_EXTEND_COPY:

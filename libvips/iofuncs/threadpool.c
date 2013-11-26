@@ -546,11 +546,11 @@ vips_thread_work_unit( VipsThread *thr )
 	if( thr->error )
 		return;
 
-	VIPS_GATE_START( "vips_thread_work_unit: allocate-wait" ); 
+	VIPS_GATE_START( "vips_thread_work_unit: wait" ); 
 
 	g_mutex_lock( pool->allocate_lock );
 
-	VIPS_GATE_STOP( "vips_thread_work_unit: allocate-wait" ); 
+	VIPS_GATE_STOP( "vips_thread_work_unit: wait" ); 
 
 	/* Has another worker signaled stop while we've been working?
 	 */
@@ -577,12 +577,10 @@ vips_thread_work_unit( VipsThread *thr )
 
 	/* Process a work unit.
 	 */
-	VIPS_GATE_START( "vips_thread_work_unit: work" ); 
 	if( pool->work( thr->state, pool->a ) ) { 
 		thr->error = TRUE;
 		pool->error = TRUE;
 	}
-	VIPS_GATE_STOP( "vips_thread_work_unit: work" ); 
 }
 
 /* What runs as a thread ... loop, waiting to be told to do stuff.

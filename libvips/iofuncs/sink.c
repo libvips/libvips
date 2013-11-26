@@ -234,7 +234,7 @@ sink_init( Sink *sink,
 	sink->b = b;
 
 	if( !(sink->t = vips_image_new()) ||
-		im_copy( sink->sink_base.im, sink->t ) ) {
+		vips_image_write( sink->sink_base.im, sink->t ) ) {
 		sink_free( sink );
 		return( -1 );
 	}

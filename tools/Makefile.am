@@ -26,6 +26,7 @@ bin_SCRIPTS = \
 	batch_image_convert \
 	batch_rubber_sheet \
 	batch_crop \
+	vipsprofile \
 	vips-7.37
 
 EXTRA_DIST = \
@@ -42,4 +43,5 @@ install-exec-hook:
 	chmod ugo+x ${DESTDIR}${bindir}/batch_image_convert
 	chmod ugo+x ${DESTDIR}${bindir}/batch_rubber_sheet
 	chmod ugo+x ${DESTDIR}${bindir}/batch_crop
+	chmod ugo+x ${DESTDIR}${bindir}/vipsprofile
 

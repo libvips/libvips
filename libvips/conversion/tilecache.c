@@ -598,7 +598,11 @@ vips_tile_cache_gen( VipsRegion *or,
 	GSList *work;
 	GSList *p;
 
+	VIPS_GATE_START( "vips_tile_cache_gen: wait1" );
+
 	g_mutex_lock( cache->lock );
+
+	VIPS_GATE_STOP( "vips_tile_cache_gen: wait1" );
 
 	VIPS_DEBUG_MSG( "vips_tile_cache_gen: "
 		"left = %d, top = %d, width = %d, height = %d\n",
@@ -661,8 +665,15 @@ vips_tile_cache_gen( VipsRegion *or,
 					&tile->pos, 
 					tile->pos.left, tile->pos.top );
 
-				if( cache->threaded ) 
+				if( cache->threaded ) {
+					VIPS_GATE_START( "vips_tile_cache_gen: "
+							"wait2" );
+
 					g_mutex_lock( cache->lock );
+
+					VIPS_GATE_STOP( "vips_tile_cache_gen: "
+							"wait2" );
+				}
 
 				/* If there was an error calculating this
 				 * tile, just warn and carry on.
@@ -713,7 +724,11 @@ vips_tile_cache_gen( VipsRegion *or,
 
 			VIPS_DEBUG_MSG( "vips_tile_cache_gen: waiting\n" ); 
 
+			VIPS_GATE_START( "vips_tile_cache_gen: wait3" );
+
 			g_cond_wait( cache->new_tile, cache->lock );
+
+			VIPS_GATE_STOP( "vips_tile_cache_gen: wait3" );
 
 			VIPS_DEBUG_MSG( "vips_tile_cache_gen: awake!\n" ); 
 		}
@@ -861,7 +876,11 @@ vips_line_cache_gen( VipsRegion *or,
 {
 	VipsBlockCache *block_cache = (VipsBlockCache *) b;
 
+	VIPS_GATE_START( "vips_line_cache_gen: wait" );
+
 	g_mutex_lock( block_cache->lock );
+
+	VIPS_GATE_STOP( "vips_line_cache_gen: wait" );
 
 	/* We size up the cache to the largest request.
 	 */

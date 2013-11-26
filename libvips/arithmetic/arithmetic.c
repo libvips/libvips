@@ -478,6 +478,8 @@ vips_arithmetic_gen( VipsRegion *or,
 	p[i] = NULL;
 	q = (VipsPel *) VIPS_REGION_ADDR( or, r->left, r->top );
 
+	VIPS_GATE_START( "vips_arithmetic_gen: work" );
+
 	for( y = 0; y < r->height; y++ ) {
 		class->process_line( arithmetic, q, p, r->width );
 
@@ -485,6 +487,8 @@ vips_arithmetic_gen( VipsRegion *or,
 			p[i] += VIPS_REGION_LSKIP( ir[i] );
 		q += VIPS_REGION_LSKIP( or );
 	}
+
+	VIPS_GATE_STOP( "vips_arithmetic_gen: work" );
 
 	return( 0 );
 }

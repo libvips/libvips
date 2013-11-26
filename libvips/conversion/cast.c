@@ -339,6 +339,8 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	if( vips_region_prepare( ir, r ) )
 		return( -1 );
 
+	VIPS_GATE_START( "vips_cast_gen: work" );
+
 	for( y = to; y < bo; y++ ) {
 		VipsPel *in = VIPS_REGION_ADDR( ir, le, y ); 
 		VipsPel *out = VIPS_REGION_ADDR( or, le, y ); 
@@ -418,6 +420,8 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 			g_assert( 0 ); 
 		} 
 	}
+
+	VIPS_GATE_STOP( "vips_cast_gen: work" );
 
 	return( 0 );
 }

@@ -129,7 +129,11 @@ vips_sequential_generate( VipsRegion *or,
 			"request for line %d, height %d", 
 			r->top, r->height );
 
+	VIPS_GATE_START( "vips_sequential_generate: wait" );
+
 	g_mutex_lock( sequential->lock );
+
+	VIPS_GATE_STOP( "vips_sequential_generate: wait" );
 
 	VIPS_DEBUG_MSG_GREEN( "thread %p has lock ...\n", g_thread_self() ); 
 
@@ -167,6 +171,8 @@ vips_sequential_generate( VipsRegion *or,
 		VIPS_DEBUG_MSG_GREEN( "thread %p stalling for up to %gs ...\n", 
 			g_thread_self(), STALL_TIME ); 
 
+		VIPS_GATE_START( "vips_sequential_generate: wait" );
+
 		/* Exit the loop on timeout or condition passes. We have to
 		 * be wary of spurious wakeups. 
 		 */
@@ -180,6 +186,8 @@ vips_sequential_generate( VipsRegion *or,
 				sequential->lock, &time ) )
 				break;
 #endif
+
+		VIPS_GATE_STOP( "vips_sequential_generate: wait" );
 
 		VIPS_DEBUG_MSG_GREEN( "thread %p awake again ...\n", 
 			g_thread_self() ); 

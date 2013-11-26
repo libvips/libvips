@@ -259,6 +259,8 @@ vips_colour_gen( VipsRegion *or,
 		if( vips_region_prepare( ir[i], r ) ) 
 			return( -1 );
 
+	VIPS_GATE_START( "vips_colour_gen: work" ); 
+
 	for( y = 0; y < r->height; y++ ) {
 		for( i = 0; ir[i]; i++ )
 			p[i] = VIPS_REGION_ADDR( ir[i], r->left, r->top + y );
@@ -267,6 +269,8 @@ vips_colour_gen( VipsRegion *or,
 
 		class->process_line( colour, q, p, r->width );
 	}
+
+	VIPS_GATE_STOP( "vips_colour_gen: work" ); 
 
 	return( 0 );
 }

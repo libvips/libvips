@@ -169,8 +169,10 @@ wbuffer_write( WriteBuffer *wbuffer )
 		wbuffer->region->bpl * wbuffer->area.height, wbuffer );
 
 	VIPS_GATE_START( "wbuffer_write: " ); 
+
 	wbuffer->write_errno = write->write_fn( wbuffer->region, 
 		&wbuffer->area, write->a );
+
 	VIPS_GATE_STOP( "wbuffer_write: " ); 
 }
 
@@ -184,18 +186,14 @@ wbuffer_write_thread( void *data )
 	for(;;) {
 		/* Wait to be told to write.
 		 */
-		VIPS_GATE_START( "wbuffer_write_thread: wait go" ); 
 		vips_semaphore_down( &wbuffer->go );
-		VIPS_GATE_STOP( "wbuffer_write_thread: wait go" ); 
 
 		if( wbuffer->kill )
 			break;
 
 		/* Now block until the last worker finishes on this buffer.
 		 */
-		VIPS_GATE_START( "wbuffer_write_thread: wait tile" ); 
 		vips_semaphore_downn( &wbuffer->nwrite, 0 );
-		VIPS_GATE_STOP( "wbuffer_write_thread: wait tile" ); 
 
 		wbuffer_write( wbuffer );
 
@@ -513,7 +511,7 @@ vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a )
 	 * started (if the allocate failed), and in any case, we don't care if
 	 * the final write went through or not.
 	 */
-	if( !result )
+	if( !result ) 
 		vips_semaphore_down( &write.buf->done );
 
 	vips_image_posteval( im );

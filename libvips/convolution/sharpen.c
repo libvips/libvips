@@ -138,6 +138,8 @@ vips_sharpen_generate( VipsRegion *or,
 		vips_region_prepare( in[1], r ) )
 		return( -1 );
 
+	VIPS_GATE_START( "vips_sharpen_generate: work" ); 
+
 	for( y = 0; y < r->height; y++ ) {
 		short *p1 = (short *) 
 			VIPS_REGION_ADDR( in[0], r->left, r->top + y );
@@ -178,6 +180,8 @@ vips_sharpen_generate( VipsRegion *or,
 			}
 		}
 	}
+
+	VIPS_GATE_STOP( "vips_sharpen_generate: work" ); 
 
 	return( 0 );
 }

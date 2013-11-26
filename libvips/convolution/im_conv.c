@@ -710,6 +710,8 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
+	VIPS_GATE_START( "conv_gen: work" ); 
+
         /* Fill offset array. Only do this if the bpl has changed since the 
 	 * previous im_prepare().
 	 */
@@ -773,6 +775,8 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 			g_assert( 0 );
 		}
 	}
+
+	VIPS_GATE_STOP( "conv_gen: work" ); 
 
 	return( 0 );
 }
@@ -880,6 +884,8 @@ conv3x3_gen( REGION *or, void *vseq, void *a, void *b )
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
+	VIPS_GATE_START( "conv3x3_gen: work" ); 
+
 	for( y = to; y < bo; y++ ) { 
 		switch( in->BandFmt ) {
 		case IM_BANDFMT_UCHAR: 	
@@ -927,6 +933,8 @@ conv3x3_gen( REGION *or, void *vseq, void *a, void *b )
 		}
 	}
 
+	VIPS_GATE_STOP( "conv3x3_gen: work" ); 
+
 	return( 0 );
 }
 
@@ -957,6 +965,8 @@ convvec_gen( REGION *or, void *vseq, void *a, void *b )
 	s.height += mask->ysize - 1;
 	if( im_prepare( ir, &s ) )
 		return( -1 );
+
+	VIPS_GATE_START( "convvec_gen: work" ); 
 
 	for( j = 0; j < conv->n_pass; j++ ) 
 		vips_executor_set_program( &convolve[j], 
@@ -1005,6 +1015,8 @@ convvec_gen( REGION *or, void *vseq, void *a, void *b )
 			*IM_REGION_ADDR( or, r->left, r->top + y ) );
 #endif /*DEBUG_PIXELS*/
 	}
+
+	VIPS_GATE_STOP( "convvec_gen: work" ); 
 
 	return( 0 );
 }

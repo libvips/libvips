@@ -74,7 +74,7 @@ typedef struct _VipsOperation {
 	guint hash;
 	gboolean found_hash;
 
-	/* Pixels calculated ... handy for measuring over calculation.
+	/* Pixels calculated ... handy for measuring over-calculation.
 	 */
 	int pixels;
 

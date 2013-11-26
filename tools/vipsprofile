@@ -135,6 +135,23 @@ for thread in threads:
 
 print 'last time =', last_time
 
+# calculate some simple stats
+print 'name\t\t\talive\twait\twait%'
+for thread in threads:
+    start = last_time
+    stop = 0
+    wait = 0
+    for event in thread.events:
+        if event.start < start:
+            start = event.start
+        if event.stop > stop:
+            stop = event.stop
+        if event.wait:
+            wait += event.stop - event.start
+
+    alive = stop - start
+    print thread.thread_name, alive, wait, 100 * wait / alive
+
 # do two gates overlap?
 def is_overlap(events, gate_name1, gate_name2):
     for event1 in events:
@@ -184,17 +201,25 @@ PIXELS_PER_SECOND = 1000
 PIXELS_PER_GATE = 20
 LEFT_BORDER = 320
 BAR_HEIGHT = 5
-WIDTH = int(LEFT_BORDER + last_time * PIXELS_PER_SECOND)
+WIDTH = int(LEFT_BORDER + last_time * PIXELS_PER_SECOND) + 50
 HEIGHT = int((total_y + 1) * PIXELS_PER_GATE)
 
-surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, WIDTH + 50, HEIGHT)
+output_filename = "vips-profile.svg"
+print 'writing to', output_filename
+
+surface = cairo.SVGSurface(output_filename, WIDTH, HEIGHT)
+
 ctx = cairo.Context(surface)
 ctx.select_font_face('Sans')
 ctx.set_font_size(15)
 
+ctx.rectangle(0, 0, WIDTH, HEIGHT)
+ctx.set_source_rgba(0.0, 0.0, 0.3, 1.0)
+ctx.fill()
+
 def draw_event(ctx, event):
     left = event.start * PIXELS_PER_SECOND + LEFT_BORDER
-    top = event.total_y * PIXELS_PER_GATE 
+    top = event.total_y * PIXELS_PER_GATE + BAR_HEIGHT / 2 
     width = (event.stop - event.start) * PIXELS_PER_SECOND - 1
     height = BAR_HEIGHT
 
@@ -216,19 +241,19 @@ def draw_event(ctx, event):
         ctx.move_to(left + width / 2 - twidth / 2, top + theight)
         ctx.set_source_rgb(1.00, 0.83, 0.00)
         ctx.show_text(event.gate_name)
-        #ctx.stroke()
 
 for thread in threads:
+    ctx.rectangle(0, thread.total_y * PIXELS_PER_GATE, WIDTH, 1)
+    ctx.set_source_rgb(1.00, 1.00, 1.00)
+    ctx.fill()
+
     xbearing, ybearing, twidth, theight, xadvance, yadvance = \
             ctx.text_extents(thread.thread_name)
     ctx.move_to(0, theight + thread.total_y * PIXELS_PER_GATE)
     ctx.set_source_rgb(1.00, 1.00, 1.00)
     ctx.show_text(thread.thread_name)
-    #ctx.stroke()
 
     for event in thread.events:
         draw_event(ctx, event)
 
-output_filename = "example.png"
-print 'writing to', output_filename
-surface.write_to_png(output_filename) 
+surface.finish()

@@ -100,6 +100,8 @@ vips_bandary_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	p[i] = NULL;
 	q = VIPS_REGION_ADDR( or, r->left, r->top );
 
+	VIPS_GATE_START( "vips_bandary_gen: work" ); 
+
 	for( y = 0; y < r->height; y++ ) {
 		class->process_line( bandary, q, p, r->width );
 
@@ -107,6 +109,8 @@ vips_bandary_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 			p[i] += VIPS_REGION_LSKIP( ir[i] );
 		q += VIPS_REGION_LSKIP( or );
 	}
+
+	VIPS_GATE_STOP( "vips_bandary_gen: work" ); 
 
 	return( 0 );
 }

@@ -116,6 +116,8 @@ vips_semaphore_downn( VipsSemaphore *s, int n )
 {
 	int value_after_op;
 
+	VIPS_GATE_START( "vips_semaphore_downn: wait" );
+
 	g_mutex_lock( s->mutex );
 
 	while( s->v < n )
@@ -129,6 +131,8 @@ vips_semaphore_downn( VipsSemaphore *s, int n )
 	printf( "vips_semaphore_downn(\"%s\",%d): %d\n", 
 		s->name, n, value_after_op );
 #endif /*DEBUG_IO*/
+
+	VIPS_GATE_STOP( "vips_semaphore_downn: wait" );
 
 	return( value_after_op );
 }

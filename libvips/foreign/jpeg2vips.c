@@ -888,6 +888,8 @@ read_jpeg_generate( VipsRegion *or,
 	printf( "read_jpeg_generate: line %d, %d rows\n", 
 		r->top, r->height );
 #endif /*DEBUG*/
+	
+	VIPS_GATE_START( "read_jpeg_generate: work" );
 
 	/* We're inside a tilecache where tiles are the full image width, so
 	 * this should always be true.
@@ -925,6 +927,8 @@ read_jpeg_generate( VipsRegion *or,
 				row_pointer[0][x] = 255 - row_pointer[0][x];
 		}
 	}
+
+	VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
 	return( 0 );
 }

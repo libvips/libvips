@@ -203,9 +203,15 @@ vips__region_start( VipsRegion *region )
 	VipsImage *image = region->im;
 
         if( !region->seq && image->start_fn ) {
+		VIPS_GATE_START( "vips__region_start: wait" );
+
                 g_mutex_lock( image->sslock );
+
+		VIPS_GATE_STOP( "vips__region_start: wait" );
+
                 region->seq = image->start_fn( image, 
 			image->client1, image->client2 );
+
                 g_mutex_unlock( image->sslock );
  
                 if( !region->seq ) {
@@ -229,9 +235,15 @@ vips__region_stop( VipsRegion *region )
         if( region->seq && image->stop_fn ) {
 		int result;
 
+		VIPS_GATE_START( "vips__region_stop: wait" );
+
                 g_mutex_lock( image->sslock );
+
+		VIPS_GATE_STOP( "vips__region_stop: wait" );
+
                	result = image->stop_fn( region->seq, 
 			image->client1, image->client2 );
+
                 g_mutex_unlock( image->sslock );
 
 		/* stop function can return an error, but we have nothing we
@@ -279,9 +291,16 @@ vips_region_dispose( GObject *gobject )
 
 	/* Detach from image. 
 	 */
+	VIPS_GATE_START( "vips_region_dispose: wait" );
+
 	g_mutex_lock( image->sslock );
+
+	VIPS_GATE_STOP( "vips_region_dispose: wait" );
+
 	image->regions = g_slist_remove( image->regions, region );
+
 	g_mutex_unlock( image->sslock );
+
 	region->im = NULL;
 
 	g_object_unref( image );
@@ -363,7 +382,11 @@ vips__region_take_ownership( VipsRegion *region )
 	/* Lock so that there's a memory barrier with the thread doing the
 	 * vips__region_no_ownership() before us.
 	 */
+	VIPS_GATE_START( "vips__region_take_ownership: wait" );
+
 	g_mutex_lock( region->im->sslock );
+
+	VIPS_GATE_STOP( "vips__region_take_ownership: wait" );
 
 	if( region->thread != g_thread_self() ) {
 		g_assert( region->thread == NULL );
@@ -399,7 +422,11 @@ vips__region_check_ownership( VipsRegion *region )
 void
 vips__region_no_ownership( VipsRegion *region )
 {
+	VIPS_GATE_START( "vips__region_no_ownership: wait" );
+
 	g_mutex_lock( region->im->sslock );
+
+	VIPS_GATE_STOP( "vips__region_no_ownership: wait" );
 
 	vips__region_check_ownership( region );
 
@@ -425,8 +452,14 @@ vips_region_build( VipsObject *object )
 
 	/* We're usually inside the ss lock anyway. But be safe ...
 	 */
+	VIPS_GATE_START( "vips_region_build: wait" );
+
 	g_mutex_lock( image->sslock );
+
+	VIPS_GATE_STOP( "vips_region_build: wait" );
+
 	image->regions = g_slist_prepend( image->regions, region );
+
 	g_mutex_unlock( image->sslock );
 
 	return( 0 );

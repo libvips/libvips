@@ -960,9 +960,15 @@ vips_image_real_invalidate( VipsImage *image )
 {
 	VIPS_DEBUG_MSG( "vips_image_real_invalidate: %p\n", image );
 
+	VIPS_GATE_START( "vips_image_real_invalidate: wait" );
+
 	g_mutex_lock( image->sslock );
+
+	VIPS_GATE_STOP( "vips_image_real_invalidate: wait" );
+
 	(void) vips_slist_map2( image->regions,
 		(VipsSListMap2Fn) vips_region_invalidate, NULL, NULL );
+
 	g_mutex_unlock( image->sslock );
 }
 

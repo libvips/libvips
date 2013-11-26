@@ -122,10 +122,6 @@ vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 	(void) g_once( &once, table_init, NULL );
 
-	g_mutex_lock( vips__global_lock );
-	VIPS_OPERATION( colour )->pixels += width;
-	g_mutex_unlock( vips__global_lock );
-
 	for( x = 0; x < width; x++ ) {
 		float nX, nY, nZ;
 		int i;
