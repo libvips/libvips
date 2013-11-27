@@ -168,12 +168,12 @@ wbuffer_write( WriteBuffer *wbuffer )
 	VIPS_DEBUG_MSG( "wbuffer_write: %d bytes from wbuffer %p\n", 
 		wbuffer->region->bpl * wbuffer->area.height, wbuffer );
 
-	VIPS_GATE_START( "wbuffer_write: " ); 
+	VIPS_GATE_START( "wbuffer_write: work" ); 
 
 	wbuffer->write_errno = write->write_fn( wbuffer->region, 
 		&wbuffer->area, write->a );
 
-	VIPS_GATE_STOP( "wbuffer_write: " ); 
+	VIPS_GATE_STOP( "wbuffer_write: work" ); 
 }
 
 /* Run this as a thread to do a BG write.
