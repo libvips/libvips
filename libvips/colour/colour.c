@@ -248,13 +248,11 @@ vips_colour_gen( VipsRegion *or,
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsColour *colour = VIPS_COLOUR( b ); 
 	VipsColourClass *class = VIPS_COLOUR_GET_CLASS( colour ); 
-	Rect *r = &or->valid;
+	VipsRect *r = &or->valid;
 
-	VipsPel *p[MAX_INPUT_IMAGES], *q;
 	int i, y;
+	VipsPel *p[MAX_INPUT_IMAGES], *q;
 
-	/* Prepare all input regions and make buffer pointers.
-	 */
 	for( i = 0; ir[i]; i++ ) 
 		if( vips_region_prepare( ir[i], r ) ) 
 			return( -1 );

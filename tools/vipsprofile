@@ -54,9 +54,9 @@ class Event:
 
         self.work = False
         self.wait = False
-        if re.match('.*?: .*work.*', gate_name):
+        if re.match('.*work.*', gate_name):
             self.work = True
-        if re.match('.*?: .*wait.*', gate_name):
+        if re.match('.*wait.*', gate_name):
             self.wait = True
 
         thread.events.append(self)
@@ -79,6 +79,7 @@ with ReadFile(input_filename) as rf:
         match = re.match('thread: (.*)', rf.line)
         if not match:
             print 'parse error line %d, expected "thread"' % rf.lineno
+        print rf.line
         thread_name = match.group(1) + " " + str(thread_id)
         thread_id += 1
         thread = Thread(thread_name)
@@ -86,13 +87,10 @@ with ReadFile(input_filename) as rf:
         rf.getnext()
 
         while True:
-            match = re.match('gate: (.*)', rf.line)
+            match = re.match('gate: (.*?): (.*)', rf.line)
             if not match:
                 break
-            gate_name = match.group(1)
-            match = re.match('vips_(.*)', gate_name)
-            if match:
-                gate_name = match.group(1)
+            gate_name = match.group(2)
             rf.getnext()
 
             match = re.match('start:', rf.line)

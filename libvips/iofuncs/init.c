@@ -225,7 +225,7 @@ vips__init( const char *argv0 )
 	 * happens, since vips__thread_profile may not be set yet. Call
 	 * directly. 
 	 */
-	vips__thread_gate_start( "main" ); 
+	vips__thread_gate_start( "init: main" ); 
 
 	/* Try to discover our prefix. 
 	 */
@@ -382,13 +382,14 @@ vips_shutdown( void )
 
 	im_close_plugins();
 
-	/* Mustn't run this more than once.
+	/* Mustn't run this more than once. Don't use the VIPS_GATE macro,
+	 * since we don't for gate start.
 	 */
 {
 	static gboolean done = FALSE;
 
 	if( !done ) 
-		VIPS_GATE_STOP( "main" ); 
+		vips__thread_gate_stop( "init: main" ); 
 }
 
 	vips__thread_profile_detach();

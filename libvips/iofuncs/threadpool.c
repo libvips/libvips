@@ -593,13 +593,15 @@ vips_thread_main_loop( void *a )
 
 	g_assert( pool == thr->pool );
 
-	VIPS_GATE_START( "vips_thread_main_loop:" ); 
+	VIPS_GATE_START( "vips_thread_main_loop: thread" ); 
 
 	/* Process work units! Always tick, even if we are stopping, so the
 	 * main thread will wake up for exit. 
 	 */
 	for(;;) {
+		VIPS_GATE_START( "vips_thread_work_unit: u" ); 
 		vips_thread_work_unit( thr );
+		VIPS_GATE_STOP( "vips_thread_work_unit: u" ); 
 		vips_semaphore_up( &pool->tick );
 
 		if( pool->stop || pool->error )
@@ -610,7 +612,7 @@ vips_thread_main_loop( void *a )
 	 */
 	vips_semaphore_up( &pool->finish );
 
-	VIPS_GATE_STOP( "vips_thread_main_loop:" ); 
+	VIPS_GATE_STOP( "vips_thread_main_loop: thread" ); 
 
         return( NULL );
 }

@@ -191,7 +191,7 @@ vips__thread_profile_attach( const char *thread_name )
 	profile = g_new( VipsThreadProfile, 1 );
 	profile->name = thread_name; 
 	profile->gates = g_hash_table_new_full( 
-		g_str_hash, g_str_equal, 
+		g_direct_hash, g_str_equal, 
 		NULL, (GDestroyNotify) vips_thread_gate_free );
 	g_private_set( vips_thread_profile_key, profile );
 }
