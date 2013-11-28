@@ -1959,34 +1959,34 @@ vips_object_set_args( VipsObject *object, const char *p )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 
 	VipsToken token;
-	char string[PATH_MAX];
-	char string2[PATH_MAX];
+	char string[4096];
+	char string2[4096];
 	GParamSpec *pspec;
 	VipsArgumentClass *argument_class;
 	VipsArgumentInstance *argument_instance;
 
-	if( !(p = vips__token_need( p, VIPS_TOKEN_LEFT, string, PATH_MAX )) )
+	if( !(p = vips__token_need( p, VIPS_TOKEN_LEFT, string, 4096 )) )
 		return( -1 );
 
 	do {
 		if( !(p = vips__token_need( p, VIPS_TOKEN_STRING,
-			string, PATH_MAX )) )
+			string, 4096 )) )
 			return( -1 );
 
 		/* We have to look for a '=', ')' or a ',' to see if string is
 		 * a param name or a value.
 		 */
-		if( !(p = vips__token_must( p, &token, string2, PATH_MAX )) )
+		if( !(p = vips__token_must( p, &token, string2, 4096 )) )
 			return( -1 );
 		if( token == VIPS_TOKEN_EQUALS ) {
 			if( !(p = vips__token_need( p, VIPS_TOKEN_STRING,
-				string2, PATH_MAX )) )
+				string2, 4096 )) )
 				return( -1 );
 			if( vips_object_set_argument_from_string( object, 
 				string, string2 ) )
 				return( -1 );
 			if( !(p = vips__token_must( p, &token,
-				string2, PATH_MAX )) )
+				string2, 4096 )) )
 				return( -1 );
 		}
 		else if( g_object_class_find_property( 
@@ -2022,7 +2022,7 @@ vips_object_set_args( VipsObject *object, const char *p )
 		}
 	} while( token != VIPS_TOKEN_RIGHT );
 
-	if( (p = vips__token_get( p, &token, string, PATH_MAX )) ) {
+	if( (p = vips__token_get( p, &token, string, 4096 )) ) {
 		vips_error( class->nickname,
 			"%s", _( "extra tokens after ')'" ) );
 		return( -1 );
@@ -2035,7 +2035,7 @@ VipsObject *
 vips_object_new_from_string( VipsObjectClass *object_class, const char *p )
 {
 	const char *q;
-	char str[PATH_MAX];
+	char str[4096];
 	VipsObject *object;
 
 	g_assert( object_class );
@@ -2045,9 +2045,9 @@ vips_object_new_from_string( VipsObjectClass *object_class, const char *p )
 	 * everything before that as the principal arg for the constructor.
 	 */
 	if( (q = vips__find_rightmost_brackets( p )) )
-		vips_strncpy( str, p, VIPS_MIN( PATH_MAX, q - p + 1 ) );
+		vips_strncpy( str, p, VIPS_MIN( 4096, q - p + 1 ) );
 	else
-		vips_strncpy( str, p, PATH_MAX );
+		vips_strncpy( str, p, 4096 );
 	if( !(object = object_class->new_from_string( str )) )
 		return( NULL );
 
