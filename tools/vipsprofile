@@ -79,7 +79,6 @@ with ReadFile(input_filename) as rf:
         match = re.match('thread: (.*)', rf.line)
         if not match:
             print 'parse error line %d, expected "thread"' % rf.lineno
-        print rf.line
         thread_name = match.group(1) + " " + str(thread_id)
         thread_id += 1
         thread = Thread(thread_name)
@@ -134,7 +133,7 @@ for thread in threads:
 print 'last time =', last_time
 
 # calculate some simple stats
-print 'name\t\t\t\talive\twait%\twork%\tunk%'
+print 'name\t\t\t\talive\twait%\twork%\tunknown%'
 for thread in threads:
     start = last_time
     stop = 0
@@ -153,7 +152,7 @@ for thread in threads:
     alive = stop - start
     wait_percent = 100 * wait / alive
     work_percent = 100 * work / alive
-    unkn_percent = 100 - (wait_percent + work_percent)
+    unkn_percent = 100 - 100 * (work + wait) / alive
     print '%30s\t%6.2g\t%.3g\t%.3g\t%.3g' % (thread.thread_name, alive, wait_percent, work_percent, unkn_percent)
 
 # do two gates overlap?
@@ -204,18 +203,36 @@ for thread in threads:
             continue
 
         if not event.gate_name in gate_positions:
-            no_overlap = False
-            for gate_name in gate_positions:
-                if not is_overlap(thread.events, gate_name, event.gate_name):
-                    gate_positions[event.gate_name] = gate_positions[gate_name]
-                    no_overlap = True
+            # look at all the ys we've allocated previously and see if we can 
+            # add this gate to one of them
+            for gate_y in range(1, y):
+                found_overlap = False
+                for gate_name in gate_positions:
+                    if gate_positions[gate_name] != gate_y:
+                        continue
+
+                    if is_overlap(thread.events, event.gate_name, gate_name):
+                        found_overlap = True
+                        break
+
+                if not found_overlap:
+                    gate_positions[event.gate_name] = gate_y
                     break
 
-            if not no_overlap:
+            # failure? add a new y
+            if not event.gate_name in gate_positions:
                 gate_positions[event.gate_name] = y
                 y += 1
 
         event.y = gate_positions[event.gate_name]
+
+    # third pass: flip the order of the ys to get the lowest-level ones at the
+    # top, next to the wait/work line
+    for event in thread.events:
+        if event.work or event.wait:
+            continue
+
+        event.y = y - event.y
         event.total_y = total_y + event.y
 
     total_y += y
