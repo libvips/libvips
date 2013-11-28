@@ -1083,12 +1083,18 @@ tiff_fill_region_aligned( VipsRegion *out, void *seq, void *a, void *b )
 		r->left, r->top ); 
 #endif /*DEBUG*/
 
+	VIPS_GATE_START( "tiff_fill_region_aligned: work" ); 
+
 	/* Read that tile directly into the vips tile.
 	 */
 	if( TIFFReadTile( rtiff->tiff, 
 		VIPS_REGION_ADDR( out, r->left, r->top ), 
-		r->left, r->top, 0, 0 ) < 0 ) 
+		r->left, r->top, 0, 0 ) < 0 ) {
+		VIPS_GATE_STOP( "tiff_fill_region_aligned: work" ); 
 		return( -1 );
+	}
+
+	VIPS_GATE_STOP( "tiff_fill_region_aligned: work" ); 
 
 	return( 0 );
 }
@@ -1132,6 +1138,8 @@ tiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 		VIPS_REGION_LSKIP( out ) == VIPS_REGION_SIZEOF_LINE( out ) )
 		return( tiff_fill_region_aligned( out, seq, a, b ) );
 
+	VIPS_GATE_START( "tiff_fill_region: work" ); 
+
 	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += rtiff->theight )
 		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += rtiff->twidth ) {
 			VipsRect tile;
@@ -1139,8 +1147,10 @@ tiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 
 			/* Read that tile.
 			 */
-			if( TIFFReadTile( rtiff->tiff, buf, x, y, 0, 0 ) < 0 ) 
+			if( TIFFReadTile( rtiff->tiff, buf, x, y, 0, 0 ) < 0 ) {
+				VIPS_GATE_STOP( "tiff_fill_region: work" ); 
 				return( -1 );
+			}
 
 			/* The tile we read.
 			 */
@@ -1167,6 +1177,8 @@ tiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 					q, p, hit.width, rtiff->client );
 			}
 		}
+
+	VIPS_GATE_STOP( "tiff_fill_region: work" ); 
 
 	return( 0 );
 }
@@ -1353,6 +1365,8 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 	g_assert( r->height == 
 		VIPS_MIN( rtiff->rows_per_strip, or->im->Ysize - r->top ) ); 
 
+	VIPS_GATE_START( "tiff2vips_stripwise_generate: work" ); 
+
 	for( y = 0; y < r->height; y += rtiff->rows_per_strip ) {
 		tdata_t dst;
 
@@ -1364,8 +1378,11 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 		else
 			dst = rtiff->contig_buf;
 
-		if( tiff2vips_strip_read_interleaved( rtiff, r->top + y, dst ) )
+		if( tiff2vips_strip_read_interleaved( rtiff, 
+			r->top + y, dst ) ) {
+			VIPS_GATE_STOP( "tiff2vips_stripwise_generate: work" ); 
 			return( -1 ); 
+		}
 
 		/* If necessary, unpack to destination.
 		 */
@@ -1388,6 +1405,8 @@ tiff2vips_stripwise_generate( VipsRegion *or,
 			}
 		}
 	}
+
+	VIPS_GATE_STOP( "tiff2vips_stripwise_generate: work" ); 
 
 	return( 0 );
 }

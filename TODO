@@ -1,11 +1,39 @@
-- overlap doesn't seem to work
-
-- check operations called in sharpen, we seem to have some gaps, looking at the
-  trace
 
 - try disabling turbo-boost?
 
-- calculate unk% from total time - (work time + wait time)
+  see http://blog.tube42.se/?p=1225
+
+  for i in {0..11}; do sudo cpufreq-set -f 1600000 -c $i; done
+
+-r doesn't seem to work
+
+  verify with
+
+  cpufreq-info | more
+
+  with cpu locked at 1.6 GHz
+
+$ time vips sharpen k2.v x.v --radius 20 --vips-concurrency=1
+real	0m2.232s
+user	0m2.212s
+sys	0m0.036s
+$ time vips sharpen k2.v x.v --radius 20 --vips-concurrency=2
+real	0m1.295s
+user	0m2.448s
+sys	0m0.060s
+
+
+$ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=1
+real	0m2.760s
+user	0m2.768s
+sys	0m0.024s
+$ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=2
+real	0m1.558s
+user	0m2.988s
+sys	0m0.060s
+
+
+
 
 
 

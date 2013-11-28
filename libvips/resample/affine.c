@@ -300,6 +300,8 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		clipped.height );
 #endif /*DEBUG*/
 
+	VIPS_GATE_START( "vips_affine_gen: work" ); 
+
 	/* Resample! x/y loop over pixels in the output image (5).
 	 */
 	for( y = to; y < bo; y++ ) {
@@ -365,6 +367,8 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 			q += ps;
 		}
 	}
+
+	VIPS_GATE_STOP( "vips_affine_gen: work" ); 
 
 	return( 0 );
 }

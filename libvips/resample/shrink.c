@@ -294,9 +294,13 @@ vips_shrink_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 		if( vips_region_prepare( ir, &s ) )
 			return( -1 );
 
+		VIPS_GATE_START( "vips_shrink_gen: work" ); 
+
 		vips_shrink_gen2( shrink, seq, 
 			or, ir, 
 			r->left, r->top + y, r->width, height );
+
+		VIPS_GATE_STOP( "vips_shrink_gen: work" ); 
 	}
 
 	return( 0 );

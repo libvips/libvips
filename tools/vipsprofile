@@ -40,6 +40,11 @@ class Thread:
     thread_number = 0
 
     def __init__(self, thread_name):
+        # no one cares about the thread address
+        match = re.match('(.*) \(0x.*?\) (.*)', thread_name)
+        if match:
+            thread_name = match.group(1) + " " + match.group(2)
+
         self.thread_name = thread_name
         self.thread_number = Thread.thread_number
         self.events = []
@@ -133,27 +138,37 @@ for thread in threads:
 print 'last time =', last_time
 
 # calculate some simple stats
-print 'name\t\t\t\talive\twait%\twork%\tunknown%'
 for thread in threads:
-    start = last_time
-    stop = 0
-    wait = 0
-    work = 0
+    thread.start = last_time
+    thread.stop = 0
+    thread.wait = 0
+    thread.work = 0
     for event in thread.events:
-        if event.start < start:
-            start = event.start
-        if event.stop > stop:
-            stop = event.stop
+        if event.start < thread.start:
+            thread.start = event.start
+        if event.stop > thread.stop:
+            thread.stop = event.stop
         if event.wait:
-            wait += event.stop - event.start
+            thread.wait += event.stop - event.start
         if event.work:
-            work += event.stop - event.start
+            thread.work += event.stop - event.start
 
-    alive = stop - start
-    wait_percent = 100 * wait / alive
-    work_percent = 100 * work / alive
-    unkn_percent = 100 - 100 * (work + wait) / alive
-    print '%30s\t%6.2g\t%.3g\t%.3g\t%.3g' % (thread.thread_name, alive, wait_percent, work_percent, unkn_percent)
+    thread.alive = thread.stop - thread.start
+
+    # hide very short-lived threads 
+    thread.hide = thread.alive < 0.001
+
+print 'name\t\talive\twait%\twork%\tunknown%'
+for thread in threads:
+    if thread.hide:
+        continue
+
+    wait_percent = 100 * thread.wait / thread.alive
+    work_percent = 100 * thread.work / thread.alive
+    unkn_percent = 100 - 100 * (thread.work + thread.wait) / thread.alive
+
+    print '%13s\t%6.2g\t' % (thread.thread_name, thread.alive),
+    print '%.3g\t%.3g\t%.3g' % (wait_percent, work_percent, unkn_percent)
 
 # do two gates overlap?
 def is_overlap(events, gate_name1, gate_name2):
@@ -176,6 +191,9 @@ def is_overlap(events, gate_name1, gate_name2):
 # allocate a y position for each gate
 total_y = 0
 for thread in threads:
+    if thread.hide:
+        continue
+
     thread.total_y = total_y
 
     # first pass .. move work and wait events to y == 0
@@ -239,9 +257,9 @@ for thread in threads:
 
 PIXELS_PER_SECOND = 1000
 PIXELS_PER_GATE = 20
-LEFT_BORDER = 320
+LEFT_BORDER = 130
 BAR_HEIGHT = 5
-WIDTH = int(LEFT_BORDER + last_time * PIXELS_PER_SECOND) + 50
+WIDTH = int(LEFT_BORDER + last_time * PIXELS_PER_SECOND) + 20
 HEIGHT = int((total_y + 1) * PIXELS_PER_GATE)
 
 output_filename = "vips-profile.svg"
@@ -260,7 +278,7 @@ ctx.fill()
 def draw_event(ctx, event):
     left = event.start * PIXELS_PER_SECOND + LEFT_BORDER
     top = event.total_y * PIXELS_PER_GATE + BAR_HEIGHT / 2 
-    width = (event.stop - event.start) * PIXELS_PER_SECOND - 1
+    width = (event.stop - event.start) * PIXELS_PER_SECOND 
     height = BAR_HEIGHT
 
     ctx.rectangle(left, top, width, height)
@@ -283,13 +301,16 @@ def draw_event(ctx, event):
         ctx.show_text(event.gate_name)
 
 for thread in threads:
+    if thread.hide:
+        continue
+
     ctx.rectangle(0, thread.total_y * PIXELS_PER_GATE, WIDTH, 1)
     ctx.set_source_rgb(1.00, 1.00, 1.00)
     ctx.fill()
 
     xbearing, ybearing, twidth, theight, xadvance, yadvance = \
             ctx.text_extents(thread.thread_name)
-    ctx.move_to(0, theight + thread.total_y * PIXELS_PER_GATE)
+    ctx.move_to(0, theight + thread.total_y * PIXELS_PER_GATE + BAR_HEIGHT / 2)
     ctx.set_source_rgb(1.00, 1.00, 1.00)
     ctx.show_text(thread.thread_name)
 
