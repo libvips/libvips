@@ -1,3 +1,12 @@
+- fix im_benchmarkn
+
+	(vips:16785): GLib-GObject-WARNING **: value "0.500000" of type
+	'\''gdouble'\'' is invalid or out of range for property '\''m1'\'' of
+	type '\''gdouble'\''
+	LabQ2sRGB: coding '\''labq'\'' only
+	:wq
+
+
 
 - try disabling turbo-boost?
 

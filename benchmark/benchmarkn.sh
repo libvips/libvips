@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 uname -a
 gcc --version
 vips --version

@@ -209,7 +209,7 @@ for thread in threads:
             for gate_name in gate_positions:
                 if is_overlap(thread.events, event.gate_name, gate_name):
                     print 'gate overlap on thread', thread.thread_name
-                    print '\t', event.gate_location, 
+                    print '\t', event.gate_location 
                     print '\t', event.gate_name
                     print '\t', gate_name 
                     break
