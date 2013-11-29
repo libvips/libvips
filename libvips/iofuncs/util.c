@@ -1141,18 +1141,18 @@ int
 vips_existsf( const char *name, ... )
 {
         va_list ap;
-        char buf1[PATH_MAX];
+	char *path; 
+        int result; 
 
         va_start( ap, name );
-        (void) vips_vsnprintf( buf1, PATH_MAX - 1, name, ap );
+	path = g_strdup_vprintf( name, ap ); 
         va_end( ap );
 
-        /* Try that.
-         */
-        if( !access( buf1, R_OK ) )
-                return( 1 );
+        result = access( path, R_OK );
 
-        return( 0 );
+	g_free( path ); 
+
+        return( !result );
 }
 
 #ifdef OS_WIN32
@@ -1191,20 +1191,20 @@ int
 vips_mkdirf( const char *name, ... )
 {
         va_list ap;
-        char buf1[PATH_MAX];
+	char *path; 
 
         va_start( ap, name );
-        (void) vips_vsnprintf( buf1, PATH_MAX - 1, name, ap );
+	path = g_strdup_vprintf( name, ap ); 
         va_end( ap );
 
-        /* Try that.
-         */
-        if( g_mkdir( buf1, 0755 ) ) {
+	if( g_mkdir( path, 0755 ) ) { 
 		vips_error( "mkdirf", 
 			_( "unable to create directory \"%s\", %s" ), 
-			buf1, strerror( errno ) );
+			path, strerror( errno ) );
+		g_free( path ); 
                 return( -1 );
 	}
+	g_free( path ); 
 
         return( 0 );
 }
@@ -1213,7 +1213,7 @@ vips_mkdirf( const char *name, ... )
  *
  * Strings can't be adjacent, so "hello world" (without quotes) is a single 
  * string.  Strings are written (with \" escaped) into @string. If the string
- * is larger than @size, it is silently null-termionated and truncated. 
+ * is larger than @size, it is silently null-terminated and truncated. 
  *
  * Return NULL for end of tokens.
  */
@@ -1387,14 +1387,14 @@ vips__find_rightmost_brackets( const char *p )
 {
 	const char *start[MAX_TOKENS];
 	VipsToken tokens[MAX_TOKENS];
-	char str[PATH_MAX];
+	char str[4096];
 	int n, i;
 	int nest;
 
 	start[0] = p;
 	for( n = 0; 
 		n < MAX_TOKENS &&
-		(p = vips__token_get( start[n], &tokens[n], str, PATH_MAX )); 
+		(p = vips__token_get( start[n], &tokens[n], str, 4096 )); 
 		n++, start[n] = p )
 		;
 

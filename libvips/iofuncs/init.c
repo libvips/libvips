@@ -542,30 +542,6 @@ vips_get_option_group( void )
 	return( option_group );
 }
 
-static char *
-get_current_dir( void )
-{
-	static char buffer[PATH_MAX];
-	char *dir;
-
-	/* We don't use getcwd(3) on SUNOS, because, it does a popen("pwd")
-	 * and, if that wasn't bad enough, hangs in doing so.
-	 */
-#if defined( sun ) && !defined( __SVR4 )
-	dir = getwd( buffer );
-#else   /* !sun */
-	dir = getcwd( buffer, PATH_MAX );
-#endif  /* !sun */
-
-	if( !dir ) {
-		buffer[0] = G_DIR_SEPARATOR;
-		buffer[1] = '\0';
-		dir = buffer;
-	}
-
-	return( dir );
-}
-
 /* Find the prefix part of a dir ... name is the name of this prog from argv0.
  *
  * dir					name		guess prefix
@@ -578,8 +554,8 @@ get_current_dir( void )
 static char *
 extract_prefix( const char *dir, const char *name )
 {
-	char edir[PATH_MAX];
-	char vname[PATH_MAX];
+	char edir[4096];
+	char vname[4096];
 	int i;
 
 #ifdef DEBUG
@@ -590,11 +566,15 @@ extract_prefix( const char *dir, const char *name )
 	/* Is dir relative? Prefix with cwd.
 	 */
 	if( !g_path_is_absolute( dir ) ) {
-		vips_snprintf( edir, PATH_MAX, "%s" G_DIR_SEPARATOR_S "%s",
-			get_current_dir(), dir );
+		char *cwd; 
+
+		cwd = g_get_current_dir();
+		vips_snprintf( edir, 4096, "%s" G_DIR_SEPARATOR_S "%s",
+			cwd, dir );
+		g_free( cwd );
 	}
 	else {
-		vips_strncpy( edir, dir, PATH_MAX );
+		vips_strncpy( edir, dir, 4096 );
 	}
 
 	/* Chop off the trailing prog name, plus the trailing
@@ -602,7 +582,7 @@ extract_prefix( const char *dir, const char *name )
 	 */
 	if( !vips_ispostfix( edir, name ) ) 
 		return( NULL );
-	vips_strncpy( vname, edir, PATH_MAX );
+	vips_strncpy( vname, edir, 4096 );
 	vname[strlen( edir ) - strlen( name ) - 1] = '\0';
 
 	/* Remove any "/./", any trailing "/.", any trailing "/".
@@ -644,11 +624,11 @@ scan_path( char *path, const char *name )
 
 	for( p = path; 
 		(q = vips_break_token( p, G_SEARCHPATH_SEPARATOR_S )); p = q ) {
-		char str[PATH_MAX];
+		char str[4096];
 
 		/* Form complete path.
 		 */
-		vips_snprintf( str, PATH_MAX, 
+		vips_snprintf( str, 4096, 
 			"%s" G_DIR_SEPARATOR_S "%s", p, name );
 
 #ifdef DEBUG
@@ -672,7 +652,7 @@ find_file( const char *name )
 {
 	const char *path = g_getenv( "PATH" );
 	char *prefix;
-	char full_path[PATH_MAX];
+	char full_path[4096];
 
 	if( !path )
 		return( NULL );
@@ -682,12 +662,18 @@ find_file( const char *name )
 #endif /*DEBUG*/
 
 #ifdef OS_WIN32
+{
+	char *dir; 
+
 	/* Windows always searches '.' first, so prepend cwd to path.
 	 */
-	vips_snprintf( full_path, PATH_MAX, "%s" G_SEARCHPATH_SEPARATOR_S "%s",
-		get_current_dir(), path );
+	dir = g_get_current_dir();
+	vips_snprintf( full_path, 4096, "%s" G_SEARCHPATH_SEPARATOR_S "%s",
+		dir, path );
+	g_free( dir ); 
+}
 #else /*!OS_WIN32*/
-	vips_strncpy( full_path, path, PATH_MAX );
+	vips_strncpy( full_path, path, 4096 );
 #endif /*OS_WIN32*/
 
 	if( (prefix = scan_path( full_path, name )) ) 
@@ -735,15 +721,19 @@ guess_prefix( const char *argv0, const char *name )
  	 * a full path in argv[0].
 	 */
 	if( !g_path_is_absolute( argv0 ) ) {
-		char full_path[PATH_MAX];
-		char resolved[PATH_MAX];
+		char full_path[4096];
+		char *resolved;
+		char *dir;
 
-		vips_snprintf( full_path, PATH_MAX, 
-			"%s" G_DIR_SEPARATOR_S "%s", get_current_dir(), argv0 );
+		dir = g_get_current_dir(); 
+		vips_snprintf( full_path, 4096, 
+			"%s" G_DIR_SEPARATOR_S "%s", dir, argv0 );
+		g_free( dir ); 
 
-		if( realpath( full_path, resolved ) ) {
-			if( (prefix = extract_prefix( resolved, name )) ) {
-
+		if( (resolved = realpath( full_path, NULL )) ) {
+			prefix = extract_prefix( resolved, name );
+			free( resolved ); 
+			if( prefix ) { 
 #ifdef DEBUG
 				printf( "vips_guess_prefix: found \"%s\" "
 					"from cwd\n", prefix );
@@ -783,7 +773,7 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 {
         const char *prefix;
         const char *p;
-        char name[PATH_MAX];
+        char name[4096];
 
 	/* Already set?
 	 */
@@ -804,15 +794,14 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 	if( strlen( VIPS_EXEEXT ) > 0 ) {
 		const char *olds[] = { VIPS_EXEEXT };
 
-		vips__change_suffix( p, name, PATH_MAX, VIPS_EXEEXT, olds, 1 );
+		vips__change_suffix( p, name, 4096, VIPS_EXEEXT, olds, 1 );
 	}
 	else
-		vips_strncpy( name, p, PATH_MAX );
+		vips_strncpy( name, p, 4096 );
 
 #ifdef DEBUG
 	printf( "vips_guess_prefix: argv0 = %s\n", argv0 );
 	printf( "vips_guess_prefix: name = %s\n", name );
-	printf( "vips_guess_prefix: cwd = %s\n", get_current_dir() );
 #endif /*DEBUG*/
 
 	prefix = guess_prefix( argv0, name );
