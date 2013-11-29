@@ -384,7 +384,6 @@ vips_affine_build( VipsObject *object )
 		vips_object_local_array( object, 4 );
 
 	VipsImage *in;
-	gboolean repack;
 	VipsDemandStyle hint; 
 	int window_size;
 	int window_offset;
@@ -464,13 +463,11 @@ vips_affine_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* Unpack labq for processing ... we repack after, see below.
+	/* Unpack labq for processing.
 	 */
-	repack = FALSE;
 	if( in->Coding == VIPS_CODING_LABQ ) {
 		if( vips_LabQ2LabS( in, &t[0], NULL ) )
 			return( -1 );
-		repack = TRUE;
 		in = t[0];
 	}
 
@@ -504,17 +501,6 @@ vips_affine_build( VipsObject *object )
 		vips_start_one, vips_affine_gen, vips_stop_one, 
 		in, affine ) )
 		return( -1 );
-
-	if( repack ) {
-		VipsImage *x;
-
-		if( vips_LabS2LabQ( resample->out, &x, NULL ) )
-			return( -1 );
-
-		VIPS_UNREF( resample->out );
-
-		resample->out = x;
-	}
 
 	/* Finally: can now set Xoffset/Yoffset.
 	 */

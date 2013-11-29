@@ -4241,14 +4241,22 @@ static int
 im__affinei( VipsImage *in, VipsImage *out, 
 	VipsInterpolate *interpolate, VipsTransformation *trn )
 {
-	VipsImage *x;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( out ), 2 );
+
 	VipsArea *oarea;
+	gboolean repack;
 
 	oarea = (VipsArea *) vips_array_int_newv( 4, 
 		trn->oarea.left, trn->oarea.top,
 		trn->oarea.width, trn->oarea.height );
 
-	if( vips_affine( in, &x, 
+	/* vips7 affine would repack labq and im_benchmark() depends upon
+	 * this.
+	 */
+	repack = in->Coding == IM_CODING_LABQ;
+
+	if( vips_affine( in, &t[0], 
 		trn->a, trn->b, trn->c, trn->d,
 		"interpolate", interpolate,
 		"oarea", oarea,
@@ -4258,15 +4266,18 @@ im__affinei( VipsImage *in, VipsImage *out,
 		vips_area_unref( oarea );
 		return( -1 );
 	}
-
 	vips_area_unref( oarea );
+	in = t[0];
 
-	if( im_copy( x, out ) ) {
-		g_object_unref( x );
-		return( -1 );
+	if( repack ) {
+		if( vips_colourspace( in, &t[1], 
+			VIPS_INTERPRETATION_LABQ, NULL ) )
+			return( -1 );
+		in = t[1];
 	}
 
-	g_object_unref( x );
+	if( vips_image_write( in, out ) ) 
+		return( -1 );
 
 	return( 0 );
 }

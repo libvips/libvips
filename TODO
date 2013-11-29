@@ -1,7 +1,3 @@
-- some vips8 operators repack labq after processing ... new policy: accept any
-  format and never repack
-
-
 - seen some leaks from 
 
 	vips dzsave --layout google wtc.jpg x
