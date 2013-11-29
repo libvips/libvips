@@ -49,6 +49,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#include <math.h>
+
 #include <vips/vips.h>
 
 #include "pconversion.h"

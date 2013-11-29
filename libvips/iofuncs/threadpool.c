@@ -192,7 +192,7 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 #ifdef HAVE_THREAD_NEW
 	thread = g_thread_try_new( domain, vips_thread_run, info, &error );
 #else
-	thread = g_thread_create( vips_thread_run, data, info, &error );
+	thread = g_thread_create( vips_thread_run, info, TRUE, &error );
 #endif
 
 	if( !thread ) {

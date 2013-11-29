@@ -30,6 +30,7 @@ bin_SCRIPTS = \
 	vips-7.37
 
 EXTRA_DIST = \
+	vipsprofile \
 	vips-7.37 \
 	light_correct.in \
 	shrink_width.in \

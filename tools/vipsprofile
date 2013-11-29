@@ -54,6 +54,9 @@ class Event:
     def __init__(self, thread, gate_name, start, stop):
         self.thread = thread
         self.gate_name = gate_name
+        match = re.match('(.*?): (.*)', gate_name)
+        if match:
+            self.short_gate_name = match.group(2)
         self.start = start
         self.stop = stop
 
@@ -91,10 +94,10 @@ with ReadFile(input_filename) as rf:
         rf.getnext()
 
         while True:
-            match = re.match('gate: (.*?): (.*)', rf.line)
+            match = re.match('gate: (.*)', rf.line)
             if not match:
                 break
-            gate_name = match.group(2)
+            gate_name = match.group(1)
             rf.getnext()
 
             match = re.match('start:', rf.line)
@@ -156,7 +159,7 @@ for thread in threads:
     thread.alive = thread.stop - thread.start
 
     # hide very short-lived threads 
-    thread.hide = thread.alive < 0.001
+    thread.hide = thread.alive < 0.01
 
 print 'name\t\talive\twait%\twork%\tunknown%'
 for thread in threads:
@@ -206,7 +209,9 @@ for thread in threads:
         if not event.gate_name in gate_positions:
             for gate_name in gate_positions:
                 if is_overlap(thread.events, event.gate_name, gate_name):
-                    print 'gate', event.gate_name, 'and', gate_name, 'overlap'
+                    print 'gate overlap on thread', thread.thread_name
+                    print '\t', event.gate_name
+                    print '\t', gate_name 
                     break
 
             gate_positions[event.gate_name] = 0
@@ -294,11 +299,11 @@ def draw_event(ctx, event):
 
     if not event.wait and not event.work:
         xbearing, ybearing, twidth, theight, xadvance, yadvance = \
-                ctx.text_extents(event.gate_name)
+                ctx.text_extents(event.short_gate_name)
 
         ctx.move_to(left + width / 2 - twidth / 2, top + 3 * BAR_HEIGHT)
         ctx.set_source_rgb(1.00, 0.83, 0.00)
-        ctx.show_text(event.gate_name)
+        ctx.show_text(event.short_gate_name)
 
 for thread in threads:
     if thread.hide:
