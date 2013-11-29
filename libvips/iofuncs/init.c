@@ -226,6 +226,7 @@ vips__init( const char *argv0 )
 	 * directly. 
 	 */
 	vips__thread_gate_start( "init: main" ); 
+	vips__thread_gate_start( "init: startup" ); 
 
 	/* Try to discover our prefix. 
 	 */
@@ -308,6 +309,8 @@ vips__init( const char *argv0 )
 #endif /*HAVE_ATEXIT*/
 
 	done = TRUE;
+
+	vips__thread_gate_stop( "init: startup" ); 
 
 	return( 0 );
 }

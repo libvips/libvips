@@ -380,6 +380,7 @@ vips_operation_new( const char *name )
 			_( "class \"%s\" not found" ), name );
 		return( NULL );
 	}
+
 	operation = VIPS_OPERATION( g_object_new( type, NULL ) );
 
 	VIPS_DEBUG_MSG( "vips_operation_new: %s (%p)\n", name, operation );

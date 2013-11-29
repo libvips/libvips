@@ -3,106 +3,83 @@
 
   see http://blog.tube42.se/?p=1225
 
-  for i in {0..11}; do sudo cpufreq-set -f 1600000 -c $i; done
+  for i in {0..3}; do sudo cpufreq-set -f 2.5GHz -c $i; done
 
--r doesn't seem to work
+  -r doesn't seem to work
 
   verify with
 
   cpufreq-info | more
 
-  with cpu locked at 1.6 GHz
-
-$ time vips sharpen k2.v x.v --radius 20 --vips-concurrency=1
-real	0m2.232s
-user	0m2.212s
-sys	0m0.036s
-$ time vips sharpen k2.v x.v --radius 20 --vips-concurrency=2
-real	0m1.295s
-user	0m2.448s
-sys	0m0.060s
 
 
-$ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=1
-real	0m2.760s
-user	0m2.768s
-sys	0m0.024s
-$ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=2
-real	0m1.558s
-user	0m2.988s
-sys	0m0.060s
+- lock CPUs at 2.5GHz
+
+  $ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=1
+  real	0m1.687s
+  user	0m1.694s
+  sys	0m0.028s
+
+  $ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=2
+  real	0m0.967s
+  user	0m1.876s
+  sys	0m0.028s
+
+  1.75x speedup
+
+  $ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=4
+  real	0m0.864s
+  user	0m3.175s
+  sys	0m0.060s
+
+  1.95x speedup
 
 
+- floating CPUs
+
+  $ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=1
+  real	0m1.395s
+  user	0m1.414s
+  sys	0m0.016s
+
+  $ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=2
+  real	0m0.841s
+  user	0m1.626s
+  sys	0m0.028s
+
+  1.65x speedup
+
+  $ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=4
+  real	0m0.755s
+  user	0m2.759s
+  sys	0m0.048s
+
+  1.85x speedup
+
+  1.687 vs 1.395 is about a 20% speedup ... turbo-boost!
 
 
-
-
-git master, -o2, --enable-debug=no
-
-$ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=1
-real	0m1.404s
-user	0m1.419s
-sys	0m0.023s
-
-$ time vips sharpen k2.jpg x.jpg --radius 20 --vips-concurrency=2
-real	0m0.870s
-user	0m1.659s
-sys	0m0.036s
-
-$ time vips sharpen k2.jpg x.jpg --radius 20
-real	0m0.760s
-user	0m2.726s
-sys	0m0.069s
-
-two cores gets a 1.404 / 0.870 = 1.61x speedup
-
-turbo-boost is 20%, so if 1 core were 20% slower, it'd be 1.685
-
-1.685 / 0.870 = 1.94x speedup
-
-(check this, use MHz in tubo and non-turbo)
-
-for four threads, we add 2.726 - 1.659 = 1.067 cpu but only get another 15%
-off the wall-clock time
-
-john@bambam ~/pics $ time vips sharpen k2.jpg x.jpg --radius 20 --vips-profile
+$ time vips sharpen k2.v x.v --radius 20 --vips-profile
 recording profile in vips-profile.txt
-real	0m0.758s
-user	0m2.768s
-sys	0m0.032s
-john@bambam ~/pics $ vipsprofile 
+real	0m1.187s
+user	0m4.167s
+sys	0m0.116s
+$ vipsprofile 
 reading from vips-profile.txt
-loaded 5885 events
-last time = 0.710619
-name				alive	wait%	work%	unk%
-     worker (0x7f66000008c0) 0	0.0003	67.7	0	32.3
-     worker (0x7f66100008c0) 1	0.00037	37.2	0	62.8
-     worker (0x7f66080008c0) 2	0.00032	93.5	0	6.54
-     worker (0x7f660c0008c0) 3	0.00033	86.8	0	13.2
-     worker (0x7f66080008c0) 4	0.00023	63.8	0	36.2
-     worker (0x7f661000a360) 5	0.00024	96.7	0	3.33
-     worker (0x7f660c0008c0) 6	0.00042	78.1	0	21.9
-     worker (0x7f66000012d0) 7	0.00025	85	0	15
-     worker (0x7f660c011450) 8	0.0001	30.7	0	69.3
-     worker (0x7f661000a360) 9	0.00011	89.7	0	10.3
-    worker (0x7f6608011850) 10	0.00012	93.2	0	6.78
-    worker (0x7f66000012d0) 11	0.00023	14.1	8.55	77.4
-    worker (0x7f661000a360) 12	0.00013	47.2	0	52.8
-    worker (0x7f6608011850) 13	0.00011	91.2	0	8.77
-    worker (0x7f660c011430) 14	0.00015	12.9	0	87.1
-    worker (0x7f6600009fa0) 15	0.00019	45.7	0	54.3
-    worker (0x7f660c011450) 16	0.00011	90.4	0	9.65
-    worker (0x7f6600009f80) 17	0.00017	5.81	4.65	89.5
-    worker (0x7f661000a1f0) 18	0.00013	93.6	0	6.4
-    worker (0x7f6608011850) 19	0.00011	35.8	0	64.2
-    worker (0x7f65fc0008c0) 20	  0.69	0.453	95.7	3.83
-    worker (0x7f65f80008c0) 21	  0.69	0.333	96.9	2.75
-    worker (0x7f660c011450) 22	  0.69	0.288	97.1	2.57
-    worker (0x7f661000a1f0) 23	  0.69	0.127	97.2	2.63
-   wbuffer (0x7f66000011c0) 24	   0.7	98	0	1.98
-   wbuffer (0x7f660800fcd0) 25	   0.7	97.7	0	2.32
-           main (0x1e7e200) 26	  0.74	93.7	0	6.31
+loaded 3781 events
+last time = 1.120263
+name		alive	wait%	work%	unknown%
+    worker 20	   1.1	0.19	98.7	1.09
+    worker 21	   1.1	0.0292	98.1	1.9
+    worker 22	   1.1	0.0228	98	1.96
+    worker 23	   1.1	0.124	97.9	1.94
+   wbuffer 24	   1.1	98.9	1.14	0.00236
+   wbuffer 25	   1.1	98.9	1.15	0.00209
+      main 26	   1.2	93.5	0	6.54
 writing to vips-profile.svg
+$ eog vips-profile.svg 
+
+
 
 
 

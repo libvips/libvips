@@ -296,7 +296,7 @@ def draw_event(ctx, event):
         xbearing, ybearing, twidth, theight, xadvance, yadvance = \
                 ctx.text_extents(event.gate_name)
 
-        ctx.move_to(left + width / 2 - twidth / 2, top + theight)
+        ctx.move_to(left + width / 2 - twidth / 2, top + 3 * BAR_HEIGHT)
         ctx.set_source_rgb(1.00, 0.83, 0.00)
         ctx.show_text(event.gate_name)
 

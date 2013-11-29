@@ -198,6 +198,8 @@ vips_sharpen_build( VipsObject *object )
 	int ix1, ix2, ix3;
 	int i;
 
+	VIPS_GATE_START( "vips_sharpen_build: build" ); 
+
 	if( VIPS_OBJECT_CLASS( vips_sharpen_parent_class )->build( object ) )
 		return( -1 );
 
@@ -290,6 +292,8 @@ vips_sharpen_build( VipsObject *object )
 	if( vips_bandjoin2( t[5], t[3], &t[6], NULL ) ||
 		vips_image_write( t[6], sharpen->out ) )
 		return( -1 );
+
+	VIPS_GATE_STOP( "vips_sharpen_build: build" ); 
 
 	return( 0 );
 }
