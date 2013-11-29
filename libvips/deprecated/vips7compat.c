@@ -2335,22 +2335,24 @@ im_sharpen( IMAGE *in, IMAGE *out,
 	double x1, double y2, double y3, 
 	double m1, double m2 )
 {
-	VipsImage *x;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( out ), 2 );
 
-	if( vips_call( "sharpen", in, &x, 
+	/* im_sharpen() always recoded as labq and im_benchmark() depends
+	 * upon this behaviour. 
+	 */
+	if( vips_call( "sharpen", in, &t[0], 
 		"radius", mask_size / 2,
 		"x1", x1,
 		"y2", y2,
 		"y3", y3,
 		"m1", m1,
 		"m2", m2,
-		NULL ) )
+		NULL ) ||
+		vips_colourspace( t[0], &t[1], 
+			VIPS_INTERPRETATION_LABQ, NULL ) ||
+		vips_image_write( t[1], out ) ) 
 		return( -1 );
-	if( im_copy( x, out ) ) {
-		g_object_unref( x );
-		return( -1 );
-	}
-	g_object_unref( x );
 
 	return( 0 );
 }

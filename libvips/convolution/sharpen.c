@@ -359,14 +359,14 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 		_( "Slope for flat areas" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, m1 ),
-		1, 1000000, 1 );
+		0, 1000000, 1 );
 
 	VIPS_ARG_DOUBLE( class, "m2", 9, 
 		_( "m2" ), 
 		_( "Slope for jaggy areas" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, m2 ),
-		1, 1000000, 2 );
+		0, 1000000, 2 );
 
 }
 
