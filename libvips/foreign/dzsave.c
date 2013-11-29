@@ -37,7 +37,7 @@
  * 19/6/13
  * 	- faster --centre logic, thanks Kacey
  * 25/6/13
- * 	- ping classes beore starting workers, see comment below, thanks
+ * 	- ping classes before starting workers, see comment below, thanks
  * 	  Kacey
  */
 
@@ -1181,7 +1181,7 @@ vips_class_ping( VipsObjectClass *class, void *dummy )
  * operations it uses have not all been used previously, they can run their
  * class_init in parallel.
  *
- * This should be safe, but seems not to be for reasons I don't understand.
+ * This should be safe but seems not to be for reasons I don't understand.
  * For now, just ping all classes from the main thread before we set the
  * workers going. 
  *
