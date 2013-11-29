@@ -51,12 +51,10 @@ class Thread:
         Thread.thread_number += 1
 
 class Event:
-    def __init__(self, thread, gate_name, start, stop):
+    def __init__(self, thread, gate_location, gate_name, start, stop):
         self.thread = thread
+        self.gate_location = gate_location
         self.gate_name = gate_name
-        match = re.match('(.*?): (.*)', gate_name)
-        if match:
-            self.short_gate_name = match.group(2)
         self.start = start
         self.stop = stop
 
@@ -94,10 +92,11 @@ with ReadFile(input_filename) as rf:
         rf.getnext()
 
         while True:
-            match = re.match('gate: (.*)', rf.line)
+            match = re.match('gate: (.*?): (.*)', rf.line)
             if not match:
                 break
-            gate_name = match.group(1)
+            gate_location = match.group(1)
+            gate_name = match.group(2)
             rf.getnext()
 
             match = re.match('start:', rf.line)
@@ -118,7 +117,7 @@ with ReadFile(input_filename) as rf:
                 print 'start and stop length mismatch'
 
             for a, b in zip(start, stop):
-                Event(thread, gate_name, a, b)
+                Event(thread, gate_location, gate_name, a, b)
                 n_events += 1
 
 for thread in threads:
@@ -210,6 +209,7 @@ for thread in threads:
             for gate_name in gate_positions:
                 if is_overlap(thread.events, event.gate_name, gate_name):
                     print 'gate overlap on thread', thread.thread_name
+                    print '\t', event.gate_location, 
                     print '\t', event.gate_name
                     print '\t', gate_name 
                     break
@@ -299,11 +299,11 @@ def draw_event(ctx, event):
 
     if not event.wait and not event.work:
         xbearing, ybearing, twidth, theight, xadvance, yadvance = \
-                ctx.text_extents(event.short_gate_name)
+                ctx.text_extents(event.gate_name)
 
         ctx.move_to(left + width / 2 - twidth / 2, top + 3 * BAR_HEIGHT)
         ctx.set_source_rgb(1.00, 0.83, 0.00)
-        ctx.show_text(event.short_gate_name)
+        ctx.show_text(event.gate_name)
 
 for thread in threads:
     if thread.hide:
