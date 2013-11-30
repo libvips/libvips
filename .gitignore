@@ -12,6 +12,7 @@ Makefile.in
 TAGS
 tags
 *.o
+*.vect
 Vips-8.0.gir
 Vips-8.0.typelib
 .*.swp

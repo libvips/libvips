@@ -80,8 +80,8 @@ typedef VipsUnaryClass VipsComplexClass;
 G_DEFINE_TYPE( VipsComplex, vips_complex, VIPS_TYPE_UNARY );
 
 #define LOOP( IN, OUT, OP ) { \
-	IN *p = (IN *) in[0]; \
-	OUT *q = (OUT *) out; \
+	IN * __restrict__ p = (IN *) in[0]; \
+	OUT * __restrict__ q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		OP( q, p[x], 0.0 ); \
@@ -91,8 +91,8 @@ G_DEFINE_TYPE( VipsComplex, vips_complex, VIPS_TYPE_UNARY );
 }
 
 #define CLOOP( IN, OUT, OP ) { \
-	IN *p = (IN *) in[0]; \
-	OUT *q = (OUT *) out; \
+	IN * __restrict__ p = (IN *) in[0]; \
+	OUT * __restrict__ q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		OP( q, p[0], p[1] ); \

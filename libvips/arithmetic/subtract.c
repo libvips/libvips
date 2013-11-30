@@ -83,9 +83,9 @@ typedef VipsBinaryClass VipsSubtractClass;
 G_DEFINE_TYPE( VipsSubtract, vips_subtract, VIPS_TYPE_BINARY );
 
 #define LOOP( IN, OUT ) { \
-	IN *left = (IN *) in[0]; \
-	IN *right = (IN *) in[1]; \
-	OUT *q = (OUT *) out; \
+	IN * __restrict__ left = (IN *) in[0]; \
+	IN * __restrict__ right = (IN *) in[1]; \
+	OUT * __restrict__ q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = left[x] - right[x]; \

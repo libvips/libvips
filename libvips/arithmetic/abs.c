@@ -1,4 +1,4 @@
-/* im_abs()
+/* absolute value
  *
  * Copyright: 1990, N. Dessipris, based on im_powtra()
  * Author: Nicos Dessipris
@@ -93,25 +93,19 @@ vips_abs_build( VipsObject *object )
 /* Integer abs operation: just test and negate.
  */
 #define ABS_INT( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	int x; \
 	\
-	for( x = 0; x < sz; x++ ) { \
-		TYPE v = p[x]; \
-		\
-		if( v < 0 ) \
-			q[x] = 0 - v; \
-		else \
-			q[x] = v; \
-	} \
+	for( x = 0; x < sz; x++ ) \
+		q[x] = p[x] < 0 ? 0 - p[x] : p[x]; \
 }
 
 /* Float abs operation: call fabs().
  */
 #define ABS_FLOAT( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	int x; \
 	\
 	for( x = 0; x < sz; x++ ) \
@@ -124,8 +118,8 @@ vips_abs_build( VipsObject *object )
 #ifdef HAVE_HYPOT
 
 #define ABS_COMPLEX( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	int x; \
 	\
 	for( x = 0; x < sz; x++ ) { \
@@ -137,8 +131,8 @@ vips_abs_build( VipsObject *object )
 #else /*HAVE_HYPOT*/
 
 #define ABS_COMPLEX( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	int x; \
 	\
 	for( x = 0; x < sz; x++ ) { \

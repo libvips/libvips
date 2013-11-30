@@ -85,8 +85,8 @@ vips_round_build( VipsObject *object )
 }
 
 #define LOOP( TYPE, OP ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = OP( p[x] ); \

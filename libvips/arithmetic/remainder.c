@@ -92,32 +92,26 @@ vips_remainder_build( VipsObject *object )
 /* Integer remainder-after-division.
  */
 #define IREMAINDER( TYPE ) { \
-	TYPE *p1 = (TYPE *) in[0]; \
-	TYPE *p2 = (TYPE *) in[1]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ p1 = (TYPE *) in[0]; \
+	TYPE * __restrict__ p2 = (TYPE *) in[1]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		if( p2[x] ) \
-			q[x] = p1[x] % p2[x]; \
-		else \
-			q[x] = -1; \
+		q[x] = p2[x] ? p1[x] % p2[x] : -1; \
 }
 
 /* Float remainder-after-division.
  */
 #define FREMAINDER( TYPE ) { \
-	TYPE *p1 = (TYPE *) in[0]; \
-	TYPE *p2 = (TYPE *) in[1]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ p1 = (TYPE *) in[0]; \
+	TYPE * __restrict__ p2 = (TYPE *) in[1]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		double a = p1[x]; \
 		double b = p2[x]; \
 		\
-		if( b ) \
-			q[x] = a - b * floor (a / b); \
-		else \
-			q[x] = -1; \
+		q[x] = b ? a - b * floor (a / b) : -1; \
 	} \
 }
 
@@ -262,9 +256,9 @@ vips_remainder_const_build( VipsObject *object )
 /* Integer remainder-after-divide, per-band constant.
  */
 #define IREMAINDERCONST( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
-	TYPE *c = (TYPE *) uconst->c_ready; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
+	TYPE * __restrict__ c = (TYPE *) uconst->c_ready; \
 	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \
@@ -274,19 +268,18 @@ vips_remainder_const_build( VipsObject *object )
 /* Float remainder-after-divide, per-band constant.
  */
 #define FREMAINDERCONST( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
-	TYPE *c = (TYPE *) uconst->c_ready; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
+	TYPE * __restrict__ c = (TYPE *) uconst->c_ready; \
 	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) { \
 			double left = p[i]; \
 			double right = c[b]; \
 			\
-			if( right ) \
-				q[i] = left - right * floor( left / right ); \
-			else \
-				q[i] = -1; \
+			q[i] = right ? \
+				left - right * floor( left / right ) : \
+				-1; \
 		} \
 }
 

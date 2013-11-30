@@ -69,24 +69,24 @@ typedef VipsUnaryClass VipsInvertClass;
 G_DEFINE_TYPE( VipsInvert, vips_invert, VIPS_TYPE_UNARY );
 
 #define LOOP( TYPE, L ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = (L) - p[x]; \
 }
 
 #define LOOPN( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = -1 * p[x]; \
 }
 
 #define LOOPC( TYPE ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		q[0] = -1 * p[0]; \

@@ -1,3 +1,18 @@
+- check vectorizer on linear.c
+
+  do some more packages, we've just done arithmetic so far
+
+  time add with auto vec and with orc, is orc worthwhile?
+
+  make sure __restrict__ turns off if the compiler does not support it, is
+  there a configure thing?
+
+  how much would alignment buy us? is there any way we can do this? probably
+  not, since we need to be able to generate any sub-area
+
+  how about avg? do we need -ffast-math to vec that?
+
+
 - seen some leaks from 
 
 	vips dzsave --layout google wtc.jpg x

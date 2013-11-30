@@ -108,18 +108,18 @@ vips_boolean_build( VipsObject *object )
 }
 
 #define LOOP( TYPE, OP ) { \
-	TYPE *left = (TYPE *) in[0]; \
-	TYPE *right = (TYPE *) in[1]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ left = (TYPE *) in[0]; \
+	TYPE * __restrict__ right = (TYPE *) in[1]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = left[x] OP right[x]; \
 }
 
 #define FLOOP( TYPE, OP ) { \
-	TYPE *left = (TYPE *) in[0]; \
-	TYPE *right = (TYPE *) in[1]; \
-	int *q = (int *) out; \
+	TYPE * __restrict__ left = (TYPE *) in[0]; \
+	TYPE * __restrict__ right = (TYPE *) in[1]; \
+	int * __restrict__ q = (int *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = ((int) left[x]) OP ((int) right[x]); \

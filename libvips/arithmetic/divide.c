@@ -90,9 +90,9 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 
 /* This is going to be much slower */
 #define CLOOP( TYPE ) { \
-	TYPE *left = (TYPE *) in[0]; \
-	TYPE *right = (TYPE *) in[1]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ left = (TYPE *) in[0]; \
+	TYPE * __restrict__ right = (TYPE *) in[1]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	int i; \
         \
 	for( i = 0; i < sz; i++ ) { \
@@ -120,9 +120,9 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 #else /* USE_MODARG_DIV */
 
 #define CLOOP( TYPE ) {                                     \
-	TYPE *left = (TYPE *) in[0]; \
-	TYPE *right = (TYPE *) in[1]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ left = (TYPE *) in[0]; \
+	TYPE * __restrict__ right = (TYPE *) in[1]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	int i; \
         \
 	for( i = 0; i < sz; i++ ) { \
@@ -157,15 +157,12 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 /* Real divide. Cast in to OUT before divide so we work for float output.
  */
 #define RLOOP( IN, OUT ) { \
-	IN *left = (IN *) in[0]; \
-	IN *right = (IN *) in[1]; \
-	OUT *q = (OUT *) out; \
+	IN * __restrict__ left = (IN *) in[0]; \
+	IN * __restrict__ right = (IN *) in[1]; \
+	OUT * __restrict__ q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		if( right[x] == 0 ) \
-			q[x] = 0; \
-		else \
-			q[x] = (OUT) left[x] / (OUT) right[x]; \
+		q[x] = right[x] == 0 ? q[x] : (OUT) left[x] / (OUT) right[x]; \
 }
 
 static void

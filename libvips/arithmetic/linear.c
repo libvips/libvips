@@ -163,8 +163,8 @@ vips_linear_build( VipsObject *object )
 /* Non-complex input, any output.
  */
 #define LOOPN( IN, OUT ) { \
-	IN *p = (IN *) in[0]; \
-	OUT *q = (OUT *) out; \
+	IN * __restrict__ p = (IN *) in[0]; \
+	OUT * __restrict__ q = (OUT *) out; \
 	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( k = 0; k < nb; k++, i++ ) \
@@ -174,8 +174,8 @@ vips_linear_build( VipsObject *object )
 /* Complex input, complex output. 
  */
 #define LOOPCMPLXN( IN, OUT ) { \
-	IN *p = (IN *) in[0]; \
-	OUT *q = (OUT *) out; \
+	IN * __restrict__ p = (IN *) in[0]; \
+	OUT * __restrict__ q = (OUT *) out; \
 	\
 	for( x = 0; x < width; x++ ) \
 		for( k = 0; k < nb; k++ ) { \

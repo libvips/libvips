@@ -110,18 +110,18 @@ vips_relational_build( VipsObject *object )
 }
 
 #define RLOOP( TYPE, ROP ) { \
-	TYPE *left = (TYPE *) in[0]; \
-	TYPE *right = (TYPE *) in[1]; \
-	VipsPel *q = (VipsPel *) out; \
+	TYPE * __restrict__ left = (TYPE *) in[0]; \
+	TYPE * __restrict__ right = (TYPE *) in[1]; \
+	VipsPel * __restrict__ q = (VipsPel *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = (left[x] ROP right[x]) ? 255 : 0; \
 }
 
 #define CLOOP( TYPE, COP ) { \
-	TYPE *left = (TYPE *) in[0]; \
-	TYPE *right = (TYPE *) in[1]; \
-	VipsPel *q = (VipsPel *) out; \
+	TYPE * __restrict__ left = (TYPE *) in[0]; \
+	TYPE * __restrict__ right = (TYPE *) in[1]; \
+	VipsPel * __restrict__ q = (VipsPel *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		q[x] = COP( left[0], left[1], right[0], right[1]) ? 255 : 0; \
@@ -478,8 +478,8 @@ vips_relational_const_build( VipsObject *object )
 }
 
 #define RLOOPC( TYPE, OP ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *c = (TYPE *) uconst->c_ready; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
+	TYPE * __restrict__ c = (TYPE *) uconst->c_ready; \
  	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \
@@ -487,10 +487,10 @@ vips_relational_const_build( VipsObject *object )
 }
 
 #define CLOOPC( TYPE, OP ) { \
-	TYPE *p = (TYPE *) in[0]; \
+	TYPE * __restrict__ p = (TYPE *) in[0]; \
  	\
 	for( i = 0, x = 0; x < width; x++ ) { \
-		TYPE *c = (TYPE *) uconst->c_ready; \
+		TYPE * __restrict__ c = (TYPE *) uconst->c_ready; \
 		\
 		for( b = 0; b < bands; b++, i++ ) { \
 			out[i] = OP( p[0], p[1], c[0], c[1]) ? 255 : 0; \

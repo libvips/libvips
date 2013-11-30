@@ -81,9 +81,9 @@ G_DEFINE_TYPE( VipsMultiply, vips_multiply, VIPS_TYPE_BINARY );
 /* Complex multiply.
  */
 #define CLOOP( TYPE ) { \
-	TYPE *left = (TYPE *) in[0]; \
-	TYPE *right = (TYPE *) in[1]; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * __restrict__ left = (TYPE *) in[0]; \
+	TYPE * __restrict__ right = (TYPE *) in[1]; \
+	TYPE * __restrict__ q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		double x1 = left[0]; \
@@ -104,9 +104,9 @@ G_DEFINE_TYPE( VipsMultiply, vips_multiply, VIPS_TYPE_BINARY );
 /* Real multiply.
  */
 #define RLOOP( IN, OUT ) { \
-	IN *left = (IN *) in[0]; \
-	IN *right = (IN *) in[1]; \
-	OUT *q = (OUT *) out; \
+	IN * __restrict__ left = (IN *) in[0]; \
+	IN * __restrict__ right = (IN *) in[1]; \
+	OUT * __restrict__ q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = left[x] * right[x]; \
