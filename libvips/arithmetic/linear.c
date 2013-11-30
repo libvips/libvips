@@ -38,6 +38,8 @@
  * 31/10/11
  * 	- rework as a class
  * 	- removed the 1-ary constant path, no faster
+ * 30/11/13
+ * 	- 1ary is back, faster with gcc 4.8
  */
 
 /*
@@ -160,6 +162,19 @@ vips_linear_build( VipsObject *object )
 	return( 0 );
 }
 
+/* Non-complex input, any output, all bands of the constant equal.
+ */
+#define LOOP1( IN, OUT ) { \
+	IN * __restrict__ p = (IN *) in[0]; \
+	OUT * __restrict__ q = (OUT *) out; \
+	OUT a1 = a[0]; \
+	OUT b1 = b[0]; \
+	int sz = width * nb; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = a1 * (OUT) p[x] + b1; \
+}
+
 /* Non-complex input, any output.
  */
 #define LOOPN( IN, OUT ) { \
@@ -170,6 +185,16 @@ vips_linear_build( VipsObject *object )
 		for( k = 0; k < nb; k++, i++ ) \
 			q[i] = a[k] * (OUT) p[i] + b[k]; \
 }
+
+#define LOOP( IN, OUT ) { \
+	if( linear->a->n == 1 && linear->b->n == 1 ) { \
+		LOOP1( IN, OUT ); \
+	} \
+	else { \
+		LOOPN( IN, OUT ); \
+	} \
+}
+
 
 /* Complex input, complex output. 
  */
@@ -194,21 +219,21 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
 {
 	VipsImage *im = arithmetic->ready[0];
 	VipsLinear *linear = (VipsLinear *) arithmetic;
-	double *a = linear->a_ready;
-	double *b = linear->b_ready;
+	double * __restrict__ a = linear->a_ready;
+	double * __restrict__ b = linear->b_ready;
 	int nb = im->Bands;
 
 	int i, x, k;
 
 	switch( vips_image_get_format( im ) ) {
-        case VIPS_FORMAT_UCHAR: 	LOOPN( unsigned char, float ); break;
-        case VIPS_FORMAT_CHAR: 		LOOPN( signed char, float ); break; 
-        case VIPS_FORMAT_USHORT: 	LOOPN( unsigned short, float ); break; 
-        case VIPS_FORMAT_SHORT: 	LOOPN( signed short, float ); break; 
-        case VIPS_FORMAT_UINT: 		LOOPN( unsigned int, float ); break; 
-        case VIPS_FORMAT_INT: 		LOOPN( signed int, float );  break; 
-        case VIPS_FORMAT_FLOAT: 	LOOPN( float, float ); break; 
-        case VIPS_FORMAT_DOUBLE:	LOOPN( double, double ); break; 
+        case VIPS_FORMAT_UCHAR: 	LOOP( unsigned char, float ); break;
+        case VIPS_FORMAT_CHAR: 		LOOP( signed char, float ); break; 
+        case VIPS_FORMAT_USHORT: 	LOOP( unsigned short, float ); break; 
+        case VIPS_FORMAT_SHORT: 	LOOP( signed short, float ); break; 
+        case VIPS_FORMAT_UINT: 		LOOP( unsigned int, float ); break; 
+        case VIPS_FORMAT_INT: 		LOOP( signed int, float );  break; 
+        case VIPS_FORMAT_FLOAT: 	LOOP( float, float ); break; 
+        case VIPS_FORMAT_DOUBLE:	LOOP( double, double ); break; 
         case VIPS_FORMAT_COMPLEX:	LOOPCMPLXN( float, float ); break; 
         case VIPS_FORMAT_DPCOMPLEX:	LOOPCMPLXN( double, double ); break;
 
