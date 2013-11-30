@@ -12,6 +12,8 @@
 
   how about avg? do we need -ffast-math to vec that?
 
+  not seen more than x2 from auto-vec of abs(), perhaps the bool ops?
+
 
 - seen some leaks from 
 
