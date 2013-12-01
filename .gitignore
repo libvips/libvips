@@ -18,6 +18,7 @@ Vips-8.0.typelib
 .*.swp
 *.lo
 *.bak
+*.vect
 *.la
 Vips-8.0.gir
 Vips-8.0.typelib

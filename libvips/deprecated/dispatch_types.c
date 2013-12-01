@@ -49,10 +49,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-/* Max str we parse.
- */
-#define IM_MAX_STR (4096)
-
 /* String containing each of the characters which can be used within a 
  * single command line argument to separate the elements of a vector.
  */
