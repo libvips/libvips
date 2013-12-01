@@ -1485,14 +1485,14 @@ int
 vips_image_history_printf( VipsImage *image, const char *fmt, ... )
 {
 	va_list args;
-	char line[4096];
+	char line[VIPS_PATH_MAX];
 	time_t timebuf;
 
 	/* Format command. -40, to leave 26 for the ctime, three for the # and
 	 * a bit.
 	 */
 	va_start( args, fmt );
-	(void) vips_vsnprintf( line, 4096 - 40, fmt, args );
+	(void) vips_vsnprintf( line, VIPS_PATH_MAX - 40, fmt, args );
 	va_end( args );
 	strcat( line, " # " );
 

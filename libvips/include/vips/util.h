@@ -157,6 +157,11 @@ G_STMT_START { \
 
 #define VIPS_CLIP_NONE( V, SEQ ) {}
 
+/* Not all platforms have PATH_MAX (eg. Hurd) and we don't need a platform one
+ * anyway, just a static buffer big enough for almost any path.
+ */
+#define VIPS_PATH_MAX (4096)
+
 const char *vips_enum_string( GType enm, int value );
 const char *vips_enum_nick( GType enm, int value );
 int vips_enum_from_nick( const char *domain, GType type, const char *str );

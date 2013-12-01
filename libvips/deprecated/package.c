@@ -705,7 +705,7 @@ int
 im_load_plugins( const char *fmt, ... )
 {
         va_list ap;
-        char dir_name[4096];
+        char dir_name[VIPS_PATH_MAX];
         GDir *dir;
 	const char *name;
         int result;
@@ -716,7 +716,7 @@ im_load_plugins( const char *fmt, ... )
 		return( 0 );
 
         va_start( ap, fmt );
-        (void) im_vsnprintf( dir_name, 4096 - 1, fmt, ap );
+        (void) im_vsnprintf( dir_name, VIPS_PATH_MAX - 1, fmt, ap );
         va_end( ap );
 
 #ifdef DEBUG
@@ -731,9 +731,9 @@ im_load_plugins( const char *fmt, ... )
         result = 0;
         while( (name = g_dir_read_name( dir )) )
                 if( im_ispostfix( name, ".plg" ) ) { 
-			char path[4096];
+			char path[VIPS_PATH_MAX];
 
-			im_snprintf( path, 4096 - 1, 
+			im_snprintf( path, VIPS_PATH_MAX - 1, 
 				"%s" G_DIR_SEPARATOR_S "%s", dir_name, name );
 			if( !im_load_plugin( path ) )
 				result = -1;

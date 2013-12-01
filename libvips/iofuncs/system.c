@@ -63,8 +63,6 @@
 
 #include <vips/vips.h>
 
-#define MAX_STRSIZE (4096)
-
 typedef struct _VipsSystem {
 	VipsOperation parent_instance;
 
@@ -111,8 +109,8 @@ vips_system_build( VipsObject *object )
 	VipsSystem *system = (VipsSystem *) object;
 
 	FILE *fp;
-	char line[MAX_STRSIZE];
-	char txt[MAX_STRSIZE];
+	char line[VIPS_PATH_MAX];
+	char txt[VIPS_PATH_MAX];
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	int result;
 
@@ -151,7 +149,7 @@ vips_system_build( VipsObject *object )
 			return( -1 );
 	}
 
-	while( fgets( line, MAX_STRSIZE, fp ) ) 
+	while( fgets( line, VIPS_PATH_MAX, fp ) ) 
 		if( !vips_buf_appends( &buf, line ) )
 			break; 
 

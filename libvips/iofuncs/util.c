@@ -1166,11 +1166,11 @@ FILE *
 vips_popenf( const char *fmt, const char *mode, ... )
 {
         va_list args;
-	char buf[4096];
+	char buf[VIPS_PATH_MAX];
 	FILE *fp;
 
         va_start( args, mode );
-        (void) vips_vsnprintf( buf, 4096, fmt, args );
+        (void) vips_vsnprintf( buf, VIPS_PATH_MAX, fmt, args );
         va_end( args );
 
 #ifdef DEBUG
@@ -1387,14 +1387,15 @@ vips__find_rightmost_brackets( const char *p )
 {
 	const char *start[MAX_TOKENS];
 	VipsToken tokens[MAX_TOKENS];
-	char str[4096];
+	char str[VIPS_PATH_MAX];
 	int n, i;
 	int nest;
 
 	start[0] = p;
 	for( n = 0; 
 		n < MAX_TOKENS &&
-		(p = vips__token_get( start[n], &tokens[n], str, 4096 )); 
+		(p = vips__token_get( start[n], &tokens[n], 
+			str, VIPS_PATH_MAX )); 
 		n++, start[n] = p )
 		;
 

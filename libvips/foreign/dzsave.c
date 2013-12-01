@@ -363,12 +363,12 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 static int
 pyramid_mkdir( VipsForeignSaveDz *dz )
 {
-	char buf[4096];
+	char buf[VIPS_PATH_MAX];
 
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ )
-		vips_snprintf( buf, 4096, "%s_files", dz->basename );
+		vips_snprintf( buf, VIPS_PATH_MAX, "%s_files", dz->basename );
 	else
-		vips_snprintf( buf, 4096, "%s", dz->basename );
+		vips_snprintf( buf, VIPS_PATH_MAX, "%s", dz->basename );
 
 	if( vips_existsf( "%s", buf ) ) { 
 		vips_error( "dzsave", 
@@ -385,14 +385,14 @@ static int
 write_dzi( VipsForeignSaveDz *dz )
 {
 	FILE *fp;
-	char buf[4096];
+	char buf[VIPS_PATH_MAX];
 	char *p;
 
-	vips_snprintf( buf, 4096, "%s.dzi", dz->basename );
+	vips_snprintf( buf, VIPS_PATH_MAX, "%s.dzi", dz->basename );
 	if( !(fp = vips__file_open_write( buf, TRUE )) )
 		return( -1 );
 
-	vips_snprintf( buf, 4096, "%s", dz->suffix + 1 );
+	vips_snprintf( buf, VIPS_PATH_MAX, "%s", dz->suffix + 1 );
 	if( (p = (char *) vips__find_rightmost_brackets( buf )) )
 		*p = '\0';
 
@@ -418,9 +418,10 @@ static int
 write_properties( VipsForeignSaveDz *dz )
 {
 	FILE *fp;
-	char buf[4096];
+	char buf[VIPS_PATH_MAX];
 
-	vips_snprintf( buf, 4096, "%s/ImageProperties.xml", dz->basename );
+	vips_snprintf( buf, VIPS_PATH_MAX, 
+		"%s/ImageProperties.xml", dz->basename );
 	if( !(fp = vips__file_open_write( buf, TRUE )) )
 		return( -1 );
 
@@ -440,14 +441,14 @@ write_properties( VipsForeignSaveDz *dz )
 static int
 write_blank( VipsForeignSaveDz *dz )
 {
-	char buf[4096];
+	char buf[VIPS_PATH_MAX];
 	VipsImage *x, *t;
 	int n;
 	VipsArea *ones;
 	double *d;
 	int i;
 
-	vips_snprintf( buf, 4096, "%s/blank.png", dz->basename );
+	vips_snprintf( buf, VIPS_PATH_MAX, "%s/blank.png", dz->basename );
 	if( vips_black( &x, dz->tile_size, dz->tile_size, NULL ) ) 
 		return( -1 );
 
@@ -710,8 +711,8 @@ tile_name( Layer *layer, char *buf, int x, int y )
 
 	VipsForeignSaveDz *dz = layer->dz;
 
-	char dirname[4096];
-	char dirname2[4096];
+	char dirname[VIPS_PATH_MAX];
+	char dirname2[VIPS_PATH_MAX];
 	Layer *p;
 	int n;
 
@@ -721,10 +722,10 @@ tile_name( Layer *layer, char *buf, int x, int y )
 
 	switch( dz->layout ) {
 	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
-		vips_snprintf( dirname, 4096, "%s_files/%d", 
-			dz->basename, layer->n );
-		vips_snprintf( buf, 4096, "%s/%d_%d%s", 
-			dirname, x, y, dz->suffix );
+		vips_snprintf( dirname, VIPS_PATH_MAX, 
+			"%s_files/%d", dz->basename, layer->n );
+		vips_snprintf( buf, VIPS_PATH_MAX, 
+			"%s/%d_%d%s", dirname, x, y, dz->suffix );
 
 		if( !vips_existsf( "%s", dirname ) &&
 			vips_mkdirf( "%s", dirname ) ) {
@@ -751,10 +752,10 @@ tile_name( Layer *layer, char *buf, int x, int y )
 		 */
 		n += y * layer->tiles_across + x;
 
-		vips_snprintf( dirname, 4096, "%s/TileGroup%d", 
-			dz->basename, n / 256 );
-		vips_snprintf( buf, 4096, "%s/%d-%d-%d%s", 
-			dirname, layer->n, x, y, dz->suffix );
+		vips_snprintf( dirname, VIPS_PATH_MAX, 
+			"%s/TileGroup%d", dz->basename, n / 256 );
+		vips_snprintf( buf, VIPS_PATH_MAX, 
+			"%s/%d-%d-%d%s", dirname, layer->n, x, y, dz->suffix );
 
 		/* Used at the end in ImageProperties.xml
 		 */
@@ -769,12 +770,12 @@ tile_name( Layer *layer, char *buf, int x, int y )
 		break;
 
 	case VIPS_FOREIGN_DZ_LAYOUT_GOOGLE:
-		vips_snprintf( dirname, 4096, "%s/%d", 
-			dz->basename, layer->n );
-		vips_snprintf( dirname2, 4096, "%s/%d", 
-			dirname, y );
-		vips_snprintf( buf, 4096, "%s/%d%s", 
-			dirname2, x, dz->suffix );
+		vips_snprintf( dirname, VIPS_PATH_MAX, 
+			"%s/%d", dz->basename, layer->n );
+		vips_snprintf( dirname2, VIPS_PATH_MAX, 
+			"%s/%d", dirname, y );
+		vips_snprintf( buf, VIPS_PATH_MAX, 
+			"%s/%d%s", dirname2, x, dz->suffix );
 
 		if( !vips_existsf( "%s", dirname ) &&
 			vips_mkdirf( "%s", dirname ) ) {
@@ -808,7 +809,7 @@ strip_work( VipsThreadState *state, void *a )
 	Layer *layer = strip->layer;
 	VipsForeignSaveDz *dz = layer->dz;
 
-	char buf[4096];
+	char buf[VIPS_PATH_MAX];
 	VipsImage *x;
 	VipsImage *t;
 

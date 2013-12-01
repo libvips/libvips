@@ -507,8 +507,8 @@ vips_get_option_group( void )
 static char *
 extract_prefix( const char *dir, const char *name )
 {
-	char edir[4096];
-	char vname[4096];
+	char edir[VIPS_PATH_MAX];
+	char vname[VIPS_PATH_MAX];
 	int i;
 
 #ifdef DEBUG
@@ -522,12 +522,12 @@ extract_prefix( const char *dir, const char *name )
 		char *cwd; 
 
 		cwd = g_get_current_dir();
-		vips_snprintf( edir, 4096, "%s" G_DIR_SEPARATOR_S "%s",
-			cwd, dir );
+		vips_snprintf( edir, VIPS_PATH_MAX, 
+			"%s" G_DIR_SEPARATOR_S "%s", cwd, dir );
 		g_free( cwd );
 	}
 	else {
-		vips_strncpy( edir, dir, 4096 );
+		vips_strncpy( edir, dir, VIPS_PATH_MAX );
 	}
 
 	/* Chop off the trailing prog name, plus the trailing
@@ -535,7 +535,7 @@ extract_prefix( const char *dir, const char *name )
 	 */
 	if( !vips_ispostfix( edir, name ) ) 
 		return( NULL );
-	vips_strncpy( vname, edir, 4096 );
+	vips_strncpy( vname, edir, VIPS_PATH_MAX );
 	vname[strlen( edir ) - strlen( name ) - 1] = '\0';
 
 	/* Remove any "/./", any trailing "/.", any trailing "/".
@@ -577,11 +577,11 @@ scan_path( char *path, const char *name )
 
 	for( p = path; 
 		(q = vips_break_token( p, G_SEARCHPATH_SEPARATOR_S )); p = q ) {
-		char str[4096];
+		char str[VIPS_PATH_MAX];
 
 		/* Form complete path.
 		 */
-		vips_snprintf( str, 4096, 
+		vips_snprintf( str, VIPS_PATH_MAX, 
 			"%s" G_DIR_SEPARATOR_S "%s", p, name );
 
 #ifdef DEBUG
@@ -605,7 +605,7 @@ find_file( const char *name )
 {
 	const char *path = g_getenv( "PATH" );
 	char *prefix;
-	char full_path[4096];
+	char full_path[VIPS_PATH_MAX];
 
 	if( !path )
 		return( NULL );
@@ -621,12 +621,12 @@ find_file( const char *name )
 	/* Windows always searches '.' first, so prepend cwd to path.
 	 */
 	dir = g_get_current_dir();
-	vips_snprintf( full_path, 4096, "%s" G_SEARCHPATH_SEPARATOR_S "%s",
-		dir, path );
+	vips_snprintf( full_path, VIPS_PATH_MAX, 
+		"%s" G_SEARCHPATH_SEPARATOR_S "%s", dir, path );
 	g_free( dir ); 
 }
 #else /*!OS_WIN32*/
-	vips_strncpy( full_path, path, 4096 );
+	vips_strncpy( full_path, path, VIPS_PATH_MAX );
 #endif /*OS_WIN32*/
 
 	if( (prefix = scan_path( full_path, name )) ) 
@@ -674,12 +674,12 @@ guess_prefix( const char *argv0, const char *name )
  	 * a full path in argv[0].
 	 */
 	if( !g_path_is_absolute( argv0 ) ) {
-		char full_path[4096];
+		char full_path[VIPS_PATH_MAX];
 		char *resolved;
 		char *dir;
 
 		dir = g_get_current_dir(); 
-		vips_snprintf( full_path, 4096, 
+		vips_snprintf( full_path, VIPS_PATH_MAX, 
 			"%s" G_DIR_SEPARATOR_S "%s", dir, argv0 );
 		g_free( dir ); 
 
@@ -726,7 +726,7 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 {
         const char *prefix;
         const char *p;
-        char name[4096];
+        char name[VIPS_PATH_MAX];
 
 	/* Already set?
 	 */
@@ -747,10 +747,11 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 	if( strlen( VIPS_EXEEXT ) > 0 ) {
 		const char *olds[] = { VIPS_EXEEXT };
 
-		vips__change_suffix( p, name, 4096, VIPS_EXEEXT, olds, 1 );
+		vips__change_suffix( p, name, 
+			VIPS_PATH_MAX, VIPS_EXEEXT, olds, 1 );
 	}
 	else
-		vips_strncpy( name, p, 4096 );
+		vips_strncpy( name, p, VIPS_PATH_MAX );
 
 #ifdef DEBUG
 	printf( "vips_guess_prefix: argv0 = %s\n", argv0 );
