@@ -200,7 +200,7 @@ vips_relational_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static const VipsBandFormat vips_bandfmt_relational[10] = {
+static const VipsBandFormat vips_relational_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
 };
@@ -220,8 +220,7 @@ vips_relational_class_init( VipsRelationalClass *class )
 		_( "a relational operation on a pair of images" );
 	object_class->build = vips_relational_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_relational );
-
+	aclass->format_table = vips_relational_format_table;
 	aclass->process_line = vips_relational_buffer;
 
 	VIPS_ARG_ENUM( class, "relational", 200, 
@@ -557,8 +556,7 @@ vips_relational_const_class_init( VipsRelationalConstClass *class )
 		_( "relational operations against a constant" );
 	object_class->build = vips_relational_const_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_relational );
-
+	aclass->format_table = vips_relational_format_table;
 	aclass->process_line = vips_relational_const_buffer;
 
 	VIPS_ARG_ENUM( class, "relational", 200, 

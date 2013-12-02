@@ -211,7 +211,7 @@ vips_divide_buffer( VipsArithmetic *arithmetic,
 /* Type promotion for division. Sign and value preserving. Make sure 
  * these match the case statement in divide_buffer() above.
  */
-static int vips_bandfmt_divide[10] = {
+static int vips_divide_format_table[10] = {
 /* UC  C   US  S   UI  I  F  X  D  DX */
    F,  F,  F,  F,  F,  F, F, X, D, DX
 };
@@ -225,7 +225,7 @@ vips_divide_class_init( VipsDivideClass *class )
 	object_class->nickname = "divide";
 	object_class->description = _( "divide two images" );
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_divide );
+	aclass->format_table = vips_divide_format_table;
 
 	aclass->process_line = vips_divide_buffer;
 }

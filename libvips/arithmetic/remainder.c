@@ -154,7 +154,7 @@ vips_remainder_buffer( VipsArithmetic *arithmetic,
 
 /* Type promotion for remainder. Keep in sync with remainder_buffer() above.
  */
-static int vips_bandfmt_remainder[10] = {
+static int vips_remainder_format_table[10] = {
 /* UC  C   US  S   UI  I  F  X  D  DX */
    UC, C,  US, S,  UI, I, F, X, D, DX
 };
@@ -174,8 +174,7 @@ vips_remainder_class_init( VipsRemainderClass *class )
 		_( "remainder after integer division of two images" );
 	object_class->build = vips_remainder_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_remainder );
-
+	aclass->format_table = vips_remainder_format_table;
 	aclass->process_line = vips_remainder_buffer;
 }
 
@@ -324,8 +323,7 @@ vips_remainder_const_class_init( VipsRemainderConstClass *class )
 		"and a constant" );
 	object_class->build = vips_remainder_const_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_remainder );
-
+	aclass->format_table = vips_remainder_format_table;
 	aclass->process_line = vips_remainder_const_buffer;
 }
 

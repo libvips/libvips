@@ -172,8 +172,7 @@ vips_multiply_class_init( VipsMultiplyClass *class )
 	object_class->nickname = "multiply";
 	object_class->description = _( "multiply two images" );
 
-	vips_arithmetic_set_format_table( aclass, vips_multiply_format_table );
-
+	aclass->format_table = vips_multiply_format_table;
 	aclass->process_line = vips_multiply_buffer;
 }
 

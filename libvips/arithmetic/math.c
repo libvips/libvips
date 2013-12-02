@@ -180,7 +180,7 @@ vips_math_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static const VipsBandFormat vips_bandfmt_math[10] = {
+static const VipsBandFormat vips_math_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    F,  F,  F,  F,  F,  F,  F,  X,  D,  DX 
 };
@@ -199,8 +199,7 @@ vips_math_class_init( VipsMathClass *class )
 	object_class->description = _( "perform a math function on an image" );
 	object_class->build = vips_math_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_math );
-
+	aclass->format_table = vips_math_format_table;
 	aclass->process_line = vips_math_buffer;
 
 	VIPS_ARG_ENUM( class, "math", 200, 

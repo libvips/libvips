@@ -36,6 +36,8 @@
  * 	- argh vector int/uint was broken
  * 4/4/11
  * 	- rewrite as a class
+ * 2/12/13
+ * 	- remove vector code, gcc autovec with -O3 is now as fast
  */
 
 /*
@@ -108,50 +110,35 @@ add_buffer( VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width )
 		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
 		 	2 : 1);
 
-	VipsVector *v;
+	int x;
 
-	if( (v = vips_arithmetic_get_vector( class, 
-		vips_image_get_format( im ) )) ) {
-		VipsExecutor ex;
+	/* Add all input types. Keep types here in sync with 
+	 * bandfmt_add[] below.
+	 */
+	switch( vips_image_get_format( im ) ) {
+	case VIPS_FORMAT_UCHAR: 	
+		LOOP( unsigned char, unsigned short ); break; 
+	case VIPS_FORMAT_CHAR: 	
+		LOOP( signed char, signed short ); break; 
+	case VIPS_FORMAT_USHORT: 
+		LOOP( unsigned short, unsigned int ); break; 
+	case VIPS_FORMAT_SHORT: 	
+		LOOP( signed short, signed int ); break; 
+	case VIPS_FORMAT_UINT: 	
+		LOOP( unsigned int, unsigned int ); break; 
+	case VIPS_FORMAT_INT: 	
+		LOOP( signed int, signed int ); break; 
 
-		vips_executor_set_program( &ex, v, sz );
-		vips_executor_set_array( &ex, v->s[0], in[0] );
-		vips_executor_set_array( &ex, v->s[1], in[1] );
-		vips_executor_set_destination( &ex, out );
+	case VIPS_FORMAT_FLOAT: 		
+	case VIPS_FORMAT_COMPLEX: 
+		LOOP( float, float ); break; 
 
-		vips_executor_run( &ex );
-	}
-	else {
-		int x;
+	case VIPS_FORMAT_DOUBLE:	
+	case VIPS_FORMAT_DPCOMPLEX: 
+		LOOP( double, double ); break;
 
-		/* Add all input types. Keep types here in sync with 
-		 * bandfmt_add[] below.
-		 */
-		switch( vips_image_get_format( im ) ) {
-		case VIPS_FORMAT_UCHAR: 	
-			LOOP( unsigned char, unsigned short ); break; 
-		case VIPS_FORMAT_CHAR: 	
-			LOOP( signed char, signed short ); break; 
-		case VIPS_FORMAT_USHORT: 
-			LOOP( unsigned short, unsigned int ); break; 
-		case VIPS_FORMAT_SHORT: 	
-			LOOP( signed short, signed int ); break; 
-		case VIPS_FORMAT_UINT: 	
-			LOOP( unsigned int, unsigned int ); break; 
-		case VIPS_FORMAT_INT: 	
-			LOOP( signed int, signed int ); break; 
-
-		case VIPS_FORMAT_FLOAT: 		
-		case VIPS_FORMAT_COMPLEX: 
-			LOOP( float, float ); break; 
-
-		case VIPS_FORMAT_DOUBLE:	
-		case VIPS_FORMAT_DPCOMPLEX: 
-			LOOP( double, double ); break;
-
-		default:
-			g_assert( 0 );
-		}
+	default:
+		g_assert( 0 );
 	}
 }
 
@@ -171,7 +158,7 @@ add_buffer( VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width )
 /* Type promotion for addition. Sign and value preserving. Make sure these
  * match the case statement in add_buffer() above.
  */
-static const VipsBandFormat bandfmt_add[10] = {
+static const VipsBandFormat vips_add_format_table[10] = {
 /* UC  C   US  S   UI  I  F  X  D  DX */
    US, S,  UI, I,  UI, I, F, X, D, DX
 };
@@ -181,48 +168,11 @@ vips_add_class_init( VipsAddClass *class )
 {
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
-	VipsVector *v;
 
 	object_class->nickname = "add";
 	object_class->description = _( "add two images" );
 
-	vips_arithmetic_set_format_table( aclass, bandfmt_add );
-
-	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_UCHAR );
-	vips_vector_asm2( v, "convubw", "t1", "s1" );
-	vips_vector_asm2( v, "convubw", "t2", "s2" );
-	vips_vector_asm3( v, "addw", "d1", "t1", "t2" ); 
-
-	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_CHAR );
-	vips_vector_asm2( v, "convsbw", "t1", "s1" );
-	vips_vector_asm2( v, "convsbw", "t2", "s2" );
-	vips_vector_asm3( v, "addw", "d1", "t1", "t2" ); 
-
-	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_USHORT );
-	vips_vector_asm2( v, "convuwl", "t1", "s1" );
-	vips_vector_asm2( v, "convuwl", "t2", "s2" );
-	vips_vector_asm3( v, "addl", "d1", "t1", "t2" );
-
-	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_SHORT );
-	vips_vector_asm2( v, "convswl", "t1", "s1" );
-	vips_vector_asm2( v, "convswl", "t2", "s2" );
-	vips_vector_asm3( v, "addl", "d1", "t1", "t2" );
-
-	/*
-
-	   uint/int are a little slower than C, on a c2d anyway
-
-	   float/double/complex are not handled well
-
-	v = vips_arithmetic_get_vector( aclass, VIPS_FORMAT_UINT );
-	vips_vector_asm3( v, "addl", "d1", "s1", "s2" );
-
-	v = vips_arithmetic_get_vector( aclass, VIPS_FORMAT_INT );
-	vips_vector_asm3( v, "addl", "d1", "s1", "s2" );
-
-	 */
-
-	vips_arithmetic_compile( aclass );
+	aclass->format_table = vips_add_format_table;
 
 	aclass->process_line = add_buffer;
 }

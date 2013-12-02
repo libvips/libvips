@@ -147,7 +147,7 @@ vips_subtract_buffer( VipsArithmetic *arithmetic,
 /* Type promotion for subtraction. Sign and value preserving. Make sure these
  * match the case statement in vips_subtract_buffer() above.
  */
-static const VipsBandFormat bandfmt_subtract[10] = {
+static const VipsBandFormat vips_subtract_format_table[10] = {
 /* UC  C   US  S   UI  I  F  X  D  DX */
    S,  S,  I,  I,  I,  I, F, X, D, DX
 };
@@ -161,8 +161,7 @@ vips_subtract_class_init( VipsSubtractClass *class )
 	object_class->nickname = "subtract";
 	object_class->description = _( "subtract two images" );
 
-	vips_arithmetic_set_format_table( aclass, bandfmt_subtract );
-
+	aclass->format_table = vips_subtract_format_table;
 	aclass->process_line = vips_subtract_buffer;
 }
 

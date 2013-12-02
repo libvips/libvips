@@ -178,7 +178,7 @@ vips_math2_buffer( VipsArithmetic *arithmetic,
 
 /* Type promotion for math2. Keep in sync with math2_buffer() above.
  */
-static int vips_bandfmt_math2[10] = {
+static int vips_math2_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    F,  F,  F,  F,  F,  F,  F,  X,  D,  DX 
 };
@@ -197,8 +197,7 @@ vips_math2_class_init( VipsMath2Class *class )
 	object_class->description = _( "binary math operations" );
 	object_class->build = vips_math2_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_math2 );
-
+	aclass->format_table = vips_math2_format_table;
 	aclass->process_line = vips_math2_buffer;
 
 	VIPS_ARG_ENUM( class, "math2", 200, 
@@ -395,8 +394,7 @@ vips_math2_const_class_init( VipsMath2ConstClass *class )
 	object_class->description = _( "pow( @in, @c )" );
 	object_class->build = vips_math2_const_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_math2 );
-
+	aclass->format_table = vips_math2_format_table;
 	aclass->process_line = vips_math2_const_buffer;
 
 	VIPS_ARG_ENUM( class, "math2", 200, 

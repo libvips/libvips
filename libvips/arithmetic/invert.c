@@ -150,7 +150,7 @@ vips_invert_buffer( VipsArithmetic *arithmetic,
 
 /* Format doesn't change with invert.
  */
-static const VipsBandFormat vips_bandfmt_invert[10] = {
+static const VipsBandFormat vips_invert_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    UC, C,  US, S,  UI, I,  F,  X,  D,  DX 
 };
@@ -164,7 +164,7 @@ vips_invert_class_init( VipsInvertClass *class )
 	object_class->nickname = "invert";
 	object_class->description = _( "invert an image" );
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_invert );
+	aclass->format_table = vips_invert_format_table;
 
 	aclass->process_line = vips_invert_buffer;
 }

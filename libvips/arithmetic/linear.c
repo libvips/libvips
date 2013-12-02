@@ -257,7 +257,7 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
 
 /* Format doesn't change with linear.
  */
-static const VipsBandFormat vips_bandfmt_linear[10] = {
+static const VipsBandFormat vips_linear_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    F,  F,  F,  F,  F,  F,  F,  X,  D,  DX 
 };
@@ -276,8 +276,7 @@ vips_linear_class_init( VipsLinearClass *class )
 	object_class->description = _( "calculate (a * in + b)" );
 	object_class->build = vips_linear_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_linear );
-
+	aclass->format_table = vips_linear_format_table;
 	aclass->process_line = vips_linear_buffer;
 
 	VIPS_ARG_BOXED( class, "a", 110, 

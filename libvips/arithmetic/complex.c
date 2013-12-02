@@ -196,7 +196,7 @@ vips_complex_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static const VipsBandFormat vips_bandfmt_complex[10] = {
+static const VipsBandFormat vips_complex_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    X,  X,  X,  X,  X,  X,  X,  X,  DX, DX 
 };
@@ -215,7 +215,7 @@ vips_complex_class_init( VipsComplexClass *class )
 	object_class->description = 
 		_( "perform a complex operation on an image" );
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_complex );
+	aclass->format_table = vips_complex_format_table;
 
 	aclass->process_line = vips_complex_buffer;
 
@@ -475,7 +475,7 @@ vips_complex2_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static const VipsBandFormat vips_bandfmt_complex2[10] = {
+static const VipsBandFormat vips_complex2_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    X,  X,  X,  X,  X,  X,  X,  X,  DX, DX 
 };
@@ -494,7 +494,7 @@ vips_complex2_class_init( VipsComplex2Class *class )
 	object_class->description = 
 		_( "perform a binary complex operation on two images" );
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_complex2 );
+	aclass->format_table = vips_complex2_format_table;
 
 	aclass->process_line = vips_complex2_buffer;
 
@@ -689,7 +689,7 @@ vips_complexget_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static const VipsBandFormat vips_bandfmt_complexget[10] = {
+static const VipsBandFormat vips_complexget_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    UC, C,  US, S,  UI, I,  F,  F,  D,  D
 };
@@ -708,7 +708,7 @@ vips_complexget_class_init( VipsComplexgetClass *class )
 	object_class->description = _( "get a component from a complex image" );
 	object_class->build = vips_complexget_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_complexget );
+	aclass->format_table = vips_complexget_format_table;
 
 	aclass->process_line = vips_complexget_buffer;
 
@@ -891,7 +891,7 @@ vips_complexform_buffer( VipsArithmetic *arithmetic,
 /* Type promotion for division. Sign and value preserving. Make sure 
  * these match the case statement in complexform_buffer() above.
  */
-static int vips_bandfmt_complexform[10] = {
+static int vips_complexform_format_table[10] = {
 /* UC  C   US  S   UI  I  F  X  D  DX */
    X,  X,  X,  X,  X,  X, X, X, DX,DX
 };
@@ -907,7 +907,7 @@ vips_complexform_class_init( VipsComplexformClass *class )
 		_( "form a complex image from two real images" );
 	object_class->build = vips_complexform_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_complexform );
+	aclass->format_table = vips_complexform_format_table;
 
 	aclass->process_line = vips_complexform_buffer;
 }

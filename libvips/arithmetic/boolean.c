@@ -191,7 +191,7 @@ vips_boolean_buffer( VipsArithmetic *arithmetic,
 
 /* Type conversions for boolean. 
  */
-static const VipsBandFormat vips_bandfmt_boolean[10] = {
+static const VipsBandFormat vips_boolean_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    UC, C,  US, S,  UI, I,  I,  I,  I,  I,
 };
@@ -210,7 +210,7 @@ vips_boolean_class_init( VipsBooleanClass *class )
 	object_class->description = _( "boolean operation on two images" );
 	object_class->build = vips_boolean_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_boolean );
+	aclass->format_table = vips_boolean_format_table;
 
 	aclass->process_line = vips_boolean_buffer;
 
@@ -513,7 +513,7 @@ vips_boolean_const_class_init( VipsBooleanConstClass *class )
 		_( "boolean operations against a constant" );
 	object_class->build = vips_boolean_const_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_boolean );
+	aclass->format_table = vips_boolean_format_table;
 
 	aclass->process_line = vips_boolean_const_buffer;
 

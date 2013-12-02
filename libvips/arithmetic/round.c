@@ -142,7 +142,7 @@ vips_round_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static const VipsBandFormat vips_bandfmt_round[10] = {
+static const VipsBandFormat vips_round_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    UC, C,  US, S,  UI, I,  F,  X,  D,  DX 
 };
@@ -161,8 +161,7 @@ vips_round_class_init( VipsRoundClass *class )
 	object_class->description = _( "perform a round function on an image" );
 	object_class->build = vips_round_build;
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_round );
-
+	aclass->format_table = vips_round_format_table;
 	aclass->process_line = vips_round_buffer;
 
 	VIPS_ARG_ENUM( class, "round", 200, 

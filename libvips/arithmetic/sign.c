@@ -137,7 +137,7 @@ vips_sign_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static const VipsBandFormat vips_bandfmt_sign[10] = {
+static const VipsBandFormat vips_sign_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    C,  C,  C,  C,  C,  C,  C,  X,  C,  DX 
 };
@@ -151,8 +151,7 @@ vips_sign_class_init( VipsSignClass *class )
 	object_class->nickname = "sign";
 	object_class->description = _( "unit vector of pixel" );
 
-	vips_arithmetic_set_format_table( aclass, vips_bandfmt_sign );
-
+	aclass->format_table = vips_sign_format_table;
 	aclass->process_line = vips_sign_buffer;
 }
 
