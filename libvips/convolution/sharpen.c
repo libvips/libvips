@@ -234,7 +234,7 @@ vips_sharpen_build( VipsObject *object )
 	/* Stop at 20% of max ... bit mean, but means mask radius is roughly
 	 * right. We always sharpen a short, so no point using a float mask. 
 	 */
-	if( vips_gaussmat( &t[1], sharpen->radius / 2, 0.2, 
+	if( vips_gaussmat( &t[1], 1 + sharpen->radius / 2, 0.2, 
 		"separable", TRUE,
 		"integer", TRUE,
 		NULL ) )

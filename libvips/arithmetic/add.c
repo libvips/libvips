@@ -101,7 +101,6 @@ G_DEFINE_TYPE( VipsAdd, vips_add, VIPS_TYPE_BINARY );
 static void
 add_buffer( VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width )
 {
-	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS( arithmetic );
 	VipsImage *im = arithmetic->ready[0];
 
 	/* Complex just doubles the size.
@@ -113,7 +112,7 @@ add_buffer( VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width )
 	int x;
 
 	/* Add all input types. Keep types here in sync with 
-	 * bandfmt_add[] below.
+	 * vips_add_format_table[] below.
 	 */
 	switch( vips_image_get_format( im ) ) {
 	case VIPS_FORMAT_UCHAR: 	
