@@ -65,7 +65,8 @@ im_mask2vips( DOUBLEMASK *in, IMAGE *out )
 
 	/* Check the mask.
 	 */
-	if( !in || !in->coeff ) {
+	if( !in || 
+		!in->coeff ) {
 		im_error( "im_mask2vips", "%s", _( "bad input mask" ) );
 		return( -1 );
 	}
@@ -97,6 +98,9 @@ im_mask2vips( DOUBLEMASK *in, IMAGE *out )
 		if( im_writeline( y, out, (void *) buf ) )
 			return( -1 );
 	}
+
+	vips_image_set_double( out, "scale", in->scale ); 
+	vips_image_set_double( out, "offset", in->offset ); 
 
 	return( 0 );
 }
