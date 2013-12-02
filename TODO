@@ -1,12 +1,11 @@
 
-- check vectorizer on linear.c
 
-  do some more packages, we've just done arithmetic so far
 
-  how much would alignment buy us? is there any way we can do this? probably
-  not, since we need to be able to generate any sub-area
+- do some more packages, we've just done arithmetic so far
 
   how about avg? do we need -ffast-math to vec that?
+  	
+	yes we do, though it doesn't seem any faster
 
   not seen more than x2 from auto-vec of abs(), perhaps the bool ops?
 
