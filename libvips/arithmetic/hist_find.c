@@ -371,7 +371,7 @@ vips_hist_find_scan( VipsStatistic *statistic, void *seq,
 
 /* Type mapping: go to uchar or ushort.
  */
-static const VipsBandFormat bandfmt_histgr[10] = {
+static const VipsBandFormat vips_histgr_format_table[10] = {
 /* UC   C  US   S  UI   I   F   X   D  DX */
    UC, UC, US, US, US, US, US, US, US, US
 };
@@ -393,7 +393,7 @@ vips_hist_find_class_init( VipsHistFindClass *class )
 	sclass->start = vips_hist_find_start;
 	sclass->scan = vips_hist_find_scan;
 	sclass->stop = vips_hist_find_stop;
-	sclass->format_table = bandfmt_histgr;
+	sclass->format_table = vips_histgr_format_table;
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 

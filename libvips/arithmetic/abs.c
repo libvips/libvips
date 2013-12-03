@@ -210,9 +210,9 @@ vips_abs_class_init( VipsAbsClass *class )
 	object_class->description = _( "absolute value of an image" );
 	object_class->build = vips_abs_build;
 
-	aclass->format_table = vips_abs_format_table;
-
 	aclass->process_line = vips_abs_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_abs_format_table ); 
 }
 
 static void

@@ -87,12 +87,28 @@ typedef struct _VipsArithmeticClass {
 	 */
 	const VipsBandFormat *format_table;
 
+	/* A vector program for each input type.
+	 */
+	VipsVector *vectors[VIPS_FORMAT_LAST];
+
+	/* ... and if we've set a program for this format.
+	 */
+	gboolean vector_program[VIPS_FORMAT_LAST];
+
 	/* The buffer processor.
 	 */
 	VipsArithmeticProcessFn process_line;
 } VipsArithmeticClass;
 
 GType vips_arithmetic_get_type( void );
+
+void vips_arithmetic_set_format_table( VipsArithmeticClass *klass, 
+	const VipsBandFormat *format_table );
+VipsVector *vips_arithmetic_get_vector( VipsArithmeticClass *klass, 
+	VipsBandFormat fmt );
+void vips_arithmetic_compile( VipsArithmeticClass *klass ); 
+VipsVector *vips_arithmetic_get_program( VipsArithmeticClass *klass, 
+	VipsBandFormat fmt );
 
 #ifdef __cplusplus
 }

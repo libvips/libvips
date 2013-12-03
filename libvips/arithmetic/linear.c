@@ -276,8 +276,9 @@ vips_linear_class_init( VipsLinearClass *class )
 	object_class->description = _( "calculate (a * in + b)" );
 	object_class->build = vips_linear_build;
 
-	aclass->format_table = vips_linear_format_table;
 	aclass->process_line = vips_linear_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_linear_format_table ); 
 
 	VIPS_ARG_BOXED( class, "a", 110, 
 		_( "a" ), 

@@ -164,9 +164,9 @@ vips_invert_class_init( VipsInvertClass *class )
 	object_class->nickname = "invert";
 	object_class->description = _( "invert an image" );
 
-	aclass->format_table = vips_invert_format_table;
-
 	aclass->process_line = vips_invert_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_invert_format_table ); 
 }
 
 static void

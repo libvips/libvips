@@ -225,9 +225,9 @@ vips_divide_class_init( VipsDivideClass *class )
 	object_class->nickname = "divide";
 	object_class->description = _( "divide two images" );
 
-	aclass->format_table = vips_divide_format_table;
-
 	aclass->process_line = vips_divide_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_divide_format_table ); 
 }
 
 static void

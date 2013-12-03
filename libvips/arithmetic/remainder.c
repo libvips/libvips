@@ -174,8 +174,10 @@ vips_remainder_class_init( VipsRemainderClass *class )
 		_( "remainder after integer division of two images" );
 	object_class->build = vips_remainder_build;
 
-	aclass->format_table = vips_remainder_format_table;
 	aclass->process_line = vips_remainder_buffer;
+
+	vips_arithmetic_set_format_table( aclass, 
+		vips_remainder_format_table ); 
 }
 
 static void
@@ -323,8 +325,9 @@ vips_remainder_const_class_init( VipsRemainderConstClass *class )
 		"and a constant" );
 	object_class->build = vips_remainder_const_build;
 
-	aclass->format_table = vips_remainder_format_table;
 	aclass->process_line = vips_remainder_const_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_remainder_format_table );
 }
 
 static void

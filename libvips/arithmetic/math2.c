@@ -197,8 +197,9 @@ vips_math2_class_init( VipsMath2Class *class )
 	object_class->description = _( "binary math operations" );
 	object_class->build = vips_math2_build;
 
-	aclass->format_table = vips_math2_format_table;
 	aclass->process_line = vips_math2_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_math2_format_table ); 
 
 	VIPS_ARG_ENUM( class, "math2", 200, 
 		_( "Operation" ), 
@@ -394,8 +395,9 @@ vips_math2_const_class_init( VipsMath2ConstClass *class )
 	object_class->description = _( "pow( @in, @c )" );
 	object_class->build = vips_math2_const_build;
 
-	aclass->format_table = vips_math2_format_table;
 	aclass->process_line = vips_math2_const_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_math2_format_table ); 
 
 	VIPS_ARG_ENUM( class, "math2", 200, 
 		_( "Operation" ), 

@@ -161,8 +161,9 @@ vips_round_class_init( VipsRoundClass *class )
 	object_class->description = _( "perform a round function on an image" );
 	object_class->build = vips_round_build;
 
-	aclass->format_table = vips_round_format_table;
 	aclass->process_line = vips_round_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_round_format_table ); 
 
 	VIPS_ARG_ENUM( class, "round", 200, 
 		_( "Round operation" ), 

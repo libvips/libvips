@@ -215,9 +215,9 @@ vips_complex_class_init( VipsComplexClass *class )
 	object_class->description = 
 		_( "perform a complex operation on an image" );
 
-	aclass->format_table = vips_complex_format_table;
-
 	aclass->process_line = vips_complex_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_complex_format_table ); 
 
 	VIPS_ARG_ENUM( class, "cmplx", 200, 
 		_( "Operation" ), 
@@ -494,9 +494,9 @@ vips_complex2_class_init( VipsComplex2Class *class )
 	object_class->description = 
 		_( "perform a binary complex operation on two images" );
 
-	aclass->format_table = vips_complex2_format_table;
-
 	aclass->process_line = vips_complex2_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_complex2_format_table ); 
 
 	VIPS_ARG_ENUM( class, "cmplx", 200, 
 		_( "Operation" ), 
@@ -708,9 +708,10 @@ vips_complexget_class_init( VipsComplexgetClass *class )
 	object_class->description = _( "get a component from a complex image" );
 	object_class->build = vips_complexget_build;
 
-	aclass->format_table = vips_complexget_format_table;
-
 	aclass->process_line = vips_complexget_buffer;
+
+	vips_arithmetic_set_format_table( aclass, 
+		vips_complexget_format_table ); 
 
 	VIPS_ARG_ENUM( class, "get", 200, 
 		_( "Operation" ), 
@@ -907,9 +908,10 @@ vips_complexform_class_init( VipsComplexformClass *class )
 		_( "form a complex image from two real images" );
 	object_class->build = vips_complexform_build;
 
-	aclass->format_table = vips_complexform_format_table;
-
 	aclass->process_line = vips_complexform_buffer;
+
+	vips_arithmetic_set_format_table( aclass, 
+		vips_complexform_format_table ); 
 }
 
 static void

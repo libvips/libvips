@@ -199,8 +199,9 @@ vips_math_class_init( VipsMathClass *class )
 	object_class->description = _( "perform a math function on an image" );
 	object_class->build = vips_math_build;
 
-	aclass->format_table = vips_math_format_table;
 	aclass->process_line = vips_math_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_math_format_table ); 
 
 	VIPS_ARG_ENUM( class, "math", 200, 
 		_( "Operation" ), 

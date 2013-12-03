@@ -161,8 +161,9 @@ vips_subtract_class_init( VipsSubtractClass *class )
 	object_class->nickname = "subtract";
 	object_class->description = _( "subtract two images" );
 
-	aclass->format_table = vips_subtract_format_table;
 	aclass->process_line = vips_subtract_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_subtract_format_table ); 
 }
 
 static void

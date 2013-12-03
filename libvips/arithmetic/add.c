@@ -171,9 +171,9 @@ vips_add_class_init( VipsAddClass *class )
 	object_class->nickname = "add";
 	object_class->description = _( "add two images" );
 
-	aclass->format_table = vips_add_format_table;
-
 	aclass->process_line = add_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_add_format_table ); 
 }
 
 static void

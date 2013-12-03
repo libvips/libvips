@@ -210,9 +210,9 @@ vips_boolean_class_init( VipsBooleanClass *class )
 	object_class->description = _( "boolean operation on two images" );
 	object_class->build = vips_boolean_build;
 
-	aclass->format_table = vips_boolean_format_table;
-
 	aclass->process_line = vips_boolean_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_boolean_format_table ); 
 
 	VIPS_ARG_ENUM( class, "boolean", 200, 
 		_( "Operation" ), 
@@ -513,9 +513,9 @@ vips_boolean_const_class_init( VipsBooleanConstClass *class )
 		_( "boolean operations against a constant" );
 	object_class->build = vips_boolean_const_build;
 
-	aclass->format_table = vips_boolean_format_table;
-
 	aclass->process_line = vips_boolean_const_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_boolean_format_table ); 
 
 	VIPS_ARG_ENUM( class, "boolean", 200, 
 		_( "Operation" ), 

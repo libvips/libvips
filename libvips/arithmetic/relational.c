@@ -220,8 +220,10 @@ vips_relational_class_init( VipsRelationalClass *class )
 		_( "a relational operation on a pair of images" );
 	object_class->build = vips_relational_build;
 
-	aclass->format_table = vips_relational_format_table;
 	aclass->process_line = vips_relational_buffer;
+
+	vips_arithmetic_set_format_table( aclass, 
+		vips_relational_format_table ); 
 
 	VIPS_ARG_ENUM( class, "relational", 200, 
 		_( "Operation" ), 
@@ -556,8 +558,10 @@ vips_relational_const_class_init( VipsRelationalConstClass *class )
 		_( "relational operations against a constant" );
 	object_class->build = vips_relational_const_build;
 
-	aclass->format_table = vips_relational_format_table;
 	aclass->process_line = vips_relational_const_buffer;
+
+	vips_arithmetic_set_format_table( aclass, 
+		vips_relational_format_table ); 
 
 	VIPS_ARG_ENUM( class, "relational", 200, 
 		_( "Operation" ), 

@@ -151,8 +151,9 @@ vips_sign_class_init( VipsSignClass *class )
 	object_class->nickname = "sign";
 	object_class->description = _( "unit vector of pixel" );
 
-	aclass->format_table = vips_sign_format_table;
 	aclass->process_line = vips_sign_buffer;
+
+	vips_arithmetic_set_format_table( aclass, vips_sign_format_table ); 
 }
 
 static void
