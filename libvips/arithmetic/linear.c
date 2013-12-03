@@ -165,8 +165,8 @@ vips_linear_build( VipsObject *object )
 /* Non-complex input, any output, all bands of the constant equal.
  */
 #define LOOP1( IN, OUT ) { \
-	IN * __restrict__ p = (IN *) in[0]; \
-	OUT * __restrict__ q = (OUT *) out; \
+	IN * restrict p = (IN *) in[0]; \
+	OUT * restrict q = (OUT *) out; \
 	OUT a1 = a[0]; \
 	OUT b1 = b[0]; \
 	int sz = width * nb; \
@@ -178,8 +178,8 @@ vips_linear_build( VipsObject *object )
 /* Non-complex input, any output.
  */
 #define LOOPN( IN, OUT ) { \
-	IN * __restrict__ p = (IN *) in[0]; \
-	OUT * __restrict__ q = (OUT *) out; \
+	IN * restrict p = (IN *) in[0]; \
+	OUT * restrict q = (OUT *) out; \
 	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( k = 0; k < nb; k++, i++ ) \
@@ -199,8 +199,8 @@ vips_linear_build( VipsObject *object )
 /* Complex input, complex output. 
  */
 #define LOOPCMPLXN( IN, OUT ) { \
-	IN * __restrict__ p = (IN *) in[0]; \
-	OUT * __restrict__ q = (OUT *) out; \
+	IN * restrict p = (IN *) in[0]; \
+	OUT * restrict q = (OUT *) out; \
 	\
 	for( x = 0; x < width; x++ ) \
 		for( k = 0; k < nb; k++ ) { \
@@ -219,8 +219,8 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
 {
 	VipsImage *im = arithmetic->ready[0];
 	VipsLinear *linear = (VipsLinear *) arithmetic;
-	double * __restrict__ a = linear->a_ready;
-	double * __restrict__ b = linear->b_ready;
+	double * restrict a = linear->a_ready;
+	double * restrict b = linear->b_ready;
 	int nb = im->Bands;
 
 	int i, x, k;

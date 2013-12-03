@@ -93,8 +93,8 @@ vips_abs_build( VipsObject *object )
 /* Integer abs operation: just test and negate.
  */
 #define ABS_INT( TYPE ) { \
-	TYPE * __restrict__ p = (TYPE *) in[0]; \
-	TYPE * __restrict__ q = (TYPE *) out; \
+	TYPE * restrict p = (TYPE *) in[0]; \
+	TYPE * restrict q = (TYPE *) out; \
 	int x; \
 	\
 	for( x = 0; x < sz; x++ ) \
@@ -104,8 +104,8 @@ vips_abs_build( VipsObject *object )
 /* Float abs operation: call fabs().
  */
 #define ABS_FLOAT( TYPE ) { \
-	TYPE * __restrict__ p = (TYPE *) in[0]; \
-	TYPE * __restrict__ q = (TYPE *) out; \
+	TYPE * restrict p = (TYPE *) in[0]; \
+	TYPE * restrict q = (TYPE *) out; \
 	int x; \
 	\
 	for( x = 0; x < sz; x++ ) \
@@ -118,8 +118,8 @@ vips_abs_build( VipsObject *object )
 #ifdef HAVE_HYPOT
 
 #define ABS_COMPLEX( TYPE ) { \
-	TYPE * __restrict__ p = (TYPE *) in[0]; \
-	TYPE * __restrict__ q = (TYPE *) out; \
+	TYPE * restrict p = (TYPE *) in[0]; \
+	TYPE * restrict q = (TYPE *) out; \
 	int x; \
 	\
 	for( x = 0; x < sz; x++ ) { \
@@ -131,8 +131,8 @@ vips_abs_build( VipsObject *object )
 #else /*HAVE_HYPOT*/
 
 #define ABS_COMPLEX( TYPE ) { \
-	TYPE * __restrict__ p = (TYPE *) in[0]; \
-	TYPE * __restrict__ q = (TYPE *) out; \
+	TYPE * restrict p = (TYPE *) in[0]; \
+	TYPE * restrict q = (TYPE *) out; \
 	int x; \
 	\
 	for( x = 0; x < sz; x++ ) { \

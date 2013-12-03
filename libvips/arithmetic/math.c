@@ -97,8 +97,8 @@ vips_math_build( VipsObject *object )
 }
 
 #define LOOP( IN, OUT, OP ) { \
-	IN * __restrict__ p = (IN *) in[0]; \
-	OUT * __restrict__ q = (OUT *) out; \
+	IN * restrict p = (IN *) in[0]; \
+	OUT * restrict q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = OP( p[x] ); \

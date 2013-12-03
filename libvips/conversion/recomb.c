@@ -72,11 +72,11 @@ G_DEFINE_TYPE( VipsRecomb, vips_recomb, VIPS_TYPE_CONVERSION );
 /* Inner loop.
  */
 #define LOOP( IN, OUT ) { \
-	IN *p = (IN *) in; \
-	OUT *q = (OUT *) out; \
+	IN * restrict p = (IN *) in; \
+	OUT * restrict q = (OUT *) out; \
 	\
 	for( x = 0; x < or->valid.width; x++ ) { \
-		double *m = VIPS_MATRIX( recomb->coeff, 0, 0 ); \
+		double * restrict m = VIPS_MATRIX( recomb->coeff, 0, 0 ); \
 		\
 		for( v = 0; v < mheight; v++ ) { \
 			double t; \

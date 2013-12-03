@@ -337,8 +337,8 @@ vips_interpolate_nearest_interpolate( VipsInterpolate *interpolate,
 	const int xi = (int) x;
 	const int yi = (int) y;
 
-	const VipsPel *p = VIPS_REGION_ADDR( in, xi, yi );
-	VipsPel *q = (VipsPel *) out;
+	const VipsPel * restrict p = VIPS_REGION_ADDR( in, xi, yi );
+	VipsPel * restrict q = (VipsPel *) out;
 
 	int z;
 
@@ -429,15 +429,15 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 /* Fixed-point arithmetic, no tables.
  */
 #define BILINEAR_INT( TYPE ) { \
-	TYPE *tq = (TYPE *) out; \
+	TYPE * restrict tq = (TYPE *) out; \
 	\
 	const int X = (x - ix) * VIPS_INTERPOLATE_SCALE; \
 	const int Y = (iy - y) * VIPS_INTERPOLATE_SCALE; \
 	\
-	const TYPE *tp1 = (TYPE *) p1; \
-	const TYPE *tp2 = (TYPE *) p2; \
-	const TYPE *tp3 = (TYPE *) p3; \
-	const TYPE *tp4 = (TYPE *) p4; \
+	const TYPE * restrict tp1 = (TYPE *) p1; \
+	const TYPE * restrict tp2 = (TYPE *) p2; \
+	const TYPE * restrict tp3 = (TYPE *) p3; \
+	const TYPE * restrict tp4 = (TYPE *) p4; \
 	\
 	for( z = 0; z < b; z++ ) { \
 		const int top = tp1[z] + \
@@ -453,7 +453,7 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
  * arithmetic.
  */
 #define BILINEAR_FLOAT( TYPE ) { \
-	TYPE *tq = (TYPE *) out; \
+	TYPE * restrict tq = (TYPE *) out; \
 	\
 	float Y  = y - iy; \
 	float X  = x - ix; \
@@ -465,10 +465,10 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	float c3 = Y  - c4; \
 	float c1 = Yd - c2; \
  	\
-	const TYPE *tp1 = (TYPE *) p1; \
-	const TYPE *tp2 = (TYPE *) p2; \
-	const TYPE *tp3 = (TYPE *) p3; \
-	const TYPE *tp4 = (TYPE *) p4; \
+	const TYPE * restrict tp1 = (TYPE *) p1; \
+	const TYPE * restrict tp2 = (TYPE *) p2; \
+	const TYPE * restrict tp3 = (TYPE *) p3; \
+	const TYPE * restrict tp4 = (TYPE *) p4; \
 	\
 	for( z = 0; z < b; z++ ) \
 		tq[z] = c1 * tp1[z] + c2 * tp2[z] + \
@@ -506,10 +506,10 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	const int ix = (int) x;
 	const int iy = (int) y;
 
-	const VipsPel *p1 = VIPS_REGION_ADDR( in, ix, iy );
-	const VipsPel *p2 = p1 + ps;
-	const VipsPel *p3 = p1 + ls;
-	const VipsPel *p4 = p3 + ps;
+	const VipsPel * restrict p1 = VIPS_REGION_ADDR( in, ix, iy );
+	const VipsPel * restrict p2 = p1 + ps;
+	const VipsPel * restrict p3 = p1 + ls;
+	const VipsPel * restrict p4 = p3 + ps;
 
 	int z;
 

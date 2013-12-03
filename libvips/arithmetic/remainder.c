@@ -92,9 +92,9 @@ vips_remainder_build( VipsObject *object )
 /* Integer remainder-after-division.
  */
 #define IREMAINDER( TYPE ) { \
-	TYPE * __restrict__ p1 = (TYPE *) in[0]; \
-	TYPE * __restrict__ p2 = (TYPE *) in[1]; \
-	TYPE * __restrict__ q = (TYPE *) out; \
+	TYPE * restrict p1 = (TYPE *) in[0]; \
+	TYPE * restrict p2 = (TYPE *) in[1]; \
+	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = p2[x] ? p1[x] % p2[x] : -1; \
@@ -103,9 +103,9 @@ vips_remainder_build( VipsObject *object )
 /* Float remainder-after-division.
  */
 #define FREMAINDER( TYPE ) { \
-	TYPE * __restrict__ p1 = (TYPE *) in[0]; \
-	TYPE * __restrict__ p2 = (TYPE *) in[1]; \
-	TYPE * __restrict__ q = (TYPE *) out; \
+	TYPE * restrict p1 = (TYPE *) in[0]; \
+	TYPE * restrict p2 = (TYPE *) in[1]; \
+	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		double a = p1[x]; \
@@ -255,9 +255,9 @@ vips_remainder_const_build( VipsObject *object )
 /* Integer remainder-after-divide, per-band constant.
  */
 #define IREMAINDERCONST( TYPE ) { \
-	TYPE * __restrict__ p = (TYPE *) in[0]; \
-	TYPE * __restrict__ q = (TYPE *) out; \
-	TYPE * __restrict__ c = (TYPE *) uconst->c_ready; \
+	TYPE * restrict p = (TYPE *) in[0]; \
+	TYPE * restrict q = (TYPE *) out; \
+	TYPE * restrict c = (TYPE *) uconst->c_ready; \
 	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \
@@ -267,9 +267,9 @@ vips_remainder_const_build( VipsObject *object )
 /* Float remainder-after-divide, per-band constant.
  */
 #define FREMAINDERCONST( TYPE ) { \
-	TYPE * __restrict__ p = (TYPE *) in[0]; \
-	TYPE * __restrict__ q = (TYPE *) out; \
-	TYPE * __restrict__ c = (TYPE *) uconst->c_ready; \
+	TYPE * restrict p = (TYPE *) in[0]; \
+	TYPE * restrict q = (TYPE *) out; \
+	TYPE * restrict c = (TYPE *) uconst->c_ready; \
 	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) { \

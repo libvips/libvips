@@ -52,7 +52,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsUnaryConst, vips_unary_const, VIPS_TYPE_UNARY );
 /* Cast a vector of double to a vector of TYPE, clipping to a range.
  */
 #define CAST_CLIP( TYPE, N, X ) { \
-	TYPE * __restrict__ tq = (TYPE *) q; \
+	TYPE * restrict tq = (TYPE *) q; \
 	\
 	for( i = 0; i < m; i++ ) { \
 		double v = p[VIPS_MIN( n - 1, i )]; \
@@ -64,7 +64,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsUnaryConst, vips_unary_const, VIPS_TYPE_UNARY );
 /* Cast a vector of double to a vector of TYPE.
  */
 #define CAST( TYPE ) { \
-	TYPE * __restrict__ tq = (TYPE *) q; \
+	TYPE * restrict tq = (TYPE *) q; \
 	\
 	for( i = 0; i < m; i++ ) \
 		tq[i] = (TYPE) p[VIPS_MIN( n - 1, i )]; \
@@ -73,7 +73,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsUnaryConst, vips_unary_const, VIPS_TYPE_UNARY );
 /* Cast a vector of double to a complex vector of TYPE.
  */
 #define CASTC( TYPE ) { \
-	TYPE * __restrict__ tq = (TYPE *) q; \
+	TYPE * restrict tq = (TYPE *) q; \
 	\
 	for( i = 0; i < m; i++ ) { \
 		tq[0] = (TYPE) p[VIPS_MIN( n - 1, i )]; \
@@ -87,7 +87,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsUnaryConst, vips_unary_const, VIPS_TYPE_UNARY );
  */
 static VipsPel *
 make_pixel( VipsObject *obj, 
-	int m, VipsBandFmt fmt, int n, double * __restrict__ p )
+	int m, VipsBandFmt fmt, int n, double * restrict p )
 {
 	VipsPel *q;
 	int i;

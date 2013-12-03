@@ -102,9 +102,9 @@ vips_math2_build( VipsObject *object )
 }
 
 #define LOOP( IN, OUT, OP ) { \
-	IN * __restrict__ p1 = (IN *) in[0]; \
-	IN * __restrict__ p2 = (IN *) in[1]; \
-	OUT * __restrict__ q = (OUT *) out; \
+	IN * restrict p1 = (IN *) in[0]; \
+	IN * restrict p2 = (IN *) in[1]; \
+	OUT * restrict q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		OP( q[x], p1[x], p2[x] ); \
@@ -351,9 +351,9 @@ vips_math2_const_build( VipsObject *object )
 }
 
 #define LOOPC( IN, OUT, OP ) { \
-	IN * __restrict__ p = (IN *) in[0]; \
-	OUT * __restrict__ q = (OUT *) out; \
-	double * __restrict__ c = (double *) uconst->c_ready; \
+	IN * restrict p = (IN *) in[0]; \
+	OUT * restrict q = (OUT *) out; \
+	double * restrict c = (double *) uconst->c_ready; \
 	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \

@@ -182,8 +182,8 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 /* Cast int types to an int type.
  */
 #define VIPS_CLIP_INT_INT( ITYPE, OTYPE, VIPS_CLIP ) { \
-	ITYPE *p = (ITYPE *) in; \
-	OTYPE *q = (OTYPE *) out; \
+	ITYPE * restrict p = (ITYPE *) in; \
+	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		int t = p[x]; \
@@ -197,8 +197,8 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 /* Cast float types to an int type.
  */
 #define VIPS_CLIP_FLOAT_INT( ITYPE, OTYPE, VIPS_CLIP ) { \
-	ITYPE *p = (ITYPE *) in; \
-	OTYPE *q = (OTYPE *) out; \
+	ITYPE * restrict p = (ITYPE *) in; \
+	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		ITYPE v = floor( p[x] ); \
@@ -212,8 +212,8 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 /* Cast complex types to an int type. Just take the real part.
  */
 #define VIPS_CLIP_COMPLEX_INT( ITYPE, OTYPE, VIPS_CLIP ) { \
-	ITYPE *p = (ITYPE *) in; \
-	OTYPE *q = (OTYPE *) out; \
+	ITYPE * restrict p = (ITYPE *) in; \
+	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		ITYPE v = floor( p[0] ); \
@@ -228,8 +228,8 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 /* Cast non-complex types to a float type.
  */
 #define VIPS_CLIP_REAL_FLOAT( ITYPE, OTYPE ) { \
-	ITYPE *p = (ITYPE *) in; \
-	OTYPE *q = (OTYPE *) out; \
+	ITYPE * restrict p = (ITYPE *) in; \
+	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = p[x]; \
@@ -238,8 +238,8 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 /* Cast complex types to a float type ... just take real.
  */
 #define VIPS_CLIP_COMPLEX_FLOAT( ITYPE, OTYPE ) { \
-	ITYPE *p = (ITYPE *) in; \
-	OTYPE *q = (OTYPE *) out; \
+	ITYPE * restrict p = (ITYPE *) in; \
+	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		q[x] = p[0]; \
@@ -250,8 +250,8 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 /* Cast any non-complex to a complex type ... set imaginary to zero.
  */
 #define VIPS_CLIP_REAL_COMPLEX( ITYPE, OTYPE ) { \
-	ITYPE *p = (ITYPE *) in; \
-	OTYPE *q = (OTYPE *) out; \
+	ITYPE * restrict p = (ITYPE *) in; \
+	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		q[0] = p[x]; \
@@ -263,8 +263,8 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 /* Cast any complex to a complex type.
  */
 #define VIPS_CLIP_COMPLEX_COMPLEX( ITYPE, OTYPE ) { \
-	ITYPE *p = (ITYPE *) in; \
-	OTYPE *q = (OTYPE *) out; \
+	ITYPE * restrict p = (ITYPE *) in; \
+	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
 		q[0] = p[0]; \

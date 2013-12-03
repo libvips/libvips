@@ -90,9 +90,9 @@ typedef VipsBinaryClass VipsAddClass;
 G_DEFINE_TYPE( VipsAdd, vips_add, VIPS_TYPE_BINARY );
 
 #define LOOP( IN, OUT ) { \
-	IN * __restrict__ left = (IN *) in[0]; \
-	IN * __restrict__ right = (IN *) in[1]; \
-	OUT * __restrict__ q = (OUT *) out; \
+	IN * restrict left = (IN *) in[0]; \
+	IN * restrict right = (IN *) in[1]; \
+	OUT * restrict q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = left[x] + right[x]; \
