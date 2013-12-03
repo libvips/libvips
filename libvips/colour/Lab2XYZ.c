@@ -86,8 +86,8 @@ static void
 vips_Lab2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
 	VipsLab2XYZ *Lab2XYZ = (VipsLab2XYZ *) colour;
-	float *p = (float *) in[0];
-	float *q = (float *) out;
+	float * restrict p = (float *) in[0];
+	float * restrict q = (float *) out;
 
 	int x;
 

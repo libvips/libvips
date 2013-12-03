@@ -60,8 +60,8 @@ G_DEFINE_TYPE( VipsLabQ2LabS, vips_LabQ2LabS, VIPS_TYPE_COLOUR_CODE );
 static void
 vips_LabQ2LabS_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	unsigned char *p = (unsigned char *) in[0];
-	signed short *q = (signed short *) out;
+	unsigned char * restrict p = (unsigned char *) in[0];
+	signed short * restrict q = (signed short *) out;
 
 	int i;
 	unsigned char ext;

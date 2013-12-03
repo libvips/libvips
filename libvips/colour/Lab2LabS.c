@@ -56,8 +56,8 @@ G_DEFINE_TYPE( VipsLab2LabS, vips_Lab2LabS, VIPS_TYPE_COLOUR_CODE );
 static void
 vips_Lab2LabS_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	float *p = (float *) in[0];
-	signed short *q = (signed short *) out;
+	float * restrict p = (float *) in[0];
+	signed short * restrict q = (signed short *) out;
 	int i;
 
 	for( i = 0; i < width; i++ ) {

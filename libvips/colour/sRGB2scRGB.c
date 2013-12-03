@@ -62,7 +62,7 @@ G_DEFINE_TYPE( VipssRGB2scRGB, vips_sRGB2scRGB, VIPS_TYPE_COLOUR_CODE );
 /* Convert a buffer of 8-bit pixels.
  */
 static void
-vips_sRGB2scRGB_line_8( float *q, VipsPel *p, int width )
+vips_sRGB2scRGB_line_8( float * restrict q, VipsPel * restrict p, int width )
 {
 	int i;
 
@@ -88,7 +88,8 @@ vips_sRGB2scRGB_line_8( float *q, VipsPel *p, int width )
 /* Convert a buffer of 16-bit pixels.
  */
 static void
-vips_sRGB2scRGB_line_16( float *q, unsigned short *p, int width )
+vips_sRGB2scRGB_line_16( float * restrict q, unsigned short * restrict p, 
+	int width )
 {
 	int i;
 

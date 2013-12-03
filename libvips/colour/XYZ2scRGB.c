@@ -68,8 +68,8 @@ vips_XYZ2scRGB_build( VipsObject *object )
 void
 vips_XYZ2scRGB_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	float *p = (float *) in[0];
-	float *q = (float *) out;
+	float * restrict p = (float *) in[0];
+	float * restrict q = (float *) out;
 
 	int i;
 

@@ -62,12 +62,10 @@ G_DEFINE_TYPE( VipsLCh2Lab, vips_LCh2Lab, VIPS_TYPE_COLOUR_SPACE );
 static void
 vips_LCh2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {		
-	float *p;
-	float *q;
-	int x;
+	float * restrict p = (float *) in[0];
+	float * restrict q = (float *) out;
 
-	p = (float *) in[0];
-	q = (float *) out;
+	int x;
 
 	for( x = 0; x < width; x++ ) {
 		float L = p[0];

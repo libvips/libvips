@@ -57,8 +57,8 @@ G_DEFINE_TYPE( VipsXYZ2Yxy, vips_XYZ2Yxy, VIPS_TYPE_COLOUR_SPACE );
 static void
 vips_XYZ2Yxy_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	float *p = (float *) in[0];
-	float *q = (float *) out;
+	float * restrict p = (float *) in[0];
+	float * restrict q = (float *) out;
 
 	int i;
 

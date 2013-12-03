@@ -85,9 +85,9 @@ void
 vips__pythagoras_line( VipsColour *colour, 
 	VipsPel *out, VipsPel **in, int width )
 {
-	float *p1 = (float *) in[0];
-	float *p2 = (float *) in[1];
-	float *q = (float *) out;
+	float * restrict p1 = (float *) in[0];
+	float * restrict p2 = (float *) in[1];
+	float * restrict q = (float *) out;
 
 	int x;
 

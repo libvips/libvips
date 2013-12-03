@@ -79,7 +79,7 @@ G_DEFINE_TYPE( VipsscRGB2sRGB, vips_scRGB2sRGB, VIPS_TYPE_COLOUR_CODE );
 /* Process a buffer of data.
  */
 static void
-vips_scRGB2sRGB_line_8( VipsPel *q, float *p, int width )
+vips_scRGB2sRGB_line_8( VipsPel * restrict q, float * restrict p, int width )
 {
 	int i;
 
@@ -104,7 +104,8 @@ vips_scRGB2sRGB_line_8( VipsPel *q, float *p, int width )
 }
 
 static void
-vips_scRGB2sRGB_line_16( unsigned short *q, float *p, int width )
+vips_scRGB2sRGB_line_16( unsigned short * restrict q, float * restrict p, 
+	int width )
 {
 	int i;
 

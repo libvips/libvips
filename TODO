@@ -1,22 +1,16 @@
 
-- do morph quickly as simple wrappers over the vips7 operations
-
 - do restrict on some more packages, we've just done arithmetic so far
 
-- the orc path isn't a win for add and can't be
+	also resample, colour, some of conversion, create, 
 
-  useful for linear though: we can unroll the band loop with the array of
-  constants and do the whole thing as a vector
+- orc is poor for float stuff ... if vips_linear() had a "preserve type"
+  option we could do something
 
-  1ary constant, no orc
+  maybe a "uchar ouput" option? this seems to be a very common case
 
-	$ time vips linear wtc.v x.v 1.2 1
-	real	0m12.707s
-	user	0m0.628s
-	sys	0m1.240s
+- maybe avg?
 
-
-
+  but avg doesn't subclass arithmetic, so we can't
 
 - for interpolate, we'd need to be able to unroll the vector, so the
   interpolator would need to be built for the bands / stride / type of the

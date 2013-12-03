@@ -73,8 +73,8 @@ G_DEFINE_TYPE( VipsLabQ2Lab, vips_LabQ2Lab, VIPS_TYPE_COLOUR_CODE );
 static void
 vips_LabQ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	signed char *p = (signed char *) in[0];
-	float *q = (float *) out;
+	signed char * restrict p = (signed char *) in[0];
+	float * restrict q = (float *) out;
 
 	int l;
 	int lsbs;               /* for lsbs byte */

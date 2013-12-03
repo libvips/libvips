@@ -40,6 +40,8 @@
  * 	- removed the 1-ary constant path, no faster
  * 30/11/13
  * 	- 1ary is back, faster with gcc 4.8
+ * 3/12/13
+ * 	- try an ORC path with the band loop unrolled
  */
 
 /*
@@ -113,6 +115,7 @@ vips_linear_build( VipsObject *object )
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
 	VipsUnary *unary = (VipsUnary *) object;
 	VipsLinear *linear = (VipsLinear *) object;
+
 	int i;
 
 	/* If we have a three-element vector we need to bandup the image to

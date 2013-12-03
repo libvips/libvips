@@ -98,12 +98,10 @@ vips_col_ab2Ch( float a, float b, float *C, float *h )
 static void
 vips_Lab2LCh_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	float *p;
-	float *q;
-	int x;
+	float * restrict p = (float *) in[0]; 
+	float * restrict q = (float *) out; 
 
-	p = (float *) in[0];
-	q = (float *) out;
+	int x;
 
 	for( x = 0; x < width; x++ ) {
 		float L = p[0];

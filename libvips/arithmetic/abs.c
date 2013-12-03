@@ -24,6 +24,9 @@
  * 	- remove liboil
  * 6/11/11
  * 	- redone as a class
+ * 3/12/13
+ * 	- add orc, though the speed improvement vs. gcc's auto-vectorizer
+ * 	  seems very marginal 
  */
 
 /*
@@ -162,21 +165,37 @@ static void
 vips_abs_buffer( VipsArithmetic *arithmetic, 
 	VipsPel *out, VipsPel **in, int width )
 {
+	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS( arithmetic );
 	VipsUnary *unary = VIPS_UNARY( arithmetic );
-	const int bands = vips_image_get_bands( unary->in );
+	VipsImage *im = arithmetic->ready[0];
+	const int bands = vips_image_get_bands( im );
 	int sz = width * bands;
 
-	switch( vips_image_get_format( unary->in ) ) {
-        case VIPS_FORMAT_CHAR: 		ABS_INT( signed char ); break; 
-        case VIPS_FORMAT_SHORT: 	ABS_INT( signed short ); break; 
-        case VIPS_FORMAT_INT: 		ABS_INT( signed int ); break; 
-        case VIPS_FORMAT_FLOAT: 	ABS_FLOAT( float ); break; 
-        case VIPS_FORMAT_DOUBLE:	ABS_FLOAT( double ); break; 
-        case VIPS_FORMAT_COMPLEX:	ABS_COMPLEX( float ); break;
-        case VIPS_FORMAT_DPCOMPLEX:	ABS_COMPLEX( double ); break;
+	VipsVector *v;
 
-	default:
-		g_assert( 0 );
+	if( (v = vips_arithmetic_get_vector( class, 
+		vips_image_get_format( im ) )) ) {
+		VipsExecutor ex;
+
+		vips_executor_set_program( &ex, v, sz );
+		vips_executor_set_array( &ex, v->s[0], in[0] );
+		vips_executor_set_destination( &ex, out );
+
+		vips_executor_run( &ex );
+	}
+	else {
+		switch( vips_image_get_format( im ) ) {
+		case VIPS_FORMAT_CHAR: 		ABS_INT( signed char ); break; 
+		case VIPS_FORMAT_SHORT: 	ABS_INT( signed short ); break; 
+		case VIPS_FORMAT_INT: 		ABS_INT( signed int ); break; 
+		case VIPS_FORMAT_FLOAT: 	ABS_FLOAT( float ); break; 
+		case VIPS_FORMAT_DOUBLE:	ABS_FLOAT( double ); break; 
+		case VIPS_FORMAT_COMPLEX:	ABS_COMPLEX( float ); break;
+		case VIPS_FORMAT_DPCOMPLEX:	ABS_COMPLEX( double ); break;
+
+		default:
+			g_assert( 0 );
+		}
 	}
 }
 
@@ -206,6 +225,8 @@ vips_abs_class_init( VipsAbsClass *class )
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
 
+	VipsVector *v;
+
 	object_class->nickname = "abs";
 	object_class->description = _( "absolute value of an image" );
 	object_class->build = vips_abs_build;
@@ -213,6 +234,17 @@ vips_abs_class_init( VipsAbsClass *class )
 	aclass->process_line = vips_abs_buffer;
 
 	vips_arithmetic_set_format_table( aclass, vips_abs_format_table ); 
+
+	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_CHAR );
+	vips_vector_asm3( v, "absb", "d1", "s1", "s2" ); 
+
+	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_SHORT );
+	vips_vector_asm3( v, "absw", "d1", "s1", "s2" ); 
+
+	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_INT );
+	vips_vector_asm3( v, "absl", "d1", "s1", "s2" ); 
+
+	vips_arithmetic_compile( aclass );
 }
 
 static void
