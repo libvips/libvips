@@ -166,7 +166,6 @@ vips_abs_buffer( VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width )
 {
 	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS( arithmetic );
-	VipsUnary *unary = VIPS_UNARY( arithmetic );
 	VipsImage *im = arithmetic->ready[0];
 	const int bands = vips_image_get_bands( im );
 	int sz = width * bands;
@@ -236,13 +235,13 @@ vips_abs_class_init( VipsAbsClass *class )
 	vips_arithmetic_set_format_table( aclass, vips_abs_format_table ); 
 
 	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_CHAR );
-	vips_vector_asm3( v, "absb", "d1", "s1", "s2" ); 
+	vips_vector_asm2( v, "absb", "d1", "s1" ); 
 
 	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_SHORT );
-	vips_vector_asm3( v, "absw", "d1", "s1", "s2" ); 
+	vips_vector_asm2( v, "absw", "d1", "s1" ); 
 
 	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_INT );
-	vips_vector_asm3( v, "absl", "d1", "s1", "s2" ); 
+	vips_vector_asm2( v, "absl", "d1", "s1" ); 
 
 	vips_arithmetic_compile( aclass );
 }
