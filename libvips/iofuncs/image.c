@@ -822,7 +822,7 @@ vips_image_build( VipsObject *object )
 
 			if( mode[1] == 's' ) {
 				if( vips_foreign_load_options( filename, &t, 
-					"sequential", TRUE,
+					"access", VIPS_ACCESS_SEQUENTIAL,
 					NULL ) )
 					return( -1 );
 			}
