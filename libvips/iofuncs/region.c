@@ -41,6 +41,8 @@
  * 	- move invalid stuff to region
  * 3/3/11
  * 	- move on top of VipsObject, rename as VipsRegion
+ * 7/12/13
+ * 	- delay attached resource unref to reduce malloc/free cycling
  */
 
 /*
@@ -258,16 +260,6 @@ vips__region_stop( VipsRegion *region )
         }
 }
 
-/* Free any resources we have.
- */
-static void
-vips_region_reset( VipsRegion *region )
-{
-	VIPS_FREEF( vips_window_unref, region->window );
-	VIPS_FREEF( vips_buffer_unref, region->buffer );
-	region->invalid = FALSE;
-}
-
 static void
 vips_region_dispose( GObject *gobject )
 {
@@ -287,7 +279,8 @@ vips_region_dispose( GObject *gobject )
 
 	/* Free any attached memory.
 	 */
-	vips_region_reset( region ); 
+	VIPS_FREEF( vips_window_unref, region->window );
+	VIPS_FREEF( vips_buffer_unref, region->buffer );
 
 	/* Detach from image. 
 	 */
@@ -573,16 +566,17 @@ vips_region_buffer( VipsRegion *reg, VipsRect *r )
 	 * If not, try to reuse the current buffer.
 	 */
 	if( reg->invalid ) {
-		vips_region_reset( reg );
+		reg->invalid = FALSE;
+		VIPS_FREEF( vips_buffer_unref, reg->buffer );
 		if( !(reg->buffer = vips_buffer_new( im, &clipped )) ) 
 			return( -1 );
 	}
 	else {
-		/* Don't call vips_region_reset() ... we combine buffer unref 
+		/* Don't unref the old buffer ... we combine buffer unref 
 		 * and new buffer ref in one call to reduce malloc/free 
 		 * cycling.
 		 */
-		VIPS_FREEF( vips_window_unref, reg->window );
+		reg->invalid = FALSE;
 		if( !(reg->buffer = 
 			vips_buffer_unref_ref( reg->buffer, im, &clipped )) ) 
 			return( -1 );
@@ -639,12 +633,11 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 
 	if( image->data ) {
 		/* We have the whole image available ... easy!
-		 */
-		vips_region_reset( reg );
-
-		/* We can't just set valid = clipped, since this may be an
+		 *
+		 * We can't just set valid = clipped, since this may be an
 		 * incompletely calculated memory buffer. Just set valid to r.
 		 */
+		reg->invalid = FALSE;
 		reg->valid = clipped;
 		reg->bpl = VIPS_IMAGE_SIZEOF_LINE( image );
 		reg->data = VIPS_IMAGE_ADDR( image, clipped.left, clipped.top );
@@ -658,8 +651,8 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 			reg->window->top > clipped.top ||
 			reg->window->top + reg->window->height < 
 				clipped.top + clipped.height ) {
-			vips_region_reset( reg );
-
+			reg->invalid = FALSE;
+			VIPS_FREEF( vips_window_unref, reg->window );
 			if( !(reg->window = vips_window_ref( image, 
 				clipped.top, clipped.height )) )
 				return( -1 );
@@ -786,7 +779,7 @@ vips_region_region( VipsRegion *reg,
 
 	/* Init new stuff.
 	 */
-	vips_region_reset( reg );
+	reg->invalid = FALSE;
 	reg->valid = final;
 	reg->bpl = dest->bpl;
 	reg->data = VIPS_REGION_ADDR( dest, clipped2.left, clipped2.top );

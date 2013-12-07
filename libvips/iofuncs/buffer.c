@@ -407,7 +407,8 @@ vips_buffer_unref_ref( VipsBuffer *old_buffer, VipsImage *im, VipsRect *area )
 {
 	VipsBuffer *buffer;
 
-	g_assert( !old_buffer || old_buffer->im == im );
+	g_assert( !old_buffer || 
+		old_buffer->im == im );
 
 	/* Is the current buffer OK?
 	 */
@@ -424,7 +425,8 @@ vips_buffer_unref_ref( VipsBuffer *old_buffer, VipsImage *im, VipsRect *area )
 
 	/* Is the current buffer unshared? We can just move it.
 	 */
-	if( old_buffer && old_buffer->ref_count == 1 ) {
+	if( old_buffer && 
+		old_buffer->ref_count == 1 ) {
 		if( buffer_move( old_buffer, area ) ) {
 			vips_buffer_unref( old_buffer );
 			return( NULL );
