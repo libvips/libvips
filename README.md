@@ -76,7 +76,7 @@ Clang dynamic analysis:
 		LDFLAGS="-fsanitize=thread -fPIC -pie" \
 		./configure --prefix=/home/john/vips --disable-introspection
 
-Build with the GCC auto-vectorizer:
+Build with the GCC auto-vectorizer and diagnostics (or just -O3):
 
 	$ FLAGS="-O2 -msse4.2 -ffast-math"
 	$ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
