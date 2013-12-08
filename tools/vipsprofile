@@ -125,17 +125,24 @@ for thread in threads:
 
 print 'loaded %d events' % n_events
 
-# normalise time axis to secs of computation
+# move time axis to secs of computation
 ticks_per_sec = 1000000.0
-start_time = threads[0].events[0].start
+first_time = threads[0].events[0].start
 last_time = 0
 for thread in threads:
     for event in thread.events:
-        event.start = (event.start - start_time) / ticks_per_sec
-        event.stop = (event.stop - start_time) / ticks_per_sec
-
+        if event.start < first_time:
+            first_time = event.start
         if event.stop > last_time:
             last_time = event.stop
+
+for thread in threads:
+    for event in thread.events:
+        event.start = (event.start - first_time) / ticks_per_sec
+        event.stop = (event.stop - first_time) / ticks_per_sec
+
+last_time = (last_time - first_time) / ticks_per_sec
+first_time = 0
 
 print 'last time =', last_time
 
@@ -300,7 +307,6 @@ def draw_event(ctx, event):
     if not event.wait and not event.work:
         xbearing, ybearing, twidth, theight, xadvance, yadvance = \
                 ctx.text_extents(event.gate_name)
-
         ctx.move_to(left + width / 2 - twidth / 2, top + 3 * BAR_HEIGHT)
         ctx.set_source_rgb(1.00, 0.83, 0.00)
         ctx.show_text(event.gate_name)
@@ -321,5 +327,32 @@ for thread in threads:
 
     for event in thread.events:
         draw_event(ctx, event)
+
+ctx.rectangle(LEFT_BORDER, total_y * PIXELS_PER_GATE, 
+              last_time * PIXELS_PER_SECOND, 1)
+ctx.set_source_rgb(1.00, 1.00, 1.00)
+ctx.fill()
+
+label = "time"
+xbearing, ybearing, twidth, theight, xadvance, yadvance = \
+        ctx.text_extents(label)
+ctx.move_to(0, total_y * PIXELS_PER_GATE + theight + 8)
+ctx.set_source_rgb(1.00, 1.00, 1.00)
+ctx.show_text(label)
+
+for t in range(0, int(last_time * PIXELS_PER_SECOND), PIXELS_PER_SECOND / 10):
+    left = t + LEFT_BORDER
+    top = total_y * PIXELS_PER_GATE
+
+    ctx.rectangle(left, top, 1, 5)
+    ctx.set_source_rgb(1.00, 1.00, 1.00)
+    ctx.fill()
+
+    label = str(float(t) / PIXELS_PER_SECOND)
+    xbearing, ybearing, twidth, theight, xadvance, yadvance = \
+            ctx.text_extents(label)
+    ctx.move_to(left - twidth / 2, top + theight + 8)
+    ctx.set_source_rgb(1.00, 1.00, 1.00)
+    ctx.show_text(label)
 
 surface.finish()
