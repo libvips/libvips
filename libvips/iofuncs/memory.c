@@ -244,6 +244,8 @@ vips_tracked_free( void *s )
 	g_mutex_unlock( vips_tracked_mutex );
 
 	g_free( s );
+
+	VIPS_GATE_FREE( size ); 
 }
 
 static void
@@ -310,6 +312,8 @@ vips_tracked_malloc( size_t size )
 	vips_tracked_allocs += 1;
 
 	g_mutex_unlock( vips_tracked_mutex );
+
+	VIPS_GATE_MALLOC( size ); 
 
         return( buf );
 }

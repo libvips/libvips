@@ -49,6 +49,18 @@ G_STMT_START { \
 		vips__thread_gate_stop( NAME ); \
 } G_STMT_END
 
+#define VIPS_GATE_MALLOC( SIZE ) \
+G_STMT_START { \
+	if( vips__thread_profile ) \
+		vips__thread_malloc_free( (gint64) (SIZE) ); \
+} G_STMT_END
+
+#define VIPS_GATE_FREE( SIZE ) \
+G_STMT_START { \
+	if( vips__thread_profile ) \
+		vips__thread_malloc_free( -((gint64) (SIZE)) ); \
+} G_STMT_END
+
 extern gboolean vips__thread_profile;
 
 void vips__thread_profile_attach( const char *thread_name );
@@ -57,6 +69,8 @@ void vips__thread_profile_stop( void );
 
 void vips__thread_gate_start( const char *gate_name ); 
 void vips__thread_gate_stop( const char *gate_name ); 
+
+void vips__thread_malloc_free( gint64 size );
 
 #endif /*VIPS_GATE_H*/
 
