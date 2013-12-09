@@ -370,20 +370,30 @@ for thread in threads:
     for event in thread.events:
         draw_event(ctx, event)
 
+memory_y = total_y * PIXELS_PER_GATE
+
+label = "memory"
+xbearing, ybearing, twidth, theight, xadvance, yadvance = \
+        ctx.text_extents(label)
+ctx.move_to(0, memory_y + theight + 8)
+ctx.set_source_rgb(1.00, 1.00, 1.00)
+ctx.show_text(label)
+
 memory = 0
+ctx.move_to(LEFT_BORDER, memory_y + MEM_HEIGHT)
+
 for event in all_events:
     if event.memory:
         memory += event.size
 
         left = LEFT_BORDER + event.start * PIXELS_PER_SECOND
-        top = total_y * PIXELS_PER_GATE + MEM_HEIGHT
-        top -= MEM_HEIGHT * memory / peak_memory
-        width = 1
-        height = 1
+        top = memory_y + MEM_HEIGHT - (MEM_HEIGHT * memory / peak_memory)
 
-        ctx.rectangle(left, top, width, height)
-        ctx.set_source_rgb(1.00, 1.00, 1.00)
-        ctx.fill()
+        ctx.line_to(left, top)
+
+ctx.set_line_width(1)
+ctx.set_source_rgb(1.00, 1.00, 1.00)
+ctx.stroke()
 
 axis_y = total_y * PIXELS_PER_GATE + MEM_HEIGHT
 

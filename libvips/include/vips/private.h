@@ -154,9 +154,6 @@ void vips__region_take_ownership( struct _VipsRegion *reg );
 void vips__region_check_ownership( struct _VipsRegion *reg );
 void vips__region_no_ownership( struct _VipsRegion *reg );
 
-int vips__region_start( struct _VipsRegion *reg );
-void vips__region_stop( struct _VipsRegion *reg );
-
 typedef int (*VipsRegionFillFn)( struct _VipsRegion *, void * );
 int vips_region_fill( struct _VipsRegion *reg, 
 	VipsRect *r, VipsRegionFillFn fn, void *a );

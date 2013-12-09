@@ -75,8 +75,8 @@
 /*
 #define DEBUG_MOVE 
 #define DEBUG_ENVIRONMENT 1
-#define DEBUG_CREATE
 #define DEBUG
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -199,7 +199,7 @@ vips_region_finalize( GObject *gobject )
 
 /* Call a start function if no sequence is running on this VipsRegion.
  */
-int
+static int
 vips__region_start( VipsRegion *region )
 {
 	VipsImage *image = region->im;
@@ -229,7 +229,7 @@ vips__region_start( VipsRegion *region )
 
 /* Call a stop function if a sequence is running in this VipsRegion. 
  */
-void
+static void
 vips__region_stop( VipsRegion *region )
 {
 	IMAGE *image = region->im;
@@ -267,7 +267,7 @@ vips_region_dispose( GObject *gobject )
 	VipsImage *image = region->im;
 
 #ifdef VIPS_DEBUG
-	VIPS_DEBUG_MSG( "vips_region_dispose: " );
+	printf( "vips_region_dispose: \n" );
 	vips_object_print_name( VIPS_OBJECT( gobject ) );
 #endif /*VIPS_DEBUG*/
 
@@ -492,6 +492,10 @@ VipsRegion *
 vips_region_new( VipsImage *image )
 {
 	VipsRegion *region;
+
+	/*
+	printf( "vips_region_new: on image %p\n", image ); 
+	 */
 
 	/* Ref quickly, we want to make sure we keep the image around.
 	 * We can't use the property system, we need to be very threaded.
