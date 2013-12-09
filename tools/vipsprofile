@@ -28,7 +28,7 @@ def read_times(rf):
     times = []
 
     while True:
-        match = re.match('[0-9]+ ', rf.line)
+        match = re.match('[+-]?[0-9]+ ', rf.line)
         if not match:
             break
         times += [int(x) for x in re.split(' ', rf.line.rstrip())]
@@ -50,22 +50,34 @@ class Thread:
         self.events = []
         Thread.thread_number += 1
 
+all_events = []
+
 class Event:
     def __init__(self, thread, gate_location, gate_name, start, stop):
         self.thread = thread
         self.gate_location = gate_location
         self.gate_name = gate_name
-        self.start = start
-        self.stop = stop
 
         self.work = False
         self.wait = False
-        if re.match('.*work.*', gate_name):
+        self.memory = False
+        if gate_location == "memory":
+            self.memory = True
+        elif re.match('.*work.*', gate_name):
             self.work = True
-        if re.match('.*wait.*', gate_name):
+        elif re.match('.*wait.*', gate_name):
             self.wait = True
 
+        if self.memory:
+            self.start = start
+            self.stop = start
+            self.size = stop
+        else:
+            self.start = start
+            self.stop = stop
+
         thread.events.append(self)
+        all_events.append(self)
 
 input_filename = 'vips-profile.txt'
 
@@ -92,11 +104,11 @@ with ReadFile(input_filename) as rf:
         rf.getnext()
 
         while True:
-            match = re.match('gate: (.*?): (.*)', rf.line)
+            match = re.match('^gate: (.*?)(: (.*))?$', rf.line)
             if not match:
                 break
             gate_location = match.group(1)
-            gate_name = match.group(2)
+            gate_name = match.group(3)
             rf.getnext()
 
             match = re.match('start:', rf.line)
@@ -122,6 +134,8 @@ with ReadFile(input_filename) as rf:
 
 for thread in threads:
     thread.events.sort(lambda x, y: cmp(x.start, y.start))
+
+all_events.sort(lambda x, y: cmp(x.start, y.start))
 
 print 'loaded %d events' % n_events
 
@@ -152,6 +166,8 @@ for thread in threads:
     thread.stop = 0
     thread.wait = 0
     thread.work = 0
+    thread.memory = 0
+    thread.peak_memory = 0
     for event in thread.events:
         if event.start < thread.start:
             thread.start = event.start
@@ -161,13 +177,17 @@ for thread in threads:
             thread.wait += event.stop - event.start
         if event.work:
             thread.work += event.stop - event.start
+        if event.memory:
+            thread.memory += event.size
+            if thread.memory > thread.peak_memory:
+                thread.peak_memory = thread.memory
 
     thread.alive = thread.stop - thread.start
 
     # hide very short-lived threads 
     thread.hide = thread.alive < 0.01
 
-print 'name\t\talive\twait%\twork%\tunknown%'
+print 'name\t\talive\twait%\twork%\tunkn%\tmemory\tpeakm'
 for thread in threads:
     if thread.hide:
         continue
@@ -177,7 +197,21 @@ for thread in threads:
     unkn_percent = 100 - 100 * (thread.work + thread.wait) / thread.alive
 
     print '%13s\t%6.2g\t' % (thread.thread_name, thread.alive),
-    print '%.3g\t%.3g\t%.3g' % (wait_percent, work_percent, unkn_percent)
+    print '%.3g\t%.3g\t%.3g\t' % (wait_percent, work_percent, unkn_percent),
+    print '%.3g\t' % (float(thread.memory) / (1024 * 1024)),
+    print '%.3g\t' % (float(thread.peak_memory) / (1024 * 1024))
+
+memory = 0
+peak_memory = 0
+for event in all_events:
+    if event.memory:
+        memory += event.size
+        if memory > peak_memory:
+            peak_memory = memory
+
+print 'peak memory = %.3g MB' % (float(peak_memory) / (1024 * 1024))
+if memory != 0:
+    print 'leak! final memory = %.3g MB' % (float(memory) / (1024 * 1024))
 
 # do two gates overlap?
 def is_overlap(events, gate_name1, gate_name2):
@@ -208,28 +242,28 @@ for thread in threads:
     # first pass .. move work and wait events to y == 0
     gate_positions = {}
     for event in thread.events:
-        if not event.work and not event.wait:
+        if not event.work and not event.wait and not event.memory:
             continue
 
         # no works and waits must overlap
-        if not event.gate_name in gate_positions:
-            for gate_name in gate_positions:
-                if is_overlap(thread.events, event.gate_name, gate_name):
-                    print 'gate overlap on thread', thread.thread_name
-                    print '\t', event.gate_location 
-                    print '\t', event.gate_name
-                    print '\t', gate_name 
-                    break
+        if event.work or event.wait:
+            if not event.gate_name in gate_positions:
+                for gate_name in gate_positions:
+                    if is_overlap(thread.events, event.gate_name, gate_name):
+                        print 'gate overlap on thread', thread.thread_name
+                        print '\t', event.gate_location 
+                        print '\t', event.gate_name
+                        print '\t', gate_name 
+                        break
 
-            gate_positions[event.gate_name] = 0
-
-        event.y = gate_positions[event.gate_name] 
-        event.total_y = total_y + event.y
+        gate_positions[event.gate_name] = 0
+        event.y = 0
+        event.total_y = total_y
 
     # second pass: move all other events to non-overlapping ys
     y = 1
     for event in thread.events:
-        if event.work or event.wait:
+        if event.work or event.wait or event.memory:
             continue
 
         if not event.gate_name in gate_positions:
@@ -259,7 +293,7 @@ for thread in threads:
     # third pass: flip the order of the ys to get the lowest-level ones at the
     # top, next to the wait/work line
     for event in thread.events:
-        if event.work or event.wait:
+        if event.work or event.wait or event.memory:
             continue
 
         event.y = y - event.y
@@ -271,8 +305,9 @@ PIXELS_PER_SECOND = 1000
 PIXELS_PER_GATE = 20
 LEFT_BORDER = 130
 BAR_HEIGHT = 5
+MEM_HEIGHT = 100
 WIDTH = int(LEFT_BORDER + last_time * PIXELS_PER_SECOND) + 20
-HEIGHT = int((total_y + 1) * PIXELS_PER_GATE)
+HEIGHT = int(total_y * PIXELS_PER_GATE) + MEM_HEIGHT + 30
 
 output_filename = "vips-profile.svg"
 print 'writing to', output_filename
@@ -293,18 +328,25 @@ def draw_event(ctx, event):
     width = (event.stop - event.start) * PIXELS_PER_SECOND 
     height = BAR_HEIGHT
 
+    if event.memory:
+        width = 1
+        height /= 2
+        top += BAR_HEIGHT
+
     ctx.rectangle(left, top, width, height)
 
     if event.wait:
         ctx.set_source_rgb(0.9, 0.1, 0.1)
     elif event.work:
         ctx.set_source_rgb(0.1, 0.9, 0.1)
+    elif event.memory:
+        ctx.set_source_rgb(1.0, 1.0, 1.0)
     else:
         ctx.set_source_rgb(0.1, 0.1, 0.9)
 
     ctx.fill()
 
-    if not event.wait and not event.work:
+    if not event.wait and not event.work and not event.memory:
         xbearing, ybearing, twidth, theight, xadvance, yadvance = \
                 ctx.text_extents(event.gate_name)
         ctx.move_to(left + width / 2 - twidth / 2, top + 3 * BAR_HEIGHT)
@@ -328,21 +370,37 @@ for thread in threads:
     for event in thread.events:
         draw_event(ctx, event)
 
-ctx.rectangle(LEFT_BORDER, total_y * PIXELS_PER_GATE, 
-              last_time * PIXELS_PER_SECOND, 1)
+memory = 0
+for event in all_events:
+    if event.memory:
+        memory += event.size
+
+        left = LEFT_BORDER + event.start * PIXELS_PER_SECOND
+        top = total_y * PIXELS_PER_GATE + MEM_HEIGHT
+        top -= MEM_HEIGHT * memory / peak_memory
+        width = 1
+        height = 1
+
+        ctx.rectangle(left, top, width, height)
+        ctx.set_source_rgb(1.00, 1.00, 1.00)
+        ctx.fill()
+
+axis_y = total_y * PIXELS_PER_GATE + MEM_HEIGHT
+
+ctx.rectangle(LEFT_BORDER, axis_y, last_time * PIXELS_PER_SECOND, 1)
 ctx.set_source_rgb(1.00, 1.00, 1.00)
 ctx.fill()
 
 label = "time"
 xbearing, ybearing, twidth, theight, xadvance, yadvance = \
         ctx.text_extents(label)
-ctx.move_to(0, total_y * PIXELS_PER_GATE + theight + 8)
+ctx.move_to(0, axis_y + theight + 8)
 ctx.set_source_rgb(1.00, 1.00, 1.00)
 ctx.show_text(label)
 
 for t in range(0, int(last_time * PIXELS_PER_SECOND), PIXELS_PER_SECOND / 10):
     left = t + LEFT_BORDER
-    top = total_y * PIXELS_PER_GATE
+    top = axis_y
 
     ctx.rectangle(left, top, 1, 5)
     ctx.set_source_rgb(1.00, 1.00, 1.00)

@@ -95,11 +95,14 @@ vips_thread_gate_block_save( VipsThreadGateBlock *block, FILE *fp )
 static void
 vips_thread_profile_save_gate( VipsThreadGate *gate, FILE *fp )
 {
-	fprintf( fp, "gate: %s\n", gate->name );
-	fprintf( fp, "start:\n" );
-	vips_thread_gate_block_save( gate->start, fp );
-	fprintf( fp, "stop:\n" );
-	vips_thread_gate_block_save( gate->stop, fp );
+	if( gate->start->i || 
+		gate->start->prev ) { 
+		fprintf( fp, "gate: %s\n", gate->name );
+		fprintf( fp, "start:\n" );
+		vips_thread_gate_block_save( gate->start, fp );
+		fprintf( fp, "stop:\n" );
+		vips_thread_gate_block_save( gate->stop, fp );
+	}
 }
 
 static void

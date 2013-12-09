@@ -23,7 +23,7 @@
 - support XYZ as a PCS for vips_icc_import() and vips_icc_export()
 - add --strip option to jpegsave
 - added vips_gaussblur() convenience function
-- added --vips-profile, records and dumps thread timing info 
+- added --vips-profile, records and dumps thread timing and memory use info 
 - added vipsprofile, visualises --vips-profile output
 - auto-vectorization-friendly inner loops
 
