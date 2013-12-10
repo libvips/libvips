@@ -1,3 +1,19 @@
+- some malloc/free cycling in
+
+	vips sharpen in out 
+
+  it's as vips repeatedly discovers some sharing in buffer_ref_unref and junks
+  the buffer that was built on init
+
+  can we delay buffer on init build?
+
+- cmyk2srgbjpeg needs options to set the input and output profile paths
+
+- should use vips error system too
+
+
+
+
 
 - do restrict on some more packages, we've just done arithmetic so far
 
