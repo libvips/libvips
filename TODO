@@ -7,9 +7,9 @@
 
   can we delay buffer on init build?
 
-- cmyk2srgbjpeg needs options to set the input and output profile paths
+- vipsprofile needs a man page for Debian, I guess
 
-- should use vips error system too
+- new_heart.ws fails with libvips master
 
 
 
