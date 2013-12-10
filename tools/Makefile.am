@@ -4,6 +4,7 @@ bin_PROGRAMS = \
 	vips \
 	edvips \
 	vipsthumbnail \
+	cmyk2srgbjpeg \
 	header 
 
 vips_SOURCES = vips.c
