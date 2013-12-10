@@ -13,6 +13,7 @@ header_SOURCES = header.c
 vipsthumbnail_SOURCES = vipsthumbnail.c
 find_mosaic_SOURCES = find_mosaic.c
 mergeup_SOURCES =  mergeup.c
+cmyk2srgbjpeg_SOURCES =  cmyk2srgbjpeg.c
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 AM_LDFLAGS = @LDFLAGS@ 

@@ -45,12 +45,18 @@
  *
  * CREDITS
  *
- * The development of cmyk2srgb was partially funded by Booking.com.
+ * The development of cmyk2srgbjpeg was partially funded by Booking.com.
+ *
+ * TODO
+ *
+ * We need a better way to give the paths of the ICC profiles, switch to doing
+ * it vipsthumbnail-style.
  *
  * HISTORY
  *
  * 10/12/13
  * 	- pasted into vips source tree
+ * 	- reworked for vips8 API
  */
 
 #ifdef HAVE_CONFIG_H
@@ -61,11 +67,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 
-/*
- * This program uses the "classic" (pre-vips8) API of the VIPS
- * library.
- */
 #include <vips/vips.h>
 
 /*
@@ -166,7 +169,7 @@
 
 #ifndef CMYK2SRGBJPEG_BACKSTOP_CMYK_ICC
 #define CMYK2SRGBJPEG_BACKSTOP_CMYK_ICC \
-  "/usr/local/share/nip2/data/HP5000_UVDuraImageGlossMaxQ.icc"
+	"/home/john/vips/share/nip2/data/HP5000_UVDuraImageGlossMaxQ.icc"
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -182,7 +185,8 @@
  */
 
 #ifndef CMYK2SRGBJPEG_SRGB_ICM
-#define CMYK2SRGBJPEG_SRGB_ICM "/usr/local/share/nip2/data/sRGB.icm"
+#define CMYK2SRGBJPEG_SRGB_ICM \
+	"/home/john/vips/share/nip2/data/sRGB.icm"
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -288,149 +292,93 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
-static int
-cmyk2srgb( IMAGE *input_image, IMAGE *output_image )
-{
-     int icc_profile_handling;
-
-     /*
-      * Does the input image have an embedded profile?
-      */
-     if ( vips_image_get_typeof( input_image, "icc-profile-data" ) ) {
-
-          /*
-           * Yes. Try to import with the embedded ICC.
-           */
-          /*
-           * Intermediate result image to import to and export from.
-           */
-          IMAGE *t1;
-
-          if ( !( t1 = im_open_local( output_image, "intermediate", "p" ) )
-               ||
-               ( im_icc_import_embedded( input_image,
-                                         t1,
-                                         CMYK2SRGBJPEG_CONVERSION_INTENT ) )
-               ||
-               ( im_icc_export( t1,
-                                output_image,
-                                CMYK2SRGBJPEG_SRGB_ICM,
-                                CMYK2SRGBJPEG_CONVERSION_INTENT ) ) ) {
-
-               /*
-                * Unsuccessful.
-                */
-               icc_profile_handling = CMYK2SRGBJPEG_CMYK_WITH_UNUSABLE_ICC;
-          }
-          else {
-               
-               /*
-                * The embedded ICC worked.
-                */
-               return CMYK2SRGBJPEG_CMYK_WITH_USABLE_ICC;
-          }
-     }
-     else {
-
-          /*
-           * No embedded ICC.
-           */
-          icc_profile_handling = CMYK2SRGBJPEG_CMYK_NO_ICC;
-     }
-
-     /*
-      * Import with the backstop ICC profile.
-      */
-     if ( im_icc_transform( input_image,
-                            output_image,
-                            CMYK2SRGBJPEG_BACKSTOP_CMYK_ICC,
-                            CMYK2SRGBJPEG_SRGB_ICM,
-                            CMYK2SRGBJPEG_CONVERSION_INTENT ) ) {
-
-          return CMYK2SRGBJPEG_FATAL_ERROR;
-     }
-
-     return icc_profile_handling;
-}
-
 int
 main( int argc, char **argv )
 {
-     IMAGE *input_image;
-     int type;
+	GOptionContext *context;
+	GError *error = NULL;
+	VipsImage *global;
+	VipsImage **t;
 
-     /*
-      * Start up VIPS, check that there is only one argument (the
-      * input file), and open it as an image.
-      */
-     if ( ( vips_init( argv[0] ) )
-          ||
-          ( argc != 3 )
-          ||
-          ( !( input_image = im_open( argv[1], "r" ) ) ) ) {
+	if( vips_init( argv[0] ) )
+	        vips_error_exit( "unable to start VIPS" );
+	textdomain( GETTEXT_PACKAGE );
+	setlocale( LC_ALL, "" );
 
-          return CMYK2SRGBJPEG_FATAL_ERROR;
-     }
+        context = g_option_context_new( _( "INPUT_IMAGE OUTPUT_IMAGE_NAME_BEFORE_EXTENSION - convert CMYK to sRGB" ) );
 
-     /*
-      * Read the type and only do something if the input image is CMYK
-      * (type 15).
-      */
-     if ( ( !( vips_image_get_int( input_image, "Type", &type ) ) )
-          &&
-          ( type == 15 ) ) {
+	g_option_context_add_group( context, vips_get_option_group() );
+	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
+		if( error ) {
+			fprintf( stderr, "%s\n", error->message );
+			g_error_free( error );
+		}
 
-          /*
-           * Is OUTPUT_IMAGE_NAME_BEFORE_EXTENSION so long that we
-           * can't safely add a period, an extension and JPEG quality
-           * specifier (longest is ":100")?
-           */
-          if ( strlen( argv[2] ) >
-               VIPS_PATH_MAX - ( strlen( CMYK2SRGBJPEG_JPEG_EXTENSION ) + 5 ) ) {
-           
-               im_close( input_image );
-               return CMYK2SRGBJPEG_FATAL_ERROR;
-          }
+		vips_error_exit( "try \"%s --help\"", g_get_prgname() );
+	}
+	g_option_context_free( context );
 
-          /*
-           * Assemble the output filename from the second argument,
-           * adding a period, the extension, and the JPEG quality
-           * specifier.
-           */
-          char output_filename[VIPS_PATH_MAX];
+	global = vips_image_new();
+	t = (VipsImage **) vips_object_local_array( VIPS_OBJECT( global ), 5 );
 
-          vips_snprintf( output_filename,
-                         VIPS_PATH_MAX,
-                         "%s.%s:%d",
-                         argv[2],
-                         CMYK2SRGBJPEG_JPEG_EXTENSION,
-                         CMYK2SRGBJPEG_JPEG_QUALITY );
+	if( argc != 3 ||
+		!(t[0] = vips_image_new_mode( argv[1], "rs" )) ) {
+		g_object_unref( global );
+		return CMYK2SRGBJPEG_FATAL_ERROR;
+	}
 
-          /*
-           * Open the output image.
-           */
-          IMAGE *output_image;
+	/*
+	 * Read the type and only do something if the input image is CMYK
+	 * (type 15).
+	 */
+	if( vips_image_get_interpretation( t[0] ) == 
+		VIPS_INTERPRETATION_CMYK ) {
+		char output_filename[VIPS_PATH_MAX];
 
-          if ( !( output_image = im_open( output_filename, "w" ) ) ) {
+		/*
+		 * Is OUTPUT_IMAGE_NAME_BEFORE_EXTENSION so long that we
+		 * can't safely add a period, an extension and JPEG quality
+		 * specifier (longest is "[Q=100]")?
+		 */
+		if( strlen( argv[2] ) >
+			VIPS_PATH_MAX - 
+				(strlen( CMYK2SRGBJPEG_JPEG_EXTENSION ) + 8) ) {
+			g_object_unref( global );
+			return CMYK2SRGBJPEG_FATAL_ERROR;
+		}
 
-               im_close( input_image );
-               return CMYK2SRGBJPEG_FATAL_ERROR;
-          }
+		/*
+		 * Assemble the output filename from the second argument,
+		 * adding a period, the extension, and the JPEG quality
+		 * specifier.
+		 */
+		vips_snprintf( output_filename, VIPS_PATH_MAX, "%s.%s[Q=%d]",
+			argv[2],
+			CMYK2SRGBJPEG_JPEG_EXTENSION,
+			CMYK2SRGBJPEG_JPEG_QUALITY );
 
-          /*
-           * The conversion occurs (or fails) here:
-           */
-          const int return_code = cmyk2srgb( input_image, output_image );
-          
-          im_close( output_image );
-          im_close( input_image );
-          return return_code;
-     }
+		if( vips_icc_transform( t[0], &t[1], CMYK2SRGBJPEG_SRGB_ICM,
+			"input_profile", CMYK2SRGBJPEG_BACKSTOP_CMYK_ICC,
+			"intent", CMYK2SRGBJPEG_CONVERSION_INTENT,
+			"embedded", TRUE, 
+			NULL ) ) {
+			g_object_unref( global );
+			return CMYK2SRGBJPEG_FATAL_ERROR;
+		}
 
-     /*
-      * Not detected as a CMYK image. Do nothing.
-      */
-     im_close( input_image );
-     return CMYK2SRGBJPEG_PROBABLY_NOT_CMYK;
+		if( vips_image_write_to_file( t[1], output_filename ) ) {
+			g_object_unref( global );
+			return CMYK2SRGBJPEG_FATAL_ERROR;
+		}
+
+		g_object_unref( global );
+		return CMYK2SRGBJPEG_CMYK_WITH_USABLE_ICC;
+	}
+	else {
+		/*
+		 * Not detected as a CMYK image. Do nothing.
+		 */
+		g_object_unref( global );
+		return CMYK2SRGBJPEG_PROBABLY_NOT_CMYK;
+	}
 }
