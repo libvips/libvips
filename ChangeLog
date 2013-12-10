@@ -26,7 +26,6 @@
 - added --vips-profile, records and dumps thread timing and memory use info 
 - added vipsprofile, visualises --vips-profile output
 - auto-vectorization-friendly inner loops
-- pasted in Nicolas's cmyk2srgbjpeg program, many thanks
 
 20/11/13	started 7.36.5
 - better cache sizing in unbuffered sequential mode
