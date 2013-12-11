@@ -52,6 +52,18 @@
 
 VIPS_NAMESPACE_START
 
+/* Useful to have these as C++ functions.
+ */
+bool init( const char *argv0 )
+{
+	return( vips_init( argv0 ) ); 
+}
+
+void shutdown( void )
+{
+	vips_shutdown(); 
+}
+
 void VImage::refblock::debug_print()
 {
 	std::list<refblock *>::iterator i;

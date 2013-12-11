@@ -26,6 +26,7 @@
 - added --vips-profile, records and dumps thread timing and memory use info 
 - added vipsprofile, visualises --vips-profile output
 - auto-vectorization-friendly inner loops
+- added vips::init() and vips::shutdown() to C++ API
 
 20/11/13	started 7.36.5
 - better cache sizing in unbuffered sequential mode
