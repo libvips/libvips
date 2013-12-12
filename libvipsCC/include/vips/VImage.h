@@ -62,7 +62,7 @@ VIPS_NAMESPACE_START
 
 /* vips_init() and vips_shutdown as namespaced C++ functions.
  */
-bool init( const char *argv0 );
+bool init( const char *argv0 = "nothing" );
 void shutdown( void ); 
 
 /* A VIPS callback, our name for im_callback_fn.

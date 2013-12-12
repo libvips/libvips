@@ -2,14 +2,32 @@
 
 	vips sharpen in out 
 
-  it's as vips repeatedly discovers some sharing in buffer_ref_unref and junks
-  the buffer that was built on init
+  it's as vips repeatedly discovers some sharing in buffer_ref_unref ... cycle
+  is:
 
-  can we delay buffer on init build?
+  	- two regions share a single bufferA of calculated pixels
+
+	- region1 moves to a new area ... buffer is shared, so region1 gets a
+	  new bufferB
+
+	- region2 moves to the same area .. region1 is already there, so we
+	  share bufferB and unref bufferA, causing it to be freed
+
+	- ... repeat! we get a malloc/free per tile
+
+  to fix this, when we discover sharing, we need to not unref the private
+  buffer and keep that around for possible later reuse
+
+  each image needs a per-thread list of unreffed buffers ready for reuse
+
+
+
 
 - vipsprofile needs a man page for Debian, I guess
 
 - new_heart.ws fails with libvips master
+
+- nip2 hist match is failing with 7.36, was working in 7.34
 
 
 
