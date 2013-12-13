@@ -782,11 +782,8 @@ vips_region_region( VipsRegion *reg,
 
 	/* Init new stuff.
 	 */
-	if( reg->buffer ) {
+	if( reg->buffer ) 
 		vips_buffer_undone( reg->buffer );
-		reg->buffer->area.width = 0;
-		reg->buffer->area.height = 0;
-	}
 	reg->invalid = FALSE;
 	reg->valid = final;
 	reg->bpl = dest->bpl;

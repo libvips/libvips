@@ -59,7 +59,7 @@ bool init( const char *argv0 )
 	return( vips_init( argv0 ) == 0 ); 
 }
 
-void shutdown( void )
+void shutdown()
 {
 	vips_shutdown(); 
 }

@@ -197,7 +197,7 @@ vips_buffer_done( VipsBuffer *buffer )
 	}
 }
 
-/* Take off the public 'done' list. 
+/* Take off the public 'done' list. Make sure it has no calculated pixels in. 
  */
 void
 vips_buffer_undone( VipsBuffer *buffer )
@@ -226,14 +226,15 @@ vips_buffer_undone( VipsBuffer *buffer )
 		buffer->done = FALSE;
 		buffer->cache = NULL;
 
-		buffer->area.width = 0;
-		buffer->area.height = 0;
 
 #ifdef DEBUG
 		printf( "vips_buffer_undone: %d buffers left\n",
 			g_slist_length( cache_list->buffers ) );
 #endif /*DEBUG*/
 	}
+
+	buffer->area.width = 0;
+	buffer->area.height = 0;
 }
 
 void
