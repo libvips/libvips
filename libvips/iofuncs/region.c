@@ -41,8 +41,6 @@
  * 	- move invalid stuff to region
  * 3/3/11
  * 	- move on top of VipsObject, rename as VipsRegion
- * 7/12/13
- * 	- delay attached resource unref to reduce malloc/free cycling
  */
 
 /*
@@ -75,8 +73,8 @@
 /*
 #define DEBUG_MOVE 
 #define DEBUG_ENVIRONMENT 1
+#define DEBUG_CREATE
 #define DEBUG
-#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -199,7 +197,7 @@ vips_region_finalize( GObject *gobject )
 
 /* Call a start function if no sequence is running on this VipsRegion.
  */
-static int
+int
 vips__region_start( VipsRegion *region )
 {
 	VipsImage *image = region->im;
@@ -229,7 +227,7 @@ vips__region_start( VipsRegion *region )
 
 /* Call a stop function if a sequence is running in this VipsRegion. 
  */
-static void
+void
 vips__region_stop( VipsRegion *region )
 {
 	IMAGE *image = region->im;
@@ -267,7 +265,7 @@ vips_region_dispose( GObject *gobject )
 	VipsImage *image = region->im;
 
 #ifdef VIPS_DEBUG
-	printf( "vips_region_dispose: \n" );
+	VIPS_DEBUG_MSG( "vips_region_dispose: " );
 	vips_object_print_name( VIPS_OBJECT( gobject ) );
 #endif /*VIPS_DEBUG*/
 
@@ -493,10 +491,6 @@ vips_region_new( VipsImage *image )
 {
 	VipsRegion *region;
 
-	/*
-	printf( "vips_region_new: on image %p\n", image ); 
-	 */
-
 	/* Ref quickly, we want to make sure we keep the image around.
 	 * We can't use the property system, we need to be very threaded.
 	 */
@@ -570,17 +564,18 @@ vips_region_buffer( VipsRegion *reg, VipsRect *r )
 	 * If not, try to reuse the current buffer.
 	 */
 	if( reg->invalid ) {
+		if( reg->buffer ) 
+			vips_buffer_undone( reg->buffer );
 		reg->invalid = FALSE;
-		VIPS_FREEF( vips_buffer_unref, reg->buffer );
 		if( !(reg->buffer = vips_buffer_new( im, &clipped )) ) 
 			return( -1 );
 	}
 	else {
-		/* Don't unref the old buffer ... we combine buffer unref 
+		/* Don't call vips_region_reset() ... we combine buffer unref 
 		 * and new buffer ref in one call to reduce malloc/free 
 		 * cycling.
 		 */
-		reg->invalid = FALSE;
+		VIPS_FREEF( vips_window_unref, reg->window );
 		if( !(reg->buffer = 
 			vips_buffer_unref_ref( reg->buffer, im, &clipped )) ) 
 			return( -1 );
@@ -637,11 +632,14 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 
 	if( image->data ) {
 		/* We have the whole image available ... easy!
-		 *
-		 * We can't just set valid = clipped, since this may be an
+		 */
+		if( reg->buffer ) 
+			vips_buffer_undone( reg->buffer );
+		reg->invalid = FALSE;
+
+		/* We can't just set valid = clipped, since this may be an
 		 * incompletely calculated memory buffer. Just set valid to r.
 		 */
-		reg->invalid = FALSE;
 		reg->valid = clipped;
 		reg->bpl = VIPS_IMAGE_SIZEOF_LINE( image );
 		reg->data = VIPS_IMAGE_ADDR( image, clipped.left, clipped.top );
@@ -656,6 +654,7 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 			reg->window->top + reg->window->height < 
 				clipped.top + clipped.height ) {
 			reg->invalid = FALSE;
+
 			VIPS_FREEF( vips_window_unref, reg->window );
 			if( !(reg->window = vips_window_ref( image, 
 				clipped.top, clipped.height )) )
@@ -783,6 +782,11 @@ vips_region_region( VipsRegion *reg,
 
 	/* Init new stuff.
 	 */
+	if( reg->buffer ) {
+		vips_buffer_undone( reg->buffer );
+		reg->buffer->area.width = 0;
+		reg->buffer->area.height = 0;
+	}
 	reg->invalid = FALSE;
 	reg->valid = final;
 	reg->bpl = dest->bpl;

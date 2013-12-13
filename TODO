@@ -1,3 +1,20 @@
+- the change to reduce region churn 
+
+	https://github.com/jcupitt/libvips/commit/6ae1888ab3a078f81fc50a967b38ac2aaefe4187
+
+  has broken sharing, try:
+
+  	vips sharpen k2.jpg x.jpg
+
+  no colour info in x.jpg, we no longer detect and share buffers
+
+  need to clear 'done' on the buffers?
+
+
+
+
+
+
 - some malloc/free cycling in
 
 	vips sharpen in out 
@@ -19,6 +36,8 @@
   buffer and keep that around for possible later reuse
 
   each image needs a per-thread list of unreffed buffers ready for reuse
+
+  done in branch "reserve", fix master as noted above and merge
 
 
 

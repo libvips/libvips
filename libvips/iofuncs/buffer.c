@@ -226,6 +226,9 @@ vips_buffer_undone( VipsBuffer *buffer )
 		buffer->done = FALSE;
 		buffer->cache = NULL;
 
+		buffer->area.width = 0;
+		buffer->area.height = 0;
+
 #ifdef DEBUG
 		printf( "vips_buffer_undone: %d buffers left\n",
 			g_slist_length( cache_list->buffers ) );
@@ -318,9 +321,10 @@ buffer_move( VipsBuffer *buffer, VipsRect *area )
 
 	g_assert( buffer->ref_count == 1 );
 
-	buffer->area = *area;
 	vips_buffer_undone( buffer );
 	g_assert( !buffer->done );
+
+	buffer->area = *area;
 
 	new_bsize = (size_t) VIPS_IMAGE_SIZEOF_PEL( im ) * 
 		area->width * area->height;
