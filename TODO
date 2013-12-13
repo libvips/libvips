@@ -1,43 +1,12 @@
-- the change to reduce region churn 
+- memuse still seems high
 
-	https://github.com/jcupitt/libvips/commit/6ae1888ab3a078f81fc50a967b38ac2aaefe4187
+	$ vips sharpen wtc.jpg x.jpg --vips-concurrency=1
+	memory: high-water mark 97.82 MB
 
-  has broken sharing, try:
+  and with 12 threads you get huge memuse
+  
+  can we get this down at all?
 
-  	vips sharpen k2.jpg x.jpg
-
-  no colour info in x.jpg, we no longer detect and share buffers
-
-  need to clear 'done' on the buffers?
-
-
-
-
-
-
-- some malloc/free cycling in
-
-	vips sharpen in out 
-
-  it's as vips repeatedly discovers some sharing in buffer_ref_unref ... cycle
-  is:
-
-  	- two regions share a single bufferA of calculated pixels
-
-	- region1 moves to a new area ... buffer is shared, so region1 gets a
-	  new bufferB
-
-	- region2 moves to the same area .. region1 is already there, so we
-	  share bufferB and unref bufferA, causing it to be freed
-
-	- ... repeat! we get a malloc/free per tile
-
-  to fix this, when we discover sharing, we need to not unref the private
-  buffer and keep that around for possible later reuse
-
-  each image needs a per-thread list of unreffed buffers ready for reuse
-
-  done in branch "reserve", fix master as noted above and merge
 
 
 
@@ -45,6 +14,8 @@
 - vipsprofile needs a man page for Debian, I guess
 
 - new_heart.ws fails with libvips master
+
+	has the sharing fix resolved this?
 
 - nip2 hist match is failing with 7.36, was working in 7.34
 
