@@ -87,6 +87,8 @@ void vips_window_print( VipsWindow *window );
 typedef struct {
 	GHashTable *hash;	/* Hash to VipsBufferCacheList* */
 	GThread *thread;	/* Just for sanity checking */
+	GSList *reserve;	/* VipsBuffer kept in reserve */
+	int n_reserve;		/* Number in reserve */
 } VipsBufferCache;
 
 /* Per-image buffer cache. Hash to this from VipsBufferCache.

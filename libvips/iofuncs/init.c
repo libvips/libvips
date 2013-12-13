@@ -398,6 +398,8 @@ vips_shutdown( void )
 	vips__thread_profile_detach();
 	vips__thread_profile_stop();
 
+	vips__buffer_shutdown();
+
 	/* In dev releases, always show leaks. But not more than once, it's
 	 * annoying.
 	 */
