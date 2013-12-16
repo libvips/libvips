@@ -76,6 +76,7 @@
 #define DEBUG_CREATE
 #define DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -184,12 +185,23 @@ enum {
 
 G_DEFINE_TYPE( VipsRegion, vips_region, VIPS_TYPE_OBJECT );
 
+#ifdef VIPS_DEBUG
+static int vips_n_regions = 0;
+#endif /*DEBUG*/
+
 static void
 vips_region_finalize( GObject *gobject )
 {
 #ifdef VIPS_DEBUG
 	VIPS_DEBUG_MSG( "vips_region_finalize: " );
 	vips_object_print_name( VIPS_OBJECT( gobject ) );
+	VIPS_DEBUG_MSG( "\n" );
+#endif /*VIPS_DEBUG*/
+
+#ifdef VIPS_DEBUG
+	g_mutex_lock( vips__global_lock );
+	vips_n_regions -= 1;
+	g_mutex_unlock( vips__global_lock );
 #endif /*VIPS_DEBUG*/
 
 	G_OBJECT_CLASS( vips_region_parent_class )->finalize( gobject );
@@ -267,6 +279,7 @@ vips_region_dispose( GObject *gobject )
 #ifdef VIPS_DEBUG
 	VIPS_DEBUG_MSG( "vips_region_dispose: " );
 	vips_object_print_name( VIPS_OBJECT( gobject ) );
+	VIPS_DEBUG_MSG( "\n" );
 #endif /*VIPS_DEBUG*/
 
 	vips_object_preclose( VIPS_OBJECT( gobject ) );
@@ -475,6 +488,13 @@ static void
 vips_region_init( VipsRegion *region )
 {
 	region->type = VIPS_REGION_NONE;
+
+#ifdef VIPS_DEBUG
+	g_mutex_lock( vips__global_lock );
+	vips_n_regions += 1;
+	printf( "vips_region_init: %d regions in vips\n", vips_n_regions ); 
+	g_mutex_unlock( vips__global_lock );
+#endif /*VIPS_DEBUG*/
 }
 
 /**
@@ -558,24 +578,24 @@ vips_region_buffer( VipsRegion *reg, VipsRect *r )
 		return( -1 );
 	}
 
+	VIPS_FREEF( vips_window_unref, reg->window );
+
 	/* Have we been asked to drop caches? We want to throw everything
 	 * away.
 	 *
 	 * If not, try to reuse the current buffer.
 	 */
 	if( reg->invalid ) {
-		if( reg->buffer ) 
-			vips_buffer_undone( reg->buffer );
+		VIPS_FREEF( vips_buffer_unref, reg->buffer );
 		reg->invalid = FALSE;
+
 		if( !(reg->buffer = vips_buffer_new( im, &clipped )) ) 
 			return( -1 );
 	}
 	else {
-		/* Don't call vips_region_reset() ... we combine buffer unref 
-		 * and new buffer ref in one call to reduce malloc/free 
-		 * cycling.
+		/* We combine buffer unref and new buffer ref in one call 
+		 * to reduce malloc/free cycling.
 		 */
-		VIPS_FREEF( vips_window_unref, reg->window );
 		if( !(reg->buffer = 
 			vips_buffer_unref_ref( reg->buffer, im, &clipped )) ) 
 			return( -1 );
@@ -630,12 +650,13 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 		return( -1 );
 	}
 
+	VIPS_FREEF( vips_buffer_unref, reg->buffer );
+	VIPS_FREEF( vips_window_unref, reg->window );
+	reg->invalid = FALSE;
+
 	if( image->data ) {
 		/* We have the whole image available ... easy!
 		 */
-		if( reg->buffer ) 
-			vips_buffer_undone( reg->buffer );
-		reg->invalid = FALSE;
 
 		/* We can't just set valid = clipped, since this may be an
 		 * incompletely calculated memory buffer. Just set valid to r.
@@ -653,9 +674,6 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 			reg->window->top > clipped.top ||
 			reg->window->top + reg->window->height < 
 				clipped.top + clipped.height ) {
-			reg->invalid = FALSE;
-
-			VIPS_FREEF( vips_window_unref, reg->window );
 			if( !(reg->window = vips_window_ref( image, 
 				clipped.top, clipped.height )) )
 				return( -1 );
@@ -782,8 +800,8 @@ vips_region_region( VipsRegion *reg,
 
 	/* Init new stuff.
 	 */
-	if( reg->buffer ) 
-		vips_buffer_undone( reg->buffer );
+	VIPS_FREEF( vips_buffer_unref, reg->buffer );
+	VIPS_FREEF( vips_window_unref, reg->window );
 	reg->invalid = FALSE;
 	reg->valid = final;
 	reg->bpl = dest->bpl;

@@ -73,6 +73,11 @@ static GSList *vips__buffers_all = NULL;
 static int buffer_cache_n = 0; 
 #endif /*DEBUG_CREATE*/
 
+/* The maximum numbers of buffers we hold in reserve per thread. About 5 seems
+ * enough to stop malloc cycling on vips_sharpen().
+ */
+static const int buffer_cache_max_reserve = 0; 
+
 static GPrivate *thread_buffer_cache_key = NULL;
 
 static void
@@ -293,7 +298,7 @@ vips_buffer_unref( VipsBuffer *buffer )
 
 		/* Place on this thread's reserve list for reuse.
 		 */
-		if( cache->n_reserve < 5 ) { 
+		if( cache->n_reserve < buffer_cache_max_reserve ) { 
 			cache->reserve = 
 				g_slist_prepend( cache->reserve, buffer );
 			cache->n_reserve += 1; 
@@ -528,6 +533,9 @@ vips__buffer_init( void )
 		thread_buffer_cache_key = g_private_new( 
 			(GDestroyNotify) buffer_cache_free );
 #endif
+
+	if( buffer_cache_max_reserve < 1 )
+		printf( "vips__buffer_init: buffer reserve disabled\n" );
 }
 
 void

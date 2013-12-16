@@ -3,9 +3,89 @@
 	$ vips sharpen wtc.jpg x.jpg --vips-concurrency=1
 	memory: high-water mark 97.82 MB
 
+
+$ vips copy wtc.jpg x.v
+memory: high-water mark 15.98 MB
+$ vips sharpen x.v x2.v --vips-concurrency=1
+memory: high-water mark 74.01 MB
+$ vips sharpen wtc.jpg x2.jpg --vips-concurrency=1
+memory: high-water mark 146.94 MB
+
   and with 12 threads you get huge memuse
   
   can we get this down at all?
+
+
+baseline:
+
+$ sharpen wtc.jpg x2.jpg
+memory: high-water mark 330.14 MB
+
+one thread:
+
+$ vips sharpen wtc.jpg x2.jpg --vips-concurrency=1
+vips_line_cache_build: max size = 21.2363 MB
+memory: high-water mark 146.94 MB
+
+so about 120mb without the input cache
+
+turn off the buffer recycling system (ie. never put buffers on reserve, always
+free them):
+
+$ vips sharpen wtc.jpg x2.jpg --vips-concurrency=1
+memory: high-water mark 97.82 MB
+
+ie. buffer recycling costs about 50MB
+
+base + 1 * per-thread == 97mb
+base + 2 * per-thread == 161mb
+base + 4 * per-thread == 286mb
+
+63mb per thread?
+
+base == 34
+
+input cache == 21, so base is 12 without that
+
+out buffer is 256 lines, two of them, each 9372 across, about 14mb, explains
+rest of base cost
+
+63mb per-thread compute cost still mysterious ... does not include input cache 
+or output buffer
+
+$ vips sharpen x.v x2.v --vips-concurrency=1
+vips__buffer_init: buffer reserve disabled
+memory: high-water mark 74.01 MB
+
+so 63mb per-thread computation cost, no input cache, output buffer, souds
+about right
+
+tiles are 9372 x 16, so 440kb, we must somehow have about 120 tiles in the 
+pipeline, is this really right?
+
+	load
+	sRGB2scRGB
+	scRGB2XYZ
+	XYZ2Lab
+	Lab2LabS
+	extract_band 0 		extract_band 1, 2 
+	embed
+	conv
+	embed
+	conv
+	bandjoin
+	save
+
+13 operations, plus some extra copies and writes joining them up
+
+have 48 regions alive at peak, that's with two large ones for the two output
+buffers
+
+now we recycle buffers, can we revert to more aggressive freeing of buffers?
+
+
+
+
 
 
 
