@@ -83,6 +83,15 @@ buffers
 
 now we recycle buffers, can we revert to more aggressive freeing of buffers?
 
+put the buffer unrefs back:
+
+	$ vips sharpen x.v x2.v --vips-concurrency=1
+	vips__buffer_init: buffer reserve disabled
+	memory: high-water mark 62mb
+
+2 regions are 7mb each (the output buffers), so that's 48mb in 46 regions,
+still strangely high?
+
 
 
 
