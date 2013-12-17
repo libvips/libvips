@@ -251,7 +251,6 @@ for thread in threads:
         i += 1
         if i % (1 + n_thread_events / 100) == 0:
             print '%d%% complete   \r' %  (100 * i / n_thread_events),
-        print '%d%% complete   \r' %  (100 * i / n_thread_events),
 
         if not event.work and not event.wait and not event.memory:
             continue
