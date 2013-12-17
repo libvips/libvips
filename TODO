@@ -1,7 +1,30 @@
+- vipsprofile reports a leak, strangely
+
+- vipsprofile performance is very poor for large data sets, eg. 
+
+	time vips sharpen wtc.jpg x.jpg --radius 20  --vips-profile
+	recording profile in vips-profile.txt
+	real	0m14.728s
+	user	0m55.515s
+	sys	0m0.200s
+	john@bambam ~/pics $ vipsprofile 
+	reading from vips-profile.txt
+	loaded 157716 events
+	last time = 14.584175
+	name		alive	wait%	work%	unkn%	memory	peakm
+	worker 20	    14	2.22	95.8	2	22.7	22.7	
+	worker 21	    14	2.67	95.4	1.93	8.5	8.5	
+	worker 22	    14	2.95	95.2	1.84	17.8	17.8	
+	worker 23	    14	2.44	95.5	2.1	11.4	11.4	
+	wbuffer 24	    15	96	4.02	0.000654	0 0	
+	wbuffer 25	    15	95.4	4.62	0.000696 0	0	
+	main 26	    15	99.1	0	0.923	-37.4 6.87	
+	peak memory = 67.3 MB
+	leak! final memory = 23 MB
+	positioning work/wait/mem ...
+	0% complete   
 
 - vipsprofile needs a man page for Debian, I guess
-
-- vipsprofile reports a leak, strangely
 
 - new_heart.ws fails with libvips master
 

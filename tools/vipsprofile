@@ -239,13 +239,24 @@ for thread in threads:
 
     thread.total_y = total_y
 
+    n_thread_events = len(thread.events)
+    if n_thread_events == 0:
+        continue
+
     # first pass .. move work and wait events to y == 0
+    print 'positioning work/wait/mem ...'
+    i = 0
     gate_positions = {}
     for event in thread.events:
+        i += 1
+        if i % (1 + n_thread_events / 100) == 0:
+            print '%d%% complete   \r' %  (100 * i / n_thread_events),
+        print '%d%% complete   \r' %  (100 * i / n_thread_events),
+
         if not event.work and not event.wait and not event.memory:
             continue
 
-        # no works and waits must overlap
+        # works and waits must not overlap
         if event.work or event.wait:
             if not event.gate_name in gate_positions:
                 for gate_name in gate_positions:
@@ -261,8 +272,14 @@ for thread in threads:
         event.total_y = total_y
 
     # second pass: move all other events to non-overlapping ys
+    print 'finding maximal sets of non-overlapping gates ...'
     y = 1
+    i = 0
     for event in thread.events:
+        i += 1
+        if i % (1 + n_thread_events / 100) == 0:
+            print '%d%% complete   \r' %  (100 * i / n_thread_events),
+
         if event.work or event.wait or event.memory:
             continue
 
@@ -292,6 +309,7 @@ for thread in threads:
 
     # third pass: flip the order of the ys to get the lowest-level ones at the
     # top, next to the wait/work line
+    print 'ordering timelines by granularity ...'
     for event in thread.events:
         if event.work or event.wait or event.memory:
             continue
