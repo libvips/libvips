@@ -710,6 +710,10 @@ vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 		fflush( stdout );
 
 		*last = progress->percent;
+
+		/* Needs DEBUG in region.c
+		vips_region_dump_all();
+		 */
 	}
 
 	return( 0 );

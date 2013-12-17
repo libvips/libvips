@@ -48,6 +48,7 @@
 
 /*
 #define DEBUG_CREATE
+#define DEBUG_VERBOSE
 #define DEBUG
  */
 
@@ -76,9 +77,42 @@ static int buffer_cache_n = 0;
 /* The maximum numbers of buffers we hold in reserve per thread. About 5 seems
  * enough to stop malloc cycling on vips_sharpen().
  */
-static const int buffer_cache_max_reserve = 0; 
+static const int buffer_cache_max_reserve = 40; 
 
 static GPrivate *thread_buffer_cache_key = NULL;
+
+#ifdef DEBUG
+static void *
+vips_buffer_dump( VipsBuffer *buffer, size_t *reserve, size_t *alive )
+{
+	if( buffer->im &&
+		buffer->buf ) {
+		printf( "buffer %p, %gMB\n", 
+			buffer, buffer->bsize / (1024 * 1024.0) ); 
+		*alive += buffer->bsize;
+	}
+	else if( !buffer->im )
+		*reserve += buffer->bsize;
+	else
+		printf( "buffer craziness!\n" ); 
+
+	return( NULL );
+}
+
+void
+vips_buffer_dump_all( void )
+{
+	size_t reserve;
+	size_t alive;
+
+	reserve = 0;
+	alive = 0;
+	vips_slist_map2( vips__buffers_all, 
+		(VipsSListMap2Fn) vips_buffer_dump, &reserve, &alive );
+	printf( "%gMB alive\n", alive / (1024 * 1024.0) ); 
+	printf( "%gMB in reserve\n", reserve / (1024 * 1024.0) ); 
+}
+#endif /*DEBUG*/
 
 static void
 vips_buffer_free( VipsBuffer *buffer )
@@ -92,7 +126,6 @@ vips_buffer_free( VipsBuffer *buffer )
 
 	g_assert( g_slist_find( vips__buffers_all, buffer ) );
 	vips__buffers_all = g_slist_remove( vips__buffers_all, buffer );
-	printf( "%d buffers in vips\n", g_slist_length( vips__buffers_all ) );
 
 	g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG*/
@@ -208,11 +241,11 @@ vips_buffer_done( VipsBuffer *buffer )
 		VipsBufferCache *cache = buffer_cache_get();
 		VipsBufferCacheList *cache_list;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 		printf( "vips_buffer_done: thread %p adding to cache %p\n",
 			g_thread_self(), cache );
 		vips_buffer_print( buffer ); 
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 		/* Look up and update the buffer list. 
 		 */
@@ -241,11 +274,11 @@ vips_buffer_undone( VipsBuffer *buffer )
 		VipsBufferCache *cache = buffer->cache;
 		VipsBufferCacheList *cache_list;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 		printf( "vips_buffer_undone: thread %p removing "
 			"buffer %p from cache %p\n",
 			g_thread_self(), buffer, cache );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 		g_assert( cache->thread == g_thread_self() );
 
@@ -261,10 +294,10 @@ vips_buffer_undone( VipsBuffer *buffer )
 		buffer->cache = NULL;
 
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 		printf( "vips_buffer_undone: %d buffers left\n",
 			g_slist_length( cache_list->buffers ) );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 	}
 
 	buffer->area.width = 0;
@@ -274,13 +307,13 @@ vips_buffer_undone( VipsBuffer *buffer )
 void
 vips_buffer_unref( VipsBuffer *buffer )
 {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "** vips_buffer_unref: left = %d, top = %d, "
 		"width = %d, height = %d (%p)\n",
 		buffer->area.left, buffer->area.top, 
 		buffer->area.width, buffer->area.height, 
 		buffer );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	g_assert( buffer->ref_count > 0 );
 
@@ -289,10 +322,10 @@ vips_buffer_unref( VipsBuffer *buffer )
 	if( buffer->ref_count == 0 ) {
 		VipsBufferCache *cache = buffer_cache_get();
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 		if( !buffer->done )
 			printf( "vips_buffer_unref: buffer was not done\n" );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 		vips_buffer_undone( buffer );
 
@@ -369,19 +402,9 @@ vips_buffer_new( VipsImage *im, VipsRect *area )
 		buffer->bsize = 0;
 
 #ifdef DEBUG
-		printf( "** vips_buffer_new: left = %d, top = %d, "
-			"width = %d, height = %d (%p)\n",
-			buffer->area.left, buffer->area.top, 
-			buffer->area.width, buffer->area.height, 
-			buffer );
-#endif /*DEBUG*/
-
-#ifdef DEBUG
 		g_mutex_lock( vips__global_lock );
 		vips__buffers_all = 
 			g_slist_prepend( vips__buffers_all, buffer );
-		printf( "%d buffers in vips\n", 
-			g_slist_length( vips__buffers_all ) );
 		g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG*/
 	}
@@ -424,14 +447,14 @@ buffer_find( VipsImage *im, VipsRect *r )
 			area->top + area->height >= r->top + r->height ) {
 			buffer->ref_count += 1;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 			printf( "vips_buffer_find: left = %d, top = %d, "
 				"width = %d, height = %d, count = %d (%p)\n",
 				buffer->area.left, buffer->area.top, 
 				buffer->area.width, buffer->area.height, 
 				buffer->ref_count,
 				buffer );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 			break;
 		}

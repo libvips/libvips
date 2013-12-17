@@ -1079,10 +1079,7 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 #endif /*DEBUG*/
 	}
 
-	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
-	 * too many recalculations on overlaps.
-	 */
-	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) ||
+	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
 		im_generate( out, conv_start, generate, conv_stop, in, conv ) )
 		return( -1 );
 

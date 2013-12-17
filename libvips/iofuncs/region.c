@@ -75,8 +75,8 @@
 #define DEBUG_ENVIRONMENT 1
 #define DEBUG_CREATE
 #define DEBUG
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -186,8 +186,8 @@ enum {
 G_DEFINE_TYPE( VipsRegion, vips_region, VIPS_TYPE_OBJECT );
 
 #ifdef VIPS_DEBUG
-static int vips_n_regions = 0;
-#endif /*DEBUG*/
+static GSList *vips__regions_all = NULL;
+#endif /*VIPS_DEBUG*/
 
 static void
 vips_region_finalize( GObject *gobject )
@@ -200,7 +200,7 @@ vips_region_finalize( GObject *gobject )
 
 #ifdef VIPS_DEBUG
 	g_mutex_lock( vips__global_lock );
-	vips_n_regions -= 1;
+	vips__regions_all = g_slist_remove( vips__regions_all, gobject ); 
 	g_mutex_unlock( vips__global_lock );
 #endif /*VIPS_DEBUG*/
 
@@ -348,7 +348,8 @@ vips_region_summary( VipsObject *object, VipsBuf *buf )
 	vips_buf_appendf( buf, "height = %d", region->valid.height );
 
 	if( region->buffer && region->buffer->buf )
-		vips_buf_appendf( buf, ", bytes = %zd", region->buffer->bsize );
+		vips_buf_appendf( buf, ", %.3gMB", 
+			region->buffer->bsize / (1024 * 1024.0) );
 
 	VIPS_OBJECT_CLASS( vips_region_parent_class )->summary( object, buf );
 }
@@ -491,8 +492,9 @@ vips_region_init( VipsRegion *region )
 
 #ifdef VIPS_DEBUG
 	g_mutex_lock( vips__global_lock );
-	vips_n_regions += 1;
-	printf( "vips_region_init: %d regions in vips\n", vips_n_regions ); 
+	vips__regions_all = g_slist_prepend( vips__regions_all, region ); 
+	printf( "vips_region_init: %d regions in vips\n", 
+		g_slist_length( vips__regions_all ) ); 
 	g_mutex_unlock( vips__global_lock );
 #endif /*VIPS_DEBUG*/
 }
@@ -1372,3 +1374,34 @@ vips_region_prepare_many( VipsRegion **reg, VipsRect *r )
 
 	return( 0 );
 }
+
+#ifdef VIPS_DEBUG
+static void *
+vips_region_dump_all_cb( VipsRegion *region, size_t *alive )
+{
+	char str[2048];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	vips_object_summary( VIPS_OBJECT( region ), &buf ); 
+	printf( "%s\n", vips_buf_all( &buf ) ); 
+
+	if( region->buffer && region->buffer->buf )
+		*alive += region->buffer->bsize;
+
+	return( NULL ); 
+}
+
+void
+vips_region_dump_all( void )
+{
+	size_t alive;
+
+	g_mutex_lock( vips__global_lock );
+	alive = 0;
+	printf( "%d regions in vips\n", g_slist_length( vips__regions_all ) );
+	vips_slist_map2( vips__regions_all, 
+		(VipsSListMap2Fn) vips_region_dump_all_cb, &alive, NULL );
+	printf( "%gMB alive\n", alive / (1024 * 1024.0) ); 
+	g_mutex_unlock( vips__global_lock );
+}
+#endif /*VIPS_DEBUG*/

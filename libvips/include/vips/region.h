@@ -120,6 +120,8 @@ int vips_region_prepare_to( VipsRegion *reg,
 	VipsRegion *dest, VipsRect *r, int x, int y );
 int vips_region_prepare_many( VipsRegion **reg, VipsRect *r );
 
+void vips_region_dump_all( void );
+
 /* Macros on VipsRegion.
  *	VIPS_REGION_LSKIP()		add to move down line
  *	VIPS_REGION_N_ELEMENTS()	number of elements across region
