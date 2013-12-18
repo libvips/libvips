@@ -47,10 +47,10 @@ class Thread:
 
         self.thread_name = thread_name
         self.thread_number = Thread.thread_number
-        self.events = []
-        self.workwait = []
-        self.memory = []
-        self.other = []
+        self.all_events = []
+        self.workwait_events = []
+        self.memory_events = []
+        self.other_events = []
         Thread.thread_number += 1
 
 all_events = []
@@ -79,14 +79,14 @@ class Event:
             self.start = start
             self.stop = stop
 
-        thread.events.append(self)
+        thread.all_events.append(self)
         all_events.append(self)
         if self.wait or self.work:
-            thread.workwait.append(self)
+            thread.workwait_events.append(self)
         elif self.memory:
-            thread.memory.append(self)
+            thread.memory_events.append(self)
         else:
-            thread.other.append(self)
+            thread.other_events.append(self)
 
 input_filename = 'vips-profile.txt'
 
@@ -142,10 +142,10 @@ with ReadFile(input_filename) as rf:
                 n_events += 1
 
 for thread in threads:
-    thread.events.sort(lambda x, y: cmp(x.start, y.start))
-    thread.workwait.sort(lambda x, y: cmp(x.start, y.start))
-    thread.memory.sort(lambda x, y: cmp(x.start, y.start))
-    thread.other.sort(lambda x, y: cmp(x.start, y.start))
+    thread.all_events.sort(lambda x, y: cmp(x.start, y.start))
+    thread.workwait_events.sort(lambda x, y: cmp(x.start, y.start))
+    thread.memory_events.sort(lambda x, y: cmp(x.start, y.start))
+    thread.other_events.sort(lambda x, y: cmp(x.start, y.start))
 
 all_events.sort(lambda x, y: cmp(x.start, y.start))
 
@@ -168,7 +168,7 @@ for event in all_events:
 last_time = (last_time - first_time) / ticks_per_sec
 first_time = 0
 
-print 'last time =', last_time
+print 'total time =', last_time
 
 # calculate some simple stats
 for thread in threads:
@@ -178,7 +178,7 @@ for thread in threads:
     thread.work = 0
     thread.mem = 0
     thread.peak_mem = 0
-    for event in thread.events:
+    for event in thread.all_events:
         if event.start < thread.start:
             thread.start = event.start
         if event.stop > thread.stop:
@@ -227,12 +227,13 @@ if mem != 0:
 # assume the list of events has been sorted by start time
 def events_overlap(events):
     for i in range(0, len(events) - 1):
-        # a length 0 event can't overlap with anything
-        if events[i].stop - events[i].start == 0:
-            continue
-        if events[i + 1].stop - events[i + 1].start == 0:
-            continue
-        if events[i].stop > events[i + 1].start:
+        # we can't just test for stop1 > start2 since one (or both) events 
+        # might have duration zero
+        event1 = events[i]
+        event2 = events[i + 1]
+        overlap_start = max(event1.start, event2.start)
+        overlap_stop = min(event1.stop, event2.stop)
+        if overlap_stop - overlap_start > 0:
             return True
 
     return False
@@ -260,31 +261,33 @@ for thread in threads:
     gate_positions = {}
 
     # first pass .. move work and wait events to y == 0
-    if events_overlap(thread.workwait):
+    if events_overlap(thread.workwait_events):
         print 'gate overlap on thread', thread.thread_name
-        for i in range(0, len(thread.workwait) - 1):
-            event1 = thread.workwait[i]
-            event2 = thread.workwait[i + 1]
-            if event1.stop > event2.start:
+        for i in range(0, len(thread.workwait_events) - 1):
+            event1 = thread.workwait_events[i]
+            event2 = thread.workwait_events[i + 1]
+            overlap_start = max(event1.start, event2.start)
+            overlap_stop = min(event1.stop, event2.stop)
+            if overlap_stop - overlap_start > 0:
                 print 'overlap:'
                 print 'event', event1.gate_location, event1.gate_name, 
                 print 'starts at', event1.start, 'stops at', event1.stop
                 print 'event', event2.gate_location, event2.gate_name, 
                 print 'starts at', event2.start, 'stops at', event2.stop
 
-    for event in thread.workwait:
+    for event in thread.workwait_events:
         gate_positions[event.gate_name] = 0
         event.y = 0
         event.total_y = total_y
 
-    for event in thread.memory:
+    for event in thread.memory_events:
         gate_positions[event.gate_name] = 0
         event.y = 0
         event.total_y = total_y
 
     # second pass: move all other events to non-overlapping ys
     y = 1
-    for event in thread.other:
+    for event in thread.other_events:
         if not event.gate_name in gate_positions:
             # look at all the ys we've allocated previously and see if we can 
             # add this gate to one of them
@@ -294,7 +297,7 @@ for thread in threads:
                     if gate_positions[gate_name] != gate_y:
                         continue
 
-                    if gates_overlap(thread.other, event.gate_name, gate_name):
+                    if gates_overlap(thread.other_events, event.gate_name, gate_name):
                         found_overlap = True
                         break
 
@@ -311,7 +314,7 @@ for thread in threads:
 
     # third pass: flip the order of the ys to get the lowest-level ones at the
     # top, next to the wait/work line
-    for event in thread.other:
+    for event in thread.other_events:
         event.y = y - event.y
         event.total_y = total_y + event.y
 
@@ -383,7 +386,7 @@ for thread in threads:
     ctx.set_source_rgb(1.00, 1.00, 1.00)
     ctx.show_text(thread.thread_name)
 
-    for event in thread.events:
+    for event in thread.all_events:
         draw_event(ctx, event)
 
 memory_y = total_y * PIXELS_PER_GATE
