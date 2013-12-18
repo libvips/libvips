@@ -367,10 +367,7 @@ im_rank_raw( IMAGE *in, IMAGE *out, int xsize, int ysize, int index )
 		return( -1 );
 	}
 
-	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
-	 * too many recalculations on overlaps.
-	 */
-	if( im_demand_hint( out, IM_FATSTRIP, in, NULL ) )
+	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) )
 		return( -1 );
 
 	/* Generate! 

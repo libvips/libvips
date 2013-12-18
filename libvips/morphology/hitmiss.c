@@ -738,10 +738,7 @@ morphology( IMAGE *in, IMAGE *out, INTMASK *mask, MorphOp op )
 	else
 		generate = erode_gen;
 
-	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
-	 * too many recalculations on overlaps.
-	 */
-	if( im_demand_hint( morph->out, IM_FATSTRIP, morph->in, NULL ) ||
+	if( im_demand_hint( morph->out, IM_SMALLTILE, morph->in, NULL ) ||
 		im_generate( morph->out, 
 			morph_start, generate, morph_stop, morph->in, morph ) )
 		return( -1 );
