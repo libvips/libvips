@@ -223,6 +223,15 @@ def is_overlap(events, gate_name1, gate_name2):
             if event2.gate_name != gate_name2:
                 continue
 
+            # events are sorted by start time, so if we've gone past event1's
+            # stop time, we can give up
+            if event2.start > event1.stop:
+                break
+
+            # ... or if we're before event1's start
+            if event2.stop < event1.start:
+                continue
+
             # if either endpoint of 1 is within 2
             if event1.start > event2.start and event1.stop < event2.stop:
                 return True

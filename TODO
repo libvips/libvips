@@ -1,3 +1,6 @@
+- vipsthumbnail could have a --zoom option, does a crop to ensure output is
+  always exactly the specified --size
+
 - vipsprofile reports a leak, strangely
 
 - vipsprofile performance is very poor for large data sets, eg. 

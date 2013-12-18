@@ -82,28 +82,29 @@ VipsWindow *vips_window_ref( struct _VipsImage *im, int top, int height );
 int vips_window_unref( VipsWindow *window );
 void vips_window_print( VipsWindow *window );
 
-/* Per-thread buffer cache. Held in a GPrivate.
+/* Per-thread buffer state. Held in a GPrivate.
  */
 typedef struct {
-	GHashTable *hash;	/* Hash to VipsBufferCacheList* */
+	GHashTable *hash;	/* VipsImage -> VipsBufferCache* */
 	GThread *thread;	/* Just for sanity checking */
-	GSList *reserve;	/* VipsBuffer kept in reserve */
-	int n_reserve;		/* Number in reserve */
-} VipsBufferCache;
+} VipsBufferThread;
 
 /* Per-image buffer cache. Hash to this from VipsBufferCache.
  * We can't store the GSList directly in the hash table, as GHashTable lacks an
  * update operation and we'd need to _remove() and _insert() on every list
  * operation.
  */
-typedef struct _VipsBufferCacheList {
+typedef struct _VipsBufferCache {
 	GSList *buffers;	/* GSList of VipsBuffer* */
 	GThread *thread;	/* Just for sanity checking */
 	struct _VipsImage *im;
-	VipsBufferCache *cache;
-} VipsBufferCacheList;
+	VipsBufferThread *buffer_thread;
+	GSList *reserve;	/* VipsBuffer kept in reserve */
+	int n_reserve;		/* Number in reserve */
+} VipsBufferCache;
 
-/* What we track for each pixel buffer. 
+/* What we track for each pixel buffer. These can move between caches and
+ * between threads, but not between images. 
  */
 typedef struct _VipsBuffer {
 	int ref_count;		/* # of regions referencing us */
@@ -111,7 +112,7 @@ typedef struct _VipsBuffer {
 
 	VipsRect area;		/* Area this pixel buffer covers */
 	gboolean done;		/* Calculated and in cache */
-	VipsBufferCache *cache;
+	VipsBufferCache *cache;	/* The cache this buffer is published on */
 	VipsPel *buf;		/* Private malloc() area */
 	size_t bsize;		/* Size of private malloc() */
 } VipsBuffer;
