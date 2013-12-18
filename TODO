@@ -1,5 +1,3 @@
-- vipsprofile needs a man page for Debian, I guess
-
 - new_heart.ws fails with libvips master
 
 	has the sharing fix resolved this?

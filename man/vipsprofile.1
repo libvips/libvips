@@ -1,0 +1,43 @@
+.TH VIPSPROFILE 1 "13 December 2013"
+.SH NAME
+vipsprofile \- analyze vips profiles
+.SH SYNOPSIS
+.B vipsprofile
+.SH DESCRIPTION
+.B vipsprofile(1)
+analyzes the file written by the --vips-profile option, calculates some
+statistics, and draws a graph of evaluation.
+
+Run any vips program with the --vips-profile option to generate a file called
+"vips-profile.txt". This contains timing information about CPU use, memory use
+and thread synchronisation. 
+
+Run
+.B vipsprofile(1)
+to load this file, calculate some 
+statistics, and draw a graph of evaluation saved to vips-profile.svg. This
+analysis can help track down performance problems. 
+
+For example:
+
+  $ vips sharpen shark.jpg x.jpg --vips-profile
+  recording profile in vips-profile.txt
+  $ vipsprofile
+  reading from vips-profile.txt
+  loaded 3622 events
+  total time = 0.138322
+  name          alive   wait%   work%   unkn%   memory  peakm
+  worker 20      0.069  34.5    58.9    6.65    3.14    5.56    
+  worker 21       0.07  1.36    60.2    38.4    2.65    5.07    
+  worker 22       0.07  33      55.8    11.1    2.62    5.04    
+  worker 23      0.072  34.2    59.7    6.15    2.72    5.14    
+  wbuffer 24     0.075  99      1.03    0.00401 0       0       
+  wbuffer 25     0.075  95.6    4.39    0.00667 0       0       
+  main 26         0.14  52.8    0       47.2    -11.1   0.787   
+  peak memory = 21.6 MB
+  writing to vips-profile.svg
+
+.SH RETURN VALUE
+returns 0 on success and non-zero on error.
+.SH SEE ALSO
+vips(1)

@@ -6,6 +6,7 @@ man_MANS = \
 	header.1 \
 	light_correct.1 \
 	vips.1 \
+	vipsprofile.1 \
 	vipsthumbnail.1
 
 EXTRA_DIST = ${man_MANS}
