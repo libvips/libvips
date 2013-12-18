@@ -40,6 +40,8 @@
  * 	- handle embedded jpeg thumbnails
  * 12/11/13
  * 	- add --linear option
+ * 18/12/13
+ * 	- add --crop option
  */
 
 #ifdef HAVE_CONFIG_H
@@ -65,6 +67,7 @@ static char *import_profile = NULL;
 static char *convolution_mask = "mild";
 static gboolean delete_profile = FALSE;
 static gboolean linear_processing = FALSE;
+static gboolean crop_image = FALSE;
 
 /* Deprecated and unused.
  */
@@ -100,6 +103,9 @@ static GOptionEntry options[] = {
 	{ "linear", 'a', 0, 
 		G_OPTION_ARG_NONE, &linear_processing, 
 		N_( "process in linear space" ), NULL },
+	{ "crop", 'c', 0, 
+		G_OPTION_ARG_NONE, &crop_image, 
+		N_( "crop exactly to SIZE" ), NULL },
 	{ "delete", 'd', 0, 
 		G_OPTION_ARG_NONE, &delete_profile, 
 		N_( "delete profile from exported image" ), NULL },
@@ -126,10 +132,15 @@ calculate_shrink( int width, int height, double *residual )
 {
 	/* Calculate the horizontal and vertical shrink we'd need to fit the
 	 * image to the bounding box, and pick the biggest.
+	 *
+	 * In crop mode we aim to fill the bounding box, so we must use the
+	 * smaller axis.
 	 */
 	double horizontal = (double) width / thumbnail_width;
 	double vertical = (double) height / thumbnail_height;
-	double factor = VIPS_MAX( horizontal, vertical ); 
+	double factor = crop_image ?
+		VIPS_MIN( horizontal, vertical ) : 
+		VIPS_MAX( horizontal, vertical ); 
 
 	/* If the shrink factor is <= 1.0, we need to zoom rather than shrink.
 	 * Just set the factor to 1 in this case.
@@ -301,11 +312,60 @@ thumbnail_open( VipsObject *process, const char *filename )
 	return( im ); 
 }
 
+static VipsInterpolate *
+thumbnail_interpolator( VipsObject *process, VipsImage *in )
+{
+	double residual;
+	VipsInterpolate *interp;
+
+	calculate_shrink( in->Xsize, in->Ysize, &residual );
+
+	/* For images smaller than the thumbnail, we upscale with nearest
+	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
+	 */
+	if( !(interp = VIPS_INTERPOLATE( vips_object_new_from_string( 
+		g_type_class_ref( VIPS_TYPE_INTERPOLATE ), 
+		residual > 1.0 ? "nearest" : interpolator ) )) )
+		return( NULL );
+
+	vips_object_local( process, interp );
+
+	return( interp );
+}
+
+/* Some interpolators look a little soft, so we have an optional sharpening
+ * stage.
+ */
 static VipsImage *
-thumbnail_shrink( VipsObject *thumbnail, VipsImage *in, 
+thumbnail_sharpen( VipsObject *process )
+{
+	VipsImage *mask;
+
+	if( strcmp( convolution_mask, "none" ) == 0 ) 
+		mask = NULL; 
+	else if( strcmp( convolution_mask, "mild" ) == 0 ) {
+		mask = vips_image_new_matrixv( 3, 3,
+			-1.0, -1.0, -1.0,
+			-1.0, 32.0, -1.0,
+			-1.0, -1.0, -1.0 );
+		vips_image_set_double( mask, "scale", 24 );
+	}
+	else
+		if( !(mask = 
+			vips_image_new_from_file( convolution_mask )) )
+			vips_error_exit( "unable to load sharpen mask" ); 
+
+	if( mask )
+		vips_object_local( process, mask );
+
+	return( mask );
+}
+
+static VipsImage *
+thumbnail_shrink( VipsObject *process, VipsImage *in, 
 	VipsInterpolate *interp, VipsImage *sharpen )
 {
-	VipsImage **t = (VipsImage **) vips_object_local_array( thumbnail, 10 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( process, 10 );
 	VipsInterpretation interpretation = linear_processing ?
 		VIPS_INTERPRETATION_XYZ : VIPS_INTERPRETATION_sRGB; 
 
@@ -479,53 +539,24 @@ thumbnail_shrink( VipsObject *thumbnail, VipsImage *in,
 	return( in );
 }
 
-static VipsInterpolate *
-thumbnail_interpolator( VipsObject *process, VipsImage *in )
-{
-	double residual;
-	VipsInterpolate *interp;
-
-	calculate_shrink( in->Xsize, in->Ysize, &residual );
-
-	/* For images smaller than the thumbnail, we upscale with nearest
-	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
-	 */
-	if( !(interp = VIPS_INTERPOLATE( vips_object_new_from_string( 
-		g_type_class_ref( VIPS_TYPE_INTERPOLATE ), 
-		residual > 1.0 ? "nearest" : interpolator ) )) )
-		return( NULL );
-
-	vips_object_local( process, interp );
-
-	return( interp );
-}
-
-/* Some interpolators look a little soft, so we have an optional sharpening
- * stage.
+/* Crop down to the final size, if crop_image is set. 
  */
 static VipsImage *
-thumbnail_sharpen( VipsObject *process )
+thumbnail_crop( VipsObject *process, VipsImage *im )
 {
-	VipsImage *mask;
+	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
 
-	if( strcmp( convolution_mask, "none" ) == 0 ) 
-		mask = NULL; 
-	else if( strcmp( convolution_mask, "mild" ) == 0 ) {
-		mask = vips_image_new_matrixv( 3, 3,
-			-1.0, -1.0, -1.0,
-			-1.0, 32.0, -1.0,
-			-1.0, -1.0, -1.0 );
-		vips_image_set_double( mask, "scale", 24 );
+	if( crop_image ) {
+		int left = (im->Xsize - thumbnail_width) / 2;
+		int top = (im->Ysize - thumbnail_height) / 2;
+
+		if( vips_extract_area( im, &t[0], left, top, 
+			thumbnail_width, thumbnail_height, NULL ) )
+			return( NULL ); 
+		im = t[0];
 	}
-	else
-		if( !(mask = 
-			vips_image_new_from_file( convolution_mask )) )
-			vips_error_exit( "unable to load sharpen mask" ); 
 
-	if( mask )
-		vips_object_local( process, mask );
-
-	return( mask );
+	return( im );
 }
 
 /* Given (eg.) "/poop/somefile.png", write @im to the thumbnail name,
@@ -581,13 +612,15 @@ thumbnail_process( VipsObject *process, const char *filename )
 	VipsInterpolate *interp;
 	VipsImage *sharpen;
 	VipsImage *thumbnail;
+	VipsImage *crop;
 
 	if( !(in = thumbnail_open( process, filename )) ||
 		!(interp = thumbnail_interpolator( process, in )) ||
 		!(sharpen = thumbnail_sharpen( process )) ||
 		!(thumbnail = 
 			thumbnail_shrink( process, in, interp, sharpen )) ||
-		thumbnail_write( thumbnail, filename ) )
+		!(crop = thumbnail_crop( process, thumbnail )) ||
+		thumbnail_write( crop, filename ) )
 		return( -1 );
 
 	return( 0 );
@@ -631,7 +664,7 @@ main( int argc, char **argv )
 	}
 
 	for( i = 1; i < argc; i++ ) {
-		/* Hang resources for this processing off this.
+		/* Hang resources for processing this thumbnail off @process.
 		 */
 		VipsObject *process = VIPS_OBJECT( vips_image_new() ); 
 
