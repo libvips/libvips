@@ -98,10 +98,9 @@ should be supplied with the
 option.
 
 .TP
-.B -a, --linear
-Process in linear space. The input image is transformed to CIE XYZ on load,
-shrunk, and then converted back to device space for write. This can increase
-quality at the cost of processing time. 
+.B -c, --crop
+Crop the output image down. The image is shrunk so as to completely fill the
+bounding box in both axies, then any excess is cropped off. 
 
 .TP
 .B -d, --delete
