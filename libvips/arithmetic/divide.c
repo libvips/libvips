@@ -162,7 +162,7 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 	OUT * restrict q = (OUT *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		q[x] = right[x] == 0 ? q[x] : (OUT) left[x] / (OUT) right[x]; \
+		q[x] = right[x] == 0 ? 0 : (OUT) left[x] / (OUT) right[x]; \
 }
 
 static void
