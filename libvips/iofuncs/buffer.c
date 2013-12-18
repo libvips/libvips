@@ -535,6 +535,13 @@ vips_buffer_print( VipsBuffer *buffer )
 	printf( "bsize = %zd\n", buffer->bsize );
 }
 
+static void
+vips__buffer_init_cb( VipsBufferThread *buffer_thread )
+{
+	vips_error_exit( "vips__buffer_shutdown() not called for thread %p",
+		g_thread_self() ); 
+}
+
 /* Init the buffer cache system.
  */
 void
@@ -542,13 +549,13 @@ vips__buffer_init( void )
 {
 #ifdef HAVE_PRIVATE_INIT
 	static GPrivate private = 
-		G_PRIVATE_INIT( (GDestroyNotify) buffer_thread_free );
+		G_PRIVATE_INIT( (GDestroyNotify) vips__buffer_init_cb );
 
 	buffer_thread_key = &private;
 #else
 	if( !buffer_thread_key ) 
 		buffer_thread_key = g_private_new( 
-			(GDestroyNotify) buffer_thread_free );
+			(GDestroyNotify) vips__buffer_init_cb );
 #endif
 
 	if( buffer_cache_max_reserve < 1 )

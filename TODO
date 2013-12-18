@@ -1,7 +1,7 @@
 - vipsthumbnail could have a --zoom option, does a crop to ensure output is
   always exactly the specified --size
 
-- vipsprofile reports a leak, strangely
+  or --expand?
 
 - vipsprofile needs a man page for Debian, I guess
 

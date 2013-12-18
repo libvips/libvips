@@ -30,6 +30,10 @@
 
  */
 
+/* Very verbose.
+#define VIPS_DEBUG_RED
+ */
+
 /*
 #define VIPS_DEBUG
  */
@@ -124,8 +128,10 @@ vips_thread_profile_save( VipsThreadProfile *profile )
 	if( !vips__thread_fp ) { 
 		vips__thread_fp = 
 			vips__file_open_write( "vips-profile.txt", TRUE );
-		if( !vips__thread_fp ) 
+		if( !vips__thread_fp ) {
+			g_mutex_unlock( vips__global_lock );
 			vips_error_exit( "unable to create profile log" ); 
+		}
 
 		printf( "recording profile in vips-profile.txt\n" );  
 	}
@@ -173,17 +179,31 @@ vips_thread_gate_free( VipsThreadGate *gate )
 }
 
 static void
+vips__thread_profile_init_cb( VipsThreadProfile *profile )
+{  
+	/* Threads (including the main thread) must call 
+	 * vips__thread_profile_detach() before exiting. Check that they have.
+	 *
+	 * We can't save automatically, because the shutdown order is
+	 * important. We must free all memory before saving the thread
+	 * profile, for example.
+	 */
+	vips_error_exit( "vips__thread_profile_detach() not called "
+		"for thread %p", g_thread_self() ); 
+}
+
+static void
 vips__thread_profile_init( void )
 {
 #ifdef HAVE_PRIVATE_INIT
 	static GPrivate private = 
-		G_PRIVATE_INIT( (GDestroyNotify) vips_thread_profile_free );
+		G_PRIVATE_INIT( (GDestroyNotify) vips__thread_profile_init_cb );
 
 	vips_thread_profile_key = &private;
 #else
 	if( !vips_thread_profile_key ) 
 		vips_thread_profile_key = g_private_new( 
-			(GDestroyNotify) vips_thread_profile_free );
+			(GDestroyNotify) vips__thread_profile_init_cb );
 #endif
 }
 
@@ -239,6 +259,8 @@ vips__thread_profile_detach( void )
 {
 	VipsThreadProfile *profile;
 
+	VIPS_DEBUG_MSG( "vips__thread_profile_detach:\n" ); 
+
 	if( (profile = vips_thread_profile_get()) ) {
 		vips_thread_profile_free( profile );
 		g_private_set( vips_thread_profile_key, NULL );
@@ -274,7 +296,7 @@ vips__thread_gate_start( const char *gate_name )
 {
 	VipsThreadProfile *profile;
 
-	VIPS_DEBUG_MSG( "vips__thread_gate_start: %s\n", gate_name ); 
+	VIPS_DEBUG_MSG_RED( "vips__thread_gate_start: %s\n", gate_name ); 
 
 	if( (profile = vips_thread_profile_get()) ) { 
 		gint64 time = vips_get_time(); 
@@ -293,7 +315,7 @@ vips__thread_gate_start( const char *gate_name )
 
 		gate->start->time[gate->start->i++] = time;
 
-		VIPS_DEBUG_MSG( "\t %" G_GINT64_FORMAT "\n", time ); 
+		VIPS_DEBUG_MSG_RED( "\t %" G_GINT64_FORMAT "\n", time ); 
 	}
 }
 
@@ -302,7 +324,7 @@ vips__thread_gate_stop( const char *gate_name )
 {
 	VipsThreadProfile *profile;
 
-	VIPS_DEBUG_MSG( "vips__thread_gate_stop: %s\n", gate_name ); 
+	VIPS_DEBUG_MSG_RED( "vips__thread_gate_stop: %s\n", gate_name ); 
 
 	if( (profile = vips_thread_profile_get()) ) { 
 		gint64 time = vips_get_time(); 
@@ -321,7 +343,7 @@ vips__thread_gate_stop( const char *gate_name )
 
 		gate->stop->time[gate->stop->i++] = time;
 
-		VIPS_DEBUG_MSG( "\t %" G_GINT64_FORMAT "\n", time ); 
+		VIPS_DEBUG_MSG_RED( "\t %" G_GINT64_FORMAT "\n", time ); 
 	}
 }
 
@@ -332,7 +354,10 @@ vips__thread_malloc_free( gint64 size )
 {
 	VipsThreadProfile *profile;
 
-	VIPS_DEBUG_MSG( "vips__thread_malloc_free: %zd\n", size ); 
+	VIPS_DEBUG_MSG_RED( "vips__thread_malloc_free: %zd\n", size ); 
+
+	if( !(profile = vips_thread_profile_get()) ) 
+		printf( "argh no block to record free() in!\n" ); 
 
 	if( (profile = vips_thread_profile_get()) ) { 
 		gint64 time = vips_get_time(); 
