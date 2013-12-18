@@ -174,21 +174,20 @@ vips_divide_buffer( VipsArithmetic *arithmetic,
 
 	int x;
 
-	/* Keep types here in sync with bandfmt_divide[] 
+	/* Keep types here in sync with vips_divide_format_table[] 
 	 * below.
          */
         switch( vips_image_get_format( im ) ) {
-        case VIPS_FORMAT_CHAR: 	RLOOP( signed char, float ); break; 
-        case VIPS_FORMAT_UCHAR:	RLOOP( unsigned char, float ); break; 
-        case VIPS_FORMAT_SHORT:	RLOOP( signed short, float ); break; 
-        case VIPS_FORMAT_USHORT: RLOOP( unsigned short, float ); break; 
-        case VIPS_FORMAT_INT: 	RLOOP( signed int, float ); break; 
-        case VIPS_FORMAT_UINT: 	RLOOP( unsigned int, float ); break; 
-        case VIPS_FORMAT_FLOAT:	RLOOP( float, float ); break; 
-        case VIPS_FORMAT_DOUBLE: RLOOP( double, double ); break;
-
-        case VIPS_FORMAT_COMPLEX: CLOOP( float ); break;
-        case VIPS_FORMAT_DPCOMPLEX: CLOOP( double ); break;
+        case VIPS_FORMAT_CHAR: 		RLOOP( signed char, float ); break; 
+        case VIPS_FORMAT_UCHAR:		RLOOP( unsigned char, float ); break; 
+        case VIPS_FORMAT_SHORT:		RLOOP( signed short, float ); break; 
+        case VIPS_FORMAT_USHORT: 	RLOOP( unsigned short, float ); break; 
+        case VIPS_FORMAT_INT: 		RLOOP( signed int, float ); break; 
+        case VIPS_FORMAT_UINT: 		RLOOP( unsigned int, float ); break; 
+        case VIPS_FORMAT_FLOAT:		RLOOP( float, float ); break; 
+        case VIPS_FORMAT_DOUBLE: 	RLOOP( double, double ); break;
+        case VIPS_FORMAT_COMPLEX: 	CLOOP( float ); break;
+        case VIPS_FORMAT_DPCOMPLEX: 	CLOOP( double ); break;
 
         default:
 		g_assert( 0 );
