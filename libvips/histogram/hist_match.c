@@ -14,6 +14,8 @@
  * 	- small cleanups
  * 12/8/13	
  * 	- redone im_histspec() as a class, vips_hist_match()
+ * 19/12/13
+ * 	- oop, upcast input
  */
 
 /*
@@ -138,13 +140,6 @@ vips_hist_match_build( VipsObject *object )
 	return( 0 );
 }
 
-#define UI VIPS_FORMAT_UINT
-
-static const VipsBandFormat vips_hist_match_format_table[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UI, UI, UI, UI, UI, UI, UI, UI, UI, UI 
-};
-
 static void
 vips_hist_match_class_init( VipsHistMatchClass *class )
 {
@@ -159,7 +154,7 @@ vips_hist_match_class_init( VipsHistMatchClass *class )
 	vobject_class->description = _( "match two histograms" );
 	vobject_class->build = vips_hist_match_build;
 
-	hclass->format_table = vips_hist_match_format_table;
+	hclass->input_format = VIPS_FORMAT_UINT; 
 	hclass->process = vips_hist_match_process;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 

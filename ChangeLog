@@ -1,12 +1,13 @@
-20/11/13	started 7.36.5
+20/11/13 started 7.36.5
 - better cache sizing in unbuffered sequential mode
 - allow larger tile_size in dzsave
 - remove use of PATH_MAX to help gnu hurd
+- fix vips_hist_match()
 
-15/11/13	started 7.36.4
+15/11/13 started 7.36.4
 - improve compat with im_init_world()
 
-18/10/13	started 7.36.3
+18/10/13 started 7.36.3
 - fix compiler warnings in ubuntu 13.10
 - reverse similarity rotation direction to match the convention used 
   elsewhere in vips
