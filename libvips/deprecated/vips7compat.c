@@ -4359,3 +4359,14 @@ im_copy_file( IMAGE *in, IMAGE *out )
 
 	return( 0 );
 }
+
+int
+im_video_v4l1( IMAGE *im, const char *device,
+	int channel, int brightness, int colour, int contrast, int hue, 
+	int ngrabs )
+{
+	im_error( "im_video_v4l1", 
+		"%s", _( "compiled without im_video_v4l1 support" ) );
+	return( -1 );
+}
+

@@ -60,7 +60,7 @@ GOBJECT_INTROSPECTION_CHECK([1.30.0])
 # build with a glob and a list of files to exclude from scanning
 # see also IGNORE_HFILES in doc/reference/Makefile.am
 introspection_sources=$(cd libvips ; find . -name "*.c")
-filter_list="deprecated im_video_v4l1.c"
+filter_list="deprecated "
 
 introspection_sources2=
 for name in $introspection_sources; do
@@ -636,29 +636,6 @@ if test x"$with_libexif" != "xno"; then
   CPPFLAGS=$save_CPPFLAGS
 fi
 
-# Look for linux video
-AC_ARG_WITH([v4l], 
-  AS_HELP_STRING([--without-v4l], [build without video4linux (default: test)]))
-
-if test x"$with_v4l" != "xno"; then
-  # try a compile as well: if we're using icc the header can break
-  # even try assigning to vc.type: if this works, surely the header is
-  # functional
-  AC_CHECK_HEADER(linux/videodev.h, 
-    [AC_TRY_COMPILE([#include <linux/videodev.h>], 
-		    [struct video_capability vc; vc.type = 12], 
-		     with_videodev=yes)
-    ])
-fi
-
-if test x"$with_videodev" = x"yes"; then
-  AC_DEFINE(HAVE_VIDEODEV,1,[have video4linux 1])
-  with_v4l=yes
-else
-  AC_MSG_WARN([linux/videodev.h not functional; disabling Linux video support])
-  with_v4l=no
-fi
-
 # make python binding?
 AC_ARG_WITH([python], 
   AS_HELP_STRING([--without-python], 
@@ -786,5 +763,4 @@ file import/export with libpng: 	$with_png
 file import/export with libtiff:	$with_tiff
 file import/export with libjpeg:	$with_jpeg
 use libexif to load/save JPEG metadata: $with_libexif
-video capture with v4l: 		$with_v4l
 build Python binding: 			$with_python])

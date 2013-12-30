@@ -132,11 +132,6 @@ ZIP compression. 3.4b037 and later are known to be OK.
 
 If your TIFF library includes ZIP compression, you'll need this too.
 
-## videodev.h
-
-If libvips finds linux/videodev.h, you get support for Linux video 
-grabbing.
-
 ## fftw3
 
 If libvips finds this library, it uses it for fourier transforms. It

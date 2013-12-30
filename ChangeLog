@@ -30,6 +30,7 @@
 - reuse pixel buffers on sharing to reduce mem cycling
 - conv is SMALLTILE, huge mem use saving on wide images
 - vipsthumbnail has a --crop option
+- remove video4linux1 code, it was useless on all modern linuxes
 
 20/11/13	started 7.36.5
 - better cache sizing in unbuffered sequential mode
