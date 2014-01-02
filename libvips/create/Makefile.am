@@ -11,6 +11,16 @@ libcreate_la_SOURCES = \
 	identity.c \
 	point.c \
 	point.h \
+	ffilter.c \
+	ffilter.h \
+	ffilter_ideal.c \
+	ffilter_ideal_ring.c \
+	ffilter_ideal_band.c \
+	ffilter_butterworth.c \
+	ffilter_butterworth_ring.c \
+	ffilter_butterworth_band.c \
+	ffilter_gaussian.c \
+	ffilter_gaussian_ring.c \
 	eye.c \
 	grey.c \
 	xyz.c \

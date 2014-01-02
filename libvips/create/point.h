@@ -64,6 +64,9 @@ typedef struct _VipsPointClass {
 	VipsCreateClass parent_class;
 
 	float (*point)( VipsPoint *, int, int ); 
+	float min;
+	float max;
+	VipsInterpretation interpretation; 
 
 } VipsPointClass;
 

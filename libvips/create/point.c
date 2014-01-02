@@ -70,18 +70,15 @@ vips_point_gen( VipsRegion *or, void *seq, void *a, void *b,
 	VipsPoint *point = (VipsPoint *) a;
 	VipsPointClass *class = VIPS_POINT_GET_CLASS( point ); 
 	VipsRect *r = &or->valid;
-	int le = r->left;
-	int to = r->top;
-	int ri = VIPS_RECT_RIGHT( r );
-	int bo = VIPS_RECT_BOTTOM( r );
 
 	int x, y;
 
-	for( y = to; y < bo; y++ ) {
-		float *q = (float *) VIPS_REGION_ADDR( or, le, y );
+	for( y = 0; y < r->height; y++ ) {
+		int ay = r->top + y;
+		float *q = (float *) VIPS_REGION_ADDR( or, r->left, ay ); 
 
-		for( x = le; x < ri; x++ ) 
-			*q++ = class->point( point, x, y ); 
+		for( x = 0; x < r->width; x++ ) 
+			q[x] = class->point( point, r->left + x, ay ); 
 	}
 
 	return( 0 );
@@ -91,8 +88,10 @@ static int
 vips_point_build( VipsObject *object )
 {
 	VipsCreate *create = VIPS_CREATE( object );
-	VipsPoint *point = (VipsPoint *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
+	VipsPoint *point = VIPS_POINT( object );
+	VipsPointClass *class = VIPS_POINT_GET_CLASS( point );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
+
 	VipsImage *in;
 
 	if( VIPS_OBJECT_CLASS( vips_point_parent_class )->build( object ) )
@@ -101,20 +100,30 @@ vips_point_build( VipsObject *object )
 	t[0] = vips_image_new();
 	vips_image_init_fields( t[0],
 		point->width, point->height, 1,
-		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
+		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE, class->interpretation,
 		1.0, 1.0 );
 	vips_image_pipelinev( t[0], 
 		VIPS_DEMAND_STYLE_ANY, NULL );
 	if( vips_image_generate( t[0], 
 		NULL, vips_point_gen, NULL, point, NULL ) )
 		return( -1 );
-
 	in = t[0];
+
 	if( point->uchar ) {
-		if( vips_linear1( in, &t[1], 127.5, 127.5, NULL ) ||
-			vips_cast( t[1], &t[2], VIPS_FORMAT_UCHAR, NULL ) )
+		float min = class->min;
+		float max = class->max;
+		float range = max - min;
+
+		if( vips_linear1( in, &t[2], 
+			255.0 / range, -min * 255.0 / range, NULL ) ||
+			vips_cast( t[2], &t[3], VIPS_FORMAT_UCHAR, NULL ) )
 			return( -1 );
-		in = t[2];
+		in = t[3];
+
+		/* uchar mode always does B_W. We don't want FOURIER or
+		 * whatever in this case.
+		 */
+		t[3]->Type = VIPS_INTERPRETATION_B_W;
 	}
 
 	if( vips_image_write( in, create->out ) )
@@ -135,6 +144,11 @@ vips_point_class_init( VipsPointClass *class )
 	vobject_class->nickname = "point";
 	vobject_class->description = _( "make a point image" );
 	vobject_class->build = vips_point_build;
+
+	class->point = NULL; 
+	class->min = -1.0; 
+	class->max = 1.0; 
+	class->interpretation = VIPS_INTERPRETATION_B_W;
 
 	VIPS_ARG_INT( class, "width", 2, 
 		_( "Width" ), 
