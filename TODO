@@ -2,12 +2,6 @@
 
 	has the sharing fix resolved this?
 
-- nip2 hist match is failing with 7.36, was working in 7.34
-
-
-
-
-
 - do restrict on some more packages, we've just done arithmetic so far
 
 	also resample, colour, some of conversion, create, 
