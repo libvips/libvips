@@ -5,10 +5,12 @@
   VIPS:ERROR:buffer.c:390:vips_buffer_new: assertion failed: (!buffer->cache)
   Aborted (core dumped)
 
-- still need to do gaussian band filter
+- im_freq_mask.c can almost be deprecated .. just im_freqfilt() to do now I
+  think
 
-- VipsMaskType needs to be renamed back to the vips7 name and deprecated,
-  remove compat macros from freq_flt.h
+
+
+
 
 - new_heart.ws fails with libvips master
 

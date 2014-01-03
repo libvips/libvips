@@ -31,8 +31,8 @@
 
  */
 
-#ifndef IM_FREQ_H
-#define IM_FREQ_H
+#ifndef VIPS_FREQFILT_H
+#define VIPS_FREQFILT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,4 +53,4 @@ int im_fractsurf( VipsImage *out, int size, double frd );
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_FREQ_H*/
+#endif /*VIPS_FREQFILT_H*/

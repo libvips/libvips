@@ -1,6 +1,6 @@
-noinst_LTLIBRARIES = libfreq_filt.la
+noinst_LTLIBRARIES = libfreqfilt.la
 
-libfreq_filt_la_SOURCES = \
+libfreqfilt_la_SOURCES = \
 	freqfilt.c \
 	pfreqfilt.h \
 	fwfft.c \

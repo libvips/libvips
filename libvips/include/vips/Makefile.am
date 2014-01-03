@@ -20,7 +20,7 @@ pkginclude_HEADERS = \
 	generate.h \
 	header.h \
 	histogram.h \
-	freq_filt.h \
+	freqfilt.h \
 	image.h \
 	interpolate.h \
 	intl.h \

@@ -131,7 +131,7 @@ extern "C" {
 #include <vips/morphology.h>
 #include <vips/mosaicing.h>
 #include <vips/histogram.h>
-#include <vips/freq_filt.h>
+#include <vips/freqfilt.h>
 #include <vips/resample.h>
 #include <vips/colour.h>
 #include <vips/inplace.h>

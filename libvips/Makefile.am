@@ -19,7 +19,7 @@ SUBDIRS = \
 	deprecated \
 	convolution \
 	$(C_COMPILE_DIR) \
-	freq_filt \
+	freqfilt \
 	histogram \
 	inplace \
 	iofuncs \
@@ -52,7 +52,7 @@ libvips_la_LIBADD = \
 	deprecated/libdeprecated.la \
 	$(C_LIB) \
 	foreign/libforeign.la \
-	freq_filt/libfreq_filt.la \
+	freqfilt/libfreqfilt.la \
 	histogram/libhistogram.la \
 	inplace/libinplace.la \
 	iofuncs/libiofuncs.la \
