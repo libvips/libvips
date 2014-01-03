@@ -286,6 +286,7 @@ void vips_foreign_operation_init( void );
 void vips_colour_operation_init( void );
 void vips_histogram_operation_init( void );
 void vips_freqfilt_operation_init( void );
+void vips_create_operation_init( void );
 
 guint64 vips__parse_size( const char *size_string );
 

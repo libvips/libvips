@@ -4,6 +4,7 @@ libfreq_filt_la_SOURCES = \
 	freqfilt.c \
 	pfreqfilt.h \
 	fwfft.c \
+	invfft.c \
 	im_phasecor_fft.c \
 	freq_dispatch.c \
 	im_disp_ps.c \

@@ -94,10 +94,10 @@ G_DEFINE_TYPE( VipsFwfft, vips_fwfft, VIPS_TYPE_FREQFILT );
 /* Real to complex forward transform.
  */
 static int 
-rfwfft1( VipsFwfft *fwfft, VipsImage *in, VipsImage **out )
+rfwfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 {
-	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( fwfft ), 4 );
+	VipsFwfft *fwfft = (VipsFwfft *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( fwfft );
 	const guint64 size = VIPS_IMAGE_N_PELS( in );
 	const int half_width = in->Xsize / 2 + 1;
@@ -212,10 +212,10 @@ rfwfft1( VipsFwfft *fwfft, VipsImage *in, VipsImage **out )
 /* Complex to complex forward transform.
  */
 static int 
-cfwfft1( VipsFwfft *fwfft, VipsImage *in, VipsImage **out )
+cfwfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 {
-	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( fwfft ), 4 );
+	VipsFwfft *fwfft = (VipsFwfft *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( fwfft );
 
 	fftw_plan plan;
@@ -288,17 +288,6 @@ cfwfft1( VipsFwfft *fwfft, VipsImage *in, VipsImage **out )
 	return( 0 );
 }
 
-static int 
-fwfft1( VipsObject *object, VipsImage *in, VipsImage **out )
-{
-	VipsFwfft *fwfft = (VipsFwfft *) object;
-
-	if( vips_bandfmt_iscomplex( in->BandFmt ) )
-		return( cfwfft1( fwfft, in, out ) );
-	else
-		return( rfwfft1( fwfft, in, out ) );
-}
-
 static int
 vips_fwfft_build( VipsObject *object )
 {
@@ -310,8 +299,18 @@ vips_fwfft_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__fftproc( VIPS_OBJECT( fwfft ), fwfft->in, &t[0], fwfft1 ) ||
-		vips_image_write( t[0], freqfilt->out ) ) 
+	if( vips_bandfmt_iscomplex( fwfft->in->BandFmt ) ) {
+		if( vips__fftproc( VIPS_OBJECT( fwfft ), fwfft->in, &t[0], 
+			cfwfft1 ) )
+			return( -1 );
+	}
+	else {
+		if( vips__fftproc( VIPS_OBJECT( fwfft ), fwfft->in, &t[0], 
+			rfwfft1 ) )
+			return( -1 );
+	}
+
+	if( vips_image_write( t[0], freqfilt->out ) ) 
 		return( -1 );
 
 	return( 0 );

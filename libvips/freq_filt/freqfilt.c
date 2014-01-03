@@ -157,10 +157,12 @@ vips_freqfilt_operation_init( void )
 {
 #ifdef HAVE_FFTW
 	extern GType vips_fwfft_get_type( void ); 
+	extern GType vips_invfft_get_type( void ); 
 #endif /*HAVE_FFTW*/
 
 #ifdef HAVE_FFTW
 	vips_fwfft_get_type(); 
+	vips_invfft_get_type(); 
 #endif /*HAVE_FFTW*/
 }
 

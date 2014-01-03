@@ -38,8 +38,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-void vips_create_operation_init( void );
-
 int vips_black( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 

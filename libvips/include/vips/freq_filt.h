@@ -38,7 +38,10 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <vips/vips.h>
+int vips_fwfft( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_invfft( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int im_fwfft( VipsImage *in, VipsImage *out );
 int im_invfft( VipsImage *in, VipsImage *out );
