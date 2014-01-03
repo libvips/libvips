@@ -966,6 +966,10 @@ int im_flt_image_freq( VipsImage *in, VipsImage *out, ImMaskType flag, ... );
 int im_create_fmask( VipsImage *out, 
 	int xsize, int ysize, ImMaskType flag, ... );
 
+int im_fwfft( VipsImage *in, VipsImage *out );
+int im_invfft( VipsImage *in, VipsImage *out );
+int im_invfftr( VipsImage *in, VipsImage *out );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

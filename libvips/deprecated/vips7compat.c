@@ -4370,3 +4370,56 @@ im_video_v4l1( IMAGE *im, const char *device,
 	return( -1 );
 }
 
+int 
+im_fwfft( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_fwfft( in, &x, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_invfft( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_invfft( in, &x, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_invfftr( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_invfft( in, &x, 
+		"real", TRUE,
+		NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
