@@ -158,7 +158,7 @@ vips_mask_ideal_band( VipsImage **out, int width, int height,
 	int result;
 
 	va_start( ap, r );
-	result = vips_call_split( "mask_ideal", ap, out, width, height, 
+	result = vips_call_split( "mask_ideal_band", ap, out, width, height, 
 		frequency_cutoff_x, frequency_cutoff_y, r );
 	va_end( ap );
 
