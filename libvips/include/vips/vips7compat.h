@@ -937,6 +937,35 @@ int im_sharpen( VipsImage *in, VipsImage *out,
 	double x1, double y2, double y3, 
 	double m1, double m2 );
 
+typedef enum {
+        IM_MASK_IDEAL_HIGHPASS = 0,
+        IM_MASK_IDEAL_LOWPASS = 1,
+        IM_MASK_BUTTERWORTH_HIGHPASS = 2,
+        IM_MASK_BUTTERWORTH_LOWPASS = 3,
+        IM_MASK_GAUSS_HIGHPASS = 4,
+        IM_MASK_GAUSS_LOWPASS = 5,
+
+        IM_MASK_IDEAL_RINGPASS = 6,
+        IM_MASK_IDEAL_RINGREJECT = 7,
+        IM_MASK_BUTTERWORTH_RINGPASS = 8,
+        IM_MASK_BUTTERWORTH_RINGREJECT = 9,
+        IM_MASK_GAUSS_RINGPASS = 10,
+        IM_MASK_GAUSS_RINGREJECT = 11,
+
+        IM_MASK_IDEAL_BANDPASS = 12,
+        IM_MASK_IDEAL_BANDREJECT = 13,
+        IM_MASK_BUTTERWORTH_BANDPASS = 14,
+        IM_MASK_BUTTERWORTH_BANDREJECT = 15,
+        IM_MASK_GAUSS_BANDPASS = 16,
+        IM_MASK_GAUSS_BANDREJECT = 17,
+
+        IM_MASK_FRACTAL_FLT = 18
+} ImMaskType;
+
+int im_flt_image_freq( VipsImage *in, VipsImage *out, ImMaskType flag, ... );
+int im_create_fmask( VipsImage *out, 
+	int xsize, int ysize, ImMaskType flag, ... );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -40,31 +40,6 @@ extern "C" {
 
 #include <vips/vips.h>
 
-typedef enum {
-        VIPS_MASK_IDEAL_HIGHPASS = 0,
-        VIPS_MASK_IDEAL_LOWPASS = 1,
-        VIPS_MASK_BUTTERWORTH_HIGHPASS = 2,
-        VIPS_MASK_BUTTERWORTH_LOWPASS = 3,
-        VIPS_MASK_GAUSS_HIGHPASS = 4,
-        VIPS_MASK_GAUSS_LOWPASS = 5,
-
-        VIPS_MASK_IDEAL_RINGPASS = 6,
-        VIPS_MASK_IDEAL_RINGREJECT = 7,
-        VIPS_MASK_BUTTERWORTH_RINGPASS = 8,
-        VIPS_MASK_BUTTERWORTH_RINGREJECT = 9,
-        VIPS_MASK_GAUSS_RINGPASS = 10,
-        VIPS_MASK_GAUSS_RINGREJECT = 11,
-
-        VIPS_MASK_IDEAL_BANDPASS = 12,
-        VIPS_MASK_IDEAL_BANDREJECT = 13,
-        VIPS_MASK_BUTTERWORTH_BANDPASS = 14,
-        VIPS_MASK_BUTTERWORTH_BANDREJECT = 15,
-        VIPS_MASK_GAUSS_BANDPASS = 16,
-        VIPS_MASK_GAUSS_BANDREJECT = 17,
-
-        VIPS_MASK_FRACTAL_FLT = 18
-} VipsMaskType;
-
 int im_fwfft( VipsImage *in, VipsImage *out );
 int im_invfft( VipsImage *in, VipsImage *out );
 int im_invfftr( VipsImage *in, VipsImage *out );
@@ -73,9 +48,6 @@ int im_freqflt( VipsImage *in, VipsImage *mask, VipsImage *out );
 int im_disp_ps( VipsImage *in, VipsImage *out );
 int im_phasecor_fft( VipsImage *in1, VipsImage *in2, VipsImage *out );
 
-int im_flt_image_freq( VipsImage *in, VipsImage *out, VipsMaskType flag, ... );
-int im_create_fmask( VipsImage *out, 
-	int xsize, int ysize, VipsMaskType flag, ... );
 int im_fractsurf( VipsImage *out, int size, double frd );
 
 #ifdef __cplusplus

@@ -76,7 +76,7 @@ im_fractsurf( IMAGE *out, int size, double frd )
 
 	if( !(noise = im_open_local( out, "im_fractsurf", "p" )) ||
 		im_gaussnoise( noise, size, size, 0.0, 1.0 ) || 
-		im_flt_image_freq( noise, out, VIPS_MASK_FRACTAL_FLT, frd ) )
+		im_flt_image_freq( noise, out, IM_MASK_FRACTAL_FLT, frd ) )
 		return( -1 );
 
 	return( 0 );

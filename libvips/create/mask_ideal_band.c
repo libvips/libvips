@@ -56,7 +56,7 @@ typedef struct _VipsMaskIdealBand {
 
 	double frequency_cutoff_x;
 	double frequency_cutoff_y;
-	double r;
+	double radius;
 
 } VipsMaskIdealBand;
 
@@ -71,7 +71,7 @@ vips_mask_ideal_band_point( VipsMask *mask, double dx, double dy )
 	VipsMaskIdealBand *ideal_band = (VipsMaskIdealBand *) mask;
 	double fcx = ideal_band->frequency_cutoff_x;
 	double fcy = ideal_band->frequency_cutoff_y;
-	double r2 = ideal_band->r * ideal_band->r;
+	double r2 = ideal_band->radius * ideal_band->radius;
 
 	double d1 = (dx - fcx) * (dx - fcx) + (dy - fcy) * (dy - fcy);
 	double d2 = (dx + fcx) * (dx + fcx) + (dy + fcy) * (dy + fcy);
@@ -108,11 +108,11 @@ vips_mask_ideal_band_class_init( VipsMaskIdealBandClass *class )
 		G_STRUCT_OFFSET( VipsMaskIdealBand, frequency_cutoff_y ),
 		0.0, 1000000.0, 0.5 );
 
-	VIPS_ARG_DOUBLE( class, "r", 8, 
-		_( "r" ), 
+	VIPS_ARG_DOUBLE( class, "radius", 8, 
+		_( "radius" ), 
 		_( "radius of circle" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsMaskIdealBand, r ),
+		G_STRUCT_OFFSET( VipsMaskIdealBand, radius ),
 		0.0, 1000000.0, 0.1 );
 
 }
@@ -122,7 +122,7 @@ vips_mask_ideal_band_init( VipsMaskIdealBand *ideal_band )
 {
 	ideal_band->frequency_cutoff_x = 0.5;
 	ideal_band->frequency_cutoff_y = 0.5;
-	ideal_band->r = 0.1;
+	ideal_band->radius = 0.1;
 }
 
 /**
@@ -132,7 +132,7 @@ vips_mask_ideal_band_init( VipsMaskIdealBand *ideal_band )
  * @height: image size
  * @frequency_cutoff_x: position of band
  * @frequency_cutoff_y: position of band
- * @r: size of band
+ * @radius: size of band
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -152,14 +152,15 @@ vips_mask_ideal_band_init( VipsMaskIdealBand *ideal_band )
  */
 int
 vips_mask_ideal_band( VipsImage **out, int width, int height, 
-	double frequency_cutoff_x, double frequency_cutoff_y, double r, ... )
+	double frequency_cutoff_x, double frequency_cutoff_y, 
+	double radius, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, r );
+	va_start( ap, radius );
 	result = vips_call_split( "mask_ideal_band", ap, out, width, height, 
-		frequency_cutoff_x, frequency_cutoff_y, r );
+		frequency_cutoff_x, frequency_cutoff_y, radius );
 	va_end( ap );
 
 	return( result );

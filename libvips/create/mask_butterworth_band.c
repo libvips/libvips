@@ -57,7 +57,7 @@ typedef struct _VipsMaskButterworthBand {
 	double order;
 	double frequency_cutoff_x;
 	double frequency_cutoff_y;
-	double r;
+	double radius;
 	double amplitude_cutoff;
 
 } VipsMaskButterworthBand;
@@ -76,7 +76,7 @@ vips_mask_butterworth_band_point( VipsMask *mask,
 	double order = butterworth_band->order;
 	double fcx = butterworth_band->frequency_cutoff_x;
 	double fcy = butterworth_band->frequency_cutoff_y;
-	double r2 = butterworth_band->r * butterworth_band->r;
+	double r2 = butterworth_band->radius * butterworth_band->radius;
 	double ac = butterworth_band->amplitude_cutoff;
 
 	double cnst = (1.0 / ac) - 1.0;
@@ -130,11 +130,11 @@ vips_mask_butterworth_band_class_init(
 		G_STRUCT_OFFSET( VipsMaskButterworthBand, frequency_cutoff_y ),
 		0.0, 1000000.0, 0.5 );
 
-	VIPS_ARG_DOUBLE( class, "r", 9, 
-		_( "r" ), 
+	VIPS_ARG_DOUBLE( class, "radius", 9, 
+		_( "radius" ), 
 		_( "radius of circle" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsMaskButterworthBand, r ),
+		G_STRUCT_OFFSET( VipsMaskButterworthBand, radius ),
 		0.0, 1000000.0, 0.1 );
 
 	VIPS_ARG_DOUBLE( class, "amplitude_cutoff", 10, 
@@ -153,7 +153,7 @@ vips_mask_butterworth_band_init(
 	butterworth_band->order = 1.0;
 	butterworth_band->frequency_cutoff_x = 0.5;
 	butterworth_band->frequency_cutoff_y = 0.5;
-	butterworth_band->r = 0.1;
+	butterworth_band->radius = 0.1;
 	butterworth_band->amplitude_cutoff = 0.5;
 }
 
@@ -165,7 +165,7 @@ vips_mask_butterworth_band_init(
  * @order: filter order
  * @frequency_cutoff_x: band position 
  * @frequency_cutoff_y: band position
- * @r: band radius
+ * @radius: band radius
  * @amplitude_cutoff: amplitude threshold
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -178,7 +178,7 @@ vips_mask_butterworth_band_init(
  *
  * Make an butterworth band-pass or band-reject filter, that is, one with a 
  * variable, smooth transition positioned at @frequency_cutoff_x, 
- * @frequency_cutoff_y, of radius @r.
+ * @frequency_cutoff_y, of radius @radius.
  * The shape of the curve is controlled by
  * @order: higher values give a sharper transition. See Gonzalez and Wintz,
  * Digital Image Processing, 1987. 
@@ -190,7 +190,7 @@ vips_mask_butterworth_band_init(
 int
 vips_mask_butterworth_band( VipsImage **out, int width, int height, 
 	double order, double frequency_cutoff_x, double frequency_cutoff_y, 
-	double r, double amplitude_cutoff, ... )
+	double radius, double amplitude_cutoff, ... )
 {
 	va_list ap;
 	int result;
@@ -198,7 +198,7 @@ vips_mask_butterworth_band( VipsImage **out, int width, int height,
 	va_start( ap, amplitude_cutoff );
 	result = vips_call_split( "mask_butterworth_band", ap, 
 		out, width, height, 
-		order, frequency_cutoff_x, frequency_cutoff_y, r, 
+		order, frequency_cutoff_x, frequency_cutoff_y, radius, 
 		amplitude_cutoff );
 	va_end( ap );
 

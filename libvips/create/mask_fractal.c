@@ -133,7 +133,7 @@ vips_mask_fractal( VipsImage **out, int width, int height,
 	va_list ap;
 	int result;
 
-	va_start( ap, r );
+	va_start( ap, fractal_dimension );
 	result = vips_call_split( "mask_fractal", ap, out, width, height, 
 		fractal_dimension );
 	va_end( ap );

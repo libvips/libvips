@@ -48,107 +48,143 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-/* Create the final mask by copying the 1/4 of the mask held by coeff
- *  The final mask is written onto image on a line by line basis
- *  The buffer coeff should hold (xsize/2+1)*(ysize/2+1) elms
- *  The created mask is not rotated; so the center is at (0, 0)
- */
-static int 
-copy_quarter( IMAGE *out, float *coeff_s )
-{
-	float *line, *cpline;
-	float *coeff, *cpcoeff;
-	int x, y;
-	int hxsplus1;
-	
-	if( !(line = IM_ARRAY( out, out->Xsize, float )) )
-		return( -1 );
-
-	hxsplus1 = out->Xsize/2 + 1;
-	coeff = coeff_s;
-        for( y = 0; y < out->Ysize/2; y++ ) {
-                cpline = line;
-                cpcoeff = coeff; coeff += hxsplus1;
-
-                for( x = 0; x < out->Xsize/2; x++ )
-                        *cpline++ = *cpcoeff++;
-                for( x = out->Xsize/2; x < out->Xsize; x++ )
-                        *cpline++ = *cpcoeff--;
-                if( im_writeline( y, out, (VipsPel *) line ) )
-                        return( -1 );
-	}
-
-        for( y = out->Ysize/2; y < out->Ysize; y++ ) {
-                cpline = line;
-                cpcoeff = coeff; coeff -= hxsplus1;
-
-                for( x = 0; x < out->Xsize/2; x++ )
-                        *cpline++ = *cpcoeff++;
-                for( x = out->Xsize/2; x < out->Xsize; x++ )
-                        *cpline++ = *cpcoeff--;
-                if( im_writeline( y, out, (VipsPel *) line ) )
-                        return( -1 );
-	}
-
-	return( 0 );
-}
-
 /* Make a mask image.
  */
 static int 
-build_freq_mask( IMAGE *out, int xs, int ys, VipsMaskType flag, va_list ap )
+build_freq_mask( IMAGE *out, int xs, int ys, ImMaskType flag, va_list ap )
 {
-	float *coeff;
-	extern float *im__create_quarter( IMAGE *, 
-		int, int, VipsMaskType, va_list );
-
-	/* Check sizes and create one quarter of the final mask 
+	/* May be fewer than 4 args ... but extract them all anyway. Should be
+	 * safe.
 	 */
-	if( !im_ispoweroftwo( xs ) || !im_ispoweroftwo( ys ) ) {
-		im_error( "im_freq_mask", "%s", 
-			_( "mask sizes power of 2 only" ) );
-		return( -1 );
-	}
+	double p0 = va_arg( ap, double );
+	double p1 = va_arg( ap, double );
+	double p2 = va_arg( ap, double );
+	double p3 = va_arg( ap, double );
+	double p4 = va_arg( ap, double );
 
-	/* Create the output image.
-	 */
-        im_initdesc( out, xs, ys, 1, IM_BBITS_FLOAT, IM_BANDFMT_FLOAT,
-		IM_CODING_NONE, IM_TYPE_B_W, 1.0, 1.0, 0, 0 );
-        if( im_setupout( out ) )
-                return( -1 );
+	VipsImage *t;
 
 	switch( flag ) {
-	case VIPS_MASK_IDEAL_HIGHPASS:
-	case VIPS_MASK_IDEAL_LOWPASS:
-	case VIPS_MASK_BUTTERWORTH_HIGHPASS:
-	case VIPS_MASK_BUTTERWORTH_LOWPASS:
-	case VIPS_MASK_GAUSS_HIGHPASS:
-	case VIPS_MASK_GAUSS_LOWPASS:
-
-	case VIPS_MASK_IDEAL_RINGPASS:
-	case VIPS_MASK_IDEAL_RINGREJECT:
-	case VIPS_MASK_BUTTERWORTH_RINGPASS:
-	case VIPS_MASK_BUTTERWORTH_RINGREJECT:
-	case VIPS_MASK_GAUSS_RINGPASS:
-	case VIPS_MASK_GAUSS_RINGREJECT:
-
-	case VIPS_MASK_FRACTAL_FLT:
-		/* All these are created as a quarter and duplicated.
-		 */
-		if( !(coeff = im__create_quarter( out, xs, ys, flag, ap )) ||
-			copy_quarter( out, coeff ) )
+	case IM_MASK_IDEAL_HIGHPASS:
+		if( vips_mask_ideal( &t, xs, ys, p0,
+			"reject", TRUE, 
+			NULL ) )
 			return( -1 );
 		break;
 
-	case VIPS_MASK_IDEAL_BANDPASS:
-	case VIPS_MASK_IDEAL_BANDREJECT:
-	case VIPS_MASK_BUTTERWORTH_BANDPASS:
-	case VIPS_MASK_BUTTERWORTH_BANDREJECT:
-	case VIPS_MASK_GAUSS_BANDPASS:
-	case VIPS_MASK_GAUSS_BANDREJECT:
-		/* Created all in one go.
-		 */
-		if( im__fmaskcir( out, flag, ap ) )
+	case IM_MASK_IDEAL_LOWPASS:
+		if( vips_mask_ideal( &t, xs, ys, p0,
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_BUTTERWORTH_HIGHPASS:
+		if( vips_mask_butterworth( &t, xs, ys, p0, p1, p2,
+			"reject", TRUE, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_BUTTERWORTH_LOWPASS:
+		if( vips_mask_butterworth( &t, xs, ys, p0, p1, p2,
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_GAUSS_HIGHPASS:
+		if( vips_mask_gaussian( &t, xs, ys, p0, p1, 
+			"reject", TRUE, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_GAUSS_LOWPASS:
+		if( vips_mask_gaussian( &t, xs, ys, p0, p1, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_IDEAL_RINGPASS:
+		if( vips_mask_ideal_ring( &t, xs, ys, p0, p1, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_IDEAL_RINGREJECT:
+		if( vips_mask_ideal_ring( &t, xs, ys, p0, p1, 
+			"reject", TRUE, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_BUTTERWORTH_RINGPASS:
+		if( vips_mask_butterworth_ring( &t, xs, ys, p0, p1, p2, p3,
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_BUTTERWORTH_RINGREJECT:
+		if( vips_mask_butterworth_ring( &t, xs, ys, p0, p1, p2, p3,
+			"reject", TRUE, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_GAUSS_RINGPASS:
+		if( vips_mask_gaussian_ring( &t, xs, ys, p0, p1, p2, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_GAUSS_RINGREJECT:
+		if( vips_mask_gaussian_ring( &t, xs, ys, p0, p1, p2, 
+			"reject", TRUE, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_FRACTAL_FLT:
+		if( vips_mask_fractal( &t, xs, ys, p0, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_IDEAL_BANDPASS:
+		if( vips_mask_ideal_band( &t, xs, ys, p0, p1, p2, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_IDEAL_BANDREJECT:
+		if( vips_mask_ideal_band( &t, xs, ys, p0, p1, p2, 
+			"reject", TRUE, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_BUTTERWORTH_BANDPASS:
+		if( vips_mask_butterworth_band( &t, xs, ys, p0, p1, p2, p3, p4,
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_BUTTERWORTH_BANDREJECT:
+		if( vips_mask_butterworth_band( &t, xs, ys, p0, p1, p2, p3, p4,
+			"reject", TRUE, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_GAUSS_BANDPASS:
+		if( vips_mask_gaussian_band( &t, xs, ys, p0, p1, p2, p3, 
+			NULL ) )
+			return( -1 );
+		break;
+
+	case IM_MASK_GAUSS_BANDREJECT:
+		if( vips_mask_gaussian_band( &t, xs, ys, p0, p1, p2, p3, 
+			"reject", TRUE, 
+			NULL ) )
 			return( -1 );
 		break;
 
@@ -156,6 +192,12 @@ build_freq_mask( IMAGE *out, int xs, int ys, VipsMaskType flag, va_list ap )
 	       im_error( "im_freq_mask", "%s", _( "unimplemented mask type" ) );
 	       return( -1 );
 	}
+
+	if( im_copy( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
 
 	return( 0 );
 }
@@ -175,7 +217,7 @@ build_freq_mask( IMAGE *out, int xs, int ys, VipsMaskType flag, va_list ap )
  * Returns: 0 on success, -1 on error
  */
 int 
-im_flt_image_freq( IMAGE *in, IMAGE *out, VipsMaskType flag, ... )
+im_flt_image_freq( IMAGE *in, IMAGE *out, ImMaskType flag, ... )
 {
         IMAGE *mask = im_open_local( out, "tempmask", "p" );
 	va_list ap;
@@ -196,179 +238,8 @@ im_flt_image_freq( IMAGE *in, IMAGE *out, VipsMaskType flag, ... )
         return( 0 );
 }
 
-/**
- * im_create_fmask:
- * @out: image to write to
- * @xsize: image size
- * @ysize: image size
- * @flag: mask type
- * @Varargs: mask parameters
- *
- * This operation creates a one-band float image of the specified size. The
- * image must be square, and the sides must be a power of two. The image has
- * values in the range [0, 1] and is typically used for multiplying against 
- * frequency domain images to filter them.
- *
- * All masks are created with the DC component at (0, 0), so you might want to
- * rotate the quadrants with im_rotquad() before viewing. The DC pixel always
- * has the value 1.0.
- *
- * The value of @flag sets the type pf mask created, and extra parameters set
- * the exact mask shape. All extra parameters are doubles. This table 
- * summarises the possible values:
- *
- * <table>
- *   <title>Parameters for im_create_fmask()</title>
- *   <tgroup cols='2' align='left' colsep='1' rowsep='1'>
- *     <thead>
- *       <row>
- *         <entry>#VipsMaskType</entry>
- *         <entry>nargs</entry>
- *         <entry>Parameters (all double)</entry>
- *       </row>
- *     </thead>
- *     <tbody>
- *       <row>
- *         <entry>#VIPS_MASK_IDEAL_HIGHPASS</entry>
- *         <entry>1</entry>
- *         <entry>frequency_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_IDEAL_LOWPASS</entry>
- *         <entry>1</entry>
- *         <entry>frequency_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_BUTTERWORTH_HIGHPASS</entry>
- *         <entry>3</entry>
- *         <entry>order, frequency_cutoff, amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_BUTTERWORTH_LOWPASS</entry>
- *         <entry>3</entry>
- *         <entry>order, frequency_cutoff, amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_GAUSS_HIGHPASS</entry>
- *         <entry>2</entry>
- *         <entry>frequency_cutoff, amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_GAUSS_LOWPASS</entry>
- *         <entry>2</entry>
- *         <entry>frequency_cutoff, amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_IDEAL_RINGPASS</entry>
- *         <entry>2</entry>
- *         <entry>frequency_cutoff, width</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_IDEAL_RINGREJECT</entry>
- *         <entry>2</entry>
- *         <entry>frequency_cutoff, width</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_BUTTERWORTH_RINGPASS</entry>
- *         <entry>4</entry>
- *         <entry>order, frequency_cutoff, width, amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_BUTTERWORTH_RINGREJECT</entry>
- *         <entry>4</entry>
- *         <entry>order, frequency_cutoff, width, amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_GAUSS_RINGPASS</entry>
- *         <entry>3</entry>
- *         <entry>frequency_cutoff, width, amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_GAUSS_RINGREJECT</entry>
- *         <entry>3</entry>
- *         <entry>frequency_cutoff, width, amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_IDEAL_BANDPASS</entry>
- *         <entry>3</entry>
- *         <entry>frequency_cutoffx, frequency_cutoffy, radius</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_IDEAL_BANDREJECT</entry>
- *         <entry>3</entry>
- *         <entry>frequency_cutoffx, frequency_cutoffy, radius</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_BUTTERWORTH_BANDPASS</entry>
- *         <entry>5</entry>
- *         <entry>order, frequency_cutoffx, frequency_cutoffy, radius,
- *         amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_BUTTERWORTH_BANDREJECT</entry>
- *         <entry>5</entry>
- *         <entry>order, frequency_cutoffx, frequency_cutoffy, radius,
- *         amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_GAUSS_BANDPASS</entry>
- *         <entry>4</entry>
- *         <entry>frequency_cutoffx, frequency_cutoffy, radius, 
- *         amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_GAUSS_BANDREJECT</entry>
- *         <entry>4</entry>
- *         <entry>frequency_cutoffx, frequency_cutoffy, radius, 
- *         amplitude_cutoff</entry>
- *       </row>
- *       <row>
- *         <entry>#VIPS_MASK_FRACTAL_FLT</entry>
- *         <entry>1</entry>
- *         <entry>fractal_dimension</entry>
- *       </row>
- *     </tbody>
- *   </tgroup>
- * </table>
- *
- * Unless noted below, all parameters are expressed as percentages, scaled to
- * [0, 1].
- *
- * <emphasis>High-pass, low-pass masks:</emphasis> A high pass filter 
- * mask filters the low frequencies while allowing the high frequencies to 
- * get through.  The reverse happens with a low pass filter mask.  
- *
- * <emphasis>Ring-pass, ring-reject masks:</emphasis> A ring filter passes or
- * rejects a range of frequencies. The range is specified by the
- * @frequency_cutoff and the @width.
- * 
- * <emphasis>Band-pass, band-reject masks:</emphasis> These masks are used to
- * pass or remove spatial frequencies around a given frequency. The position
- * of the frequency to pass or remove is given by @frequency_cutoffx and
- * @frequency_cutoffy. The size of the region around the point is given by
- * @radius.
- *
- * <emphasis>Ideal filters:</emphasis> These filters pass or reject
- * frequencies with a sharp cutoff at the transition.
- *
- * <emphasis>Butterworth filters:</emphasis> These filters use a Butterworth
- * function to separate the frequencies (see Gonzalez and Wintz, Digital
- * Image Processing, 1987). The shape of the curve is controlled by @order:
- * higher values give a sharper transition.
- *
- * <emphasis>Gaussian filters:</emphasis> These filters have a smooth Gaussian
- * shape, controlled by @amplitude_cutoff.
- *
- * <emphasis>VIPS_MASK_FRACTAL_FLT:</emphasis> This mask is handy for
- * filtering images of gaussian noise in order to create surfaces of a given
- * fractal dimension. @fractal_dimension should be between 2 and 3.
- *
- * See also: im_flt_image_freq(), im_rotquad(), 
- *
- * Returns: 0 on success, -1 on error
- */
-int 
-im_create_fmask( IMAGE *out, int xsize, int ysize, VipsMaskType flag, ... )
+int
+im_create_fmask( IMAGE *out, int xsize, int ysize, ImMaskType flag, ... )
 {
 	va_list ap;
 

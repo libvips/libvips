@@ -261,8 +261,6 @@ int *im_offsets45( int size );
 int im_conv_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
 int im_convsep_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
 
-int im__fmaskcir( VipsImage *out, VipsMaskType flag, va_list ap );
-
 /* inplace
  */
 
