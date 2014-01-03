@@ -49,26 +49,26 @@
 
 #include "pcreate.h"
 #include "point.h"
-#include "ffilter.h"
+#include "pmask.h"
 
-typedef struct _VipsFfilterGaussianRing {
-	VipsFfilterGaussian parent_instance;
+typedef struct _VipsMaskGaussianRing {
+	VipsMaskGaussian parent_instance;
 
 	double ringwidth;
 
-} VipsFfilterGaussianRing;
+} VipsMaskGaussianRing;
 
-typedef VipsFfilterGaussianClass VipsFfilterGaussianRingClass;
+typedef VipsMaskGaussianClass VipsMaskGaussianRingClass;
 
-G_DEFINE_TYPE( VipsFfilterGaussianRing, vips_ffilter_gaussian_ring, 
-	VIPS_TYPE_FFILTER_GAUSSIAN );
+G_DEFINE_TYPE( VipsMaskGaussianRing, vips_mask_gaussian_ring, 
+	VIPS_TYPE_MASK_GAUSSIAN );
 
 static double
-vips_ffilter_gaussian_ring_point( VipsFfilter *ffilter, double dx, double dy ) 
+vips_mask_gaussian_ring_point( VipsMask *mask, double dx, double dy ) 
 {
-	VipsFfilterGaussian *gaussian = (VipsFfilterGaussian *) ffilter;
-	VipsFfilterGaussianRing *gaussian_ring = 
-		(VipsFfilterGaussianRing *) ffilter;
+	VipsMaskGaussian *gaussian = (VipsMaskGaussian *) mask;
+	VipsMaskGaussianRing *gaussian_ring = 
+		(VipsMaskGaussianRing *) mask;
 
 	double fc = gaussian->frequency_cutoff;
 	double ac = gaussian->amplitude_cutoff;
@@ -83,37 +83,37 @@ vips_ffilter_gaussian_ring_point( VipsFfilter *ffilter, double dx, double dy )
 }
 
 static void
-vips_ffilter_gaussian_ring_class_init( VipsFfilterGaussianRingClass *class )
+vips_mask_gaussian_ring_class_init( VipsMaskGaussianRingClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsFfilterClass *ffilter_class = VIPS_FFILTER_CLASS( class );
+	VipsMaskClass *mask_class = VIPS_MASK_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "ffilter_gaussian_ring";
+	vobject_class->nickname = "mask_gaussian_ring";
 	vobject_class->description = _( "make a gaussian ring filter" );
 
-	ffilter_class->point = vips_ffilter_gaussian_ring_point;
+	mask_class->point = vips_mask_gaussian_ring_point;
 
 	VIPS_ARG_DOUBLE( class, "ringwidth", 20, 
 		_( "Ringwidth" ), 
 		_( "Ringwidth" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsFfilterGaussianRing, ringwidth ),
+		G_STRUCT_OFFSET( VipsMaskGaussianRing, ringwidth ),
 		0.0, 1000000.0, 0.5 );
 
 }
 
 static void
-vips_ffilter_gaussian_ring_init( VipsFfilterGaussianRing *gaussian_ring )
+vips_mask_gaussian_ring_init( VipsMaskGaussianRing *gaussian_ring )
 {
 	gaussian_ring->ringwidth = 0.5;
 }
 
 /**
- * vips_ffilter_gaussian_ring:
+ * vips_mask_gaussian_ring:
  * @out: output image
  * @width: image size
  * @height: image size
@@ -133,14 +133,14 @@ vips_ffilter_gaussian_ring_init( VipsFfilterGaussianRing *gaussian_ring )
  * variable, smooth transition positioned at @frequency_cutoff of width
  * @ringwidth. 
  *
- * For other arguments, see vips_ffilter_ideal().
+ * For other arguments, see vips_mask_ideal().
  *
- * See also: vips_ffilter_butterworth_ring(), vips_ffilter_ideal_ring(). 
+ * See also: vips_mask_butterworth_ring(), vips_mask_ideal_ring(). 
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_ffilter_gaussian_ring( VipsImage **out, int width, int height, 
+vips_mask_gaussian_ring( VipsImage **out, int width, int height, 
 	double frequency_cutoff, double amplitude_cutoff, double ringwidth, 
 	... )
 {
@@ -148,7 +148,7 @@ vips_ffilter_gaussian_ring( VipsImage **out, int width, int height,
 	int result;
 
 	va_start( ap, ringwidth );
-	result = vips_call_split( "ffilter_gaussian_ring", 
+	result = vips_call_split( "mask_gaussian_ring", 
 		ap, out, width, height, 
 		frequency_cutoff, amplitude_cutoff, ringwidth );
 	va_end( ap );

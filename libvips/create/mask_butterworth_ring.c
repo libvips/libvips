@@ -49,28 +49,28 @@
 
 #include "pcreate.h"
 #include "point.h"
-#include "ffilter.h"
+#include "pmask.h"
 
-typedef struct _VipsFfilterButterworthRing {
-	VipsFfilterButterworth parent_instance;
+typedef struct _VipsMaskButterworthRing {
+	VipsMaskButterworth parent_instance;
 
 	double ringwidth;
 
-} VipsFfilterButterworthRing;
+} VipsMaskButterworthRing;
 
-typedef VipsFfilterButterworthClass VipsFfilterButterworthRingClass;
+typedef VipsMaskButterworthClass VipsMaskButterworthRingClass;
 
-G_DEFINE_TYPE( VipsFfilterButterworthRing, vips_ffilter_butterworth_ring, 
-	VIPS_TYPE_FFILTER_BUTTERWORTH );
+G_DEFINE_TYPE( VipsMaskButterworthRing, vips_mask_butterworth_ring, 
+	VIPS_TYPE_MASK_BUTTERWORTH );
 
 static double
-vips_ffilter_butterworth_ring_point( VipsFfilter *ffilter, 
+vips_mask_butterworth_ring_point( VipsMask *mask, 
 	double dx, double dy ) 
 {
-	VipsFfilterButterworth *butterworth = 
-		(VipsFfilterButterworth *) ffilter;
-	VipsFfilterButterworthRing *butterworth_ring = 
-		(VipsFfilterButterworthRing *) ffilter;
+	VipsMaskButterworth *butterworth = 
+		(VipsMaskButterworth *) mask;
+	VipsMaskButterworthRing *butterworth_ring = 
+		(VipsMaskButterworthRing *) mask;
 
 	double order = butterworth->order;
 	double fc = butterworth->frequency_cutoff;
@@ -87,39 +87,39 @@ vips_ffilter_butterworth_ring_point( VipsFfilter *ffilter,
 }
 
 static void
-vips_ffilter_butterworth_ring_class_init( 
-	VipsFfilterButterworthRingClass *class )
+vips_mask_butterworth_ring_class_init( 
+	VipsMaskButterworthRingClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsFfilterClass *ffilter_class = VIPS_FFILTER_CLASS( class );
+	VipsMaskClass *mask_class = VIPS_MASK_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "ffilter_butterworth_ring";
+	vobject_class->nickname = "mask_butterworth_ring";
 	vobject_class->description = _( "make a butterworth ring filter" );
 
-	ffilter_class->point = vips_ffilter_butterworth_ring_point;
+	mask_class->point = vips_mask_butterworth_ring_point;
 
 	VIPS_ARG_DOUBLE( class, "ringwidth", 20, 
 		_( "Ringwidth" ), 
 		_( "Ringwidth" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsFfilterButterworthRing, ringwidth ),
+		G_STRUCT_OFFSET( VipsMaskButterworthRing, ringwidth ),
 		0.0, 1000000.0, 0.1 );
 
 }
 
 static void
-vips_ffilter_butterworth_ring_init( 
-	VipsFfilterButterworthRing *butterworth_ring )
+vips_mask_butterworth_ring_init( 
+	VipsMaskButterworthRing *butterworth_ring )
 {
 	butterworth_ring->ringwidth = 0.1;
 }
 
 /**
- * vips_ffilter_butterworth_ring:
+ * vips_mask_butterworth_ring:
  * @out: output image
  * @width: image size
  * @height: image size
@@ -144,14 +144,14 @@ vips_ffilter_butterworth_ring_init(
  * @order: higher values give a sharper transition. See Gonzalez and Wintz,
  * Digital Image Processing, 1987. 
  *
- * For other arguments, see vips_ffilter_ideal().
+ * For other arguments, see vips_mask_ideal().
  *
- * See also: vips_ffilter_gaussian(), vips_ffilter_ideal(). 
+ * See also: vips_mask_gaussian(), vips_mask_ideal(). 
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_ffilter_butterworth_ring( VipsImage **out, int width, int height, 
+vips_mask_butterworth_ring( VipsImage **out, int width, int height, 
 	double order, double frequency_cutoff, double amplitude_cutoff, 
 	double ringwidth, ... )
 {
@@ -159,7 +159,7 @@ vips_ffilter_butterworth_ring( VipsImage **out, int width, int height,
 	int result;
 
 	va_start( ap, ringwidth );
-	result = vips_call_split( "ffilter_butterworth_ring", ap, 
+	result = vips_call_split( "mask_butterworth_ring", ap, 
 		out, width, height, 
 		order, frequency_cutoff, amplitude_cutoff, ringwidth );
 	va_end( ap );

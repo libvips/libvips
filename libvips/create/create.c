@@ -49,7 +49,7 @@
 
 #include "pcreate.h"
 #include "point.h"
-#include "ffilter.h"
+#include "pmask.h"
 
 /** 
  * SECTION: create
@@ -128,11 +128,11 @@ vips_create_operation_init( void )
 	extern GType vips_invertlut_get_type( void ); 
 	extern GType vips_tonelut_get_type( void ); 
 	extern GType vips_identity_get_type( void ); 
-	extern GType vips_ffilter_butterworth_ring_get_type( void ); 
-	extern GType vips_ffilter_butterworth_band_get_type( void ); 
-	extern GType vips_ffilter_gaussian_ring_get_type( void ); 
-	extern GType vips_ffilter_ideal_ring_get_type( void ); 
-	extern GType vips_ffilter_ideal_band_get_type( void ); 
+	extern GType vips_mask_butterworth_ring_get_type( void ); 
+	extern GType vips_mask_butterworth_band_get_type( void ); 
+	extern GType vips_mask_gaussian_ring_get_type( void ); 
+	extern GType vips_mask_ideal_ring_get_type( void ); 
+	extern GType vips_mask_ideal_band_get_type( void ); 
 
 	vips_black_get_type();
 	vips_gaussmat_get_type();
@@ -150,13 +150,13 @@ vips_create_operation_init( void )
 	vips_invertlut_get_type(); 
 	vips_tonelut_get_type(); 
 	vips_identity_get_type(); 
-	vips_ffilter_ideal_get_type(); 
-	vips_ffilter_ideal_ring_get_type(); 
-	vips_ffilter_ideal_band_get_type(); 
-	vips_ffilter_butterworth_get_type(); 
-	vips_ffilter_butterworth_ring_get_type(); 
-	vips_ffilter_butterworth_band_get_type(); 
-	vips_ffilter_gaussian_get_type(); 
-	vips_ffilter_gaussian_ring_get_type(); 
+	vips_mask_ideal_get_type(); 
+	vips_mask_ideal_ring_get_type(); 
+	vips_mask_ideal_band_get_type(); 
+	vips_mask_butterworth_get_type(); 
+	vips_mask_butterworth_ring_get_type(); 
+	vips_mask_butterworth_band_get_type(); 
+	vips_mask_gaussian_get_type(); 
+	vips_mask_gaussian_ring_get_type(); 
 }
 

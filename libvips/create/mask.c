@@ -49,15 +49,15 @@
 
 #include "pcreate.h"
 #include "point.h"
-#include "ffilter.h"
+#include "pmask.h"
 
-G_DEFINE_ABSTRACT_TYPE( VipsFfilter, vips_ffilter, VIPS_TYPE_POINT );
+G_DEFINE_ABSTRACT_TYPE( VipsMask, vips_mask, VIPS_TYPE_POINT );
 
 static float
-vips_ffilter_point( VipsPoint *point, int x, int y )
+vips_mask_point( VipsPoint *point, int x, int y )
 {
-	VipsFfilter *ffilter = VIPS_FFILTER( point ); 
-	VipsFfilterClass *class = VIPS_FFILTER_GET_CLASS( point ); 
+	VipsMask *mask = VIPS_MASK( point ); 
+	VipsMaskClass *class = VIPS_MASK_GET_CLASS( point ); 
 	int half_width = point->width / 2;
 	int half_height = point->height / 2;
 
@@ -65,7 +65,7 @@ vips_ffilter_point( VipsPoint *point, int x, int y )
 
 	/* Move centre for an optical transform mask.
 	 */
-	if( !ffilter->optical ) {
+	if( !mask->optical ) {
 		x = (x + half_width) % point->width;
 		y = (y + half_height) % point->height;
 	}
@@ -73,7 +73,7 @@ vips_ffilter_point( VipsPoint *point, int x, int y )
 	x = x - half_width;
 	y = y - half_height;
 
-	if( !ffilter->nodc && 
+	if( !mask->nodc && 
 		x == 0 &&
 		y == 0 )
 		/* DC component is always 1.
@@ -85,12 +85,12 @@ vips_ffilter_point( VipsPoint *point, int x, int y )
 		dx = (double) x / half_width;
 		dy = (double) y / half_height;
 
-		result = class->point( ffilter, dx, dy );
+		result = class->point( mask, dx, dy );
 
 		/* Invert filter sense for a highpass filter, or to swap
 		 * band-pass for band-reject. 
 		 */
-		if( ffilter->reject )
+		if( mask->reject )
 			result = 1.0 - result;
 	}
 
@@ -98,7 +98,7 @@ vips_ffilter_point( VipsPoint *point, int x, int y )
 }
 
 static void
-vips_ffilter_class_init( VipsFfilterClass *class )
+vips_mask_class_init( VipsMaskClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -107,10 +107,10 @@ vips_ffilter_class_init( VipsFfilterClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "ffilter";
+	vobject_class->nickname = "mask";
 	vobject_class->description = _( "base class for frequency filters" );
 
-	point_class->point = vips_ffilter_point;
+	point_class->point = vips_mask_point;
 	point_class->min = 0.0; 
 	point_class->max = 1.0; 
 	point_class->interpretation = VIPS_INTERPRETATION_FOURIER;
@@ -119,27 +119,27 @@ vips_ffilter_class_init( VipsFfilterClass *class )
 		_( "Optical" ), 
 		_( "Rotate quadrants to optical space" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFfilter, optical ),
+		G_STRUCT_OFFSET( VipsMask, optical ),
 		FALSE ); 
 
 	VIPS_ARG_BOOL( class, "reject", 6, 
 		_( "Reject" ), 
 		_( "Invert the sense of the filter" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFfilter, reject ),
+		G_STRUCT_OFFSET( VipsMask, reject ),
 		FALSE ); 
 
 	VIPS_ARG_BOOL( class, "nodc", 6, 
 		_( "Nodc" ), 
 		_( "Remove DC component" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsFfilter, nodc ),
+		G_STRUCT_OFFSET( VipsMask, nodc ),
 		FALSE ); 
 
 }
 
 static void
-vips_ffilter_init( VipsFfilter *ffilter )
+vips_mask_init( VipsMask *mask )
 {
 }
 

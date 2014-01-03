@@ -7,6 +7,9 @@
 
 - still need to do gaussian band filter
 
+- VipsMaskType needs to be renamed back to the vips7 name and deprecated,
+  remove compat macros from freq_flt.h
+
 - new_heart.ws fails with libvips master
 
 	has the sharing fix resolved this?

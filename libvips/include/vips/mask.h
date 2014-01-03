@@ -59,7 +59,7 @@ typedef struct im__DOUBLEMASK {
 	char *filename;
 } DOUBLEMASK;
 
-#define VIPS_MASK( M, X, Y ) ((M)->coeff[(X) + (Y) * (M)->xsize])
+#define IM_MASK( M, X, Y ) ((M)->coeff[(X) + (Y) * (M)->xsize])
 
 INTMASK *im_create_imask( const char *filename, int xsize, int ysize );
 INTMASK *im_create_imaskv( const char *filename, int xsize, int ysize, ... );

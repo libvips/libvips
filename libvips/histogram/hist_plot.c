@@ -105,8 +105,8 @@ plotalise( IMAGE *in, IMAGE *out )
 
 		if( !(stats = im_stats( in )) )
 			return( -1 );
-		min = VIPS_MASK( stats, 0, 0 );
-		max = VIPS_MASK( stats, 1, 0 );
+		min = IM_MASK( stats, 0, 0 );
+		max = IM_MASK( stats, 1, 0 );
 		im_free_dmask( stats );
 
 		if( im_lintra( any / (max - min), in, 
