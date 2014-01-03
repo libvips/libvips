@@ -105,6 +105,7 @@ void vips__cache_init( void );
 void vips__type_leak( void );
 
 typedef int (*im__fftproc_fn)( VipsImage *, VipsImage *, VipsImage * );
+int im__fftproc( IMAGE *dummy, IMAGE *in, IMAGE *out, im__fftproc_fn fn );
 
 /* iofuncs
  */
@@ -200,9 +201,6 @@ int im__colour_unary( const char *domain,
 VipsImage **im__insert_base( const char *domain, 
 	VipsImage *in1, VipsImage *in2, VipsImage *out );
 
-int im__fftproc( VipsImage *dummy, 
-	VipsImage *in, VipsImage *out, im__fftproc_fn fn );
-
 int im__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
         int bandno_in,
         int xref, int yref, int xsec, int ysec,
@@ -287,6 +285,7 @@ void vips_resample_operation_init( void );
 void vips_foreign_operation_init( void );
 void vips_colour_operation_init( void );
 void vips_histogram_operation_init( void );
+void vips_freqfilt_operation_init( void );
 
 guint64 vips__parse_size( const char *size_string );
 

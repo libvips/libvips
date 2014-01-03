@@ -1,6 +1,4 @@
-/* im_fwfft
- *
- * Copyright: 1990, N. Dessipris.
+/* forward FFT
  *
  * Author: Nicos Dessipris 
  * Written on: 12/04/1990
@@ -37,6 +35,8 @@
  * 	- remove own fft fallback code
  * 	- remove fftw2 path
  * 	- reduce memuse
+ * 3/1/14
+ * 	- redone as a class
  */
 
 /*
@@ -72,26 +72,36 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
-#include <math.h>
-
-#ifdef HAVE_FFTW
-#include <fftw3.h>
-#endif /*HAVE_FFTW*/
+#include <stdlib.h>
 
 #include <vips/vips.h>
-#include <vips/internal.h>
+#include "pfreqfilt.h"
 
 #ifdef HAVE_FFTW
+
+#include <fftw3.h>
+
+typedef struct _VipsFwfft {
+	VipsFreqfilt parent_instance;
+
+	VipsImage *in;
+} VipsFwfft;
+
+typedef VipsFreqfiltClass VipsFwfftClass;
+
+G_DEFINE_TYPE( VipsFwfft, vips_fwfft, VIPS_TYPE_FREQFILT );
 
 /* Real to complex forward transform.
  */
 static int 
-rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
+rfwfft1( VipsFwfft *fwfft, VipsImage *in, VipsImage **out )
 {
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( fwfft ), 4 );
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( fwfft );
 	const guint64 size = VIPS_IMAGE_N_PELS( in );
 	const int half_width = in->Xsize / 2 + 1;
 
-	IMAGE *real;
 	double *half_complex;
 	double *planner_scratch;
 
@@ -99,55 +109,50 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 	double *buf, *q, *p;
 	int x, y;
 
-	if( vips_check_mono( "im_fwfft", in ) ||
-		vips_check_uncoded( "im_fwfft", in ) )
+	if( vips_check_mono( class->nickname, in ) ||
+		vips_check_uncoded( class->nickname, in ) )
                 return( -1 );
 
 	/* Convert input to a real double membuffer.
 	 */
-	if( !(real = im_open_local( dummy, "fwfft1:1", "t" )) ||
-		im_clip2fmt( in, real, IM_BANDFMT_DOUBLE ) )
-                return( -1 );
+	t[1] = vips_image_new_buffer();
+	if( vips_cast_double( in, &t[0], NULL ) ||
+		vips_image_write( t[0], t[1] ) ); 
 
 	/* Make the plan for the transform. Yes, they really do use nx for
 	 * height and ny for width. Use a separate scratch buffer for the
 	 * planner, we can't overwrite real->data
 	 */
-	if( !(planner_scratch = IM_ARRAY( dummy, 
+	if( !(planner_scratch = VIPS_ARRAY( fwfft, 
 		VIPS_IMAGE_N_PELS( in ), double )) )
 		return( -1 );
-	if( !(half_complex = IM_ARRAY( dummy, 
+	if( !(half_complex = VIPS_ARRAY( fwfft, 
 		in->Ysize * half_width * 2, double )) )
 		return( -1 );
 	if( !(plan = fftw_plan_dft_r2c_2d( in->Ysize, in->Xsize,
 		planner_scratch, (fftw_complex *) half_complex,
 		0 )) ) {
-                im_error( "im_fwfft", 
+                vips_error( class->nickname, 
 			"%s", _( "unable to create transform plan" ) );
 		return( -1 );
 	}
 
-	if( im_incheck( real ) )
-		return( -1 );
 	fftw_execute_dft_r2c( plan,
-		(double *) real->data, (fftw_complex *) half_complex );
+		(double *) t[1]->data, (fftw_complex *) half_complex );
 
 	fftw_destroy_plan( plan );
 
-	/* WIO to out.
+	/* Write to out as another memory buffer. 
 	 */
-	if( im_outcheck( out ) ||
-		im_cp_desc( out, in ) )
+	*out = vips_image_new_buffer();
+	if( vips_image_pipelinev( *out, VIPS_DEMAND_STYLE_ANY, in, NULL ) )
                 return( -1 );
-	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
-	out->Type = IM_TYPE_FOURIER;
-        if( im_setupout( out ) )
-                return( -1 );
-	if( !(buf = (double *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
+	(*out)->BandFmt = VIPS_FORMAT_DPCOMPLEX;
+	(*out)->Type = VIPS_INTERPRETATION_FOURIER;
+	if( !(buf = VIPS_ARRAY( fwfft, VIPS_IMAGE_N_PELS( *out ), double )) )
 		return( -1 );
 
-	/* Copy to out and normalise. The right half is the up/down and 
+	/* Copy and normalise. The right half is the up/down and 
 	 * left/right flip of the left, but conjugated. Do the first 
 	 * row separately, then mirror around the centre row.
 	 */
@@ -163,17 +168,17 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 
 	p = half_complex + ((in->Xsize + 1) / 2 - 1) * 2; 
 
-	for( x = half_width; x < out->Xsize; x++ ) {
+	for( x = half_width; x < (*out)->Xsize; x++ ) {
 		q[0] = p[0] / size;
 		q[1] = -1.0 * p[1] / size;
 		p -= 2;
 		q += 2;
 	}
 
-	if( im_writeline( 0, out, (VipsPel *) buf ) )
+	if( vips_image_write_line( *out, 0, (VipsPel *) buf ) )
 		return( -1 );
 
-	for( y = 1; y < out->Ysize; y++ ) {
+	for( y = 1; y < (*out)->Ysize; y++ ) {
 		p = half_complex + y * half_width * 2; 
 		q = buf;
 
@@ -187,17 +192,17 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		/* Good grief. 
 		 */
 		p = half_complex + 2 *
-			((out->Ysize - y + 1) * half_width - 2 + 
+			(((*out)->Ysize - y + 1) * half_width - 2 + 
 				(in->Xsize & 1));
 
-		for( x = half_width; x < out->Xsize; x++ ) {
+		for( x = half_width; x < (*out)->Xsize; x++ ) {
 			q[0] = p[0] / size;
 			q[1] = -1.0 * p[1] / size;
 			p -= 2;
 			q += 2;
 		}
 
-		if( im_writeline( y, out, (VipsPel *) buf ) )
+		if( vips_image_write_line( *out, y, (VipsPel *) buf ) )
 			return( -1 );
 	}
 
@@ -207,27 +212,30 @@ rfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 /* Complex to complex forward transform.
  */
 static int 
-cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
+cfwfft1( VipsFwfft *fwfft, VipsImage *in, VipsImage **out )
 {
-	IMAGE *cmplx;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( fwfft ), 4 );
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( fwfft );
+
 	fftw_plan plan;
 	double *planner_scratch;
 	double *buf, *q, *p;
 	int x, y;
 
-	if( vips_check_mono( "im_fwfft", in ) ||
-		vips_check_uncoded( "im_fwfft", in ) )
+	if( vips_check_mono( class->nickname, in ) ||
+		vips_check_uncoded( class->nickname, in ) )
                 return( -1 );
 
-	/* Double-complex input.
+	/* Convert input to a complex double membuffer.
 	 */
-	if( !(cmplx = im_open_local( dummy, "fwfft1:1", "t" )) ||
-		im_clip2fmt( in, cmplx, IM_BANDFMT_DPCOMPLEX ) )
-                return( -1 );
+	t[1] = vips_image_new_buffer();
+	if( vips_cast_dpcomplex( in, &t[0], NULL ) ||
+		vips_image_write( t[0], t[1] ) ); 
 
 	/* We have to have a separate buffer for the planner to work on.
 	 */
-	if( !(planner_scratch = IM_ARRAY( dummy, 
+	if( !(planner_scratch = VIPS_ARRAY( fwfft, 
 		VIPS_IMAGE_N_PELS( in ) * 2, double )) )
 		return( -1 );
 
@@ -238,46 +246,42 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 		(fftw_complex *) planner_scratch,
 		FFTW_FORWARD, 
 		0 )) ) {
-                im_error( "im_fwfft", 
+                vips_error( class->nickname, 
 			"%s", _( "unable to create transform plan" ) );
 		return( -1 );
 	}
 
-	if( im_incheck( cmplx ) )
-		return( -1 );
 	fftw_execute_dft( plan,
-		(fftw_complex *) cmplx->data, (fftw_complex *) cmplx->data );
+		(fftw_complex *) t[1]->data, (fftw_complex *) t[1]->data );
 
 	fftw_destroy_plan( plan );
 
-	/* WIO to out.
+	/* Write to out as another memory buffer. 
 	 */
-	if( im_outcheck( out ) ||
-		im_cp_desc( out, in ) )
+	*out = vips_image_new_buffer();
+	if( vips_image_pipelinev( *out, VIPS_DEMAND_STYLE_ANY, in, NULL ) )
                 return( -1 );
-	out->BandFmt = IM_BANDFMT_DPCOMPLEX;
-	out->Type = IM_TYPE_FOURIER;
-        if( im_setupout( out ) )
-                return( -1 );
-	if( !(buf = (double *) IM_ARRAY( dummy, 
-		IM_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
+	(*out)->BandFmt = VIPS_FORMAT_DPCOMPLEX;
+	(*out)->Type = VIPS_INTERPRETATION_FOURIER;
+	if( !(buf = VIPS_ARRAY( fwfft, VIPS_IMAGE_N_PELS( *out ), double )) )
 		return( -1 );
 
 	/* Copy to out, normalise.
 	 */
-	for( p = (double *) cmplx->data, y = 0; y < out->Ysize; y++ ) {
-		guint64 size = VIPS_IMAGE_N_PELS( out );
+	p = (double *) t[1]->data;
+	for( y = 0; y < (*out)->Ysize; y++ ) {
+		guint64 size = VIPS_IMAGE_N_PELS( *out );
 
 		q = buf;
 
-		for( x = 0; x < out->Xsize; x++ ) {
+		for( x = 0; x < (*out)->Xsize; x++ ) {
 			q[0] = p[0] / size;
 			q[1] = p[1] / size;
 			p += 2;
 			q += 2;
 		}
 
-		if( im_writeline( y, out, (VipsPel *) buf ) )
+		if( vips_image_write_line( *out, y, (VipsPel *) buf ) )
 			return( -1 );
 	}
 
@@ -285,100 +289,87 @@ cfwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
 }
 
 static int 
-fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
+fwfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 {
+	VipsFwfft *fwfft = (VipsFwfft *) object;
+
 	if( vips_bandfmt_iscomplex( in->BandFmt ) )
-		return( cfwfft1( dummy, in, out ) );
+		return( cfwfft1( fwfft, in, out ) );
 	else
-		return( rfwfft1( dummy, in, out ) );
+		return( rfwfft1( fwfft, in, out ) );
 }
 
-#else 
-
-static int 
-fwfft1( IMAGE *dummy, IMAGE *in, IMAGE *out )
+static int
+vips_fwfft_build( VipsObject *object )
 {
-	im_error( "im_fwfft", 
-		"%s", _( "vips configured without FFT support" ) );
-	return( -1 );
-}
+	VipsFreqfilt *freqfilt = VIPS_FREQFILT( object );
+	VipsFwfft *fwfft = (VipsFwfft *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
-#endif 
-typedef int (*im__fftproc_fn)( VipsImage *, VipsImage *, VipsImage * );
-
-/* Transform an n-band image with a 1-band processing function.
- *
- * Memory strategy: we need memory buffers for the input and the output of
- * fftw. In some modes fftw generates only half the output and we construct
- * the rest.
- *
- * input pipeline -> 
- *   bandsplit -> 
- *     full memory image, freed when im_*fft*() exits -> 
- *       fftw ->
- *         half memory image, freed when im_*fft*() exits ->
- *           full memory image, freed when @out is freed ->
- *             partial bandjoin ->
- *               output pipeline
- *
- * im__fftproc() needs to just call im__fftproc_fn directly for 1 band images,
- * so we can't cache the output in this fn.
- */
-int 
-im__fftproc( IMAGE *dummy, IMAGE *in, IMAGE *out, im__fftproc_fn fn )
-{
-	IMAGE **bands;
-	IMAGE **fft;
-	int b;
-
-	if( in->Bands == 1 ) 
-		return( fn( dummy, in, out ) );
-
-	if( !(bands = IM_ARRAY( dummy, in->Bands, IMAGE * )) ||
-		im_open_local_array( dummy, bands, in->Bands, "bands", "p" ) )
+	if( VIPS_OBJECT_CLASS( vips_fwfft_parent_class )->
+		build( object ) )
 		return( -1 );
 
-	if( !(fft = IM_ARRAY( out, in->Bands, IMAGE * )) ||
-		im_open_local_array( out, fft, in->Bands, "fft", "p" ) )
-		return( -1 );
-
-	for( b = 0; b < in->Bands; b++ ) 
-		if( im_extract_band( in, bands[b], b ) ||
-			fn( dummy, bands[b], fft[b] ) )
-			return( -1 );
-
-	if( im_gbandjoin( fft, out, in->Bands ) )
+	if( vips__fftproc( VIPS_OBJECT( fwfft ), fwfft->in, &t[0], fwfft1 ) ||
+		vips_image_write( t[0], freqfilt->out ) ) 
 		return( -1 );
 
 	return( 0 );
 }
 
+static void
+vips_fwfft_class_init( VipsFwfftClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "fwfft";
+	vobject_class->description = _( "forward FFT" );
+	vobject_class->build = vips_fwfft_build;
+
+	VIPS_ARG_IMAGE( class, "in", 0, 
+		_( "in" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsFwfft, in ) );
+
+}
+
+static void
+vips_fwfft_init( VipsFwfft *fwfft )
+{
+}
+
+#endif /*HAVE_FFTW*/
+
 /**
- * im_fwfft:
- * @in: input image
+ * vips_fwfft:
+ * @in: input image 
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Transform an image to Fourier space.
  *
  * VIPS uses the fftw Fourier Transform library. If this library was not
  * available when VIPS was configured, these functions will fail.
  *
- * See also: im_invfft(), im_disp_ps().
+ * See also: vips_invfft().
  *
  * Returns: 0 on success, -1 on error.
  */
-int 
-im_fwfft( IMAGE *in, IMAGE *out )
+int
+vips_fwfft( VipsImage *in, VipsImage **out, ... )
 {
-	IMAGE *dummy;
+	va_list ap;
+	int result;
 
-	if( !(dummy = im_open( "im_fwfft:1", "p" )) )
-		return( -1 );
-	if( im__fftproc( dummy, in, out, fwfft1 ) ) {
-		im_close( dummy );
-		return( -1 );
-	}
-	im_close( dummy );
+	va_start( ap, out );
+	result = vips_call_split( "fwfft", ap, in, out );
+	va_end( ap );
 
-	return( 0 );
+	return( result );
 }
+
