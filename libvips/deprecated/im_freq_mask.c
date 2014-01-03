@@ -202,20 +202,6 @@ build_freq_mask( IMAGE *out, int xs, int ys, ImMaskType flag, va_list ap )
 	return( 0 );
 }
 
-/**
- * im_flt_image_freq: 
- * @in: input image
- * @out: output image
- * @flag: mask type
- * @Varargs: mask parameters
- *
- * Creates a mask (see im_create_fmask()) and filters an image with it (see
- * im_freqflt()).
- *
- * See also: im_create_fmask(), im_freqflt(), 
- *
- * Returns: 0 on success, -1 on error
- */
 int 
 im_flt_image_freq( IMAGE *in, IMAGE *out, ImMaskType flag, ... )
 {

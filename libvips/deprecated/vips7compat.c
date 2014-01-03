@@ -4423,3 +4423,19 @@ im_invfftr( IMAGE *in, IMAGE *out )
 	return( 0 );
 }
 
+int 
+im_freqflt( IMAGE *in, IMAGE *mask, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_freqmult( in, mask, &x, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
