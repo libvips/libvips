@@ -133,9 +133,7 @@ vips_mask_gaussian_ring_init( VipsMaskGaussianRing *gaussian_ring )
  * variable, smooth transition positioned at @frequency_cutoff of width
  * @ringwidth. 
  *
- * For other arguments, see vips_mask_ideal().
- *
- * See also: vips_mask_butterworth_ring(), vips_mask_ideal_ring(). 
+ * See also: vips_mask_ideal(). 
  *
  * Returns: 0 on success, -1 on error
  */

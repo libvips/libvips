@@ -164,7 +164,7 @@ vips_point_class_init( VipsPointClass *class )
 		G_STRUCT_OFFSET( VipsPoint, height ),
 		1, 1000000, 1 );
 
-	VIPS_ARG_BOOL( class, "uchar", 7, 
+	VIPS_ARG_BOOL( class, "uchar", 4, 
 		_( "Uchar" ), 
 		_( "Output an unsigned char image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

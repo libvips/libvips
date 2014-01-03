@@ -21,6 +21,7 @@ libcreate_la_SOURCES = \
 	mask_butterworth_band.c \
 	mask_gaussian.c \
 	mask_gaussian_ring.c \
+	mask_gaussian_band.c \
 	eye.c \
 	grey.c \
 	xyz.c \

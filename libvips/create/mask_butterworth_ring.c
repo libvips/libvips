@@ -144,9 +144,7 @@ vips_mask_butterworth_ring_init(
  * @order: higher values give a sharper transition. See Gonzalez and Wintz,
  * Digital Image Processing, 1987. 
  *
- * For other arguments, see vips_mask_ideal().
- *
- * See also: vips_mask_gaussian(), vips_mask_ideal(). 
+ * See also: vips_mask_ideal(). 
  *
  * Returns: 0 on success, -1 on error
  */

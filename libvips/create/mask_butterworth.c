@@ -134,14 +134,12 @@ vips_mask_butterworth_init( VipsMaskButterworth *butterworth )
  *
  * Make an butterworth high- or low-pass filter, that is, one with a variable,
  * smooth transition
- * positioned at @frequency_cutoff, where @frequency_cutoff is a percentage
- * expressed as the range 0 - 1. The shape of the curve is controlled by
+ * positioned at @frequency_cutoff, where @frequency_cutoff is in
+ * range 0 - 1. The shape of the curve is controlled by
  * @order: higher values give a sharper transition. See Gonzalez and Wintz,
  * Digital Image Processing, 1987. 
  *
- * For other arguments, see vips_mask_ideal().
- *
- * See also: vips_mask_gaussian(), vips_mask_ideal(). 
+ * See also: vips_mask_ideal(). 
  *
  * Returns: 0 on success, -1 on error
  */

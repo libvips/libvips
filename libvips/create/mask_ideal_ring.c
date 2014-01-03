@@ -129,9 +129,7 @@ vips_mask_ideal_ring_init( VipsMaskIdealRing *ideal_ring )
  * ring positioned at @frequency_cutoff of width @width, where 
  * @frequency_cutoff and @width are expressed as the range 0 - 1.
  *
- * For other arguments, see vips_mask_ideal().
- *
- * See also: vips_mask_gaussian_ring(), vips_mask_butterworth_ring(). 
+ * See also: vips_mask_ideal(). 
  *
  * Returns: 0 on success, -1 on error
  */

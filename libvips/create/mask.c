@@ -115,21 +115,21 @@ vips_mask_class_init( VipsMaskClass *class )
 	point_class->max = 1.0; 
 	point_class->interpretation = VIPS_INTERPRETATION_FOURIER;
 
-	VIPS_ARG_BOOL( class, "optical", 6, 
+	VIPS_ARG_BOOL( class, "optical", 5, 
 		_( "Optical" ), 
 		_( "Rotate quadrants to optical space" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMask, optical ),
 		FALSE ); 
 
-	VIPS_ARG_BOOL( class, "reject", 6, 
+	VIPS_ARG_BOOL( class, "reject", 5, 
 		_( "Reject" ), 
 		_( "Invert the sense of the filter" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMask, reject ),
 		FALSE ); 
 
-	VIPS_ARG_BOOL( class, "nodc", 6, 
+	VIPS_ARG_BOOL( class, "nodc", 5, 
 		_( "Nodc" ), 
 		_( "Remove DC component" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
