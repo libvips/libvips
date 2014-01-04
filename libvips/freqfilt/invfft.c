@@ -73,7 +73,6 @@
 typedef struct _VipsInvfft {
 	VipsFreqfilt parent_instance;
 
-	VipsImage *in;
 	gboolean real;
 
 } VipsInvfft;
@@ -214,12 +213,12 @@ vips_invfft_build( VipsObject *object )
 
 	if( invfft->real ) {
 		if( vips__fftproc( VIPS_OBJECT( invfft ), 
-			invfft->in, &t[0], rinvfft1 ) )
+			freqfilt->in, &t[0], rinvfft1 ) )
 			return( -1 );
 	}
 	else {
 		if( vips__fftproc( VIPS_OBJECT( invfft ), 
-			invfft->in, &t[0], cinvfft1 ) )
+			freqfilt->in, &t[0], cinvfft1 ) )
 			return( -1 );
 	}
 	
@@ -241,12 +240,6 @@ vips_invfft_class_init( VipsInvfftClass *class )
 	vobject_class->nickname = "invfft";
 	vobject_class->description = _( "inverse FFT" );
 	vobject_class->build = vips_invfft_build;
-
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "in" ), 
-		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsInvfft, in ) );
 
 	VIPS_ARG_BOOL( class, "real", 4, 
 		_( "Real" ), 

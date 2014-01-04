@@ -4439,3 +4439,19 @@ im_freqflt( IMAGE *in, IMAGE *mask, IMAGE *out )
 
 	return( 0 );
 }
+
+int 
+im_disp_ps( IMAGE *in, IMAGE *out )
+{
+	VipsImage *t;
+
+	if( vips_spectrum( in, &t, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}

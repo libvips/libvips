@@ -55,8 +55,7 @@ extern "C" {
 typedef struct _VipsFreqfilt {
 	VipsOperation parent_instance;
 
-	/* All have an output image.
-	 */
+	VipsImage *in;
 	VipsImage *out;
 
 } VipsFreqfilt;

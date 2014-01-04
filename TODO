@@ -1,14 +1,11 @@
+- freqfilt almost done
+
 - try:
 
 	time vips dzsave JP2K-33003-1.svs x --layout zoomify
 
   VIPS:ERROR:buffer.c:390:vips_buffer_new: assertion failed: (!buffer->cache)
   Aborted (core dumped)
-
-- im_freq_mask.c can almost be deprecated .. just im_freqflt() to do now I
-  think
-
-
 
 
 

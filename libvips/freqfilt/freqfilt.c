@@ -94,6 +94,12 @@ vips_freqfilt_class_init( VipsFreqfiltClass *class )
 	vobject_class->description = _( "frequency-domain filter operations" );
 	vobject_class->build = vips_freqfilt_build;
 
+	VIPS_ARG_IMAGE( class, "in", -1, 
+		_( "in" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsFreqfilt, in ) );
+
 	VIPS_ARG_IMAGE( class, "out", 1, 
 		_( "Output" ), 
 		_( "Output image" ),
@@ -160,11 +166,13 @@ vips_freqfilt_operation_init( void )
 	extern GType vips_invfft_get_type( void ); 
 #endif /*HAVE_FFTW*/
 	extern GType vips_freqmult_get_type( void ); 
+	extern GType vips_spectrum_get_type( void ); 
 
 #ifdef HAVE_FFTW
 	vips_fwfft_get_type(); 
 	vips_invfft_get_type(); 
 #endif /*HAVE_FFTW*/
 	vips_freqmult_get_type(); 
+	vips_spectrum_get_type(); 
 }
 

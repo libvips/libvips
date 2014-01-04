@@ -84,7 +84,6 @@
 typedef struct _VipsFwfft {
 	VipsFreqfilt parent_instance;
 
-	VipsImage *in;
 } VipsFwfft;
 
 typedef VipsFreqfiltClass VipsFwfftClass;
@@ -299,13 +298,13 @@ vips_fwfft_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips_bandfmt_iscomplex( fwfft->in->BandFmt ) ) {
-		if( vips__fftproc( VIPS_OBJECT( fwfft ), fwfft->in, &t[0], 
+	if( vips_bandfmt_iscomplex( freqfilt->in->BandFmt ) ) {
+		if( vips__fftproc( VIPS_OBJECT( fwfft ), freqfilt->in, &t[0], 
 			cfwfft1 ) )
 			return( -1 );
 	}
 	else {
-		if( vips__fftproc( VIPS_OBJECT( fwfft ), fwfft->in, &t[0], 
+		if( vips__fftproc( VIPS_OBJECT( fwfft ), freqfilt->in, &t[0], 
 			rfwfft1 ) )
 			return( -1 );
 	}
@@ -319,21 +318,11 @@ vips_fwfft_build( VipsObject *object )
 static void
 vips_fwfft_class_init( VipsFwfftClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "fwfft";
 	vobject_class->description = _( "forward FFT" );
 	vobject_class->build = vips_fwfft_build;
-
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "in" ), 
-		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsFwfft, in ) );
 
 }
 

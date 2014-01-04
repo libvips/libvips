@@ -58,7 +58,6 @@
 typedef struct _VipsFreqmult {
 	VipsFreqfilt parent_instance;
 
-	VipsImage *in;
 	VipsImage *mask;
 } VipsFreqmult;
 
@@ -79,7 +78,7 @@ vips_freqmult_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	in = freqmult->in;
+	in = freqfilt->in;
 
 	if( vips_bandfmt_iscomplex( in->BandFmt ) ) {
 		if( vips_multiply( in, freqmult->mask, &t[0], NULL ) ||
@@ -127,12 +126,6 @@ vips_freqmult_class_init( VipsFreqmultClass *class )
 	vobject_class->nickname = "freqmult";
 	vobject_class->description = _( "frequency-domain filtering" );
 	vobject_class->build = vips_freqmult_build;
-
-	VIPS_ARG_IMAGE( class, "in", -1, 
-		_( "in" ), 
-		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsFreqmult, in ) );
 
 	VIPS_ARG_IMAGE( class, "mask", 0, 
 		_( "mask" ), 
