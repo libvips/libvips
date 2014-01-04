@@ -4455,3 +4455,19 @@ im_disp_ps( IMAGE *in, IMAGE *out )
 
 	return( 0 );
 }
+
+int 
+im_fractsurf( IMAGE *out, int size, double frd )
+{
+	VipsImage *t;
+
+	if( vips_fractsurf( &t, size, size, frd, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}

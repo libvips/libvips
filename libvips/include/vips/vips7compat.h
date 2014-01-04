@@ -972,6 +972,7 @@ int im_invfftr( VipsImage *in, VipsImage *out );
 
 int im_freqflt( VipsImage *in, VipsImage *mask, VipsImage *out );
 int im_disp_ps( VipsImage *in, VipsImage *out );
+int im_fractsurf( VipsImage *out, int size, double frd );
 
 #ifdef __cplusplus
 }

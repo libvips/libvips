@@ -51,8 +51,6 @@ int vips_spectrum( VipsImage *in, VipsImage **out, ... )
 
 int im_phasecor_fft( VipsImage *in1, VipsImage *in2, VipsImage *out );
 
-int im_fractsurf( VipsImage *out, int size, double frd );
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

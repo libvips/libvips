@@ -12,7 +12,7 @@ libcreate_la_SOURCES = \
 	point.c \
 	point.h \
 	mask.c \
-	mask.h \
+	pmask.h \
 	mask_ideal.c \
 	mask_ideal_ring.c \
 	mask_ideal_band.c \
@@ -23,6 +23,7 @@ libcreate_la_SOURCES = \
 	mask_gaussian_ring.c \
 	mask_gaussian_band.c \
 	mask_fractal.c \
+	fractsurf.c \
 	eye.c \
 	grey.c \
 	xyz.c \

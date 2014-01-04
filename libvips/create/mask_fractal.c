@@ -94,7 +94,7 @@ vips_mask_fractal_class_init( VipsMaskFractalClass *class )
 		_( "Fractal dimension" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMaskFractal, fractal_dimension ),
-		1.0, 1000000.0, 2.5 );
+		2.0, 3.0, 2.5 );
 
 }
 
