@@ -262,10 +262,10 @@ vips_buffer_done( VipsBuffer *buffer )
 		g_assert( !g_slist_find( cache->buffers, buffer ) );
 		g_assert( !buffer->cache ); 
 
-		cache->buffers = g_slist_prepend( cache->buffers, buffer );
-
 		buffer->done = TRUE;
 		buffer->cache = cache;
+
+		cache->buffers = g_slist_prepend( cache->buffers, buffer );
 	}
 }
 
@@ -333,6 +333,8 @@ vips_buffer_unref( VipsBuffer *buffer )
 		/* Place on this thread's reserve list for reuse.
 		 */
 		if( cache->n_reserve < buffer_cache_max_reserve ) { 
+			g_assert( !buffer->cache ); 
+
 			cache->reserve = 
 				g_slist_prepend( cache->reserve, buffer );
 			cache->n_reserve += 1; 
