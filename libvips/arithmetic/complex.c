@@ -336,13 +336,13 @@ vips_conj( VipsImage *in, VipsImage **out, ... )
 }
 
 typedef struct _VipsComplex2 {
-	VipsUnary parent_instance;
+	VipsBinary parent_instance;
 
 	VipsOperationComplex2 cmplx;
 
 } VipsComplex2;
 
-typedef VipsUnaryClass VipsComplex2Class;
+typedef VipsBinaryClass VipsComplex2Class;
 
 G_DEFINE_TYPE( VipsComplex2, vips_complex2, VIPS_TYPE_BINARY );
 
@@ -503,7 +503,7 @@ vips_complex2_class_init( VipsComplex2Class *class )
 		_( "binary complex operation to perform" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComplex2, cmplx ),
-		VIPS_TYPE_OPERATION_COMPLEX, 
+		VIPS_TYPE_OPERATION_COMPLEX2, 
 			VIPS_OPERATION_COMPLEX2_CROSS_PHASE ); 
 }
 
