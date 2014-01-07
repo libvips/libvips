@@ -4471,3 +4471,20 @@ im_fractsurf( IMAGE *out, int size, double frd )
 
 	return( 0 );
 }
+
+int 
+im_phasecor_fft( IMAGE *in1, IMAGE *in2, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_phasecor( in1, in2, &x, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

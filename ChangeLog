@@ -32,8 +32,8 @@
 - vipsthumbnail has a --crop option
 - remove video4linux1 code, it was useless on all modern linuxes
 - redone freq filter builders as classes
-- redone im_fwfft(), im_invfft(), im_freqflt(), im_disp_ps(), im_fractsurf() 
-  as classes
+- redone im_fwfft(), im_invfft(), im_freqflt(), im_disp_ps(), im_fractsurf(),
+  im_phasecor() as classes
 
 20/11/13	started 7.36.5
 - better cache sizing in unbuffered sequential mode

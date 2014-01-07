@@ -167,6 +167,7 @@ vips_freqfilt_operation_init( void )
 #endif /*HAVE_FFTW*/
 	extern GType vips_freqmult_get_type( void ); 
 	extern GType vips_spectrum_get_type( void ); 
+	extern GType vips_phasecor_get_type( void ); 
 
 #ifdef HAVE_FFTW
 	vips_fwfft_get_type(); 
@@ -174,5 +175,6 @@ vips_freqfilt_operation_init( void )
 #endif /*HAVE_FFTW*/
 	vips_freqmult_get_type(); 
 	vips_spectrum_get_type(); 
+	vips_phasecor_get_type(); 
 }
 

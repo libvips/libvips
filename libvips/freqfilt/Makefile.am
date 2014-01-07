@@ -7,7 +7,7 @@ libfreqfilt_la_SOURCES = \
 	invfft.c \
 	freqmult.c \
 	spectrum.c \
-	im_phasecor_fft.c \
+	phasecor.c \
 	freq_dispatch.c 
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

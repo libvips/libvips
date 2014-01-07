@@ -1,4 +1,11 @@
-- freqfilt almost done
+- fix cross-phase
+
+	$ vips complex2 x.v x2.v x3.v cross-phase
+	vips_object_sanity: null object
+	** VIPS:ERROR:image.c:2473:vips_image_pio_input: assertion failed:
+	(vips_object_sanity( VIPS_OBJECT( image ) ))
+	Aborted (core dumped)
+
 
 - try:
 
