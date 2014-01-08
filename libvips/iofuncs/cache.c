@@ -692,8 +692,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
 		if( vips__cache_trace ) {
-			printf( "vips cache: found old operation\n" );
-			printf( "\t" );
+			printf( "vips cache-: " );
 			vips_object_print_summary( VIPS_OBJECT( hit ) );
 		}
 
@@ -716,10 +715,9 @@ vips_cache_operation_buildp( VipsOperation **operation )
 		if( vips__cache_trace ) {
 			if( vips_operation_get_flags( *operation ) & 
 				VIPS_OPERATION_NOCACHE )
-				printf( "vips cache: uncacheable\n" );
+				printf( "vips cache : " );
 			else
-				printf( "vips cache: caching new operation\n" );
-			printf( "\t" );
+				printf( "vips cache+: " );
 			vips_object_print_summary( VIPS_OBJECT( *operation ) );
 		}
 
