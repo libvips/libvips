@@ -81,6 +81,10 @@ typedef struct _VipsHistogramClass {
 	 */
 	const VipsBandFormat *format_table;
 
+	/* If not VIPS_FORMAT_NOTSET, upcast all ins to this.
+	 */
+	VipsBandFormat input_format;
+
 	VipsHistogramProcessFn process;
 
 } VipsHistogramClass;
