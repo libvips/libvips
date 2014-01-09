@@ -512,14 +512,14 @@ vips__ppm_isppm( const char *filename )
 
 /* ppm flags function.
  */
-VipsFormatFlags
+VipsForeignFlags
 vips__ppm_flags( const char *filename )
 {
-	VipsFormatFlags flags;
+	VipsForeignFlags flags;
 
 	flags = 0;
 	if( isppmmmap( filename ) )
-		flags |= VIPS_FORMAT_PARTIAL;
+		flags |= VIPS_FOREIGN_PARTIAL;
 
 	return( flags );
 }

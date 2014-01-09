@@ -38,7 +38,7 @@ extern "C" {
 int vips__ppm_header( const char *name, VipsImage *out );
 int vips__ppm_load( const char *name, VipsImage *out );
 int vips__ppm_isppm( const char *filename );
-VipsFormatFlags vips__ppm_flags( const char *filename );
+VipsForeignFlags vips__ppm_flags( const char *filename );
 extern const char *vips__ppm_suffs[];
 
 int vips__ppm_save( VipsImage *in, const char *filename, 

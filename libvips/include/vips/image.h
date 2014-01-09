@@ -238,7 +238,7 @@ typedef struct _VipsImage {
 	 * guint64 so that we can guarantee to work even on systems with
 	 * strange ideas about large files.
 	 */
-	guint64 sizeof_header;
+	gint64 sizeof_header;
 
 	/* If this is a large disc image, don't map the whole thing, instead
 	 * have a set of windows shared between the regions active on the

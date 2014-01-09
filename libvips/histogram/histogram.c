@@ -145,11 +145,23 @@ vips_histogram_build( VipsObject *object )
 			vips_check_hist( class->nickname, histogram->in[i] ) )
 			return( -1 ); 
 
-	/* Cast our input images up to a common format, bands and size.
+	/* Cast our input images up to a common format, bands and size. If
+	 * input_format is set, cast to a fixed input type.
 	 */
-	if( vips__formatalike_vec( histogram->in, format, histogram->n ) ||
-		vips__bandalike_vec( class->nickname, 
-			format, band, histogram->n, 1 ) ||
+	if( hclass->input_format != VIPS_FORMAT_NOTSET ) {
+		for( i = 0; i < histogram->n; i++ ) 
+			if( vips_cast( histogram->in[i], &format[i],
+				hclass->input_format, NULL ) )
+				return( -1 ); 
+	}
+	else {
+		if( vips__formatalike_vec( histogram->in, 
+			format, histogram->n ) )
+			return( -1 );
+	}
+		
+	if( vips__bandalike_vec( class->nickname, 
+		format, band, histogram->n, 1 ) ||
 		vips__hist_sizealike_vec( band, size, histogram->n ) ) 
 		return( -1 );
 
@@ -201,6 +213,8 @@ vips_histogram_class_init( VipsHistogramClass *class )
 	vobject_class->nickname = "histogram";
 	vobject_class->description = _( "histogram operations" );
 	vobject_class->build = vips_histogram_build;
+
+	class->input_format = VIPS_FORMAT_NOTSET;
 
 	/* Inputs set by subclassess.
 	 */

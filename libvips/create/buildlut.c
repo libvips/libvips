@@ -14,6 +14,8 @@
  * 	- gtkdoc
  * 2/7/13
  * 	- convert to a class
+ * 10/12/13
+ * 	- be more forgiving about x vales not quite integers
  */
 
 /*
@@ -125,11 +127,15 @@ vips_buildlut_build_init( VipsBuildlut *lut )
 	for( y = 0; y < lut->mat->Ysize; y++ ) {
 		double v = *VIPS_MATRIX( lut->mat, 0, y ); 
 			
-		if( floor( v ) != v ) {
+		/* Allow for being a bit off.
+		 */
+		if( abs( v - VIPS_RINT( v ) ) > 0.001 ) {
 			vips_error( class->nickname,
-				"%s", _( "x value not an int" ) );
+				_( "x value row %d not an int" ), y );
 			return( -1 );
 		}
+
+		v = VIPS_RINT( v ); 
 
 		if( v < xlow )
 			xlow = v;
@@ -189,8 +195,8 @@ vips_buildlut_build_create( VipsBuildlut *lut )
 	 */
 	for( b = 0; b < bands; b++ ) {
 		for( i = 0; i < ysize - 1; i++ ) {
-			const int x1 = lut->data[i][0];
-			const int x2 = lut->data[i + 1][0];
+			const int x1 = VIPS_RINT( lut->data[i][0] );
+			const int x2 = VIPS_RINT( lut->data[i + 1][0] );
 			const int dx = x2 - x1;
 			const double y1 = lut->data[i][b + 1];
 			const double y2 = lut->data[i + 1][b + 1];

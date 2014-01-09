@@ -1206,7 +1206,6 @@ vips2rad_put_data_block( VipsRegion *region, Rect *area, void *a )
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
 
 		if( scanline_write( (COLR *) p, area->width, write->fout ) ) 
-		//if( scanline_write_old( (COLR *) p, area->width, write->fout ) ) 
 			return( -1 );
 	}
 
