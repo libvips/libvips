@@ -292,7 +292,6 @@ vips_buffer_undone( VipsBuffer *buffer )
 		cache->buffers = g_slist_remove( cache->buffers, buffer );
 
 		buffer->done = FALSE;
-		buffer->cache = NULL;
 
 #ifdef DEBUG_VERBOSE
 		printf( "vips_buffer_undone: %d buffers left\n",
@@ -300,6 +299,7 @@ vips_buffer_undone( VipsBuffer *buffer )
 #endif /*DEBUG_VERBOSE*/
 	}
 
+	buffer->cache = NULL;
 	buffer->area.width = 0;
 	buffer->area.height = 0;
 }
