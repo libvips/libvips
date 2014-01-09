@@ -186,7 +186,7 @@ read_image( Read *read, VipsImage *out )
 {
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
-	guint64 length;
+	gint64 length;
 	void *data; 
 	int fd;
 	webp_decoder decoder;

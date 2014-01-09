@@ -1108,7 +1108,7 @@ vips2rad_put_data_block( VipsRegion *region, Rect *area, void *a )
 	for( i = 0; i < area->height; i++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
 
-		if( fwritecolrs( p, area->width, write->fout ) ) 
+		if( fwritecolrs( (COLR *) p, area->width, write->fout ) ) 
 			return( -1 );
 	}
 

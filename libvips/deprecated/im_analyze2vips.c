@@ -48,7 +48,8 @@
 static VipsFormatFlags
 analyze_flags( const char *filename )
 {
-	return( vips_foreign_flags( "analyzeload", filename ) );
+	return( (VipsFormatFlags) 
+		vips_foreign_flags( "analyzeload", filename ) );
 }
 
 static int
