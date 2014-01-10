@@ -1,8 +1,4 @@
 
-- new_heart.ws fails with libvips master
-
-	has the sharing fix resolved this?
-
 - do restrict on some more packages, we've just done arithmetic so far
 
 	also resample, colour, some of conversion, create, 
