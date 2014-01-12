@@ -18,42 +18,8 @@
 
   need new API For this, since interpolators currently work for any image
 
-  
-
-
-
 
 - do morph quickly as simple wrappers over the vips7 operations
-
-- do restrict on some more packages, we've just done arithmetic so far
-
-  how about avg? do we need -ffast-math to vec that?
-  	
-	yes we do, though it doesn't seem any faster
-
-  how about avg? do we need -ffast-math to vec that?
-  	
-	yes we do, though it doesn't seem any faster
-
-	perhaps because it only vecs the innermost loop across bands and it's
-	too short to trigger the vec code
-
-	try swapping the loops over ... inner loop across width, outer across 
-	bands
-
-	but then we'd have an unknown stride
-
-	need to special-case 1 band and 3 band images
-
-	or use orc to gen code at operator build 
-
-	does this mean we should revert the removal of orc from arithmetic?
-
-  not seen more than x2 from auto-vec of abs(), perhaps the bool ops?
-
-
-
-
 
 - seen some leaks from 
 
