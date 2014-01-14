@@ -1,0 +1,306 @@
+# hide GObject type init allocs, they can only happen once and are not really
+# leaks
+{
+   type_init
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:g_type_register_*
+}
+
+{
+   type_init2
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:g_type_init_*
+}
+
+{
+   type_init3
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:g_type_create_*
+}
+
+{
+   type_init4
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:g_type_class_ref
+}
+
+{
+   type_init5
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:g_type_add_interface_static
+}
+
+# module init does this
+{
+   init7
+   Memcheck:Leak
+   ...
+   fun:g_malloc0
+   ...
+   fun:_dl_init
+}
+
+# g_get_home_dir has a private buffer 
+{
+   gwd
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:g_get_home_dir
+}
+
+# selinux on ubuntu generates a leak report we ignore
+{
+   selinux
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   obj:/lib/libselinux.so.1
+}
+
+# gdk and x init
+{
+   gdk_init
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:gdk_display_open
+}
+
+{
+   x_init_ext
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:XInitExtension
+}
+
+# hide all dbus reports, not the app's problem
+{
+   dbus
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   obj:/lib/libdbus-1.so.*
+}
+
+# hide all orbit leaks, not our problem
+{
+   orbit
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:ORBit_*
+}
+
+# other lib init
+{
+   fontconfig_init
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:FcConfigParseAndLoad
+}
+
+{
+   freetype_init
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:FT_Open_Face
+}
+
+{
+   goffice_init
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:libgoffice_init
+}
+
+{
+   g_module_init
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:g_module_open
+}
+
+{
+   gtk_module_init
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:gtk_module_init
+}
+
+# gdk-x11 makes a toplevel object
+{
+   gdk_x11_init
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:_gdk_x11_window_get_toplevel
+}
+
+# the icon theme allocates stuff on lazy load
+{
+   gtk_icon_theme_has_icon
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:gtk_icon_theme_has_icon
+}
+
+# tooltip labels are not really owned by anyone and will not be freed on exit
+{
+   gtk_tooltip_set_markup
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:gtk_tooltip_set_markup
+}
+
+# pango makes a PangoLanguage for every script you use
+{
+   pango_language
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:pango_language_from_string
+}
+
+# pango makes a PangoOTRuleset for every font you use
+{
+   pango_ot_ruleset_get_for_description
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:pango_ot_ruleset_get_for_description
+}
+
+# pango makes a PangoOTInfo for every font you use
+{
+   pango_ot_info_get
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:pango_ot_info_get
+}
+
+# fonts pango has loaded
+{
+   pango_fc_fontset_get_font_at
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:pango_fc_fontset_get_font_at
+}
+
+# font maps pango has loaded
+{
+   pango_fc_font_map_load_fontset
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:pango_fc_font_map_load_fontset
+}
+
+# ... and font descriptions from every "sans 12" type string
+{
+   pango_font_description_from_string
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:pango_font_description_from_string
+}
+
+# gettext has annoying uninit warnings
+{
+   gettext
+   Memcheck:Cond
+   fun:__GI___strcasecmp_l
+   ...
+   fun:__dcigettext
+}
+{
+   gettext
+   Memcheck:Value8
+   fun:__GI___strcasecmp_l
+   ...
+   fun:__dcigettext
+}
+
+# libz has a warning too ... see this from libpng / libxml2 etc.
+{
+   libz
+   Memcheck:Cond
+   fun:inflateReset2
+}
+
+# libvips can generate this one spuriously
+{
+   libvipswrite
+   Memcheck:Param
+   write(buf)
+   ...
+   fun:write_vips
+}
+
+# ubuntu 13.04 suppressions
+
+{
+   pixman1
+   Memcheck:Cond
+   ...
+   fun:pixman_image_composite32
+}
+
+{
+   cairo1
+   Memcheck:Cond
+   fun:rsvg_cairo_surface_to_pixbuf
+}
+
+# ruby has some annoying ones too
+
+{
+   ruby1
+   Memcheck:Cond
+   ...
+   fun:rb_parser_compile_file
+}
+
+{
+   ruby2
+   Memcheck:Value8
+   ...
+   fun:rb_parser_compile_file
+}
+
+{
+   ruby3
+   Memcheck:Cond
+   ...
+   fun:rb_file_expand_path
+}
+
+{
+   ruby4
+   Memcheck:Value8
+   ...
+   fun:rb_file_expand_path
+}
+
+
+
