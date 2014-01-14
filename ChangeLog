@@ -35,6 +35,7 @@
 - redone im_fwfft(), im_invfft(), im_freqflt(), im_disp_ps(), im_fractsurf(),
   im_phasecor() as classes
 - vips_colourspace() allows B_W, GREY16, RGB16 as source / target
+- vips_linear() has a uchar output mode
 
 9/1/14 started 7.36.6
 - fix some clang compiler warnings

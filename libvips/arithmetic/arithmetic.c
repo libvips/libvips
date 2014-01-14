@@ -554,8 +554,11 @@ vips_arithmetic_build( VipsObject *object )
 		return( -1 );
 
 	arithmetic->out->Bands = arithmetic->ready[0]->Bands;
-	arithmetic->out->BandFmt = 
-		aclass->format_table[arithmetic->ready[0]->BandFmt];
+	if( arithmetic->format != VIPS_FORMAT_NOTSET )
+		arithmetic->out->BandFmt = arithmetic->format;
+	else
+		arithmetic->out->BandFmt = 
+			aclass->format_table[arithmetic->ready[0]->BandFmt];
 
 	if( vips_image_generate( arithmetic->out,
 		vips_start_many, vips_arithmetic_gen, vips_stop_many, 
@@ -592,6 +595,7 @@ static void
 vips_arithmetic_init( VipsArithmetic *arithmetic )
 {
 	arithmetic->base_bands = 1;
+	arithmetic->format = VIPS_FORMAT_NOTSET;
 }
 
 void 

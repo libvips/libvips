@@ -42,6 +42,8 @@
  * 	- 1ary is back, faster with gcc 4.8
  * 3/12/13
  * 	- try an ORC path with the band loop unrolled
+ * 14/1/14
+ * 	- add uchar output option
  */
 
 /*
@@ -95,6 +97,10 @@ typedef struct _VipsLinear {
 	 */
 	VipsArea *a;
 	VipsArea *b;
+
+	/* uchar output.
+	 */
+	gboolean uchar;
 
 	/* Our constants expanded to match arith->ready in size.
 	 */
@@ -159,6 +165,9 @@ vips_linear_build( VipsObject *object )
 		}
 	}
 
+	if( linear->uchar )
+		arithmetic->format = VIPS_FORMAT_UCHAR;
+
 	if( VIPS_OBJECT_CLASS( vips_linear_parent_class )->build( object ) )
 		return( -1 );
 
@@ -198,7 +207,6 @@ vips_linear_build( VipsObject *object )
 	} \
 }
 
-
 /* Complex input, complex output. 
  */
 #define LOOPCMPLXN( IN, OUT ) { \
@@ -210,6 +218,61 @@ vips_linear_build( VipsObject *object )
 			q[0] = a[k] * p[0] + b[k]; \
 			q[1] = p[1]; \
 			q += 2; \
+			p += 2; \
+		} \
+}
+
+/* Non-complex input, any output, all bands of the constant equal, uchar
+ * output.
+ */
+#define LOOP1uc( IN ) { \
+	IN * restrict p = (IN *) in[0]; \
+	VipsPel * restrict q = (VipsPel *) out; \
+	float a1 = a[0]; \
+	float b1 = b[0]; \
+	int sz = width * nb; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		float t = a1 * p[x] + b1; \
+		\
+		q[x] = VIPS_CLIP( 0, t, 255 ); \
+	} \
+}
+
+/* Non-complex input, uchar output.
+ */
+#define LOOPNuc( IN ) { \
+	IN * restrict p = (IN *) in[0]; \
+	VipsPel * restrict q = (VipsPel *) out; \
+	\
+	for( i = 0, x = 0; x < width; x++ ) \
+		for( k = 0; k < nb; k++, i++ ) { \
+			double t = a[k] * p[i] + b[k]; \
+			\
+			q[i] = VIPS_CLIP( 0, t, 255 ); \
+		} \
+}
+
+#define LOOPuc( IN ) { \
+	if( linear->a->n == 1 && linear->b->n == 1 ) { \
+		LOOP1uc( IN ); \
+	} \
+	else { \
+		LOOPNuc( IN ); \
+	} \
+}
+
+/* Complex input, uchar output. 
+ */
+#define LOOPCMPLXNuc( IN ) { \
+	IN * restrict p = (IN *) in[0]; \
+	VipsPel * restrict q = (VipsPel *) out; \
+	\
+	for( i = 0, x = 0; x < width; x++ ) \
+		for( k = 0; k < nb; k++, i++ ) { \
+			double t = a[k] * p[0] + b[k]; \
+			\
+			q[i] = VIPS_CLIP( 0, t, 255 ); \
 			p += 2; \
 		} \
 }
@@ -228,21 +291,59 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
 
 	int i, x, k;
 
-	switch( vips_image_get_format( im ) ) {
-        case VIPS_FORMAT_UCHAR: 	LOOP( unsigned char, float ); break;
-        case VIPS_FORMAT_CHAR: 		LOOP( signed char, float ); break; 
-        case VIPS_FORMAT_USHORT: 	LOOP( unsigned short, float ); break; 
-        case VIPS_FORMAT_SHORT: 	LOOP( signed short, float ); break; 
-        case VIPS_FORMAT_UINT: 		LOOP( unsigned int, float ); break; 
-        case VIPS_FORMAT_INT: 		LOOP( signed int, float );  break; 
-        case VIPS_FORMAT_FLOAT: 	LOOP( float, float ); break; 
-        case VIPS_FORMAT_DOUBLE:	LOOP( double, double ); break; 
-        case VIPS_FORMAT_COMPLEX:	LOOPCMPLXN( float, float ); break; 
-        case VIPS_FORMAT_DPCOMPLEX:	LOOPCMPLXN( double, double ); break;
+	if( linear->uchar )
+		switch( vips_image_get_format( im ) ) {
+		case VIPS_FORMAT_UCHAR: 	
+			LOOPuc( unsigned char ); break;
+		case VIPS_FORMAT_CHAR: 		
+			LOOPuc( signed char ); break; 
+		case VIPS_FORMAT_USHORT: 	
+			LOOPuc( unsigned short ); break; 
+		case VIPS_FORMAT_SHORT: 	
+			LOOPuc( signed short ); break; 
+		case VIPS_FORMAT_UINT: 		
+			LOOPuc( unsigned int ); break; 
+		case VIPS_FORMAT_INT: 		
+			LOOPuc( signed int );  break; 
+		case VIPS_FORMAT_FLOAT: 	
+			LOOPuc( float ); break; 
+		case VIPS_FORMAT_DOUBLE:	
+			LOOPuc( double ); break; 
+		case VIPS_FORMAT_COMPLEX:	
+			LOOPCMPLXNuc( float ); break; 
+		case VIPS_FORMAT_DPCOMPLEX:	
+			LOOPCMPLXNuc( double ); break;
 
-        default:
-		g_assert( 0 );
-        }
+		default:
+			g_assert( 0 );
+		}
+	else
+		switch( vips_image_get_format( im ) ) {
+		case VIPS_FORMAT_UCHAR: 	
+			LOOP( unsigned char, float ); break;
+		case VIPS_FORMAT_CHAR: 		
+			LOOP( signed char, float ); break; 
+		case VIPS_FORMAT_USHORT: 	
+			LOOP( unsigned short, float ); break; 
+		case VIPS_FORMAT_SHORT: 	
+			LOOP( signed short, float ); break; 
+		case VIPS_FORMAT_UINT: 		
+			LOOP( unsigned int, float ); break; 
+		case VIPS_FORMAT_INT: 		
+			LOOP( signed int, float );  break; 
+		case VIPS_FORMAT_FLOAT: 	
+			LOOP( float, float ); break; 
+		case VIPS_FORMAT_DOUBLE:	
+			LOOP( double, double ); break; 
+		case VIPS_FORMAT_COMPLEX:	
+			LOOPCMPLXN( float, float ); break; 
+		case VIPS_FORMAT_DPCOMPLEX:	
+			LOOPCMPLXN( double, double ); break;
+
+		default:
+			g_assert( 0 );
+		}
+
 }
 
 /* Save a bit of typing.
@@ -296,6 +397,14 @@ vips_linear_class_init( VipsLinearClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLinear, b ),
 		VIPS_TYPE_ARRAY_DOUBLE );
+
+	VIPS_ARG_BOOL( class, "uchar", 112, 
+		_( "uchar" ), 
+		_( "Output should be uchar" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsLinear, uchar ),
+		FALSE );
+
 }
 
 static void
@@ -331,9 +440,14 @@ vips_linearv( VipsImage *in, VipsImage **out,
  * @n: length of constant arrays
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @uchar: output uchar pixels
+ *
  * Pass an image through a linear transform, ie. (@out = @in * @a + @b). Output
- * is always float for integer input, double for double input, complex for
- * complex input and double complex for double complex input.
+ * is float for integer input, double for double input, complex for
+ * complex input and double complex for double complex input. Set @uchar to
+ * output uchar pixels. 
  *
  * If the arrays of constants have just one element, that constant is used for 
  * all image bands. If the arrays have more than one element and they have 
@@ -366,6 +480,10 @@ vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
  * @a: constant for multiplication
  * @b: constant for addition
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @uchar: output uchar pixels
  *
  * Run vips_linear() with a single constant. 
  *

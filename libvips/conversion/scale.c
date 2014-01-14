@@ -18,6 +18,8 @@
  * 30/5/13
  * 	- redo as a class
  * 	- add log scale and exponent as an option
+ * 14/1/14
+ * 	- use linear uchar mode
  */
 
 /*
@@ -107,18 +109,20 @@ vips_scale_build( VipsObject *object )
 		if( vips_pow_const1( scale->in, &t[2], scale->exp, NULL ) ||
 			vips_linear1( t[2], &t[3], 1.0, 1.0, NULL ) ||
 			vips_log10( t[3], &t[4], NULL ) ||
-			vips_linear1( t[4], &t[5], f, 0.0, NULL ) ||
-			vips_cast( t[5], &t[6], VIPS_FORMAT_UCHAR, NULL ) ||
-			vips_image_write( t[6], conversion->out ) )
+			vips_linear1( t[4], &t[5], f, 0.0, 
+				"uchar", TRUE, 
+				NULL ) ||
+			vips_image_write( t[5], conversion->out ) )
 			return( -1 );
 	}
 	else {
 		double f = 255.0 / (mx - mn);
 		double a = -(mn * f);
 
-		if( vips_linear1( scale->in, &t[2], f, a, NULL ) ||
-			vips_cast( t[2], &t[3], VIPS_FORMAT_UCHAR, NULL ) ||
-			vips_image_write( t[3], conversion->out ) )
+		if( vips_linear1( scale->in, &t[2], f, a, 
+			"uchar", TRUE, 
+			NULL ) ||
+			vips_image_write( t[2], conversion->out ) )
 			return( -1 );
 	}
 

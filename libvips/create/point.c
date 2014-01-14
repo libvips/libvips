@@ -115,15 +115,16 @@ vips_point_build( VipsObject *object )
 		float range = max - min;
 
 		if( vips_linear1( in, &t[2], 
-			255.0 / range, -min * 255.0 / range, NULL ) ||
-			vips_cast( t[2], &t[3], VIPS_FORMAT_UCHAR, NULL ) )
+			255.0 / range, -min * 255.0 / range, 
+			"uchar", TRUE,
+			NULL ) )
 			return( -1 );
-		in = t[3];
+		in = t[2];
 
 		/* uchar mode always does B_W. We don't want FOURIER or
 		 * whatever in this case.
 		 */
-		t[3]->Type = VIPS_INTERPRETATION_B_W;
+		in->Type = VIPS_INTERPRETATION_B_W;
 	}
 
 	if( vips_image_write( in, create->out ) )
