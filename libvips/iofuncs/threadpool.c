@@ -177,6 +177,8 @@ vips_thread_run( gpointer data )
 	vips__buffer_shutdown();
 	vips__thread_profile_detach();
 
+	g_free( info ); 
+
 	return( result ); 
 }
 

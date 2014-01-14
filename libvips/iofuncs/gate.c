@@ -145,25 +145,6 @@ vips_thread_profile_save( VipsThreadProfile *profile )
 }
 
 static void
-vips_thread_profile_free( VipsThreadProfile *profile )
-{
-	VIPS_DEBUG_MSG( "vips_thread_profile_free: %s\n", profile->name ); 
-
-	if( vips__thread_profile ) 
-		vips_thread_profile_save( profile ); 
-
-	VIPS_FREEF( g_hash_table_destroy, profile->gates );
-	VIPS_FREE( profile );
-}
-
-void
-vips__thread_profile_stop( void )
-{
-	if( vips__thread_profile ) 
-		VIPS_FREEF( fclose, vips__thread_fp ); 
-}
-
-static void
 vips_thread_gate_block_free( VipsThreadGateBlock *block )
 {
 	VIPS_FREEF( vips_thread_gate_block_free, block->prev );
@@ -176,6 +157,26 @@ vips_thread_gate_free( VipsThreadGate *gate )
 	VIPS_FREEF( vips_thread_gate_block_free, gate->start );
 	VIPS_FREEF( vips_thread_gate_block_free, gate->stop );
 	VIPS_FREE( gate ); 
+}
+
+static void
+vips_thread_profile_free( VipsThreadProfile *profile )
+{
+	VIPS_DEBUG_MSG( "vips_thread_profile_free: %s\n", profile->name ); 
+
+	if( vips__thread_profile ) 
+		vips_thread_profile_save( profile ); 
+
+	VIPS_FREEF( g_hash_table_destroy, profile->gates );
+	VIPS_FREEF( vips_thread_gate_free, profile->memory );
+	VIPS_FREE( profile );
+}
+
+void
+vips__thread_profile_stop( void )
+{
+	if( vips__thread_profile ) 
+		VIPS_FREEF( fclose, vips__thread_fp ); 
 }
 
 static void
