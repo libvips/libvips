@@ -46,9 +46,13 @@ Leak check:
 
 	$ export G_DEBUG=gc-friendly
 	$ export G_SLICE=always-malloc
-	$ valgrind --suppressions=/home/john/nip2.supp \
+	$ valgrind --suppressions=libvips.supp \
 		--leak-check=yes \
 		vips ... > vips-vg.log 2>&1
+
+valgrind threading check:
+
+	$ valgrind --tool=helgrind vips ... > vips-vg.log 2>&1
 
 Clang build:
 
