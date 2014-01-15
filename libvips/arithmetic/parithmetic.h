@@ -77,6 +77,10 @@ typedef struct _VipsArithmetic {
 	/* The input images, ready for the operation.
 	 */
 	VipsImage **ready;
+
+	/* Set this to override class->format_table.
+	 */
+	VipsBandFormat format;
 } VipsArithmetic;
 
 typedef struct _VipsArithmeticClass {

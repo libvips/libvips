@@ -1,12 +1,8 @@
+- now vips_linear() has uchar output, can we do something with orc?
 
 - do restrict on some more packages, we've just done arithmetic so far
 
 	also resample, colour, some of conversion, create, 
-
-- orc is poor for float stuff ... if vips_linear() had a "preserve type"
-  option we could do something
-
-  maybe a "uchar ouput" option? this seems to be a very common case
 
 - maybe avg?
 
