@@ -540,7 +540,7 @@ vips_buffer_print( VipsBuffer *buffer )
 static void
 vips__buffer_init_cb( VipsBufferThread *buffer_thread )
 {
-	vips_error_exit( "vips__buffer_shutdown() not called for thread %p",
+	vips_error_exit( "vips_thread_shutdown() not called for thread %p",
 		g_thread_self() ); 
 }
 

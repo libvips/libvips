@@ -183,14 +183,17 @@ static void
 vips__thread_profile_init_cb( VipsThreadProfile *profile )
 {  
 	/* Threads (including the main thread) must call 
-	 * vips__thread_profile_detach() before exiting. Check that they have.
+	 * vips_thread_shutdown() before exiting. Check that they have.
 	 *
 	 * We can't save automatically, because the shutdown order is
 	 * important. We must free all memory before saving the thread
 	 * profile, for example.
+	 *
+	 * We can't do the freeing in this callback since GPrivate has already
+	 * stopped working. 
 	 */
-	vips_error_exit( "vips__thread_profile_detach() not called "
-		"for thread %p", g_thread_self() ); 
+	vips_error_exit( "vips_thread_shutdown() not called for thread %p", 
+		g_thread_self() ); 
 }
 
 static void
@@ -357,8 +360,10 @@ vips__thread_malloc_free( gint64 size )
 
 	VIPS_DEBUG_MSG_RED( "vips__thread_malloc_free: %zd\n", size ); 
 
+#ifdef VIPS_DEBUG
 	if( !(profile = vips_thread_profile_get()) ) 
 		printf( "argh no block to record free() in!\n" ); 
+#endif /*VIPS_DEBUG*/
 
 	if( (profile = vips_thread_profile_get()) ) { 
 		gint64 time = vips_get_time(); 

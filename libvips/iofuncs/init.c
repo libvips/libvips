@@ -370,6 +370,27 @@ vips_leak( void )
 }
 
 /**
+ * vips_thread_shutdown: 
+ *
+ * Free any thread-private data and flush any profiling information.
+ *
+ * This function needs to be called when a thread that has been using vips
+ * exits. It is called for you by vips_shutdown() and for any threads created
+ * by vips_g_thread_new(). 
+ *
+ * You will need to call it from threads created in
+ * other ways. If you do not call it, vips will generate an error message.
+ *
+ * May be called many times. 
+ */
+void
+vips_thread_shutdown( void )
+{
+	vips__buffer_shutdown();
+	vips__thread_profile_detach();
+}
+
+/**
  * vips_shutdown:
  *
  * Call this to drop caches and close plugins. Run with "--vips-leak" to do 
@@ -396,8 +417,8 @@ vips_shutdown( void )
 		vips__thread_gate_stop( "init: main" ); 
 }
 
-	vips__buffer_shutdown();
-	vips__thread_profile_detach();
+	vips_thread_shutdown();
+
 	vips__thread_profile_stop();
 
 	/* In dev releases, always show leaks. But not more than once, it's
