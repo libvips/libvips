@@ -670,6 +670,7 @@ vips_combine_get_type( void )
 
 	return( etype );
 }
+/* enumerations from "../../libvips/include/vips/morphology.h" */
 GType
 vips_operation_morphology_get_type( void )
 {

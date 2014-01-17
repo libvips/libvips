@@ -45,25 +45,42 @@
 
 #include <vips/vips.h>
 
-#include "pconvolution.h"
+#include "pmorphology.h"
+
+/** 
+ * VipsOperationMorphology:
+ * @VIPS_OPERATION_MORPHOLOGY_ERODE: true if all set
+ * @VIPS_OPERATION_MORPHOLOGY_DILATE: true if one set
+ *
+ * More like hit-miss, really. 
+ *
+ * See also: vips_morph().
+ */
 
 typedef struct {
-	VipsConvolution parent_instance;
+	VipsMorphology parent_instance;
 
+	VipsImage *out;
+	VipsImage *mask;
 	VipsOperationMorphology morph;
+
+	/* @mask cast ready for processing.
+	 */
+	VipsImage *M;
 
 } VipsMorph;
 
-typedef VipsConvolutionClass VipsMorphClass;
+typedef VipsMorphologyClass VipsMorphClass;
 
-G_DEFINE_TYPE( VipsMorph, vips_morph, VIPS_TYPE_CONVOLUTION );
+G_DEFINE_TYPE( VipsMorph, vips_morph, VIPS_TYPE_MORPHOLOGY );
 
 static int
 vips_morph_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsConvolution *convolution = (VipsConvolution *) object;
+	VipsMorphology *morphology = (VipsMorphology *) object;
 	VipsMorph *morph = (VipsMorph *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	INTMASK *imsk;
 
@@ -72,18 +89,22 @@ vips_morph_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_morph_parent_class )->build( object ) )
 		return( -1 );
 
-	if( !(imsk = im_vips2imask( convolution->M, class->nickname )) || 
-		!im_local_imask( convolution->out, imsk ) )
+	if( vips_check_matrix( class->nickname, morph->mask, &t[0] ) )
+		return( -1 ); 
+	morph->M = t[0];
+
+	if( !(imsk = im_vips2imask( morph->M, class->nickname )) || 
+		!im_local_imask( morph->out, imsk ) )
 		return( -1 ); 
 
 	switch( morph->morph ) { 
 	case VIPS_OPERATION_MORPHOLOGY_DILATE:
-		if( im_dilate( convolution->in, convolution->out, imsk ) )
+		if( im_dilate( morphology->in, morph->out, imsk ) )
 			return( -1 ); 
 		break;
 
 	case VIPS_OPERATION_MORPHOLOGY_ERODE:
-		if( im_erode( convolution->in, convolution->out, imsk ) )
+		if( im_erode( morphology->in, morph->out, imsk ) )
 			return( -1 ); 
 		break;
 
@@ -104,8 +125,20 @@ vips_morph_class_init( VipsMorphClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "morph";
-	object_class->description = _( "convolution operation" );
+	object_class->description = _( "morphology operation" );
 	object_class->build = vips_morph_build;
+
+	VIPS_ARG_IMAGE( class, "out", 10, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsMorph, out ) );
+
+	VIPS_ARG_IMAGE( class, "mask", 20, 
+		_( "Mask" ), 
+		_( "Input matrix image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsMorph, mask ) );
 
 	VIPS_ARG_ENUM( class, "morph", 103, 
 		_( "Morphology" ), 

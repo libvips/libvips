@@ -38,6 +38,7 @@
 - added vips_thread_shutdown(), thanks Lovell
 - vips_linear() has a uchar output mode
 - redone im_cntlines(), im_rank() as classes
+- move im_zerox() to deprecated, it wasm't very useful
 
 9/1/14 started 7.36.6
 - fix some clang compiler warnings

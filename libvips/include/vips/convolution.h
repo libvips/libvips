@@ -51,31 +51,11 @@ typedef enum {
 	VIPS_COMBINE_LAST
 } VipsCombine;
 
-/** 
- * VipsOperationMorphology:
- * @VIPS_OPERATION_MORPHOLOGY_ERODE: true if all set
- * @VIPS_OPERATION_MORPHOLOGY_DILATE: true if one set
- *
- * More like hit-miss, really. 
- *
- * See also: vips_morph().
- */
-
-typedef enum {
-	VIPS_OPERATION_MORPHOLOGY_ERODE,
-	VIPS_OPERATION_MORPHOLOGY_DILATE,
-	VIPS_OPERATION_MORPHOLOGY_LAST
-} VipsOperationMorphology;
-
 int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
 int vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
 int vips_convsep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
-	__attribute__((sentinel));
-
-int vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask, 
-	VipsOperationMorphology morph, ... )
 	__attribute__((sentinel));
 
 int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 

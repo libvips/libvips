@@ -38,20 +38,26 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int vips_countlines( VipsImage *in, double *nolines, 
-	VipsDirection direction, ... )
-	__attribute__((sentinel));
+typedef enum {
+	VIPS_OPERATION_MORPHOLOGY_ERODE,
+	VIPS_OPERATION_MORPHOLOGY_DILATE,
+	VIPS_OPERATION_MORPHOLOGY_LAST
+} VipsOperationMorphology;
 
+int vips_morph( VipsImage *in, VipsImage **out, VipsImage *mask, 
+	VipsOperationMorphology morph, ... )
+	__attribute__((sentinel));
 int vips_rank( VipsImage *in, VipsImage **out, 
 	int width, int height, int index, ... )
+	__attribute__((sentinel));
+int vips_countlines( VipsImage *in, double *nolines, 
+	VipsDirection direction, ... )
 	__attribute__((sentinel));
 int vips_median( VipsImage *in, VipsImage **out, int size, ... )
 	__attribute__((sentinel));
 
 
 
-
-int im_zerox( VipsImage *in, VipsImage *out, int sign );
 int im_label_regions( VipsImage *test, VipsImage *mask, int *segments );
 
 #ifdef __cplusplus

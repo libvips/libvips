@@ -977,6 +977,7 @@ int im_phasecor_fft( VipsImage *in1, VipsImage *in2, VipsImage *out );
 
 int im_cntlines( VipsImage *im, double *nolines, int flag );
 int im_rank( VipsImage *in, VipsImage *out, int width, int height, int index );
+int im_zerox( VipsImage *in, VipsImage *out, int sign );
 
 #ifdef __cplusplus
 }
