@@ -38,13 +38,16 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+int vips_countlines( VipsImage *in, double *nolines, 
+	VipsDirection direction, ... )
+	__attribute__((sentinel));
+
 
 
 
 
 int im_rank( VipsImage *in, VipsImage *out, int width, int height, int index );
 
-int im_cntlines( VipsImage *im, double *nolines, int flag );
 int im_zerox( VipsImage *in, VipsImage *out, int sign );
 int im_label_regions( VipsImage *test, VipsImage *mask, int *segments );
 

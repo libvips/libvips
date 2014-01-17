@@ -39,51 +39,6 @@
 
 #include <vips/vips.h>
 
-/** 
- * SECTION: morphology
- * @short_description: morphological operators, rank filters and related image 
- * analysis
- * @see_also: <link linkend="libvips-boolean">boolean</link>
- * @stability: Stable
- * @include: vips/vips.h
- *
- * The morphological functions search images
- * for particular patterns of pixels, specified with the mask argument,
- * either adding or removing pixels when they find a match. They are useful
- * for cleaning up images --- for example, you might threshold an image, and
- * then use one of the morphological functions to remove all single isolated
- * pixels from the result.
- *
- * If you combine the morphological operators with the mask rotators
- * im_rotate_imask45(), for example) and apply them repeatedly, you
- * can achieve very complicated effects: you can thin, prune, fill, open edges,
- * close gaps, and many others. For example, see `Fundamentals  of  Digital
- * Image Processing' by A.  Jain, pp 384-388, Prentice-Hall, 1989 for more 
- * ideas.
- *
- * Beware that VIPS reverses the usual image processing convention, by 
- * assuming white objects (non-zero pixels) on a black background (zero
- * pixels).
- *
- * The mask you give to the morphological functions should contain only the
- * values 0 (for background), 128 (for don't care) and 255 (for object). The
- * mask must have odd length sides --- the origin of the mask is taken to be
- * the centre value. For example, the mask:
- *
- *   3 3 
- *   128 255 128
- *   255 0   255
- *   128 255 128
- *
- * applied to an image with im_erode(), will find all black pixels
- * 4-way connected with white pixels. Essentially, im_dilate()
- * sets pixels in the output if any part of the mask matches, whereas
- * im_erode() sets pixels only if all of the mask matches.
- *
- * See im_andimage(), im_orimage() and im_eorimage()
- * for analogues of the usual set difference and set union operations.
- */
-
 /* Args to im_profile.
  */
 static im_arg_desc profile_args[] = {

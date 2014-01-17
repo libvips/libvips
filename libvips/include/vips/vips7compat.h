@@ -975,6 +975,8 @@ int im_disp_ps( VipsImage *in, VipsImage *out );
 int im_fractsurf( VipsImage *out, int size, double frd );
 int im_phasecor_fft( VipsImage *in1, VipsImage *in2, VipsImage *out );
 
+int im_cntlines( VipsImage *im, double *nolines, int flag );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

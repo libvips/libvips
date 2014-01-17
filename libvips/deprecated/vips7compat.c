@@ -4488,3 +4488,12 @@ im_phasecor_fft( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 	return( 0 );
 }
+
+int 
+im_cntlines( VipsImage *im, double *nolines, int flag )
+{
+	return( vips_countlines( im, nolines, 
+		flag == 0 ? 
+			VIPS_DIRECTION_HORIZONTAL : VIPS_DIRECTION_VERTICAL,
+		NULL ) );
+}
