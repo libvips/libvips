@@ -1,3 +1,5 @@
+- need to do mosaicing and inplace, plus im_label_regions in morph
+
 - now vips_linear() has uchar output, can we do something with orc?
 
 - do restrict on some more packages, we've just done arithmetic so far
@@ -15,14 +17,6 @@
   need new API For this, since interpolators currently work for any image
 
 
-- do morph quickly as simple wrappers over the vips7 operations
-
-- seen some leaks from 
-
-	vips dzsave --layout google wtc.jpg x
-
-  investigate
-
 - vips_gaussblur() should switch to float prec if given a float image?
 
   same for vips_conv()?
@@ -33,18 +27,10 @@
 
 - vipsthumbnail could shrink-on-load openslide and pyr tiff as well?
 
-- how about
-
-	top -d 0.01 | grep vips > log
-
-  to watch RES at 0.01s intervals?
-
-  note on memuse page
-
 - use the webp advanced encoding api to set a write function for webp save to
   file
 
-- use g_log() instead of vips_info()
+- use g_log() instead of vips_info()?
 
 - object construction is threadsafe, but class construction is not
 
