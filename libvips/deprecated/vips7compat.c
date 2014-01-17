@@ -4497,3 +4497,20 @@ im_cntlines( VipsImage *im, double *nolines, int flag )
 			VIPS_DIRECTION_HORIZONTAL : VIPS_DIRECTION_VERTICAL,
 		NULL ) );
 }
+
+int 
+im_rank( IMAGE *in, IMAGE *out, int width, int height, int index )
+{
+	VipsImage *x;
+
+	if( vips_rank( in, &x, width, height, index, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

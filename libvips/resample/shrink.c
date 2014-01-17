@@ -137,8 +137,6 @@ vips_shrink_start( VipsImage *out, void *a, void *b )
 	if( !(seq = IM_NEW( out, VipsShrinkSequence )) )
 		return( NULL );
 
-	/* Init!
-	 */
 	seq->ir = vips_region_new( in );
 	if( !(seq->sum = (VipsPel *) VIPS_ARRAY( out, in->Bands, double )) ) {
 		vips_shrink_stop( seq, in, shrink );

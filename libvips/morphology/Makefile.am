@@ -3,8 +3,8 @@ noinst_LTLIBRARIES = libmorphology.la
 libmorphology_la_SOURCES = \
 	morphology.c \
 	countlines.c \
+	rank.c \
 	hitmiss.c\
-	im_rank.c \
 	im_zerox.c \
 	morph_dispatch.c \
 	im_label_regions.c 

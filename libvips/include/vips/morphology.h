@@ -42,11 +42,14 @@ int vips_countlines( VipsImage *in, double *nolines,
 	VipsDirection direction, ... )
 	__attribute__((sentinel));
 
+int vips_rank( VipsImage *in, VipsImage **out, 
+	int width, int height, int index, ... )
+	__attribute__((sentinel));
+int vips_median( VipsImage *in, VipsImage **out, int size, ... )
+	__attribute__((sentinel));
 
 
 
-
-int im_rank( VipsImage *in, VipsImage *out, int width, int height, int index );
 
 int im_zerox( VipsImage *in, VipsImage *out, int sign );
 int im_label_regions( VipsImage *test, VipsImage *mask, int *segments );

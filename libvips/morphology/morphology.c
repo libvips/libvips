@@ -132,6 +132,8 @@ void
 vips_morphology_operation_init( void )
 {
 	extern int vips_countlines_get_type( void ); 
+	extern int vips_rank_get_type( void ); 
 
 	vips_countlines_get_type(); 
+	vips_rank_get_type(); 
 }
