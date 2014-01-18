@@ -34,6 +34,7 @@ EXTRA_DIST = \
 	bootstrap.sh \
 	vips.pc.in \
 	vipsCC.pc.in \
+	libvips.supp \
 	acinclude.m4 \
 	depcomp \
 	$(C_DIST_DIR) \

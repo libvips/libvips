@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [7.37.0], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [7.38.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -16,7 +16,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [7])
-m4_define([vips_minor_version], [37])
+m4_define([vips_minor_version], [38])
 m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
@@ -37,7 +37,7 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=36
-LIBRARY_REVISION=0
+LIBRARY_REVISION=1
 LIBRARY_AGE=1
 
 # patched into include/vips/version.h
@@ -317,7 +317,7 @@ PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 libxml-2.0 gobject-2.0)
 PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0 gmodule-2.0 gobject-2.0"
 
 # after 2.28 we have a monotonic timer
-PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.28,[
+PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,[
   AC_DEFINE(HAVE_MONOTONIC_TIME,1,[define if your glib has g_get_monotonic_time().])
   ],[
   ]

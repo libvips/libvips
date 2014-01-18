@@ -4514,3 +4514,10 @@ im_rank( IMAGE *in, IMAGE *out, int width, int height, int index )
 
 	return( 0 );
 }
+
+int
+im_rank_raw( IMAGE *in, IMAGE *out, int width, int height, int index )
+{
+	im_error( "im_rank_raw", "no compat function" );
+	return( -1 );
+}

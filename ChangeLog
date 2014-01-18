@@ -1,3 +1,6 @@
+18/1/14 started 7.38.0
+- version bump
+
 19/10/13 started 7.37.0
 - redone im_rotate_*mask45(), im_gauss_*mask*(), im_log_*mask(), im_dilate(),
   im_erode(), im_rank_image(), im_compass(), im_linedet(), im_gradient(),
