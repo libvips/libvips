@@ -89,7 +89,7 @@ vips_foreign_save_rad_build( VipsObject *object )
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-static int bandfmt_rad[10] = {
+static int vips_foreign_save_rad_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    F,  F,  F,  F,  F,  F,  F,  F,  F,  F
 };
@@ -112,7 +112,7 @@ vips_foreign_save_rad_class_init( VipsForeignSaveRadClass *class )
 	foreign_class->suffs = vips__rad_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGB;
-	save_class->format_table = bandfmt_rad;
+	save_class->format_table = vips_foreign_save_rad_format_table;
 	save_class->coding[VIPS_CODING_NONE] = FALSE;
 	save_class->coding[VIPS_CODING_RAD] = TRUE;
 

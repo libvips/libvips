@@ -6,6 +6,8 @@
  * 	- flatten alpha with vips_flatten()
  * 28/5/13
  * 	- auto rshift down to 8 bits during save
+ * 19/1/14
+ * 	- pack and unpack rad to scrgb
  */
 
 /*
@@ -1149,8 +1151,8 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		in = out;
 	}
 
-	/* If this is an VIPS_CODING_RAD, we go to float RGB or XYZ. We should
-	 * probably un-gamma-correct the RGB :(
+	/* If this is an VIPS_CODING_RAD, we unpack to float. This could be
+	 * scRGB or XYZ. 
 	 */
 	if( in->Coding == VIPS_CODING_RAD ) {
 		VipsImage *out;
@@ -1248,10 +1250,27 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		 */
 	}
 
-	/* Interpret the Type field for colorimetric images.
+	/* If the saver supports RAD, we need to go to scRGB or XYZ. 
 	 */
-	if( in->Bands == 3 &&
+	if( class->coding[VIPS_CODING_RAD] ) {
+		if( in->Type != VIPS_INTERPRETATION_scRGB &&
+			in->Type != VIPS_INTERPRETATION_XYZ ) {
+			VipsImage *out;
+
+			if( vips_colourspace( in, &out, 
+				VIPS_INTERPRETATION_scRGB, NULL ) ) {
+				g_object_unref( in );
+				return( -1 );
+			}
+			g_object_unref( in );
+
+			in = out;
+		}
+	}
+	else if( in->Bands == 3 &&
 		vips_colourspace_issupported( in ) ) {
+		/* Interpret the Type field for colorimetric images.
+		 */
 		VipsImage *out;
 
 		if( vips_colourspace( in, &out, 
@@ -1307,10 +1326,10 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		/* Already NONE, nothing to do.
 		 */
 	}
-	else if( class->coding[VIPS_CODING_RAD] ) {
+	else if( class->coding[VIPS_CODING_LABQ] ) {
 		VipsImage *out;
 
-		if( vips_float2rad( in, &out, NULL ) ) {
+		if( vips_Lab2LabQ( in, &out, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}
@@ -1318,10 +1337,10 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 		in = out;
 	}
-	else if( class->coding[VIPS_CODING_LABQ] ) {
+	else if( class->coding[VIPS_CODING_RAD] ) {
 		VipsImage *out;
 
-		if( vips_Lab2LabQ( in, &out, NULL ) ) {
+		if( vips_float2rad( in, &out, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}

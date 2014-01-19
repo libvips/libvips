@@ -6,6 +6,8 @@
  * 	- add B_W as a source / dest
  * 	- add GREY16 as a source / dest
  * 	- add RGB16 as a source
+ * 19/1/14
+ * 	- auto-decode RAD images
  */
 
 /*
@@ -399,11 +401,13 @@ vips_colourspace_build( VipsObject *object )
 
 	int i, j;
 	VipsImage *x;
-	VipsImage **t;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( object, 1 );
+	VipsImage **pipe = (VipsImage **) 
+		vips_object_local_array( object, MAX_STEPS );
 
 	VipsInterpretation interpretation;
 
-	t = (VipsImage **) vips_object_local_array( object, MAX_STEPS );
 
 	/* Verify that all input args have been set.
 	 */
@@ -411,7 +415,18 @@ vips_colourspace_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	interpretation = vips_image_guess_interpretation( colourspace->in );
+	x = colourspace->in;
+
+	/* Unpack radiance-coded images. We can't use interpretation for this,
+	 * since rad images can be scRGB or XYZ.
+	 */
+	if( x->Coding == VIPS_CODING_RAD ) {
+		if( vips_rad2float( x, &t[0], NULL ) )
+			return( -1 );
+		x = t[0]; 
+	}
+
+	interpretation = vips_image_guess_interpretation( x );
 
 	/* Treat RGB and RGB16 as sRGB. If you want some other treatment,
 	 * you'll need to use the icc funcs.
@@ -430,8 +445,6 @@ vips_colourspace_build( VipsObject *object )
 		return( vips_image_write( colourspace->in, colourspace->out ) );
 	}
 
-	x = colourspace->in;
-
 	for( i = 0; i < VIPS_NUMBER( vips_colour_routes ); i++ )
 		if( vips_colour_routes[i].from == interpretation &&
 			vips_colour_routes[i].to == colourspace->space )
@@ -447,9 +460,9 @@ vips_colourspace_build( VipsObject *object )
 	}
 
 	for( j = 0; vips_colour_routes[i].route[j]; j++ ) {
-		if( vips_colour_routes[i].route[j]( x, &t[j], NULL ) ) 
+		if( vips_colour_routes[i].route[j]( x, &pipe[j], NULL ) ) 
 			return( -1 );
-		x = t[j];
+		x = pipe[j];
 	}
 
 	g_object_set( colourspace, "out", vips_image_new(), NULL ); 

@@ -1162,7 +1162,7 @@ vips2rad_put_header( Write *write )
 
 	if( !vips_image_get_string( write->in, "rad-format", &str ) )
 		vips_strncpy( write->format, str, 256 );
-	if( write->in->Type == VIPS_INTERPRETATION_RGB )
+	if( write->in->Type == VIPS_INTERPRETATION_scRGB )
 		strcpy( write->format, COLRFMT );
 	if( write->in->Type == VIPS_INTERPRETATION_XYZ )
 		strcpy( write->format, CIEFMT );

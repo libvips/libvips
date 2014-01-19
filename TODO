@@ -1,3 +1,4 @@
+
 - need to do mosaicing and inplace, plus im_label_regions in morph
 
 - now vips_linear() has uchar output, can we do something with orc?

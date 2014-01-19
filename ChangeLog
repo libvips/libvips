@@ -1,5 +1,6 @@
 19/1/14 started 7.38.1
 - bump soname, thanks benjamin
+- better conversion to and from scrgb/xyz for rad (hdr) 
 
 18/1/14 started 7.38.0
 - version bump
