@@ -460,7 +460,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		"threaded", TRUE, 
 		NULL ) ||
-		vips_affine( t[4], &t[5], residual, 0, 0, residual, NULL, 
+		vips_affine( t[4], &t[5], residual, 0, 0, residual, 
 			"interpolate", interp,
 			NULL ) )  
 		return( NULL );
