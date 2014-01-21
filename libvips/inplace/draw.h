@@ -28,65 +28,102 @@
 
  */
 
-/* Our state.
- */
-typedef struct _Draw {
+#ifndef VIPS_DRAW_H
+#define VIPS_DRAW_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif /*__cplusplus*/
+
+#define VIPS_TYPE_DRAW (vips_draw_get_type())
+#define VIPS_DRAW( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+		VIPS_TYPE_DRAW, VipsDraw ))
+#define VIPS_DRAW_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+		VIPS_TYPE_DRAW, VipsDrawClass))
+#define VIPS_IS_DRAW( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_DRAW ))
+#define VIPS_IS_DRAW_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_DRAW ))
+#define VIPS_DRAW_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+		VIPS_TYPE_DRAW, VipsDrawClass ))
+
+typedef struct _VipsDraw {
+	VipsOperation parent_instance;
+
 	/* Parameters.
 	 */
-	IMAGE *im;		/* Draw here */
-	VipsPel *ink;		/* Copy of ink param */
+	VipsImage *im;		/* Draw here */
+	VipsArea *ink;		/* With this */
 
 	/* Derived stuff.
 	 */
 	size_t lsize;
 	size_t psize;
 
+	/* Ink cast to pixel type.
+	 */
+	VipsPel *pixel_ink;
+
 	/* If the object to draw is entirely within the image, we have a 
 	 * faster noclip path.
 	 */
 	gboolean noclip;
-} Draw;
+} VipsDraw;
 
-#define DRAW(X) ((Draw *)(X))
+typedef struct _VipsDrawClass {
+	VipsOperationClass parent_class;
+
+} VipsDrawClass;
+
+GType vips_draw_get_type( void );
 
 static inline void
-im__draw_pel( Draw *draw, VipsPel *q )
+vips__draw_pel( VipsDraw *draw, VipsPel *q )
 {
  	int j;
 
 	/* Faster than memcopy() for n < about 20.
 	 */
 	for( j = 0; j < draw->psize; j++ ) 
-		q[j] = draw->ink[j];
+		q[j] = draw->pixel_ink[j];
 }
 
 /* Paint, with clip.
  */
 static inline void 
-im__draw_pel_clip( Draw *draw, int x, int y )
+vips__draw_pel_clip( VipsDraw *draw, int x, int y )
 {
-	if( x < 0 || x >= draw->im->Xsize )
+	if( x < 0 || 
+		x >= draw->im->Xsize )
 		return;
-	if( y < 0 || y >= draw->im->Ysize )
+	if( y < 0 || 
+		y >= draw->im->Ysize )
 		return;
 
-	im__draw_pel( draw, IM_IMAGE_ADDR( draw->im, x, y ) );
+	vips__draw_pel( draw, VIPS_IMAGE_ADDR( draw->im, x, y ) );
 }
 
 /* Is p painted?
  */
 static inline gboolean
-im__draw_painted( Draw *draw, VipsPel *p )
+vips__draw_painted( VipsDraw *draw, VipsPel *p )
 {
  	int j;
 
 	for( j = 0; j < draw->psize; j++ ) 
-		if( p[j] != draw->ink[j] ) 
+		if( p[j] != draw->pixel_ink[j] ) 
 			break;
 
 	return( j == draw->psize );
 }
 
-void im__draw_scanline( Draw *draw, int y, int x1, int x2 );
-void im__draw_free( Draw *draw );
-Draw *im__draw_init( Draw *draw, IMAGE *im, VipsPel *ink );
+void vips__draw_scanline( Draw *draw, int y, int x1, int x2 );
+
+#ifdef __cplusplus
+}
+#endif /*__cplusplus*/
+
+#endif /*VIPS_DRAW_H*/
