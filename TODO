@@ -1,3 +1,10 @@
+- inplace
+
+	can we set a region for the pixels we will modify?
+
+	is there any point doing this? only useful on 32-bit machines, which
+	don't really exist any more
+
 
 - need to do mosaicing and inplace, plus im_label_regions in morph
 
@@ -27,6 +34,13 @@
 - support --strip for other writers
 
 - vipsthumbnail could shrink-on-load openslide and pyr tiff as well?
+
+  we have "shrink" for jpegload, move this into the base loader
+
+  support it for tiff and openslide as well
+
+  use it from nip2 for zooming? only if the partial flag is set though, we
+  don't want to use it on jpg files
 
 - use the webp advanced encoding api to set a write function for webp save to
   file
