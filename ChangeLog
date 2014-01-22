@@ -1,3 +1,6 @@
+22/1/14 started 7.38.2
+- auto RAD decode for affine
+
 19/1/14 started 7.38.1
 - bump soname, thanks benjamin
 - better conversion to and from scrgb/xyz for rad (hdr) 

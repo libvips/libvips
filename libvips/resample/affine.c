@@ -79,6 +79,8 @@
  * 14/12/12
  * 	- redone as a class
  * 	- added input space translation
+ * 22/1/14
+ * 	- auto RAD decode
  */
 
 /*
@@ -392,7 +394,7 @@ vips_affine_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_affine_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_check_coding_noneorlabq( class->nickname, resample->in ) )
+	if( vips_check_coding_known( class->nickname, resample->in ) )
 		return( -1 );
 	if( vips_check_vector_length( class->nickname, 
 		affine->matrix->n, 4 ) )
@@ -463,23 +465,28 @@ vips_affine_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* Unpack labq for processing.
+	/* Unpack for processing.
 	 */
 	if( in->Coding == VIPS_CODING_LABQ ) {
 		if( vips_LabQ2LabS( in, &t[0], NULL ) )
 			return( -1 );
 		in = t[0];
+	} 
+	else if( in->Coding == VIPS_CODING_RAD ) {
+		if( vips_rad2float( in, &t[1], NULL ) )
+			return( -1 );
+		in = t[1];
 	}
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
-	if( vips_embed( in, &t[1], 
+	if( vips_embed( in, &t[2], 
 		window_offset, window_offset, 
 		in->Xsize + window_size, in->Ysize + window_size,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
-	in = t[1];
+	in = t[2];
 
 	/* Normally SMALLTILE ... except if this is a size up/down affine.
 	 */
