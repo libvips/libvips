@@ -297,6 +297,8 @@ IMAGE *vips__deprecated_open_write( const char *filename );
 
 int vips__input_interpolate_init( im_object *obj, char *str );
 
+int vips__image_decode( VipsImage *in, VipsImage **out );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

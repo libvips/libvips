@@ -1,3 +1,24 @@
+- shrink does not auto unpack labq or rad, should it?
+
+- others .. differences in:
+
+grep -l CODING_LABQ */*.c
+conversion/join.c
+conversion/msb.c
+inplace/im_draw_mask.c
+resample/shrink.c
+
+grep -l CODING_RAD */*.c
+conversion/embed.c
+inplace/flood.c
+inplace/im_draw_image.c
+
+- add unpack everywhere, eg. arithmetic
+
+
+
+
+- move vips__image_decode() into the public API
 
 - need to do mosaicing and inplace, plus im_label_regions in morph
 
