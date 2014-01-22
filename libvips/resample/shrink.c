@@ -85,6 +85,7 @@
 
 #include <vips/vips.h>
 #include <vips/debug.h>
+#include <vips/internal.h>
 
 #include "presample.h"
 

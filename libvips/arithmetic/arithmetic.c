@@ -51,6 +51,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "parithmetic.h"
 
@@ -500,6 +501,7 @@ vips_arithmetic_build( VipsObject *object )
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( object );
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_GET_CLASS( arithmetic );
 
+	VipsImage **decode;
 	VipsImage **format;
 	VipsImage **band;
 	VipsImage **size;
@@ -524,12 +526,9 @@ vips_arithmetic_build( VipsObject *object )
 			"%s", _( "too many input images" ) );
 		return( -1 );
 	}
-	for( i = 0; i < arithmetic->n; i++ )
-		if( vips_image_pio_input( arithmetic->in[i] ) || 
-			vips_check_uncoded( class->nickname, 
-				arithmetic->in[i] ) ) 
-			return( -1 );
 
+	decode = (VipsImage **) 
+		vips_object_local_array( object, arithmetic->n );
 	format = (VipsImage **) 
 		vips_object_local_array( object, arithmetic->n );
 	band = (VipsImage **) 
@@ -537,9 +536,15 @@ vips_arithmetic_build( VipsObject *object )
 	size = (VipsImage **) 
 		vips_object_local_array( object, arithmetic->n );
 
+	/* Decode RAD/LABQ etc.
+	 */
+	for( i = 0; i < arithmetic->n; i++ )
+		if( vips__image_decode( arithmetic->in[i], &decode[i] ) )
+			return( -1 );
+
 	/* Cast our input images up to a common format, bands and size.
 	 */
-	if( vips__formatalike_vec( arithmetic->in, format, arithmetic->n ) ||
+	if( vips__formatalike_vec( decode, format, arithmetic->n ) ||
 		vips__bandalike_vec( class->nickname, 
 			format, band, arithmetic->n, arithmetic->base_bands ) ||
 		vips__sizealike_vec( band, size, arithmetic->n ) ) 

@@ -15,6 +15,11 @@ inplace/im_draw_image.c
 
 - add unpack everywhere, eg. arithmetic
 
+  look for 
+
+	vips_check_uncoded
+
+  certainly can use it there
 
 
 
