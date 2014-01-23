@@ -150,6 +150,10 @@ typedef struct _ReadJpeg {
 	/* Set if we need to finish the decompress.
 	 */
 	gboolean decompressing;
+
+	/* Track the y pos during a read with this.
+	 */
+	int y_pos;
 } ReadJpeg;
 
 static int
@@ -221,6 +225,8 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean readbehind )
 	jpeg->eman.pub.error_exit = vips__new_error_exit;
 	jpeg->eman.pub.output_message = vips__new_output_message;
 	jpeg->eman.fp = NULL;
+
+	jpeg->y_pos = 0;
 
 	/* jpeg_create_decompress() can fail on some sanity checks. Don't
 	 * readjpeg_free() since we don't want to jpeg_destroy_decompress().
@@ -888,7 +894,7 @@ read_jpeg_generate( VipsRegion *or,
 	printf( "read_jpeg_generate: line %d, %d rows\n", 
 		r->top, r->height );
 #endif /*DEBUG*/
-	
+
 	VIPS_GATE_START( "read_jpeg_generate: work" );
 
 	/* We're inside a tilecache where tiles are the full image width, so
@@ -906,6 +912,11 @@ read_jpeg_generate( VipsRegion *or,
 	 * strip.
 	 */
 	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
+
+	/* And check that y_pos is correct. It should be, since we are inside
+	 * a vips_sequential().
+	 */
+	g_assert( r->top == jpeg->y_pos ); 
 
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
@@ -926,6 +937,8 @@ read_jpeg_generate( VipsRegion *or,
 			for( x = 0; x < sz; x++ )
 				row_pointer[0][x] = 255 - row_pointer[0][x];
 		}
+
+		jpeg->y_pos += 1; 
 	}
 
 	VIPS_GATE_STOP( "read_jpeg_generate: work" );

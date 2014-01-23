@@ -14,6 +14,8 @@
  * 	- force input to mono 8-bit for the user
  * 1/8/13
  * 	- redone as a class
+ * 23/1/14	
+ * 	- oops, was not auto-getting and casting the first band
  */
 
 /*
@@ -342,11 +344,14 @@ vips_falsecolour_build( VipsObject *object )
 		VIPS_FORMAT_UCHAR )) )
 		return( -1 );
 
-	/* Force to mono 8-bit. 
+	/* Force to mono 8-bit. Don't use vips_colourspace() to go to B_W, we
+	 * want to work for images which aren't in a recognised space, like
+	 * MULTIBAND.
 	 */
-	if( vips_colourspace( falsecolour->in, &t[1], 
-			VIPS_INTERPRETATION_B_W, NULL ) ||
-		vips_maplut( t[1], &t[3], t[0], NULL ) ||
+	if( vips_check_uncoded( class->nickname, falsecolour->in ) ||
+		vips_extract_band( falsecolour->in, &t[1], 0, NULL ) ||
+		vips_cast( t[1], &t[2], VIPS_FORMAT_UCHAR, NULL ) ||
+		vips_maplut( t[2], &t[3], t[0], NULL ) ||
 		vips_image_write( t[3], conversion->out ) ) 
 		return( -1 );
 
