@@ -429,36 +429,41 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 static int
 vips_cast_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsCast *cast = (VipsCast *) object;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( object, 2 );
+
+	VipsImage *in; 
 
 	if( VIPS_OBJECT_CLASS( vips_cast_parent_class )->build( object ) )
 		return( -1 );
 
+	in = cast->in; 
+
 	/* Trivial case: fall back to copy().
 	 */
-	if( cast->in->BandFmt == cast->format ) 
-		return( vips_image_write( cast->in, conversion->out ) );
+	if( in->BandFmt == cast->format ) 
+		return( vips_image_write( in, conversion->out ) );
 
-	if( vips_check_uncoded( class->nickname, cast->in ) ||
-		vips_image_pio_input( cast->in ) )
+	if( vips__image_decode( in, &t[0] ) )
 		return( -1 );
+	in = t[0]; 
 
 	if( vips_image_pipelinev( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, cast->in, NULL ) )
+		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
 	conversion->out->BandFmt = cast->format;
 
-	g_signal_connect( cast->in, "preeval", 
+	g_signal_connect( in, "preeval", 
 		G_CALLBACK( vips_cast_preeval ), cast );
-	g_signal_connect( cast->in, "posteval", 
+	g_signal_connect( in, "posteval", 
 		G_CALLBACK( vips_cast_posteval ), cast );
 
 	if( vips_image_generate( conversion->out,
 		vips_cast_start, vips_cast_gen, vips_cast_stop, 
-		cast->in, cast ) )
+		in, cast ) )
 		return( -1 );
 
 	return( 0 );

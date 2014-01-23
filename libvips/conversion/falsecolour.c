@@ -329,10 +329,9 @@ static unsigned char vips_falsecolour_pet[][3] = {
 static int
 vips_falsecolour_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsFalsecolour *falsecolour = (VipsFalsecolour *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
 
 	if( VIPS_OBJECT_CLASS( vips_falsecolour_parent_class )->
 		build( object ) )
@@ -345,10 +344,9 @@ vips_falsecolour_build( VipsObject *object )
 
 	/* Force to mono 8-bit. 
 	 */
-	if( vips_check_uncoded( class->nickname, falsecolour->in ) ||
-		vips_extract_band( falsecolour->in, &t[1], 0, NULL ) ||
-		vips_cast( t[1], &t[2], VIPS_FORMAT_UCHAR, NULL ) ||
-		vips_maplut( falsecolour->in, &t[3], t[0], NULL ) ||
+	if( vips_colourspace( falsecolour->in, &t[1], 
+			VIPS_INTERPRETATION_B_W, NULL ) ||
+		vips_maplut( t[1], &t[3], t[0], NULL ) ||
 		vips_image_write( t[3], conversion->out ) ) 
 		return( -1 );
 

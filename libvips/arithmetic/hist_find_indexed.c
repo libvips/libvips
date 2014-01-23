@@ -130,7 +130,7 @@ vips_hist_find_indexed_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
 	VipsHistFindIndexed *indexed = (VipsHistFindIndexed *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	g_object_set( object, 
 		"out", vips_image_new(),
