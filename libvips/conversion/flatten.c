@@ -300,24 +300,31 @@ vips_flatten_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsFlatten *flatten = (VipsFlatten *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
+
+	VipsImage *in;
 	int i;
 	gboolean black;
 
 	if( VIPS_OBJECT_CLASS( vips_flatten_parent_class )->build( object ) )
 		return( -1 );
 
+	in = flatten->in; 
+
+	if( vips__image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0]; 
+
 	/* Trivial case: fall back to copy().
 	 */
 	if( flatten->in->Bands == 1 ) 
-		return( vips_image_write( flatten->in, conversion->out ) );
+		return( vips_image_write( in, conversion->out ) );
 
-	if( vips_check_uncoded( class->nickname, flatten->in ) ||
-		vips_check_noncomplex( class->nickname, flatten->in ) ||
-		vips_image_pio_input( flatten->in ) )
+	if( vips_check_noncomplex( class->nickname, in ) )
 		return( -1 );
 
 	if( vips_image_pipelinev( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, flatten->in, NULL ) )
+		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
 	conversion->out->Bands -= 1;
@@ -334,7 +341,7 @@ vips_flatten_build( VipsObject *object )
 	if( black ) {
 		if( vips_image_generate( conversion->out,
 			vips_start_one, vips_flatten_black_gen, vips_stop_one, 
-			flatten->in, flatten ) )
+			in, flatten ) )
 			return( -1 );
 	}
 	else {
@@ -347,7 +354,7 @@ vips_flatten_build( VipsObject *object )
 
 		if( vips_image_generate( conversion->out,
 			vips_start_one, vips_flatten_gen, vips_stop_one, 
-			flatten->in, flatten ) )
+			in, flatten ) )
 			return( -1 );
 	}
 

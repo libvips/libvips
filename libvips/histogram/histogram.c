@@ -111,6 +111,7 @@ vips_histogram_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsHistogramClass *hclass = VIPS_HISTOGRAM_GET_CLASS( histogram );
 
+	VipsImage **decode;
 	VipsImage **format;
 	VipsImage **band;
 	VipsImage **size;
@@ -134,6 +135,7 @@ vips_histogram_build( VipsObject *object )
 	 */
 	g_assert( !histogram->in[histogram->n] ); 
 
+	decode = (VipsImage **) vips_object_local_array( object, histogram->n );
 	format = (VipsImage **) vips_object_local_array( object, histogram->n );
 	band = (VipsImage **) vips_object_local_array( object, histogram->n );
 	size = (VipsImage **) vips_object_local_array( object, histogram->n );
@@ -141,8 +143,8 @@ vips_histogram_build( VipsObject *object )
 	g_object_set( histogram, "out", vips_image_new(), NULL ); 
 
 	for( i = 0; i < histogram->n; i++ ) 
-		if( vips_check_uncoded( class->nickname, histogram->in[i] ) ||
-			vips_check_hist( class->nickname, histogram->in[i] ) )
+		if( vips__image_decode( histogram->in[i], &decode[i] ) ||
+			vips_check_hist( class->nickname, decode[i] ) )
 			return( -1 ); 
 
 	/* Cast our input images up to a common format, bands and size. If
@@ -150,13 +152,12 @@ vips_histogram_build( VipsObject *object )
 	 */
 	if( hclass->input_format != VIPS_FORMAT_NOTSET ) {
 		for( i = 0; i < histogram->n; i++ ) 
-			if( vips_cast( histogram->in[i], &format[i],
+			if( vips_cast( decode[i], &format[i],
 				hclass->input_format, NULL ) )
 				return( -1 ); 
 	}
 	else {
-		if( vips__formatalike_vec( histogram->in, 
-			format, histogram->n ) )
+		if( vips__formatalike_vec( decode, format, histogram->n ) )
 			return( -1 );
 	}
 		

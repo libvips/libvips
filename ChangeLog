@@ -1,5 +1,5 @@
 21/1/14 started 7.39.0
-- fancy auto-decode for all operations
+- auto-decode for (almost) all operations
 
 22/1/14 started 7.38.2
 - auto RAD decode for affine

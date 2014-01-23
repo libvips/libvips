@@ -8,35 +8,10 @@
 
   problem in 7.38 too
 
+- vips_colourspace() needs an option from_space param,?
+
 - check_uncoded() left to do:
 
-	conversion/falsecolour.c
-	conversion/flatten.c
-	conversion/recomb.c
-	convolution/sharpen.c
-	deprecated/im_gradcor.c
-	deprecated/im_lab_morph.c
-	deprecated/im_maxpos_avg.c
-	deprecated/im_measure.c
-	deprecated/im_vips2mask.c
-	deprecated/im_zerox.c
-	deprecated/rename.c
-	deprecated/tone.c
-	deprecated/vips7compat.c
-	foreign/csv.c
-	foreign/ppm.c
-	freqfilt/fwfft.c
-	freqfilt/invfft.c
-	histogram/hist_local.c
-	histogram/histogram.c
-	histogram/hist_plot.c
-	histogram/maplut.c
-	histogram/stdif.c
-	inplace/flood.c
-	inplace/im_draw_mask.c
-	inplace/inplace_dispatch.c
-	iofuncs/error.c
-	morphology/hitmiss.c
 	resample/quadratic.c
 
 - we vips_image_write() a lot, could we do this by 

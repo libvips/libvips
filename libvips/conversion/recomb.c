@@ -50,6 +50,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pconversion.h"
 
@@ -142,19 +143,25 @@ vips_recomb_build( VipsObject *object )
 	VipsRecomb *recomb = (VipsRecomb *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
+	VipsImage *in;
+
 	if( VIPS_OBJECT_CLASS( vips_recomb_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_pio_input( recomb->in ) || 
-		vips_check_uncoded( class->nickname, recomb->in ) ||
-		vips_check_noncomplex( class->nickname, recomb->in ) )
+	in = recomb->in; 
+
+	if( vips__image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0]; 
+
+	if( vips_check_noncomplex( class->nickname, in ) )
 		return( -1 );
 	if( vips_image_pio_input( recomb->m ) || 
 		vips_check_uncoded( class->nickname, recomb->m ) ||
 		vips_check_noncomplex( class->nickname, recomb->m ) ||
 		vips_check_mono( class->nickname, recomb->m ) )
 		return( -1 );
-	if( recomb->in->Bands != recomb->m->Xsize ) {
+	if( in->Bands != recomb->m->Xsize ) {
 		vips_error( class->nickname, 
 			"%s", _( "bands in must equal matrix width" ) );
 		return( -1 );
@@ -165,16 +172,16 @@ vips_recomb_build( VipsObject *object )
 	recomb->coeff = t[0]; 
 
 	if( vips_image_pipelinev( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, recomb->in, NULL ) )
+		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
 	conversion->out->Bands = recomb->m->Ysize;
-	if( vips_bandfmt_isint( recomb->in->BandFmt ) ) 
+	if( vips_bandfmt_isint( in->BandFmt ) ) 
 		conversion->out->BandFmt = VIPS_FORMAT_FLOAT;
 
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_recomb_gen, vips_stop_one, 
-		recomb->in, recomb ) )
+		in, recomb ) )
 		return( -1 );
 
 	return( 0 );

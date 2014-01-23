@@ -60,6 +60,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 typedef struct _VipsHistLocal {
 	VipsOperation parent_instance;
@@ -235,8 +236,11 @@ vips_hist_local_build( VipsObject *object )
 
 	in = local->in; 
 
-	if( vips_check_uncoded( class->nickname, in ) ||
-		vips_check_format( class->nickname, in, VIPS_FORMAT_UCHAR ) )
+	if( vips__image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0]; 
+
+	if( vips_check_format( class->nickname, in, VIPS_FORMAT_UCHAR ) )
 		return( -1 );
 
 	if( local->width > in->Xsize || 
@@ -247,13 +251,13 @@ vips_hist_local_build( VipsObject *object )
 
 	/* Expand the input. 
 	 */
-	if( vips_embed( in, &t[0], 
+	if( vips_embed( in, &t[1], 
 		local->width / 2, local->height / 2, 
 		in->Xsize + local->width - 1, in->Ysize + local->height - 1,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
-	in = t[0];
+	in = t[1];
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
