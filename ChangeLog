@@ -1,5 +1,8 @@
 22/1/14 started 7.38.2
 - auto RAD decode for affine
+- falsecolour was not working for some image types
+- foreign memory buffer images did not have the right dhint, broke
+  command-line falsecolour on sequential images
 
 19/1/14 started 7.38.1
 - bump soname, thanks benjamin

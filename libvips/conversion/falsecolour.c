@@ -14,6 +14,8 @@
  * 	- force input to mono 8-bit for the user
  * 1/8/13
  * 	- redone as a class
+ * 23/1/14	
+ * 	- oops, was not auto-getting and casting the first band
  */
 
 /*
@@ -348,7 +350,7 @@ vips_falsecolour_build( VipsObject *object )
 	if( vips_check_uncoded( class->nickname, falsecolour->in ) ||
 		vips_extract_band( falsecolour->in, &t[1], 0, NULL ) ||
 		vips_cast( t[1], &t[2], VIPS_FORMAT_UCHAR, NULL ) ||
-		vips_maplut( falsecolour->in, &t[3], t[0], NULL ) ||
+		vips_maplut( t[2], &t[3], t[0], NULL ) ||
 		vips_image_write( t[3], conversion->out ) ) 
 		return( -1 );
 
