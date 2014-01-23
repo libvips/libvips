@@ -937,6 +937,7 @@ vips_image_build( VipsObject *object )
 			image->Type = VIPS_INTERPRETATION_MULTIBAND;
 
 		image->dtype = VIPS_IMAGE_SETBUF_FOREIGN;
+		image->dhint = VIPS_DEMAND_STYLE_ANY;
 
 		break;
 
