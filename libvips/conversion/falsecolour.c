@@ -54,6 +54,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pconversion.h"
 
@@ -348,11 +349,11 @@ vips_falsecolour_build( VipsObject *object )
 	 * want to work for images which aren't in a recognised space, like
 	 * MULTIBAND.
 	 */
-	if( vips_check_uncoded( class->nickname, falsecolour->in ) ||
-		vips_extract_band( falsecolour->in, &t[1], 0, NULL ) ||
-		vips_cast( t[1], &t[2], VIPS_FORMAT_UCHAR, NULL ) ||
-		vips_maplut( t[2], &t[3], t[0], NULL ) ||
-		vips_image_write( t[3], conversion->out ) ) 
+	if( vips__image_decode( falsecolour->in, &t[1] ) ||
+		vips_extract_band( t[1], &t[2], 0, NULL ) ||
+		vips_cast( t[2], &t[3], VIPS_FORMAT_UCHAR, NULL ) ||
+		vips_maplut( t[3], &t[4], t[0], NULL ) ||
+		vips_image_write( t[4], conversion->out ) ) 
 		return( -1 );
 
 	return( 0 );
