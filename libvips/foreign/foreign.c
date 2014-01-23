@@ -2405,6 +2405,14 @@ vips_openslideload( const char *filename, VipsImage **out, ... )
  *
  * Read a FITS image file into a VIPS image. 
  *
+ * This operation can read images with up to three dimensions. Any higher
+ * dimensions must be empty. 
+ *
+ * It can read 8, 16 and 32-bit integer images, signed and unsigned, float and 
+ * double. 
+ *
+ * FITS metadata is attached with the "fits-" prefix.
+ *
  * See also: vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -2428,7 +2436,7 @@ vips_fitsload( const char *filename, VipsImage **out, ... )
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
  *
- * Write a VIPS image to a file as FITS.
+ * Write a VIPS image to a file in FITS format.
  *
  * See also: vips_image_write_file().
  *
