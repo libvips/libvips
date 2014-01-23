@@ -373,13 +373,33 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	return( 0 );
 }
 
+/* Unpack to a format that we can compute with.
+ */
+int
+vips__image_decode( VipsImage *in, VipsImage **out )
+{
+	if( in->Coding == VIPS_CODING_LABQ ) {
+		if( vips_LabQ2LabS( in, out, NULL ) )
+			return( -1 );
+	} 
+	else if( in->Coding == VIPS_CODING_RAD ) {
+		if( vips_rad2float( in, out, NULL ) )
+			return( -1 );
+	}
+	else {
+		if( vips_copy( in, out, NULL ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
 static int
 vips_affine_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsAffine *affine = (VipsAffine *) object;
-
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( object, 4 );
 
@@ -465,11 +485,9 @@ vips_affine_build( VipsObject *object )
 
 	/* Unpack labq for processing.
 	 */
-	if( in->Coding == VIPS_CODING_LABQ ) {
-		if( vips_LabQ2LabS( in, &t[0], NULL ) )
-			return( -1 );
-		in = t[0];
-	}
+	if( vips__image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0];
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
