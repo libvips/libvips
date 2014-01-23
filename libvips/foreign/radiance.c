@@ -12,6 +12,9 @@
  * 	- support sequential read
  * 5/11/13
  * 	- rewritten scanline encode and decode, now much faster
+ * 23/1/14
+ * 	- put the reader globals into a struct so we can have many active
+ * 	  readers
  */
 
 /*
@@ -617,38 +620,57 @@ register RESOLU  *rp;
 #define BUFFER_SIZE (4096)
 #define BUFFER_MARGIN (256)
 
-static unsigned char buffer[BUFFER_SIZE + BUFFER_MARGIN];
-static int buffer_length = 0;
-static int buffer_position = 0;
-static FILE *buffer_fp = NULL;
+/* Read from a FILE with a rolling memory buffer ... this lets us reduce the
+ * number of fgetc() and gives us some very quick readahead.
+ */
 
-static void
-buffer_init( FILE *fp )
+typedef struct _Buffer { 
+	unsigned char text[BUFFER_SIZE + BUFFER_MARGIN];
+	int length;
+	int position;
+	FILE *fp;
+} Buffer; 
+
+static Buffer *
+buffer_new( FILE *fp )
 {
-	buffer_length = 0;
-	buffer_position = 0;
-	buffer_fp = fp;
+	Buffer *buffer = g_new0( Buffer, 1 );
+
+	buffer->length = 0;
+	buffer->position = 0;
+	buffer->fp = fp;
+
+	return( buffer ); 
 }
 
+static void
+buffer_free( Buffer *buffer )
+{
+	g_free( buffer ); 
+}
+
+/* Make sure there are at least @require bytes of readahead available.
+ */
 static int
-buffer_need( int require )
+buffer_need( Buffer *buffer, int require )
 {
 	int remaining;
 
 	g_assert( require < BUFFER_MARGIN ); 
 
-	remaining = buffer_length - buffer_position;
+	remaining = buffer->length - buffer->position;
 	if( remaining < require ) {
 		size_t len;
 
-		memcpy( buffer, buffer + buffer_position, remaining ); 
-		buffer_position = 0;
-		buffer_length = remaining;
+		memcpy( buffer->text, 
+			buffer->text + buffer->position, remaining ); 
+		buffer->position = 0;
+		buffer->length = remaining;
 
-		len = fread( buffer + buffer_length, 1, BUFFER_SIZE, 
-			buffer_fp );
-		buffer_length += len;
-		remaining = buffer_length - buffer_position;
+		len = fread( buffer->text + buffer->length, 
+			1, BUFFER_SIZE, buffer->fp );
+		buffer->length += len;
+		remaining = buffer->length - buffer->position;
 
 		if( remaining < require ) {
 			vips_error( "rad2vips", "%s", _( "end of file" ) ); 
@@ -659,26 +681,26 @@ buffer_need( int require )
 	return( 0 );
 }
 
-#define BUFFER_FETCH (buffer[buffer_position++])
-#define BUFFER_PEEK (buffer[buffer_position])
+#define BUFFER_FETCH(B) ((B)->text[(B)->position++])
+#define BUFFER_PEEK(B) ((B)->text[(B)->position])
 
 /* Read a single scanlne, encoded in the old style.
  */
 static int
-scanline_read_old( COLR *scanline, int width )
+scanline_read_old( Buffer *buffer, COLR *scanline, int width )
 {
 	int rshift;
 
 	rshift = 0;
 	
 	while( width > 0 ) {
-		if( buffer_need( 4 ) )
+		if( buffer_need( buffer, 4 ) )
 			return( -1 ); 
 
-		scanline[0][RED] = BUFFER_FETCH;
-		scanline[0][GRN] = BUFFER_FETCH;
-		scanline[0][BLU] = BUFFER_FETCH;
-		scanline[0][EXP] = BUFFER_FETCH;
+		scanline[0][RED] = BUFFER_FETCH( buffer );
+		scanline[0][GRN] = BUFFER_FETCH( buffer );
+		scanline[0][BLU] = BUFFER_FETCH( buffer );
+		scanline[0][EXP] = BUFFER_FETCH( buffer );
 
 		if( scanline[0][RED] == 1 &&
 			scanline[0][GRN] == 1 &&
@@ -706,7 +728,7 @@ scanline_read_old( COLR *scanline, int width )
 /* Read a single encoded scanline.
  */
 static int
-scanline_read( COLR *scanline, int width )
+scanline_read( Buffer *buffer, COLR *scanline, int width )
 {
 	int i, j;
 
@@ -714,21 +736,21 @@ scanline_read( COLR *scanline, int width )
 	 */
 	if( width < MINELEN ||
 		width > MAXELEN )
-		return( scanline_read_old( scanline, width ) );
+		return( scanline_read_old( buffer, scanline, width ) );
 
-	if( buffer_need( 4 ) )
+	if( buffer_need( buffer, 4 ) )
 		return( -1 ); 
 
-	if( BUFFER_PEEK != 2 ) 
-		return( scanline_read_old( scanline, width ) );
+	if( BUFFER_PEEK( buffer ) != 2 ) 
+		return( scanline_read_old( buffer, scanline, width ) );
 
-	scanline[0][RED] = BUFFER_FETCH;
-	scanline[0][GRN] = BUFFER_FETCH;
-	scanline[0][BLU] = BUFFER_FETCH;
-	scanline[0][EXP] = BUFFER_FETCH;
+	scanline[0][RED] = BUFFER_FETCH( buffer );
+	scanline[0][GRN] = BUFFER_FETCH( buffer );
+	scanline[0][BLU] = BUFFER_FETCH( buffer );
+	scanline[0][EXP] = BUFFER_FETCH( buffer );
 	if( scanline[0][GRN] != 2 || 
 		scanline[0][BLU] & 128 ) 
-		return( scanline_read_old( scanline + 1, width - 1 ) );
+		return( scanline_read_old( buffer, scanline + 1, width - 1 ) );
 
 	if( ((scanline[0][BLU] << 8) | scanline[0][EXP]) != width ) {
 		vips_error( "rad2vips", "%s", _( "scanline length mismatch" ) );
@@ -740,10 +762,10 @@ scanline_read( COLR *scanline, int width )
 			int code, len;
 			gboolean run;
 
-			if( buffer_need( 2 ) )
+			if( buffer_need( buffer, 2 ) )
 				return( -1 ); 
 
-			code = BUFFER_FETCH; 
+			code = BUFFER_FETCH( buffer ); 
 			run = code > 128;
 			len = run ? code & 127 : code; 
 
@@ -755,15 +777,16 @@ scanline_read( COLR *scanline, int width )
 			if( run ) { 
 				int val;
 
-				val = BUFFER_FETCH; 
+				val = BUFFER_FETCH( buffer ); 
 				while( len-- )
 					scanline[j++][i] = val;
 			} 
 			else {
-				if( buffer_need( len ) )
+				if( buffer_need( buffer, len ) )
 					return( -1 ); 
 				while( len-- ) 
-					scanline[j++][i] = BUFFER_FETCH;
+					scanline[j++][i] = 
+						BUFFER_FETCH( buffer );
 			}
 		}
 
@@ -861,6 +884,7 @@ typedef struct {
 	double aspect;
 	RGBPRIMS prims;
 	RESOLU rs;
+	Buffer *buffer; 
 } Read;
 
 int
@@ -888,7 +912,7 @@ read_destroy( VipsObject *object, Read *read )
 {
 	VIPS_FREE( read->filename );
 	VIPS_FREEF( fclose, read->fin );
-	buffer_init( NULL );
+	VIPS_FREEF( buffer_free, read->buffer );
 }
 
 static Read *
@@ -920,9 +944,9 @@ read_new( const char *filename, VipsImage *out )
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_destroy ), read );
 
-	if( !(read->fin = vips__file_open_read( filename, NULL, FALSE )) ) 
+	if( !(read->fin = vips__file_open_read( filename, NULL, FALSE )) || 
+		!(read->buffer = buffer_new( read->fin )) )
 		return( NULL );
-	buffer_init( read->fin );
 
 	return( read );
 }
@@ -1037,23 +1061,29 @@ rad2vips_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
         VipsRect *r = &or->valid;
+	Read *read = (Read *) a; 
 
 	int y;
 
 #ifdef DEBUG
-	printf( "rad2vips_get_data\n" );
+	printf( "rad2vips_generate: line %d, %d rows\n", 
+		r->top, r->height );
 #endif /*DEBUG*/
+
+	VIPS_GATE_START( "rad2vips_generate: work" );
 
 	for( y = 0; y < r->height; y++ ) {
 		COLR *buf = (COLR *) 
 			VIPS_REGION_ADDR( or, 0, r->top + y );
 
-		if( scanline_read( buf, or->im->Xsize ) ) {
+		if( scanline_read( read->buffer, buf, or->im->Xsize ) ) {
 			vips_error( "rad2vips", 
 				_( "read error line %d" ), r->top + y );
 			return( -1 );
 		}
 	}
+
+	VIPS_GATE_STOP( "rad2vips_generate: work" );
 
 	return( 0 );
 }
