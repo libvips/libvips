@@ -2361,8 +2361,8 @@ vips_openexrload( const char *filename, VipsImage **out, ... )
  * @associated: load this associated image
  *
  * Read a virtual slide supported by the OpenSlide library into a VIPS image.
- * OpenSlide supports images in Aperio, Hamamatsu VMS, Hamamatsu VMU, MIRAX,
- * and Trestle formats.  
+ * OpenSlide supports images in Aperio, Hamamatsu, MIRAX, Sakura, Trestle,
+ * and Ventana formats.
  *
  * To facilitate zooming, virtual slide formats include multiple scaled-down
  * versions of the high-resolution image.  These are typically called
