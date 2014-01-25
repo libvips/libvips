@@ -2,7 +2,7 @@
  *
  * Benjamin Gilbert
  *
- * Copyright (c) 2011-2012 Carnegie Mellon University
+ * Copyright (c) 2011-2014 Carnegie Mellon University
  *
  * 26/11/11
  *	- initial version
@@ -39,6 +39,8 @@
  * 	- use threaded tile cache
  * 6/8/13
  * 	- always output solid (not transparent) pixels
+ * 25/1/14
+ * 	- use openslide_detect_vendor() on >= 3.4.0
  */
 
 /*
@@ -105,6 +107,23 @@ typedef struct {
 int
 vips__openslide_isslide( const char *filename )
 {
+#ifdef HAVE_OPENSLIDE_3_4
+	const char *vendor;
+	int ok;
+
+	vendor = openslide_detect_vendor( filename );
+
+	/* Generic tiled tiff images can be opened by openslide as well.
+	 * Only offer to load this file if it's not a generic tiff since
+	 * we want vips_tiffload() to handle these.
+	 */
+	ok = ( vendor &&
+		strcmp( vendor, "generic-tiff" ) != 0 );
+
+	VIPS_DEBUG_MSG( "vips__openslide_isslide: %s - %d\n", filename, ok );
+
+	return( ok );
+#else
 	openslide_t *osr;
 	int ok;
 
@@ -133,6 +152,7 @@ vips__openslide_isslide( const char *filename )
 	VIPS_DEBUG_MSG( "vips__openslide_isslide: %s - %d\n", filename, ok );
 
 	return( ok );
+#endif
 }
 
 static void
