@@ -98,7 +98,9 @@ static const char *openslide_suffs[] = {
 	".vms", ".vmu", ".ndpi",  /* Hamamatsu */
 	".scn",		/* Leica */
 	".mrxs", 	/* MIRAX */
+	".svslide",	/* Sakura */
 	".tif", 	/* Trestle */
+	".bif", 	/* Ventana */
 	NULL
 };
 

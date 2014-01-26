@@ -140,7 +140,9 @@ static const char *vips_foreign_openslide_suffs[] = {
 	".vms", ".vmu", ".ndpi",  /* Hamamatsu */
 	".scn",		/* Leica */
 	".mrxs", 	/* MIRAX */
+	".svslide",	/* Sakura */
 	".tif", 	/* Trestle */
+	".bif", 	/* Ventana */
 	NULL
 };
 
