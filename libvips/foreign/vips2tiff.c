@@ -136,6 +136,8 @@
  * 24/9/13
  * 	- support many more vips formats, eg. complex, 32-bit int, any number
  * 	  of bands, etc., see the tiff loader
+ * 26/1/14
+ * 	- add RGB as well as YCbCr write
  */
 
 /*
@@ -261,6 +263,7 @@ typedef struct tiff_write {
         float yres;                    	/* Resolution in Y */
 	char *icc_profile;		/* Profile to embed */
 	int bigtiff;			/* True for bigtiff write */
+	int rgbjpeg;			/* True for RGB not YCbCr */
 
 	GMutex *write_lock;		/* Lock TIFF*() calls with this */
 } TiffWrite;
@@ -529,7 +532,8 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 			}
 			else if( tw->compression == COMPRESSION_JPEG &&
 				tw->im->Bands == 3 &&
-				tw->im->BandFmt == VIPS_FORMAT_UCHAR ) { 
+				tw->im->BandFmt == VIPS_FORMAT_UCHAR &&
+				!tw->rgbjpeg ) { 
 				/* This signals to libjpeg that it can do
 				 * YCbCr chrominance subsampling from RGB, not
 				 * that we will supply the image as YCbCr.
@@ -1291,7 +1295,8 @@ make_tiff_write( VipsImage *im, const char *filename,
 	gboolean pyramid,
 	gboolean squash,
 	VipsForeignTiffResunit resunit, double xres, double yres,
-	gboolean bigtiff )
+	gboolean bigtiff,
+	gboolean rgbjpeg )
 {
 	TiffWrite *tw;
 
@@ -1313,6 +1318,7 @@ make_tiff_write( VipsImage *im, const char *filename,
 	tw->onebit = squash;
 	tw->icc_profile = profile;
 	tw->bigtiff = bigtiff;
+	tw->rgbjpeg = rgbjpeg;
 	tw->write_lock = NULL;
 
 	tw->resunit = get_resunit( resunit );
@@ -1531,7 +1537,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean pyramid,
 	gboolean squash,
 	VipsForeignTiffResunit resunit, double xres, double yres,
-	gboolean bigtiff )
+	gboolean bigtiff,
+	gboolean rgbjpeg )
 {
 	TiffWrite *tw;
 	int res;
@@ -1553,7 +1560,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	if( !(tw = make_tiff_write( in, filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
-		resunit, xres, yres, bigtiff )) )
+		resunit, xres, yres, bigtiff, rgbjpeg )) )
 		return( -1 );
 	if( tw->pyramid ) {
 		if( !(tw->bname = vips__temp_name( "%s.tif" )) ||
