@@ -4,6 +4,8 @@
  * 	- wrap a class around the tiff writer
  * 17/3/12
  * 	- argh xres/yres macro was wrong
+ * 26/1/14
+ * 	- add rgbjpeg flag
  */
 
 /*
@@ -75,6 +77,7 @@ typedef struct _VipsForeignSaveTiff {
 	double xres;
 	double yres;
 	gboolean bigtiff;
+	gboolean rgbjpeg;
 } VipsForeignSaveTiff;
 
 typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
@@ -123,7 +126,8 @@ vips_foreign_save_tiff_build( VipsObject *object )
 		tiff->pyramid,
 		tiff->squash,
 		tiff->resunit, tiff->xres, tiff->yres,
-		tiff->bigtiff ) )
+		tiff->bigtiff,
+		tiff->rgbjpeg ) )
 		return( -1 );
 
 	return( 0 );
@@ -248,6 +252,13 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		_( "Write a bigtiff image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, bigtiff ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "rgbjpeg", 20, 
+		_( "RGB JPEG" ),
+		_( "Output RGB JPEG rather than YCbCr" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED, 
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, rgbjpeg ),
 		FALSE );
 }
 

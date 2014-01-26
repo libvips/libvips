@@ -7,6 +7,7 @@
 - foreign memory buffer images did not have the right dhint, broke
   command-line falsecolour on sequential images
 - support many Radiance readers active at once
+- add secret "rgbjpeg" flag to vips_tiffsave() to help IIP
 
 19/1/14 started 7.38.1
 - bump soname, thanks benjamin
