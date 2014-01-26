@@ -276,7 +276,6 @@ vips_buffer_undone( VipsBuffer *buffer )
 {
 	if( buffer->done ) {
 		VipsBufferCache *cache = buffer->cache;
-		VipsBufferThread *buffer_thread = cache->buffer_thread;
 
 #ifdef DEBUG_VERBOSE
 		printf( "vips_buffer_undone: thread %p removing "
@@ -285,9 +284,9 @@ vips_buffer_undone( VipsBuffer *buffer )
 #endif /*DEBUG_VERBOSE*/
 
 		g_assert( cache->thread == g_thread_self() );
-		g_assert( buffer_thread->thread == cache->thread );
+		g_assert( cache->buffer_thread->thread == cache->thread );
 		g_assert( g_slist_find( cache->buffers, buffer ) );
-		g_assert( buffer_thread == buffer_thread_get() );
+		g_assert( cache->buffer_thread == buffer_thread_get() );
 
 		cache->buffers = g_slist_remove( cache->buffers, buffer );
 
