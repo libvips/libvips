@@ -896,14 +896,17 @@ static int
 image_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 {
 	Render *render = (Render *) a;
+	int tile_width = render->tile_width;
+	int tile_height = render->tile_height;
 	VipsRegion *reg = (VipsRegion *) seq;
 	VipsRect *r = &out->valid;
+
 	int x, y;
 
 	/* Find top left of tiles we need.
 	 */
-	int xs = (r->left / render->tile_width) * render->tile_width;
-	int ys = (r->top / render->tile_height) * render->tile_height;
+	int xs = (r->left / tile_width) * tile_width;
+	int ys = (r->top / tile_height) * tile_height;
 
 	VIPS_DEBUG_MSG( "image_fill: left = %d, top = %d, "
 		"width = %d, height = %d\n",
@@ -918,15 +921,15 @@ image_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 
 	 */
 
-	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += render->tile_height )
-		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += render->tile_width ) {
+	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += tile_height )
+		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += tile_width ) {
 			VipsRect area;
 			Tile *tile;
 
 			area.left = x;
 			area.top = y;
-			area.width = render->tile_width;
-			area.height = render->tile_height;
+			area.width = tile_width;
+			area.height = tile_height;
 
 			tile = render_tile_request( render, reg, &area );
 			if( tile )
@@ -956,13 +959,16 @@ static int
 mask_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 {
 	Render *render = (Render *) a;
+	int tile_width = render->tile_width;
+	int tile_height = render->tile_height;
 	VipsRect *r = &out->valid;
+
 	int x, y;
 
 	/* Find top left of tiles we need.
 	 */
-	int xs = (r->left / render->tile_width) * render->tile_width;
-	int ys = (r->top / render->tile_height) * render->tile_height;
+	int xs = (r->left / tile_width) * tile_width;
+	int ys = (r->top / tile_height) * tile_height;
 
 	VIPS_DEBUG_MSG( "mask_fill: left = %d, top = %d, "
 		"width = %d, height = %d\n",
@@ -970,16 +976,16 @@ mask_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 
 	g_mutex_lock( render->lock );
 
-	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += render->tile_height )
-		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += render->tile_width ) {
+	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += tile_height )
+		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += tile_width ) {
 			VipsRect area;
 			Tile *tile;
 			int value;
 
 			area.left = x;
 			area.top = y;
-			area.width = render->tile_width;
-			area.height = render->tile_height;
+			area.width = tile_width;
+			area.height = tile_height;
 
 			tile = render_tile_lookup( render, &area );
 			value = (tile &&
