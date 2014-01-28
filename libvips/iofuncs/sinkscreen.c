@@ -424,6 +424,11 @@ render_work( VipsThreadState *state, void *a )
 	}
 	tile->painted = TRUE;
 
+	/* All downstream images must drop caches, since we've (effectively)
+	 * modified render->out. 
+	 */
+	vips_image_invalidate_all( render->out ); 
+
 	/* Now clients can update.
 	 */
 	if( render->notify ) 

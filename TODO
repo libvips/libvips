@@ -1,13 +1,3 @@
-- try:
-
-	$ vips falsecolour k2.jpg x.jpg
-  	vips warning: VipsJpeg: read gave 896 warnings
-	vips warning: VipsJpeg: Application transferred too many scanlines
-
-  seems to read twice?
-
-  problem in 7.38 too
-
 - vips_colourspace() needs an option from_space param,?
 
 - check_uncoded() left to do:

@@ -953,9 +953,9 @@ vips_image_build( VipsObject *object )
 }
 
 static void *
-vips_region_invalidate( VipsRegion *reg )
+vips_image_real_invalidate_cb( VipsRegion *reg )
 {
-	reg->invalid = TRUE;
+	vips_region_invalidate( reg );
 
 	return( NULL );
 }
@@ -972,7 +972,7 @@ vips_image_real_invalidate( VipsImage *image )
 	VIPS_GATE_STOP( "vips_image_real_invalidate: wait" );
 
 	(void) vips_slist_map2( image->regions,
-		(VipsSListMap2Fn) vips_region_invalidate, NULL, NULL );
+		(VipsSListMap2Fn) vips_image_real_invalidate_cb, NULL, NULL );
 
 	g_mutex_unlock( image->sslock );
 }
@@ -1274,6 +1274,8 @@ vips_image_invalidate_all_cb( VipsImage *image )
  * is, images which depend on this image. 
  *
  * The "invalidate" callback is triggered for all invalidated images.
+ *
+ * See also: vips_region_invalidate().
  */
 void
 vips_image_invalidate_all( VipsImage *image )
