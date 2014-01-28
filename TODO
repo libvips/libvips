@@ -1,3 +1,40 @@
+- leak ... nip2 ~/pics/babe.jpg, ^Q 
+
+==4389== 784 bytes in 1 blocks are possibly lost in loss record 14,881 of
+15,393
+==4389==    at 0x4C2A2DB: malloc (in
+/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4389==    by 0x6749221: vips_tracked_malloc (memory.c:289)
+==4389==    by 0x67587E9: buffer_move (buffer.c:368)
+==4389==    by 0x675898B: vips_buffer_new (buffer.c:412)
+==4389==    by 0x6758C11: vips_buffer_unref_ref (buffer.c:519)
+==4389==    by 0x674F5FB: vips_region_buffer (region.c:602)
+==4389==    by 0x674FF73: vips_region_fill (region.c:887)
+==4389==    by 0x67505AD: vips_region_prepare (region.c:1139)
+==4389==    by 0x67400FB: vips_image_write_gen (image.c:1930)
+==4389==    by 0x67504CF: vips_region_generate (region.c:1074)
+==4389==    by 0x6750718: vips_region_prepare_to_generate (region.c:1196)
+==4389==    by 0x6750A55: vips_region_prepare_to (region.c:1315)
+
+==4389== 784 bytes in 1 blocks are possibly lost in loss record 14,882 of
+15,393
+==4389==    at 0x4C2A2DB: malloc (in
+/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==4389==    by 0x6749221: vips_tracked_malloc (memory.c:289)
+==4389==    by 0x67587E9: buffer_move (buffer.c:368)
+==4389==    by 0x6758BC6: vips_buffer_unref_ref (buffer.c:508)
+==4389==    by 0x674F5FB: vips_region_buffer (region.c:602)
+==4389==    by 0x674FF73: vips_region_fill (region.c:887)
+==4389==    by 0x67505AD: vips_region_prepare (region.c:1139)
+==4389==    by 0x67400FB: vips_image_write_gen (image.c:1930)
+==4389==    by 0x67504CF: vips_region_generate (region.c:1074)
+==4389==    by 0x6750718: vips_region_prepare_to_generate (region.c:1196)
+==4389==    by 0x6750A55: vips_region_prepare_to (region.c:1315)
+==4389==    by 0x6747EC1: render_work (sinkscreen.c:418)
+
+
+
+
 - vips_colourspace() needs an option from_space param,?
 
 - check_uncoded() left to do:
