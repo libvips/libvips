@@ -89,8 +89,8 @@ typedef struct {
 	GThread *thread;	/* Just for sanity checking */
 } VipsBufferThread;
 
-/* Per-image buffer cache. Hash to this from VipsBufferCache.
- * We can't store the GSList directly in the hash table, as GHashTable lacks an
+/* Per-image buffer cache. Hash to this from VipsBufferThread::hash.
+ * We can't store the GSList directly in the hash table as GHashTable lacks an
  * update operation and we'd need to _remove() and _insert() on every list
  * operation.
  */
@@ -126,6 +126,8 @@ VipsBuffer *vips_buffer_ref( struct _VipsImage *im, VipsRect *area );
 VipsBuffer *vips_buffer_unref_ref( VipsBuffer *buffer, 
 	struct _VipsImage *im, VipsRect *area );
 void vips_buffer_print( VipsBuffer *buffer );
+
+void vips__render_shutdown( void );
 
 /* Sections of region.h that are private to VIPS.
  */
