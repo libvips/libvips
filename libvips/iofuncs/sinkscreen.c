@@ -434,6 +434,7 @@ render_work( VipsThreadState *state, void *a )
 	 * modified render->out. 
 	 */
 	vips_image_invalidate_all( render->out ); 
+	vips_image_invalidate_all( render->mask ); 
 
 	/* Now clients can update.
 	 */
