@@ -521,6 +521,11 @@ render_thread_main( void *client )
 void
 vips__render_shutdown( void )
 {
+	/* We may come here without having inited.
+	 */
+	if( !render_dirty_lock )
+		return;
+
 	g_mutex_lock( render_dirty_lock );
 
 	if( render_thread ) { 
