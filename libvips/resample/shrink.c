@@ -85,6 +85,7 @@
 
 #include <vips/vips.h>
 #include <vips/debug.h>
+#include <vips/internal.h>
 
 #include "presample.h"
 
@@ -310,6 +311,10 @@ vips_shrink_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsShrink *shrink = (VipsShrink *) object;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( object, 1 );
+
+	VipsImage *in;
 
 	if( VIPS_OBJECT_CLASS( vips_shrink_parent_class )->build( object ) )
 		return( -1 );
@@ -318,7 +323,9 @@ vips_shrink_build( VipsObject *object )
 	shrink->mh = ceil( shrink->yshrink );
 	shrink->np = shrink->mw * shrink->mh;
 
-	if( vips_check_noncomplex( class->nickname, resample->in ) )
+	in = resample->in; 
+
+	if( vips_check_noncomplex( class->nickname, in ) )
 		return( -1 );
 
 	if( shrink->xshrink < 1.0 || 
@@ -336,14 +343,20 @@ vips_shrink_build( VipsObject *object )
 
 	if( shrink->xshrink == 1.0 &&
 		shrink->yshrink == 1.0 )
-		return( vips_image_write( resample->in, resample->out ) );
+		return( vips_image_write( in, resample->out ) );
+
+	/* Unpack for processing.
+	 */
+	if( vips__image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0];
 
 	/* THINSTRIP will work, anything else will break seq mode. If you 
 	 * combine shrink with conv you'll need to use a line cache to maintain
 	 * sequentiality.
 	 */
 	if( vips_image_pipelinev( resample->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, resample->in, NULL ) )
+		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
 	/* Size output. Note: we round the output width down!
@@ -352,8 +365,8 @@ vips_shrink_build( VipsObject *object )
 	 * example, vipsthumbnail knows the true shrink factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Xsize = resample->in->Xsize / shrink->xshrink;
-	resample->out->Ysize = resample->in->Ysize / shrink->yshrink;
+	resample->out->Xsize = in->Xsize / shrink->xshrink;
+	resample->out->Ysize = in->Ysize / shrink->yshrink;
 	if( resample->out->Xsize <= 0 || 
 		resample->out->Ysize <= 0 ) {
 		vips_error( class->nickname, 
@@ -363,7 +376,7 @@ vips_shrink_build( VipsObject *object )
 
 #ifdef DEBUG
 	printf( "vips_shrink_build: shrinking %d x %d image to %d x %d\n", 
-		resample->in->Xsize, resample->in->Ysize, 
+		in->Xsize, in->Ysize, 
 		resample->out->Xsize, resample->out->Ysize );  
 	printf( "vips_shrink_build: %d x %d block average\n", 
 		shrink->mw, shrink->mh ); 
@@ -371,7 +384,7 @@ vips_shrink_build( VipsObject *object )
 
 	if( vips_image_generate( resample->out,
 		vips_shrink_start, vips_shrink_gen, vips_shrink_stop, 
-		resample->in, shrink ) )
+		in, shrink ) )
 		return( -1 );
 
 	return( 0 );

@@ -1577,7 +1577,7 @@ vips_interpolate_nohalo_class_init( VipsInterpolateNohaloClass *klass )
 
   object_class->nickname    = "nohalo";
   object_class->description =
-    _( "Edge sharpening resampler with halo reduction" );
+    _( "edge sharpening resampler with halo reduction" );
 
   interpolate_class->interpolate   = vips_interpolate_nohalo_interpolate;
   interpolate_class->window_size   = 5;

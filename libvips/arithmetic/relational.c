@@ -216,8 +216,7 @@ vips_relational_class_init( VipsRelationalClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "relational";
-	object_class->description = 
-		_( "a relational operation on a pair of images" );
+	object_class->description = _( "relational operation on two images" );
 	object_class->build = vips_relational_build;
 
 	aclass->process_line = vips_relational_buffer;

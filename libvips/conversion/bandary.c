@@ -123,6 +123,7 @@ vips_bandary_build( VipsObject *object )
 	VipsBandary *bandary = (VipsBandary *) object;
 
 	int i;
+	VipsImage **decode;
 	VipsImage **format;
 	VipsImage **size;
 
@@ -139,14 +140,15 @@ vips_bandary_build( VipsObject *object )
 			"%s", _( "too many input images" ) );
 		return( -1 );
 	}
-	for( i = 0; i < bandary->n; i++ )
-		if( vips_image_pio_input( bandary->in[i] ) || 
-			vips_check_uncoded( class->nickname, bandary->in[i] ) )
-			return( -1 );
 
+	decode = (VipsImage **) vips_object_local_array( object, bandary->n );
 	format = (VipsImage **) vips_object_local_array( object, bandary->n );
 	size = (VipsImage **) vips_object_local_array( object, bandary->n );
-	if( vips__formatalike_vec( bandary->in, format, bandary->n ) ||
+
+	for( i = 0; i < bandary->n; i++ )
+		if( vips__image_decode( bandary->in[i], &decode[i] ) )
+			return( -1 );
+	if( vips__formatalike_vec( decode, format, bandary->n ) ||
 		vips__sizealike_vec( format, size, bandary->n ) )
 		return( -1 );
 	bandary->ready = size;

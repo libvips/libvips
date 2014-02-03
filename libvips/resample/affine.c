@@ -79,6 +79,8 @@
  * 14/12/12
  * 	- redone as a class
  * 	- added input space translation
+ * 22/1/14
+ * 	- auto RAD decode
  */
 
 /*
@@ -373,13 +375,33 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	return( 0 );
 }
 
+/* Unpack to a format that we can compute with.
+ */
+int
+vips__image_decode( VipsImage *in, VipsImage **out )
+{
+	if( in->Coding == VIPS_CODING_LABQ ) {
+		if( vips_LabQ2LabS( in, out, NULL ) )
+			return( -1 );
+	} 
+	else if( in->Coding == VIPS_CODING_RAD ) {
+		if( vips_rad2float( in, out, NULL ) )
+			return( -1 );
+	}
+	else {
+		if( vips_copy( in, out, NULL ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
 static int
 vips_affine_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsAffine *affine = (VipsAffine *) object;
-
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( object, 4 );
 
@@ -392,7 +414,7 @@ vips_affine_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_affine_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_check_coding_noneorlabq( class->nickname, resample->in ) )
+	if( vips_check_coding_known( class->nickname, resample->in ) )
 		return( -1 );
 	if( vips_check_vector_length( class->nickname, 
 		affine->matrix->n, 4 ) )
@@ -463,23 +485,19 @@ vips_affine_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* Unpack labq for processing.
-	 */
-	if( in->Coding == VIPS_CODING_LABQ ) {
-		if( vips_LabQ2LabS( in, &t[0], NULL ) )
-			return( -1 );
-		in = t[0];
-	}
+	if( vips__image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0];
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
-	if( vips_embed( in, &t[1], 
+	if( vips_embed( in, &t[2], 
 		window_offset, window_offset, 
 		in->Xsize + window_size, in->Ysize + window_size,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
-	in = t[1];
+	in = t[2];
 
 	/* Normally SMALLTILE ... except if this is a size up/down affine.
 	 */

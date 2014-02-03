@@ -183,8 +183,7 @@ vips_wrap7_vargv_dispose( im_function *fn, im_object *vargv )
 
 		case VIPS_WRAP7_INTERPOLATE:
 		case VIPS_WRAP7_IMAGE:
-			if( vargv[i] ) 
-				VIPS_UNREF( vargv[i] );
+			VIPS_UNREF( vargv[i] );
 			break;
 
 		case VIPS_WRAP7_IMAGEVEC:
@@ -193,13 +192,21 @@ vips_wrap7_vargv_dispose( im_function *fn, im_object *vargv )
 			int j; 
 
 			for( j = 0; j < iv->n; j++ )
-				if( iv->vec[j] ) 
-					VIPS_UNREF( iv->vec[j] );
+				VIPS_UNREF( iv->vec[j] );
 }
 			break;
 
 		case VIPS_WRAP7_GVALUE:
-			g_value_unset( vargv[i] );
+			if( vargv[i] ) {
+				GValue *value = (GValue *) vargv[i];
+
+				if( G_VALUE_TYPE( value ) )
+					g_value_unset( value );
+			}
+			break;
+
+		case VIPS_WRAP7_STRING:
+			VIPS_FREE( vargv[i] );
 			break;
 
 		default:
@@ -686,6 +693,7 @@ vips_wrap7_class_init( VipsWrap7Class *class )
 {
 	GObjectClass *gobject_class = (GObjectClass *) class;
 	VipsObjectClass *vobject_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 
 	gobject_class->dispose = vips_wrap7_dispose;
 	gobject_class->finalize = vips_wrap7_finalize;
@@ -695,6 +703,8 @@ vips_wrap7_class_init( VipsWrap7Class *class )
 	vobject_class->build = vips_wrap7_build;
 	vobject_class->summary_class = vips_wrap7_summary_class;
 	vobject_class->dump = vips_wrap7_dump;
+
+	operation_class->flags = VIPS_OPERATION_DEPRECATED;
 }
 
 static void

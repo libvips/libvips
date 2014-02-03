@@ -497,12 +497,19 @@ AC_ARG_WITH([openslide],
   AS_HELP_STRING([--without-openslide], [build without OpenSlide (default: test)]))
 
 if test x"$with_openslide" != x"no"; then
-  PKG_CHECK_MODULES(OPENSLIDE, openslide >= 3.3.0,
-    [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
+  PKG_CHECK_MODULES(OPENSLIDE, [openslide >= 3.4.0],
+    [AC_DEFINE(HAVE_OPENSLIDE_3_4,1,[define if you have OpenSlide >= 3.4.0 installed.])
+     AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
      with_openslide=yes
      PACKAGES_USED="$PACKAGES_USED openslide"],
-    [AC_MSG_WARN([OpenSlide >= 3.3.0 not found; disabling virtual slide support])
-     with_openslide=no
+    [AC_MSG_NOTICE([OpenSlide >= 3.4.0 not found; checking for >= 3.3.0])
+     PKG_CHECK_MODULES(OPENSLIDE, [openslide >= 3.3.0],
+     [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
+      with_openslide=yes
+      PACKAGES_USED="$PACKAGES_USED openslide"],
+     [AC_MSG_WARN([OpenSlide >= 3.3.0 not found; disabling virtual slide support])
+      with_openslide=no
+     ])
     ])
 fi
 

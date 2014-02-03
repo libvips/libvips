@@ -1375,6 +1375,25 @@ vips_region_prepare_many( VipsRegion **reg, VipsRect *r )
 	return( 0 );
 }
 
+/** 
+ * vips_region_invalidate: 
+ * @reg: region to invalidate
+ *
+ * Mark a region as containing invalid pixels. Calling this function means
+ * that the next time vips_region_prepare() is called, the region will be
+ * recalculated.
+ *
+ * This is faster than calling vips_image_invalidate_all(), but obviously only
+ * affects a single region. 
+ *
+ * See also: vips_image_invalidate_all(), vips_region_prepare().
+ */
+void 
+vips_region_invalidate( VipsRegion *reg )
+{
+	reg->invalid = TRUE;
+}
+
 #ifdef VIPS_DEBUG
 static void *
 vips_region_dump_all_cb( VipsRegion *region, size_t *alive )

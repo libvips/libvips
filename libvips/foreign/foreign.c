@@ -2357,18 +2357,17 @@ vips_openexrload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @layer: load this layer
+ * @level: load this level
  * @associated: load this associated image
  *
  * Read a virtual slide supported by the OpenSlide library into a VIPS image.
- * OpenSlide supports images in Aperio, Hamamatsu VMS, Hamamatsu VMU, MIRAX,
- * and Trestle formats.  
+ * OpenSlide supports images in Aperio, Hamamatsu, MIRAX, Sakura, Trestle,
+ * and Ventana formats.
  *
  * To facilitate zooming, virtual slide formats include multiple scaled-down
  * versions of the high-resolution image.  These are typically called
- * "levels", though OpenSlide and im_openslide2vips() call them "layers".
- * By default, vips_openslideload() reads the highest-resolution layer
- * (layer 0).  Set @layer to the layer number you want.
+ * "levels".  By default, vips_openslideload() reads the highest-resolution
+ * level (level 0).  Set @level to the level number you want.
  *
  * In addition to the slide image itself, virtual slide formats sometimes
  * include additional images, such as a scan of the slide's barcode.
@@ -2405,6 +2404,14 @@ vips_openslideload( const char *filename, VipsImage **out, ... )
  *
  * Read a FITS image file into a VIPS image. 
  *
+ * This operation can read images with up to three dimensions. Any higher
+ * dimensions must be empty. 
+ *
+ * It can read 8, 16 and 32-bit integer images, signed and unsigned, float and 
+ * double. 
+ *
+ * FITS metadata is attached with the "fits-" prefix.
+ *
  * See also: vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -2428,7 +2435,7 @@ vips_fitsload( const char *filename, VipsImage **out, ... )
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
  *
- * Write a VIPS image to a file as FITS.
+ * Write a VIPS image to a file in FITS format.
  *
  * See also: vips_image_write_file().
  *

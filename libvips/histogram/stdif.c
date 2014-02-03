@@ -64,6 +64,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 typedef struct _VipsStdif {
 	VipsOperation parent_instance;
@@ -223,8 +224,11 @@ vips_stdif_build( VipsObject *object )
 
 	in = stdif->in; 
 
-	if( vips_check_uncoded( class->nickname, in ) ||
-		vips_check_format( class->nickname, in, VIPS_FORMAT_UCHAR ) )
+	if( vips__image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0]; 
+
+	if( vips_check_format( class->nickname, in, VIPS_FORMAT_UCHAR ) )
 		return( -1 );
 
 	if( stdif->width > in->Xsize || 
@@ -239,13 +243,13 @@ vips_stdif_build( VipsObject *object )
 
 	/* Expand the input. 
 	 */
-	if( vips_embed( in, &t[0], 
+	if( vips_embed( in, &t[1], 
 		stdif->width / 2, stdif->height / 2, 
 		in->Xsize + stdif->width - 1, in->Ysize + stdif->height - 1,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
-	in = t[0];
+	in = t[1];
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 

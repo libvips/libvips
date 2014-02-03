@@ -75,6 +75,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 #include "pfreqfilt.h"
 
 #ifdef HAVE_FFTW
@@ -294,22 +295,30 @@ vips_fwfft_build( VipsObject *object )
 	VipsFwfft *fwfft = (VipsFwfft *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
+	VipsImage *in;
+
 	if( VIPS_OBJECT_CLASS( vips_fwfft_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips_bandfmt_iscomplex( freqfilt->in->BandFmt ) ) {
-		if( vips__fftproc( VIPS_OBJECT( fwfft ), freqfilt->in, &t[0], 
+	in = freqfilt->in; 
+
+	if( vips__image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0]; 
+
+	if( vips_bandfmt_iscomplex( in->BandFmt ) ) {
+		if( vips__fftproc( VIPS_OBJECT( fwfft ), in, &t[1], 
 			cfwfft1 ) )
 			return( -1 );
 	}
 	else {
-		if( vips__fftproc( VIPS_OBJECT( fwfft ), freqfilt->in, &t[0], 
+		if( vips__fftproc( VIPS_OBJECT( fwfft ), in, &t[1], 
 			rfwfft1 ) )
 			return( -1 );
 	}
 
-	if( vips_image_write( t[0], freqfilt->out ) ) 
+	if( vips_image_write( t[1], freqfilt->out ) ) 
 		return( -1 );
 
 	return( 0 );

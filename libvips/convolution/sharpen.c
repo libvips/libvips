@@ -309,7 +309,7 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "sharpen";
-	object_class->description = _( "Unsharp masking for print" );
+	object_class->description = _( "unsharp masking for print" );
 	object_class->build = vips_sharpen_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;

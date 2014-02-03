@@ -627,29 +627,17 @@ vips_colour_difference_build( VipsObject *object )
 	right = difference->right;
 	extra = NULL;
 
-	/* Unpack LABQ images, 
-	 */
-	if( left && 
-		left->Coding == VIPS_CODING_LABQ ) { 
-		if( vips_LabQ2Lab( left, &t[0], NULL ) )
+	if( left ) {
+		if( vips__image_decode( left, &t[0] ) )
 			return( -1 );
 		left = t[0];
 	}
-	if( right && 
-		right->Coding == VIPS_CODING_LABQ ) { 
-		if( vips_LabQ2Lab( right, &t[1], NULL ) )
+
+	if( right ) {
+		if( vips__image_decode( right, &t[1] ) )
 			return( -1 );
 		right = t[1];
 	}
-
-	if( left && 
-		vips_check_uncoded( VIPS_OBJECT_CLASS( class )->nickname,
-			left ) )
-		return( -1 );
-	if( right && 
-		vips_check_uncoded( VIPS_OBJECT_CLASS( class )->nickname,
-			right ) )
-		return( -1 );
 
 	/* Detach and reattach extra bands, if any. If both left and right
 	 * have extra bands, give up.

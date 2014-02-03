@@ -45,7 +45,7 @@
    init7
    Memcheck:Leak
    ...
-   fun:g_malloc0
+   fun:*alloc*
    ...
    fun:_dl_init
 }
@@ -85,13 +85,29 @@
    fun:XInitExtension
 }
 
+{
+   gio
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:g_simple_async_result_complete
+}
+
+{
+   pthread
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_*
+}
+
 # hide all dbus reports, not the app's problem
 {
    dbus
    Memcheck:Leak
    fun:*alloc
    ...
-   obj:/lib/libdbus-1.so.*
+   obj:*/libdbus-1.so.*
 }
 
 # hide all orbit leaks, not our problem
@@ -113,11 +129,44 @@
 }
 
 {
+   fontconfig2
+   Memcheck:Leak
+   fun:malloc
+   fun:strdup
+   fun:FcValueSave
+   obj:*/libfontconfig.so.*
+}
+
+{
+   fontconfig3
+   Memcheck:Leak
+   fun:realloc
+   ...
+   fun:FcFontMatch
+}
+
+{
+   fontconfig4
+   Memcheck:Leak
+   fun:realloc
+   ...
+   fun:FcPatternAddInteger
+}
+
+{
    freetype_init
    Memcheck:Leak
    fun:*alloc
    ...
    fun:FT_Open_Face
+}
+
+{
+   harfbuzz
+   Memcheck:Leak
+   fun:calloc
+   ...
+   fun:hb_shape_plan_execute
 }
 
 {
@@ -257,8 +306,6 @@
    fun:write_vips
 }
 
-# ubuntu 13.04 suppressions
-
 {
    pixman1
    Memcheck:Cond
@@ -270,6 +317,30 @@
    cairo1
    Memcheck:Cond
    fun:rsvg_cairo_surface_to_pixbuf
+}
+
+{
+   rsvg
+   Memcheck:Cond
+   obj:*/librsvg-2.so.*
+}
+
+{
+   murrine
+   Memcheck:Leak
+   fun:calloc
+   fun:g_malloc0
+   fun:raico_blur_create
+}
+
+{
+   signal_connect
+   Memcheck:Leak
+   fun:calloc
+   fun:g_malloc0
+   fun:g_closure_new_simple
+   fun:g_cclosure_new
+   fun:g_signal_connect_data
 }
 
 # ruby has some annoying ones too
@@ -301,6 +372,7 @@
    ...
    fun:rb_file_expand_path
 }
+
 
 
 

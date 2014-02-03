@@ -5,6 +5,8 @@
  * 25/11/10
  * 	- in synchronous mode, use a single region for input and save huge 
  * 	  mem use
+ * 20/1/14
+ * 	- bg render thread quits on shutdown
  */
 
 /*
@@ -159,6 +161,10 @@ static GThread *render_thread = NULL;
 /* Number of renders with dirty tiles. render_thread queues up on this.
  */
 static VipsSemaphore render_dirty_sem;
+
+/* Set this to ask the render thread to quit.
+ */
+static gboolean render_kill = FALSE;
 
 /* All the renders with dirty tiles.
  */
@@ -424,6 +430,13 @@ render_work( VipsThreadState *state, void *a )
 	}
 	tile->painted = TRUE;
 
+	/* All downstream images must drop caches, since we've (effectively)
+	 * modified render->out. 
+	 */
+	vips_image_invalidate_all( render->out ); 
+	if( render->mask ) 
+		vips_image_invalidate_all( render->mask ); 
+
 	/* Now clients can update.
 	 */
 	if( render->notify ) 
@@ -471,42 +484,65 @@ render_dirty_put( Render *render )
 static void *
 render_thread_main( void *client )
 {
-	for(;;) {
-		Render *render;
+	Render *render;
 
-		if( (render = render_dirty_get()) ) {
-			/* Ignore errors, I'm not sure what we'd do with them
-			 * anyway.
-			 */
-			VIPS_DEBUG_MSG_GREEN( "render_thread_main: "
-				"threadpool start\n" );
+	while( (render = render_dirty_get()) &&
+		!render_kill ) {
+		VIPS_DEBUG_MSG_GREEN( "render_thread_main: "
+			"threadpool start\n" );
 
-			render_reschedule = FALSE;
-			if( vips_threadpool_run( render->in,
-				render_thread_state_new,
-				render_allocate,
-				render_work,
-				NULL,
-				render ) )
-				VIPS_DEBUG_MSG_RED( "render_thread_main: "
-					"threadpool_run failed\n" );
+		render_reschedule = FALSE;
+		if( vips_threadpool_run( render->in,
+			render_thread_state_new,
+			render_allocate,
+			render_work,
+			NULL,
+			render ) )
+			VIPS_DEBUG_MSG_RED( "render_thread_main: "
+				"threadpool_run failed\n" );
 
-			VIPS_DEBUG_MSG_GREEN( "render_thread_main: "
-				"threadpool return\n" );
+		VIPS_DEBUG_MSG_GREEN( "render_thread_main: "
+			"threadpool return\n" );
 
-			/* Add back to the jobs list, if we need to.
-			 */
-			render_dirty_put( render );
+		/* Add back to the jobs list, if we need to.
+		 */
+		render_dirty_put( render );
 
-			/* _get() does a ref to make sure we keep the render
-			 * alive during processing ... unref before we loop.
-			 * This can kill off the render.
-			 */
-			render_unref( render );
-		}
+		/* _get() does a ref to make sure we keep the render
+		 * alive during processing ... unref before we loop.
+		 * This can kill off the render.
+		 */
+		render_unref( render );
 	}
 
 	return( NULL );
+}
+
+void
+vips__render_shutdown( void )
+{
+	/* We may come here without having inited.
+	 */
+	if( !render_dirty_lock )
+		return;
+
+	g_mutex_lock( render_dirty_lock );
+
+	if( render_thread ) { 
+		GThread *thread;
+
+		thread = render_thread;
+		render_thread = NULL; 
+
+		g_mutex_unlock( render_dirty_lock );
+
+		render_reschedule = TRUE;
+		render_kill = TRUE;
+		vips_semaphore_up( &render_dirty_sem );
+		(void) g_thread_join( thread );
+	}
+	else
+		g_mutex_unlock( render_dirty_lock );
 }
 
 /* Create our set of RenderThread. Assume we're single-threaded here.
@@ -896,14 +932,17 @@ static int
 image_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 {
 	Render *render = (Render *) a;
+	int tile_width = render->tile_width;
+	int tile_height = render->tile_height;
 	VipsRegion *reg = (VipsRegion *) seq;
 	VipsRect *r = &out->valid;
+
 	int x, y;
 
 	/* Find top left of tiles we need.
 	 */
-	int xs = (r->left / render->tile_width) * render->tile_width;
-	int ys = (r->top / render->tile_height) * render->tile_height;
+	int xs = (r->left / tile_width) * tile_width;
+	int ys = (r->top / tile_height) * tile_height;
 
 	VIPS_DEBUG_MSG( "image_fill: left = %d, top = %d, "
 		"width = %d, height = %d\n",
@@ -918,15 +957,15 @@ image_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 
 	 */
 
-	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += render->tile_height )
-		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += render->tile_width ) {
+	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += tile_height )
+		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += tile_width ) {
 			VipsRect area;
 			Tile *tile;
 
 			area.left = x;
 			area.top = y;
-			area.width = render->tile_width;
-			area.height = render->tile_height;
+			area.width = tile_width;
+			area.height = tile_height;
 
 			tile = render_tile_request( render, reg, &area );
 			if( tile )
@@ -956,13 +995,16 @@ static int
 mask_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 {
 	Render *render = (Render *) a;
+	int tile_width = render->tile_width;
+	int tile_height = render->tile_height;
 	VipsRect *r = &out->valid;
+
 	int x, y;
 
 	/* Find top left of tiles we need.
 	 */
-	int xs = (r->left / render->tile_width) * render->tile_width;
-	int ys = (r->top / render->tile_height) * render->tile_height;
+	int xs = (r->left / tile_width) * tile_width;
+	int ys = (r->top / tile_height) * tile_height;
 
 	VIPS_DEBUG_MSG( "mask_fill: left = %d, top = %d, "
 		"width = %d, height = %d\n",
@@ -970,16 +1012,16 @@ mask_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 
 	g_mutex_lock( render->lock );
 
-	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += render->tile_height )
-		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += render->tile_width ) {
+	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += tile_height )
+		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += tile_width ) {
 			VipsRect area;
 			Tile *tile;
 			int value;
 
 			area.left = x;
 			area.top = y;
-			area.width = render->tile_width;
-			area.height = render->tile_height;
+			area.width = tile_width;
+			area.height = tile_height;
 
 			tile = render_tile_lookup( render, &area );
 			value = (tile &&

@@ -492,7 +492,7 @@ vips_complex2_class_init( VipsComplex2Class *class )
 
 	object_class->nickname = "complex2";
 	object_class->description = 
-		_( "perform a binary complex operation on two images" );
+		_( "complex binary operations on two images" );
 
 	aclass->process_line = vips_complex2_buffer;
 

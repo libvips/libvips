@@ -14,6 +14,8 @@
  * 	- force input to mono 8-bit for the user
  * 1/8/13
  * 	- redone as a class
+ * 23/1/14	
+ * 	- oops, was not auto-getting and casting the first band
  */
 
 /*
@@ -52,6 +54,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pconversion.h"
 
@@ -329,10 +332,9 @@ static unsigned char vips_falsecolour_pet[][3] = {
 static int
 vips_falsecolour_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsFalsecolour *falsecolour = (VipsFalsecolour *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
 
 	if( VIPS_OBJECT_CLASS( vips_falsecolour_parent_class )->
 		build( object ) )
@@ -343,13 +345,15 @@ vips_falsecolour_build( VipsObject *object )
 		VIPS_FORMAT_UCHAR )) )
 		return( -1 );
 
-	/* Force to mono 8-bit. 
+	/* Force to mono 8-bit. Don't use vips_colourspace() to go to B_W, we
+	 * want to work for images which aren't in a recognised space, like
+	 * MULTIBAND.
 	 */
-	if( vips_check_uncoded( class->nickname, falsecolour->in ) ||
-		vips_extract_band( falsecolour->in, &t[1], 0, NULL ) ||
-		vips_cast( t[1], &t[2], VIPS_FORMAT_UCHAR, NULL ) ||
-		vips_maplut( falsecolour->in, &t[3], t[0], NULL ) ||
-		vips_image_write( t[3], conversion->out ) ) 
+	if( vips__image_decode( falsecolour->in, &t[1] ) ||
+		vips_extract_band( t[1], &t[2], 0, NULL ) ||
+		vips_cast( t[2], &t[3], VIPS_FORMAT_UCHAR, NULL ) ||
+		vips_maplut( t[3], &t[4], t[0], NULL ) ||
+		vips_image_write( t[4], conversion->out ) ) 
 		return( -1 );
 
 	return( 0 );

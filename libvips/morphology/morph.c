@@ -44,6 +44,7 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pmorphology.h"
 
@@ -83,15 +84,22 @@ vips_morph_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	INTMASK *imsk;
+	VipsImage *in;
 
 	g_object_set( morph, "out", vips_image_new(), NULL ); 
 
 	if( VIPS_OBJECT_CLASS( vips_morph_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_check_matrix( class->nickname, morph->mask, &t[0] ) )
+	in = morphology->in; 
+
+	if( vips__image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0];
+
+	if( vips_check_matrix( class->nickname, morph->mask, &t[1] ) )
 		return( -1 ); 
-	morph->M = t[0];
+	morph->M = t[1];
 
 	if( !(imsk = im_vips2imask( morph->M, class->nickname )) || 
 		!im_local_imask( morph->out, imsk ) )
@@ -99,12 +107,12 @@ vips_morph_build( VipsObject *object )
 
 	switch( morph->morph ) { 
 	case VIPS_OPERATION_MORPHOLOGY_DILATE:
-		if( im_dilate( morphology->in, morph->out, imsk ) )
+		if( im_dilate( in, morph->out, imsk ) )
 			return( -1 ); 
 		break;
 
 	case VIPS_OPERATION_MORPHOLOGY_ERODE:
-		if( im_erode( morphology->in, morph->out, imsk ) )
+		if( im_erode( in, morph->out, imsk ) )
 			return( -1 ); 
 		break;
 

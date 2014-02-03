@@ -196,7 +196,7 @@ vips_math_class_init( VipsMathClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "math";
-	object_class->description = _( "perform a math function on an image" );
+	object_class->description = _( "apply a math operation to an image" );
 	object_class->build = vips_math_build;
 
 	aclass->process_line = vips_math_buffer;

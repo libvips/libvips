@@ -44,6 +44,7 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pconvolution.h"
 
@@ -65,7 +66,10 @@ vips_conv_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConvolution *convolution = (VipsConvolution *) object;
 	VipsConv *conv = (VipsConv *) object;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( object, 4 );
 
+	VipsImage *in;
 	INTMASK *imsk;
 	DOUBLEMASK *dmsk;
 
@@ -73,6 +77,8 @@ vips_conv_build( VipsObject *object )
 
 	if( VIPS_OBJECT_CLASS( vips_conv_parent_class )->build( object ) )
 		return( -1 );
+
+	in = convolution->in;
 
 	/*
 	printf( "vips_conv_build: convolving with:\n" );
@@ -86,19 +92,25 @@ vips_conv_build( VipsObject *object )
 		!im_local_dmask( convolution->out, dmsk ) )
 		return( -1 ); 
 
+	/* Unpack for processing.
+	 */
+	if( vips__image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0];
+
 	switch( conv->precision ) { 
 	case VIPS_PRECISION_INTEGER:
-		if( im_conv( convolution->in, convolution->out, imsk ) )
+		if( im_conv( in, convolution->out, imsk ) )
 			return( -1 ); 
 		break;
 
 	case VIPS_PRECISION_FLOAT:
-		if( im_conv_f( convolution->in, convolution->out, dmsk ) )
+		if( im_conv_f( in, convolution->out, dmsk ) )
 			return( -1 ); 
 		break;
 
 	case VIPS_PRECISION_APPROXIMATE:
-		if( im_aconv( convolution->in, convolution->out, dmsk, 
+		if( im_aconv( in, convolution->out, dmsk, 
 			conv->layers, conv->cluster ) )
 			return( -1 ); 
 		break;

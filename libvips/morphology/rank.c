@@ -64,6 +64,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pmorphology.h"
 
@@ -340,8 +341,11 @@ vips_rank_build( VipsObject *object )
 
 	in = morphology->in; 
 
-	if( vips_check_uncoded( class->nickname, in ) ||
-		vips_check_noncomplex( class->nickname, in ) )
+	if( vips__image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0];
+
+	if( vips_check_noncomplex( class->nickname, in ) )
 		return( -1 );
 	if( rank->width > in->Xsize || 
 		rank->height > in->Ysize ) {
@@ -356,13 +360,13 @@ vips_rank_build( VipsObject *object )
 
 	/* Expand the input. 
 	 */
-	if( vips_embed( in, &t[0], 
+	if( vips_embed( in, &t[1], 
 		rank->width / 2, rank->height / 2, 
 		in->Xsize + rank->width - 1, in->Ysize + rank->height - 1,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
-	in = t[0];
+	in = t[1];
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 

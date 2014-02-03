@@ -369,6 +369,10 @@ vips_leak( void )
 	fprintf( stderr, "%s", vips_buf_all( &buf ) );
 
 	vips__type_leak();
+
+#ifdef DEBUG
+#endif /*DEBUG*/
+	vips_buffer_dump_all();
 }
 
 /**
@@ -418,6 +422,8 @@ vips_shutdown( void )
 	if( !done ) 
 		vips__thread_gate_stop( "init: main" ); 
 }
+
+	vips__render_shutdown();
 
 	vips_thread_shutdown();
 
