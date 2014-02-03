@@ -70,6 +70,7 @@
  * @VIPS_OPERATION_NONE: no flags
  * @VIPS_OPERATION_SEQUENTIAL: can work sequentially
  * @VIPS_OPERATION_NOCACHE: must not be cached
+ * @VIPS_OPERATION_DEPRECATED: a compatibility thing
  *
  * Flags we associate with an operation.
  *
@@ -83,6 +84,9 @@
  *
  * @VIPS_OPERATION_NOCACHE means that the operation must not be cached by
  * vips. 
+ *
+ * @VIPS_OPERATION_DEPRECATED means this is an old operation kept in vips for
+ * compatibility only and should be hidden from users.
  */
 
 /* Abstract base class for operations.

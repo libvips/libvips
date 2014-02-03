@@ -1,17 +1,3 @@
-- can we deprecate classes? eg. VipsFormat and VipsWrap7 should be hidden
-
-  we have 
-
-  	gboolean output_needs_arg;
-
-  in vipsobjectclass at the moment, but that's the only flag-like thing
-
-  add a get_flags() member whose values include needs_arg and deprecated?
-
-  add a couple of void * blank pointers to object and objectclass for future
-  expansion .. a couple of ints as well?
-
-- introspection example in gist should not list abstract classes?
 
 - check_uncoded() left to do:
 

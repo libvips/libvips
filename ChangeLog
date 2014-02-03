@@ -2,6 +2,7 @@
 - auto-decode for (almost) all operations
 - background render thread cleans up and quits neatly
 - colourspace has a source_space option
+- operations can be tagged as "deprecated"
 
 22/1/14 started 7.38.2
 - auto RAD decode for affine

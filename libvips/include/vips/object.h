@@ -55,34 +55,6 @@ typedef struct _VipsObjectClass VipsObjectClass;
 /* Track extra stuff for arguments to objects
  */
 
-/** 
- * VipsArgumentFlags:
- * @VIPS_ARGUMENT_NONE: no flags
- * @VIPS_ARGUMENT_REQUIRED: must be set in the constructor
- * @VIPS_ARGUMENT_CONSTRUCT: can only be set in the constructor
- * @VIPS_ARGUMENT_SET_ONCE: can only be set once
- * @VIPS_ARGUMENT_SET_ALWAYS: don't do use-before-set checks
- * @VIPS_ARGUMENT_INPUT: is an input argument (one we depend on)
- * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
- * @VIPS_ARGUMENT_DEPRECATED: just there for back-compat, hide 
- *
- * Flags we associate with each object argument.
- *
- * Have separate input & output flags. Both set is an error; neither set is OK.
- *
- * Input gobjects are automatically reffed, output gobjects automatically ref
- * us. We also automatically watch for "destroy" and unlink.
- *
- * @VIPS_ARGUMENT_SET_ALWAYS is handy for arguments which are set from C. For
- * example, VipsImage::width is a property that gives access to the Xsize
- * member of struct _VipsImage. We default its 'assigned' to TRUE
- * since the field is always set directly by C.
- *
- * @VIPS_ARGUMENT_DEPRECATED arguments are not shown in help text, are not
- * looked for if required, are not checked for "have-been-set". You can
- * deprecate a required argument, but you must obviously add a new required
- * argument if you do.
- */
 typedef enum /*< flags >*/ {
 	VIPS_ARGUMENT_NONE = 0,
 	VIPS_ARGUMENT_REQUIRED = 1,
@@ -461,6 +433,7 @@ struct _VipsObject {
 	 * profiling.
 	 */
 	size_t local_memory;
+
 };
 
 struct _VipsObjectClass {
@@ -561,6 +534,13 @@ struct _VipsObjectClass {
 	 */
 	GSList *argument_table_traverse;
 	GType argument_table_traverse_gtype;
+
+	/* Reserved for future expansion.
+	 */
+	void (*_vips_reserved1)( void ); 
+	void (*_vips_reserved2)( void ); 
+	void (*_vips_reserved3)( void ); 
+	void (*_vips_reserved4)( void ); 
 };
 
 gboolean vips_value_is_null( GParamSpec *psoec, const GValue *value );

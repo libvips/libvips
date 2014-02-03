@@ -79,6 +79,35 @@
  *
  */
 
+/** 
+ * VipsArgumentFlags:
+ * @VIPS_ARGUMENT_NONE: no flags
+ * @VIPS_ARGUMENT_REQUIRED: must be set in the constructor
+ * @VIPS_ARGUMENT_CONSTRUCT: can only be set in the constructor
+ * @VIPS_ARGUMENT_SET_ONCE: can only be set once
+ * @VIPS_ARGUMENT_SET_ALWAYS: don't do use-before-set checks
+ * @VIPS_ARGUMENT_INPUT: is an input argument (one we depend on)
+ * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
+ * @VIPS_ARGUMENT_DEPRECATED: just there for back-compat, hide 
+ *
+ * Flags we associate with each object argument.
+ *
+ * Have separate input & output flags. Both set is an error; neither set is OK.
+ *
+ * Input gobjects are automatically reffed, output gobjects automatically ref
+ * us. We also automatically watch for "destroy" and unlink.
+ *
+ * @VIPS_ARGUMENT_SET_ALWAYS is handy for arguments which are set from C. For
+ * example, VipsImage::width is a property that gives access to the Xsize
+ * member of struct _VipsImage. We default its 'assigned' to TRUE
+ * since the field is always set directly by C.
+ *
+ * @VIPS_ARGUMENT_DEPRECATED arguments are not shown in help text, are not
+ * looked for if required, are not checked for "have-been-set". You can
+ * deprecate a required argument, but you must obviously add a new required
+ * argument if you do.
+ */
+
 /* Our signals. 
  */
 enum {
