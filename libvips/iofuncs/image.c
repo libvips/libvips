@@ -1998,6 +1998,37 @@ vips_image_write_to_file( VipsImage *image, const char *filename )
 }
 
 /**
+ * vips_image_decode:
+ * @in: image to decode
+ * @out: write to this image
+ *
+ * A convenience function to unpack to a format that we can compute with. 
+ * @out->Coding is always VIPS_CODING_NONE. 
+ *
+ * See also: vips_LabQ2LabS(), vips_rad2float(). 
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+vips_image_decode( VipsImage *in, VipsImage **out )
+{
+	if( in->Coding == VIPS_CODING_LABQ ) {
+		if( vips_LabQ2LabS( in, out, NULL ) )
+			return( -1 );
+	} 
+	else if( in->Coding == VIPS_CODING_RAD ) {
+		if( vips_rad2float( in, out, NULL ) )
+			return( -1 );
+	}
+	else {
+		if( vips_copy( in, out, NULL ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * vips_image_isMSBfirst:
  * @image: image to test
  *

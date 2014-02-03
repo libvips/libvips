@@ -146,7 +146,7 @@ vips_bandary_build( VipsObject *object )
 	size = (VipsImage **) vips_object_local_array( object, bandary->n );
 
 	for( i = 0; i < bandary->n; i++ )
-		if( vips__image_decode( bandary->in[i], &decode[i] ) )
+		if( vips_image_decode( bandary->in[i], &decode[i] ) )
 			return( -1 );
 	if( vips__formatalike_vec( decode, format, bandary->n ) ||
 		vips__sizealike_vec( format, size, bandary->n ) )

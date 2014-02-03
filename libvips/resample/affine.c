@@ -375,27 +375,6 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	return( 0 );
 }
 
-/* Unpack to a format that we can compute with.
- */
-int
-vips__image_decode( VipsImage *in, VipsImage **out )
-{
-	if( in->Coding == VIPS_CODING_LABQ ) {
-		if( vips_LabQ2LabS( in, out, NULL ) )
-			return( -1 );
-	} 
-	else if( in->Coding == VIPS_CODING_RAD ) {
-		if( vips_rad2float( in, out, NULL ) )
-			return( -1 );
-	}
-	else {
-		if( vips_copy( in, out, NULL ) )
-			return( -1 );
-	}
-
-	return( 0 );
-}
-
 static int
 vips_affine_build( VipsObject *object )
 {
@@ -485,7 +464,7 @@ vips_affine_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( vips__image_decode( in, &t[0] ) )
+	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
 	in = t[0];
 

@@ -628,13 +628,13 @@ vips_colour_difference_build( VipsObject *object )
 	extra = NULL;
 
 	if( left ) {
-		if( vips__image_decode( left, &t[0] ) )
+		if( vips_image_decode( left, &t[0] ) )
 			return( -1 );
 		left = t[0];
 	}
 
 	if( right ) {
-		if( vips__image_decode( right, &t[1] ) )
+		if( vips_image_decode( right, &t[1] ) )
 			return( -1 );
 		right = t[1];
 	}

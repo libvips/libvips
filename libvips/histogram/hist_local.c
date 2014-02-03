@@ -236,7 +236,7 @@ vips_hist_local_build( VipsObject *object )
 
 	in = local->in; 
 
-	if( vips__image_decode( in, &t[0] ) )
+	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
 	in = t[0]; 
 

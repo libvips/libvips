@@ -224,7 +224,7 @@ vips_stdif_build( VipsObject *object )
 
 	in = stdif->in; 
 
-	if( vips__image_decode( in, &t[0] ) )
+	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
 	in = t[0]; 
 

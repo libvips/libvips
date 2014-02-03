@@ -446,7 +446,7 @@ vips_cast_build( VipsObject *object )
 	if( in->BandFmt == cast->format ) 
 		return( vips_image_write( in, conversion->out ) );
 
-	if( vips__image_decode( in, &t[0] ) )
+	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
 	in = t[0]; 
 

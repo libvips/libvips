@@ -1,5 +1,5 @@
 21/1/14 started 7.39.0
-- auto-decode for (almost) all operations
+- auto-decode for (almost) all operations, see vips_image_decode()
 - background render thread cleans up and quits neatly
 - colourspace has a source_space option
 - operations can be tagged as "deprecated"

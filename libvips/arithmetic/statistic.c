@@ -123,7 +123,7 @@ vips_statistic_build( VipsObject *object )
 
 	statistic->ready = statistic->in;
 
-	if( vips__image_decode( statistic->ready, &t[0] ) )
+	if( vips_image_decode( statistic->ready, &t[0] ) )
 		return( -1 );
 	statistic->ready = t[0];
 
