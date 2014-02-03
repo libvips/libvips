@@ -45,9 +45,8 @@
 #include "draw.h"
 
 /** 
- * SECTION: inplace
- * @short_description: in-place paintbox operations: flood, paste, line,
- * circle
+ * SECTION: draw
+ * @short_description: drawing operations: flood, paste, line, circle
  * @stability: Stable
  * @include: vips/vips.h
  *
@@ -55,9 +54,7 @@
  * machines they will be limited to 2GB images, and a little care needs to be
  * taken if you use them as part of an image pipeline. 
  *
- * They are mostly supposed to be useful 
- * for paintbox-style programs.
- *
+ * They are mostly supposed to be useful for paintbox-style programs.
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsDraw, vips_draw, VIPS_TYPE_OPERATION );
@@ -105,7 +102,7 @@ vips_draw_class_init( VipsDrawClass *class )
 	vobject_class->description = _( "Draw operations" );
 	vobject_class->build = vips_draw_build;
 
-	VIPS_ARG_IMAGE( class, "im", 1, 
+	VIPS_ARG_IMAGE( class, "image", 1, 
 		_( "Image" ), 
 		_( "Image to draw on" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 

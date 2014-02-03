@@ -28,8 +28,8 @@
 
  */
 
-#ifndef VIPS_DRAW_H
-#define VIPS_DRAW_H
+#ifndef VIPS_PDRAW_H
+#define VIPS_PDRAW_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,7 +55,7 @@ typedef struct _VipsDraw {
 
 	/* Parameters.
 	 */
-	VipsImage *im;		/* Draw here */
+	VipsImage *image;	/* Draw here */
 	VipsArea *ink;		/* With this */
 
 	/* Derived stuff.
@@ -120,10 +120,10 @@ vips__draw_painted( VipsDraw *draw, VipsPel *p )
 	return( j == draw->psize );
 }
 
-void vips__draw_scanline( Draw *draw, int y, int x1, int x2 );
+void vips__draw_scanline( VipsDraw *draw, int y, int x1, int x2 );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS_DRAW_H*/
+#endif /*VIPS_PDRAW_H*/

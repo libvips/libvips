@@ -1,4 +1,4 @@
-/* inplace.h
+/* draw.h
  *
  * 3/11/09
  * 	- from proto.h
@@ -31,8 +31,8 @@
 
  */
 
-#ifndef IM_INPLACE_H
-#define IM_INPLACE_H
+#ifndef VIPS_DRAW_H
+#define VIPS_DRAW_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,4 +74,4 @@ int im_draw_smudge( VipsImage *image,
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_INPLACE_H*/
+#endif /*VIPS_DRAW_H*/

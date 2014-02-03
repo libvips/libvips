@@ -1,8 +1,8 @@
-noinst_LTLIBRARIES = libinplace.la
+noinst_LTLIBRARIES = libdraw.la
 
-libinplace_la_SOURCES = \
+libdraw_la_SOURCES = \
 	draw.c \
-	draw.h \
+	pdraw.h \
 	flood.c \
 	im_draw_circle.c \
 	im_draw_line.c \
