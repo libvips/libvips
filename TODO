@@ -1,5 +1,4 @@
-
-- vips_colourspace() needs an option from_space param,?
+- can we deprecate classes? eg. VipsFormat and VipsWrap7 should be hidden
 
 - check_uncoded() left to do:
 

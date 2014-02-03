@@ -8,6 +8,8 @@
  * 	- add RGB16 as a source
  * 19/1/14
  * 	- auto-decode RAD images
+ * 3/2/14
+ * 	- add "source_space", overrides source space guess
  */
 
 /*
@@ -388,6 +390,7 @@ typedef struct _VipsColourspace {
 	VipsImage *in;
 	VipsImage *out;
 	VipsInterpretation space;
+	VipsInterpretation source_space;
 } VipsColourspace;
 
 typedef VipsOperationClass VipsColourspaceClass;
@@ -408,7 +411,6 @@ vips_colourspace_build( VipsObject *object )
 
 	VipsInterpretation interpretation;
 
-
 	/* Verify that all input args have been set.
 	 */
 	if( VIPS_OBJECT_CLASS( vips_colourspace_parent_class )->
@@ -426,7 +428,10 @@ vips_colourspace_build( VipsObject *object )
 		x = t[0]; 
 	}
 
-	interpretation = vips_image_guess_interpretation( x );
+	if( vips_object_argument_isset( object, "source_space" ) )
+		interpretation = colourspace->source_space;
+	else
+		interpretation = vips_image_guess_interpretation( x );
 
 	/* Treat RGB and RGB16 as sRGB. If you want some other treatment,
 	 * you'll need to use the icc funcs.
@@ -506,11 +511,20 @@ vips_colourspace_class_init( VipsColourspaceClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsColourspace, space ),
 		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_sRGB );
+
+	VIPS_ARG_ENUM( class, "source-space", 6, 
+		_( "Source space" ), 
+		_( "Source colour space" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsColourspace, source_space ),
+		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_sRGB );
+
 }
 
 static void
 vips_colourspace_init( VipsColourspace *colourspace )
 {
+	colourspace->source_space = VIPS_INTERPRETATION_sRGB;
 }
 
 /**
@@ -519,7 +533,12 @@ vips_colourspace_init( VipsColourspace *colourspace )
  * @out: output image
  * @space: convert to this colour space
  *
- * This operation looks at the interpretation field of @in and runs
+ * Optional arguments:
+ *
+ * @source_space: input colour space
+ *
+ * This operation looks at the interpretation field of @in (or uses
+ * @source_space, if set) and runs
  * a set of colourspace conversion functions to move it to @space. 
  *
  * For example, given an image tagged as #VIPS_INTERPRETATION_YXY, running
