@@ -286,7 +286,7 @@ vips_hist_find_ndim_class_init( VipsHistFindNDimClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "hist_find_ndim";
-	object_class->description = _( "find image histogram" );
+	object_class->description = _( "find n-dimensional image histogram" );
 	object_class->build = vips_hist_find_ndim_build;
 
 	sclass->start = vips_hist_find_ndim_start;

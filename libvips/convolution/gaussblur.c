@@ -108,7 +108,7 @@ vips_gaussblur_class_init( VipsGaussblurClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "gaussblur";
-	object_class->description = _( "Unsharp masking for print" );
+	object_class->description = _( "gaussian blur" );
 	object_class->build = vips_gaussblur_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;

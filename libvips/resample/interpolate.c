@@ -354,7 +354,7 @@ vips_interpolate_nearest_class_init( VipsInterpolateNearestClass *class )
 		VIPS_INTERPOLATE_CLASS( class );
 
 	object_class->nickname = "nearest";
-	object_class->description = _( "Nearest-neighbour interpolation" );
+	object_class->description = _( "nearest-neighbour interpolation" );
 
 	interpolate_class->interpolate = vips_interpolate_nearest_interpolate;
 	interpolate_class->window_size = 1;
@@ -525,7 +525,7 @@ vips_interpolate_bilinear_class_init( VipsInterpolateBilinearClass *class )
 		(VipsInterpolateClass *) class;
 
 	object_class->nickname = "bilinear";
-	object_class->description = _( "Bilinear interpolation" );
+	object_class->description = _( "bilinear interpolation" );
 
 	interpolate_class->interpolate = vips_interpolate_bilinear_interpolate;
 	interpolate_class->window_size = 2;

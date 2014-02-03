@@ -210,7 +210,7 @@ vips_deviate_class_init( VipsDeviateClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "deviate";
-	object_class->description = _( "find image average" );
+	object_class->description = _( "find image standard deviation" );
 	object_class->build = vips_deviate_build;
 
 	sclass->start = vips_deviate_start;
