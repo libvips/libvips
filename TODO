@@ -1,8 +1,23 @@
 - can we deprecate classes? eg. VipsFormat and VipsWrap7 should be hidden
 
+  we have 
+
+  	gboolean output_needs_arg;
+
+  in vipsobjectclass at the moment, but that's the only flag-like thing
+
+  add a get_flags() member whose values include needs_arg and deprecated?
+
+  add a couple of void * blank pointers to object and objectclass for future
+  expansion .. a couple of ints as well?
+
+- introspection example in gist should not list abstract classes?
+
 - check_uncoded() left to do:
 
 	resample/quadratic.c
+
+- move vips__image_decode() into the public API
 
 - we vips_image_write() a lot, could we do this by 
 
@@ -22,33 +37,6 @@
 	is there any point doing this? only useful on 32-bit machines, which
 	don't really exist any more
 
-- shrink does not auto unpack labq or rad, should it?
-
-- others .. differences in:
-
-grep -l CODING_LABQ */*.c
-conversion/join.c
-conversion/msb.c
-inplace/im_draw_mask.c
-resample/shrink.c
-
-grep -l CODING_RAD */*.c
-conversion/embed.c
-inplace/flood.c
-inplace/im_draw_image.c
-
-- add unpack everywhere, eg. arithmetic
-
-  look for 
-
-	vips_check_uncoded
-
-  certainly can use it there
-
-
-
-- move vips__image_decode() into the public API
-
 - need to do mosaicing and inplace, plus im_label_regions in morph
 
 - now vips_linear() has uchar output, can we do something with orc?
@@ -65,8 +53,7 @@ inplace/im_draw_image.c
   interpolator would need to be built for the bands / stride / type of the
   image
 
-  need new API For this, since interpolators currently work for any image
-
+  need new API For this since interpolators currently work for any image
 
 - vips_gaussblur() should switch to float prec if given a float image?
 

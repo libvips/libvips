@@ -1708,9 +1708,9 @@ gboolean
 vips_object_argument_needsstring( VipsObject *object, const char *name )
 {
 	GParamSpec *pspec;
-	GType otype;
 	VipsArgumentClass *argument_class;
 	VipsArgumentInstance *argument_instance;
+	GType otype;
 	VipsObjectClass *oclass;
 
 #ifdef DEBUG
@@ -1725,10 +1725,15 @@ vips_object_argument_needsstring( VipsObject *object, const char *name )
 		/* Bools, input or output, don't need args.
 		 */
 		return( FALSE );
-	else if( argument_class->flags & VIPS_ARGUMENT_INPUT ) 
+
+	if( argument_class->flags & VIPS_ARGUMENT_INPUT ) 
 		/* All other inputs need something.
 		 */
 		return( TRUE );
+
+	/* Just output objects.
+	 */
+
 	if( (otype = G_PARAM_SPEC_VALUE_TYPE( pspec )) &&
 		g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
 		(oclass = g_type_class_ref( otype )) )
