@@ -2,6 +2,9 @@
  *
  * Author: John Cupitt
  * Written on: 18/6/12
+ *
+ * 4/1/14
+ * 	- better rounding 
  */
 
 /*
@@ -70,24 +73,9 @@ typedef VipsConversionClass VipsFlattenClass;
 
 G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 
-/* Shift A down N places, rounding to nearest.
- *
- * This calculates A / B, rounding the result to nearest, ie.
- *
- * 	(a + (b / 2)) / b
- *
- * We mustn't overflow during the add, so we actually do:
- *
- * 	((a / 2) + (b / 4)) / (b / 2)
- *
- * slightly less accurate, but safe from overflow.
+/* Flatten with black background.
  */
-#define SHIFT_ROUND( A, N ) \
-	((((A) >> 1) + (1 << ((N) - 2)) - 1) >> ((N) - 1))
-
-/* Flatten with shift + round, black background.
- */
-#define VIPS_FLATTEN_INT_BLACK( TYPE, N ) { \
+#define VIPS_FLATTEN_BLACK( TYPE, MAX ) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE *q = (TYPE *) out; \
 	\
@@ -96,67 +84,28 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 		int b; \
 		\
 		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = SHIFT_ROUND( p[b] * alpha, N ); \
+			q[b] = (p[b] * alpha) / (MAX); \
 		\
 		p += bands; \
 		q += bands - 1; \
 	} \
 }
 
-/* Flatten with shift + round, any background.
+/* Flatten with any background.
  */
-#define VIPS_FLATTEN_INT( TYPE, N ) { \
+#define VIPS_FLATTEN( TYPE, MAX ) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE *q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
 		TYPE alpha = p[bands - 1]; \
-		TYPE nalpha = ((1 << (N)) - 1) - alpha; \
+		TYPE nalpha = (MAX) - alpha; \
 		TYPE *bg = (TYPE *) flatten->ink; \
 		int b; \
 		\
 		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = SHIFT_ROUND( p[b] * alpha, (N) ) + \
-				SHIFT_ROUND( bg[b] * nalpha, (N) ); \
-		\
-		p += bands; \
-		q += bands - 1; \
-	} \
-}
-
-/* Flatten via float division, black background. 
- */
-#define VIPS_FLATTEN_FLOAT_BLACK( TYPE, SCALE ) { \
-	TYPE *p = (TYPE *) in; \
-	TYPE *q = (TYPE *) out; \
-	\
-	for( x = 0; x < width; x++ ) { \
-		TYPE alpha = p[bands - 1]; \
-		int b; \
-		\
-		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = ((double) p[b] * alpha) / (SCALE); \
-		\
-		p += bands; \
-		q += bands - 1; \
-	} \
-}
-
-/* Flatten via float division, any background. 
- */
-#define VIPS_FLATTEN_FLOAT( TYPE, SCALE ) { \
-	TYPE *p = (TYPE *) in; \
-	TYPE *q = (TYPE *) out; \
-	\
-	for( x = 0; x < width; x++ ) { \
-		TYPE alpha = p[bands - 1]; \
-		TYPE nalpha = (SCALE) - alpha; \
-		TYPE *bg = (TYPE *) flatten->ink; \
-		int b; \
-		\
-		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = ((double) p[b] * alpha) / (SCALE) + \
-				((double) bg[b] * nalpha) / (SCALE); \
+			q[b] = (p[b] * alpha) / (MAX) + \
+				(bg[b] * nalpha) / (MAX); \
 		\
 		p += bands; \
 		q += bands - 1; \
@@ -184,37 +133,37 @@ vips_flatten_black_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 		switch( flatten->in->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
-			VIPS_FLATTEN_INT_BLACK( unsigned char, 8 ); 
+			VIPS_FLATTEN_BLACK( unsigned char, UCHAR_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_CHAR: 
 			/* Alpha is 0 - 127? No idea, really.
 			 */
-			VIPS_FLATTEN_INT_BLACK( signed char, 7 ); 
+			VIPS_FLATTEN_BLACK( signed char, CHAR_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-			VIPS_FLATTEN_INT_BLACK( unsigned short, 16 ); 
+			VIPS_FLATTEN_BLACK( unsigned short, USHRT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
-			VIPS_FLATTEN_INT_BLACK( signed short, 15 ); 
+			VIPS_FLATTEN_BLACK( signed short, SHRT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 
-			VIPS_FLATTEN_FLOAT_BLACK( unsigned int, UINT_MAX ); 
+			VIPS_FLATTEN_BLACK( unsigned int, UINT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 
-			VIPS_FLATTEN_FLOAT_BLACK( signed int, INT_MAX ); 
+			VIPS_FLATTEN_BLACK( signed int, INT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
-			VIPS_FLATTEN_FLOAT_BLACK( float, 1.0 ); 
+			VIPS_FLATTEN_BLACK( float, 1.0 ); 
 			break; 
 
 		case VIPS_FORMAT_DOUBLE: 
-			VIPS_FLATTEN_FLOAT_BLACK( double, 1.0 ); 
+			VIPS_FLATTEN_BLACK( double, 1.0 ); 
 			break; 
 
 		case VIPS_FORMAT_COMPLEX: 
@@ -250,37 +199,37 @@ vips_flatten_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 		switch( flatten->in->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
-			VIPS_FLATTEN_INT( unsigned char, 8 ); 
+			VIPS_FLATTEN( unsigned char, UCHAR_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_CHAR: 
 			/* Alpha is 0 - 127? No idea, really.
 			 */
-			VIPS_FLATTEN_INT( signed char, 7 ); 
+			VIPS_FLATTEN( signed char, CHAR_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-			VIPS_FLATTEN_INT( unsigned short, 16 ); 
+			VIPS_FLATTEN( unsigned short, USHRT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
-			VIPS_FLATTEN_INT( signed short, 15 ); 
+			VIPS_FLATTEN( signed short, SHRT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 
-			VIPS_FLATTEN_FLOAT( unsigned int, UINT_MAX ); 
+			VIPS_FLATTEN( unsigned int, UINT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 
-			VIPS_FLATTEN_FLOAT( signed int, INT_MAX ); 
+			VIPS_FLATTEN( signed int, INT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
-			VIPS_FLATTEN_FLOAT( float, 1.0 ); 
+			VIPS_FLATTEN( float, 1.0 ); 
 			break; 
 
 		case VIPS_FORMAT_DOUBLE: 
-			VIPS_FLATTEN_FLOAT( double, 1.0 ); 
+			VIPS_FLATTEN( double, 1.0 ); 
 			break; 
 
 		case VIPS_FORMAT_COMPLEX: 
