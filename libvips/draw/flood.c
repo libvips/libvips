@@ -570,3 +570,41 @@ vips_flood( VipsImage *image,
 
 	return( result );
 }
+
+/**
+ * vips_flood1:
+ * @image: image to draw on
+ * @ink: value to draw
+ * @x: centre of circle
+ * @y: centre of circle
+ *
+ * Optional arguments:
+ *
+ * @test: test this image
+ * @equal: fill while equal to edge
+ * @left: output left edge of bounding box of modified area
+ * @top: output top edge of bounding box of modified area
+ * @width: output width of bounding box of modified area
+ * @height: output height of bounding box of modified area
+ *
+ * As vips_flood(), but just takes a single double for @ink. 
+ *
+ * See also: vips_flood().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+vips_flood1( VipsImage *image, double ink, int x, int y, ... )
+{
+	double array_ink[1];
+	va_list ap;
+	int result;
+
+	array_ink[0] = ink; 
+
+	va_start( ap, y );
+	result = vips_floodv( image, array_ink, 1, x, y, ap );
+	va_end( ap );
+
+	return( result );
+}
