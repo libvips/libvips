@@ -55,7 +55,7 @@
 
 #include <vips/vips.h>
 
-#include "draw.h"
+#include "old_draw.h"
 
 typedef struct _Point {
 	Draw draw;

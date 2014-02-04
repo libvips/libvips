@@ -97,13 +97,13 @@ static inline void
 vips__draw_pel_clip( VipsDraw *draw, int x, int y )
 {
 	if( x < 0 || 
-		x >= draw->im->Xsize )
+		x >= draw->image->Xsize )
 		return;
 	if( y < 0 || 
-		y >= draw->im->Ysize )
+		y >= draw->image->Ysize )
 		return;
 
-	vips__draw_pel( draw, VIPS_IMAGE_ADDR( draw->im, x, y ) );
+	vips__draw_pel( draw, VIPS_IMAGE_ADDR( draw->image, x, y ) );
 }
 
 /* Is p painted?

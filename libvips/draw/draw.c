@@ -41,8 +41,9 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
-#include "draw.h"
+#include "pdraw.h"
 
 /** 
  * SECTION: draw
@@ -74,15 +75,16 @@ vips_draw_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_draw_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_inplace( draw->im ) )
-		return( NULL );
+	if( vips_check_coding_known( class->nickname, draw->image ) ||
+		vips_image_inplace( draw->image ) )
+		return( -1 );
 
-	draw->lsize = VIPS_IMAGE_SIZEOF_LINE( draw->im );
-	draw->psize = VIPS_IMAGE_SIZEOF_PEL( draw->im );
+	draw->lsize = VIPS_IMAGE_SIZEOF_LINE( draw->image );
+	draw->psize = VIPS_IMAGE_SIZEOF_PEL( draw->image );
 	draw->noclip = FALSE;
 
 	if( !(draw->pixel_ink = vips__vector_to_ink( 
-		class->nickname, draw->im,
+		class->nickname, draw->image,
 		draw->ink->data, draw->ink->n )) )
 		return( -1 );
 
@@ -106,9 +108,9 @@ vips_draw_class_init( VipsDrawClass *class )
 		_( "Image" ), 
 		_( "Image to draw on" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsDraw, im ) );
+		G_STRUCT_OFFSET( VipsDraw, image ) );
 
-	VIPS_ARG_BOXED( class, "ink", 12, 
+	VIPS_ARG_BOXED( class, "ink", 2, 
 		_( "Ink" ), 
 		_( "Colour for pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -127,9 +129,9 @@ vips_draw_init( VipsDraw *draw )
 void
 vips_draw_operation_init( void )
 {
-	extern GType vips_copy_get_type( void ); 
+	extern GType vips_circle_get_type( void ); 
 
-	vips_copy_get_type();
+	vips_circle_get_type();
 }
 
 /* Fill a scanline between points x1 and x2 inclusive. x1 < x2.
@@ -144,18 +146,18 @@ vips__draw_scanline( VipsDraw *draw, int y, int x1, int x2 )
 	g_assert( x1 <= x2 );
 
 	if( y < 0 || 
-		y >= draw->im->Ysize )
+		y >= draw->image->Ysize )
 		return;
 	if( x1 < 0 && 
 		x2 < 0 )
 		return;
-	if( x1 >= draw->im->Xsize && 
-		x2 >= draw->im->Xsize )
+	if( x1 >= draw->image->Xsize && 
+		x2 >= draw->image->Xsize )
 		return;
-	x1 = VIPS_CLIP( 0, x1, draw->im->Xsize - 1 );
-	x2 = VIPS_CLIP( 0, x2, draw->im->Xsize - 1 );
+	x1 = VIPS_CLIP( 0, x1, draw->image->Xsize - 1 );
+	x2 = VIPS_CLIP( 0, x2, draw->image->Xsize - 1 );
 
-	mp = VIPS_IMAGE_ADDR( draw->im, x1, y );
+	mp = VIPS_IMAGE_ADDR( draw->image, x1, y );
 	len = x2 - x1 + 1;
 
 	for( i = 0; i < len; i++ ) {

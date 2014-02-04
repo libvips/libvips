@@ -57,7 +57,7 @@
 
 #include <vips/vips.h>
 
-#include "draw.h"
+#include "old_draw.h"
 
 /**
  * im_draw_rect:

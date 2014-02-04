@@ -715,7 +715,7 @@ AC_OUTPUT([
 	libvips/foreign/Makefile 
 	libvips/freqfilt/Makefile 
 	libvips/histogram/Makefile 
-	libvips/inplace/Makefile 
+	libvips/draw/Makefile 
 	libvips/iofuncs/Makefile 
 	libvips/morphology/Makefile 
 	libvips/mosaicing/Makefile 

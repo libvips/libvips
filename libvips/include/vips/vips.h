@@ -134,7 +134,7 @@ extern "C" {
 #include <vips/freqfilt.h>
 #include <vips/resample.h>
 #include <vips/colour.h>
-#include <vips/inplace.h>
+#include <vips/draw.h>
 #include <vips/create.h>
 #include <vips/video.h>
 #include <vips/cimg_funcs.h>

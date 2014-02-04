@@ -324,7 +324,7 @@ flood_all( Flood *flood, int x, int y )
 	/* Test start pixel ... nothing to do?
 	 */
 	if( !flood_connected( flood, 
-		IM_IMAGE_ADDR( flood->test, x, y ) ) ) 
+		VIPS_IMAGE_ADDR( flood->test, x, y ) ) ) 
 		return;
 
 	flood_scanline( flood, x, y, &x1, &x2 );

@@ -57,7 +57,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "draw.h"
+#include "old_draw.h"
 
 typedef struct _Mask {
 	Draw draw;

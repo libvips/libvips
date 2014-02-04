@@ -38,6 +38,16 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+int vips_circle( VipsImage *image, 
+	double *ink, int n, int cx, int cy, int radius, ... )
+	__attribute__((sentinel));
+int vips_circle1( VipsImage *image, 
+	double ink, int cx, int cy, int radius, ... )
+	__attribute__((sentinel));
+
+
+
+
 int im_draw_rect( VipsImage *image, 
 	int left, int top, int width, int height, int fill, VipsPel *ink );
 int im_draw_circle( VipsImage *image, 
