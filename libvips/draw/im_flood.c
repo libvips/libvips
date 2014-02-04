@@ -28,8 +28,6 @@
  * 	  level
  * 27/9/10
  * 	- use Draw base class
- * 21/1/14
- * 	- redo as a class
  */
 
 /*
@@ -70,7 +68,7 @@
 
 #include <vips/vips.h>
 
-#include "draw.h"
+#include "old_draw.h"
 
 /* Size of a scanline buffer. We allocate a list of these to hold scanlines 
  * we need to visit.
@@ -99,16 +97,16 @@ typedef struct _Buffer {
 	Scan scan[PBUFSIZE];
 } Buffer;
 
-/* Base class.
+/* Our state.
  */
-typedef struct _VipsFlood {
-	VipsDraw draw;
+typedef struct {
+	Draw draw;
 
 	/* Parameters.
 	 */
-	VipsImage *test;	/* Test this image */
+	IMAGE *test;		/* Test this image */
 	int x, y;
-	VipsRect *dout;		/* Write dirty here at end */
+	Rect *dout;		/* Write dirty here at end */
 
 	/* Derived stuff.
 	 */
@@ -122,11 +120,7 @@ typedef struct _VipsFlood {
 	 */
 	Buffer *in;
 	Buffer *out;
-} VipsFlood;
-
-typedef VipsDrawClass VipsFloodClass;
-
-G_DEFINE_ABSTRACT_TYPE( VipsFlood, vips_flood, VIPS_TYPE_DRAW );
+} Flood;
 
 /* Alloc a new buffer.
  */
@@ -160,15 +154,14 @@ buffer_free( Buffer *buf )
  * the new head buffer.
  */
 static inline Buffer * 
-buffer_add( Buffer *buf, VipsFlood *flood, int x1, int x2, int y, int dir )
+buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
 {
 	/* Clip against image size.
 	 */
-	if( y < 0 || 
-		y >= flood->test->Ysize )
+	if( y < 0 || y >= flood->test->Ysize )
 		return( buf );
-	x1 = VIPS_CLIP( 0, x1, flood->test->Xsize - 1 );
-	x2 = VIPS_CLIP( 0, x2, flood->test->Xsize - 1 );
+	x1 = IM_CLIP( 0, x1, flood->test->Xsize - 1 );
+	x2 = IM_CLIP( 0, x2, flood->test->Xsize - 1 );
 	if( x2 - x1 < 0 )
 		return( buf );
 
@@ -194,7 +187,7 @@ buffer_add( Buffer *buf, VipsFlood *flood, int x1, int x2, int y, int dir )
  * pixels.
  */
 static inline gboolean
-vips_flood_connected( VipsFlood *flood, VipsPel *tp )
+flood_connected( Flood *flood, VipsPel *tp )
 {
  	int j;
 
@@ -211,26 +204,26 @@ vips_flood_connected( VipsFlood *flood, VipsPel *tp )
  * connected and unpainted.
  */
 static void 
-vips_flood_scanline( VipsFlood *flood, int x, int y, int *x1, int *x2 )
+flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 {
-	VipsDraw *draw = VIPS_DRAW( flood );
+	Draw *draw = DRAW( flood );
 	const int width = flood->test->Xsize;
 
 	VipsPel *tp;
 	int i;
 
-	g_assert( vips_flood_connected( flood, 
-		VIPS_IMAGE_ADDR( flood->test, x, y ) ) );
-	g_assert( !vips__draw_painted( draw, 
-		VIPS_IMAGE_ADDR( draw->im, x, y ) ) );
+	g_assert( flood_connected( flood, 
+		IM_IMAGE_ADDR( flood->test, x, y ) ) );
+	g_assert( !im__draw_painted( draw, 
+		IM_IMAGE_ADDR( draw->im, x, y ) ) );
 
 	/* Search to the right for the first non-connected pixel. If the start
 	 * pixel is unpainted, we know all the intervening pixels must be
 	 * unpainted too.
 	 */
-	tp = VIPS_IMAGE_ADDR( flood->test, x + 1, y );
+	tp = IM_IMAGE_ADDR( flood->test, x + 1, y );
 	for( i = x + 1; i < width; i++ ) {
-		if( !vips_flood_connected( flood, tp ) )
+		if( !flood_connected( flood, tp ) )
 			break;
 		tp += flood->tsize;
 	}
@@ -238,9 +231,9 @@ vips_flood_scanline( VipsFlood *flood, int x, int y, int *x1, int *x2 )
 
 	/* Search left.
 	 */
-	tp = VIPS_IMAGE_ADDR( flood->test, x - 1, y );
+	tp = IM_IMAGE_ADDR( flood->test, x - 1, y );
 	for( i = x - 1; i >= 0; i-- ) {
-		if( !vips_flood_connected( flood, tp ) )
+		if( !flood_connected( flood, tp ) )
 			break;
 		tp -= flood->tsize;
 	}
@@ -248,13 +241,13 @@ vips_flood_scanline( VipsFlood *flood, int x, int y, int *x1, int *x2 )
 
 	/* Paint the range we discovered.
 	 */
-	vips__draw_scanline( draw, y, *x1, *x2 );
+	im__draw_scanline( draw, y, *x1, *x2 );
 
 	if( flood->dout ) {
-		flood->left = VIPS_MIN( flood->left, *x1 );
-		flood->right = VIPS_MAX( flood->right, *x2 );
-		flood->top = VIPS_MIN( flood->top, y );
-		flood->bottom = VIPS_MAX( flood->bottom, y );
+		flood->left = IM_MIN( flood->left, *x1 );
+		flood->right = IM_MAX( flood->right, *x2 );
+		flood->top = IM_MIN( flood->top, y );
+		flood->bottom = IM_MAX( flood->bottom, y );
 	}
 }
 
@@ -262,21 +255,20 @@ vips_flood_scanline( VipsFlood *flood, int x, int y, int *x1, int *x2 )
  * line in this range looking for an edge pixel we can flood from.
  */
 static void
-vips_flood_around( VipsFlood *flood, Scan *scan )
+flood_around( Flood *flood, Scan *scan )
 {
-	VipsDraw *draw = VIPS_DRAW( flood );
+	Draw *draw = DRAW( flood );
 
 	VipsPel *tp;
 	int x;
 
-	g_assert( scan->dir == 1 || 
-		scan->dir == -1 );
+	g_assert( scan->dir == 1 || scan->dir == -1 );
 
-	for( tp = VIPS_IMAGE_ADDR( flood->test, scan->x1, scan->y ), 
+	for( tp = IM_IMAGE_ADDR( flood->test, scan->x1, scan->y ), 
 		x = scan->x1; 
 		x <= scan->x2; 
 		tp += flood->tsize, x++ ) {
-		if( vips_flood_connected( flood, tp ) ) {
+		if( flood_connected( flood, tp ) ) {
 			int x1a;
 			int x2a;
 
@@ -285,14 +277,14 @@ vips_flood_around( VipsFlood *flood, Scan *scan )
 			 * connected loops.
 			 */
 			if( draw->im != flood->test ) {
-				VipsPel *mp = VIPS_IMAGE_ADDR( 
+				VipsPel *mp = IM_IMAGE_ADDR( 
 					draw->im, x, scan->y );
 
-				if( vips__draw_painted( draw, mp ) )
+				if( im__draw_painted( draw, mp ) )
 					continue;
 			}
 
-			vips_flood_scanline( flood, x, scan->y, &x1a, &x2a );
+			flood_scanline( flood, x, scan->y, &x1a, &x2a );
 
 			/* Our new scanline can have up to three more
 			 * scanlines connected to it: above, below left, below
@@ -311,23 +303,23 @@ vips_flood_around( VipsFlood *flood, Scan *scan )
 				scan->dir );
 
 			x = x2a + 1;
-			tp = VIPS_IMAGE_ADDR( flood->test, x, scan->y );
+			tp = IM_IMAGE_ADDR( flood->test, x, scan->y );
 		}
 	}
 }
 
 static void
-vips_flood_all( VipsFlood *flood, int x, int y )
+flood_all( Flood *flood, int x, int y )
 {
 	int x1, x2;
 
 	/* Test start pixel ... nothing to do?
 	 */
-	if( !vips_flood_connected( flood, 
-		VIPS_IMAGE_ADDR( flood->test, x, y ) ) ) 
+	if( !flood_connected( flood, 
+		IM_IMAGE_ADDR( flood->test, x, y ) ) ) 
 		return;
 
-	vips_flood_scanline( flood, x, y, &x1, &x2 );
+	flood_scanline( flood, x, y, &x1, &x2 );
 	flood->in = buffer_add( flood->in, flood, x1, x2, y + 1, 1 );
 	flood->in = buffer_add( flood->in, flood, x1, x2, y - 1, -1 );
 
@@ -338,31 +330,17 @@ vips_flood_all( VipsFlood *flood, int x, int y )
 			int i;
 
 			for( i = 0; i < p->n; i++ )
-				vips_flood_around( flood, &p->scan[i] );
+				flood_around( flood, &p->scan[i] );
 
 			p->n = 0;
 		}
 
-		VIPS_SWAP( Buffer *, flood->in, flood->out );
+		IM_SWAP( Buffer *, flood->in, flood->out );
 	}
 }
 
-static int
-vips_flood_build( VipsObject *object )
-{
-	VipsDraw *draw = VIPS_DRAW( object );
-	VipsFlood *flood = (VipsFlood *) object;
-
-	int x, y, d;
-
-	if( VIPS_OBJECT_CLASS( vips_flood_parent_class )->build( object ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 static void
-flood_free( VipsFlood *flood )
+flood_free( Flood *flood )
 {
 	/* Write dirty back to caller.
 	 */
@@ -373,18 +351,19 @@ flood_free( VipsFlood *flood )
 		flood->dout->height = flood->bottom - flood->top + 1;
 	}
 
-	VIPS_FREE( flood->edge );
-	VIPS_FREEF( buffer_free, flood->in );
-	VIPS_FREEF( buffer_free, flood->out );
-	vips_free( flood );
+	im__draw_free( DRAW( flood ) );
+	IM_FREE( flood->edge );
+	IM_FREEF( buffer_free, flood->in );
+	IM_FREEF( buffer_free, flood->out );
+	im_free( flood );
 }
 
-static VipsFlood *
-vips_flood_new( VipsImage *image, VipsImage *test, int x, int y, VipsPel *ink, Rect *dout )
+static Flood *
+flood_new( IMAGE *image, IMAGE *test, int x, int y, VipsPel *ink, Rect *dout )
 {
-	VipsFlood *flood;
+	Flood *flood;
 
-	if( !(flood = VIPS_NEW( NULL, VipsFlood )) )
+	if( !(flood = IM_NEW( NULL, Flood )) )
 		return( NULL );
 	if( !im__draw_init( DRAW( flood ), image, ink ) ) {
 		flood_free( flood );
@@ -396,7 +375,7 @@ vips_flood_new( VipsImage *image, VipsImage *test, int x, int y, VipsPel *ink, R
 	flood->y = y;
 	flood->dout = dout;
 	flood->edge = NULL;
-	flood->tsize = VIPS_IMAGE_SIZEOF_PEL( test );
+	flood->tsize = IM_IMAGE_SIZEOF_PEL( test );
 	flood->left = x;
 	flood->top = y;
 	flood->right = x;
@@ -432,12 +411,12 @@ vips_flood_new( VipsImage *image, VipsImage *test, int x, int y, VipsPel *ink, R
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_flood( VipsImage *image, int x, int y, VipsPel *ink, Rect *dout )
+im_draw_flood( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 {
-	VipsFlood *flood;
+	Flood *flood;
 
 	if( im_check_coding_known( "im_draw_flood", image ) ||
-		!(flood = vips_flood_new( image, image, x, y, ink, dout )) )
+		!(flood = flood_new( image, image, x, y, ink, dout )) )
 		return( -1 );
 
 	/* Flood to != ink.
@@ -445,7 +424,7 @@ im_draw_flood( VipsImage *image, int x, int y, VipsPel *ink, Rect *dout )
 	memcpy( flood->edge, ink, flood->tsize );
 	flood->equal = 0;
 
-	vips_flood_all( flood, x, y );
+	flood_all( flood, x, y );
 
 	flood_free( flood );
 
@@ -472,18 +451,18 @@ im_draw_flood( VipsImage *image, int x, int y, VipsPel *ink, Rect *dout )
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_flood_blob( VipsImage *image, int x, int y, VipsPel *ink, Rect *dout )
+im_draw_flood_blob( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 {
-	VipsFlood *flood;
+	Flood *flood;
  	int j;
 
 	if( im_check_coding_known( "im_draw_flood_blob", image ) ||
-		!(flood = vips_flood_new( image, image, x, y, ink, dout )) )
+		!(flood = flood_new( image, image, x, y, ink, dout )) )
 		return( -1 );
 
 	/* Edge is set by colour of start pixel.
 	 */
-	memcpy( flood->edge, VIPS_IMAGE_ADDR( image, x, y ), flood->tsize );
+	memcpy( flood->edge, IM_IMAGE_ADDR( image, x, y ), flood->tsize );
 	flood->equal = 1;
 
 	/* If edge == ink, we'll never stop :-( or rather, there's nothing to
@@ -495,7 +474,7 @@ im_draw_flood_blob( VipsImage *image, int x, int y, VipsPel *ink, Rect *dout )
 	if( j == flood->tsize )
 		return( 0 );
 
-	vips_flood_all( flood, x, y );
+	flood_all( flood, x, y );
 
 	flood_free( flood );
 
@@ -524,36 +503,36 @@ im_draw_flood_blob( VipsImage *image, int x, int y, VipsPel *ink, Rect *dout )
  * Returns: 0 on success, or -1 on error.
  */
 int
-im_draw_flood_other( VipsImage *image, 
-	VipsImage *test, int x, int y, int serial, Rect *dout )
+im_draw_flood_other( IMAGE *image, 
+	IMAGE *test, int x, int y, int serial, Rect *dout )
 {
 	int *m;
-	VipsFlood *flood;
+	Flood *flood;
 
 	if( im_incheck( test ) ||
 		im_check_coding_known( "im_draw_flood_other", test ) ||
 		im_check_uncoded( "im_draw_flood_other", image ) ||
 		im_check_mono( "im_draw_flood_other", image ) ||
 		im_check_format( "im_draw_flood_other", image, 
-			VIPS_BANDFMT_INT ) ||
+			IM_BANDFMT_INT ) ||
 		im_check_size_same( "im_draw_flood_other", test, image ) )
 		return( -1 );
 
 	/* Have we done this point already?
 	 */
-	m = (int *) VIPS_IMAGE_ADDR( image, x, y ); 
+	m = (int *) IM_IMAGE_ADDR( image, x, y ); 
 	if( *m == serial )
 		return( 0 );
 
-	if( !(flood = vips_flood_new( image, test, x, y, (VipsPel *) &serial, dout )) )
+	if( !(flood = flood_new( image, test, x, y, (VipsPel *) &serial, dout )) )
 		return( -1 );
 
 	/* Edge is set by colour of start pixel.
 	 */
-	memcpy( flood->edge, VIPS_IMAGE_ADDR( test, x, y ), flood->tsize );
+	memcpy( flood->edge, IM_IMAGE_ADDR( test, x, y ), flood->tsize );
 	flood->equal = 1;
 
-	vips_flood_all( flood, x, y );
+	flood_all( flood, x, y );
 
 	flood_free( flood );
 

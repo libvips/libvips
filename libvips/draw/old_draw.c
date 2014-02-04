@@ -42,7 +42,7 @@
 
 #include <vips/vips.h>
 
-#include "draw.h"
+#include "old_draw.h"
 
 /* Fill a scanline between points x1 and x2 inclusive. x1 < x2.
  */

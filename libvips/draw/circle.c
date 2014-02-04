@@ -121,8 +121,7 @@ vips_circle_build( VipsObject *object )
 
 	int x, y, d;
 
-	if( VIPS_OBJECT_CLASS( vips_circle_parent_class )->
-		build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_circle_parent_class )->build( object ) )
 		return( -1 );
 
 	circle->centre = VIPS_IMAGE_ADDR( draw->image, circle->cx, circle->cy );
