@@ -1,21 +1,4 @@
 
-- check_uncoded() left to do:
-
-	resample/quadratic.c
-
-- move vips__image_decode() into the public API
-
-- we vips_image_write() a lot, could we do this by 
-
-	int
-	vips_image_write( in, out )
-	{
-		g_object_ref( in)
-		vips_object_local( out,in )
-	}
-
-  i.e. do everything at pipe build time
-
 - inplace
 
 	can we set a region for the pixels we will modify?

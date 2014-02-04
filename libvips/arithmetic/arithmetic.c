@@ -539,7 +539,7 @@ vips_arithmetic_build( VipsObject *object )
 	/* Decode RAD/LABQ etc.
 	 */
 	for( i = 0; i < arithmetic->n; i++ )
-		if( vips__image_decode( arithmetic->in[i], &decode[i] ) )
+		if( vips_image_decode( arithmetic->in[i], &decode[i] ) )
 			return( -1 );
 
 	/* Cast our input images up to a common format, bands and size.

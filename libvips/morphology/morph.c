@@ -93,7 +93,7 @@ vips_morph_build( VipsObject *object )
 
 	in = morphology->in; 
 
-	if( vips__image_decode( in, &t[0] ) )
+	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
 	in = t[0];
 

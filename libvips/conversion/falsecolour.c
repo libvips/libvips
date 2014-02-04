@@ -349,7 +349,7 @@ vips_falsecolour_build( VipsObject *object )
 	 * want to work for images which aren't in a recognised space, like
 	 * MULTIBAND.
 	 */
-	if( vips__image_decode( falsecolour->in, &t[1] ) ||
+	if( vips_image_decode( falsecolour->in, &t[1] ) ||
 		vips_extract_band( t[1], &t[2], 0, NULL ) ||
 		vips_cast( t[2], &t[3], VIPS_FORMAT_UCHAR, NULL ) ||
 		vips_maplut( t[3], &t[4], t[0], NULL ) ||

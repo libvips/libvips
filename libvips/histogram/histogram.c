@@ -143,7 +143,7 @@ vips_histogram_build( VipsObject *object )
 	g_object_set( histogram, "out", vips_image_new(), NULL ); 
 
 	for( i = 0; i < histogram->n; i++ ) 
-		if( vips__image_decode( histogram->in[i], &decode[i] ) ||
+		if( vips_image_decode( histogram->in[i], &decode[i] ) ||
 			vips_check_hist( class->nickname, decode[i] ) )
 			return( -1 ); 
 

@@ -430,6 +430,8 @@ VipsImage *vips_image_new_temp_file( const char *format );
 int vips_image_write( VipsImage *image, VipsImage *out );
 int vips_image_write_to_file( VipsImage *image, const char *filename );
 
+int vips_image_decode( VipsImage *in, VipsImage **out );
+
 gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );
 gboolean vips_image_ispartial( VipsImage *image );
