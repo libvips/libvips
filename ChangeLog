@@ -4,6 +4,10 @@
 - colourspace has a source_space option
 - operations can be tagged as "deprecated"
 
+22/1/14 started 7.38.3
+- undeprecate VIPS_MASK_IDEAL_HIGHPASS and friends, ruby-vips was using them,
+  thanks ahacking
+
 22/1/14 started 7.38.2
 - auto RAD decode for affine
 - falsecolour was not working for some image types
