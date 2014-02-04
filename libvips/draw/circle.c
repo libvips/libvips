@@ -180,14 +180,14 @@ vips_circle_class_init( VipsCircleClass *class )
 		-1000000000, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "radius", 5, 
-		_( "radius" ), 
+		_( "Radius" ), 
 		_( "Radius in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCircle, radius ),
 		0, 1000000000, 0 );
 
 	VIPS_ARG_BOOL( class, "fill", 6, 
-		_( "fill" ), 
+		_( "Fill" ), 
 		_( "Draw a solid object" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCircle, fill ),

@@ -106,17 +106,22 @@ typedef struct _VipsFlood {
 
 	/* Parameters.
 	 */
+	int x;
+	int y;
 	VipsImage *test;	/* Test this image */
-	int x, y;
-	VipsRect *dout;		/* Write dirty here at end */
+	gboolean equal;		/* Fill to == edge, or != edge */
+
+	int left;		/* Record bounding box of modified pixels */
+	int right;	
+	int top;
+	int bottom;
+	int width;
+	int height;
 
 	/* Derived stuff.
 	 */
 	VipsPel *edge;		/* Boundary colour */
-	int equal;		/* Fill to == edge, or != edge */
 	int tsize;		/* sizeof( one pel in test ) */
-	int left, right;	/* Record bounding box of modified pixels */
-	int top, bottom;
 
 	/* Read from in, add new possibilities to out.
 	 */
@@ -347,22 +352,8 @@ vips_flood_all( VipsFlood *flood, int x, int y )
 	}
 }
 
-static int
-vips_flood_build( VipsObject *object )
-{
-	VipsDraw *draw = VIPS_DRAW( object );
-	VipsFlood *flood = (VipsFlood *) object;
-
-	int x, y, d;
-
-	if( VIPS_OBJECT_CLASS( vips_flood_parent_class )->build( object ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 static void
-flood_free( VipsFlood *flood )
+vips_flood_finalize( VipsFlood *flood )
 {
 	/* Write dirty back to caller.
 	 */
@@ -379,17 +370,16 @@ flood_free( VipsFlood *flood )
 	vips_free( flood );
 }
 
-static VipsFlood *
-vips_flood_new( VipsImage *image, VipsImage *test, int x, int y, VipsPel *ink, Rect *dout )
+static int
+vips_flood_build( VipsObject *object )
 {
-	VipsFlood *flood;
+	VipsDraw *draw = VIPS_DRAW( object );
+	VipsFlood *flood = (VipsFlood *) object;
 
-	if( !(flood = VIPS_NEW( NULL, VipsFlood )) )
-		return( NULL );
-	if( !im__draw_init( DRAW( flood ), image, ink ) ) {
-		flood_free( flood );
-		return( NULL );
-	}
+	int x, y, d;
+
+	if( VIPS_OBJECT_CLASS( vips_flood_parent_class )->build( object ) )
+		return( -1 );
 
 	flood->test = test;
 	flood->x = x;
@@ -409,7 +399,77 @@ vips_flood_new( VipsImage *image, VipsImage *test, int x, int y, VipsPel *ink, R
 		return( NULL );
 	}
 
-	return( flood );
+	return( 0 );
+}
+
+static void
+vips_flood_class_init( VipsCircleClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "flood";
+	vobject_class->description = _( "draw a flood on an image" );
+	vobject_class->build = vips_flood_build;
+
+	VIPS_ARG_INT( class, "x", 3, 
+		_( "x" ), 
+		_( "Flood start point" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsFlood, x ),
+		0, 1000000000, 0 );
+
+	VIPS_ARG_INT( class, "y", 4, 
+		_( "y" ), 
+		_( "Flood start point" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsFlood, y ),
+		0, 1000000000, 0 );
+
+	VIPS_ARG_IMAGE( class, "test", 5, 
+		_( "Test" ), 
+		_( "Test pixels in this image" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsFlood, test ) ); 
+
+	VIPS_ARG_BOOL( class, "equal", 6, 
+		_( "Equal" ), 
+		_( "Flood while equal to edge" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsFlood, equal ),
+		FALSE ); 
+
+	VIPS_ARG_INT( class, "left", 7, 
+		_( "Left" ), 
+		_( "Left edge of modified area" ),
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsFlood, left ),
+		0, 1000000000, 0 );
+
+	VIPS_ARG_INT( class, "top", 8, 
+		_( "Top" ), 
+		_( "top edge of modified area" ),
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsFlood, top ),
+		0, 1000000000, 0 );
+
+	VIPS_ARG_INT( class, "width", 9, 
+		_( "Width" ), 
+		_( "width of modified area" ),
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsFlood, width ),
+		0, 1000000000, 0 );
+
+	VIPS_ARG_INT( class, "height", 10, 
+		_( "Height" ), 
+		_( "height of modified area" ),
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsFlood, height ),
+		0, 1000000000, 0 );
+
 }
 
 /**
@@ -443,7 +503,7 @@ im_draw_flood( VipsImage *image, int x, int y, VipsPel *ink, Rect *dout )
 	/* Flood to != ink.
 	 */
 	memcpy( flood->edge, ink, flood->tsize );
-	flood->equal = 0;
+	flood->equal = FALSE;
 
 	vips_flood_all( flood, x, y );
 
@@ -484,7 +544,7 @@ im_draw_flood_blob( VipsImage *image, int x, int y, VipsPel *ink, Rect *dout )
 	/* Edge is set by colour of start pixel.
 	 */
 	memcpy( flood->edge, VIPS_IMAGE_ADDR( image, x, y ), flood->tsize );
-	flood->equal = 1;
+	flood->equal = TRUE;
 
 	/* If edge == ink, we'll never stop :-( or rather, there's nothing to
 	 * do.
@@ -551,7 +611,7 @@ im_draw_flood_other( VipsImage *image,
 	/* Edge is set by colour of start pixel.
 	 */
 	memcpy( flood->edge, VIPS_IMAGE_ADDR( test, x, y ), flood->tsize );
-	flood->equal = 1;
+	flood->equal = TRUE;
 
 	vips_flood_all( flood, x, y );
 
