@@ -113,7 +113,7 @@ vips_draw_class_init( VipsDrawClass *class )
 	VIPS_ARG_BOXED( class, "ink", 2, 
 		_( "Ink" ), 
 		_( "Colour for pixels" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDraw, ink ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
@@ -130,8 +130,10 @@ void
 vips_draw_operation_init( void )
 {
 	extern GType vips_circle_get_type( void ); 
+	extern GType vips_flood_get_type( void ); 
 
 	vips_circle_get_type();
+	vips_flood_get_type();
 }
 
 /* Fill a scanline between points x1 and x2 inclusive. x1 < x2.

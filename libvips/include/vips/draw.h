@@ -45,6 +45,9 @@ int vips_circle1( VipsImage *image,
 	double ink, int cx, int cy, int radius, ... )
 	__attribute__((sentinel));
 
+int vips_flood( VipsImage *image, double *ink, int n, int x, int y, ... )
+	__attribute__((sentinel));
+
 
 
 

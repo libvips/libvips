@@ -3,6 +3,7 @@ noinst_LTLIBRARIES = libdraw.la
 libdraw_la_SOURCES = \
 	circle.c \
 	draw.c \
+	flood.c \
 	im_flood.c \
 	im_draw_circle.c \
 	im_draw_image.c \
