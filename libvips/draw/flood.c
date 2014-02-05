@@ -546,14 +546,16 @@ vips_floodv( VipsImage *image,
  * If @equal is set, it instead searches for pixels which are equal to the
  * start point and fills them with @ink.
  *
- * If @test is set, it will test pixels in @test and set pixels in @image. 
+ * Normally it will test and set pixels in @image. If @test is set, it will 
+ * test pixels in @test and set pixels in @image. This lets you search for
+ * continuous areas of pixels without changing an image. 
  *
- * @left, @top, @width, @height output the bounding box of the mofified
+ * @left, @top, @width, @height output the bounding box of the modified
  * pixels. 
  *
  * @ink is an array of double containing values to draw. 
  *
- * See also: vips_draw_line().
+ * See also: vips_flood1().
  *
  * Returns: 0 on success, or -1 on error.
  */

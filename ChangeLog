@@ -4,6 +4,7 @@
 - colourspace has a source_space option
 - operations can be tagged as "deprecated"
 - redo im_circle() as a class
+- better rounding in vips_flatten()
 
 22/1/14 started 7.38.3
 - undeprecate VIPS_MASK_IDEAL_HIGHPASS and friends, ruby-vips was using them,
