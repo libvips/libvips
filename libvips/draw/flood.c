@@ -374,6 +374,15 @@ vips_flood_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_flood_parent_class )->build( object ) )
 		return( -1 );
 
+	/* If @test and @image are different, we must be in !@equal mode, ie.
+	 * searching for pixels not like the start pixel.
+	 */
+
+	/* @test defaults to @image.
+	 */
+	if( !vips_object_argument_isset( object, "test" ) )
+		flood->test = draw->image; 
+
 	flood->tsize = VIPS_IMAGE_SIZEOF_PEL( flood->test );
 	flood->left = flood->x;
 	flood->top = flood->y;
@@ -384,11 +393,6 @@ vips_flood_build( VipsObject *object )
 
 	if( !(flood->edge = (VipsPel *) im_malloc( NULL, flood->tsize )) ) 
 		return( -1 );
-
-	/* @test defaults to @image.
-	 */
-	if( !vips_object_argument_isset( object, "test" ) )
-		flood->test = draw->image; 
 
 	if( vips_image_wio_input( flood->test ) ||
 		vips_check_coding_known( class->nickname, flood->test ) ||
