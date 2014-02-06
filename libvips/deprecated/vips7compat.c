@@ -4625,3 +4625,51 @@ im_draw_flood_other( IMAGE *image,
 
 	return( 0 ); 
 }
+
+int
+im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
+	int n, int *x1v, int *y1v, int *x2v, int *y2v )
+{
+	Rect mask_rect;
+	int i;
+
+	if( mask->Bands != 1 || mask->BandFmt != IM_BANDFMT_UCHAR ||
+		mask->Coding != IM_CODING_NONE ) {
+		im_error( "im_lineset", 
+			"%s", _( "mask image not 1 band 8 bit uncoded" ) );
+		return( -1 );
+	}
+	if( ink->Bands != in->Bands || ink->BandFmt != in->BandFmt ||
+		ink->Coding != in->Coding ) {
+		im_error( "im_lineset", 
+			"%s", _( "ink image does not match in image" ) );
+		return( -1 );
+	}
+	if( ink->Xsize != 1 || ink->Ysize != 1 ) {
+		im_error( "im_lineset", "%s", _( "ink image not 1x1 pixels" ) );
+		return( -1 );
+	}
+
+	/* Copy the image then fastline to it ... this will render to a "t"
+	 * usually.
+	 */
+	if( im_copy( in, out ) )
+		return( -1 );
+
+	mask_rect.left = mask->Xsize / 2;
+	mask_rect.top = mask->Ysize / 2;
+	mask_rect.width = mask->Xsize;
+	mask_rect.height = mask->Ysize;
+
+	if( im_incheck( ink ) ||
+		im_incheck( mask ) )
+		return( -1 );
+
+	for( i = 0; i < n; i++ ) {
+		if( im_fastlineuser( out, x1v[i], y1v[i], x2v[i], y2v[i], 
+			im_plotmask, ink->data, mask->data, &mask_rect ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}

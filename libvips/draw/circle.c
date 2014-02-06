@@ -234,7 +234,7 @@ vips_circlev( VipsImage *image,
  *
  * @ink is an array of double containing values to draw. 
  *
- * See also: vips_circle1(), vips_draw_line().
+ * See also: vips_circle1(), vips_line().
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -266,7 +266,7 @@ vips_circle( VipsImage *image,
  *
  * As vips_circle(), but just takes a single double for @ink. 
  *
- * See also: vips_circle(), vips_draw_line().
+ * See also: vips_circle().
  *
  * Returns: 0 on success, or -1 on error.
  */

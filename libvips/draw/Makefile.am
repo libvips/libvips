@@ -1,6 +1,8 @@
 noinst_LTLIBRARIES = libdraw.la
 
 libdraw_la_SOURCES = \
+	line.h \
+	line.c \
 	circle.c \
 	draw.c \
 	flood.c \
