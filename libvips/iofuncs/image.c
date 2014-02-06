@@ -2005,7 +2005,7 @@ vips_image_write_to_file( VipsImage *image, const char *filename )
  * A convenience function to unpack to a format that we can compute with. 
  * @out->Coding is always VIPS_CODING_NONE. 
  *
- * See also: vips_LabQ2LabS(), vips_rad2float(). 
+ * See also: vips_image_encode(), vips_LabQ2LabS(), vips_rad2float(). 
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -2018,6 +2018,38 @@ vips_image_decode( VipsImage *in, VipsImage **out )
 	} 
 	else if( in->Coding == VIPS_CODING_RAD ) {
 		if( vips_rad2float( in, out, NULL ) )
+			return( -1 );
+	}
+	else {
+		if( vips_copy( in, out, NULL ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * vips_image_encode:
+ * @in: image to encode
+ * @out: write to this image
+ * @coding: coding to apply
+ *
+ * A convenience function to pack to a coding. The inverse of
+ * vips_image_decode().
+ *
+ * See also: vips_image_decode().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+vips_image_encode( VipsImage *in, VipsImage **out, VipsCoding coding )
+{
+	if( coding == VIPS_CODING_LABQ ) {
+		if( vips_LabS2LabQ( in, out, NULL ) )
+			return( -1 );
+	} 
+	else if( coding == VIPS_CODING_RAD ) {
+		if( vips_float2rad( in, out, NULL ) )
 			return( -1 );
 	}
 	else {

@@ -1,3 +1,8 @@
+- ink to vec etc. should work for complex .. output or accept a double-length 
+  vector
+
+- test circle / flood compat wrappers
+
 
 - inplace
 

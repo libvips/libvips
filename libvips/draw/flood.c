@@ -69,6 +69,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pdraw.h"
 
@@ -355,7 +356,6 @@ vips_flood_dispose( GObject *gobject )
 {
 	VipsFlood *flood = (VipsFlood *) gobject;
 
-	VIPS_FREE( flood->edge );
 	VIPS_FREEF( buffer_free, flood->in );
 	VIPS_FREEF( buffer_free, flood->out );
 
@@ -365,7 +365,7 @@ vips_flood_dispose( GObject *gobject )
 static int
 vips_flood_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_CLASS( object ); 
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsDraw *draw = VIPS_DRAW( object );
 	VipsFlood *flood = (VipsFlood *) object;
 
@@ -374,14 +374,10 @@ vips_flood_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_flood_parent_class )->build( object ) )
 		return( -1 );
 
-	/* If @test and @image are different, we must be in !@equal mode, ie.
-	 * searching for pixels not like the start pixel.
-	 */
-
 	/* @test defaults to @image.
 	 */
 	if( !vips_object_argument_isset( object, "test" ) )
-		flood->test = draw->image; 
+		g_object_set( object, "test", draw->image, NULL ); 
 
 	flood->tsize = VIPS_IMAGE_SIZEOF_PEL( flood->test );
 	flood->left = flood->x;
@@ -391,42 +387,45 @@ vips_flood_build( VipsObject *object )
 	flood->in = buffer_build();
 	flood->out = buffer_build();
 
-	if( !(flood->edge = (VipsPel *) im_malloc( NULL, flood->tsize )) ) 
-		return( -1 );
-
 	if( vips_image_wio_input( flood->test ) ||
 		vips_check_coding_known( class->nickname, flood->test ) ||
-		vips_check_uncoded( class->nickname, flood->test ) ||
-		vips_check_mono( class->nickname, flood->test ) ||
-		vips_check_format( class->nickname, flood->test, 
-			VIPS_FORMAT_INT ) ||
 		vips_check_size_same( class->nickname, 
 			flood->test, draw->image ) )
 		return( -1 );
 
-	/* Flood to ink.
-	 */
 	if( flood->equal ) {
-		/* Edge is set by colour of start pixel.
+		/* Edge is set by colour of the start pixel in @test.
 		 */
+		if( !(flood->edge = 
+			(VipsPel *) im_malloc( object, flood->tsize )) ) 
+			return( -1 );
 		memcpy( flood->edge, 
 			VIPS_IMAGE_ADDR( flood->test, flood->x, flood->y ), 
 			flood->tsize );
 
-		/* If edge == ink, we'll never stop :-( or rather, 
-		 * there's nothing to do.
+		/* If @test and @image are the same and edge == ink, we'll 
+		 * never stop :-( or rather, there's nothing to do.
 		 */
-		for( j = 0; j < flood->tsize; j++ ) 
-			if( flood->edge[j] != 
-				VIPS_DRAW( flood )->pixel_ink[j] ) 
-				break;
+		if( flood->test == draw->image ) { 
+			for( j = 0; j < flood->tsize; j++ ) 
+				if( flood->edge[j] != 
+					VIPS_DRAW( flood )->pixel_ink[j] ) 
+					break;
 
-		if( j != flood->tsize )
+			if( j != flood->tsize )
+				vips_flood_all( flood );
+		}
+		else
 			vips_flood_all( flood );
 	}
 	else {
-		memcpy( flood->edge, VIPS_DRAW( flood )->pixel_ink, 
-			flood->tsize );
+		/* Flood to ink colour. We need to be able to compare @test to
+		 * @ink. 
+		 */
+		if( !(flood->edge = vips__vector_to_ink( class->nickname, 
+			flood->test, draw->ink->data, draw->ink->n )) )
+			return( -1 );
+
 		vips_flood_all( flood );
 	}
 
@@ -545,14 +544,14 @@ vips_floodv( VipsImage *image,
  *
  * Flood-fill @image with @ink, starting at position @x, @y. The filled area is
  * bounded by pixels that are equal to the ink colour, in other words, it
- * searches for pixels enclosed by a line of @ink.
+ * searches for pixels enclosed by an edge of @ink.
  *
  * If @equal is set, it instead searches for pixels which are equal to the
  * start point and fills them with @ink.
  *
  * Normally it will test and set pixels in @image. If @test is set, it will 
- * test pixels in @test and set pixels in @image. This lets you search for
- * continuous areas of pixels without changing an image. 
+ * test pixels in @test and set pixels in @image. This lets you search an
+ * image (@test) for continuous areas of pixels without modifying it. 
  *
  * @left, @top, @width, @height output the bounding box of the modified
  * pixels. 

@@ -4521,3 +4521,107 @@ im_rank_raw( IMAGE *in, IMAGE *out, int width, int height, int index )
 	im_error( "im_rank_raw", "no compat function" );
 	return( -1 );
 }
+
+int
+im_draw_circle( VipsImage *image, 
+	int x, int y, int radius, gboolean fill, VipsPel *ink )
+{
+	double *vec;
+	int n;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_circle", image, ink, &n )) )
+		return( -1 ); 
+
+	return( vips_circle( image, vec, n, x, y, radius,
+		"fill", fill,
+		NULL ) ); 
+}
+
+int
+im_draw_flood( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
+{
+	double *vec;
+	int n;
+	int left;
+	int top;
+	int width;
+	int height;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_flood", image, ink, &n )) )
+		return( -1 ); 
+
+	if( vips_flood( image, vec, n, x, y,
+		"left", &left,
+		"top", &top,
+		"width", &width,
+		"height", &height,
+		NULL ) )
+		return( -1 ); 
+
+	dout->left = left; 
+	dout->top = top; 
+	dout->width = width; 
+	dout->height = height; 
+
+	return( 0 ); 
+}
+
+int
+im_draw_flood_blob( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
+{
+	double *vec;
+	int n;
+	int left;
+	int top;
+	int width;
+	int height;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_flood", image, ink, &n )) )
+		return( -1 ); 
+
+	if( vips_flood( image, vec, n, x, y,
+		"equal", TRUE,
+		"left", &left,
+		"top", &top,
+		"width", &width,
+		"height", &height,
+		NULL ) )
+		return( -1 ); 
+
+	dout->left = left; 
+	dout->top = top; 
+	dout->width = width; 
+	dout->height = height; 
+
+	return( 0 ); 
+}
+
+int
+im_draw_flood_other( IMAGE *image, 
+	IMAGE *test, int x, int y, int serial, Rect *dout )
+{
+	double vec[1];
+	int left;
+	int top;
+	int width;
+	int height;
+
+	vec[0] = serial; 
+
+	if( vips_flood( image, vec, 1, x, y,
+		"test", test,
+		"equal", TRUE,
+		"left", &left,
+		"top", &top,
+		"width", &width,
+		"height", &height,
+		NULL ) )
+		return( -1 ); 
+
+	dout->left = left; 
+	dout->top = top; 
+	dout->width = width; 
+	dout->height = height; 
+
+	return( 0 ); 
+}
