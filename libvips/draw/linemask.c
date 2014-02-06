@@ -108,17 +108,16 @@ vips_line_mask_class_init( VipsLineClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "line_mask";
-	vobject_class->description = _( "draw a line_mask on an image" );
+	vobject_class->description = _( "draw a mask along a line" );
 	vobject_class->build = vips_line_mask_build;
 
 	class->plot_point = vips_line_mask_plot_point; 
 
-	VIPS_ARG_IMAGE( class, "y2", 6, 
-		_( "y2" ), 
-		_( "End of line" ),
+	VIPS_ARG_IMAGE( class, "mask", 6, 
+		_( "Mask" ), 
+		_( "Mask image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsLine, y2 ),
-		-1000000000, 1000000000, 0 );
+		G_STRUCT_OFFSET( VipsLineMask, mask ) ); 
 
 }
 
