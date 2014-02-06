@@ -1,6 +1,8 @@
 - ink to vec etc. should work for complex .. output or accept a double-length 
   vector
 
+  needs to work for eg. vips_linear() as well
+
 - test circle / flood compat wrappers
 
 

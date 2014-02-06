@@ -214,10 +214,15 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 VipsPel *
 vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 {
+	/* Run out pipeline relative to this.
+	 */
+	VipsImage *context = vips_image_new(); 
+
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( im ), 6 );
+		vips_object_local_array( VIPS_OBJECT( context ), 6 );
 
 	double *ones;
+	VipsPel *result;
 	int i;
 
 #ifdef VIPS_DEBUG
@@ -226,14 +231,12 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 
 	/* The image may be coded .. unpack.
 	 */
-	if( vips_image_decode( im, &t[0] ) )
+	if( vips_image_decode( im, &t[0] ) ||
+		vips_check_vector( domain, n, t[0] ) ) {
+		g_object_unref( context );
 		return( NULL );
-	if( vips_check_vector( domain, n, t[0] ) )
-		return( NULL );
+	}
 
-	/* This looks a bit dodgy, but the pipeline we are creating does not
-	 * depend upon im, so it's OK to make t depend on im.
-	 */
 	ones = VIPS_ARRAY( im, n, double );
 	for( i = 0; i < n; i++ )
 		ones[i] = 1.0;
@@ -242,26 +245,50 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 	 */
 	if( vips_black( &t[1], 1, 1, "bands", t[0]->Bands, NULL ) ||
 		vips_linear( t[1], &t[2], ones, vec, n, NULL ) || 
-		vips_cast( t[2], &t[3], t[0]->BandFmt, NULL ) )
+		vips_cast( t[2], &t[3], t[0]->BandFmt, NULL ) ) {
+		g_object_unref( context );
 		return( NULL );
+	}
 
 	/* And now recode the vec to match the original im.
 	 */
 	if( vips_image_encode( t[3], &t[4], im->Coding ) || 
 		!(t[5] = vips_image_new_buffer()) ||
-		vips_image_write( t[4], t[5] ) )
-		return( NULL ); 
+		vips_image_write( t[4], t[5] ) ) {
+		g_object_unref( context );
+		return( NULL );
+	}
+
+	if( !(result = 
+		VIPS_ARRAY( im, VIPS_IMAGE_SIZEOF_PEL( t[5] ), VipsPel )) ) {
+		g_object_unref( context );
+		return( NULL );
+	}
+
+	g_assert( VIPS_IMAGE_SIZEOF_PEL( t[5] ) == 
+		VIPS_IMAGE_SIZEOF_PEL( im ) ); 
+
+	memcpy( result, t[5]->data, VIPS_IMAGE_SIZEOF_PEL( im ) ); 
+
+	g_object_unref( context );
 
 #ifdef VIPS_DEBUG
 {
-	VipsPel *p = (VipsPel *) (t[5]->data);
+	int i;
 
-	printf( "vips__vector_to_ink: ink = %p (%d %d %d)\n",
-		p, p[0], p[1], p[2] ); 
+	printf( "vips__vector_to_ink:\n" );
+	printf( "\tvec = " ); 
+	for( i = 0; i < n; i++ )
+		printf( "%d ", vec[i] );
+	printf( "\n" ); 
+	printf( "\tink = " ); 
+	for( i = 0; i < VIPS_IMAGE_SIZEOF_PEL( im ); i++ )
+		printf( "%d ", result[i] );
+	printf( "\n" ); 
 }
 #endif /*VIPS_DEBUG*/
 
-	return( (VipsPel *) t[5]->data );
+	return( result ); 
 }
 
 /* The inverse: take ink to a vec of double. Used in the vips7 compat

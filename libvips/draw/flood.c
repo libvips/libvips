@@ -429,8 +429,12 @@ vips_flood_build( VipsObject *object )
 		vips_flood_all( flood );
 	}
 
-	flood->width = flood->right - flood->left + 1;
-	flood->height = flood->bottom - flood->top + 1;
+	g_object_set( object, 
+		"left", flood->left, 
+		"top", flood->top, 
+		"width", flood->right - flood->left + 1,
+		"height", flood->bottom - flood->top + 1,
+		NULL ); 
 
 	return( 0 );
 }
