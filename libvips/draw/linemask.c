@@ -2,27 +2,26 @@
  *
  * Copyright: J. Cupitt
  * Written: 15/06/1992
- * Modified : 22/10/92 - clipping constraints changed
  * 22/7/93 JC
  *	- im_incheck() added
  * 16/8/94 JC
  *	- im_incheck() changed to im_makerw()
+ * 24/10/03 JC
+ *	- now blends with 0-255 mask
  * 5/12/06
  * 	- im_invalidate() after paint
- * 1/3/10
- * 	- oops, lineset needs to ask for WIO of mask and ink
  * 6/3/10
  * 	- don't im_invalidate() after paint, this now needs to be at a higher
  * 	  level
- * 27/9/10
+ * 28/9/10
  * 	- gtk-doc
- * 	- use draw.c base class
- * 	- do pointwise clipping
- * 	- rename as im_draw_line() for consistency
- * 	- cleanups!
+ * 	- renamed as im_draw_mask()
+ * 	- use Draw base class
  * 6/2/14
- * 	- redo as a class
+ * 	- now a subclass of VipsLine
  */
+
+
 
 /*
 
@@ -67,6 +66,8 @@
 typedef struct _VipsLineMask {
 	VipsLine parent_object;
 
+	VipsImage *mask;
+
 } VipsLineMask;
 
 typedef VipsLineClass VipsLineMaskClass;
@@ -76,11 +77,19 @@ G_DEFINE_TYPE( VipsLineMask, vips_line_mask, VIPS_TYPE_LINE );
 static int
 vips_line_mask_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsDraw *draw = VIPS_DRAW( object );
 	VipsLine *line = (VipsLine *) object;
 
 	if( VIPS_OBJECT_CLASS( vips_line_mask_parent_class )->build( object ) )
 		return( -1 );
+
+	if( vips_check_coding_noneorlabq( class->nickname, draw->image ) ||
+		im_incheck( mask_im ) ||
+		vips_check_mono( class->nickname, mask_im ) ||
+		vips_check_uncoded( class->nickname, mask_im ) ||
+		vips_check_format( class->nickname, mask_im, VIPS_FORMAT_UCHAR ) ||
+		return( NULL );
 
 	return( 0 );
 }
@@ -113,7 +122,7 @@ vips_line_mask_class_init( VipsLineClass *class )
 
 	class->plot_point = vips_line_mask_plot_point; 
 
-	VIPS_ARG_IMAGE( class, "mask", 6, 
+	VIPS_ARG_IMAGE( class, "mask", 7, 
 		_( "Mask" ), 
 		_( "Mask image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
@@ -128,14 +137,15 @@ vips_line_mask_init( VipsLine *line )
 
 static int
 vips_line_maskv( VipsImage *image, 
-	double *ink, int n, int x1, int y1, int x2, int y2, va_list ap )
+	double *ink, int n, int x1, int y1, int x2, int y2, VipsImage *mask,
+	va_list ap )
 {
 	VipsArea *area_ink;
 	int result;
 
 	area_ink = (VipsArea *) vips_array_double_new( ink, n );
 	result = vips_call_split( "line_mask", ap, 
-		image, area_ink, x1, y1, x2, y2 );
+		image, area_ink, x1, y1, x2, y2, mask );
 	vips_area_unref( area_ink );
 
 	return( result );
@@ -145,10 +155,14 @@ vips_line_maskv( VipsImage *image,
  * vips_line_mask:
  * @image: image to draw on
  * @ink: (array length=n): value to draw
- * @n length of ink array
+ * @n: length of ink array
+ * @x1: start of line
+ * @y1: start of line
+ * @x2: end of line
+ * @y2: end of line
+ * @mask: mask to draw along line
  *
- * Draws a 1-pixel-wide line on an image. Subclass and override ::plot to draw
- * lines made of other objects. See vips_draw_mask(). 
+ * Draws a line on an image. 
  *
  * @ink is an array of double containing values to draw. 
  *
@@ -158,13 +172,14 @@ vips_line_maskv( VipsImage *image,
  */
 int
 vips_line_mask( VipsImage *image, 
-	double *ink, int n, int x1, int y1, int x2, int y2, ... )
+	double *ink, int n, int x1, int y1, int x2, int y2, 
+	VipsImage *mask, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, y2 );
-	result = vips_line_maskv( image, ink, n, x1, y1, x2, y2, ap );
+	va_start( ap, mask );
+	result = vips_line_maskv( image, ink, n, x1, y1, x2, y2, mask, ap );
 	va_end( ap );
 
 	return( result );
@@ -174,6 +189,11 @@ vips_line_mask( VipsImage *image,
  * vips_line_mask1:
  * @image: image to draw on
  * @ink: value to draw
+ * @x1: start of line
+ * @y1: start of line
+ * @x2: end of line
+ * @y2: end of line
+ * @mask: mask to draw along line
  *
  * As vips_line_mask(), but just takes a single double for @ink. 
  *
@@ -182,7 +202,8 @@ vips_line_mask( VipsImage *image,
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_line_mask1( VipsImage *image, double ink, int x1, int y1, int x2, int y2, ... )
+vips_line_mask1( VipsImage *image, 
+	double ink, int x1, int y1, int x2, int y2, VipsImage *mask, ... )
 {
 	double array_ink[1];
 	va_list ap;
@@ -190,8 +211,9 @@ vips_line_mask1( VipsImage *image, double ink, int x1, int y1, int x2, int y2, .
 
 	array_ink[0] = ink; 
 
-	va_start( ap, y2 );
-	result = vips_line_maskv( image, array_ink, 1, x1, y1, x2, y2, ap );
+	va_start( ap, mask );
+	result = vips_line_maskv( image, 
+		array_ink, 1, x1, y1, x2, y2, mask, ap );
 	va_end( ap );
 
 	return( result );

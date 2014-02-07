@@ -220,7 +220,7 @@ vips_circlev( VipsImage *image,
  * vips_circle:
  * @image: image to draw on
  * @ink: (array length=n): value to draw
- * @n length of ink array
+ * @n: length of ink array
  * @cx: centre of circle
  * @cy: centre of circle
  * @radius: circle radius
