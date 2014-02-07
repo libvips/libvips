@@ -129,10 +129,12 @@ vips_draw_init( VipsDraw *draw )
 void
 vips_draw_operation_init( void )
 {
+	extern GType vips_paintmask_get_type( void ); 
 	extern GType vips_line_get_type( void ); 
 	extern GType vips_circle_get_type( void ); 
 	extern GType vips_flood_get_type( void ); 
 
+	vips_paintmask_get_type();
 	vips_line_get_type();
 	vips_circle_get_type();
 	vips_flood_get_type();

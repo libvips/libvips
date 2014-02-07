@@ -357,7 +357,7 @@ vips_line( VipsImage *image,
  *
  * As vips_line(), but just takes a single double for @ink. 
  *
- * See also: vips_line(), vips_circle().
+ * See also: vips_line().
  *
  * Returns: 0 on success, or -1 on error.
  */

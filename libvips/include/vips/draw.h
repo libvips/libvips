@@ -38,6 +38,13 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+int vips_paintmask( VipsImage *image, 
+	double *ink, int n, VipsImage *mask, int x, int y, ... )
+	__attribute__((sentinel));
+int vips_paintmask1( VipsImage *image, 
+	double ink, VipsImage *mask, int x, int y, ... )
+	__attribute__((sentinel));
+
 int vips_line( VipsImage *image, 
 	double *ink, int n, int x1, int y1, int x2, int y2, ... )
 	__attribute__((sentinel));

@@ -6,6 +6,7 @@ libdraw_la_SOURCES = \
 	circle.c \
 	draw.c \
 	flood.c \
+	paintmask.c \
 	im_draw_image.c \
 	im_draw_line.c \
 	im_draw_mask.c \
