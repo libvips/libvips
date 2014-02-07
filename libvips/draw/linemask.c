@@ -75,40 +75,17 @@ typedef VipsLineClass VipsLineMaskClass;
 G_DEFINE_TYPE( VipsLineMask, vips_line_mask, VIPS_TYPE_LINE );
 
 static int
-vips_line_mask_build( VipsObject *object )
-{
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsDraw *draw = VIPS_DRAW( object );
-	VipsLine *line = (VipsLine *) object;
-
-	if( VIPS_OBJECT_CLASS( vips_line_mask_parent_class )->build( object ) )
-		return( -1 );
-
-	if( vips_check_coding_noneorlabq( class->nickname, draw->image ) ||
-		im_incheck( mask_im ) ||
-		vips_check_mono( class->nickname, mask_im ) ||
-		vips_check_uncoded( class->nickname, mask_im ) ||
-		vips_check_format( class->nickname, mask_im, VIPS_FORMAT_UCHAR ) ||
-		return( NULL );
-
-	return( 0 );
-}
-
-static int
 vips_line_mask_plot_point( VipsLine *line, int x, int y ) 
 {
 	VipsDraw *draw = (VipsDraw *) line;
+	VipsLineMask *line_mask = (VipsLineMask *) line;
 
-	if( draw->noclip )
-		vips__draw_pel( draw, VIPS_IMAGE_ADDR( draw->image, x, y ) );
-	else
-		vips__draw_pel_clip( draw, x, y );
-
-	return( 0 );
+	return( vips_paintmask( draw->image, 
+		draw->ink->data, draw->ink->n, line_mask->mask, x, y, NULL ) ); 
 }
 
 static void
-vips_line_mask_class_init( VipsLineClass *class )
+vips_line_mask_class_init( VipsLineMaskClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -118,7 +95,6 @@ vips_line_mask_class_init( VipsLineClass *class )
 
 	vobject_class->nickname = "line_mask";
 	vobject_class->description = _( "draw a mask along a line" );
-	vobject_class->build = vips_line_mask_build;
 
 	class->plot_point = vips_line_mask_plot_point; 
 
@@ -131,7 +107,7 @@ vips_line_mask_class_init( VipsLineClass *class )
 }
 
 static void
-vips_line_mask_init( VipsLine *line )
+vips_line_mask_init( VipsLineMask *line_mask )
 {
 }
 

@@ -7,8 +7,8 @@ libdraw_la_SOURCES = \
 	draw.c \
 	flood.c \
 	paintmask.c \
+	linemask.c \
 	im_draw_image.c \
-	im_draw_line.c \
 	im_draw_point.c \
 	im_draw_rect.c \
 	im_draw_smudge.c \

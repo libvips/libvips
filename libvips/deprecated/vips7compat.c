@@ -4537,6 +4537,29 @@ im_draw_circle( VipsImage *image,
 		NULL ) ); 
 }
 
+int 
+im_draw_line( VipsImage *image, int x1, int y1, int x2, int y2, VipsPel *ink )
+{
+	double *vec;
+	int n;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_line", image, ink, &n )) )
+		return( -1 ); 
+
+	return( vips_line( image, vec, n, x1, y1, x2, y2, NULL ) ); 
+}
+
+int 
+im_draw_line_user( VipsImage *image, 
+	int x1, int y1, int x2, int y2, 
+	VipsPlotFn plot, void *a, void *b, void *c )
+{
+	im_error( "im_draw_line_user", 
+		"not supported ... use a VipsLine subclass instead, "
+		"or vips_line_mask()" ); 
+	return( -1 ); 
+}
+
 int
 im_draw_mask( VipsImage *image, VipsImage *mask_im, int x, int y, VipsPel *ink )
 {
