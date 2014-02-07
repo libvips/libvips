@@ -4538,6 +4538,18 @@ im_draw_circle( VipsImage *image,
 }
 
 int
+im_draw_mask( VipsImage *image, VipsImage *mask_im, int x, int y, VipsPel *ink )
+{
+	double *vec;
+	int n;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_mask", image, ink, &n )) )
+		return( -1 ); 
+
+	return( vips_paintmask( image, vec, n, mask_im, x, y, NULL ) ); 
+}
+
+int
 im_draw_flood( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 {
 	double *vec;

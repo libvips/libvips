@@ -71,9 +71,6 @@ int im_draw_rect( VipsImage *image,
 	int left, int top, int width, int height, int fill, VipsPel *ink );
 int im_draw_image( VipsImage *image, VipsImage *sub, int x, int y );
 
-int im_draw_mask( VipsImage *image, 
-	VipsImage *mask_im, int x, int y, VipsPel *ink );
-
 int im_draw_point( VipsImage *image, int x, int y, VipsPel *ink );
 int im_read_point( VipsImage *image, int x, int y, VipsPel *ink );
 

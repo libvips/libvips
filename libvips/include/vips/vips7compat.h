@@ -1006,6 +1006,9 @@ int im_draw_circle( VipsImage *image,
 
 typedef int (*VipsPlotFn)( VipsImage *, int, int, void *, void *, void * ); 
 
+int im_draw_mask( VipsImage *image, 
+	VipsImage *mask_im, int x, int y, VipsPel *ink );
+
 int im_draw_line_user( VipsImage *image, 
 	int x1, int y1, int x2, int y2, 
 	VipsPlotFn plot, void *a, void *b, void *c );

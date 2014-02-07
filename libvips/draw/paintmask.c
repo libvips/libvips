@@ -312,14 +312,14 @@ vips_paintmask_class_init( VipsPaintmaskClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsPaintmask, mask ) ); 
 
-	VIPS_ARG_INT( class, "x", 3, 
+	VIPS_ARG_INT( class, "x", 6, 
 		_( "x" ), 
 		_( "Draw mask here" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsPaintmask, x ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "y", 4, 
+	VIPS_ARG_INT( class, "y", 7, 
 		_( "y" ), 
 		_( "Draw mask here" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,

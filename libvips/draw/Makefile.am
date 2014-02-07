@@ -9,7 +9,6 @@ libdraw_la_SOURCES = \
 	paintmask.c \
 	im_draw_image.c \
 	im_draw_line.c \
-	im_draw_mask.c \
 	im_draw_point.c \
 	im_draw_rect.c \
 	im_draw_smudge.c \
