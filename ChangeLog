@@ -6,6 +6,7 @@
 - redo im_draw_circle(), im_draw_flood(), im_draw_line(), im_draw_mask() as 
   classes
 - better rounding in vips_flatten()
+- VipsStatistic operations are sequential
 
 22/1/14 started 7.38.3
 - undeprecate VIPS_MASK_IDEAL_HIGHPASS and friends, ruby-vips was using them,
