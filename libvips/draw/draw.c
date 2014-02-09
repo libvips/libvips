@@ -83,9 +83,10 @@ vips_draw_build( VipsObject *object )
 	draw->psize = VIPS_IMAGE_SIZEOF_PEL( draw->image );
 	draw->noclip = FALSE;
 
-	if( !(draw->pixel_ink = vips__vector_to_ink( 
-		class->nickname, draw->image,
-		draw->ink->data, draw->ink->n )) )
+	if( draw->ink &&
+		!(draw->pixel_ink = vips__vector_to_ink( 
+			class->nickname, draw->image,
+			draw->ink->data, draw->ink->n )) )
 		return( -1 );
 
 	return( 0 );
@@ -132,12 +133,14 @@ vips_draw_operation_init( void )
 	extern GType vips_paintmask_get_type( void ); 
 	extern GType vips_line_get_type( void ); 
 	extern GType vips_line_mask_get_type( void ); 
+	extern GType vips_line_user_get_type( void ); 
 	extern GType vips_circle_get_type( void ); 
 	extern GType vips_flood_get_type( void ); 
 
 	vips_paintmask_get_type();
 	vips_line_get_type();
 	vips_line_mask_get_type();
+	vips_line_user_get_type();
 	vips_circle_get_type();
 	vips_flood_get_type();
 }

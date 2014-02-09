@@ -4554,10 +4554,8 @@ im_draw_line_user( VipsImage *image,
 	int x1, int y1, int x2, int y2, 
 	VipsPlotFn plot, void *a, void *b, void *c )
 {
-	im_error( "im_draw_line_user", 
-		"not supported ... use a VipsLine subclass instead, "
-		"or vips_line_mask()" ); 
-	return( -1 ); 
+	return( vips_line_user( image, x1, y1, x2, y2, 
+		plot, a, b, c, NULL ) ); 
 }
 
 int

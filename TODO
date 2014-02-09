@@ -1,3 +1,13 @@
+- we will need a fastlineuser, or have to modify nip2
+
+- try:
+
+	im = VIPS::Image.new(ARGV[0])
+	mask = im.less(240)
+	columns, rows = mask.project
+
+  with wtc.jpg, segv if libvips is compiled with -O, OK without
+
 - ink to vec etc. should work for complex .. output or accept a double-length 
   vector
 
