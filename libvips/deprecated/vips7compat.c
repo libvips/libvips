@@ -4571,6 +4571,11 @@ im_draw_mask( VipsImage *image, VipsImage *mask_im, int x, int y, VipsPel *ink )
 }
 
 int
+im_draw_image( VipsImage *image, VipsImage *sub, int x, int y )
+{
+	return( vips_paintimage( image, sub, x, y, NULL ) ); 
+}
+int
 im_draw_flood( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 {
 	double *vec;

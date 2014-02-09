@@ -3,8 +3,8 @@
 - background render thread cleans up and quits neatly
 - colourspace has a source_space option
 - operations can be tagged as "deprecated"
-- redo im_draw_circle(), im_draw_flood(), im_draw_line(), im_draw_mask() as 
-  classes
+- redo im_draw_circle(), im_draw_flood(), im_draw_line(), im_draw_mask(),
+  im_draw_image() as classes
 - better rounding in vips_flatten()
 - VipsStatistic operations are sequential
 

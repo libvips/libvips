@@ -1,4 +1,6 @@
-- we will need a fastlineuser, or have to modify nip2
+
+
+
 
 - try:
 
@@ -12,9 +14,6 @@
   vector
 
   needs to work for eg. vips_linear() as well
-
-- test circle / flood compat wrappers
-
 
 - inplace
 
