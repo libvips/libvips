@@ -1,4 +1,4 @@
-/* line draw class
+/* draw_line draw class
  */
 
 /*
@@ -28,29 +28,29 @@
 
  */
 
-#ifndef VIPS_LINE_H
-#define VIPS_LINE_H
+#ifndef VIPS_DRAW_LINE_H
+#define VIPS_DRAW_LINE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-#define VIPS_TYPE_LINE (vips_line_get_type())
-#define VIPS_LINE( obj ) \
+#define VIPS_TYPE_DRAW_LINE (vips_draw_line_get_type())
+#define VIPS_DRAW_LINE( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-		VIPS_TYPE_LINE, VipsLine ))
-#define VIPS_LINE_CLASS( klass ) \
+		VIPS_TYPE_DRAW_LINE, VipsDrawLine ))
+#define VIPS_DRAW_LINE_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-		VIPS_TYPE_LINE, VipsLineClass))
-#define VIPS_IS_LINE( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_LINE ))
-#define VIPS_IS_LINE_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_LINE ))
-#define VIPS_LINE_GET_CLASS( obj ) \
+		VIPS_TYPE_DRAW_LINE, VipsDrawLineClass))
+#define VIPS_IS_DRAW_LINE( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_DRAW_LINE ))
+#define VIPS_IS_DRAW_LINE_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_DRAW_LINE ))
+#define VIPS_DRAW_LINE_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-		VIPS_TYPE_LINE, VipsLineClass ))
+		VIPS_TYPE_DRAW_LINE, VipsDrawLineClass ))
 
-typedef struct _VipsLine {
+typedef struct _VipsDrawLine {
 	VipsDraw parent_object;
 
 	int x1;
@@ -61,17 +61,17 @@ typedef struct _VipsLine {
 	int dx;
 	int dy;
 
-} VipsLine;
+} VipsDrawLine;
 
-typedef struct _VipsLineClass {
+typedef struct _VipsDrawLineClass {
 	VipsDrawClass parent_class;
 
-	int (*plot_point)( VipsLine *, int x, int y ); 
-} VipsLineClass; 
+	int (*plot_point)( VipsDrawLine *, int x, int y ); 
+} VipsDrawLineClass; 
 
-typedef int (*VipsLinePlotPoint)( VipsLine *line, int x, int y ); 
+typedef int (*VipsDrawLinePlotPoint)( VipsDrawLine *draw_line, int x, int y ); 
 
-GType vips_line_get_type( void );
+GType vips_draw_line_get_type( void );
 
 #ifdef __cplusplus
 }

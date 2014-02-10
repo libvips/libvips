@@ -130,23 +130,23 @@ vips_draw_init( VipsDraw *draw )
 void
 vips_draw_operation_init( void )
 {
-	extern GType vips_paintrect_get_type( void ); 
-	extern GType vips_paintimage_get_type( void ); 
-	extern GType vips_paintmask_get_type( void ); 
-	extern GType vips_line_get_type( void ); 
-	extern GType vips_line_mask_get_type( void ); 
-	extern GType vips_line_user_get_type( void ); 
-	extern GType vips_circle_get_type( void ); 
-	extern GType vips_flood_get_type( void ); 
+	extern GType vips_draw_rect_get_type( void ); 
+	extern GType vips_draw_image_get_type( void ); 
+	extern GType vips_draw_mask_get_type( void ); 
+	extern GType vips_draw_line_get_type( void ); 
+	extern GType vips_draw_line_mask_get_type( void ); 
+	extern GType vips_draw_line_user_get_type( void ); 
+	extern GType vips_draw_circle_get_type( void ); 
+	extern GType vips_draw_flood_get_type( void ); 
 
-	vips_paintrect_get_type();
-	vips_paintimage_get_type();
-	vips_paintmask_get_type();
-	vips_line_get_type();
-	vips_line_mask_get_type();
-	vips_line_user_get_type();
-	vips_circle_get_type();
-	vips_flood_get_type();
+	vips_draw_rect_get_type();
+	vips_draw_image_get_type();
+	vips_draw_mask_get_type();
+	vips_draw_line_get_type();
+	vips_draw_line_mask_get_type();
+	vips_draw_line_user_get_type();
+	vips_draw_circle_get_type();
+	vips_draw_flood_get_type();
 }
 
 /* Fill a scanline between points x1 and x2 inclusive. x1 < x2.

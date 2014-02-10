@@ -25,7 +25,7 @@
  * 	- rename to im_draw_image()
  * 	- gtk-doc
  * 9/2/14
- * 	- redo as a class, based on paintimage
+ * 	- redo as a class, based on draw_image
  */
 
 /*
@@ -69,7 +69,7 @@
 
 #include "pdraw.h"
 
-typedef struct _VipsPaintimage {
+typedef struct _VipsDrawImage {
 	VipsDraw parent_object;
 
 	/* Parameters.
@@ -78,41 +78,41 @@ typedef struct _VipsPaintimage {
 	int x;
 	int y;
 
-} VipsPaintimage;
+} VipsDrawImage;
 
-typedef struct _VipsPaintimageClass {
+typedef struct _VipsDrawImageClass {
 	VipsDrawClass parent_class;
 
-} VipsPaintimageClass; 
+} VipsDrawImageClass; 
 
-G_DEFINE_TYPE( VipsPaintimage, vips_paintimage, VIPS_TYPE_DRAW );
+G_DEFINE_TYPE( VipsDrawImage, vips_draw_image, VIPS_TYPE_DRAW );
 
 static int
-vips_paintimage_build( VipsObject *object )
+vips_draw_image_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsDraw *draw = VIPS_DRAW( object );
-	VipsPaintimage *paintimage = (VipsPaintimage *) object;
+	VipsDrawImage *image = (VipsDrawImage *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
 
 	VipsImage *im;
-	VipsRect image;
-	VipsRect sub; 
-	VipsRect clip;
+	VipsRect image_rect;
+	VipsRect sub_rect; 
+	VipsRect clip_rect;
 
-	if( VIPS_OBJECT_CLASS( vips_paintimage_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_draw_image_parent_class )->build( object ) )
 		return( -1 );
 
 	if( vips_check_coding_known( class->nickname, draw->image ) ||
 		vips_check_coding_same( class->nickname, 
-			draw->image, paintimage->sub ) ||
+			draw->image, image->sub ) ||
 		vips_check_bands_1orn_unary( class->nickname, 
-			paintimage->sub, draw->image->Bands ) )
+			image->sub, draw->image->Bands ) )
 		return( -1 );
 
 	/* Cast sub to match main in bands and format.
 	 */
-	im = paintimage->sub;
+	im = image->sub;
 	if( im->Coding == VIPS_CODING_NONE ) {
 		if( vips__bandup( class->nickname, 
 			im, &t[0], draw->image->Bands ) ||
@@ -124,17 +124,17 @@ vips_paintimage_build( VipsObject *object )
 
 	/* Make rects for main and sub and clip.
 	 */
-	image.left = 0;
-	image.top = 0;
-	image.width = draw->image->Xsize;
-	image.height = draw->image->Ysize;
-	sub.left = paintimage->x;
-	sub.top = paintimage->y;
-	sub.width = im->Xsize;
-	sub.height = im->Ysize;
-	vips_rect_intersectrect( &image, &sub, &clip );
+	image_rect.left = 0;
+	image_rect.top = 0;
+	image_rect.width = draw->image->Xsize;
+	image_rect.height = draw->image->Ysize;
+	sub_rect.left = image->x;
+	sub_rect.top = image->y;
+	sub_rect.width = im->Xsize;
+	sub_rect.height = im->Ysize;
+	vips_rect_intersectrect( &image_rect, &sub_rect, &clip_rect );
 
-	if( !vips_rect_isempty( &clip ) ) {
+	if( !vips_rect_isempty( &clip_rect ) ) {
 		VipsPel *p, *q;
 		int y;
 
@@ -142,11 +142,12 @@ vips_paintimage_build( VipsObject *object )
 			return( -1 ); 
 
 		p = VIPS_IMAGE_ADDR( im, 
-			clip.left - paintimage->x, clip.top - paintimage->y );
-		q = VIPS_IMAGE_ADDR( draw->image, clip.left, clip.top );
-		for( y = 0; y < clip.height; y++ ) {
+			clip_rect.left - image->x, clip_rect.top - image->y );
+		q = VIPS_IMAGE_ADDR( draw->image, 
+			clip_rect.left, clip_rect.top );
+		for( y = 0; y < clip_rect.height; y++ ) {
 			memcpy( (char *) q, (char *) p, 
-				clip.width * VIPS_IMAGE_SIZEOF_PEL( im ) );
+				clip_rect.width * VIPS_IMAGE_SIZEOF_PEL( im ) );
 			p += VIPS_IMAGE_SIZEOF_LINE( im );
 			q += VIPS_IMAGE_SIZEOF_LINE( draw->image );
 		}
@@ -156,7 +157,7 @@ vips_paintimage_build( VipsObject *object )
 }
 
 static void
-vips_paintimage_class_init( VipsPaintimageClass *class )
+vips_draw_image_class_init( VipsDrawImageClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -164,62 +165,61 @@ vips_paintimage_class_init( VipsPaintimageClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "paintimage";
+	vobject_class->nickname = "draw_image";
 	vobject_class->description = _( "paint an image into another image" );
-	vobject_class->build = vips_paintimage_build;
+	vobject_class->build = vips_draw_image_build;
 
 	VIPS_ARG_IMAGE( class, "sub", 5, 
 		_( "Sub-image" ), 
 		_( "Sub-image to insert into main image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsPaintimage, sub ) );
+		G_STRUCT_OFFSET( VipsDrawImage, sub ) );
 
 	VIPS_ARG_INT( class, "x", 6, 
 		_( "x" ), 
 		_( "Draw image here" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsPaintimage, x ),
+		G_STRUCT_OFFSET( VipsDrawImage, x ),
 		-1000000000, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "y", 7, 
 		_( "y" ), 
 		_( "Draw image here" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsPaintimage, y ),
+		G_STRUCT_OFFSET( VipsDrawImage, y ),
 		-1000000000, 1000000000, 0 );
 
 }
 
 static void
-vips_paintimage_init( VipsPaintimage *paintimage )
+vips_draw_image_init( VipsDrawImage *draw_image )
 {
 }
 
 /**
- * vips_paintimage1:
+ * vips_draw_image1:
  * @image: image to draw on
  * @sub: image to paint
  * @x: draw @sub here
  * @y: draw @sub here
  *
  * Draw @sub on top of @image at position @x, @y. The two images must have the 
- * same
- * Coding. If @sub has 1 band, the bands will be duplicated to match the
+ * same Coding. If @sub has 1 band, the bands will be duplicated to match the
  * number of bands in @image. @sub will be converted to @image's format, see
  * vips_cast().
  *
- * See also: vips_paintmask(), vips_insert().
+ * See also: vips_draw_mask(), vips_insert().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_paintimage( VipsImage *image, VipsImage *sub, int x, int y, ... )
+vips_draw_image( VipsImage *image, VipsImage *sub, int x, int y, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, y );
-	result = vips_call_split( "paintimage", ap, 
+	result = vips_call_split( "draw_image", ap, 
 		image, NULL, sub, x, y );
 	va_end( ap );
 

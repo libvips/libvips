@@ -4532,7 +4532,7 @@ im_draw_circle( VipsImage *image,
 	if( !(vec = vips__ink_to_vector( "im_draw_circle", image, ink, &n )) )
 		return( -1 ); 
 
-	return( vips_circle( image, vec, n, x, y, radius,
+	return( vips_draw_circle( image, vec, n, x, y, radius,
 		"fill", fill,
 		NULL ) ); 
 }
@@ -4546,7 +4546,7 @@ im_draw_line( VipsImage *image, int x1, int y1, int x2, int y2, VipsPel *ink )
 	if( !(vec = vips__ink_to_vector( "im_draw_line", image, ink, &n )) )
 		return( -1 ); 
 
-	return( vips_line( image, vec, n, x1, y1, x2, y2, NULL ) ); 
+	return( vips_draw_line( image, vec, n, x1, y1, x2, y2, NULL ) ); 
 }
 
 int 
@@ -4554,7 +4554,7 @@ im_draw_line_user( VipsImage *image,
 	int x1, int y1, int x2, int y2, 
 	VipsPlotFn plot, void *a, void *b, void *c )
 {
-	return( vips_line_user( image, x1, y1, x2, y2, 
+	return( vips_draw_line_user( image, x1, y1, x2, y2, 
 		plot, a, b, c, NULL ) ); 
 }
 
@@ -4567,13 +4567,13 @@ im_draw_mask( VipsImage *image, VipsImage *mask_im, int x, int y, VipsPel *ink )
 	if( !(vec = vips__ink_to_vector( "im_draw_mask", image, ink, &n )) )
 		return( -1 ); 
 
-	return( vips_paintmask( image, vec, n, mask_im, x, y, NULL ) ); 
+	return( vips_draw_mask( image, vec, n, mask_im, x, y, NULL ) ); 
 }
 
 int
 im_draw_image( VipsImage *image, VipsImage *sub, int x, int y )
 {
-	return( vips_paintimage( image, sub, x, y, NULL ) ); 
+	return( vips_draw_image( image, sub, x, y, NULL ) ); 
 }
 
 int
@@ -4586,7 +4586,7 @@ im_draw_rect( IMAGE *image,
 	if( !(vec = vips__ink_to_vector( "im_draw_rect", image, ink, &n )) )
 		return( -1 ); 
 
-	return( vips_paintrect( image, vec, n, left, top, width, height,
+	return( vips_draw_rect( image, vec, n, left, top, width, height,
 		"fill", fill, 
 		NULL ) ); 
 }
@@ -4604,7 +4604,7 @@ im_draw_flood( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 	if( !(vec = vips__ink_to_vector( "im_draw_flood", image, ink, &n )) )
 		return( -1 ); 
 
-	if( vips_flood( image, vec, n, x, y,
+	if( vips_draw_flood( image, vec, n, x, y,
 		"left", &left,
 		"top", &top,
 		"width", &width,
@@ -4633,7 +4633,7 @@ im_draw_flood_blob( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 	if( !(vec = vips__ink_to_vector( "im_draw_flood", image, ink, &n )) )
 		return( -1 ); 
 
-	if( vips_flood( image, vec, n, x, y,
+	if( vips_draw_flood( image, vec, n, x, y,
 		"equal", TRUE,
 		"left", &left,
 		"top", &top,
@@ -4662,7 +4662,7 @@ im_draw_flood_other( IMAGE *image,
 
 	vec[0] = serial; 
 
-	if( vips_flood( image, vec, 1, x, y,
+	if( vips_draw_flood( image, vec, 1, x, y,
 		"test", test,
 		"equal", TRUE,
 		"left", &left,

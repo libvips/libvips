@@ -38,52 +38,52 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-int vips_paintrect( VipsImage *image, 
+int vips_draw_rect( VipsImage *image, 
 	double *ink, int n, int left, int top, int width, int height, ... ) 
 	__attribute__((sentinel));
-int vips_paintrect1( VipsImage *image, 
+int vips_draw_rect1( VipsImage *image, 
 	double ink, int left, int top, int width, int height, ... ) 
 	__attribute__((sentinel));
 
-int vips_paintimage( VipsImage *image, VipsImage *sub, int x, int y, ... )
+int vips_draw_image( VipsImage *image, VipsImage *sub, int x, int y, ... )
 	__attribute__((sentinel));
 
-int vips_paintmask( VipsImage *image, 
+int vips_draw_mask( VipsImage *image, 
 	double *ink, int n, VipsImage *mask, int x, int y, ... )
 	__attribute__((sentinel));
-int vips_paintmask1( VipsImage *image, 
+int vips_draw_mask1( VipsImage *image, 
 	double ink, VipsImage *mask, int x, int y, ... )
 	__attribute__((sentinel));
 
-int vips_line( VipsImage *image, 
+int vips_draw_line( VipsImage *image, 
 	double *ink, int n, int x1, int y1, int x2, int y2, ... )
 	__attribute__((sentinel));
-int vips_line1( VipsImage *image, 
+int vips_draw_line1( VipsImage *image, 
 	double ink, int x1, int y1, int x2, int y2, ... )
 	__attribute__((sentinel));
-int vips_line_mask( VipsImage *image, 
+int vips_draw_line_mask( VipsImage *image, 
 	double *ink, int n, int x1, int y1, int x2, int y2, 
 	VipsImage *mask, ... )
 	__attribute__((sentinel));
-int vips_line_mask1( VipsImage *image, 
+int vips_draw_line_mask1( VipsImage *image, 
 	double ink, int x1, int y1, int x2, int y2, VipsImage *mask, ... )
 	__attribute__((sentinel));
 typedef int (*VipsPlotFn)( VipsImage *, int, int, void *, void *, void * ); 
-int vips_line_user( VipsImage *image, 
+int vips_draw_line_user( VipsImage *image, 
 	int x1, int y1, int x2, int y2, 
 	VipsPlotFn plot_fn, void *a, void *b, void *c, ... )
 	__attribute__((sentinel));
 
-int vips_circle( VipsImage *image, 
+int vips_draw_circle( VipsImage *image, 
 	double *ink, int n, int cx, int cy, int radius, ... )
 	__attribute__((sentinel));
-int vips_circle1( VipsImage *image, 
+int vips_draw_circle1( VipsImage *image, 
 	double ink, int cx, int cy, int radius, ... )
 	__attribute__((sentinel));
 
-int vips_flood( VipsImage *image, double *ink, int n, int x, int y, ... )
+int vips_draw_flood( VipsImage *image, double *ink, int n, int x, int y, ... )
 	__attribute__((sentinel));
-int vips_flood1( VipsImage *image, double ink, int x, int y, ... )
+int vips_draw_flood1( VipsImage *image, double ink, int x, int y, ... )
 	__attribute__((sentinel));
 
 

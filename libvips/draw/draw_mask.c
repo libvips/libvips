@@ -19,7 +19,7 @@
  * 	- use Draw base class
  * 7/2/14
  * 	- redo as a class
- * 	- now it's VipsPaintmask
+ * 	- now it's VipsDrawMask
  */
 
 /*
@@ -62,7 +62,7 @@
 
 #include "pdraw.h"
 
-typedef struct _VipsPaintmask {
+typedef struct _VipsDrawMask {
 	VipsDraw parent_object;
 
 	/* Parameters.
@@ -75,14 +75,14 @@ typedef struct _VipsPaintmask {
 	 */
 	VipsRect image_clip;
 	VipsRect mask_clip;
-} VipsPaintmask;
+} VipsDrawMask;
 
-typedef struct _VipsPaintmaskClass {
+typedef struct _VipsDrawMaskClass {
 	VipsDrawClass parent_class;
 
-} VipsPaintmaskClass; 
+} VipsDrawMaskClass; 
 
-G_DEFINE_TYPE( VipsPaintmask, vips_paintmask, VIPS_TYPE_DRAW );
+G_DEFINE_TYPE( VipsDrawMask, vips_draw_mask, VIPS_TYPE_DRAW );
 
 /* Paint ink into an 8 or 16 bit integer image.
  */
@@ -94,8 +94,8 @@ G_DEFINE_TYPE( VipsPaintmask, vips_paintmask, VIPS_TYPE_DRAW );
  	\
 	for( j = 0, x = 0; x < width; x++ ) \
 		for( i = 0; i < bands; i++, j++ ) \
-			tto[j] = (tink[i] * mask[x] + \
-				tto[j] * (255 - mask[x])) / 255; \
+			tto[j] = (tink[i] * m[x] + \
+				tto[j] * (255 - m[x])) / 255; \
 }
 
 /* Do the blend with doubles.
@@ -108,8 +108,8 @@ G_DEFINE_TYPE( VipsPaintmask, vips_paintmask, VIPS_TYPE_DRAW );
  	\
 	for( j = 0, x = 0; x < width; x++ ) \
 		for( i = 0; i < bands; i++, j++ ) \
-			tto[j] = ((double) tink[i] * mask[x] + \
-				(double) tto[j] * (255 - mask[x])) / 255; \
+			tto[j] = ((double) tink[i] * m[x] + \
+				(double) tto[j] * (255 - m[x])) / 255; \
 }
 
 /* Blend of complex.
@@ -122,20 +122,20 @@ G_DEFINE_TYPE( VipsPaintmask, vips_paintmask, VIPS_TYPE_DRAW );
  	\
 	for( j = 0, x = 0; x < width; x++ ) \
 		for( i = 0; i < bands * 2; i += 2, j += 2 ) { \
-			tto[j] = ((double) tink[i] * mask[x] + \
-				(double) tto[j] * (255 - mask[x])) / 255;\
-			tto[j + 1] = ((double) tink[i + 1] * mask[x] + \
-				(double) tto[j + 1] * (255 - mask[x])) / \
+			tto[j] = ((double) tink[i] * m[x] + \
+				(double) tto[j] * (255 - m[x])) / 255;\
+			tto[j + 1] = ((double) tink[i + 1] * m[x] + \
+				(double) tto[j + 1] * (255 - m[x])) / \
 				255;\
 		} \
 }
 
 static int
-vips_paintmask_draw_labq( VipsPaintmask *paintmask )
+vips_draw_mask_draw_labq( VipsDrawMask *mask )
 {
-	VipsDraw *draw = VIPS_DRAW( paintmask );
-	int width = paintmask->image_clip.width;
-	int height = paintmask->image_clip.height;
+	VipsDraw *draw = VIPS_DRAW( mask );
+	int width = mask->image_clip.width;
+	int height = mask->image_clip.height;
 	int bands = draw->image->Bands; 
 
 	float *lab_buffer;
@@ -146,11 +146,11 @@ vips_paintmask_draw_labq( VipsPaintmask *paintmask )
 
 	for( y = 0; y < height; y++ ) {
 		VipsPel *to = VIPS_IMAGE_ADDR( draw->image, 
-			paintmask->image_clip.left, 
-			y + paintmask->image_clip.top );
-		VipsPel *mask = VIPS_IMAGE_ADDR( paintmask->mask, 
-			paintmask->mask_clip.left, 
-			y + paintmask->mask_clip.top );
+			mask->image_clip.left, 
+			y + mask->image_clip.top );
+		VipsPel *m = VIPS_IMAGE_ADDR( mask->mask, 
+			mask->mask_clip.left, 
+			y + mask->mask_clip.top );
 
 		vips__LabQ2Lab_vec( lab_buffer, to, width );
 		DBLEND( float, lab_buffer, (double *) draw->ink->data );
@@ -163,22 +163,22 @@ vips_paintmask_draw_labq( VipsPaintmask *paintmask )
 }
 
 static int
-vips_paintmask_draw( VipsPaintmask *paintmask )
+vips_draw_mask_draw( VipsDrawMask *mask )
 {
-	VipsDraw *draw = VIPS_DRAW( paintmask );
-	int width = paintmask->image_clip.width;
-	int height = paintmask->image_clip.height;
+	VipsDraw *draw = VIPS_DRAW( mask );
+	int width = mask->image_clip.width;
+	int height = mask->image_clip.height;
 	int bands = draw->image->Bands; 
 
 	int y;
 
 	for( y = 0; y < height; y++ ) {
 		VipsPel *to = VIPS_IMAGE_ADDR( draw->image, 
-			paintmask->image_clip.left, 
-			y + paintmask->image_clip.top );
-		VipsPel *mask = VIPS_IMAGE_ADDR( paintmask->mask, 
-			paintmask->mask_clip.left, 
-			y + paintmask->mask_clip.top );
+			mask->image_clip.left, 
+			y + mask->image_clip.top );
+		VipsPel *m = VIPS_IMAGE_ADDR( mask->mask, 
+			mask->mask_clip.left, 
+			y + mask->mask_clip.top );
 
 		switch( draw->image->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 
@@ -230,71 +230,67 @@ vips_paintmask_draw( VipsPaintmask *paintmask )
 }
 
 static int
-vips_paintmask_build( VipsObject *object )
+vips_draw_mask_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsDraw *draw = VIPS_DRAW( object );
-	VipsPaintmask *paintmask = (VipsPaintmask *) object;
+	VipsDrawMask *mask = (VipsDrawMask *) object;
 
 	VipsRect area;
 	VipsRect image;
 
-	if( VIPS_OBJECT_CLASS( vips_paintmask_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_draw_mask_parent_class )->build( object ) )
 		return( -1 );
 
 	if( vips_check_coding_noneorlabq( class->nickname, draw->image ) ||
-		vips_image_wio_input( paintmask->mask ) ||
-		vips_check_mono( class->nickname, paintmask->mask ) ||
-		vips_check_uncoded( class->nickname, paintmask->mask ) ||
+		vips_image_wio_input( mask->mask ) ||
+		vips_check_mono( class->nickname, mask->mask ) ||
+		vips_check_uncoded( class->nickname, mask->mask ) ||
 		vips_check_format( class->nickname, 
-			paintmask->mask, VIPS_FORMAT_UCHAR ) )
+			mask->mask, VIPS_FORMAT_UCHAR ) )
 		return( -1 );
 
 	/* Find the area we draw on the image.
 	 */
-	area.left = paintmask->x;
-	area.top = paintmask->y;
-	area.width = paintmask->mask->Xsize;
-	area.height = paintmask->mask->Ysize;
+	area.left = mask->x;
+	area.top = mask->y;
+	area.width = mask->mask->Xsize;
+	area.height = mask->mask->Ysize;
 	image.left = 0;
 	image.top = 0;
 	image.width = draw->image->Xsize;
 	image.height = draw->image->Ysize;
-	vips_rect_intersectrect( &area, &image, &paintmask->image_clip );
+	vips_rect_intersectrect( &area, &image, &mask->image_clip );
 
 	/* And the area of the mask image we use.
 	 */
-	paintmask->mask_clip = paintmask->image_clip;
-	paintmask->mask_clip.left -= paintmask->x;
-	paintmask->mask_clip.top -= paintmask->y;
+	mask->mask_clip = mask->image_clip;
+	mask->mask_clip.left -= mask->x;
+	mask->mask_clip.top -= mask->y;
 
-	/* Any points to plot?
-	 */
-	if( vips_rect_isempty( &paintmask->image_clip ) ) 
-		return( 0 );
+	if( !vips_rect_isempty( &mask->image_clip ) ) 
+		/* Loop through image plotting where required.
+		 */
+		switch( draw->image->Coding ) {
+		case VIPS_CODING_LABQ:
+			if( vips_draw_mask_draw_labq( mask ) ) 
+				return( -1 );
+			break;
 
-	/* Loop through image plotting where required.
-	 */
-	switch( draw->image->Coding ) {
-	case VIPS_CODING_LABQ:
-		if( vips_paintmask_draw_labq( paintmask ) ) 
-			return( -1 );
-		break;
+		case VIPS_CODING_NONE:
+			if( vips_draw_mask_draw( mask ) ) 
+				return( -1 );
+			break;
 
-	case VIPS_CODING_NONE:
-		if( vips_paintmask_draw( paintmask ) ) 
-			return( -1 );
-		break;
-
-	default:
-		g_assert( 0 );
-	}
+		default:
+			g_assert( 0 );
+		}
 
 	return( 0 );
 }
 
 static void
-vips_paintmask_class_init( VipsPaintmaskClass *class )
+vips_draw_mask_class_init( VipsDrawMaskClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -302,46 +298,46 @@ vips_paintmask_class_init( VipsPaintmaskClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "paintmask";
+	vobject_class->nickname = "draw_mask";
 	vobject_class->description = _( "draw a mask on an image" );
-	vobject_class->build = vips_paintmask_build;
+	vobject_class->build = vips_draw_mask_build;
 
 	VIPS_ARG_IMAGE( class, "mask", 5, 
 		_( "Mask" ), 
 		_( "Mask of pixels to draw" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsPaintmask, mask ) ); 
+		G_STRUCT_OFFSET( VipsDrawMask, mask ) ); 
 
 	VIPS_ARG_INT( class, "x", 6, 
 		_( "x" ), 
 		_( "Draw mask here" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsPaintmask, x ),
+		G_STRUCT_OFFSET( VipsDrawMask, x ),
 		-1000000000, 1000000000, 0 );
 
 	VIPS_ARG_INT( class, "y", 7, 
 		_( "y" ), 
 		_( "Draw mask here" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsPaintmask, y ),
+		G_STRUCT_OFFSET( VipsDrawMask, y ),
 		-1000000000, 1000000000, 0 );
 
 }
 
 static void
-vips_paintmask_init( VipsPaintmask *paintmask )
+vips_draw_mask_init( VipsDrawMask *draw_mask )
 {
 }
 
 static int
-vips_paintmaskv( VipsImage *image, 
+vips_draw_maskv( VipsImage *image, 
 	double *ink, int n, VipsImage *mask, int x, int y, va_list ap )
 {
 	VipsArea *area_ink;
 	int result;
 
 	area_ink = (VipsArea *) vips_array_double_new( ink, n );
-	result = vips_call_split( "paintmask", ap, 
+	result = vips_call_split( "draw_mask", ap, 
 		image, area_ink, mask, x, y );
 	vips_area_unref( area_ink );
 
@@ -349,7 +345,7 @@ vips_paintmaskv( VipsImage *image,
 }
 
 /**
- * vips_paintmask:
+ * vips_draw_mask:
  * @image: image to draw on
  * @ink: value to draw
  * @mask: mask of 0/255 values showing where to plot
@@ -368,35 +364,35 @@ vips_paintmaskv( VipsImage *image,
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_paintmask( VipsImage *image, 
+vips_draw_mask( VipsImage *image, 
 	double *ink, int n, VipsImage *mask, int x, int y, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, y );
-	result = vips_paintmaskv( image, ink, n, mask, x, y, ap );
+	result = vips_draw_maskv( image, ink, n, mask, x, y, ap );
 	va_end( ap );
 
 	return( result );
 }
 
 /**
- * vips_paintmask1:
+ * vips_draw_mask1:
  * @image: image to draw on
  * @ink: value to draw
  * @mask: mask of 0/255 values showing where to plot
  * @x: draw mask here
  * @y: draw mask here
  *
- * As vips_paintmask(), but just takes a single double for @ink. 
+ * As vips_draw_mask(), but just takes a single double for @ink. 
  *
- * See also: vips_paintmask().
+ * See also: vips_draw_mask().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_paintmask1( VipsImage *image, 
+vips_draw_mask1( VipsImage *image, 
 	double ink, VipsImage *mask, int x, int y, ... )
 {
 	double array_ink[1];
@@ -406,7 +402,7 @@ vips_paintmask1( VipsImage *image,
 	array_ink[0] = ink; 
 
 	va_start( ap, y );
-	result = vips_paintmaskv( image, array_ink, 1, mask, x, y, ap );
+	result = vips_draw_maskv( image, array_ink, 1, mask, x, y, ap );
 	va_end( ap );
 
 	return( result );
