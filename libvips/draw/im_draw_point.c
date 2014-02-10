@@ -57,46 +57,6 @@
 
 #include "old_draw.h"
 
-typedef struct _Point {
-	Draw draw;
-} Point;
-
-/**
- * im_draw_point:
- * @image: image to draw on
- * @x: position to draw
- * @y: position to draw
- * @ink: value to draw
- *
- * Draws a single point on an image. 
- *
- * @ink is an array of bytes containing a valid pixel for the image's format.
- * It must have at least IM_IMAGE_SIZEOF_PEL( @im ) bytes.
- *
- * See also: im_draw_line().
- *
- * Returns: 0 on success, or -1 on error.
- */
-int
-im_draw_point( VipsImage *image, int x, int y, VipsPel *ink )
-{	
-	Point point;
-
-	if( im_check_coding_known( "im_draw_point", image ) ||
-		im__draw_init( DRAW( &point ), image, NULL ) )
-		return( -1 );
-
-	/* Check coordinates.
-	 */
-	if( x >= 0 && x < image->Xsize && y >= 0 && y < image->Ysize ) 
-		memcpy( IM_IMAGE_ADDR( image, x, y ), ink, 
-			DRAW( image )->psize );
-
-	im__draw_free( DRAW( &point ) );
-
-	return( 0 );
-}
-
 /**
  * im_read_point:
  * @image: image to read from

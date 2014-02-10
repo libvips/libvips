@@ -264,8 +264,7 @@ vips_draw_rect( VipsImage *image,
 /**
  * vips_draw_rect1:
  * @image: image to draw on
- * @ink: (array length=n): value to draw
- * @n: length of ink array
+ * @ink: value to draw
  * @left: area to paint
  * @top: area to paint
  * @width: area to paint
@@ -294,6 +293,62 @@ vips_draw_rect1( VipsImage *image,
 	va_start( ap, height );
 	result = vips_draw_rectv( image, 
 		array_ink, 1, left, top, width, height, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_draw_point:
+ * @image: image to draw on
+ * @ink: (array length=n): value to draw
+ * @n: length of ink array
+ * @left: point to paint
+ * @top: point to paint
+ *
+ * As vips_draw_rect(), but draw a single pixel at @x, @y.
+ *
+ * See also: vips_draw_rect().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+vips_draw_point( VipsImage *image, double *ink, int n, int x, int y, ... ) 
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, y );
+	result = vips_draw_rectv( image, ink, n, x, y, 1, 1, ap ); 
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_draw_point1:
+ * @image: image to draw on
+ * @ink: value to draw
+ * @x: point to draw
+ * @y: point to draw
+ *
+ * As vips_draw_point(), but just take a single double for @ink. 
+ *
+ * See also: vips_draw_point().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+vips_draw_point1( VipsImage *image, double ink, int x, int y, ... ) 
+{
+	double array_ink[1];
+	va_list ap;
+	int result;
+
+	array_ink[0] = ink; 
+
+	va_start( ap, y );
+	result = vips_draw_rectv( image, array_ink, 1, x, y, 1, 1, ap );
 	va_end( ap );
 
 	return( result );

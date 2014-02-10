@@ -4592,6 +4592,18 @@ im_draw_rect( IMAGE *image,
 }
 
 int
+im_draw_point( VipsImage *image, int x, int y, VipsPel *ink )
+{
+	double *vec;
+	int n;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_rect", image, ink, &n )) )
+		return( -1 ); 
+
+	return( vips_draw_point( image, vec, n, x, y, NULL ) ); 
+}
+
+int
 im_draw_flood( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 {
 	double *vec;

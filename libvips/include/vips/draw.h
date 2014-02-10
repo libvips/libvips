@@ -44,6 +44,10 @@ int vips_draw_rect( VipsImage *image,
 int vips_draw_rect1( VipsImage *image, 
 	double ink, int left, int top, int width, int height, ... ) 
 	__attribute__((sentinel));
+int vips_draw_point( VipsImage *image, double *ink, int n, int x, int y, ... ) 
+	__attribute__((sentinel));
+int vips_draw_point1( VipsImage *image, double ink, int x, int y, ... ) 
+	__attribute__((sentinel));
 
 int vips_draw_image( VipsImage *image, VipsImage *sub, int x, int y, ... )
 	__attribute__((sentinel));
