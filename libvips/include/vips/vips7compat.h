@@ -1009,6 +1009,8 @@ typedef int (*VipsPlotFn)( VipsImage *, int, int, void *, void *, void * );
 int im_draw_mask( VipsImage *image, 
 	VipsImage *mask_im, int x, int y, VipsPel *ink );
 int im_draw_image( VipsImage *image, VipsImage *sub, int x, int y );
+int im_draw_rect( VipsImage *image, 
+	int left, int top, int width, int height, int fill, VipsPel *ink );
 
 int im_draw_line_user( VipsImage *image, 
 	int x1, int y1, int x2, int y2, 

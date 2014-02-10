@@ -1,3 +1,11 @@
+- get/set point next
+
+- rename vips_paintrect as vips_draw_rect()
+  vips_circle() as vips_draw_circle()
+  etc. 
+
+  best to have them obviously in the same namespace, and draw is clearer than
+  paint
 
 
 
@@ -14,6 +22,16 @@
   vector
 
   needs to work for eg. vips_linear() as well
+
+  if vector.len is == bands, expand to complex by setting imaginary == 0
+  if vector.len == bands * 2, set imaginary from constant
+  if vector.len == 1, bandup with imaginary == 0
+  if vector.len == 2, bandup setting imaginary from vector
+
+  what about bands == 2? ambigious
+
+  we must insist vector.length == 2 or bands * 2 for complex, or have the
+  current behaviour of imaginary == 0 always
 
 - inplace
 

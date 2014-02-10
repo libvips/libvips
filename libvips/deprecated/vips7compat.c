@@ -4575,6 +4575,22 @@ im_draw_image( VipsImage *image, VipsImage *sub, int x, int y )
 {
 	return( vips_paintimage( image, sub, x, y, NULL ) ); 
 }
+
+int
+im_draw_rect( IMAGE *image, 
+	int left, int top, int width, int height, int fill, VipsPel *ink )
+{
+	double *vec;
+	int n;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_rect", image, ink, &n )) )
+		return( -1 ); 
+
+	return( vips_paintrect( image, vec, n, left, top, width, height,
+		"fill", fill, 
+		NULL ) ); 
+}
+
 int
 im_draw_flood( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 {
