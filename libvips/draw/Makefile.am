@@ -12,7 +12,6 @@ libdraw_la_SOURCES = \
 	draw_line.c \
 	draw_line_mask.c \
 	draw_line_user.c \
-	im_draw_point.c \
 	im_draw_smudge.c \
 	inplace_dispatch.c \
 	old_draw.c \

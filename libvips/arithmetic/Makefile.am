@@ -6,6 +6,7 @@ libarithmetic_la_SOURCES = \
 	deviate.c \
 	divide.c \
 	measure.c \
+	getpoint.c \
 	multiply.c \
 	remainder.c \
 	sign.c \

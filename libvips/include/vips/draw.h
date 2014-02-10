@@ -92,9 +92,6 @@ int vips_draw_flood1( VipsImage *image, double ink, int x, int y, ... )
 
 
 
-int im_draw_point( VipsImage *image, int x, int y, VipsPel *ink );
-int im_read_point( VipsImage *image, int x, int y, VipsPel *ink );
-
 int im_draw_smudge( VipsImage *image, 
 	int left, int top, int width, int height );
 

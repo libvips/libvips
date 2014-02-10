@@ -377,6 +377,8 @@ int vips_stats( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_measure( VipsImage *in, VipsImage **out, int h, int v, ... )
 	__attribute__((sentinel));
+int vips_getpoint( VipsImage *in, double **vector, int *n, int x, int y, ... )
+	__attribute__((sentinel));
 int vips_hist_find( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_hist_find_ndim( VipsImage *in, VipsImage **out, ... )

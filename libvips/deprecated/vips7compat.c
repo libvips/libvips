@@ -4604,6 +4604,29 @@ im_draw_point( VipsImage *image, int x, int y, VipsPel *ink )
 }
 
 int
+im_read_point( VipsImage *image, int x, int y, VipsPel *ink )
+{
+	double *vector;
+	int n;
+	VipsPel *pixel_vector;
+
+	if( vips_getpoint( image, &vector, &n, x, y, NULL ) )
+		return( -1 );
+
+	if( !(pixel_vector = vips__vector_to_ink( "im_read_point", 
+		image, vector, n )) ) {
+		g_free( vector );
+		return( -1 );
+	}
+
+	memcpy( ink, pixel_vector, VIPS_IMAGE_SIZEOF_PEL( image ) ); 
+
+	g_free( vector );
+
+	return( 0 );
+}
+
+int
 im_draw_flood( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 {
 	double *vec;

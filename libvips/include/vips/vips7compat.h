@@ -1026,6 +1026,9 @@ int im_draw_flood_blob( VipsImage *image,
 int im_draw_flood_other( VipsImage *image, VipsImage *test, 
 	int x, int y, int serial, VipsRect *dout );
 
+int im_draw_point( VipsImage *image, int x, int y, VipsPel *ink );
+int im_read_point( VipsImage *image, int x, int y, VipsPel *ink );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

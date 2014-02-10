@@ -1,11 +1,45 @@
-- get/set point next
+- try
 
-- rename vips_paintrect as vips_draw_rect()
-  vips_circle() as vips_draw_circle()
-  etc. 
+	$ vips getpoint
+	usage:
+	   getpoint in out-array x y
+	read a point from an image
+	where:
+	   in           - Input image, input VipsImage
+	   out-array    - Array of output values, output VipsArrayDouble
+	   x            - Getpoint to read from, input gint
+	   y            - Getpoint to read from, input gint
 
-  best to have them obviously in the same namespace, and draw is clearer than
-  paint
+	$ vips max
+	usage:
+	   max in out
+	find image maximum
+	where:
+	   in           - Input image, input VipsImage
+	   out          - Output value, output gdouble
+	optional arguments:
+	   x            - Horizontal position of maximum, output gint
+	   y            - Vertical position of maximum, output gint
+	   size         - Number of maximum values to find, input gint
+	   out-array    - Array of output values, output VipsArrayDouble
+	   x-array      - Array of horizontal positions, output VipsArrayInt
+	   y-array      - Array of vertical positions, output VipsArrayInt
+
+  don't list out-array or out as args in the usage line, since they don't need
+  an arg ... these args should be in a separet section I guess?
+
+  put description first
+
+- try:
+
+	$ vips max babe.v --x-array --size 0
+	Segmentation fault (core dumped)
+
+
+	
+
+- swap VipsArea ink for VipsArrayDouble?
+
 
 
 
