@@ -87,7 +87,7 @@ typedef struct _VipsInsert {
 	int x;
 	int y;
 	gboolean expand;
-	VipsArea *background;
+	VipsArrayDouble *background;
 
 	/* Pixel we paint calculated from background.
 	 */
@@ -221,6 +221,8 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( context ), 6 );
 
+	VipsBandFormat format;
+	int bands; 
 	double *ones;
 	VipsPel *result;
 	int i;
@@ -229,12 +231,22 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 	printf( "vips__vector_to_ink: starting\n" );
 #endif /*VIPS_DEBUG*/
 
-	/* The image may be coded .. unpack.
+	/* We need to know the bands and format we are matching to. But im may
+	 * be coded, so simulate decoding. We can't call vips_image_decode()
+	 * on im, since vips__vector_to_ink() needs to be able to work during
+	 * im's construction and im may not be ready yet.
 	 */
-	if( vips_image_decode( im, &t[0] ) ||
-		vips_check_vector( domain, n, t[0] ) ) {
-		g_object_unref( context );
-		return( NULL );
+	if( im->Coding == VIPS_CODING_LABQ ) {
+		bands = 3;
+		format = VIPS_FORMAT_SHORT;
+	}
+	else if( im->Coding == VIPS_CODING_RAD ) {
+		bands = 3;
+		format = VIPS_FORMAT_FLOAT;
+	}
+	else {
+		bands = im->Bands;
+		format = im->BandFmt;
 	}
 
 	ones = VIPS_ARRAY( im, n, double );
@@ -243,9 +255,9 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 
 	/* Cast vec to match the decoded image.
 	 */
-	if( vips_black( &t[1], 1, 1, "bands", t[0]->Bands, NULL ) ||
+	if( vips_black( &t[1], 1, 1, "bands", bands, NULL ) ||
 		vips_linear( t[1], &t[2], ones, vec, n, NULL ) || 
-		vips_cast( t[2], &t[3], t[0]->BandFmt, NULL ) ) {
+		vips_cast( t[2], &t[3], format, NULL ) ) {
 		g_object_unref( context );
 		return( NULL );
 	}

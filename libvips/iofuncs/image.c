@@ -2012,6 +2012,8 @@ vips_image_write_to_file( VipsImage *image, const char *filename )
 int
 vips_image_decode( VipsImage *in, VipsImage **out )
 {
+	/* Keep in sync with vips__vector_to_ink().
+	 */
 	if( in->Coding == VIPS_CODING_LABQ ) {
 		if( vips_LabQ2LabS( in, out, NULL ) )
 			return( -1 );
