@@ -1,6 +1,4 @@
-- need to do im_label_regions in morph
-
-- swap VipsArea ink for VipsArrayDouble?
+- nip2 make check is failing
 
 - ink to vec etc. should work for complex .. output or accept a double-length 
   vector
@@ -16,6 +14,9 @@
 
   we must insist vector.length == 2 or bands * 2 for complex, or have the
   current behaviour of imaginary == 0 always
+
+
+
 
 
 - try
@@ -46,18 +47,17 @@
 	   y-array      - Array of vertical positions, output VipsArrayInt
 
   don't list out-array or out as args in the usage line, since they don't need
-  an arg ... these args should be in a separet section I guess?
+  an arg ... these args should be in a separate section, I guess?
 
   put description first
+
+
+
 
 - try:
 
 	$ vips max babe.v --x-array --size 0
 	Segmentation fault (core dumped)
-
-
-
-
 
 - try:
 

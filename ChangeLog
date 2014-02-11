@@ -5,7 +5,7 @@
 - operations can be tagged as "deprecated"
 - redo im_draw_circle(), im_draw_flood(), im_draw_line(), im_draw_mask(),
   im_draw_image(), im_draw_rect(), im_draw_point(), im_read_point(),
-  im_draw_smudge() as classes
+  im_draw_smudge(), im_label_regions() as classes
 - better rounding in vips_flatten()
 - VipsStatistic operations are sequential
 

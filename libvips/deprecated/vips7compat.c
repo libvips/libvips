@@ -4498,6 +4498,23 @@ im_cntlines( VipsImage *im, double *nolines, int flag )
 		NULL ) );
 }
 
+int
+im_label_regions( IMAGE *test, IMAGE *mask, int *segments )
+{
+	VipsImage *x;
+
+	if( vips_labelregions( test, &x, "segments", segments, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, mask ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
 int 
 im_rank( IMAGE *in, IMAGE *out, int width, int height, int index )
 {
@@ -4653,10 +4670,12 @@ im_draw_flood( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 		NULL ) )
 		return( -1 ); 
 
-	dout->left = left; 
-	dout->top = top; 
-	dout->width = width; 
-	dout->height = height; 
+	if( dout ) { 
+		dout->left = left; 
+		dout->top = top; 
+		dout->width = width; 
+		dout->height = height; 
+	}
 
 	return( 0 ); 
 }
@@ -4683,10 +4702,12 @@ im_draw_flood_blob( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
 		NULL ) )
 		return( -1 ); 
 
-	dout->left = left; 
-	dout->top = top; 
-	dout->width = width; 
-	dout->height = height; 
+	if( dout ) { 
+		dout->left = left; 
+		dout->top = top; 
+		dout->width = width; 
+		dout->height = height; 
+	}
 
 	return( 0 ); 
 }
@@ -4695,15 +4716,12 @@ int
 im_draw_flood_other( IMAGE *image, 
 	IMAGE *test, int x, int y, int serial, Rect *dout )
 {
-	double vec[1];
 	int left;
 	int top;
 	int width;
 	int height;
 
-	vec[0] = serial; 
-
-	if( vips_draw_flood( image, vec, 1, x, y,
+	if( vips_draw_flood1( image, serial, x, y,
 		"test", test,
 		"equal", TRUE,
 		"left", &left,
@@ -4713,10 +4731,12 @@ im_draw_flood_other( IMAGE *image,
 		NULL ) )
 		return( -1 ); 
 
-	dout->left = left; 
-	dout->top = top; 
-	dout->width = width; 
-	dout->height = height; 
+	if( dout ) { 
+		dout->left = left; 
+		dout->top = top; 
+		dout->width = width; 
+		dout->height = height; 
+	} 
 
 	return( 0 ); 
 }
