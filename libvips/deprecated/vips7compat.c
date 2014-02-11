@@ -4604,6 +4604,12 @@ im_draw_point( VipsImage *image, int x, int y, VipsPel *ink )
 }
 
 int
+im_draw_smudge( VipsImage *im, int left, int top, int width, int height )
+{
+	return( vips_draw_smudge( im, left, top, width, height, NULL ) ); 
+}
+
+int
 im_read_point( VipsImage *image, int x, int y, VipsPel *ink )
 {
 	double *vector;

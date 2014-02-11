@@ -1,3 +1,50 @@
+- need to do im_label_regions in morph
+
+- swap VipsArea ink for VipsArrayDouble?
+
+- ink to vec etc. should work for complex .. output or accept a double-length 
+  vector
+
+  needs to work for eg. vips_linear() as well
+
+  if vector.len is == bands, expand to complex by setting imaginary == 0
+  if vector.len == bands * 2, set imaginary from constant
+  if vector.len == 1, bandup with imaginary == 0
+  if vector.len == 2, bandup setting imaginary from vector
+
+  what about bands == 2? ambigious
+
+  we must insist vector.length == 2 or bands * 2 for complex, or have the
+  current behaviour of imaginary == 0 always
+
+- try:
+
+	$ vips draw_smudge
+	usage:
+	   draw_smudge image ink left top width height
+	blur a rectangle on an image
+	where:
+	   image        - Image to draw on, input VipsImage
+	   ink          - Colour for pixels, input VipsArrayDouble
+	   left         - Rect to fill, input gint
+	   top          - Rect to fill, input gint
+	   width        - Rect to fill, input gint
+	   height       - Rect to fill, input gint
+
+  nice if we could hide the "ink" param
+
+  also for 
+
+	draw_image
+	draw_line_user
+
+  we could either move ink to the other operations or make a new subclass of
+  draw containing the ink arg
+
+
+
+
+
 - try
 
 	$ vips getpoint
@@ -36,11 +83,6 @@
 	Segmentation fault (core dumped)
 
 
-	
-
-- swap VipsArea ink for VipsArrayDouble?
-
-
 
 
 
@@ -52,29 +94,7 @@
 
   with wtc.jpg, segv if libvips is compiled with -O, OK without
 
-- ink to vec etc. should work for complex .. output or accept a double-length 
-  vector
-
-  needs to work for eg. vips_linear() as well
-
-  if vector.len is == bands, expand to complex by setting imaginary == 0
-  if vector.len == bands * 2, set imaginary from constant
-  if vector.len == 1, bandup with imaginary == 0
-  if vector.len == 2, bandup setting imaginary from vector
-
-  what about bands == 2? ambigious
-
-  we must insist vector.length == 2 or bands * 2 for complex, or have the
-  current behaviour of imaginary == 0 always
-
-- inplace
-
-	can we set a region for the pixels we will modify?
-
-	is there any point doing this? only useful on 32-bit machines, which
-	don't really exist any more
-
-- need to do mosaicing and inplace, plus im_label_regions in morph
+- need to do mosaicing 
 
 - now vips_linear() has uchar output, can we do something with orc?
 

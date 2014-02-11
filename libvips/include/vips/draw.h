@@ -90,10 +90,9 @@ int vips_draw_flood( VipsImage *image, double *ink, int n, int x, int y, ... )
 int vips_draw_flood1( VipsImage *image, double ink, int x, int y, ... )
 	__attribute__((sentinel));
 
-
-
-int im_draw_smudge( VipsImage *image, 
-	int left, int top, int width, int height );
+int vips_draw_smudge( VipsImage *image, 
+	int left, int top, int width, int height, ... ) 
+	__attribute__((sentinel));
 
 #ifdef __cplusplus
 }

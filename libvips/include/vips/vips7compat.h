@@ -1029,6 +1029,9 @@ int im_draw_flood_other( VipsImage *image, VipsImage *test,
 int im_draw_point( VipsImage *image, int x, int y, VipsPel *ink );
 int im_read_point( VipsImage *image, int x, int y, VipsPel *ink );
 
+int im_draw_smudge( VipsImage *image, 
+	int left, int top, int width, int height );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

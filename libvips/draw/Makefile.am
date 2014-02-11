@@ -12,9 +12,6 @@ libdraw_la_SOURCES = \
 	draw_line.c \
 	draw_line_mask.c \
 	draw_line_user.c \
-	im_draw_smudge.c \
-	inplace_dispatch.c \
-	old_draw.c \
-	old_draw.h
+	draw_smudge.c 
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

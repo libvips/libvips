@@ -138,6 +138,7 @@ vips_draw_operation_init( void )
 	extern GType vips_draw_line_user_get_type( void ); 
 	extern GType vips_draw_circle_get_type( void ); 
 	extern GType vips_draw_flood_get_type( void ); 
+	extern GType vips_draw_smudge_get_type( void ); 
 
 	vips_draw_rect_get_type();
 	vips_draw_image_get_type();
@@ -147,6 +148,7 @@ vips_draw_operation_init( void )
 	vips_draw_line_user_get_type();
 	vips_draw_circle_get_type();
 	vips_draw_flood_get_type();
+	vips_draw_smudge_get_type();
 }
 
 /* Fill a scanline between points x1 and x2 inclusive. x1 < x2.
