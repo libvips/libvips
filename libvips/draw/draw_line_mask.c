@@ -60,7 +60,6 @@
 
 #include <vips/vips.h>
 
-#include "pdraw.h"
 #include "draw_line.h"
 
 typedef struct _VipsDrawLineMask {
@@ -78,10 +77,12 @@ static int
 vips_draw_line_mask_plot_point( VipsDrawLine *line, int x, int y ) 
 {
 	VipsDraw *draw = (VipsDraw *) line;
+	VipsDrawink *drawink = (VipsDrawink *) line;
 	VipsDrawLineMask *mask = (VipsDrawLineMask *) line;
 
 	return( vips_draw_mask( draw->image, 
-		draw->ink->data, draw->ink->n, mask->mask, x, y, NULL ) ); 
+		drawink->ink->data, drawink->ink->n, 
+		mask->mask, x, y, NULL ) ); 
 }
 
 static void
@@ -155,7 +156,8 @@ vips_draw_line_mask( VipsImage *image,
 	int result;
 
 	va_start( ap, mask );
-	result = vips_draw_line_maskv( image, ink, n, x1, y1, x2, y2, mask, ap );
+	result = vips_draw_line_maskv( image, 
+		ink, n, x1, y1, x2, y2, mask, ap );
 	va_end( ap );
 
 	return( result );

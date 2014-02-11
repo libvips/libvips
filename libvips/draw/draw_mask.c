@@ -60,10 +60,10 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "pdraw.h"
+#include "drawink.h"
 
 typedef struct _VipsDrawMask {
-	VipsDraw parent_object;
+	VipsDrawink parent_object;
 
 	/* Parameters.
 	 */
@@ -78,11 +78,11 @@ typedef struct _VipsDrawMask {
 } VipsDrawMask;
 
 typedef struct _VipsDrawMaskClass {
-	VipsDrawClass parent_class;
+	VipsDrawinkClass parent_class;
 
 } VipsDrawMaskClass; 
 
-G_DEFINE_TYPE( VipsDrawMask, vips_draw_mask, VIPS_TYPE_DRAW );
+G_DEFINE_TYPE( VipsDrawMask, vips_draw_mask, VIPS_TYPE_DRAWINK );
 
 /* Paint ink into an 8 or 16 bit integer image.
  */
@@ -134,6 +134,7 @@ static int
 vips_draw_mask_draw_labq( VipsDrawMask *mask )
 {
 	VipsDraw *draw = VIPS_DRAW( mask );
+	VipsDrawink *drawink = VIPS_DRAWINK( mask );
 	int width = mask->image_clip.width;
 	int height = mask->image_clip.height;
 	int bands = draw->image->Bands; 
@@ -153,7 +154,7 @@ vips_draw_mask_draw_labq( VipsDrawMask *mask )
 			y + mask->mask_clip.top );
 
 		vips__LabQ2Lab_vec( lab_buffer, to, width );
-		DBLEND( float, lab_buffer, (double *) draw->ink->data );
+		DBLEND( float, lab_buffer, (double *) drawink->ink->data );
 		vips__Lab2LabQ_vec( to, lab_buffer, width );
 	}
 
@@ -166,6 +167,7 @@ static int
 vips_draw_mask_draw( VipsDrawMask *mask )
 {
 	VipsDraw *draw = VIPS_DRAW( mask );
+	VipsDrawink *drawink = VIPS_DRAWINK( mask );
 	int width = mask->image_clip.width;
 	int height = mask->image_clip.height;
 	int bands = draw->image->Bands; 
@@ -182,43 +184,43 @@ vips_draw_mask_draw( VipsDrawMask *mask )
 
 		switch( draw->image->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 
-			IBLEND( unsigned char, to, draw->pixel_ink );
+			IBLEND( unsigned char, to, drawink->pixel_ink );
 			break;
 
 		case VIPS_FORMAT_CHAR: 
-			IBLEND( signed char, to, draw->pixel_ink );
+			IBLEND( signed char, to, drawink->pixel_ink );
 			break;
 
 		case VIPS_FORMAT_USHORT: 
-			IBLEND( unsigned short, to, draw->pixel_ink );
+			IBLEND( unsigned short, to, drawink->pixel_ink );
 			break;
 
 		case VIPS_FORMAT_SHORT: 
-			IBLEND( signed short, to, draw->pixel_ink );
+			IBLEND( signed short, to, drawink->pixel_ink );
 			break;
 
 		case VIPS_FORMAT_UINT: 
-			DBLEND( unsigned int, to, draw->pixel_ink );
+			DBLEND( unsigned int, to, drawink->pixel_ink );
 			break;
 
 		case VIPS_FORMAT_INT: 
-			DBLEND( signed int, to, draw->pixel_ink );
+			DBLEND( signed int, to, drawink->pixel_ink );
 			break;
 
 		case VIPS_FORMAT_FLOAT:  
-			DBLEND( float, to, draw->pixel_ink );
+			DBLEND( float, to, drawink->pixel_ink );
 			break;
 
 		case VIPS_FORMAT_DOUBLE:
-			DBLEND( double, to, draw->pixel_ink );
+			DBLEND( double, to, drawink->pixel_ink );
 			break;
 
 		case VIPS_FORMAT_COMPLEX:
-			CBLEND( float, to, draw->pixel_ink );
+			CBLEND( float, to, drawink->pixel_ink );
 			break;
 
 		case VIPS_FORMAT_DPCOMPLEX:
-			CBLEND( double, to, draw->pixel_ink );
+			CBLEND( double, to, drawink->pixel_ink );
 			break;
 
 		default:

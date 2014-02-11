@@ -71,7 +71,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "pdraw.h"
+#include "drawink.h"
 
 /* Size of a scanline buffer. We allocate a list of these to hold scanlines 
  * we need to visit.
@@ -103,7 +103,7 @@ typedef struct _Buffer {
 /* Base class.
  */
 typedef struct _VipsDrawFlood {
-	VipsDraw draw;
+	VipsDrawink parent_object;
 
 	/* Parameters.
 	 */
@@ -130,9 +130,9 @@ typedef struct _VipsDrawFlood {
 	Buffer *out;
 } VipsDrawFlood;
 
-typedef VipsDrawClass VipsDrawFloodClass;
+typedef VipsDrawinkClass VipsDrawFloodClass;
 
-G_DEFINE_TYPE( VipsDrawFlood, vips_draw_flood, VIPS_TYPE_DRAW );
+G_DEFINE_TYPE( VipsDrawFlood, vips_draw_flood, VIPS_TYPE_DRAWINK );
 
 /* Alloc a new buffer.
  */
@@ -220,6 +220,7 @@ static void
 vips_draw_flood_scanline( VipsDrawFlood *flood, int x, int y, int *x1, int *x2 )
 {
 	VipsDraw *draw = VIPS_DRAW( flood );
+	VipsDrawink *drawink = VIPS_DRAWINK( flood );
 	const int width = flood->test->Xsize;
 
 	VipsPel *tp;
@@ -227,7 +228,7 @@ vips_draw_flood_scanline( VipsDrawFlood *flood, int x, int y, int *x1, int *x2 )
 
 	g_assert( vips_draw_flood_connected( flood, 
 		VIPS_IMAGE_ADDR( flood->test, x, y ) ) );
-	g_assert( !vips__draw_painted( draw, 
+	g_assert( !vips__drawink_painted( drawink, 
 		VIPS_IMAGE_ADDR( draw->image, x, y ) ) );
 
 	/* Search to the right for the first non-connected pixel. If the start
@@ -254,7 +255,7 @@ vips_draw_flood_scanline( VipsDrawFlood *flood, int x, int y, int *x1, int *x2 )
 
 	/* Paint the range we discovered.
 	 */
-	vips__draw_scanline( draw, y, *x1, *x2 );
+	vips__drawink_scanline( drawink, y, *x1, *x2 );
 
 	flood->left = VIPS_MIN( flood->left, *x1 );
 	flood->right = VIPS_MAX( flood->right, *x2 );
@@ -269,6 +270,7 @@ static void
 vips_draw_flood_around( VipsDrawFlood *flood, Scan *scan )
 {
 	VipsDraw *draw = VIPS_DRAW( flood );
+	VipsDrawink *drawink = VIPS_DRAWINK( flood );
 
 	VipsPel *tp;
 	int x;
@@ -292,7 +294,7 @@ vips_draw_flood_around( VipsDrawFlood *flood, Scan *scan )
 				VipsPel *mp = VIPS_IMAGE_ADDR( 
 					draw->image, x, scan->y );
 
-				if( vips__draw_painted( draw, mp ) )
+				if( vips__drawink_painted( drawink, mp ) )
 					continue;
 			}
 
@@ -368,6 +370,7 @@ vips_draw_flood_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsDraw *draw = VIPS_DRAW( object );
+	VipsDrawink *drawink = VIPS_DRAWINK( object );
 	VipsDrawFlood *flood = (VipsDrawFlood *) object;
 
 	int j; 
@@ -409,8 +412,7 @@ vips_draw_flood_build( VipsObject *object )
 		 */
 		if( flood->test == draw->image ) { 
 			for( j = 0; j < flood->tsize; j++ ) 
-				if( flood->edge[j] != 
-					VIPS_DRAW( flood )->pixel_ink[j] ) 
+				if( flood->edge[j] != drawink->pixel_ink[j] ) 
 					break;
 
 			if( j != flood->tsize )
@@ -424,7 +426,7 @@ vips_draw_flood_build( VipsObject *object )
 		 * @ink. 
 		 */
 		if( !(flood->edge = vips__vector_to_ink( class->nickname, 
-			flood->test, draw->ink->data, draw->ink->n )) )
+			flood->test, drawink->ink->data, drawink->ink->n )) )
 			return( -1 );
 
 		vips_draw_flood_all( flood );

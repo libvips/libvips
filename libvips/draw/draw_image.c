@@ -219,8 +219,7 @@ vips_draw_image( VipsImage *image, VipsImage *sub, int x, int y, ... )
 	int result;
 
 	va_start( ap, y );
-	result = vips_call_split( "draw_image", ap, 
-		image, NULL, sub, x, y );
+	result = vips_call_split( "draw_image", ap, image, sub, x, y );
 	va_end( ap );
 
 	return( result );

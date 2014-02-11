@@ -60,10 +60,10 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "pdraw.h"
+#include "drawink.h"
 
 typedef struct _VipsDrawRect {
-	VipsDraw parent_object;
+	VipsDrawink parent_object;
 
 	/* Parameters.
 	 */
@@ -76,16 +76,17 @@ typedef struct _VipsDrawRect {
 } VipsDrawRect;
 
 typedef struct _VipsDrawRectClass {
-	VipsDrawClass parent_class;
+	VipsDrawinkClass parent_class;
 
 } VipsDrawRectClass; 
 
-G_DEFINE_TYPE( VipsDrawRect, vips_draw_rect, VIPS_TYPE_DRAW );
+G_DEFINE_TYPE( VipsDrawRect, vips_draw_rect, VIPS_TYPE_DRAWINK );
 
 static int
 vips_draw_rect_build( VipsObject *object )
 {
 	VipsDraw *draw = VIPS_DRAW( object );
+	VipsDrawink *drawink = VIPS_DRAWINK( object );
 	VipsDrawRect *draw_rect = (VipsDrawRect *) object;
 	int left = draw_rect->left;
 	int top = draw_rect->top;
@@ -105,16 +106,16 @@ vips_draw_rect_build( VipsObject *object )
 		width > 2 &&
 		height > 2 ) 
 		return( vips_draw_rect( draw->image, 
-				draw->ink->data, draw->ink->n, 
+				drawink->ink->data, drawink->ink->n, 
 				left, top, width, 1, NULL ) ||
 			vips_draw_rect( draw->image, 
-				draw->ink->data, draw->ink->n, 
+				drawink->ink->data, drawink->ink->n, 
 				left + width - 1, top, 1, height, NULL ) ||
 			vips_draw_rect( draw->image, 
-				draw->ink->data, draw->ink->n, 
+				drawink->ink->data, drawink->ink->n, 
 				left, top + height - 1, width, 1, NULL ) ||
 			vips_draw_rect( draw->image, 
-				draw->ink->data, draw->ink->n, 
+				drawink->ink->data, drawink->ink->n, 
 				left, top, 1, height, NULL ) );
 
 	image.left = 0;
@@ -140,7 +141,7 @@ vips_draw_rect_build( VipsObject *object )
 
 		q = to;
 		for( x = 0; x < clip.width; x++ ) {
-			vips__draw_pel( draw, q );
+			vips__drawink_pel( drawink, q );
 			q += draw->psize;
 		}
 

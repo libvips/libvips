@@ -35,6 +35,8 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#include "drawink.h"
+
 #define VIPS_TYPE_DRAW_LINE (vips_draw_line_get_type())
 #define VIPS_DRAW_LINE( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
@@ -51,7 +53,7 @@ extern "C" {
 		VIPS_TYPE_DRAW_LINE, VipsDrawLineClass ))
 
 typedef struct _VipsDrawLine {
-	VipsDraw parent_object;
+	VipsDrawink parent_object;
 
 	int x1;
 	int y1;
@@ -64,7 +66,7 @@ typedef struct _VipsDrawLine {
 } VipsDrawLine;
 
 typedef struct _VipsDrawLineClass {
-	VipsDrawClass parent_class;
+	VipsDrawinkClass parent_class;
 
 	int (*plot_point)( VipsDrawLine *, int x, int y ); 
 } VipsDrawLineClass; 

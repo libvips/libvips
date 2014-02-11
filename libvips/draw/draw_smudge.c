@@ -252,7 +252,7 @@ vips_draw_smudge( VipsImage *image,
 
 	va_start( ap, height );
 	result = vips_call_split( "draw_smudge", ap, 
-		image, NULL, left, top, width, height ); 
+		image, left, top, width, height ); 
 	va_end( ap );
 
 	return( result );

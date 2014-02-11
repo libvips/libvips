@@ -83,12 +83,6 @@ vips_draw_build( VipsObject *object )
 	draw->psize = VIPS_IMAGE_SIZEOF_PEL( draw->image );
 	draw->noclip = FALSE;
 
-	if( draw->ink &&
-		!(draw->pixel_ink = vips__vector_to_ink( 
-			class->nickname, draw->image,
-			draw->ink->data, draw->ink->n )) )
-		return( -1 );
-
 	return( 0 );
 }
 
@@ -111,20 +105,11 @@ vips_draw_class_init( VipsDrawClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsDraw, image ) );
 
-	VIPS_ARG_BOXED( class, "ink", 2, 
-		_( "Ink" ), 
-		_( "Colour for pixels" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsDraw, ink ),
-		VIPS_TYPE_ARRAY_DOUBLE );
-
 }
 
 static void
 vips_draw_init( VipsDraw *draw )
 {
-	draw->ink = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
-	((double *) (draw->ink->data))[0] = 0;
 }
 
 void
@@ -149,37 +134,5 @@ vips_draw_operation_init( void )
 	vips_draw_circle_get_type();
 	vips_draw_flood_get_type();
 	vips_draw_smudge_get_type();
-}
-
-/* Fill a scanline between points x1 and x2 inclusive. x1 < x2.
- */
-void 
-vips__draw_scanline( VipsDraw *draw, int y, int x1, int x2 )
-{
-	VipsPel *mp;
-	int i;
-	int len;
-
-	g_assert( x1 <= x2 );
-
-	if( y < 0 || 
-		y >= draw->image->Ysize )
-		return;
-	if( x1 < 0 && 
-		x2 < 0 )
-		return;
-	if( x1 >= draw->image->Xsize && 
-		x2 >= draw->image->Xsize )
-		return;
-	x1 = VIPS_CLIP( 0, x1, draw->image->Xsize - 1 );
-	x2 = VIPS_CLIP( 0, x2, draw->image->Xsize - 1 );
-
-	mp = VIPS_IMAGE_ADDR( draw->image, x1, y );
-	len = x2 - x1 + 1;
-
-	for( i = 0; i < len; i++ ) {
-		vips__draw_pel( draw, mp );
-		mp += draw->psize;
-	}
 }
 

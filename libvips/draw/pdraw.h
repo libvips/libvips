@@ -56,16 +56,11 @@ typedef struct _VipsDraw {
 	/* Parameters.
 	 */
 	VipsImage *image;	/* Draw here */
-	VipsArea *ink;		/* With this */
 
 	/* Derived stuff.
 	 */
 	size_t lsize;
 	size_t psize;
-
-	/* Ink cast to pixel type.
-	 */
-	VipsPel *pixel_ink;
 
 	/* If the object to draw is entirely within the image, we have a 
 	 * faster noclip path.
@@ -79,48 +74,6 @@ typedef struct _VipsDrawClass {
 } VipsDrawClass;
 
 GType vips_draw_get_type( void );
-
-static inline void
-vips__draw_pel( VipsDraw *draw, VipsPel *q )
-{
- 	int j;
-
-	/* Faster than memcopy() for n < about 20.
-	 */
-	for( j = 0; j < draw->psize; j++ ) 
-		q[j] = draw->pixel_ink[j];
-}
-
-/* Paint, with clip.
- */
-static inline void 
-vips__draw_pel_clip( VipsDraw *draw, int x, int y )
-{
-	if( x < 0 || 
-		x >= draw->image->Xsize )
-		return;
-	if( y < 0 || 
-		y >= draw->image->Ysize )
-		return;
-
-	vips__draw_pel( draw, VIPS_IMAGE_ADDR( draw->image, x, y ) );
-}
-
-/* Is p painted?
- */
-static inline gboolean
-vips__draw_painted( VipsDraw *draw, VipsPel *p )
-{
- 	int j;
-
-	for( j = 0; j < draw->psize; j++ ) 
-		if( p[j] != draw->pixel_ink[j] ) 
-			break;
-
-	return( j == draw->psize );
-}
-
-void vips__draw_scanline( VipsDraw *draw, int y, int x1, int x2 );
 
 #ifdef __cplusplus
 }

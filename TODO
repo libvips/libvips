@@ -17,33 +17,6 @@
   we must insist vector.length == 2 or bands * 2 for complex, or have the
   current behaviour of imaginary == 0 always
 
-- try:
-
-	$ vips draw_smudge
-	usage:
-	   draw_smudge image ink left top width height
-	blur a rectangle on an image
-	where:
-	   image        - Image to draw on, input VipsImage
-	   ink          - Colour for pixels, input VipsArrayDouble
-	   left         - Rect to fill, input gint
-	   top          - Rect to fill, input gint
-	   width        - Rect to fill, input gint
-	   height       - Rect to fill, input gint
-
-  nice if we could hide the "ink" param
-
-  also for 
-
-	draw_image
-	draw_line_user
-
-  we could either move ink to the other operations or make a new subclass of
-  draw containing the ink arg
-
-
-
-
 
 - try
 

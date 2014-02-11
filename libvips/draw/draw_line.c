@@ -61,10 +61,9 @@
 
 #include <vips/vips.h>
 
-#include "pdraw.h"
 #include "draw_line.h"
 
-G_DEFINE_TYPE( VipsDrawLine, vips_draw_line, VIPS_TYPE_DRAW );
+G_DEFINE_TYPE( VipsDrawLine, vips_draw_line, VIPS_TYPE_DRAWINK );
 
 static int
 vips_draw_line_draw( VipsDrawLine *line )
@@ -248,11 +247,13 @@ static int
 vips_draw_line_plot_point( VipsDrawLine *line, int x, int y ) 
 {
 	VipsDraw *draw = (VipsDraw *) line;
+	VipsDrawink *drawink = (VipsDrawink *) line;
 
 	if( draw->noclip )
-		vips__draw_pel( draw, VIPS_IMAGE_ADDR( draw->image, x, y ) );
+		vips__drawink_pel( drawink, 
+			VIPS_IMAGE_ADDR( draw->image, x, y ) );
 	else
-		vips__draw_pel_clip( draw, x, y );
+		vips__drawink_pel_clip( drawink, x, y );
 
 	return( 0 );
 }
