@@ -1,4 +1,16 @@
 
+- it was quick ..
+
+	$ time vips-7.38 vips im_label_regions ~/pics/babe.jpg x.v
+	196640
+	real	0m0.189s
+	user	0m0.173s
+	sys	0m0.031s
+
+  now incredibly slow
+
+  add a operation-name -> gtype cache?
+
 - nip2 make check is failing
 
 - ink to vec etc. should work for complex .. output or accept a double-length 
@@ -51,6 +63,20 @@
   an arg ... these args should be in a separate section, I guess?
 
   put description first
+
+  should be:
+
+	$ vips getpoint
+	read a point from an image
+	usage:
+	   getpoint in x y
+	prints:
+	   out-array
+	where:
+	   in           - Input image, input VipsImage
+	   out-array    - Array of output values, output VipsArrayDouble
+	   x            - Getpoint to read from, input gint
+	   y            - Getpoint to read from, input gint
 
 
 
