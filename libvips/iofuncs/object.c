@@ -349,7 +349,13 @@ vips_argument_instance_free( VipsArgumentInstance *argument_instance )
 VipsArgument *
 vips__argument_table_lookup( VipsArgumentTable *table, GParamSpec *pspec )
 {
-	return( g_hash_table_lookup( table, pspec ) );
+	VipsArgument *argument;
+
+	g_mutex_lock( vips__global_lock );
+	argument = (VipsArgument *) g_hash_table_lookup( table, pspec );
+	g_mutex_unlock( vips__global_lock );
+
+	return( argument );
 }
 
 static void
@@ -1400,6 +1406,7 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 	GParamSpec *pspec, VipsArgumentFlags flags, int priority, guint offset )
 {
 	VipsArgumentClass *argument_class = g_new( VipsArgumentClass, 1 );
+	GSList *argument_table_traverse;
 
 #ifdef DEBUG
 	printf( "vips_object_class_install_argument: %p %s %s\n", 
@@ -1408,10 +1415,13 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 		g_param_spec_get_name( pspec ) );
 #endif /*DEBUG*/
 
+	/* object_class->argument* is shared, so we must lock.
+	 */
+	g_mutex_lock( vips__global_lock );
+
 	/* Must be a new one.
 	 */
-	g_assert( !vips__argument_table_lookup( object_class->argument_table,
-		pspec ) );
+	g_assert( !g_hash_table_lookup( object_class->argument_table, pspec ) );
 
 	/* Mustn't have INPUT and OUTPUT both set.
 	 */
@@ -1444,10 +1454,21 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 			G_TYPE_FROM_CLASS( object_class );
 	}
 
-	object_class->argument_table_traverse = g_slist_prepend(
-		object_class->argument_table_traverse, argument_class );
-	object_class->argument_table_traverse = g_slist_sort(
-		object_class->argument_table_traverse, traverse_sort );
+	/* We read argument_table_traverse without a lock (eg. see 
+	 * vips_argument_map()), so we must be very careful updating it.
+	 */
+	argument_table_traverse = 
+		g_slist_copy( object_class->argument_table_traverse );
+
+	argument_table_traverse = g_slist_prepend(
+		argument_table_traverse, argument_class );
+	argument_table_traverse = g_slist_sort(
+		argument_table_traverse, traverse_sort );
+	VIPS_SWAP( GSList *, 
+		argument_table_traverse, 
+		object_class->argument_table_traverse ); 
+
+	g_slist_free( argument_table_traverse );  
 
 #ifdef DEBUG
 {
@@ -1467,6 +1488,8 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 	}
 }
 #endif /*DEBUG*/
+
+	g_mutex_unlock( vips__global_lock );
 }
 
 static void

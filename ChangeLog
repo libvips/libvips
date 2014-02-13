@@ -1,5 +1,7 @@
 13/2/14 started 7.38.4
 - --sharpen=none option to vipsthumbnail was broken, thanks ferryfax
+- more locking on property create and lookup to help very-threaded systems,
+  thanks Nick 
 
 22/1/14 started 7.38.3
 - undeprecate VIPS_MASK_IDEAL_HIGHPASS and friends, ruby-vips was using them,
