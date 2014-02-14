@@ -548,6 +548,9 @@ vips__draw_flood_direct( VipsImage *image, VipsImage *test,
 	}
 
 	((VipsDraw *) flood)->image = image;
+	g_object_ref( image ); 
+	((VipsDraw *) flood)->lsize = VIPS_IMAGE_SIZEOF_LINE( image );
+	((VipsDraw *) flood)->psize = VIPS_IMAGE_SIZEOF_PEL( image );
 
 	if( !(((VipsDrawink *) flood)->pixel_ink = VIPS_ARRAY( flood, 
 		VIPS_IMAGE_SIZEOF_PEL( image ), VipsPel )) ) {
@@ -556,12 +559,16 @@ vips__draw_flood_direct( VipsImage *image, VipsImage *test,
 	}
 	*((int *) (((VipsDrawink *) flood)->pixel_ink)) = serial; 
 
+	flood->x = x;
+	flood->y = y;
 	flood->test = test;
+	g_object_ref( test ); 
+	flood->equal = TRUE;
 	flood->tsize = VIPS_IMAGE_SIZEOF_PEL( test );
-	flood->left = flood->x;
-	flood->top = flood->y;
-	flood->right = flood->x;
-	flood->bottom = flood->y;
+	flood->left = x;
+	flood->top = y;
+	flood->right = x;
+	flood->bottom = y;
 	flood->in = buffer_build();
 	flood->out = buffer_build();
 

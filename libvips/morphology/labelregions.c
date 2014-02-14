@@ -88,12 +88,7 @@ vips_labelregions_build( VipsObject *object )
 	for( y = 0; y < t[1]->Ysize; y++ ) {
 		for( x = 0; x < t[1]->Xsize; x++ ) {
 			if( !m[x] ) {
-				/*
-				if( vips_draw_flood1( t[1], serial, x, y,
-					"test", in,
-					"equal", TRUE,
-					NULL ) )
-					return( -1 ); 
+				/* Use a direct path for speed.
 				 */
 				if( vips__draw_flood_direct( t[1], in, 
 					serial, x, y ) )

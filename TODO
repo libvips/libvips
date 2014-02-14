@@ -1,10 +1,6 @@
-- add a direct route to flood for label_regions, delay speeding up operation
-  dispatch for now, seems like a large job
+- break vipsflood into a separate struct we can use directly
 
-  a direct path can also avoid things like vector_to_ink, which involve
-  running a pipeline to generate a single pixel
-
-  almost working
+  same for draw_mask
 
 - it was quick ..
 
@@ -14,9 +10,13 @@
 	user	0m0.173s
 	sys	0m0.031s
 
-  now incredibly slow
+  best now:
 
-  can we speed up function dispatch at all?
+	$ time vips labelregions babe.jpg x.v
+	real	0m3.951s
+	user	0m3.940s
+	sys	0m0.032s
+
 
 - ink to vec etc. should work for complex .. output or accept a double-length 
   vector
