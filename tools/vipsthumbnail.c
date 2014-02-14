@@ -608,15 +608,15 @@ thumbnail_write( VipsImage *im, const char *filename )
 static int
 thumbnail_process( VipsObject *process, const char *filename )
 {
+	VipsImage *sharpen = thumbnail_sharpen( process );
+
 	VipsImage *in;
 	VipsInterpolate *interp;
-	VipsImage *sharpen;
 	VipsImage *thumbnail;
 	VipsImage *crop;
 
 	if( !(in = thumbnail_open( process, filename )) ||
 		!(interp = thumbnail_interpolator( process, in )) ||
-		!(sharpen = thumbnail_sharpen( process )) ||
 		!(thumbnail = 
 			thumbnail_shrink( process, in, interp, sharpen )) ||
 		!(crop = thumbnail_crop( process, thumbnail )) ||
