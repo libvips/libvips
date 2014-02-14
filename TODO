@@ -1,3 +1,10 @@
+- add a direct route to flood for label_regions, delay speeding up operation
+  dispatch for now, seems like a large job
+
+  a direct path can also avoid things like vector_to_ink, which involve
+  running a pipeline to generate a single pixel
+
+  almost working
 
 - it was quick ..
 

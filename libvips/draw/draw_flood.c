@@ -518,6 +518,68 @@ vips_draw_flood_init( VipsDrawFlood *draw_flood )
 {
 }
 
+/* Direct path to flood for vips_labelregions(). We need to avoid the function
+ * dispatch system for speed.
+ *
+ * Equivalent to:
+ *
+ * vips_draw_flood1( image, serial, x, y,
+ *       "test", test,
+ *       "equal", TRUE,
+ *       NULL )
+ *
+ * image must be 1-band int. 
+ */
+int
+vips__draw_flood_direct( VipsImage *image, VipsImage *test, 
+	int serial, int x, int y )
+{
+	VipsDrawFlood *flood = (VipsDrawFlood *) 
+		vips_operation_new( "draw_flood" );
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( flood ); 
+
+	if( vips_check_format( class->nickname, image, VIPS_FORMAT_INT ) ||
+		vips_check_mono( class->nickname, image ) ||
+		vips_check_coding_known( class->nickname, test ) ||
+		vips_check_size_same( class->nickname, test, image ) ||
+		vips_image_wio_input( test ) ) { 
+		g_object_unref( flood );
+		return( -1 );
+	}
+
+	((VipsDraw *) flood)->image = image;
+
+	if( !(((VipsDrawink *) flood)->pixel_ink = VIPS_ARRAY( flood, 
+		VIPS_IMAGE_SIZEOF_PEL( image ), VipsPel )) ) {
+		g_object_unref( flood );
+		return( -1 ); 
+	}
+	*((int *) (((VipsDrawink *) flood)->pixel_ink)) = serial; 
+
+	flood->test = test;
+	flood->tsize = VIPS_IMAGE_SIZEOF_PEL( test );
+	flood->left = flood->x;
+	flood->top = flood->y;
+	flood->right = flood->x;
+	flood->bottom = flood->y;
+	flood->in = buffer_build();
+	flood->out = buffer_build();
+
+	if( !(flood->edge = 
+		(VipsPel *) im_malloc( flood, flood->tsize )) ) {
+		g_object_unref( flood );
+		return( -1 );
+	}
+	memcpy( flood->edge, 
+		VIPS_IMAGE_ADDR( test, x, y ), flood->tsize );
+
+	vips_draw_flood_all( flood );
+
+	g_object_unref( flood );
+
+	return( 0 ); 
+}
+
 static int
 vips_draw_floodv( VipsImage *image, 
 	double *ink, int n, int x, int y, va_list ap )
