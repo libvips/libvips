@@ -126,6 +126,10 @@ static guint vips_object_signals[SIG_LAST] = { 0 };
 
 int _vips__argument_id = 1;
 
+/* Keep a cache of nickname -> GType lookups.
+ */
+static GHashTable *vips__object_nickname_table = NULL;
+
 G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
 
 void
@@ -2391,15 +2395,67 @@ vips_class_find( const char *basename, const char *nickname )
 	return( class );
 }
 
+static void *
+vips_class_add_hash( VipsObjectClass *class, GHashTable *table )
+{
+	GType type = G_OBJECT_CLASS_TYPE( class );
+
+	/* If this is not a unique name, store -1 for the GType. In this case
+	 * we'll need to fall back to a search.
+	 */
+	if( g_hash_table_lookup( table, (void *) class->nickname ) ) {
+		g_hash_table_insert( table, 
+			(void *) class->nickname, GINT_TO_POINTER( -1 ) );
+#ifdef DEBUG
+		printf( "vips_class_add_hash: duplicate nickname %s\n", 
+			class->nickname );
+#endif /*DEBUG*/
+	}
+	else
+		g_hash_table_insert( table, 
+			(void *) class->nickname, GINT_TO_POINTER( type ) );
+
+	return( NULL ); 
+}
+
+static void *
+vips_class_build_hash( void )
+{
+	GHashTable *table;
+	GType base;
+
+	table = g_hash_table_new( g_str_hash, g_str_equal );
+
+	if( !(base = g_type_from_name( "VipsObject" )) )
+		return( NULL );
+	vips_class_map_all( base, 
+		(VipsClassMapFn) vips_class_add_hash, (void *) table );
+
+	return( table ); 
+}
+
 GType
 vips_type_find( const char *basename, const char *nickname )
 {
-	VipsObjectClass *class;
+	static GOnce once = G_ONCE_INIT;
 
-	if( !(class = vips_class_find( basename, nickname )) )
-		return( 0 );
+	GType type;
 
-	return( G_OBJECT_CLASS_TYPE( class ) );
+	vips__object_nickname_table = (GHashTable *) g_once( &once, 
+		(GThreadFunc) vips_class_build_hash, NULL ); 
+
+	type = GPOINTER_TO_INT( g_hash_table_lookup( 
+		vips__object_nickname_table, (void *) nickname ) );
+	if( !type ||
+		type == -1 ) {
+		VipsObjectClass *class;
+
+		if( !(class = vips_class_find( basename, nickname )) )
+			return( 0 );
+		type = G_OBJECT_CLASS_TYPE( class );
+	}
+
+	return( type );
 }
 
 /* The vips_object_local() macro uses this as its callback.

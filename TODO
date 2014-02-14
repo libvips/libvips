@@ -9,9 +9,7 @@
 
   now incredibly slow
 
-  add a operation-name -> gtype cache?
-
-- nip2 make check is failing
+  can we speed up function dispatch at all?
 
 - ink to vec etc. should work for complex .. output or accept a double-length 
   vector
