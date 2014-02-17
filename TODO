@@ -1,22 +1,3 @@
-- break vipsflood into a separate struct we can use directly
-
-  same for draw_mask
-
-- it was quick ..
-
-	$ time vips-7.38 vips im_label_regions ~/pics/babe.jpg x.v
-	196640
-	real	0m0.189s
-	user	0m0.173s
-	sys	0m0.031s
-
-  best now:
-
-	$ time vips labelregions babe.jpg x.v
-	real	0m3.951s
-	user	0m3.940s
-	sys	0m0.032s
-
 
 - ink to vec etc. should work for complex .. output or accept a double-length 
   vector
