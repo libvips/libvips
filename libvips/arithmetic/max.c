@@ -447,7 +447,7 @@ vips_max_class_init( VipsMaxClass *class )
 		_( "Number of maximum values to find" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMax, size ),
-		0, 1000000, 10 );
+		1, 1000000, 10 );
 
 	VIPS_ARG_BOXED( class, "out_array", 6, 
 		_( "Output array" ), 

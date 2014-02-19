@@ -67,19 +67,6 @@
 
 
 
-- try:
-
-	$ vips max babe.v --x-array --size 0
-	Segmentation fault (core dumped)
-
-- try:
-
-	im = VIPS::Image.new(ARGV[0])
-	mask = im.less(240)
-	columns, rows = mask.project
-
-  with wtc.jpg, segv if libvips is compiled with -O, OK without
-
 - need to do mosaicing 
 
 - now vips_linear() has uchar output, can we do something with orc?

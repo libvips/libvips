@@ -450,7 +450,7 @@ vips_min_class_init( VipsMinClass *class )
 		_( "Number of minimum values to find" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMin, size ),
-		0, 1000000, 10 );
+		1, 1000000, 10 );
 
 	VIPS_ARG_BOXED( class, "out_array", 6, 
 		_( "Output array" ), 
