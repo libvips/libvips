@@ -7,6 +7,6 @@ libmorphology_la_SOURCES = \
 	rank.c \
 	hitmiss.c \
 	morph.c \
-	im_label_regions.c 
+	labelregions.c 
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

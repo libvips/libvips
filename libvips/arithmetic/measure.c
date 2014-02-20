@@ -68,7 +68,7 @@
 
 #include "statistic.h"
 
-typedef struct _VipsStats {
+typedef struct _VipsMeasure {
 	VipsOperation parent_instance;
 
 	VipsImage *in;

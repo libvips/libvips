@@ -68,6 +68,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include <vips/vips.h>
@@ -86,7 +87,7 @@ typedef struct _VipsInsert {
 	int x;
 	int y;
 	gboolean expand;
-	VipsArea *background;
+	VipsArrayDouble *background;
 
 	/* Pixel we paint calculated from background.
 	 */
@@ -213,42 +214,157 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 VipsPel *
 vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 {
-	VipsImage **t;
+	/* Run out pipeline relative to this.
+	 */
+	VipsImage *context = vips_image_new(); 
+
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( context ), 6 );
+
+	VipsBandFormat format;
+	int bands; 
 	double *ones;
+	VipsPel *result;
 	int i;
 
 #ifdef VIPS_DEBUG
 	printf( "vips__vector_to_ink: starting\n" );
 #endif /*VIPS_DEBUG*/
 
-	if( vips_check_vector( domain, n, im ) )
-		return( NULL );
-
-	/* This looks a bit dodgy, but the pipeline we are creating does not
-	 * depend upon im, so it's OK to make t depend on im.
+	/* We need to know the bands and format we are matching to. But im may
+	 * be coded, so simulate decoding. We can't call vips_image_decode()
+	 * on im, since vips__vector_to_ink() needs to be able to work during
+	 * im's construction and im may not be ready yet.
 	 */
-	t = (VipsImage **) vips_object_local_array( VIPS_OBJECT( im ), 4 );
+	if( im->Coding == VIPS_CODING_LABQ ) {
+		bands = 3;
+		format = VIPS_FORMAT_SHORT;
+	}
+	else if( im->Coding == VIPS_CODING_RAD ) {
+		bands = 3;
+		format = VIPS_FORMAT_FLOAT;
+	}
+	else {
+		bands = im->Bands;
+		format = im->BandFmt;
+	}
+
 	ones = VIPS_ARRAY( im, n, double );
 	for( i = 0; i < n; i++ )
 		ones[i] = 1.0;
 
-	if( vips_black( &t[0], 1, 1, "bands", im->Bands, NULL ) ||
-		vips_linear( t[0], &t[1], ones, vec, n, NULL ) || 
-		vips_cast( t[1], &t[2], im->BandFmt, NULL ) || 
-		!(t[3] = vips_image_new_mode( "vtoi", "t" )) ||
-		vips_image_write( t[2], t[3] ) )
+	/* Cast vec to match the decoded image.
+	 */
+	if( vips_black( &t[1], 1, 1, "bands", bands, NULL ) ||
+		vips_linear( t[1], &t[2], ones, vec, n, NULL ) || 
+		vips_cast( t[2], &t[3], format, NULL ) ) {
+		g_object_unref( context );
 		return( NULL );
+	}
+
+	/* And now recode the vec to match the original im.
+	 */
+	if( vips_image_encode( t[3], &t[4], im->Coding ) || 
+		!(t[5] = vips_image_new_buffer()) ||
+		vips_image_write( t[4], t[5] ) ) {
+		g_object_unref( context );
+		return( NULL );
+	}
+
+	if( !(result = 
+		VIPS_ARRAY( im, VIPS_IMAGE_SIZEOF_PEL( t[5] ), VipsPel )) ) {
+		g_object_unref( context );
+		return( NULL );
+	}
+
+	g_assert( VIPS_IMAGE_SIZEOF_PEL( t[5] ) == 
+		VIPS_IMAGE_SIZEOF_PEL( im ) ); 
+
+	memcpy( result, t[5]->data, VIPS_IMAGE_SIZEOF_PEL( im ) ); 
+
+	g_object_unref( context );
 
 #ifdef VIPS_DEBUG
 {
-	VipsPel *p = (VipsPel *) (t[3]->data);
+	int i;
 
-	printf( "vips__vector_to_ink: ink = %p (%d %d %d)\n",
-		p, p[0], p[1], p[2] ); 
+	printf( "vips__vector_to_ink:\n" );
+	printf( "\tvec = " ); 
+	for( i = 0; i < n; i++ )
+		printf( "%d ", vec[i] );
+	printf( "\n" ); 
+	printf( "\tink = " ); 
+	for( i = 0; i < VIPS_IMAGE_SIZEOF_PEL( im ); i++ )
+		printf( "%d ", result[i] );
+	printf( "\n" ); 
 }
 #endif /*VIPS_DEBUG*/
 
-	return( (VipsPel *) t[3]->data );
+	return( result ); 
+}
+
+/* The inverse: take ink to a vec of double. Used in the vips7 compat
+ * wrappers. Result valid while im is valid. 
+ */
+double *
+vips__ink_to_vector( const char *domain, VipsImage *im, VipsPel *ink, int *n )
+{
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( im ), 6 );
+
+	double *result;
+
+#ifdef VIPS_DEBUG
+	printf( "vips__ink_to_vector: starting\n" );
+#endif /*VIPS_DEBUG*/
+
+	/* Wrap a VipsImage around ink.
+	 */
+	t[0] = vips_image_new_from_memory( ink, 
+		1, 1, VIPS_IMAGE_SIZEOF_PEL( im ), VIPS_FORMAT_UCHAR );
+	if( vips_copy( t[0], &t[1], 
+		"bands", im->Bands, 
+		"format", im->BandFmt, 
+		"coding", im->Coding, 
+		"interpretation", im->Type, 
+		NULL ) )
+		return( NULL ); 
+
+	/* The image may be coded .. unpack to double.
+	 */
+	if( vips_image_decode( t[1], &t[2] ) ||
+		vips_cast( t[2], &t[3], VIPS_FORMAT_DOUBLE, NULL ) )
+		return( NULL );
+
+	/* To a mem buffer, then copy to out. 
+	 */
+	if( !(t[4] = vips_image_new_buffer()) ||
+		vips_image_write( t[3], t[4] ) )
+		return( NULL ); 
+
+	if( !(result = VIPS_ARRAY( im, t[4]->Bands, double )) )
+		return( NULL ); 
+	memcpy( result, t[4]->data, VIPS_IMAGE_SIZEOF_PEL( t[4] ) ); 
+	*n = t[4]->Bands; 
+
+#ifdef VIPS_DEBUG
+{
+	int i;
+
+	printf( "vips__ink_to_vector:\n" );
+	printf( "\tink = " ); 
+	for( i = 0; i < n; i++ )
+		printf( "%d ", ink[i] );
+	printf( "\n" ); 
+
+	printf( "\tvec = " ); 
+	for( i = 0; i < *n; i++ )
+		printf( "%d ", result[i] );
+	printf( "\n" ); 
+}
+#endif /*VIPS_DEBUG*/
+
+	return( result ); 
 }
 
 static int

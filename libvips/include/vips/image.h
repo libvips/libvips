@@ -431,6 +431,7 @@ int vips_image_write( VipsImage *image, VipsImage *out );
 int vips_image_write_to_file( VipsImage *image, const char *filename );
 
 int vips_image_decode( VipsImage *in, VipsImage **out );
+int vips_image_encode( VipsImage *in, VipsImage **out, VipsCoding coding );
 
 gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );

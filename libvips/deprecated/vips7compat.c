@@ -4498,6 +4498,23 @@ im_cntlines( VipsImage *im, double *nolines, int flag )
 		NULL ) );
 }
 
+int
+im_label_regions( IMAGE *test, IMAGE *mask, int *segments )
+{
+	VipsImage *x;
+
+	if( vips_labelregions( test, &x, "segments", segments, NULL ) )
+		return( -1 );
+
+	if( im_copy( x, mask ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
 int 
 im_rank( IMAGE *in, IMAGE *out, int width, int height, int index )
 {
@@ -4520,4 +4537,254 @@ im_rank_raw( IMAGE *in, IMAGE *out, int width, int height, int index )
 {
 	im_error( "im_rank_raw", "no compat function" );
 	return( -1 );
+}
+
+int
+im_draw_circle( VipsImage *image, 
+	int x, int y, int radius, gboolean fill, VipsPel *ink )
+{
+	double *vec;
+	int n;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_circle", image, ink, &n )) )
+		return( -1 ); 
+
+	return( vips_draw_circle( image, vec, n, x, y, radius,
+		"fill", fill,
+		NULL ) ); 
+}
+
+int 
+im_draw_line( VipsImage *image, int x1, int y1, int x2, int y2, VipsPel *ink )
+{
+	double *vec;
+	int n;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_line", image, ink, &n )) )
+		return( -1 ); 
+
+	return( vips_draw_line( image, vec, n, x1, y1, x2, y2, NULL ) ); 
+}
+
+int 
+im_draw_line_user( VipsImage *image, 
+	int x1, int y1, int x2, int y2, 
+	VipsPlotFn plot, void *a, void *b, void *c )
+{
+	return( vips_draw_line_user( image, x1, y1, x2, y2, 
+		plot, a, b, c, NULL ) ); 
+}
+
+int
+im_draw_mask( VipsImage *image, VipsImage *mask_im, int x, int y, VipsPel *ink )
+{
+	double *vec;
+	int n;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_mask", image, ink, &n )) )
+		return( -1 ); 
+
+	return( vips_draw_mask( image, vec, n, mask_im, x, y, NULL ) ); 
+}
+
+int
+im_draw_image( VipsImage *image, VipsImage *sub, int x, int y )
+{
+	return( vips_draw_image( image, sub, x, y, NULL ) ); 
+}
+
+int
+im_draw_rect( IMAGE *image, 
+	int left, int top, int width, int height, int fill, VipsPel *ink )
+{
+	double *vec;
+	int n;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_rect", image, ink, &n )) )
+		return( -1 ); 
+
+	return( vips_draw_rect( image, vec, n, left, top, width, height,
+		"fill", fill, 
+		NULL ) ); 
+}
+
+int
+im_draw_point( VipsImage *image, int x, int y, VipsPel *ink )
+{
+	double *vec;
+	int n;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_rect", image, ink, &n )) )
+		return( -1 ); 
+
+	return( vips_draw_point( image, vec, n, x, y, NULL ) ); 
+}
+
+int
+im_draw_smudge( VipsImage *im, int left, int top, int width, int height )
+{
+	return( vips_draw_smudge( im, left, top, width, height, NULL ) ); 
+}
+
+int
+im_read_point( VipsImage *image, int x, int y, VipsPel *ink )
+{
+	double *vector;
+	int n;
+	VipsPel *pixel_vector;
+
+	if( vips_getpoint( image, &vector, &n, x, y, NULL ) )
+		return( -1 );
+
+	if( !(pixel_vector = vips__vector_to_ink( "im_read_point", 
+		image, vector, n )) ) {
+		g_free( vector );
+		return( -1 );
+	}
+
+	memcpy( ink, pixel_vector, VIPS_IMAGE_SIZEOF_PEL( image ) ); 
+
+	g_free( vector );
+
+	return( 0 );
+}
+
+int
+im_draw_flood( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
+{
+	double *vec;
+	int n;
+	int left;
+	int top;
+	int width;
+	int height;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_flood", image, ink, &n )) )
+		return( -1 ); 
+
+	if( vips_draw_flood( image, vec, n, x, y,
+		"left", &left,
+		"top", &top,
+		"width", &width,
+		"height", &height,
+		NULL ) )
+		return( -1 ); 
+
+	if( dout ) { 
+		dout->left = left; 
+		dout->top = top; 
+		dout->width = width; 
+		dout->height = height; 
+	}
+
+	return( 0 ); 
+}
+
+int
+im_draw_flood_blob( IMAGE *image, int x, int y, VipsPel *ink, Rect *dout )
+{
+	double *vec;
+	int n;
+	int left;
+	int top;
+	int width;
+	int height;
+
+	if( !(vec = vips__ink_to_vector( "im_draw_flood", image, ink, &n )) )
+		return( -1 ); 
+
+	if( vips_draw_flood( image, vec, n, x, y,
+		"equal", TRUE,
+		"left", &left,
+		"top", &top,
+		"width", &width,
+		"height", &height,
+		NULL ) )
+		return( -1 ); 
+
+	if( dout ) { 
+		dout->left = left; 
+		dout->top = top; 
+		dout->width = width; 
+		dout->height = height; 
+	}
+
+	return( 0 ); 
+}
+
+int
+im_draw_flood_other( IMAGE *image, 
+	IMAGE *test, int x, int y, int serial, Rect *dout )
+{
+	int left;
+	int top;
+	int width;
+	int height;
+
+	if( vips_draw_flood1( image, serial, x, y,
+		"test", test,
+		"equal", TRUE,
+		"left", &left,
+		"top", &top,
+		"width", &width,
+		"height", &height,
+		NULL ) )
+		return( -1 ); 
+
+	if( dout ) { 
+		dout->left = left; 
+		dout->top = top; 
+		dout->width = width; 
+		dout->height = height; 
+	} 
+
+	return( 0 ); 
+}
+
+int
+im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
+	int n, int *x1v, int *y1v, int *x2v, int *y2v )
+{
+	Rect mask_rect;
+	int i;
+
+	if( mask->Bands != 1 || mask->BandFmt != IM_BANDFMT_UCHAR ||
+		mask->Coding != IM_CODING_NONE ) {
+		im_error( "im_lineset", 
+			"%s", _( "mask image not 1 band 8 bit uncoded" ) );
+		return( -1 );
+	}
+	if( ink->Bands != in->Bands || ink->BandFmt != in->BandFmt ||
+		ink->Coding != in->Coding ) {
+		im_error( "im_lineset", 
+			"%s", _( "ink image does not match in image" ) );
+		return( -1 );
+	}
+	if( ink->Xsize != 1 || ink->Ysize != 1 ) {
+		im_error( "im_lineset", "%s", _( "ink image not 1x1 pixels" ) );
+		return( -1 );
+	}
+
+	/* Copy the image then fastline to it ... this will render to a "t"
+	 * usually.
+	 */
+	if( im_copy( in, out ) )
+		return( -1 );
+
+	mask_rect.left = mask->Xsize / 2;
+	mask_rect.top = mask->Ysize / 2;
+	mask_rect.width = mask->Xsize;
+	mask_rect.height = mask->Ysize;
+
+	if( im_incheck( ink ) ||
+		im_incheck( mask ) )
+		return( -1 );
+
+	for( i = 0; i < n; i++ ) {
+		if( im_fastlineuser( out, x1v[i], y1v[i], x2v[i], y2v[i], 
+			im_plotmask, ink->data, mask->data, &mask_rect ) )
+			return( -1 );
+	}
+
+	return( 0 );
 }

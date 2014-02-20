@@ -18,6 +18,8 @@
  * 	- deprecate im_smear()
  * 30/1/12
  * 	- back to the custom smear, the conv one was too slow
+ * 11/2/14
+ * 	- redo as a class
  */
 
 /*
@@ -56,32 +58,43 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
-/**
- * im_draw_smudge:
- * @image: image to smudge
- * @left: area to smudge
- * @top: area to smudge
- * @width: area to smudge
- * @height: area to smudge
- *
- * Smudge a section of @image. Each pixel in the area @left, @top, @width,
- * @height is replaced by the average of the surrounding 3x3 pixels. 
- *
- * This an inplace operation, so @image is changed. It does not thread and will
- * not work well as part of a pipeline. On 32-bit machines it will be limited
- * to 2GB images.
- *
- * See also: im_draw_line().
- *
- * Returns: 0 on success, or -1 on error.
- */
-int
-im_draw_smudge( VipsImage *im, int left, int top, int width, int height )
+#include "pdraw.h"
+
+typedef struct _VipsDrawSmudge {
+	VipsDraw parent_object;
+
+	/* Parameters.
+	 */
+	int left;
+	int top;
+	int width;
+	int height;
+
+} VipsDrawSmudge;
+
+typedef struct _VipsDrawSmudgeClass {
+	VipsDrawClass parent_class;
+
+} VipsDrawSmudgeClass; 
+
+G_DEFINE_TYPE( VipsDrawSmudge, vips_draw_smudge, VIPS_TYPE_DRAW );
+
+static int
+vips_draw_smudge_build( VipsObject *object )
 {
+	VipsDraw *draw = VIPS_DRAW( object );
+	VipsImage *im = draw->image; 
+	VipsDrawSmudge *smudge = (VipsDrawSmudge *) object;
+	int left = smudge->left;
+	int top = smudge->top;
+	int width = smudge->width;
+	int height = smudge->height;
+
 	/* Double bands for complex images.
 	 */
-	int bands = vips_image_get_bands( im ) * 
+	int bands = vips_image_get_bands( draw->image ) * 
 		(vips_band_format_iscomplex( vips_image_get_format( im ) ) ? 
 		 	2 : 1);
 	int elements = bands * vips_image_get_width( im );
@@ -89,6 +102,10 @@ im_draw_smudge( VipsImage *im, int left, int top, int width, int height )
 	VipsRect area, image, clipped;
 	double *total;
 	int x, y, i, j, b;
+
+	if( VIPS_OBJECT_CLASS( vips_draw_smudge_parent_class )->
+		build( object ) )
+		return( -1 );
 
 	area.left = left;
 	area.top = top;
@@ -107,13 +124,12 @@ im_draw_smudge( VipsImage *im, int left, int top, int width, int height )
 	if( vips_rect_isempty( &clipped ) )
 		return( 0 );
 
-	if( !(total = VIPS_ARRAY( im, bands, double )) ||
-		im_rwcheck( im ) )
+	if( !(total = VIPS_ARRAY( im, bands, double )) )
 		return( -1 );
 
 /* What we do for each type.
  */
-#define SMUDGE(TYPE) \
+#define SMUDGE( TYPE ) \
 	for( y = 0; y < clipped.height; y++ ) { \
 		TYPE *q; \
 		TYPE *p; \
@@ -162,4 +178,82 @@ im_draw_smudge( VipsImage *im, int left, int top, int width, int height )
 	}
 
 	return( 0 );
+}
+
+static void
+vips_draw_smudge_class_init( VipsDrawSmudgeClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "draw_smudge";
+	vobject_class->description = _( "blur a rectangle on an image" );
+	vobject_class->build = vips_draw_smudge_build;
+
+	VIPS_ARG_INT( class, "left", 6, 
+		_( "Left" ), 
+		_( "Rect to fill" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsDrawSmudge, left ),
+		-1000000000, 1000000000, 0 );
+
+	VIPS_ARG_INT( class, "top", 7, 
+		_( "top" ), 
+		_( "Rect to fill" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsDrawSmudge, top ),
+		-1000000000, 1000000000, 0 );
+
+	VIPS_ARG_INT( class, "width", 8, 
+		_( "width" ), 
+		_( "Rect to fill" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsDrawSmudge, width ),
+		-1000000000, 1000000000, 0 );
+
+	VIPS_ARG_INT( class, "height", 9, 
+		_( "height" ), 
+		_( "Rect to fill" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsDrawSmudge, height ),
+		-1000000000, 1000000000, 0 );
+
+}
+
+static void
+vips_draw_smudge_init( VipsDrawSmudge *draw_smudge )
+{
+}
+
+/**
+ * vips_draw_smudge:
+ * @image: image to draw on
+ * @left: point to paint
+ * @top: point to paint
+ * @width: area to paint
+ * @height: area to paint
+ *
+ * Smudge a section of @image. Each pixel in the area @left, @top, @width,
+ * @height is replaced by the average of the surrounding 3x3 pixels. 
+ *
+ * See also: vips_draw_line().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
+int
+vips_draw_smudge( VipsImage *image, 
+	int left, int top, int width, int height, ... ) 
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, height );
+	result = vips_call_split( "draw_smudge", ap, 
+		image, left, top, width, height ); 
+	va_end( ap );
+
+	return( result );
 }

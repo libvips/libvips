@@ -21,7 +21,7 @@ SUBDIRS = \
 	$(C_COMPILE_DIR) \
 	freqfilt \
 	histogram \
-	inplace \
+	draw \
 	iofuncs \
 	morphology \
 	mosaicing \
@@ -54,7 +54,7 @@ libvips_la_LIBADD = \
 	foreign/libforeign.la \
 	freqfilt/libfreqfilt.la \
 	histogram/libhistogram.la \
-	inplace/libinplace.la \
+	draw/libdraw.la \
 	iofuncs/libiofuncs.la \
 	morphology/libmorphology.la \
 	mosaicing/libmosaicing.la \

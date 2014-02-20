@@ -76,8 +76,8 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 /* Flatten with black background.
  */
 #define VIPS_FLATTEN_BLACK( TYPE, MAX ) { \
-	TYPE *p = (TYPE *) in; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * restrict p = (TYPE *) in; \
+	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
 		TYPE alpha = p[bands - 1]; \
@@ -94,18 +94,56 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 /* Flatten with any background.
  */
 #define VIPS_FLATTEN( TYPE, MAX ) { \
-	TYPE *p = (TYPE *) in; \
-	TYPE *q = (TYPE *) out; \
+	TYPE * restrict p = (TYPE *) in; \
+	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
 		TYPE alpha = p[bands - 1]; \
 		TYPE nalpha = (MAX) - alpha; \
-		TYPE *bg = (TYPE *) flatten->ink; \
+		TYPE * restrict bg = (TYPE *) flatten->ink; \
 		int b; \
 		\
 		for( b = 0; b < bands - 1; b++ ) \
 			q[b] = (p[b] * alpha) / (MAX) + \
 				(bg[b] * nalpha) / (MAX); \
+		\
+		p += bands; \
+		q += bands - 1; \
+	} \
+}
+
+/* Same, but with float arithmetic. Necessary for int/uint to prevent
+ * overflow.
+ */
+#define VIPS_FLATTEN_BLACK_FLOAT( TYPE, MAX ) { \
+	TYPE * restrict p = (TYPE *) in; \
+	TYPE * restrict q = (TYPE *) out; \
+	\
+	for( x = 0; x < width; x++ ) { \
+		TYPE alpha = p[bands - 1]; \
+		int b; \
+		\
+		for( b = 0; b < bands - 1; b++ ) \
+			q[b] = ((double) p[b] * alpha) / (MAX); \
+		\
+		p += bands; \
+		q += bands - 1; \
+	} \
+}
+
+#define VIPS_FLATTEN_FLOAT( TYPE, MAX ) { \
+	TYPE * restrict p = (TYPE *) in; \
+	TYPE * restrict q = (TYPE *) out; \
+	\
+	for( x = 0; x < width; x++ ) { \
+		TYPE alpha = p[bands - 1]; \
+		TYPE nalpha = (MAX) - alpha; \
+		TYPE * restrict bg = (TYPE *) flatten->ink; \
+		int b; \
+		\
+		for( b = 0; b < bands - 1; b++ ) \
+			q[b] = ((double) p[b] * alpha) / (MAX) + \
+				((double) bg[b] * nalpha) / (MAX); \
 		\
 		p += bands; \
 		q += bands - 1; \
@@ -151,19 +189,19 @@ vips_flatten_black_gen( VipsRegion *or, void *vseq, void *a, void *b,
 			break; 
 
 		case VIPS_FORMAT_UINT: 
-			VIPS_FLATTEN_BLACK( unsigned int, UINT_MAX ); 
+			VIPS_FLATTEN_BLACK_FLOAT( unsigned int, UINT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 
-			VIPS_FLATTEN_BLACK( signed int, INT_MAX ); 
+			VIPS_FLATTEN_BLACK_FLOAT( signed int, INT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
-			VIPS_FLATTEN_BLACK( float, 1.0 ); 
+			VIPS_FLATTEN_BLACK_FLOAT( float, 1.0 ); 
 			break; 
 
 		case VIPS_FORMAT_DOUBLE: 
-			VIPS_FLATTEN_BLACK( double, 1.0 ); 
+			VIPS_FLATTEN_BLACK_FLOAT( double, 1.0 ); 
 			break; 
 
 		case VIPS_FORMAT_COMPLEX: 
@@ -217,19 +255,19 @@ vips_flatten_gen( VipsRegion *or, void *vseq, void *a, void *b,
 			break; 
 
 		case VIPS_FORMAT_UINT: 
-			VIPS_FLATTEN( unsigned int, UINT_MAX ); 
+			VIPS_FLATTEN_FLOAT( unsigned int, UINT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 
-			VIPS_FLATTEN( signed int, INT_MAX ); 
+			VIPS_FLATTEN_FLOAT( signed int, INT_MAX ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
-			VIPS_FLATTEN( float, 1.0 ); 
+			VIPS_FLATTEN_FLOAT( float, 1.0 ); 
 			break; 
 
 		case VIPS_FORMAT_DOUBLE: 
-			VIPS_FLATTEN( double, 1.0 ); 
+			VIPS_FLATTEN_FLOAT( double, 1.0 ); 
 			break; 
 
 		case VIPS_FORMAT_COMPLEX: 

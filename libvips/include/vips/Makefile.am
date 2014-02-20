@@ -16,7 +16,7 @@ pkginclude_HEADERS = \
 	operation.h \
 	format.h \
 	foreign.h \
-	inplace.h \
+	draw.h \
 	generate.h \
 	header.h \
 	histogram.h \

@@ -373,6 +373,13 @@
    fun:rb_file_expand_path
 }
 
+{
+   ruby5
+   Memcheck:Value8
+   ...
+   fun:rb_enc_str_new
+}
+
 
 
 

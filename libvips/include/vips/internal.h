@@ -259,15 +259,19 @@ int *im_offsets45( int size );
 int im_conv_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
 int im_convsep_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
 
-/* inplace
+/* draw
  */
 
 VipsPel *vips__vector_to_ink( const char *domain, 
 	VipsImage *im, double *vec, int n );
+double *vips__ink_to_vector( const char *domain, 
+	VipsImage *im, VipsPel *ink, int *n ); 
+
 VipsPel *im__vector_to_ink( const char *domain, 
 	VipsImage *im, int n, double *vec );
-VipsImage *im__inplace_base( const char *domain, 
-	VipsImage *main, VipsImage *sub, VipsImage *out );
+
+int vips__draw_flood_direct( VipsImage *image, VipsImage *test, 
+	int serial, int x, int y );
 
 /* Register base vips interpolators, called during startup.
  */
@@ -289,6 +293,7 @@ void vips_freqfilt_operation_init( void );
 void vips_create_operation_init( void );
 void vips_morphology_operation_init( void );
 void vips_convolution_operation_init( void );
+void vips_draw_operation_init( void );
 
 guint64 vips__parse_size( const char *size_string );
 

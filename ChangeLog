@@ -3,7 +3,11 @@
 - background render thread cleans up and quits neatly
 - colourspace has a source_space option
 - operations can be tagged as "deprecated"
+- redo im_draw_circle(), im_draw_flood(), im_draw_line(), im_draw_mask(),
+  im_draw_image(), im_draw_rect(), im_draw_point(), im_read_point(),
+  im_draw_smudge(), im_label_regions() as classes
 - better rounding in vips_flatten()
+- VipsStatistic operations are sequential
 
 13/2/14 started 7.38.4
 - --sharpen=none option to vipsthumbnail was broken, thanks ferryfax
