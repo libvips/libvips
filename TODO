@@ -14,6 +14,14 @@
   we must insist vector.length == 2 or bands * 2 for complex, or have the
   current behaviour of imaginary == 0 always
 
+  no, vips_linear() is better the way it is now, if we had to have different
+  constants for complex images, we'd need to add an extra path to all uses of
+  vips_linear() ... better to make a vips_linearc() (or whatever) that takes
+  an explicitly complex constant
+
+  maybe an optional arg to linear with the imaginary components of the
+  constant? that would work for draw as well
+
 
 
 
