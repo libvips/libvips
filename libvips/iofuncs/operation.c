@@ -119,30 +119,67 @@ vips_operation_dispose( GObject *gobject )
 	G_OBJECT_CLASS( vips_operation_parent_class )->dispose( gobject );
 }
 
-/* What to show about the argument.
+/* Three basic types of command-line argument. 
+ *
+ * INPUTS: things like an input image, there is a filename argument on the
+ * command-line which is used to construct the operation argument.
+ *
+ * NOARG_OUTPUT: things like the result of VipsMax, there's no correspondiong
+ * command-line argument, we just print the value.
+ *
+ * OPTIONS: optional arguments.
+ *
+ * NONE: hide this thing.
  */
+
+typedef enum {
+	USAGE_INPUTS,
+	USAGE_NOARG_OUTPUT,
+	USAGE_OPTIONS,
+	USAGE_NONE
+} UsageType; 
+
 typedef struct {
 	char *message;		/* header message on first print */
-	gboolean required;	/* show required args or optional */
-	gboolean oftype;	/* "is of type" message */
+	UsageType type; 	/* Type of arg to select */
+	gboolean oftype;	/* Show as "of type" */
 	int n;			/* Arg number */
 } VipsOperationClassUsage;
+
+/* Put an arg into one the categories above.
+ */
+static UsageType
+vips_operation_class_usage_classify( VipsArgumentClass *argument_class )
+{
+	if( !(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
+		(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) 
+		return( USAGE_NONE ); 
+
+	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) )
+		return( USAGE_OPTIONS ); 
+
+	if( vips_argument_class_needsstring( argument_class ) )
+		return( USAGE_INPUTS ); 
+
+	if( (argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
+		!vips_argument_class_needsstring( argument_class ) )
+		return( USAGE_NOARG_OUTPUT ); 
+
+	return( USAGE_NONE ); 
+}
 
 static void *
 vips_operation_class_usage_arg( VipsObjectClass *object_class, 
 	GParamSpec *pspec, VipsArgumentClass *argument_class,
 	VipsBuf *buf, VipsOperationClassUsage *usage )
 {
-	/* Only show construct args ... others are internal.
-	 */
-	if( usage->required == 
-		((argument_class->flags & VIPS_ARGUMENT_REQUIRED) != 0) &&
-		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) { 
-		if( usage->message && usage->n == 0 ) 
+	if( usage->type == 
+		vips_operation_class_usage_classify( argument_class ) ) { 
+		if( usage->message && 
+			usage->n == 0 ) 
 			vips_buf_appendf( buf, "%s\n", usage->message );
 
-		if( usage->oftype ) {
+		if( usage->oftype ) 
 			vips_buf_appendf( buf, "   %-12s - %s, %s %s\n",
 				g_param_spec_get_name( pspec ), 
 				g_param_spec_get_blurb( pspec ), 
@@ -150,11 +187,11 @@ vips_operation_class_usage_arg( VipsObjectClass *object_class,
 					_( "input" ) : _( "output" ),
 				g_type_name( 
 					G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
-		}
 		else {
-			if( usage->n > 0 )
-				vips_buf_appends( buf, " " );
-			vips_buf_appends( buf, g_param_spec_get_name( pspec ) );
+				if( usage->n > 0 )
+					vips_buf_appends( buf, " " );
+				vips_buf_appends( buf, 
+					g_param_spec_get_name( pspec ) );
 		}
 
 		usage->n += 1;
@@ -170,11 +207,14 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 
 	VipsOperationClassUsage usage;
 
+	vips_buf_appendf( buf, "%s\n", object_class->description );
+	vips_buf_appendf( buf, "usage:\n" ); 
+
 	/* First pass through args: show the required names.
 	 */
 	vips_buf_appendf( buf, "   %s ", object_class->nickname );
 	usage.message = NULL;
-	usage.required = TRUE;
+	usage.type = USAGE_INPUTS;
 	usage.oftype = FALSE;
 	usage.n = 0;
 	vips_argument_class_map( object_class,
@@ -182,12 +222,21 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 			buf, &usage );
 	vips_buf_appends( buf, "\n" );
 
-	vips_buf_appendf( buf, "%s\n", object_class->description );
-
 	/* Show required types.
 	 */
 	usage.message = "where:";
-	usage.required = TRUE;
+	usage.type = USAGE_INPUTS;
+	usage.oftype = TRUE;
+	usage.n = 0;
+	vips_argument_class_map( object_class,
+		(VipsArgumentClassMapFn) vips_operation_class_usage_arg, 
+			buf, &usage );
+
+	/* Show outputs with no input arg (eg. output maximum value for
+	 * vips_max()).
+	 */
+	usage.message = "outputs:";
+	usage.type = USAGE_NOARG_OUTPUT;
 	usage.oftype = TRUE;
 	usage.n = 0;
 	vips_argument_class_map( object_class,
@@ -197,7 +246,7 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 	/* Show optional args.
 	 */
 	usage.message = "optional arguments:";
-	usage.required = FALSE;
+	usage.type = USAGE_OPTIONS;
 	usage.oftype = TRUE;
 	usage.n = 0;
 	vips_argument_class_map( object_class,
@@ -367,8 +416,7 @@ vips_operation_class_print_usage( VipsOperationClass *operation_class )
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
 	operation_class->usage( operation_class, &buf );
-	printf( "%s", _( "usage:" ) );
-	printf( "\n%s", vips_buf_all( &buf ) );
+	printf( "%s", vips_buf_all( &buf ) );
 }
 
 VipsOperation *

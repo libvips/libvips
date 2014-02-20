@@ -304,6 +304,7 @@ typedef void *(*VipsArgumentClassMapFn)( VipsObjectClass *, GParamSpec *,
 	VipsArgumentClass *, void *a, void *b );
 void *vips_argument_class_map( VipsObjectClass *object_class, 
 	VipsArgumentClassMapFn fn, void *a, void *b );
+gboolean vips_argument_class_needsstring( VipsArgumentClass *argument_class );
 int vips_object_get_argument( VipsObject *object, const char *name,
 	GParamSpec **pspec,
 	VipsArgumentClass **argument_class,

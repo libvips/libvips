@@ -472,6 +472,40 @@ vips_argument_class_map( VipsObjectClass *object_class,
 	return( NULL );
 }
 
+/* Does an vipsargument need an argument to write to? For example, an image
+ * output needs a filename, a double output just prints.
+ */
+gboolean
+vips_argument_class_needsstring( VipsArgumentClass *argument_class )
+{
+	GParamSpec *pspec = ((VipsArgument *) argument_class)->pspec;
+
+	GType otype;
+	VipsObjectClass *oclass;
+
+	if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) 
+		/* Bools, input or output, don't need args.
+		 */
+		return( FALSE );
+
+	if( argument_class->flags & VIPS_ARGUMENT_INPUT ) 
+		/* All other inputs need something.
+		 */
+		return( TRUE );
+
+	/* Just output objects.
+	 */
+
+	if( (otype = G_PARAM_SPEC_VALUE_TYPE( pspec )) &&
+		g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
+		(oclass = g_type_class_ref( otype )) )
+		/* For now, only vipsobject subclasses can ask for args.
+		 */
+		return( oclass->output_needs_arg );
+	else
+		return( FALSE );
+}
+
 /* Create a VipsArgumentInstance for each installed argument property. Ideally
  * we'd do this during _init() but g_object_class_find_property() does not seem
  * to work then :-( so we have to delay it until first access. See
@@ -1766,8 +1800,6 @@ vips_object_argument_needsstring( VipsObject *object, const char *name )
 	GParamSpec *pspec;
 	VipsArgumentClass *argument_class;
 	VipsArgumentInstance *argument_instance;
-	GType otype;
-	VipsObjectClass *oclass;
 
 #ifdef DEBUG
 	printf( "vips_object_argument_needsstring: %s\n", name );
@@ -1777,27 +1809,7 @@ vips_object_argument_needsstring( VipsObject *object, const char *name )
 		&pspec, &argument_class, &argument_instance ) )
 		return( -1 );
 
-	if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) 
-		/* Bools, input or output, don't need args.
-		 */
-		return( FALSE );
-
-	if( argument_class->flags & VIPS_ARGUMENT_INPUT ) 
-		/* All other inputs need something.
-		 */
-		return( TRUE );
-
-	/* Just output objects.
-	 */
-
-	if( (otype = G_PARAM_SPEC_VALUE_TYPE( pspec )) &&
-		g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
-		(oclass = g_type_class_ref( otype )) )
-		/* For now, only vipsobject subclasses can ask for args.
-		 */
-		return( oclass->output_needs_arg );
-	else
-		return( FALSE );
+	return( vips_argument_class_needsstring( argument_class ) ); 
 }
 
 static void
