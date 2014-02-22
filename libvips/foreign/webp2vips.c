@@ -202,34 +202,44 @@ read_image( Read *read, VipsImage *out )
 	if( vips_image_write_prepare( t[0] ) ) 
 		return( -1 );
 
-	if( !(fd = vips__open_image_read( read->filename )) )
-		return( -1 );
-	if( (length = vips_file_length( fd )) < 0 ) {
-		vips_tracked_close( fd ); 
-		return( -1 );
-	}
-	if( !(data = vips__mmap( fd, FALSE, length, 0 )) ) {
-		vips_tracked_close( fd ); 
-		return( -1 );
-	}
-
 	if( t[0]->Bands == 3 )
 		decoder = WebPDecodeRGBInto;
 	else
 		decoder = WebPDecodeRGBAInto;
 
-	if( !decoder( (uint8_t *) data, length, 
-		VIPS_IMAGE_ADDR( t[0], 0, 0 ), 
-		VIPS_IMAGE_SIZEOF_IMAGE( t[0] ),
-		VIPS_IMAGE_SIZEOF_LINE( t[0] ) ) ) { 
+	if (read->filename) {
+		if( !(fd = vips__open_image_read( read->filename )) )
+			return( -1 );
+		if( (length = vips_file_length( fd )) < 0 ) {
+			vips_tracked_close( fd ); 
+			return( -1 );
+		}
+		if( !(data = vips__mmap( fd, FALSE, length, 0 )) ) {
+			vips_tracked_close( fd ); 
+			return( -1 );
+		}
+
+		if( !decoder( (uint8_t *) data, length, 
+			VIPS_IMAGE_ADDR( t[0], 0, 0 ), 
+			VIPS_IMAGE_SIZEOF_IMAGE( t[0] ),
+			VIPS_IMAGE_SIZEOF_LINE( t[0] ) ) ) { 
+				vips__munmap( data, length ); 
+				vips_tracked_close( fd ); 
+				vips_error( "webp2vips", "%s", _( "unable to read pixels" ) ); 
+			return( -1 );
+		}
 		vips__munmap( data, length ); 
 		vips_tracked_close( fd ); 
-		vips_error( "webp2vips", "%s", _( "unable to read pixels" ) ); 
-		return( -1 );
 	}
-
-	vips__munmap( data, length ); 
-	vips_tracked_close( fd ); 
+	else {
+		if( !decoder( (uint8_t *) read->buf, read->len, 
+			VIPS_IMAGE_ADDR( t[0], 0, 0 ), 
+			VIPS_IMAGE_SIZEOF_IMAGE( t[0] ),
+			VIPS_IMAGE_SIZEOF_LINE( t[0] ) ) ) { 
+				vips_error( "webp2vips", "%s", _( "unable to read pixels" ) ); 
+			return( -1 );
+		}
+	}
 
 	if( vips_image_write( t[0], out ) )
 		return( -1 );
