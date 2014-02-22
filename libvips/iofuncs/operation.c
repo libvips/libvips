@@ -712,7 +712,7 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 	VIPS_DEBUG_MSG( "vips_call_split: starting for %s ...\n", 
 		operation_name );
 
-	if( !(operation = vips_operation_new( operation_name ) ) )
+	if( !(operation = vips_operation_new( operation_name )) )
 		return( -1 );
 
 	va_start( required, optional );

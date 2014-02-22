@@ -185,6 +185,12 @@ int vips_linear( VipsImage *in, VipsImage **out,
 	__attribute__((sentinel));
 int vips_linear1( VipsImage *in, VipsImage **out, double a, double b, ... )
 	__attribute__((sentinel));
+int vips_linear_complex( VipsImage *in, VipsImage **out, 
+	double *a, double *a_imag, double *b, double *b_imag, int n, ... )
+	__attribute__((sentinel));
+int vips_linear_complex1( VipsImage *in, VipsImage **out, 
+	double a, double a_imag, double b, double b_imag, ... )
+	__attribute__((sentinel));
 int vips_remainder( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_remainder_const( VipsImage *in, VipsImage **out, 

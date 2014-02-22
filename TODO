@@ -1,26 +1,11 @@
 
-- ink to vec etc. should work for complex .. output or accept a double-length 
-  vector
+- ink to vec etc must have a way to give a complex constant
 
-  needs to work for eg. vips_linear() as well
+  eg. drawink needs a --ink_imag option with the imaginary components of the 
+  ink
 
-  if vector.len is == bands, expand to complex by setting imaginary == 0
-  if vector.len == bands * 2, set imaginary from constant
-  if vector.len == 1, bandup with imaginary == 0
-  if vector.len == 2, bandup setting imaginary from vector
-
-  what about bands == 2? ambigious
-
-  we must insist vector.length == 2 or bands * 2 for complex, or have the
-  current behaviour of imaginary == 0 always
-
-  no, vips_linear() is better the way it is now, if we had to have different
-  constants for complex images, we'd need to add an extra path to all uses of
-  vips_linear() ... better to make a vips_linearc() (or whatever) that takes
-  an explicitly complex constant
-
-  maybe an optional arg to linear with the imaginary components of the
-  constant? that would work for draw as well
+  look for uses of vips__vector_to_ink() and add extra params to other places
+  too, eg. vips_embed(), vips_insert() etc. 
 
 
 
@@ -63,19 +48,6 @@
   file
 
 - use g_log() instead of vips_info()?
-
-- object construction is threadsafe, but class construction is not
-
-  https://github.com/jcupitt/libvips/issues/64
-
-  we worked around this by adding vips_class_ping_all() to dsave build, but
-  this is not a good fix
-
-  find out why vips class construct fails, test on seurat, kirk's 24-core
-  monster
-
-
-
 
 
 - quadratic doesn't work for order 3
