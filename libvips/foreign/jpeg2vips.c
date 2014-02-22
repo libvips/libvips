@@ -1068,6 +1068,10 @@ init_source (j_decompress_ptr cinfo)
   src->start_of_file = TRUE;
 }
 
+/* Buffer containing fake EOI marker, used by fill_input_buffer.
+ */
+const static JOCTET EOI_BUFFER[1] = { JPEG_EOI };
+
 /*
  * Fill the input buffer --- called whenever buffer is emptied.
  *
@@ -1105,22 +1109,18 @@ static boolean
 fill_input_buffer (j_decompress_ptr cinfo)
 {
   InputBuffer *src = (InputBuffer *) cinfo->src;
-  size_t nbytes;
 
   if (src->start_of_file) {
-    nbytes = src->len;
+    src->pub.next_input_byte = src->buf;
+    src->pub.bytes_in_buffer = src->len;
+    src->start_of_file = FALSE;
   }
   else {
     WARNMS(cinfo, JWRN_JPEG_EOF);
     /* Insert a fake EOI marker */
-    src->buf[0] = (JOCTET) 0xFF;
-    src->buf[1] = (JOCTET) JPEG_EOI;
-    nbytes = 2;
+    src->pub.next_input_byte = EOI_BUFFER;
+    src->pub.bytes_in_buffer = 1;
   }
-
-  src->pub.next_input_byte = src->buf;
-  src->pub.bytes_in_buffer = nbytes;
-  src->start_of_file = FALSE;
 
   return TRUE;
 }
