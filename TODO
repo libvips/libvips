@@ -7,6 +7,10 @@
   look for uses of vips__vector_to_ink() and add extra params to other places
   too, eg. vips_embed(), vips_insert() etc. 
 
+- vips__ink_to_vector() needs an optional imag return
+
+- vips_getpoint() needs an optional imag return
+
 
 
 - need to do mosaicing 

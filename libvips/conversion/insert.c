@@ -209,12 +209,13 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 }
 
 /* Calculate a pixel for an image from a vec of double. Valid while im is
- * valid.
+ * valid. imag can be NULL, meaning all zero for the imaginary component.
  */
 VipsPel *
-vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
+vips__vector_to_ink( const char *domain, 
+	VipsImage *im, double *real, double *imag, int n )
 {
-	/* Run out pipeline relative to this.
+	/* Run our pipeline relative to this.
 	 */
 	VipsImage *context = vips_image_new(); 
 
@@ -256,7 +257,8 @@ vips__vector_to_ink( const char *domain, VipsImage *im, double *vec, int n )
 	/* Cast vec to match the decoded image.
 	 */
 	if( vips_black( &t[1], 1, 1, "bands", bands, NULL ) ||
-		vips_linear( t[1], &t[2], ones, vec, n, NULL ) || 
+		vips_linear_complex( t[1], &t[2], 
+			ones, ones, real, imag, n, NULL ) || 
 		vips_cast( t[2], &t[3], format, NULL ) ) {
 		g_object_unref( context );
 		return( NULL );
@@ -438,7 +440,7 @@ vips_insert_build( VipsObject *object )
 
 	if( !(insert->ink = vips__vector_to_ink( 
 		class->nickname, conversion->out,
-		insert->background->data, insert->background->n )) )
+		insert->background->data, NULL, insert->background->n )) )
 		return( -1 );
 
 	if( vips_image_generate( conversion->out,

@@ -261,9 +261,8 @@ int im_convsep_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
 
 /* draw
  */
-
 VipsPel *vips__vector_to_ink( const char *domain, 
-	VipsImage *im, double *vec, int n );
+	VipsImage *im, double *real, double *imag, int n );
 double *vips__ink_to_vector( const char *domain, 
 	VipsImage *im, VipsPel *ink, int *n ); 
 

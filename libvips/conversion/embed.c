@@ -362,7 +362,7 @@ vips_embed_build( VipsObject *object )
 
 	if( !(embed->ink = vips__vector_to_ink( 
 		class->nickname, embed->in,
-		embed->background->data, embed->background->n )) )
+		embed->background->data, NULL, embed->background->n )) )
 		return( -1 );
 
 	if( !vips_object_argument_isset( object, "extend" ) &&

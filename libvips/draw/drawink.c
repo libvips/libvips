@@ -64,9 +64,9 @@ vips_drawink_build( VipsObject *object )
 		return( -1 );
 
 	if( drawink->ink &&
-		!(drawink->pixel_ink = vips__vector_to_ink( 
-			class->nickname, draw->image,
-			drawink->ink->data, drawink->ink->n )) )
+		!(drawink->pixel_ink = vips__vector_to_ink( class->nickname, 
+			draw->image,
+			drawink->ink->data, NULL, drawink->ink->n )) )
 		return( -1 );
 
 	return( 0 );

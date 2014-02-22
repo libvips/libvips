@@ -4637,7 +4637,7 @@ im_read_point( VipsImage *image, int x, int y, VipsPel *ink )
 		return( -1 );
 
 	if( !(pixel_vector = vips__vector_to_ink( "im_read_point", 
-		image, vector, n )) ) {
+		image, vector, NULL, n )) ) {
 		g_free( vector );
 		return( -1 );
 	}

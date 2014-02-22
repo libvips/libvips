@@ -334,9 +334,10 @@ vips_flatten_build( VipsObject *object )
 	else {
 		/* Convert the background to the image's format.
 		 */
-		if( !(flatten->ink = vips__vector_to_ink( 
-			class->nickname, conversion->out,
-			flatten->background->data, flatten->background->n )) )
+		if( !(flatten->ink = vips__vector_to_ink( class->nickname, 
+			conversion->out, 
+			flatten->background->data, NULL, 
+				flatten->background->n )) )
 			return( -1 );
 
 		if( vips_image_generate( conversion->out,
