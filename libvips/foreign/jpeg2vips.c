@@ -1115,12 +1115,12 @@ fill_input_buffer (j_decompress_ptr cinfo)
   if (src->start_of_file) {
     src->pub.next_input_byte = src->buf;
     src->pub.bytes_in_buffer = src->len;
+    src->start_of_file = FALSE;
   }
   else {
     WARNMS(cinfo, JWRN_JPEG_EOF);
     src->pub.next_input_byte = eoi_buffer;
     src->pub.bytes_in_buffer = 2;
-    src->start_of_file = FALSE;
   }
 
   return TRUE;
