@@ -1,3 +1,6 @@
+24/2/14 started 7.38.5
+- jpeg load from buffer could write to input, thanks Lovell
+
 13/2/14 started 7.38.4
 - --sharpen=none option to vipsthumbnail was broken, thanks ferryfax
 - more locking on property create and lookup to help very-threaded systems,
