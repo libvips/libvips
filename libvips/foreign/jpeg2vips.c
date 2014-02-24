@@ -55,6 +55,8 @@
  * 	- attach IPCT data (app13), thanks Gary
  * 6/7/13
  * 	- null-terminate exif strings, thanks Mike
+ * 24/2/14
+ * 	- don't write to our input buffer, thanks Lovell
  */
 
 /*
@@ -1068,10 +1070,6 @@ init_source (j_decompress_ptr cinfo)
   src->start_of_file = TRUE;
 }
 
-/* Buffer containing fake EOI marker, used by fill_input_buffer.
- */
-const static JOCTET EOI_BUFFER[1] = { JPEG_EOI };
-
 /*
  * Fill the input buffer --- called whenever buffer is emptied.
  *
@@ -1108,6 +1106,10 @@ const static JOCTET EOI_BUFFER[1] = { JPEG_EOI };
 static boolean
 fill_input_buffer (j_decompress_ptr cinfo)
 {
+  static const JOCTET eoi_buffer[4] = {
+    (JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
+  };
+
   InputBuffer *src = (InputBuffer *) cinfo->src;
 
   if (src->start_of_file) {
@@ -1117,9 +1119,8 @@ fill_input_buffer (j_decompress_ptr cinfo)
   }
   else {
     WARNMS(cinfo, JWRN_JPEG_EOF);
-    /* Insert a fake EOI marker */
-    src->pub.next_input_byte = EOI_BUFFER;
-    src->pub.bytes_in_buffer = 1;
+    src->pub.next_input_byte = eoi_buffer;
+    src->pub.bytes_in_buffer = 2;
   }
 
   return TRUE;
