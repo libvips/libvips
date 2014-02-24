@@ -9,6 +9,7 @@
 - better rounding in vips_flatten()
 - VipsStatistic operations are sequential
 - VipsLinear has optional complex constants, added vips_linear_complex() etc. 
+- fix webpload from buffer, thanks Lovell
 
 13/2/14 started 7.38.4
 - --sharpen=none option to vipsthumbnail was broken, thanks ferryfax
