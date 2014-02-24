@@ -63,10 +63,16 @@ vips_drawink_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_drawink_parent_class )->build( object ) )
 		return( -1 );
 
-	if( drawink->ink &&
-		!(drawink->pixel_ink = vips__vector_to_ink( class->nickname, 
-			draw->image,
-			drawink->ink->data, NULL, drawink->ink->n )) )
+	if( drawink->ink_imag &&
+		vips_check_vector_length( class->nickname, 
+			drawink->ink_imag->n, drawink->ink->n ) )
+		return( -1 ); 
+
+	if( !(drawink->pixel_ink = vips__vector_to_ink( class->nickname, 
+		draw->image,
+		drawink->ink->data, 
+		drawink->ink_imag ? drawink->ink_imag->data : NULL, 
+		drawink->ink->n )) )
 		return( -1 );
 
 	return( 0 );
@@ -90,6 +96,13 @@ vips_drawink_class_init( VipsDrawinkClass *class )
 		_( "Colour for pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawink, ink ),
+		VIPS_TYPE_ARRAY_DOUBLE );
+
+	VIPS_ARG_BOXED( class, "ink_imag", 3, 
+		_( "Ink (imaginary)" ), 
+		_( "Imaginary component of ink" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsDrawink, ink_imag ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
 }

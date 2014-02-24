@@ -230,11 +230,14 @@ vips_draw_circlev( VipsImage *image,
  * Optional arguments:
  *
  * @fill: fill the draw_circle
+ * @ink_imag: imaginary component of ink
  *
  * Draws a circle on @image. If @fill is %TRUE then the circle is filled,
  * otherwise a 1-pixel-wide perimeter is drawn.
  *
- * @ink is an array of double containing values to draw. 
+ * @ink is an array of double containing values to draw. If @ink_imag is set,
+ * this is used as the imaginary component of the ink colour for drawing on
+ * complex images. 
  *
  * See also: vips_draw_circle1(), vips_line().
  *
@@ -265,6 +268,7 @@ vips_draw_circle( VipsImage *image,
  * Optional arguments:
  *
  * @fill: fill the draw_circle
+ * @ink_imag: imaginary component of ink
  *
  * As vips_draw_circle(), but just takes a single double for @ink. 
  *

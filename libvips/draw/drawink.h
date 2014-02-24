@@ -56,6 +56,7 @@ typedef struct _VipsDrawink {
 	VipsDraw parent_instance;
 
 	VipsArrayDouble *ink;
+	VipsArrayDouble *ink_imag;
 
 	/* Ink cast to pixel type.
 	 */

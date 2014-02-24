@@ -1,3 +1,18 @@
+- another way: have a VipsArrayComplex and se that for all constants
+
+  have a string->array tranform that accepts
+
+  	1 2 3
+
+  and also
+
+  	(1,2) (2,3) (3,4)
+
+- try:
+
+	vips draw_circle x.v 1 100 100 50 --ink-imag 99 --fill
+
+  we get the 99 right, but lots of leaks
 
 - ink to vec etc must have a way to give a complex constant
 
