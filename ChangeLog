@@ -13,6 +13,8 @@
 
 24/2/14 started 7.38.5
 - jpeg load from buffer could write to input, thanks Lovell
+- fix webpload from buffer, thanks Lovell
+- vips_sequential() could fail under heavy load
 - remove support for seq mode read for operations like extract
 
 13/2/14 started 7.38.4
