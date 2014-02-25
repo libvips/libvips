@@ -1,7 +1,9 @@
 /* read with libwebp
  *
  * 6/8/13
- * 	- from webp2vips.c
+ * 	- from png2vips.c
+ * 24/2/14
+ * 	- oops, buffer path was broken, thanks Lovell
  */
 
 /*
@@ -66,10 +68,15 @@ typedef struct {
 	 */
 	char *filename;
 
-	/* Memory source.
+	/* Memory source. We se gint64 rather than size_t since we use
+	 * vips_file_length() and vips__mmap() for file sources.
 	 */
-	void *buf;
-	size_t len;
+	void *data;
+	gint64 length;
+
+	/* If we are opening a file object, the fd.
+	 */
+	int fd;
 
 	/* Decoder config.
 	 */
@@ -95,43 +102,58 @@ vips__iswebp( const char *filename )
 static int
 read_free( Read *read )
 {
-	VIPS_FREE( read->filename );
 	VIPS_FREEF( WebPIDelete, read->idec );
 	WebPFreeDecBuffer( &read->config.output );
+
+	if( read->fd &&
+		read->data &&
+		read->length ) { 
+		vips__munmap( read->data, read->length ); 
+		read->data = NULL;
+		read->length = 0;
+	}
+
+	VIPS_FREEF( vips_tracked_close, read->fd ); 
+	VIPS_FREE( read->filename );
 	VIPS_FREE( read );
 
 	return( 0 );
 }
 
 static Read *
-read_new( const char *filename, void *buf, size_t len )
+read_new( const char *filename, void *data, size_t length )
 {
 	Read *read;
-	unsigned char header[MINIMAL_HEADER];
 
 	if( !(read = VIPS_NEW( NULL, Read )) )
 		return( NULL );
 
 	read->filename = g_strdup( filename );
-	read->buf = buf;
-	read->len = len;
+	read->data = data;
+	read->length = length;
+	read->fd = 0;
 	read->idec = NULL;
 
-	WebPInitDecoderConfig( &read->config );
-	if( filename ) {
-		if( vips__get_bytes( filename, header, MINIMAL_HEADER ) &&
-			WebPGetFeatures( header, MINIMAL_HEADER, 
-				&read->config.input ) != VP8_STATUS_OK ) {
+	if( read->filename ) { 
+		/* libwebp makes streaming from a file source very hard. We 
+		 * have to read to a full memory buffer, then copy to out.
+		 *
+		 * mmap the input file, it's slightly quicker.
+		 */
+		if( !(read->fd = vips__open_image_read( read->filename )) ||
+			(read->length = vips_file_length( read->fd )) < 0 ||
+			!(read->data = vips__mmap( read->fd, 
+				FALSE, read->length, 0 )) ) {
 			read_free( read );
 			return( NULL );
 		}
 	}
-	else {
-		if( WebPGetFeatures( read->buf, read->len, 
-			&read->config.input ) != VP8_STATUS_OK ) {
-			read_free( read );
-			return( NULL );
-		}
+
+	WebPInitDecoderConfig( &read->config );
+	if( WebPGetFeatures( read->data, MINIMAL_HEADER, 
+		&read->config.input ) != VP8_STATUS_OK ) {
+		read_free( read );
+		return( NULL );
 	}
 
 	if( read->config.input.has_alpha )
@@ -186,50 +208,26 @@ read_image( Read *read, VipsImage *out )
 {
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
-	gint64 length;
-	void *data; 
-	int fd;
 	webp_decoder decoder;
 
-	/* libwebp makes streaming very hard. We have to read to a full memory
-	 * buffer, then copy to out.
-	 *
-	 * mmap the input file, it's slightly quicker.
-	 */
 	t[0] = vips_image_new_buffer();
 	if( read_header( read, t[0] ) )
 		return( -1 );
 	if( vips_image_write_prepare( t[0] ) ) 
 		return( -1 );
 
-	if( !(fd = vips__open_image_read( read->filename )) )
-		return( -1 );
-	if( (length = vips_file_length( fd )) < 0 ) {
-		vips_tracked_close( fd ); 
-		return( -1 );
-	}
-	if( !(data = vips__mmap( fd, FALSE, length, 0 )) ) {
-		vips_tracked_close( fd ); 
-		return( -1 );
-	}
-
 	if( t[0]->Bands == 3 )
 		decoder = WebPDecodeRGBInto;
 	else
 		decoder = WebPDecodeRGBAInto;
 
-	if( !decoder( (uint8_t *) data, length, 
+	if( !decoder( (uint8_t *) read->data, read->length, 
 		VIPS_IMAGE_ADDR( t[0], 0, 0 ), 
 		VIPS_IMAGE_SIZEOF_IMAGE( t[0] ),
 		VIPS_IMAGE_SIZEOF_LINE( t[0] ) ) ) { 
-		vips__munmap( data, length ); 
-		vips_tracked_close( fd ); 
 		vips_error( "webp2vips", "%s", _( "unable to read pixels" ) ); 
 		return( -1 );
 	}
-
-	vips__munmap( data, length ); 
-	vips_tracked_close( fd ); 
 
 	if( vips_image_write( t[0], out ) )
 		return( -1 );
