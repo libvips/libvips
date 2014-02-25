@@ -13,6 +13,7 @@
 
 24/2/14 started 7.38.5
 - jpeg load from buffer could write to input, thanks Lovell
+- remove support for seq mode read for operations like extract
 
 13/2/14 started 7.38.4
 - --sharpen=none option to vipsthumbnail was broken, thanks ferryfax

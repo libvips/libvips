@@ -472,8 +472,6 @@ vips_insert_class_init( VipsInsertClass *class )
 	vobject_class->description = _( "insert an image" );
 	vobject_class->build = vips_insert_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
-
 	VIPS_ARG_IMAGE( class, "main", -1, 
 		_( "Main" ), 
 		_( "Main input image" ),
