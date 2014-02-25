@@ -144,8 +144,8 @@ vips_sequential_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	if( r->top > sequential->y_pos &&
-		sequential->y_pos > 0 ) {
+	if( r->top > sequential->y_pos /* &&
+		sequential->y_pos > 0 */ ) {
 		/* We have started reading (y_pos > 0) and this request is for
 		 * stuff beyond that, stall for a while to give other
 		 * threads time to catch up.

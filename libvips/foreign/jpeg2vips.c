@@ -893,8 +893,8 @@ read_jpeg_generate( VipsRegion *or,
 	int y;
 
 #ifdef DEBUG
-	printf( "read_jpeg_generate: line %d, %d rows\n", 
-		r->top, r->height );
+	printf( "read_jpeg_generate: %p line %d, %d rows\n", 
+		g_thread_self(), r->top, r->height );
 #endif /*DEBUG*/
 
 	VIPS_GATE_START( "read_jpeg_generate: work" );
