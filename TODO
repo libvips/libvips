@@ -1,4 +1,4 @@
-- another way: have a VipsArrayComplex and se that for all constants
+- another way: have a VipsArrayComplex and use that for all constants
 
   have a string->array tranform that accepts
 
@@ -7,6 +7,10 @@
   and also
 
   	(1,2) (2,3) (3,4)
+
+
+  then we need a GType for complex ... is this a good idea? it would mean more
+  wrapping for bindings
 
 - try:
 
