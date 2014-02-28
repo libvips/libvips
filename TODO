@@ -1,3 +1,10 @@
+- vipsthumbnail needs to attach main image metadata to the jpeg header 
+  thumbnail, see:
+
+	  https://github.com/jcupitt/libvips/issues/109
+
+
+
 - think of a better way to support skipahead
 
   extract needs to hint to it's image sources what line it will start reading
