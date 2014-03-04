@@ -1,7 +1,7 @@
 /* load webp images
  *
  * 6/8/13
- * 	- from webpload.c
+ * 	- from pngload.c
  */
 
 /*

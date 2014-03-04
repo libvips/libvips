@@ -180,7 +180,7 @@ sink_memory_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	VipsRect image;
 	VipsRect tile;
 
-	VIPS_DEBUG_MSG( "sink_memory_area_allocate_fn:\n" );
+	VIPS_DEBUG_MSG( "sink_memory_area_allocate_fn: %p\n", g_thread_self() );
 
 	/* Is the state x/y OK? New line or maybe new buffer or maybe even 
 	 * all done.
@@ -231,7 +231,8 @@ sink_memory_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 	 */
 	wstate->area = memory->area;
 
-	VIPS_DEBUG_MSG( "  allocated %d x %d:\n", tile.left, tile.top );
+	VIPS_DEBUG_MSG( "  %p allocated %d x %d:\n", 
+		g_thread_self(), state->pos.left, state->pos.top );
 
 	/* Add to the number of writers on the area.
 	 */
@@ -260,13 +261,13 @@ sink_memory_area_work_fn( VipsThreadState *state, void *a )
 	int result;
 
 	VIPS_DEBUG_MSG( "sink_memory_area_work_fn: %p %d x %d\n", 
-		state, state->pos.left, state->pos.top );
+		g_thread_self(), state->pos.left, state->pos.top );
 
 	result = vips_region_prepare_to( state->reg, memory->region, 
 		&state->pos, state->pos.left, state->pos.top );
 
 	VIPS_DEBUG_MSG( "sink_memory_area_work_fn: %p result = %d\n", 
-		state, result );
+		g_thread_self(), result );
 
 	/* Tell the allocator we're done.
 	 */

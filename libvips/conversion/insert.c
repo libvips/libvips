@@ -257,8 +257,7 @@ vips__vector_to_ink( const char *domain,
 	/* Cast vec to match the decoded image.
 	 */
 	if( vips_black( &t[1], 1, 1, "bands", bands, NULL ) ||
-		vips_linear_complex( t[1], &t[2], 
-			ones, ones, real, imag, n, NULL ) || 
+		vips_linear( t[1], &t[2], ones, real, n, NULL ) || 
 		vips_cast( t[2], &t[3], format, NULL ) ) {
 		g_object_unref( context );
 		return( NULL );
@@ -291,9 +290,9 @@ vips__vector_to_ink( const char *domain,
 	int i;
 
 	printf( "vips__vector_to_ink:\n" );
-	printf( "\tvec = " ); 
+	printf( "\t(real, imag) = " ); 
 	for( i = 0; i < n; i++ )
-		printf( "%d ", vec[i] );
+		printf( "(%g, %g) ", real[i], imag ? imag[i] : 0 );
 	printf( "\n" ); 
 	printf( "\tink = " ); 
 	for( i = 0; i < VIPS_IMAGE_SIZEOF_PEL( im ); i++ )
@@ -461,7 +460,6 @@ vips_insert_class_init( VipsInsertClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_insert_class_init\n" );
 
@@ -471,8 +469,6 @@ vips_insert_class_init( VipsInsertClass *class )
 	vobject_class->nickname = "insert";
 	vobject_class->description = _( "insert an image" );
 	vobject_class->build = vips_insert_build;
-
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "main", -1, 
 		_( "Main" ), 
