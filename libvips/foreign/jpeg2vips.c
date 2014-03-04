@@ -660,8 +660,6 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 	printf( "attach_blob: attaching %d bytes of %s\n", data_length, field );
 #endif /*DEBUG*/
 
-	/* Always attach a copy of the unparsed exif data.
-	 */
 	if( !(data_copy = vips_malloc( NULL, data_length )) )
 		return( -1 );
 	memcpy( data_copy, data, data_length );

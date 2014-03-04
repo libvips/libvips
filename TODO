@@ -1,3 +1,5 @@
+
+
 - vipsthumbnail needs to attach main image metadata to the jpeg header 
   thumbnail, see:
 
