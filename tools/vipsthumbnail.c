@@ -139,11 +139,10 @@ get_angle( VipsImage *im )
 
 	angle = VIPS_ANGLE_0;
 
-	if( vips_image_get_typeof( im, ORIENTATION ) ) {
-		if( vips_image_get_string( im, ORIENTATION, &orientation ) ) {
-			if( vips_isprefix( "6", orientation ) )
-				angle = VIPS_ANGLE_90;
-		}
+	if( vips_image_get_typeof( im, ORIENTATION ) && 
+		!vips_image_get_string( im, ORIENTATION, &orientation ) ) {
+		if( vips_isprefix( "6", orientation ) )
+			angle = VIPS_ANGLE_90;
 	}
 
 	return( angle );
@@ -636,8 +635,7 @@ thumbnail_rotate( VipsObject *process, VipsImage *im )
 			return( NULL ); 
 		im = t[0];
 
-		if( !vips_image_remove( im, ORIENTATION ) )
-			return( NULL ); 
+		(void) vips_image_remove( im, ORIENTATION );
 	}
 
 	return( im );
