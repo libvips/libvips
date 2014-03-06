@@ -1,3 +1,6 @@
+6/3/14 started 7.38.6
+- grey ramp minimum was wrong
+
 24/2/14 started 7.38.5
 - jpeg load from buffer could write to input, thanks Lovell
 - fix webpload from buffer, thanks Lovell
