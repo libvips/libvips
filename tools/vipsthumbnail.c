@@ -42,6 +42,8 @@
  * 	- add --linear option
  * 18/12/13
  * 	- add --crop option
+ * 5/3/14
+ * 	- copy main image metadata to embedded thumbnails, thanks ottob
  */
 
 #ifdef HAVE_CONFIG_H
@@ -189,32 +191,16 @@ thumbnail_find_jpegshrink( VipsImage *im )
 
 #define THUMBNAIL "jpeg-thumbnail-data"
 
-/* Copy a blob from one image to another.
- *
- * We don't make a private copy of the blob, we just copy pointers. Therefore
- * @from must stay alive as long as @to is alive. 
- */
-static int
-copy_blob( VipsImage *from, VipsImage *to, const char *field )
-{
-	if( vips_image_get_typeof( from, field ) ) {
-		void *blob;
-		size_t blob_length;
-
-		if( vips_image_get_blob( from, field, &blob, &blob_length ) )
-			return( -1 );
-		vips_image_set_blob( to, field, NULL, blob, blob_length ); 
-	}
-
-	return( 0 ); 
-}
-
 static void *
-copy_exif_field( VipsImage *from, const char *field, GValue *value, void *a )
+copy_jpeg_field( VipsImage *from, const char *field, GValue *value, void *a )
 {
 	VipsImage *to = (VipsImage *) a;
 
-	if( vips_isprefix( "exif-", field ) ) 
+	if( vips_isprefix( "exif-", field ) || 
+		strcmp( field, VIPS_META_EXIF_NAME ) == 0 || 
+		strcmp( field, VIPS_META_XMP_NAME ) == 0 ||
+		strcmp( field, VIPS_META_IPCT_NAME ) == 0 ||
+		strcmp( field, VIPS_META_ICC_NAME ) == 0 )
 		vips_image_set( to, field, value ); 
 
 	return( NULL ); 
@@ -262,12 +248,7 @@ thumbnail_get_thumbnail( VipsImage *im )
 	/* Copy over the metadata from the main image. We want our thumbnail
 	 * to have the orientation, profile etc. from there.
 	 */
-	if( copy_blob( im, thumb, VIPS_META_EXIF_NAME ) || 
-		copy_blob( im, thumb, VIPS_META_XMP_NAME ) ||
-		copy_blob( im, thumb, VIPS_META_IPCT_NAME ) ||
-		copy_blob( im, thumb, VIPS_META_ICC_NAME ) )
-		return( NULL ); 
-	(void) vips_image_map( im, copy_exif_field, thumb );
+	(void) vips_image_map( im, copy_jpeg_field, thumb );
 
 	vips_info( "vipsthumbnail", "using %dx%d jpeg thumbnail", 
 		thumb->Xsize, thumb->Ysize ); 

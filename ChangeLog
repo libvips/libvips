@@ -8,7 +8,7 @@
   im_draw_smudge(), im_label_regions() as classes
 - better rounding in vips_flatten()
 - VipsStatistic operations are sequential
-- VipsLinear has optional complex constants, added vips_linear_complex() etc. 
+- vipsthumbnail attaches main image metadata to embedded thumbnails
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong
