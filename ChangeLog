@@ -9,6 +9,7 @@
 - better rounding in vips_flatten()
 - VipsStatistic operations are sequential
 - vipsthumbnail attaches main image metadata to embedded thumbnails
+- vipsthumbnail has --rotate auto-rotate option
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

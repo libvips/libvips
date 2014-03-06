@@ -1,18 +1,6 @@
-/* make a test pattern to show the point's frequency response
+/* base class for point-wise creators
  *
- * Copyright: 1990, 1991, N.Dessipris.
- *
- * Author N. Dessipris
- * Written on 30/05/1990
- * Updated on: 27/01/1991, 07/03/1991,
- * 22/7/93 JC
- *	- im_outcheck() added
- * 30/8/95 JC
- *	- modernized
- * 1/2/11
- * 	- gtk-doc
  * 13/6/13
- * 	- redo as a class
  */
 
 /*

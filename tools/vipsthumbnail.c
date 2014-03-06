@@ -59,6 +59,8 @@
 
 #include <vips/vips.h>
 
+#define ORIENTATION ("exif-ifd0-Orientation")
+
 static char *thumbnail_size = "128";
 static int thumbnail_width = 128;
 static int thumbnail_height = 128;
@@ -70,6 +72,7 @@ static char *convolution_mask = "mild";
 static gboolean delete_profile = FALSE;
 static gboolean linear_processing = FALSE;
 static gboolean crop_image = FALSE;
+static gboolean rotate_image = FALSE;
 
 /* Deprecated and unused.
  */
@@ -108,6 +111,9 @@ static GOptionEntry options[] = {
 	{ "crop", 'c', 0, 
 		G_OPTION_ARG_NONE, &crop_image, 
 		N_( "crop exactly to SIZE" ), NULL },
+	{ "rotate", 't', 0, 
+		G_OPTION_ARG_NONE, &rotate_image, 
+		N_( "auto-rotate" ), NULL },
 	{ "delete", 'd', 0, 
 		G_OPTION_ARG_NONE, &delete_profile, 
 		N_( "delete profile from exported image" ), NULL },
@@ -123,6 +129,23 @@ static GOptionEntry options[] = {
 	{ NULL }
 };
 
+static VipsAngle 
+get_angle( VipsImage *im )
+{
+	VipsAngle angle;
+	const char *orientation;
+
+	angle = VIPS_ANGLE_0;
+
+	if( vips_image_get_typeof( im, ORIENTATION ) &&
+		vips_image_get_string( im, ORIENTATION, &orientation ) ) {
+		if( vips_isprefix( "6", orientation ) )
+			angle = VIPS_ANGLE_90;
+	}
+
+	return( angle );
+}
+
 /* Calculate the shrink factors. 
  *
  * We shrink in two stages: first, a shrink with a block average. This can
@@ -130,8 +153,13 @@ static GOptionEntry options[] = {
  * a supplied interpolator to get the exact size we want.
  */
 static int
-calculate_shrink( int width, int height, double *residual )
+calculate_shrink( VipsImage *im, double *residual )
 {
+	VipsAngle angle = get_angle( im ); 
+	gboolean rotate = angle == VIPS_ANGLE_90 || angle == VIPS_ANGLE_270;
+	int width = rotate_image && rotate ? im->Ysize : im->Xsize;
+	int height = rotate_image && rotate ? im->Xsize : im->Ysize;
+
 	/* Calculate the horizontal and vertical shrink we'd need to fit the
 	 * image to the bounding box, and pick the biggest.
 	 *
@@ -171,7 +199,7 @@ calculate_shrink( int width, int height, double *residual )
 static int
 thumbnail_find_jpegshrink( VipsImage *im )
 {
-	int shrink = calculate_shrink( im->Xsize, im->Ysize, NULL );
+	int shrink = calculate_shrink( im, NULL );
 
 	/* We can't use pre-shrunk images in linear mode. libjpeg shrinks in Y
 	 * (of YCbCR), not linear space.
@@ -224,7 +252,7 @@ thumbnail_get_thumbnail( VipsImage *im )
 		return( NULL ); 
 	}
 
-	calculate_shrink( thumb->Xsize, thumb->Ysize, &residual );
+	calculate_shrink( thumb, &residual );
 	if( residual > 1.0 ) { 
 		vips_info( "vipsthumbnail", "jpeg thumbnail too small" ); 
 		g_object_unref( thumb ); 
@@ -340,7 +368,7 @@ thumbnail_interpolator( VipsObject *process, VipsImage *in )
 	double residual;
 	VipsInterpolate *interp;
 
-	calculate_shrink( in->Xsize, in->Ysize, &residual );
+	calculate_shrink( in, &residual );
 
 	/* For images smaller than the thumbnail, we upscale with nearest
 	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
@@ -446,7 +474,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		return( NULL ); 
 	in = t[2];
 
-	shrink = calculate_shrink( in->Xsize, in->Ysize, &residual );
+	shrink = calculate_shrink( in, &residual );
 
 	vips_info( "vipsthumbnail", "integer shrink by %d", shrink );
 
@@ -581,6 +609,22 @@ thumbnail_crop( VipsObject *process, VipsImage *im )
 	return( im );
 }
 
+/* Auto-rotate, if rotate_image is set. 
+ */
+static VipsImage *
+thumbnail_rotate( VipsObject *process, VipsImage *im )
+{
+	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
+
+	if( rotate_image ) {
+		if( vips_rot( im, &t[0], get_angle( im ), NULL ) )
+			return( NULL ); 
+		im = t[0];
+	}
+
+	return( im );
+}
+
 /* Given (eg.) "/poop/somefile.png", write @im to the thumbnail name,
  * (eg.) "/poop/tn_somefile.jpg".
  */
@@ -636,13 +680,15 @@ thumbnail_process( VipsObject *process, const char *filename )
 	VipsInterpolate *interp;
 	VipsImage *thumbnail;
 	VipsImage *crop;
+	VipsImage *rotate;
 
 	if( !(in = thumbnail_open( process, filename )) ||
 		!(interp = thumbnail_interpolator( process, in )) ||
 		!(thumbnail = 
 			thumbnail_shrink( process, in, interp, sharpen )) ||
 		!(crop = thumbnail_crop( process, thumbnail )) ||
-		thumbnail_write( crop, filename ) )
+		!(rotate = thumbnail_rotate( process, crop )) ||
+		thumbnail_write( rotate, filename ) )
 		return( -1 );
 
 	return( 0 );
