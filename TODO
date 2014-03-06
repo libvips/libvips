@@ -1,4 +1,8 @@
-- vipsthumbnail needs an auto-rotate flag
+- we vips_image_remove() orientation, but it gets put back from the exif block
+  on jpegsave
+
+  jpegsave needs to remove again after reconstituting the exif
+
 
 - think of a better way to support skipahead
 

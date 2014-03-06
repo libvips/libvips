@@ -44,6 +44,8 @@
  * 	- add --crop option
  * 5/3/14
  * 	- copy main image metadata to embedded thumbnails, thanks ottob
+ * 6/3/14
+ * 	- add --rotate flag
  */
 
 #ifdef HAVE_CONFIG_H
@@ -137,10 +139,11 @@ get_angle( VipsImage *im )
 
 	angle = VIPS_ANGLE_0;
 
-	if( vips_image_get_typeof( im, ORIENTATION ) &&
-		vips_image_get_string( im, ORIENTATION, &orientation ) ) {
-		if( vips_isprefix( "6", orientation ) )
-			angle = VIPS_ANGLE_90;
+	if( vips_image_get_typeof( im, ORIENTATION ) ) {
+		if( vips_image_get_string( im, ORIENTATION, &orientation ) ) {
+			if( vips_isprefix( "6", orientation ) )
+				angle = VIPS_ANGLE_90;
+		}
 	}
 
 	return( angle );
@@ -237,20 +240,40 @@ copy_jpeg_field( VipsImage *from, const char *field, GValue *value, void *a )
 /* Try to read an embedded thumbnail. 
  */
 static VipsImage *
-thumbnail_get_thumbnail( VipsImage *im )
+thumbnail_get_thumbnail( VipsImage *im, int jpegshrink )
 {
 	void *ptr;
 	size_t size;
 	VipsImage *thumb;
-	double residual;
-	int jpegshrink;
 
 	if( !vips_image_get_typeof( im, THUMBNAIL ) ||
 		vips_image_get_blob( im, THUMBNAIL, &ptr, &size ) ||
-		vips_jpegload_buffer( ptr, size, &thumb, NULL ) ) {
+		vips_jpegload_buffer( ptr, size, &thumb, 
+			"shrink", jpegshrink,
+			NULL ) ) { 
 		vips_info( "vipsthumbnail", "no jpeg thumbnail" ); 
 		return( NULL ); 
 	}
+
+	/* Copy over the metadata from the main image. We want our thumbnail
+	 * to have the orientation, profile etc. from there.
+	 */
+	(void) vips_image_map( im, copy_jpeg_field, thumb );
+
+	return( thumb );
+}
+
+/* Get an embedded thumb with the appropriate shrink.
+ */
+static VipsImage *
+thumbnail_get_thumbnail_shrink( VipsImage *im )
+{
+	VipsImage *thumb;
+	double residual;
+	int jpegshrink;
+
+	if( !(thumb = thumbnail_get_thumbnail( im, 1 )) )
+		return( NULL );
 
 	calculate_shrink( thumb, &residual );
 	if( residual > 1.0 ) { 
@@ -266,17 +289,9 @@ thumbnail_get_thumbnail( VipsImage *im )
 		"loading jpeg thumbnail with factor %d pre-shrink", 
 		jpegshrink );
 	g_object_unref( thumb );
-	if( vips_jpegload_buffer( ptr, size, &thumb, 
-		"shrink", jpegshrink,
-		NULL ) ) {
-		vips_info( "vipsthumbnail", "jpeg thumbnail reload failed" ); 
-		return( NULL ); 
-	}
 
-	/* Copy over the metadata from the main image. We want our thumbnail
-	 * to have the orientation, profile etc. from there.
-	 */
-	(void) vips_image_map( im, copy_jpeg_field, thumb );
+	if( !(thumb = thumbnail_get_thumbnail( im, jpegshrink )) )
+		return( NULL );
 
 	vips_info( "vipsthumbnail", "using %dx%d jpeg thumbnail", 
 		thumb->Xsize, thumb->Ysize ); 
@@ -318,7 +333,7 @@ thumbnail_open( VipsObject *process, const char *filename )
 		/* Try to read an embedded thumbnail. If we find one, use that
 		 * instead.
 		 */
-		if( (thumb = thumbnail_get_thumbnail( im )) ) { 
+		if( (thumb = thumbnail_get_thumbnail_shrink( im )) ) { 
 			/* @thumb has not been fully decoded yet ... 
 			 * we must not close @im
 			 * until we're done with @thumb.
@@ -614,12 +629,15 @@ thumbnail_crop( VipsObject *process, VipsImage *im )
 static VipsImage *
 thumbnail_rotate( VipsObject *process, VipsImage *im )
 {
-	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( process, 1 );
 
 	if( rotate_image ) {
 		if( vips_rot( im, &t[0], get_angle( im ), NULL ) )
 			return( NULL ); 
 		im = t[0];
+
+		if( !vips_image_remove( im, ORIENTATION ) )
+			return( NULL ); 
 	}
 
 	return( im );
