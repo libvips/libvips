@@ -1,11 +1,5 @@
 - vipsthumbnail needs to know about more exif orientation tags
 
-- vipsthumbnail --rotate breaks for embedded thumbnail sources
-
-  embedded thumbnails seems to have had the orientation applied already
-
-  need to not copy orientation tag from main to thumb? is this right for all
-  images?
 
 
 - think of a better way to support skipahead

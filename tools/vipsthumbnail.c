@@ -46,6 +46,9 @@
  * 	- copy main image metadata to embedded thumbnails, thanks ottob
  * 6/3/14
  * 	- add --rotate flag
+ * 7/3/14
+ * 	- remove the embedded thumbnail reader, embedded thumbnails are too
+ * 	  unlike the main image wrt. rotation / colour / etc.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -219,88 +222,7 @@ thumbnail_find_jpegshrink( VipsImage *im )
 		return( 1 );
 }
 
-#define THUMBNAIL "jpeg-thumbnail-data"
-
-static void *
-copy_jpeg_field( VipsImage *from, const char *field, GValue *value, void *a )
-{
-	VipsImage *to = (VipsImage *) a;
-
-	if( vips_isprefix( "exif-", field ) || 
-		strcmp( field, VIPS_META_EXIF_NAME ) == 0 || 
-		strcmp( field, VIPS_META_XMP_NAME ) == 0 ||
-		strcmp( field, VIPS_META_IPCT_NAME ) == 0 ||
-		strcmp( field, VIPS_META_ICC_NAME ) == 0 )
-		vips_image_set( to, field, value ); 
-
-	return( NULL ); 
-}
-
-/* Try to read an embedded thumbnail. 
- */
-static VipsImage *
-thumbnail_get_thumbnail( VipsImage *im, int jpegshrink )
-{
-	void *ptr;
-	size_t size;
-	VipsImage *thumb;
-
-	if( !vips_image_get_typeof( im, THUMBNAIL ) ||
-		vips_image_get_blob( im, THUMBNAIL, &ptr, &size ) ||
-		vips_jpegload_buffer( ptr, size, &thumb, 
-			"shrink", jpegshrink,
-			NULL ) ) { 
-		vips_info( "vipsthumbnail", "no jpeg thumbnail" ); 
-		return( NULL ); 
-	}
-
-	/* Copy over the metadata from the main image. We want our thumbnail
-	 * to have the orientation, profile etc. from there.
-	 */
-	(void) vips_image_map( im, copy_jpeg_field, thumb );
-
-	return( thumb );
-}
-
-/* Get an embedded thumb with the appropriate shrink.
- */
-static VipsImage *
-thumbnail_get_thumbnail_shrink( VipsImage *im )
-{
-	VipsImage *thumb;
-	double residual;
-	int jpegshrink;
-
-	if( !(thumb = thumbnail_get_thumbnail( im, 1 )) )
-		return( NULL );
-
-	calculate_shrink( thumb, &residual );
-	if( residual > 1.0 ) { 
-		vips_info( "vipsthumbnail", "jpeg thumbnail too small" ); 
-		g_object_unref( thumb ); 
-		return( NULL ); 
-	}
-
-	/* Reload with the correct downshrink.
-	 */
-	jpegshrink = thumbnail_find_jpegshrink( thumb );
-	vips_info( "vipsthumbnail", 
-		"loading jpeg thumbnail with factor %d pre-shrink", 
-		jpegshrink );
-	g_object_unref( thumb );
-
-	if( !(thumb = thumbnail_get_thumbnail( im, jpegshrink )) )
-		return( NULL );
-
-	vips_info( "vipsthumbnail", "using %dx%d jpeg thumbnail", 
-		thumb->Xsize, thumb->Ysize ); 
-
-	return( thumb );
-}
-
 /* Open an image, returning the best version of that image for thumbnailing. 
- *
- * jpegs can have embedded thumbnails ... use that if it's large enough.
  *
  * libjpeg supports fast shrink-on-read, so if we have a JPEG, we can ask 
  * VIPS to load a lower resolution version.
@@ -322,45 +244,26 @@ thumbnail_open( VipsObject *process, const char *filename )
 	vips_info( "vipsthumbnail", "selected loader is %s", loader ); 
 
 	if( strcmp( loader, "VipsForeignLoadJpegFile" ) == 0 ) {
-		VipsImage *thumb;
+		int jpegshrink;
 
 		/* This will just read in the header and is quick.
 		 */
 		if( !(im = vips_image_new_from_file( filename )) )
 			return( NULL );
 
-		/* Try to read an embedded thumbnail. If we find one, use that
-		 * instead.
-		 */
-		if( (thumb = thumbnail_get_thumbnail_shrink( im )) ) { 
-			/* @thumb has not been fully decoded yet ... 
-			 * we must not close @im
-			 * until we're done with @thumb.
-			 */
-			vips_object_local( VIPS_OBJECT( thumb ), im );
+		jpegshrink = thumbnail_find_jpegshrink( im );
 
-			im = thumb;
-		}
-		else {
-			int jpegshrink;
+		g_object_unref( im );
 
-			vips_info( "vipsthumbnail", 
-				"processing main jpeg image" );
+		vips_info( "vipsthumbnail", 
+			"loading jpeg with factor %d pre-shrink", 
+			jpegshrink ); 
 
-			jpegshrink = thumbnail_find_jpegshrink( im );
-
-			g_object_unref( im );
-
-			vips_info( "vipsthumbnail", 
-				"loading jpeg with factor %d pre-shrink", 
-				jpegshrink ); 
-
-			if( vips_foreign_load( filename, &im,
-				"access", VIPS_ACCESS_SEQUENTIAL,
-				"shrink", jpegshrink,
-				NULL ) )
-				return( NULL );
-		}
+		if( vips_foreign_load( filename, &im,
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"shrink", jpegshrink,
+			NULL ) )
+			return( NULL );
 	}
 	else {
 		/* All other formats.

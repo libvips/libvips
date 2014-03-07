@@ -10,6 +10,8 @@
 - VipsStatistic operations are sequential
 - vipsthumbnail attaches main image metadata to embedded thumbnails
 - vipsthumbnail has --rotate auto-rotate option
+- removed embedded thumbnail reader from vipsthumbnail: embedded thumbnails
+  are too unlike the main image
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong
