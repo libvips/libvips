@@ -146,6 +146,18 @@ get_angle( VipsImage *im )
 		!vips_image_get_string( im, ORIENTATION, &orientation ) ) {
 		if( vips_isprefix( "6", orientation ) )
 			angle = VIPS_ANGLE_90;
+		else if( vips_isprefix( "8", orientation ) )
+			angle = VIPS_ANGLE_270;
+		else if( vips_isprefix( "3", orientation ) )
+			angle = VIPS_ANGLE_180;
+
+		/* Other values do rotate + mirror, don't bother handling them
+		 * though, how common can mirroring be. 
+		 *
+		 * See:
+		 *
+		 * http://www.80sidea.com/archives/2316
+		 */
 	}
 
 	return( angle );
