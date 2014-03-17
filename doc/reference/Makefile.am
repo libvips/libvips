@@ -78,41 +78,51 @@ IGNORE_VIPS_INCLUDE = \
 	private.h \
 	video.h
 
-# ignore all .h files in libvips/*, theese are internal
+# ignore all .h files in libvips/*, these are internal
 IGNORE_VIPS_C = \
 	binary.h \
-	parithmetic.h \
-	statistic.h \
-	unaryconst.h \
-	unary.h \
-	CImg.h \
-	pcolour.h \
-	bandary.h \
-	pconversion.h \
-	pcreate.h \
-	point.h \
-	analyze2vips.h \
-	csv.h \
-	dbh.h \
-	fits.h \
-	jpeg.h \
 	magick.h \
+	parithmetic.h \
 	matlab.h \
+	statistic.h \
 	openexr2vips.h \
+	unaryconst.h \
 	openslide2vips.h \
+	unary.h \
 	ppm.h \
+	CImg.h \
 	radiance.h \
+	pcolour.h \
 	tiff.h \
+	bandary.h \
+	vipsjpeg.h \
+	pconversion.h \
 	vipspng.h \
-	draw.h \
+	correlation.h \
+	webp.h \
+	pconvolution.h \
+	pfreqfilt.h \
+	pcreate.h \
+	hist_unary.h \
+	pmask.h \
+	phistogram.h \
+	point.h \
 	base64.h \
+	drawink.h \
 	sink.h \
+	draw_line.h \
+	pmorphology.h \
+	pdraw.h \
 	global_balance.h \
+	analyze2vips.h \
 	merge.h \
+	csv.h \
 	mosaic.h \
+	dbh.h \
 	presample.h \
+	fits.h \
 	templates.h \
-	im_video_v4l1.h
+	jpeg.h
 
 IGNORE_HFILES = $(IGNORE_VIPS_INCLUDE) $(IGNORE_VIPS_C)
 

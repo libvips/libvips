@@ -53,7 +53,7 @@
 
 /** 
  * SECTION: create
- * @short_description: create #VipsImage in various ways
+ * @short_description: create images in various ways
  * @stability: Stable
  * @include: vips/vips.h
  *

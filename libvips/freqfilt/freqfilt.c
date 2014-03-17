@@ -50,7 +50,7 @@
 #include "pfreqfilt.h"
 
 /**
- * SECTION: freq_filt
+ * SECTION: freqfilt
  * @short_description: fourier transforms and frequency-domin filters
  * @stability: Stable
  * @see_also: <link linkend="libvips-image">image</link>

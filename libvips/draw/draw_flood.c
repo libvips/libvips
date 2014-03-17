@@ -478,11 +478,14 @@ vips_draw_flood_build( VipsObject *object )
 
 	flood.test = drawflood->test;
 	flood.image = draw->image;
+	flood.tsize = VIPS_IMAGE_SIZEOF_PEL( flood.test );
 	flood.equal = drawflood->equal;
-	flood.tsize = VIPS_IMAGE_SIZEOF_PEL( drawflood->test );
+	flood.psize = VIPS_IMAGE_SIZEOF_PEL( flood.image );
+	flood.ink = drawink->pixel_ink;
+	flood.lsize = VIPS_IMAGE_SIZEOF_LINE( flood.image );
 	flood.left = drawflood->x;
-	flood.top = drawflood->y;
 	flood.right = drawflood->x;
+	flood.top = drawflood->y;
 	flood.bottom = drawflood->y;
 
 	if( flood.equal ) {
@@ -501,7 +504,7 @@ vips_draw_flood_build( VipsObject *object )
 		 */
 		if( flood.test == flood.image ) { 
 			for( j = 0; j < flood.tsize; j++ ) 
-				if( flood.edge[j] != drawink->pixel_ink[j] ) 
+				if( flood.edge[j] != flood.ink[j] ) 
 					break;
 
 			if( j != flood.tsize )
@@ -634,16 +637,16 @@ vips__draw_flood_direct( VipsImage *image, VipsImage *test,
 		vips_image_wio_input( test ) )  
 		return( -1 );
 
-	flood.image = image;
 	flood.test = test;
-	flood.lsize = VIPS_IMAGE_SIZEOF_LINE( image );
+	flood.image = image;
+	flood.tsize = VIPS_IMAGE_SIZEOF_PEL( test );
+	flood.equal = TRUE;
 	flood.psize = VIPS_IMAGE_SIZEOF_PEL( image );
 	flood.ink = (VipsPel *) &serial;
-	flood.equal = TRUE;
-	flood.tsize = VIPS_IMAGE_SIZEOF_PEL( test );
+	flood.lsize = VIPS_IMAGE_SIZEOF_LINE( image );
 	flood.left = x;
-	flood.top = y;
 	flood.right = x;
+	flood.top = y;
 	flood.bottom = y;
 
 	if( !(flood.edge = 
