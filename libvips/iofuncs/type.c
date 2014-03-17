@@ -129,6 +129,77 @@ vips_thing_get_type( void )
 }
 
 /**
+ * vips_comp_new:
+ * @n:
+ *
+ * Returns: (transfer full): a new #VipsComp.
+ */
+VipsComp *
+vips_comp_new( double real, double imag )
+{
+	VipsComp *comp;
+
+	comp = g_new( VipsComp, 1 );
+	comp->real = real;
+	comp->imag = imag;
+
+	printf( "vips_comp_new: (%g, %g) %p\n", real, imag, comp );
+
+	return( comp );
+}
+
+static VipsComp *
+vips_comp_copy( VipsComp *comp )
+{
+	VipsComp *comp2;
+
+	comp2 = vips_comp_new( comp->real, comp->imag );
+
+	printf( "vips_comp_copy: (%g, %g) %p = %p\n", 
+		comp->real, comp->imag, comp2, comp );
+
+	return( comp2 );
+}
+
+static void
+vips_comp_free( VipsComp *comp )
+{
+	printf( "vips_comp_free: (%g, %g) %p\n", comp->real, comp->imag, comp );
+
+	g_free( comp );
+}
+
+double 
+vips_comp_get_real( VipsComp *comp )
+{
+	printf( "vips_comp_get_real: %g %p\n", comp->real, comp );
+
+	return( comp->real );
+}
+
+double 
+vips_comp_get_imag( VipsComp *comp )
+{
+	printf( "vips_comp_get_imag: %g %p\n", comp->imag, comp );
+
+	return( comp->imag );
+}
+
+GType
+vips_comp_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		type = g_boxed_type_register_static( "VipsComp",
+			(GBoxedCopyFunc) vips_comp_copy, 
+			(GBoxedFreeFunc) vips_comp_free );
+	}
+
+	return( type );
+}
+
+/**
  * SECTION: VipsArea
  * @short_description: an area of memory
  * @stability: Stable
@@ -774,6 +845,93 @@ vips_array_double_get_type( void )
 }
 
 static void
+transform_array_comp_g_string( const GValue *src_value, GValue *dest_value )
+{
+	int n;
+	VipsComp *array = vips_value_get_array_comp( src_value, &n );
+
+	char txt[1024];
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
+	int i;
+
+	for( i = 0; i < n; i++ ) 
+		/* Use space as a separator since ',' may be a decimal point
+		 * in this locale.
+		 */
+		vips_buf_appendf( &buf, "(%g,%g) ", 
+			array[i]->real, array[i]->imag );
+
+	g_value_set_string( dest_value, vips_buf_all( &buf ) );
+}
+
+static void
+transform_g_string_array_comp( const GValue *src_value, GValue *dest_value )
+{
+	char *str;
+	int n;
+	char *p, *q;
+	int i;
+	double *array;
+
+	/* Walk the string to get the number of elements. 
+	 * We need a copy of the string since we insert \0 during
+	 * scan.
+	 *
+	 * We can't allow ',' as a separator since some locales use it as a
+	 * decimal point.
+	 */
+	str = g_value_dup_string( src_value );
+
+	n = 0;
+	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) 
+		n += 1;
+
+	g_free( str );
+
+	vips_value_set_array( dest_value, 
+		n, VIPS_TYPE_COMP, 2 * sizeof( double ) );
+	array = (double *) vips_value_get_array( dest_value, NULL, NULL, NULL );
+
+	str = g_value_dup_string( src_value );
+
+	i = 0;
+	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) {
+		if( sscanf( p, "%lf", &array[i] ) != 1 ) { 
+			/* Set array to length zero to indicate an error.
+			 */
+			vips_error( "vipstype", 
+				_( "unable to convert \"%s\" to float" ), p );
+			vips_value_set_array( dest_value, 
+				0, VIPS_TYPE_COMP, 2 * sizeof( double ) );
+			g_free( str );
+			return;
+		}
+
+		i += 1;
+	}
+
+	g_free( str );
+}
+
+GType
+vips_array_comp_get_type( void )
+{
+	static GType type = 0;
+
+	if( !type ) {
+		type = g_boxed_type_register_static( "VipsArrayComp",
+			(GBoxedCopyFunc) vips_area_copy, 
+			(GBoxedFreeFunc) vips_area_unref );
+		g_value_register_transform_func( type, G_TYPE_STRING,
+			transform_array_comp_g_string );
+		g_value_register_transform_func( G_TYPE_STRING, type,
+			transform_g_string_array_comp );
+	}
+
+	return( type );
+}
+
+static void
 transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 {
 	char *str;
@@ -1320,6 +1478,7 @@ void
 vips__meta_init_types( void )
 {
 	(void) vips_thing_get_type();
+	(void) vips_comp_get_type();
 	(void) vips_save_string_get_type();
 	(void) vips_area_get_type();
 	(void) vips_ref_string_get_type();

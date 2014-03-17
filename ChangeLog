@@ -9,6 +9,7 @@
 - better rounding in vips_flatten()
 - VipsStatistic operations are sequential
 - VipsLinear has optional complex constants, added vips_linear_complex() etc. 
+- added VipsComp, complex GType
 
 24/2/14 started 7.38.5
 - jpeg load from buffer could write to input, thanks Lovell

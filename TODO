@@ -1,3 +1,9 @@
+- see transform_array_comp_g_string
+
+  what should we use as a complex number separator? ask lars
+
+
+
 - another way: have a VipsArrayComplex and use that for all constants
 
   have a string->array tranform that accepts

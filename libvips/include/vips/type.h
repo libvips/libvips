@@ -54,6 +54,18 @@ GType vips_thing_get_type( void );
 VipsThing *vips_thing_new( int i );
 int vips_thing_get_i( VipsThing *thing );
 
+typedef struct _VipsComp {
+	double real;
+	double imag;
+} VipsComp;
+
+#define VIPS_TYPE_COMP (vips_comp_get_type())
+
+VipsComp *vips_comp_new( double real, double imag );
+double vips_comp_get_real( VipsComp *comp );
+double vips_comp_get_imag( VipsComp *comp );
+GType vips_comp_get_type( void );
+
 /* A ref-counted area of memory. Can hold arrays of things as well.
  */
 typedef struct _VipsArea {
