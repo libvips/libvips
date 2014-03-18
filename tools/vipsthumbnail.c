@@ -152,13 +152,19 @@ calculate_shrink( int width, int height, double *residual )
 	int shrink = floor( factor2 );
 
 	if( residual ) {
-		/* Width after int shrink.
+		/* Size after int shrink. We have to try with both axes since
+		 * if they are very different sizes we'll see different
+		 * rounding errors.
 		 */
 		int iwidth = width / shrink;
+		int iheight = height / shrink;
 
 		/* Therefore residual scale factor is.
 		 */
-		*residual = (width / factor) / iwidth; 
+		double hresidual = (width / factor) / iwidth; 
+		double vresidual = (height / factor) / iheight; 
+
+		*residual = VIPS_MAX( hresidual, vresidual ); 
 	}
 
 	return( shrink );
