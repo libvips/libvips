@@ -690,6 +690,7 @@ void
 vips_arithmetic_operation_init( void )
 {
 	extern GType vips_add_get_type( void ); 
+	extern GType vips_sum_get_type( void ); 
 	extern GType vips_subtract_get_type( void ); 
 	extern GType vips_multiply_get_type( void ); 
 	extern GType vips_divide_get_type( void ); 
@@ -725,6 +726,7 @@ vips_arithmetic_operation_init( void )
 	extern GType vips_complexform_get_type( void ); 
 
 	vips_add_get_type();
+	vips_sum_get_type();
 	vips_subtract_get_type();
 	vips_multiply_get_type();
 	vips_divide_get_type();

@@ -13,6 +13,7 @@
 - removed embedded thumbnail reader from vipsthumbnail: embedded thumbnails
   are too unlike the main image
 - fix to vipsthumbnail --crop, thanks Alessandro 
+- add vips_sum()
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong
