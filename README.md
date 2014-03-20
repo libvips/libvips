@@ -1,7 +1,24 @@
 # libvips : an image processing library
 
-libvips is an image processing library. It's good for large images and for
-colour. There's a GUI as well, see the [VIPS website](http://www.vips.ecs.soton.ac.uk).
+libvips is a 2D image processing library. Compared to similar libraries, 
+[libvips runs quickly and uses little
+memory](http://www.vips.ecs.soton.ac.uk/index.php?title=Speed_and_Memory_Use).
+
+It has around 300 operations, covering arithmetic, histograms, convolutions,
+morphological operations, frequency filtering, colour, resampling, statistics
+and others. It supports a large range of numeric formats, from 8-bit int to
+128-bit complex. It supports a good range of image formats, including
+JPEG, TIFF, PNG, FITS, Matlab, OpenEXR, and OpenSlide. It can also load
+images via ImageMagick or GraphicsMagick.
+
+It has APIs for C and C++ and comes with a Python
+binding and a command-line interface. Bindings are
+available for Ruby, JavaScript and others.  There is full [API
+documentation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/index.html),
+plus a [tutorial-style
+manual](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/vipsmanual/vipsmanual.html).
+
+There's a GUI as well, see the [VIPS website](http://www.vips.ecs.soton.ac.uk).
 
 There are packages for most unix-like operating systems and binaries for
 Windows and OS X.
