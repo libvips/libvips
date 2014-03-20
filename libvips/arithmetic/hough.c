@@ -45,12 +45,14 @@
 typedef struct _VipsHough {
 	VipsStatistic parent_instance;
 
-	/* Lock writes to the output image with this. We can't have a separate
-	 * output for each thread, memory use would be crazy.
+	/* Each thread adds its output image to this array on stop. ith is the
+	 * index the ith thread places its image at.
 	 */
-	GMutex *lock;
+	VipsImage **threads;
+	int n_threads;
+	int ith;
 
-	/* Accumulate the transform in this large memory image.
+	/* Sum the thread outputs to here.
 	 */
 	VipsImage *out; 
 
@@ -65,7 +67,7 @@ vips_hough_dispose( GObject *gobject )
 {
 	VipsHough *hough = (VipsHough *) gobject;
 
-	VIPS_FREEF( vips_g_mutex_free, hough->lock );
+	unref the threads images, if any
 
 	G_OBJECT_CLASS( vips_hough_parent_class )->dispose( gobject );
 }
