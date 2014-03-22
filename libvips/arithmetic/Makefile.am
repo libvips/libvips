@@ -2,6 +2,7 @@ noinst_LTLIBRARIES = libarithmetic.la
 
 libarithmetic_la_SOURCES = \
 	sum.c \
+	hough.c \
 	abs.c \
 	complex.c \
 	deviate.c \
