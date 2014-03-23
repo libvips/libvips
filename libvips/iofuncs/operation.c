@@ -516,6 +516,16 @@ vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
 				g_param_spec_get_name( pspec ), arg );
 #endif /*VIPS_DEBUG */
 
+			/* It'd be nice to be able to test for arg being a
+			 * valid gobject pointer, since passing in a valid
+			 * pointer, and having us destroy it, is a common
+			 * error and a cause of hard-to-find leaks.
+			 *
+			 * Unfortunately, G_IS_OBJECT() can't be given an
+			 * arbitrary pointer for testing -- you're very likely
+			 * to get coredumps.
+			 */
+
 			g_object_get( G_OBJECT( operation ), 
 				g_param_spec_get_name( pspec ), arg, NULL );
 

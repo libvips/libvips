@@ -345,7 +345,7 @@ PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,[
 )
 
 # check for gtk-doc
-GTK_DOC_CHECK(1.9)
+GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
 # optional supporting libraries
 
