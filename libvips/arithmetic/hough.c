@@ -193,6 +193,10 @@ hough_vote( VipsHough *hough, VipsImage *accumulator, int x, int y )
 	}
 }
 
+/* See our superclass in statistic.c, but this is called for each section of
+ * each scanline. @x, @y is the position of the left end, @in is the pixel
+ * data, @n is the number of pixels in this scanline. VipsPel is uint8.
+ */
 static int
 vips_hough_scan( VipsStatistic *statistic, 
 	void *seq, int x, int y, void *in, int n )
