@@ -43,10 +43,38 @@
 #include "statistic.h"
 #include "hough.h"
 
-typedef VipsHough VipsHoughLine;
+typedef struct _VipsHoughLine {
+	VipsHough parent_instance;
+
+	/* LUT for this transform.
+	 */
+	double *sin;
+
+} VipsHoughLine;
+
 typedef VipsHoughClass VipsHoughLineClass;
 
 G_DEFINE_TYPE( VipsHoughLine, vips_hough_line, VIPS_TYPE_HOUGH );
+
+static int
+vips_hough_line_build( VipsObject *object )
+{
+	VipsHough *hough = (VipsHough *) object;
+	VipsHoughLine *hough_line = (VipsHoughLine *) object;
+
+	int i;
+
+	if( !(hough_line->sin = VIPS_ARRAY( object, hough->width, double )) )
+		return( -1 ); 
+
+	for( i = 0; i < hough->width; i++ )  
+		hough_line->sin[i] = sin( 2 * M_PI * i / hough->width );  
+
+	if( VIPS_OBJECT_CLASS( vips_hough_line_parent_class )->build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
 
 /* Build a new accumulator. 
  */
@@ -76,20 +104,21 @@ vips_hough_line_new_accumulator( VipsHough *hough )
 static void
 vips_hough_line_vote( VipsHough *hough, VipsImage *accumulator, int x, int y )
 {
+	VipsHoughLine *hough_line = (VipsHoughLine *) hough; 
 	VipsStatistic *statistic = (VipsStatistic *) hough;  
 	double xd = (double) x / statistic->ready->Xsize;
 	double yd = (double) y / statistic->ready->Ysize;
 
-	int thetai;
+	int i;
 
-	for( thetai = 0; thetai < hough->width; thetai++ ) { 
-		double theta = 2 * M_PI * thetai / hough->width; 
-		double r = xd * cos( theta ) + yd * sin( theta );
+	for( i = 0; i < hough->width; i++ ) { 
+		int i90 = (i + hough->width / 4) % hough->width;
+		double r = xd * hough_line->sin[i90] + yd * hough_line->sin[i];
 		int ri = hough->height * r;
 
 		if( ri >= 0 && 
 			ri < hough->height ) 
-			*VIPS_IMAGE_ADDR( accumulator, thetai, ri ) += 1;
+			*VIPS_IMAGE_ADDR( accumulator, i, ri ) += 1;
 	}
 }
 
@@ -101,6 +130,7 @@ vips_hough_line_class_init( VipsHoughClass *class )
 
 	object_class->nickname = "hough_line";
 	object_class->description = _( "find hough line transform" );
+	object_class->build = vips_hough_line_build;
 
 	hclass->new_accumulator = vips_hough_line_new_accumulator;
 	hclass->vote = vips_hough_line_vote;
