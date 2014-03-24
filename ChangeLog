@@ -14,7 +14,7 @@
   are too unlike the main image
 - fix to vipsthumbnail --crop, thanks Alessandro 
 - add vips_sum()
-- add vips_hough()
+- add vips_hough base class and vips_hough_line()
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

@@ -43,7 +43,7 @@
 #include "statistic.h"
 #include "hough.h"
 
-G_DEFINE_TYPE_ABSTRACT( VipsHough, vips_hough, VIPS_TYPE_STATISTIC );
+G_DEFINE_ABSTRACT_TYPE( VipsHough, vips_hough, VIPS_TYPE_STATISTIC );
 
 static int
 vips_hough_build( VipsObject *object )
@@ -100,7 +100,7 @@ vips_hough_start( VipsStatistic *statistic )
 	 */
 	g_assert( !hough->threads ); 
 
-	if( !(accumulator = class->new_accumulator( hought )) )
+	if( !(accumulator = class->new_accumulator( hough )) )
 		return( NULL ); 
 
 	if( vips_image_write_prepare( accumulator ) ) {

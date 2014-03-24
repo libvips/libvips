@@ -707,7 +707,7 @@ vips_arithmetic_operation_init( void )
 	extern GType vips_hist_find_get_type( void ); 
 	extern GType vips_hist_find_ndim_get_type( void ); 
 	extern GType vips_hist_find_indexed_get_type( void ); 
-	extern GType vips_hough_get_type( void ); 
+	extern GType vips_hough_line_get_type( void ); 
 	extern GType vips_project_get_type( void ); 
 	extern GType vips_profile_get_type( void ); 
 	extern GType vips_measure_get_type( void ); 
@@ -744,7 +744,7 @@ vips_arithmetic_operation_init( void )
 	vips_hist_find_get_type(); 
 	vips_hist_find_ndim_get_type(); 
 	vips_hist_find_indexed_get_type(); 
-	vips_hough_get_type(); 
+	vips_hough_line_get_type(); 
 	vips_project_get_type(); 
 	vips_profile_get_type(); 
 	vips_measure_get_type();
