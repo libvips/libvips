@@ -43,65 +43,29 @@
 #include "statistic.h"
 #include "hough.h"
 
-G_DEFINE_TYPE_ABSTRACT( VipsHough, vips_hough, VIPS_TYPE_STATISTIC );
+typedef VipsHoughLine VipsHough; 
+typedef VipsHoughLineClass VipsHoughClass;
 
-static int
-vips_hough_build( VipsObject *object )
-{
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
-	VipsHough *hough = (VipsHough *) object;
-
-	VipsImage *out; 
-
-	/* Mono only, we use the bands dimension of the output image for
-	 * a parameter.
-	 */
-	if( statistic->in ) 
-		if( vips_check_mono( class->nickname, statistic->in ) )
-			return( -1 );
-
-	if( VIPS_OBJECT_CLASS( vips_hough_parent_class )->build( object ) )
-		return( -1 );
-
-	/* hough->threads should be an array of completed accumulators, and we
-	 * should have noted one for each thread we started.
-	 */
-	g_assert( hough->threads ); 
-	g_assert( hough->n_threads > 0 ); 
-	g_assert( hough->n_threads == hough->ith ); 
-
-	if( vips_sum( hough->threads, &out, hough->n_threads, NULL ) )
-		return( -1 ); 
-
-	g_object_set( object, 
-		"out", out,
-		NULL );
-
-	return( 0 );
-}
+G_DEFINE_TYPE( VipsHough, vips_hough, VIPS_TYPE_HOUGH );
 
 /* Build a new accumulator. 
  */
-static void *
-vips_hough_start( VipsStatistic *statistic )
+static VipsImage *
+vips_houghline_new_accumulator( VipsHough *hough )
 {
-	VipsHough *hough = (VipsHough *) statistic;
-	VipsHoughClass *class = VIPS_HOUGH_GET_CLASS( hough );
-
+	VipsStatistic *statistic = (VipsSt
 	VipsImage *accumulator;
 
-	/* Make a note of the number of threads we start.
-	 */
-	hough->n_threads += 1;
+	accumulator = vips_image_new_buffer(); 
 
-	/* We assume that we don't start any more threads after the first stop
-	 * is called.
-	 */
-	g_assert( !hough->threads ); 
+	vips_image_pipelinev( accumulator,
+		VIPS_DEMAND_STYLE_ANY, statistic->in, NULL );
 
-	if( !(accumulator = class->new_accumulator( hought )) )
-		return( NULL ); 
+	vips_image_init_fields( accumulator,
+		hough->width, hough->height, 1,
+		VIPS_FORMAT_UINT, VIPS_CODING_NONE,
+		VIPS_INTERPRETATION_MATRIX,
+		1.0, 1.0 );
 
 	if( vips_image_write_prepare( accumulator ) ) {
 		g_object_unref( accumulator );
@@ -142,12 +106,37 @@ vips_hough_stop( VipsStatistic *statistic, void *seq )
 	return( 0 );
 }
 
+/* Cast votes for all lines passing through x, y.
+ */
+static void
+hough_vote( VipsHough *hough, VipsImage *accumulator, int x, int y )
+{
+	VipsStatistic *statistic = (VipsStatistic *) hough;  
+	double xd = (double) x / statistic->ready->Xsize;
+	double yd = (double) y / statistic->ready->Ysize;
+
+	int thetai;
+
+	for( thetai = 0; thetai < hough->width; thetai++ ) { 
+		double theta = 2 * M_PI * thetai / hough->width; 
+		double r = xd * cos( theta ) + yd * sin( theta );
+		int ri = hough->height * r;
+
+		if( ri >= 0 && 
+			ri < hough->height ) 
+			*VIPS_IMAGE_ADDR( accumulator, thetai, ri ) += 1;
+	}
+}
+
+/* See our superclass in statistic.c, but this is called for each section of
+ * each scanline. @x, @y is the position of the left end, @in is the pixel
+ * data, @n is the number of pixels in this scanline. VipsPel is uint8.
+ */
 static int
 vips_hough_scan( VipsStatistic *statistic, 
 	void *seq, int x, int y, void *in, int n )
 {
 	VipsHough *hough = (VipsHough *) statistic;
-	VipsHoughClass *class = VIPS_HOUGH_GET_CLASS( hough );
 	VipsImage *accumulator = (VipsImage *) seq;
 	VipsPel *p = (VipsPel *) in;
 
@@ -155,7 +144,7 @@ vips_hough_scan( VipsStatistic *statistic,
 
 	for( i = 0; i < n; i++ )
 		if( p[i] )
-			class->vote( hough, accumulator, x + i, y );
+			hough_vote( hough, accumulator, x + i, y );
 
 	return( 0 );
 }
@@ -215,4 +204,32 @@ vips_hough_init( VipsHough *hough )
 {
 	hough->width = 256;
 	hough->height = 256;
+}
+
+/**
+ * vips_hough:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @width: horizontal size of parameter space
+ * @height: vertical size of parameter space
+ *
+ * See also: 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_hough( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "hough", ap, in, out );
+	va_end( ap );
+
+	return( result );
 }
