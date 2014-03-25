@@ -100,10 +100,13 @@ vips_hough_start( VipsStatistic *statistic )
 	 */
 	g_assert( !hough->threads ); 
 
-	if( !(accumulator = class->new_accumulator( hough )) )
-		return( NULL ); 
+	accumulator = vips_image_new_buffer(); 
 
-	if( vips_image_write_prepare( accumulator ) ) {
+	vips_image_pipelinev( accumulator,
+		VIPS_DEMAND_STYLE_ANY, statistic->in, NULL );
+
+	if( class->init_accumulator( hough, accumulator ) ||
+		vips_image_write_prepare( accumulator ) ) {
 		g_object_unref( accumulator );
 		return( NULL );
 	}

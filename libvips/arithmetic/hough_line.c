@@ -76,27 +76,16 @@ vips_hough_line_build( VipsObject *object )
 	return( 0 );
 }
 
-/* Build a new accumulator. 
- */
-static VipsImage *
-vips_hough_line_new_accumulator( VipsHough *hough )
+static int
+vips_hough_line_init_accumulator( VipsHough *hough, VipsImage *accumulator )
 {
-	VipsStatistic *statistic = (VipsStatistic *) hough; 
-
-	VipsImage *accumulator;
-
-	accumulator = vips_image_new_buffer(); 
-
-	vips_image_pipelinev( accumulator,
-		VIPS_DEMAND_STYLE_ANY, statistic->in, NULL );
-
 	vips_image_init_fields( accumulator,
 		hough->width, hough->height, 1,
 		VIPS_FORMAT_UINT, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_MATRIX,
 		1.0, 1.0 );
 
-	return( (void *) accumulator ); 
+	return( 0 ); 
 }
 
 /* Cast votes for all lines passing through x, y.
@@ -132,7 +121,7 @@ vips_hough_line_class_init( VipsHoughClass *class )
 	object_class->description = _( "find hough line transform" );
 	object_class->build = vips_hough_line_build;
 
-	hclass->new_accumulator = vips_hough_line_new_accumulator;
+	hclass->init_accumulator = vips_hough_line_init_accumulator;
 	hclass->vote = vips_hough_line_vote;
 
 }

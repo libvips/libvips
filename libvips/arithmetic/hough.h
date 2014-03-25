@@ -56,7 +56,8 @@ extern "C" {
 typedef struct _VipsHough VipsHough;
 typedef struct _VipsHoughClass VipsHoughClass;
 
-typedef VipsImage *(*VipsHoughNewAccumulator)( VipsHough *hough );  
+typedef int (*VipsHoughInitAccumulator)( VipsHough *hough, 
+	VipsImage *accumulator );  
 typedef void (*VipsHoughVote)( VipsHough *hough, 
 	VipsImage *accumulator, int x, int y ); 
 
@@ -87,7 +88,7 @@ struct _VipsHoughClass {
 
 	/* Make a new accumulator image.
 	 */
-	VipsHoughNewAccumulator new_accumulator;
+	VipsHoughInitAccumulator init_accumulator;
 
 	/* Vote function for this parameter space. 
 	 */
