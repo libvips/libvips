@@ -1,4 +1,7 @@
-- vipsthumbnail needs to know about more exif orientation tags
+- need call operation along a circle, see line draw
+
+- use with vips_draw_add() to make amask image for each radius for
+  vips_hough_circle()
 
 
 

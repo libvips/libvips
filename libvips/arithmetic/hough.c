@@ -204,7 +204,7 @@ vips_hough_class_init( VipsHoughClass *class )
 		G_STRUCT_OFFSET( VipsHough, width ),
 		1, 100000, 256 );
 
-	VIPS_ARG_INT( class, "height", 110, 
+	VIPS_ARG_INT( class, "height", 111, 
 		_( "Height" ), 
 		_( "Vertical size of parameter space" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 

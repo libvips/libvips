@@ -51,6 +51,8 @@ int vips_draw_point1( VipsImage *image, double ink, int x, int y, ... )
 
 int vips_draw_image( VipsImage *image, VipsImage *sub, int x, int y, ... )
 	__attribute__((sentinel));
+int vips_draw_add( VipsImage *image, VipsImage *sub, int x, int y, ... )
+	__attribute__((sentinel));
 
 int vips_draw_mask( VipsImage *image, 
 	double *ink, int n, VipsImage *mask, int x, int y, ... )

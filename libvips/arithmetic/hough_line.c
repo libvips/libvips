@@ -1,4 +1,4 @@
-/* hough transform
+/* hough transform for lines
  *
  * 7/3/14
  * 	- from hist_find.c

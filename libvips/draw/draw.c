@@ -117,6 +117,7 @@ vips_draw_operation_init( void )
 {
 	extern GType vips_draw_rect_get_type( void ); 
 	extern GType vips_draw_image_get_type( void ); 
+	extern GType vips_draw_add_get_type( void ); 
 	extern GType vips_draw_mask_get_type( void ); 
 	extern GType vips_draw_line_get_type( void ); 
 	extern GType vips_draw_line_mask_get_type( void ); 
@@ -127,6 +128,7 @@ vips_draw_operation_init( void )
 
 	vips_draw_rect_get_type();
 	vips_draw_image_get_type();
+	vips_draw_add_get_type();
 	vips_draw_mask_get_type();
 	vips_draw_line_get_type();
 	vips_draw_line_mask_get_type();
