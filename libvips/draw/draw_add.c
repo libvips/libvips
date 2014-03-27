@@ -1,7 +1,7 @@
 /* in-place add, ie. a = a + b
  *
  * 26/3/14
- * 	- from draw_add.c
+ * 	- from draw_image.c
  */
 
 /*

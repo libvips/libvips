@@ -1,3 +1,10 @@
+- add a "mode" param to draw_image.c, get rid of draw_add.c
+
+- hough_line.c should have a main accumulator and use vips_draw_add() to add
+  threads to that
+
+  big memory saving
+
 - need call operation along a circle, see line draw
 
 - use with vips_draw_add() to make amask image for each radius for

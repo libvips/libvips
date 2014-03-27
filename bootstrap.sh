@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# set -x
+set -x
 
 # a bunch of cleaning up ... make certain everything will be regenerated
 rm -f Makefile Makefile.in aclocal.m4 

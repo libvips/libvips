@@ -77,6 +77,7 @@ typedef struct _VipsDrawImage {
 	VipsImage *sub;
 	int x;
 	int y;
+	VipsCombineMode mode; 
 
 } VipsDrawImage;
 
@@ -87,12 +88,58 @@ typedef struct _VipsDrawImageClass {
 
 G_DEFINE_TYPE( VipsDrawImage, vips_draw_image, VIPS_TYPE_DRAW );
 
+#define LOOP( TYPE ) { \
+	TYPE * restrict pt = (TYPE *) p; \
+	TYPE * restrict qt = (TYPE *) q; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		qt[x] += pt[x]; \
+}
+
+static void
+vips_draw_image_mode_add( VipsDrawImage *draw_image,
+	VipsPel *q, VipsPel *p, int n )
+{
+	/* Complex just doubles the size.
+	 */
+	const int sz = clip_rect.width * im->Bands * 
+		(vips_band_format_iscomplex( im->BandFmt ) ?  2 : 1);
+
+	int x;
+
+	switch( im->BandFmt ) {
+	case VIPS_FORMAT_UCHAR: 	
+		LOOP( unsigned char ); break; 
+	case VIPS_FORMAT_CHAR: 	
+		LOOP( signed char ); break; 
+	case VIPS_FORMAT_USHORT: 
+		LOOP( unsigned short ); break; 
+	case VIPS_FORMAT_SHORT: 	
+		LOOP( signed short ); break; 
+	case VIPS_FORMAT_UINT: 	
+		LOOP( unsigned int ); break; 
+	case VIPS_FORMAT_INT: 	
+		LOOP( signed int ); break; 
+
+	case VIPS_FORMAT_FLOAT: 		
+	case VIPS_FORMAT_COMPLEX: 
+		LOOP( float ); break; 
+
+	case VIPS_FORMAT_DOUBLE:	
+	case VIPS_FORMAT_DPCOMPLEX: 
+		LOOP( double ); break;
+
+	default:
+		g_assert( 0 );
+	}
+}
+
 static int
 vips_draw_image_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsDraw *draw = VIPS_DRAW( object );
-	VipsDrawImage *image = (VipsDrawImage *) object;
+	VipsDrawImage *draw_image = (VipsDrawImage *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
 
 	VipsImage *im;
@@ -105,14 +152,21 @@ vips_draw_image_build( VipsObject *object )
 
 	if( vips_check_coding_known( class->nickname, draw->image ) ||
 		vips_check_coding_same( class->nickname, 
-			draw->image, image->sub ) ||
+			draw->image, draw_image->sub ) ||
 		vips_check_bands_1orn_unary( class->nickname, 
-			image->sub, draw->image->Bands ) )
+			draw_image->sub, draw->image->Bands ) )
 		return( -1 );
+
+	/* SET will work for any matching coding, but every other mode needs 
+	 * uncoded images. 
+	 */
+	if( draw_image->mode != VIPS_COMBINE_MODE_SET &&
+		vips_check_uncoded( class->nickname, draw->image ) )
+		return( -1 ); 
 
 	/* Cast sub to match main in bands and format.
 	 */
-	im = image->sub;
+	im = draw_image->sub;
 	if( im->Coding == VIPS_CODING_NONE ) {
 		if( vips__bandup( class->nickname, 
 			im, &t[0], draw->image->Bands ) ||
@@ -128,8 +182,8 @@ vips_draw_image_build( VipsObject *object )
 	image_rect.top = 0;
 	image_rect.width = draw->image->Xsize;
 	image_rect.height = draw->image->Ysize;
-	sub_rect.left = image->x;
-	sub_rect.top = image->y;
+	sub_rect.left = draw_image->x;
+	sub_rect.top = draw_image->y;
 	sub_rect.width = im->Xsize;
 	sub_rect.height = im->Ysize;
 	vips_rect_intersectrect( &image_rect, &sub_rect, &clip_rect );
@@ -142,12 +196,30 @@ vips_draw_image_build( VipsObject *object )
 			return( -1 ); 
 
 		p = VIPS_IMAGE_ADDR( im, 
-			clip_rect.left - image->x, clip_rect.top - image->y );
+			clip_rect.left - draw_image->x, 
+			clip_rect.top - draw_image->y );
 		q = VIPS_IMAGE_ADDR( draw->image, 
 			clip_rect.left, clip_rect.top );
+
 		for( y = 0; y < clip_rect.height; y++ ) {
-			memcpy( (char *) q, (char *) p, 
-				clip_rect.width * VIPS_IMAGE_SIZEOF_PEL( im ) );
+			switch( draw_image->mode ) {
+			case VIPS_COMBINE_MODE_SET:
+				memcpy( (char *) q, (char *) p, 
+					clip_rect.width * 
+						VIPS_IMAGE_SIZEOF_PEL( im ) );
+				break;
+
+			case VIPS_COMBINE_MODE_ADD:
+				vips_draw_image_add( draw_image, 
+					q, p, clip_rect.width ); 
+				break;
+
+			default:
+				g_assert( 0 );
+				break;
+
+			}
+
 			p += VIPS_IMAGE_SIZEOF_LINE( im );
 			q += VIPS_IMAGE_SIZEOF_LINE( draw->image );
 		}
@@ -189,11 +261,19 @@ vips_draw_image_class_init( VipsDrawImageClass *class )
 		G_STRUCT_OFFSET( VipsDrawImage, y ),
 		-1000000000, 1000000000, 0 );
 
+	VIPS_ARG_ENUM( class, "mode", 8, 
+		_( "Mode" ), 
+		_( "Combining mode" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsDrawImage, mode ),
+		VIPS_TYPE_COMBINE_MODE, VIPS_COMBINE_MODE_SET ); 
+
 }
 
 static void
 vips_draw_image_init( VipsDrawImage *draw_image )
 {
+	draw_image->mode = VIPS_COMBINE_MODE_SET;
 }
 
 /**
