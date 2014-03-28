@@ -15,7 +15,7 @@
 - fix to vipsthumbnail --crop, thanks Alessandro 
 - add vips_sum()
 - add vips_hough base class and vips_hough_line()
-- add vips_draw_add()
+- add "mode" param to vips_draw_image()
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

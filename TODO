@@ -1,4 +1,4 @@
-- add a "mode" param to draw_image.c, get rid of draw_add.c
+- vips_draw_image() might need a direct mode? see vips_flood_direct()
 
 - hough_line.c should have a main accumulator and use vips_draw_add() to add
   threads to that

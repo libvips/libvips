@@ -81,6 +81,9 @@ GType vips_combine_get_type (void) G_GNUC_CONST;
 /* enumerations from "../../../libvips/include/vips/morphology.h" */
 GType vips_operation_morphology_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_MORPHOLOGY (vips_operation_morphology_get_type())
+/* enumerations from "../../../libvips/include/vips/draw.h" */
+GType vips_combine_mode_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_COMBINE_MODE (vips_combine_mode_get_type())
 /* enumerations from "../../../libvips/include/vips/object.h" */
 GType vips_argument_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_ARGUMENT_FLAGS (vips_argument_flags_get_type())

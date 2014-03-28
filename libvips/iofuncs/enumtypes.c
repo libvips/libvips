@@ -690,6 +690,25 @@ vips_operation_morphology_get_type( void )
 
 	return( etype );
 }
+/* enumerations from "../../libvips/include/vips/draw.h" */
+GType
+vips_combine_mode_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_COMBINE_MODE_SET, "VIPS_COMBINE_MODE_SET", "set"},
+			{VIPS_COMBINE_MODE_ADD, "VIPS_COMBINE_MODE_ADD", "add"},
+			{VIPS_COMBINE_MODE_LAST, "VIPS_COMBINE_MODE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsCombineMode", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/object.h" */
 GType
 vips_argument_flags_get_type( void )

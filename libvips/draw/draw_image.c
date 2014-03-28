@@ -26,6 +26,8 @@
  * 	- gtk-doc
  * 9/2/14
  * 	- redo as a class, based on draw_image
+ * 28/3/14
+ * 	- add "mode" param
  */
 
 /*
@@ -63,6 +65,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -88,7 +91,25 @@ typedef struct _VipsDrawImageClass {
 
 G_DEFINE_TYPE( VipsDrawImage, vips_draw_image, VIPS_TYPE_DRAW );
 
-#define LOOP( TYPE ) { \
+#define LOOP( TYPE, TEMP, MIN, MAX ) { \
+	TYPE * restrict pt = (TYPE *) p; \
+	TYPE * restrict qt = (TYPE *) q; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		TEMP v; \
+		\
+		v = pt[x] + qt[x]; \
+		\
+		if( v > MAX ) \
+			v = MAX; \
+		else if( v < MIN ) \
+			v = MIN; \
+		\
+		qt[x] = v; \
+	} \
+}
+
+#define LOOPF( TYPE ) { \
 	TYPE * restrict pt = (TYPE *) p; \
 	TYPE * restrict qt = (TYPE *) q; \
 	\
@@ -97,37 +118,37 @@ G_DEFINE_TYPE( VipsDrawImage, vips_draw_image, VIPS_TYPE_DRAW );
 }
 
 static void
-vips_draw_image_mode_add( VipsDrawImage *draw_image,
+vips_draw_image_mode_add( VipsDrawImage *draw_image, VipsImage *im, 
 	VipsPel *q, VipsPel *p, int n )
 {
 	/* Complex just doubles the size.
 	 */
-	const int sz = clip_rect.width * im->Bands * 
+	const int sz = n * im->Bands * 
 		(vips_band_format_iscomplex( im->BandFmt ) ?  2 : 1);
 
 	int x;
 
 	switch( im->BandFmt ) {
 	case VIPS_FORMAT_UCHAR: 	
-		LOOP( unsigned char ); break; 
+		LOOP( unsigned char, int, 0, UCHAR_MAX ); break; 
 	case VIPS_FORMAT_CHAR: 	
-		LOOP( signed char ); break; 
+		LOOP( signed char, int, SCHAR_MIN, SCHAR_MAX ); break; 
 	case VIPS_FORMAT_USHORT: 
-		LOOP( unsigned short ); break; 
+		LOOP( unsigned short, int, 0, USHRT_MAX ); break; 
 	case VIPS_FORMAT_SHORT: 	
-		LOOP( signed short ); break; 
+		LOOP( signed short, int, SCHAR_MIN, SCHAR_MAX ); break; 
 	case VIPS_FORMAT_UINT: 	
-		LOOP( unsigned int ); break; 
+		LOOP( unsigned int, gint64, 0, UINT_MAX ); break; 
 	case VIPS_FORMAT_INT: 	
-		LOOP( signed int ); break; 
+		LOOP( signed int, gint64, INT_MIN, INT_MAX ); break; 
 
 	case VIPS_FORMAT_FLOAT: 		
 	case VIPS_FORMAT_COMPLEX: 
-		LOOP( float ); break; 
+		LOOPF( float ); break; 
 
 	case VIPS_FORMAT_DOUBLE:	
 	case VIPS_FORMAT_DPCOMPLEX: 
-		LOOP( double ); break;
+		LOOPF( double ); break;
 
 	default:
 		g_assert( 0 );
@@ -210,8 +231,8 @@ vips_draw_image_build( VipsObject *object )
 				break;
 
 			case VIPS_COMBINE_MODE_ADD:
-				vips_draw_image_add( draw_image, 
-					q, p, clip_rect.width ); 
+				vips_draw_image_mode_add( draw_image, 
+					im, q, p, clip_rect.width ); 
 				break;
 
 			default:
@@ -283,10 +304,17 @@ vips_draw_image_init( VipsDrawImage *draw_image )
  * @x: draw @sub here
  * @y: draw @sub here
  *
+ * Optional arguments:
+ *
+ * @mode: how to combine pixels 
+ *
  * Draw @sub on top of @image at position @x, @y. The two images must have the 
  * same Coding. If @sub has 1 band, the bands will be duplicated to match the
  * number of bands in @image. @sub will be converted to @image's format, see
  * vips_cast().
+ *
+ * Use @mode to set how pixels are combined. If you use 
+ * #VIPS_COMBINE_MODE_ADD, both images muct be uncoded. 
  *
  * See also: vips_draw_mask(), vips_insert().
  *
