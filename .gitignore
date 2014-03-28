@@ -2,7 +2,6 @@ scan
 po/*.pot
 test-driver
 vips-*.tar.gz
-gtk-doc.make
 doc/reference/setup-build.stamp
 doc/reference/tmpl-build.stamp
 doc/reference/tmpl.stamp
