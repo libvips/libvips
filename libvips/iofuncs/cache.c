@@ -77,10 +77,12 @@ char *vips__cache_max_files = NULL;
 gboolean vips__cache_dump = FALSE;
 gboolean vips__cache_trace = FALSE;
 
-/* Max number of cached operations. We are likely to trim due to memuse or
- * file use before we hit this limit.
+/* Max number of cached operations. 
+ *
+ * It was 10,000, but this was too high for batch-style applications with
+ * little reuse. 
  */
-static int vips_cache_max = 10000;
+static int vips_cache_max = 1000;
 
 /* How many tracked open files we allow before we start dropping cache.
  */
