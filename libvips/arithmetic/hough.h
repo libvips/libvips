@@ -70,13 +70,6 @@ struct _VipsHough {
 	int width;
 	int height;
 
-	/* Each thread adds its accumulator image to this array on stop. 
-	 * ith is the index the ith thread places its image at.
-	 */
-	VipsImage **threads;
-	int n_threads;
-	int ith;
-
 	/* Sum the thread accumulators to here.
 	 */
 	VipsImage *out; 
@@ -86,7 +79,7 @@ struct _VipsHough {
 struct _VipsHoughClass {
 	VipsStatisticClass parent_class;
 
-	/* Make a new accumulator image.
+	/* Init an accumulator image.
 	 */
 	VipsHoughInitAccumulator init_accumulator;
 

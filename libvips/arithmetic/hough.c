@@ -45,60 +45,13 @@
 
 G_DEFINE_ABSTRACT_TYPE( VipsHough, vips_hough, VIPS_TYPE_STATISTIC );
 
-static int
-vips_hough_build( VipsObject *object )
+static VipsImage *
+vips_hough_new_accumulator( VipsHough *hough )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
-	VipsHough *hough = (VipsHough *) object;
-
-	VipsImage *out; 
-
-	/* Mono only, we use the bands dimension of the output image for
-	 * a parameter.
-	 */
-	if( statistic->in ) 
-		if( vips_check_mono( class->nickname, statistic->in ) )
-			return( -1 );
-
-	if( VIPS_OBJECT_CLASS( vips_hough_parent_class )->build( object ) )
-		return( -1 );
-
-	/* hough->threads should be an array of completed accumulators, and we
-	 * should have noted one for each thread we started.
-	 */
-	g_assert( hough->threads ); 
-	g_assert( hough->n_threads > 0 ); 
-	g_assert( hough->n_threads == hough->ith ); 
-
-	if( vips_sum( hough->threads, &out, hough->n_threads, NULL ) )
-		return( -1 ); 
-
-	g_object_set( object, 
-		"out", out,
-		NULL );
-
-	return( 0 );
-}
-
-/* Build a new accumulator. 
- */
-static void *
-vips_hough_start( VipsStatistic *statistic )
-{
-	VipsHough *hough = (VipsHough *) statistic;
 	VipsHoughClass *class = VIPS_HOUGH_GET_CLASS( hough );
+	VipsStatistic *statistic = VIPS_STATISTIC( hough ); 
 
-	VipsImage *accumulator;
-
-	/* Make a note of the number of threads we start.
-	 */
-	hough->n_threads += 1;
-
-	/* We assume that we don't start any more threads after the first stop
-	 * is called.
-	 */
-	g_assert( !hough->threads ); 
+	VipsImage *accumulator; 
 
 	accumulator = vips_image_new_buffer(); 
 
@@ -116,6 +69,49 @@ vips_hough_start( VipsStatistic *statistic )
 	memset( VIPS_IMAGE_ADDR( accumulator, 0, 0 ), 0,
 		VIPS_IMAGE_SIZEOF_IMAGE( accumulator ) ); 
 
+	return( accumulator );
+}
+
+static int
+vips_hough_build( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
+	VipsHough *hough = (VipsHough *) object;
+
+	VipsImage *out; 
+
+	/* Mono only, we use the bands dimension of the output image for
+	 * a parameter.
+	 */
+	if( statistic->in ) 
+		if( vips_check_mono( class->nickname, statistic->in ) )
+			return( -1 );
+
+	if( !(out = vips_hough_new_accumulator( hough )) )
+		return( -1 );
+	g_object_set( object, 
+		"out", out,
+		NULL );
+
+	if( VIPS_OBJECT_CLASS( vips_hough_parent_class )->build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/* Build a new accumulator. 
+ */
+static void *
+vips_hough_start( VipsStatistic *statistic )
+{
+	VipsHough *hough = (VipsHough *) statistic;
+
+	VipsImage *accumulator;
+
+	if( !(accumulator = vips_hough_new_accumulator( hough )) )
+		return( NULL ); 
+
 	return( (void *) accumulator ); 
 }
 
@@ -127,20 +123,14 @@ vips_hough_stop( VipsStatistic *statistic, void *seq )
 	VipsImage *accumulator = (VipsImage *) seq;
 	VipsHough *hough = (VipsHough *) statistic;
 
-	/* If this is the first stop, build the main accumulator array. We
-	 * assume no more threads will start, see the assert above.
-	 */
-	if( !hough->threads )
-		/* This will unref the accumulators automatically on dispose.
-		 */
-		hough->threads = (VipsImage **) 
-			vips_object_local_array( VIPS_OBJECT( hough ), 
-				hough->n_threads ); 
+	if( vips_draw_image( hough->out, accumulator, 0, 0,
+		"mode", VIPS_COMBINE_MODE_ADD,
+		NULL ) ) {
+		g_object_unref( accumulator ); 
+		return( -1 ); 
+	}
 
-	g_assert( !hough->threads[hough->ith] );
-
-	hough->threads[hough->ith] = accumulator;
-	hough->ith += 1;
+	g_object_unref( accumulator ); 
 
 	return( 0 );
 }
