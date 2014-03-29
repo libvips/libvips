@@ -4576,15 +4576,11 @@ im_draw_line_user( VipsImage *image,
 }
 
 int
-im_draw_mask( VipsImage *image, VipsImage *mask_im, int x, int y, VipsPel *ink )
+im_draw_mask( VipsImage *image, VipsImage *mask, int x, int y, VipsPel *ink )
 {
-	double *vec;
-	int n;
-
-	if( !(vec = vips__ink_to_vector( "im_draw_mask", image, ink, &n )) )
-		return( -1 ); 
-
-	return( vips_draw_mask( image, vec, n, mask_im, x, y, NULL ) ); 
+	/* Direct call, since this has to be very quick.
+	 */
+	return( vips__draw_mask_direct( image, mask, ink, x, y ) ); 
 }
 
 int

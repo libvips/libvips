@@ -67,51 +67,70 @@ typedef struct _VipsDrawCircle {
 	int radius;
 	gboolean fill;
 
-	VipsPel *centre;
+	VipsDrawPoint draw_point;
+	VipsDrawScanline draw_scanline;
 } VipsDrawCircle;
 
-typedef VipsDrawinkClass VipsDrawCircleClass;
+typedef struct _VipsDrawCircleClass {
+	VipsDrawinkClass parent_class;
+
+} VipsDrawCircleClass; 
 
 G_DEFINE_TYPE( VipsDrawCircle, vips_draw_circle, VIPS_TYPE_DRAWINK );
 
 static void
 vips_draw_circle_octants( VipsDrawCircle *circle, int x, int y )
 {
-	VipsDraw *draw = VIPS_DRAW( circle );
 	VipsDrawink *drawink = VIPS_DRAWINK( circle );
+	VipsDrawPoint draw_point = circle->draw_point; 
+	VipsDrawScanline draw_scanline = circle->draw_scanline; 
 	const int cx = circle->cx;
 	const int cy = circle->cy;
 
 	if( circle->fill ) {
-		vips__drawink_scanline( drawink, cy + y, cx - x, cx + x );
-		vips__drawink_scanline( drawink, cy - y, cx - x, cx + x );
-		vips__drawink_scanline( drawink, cy + x, cx - y, cx + y );
-		vips__drawink_scanline( drawink, cy - x, cx - y, cx + y );
-	}
-	else if( draw->noclip ) {
-		const size_t lsize = draw->lsize;
-		const size_t psize = draw->psize;
-		VipsPel *centre = circle->centre;
-
-		vips__drawink_pel( drawink, centre + lsize * y - psize * x );
-		vips__drawink_pel( drawink, centre + lsize * y + psize * x );
-		vips__drawink_pel( drawink, centre - lsize * y - psize * x );
-		vips__drawink_pel( drawink, centre - lsize * y + psize * x );
-		vips__drawink_pel( drawink, centre + lsize * x - psize * y );
-		vips__drawink_pel( drawink, centre + lsize * x + psize * y );
-		vips__drawink_pel( drawink, centre - lsize * x - psize * y );
-		vips__drawink_pel( drawink, centre - lsize * x + psize * y );
+		draw_scanline( drawink, cy + y, cx - x, cx + x );
+		draw_scanline( drawink, cy - y, cx - x, cx + x );
+		draw_scanline( drawink, cy + x, cx - y, cx + y );
+		draw_scanline( drawink, cy - x, cx - y, cx + y );
 	}
 	else {
-		vips__drawink_pel_clip( drawink, cx + y, cy - x );
-		vips__drawink_pel_clip( drawink, cx + y, cy + x );
-		vips__drawink_pel_clip( drawink, cx - y, cy - x );
-		vips__drawink_pel_clip( drawink, cx - y, cy + x );
-		vips__drawink_pel_clip( drawink, cx + x, cy - y );
-		vips__drawink_pel_clip( drawink, cx + x, cy + y );
-		vips__drawink_pel_clip( drawink, cx - x, cy - y );
-		vips__drawink_pel_clip( drawink, cx - x, cy + y );
+		draw_point( drawink, cx + y, cy - x );
+		draw_point( drawink, cx + y, cy + x );
+		draw_point( drawink, cx - y, cy - x );
+		draw_point( drawink, cx - y, cy + x );
+		draw_point( drawink, cx + x, cy - y );
+		draw_point( drawink, cx + x, cy + y );
+		draw_point( drawink, cx - x, cy - y );
+		draw_point( drawink, cx - x, cy + y );
 	}
+}
+
+/* Paint a point, with clip.
+ */
+static inline void 
+vips_draw_circle_draw_point_clip( VipsDrawink *drawink, int x, int y )
+{
+	VipsDraw *draw = (VipsDraw *) drawink;
+
+	if( x < 0 || 
+		x >= draw->image->Xsize )
+		return;
+	if( y < 0 || 
+		y >= draw->image->Ysize )
+		return;
+
+	vips__drawink_pel( drawink, VIPS_IMAGE_ADDR( draw->image, x, y ) );
+}
+
+/* Paint a point, no clipping needed.
+ */
+static inline int 
+vips_draw_circle_draw_point( VipsDrawink *drawink, int x, int y )
+{
+	VipsDraw *draw = (VipsDraw *) drawink;
+
+	return( vips__drawink_pel( drawink, 
+		VIPS_IMAGE_ADDR( draw->image, x, y ) ) ); 
 }
 
 static int
@@ -126,13 +145,15 @@ vips_draw_circle_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	circle->centre = VIPS_IMAGE_ADDR( draw->image, circle->cx, circle->cy );
+	circle->draw_scanline = vips__drawink_scanline;
 
 	if( circle->cx - circle->radius >= 0 && 
 		circle->cx + circle->radius < draw->image->Xsize &&
 		circle->cy - circle->radius >= 0 && 
 		circle->cy + circle->radius < draw->image->Ysize )
-		draw->noclip = TRUE;
+		circle->draw_point = vips_draw_circle_draw_point; 
+		else
+		circle->draw_point = vips__drawink_pel_clip; 
 
 	y = circle->radius;
 	d = 3 - 2 * circle->radius;

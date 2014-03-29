@@ -80,10 +80,10 @@ typedef VipsDrawLineClass VipsDrawLineUserClass;
 G_DEFINE_TYPE( VipsDrawLineUser, vips_draw_line_user, VIPS_TYPE_DRAW_LINE );
 
 static int
-vips_draw_line_user_plot_point( VipsDrawLine *line, int x, int y ) 
+vips_draw_line_user_draw_point( VipsDrawink *drawink, int x, int y ) 
 {
-	VipsDraw *draw = (VipsDraw *) line;
-	VipsDrawLineUser *user = (VipsDrawLineUser *) line;
+	VipsDraw *draw = (VipsDraw *) drawink;
+	VipsDrawLineUser *user = (VipsDrawLineUser *) drawink;
 
 	return( user->plot_fn( draw->image, x, y, user->a, user->b, user->c ) );
 }
@@ -103,7 +103,7 @@ vips_draw_line_user_class_init( VipsDrawLineUserClass *class )
 
 	operation_class->flags = VIPS_OPERATION_DEPRECATED;
 
-	class->plot_point = vips_draw_line_user_plot_point; 
+	class->draw_point = vips_draw_line_user_draw_point; 
 
 	VIPS_ARG_POINTER( class, "plot_fn", 7, 
 		_( "Plot" ), 

@@ -68,10 +68,8 @@ typedef struct _VipsDrawLine {
 typedef struct _VipsDrawLineClass {
 	VipsDrawinkClass parent_class;
 
-	int (*plot_point)( VipsDrawLine *, int x, int y ); 
+	VipsDrawPoint draw_point; 
 } VipsDrawLineClass; 
-
-typedef int (*VipsDrawLinePlotPoint)( VipsDrawLine *draw_line, int x, int y ); 
 
 GType vips_draw_line_get_type( void );
 

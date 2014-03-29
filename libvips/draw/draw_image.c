@@ -100,12 +100,7 @@ G_DEFINE_TYPE( VipsDrawImage, vips_draw_image, VIPS_TYPE_DRAW );
 		\
 		v = pt[x] + qt[x]; \
 		\
-		if( v > MAX ) \
-			v = MAX; \
-		else if( v < MIN ) \
-			v = MIN; \
-		\
-		qt[x] = v; \
+		qt[x] = VIPS_CLIP( MIN, v, MAX ); \
 	} \
 }
 

@@ -271,6 +271,8 @@ VipsPel *im__vector_to_ink( const char *domain,
 
 int vips__draw_flood_direct( VipsImage *image, VipsImage *test, 
 	int serial, int x, int y );
+int vips__draw_mask_direct( VipsImage *image, VipsImage *mask, 
+	VipsPel *ink, int x, int y ); 
 
 /* Register base vips interpolators, called during startup.
  */

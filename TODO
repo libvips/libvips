@@ -1,3 +1,7 @@
+- test draw_mask on labq images
+
+  we probably need to unpack the ink back to double before blending
+
 - vips_draw_image() might need a direct mode? see vips_flood_direct()
 
 - need call operation along a circle, see line draw

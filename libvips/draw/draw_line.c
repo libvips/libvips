@@ -18,7 +18,7 @@
  * 	- gtk-doc
  * 	- use draw.c base class
  * 	- do pointwise clipping
- * 	- rename as im_draw_draw_line() for consistency
+ * 	- rename as im_draw_line() for consistency
  * 	- cleanups!
  * 6/2/14
  * 	- redo as a class
@@ -68,8 +68,9 @@ G_DEFINE_TYPE( VipsDrawLine, vips_draw_line, VIPS_TYPE_DRAWINK );
 static int
 vips_draw_line_draw( VipsDrawLine *line )
 {
+	VipsDrawink *drawink = VIPS_DRAWINK( line );
 	VipsDrawLineClass *class = VIPS_DRAW_LINE_GET_CLASS( line );
-	VipsDrawLinePlotPoint plot_point = class->plot_point; 
+	VipsDrawPoint draw_point = class->draw_point; 
 
 	int x, y, err;
 
@@ -82,7 +83,7 @@ vips_draw_line_draw( VipsDrawLine *line )
 	 */
 	if( line->dx == 0 && 
 		line->dy == 0 ) {
-		if( plot_point( line, x, y ) ) 
+		if( draw_point( drawink, x, y ) ) 
 			return( -1 );
 	}
 	/* Special case vertical and horizontal lines for speed.
@@ -91,7 +92,7 @@ vips_draw_line_draw( VipsDrawLine *line )
 		/* Vertical line going down.
 		 */
 		for( ; y <= line->y2; y++ ) {
-			if( plot_point( line, x, y ) )
+			if( draw_point( drawink, x, y ) )
 				return( -1 );
 		}
 	}
@@ -99,7 +100,7 @@ vips_draw_line_draw( VipsDrawLine *line )
 		/* Horizontal line to the right.
 		 */
 		for( ; x <= line->x2; x++ ) {
-			if( plot_point( line, x, y ) )
+			if( draw_point( drawink, x, y ) )
 				return( -1 );
 		}
 	}
@@ -110,7 +111,7 @@ vips_draw_line_draw( VipsDrawLine *line )
 		/* Diagonal line going down and right.
 		 */
 		for( ; x <= line->x2; x++, y++ ) {
-			if( plot_point( line, x, y ) )
+			if( draw_point( drawink, x, y ) )
 				return( -1 );
 		}
 	}
@@ -119,7 +120,7 @@ vips_draw_line_draw( VipsDrawLine *line )
 		/* Diagonal line going up and right.
 		 */
 		for( ; x <= line->x2; x++, y-- ) {
-			if( plot_point( line, x, y ) )
+			if( draw_point( drawink, x, y ) )
 				return( -1 );
 		}
 	}
@@ -128,7 +129,7 @@ vips_draw_line_draw( VipsDrawLine *line )
 		/* Between -45 and 0 degrees.
 		 */
 		for( err = 0; x <= line->x2; x++ ) {
-			if( plot_point( line, x, y ) )
+			if( draw_point( drawink, x, y ) )
 				return( -1 );
 
 			err += line->dy;
@@ -143,7 +144,7 @@ vips_draw_line_draw( VipsDrawLine *line )
 		/* Between 0 and 45 degrees.
 		 */
 		for( err = 0; x <= line->x2; x++ ) {
-			if( plot_point( line, x, y ) )
+			if( draw_point( drawink, x, y ) )
 				return( -1 );
 
 			err -= line->dy;
@@ -158,7 +159,7 @@ vips_draw_line_draw( VipsDrawLine *line )
 		/* Between -45 and -90 degrees.
 		 */
 		for( err = 0; y <= line->y2; y++ ) {
-			if( plot_point( line, x, y ) )
+			if( draw_point( drawink, x, y ) )
 				return( -1 );
 
 			err += line->dx;
@@ -173,7 +174,7 @@ vips_draw_line_draw( VipsDrawLine *line )
 		/* Between -90 and -135 degrees.
 		 */
 		for( err = 0; y <= line->y2; y++ ) {
-			if( plot_point( line, x, y ) )
+			if( draw_point( drawink, x, y ) )
 				return( -1 );
 
 			err -= line->dx;
@@ -244,10 +245,9 @@ vips_draw_line_build( VipsObject *object )
 }
 
 static int
-vips_draw_line_plot_point( VipsDrawLine *line, int x, int y ) 
+vips_draw_line_draw_point( VipsDrawink *drawink, int x, int y ) 
 {
-	VipsDraw *draw = (VipsDraw *) line;
-	VipsDrawink *drawink = (VipsDrawink *) line;
+	VipsDraw *draw = (VipsDraw *) drawink;
 
 	if( draw->noclip )
 		vips__drawink_pel( drawink, 
@@ -271,7 +271,7 @@ vips_draw_line_class_init( VipsDrawLineClass *class )
 	vobject_class->description = _( "draw a draw_line on an image" );
 	vobject_class->build = vips_draw_line_build;
 
-	class->plot_point = vips_draw_line_plot_point; 
+	class->draw_point = vips_draw_line_draw_point; 
 
 	VIPS_ARG_INT( class, "x1", 3, 
 		_( "x1" ), 

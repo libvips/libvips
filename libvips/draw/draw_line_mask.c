@@ -74,11 +74,10 @@ typedef VipsDrawLineClass VipsDrawLineMaskClass;
 G_DEFINE_TYPE( VipsDrawLineMask, vips_draw_line_mask, VIPS_TYPE_DRAW_LINE );
 
 static int
-vips_draw_line_mask_plot_point( VipsDrawLine *line, int x, int y ) 
+vips_draw_line_mask_draw_point( VipsDrawink *drawink, int x, int y ) 
 {
-	VipsDraw *draw = (VipsDraw *) line;
-	VipsDrawink *drawink = (VipsDrawink *) line;
-	VipsDrawLineMask *mask = (VipsDrawLineMask *) line;
+	VipsDraw *draw = (VipsDraw *) drawink;
+	VipsDrawLineMask *mask = (VipsDrawLineMask *) drawink;
 
 	return( vips_draw_mask( draw->image, 
 		drawink->ink->data, drawink->ink->n, 
@@ -97,7 +96,7 @@ vips_draw_line_mask_class_init( VipsDrawLineMaskClass *class )
 	vobject_class->nickname = "draw_line_mask";
 	vobject_class->description = _( "draw a mask along a line" );
 
-	class->plot_point = vips_draw_line_mask_plot_point; 
+	class->draw_point = vips_draw_line_mask_draw_point; 
 
 	VIPS_ARG_IMAGE( class, "mask", 7, 
 		_( "Mask" ), 

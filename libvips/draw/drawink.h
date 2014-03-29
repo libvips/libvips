@@ -69,7 +69,10 @@ typedef struct _VipsDrawinkClass {
 
 GType vips_drawink_get_type( void );
 
-static inline void
+typedef int (*VipsDrawPoint)( VipsDrawink *drawink, int x, int y ); 
+typedef int (*VipsDrawScanline)( VipsDrawink *drawink, int y, int x1, int x2 );
+
+static inline int
 vips__drawink_pel( VipsDrawink *drawink, VipsPel *q )
 {
 	VipsDraw *draw = (VipsDraw *) drawink;
@@ -80,23 +83,27 @@ vips__drawink_pel( VipsDrawink *drawink, VipsPel *q )
 	 */
 	for( j = 0; j < draw->psize; j++ ) 
 		q[j] = drawink->pixel_ink[j];
+
+	return( 0 ); 
 }
 
 /* Paint, with clip.
  */
-static inline void 
+static inline int 
 vips__drawink_pel_clip( VipsDrawink *drawink, int x, int y )
 {
 	VipsDraw *draw = (VipsDraw *) drawink;
 
 	if( x < 0 || 
 		x >= draw->image->Xsize )
-		return;
+		return( 0 );
 	if( y < 0 || 
 		y >= draw->image->Ysize )
-		return;
+		return( 0 );
 
 	vips__drawink_pel( drawink, VIPS_IMAGE_ADDR( draw->image, x, y ) );
+
+	return( 0 ); 
 }
 
 /* Is p painted?
@@ -115,7 +122,7 @@ vips__drawink_painted( VipsDrawink *drawink, VipsPel *p )
 	return( j == draw->psize );
 }
 
-void vips__drawink_scanline( VipsDrawink *drawink, int y, int x1, int x2 );
+int vips__drawink_scanline( VipsDrawink *drawink, int y, int x1, int x2 );
 
 #ifdef __cplusplus
 }
