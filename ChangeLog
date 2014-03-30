@@ -17,6 +17,9 @@
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong
+- vipsthumbnail --crop could fail for very non-square images, thanks
+  Alessandro
+- fix a crash in vips_rawsave(), thanks Andrea
 
 24/2/14 started 7.38.5
 - jpeg load from buffer could write to input, thanks Lovell

@@ -174,7 +174,7 @@ vips_rawsave( VipsImage *in, const char *filename, ... )
 	int result;
 
 	va_start( ap, filename );
-	result = vips_call_split( "rawsave", ap, filename );
+	result = vips_call_split( "rawsave", ap, in, filename );
 	va_end( ap );
 
 	return( result );
