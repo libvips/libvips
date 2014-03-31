@@ -291,13 +291,9 @@ vips__draw_mask_direct( VipsImage *image, VipsImage *mask,
 static int
 vips_draw_mask_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsDraw *draw = VIPS_DRAW( object );
 	VipsDrawink *drawink = VIPS_DRAWINK( object );
 	VipsDrawMask *mask = (VipsDrawMask *) object;
-
-	VipsRect area;
-	VipsRect image;
 
 	if( VIPS_OBJECT_CLASS( vips_draw_mask_parent_class )->build( object ) )
 		return( -1 );

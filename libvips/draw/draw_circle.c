@@ -78,88 +78,20 @@ typedef struct _VipsDrawCircleClass {
 
 G_DEFINE_TYPE( VipsDrawCircle, vips_draw_circle, VIPS_TYPE_DRAWINK );
 
-static void
-vips_draw_circle_octants( VipsDrawCircle *circle, int x, int y )
+void
+vips__draw_circle_direct( VipsImage *image, int cx, int cy, int r,
+	VipsDrawScanline draw_scanline, void *client )
 {
-	VipsDrawink *drawink = VIPS_DRAWINK( circle );
-	VipsDrawPoint draw_point = circle->draw_point; 
-	VipsDrawScanline draw_scanline = circle->draw_scanline; 
-	const int cx = circle->cx;
-	const int cy = circle->cy;
-
-	if( circle->fill ) {
-		draw_scanline( drawink, cy + y, cx - x, cx + x );
-		draw_scanline( drawink, cy - y, cx - x, cx + x );
-		draw_scanline( drawink, cy + x, cx - y, cx + y );
-		draw_scanline( drawink, cy - x, cx - y, cx + y );
-	}
-	else {
-		draw_point( drawink, cx + y, cy - x );
-		draw_point( drawink, cx + y, cy + x );
-		draw_point( drawink, cx - y, cy - x );
-		draw_point( drawink, cx - y, cy + x );
-		draw_point( drawink, cx + x, cy - y );
-		draw_point( drawink, cx + x, cy + y );
-		draw_point( drawink, cx - x, cy - y );
-		draw_point( drawink, cx - x, cy + y );
-	}
-}
-
-/* Paint a point, with clip.
- */
-static inline void 
-vips_draw_circle_draw_point_clip( VipsDrawink *drawink, int x, int y )
-{
-	VipsDraw *draw = (VipsDraw *) drawink;
-
-	if( x < 0 || 
-		x >= draw->image->Xsize )
-		return;
-	if( y < 0 || 
-		y >= draw->image->Ysize )
-		return;
-
-	vips__drawink_pel( drawink, VIPS_IMAGE_ADDR( draw->image, x, y ) );
-}
-
-/* Paint a point, no clipping needed.
- */
-static inline int 
-vips_draw_circle_draw_point( VipsDrawink *drawink, int x, int y )
-{
-	VipsDraw *draw = (VipsDraw *) drawink;
-
-	return( vips__drawink_pel( drawink, 
-		VIPS_IMAGE_ADDR( draw->image, x, y ) ) ); 
-}
-
-static int
-vips_draw_circle_build( VipsObject *object )
-{
-	VipsDraw *draw = VIPS_DRAW( object );
-	VipsDrawCircle *circle = (VipsDrawCircle *) object;
-
 	int x, y, d;
 
-	if( VIPS_OBJECT_CLASS( vips_draw_circle_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	circle->draw_scanline = vips__drawink_scanline;
-
-	if( circle->cx - circle->radius >= 0 && 
-		circle->cx + circle->radius < draw->image->Xsize &&
-		circle->cy - circle->radius >= 0 && 
-		circle->cy + circle->radius < draw->image->Ysize )
-		circle->draw_point = vips_draw_circle_draw_point; 
-		else
-		circle->draw_point = vips__drawink_pel_clip; 
-
-	y = circle->radius;
-	d = 3 - 2 * circle->radius;
+	y = r;
+	d = 3 - 2 * r;
 
 	for( x = 0; x < y; x++ ) {
-		vips_draw_circle_octants( circle, x, y );
+		draw_scanline( image, cy + y, cx - x, cx + x, client );
+		draw_scanline( image, cy - y, cx - x, cx + x, client );
+		draw_scanline( image, cy + x, cx - y, cx + y, client );
+		draw_scanline( image, cy - x, cx - y, cx + y, client );
 
 		if( d < 0 )
 			d += 4 * x + 6;
@@ -170,7 +102,118 @@ vips_draw_circle_build( VipsObject *object )
 	}
 
 	if( x == y ) 
-		vips_draw_circle_octants( circle, x, y );
+		draw_scanline( image, cy + y, cx - x, cx + x, client );
+		draw_scanline( image, cy - y, cx - x, cx + x, client );
+		draw_scanline( image, cy + x, cx - y, cx + y, client );
+		draw_scanline( image, cy - x, cx - y, cx + y, client );
+}
+
+static inline void
+vips_draw_circle_draw_point( VipsImage *image, int x, int y, void *client )
+{
+	VipsPel *ink = (VipsPel *) client; 
+	VipsPel *q = VIPS_IMAGE_ADDR( image, x, y );
+	int psize = VIPS_IMAGE_SIZEOF_PEL( image ); 
+
+ 	int j;
+
+	/* Faster than memcopy() for n < about 20.
+	 */
+	for( j = 0; j < psize; j++ ) 
+		q[j] = ink[j];
+}
+
+/* Paint endpoints, with clip.
+ */
+static void 
+vips_draw_circle_draw_endpoints_clip( VipsImage *image,
+	int y, int x1, int x2, void *client )
+{
+	if( y > 0 &&
+		y < image->Ysize ) {
+		if( x1 >=0 &&
+			x1 < image->Xsize )
+			vips_draw_circle_draw_point( image, x1, y, client );
+		if( x2 >=0 &&
+			x2 < image->Xsize )
+			vips_draw_circle_draw_point( image, x2, y, client );
+	}
+}
+
+/* Paint endpoints, no clip.
+ */
+static void 
+vips_draw_circle_draw_endpoints_noclip( VipsImage *image,
+	int y, int x1, int x2, void *client )
+{
+	vips_draw_circle_draw_point( image, x1, y, client );
+	vips_draw_circle_draw_point( image, x2, y, client );
+}
+
+/* Paint scanline.
+ */
+static void 
+vips_draw_circle_draw_scanline( VipsImage *image,
+	int y, int x1, int x2, void *client )
+{
+	VipsPel *ink = (VipsPel *) client; 
+	int psize = VIPS_IMAGE_SIZEOF_PEL( image ); 
+
+	VipsPel *q;
+	int len;
+	int i, j;
+
+	g_assert( x1 <= x2 );
+
+	if( y < 0 || 
+		y >= image->Ysize )
+		return;
+	if( x1 < 0 && 
+		x2 < 0 )
+		return;
+	if( x1 >= image->Xsize && 
+		x2 >= image->Xsize )
+		return;
+	x1 = VIPS_CLIP( 0, x1, image->Xsize - 1 );
+	x2 = VIPS_CLIP( 0, x2, image->Xsize - 1 );
+
+	q = VIPS_IMAGE_ADDR( image, x1, y );
+	len = x2 - x1 + 1;
+
+	for( i = 0; i < len; i++ ) {
+		for( j = 0; j < psize; j++ )
+			q[j] = ink[j];
+
+		q += psize;
+	}
+}
+
+static int
+vips_draw_circle_build( VipsObject *object )
+{
+	VipsDraw *draw = VIPS_DRAW( object );
+	VipsDrawink *drawink = VIPS_DRAWINK( object );
+	VipsDrawCircle *circle = (VipsDrawCircle *) object;
+
+	VipsDrawScanline draw_scanline;
+
+	if( VIPS_OBJECT_CLASS( vips_draw_circle_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( circle->fill )
+		draw_scanline = vips_draw_circle_draw_scanline;
+	else if( circle->cx - circle->radius >= 0 && 
+		circle->cx + circle->radius < draw->image->Xsize &&
+		circle->cy - circle->radius >= 0 && 
+		circle->cy + circle->radius < draw->image->Ysize )
+		draw_scanline = vips_draw_circle_draw_endpoints_noclip; 
+		else
+		draw_scanline = vips_draw_circle_draw_endpoints_clip; 
+
+	vips__draw_circle_direct( draw->image, 
+		circle->cx, circle->cy, circle->radius,
+		draw_scanline, drawink->pixel_ink );
 
 	return( 0 );
 }

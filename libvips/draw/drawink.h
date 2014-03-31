@@ -70,7 +70,8 @@ typedef struct _VipsDrawinkClass {
 GType vips_drawink_get_type( void );
 
 typedef int (*VipsDrawPoint)( VipsDrawink *drawink, int x, int y ); 
-typedef int (*VipsDrawScanline)( VipsDrawink *drawink, int y, int x1, int x2 );
+typedef void (*VipsDrawScanline)( VipsImage *image, 
+	int y, int x1, int x2, void *client );
 
 static inline int
 vips__drawink_pel( VipsDrawink *drawink, VipsPel *q )

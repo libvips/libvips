@@ -74,6 +74,35 @@ vips_draw_line_draw( VipsDrawLine *line )
 
 	int x, y, err;
 
+	/* Find offsets.
+	 */
+	line->dx = line->x2 - line->x1;
+	line->dy = line->y2 - line->y1;
+
+	/* Swap endpoints to reduce number of cases. 
+	 */
+	if( abs( line->dx ) >= abs( line->dy ) && 
+		line->dx < 0 ) {
+		/* Swap to get all x greater or equal cases going to the 
+		 * right. Do diagonals here .. just have up and right and down
+		 * and right now.
+		 */
+		VIPS_SWAP( int, line->x1, line->x2 );
+		VIPS_SWAP( int, line->y1, line->y2 );
+	}
+	else if( abs( line->dx ) < abs( line->dy ) && 
+		line->dy < 0 ) {
+		/* Swap to get all y greater cases going down the screen.
+		 */
+		VIPS_SWAP( int, line->x1, line->x2 );
+		VIPS_SWAP( int, line->y1, line->y2 );
+	}
+
+	/* Recalculate dx, dy.
+	 */
+	line->dx = line->x2 - line->x1;
+	line->dy = line->y2 - line->y1;
+
 	/* Start point and offset.
 	 */
 	x = line->x1; 

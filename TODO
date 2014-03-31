@@ -1,3 +1,10 @@
+- redo draw_line following the draw_circle model: have a simple
+  "iterator"-style line draw which calls a function per pixel
+
+  include a _direct version
+
+  get rid of draw_line_user and draw_line_mask
+
 - test draw_mask on labq images
 
   we probably need to unpack the ink back to double before blending
