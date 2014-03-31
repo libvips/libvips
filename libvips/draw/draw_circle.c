@@ -56,6 +56,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "drawink.h"
 
@@ -67,8 +68,6 @@ typedef struct _VipsDrawCircle {
 	int radius;
 	gboolean fill;
 
-	VipsDrawPoint draw_point;
-	VipsDrawScanline draw_scanline;
 } VipsDrawCircle;
 
 typedef struct _VipsDrawCircleClass {

@@ -1,20 +1,8 @@
-- redo draw_line following the draw_circle model: have a simple
-  "iterator"-style line draw which calls a function per pixel
-
-  include a _direct version
-
-  get rid of draw_line_user and draw_line_mask
+- hough_circle can use circle thing to incremet in circles
 
 - test draw_mask on labq images
 
   we probably need to unpack the ink back to double before blending
-
-- vips_draw_image() might need a direct mode? see vips_flood_direct()
-
-- need call operation along a circle, see line draw
-
-- use with vips_draw_add() to make a mask image for each radius for
-  vips_hough_circle()
 
 
 

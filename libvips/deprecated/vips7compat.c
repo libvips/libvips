@@ -4566,13 +4566,37 @@ im_draw_line( VipsImage *image, int x1, int y1, int x2, int y2, VipsPel *ink )
 	return( vips_draw_line( image, vec, n, x1, y1, x2, y2, NULL ) ); 
 }
 
+typedef struct _Line {
+	VipsPlotFn plot;
+	void *a;
+	void *b;
+	void *c;
+} Line;
+
+static void
+draw_line_wrapper( VipsImage *image, int x, int y, void *client )
+{
+	Line *line = (Line *) client;
+
+	line->plot( image, x, y, line->a, line->b, line->c ); 
+}
+
 int 
 im_draw_line_user( VipsImage *image, 
 	int x1, int y1, int x2, int y2, 
 	VipsPlotFn plot, void *a, void *b, void *c )
 {
-	return( vips_draw_line_user( image, x1, y1, x2, y2, 
-		plot, a, b, c, NULL ) ); 
+	Line line;
+
+	line.plot = plot;
+	line.a = a;
+	line.b = b;
+	line.c = c;
+
+	vips__draw_line_direct( image, x1, y1, x2, y2, 
+		draw_line_wrapper, &line ); 
+	
+	return( 0 );
 }
 
 int

@@ -60,6 +60,9 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
+
+#include "drawink.h"
 
 typedef struct _VipsDrawLine {
 	VipsDrawink parent_object;
@@ -237,6 +240,7 @@ static int
 vips_draw_line_build( VipsObject *object )
 {
 	VipsDraw *draw = VIPS_DRAW( object );
+	VipsDrawink *drawink = VIPS_DRAWINK( object );
 	VipsDrawLine *line = (VipsDrawLine *) object;
 
 	VipsDrawPoint draw_point;
