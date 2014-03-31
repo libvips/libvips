@@ -61,162 +61,176 @@
 
 #include <vips/vips.h>
 
-#include "draw_line.h"
+typedef struct _VipsDrawLine {
+	VipsDrawink parent_object;
+
+	int x1;
+	int y1;
+	int x2;
+	int y2;
+
+} VipsDrawLine;
+
+typedef struct _VipsDrawLineClass {
+	VipsDrawinkClass parent_class;
+
+} VipsDrawLineClass; 
 
 G_DEFINE_TYPE( VipsDrawLine, vips_draw_line, VIPS_TYPE_DRAWINK );
 
-static int
-vips_draw_line_draw( VipsDrawLine *line )
+void
+vips__draw_line_direct( VipsImage *image, int x1, int y1, int x2, int y2,
+	VipsDrawPoint draw_point, void *client )
 {
-	VipsDrawink *drawink = VIPS_DRAWINK( line );
-	VipsDrawLineClass *class = VIPS_DRAW_LINE_GET_CLASS( line );
-	VipsDrawPoint draw_point = class->draw_point; 
-
+	int dx, dy;
 	int x, y, err;
 
-	/* Find offsets.
-	 */
-	line->dx = line->x2 - line->x1;
-	line->dy = line->y2 - line->y1;
+	dx = x2 - x1;
+	dy = y2 - y1;
 
 	/* Swap endpoints to reduce number of cases. 
 	 */
-	if( abs( line->dx ) >= abs( line->dy ) && 
-		line->dx < 0 ) {
+	if( abs( dx ) >= abs( dy ) && 
+		dx < 0 ) {
 		/* Swap to get all x greater or equal cases going to the 
 		 * right. Do diagonals here .. just have up and right and down
 		 * and right now.
 		 */
-		VIPS_SWAP( int, line->x1, line->x2 );
-		VIPS_SWAP( int, line->y1, line->y2 );
+		VIPS_SWAP( int, x1, x2 );
+		VIPS_SWAP( int, y1, y2 );
 	}
-	else if( abs( line->dx ) < abs( line->dy ) && 
-		line->dy < 0 ) {
+	else if( abs( dx ) < abs( dy ) && 
+		dy < 0 ) {
 		/* Swap to get all y greater cases going down the screen.
 		 */
-		VIPS_SWAP( int, line->x1, line->x2 );
-		VIPS_SWAP( int, line->y1, line->y2 );
+		VIPS_SWAP( int, x1, x2 );
+		VIPS_SWAP( int, y1, y2 );
 	}
 
-	/* Recalculate dx, dy.
-	 */
-	line->dx = line->x2 - line->x1;
-	line->dy = line->y2 - line->y1;
+	dx = x2 - x1;
+	dy = y2 - y1;
 
-	/* Start point and offset.
-	 */
-	x = line->x1; 
-	y = line->y1;
+	x = x1; 
+	y = y1;
 
 	/* Special case: zero width and height is single point.
 	 */
-	if( line->dx == 0 && 
-		line->dy == 0 ) {
-		if( draw_point( drawink, x, y ) ) 
-			return( -1 );
-	}
+	if( dx == 0 && 
+		dy == 0 ) 
+		draw_point( image, x, y, client );
 	/* Special case vertical and horizontal lines for speed.
 	 */
-	else if( line->dx == 0 ) {
+	else if( dx == 0 ) {
 		/* Vertical line going down.
 		 */
-		for( ; y <= line->y2; y++ ) {
-			if( draw_point( drawink, x, y ) )
-				return( -1 );
-		}
+		for( ; y <= y2; y++ ) 
+			draw_point( image, x, y, client );
 	}
-	else if( line->dy == 0 ) {
+	else if( dy == 0 ) {
 		/* Horizontal line to the right.
 		 */
-		for( ; x <= line->x2; x++ ) {
-			if( draw_point( drawink, x, y ) )
-				return( -1 );
-		}
+		for( ; x <= x2; x++ )
+			draw_point( image, x, y, client );
 	}
 	/* Special case diagonal lines.
 	 */
-	else if( abs( line->dy ) == abs( line->dx ) && 
-		line->dy > 0 ) {
+	else if( abs( dy ) == abs( dx ) && 
+		dy > 0 ) {
 		/* Diagonal line going down and right.
 		 */
-		for( ; x <= line->x2; x++, y++ ) {
-			if( draw_point( drawink, x, y ) )
-				return( -1 );
-		}
+		for( ; x <= x2; x++, y++ ) 
+			draw_point( image, x, y, client );
 	}
-	else if( abs( line->dy ) == abs( line->dx ) && 
-		line->dy < 0 ) {
+	else if( abs( dy ) == abs( dx ) && 
+		dy < 0 ) {
 		/* Diagonal line going up and right.
 		 */
-		for( ; x <= line->x2; x++, y-- ) {
-			if( draw_point( drawink, x, y ) )
-				return( -1 );
-		}
+		for( ; x <= x2; x++, y-- ) 
+			draw_point( image, x, y, client );
 	}
-	else if( abs( line->dy ) < abs( line->dx ) && 
-		line->dy > 0 ) {
+	else if( abs( dy ) < abs( dx ) && 
+		dy > 0 ) {
 		/* Between -45 and 0 degrees.
 		 */
-		for( err = 0; x <= line->x2; x++ ) {
-			if( draw_point( drawink, x, y ) )
-				return( -1 );
+		for( err = 0; x <= x2; x++ ) {
+			draw_point( image, x, y, client );
 
-			err += line->dy;
-			if( err >= line->dx ) {
-				err -= line->dx;
+			err += dy;
+			if( err >= dx ) {
+				err -= dx;
 				y++;
 			}
 		}
 	}
-	else if( abs( line->dy ) < abs( line->dx ) && 
-		line->dy < 0 ) {
+	else if( abs( dy ) < abs( dx ) && 
+		dy < 0 ) {
 		/* Between 0 and 45 degrees.
 		 */
-		for( err = 0; x <= line->x2; x++ ) {
-			if( draw_point( drawink, x, y ) )
-				return( -1 );
+		for( err = 0; x <= x2; x++ ) {
+			draw_point( image, x, y, client );
 
-			err -= line->dy;
-			if( err >= line->dx ) {
-				err -= line->dx;
+			err -= dy;
+			if( err >= dx ) {
+				err -= dx;
 				y--;
 			}
 		}
 	}
-	else if( abs( line->dy ) > abs( line->dx ) && 
-		line->dx > 0 ) {
+	else if( abs( dy ) > abs( dx ) && 
+		dx > 0 ) {
 		/* Between -45 and -90 degrees.
 		 */
-		for( err = 0; y <= line->y2; y++ ) {
-			if( draw_point( drawink, x, y ) )
-				return( -1 );
+		for( err = 0; y <= y2; y++ ) {
+			draw_point( image, x, y, client );
 
-			err += line->dx;
-			if( err >= line->dy ) {
-				err -= line->dy;
+			err += dx;
+			if( err >= dy ) {
+				err -= dy;
 				x++;
 			}
 		}
 	}
-	else if( abs( line->dy ) > abs( line->dx ) && 
-		line->dx < 0 ) {
+	else if( abs( dy ) > abs( dx ) && 
+		dx < 0 ) {
 		/* Between -90 and -135 degrees.
 		 */
-		for( err = 0; y <= line->y2; y++ ) {
-			if( draw_point( drawink, x, y ) )
-				return( -1 );
+		for( err = 0; y <= y2; y++ ) {
+			draw_point( image, x, y, client );
 
-			err -= line->dx;
-			if( err >= line->dy ) {
-				err -= line->dy;
+			err -= dx;
+			if( err >= dy ) {
+				err -= dy;
 				x--;
 			}
 		}
 	}
 	else
 		g_assert( 0 );
+}
 
-	return( 0 );
+static void
+vips_draw_line_draw_point_noclip( VipsImage *image, int x, int y, void *client )
+{
+	VipsPel *ink = (VipsPel *) client; 
+	VipsPel *q = VIPS_IMAGE_ADDR( image, x, y );
+	int psize = VIPS_IMAGE_SIZEOF_PEL( image ); 
+
+ 	int j;
+
+	/* Faster than memcopy() for n < about 20.
+	 */
+	for( j = 0; j < psize; j++ ) 
+		q[j] = ink[j];
+}
+
+static void
+vips_draw_line_draw_point_clip( VipsImage *image, int x, int y, void *client )
+{
+	if( x >= 0 &&
+		x < image->Xsize &&
+		y >= 0 &&
+		y < image->Ysize ) 
+		vips_draw_line_draw_point_noclip( image, x, y, client ); 
 }
 
 static int
@@ -225,37 +239,10 @@ vips_draw_line_build( VipsObject *object )
 	VipsDraw *draw = VIPS_DRAW( object );
 	VipsDrawLine *line = (VipsDrawLine *) object;
 
+	VipsDrawPoint draw_point;
+
 	if( VIPS_OBJECT_CLASS( vips_draw_line_parent_class )->build( object ) )
 		return( -1 );
-
-	/* Find offsets.
-	 */
-	line->dx = line->x2 - line->x1;
-	line->dy = line->y2 - line->y1;
-
-	/* Swap endpoints to reduce number of cases. 
-	 */
-	if( abs( line->dx ) >= abs( line->dy ) && 
-		line->dx < 0 ) {
-		/* Swap to get all x greater or equal cases going to the 
-		 * right. Do diagonals here .. just have up and right and down
-		 * and right now.
-		 */
-		VIPS_SWAP( int, line->x1, line->x2 );
-		VIPS_SWAP( int, line->y1, line->y2 );
-	}
-	else if( abs( line->dx ) < abs( line->dy ) && 
-		line->dy < 0 ) {
-		/* Swap to get all y greater cases going down the screen.
-		 */
-		VIPS_SWAP( int, line->x1, line->x2 );
-		VIPS_SWAP( int, line->y1, line->y2 );
-	}
-
-	/* Recalculate dx, dy.
-	 */
-	line->dx = line->x2 - line->x1;
-	line->dy = line->y2 - line->y1;
 
 	if( line->x1 < draw->image->Xsize && 
 		line->x1 >= 0 &&
@@ -265,24 +252,13 @@ vips_draw_line_build( VipsObject *object )
 		line->y1 >= 0 &&
 		line->y2 < draw->image->Ysize && 
 		line->y2 >= 0 )
-		draw->noclip = TRUE;
-
-	if( vips_draw_line_draw( line ) ) 
-		return( -1 );
-
-	return( 0 );
-}
-
-static int
-vips_draw_line_draw_point( VipsDrawink *drawink, int x, int y ) 
-{
-	VipsDraw *draw = (VipsDraw *) drawink;
-
-	if( draw->noclip )
-		vips__drawink_pel( drawink, 
-			VIPS_IMAGE_ADDR( draw->image, x, y ) );
+		draw_point = vips_draw_line_draw_point_noclip;
 	else
-		vips__drawink_pel_clip( drawink, x, y );
+		draw_point = vips_draw_line_draw_point_clip;
+
+	vips__draw_line_direct( draw->image, 
+		line->x1, line->y1, line->x2, line->y2,
+		draw_point, drawink->pixel_ink );
 
 	return( 0 );
 }
@@ -299,8 +275,6 @@ vips_draw_line_class_init( VipsDrawLineClass *class )
 	vobject_class->nickname = "draw_line";
 	vobject_class->description = _( "draw a draw_line on an image" );
 	vobject_class->build = vips_draw_line_build;
-
-	class->draw_point = vips_draw_line_draw_point; 
 
 	VIPS_ARG_INT( class, "x1", 3, 
 		_( "x1" ), 
