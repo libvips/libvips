@@ -47,8 +47,12 @@
 typedef struct _VipsHoughCircle {
 	VipsHough parent_instance;
 
+	int scale;
 	int min_radius;
 	int max_radius;
+
+	int width;
+	int height;
 	int bands;
 
 } VipsHoughCircle;
@@ -61,17 +65,19 @@ static int
 vips_hough_circle_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsStatistic *statistic = (VipsStatistic *) object;  
 	VipsHoughCircle *hough_circle = (VipsHoughCircle *) object;
+	int range = hough_circle->max_radius - hough_circle->min_radius;
 
-	if( !vips_object_argument_isset( object, "bands" ) )
-		hough_circle->bands = 1 + hough_circle->max_radius - 
-			hough_circle->min_radius;
-
-	if( hough_circle->min_radius > hough_circle->max_radius ) { 
+	if( range <= 0 ) {
 		vips_error( class->nickname, 
 			"%s", _( "parameters out of range" ) );
 		return( -1 );
 	}
+
+	hough_circle->width = statistic->in->Xsize / hough_circle->scale;
+	hough_circle->height = statistic->in->Ysize / hough_circle->scale;
+	hough_circle->bands = 1 + range / hough_circle->scale;
 
 	if( VIPS_OBJECT_CLASS( vips_hough_circle_parent_class )->
 		build( object ) )
@@ -86,7 +92,7 @@ vips_hough_circle_init_accumulator( VipsHough *hough, VipsImage *accumulator )
 	VipsHoughCircle *hough_circle = (VipsHoughCircle *) hough;
 
 	vips_image_init_fields( accumulator,
-		hough->width, hough->height, hough_circle->bands,
+		hough_circle->width, hough_circle->height, hough_circle->bands,
 		VIPS_FORMAT_UINT, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_MATRIX,
 		1.0, 1.0 );
@@ -104,7 +110,7 @@ vips_hough_circle_vote_point( VipsImage *image, int x, int y, void *client )
 	g_assert( x >= 0 ); 
 	g_assert( y >= 0 ); 
 	g_assert( x < image->Xsize ); 
-	g_assert( y < image->Xsize ); 
+	g_assert( y < image->Ysize ); 
 	g_assert( r >= 0 ); 
 	g_assert( r < image->Bands ); 
 
@@ -144,19 +150,20 @@ static void
 vips_hough_circle_vote( VipsHough *hough, VipsImage *accumulator, int x, int y )
 {
 	VipsHoughCircle *hough_circle = (VipsHoughCircle *) hough; 
-	VipsStatistic *statistic = (VipsStatistic *) hough;  
 	int min_radius = hough_circle->min_radius; 
 	int max_radius = hough_circle->max_radius; 
 	int range = max_radius - min_radius; 
-	int cx = x * accumulator->Xsize / statistic->ready->Xsize;
-	int cy = y * accumulator->Ysize / statistic->ready->Ysize;
+	int cx = x / hough_circle->scale;
+	int cy = y / hough_circle->scale;
 
-	int r;
+	int rb;
 
 	g_assert( range >= 0 ); 
 
-	for( r = min_radius; r <= max_radius; r++ ) { 
-		int rb = (r - min_radius) * hough_circle->bands / (range + 1); 
+	for( rb = 0; rb < hough_circle->bands; rb++ ) { 
+		/* r needs to be in scaled down image space.
+		 */
+		int r = rb + min_radius / hough_circle->scale; 
 
 		VipsDrawScanline draw_scanline;
 
@@ -190,12 +197,12 @@ vips_hough_circle_class_init( VipsHoughClass *class )
 	hclass->init_accumulator = vips_hough_circle_init_accumulator;
 	hclass->vote = vips_hough_circle_vote;
 
-	VIPS_ARG_INT( class, "bands", 119, 
-		_( "Bands" ), 
-		_( "Number of bands in parameter space" ),
+	VIPS_ARG_INT( class, "scale", 119, 
+		_( "Scale" ), 
+		_( "Scale down dimensions by this factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsHoughCircle, bands ),
-		1, 100000, 10 );
+		G_STRUCT_OFFSET( VipsHoughCircle, scale ),
+		1, 100000, 3 );
 
 	VIPS_ARG_INT( class, "min_radius", 120, 
 		_( "Min radius" ), 
@@ -204,7 +211,7 @@ vips_hough_circle_class_init( VipsHoughClass *class )
 		G_STRUCT_OFFSET( VipsHoughCircle, min_radius ),
 		1, 100000, 10 );
 
-	VIPS_ARG_INT( class, "max_radius", 121, 
+	VIPS_ARG_INT( class, "max_radius", 120, 
 		_( "Max radius" ), 
 		_( "Largest radius to search for" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
@@ -216,9 +223,9 @@ vips_hough_circle_class_init( VipsHoughClass *class )
 static void
 vips_hough_circle_init( VipsHoughCircle *hough_circle )
 {
+	hough_circle->scale = 3; 
 	hough_circle->min_radius = 10; 
 	hough_circle->max_radius = 20; 
-	hough_circle->bands = 10; 
 }
 
 /**
@@ -229,11 +236,9 @@ vips_hough_circle_init( VipsHoughCircle *hough_circle )
  *
  * Optional arguments:
  *
- * @width: horizontal size of parameter space
- * @height: vertical size of parameter space
+ * @scale: scale down dimensions by this much
  * @min_radius: smallest radius to search for
  * @max_radius: largest radius to search for
- * @bands: number of bands (radii) in accumulator image
  *
  * See also: 
  *

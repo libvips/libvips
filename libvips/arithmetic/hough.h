@@ -64,12 +64,6 @@ typedef void (*VipsHoughVote)( VipsHough *hough,
 struct _VipsHough {
 	VipsStatistic parent_instance;
 
-	/* Size of parameter space. All have at least two dimensions, some
-	 * subclasses add a third. 
-	 */
-	int width;
-	int height;
-
 	/* Sum the thread accumulators to here.
 	 */
 	VipsImage *out; 

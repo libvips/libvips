@@ -56,7 +56,7 @@ vips_hough_new_accumulator( VipsHough *hough )
 	accumulator = vips_image_new_buffer(); 
 
 	vips_image_pipelinev( accumulator,
-		VIPS_DEMAND_STYLE_ANY, statistic->in, NULL );
+		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL );
 
 	if( class->init_accumulator( hough, accumulator ) ||
 		vips_image_write_prepare( accumulator ) ) {
@@ -187,25 +187,9 @@ vips_hough_class_init( VipsHoughClass *class )
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsHough, out ) );
 
-	VIPS_ARG_INT( class, "width", 110, 
-		_( "Width" ), 
-		_( "horizontal size of parameter space" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsHough, width ),
-		1, 100000, 256 );
-
-	VIPS_ARG_INT( class, "height", 111, 
-		_( "Height" ), 
-		_( "Vertical size of parameter space" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsHough, height ),
-		1, 100000, 256 );
-
 }
 
 static void
 vips_hough_init( VipsHough *hough )
 {
-	hough->width = 256;
-	hough->height = 256;
 }
