@@ -16,9 +16,13 @@
 - add vips_hough base class and vips_hough_line()
 - add "mode" param to vips_draw_image()
 - add vips_hough_circle()
+- reduce default cache size to 1,000 operations
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong
+- vipsthumbnail --crop could fail for very non-square images, thanks
+  Alessandro
+- fix a crash in vips_rawsave(), thanks Andrea
 
 24/2/14 started 7.38.5
 - jpeg load from buffer could write to input, thanks Lovell
