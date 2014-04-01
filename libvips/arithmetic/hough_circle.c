@@ -61,6 +61,42 @@ typedef VipsHoughClass VipsHoughCircleClass;
 
 G_DEFINE_TYPE( VipsHoughCircle, vips_hough_circle, VIPS_TYPE_HOUGH );
 
+/* Smaller circles have fewer pixels and therefore fewer votes. Scale bands by
+ * the ratio of circumference, so all radii get equal weight.
+ */
+static void
+vips_hough_circle_normalise( VipsHoughCircle *hough_circle )
+{
+	VipsHough *hough = (VipsHough *) hough_circle;
+
+	int max_radius = hough_circle->max_radius;
+	int min_radius = hough_circle->min_radius;
+	int scale = hough_circle->scale;
+	int bands = hough_circle->bands;
+	int width = hough_circle->width;
+	int height = hough_circle->height;
+
+	double max_circumference = 2 * VIPS_PI * max_radius;
+
+	int b;
+
+	for( b = 0; b < bands; b++ ) {
+		int radius = b * scale + min_radius;
+		double circumference = 2 * VIPS_PI * radius;
+		double ratio = max_circumference / circumference;
+
+		int x, y;
+		guint *q; 
+
+		q = b + (guint *) VIPS_IMAGE_ADDR( hough->out, 0, 0 );
+		for( y = 0; y < height; y++ ) {
+			for( x = 0; x < width; x++ ) 
+				*q *= ratio;
+			q += bands;
+		}
+	}
+}
+
 static int
 vips_hough_circle_build( VipsObject *object )
 {
@@ -82,6 +118,8 @@ vips_hough_circle_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_hough_circle_parent_class )->
 		build( object ) )
 		return( -1 );
+
+	vips_hough_circle_normalise( hough_circle );
 
 	return( 0 );
 }
@@ -240,7 +278,14 @@ vips_hough_circle_init( VipsHoughCircle *hough_circle )
  * @min_radius: smallest radius to search for
  * @max_radius: largest radius to search for
  *
- * See also: 
+ * Find the circular Hough transform of an image. @in must be one band, with
+ * non-zero pixels for image edges. @out is three-band, with the third channel 
+ * representing the detected circle radius. 
+ *
+ *
+ *
+ *
+ * See also: vips_hough_line().
  *
  * Returns: 0 on success, -1 on error
  */

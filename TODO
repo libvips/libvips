@@ -6,20 +6,6 @@
 
 
 
-- vips_hough_circle() params need fixing
-
-  we need to give a "scale" param which sets width/height of acc as a 
-  factor of original 
-
-  min_radius / max_radius set range of circles to search for
-
-  number of bands in acc image is range / scale
-
-  width/height need to move out of hough.c into hough_line.c: they only make
-  sense for that param space
-
-
-
 - ink to vec etc must have a way to give a complex constant
 
   eg. drawink needs a --ink_imag option with the imaginary components of the 
