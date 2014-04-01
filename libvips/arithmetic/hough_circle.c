@@ -39,6 +39,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "statistic.h"
 #include "hough.h"
@@ -60,7 +61,6 @@ static int
 vips_hough_circle_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsHough *hough = (VipsHough *) object;
 	VipsHoughCircle *hough_circle = (VipsHoughCircle *) object;
 
 	if( !vips_object_argument_isset( object, "bands" ) )
@@ -70,7 +70,7 @@ vips_hough_circle_build( VipsObject *object )
 	if( hough_circle->min_radius > hough_circle->max_radius ) { 
 		vips_error( class->nickname, 
 			"%s", _( "parameters out of range" ) );
-		return( NULL );
+		return( -1 );
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_hough_circle_parent_class )->
@@ -95,79 +95,47 @@ vips_hough_circle_init_accumulator( VipsHough *hough, VipsImage *accumulator )
 }
 
 static inline void
-vips_hough_circle_pel( VipsImage *accumulator, int band, int x, int y )
+vips_hough_circle_vote_point( VipsImage *image, int x, int y, void *client )
 {
-	VIPS_IMAGE_ADDR( accumulator, x, y )[band] += 1;
+	guint *q = (guint *) VIPS_IMAGE_ADDR( image, x, y );
+	int r = *((int *) client); 
+
+	g_assert( image->BandFmt == VIPS_FORMAT_UINT ); 
+	g_assert( x >= 0 ); 
+	g_assert( y >= 0 ); 
+	g_assert( x < image->Xsize ); 
+	g_assert( y < image->Xsize ); 
+	g_assert( r >= 0 ); 
+	g_assert( r < image->Bands ); 
+
+	q[r] += 1;
 }
 
-static inline void
-vips_hough_circle_pel_clip( VipsImage *accumulator, int band, int x, int y )
+/* Vote endpoints, with clip.
+ */
+static void 
+vips_hough_circle_vote_endpoints_clip( VipsImage *image,
+	int y, int x1, int x2, void *client )
 {
-	if( x >= 0 && 
-		x < accumulator->Xsize &&
-		y >= 0 && 
-		y < accumulator->Ysize )
-		VIPS_IMAGE_ADDR( accumulator, x, y )[band] += 1;
-}
-
-static void
-vips_hough_circle_octants( VipsImage *accumulator, 
-	gboolean noclip, int band,
-	int cx, int cy, int x, int y )
-{
-	if( noclip ) {
-		vips_hough_circle_pel( accumulator, band, cx + y, cy - x );
-		vips_hough_circle_pel( accumulator, band, cx + y, cy + x );
-		vips_hough_circle_pel( accumulator, band, cx - y, cy - x );
-		vips_hough_circle_pel( accumulator, band, cx - y, cy + x );
-		vips_hough_circle_pel( accumulator, band, cx + x, cy - y );
-		vips_hough_circle_pel( accumulator, band, cx + x, cy + y );
-		vips_hough_circle_pel( accumulator, band, cx - x, cy - y );
-		vips_hough_circle_pel( accumulator, band, cx - x, cy + y );
-	}
-	else {
-		vips_hough_circle_pel_clip( accumulator, band, cx + y, cy - x );
-		vips_hough_circle_pel_clip( accumulator, band, cx + y, cy + x );
-		vips_hough_circle_pel_clip( accumulator, band, cx - y, cy - x );
-		vips_hough_circle_pel_clip( accumulator, band, cx - y, cy + x );
-		vips_hough_circle_pel_clip( accumulator, band, cx + x, cy - y );
-		vips_hough_circle_pel_clip( accumulator, band, cx + x, cy + y );
-		vips_hough_circle_pel_clip( accumulator, band, cx - x, cy - y );
-		vips_hough_circle_pel_clip( accumulator, band, cx - x, cy + y );
+	if( y >= 0 &&
+		y < image->Ysize ) {
+		if( x1 >=0 &&
+			x1 < image->Xsize )
+			vips_hough_circle_vote_point( image, x1, y, client );
+		if( x2 >=0 &&
+			x2 < image->Xsize )
+			vips_hough_circle_vote_point( image, x2, y, client );
 	}
 }
 
-static void
-vips_hough_circle_draw( VipsHoughCircle *hough_circle,
-	VipsImage *accumulator, int cx, int cy, int radius )
+/* Vote endpoints, no clip.
+ */
+static void 
+vips_hough_circle_vote_endpoints_noclip( VipsImage *image,
+	int y, int x1, int x2, void *client )
 {
-	int bands = hough_circle->bands;
-	int band = bands * (radius - hough_circle->min_band) / bands; 
-
-	gboolean noclip;
-	int x, y, d;
-
-	noclip = cx - radius >= 0 && 
-		cx + radius < accumulator->Xsize &&
-		cy - radius >= 0 && 
-		cy + radius < accumulator->Ysize;
-
-	y = radius;
-	d = 3 - 2 * radius;
-
-	for( x = 0; x < y; x++ ) {
-		vips_draw_circle_octants( accumulator, noclip, band, x, y );
-
-		if( d < 0 )
-			d += 4 * x + 6;
-		else {
-			d += 4 * (x - y) + 10;
-			y--;
-		}
-	}
-
-	if( x == y ) 
-		vips_draw_circle_octants( accumulator, noclip, band, x, y );
+	vips_hough_circle_vote_point( image, x1, y, client );
+	vips_hough_circle_vote_point( image, x2, y, client );
 }
 
 /* Cast votes for all possible circles passing through x, y.
@@ -177,19 +145,31 @@ vips_hough_circle_vote( VipsHough *hough, VipsImage *accumulator, int x, int y )
 {
 	VipsHoughCircle *hough_circle = (VipsHoughCircle *) hough; 
 	VipsStatistic *statistic = (VipsStatistic *) hough;  
-	double xd = (double) x / statistic->ready->Xsize;
-	double yd = (double) y / statistic->ready->Ysize;
+	int min_radius = hough_circle->min_radius; 
+	int max_radius = hough_circle->max_radius; 
+	int range = max_radius - min_radius; 
+	int cx = x * accumulator->Xsize / statistic->ready->Xsize;
+	int cy = y * accumulator->Ysize / statistic->ready->Ysize;
 
 	int r;
 
-	for( i = 0; i < hough->width; i++ ) { 
-		int i90 = (i + hough->width / 4) % hough->width;
-		double r = xd * hough_circle->sin[i90] + yd * hough_circle->sin[i];
-		int ri = hough->height * r;
+	g_assert( range >= 0 ); 
 
-		if( ri >= 0 && 
-			ri < hough->height ) 
-			*VIPS_IMAGE_ADDR( accumulator, i, ri ) += 1;
+	for( r = min_radius; r <= max_radius; r++ ) { 
+		int rb = (r - min_radius) * hough_circle->bands / (range + 1); 
+
+		VipsDrawScanline draw_scanline;
+
+		if( cx - r >= 0 && 
+			cx + r < accumulator->Xsize &&
+			cy - r >= 0 && 
+			cy + r < accumulator->Ysize )
+			draw_scanline = vips_hough_circle_vote_endpoints_noclip;
+			else
+			draw_scanline = vips_hough_circle_vote_endpoints_clip; 
+
+		vips__draw_circle_direct( accumulator, 
+			cx, cy, r, draw_scanline, &rb );
 	}
 }
 
@@ -253,6 +233,7 @@ vips_hough_circle_init( VipsHoughCircle *hough_circle )
  * @height: vertical size of parameter space
  * @min_radius: smallest radius to search for
  * @max_radius: largest radius to search for
+ * @bands: number of bands (radii) in accumulator image
  *
  * See also: 
  *

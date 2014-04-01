@@ -5,6 +5,7 @@ libarithmetic_la_SOURCES = \
 	hough.c \
 	hough.h \
 	hough_line.c \
+	hough_circle.c \
 	abs.c \
 	complex.c \
 	deviate.c \

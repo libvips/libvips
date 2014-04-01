@@ -68,7 +68,7 @@ vips_hough_line_build( VipsObject *object )
 		return( -1 ); 
 
 	for( i = 0; i < hough->width; i++ )  
-		hough_line->sin[i] = sin( 2 * M_PI * i / hough->width );  
+		hough_line->sin[i] = sin( 2 * VIPS_PI * i / hough->width );  
 
 	if( VIPS_OBJECT_CLASS( vips_hough_line_parent_class )->build( object ) )
 		return( -1 );

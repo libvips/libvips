@@ -8,7 +8,6 @@
   im_draw_smudge(), im_label_regions() as classes
 - better rounding in vips_flatten()
 - VipsStatistic operations are sequential
-- vipsthumbnail attaches main image metadata to embedded thumbnails
 - vipsthumbnail has --rotate auto-rotate option
 - removed embedded thumbnail reader from vipsthumbnail: embedded thumbnails
   are too unlike the main image
@@ -16,6 +15,7 @@
 - add vips_sum()
 - add vips_hough base class and vips_hough_line()
 - add "mode" param to vips_draw_image()
+- add vips_hough_circle()
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

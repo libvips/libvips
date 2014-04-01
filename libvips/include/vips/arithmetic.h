@@ -390,6 +390,8 @@ int vips_hist_find_indexed( VipsImage *in, VipsImage *index,
 	__attribute__((sentinel));
 int vips_hough_line( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_hough_circle( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_project( VipsImage *in, VipsImage **columns, VipsImage **rows, ... )
 	__attribute__((sentinel));
 int vips_profile( VipsImage *in, VipsImage **columns, VipsImage **rows, ... )

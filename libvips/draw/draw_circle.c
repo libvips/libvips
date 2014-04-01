@@ -128,7 +128,7 @@ static void
 vips_draw_circle_draw_endpoints_clip( VipsImage *image,
 	int y, int x1, int x2, void *client )
 {
-	if( y > 0 &&
+	if( y >= 0 &&
 		y < image->Ysize ) {
 		if( x1 >=0 &&
 			x1 < image->Xsize )
