@@ -1,18 +1,22 @@
 
+
 - test draw_mask on labq images
 
   we probably need to unpack the ink back to double before blending
 
 
 
-- think of a better way to support skipahead
+- vips_hough_circle() params need fixing
 
-  extract needs to hint to it's image sources what line it will start reading
-  at 
+  we need to give a "scale" param which sets width/height of acc as a 
+  factor of original 
 
-  in vips_extract_build(), call vips_image_set_start(), somehow sends a signal
-  the wrong way down the pipe to the vips_sequential() (if there is one)
-  telling it not to stall the first request if it's for that line
+  min_radius / max_radius set range of circles to search for
+
+  number of bands in acc image is range / scale
+
+  width/height need to move out of hough.c into hough_line.c: they only make
+  sense for that param space
 
 
 
@@ -27,6 +31,19 @@
 - vips__ink_to_vector() needs an optional imag return
 
 - vips_getpoint() needs an optional imag return
+
+
+
+- think of a better way to support skipahead
+
+  extract needs to hint to it's image sources what line it will start reading
+  at 
+
+  in vips_extract_build(), call vips_image_set_start(), somehow sends a signal
+  the wrong way down the pipe to the vips_sequential() (if there is one)
+  telling it not to stall the first request if it's for that line
+
+
 
 
 
