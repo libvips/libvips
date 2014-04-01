@@ -171,7 +171,15 @@ vips_hough_line_init( VipsHoughLine *hough_line )
  * @width: horizontal size of parameter space
  * @height: vertical size of parameter space
  *
- * See also: 
+ * Find the line Hough transform for @in. @in must have one band. @out has one
+ * band, with pixels being the number of votes for that line. The X dimension
+ * of @out is the line angle, the Y dimension is the distance of the line from
+ * the origin. 
+ *
+ * Use @width @height to set the size of the parameter space image (@out),
+ * that is, how accurate the line determination should be. 
+ *
+ * See also: vips_hough_circle().
  *
  * Returns: 0 on success, -1 on error
  */

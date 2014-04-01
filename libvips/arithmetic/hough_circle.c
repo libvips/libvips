@@ -280,10 +280,16 @@ vips_hough_circle_init( VipsHoughCircle *hough_circle )
  *
  * Find the circular Hough transform of an image. @in must be one band, with
  * non-zero pixels for image edges. @out is three-band, with the third channel 
- * representing the detected circle radius. 
+ * representing the detected circle radius. The operation scales the number of
+ * votes by circle circumference so circles of differing size are given equal
+ * weight. 
  *
+ * Use @max_radius and @min_radius to set the range of radii to search for.
  *
- *
+ * Use @scale to set how @in coordinates are scaled to @out coordinates. A
+ * @scale of 3, for example, will make @out 1/3rd of the width and height of
+ * @in, and reduce the number of radii tested (and hence the number of bands
+ * int @out) by a factor of three as well.
  *
  * See also: vips_hough_line().
  *
