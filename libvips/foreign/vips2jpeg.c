@@ -569,6 +569,7 @@ vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 typedef struct _VipsExif {
 	VipsImage *image;
 	ExifData *ed;
+	ExifContent *content;
 } VipsExif;
 
 static void
@@ -584,11 +585,14 @@ vips_exif_update_entry( ExifEntry *entry, VipsExif *ve )
 		(void) vips_image_get_string( ve->image, name, &value );
 		vips_exif_from_s( ve->ed, entry, value ); 
 	}
+	else
+		exif_content_remove_entry( ve->content, entry );
 }
 
 static void
 vips_exif_update_content( ExifContent *content, VipsExif *ve )
 {
+	ve->content = content;
         exif_content_foreach_entry( content, 
 		(ExifContentForeachEntryFunc) vips_exif_update_entry, ve );
 }

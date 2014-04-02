@@ -39,7 +39,7 @@
     <xi:include href="xml/foreign.xml"/>
     <xi:include href="xml/freqfilt.xml"/>
     <xi:include href="xml/histogram.xml"/>
-    <xi:include href="xml/inplace.xml"/>
+    <xi:include href="xml/draw.xml"/>
     <xi:include href="xml/interpolate.xml"/>
     <xi:include href="xml/morphology.xml"/>
     <xi:include href="xml/mosaicing.xml"/>

@@ -1,7 +1,11 @@
 /* hough transform
  *
  * 7/3/14
+<<<<<<< HEAD
  * 	- from hough.c
+=======
+ * 	- from hist_find.c
+>>>>>>> origin/master
  */
 
 /*
@@ -41,6 +45,7 @@
 #include <vips/vips.h>
 
 #include "statistic.h"
+<<<<<<< HEAD
 
 typedef struct _VipsHough {
 	VipsStatistic parent_instance;
@@ -68,6 +73,37 @@ vips_hough_dispose( GObject *gobject )
 	VIPS_FREEF( vips_g_mutex_free, hough->lock );
 
 	G_OBJECT_CLASS( vips_hough_parent_class )->dispose( gobject );
+=======
+#include "hough.h"
+
+G_DEFINE_ABSTRACT_TYPE( VipsHough, vips_hough, VIPS_TYPE_STATISTIC );
+
+static VipsImage *
+vips_hough_new_accumulator( VipsHough *hough )
+{
+	VipsHoughClass *class = VIPS_HOUGH_GET_CLASS( hough );
+	VipsStatistic *statistic = VIPS_STATISTIC( hough ); 
+
+	VipsImage *accumulator; 
+
+	accumulator = vips_image_new_buffer(); 
+
+	vips_image_pipelinev( accumulator,
+		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL );
+
+	if( class->init_accumulator( hough, accumulator ) ||
+		vips_image_write_prepare( accumulator ) ) {
+		g_object_unref( accumulator );
+		return( NULL );
+	}
+
+	/* vips does not guarantee image mem is zeroed.
+	 */
+	memset( VIPS_IMAGE_ADDR( accumulator, 0, 0 ), 0,
+		VIPS_IMAGE_SIZEOF_IMAGE( accumulator ) ); 
+
+	return( accumulator );
+>>>>>>> origin/master
 }
 
 static int
@@ -77,17 +113,34 @@ vips_hough_build( VipsObject *object )
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
 	VipsHough *hough = (VipsHough *) object;
 
+<<<<<<< HEAD
 	unsigned int *obuffer;
 	unsigned int *q;
 	int i, j;
 
 	g_object_set( object, 
 		"out", vips_image_new_buffer(),
+=======
+	VipsImage *out; 
+
+	/* Mono only, we use the bands dimension of the output image for
+	 * a parameter.
+	 */
+	if( statistic->in ) 
+		if( vips_check_mono( class->nickname, statistic->in ) )
+			return( -1 );
+
+	if( !(out = vips_hough_new_accumulator( hough )) )
+		return( -1 );
+	g_object_set( object, 
+		"out", out,
+>>>>>>> origin/master
 		NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_hough_parent_class )->build( object ) )
 		return( -1 );
 
+<<<<<<< HEAD
 	/* Make the output image.
 	 */
 	if( vips_image_pipelinev( hough->out, 
@@ -104,12 +157,19 @@ vips_hough_build( VipsObject *object )
 }
 
 /* Build a sub-hist, based on the main hist.
+=======
+	return( 0 );
+}
+
+/* Build a new accumulator. 
+>>>>>>> origin/master
  */
 static void *
 vips_hough_start( VipsStatistic *statistic )
 {
 	VipsHough *hough = (VipsHough *) statistic;
 
+<<<<<<< HEAD
 	/* Make the main hist, if necessary.
 	 */
 	if( !hough->hist ) 
@@ -178,10 +238,37 @@ vips_hough_uchar_scan( VipsStatistic *statistic,
 	/* Note the maximum.
 	 */
 	hist->mx = 255;
+=======
+	VipsImage *accumulator;
+
+	if( !(accumulator = vips_hough_new_accumulator( hough )) )
+		return( NULL ); 
+
+	return( (void *) accumulator ); 
+}
+
+/* Add our finished accumulator to the main area.
+ */
+static int
+vips_hough_stop( VipsStatistic *statistic, void *seq )
+{
+	VipsImage *accumulator = (VipsImage *) seq;
+	VipsHough *hough = (VipsHough *) statistic;
+
+	if( vips_draw_image( hough->out, accumulator, 0, 0,
+		"mode", VIPS_COMBINE_MODE_ADD,
+		NULL ) ) {
+		g_object_unref( accumulator ); 
+		return( -1 ); 
+	}
+
+	g_object_unref( accumulator ); 
+>>>>>>> origin/master
 
 	return( 0 );
 }
 
+<<<<<<< HEAD
 /* Histogram of a selected band of a uchar image.
  */
 static int
@@ -192,10 +279,20 @@ vips_hough_uchar_extract_scan( VipsStatistic *statistic,
 	int nb = statistic->ready->Bands;
 	int max = n * nb;
 	unsigned int *bins = hist->bins[0];
+=======
+static int
+vips_hough_scan( VipsStatistic *statistic, 
+	void *seq, int x, int y, void *in, int n )
+{
+	VipsHough *hough = (VipsHough *) statistic;
+	VipsHoughClass *class = VIPS_HOUGH_GET_CLASS( hough );
+	VipsImage *accumulator = (VipsImage *) seq;
+>>>>>>> origin/master
 	VipsPel *p = (VipsPel *) in;
 
 	int i;
 
+<<<<<<< HEAD
 	for( i = hist->which; i < max; i += nb ) 
 		bins[p[i]] += 1;
 
@@ -267,10 +364,16 @@ vips_hough_ushort_extract_scan( VipsStatistic *statistic,
 	/* Note the maximum.
 	 */
 	hist->mx = mx;
+=======
+	for( i = 0; i < n; i++ )
+		if( p[i] )
+			class->vote( hough, accumulator, x + i, y );
+>>>>>>> origin/master
 
 	return( 0 );
 }
 
+<<<<<<< HEAD
 static int
 vips_hough_scan( VipsStatistic *statistic, void *seq, 
 	int x, int y, void *in, int n )
@@ -304,6 +407,15 @@ vips_hough_scan( VipsStatistic *statistic, void *seq,
 static const VipsBandFormat vips_histgr_format_table[10] = {
 /* UC   C  US   S  UI   I   F   X   D  DX */
    UC, UC, US, US, US, US, US, US, US, US
+=======
+#define UC VIPS_FORMAT_UCHAR
+
+/* Input image is cast to this format.
+ */
+static const VipsBandFormat vips_hough_format_table[10] = {
+/* UC   C  US   S  UI   I   F   X   D  DX */
+   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+>>>>>>> origin/master
 };
 
 static void
@@ -313,22 +425,37 @@ vips_hough_class_init( VipsHoughClass *class )
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsStatisticClass *sclass = VIPS_STATISTIC_CLASS( class );
 
+<<<<<<< HEAD
 	gobject_class->dispose = vips_hough_dispose;
+=======
+>>>>>>> origin/master
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "hough";
+<<<<<<< HEAD
 	object_class->description = _( "find image histogram" );
+=======
+	object_class->description = _( "find hough transform" );
+>>>>>>> origin/master
 	object_class->build = vips_hough_build;
 
 	sclass->start = vips_hough_start;
 	sclass->scan = vips_hough_scan;
 	sclass->stop = vips_hough_stop;
+<<<<<<< HEAD
 	sclass->format_table = vips_histgr_format_table;
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 
 		_( "Output histogram" ),
+=======
+	sclass->format_table = vips_hough_format_table;
+
+	VIPS_ARG_IMAGE( class, "out", 100, 
+		_( "Output" ), 
+		_( "Output image" ),
+>>>>>>> origin/master
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsHough, out ) );
 
@@ -337,6 +464,7 @@ vips_hough_class_init( VipsHoughClass *class )
 static void
 vips_hough_init( VipsHough *hough )
 {
+<<<<<<< HEAD
 	hough->lock = vips_g_mutex_new();
 }
 
@@ -361,4 +489,6 @@ vips_hough( VipsImage *in, VipsImage **out, ... )
 	va_end( ap );
 
 	return( result );
+=======
+>>>>>>> origin/master
 }

@@ -174,6 +174,8 @@ typedef enum {
 
 int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_sum( VipsImage **in, VipsImage **out, int n, ... )
+	__attribute__((sentinel));
 int vips_subtract( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_multiply( VipsImage *left, VipsImage *right, VipsImage **out, ... )
@@ -391,6 +393,10 @@ int vips_hist_find_ndim( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_hist_find_indexed( VipsImage *in, VipsImage *index, 
 	VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_hough_line( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_hough_circle( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_project( VipsImage *in, VipsImage **columns, VipsImage **rows, ... )
 	__attribute__((sentinel));

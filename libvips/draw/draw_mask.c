@@ -131,13 +131,12 @@ G_DEFINE_TYPE( VipsDrawMask, vips_draw_mask, VIPS_TYPE_DRAWINK );
 }
 
 static int
-vips_draw_mask_draw_labq( VipsDrawMask *mask )
+vips_draw_mask_draw_labq( VipsImage *image, VipsImage *mask, VipsPel *ink, 
+	VipsRect *image_clip, VipsRect *mask_clip )
 {
-	VipsDraw *draw = VIPS_DRAW( mask );
-	VipsDrawink *drawink = VIPS_DRAWINK( mask );
-	int width = mask->image_clip.width;
-	int height = mask->image_clip.height;
-	int bands = draw->image->Bands; 
+	int width = image_clip->width;
+	int height = image_clip->height;
+	int bands = image->Bands; 
 
 	float *lab_buffer;
 	int y;
@@ -146,15 +145,15 @@ vips_draw_mask_draw_labq( VipsDrawMask *mask )
 		return( -1 );
 
 	for( y = 0; y < height; y++ ) {
-		VipsPel *to = VIPS_IMAGE_ADDR( draw->image, 
-			mask->image_clip.left, 
-			y + mask->image_clip.top );
-		VipsPel *m = VIPS_IMAGE_ADDR( mask->mask, 
-			mask->mask_clip.left, 
-			y + mask->mask_clip.top );
+		VipsPel *to = VIPS_IMAGE_ADDR( image, 
+			image_clip->left, 
+			y + image_clip->top );
+		VipsPel *m = VIPS_IMAGE_ADDR( mask, 
+			mask_clip->left, 
+			y + mask_clip->top );
 
 		vips__LabQ2Lab_vec( lab_buffer, to, width );
-		DBLEND( float, lab_buffer, (double *) drawink->ink->data );
+		DBLEND( float, lab_buffer, (double *) ink );
 		vips__Lab2LabQ_vec( to, lab_buffer, width );
 	}
 
@@ -164,63 +163,60 @@ vips_draw_mask_draw_labq( VipsDrawMask *mask )
 }
 
 static int
-vips_draw_mask_draw( VipsDrawMask *mask )
+vips_draw_mask_draw( VipsImage *image, VipsImage *mask, VipsPel *ink, 
+	VipsRect *image_clip, VipsRect *mask_clip )
 {
-	VipsDraw *draw = VIPS_DRAW( mask );
-	VipsDrawink *drawink = VIPS_DRAWINK( mask );
-	int width = mask->image_clip.width;
-	int height = mask->image_clip.height;
-	int bands = draw->image->Bands; 
+	int width = image_clip->width;
+	int height = image_clip->height;
+	int bands = image->Bands; 
 
 	int y;
 
 	for( y = 0; y < height; y++ ) {
-		VipsPel *to = VIPS_IMAGE_ADDR( draw->image, 
-			mask->image_clip.left, 
-			y + mask->image_clip.top );
-		VipsPel *m = VIPS_IMAGE_ADDR( mask->mask, 
-			mask->mask_clip.left, 
-			y + mask->mask_clip.top );
+		VipsPel *to = VIPS_IMAGE_ADDR( image, 
+			image_clip->left, y + image_clip->top );
+		VipsPel *m = VIPS_IMAGE_ADDR( mask, 
+			mask_clip->left, y + mask_clip->top );
 
-		switch( draw->image->BandFmt ) {
+		switch( image->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 
-			IBLEND( unsigned char, to, drawink->pixel_ink );
+			IBLEND( unsigned char, to, ink );
 			break;
 
 		case VIPS_FORMAT_CHAR: 
-			IBLEND( signed char, to, drawink->pixel_ink );
+			IBLEND( signed char, to, ink );
 			break;
 
 		case VIPS_FORMAT_USHORT: 
-			IBLEND( unsigned short, to, drawink->pixel_ink );
+			IBLEND( unsigned short, to, ink );
 			break;
 
 		case VIPS_FORMAT_SHORT: 
-			IBLEND( signed short, to, drawink->pixel_ink );
+			IBLEND( signed short, to, ink );
 			break;
 
 		case VIPS_FORMAT_UINT: 
-			DBLEND( unsigned int, to, drawink->pixel_ink );
+			DBLEND( unsigned int, to, ink );
 			break;
 
 		case VIPS_FORMAT_INT: 
-			DBLEND( signed int, to, drawink->pixel_ink );
+			DBLEND( signed int, to, ink );
 			break;
 
 		case VIPS_FORMAT_FLOAT:  
-			DBLEND( float, to, drawink->pixel_ink );
+			DBLEND( float, to, ink );
 			break;
 
 		case VIPS_FORMAT_DOUBLE:
-			DBLEND( double, to, drawink->pixel_ink );
+			DBLEND( double, to, ink );
 			break;
 
 		case VIPS_FORMAT_COMPLEX:
-			CBLEND( float, to, drawink->pixel_ink );
+			CBLEND( float, to, ink );
 			break;
 
 		case VIPS_FORMAT_DPCOMPLEX:
-			CBLEND( double, to, drawink->pixel_ink );
+			CBLEND( double, to, ink );
 			break;
 
 		default:
@@ -231,62 +227,80 @@ vips_draw_mask_draw( VipsDrawMask *mask )
 	return( 0 );
 }
 
-static int
-vips_draw_mask_build( VipsObject *object )
+/* Direct path for draw-mask-along-line or draw-mask-along-circle. We want to
+ * avoid function dispatch overhead.
+ *
+ * The vips7 im_draw_mask() wrapper calls this as well.
+ */
+int
+vips__draw_mask_direct( VipsImage *image, VipsImage *mask, 
+	VipsPel *ink, int x, int y )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsDraw *draw = VIPS_DRAW( object );
-	VipsDrawMask *mask = (VipsDrawMask *) object;
+	VipsRect image_rect;
+	VipsRect area_rect;
+	VipsRect image_clip;
+	VipsRect mask_clip;
 
-	VipsRect area;
-	VipsRect image;
-
-	if( VIPS_OBJECT_CLASS( vips_draw_mask_parent_class )->build( object ) )
-		return( -1 );
-
-	if( vips_check_coding_noneorlabq( class->nickname, draw->image ) ||
-		vips_image_wio_input( mask->mask ) ||
-		vips_check_mono( class->nickname, mask->mask ) ||
-		vips_check_uncoded( class->nickname, mask->mask ) ||
-		vips_check_format( class->nickname, 
-			mask->mask, VIPS_FORMAT_UCHAR ) )
+	if( vips_check_coding_noneorlabq( "draw_mask_direct", image ) ||
+		vips_image_wio_input( mask ) ||
+		vips_check_mono( "draw_mask_direct", mask ) ||
+		vips_check_uncoded( "draw_mask_direct", mask ) ||
+		vips_check_format( "draw_mask_direct", 
+			mask, VIPS_FORMAT_UCHAR ) )
 		return( -1 );
 
 	/* Find the area we draw on the image.
 	 */
-	area.left = mask->x;
-	area.top = mask->y;
-	area.width = mask->mask->Xsize;
-	area.height = mask->mask->Ysize;
-	image.left = 0;
-	image.top = 0;
-	image.width = draw->image->Xsize;
-	image.height = draw->image->Ysize;
-	vips_rect_intersectrect( &area, &image, &mask->image_clip );
+	area_rect.left = x;
+	area_rect.top = y;
+	area_rect.width = mask->Xsize;
+	area_rect.height = mask->Ysize;
+	image_rect.left = 0;
+	image_rect.top = 0;
+	image_rect.width = image->Xsize;
+	image_rect.height = image->Ysize;
+	vips_rect_intersectrect( &area_rect, &image_rect, &image_clip );
 
 	/* And the area of the mask image we use.
 	 */
-	mask->mask_clip = mask->image_clip;
-	mask->mask_clip.left -= mask->x;
-	mask->mask_clip.top -= mask->y;
+	mask_clip = image_clip;
+	mask_clip.left -= x;
+	mask_clip.top -= y;
 
-	if( !vips_rect_isempty( &mask->image_clip ) ) 
-		/* Loop through image plotting where required.
-		 */
-		switch( draw->image->Coding ) {
+	if( !vips_rect_isempty( &image_clip ) ) 
+		switch( image->Coding ) {
 		case VIPS_CODING_LABQ:
-			if( vips_draw_mask_draw_labq( mask ) ) 
+			if( vips_draw_mask_draw_labq( image, mask, ink, 
+				&image_clip, &mask_clip ) )
 				return( -1 );
 			break;
 
 		case VIPS_CODING_NONE:
-			if( vips_draw_mask_draw( mask ) ) 
+			if( vips_draw_mask_draw( image, mask, ink, 
+				&image_clip, &mask_clip ) )
 				return( -1 );
 			break;
 
 		default:
 			g_assert( 0 );
 		}
+
+	return( 0 );
+}
+
+static int
+vips_draw_mask_build( VipsObject *object )
+{
+	VipsDraw *draw = VIPS_DRAW( object );
+	VipsDrawink *drawink = VIPS_DRAWINK( object );
+	VipsDrawMask *mask = (VipsDrawMask *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_draw_mask_parent_class )->build( object ) )
+		return( -1 );
+
+	if( vips__draw_mask_direct( draw->image, mask->mask, drawink->pixel_ink,
+		mask->x, mask->y  ) )
+		return( -1 ) ;
 
 	return( 0 );
 }

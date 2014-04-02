@@ -117,7 +117,7 @@ vips_drawink_init( VipsDrawink *drawink )
 
 /* Fill a scanline between points x1 and x2 inclusive. x1 < x2.
  */
-void 
+int
 vips__drawink_scanline( VipsDrawink *drawink, int y, int x1, int x2 )
 {
 	VipsDraw *draw = (VipsDraw *) drawink;
@@ -130,13 +130,13 @@ vips__drawink_scanline( VipsDrawink *drawink, int y, int x1, int x2 )
 
 	if( y < 0 || 
 		y >= draw->image->Ysize )
-		return;
+		return( 0 );
 	if( x1 < 0 && 
 		x2 < 0 )
-		return;
+		return( 0 );
 	if( x1 >= draw->image->Xsize && 
 		x2 >= draw->image->Xsize )
-		return;
+		return( 0 );
 	x1 = VIPS_CLIP( 0, x1, draw->image->Xsize - 1 );
 	x2 = VIPS_CLIP( 0, x2, draw->image->Xsize - 1 );
 
@@ -147,6 +147,8 @@ vips__drawink_scanline( VipsDrawink *drawink, int y, int x1, int x2 )
 		vips__drawink_pel( drawink, mp );
 		mp += draw->psize;
 	}
+
+	return( 0 );
 }
 
 

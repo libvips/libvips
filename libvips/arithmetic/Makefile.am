@@ -1,6 +1,11 @@
 noinst_LTLIBRARIES = libarithmetic.la
 
 libarithmetic_la_SOURCES = \
+	sum.c \
+	hough.c \
+	hough.h \
+	hough_line.c \
+	hough_circle.c \
 	abs.c \
 	complex.c \
 	deviate.c \
@@ -29,6 +34,8 @@ libarithmetic_la_SOURCES = \
 	binary.h \
 	unary.c \
 	unary.h \
+	nary.c \
+	nary.h \
 	unaryconst.c \
 	unaryconst.h \
 	relational.c \

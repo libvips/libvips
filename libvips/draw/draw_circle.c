@@ -56,6 +56,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "drawink.h"
 
@@ -67,78 +68,29 @@ typedef struct _VipsDrawCircle {
 	int radius;
 	gboolean fill;
 
-	VipsPel *centre;
 } VipsDrawCircle;
 
-typedef VipsDrawinkClass VipsDrawCircleClass;
+typedef struct _VipsDrawCircleClass {
+	VipsDrawinkClass parent_class;
+
+} VipsDrawCircleClass; 
 
 G_DEFINE_TYPE( VipsDrawCircle, vips_draw_circle, VIPS_TYPE_DRAWINK );
 
-static void
-vips_draw_circle_octants( VipsDrawCircle *circle, int x, int y )
+void
+vips__draw_circle_direct( VipsImage *image, int cx, int cy, int r,
+	VipsDrawScanline draw_scanline, void *client )
 {
-	VipsDraw *draw = VIPS_DRAW( circle );
-	VipsDrawink *drawink = VIPS_DRAWINK( circle );
-	const int cx = circle->cx;
-	const int cy = circle->cy;
-
-	if( circle->fill ) {
-		vips__drawink_scanline( drawink, cy + y, cx - x, cx + x );
-		vips__drawink_scanline( drawink, cy - y, cx - x, cx + x );
-		vips__drawink_scanline( drawink, cy + x, cx - y, cx + y );
-		vips__drawink_scanline( drawink, cy - x, cx - y, cx + y );
-	}
-	else if( draw->noclip ) {
-		const size_t lsize = draw->lsize;
-		const size_t psize = draw->psize;
-		VipsPel *centre = circle->centre;
-
-		vips__drawink_pel( drawink, centre + lsize * y - psize * x );
-		vips__drawink_pel( drawink, centre + lsize * y + psize * x );
-		vips__drawink_pel( drawink, centre - lsize * y - psize * x );
-		vips__drawink_pel( drawink, centre - lsize * y + psize * x );
-		vips__drawink_pel( drawink, centre + lsize * x - psize * y );
-		vips__drawink_pel( drawink, centre + lsize * x + psize * y );
-		vips__drawink_pel( drawink, centre - lsize * x - psize * y );
-		vips__drawink_pel( drawink, centre - lsize * x + psize * y );
-	}
-	else {
-		vips__drawink_pel_clip( drawink, cx + y, cy - x );
-		vips__drawink_pel_clip( drawink, cx + y, cy + x );
-		vips__drawink_pel_clip( drawink, cx - y, cy - x );
-		vips__drawink_pel_clip( drawink, cx - y, cy + x );
-		vips__drawink_pel_clip( drawink, cx + x, cy - y );
-		vips__drawink_pel_clip( drawink, cx + x, cy + y );
-		vips__drawink_pel_clip( drawink, cx - x, cy - y );
-		vips__drawink_pel_clip( drawink, cx - x, cy + y );
-	}
-}
-
-static int
-vips_draw_circle_build( VipsObject *object )
-{
-	VipsDraw *draw = VIPS_DRAW( object );
-	VipsDrawCircle *circle = (VipsDrawCircle *) object;
-
 	int x, y, d;
 
-	if( VIPS_OBJECT_CLASS( vips_draw_circle_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	circle->centre = VIPS_IMAGE_ADDR( draw->image, circle->cx, circle->cy );
-
-	if( circle->cx - circle->radius >= 0 && 
-		circle->cx + circle->radius < draw->image->Xsize &&
-		circle->cy - circle->radius >= 0 && 
-		circle->cy + circle->radius < draw->image->Ysize )
-		draw->noclip = TRUE;
-
-	y = circle->radius;
-	d = 3 - 2 * circle->radius;
+	y = r;
+	d = 3 - 2 * r;
 
 	for( x = 0; x < y; x++ ) {
-		vips_draw_circle_octants( circle, x, y );
+		draw_scanline( image, cy + y, cx - x, cx + x, client );
+		draw_scanline( image, cy - y, cx - x, cx + x, client );
+		draw_scanline( image, cy + x, cx - y, cx + y, client );
+		draw_scanline( image, cy - x, cx - y, cx + y, client );
 
 		if( d < 0 )
 			d += 4 * x + 6;
@@ -149,7 +101,118 @@ vips_draw_circle_build( VipsObject *object )
 	}
 
 	if( x == y ) 
-		vips_draw_circle_octants( circle, x, y );
+		draw_scanline( image, cy + y, cx - x, cx + x, client );
+		draw_scanline( image, cy - y, cx - x, cx + x, client );
+		draw_scanline( image, cy + x, cx - y, cx + y, client );
+		draw_scanline( image, cy - x, cx - y, cx + y, client );
+}
+
+static inline void
+vips_draw_circle_draw_point( VipsImage *image, int x, int y, void *client )
+{
+	VipsPel *ink = (VipsPel *) client; 
+	VipsPel *q = VIPS_IMAGE_ADDR( image, x, y );
+	int psize = VIPS_IMAGE_SIZEOF_PEL( image ); 
+
+ 	int j;
+
+	/* Faster than memcopy() for n < about 20.
+	 */
+	for( j = 0; j < psize; j++ ) 
+		q[j] = ink[j];
+}
+
+/* Paint endpoints, with clip.
+ */
+static void 
+vips_draw_circle_draw_endpoints_clip( VipsImage *image,
+	int y, int x1, int x2, void *client )
+{
+	if( y >= 0 &&
+		y < image->Ysize ) {
+		if( x1 >=0 &&
+			x1 < image->Xsize )
+			vips_draw_circle_draw_point( image, x1, y, client );
+		if( x2 >=0 &&
+			x2 < image->Xsize )
+			vips_draw_circle_draw_point( image, x2, y, client );
+	}
+}
+
+/* Paint endpoints, no clip.
+ */
+static void 
+vips_draw_circle_draw_endpoints_noclip( VipsImage *image,
+	int y, int x1, int x2, void *client )
+{
+	vips_draw_circle_draw_point( image, x1, y, client );
+	vips_draw_circle_draw_point( image, x2, y, client );
+}
+
+/* Paint scanline.
+ */
+static void 
+vips_draw_circle_draw_scanline( VipsImage *image,
+	int y, int x1, int x2, void *client )
+{
+	VipsPel *ink = (VipsPel *) client; 
+	int psize = VIPS_IMAGE_SIZEOF_PEL( image ); 
+
+	VipsPel *q;
+	int len;
+	int i, j;
+
+	g_assert( x1 <= x2 );
+
+	if( y < 0 || 
+		y >= image->Ysize )
+		return;
+	if( x1 < 0 && 
+		x2 < 0 )
+		return;
+	if( x1 >= image->Xsize && 
+		x2 >= image->Xsize )
+		return;
+	x1 = VIPS_CLIP( 0, x1, image->Xsize - 1 );
+	x2 = VIPS_CLIP( 0, x2, image->Xsize - 1 );
+
+	q = VIPS_IMAGE_ADDR( image, x1, y );
+	len = x2 - x1 + 1;
+
+	for( i = 0; i < len; i++ ) {
+		for( j = 0; j < psize; j++ )
+			q[j] = ink[j];
+
+		q += psize;
+	}
+}
+
+static int
+vips_draw_circle_build( VipsObject *object )
+{
+	VipsDraw *draw = VIPS_DRAW( object );
+	VipsDrawink *drawink = VIPS_DRAWINK( object );
+	VipsDrawCircle *circle = (VipsDrawCircle *) object;
+
+	VipsDrawScanline draw_scanline;
+
+	if( VIPS_OBJECT_CLASS( vips_draw_circle_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( circle->fill )
+		draw_scanline = vips_draw_circle_draw_scanline;
+	else if( circle->cx - circle->radius >= 0 && 
+		circle->cx + circle->radius < draw->image->Xsize &&
+		circle->cy - circle->radius >= 0 && 
+		circle->cy + circle->radius < draw->image->Ysize )
+		draw_scanline = vips_draw_circle_draw_endpoints_noclip; 
+		else
+		draw_scanline = vips_draw_circle_draw_endpoints_clip; 
+
+	vips__draw_circle_direct( draw->image, 
+		circle->cx, circle->cy, circle->radius,
+		draw_scanline, drawink->pixel_ink );
 
 	return( 0 );
 }

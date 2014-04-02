@@ -24,14 +24,10 @@
 
   we get the 99 right, but lots of leaks
 
-- think of a better way to support skipahead
 
-  extract needs to hint to it's image sources what line it will start reading
-  at 
+- test draw_mask on labq images
 
-  in vips_extract_build(), call vips_image_set_start(), somehow sends a signal
-  the wrong way down the pipe to the vips_sequential() (if there is one)
-  telling it not to stall the first request if it's for that line
+  we probably need to unpack the ink back to double before blending
 
 
 
@@ -46,6 +42,19 @@
 - vips__ink_to_vector() needs an optional imag return
 
 - vips_getpoint() needs an optional imag return
+
+
+
+- think of a better way to support skipahead
+
+  extract needs to hint to it's image sources what line it will start reading
+  at 
+
+  in vips_extract_build(), call vips_image_set_start(), somehow sends a signal
+  the wrong way down the pipe to the vips_sequential() (if there is one)
+  telling it not to stall the first request if it's for that line
+
+
 
 
 

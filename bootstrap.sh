@@ -36,7 +36,7 @@ cp $ACDIR/lcmessage.m4 m4
 cp $ACDIR/progtest.m4 m4
 cp $ACDIR/introspection.m4 m4
 
-gtkdocize --copy --docdir doc/reference --flavour no-tmpl || exit 1
+gtkdocize --copy --docdir doc/reference || exit 1
 
 # some systems need libtoolize, some glibtoolize ... how annoying
 echo testing for glibtoolize ...

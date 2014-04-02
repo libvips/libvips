@@ -690,6 +690,7 @@ void
 vips_arithmetic_operation_init( void )
 {
 	extern GType vips_add_get_type( void ); 
+	extern GType vips_sum_get_type( void ); 
 	extern GType vips_subtract_get_type( void ); 
 	extern GType vips_multiply_get_type( void ); 
 	extern GType vips_divide_get_type( void ); 
@@ -706,6 +707,8 @@ vips_arithmetic_operation_init( void )
 	extern GType vips_hist_find_get_type( void ); 
 	extern GType vips_hist_find_ndim_get_type( void ); 
 	extern GType vips_hist_find_indexed_get_type( void ); 
+	extern GType vips_hough_line_get_type( void ); 
+	extern GType vips_hough_circle_get_type( void ); 
 	extern GType vips_project_get_type( void ); 
 	extern GType vips_profile_get_type( void ); 
 	extern GType vips_measure_get_type( void ); 
@@ -725,6 +728,7 @@ vips_arithmetic_operation_init( void )
 	extern GType vips_complexform_get_type( void ); 
 
 	vips_add_get_type();
+	vips_sum_get_type();
 	vips_subtract_get_type();
 	vips_multiply_get_type();
 	vips_divide_get_type();
@@ -741,6 +745,8 @@ vips_arithmetic_operation_init( void )
 	vips_hist_find_get_type(); 
 	vips_hist_find_ndim_get_type(); 
 	vips_hist_find_indexed_get_type(); 
+	vips_hough_line_get_type(); 
+	vips_hough_circle_get_type(); 
 	vips_project_get_type(); 
 	vips_profile_get_type(); 
 	vips_measure_get_type();

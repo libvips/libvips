@@ -89,6 +89,8 @@ vips_grey_class_init( VipsGreyClass *class )
 	vobject_class->description = _( "make a grey ramp image" );
 
 	point_class->point = vips_grey_point;
+	point_class->min = 0.0; 
+	point_class->max = 1.0; 
 }
 
 static void

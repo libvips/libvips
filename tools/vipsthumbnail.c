@@ -42,6 +42,13 @@
  * 	- add --linear option
  * 18/12/13
  * 	- add --crop option
+ * 5/3/14
+ * 	- copy main image metadata to embedded thumbnails, thanks ottob
+ * 6/3/14
+ * 	- add --rotate flag
+ * 7/3/14
+ * 	- remove the embedded thumbnail reader, embedded thumbnails are too
+ * 	  unlike the main image wrt. rotation / colour / etc.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -57,6 +64,8 @@
 
 #include <vips/vips.h>
 
+#define ORIENTATION ("exif-ifd0-Orientation")
+
 static char *thumbnail_size = "128";
 static int thumbnail_width = 128;
 static int thumbnail_height = 128;
@@ -68,6 +77,7 @@ static char *convolution_mask = "mild";
 static gboolean delete_profile = FALSE;
 static gboolean linear_processing = FALSE;
 static gboolean crop_image = FALSE;
+static gboolean rotate_image = FALSE;
 
 /* Deprecated and unused.
  */
@@ -106,6 +116,9 @@ static GOptionEntry options[] = {
 	{ "crop", 'c', 0, 
 		G_OPTION_ARG_NONE, &crop_image, 
 		N_( "crop exactly to SIZE" ), NULL },
+	{ "rotate", 't', 0, 
+		G_OPTION_ARG_NONE, &rotate_image, 
+		N_( "auto-rotate" ), NULL },
 	{ "delete", 'd', 0, 
 		G_OPTION_ARG_NONE, &delete_profile, 
 		N_( "delete profile from exported image" ), NULL },
@@ -121,6 +134,35 @@ static GOptionEntry options[] = {
 	{ NULL }
 };
 
+static VipsAngle 
+get_angle( VipsImage *im )
+{
+	VipsAngle angle;
+	const char *orientation;
+
+	angle = VIPS_ANGLE_0;
+
+	if( vips_image_get_typeof( im, ORIENTATION ) && 
+		!vips_image_get_string( im, ORIENTATION, &orientation ) ) {
+		if( vips_isprefix( "6", orientation ) )
+			angle = VIPS_ANGLE_90;
+		else if( vips_isprefix( "8", orientation ) )
+			angle = VIPS_ANGLE_270;
+		else if( vips_isprefix( "3", orientation ) )
+			angle = VIPS_ANGLE_180;
+
+		/* Other values do rotate + mirror, don't bother handling them
+		 * though, how common can mirroring be. 
+		 *
+		 * See:
+		 *
+		 * http://www.80sidea.com/archives/2316
+		 */
+	}
+
+	return( angle );
+}
+
 /* Calculate the shrink factors. 
  *
  * We shrink in two stages: first, a shrink with a block average. This can
@@ -128,8 +170,13 @@ static GOptionEntry options[] = {
  * a supplied interpolator to get the exact size we want.
  */
 static int
-calculate_shrink( int width, int height, double *residual )
+calculate_shrink( VipsImage *im, double *residual )
 {
+	VipsAngle angle = get_angle( im ); 
+	gboolean rotate = angle == VIPS_ANGLE_90 || angle == VIPS_ANGLE_270;
+	int width = rotate_image && rotate ? im->Ysize : im->Xsize;
+	int height = rotate_image && rotate ? im->Xsize : im->Ysize;
+
 	/* Calculate the horizontal and vertical shrink we'd need to fit the
 	 * image to the bounding box, and pick the biggest.
 	 *
@@ -152,13 +199,19 @@ calculate_shrink( int width, int height, double *residual )
 	int shrink = floor( factor2 );
 
 	if( residual ) {
-		/* Width after int shrink.
+		/* Size after int shrink. We have to try with both axes since
+		 * if they are very different sizes we'll see different
+		 * rounding errors.
 		 */
 		int iwidth = width / shrink;
+		int iheight = height / shrink;
 
 		/* Therefore residual scale factor is.
 		 */
-		*residual = (width / factor) / iwidth; 
+		double hresidual = (width / factor) / iwidth; 
+		double vresidual = (height / factor) / iheight; 
+
+		*residual = VIPS_MAX( hresidual, vresidual ); 
 	}
 
 	return( shrink );
@@ -169,7 +222,7 @@ calculate_shrink( int width, int height, double *residual )
 static int
 thumbnail_find_jpegshrink( VipsImage *im )
 {
-	int shrink = calculate_shrink( im->Xsize, im->Ysize, NULL );
+	int shrink = calculate_shrink( im, NULL );
 
 	/* We can't use pre-shrunk images in linear mode. libjpeg shrinks in Y
 	 * (of YCbCR), not linear space.
@@ -187,97 +240,7 @@ thumbnail_find_jpegshrink( VipsImage *im )
 		return( 1 );
 }
 
-#define THUMBNAIL "jpeg-thumbnail-data"
-
-/* Copy a blob from one image to another.
- *
- * We don't make a private copy of the blob, we just copy pointers. Therefore
- * @from must stay alive as long as @to is alive. 
- */
-static int
-copy_blob( VipsImage *from, VipsImage *to, const char *field )
-{
-	if( vips_image_get_typeof( from, field ) ) {
-		void *blob;
-		size_t blob_length;
-
-		if( vips_image_get_blob( from, field, &blob, &blob_length ) )
-			return( -1 );
-		vips_image_set_blob( to, field, NULL, blob, blob_length ); 
-	}
-
-	return( 0 ); 
-}
-
-static void *
-copy_exif_field( VipsImage *from, const char *field, GValue *value, void *a )
-{
-	VipsImage *to = (VipsImage *) a;
-
-	if( vips_isprefix( "exif-", field ) ) 
-		vips_image_set( to, field, value ); 
-
-	return( NULL ); 
-}
-
-/* Try to read an embedded thumbnail. 
- */
-static VipsImage *
-thumbnail_get_thumbnail( VipsImage *im )
-{
-	void *ptr;
-	size_t size;
-	VipsImage *thumb;
-	double residual;
-	int jpegshrink;
-
-	if( !vips_image_get_typeof( im, THUMBNAIL ) ||
-		vips_image_get_blob( im, THUMBNAIL, &ptr, &size ) ||
-		vips_jpegload_buffer( ptr, size, &thumb, NULL ) ) {
-		vips_info( "vipsthumbnail", "no jpeg thumbnail" ); 
-		return( NULL ); 
-	}
-
-	calculate_shrink( thumb->Xsize, thumb->Ysize, &residual );
-	if( residual > 1.0 ) { 
-		vips_info( "vipsthumbnail", "jpeg thumbnail too small" ); 
-		g_object_unref( thumb ); 
-		return( NULL ); 
-	}
-
-	/* Reload with the correct downshrink.
-	 */
-	jpegshrink = thumbnail_find_jpegshrink( thumb );
-	vips_info( "vipsthumbnail", 
-		"loading jpeg thumbnail with factor %d pre-shrink", 
-		jpegshrink );
-	g_object_unref( thumb );
-	if( vips_jpegload_buffer( ptr, size, &thumb, 
-		"shrink", jpegshrink,
-		NULL ) ) {
-		vips_info( "vipsthumbnail", "jpeg thumbnail reload failed" ); 
-		return( NULL ); 
-	}
-
-	/* Copy over the metadata from the main image. We want our thumbnail
-	 * to have the orientation, profile etc. from there.
-	 */
-	if( copy_blob( im, thumb, VIPS_META_EXIF_NAME ) || 
-		copy_blob( im, thumb, VIPS_META_XMP_NAME ) ||
-		copy_blob( im, thumb, VIPS_META_IPCT_NAME ) ||
-		copy_blob( im, thumb, VIPS_META_ICC_NAME ) )
-		return( NULL ); 
-	(void) vips_image_map( im, copy_exif_field, thumb );
-
-	vips_info( "vipsthumbnail", "using %dx%d jpeg thumbnail", 
-		thumb->Xsize, thumb->Ysize ); 
-
-	return( thumb );
-}
-
 /* Open an image, returning the best version of that image for thumbnailing. 
- *
- * jpegs can have embedded thumbnails ... use that if it's large enough.
  *
  * libjpeg supports fast shrink-on-read, so if we have a JPEG, we can ask 
  * VIPS to load a lower resolution version.
@@ -299,45 +262,26 @@ thumbnail_open( VipsObject *process, const char *filename )
 	vips_info( "vipsthumbnail", "selected loader is %s", loader ); 
 
 	if( strcmp( loader, "VipsForeignLoadJpegFile" ) == 0 ) {
-		VipsImage *thumb;
+		int jpegshrink;
 
 		/* This will just read in the header and is quick.
 		 */
 		if( !(im = vips_image_new_from_file( filename )) )
 			return( NULL );
 
-		/* Try to read an embedded thumbnail. If we find one, use that
-		 * instead.
-		 */
-		if( (thumb = thumbnail_get_thumbnail( im )) ) { 
-			/* @thumb has not been fully decoded yet ... 
-			 * we must not close @im
-			 * until we're done with @thumb.
-			 */
-			vips_object_local( VIPS_OBJECT( thumb ), im );
+		jpegshrink = thumbnail_find_jpegshrink( im );
 
-			im = thumb;
-		}
-		else {
-			int jpegshrink;
+		g_object_unref( im );
 
-			vips_info( "vipsthumbnail", 
-				"processing main jpeg image" );
+		vips_info( "vipsthumbnail", 
+			"loading jpeg with factor %d pre-shrink", 
+			jpegshrink ); 
 
-			jpegshrink = thumbnail_find_jpegshrink( im );
-
-			g_object_unref( im );
-
-			vips_info( "vipsthumbnail", 
-				"loading jpeg with factor %d pre-shrink", 
-				jpegshrink ); 
-
-			if( vips_foreign_load( filename, &im,
-				"access", VIPS_ACCESS_SEQUENTIAL,
-				"shrink", jpegshrink,
-				NULL ) )
-				return( NULL );
-		}
+		if( vips_foreign_load( filename, &im,
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"shrink", jpegshrink,
+			NULL ) )
+			return( NULL );
 	}
 	else {
 		/* All other formats.
@@ -359,7 +303,7 @@ thumbnail_interpolator( VipsObject *process, VipsImage *in )
 	double residual;
 	VipsInterpolate *interp;
 
-	calculate_shrink( in->Xsize, in->Ysize, &residual );
+	calculate_shrink( in, &residual );
 
 	/* For images smaller than the thumbnail, we upscale with nearest
 	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
@@ -465,7 +409,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		return( NULL ); 
 	in = t[2];
 
-	shrink = calculate_shrink( in->Xsize, in->Ysize, &residual );
+	shrink = calculate_shrink( in, &residual );
 
 	vips_info( "vipsthumbnail", "integer shrink by %d", shrink );
 
@@ -600,6 +544,24 @@ thumbnail_crop( VipsObject *process, VipsImage *im )
 	return( im );
 }
 
+/* Auto-rotate, if rotate_image is set. 
+ */
+static VipsImage *
+thumbnail_rotate( VipsObject *process, VipsImage *im )
+{
+	VipsImage **t = (VipsImage **) vips_object_local_array( process, 1 );
+
+	if( rotate_image ) {
+		if( vips_rot( im, &t[0], get_angle( im ), NULL ) )
+			return( NULL ); 
+		im = t[0];
+
+		(void) vips_image_remove( im, ORIENTATION );
+	}
+
+	return( im );
+}
+
 /* Given (eg.) "/poop/somefile.png", write @im to the thumbnail name,
  * (eg.) "/poop/tn_somefile.jpg".
  */
@@ -655,13 +617,15 @@ thumbnail_process( VipsObject *process, const char *filename )
 	VipsInterpolate *interp;
 	VipsImage *thumbnail;
 	VipsImage *crop;
+	VipsImage *rotate;
 
 	if( !(in = thumbnail_open( process, filename )) ||
 		!(interp = thumbnail_interpolator( process, in )) ||
 		!(thumbnail = 
 			thumbnail_shrink( process, in, interp, sharpen )) ||
 		!(crop = thumbnail_crop( process, thumbnail )) ||
-		thumbnail_write( crop, filename ) )
+		!(rotate = thumbnail_rotate( process, crop )) ||
+		thumbnail_write( rotate, filename ) )
 		return( -1 );
 
 	return( 0 );

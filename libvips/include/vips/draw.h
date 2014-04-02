@@ -38,6 +38,12 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+typedef enum {
+	VIPS_COMBINE_MODE_SET,
+	VIPS_COMBINE_MODE_ADD,
+	VIPS_COMBINE_MODE_LAST
+} VipsCombineMode; 
+
 int vips_draw_rect( VipsImage *image, 
 	double *ink, int n, int left, int top, int width, int height, ... ) 
 	__attribute__((sentinel));

@@ -58,6 +58,19 @@
  * They are mostly supposed to be useful for paintbox-style programs.
  */
 
+/** 
+ * VipsCombineMode:
+ * @VIPS_COMBINE_MODE_SET: set pixels to the new value
+ * @VIPS_COMBINE_MODE_ADD: add pixels
+ *
+ * See vips_draw_image() and so on.
+ *
+ * Operations like vips_draw_image() need to be told how to combine images
+ * from two sources. 
+ *
+ * See also: vips_join().
+ */
+
 G_DEFINE_ABSTRACT_TYPE( VipsDraw, vips_draw, VIPS_TYPE_OPERATION );
 
 static int
@@ -119,8 +132,6 @@ vips_draw_operation_init( void )
 	extern GType vips_draw_image_get_type( void ); 
 	extern GType vips_draw_mask_get_type( void ); 
 	extern GType vips_draw_line_get_type( void ); 
-	extern GType vips_draw_line_mask_get_type( void ); 
-	extern GType vips_draw_line_user_get_type( void ); 
 	extern GType vips_draw_circle_get_type( void ); 
 	extern GType vips_draw_flood_get_type( void ); 
 	extern GType vips_draw_smudge_get_type( void ); 
@@ -129,8 +140,6 @@ vips_draw_operation_init( void )
 	vips_draw_image_get_type();
 	vips_draw_mask_get_type();
 	vips_draw_line_get_type();
-	vips_draw_line_mask_get_type();
-	vips_draw_line_user_get_type();
 	vips_draw_circle_get_type();
 	vips_draw_flood_get_type();
 	vips_draw_smudge_get_type();

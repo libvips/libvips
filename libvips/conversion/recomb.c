@@ -167,9 +167,9 @@ vips_recomb_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( vips_check_matrix( class->nickname, recomb->m, &t[0] ) )
+	if( vips_check_matrix( class->nickname, recomb->m, &t[1] ) )
 		return( -1 ); 
-	recomb->coeff = t[0]; 
+	recomb->coeff = t[1]; 
 
 	if( vips_image_pipelinev( conversion->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
