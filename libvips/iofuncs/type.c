@@ -854,12 +854,16 @@ transform_array_comp_g_string( const GValue *src_value, GValue *dest_value )
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	int i;
 
-	for( i = 0; i < n; i++ ) 
-		/* Use space as a separator since ',' may be a decimal point
-		 * in this locale.
+	for( i = 0; i < n; i++ ) {
+		char str[G_ASCII_DTOSTR_BUF_SIZE];
+
+		/* Need to be locale independent.
 		 */
-		vips_buf_appendf( &buf, "(%g,%g) ", 
-			array[i]->real, array[i]->imag );
+		g_ascii_dtostr( str, G_ASCII_DTOSTR_BUF_SIZE, array[i]->real ); 
+		vips_buf_appendf( &buf, "(%s,", str ); 
+		g_ascii_dtostr( str, G_ASCII_DTOSTR_BUF_SIZE, array[i]->imag ); 
+		vips_buf_appendf( &buf, "%s) ", str ); 
+	}
 
 	g_value_set_string( dest_value, vips_buf_all( &buf ) );
 }
@@ -871,14 +875,11 @@ transform_g_string_array_comp( const GValue *src_value, GValue *dest_value )
 	int n;
 	char *p, *q;
 	int i;
-	double *array;
+	VipsComp *array;
 
 	/* Walk the string to get the number of elements. 
 	 * We need a copy of the string since we insert \0 during
 	 * scan.
-	 *
-	 * We can't allow ',' as a separator since some locales use it as a
-	 * decimal point.
 	 */
 	str = g_value_dup_string( src_value );
 
@@ -889,20 +890,26 @@ transform_g_string_array_comp( const GValue *src_value, GValue *dest_value )
 	g_free( str );
 
 	vips_value_set_array( dest_value, 
-		n, VIPS_TYPE_COMP, 2 * sizeof( double ) );
-	array = (double *) vips_value_get_array( dest_value, NULL, NULL, NULL );
+		n, VIPS_TYPE_COMP, sizeof( VipsComp ) );
+	array = (VipsComp *) 
+		vips_value_get_array( dest_value, NULL, NULL, NULL );
 
 	str = g_value_dup_string( src_value );
 
 	i = 0;
 	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) {
-		if( sscanf( p, "%lf", &array[i] ) != 1 ) { 
+		if( sscanf( p, "(%lf,%lf) ", 
+			&array[i]->real, &array[i]->imag ) == 2 ) 
+			;
+		else if( sscanf( p, "%lf ", &array[i]->real ) == 1 ) 
+			array[i]->imag == 0.0;
+		else { 
 			/* Set array to length zero to indicate an error.
 			 */
 			vips_error( "vipstype", 
-				_( "unable to convert \"%s\" to float" ), p );
+				_( "unable to convert \"%s\" to complex" ), p );
 			vips_value_set_array( dest_value, 
-				0, VIPS_TYPE_COMP, 2 * sizeof( double ) );
+				0, VIPS_TYPE_COMP, sizeof( VipsComp ) );
 			g_free( str );
 			return;
 		}

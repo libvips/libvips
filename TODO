@@ -2,6 +2,8 @@
 
   what should we use as a complex number separator? ask lars
 
+  use ASCII everywhere, much simpler
+
 
 
 - another way: have a VipsArrayComplex and use that for all constants
