@@ -859,9 +859,9 @@ transform_array_comp_g_string( const GValue *src_value, GValue *dest_value )
 
 		/* Need to be locale independent.
 		 */
-		g_ascii_dtostr( str, G_ASCII_DTOSTR_BUF_SIZE, array[i]->real ); 
+		g_ascii_dtostr( str, G_ASCII_DTOSTR_BUF_SIZE, array[i].real ); 
 		vips_buf_appendf( &buf, "(%s,", str ); 
-		g_ascii_dtostr( str, G_ASCII_DTOSTR_BUF_SIZE, array[i]->imag ); 
+		g_ascii_dtostr( str, G_ASCII_DTOSTR_BUF_SIZE, array[i].imag ); 
 		vips_buf_appendf( &buf, "%s) ", str ); 
 	}
 
@@ -899,10 +899,10 @@ transform_g_string_array_comp( const GValue *src_value, GValue *dest_value )
 	i = 0;
 	for( p = str; (q = vips_break_token( p, "\t; " )); p = q ) {
 		if( sscanf( p, "(%lf,%lf) ", 
-			&array[i]->real, &array[i]->imag ) == 2 ) 
+			&array[i].real, &array[i].imag ) == 2 ) 
 			;
-		else if( sscanf( p, "%lf ", &array[i]->real ) == 1 ) 
-			array[i]->imag == 0.0;
+		else if( sscanf( p, "%lf ", &array[i].real ) == 1 ) 
+			array[i].imag = 0.0;
 		else { 
 			/* Set array to length zero to indicate an error.
 			 */
@@ -1433,6 +1433,49 @@ vips_value_set_array_double( GValue *value, const double *array, int n )
 	vips_value_set_array( value, n, G_TYPE_DOUBLE, sizeof( double ) );
 	array_copy = vips_value_get_array_double( value, NULL );
 	memcpy( array_copy, array, n * sizeof( double ) );
+
+	return( 0 );
+}
+
+/** 
+ * vips_value_get_array_comp:
+ * @value: %GValue to get from
+ * @n: (allow-none): return the number of elements here, optionally
+ *
+ * Return the start of the array of VipsComp held by @value.
+ * optionally return the number of elements in @n.
+ *
+ * See also: vips_value_set_array_comp().
+ *
+ * Returns: (transfer none): The array address.
+ */
+VipsComp *
+vips_value_get_array_comp( const GValue *value, int *n )
+{
+	return( vips_value_get_array( value, n, NULL, NULL ) );
+}
+
+/** 
+ * vips_value_set_array_comp:
+ * @value: (out): %GValue to get from
+ * @array: (array length=n): array of doubles
+ * @n: the number of elements 
+ *
+ * Set @value to hold a copy of @array. Pass in the array length in @n. 
+ *
+ * See also: vips_value_get_array_comp().
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_value_set_array_comp( GValue *value, const VipsComp *array, int n )
+{
+	VipsComp *array_copy;
+
+	g_value_init( value, VIPS_TYPE_ARRAY_COMP );
+	vips_value_set_array( value, n, VIPS_TYPE_COMP, sizeof( VipsComp ) );
+	array_copy = vips_value_get_array_comp( value, NULL );
+	memcpy( array_copy, array, n * sizeof( VipsComp ) );
 
 	return( 0 );
 }

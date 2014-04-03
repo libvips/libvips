@@ -158,6 +158,14 @@ VipsArrayDouble *vips_array_double_newv( int n, ... );
 GType vips_array_double_get_type( void );
 
 /**
+ * VIPS_TYPE_ARRAY_COMP:
+ *
+ * The #GType for a #VipsArrayComp.
+ */
+#define VIPS_TYPE_ARRAY_COMP (vips_array_comp_get_type())
+GType vips_array_comp_get_type( void );
+
+/**
  * VIPS_TYPE_ARRAY_INT:
  *
  * The #GType for a #VipsArrayInt.
@@ -198,6 +206,9 @@ void *vips_value_get_array( const GValue *value,
 
 double *vips_value_get_array_double( const GValue *value, int *n );
 int vips_value_set_array_double( GValue *value, const double *array, int n );
+
+VipsComp *vips_value_get_array_comp( const GValue *value, int *n );
+int vips_value_set_array_comp( GValue *value, const VipsComp *array, int n );
 
 int *vips_value_get_array_int( const GValue *value, int *n );
 int vips_value_set_array_int( GValue *value, const int *array, int n );

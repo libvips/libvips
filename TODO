@@ -1,8 +1,5 @@
-- see transform_array_comp_g_string
+- try getting vips_linear to take array of complex
 
-  what should we use as a complex number separator? ask lars
-
-  use ASCII everywhere, much simpler
 
 
 
