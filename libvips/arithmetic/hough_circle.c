@@ -84,16 +84,14 @@ vips_hough_circle_normalise( VipsHoughCircle *hough_circle )
 		int radius = b * scale + min_radius;
 		double circumference = 2 * VIPS_PI * radius;
 		double ratio = max_circumference / circumference;
+		size_t n_pels = (size_t) width * height * bands; 
 
-		int x, y;
+		size_t i;
 		guint *q; 
 
 		q = b + (guint *) VIPS_IMAGE_ADDR( hough->out, 0, 0 );
-		for( y = 0; y < height; y++ ) {
-			for( x = 0; x < width; x++ ) 
-				*q *= ratio;
-			q += bands;
-		}
+		for( i = 0; i < n_pels; i += bands )
+			q[i] *= ratio;
 	}
 }
 
