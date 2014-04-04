@@ -168,10 +168,12 @@ vips_foreign_load_raw_init( VipsForeignLoadRaw *raw )
  * @offset: offset in bytes from start of file
  *
  * This operation mmaps the file, setting @out so that access to that 
- * image will read from the file.
+ * image will read from the file. 
  *
- * Use functions like vips_copy() to set the pixel type, byte ordering 
- * and so on.
+ * @out will be a 8-bit uchar image with @bands image bands, so @bands can 
+ * be thought of as meaning "number of bytes per pixel". Use functions 
+ * like vips_copy() to set the exact band format, number of bands, byte 
+ * ordering and so on.
  *
  * See also: vips_image_new_from_file().
  *
