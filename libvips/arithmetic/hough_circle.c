@@ -31,6 +31,11 @@
 
  */
 
+/* Derived in part from David Young's Matlab circle detector:
+ *
+ * http://www.mathworks.com/matlabcentral/fileexchange/26978-hough-transform-for-circles
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
