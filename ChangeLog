@@ -26,6 +26,7 @@
 - vipsthumbnail --crop could fail for very non-square images, thanks
   Alessandro
 - fix a crash in vips_rawsave(), thanks Andrea
+- updated German translation, thanks Chris
 
 24/2/14 started 7.38.5
 - jpeg load from buffer could write to input, thanks Lovell
