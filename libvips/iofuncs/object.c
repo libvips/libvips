@@ -52,6 +52,8 @@
 
 #include <gobject/gvaluecollector.h>
 
+#include "vipsmarshal.h"
+
 /**
  * SECTION: object
  * @short_description: the VIPS base object class
@@ -111,6 +113,7 @@
 /* Our signals. 
  */
 enum {
+	SIG_POSTBUILD,		
 	SIG_PRECLOSE,		
 	SIG_CLOSE,		
 	SIG_POSTCLOSE,		
@@ -131,6 +134,24 @@ int _vips__argument_id = 1;
 static GHashTable *vips__object_nickname_table = NULL;
 
 G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
+
+/* Don't call this directly, see vips_object_build().
+ */
+static int
+vips_object_postbuild( VipsObject *object )
+{
+	int result;
+
+#ifdef DEBUG
+	printf( "vips_object_postbuild: " );
+	vips_object_print_name( object );
+	printf( "\n" );
+#endif /*DEBUG*/
+
+	g_signal_emit( object, vips_object_signals[SIG_POSTBUILD], 0, &result );
+
+	return( result ); 
+}
 
 void
 vips_object_preclose( VipsObject *object )
@@ -249,6 +270,11 @@ vips_object_build( VipsObject *object )
 	/* ... more checks go here.
 	 */
 	object->constructed = TRUE;
+
+	/* Only postbuild on success.
+	 */
+	if( !result )
+		result = vips_object_postbuild( object );
 
 	return( result );
 }
@@ -1285,6 +1311,20 @@ vips_object_real_build( VipsObject *object )
 	return( result );
 }
 
+static int
+vips_object_real_postbuild( VipsObject *object )
+{
+#ifdef DEBUG
+	printf( "vips_object_real_postbuild: " ); 
+	vips_object_print_name( object );
+	printf( "\n" );
+#endif /*DEBUG*/
+
+	g_assert( object->constructed ); 
+
+	return( 0 ); 
+}
+
 static void
 vips_object_real_summary_class( VipsObjectClass *class, VipsBuf *buf )
 {
@@ -1384,6 +1424,7 @@ vips_object_class_init( VipsObjectClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	class->build = vips_object_real_build;
+	class->postbuild = vips_object_real_postbuild;
 	class->summary_class = vips_object_real_summary_class;
 	class->summary = vips_object_real_summary;
 	class->dump = vips_object_real_dump;
@@ -1419,6 +1460,13 @@ vips_object_class_init( VipsObjectClass *class )
 		G_STRUCT_OFFSET( VipsObject, description ), 
 		"" );
 
+	vips_object_signals[SIG_POSTBUILD] = g_signal_new( "postbuild",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET( VipsObjectClass, postbuild ), 
+		NULL, NULL,
+		vips_INT__VOID,
+		G_TYPE_INT, 0 );
 	vips_object_signals[SIG_PRECLOSE] = g_signal_new( "preclose",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST,

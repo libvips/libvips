@@ -1673,3 +1673,76 @@ vips_enum_from_nick( const char *domain, GType type, const char *nick )
 
 	return( -1 );
 }
+
+#define BIGBUF (10000)
+
+/* Scan @buf for the first "%ns" (eg. "%12s") and substitute the 
+ * lowest-numbered one for @sub. @buf is @len bytes
+ * in size.
+ *
+ * If there are no %ns, use the first %s.
+ */
+int
+vips__substitute( const char *domain, char *buf, size_t len, char *sub )
+{
+	size_t buflen = strlen( buf ); 
+	size_t sublen = strlen( sub ); 
+
+	int lowest_n;
+	char *sub_start;
+	char *p;
+	char *sub_end;
+	size_t before_len, marker_len, after_len, final_len;
+
+	g_assert( buflen < len ); 
+
+	lowest_n = -1;
+	sub_start = NULL;
+	for( p = buf; (p = strchr( p, '%' )); p++ )  
+		if( isdigit( p[1] ) ) {
+			char *q;
+
+			for( q = p + 1; isdigit( *q ); q++ )
+				;
+			if( q[0] == 's' ) {
+				int n;
+
+				n = atoi( p + 1 );
+				if( lowest_n == -1 ||
+					n < lowest_n ) {
+					sub_start = p;
+					sub_end = q + 1;
+				}
+			}
+		}
+
+	if( !sub_start ) 
+		for( p = buf; (p = strchr( p, '%' )); p++ )  
+			if( p[1] == 's' ) {
+				sub_start = p;
+				sub_end = p + 2;
+				break;
+			}
+
+	if( !sub_start ) {
+		vips_error( domain, 
+			"%s", _( "string contains no substitute marker" ) ); 
+		return( -1 ); 
+	}
+
+	before_len = sub_start - buf;
+	marker_len = sub_end - sub_start;
+	after_len = buflen - (before_len + marker_len);
+	final_len = before_len + sublen + after_len + 1;
+	if( final_len > len ) { 
+		vips_error( domain, 
+			"%s", _( "not enough space to substitute" ) ); 
+		return( -1 ); 
+	}
+
+	memmove( buf + before_len + sublen, buf + before_len + marker_len, 
+		after_len + 1 );  
+	memmove( buf + before_len, sub, sublen ); 
+
+	return( 0 ); 
+}

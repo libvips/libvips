@@ -162,6 +162,7 @@ GType vips_array_int_get_type( void );
  * The #GType for a #VipsArrayImage.
  */
 #define VIPS_TYPE_ARRAY_IMAGE (vips_array_image_get_type())
+typedef VipsArea VipsArrayImage;
 GType vips_array_image_get_type( void );
 
 void vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data );

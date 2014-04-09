@@ -1,6 +1,24 @@
+- try:
+
+	$ vips system "vips add %s %s %s" --in "k2.jpg k4.jpg" \
+		--out-format "%s.tif" --out x.v --log
+	memory: high-water mark 9.37 MB
+	""
+	memory: high-water mark 27.89 MB
+	$
+
+  but x.v does not appear
+
+- can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
+
+
+
+
 - why is cache in nip2 so slow? its awful
 
   investigate again
+
+  is it using vips_sinkscreen()? should it use tilecache?
 
 
 - test draw_mask on labq images

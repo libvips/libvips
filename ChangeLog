@@ -17,6 +17,9 @@
 - add "mode" param to vips_draw_image()
 - add vips_hough_circle()
 - reduce default cache size to 1,000 operations
+- added "postbuild" signal
+- vips_system() now supports many input images and you can change image
+  argument order
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

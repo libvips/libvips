@@ -1,6 +1,8 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
+	vipsmarshal.h \
+	vipsmarshal.c \
 	type.c \
 	gate.c \
 	enumtypes.c \
@@ -33,7 +35,17 @@ libiofuncs_la_SOURCES = \
 	system.c \
 	buffer.c 
 
-EXTRA_DIST = enumtemplate
+vipsmarshal.h:
+	glib-genmarshal --prefix=vips --header vipsmarshal.list > vipsmarshal.h
+vipsmarshal.c:
+	echo "#include \"vipsmarshal.h\"" > vipsmarshal.c 
+	glib-genmarshal --prefix=vips --body vipsmarshal.list >> vipsmarshal.c
+
+EXTRA_DIST = \
+	enumtemplate \
+	vipsmarshal.h \
+	vipsmarshal.c \
+	vipsmarshal.list
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
 

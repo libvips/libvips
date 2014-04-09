@@ -773,28 +773,30 @@ vips_call_find_pspec( VipsObject *object,
  */
 typedef struct _VipsCallOptionOutput {
 	VipsArgumentInstance *argument_instance;
-	const char *value;
+	char *value;
 } VipsCallOptionOutput;
 
-static void
+static int
 vips_call_option_output( VipsObject *object,
 	VipsCallOptionOutput *output )
 {
 	VipsArgumentInstance *argument_instance = output->argument_instance;
 	GParamSpec *pspec = ((VipsArgument *) argument_instance)->pspec;
 
+	int result;
+
 	/* Don't look at the output arg if _build() hasn't run sucessfully, it
 	 * probably won't have been set. 
 	 */
+	result = 0;
 	if( object->constructed )
-		if( vips_object_get_argument_to_string( object, 
-			g_param_spec_get_name( pspec ), output->value ) ) {
-			/* FIXME .. Hmm what can we do here? If an arg is image
-			 * output, for example, we will lose the error.
-			 */
-		}
+		result = vips_object_get_argument_to_string( object, 
+			g_param_spec_get_name( pspec ), output->value );
 
+	VIPS_FREE( output->value ); 
 	g_free( output );
+
+	return( result ); 
 }
 
 static gboolean
@@ -857,14 +859,11 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 
 		/* We can't do output now, we have to attach a callback to do
 		 * the processing after the operation has run.
-		 *
-		 * FIXME ... something like posteval or postbuild might be
-		 * better for this?
 		 */
 		output = g_new( VipsCallOptionOutput, 1 );
 		output->argument_instance = argument_instance;
-		output->value = value;
-		g_signal_connect( operation, "preclose",
+		output->value = g_strdup( value );
+		g_signal_connect( operation, "postbuild",
 			G_CALLBACK( vips_call_option_output ),
 			output );
 	}

@@ -307,6 +307,7 @@ void vips_convolution_operation_init( void );
 void vips_draw_operation_init( void );
 
 guint64 vips__parse_size( const char *size_string );
+int vips__substitute( const char *domain, char *buf, size_t len, char *sub );
 
 IMAGE *vips__deprecated_open_read( const char *filename, gboolean sequential );
 IMAGE *vips__deprecated_open_write( const char *filename );
