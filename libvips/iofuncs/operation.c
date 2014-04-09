@@ -793,10 +793,14 @@ vips_call_option_output( VipsObject *object,
 		result = vips_object_get_argument_to_string( object, 
 			g_param_spec_get_name( pspec ), output->value );
 
+	return( result ); 
+}
+
+static void
+vips_call_option_output_free( VipsObject *object, VipsCallOptionOutput *output )
+{
 	VIPS_FREE( output->value ); 
 	g_free( output );
-
-	return( result ); 
 }
 
 static gboolean
@@ -865,6 +869,9 @@ vips_call_options_set( const gchar *option_name, const gchar *value,
 		output->value = g_strdup( value );
 		g_signal_connect( operation, "postbuild",
 			G_CALLBACK( vips_call_option_output ),
+			output );
+		g_signal_connect( operation, "close",
+			G_CALLBACK( vips_call_option_output_free ),
 			output );
 	}
 
