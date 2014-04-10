@@ -56,6 +56,10 @@ typedef void *(*VipsSListMap2Fn)( void *, void *, void * );
 typedef void *(*VipsSListMap4Fn)( void *, void *, void *, void *, void * );
 typedef void *(*VipsSListFold2Fn)( void *, void *, void *, void * );
 
+/* We need to fwd ref this in many places.
+ */
+typedef struct _VipsImage VipsImage;
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
