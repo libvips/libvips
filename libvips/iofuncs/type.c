@@ -1303,7 +1303,7 @@ vips_value_get_array_image( const GValue *value, int *n )
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_value_set_array_image( GValue *value, const VipsImage **array, int n )
+vips_value_set_array_image( GValue *value, VipsImage **array, int n )
 {
 	VipsImage **array_copy;
 
