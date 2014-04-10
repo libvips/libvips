@@ -188,14 +188,15 @@ void *vips_value_get_array( const GValue *value,
 double *vips_value_get_array_double( const GValue *value, int *n );
 int vips_value_set_array_double( GValue *value, const double *array, int n );
 
-VipsImage **vips_value_get_array_image( const GValue *value, int *n );
-int vips_value_set_array_image( GValue *value, VipsImage **array, int n );
-
 int *vips_value_get_array_int( const GValue *value, int *n );
 int vips_value_set_array_int( GValue *value, const int *array, int n );
 
 GObject **vips_value_get_array_object( const GValue *value, int *n );
 int vips_value_set_array_object( GValue *value, int n );
+
+/* See also image.h, that has vips_value_get_array_image() and 
+ * vips_value_set_array_image(). They need to be declared after VipsImage. 
+ */
 
 void vips__meta_init_types( void );
 

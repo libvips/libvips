@@ -453,6 +453,11 @@ gboolean vips_band_format_iscomplex( VipsBandFormat format );
 int vips_system( const char *cmd_format, ... )
 	__attribute__((sentinel));
 
+/* Defined in type.c, but declared here since they use VipsImage.
+ */
+VipsImage **vips_value_get_array_image( const GValue *value, int *n );
+int vips_value_set_array_image( GValue *value, VipsImage **array, int n );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

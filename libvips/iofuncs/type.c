@@ -1280,7 +1280,7 @@ vips_value_set_array_double( GValue *value, const double *array, int n )
  * Return the start of the array of images held by @value.
  * optionally return the number of elements in @n.
  *
- * See also: vips_array_image_set().
+ * See also: vips_value_set_array_image().
  *
  * Returns: (transfer none): The array address.
  */
@@ -1293,7 +1293,7 @@ vips_value_get_array_image( const GValue *value, int *n )
 /** 
  * vips_value_set_array_image:
  * @value: (out): %GValue to get from
- * @array: (array length=n): array of doubles
+ * @array: (array length=n): array of images
  * @n: the number of elements 
  *
  * Set @value to hold a copy of @array. Pass in the array length in @n. 
