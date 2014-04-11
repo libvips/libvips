@@ -113,7 +113,8 @@ extern int _vips__argument_id;
 		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
-#define VIPS_ARG_INTERPOLATE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) { \
+#define VIPS_ARG_INTERPOLATE( CLASS, NAME, PRIORITY, LONG, DESC, \
+	FLAGS, OFFSET ) { \
 	GParamSpec *pspec; \
 	\
 	pspec = g_param_spec_object( (NAME), (LONG), (DESC),  \

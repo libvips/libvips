@@ -95,8 +95,8 @@ typedef struct _VipsLinear {
 
 	/* Our constants: multiply by a, add b.
 	 */
-	VipsArea *a;
-	VipsArea *b;
+	VipsArrayComp *a;
+	VipsArrayComp *b;
 
 	/* uchar output.
 	 */
@@ -105,14 +105,32 @@ typedef struct _VipsLinear {
 	/* Our constants expanded to match arith->ready in size.
 	 */
 	int n;
-	double *a_ready;
-	double *b_ready;
+	double *a_real_ready;
+	double *b_real_ready;
+	double *a_imag_ready;
+	double *b_imag_ready;
 
 } VipsLinear;
 
 typedef VipsUnaryClass VipsLinearClass;
 
 G_DEFINE_TYPE( VipsLinear, vips_linear, VIPS_TYPE_UNARY );
+
+/* Is there an imaginary component to a constant?
+ */
+static gboolean
+vips_comp_array_has_imaginary( VipsCompArray *comp )
+{
+	VipsComp *ary = (VipsComp *) comp->data;
+
+	int i;
+
+	for( i = 0; i < comp->n; i++ )
+		if( ary[i].imag != 0.0 ) 
+			return( TRUE ); 
+
+	return( FALSE );
+}
 
 static int
 vips_linear_build( VipsObject *object )
@@ -150,7 +168,9 @@ vips_linear_build( VipsObject *object )
 		linear->n = VIPS_MAX( linear->n, bands );
 	arithmetic->base_bands = linear->n;
 
-	if( unary->in && linear->a && linear->b ) {
+	if( unary->in && 
+		linear->a && 
+		linear->b ) {
 		if( vips_check_vector( class->nickname, 
 			linear->a->n, unary->in ) ||
 			vips_check_vector( class->nickname, 
@@ -160,23 +180,46 @@ vips_linear_build( VipsObject *object )
 
 	/* Make up-banded versions of our constants.
 	 */
-	linear->a_ready = VIPS_ARRAY( linear, linear->n, double );
-	linear->b_ready = VIPS_ARRAY( linear, linear->n, double );
+	linear->a_real_ready = VIPS_ARRAY( linear, linear->n, double );
+	linear->b_real_ready = VIPS_ARRAY( linear, linear->n, double );
+
+	if( (linear->a && vips_comp_array_has_imaginary( linear->a )) ||
+		(linear->b && vips_comp_array_has_imaginary( linear->b )) ) {
+		linear->a_imag_ready = VIPS_ARRAY( linear, linear->n, double );
+		linear->b_imag_ready = VIPS_ARRAY( linear, linear->n, double );
+	}
 
 	for( i = 0; i < linear->n; i++ ) {
 		if( linear->a ) {
-			double *ary = (double *) linear->a->data;
+			VipsComp *ary = (VipsComp *) linear->a->data;
 			int j = VIPS_MIN( i, linear->a->n - 1 );
 
-			linear->a_ready[i] = ary[j];
+			linear->a_real_ready[i] = ary[j].real;
+
+			if( linear->a_imag_ready )
+				linear->a_imag_ready[i] = ary[j].imag;
 		}
 
 		if( linear->b ) {
-			double *ary = (double *) linear->b->data;
+			VipsComp *ary = (VipsComp *) linear->b->data;
 			int j = VIPS_MIN( i, linear->b->n - 1 );
 
-			linear->b_ready[i] = ary[j];
+			linear->b_ready[i] = ary[j].real;
+
+			if( linear->b_imag_ready )
+				linear->b_imag_ready[i] = ary[j].imag;
 		}
+	}
+
+	/* Complex constants mean we need complex output.
+	 */
+	if( unary->in &&
+		linear->a_imag_ready &&
+		!vips_band_format_iscomplex( unary->in->BandFmt ) ) {
+		if( unary->in->BandFmt == VIPS_FORMAT_DOUBLE )
+			arithmetic->format = VIPS_FORMAT_DPCOMPLEX;
+		else
+			arithmetic->format = VIPS_FORMAT_COMPLEX;
 	}
 
 	if( linear->uchar )
@@ -403,14 +446,14 @@ vips_linear_class_init( VipsLinearClass *class )
 		_( "Multiply by this" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLinear, a ),
-		VIPS_TYPE_ARRAY_DOUBLE );
+		VIPS_TYPE_ARRAY_COMP );
 
 	VIPS_ARG_BOXED( class, "b", 111, 
 		_( "b" ), 
 		_( "Add this" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLinear, b ),
-		VIPS_TYPE_ARRAY_DOUBLE );
+		VIPS_TYPE_ARRAY_COMP );
 
 	VIPS_ARG_BOOL( class, "uchar", 112, 
 		_( "uchar" ), 
