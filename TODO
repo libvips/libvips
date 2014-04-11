@@ -1,5 +1,3 @@
-- vips_system needs to use "%%" for a % character, for compatibility with 
-  vips 7.38
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
