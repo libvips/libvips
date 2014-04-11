@@ -1793,6 +1793,10 @@ im_system_image( VipsImage *im,
 	array = (VipsImage **) area->data;
 	array[0] = im;
 
+	/* im will be unreffed when area is unreffed.
+	 */
+	g_object_ref( im ); 
+
 	if( vips_system( cmd_format, 
 		"in", area,
 		"out", &out,
@@ -1808,6 +1812,8 @@ im_system_image( VipsImage *im,
 
 	if( log )
 		*log = str;
+	else
+		g_free( str ); 
 
 	return( out );
 }
