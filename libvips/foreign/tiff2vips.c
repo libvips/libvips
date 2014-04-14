@@ -141,6 +141,9 @@
  * 	- support separate planes for strip read
  * 	- big cleanup
  * 	- support for many more formats, eg. 32-bit int etc. 
+ * 11/4/14
+ * 	- support 16 bits per sample palette images
+ * 	- palette images can have an alpha
  */
 
 /*
@@ -683,9 +686,13 @@ parse_greyscale( ReadTiff *rtiff, VipsImage *out )
 typedef struct {
 	/* LUTs mapping image indexes to RGB.
 	 */
-	VipsPel *red;
-	VipsPel *green;
-	VipsPel *blue;
+	VipsPel *red8;
+	VipsPel *green8;
+	VipsPel *blue8;
+
+	guint16 *red16;
+	guint16 *green16;
+	guint16 *blue16;
 
 	/* All maps equal, so we write mono.
 	 */
@@ -695,7 +702,7 @@ typedef struct {
 /* Per-scanline process function for palette images.
  */
 static void
-palette_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
+palette_line_bit( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
 {
 	PaletteRead *read = (PaletteRead *) client;
 
@@ -718,82 +725,133 @@ palette_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
 		bit -= rtiff->bits_per_sample;
 
 		if( read->mono ) {
-			q[0] = read->red[i];
+			q[0] = read->red8[i];
 			q += 1;
 		}
 		else {
-			q[0] = read->red[i];
-			q[1] = read->green[i];
-			q[2] = read->blue[i];
+			q[0] = read->red8[i];
+			q[1] = read->green8[i];
+			q[2] = read->blue8[i];
 			q += 3;
 		}
 	}
 }
 
+/* The tiff is 8-bit and can have an alpha. 
+ */
 static void
-palette_line16( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
+palette_line8( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, 
+	void *client )
 {
 	PaletteRead *read = (PaletteRead *) client;
+	int samples = rtiff->samples_per_pixel;
 
-	guint16 *data = (guint16 *) p;
 	int x;
+	int s;
 
 	for( x = 0; x < n; x++ ) {
-		int i = data[x];
+		int i = p[0];
 
-		if( read->mono ) {
-			q[0] = read->red[i];
-			q += 1;
-		}
+		if( read->mono ) 
+			q[0] = read->red8[i];
 		else {
-			q[0] = read->red[i];
-			q[1] = read->green[i];
-			q[2] = read->blue[i];
-			q += 3;
+			q[0] = read->red8[i];
+			q[1] = read->green8[i];
+			q[2] = read->blue8[i];
+			q += 2;
 		}
+
+		for( s = 1; s < samples; s++ )
+			q[s] = p[s]; 
+
+		q += samples; 
+		p += samples; 
 	}
 }
 
-/* Read a palette-ised TIFF image. 1/2/4/8/16 bits only.
+/* 16-bit tiff and can have an alpha. 
+ */
+static void
+palette_line16( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, 
+	void *client )
+{
+	PaletteRead *read = (PaletteRead *) client;
+	int samples = rtiff->samples_per_pixel;
+
+	guint16 *p16, *q16;
+	int x;
+	int s;
+
+	q16 = (guint16 *) q;
+	p16 = (guint16 *) p;
+
+	for( x = 0; x < n; x++ ) {
+		int i = p16[0];
+
+		if( read->mono ) 
+			q16[0] = read->red16[i];
+		else {
+			q16[0] = read->red16[i];
+			q16[1] = read->green16[i];
+			q16[2] = read->blue16[i];
+			q16 += 2;
+		}
+
+		for( s = 1; s < samples; s++ )
+			q16[s] = p16[s]; 
+
+		q16 += samples; 
+		p16 += samples; 
+	}
+}
+
+/* Read a palette-ised TIFF image. 
  */
 static int
 parse_palette( ReadTiff *rtiff, VipsImage *out )
 {
 	int len;
 	PaletteRead *read;
-	uint16 *tred, *tgreen, *tblue;
 	int i;
 
 	if( check_bits_palette( rtiff ) ||
-		check_samples( rtiff, 1 ) )
+		check_min_samples( rtiff, 1 ) )
 		return( -1 ); 
 	len = 1 << rtiff->bits_per_sample;
 
+	if( rtiff->bits_per_sample < 8 &&
+		rtiff->samples_per_pixel > 1 ) { 
+		vips_error( "tiff2vips", "%s", _( "can't have an alpha for "
+			"palette images less than 8 bits per sample" ) );
+		return( -1 );
+	}
+
 	if( !(read = VIPS_NEW( out, PaletteRead )) ||
-		!(read->red = VIPS_ARRAY( out, len, VipsPel )) ||
-		!(read->green = VIPS_ARRAY( out, len, VipsPel )) ||
-		!(read->blue = VIPS_ARRAY( out, len, VipsPel )) )
+		!(read->red8 = VIPS_ARRAY( out, len, VipsPel )) ||
+		!(read->green8 = VIPS_ARRAY( out, len, VipsPel )) ||
+		!(read->blue8 = VIPS_ARRAY( out, len, VipsPel )) )
 		return( -1 );
 
 	/* Get maps, convert to 8-bit data.
 	 */
 	if( !TIFFGetField( rtiff->tiff, 
-		TIFFTAG_COLORMAP, &tred, &tgreen, &tblue ) ) {
+		TIFFTAG_COLORMAP, 
+		&read->red16, &read->green16, &read->blue16 ) ) {
 		vips_error( "tiff2vips", "%s", _( "bad colormap" ) );
 		return( -1 );
 	}
 	for( i = 0; i < len; i++ ) {
-		read->red[i] = tred[i] >> 8;
-		read->green[i] = tgreen[i] >> 8;
-		read->blue[i] = tblue[i] >> 8;
+		read->red8[i] = read->red16[i] >> 8;
+		read->green8[i] = read->green16[i] >> 8;
+		read->blue8[i] = read->blue16[i] >> 8;
 	}
 
 	/* Are all the maps equal? We have a mono image.
 	 */
 	read->mono = TRUE;
 	for( i = 0; i < len; i++ ) 
-		if( read->red[i] != read->green[i] ||
-			read->green[i] != read->blue[i] ) {
+		if( read->red16[i] != read->green16[i] ||
+			read->green16[i] != read->blue16[i] ) {
 			read->mono = FALSE;
 			break;
 		}
@@ -803,23 +861,36 @@ parse_palette( ReadTiff *rtiff, VipsImage *out )
 	 * just search the colormap.
 	 */
 
-	out->BandFmt = VIPS_FORMAT_UCHAR; 
+	if( rtiff->bits_per_sample <= 8 )
+		out->BandFmt = VIPS_FORMAT_UCHAR; 
+	else
+		out->BandFmt = VIPS_FORMAT_USHORT; 
 	out->Coding = VIPS_CODING_NONE; 
 
 	if( read->mono ) {
-		out->Bands = 1; 
-		out->Type = VIPS_INTERPRETATION_B_W; 
+		out->Bands = rtiff->samples_per_pixel; 
+		if( rtiff->bits_per_sample <= 8 )
+			out->Type = VIPS_INTERPRETATION_B_W; 
+		else
+			out->Type = VIPS_INTERPRETATION_GREY16; 
 	}
 	else {
-		out->Bands = 3; 
-		out->Type = VIPS_INTERPRETATION_sRGB; 
+		out->Bands = rtiff->samples_per_pixel + 2; 
+		if( rtiff->bits_per_sample <= 8 )
+			out->Type = VIPS_INTERPRETATION_sRGB; 
+		else
+			out->Type = VIPS_INTERPRETATION_RGB16; 
 	}
 
 	rtiff->client = read;
-	if( rtiff->bits_per_sample == 16 )
+	if( rtiff->bits_per_sample < 8 )
+		rtiff->sfn = palette_line_bit;
+	else if( rtiff->bits_per_sample == 8 )
+		rtiff->sfn = palette_line8;
+	else if( rtiff->bits_per_sample == 16 )
 		rtiff->sfn = palette_line16;
 	else
-		rtiff->sfn = palette_line;
+		g_assert( 0 ); 
 
 	return( 0 );
 }
