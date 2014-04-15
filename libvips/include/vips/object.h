@@ -446,6 +446,10 @@ struct _VipsObjectClass {
 	 */
 	int (*build)( VipsObject *object );
 
+	/* Just after build ... the object is fully ready for work. 
+	 */
+	int (*postbuild)( VipsObject *object );
+
 	/* Try to print something about the class, handy for help displays.
 	 * Keep to one line.
 	 */

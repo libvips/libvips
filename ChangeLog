@@ -19,13 +19,17 @@
 - add "mode" param to vips_draw_image()
 - add vips_hough_circle()
 - reduce default cache size to 1,000 operations
+- added "postbuild" signal
+- vips_system() now supports many input images and you can change image
+  argument order
+- support 16-bit palette TIFFs, plus palette TIFFs can have an alpha
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong
 - vipsthumbnail --crop could fail for very non-square images, thanks
   Alessandro
 - fix a crash in vips_rawsave(), thanks Andrea
->>>>>>> origin/master
+- updated German translation, thanks Chris
 
 24/2/14 started 7.38.5
 - jpeg load from buffer could write to input, thanks Lovell

@@ -1438,6 +1438,7 @@ vips_value_set_array_double( GValue *value, const double *array, int n )
 }
 
 /** 
+<<<<<<< HEAD
  * vips_value_get_array_comp:
  * @value: %GValue to get from
  * @n: (allow-none): return the number of elements here, optionally
@@ -1451,23 +1452,49 @@ vips_value_set_array_double( GValue *value, const double *array, int n )
  */
 VipsComp *
 vips_value_get_array_comp( const GValue *value, int *n )
+=======
+ * vips_value_get_array_image:
+ * @value: %GValue to get from
+ * @n: (allow-none): return the number of elements here, optionally
+ *
+ * Return the start of the array of images held by @value.
+ * optionally return the number of elements in @n.
+ *
+ * See also: vips_value_set_array_image().
+ *
+ * Returns: (transfer none): The array address.
+ */
+VipsImage **
+vips_value_get_array_image( const GValue *value, int *n )
+>>>>>>> origin/master
 {
 	return( vips_value_get_array( value, n, NULL, NULL ) );
 }
 
 /** 
+<<<<<<< HEAD
  * vips_value_set_array_comp:
  * @value: (out): %GValue to get from
  * @array: (array length=n): array of doubles
+=======
+ * vips_value_set_array_image:
+ * @value: (out): %GValue to get from
+ * @array: (array length=n): array of images
+>>>>>>> origin/master
  * @n: the number of elements 
  *
  * Set @value to hold a copy of @array. Pass in the array length in @n. 
  *
+<<<<<<< HEAD
  * See also: vips_value_get_array_comp().
+=======
+ * See also: vips_array_image_get().
+>>>>>>> origin/master
  *
  * Returns: 0 on success, -1 otherwise.
  */
 int
+<<<<<<< HEAD
 vips_value_set_array_comp( GValue *value, const VipsComp *array, int n )
 {
 	VipsComp *array_copy;
@@ -1476,6 +1503,17 @@ vips_value_set_array_comp( GValue *value, const VipsComp *array, int n )
 	vips_value_set_array( value, n, VIPS_TYPE_COMP, sizeof( VipsComp ) );
 	array_copy = vips_value_get_array_comp( value, NULL );
 	memcpy( array_copy, array, n * sizeof( VipsComp ) );
+=======
+vips_value_set_array_image( GValue *value, VipsImage **array, int n )
+{
+	VipsImage **array_copy;
+
+	g_value_init( value, VIPS_TYPE_ARRAY_IMAGE );
+	vips_value_set_array( value, n, VIPS_TYPE_ARRAY_IMAGE, 
+		sizeof( VipsImage * ) );
+	array_copy = vips_value_get_array_image( value, NULL );
+	memcpy( array_copy, array, n * sizeof( VipsImage * ) );
+>>>>>>> origin/master
 
 	return( 0 );
 }

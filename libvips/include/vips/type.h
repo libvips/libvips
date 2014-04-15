@@ -182,6 +182,7 @@ GType vips_array_int_get_type( void );
  * The #GType for a #VipsArrayImage.
  */
 #define VIPS_TYPE_ARRAY_IMAGE (vips_array_image_get_type())
+typedef VipsArea VipsArrayImage;
 GType vips_array_image_get_type( void );
 
 void vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data );
@@ -215,6 +216,10 @@ int vips_value_set_array_int( GValue *value, const int *array, int n );
 
 GObject **vips_value_get_array_object( const GValue *value, int *n );
 int vips_value_set_array_object( GValue *value, int n );
+
+/* See also image.h, that has vips_value_get_array_image() and 
+ * vips_value_set_array_image(). They need to be declared after VipsImage. 
+ */
 
 void vips__meta_init_types( void );
 

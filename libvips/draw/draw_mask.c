@@ -242,6 +242,7 @@ vips__draw_mask_direct( VipsImage *image, VipsImage *mask,
 	VipsRect mask_clip;
 
 	if( vips_check_coding_noneorlabq( "draw_mask_direct", image ) ||
+		vips_image_inplace( image ) ||
 		vips_image_wio_input( mask ) ||
 		vips_check_mono( "draw_mask_direct", mask ) ||
 		vips_check_uncoded( "draw_mask_direct", mask ) ||

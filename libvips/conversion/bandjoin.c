@@ -78,7 +78,7 @@ typedef struct _VipsBandjoin {
 
 	/* The input images.
 	 */
-	VipsArea *in;
+	VipsArrayImage *in;
 } VipsBandjoin;
 
 typedef VipsBandaryClass VipsBandjoinClass;

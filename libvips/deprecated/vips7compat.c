@@ -1754,14 +1754,24 @@ im_text( IMAGE *out, const char *text, const char *font,
 int 
 im_system( VipsImage *im, const char *cmd, char **out )
 {
+	VipsArea *area;
+	VipsImage **array;
 	char *str;
 
+	area = vips_area_new_array_object( 1 );
+	array = (VipsImage **) area->data;
+	array[0] = im;
+
 	if( vips_system( cmd, 
-		"in", im,
+		"in", area,
 		"in_format", "%s.v",
 		"log", &str,
-		NULL ) )
+		NULL ) ) {
+		vips_area_unref( area );
 		return( -1 );
+	}
+
+	vips_area_unref( area );
 
 	if( out )
 		*out = str;
@@ -1774,20 +1784,36 @@ im_system_image( VipsImage *im,
 	const char *in_format, const char *out_format, const char *cmd_format,
 	char **log )
 {
+	VipsArea *area;
+	VipsImage **array;
 	char *str;
 	VipsImage *out; 
 
+	area = vips_area_new_array_object( 1 );
+	array = (VipsImage **) area->data;
+	array[0] = im;
+
+	/* im will be unreffed when area is unreffed.
+	 */
+	g_object_ref( im ); 
+
 	if( vips_system( cmd_format, 
-		"in", im,
+		"in", area,
 		"out", &out,
 		"in_format", in_format,
 		"out_format", out_format,
 		"log", &str,
-		NULL ) )
+		NULL ) ) {
+		vips_area_unref( area );
 		return( NULL );
+	}
+
+	vips_area_unref( area );
 
 	if( log )
 		*log = str;
+	else
+		g_free( str ); 
 
 	return( out );
 }

@@ -634,7 +634,8 @@ vips__draw_flood_direct( VipsImage *image, VipsImage *test,
 		vips_check_coding_known( "vips__draw_flood_direct", test ) ||
 		vips_check_size_same( "vips__draw_flood_direct", 
 			test, image ) ||
-		vips_image_wio_input( test ) )  
+		vips_image_wio_input( test ) ||  
+		vips_image_inplace( image ) )
 		return( -1 );
 
 	flood.test = test;
