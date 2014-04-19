@@ -1,3 +1,9 @@
+- support 1/2/4 bit palette tiff with alpha
+
+- support ttiff read/write from buffer, see
+
+http://stackoverflow.com/questions/4624144/c-libtiff-read-and-save-file-from-and-to-memory
+
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
