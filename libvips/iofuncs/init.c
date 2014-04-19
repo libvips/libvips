@@ -76,6 +76,8 @@
 #include <limits.h>
 #include <string.h>
 
+#include <gsf/gsf.h>
+
 #include <vips/vips.h>
 #include <vips/thread.h>
 #include <vips/internal.h>
@@ -304,6 +306,10 @@ vips__init( const char *argv0 )
 	 */
 	vips_vector_init();
 
+	/* Use this for structured file write.
+	 */
+	gsf_init();
+
 	/* Register vips_shutdown(). This may well not get called and many
 	 * platforms don't support it anyway.
 	 */
@@ -428,6 +434,8 @@ vips_shutdown( void )
 	vips_thread_shutdown();
 
 	vips__thread_profile_stop();
+
+	gsf_shutdown(); 
 
 	/* In dev releases, always show leaks. But not more than once, it's
 	 * annoying.
