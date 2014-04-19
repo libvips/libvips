@@ -1807,4 +1807,64 @@ vips__istiff( const char *filename )
 	return( FALSE );
 }
 
+int
+vips__tiff_read_header_buffer( void *buf, size_t len, VipsImage *out, int page )
+{
+	ReadTiff *rtiff;
+
+	vips__tiff_init();
+
+	move the TIFFOpen into readtiff_new
+	
+		put the get_dir in there as well
+
+	if( !(rtiff = readtiff_new_buffer( buf, len, out, page, FALSE )) )
+		return( -1 );
+
+	if( !(rtiff->tiff = get_directory( rtiff, rtiff->page )) ) {
+		vips_error( "tiff2vips", 
+			_( "TIFF does not contain page %d" ), rtiff->page );
+		return( -1 );
+	}
+
+	if( parse_header( rtiff, out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+int
+vips__tiff_read_buffer( void *buf, size_t len, VipsImage *out, 
+	int page, gboolean readbehind )
+{
+	ReadTiff *rtiff;
+
+#ifdef DEBUG
+	printf( "tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
+	printf( "tiff2vips: libtiff starting for %s\n", filename );
+#endif /*DEBUG*/
+
+	vips__tiff_init();
+
+	if( !(rtiff = readtiff_new_buffer( buf, len, out, page, readbehind )) )
+		return( -1 );
+
+	if( !(rtiff->tiff = get_directory( rtiff, rtiff->page )) ) {
+		vips_error( "tiff2vips", 
+			_( "TIFF does not contain page %d" ), rtiff->page );
+		return( -1 );
+	}
+
+	if( TIFFIsTiled( rtiff->tiff ) ) {
+		if( read_tilewise( rtiff, out ) )
+			return( -1 );
+	}
+	else {
+		if( read_stripwise( rtiff, out ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
 #endif /*HAVE_TIFF*/
