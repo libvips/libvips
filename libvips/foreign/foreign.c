@@ -1651,7 +1651,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_buffer_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_mime_get_type( void ); 
-	extern GType vips_foreign_load_tiff_get_type( void ); 
+	extern GType vips_foreign_load_tiff_file_get_type( void ); 
+	extern GType vips_foreign_load_tiff_buffer_get_type( void ); 
 	extern GType vips_foreign_save_tiff_get_type( void ); 
 	extern GType vips_foreign_load_vips_get_type( void ); 
 	extern GType vips_foreign_save_vips_get_type( void ); 
@@ -1709,7 +1710,8 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_LIBWEBP*/
 
 #ifdef HAVE_TIFF
-	vips_foreign_load_tiff_get_type(); 
+	vips_foreign_load_tiff_file_get_type(); 
+	vips_foreign_load_tiff_buffer_get_type(); 
 	vips_foreign_save_tiff_get_type(); 
 #endif /*HAVE_TIFF*/
 
@@ -1808,6 +1810,44 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
 }
 
 /**
+ * vips_tiffload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @page: load this page
+ *
+ * Read a TIFF-formatted memory block into a VIPS image. Exactly as
+ * vips_tiffload(), but read from a memory source. 
+ *
+ * See also: vips_tiffload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	area = vips_area_new_blob( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "tiffload_buffer", ap, area, out );
+	va_end( ap );
+
+	vips_area_unref( area );
+
+	return( result );
+}
+
+/**
  * vips_tiffsave:
  * @in: image to save 
  * @filename: file to write to 
@@ -1900,46 +1940,6 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
 }
 
 /**
- * vips_jpegload_buffer:
- * @buf: memory area to load
- * @len: size of memory area
- * @out: image to write
- * @...: %NULL-terminated list of optional named arguments
- *
- * Read a JPEG-formatted memory block into a VIPS image. It can read most 
- * 8-bit JPEG images, including CMYK and YCbCr.
- *
- * This function is handy for processing JPEG image thumbnails.
- *
- * Caution: on return only the header will have been read, the pixel data is
- * not decompressed until the first pixel is read. Therefore you must not free
- * @buf until you have read pixel data from @out.
- *
- * See also: vips_jpegload().
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
-{
-	va_list ap;
-	VipsArea *area;
-	int result;
-
-	/* We don't take a copy of the data or free it.
-	 */
-	area = vips_area_new_blob( NULL, buf, len );
-
-	va_start( ap, out );
-	result = vips_call_split( "jpegload_buffer", ap, area, out );
-	va_end( ap );
-
-	vips_area_unref( area );
-
-	return( result );
-}
-
-/**
  * vips_jpegload:
  * @filename: file to load
  * @out: decompressed image
@@ -2004,6 +2004,45 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
 	va_start( ap, out );
 	result = vips_call_split( "jpegload", ap, filename, out );
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_jpegload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @shrink: shrink by this much on load
+ * @fail: fail on warnings
+ *
+ * Read a JPEG-formatted memory block into a VIPS image. Exactly as
+ * vips_jpegload(), but read from a memory buffer. 
+ *
+ * See also: vips_jpegload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	area = vips_area_new_blob( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "jpegload_buffer", ap, area, out );
+	va_end( ap );
+
+	vips_area_unref( area );
 
 	return( result );
 }

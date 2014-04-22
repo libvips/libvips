@@ -22,6 +22,7 @@
   argument order
 - support 16-bit palette TIFFs, plus palette TIFFs can have an alpha
 - add ".vips" as an alternative suffix for vips files
+- add vips_tiffload_buffer()
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong
