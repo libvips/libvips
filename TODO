@@ -1,23 +1,21 @@
-- need to be able to select savers by suffix, and set options
+- need to be able to set options for buffer save from the suffix
 
-  eg.
+  vips_foreign_save_buffer() needs
 
-	  vips_foreign_save_buffer( VipsImage *in, void **buf, size_t *len, 
-		const char *format, ... )
+  - split suffix for match against class->suffs
 
-  format can be
+  - set options from suffix
 
-  	.jpg
-	.jpg[Q=80]
+  no. 2 needs something like:
 
-  opt can be passed in the ... as well, overriding things set in the format
+  vips_object_set_options_from_string( object, "[a=12,b=13]" );
 
+  perhaps with the outermost brackets optional?
 
-  ... but foreign_class->suffs is set for eg. jpegsave_file and is how we pick
-  out savers from destination filenames, what can we use to pick buffer
-  savers?
+  maybe vips_object_set_from_string()?
 
-  need some new class member to do the lookup on? .suffs_buffer?
+  read object.c and see how close we are to this model now
+
 
 - use this for dzsave_buffer 
 
@@ -26,6 +24,11 @@
   vips_foreign_load_new_from_foreign_sub(), but it splits on ':' ... argh!
 
   deprecate this thing and stop ':' split
+
+  vips_foreign_find_save() should split on [], there's something to find the
+  start of the rightmost [] pair, use that
+
+  see also vips_foreign_find_save_buffer()
 
 
   

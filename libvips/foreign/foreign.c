@@ -1063,7 +1063,7 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
  * @filename may not contain embedded options. See
  * vips_foreign_find_save_options() if your filename may have options in.
  *
- * See also: vips_foreign_write().
+ * See also: vips_foreign_save().
  *
  * Returns: the name of an operation on success, %NULL on error
  */
@@ -1085,6 +1085,55 @@ vips_foreign_find_save( const char *filename )
 	return( G_OBJECT_CLASS_NAME( save_class ) );
 }
 
+/* Can we write this buffer with this file type?
+ */
+static void *
+vips_foreign_find_save_buffer_sub( VipsForeignSaveClass *save_class, 
+	const char *suffix )
+{
+	VipsObjectClass *class = VIPS_OBJECT_CLASS( save_class );
+	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
+
+	if( class->suffs &&
+		vips_ispostfix( class->nickname, "_buffer" ) &&
+		vips_filename_suffix_match( suffix, class->suffs ) )
+		return( save_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_foreign_find_save_buffer:
+ * @suffix: name to find a saver for
+ *
+ * Searches for an operation you could use to write to a buffer in @suffix
+ * format. 
+ *
+ * @filename may not contain embedded options. See
+ * vips_foreign_find_save_options() if your filename may have options in.
+ *
+ * See also: vips_foreign_save_buffer().
+ *
+ * Returns: the name of an operation on success, %NULL on error
+ */
+const char *
+vips_foreign_find_save_buffer( const char *suffix )
+{
+	VipsForeignSaveClass *save_class;
+
+	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
+		"VipsForeignSave",
+		(VipsSListMap2Fn) vips_foreign_find_save_sub, 
+		(void *) suffix, NULL )) ) {
+		vips_error( "VipsForeignSave",
+			_( "\"%s\" is not a known file format" ), suffix );
+
+		return( NULL );
+	}
+
+	return( G_OBJECT_CLASS_NAME( save_class ) );
+}
+
 /**
  * vips_foreign_find_save_options:
  * @filename: name to find a saver for
@@ -1092,7 +1141,7 @@ vips_foreign_find_save( const char *filename )
  * Searches for an operation you could use to write to @filename.
  *
  * @filename may contain embedded options. See
- * vips_foreign_find_save() if your filename does not options in.
+ * vips_foreign_find_save() if your filename does not have options in.
  *
  * See also: vips_foreign_write().
  *
@@ -1579,6 +1628,47 @@ vips_foreign_save( VipsImage *in, const char *filename, ... )
 	va_start( ap, filename );
 	result = vips_call_split( operation, ap, in, filename );
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_foreign_save_buffer:
+ * @in: image to write
+ * @suffix: format to write 
+ * @buf: return buffer start here
+ * @len: return buffer length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Saves @in to @filename using the saver recommended by
+ * vips_foreign_find_save(). Options are not in @suffix but must be given
+ * as a NULL-terminated list of name-value pairs.
+ *
+ * See also: vips_foreign_load_buffer().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_foreign_save_buffer( VipsImage *in, 
+	const char *suffix, void **buf, size_t *len, 
+	... )
+{
+	const char *operation;
+	va_list ap;
+	int result;
+
+	if( !(operation = vips_foreign_find_save_buffer( suffix )) )
+		return( -1 );
+
+	/* We don't take a copy of the data or free it.
+	 */
+	area = vips_area_new_blob( NULL, buf, len );
+
+	va_start( ap, filename );
+	result = vips_call_split( operation, ap, in, area );
+	va_end( ap );
+
+	vips_area_unref( area );
 
 	return( result );
 }
