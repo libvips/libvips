@@ -1,9 +1,36 @@
+- need to be able to select savers by suffix, and set options
+
+  eg.
+
+	  vips_foreign_save_buffer( VipsImage *in, void **buf, size_t *len, 
+		const char *format, ... )
+
+  format can be
+
+  	.jpg
+	.jpg[Q=80]
+
+  opt can be passed in the ... as well, overriding things set in the format
+
+
+  ... but foreign_class->suffs is set for eg. jpegsave_file and is how we pick
+  out savers from destination filenames, what can we use to pick buffer
+  savers?
+
+  need some new class member to do the lookup on? .suffs_buffer?
+
+- use this for dzsave_buffer 
+
+
+- vips_filename_suffix_match() is used by
+  vips_foreign_load_new_from_foreign_sub(), but it splits on ':' ... argh!
+
+  deprecate this thing and stop ':' split
+
+
+  
+
 - support 1/2/4 bit palette tiff with alpha
-
-- support ttiff read/write from buffer, see
-
-http://stackoverflow.com/questions/4624144/c-libtiff-read-and-save-file-from-and-to-memory
-
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 

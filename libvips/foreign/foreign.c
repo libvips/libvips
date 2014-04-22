@@ -87,10 +87,12 @@
  * the file name extension) with JPEG compression.
  *
  * |[
- * vips_foreign_save_options (my_image, "frank.tiff[compression=jpeg]");  
+ * vips_foreign_save_options (my_image, "frank.tiff[compression=jpeg]", NULL);  
  * ]|
  *
- * Is the same thing, but with the option in the filename.
+ * Is the same thing, but with the option in the filename. You can put
+ * name - value pairs after the filename as well: these will override any
+ * options set in the filename. 
  *
  * You can also invoke the operations directly, for example:
  *
@@ -108,9 +110,8 @@
  * transparently supported by vips_image_new_from_file() and friends.
  *
  * VIPS comes with VipsForeign for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
- * Matlab, Radiance, RAW, FITS and VIPS. It also 
- * includes import filters which can
- * load with libMagick and with OpenSlide. 
+ * Matlab, Radiance, RAW, FITS, WebP and VIPS. It also includes import filters 
+ * which can load with libMagick and with OpenSlide. 
  */
 
 /**
@@ -159,7 +160,7 @@
  * Add a new loader to VIPS by subclassing #VipsForeignLoad. Subclasses need to 
  * implement at least @header().
  *
- * As a complete example, here's the code for the PNG loader, minus the actual
+ * As a complete example, here's code for a PNG loader, minus the actual
  * calls to libpng.
  *
  * |[
