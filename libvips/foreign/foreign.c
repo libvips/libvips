@@ -1091,11 +1091,11 @@ static void *
 vips_foreign_find_save_buffer_sub( VipsForeignSaveClass *save_class, 
 	const char *suffix )
 {
-	VipsObjectClass *class = VIPS_OBJECT_CLASS( save_class );
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
 
 	if( class->suffs &&
-		vips_ispostfix( class->nickname, "_buffer" ) &&
+		vips_ispostfix( object_class->nickname, "_buffer" ) &&
 		vips_filename_suffix_match( suffix, class->suffs ) )
 		return( save_class );
 
@@ -1123,7 +1123,7 @@ vips_foreign_find_save_buffer( const char *suffix )
 
 	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
 		"VipsForeignSave",
-		(VipsSListMap2Fn) vips_foreign_find_save_sub, 
+		(VipsSListMap2Fn) vips_foreign_find_save_buffer_sub, 
 		(void *) suffix, NULL )) ) {
 		vips_error( "VipsForeignSave",
 			_( "\"%s\" is not a known file format" ), suffix );
@@ -1654,21 +1654,28 @@ vips_foreign_save_buffer( VipsImage *in,
 	... )
 {
 	const char *operation;
+	VipsArea *area;
 	va_list ap;
 	int result;
 
 	if( !(operation = vips_foreign_find_save_buffer( suffix )) )
 		return( -1 );
 
-	/* We don't take a copy of the data or free it.
-	 */
-	area = vips_area_new_blob( NULL, buf, len );
-
-	va_start( ap, filename );
-	result = vips_call_split( operation, ap, in, area );
+	va_start( ap, len );
+	result = vips_call_split( operation, ap, in, &area );
 	va_end( ap );
 
-	vips_area_unref( area );
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
 
 	return( result );
 }
@@ -2329,7 +2336,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 			*buf = area->data;
 			area->free_fn = NULL;
 		}
-		if( buf ) 
+		if( len ) 
 			*len = area->length;
 
 		vips_area_unref( area );
@@ -2490,7 +2497,7 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 			*buf = area->data;
 			area->free_fn = NULL;
 		}
-		if( buf ) 
+		if( len ) 
 			*len = area->length;
 
 		vips_area_unref( area );
@@ -2819,7 +2826,7 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 			*buf = area->data;
 			area->free_fn = NULL;
 		}
-		if( buf ) 
+		if( len ) 
 			*len = area->length;
 
 		vips_area_unref( area );
