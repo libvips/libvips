@@ -1686,7 +1686,7 @@ readtiff_new_filename( const char *filename, VipsImage *out, int page,
 	ReadTiff *rtiff;
 	int i;
 
-	if( !(rtiff = readtiff_new_filename( out, page, readbehind )) )
+	if( !(rtiff = readtiff_new( out, page, readbehind )) )
 		return( NULL );
 
 	rtiff->filename = vips_strdup( VIPS_OBJECT( out ), filename );
@@ -1728,18 +1728,14 @@ my_tiff_read( thandle_t st, tdata_t buffer, tsize_t size )
 static tsize_t 
 my_tiff_write( thandle_t st, tdata_t buffer, tsize_t size )
 {
-	ReadTiff *rtiff = (ReadTiff *) st;
-
 	g_assert( 0 ); 
 
 	return( 0 ); 
 }
 
 static int 
-my_tiff_close( thandle_t )
+my_tiff_close( thandle_t st )
 {
-	ReadTiff *rtiff = (ReadTiff *) st;
-
 	return 0;
 }
 
@@ -1769,20 +1765,16 @@ my_tiff_size( thandle_t st )
 }
 
 static int 
-my_tiff_map( thandle_t, tdata_t *, toff_t * )
+my_tiff_map( thandle_t st, tdata_t *start, toff_t *len )
 {
-	ReadTiff *rtiff = (ReadTiff *) st;
-
 	g_assert( 0 ); 
 
 	return 0;
 }
 
 static void 
-my_tiff_unmap( thandle_t, tdata_t, toff_t )
+my_tiff_unmap( thandle_t st, tdata_t start, toff_t len )
 {
-	ReadTiff *rtiff = (ReadTiff *) st;
-
 	g_assert( 0 ); 
 
 	return;
@@ -1801,7 +1793,7 @@ readtiff_new_buffer( void *buf, size_t len, VipsImage *out, int page,
 	rtiff->buf = buf;
 	rtiff->len = len;
 
-	if( !(rtiff->tiff = TIFFClientOpen( "Memory", "w",
+	if( !(rtiff->tiff = TIFFClientOpen( "memory buffer", "rm",
 		(thandle_t) rtiff,
 		my_tiff_read, my_tiff_write, my_tiff_seek, my_tiff_close, 
 		my_tiff_size, my_tiff_map, my_tiff_unmap )) ) { 
@@ -1819,35 +1811,6 @@ readtiff_new_buffer( void *buf, size_t len, VipsImage *out, int page,
 		}
 
 	return( rtiff );
-}
-
-/* Pull out the nth directory from a TIFF file.
- */
-static TIFF *
-get_directory( const char *filename, int page )
-{
-	TIFF *tif;
-	int i;
-
-	/* No mmap --- no performance advantage with libtiff, and it burns up
-	 * our VM if the tiff file is large.
-	 */
-	if( !(tif = TIFFOpen( filename, "rm" )) ) {
-		vips_error( "tiff2vips", 
-			_( "unable to open \"%s\" for input" ),
-			filename );
-		return( NULL );
-	}
-
-	for( i = 0; i < page; i++ ) 
-		if( !TIFFReadDirectory( tif ) ) {
-			/* Run out of directories.
-			 */
-			TIFFClose( tif );
-			return( NULL );
-		}
-
-	return( tif );
 }
 
 /* 
