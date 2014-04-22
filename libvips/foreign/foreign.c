@@ -505,7 +505,7 @@ vips_foreign_load_new_from_foreign_sub( VipsForeignLoadClass *load_class,
  *
  * Searches for an operation you could use to load @filename. 
  *
- * See also: vips_foreign_read().
+ * See also: vips_foreign_load().
  *
  * Returns: the name of an operation on success, %NULL on error
  */
@@ -526,6 +526,46 @@ vips_foreign_find_load( const char *filename )
 		(void *) filename, NULL )) ) {
 		vips_error( "VipsForeignLoad", 
 			_( "\"%s\" is not a known file format" ), filename );
+		return( NULL );
+	}
+
+	return( G_OBJECT_CLASS_NAME( load_class ) );
+}
+
+/* Can this VipsForeign open this buffer?
+ */
+static void *
+vips_foreign_find_load_buffer_sub( VipsForeignLoadClass *load_class, 
+	void **buf, size_t *len )
+{
+	if( load_class->is_a_buffer &&
+		load_class->is_a_buffer( *buf, *len ) ) 
+		return( load_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_foreign_find_load:
+ * @filename: file to find a loader for
+ *
+ * Searches for an operation you could use to load @filename. 
+ *
+ * See also: vips_foreign_load_buffer().
+ *
+ * Returns: the name of an operation on success, %NULL on error
+ */
+const char *
+vips_foreign_find_load_buffer( void *buf, size_t len )
+{
+	VipsForeignLoadClass *load_class;
+
+	if( !(load_class = (VipsForeignLoadClass *) vips_foreign_map( 
+		"VipsForeignLoad",
+		(VipsSListMap2Fn) vips_foreign_find_load_buffer_sub, 
+		&buf, &len )) ) {
+		vips_error( "VipsForeignLoad", 
+			"%s", _( "buffer is not in a known format" ) ); 
 		return( NULL );
 	}
 
@@ -1469,6 +1509,44 @@ vips_foreign_load( const char *filename, VipsImage **out, ... )
 	va_start( ap, out );
 	result = vips_call_split( operation, ap, filename, out );
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_foreign_load_buffer:
+ * @buf: start of memory buffer
+ * @len: length of memory buffer
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Loads @buf, @len into @out using the loader recommended by
+ * vips_foreign_find_load_buffer().
+ *
+ * See also: vips_foreign_save(), vips_foreign_load_options().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_foreign_load_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	const char *operation;
+	VipsArea *area;
+	va_list ap;
+	int result;
+
+	if( !(operation = vips_foreign_find_load_buffer( buf, len )) )
+		return( -1 );
+
+	/* We don't take a copy of the data or free it.
+	 */
+	area = vips_area_new_blob( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( operation, ap, area, out );
+	va_end( ap );
+
+	vips_area_unref( area );
 
 	return( result );
 }

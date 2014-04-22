@@ -1248,13 +1248,26 @@ vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out,
 }
 
 int
+vips__isjpeg_buffer( void *buf, size_t len )
+{
+	guchar *str = (guchar *) buf;
+
+	if( len >= 2 &&
+		str[0] == 0xff && 
+		str[1] == 0xd8 )
+		return( 1 );
+
+	return( 0 );
+}
+
+int
 vips__isjpeg( const char *filename )
 {
 	unsigned char buf[2];
 
-	if( vips__get_bytes( filename, buf, 2 ) )
-		if( (int) buf[0] == 0xff && (int) buf[1] == 0xd8 )
-			return( 1 );
+	if( vips__get_bytes( filename, buf, 2 ) &&
+		vips__isjpeg_buffer( buf, 2 ) )
+		return( 1 );
 
 	return( 0 );
 }

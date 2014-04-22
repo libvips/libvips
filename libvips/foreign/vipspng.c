@@ -562,12 +562,22 @@ vips__png_read( const char *filename, VipsImage *out, gboolean readbehind )
 }
 
 int
+vips__png_ispng_buffer( void *buf, size_t len )
+{
+	if( len >= 8 &&
+		!png_sig_cmp( buf, 0, 8 ) )
+		return( TRUE ); 
+
+	return( FALSE ); 
+}
+
+int
 vips__png_ispng( const char *filename )
 {
 	unsigned char buf[8];
 
 	return( vips__get_bytes( filename, buf, 8 ) &&
-		!png_sig_cmp( buf, 0, 8 ) );
+		vips__png_ispng_buffer( buf, 8 ) ); 
 }
 
 static void

@@ -198,6 +198,7 @@ vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
 	object_class->nickname = "pngload_buffer";
 	object_class->description = _( "load png from buffer" );
 
+	load_class->is_a_buffer = vips__png_ispng_buffer;
 	load_class->header = vips_foreign_load_png_buffer_header;
 	load_class->load = vips_foreign_load_png_buffer_load;
 

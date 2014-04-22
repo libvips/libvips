@@ -161,6 +161,13 @@ typedef struct _VipsForeignLoadClass {
 	 */
 	gboolean (*is_a)( const char * );
 
+	/* Is a buffer in this format. 
+	 *
+	 * This function should return %TRUE if the buffer contains an image of 
+	 * this type. 
+	 */
+	gboolean (*is_a_buffer)( void *, size_t );
+
 	/* Get the flags from a filename. 
 	 *
 	 * This function should examine the file and return a set
@@ -207,6 +214,7 @@ typedef struct _VipsForeignLoadClass {
 GType vips_foreign_load_get_type( void );
 
 const char *vips_foreign_find_load( const char *filename );
+const char *vips_foreign_find_load_buffer( void *buf, size_t len );
 const char *vips_foreign_find_load_options( const char *filename );
 
 VipsForeignFlags vips_foreign_flags( const char *loader, const char *filename );
@@ -305,6 +313,8 @@ const char *vips_foreign_find_save_options( const char *filename );
 /* Read/write an image convenience functions.
  */
 int vips_foreign_load( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_foreign_load_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_foreign_save( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
