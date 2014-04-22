@@ -21,6 +21,7 @@
 - vips_system() now supports many input images and you can change image
   argument order
 - support 16-bit palette TIFFs, plus palette TIFFs can have an alpha
+- add vips_tiffload_buffer()
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong
