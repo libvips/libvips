@@ -16,6 +16,8 @@
 
   read object.c and see how close we are to this model now
 
+- clean up foreign.c, there seems to be some cruft
+
 
 - use this for dzsave_buffer 
 
