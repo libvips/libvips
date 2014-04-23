@@ -2054,7 +2054,7 @@ vips_object_set_valist( VipsObject *object, va_list ap )
  * Input arguments are given in-line, output arguments are given as pointers
  * to where the output value should be written.
  *
- * See also: vips_object_set_valist().
+ * See also: vips_object_set_valist(), vips_object_set_from_string(). 
  *
  * Returns: 0 on success, -1 on error
  */
@@ -2072,7 +2072,7 @@ vips_object_set( VipsObject *object, ... )
 }
 
 /* Set object args from a string. @p should be the initial left bracket and
- * there should be no tokens after the matching right bracket.
+ * there should be no tokens after the matching right bracket. @p is modified. 
  */
 static int
 vips_object_set_args( VipsObject *object, const char *p )
@@ -2154,6 +2154,44 @@ vips_object_set_args( VipsObject *object, const char *p )
 	return( 0 );
 }
 
+/**
+ * vips_object_set_from_string:
+ * @object: object to set arguments on
+ * @string: arguments as a string
+ *
+ * Set object arguments from a string. The string can be something like
+ * "a=12", or "a = 12, b = 13", or "fred". The string can optionally be
+ * enclosed in brackets. 
+ *
+ * You'd typically use this between creating the object and building it. 
+ *
+ * See also: vips_object_set(), vips_object_build(),
+ * vips_cache_operation_buildp(). 
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_object_set_from_string( VipsObject *object, const char *string )
+{
+	const char *q;
+	VipsToken token;
+	char buffer[VIPS_PATH_MAX];
+	char str[VIPS_PATH_MAX];
+
+	vips_strncpy( buffer, string, VIPS_PATH_MAX );
+
+	/* Does string start with a bracket? If it doesn't, enclose the whole
+	 * thing in [].
+	 */
+	if( !(q = vips__token_get( buffer, &token, str, VIPS_PATH_MAX )) !!
+		token != VIPS_TOKEN_LEFT )
+		vips_snprintf( buffer, VIPS_PATH_MAX, "[%s]", string );
+	else
+		vips_strncpy( buffer, string, VIPS_PATH_MAX );
+
+	return( vips_object_set_args( object, buffer ) ); 
+}
+
 VipsObject *
 vips_object_new_from_string( VipsObjectClass *object_class, const char *p )
 {
@@ -2177,7 +2215,7 @@ vips_object_new_from_string( VipsObjectClass *object_class, const char *p )
 	/* More tokens there? Set any other args.
 	 */
 	if( q && 
-		vips_object_set_args( object, q ) ) {
+		vips_object_set_from_string( object, q ) ) {
 		g_object_unref( object );
 		return( NULL );
 	}

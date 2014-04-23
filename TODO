@@ -6,21 +6,18 @@
 
   - set options from suffix
 
-  no. 2 needs something like:
+  use vips__find_rightmost_brackets() and vips_object_set_from_string()
 
-  vips_object_set_options_from_string( object, "[a=12,b=13]" );
+- use vips_object_set_from_string() for vips_foreign_load_options() and
+  friends
 
-  perhaps with the outermost brackets optional?
-
-  maybe vips_object_set_from_string()?
-
-  read object.c and see how close we are to this model now
-
-- clean up foreign.c, there seems to be some cruft
 
 
 - use this for dzsave_buffer 
 
+
+
+- clean up foreign.c, there seems to be some cruft
 
 - vips_filename_suffix_match() is used by
   vips_foreign_load_new_from_foreign_sub(), but it splits on ':' ... argh!
