@@ -1640,8 +1640,9 @@ vips_foreign_save( VipsImage *in, const char *filename, ... )
  * @len: return buffer length here
  * @...: %NULL-terminated list of optional named arguments
  *
- * Saves @in to @filename using the saver recommended by
- * vips_foreign_find_save(). Options are not in @suffix but must be given
+ * Saves @in to a memory buffer selected from @suffix. @suffix may also set
+ * save options, for example it could be ".jpg[Q=80]". 
+ * Save options may also be given  
  * as a NULL-terminated list of name-value pairs.
  *
  * See also: vips_foreign_load_buffer().
@@ -1653,20 +1654,64 @@ vips_foreign_save_buffer( VipsImage *in,
 	const char *suffix, void **buf, size_t *len, 
 	... )
 {
-	const char *operation;
+	char str[VIPS_PATH_MAX];
+	char *p;
+	const char *operation_name;
+	VipsOperation *operation;
 	VipsArea *area;
 	va_list ap;
 	int result;
 
-	if( !(operation = vips_foreign_find_save_buffer( suffix )) )
+	/* Take any [options] off the suffix.
+	 */
+	vips_strncpy( str, suffix, VIPS_PATH_MAX );
+	if( (p = (char *) vips__find_rightmost_brackets( str )) )
+		*p = '\0';
+
+	if( !(operation_name = vips_foreign_find_save_buffer( str )) )
 		return( -1 );
 
+	if( !(operation = vips_operation_new( operation_name )) )
+		return( -1 );
+
+	g_object_set( operation, "in", in, NULL );
+
+	/* Now set any operation args from the options list.
+	 */
+	if( (p = (char *) vips__find_rightmost_brackets( suffix )) &&
+		vips_object_set_from_string( VIPS_OBJECT( operation ), p ) ) {
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+		g_object_unref( operation ); 
+		return( -1 ); 
+	}
+
+	/* Set any from varargs.
+	 */
 	va_start( ap, len );
-	result = vips_call_split( operation, ap, in, &area );
+	result = vips_object_set_valist( VIPS_OBJECT( operation ), ap );
 	va_end( ap );
 
-	if( !result &&
-		area ) { 
+	if( result ) {
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+		g_object_unref( operation ); 
+		return( -1 ); 
+	}
+
+	if( vips_cache_operation_buildp( &operation ) ) {
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+		g_object_unref( operation ); 
+		return( -1 );
+	}
+
+	g_object_get( operation, "buffer", &area, NULL );
+
+	/* Getting @buffer will have upped its count so it'll be safe.
+	 * We can junk all other outputs,
+	 */
+	vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+	g_object_unref( operation ); 
+
+	if( area ) { 
 		if( buf ) {
 			*buf = area->data;
 			area->free_fn = NULL;
@@ -1677,7 +1722,7 @@ vips_foreign_save_buffer( VipsImage *in,
 		vips_area_unref( area );
 	}
 
-	return( result );
+	return( 0 );
 }
 
 /**

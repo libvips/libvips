@@ -1,12 +1,3 @@
-- need to be able to set options for buffer save from the suffix
-
-  vips_foreign_save_buffer() needs
-
-  - split suffix for match against class->suffs
-
-  - set options from suffix
-
-  use vips__find_rightmost_brackets() and vips_object_set_from_string()
 
 - use vips_object_set_from_string() for vips_foreign_load_options() and
   friends
