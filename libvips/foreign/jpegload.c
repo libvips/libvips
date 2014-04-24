@@ -287,6 +287,12 @@ vips_foreign_load_jpeg_buffer_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
+static gboolean
+vips_foreign_load_jpeg_buffer_is_a( void *buf, size_t len )
+{
+	return( vips__isjpeg_buffer( buf, len ) );
+}
+
 static void
 vips_foreign_load_jpeg_buffer_class_init( 
 	VipsForeignLoadJpegBufferClass *class )
@@ -301,6 +307,7 @@ vips_foreign_load_jpeg_buffer_class_init(
 	object_class->nickname = "jpegload_buffer";
 	object_class->description = _( "load jpeg from buffer" );
 
+	load_class->is_a_buffer = vips_foreign_load_jpeg_buffer_is_a;
 	load_class->header = vips_foreign_load_jpeg_buffer_header;
 	load_class->load = vips_foreign_load_jpeg_buffer_load;
 

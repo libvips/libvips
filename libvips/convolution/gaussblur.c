@@ -73,7 +73,7 @@ vips_gaussblur_build( VipsObject *object )
 	/* Stop at 20% of max ... bit mean, but means mask radius is roughly
 	 * right.
 	 */
-	if( vips_gaussmat( &t[0], gaussblur->radius / 2, 0.2, 
+	if( vips_gaussmat( &t[0], gaussblur->radius / 2.0, 0.2, 
 		"separable", TRUE,
 		"integer", gaussblur->precision != VIPS_PRECISION_FLOAT,
 		NULL ) )
@@ -162,8 +162,8 @@ vips_gaussblur_init( VipsGaussblur *gaussblur )
  * This operator runs vips_gaussmat() and vips_convsep() for you on an image. 
  *
  * @radius is not used directly. Instead the standard deviation of
- * vips_gaussmat() is set to @radius / 2 and the minimum amplitude set to 20%.
- * This gives a mask radius of approximately @radius pixels.
+ * vips_gaussmat() is set to @radius / 2.0 and the minimum amplitude set to 
+ * 20%. This gives a mask radius of approximately @radius pixels.
  *
  * See also: vips_gaussmat(), vips_conv().
  * 

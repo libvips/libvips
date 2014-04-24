@@ -75,7 +75,9 @@ vips_foreign_save_vips_build( VipsObject *object )
 	return( 0 );
 }
 
-static const char *vips_suffs[] = { ".v", NULL };
+/* From vipsload.c.
+ */
+extern const char *vips__suffs[];
 
 static void
 vips_foreign_save_vips_class_init( VipsForeignSaveVipsClass *class )
@@ -94,7 +96,7 @@ vips_foreign_save_vips_class_init( VipsForeignSaveVipsClass *class )
 	object_class->description = _( "save image to vips file" );
 	object_class->build = vips_foreign_save_vips_build;
 
-	foreign_class->suffs = vips_suffs;
+	foreign_class->suffs = vips__suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	for( i = 0; i < VIPS_CODING_LAST; i++ )

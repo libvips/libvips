@@ -46,6 +46,7 @@ int vips__jpeg_write_buffer( VipsImage *in,
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean no_subsample );
 
+int vips__isjpeg_buffer( void *buf, size_t len );
 int vips__isjpeg( const char *filename );
 int vips__jpeg_read_file( const char *name, VipsImage *out, 
 	gboolean header_only, int shrink, gboolean fail, gboolean readbehind );

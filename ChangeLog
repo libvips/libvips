@@ -23,6 +23,10 @@
 - support 16-bit palette TIFFs, plus palette TIFFs can have an alpha
 - libgsf is now required 
 - dzsave can directly write a ZIP file 
+- add ".vips" as an alternative suffix for vips files
+- added vips_tiffload_buffer()
+- added vips_foreign_load_buffer(), vips_foreign_save_buffer()
+- added vips_object_set_from_string()
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

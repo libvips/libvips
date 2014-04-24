@@ -81,6 +81,7 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -88,6 +89,8 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 
 	object_class->nickname = "webpsave_base";
 	object_class->description = _( "save webp" );
+
+	foreign_class->suffs = vips__webp_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGBA;
 	save_class->format_table = bandfmt_webp;
@@ -151,7 +154,6 @@ vips_foreign_save_webp_file_class_init( VipsForeignSaveWebpFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -159,8 +161,6 @@ vips_foreign_save_webp_file_class_init( VipsForeignSaveWebpFileClass *class )
 	object_class->nickname = "webpsave";
 	object_class->description = _( "save image to webp file" );
 	object_class->build = vips_foreign_save_webp_file_build;
-
-	foreign_class->suffs = vips__webp_suffs;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),

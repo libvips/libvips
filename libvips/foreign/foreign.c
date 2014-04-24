@@ -87,10 +87,12 @@
  * the file name extension) with JPEG compression.
  *
  * |[
- * vips_foreign_save_options (my_image, "frank.tiff[compression=jpeg]");  
+ * vips_foreign_save_options (my_image, "frank.tiff[compression=jpeg]", NULL);  
  * ]|
  *
- * Is the same thing, but with the option in the filename.
+ * Is the same thing, but with the option in the filename. You can put
+ * name - value pairs after the filename as well: these will override any
+ * options set in the filename. 
  *
  * You can also invoke the operations directly, for example:
  *
@@ -108,9 +110,8 @@
  * transparently supported by vips_image_new_from_file() and friends.
  *
  * VIPS comes with VipsForeign for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
- * Matlab, Radiance, RAW, FITS and VIPS. It also 
- * includes import filters which can
- * load with libMagick and with OpenSlide. 
+ * Matlab, Radiance, RAW, FITS, WebP and VIPS. It also includes import filters 
+ * which can load with libMagick and with OpenSlide. 
  */
 
 /**
@@ -159,7 +160,7 @@
  * Add a new loader to VIPS by subclassing #VipsForeignLoad. Subclasses need to 
  * implement at least @header().
  *
- * As a complete example, here's the code for the PNG loader, minus the actual
+ * As a complete example, here's code for a PNG loader, minus the actual
  * calls to libpng.
  *
  * |[
@@ -505,7 +506,7 @@ vips_foreign_load_new_from_foreign_sub( VipsForeignLoadClass *load_class,
  *
  * Searches for an operation you could use to load @filename. 
  *
- * See also: vips_foreign_read().
+ * See also: vips_foreign_load().
  *
  * Returns: the name of an operation on success, %NULL on error
  */
@@ -526,6 +527,46 @@ vips_foreign_find_load( const char *filename )
 		(void *) filename, NULL )) ) {
 		vips_error( "VipsForeignLoad", 
 			_( "\"%s\" is not a known file format" ), filename );
+		return( NULL );
+	}
+
+	return( G_OBJECT_CLASS_NAME( load_class ) );
+}
+
+/* Can this VipsForeign open this buffer?
+ */
+static void *
+vips_foreign_find_load_buffer_sub( VipsForeignLoadClass *load_class, 
+	void **buf, size_t *len )
+{
+	if( load_class->is_a_buffer &&
+		load_class->is_a_buffer( *buf, *len ) ) 
+		return( load_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_foreign_find_load:
+ * @filename: file to find a loader for
+ *
+ * Searches for an operation you could use to load @filename. 
+ *
+ * See also: vips_foreign_load_buffer().
+ *
+ * Returns: the name of an operation on success, %NULL on error
+ */
+const char *
+vips_foreign_find_load_buffer( void *buf, size_t len )
+{
+	VipsForeignLoadClass *load_class;
+
+	if( !(load_class = (VipsForeignLoadClass *) vips_foreign_map( 
+		"VipsForeignLoad",
+		(VipsSListMap2Fn) vips_foreign_find_load_buffer_sub, 
+		&buf, &len )) ) {
+		vips_error( "VipsForeignLoad", 
+			"%s", _( "buffer is not in a known format" ) ); 
 		return( NULL );
 	}
 
@@ -1022,7 +1063,7 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
  * @filename may not contain embedded options. See
  * vips_foreign_find_save_options() if your filename may have options in.
  *
- * See also: vips_foreign_write().
+ * See also: vips_foreign_save().
  *
  * Returns: the name of an operation on success, %NULL on error
  */
@@ -1044,6 +1085,55 @@ vips_foreign_find_save( const char *filename )
 	return( G_OBJECT_CLASS_NAME( save_class ) );
 }
 
+/* Can we write this buffer with this file type?
+ */
+static void *
+vips_foreign_find_save_buffer_sub( VipsForeignSaveClass *save_class, 
+	const char *suffix )
+{
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
+	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
+
+	if( class->suffs &&
+		vips_ispostfix( object_class->nickname, "_buffer" ) &&
+		vips_filename_suffix_match( suffix, class->suffs ) )
+		return( save_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_foreign_find_save_buffer:
+ * @suffix: name to find a saver for
+ *
+ * Searches for an operation you could use to write to a buffer in @suffix
+ * format. 
+ *
+ * @filename may not contain embedded options. See
+ * vips_foreign_find_save_options() if your filename may have options in.
+ *
+ * See also: vips_foreign_save_buffer().
+ *
+ * Returns: the name of an operation on success, %NULL on error
+ */
+const char *
+vips_foreign_find_save_buffer( const char *suffix )
+{
+	VipsForeignSaveClass *save_class;
+
+	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
+		"VipsForeignSave",
+		(VipsSListMap2Fn) vips_foreign_find_save_buffer_sub, 
+		(void *) suffix, NULL )) ) {
+		vips_error( "VipsForeignSave",
+			_( "\"%s\" is not a known file format" ), suffix );
+
+		return( NULL );
+	}
+
+	return( G_OBJECT_CLASS_NAME( save_class ) );
+}
+
 /**
  * vips_foreign_find_save_options:
  * @filename: name to find a saver for
@@ -1051,7 +1141,7 @@ vips_foreign_find_save( const char *filename )
  * Searches for an operation you could use to write to @filename.
  *
  * @filename may contain embedded options. See
- * vips_foreign_find_save() if your filename does not options in.
+ * vips_foreign_find_save() if your filename does not have options in.
  *
  * See also: vips_foreign_write().
  *
@@ -1474,6 +1564,44 @@ vips_foreign_load( const char *filename, VipsImage **out, ... )
 }
 
 /**
+ * vips_foreign_load_buffer:
+ * @buf: start of memory buffer
+ * @len: length of memory buffer
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Loads @buf, @len into @out using the loader recommended by
+ * vips_foreign_find_load_buffer().
+ *
+ * See also: vips_foreign_save(), vips_foreign_load_options().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_foreign_load_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	const char *operation;
+	VipsArea *area;
+	va_list ap;
+	int result;
+
+	if( !(operation = vips_foreign_find_load_buffer( buf, len )) )
+		return( -1 );
+
+	/* We don't take a copy of the data or free it.
+	 */
+	area = vips_area_new_blob( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( operation, ap, area, out );
+	va_end( ap );
+
+	vips_area_unref( area );
+
+	return( result );
+}
+
+/**
  * vips_foreign_save:
  * @in: image to write
  * @filename: file to write to
@@ -1502,6 +1630,99 @@ vips_foreign_save( VipsImage *in, const char *filename, ... )
 	va_end( ap );
 
 	return( result );
+}
+
+/**
+ * vips_foreign_save_buffer:
+ * @in: image to write
+ * @suffix: format to write 
+ * @buf: return buffer start here
+ * @len: return buffer length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Saves @in to a memory buffer selected from @suffix. @suffix may also set
+ * save options, for example it could be ".jpg[Q=80]". 
+ * Save options may also be given  
+ * as a NULL-terminated list of name-value pairs.
+ *
+ * See also: vips_foreign_load_buffer().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_foreign_save_buffer( VipsImage *in, 
+	const char *suffix, void **buf, size_t *len, 
+	... )
+{
+	char str[VIPS_PATH_MAX];
+	char *p;
+	const char *operation_name;
+	VipsOperation *operation;
+	VipsArea *area;
+	va_list ap;
+	int result;
+
+	/* Take any [options] off the suffix.
+	 */
+	vips_strncpy( str, suffix, VIPS_PATH_MAX );
+	if( (p = (char *) vips__find_rightmost_brackets( str )) )
+		*p = '\0';
+
+	if( !(operation_name = vips_foreign_find_save_buffer( str )) )
+		return( -1 );
+
+	if( !(operation = vips_operation_new( operation_name )) )
+		return( -1 );
+
+	g_object_set( operation, "in", in, NULL );
+
+	/* Now set any operation args from the options list.
+	 */
+	if( (p = (char *) vips__find_rightmost_brackets( suffix )) &&
+		vips_object_set_from_string( VIPS_OBJECT( operation ), p ) ) {
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+		g_object_unref( operation ); 
+		return( -1 ); 
+	}
+
+	/* Set any from varargs.
+	 */
+	va_start( ap, len );
+	result = vips_object_set_valist( VIPS_OBJECT( operation ), ap );
+	va_end( ap );
+
+	if( result ) {
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+		g_object_unref( operation ); 
+		return( -1 ); 
+	}
+
+	if( vips_cache_operation_buildp( &operation ) ) {
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+		g_object_unref( operation ); 
+		return( -1 );
+	}
+
+	g_object_get( operation, "buffer", &area, NULL );
+
+	/* Getting @buffer will have upped its count so it'll be safe.
+	 * We can junk all other outputs,
+	 */
+	vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+	g_object_unref( operation ); 
+
+	if( area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
+
+	return( 0 );
 }
 
 /**
@@ -1651,7 +1872,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_buffer_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_mime_get_type( void ); 
-	extern GType vips_foreign_load_tiff_get_type( void ); 
+	extern GType vips_foreign_load_tiff_file_get_type( void ); 
+	extern GType vips_foreign_load_tiff_buffer_get_type( void ); 
 	extern GType vips_foreign_save_tiff_get_type( void ); 
 	extern GType vips_foreign_load_vips_get_type( void ); 
 	extern GType vips_foreign_save_vips_get_type( void ); 
@@ -1709,7 +1931,8 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_LIBWEBP*/
 
 #ifdef HAVE_TIFF
-	vips_foreign_load_tiff_get_type(); 
+	vips_foreign_load_tiff_file_get_type(); 
+	vips_foreign_load_tiff_buffer_get_type(); 
 	vips_foreign_save_tiff_get_type(); 
 #endif /*HAVE_TIFF*/
 
@@ -1808,6 +2031,44 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
 }
 
 /**
+ * vips_tiffload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @page: load this page
+ *
+ * Read a TIFF-formatted memory block into a VIPS image. Exactly as
+ * vips_tiffload(), but read from a memory source. 
+ *
+ * See also: vips_tiffload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	area = vips_area_new_blob( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "tiffload_buffer", ap, area, out );
+	va_end( ap );
+
+	vips_area_unref( area );
+
+	return( result );
+}
+
+/**
  * vips_tiffsave:
  * @in: image to save 
  * @filename: file to write to 
@@ -1900,46 +2161,6 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
 }
 
 /**
- * vips_jpegload_buffer:
- * @buf: memory area to load
- * @len: size of memory area
- * @out: image to write
- * @...: %NULL-terminated list of optional named arguments
- *
- * Read a JPEG-formatted memory block into a VIPS image. It can read most 
- * 8-bit JPEG images, including CMYK and YCbCr.
- *
- * This function is handy for processing JPEG image thumbnails.
- *
- * Caution: on return only the header will have been read, the pixel data is
- * not decompressed until the first pixel is read. Therefore you must not free
- * @buf until you have read pixel data from @out.
- *
- * See also: vips_jpegload().
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
-{
-	va_list ap;
-	VipsArea *area;
-	int result;
-
-	/* We don't take a copy of the data or free it.
-	 */
-	area = vips_area_new_blob( NULL, buf, len );
-
-	va_start( ap, out );
-	result = vips_call_split( "jpegload_buffer", ap, area, out );
-	va_end( ap );
-
-	vips_area_unref( area );
-
-	return( result );
-}
-
-/**
  * vips_jpegload:
  * @filename: file to load
  * @out: decompressed image
@@ -2004,6 +2225,45 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
 	va_start( ap, out );
 	result = vips_call_split( "jpegload", ap, filename, out );
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_jpegload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @shrink: shrink by this much on load
+ * @fail: fail on warnings
+ *
+ * Read a JPEG-formatted memory block into a VIPS image. Exactly as
+ * vips_jpegload(), but read from a memory buffer. 
+ *
+ * See also: vips_jpegload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	area = vips_area_new_blob( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "jpegload_buffer", ap, area, out );
+	va_end( ap );
+
+	vips_area_unref( area );
 
 	return( result );
 }
@@ -2121,7 +2381,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 			*buf = area->data;
 			area->free_fn = NULL;
 		}
-		if( buf ) 
+		if( len ) 
 			*len = area->length;
 
 		vips_area_unref( area );
@@ -2282,7 +2542,7 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 			*buf = area->data;
 			area->free_fn = NULL;
 		}
-		if( buf ) 
+		if( len ) 
 			*len = area->length;
 
 		vips_area_unref( area );
@@ -2611,7 +2871,7 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 			*buf = area->data;
 			area->free_fn = NULL;
 		}
-		if( buf ) 
+		if( len ) 
 			*len = area->length;
 
 		vips_area_unref( area );

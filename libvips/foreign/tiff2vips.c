@@ -144,6 +144,8 @@
  * 11/4/14
  * 	- support 16 bits per sample palette images
  * 	- palette images can have an alpha
+ * 22/4/14
+ * 	- add read from buffer
  */
 
 /*
@@ -208,6 +210,8 @@ typedef struct _ReadTiff {
 	/* Parameters.
 	 */
 	char *filename;
+	void *buf;
+	size_t len;
 	VipsImage *out;
 	int page;
 	gboolean readbehind; 
@@ -224,6 +228,10 @@ typedef struct _ReadTiff {
 	/* Set this is the processfn is just doing a memcpy.
 	 */
 	gboolean memcpy;
+
+	/* The current 'file pointer' for memory buffers.
+	 */
+	size_t pos;
 
 	/* Geometry.
 	 */
@@ -1635,15 +1643,16 @@ readtiff_destroy( VipsObject *object, ReadTiff *rtiff )
 }
 
 static ReadTiff *
-readtiff_new( const char *filename, VipsImage *out, int page, 
-	gboolean readbehind )
+readtiff_new( VipsImage *out, int page, gboolean readbehind )
 {
 	ReadTiff *rtiff;
 
 	if( !(rtiff = VIPS_NEW( out, ReadTiff )) )
 		return( NULL );
 
-	rtiff->filename = vips_strdup( VIPS_OBJECT( out ), filename );
+	rtiff->filename = NULL;
+	rtiff->buf = NULL;
+	rtiff->len = 0;
 	rtiff->out = out;
 	rtiff->page = page;
 	rtiff->readbehind = readbehind;
@@ -1651,6 +1660,7 @@ readtiff_new( const char *filename, VipsImage *out, int page,
 	rtiff->sfn = NULL;
 	rtiff->client = NULL;
 	rtiff->memcpy = FALSE;
+	rtiff->pos = 0;
 	rtiff->twidth = 0;
 	rtiff->theight = 0;
 	rtiff->separate = FALSE;
@@ -1669,33 +1679,138 @@ readtiff_new( const char *filename, VipsImage *out, int page,
 	return( rtiff );
 }
 
-/* Pull out the nth directory from a TIFF file.
- */
-static TIFF *
-get_directory( const char *filename, int page )
+static ReadTiff *
+readtiff_new_filename( const char *filename, VipsImage *out, int page, 
+	gboolean readbehind )
 {
-	TIFF *tif;
+	ReadTiff *rtiff;
 	int i;
+
+	if( !(rtiff = readtiff_new( out, page, readbehind )) )
+		return( NULL );
+
+	rtiff->filename = vips_strdup( VIPS_OBJECT( out ), filename );
 
 	/* No mmap --- no performance advantage with libtiff, and it burns up
 	 * our VM if the tiff file is large.
 	 */
-	if( !(tif = TIFFOpen( filename, "rm" )) ) {
-		vips_error( "tiff2vips", 
-			_( "unable to open \"%s\" for input" ),
+	if( !(rtiff->tiff = TIFFOpen( filename, "rm" )) ) {
+		vips_error( "tiff2vips", _( "unable to open \"%s\" for input" ),
 			filename );
 		return( NULL );
 	}
 
 	for( i = 0; i < page; i++ ) 
-		if( !TIFFReadDirectory( tif ) ) {
-			/* Run out of directories.
-			 */
-			TIFFClose( tif );
+		if( !TIFFReadDirectory( rtiff->tiff ) ) {
+			vips_error( "tiff2vips", 
+				_( "TIFF does not contain page %d" ), 
+				rtiff->page );
 			return( NULL );
 		}
 
-	return( tif );
+	return( rtiff );
+}
+
+static tsize_t 
+my_tiff_read( thandle_t st, tdata_t buffer, tsize_t size )
+{
+	ReadTiff *rtiff = (ReadTiff *) st;
+
+	size_t available = rtiff->len - rtiff->pos;
+	size_t copy = VIPS_MIN( size, available );
+
+	memcpy( buffer, rtiff->buf + rtiff->pos, copy );
+	rtiff->pos += copy;
+
+	return( copy ); 
+}
+
+static tsize_t 
+my_tiff_write( thandle_t st, tdata_t buffer, tsize_t size )
+{
+	g_assert( 0 ); 
+
+	return( 0 ); 
+}
+
+static int 
+my_tiff_close( thandle_t st )
+{
+	return 0;
+}
+
+static toff_t 
+my_tiff_seek( thandle_t st, toff_t pos, int whence )
+{
+	ReadTiff *rtiff = (ReadTiff *) st;
+
+	if( whence == SEEK_SET )
+		rtiff->pos = pos;
+	else if( whence == SEEK_CUR )
+		rtiff->pos += pos;
+	else if( whence == SEEK_END )
+		rtiff->pos = rtiff->len + pos;
+	else
+		g_assert( 0 ); 
+
+	return( rtiff->pos ); 
+}
+
+static toff_t 
+my_tiff_size( thandle_t st )
+{
+	ReadTiff *rtiff = (ReadTiff *) st;
+
+	return( rtiff->len ); 
+}
+
+static int 
+my_tiff_map( thandle_t st, tdata_t *start, toff_t *len )
+{
+	g_assert( 0 ); 
+
+	return 0;
+}
+
+static void 
+my_tiff_unmap( thandle_t st, tdata_t start, toff_t len )
+{
+	g_assert( 0 ); 
+
+	return;
+}
+
+static ReadTiff *
+readtiff_new_buffer( void *buf, size_t len, VipsImage *out, int page, 
+	gboolean readbehind )
+{
+	ReadTiff *rtiff;
+	int i;
+
+	if( !(rtiff = readtiff_new( out, page, readbehind )) )
+		return( NULL );
+
+	rtiff->buf = buf;
+	rtiff->len = len;
+
+	if( !(rtiff->tiff = TIFFClientOpen( "memory buffer", "rm",
+		(thandle_t) rtiff,
+		my_tiff_read, my_tiff_write, my_tiff_seek, my_tiff_close, 
+		my_tiff_size, my_tiff_map, my_tiff_unmap )) ) { 
+		vips_error( "tiff2vips", "%s", 
+			_( "unable to open memory buffer for input" ) );
+		return( NULL );
+	}
+
+	for( i = 0; i < page; i++ ) 
+		if( !TIFFReadDirectory( rtiff->tiff ) ) {
+			vips_error( "tiff2vips", 
+				_( "TIFF does not contain page %d" ), 
+				rtiff->page );
+			return( NULL );
+		}
+
+	return( rtiff );
 }
 
 /* 
@@ -1732,14 +1847,9 @@ vips__tiff_read( const char *filename, VipsImage *out, int page,
 
 	vips__tiff_init();
 
-	if( !(rtiff = readtiff_new( filename, out, page, readbehind )) )
+	if( !(rtiff = readtiff_new_filename( filename, 
+		out, page, readbehind )) )
 		return( -1 );
-
-	if( !(rtiff->tiff = get_directory( rtiff->filename, rtiff->page )) ) {
-		vips_error( "tiff2vips", _( "TIFF file does not "
-			"contain page %d" ), rtiff->page );
-		return( -1 );
-	}
 
 	if( TIFFIsTiled( rtiff->tiff ) ) {
 		if( read_tilewise( rtiff, out ) )
@@ -1760,15 +1870,8 @@ vips__tiff_read_header( const char *filename, VipsImage *out, int page )
 
 	vips__tiff_init();
 
-	if( !(rtiff = readtiff_new( filename, out, page, FALSE )) )
+	if( !(rtiff = readtiff_new_filename( filename, out, page, FALSE )) )
 		return( -1 );
-
-	if( !(rtiff->tiff = get_directory( rtiff->filename, rtiff->page )) ) {
-		vips_error( "tiff2vips", 
-			_( "TIFF file does not contain page %d" ), 
-			rtiff->page );
-		return( -1 );
-	}
 
 	if( parse_header( rtiff, out ) )
 		return( -1 );
@@ -1795,16 +1898,72 @@ vips__istifftiled( const char *filename )
 }
 
 gboolean
+vips__istiff_buffer( void *buf, size_t len )
+{
+	char *str = (char *) buf; 
+
+	if( len >= 2 &&
+		((str[0] == 'M' && str[1] == 'M') ||
+		 (str[0] == 'I' && str[1] == 'I')) ) 
+		return( TRUE );
+
+	return( FALSE );
+}
+
+gboolean
 vips__istiff( const char *filename )
 {
 	unsigned char buf[2];
 
-	if( vips__get_bytes( filename, buf, 2 ) )
-		if( (buf[0] == 'M' && buf[1] == 'M') ||
-			(buf[0] == 'I' && buf[1] == 'I') ) 
-			return( TRUE );
+	if( vips__get_bytes( filename, buf, 2 ) &&
+		vips__istiff_buffer( buf, 2 ) )
+		return( TRUE );
 
 	return( FALSE );
+}
+
+int
+vips__tiff_read_header_buffer( void *buf, size_t len, VipsImage *out, int page )
+{
+	ReadTiff *rtiff;
+
+	vips__tiff_init();
+
+	if( !(rtiff = readtiff_new_buffer( buf, len, out, page, FALSE )) )
+		return( -1 );
+
+	if( parse_header( rtiff, out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+int
+vips__tiff_read_buffer( void *buf, size_t len, VipsImage *out, 
+	int page, gboolean readbehind )
+{
+	ReadTiff *rtiff;
+
+#ifdef DEBUG
+	printf( "tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
+	printf( "tiff2vips: libtiff starting for %s\n", filename );
+#endif /*DEBUG*/
+
+	vips__tiff_init();
+
+	if( !(rtiff = readtiff_new_buffer( buf, len, out, page, readbehind )) )
+		return( -1 );
+
+	if( TIFFIsTiled( rtiff->tiff ) ) {
+		if( read_tilewise( rtiff, out ) )
+			return( -1 );
+	}
+	else {
+		if( read_stripwise( rtiff, out ) )
+			return( -1 );
+	}
+
+	return( 0 );
 }
 
 #endif /*HAVE_TIFF*/

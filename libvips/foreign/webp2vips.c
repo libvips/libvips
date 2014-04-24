@@ -88,12 +88,22 @@ typedef struct {
 } Read;
 
 int
+vips__iswebp_buffer( void *buf, size_t len )
+{
+	if( len >= MINIMAL_HEADER &&
+		WebPGetInfo( buf, MINIMAL_HEADER, NULL, NULL ) )
+		return( 1 );
+
+	return( 0 );
+}
+
+int
 vips__iswebp( const char *filename )
 {
 	unsigned char header[MINIMAL_HEADER];
 
 	if( vips__get_bytes( filename, header, MINIMAL_HEADER ) &&
-		WebPGetInfo( header, MINIMAL_HEADER, NULL, NULL ) )
+		vips__iswebp_buffer( header, MINIMAL_HEADER ) )
 		return( 1 );
 
 	return( 0 );

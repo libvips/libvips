@@ -587,6 +587,7 @@ VipsObject *vips_object_new( GType type,
 int vips_object_set_valist( VipsObject *object, va_list ap );
 int vips_object_set( VipsObject *object, ... )
 	__attribute__((sentinel));
+int vips_object_set_from_string( VipsObject *object, const char *string );
 
 VipsObject *vips_object_new_from_string( VipsObjectClass *object_class, 
 	const char *p );

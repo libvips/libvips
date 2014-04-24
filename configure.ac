@@ -9,7 +9,8 @@ AC_PREREQ(2.62)
 # gobject-introspection recommends -Wno-portability
 # foreign stops complaints about a missing README (we use README.md instead)
 # and missing INSTALL (the standard Gnu INSTALL is not very useful)
-AM_INIT_AUTOMAKE([-Wno-portability foreign])
+# subdir-objects lets us have dumy.cc in a subdir
+AM_INIT_AUTOMAKE([-Wno-portability foreign subdir-objects])
 
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR([m4])
