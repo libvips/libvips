@@ -1021,7 +1021,7 @@ strip_work( VipsThreadState *state, void *a )
 	printf( "strip_work: writing to %s\n", buf );
 #endif /*DEBUG_VERBOSE*/
 
-	if( vips_jpegsave_buffer( x, &buf, &len, NULL ) ) {
+	if( vips_foreign_save_buffer( x, dz->suffix, &buf, &len, NULL ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -1041,14 +1041,6 @@ strip_work( VipsThreadState *state, void *a )
 	g_mutex_unlock( vips__global_lock );
 
 	g_free( buf );
-
-	/*
-	if( vips_image_write_to_file( x, buf ) ) {
-		g_object_unref( x );
-		return( -1 );
-	}
-	g_object_unref( x );
-	 */
 
 #ifdef DEBUG_VERBOSE
 	printf( "strip_work: success\n" );
