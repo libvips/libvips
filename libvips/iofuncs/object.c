@@ -2183,7 +2183,7 @@ vips_object_set_from_string( VipsObject *object, const char *string )
 	/* Does string start with a bracket? If it doesn't, enclose the whole
 	 * thing in [].
 	 */
-	if( !(q = vips__token_get( buffer, &token, str, VIPS_PATH_MAX )) !!
+	if( !(q = vips__token_get( buffer, &token, str, VIPS_PATH_MAX )) ||
 		token != VIPS_TOKEN_LEFT )
 		vips_snprintf( buffer, VIPS_PATH_MAX, "[%s]", string );
 	else
