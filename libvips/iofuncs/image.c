@@ -670,7 +670,7 @@ vips_image_rewind( VipsObject *object )
 static void
 vips_image_save_cb( VipsImage *image, int *result )
 {
-	if( vips_foreign_save_options( image, image->filename, NULL ) )
+	if( vips_foreign_save( image, image->filename, NULL ) )
 		*result = -1;
 }
 
@@ -825,14 +825,13 @@ vips_image_build( VipsObject *object )
 			VipsImage *t;
 
 			if( mode[1] == 's' ) {
-				if( vips_foreign_load_options( filename, &t, 
+				if( vips_foreign_load( filename, &t, 
 					"access", VIPS_ACCESS_SEQUENTIAL,
 					NULL ) )
 					return( -1 );
 			}
 			else {
-				if( vips_foreign_load_options( filename, &t, 
-					NULL ) )
+				if( vips_foreign_load( filename, &t, NULL ) )
 					return( -1 );
 			}
 
@@ -855,7 +854,7 @@ vips_image_build( VipsObject *object )
 		 */
 		g_assert( g_type_from_name( "VipsForeignSaveVips" ) );
 
-		if( !(file_op = vips_foreign_find_save_options( filename )) )
+		if( !(file_op = vips_foreign_find_save( filename )) )
 			return( -1 );
 
 		/* If this is the vips saver, just save directly ourselves.

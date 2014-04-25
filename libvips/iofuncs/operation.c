@@ -647,6 +647,50 @@ vips_call_required_optional( VipsOperation **operation,
 	return( result );
 }
 
+static int
+vips_call_by_name( const char *operation_name, 
+	const char *option_string, va_list required, va_list optional )
+{
+	VipsOperation *operation;
+	int result;
+
+	VIPS_DEBUG_MSG( "vips_call_by_name: starting for %s ...\n", 
+		operation_name );
+
+	if( !(operation = vips_operation_new( operation_name )) )
+		return( -1 );
+
+	/* Set str options before vargs options, so the user can't override
+	 * thnigs we set deliberately.
+	 */
+	if( option_string &&
+		vips_object_set_from_string( VIPS_OBJECT( operation ), 
+			option_string ) ) {
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+		g_object_unref( operation ); 
+
+		return( -1 ); 
+	}
+
+	result = vips_call_required_optional( &operation, required, optional );
+
+	/* Build failed: junk args and back out.
+	 */
+	if( result ) {
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+		g_object_unref( operation );
+
+		return( -1 );
+	}
+
+	/* The operation we have built should now have been reffed by one of 
+	 * its arguments or have finished its work. Either way, we can unref.
+	 */
+	g_object_unref( operation );
+
+	return( result );
+}
+
 int
 vips_call( const char *operation_name, ... )
 {
@@ -655,15 +699,8 @@ vips_call( const char *operation_name, ... )
 	va_list required;
 	va_list optional;
 
-	VIPS_DEBUG_MSG( "vips_call: starting for %s ...\n", operation_name );
-
 	if( !(operation = vips_operation_new( operation_name ) ) )
 		return( -1 );
-
-#ifdef VIPS_DEBUG
-	VIPS_DEBUG_MSG( "where:\n" );
-	vips_object_print_dump( VIPS_OBJECT( operation ) );
-#endif /*VIPS_DEBUG*/
 
 	/* We have to break the va_list into separate required and optional 
 	 * components.
@@ -690,24 +727,14 @@ vips_call( const char *operation_name, ... )
 		}
 	} VIPS_ARGUMENT_FOR_ALL_END
 
-	result = vips_call_required_optional( &operation, required, optional );
+	/* We just needed this operation for the arg loop.
+	 */
+	g_object_unref( operation ); 
+
+	result = vips_call_by_name( operation_name, NULL, required, optional ); 
 
 	va_end( required );
 	va_end( optional );
-
-	/* Failed: junk args and back out.
-	 */
-	if( result ) {
-		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
-		g_object_unref( operation );
-
-		return( -1 );
-	}
-
-	/* The operation we have built should now have been reffed by one of 
-	 * its arguments or have finished its work. Either way, we can unref.
-	 */
-	g_object_unref( operation );
 
 	return( result );
 }
@@ -715,33 +742,28 @@ vips_call( const char *operation_name, ... )
 int
 vips_call_split( const char *operation_name, va_list optional, ... ) 
 {
-	VipsOperation *operation;
 	int result;
 	va_list required;
 
-	VIPS_DEBUG_MSG( "vips_call_split: starting for %s ...\n", 
-		operation_name );
-
-	if( !(operation = vips_operation_new( operation_name )) )
-		return( -1 );
-
 	va_start( required, optional );
-	result = vips_call_required_optional( &operation, required, optional );
+	result = vips_call_by_name( operation_name, NULL, 
+		required, optional );
 	va_end( required );
 
-	/* Build failed: junk args and back out.
-	 */
-	if( result ) {
-		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
-		g_object_unref( operation );
+	return( result );
+}
 
-		return( -1 );
-	}
+int
+vips_call_split_option_string( const char *operation_name, 
+	const char *option_string, va_list optional, ... ) 
+{
+	int result;
+	va_list required;
 
-	/* The operation we have built should now have been reffed by one of 
-	 * its arguments or have finished its work. Either way, we can unref.
-	 */
-	g_object_unref( operation );
+	va_start( required, optional );
+	result = vips_call_by_name( operation_name, option_string, 
+		required, optional );
+	va_end( required );
 
 	return( result );
 }

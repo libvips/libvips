@@ -466,6 +466,8 @@ vips_foreign_load_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 	if( !G_TYPE_IS_ABSTRACT( G_TYPE_FROM_CLASS( class ) ) ) {
 		if( class->is_a )
 			vips_buf_appends( buf, ", is_a" );
+		if( class->is_a_buffer )
+			vips_buf_appends( buf, ", is_a_buffer" );
 		if( class->get_flags )
 			vips_buf_appends( buf, ", get_flags" );
 		if( class->get_flags_filename )
@@ -484,7 +486,7 @@ vips_foreign_load_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 /* Can this VipsForeign open this file?
  */
 static void *
-vips_foreign_load_new_from_foreign_sub( VipsForeignLoadClass *load_class, 
+vips_foreign_find_load_sub( VipsForeignLoadClass *load_class, 
 	const char *filename )
 {
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( load_class );
@@ -504,7 +506,8 @@ vips_foreign_load_new_from_foreign_sub( VipsForeignLoadClass *load_class,
  * vips_foreign_find_load:
  * @filename: file to find a loader for
  *
- * Searches for an operation you could use to load @filename. 
+ * Searches for an operation you could use to load @filename. Any trailing
+ * options on @filename are stripped and ignored. 
  *
  * See also: vips_foreign_load().
  *
@@ -513,9 +516,17 @@ vips_foreign_load_new_from_foreign_sub( VipsForeignLoadClass *load_class,
 const char *
 vips_foreign_find_load( const char *filename )
 {
+	char str[VIPS_PATH_MAX];
+	char *p;
 	VipsForeignLoadClass *load_class;
 
-	if( !vips_existsf( "%s", filename ) ) {
+	/* Take any [options] off the filename.
+	 */
+	vips_strncpy( str, filename, VIPS_PATH_MAX );
+	if( (p = (char *) vips__find_rightmost_brackets( str )) )
+		*p = '\0';
+
+	if( !vips_existsf( "%s", str ) ) {
 		vips_error( "VipsForeignLoad", 
 			_( "file \"%s\" not found" ), filename );
 		return( NULL );
@@ -523,14 +534,44 @@ vips_foreign_find_load( const char *filename )
 
 	if( !(load_class = (VipsForeignLoadClass *) vips_foreign_map( 
 		"VipsForeignLoad",
-		(VipsSListMap2Fn) vips_foreign_load_new_from_foreign_sub, 
-		(void *) filename, NULL )) ) {
+		(VipsSListMap2Fn) vips_foreign_find_load_sub, 
+		(void *) str, NULL )) ) {
 		vips_error( "VipsForeignLoad", 
 			_( "\"%s\" is not a known file format" ), filename );
 		return( NULL );
 	}
 
 	return( G_OBJECT_CLASS_NAME( load_class ) );
+}
+
+/**
+ * vips_foreign_load:
+ * @filename: file to load
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Loads @filename into @out using the loader recommended by
+ * vips_foreign_find_load().
+ *
+ * See also: vips_foreign_save(), vips_foreign_load_options().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_foreign_load( const char *filename, VipsImage **out, ... )
+{
+	const char *operation_name;
+	va_list ap;
+	int result;
+
+	if( !(operation_name = vips_foreign_find_load( filename )) )
+		return( -1 );
+
+	va_start( ap, out );
+	result = vips_call_split( operation_name, ap, filename, out );
+	va_end( ap );
+
+	return( result );
 }
 
 /* Can this VipsForeign open this buffer?
@@ -547,10 +588,11 @@ vips_foreign_find_load_buffer_sub( VipsForeignLoadClass *load_class,
 }
 
 /**
- * vips_foreign_find_load:
- * @filename: file to find a loader for
+ * vips_foreign_find_load_buffer:
+ * @buf: start of memory buffer
+ * @len: length of memory buffer
  *
- * Searches for an operation you could use to load @filename. 
+ * Searches for an operation you could use to load a memory buffer.
  *
  * See also: vips_foreign_load_buffer().
  *
@@ -574,37 +616,45 @@ vips_foreign_find_load_buffer( void *buf, size_t len )
 }
 
 /**
- * vips_foreign_find_load_options:
- * @filename: file to find a loader for
+ * vips_foreign_load_buffer:
+ * @buf: start of memory buffer
+ * @len: length of memory buffer
+ * @option_string: set of extra options as a string
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
- * Searches for an operation you could use to load @filename. 
+ * Loads @buf, @len into @out using the loader recommended by
+ * vips_foreign_find_load_buffer(). @option_string can be used to give an
+ * extra set of load options. 
  *
- * Arguments to the loader may be embedded in the filename using the usual
- * syntax.
- *
- * See also: vips_foreign_load().
+ * See also: vips_foreign_save(), vips_foreign_load_options().
  *
  * Returns: 0 on success, -1 on error
  */
-const char *
-vips_foreign_find_load_options( const char *filename )
+int
+vips_foreign_load_buffer( void *buf, size_t len, const char *option_string, 
+	VipsImage **out, ... )
 {
-	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_LOAD );
-	VipsObject *object;
-	const char *type_name;
+	const char *operation_name;
+	VipsArea *area;
+	va_list ap;
+	int result;
 
-	/* This will use vips_foreign_load_new_from_string() to pick a loader,
-	 * then set options from the tail of the filename. This is rather slow
-	 * :-( 
+	if( !(operation_name = vips_foreign_find_load_buffer( buf, len )) )
+		return( -1 );
+
+	/* We don't take a copy of the data or free it.
 	 */
-	if( !(object = vips_object_new_from_string( oclass, filename )) )
-		return( NULL );
+	area = vips_area_new_blob( NULL, buf, len );
 
-	type_name = G_OBJECT_TYPE_NAME( object );
+	va_start( ap, out );
+	result = vips_call_split_option_string( operation_name, 
+		option_string, ap, area, out );
+	va_end( ap );
 
-	g_object_unref( object );
+	vips_area_unref( area );
 
-	return( type_name );
+	return( result );
 }
 
 /**
@@ -1039,135 +1089,6 @@ vips_foreign_save_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 		vips_enum_nick( VIPS_TYPE_SAVEABLE, class->saveable ) );
 }
 
-/* Can we write this filename with this file? 
- */
-static void *
-vips_foreign_find_save_sub( VipsForeignSaveClass *save_class, 
-	const char *filename )
-{
-	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
-
-	if( class->suffs &&
-		vips_filename_suffix_match( filename, class->suffs ) )
-		return( save_class );
-
-	return( NULL );
-}
-
-/**
- * vips_foreign_find_save:
- * @filename: name to find a saver for
- *
- * Searches for an operation you could use to write to @filename.
- *
- * @filename may not contain embedded options. See
- * vips_foreign_find_save_options() if your filename may have options in.
- *
- * See also: vips_foreign_save().
- *
- * Returns: the name of an operation on success, %NULL on error
- */
-const char *
-vips_foreign_find_save( const char *filename )
-{
-	VipsForeignSaveClass *save_class;
-
-	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
-		"VipsForeignSave",
-		(VipsSListMap2Fn) vips_foreign_find_save_sub, 
-		(void *) filename, NULL )) ) {
-		vips_error( "VipsForeignSave",
-			_( "\"%s\" is not a known file format" ), filename );
-
-		return( NULL );
-	}
-
-	return( G_OBJECT_CLASS_NAME( save_class ) );
-}
-
-/* Can we write this buffer with this file type?
- */
-static void *
-vips_foreign_find_save_buffer_sub( VipsForeignSaveClass *save_class, 
-	const char *suffix )
-{
-	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
-	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
-
-	if( class->suffs &&
-		vips_ispostfix( object_class->nickname, "_buffer" ) &&
-		vips_filename_suffix_match( suffix, class->suffs ) )
-		return( save_class );
-
-	return( NULL );
-}
-
-/**
- * vips_foreign_find_save_buffer:
- * @suffix: name to find a saver for
- *
- * Searches for an operation you could use to write to a buffer in @suffix
- * format. 
- *
- * @filename may not contain embedded options. See
- * vips_foreign_find_save_options() if your filename may have options in.
- *
- * See also: vips_foreign_save_buffer().
- *
- * Returns: the name of an operation on success, %NULL on error
- */
-const char *
-vips_foreign_find_save_buffer( const char *suffix )
-{
-	VipsForeignSaveClass *save_class;
-
-	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
-		"VipsForeignSave",
-		(VipsSListMap2Fn) vips_foreign_find_save_buffer_sub, 
-		(void *) suffix, NULL )) ) {
-		vips_error( "VipsForeignSave",
-			_( "\"%s\" is not a known file format" ), suffix );
-
-		return( NULL );
-	}
-
-	return( G_OBJECT_CLASS_NAME( save_class ) );
-}
-
-/**
- * vips_foreign_find_save_options:
- * @filename: name to find a saver for
- *
- * Searches for an operation you could use to write to @filename.
- *
- * @filename may contain embedded options. See
- * vips_foreign_find_save() if your filename does not have options in.
- *
- * See also: vips_foreign_write().
- *
- * Returns: 0 on success, -1 on error
- */
-const char *
-vips_foreign_find_save_options( const char *filename )
-{
-	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_SAVE );
-	VipsObject *object;
-	const char *type_name;
-
-	/* This will use vips_foreign_save_new_from_string() to pick a saver,
-	 * then set options from the tail of the filename. This is rather slow
-	 * :-( 
-	 */
-	if( !(object = vips_object_new_from_string( oclass, filename )) )
-		return( NULL );
-
-	type_name = G_OBJECT_TYPE_NAME( object );
-
-	g_object_unref( object );
-
-	return( type_name );
-}
-
 static VipsObject *
 vips_foreign_save_new_from_string( const char *string )
 {
@@ -1533,72 +1454,56 @@ vips_foreign_save_init( VipsForeignSave *object )
 {
 }
 
-/**
- * vips_foreign_load:
- * @filename: file to load
- * @out: output image
- * @...: %NULL-terminated list of optional named arguments
- *
- * Loads @filename into @out using the loader recommended by
- * vips_foreign_find_load().
- *
- * See also: vips_foreign_save(), vips_foreign_load_options().
- *
- * Returns: 0 on success, -1 on error
+/* Can we write this filename with this file? 
  */
-int
-vips_foreign_load( const char *filename, VipsImage **out, ... )
+static void *
+vips_foreign_find_save_sub( VipsForeignSaveClass *save_class, 
+	const char *filename )
 {
-	const char *operation;
-	va_list ap;
-	int result;
+	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
 
-	if( !(operation = vips_foreign_find_load( filename )) )
-		return( -1 );
+	if( class->suffs &&
+		vips_filename_suffix_match( filename, class->suffs ) )
+		return( save_class );
 
-	va_start( ap, out );
-	result = vips_call_split( operation, ap, filename, out );
-	va_end( ap );
-
-	return( result );
+	return( NULL );
 }
 
 /**
- * vips_foreign_load_buffer:
- * @buf: start of memory buffer
- * @len: length of memory buffer
- * @out: output image
- * @...: %NULL-terminated list of optional named arguments
+ * vips_foreign_find_save:
+ * @filename: name to find a saver for
  *
- * Loads @buf, @len into @out using the loader recommended by
- * vips_foreign_find_load_buffer().
+ * Searches for an operation you could use to write to @filename.
+ * Any trailing options on @filename are stripped and ignored. 
  *
- * See also: vips_foreign_save(), vips_foreign_load_options().
+ * See also: vips_foreign_save().
  *
- * Returns: 0 on success, -1 on error
+ * Returns: the name of an operation on success, %NULL on error
  */
-int
-vips_foreign_load_buffer( void *buf, size_t len, VipsImage **out, ... )
+const char *
+vips_foreign_find_save( const char *filename )
 {
-	const char *operation;
-	VipsArea *area;
-	va_list ap;
-	int result;
+	char str[VIPS_PATH_MAX];
+	char *p;
+	VipsForeignSaveClass *save_class;
 
-	if( !(operation = vips_foreign_find_load_buffer( buf, len )) )
-		return( -1 );
-
-	/* We don't take a copy of the data or free it.
+	/* Take any [options] off the filename.
 	 */
-	area = vips_area_new_blob( NULL, buf, len );
+	vips_strncpy( str, filename, VIPS_PATH_MAX );
+	if( (p = (char *) vips__find_rightmost_brackets( str )) )
+		*p = '\0';
 
-	va_start( ap, out );
-	result = vips_call_split( operation, ap, area, out );
-	va_end( ap );
+	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
+		"VipsForeignSave",
+		(VipsSListMap2Fn) vips_foreign_find_save_sub, 
+		(void *) str, NULL )) ) {
+		vips_error( "VipsForeignSave",
+			_( "\"%s\" is not a known file format" ), filename );
 
-	vips_area_unref( area );
+		return( NULL );
+	}
 
-	return( result );
+	return( G_OBJECT_CLASS_NAME( save_class ) );
 }
 
 /**
@@ -1618,18 +1523,72 @@ vips_foreign_load_buffer( void *buf, size_t len, VipsImage **out, ... )
 int
 vips_foreign_save( VipsImage *in, const char *filename, ... )
 {
-	const char *operation;
+	const char *operation_name;
 	va_list ap;
 	int result;
 
-	if( !(operation = vips_foreign_find_save( filename )) )
+	if( !(operation_name = vips_foreign_find_save( filename )) )
 		return( -1 );
 
 	va_start( ap, filename );
-	result = vips_call_split( operation, ap, in, filename );
+	result = vips_call_split( operation_name, ap, in, filename );
 	va_end( ap );
 
 	return( result );
+}
+
+/* Can we write this buffer with this file type?
+ */
+static void *
+vips_foreign_find_save_buffer_sub( VipsForeignSaveClass *save_class, 
+	const char *suffix )
+{
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
+	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
+
+	if( class->suffs &&
+		vips_ispostfix( object_class->nickname, "_buffer" ) &&
+		vips_filename_suffix_match( suffix, class->suffs ) )
+		return( save_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_foreign_find_save_buffer:
+ * @suffix: name to find a saver for
+ *
+ * Searches for an operation you could use to write to a buffer in @suffix
+ * format. 
+ *
+ * See also: vips_foreign_save_buffer().
+ *
+ * Returns: the name of an operation on success, %NULL on error
+ */
+const char *
+vips_foreign_find_save_buffer( const char *suffix )
+{
+	char str[VIPS_PATH_MAX];
+	char *p;
+	VipsForeignSaveClass *save_class;
+
+	/* Take any [options] off the suffix.
+	 */
+	vips_strncpy( str, suffix, VIPS_PATH_MAX );
+	if( (p = (char *) vips__find_rightmost_brackets( str )) )
+		*p = '\0';
+
+	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
+		"VipsForeignSave",
+		(VipsSListMap2Fn) vips_foreign_find_save_buffer_sub, 
+		(void *) str, NULL )) ) {
+		vips_error( "VipsForeignSave",
+			_( "\"%s\" is not a known file format" ), suffix );
+
+		return( NULL );
+	}
+
+	return( G_OBJECT_CLASS_NAME( save_class ) );
 }
 
 /**
@@ -1654,62 +1613,23 @@ vips_foreign_save_buffer( VipsImage *in,
 	const char *suffix, void **buf, size_t *len, 
 	... )
 {
-	char str[VIPS_PATH_MAX];
-	char *p;
+	const char *options;
 	const char *operation_name;
-	VipsOperation *operation;
 	VipsArea *area;
 	va_list ap;
 	int result;
 
-	/* Take any [options] off the suffix.
-	 */
-	vips_strncpy( str, suffix, VIPS_PATH_MAX );
-	if( (p = (char *) vips__find_rightmost_brackets( str )) )
-		*p = '\0';
-
-	if( !(operation_name = vips_foreign_find_save_buffer( str )) )
+	if( !(operation_name = vips_foreign_find_save_buffer( suffix )) )
 		return( -1 );
 
-	if( !(operation = vips_operation_new( operation_name )) )
-		return( -1 );
-
-	g_object_set( operation, "in", in, NULL );
-
-	/* Now set any operation args from the options list.
+	/* Extract the options from the suffix, if any.
 	 */
-	if( (p = (char *) vips__find_rightmost_brackets( suffix )) &&
-		vips_object_set_from_string( VIPS_OBJECT( operation ), p ) ) {
-		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
-		g_object_unref( operation ); 
-		return( -1 ); 
-	}
+	options = vips__find_rightmost_brackets( suffix );
 
-	/* Set any from varargs.
-	 */
 	va_start( ap, len );
-	result = vips_object_set_valist( VIPS_OBJECT( operation ), ap );
+	result = vips_call_split_option_string( operation_name, options, 
+		ap, in, &area );
 	va_end( ap );
-
-	if( result ) {
-		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
-		g_object_unref( operation ); 
-		return( -1 ); 
-	}
-
-	if( vips_cache_operation_buildp( &operation ) ) {
-		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
-		g_object_unref( operation ); 
-		return( -1 );
-	}
-
-	g_object_get( operation, "buffer", &area, NULL );
-
-	/* Getting @buffer will have upped its count so it'll be safe.
-	 * We can junk all other outputs,
-	 */
-	vips_object_unref_outputs( VIPS_OBJECT( operation ) );
-	g_object_unref( operation ); 
 
 	if( area ) { 
 		if( buf ) {
@@ -1722,124 +1642,7 @@ vips_foreign_save_buffer( VipsImage *in,
 		vips_area_unref( area );
 	}
 
-	return( 0 );
-}
-
-/**
- * vips_foreign_load_options:
- * @filename: file to load
- * @out: output image
- * @...: %NULL-terminated list of optional named arguments
- *
- * Loads @filename into @out using the loader recommended by
- * vips_foreign_find_load().
- *
- * Arguments to the loader may be embedded in the filename using the usual
- * syntax. They may also be given as a set of NULL-terminated optional
- * arguments.
- *
- * See also: vips_foreign_load().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-vips_foreign_load_options( const char *filename, VipsImage **out, ... )
-{
-	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_LOAD );
-
-	VipsObject *object;
-	va_list ap;
-	int result;
-
-	/* This will use vips_foreign_load_new_from_string() to pick a loader,
-	 * then set options from the remains of the string.
-	 */
-	if( !(object = vips_object_new_from_string( oclass, filename )) )
-		return( -1 );
-
-	/* Also set options from args.
-	 */
-	va_start( ap, out );
-	result = vips_object_set_valist( object, ap );
-	va_end( ap );
-	if( result )
-		return( -1 );
-
-	if( vips_cache_operation_buildp( (VipsOperation **) &object ) ) {
-		/* The build may have made some output objects before
-		 * failing.
-		 */
-		vips_object_unref_outputs( object );
-		g_object_unref( object );
-		return( -1 );
-	}
-
-	g_object_get( object, "out", out, NULL );
-
-	/* Getting @out will have upped its count so it'll be safe.
-	 * We can junk all other outputs,
-	 */
-	vips_object_unref_outputs( object );
-
-	/* @out holds a ref to new_object, we can drop ours.
-	 */
-	g_object_unref( object );
-
-	return( 0 );
-}
-
-/**
- * vips_foreign_save_options:
- * @in: image to write
- * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
- *
- * Saves @in to @filename using the saver recommended by
- * vips_foreign_find_save(). 
- *
- * Arguments to the saver may be embedded in the filename using the usual
- * syntax. They may also be given as a set of NULL-terminated optional
- * arguments.
- *
- * See also: vips_foreign_save().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-vips_foreign_save_options( VipsImage *in, const char *filename, ... )
-{
-	VipsObjectClass *oclass = g_type_class_ref( VIPS_TYPE_FOREIGN_SAVE );
-
-	VipsObject *object;
-	va_list ap;
-	int result;
-
-	/* This will use vips_foreign_save_new_from_string() to pick a saver,
-	 * then set options from the tail of the filename.
-	 */
-	if( !(object = vips_object_new_from_string( oclass, filename )) )
-		return( -1 );
-
-	g_object_set( object, "in", in, NULL );
-
-	/* Also set options from args.
-	 */
-	va_start( ap, filename );
-	result = vips_object_set_valist( object, ap );
-	va_end( ap );
-	if( result )
-		return( -1 );
-
-	/* ... and running _build() should save it.
-	 */
-	if( vips_cache_operation_buildp( (VipsOperation **) &object ) ) {
-		g_object_unref( object );
-		return( -1 );
-	}
-
-	g_object_unref( object );
-
-	return( 0 );
+	return( result );
 }
 
 /* Called from iofuncs to init all operations in this dir. Use a plugin system

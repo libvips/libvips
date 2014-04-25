@@ -1,6 +1,22 @@
+- when do we apply filename options in vips_foreign_load()?
 
-- use vips_object_set_from_string() for vips_foreign_load_options() and
-  friends
+  should we split the filename and use vips_call_split_option_string()?
+
+  when do we handle filename splitting in vips_pngload()?
+
+  object_new_from_string I guess
+
+
+
+- make all 
+
+	if( (env = g_getenv( "IM_DISC_THRESHOLD" )) )
+
+  be eg.
+
+	if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) ||
+		(env = g_getenv( "IM_DISC_THRESHOLD" )) )
+
 
 
 

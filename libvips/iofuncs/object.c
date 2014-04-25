@@ -1672,8 +1672,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 			return( -1 );
 		}
 
-		/* Read the filename. vips_foreign_load_options()
-		 * handles embedded options.
+		/* Read the filename. 
 		 */
 		if( flags & VIPS_OPERATION_SEQUENTIAL_UNBUFFERED ) 
 			access = VIPS_ACCESS_SEQUENTIAL_UNBUFFERED;
@@ -1682,7 +1681,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 		else
 			access = VIPS_ACCESS_RANDOM; 
 
-		if( vips_foreign_load_options( value, &out, 
+		if( vips_foreign_load( value, &out, 
 			"access", access,
 			NULL ) )
 			return( -1 );
@@ -1906,10 +1905,9 @@ vips_object_get_argument_to_string( VipsObject *object,
 		VipsImage *in;
 
 		/* Pull out the image and write it.
-		 * vips_foreign_save_options() handles embedded options.
 		 */
 		g_object_get( object, name, &in, NULL );
-		if( vips_foreign_save_options( in, arg, NULL ) ) {
+		if( vips_foreign_save( in, arg, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}
