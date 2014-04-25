@@ -143,6 +143,24 @@ vips_foreign_dz_depth_get_type( void )
 
 	return( etype );
 }
+GType
+vips_foreign_dz_container_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FOREIGN_DZ_CONTAINER_FS, "VIPS_FOREIGN_DZ_CONTAINER_FS", "fs"},
+			{VIPS_FOREIGN_DZ_CONTAINER_ZIP, "VIPS_FOREIGN_DZ_CONTAINER_ZIP", "zip"},
+			{VIPS_FOREIGN_DZ_CONTAINER_LAST, "VIPS_FOREIGN_DZ_CONTAINER_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsForeignDzContainer", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/conversion.h" */
 GType
 vips_extend_get_type( void )

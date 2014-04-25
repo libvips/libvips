@@ -27,6 +27,7 @@
 - added vips_tiffload_buffer()
 - added vips_foreign_load_buffer(), vips_foreign_save_buffer()
 - added vips_object_set_from_string()
+- added @container option to dzsave 
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

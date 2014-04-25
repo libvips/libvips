@@ -21,6 +21,8 @@ GType vips_foreign_dz_layout_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_DZ_LAYOUT (vips_foreign_dz_layout_get_type())
 GType vips_foreign_dz_depth_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_DZ_DEPTH (vips_foreign_dz_depth_get_type())
+GType vips_foreign_dz_container_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_FOREIGN_DZ_CONTAINER (vips_foreign_dz_container_get_type())
 /* enumerations from "../../../libvips/include/vips/arithmetic.h" */
 GType vips_operation_math_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_MATH (vips_operation_math_get_type())

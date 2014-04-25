@@ -1,3 +1,8 @@
+- try
+
+	vips vips
+
+  heh fix
 
 - use vips_object_set_from_string() for vips_foreign_load_options() and
   friends
