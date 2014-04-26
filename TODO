@@ -3,6 +3,16 @@
 
   looks like the offset in morph embed is wrong
 
+  no, worse, try
+
+  	0 0 0 
+	0 1 0
+	0 0 0 
+
+  erode ... fails badly
+
+  try with vector disabled?
+
 
 - make all 
 
