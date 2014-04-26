@@ -737,6 +737,7 @@ static void
 vips_image_add_progress( VipsImage *image )
 {
 	if( vips__progress || 
+		g_getenv( "VIPS_PROGRESS" ) ||
 		g_getenv( "IM_PROGRESS" ) ) {
 
 		/* Keep the %complete we displayed last time here.
@@ -1578,7 +1579,7 @@ vips_image_new( void )
  *	 location for the temporary file.
  *
  *	 The disc threshold can be set with the "--vips-disc-threshold"
- *	 command-line argument, or the IM_DISC_THRESHOLD environment variable.
+ *	 command-line argument, or the VIPS_DISC_THRESHOLD environment variable.
  *	 The value is a simple integer, but can take a unit postfix of "k", 
  *	 "m" or "g" to indicate kilobytes, megabytes or gigabytes.
  *

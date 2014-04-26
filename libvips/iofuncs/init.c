@@ -244,7 +244,8 @@ vips__init( const char *argv0 )
 
 	/* Default info setting from env.
 	 */
-	if( g_getenv( "IM_INFO" ) ) 
+	if( g_getenv( "VIPS_INFO" ) || 
+		g_getenv( "IM_INFO" ) ) 
 		vips__info = 1;
 
 	/* Register base vips types.

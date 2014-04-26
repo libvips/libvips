@@ -744,7 +744,8 @@ vips_get_disc_threshold( void )
 		 */
 		threshold = 100 * 1024 * 1024;
 
-		if( (env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
+		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) || 
+			(env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
 			threshold = vips__parse_size( env );
 
 		if( vips__disc_threshold ) 
