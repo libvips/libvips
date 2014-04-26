@@ -1,11 +1,7 @@
-- when do we apply filename options in vips_foreign_load()?
 
-  should we split the filename and use vips_call_split_option_string()?
+- clean in nip2 is broken
 
-  when do we handle filename splitting in vips_pngload()?
-
-  object_new_from_string I guess
-
+  looks like the offset in morph embed is wrong
 
 
 - make all 
