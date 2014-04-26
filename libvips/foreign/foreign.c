@@ -514,30 +514,26 @@ vips_foreign_find_load_sub( VipsForeignLoadClass *load_class,
  * Returns: the name of an operation on success, %NULL on error
  */
 const char *
-vips_foreign_find_load( const char *filename )
+vips_foreign_find_load( const char *name )
 {
-	char str[VIPS_PATH_MAX];
-	char *p;
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
 	VipsForeignLoadClass *load_class;
 
-	/* Take any [options] off the filename.
-	 */
-	vips_strncpy( str, filename, VIPS_PATH_MAX );
-	if( (p = (char *) vips__find_rightmost_brackets( str )) )
-		*p = '\0';
+	vips__filename_split8( name, filename, option_string );
 
-	if( !vips_existsf( "%s", str ) ) {
+	if( !vips_existsf( "%s", filename ) ) {
 		vips_error( "VipsForeignLoad", 
-			_( "file \"%s\" not found" ), filename );
+			_( "file \"%s\" not found" ), name );
 		return( NULL );
 	}
 
 	if( !(load_class = (VipsForeignLoadClass *) vips_foreign_map( 
 		"VipsForeignLoad",
 		(VipsSListMap2Fn) vips_foreign_find_load_sub, 
-		(void *) str, NULL )) ) {
+		(void *) filename, NULL )) ) {
 		vips_error( "VipsForeignLoad", 
-			_( "\"%s\" is not a known file format" ), filename );
+			_( "\"%s\" is not a known file format" ), name );
 		return( NULL );
 	}
 
@@ -558,17 +554,21 @@ vips_foreign_find_load( const char *filename )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_foreign_load( const char *filename, VipsImage **out, ... )
+vips_foreign_load( const char *name, VipsImage **out, ... )
 {
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
 	const char *operation_name;
 	va_list ap;
 	int result;
 
+	vips__filename_split8( name, filename, option_string );
 	if( !(operation_name = vips_foreign_find_load( filename )) )
 		return( -1 );
 
 	va_start( ap, out );
-	result = vips_call_split( operation_name, ap, filename, out );
+	result = vips_call_split_option_string( operation_name, option_string, 
+		ap, filename, out );
 	va_end( ap );
 
 	return( result );
@@ -1481,24 +1481,20 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
  * Returns: the name of an operation on success, %NULL on error
  */
 const char *
-vips_foreign_find_save( const char *filename )
+vips_foreign_find_save( const char *name )
 {
-	char str[VIPS_PATH_MAX];
-	char *p;
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
 	VipsForeignSaveClass *save_class;
 
-	/* Take any [options] off the filename.
-	 */
-	vips_strncpy( str, filename, VIPS_PATH_MAX );
-	if( (p = (char *) vips__find_rightmost_brackets( str )) )
-		*p = '\0';
+	vips__filename_split8( name, filename, option_string );
 
 	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
 		"VipsForeignSave",
 		(VipsSListMap2Fn) vips_foreign_find_save_sub, 
-		(void *) str, NULL )) ) {
+		(void *) filename, NULL )) ) {
 		vips_error( "VipsForeignSave",
-			_( "\"%s\" is not a known file format" ), filename );
+			_( "\"%s\" is not a known file format" ), name );
 
 		return( NULL );
 	}
@@ -1521,17 +1517,22 @@ vips_foreign_find_save( const char *filename )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_foreign_save( VipsImage *in, const char *filename, ... )
+vips_foreign_save( VipsImage *in, const char *name, ... )
 {
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
 	const char *operation_name;
 	va_list ap;
 	int result;
 
+	vips__filename_split8( name, filename, option_string );
+
 	if( !(operation_name = vips_foreign_find_save( filename )) )
 		return( -1 );
 
-	va_start( ap, filename );
-	result = vips_call_split( operation_name, ap, in, filename );
+	va_start( ap, name );
+	result = vips_call_split_option_string( operation_name, option_string, 
+		ap, in, filename );
 	va_end( ap );
 
 	return( result );
@@ -1566,24 +1567,20 @@ vips_foreign_find_save_buffer_sub( VipsForeignSaveClass *save_class,
  * Returns: the name of an operation on success, %NULL on error
  */
 const char *
-vips_foreign_find_save_buffer( const char *suffix )
+vips_foreign_find_save_buffer( const char *name )
 {
-	char str[VIPS_PATH_MAX];
-	char *p;
+	char suffix[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
 	VipsForeignSaveClass *save_class;
 
-	/* Take any [options] off the suffix.
-	 */
-	vips_strncpy( str, suffix, VIPS_PATH_MAX );
-	if( (p = (char *) vips__find_rightmost_brackets( str )) )
-		*p = '\0';
+	vips__filename_split8( name, suffix, option_string );
 
 	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
 		"VipsForeignSave",
 		(VipsSListMap2Fn) vips_foreign_find_save_buffer_sub, 
-		(void *) str, NULL )) ) {
+		(void *) suffix, NULL )) ) {
 		vips_error( "VipsForeignSave",
-			_( "\"%s\" is not a known file format" ), suffix );
+			_( "\"%s\" is not a known file format" ), name );
 
 		return( NULL );
 	}
@@ -1610,24 +1607,23 @@ vips_foreign_find_save_buffer( const char *suffix )
  */
 int
 vips_foreign_save_buffer( VipsImage *in, 
-	const char *suffix, void **buf, size_t *len, 
+	const char *name, void **buf, size_t *len, 
 	... )
 {
-	const char *options;
+	char suffix[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
 	const char *operation_name;
 	VipsArea *area;
 	va_list ap;
 	int result;
 
+	vips__filename_split8( name, suffix, option_string );
+
 	if( !(operation_name = vips_foreign_find_save_buffer( suffix )) )
 		return( -1 );
 
-	/* Extract the options from the suffix, if any.
-	 */
-	options = vips__find_rightmost_brackets( suffix );
-
 	va_start( ap, len );
-	result = vips_call_split_option_string( operation_name, options, 
+	result = vips_call_split_option_string( operation_name, option_string, 
 		ap, in, &area );
 	va_end( ap );
 
