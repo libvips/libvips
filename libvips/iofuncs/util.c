@@ -1428,6 +1428,24 @@ vips__find_rightmost_brackets( const char *p )
 	return( start[i] );
 }
 
+/* Split a vips8-style filename + options.
+ *
+ * filename and options must be VIPS_PATH_MAX in length. 
+ */
+void
+vips__filename_split8( const char *name, char *filename, char *option_string )
+{
+	char *p;
+
+	vips_strncpy( filename, name, VIPS_PATH_MAX );
+	if( (p = (char *) vips__find_rightmost_brackets( filename )) ) {
+		vips_strncpy( option_string, p, VIPS_PATH_MAX );
+		*p = '\0';
+	}
+	else
+		vips_strncpy( option_string, "", VIPS_PATH_MAX );
+}
+
 /* True if an int is a power of two ... 1, 2, 4, 8, 16, 32, etc. Do with just
  * integer arithmetic for portability. A previous Nicos version using doubles
  * and log/log failed on x86 with rounding problems. Return 0 for not

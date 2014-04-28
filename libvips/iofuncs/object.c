@@ -1672,8 +1672,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 			return( -1 );
 		}
 
-		/* Read the filename. vips_foreign_load_options()
-		 * handles embedded options.
+		/* Read the filename. 
 		 */
 		if( flags & VIPS_OPERATION_SEQUENTIAL_UNBUFFERED ) 
 			access = VIPS_ACCESS_SEQUENTIAL_UNBUFFERED;
@@ -1682,7 +1681,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 		else
 			access = VIPS_ACCESS_RANDOM; 
 
-		if( vips_foreign_load_options( value, &out, 
+		if( vips_foreign_load( value, &out, 
 			"access", access,
 			NULL ) )
 			return( -1 );
@@ -1906,10 +1905,9 @@ vips_object_get_argument_to_string( VipsObject *object,
 		VipsImage *in;
 
 		/* Pull out the image and write it.
-		 * vips_foreign_save_options() handles embedded options.
 		 */
 		g_object_get( object, name, &in, NULL );
-		if( vips_foreign_save_options( in, arg, NULL ) ) {
+		if( vips_foreign_save( in, arg, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}
@@ -2090,10 +2088,18 @@ vips_object_set_args( VipsObject *object, const char *p )
 		string, VIPS_PATH_MAX )) )
 		return( -1 );
 
-	do {
-		if( !(p = vips__token_need( p, VIPS_TOKEN_STRING,
-			string, VIPS_PATH_MAX )) )
+	if( !(p = vips__token_must( p, &token, string, VIPS_PATH_MAX )) )
+		return( -1 );
+
+	for(;;) {
+		if( token == VIPS_TOKEN_RIGHT )
+			break;
+		if( token != VIPS_TOKEN_STRING ) {
+			vips_error( class->nickname,
+				_( "expected string or ), saw %s" ), 
+				vips_enum_nick( VIPS_TYPE_TOKEN, token ) );
 			return( -1 );
+		}
 
 		/* We have to look for a '=', ')' or a ',' to see if string is
 		 * a param name or a value.
@@ -2136,14 +2142,19 @@ vips_object_set_args( VipsObject *object, const char *p )
 			return( -1 );
 		}
 
-		/* Now must be a , or a ).
+		/* Now must be a , or a ). 
 		 */
-		if( token != VIPS_TOKEN_RIGHT && token != VIPS_TOKEN_COMMA ) {
+		if( token == VIPS_TOKEN_COMMA ) {
+			if( !(p = vips__token_must( p, &token, 
+				string, VIPS_PATH_MAX )) )
+				return( -1 );
+		}
+		else if( token != VIPS_TOKEN_RIGHT ) {
 			vips_error( class->nickname,
 				"%s", _( "not , or ) after parameter" ) );
 			return( -1 );
 		}
-	} while( token != VIPS_TOKEN_RIGHT );
+	}
 
 	if( (p = vips__token_get( p, &token, string, VIPS_PATH_MAX )) ) {
 		vips_error( class->nickname,

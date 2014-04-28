@@ -82,13 +82,9 @@
  */
 
 /* Maximum number of concurrent threads we allow. No reason for the limit,
- * it's just there to stop mad values for IM_CONCURRENCY killing the system.
+ * it's just there to stop mad values for VIPS_CONCURRENCY killing the system.
  */
 #define MAX_THREADS (1024)
-
-/* Name of environment variable we get concurrency level from.
- */
-#define IM_CONCURRENCY "IM_CONCURRENCY"
 
 /* Default tile geometry ... can be set by init_world.
  */
@@ -218,7 +214,7 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
  * #VipsThreadPool. 
  *
  * The special value 0 means "default". In this case, the number of threads is
- * set by the environmnt variable IM_CONCURRENCY, or if that is not set, the
+ * set by the environmnt variable VIPS_CONCURRENCY, or if that is not set, the
  * number of threads availble on the hist machine. 
  *
  * See also: vips_concurrency_get().
@@ -305,9 +301,9 @@ get_num_processors( void )
  * "--vips-concurrency" to set this value.
  *
  * If vips_concurrency_set() has not been called and no command-line argument
- * was used, vips uses the value of the environment variable IM_CONCURRENCY,
+ * was used, vips uses the value of the environment variable VIPS_CONCURRENCY,
  *
- * If IM_CONCURRENCY has not been set, vips find the number of hardware
+ * If VIPS_CONCURRENCY has not been set, vips find the number of hardware
  * threads that the host machine can run in parallel and uses that value. 
  *
  * The final value is clipped to the range 1 - 1024.
@@ -327,7 +323,8 @@ vips_concurrency_get( void )
 	 */
 	if( vips__concurrency > 0 )
 		nthr = vips__concurrency;
-	else if( (str = g_getenv( IM_CONCURRENCY )) && 
+	else if( ((str = g_getenv( "VIPS_CONCURRENCY" )) ||
+		(str = g_getenv( "IM_CONCURRENCY" ))) && 
 		(x = atoi( str )) > 0 )
 		nthr = x;
 	else 

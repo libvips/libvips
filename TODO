@@ -4,26 +4,11 @@
 
   heh fix
 
-- use vips_object_set_from_string() for vips_foreign_load_options() and
-  friends
-
-
-
-- use this for dzsave_buffer 
-
-
-
-- clean up foreign.c, there seems to be some cruft
 
 - vips_filename_suffix_match() is used by
   vips_foreign_load_new_from_foreign_sub(), but it splits on ':' ... argh!
 
   deprecate this thing and stop ':' split
-
-  vips_foreign_find_save() should split on [], there's something to find the
-  start of the rightmost [] pair, use that
-
-  see also vips_foreign_find_save_buffer()
 
 
   
