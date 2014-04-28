@@ -37,6 +37,7 @@
 #include <vips/intl.h>
 
 #include <string.h>
+#include <math.h>
 
 #include <vips/vips.h>
 

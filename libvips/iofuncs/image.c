@@ -670,7 +670,7 @@ vips_image_rewind( VipsObject *object )
 static void
 vips_image_save_cb( VipsImage *image, int *result )
 {
-	if( vips_foreign_save_options( image, image->filename, NULL ) )
+	if( vips_foreign_save( image, image->filename, NULL ) )
 		*result = -1;
 }
 
@@ -737,6 +737,7 @@ static void
 vips_image_add_progress( VipsImage *image )
 {
 	if( vips__progress || 
+		g_getenv( "VIPS_PROGRESS" ) ||
 		g_getenv( "IM_PROGRESS" ) ) {
 
 		/* Keep the %complete we displayed last time here.
@@ -825,14 +826,13 @@ vips_image_build( VipsObject *object )
 			VipsImage *t;
 
 			if( mode[1] == 's' ) {
-				if( vips_foreign_load_options( filename, &t, 
+				if( vips_foreign_load( filename, &t, 
 					"access", VIPS_ACCESS_SEQUENTIAL,
 					NULL ) )
 					return( -1 );
 			}
 			else {
-				if( vips_foreign_load_options( filename, &t, 
-					NULL ) )
+				if( vips_foreign_load( filename, &t, NULL ) )
 					return( -1 );
 			}
 
@@ -855,7 +855,7 @@ vips_image_build( VipsObject *object )
 		 */
 		g_assert( g_type_from_name( "VipsForeignSaveVips" ) );
 
-		if( !(file_op = vips_foreign_find_save_options( filename )) )
+		if( !(file_op = vips_foreign_find_save( filename )) )
 			return( -1 );
 
 		/* If this is the vips saver, just save directly ourselves.
@@ -1579,7 +1579,7 @@ vips_image_new( void )
  *	 location for the temporary file.
  *
  *	 The disc threshold can be set with the "--vips-disc-threshold"
- *	 command-line argument, or the IM_DISC_THRESHOLD environment variable.
+ *	 command-line argument, or the VIPS_DISC_THRESHOLD environment variable.
  *	 The value is a simple integer, but can take a unit postfix of "k", 
  *	 "m" or "g" to indicate kilobytes, megabytes or gigabytes.
  *

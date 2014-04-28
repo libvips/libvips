@@ -257,6 +257,8 @@ const char *vips__token_must( const char *buffer, VipsToken *token,
 const char *vips__token_need( const char *buffer, VipsToken need_token, 
 	char *string, int size );
 const char *vips__find_rightmost_brackets( const char *p );
+void vips__filename_split8( const char *name, 
+	char *filename, char *option_string );
 
 int vips_ispoweroftwo( int p );
 int vips_amiMSBfirst( void );

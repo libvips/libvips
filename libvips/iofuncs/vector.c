@@ -77,7 +77,8 @@ vips_vector_init( void )
 	/* Look for the environment variable IM_NOVECTOR and use that to turn
 	 * off as well.
 	 */
-	if( g_getenv( "IM_NOVECTOR" ) ) 
+	if( g_getenv( "VIPS_NOVECTOR" ) || 
+		g_getenv( "IM_NOVECTOR" ) ) 
 		vips__vector_enabled = FALSE;
 #endif /*HAVE_ORC*/
 }

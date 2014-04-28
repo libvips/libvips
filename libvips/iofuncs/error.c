@@ -431,7 +431,7 @@ vips_info( const char *domain, const char *fmt, ... )
  * @ap: arguments to the format string
  *
  * Sends a formatted warning message to stderr. If you define the
- * environment variable IM_WARNING, these message are surpressed.
+ * environment variable VIPS_WARNING, these message are surpressed.
  *
  * Warning messages are used to report things like overflow counts.
  *
@@ -440,7 +440,8 @@ vips_info( const char *domain, const char *fmt, ... )
 void 
 vips_vwarn( const char *domain, const char *fmt, va_list ap )
 {	
-	if( !g_getenv( "IM_WARNING" ) ) {
+	if( !g_getenv( "IM_WARNING" ) &&
+		!g_getenv( "VIPS_WARNING" ) ) {
 		g_mutex_lock( vips__global_lock );
 		(void) fprintf( stderr, _( "%s: " ), _( "vips warning" ) );
 		if( domain )
