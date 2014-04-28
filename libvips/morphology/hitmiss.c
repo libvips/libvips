@@ -51,6 +51,7 @@
  */
 
 /*
+#define DEBUG_VERBOSE
 #define DEBUG
  */
 
@@ -208,8 +209,14 @@ pass_compile_section( Pass *pass, Morph *morph, gboolean first_pass )
 			ASM3( "orb", "sum", "sum", "value" );
 		}
 		else {
-			if( !mask->coeff[i] ) 
-				ASM3( "andnb", "sum", "sum", "value" );
+			if( !mask->coeff[i] ) {
+				/* You'd think we could use andnb, but it
+				 * fails on some machines with some orc
+				 * versions :( 
+				 */
+				ASM3( "xorb", "value", "value", one );
+				ASM3( "andb", "sum", "sum", "value" );
+			}
 			else
 				ASM3( "andb", "sum", "sum", "value" );
 		}
@@ -454,10 +461,10 @@ dilate_gen( REGION *or, void *vseq, void *a, void *b )
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "dilate_gen: preparing %dx%d@%dx%d pixels\n", 
 		s.width, s.height, s.left, s.top );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	/* Scan mask, building offsets we check when processing. Only do this
 	 * if the bpl has changed since the previous im_prepare().
@@ -566,10 +573,10 @@ erode_gen( REGION *or, void *vseq, void *a, void *b )
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "erode_gen: preparing %dx%d@%dx%d pixels\n", 
 		s.width, s.height, s.left, s.top );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	/* Scan mask, building offsets we check when processing. Only do this
 	 * if the bpl has changed since the previous im_prepare().
@@ -665,10 +672,10 @@ morph_vector_gen( REGION *or, void *vseq, void *a, void *b )
 	if( im_prepare( ir, &s ) )
 		return( -1 );
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "morph_vector_gen: preparing %dx%d@%dx%d pixels\n", 
 		s.width, s.height, s.left, s.top );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	for( j = 0; j < morph->n_pass; j++ ) 
 		vips_executor_set_program( &executor[j], 

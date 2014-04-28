@@ -1,13 +1,4 @@
 
-- clean in nip2 is broken
-
-  works if you use --vips-novector
-
-  14.04 is orc-0.4.18, there must have been a change
-
-  nope, still broken with 0.4.11
-
-
 
 - vips_filename_suffix_match() is used by
   vips_foreign_load_new_from_foreign_sub(), but it splits on ':' ... argh!
