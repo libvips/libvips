@@ -1511,8 +1511,11 @@ vips_foreign_save_dz_build( VipsObject *object )
 		GsfOutput *out;
 		GError *error = NULL;
 
+		/* We can't write to dirname: gsf_outfile_stdio_new() will
+		 * make a dir called @arg1 to hold the things we make.
+		 */
 		if( !(out = (GsfOutput *) 
-			gsf_outfile_stdio_new( dz->dirname, &error )) ) {
+			gsf_outfile_stdio_new( dz->name, &error )) ) {
 			vips_g_error( &error );
 			return( -1 );
 		}
