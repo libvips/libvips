@@ -206,6 +206,7 @@ vips_system_class_init( VipsSystemClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->dispose = vips_system_dispose;
 	gobject_class->set_property = vips_object_set_property;
@@ -214,6 +215,10 @@ vips_system_class_init( VipsSystemClass *class )
 	vobject_class->nickname = "system";
 	vobject_class->description = _( "run an external command" );
 	vobject_class->build = vips_system_build;
+
+	/* Commands can have side-effects, so don't cache them. 
+	 */
+	operation_class->flags = VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_BOXED( class, "in", 0, 
 		_( "Input" ), 
