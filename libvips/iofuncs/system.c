@@ -122,6 +122,7 @@ vips_system_build( VipsObject *object )
 	char line[VIPS_PATH_MAX];
 	char txt[VIPS_PATH_MAX];
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
+	char *p;
 	char *std_output;
 	char *std_error;
 	int result;
@@ -169,6 +170,15 @@ vips_system_build( VipsObject *object )
 		vips__substitute( class->nickname, 
 			cmd, VIPS_PATH_MAX, system->out_name ) )
 		return( -1 ); 
+
+	/* Swap all "%%" in the string for a single "%". We need this for
+	 * compatibility with older printf-based vips_system()s which
+	 * needed a double %%.
+	 */
+	for( p = cmd; *p; p++ )
+		if( p[0] == '%' &&
+			p[1] == '%' )
+			memmove( p, p + 1, strlen( p ) );
 
 	if( !g_spawn_command_line_sync( cmd, 
 		&std_output, &std_error, &result, &error ) ) {
