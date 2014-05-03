@@ -17,6 +17,9 @@
  * 4/6/13
  * 	- redo as a class
  * 	- input and output images are now optional
+ * 3/5/14
+ * 	- switch to g_spawn_command_line_sync() from popen() ... helps stop
+ * 	  stray command-windows on Windows
  */
 
 /*
@@ -119,8 +122,10 @@ vips_system_build( VipsObject *object )
 	char line[VIPS_PATH_MAX];
 	char txt[VIPS_PATH_MAX];
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
-	char *p;
+	char *std_output;
+	char *std_error;
 	int result;
+	GError *error = NULL;
 
 	if( VIPS_OBJECT_CLASS( vips_system_parent_class )->build( object ) )
 		return( -1 );
@@ -165,29 +170,47 @@ vips_system_build( VipsObject *object )
 			cmd, VIPS_PATH_MAX, system->out_name ) )
 		return( -1 ); 
 
-	/* Swap all "%%" in the string for a single "%". We need this for
-	 * compatibility with older printf-based vips_system()s which
-	 * needed a double %%.
-	 */
-	for( p = cmd; *p; p++ ) 
-		if( p[0] == '%' && 
-			p[1] == '%' )
-			memmove( p, p + 1, strlen( p ) ); 
+	if( !g_spawn_command_line_sync( cmd, 
+		&std_output, &std_error, &result, &error ) ) {
+		if( error ) {
+			vips_error( class->nickname, "%s", error->message );
+			g_error_free( error );
+		}
+		if( std_error ) {
+			vips__chomp( std_error ); 
+			if( strcmp( std_error, "" ) != 0 )
+				vips_error( class->nickname, 
+					"error output: %s", std_error );
+			VIPS_FREE( std_error );
+		}
+		if( std_output ) {
+			vips__chomp( std_output ); 
+			if( strcmp( std_output, "" ) != 0 )
+				vips_error( class->nickname, 
+					"output: %s", std_output );
+			VIPS_FREE( std_output );
+		}
+		vips_error_system( result, class->nickname, 
+			"%s", _( "command failed" ) ); 
 
-	if( !(fp = vips_popenf( "%s", "r", cmd )) )
-		return( -1 );
-
-	while( fgets( line, VIPS_PATH_MAX, fp ) ) 
-		if( !vips_buf_appends( &buf, line ) )
-			break; 
-
-	g_object_set( system, "log", vips_buf_all( &buf ), NULL ); 
-
-	if( (result = pclose( fp )) ) {
-		vips_error( class->nickname, 
-			_( "command failed: \"%s\"" ), system->cmd_format );
 		return( -1 ); 
 	}
+
+	g_assert( !result ); 
+
+	if( std_error ) {
+		vips__chomp( std_error ); 
+		if( strcmp( std_error, "" ) != 0 )
+			vips_warn( class->nickname, 
+				_( "stderr output: %s" ), std_error ); 
+	}
+	if( std_output ) {
+		vips__chomp( std_output ); 
+		g_object_set( system, "log", std_output, NULL ); 
+	}
+
+	VIPS_FREE( std_output );
+	VIPS_FREE( std_error );
 
 	if( system->out_name ) {
 		VipsImage *out; 
