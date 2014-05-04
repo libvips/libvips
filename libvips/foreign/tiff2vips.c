@@ -146,6 +146,8 @@
  * 	- palette images can have an alpha
  * 22/4/14
  * 	- add read from buffer
+ * 30/4/14
+ * 	- 1/2/4 bit palette images can have alpha
  */
 
 /*
@@ -707,12 +709,13 @@ typedef struct {
 	gboolean mono;
 } PaletteRead;
 
-/* Per-scanline process function for palette images.
+/* 1/2/4 bit samples with an 8-bit palette.
  */
 static void
 palette_line_bit( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
 {
 	PaletteRead *read = (PaletteRead *) client;
+	int samples = rtiff->samples_per_pixel;
 
 	int bit;
 	VipsPel data;
@@ -720,7 +723,7 @@ palette_line_bit( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
 
 	bit = 0;
 	data = 0;
-	for( x = 0; x < n; x++ ) {
+	for( x = 0; x < n * samples; x++ ) {
 		int i;
 
 		if( bit <= 0 ) {
@@ -732,20 +735,25 @@ palette_line_bit( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
 		data <<= rtiff->bits_per_sample;
 		bit -= rtiff->bits_per_sample;
 
-		if( read->mono ) {
-			q[0] = read->red8[i];
-			q += 1;
+		/* The first band goes through the LUT, subsequent bands are
+		 * left-justified and copied.
+		 */
+		if( x % samples == 0 ) { 
+			if( read->mono ) 
+				*q++ = read->red8[i];
+			else {
+				q[0] = read->red8[i];
+				q[1] = read->green8[i];
+				q[2] = read->blue8[i];
+				q += 3;
+			}
 		}
-		else {
-			q[0] = read->red8[i];
-			q[1] = read->green8[i];
-			q[2] = read->blue8[i];
-			q += 3;
-		}
+		else 
+			*q++ = i << (8 - rtiff->bits_per_sample);
 	}
 }
 
-/* The tiff is 8-bit and can have an alpha. 
+/* 8-bit samples with an 8-bit palette.
  */
 static void
 palette_line8( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, 
@@ -777,7 +785,7 @@ palette_line8( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n,
 	}
 }
 
-/* 16-bit tiff and can have an alpha. 
+/* 16-bit samples with 16-bit data in the palette. 
  */
 static void
 palette_line16( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, 
@@ -826,13 +834,6 @@ parse_palette( ReadTiff *rtiff, VipsImage *out )
 		check_min_samples( rtiff, 1 ) )
 		return( -1 ); 
 	len = 1 << rtiff->bits_per_sample;
-
-	if( rtiff->bits_per_sample < 8 &&
-		rtiff->samples_per_pixel > 1 ) { 
-		vips_error( "tiff2vips", "%s", _( "can't have an alpha for "
-			"palette images less than 8 bits per sample" ) );
-		return( -1 );
-	}
 
 	if( !(read = VIPS_NEW( out, PaletteRead )) ||
 		!(read->red8 = VIPS_ARRAY( out, len, VipsPel )) ||

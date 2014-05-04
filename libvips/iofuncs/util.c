@@ -1206,6 +1206,17 @@ vips_mkdirf( const char *name, ... )
         return( 0 );
 }
 
+/* Chop off any trailing whitespace.
+ */
+void
+vips__chomp( char *str )
+{
+	char *p;
+
+	for( p = str + strlen( str ); p > str && isspace( p[-1] ); p-- )
+		p[-1] = '\0';
+}
+
 /* Break a command-line argument into tokens separated by whitespace. 
  *
  * Strings can't be adjacent, so "hello world" (without quotes) is a single 

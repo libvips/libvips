@@ -18,12 +18,7 @@
   vips_foreign_load_new_from_foreign_sub(), but it splits on ':' ... argh!
 
   deprecate this thing and stop ':' split
-
-
   
-
-- support 1/2/4 bit palette tiff with alpha
-
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
 

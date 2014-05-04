@@ -186,6 +186,8 @@ gboolean vips_ispostfix( const char *a, const char *b );
 gboolean vips_isprefix( const char *a, const char *b );
 char *vips_break_token( char *str, const char *brk );
 
+void vips__chomp( char *str );
+
 int vips_vsnprintf( char *str, size_t size, const char *format, va_list ap );
 int vips_snprintf( char *str, size_t size, const char *format, ... )
 	__attribute__((format(printf, 3, 4)));
