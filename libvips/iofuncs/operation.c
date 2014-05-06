@@ -423,6 +423,7 @@ VipsOperation *
 vips_operation_new( const char *name )
 {
 	GType type;
+	VipsObject *object;
 	VipsOperation *operation;
 
 	vips_check_init();
@@ -433,7 +434,13 @@ vips_operation_new( const char *name )
 		return( NULL );
 	}
 
-	operation = VIPS_OPERATION( g_object_new( type, NULL ) );
+	if( !(object = g_object_new( type, NULL )) ) {
+		vips_error( "VipsOperation", 
+			_( "\"%s\" is not an instantiable class" ), name );
+		return( NULL );
+	}
+
+	operation = VIPS_OPERATION( object );
 
 	VIPS_DEBUG_MSG( "vips_operation_new: %s (%p)\n", name, operation );
 

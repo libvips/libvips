@@ -2548,6 +2548,7 @@ vips_type_find( const char *basename, const char *nickname )
 {
 	static GOnce once = G_ONCE_INIT;
 
+	GType base;
 	GType type;
 
 	vips__object_nickname_table = (GHashTable *) g_once( &once, 
@@ -2555,8 +2556,15 @@ vips_type_find( const char *basename, const char *nickname )
 
 	type = GPOINTER_TO_INT( g_hash_table_lookup( 
 		vips__object_nickname_table, (void *) nickname ) );
+
+	/* We must only search below basename ... check that the cache hit is
+	 * in the right part of the tree.
+	 */
+	if( !(base = g_type_from_name( basename )) )
+		return( 0 );
 	if( !type ||
-		type == -1 ) {
+		type == -1 ||
+		!g_type_is_a( type, base ) ) {
 		VipsObjectClass *class;
 
 		if( !(class = vips_class_find( basename, nickname )) )
