@@ -196,10 +196,8 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 #endif
 
 	if( !thread ) {
-		if( error ) {
-			vips_error( domain, "%s", error->message );
-			g_error_free( error );
-		}
+		if( error ) 
+			vips_g_error( &error ); 
 		else
 			vips_error( domain, 
 				"%s", _( "unable to create thread" ) );

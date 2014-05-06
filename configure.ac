@@ -314,8 +314,8 @@ AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 
 # have to have these
 # need glib 2.6 for GOption
-PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 libxml-2.0 gobject-2.0)
-PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0 gmodule-2.0 gobject-2.0"
+PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 libxml-2.0 gobject-2.0 libgsf-1)
+PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0 gmodule-2.0 gobject-2.0 libgsf-1"
 
 # after 2.28 we have a monotonic timer
 PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,[

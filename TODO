@@ -1,4 +1,18 @@
 
+- how do we keep compat with old behaviour? gsf won't let us write to "."
+
+  looks like we need to break compatibility :-( 
+
+
+
+- auto-enable zip output?
+
+- try
+
+	vips vips
+
+  heh fix
+
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 

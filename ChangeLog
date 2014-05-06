@@ -21,10 +21,13 @@
 - vips_system() now supports many input images and you can change image
   argument order
 - support 16-bit palette TIFFs, plus palette TIFFs can have an alpha
+- libgsf is now required 
+- dzsave can directly write a ZIP file 
 - add ".vips" as an alternative suffix for vips files
 - added vips_tiffload_buffer()
 - added vips_foreign_load_buffer(), vips_foreign_save_buffer()
 - added vips_object_set_from_string()
+- added @container option to dzsave 
 - support 1/2/4 bit palette tiff images with alpha
 - vips_system() now uses g_spawn_command_line_sync()
 

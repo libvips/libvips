@@ -497,6 +497,19 @@ typedef enum {
 	VIPS_FOREIGN_DZ_DEPTH_LAST
 } VipsForeignDzDepth;
 
+/**
+ * VipsForeignDzContainer:
+ * @VIPS_FOREIGN_DZ_CONTAINER_FS: write tiles to the filesystem
+ * @VIPS_FOREIGN_DZ_CONTAINER_ZIP: write tiles to a zip file
+ *
+ * How many pyramid layers to create.
+ */
+typedef enum {
+	VIPS_FOREIGN_DZ_CONTAINER_FS,
+	VIPS_FOREIGN_DZ_CONTAINER_ZIP,
+	VIPS_FOREIGN_DZ_CONTAINER_LAST
+} VipsForeignDzContainer;
+
 int vips_dzsave( VipsImage *in, const char *basename, ... )
 	__attribute__((sentinel));
 

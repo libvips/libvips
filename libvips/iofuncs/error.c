@@ -311,7 +311,9 @@ vips_error_system( int err, const char *domain, const char *fmt, ... )
  * This function sets the glib error pointer from the vips error buffer and
  * clears it. It's handy for returning errors to glib functions from vips.
  *
- * See also: g_set_error().
+ * See vips_g_error() for the inverse operation.
+ *
+ * See also: g_set_error(), vips_g_error().
  */
 void
 vips_error_g( GError **error )
@@ -329,6 +331,27 @@ vips_error_g( GError **error )
 
 	g_set_error( error, vips_domain, -1, "%s", vips_error_buffer() );
 	vips_error_clear();
+}
+
+
+/**
+ * vips_g_error:
+ * @error: glib error pointer
+ *
+ * This function adds the %GError to the vips error buffer and clears it. It's
+ * the opposite of vips_error_g().
+ *
+ * See also: vips_error_g(). 
+ */
+void
+vips_g_error( GError **error )
+{
+	if( error &&
+		*error ) {
+		vips_error( "glib", "%s\n", (*error)->message ); 
+		g_error_free( *error );
+		*error = NULL;
+	}
 }
 
 /**
