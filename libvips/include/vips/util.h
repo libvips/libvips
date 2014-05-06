@@ -192,12 +192,7 @@ int vips_vsnprintf( char *str, size_t size, const char *format, va_list ap );
 int vips_snprintf( char *str, size_t size, const char *format, ... )
 	__attribute__((format(printf, 3, 4)));
 
-void vips_filename_split( const char *path, char *name, char *mode );
-const char *vips_skip_dir( const char *filename );
-void vips_filename_suffix( const char *path, char *suffix );
 int vips_filename_suffix_match( const char *path, const char *suffixes[] );
-char *vips_getnextoption( char **in );
-char *vips_getsuboption( const char *buf );
 
 gint64 vips_file_length( int fd );
 int vips__write( int fd, const void *buf, size_t count );

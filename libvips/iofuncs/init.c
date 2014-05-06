@@ -804,7 +804,7 @@ const char *
 vips_guess_prefix( const char *argv0, const char *env_name )
 {
         const char *prefix;
-        const char *p;
+        char *dirname;
         char name[VIPS_PATH_MAX];
 
 	/* Already set?
@@ -819,18 +819,20 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 
 	/* Get the program name from argv0.
 	 */
-	p = vips_skip_dir( argv0 );
+	dirname = g_path_get_dirname( argv0 );
 
 	/* Add the exe suffix, if it's missing.
 	 */
 	if( strlen( VIPS_EXEEXT ) > 0 ) {
 		const char *olds[] = { VIPS_EXEEXT };
 
-		vips__change_suffix( p, name, 
+		vips__change_suffix( dirname, name, 
 			VIPS_PATH_MAX, VIPS_EXEEXT, olds, 1 );
 	}
 	else
-		vips_strncpy( name, p, VIPS_PATH_MAX );
+		vips_strncpy( name, dirname, VIPS_PATH_MAX );
+
+	g_free( dirname ); 
 
 #ifdef DEBUG
 	printf( "vips_guess_prefix: argv0 = %s\n", argv0 );

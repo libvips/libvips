@@ -448,190 +448,44 @@ vips_snprintf( char *str, size_t size, const char *format, ... )
 	return( n );
 }
 
-/* Split filename into name / mode components. name and mode should both be
- * FILENAME_MAX chars.
- *
- * We look for the ':' splitting the name and mode by searching for the
- * rightmost occurence of the regexp ".[A-Za-z0-9]+:". Example: consider the
- * horror that is
- *
- * 	c:\silly:dir:name\fr:ed.tif:jpeg:95,,,,c:\icc\srgb.icc
- *
- */
-void
-vips_filename_split( const char *path, char *name, char *mode )
-{
-        char *p;
-
-        vips_strncpy( name, path, FILENAME_MAX );
-
-	/* Search back towards start stopping at each ':' char.
-	 */
-	for( p = name + strlen( name ) - 1; p > name; p -= 1 )
-		if( *p == ':' ) {
-			char *q;
-
-			for( q = p - 1; isalnum( *q ) && q > name; q -= 1 )
-				;
-
-			if( *q == '.' )
-				break;
-		}
-
-	if( *p == ':' ) {
-                vips_strncpy( mode, p + 1, FILENAME_MAX );
-                *p = '\0';
-        }
-        else
-                strcpy( mode, "" );
-}
-
-/* Skip any leading path stuff. Horrible: if this is a filename which came
- * from win32 and we're a *nix machine, it'll have '\\' not '/' as the
- * separator :-(
- *
- * Try to fudge this ... if the file doesn't contain any of our native
- * separators, look for the opposite one as well. If there are none of those
- * either, just return the filename.
- */
-const char *
-vips_skip_dir( const char *path )
-{
-	char name[FILENAME_MAX];
-	char mode[FILENAME_MAX];
-        const char *p;
-        const char *q;
-
-	const char native_dir_sep = G_DIR_SEPARATOR;
-	const char non_native_dir_sep = native_dir_sep == '/' ? '\\' : '/';
-
-	/* Remove any trailing save modifiers: we don't want '/' or '\' in the
-	 * modifier confusing us.
-	 */
-	vips_filename_split( path, name, mode );
-
-	/* The '\0' char at the end of the string.
-	 */
-	p = name + strlen( name );
-
-	/* Search back for the first native dir sep, or failing that, the first
-	 * non-native dir sep.
-	 */
-	for( q = p; q > name && q[-1] != native_dir_sep; q-- )
-		;
-	if( q == name )
-		for( q = p; q > name && q[-1] != non_native_dir_sep; q-- )
-			;
-
-        return( path + (q - name) );
-}
-
-/* Extract suffix from filename, ignoring any mode string. Suffix should be
- * FILENAME_MAX chars. Include the "." character, if any.
- */
-void
-vips_filename_suffix( const char *path, char *suffix )
-{
-	char name[FILENAME_MAX];
-	char mode[FILENAME_MAX];
-        char *p;
-
-	vips_filename_split( path, name, mode );
-        if( (p = strrchr( name, '.' )) ) 
-                strcpy( suffix, p );
-        else
-                strcpy( suffix, "" );
-}
-
-/* Does a filename have one of a set of suffixes. Ignore case.
+/* Does a filename have one of a set of suffixes. Ignore case and any trailing
+ * options.
  */
 int
 vips_filename_suffix_match( const char *path, const char *suffixes[] )
 {
-	char suffix[FILENAME_MAX];
+	char *basename;
+	char *suffix;
+	char *q;
 	const char **p;
+	int result;
 
-	vips_filename_suffix( path, suffix );
+	/* Drop any directory components, we want ignore any '.' in there.
+	 */
+	basename = g_path_get_basename( path );
+
+	/* Zap any trailing options.
+	 */
+	if( (q = (char *) vips__find_rightmost_brackets( basename )) ) 
+		*q = '\0';
+
+	/* And select just the '.' and to the right.
+	 */
+	if( (q = strrchr( basename, '.' )) )
+		suffix = q;
+	else
+		suffix = basename;
+
+	result = 0;
 	for( p = suffixes; *p; p++ )
-		if( g_ascii_strcasecmp( suffix, *p ) == 0 )
-			return( 1 );
-
-	return( 0 );
-}
-
-/* p points to the start of a buffer ... move it on through the buffer (ready
- * for the next call), and return the current option (or NULL for option
- * missing). ',' characters inside options can be escaped with a '\'.
- */
-char *
-vips_getnextoption( char **in )
-{
-        char *p;
-        char *q;
-
-        p = *in;
-        q = p;
-
-        if( !p || !*p )
-                return( NULL );
-
-	/* Find the next ',' not prefixed with a '\'. If the first character
-	 * of p is ',', there can't be a previous escape character.
-	 */
-	for(;;) {
-		if( !(p = strchr( p, ',' )) )
+		if( g_ascii_strcasecmp( suffix, *p ) == 0 ) {
+			result = 1;
 			break;
-		if( p == q )
-			break;
-		if( p[-1] != '\\' )
-			break;
+		}
 
-		p += 1;
-	}
+	g_free( basename );
 
-        if( p ) {
-                /* Another option follows this one .. set up to pick that out
-                 * next time.
-                 */
-                *p = '\0';
-                *in = p + 1;
-        }
-        else {
-                /* This is the last one.
-                 */
-                *in = NULL;
-        }
-
-        if( strlen( q ) > 0 )
-                return( q );
-        else
-                return( NULL );
-}
-
-/* Get a suboption string, or NULL.
- */
-char *
-vips_getsuboption( const char *buf )
-{
-        char *p, *q, *r;
-
-        if( !(p = strchr( buf, ':' )) ) 
-		/* No suboption.
-		 */
-		return( NULL );
-
-	/* Step over the ':'.
-	 */
-	p += 1;
-
-	/* Need to unescape any \, pairs. Shift stuff down one if we find one.
-	 */
-	for( q = p; *q; q++ ) 
-		if( q[0] == '\\' && q[1] == ',' )
-			for( r = q; *r; r++ )
-				r[0] = r[1];
-
-        return( p );
+	return( result );
 }
 
 /* Get file length ... 64-bitally. -1 for error.

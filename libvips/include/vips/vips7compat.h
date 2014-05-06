@@ -548,12 +548,6 @@ size_t im_ref_string_get_length( const GValue *value );
 #define im_break_token vips_break_token
 #define im_vsnprintf vips_vsnprintf
 #define im_snprintf vips_snprintf
-#define im_filename_split vips_filename_split
-#define im_skip_dir vips_skip_dir
-#define im_filename_suffix vips_filename_suffix
-#define im_filename_suffix_match vips_filename_suffix_match
-#define im_getnextoption vips_getnextoption
-#define im_getsuboption vips_getsuboption
 #define im_file_length vips_file_length
 #define im__write vips__write
 #define im__file_open_read vips__file_open_read
@@ -1032,6 +1026,13 @@ int im_read_point( VipsImage *image, int x, int y, VipsPel *ink );
 
 int im_draw_smudge( VipsImage *image, 
 	int left, int top, int width, int height );
+
+void im_filename_split( const char *path, char *name, char *mode );
+const char *im_skip_dir( const char *filename );
+void im_filename_suffix( const char *path, char *suffix );
+int im_filename_suffix_match( const char *path, const char *suffixes[] );
+char *im_getnextoption( char **in );
+char *im_getsuboption( const char *buf );
 
 #ifdef __cplusplus
 }

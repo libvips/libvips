@@ -1,16 +1,6 @@
 
 
-- vips_filename_suffix_match() is used by
-  vips_foreign_load_new_from_foreign_sub(), but it splits on ':' ... argh!
-
-  deprecate this thing and stop ':' split
-  
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
-
-
-
-
-
 
 - why is cache in nip2 so slow? its awful
 
