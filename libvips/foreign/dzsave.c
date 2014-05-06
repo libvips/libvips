@@ -1780,21 +1780,14 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * @depth: how deep to make the pyramid
  * @centre: centre the tiles 
  * @angle: rotate the image by this much
- * @container: container format
+ * @container: set container type
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
  *
- * @name is split into three parts: $(dirname) (everything before the
- * last '/'), $(basename) (everything after the last '/') and $(rootname) 
- * ($(basename) minus any extensions).
- *
- * In DeepZoom layout a directory in $(dirname) called
- * "$(basename)_files" is created to hold the tiles, and an XML file called
- * "$(basename).dzi" is written with the image metadata, 
- *
- * In Zoomify and Google layout, a directory called @name is created to 
- * hold the tile structure. 
+ * vips_dzsave() creates a directory called @name to hold the tiles. If @name
+ * ends ".zip", vips_dzsave() will create a zip file called @name to hold the
+ * tiles.  You can use @container to force zip file output. 
  *
  * You can set @suffix to something like ".jpg[Q=85]" to control the tile write
  * options. 
@@ -1809,13 +1802,6 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  *
  * Use @depth to control how low the pyramid goes. This defaults to the
  * correct setting for the @layout you select.
- *
- * Use @container to set where to write the zoom structure. By default it
- * writes to the filesystem, but set this to #VIPS_FOREIGN_DZ_CONTAINER_ZIP
- * and dzsave will create a zip file called @name to hold the pyramid. 
- *
- * Using #VIPS_FOREIGN_DZ_CONTAINER_ZIP can save a separate zip stage, 
- * which will be very slow on some platforms. 
  *
  * See also: vips_tiffsave().
  *
