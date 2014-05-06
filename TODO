@@ -1,18 +1,5 @@
-- argh oh dear sort out zip / non-zip paths
+- sort out dzsave docs ... note auto-zip and new path system
 
-		container	FS		zip
-	layout
-
-	  deepzoom		x/x_files/ 	x.zip/x/x_files/
-	  google		x/0 		x.zip/x/0 
-	  zoomify		x/Imag.. 	x.zip/x/Imag..
-
-
-
-
-- how do we keep compat with old behaviour? gsf won't let us write to "."
-
-  looks like we need to break compatibility :-( 
 
 
 
