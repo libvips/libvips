@@ -95,6 +95,14 @@ extern "C" {
 #  endif
 #endif /*SWIG*/
 
+/* If this isn't gcc, turn off attributes.
+ */
+#ifndef __GNUC__
+#  ifndef __attribute__
+#    define __attribute__(x)  /*NOTHING*/
+#  endif
+#endif /*__GNUC__*/
+
 #include <vips/basic.h>
 
 #include <vips/buf.h>
