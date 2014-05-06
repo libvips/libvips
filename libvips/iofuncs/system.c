@@ -118,10 +118,6 @@ vips_system_build( VipsObject *object )
 
 	char cmd[VIPS_PATH_MAX];
 
-	FILE *fp;
-	char line[VIPS_PATH_MAX];
-	char txt[VIPS_PATH_MAX];
-	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	char *p;
 	char *std_output;
 	char *std_error;

@@ -43,28 +43,6 @@
 
 /*
 
-	TODO
-
-	- need some way to pass save options to the jpeg tile writer
-
-	- and to pick a tile writer!
-
-	- need some way to select a container format
-
-	- are the rules for naming objects correct? eg. 
-
-		vips dzsave fred.tif /my/output/file.zip
-
-	  will create file.zip containing
-
-	  	file.zip:file_files
-	  	file.zip:file_files/0/0_0.jpg
-	  	file.zip:file.dzi
-
- */
-
-/*
-
     This file is part of VIPS.
     
     VIPS is free software; you can redistribute it and/or modify
@@ -176,6 +154,10 @@ typedef struct _VipsGsfDirectory {
 	 */
 	gboolean no_compression;
 
+	/* The root node holds the enclosing zip file or FS root ... finish
+	 * this on cleanup.
+	 */
+        GsfOutput *container;
 } VipsGsfDirectory; 
 
 /* Close all dirs, non-NULL on error.
@@ -185,9 +167,16 @@ vips_gsf_tree_close( VipsGsfDirectory *tree )
 {
 	vips_slist_map2( tree->children, 
 		(VipsSListMap2Fn) vips_gsf_tree_close, NULL, NULL );
+
 	if( tree->out &&
 		!gsf_output_is_closed( tree->out ) && 
 		!gsf_output_close( tree->out ) ) {
+		vips_error( "vips_gsf", "%s", _( "unable to close stream" ) ); 
+		return( tree );
+	}
+	if( tree->container &&
+		!gsf_output_is_closed( tree->container ) && 
+		!gsf_output_close( tree->container ) ) {
 		vips_error( "vips_gsf", "%s", _( "unable to close stream" ) ); 
 		return( tree );
 	}
@@ -205,11 +194,19 @@ vips_gsf_tree_free( VipsGsfDirectory *tree )
 		(VipsSListMap2Fn) vips_gsf_tree_free, NULL, NULL );
 	g_slist_free( tree->children );
 	g_free( (char *) tree->name );
+
 	if( tree->out ) { 
 		if( !gsf_output_is_closed( tree->out ) )
 			(void) gsf_output_close( tree->out );
 		g_object_unref( tree->out );
 	}
+
+	if( tree->container ) { 
+		if( !gsf_output_is_closed( tree->container ) )
+			(void) gsf_output_close( tree->container );
+		g_object_unref( tree->container );
+	}
+
 	g_free( tree );
 
 	return( NULL ); 
@@ -227,6 +224,7 @@ vips_gsf_tree_new( GsfOutput *out, gboolean no_compression )
 	tree->children = NULL;
 	tree->out = out;
 	tree->no_compression = no_compression;
+	tree->container = NULL;
 
 	return( tree ); 
 }
@@ -263,6 +261,7 @@ vips_gsf_dir_new( VipsGsfDirectory *parent, const char *name )
 	dir->name = g_strdup( name );
 	dir->children = NULL;
 	dir->no_compression = parent->no_compression;
+	dir->container = NULL;
 
 	if( dir->no_compression ) 
 		dir->out = gsf_outfile_new_child_full( 
@@ -404,8 +403,8 @@ struct _VipsForeignSaveDz {
 	 */
 	char *dirname; 
 
-	/* The root directory name ... used to form 
-	 * $(root_name)_files, $(root_name), etc.
+	/* The root directory name ... $basename with perhaps some extra
+	 * stuff, eg. $(basename)_files, etc.
 	 */
 	char *root_name; 
 };
@@ -588,7 +587,7 @@ write_dzi( VipsForeignSaveDz *dz )
 	char buf[VIPS_PATH_MAX];
 	char *p;
 
-	vips_snprintf( buf, VIPS_PATH_MAX, "%s.dzi", dz->name );
+	vips_snprintf( buf, VIPS_PATH_MAX, "%s.dzi", dz->basename );
 	out = vips_gsf_path( dz->tree, buf, NULL ); 
 
 	vips_snprintf( buf, VIPS_PATH_MAX, "%s", dz->suffix + 1 );
@@ -675,7 +674,7 @@ write_blank( VipsForeignSaveDz *dz )
 	}
 	g_object_unref( x );
 
-	out = vips_gsf_path( dz->tree, "blank.png", dz->root_name, NULL ); 
+	out = vips_gsf_path( dz->tree, "blank.png", NULL ); 
 	gsf_output_write( out, len, buf );
 	gsf_output_close( out );
 	g_object_unref( out );
@@ -955,8 +954,7 @@ tile_name( Layer *layer, int x, int y )
 		 */
 		dz->tile_count += 1;
 
-		out = vips_gsf_path( dz->tree, name, 
-			dz->root_name, dirname, NULL );
+		out = vips_gsf_path( dz->tree, name, dirname, NULL );
 
 		break;
 
@@ -965,8 +963,7 @@ tile_name( Layer *layer, int x, int y )
 		vips_snprintf( dirname2, VIPS_PATH_MAX, "%d", y );
 		vips_snprintf( name, VIPS_PATH_MAX, "%d%s", x, dz->suffix );
 
-		out = vips_gsf_path( dz->tree, name, 
-			dz->root_name, dirname, dirname2, NULL );
+		out = vips_gsf_path( dz->tree, name, dirname, dirname2, NULL );
 
 		break;
 
@@ -1490,10 +1487,17 @@ vips_foreign_save_dz_build( VipsObject *object )
 	char *p;
 
 	dz->basename = g_path_get_basename( dz->name ); 
-	if( (p = (char *) vips__find_rightmost_brackets( dz->name )) )
+	if( (p = (char *) vips__find_rightmost_brackets( dz->basename )) )
 		*p = '\0';
-	if( (p = strrchr( dz->name, '.' )) ) 
+	if( (p = strrchr( dz->basename, '.' )) ) {
 		*p = '\0';
+
+		/* If we're writing to thing.zip, default to zip container.
+		 */
+		if( strcasecmp( p + 1, "zip" ) == 0 &&
+			!vips_object_argument_isset( object, "container" ) )
+			dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
+	}
 }
 
 	dz->dirname = g_path_get_dirname( dz->name ); 
@@ -1528,6 +1532,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 {
 		GsfOutput *out;
 		GsfOutput *zip;
+		GsfOutput *out2;
 		GError *error = NULL;
 
 		/* This is the zip we are building. 
@@ -1547,7 +1552,19 @@ vips_foreign_save_dz_build( VipsObject *object )
 		 */
 		g_object_unref( out );
 
-		dz->tree = vips_gsf_tree_new( zip, TRUE );
+		/* Make the base directory inside the zip. All stuff goes into
+		 * this. 
+		 */
+		out2 = gsf_outfile_new_child_full( (GsfOutfile *) zip, 
+			dz->basename, TRUE,
+			"compression-level", 0, 
+			NULL );
+
+		dz->tree = vips_gsf_tree_new( out2, TRUE );
+
+		/* Note the thing that will need closing up on exit.
+		 */
+		dz->tree->container = zip; 
 }
 		break;
 
