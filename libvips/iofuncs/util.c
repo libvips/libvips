@@ -1060,6 +1060,45 @@ vips_mkdirf( const char *name, ... )
         return( 0 );
 }
 
+/* Remove a directory.
+ */
+int
+vips_rmdirf( const char *name, ... )
+{
+        va_list ap;
+	char *path; 
+
+        va_start( ap, name );
+	path = g_strdup_vprintf( name, ap ); 
+        va_end( ap );
+
+	if( g_rmdir( path ) ) { 
+		vips_error( "rmdir", 
+			_( "unable to remove directory \"%s\", %s" ), 
+			path, strerror( errno ) );
+		g_free( path ); 
+                return( -1 );
+	}
+	g_free( path ); 
+
+        return( 0 );
+}
+
+/* Rename a file. 
+ */
+int
+vips_rename( const char *old_name, const char *new_name )
+{
+	if( g_rename( old_name, new_name ) ) { 
+		vips_error( "rename", 
+			_( "unable to rename file \"%s\" as \"%s\", %s" ), 
+			old_name, new_name, strerror( errno ) );
+                return( -1 );
+	}
+
+        return( 0 );
+}
+
 /* Chop off any trailing whitespace.
  */
 void

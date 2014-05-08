@@ -1607,6 +1607,37 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( vips_gsf_tree_close( dz->tree ) )
 		return( -1 ); 
 
+	/* This is so ugly. In earlier versions of dzsave, we wrote x.dzi and
+	 * x_files. Now we write x/x.dzi and x/x_files to make it possible to
+	 * create zip files. 
+	 *
+	 * For compatibility, rearrange the directory tree.
+	 *
+	 * FIXME have a flag to stop this stupidity
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ &&
+		dz->container == VIPS_FOREIGN_DZ_CONTAINER_FS ) { 
+		char old_name[VIPS_PATH_MAX];
+		char new_name[VIPS_PATH_MAX];
+
+		vips_snprintf( old_name, VIPS_PATH_MAX, "%s/%s/%s.dzi", 
+			dz->dirname, dz->basename, dz->basename );
+		vips_snprintf( new_name, VIPS_PATH_MAX, "%s/%s.dzi", 
+			dz->dirname, dz->basename );
+		if( vips_rename( old_name, new_name ) )
+			return( -1 ); 
+
+		vips_snprintf( old_name, VIPS_PATH_MAX, "%s/%s/%s_files", 
+			dz->dirname, dz->basename, dz->basename );
+		vips_snprintf( new_name, VIPS_PATH_MAX, "%s/%s_files", 
+			dz->dirname, dz->basename );
+		if( vips_rename( old_name, new_name ) )
+			return( -1 ); 
+
+		if( vips_rmdirf(  "%s/%s", dz->dirname, dz->basename ) )
+			return( -1 ); 
+	}
+
 	return( 0 );
 }
 
