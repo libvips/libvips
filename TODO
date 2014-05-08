@@ -1,9 +1,3 @@
-- try:
-
-	vips colourspace 16bit.tif 8bit.tif sRGB
-
-  to convert a RGB16 image to a sRGB one ... you get RGB in 8bit.tif, but it's
-  still 16-bit
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 

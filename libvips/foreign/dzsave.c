@@ -39,6 +39,9 @@
  * 18/4/14
  * 	- use libgsf for output so we can write to .zip etc. as well as the
  * 	  filesystem
+ * 8/5/14
+ * 	- set Type on strips so we can convert for save correctly, thanks
+ * 	  philipgiuliani
  */
 
 /*
@@ -859,6 +862,10 @@ strip_init( Strip *strip, Layer *layer )
 		strip_free( strip );
 		return;
 	}
+
+	/* Type needs to be set so we know how to convert for save correctly.
+	 */
+	strip->image->Type = layer->image->Type;
 }
 
 static int
