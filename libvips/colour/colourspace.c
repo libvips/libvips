@@ -10,6 +10,8 @@
  * 	- auto-decode RAD images
  * 3/2/14
  * 	- add "source_space", overrides source space guess
+ * 8/5/14
+ * 	- oops, don't treat RGB16 to sRGB
  */
 
 /*
@@ -366,14 +368,11 @@ vips_colourspace_issupported( const VipsImage *image )
 	VipsInterpretation interpretation;
 	int i;
 
-	/* Treat RGB and RGB16 as sRGB. If you want some other treatment,
+	/* Treat RGB as sRGB. If you want some other treatment,
 	 * you'll need to use the icc funcs.
-	 *
-	 * sRGB2XYZ can handle 8 and 16-bit images. 
 	 */
 	interpretation = vips_image_guess_interpretation( image );
-	if( interpretation == VIPS_INTERPRETATION_RGB || 
-		interpretation == VIPS_INTERPRETATION_RGB16 )
+	if( interpretation == VIPS_INTERPRETATION_RGB )
 		interpretation = VIPS_INTERPRETATION_sRGB;
 
 	for( i = 0; i < VIPS_NUMBER( vips_colour_routes ); i++ )
@@ -433,13 +432,10 @@ vips_colourspace_build( VipsObject *object )
 	else
 		interpretation = vips_image_guess_interpretation( x );
 
-	/* Treat RGB and RGB16 as sRGB. If you want some other treatment,
+	/* Treat RGB as sRGB. If you want some other treatment,
 	 * you'll need to use the icc funcs.
-	 *
-	 * sRGB2XYZ can handle 8 and 16-bit images. 
 	 */
-	if( interpretation == VIPS_INTERPRETATION_RGB || 
-		interpretation == VIPS_INTERPRETATION_RGB16 )
+	if( interpretation == VIPS_INTERPRETATION_RGB )
 		interpretation = VIPS_INTERPRETATION_sRGB;
 
 	/* No conversion necessary.
