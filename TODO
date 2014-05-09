@@ -1,11 +1,27 @@
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
+
+
+
 - why is cache in nip2 so slow? its awful
 
   investigate again
 
   is it using vips_sinkscreen()? should it use tilecache?
+
+  Cache calls cache in _stdenv.def
+
+  cache calls im_cache()
+
+  im_cache() calls vips_sink_screen()
+
+
+ 
+  im_tile_cache() calls vips_tilecache() 
+
+  add im_tile_cache to vips7 op db, try using it from nip2
+
 
 
 - test draw_mask on labq images
