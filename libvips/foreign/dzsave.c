@@ -114,10 +114,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <gsf/gsf.h>
-
 #include <vips/vips.h>
 #include <vips/internal.h>
+
+#ifdef HAVE_GSF
+
+#include <gsf/gsf.h>
 
 /* Round N down to P boundary. 
  */
@@ -129,7 +131,7 @@
 
 /* Simple wrapper around libgsf.
  *
- * We need to be able to do scattered writes to structred files. So while
+ * We need to be able to do scattered writes to structured files. So while
  * building a zip (for example) we need to be able to write to file/a/b.jpg,
  * then to file/c/d.jpg, then back to file/a/e.jpg. This is tricky with the
  * libgsf API which is happier doing writes in order.
@@ -1802,6 +1804,8 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_FS; 
 }
 
+#endif /*HAVE_GSF*/
+
 /**
  * vips_dzsave:
  * @in: image to save 
@@ -1857,4 +1861,3 @@ vips_dzsave( VipsImage *in, const char *name, ... )
 
 	return( result );
 }
-

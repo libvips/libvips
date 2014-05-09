@@ -314,8 +314,8 @@ AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 
 # have to have these
 # need glib 2.6 for GOption
-PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 libxml-2.0 gobject-2.0 libgsf-1)
-PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0 gmodule-2.0 gobject-2.0 libgsf-1"
+PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 libxml-2.0 gobject-2.0)
+PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0 gmodule-2.0 gobject-2.0"
 
 # after 2.28 we have a monotonic timer
 PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,[
@@ -349,6 +349,18 @@ PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,[
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
 # optional supporting libraries
+
+AC_ARG_WITH([gsf], 
+  AS_HELP_STRING([--without-gsf], [build without libgsf-1 (default: test)]))
+
+if test x"$with_gsf" != "xno"; then
+  PKG_CHECK_MODULES(GSF, libgsf-1,
+    [AC_DEFINE(HAVE_GSF,1,[define if you have libgsf-1 installed.])
+     with_gsf=yes
+     PACKAGES_USED="$PACKAGES_USED libgsf-1"],
+    [AC_MSG_WARN([libgsf-1 not found; disabling dzsave support]) 
+     with_gsf=no])
+fi
 
 AC_ARG_WITH([fftw], 
   AS_HELP_STRING([--without-fftw], [build without fftw (default: test)]))
@@ -770,5 +782,7 @@ file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
 file import/export with libtiff:	$with_tiff
 file import/export with libjpeg:	$with_jpeg
+image pyramid export:			$with_gsf
+  (requires libgsf-1)
 use libexif to load/save JPEG metadata: $with_libexif
 build Python binding: 			$with_python])

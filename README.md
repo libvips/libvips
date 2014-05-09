@@ -144,6 +144,10 @@ The IJG JPEG library.
 
 If available, libvips adds support for EXIF metadata in JPEG files.
 
+## libgsf-1
+
+If available, libvips adds support for creating image pyramids with dzsave. 
+
 ## libtiff
 
 The TIFF library. It needs to be built with support for JPEG and

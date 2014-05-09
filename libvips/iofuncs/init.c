@@ -76,7 +76,9 @@
 #include <limits.h>
 #include <string.h>
 
+#ifdef HAVE_GSF
 #include <gsf/gsf.h>
+#endif /*HAVE_GSF*/
 
 #include <vips/vips.h>
 #include <vips/thread.h>
@@ -307,9 +309,11 @@ vips__init( const char *argv0 )
 	 */
 	vips_vector_init();
 
+#ifdef HAVE_GSF
 	/* Use this for structured file write.
 	 */
 	gsf_init();
+#endif /*HAVE_GSF*/
 
 	/* Register vips_shutdown(). This may well not get called and many
 	 * platforms don't support it anyway.
@@ -436,7 +440,9 @@ vips_shutdown( void )
 
 	vips__thread_profile_stop();
 
+#ifdef HAVE_GSF
 	gsf_shutdown(); 
+#endif /*HAVE_GSF*/
 
 	/* In dev releases, always show leaks. But not more than once, it's
 	 * annoying.

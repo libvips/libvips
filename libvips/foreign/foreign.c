@@ -1702,7 +1702,10 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_raw_fd_get_type(); 
 	vips_foreign_load_vips_get_type(); 
 	vips_foreign_save_vips_get_type(); 
+
+#ifdef HAVE_GSF
 	vips_foreign_save_dz_get_type(); 
+#endif /*HAVE_GSF*/
 
 #ifdef HAVE_PNG
 	vips_foreign_load_png_get_type(); 
