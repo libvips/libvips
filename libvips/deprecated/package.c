@@ -497,26 +497,24 @@ static im_function cache_desc = {
 	cache_args 			/* Arg list */
 };
 
-/* Call im_tile_cache() via arg vector.
- */
 static int
-tile_cache_vec( im_object *argv )
+tile_cache_random_vec( im_object *argv )
 {
 	int tile_width = *((int *) argv[2]);
 	int tile_height = *((int *) argv[3]);
 	int max_tiles = *((int *) argv[4]);
 
-	return( im_tile_cache( argv[0], argv[1], 
+	return( im_tile_cache_random( argv[0], argv[1], 
 		tile_width, tile_height, max_tiles ) );
 }
 
 /* Description of im_cache.
  */ 
-static im_function tile_cache_desc = {
-	"im_tile_cache", 		/* Name */
+static im_function tile_cache_random_desc = {
+	"im_tile_cache_random",		/* Name */
 	"cache results of an operation",/* Description */
 	0,				/* Flags */
-	tile_cache_vec, 		/* Dispatch function */
+	tile_cache_random_vec, 		/* Dispatch function */
 	VIPS_NUMBER( cache_args ), 	/* Size of arg list */
 	cache_args 			/* Arg list */
 };
@@ -570,7 +568,7 @@ static im_function binfile_desc = {
 static im_function *iofuncs_list[] = {
 	&binfile_desc,
 	&cache_desc,
-	&tile_cache_desc,
+	&tile_cache_random_desc,
 	&concurrency_get_desc,
 	&getext_desc,
 	&guess_prefix_desc,

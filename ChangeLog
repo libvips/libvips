@@ -30,6 +30,7 @@
 - added @container option to dzsave 
 - support 1/2/4 bit palette tiff images with alpha
 - vips_system() now uses g_spawn_command_line_sync()
+- added im_tile_cache_random() to help nip2
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

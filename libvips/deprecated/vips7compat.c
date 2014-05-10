@@ -4450,6 +4450,34 @@ im_tile_cache( IMAGE *in, IMAGE *out,
 	return( 0 );
 }
 
+/* This is the one used by nip2's menu for caching images. Random access and
+ * persistent. 
+ */
+int
+im_tile_cache_random( IMAGE *in, IMAGE *out,
+	int tile_width, int tile_height, int max_tiles )
+{
+	VipsImage *x;
+
+	if( vips_tilecache( in, &x, 
+		"tile_width", tile_width, 
+		"tile_height", tile_height, 
+		"max_tiles", max_tiles, 
+		"access", VIPS_ACCESS_RANDOM,
+		"persistent", TRUE,
+		"threaded", TRUE, 
+		NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
 static int 
 im__affinei( VipsImage *in, VipsImage *out, 
 	VipsInterpolate *interpolate, VipsTransformation *trn )
