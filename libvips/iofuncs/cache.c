@@ -688,8 +688,6 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	vips_object_print_dump( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
 
-	vips_cache_trim();
-
 	g_mutex_lock( vips_cache_lock );
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
@@ -735,6 +733,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 		g_mutex_unlock( vips_cache_lock );
 	}
 
+	vips_cache_trim();
 
 	return( 0 );
 }
