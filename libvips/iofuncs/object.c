@@ -2548,6 +2548,8 @@ vips_type_find( const char *basename, const char *nickname )
 {
 	static GOnce once = G_ONCE_INIT;
 
+	const char *classname = basename ? basename : "VipsObject";
+
 	GType base;
 	GType type;
 
@@ -2560,7 +2562,7 @@ vips_type_find( const char *basename, const char *nickname )
 	/* We must only search below basename ... check that the cache hit is
 	 * in the right part of the tree.
 	 */
-	if( !(base = g_type_from_name( basename )) )
+	if( !(base = g_type_from_name( classname )) )
 		return( 0 );
 	if( !type ||
 		type == -1 ||
