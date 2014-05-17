@@ -256,6 +256,9 @@ public:
 	const char *filename();
 	const char *Hist();
 
+	// need the hough circle stuff for the rode python GUI
+	VImage hough_circle( int scale, int min_radius, int max_radius ) throw( VError );
+
 	// metadata
 #ifndef SWIG
 	// base functionality

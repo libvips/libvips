@@ -329,6 +329,29 @@ int VImage::Yoffset() { return( _ref->im->Yoffset ); }
 const char *VImage::filename() { return( _ref->im->filename ); }
 const char *VImage::Hist() { return( im_history_get( _ref->im ) ); }
 
+VImage VImage::hough_circle( int scale, int min_radius, int max_radius ) 
+	throw( VError )
+{
+	VImage in = *this;
+	VipsImage *x;
+	VImage out;
+
+	if( vips_hough_circle( in.image(), &x,
+		"scale", scale,
+		"min_radius", min_radius,
+		"max_radius", max_radius,
+		NULL ) )
+		verror();
+
+	if( vips_image_write( x, out.image() ) ) {
+		g_object_unref( x );
+		verror();
+	}
+	g_object_unref( x );
+
+	return( out );
+}
+
 // metadata
 
 // base functionality
