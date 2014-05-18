@@ -117,7 +117,8 @@ rfwfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 	 */
 	t[1] = vips_image_new_buffer();
 	if( vips_cast_double( in, &t[0], NULL ) ||
-		vips_image_write( t[0], t[1] ) ); 
+		vips_image_write( t[0], t[1] ) )
+		return( -1 ); 
 
 	/* Make the plan for the transform. Yes, they really do use nx for
 	 * height and ny for width. Use a separate scratch buffer for the
@@ -231,7 +232,8 @@ cfwfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 	 */
 	t[1] = vips_image_new_buffer();
 	if( vips_cast_dpcomplex( in, &t[0], NULL ) ||
-		vips_image_write( t[0], t[1] ) ); 
+		vips_image_write( t[0], t[1] ) )
+		return( -1 ); 
 
 	/* We have to have a separate buffer for the planner to work on.
 	 */

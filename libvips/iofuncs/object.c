@@ -1762,7 +1762,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 			return( -1 );
 		}
 
-		if( sscanf( value, "%Ld", &l ) != 1 ) {
+		if( sscanf( value, "%lld", &l ) != 1 ) {
 			vips_error( class->nickname,
 				_( "'%s' is not an integer" ), value );
 			return( -1 );
