@@ -1002,8 +1002,6 @@ int im_zerox( VipsImage *in, VipsImage *out, int sign );
 int im_draw_circle( VipsImage *image, 
 	int x, int y, int radius, gboolean fill, VipsPel *ink );
 
-typedef int (*VipsPlotFn)( VipsImage *, int, int, void *, void *, void * ); 
-
 int im_draw_mask( VipsImage *image, 
 	VipsImage *mask_im, int x, int y, VipsPel *ink );
 int im_draw_image( VipsImage *image, VipsImage *sub, int x, int y );
