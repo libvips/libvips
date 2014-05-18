@@ -97,8 +97,7 @@ vips_scale_build( VipsObject *object )
 	if( mn == mx ) {
 		/* Range of zero: just return black.
 		 */
-		if( vips_black( &t[1], 
-			scale->in->Xsize, scale->in->Ysize, scale->in->Bands,
+		if( vips_black( &t[1], scale->in->Xsize, scale->in->Ysize, 
 			NULL ) ||
 			vips_image_write( t[1], conversion->out ) )
 			return( -1 );
