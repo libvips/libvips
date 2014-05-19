@@ -104,20 +104,7 @@ vips_measure_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_measure_parent_class )->build( object ) )
 		return( -1 );
 
-	/* We can't use vips_image_decode(), we want Lab, not LabS.
-	 */
-	if( measure->in->Coding == VIPS_CODING_LABQ ) {
-		if( vips_LabQ2Lab( measure->in, &ready, NULL ) )
-			return( -1 );
-	} 
-	else if( measure->in->Coding == VIPS_CODING_RAD ) {
-		if( vips_rad2float( measure->in, &ready, NULL ) )
-			return( -1 );
-	}
-	else {
-		if( vips_copy( measure->in, &ready, NULL ) )
-			return( -1 );
-	}
+	vips_image_decode( measure->in, &ready );
 	vips_object_local( measure, ready ); 
 
 	bands = vips_image_get_bands( ready );

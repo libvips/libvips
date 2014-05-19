@@ -2005,7 +2005,10 @@ vips_image_write_to_file( VipsImage *image, const char *filename )
  * A convenience function to unpack to a format that we can compute with. 
  * @out->Coding is always VIPS_CODING_NONE. 
  *
- * See also: vips_image_encode(), vips_LabQ2LabS(), vips_rad2float(). 
+ * This unpacks LABQ to plain LAB. Use vips_LabQ2LabS() for a bit more speed
+ * if you need it. 
+ *
+ * See also: vips_image_encode(), vips_LabQ2Lab(), vips_rad2float(). 
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -2015,7 +2018,7 @@ vips_image_decode( VipsImage *in, VipsImage **out )
 	/* Keep in sync with vips__vector_to_ink().
 	 */
 	if( in->Coding == VIPS_CODING_LABQ ) {
-		if( vips_LabQ2LabS( in, out, NULL ) )
+		if( vips_LabQ2Lab( in, out, NULL ) )
 			return( -1 );
 	} 
 	else if( in->Coding == VIPS_CODING_RAD ) {
@@ -2050,7 +2053,7 @@ vips_image_decode_predict( VipsImage *im,
 
 	if( im->Coding == VIPS_CODING_LABQ ) {
 		bands = 3;
-		format = VIPS_FORMAT_SHORT;
+		format = VIPS_FORMAT_FLOAT;
 	}
 	else if( im->Coding == VIPS_CODING_RAD ) {
 		bands = 3;
@@ -2086,7 +2089,7 @@ int
 vips_image_encode( VipsImage *in, VipsImage **out, VipsCoding coding )
 {
 	if( coding == VIPS_CODING_LABQ ) {
-		if( vips_LabS2LabQ( in, out, NULL ) )
+		if( vips_Lab2LabQ( in, out, NULL ) )
 			return( -1 );
 	} 
 	else if( coding == VIPS_CODING_RAD ) {
