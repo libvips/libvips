@@ -430,6 +430,8 @@ VipsImage *vips_image_new_temp_file( const char *format );
 int vips_image_write( VipsImage *image, VipsImage *out );
 int vips_image_write_to_file( VipsImage *image, const char *filename );
 
+int vips_image_decode_predict( VipsImage *im, 
+	int *bands, VipsBandFormat *format );
 int vips_image_decode( VipsImage *in, VipsImage **out );
 int vips_image_encode( VipsImage *in, VipsImage **out, VipsCoding coding );
 

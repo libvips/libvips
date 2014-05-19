@@ -125,18 +125,7 @@ vips_linear_build( VipsObject *object )
 	int bands;
 	int i;
 
-	/* How many bands will our input image have after decoding?
-	 */
-	switch( unary->in->Coding ) {
-	case VIPS_CODING_RAD:
-	case VIPS_CODING_LABQ:
-		bands = 3;
-		break;
-
-	default:
-		bands = unary->in->Bands;
-		break;
-	}
+	vips_image_decode_predict( unary->in, &bands, NULL ); 
 
 	/* If we have a three-element vector we need to bandup the image to
 	 * match.

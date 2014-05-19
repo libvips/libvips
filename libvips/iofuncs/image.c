@@ -2031,6 +2031,45 @@ vips_image_decode( VipsImage *in, VipsImage **out )
 }
 
 /**
+ * vips_image_decode_predict:
+ * @in: image to decode
+ * @bands: predict bands here
+ * @format: predict format here
+ *
+ * We often need to know what an image will decode to without actuaklly
+ * decoding it, for example, in arg checking.
+ *
+ * See also: vips_image_decode().
+ */
+int
+vips_image_decode_predict( VipsImage *im, 
+	int *out_bands, VipsBandFormat *out_format )
+{
+	VipsBandFormat format;
+	int bands; 
+
+	if( im->Coding == VIPS_CODING_LABQ ) {
+		bands = 3;
+		format = VIPS_FORMAT_SHORT;
+	}
+	else if( im->Coding == VIPS_CODING_RAD ) {
+		bands = 3;
+		format = VIPS_FORMAT_FLOAT;
+	}
+	else {
+		bands = im->Bands;
+		format = im->BandFmt;
+	}
+
+	if( out_bands )
+		*out_bands = bands;
+	if( out_format )
+		*out_format = format;
+
+	return( 0 );
+}
+
+/**
  * vips_image_encode:
  * @in: image to encode
  * @out: write to this image

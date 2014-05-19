@@ -440,8 +440,8 @@ png2vips_generate( VipsRegion *or,
 	int y;
 
 #ifdef DEBUG
-	printf( "png2vips_generate: line %d, %d rows\n", 
-		r->top, r->height );
+	printf( "png2vips_generate: line %d, %d rows\n", r->top, r->height );
+	printf( "png2vips_generate: y_top = %d\n", read->y_pos );
 #endif /*DEBUG*/
 
 	/* We're inside a tilecache where tiles are the full image width, so

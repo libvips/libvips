@@ -371,18 +371,22 @@ vips_extract_band_build( VipsObject *object )
 	VipsExtractBand *extract = (VipsExtractBand *) object;
 
 	if( extract->in ) {
+		int bands; 
+
+		vips_image_decode_predict( extract->in, &bands, NULL );
+
 		bandary->n = 1;
 		bandary->in = &extract->in;
 		bandary->out_bands = extract->n;
 
-		if( extract->band + extract->n > extract->in->Bands ) {
+		if( extract->band + extract->n > bands ) {
 			vips_error( class->nickname, 
 				"%s", _( "bad extract band" ) );
 			return( -1 );
 		}
 
-		if( extract->band == 0 &&
-			extract->n == extract->in->Bands ) 
+		if( extract->band == 0 && 
+			extract->n == bands ) 
 			return( vips_bandary_copy( bandary ) );
 	}
 

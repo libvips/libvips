@@ -1,5 +1,7 @@
 # libvips : an image processing library
 
+[![Build Status](https://secure.travis-ci.org/jcupitt/libvips.png)](http://travis-ci.org/jcupitt/libvips)
+
 libvips is a 2D image processing library. Compared to similar libraries, 
 [libvips runs quickly and uses little
 memory](http://www.vips.ecs.soton.ac.uk/index.php?title=Speed_and_Memory_Use).

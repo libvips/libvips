@@ -232,24 +232,7 @@ vips__vector_to_ink( const char *domain,
 	printf( "vips__vector_to_ink: starting\n" );
 #endif /*VIPS_DEBUG*/
 
-	/* We need to know the bands and format we are matching to. But im may
-	 * be coded, so simulate decoding. We can't call vips_image_decode()
-	 * on im, since vips__vector_to_ink() needs to be able to work during
-	 * im's construction and im may not be ready yet.
-	 */
-	if( im->Coding == VIPS_CODING_LABQ ) {
-		bands = 3;
-		format = VIPS_FORMAT_SHORT;
-	}
-	else if( im->Coding == VIPS_CODING_RAD ) {
-		bands = 3;
-		format = VIPS_FORMAT_FLOAT;
-	}
-	else {
-		bands = im->Bands;
-		format = im->BandFmt;
-	}
-
+	vips_image_decode_predict( im, &bands, &format );
 	ones = VIPS_ARRAY( im, n, double );
 	for( i = 0; i < n; i++ )
 		ones[i] = 1.0;

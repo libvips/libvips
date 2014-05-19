@@ -21,6 +21,8 @@
  * 	- changes for im_extract() broke averaging
  * 9/11/11
  * 	- redo as a class
+ * 19/5/14
+ * 	- add auto-unpack
  */
 
 /*
@@ -91,6 +93,7 @@ vips_measure_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsMeasure *measure = (VipsMeasure *) object;
 
+	VipsImage *ready;
 	int bands;
 	double pw;
 	double ph;
@@ -101,7 +104,23 @@ vips_measure_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_measure_parent_class )->build( object ) )
 		return( -1 );
 
-	bands = vips_image_get_bands( measure->in );
+	/* We can't use vips_image_decode(), we want Lab, not LabS.
+	 */
+	if( measure->in->Coding == VIPS_CODING_LABQ ) {
+		if( vips_LabQ2Lab( measure->in, &ready, NULL ) )
+			return( -1 );
+	} 
+	else if( measure->in->Coding == VIPS_CODING_RAD ) {
+		if( vips_rad2float( measure->in, &ready, NULL ) )
+			return( -1 );
+	}
+	else {
+		if( vips_copy( measure->in, &ready, NULL ) )
+			return( -1 );
+	}
+	vips_object_local( measure, ready ); 
+
+	bands = vips_image_get_bands( ready );
 
 	g_object_set( object, 
 		"out", vips_image_new_matrix( bands, measure->h * measure->v ),
@@ -111,11 +130,11 @@ vips_measure_build( VipsObject *object )
 	 */
 	if( !vips_object_argument_isset( object, "width" ) )
 		g_object_set( object, 
-			"width", vips_image_get_width( measure->in ),
+			"width", vips_image_get_width( ready ),
 			NULL );
 	if( !vips_object_argument_isset( object, "height" ) )
 		g_object_set( object, 
-			"height", vips_image_get_height( measure->in ),
+			"height", vips_image_get_height( ready ),
 			NULL );
 
 	/* How large are the patches we are to measure?
@@ -141,7 +160,7 @@ vips_measure_build( VipsObject *object )
 
 				/* Extract and measure.
 				 */
-				if( vips_extract_area( measure->in, &t[0], 
+				if( vips_extract_area( ready, &t[0], 
 						x, y, w, h, NULL ) ||
 					vips_extract_band( t[0], &t[1], 
 						b, NULL ) ||
