@@ -862,14 +862,22 @@ vips_complexform_buffer( VipsArithmetic *arithmetic,
 	 * below.
          */
         switch( vips_image_get_format( im ) ) {
-        case VIPS_FORMAT_CHAR: 	CFORM( signed char, float ); break; 
-        case VIPS_FORMAT_UCHAR:	CFORM( unsigned char, float ); break; 
-        case VIPS_FORMAT_SHORT:	CFORM( signed short, float ); break; 
-        case VIPS_FORMAT_USHORT:CFORM( unsigned short, float ); break; 
-        case VIPS_FORMAT_INT: 	CFORM( signed int, float ); break; 
-        case VIPS_FORMAT_UINT: 	CFORM( unsigned int, float ); break; 
-        case VIPS_FORMAT_FLOAT:	CFORM( float, float ); break; 
-        case VIPS_FORMAT_DOUBLE: CFORM( double, double ); break;
+        case VIPS_FORMAT_UCHAR:	
+		CFORM( unsigned char, float ); break; 
+        case VIPS_FORMAT_CHAR: 	
+		CFORM( signed char, float ); break; 
+        case VIPS_FORMAT_USHORT:
+		CFORM( unsigned short, float ); break; 
+        case VIPS_FORMAT_SHORT:	
+		CFORM( signed short, float ); break; 
+        case VIPS_FORMAT_UINT: 	
+		CFORM( unsigned int, float ); break; 
+        case VIPS_FORMAT_INT: 	
+		CFORM( signed int, float ); break; 
+        case VIPS_FORMAT_FLOAT:	
+		CFORM( float, float ); break; 
+        case VIPS_FORMAT_DOUBLE: 
+		CFORM( double, double ); break;
 
         default:
 		g_assert( 0 );
@@ -889,7 +897,7 @@ vips_complexform_buffer( VipsArithmetic *arithmetic,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Type promotion for division. Sign and value preserving. Make sure 
+/* Type promotion for form complex. Sign and value preserving. Make sure 
  * these match the case statement in complexform_buffer() above.
  */
 static int vips_complexform_format_table[10] = {

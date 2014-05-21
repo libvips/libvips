@@ -1,14 +1,3 @@
-- should we decode to LAB, rather than LABS, by default?
-
-  causing all sorts of problems 
-
-- have a decode-to-float flag?
-
-- when do we want LABS? for speed in conv ... have a special unpacker there?
-
-  any time we won't be breaking bands apart or using a constant, I guess?
-
-- change measure to use the regular decoder
 
 
 - quickly wrap the useful bits of mosaicing/

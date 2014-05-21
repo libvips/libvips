@@ -529,6 +529,33 @@ static int bandfmt_maplut[10] = {
 		} \
 }
 
+#define PACK_TABLEC( TYPE ) { \
+	TYPE *data = (TYPE *) lut->data; \
+	int x, b; \
+	\
+	for( x = 0; x < maplut->sz; x++ ) \
+		for( b = 0; b < maplut->nb; b++ ) { \
+			TYPE *q = (TYPE *) maplut->table[b];  \
+			\
+			if( maplut->band >= 0 && \
+				lut->Bands == 1 ) { \
+				if( b == maplut->band ) { \
+					q[2 * x] = data[2 * x]; \
+					q[2 * x + 1] = data[2 * x + 1]; \
+				} \
+				else { \
+					q[2 * x] = x; \
+					q[2 * x + 1] = 0; \
+				} \
+			} \
+			else { \
+				q[2 * x] = data[2 * (x * lut->Bands + b)]; \
+				q[2 * x + 1] = \
+					data[2 * (x * lut->Bands + b) + 1]; \
+			} \
+		} \
+}
+
 static int
 vips_maplut_build( VipsObject *object )
 {
@@ -614,29 +641,7 @@ vips_maplut_build( VipsObject *object )
 	case VIPS_FORMAT_CHAR:
 		PACK_TABLE( char ); break; 
 	case VIPS_FORMAT_USHORT: 
-
-{ 
-	unsigned short *data = (unsigned short *) lut->data; 
-	int x, b; 
-	
-	for( x = 0; x < maplut->sz; x++ ) 
-		for( b = 0; b < maplut->nb; b++ ) { 
-			unsigned short *q = (unsigned short *) maplut->table[b];  
-			
-			if( maplut->band >= 0 && 
-				lut->Bands == 1 ) { 
-				if( b == maplut->band ) 
-					q[x] = data[x]; 
-				else 
-					q[x] = x; 
-			} 
-			else 
-				q[x] = data[x * lut->Bands + b]; 
-		} 
-}
-
-		//PACK_TABLE( unsigned short ); break; 
-		break;
+		PACK_TABLE( unsigned short ); break; 
 	case VIPS_FORMAT_SHORT: 
 		PACK_TABLE( short ); break; 
 	case VIPS_FORMAT_UINT: 
@@ -648,9 +653,9 @@ vips_maplut_build( VipsObject *object )
 	case VIPS_FORMAT_DOUBLE: 
 		PACK_TABLE( double ); break; 
 	case VIPS_FORMAT_COMPLEX: 
-		PACK_TABLE( float ); break; 
+		PACK_TABLEC( float ); break; 
 	case VIPS_FORMAT_DPCOMPLEX: 
-		PACK_TABLE( double ); break; 
+		PACK_TABLEC( double ); break; 
 	default: 
 		g_assert( 0 ); 
 	}
