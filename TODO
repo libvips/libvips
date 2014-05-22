@@ -1,3 +1,24 @@
+- fix vipsthumbnail Chicago.png, again
+
+	 $ vipsthumbnail Chicago.png 
+	 vips_shrink_build: shrinking 29257 x 4196 image to 128 x 18
+	 vips_shrink_build: 228 x 228 block average
+	 vips_shrink_gen: generating 128 x 10 at 0 x 0
+	 shrink_gen: requesting 29184 x 228 at 0 x 0
+	 vips_shrink_gen: generating 128 x 8 at 0 x 10
+1	 shrink_gen: requesting 29184 x 228 at 0 x 2280
+	 shrink_gen: requesting 29184 x 228 at 0 x 228
+	 shrink_gen: requesting 29184 x 228 at 0 x 456
+	 shrink_gen: requesting 29184 x 228 at 0 x 684
+	 shrink_gen: requesting 29184 x 228 at 0 x 912
+	 shrink_gen: requesting 29184 x 228 at 0 x 1140
+	 ** VIPS:ERROR:vipspng.c:462:png2vips_generate: assertion failed: (r->top == read->y_pos)
+
+  why does line 1 ask for a block so far down?
+
+
+
+
 
 
 - quickly wrap the useful bits of mosaicing/
@@ -14,8 +35,6 @@
   others:
 
 	im__find_*overlap()
-
-- fix vipsthumbnail Chicago.png, again
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 

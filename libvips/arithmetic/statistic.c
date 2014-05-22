@@ -73,7 +73,7 @@ vips_statistic_scan( VipsRegion *region,
 	VipsStatisticClass *class = VIPS_STATISTIC_GET_CLASS( statistic );
 
 	VipsRect *r = &region->valid;
-	int lsk = IM_REGION_LSKIP( region );
+	int lsk = VIPS_REGION_LSKIP( region );
 
 	int y;
 	VipsPel *p;

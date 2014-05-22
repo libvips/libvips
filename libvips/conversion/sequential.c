@@ -68,12 +68,14 @@
 
 #include "pconversion.h"
 
-/* Stall threads that run ahead for up to this long, in seconds.
+/* Stall threads that run ahead for up to this long, in seconds. Normally they
+ * will be woken up long before this, once their data is ready. The timeout is
+ * just to prevent a total crash in the case of accidental deadlock. 
  *
  * This has to be a long time: if we're trying to use all cores on a busy 
  * system, it could be ages until all the other threads get a chance to run. 
  */
-#define STALL_TIME (1.0)
+#define STALL_TIME (60.0)
 
 typedef struct _VipsSequential {
 	VipsConversion parent_instance;
