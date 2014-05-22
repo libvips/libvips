@@ -1088,43 +1088,6 @@ im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 	return ( 0 );
 }
 
-/**
- * im_lrmerge:
- * @ref: reference image
- * @sec: secondary image
- * @out: output image
- * @dx: displacement of ref from sec
- * @dy: displacement of ref from sec
- * @mwidth: maximum seam width
- *
- * This operation joins two images left-right (with @ref on the left) with a 
- * smooth seam.
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
- *
- * @dx and @dy give the displacement of @sec relative to @ref, in other words,
- * the vector to get from the origin of @sec to the origin of @ref, in other
- * words, @dx will generally be a negative number. 
- *
- * @mwidth limits  the  maximum width of the
- * blend area.  A value of "-1" means "unlimited". The two images are blended 
- * with a raised cosine. 
- *
- * Pixels with all bands equal to zero are "transparent", that
- * is, zero pixels in the overlap area do not  contribute  to  the  merge.
- * This makes it possible to join non-rectangular images.
- *
- * See also: im_lrmosaic(), im_tbmerge(), im_match_linear(), im_insert().
- *
- * Returns: 0 on success, -1 on error
- */
 int
 im_lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 { 

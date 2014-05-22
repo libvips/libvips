@@ -41,6 +41,9 @@ extern "C" {
 int vips_merge( VipsImage *ref, VipsImage *sec, VipsImage **out, 
 	VipsDirection direction, int dx, int dy, ... )
 	__attribute__((sentinel));
+int vips_mosaic( VipsImage *ref, VipsImage *sec, VipsImage **out, 
+	VipsDirection direction, int xref, int yref, int xsec, int ysec, ... )
+	__attribute__((sentinel));
 
 
 

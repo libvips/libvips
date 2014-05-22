@@ -238,58 +238,6 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	return( 0 );
 }
 
-/**
- * im_lrmosaic:
- * @ref: reference image
- * @sec: secondary image
- * @out: output image
- * @bandno: band to search for features
- * @xref: position in reference image
- * @yref: position in reference image
- * @xsec: position in secondary image
- * @ysec: position in secondary image
- * @hwindowsize: half window size
- * @hsearchsize: half search size 
- * @balancetype: no longer used
- * @mwidth: maximum blend width
- *
- * This operation joins two images left-right (with @ref on the left) 
- * given an approximate overlap.
- *
- * @sec is positioned so that the pixel (@xsec, @ysec) lies on top of the
- * pixel in @ref at (@xref, @yref). The overlap area is divided into three
- * sections, 20 high-contrast points in band @bandno of image @ref are found 
- * in each, and each high-contrast point is searched for in @sec using
- * @hwindowsize and @hsearchsize (see im_correl()). 
- *
- * A linear model is fitted to the 60 tie-points, points a long way from the
- * fit are discarded, and the model refitted until either too few points
- * remain or the model reaches good agreement. 
- *
- * The detected displacement is used with im_lrmerge() to join the two images
- * together. 
- *
- * @mwidth limits  the  maximum width of the
- * blend area.  A value of "-1" means "unlimited". The two images are blended 
- * with a raised cosine. 
- *
- * Pixels with all bands equal to zero are "transparent", that
- * is, zero pixels in the overlap area do not  contribute  to  the  merge.
- * This makes it possible to join non-rectangular images.
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
- *
- * See also: im_lrmerge(), im_tbmosaic(), im_insert(), im_global_balance().
- *
- * Returns: 0 on success, -1 on error
- */
 int 
 im_lrmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out, 
 	int bandno, 

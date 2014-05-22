@@ -1,8 +1,9 @@
 noinst_LTLIBRARIES = libmosaicing.la
 
 libmosaicing_la_SOURCES = \
-	merge.c \
 	mosaicing.c \
+	merge.c \
+	mosaic.c \
 	\
 	im_align_bands.c \
 	match.c \

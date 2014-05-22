@@ -82,6 +82,7 @@ vips_merge_build( VipsObject *object )
 	case VIPS_DIRECTION_VERTICAL:
 		if( im_tbmerge( merge->ref, merge->sec, merge->out, 
 			merge->dx, merge->dy, merge->mblend ) )
+			return( -1 ); 
 		break;
 
 	default:
@@ -167,6 +168,8 @@ vips_merge_init( VipsMerge *merge )
  * @dx: displacement of ref from sec
  * @dy: displacement of ref from sec
  * @...: %NULL-terminated list of optional named arguments
+ * 
+ * Optional arguments:
  *
  * @mblend: maximum blend size 
  *
@@ -194,7 +197,7 @@ vips_merge_init( VipsMerge *merge )
  * is, zero pixels in the overlap area do not  contribute  to  the  merge.
  * This makes it possible to join non-rectangular images.
  *
- * See also: im_lrmosaic(), im_tbmerge(), im_match_linear(), im_insert().
+ * See also: vips_mosaic(), vips_insert().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -206,7 +209,8 @@ vips_merge( VipsImage *ref, VipsImage *sec, VipsImage **out,
 	int result;
 
 	va_start( ap, dy );
-	result = vips_call_split( "merge", ap, ref, sec, out, direction );
+	result = vips_call_split( "merge", ap, 
+		ref, sec, out, direction, dx, dy );
 	va_end( ap );
 
 	return( result );

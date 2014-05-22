@@ -4,7 +4,7 @@
   nip2 uses:
 
 	im_*merge()			done
-	im_*mosaic()
+	im_*mosaic()			done
 	im_global_balancef()
 	im_remosaic()
 	im_match_linear()

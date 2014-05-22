@@ -96,6 +96,8 @@ void
 vips_mosaicing_operation_init( void )
 {
 	extern int vips_merge_get_type( void ); 
+	extern int vips_mosaic_get_type( void ); 
 
 	vips_merge_get_type(); 
+	vips_mosaic_get_type(); 
 }
