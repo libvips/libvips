@@ -3,7 +3,7 @@
 
   nip2 uses:
 
-	im_*merge()
+	im_*merge()			done
 	im_*mosaic()
 	im_global_balancef()
 	im_remosaic()

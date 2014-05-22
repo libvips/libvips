@@ -33,6 +33,7 @@
 - added im_tile_cache_random() to help nip2
 - added hough_circle() to vips7 C++ API
 - added Travis CI config, thanks Lovell
+- im_*merge() redone as a class
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong
