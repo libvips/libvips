@@ -53,7 +53,7 @@
 #include <vips/vips.h>
 #include <vips/transform.h>
 
-#include "merge.h"
+#include "mosaic.h"
 #include "global_balance.h"
 
 typedef struct _RemosaicData {

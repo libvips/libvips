@@ -81,6 +81,8 @@
  * 24/1/11
  * 	- gtk-doc
  * 	- match formats and bands automatically
+ * 22/5/14
+ * 	- wrap as a class
  */
 
 /*
@@ -130,7 +132,7 @@
 #include <vips/transform.h>
 #include <vips/internal.h>
 
-#include "merge.h"
+#include "mosaic.h"
 
 /* Blend luts. Shared between all lr and tb blends.
  */

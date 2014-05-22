@@ -114,7 +114,7 @@
 #include <vips/transform.h>
 #include <vips/internal.h>
 
-#include "merge.h"
+#include "mosaic.h"
 
 /* Return the position of the first non-zero pel from the top.
  */

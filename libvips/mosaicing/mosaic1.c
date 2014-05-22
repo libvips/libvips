@@ -57,7 +57,6 @@
 #include <vips/transform.h>
 
 #include "mosaic.h"
-#include "merge.h"
 
 /*
 #define DEBUG

@@ -41,51 +41,7 @@
 #include <vips/internal.h>
 #include <vips/transform.h>
 
-#include "merge.h"
-
-/** 
- * SECTION: mosaicing
- * @short_description: build image mosaics
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These functions are useful for joining many small images together to make
- * one large image. They can cope with unstable contrast and arbitary sub-image
- * layout, but will not do any geometric correction. Geometric errors should
- * be removed before using these functions.
- *
- * The mosaicing functions can be grouped into layers:
- *
- * The lowest level functions are im_correl(), im_lrmerge() and im_tbmerge().
- * im_correl() 
- * searches a large image for a small sub-image, returning
- * the position of the best sub-image match. im_lrmerge() and im_tbmerge() 
- * join two images together
- * left-right or up-down with a smooth seam.
- *
- * Next, im_lrmosaic() and im_tbmosaic() use the
- * search function plus the two low-level merge operations to join two images 
- * given just an approximate overlap as a start point. 
- *
- * The functions im_lrmosaic1() and im_tbmosaic1() are
- * first-order
- * analogues of the basic mosaic functions: they take two approximate 
- * tie-points and use
- * them to rotate and scale the right-hand or bottom image before starting to
- * join.
- *
- * Finally, im_global_balance() can be used to remove contrast differences in 
- * a mosaic
- * which has been assembled with these functions. It takes the mosaic apart,
- * measures image contrast differences along the seams, finds a set of
- * correction factors which will minimise these differences, and reassembles
- * the mosaic.
- * im_remosaic() uses the
- * same
- * techniques, but will reassemble the image from a different set of source
- * images.
- *
- */
+#include "mosaic.h"
 
 /* Merge args.
  */

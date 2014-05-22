@@ -38,6 +38,15 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+int vips_merge( VipsImage *ref, VipsImage *sec, VipsImage **out, 
+	VipsDirection direction, int dx, int dy, ... )
+	__attribute__((sentinel));
+
+
+
+
+
+
 #include <vips/vips.h>
 
 int im_match_linear( VipsImage *ref, VipsImage *sec, VipsImage *out,
