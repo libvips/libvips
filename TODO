@@ -10,10 +10,6 @@
 	im_match_linear()
 	im_match_linear_search()
 
-  others:
-
-	im__find_*overlap()
-
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
 

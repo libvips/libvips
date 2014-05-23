@@ -45,6 +45,8 @@
 
 #include <vips/vips.h>
 
+#include "mosaic.h"
+
 typedef struct {
 	VipsOperation parent_instance;
 
@@ -60,6 +62,12 @@ typedef struct {
 	int bandno;
 	int hwindow;
 	int harea;
+	int dx0;
+	int dy0;
+	double scale1;
+	double angle1;
+	double dx1;
+	double dy1;
 
 } VipsMosaic;
 
@@ -72,37 +80,76 @@ vips_mosaic_build( VipsObject *object )
 {
 	VipsMosaic *mosaic = (VipsMosaic *) object;
 
+	VipsImage *x;
+	int dx0;
+	int dy0;
+	double scale1;
+	double angle1;
+	double dx1;
+	double dy1;
+
 	g_object_set( mosaic, "out", vips_image_new(), NULL ); 
 
 	if( VIPS_OBJECT_CLASS( vips_mosaic_parent_class )->build( object ) )
 		return( -1 );
 
+	/* A placeholder used to ensure that memory used by the analysis 
+	 * phase is freed as soon as possible.
+	 */
+	x = vips_image_new(); 
+
 	switch( mosaic->direction ) { 
 	case VIPS_DIRECTION_HORIZONTAL:
-		if( im_lrmosaic( mosaic->ref, mosaic->sec, mosaic->out, 
-			mosaic->bandno,
-			mosaic->xref, mosaic->yref, 
-			mosaic->xsec, mosaic->ysec, 
+		if( im__find_lroverlap( mosaic->ref, mosaic->sec, x,
+			mosaic->bandno, 
+			mosaic->xref, mosaic->yref, mosaic->xsec, mosaic->ysec,
 			mosaic->hwindow, mosaic->harea, 
-			0,
-			mosaic->mblend ) )
-			return( -1 ); 
+			&dx0, &dy0,
+			&scale1, &angle1, 
+			&dx1, &dy1 ) ) {
+			g_object_unref( x );
+			return( -1 );
+		}
+		g_object_unref( x );
 		break;
 
 	case VIPS_DIRECTION_VERTICAL:
-		if( im_tbmosaic( mosaic->ref, mosaic->sec, mosaic->out, 
-			mosaic->bandno,
-			mosaic->xref, mosaic->yref, 
-			mosaic->xsec, mosaic->ysec, 
+		if( im__find_tboverlap( mosaic->ref, mosaic->sec, x,
+			mosaic->bandno, 
+			mosaic->xref, mosaic->yref, mosaic->xsec, mosaic->ysec,
 			mosaic->hwindow, mosaic->harea, 
-			0,
-			mosaic->mblend ) )
-			return( -1 ); 
+			&dx0, &dy0,
+			&scale1, &angle1, 
+			&dx1, &dy1 ) ) {
+			g_object_unref( x );
+			return( -1 );
+		}
+		g_object_unref( x );
 		break;
 
 	default:
 		g_assert( 0 );
 	}
+
+	g_object_set( mosaic, 
+		"dx0", dx0, 
+		"dy0", dy0,
+		"scale1", scale1, 
+		"angle1", angle1, 
+		"dx1", dx1, 
+		"dy1", dy1,
+		NULL ); 
+
+	if( vips_merge( mosaic->ref, mosaic->sec, &x, 
+		mosaic->direction, mosaic->dx0, mosaic->dy0, 
+		"mblend", mosaic->mblend,
+		NULL ) )
+		return( -1 );
+	if( vips_image_write( x, mosaic->out ) ) {
+		g_object_unref( x ); 
+		return( -1 ); 
+	}
+	g_object_unref( x ); 
 
 	return( 0 );
 }
@@ -201,6 +248,48 @@ vips_mosaic_class_init( VipsMosaicClass *class )
 		G_STRUCT_OFFSET( VipsMosaic, bandno ),
 		0, 10000, 0 );
 
+	VIPS_ARG_INT( class, "dx0", 13, 
+		_( "Integer offset" ), 
+		_( "Detected integer offset" ), 
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsMosaic, dx0 ),
+		-10000000, 10000000, 0 );
+
+	VIPS_ARG_INT( class, "dy0", 14, 
+		_( "Integer offset" ), 
+		_( "Detected integer offset" ), 
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsMosaic, dy0 ),
+		-10000000, 10000000, 0 );
+
+	VIPS_ARG_DOUBLE( class, "scale1", 15, 
+		_( "Scale" ), 
+		_( "Detected scale" ), 
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsMosaic, scale1 ),
+		-10000000.0, 10000000.0, 1.0 );
+
+	VIPS_ARG_DOUBLE( class, "angle1", 16, 
+		_( "Angle" ), 
+		_( "Detected rotation" ), 
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsMosaic, angle1 ),
+		-10000000.0, 10000000.0, 0.0 );
+
+	VIPS_ARG_DOUBLE( class, "dx1", 17, 
+		_( "First-order displacement" ), 
+		_( "Detected first-order displacement" ), 
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsMosaic, dx1 ),
+		-10000000.0, 10000000.0, 0.0 );
+
+	VIPS_ARG_DOUBLE( class, "dy1", 17, 
+		_( "First-order displacement" ), 
+		_( "Detected first-order displacement" ), 
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsMosaic, dy1 ),
+		-10000000.0, 10000000.0, 0.0 );
+
 }
 
 static void
@@ -209,6 +298,7 @@ vips_mosaic_init( VipsMosaic *mosaic )
 	mosaic->mblend = 10;
 	mosaic->hwindow = 5;
 	mosaic->harea = 15;
+	mosaic->scale1 = 1.0;
 }
 
 /**
