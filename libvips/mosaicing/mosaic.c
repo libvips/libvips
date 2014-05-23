@@ -208,14 +208,14 @@ vips_mosaic_class_init( VipsMosaicClass *class )
 
 	VIPS_ARG_INT( class, "xsec", 7, 
 		_( "xsec" ), 
-		_( "Position of reference tie-point" ),
+		_( "Position of secondary tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic, xsec ),
 		0, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "ysec", 8, 
 		_( "ysec" ), 
-		_( "Position of reference tie-point" ),
+		_( "Position of secondary tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic, ysec ),
 		0, 1000000000, 1 );
