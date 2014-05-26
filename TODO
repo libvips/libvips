@@ -1,5 +1,7 @@
 - test vips_match()
 
+  seems not to work? a coordinate is swapped somewhere
+
 - quickly wrap the useful bits of mosaicing/
 
   nip2 uses:

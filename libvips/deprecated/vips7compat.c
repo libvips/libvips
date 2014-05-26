@@ -5049,3 +5049,49 @@ im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 
 	return( 0 );
 }
+
+int
+im_match_linear_search( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int xr1, int yr1, int xs1, int ys1, 
+	int xr2, int yr2, int xs2, int ys2,
+	int hwindowsize, int hsearchsize )
+{
+	VipsImage *x;
+
+	if( vips_match( ref, sec, &x,
+		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
+		"search", TRUE,
+		"hwindow", hwindowsize,
+		"harea", hsearchsize,
+		NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
+im_match_linear( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int xr1, int yr1, int xs1, int ys1, 
+	int xr2, int yr2, int xs2, int ys2 )
+{ 
+	VipsImage *x;
+
+	if( vips_match( ref, sec, &x,
+		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
+		NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

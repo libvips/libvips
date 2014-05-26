@@ -90,57 +90,6 @@ im__coeff( int xr1, int yr1, int xs1, int ys1,
 	return( 0 );
 }
 
-int
-im_match_linear( IMAGE *ref, IMAGE *sec, IMAGE *out,
-	int xr1, int yr1, int xs1, int ys1, 
-	int xr2, int yr2, int xs2, int ys2 )
-{ 
-	double a, b, dx, dy;
-	int w, h, x, y;
-
-	/* Solve to get scale + rot + disp to obtain match.
-	 */
-	if( im__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
-		&a, &b, &dx, &dy ) )
-		return( -1 );
-
-	/* Output area of ref image.
-	 */
-	x = 0;
-	y = 0;
-	w = ref->Xsize;
-	h = ref->Ysize;
-
-	/* Transform image!
-	 */
-	if( im_affinei( sec, out, vips_interpolate_bilinear_static(), 
-		a, -b, b, a, dx, dy, x, y, w, h ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-int
-im_match_linear_search( IMAGE *ref, IMAGE *sec, IMAGE *out,
-	int xr1, int yr1, int xs1, int ys1, 
-	int xr2, int yr2, int xs2, int ys2,
-	int hwindowsize, int hsearchsize )
-{
-	int xs3, ys3;
-	int xs4, ys4;
-	double cor1, cor2;
-
-	if( im_correl( ref, sec, xr1, yr1, xs1, ys1,
-		hwindowsize, hsearchsize, &cor1, &xs3, &ys3 ) ||
-		im_correl( ref, sec, xr2, yr2, xs2, ys2,
-			hwindowsize, hsearchsize, &cor2, &xs4, &ys4 ) ||
-		im_match_linear( ref, sec, out, 
-			xr1, yr1, xs3, ys3, xr2, yr2, xs4, ys4 ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 typedef struct {
 	VipsOperation parent_instance;
 
@@ -158,6 +107,7 @@ typedef struct {
 	int hwindow;
 	int harea;
 	gboolean search;
+	VipsInterpolate *interpolate;
 
 } VipsMatch;
 
@@ -170,36 +120,59 @@ vips_match_build( VipsObject *object )
 {
 	VipsMatch *match = (VipsMatch *) object;
 
+	double a, b, dx, dy;
+	VipsImage *x;
+
 	g_object_set( match, "out", vips_image_new(), NULL ); 
 
 	if( VIPS_OBJECT_CLASS( vips_match_parent_class )->build( object ) )
 		return( -1 );
 
+	if( !match->interpolate )
+		match->interpolate = vips_interpolate_new( "bilinear" );
+
 	if( match->search ) {
-		int xs3, ys3;
-		int xs4, ys4;
-		double cor1, cor2;
+		int xs, ys;
+		double cor;
 
 		if( im_correl( match->ref, match->sec, 
 			match->xr1, match->yr1, match->xs1, match->ys1,
 			match->hwindow, match->harea, 
-			&cor1, &xs3, &ys3 ) )
+			&cor, &xs, &ys ) )
 			return( -1 ); 
+		match->xs1 = xs;
+		match->ys1 = ys;
+
 		if( im_correl( match->ref, match->sec, 
 			match->xr2, match->yr2, match->xs2, match->ys2,
 			match->hwindow, match->harea, 
-			&cor2, &xs4, &ys4 ) )
+			&cor, &xs, &ys ) )
 			return( -1 ); 
-		match->xs1 = xs3;
-		match->ys1 = ys3;
-		match->xs2 = xs4;
-		match->ys2 = ys4;
+
+		match->xs2 = xs;
+		match->ys2 = ys;
 	}
 
-	if( im_match_linear( match->ref, match->sec, match->out, 
-		match->xr1, match->yr1, match->xs1, match->ys1, 
-		match->xr2, match->yr2, match->xs2, match->ys2 ) )
+	/* Solve to get scale + rot + disp to obtain match.
+	 */
+	if( im__coeff( match->xr1, match->yr1, match->xs1, match->ys1, 
+		match->xr2, match->yr2, match->xs2, match->ys2, 
+		&a, &b, &dx, &dy ) )
 		return( -1 );
+
+	if( vips_affine( match->sec, &x,
+		a, -b, b, a, 
+		"interpolate", match->interpolate, 
+		"odx", dx, 
+		"ody", dy, 
+		NULL ) )
+		return( -1 );
+
+	if( vips_image_write( x, match->out ) ) {
+		g_object_unref( x ); 
+		return( -1 ); 
+	}
+	g_object_unref( x ); 
 
 	return( 0 );
 }
@@ -240,56 +213,56 @@ vips_match_class_init( VipsMatchClass *class )
 		_( "Position of first reference tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMatch, xr1 ),
-		0, 1000000000, 1 );
+		-1000000000, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "yr1", 6, 
 		_( "yr1" ), 
 		_( "Position of first reference tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMatch, yr1 ),
-		0, 1000000000, 1 );
+		-1000000000, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "xs1", 7, 
 		_( "xs1" ), 
 		_( "Position of first secondary tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMatch, xs1 ),
-		0, 1000000000, 1 );
+		-1000000000, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "ys1", 8, 
 		_( "ys1" ), 
 		_( "Position of first secondary tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMatch, ys1 ),
-		0, 1000000000, 1 );
+		-1000000000, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "xr2", 9, 
 		_( "xr2" ), 
 		_( "Position of second reference tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMatch, xr2 ),
-		0, 1000000000, 1 );
+		-1000000000, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "yr2", 10, 
 		_( "yr2" ), 
 		_( "Position of second reference tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMatch, yr2 ),
-		0, 1000000000, 1 );
+		-1000000000, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "xs2", 11, 
 		_( "xs2" ), 
 		_( "Position of second secondary tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMatch, xs2 ),
-		0, 1000000000, 1 );
+		-1000000000, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "ys2", 12, 
 		_( "ys2" ), 
 		_( "Position of second secondary tie-point" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMatch, ys2 ),
-		0, 1000000000, 1 );
+		-1000000000, 1000000000, 1 );
 
 	VIPS_ARG_INT( class, "hwindow", 13, 
 		_( "hwindow" ), 
@@ -311,6 +284,12 @@ vips_match_class_init( VipsMatchClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMatch, search ),
 		FALSE ); 
+
+	VIPS_ARG_INTERPOLATE( class, "interpolate", 2, 
+		_( "Interpolate" ), 
+		_( "Interpolate pixels with this" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsMatch, interpolate ) );
 
 }
 
@@ -341,6 +320,7 @@ vips_match_init( VipsMatch *match )
  * @search: search to improve tie-points
  * @hwindow: half window size
  * @harea: half search size 
+ * @interpolate: interpolate pixels with this
  *
  * Scale, rotate and translate @sec so that the tie-points line up.
  *

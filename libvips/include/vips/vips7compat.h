@@ -1035,6 +1035,32 @@ int im_filename_suffix_match( const char *path, const char *suffixes[] );
 char *im_getnextoption( char **in );
 char *im_getsuboption( const char *buf );
 
+int im_lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int dx, int dy, int mwidth );
+int im_tbmerge( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int dx, int dy, int mwidth );
+
+int im_lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int bandno,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth );
+int im_tbmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+	int bandno,
+	int xref, int yref, int xsec, int ysec, 
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth );
+
+int im_match_linear( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int xr1, int yr1, int xs1, int ys1,
+	int xr2, int yr2, int xs2, int ys2 );
+int im_match_linear_search( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int xr1, int yr1, int xs1, int ys1,
+	int xr2, int yr2, int xs2, int ys2,
+	int hwindowsize, int hsearchsize );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
