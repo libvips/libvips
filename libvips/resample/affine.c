@@ -492,6 +492,15 @@ vips_affine_build( VipsObject *object )
 	resample->out->Xsize = affine->trn.oarea.width;
 	resample->out->Ysize = affine->trn.oarea.height;
 
+#ifdef DEBUG
+	printf( "vips_affine_build: transform: "
+		"a = %g, b = %g, c = %g, d = %g\n",
+		affine->trn.a, 
+		affine->trn.b, 
+		affine->trn.c, 
+		affine->trn.d );  
+#endif /*DEBUG*/
+
 	/* Generate!
 	 */
 	if( vips_image_generate( resample->out, 

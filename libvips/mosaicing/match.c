@@ -121,6 +121,7 @@ vips_match_build( VipsObject *object )
 	VipsMatch *match = (VipsMatch *) object;
 
 	double a, b, dx, dy;
+	VipsArrayInt *oarea;
 	VipsImage *x;
 
 	g_object_set( match, "out", vips_image_new(), NULL ); 
@@ -160,13 +161,22 @@ vips_match_build( VipsObject *object )
 		&a, &b, &dx, &dy ) )
 		return( -1 );
 
+	/* Output area of ref image.
+	 */
+	oarea = vips_array_int_newv( 4, 
+		0, 0, match->ref->Xsize, match->ref->Ysize ); 
+
 	if( vips_affine( match->sec, &x,
 		a, -b, b, a, 
 		"interpolate", match->interpolate, 
 		"odx", dx, 
 		"ody", dy, 
-		NULL ) )
+		"oarea", oarea, 
+		NULL ) ) {
+		vips_area_unref( oarea );
 		return( -1 );
+	}
+	vips_area_unref( oarea );
 
 	if( vips_image_write( x, match->out ) ) {
 		g_object_unref( x ); 
