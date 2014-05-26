@@ -1,12 +1,12 @@
 
-- quickly wrap the useful bits of mosaicing/
+- quickly wrap the useful bits of mosaicing
 
   nip2 uses:
 
 	im_*merge()			done
 	im_*mosaic()			done
 	im_match_linear*()		done
-	im_global_balancef()
+	im_global_balancef()		done
 	im_remosaic()
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 

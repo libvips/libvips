@@ -58,14 +58,14 @@
  *
  * The mosaicing functions can be grouped into layers:
  *
- * The lowest level functions are im_correl(), im_lrmerge() and im_tbmerge().
+ * The lowest level functions are im_correl() and vips_merge().
  * im_correl() 
  * searches a large image for a small sub-image, returning
- * the position of the best sub-image match. im_lrmerge() and im_tbmerge() 
- * join two images together
+ * the position of the best sub-image match. vips_merge() 
+ * joins two images together
  * left-right or up-down with a smooth seam.
  *
- * Next, im_lrmosaic() and im_tbmosaic() use the
+ * Next, vips_mosaic() use the
  * search function plus the two low-level merge operations to join two images 
  * given just an approximate overlap as a start point. 
  *
@@ -76,7 +76,7 @@
  * them to rotate and scale the right-hand or bottom image before starting to
  * join.
  *
- * Finally, im_global_balance() can be used to remove contrast differences in 
+ * Finally, vips_globalbalance() can be used to remove contrast differences in 
  * a mosaic
  * which has been assembled with these functions. It takes the mosaic apart,
  * measures image contrast differences along the seams, finds a set of
@@ -98,8 +98,10 @@ vips_mosaicing_operation_init( void )
 	extern int vips_merge_get_type( void ); 
 	extern int vips_mosaic_get_type( void ); 
 	extern int vips_match_get_type( void ); 
+	extern int vips_globalbalance_get_type( void ); 
 
 	vips_merge_get_type(); 
 	vips_mosaic_get_type(); 
 	vips_match_get_type(); 
+	vips_globalbalance_get_type(); 
 }

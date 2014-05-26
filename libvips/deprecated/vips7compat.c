@@ -5095,3 +5095,42 @@ im_match_linear( IMAGE *ref, IMAGE *sec, IMAGE *out,
 
 	return( 0 );
 }
+
+int
+im_global_balance( IMAGE *in, IMAGE *out, double gamma )
+{
+	VipsImage *x;
+
+	if( vips_globalbalance( in, &x,
+		"gamma", gamma,
+		"int_output", TRUE,
+		NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
+im_global_balancef( IMAGE *in, IMAGE *out, double gamma )
+{
+	VipsImage *x;
+
+	if( vips_globalbalance( in, &x,
+		"gamma", gamma,
+		NULL ) )
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}

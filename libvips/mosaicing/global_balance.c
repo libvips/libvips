@@ -1705,13 +1705,108 @@ transformf( JoinNode *node, double *gamma )
 	return( out );
 }
 
+typedef struct {
+	VipsOperation parent_instance;
+
+	VipsImage *in;
+	VipsImage *out;
+
+	gboolean int_output;
+	double gamma;
+
+} VipsGlobalbalance;
+
+typedef VipsOperationClass VipsGlobalbalanceClass;
+
+G_DEFINE_TYPE( VipsGlobalbalance, vips_globalbalance, VIPS_TYPE_OPERATION );
+
+static int
+vips_globalbalance_build( VipsObject *object )
+{
+	VipsGlobalbalance *globalbalance = (VipsGlobalbalance *) object;
+
+	SymbolTable *st;
+	transform_fn trn;
+
+	g_object_set( globalbalance, "out", vips_image_new(), NULL ); 
+
+	if( VIPS_OBJECT_CLASS( vips_globalbalance_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( !(st = im__build_symtab( globalbalance->out, SYM_TAB_SIZE )) ||
+		analyse_mosaic( st, globalbalance->in ) ||
+		find_factors( st, globalbalance->gamma ) )
+		return( -1 );
+
+	trn = globalbalance->int_output ? 
+		(transform_fn) transform : (transform_fn) transformf; 
+	if( im__build_mosaic( st, globalbalance->out, 
+		trn, &globalbalance->gamma ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_globalbalance_class_init( VipsGlobalbalanceClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "globalbalance";
+	object_class->description = _( "global balance an image mosaic" );
+	object_class->build = vips_globalbalance_build;
+
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsGlobalbalance, in ) );
+
+	VIPS_ARG_IMAGE( class, "out", 2, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsGlobalbalance, out ) );
+
+	VIPS_ARG_DOUBLE( class, "gamma", 5, 
+		_( "gamma" ), 
+		_( "Image gamma" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsGlobalbalance, gamma ),
+		0.00001, 10, 1.6 );
+
+	VIPS_ARG_BOOL( class, "int_output", 7, 
+		_( "Int output" ), 
+		_( "Integer output" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsGlobalbalance, int_output ),
+		FALSE ); 
+
+}
+
+static void
+vips_globalbalance_init( VipsGlobalbalance *globalbalance )
+{
+	globalbalance->gamma = 1.6;
+}
+
 /**
- * im_global_balance:
+ * vips_globalbalance:
  * @in: mosaic to rebuild
  * @out: output image
- * @gamma: gamma of source images
+ * @...: %NULL-terminated list of optional named arguments
+ * 
+ * Optional arguments:
  *
- * im_global_balance() can be used to remove contrast differences in 
+ * @gamma: gamma of source images
+ * @int_output: %TRUE for integer image output
+ *
+ * vips_globalbalance() can be used to remove contrast differences in 
  * an assembled mosaic.
  *
  * It reads the History field attached to @in and builds a list of the source
@@ -1726,56 +1821,28 @@ transformf( JoinNode *node, double *gamma )
  * 1.0 will stop this.
  *
  * Each of the source images is transformed with the appropriate correction 
- * factor, then the mosaic is reassembled. @out always has the same #BandFmt
- * as @in. Use im_global_balancef() to get float output and avoid clipping.
+ * factor, then the mosaic is reassembled. @out is #VIPS_FORMAT_FLOAT, but 
+ * if @int_output is set, the output image is the same format as the input
+ * images.  
  *
  * There are some conditions that must be met before this operation can work:
  * the source images must all be present under the filenames recorded in the
  * history on @in, and the mosaic must have been built using only operations in
  * this package.
  *
- * See also: im_global_balancef(), im_remosaic().
+ * See also: vips_remosaic().
  *
  * Returns: 0 on success, -1 on error
  */
-int
-im_global_balance( IMAGE *in, IMAGE *out, double gamma )
+int 
+vips_globalbalance( VipsImage *in, VipsImage **out, ... )
 {
-	SymbolTable *st;
+	va_list ap;
+	int result;
 
-	if( !(st = im__build_symtab( out, SYM_TAB_SIZE )) ||
-		analyse_mosaic( st, in ) ||
-		find_factors( st, gamma ) ||
-		im__build_mosaic( st, out, (transform_fn) transform, &gamma ) )
-		return( -1 );
+	va_start( ap, out );
+	result = vips_call_split( "globalbalance", ap, in, out );
+	va_end( ap );
 
-	return( 0 );
-}
-
-/**
- * im_global_balancef:
- * @in: mosaic to rebuild
- * @out: output image
- * @gamma: gamma of source images
- *
- * Just as im_global_balance(), but the output image is always float. This
- * stops overflow or underflow in the case of an extremely unbalanced image
- * mosaic. 
- *
- * See also: im_global_balance(), im_remosaic().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-im_global_balancef( IMAGE *in, IMAGE *out, double gamma )
-{	
-	SymbolTable *st;
-
-	if( !(st = im__build_symtab( out, SYM_TAB_SIZE )) ||
-		analyse_mosaic( st, in ) ||
-		find_factors( st, gamma ) ||
-		im__build_mosaic( st, out, (transform_fn) transformf, &gamma ) )
-		return( -1 );
-
-	return( 0 );
+	return( result );
 }

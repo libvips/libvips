@@ -1061,6 +1061,9 @@ int im_match_linear_search( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int xr2, int yr2, int xs2, int ys2,
 	int hwindowsize, int hsearchsize );
 
+int im_global_balance( VipsImage *in, VipsImage *out, double gamma );
+int im_global_balancef( VipsImage *in, VipsImage *out, double gamma );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
