@@ -1,13 +1,10 @@
+- more mosaicing?
 
-- quickly wrap the useful bits of mosaicing
-
-  nip2 uses:
-
-	im_*merge()			done
-	im_*mosaic()			done
-	im_match_linear*()		done
-	im_global_balancef()		done
-	im_remosaic()
+	im_lrmerge1(), im_tbmerge1()
+	im_lrmosaic1(), im_tbmosaic1()
+	im_correl
+	im_align_bands()
+	im_maxpos_subpel()
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 

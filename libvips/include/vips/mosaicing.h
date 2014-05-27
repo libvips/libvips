@@ -44,11 +44,16 @@ int vips_merge( VipsImage *ref, VipsImage *sec, VipsImage **out,
 int vips_mosaic( VipsImage *ref, VipsImage *sec, VipsImage **out, 
 	VipsDirection direction, int xref, int yref, int xsec, int ysec, ... )
 	__attribute__((sentinel));
+
 int vips_match( VipsImage *ref, VipsImage *sec, VipsImage **out, 
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2, ... )
 	__attribute__((sentinel));
+
 int vips_globalbalance( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_remosaic( VipsImage *in, VipsImage **out, 
+	const char *old_str, const char *new_str, ... )
 	__attribute__((sentinel));
 
 
@@ -82,8 +87,6 @@ int im_correl( VipsImage *ref, VipsImage *sec,
 	int xref, int yref, int xsec, int ysec,
 	int hwindowsize, int hsearchsize,
 	double *correlation, int *x, int *y );
-int im_remosaic( VipsImage *in, VipsImage *out,
-	const char *old_str, const char *new_str );
 
 int im_align_bands( VipsImage *in, VipsImage *out );
 int im_maxpos_subpel( VipsImage *in, double *x, double *y );

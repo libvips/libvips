@@ -5134,3 +5134,20 @@ im_global_balancef( IMAGE *in, IMAGE *out, double gamma )
 
 	return( 0 );
 }
+
+int
+im_remosaic( IMAGE *in, IMAGE *out, const char *old_str, const char *new_str )
+{
+	VipsImage *x;
+
+	if( vips_remosaic( in, &x, old_str, new_str, NULL ) ) 
+		return( -1 );
+
+	if( im_copy( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
