@@ -1,7 +1,21 @@
+- when adding a history line like
+
+	if( im_histlin( out, "#LRJOIN <%s> <%s> <%s> <%d> <%d> <%d>", 
+
+  look for a meta field called "mosaicing-name" and use that for the filename
+  if it's not set, use "original-fileanme" instead
+  make up a new name and attach that to the output as "mosaicing-name"
+
+  means we don't need to track copies in globalbalance
+
+  test on two-point mosaicing example
+	
+
+
 - more mosaicing?
 
 	im_lrmosaic1(), im_tbmosaic1()		done
-	im_lrmerge1(), im_tbmerge1()		
+	im_lrmerge1(), im_tbmerge1()		done
 	im_correl
 	im_align_bands()
 	im_maxpos_subpel()

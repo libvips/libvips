@@ -34,7 +34,7 @@
 - added hough_circle() to vips7 C++ API
 - added Travis CI config, thanks Lovell
 - im_*merge(), im_*mosaic(), im_match*(), im_global_balance*(), im_remosaic(),
-  im_*mosaic1() redone as classes
+  im_*mosaic1(), im_*merge1() redone as classes
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

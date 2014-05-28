@@ -838,7 +838,7 @@ im__bandup( const char *domain, IMAGE *in, IMAGE *out, int n )
 	int i;
 
 	if( in->Bands == n ) 
-		return( im_copy( in, out ) );
+		return( vips_image_write( in, out ) );
 	if( in->Bands != 1 ) {
 		im_error( domain, _( "not one band or %d bands" ), n );
 		return( -1 );
@@ -1032,7 +1032,7 @@ im_add( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 	if( vips_call( "add", in1, in2, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -1048,7 +1048,7 @@ im_subtract( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 	if( vips_call( "subtract", in1, in2, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -1064,7 +1064,7 @@ im_multiply( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 	if( vips_call( "multiply", in1, in2, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -1080,7 +1080,7 @@ im_divide( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 	if( vips_call( "divide", in1, in2, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -1253,7 +1253,7 @@ im_copy_swap( IMAGE *in, IMAGE *out )
 int
 im_copy_set_meta( IMAGE *in, IMAGE *out, const char *field, GValue *value )
 {
-	if( im_copy( in, out ) )
+	if( vips_image_write( in, out ) )
 		return( -1 );
 	im_meta_set( out, field, value );
 
@@ -1266,7 +1266,7 @@ im_copy_native( IMAGE *in, IMAGE *out, gboolean is_msb_first )
 	if( is_msb_first != im_amiMSBfirst() )
 		return( im_copy_swap( in, out ) );
 	else
-		return( im_copy( in, out ) );
+		return( vips_image_write( in, out ) );
 }
 
 int
@@ -2510,7 +2510,7 @@ im_spcor( IMAGE *in, IMAGE *ref, IMAGE *out )
 
 	if( vips_call( "spcor", in, ref, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -2533,7 +2533,7 @@ im_fastcor( IMAGE *in, IMAGE *ref, IMAGE *out )
 
 	if( vips_call( "fastcor", in, ref, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3066,7 +3066,7 @@ im_ri2c( IMAGE *in1, IMAGE *in2, IMAGE *out )
 
 	if( vips_call( "complexform", in1, in2, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3088,7 +3088,7 @@ im_argb2rgba( VipsImage *in, VipsImage *out )
 {
 	/* No longer exists, just a null op.
 	 */
-	return( im_copy( in, out ) );
+	return( vips_image_write( in, out ) );
 }
 
 int
@@ -3098,7 +3098,7 @@ im_shrink( VipsImage *in, VipsImage *out, double xshrink, double yshrink )
 
 	if( vips_shrink( in, &x, xshrink, yshrink, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3117,7 +3117,7 @@ im_eye( IMAGE *out, const int xsize, const int ysize, const double factor )
 		"uchar", TRUE,
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3135,7 +3135,7 @@ im_feye( IMAGE *out, const int xsize, const int ysize, const double factor )
 		"factor", factor,
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3153,7 +3153,7 @@ im_grey( IMAGE *out, const int xsize, const int ysize )
 		"uchar", TRUE,
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3170,7 +3170,7 @@ im_fgrey( IMAGE *out, const int xsize, const int ysize )
 	if( vips_grey( &x, xsize, ysize, 
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3194,7 +3194,7 @@ im_buildlut( DOUBLEMASK *input, VipsImage *out )
 		return( -1 );
 	}
 	g_object_unref( mat );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3219,7 +3219,7 @@ im_invertlut( DOUBLEMASK *input, VipsImage *out, int size )
 		return( -1 );
 	}
 	g_object_unref( mat );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3304,7 +3304,7 @@ im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
 	}
 	vips_area_unref( temp );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3320,7 +3320,7 @@ im_Lab2XYZ( IMAGE *in, IMAGE *out )
 
 	if( vips_Lab2XYZ( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3346,7 +3346,7 @@ im_XYZ2Lab_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
 	}
 	vips_area_unref( temp );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3362,7 +3362,7 @@ im_XYZ2Lab( IMAGE *in, IMAGE *out )
 
 	if( vips_XYZ2Lab( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3378,7 +3378,7 @@ im_Lab2LCh( IMAGE *in, IMAGE *out )
 
 	if( vips_Lab2LCh( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3394,7 +3394,7 @@ im_LCh2Lab( IMAGE *in, IMAGE *out )
 
 	if( vips_LCh2Lab( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3410,7 +3410,7 @@ im_LCh2UCS( IMAGE *in, IMAGE *out )
 
 	if( vips_LCh2CMC( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3426,7 +3426,7 @@ im_UCS2LCh( IMAGE *in, IMAGE *out )
 
 	if( vips_CMC2LCh( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3442,7 +3442,7 @@ im_XYZ2Yxy( IMAGE *in, IMAGE *out )
 
 	if( vips_XYZ2Yxy( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3458,7 +3458,7 @@ im_Yxy2XYZ( IMAGE *in, IMAGE *out )
 
 	if( vips_Yxy2XYZ( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3474,7 +3474,7 @@ im_float2rad( IMAGE *in, IMAGE *out )
 
 	if( vips_float2rad( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3490,7 +3490,7 @@ im_rad2float( IMAGE *in, IMAGE *out )
 
 	if( vips_rad2float( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3506,7 +3506,7 @@ im_Lab2LabQ( IMAGE *in, IMAGE *out )
 
 	if( vips_Lab2LabQ( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3522,7 +3522,7 @@ im_LabQ2Lab( IMAGE *in, IMAGE *out )
 
 	if( vips_LabQ2Lab( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3538,7 +3538,7 @@ im_Lab2LabS( IMAGE *in, IMAGE *out )
 
 	if( vips_Lab2LabS( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3554,7 +3554,7 @@ im_LabS2Lab( IMAGE *in, IMAGE *out )
 
 	if( vips_LabS2Lab( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3570,7 +3570,7 @@ im_LabQ2LabS( IMAGE *in, IMAGE *out )
 
 	if( vips_LabQ2LabS( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3586,7 +3586,7 @@ im_LabS2LabQ( IMAGE *in, IMAGE *out )
 
 	if( vips_LabS2LabQ( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3660,7 +3660,7 @@ im_sRGB2XYZ( IMAGE *in, IMAGE *out )
 
 	if( vips_sRGB2scRGB( in, &t[0], NULL ) ||
 		vips_scRGB2XYZ( t[0], &t[1], NULL ) ||
-		im_copy( t[1], out ) ) 
+		vips_image_write( t[1], out ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -3674,7 +3674,7 @@ im_XYZ2sRGB( IMAGE *in, IMAGE *out )
 
 	if( vips_XYZ2scRGB( in, &t[0], NULL ) ||
 		vips_scRGB2sRGB( t[0], &t[1], NULL ) ||
-		im_copy( t[1], out ) ) 
+		vips_image_write( t[1], out ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -3687,7 +3687,7 @@ im_LabQ2sRGB( IMAGE *in, IMAGE *out )
 
 	if( vips_LabQ2sRGB( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3709,7 +3709,7 @@ im_icc_transform( VipsImage *in, VipsImage *out,
 		"intent", intent,
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3729,7 +3729,7 @@ im_icc_import( VipsImage *in, VipsImage *out,
 		"intent", intent,
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3748,7 +3748,7 @@ im_icc_import_embedded( VipsImage *in, VipsImage *out, VipsIntent intent )
 		"intent", intent,
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3769,7 +3769,7 @@ im_icc_export_depth( VipsImage *in, VipsImage *out, int depth,
 		"intent", intent,
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3874,7 +3874,7 @@ im_dE_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	if( vips_dE76( in1, in2, &x, 
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3891,7 +3891,7 @@ im_dECMC_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	if( vips_dECMC( in1, in2, &x, 
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3908,7 +3908,7 @@ im_dE00_fromLab( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	if( vips_dE00( in1, in2, &x, 
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3924,7 +3924,7 @@ im_icc_ac2rc( VipsImage *in, VipsImage *out, const char *profile_filename )
 
 	if( vips_icc_ac2rc( in, &x, profile_filename ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -3941,7 +3941,7 @@ im_quadratic( IMAGE *in, IMAGE *out, IMAGE *coeff )
 	if( vips_quadratic( in, &x, coeff, 
 		NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4024,7 +4024,7 @@ im_cross_phase( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	if( vips_call( "cross_phase", in1, in2, &x, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4041,7 +4041,7 @@ im_maplut( IMAGE *in, IMAGE *out, IMAGE *lut )
 	if( vips_maplut( in, &x, lut, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4071,7 +4071,7 @@ im_histcum( IMAGE *in, IMAGE *out )
 	if( vips_hist_cum( in, &x, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4088,7 +4088,7 @@ im_histnorm( IMAGE *in, IMAGE *out )
 	if( vips_hist_norm( in, &x, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4118,7 +4118,7 @@ im_heq( VipsImage *in, VipsImage *out, int bandno )
 	if( vips_hist_equal( in, &x, "band", bandno, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4150,7 +4150,7 @@ im_histgr( IMAGE *in, IMAGE *out, int bandno )
 		NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4174,7 +4174,7 @@ im_stdif( IMAGE *in, IMAGE *out,
 		NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4191,7 +4191,7 @@ im_lhisteq( VipsImage *in, VipsImage *out, int width, int height )
 	if( vips_hist_local( in, &x, width, height, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4210,7 +4210,7 @@ im_histnD( VipsImage *in, VipsImage *out, int bins )
 		NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4227,7 +4227,7 @@ im_hist_indexed( VipsImage *index, VipsImage *value, VipsImage *out )
 	if( vips_hist_find_indexed( value, index, &x, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4244,14 +4244,14 @@ im_project( IMAGE *in, IMAGE *hout, IMAGE *vout )
 	if( vips_project( in, &x, &y, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, hout ) ) {
+	if( vips_image_write( x, hout ) ) {
 		g_object_unref( x );
 		g_object_unref( y );
 		return( -1 );
 	}
 	g_object_unref( x );
 
-	if( im_copy( y, vout ) ) {
+	if( vips_image_write( y, vout ) ) {
 		g_object_unref( y );
 		return( -1 );
 	}
@@ -4283,7 +4283,7 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 	}
 	g_object_unref( t1 );
 
-	if( im_copy( t2, out ) ) {
+	if( vips_image_write( t2, out ) ) {
 		g_object_unref( t2 );
 		return( -1 );
 	}
@@ -4334,7 +4334,7 @@ match( VipsImage *in, VipsImage *ref, VipsImage *out )
 	if( vips_hist_match( in, ref, &x, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4382,7 +4382,7 @@ im_falsecolour( IMAGE *in, IMAGE *out )
 	if( vips_falsecolour( in, &x, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4401,7 +4401,7 @@ im_gammacorrect( IMAGE *in, IMAGE *out, double exponent )
 		NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4441,7 +4441,7 @@ im_tile_cache( IMAGE *in, IMAGE *out,
 		NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4469,7 +4469,7 @@ im_tile_cache_random( IMAGE *in, IMAGE *out,
 		NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4592,7 +4592,7 @@ im_copy_file( IMAGE *in, IMAGE *out )
 
 	if( vips_copy_file( in, &x, NULL ) )
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4619,7 +4619,7 @@ im_fwfft( IMAGE *in, IMAGE *out )
 	if( vips_fwfft( in, &x, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4636,7 +4636,7 @@ im_invfft( IMAGE *in, IMAGE *out )
 	if( vips_invfft( in, &x, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4655,7 +4655,7 @@ im_invfftr( IMAGE *in, IMAGE *out )
 		NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4672,7 +4672,7 @@ im_freqflt( IMAGE *in, IMAGE *mask, IMAGE *out )
 	if( vips_freqmult( in, mask, &x, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4721,7 +4721,7 @@ im_phasecor_fft( IMAGE *in1, IMAGE *in2, IMAGE *out )
 	if( vips_phasecor( in1, in2, &x, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4747,7 +4747,7 @@ im_label_regions( IMAGE *test, IMAGE *mask, int *segments )
 	if( vips_labelregions( test, &x, "segments", segments, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, mask ) ) {
+	if( vips_image_write( x, mask ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -4764,7 +4764,7 @@ im_rank( IMAGE *in, IMAGE *out, int width, int height, int index )
 	if( vips_rank( in, &x, width, height, index, NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -5029,7 +5029,7 @@ im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 	/* Copy the image then fastline to it ... this will render to a "t"
 	 * usually.
 	 */
-	if( im_copy( in, out ) )
+	if( vips_image_write( in, out ) )
 		return( -1 );
 
 	mask_rect.left = mask->Xsize / 2;
@@ -5066,7 +5066,7 @@ im_match_linear_search( IMAGE *ref, IMAGE *sec, IMAGE *out,
 		NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -5087,7 +5087,7 @@ im_match_linear( IMAGE *ref, IMAGE *sec, IMAGE *out,
 		NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -5107,7 +5107,7 @@ im_global_balance( IMAGE *in, IMAGE *out, double gamma )
 		NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -5126,7 +5126,7 @@ im_global_balancef( IMAGE *in, IMAGE *out, double gamma )
 		NULL ) )
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -5143,7 +5143,7 @@ im_remosaic( IMAGE *in, IMAGE *out, const char *old_str, const char *new_str )
 	if( vips_remosaic( in, &x, old_str, new_str, NULL ) ) 
 		return( -1 );
 
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -5165,13 +5165,14 @@ im_lrmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 
 	if( vips_mosaic1( ref, sec, &x, VIPS_DIRECTION_HORIZONTAL,
 		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
+		"search", TRUE,
 		"bandno", bandno,
 		"hwindow", hwindowsize,
 		"harea", hsearchsize,
 		"mblend", mwidth,
 		NULL ) ) 
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -5193,13 +5194,58 @@ im_tbmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 
 	if( vips_mosaic1( ref, sec, &x, VIPS_DIRECTION_VERTICAL,
 		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
+		"search", TRUE,
 		"bandno", bandno,
 		"hwindow", hwindowsize,
 		"harea", hsearchsize,
 		"mblend", mwidth,
 		NULL ) ) 
 		return( -1 );
-	if( im_copy( x, out ) ) {
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
+im_lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int xr1, int yr1, int xs1, int ys1, 
+	int xr2, int yr2, int xs2, int ys2,
+	int mwidth )
+{
+	VipsImage *x;
+
+	if( vips_mosaic1( ref, sec, &x, VIPS_DIRECTION_HORIZONTAL,
+		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
+		"mblend", mwidth,
+		NULL ) ) 
+		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
+im_tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int xr1, int yr1, int xs1, int ys1, 
+	int xr2, int yr2, int xs2, int ys2,
+	int mwidth )
+{
+	VipsImage *x;
+
+	if( vips_mosaic1( ref, sec, &x, VIPS_DIRECTION_VERTICAL,
+		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
+		"mblend", mwidth,
+		NULL ) ) 
+		return( -1 );
+	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
