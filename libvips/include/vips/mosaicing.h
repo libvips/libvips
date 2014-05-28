@@ -44,6 +44,11 @@ int vips_merge( VipsImage *ref, VipsImage *sec, VipsImage **out,
 int vips_mosaic( VipsImage *ref, VipsImage *sec, VipsImage **out, 
 	VipsDirection direction, int xref, int yref, int xsec, int ysec, ... )
 	__attribute__((sentinel));
+int vips_mosaic1( VipsImage *ref, VipsImage *sec, VipsImage **out, 
+	VipsDirection direction, 
+	int xr1, int yr1, int xs1, int ys1, 
+	int xr2, int yr2, int xs2, int ys2, ... )
+	__attribute__((sentinel));
 
 int vips_match( VipsImage *ref, VipsImage *sec, VipsImage **out, 
 	int xr1, int yr1, int xs1, int ys1, 
@@ -66,21 +71,6 @@ int im_lrmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 int im_tbmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int xr1, int yr1, int xs1, int ys1,
 	int xr2, int yr2, int xs2, int ys2,
-	int mwidth );
-
-int im_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out, 
-	int bandno,
-	int xr1, int yr1, int xs1, int ys1, 
-	int xr2, int yr2, int xs2, int ys2,
-	int hwindowsize, int hsearchsize,
-	int balancetype,
-	int mwidth );
-int im_tbmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
-	int bandno,
-	int xr1, int yr1, int xs1, int ys1,
-	int xr2, int yr2, int xs2, int ys2,
-	int hwindowsize, int hsearchsize,
-	int balancetype,
 	int mwidth );
 
 int im_correl( VipsImage *ref, VipsImage *sec,

@@ -1,7 +1,7 @@
 - more mosaicing?
 
-	im_lrmerge1(), im_tbmerge1()
-	im_lrmosaic1(), im_tbmosaic1()
+	im_lrmosaic1(), im_tbmosaic1()		done
+	im_lrmerge1(), im_tbmerge1()		
 	im_correl
 	im_align_bands()
 	im_maxpos_subpel()

@@ -1067,6 +1067,21 @@ int im_global_balancef( VipsImage *in, VipsImage *out, double gamma );
 int im_remosaic( VipsImage *in, VipsImage *out,
 	const char *old_str, const char *new_str );
 
+int im_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+	int bandno,
+	int xr1, int yr1, int xs1, int ys1, 
+	int xr2, int yr2, int xs2, int ys2,
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth );
+int im_tbmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int bandno,
+	int xr1, int yr1, int xs1, int ys1,
+	int xr2, int yr2, int xs2, int ys2,
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

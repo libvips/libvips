@@ -288,14 +288,14 @@ vips_match_class_init( VipsMatchClass *class )
 		G_STRUCT_OFFSET( VipsMatch, harea ),
 		0, 1000000000, 1 );
 
-	VIPS_ARG_BOOL( class, "search", 13, 
+	VIPS_ARG_BOOL( class, "search", 15, 
 		_( "search" ), 
 		_( "Search to improve tie-points" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMatch, search ),
 		FALSE ); 
 
-	VIPS_ARG_INTERPOLATE( class, "interpolate", 2, 
+	VIPS_ARG_INTERPOLATE( class, "interpolate", 16, 
 		_( "Interpolate" ), 
 		_( "Interpolate pixels with this" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 

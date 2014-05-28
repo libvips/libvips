@@ -410,133 +410,6 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 	return( 0 );
 }
 
-/**
- * im_lrmosaic1:
- * @ref: reference image
- * @sec: secondary image
- * @out: output image
- * @bandno: band to search for features
- * @xr1: first reference tie-point
- * @yr1: first reference tie-point
- * @xs1: first secondary tie-point
- * @ys1: first secondary tie-point
- * @xr2: second reference tie-point
- * @yr2: second reference tie-point
- * @xs2: second secondary tie-point
- * @ys2: second secondary tie-point
- * @hwindowsize: half window size
- * @hsearchsize: half search size 
- * @balancetype: no longer used
- * @mwidth: maximum blend width
- *
- * This operation joins two images left-right (with @ref on the left) 
- * given an approximate pair of tie-points. @sec is scaled and rotated as
- * necessary before the join.
- *
- * Before performing the transformation, the  tie-points are improved by 
- * searching band @bandno in an area of @sec of size @hsearchsize for a
- * match of size @hwindowsize to @ref. 
- *
- * @mwidth limits  the  maximum width of the
- * blend area.  A value of "-1" means "unlimited". The two images are blended 
- * with a raised cosine. 
- *
- * Pixels with all bands equal to zero are "transparent", that
- * is, zero pixels in the overlap area do not  contribute  to  the  merge.
- * This makes it possible to join non-rectangular images.
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
- *
- * See also: im_tbmosaic1(), im_lrmerge(), im_insert(), im_global_balance().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-im_lrmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out, 
-	int bandno,
-	int xr1, int yr1, int xs1, int ys1, 
-	int xr2, int yr2, int xs2, int ys2,
-	int hwindowsize, int hsearchsize,
-	int balancetype,
-	int mwidth )
-{ 
-	return( rotjoin_search( ref, sec, out, im__lrmerge1,
-		bandno,
-		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
-		hwindowsize, hsearchsize, balancetype,
-		mwidth ) );
-}
-
-/**
- * im_tbmosaic1:
- * @ref: reference image
- * @sec: secondary image
- * @out: output image
- * @bandno: band to search for features
- * @xr1: first reference tie-point
- * @yr1: first reference tie-point
- * @xs1: first secondary tie-point
- * @ys1: first secondary tie-point
- * @xr2: second reference tie-point
- * @yr2: second reference tie-point
- * @xs2: second secondary tie-point
- * @ys2: second secondary tie-point
- * @hwindowsize: half window size
- * @hsearchsize: half search size 
- * @balancetype: no longer used
- * @mwidth: maximum blend width
- *
- * This operation joins two images top-bottom (with @ref on the top) 
- * given an approximate pair of tie-points. @sec is scaled and rotated as
- * necessary before the join.
- *
- * Before performing the transformation, the  tie-points are improved by 
- * searching band @bandno in an area of @sec of size @hsearchsize for a
- * match of size @hwindowsize to @ref. 
- *
- * @mwidth limits  the  maximum height of the
- * blend area.  A value of "-1" means "unlimited". The two images are blended 
- * with a raised cosine. 
- *
- * Pixels with all bands equal to zero are "transparent", that
- * is, zero pixels in the overlap area do not  contribute  to  the  merge.
- * This makes it possible to join non-rectangular images.
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
- *
- * See also: im_lrmosaic1(), im_tbmerge(), im_insert(), im_global_balance().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-im_tbmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
-	int bandno,
-	int xr1, int yr1, int xs1, int ys1, 
-	int xr2, int yr2, int xs2, int ys2,
-	int hwindowsize, int hsearchsize,
-	int balancetype,
-	int mwidth )
-{ 
-	return( rotjoin_search( ref, sec, out, im__tbmerge1,
-		bandno,
-		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
-		hwindowsize, hsearchsize, balancetype, mwidth ) );
-}
-
 #ifdef OLD
 /* 1st order mosaic using im__find_lroverlap() ... does not work too well :(
  * Look at im__find_lroverlap() for problem?
@@ -623,3 +496,292 @@ old_lrmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	return( 0 );
 }
 #endif /*OLD*/
+
+typedef struct {
+	VipsOperation parent_instance;
+
+	VipsImage *ref;
+	VipsImage *sec;
+	VipsImage *out;
+	VipsDirection direction;
+	int xr1;
+	int yr1;
+	int xs1;
+	int ys1;
+	int xr2;
+	int yr2;
+	int xs2;
+	int ys2;
+	int hwindow;
+	int harea;
+	gboolean search;
+	VipsInterpolate *interpolate;
+	int mblend;
+	int bandno;
+
+} VipsMosaic1;
+
+typedef VipsOperationClass VipsMosaic1Class;
+
+G_DEFINE_TYPE( VipsMosaic1, vips_mosaic1, VIPS_TYPE_OPERATION );
+
+static int
+vips_mosaic1_build( VipsObject *object )
+{
+	VipsMosaic1 *mosaic1 = (VipsMosaic1 *) object;
+
+	joinfn jfn;
+
+	g_object_set( mosaic1, "out", vips_image_new(), NULL ); 
+
+	if( VIPS_OBJECT_CLASS( vips_mosaic1_parent_class )->build( object ) )
+		return( -1 );
+
+	if( !mosaic1->interpolate )
+		mosaic1->interpolate = vips_interpolate_new( "bilinear" );
+
+	jfn = mosaic1->direction == VIPS_DIRECTION_HORIZONTAL ?
+		im__lrmerge1 : im__tbmerge1;
+
+	if( mosaic1->search ) {
+		if( rotjoin_search( mosaic1->ref, mosaic1->sec, mosaic1->out, 
+			jfn,
+			mosaic1->bandno,
+			mosaic1->xr1, mosaic1->yr1, mosaic1->xs1, mosaic1->ys1, 
+			mosaic1->xr2, mosaic1->yr2, mosaic1->xs2, mosaic1->ys2,
+			mosaic1->hwindow, mosaic1->harea, 
+			0,
+			mosaic1->mblend ) )
+			return( -1 );
+	}
+	else {
+		if( rotjoin( mosaic1->ref, mosaic1->sec, mosaic1->out, 
+			jfn,
+			mosaic1->xr1, mosaic1->yr1, mosaic1->xs1, mosaic1->ys1, 
+			mosaic1->xr2, mosaic1->yr2, mosaic1->xs2, mosaic1->ys2,
+			mosaic1->mblend ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+static void
+vips_mosaic1_class_init( VipsMosaic1Class *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "mosaic1";
+	object_class->description = _( "first-order mosaic of two images" );
+	object_class->build = vips_mosaic1_build;
+
+	VIPS_ARG_IMAGE( class, "ref", 1, 
+		_( "Reference" ), 
+		_( "Reference image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsMosaic1, ref ) );
+
+	VIPS_ARG_IMAGE( class, "sec", 2, 
+		_( "Secondary" ), 
+		_( "Secondary image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsMosaic1, sec ) );
+
+	VIPS_ARG_IMAGE( class, "out", 3, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsMosaic1, out ) );
+
+	VIPS_ARG_ENUM( class, "direction", 4, 
+		_( "Direction" ), 
+		_( "Horizontal or vertcial mosaic" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsMosaic1, direction ), 
+		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL ); 
+
+	VIPS_ARG_INT( class, "xr1", 5, 
+		_( "xr1" ), 
+		_( "Position of first reference tie-point" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, xr1 ),
+		-1000000000, 1000000000, 1 );
+
+	VIPS_ARG_INT( class, "yr1", 6, 
+		_( "yr1" ), 
+		_( "Position of first reference tie-point" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, yr1 ),
+		-1000000000, 1000000000, 1 );
+
+	VIPS_ARG_INT( class, "xs1", 7, 
+		_( "xs1" ), 
+		_( "Position of first secondary tie-point" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, xs1 ),
+		-1000000000, 1000000000, 1 );
+
+	VIPS_ARG_INT( class, "ys1", 8, 
+		_( "ys1" ), 
+		_( "Position of first secondary tie-point" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, ys1 ),
+		-1000000000, 1000000000, 1 );
+
+	VIPS_ARG_INT( class, "xr2", 9, 
+		_( "xr2" ), 
+		_( "Position of second reference tie-point" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, xr2 ),
+		-1000000000, 1000000000, 1 );
+
+	VIPS_ARG_INT( class, "yr2", 10, 
+		_( "yr2" ), 
+		_( "Position of second reference tie-point" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, yr2 ),
+		-1000000000, 1000000000, 1 );
+
+	VIPS_ARG_INT( class, "xs2", 11, 
+		_( "xs2" ), 
+		_( "Position of second secondary tie-point" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, xs2 ),
+		-1000000000, 1000000000, 1 );
+
+	VIPS_ARG_INT( class, "ys2", 12, 
+		_( "ys2" ), 
+		_( "Position of second secondary tie-point" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, ys2 ),
+		-1000000000, 1000000000, 1 );
+
+	VIPS_ARG_INT( class, "hwindow", 13, 
+		_( "hwindow" ), 
+		_( "Half window size" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, hwindow ),
+		0, 1000000000, 1 );
+
+	VIPS_ARG_INT( class, "harea", 14, 
+		_( "harea" ), 
+		_( "Half area size" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, harea ),
+		0, 1000000000, 1 );
+
+	VIPS_ARG_BOOL( class, "search", 13, 
+		_( "search" ), 
+		_( "Search to improve tie-points" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, search ),
+		FALSE ); 
+
+	VIPS_ARG_INTERPOLATE( class, "interpolate", 14, 
+		_( "Interpolate" ), 
+		_( "Interpolate pixels with this" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsMosaic1, interpolate ) );
+
+	VIPS_ARG_INT( class, "mblend", 15, 
+		_( "Max blend" ), 
+		_( "Maximum blend size" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, mblend ),
+		0, 10000, 10 );
+
+	VIPS_ARG_INT( class, "bandno", 16, 
+		_( "Search band" ), 
+		_( "Band to search for features on" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsMosaic1, bandno ),
+		0, 10000, 0 );
+
+}
+
+static void
+vips_mosaic1_init( VipsMosaic1 *mosaic1 )
+{
+	mosaic1->hwindow = 5;
+	mosaic1->harea = 15;
+	mosaic1->mblend = 10;
+}
+
+/**
+ * vips_mosaic1:
+ * @ref: reference image
+ * @sec: secondary image
+ * @out: output image
+ * @direction: horizontal or vertical join
+ * @xr1: first reference tie-point
+ * @yr1: first reference tie-point
+ * @xs1: first secondary tie-point
+ * @ys1: first secondary tie-point
+ * @xr2: second reference tie-point
+ * @yr2: second reference tie-point
+ * @xs2: second secondary tie-point
+ * @ys2: second secondary tie-point
+ * 
+ * Optional arguments:
+ *
+ * @search: search to improve tie-points
+ * @hwindow: half window size
+ * @harea: half search size 
+ * @interpolate: interpolate pixels with this
+ * @mblend: maximum blend size 
+ * @bandno: band to search for features
+ *
+ * This operation joins two images top-bottom (with @sec on the right) 
+ * or left-right (with @sec at the bottom)
+ * given an approximate pair of tie-points. @sec is scaled and rotated as
+ * necessary before the join.
+ *
+ * Before performing the transformation, the tie-points are improved by 
+ * searching band @bandno in an area of @sec of size @hsearchsize for a
+ * match of size @hwindowsize to @ref. 
+ *
+ * If @search is %TRUE, before performing the transformation, the tie-points 
+ * are improved by searching an area of @sec of size @harea for a
+ * mosaic1 of size @hwindow to @ref. 
+ *
+ * @mblend limits  the  maximum size of the
+ * blend area.  A value of "-1" means "unlimited". The two images are blended 
+ * with a raised cosine. 
+ *
+ * Pixels with all bands equal to zero are "transparent", that
+ * is, zero pixels in the overlap area do not  contribute  to  the  merge.
+ * This makes it possible to join non-rectangular images.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: vips_merge(), vips_insert(), vips_globalbalance().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_mosaic1( VipsImage *ref, VipsImage *sec, VipsImage **out, 
+	VipsDirection direction, 
+	int xr1, int yr1, int xs1, int ys1, 
+	int xr2, int yr2, int xs2, int ys2, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, ys2 );
+	result = vips_call_split( "mosaic1", ap, ref, sec, out, direction,
+		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2 );
+	va_end( ap );
+
+	return( result );
+}
