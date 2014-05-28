@@ -124,9 +124,12 @@ im__lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	/* Note parameters in history file ... for global balance to pick up
 	 * later.
 	 */
+	im__add_mosaic_name( out );
 	vips_buf_init_static( &buf, text, 1024 );
 	vips_buf_appendf( &buf, "#LRROTSCALE <%s> <%s> <%s> <",
-		ref->filename, sec->filename, out->filename ); 
+		im__get_mosaic_name( ref ), 
+		im__get_mosaic_name( sec ), 
+		im__get_mosaic_name( out ) );  
 	vips_buf_appendg( &buf, a );
 	vips_buf_appendf( &buf, "> <" );
 	vips_buf_appendg( &buf, b );
@@ -166,9 +169,12 @@ im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	/* Note parameters in history file ... for global balance to pick up
 	 * later.
 	 */
+	im__add_mosaic_name( out );
 	vips_buf_init_static( &buf, text, 1024 );
 	vips_buf_appendf( &buf, "#TBROTSCALE <%s> <%s> <%s> <",
-		ref->filename, sec->filename, out->filename ); 
+		im__get_mosaic_name( ref ), 
+		im__get_mosaic_name( sec ), 
+		im__get_mosaic_name( out ) );  
 	vips_buf_appendg( &buf, a );
 	vips_buf_appendf( &buf, "> <" );
 	vips_buf_appendg( &buf, b );

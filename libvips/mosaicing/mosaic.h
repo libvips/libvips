@@ -100,6 +100,9 @@ extern int *im__icoef1;
 extern int *im__icoef2;
 int im__make_blend_luts();
 
+void im__add_mosaic_name( VipsImage *image );
+const char *im__get_mosaic_name( VipsImage *image );
+
 int im__attach_input( REGION *or, REGION *ir, Rect *area );
 int im__copy_input( REGION *or, REGION *ir, Rect *area, Rect *reg );
 Overlapping *im__build_mergestate( const char *domain,

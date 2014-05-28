@@ -711,8 +711,11 @@ im_tbmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 	if( im__tbmerge( ref, sec, out, dx, dy, mwidth ) )
 		return( -1 );
 
+	im__add_mosaic_name( out );
 	if( im_histlin( out, "#TBJOIN <%s> <%s> <%s> <%d> <%d> <%d>", 
-		ref->filename, sec->filename, out->filename, 
+		im__get_mosaic_name( ref ), 
+		im__get_mosaic_name( sec ), 
+		im__get_mosaic_name( out ), 
 		-dx, -dy, mwidth ) )
 		return( -1 );
 

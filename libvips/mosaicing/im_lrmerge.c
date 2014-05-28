@@ -1088,14 +1088,50 @@ im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 	return ( 0 );
 }
 
+const char *
+im__get_mosaic_name( VipsImage *image )
+{
+	const char *name;
+
+	if( vips_image_get_typeof( image, "mosaic-name" ) ) {
+		if( vips_image_get_string( image, "mosaic-name", &name ) )
+			return( NULL );
+	}
+	else if( vips_image_get_typeof( image, "original-filename" ) ) {
+		if( vips_image_get_string( image, "original-filename", &name ) )
+			return( NULL );
+	}
+	else 
+		name = image->filename;
+
+	return( name ); 
+}
+
+void
+im__add_mosaic_name( VipsImage *image )
+{
+	static int serial = 0;
+
+	char name[256];
+
+	/* We must override any inherited name, so don't test for doesn't
+	 * exist before setting.
+	 */
+	vips_snprintf( name, 256, "mosaic-temp-%d", serial++ );
+	vips_image_set_string( image, "mosaic-name", name );
+}
+
 int
 im_lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 { 
 	if( im__lrmerge( ref, sec, out, dx, dy, mwidth ) )
 		return( -1 );
 
+	im__add_mosaic_name( out );
 	if( im_histlin( out, "#LRJOIN <%s> <%s> <%s> <%d> <%d> <%d>", 
-		ref->filename, sec->filename, out->filename, 
+		im__get_mosaic_name( ref ), 
+		im__get_mosaic_name( sec ), 
+		im__get_mosaic_name( out ), 
 		-dx, -dy, mwidth ) )
 		return( -1 );
 
