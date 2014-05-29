@@ -31,6 +31,8 @@
   in vips_extract_build(), call vips_image_set_start(), somehow sends a signal
   the wrong way down the pipe to the vips_sequential() (if there is one)
   telling it not to stall the first request if it's for that line
+   
+  test --crop in vipsthumbnail on portrait images cropped to landscape
 
 
 
