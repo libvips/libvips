@@ -53,7 +53,7 @@
 
 #include <vips/vips.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 int 
 im__avgdxdy( TIE_POINTS *points, int *dx, int *dy )

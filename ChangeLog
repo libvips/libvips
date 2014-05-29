@@ -35,6 +35,7 @@
 - added Travis CI config, thanks Lovell
 - im_*merge(), im_*mosaic(), im_match*(), im_global_balance*(), im_remosaic(),
   im_*mosaic1(), im_*merge1() redone as classes
+- better filename tracking for globalbalance
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

@@ -251,15 +251,15 @@ libvips/mosaicing/im_tbmerge.c
 libvips/mosaicing/im_lrcalcon.c
 libvips/mosaicing/im_clinear.c
 libvips/mosaicing/im_remosaic.c
-libvips/mosaicing/im_maxpos_subpel.c
 libvips/mosaicing/im_chkpair.c
 libvips/mosaicing/im_initialize.c
-libvips/mosaicing/im_align_bands.c
+libvips/mosaicing/merge.c
+libvips/mosaicing/mosaicing.c
 libvips/mosaicing/mosaic1.c
+libvips/mosaicing/mosaic.c
 libvips/mosaicing/im_lrmerge.c
 libvips/mosaicing/im_lrmosaic.c
 libvips/mosaicing/im_improve.c
-libvips/mosaicing/mosaicing_dispatch.c
 libvips/mosaicing/match.c
 libvips/mosaicing/global_balance.c
 libvips/resample/interpolate.c
@@ -280,7 +280,9 @@ tools/vipsthumbnail.c
 libvipsCC/VDisplay.cc
 libvipsCC/VError.cc
 libvipsCC/VImage.cc
+libvipsCC/vipsc++.cc
 libvipsCC/VMask.cc
+libvips/cimg/dummy2.cc
 libvips/arithmetic/unaryconst.h
 libvips/arithmetic/nary.h
 libvips/arithmetic/binary.h
@@ -291,6 +293,7 @@ libvips/arithmetic/statistic.h
 libvipsCC/include/vips/VDisplay.h
 libvipsCC/include/vips/VError.h
 libvipsCC/include/vips/VImage.h
+libvipsCC/include/vips/vipsc++.h
 libvipsCC/include/vips/vipscpp.h
 libvipsCC/include/vips/VMask.h
 libvips/cimg/CImg.h
@@ -375,8 +378,7 @@ libvips/iofuncs/vipsmarshal.h
 libvips/iofuncs/base64.h
 libvips/iofuncs/sink.h
 libvips/morphology/pmorphology.h
-libvips/mosaicing/merge.h
-libvips/mosaicing/mosaic.h
+libvips/mosaicing/pmosaicing.h
 libvips/mosaicing/global_balance.h
 libvips/resample/presample.h
 libvips/resample/templates.h

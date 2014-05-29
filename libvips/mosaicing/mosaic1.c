@@ -56,7 +56,7 @@
 #include <vips/buf.h>
 #include <vips/transform.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 /*
 #define DEBUG

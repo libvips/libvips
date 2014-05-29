@@ -64,7 +64,7 @@
 
 #include <vips/vips.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 #ifdef DEBUG
 static void

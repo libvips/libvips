@@ -1,12 +1,4 @@
 
-- more mosaicing?
-
-	im_lrmosaic1(), im_tbmosaic1()		done
-	im_lrmerge1(), im_tbmerge1()		done
-	im_correl
-	im_align_bands()
-	im_maxpos_subpel()
-
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
 

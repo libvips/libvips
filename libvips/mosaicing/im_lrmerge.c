@@ -132,7 +132,7 @@
 #include <vips/transform.h>
 #include <vips/internal.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 /* Blend luts. Shared between all lr and tb blends.
  */

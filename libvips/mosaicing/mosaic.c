@@ -45,7 +45,7 @@
 
 #include <vips/vips.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 typedef struct {
 	VipsOperation parent_instance;

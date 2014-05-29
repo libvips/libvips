@@ -59,7 +59,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 int 
 im__clinear( TIE_POINTS *points )

@@ -110,7 +110,7 @@
 #include <vips/vips.h>
 #include <vips/transform.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 #include "global_balance.h"
 
 #define MAX_ITEMS (50)

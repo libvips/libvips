@@ -4,11 +4,8 @@ libmosaicing_la_SOURCES = \
 	mosaicing.c \
 	merge.c \
 	mosaic.c \
-	\
-	im_align_bands.c \
 	match.c \
 	mosaic1.c  \
-	mosaicing_dispatch.c \
 	global_balance.c \
 	im_avgdxdy.c \
 	im_chkpair.c \
@@ -18,12 +15,11 @@ libmosaicing_la_SOURCES = \
 	im_lrcalcon.c \
 	im_lrmerge.c \
 	im_lrmosaic.c \
-	im_maxpos_subpel.c \
 	im_tbcalcon.c \
 	im_tbmerge.c \
 	im_remosaic.c \
 	im_tbmosaic.c \
 	global_balance.h \
-	mosaic.h
+	pmosaicing.h
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

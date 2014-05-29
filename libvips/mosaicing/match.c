@@ -38,7 +38,7 @@
 
 #include <vips/vips.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 /* Given a pair of points, return scale, angle, dx, dy to resample the 2nd
  * image with.

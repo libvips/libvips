@@ -87,7 +87,7 @@
 
 #include <vips/vips.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 /* A position and contrast.
  */

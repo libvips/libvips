@@ -75,7 +75,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 int 
 im__tbcalcon( IMAGE *ref, TIE_POINTS *points )

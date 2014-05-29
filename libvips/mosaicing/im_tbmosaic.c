@@ -65,7 +65,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 int 
 im__find_tboverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,

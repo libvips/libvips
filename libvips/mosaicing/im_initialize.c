@@ -35,7 +35,7 @@
 
 #include <vips/vips.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 int 
 im__initialize( TIE_POINTS *points )

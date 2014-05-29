@@ -10,6 +10,9 @@ libdeprecated_la_SOURCES = \
 	im_openslide2vips.c \
 	im_lab_morph.c \
 	deprecated_dispatch.c \
+	mosaicing_dispatch.c \
+	im_maxpos_subpel.c \
+	im_align_bands.c \
 	morph_dispatch.c \
 	colour_dispatch.c \
 	convol_dispatch.c \

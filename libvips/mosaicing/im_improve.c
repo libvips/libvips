@@ -57,7 +57,7 @@
 
 #include <vips/vips.h>
 
-#include "mosaic.h"
+#include "pmosaicing.h"
 
 static void
 copypoints( TIE_POINTS *pnew, TIE_POINTS *pold )

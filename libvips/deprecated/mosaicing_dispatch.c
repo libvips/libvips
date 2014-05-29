@@ -41,8 +41,6 @@
 #include <vips/internal.h>
 #include <vips/transform.h>
 
-#include "mosaic.h"
-
 /* Merge args.
  */
 static im_arg_desc merge_args[] = {
