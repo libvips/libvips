@@ -103,7 +103,13 @@ void
 vips_vector_free( VipsVector *vector )
 {
 #ifdef HAVE_ORC
-	VIPS_FREEF( orc_program_free, vector->program );
+	/* orc-0.4.19 and perhaps some others produce a lot of valgrind
+	 * errors and maybe some double-frees in orc_program_free().
+	 *
+	 * Comment tout (and live with the leak) until this is fixed.
+	 *
+	 * 	 VIPS_FREEF( orc_program_free, vector->program );
+	 */
 #endif /*HAVE_ORC*/
 	VIPS_FREE( vector );
 }
