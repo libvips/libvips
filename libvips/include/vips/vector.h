@@ -50,6 +50,7 @@ typedef struct {
 	/* Handy for debugging.
 	 */
 	const char *name;
+	char *unique_name;
 
 	/* How many resources we've used so far in this codegen. 
 	 */
