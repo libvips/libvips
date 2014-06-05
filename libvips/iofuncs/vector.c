@@ -113,18 +113,19 @@ void
 vips_vector_free( VipsVector *vector )
 {
 #ifdef HAVE_ORC
-	/* orc-0.4.19 and perhaps some others produce a lot of valgrind
-	 * errors and maybe some double-frees in orc_program_free().
+	/* orc-0.4.19 will crash if you free programs. Update your orc, or
+	 * comment out this line. 
 	 *
-	 * Comment out (and live with the leak) until this is fixed.
+	 * See https://bugzilla.gnome.org/show_bug.cgi?id=731227
+	 *
+	 * orc does not set any version variables so we can't disable this
+	 * free automatically.
 	 */
 #ifdef DEBUG_TRACE
 	printf( "orc_program_free( %s );\n", vector->unique_name ); 
 	printf( "%s = NULL;\n", vector->unique_name ); 
 #endif /*DEBUG_TRACE*/
-	/*
 	VIPS_FREEF( orc_program_free, vector->program );
-	 */
 #endif /*HAVE_ORC*/
 	VIPS_FREE( vector->unique_name );
 	VIPS_FREE( vector );
