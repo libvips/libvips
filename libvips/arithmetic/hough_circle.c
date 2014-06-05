@@ -252,7 +252,7 @@ vips_hough_circle_class_init( VipsHoughClass *class )
 		G_STRUCT_OFFSET( VipsHoughCircle, min_radius ),
 		1, 100000, 10 );
 
-	VIPS_ARG_INT( class, "max_radius", 120, 
+	VIPS_ARG_INT( class, "max_radius", 121, 
 		_( "Max radius" ), 
 		_( "Largest radius to search for" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
