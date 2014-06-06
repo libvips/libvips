@@ -221,7 +221,8 @@ vips_system_build( VipsObject *object )
 	if( system->out_name ) {
 		VipsImage *out; 
 
-		if( !(out = vips_image_new_from_file( system->out_name )) )
+		if( !(out = vips_image_new_from_file( system->out_name, 
+			NULL )) )
 			return( -1 );
 		vips_image_set_delete_on_close( out, TRUE );
 		g_object_set( system, "out", out, NULL ); 

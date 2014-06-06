@@ -4,7 +4,6 @@
 
   foreign/vipsload.c uses vips_image_new_from_file() ... instead it should use
   the _mode thing
-  
 
 - likewise, vips_image_write_to_file() should take options. Implement in terms
   of vips_foreign_save()?
@@ -12,6 +11,9 @@
 - also new_from_memory() (new from buffer?)
 
   see vips_foreign_load_buffer() for API
+
+- do we still need all the vips_image_build() machinery? can't we just use
+  the foreign system?
 
 
 

@@ -1016,7 +1016,7 @@ vips_image_class_init( VipsImageClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->new_from_string = vips_image_new_from_file_object;
-	vobject_class->to_string = vips_image_to_string;;
+	vobject_class->to_string = vips_image_to_string;
 	vobject_class->output_needs_arg = TRUE;
 	vobject_class->output_to_arg = vips_image_write_object;
 

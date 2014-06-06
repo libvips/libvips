@@ -91,9 +91,7 @@ vips_foreign_load_vips_header( VipsForeignLoad *load )
 	VipsImage *out;
 	VipsImage *out2;
 
-	vips_image_new_mode( filename, "r" ) ); 
-
-	if( !(out2 = vips_image_new_from_file( vips->filename )) )
+	if( !(out2 = vips_image_new_mode( vips->filename, "r" ) )
 		return( -1 );
 
 	/* Remove the @out that's there now. 

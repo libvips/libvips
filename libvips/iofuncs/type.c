@@ -799,7 +799,8 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 	str = g_value_dup_string( src_value );
 
 	for( i = 0, p = str; (q = vips_break_token( p, " " )); i++, p = q )
-		if( !(array[i] = G_OBJECT( vips_image_new_from_file( p ) )) ) {
+		if( !(array[i] = G_OBJECT( vips_image_new_from_file( p, 
+			NULL ) )) ) {
 			/* Set the dest to length zero to indicate error.
 			 */
 			vips_value_set_array_object( dest_value, 0 );

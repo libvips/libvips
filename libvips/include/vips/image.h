@@ -417,7 +417,8 @@ void vips_image_set_kill( VipsImage *image, gboolean kill );
 VipsImage *vips_image_new( void );
 VipsImage *vips_image_new_mode( const char *filename, const char *mode );
 VipsImage *vips_image_new_buffer( void );
-VipsImage *vips_image_new_from_file( const char *filename );
+VipsImage *vips_image_new_from_file( const char *filename, ... )
+	__attribute__((sentinel));
 VipsImage *vips_image_new_from_file_raw( const char *filename, 
 	int xsize, int ysize, int bands, guint64 offset );
 VipsImage *vips_image_new_from_memory( void *buffer, 
@@ -428,7 +429,8 @@ void vips_image_set_delete_on_close( VipsImage *image,
 	gboolean delete_on_close );
 VipsImage *vips_image_new_temp_file( const char *format );
 int vips_image_write( VipsImage *image, VipsImage *out );
-int vips_image_write_to_file( VipsImage *image, const char *filename );
+int vips_image_write_to_file( VipsImage *image, const char *filename, ... )
+	__attribute__((sentinel));
 
 int vips_image_decode_predict( VipsImage *im, 
 	int *bands, VipsBandFormat *format );
