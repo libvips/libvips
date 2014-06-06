@@ -1,3 +1,13 @@
+- vips_image_new_from_file() should take a set of options
+
+  implement it using vips_foreign_load()?
+
+- likewise, vips_image_write_to_file() should take options. Implement in terms
+  of vips_foreign_save()?
+
+  both need to allow options in the filename too
+
+
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
