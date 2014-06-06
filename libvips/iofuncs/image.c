@@ -1674,19 +1674,46 @@ vips_image_new_buffer( void )
 
 /**
  * vips_image_new_from_file:
- * @filename: file to open
+ * @name: file to open
+ * @...: %NULL-terminated list of optional named arguments
  *
- * vips_image_new_from_file() opens @filename for reading in mode "r". See
- * vips_image_new_mode() for details.
+ * vips_image_new_from_file() opens @name for reading. It can load files
+ * in many image formats, including VIPS, TIFF, PNG, JPEG, FITS, Matlab,
+ * OpenEXR, CSV, WebP, Radiance, RAW, PPM and others. 
  *
- * See also: vips_image_new_mode().
+ * Load options may be appended to @filename as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * Options given in the function call override options given in the filename. 
+ *
+ * See also: vips_foreign_load(), vips_image_write_to_file().
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_from_file( const char *filename )
+vips_image_new_from_file( const char *name, ... )
 {
-	return( vips_image_new_mode( filename, "r" ) ); 
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
+	const char *operation_name;
+	va_list ap;
+	VipsImage *out;
+	int result;
+
+	/* Sniff the file type and select a load operation.
+	 */
+	vips__filename_split8( name, filename, option_string );
+	if( !(operation_name = vips_foreign_find_load( filename )) )
+		return( -1 );
+
+	va_start( ap, out );
+	result = vips_call_split_option_string( operation_name, option_string, 
+		ap, filename, &out );
+	va_end( ap );
+
+	if( !result )
+		return( NULL ); 
+
+	return( out );
 }
 
 /**
@@ -1973,28 +2000,39 @@ vips_image_write( VipsImage *image, VipsImage *out )
 /**
  * vips_image_write_to_file:
  * @image: image to write
- * @filename: write to this file
+ * @name: write to this file
+ * @...: %NULL-terminated list of optional named arguments
  *
- * A convenience function to write @image to a file. 
+ * Writes @in to @name using the saver recommended by
+ * vips_foreign_find_save(). 
+ *
+ * Save options may be appended to @name as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments. 
+ *
+ * See also: vips_image_new_from_file().
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_image_write_to_file( VipsImage *image, const char *filename )
+vips_image_write_to_file( VipsImage *image, const char *name, ... )
 {
-	VipsImage *out;
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
+	const char *operation_name;
+	va_list ap;
+	int result;
 
-	g_assert( filename );
+	vips__filename_split8( name, filename, option_string );
 
-	if( !(out = vips_image_new_mode( filename, "w" )) )
+	if( !(operation_name = vips_foreign_find_save( filename )) )
 		return( -1 );
-	if( vips_image_write( image, out ) ) {
-		g_object_unref( out );
-		return( -1 );
-	}
-	g_object_unref( out );
 
-	return( 0 );
+	va_start( ap, name );
+	result = vips_call_split_option_string( operation_name, option_string, 
+		ap, in, filename );
+	va_end( ap );
+
+	return( result );
 }
 
 /**

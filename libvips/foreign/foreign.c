@@ -72,8 +72,8 @@
  * functions, vips_foreign_load() and vips_foreign_save(), automate the
  * process, loading an image from a file or saving an image to a file. These
  * functions let you give load or save options as name - value pairs in the C
- * argument list. You can use vips_foreign_load_options() and
- * vips_foreign_save_options() to include options in the file name.
+ * argument list. You can also
+ * include options in the file name.
  *
  * For example:
  *
@@ -87,7 +87,7 @@
  * the file name extension) with JPEG compression.
  *
  * |[
- * vips_foreign_save_options (my_image, "frank.tiff[compression=jpeg]", NULL);  
+ * vips_foreign_save (my_image, "frank.tiff[compression=jpeg]", NULL);  
  * ]|
  *
  * Is the same thing, but with the option in the filename. You can put
@@ -549,7 +549,10 @@ vips_foreign_find_load( const char *name )
  * Loads @filename into @out using the loader recommended by
  * vips_foreign_find_load().
  *
- * See also: vips_foreign_save(), vips_foreign_load_options().
+ * Load options may be appended to @filename as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments. 
+ *
+ * See also: vips_foreign_save().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -627,7 +630,7 @@ vips_foreign_find_load_buffer( void *buf, size_t len )
  * vips_foreign_find_load_buffer(). @option_string can be used to give an
  * extra set of load options. 
  *
- * See also: vips_foreign_save(), vips_foreign_load_options().
+ * See also: vips_foreign_save().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -1510,8 +1513,10 @@ vips_foreign_find_save( const char *name )
  * @...: %NULL-terminated list of optional named arguments
  *
  * Saves @in to @filename using the saver recommended by
- * vips_foreign_find_save(). Options are not in @filename but must be given
- * as a NULL-terminated list of name-value pairs.
+ * vips_foreign_find_save(). 
+ *
+ * Save options may be appended to @filename as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments. 
  *
  * See also: vips_foreign_load().
  *
