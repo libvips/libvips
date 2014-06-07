@@ -404,6 +404,12 @@ vips_flags( const char *filename )
 typedef VipsFormat VipsFormatVips;
 typedef VipsFormatClass VipsFormatVipsClass;
 
+static int
+vips_format_vips_save( VipsImage *image, const char *filename )
+{
+	return( vips_image_write_to_file( image, filename, NULL ) ); 
+}
+
 static void
 vips_format_vips_class_init( VipsFormatVipsClass *class )
 {
@@ -417,7 +423,7 @@ vips_format_vips_class_init( VipsFormatVipsClass *class )
 	format_class->is_a = im_isvips;
 	format_class->header = file2vips;
 	format_class->load = file2vips;
-	format_class->save = vips_image_write_to_file;
+	format_class->save = vips_format_vips_save;
 	format_class->get_flags = vips_flags;
 	format_class->suffs = vips_suffs;
 }

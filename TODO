@@ -12,8 +12,15 @@
 
   see vips_foreign_load_buffer() for API
 
+- can get rid of vips_foreign_load() / vips_foreign_save()
+
+  also vips_foreign_load_from_buffer() or whatever it's called, and save too.
+
 - do we still need all the vips_image_build() machinery? can't we just use
   the foreign system?
+
+  only need a couple of basic modes:wq
+
 
 
 

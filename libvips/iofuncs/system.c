@@ -145,7 +145,7 @@ vips_system_build( VipsObject *object )
 				vips__temp_name( in_format )) )
 				return( -1 );
 			if( vips_image_write_to_file( in[i], 
-				system->in_name[i] ) ) 
+				system->in_name[i], NULL ) ) 
 				return( -1 );
 		}
 	}

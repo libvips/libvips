@@ -1334,7 +1334,7 @@ vips__find_rightmost_brackets( const char *p )
 
 /* Split a vips8-style filename + options.
  *
- * filename and options must be VIPS_PATH_MAX in length. 
+ * filename and option_string must be VIPS_PATH_MAX in length. 
  */
 void
 vips__filename_split8( const char *name, char *filename, char *option_string )

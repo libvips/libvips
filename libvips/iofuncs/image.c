@@ -474,7 +474,8 @@ vips_image_to_string( VipsObject *object, VipsBuf *buf )
 static int 
 vips_image_write_object( VipsObject *object, const char *string )
 {
-	return( vips_image_write_to_file( VIPS_IMAGE( object ), string ) );
+	return( vips_image_write_to_file( VIPS_IMAGE( object ), string, 
+		NULL ) );
 }
 
 static void *
@@ -754,6 +755,11 @@ vips_image_add_progress( VipsImage *image )
 		vips_image_set_progress( image, TRUE );
 	}
 }
+
+/* We have to do a lot of work in _build() so we can work with the stuff in
+ * /deprecated to support the vips7 API. We could get rid of most of this
+ * stuff if we were vips8-only.
+ */
 
 static int
 vips_image_build( VipsObject *object )
@@ -1540,6 +1546,9 @@ vips_image_new( void )
  * vips_image_new_mode() examines the mode string and creates an 
  * appropriate #VipsImage.
  *
+ * This function (mostly) exists to support the vips7 compatibility layer. 
+ * vips8 programs should use vips_image_new_from_file() and friends. 
+ *
  * <itemizedlist>
  *   <listitem> 
  *     <para>
@@ -1699,18 +1708,16 @@ vips_image_new_from_file( const char *name, ... )
 	VipsImage *out;
 	int result;
 
-	/* Sniff the file type and select a load operation.
-	 */
 	vips__filename_split8( name, filename, option_string );
 	if( !(operation_name = vips_foreign_find_load( filename )) )
-		return( -1 );
+		return( NULL );
 
-	va_start( ap, out );
+	va_start( ap, name );
 	result = vips_call_split_option_string( operation_name, option_string, 
 		ap, filename, &out );
 	va_end( ap );
 
-	if( !result )
+	if( result )
 		return( NULL ); 
 
 	return( out );
@@ -2006,8 +2013,9 @@ vips_image_write( VipsImage *image, VipsImage *out )
  * Writes @in to @name using the saver recommended by
  * vips_foreign_find_save(). 
  *
- * Save options may be appended to @name as "[name=value,...]" or given as
- * a NULL-terminated list of name-value pairs at the end of the arguments. 
+ * Save options may be appended to @filename as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * Options given in the function call override options given in the filename. 
  *
  * See also: vips_image_new_from_file().
  *
@@ -2023,13 +2031,12 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	int result;
 
 	vips__filename_split8( name, filename, option_string );
-
 	if( !(operation_name = vips_foreign_find_save( filename )) )
 		return( -1 );
 
 	va_start( ap, name );
 	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, in, filename );
+		ap, image, filename );
 	va_end( ap );
 
 	return( result );
