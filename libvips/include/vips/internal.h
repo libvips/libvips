@@ -315,6 +315,11 @@ IMAGE *vips__deprecated_open_write( const char *filename );
 
 int vips__input_interpolate_init( im_object *obj, char *str );
 
+int vips_foreign_load( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_foreign_save( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

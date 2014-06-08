@@ -200,7 +200,7 @@ vips_rot45_build( VipsObject *object )
 	if( vips_image_wio_input( rot45->in ) )
 		return( -1 );
 
-	t[0] = vips_image_new_buffer();
+	t[0] = vips_image_new_memory();
 	if( vips_image_pipelinev( t[0], 
 		VIPS_DEMAND_STYLE_ANY, rot45->in, NULL ) )
 		return( -1 );

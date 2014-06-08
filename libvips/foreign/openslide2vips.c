@@ -444,7 +444,7 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 
 	/* Memory buffer. Get associated directly to this, then copy to out.
 	 */
-	raw = vips_image_new_buffer();
+	raw = vips_image_new_memory();
 	vips_object_local( out, raw );
 
 	if( !(rslide = readslide_new( filename, raw, 0, associated )) ||

@@ -249,7 +249,7 @@ vips__vector_to_ink( const char *domain,
 	/* And now recode the vec to match the original im.
 	 */
 	if( vips_image_encode( t[3], &t[4], im->Coding ) || 
-		!(t[5] = vips_image_new_buffer()) ||
+		!(t[5] = vips_image_new_memory()) ||
 		vips_image_write( t[4], t[5] ) ) {
 		g_object_unref( context );
 		return( NULL );
@@ -322,7 +322,7 @@ vips__ink_to_vector( const char *domain, VipsImage *im, VipsPel *ink, int *n )
 
 	/* To a mem buffer, then copy to out. 
 	 */
-	if( !(t[4] = vips_image_new_buffer()) ||
+	if( !(t[4] = vips_image_new_memory()) ||
 		vips_image_write( t[3], t[4] ) )
 		return( NULL ); 
 

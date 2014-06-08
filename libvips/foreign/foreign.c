@@ -540,22 +540,10 @@ vips_foreign_find_load( const char *name )
 	return( G_OBJECT_CLASS_NAME( load_class ) );
 }
 
-/**
- * vips_foreign_load:
- * @filename: file to load
- * @out: output image
- * @...: %NULL-terminated list of optional named arguments
- *
- * Loads @filename into @out using the loader recommended by
- * vips_foreign_find_load().
- *
- * Load options may be appended to @filename as "[name=value,...]" or given as
- * a NULL-terminated list of name-value pairs at the end of the arguments. 
- *
- * See also: vips_foreign_save().
- *
- * Returns: 0 on success, -1 on error
+/* Kept for compat with earlier version of the vip8 API. Use
+ * vips_image_new_from_file() now. 
  */
+
 int
 vips_foreign_load( const char *name, VipsImage **out, ... )
 {
@@ -597,7 +585,7 @@ vips_foreign_find_load_buffer_sub( VipsForeignLoadClass *load_class,
  *
  * Searches for an operation you could use to load a memory buffer.
  *
- * See also: vips_foreign_load_buffer().
+ * See also: vips_image_new_from_buffer().
  *
  * Returns: the name of an operation on success, %NULL on error
  */
@@ -616,48 +604,6 @@ vips_foreign_find_load_buffer( void *buf, size_t len )
 	}
 
 	return( G_OBJECT_CLASS_NAME( load_class ) );
-}
-
-/**
- * vips_foreign_load_buffer:
- * @buf: start of memory buffer
- * @len: length of memory buffer
- * @option_string: set of extra options as a string
- * @out: output image
- * @...: %NULL-terminated list of optional named arguments
- *
- * Loads @buf, @len into @out using the loader recommended by
- * vips_foreign_find_load_buffer(). @option_string can be used to give an
- * extra set of load options. 
- *
- * See also: vips_foreign_save().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-vips_foreign_load_buffer( void *buf, size_t len, const char *option_string, 
-	VipsImage **out, ... )
-{
-	const char *operation_name;
-	VipsArea *area;
-	va_list ap;
-	int result;
-
-	if( !(operation_name = vips_foreign_find_load_buffer( buf, len )) )
-		return( -1 );
-
-	/* We don't take a copy of the data or free it.
-	 */
-	area = vips_area_new_blob( NULL, buf, len );
-
-	va_start( ap, out );
-	result = vips_call_split_option_string( operation_name, 
-		option_string, ap, area, out );
-	va_end( ap );
-
-	vips_area_unref( area );
-
-	return( result );
 }
 
 /**
@@ -812,7 +758,7 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 
 	/* Otherwise, fall back to a memory buffer.
 	 */
-	return( vips_image_new_buffer() );
+	return( vips_image_new_memory() );
 }
 
 /* Check two images for compatibility: their geometries need to match.
@@ -1506,22 +1452,9 @@ vips_foreign_find_save( const char *name )
 	return( G_OBJECT_CLASS_NAME( save_class ) );
 }
 
-/**
- * vips_foreign_save:
- * @in: image to write
- * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
- *
- * Saves @in to @filename using the saver recommended by
- * vips_foreign_find_save(). 
- *
- * Save options may be appended to @filename as "[name=value,...]" or given as
- * a NULL-terminated list of name-value pairs at the end of the arguments. 
- *
- * See also: vips_foreign_load().
- *
- * Returns: 0 on success, -1 on error
+/* Kept for early vips8 API compat.
  */
+
 int
 vips_foreign_save( VipsImage *in, const char *name, ... )
 {
@@ -1568,7 +1501,7 @@ vips_foreign_find_save_buffer_sub( VipsForeignSaveClass *save_class,
  * Searches for an operation you could use to write to a buffer in @suffix
  * format. 
  *
- * See also: vips_foreign_save_buffer().
+ * See also: vips_image_write_to_buffer().
  *
  * Returns: the name of an operation on success, %NULL on error
  */
@@ -1592,59 +1525,6 @@ vips_foreign_find_save_buffer( const char *name )
 	}
 
 	return( G_OBJECT_CLASS_NAME( save_class ) );
-}
-
-/**
- * vips_foreign_save_buffer:
- * @in: image to write
- * @suffix: format to write 
- * @buf: return buffer start here
- * @len: return buffer length here
- * @...: %NULL-terminated list of optional named arguments
- *
- * Saves @in to a memory buffer selected from @suffix. @suffix may also set
- * save options, for example it could be ".jpg[Q=80]". 
- * Save options may also be given  
- * as a NULL-terminated list of name-value pairs.
- *
- * See also: vips_foreign_load_buffer().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-vips_foreign_save_buffer( VipsImage *in, 
-	const char *name, void **buf, size_t *len, 
-	... )
-{
-	char suffix[VIPS_PATH_MAX];
-	char option_string[VIPS_PATH_MAX];
-	const char *operation_name;
-	VipsArea *area;
-	va_list ap;
-	int result;
-
-	vips__filename_split8( name, suffix, option_string );
-
-	if( !(operation_name = vips_foreign_find_save_buffer( suffix )) )
-		return( -1 );
-
-	va_start( ap, len );
-	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, in, &area );
-	va_end( ap );
-
-	if( area ) { 
-		if( buf ) {
-			*buf = area->data;
-			area->free_fn = NULL;
-		}
-		if( len ) 
-			*len = area->length;
-
-		vips_area_unref( area );
-	}
-
-	return( result );
 }
 
 /* Called from iofuncs to init all operations in this dir. Use a plugin system

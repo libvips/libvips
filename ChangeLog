@@ -25,7 +25,7 @@
 - dzsave can directly write a ZIP file 
 - add ".vips" as an alternative suffix for vips files
 - added vips_tiffload_buffer()
-- added vips_foreign_load_buffer(), vips_foreign_save_buffer()
+- added vips_image_new_from_buffer(), vips_image_write_to_buffer()
 - added vips_object_set_from_string()
 - added @container option to dzsave 
 - support 1/2/4 bit palette tiff images with alpha
@@ -36,6 +36,7 @@
 - im_*merge(), im_*mosaic(), im_match*(), im_global_balance*(), im_remosaic(),
   im_*mosaic1(), im_*merge1() redone as classes
 - better filename tracking for globalbalance
+- revised vips8 image load/save API, now simpler and more logical
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

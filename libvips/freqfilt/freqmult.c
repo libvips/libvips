@@ -96,7 +96,7 @@ vips_freqmult_build( VipsObject *object )
 		 * FIXME does this actually work now we're a class? test
 		 * perhaps we need a temporary object
 		 */
-		t[4] = vips_image_new_buffer();
+		t[4] = vips_image_new_memory();
 
 		if( vips_fwfft( in, &t[0], NULL ) ||
 			vips_multiply( t[0], freqmult->mask, &t[1], NULL ) ||

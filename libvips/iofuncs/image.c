@@ -1538,109 +1538,6 @@ vips_image_new( void )
 	return( image ); 
 }
 
-/**
- * vips_image_new_mode:
- * @filename: file to open
- * @mode: mode to open with
- *
- * vips_image_new_mode() examines the mode string and creates an 
- * appropriate #VipsImage.
- *
- * This function (mostly) exists to support the vips7 compatibility layer. 
- * vips8 programs should use vips_image_new_from_file() and friends. 
- *
- * <itemizedlist>
- *   <listitem> 
- *     <para>
- *       <emphasis>"t"</emphasis>
- *       creates a temporary memory buffer image.
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>
- *       <emphasis>"p"</emphasis>
- *       creates a "glue" descriptor you can use to join operations, see also
- *       vips_image_new().
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>
- *       <emphasis>"r"</emphasis>
- *       opens the named file for reading. If the file is not in the native 
- *       VIPS format for your machine, vips_image_new_mode() 
- *       automatically converts the file for you. 
- *
- *       Some formats (eg. tiled tiff) are read directly. 
- *
- *       Some formats (eg. strip tiff) do not support random access and can't
- *       be processed directly. Small images are decompressed to memory and
- *       loaded from there, large images are decompressed to a disc file and
- *       processed from that.
- *
- *       If the operations you intend to perform are sequential, that is, they
- *       operate in a strict top-to-bottom manner, you can use sequential mode
- *       instead, see "rs" below,
- *       or you can use the lower-level 
- *       API and control the loading process yourself. See 
- *       #VipsForeign. 
- *
- *	 See vips_image_new_temp_file() for an explanation of how VIPS selects a
- *	 location for the temporary file.
- *
- *	 The disc threshold can be set with the "--vips-disc-threshold"
- *	 command-line argument, or the VIPS_DISC_THRESHOLD environment variable.
- *	 The value is a simple integer, but can take a unit postfix of "k", 
- *	 "m" or "g" to indicate kilobytes, megabytes or gigabytes.
- *
- *	 For example:
- *
- *       |[
- *         vips --vips-disc-threshold 500m copy fred.tif fred.v
- *       ]|
- *
- *       will copy via disc if "fred.tif" is more than 500 Mbytes
- *       uncompressed. The default threshold is 100 MB.
- *
- *       Note that <emphasis>"r"</emphasis> mode works in at least two stages. 
- *       It should return quickly and let you check header fields. It will
- *       only actually read in pixels when you first access them. 
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>
- *       <emphasis>"rs"</emphasis>
- *	 opens the named file for reading sequentially. It reads the source
- *	 image top-to-bottom and serves up pixels to the pipeline as required.
- *	 Provided the operations that connect to the image all demand pixels
-*	 only top-to-bottom as well, everything is fine and you avoid the
-*	 separate decompress stage.
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>
- *       <emphasis>"w"</emphasis>
- *       opens the named file for writing. It looks at the file name 
- *       suffix to determine the type to write -- for example:
- *
- *       |[
- *         vips_image_new_mode( "fred.tif", "w" )
- *       ]|
- *
- *       will write in TIFF format.
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>
- *       <emphasis>"rw"</emphasis>
- *       opens the named file for reading and writing. This will only work for 
- *       VIPS files in a format native to your machine. It is only for 
- *       paintbox-type applications.
- *     </para>
- *   </listitem>
- * </itemizedlist>
- *
- * Returns: the new #VipsImage, or %NULL on error.
- */
 VipsImage *
 vips_image_new_mode( const char *filename, const char *mode )
 {
@@ -1665,10 +1562,10 @@ vips_image_new_mode( const char *filename, const char *mode )
 }
 
 /**
- * vips_image_new_buffer:
+ * vips_image_new_memory:
  *
- * vips_image_new_buffer() creates a new VipsImage which when written to will
- * create a memory buffer. It is a convenience function for
+ * vips_image_new_memory() creates a new #VipsImage which, when written to, will
+ * create a memory image. It is a convenience function for
  * vips_image_new_mode(vips_image_temp_name(), "t").
  *
  * See also: vips_image_new().
@@ -1676,7 +1573,7 @@ vips_image_new_mode( const char *filename, const char *mode )
  * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_buffer( void )
+vips_image_new_memory( void )
 {
 	return( vips_image_new_mode( vips_image_temp_name(), "t" ) );
 }
@@ -1686,6 +1583,12 @@ vips_image_new_buffer( void )
  * @name: file to open
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @access: hint #VipsAccess mode to loader
+ * @disc: load via a temporary disc file
+ * @...: other arguments depend on the loader
+ *
  * vips_image_new_from_file() opens @name for reading. It can load files
  * in many image formats, including VIPS, TIFF, PNG, JPEG, FITS, Matlab,
  * OpenEXR, CSV, WebP, Radiance, RAW, PPM and others. 
@@ -1694,7 +1597,48 @@ vips_image_new_buffer( void )
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename. 
  *
- * See also: vips_foreign_load(), vips_image_write_to_file().
+ * vips_image_new_from_file() always returns immediately with the header
+ * fields filled in. No pixels are actually read until you first access them. 
+ *
+ * @access lets you hint the expected access pattern for this file.
+ * #VIPS_ACCESS_RANDOM means you can fetch pixels randomly from the image.
+ * This is the default mode. #VIPS_ACCESS_SEQUENTIAL means you will read the
+ * whole image exactly once, top-to-bottom. In this mode, vips can avoid
+ * converting the whole image in one go, for a large memory saving. You are
+ * allowed to make small non-local references, so area operations like 
+ * convolution will work. #VIPS_ACCESS_SEQUENTIAL_UNBUFFERED does not allow
+ * non-local references, so will only work for very strict top-to-bottom
+ * operations, but does have very low memory needs. 
+ *
+ * In #VIPS_ACCESS_RANDOM mode, small images are decompressed to memory and
+ * then processed from there. Large images are decompressed to temporary
+ * random-access files on disc and then processed from there. Set @disc to
+ * %TRUE to force loading via disc. See vips_image_new_temp_file() for an 
+ * explanation of how VIPS selects a location for the temporary file.
+ *
+ * The disc threshold can be set with the "--vips-disc-threshold"
+ * command-line argument, or the VIPS_DISC_THRESHOLD environment variable.
+ * The value is a simple integer, but can take a unit postfix of "k", 
+ * "m" or "g" to indicate kilobytes, megabytes or gigabytes.
+ * The default threshold is 100 MB.
+ *
+ * For example:
+ *
+ * |[
+ * VipsImage *image = vips_image_new_from_file ("fred.tif",
+ * 	"page", 12,
+ * 	NULL);
+ * ]|
+ *
+ * Will open "fred.tif", reading page 12. 
+ *
+ * Use vips_foreign_find_load() or vips_foreign_is_a() to see what format a 
+ * file is in and therefore what options are available. If you need more 
+ * control over the loading process, you can call loaders directly, see 
+ * vips_jpegload(), for example. 
+ *
+ * See also: vips_foreign_find_load(), vips_foreign_is_a(), 
+ * vips_image_write_to_file().
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
@@ -1721,6 +1665,24 @@ vips_image_new_from_file( const char *name, ... )
 		return( NULL ); 
 
 	return( out );
+}
+
+/**
+ * vips_image_new_from_file_RW:
+ * @filename: filename to open
+ *
+ *       Opens the named file for reading and writing. This will only work for 
+ *       VIPS files in a format native to your machine. It is only for 
+ *       paintbox-type applications.
+ *
+ * See also: vips_draw_circle().
+ *
+ * Returns: the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_from_file_RW( const char *filename )
+{
+	return( vips_image_new_mode( filename, "rw" ) ); 
 }
 
 /**
@@ -1774,11 +1736,18 @@ vips_image_new_from_file_raw( const char *filename,
  * @bands: image bands (or bytes per pixel)
  * @bandfmt: image format
  *
- * This function wraps an #IMAGE around a memory buffer. VIPS does not take
+ * This function wraps a #VipsImage around a memory area. The memory area
+ * must be a simple array, for example RGBRGBRGB, left-to-right,
+ * top-to-bottom. Use vips_image_new_from_buffer() to load an area of memory
+ * containing an image in a format.
+ *
+ * VIPS does not take
  * responsibility for the area of memory, it's up to you to make sure it's
  * freed when the image is closed. See for example #VipsObject::close.
  *
- * See also: im_binfile(), im_raw2vips(), vips_image_new().
+ * Use vips_copy_morph() to set other image properties. 
+ *
+ * See also: vips_image_new().
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
@@ -1806,6 +1775,60 @@ vips_image_new_from_memory( void *buffer,
 	}
 
 	return( image );
+}
+
+/**
+ * vips_image_new_from_buffer:
+ * @buf: start of memory buffer
+ * @len: length of memory buffer
+ * @option_string: set of extra options as a string
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Loads an image from the formatted area of memory @buf, @len using the 
+ * loader recommended by vips_foreign_find_load_buffer(). Only TIFF, PNG and 
+ * JPEG formats are supported. To load an unformatted area of memory, use
+ * vips_image_new_from_memory(). 
+ *
+ * VIPS does not take
+ * responsibility for the area of memory, it's up to you to make sure it's
+ * freed when the image is closed. See for example #VipsObject::close.
+ *
+ * Load options may be given in @option_string as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * Options given in the function call override options given in the filename. 
+ *
+ * See also: vips_image_write_to_buffer().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+VipsImage *
+vips_image_new_from_buffer( void *buf, size_t len, 
+	const char *option_string, ... )
+{
+	const char *operation_name;
+	VipsArea *area;
+	va_list ap;
+	int result;
+	VipsImage *out;
+
+	if( !(operation_name = vips_foreign_find_load_buffer( buf, len )) )
+		return( NULL );
+
+	/* We don't take a copy of the data or free it.
+	 */
+	area = vips_area_new_blob( NULL, buf, len );
+
+	va_start( ap, option_string );
+	result = vips_call_split_option_string( operation_name, 
+		option_string, ap, area, &out );
+	va_end( ap );
+
+	vips_area_unref( area );
+
+	if( result )
+		return( NULL );
+
+	return( out ); 
 }
 
 /**
@@ -2038,6 +2061,63 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	result = vips_call_split_option_string( operation_name, option_string, 
 		ap, image, filename );
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_image_write_to_buffer:
+ * @in: image to write
+ * @suffix: format to write 
+ * @buf: return buffer start here
+ * @len: return buffer length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Writes @in to a memory buffer selected from @suffix. @suffix may also set
+ * save options, for example it could be ".jpg[Q=80]". 
+ * Save options may also be given  
+ * as a NULL-terminated list of name-value pairs.
+ *
+ * Currently only TIFF, JPEG and PNG formats are supported.
+ *
+ * You can call the various save operations directly if you wish, see
+ * vips_jpegsave_buffer(), for example. 
+ *
+ * See also: vips_image_new_from_buffer().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_image_write_to_buffer( VipsImage *in, 
+	const char *name, void **buf, size_t *len, 
+	... )
+{
+	char suffix[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
+	const char *operation_name;
+	VipsArea *area;
+	va_list ap;
+	int result;
+
+	vips__filename_split8( name, suffix, option_string );
+	if( !(operation_name = vips_foreign_find_save_buffer( suffix )) )
+		return( -1 );
+
+	va_start( ap, len );
+	result = vips_call_split_option_string( operation_name, option_string, 
+		ap, in, &area );
+	va_end( ap );
+
+	if( area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
 
 	return( result );
 }
@@ -2464,7 +2544,7 @@ vips_image_wio_input( VipsImage *image )
 		/* Change to VIPS_IMAGE_SETBUF. First, make a memory 
 		 * buffer and copy into that.
 		 */
-		t1 = vips_image_new_buffer();
+		t1 = vips_image_new_memory();
 		if( vips_image_write( image, t1 ) ) {
 			g_object_unref( t1 );
 			return( -1 );

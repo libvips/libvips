@@ -220,7 +220,7 @@ read_image( Read *read, VipsImage *out )
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
 	webp_decoder decoder;
 
-	t[0] = vips_image_new_buffer();
+	t[0] = vips_image_new_memory();
 	if( read_header( read, t[0] ) )
 		return( -1 );
 	if( vips_image_write_prepare( t[0] ) ) 

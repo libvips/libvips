@@ -1052,7 +1052,7 @@ strip_work( VipsThreadState *state, void *a )
 	printf( "strip_work: writing to %s\n", buf );
 #endif /*DEBUG_VERBOSE*/
 
-	if( vips_foreign_save_buffer( x, dz->suffix, &buf, &len, NULL ) ) {
+	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, NULL ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}

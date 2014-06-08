@@ -115,7 +115,7 @@ rfwfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 
 	/* Convert input to a real double membuffer.
 	 */
-	t[1] = vips_image_new_buffer();
+	t[1] = vips_image_new_memory();
 	if( vips_cast_double( in, &t[0], NULL ) ||
 		vips_image_write( t[0], t[1] ) )
 		return( -1 ); 
@@ -145,7 +145,7 @@ rfwfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 
 	/* Write to out as another memory buffer. 
 	 */
-	*out = vips_image_new_buffer();
+	*out = vips_image_new_memory();
 	if( vips_image_pipelinev( *out, VIPS_DEMAND_STYLE_ANY, in, NULL ) )
                 return( -1 );
 	(*out)->BandFmt = VIPS_FORMAT_DPCOMPLEX;
@@ -230,7 +230,7 @@ cfwfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 
 	/* Convert input to a complex double membuffer.
 	 */
-	t[1] = vips_image_new_buffer();
+	t[1] = vips_image_new_memory();
 	if( vips_cast_dpcomplex( in, &t[0], NULL ) ||
 		vips_image_write( t[0], t[1] ) )
 		return( -1 ); 
@@ -260,7 +260,7 @@ cfwfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 
 	/* Write to out as another memory buffer. 
 	 */
-	*out = vips_image_new_buffer();
+	*out = vips_image_new_memory();
 	if( vips_image_pipelinev( *out, VIPS_DEMAND_STYLE_ANY, in, NULL ) )
                 return( -1 );
 	(*out)->BandFmt = VIPS_FORMAT_DPCOMPLEX;
