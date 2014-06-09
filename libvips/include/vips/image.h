@@ -439,6 +439,8 @@ int vips_image_write_to_file( VipsImage *image, const char *filename, ... )
 int vips_image_write_to_buffer( VipsImage *in, 
 	const char *name, void **buf, size_t *len, ... )
 	__attribute__((sentinel));
+int vips_image_write_to_memory( VipsImage *in, 
+	void **buf_out, size_t *len_out );
 
 int vips_image_decode_predict( VipsImage *im, 
 	int *bands, VipsBandFormat *format );

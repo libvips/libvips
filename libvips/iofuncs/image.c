@@ -1632,6 +1632,13 @@ vips_image_new_memory( void )
  *
  * Will open "fred.tif", reading page 12. 
  *
+ * |[
+ * VipsImage *image = vips_image_new_from_file ("fred.jpg[shrink=2]",
+ * 	NULL);
+ * ]|
+ *
+ * Will open "fred.jpg", downsampling by a factor of two. 
+ *
  * Use vips_foreign_find_load() or vips_foreign_is_a() to see what format a 
  * file is in and therefore what options are available. If you need more 
  * control over the loading process, you can call loaders directly, see 
@@ -1671,9 +1678,9 @@ vips_image_new_from_file( const char *name, ... )
  * vips_image_new_from_file_RW:
  * @filename: filename to open
  *
- *       Opens the named file for reading and writing. This will only work for 
- *       VIPS files in a format native to your machine. It is only for 
- *       paintbox-type applications.
+ * Opens the named file for reading and writing. This will only work for 
+ * VIPS files in a format native to your machine. It is only for 
+ * paintbox-type applications.
  *
  * See also: vips_draw_circle().
  *
@@ -1747,7 +1754,7 @@ vips_image_new_from_file_raw( const char *filename,
  *
  * Use vips_copy_morph() to set other image properties. 
  *
- * See also: vips_image_new().
+ * See also: vips_image_new(), vips_image_write_to_memory().
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
@@ -1810,6 +1817,8 @@ vips_image_new_from_buffer( void *buf, size_t len,
 	va_list ap;
 	int result;
 	VipsImage *out;
+
+	vips_check_init();
 
 	if( !(operation_name = vips_foreign_find_load_buffer( buf, len )) )
 		return( NULL );
@@ -2073,17 +2082,18 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
  * @len: return buffer length here
  * @...: %NULL-terminated list of optional named arguments
  *
- * Writes @in to a memory buffer selected from @suffix. @suffix may also set
- * save options, for example it could be ".jpg[Q=80]". 
- * Save options may also be given  
- * as a NULL-terminated list of name-value pairs.
+ * Writes @in to a memory buffer in a format specified by @suffix. 
+ *
+ * Save options may be appended to @suffix as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * Options given in the function call override options given in the filename. 
  *
  * Currently only TIFF, JPEG and PNG formats are supported.
  *
  * You can call the various save operations directly if you wish, see
  * vips_jpegsave_buffer(), for example. 
  *
- * See also: vips_image_new_from_buffer().
+ * See also: vips_image_write_to_memory(), vips_image_new_from_buffer().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -2120,6 +2130,56 @@ vips_image_write_to_buffer( VipsImage *in,
 	}
 
 	return( result );
+}
+
+/**
+ * vips_image_write_to_memory:
+ * @in: image to write
+ * @buf: return buffer start here
+ * @len: return buffer length here
+ *
+ * Writes @in to memory as a simple, unformatted array. 
+ *
+ * The caller is responsible for freeing memory. 
+ *
+ * See also: vips_image_write_to_buffer().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_image_write_to_memory( VipsImage *in, void **buf_out, size_t *len_out )
+{
+	void *buf;
+	size_t len;
+	VipsImage *x;
+
+	g_assert( buf_out ); 
+
+	len = VIPS_IMAGE_SIZEOF_IMAGE( in );
+	if( !(buf = g_try_malloc( len )) ) {
+		vips_error( "vips_image_write_to_buffer", 
+			_( "out of memory --- size == %dMB" ), 
+			(int) (len / (1024.0 * 1024.0))  );
+		vips_warn( "vips_image_write_to_buffer", 
+			_( "out of memory --- size == %dMB" ), 
+			(int) (len / (1024.0*1024.0))  );
+		return( -1 );
+	}
+
+	x = vips_image_new_from_memory( buf, 
+		in->Xsize, in->Ysize, in->Bands, in->BandFmt );
+	if( vips_image_write( in, x ) ) {
+		g_object_unref( x );
+		g_free( buf ); 
+		return( -1 ); 
+	}
+	g_object_unref( x );
+
+	*buf_out = buf;
+	if( len_out )
+		*len_out = len;
+
+	return( 0 ); 
 }
 
 /**

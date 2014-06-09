@@ -1,15 +1,3 @@
-- need something to write an image to an area of memory
-
-  eg.:
-
-  int vips_image_write_to_memory( VipsImage *x, void **buf, size_t *len )
-
-  maybe?
-
-- check sharp / ruby-vips / etc. for compatibility with revised stuff
-
-
-
 
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
