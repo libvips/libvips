@@ -1669,6 +1669,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_openslide_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_buffer_get_type( void ); 
+	extern GType vips_foreign_load_jpeg_fd_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_buffer_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_mime_get_type( void ); 
@@ -1721,6 +1722,7 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_JPEG
 	vips_foreign_load_jpeg_file_get_type(); 
 	vips_foreign_load_jpeg_buffer_get_type(); 
+	vips_foreign_load_jpeg_fd_get_type(); 
 	vips_foreign_save_jpeg_file_get_type(); 
 	vips_foreign_save_jpeg_buffer_get_type(); 
 	vips_foreign_save_jpeg_mime_get_type(); 
@@ -2067,6 +2069,38 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	va_end( ap );
 
 	vips_area_unref( area );
+
+	return( result );
+}
+
+/**
+ * vips_jpegload_fd:
+ * @fd: descriptor to load from
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @shrink: shrink by this much on load
+ * @fail: fail on warnings
+ *
+ * Read a JPEG-formatted stream from @fd into a VIPS image. Exactly as
+ * vips_jpegload(), but read from a descriptor. This operation does not seek()
+ * and therefore can read from a network socket. 
+ *
+ * See also: vips_jpegload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegload_fd( int descriptor, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "jpegload_fd", ap, descriptor, out );
+	va_end( ap );
 
 	return( result );
 }

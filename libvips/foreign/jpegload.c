@@ -324,4 +324,68 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
 {
 }
 
+typedef struct _VipsForeignLoadJpegFd {
+	VipsForeignLoadJpeg parent_object;
+
+	/* Load from a file descriptor. This can be a socket, so no seek()
+	 * allowed.
+	 */
+	int descriptor;
+
+} VipsForeignLoadJpegFd;
+
+typedef VipsForeignLoadJpegClass VipsForeignLoadJpegFdClass;
+
+G_DEFINE_TYPE( VipsForeignLoadJpegFd, vips_foreign_load_jpeg_fd, 
+	vips_foreign_load_jpeg_get_type() );
+
+static int
+vips_foreign_load_jpeg_fd_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
+	VipsForeignLoadJpegFd *fd = (VipsForeignLoadJpegFd *) load;
+
+	if( vips__jpeg_read_fd( fd->descriptor,
+		load->out, jpeg->shrink, jpeg->fail, 
+		load->access == VIPS_ACCESS_SEQUENTIAL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/* There's no _load() method: we do everything in _header). 
+ *
+ * You can't just read the header from a stream and then read again from 
+ * scratch to get the image.
+ */
+
+static void
+vips_foreign_load_jpeg_fd_class_init( 
+	VipsForeignLoadJpegFdClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "jpegload_fd";
+	object_class->description = _( "load jpeg from fd" );
+
+	load_class->header = vips_foreign_load_jpeg_fd_header;
+
+	VIPS_ARG_INT( class, "fd", 1, 
+		_( "Fd" ),
+		_( "Fd to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadJpegFd, descriptor ),
+		0, 1000000000, 0 ); 
+}
+
+static void
+vips_foreign_load_jpeg_fd_init( VipsForeignLoadJpegFd *fd )
+{
+}
+
 #endif /*HAVE_JPEG*/

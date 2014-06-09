@@ -36,6 +36,7 @@
 - im_*merge(), im_*mosaic(), im_match*(), im_global_balance*(), im_remosaic(),
   im_*mosaic1(), im_*merge1() redone as classes
 - better filename tracking for globalbalance
+- added vips_jpegload_fd(), load from a pipe/socket/etc. 
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong
