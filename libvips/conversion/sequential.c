@@ -172,7 +172,7 @@ vips_sequential_generate( VipsRegion *or,
 #ifdef HAVE_COND_INIT
 		gint64 time;
 
-		time = g_get_monotonic_time () + 
+		time = g_get_monotonic_time() + 
 			STALL_TIME * G_TIME_SPAN_SECOND;
 #else
 		GTimeVal time;
