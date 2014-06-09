@@ -177,6 +177,8 @@ calculate_shrink( VipsImage *im, double *residual )
 	int width = rotate_image && rotate ? im->Ysize : im->Xsize;
 	int height = rotate_image && rotate ? im->Xsize : im->Ysize;
 
+	VipsDirection direction;
+
 	/* Calculate the horizontal and vertical shrink we'd need to fit the
 	 * image to the bounding box, and pick the biggest.
 	 *
@@ -185,9 +187,22 @@ calculate_shrink( VipsImage *im, double *residual )
 	 */
 	double horizontal = (double) width / thumbnail_width;
 	double vertical = (double) height / thumbnail_height;
-	double factor = crop_image ?
-		VIPS_MIN( horizontal, vertical ) : 
-		VIPS_MAX( horizontal, vertical ); 
+
+	if( crop_image ) {
+		if( horizontal < vertical )
+			direction = VIPS_DIRECTION_HORIZONTAL;
+		else
+			direction = VIPS_DIRECTION_VERTICAL;
+	}
+	else {
+		if( horizontal < vertical )
+			direction = VIPS_DIRECTION_VERTICAL;
+		else
+			direction = VIPS_DIRECTION_HORIZONTAL;
+	}
+
+	double factor = direction == VIPS_DIRECTION_HORIZONTAL ?
+		horizontal : vertical; 
 
 	/* If the shrink factor is <= 1.0, we need to zoom rather than shrink.
 	 * Just set the factor to 1 in this case.
@@ -198,20 +213,24 @@ calculate_shrink( VipsImage *im, double *residual )
 	 */
 	int shrink = floor( factor2 );
 
-	if( residual ) {
-		/* Size after int shrink. We have to try with both axes since
-		 * if they are very different sizes we'll see different
-		 * rounding errors.
+	if( residual &&
+		direction == VIPS_DIRECTION_HORIZONTAL ) {
+		/* Size after int shrink. 
 		 */
 		int iwidth = width / shrink;
-		int iheight = height / shrink;
 
 		/* Therefore residual scale factor is.
 		 */
 		double hresidual = (width / factor) / iwidth; 
+
+		*residual = hresidual;
+	}
+	else if( residual &&
+		direction == VIPS_DIRECTION_VERTICAL ) {
+		int iheight = height / shrink;
 		double vresidual = (height / factor) / iheight; 
 
-		*residual = VIPS_MAX( hresidual, vresidual ); 
+		*residual = vresidual;
 	}
 
 	return( shrink );
