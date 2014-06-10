@@ -591,8 +591,6 @@ vips__analyze_read( const char *filename, VipsImage *out )
 	}
 	g_object_unref( x );
 
-	VIPS_SETSTR( out->filename, filename );
-
 	return( 0 );
 }
 

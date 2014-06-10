@@ -207,8 +207,6 @@ vips__webp_read_file_header( const char *filename, VipsImage *out )
 
 	read_free( read );
 
-	VIPS_SETSTR( out->filename, filename );
-
 	return( 0 );
 }
 
@@ -263,8 +261,6 @@ vips__webp_read_file( const char *filename, VipsImage *out )
 		return( -1 );
 
 	read_free( read );
-
-	VIPS_SETSTR( out->filename, filename );
 
 	return( 0 );
 }

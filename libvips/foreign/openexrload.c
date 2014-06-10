@@ -95,6 +95,8 @@ vips_foreign_load_openexr_header( VipsForeignLoad *load )
 	if( vips__openexr_read_header( openexr->filename, load->out ) ) 
 		return( -1 );
 
+	VIPS_SETSTR( load->out->filename, openexr->filename );
+
 	return( 0 );
 }
 

@@ -84,6 +84,8 @@ vips_foreign_load_analyze_header( VipsForeignLoad *load )
 	if( vips__analyze_read_header( analyze->filename, load->out ) ) 
 		return( -1 );
 
+	VIPS_SETSTR( load->out->filename, analyze->filename );
+
 	return( 0 );
 }
 

@@ -445,8 +445,6 @@ vips__ppm_header( const char *filename, VipsImage *out )
 
 	fclose( fp );
 
-	VIPS_SETSTR( out->filename, filename );
-
 	return( 0 );
 }
 
@@ -494,8 +492,6 @@ vips__ppm_load( const char *filename, VipsImage *out )
 	}
 
 	fclose( fp );
-
-	VIPS_SETSTR( out->filename, filename );
 
 	return( 0 );
 }

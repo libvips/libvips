@@ -168,7 +168,6 @@ vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 		return( NULL );
 
 	fits->filename = vips_strdup( NULL, filename );
-	VIPS_SETSTR( out->filename, filename );
 	fits->image = out;
 	fits->fptr = NULL;
 	fits->lock = NULL;

@@ -202,7 +202,6 @@ read_new_filename( VipsImage *out, const char *name, gboolean readbehind )
 		return( NULL );
 
 	read->name = vips_strdup( VIPS_OBJECT( out ), name );
-	VIPS_SETSTR( out->filename, name );
 
         if( !(read->fp = vips__file_open_read( name, NULL, FALSE )) ) 
 		return( NULL );

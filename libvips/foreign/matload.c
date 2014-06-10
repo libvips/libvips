@@ -90,6 +90,8 @@ vips_foreign_load_mat_header( VipsForeignLoad *load )
 	if( vips__mat_header( mat->filename, load->out ) )
 		return( -1 );
 
+	VIPS_SETSTR( load->out->filename, mat->filename );
+
 	return( 0 );
 }
 

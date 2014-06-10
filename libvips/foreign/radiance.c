@@ -925,7 +925,6 @@ read_new( const char *filename, VipsImage *out )
 		return( NULL );
 
 	read->filename = vips_strdup( NULL, filename );
-	VIPS_SETSTR( out->filename, filename );
 	read->out = out;
 	read->fin = NULL;
 	strcpy( read->format, COLRFMT );

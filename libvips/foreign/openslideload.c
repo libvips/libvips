@@ -112,6 +112,8 @@ vips_foreign_load_openslide_header( VipsForeignLoad *load )
 		openslide->level, openslide->associated ) )
 		return( -1 );
 
+	VIPS_SETSTR( load->out->filename, openslide->filename );
+
 	return( 0 );
 }
 

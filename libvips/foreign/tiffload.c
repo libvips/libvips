@@ -145,6 +145,8 @@ vips_foreign_load_tiff_file_header( VipsForeignLoad *load )
 	if( vips__tiff_read_header( file->filename, load->out, tiff->page ) )
 		return( -1 );
 
+	VIPS_SETSTR( load->out->filename, file->filename );
+
 	return( 0 );
 }
 

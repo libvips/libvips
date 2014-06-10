@@ -158,7 +158,6 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames )
 	if( !(read = VIPS_NEW( im, Read )) )
 		return( NULL );
 	read->filename = g_strdup( filename );
-	VIPS_SETSTR( im->filename, filename );
 	read->all_frames = all_frames;
 	read->im = im;
 	read->image = NULL;
