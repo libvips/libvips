@@ -1691,6 +1691,7 @@ readtiff_new_filename( const char *filename, VipsImage *out, int page,
 		return( NULL );
 
 	rtiff->filename = vips_strdup( VIPS_OBJECT( out ), filename );
+	VIPS_SETSTR( out->filename, filename ); 
 
 	/* No mmap --- no performance advantage with libtiff, and it burns up
 	 * our VM if the tiff file is large.

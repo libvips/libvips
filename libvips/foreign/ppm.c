@@ -437,12 +437,15 @@ vips__ppm_header( const char *filename, VipsImage *out )
 
 	if( !(fp = vips__file_open_read( filename, NULL, FALSE )) ) 
                 return( -1 );
+
 	if( read_header( fp, out, &bits, &ascii, &msb_first ) ) {
 		fclose( fp );
 		return( -1 );
 	}
 
 	fclose( fp );
+
+	VIPS_SETSTR( out->filename, filename );
 
 	return( 0 );
 }
@@ -484,11 +487,15 @@ vips__ppm_load( const char *filename, VipsImage *out )
 	 */
 	if( !(fp = vips__file_open_read( filename, NULL, FALSE )) ) 
                 return( -1 );
+
 	if( parse_ppm( fp, filename, out ) ) {
 		fclose( fp );
 		return( -1 );
 	}
+
 	fclose( fp );
+
+	VIPS_SETSTR( out->filename, filename );
 
 	return( 0 );
 }

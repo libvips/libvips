@@ -283,9 +283,9 @@ readslide_new( const char *filename, VipsImage *out,
 		return( NULL );
 	}
 
-
 	vips_image_init_fields( out, w, h, 4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB, 1.0, 1.0 );
+	VIPS_SETSTR( out->filename, filename );
 
 	for( properties = openslide_get_property_names( rslide->osr );
 		*properties != NULL; properties++ )

@@ -250,6 +250,7 @@ static int
 readjpeg_file( ReadJpeg *jpeg, const char *filename )
 {
 	jpeg->filename = g_strdup( filename );
+	VIPS_SETSTR( jpeg->out->filename, filename );
         if( !(jpeg->eman.fp = vips__file_open_read( filename, NULL, FALSE )) ) 
                 return( -1 );
         jpeg_stdio_src( &jpeg->cinfo, jpeg->eman.fp );

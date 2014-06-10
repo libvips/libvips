@@ -61,6 +61,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -98,6 +99,7 @@ read_new( const char *filename, VipsImage *out )
 		return( NULL );
 
 	read->filename = vips_strdup( NULL, filename );
+	VIPS_SETSTR( out->filename, filename );
 	read->out = out;
 	read->mat = NULL;
 	read->var = NULL;

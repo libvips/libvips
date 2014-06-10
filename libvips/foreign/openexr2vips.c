@@ -137,6 +137,7 @@ read_new( const char *filename, VipsImage *out )
 	if( !(read = VIPS_NEW( NULL, Read )) )
 		return( NULL );
 	read->filename = vips_strdup( NULL, filename );
+	VIPS_SETSTR( out->filename, filename );
 	read->out = out;
 	read->tiles = NULL;
 	read->lines = NULL;

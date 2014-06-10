@@ -348,6 +348,7 @@ vips__csv_read( const char *filename, VipsImage *out,
 		return( -1 );
 	}
 	fclose( fp );
+	VIPS_SETSTR( out->filename, filename );
 
 	return( 0 );
 }
@@ -365,6 +366,7 @@ vips__csv_read_header( const char *filename, VipsImage *out,
 		return( -1 );
 	}
 	fclose( fp );
+	VIPS_SETSTR( out->filename, filename );
 
 	return( 0 );
 }
@@ -706,6 +708,7 @@ vips__matrix_read( const char *filename )
 		return( NULL );
 	out = vips__matrix_read_file( fp ); 
 	fclose( fp );
+	VIPS_SETSTR( out->filename, filename );
 
 	return( out );
 }
