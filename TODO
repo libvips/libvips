@@ -1,4 +1,3 @@
-- ban libgsf-1 1.14.26 and earlier
 
 - mark VipsForeign and VipsWrap7 as deprecated, if they're not
 
