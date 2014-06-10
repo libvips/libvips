@@ -173,8 +173,17 @@ list_function( im_function *func )
 static void *
 list_class( GType type )
 {
+	VipsObjectClass *class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
 	int depth = vips_type_depth( type );
+
 	int i;
+
+	if( class->deprecated )
+		return( NULL );
+	if( VIPS_IS_OPERATION_CLASS( class ) &&
+		(VIPS_OPERATION_CLASS( class )->flags & 
+		 VIPS_OPERATION_DEPRECATED) )
+		return( NULL ); 
 
 	for( i = 0; i < depth * 2; i++ )
 		printf( " " );

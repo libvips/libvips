@@ -321,6 +321,10 @@ vips_format_class_init( VipsFormatClass *class )
 	object_class->nickname = "format";
 	object_class->description = _( "VIPS file formats" );
 	object_class->summary_class = vips_format_summary_class;
+
+	/* Hide from UI.
+	 */
+	object_class->deprecated = TRUE;
 }
 
 static void

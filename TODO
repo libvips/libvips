@@ -1,12 +1,4 @@
 
-- mark VipsForeign and VipsWrap7 as deprecated, if they're not
-
-  don't display them in vips list classes
-
-
-
-
-
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
 

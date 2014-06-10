@@ -540,6 +540,13 @@ struct _VipsObjectClass {
 	GSList *argument_table_traverse;
 	GType argument_table_traverse_gtype;
 
+	/* This class is deprecated and therefore hidden from various UI bits.
+	 *
+	 * VipsOperation has a deprecated flag, use that in preference to this
+	 * if you can. 
+	 */
+	gboolean deprecated;
+
 	/* Reserved for future expansion.
 	 */
 	void (*_vips_reserved1)( void ); 
