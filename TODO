@@ -1,9 +1,3 @@
-- try:
-
-	$ header k2.jpg 
-	temp-0: 1450x2048 uchar, 3 bands, srgb, jpegload
-
-  temp-0 is not very helpful
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 

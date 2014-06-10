@@ -46,6 +46,7 @@
 #ifdef HAVE_LIBWEBP
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <webp/decode.h>
 
