@@ -1,3 +1,7 @@
+- note we have broken binary compat
+
+- change nip2 examples ws versions
+
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
@@ -20,39 +24,6 @@
 - vips__ink_to_vector() needs an optional imag return
 
 - vips_getpoint() needs an optional imag return
-
-
-
-- think of a better way to support skipahead
-
-  extract needs to hint to it's image sources what line it will start reading
-  at 
-
-  in vips_extract_build(), call vips_image_set_start(), somehow sends a signal
-  the wrong way down the pipe to the vips_sequential() (if there is one)
-  telling it not to stall the first request if it's for that line
-   
-  test --crop in vipsthumbnail on portrait images cropped to landscape
-
-  alternative: if extract sees a seq image, it deliberately reads and discards
-  the N scanlines 
-
-  	could be very slow :-( 
-
-  the first vips_extract_area_gen() needs to somehow signal in
-  vips_region_prepare() that this is the first request
-
-  	how do we pass the signal down? not clear
-
-  run the first tile single-threaded
-
-  	so sinkdisc runs the first request, waits for it to come back, then
-	starts all the workers going
-
-	this is quite a good idea! we'd not slow down much, and there's a huge
-	amount of locking on the first tile anyway
-
-	now seq can support skipahead again
 
 
 
