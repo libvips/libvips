@@ -690,7 +690,10 @@ vips_cache_get_lru( void )
 	g_hash_table_foreach( vips_cache_table,
 		(GHFunc) vips_cache_get_lru_cb, &entry );
 
-	return( entry->operation );
+	if( entry )
+		return( entry->operation );
+
+	return( NULL ); 
 }
 
 /* Is the cache full? Drop until it's not.
