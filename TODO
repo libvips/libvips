@@ -1,3 +1,12 @@
+- merge single-thread-first-tile after more testing
+
+  see https://github.com/jcupitt/libvips/issues/117
+
+- merge operation-invalidate-2 after more testing
+
+  
+
+
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
