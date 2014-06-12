@@ -464,10 +464,12 @@ vips__cache_init( void )
 static void *
 vips_cache_print_fn( void *value, void *a, void *b )
 {
+	VipsOperationCacheEntry *entry = value;
+
 	char str[32768];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
-	vips_object_to_string( VIPS_OBJECT( value ), &buf );
+	vips_object_to_string( VIPS_OBJECT( entry->operation ), &buf );
 
 	printf( "%p - %s\n", value, vips_buf_all( &buf ) );
 
@@ -539,13 +541,14 @@ vips_cache_remove( VipsOperation *operation )
 
 	g_assert( entry ); 
 
-	g_hash_table_remove( vips_cache_table, operation );
-	vips_cache_unref( operation );
-
 	if( entry->invalidate_id ) { 
 		g_signal_handler_disconnect( operation, entry->invalidate_id );
 		entry->invalidate_id = 0;
 	}
+
+	g_hash_table_remove( vips_cache_table, operation );
+	vips_cache_unref( operation );
+
 	g_free( entry );
 }
 
@@ -626,11 +629,14 @@ vips_cache_get_first_fn( void *value, void *a, void *b )
 static VipsOperation *
 vips_cache_get_first( void )
 {
-	if( vips_cache_table )
-		return( VIPS_OPERATION( vips_hash_table_map( vips_cache_table, 
-			vips_cache_get_first_fn, NULL, NULL ) ) );
-	else
-		return( NULL ); 
+	VipsOperationCacheEntry *entry;
+
+	if( vips_cache_table &&
+		(entry = vips_hash_table_map( vips_cache_table, 
+			vips_cache_get_first_fn, NULL, NULL )) )
+		return( VIPS_OPERATION( entry->operation ) );
+
+	return( NULL ); 
 }
 
 /**
