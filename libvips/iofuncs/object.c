@@ -392,16 +392,34 @@ vips_object_rewind( VipsObject *object )
 /* Extra stuff we track for properties to do our argument handling.
  */
 
+static void
+vips_argument_instance_detach( VipsArgumentInstance *argument_instance )
+{
+	VipsObject *object = argument_instance->object;
+
+	if( argument_instance->close_id ) {
+		if( g_signal_handler_is_connected( object,
+			argument_instance->close_id ) )
+			g_signal_handler_disconnect( object,
+				argument_instance->close_id );
+		argument_instance->close_id = 0;
+	}
+
+	if( argument_instance->invalidate_id ) {
+		if( g_signal_handler_is_connected( object,
+			argument_instance->invalidate_id ) )
+			g_signal_handler_disconnect( object,
+				argument_instance->invalidate_id );
+		argument_instance->invalidate_id = 0;
+	}
+}
+
 /* Free a VipsArgumentInstance ... VipsArgumentClass can just be g_free()d.
  */
 static void
 vips_argument_instance_free( VipsArgumentInstance *argument_instance )
 {
-	if( argument_instance->close_id ) {
-		g_signal_handler_disconnect( argument_instance->object,
-			argument_instance->close_id );
-		argument_instance->close_id = 0;
-	}
+	vips_argument_instance_detach( argument_instance );
 	g_free( argument_instance );
 }
 
@@ -580,6 +598,7 @@ vips_argument_init( VipsObject *object )
 				argument_class->flags & 
 					VIPS_ARGUMENT_SET_ALWAYS;
 			argument_instance->close_id = 0;
+			argument_instance->invalidate_id = 0;
 
 			vips_argument_table_replace( object->argument_table, 
 				(VipsArgument *) argument_instance );
@@ -729,6 +748,8 @@ vips_object_clear_member( VipsObject *object, GParamSpec *pspec,
 	VipsArgumentInstance *argument_instance =
 		vips__argument_get_instance( argument_class, object );
 
+	vips_argument_instance_detach( argument_instance );
+
 	if( *member ) {
 		if( argument_class->flags & VIPS_ARGUMENT_INPUT ) {
 #ifdef DEBUG_REF
@@ -753,17 +774,6 @@ vips_object_clear_member( VipsObject *object, GParamSpec *pspec,
 			printf( "  count down to %d\n",
 				G_OBJECT( object )->ref_count - 1 );
 #endif /*DEBUG_REF*/
-
-			/* The object reffed us. Stop listening link to the
-			 * object's "close" signal. We can come here from
-			 * object being closed, in which case the handler
-			 * will already have been disconnected for us.
-			 */
-			if( g_signal_handler_is_connected( object,
-				argument_instance->close_id ) )
-				g_signal_handler_disconnect( object,
-					argument_instance->close_id );
-			argument_instance->close_id = 0;
 
 			g_object_unref( object );
 		}
@@ -920,6 +930,13 @@ vips_object_finalize( GObject *gobject )
 }
 
 static void
+vips_object_arg_invalidate( GObject *argument,
+	VipsArgumentInstance *argument_instance )
+{
+	vips_operation_invalidate( VIPS_OPERATION( argument ) ); 
+}
+
+static void
 vips_object_arg_close( GObject *argument,
 	VipsArgumentInstance *argument_instance )
 {
@@ -968,6 +985,13 @@ vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 			/* Ref the argument.
 			 */
 			g_object_ref( *member );
+
+			g_assert( !argument_instance->invalidate_id );
+			argument_instance->invalidate_id =
+				g_signal_connect( *member, "invalidate",
+					G_CALLBACK( 
+						vips_object_arg_invalidate ),
+					argument_instance );
 		}
 		else if( argument_class->flags & VIPS_ARGUMENT_OUTPUT ) {
 #ifdef DEBUG_REF

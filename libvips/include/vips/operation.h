@@ -92,12 +92,18 @@ typedef struct _VipsOperationClass {
 	 */
 	VipsOperationFlags (*get_flags)( VipsOperation * ); 
 	VipsOperationFlags flags;
+
+	/* One of our input images has signalled "invalidate". The cache uses
+	 * VipsOperation::invalidate to drop dirty ops.
+	 */
+	void (*invalidate)( VipsOperation * );
 } VipsOperationClass;
 
 GType vips_operation_get_type( void );
 
 VipsOperationFlags vips_operation_get_flags( VipsOperation *operation );
 void vips_operation_class_print_usage( VipsOperationClass *operation_class );
+void vips_operation_invalidate( VipsOperation *operation );
 
 int vips_operation_call_valist( VipsOperation *operation, va_list ap );
 VipsOperation *vips_operation_new( const char *name ); 
