@@ -1,11 +1,3 @@
-- test operation invalidate 
-
-  enable cache in nip2, find max using vips_call, try painting on the input
-
-- cache needs to listen for invalidate
-
-
-
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
