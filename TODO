@@ -1,3 +1,7 @@
+- vips_image_readwrite() or whatever its called should signal invalidate or
+  mark the image as uncacheable or something
+
+
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
 
