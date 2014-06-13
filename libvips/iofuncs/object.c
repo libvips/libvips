@@ -392,16 +392,37 @@ vips_object_rewind( VipsObject *object )
 /* Extra stuff we track for properties to do our argument handling.
  */
 
+static void
+vips_argument_instance_detach( VipsArgumentInstance *argument_instance )
+{
+	VipsObject *object = argument_instance->object;
+	VipsArgumentClass *argument_class = argument_instance->argument_class;
+	GObject *member = G_STRUCT_MEMBER( GObject *, object,
+		argument_class->offset );
+
+	if( argument_instance->close_id ) {
+		if( g_signal_handler_is_connected( member,
+			argument_instance->close_id ) )
+			g_signal_handler_disconnect( member,
+				argument_instance->close_id );
+		argument_instance->close_id = 0;
+	}
+
+	if( argument_instance->invalidate_id ) {
+		if( g_signal_handler_is_connected( member,
+			argument_instance->invalidate_id ) )
+			g_signal_handler_disconnect( member,
+				argument_instance->invalidate_id );
+		argument_instance->invalidate_id = 0;
+	}
+}
+
 /* Free a VipsArgumentInstance ... VipsArgumentClass can just be g_free()d.
  */
 static void
 vips_argument_instance_free( VipsArgumentInstance *argument_instance )
 {
-	if( argument_instance->close_id ) {
-		g_signal_handler_disconnect( argument_instance->object,
-			argument_instance->close_id );
-		argument_instance->close_id = 0;
-	}
+	vips_argument_instance_detach( argument_instance );
 	g_free( argument_instance );
 }
 
@@ -580,6 +601,7 @@ vips_argument_init( VipsObject *object )
 				argument_class->flags & 
 					VIPS_ARGUMENT_SET_ALWAYS;
 			argument_instance->close_id = 0;
+			argument_instance->invalidate_id = 0;
 
 			vips_argument_table_replace( object->argument_table, 
 				(VipsArgument *) argument_instance );
@@ -720,14 +742,14 @@ vips_object_get_argument_priority( VipsObject *object, const char *name )
 }
 
 static void
-vips_object_clear_member( VipsObject *object, GParamSpec *pspec, 
-	GObject **member )
+vips_object_clear_member( VipsArgumentInstance *argument_instance )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsArgumentClass *argument_class = (VipsArgumentClass *)
-		vips__argument_table_lookup( class->argument_table, pspec );
-	VipsArgumentInstance *argument_instance =
-		vips__argument_get_instance( argument_class, object );
+	VipsObject *object = argument_instance->object;
+	VipsArgumentClass *argument_class = argument_instance->argument_class;
+	GObject **member = &G_STRUCT_MEMBER( GObject *, object,
+		argument_class->offset );
+
+	vips_argument_instance_detach( argument_instance );
 
 	if( *member ) {
 		if( argument_class->flags & VIPS_ARGUMENT_INPUT ) {
@@ -753,17 +775,6 @@ vips_object_clear_member( VipsObject *object, GParamSpec *pspec,
 			printf( "  count down to %d\n",
 				G_OBJECT( object )->ref_count - 1 );
 #endif /*DEBUG_REF*/
-
-			/* The object reffed us. Stop listening link to the
-			 * object's "close" signal. We can come here from
-			 * object being closed, in which case the handler
-			 * will already have been disconnected for us.
-			 */
-			if( g_signal_handler_is_connected( object,
-				argument_instance->close_id ) )
-				g_signal_handler_disconnect( object,
-					argument_instance->close_id );
-			argument_instance->close_id = 0;
 
 			g_object_unref( object );
 		}
@@ -920,6 +931,18 @@ vips_object_finalize( GObject *gobject )
 }
 
 static void
+vips_object_arg_invalidate( GObject *argument,
+	VipsArgumentInstance *argument_instance )
+{
+	/* Image @argument has signalled "invalidate" ... resignal on our
+	 * operation.
+	 */
+	if( VIPS_IS_OPERATION( argument_instance->object ) )
+		vips_operation_invalidate( 
+			VIPS_OPERATION( argument_instance->object ) ); 
+}
+
+static void
 vips_object_arg_close( GObject *argument,
 	VipsArgumentInstance *argument_instance )
 {
@@ -946,10 +969,11 @@ vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 		vips__argument_table_lookup( class->argument_table, pspec );
 	VipsArgumentInstance *argument_instance =
 		vips__argument_get_instance( argument_class, object );
+	GType otype = G_PARAM_SPEC_VALUE_TYPE( pspec );
 
 	g_assert( argument_instance );
 
-	vips_object_clear_member( object, pspec, member );
+	vips_object_clear_member( argument_instance );
 
 	g_assert( !*member );
 	*member = argument;
@@ -957,7 +981,7 @@ vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 	if( *member ) {
 		if( argument_class->flags & VIPS_ARGUMENT_INPUT ) {
 #ifdef DEBUG_REF
-			printf( "vips_object_set_member: vips object: " );
+			printf( "vips__object_set_member: vips object: " );
 			vips_object_print_name( object );
 			printf( "  refers to gobject %s (%p)\n",
 				G_OBJECT_TYPE_NAME( *member ), *member );
@@ -971,7 +995,7 @@ vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 		}
 		else if( argument_class->flags & VIPS_ARGUMENT_OUTPUT ) {
 #ifdef DEBUG_REF
-			printf( "vips_object_set_member: gobject %s (%p)\n",
+			printf( "vips__object_set_member: gobject %s (%p)\n",
 				G_OBJECT_TYPE_NAME( *member ), *member );
 			printf( "  refers to vips object: " );
 			vips_object_print_name( object );
@@ -982,10 +1006,23 @@ vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 			/* The argument reffs us.
 			 */
 			g_object_ref( object );
+		}
+	}
 
-			/* FIXME ... could use a NULLing weakref
-			 */
+	if( *member &&
+		g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
+		if( argument_class->flags & VIPS_ARGUMENT_INPUT ) {
+			g_assert( !argument_instance->invalidate_id );
+
+			argument_instance->invalidate_id =
+				g_signal_connect( *member, "invalidate",
+					G_CALLBACK( 
+						vips_object_arg_invalidate ),
+					argument_instance );
+		}
+		else if( argument_class->flags & VIPS_ARGUMENT_OUTPUT ) {
 			g_assert( !argument_instance->close_id );
+
 			argument_instance->close_id =
 				g_signal_connect( *member, "close",
 					G_CALLBACK( vips_object_arg_close ),
@@ -1098,7 +1135,7 @@ vips_object_set_property( GObject *gobject,
 		GObject **member = &G_STRUCT_MEMBER( GObject *, object,
 			argument_class->offset );
 
-		vips__object_set_member( object, pspec, member, 
+		vips__object_set_member( object, pspec, member,
 			g_value_get_object( value ) );
 	}
 	else if( G_IS_PARAM_SPEC_INT( pspec ) ) {

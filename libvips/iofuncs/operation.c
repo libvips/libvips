@@ -92,6 +92,15 @@
 /* Abstract base class for operations.
  */
 
+/* Our signals. 
+ */
+enum {
+	SIG_INVALIDATE,		
+	SIG_LAST
+};
+
+static guint vips_operation_signals[SIG_LAST] = { 0 };
+
 G_DEFINE_ABSTRACT_TYPE( VipsOperation, vips_operation, VIPS_TYPE_OBJECT );
 
 static void
@@ -380,6 +389,14 @@ vips_operation_class_init( VipsOperationClass *class )
 
 	class->usage = vips_operation_usage;
 	class->get_flags = vips_operation_real_get_flags;
+
+	vips_operation_signals[SIG_INVALIDATE] = g_signal_new( "invalidate",
+		G_TYPE_FROM_CLASS( class ),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET( VipsOperationClass, invalidate ), 
+		NULL, NULL,
+		g_cclosure_marshal_VOID__VOID,
+		G_TYPE_NONE, 0 );
 }
 
 static void
@@ -417,6 +434,17 @@ vips_operation_class_print_usage( VipsOperationClass *operation_class )
 
 	operation_class->usage( operation_class, &buf );
 	printf( "%s", vips_buf_all( &buf ) );
+}
+
+void
+vips_operation_invalidate( VipsOperation *operation )
+{
+	/*
+	printf( "vips_operation_invalidate: %p\n", operation ); 
+	vips_object_print_summary( VIPS_OBJECT( operation ) ); 
+	 */
+
+	g_signal_emit( operation, vips_operation_signals[SIG_INVALIDATE], 0 );
 }
 
 VipsOperation *

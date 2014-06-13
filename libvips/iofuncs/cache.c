@@ -37,8 +37,6 @@
 
    TODO
 
-	listen for invalidate
-
 	will we need to drop all on exit? unclear
 
 	what about delayed writes ... do we ever write in close? we shouldn't,
@@ -122,6 +120,22 @@ static GMutex *vips_cache_lock = NULL;
 #else 
 #define VIPS_VALUE_GET_CHAR g_value_get_char
 #endif 
+
+/* A cache entry.
+ */
+typedef struct _VipsOperationCacheEntry {
+	VipsOperation *operation;
+
+	/* When we added this operation to cache .. used to find LRU for
+	 * flush.
+	 */
+	int time;
+
+	/* We listen for "invalidate" from the operation. Track the id here so
+	 * we can disconnect when we drop an operation.
+	 */
+	gulong invalidate_id;
+} VipsOperationCacheEntry;
 
 /* Pass in the pspec so we can get the generic type. For example, a 
  * held in a GParamSpec allowing OBJECT, but the value could be of type
@@ -450,10 +464,12 @@ vips__cache_init( void )
 static void *
 vips_cache_print_fn( void *value, void *a, void *b )
 {
+	VipsOperationCacheEntry *entry = value;
+
 	char str[32768];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
-	vips_object_to_string( VIPS_OBJECT( value ), &buf );
+	vips_object_to_string( VIPS_OBJECT( entry->operation ), &buf );
 
 	printf( "%p - %s\n", value, vips_buf_all( &buf ) );
 
@@ -515,113 +531,25 @@ vips_cache_unref( VipsOperation *operation )
 	g_object_unref( operation );
 }
 
-/* Drop an operation from the cache.
+/* Remove an operation from the cache.
  */
 static void
-vips_cache_drop( VipsOperation *operation )
+vips_cache_remove( VipsOperation *operation )
 {
-	/* It must be in cache.
-	 */
-	g_assert( g_hash_table_lookup( vips_cache_table, operation ) );
+	VipsOperationCacheEntry *entry = (VipsOperationCacheEntry *)
+		g_hash_table_lookup( vips_cache_table, operation );
+
+	g_assert( entry ); 
+
+	if( entry->invalidate_id ) { 
+		g_signal_handler_disconnect( operation, entry->invalidate_id );
+		entry->invalidate_id = 0;
+	}
 
 	g_hash_table_remove( vips_cache_table, operation );
 	vips_cache_unref( operation );
-}
 
-static void *
-vips_cache_get_first_fn( void *value, void *a, void *b )
-{
-	return( value );
-}
-
-/* Return the first item.
- */
-static VipsOperation *
-vips_cache_get_first( void )
-{
-	if( vips_cache_table )
-		return( VIPS_OPERATION( vips_hash_table_map( vips_cache_table, 
-			vips_cache_get_first_fn, NULL, NULL ) ) );
-	else
-		return( NULL ); 
-}
-
-/**
- * vips_cache_drop_all:
- *
- * Drop the whole operation cache, handy for leak tracking.
- */
-void
-vips_cache_drop_all( void )
-{
-	g_mutex_lock( vips_cache_lock );
-
-	if( vips_cache_table ) {
-		VipsOperation *operation;
-
-		if( vips__cache_dump )
-			vips_cache_print();
-
-		/* We can't modify the hash in the callback from
-		 * g_hash_table_foreach() and friends. Repeatedly drop the
-		 * first item instead.
-		 */
-		while( (operation = vips_cache_get_first()) ) 
-			vips_cache_drop( operation );
-
-		VIPS_FREEF( g_hash_table_unref, vips_cache_table );
-	}
-
-	g_mutex_unlock( vips_cache_lock );
-}
-
-static void
-vips_cache_get_lru_cb( VipsOperation *key, VipsOperation *value, 
-	VipsOperation **best )
-{
-	if( !*best ||
-		(*best)->time > value->time )
-		*best = value;
-}
-
-/* Get the least-recently-used cache item. 
- *
- * TODO ... will this be too expensive? probably not
- */
-static VipsOperation *
-vips_cache_get_lru( void )
-{
-	VipsOperation *operation;
-
-	operation = NULL;
-	g_hash_table_foreach( vips_cache_table,
-		(GHFunc) vips_cache_get_lru_cb, &operation );
-
-	return( operation );
-}
-
-/* Is the cache full? Drop until it's not.
- */
-static void
-vips_cache_trim( void )
-{
-	VipsOperation *operation;
-
-	g_mutex_lock( vips_cache_lock );
-
-	while( vips_cache_table &&
-		(g_hash_table_size( vips_cache_table ) > vips_cache_max ||
-		vips_tracked_get_files() > vips_cache_max_files ||
-		vips_tracked_get_mem() > vips_cache_max_mem) &&
-		(operation = vips_cache_get_lru()) ) {
-#ifdef DEBUG
-		printf( "vips_cache_trim: trimming %p\n", operation );
-#endif /*DEBUG*/
-
-		vips_cache_drop( operation );
-	}
-
-	g_mutex_unlock( vips_cache_lock );
+	g_free( entry );
 }
 
 static void *
@@ -649,8 +577,11 @@ vips_object_ref_arg( VipsObject *object,
 static void
 vips_operation_touch( VipsOperation *operation )
 {
+	VipsOperationCacheEntry *entry = (VipsOperationCacheEntry *)
+		g_hash_table_lookup( vips_cache_table, operation );
+
 	vips_cache_time += 1;
-	operation->time = vips_cache_time;
+	entry->time = vips_cache_time;
 }
 
 /* Ref an operation for the cache. The operation itself, plus all the output 
@@ -663,6 +594,130 @@ vips_cache_ref( VipsOperation *operation )
 	(void) vips_argument_map( VIPS_OBJECT( operation ),
 		vips_object_ref_arg, NULL, NULL );
 	vips_operation_touch( operation );
+}
+
+static void
+vips_cache_insert( VipsOperation *operation )
+{
+	VipsOperationCacheEntry *entry = g_new( VipsOperationCacheEntry, 1 ); 
+
+	/* It must not be in cache.
+	 */
+	g_assert( !g_hash_table_lookup( vips_cache_table, operation ) );
+
+	entry->operation = operation;
+	entry->time = 0;
+	entry->invalidate_id = 0;
+
+	g_hash_table_insert( vips_cache_table, operation, entry );
+	vips_cache_ref( operation );
+
+	/* If the operation signals "invalidate", we must drop it.
+	 */
+	entry->invalidate_id = g_signal_connect( operation, "invalidate", 
+		G_CALLBACK( vips_cache_remove ), NULL ); 
+}
+
+static void *
+vips_cache_get_first_fn( void *value, void *a, void *b )
+{
+	return( value );
+}
+
+/* Return the first item.
+ */
+static VipsOperation *
+vips_cache_get_first( void )
+{
+	VipsOperationCacheEntry *entry;
+
+	if( vips_cache_table &&
+		(entry = vips_hash_table_map( vips_cache_table, 
+			vips_cache_get_first_fn, NULL, NULL )) )
+		return( VIPS_OPERATION( entry->operation ) );
+
+	return( NULL ); 
+}
+
+/**
+ * vips_cache_drop_all:
+ *
+ * Drop the whole operation cache, handy for leak tracking.
+ */
+void
+vips_cache_drop_all( void )
+{
+	g_mutex_lock( vips_cache_lock );
+
+	if( vips_cache_table ) {
+		VipsOperation *operation;
+
+		if( vips__cache_dump )
+			vips_cache_print();
+
+		/* We can't modify the hash in the callback from
+		 * g_hash_table_foreach() and friends. Repeatedly drop the
+		 * first item instead.
+		 */
+		while( (operation = vips_cache_get_first()) ) 
+			vips_cache_remove( operation );
+
+		VIPS_FREEF( g_hash_table_unref, vips_cache_table );
+	}
+
+	g_mutex_unlock( vips_cache_lock );
+}
+
+static void
+vips_cache_get_lru_cb( VipsOperation *key, VipsOperationCacheEntry *value, 
+	VipsOperationCacheEntry **best )
+{
+	if( !*best ||
+		(*best)->time > value->time )
+		*best = value;
+}
+
+/* Get the least-recently-used cache item. 
+ *
+ * TODO ... will this be too expensive? probably not
+ */
+static VipsOperation *
+vips_cache_get_lru( void )
+{
+	VipsOperationCacheEntry *entry;
+
+	entry = NULL;
+	g_hash_table_foreach( vips_cache_table,
+		(GHFunc) vips_cache_get_lru_cb, &entry );
+
+	if( entry )
+		return( entry->operation );
+
+	return( NULL ); 
+}
+
+/* Is the cache full? Drop until it's not.
+ */
+static void
+vips_cache_trim( void )
+{
+	VipsOperation *operation;
+
+	g_mutex_lock( vips_cache_lock );
+
+	while( vips_cache_table &&
+		(g_hash_table_size( vips_cache_table ) > vips_cache_max ||
+		vips_tracked_get_files() > vips_cache_max_files ||
+		vips_tracked_get_mem() > vips_cache_max_mem) &&
+		(operation = vips_cache_get_lru()) ) {
+#ifdef DEBUG
+		printf( "vips_cache_trim: trimming %p\n", operation );
+#endif /*DEBUG*/
+
+		vips_cache_remove( operation );
+	}
+
+	g_mutex_unlock( vips_cache_lock );
 }
 
 /**
@@ -679,7 +734,7 @@ vips_cache_ref( VipsOperation *operation )
 int
 vips_cache_operation_buildp( VipsOperation **operation )
 {
-	VipsOperation *hit;
+	VipsOperationCacheEntry *hit;
 
 	g_assert( VIPS_IS_OPERATION( *operation ) );
 
@@ -693,15 +748,15 @@ vips_cache_operation_buildp( VipsOperation **operation )
 	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
 		if( vips__cache_trace ) {
 			printf( "vips cache-: " );
-			vips_object_print_summary( VIPS_OBJECT( hit ) );
+			vips_object_print_summary( VIPS_OBJECT( *operation ) );
 		}
 
 		/* Ref before unref in case *operation == hit.
 		 */
-		vips_cache_ref( hit );
+		vips_cache_ref( hit->operation );
 		g_object_unref( *operation );
 
-		*operation = hit;
+		*operation = hit->operation;
 	}
 
 	g_mutex_unlock( vips_cache_lock );
@@ -724,11 +779,8 @@ vips_cache_operation_buildp( VipsOperation **operation )
 		g_mutex_lock( vips_cache_lock );
 
 		if( !(vips_operation_get_flags( *operation ) & 
-			VIPS_OPERATION_NOCACHE) ) {
-			vips_cache_ref( *operation );
-			g_hash_table_insert( vips_cache_table, 
-				*operation, *operation );
-		}
+			VIPS_OPERATION_NOCACHE) ) 
+			vips_cache_insert( *operation );
 
 		g_mutex_unlock( vips_cache_lock );
 	}

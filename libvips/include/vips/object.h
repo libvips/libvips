@@ -283,6 +283,11 @@ typedef struct _VipsArgumentInstance {
 	 * here.
 	 */
 	gulong close_id;	
+
+	/* We need to listen for "invalidate" on input images and send our own
+	 * "invalidate" out. If we go, we need to disconnect.
+	 */
+	gulong invalidate_id;
 } VipsArgumentInstance;
 
 /* Need to look up our VipsArgument structs from a pspec. Just hash the
