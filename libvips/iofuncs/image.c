@@ -2747,6 +2747,11 @@ vips_image_inplace( VipsImage *image )
 		return( -1 );
 	}
 
+	/* This image is about to be changed (probably). Make sure it's not 
+	 * in cache.
+	 */
+	vips_image_invalidate_all( image ); 
+
 	return( 0 );
 }
 
