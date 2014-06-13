@@ -493,6 +493,12 @@ typedef struct _VipsThreadpool {
 	/* Set by Allocate (via an arg) to indicate normal end of computation.
 	 */
 	gboolean stop;
+
+	/* Set by the first thread to hit allocate. The first work unit runs
+	 * single-threaded to give loaders a change to get to the right spot
+	 * in the input.
+	 */
+	gboolean done_first;
 } VipsThreadpool;
 
 /* Junk a thread.
@@ -534,8 +540,11 @@ vips_thread_allocate( VipsThread *thr )
 	return( 0 );
 }
 
-/* The main loop: get some work, do it! Can run from many worker threads, or 
- * from the main thread if threading is off. 
+/* Run this once per main loop. Get some work (single-threaded), then do it
+ * (many-threaded).
+ *
+ * The very first workunit is also executed single-threaded. This gives
+ * loaders a change to seek to the correct spot, see vips_sequential().
  */
 static void
 vips_thread_work_unit( VipsThread *thr )
@@ -572,13 +581,19 @@ vips_thread_work_unit( VipsThread *thr )
 		return;
 	}
 
-	g_mutex_unlock( pool->allocate_lock );
+	if( pool->done_first )
+		g_mutex_unlock( pool->allocate_lock );
 
 	/* Process a work unit.
 	 */
 	if( pool->work( thr->state, pool->a ) ) { 
 		thr->error = TRUE;
 		pool->error = TRUE;
+	}
+
+	if( !pool->done_first ) {
+		pool->done_first = TRUE;
+		g_mutex_unlock( pool->allocate_lock );
 	}
 }
 
@@ -603,7 +618,8 @@ vips_thread_main_loop( void *a )
 		VIPS_GATE_STOP( "vips_thread_work_unit: u" ); 
 		vips_semaphore_up( &pool->tick );
 
-		if( pool->stop || pool->error )
+		if( pool->stop || 
+			pool->error )
 			break;
 	} 
 
@@ -703,8 +719,9 @@ vips_threadpool_new( VipsImage *im )
 	pool->thr = NULL;
 	vips_semaphore_init( &pool->finish, 0, "finish" );
 	vips_semaphore_init( &pool->tick, 0, "tick" );
-	pool->stop = FALSE;
 	pool->error = FALSE;
+	pool->stop = FALSE;
+	pool->done_first = FALSE;
 
 	/* Attach tidy-up callback.
 	 */
@@ -887,7 +904,8 @@ vips_threadpool_run( VipsImage *im,
 			progress( pool->a ) ) 
 			pool->error = TRUE;
 
-		if( pool->stop || pool->error )
+		if( pool->stop || 
+			pool->error )
 			break;
 	}
 

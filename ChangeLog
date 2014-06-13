@@ -39,6 +39,7 @@
 - revised vips8 image load/save API, now simpler and more logical
 - operations emit "invalidate" if any of their input images invalidate
 - operation cache drops ops on invalidate
+- skipahead is back, thanks to a new threadpool tweak
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong
