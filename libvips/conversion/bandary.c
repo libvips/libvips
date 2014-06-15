@@ -118,9 +118,10 @@ vips_bandary_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 static int
 vips_bandary_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+	VipsBandaryClass *class = VIPS_BANDARY_GET_CLASS( object ); 
 	VipsConversion *conversion = VIPS_CONVERSION( object );
-	VipsBandary *bandary = (VipsBandary *) object;
+	VipsBandary *bandary = VIPS_BANDARY( object );
 
 	int i;
 	VipsImage **decode;
@@ -131,12 +132,12 @@ vips_bandary_build( VipsObject *object )
 		return( -1 );
 
 	if( bandary->n <= 0 ) {
-		vips_error( class->nickname, 
+		vips_error( object_class->nickname, 
 			"%s", _( "no input images" ) );
 		return( -1 );
 	}
 	if( bandary->n > MAX_INPUT_IMAGES ) {
-		vips_error( class->nickname, 
+		vips_error( object_class->nickname, 
 			"%s", _( "too many input images" ) );
 		return( -1 );
 	}
@@ -158,6 +159,9 @@ vips_bandary_build( VipsObject *object )
 		return( -1 );
 
 	conversion->out->Bands = bandary->out_bands;
+	if( class->format_table )
+		conversion->out->BandFmt = 
+			class->format_table[bandary->ready[0]->BandFmt];
 
 	if( vips_image_generate( conversion->out,
 		vips_start_many, vips_bandary_gen, vips_stop_many, 

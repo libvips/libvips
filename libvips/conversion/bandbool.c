@@ -187,7 +187,7 @@ vips_bandbool_buffer( VipsBandary *bandary,
 
 /* Type conversions for boolean. 
  */
-static const VipsBandFormat vips_bandfmt_boolean[10] = {
+static const VipsBandFormat vips_bandbool_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
    UC, C,  US, S,  UI, I,  I,  I,  I,  I,
 };
@@ -207,6 +207,7 @@ vips_bandbool_class_init( VipsBandboolClass *class )
 	object_class->build = vips_bandbool_build;
 
 	bandary_class->process_line = vips_bandbool_buffer;
+	bandary_class->format_table = vips_bandbool_format_table;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
