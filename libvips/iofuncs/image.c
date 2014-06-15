@@ -1167,6 +1167,17 @@ vips_image_class_init( VipsImageClass *class )
 	/* Create signals.
 	 */
 
+	/**
+	 * VipsImage::preeval:
+	 * @image: the image to be calculated
+	 * @progress: #VipsProgress for this image
+	 *
+	 * The ::preeval signal is emitted once before computation of @image
+	 * starts. It's a good place to set up evaluation feedback.
+	 *
+	 * Use vips_image_set_progress() to turn on progress reporting for an
+	 * image. 
+	 */
 	vips_image_signals[SIG_PREEVAL] = g_signal_new( "preeval",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST,
@@ -1175,6 +1186,22 @@ vips_image_class_init( VipsImageClass *class )
 		g_cclosure_marshal_VOID__POINTER,
 		G_TYPE_NONE, 1,
 		G_TYPE_POINTER );
+
+	/**
+	 * VipsImage::eval:
+	 * @image: the image being calculated
+	 * @progress: #VipsProgress for this image
+	 *
+	 * The ::eval signal is emitted once per work unit (typically a 128 x
+	 * 128 area of pixels) during image computation. 
+	 *
+	 * You can use this signal to update user-interfaces with progress
+	 * feedback. Beware of updating too frequently: there will usually
+	 * need to be some mechanism to limit update frequency. 
+	 *
+	 * Use vips_image_set_progress() to turn on progress reporting for an
+	 * image. 
+	 */
 	vips_image_signals[SIG_EVAL] = g_signal_new( "eval",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST,
@@ -1183,6 +1210,18 @@ vips_image_class_init( VipsImageClass *class )
 		g_cclosure_marshal_VOID__POINTER,
 		G_TYPE_NONE, 1,
 		G_TYPE_POINTER );
+
+	/**
+	 * VipsImage::posteval:
+	 * @image: the image that was calculated
+	 * @progress: #VipsProgress for this image
+	 *
+	 * The ::posteval signal is emitted once at the end of the computation 
+	 * of @image. It's a good place to shut down evaluation feedback.
+	 *
+	 * Use vips_image_set_progress() to turn on progress reporting for an
+	 * image. 
+	 */
 	vips_image_signals[SIG_POSTEVAL] = g_signal_new( "posteval",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST,
@@ -1192,6 +1231,15 @@ vips_image_class_init( VipsImageClass *class )
 		G_TYPE_NONE, 1,
 		G_TYPE_POINTER );
 
+	/**
+	 * VipsImage::written:
+	 * @image: the image that was calculated
+	 * @result: set to non-zero to indicate error
+	 *
+	 * The ::written signal is emitted when an image is written to. It is
+	 * used by things like vips_image_new_mode("x.jpg", "w") to do the 
+	 * final write of @image. 
+	 */
 	vips_image_signals[SIG_WRITTEN] = g_signal_new( "written",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
@@ -1201,6 +1249,14 @@ vips_image_class_init( VipsImageClass *class )
 		G_TYPE_NONE, 1,
 		G_TYPE_POINTER );
 
+	/**
+	 * VipsImage::invalidate:
+	 * @image: the image that has changed
+	 *
+	 * The ::invalidate signal is emitted when an image or one of it's
+	 * upstream data sources has been destructively modified. See
+	 * vips_image_invalidate_all().
+	 */
 	vips_image_signals[SIG_INVALIDATE] = g_signal_new( "invalidate",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
@@ -1209,6 +1265,15 @@ vips_image_class_init( VipsImageClass *class )
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0 );
 
+	/**
+	 * VipsImage::minimise:
+	 * @image: the image that is being minimised
+	 *
+	 * The ::minimise signal is emitted when an image has been asked to
+	 * minimise memory usage. All non-essential caches are dropped. 
+	 * See
+	 * vips_image_minimise_all().
+	 */
 	vips_image_signals[SIG_MINIMISE] = g_signal_new( "minimise",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
@@ -1276,10 +1341,14 @@ vips_image_invalidate_all_cb( VipsImage *image )
  * vips_image_invalidate_all:
  * @image: #VipsImage to invalidate
  *
- * Invalidate all pixel caches on an @image and any downstream images, that
- * is, images which depend on this image. 
+ * Invalidate all pixel caches on @image and any downstream images, that
+ * is, images which depend on this image. Additionally, all operations which
+ * depend upon this image are dropped from the VIPS operation cache. 
  *
- * The "invalidate" callback is triggered for all invalidated images.
+ * You should call this function after
+ * destructively modifying an image with something like vips_draw_circle().
+ *
+ * The #VipsImage::invalidate signal is emitted for all invalidated images.
  *
  * See also: vips_region_invalidate().
  */
@@ -1311,9 +1380,10 @@ vips_image_minimise_all_cb( VipsImage *image )
  * @image: #VipsImage to minimise
  *
  * Minimise memory use on this image and any upstream images, that is, images
- * which this image depends upon. 
+ * which this image depends upon. This function is called automatically at the
+ * end of a computation, but it might be useful to call at other times. 
  *
- * The "minimise" callback is triggered for all minimised images.
+ * The #VipsImage::minimise signal is emitted for all minimised images.
  */
 void 
 vips_image_minimise_all( VipsImage *image )
@@ -1444,7 +1514,8 @@ vips_image_posteval( VipsImage *image )
  * @image: image to signal progress on
  * @progress: turn progress reporting on or off
  *
- * vips signals evaluation progress via the "preeval", "eval" and "posteval"
+ * vips signals evaluation progress via the #VipsImage::preeval, 
+ * #VipsImage::eval and #VipsImage::posteval
  * signals. Progress is signalled on the most-downstream image for which
  * vips_image_set_progress() was called.
  */

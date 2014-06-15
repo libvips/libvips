@@ -1,5 +1,17 @@
 
 
+- check and fix up docs
+
+  index items should all be links
+
+  check each func in each section has a comment doc ... if they don't and
+  shouldn't be there, move to internal
+
+  need better vipsobject docs
+
+  gtk-doc now used markdown, phew, use this to expand some sections
+
+
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
 
