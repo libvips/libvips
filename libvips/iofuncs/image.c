@@ -1531,6 +1531,20 @@ vips_image_set_progress( VipsImage *image, gboolean progress )
 		image->progress_signal = NULL;
 }
 
+
+/**
+ * vips_image_iskilled:
+ * @image: image to test
+ *
+ * If @image has been killed (see vips_image_kill()), set an error message,
+ * clear the #VipsImage.kill flag and return %FALSE. Otherwise return %TRUE.
+ *
+ * Handy for loops which need to run sets of threads which can fail. 
+ *
+ * See also: vips_image_kill().
+ *
+ * Returns: %FALSE if @image has been killed. 
+ */
 gboolean
 vips_image_iskilled( VipsImage *image )
 {
@@ -1555,6 +1569,18 @@ vips_image_iskilled( VipsImage *image )
 	return( kill );
 }
 
+/**
+ * vips_image_set_kill:
+ * @image: image to test
+ * @kill: the kill state
+ *
+ * Set the #VipsImage.kill flag on an image. Handy for stopping sets of
+ * threads. 
+ *
+ * See also: vips_image_iskilled().
+ *
+ * Returns: %FALSE if @image has been killed. 
+ */
 void
 vips_image_set_kill( VipsImage *image, gboolean kill )
 {
@@ -1582,10 +1608,12 @@ vips_image_temp_name( void )
 /**
  * vips_image_new:
  *
- * vips_image_new() creates a "glue" descriptor you can use to join two image 
- * processing operations together. 
+ * vips_image_new() creates a new, empty #VipsImage. 
+ * If you write to one of these images, vips will just attach some callbacks,
+ * no pixels will be generated. 
  *
- * It is the equivalent of vips_image_new_mode("xxx", "p").
+ * It is the equivalent of 
+ * vips_image_new_mode() with @mode "p". 
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
@@ -1636,8 +1664,11 @@ vips_image_new_mode( const char *filename, const char *mode )
  * vips_image_new_memory:
  *
  * vips_image_new_memory() creates a new #VipsImage which, when written to, will
- * create a memory image. It is a convenience function for
- * vips_image_new_mode(vips_image_temp_name(), "t").
+ * create a memory image. 
+ *
+ * It is a convenience function for
+ * vips_image_new_mode() with @filename set by vips_image_temp_name() and
+ * @mode "t".
  *
  * See also: vips_image_new().
  *
@@ -1671,7 +1702,8 @@ vips_image_new_memory( void )
  * vips_image_new_from_file() always returns immediately with the header
  * fields filled in. No pixels are actually read until you first access them. 
  *
- * @access lets you hint the expected access pattern for this file.
+ * @access lets you set a #VipsAccess hint giving the expected access pattern 
+ * for this file.
  * #VIPS_ACCESS_RANDOM means you can fetch pixels randomly from the image.
  * This is the default mode. #VIPS_ACCESS_SEQUENTIAL means you will read the
  * whole image exactly once, top-to-bottom. In this mode, vips can avoid
@@ -1749,8 +1781,8 @@ vips_image_new_from_file( const char *name, ... )
  * vips_image_new_from_file_RW:
  * @filename: filename to open
  *
- * Opens the named file for reading and writing. This will only work for 
- * VIPS files in a format native to your machine. It is only for 
+ * Opens the named file for simultaneous reading and writing. This will only 
+ * work for VIPS files in a format native to your machine. It is only for 
  * paintbox-type applications.
  *
  * See also: vips_draw_circle().
@@ -1775,9 +1807,9 @@ vips_image_new_from_file_RW( const char *filename )
  * read it.
  *
  * It returns an 8-bit image with @bands bands. If the image is not 8-bit, use 
- * im_copy_set() to transform the descriptor after loading it.
+ * vips_copy() to transform the descriptor after loading it.
  *
- * See also: im_copy_set(), im_raw2vips(), vips_image_new_from_file().
+ * See also: vips_copy(), vips_rawload(), vips_image_new_from_file().
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
@@ -1823,7 +1855,7 @@ vips_image_new_from_file_raw( const char *filename,
  * responsibility for the area of memory, it's up to you to make sure it's
  * freed when the image is closed. See for example #VipsObject::close.
  *
- * Use vips_copy_morph() to set other image properties. 
+ * Use vips_copy() to set other image properties. 
  *
  * See also: vips_image_new(), vips_image_write_to_memory().
  *
@@ -1917,7 +1949,7 @@ vips_image_new_from_buffer( void *buf, size_t len,
  * @height: image height
  *
  * This convenience function makes an image which is a matrix: a one-band
- * VIPS_FORMAT_DOUBLE image held in memory.
+ * #VIPS_FORMAT_DOUBLE image held in memory.
  *
  * Use VIPS_IMAGE_ADDR(), or VIPS_MATRIX() to address pixels in the image.
  *
@@ -2002,7 +2034,7 @@ vips_image_new_matrixv( int width, int height, ... )
  *
  * This function is clearly extremely dangerous, use with great caution.
  *
- * See also: vips__temp_name(), vips_image_new_temp_file().
+ * See also: vips_image_new_temp_file().
  */
 void
 vips_image_set_delete_on_close( VipsImage *image, gboolean delete_on_close )
@@ -2021,7 +2053,7 @@ vips_image_set_delete_on_close( VipsImage *image, gboolean delete_on_close )
  * @format: format of file
  *
  * Make a "w" disc #VipsImage which will be automatically unlinked when it is
- * destroyed. @format is something like "%s.v" for a vips file.
+ * destroyed. @format is something like "&percnt;s.v" for a vips file.
  *
  * The file is created in the temporary directory, see vips__temp_name().
  *
@@ -2078,10 +2110,10 @@ vips_image_write_gen( VipsRegion *or,
  * @image: image to write
  * @out: write to this image
  *
- * Write @image to @out. Use vips_image_new_mode() and friends to create the
+ * Write @image to @out. Use vips_image_new() and friends to create the
  * #VipsImage you want to write to.
  *
- * See also: vips_image_new_mode(), vips_copy(), vips_image_write_to_file().
+ * See also: vips_image_new(), vips_copy(), vips_image_write_to_file().
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -2259,7 +2291,7 @@ vips_image_write_to_memory( VipsImage *in, void **buf_out, size_t *len_out )
  * @out: write to this image
  *
  * A convenience function to unpack to a format that we can compute with. 
- * @out->Coding is always VIPS_CODING_NONE. 
+ * @out.coding is always #VIPS_CODING_NONE. 
  *
  * This unpacks LABQ to plain LAB. Use vips_LabQ2LabS() for a bit more speed
  * if you need it. 
@@ -2490,7 +2522,7 @@ vips_image_write_prepare( VipsImage *image )
  * @linebuffer: scanline of pixels
  *
  * Write a line of pixels to an image. This function must be called repeatedly
- * with @ypos increasing from 0 to @YSize -
+ * with @ypos increasing from 0 to #VipsImage.height .
  * @linebuffer must be VIPS_IMAGE_SIZEOF_LINE() bytes long.
  *
  * See also: vips_image_generate().
@@ -2630,8 +2662,7 @@ vips_image_rewind_output( VipsImage *image )
  * If it 
  * isn't, try to transform it so that VIPS_IMAGE_ADDR() can work. 
  *
- * See also: vips_image_wio_output(), vips_image_pio_input(), 
- * vips_image_inplace(), VIPS_IMAGE_ADDR().
+ * See also: vips_image_pio_input(), vips_image_inplace(), VIPS_IMAGE_ADDR().
  *
  * Returns: 0 on succeess, or -1 on error.
  */
@@ -2778,11 +2809,11 @@ vips__image_wio_output( VipsImage *image )
  * vips_image_inplace:
  * @image: image to make read-write
  *
- * Gets @image ready for an in-place operation, such as im_insertplace().
+ * Gets @image ready for an in-place operation, such as vips_draw_circle().
  * After calling this function you can both read and write the image with 
  * VIPS_IMAGE_ADDR().
  *
- * See also: im_insertplace(), vips_image_wio_input().
+ * See also: vips_draw_circle(), vips_image_wio_input().
  *
  * Returns: 0 on succeess, or -1 on error.
  */

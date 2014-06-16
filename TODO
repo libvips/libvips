@@ -1,3 +1,7 @@
+- the docs reference vips__temp_name() several times, but we don't doc it
+
+  where should we discuss the temporary directory? vips_image_new_temp_file()
+  I guess. What about vips_system()?
 
 
 - check and fix up docs
