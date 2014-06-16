@@ -307,21 +307,7 @@ typedef struct _VipsForeignSaveClass {
 GType vips_foreign_save_get_type( void );
 
 const char *vips_foreign_find_save( const char *filename );
-const char * vips_foreign_find_save_buffer( const char *suffix );
-
-/* Read/write an image convenience functions.
- */
-int vips_foreign_load( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
-int vips_foreign_save( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
-
-int vips_foreign_load_buffer( void *buf, size_t len, const char *option_string, 
-	VipsImage **out, ... )
-	__attribute__((sentinel));
-int vips_foreign_save_buffer( VipsImage *in, 
-	const char *suffix, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
+const char *vips_foreign_find_save_buffer( const char *suffix );
 
 int vips_openslideload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));

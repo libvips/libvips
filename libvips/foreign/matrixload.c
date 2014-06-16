@@ -99,6 +99,8 @@ vips_foreign_load_matrix_header( VipsForeignLoad *load )
 	vips_image_set_double( load->out, "scale", scale ); 
 	vips_image_set_double( load->out, "offset", offset ); 
 
+	VIPS_SETSTR( load->out->filename, matrix->filename );
+
 	return( 0 );
 }
 

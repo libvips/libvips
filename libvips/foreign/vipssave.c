@@ -65,12 +65,19 @@ vips_foreign_save_vips_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveVips *vips = (VipsForeignSaveVips *) object;
 
+	VipsImage *x;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_vips_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips_image_write_to_file( save->ready, vips->filename ) )
+	if( !(x = vips_image_new_mode( vips->filename, "w" )) )
 		return( -1 );
+	if( vips_image_write( save->ready, x ) ) {
+		g_object_unref( x );
+		return( -1 ); 
+	}
+	g_object_unref( x );
 
 	return( 0 );
 }

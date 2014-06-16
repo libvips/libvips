@@ -96,6 +96,8 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	if( vips__png_header( png->filename, load->out ) )
 		return( -1 );
 
+	VIPS_SETSTR( load->out->filename, png->filename );
+
 	return( 0 );
 }
 

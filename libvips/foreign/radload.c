@@ -88,6 +88,8 @@ vips_foreign_load_rad_header( VipsForeignLoad *load )
 	if( vips__rad_header( rad->filename, load->out ) )
 		return( -1 );
 
+	VIPS_SETSTR( load->out->filename, rad->filename );
+
 	return( 0 );
 }
 

@@ -43,6 +43,8 @@
 
 #ifdef HAVE_LIBWEBP
 
+#include <string.h>
+
 #include <vips/vips.h>
 
 #include "webp.h"
@@ -129,6 +131,8 @@ vips_foreign_load_webp_file_header( VipsForeignLoad *load )
 
 	if( vips__webp_read_file_header( file->filename, load->out ) )
 		return( -1 );
+
+	VIPS_SETSTR( load->out->filename, file->filename );
 
 	return( 0 );
 }

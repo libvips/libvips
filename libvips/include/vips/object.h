@@ -283,6 +283,11 @@ typedef struct _VipsArgumentInstance {
 	 * here.
 	 */
 	gulong close_id;	
+
+	/* We need to listen for "invalidate" on input images and send our own
+	 * "invalidate" out. If we go, we need to disconnect.
+	 */
+	gulong invalidate_id;
 } VipsArgumentInstance;
 
 /* Need to look up our VipsArgument structs from a pspec. Just hash the
@@ -539,6 +544,13 @@ struct _VipsObjectClass {
 	 */
 	GSList *argument_table_traverse;
 	GType argument_table_traverse_gtype;
+
+	/* This class is deprecated and therefore hidden from various UI bits.
+	 *
+	 * VipsOperation has a deprecated flag, use that in preference to this
+	 * if you can. 
+	 */
+	gboolean deprecated;
 
 	/* Reserved for future expansion.
 	 */

@@ -82,6 +82,11 @@ typedef struct _VipsBandaryClass {
 	 */
 	VipsBandaryProcessFn process_line;
 
+	/* For each input format, what output format. Leave NULL for output
+	 * format == input format. 
+	 */
+	const VipsBandFormat *format_table;
+
 } VipsBandaryClass;
 
 GType vips_bandary_get_type( void );

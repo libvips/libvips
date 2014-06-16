@@ -86,6 +86,8 @@ vips_foreign_load_ppm_header( VipsForeignLoad *load )
 	if( vips__ppm_header( ppm->filename, load->out ) )
 		return( -1 );
 
+	VIPS_SETSTR( load->out->filename, ppm->filename );
+
 	return( 0 );
 }
 

@@ -53,7 +53,7 @@ vips_hough_new_accumulator( VipsHough *hough )
 
 	VipsImage *accumulator; 
 
-	accumulator = vips_image_new_buffer(); 
+	accumulator = vips_image_new_memory(); 
 
 	vips_image_pipelinev( accumulator,
 		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL );

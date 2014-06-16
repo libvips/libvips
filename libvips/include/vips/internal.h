@@ -143,6 +143,11 @@ int vips__write_header_bytes( VipsImage *im, unsigned char *to );
 
 extern GMutex *vips__global_lock;
 
+int vips_image_written( VipsImage *image );
+void vips_image_preeval( VipsImage *image );
+void vips_image_eval( VipsImage *image, guint64 processed );
+void vips_image_posteval( VipsImage *image );
+
 int vips__formatalike_vec( VipsImage **in, VipsImage **out, int n );
 int vips__sizealike_vec( VipsImage **in, VipsImage **out, int n );
 int vips__bandup( const char *domain, VipsImage *in, VipsImage **out, int n );
@@ -314,6 +319,11 @@ IMAGE *vips__deprecated_open_read( const char *filename, gboolean sequential );
 IMAGE *vips__deprecated_open_write( const char *filename );
 
 int vips__input_interpolate_init( im_object *obj, char *str );
+
+int vips_foreign_load( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_foreign_save( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
 
 #ifdef __cplusplus
 }

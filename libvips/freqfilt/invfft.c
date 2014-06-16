@@ -100,7 +100,7 @@ cinvfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 
 	/* Convert input to a complex double membuffer.
 	 */
-	*out = vips_image_new_buffer();
+	*out = vips_image_new_memory();
 	if( vips_cast_dpcomplex( in, &t[0], NULL ) ||
 		vips_image_write( t[0], *out ) )
 		return( -1 ); 
@@ -149,7 +149,7 @@ rinvfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 
 	/* Convert input to a complex double membuffer.
 	 */
-	t[1] = vips_image_new_buffer();
+	t[1] = vips_image_new_memory();
 	if( vips_cast_dpcomplex( in, &t[0], NULL ) ||
 		vips_image_write( t[0], t[1] ) )
 		return( -1 ); 
@@ -173,7 +173,7 @@ rinvfft1( VipsObject *object, VipsImage *in, VipsImage **out )
 
 	/* Make mem buffer real image for output.
 	 */
-	*out = vips_image_new_buffer();
+	*out = vips_image_new_memory();
 	if( vips_image_pipelinev( *out, VIPS_DEMAND_STYLE_ANY, t[1], NULL ) )
                 return( -1 );
 	(*out)->BandFmt = VIPS_FORMAT_DOUBLE;

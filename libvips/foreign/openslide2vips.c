@@ -283,7 +283,6 @@ readslide_new( const char *filename, VipsImage *out,
 		return( NULL );
 	}
 
-
 	vips_image_init_fields( out, w, h, 4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB, 1.0, 1.0 );
 
@@ -444,7 +443,7 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 
 	/* Memory buffer. Get associated directly to this, then copy to out.
 	 */
-	raw = vips_image_new_buffer();
+	raw = vips_image_new_memory();
 	vips_object_local( out, raw );
 
 	if( !(rslide = readslide_new( filename, raw, 0, associated )) ||

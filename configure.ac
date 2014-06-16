@@ -353,8 +353,9 @@ GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 AC_ARG_WITH([gsf], 
   AS_HELP_STRING([--without-gsf], [build without libgsf-1 (default: test)]))
 
+# libgsf-1 1.14.21 crashes, .27 is known-good, not sure about 22-26
 if test x"$with_gsf" != "xno"; then
-  PKG_CHECK_MODULES(GSF, libgsf-1,
+  PKG_CHECK_MODULES(GSF, libgsf-1 >= 1.14.27,
     [AC_DEFINE(HAVE_GSF,1,[define if you have libgsf-1 installed.])
      with_gsf=yes
      PACKAGES_USED="$PACKAGES_USED libgsf-1"],
@@ -783,6 +784,6 @@ file import/export with libpng: 	$with_png
 file import/export with libtiff:	$with_tiff
 file import/export with libjpeg:	$with_jpeg
 image pyramid export:			$with_gsf
-  (requires libgsf-1)
+  (requires libgsf-1 1.14.27 or later)
 use libexif to load/save JPEG metadata: $with_libexif
 build Python binding: 			$with_python])

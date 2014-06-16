@@ -60,11 +60,11 @@ static int
 vips_labelregions_build( VipsObject *object )
 {
 	VipsMorphology *morphology = VIPS_MORPHOLOGY( object );
-	VipsLabelregions *labelregions = (VipsLabelregions *) object;
 	VipsImage *in = morphology->in;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
+	VipsImage *mask;
 
-	int serial;
+	int segments;
 	int *m;
 	int x, y;
 
@@ -72,42 +72,38 @@ vips_labelregions_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* Create the zero mask image.
+	/* Create the zero mask image in memory.
 	 */
+	mask = vips_image_new_memory();
+	g_object_set( object,
+		"mask", mask,
+		NULL ); 
 	if( vips_black( &t[0], in->Xsize, in->Ysize, NULL ) ||
-		vips_cast( t[0], &t[1], VIPS_FORMAT_INT, NULL ) ) 
+		vips_cast( t[0], &t[1], VIPS_FORMAT_INT, NULL ) || 
+		vips_image_write( t[1], mask ) )
 		return( -1 );
 
-	/* Search the mask image, flooding as we find zero pixels.
-	 */
-	if( vips_image_inplace( t[1] ) )
-		return( -1 );
-
-	serial = 1;
-	m = (int *) t[1]->data;
-	for( y = 0; y < t[1]->Ysize; y++ ) {
-		for( x = 0; x < t[1]->Xsize; x++ ) {
+	segments = 1;
+	m = (int *) mask->data;
+	for( y = 0; y < mask->Ysize; y++ ) {
+		for( x = 0; x < mask->Xsize; x++ ) {
 			if( !m[x] ) {
 				/* Use a direct path for speed.
 				 */
-				if( vips__draw_flood_direct( t[1], in, 
-					serial, x, y ) )
+				if( vips__draw_flood_direct( mask, in, 
+					segments, x, y ) )
 					return( -1 ); 
 
-				serial += 1;
+				segments += 1;
 			}
 		}
 
-		m += t[1]->Xsize;
+		m += mask->Xsize;
 	}
 
 	g_object_set( object,
-		"mask", vips_image_new(),
-		"segments", serial,
+		"segments", segments,
 		NULL ); 
-
-	if( vips_image_write( t[1], labelregions->mask ) )
-		return( -1 ); 
 
 	return( 0 );
 }

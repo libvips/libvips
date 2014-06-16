@@ -412,6 +412,11 @@ struct _VipsForeignSaveDz {
 	 * stuff, eg. $(basename)_files, etc.
 	 */
 	char *root_name; 
+
+	/* @suffix, but without any options. So @suffix == ".jpg[Q=90]"
+	 * becomes ".jpg".
+	 */
+	char *file_suffix;
 };
 
 typedef VipsForeignSaveClass VipsForeignSaveDzClass;
@@ -441,6 +446,7 @@ vips_foreign_save_dz_dispose( GObject *gobject )
 	VIPS_FREE( dz->basename );
 	VIPS_FREE( dz->dirname );
 	VIPS_FREE( dz->root_name );
+	VIPS_FREE( dz->file_suffix );
 
 	G_OBJECT_CLASS( vips_foreign_save_dz_parent_class )->dispose( gobject );
 }
@@ -931,7 +937,7 @@ tile_name( Layer *layer, int x, int y )
 	case VIPS_FOREIGN_DZ_LAYOUT_DZ:
 		vips_snprintf( dirname, VIPS_PATH_MAX, "%d", layer->n );
 		vips_snprintf( name, VIPS_PATH_MAX, 
-			"%d_%d%s", x, y, dz->suffix );
+			"%d_%d%s", x, y, dz->file_suffix );
 
 		out = vips_gsf_path( dz->tree, name, 
 			dz->root_name, dirname, NULL );
@@ -957,7 +963,7 @@ tile_name( Layer *layer, int x, int y )
 
 		vips_snprintf( dirname, VIPS_PATH_MAX, "TileGroup%d", n / 256 );
 		vips_snprintf( name, VIPS_PATH_MAX, 
-			"%d-%d-%d%s", layer->n, x, y, dz->suffix );
+			"%d-%d-%d%s", layer->n, x, y, dz->file_suffix );
 
 		/* Used at the end in ImageProperties.xml
 		 */
@@ -970,7 +976,8 @@ tile_name( Layer *layer, int x, int y )
 	case VIPS_FOREIGN_DZ_LAYOUT_GOOGLE:
 		vips_snprintf( dirname, VIPS_PATH_MAX, "%d", layer->n );
 		vips_snprintf( dirname2, VIPS_PATH_MAX, "%d", y );
-		vips_snprintf( name, VIPS_PATH_MAX, "%d%s", x, dz->suffix );
+		vips_snprintf( name, VIPS_PATH_MAX, 
+			"%d%s", x, dz->file_suffix );
 
 		out = vips_gsf_path( dz->tree, name, dirname, dirname2, NULL );
 
@@ -1052,7 +1059,7 @@ strip_work( VipsThreadState *state, void *a )
 	printf( "strip_work: writing to %s\n", buf );
 #endif /*DEBUG_VERBOSE*/
 
-	if( vips_foreign_save_buffer( x, dz->suffix, &buf, &len, NULL ) ) {
+	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, NULL ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -1515,6 +1522,16 @@ vips_foreign_save_dz_build( VipsObject *object )
 		dz->root_name = g_strdup_printf( "%s_files", dz->basename );
 	else
 		dz->root_name = g_strdup( dz->basename );
+
+	/* Drop any options from @suffix.
+	 */
+{
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
+
+	vips__filename_split8( dz->suffix, filename, option_string );
+	dz->file_suffix = g_strdup( filename ); 
+}
 
 	/* Make the thing we write the tiles into.
 	 */

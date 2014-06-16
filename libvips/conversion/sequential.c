@@ -19,6 +19,8 @@
  * 25/2/14
  * 	- we were allowing skipahead if the first request was for y>0, but
  * 	  this broke on some busy, many-core systems, see comment below
+ * 10/6/14
+ * 	- re-enable skipahead now we have the single-thread-first-tile idea
  */
 
 /*
@@ -149,8 +151,10 @@ vips_sequential_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	if( r->top > sequential->y_pos ) {
+	if( r->top > sequential->y_pos &&
+		sequential->y_pos > 0 ) {
 		/* This request is for stuff beyond the current read position, 
+		 * and this is not the first request. We 
 		 * stall for a while to give other threads time to catch up.
 		 * 
 		 * The stall can be cancelled by a signal on @ready.
@@ -160,19 +164,10 @@ vips_sequential_generate( VipsRegion *or,
 		 * may be harmless.
 		 */
 
-		/* We used to not stall if the read position was zero, ie. if
-		 * the first request was for a line some way down the image,
-		 * and assume this was extract or somesuch. But this could
-		 * sometimes break on busy, many-core systems.
-		 *
-		 * Think of a better way to support eg. extract safely in
-		 * sequential mode.
-		 */
-
 #ifdef HAVE_COND_INIT
 		gint64 time;
 
-		time = g_get_monotonic_time () + 
+		time = g_get_monotonic_time() + 
 			STALL_TIME * G_TIME_SPAN_SECOND;
 #else
 		GTimeVal time;

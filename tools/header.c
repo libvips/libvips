@@ -210,7 +210,7 @@ main( int argc, char *argv[] )
 	for( i = 1; i < argc; i++ ) {
 		VipsImage *im;
 
-		if( !(im = vips_image_new_from_file( argv[i] )) ) {
+		if( !(im = vips_image_new_from_file( argv[i], NULL )) ) {
 			print_error();
 			result = 1;
 		}

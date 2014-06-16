@@ -116,6 +116,8 @@ vips_foreign_load_magick_header( VipsForeignLoad *load )
 		load->out, magick->all_frames ) ) 
 		return( -1 );
 
+	VIPS_SETSTR( load->out->filename, magick->filename );
+
 	return( 0 );
 }
 

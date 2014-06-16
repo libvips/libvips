@@ -400,15 +400,10 @@ extern const guint64 vips__image_sizeof_bandformat[];
 	((double *) VIPS_IMAGE_ADDR( I, X, Y ))
 #endif /*VIPS_DEBUG*/
 
-int vips_image_written( VipsImage *image );
-
 void vips_image_invalidate_all( VipsImage *image );
 
 void vips_image_minimise_all( VipsImage *image );
 
-void vips_image_preeval( VipsImage *image );
-void vips_image_eval( VipsImage *image, guint64 processed );
-void vips_image_posteval( VipsImage *image );
 void vips_image_set_progress( VipsImage *image, gboolean progress );
 
 gboolean vips_image_iskilled( VipsImage *image );
@@ -416,19 +411,31 @@ void vips_image_set_kill( VipsImage *image, gboolean kill );
 
 VipsImage *vips_image_new( void );
 VipsImage *vips_image_new_mode( const char *filename, const char *mode );
-VipsImage *vips_image_new_buffer( void );
-VipsImage *vips_image_new_from_file( const char *filename );
+VipsImage *vips_image_new_memory( void );
+VipsImage *vips_image_new_from_file( const char *filename, ... )
+	__attribute__((sentinel));
+VipsImage *vips_image_new_from_file_RW( const char *filename );
 VipsImage *vips_image_new_from_file_raw( const char *filename, 
 	int xsize, int ysize, int bands, guint64 offset );
 VipsImage *vips_image_new_from_memory( void *buffer, 
 	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
+VipsImage *vips_image_new_from_buffer( void *buf, size_t len, 
+	const char *option_string, ... )
+	__attribute__((sentinel));
 VipsImage *vips_image_new_matrix( int width, int height );
 VipsImage *vips_image_new_matrixv( int width, int height, ... );
 void vips_image_set_delete_on_close( VipsImage *image, 
 	gboolean delete_on_close );
 VipsImage *vips_image_new_temp_file( const char *format );
+
 int vips_image_write( VipsImage *image, VipsImage *out );
-int vips_image_write_to_file( VipsImage *image, const char *filename );
+int vips_image_write_to_file( VipsImage *image, const char *filename, ... )
+	__attribute__((sentinel));
+int vips_image_write_to_buffer( VipsImage *in, 
+	const char *name, void **buf, size_t *len, ... )
+	__attribute__((sentinel));
+int vips_image_write_to_memory( VipsImage *in, 
+	void **buf_out, size_t *len_out );
 
 int vips_image_decode_predict( VipsImage *im, 
 	int *bands, VipsBandFormat *format );

@@ -516,7 +516,7 @@ png2vips_image( Read *read, VipsImage *out )
 		/* Arg awful interlaced image. We have to load to a huge mem 
 		 * buffer, then copy to out.
 		 */
-		t[0] = vips_image_new_buffer();
+		t[0] = vips_image_new_memory();
 		if( png2vips_header( read, t[0] ) ||
 			png2vips_interlace( read, t[0] ) ||
 			vips_image_write( t[0], out ) )

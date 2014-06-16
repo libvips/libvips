@@ -92,6 +92,8 @@ vips_foreign_load_csv_header( VipsForeignLoad *load )
 		csv->skip, csv->lines, csv->whitespace, csv->separator ) )
 		return( -1 );
 
+	VIPS_SETSTR( load->out->filename, csv->filename );
+
 	return( 0 );
 }
 

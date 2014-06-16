@@ -1,12 +1,15 @@
-- vips_image_new_from_file() should take a set of options
 
-  implement it using vips_foreign_load()?
 
-- likewise, vips_image_write_to_file() should take options. Implement in terms
-  of vips_foreign_save()?
+- check and fix up docs
 
-  both need to allow options in the filename too
+  index items should all be links
 
+  check each func in each section has a comment doc ... if they don't and
+  shouldn't be there, move to internal
+
+  need better vipsobject docs
+
+  gtk-doc now used markdown, phew, use this to expand some sections
 
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
@@ -30,42 +33,6 @@
 - vips__ink_to_vector() needs an optional imag return
 
 - vips_getpoint() needs an optional imag return
-
-
-
-- think of a better way to support skipahead
-
-  extract needs to hint to it's image sources what line it will start reading
-  at 
-
-  in vips_extract_build(), call vips_image_set_start(), somehow sends a signal
-  the wrong way down the pipe to the vips_sequential() (if there is one)
-  telling it not to stall the first request if it's for that line
-   
-  test --crop in vipsthumbnail on portrait images cropped to landscape
-
-  alternative: if extract sees a seq image, it deliberately reads and discards
-  the N scanlines 
-
-  	could be very slow :-( 
-
-  the first vips_extract_area_gen() needs to somehow signal in
-  vips_region_prepare() that this is the first request
-
-  	how do we pass the signal down? not clear
-
-  run the first tile single-threaded
-
-  	so sinkdisc runs the first request, waits for it to come back, then
-	starts all the workers going
-
-	this is quite a good idea! we'd not slow down much, and there's a huge
-	amount of locking on the first tile anyway
-
-	now seq can support skipahead again
-
-
-
 
 
 
@@ -108,6 +75,7 @@
 - use g_log() instead of vips_info()?
 
 
+
 - quadratic doesn't work for order 3
 
   start to get jaggies on lines --- the 3rd differential isn't being 
@@ -117,18 +85,6 @@
 
   because we step across tiles left to right: y doesn't change, only x does
 
-
-
-- the operation cache needs to detect invalidate
-
-  tricky!
-
-  perhaps have operations always watching all of their inputs and resignalling
-  "invalidate" themselves
-
-  cache then just needs to watch for "invalidate" on operations it tracks
-
-  need to add an "invalidate" signal to operation
 
 mosaic
 ======
@@ -195,9 +151,6 @@ packaging
 
 - test _O_TEMPORARY thing on Windows
 
-- do we bundle "convert" in the OS X / win32 builds? if we don't we
-  should
-
 
 convolution
 ===========
@@ -233,10 +186,6 @@ convolution
 
 arithmetic
 ==========
-
-- avg/dev etc. should uncode images? eg. labq2lab etc.
-
-  how about ifthenelse? 
 
 - HAVE_HYPOT could define a hypot() macro?
 

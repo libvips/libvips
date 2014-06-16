@@ -76,53 +76,54 @@ IGNORE_VIPS_INCLUDE = \
 	format.h \
 	mask.h \
 	private.h \
-	video.h
+	video.h 
 
 # ignore all .h files in libvips/*, these are internal
 IGNORE_VIPS_C = \
 	binary.h \
-	magick.h \
+	hough.h \
+	nary.h \
 	parithmetic.h \
-	matlab.h \
 	statistic.h \
-	openexr2vips.h \
 	unaryconst.h \
-	openslide2vips.h \
 	unary.h \
-	ppm.h \
 	CImg.h \
-	radiance.h \
 	pcolour.h \
-	tiff.h \
 	bandary.h \
-	vipsjpeg.h \
 	pconversion.h \
-	vipspng.h \
 	correlation.h \
-	webp.h \
 	pconvolution.h \
-	pfreqfilt.h \
 	pcreate.h \
-	hist_unary.h \
 	pmask.h \
-	phistogram.h \
 	point.h \
-	base64.h \
 	drawink.h \
-	sink.h \
-	draw_line.h \
-	pmorphology.h \
 	pdraw.h \
-	global_balance.h \
 	analyze2vips.h \
-	merge.h \
 	csv.h \
-	mosaic.h \
 	dbh.h \
-	presample.h \
 	fits.h \
-	templates.h \
-	jpeg.h
+	jpeg.h \
+	magick.h \
+	matlab.h \
+	openexr2vips.h \
+	openslide2vips.h \
+	ppm.h \
+	radiance.h \
+	tiff.h \
+	vipsjpeg.h \
+	vipspng.h \
+	webp.h \
+	pfreqfilt.h \
+	hist_unary.h \
+	phistogram.h \
+	base64.h \
+	sink.h \
+	vipsmarshal.h \
+	pmorphology.h \
+	global_balance.h \
+	pmosaicing.h \
+	presample.h \
+	templates.h
 
 IGNORE_HFILES = $(IGNORE_VIPS_INCLUDE) $(IGNORE_VIPS_C)
 

@@ -1097,10 +1097,6 @@ im__get_mosaic_name( VipsImage *image )
 		if( vips_image_get_string( image, "mosaic-name", &name ) )
 			return( NULL );
 	}
-	else if( vips_image_get_typeof( image, "original-filename" ) ) {
-		if( vips_image_get_string( image, "original-filename", &name ) )
-			return( NULL );
-	}
 	else 
 		name = image->filename;
 
