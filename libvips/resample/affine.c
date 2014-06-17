@@ -416,8 +416,8 @@ vips_affine_build( VipsObject *object )
 	window_offset = 
 		vips_interpolate_get_window_offset( affine->interpolate );
 
-	affine->trn.iarea.left = window_offset;
-	affine->trn.iarea.top = window_offset;
+	affine->trn.iarea.left = 0;
+	affine->trn.iarea.top = 0;
 	affine->trn.iarea.width = in->Xsize;
 	affine->trn.iarea.height = in->Ysize;
 	affine->trn.a = ((double *) affine->matrix->data)[0];
