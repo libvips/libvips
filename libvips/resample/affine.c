@@ -355,7 +355,10 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 			/* Clipping! 
 			 */
-			if( fx < ile || fx >= iri || fy < ito || fy >= ibo ) {
+			if( fx < ile || 
+				fx > iri || 
+				fy < ito || 
+				fy > ibo ) {
 				for( z = 0; z < ps; z++ ) 
 					q[z] = 0;
 			}
@@ -416,8 +419,8 @@ vips_affine_build( VipsObject *object )
 	window_offset = 
 		vips_interpolate_get_window_offset( affine->interpolate );
 
-	affine->trn.iarea.left = 0;
-	affine->trn.iarea.top = 0;
+	affine->trn.iarea.left = window_offset;
+	affine->trn.iarea.top = window_offset;
 	affine->trn.iarea.width = in->Xsize;
 	affine->trn.iarea.height = in->Ysize;
 	affine->trn.a = ((double *) affine->matrix->data)[0];
@@ -457,7 +460,8 @@ vips_affine_build( VipsObject *object )
 	 * output space inside INT_MAX / TRANSFORM_SCALE.
 	 */
 	edge = INT_MAX / VIPS_TRANSFORM_SCALE;
-	if( affine->trn.oarea.left < -edge || affine->trn.oarea.top < -edge ||
+	if( affine->trn.oarea.left < -edge || 
+		affine->trn.oarea.top < -edge ||
 		VIPS_RECT_RIGHT( &affine->trn.oarea ) > edge || 
 		VIPS_RECT_BOTTOM( &affine->trn.oarea ) > edge ) {
 		vips_error( class->nickname,
