@@ -355,9 +355,9 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 			/* Clipping! 
 			 */
 			if( fx < ile || 
-				fx >= iri || 
+				fx > iri || 
 				fy < ito || 
-				fy >= ibo ) {
+				fy > ibo ) {
 				for( z = 0; z < ps; z++ ) 
 					q[z] = 0;
 			}

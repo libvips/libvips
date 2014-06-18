@@ -47,6 +47,7 @@
   Alessandro
 - fix a crash in vips_rawsave(), thanks Andrea
 - updated German translation, thanks Chris
+- fix coordinate error in affine, thanks ferryfax
 
 24/2/14 started 7.38.5
 - jpeg load from buffer could write to input, thanks Lovell

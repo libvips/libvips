@@ -106,14 +106,14 @@ typedef struct _VipsMax {
 	/* The single max. Can be unset if, for example, the whole image is
 	 * NaN.
 	 */
-	double max;
+	double out;
 	int x;
 	int y;
 
 	/* And the positions and values we found as VipsArrays for returning 
 	 * to our caller.
 	 */
-	VipsArrayDouble *max_array;
+	VipsArrayDouble *out_array;
 	VipsArrayInt *x_array;
 	VipsArrayInt *y_array;
 
@@ -425,7 +425,7 @@ vips_max_class_init( VipsMaxClass *class )
 		_( "Output" ), 
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
-		G_STRUCT_OFFSET( VipsMax, max ),
+		G_STRUCT_OFFSET( VipsMax, out ),
 		-INFINITY, INFINITY, 0.0 );
 
 	VIPS_ARG_INT( class, "x", 2, 
@@ -453,7 +453,7 @@ vips_max_class_init( VipsMaxClass *class )
 		_( "Output array" ), 
 		_( "Array of output values" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
-		G_STRUCT_OFFSET( VipsMax, max_array ),
+		G_STRUCT_OFFSET( VipsMax, out_array ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
 	VIPS_ARG_BOXED( class, "x_array", 7, 

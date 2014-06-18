@@ -601,17 +601,18 @@ static void
 transform_array_int_g_string( const GValue *src_value, GValue *dest_value )
 {
 	int n;
-	int *array = vips_value_get_array_int( src_value, &n );
+	int *array;
 
 	char txt[1024];
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	int i;
 
-	for( i = 0; i < n; i++ ) 
-		/* Use space as a separator since ',' may be a decimal point
-		 * in this locale.
-		 */
-		vips_buf_appendf( &buf, "%d ", array[i] );
+	if( (array = vips_value_get_array_int( src_value, &n )) ) 
+		for( i = 0; i < n; i++ ) 
+			/* Use space as a separator since ',' may be a 
+			 * decimal point in this locale.
+			 */
+			vips_buf_appendf( &buf, "%d ", array[i] );
 
 	g_value_set_string( dest_value, vips_buf_all( &buf ) );
 }
@@ -689,17 +690,18 @@ static void
 transform_array_double_g_string( const GValue *src_value, GValue *dest_value )
 {
 	int n;
-	double *array = vips_value_get_array_double( src_value, &n );
+	double *array;
 
 	char txt[1024];
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
 	int i;
 
-	for( i = 0; i < n; i++ ) 
-		/* Use space as a separator since ',' may be a decimal point
-		 * in this locale.
-		 */
-		vips_buf_appendf( &buf, "%g ", array[i] );
+	if( (array = vips_value_get_array_double( src_value, &n )) ) 
+		for( i = 0; i < n; i++ ) 
+			/* Use space as a separator since ',' may be a decimal 
+			 * point in this locale.
+			 */
+			vips_buf_appendf( &buf, "%g ", array[i] );
 
 	g_value_set_string( dest_value, vips_buf_all( &buf ) );
 }
@@ -1064,7 +1066,8 @@ vips_value_get_array( const GValue *value,
 	 * vips_*_get_type().
 	 */
 
-	area = g_value_get_boxed( value );
+	if( !(area = g_value_get_boxed( value )) )
+		return( NULL ); 
 	if( n )
 		*n = area->n;
 	if( type )
