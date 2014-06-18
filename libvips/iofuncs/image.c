@@ -1522,7 +1522,8 @@ vips_image_posteval( VipsImage *image )
 void
 vips_image_set_progress( VipsImage *image, gboolean progress )
 {
-	if( progress && !image->progress_signal ) {
+	if( progress && 
+		!image->progress_signal ) {
 		VIPS_DEBUG_MSG( "vips_image_set_progress: %p %s\n", 
 			image, image->filename );
 		image->progress_signal = image;

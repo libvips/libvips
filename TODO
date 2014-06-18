@@ -1,8 +1,16 @@
 - fix --vips-progress for dzsave
 
+  _set_progress(FALSE) on an image upstream of the tile isn't going to help,
+  we attach callbacks to all images if --vips-progress is on
+
+  on set_progress(FALSE) vips_sink_disc() should stop calling
+  vips_image_preeval()
+
 - rewrite vips.1 manpage
 
 - remove -c abbrev. for --vips-concurrency
+
+- threadpool recyling might be useful for dzsave?
 
 
 
