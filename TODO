@@ -1,3 +1,12 @@
+- fix --vips-progress for dzsave
+
+- rewrite vips.1 manpage
+
+- remove -c abbrev. for --vips-concurrency
+
+
+
+
 - can we call affine from nip2 vips_call? do we need a double array?
 
 
