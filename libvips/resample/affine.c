@@ -112,7 +112,6 @@
 
 /*
 #define DEBUG
-#define DEBUG_GEOMETRY
  */
 
 #ifdef HAVE_CONFIG_H
@@ -355,7 +354,10 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 			/* Clipping! 
 			 */
-			if( fx < ile || fx >= iri || fy < ito || fy >= ibo ) {
+			if( fx < ile || 
+				fx > iri || 
+				fy < ito || 
+				fy > ibo ) {
 				for( z = 0; z < ps; z++ ) 
 					q[z] = 0;
 			}
@@ -381,8 +383,7 @@ vips_affine_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsAffine *affine = (VipsAffine *) object;
-	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 4 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	VipsImage *in;
 	VipsDemandStyle hint; 
@@ -456,7 +457,8 @@ vips_affine_build( VipsObject *object )
 	 * output space inside INT_MAX / TRANSFORM_SCALE.
 	 */
 	edge = INT_MAX / VIPS_TRANSFORM_SCALE;
-	if( affine->trn.oarea.left < -edge || affine->trn.oarea.top < -edge ||
+	if( affine->trn.oarea.left < -edge || 
+		affine->trn.oarea.top < -edge ||
 		VIPS_RECT_RIGHT( &affine->trn.oarea ) > edge || 
 		VIPS_RECT_BOTTOM( &affine->trn.oarea ) > edge ) {
 		vips_error( class->nickname,

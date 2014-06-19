@@ -451,7 +451,8 @@ vips_insert_class_init( VipsInsertClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "insert";
-	vobject_class->description = _( "insert an image" );
+	vobject_class->description = 
+		_( "insert image @sub into @main at @x, @y" );
 	vobject_class->build = vips_insert_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;

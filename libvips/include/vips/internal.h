@@ -147,6 +147,9 @@ int vips_image_written( VipsImage *image );
 void vips_image_preeval( VipsImage *image );
 void vips_image_eval( VipsImage *image, guint64 processed );
 void vips_image_posteval( VipsImage *image );
+gboolean vips_image_iskilled( VipsImage *image );
+void vips_image_set_kill( VipsImage *image, gboolean kill );
+VipsImage *vips_image_new_mode( const char *filename, const char *mode );
 
 int vips__formatalike_vec( VipsImage **in, VipsImage **out, int n );
 int vips__sizealike_vec( VipsImage **in, VipsImage **out, int n );

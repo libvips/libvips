@@ -406,13 +406,9 @@ void vips_image_minimise_all( VipsImage *image );
 
 void vips_image_set_progress( VipsImage *image, gboolean progress );
 
-gboolean vips_image_iskilled( VipsImage *image );
-void vips_image_set_kill( VipsImage *image, gboolean kill );
-
 VipsImage *vips_image_new( void );
-VipsImage *vips_image_new_mode( const char *filename, const char *mode );
 VipsImage *vips_image_new_memory( void );
-VipsImage *vips_image_new_from_file( const char *filename, ... )
+VipsImage *vips_image_new_from_file( const char *name, ... )
 	__attribute__((sentinel));
 VipsImage *vips_image_new_from_file_RW( const char *filename );
 VipsImage *vips_image_new_from_file_raw( const char *filename, 
@@ -448,6 +444,7 @@ gboolean vips_image_ispartial( VipsImage *image );
 
 int vips_image_wio_input( VipsImage *image );
 int vips_image_pio_input( VipsImage *image );
+int vips_image_pio_output( VipsImage *image );
 int vips_image_inplace( VipsImage *image );
 int vips_image_write_prepare( VipsImage *image );
 

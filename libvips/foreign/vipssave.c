@@ -46,6 +46,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 typedef struct _VipsForeignSaveVips {
 	VipsForeignSave parent_object;

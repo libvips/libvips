@@ -1059,6 +1059,7 @@ strip_work( VipsThreadState *state, void *a )
 	printf( "strip_work: writing to %s\n", buf );
 #endif /*DEBUG_VERBOSE*/
 
+	vips_image_set_int( x, "hide-progress", 1 );
 	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, NULL ) ) {
 		g_object_unref( x );
 		return( -1 );
