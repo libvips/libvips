@@ -2056,9 +2056,13 @@ vips_image_set_delete_on_close( VipsImage *image, gboolean delete_on_close )
  * Make a "w" disc #VipsImage which will be automatically unlinked when it is
  * destroyed. @format is something like "&percnt;s.v" for a vips file.
  *
- * The file is created in the temporary directory, see vips__temp_name().
+ * The file is created in the temporary directory. This is set with the
+ * environment variable TMPDIR. If this is not set, then on Unix systems, vips
+ * will default to /tmp. On Windows, vips uses GetTempPath() to find the
+ * temporary directory. 
  *
- * See also: vips__temp_name().
+ * vips uses g_mkstemp() to make the temporary filename. They generally look
+ * something like "vips-12-EJKJFGH.v".
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */

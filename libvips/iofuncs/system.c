@@ -314,27 +314,19 @@ vips_system_init( VipsSystem *system )
  * vips_system() runs a command, optionally passing a set of images in and 
  * optionally getting an image back. The command's stdout is returned in @log. 
  *
- * First, if @in is set, the array of images are written to files. The 
- * filenames are formed by substituting something like "vips-49857-1" for 
- * the first %%s in @in_format, then prepending "/tmp". If the environment 
- * variable TMPDIR is defined, it can be used to set a different temporary 
- * directory. 
- *
- * On Windows, if the environment variable TMPDIR is not defined, VIPS calls 
- * GetTempPath() to get the user's preferred temporary area. If that fails, it
- * defaults to C:\temp.
- *
+ * First, if @in is set, the array of images are written to files. See
+ * vips_image_new_temp_file() to see how temporary files are created. 
  * If @in_format is
- * something like "%%s.png", the file will be written in PNG format. By
- * default, @in_format is "%%s.tif". 
+ * something like &percnt;s.png, the file will be written in PNG format. By
+ * default, @in_format is &percnt;s.tif. 
  *
  * If @out_format is set, an output filename is formed in the same way.
  *
- * The command string to run is made by substituting the first set of %%s 
+ * The command string to run is made by substituting the first set of &percnt;s 
  * in @cmd_format for the names of the input files, if @in is set, and then 
- * the next %%s for the output filename, if @out_format is set. 
- * You can put a number between the %% and the s to change the order in which
- * the substitution occurs.
+ * the next &percnt;s for the output filename, if @out_format is set. 
+ * You can put a number between the &percnt; and the s to change the order 
+ * in which the substitution occurs.
  *
  * The command is executed with popen() and the output captured in @log. 
  *
