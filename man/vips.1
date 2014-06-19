@@ -6,13 +6,13 @@ vips \- run vips operations from the command line
 .SH DESCRIPTION
 .B vips(1)
 is the VIPS universal main program. You can use it to run any VIPS operation
-from the command line, to query the VIPS function database, and to
+from the command line, to query the VIPS class hierarchy, and to
 maintain parts of the VIPS library.
 
 To run a VIPS function, the first argument should be the name of the function
 and following arguments should be the function parameters. For example:
 
-  $ vips im_invert lena.v lena2.v
+  $ vips invert lena.v lena2.v
 
 .SH OPTIONS
 .TP
@@ -28,7 +28,7 @@ Show VIPS version.
 .TP
 .B list PACKAGE
 List operations defined in PACKAGE. PACKAGE can also be "classes", "packages"
-or "all".
+or "all". 
 
 .TP
 .B cpph PACKAGE
@@ -46,26 +46,27 @@ vips8 interface.
 
 .SH EXAMPLES
 
-Run a vips7 operation. The vips7 interface does not suport optional arguments.
-
-  $ vips im_invert lena.v lena2.v
-
 Run a vips8 operation. Operation options must follow the operation name.
 
-  $ vips add --imtest=option.jpg lena.v lena2.v out.v
+  $ vips insert lena.v lena2.v out.v 0 0 --background "128 0 0"
 
 Get a "usage" message for an operation
 
-  $ vips add 
+  $ vips insert 
+  insert image @sub into @main at @x, @y
   usage:
-     add left right out
-     add two images
+     insert main sub out x y
   where:
-     left         - Left-hand image argument, input VipsImage
-     right        - Right-hand image argument, input VipsImage
+     main         - Main input image, input VipsImage
+     sub          - Sub-image to insert into main image, input VipsImage
      out          - Output image, output VipsImage
+     x            - Left edge of sub in main, input gint
+     y            - Top edge of sub in main, input gint
+  optional arguments:
+     expand       - Expand output to hold all of both inputs, input gboolean
+     background   - Colour for new pixels, input VipsArrayDouble
   operation flags: sequential-unbuffered 
-  add: too few arguments
+  insert: too few arguments
 
 .SH RETURN VALUE
 returns 0 on success and non-zero on error.

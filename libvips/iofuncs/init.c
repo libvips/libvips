@@ -511,7 +511,7 @@ static GOptionEntry option_entries[] = {
 	{ "vips-fatal", 0, G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG, 
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_set_fatal_cb, 
 		N_( "abort on first error or warning" ), NULL },
-	{ "vips-concurrency", 'c', 0, 
+	{ "vips-concurrency", 0, 0, 
 		G_OPTION_ARG_INT, &vips__concurrency, 
 		N_( "evaluate with N concurrent threads" ), "N" },
 	{ "vips-tile-width", 0, G_OPTION_FLAG_HIDDEN, 
