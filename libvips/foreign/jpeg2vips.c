@@ -1277,10 +1277,6 @@ vips__isjpeg( const char *filename )
  * network socket, so no seek() allowed. 
  */
 
-/* Read from the socket in chunks this size.
- */
-#define FD_BUFFER_SIZE (4096)
-
 typedef struct {
 	/* Public jpeg fields.
 	 */
@@ -1288,9 +1284,8 @@ typedef struct {
 
 	/* Private stuff during read.
 	 */
-	unsigned char buf[FD_BUFFER_SIZE];
-	int descriptor; 
-} InputFd;
+	VipsStream *stream; 
+} InputStream;
 
 /*
  * Initialize source --- called by jpeg_read_header
@@ -1298,7 +1293,7 @@ typedef struct {
  */
 
 static void
-init_source_fd (j_decompress_ptr cinfo)
+init_source_is (j_decompress_ptr cinfo)
 {
 
 }
@@ -1337,23 +1332,22 @@ init_source_fd (j_decompress_ptr cinfo)
  */
 
 static boolean
-fill_input_buffer_fd (j_decompress_ptr cinfo)
+fill_input_buffer_is (j_decompress_ptr cinfo)
 {
   static const JOCTET eoi_buffer[4] = {
     (JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
   };
 
-  InputFd *fd = (InputFd *) cinfo->src;
-  ssize_t len;
+  InputStream *is = (InputStream *) cinfo->src;
 
-  if( (len = read( fd->descriptor, fd->buf, FD_BUFFER_SIZE )) <= 0 ) {
+  if( vips_stream_read( is->stream ) ) { 
     WARNMS(cinfo, JWRN_JPEG_EOF);
-    fd->pub.next_input_byte = eoi_buffer;
-    fd->pub.bytes_in_buffer = 2;
+    is->pub.next_input_byte = eoi_buffer;
+    is->pub.bytes_in_buffer = 2;
   }
   else {
-    fd->pub.next_input_byte = fd->buf;
-    fd->pub.bytes_in_buffer = len;
+    is->pub.next_input_byte = is->stream->next_byte;
+    is->pub.bytes_in_buffer = is->stream->bytes_available;
   }
 
   return TRUE;
@@ -1372,21 +1366,21 @@ fill_input_buffer_fd (j_decompress_ptr cinfo)
  */
 
 static void
-skip_input_data_fd (j_decompress_ptr cinfo, long num_bytes)
+skip_input_data_is (j_decompress_ptr cinfo, long num_bytes)
 {
-  InputFd *fd = (InputFd *) cinfo->src;
+  InputStream *is = (InputStream *) cinfo->src;
 
   if (num_bytes > 0) {
-    while (num_bytes > (long) fd->pub.bytes_in_buffer) {
-      num_bytes -= (long) fd->pub.bytes_in_buffer;
-      (void) (*fd->pub.fill_input_buffer) (cinfo);
+    while (num_bytes > (long) is->pub.bytes_in_buffer) {
+      num_bytes -= (long) is->pub.bytes_in_buffer;
+      (void) (*is->pub.fill_input_buffer) (cinfo);
       /* note we assume that fill_input_buffer will never return FALSE,
        * so suspension need not be handled.
        */
     }
 
-    fd->pub.next_input_byte += (size_t) num_bytes;
-    fd->pub.bytes_in_buffer -= (size_t) num_bytes;
+    is->pub.next_input_byte += (size_t) num_bytes;
+    is->pub.bytes_in_buffer -= (size_t) num_bytes;
   }
 }
 
@@ -1408,9 +1402,14 @@ skip_input_data_fd (j_decompress_ptr cinfo, long num_bytes)
  */
 
 static void
-term_source_fd (j_decompress_ptr cinfo)
+term_source_is (j_decompress_ptr cinfo)
 {
-  /* no work necessary here */
+  InputStream *is = (InputStream *) cinfo->src;
+
+  /* Note how far the reader got so bytes are ready for the next input source.
+   */
+  vips_stream_detach( is->stream, 
+    (unsigned char *) is->pub.next_input_byte, is->pub.bytes_in_buffer ); 
 }
 
 /*
@@ -1419,11 +1418,11 @@ term_source_fd (j_decompress_ptr cinfo)
  */
 
 static void
-readjpeg_fd (ReadJpeg *jpeg, int descriptor)
+readjpeg_is (ReadJpeg *jpeg, VipsStream *stream)
 {
   j_decompress_ptr cinfo = &jpeg->cinfo;
 
-  InputFd *fd;
+  InputStream *is;
 
   /* The source object and input buffer are made permanent so that a series
    * of JPEG images can be read from the same file by calling jpeg_stdio_src
@@ -1435,23 +1434,24 @@ readjpeg_fd (ReadJpeg *jpeg, int descriptor)
   if (cinfo->src == NULL) {	/* first time for this JPEG object? */
     cinfo->src = (struct jpeg_source_mgr *)
       (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
-				  sizeof(InputFd));
-    fd = (InputFd *) cinfo->src;
-    fd->descriptor = descriptor;
+				  sizeof(InputStream));
+    is = (InputStream *) cinfo->src;
+    is->stream = stream;
+    vips_stream_attach( stream ); 
   }
 
-  fd = (InputFd *) cinfo->src;
-  fd->pub.init_source = init_source_fd;
-  fd->pub.fill_input_buffer = fill_input_buffer_fd;
-  fd->pub.skip_input_data = skip_input_data_fd;
-  fd->pub.resync_to_restart = jpeg_resync_to_restart; /* use default method */
-  fd->pub.term_source = term_source_fd;
-  fd->pub.bytes_in_buffer = 0; /* forces fill_input_buffer on first read */
-  fd->pub.next_input_byte = NULL; /* until buffer loaded */
+  is = (InputStream *) cinfo->src;
+  is->pub.init_source = init_source_is;
+  is->pub.fill_input_buffer = fill_input_buffer_is;
+  is->pub.skip_input_data = skip_input_data_is;
+  is->pub.resync_to_restart = jpeg_resync_to_restart; /* use default method */
+  is->pub.term_source = term_source_is;
+  is->pub.bytes_in_buffer = stream->bytes_available; 
+  is->pub.next_input_byte = stream->next_byte;
 }
 
 int
-vips__jpeg_read_fd( int descriptor, VipsImage *out, 
+vips__jpeg_read_stream( VipsStream *stream, VipsImage *out, 
 	int shrink, int fail, gboolean readbehind )
 {
 	ReadJpeg *jpeg;
@@ -1468,7 +1468,7 @@ vips__jpeg_read_fd( int descriptor, VipsImage *out,
 
 	/* Set input to buffer.
 	 */
-	readjpeg_fd( jpeg, descriptor );
+	readjpeg_is( jpeg, stream );
 
 	/* Need to read in APP1 (EXIF metadata) and APP2 (ICC profile).
 	 */

@@ -34,6 +34,7 @@ pkginclude_HEADERS = \
 	object.h \
 	private.h \
 	rect.h \
+	stream.h \
 	region.h \
 	relational.h \
 	resample.h \
@@ -57,6 +58,7 @@ EXTRA_DIST = version.h.in internal.h enumtemplate
 # we need absolute filenames here since this list appears in the src dir as
 # well
 vips_scan_headers = \
+	${top_srcdir}/libvips/include/vips/stream.h \
 	${top_srcdir}/libvips/include/vips/memory.h \
 	${top_srcdir}/libvips/include/vips/foreign.h \
 	${top_srcdir}/libvips/include/vips/arithmetic.h \

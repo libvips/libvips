@@ -101,11 +101,11 @@ VIPS_ARGUMENT_OPTIONAL_OUTPUT   Eg. the x pos of the image minimum
 
 extern int _vips__argument_id;
 
-#define VIPS_ARG_IMAGE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) { \
+#define VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, TYPE ) { \
 	GParamSpec *pspec; \
 	\
 	pspec = g_param_spec_object( (NAME), (LONG), (DESC),  \
-		VIPS_TYPE_IMAGE, \
+		(TYPE), \
 		G_PARAM_READWRITE ); \
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
@@ -113,17 +113,14 @@ extern int _vips__argument_id;
 		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
-#define VIPS_ARG_INTERPOLATE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) { \
-	GParamSpec *pspec; \
-	\
-	pspec = g_param_spec_object( (NAME), (LONG), (DESC),  \
-		VIPS_TYPE_INTERPOLATE, \
-		G_PARAM_READWRITE ); \
-	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
-		_vips__argument_id++, pspec ); \
-	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
-}
+#define VIPS_ARG_IMAGE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) \
+	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, VIPS_TYPE_IMAGE )
+
+#define VIPS_ARG_INTERPOLATE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) \
+	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, VIPS_TYPE_INTERPOLATE )
+
+#define VIPS_ARG_STREAM( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) \
+	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, VIPS_TYPE_STREAM )
 
 #define VIPS_ARG_BOOL( CLASS, NAME, PRIORITY, LONG, DESC, \
 	FLAGS, OFFSET, VALUE ) { \

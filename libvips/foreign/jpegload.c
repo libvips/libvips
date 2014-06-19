@@ -326,28 +326,27 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
 {
 }
 
-typedef struct _VipsForeignLoadJpegFd {
+typedef struct _VipsForeignLoadJpegStream {
 	VipsForeignLoadJpeg parent_object;
 
-	/* Load from a file descriptor. This can be a socket, so no seek()
-	 * allowed.
+	/* Load from a stream. 
 	 */
-	int descriptor;
+	VipsStream *stream;
 
-} VipsForeignLoadJpegFd;
+} VipsForeignLoadJpegStream;
 
-typedef VipsForeignLoadJpegClass VipsForeignLoadJpegFdClass;
+typedef VipsForeignLoadJpegClass VipsForeignLoadJpegStreamClass;
 
-G_DEFINE_TYPE( VipsForeignLoadJpegFd, vips_foreign_load_jpeg_fd, 
+G_DEFINE_TYPE( VipsForeignLoadJpegStream, vips_foreign_load_jpeg_stream, 
 	vips_foreign_load_jpeg_get_type() );
 
 static int
-vips_foreign_load_jpeg_fd_header( VipsForeignLoad *load )
+vips_foreign_load_jpeg_stream_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
-	VipsForeignLoadJpegFd *fd = (VipsForeignLoadJpegFd *) load;
+	VipsForeignLoadJpegStream *stream = (VipsForeignLoadJpegStream *) load;
 
-	if( vips__jpeg_read_fd( fd->descriptor,
+	if( vips__jpeg_read_stream( stream->stream,
 		load->out, jpeg->shrink, jpeg->fail, 
 		load->access == VIPS_ACCESS_SEQUENTIAL ) )
 		return( -1 );
@@ -362,8 +361,8 @@ vips_foreign_load_jpeg_fd_header( VipsForeignLoad *load )
  */
 
 static void
-vips_foreign_load_jpeg_fd_class_init( 
-	VipsForeignLoadJpegFdClass *class )
+vips_foreign_load_jpeg_stream_class_init( 
+	VipsForeignLoadJpegStreamClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -372,21 +371,20 @@ vips_foreign_load_jpeg_fd_class_init(
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "jpegload_fd";
-	object_class->description = _( "load jpeg from fd" );
+	object_class->nickname = "jpegload_stream";
+	object_class->description = _( "load jpeg from stream" );
 
-	load_class->header = vips_foreign_load_jpeg_fd_header;
+	load_class->header = vips_foreign_load_jpeg_stream_header;
 
-	VIPS_ARG_INT( class, "fd", 1, 
-		_( "Fd" ),
-		_( "Fd to load from" ),
+	VIPS_ARG_STREAM( class, "stream", 1, 
+		_( "Stream" ),
+		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadJpegFd, descriptor ),
-		0, 1000000000, 0 ); 
+		G_STRUCT_OFFSET( VipsForeignLoadJpegStream, stream ) ); 
 }
 
 static void
-vips_foreign_load_jpeg_fd_init( VipsForeignLoadJpegFd *fd )
+vips_foreign_load_jpeg_stream_init( VipsForeignLoadJpegStream *stream )
 {
 }
 

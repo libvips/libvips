@@ -4,6 +4,7 @@ libiofuncs_la_SOURCES = \
 	vipsmarshal.h \
 	vipsmarshal.c \
 	type.c \
+	stream.c \
 	gate.c \
 	enumtypes.c \
 	object.c \
@@ -54,6 +55,7 @@ AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 # we need absolute filenames here since this list appears in the header dir as
 # well
 vips_scan_headers = \
+	${top_srcdir}/libvips/include/vips/stream.h \
 	${top_srcdir}/libvips/include/vips/memory.h \
 	${top_srcdir}/libvips/include/vips/foreign.h \
 	${top_srcdir}/libvips/include/vips/conversion.h \
