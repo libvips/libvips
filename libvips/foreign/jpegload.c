@@ -331,7 +331,7 @@ typedef struct _VipsForeignLoadJpegStream {
 
 	/* Load from a stream. 
 	 */
-	VipsStream *stream;
+	VipsStreamInput *stream;
 
 } VipsForeignLoadJpegStream;
 
@@ -382,7 +382,7 @@ vips_foreign_load_jpeg_stream_class_init(
 
 	load_class->header = vips_foreign_load_jpeg_stream_header;
 
-	VIPS_ARG_STREAM( class, "stream", 1, 
+	VIPS_ARG_STREAM_INPUT( class, "stream", 1, 
 		_( "Stream" ),
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 

@@ -1977,7 +1977,7 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_jpegload_stream( VipsStream *stream, VipsImage **out, ... )
+vips_jpegload_stream( VipsStreamInput *stream, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;

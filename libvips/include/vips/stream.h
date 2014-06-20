@@ -1,4 +1,4 @@
-/* A byte source .. it can be a pipe, socket, or perhaps a node.js stream.
+/* A byte source/sink .. it can be a pipe, socket, or perhaps a node.js stream.
  *
  * J.Cupitt, 19/6/14
  */
@@ -52,10 +52,46 @@ extern "C" {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_STREAM, VipsStreamClass ))
 
-/* Sub-area of image.
+/* Communicate with something like a socket or pipe. 
  */
 typedef struct _VipsStream {
 	VipsObject parent_object;
+
+	/*< private >*/
+	
+	/* Read/write this fd if connected to a system pipe/socket. Override
+	 * ::read() and ::write() to do something else.
+	 */
+	int descriptor;	
+
+} VipsStream;
+
+typedef struct _VipsStreamClass {
+	VipsObjectClass parent_class;
+
+} VipsStreamClass;
+
+GType vips_stream_get_type( void );
+
+#define VIPS_TYPE_STREAM_INPUT (vips_stream_input_get_type())
+#define VIPS_STREAM_INPUT( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_STREAM_INPUT, VipsStreamInput ))
+#define VIPS_STREAM_INPUT_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_STREAM_INPUT, VipsStreamInputClass))
+#define VIPS_IS_STREAM_INPUT( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_STREAM_INPUT ))
+#define VIPS_IS_STREAM_INPUT_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_STREAM_INPUT ))
+#define VIPS_STREAM_INPUT_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_STREAM_INPUT, VipsStreamInputClass ))
+
+/* Input or write to something like a socket or pipe. 
+ */
+typedef struct _VipsStreamInput {
+	VipsStream parent_object;
 
 	/*< public >*/
 
@@ -64,13 +100,15 @@ typedef struct _VipsStream {
 
 	/*< private >*/
 	
-	size_t buffer_size;	/* How many bytes we buffer ... eg. 4096 */
-	int descriptor;		/* The fd we read from */
+	int buffer_size;	/* How many bytes we buffer ... eg. 4096 */
 
 	unsigned char *buffer;	/* The start of our buffer */
 
-	/* Set if this stream is currently hooked up to something that's
-	 * reading bytes.
+	/* Set if this object is currently hooked up to something that's
+	 * reading bytes, like the libjpeg input system. 
+	 *
+	 * In this case, libjpeg will have the curent values for @next_byte
+	 * and @bytes_available, not us.
 	 */
 	gboolean attached;
 
@@ -78,25 +116,65 @@ typedef struct _VipsStream {
 	 */
 	gboolean eof;
 
-} VipsStream;
+} VipsStreamInput;
 
-typedef struct _VipsStreamClass {
-	VipsObjectClass parent_class;
+typedef struct _VipsStreamInputClass {
+	VipsStreamClass parent_class;
 
-	/* If defined, the read function we use. Otherwise default to read().
+	/* If defined, read some bytes with this. Otherwise use read().
 	 */
-	int (*read)( VipsStream *, unsigned char *, size_t );
+	ssize_t (*read)( VipsStreamInput *, unsigned char *, size_t );
 
-} VipsStreamClass;
+} VipsStreamInputClass;
 
-GType vips_stream_get_type( void );
+GType vips_stream_input_get_type( void );
 
-VipsStream *vips_stream_new_from_descriptor( int descriptor );
-int vips_stream_read( VipsStream *stream );
-void vips_stream_attach( VipsStream *stream );
-void vips_stream_detach( VipsStream *stream, 
+VipsStreamInput *vips_stream_input_new_from_descriptor( int descriptor );
+int vips_stream_input_refill( VipsStreamInput *stream );
+void vips_stream_input_attach( VipsStreamInput *stream );
+void vips_stream_input_detach( VipsStreamInput *stream, 
 	unsigned char *next_byte, size_t bytes_available );
-gboolean vips_stream_eof( VipsStream *stream );
+gboolean vips_stream_input_eof( VipsStreamInput *stream );
+unsigned char *vips_stream_input_sniff( VipsStreamInput *stream, int bytes );
+
+#define VIPS_TYPE_STREAM_OUTPUT (vips_stream_output_get_type())
+#define VIPS_STREAM_OUTPUT( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_STREAM_OUTPUT, VipsStreamOutput ))
+#define VIPS_STREAM_OUTPUT_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_STREAM_OUTPUT, VipsStreamOutputClass))
+#define VIPS_IS_STREAM_OUTPUT( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_STREAM_OUTPUT ))
+#define VIPS_IS_STREAM_OUTPUT_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_STREAM_OUTPUT ))
+#define VIPS_STREAM_OUTPUT_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_STREAM_OUTPUT, VipsStreamOutputClass ))
+
+/* Read or output to something like a socket or pipe. 
+ */
+typedef struct _VipsStreamOutput {
+	VipsStream parent_object;
+
+	/*< private >*/
+	
+} VipsStreamOutput;
+
+typedef struct _VipsStreamOutputClass {
+	VipsStreamClass parent_class;
+
+	/* If defined, output some bytes with this. Otherwise use write().
+	 */
+	ssize_t (*write)( VipsStreamOutput *, const unsigned char *, size_t );
+
+} VipsStreamOutputClass;
+
+GType vips_stream_output_get_type( void );
+
+VipsStreamOutput *vips_stream_output_new_from_descriptor( int descriptor );
+int vips_stream_output_write( VipsStreamOutput *stream,
+	const unsigned char *buffer, size_t buffer_size );
 
 #ifdef __cplusplus
 }

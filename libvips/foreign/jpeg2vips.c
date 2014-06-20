@@ -1290,7 +1290,7 @@ typedef struct {
 
 	/* Private stuff during read.
 	 */
-	VipsStream *stream; 
+	VipsStreamInput *stream; 
 } InputStream;
 
 /*
@@ -1346,7 +1346,7 @@ fill_input_buffer_is (j_decompress_ptr cinfo)
 
   InputStream *is = (InputStream *) cinfo->src;
 
-  if( vips_stream_read( is->stream ) ) { 
+  if( vips_stream_input_refill( is->stream ) ) { 
     WARNMS(cinfo, JWRN_JPEG_EOF);
     is->pub.next_input_byte = eoi_buffer;
     is->pub.bytes_in_buffer = 2;
@@ -1414,7 +1414,7 @@ term_source_is (j_decompress_ptr cinfo)
 
   /* Note how far the reader got so bytes are ready for the next input source.
    */
-  vips_stream_detach( is->stream, 
+  vips_stream_input_detach( is->stream, 
     (unsigned char *) is->pub.next_input_byte, is->pub.bytes_in_buffer ); 
 }
 
@@ -1424,7 +1424,7 @@ term_source_is (j_decompress_ptr cinfo)
  */
 
 static void
-readjpeg_is (ReadJpeg *jpeg, VipsStream *stream)
+readjpeg_is (ReadJpeg *jpeg, VipsStreamInput *stream)
 {
   j_decompress_ptr cinfo = &jpeg->cinfo;
 
@@ -1443,7 +1443,7 @@ readjpeg_is (ReadJpeg *jpeg, VipsStream *stream)
 				  sizeof(InputStream));
     is = (InputStream *) cinfo->src;
     is->stream = stream;
-    vips_stream_attach( stream ); 
+    vips_stream_input_attach( stream ); 
   }
 
   is = (InputStream *) cinfo->src;
@@ -1457,7 +1457,7 @@ readjpeg_is (ReadJpeg *jpeg, VipsStream *stream)
 }
 
 int
-vips__jpeg_read_stream( VipsStream *stream, VipsImage *out, 
+vips__jpeg_read_stream( VipsStreamInput *stream, VipsImage *out, 
 	int shrink, int fail, gboolean readbehind )
 {
 	ReadJpeg *jpeg;

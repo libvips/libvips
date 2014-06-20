@@ -316,7 +316,7 @@ int vips_jpegload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_jpegload_stream( VipsStream *stream, VipsImage **out, ... )
+int vips_jpegload_stream( VipsStreamInput *stream, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int vips_jpegsave( VipsImage *in, const char *filename, ... )
