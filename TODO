@@ -1,3 +1,46 @@
+- try:
+ 
+        while( !vips_stream_eof( stream ) ) {
+                if( vips_jpegload_stream( stream, &x, NULL ) )
+                        vips_error_exit( NULL );
+                if( vips_avg( x, &avg, NULL ) )
+                        vips_error_exit( NULL );
+                g_object_unref( x );
+
+                printf( "avg = %g\n", avg );
+        }
+
+  we cache the vips_avg(), the vips_avg() keeps the vips_jpegload_stream()
+  alive, so we never detach, so we fail on the second loop
+
+- how about:
+
+  if we have a no-cache operation, we need to tag all results as nocache
+
+  if we see an operation with any nocache inputs, we need to not cache that
+  operation either
+
+  a large change
+
+- alternative:
+
+  jpegload_stream needs to know it's been fully scanned and can shut down
+
+  call readjpeg_free() after reading out the last line?
+  
+  seems to work
+
+
+
+
+
+- split VipsStream to VipsStreamInput and Output
+
+  we'll need an output stream for node.js 
+
+
+
+
 
 - threadpool recyling might be useful for dzsave?
 

@@ -31,8 +31,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -74,11 +74,11 @@ vips_stream_finalize( GObject *gobject )
 {
 	VipsStream *stream = (VipsStream *) gobject;
 
-#ifdef DEBUG
+#ifdef VIPS_DEBUG
 	VIPS_DEBUG_MSG( "vips_stream_finalize: " );
 	vips_object_print_name( VIPS_OBJECT( gobject ) );
 	VIPS_DEBUG_MSG( "\n" );
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG*/
 
 	VIPS_FREE( stream->buffer ); 
 
@@ -138,6 +138,8 @@ vips_stream_new_from_descriptor( int descriptor )
 {
 	VipsStream *stream;
 
+	VIPS_DEBUG_MSG( "vips_stream_new_from_descriptor: %d\n", descriptor );
+
 	stream = VIPS_STREAM( g_object_new( VIPS_TYPE_STREAM, NULL ) );
 	stream->descriptor = descriptor;
 
@@ -163,27 +165,44 @@ vips_stream_read( VipsStream *stream )
 {
 	VipsStreamClass *class = VIPS_STREAM_GET_CLASS( stream );
 
+	ssize_t len;
+
 	g_assert( stream->attached ); 
 
 	if( class->read )
-		return( class->read( stream ) );
-	else {
-		ssize_t len;
+		len = class->read( stream, 
+			stream->buffer, stream->buffer_size );
+	else 
+		len = read( stream->descriptor, 
+			stream->buffer, stream->buffer_size );
 
-		if( (len = read( stream->descriptor, 
-			stream->buffer, stream->buffer_size )) <= 0 )
-			return( -1 ); 
+#ifdef VIPS_DEBUG
+	if( len > 0 ) 
+		VIPS_DEBUG_MSG( "vips_stream_read: read %zd bytes\n", len );
+#endif /*VIPS_DEBUG*/
 
-		stream->next_byte = stream->buffer;
-		stream->bytes_available = len;
-
-		return( 0 );
+	if( len <= 0 ) {
+		stream->eof = TRUE;
+		return( -1 ); 
 	}
+
+	stream->next_byte = stream->buffer;
+	stream->bytes_available = len;
+
+	return( 0 );
+}
+
+gboolean
+vips_stream_eof( VipsStream *stream )
+{
+	return( stream->eof ); 
 }
 
 void
 vips_stream_attach( VipsStream *stream )
 {
+	VIPS_DEBUG_MSG( "vips_stream_attach:\n" ); 
+
 	g_assert( !stream->attached ); 
 	stream->attached = TRUE; 
 }
@@ -192,6 +211,8 @@ void
 vips_stream_detach( VipsStream *stream,
 	unsigned char *next_byte, size_t bytes_available )
 {
+	VIPS_DEBUG_MSG( "vips_stream_detach:\n" ); 
+
 	g_assert( stream->attached ); 
 	stream->attached = FALSE; 
 

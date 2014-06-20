@@ -944,6 +944,12 @@ read_jpeg_generate( VipsRegion *or,
 
 	VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
+	/* We need to shut down the reader immediately at the end of read or
+	 * we won't detach ready for the next image.
+	 */
+	if( jpeg->y_pos >= jpeg->out->Ysize )
+		readjpeg_free( jpeg );
+
 	return( 0 );
 }
 

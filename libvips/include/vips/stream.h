@@ -74,14 +74,18 @@ typedef struct _VipsStream {
 	 */
 	gboolean attached;
 
+	/* Set on EOF.
+	 */
+	gboolean eof;
+
 } VipsStream;
 
 typedef struct _VipsStreamClass {
 	VipsObjectClass parent_class;
 
-	/* If defined, refill the buffer with this.
+	/* If defined, the read function we use. Otherwise default to read().
 	 */
-	int (*read)( VipsStream * );
+	int (*read)( VipsStream *, unsigned char *, size_t );
 
 } VipsStreamClass;
 
@@ -92,6 +96,7 @@ int vips_stream_read( VipsStream *stream );
 void vips_stream_attach( VipsStream *stream );
 void vips_stream_detach( VipsStream *stream, 
 	unsigned char *next_byte, size_t bytes_available );
+gboolean vips_stream_eof( VipsStream *stream );
 
 #ifdef __cplusplus
 }

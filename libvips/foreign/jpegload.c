@@ -366,6 +366,7 @@ vips_foreign_load_jpeg_stream_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -373,6 +374,11 @@ vips_foreign_load_jpeg_stream_class_init(
 
 	object_class->nickname = "jpegload_stream";
 	object_class->description = _( "load jpeg from stream" );
+
+	/* Musn't cache load from stream, we can have several images coming
+	 * from the same source.
+	 */
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->header = vips_foreign_load_jpeg_stream_header;
 
