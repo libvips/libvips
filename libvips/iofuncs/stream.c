@@ -45,6 +45,7 @@
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
 #include <string.h>
+#include <errno.h>
 
 #include <vips/vips.h>
 #include <vips/debug.h>
@@ -132,6 +133,8 @@ vips_stream_init( VipsStream *stream )
  * vips_stream_read() to fill them with bytes.
  *
  * See also: vips_stream_read().
+ *
+ * Returns: a new #VipsStream
  */
 VipsStream *
 vips_stream_new_from_descriptor( int descriptor )
@@ -153,12 +156,13 @@ vips_stream_new_from_descriptor( int descriptor )
 
 /**
  * vips_stream_read:
- * @image: image to create this region on
+ * @stream: fill the stream buffer
  *
- * Create a stream. #VipsStream s start out empty, you need to call 
- * vips_stream_read() to fill them with bytes.
+ * Reads data into the stream buffer. 
  *
  * See also: vips_stream_read().
+ *
+ * Returns: 0 on success, -1 on error. 
  */
 int
 vips_stream_read( VipsStream *stream )
@@ -166,8 +170,6 @@ vips_stream_read( VipsStream *stream )
 	VipsStreamClass *class = VIPS_STREAM_GET_CLASS( stream );
 
 	ssize_t len;
-
-	g_assert( stream->attached ); 
 
 	if( class->read )
 		len = class->read( stream, 
@@ -183,6 +185,11 @@ vips_stream_read( VipsStream *stream )
 
 	if( len <= 0 ) {
 		stream->eof = TRUE;
+
+		if( stream < 0 ) 
+			vips_error_system( errno, "read", 
+				"%s", _( "read error" ) ); 
+
 		return( -1 ); 
 	}
 
@@ -195,6 +202,11 @@ vips_stream_read( VipsStream *stream )
 gboolean
 vips_stream_eof( VipsStream *stream )
 {
+	if( !stream->eof && 
+		stream->bytes_available == 0  &&
+		!stream->attached ) 
+		vips_stream_read( stream ); 
+
 	return( stream->eof ); 
 }
 
