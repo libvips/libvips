@@ -354,4 +354,63 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
 {
 }
 
+typedef struct _VipsForeignSaveJpegStream {
+	VipsForeignSaveJpeg parent_object;
+
+	VipsStreamOutput *stream;
+
+} VipsForeignSaveJpegStream;
+
+typedef VipsForeignSaveJpegClass VipsForeignSaveJpegStreamClass;
+
+G_DEFINE_TYPE( VipsForeignSaveJpegStream, vips_foreign_save_jpeg_stream, 
+	vips_foreign_save_jpeg_get_type() );
+
+static int
+vips_foreign_save_jpeg_stream_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
+	VipsForeignSaveJpegStream *stream = 
+		(VipsForeignSaveJpegStream *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_stream_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__jpeg_write_stream( save->ready, 
+		stream->stream, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
+		jpeg->interlace, save->strip, jpeg->no_subsample ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_jpeg_stream_class_init( 
+	VipsForeignSaveJpegStreamClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "jpegsave_stream";
+	object_class->description = _( "save image to jpeg stream" );
+	object_class->build = vips_foreign_save_jpeg_stream_build;
+
+	VIPS_ARG_STREAM_OUTPUT( class, "stream", 1, 
+		_( "Stream" ),
+		_( "Stream to write to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveJpegStream, stream ) ); 
+}
+
+static void
+vips_foreign_save_jpeg_stream_init( VipsForeignSaveJpegStream *stream )
+{
+}
+
 #endif /*HAVE_JPEG*/
+

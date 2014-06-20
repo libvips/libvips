@@ -377,25 +377,34 @@ vips_stream_output_write( VipsStreamOutput *stream,
 {
 	VipsStreamOutputClass *class = VIPS_STREAM_OUTPUT_GET_CLASS( stream );
 
-	ssize_t len;
+	while( buffer_size > 0 ) { 
+		ssize_t len;
 
-	if( class->write )
-		len = class->write( stream, buffer, buffer_size );
-	else 
-		len = write( VIPS_STREAM( stream )->descriptor, 
-			buffer, buffer_size );
+		if( class->write )
+			len = class->write( stream, buffer, buffer_size );
+		else 
+			len = write( VIPS_STREAM( stream )->descriptor, 
+				buffer, buffer_size );
 
 #ifdef VIPS_DEBUG
-	if( len > 0 ) 
-		VIPS_DEBUG_MSG( "vips_stream_output_write: "
-			"written %zd bytes\n", len );
+		if( len > 0 ) 
+			VIPS_DEBUG_MSG( "vips_stream_output_write: "
+				"written %zd bytes\n", len );
 #endif /*VIPS_DEBUG*/
 
-	if( len < 0 ) {
-		vips_error_system( errno, "write", "%s", _( "write error" ) ); 
-		return( -1 ); 
+		/* len == 0 isn't strictly an error, but we treat it as one to
+		 * make sure we don't get stuck in this loop.
+		 */
+		if( len <= 0 ) {
+			vips_error_system( errno, "write", 
+				"%s", _( "write error" ) ); 
+			return( -1 ); 
+		}
+
+		buffer_size -= len;
+		buffer += len;
 	}
 
-	return( len );
+	return( 0 );
 }
 

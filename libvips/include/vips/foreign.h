@@ -325,6 +325,8 @@ int vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 	__attribute__((sentinel));
 int vips_jpegsave_mime( VipsImage *in, ... )
 	__attribute__((sentinel));
+int vips_jpegsave_stream( VipsImage *in, VipsStreamOutput *stream, ... )
+	__attribute__((sentinel));
 
 int vips_webpload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));

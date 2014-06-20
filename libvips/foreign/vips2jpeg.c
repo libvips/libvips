@@ -128,6 +128,8 @@
 #include "jpeg.h"
 #include "vipsjpeg.h"
 
+const char *vips__jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
+
 /* New output message method - send to VIPS.
  */
 void
@@ -1292,6 +1294,140 @@ vips__jpeg_write_buffer( VipsImage *in,
 	return( 0 );
 }
 
-const char *vips__jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
+#define OUTPUT_BUFFER_SIZE (4096)
+
+/* Just like the above, but we write to a VipsStreamOutput. 
+ */
+typedef struct {
+	/* Public jpeg fields.
+	 */
+	struct jpeg_destination_mgr pub;
+
+	/* Private stuff during write.
+	 */
+
+	VipsStreamOutput *stream;
+	unsigned char buffer[OUTPUT_BUFFER_SIZE];
+} OutputStream;
+
+/* Init dest method.
+ */
+METHODDEF(void)
+init_destination_stream( j_compress_ptr cinfo )
+{
+	OutputStream *buf = (OutputStream *) cinfo->dest;
+
+	/* Set buf pointers for library.
+	 */
+	buf->pub.next_output_byte = buf->buffer;
+	buf->pub.free_in_buffer = OUTPUT_BUFFER_SIZE;
+}
+
+/* Buffer full method ... write and reset.
+ */
+METHODDEF(boolean)
+empty_output_stream( j_compress_ptr cinfo )
+{
+	OutputStream *buf = (OutputStream *) cinfo->dest;
+
+	/* empty_output_buffer() is always
+	 * called when the buffer is exactly full. term_destination() has to
+	 * flush any less-than-a-buffer bytes at the end of processing.
+	 */
+	if( vips_stream_output_write( buf->stream, 
+		buf->buffer, OUTPUT_BUFFER_SIZE ) )
+		ERREXIT( cinfo, JERR_FILE_WRITE );
+
+	buf->pub.next_output_byte = buf->buffer;
+	buf->pub.free_in_buffer = OUTPUT_BUFFER_SIZE;
+
+	/* TRUE means we've made some more space.
+	 */
+	return( 1 );
+}
+
+/* Cleanup. Copy the set of blocks out as a big lump.
+ */
+METHODDEF(void)
+term_destination_stream( j_compress_ptr cinfo )
+{
+        OutputStream *buf = (OutputStream *) cinfo->dest;
+
+	if( vips_stream_output_write( buf->stream, 
+		buf->buffer, OUTPUT_BUFFER_SIZE - buf->pub.free_in_buffer ) )
+		ERREXIT( cinfo, JERR_FILE_WRITE );
+}
+
+/* Set dest to one of our objects.
+ */
+static void
+stream_dest( j_compress_ptr cinfo, VipsStreamOutput *stream )
+{
+	OutputStream *buf;
+
+	/* The destination object is made permanent so that multiple JPEG 
+	 * images can be written to the same file without re-executing 
+	 * jpeg_stdio_dest. This makes it dangerous to use this manager and 
+	 * a different destination manager serially with the same JPEG object,
+	 * because their private object sizes may be different.  
+	 *
+	 * Caveat programmer.
+	 */
+	if( !cinfo->dest ) {    /* first time for this JPEG object? */
+		cinfo->dest = (struct jpeg_destination_mgr *)
+			(*cinfo->mem->alloc_small) 
+				( (j_common_ptr) cinfo, JPOOL_PERMANENT,
+				  sizeof( OutputStream ) );
+	}
+
+	buf = (OutputStream *) cinfo->dest;
+	buf->pub.init_destination = init_destination_stream;
+	buf->pub.empty_output_buffer = empty_output_stream;
+	buf->pub.term_destination = term_destination_stream;
+
+	/* Save output parameters.
+	 */
+	buf->stream = stream; 
+}
+
+int
+vips__jpeg_write_stream( VipsImage *in, 
+	VipsStreamOutput *stream, int Q, const char *profile, 
+	gboolean optimize_coding, gboolean progressive,
+	gboolean strip, gboolean no_subsample )
+{
+	Write *write;
+
+	if( !(write = write_new( in )) )
+		return( -1 );
+
+	/* Make jpeg compression object.
+ 	 */
+	if( setjmp( write->eman.jmp ) ) {
+		/* Here for longjmp() from new_error_exit().
+		 */
+		write_destroy( write );
+
+		return( -1 );
+	}
+        jpeg_create_compress( &write->cinfo );
+
+	/* Attach output.
+	 */
+        stream_dest( &write->cinfo, stream );
+
+	/* Convert!
+	 */
+	if( write_vips( write, 
+		Q, profile, optimize_coding, progressive, strip, 
+		no_subsample ) ) {
+		write_destroy( write );
+
+		return( -1 );
+	}
+	write_destroy( write );
+
+	return( 0 );
+}
 
 #endif /*HAVE_JPEG*/

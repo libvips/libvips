@@ -256,7 +256,6 @@ vips__init( const char *argv0 )
 	 */
 	(void) vips_image_get_type();
 	(void) vips_region_get_type();
-	(void) vips_stream_get_type();
 	vips__meta_init_types();
 	vips__interpolate_init();
 	im__format_init();

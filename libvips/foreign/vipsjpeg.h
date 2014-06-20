@@ -45,6 +45,10 @@ int vips__jpeg_write_buffer( VipsImage *in,
 	void **obuf, size_t *olen, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean no_subsample );
+int vips__jpeg_write_stream( VipsImage *in, 
+	VipsStreamOutput *stream, int Q, const char *profile, 
+	gboolean optimize_coding, gboolean progressive,
+	gboolean strip, gboolean no_subsample );
 
 int vips__isjpeg_buffer( void *buf, size_t len );
 int vips__isjpeg( const char *filename );

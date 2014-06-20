@@ -1558,6 +1558,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_buffer_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_mime_get_type( void ); 
+	extern GType vips_foreign_save_jpeg_stream_get_type( void ); 
 	extern GType vips_foreign_load_tiff_file_get_type( void ); 
 	extern GType vips_foreign_load_tiff_buffer_get_type( void ); 
 	extern GType vips_foreign_save_tiff_get_type( void ); 
@@ -1611,6 +1612,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_jpeg_file_get_type(); 
 	vips_foreign_save_jpeg_buffer_get_type(); 
 	vips_foreign_save_jpeg_mime_get_type(); 
+	vips_foreign_save_jpeg_stream_get_type(); 
 #endif /*HAVE_JPEG*/
 
 #ifdef HAVE_LIBWEBP
@@ -2138,6 +2140,36 @@ vips_jpegsave_mime( VipsImage *in, ... )
 
 	va_start( ap, in );
 	result = vips_call_split( "jpegsave_mime", ap, in );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_jpegsave_stream:
+ * @in: image to write
+ * @stream: stream to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @shrink: shrink by this much on load
+ * @fail: fail on warnings
+ *
+ * As vips_jpegsave(), but write to a #VipsStreamOutput. 
+ *
+ * See also: vips_jpegload(), vips_stream_new_from_descriptor().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegsave_stream( VipsImage *in, VipsStreamOutput *stream, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, stream );
+	result = vips_call_split( "jpegsave_stream", ap, in, stream );
 	va_end( ap );
 
 	return( result );
