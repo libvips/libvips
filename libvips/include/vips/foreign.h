@@ -439,9 +439,13 @@ int vips_pngload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_pngload_stream( VipsStreamInput *stream, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_pngsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 int vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+	__attribute__((sentinel));
+int vips_pngsave_stream( VipsImage *in, VipsStreamOutput *out, ... )
 	__attribute__((sentinel));
 
 int vips_ppmload( const char *filename, VipsImage **out, ... )

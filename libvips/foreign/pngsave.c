@@ -240,4 +240,59 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
 {
 }
 
+typedef struct _VipsForeignSavePngStream {
+	VipsForeignSavePng parent_object;
+
+	VipsStreamOutput *stream;
+} VipsForeignSavePngStream;
+
+typedef VipsForeignSavePngClass VipsForeignSavePngStreamClass;
+
+G_DEFINE_TYPE( VipsForeignSavePngStream, vips_foreign_save_png_stream, 
+	vips_foreign_save_png_get_type() );
+
+static int
+vips_foreign_save_png_stream_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
+	VipsForeignSavePngStream *stream = 
+		(VipsForeignSavePngStream *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_stream_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__png_write_stream( save->ready, stream->stream,
+		png->compression, png->interlace ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_png_stream_class_init( VipsForeignSavePngStreamClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "pngsave_stream";
+	object_class->description = _( "save image to stream as png" );
+	object_class->build = vips_foreign_save_png_stream_build;
+
+	VIPS_ARG_STREAM_OUTPUT( class, "stream", 1, 
+		_( "Stream" ),
+		_( "Stream to write to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSavePngStream, stream ) ); 
+}
+
+static void
+vips_foreign_save_png_stream_init( VipsForeignSavePngStream *stream )
+{
+}
+
 #endif /*HAVE_PNG*/

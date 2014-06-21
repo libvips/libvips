@@ -1,12 +1,14 @@
+- png stream load segvs if given a jpg
+
 - seem to not close the input stream in test case?
 
 - add stream subclasses which go to and from memory 
 
-- add png stream load/save
-
 - add stream file type sniffing
 
 - we can now remove lots of jpeg2vips !!
+
+  or maybe not? what do we do about _header() etc. ?
 
 
 

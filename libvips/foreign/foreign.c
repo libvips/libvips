@@ -1540,8 +1540,10 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_ppm_get_type( void ); 
 	extern GType vips_foreign_load_png_get_type( void ); 
 	extern GType vips_foreign_load_png_buffer_get_type( void ); 
+	extern GType vips_foreign_load_png_stream_get_type( void ); 
 	extern GType vips_foreign_save_png_file_get_type( void ); 
 	extern GType vips_foreign_save_png_buffer_get_type( void ); 
+	extern GType vips_foreign_save_png_stream_get_type( void ); 
 	extern GType vips_foreign_load_csv_get_type( void ); 
 	extern GType vips_foreign_save_csv_get_type( void ); 
 	extern GType vips_foreign_load_matrix_get_type( void ); 
@@ -1597,8 +1599,10 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_PNG
 	vips_foreign_load_png_get_type(); 
 	vips_foreign_load_png_buffer_get_type(); 
+	vips_foreign_load_png_stream_get_type(); 
 	vips_foreign_save_png_file_get_type(); 
 	vips_foreign_save_png_buffer_get_type(); 
+	vips_foreign_save_png_stream_get_type(); 
 #endif /*HAVE_PNG*/
 
 #ifdef HAVE_MATIO
@@ -2473,8 +2477,6 @@ vips_fitssave( VipsImage *in, const char *filename, ... )
  * @out: decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
  * Read a PNG file into a VIPS image. It can read all png images, including 8-
  * and 16-bit images, 1 and 3 channel, with and without an alpha channel.
  *
@@ -2504,11 +2506,7 @@ vips_pngload( const char *filename, VipsImage **out, ... )
  * @out: image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Read a PNG-formatted memory block into a VIPS image. It can read all png 
- * images, including 8- and 16-bit images, 1 and 3 channel, with and without 
- * an alpha channel.
- *
- * Any ICC profile is read and attached to the VIPS image.
+ * Exactly as vips_pngload(), but load from a memory buffer. 
  *
  * Caution: on return only the header will have been read, the pixel data is
  * not decompressed until the first pixel is read. Therefore you must not free
@@ -2534,6 +2532,31 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	va_end( ap );
 
 	vips_area_unref( area );
+
+	return( result );
+}
+
+/**
+ * vips_pngload_stream:
+ * @stream: load from this stream
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Just as vips_pngload(), but load from a stream. 
+ *
+ * See also: vips_stream_input_new_from_filename().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pngload_stream( VipsStreamInput *stream, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "pngload_stream", ap, stream, out );
+	va_end( ap );
 
 	return( result );
 }
@@ -2629,6 +2652,36 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 
 		vips_area_unref( area );
 	}
+
+	return( result );
+}
+
+/**
+ * vips_pngsave_stream:
+ * @in: image to save 
+ * @out: stream to save to
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @compression: compression level
+ * @interlace: interlace image
+ *
+ * As vips_pngsave(), but save to a stream.
+ *
+ * See also: vips_pngsave(), vips_stream_output_new_from_filename().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pngsave_stream( VipsImage *in, VipsStreamOutput *stream, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, stream );
+	result = vips_call_split( "pngsave_stream", ap, in, stream );
+	va_end( ap );
 
 	return( result );
 }

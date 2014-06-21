@@ -114,7 +114,7 @@ typedef struct _VipsStreamInput {
 	size_t bytes_available;
 
 	/*< private >*/
-	
+
 	int buffer_size;	/* How many bytes we buffer ... eg. 4096 */
 
 	unsigned char *buffer;	/* The start of our buffer */

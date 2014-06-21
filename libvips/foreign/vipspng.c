@@ -143,15 +143,31 @@ typedef struct {
 	size_t length;
 	size_t read_pos;
 
+	/* For stream input.
+	 */
+	VipsStreamInput *stream;
+
 } Read;
 
 static void
-read_destroy( VipsImage *out, Read *read )
+read_destroy( Read *read )
 {
 	VIPS_FREEF( fclose, read->fp );
 	if( read->pPng )
 		png_destroy_read_struct( &read->pPng, &read->pInfo, NULL );
 	VIPS_FREE( read->row_pointer );
+	if( read->stream ) {
+		vips_stream_input_detach( read->stream,
+			read->stream->next_byte, 
+			read->stream->bytes_available );
+		read->stream = NULL;
+	}
+}
+
+static void
+read_close_cb( VipsImage *out, Read *read )
+{
+	read_destroy( read ); 
 }
 
 static Read *
@@ -173,9 +189,10 @@ read_new( VipsImage *out, gboolean readbehind )
 	read->buffer = NULL;
 	read->length = 0;
 	read->read_pos = 0;
+	read->stream = NULL;
 
 	g_signal_connect( out, "close", 
-		G_CALLBACK( read_destroy ), read ); 
+		G_CALLBACK( read_close_cb ), read ); 
 
 	if( !(read->pPng = png_create_read_struct( 
 		PNG_LIBPNG_VER_STRING, NULL,
@@ -481,6 +498,12 @@ png2vips_generate( VipsRegion *or,
 		read->y_pos += 1;
 	}
 
+	/* We need to shut down the reader immediately at the end of read or
+	 * we won't detach ready for the next image.
+	 */
+	if( read->y_pos >= read->out->Ysize )
+		read_destroy( read );
+
 	return( 0 );
 }
 
@@ -643,6 +666,66 @@ vips__png_read_buffer( char *buffer, size_t length, VipsImage *out,
 	return( 0 );
 }
 
+static void
+vips_png_read_stream( png_structp pPng, png_bytep data, png_size_t length )
+{
+	Read *read = png_get_io_ptr( pPng ); 
+	VipsStreamInput *stream = read->stream;
+
+#ifdef DEBUG
+	printf( "vips_png_read_stream: read %zd bytes\n", length ); 
+#endif /*DEBUG*/
+
+	do {
+		size_t possible;
+
+		if( stream->bytes_available == 0 &&
+			vips_stream_input_refill( stream ) )
+			png_error( pPng, "read error" );
+
+		possible = VIPS_MIN( length, stream->bytes_available );
+
+		memcpy( data, stream->next_byte, possible );
+		data += possible;
+		length -= possible;
+		stream->next_byte += possible;
+		stream->bytes_available -= possible;
+	} while( length > 0 );
+}
+
+static Read *
+read_new_stream( VipsImage *out, VipsStreamInput *stream, gboolean readbehind )
+{
+	Read *read;
+
+	if( !(read = read_new( out, readbehind )) )
+		return( NULL );
+
+	read->stream = stream;
+	vips_stream_attach( VIPS_STREAM( stream ) ); 
+	png_set_read_fn( read->pPng, read, vips_png_read_stream ); 
+
+	/* Read enough of the file that png_get_interlace_type() will start
+	 * working.
+	 */
+	png_read_info( read->pPng, read->pInfo );
+
+	return( read );
+}
+
+int
+vips__png_read_stream( VipsStreamInput *stream, VipsImage *out, 
+	gboolean readbehind  )
+{
+	Read *read;
+
+	if( !(read = read_new_stream( out, stream, readbehind )) ||
+		png2vips_image( read, out ) )
+		return( -1 ); 
+
+	return( 0 );
+}
+
 const char *vips__png_suffs[] = { ".png", NULL };
 
 /* What we track during a PNG write.
@@ -654,6 +737,7 @@ typedef struct {
 	png_structp pPng;
 	png_infop pInfo;
 	png_bytep *row_pointer;
+	VipsStreamOutput *stream;
 } Write;
 
 static void
@@ -662,6 +746,10 @@ write_finish( Write *write )
 	VIPS_FREEF( fclose, write->fp );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
+	if( write->stream ) {
+		vips_stream_output_detach( write->stream );
+		write->stream = NULL;
+	}
 }
 
 static void
@@ -970,12 +1058,50 @@ vips__png_write_buf( VipsImage *in,
 		return( -1 );
 	}
 
+	write_finish( write );
+
 	*obuf = wbuf->buf;
 	wbuf->buf = NULL;
 	if( olen )
 		*olen = wbuf->len;
 
 	write_buf_free( wbuf );
+
+	return( 0 );
+}
+
+static void
+user_write_stream( png_structp png_ptr, png_bytep data, png_size_t length )
+{
+	VipsStreamOutput *stream = (VipsStreamOutput *) 
+		png_get_io_ptr( png_ptr );
+
+	if( vips_stream_output_write( stream, data, length ) ) 
+		png_error(png_ptr, "Write Error");
+}
+
+int
+vips__png_write_stream( VipsImage *in, 
+	VipsStreamOutput *stream, int compression, int interlace )
+{
+	Write *write;
+
+	if( !(write = write_new( in )) ) 
+		return( -1 );
+
+	vips_stream_attach( VIPS_STREAM( stream ) ); 
+	png_set_write_fn( write->pPng, stream, user_write_stream, NULL );
+
+	/* Convert it!
+	 */
+	if( write_vips( write, compression, interlace ) ) {
+		vips_error( "vips2png", 
+			"%s", _( "unable to write to buffer" ) );
+	      
+		return( -1 );
+	}
+
+	write_finish( write );
 
 	return( 0 );
 }

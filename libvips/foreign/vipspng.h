@@ -44,11 +44,15 @@ extern const char *vips__png_suffs[];
 int vips__png_read_buffer( char *buffer, size_t length, VipsImage *out, 
 	gboolean readbehind  );
 int vips__png_header_buffer( char *buffer, size_t length, VipsImage *out );
+int vips__png_read_stream( VipsStreamInput *stream, VipsImage *out, 
+	gboolean readbehind );
 
 int vips__png_write( VipsImage *in, const char *filename, 
 	int compress, int interlace );
 int vips__png_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, int compression, int interlace );
+int vips__png_write_stream( VipsImage *in, 
+	VipsStreamOutput *stream, int compression, int interlace );
 
 #ifdef __cplusplus
 }

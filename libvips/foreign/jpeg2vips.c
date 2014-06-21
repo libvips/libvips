@@ -57,6 +57,8 @@
  * 	- null-terminate exif strings, thanks Mike
  * 24/2/14
  * 	- don't write to our input buffer, thanks Lovell
+ * 21/6/14
+ * 	- add stream input
  */
 
 /*

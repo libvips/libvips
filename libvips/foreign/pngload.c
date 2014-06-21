@@ -217,5 +217,64 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *png )
 {
 }
 
+typedef struct _VipsForeignLoadPngStream {
+	VipsForeignLoad parent_object;
+
+	/* Load from a stream.
+	 */
+	VipsStreamInput *stream;
+
+} VipsForeignLoadPngStream;
+
+typedef VipsForeignLoadClass VipsForeignLoadPngStreamClass;
+
+G_DEFINE_TYPE( VipsForeignLoadPngStream, vips_foreign_load_png_stream, 
+	VIPS_TYPE_FOREIGN_LOAD );
+
+static int
+vips_foreign_load_png_stream_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadPngStream *png = (VipsForeignLoadPngStream *) load;
+
+	if( vips__png_read_stream( png->stream, 
+		load->real, load->access == VIPS_ACCESS_SEQUENTIAL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_png_stream_class_init( VipsForeignLoadPngStreamClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "pngload_stream";
+	object_class->description = _( "load png from stream" );
+
+	/* Musn't cache load from stream, we can have several images coming
+	 * from the same source.
+	 */
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
+
+	load_class->load = vips_foreign_load_png_stream_load;
+
+	VIPS_ARG_STREAM_INPUT( class, "stream", 1, 
+		_( "Stream" ),
+		_( "Stream to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadPngStream, stream ) ); 
+}
+
+static void
+vips_foreign_load_png_stream_init( VipsForeignLoadPngStream *png )
+{
+}
+
 #endif /*HAVE_PNG*/
 

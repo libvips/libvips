@@ -62,6 +62,8 @@
  * 	- add "strip" option to remove all metadata
  * 13/11/13
  * 	- add a "no_subsample" option to disable chroma subsample
+ * 21/6/14
+ * 	- add stream output
  */
 
 /*
