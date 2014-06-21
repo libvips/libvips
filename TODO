@@ -1,31 +1,12 @@
-- stream output seems not to work? 
+- seem to not close the input stream in test case?
 
-$ cat ~/pics/k2.jpg ~/pics/k4.jpg | ./a.out | cat > x
-memory: high-water mark 18.21 MB
-$ eog x
-$ vips invert ~/pics/k2.jpg x1.jpg
-memory: high-water mark 13.01 MB
-$ vips invert ~/pics/k4.jpg x2.jpg
-memory: high-water mark 14.60 MB
-$ cat x1.jpg x2.jpg > x2
-$ ls -l x2
--rw-rw-r-- 1 john john 526121 Jun 20 14:52 x2
-$ ls -l x
--rw-rw-r-- 1 john john 536654 Jun 20 14:51 x
-
-  oh, are we getting dbg messages in the output?
-
-- stream output needs to track attached state for safety checks
- 
-  attached should be in base stream class
+- add stream subclasses which go to and from memory 
 
 - add png stream load/save
 
 - add stream file type sniffing
 
-- we can remove lots of jpeg2vips and just have the fromstream function ...
-
-  add stream subclasses which go to memory and to a filename
+- we can now remove lots of jpeg2vips !!
 
 
 

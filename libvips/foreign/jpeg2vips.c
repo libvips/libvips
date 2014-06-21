@@ -1443,7 +1443,7 @@ readjpeg_is (ReadJpeg *jpeg, VipsStreamInput *stream)
 				  sizeof(InputStream));
     is = (InputStream *) cinfo->src;
     is->stream = stream;
-    vips_stream_input_attach( stream ); 
+    vips_stream_attach( VIPS_STREAM( stream ) ); 
   }
 
   is = (InputStream *) cinfo->src;

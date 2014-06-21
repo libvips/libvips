@@ -192,14 +192,12 @@ vips_hough_circle_vote( VipsHough *hough, VipsImage *accumulator, int x, int y )
 {
 	VipsHoughCircle *hough_circle = (VipsHoughCircle *) hough; 
 	int min_radius = hough_circle->min_radius; 
-	int max_radius = hough_circle->max_radius; 
-	int range = max_radius - min_radius; 
 	int cx = x / hough_circle->scale;
 	int cy = y / hough_circle->scale;
 
 	int rb;
 
-	g_assert( range >= 0 ); 
+	g_assert( hough_circle->max_radius - hough_circle->min_radius >= 0 ); 
 
 	for( rb = 0; rb < hough_circle->bands; rb++ ) { 
 		/* r needs to be in scaled down image space.

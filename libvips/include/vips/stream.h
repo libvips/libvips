@@ -64,6 +64,19 @@ typedef struct _VipsStream {
 	 */
 	int descriptor;	
 
+	/* If descriptor is a file, the filename we opened. Handy for error
+	 * messages. 
+	 */
+	char *filename; 
+
+	/* Set if this object is currently hooked up to something that's
+	 * reading/writing bytes, like the libjpeg input system. 
+	 *
+	 * In this case, the format library will be in charge of the buffering
+	 * and we can't read or write directly. 
+	 */
+	gboolean attached;
+
 } VipsStream;
 
 typedef struct _VipsStreamClass {
@@ -72,6 +85,8 @@ typedef struct _VipsStreamClass {
 } VipsStreamClass;
 
 GType vips_stream_get_type( void );
+
+void vips_stream_attach( VipsStream *stream );
 
 #define VIPS_TYPE_STREAM_INPUT (vips_stream_input_get_type())
 #define VIPS_STREAM_INPUT( obj ) \
@@ -104,14 +119,6 @@ typedef struct _VipsStreamInput {
 
 	unsigned char *buffer;	/* The start of our buffer */
 
-	/* Set if this object is currently hooked up to something that's
-	 * reading bytes, like the libjpeg input system. 
-	 *
-	 * In this case, libjpeg will have the curent values for @next_byte
-	 * and @bytes_available, not us.
-	 */
-	gboolean attached;
-
 	/* Set on EOF.
 	 */
 	gboolean eof;
@@ -130,8 +137,8 @@ typedef struct _VipsStreamInputClass {
 GType vips_stream_input_get_type( void );
 
 VipsStreamInput *vips_stream_input_new_from_descriptor( int descriptor );
+VipsStreamInput *vips_stream_input_new_from_filename( const char *filename );
 int vips_stream_input_refill( VipsStreamInput *stream );
-void vips_stream_input_attach( VipsStreamInput *stream );
 void vips_stream_input_detach( VipsStreamInput *stream, 
 	unsigned char *next_byte, size_t bytes_available );
 gboolean vips_stream_input_eof( VipsStreamInput *stream );
@@ -173,6 +180,8 @@ typedef struct _VipsStreamOutputClass {
 GType vips_stream_output_get_type( void );
 
 VipsStreamOutput *vips_stream_output_new_from_descriptor( int descriptor );
+VipsStreamOutput *vips_stream_output_new_from_filename( const char *filename );
+void vips_stream_output_detach( VipsStreamOutput *stream );
 int vips_stream_output_write( VipsStreamOutput *stream,
 	const unsigned char *buffer, size_t buffer_size );
 

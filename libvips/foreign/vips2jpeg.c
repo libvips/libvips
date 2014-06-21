@@ -1321,6 +1321,7 @@ init_destination_stream( j_compress_ptr cinfo )
 	 */
 	buf->pub.next_output_byte = buf->buffer;
 	buf->pub.free_in_buffer = OUTPUT_BUFFER_SIZE;
+	vips_stream_attach( VIPS_STREAM( buf->stream ) );
 }
 
 /* Buffer full method ... write and reset.
@@ -1356,6 +1357,7 @@ term_destination_stream( j_compress_ptr cinfo )
 	if( vips_stream_output_write( buf->stream, 
 		buf->buffer, OUTPUT_BUFFER_SIZE - buf->pub.free_in_buffer ) )
 		ERREXIT( cinfo, JERR_FILE_WRITE );
+	vips_stream_output_detach( buf->stream );
 }
 
 /* Set dest to one of our objects.

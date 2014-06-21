@@ -46,9 +46,34 @@
 #endif /*HAVE_UNISTD_H*/
 #include <string.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <vips/vips.h>
 #include <vips/debug.h>
+
+/* Try to make an O_BINARY ... sometimes need the leading '_'.
+ */
+#ifdef BINARY_OPEN
+#ifndef O_BINARY
+#ifdef _O_BINARY
+#define O_BINARY _O_BINARY
+#endif /*_O_BINARY*/
+#endif /*!O_BINARY*/
+#endif /*BINARY_OPEN*/
+
+/* If we have O_BINARY, add it to a mode flags set.
+ */
+#ifdef O_BINARY
+#define BINARYIZE(M) ((M) | O_BINARY)
+#else /*!O_BINARY*/
+#define BINARYIZE(M) (M)
+#endif /*O_BINARY*/
+
+#define MODE_READ BINARYIZE (O_RDONLY)
+#define MODE_READWRITE BINARYIZE (O_RDWR)
+#define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
 
 /**
  * SECTION: stream
@@ -74,11 +99,19 @@ G_DEFINE_ABSTRACT_TYPE( VipsStream, vips_stream, VIPS_TYPE_OBJECT );
 static void
 vips_stream_finalize( GObject *gobject )
 {
+	VipsStream *stream = (VipsStream *) gobject;
+
 #ifdef VIPS_DEBUG
 	VIPS_DEBUG_MSG( "vips_stream_finalize: " );
 	vips_object_print_name( VIPS_OBJECT( gobject ) );
 	VIPS_DEBUG_MSG( "\n" );
 #endif /*VIPS_DEBUG*/
+
+	if( stream->descriptor >= 0 ) {
+		vips_tracked_close( stream->descriptor );
+		stream->descriptor = -1;
+	}
+	VIPS_FREE( stream->filename ); 
 
 	G_OBJECT_CLASS( vips_stream_parent_class )->finalize( gobject );
 }
@@ -97,12 +130,30 @@ vips_stream_class_init( VipsStreamClass *class )
 		_( "File descriptor for read or write" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsStream, descriptor ),
-		0, 1000000000, 0 );
+		-1, 1000000000, 0 );
+
+	VIPS_ARG_STRING( class, "filename", 2, 
+		_( "Filename" ), 
+		_( "Name of file to open" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsStream, filename ),
+		NULL );
+
 }
 
 static void
 vips_stream_init( VipsStream *stream )
 {
+	stream->descriptor = -1;
+}
+
+void
+vips_stream_attach( VipsStream *stream )
+{
+	VIPS_DEBUG_MSG( "vips_stream_attach:\n" ); 
+
+	g_assert( !stream->attached ); 
+	stream->attached = TRUE; 
 }
 
 G_DEFINE_TYPE( VipsStreamInput, vips_stream_input, VIPS_TYPE_STREAM );
@@ -127,6 +178,21 @@ vips_stream_input_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_stream_input_parent_class )->
 		build( object ) )
 		return( -1 );
+
+	if( vips_object_argument_isset( object, "filename" ) &&
+		!vips_object_argument_isset( object, "descriptor" ) ) { 
+		const char *filename = VIPS_STREAM( stream )->filename;
+
+		int fd;
+
+		if( (fd = vips_tracked_open( filename, MODE_READ )) == -1 ) {
+			vips_error_system( errno, filename, 
+				"%s", _( "unable to open for read" ) ); 
+			return( -1 ); 
+		}
+
+		g_object_set( object, "descriptor", fd, NULL ); 
+	}
 
 	g_assert( !stream->buffer );
 	g_assert( stream->buffer_size > 0 && 
@@ -168,7 +234,8 @@ vips_stream_input_init( VipsStreamInput *stream )
  * vips_stream_input_new_from_descriptor:
  * @descriptor: read from this file descriptor
  *
- * Create a stream attached to a file descriptor.
+ * Create a stream attached to a file descriptor. @descriptor is closed when
+ * the #VipsStream is finalized. 
  *
  * #VipsStream s start out empty, you need to call 
  * vips_stream_input_read() to fill them with bytes.
@@ -188,6 +255,40 @@ vips_stream_input_new_from_descriptor( int descriptor )
 	stream = VIPS_STREAM_INPUT( 
 		g_object_new( VIPS_TYPE_STREAM_INPUT, 
 			"descriptor", descriptor,
+			NULL ) );
+
+	if( vips_object_build( VIPS_OBJECT( stream ) ) ) {
+		VIPS_UNREF( stream );
+		return( NULL );
+	}
+
+	return( stream ); 
+}
+
+/**
+ * vips_stream_input_new_from_filename:
+ * @descriptor: read from this filename 
+ *
+ * Create a stream attached to a file.
+ *
+ * #VipsStream s start out empty, you need to call 
+ * vips_stream_input_read() to fill them with bytes.
+ *
+ * See also: vips_stream_input_read().
+ *
+ * Returns: a new #VipsStream
+ */
+VipsStreamInput *
+vips_stream_input_new_from_filename( const char *filename )
+{
+	VipsStreamInput *stream;
+
+	VIPS_DEBUG_MSG( "vips_stream_input_new_from_filename: %s\n", 
+		filename );
+
+	stream = VIPS_STREAM_INPUT( 
+		g_object_new( VIPS_TYPE_STREAM_INPUT, 
+			"filename", filename,
 			NULL ) );
 
 	if( vips_object_build( VIPS_OBJECT( stream ) ) ) {
@@ -237,7 +338,7 @@ vips_stream_input_refill( VipsStreamInput *stream )
 	 * We need to be able to refill the unattached buffer so we can do
 	 * file format sniffing. 
 	 */
-	if( !stream->attached ) {
+	if( !VIPS_STREAM( stream )->attached ) {
 		memmove( stream->buffer, stream->next_byte, 
 			stream->bytes_available );
 		stream->next_byte = stream->buffer;
@@ -281,19 +382,10 @@ vips_stream_input_eof( VipsStreamInput *stream )
 {
 	if( !stream->eof && 
 		stream->bytes_available == 0  &&
-		!stream->attached ) 
+		!VIPS_STREAM( stream )->attached ) 
 		vips_stream_input_refill( stream ); 
 
 	return( stream->eof ); 
-}
-
-void
-vips_stream_input_attach( VipsStreamInput *stream )
-{
-	VIPS_DEBUG_MSG( "vips_stream_input_attach:\n" ); 
-
-	g_assert( !stream->attached ); 
-	stream->attached = TRUE; 
 }
 
 void
@@ -302,8 +394,8 @@ vips_stream_input_detach( VipsStreamInput *stream,
 {
 	VIPS_DEBUG_MSG( "vips_stream_input_detach:\n" ); 
 
-	g_assert( stream->attached ); 
-	stream->attached = FALSE; 
+	g_assert( VIPS_STREAM( stream )->attached ); 
+	VIPS_STREAM( stream )->attached = FALSE; 
 
 	stream->next_byte = next_byte;
 	stream->bytes_available = bytes_available;
@@ -319,7 +411,7 @@ vips_stream_input_detach( VipsStreamInput *stream,
 unsigned char *
 vips_stream_input_sniff( VipsStreamInput *stream, int bytes )
 {
-	g_assert( !stream->attached );
+	g_assert( !VIPS_STREAM( stream )->attached );
 
 	while( stream->bytes_available < bytes )
 		if( vips_stream_input_refill( stream ) )
@@ -330,9 +422,41 @@ vips_stream_input_sniff( VipsStreamInput *stream, int bytes )
 
 G_DEFINE_TYPE( VipsStreamOutput, vips_stream_output, VIPS_TYPE_STREAM );
 
+static int
+vips_stream_output_build( VipsObject *object )
+{
+	VipsStreamOutput *stream = VIPS_STREAM_OUTPUT( object );
+
+	VIPS_DEBUG_MSG( "vips_stream_output_build: %p\n", stream );
+
+	if( VIPS_OBJECT_CLASS( vips_stream_output_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips_object_argument_isset( object, "filename" ) &&
+		!vips_object_argument_isset( object, "descriptor" ) ) { 
+		const char *filename = VIPS_STREAM( stream )->filename;
+
+		int fd;
+
+		if( (fd = vips_tracked_open( filename, MODE_WRITE )) == -1 ) {
+			vips_error_system( errno, filename, 
+				"%s", _( "unable to open for write" ) ); 
+			return( -1 ); 
+		}
+
+		g_object_set( object, "descriptor", fd, NULL ); 
+	}
+
+	return( 0 );
+}
+
 static void
 vips_stream_output_class_init( VipsStreamOutputClass *class )
 {
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+
+	vobject_class->build = vips_stream_output_build;
 }
 
 static void
@@ -345,6 +469,8 @@ vips_stream_output_init( VipsStreamOutput *stream )
  * @descriptor: write to this file descriptor
  *
  * Create a stream attached to a file descriptor.
+ * @descriptor is closed when
+ * the #VipsStream is finalized. 
  *
  * See also: vips_stream_output_write().
  *
@@ -361,6 +487,7 @@ vips_stream_output_new_from_descriptor( int descriptor )
 	stream = VIPS_STREAM_OUTPUT( 
 		g_object_new( VIPS_TYPE_STREAM_OUTPUT, 
 			"descriptor", descriptor,
+			"filename", "descriptor",
 			NULL ) );
 
 	if( vips_object_build( VIPS_OBJECT( stream ) ) ) {
@@ -369,6 +496,46 @@ vips_stream_output_new_from_descriptor( int descriptor )
 	}
 
 	return( stream ); 
+}
+
+/**
+ * vips_stream_output_new_from_filename:
+ * @filename: write to this file 
+ *
+ * Create a stream attached to a file.
+ *
+ * See also: vips_stream_output_write().
+ *
+ * Returns: a new #VipsStream
+ */
+VipsStreamOutput *
+vips_stream_output_new_from_filename( const char *filename )
+{
+	VipsStreamOutput *stream;
+
+	VIPS_DEBUG_MSG( "vips_stream_output_new_from_filename: %s\n", 
+		filename );
+
+	stream = VIPS_STREAM_OUTPUT( 
+		g_object_new( VIPS_TYPE_STREAM_OUTPUT, 
+			"filename", filename,
+			NULL ) );
+
+	if( vips_object_build( VIPS_OBJECT( stream ) ) ) {
+		VIPS_UNREF( stream );
+		return( NULL );
+	}
+
+	return( stream ); 
+}
+
+void
+vips_stream_output_detach( VipsStreamOutput *stream )
+{
+	VIPS_DEBUG_MSG( "vips_stream_output_detach:\n" ); 
+
+	g_assert( VIPS_STREAM( stream )->attached ); 
+	VIPS_STREAM( stream )->attached = FALSE; 
 }
 
 int
@@ -396,7 +563,8 @@ vips_stream_output_write( VipsStreamOutput *stream,
 		 * make sure we don't get stuck in this loop.
 		 */
 		if( len <= 0 ) {
-			vips_error_system( errno, "write", 
+			vips_error_system( errno, 
+				VIPS_OBJECT( stream )->nickname, 
 				"%s", _( "write error" ) ); 
 			return( -1 ); 
 		}

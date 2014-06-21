@@ -76,17 +76,9 @@
 #define BINARYIZE(M) (M)
 #endif /*O_BINARY*/
 
-/* Open mode for image write ... on some systems, have to set BINARY too.
- */
-#define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
-
-/* Mode for read/write. This is if we might later want to mmaprw () the file.
- */
+#define MODE_READ BINARYIZE (O_RDONLY)
 #define MODE_READWRITE BINARYIZE (O_RDWR)
-
-/* Mode for read only. This is the fallback if READWRITE fails.
- */
-#define MODE_READONLY BINARYIZE (O_RDONLY)
+#define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
 
 /* Temp buffer for snprintf() layer on old systems.
  */
@@ -748,7 +740,7 @@ vips__get_bytes( const char *filename, unsigned char buf[], int len )
 	 * so no hasty messages. And the file might be truncated, so no error
 	 * on read either.
 	 */
-	if( (fd = open( name, MODE_READONLY )) == -1 )
+	if( (fd = open( name, MODE_READ )) == -1 )
 		return( 0 );
 	if( read( fd, buf, len ) != len ) {
 		close( fd );
