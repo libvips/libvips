@@ -449,6 +449,10 @@ png2vips_interlace( Read *read, VipsImage *out )
 
 	png_read_image( read->pPng, read->row_pointer );
 
+	png_read_end( read->pPng, NULL ); 
+
+	read_destroy( read );
+
 	return( 0 );
 }
 

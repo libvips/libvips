@@ -1,5 +1,12 @@
 - seem to not close the input stream in test case?
 
+  get an extra input ref for every read loop
+
+  try with jpg? same?
+
+  see when the operator is unreffed
+
+
 - add stream subclasses which go to and from memory 
 
 - we can now remove lots of jpeg2vips !!
