@@ -150,7 +150,11 @@ vips_stream_init( VipsStream *stream )
 void
 vips_stream_attach( VipsStream *stream )
 {
-	VIPS_DEBUG_MSG( "vips_stream_attach:\n" ); 
+#ifdef VIPS_DEBUG
+	VIPS_DEBUG_MSG( "vips_stream_attach: " );
+	vips_object_print_name( VIPS_OBJECT( stream ) );
+	VIPS_DEBUG_MSG( "\n" );
+#endif /*VIPS_DEBUG*/
 
 	g_assert( !stream->attached ); 
 	stream->attached = TRUE; 
@@ -359,7 +363,8 @@ vips_stream_input_refill( VipsStreamInput *stream )
 
 #ifdef VIPS_DEBUG
 	if( len > 0 ) 
-		VIPS_DEBUG_MSG( "vips_stream_read: read %zd bytes\n", len );
+		VIPS_DEBUG_MSG( "vips_stream_input_refill: "
+			"read %zd bytes\n", len );
 #endif /*VIPS_DEBUG*/
 
 	if( len <= 0 ) {

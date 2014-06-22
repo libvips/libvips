@@ -223,6 +223,11 @@ read_new_filename( VipsImage *out, const char *name, gboolean readbehind )
         if( !(read->fp = vips__file_open_read( name, NULL, FALSE )) ) 
 		return( NULL );
 
+	/* Catch PNG errors from png_read_info().
+	 */
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+		return( NULL );
+
 	/* Read enough of the file that png_get_interlace_type() will start
 	 * working.
 	 */
@@ -501,8 +506,10 @@ png2vips_generate( VipsRegion *or,
 	/* We need to shut down the reader immediately at the end of read or
 	 * we won't detach ready for the next image.
 	 */
-	if( read->y_pos >= read->out->Ysize )
+	if( read->y_pos >= read->out->Ysize ) {
+		png_read_end( read->pPng, NULL ); 
 		read_destroy( read );
+	}
 
 	return( 0 );
 }
@@ -633,6 +640,11 @@ read_new_buffer( VipsImage *out, char *buffer, size_t length,
 
 	png_set_read_fn( read->pPng, read, vips_png_read_buffer ); 
 
+	/* Catch PNG errors from png_read_info().
+	 */
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+		return( NULL );
+
 	/* Read enough of the file that png_get_interlace_type() will start
 	 * working.
 	 */
@@ -704,6 +716,11 @@ read_new_stream( VipsImage *out, VipsStreamInput *stream, gboolean readbehind )
 	read->stream = stream;
 	vips_stream_attach( VIPS_STREAM( stream ) ); 
 	png_set_read_fn( read->pPng, read, vips_png_read_stream ); 
+
+	/* Catch PNG errors from png_read_info().
+	 */
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+		return( NULL );
 
 	/* Read enough of the file that png_get_interlace_type() will start
 	 * working.

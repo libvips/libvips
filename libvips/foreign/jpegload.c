@@ -341,7 +341,7 @@ G_DEFINE_TYPE( VipsForeignLoadJpegStream, vips_foreign_load_jpeg_stream,
 	vips_foreign_load_jpeg_get_type() );
 
 static int
-vips_foreign_load_jpeg_stream_header( VipsForeignLoad *load )
+vips_foreign_load_jpeg_stream_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 	VipsForeignLoadJpegStream *stream = (VipsForeignLoadJpegStream *) load;
@@ -380,7 +380,7 @@ vips_foreign_load_jpeg_stream_class_init(
 	 */
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
-	load_class->header = vips_foreign_load_jpeg_stream_header;
+	load_class->header = vips_foreign_load_jpeg_stream_load;
 
 	VIPS_ARG_STREAM_INPUT( class, "stream", 1, 
 		_( "Stream" ),

@@ -237,7 +237,7 @@ vips_foreign_load_png_stream_load( VipsForeignLoad *load )
 	VipsForeignLoadPngStream *png = (VipsForeignLoadPngStream *) load;
 
 	if( vips__png_read_stream( png->stream, 
-		load->real, load->access == VIPS_ACCESS_SEQUENTIAL ) )
+		load->out, load->access == VIPS_ACCESS_SEQUENTIAL ) )
 		return( -1 );
 
 	return( 0 );
@@ -262,7 +262,7 @@ vips_foreign_load_png_stream_class_init( VipsForeignLoadPngStreamClass *class )
 	 */
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
-	load_class->load = vips_foreign_load_png_stream_load;
+	load_class->header = vips_foreign_load_png_stream_load;
 
 	VIPS_ARG_STREAM_INPUT( class, "stream", 1, 
 		_( "Stream" ),

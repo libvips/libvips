@@ -1,10 +1,8 @@
-- png stream load segvs if given a jpg
-
 - seem to not close the input stream in test case?
 
-- add stream subclasses which go to and from memory 
-
 - add stream file type sniffing
+
+- add stream subclasses which go to and from memory 
 
 - we can now remove lots of jpeg2vips !!
 
