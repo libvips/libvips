@@ -1000,7 +1000,7 @@ strip_work( VipsThreadState *state, void *a )
 
 	VipsImage *x;
 	VipsImage *t;
-	void *buf;
+	unsigned char *buf;
 	size_t len;
 	GsfOutput *out; 
 

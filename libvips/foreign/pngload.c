@@ -263,6 +263,7 @@ vips_foreign_load_png_stream_class_init( VipsForeignLoadPngStreamClass *class )
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->header = vips_foreign_load_png_stream_load;
+	load_class->is_a_buffer = vips__png_ispng_buffer;
 
 	VIPS_ARG_STREAM_INPUT( class, "stream", 1, 
 		_( "Stream" ),

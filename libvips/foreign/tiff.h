@@ -54,7 +54,7 @@ int vips__tiff_read_header( const char *filename, VipsImage *out, int page );
 int vips__tiff_read( const char *filename, VipsImage *out, 
 	int page, gboolean readbehind );
 gboolean vips__istifftiled( const char *filename );
-gboolean vips__istiff_buffer( void *buf, size_t len );
+gboolean vips__istiff_buffer( const unsigned char *buf, size_t len );
 gboolean vips__istiff( const char *filename );
 
 int vips__tiff_read_header_buffer( void *buf, size_t len, VipsImage *out, 

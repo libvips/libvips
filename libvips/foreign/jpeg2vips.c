@@ -1257,13 +1257,11 @@ vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out,
 }
 
 int
-vips__isjpeg_buffer( void *buf, size_t len )
+vips__isjpeg_buffer( const unsigned char *buf, size_t len )
 {
-	guchar *str = (guchar *) buf;
-
 	if( len >= 2 &&
-		str[0] == 0xff && 
-		str[1] == 0xd8 )
+		buf[0] == 0xff && 
+		buf[1] == 0xd8 )
 		return( 1 );
 
 	return( 0 );

@@ -40,7 +40,7 @@
 - operations emit "invalidate" if any of their input images invalidate
 - operation cache drops ops on invalidate
 - skipahead is back, thanks to a new threadpool tweak
-- added vips_jpegload_fd(), load from a pipe/socket/etc. 
+- added stream system
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

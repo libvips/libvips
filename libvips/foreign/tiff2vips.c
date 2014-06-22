@@ -1899,13 +1899,11 @@ vips__istifftiled( const char *filename )
 }
 
 gboolean
-vips__istiff_buffer( void *buf, size_t len )
+vips__istiff_buffer( const unsigned char *buf, size_t len )
 {
-	char *str = (char *) buf; 
-
 	if( len >= 2 &&
-		((str[0] == 'M' && str[1] == 'M') ||
-		 (str[0] == 'I' && str[1] == 'I')) ) 
+		((buf[0] == 'M' && buf[1] == 'M') ||
+		 (buf[0] == 'I' && buf[1] == 'I')) ) 
 		return( TRUE );
 
 	return( FALSE );

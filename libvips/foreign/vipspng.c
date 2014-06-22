@@ -592,10 +592,10 @@ vips__png_read( const char *filename, VipsImage *out, gboolean readbehind )
 }
 
 int
-vips__png_ispng_buffer( void *buf, size_t len )
+vips__png_ispng_buffer( const unsigned char *buf, size_t len )
 {
 	if( len >= 8 &&
-		!png_sig_cmp( buf, 0, 8 ) )
+		!png_sig_cmp( (png_bytep) buf, 0, 8 ) )
 		return( TRUE ); 
 
 	return( FALSE ); 

@@ -1922,7 +1922,7 @@ vips_image_new_from_memory( void *buffer,
  * Returns: 0 on success, -1 on error
  */
 VipsImage *
-vips_image_new_from_buffer( void *buf, size_t len, 
+vips_image_new_from_buffer( const unsigned char *buf, size_t len, 
 	const char *option_string, ... )
 {
 	const char *operation_name;
@@ -1938,7 +1938,7 @@ vips_image_new_from_buffer( void *buf, size_t len,
 
 	/* We don't take a copy of the data or free it.
 	 */
-	area = vips_area_new_blob( NULL, buf, len );
+	area = vips_area_new_blob( NULL, (void *) buf, len );
 
 	va_start( ap, option_string );
 	result = vips_call_split_option_string( operation_name, 
@@ -1946,6 +1946,50 @@ vips_image_new_from_buffer( void *buf, size_t len,
 	va_end( ap );
 
 	vips_area_unref( area );
+
+	if( result )
+		return( NULL );
+
+	return( out ); 
+}
+
+/**
+ * vips_image_new_from_stream:
+ * @stream: load from this #VipsStreamInput
+ * @option_string: set of extra options as a string
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Loads an image from @stream using the 
+ * loader recommended by vips_foreign_find_load_stream(). Only PNG and 
+ * JPEG formats are supported. To load an unformatted area of memory, use
+ * vips_image_new_from_memory(). 
+ *
+ * Load options may be given in @option_string as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * Options given in the function call override options given in the filename. 
+ *
+ * See also: vips_image_write_to_stream().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+VipsImage *
+vips_image_new_from_stream( VipsStreamInput *stream,
+	const char *option_string, ... )
+{
+	const char *operation_name;
+	va_list ap;
+	int result;
+	VipsImage *out;
+
+	vips_check_init();
+
+	if( !(operation_name = vips_foreign_find_load_stream( stream )) )
+		return( NULL );
+
+	va_start( ap, option_string );
+	result = vips_call_split_option_string( operation_name, 
+		option_string, ap, stream, &out );
+	va_end( ap );
 
 	if( result )
 		return( NULL );
@@ -2216,7 +2260,7 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
  */
 int
 vips_image_write_to_buffer( VipsImage *in, 
-	const char *name, void **buf, size_t *len, 
+	const char *name, unsigned char **buf, size_t *len, 
 	... )
 {
 	char suffix[VIPS_PATH_MAX];
@@ -2245,6 +2289,50 @@ vips_image_write_to_buffer( VipsImage *in,
 
 		vips_area_unref( area );
 	}
+
+	return( result );
+}
+
+/**
+ * vips_image_write_to_stream:
+ * @in: image to write
+ * @suffix: format to write 
+ * @stream: write to this #VipsStreamOutput
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Writes @in to @stream in a format specified by @suffix. 
+ *
+ * Save options may be appended to @suffix as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * Options given in the function call override options given in the filename. 
+ *
+ * Currently only JPEG and PNG formats are supported.
+ *
+ * You can call the various save operations directly if you wish, see
+ * vips_jpegsave_stream(), for example. 
+ *
+ * See also: vips_image_write_to_memory(), vips_image_new_from_stream().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_image_write_to_stream( VipsImage *in, 
+	const char *name, VipsStreamOutput *stream, ... )
+{
+	char suffix[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
+	const char *operation_name;
+	va_list ap;
+	int result;
+
+	vips__filename_split8( name, suffix, option_string );
+	if( !(operation_name = vips_foreign_find_save_stream( suffix )) )
+		return( -1 );
+
+	va_start( ap, stream );
+	result = vips_call_split_option_string( operation_name, option_string, 
+		ap, in, stream );
+	va_end( ap );
 
 	return( result );
 }

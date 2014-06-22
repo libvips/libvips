@@ -89,7 +89,7 @@ typedef struct {
 } Read;
 
 int
-vips__iswebp_buffer( void *buf, size_t len )
+vips__iswebp_buffer( const unsigned char *buf, size_t len )
 {
 	if( len >= MINIMAL_HEADER &&
 		WebPGetInfo( buf, MINIMAL_HEADER, NULL, NULL ) )

@@ -37,7 +37,7 @@ extern "C" {
 
 extern const char *vips__webp_suffs[];
 
-int vips__iswebp_buffer( void *buf, size_t len );
+int vips__iswebp_buffer( const unsigned char *buf, size_t len );
 int vips__iswebp( const char *filename );
 
 int vips__webp_read_file_header( const char *name, VipsImage *out ); 

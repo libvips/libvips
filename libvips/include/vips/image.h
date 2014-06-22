@@ -415,7 +415,10 @@ VipsImage *vips_image_new_from_file_raw( const char *filename,
 	int xsize, int ysize, int bands, guint64 offset );
 VipsImage *vips_image_new_from_memory( void *buffer, 
 	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
-VipsImage *vips_image_new_from_buffer( void *buf, size_t len, 
+VipsImage *vips_image_new_from_buffer( const unsigned char *buf, size_t len, 
+	const char *option_string, ... )
+	__attribute__((sentinel));
+VipsImage *vips_image_new_from_stream( VipsStreamInput *stream,
 	const char *option_string, ... )
 	__attribute__((sentinel));
 VipsImage *vips_image_new_matrix( int width, int height );
@@ -428,7 +431,10 @@ int vips_image_write( VipsImage *image, VipsImage *out );
 int vips_image_write_to_file( VipsImage *image, const char *filename, ... )
 	__attribute__((sentinel));
 int vips_image_write_to_buffer( VipsImage *in, 
-	const char *name, void **buf, size_t *len, ... )
+	const char *name, unsigned char **buf, size_t *len, ... )
+	__attribute__((sentinel));
+int vips_image_write_to_stream( VipsImage *in, 
+	const char *name, VipsStreamOutput *stream, ... )
 	__attribute__((sentinel));
 int vips_image_write_to_memory( VipsImage *in, 
 	void **buf_out, size_t *len_out );

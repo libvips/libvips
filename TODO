@@ -1,7 +1,5 @@
 - seem to not close the input stream in test case?
 
-- add stream file type sniffing
-
 - add stream subclasses which go to and from memory 
 
 - we can now remove lots of jpeg2vips !!

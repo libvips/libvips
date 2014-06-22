@@ -37,7 +37,7 @@ extern "C" {
 
 int vips__png_header( const char *name, VipsImage *out );
 int vips__png_read( const char *name, VipsImage *out, gboolean readbehind );
-int vips__png_ispng_buffer( void *buf, size_t len );
+int vips__png_ispng_buffer( const unsigned char *buf, size_t len );
 int vips__png_ispng( const char *filename );
 gboolean vips__png_isinterlaced( const char *filename );
 extern const char *vips__png_suffs[];

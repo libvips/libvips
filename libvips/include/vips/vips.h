@@ -110,6 +110,7 @@ extern "C" {
 #include <vips/object.h>
 #include <vips/type.h>
 #include <vips/gate.h>
+#include <vips/stream.h>
 
 #include <vips/version.h>
 #include <vips/rect.h>
@@ -128,7 +129,6 @@ extern "C" {
 #include <vips/threadpool.h>
 #include <vips/header.h>
 #include <vips/operation.h>
-#include <vips/stream.h>
 #include <vips/foreign.h>
 
 #include <vips/enumtypes.h>

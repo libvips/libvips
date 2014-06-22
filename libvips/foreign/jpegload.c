@@ -290,7 +290,7 @@ vips_foreign_load_jpeg_buffer_load( VipsForeignLoad *load )
 }
 
 static gboolean
-vips_foreign_load_jpeg_buffer_is_a( void *buf, size_t len )
+vips_foreign_load_jpeg_buffer_is_a( const unsigned char *buf, size_t len )
 {
 	return( vips__isjpeg_buffer( buf, len ) );
 }
@@ -381,6 +381,7 @@ vips_foreign_load_jpeg_stream_class_init(
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->header = vips_foreign_load_jpeg_stream_load;
+	load_class->is_a_buffer = vips_foreign_load_jpeg_buffer_is_a;
 
 	VIPS_ARG_STREAM_INPUT( class, "stream", 1, 
 		_( "Stream" ),
