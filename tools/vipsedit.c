@@ -136,7 +136,7 @@ main( int argc, char **argv )
 	setlocale( LC_ALL, "" );
 
 	context = g_option_context_new( 
-		_( "vipsfile - edit vipsfile header" ) );
+		_( "vipsedit - edit vips file header" ) );
 	g_option_context_add_main_entries( context, entries, GETTEXT_PACKAGE );
 	g_option_context_add_group( context, im_get_option_group() );
 	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
@@ -148,7 +148,7 @@ main( int argc, char **argv )
 		exit( -1 );
 	}
 	if( argc != 2 ) {
-		fprintf( stderr, _( "usage: %s [OPTION...] vipsfile\n" ), 
+		fprintf( stderr, _( "usage: %s [OPTION...] vips-file\n" ), 
 			g_get_prgname() );
 		exit( -1 );
 	}
@@ -222,7 +222,7 @@ main( int argc, char **argv )
 			error_exit( "%s", _( "could not get ext data" ) );
 
 		/* Strip trailing whitespace ... we can get stray \n at the 
-		 * end, eg. "echo | edvips --setext fred.v".
+		 * end, eg. "echo | editvips --setext fred.v".
 		 */
 		while( size > 0 && isspace( xml[size - 1] ) )
 			size -= 1;

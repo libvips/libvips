@@ -1,3 +1,7 @@
+23/6/14 started 7.40.0
+- version bump
+- renamed "header" as "vipsheader" and "edvips" as "vipsedit"
+
 21/1/14 started 7.39.0
 - auto-decode for (almost) all operations, see vips_image_decode()
 - background render thread cleans up and quits neatly
