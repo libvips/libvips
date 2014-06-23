@@ -146,12 +146,18 @@ typedef struct {
 } Read;
 
 static void
-read_destroy( VipsImage *out, Read *read )
+read_destroy( Read *read )
 {
 	VIPS_FREEF( fclose, read->fp );
 	if( read->pPng )
 		png_destroy_read_struct( &read->pPng, &read->pInfo, NULL );
 	VIPS_FREE( read->row_pointer );
+}
+
+static void
+read_close_cb( VipsImage *out, Read *read )
+{
+	read_destroy( read ); 
 }
 
 static Read *
@@ -175,7 +181,7 @@ read_new( VipsImage *out, gboolean readbehind )
 	read->read_pos = 0;
 
 	g_signal_connect( out, "close", 
-		G_CALLBACK( read_destroy ), read ); 
+		G_CALLBACK( read_close_cb ), read ); 
 
 	if( !(read->pPng = png_create_read_struct( 
 		PNG_LIBPNG_VER_STRING, NULL,
@@ -204,6 +210,11 @@ read_new_filename( VipsImage *out, const char *name, gboolean readbehind )
 	read->name = vips_strdup( VIPS_OBJECT( out ), name );
 
         if( !(read->fp = vips__file_open_read( name, NULL, FALSE )) ) 
+		return( NULL );
+
+	/* Catch PNG errors from png_read_info().
+	 */
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( NULL );
 
 	/* Read enough of the file that png_get_interlace_type() will start
@@ -427,6 +438,10 @@ png2vips_interlace( Read *read, VipsImage *out )
 
 	png_read_image( read->pPng, read->row_pointer );
 
+	png_read_end( read->pPng, NULL ); 
+
+	read_destroy( read );
+
 	return( 0 );
 }
 
@@ -479,6 +494,14 @@ png2vips_generate( VipsRegion *or,
 		}
 
 		read->y_pos += 1;
+	}
+
+	/* We need to shut down the reader immediately at the end of read or
+	 * we won't detach ready for the next image.
+	 */
+	if( read->y_pos >= read->out->Ysize ) {
+		png_read_end( read->pPng, NULL ); 
+		read_destroy( read );
 	}
 
 	return( 0 );
@@ -565,7 +588,7 @@ int
 vips__png_ispng_buffer( void *buf, size_t len )
 {
 	if( len >= 8 &&
-		!png_sig_cmp( buf, 0, 8 ) )
+		!png_sig_cmp( (png_bytep) buf, 0, 8 ) )
 		return( TRUE ); 
 
 	return( FALSE ); 
@@ -609,6 +632,11 @@ read_new_buffer( VipsImage *out, char *buffer, size_t length,
 	read->buffer = buffer;
 
 	png_set_read_fn( read->pPng, read, vips_png_read_buffer ); 
+
+	/* Catch PNG errors from png_read_info().
+	 */
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+		return( NULL );
 
 	/* Read enough of the file that png_get_interlace_type() will start
 	 * working.
@@ -969,6 +997,8 @@ vips__png_write_buf( VipsImage *in,
 	      
 		return( -1 );
 	}
+
+	write_finish( write );
 
 	*obuf = wbuf->buf;
 	wbuf->buf = NULL;
