@@ -450,6 +450,12 @@ vips_foreign_load_dispose( GObject *gobject )
 {
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( gobject );
 
+#ifdef DEBUG
+	printf( "vips_foreign_load_dispose: " ); 
+	vips_object_print_name( gobject );
+	printf( "\n" );
+#endif /*DEBUG*/
+
 	VIPS_UNREF( load->real );
 
 	G_OBJECT_CLASS( vips_foreign_load_parent_class )->dispose( gobject );

@@ -31,8 +31,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -169,7 +169,7 @@ vips_stream_input_finalize( GObject *gobject )
 
 	VIPS_FREE( stream->buffer ); 
 
-	G_OBJECT_CLASS( vips_stream_parent_class )->finalize( gobject );
+	G_OBJECT_CLASS( vips_stream_input_parent_class )->finalize( gobject );
 }
 
 static int

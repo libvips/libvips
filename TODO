@@ -1,11 +1,8 @@
-- seem to not close the input stream in test case?
 
-  get an extra input ref for every read loop
+- how can we do things like subsample on load? we'd have to pass the
+  dimensions out of band I guess
 
-  try with jpg? same?
-
-  see when the operator is unreffed
-
+- add webp?
 
 - add stream subclasses which go to and from memory 
 
