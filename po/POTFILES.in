@@ -271,10 +271,8 @@ libvips/resample/quadratic.c
 libvips/resample/affine.c
 libvips/video/im_video_test.c
 libvips/video/video_dispatch.c
-tools/edvips.c
-tools/find_mosaic.c
-tools/header.c
-tools/mergeup.c
+tools/vipsedit.c
+tools/vipsheader.c
 tools/vips.c
 tools/vipsthumbnail.c
 libvipsCC/VDisplay.cc
