@@ -1,10 +1,10 @@
-.TH HEADER 1 "12 July 1990"
+.TH VIPSHEADER 1 "12 July 1990"
 .SH NAME
-header \- prints information about an image file
+vipsheader \- prints information about an image file
 .SH SYNOPSIS
-header [OPTIONS ...] files ...
+vipsheader [OPTIONS ...] files ...
 .SH DESCRIPTION
-.B header(1)
+.B vipsheader(1)
 prints image header fields to stdout.
 
 .SH OPTIONS
@@ -15,16 +15,16 @@ Print value of
 from image header. The special field name getext prints
 the VIPS extension block: the XML defining the image metadata. You can alter
 this, then reattach with 
-.B edvips(1).
+.B vipsedit(1).
 
 .TP
 .B -a, --all
 Show all fields. Normally 
-.B header
+.B vipsheader
 just shows a one-line summary.
 
 .SH EXAMPLES
- $ header -f Xsize ~/pics/*.v   
+ $ vipsheader -f Xsize ~/pics/*.v   
  1024
  1279
  22865
@@ -32,7 +32,7 @@ just shows a one-line summary.
  256
 
 .SH SEE ALSO
-edvips(1)
+vipsedit(1)
 .SH COPYRIGHT
 N. Dessipris
 .SH AUTHOR

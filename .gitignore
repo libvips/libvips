@@ -58,6 +58,8 @@ swig/vipsCC/vimagemodule.cxx
 swig/vipsCC/vmaskmodule.cxx
 tools/edvips
 tools/header
+tools/vipsedit
+tools/vipsheader
 tools/vips
 tools/vipsthumbnail
 tools/find_mosaic
