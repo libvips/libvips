@@ -42,6 +42,9 @@
  * 8/5/14
  * 	- set Type on strips so we can convert for save correctly, thanks
  * 	  philipgiuliani
+ * 25/6/14
+ * 	- save openslide metadata to .dzi, see 
+ *   	  https://github.com/jcupitt/libvips/issues/137
  */
 
 /*
@@ -591,9 +594,30 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	return( layer );
 }
 
+static void *
+write_dzi_field( VipsImage *image, const char *field, GValue *value, void *a )
+{
+	GsfOutput *out = (GsfOutput *) a;
+
+	if( vips_isprefix( "openslide.", field ) &&
+		!vips_isprefix( "openslide.level", field ) ) { 
+		char *str_value;
+
+		str_value = g_strdup_value_contents( value );
+		gsf_output_printf( out, "    %s=\"%s\"\n", 
+			field + 10, str_value ); 
+		g_free( str_value ); 
+
+	}
+
+	return( NULL ); 
+}
+
 static int
 write_dzi( VipsForeignSaveDz *dz )
 {
+	VipsForeignSave *save = (VipsForeignSave *) dz;
+
 	GsfOutput *out;
 	char buf[VIPS_PATH_MAX];
 	char *p;
@@ -615,6 +639,9 @@ write_dzi( VipsForeignSaveDz *dz )
 	gsf_output_printf( out, "  <Size \n" );
 	gsf_output_printf( out, "    Height=\"%d\"\n", dz->layer->height );
 	gsf_output_printf( out, "    Width=\"%d\"\n", dz->layer->width );
+	gsf_output_printf( out, "  />\n" ); 
+	gsf_output_printf( out, "  <Openslide\n" ); 
+	(void) vips_image_map( save->ready, write_dzi_field, out );
 	gsf_output_printf( out, "  />\n" ); 
 	gsf_output_printf( out, "</Image>\n" );
 
