@@ -720,7 +720,18 @@ write_vips_properties( VipsForeignSaveDz *dz )
 {
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 
+	time_t timebuf;
+	char time_string[30];
 	GsfOutput *out;
+
+	time( &timebuf );
+	ctime_r( &timebuf, time_string );
+
+	/* Remove the trailing \n.
+	 */
+	if( strlen( time_string ) > 0 &&
+		time_string[strlen( time_string ) - 1] == '\n' ) 
+		time_string[strlen( time_string ) - 1] = '\0';
 
 	out = vips_gsf_path( dz->tree, 
 		"vips-properties.xml", dz->root_name, NULL ); 
@@ -728,7 +739,10 @@ write_vips_properties( VipsForeignSaveDz *dz )
 	gsf_output_printf( out, 
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ); 
 	gsf_output_printf( out, "<image>\n" ); 
-	gsf_output_printf( out, "  <properties>\n" ); 
+	gsf_output_printf( out, "  <properties\n" ); 
+	gsf_output_printf( out, "    version=\"%s\"\n", VIPS_VERSION ); 
+	gsf_output_printf( out, "    date=\"%s\"\n", time_string ); 
+	gsf_output_printf( out, "  >\n" ); 
 	(void) vips_image_map( save->ready, write_vips_property, out );
 	gsf_output_printf( out, "  </properties>\n" ); 
 	gsf_output_printf( out, "</image>\n" );
