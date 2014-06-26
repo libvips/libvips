@@ -594,30 +594,9 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	return( layer );
 }
 
-static void *
-write_dzi_field( VipsImage *image, const char *field, GValue *value, void *a )
-{
-	GsfOutput *out = (GsfOutput *) a;
-
-	if( vips_isprefix( "openslide.", field ) &&
-		!vips_isprefix( "openslide.level", field ) ) { 
-		char *str_value;
-
-		str_value = g_strdup_value_contents( value );
-		gsf_output_printf( out, "    %s=\"%s\"\n", 
-			field + 10, str_value ); 
-		g_free( str_value ); 
-
-	}
-
-	return( NULL ); 
-}
-
 static int
 write_dzi( VipsForeignSaveDz *dz )
 {
-	VipsForeignSave *save = (VipsForeignSave *) dz;
-
 	GsfOutput *out;
 	char buf[VIPS_PATH_MAX];
 	char *p;
@@ -639,9 +618,6 @@ write_dzi( VipsForeignSaveDz *dz )
 	gsf_output_printf( out, "  <Size \n" );
 	gsf_output_printf( out, "    Height=\"%d\"\n", dz->layer->height );
 	gsf_output_printf( out, "    Width=\"%d\"\n", dz->layer->width );
-	gsf_output_printf( out, "  />\n" ); 
-	gsf_output_printf( out, "  <Openslide\n" ); 
-	(void) vips_image_map( save->ready, write_dzi_field, out );
 	gsf_output_printf( out, "  />\n" ); 
 	gsf_output_printf( out, "</Image>\n" );
 
@@ -718,6 +694,45 @@ write_blank( VipsForeignSaveDz *dz )
 	g_object_unref( out );
 
 	g_free( buf );
+
+	return( 0 );
+}
+
+static void *
+write_vips_property( VipsImage *image, 
+	const char *field, GValue *value, void *a )
+{
+	GsfOutput *out = (GsfOutput *) a;
+	char *str_value;
+
+	str_value = g_strdup_value_contents( value );
+	gsf_output_printf( out, "    <name>%s</name>\n", field ); 
+	gsf_output_printf( out, "    <value>%s</value>\n", str_value );
+	g_free( str_value ); 
+
+	return( NULL ); 
+}
+
+static int
+write_vips_properties( VipsForeignSaveDz *dz )
+{
+	VipsForeignSave *save = (VipsForeignSave *) dz;
+
+	GsfOutput *out;
+
+	out = vips_gsf_path( dz->tree, 
+		"vips-properties.xml", dz->root_name, NULL ); 
+
+	gsf_output_printf( out, 
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ); 
+	gsf_output_printf( out, "<image>\n" ); 
+	gsf_output_printf( out, "  <properties>\n" ); 
+	(void) vips_image_map( save->ready, write_vips_property, out );
+	gsf_output_printf( out, "  </properties>\n" ); 
+	gsf_output_printf( out, "</image>\n" );
+
+	(void) gsf_output_close( out );
+	g_object_unref( out );
 
 	return( 0 );
 }
@@ -1650,6 +1665,9 @@ vips_foreign_save_dz_build( VipsObject *object )
 		g_assert( 0 );
 		return( -1 );
 	}
+
+	if( write_vips_properties( dz ) )
+		return( -1 );
 
 	if( vips_gsf_tree_close( dz->tree ) )
 		return( -1 ); 
