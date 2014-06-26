@@ -706,8 +706,10 @@ write_vips_property( VipsImage *image,
 	char *str_value;
 
 	str_value = g_strdup_value_contents( value );
-	gsf_output_printf( out, "    <name>%s</name>\n", field ); 
-	gsf_output_printf( out, "    <value>%s</value>\n", str_value );
+	gsf_output_printf( out, "    <property>\n" ); 
+	gsf_output_printf( out, "      <name>%s</name>\n", field ); 
+	gsf_output_printf( out, "      <value>%s</value>\n", str_value );
+	gsf_output_printf( out, "    </property>\n" ); 
 	g_free( str_value ); 
 
 	return( NULL ); 
