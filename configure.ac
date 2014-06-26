@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [7.40.1], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [7.40.2], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -18,7 +18,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # user-visible library versioning
 m4_define([vips_major_version], [7])
 m4_define([vips_minor_version], [40])
-m4_define([vips_micro_version], [1])
+m4_define([vips_micro_version], [2])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -63,13 +63,25 @@ GOBJECT_INTROSPECTION_CHECK([1.30.0])
 introspection_sources=$(cd libvips ; find . -name "*.c")
 filter_list="deprecated "
 
+# contains(string, substring)
+#
+# Returns 0 if the specified string contains the specified substring,
+# otherwise returns 1.
+contains() {
+  string="$1"
+  substring="$2"
+  if test "${string#*$substring}" != "$string"; then
+    return 0    # $substring is in $string
+  else
+    return 1 	# $substring is not in $string
+  fi
+}
+
 introspection_sources2=
 for name in $introspection_sources; do
   found=0
   for filter in $filter_list; do
-    # FIXME .. argh a bash-ism :( not sure of a nice, portable way to do 
-    # regexp matching
-    if [[[ $name == *${filter}* ]]]; then
+    if contains $name ${filter}; then
       found=1
     fi
   done    
