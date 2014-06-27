@@ -207,6 +207,20 @@ else
 fi
 AC_DEFINE_UNQUOTED(VIPS_ICC_DIR,"$profile_dir",[default directory for ICC profiles])
 
+# option to stop docs installing ... eg. freebsd likes this
+AC_ARG_ENABLE(docs, 
+  AS_HELP_STRING([--enable-docs], [install docs (default: yes)]))
+
+if test x"$enable_docs" != x"no"; then
+  AM_CONDITIONAL(ENABLE_DOCS, true)
+  enable_docs=yes
+fi
+
+if test x"$enable_docs" != x"yes"; then
+  AM_CONDITIONAL(ENABLE_DOCS, true)
+  enable_docs=no
+fi
+
 # we want largefile support, if possible
 AC_SYS_LARGEFILE
 
@@ -794,6 +808,7 @@ open files in binary mode: 		$vips_binary_open
 enable debug:				$enable_debug
 build C++ components:			$enable_cxx
 build docs with gtkdoc:			$enable_gtk_doc
+install docs:				$enable_docs
 gobject introspection: 			$found_introspection
 
 * optional packages and modules
