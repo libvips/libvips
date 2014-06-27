@@ -1,3 +1,6 @@
+- need a --nodoc flag for freebsd
+
+  stops anything in doc/ running
 
 - threadpool recyling might be useful for dzsave?
 

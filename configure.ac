@@ -63,13 +63,25 @@ GOBJECT_INTROSPECTION_CHECK([1.30.0])
 introspection_sources=$(cd libvips ; find . -name "*.c")
 filter_list="deprecated "
 
+# contains(string, substring)
+#
+# Returns 0 if the specified string contains the specified substring,
+# otherwise returns 1.
+contains() {
+  string="$1"
+  substring="$2"
+  if test "${string#*$substring}" != "$string"; then
+    return 0    # $substring is in $string
+  else
+    return 1 	# $substring is not in $string
+  fi
+}
+
 introspection_sources2=
 for name in $introspection_sources; do
   found=0
   for filter in $filter_list; do
-    # FIXME .. argh a bash-ism :( not sure of a nice, portable way to do 
-    # regexp matching
-    if [[[ $name == *${filter}* ]]]; then
+    if contains $name ${filter}; then
       found=1
     fi
   done    
@@ -111,6 +123,23 @@ else
     VIPS_DEBUG_FLAGS="-DG_DISABLE_ASSERT -DG_DISABLE_CHECKS"
   fi
 fi
+
+# we are a C library with some optional C++ components inside it
+# on most platforms, we just include -lstdc++ in the link line for programs
+# using vips, but not all
+
+# we ought to write a proper configure test for this :( 
+
+AC_MSG_CHECKING([for needs -lstdc++])
+case "$host_os" in
+  freebsd*)
+    vips_needs_stdcpp=no
+    ;;
+  *)
+    vips_needs_stdcpp=yes
+    ;;
+esac
+AC_MSG_RESULT([$vips_needs_stdcpp])
 
 AC_MSG_CHECKING([for native Win32])
 case "$host" in
@@ -221,7 +250,9 @@ if test x"$enable_cxx" != x"no"; then
     # need -lstdc++ for (eg.) the C++ format loaders
     # this gets added to vips.pc to help mingw and friends link programs
     # using libvips
-    VIPS_CXX_LIBS="-lstdc++"
+    if test x"$vips_needs_stdcpp" != x"no"; then
+      VIPS_CXX_LIBS="-lstdc++"
+    fi
     enable_cxx=yes
   fi
 fi
@@ -338,7 +369,7 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
   ]
 )
 
-# after 2.36 the type system inits itself
+# with 2.36 and after the type system inits itself
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,[
   AC_DEFINE(NEED_TYPE_INIT,1,[define if your glib needs g_type_init().])
   ],[
