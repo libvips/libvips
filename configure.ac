@@ -217,7 +217,7 @@ if test x"$enable_docs" != x"no"; then
 fi
 
 if test x"$enable_docs" != x"yes"; then
-  AM_CONDITIONAL(ENABLE_DOCS, true)
+  AM_CONDITIONAL(ENABLE_DOCS, false)
   enable_docs=no
 fi
 
