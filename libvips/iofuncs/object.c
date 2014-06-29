@@ -2541,25 +2541,36 @@ vips_class_find( const char *basename, const char *nickname )
 	return( class );
 }
 
+/* What we store for each nickname. We can't just store the type with
+ * GINT_TO_POINTER() since GType is 64 bits on some platforms.
+ */
+typedef struct _NicknameGType {
+	const char *nickname;
+	GType type;
+	gboolean duplicate;
+} NicknameGType;
+
 static void *
 vips_class_add_hash( VipsObjectClass *class, GHashTable *table )
 {
 	GType type = G_OBJECT_CLASS_TYPE( class );
+	NicknameGType *hit;
 
-	/* If this is not a unique name, store -1 for the GType. In this case
+	hit = (NicknameGType *) 
+		g_hash_table_lookup( table, (void *) class->nickname );
+
+	/* If this is not a unique name, mark as a duplicate. In this case
 	 * we'll need to fall back to a search.
 	 */
-	if( g_hash_table_lookup( table, (void *) class->nickname ) ) {
-		g_hash_table_insert( table, 
-			(void *) class->nickname, GINT_TO_POINTER( -1 ) );
-#ifdef DEBUG
-		printf( "vips_class_add_hash: duplicate nickname %s\n", 
-			class->nickname );
-#endif /*DEBUG*/
+	if( hit ) 
+		hit->duplicate = TRUE;
+	else {
+		hit = g_new( NicknameGType, 1 );
+		hit->nickname = class->nickname;
+		hit->type = type;
+		hit->duplicate = FALSE;
+		g_hash_table_insert( table, (void *) hit->nickname, hit );
 	}
-	else
-		g_hash_table_insert( table, 
-			(void *) class->nickname, GINT_TO_POINTER( type ) );
 
 	return( NULL ); 
 }
@@ -2587,27 +2598,32 @@ vips_type_find( const char *basename, const char *nickname )
 
 	const char *classname = basename ? basename : "VipsObject";
 
+	NicknameGType *hit;
 	GType base;
 	GType type;
 
 	vips__object_nickname_table = (GHashTable *) g_once( &once, 
 		(GThreadFunc) vips_class_build_hash, NULL ); 
 
-	type = GPOINTER_TO_INT( g_hash_table_lookup( 
-		vips__object_nickname_table, (void *) nickname ) );
+	hit = (NicknameGType *) 
+		g_hash_table_lookup( vips__object_nickname_table, 
+			(void *) nickname );
 
 	/* We must only search below basename ... check that the cache hit is
 	 * in the right part of the tree.
 	 */
 	if( !(base = g_type_from_name( classname )) )
 		return( 0 );
-	if( !type ||
-		type == -1 ||
-		!g_type_is_a( type, base ) ) {
+	if( hit &&
+		!hit->duplicate &&
+		g_type_is_a( hit->type, base ) ) 
+		type = hit->type;
+	else {
 		VipsObjectClass *class;
 
 		if( !(class = vips_class_find( basename, nickname )) )
 			return( 0 );
+
 		type = G_OBJECT_CLASS_TYPE( class );
 	}
 

@@ -3,6 +3,7 @@
 - improve short option name handling, thanks bgilbert
 - added --enable-docs configure option to help freebsd
 - removed a bash-ism from configure to help freebsd
+- don't assume GType fits in an int to help freebsd
 
 24/6/14 started 7.40.1
 - revise man.1 pages
