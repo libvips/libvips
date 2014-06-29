@@ -128,6 +128,15 @@ vips_mosaic_build( VipsObject *object )
 		break;
 
 	default:
+		/* Silence compiler warnings.
+		 */
+		dx0 = 0;
+		dy0 = 0;
+		scale1 = 0.0;
+		angle1 = 0.0;
+		dx1 = 0.0;
+		dy1 = 0.0;
+
 		g_assert( 0 );
 	}
 

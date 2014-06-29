@@ -645,6 +645,7 @@ write_ppm( Write *write, int ascii )
 	char *magic;
 	time_t timebuf;
 
+	magic = "unset";
 	if( in->BandFmt == VIPS_FORMAT_FLOAT && in->Bands == 3 ) 
 		magic = "PF";
 	else if( in->BandFmt == VIPS_FORMAT_FLOAT && in->Bands == 1 ) 
