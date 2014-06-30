@@ -123,6 +123,9 @@ vips_compass_build( VipsObject *object )
 		break;
 
 	default:
+		/* Silence compiler wrning.
+		 */
+		x = NULL;
 		g_assert( 0 );
 	}
 

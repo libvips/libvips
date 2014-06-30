@@ -43,6 +43,7 @@
  * 	- set Type on strips so we can convert for save correctly, thanks
  * 	  philipgiuliani
  * 25/6/14
+ * 	- stop on zip write >4gb, thanks bgilbert
  * 	- save openslide metadata to .dzi, see 
  *   	  https://github.com/jcupitt/libvips/issues/137
  */
@@ -166,6 +167,7 @@ typedef struct _VipsGsfDirectory {
 	 * this on cleanup.
 	 */
         GsfOutput *container;
+
 } VipsGsfDirectory; 
 
 /* Close all dirs, non-NULL on error.
@@ -420,6 +422,11 @@ struct _VipsForeignSaveDz {
 	 * becomes ".jpg".
 	 */
 	char *file_suffix;
+
+	/* libgsf can't write zip files larger than 4gb. Track bytes written
+	 * here and try to guess when we'll go over.
+	 */
+	size_t bytes_written;
 };
 
 typedef VipsForeignSaveClass VipsForeignSaveDzClass;
@@ -1055,12 +1062,14 @@ strip_work( VipsThreadState *state, void *a )
 	Strip *strip = (Strip *) a;
 	Layer *layer = strip->layer;
 	VipsForeignSaveDz *dz = layer->dz;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
 
 	VipsImage *x;
 	VipsImage *t;
 	void *buf;
 	size_t len;
 	GsfOutput *out; 
+	gboolean status;
 
 #ifdef DEBUG_VERBOSE
 	printf( "strip_work\n" );
@@ -1131,13 +1140,36 @@ strip_work( VipsThreadState *state, void *a )
 	out = tile_name( layer, 
 		state->x / dz->tile_size, state->y / dz->tile_size );
 
-	gsf_output_write( out, len, buf );
+	status = gsf_output_write( out, len, buf );
+	dz->bytes_written += len;
+
 	gsf_output_close( out );
 	g_object_unref( out );
 
-	g_mutex_unlock( vips__global_lock );
-
 	g_free( buf );
+
+	if( !status ) {
+		g_mutex_unlock( vips__global_lock );
+
+		vips_error( class->nickname,
+			"%s", gsf_output_error( out )->message ); 
+		return( -1 ); 
+	}
+
+	/* Allow a 100,000 byte margin. This probably isn't enough: we don't
+	 * include the space zip needs for the index nor anything we are
+	 * outputting apart from the gsf_output_write() above.
+	 */
+	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP &&
+		dz->bytes_written > (size_t) UINT_MAX - 100000 ) {
+		g_mutex_unlock( vips__global_lock );
+
+		vips_error( class->nickname,
+			"%s", _( "output file too large" ) ); 
+		return( -1 ); 
+	}
+
+	g_mutex_unlock( vips__global_lock );
 
 #ifdef DEBUG_VERBOSE
 	printf( "strip_work: success\n" );
@@ -1422,7 +1454,7 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 		 */
 		if( layer->write_y == VIPS_RECT_BOTTOM( to ) ||
 			layer->write_y == layer->height ) {
-			if( strip_arrived( layer ) )
+			if( strip_arrived( layer ) ) 
 				return( -1 );
 		}
 	}

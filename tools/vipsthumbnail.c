@@ -49,6 +49,8 @@
  * 7/3/14
  * 	- remove the embedded thumbnail reader, embedded thumbnails are too
  * 	  unlike the main image wrt. rotation / colour / etc.
+ * 30/6/14
+ * 	- fix interlaced thumbnail output, thanks lovell
  */
 
 #ifdef HAVE_CONFIG_H
@@ -585,8 +587,10 @@ thumbnail_rotate( VipsObject *process, VipsImage *im )
  * (eg.) "/poop/tn_somefile.jpg".
  */
 static int
-thumbnail_write( VipsImage *im, const char *filename )
+thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 {
+	VipsImage **t = (VipsImage **) vips_object_local_array( process, 1 );
+
 	char *file;
 	char *p;
 	char buf[FILENAME_MAX];
@@ -618,7 +622,16 @@ thumbnail_write( VipsImage *im, const char *filename )
 
 	g_free( file );
 
-	if( vips_image_write_to_file( im, output_name, NULL ) ) {
+	/* We need to cache the whole of the thumbnail before we write it 
+	 * in case we are writing an interlaced image. Interlaced png (for
+	 * example) will make 7 passes over the image during write.
+	 */
+	if( vips_tilecache( im, &t[0], 
+		"threaded", TRUE,
+		"persistent", TRUE,
+		"max_tiles", -1,
+		NULL ) ||
+		vips_image_write_to_file( t[0], output_name, NULL ) ) {
 		g_free( output_name );
 		return( -1 );
 	}
@@ -644,7 +657,7 @@ thumbnail_process( VipsObject *process, const char *filename )
 			thumbnail_shrink( process, in, interp, sharpen )) ||
 		!(crop = thumbnail_crop( process, thumbnail )) ||
 		!(rotate = thumbnail_rotate( process, crop )) ||
-		thumbnail_write( rotate, filename ) )
+		thumbnail_write( process, rotate, filename ) )
 		return( -1 );
 
 	return( 0 );
