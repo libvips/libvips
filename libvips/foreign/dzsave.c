@@ -44,7 +44,7 @@
  * 	  philipgiuliani
  * 25/6/14
  * 	- stop on zip write >4gb, thanks bgilbert
- * 	- save openslide metadata to .dzi, see 
+ * 	- save metadata to .dzi, see 
  *   	  https://github.com/jcupitt/libvips/issues/137
  */
 
@@ -391,6 +391,7 @@ struct _VipsForeignSaveDz {
 	VipsArrayDouble *background;
 	VipsForeignDzDepth depth;
 	gboolean centre;
+	gboolean properties;
 	VipsAngle angle;
 	VipsForeignDzContainer container; 
 
@@ -727,29 +728,27 @@ write_vips_properties( VipsForeignSaveDz *dz )
 {
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 
-	time_t timebuf;
-	char time_string[30];
+	time_t now;
+	char time_string[50];
 	GsfOutput *out;
 
-	time( &timebuf );
-	ctime_r( &timebuf, time_string );
-
-	/* Remove the trailing \n.
-	 */
-	if( strlen( time_string ) > 0 &&
-		time_string[strlen( time_string ) - 1] == '\n' ) 
-		time_string[strlen( time_string ) - 1] = '\0';
+	time( &now );
+	strftime( time_string, sizeof( time_string ), 
+		"%FT%TZ", gmtime( &now ) );
 
 	out = vips_gsf_path( dz->tree, 
 		"vips-properties.xml", dz->root_name, NULL ); 
 
 	gsf_output_printf( out, 
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ); 
-	gsf_output_printf( out, "<image>\n" ); 
-	gsf_output_printf( out, "  <properties\n" ); 
+	gsf_output_printf( out, "<image\n" ); 
 	gsf_output_printf( out, "    version=\"%s\"\n", VIPS_VERSION ); 
 	gsf_output_printf( out, "    date=\"%s\"\n", time_string ); 
+	gsf_output_printf( out, "    "
+		"xmlns=\"http://www.vips.ecs.soton.ac.uk/vips/%s\"\n", 
+		VIPS_VERSION ); 
 	gsf_output_printf( out, "  >\n" ); 
+	gsf_output_printf( out, "  <properties>\n" ); 
 	(void) vips_image_map( save->ready, write_vips_property, out );
 	gsf_output_printf( out, "  </properties>\n" ); 
 	gsf_output_printf( out, "</image>\n" );
@@ -1714,7 +1713,8 @@ vips_foreign_save_dz_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( write_vips_properties( dz ) )
+	if( dz->properties &&
+		write_vips_properties( dz ) )
 		return( -1 );
 
 	if( vips_gsf_tree_close( dz->tree ) )
@@ -1869,6 +1869,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		VIPS_TYPE_FOREIGN_DZ_CONTAINER, 
 			VIPS_FOREIGN_DZ_CONTAINER_FS ); 
 
+	VIPS_ARG_BOOL( class, "properties", 16, 
+		_( "Properties" ), 
+		_( "Write a properties file to the output directory" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, properties ),
+		FALSE );
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
@@ -1934,16 +1941,17 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * @centre: centre the tiles 
  * @angle: rotate the image by this much
  * @container: set container type
+ * @properties: write a properties file
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
  *
  * vips_dzsave() creates a directory called @name to hold the tiles. If @name
- * ends ".zip", vips_dzsave() will create a zip file called @name to hold the
+ * ends `.zip`, vips_dzsave() will create a zip file called @name to hold the
  * tiles.  You can use @container to force zip file output. 
  *
- * You can set @suffix to something like ".jpg[Q=85]" to control the tile write
- * options. 
+ * You can set @suffix to something like `".jpg[Q=85]"` to control the tile 
+ * write options. 
  * 
  * In Google layout mode, edge tiles are expanded to @tile_size by @tile_size 
  * pixels. Normally they are filled with white, but you can set another colour
@@ -1955,6 +1963,12 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  *
  * Use @depth to control how low the pyramid goes. This defaults to the
  * correct setting for the @layout you select.
+ *
+ * If @properties is %TRUE, vips_dzsave() will write a file called
+ * `vips-properties.xml` to the output directory. This file lists all of the
+ * metadata attached to @in in an obvious manner. It can be useful for viewing
+ * programs which wish to use fields from source files loaded via
+ * vips_openslideload(). 
  *
  * See also: vips_tiffsave().
  *

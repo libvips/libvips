@@ -1,5 +1,6 @@
 30/6/14 started 7.40.3
 - fix interlaced thumbnails in vipsthumbnail, thanks lovell
+- add --properties argument to dzsave, thanks bgilbert
 
 25/6/14 started 7.40.2
 - dzsave write to zip stops at 4gb, thanks bgilbert
