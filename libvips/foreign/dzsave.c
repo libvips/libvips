@@ -706,19 +706,49 @@ write_blank( VipsForeignSaveDz *dz )
 	return( 0 );
 }
 
+static void
+print_escape( GsfOutput *out, const char *str )
+{
+	const char *p;
+
+	for( p = str; *p; p++ )
+		switch( *p ) {
+		case '<':
+			gsf_output_printf( out, "&lt;" ); 
+			break;
+		case '>':
+			gsf_output_printf( out, "&gt;" ); 
+			break;
+		default:
+			gsf_output_printf( out, "%c", *p ); 
+			break;
+		}
+}
+
 static void *
 write_vips_property( VipsImage *image, 
 	const char *field, GValue *value, void *a )
 {
 	GsfOutput *out = (GsfOutput *) a;
-	char *str_value;
+	GType type = G_VALUE_TYPE( value );
 
-	str_value = g_strdup_value_contents( value );
-	gsf_output_printf( out, "    <property>\n" ); 
-	gsf_output_printf( out, "      <name>%s</name>\n", field ); 
-	gsf_output_printf( out, "      <value>%s</value>\n", str_value );
-	gsf_output_printf( out, "    </property>\n" ); 
-	g_free( str_value ); 
+	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) ) {
+		GValue save_value = { 0 };
+
+		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+		g_value_transform( value, &save_value );
+
+		gsf_output_printf( out, "    <property>\n" ); 
+		gsf_output_printf( out, "      <name>" );
+		print_escape( out, field ); 
+		gsf_output_printf( out, "</name>\n" ); 
+		gsf_output_printf( out, "      <value type=\"%s\">", 
+			g_type_name( type ) ); 
+		print_escape( out, vips_value_get_save_string( &save_value ) ); 
+		gsf_output_printf( out, "</value>\n" ); 
+		gsf_output_printf( out, "    </property>\n" ); 
+		g_value_unset( &save_value );
+	}
 
 	return( NULL ); 
 }
@@ -742,11 +772,10 @@ write_vips_properties( VipsForeignSaveDz *dz )
 	gsf_output_printf( out, 
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ); 
 	gsf_output_printf( out, "<image\n" ); 
+	gsf_output_printf( out, "    "
+		"xmlns=\"http://www.vips.ecs.soton.ac.uk/dzsave\"\n" );  
 	gsf_output_printf( out, "    version=\"%s\"\n", VIPS_VERSION ); 
 	gsf_output_printf( out, "    date=\"%s\"\n", time_string ); 
-	gsf_output_printf( out, "    "
-		"xmlns=\"http://www.vips.ecs.soton.ac.uk/vips/%s\"\n", 
-		VIPS_VERSION ); 
 	gsf_output_printf( out, "  >\n" ); 
 	gsf_output_printf( out, "  <properties>\n" ); 
 	(void) vips_image_map( save->ready, write_vips_property, out );
