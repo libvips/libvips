@@ -109,8 +109,9 @@ Static analysis with:
 
 # Dependencies 
 
-libvips has to have gettext, glib-2.x and libxml-2.0. The build system needs 
-sh, pkg-config, swig, gtk-doc-tools, automake, gobject-introspection and gnu make.
+libvips has to have gettext, glib-2.x and libxml-2.0. The build system
+needs sh, pkg-config, swig, gtk-doc-tools, automake, gobject-introspection
+and gnu make.
 
 # Optional dependencies
 
@@ -154,10 +155,6 @@ If available, libvips adds support for creating image pyramids with dzsave.
 
 The TIFF library. It needs to be built with support for JPEG and
 ZIP compression. 3.4b037 and later are known to be OK. 
-
-## libz
-
-If your TIFF library includes ZIP compression, you'll need this too.
 
 ## fftw3
 

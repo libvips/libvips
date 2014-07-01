@@ -953,8 +953,14 @@ vips_call_options_add( VipsObject *object,
 		GOptionEntry entry[2];
 
 		entry[0].long_name = name;
-		entry[0].short_name = name[0];
 		entry[0].description = g_param_spec_get_blurb( pspec );
+
+		/* Don't set short names for deprecated args.
+		 */
+		if( argument_class->flags & VIPS_ARGUMENT_DEPRECATED ) 
+			entry[0].short_name = '\0';
+		else
+			entry[0].short_name = name[0];
 
 		entry[0].flags = 0;
 		if( !needs_string ) 

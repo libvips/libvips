@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [7.40.2], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [7.40.3], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -18,7 +18,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # user-visible library versioning
 m4_define([vips_major_version], [7])
 m4_define([vips_minor_version], [40])
-m4_define([vips_micro_version], [2])
+m4_define([vips_micro_version], [3])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -37,8 +37,8 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=37
-LIBRARY_REVISION=5
+LIBRARY_CURRENT=38
+LIBRARY_REVISION=1
 LIBRARY_AGE=0
 
 # patched into include/vips/version.h
@@ -124,6 +124,23 @@ else
   fi
 fi
 
+# we are a C library with some optional C++ components inside it
+# on most platforms, we just include -lstdc++ in the link line for programs
+# using vips, but not all
+
+# we ought to write a proper configure test for this :( 
+
+AC_MSG_CHECKING([for needs -lstdc++])
+case "$host_os" in
+  freebsd*)
+    vips_needs_stdcpp=no
+    ;;
+  *)
+    vips_needs_stdcpp=yes
+    ;;
+esac
+AC_MSG_RESULT([$vips_needs_stdcpp])
+
 AC_MSG_CHECKING([for native Win32])
 case "$host" in
   *-*-mingw*)
@@ -190,6 +207,20 @@ else
 fi
 AC_DEFINE_UNQUOTED(VIPS_ICC_DIR,"$profile_dir",[default directory for ICC profiles])
 
+# option to stop docs installing ... eg. freebsd likes this
+AC_ARG_ENABLE(docs, 
+  AS_HELP_STRING([--enable-docs], [install docs (default: yes)]))
+
+if test x"$enable_docs" != x"no"; then
+  AM_CONDITIONAL(ENABLE_DOCS, true)
+  enable_docs=yes
+fi
+
+if test x"$enable_docs" != x"yes"; then
+  AM_CONDITIONAL(ENABLE_DOCS, false)
+  enable_docs=no
+fi
+
 # we want largefile support, if possible
 AC_SYS_LARGEFILE
 
@@ -233,7 +264,9 @@ if test x"$enable_cxx" != x"no"; then
     # need -lstdc++ for (eg.) the C++ format loaders
     # this gets added to vips.pc to help mingw and friends link programs
     # using libvips
-    VIPS_CXX_LIBS="-lstdc++"
+    if test x"$vips_needs_stdcpp" != x"no"; then
+      VIPS_CXX_LIBS="-lstdc++"
+    fi
     enable_cxx=yes
   fi
 fi
@@ -350,7 +383,7 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
   ]
 )
 
-# after 2.36 the type system inits itself
+# with 2.36 and after the type system inits itself
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,[
   AC_DEFINE(NEED_TYPE_INIT,1,[define if your glib needs g_type_init().])
   ],[
@@ -775,6 +808,7 @@ open files in binary mode: 		$vips_binary_open
 enable debug:				$enable_debug
 build C++ components:			$enable_cxx
 build docs with gtkdoc:			$enable_gtk_doc
+install docs:				$enable_docs
 gobject introspection: 			$found_introspection
 
 * optional packages and modules

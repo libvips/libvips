@@ -19,6 +19,14 @@ P_COMPILE_DIR =
 P_DIST_DIR = swig
 endif
 
+if ENABLE_DOCS
+D_DIST_DIR = 
+D_BUILD_DIR = doc
+else
+D_DIST_DIR = doc
+D_BUILD_DIR = 
+endif
+
 SUBDIRS = \
 	libvips \
 	tools \
@@ -26,7 +34,8 @@ SUBDIRS = \
 	man \
 	doc \
 	$(C_COMPILE_DIR) \
-	$(P_COMPILE_DIR) 
+	$(P_COMPILE_DIR) \
+	$(D_BUILD_DIR) 
 
 EXTRA_DIST = \
 	m4 \
@@ -38,15 +47,18 @@ EXTRA_DIST = \
 	acinclude.m4 \
 	depcomp \
 	$(C_DIST_DIR) \
-	$(P_DIST_DIR)
+	$(P_DIST_DIR) \
+	$(D_DIST_DIR)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = vips.pc $(C_PKGCONFIG)
 
+if ENABLE_DOCS
 install-exec-hook:
 	-rm -rf ${DESTDIR}$(datadir)/doc/vips
 	$(mkinstalldirs) ${DESTDIR}$(datadir)/doc/vips
 	-cp -r ${top_srcdir}/doc/html ${top_srcdir}/doc/pdf ${DESTDIR}$(datadir)/doc/vips 
+endif
 
 dist-hook:
 # make sure we don't get any .svn dirs from EXTRA_DIST
