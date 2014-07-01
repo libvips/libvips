@@ -44,8 +44,7 @@
  * 	  philipgiuliani
  * 25/6/14
  * 	- stop on zip write >4gb, thanks bgilbert
- * 	- save metadata to .dzi, see 
- *   	  https://github.com/jcupitt/libvips/issues/137
+ * 	- save metadata, see https://github.com/jcupitt/libvips/issues/137
  */
 
 /*
@@ -706,84 +705,158 @@ write_blank( VipsForeignSaveDz *dz )
 	return( 0 );
 }
 
-static void
-print_escape( GsfOutput *out, const char *str )
+static int
+set_prop( VipsForeignSaveDz *dz,
+	xmlNode *node, const char *name, const char *fmt, ... )
 {
-	const char *p;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
 
-	for( p = str; *p; p++ )
-		switch( *p ) {
-		case '<':
-			gsf_output_printf( out, "&lt;" ); 
-			break;
-		case '>':
-			gsf_output_printf( out, "&gt;" ); 
-			break;
-		default:
-			gsf_output_printf( out, "%c", *p ); 
-			break;
-		}
+        va_list ap;
+        char value[1024];
+
+        va_start( ap, fmt );
+        (void) vips_vsnprintf( value, 1024, fmt, ap );
+        va_end( ap );
+
+        if( !xmlSetProp( node, (xmlChar *) name, (xmlChar *) value ) ) {
+                vips_error( class->nickname, 
+			_( "unable to set property \"%s\" to value \"%s\"." ),
+                        name, value );
+                return( -1 );
+        }       
+        
+        return( 0 );
 }
+
+static xmlNode *
+new_child( VipsForeignSaveDz *dz, xmlNode *parent, const char *name )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
+
+	xmlNode *child;
+
+	if( !(child = xmlNewChild( parent, NULL, 
+		(xmlChar *) name, NULL )) ) {
+                vips_error( class->nickname, 
+			_( "unable to set create node \"%s\"" ),
+                        name );
+                return( NULL );
+        } 
+
+	return( child );
+}
+
+/* Track this during a property save.
+ */
+typedef struct _WriteInfo { 
+	VipsForeignSaveDz *dz;
+	xmlNode *node;
+} WriteInfo; 
 
 static void *
 write_vips_property( VipsImage *image, 
 	const char *field, GValue *value, void *a )
 {
-	GsfOutput *out = (GsfOutput *) a;
+	WriteInfo *info = (WriteInfo *) a;
+	VipsForeignSaveDz *dz = info->dz;
 	GType type = G_VALUE_TYPE( value );
 
 	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) ) {
 		GValue save_value = { 0 };
+		xmlNode *property;
+		xmlNode *child;
 
 		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
 		g_value_transform( value, &save_value );
 
-		gsf_output_printf( out, "    <property>\n" ); 
-		gsf_output_printf( out, "      <name>" );
-		print_escape( out, field ); 
-		gsf_output_printf( out, "</name>\n" ); 
-		gsf_output_printf( out, "      <value type=\"%s\">", 
-			g_type_name( type ) ); 
-		print_escape( out, vips_value_get_save_string( &save_value ) ); 
-		gsf_output_printf( out, "</value>\n" ); 
-		gsf_output_printf( out, "    </property>\n" ); 
-		g_value_unset( &save_value );
+		if( !(property = new_child( dz, info->node, "property" )) )
+			return( image ); 
+
+		if( !(child = new_child( dz, property, "name" )) ||
+			set_prop( dz, child, "type", g_type_name( type ) ) ) 
+			return( image ); 
+		xmlNodeSetContent( child, (xmlChar *) field );
+
+		if( !(child = new_child( dz, property, "value" )) )
+			return( image ); 
+		xmlNodeSetContent( child, 
+			(xmlChar *) vips_value_get_save_string( &save_value ) );
 	}
 
 	return( NULL ); 
 }
 
 static int
-write_vips_properties( VipsForeignSaveDz *dz )
+write_vips_properties( VipsForeignSaveDz *dz, xmlNode *node )
 {
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 
+	xmlNode *this;
+	WriteInfo info;
+
+	if( !(this = new_child( dz, node, "properties" )) )
+		return( -1 );
+	info.dz = dz;
+	info.node = this;
+	if( vips_image_map( save->ready, write_vips_property, &info ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+write_vips_meta( VipsForeignSaveDz *dz )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
+
 	time_t now;
 	char time_string[50];
+	xmlDoc *doc;
+	char *dump;
+	int dump_size;
 	GsfOutput *out;
 
 	time( &now );
 	strftime( time_string, sizeof( time_string ), 
 		"%FT%TZ", gmtime( &now ) );
 
+	if( !(doc = xmlNewDoc( (xmlChar *) "1.0" )) ) { 
+		vips_error( class->nickname, "%s", _( "xml save error" ) );
+		return( -1 );
+	}
+	if( !(doc->children = xmlNewDocNode( doc, NULL, 
+		(xmlChar *) "image", NULL )) ) {
+		vips_error( class->nickname, "%s", _( "xml save error" ) );
+                xmlFreeDoc( doc );
+		return( -1 );
+	}
+	if( set_prop( dz, doc->children, "xmlns", 
+			"http://www.vips.ecs.soton.ac.uk/dzsave" ) ||  
+		set_prop( dz, doc->children, "date", time_string ) ||
+		set_prop( dz, doc->children, "version", VIPS_VERSION ) ||
+		write_vips_properties( dz, doc->children ) ) {
+                xmlFreeDoc( doc );
+                return( -1 );
+        }
+
+	/* Double-cast stops a bogus gcc 4.1 compiler warning.
+	xmlDocDumpMemory( doc, (xmlChar **) ((char *) &dump), &dump_size );
+	 */
+	xmlDocDumpMemory( doc, (xmlChar **) &dump, &dump_size );
+	if( !dump ) {
+		vips_error( class->nickname, "%s", _( "xml save error" ) );
+                xmlFreeDoc( doc );
+                return( -1 );
+	}
+        xmlFreeDoc( doc );
+
 	out = vips_gsf_path( dz->tree, 
 		"vips-properties.xml", dz->root_name, NULL ); 
-
-	gsf_output_printf( out, 
-		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ); 
-	gsf_output_printf( out, "<image\n" ); 
-	gsf_output_printf( out, "    "
-		"xmlns=\"http://www.vips.ecs.soton.ac.uk/dzsave\"\n" );  
-	gsf_output_printf( out, "    version=\"%s\"\n", VIPS_VERSION ); 
-	gsf_output_printf( out, "    date=\"%s\"\n", time_string ); 
-	gsf_output_printf( out, "  >\n" ); 
-	gsf_output_printf( out, "  <properties>\n" ); 
-	(void) vips_image_map( save->ready, write_vips_property, out );
-	gsf_output_printf( out, "  </properties>\n" ); 
-	gsf_output_printf( out, "</image>\n" );
-
+	gsf_output_write( out, dump_size, (guchar *) dump ); 
 	(void) gsf_output_close( out );
 	g_object_unref( out );
+
+	xmlFree( dump );
 
 	return( 0 );
 }
@@ -1743,7 +1816,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 	}
 
 	if( dz->properties &&
-		write_vips_properties( dz ) )
+		write_vips_meta( dz ) )
 		return( -1 );
 
 	if( vips_gsf_tree_close( dz->tree ) )
