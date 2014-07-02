@@ -2,6 +2,8 @@
  *
  * 2/12/11
  * 	- wrap a class around the fits writer
+ * 2/7/14
+ * 	- cache the image before write so we are sequential
  */
 
 /*
@@ -70,19 +72,26 @@ vips_foreign_save_fits_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveFits *fits = (VipsForeignSaveFits *) object;
-	VipsImage *t;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( fits ), 2 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_fits_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips_flip( save->ready, &t, VIPS_DIRECTION_VERTICAL, NULL ) )
+	/* FITS is written bottom-to-top, so we must flip.
+	 *
+	 * But all vips readers must work top-to-bottom (or vips_copy()'s seq 
+	 * hint won't work) so we must cache the input image. 
+	 *
+	 * We cache to RAM, but perhaps we should use something like
+	 * vips_get_disc_threshold() and copy to a tempfile.
+	 */
+	t[0] = vips_image_new_memory();
+	if( vips_image_write( save->ready, t[0] ) ||
+		vips_flip( t[0], &t[1], VIPS_DIRECTION_VERTICAL, NULL ) ||
+		vips__fits_write( t[1], fits->filename ) ) 
 		return( -1 );
-	if( vips__fits_write( t, fits->filename ) ) {
-		g_object_unref( t );
-		return( -1 );
-	}
-	g_object_unref( t );
 
 	return( 0 );
 }
