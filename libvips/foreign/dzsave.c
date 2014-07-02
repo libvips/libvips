@@ -839,10 +839,7 @@ write_vips_meta( VipsForeignSaveDz *dz )
                 return( -1 );
         }
 
-	/* Double-cast stops a bogus gcc 4.1 compiler warning.
-	xmlDocDumpMemory( doc, (xmlChar **) ((char *) &dump), &dump_size );
-	 */
-	xmlDocDumpMemory( doc, (xmlChar **) &dump, &dump_size );
+	xmlDocDumpFormatMemory( doc, (xmlChar **) &dump, &dump_size, 1 );
 	if( !dump ) {
 		vips_error( class->nickname, "%s", _( "xml save error" ) );
                 xmlFreeDoc( doc );
