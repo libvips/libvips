@@ -1,3 +1,4 @@
+- fits needs to cache before write
 
 - threadpool recyling might be useful for dzsave?
 
