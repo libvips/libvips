@@ -772,12 +772,12 @@ write_vips_property( VipsImage *image,
 		if( !(property = new_child( dz, info->node, "property" )) )
 			return( image ); 
 
-		if( !(child = new_child( dz, property, "name" )) ||
-			set_prop( dz, child, "type", g_type_name( type ) ) ) 
+		if( !(child = new_child( dz, property, "name" )) )
 			return( image ); 
 		xmlNodeSetContent( child, (xmlChar *) field );
 
-		if( !(child = new_child( dz, property, "value" )) )
+		if( !(child = new_child( dz, property, "value" )) ||
+			set_prop( dz, child, "type", g_type_name( type ) ) ) 
 			return( image ); 
 		xmlNodeSetContent( child, 
 			(xmlChar *) vips_value_get_save_string( &save_value ) );
