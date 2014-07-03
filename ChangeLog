@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-26/6/14 started 7.40.2
-- fixes to help freebsd
-=======
 30/6/14 started 7.40.3
 - fix interlaced thumbnails in vipsthumbnail, thanks lovell
 - add --properties argument to dzsave, thanks bgilbert
@@ -12,7 +8,6 @@
 - added --enable-docs configure option to help freebsd
 - removed a bash-ism from configure to help freebsd
 - don't assume GType fits in an int to help freebsd
->>>>>>> c5fbe6daa642b522c54b6912b22649f59c8d237f
 
 24/6/14 started 7.40.1
 - revise man.1 pages
