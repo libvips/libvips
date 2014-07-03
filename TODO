@@ -13,6 +13,8 @@
   gtk-doc now used markdown, phew, use this to expand some sections
 
 
+
+
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
 
 
@@ -35,7 +37,9 @@
 
 - vips_getpoint() needs an optional imag return
 
+- add porter-duff compositing, see
 
+	https://github.com/jcupitt/ruby-vips/issues/28
 
 - now vips_linear() has uchar output, can we do something with orc?
 

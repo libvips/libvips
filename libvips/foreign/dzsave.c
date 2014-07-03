@@ -44,6 +44,7 @@
  * 	  philipgiuliani
  * 25/6/14
  * 	- stop on zip write >4gb, thanks bgilbert
+ * 	- save metadata, see https://github.com/jcupitt/libvips/issues/137
  */
 
 /*
@@ -389,6 +390,7 @@ struct _VipsForeignSaveDz {
 	VipsArrayDouble *background;
 	VipsForeignDzDepth depth;
 	gboolean centre;
+	gboolean properties;
 	VipsAngle angle;
 	VipsForeignDzContainer container; 
 
@@ -699,6 +701,159 @@ write_blank( VipsForeignSaveDz *dz )
 	g_object_unref( out );
 
 	g_free( buf );
+
+	return( 0 );
+}
+
+static int
+set_prop( VipsForeignSaveDz *dz,
+	xmlNode *node, const char *name, const char *fmt, ... )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
+
+        va_list ap;
+        char value[1024];
+
+        va_start( ap, fmt );
+        (void) vips_vsnprintf( value, 1024, fmt, ap );
+        va_end( ap );
+
+        if( !xmlSetProp( node, (xmlChar *) name, (xmlChar *) value ) ) {
+                vips_error( class->nickname, 
+			_( "unable to set property \"%s\" to value \"%s\"." ),
+                        name, value );
+                return( -1 );
+        }       
+        
+        return( 0 );
+}
+
+static xmlNode *
+new_child( VipsForeignSaveDz *dz, xmlNode *parent, const char *name )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
+
+	xmlNode *child;
+
+	if( !(child = xmlNewChild( parent, NULL, 
+		(xmlChar *) name, NULL )) ) {
+                vips_error( class->nickname, 
+			_( "unable to set create node \"%s\"" ),
+                        name );
+                return( NULL );
+        } 
+
+	return( child );
+}
+
+/* Track this during a property save.
+ */
+typedef struct _WriteInfo { 
+	VipsForeignSaveDz *dz;
+	xmlNode *node;
+} WriteInfo; 
+
+static void *
+write_vips_property( VipsImage *image, 
+	const char *field, GValue *value, void *a )
+{
+	WriteInfo *info = (WriteInfo *) a;
+	VipsForeignSaveDz *dz = info->dz;
+	GType type = G_VALUE_TYPE( value );
+
+	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) ) {
+		GValue save_value = { 0 };
+		xmlNode *property;
+		xmlNode *child;
+
+		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+		g_value_transform( value, &save_value );
+
+		if( !(property = new_child( dz, info->node, "property" )) )
+			return( image ); 
+
+		if( !(child = new_child( dz, property, "name" )) )
+			return( image ); 
+		xmlNodeSetContent( child, (xmlChar *) field );
+
+		if( !(child = new_child( dz, property, "value" )) ||
+			set_prop( dz, child, "type", g_type_name( type ) ) ) 
+			return( image ); 
+		xmlNodeSetContent( child, 
+			(xmlChar *) vips_value_get_save_string( &save_value ) );
+	}
+
+	return( NULL ); 
+}
+
+static int
+write_vips_properties( VipsForeignSaveDz *dz, xmlNode *node )
+{
+	VipsForeignSave *save = (VipsForeignSave *) dz;
+
+	xmlNode *this;
+	WriteInfo info;
+
+	if( !(this = new_child( dz, node, "properties" )) )
+		return( -1 );
+	info.dz = dz;
+	info.node = this;
+	if( vips_image_map( save->ready, write_vips_property, &info ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+write_vips_meta( VipsForeignSaveDz *dz )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
+
+	time_t now;
+	char time_string[50];
+	xmlDoc *doc;
+	char *dump;
+	int dump_size;
+	GsfOutput *out;
+
+	time( &now );
+	strftime( time_string, sizeof( time_string ), 
+		"%FT%TZ", gmtime( &now ) );
+
+	if( !(doc = xmlNewDoc( (xmlChar *) "1.0" )) ) { 
+		vips_error( class->nickname, "%s", _( "xml save error" ) );
+		return( -1 );
+	}
+	if( !(doc->children = xmlNewDocNode( doc, NULL, 
+		(xmlChar *) "image", NULL )) ) {
+		vips_error( class->nickname, "%s", _( "xml save error" ) );
+                xmlFreeDoc( doc );
+		return( -1 );
+	}
+	if( set_prop( dz, doc->children, "xmlns", 
+			"http://www.vips.ecs.soton.ac.uk/dzsave" ) ||  
+		set_prop( dz, doc->children, "date", time_string ) ||
+		set_prop( dz, doc->children, "version", VIPS_VERSION ) ||
+		write_vips_properties( dz, doc->children ) ) {
+                xmlFreeDoc( doc );
+                return( -1 );
+        }
+
+	xmlDocDumpFormatMemory( doc, (xmlChar **) &dump, &dump_size, 1 );
+	if( !dump ) {
+		vips_error( class->nickname, "%s", _( "xml save error" ) );
+                xmlFreeDoc( doc );
+                return( -1 );
+	}
+        xmlFreeDoc( doc );
+
+	out = vips_gsf_path( dz->tree, 
+		"vips-properties.xml", dz->root_name, NULL ); 
+	gsf_output_write( out, dump_size, (guchar *) dump ); 
+	(void) gsf_output_close( out );
+	g_object_unref( out );
+
+	xmlFree( dump );
 
 	return( 0 );
 }
@@ -1657,6 +1812,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 		return( -1 );
 	}
 
+	if( dz->properties &&
+		write_vips_meta( dz ) )
+		return( -1 );
+
 	if( vips_gsf_tree_close( dz->tree ) )
 		return( -1 ); 
 
@@ -1809,6 +1968,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		VIPS_TYPE_FOREIGN_DZ_CONTAINER, 
 			VIPS_FOREIGN_DZ_CONTAINER_FS ); 
 
+	VIPS_ARG_BOOL( class, "properties", 16, 
+		_( "Properties" ), 
+		_( "Write a properties file to the output directory" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, properties ),
+		FALSE );
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
@@ -1874,16 +2040,17 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * @centre: centre the tiles 
  * @angle: rotate the image by this much
  * @container: set container type
+ * @properties: write a properties file
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
  *
  * vips_dzsave() creates a directory called @name to hold the tiles. If @name
- * ends ".zip", vips_dzsave() will create a zip file called @name to hold the
+ * ends `.zip`, vips_dzsave() will create a zip file called @name to hold the
  * tiles.  You can use @container to force zip file output. 
  *
- * You can set @suffix to something like ".jpg[Q=85]" to control the tile write
- * options. 
+ * You can set @suffix to something like `".jpg[Q=85]"` to control the tile 
+ * write options. 
  * 
  * In Google layout mode, edge tiles are expanded to @tile_size by @tile_size 
  * pixels. Normally they are filled with white, but you can set another colour
@@ -1895,6 +2062,12 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  *
  * Use @depth to control how low the pyramid goes. This defaults to the
  * correct setting for the @layout you select.
+ *
+ * If @properties is %TRUE, vips_dzsave() will write a file called
+ * `vips-properties.xml` to the output directory. This file lists all of the
+ * metadata attached to @in in an obvious manner. It can be useful for viewing
+ * programs which wish to use fields from source files loaded via
+ * vips_openslideload(). 
  *
  * See also: vips_tiffsave().
  *
