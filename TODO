@@ -1,12 +1,3 @@
-- try:
-
-	$ vips copy k2.jpg k2.tif
-	$ vips im_copy k2.jpg k2.fits
-	$ vips copy k2.jpg k2.fits
-	** VIPS:ERROR:jpeg2vips.c:919:read_jpeg_generate: assertion failed: (r->top == jpeg->y_pos)
-	Aborted (core dumped)
-
-
 - threadpool recyling might be useful for dzsave?
 
 

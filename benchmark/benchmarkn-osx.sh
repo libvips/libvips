@@ -21,8 +21,8 @@ if [ $? != 0 ]; then
   echo "build of test image failed -- out of disc space?"
   exit 1
 fi
-echo -n "test image is" `header -f width temp.v` 
-echo " by" `header -f height temp.v` "pixels"
+echo -n "test image is" `vipsheader -f width temp.v` 
+echo " by" `vipsheader -f height temp.v` "pixels"
 max_cpus=`vips im_concurrency_get`
 
 echo "max cpus = $max_cpus"

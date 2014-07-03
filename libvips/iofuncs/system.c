@@ -197,7 +197,7 @@ vips_system_build( VipsObject *object )
 			VIPS_FREE( std_output );
 		}
 		vips_error_system( result, class->nickname, 
-			"%s", _( "command failed" ) ); 
+			_( "command \"%s\" failed" ), cmd ); 
 
 		return( -1 ); 
 	}

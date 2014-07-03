@@ -796,79 +796,6 @@ vips__write_extension_block( VipsImage *im, void *buf, int size )
 	return( 0 );
 }
 
-#ifdef DEBUG
-/* Return a string of n characters. Buffer is zapped each time!
- */
-const char *
-rpt( char ch, int n )
-{
-        int i;
-        static char buf[200];
-
-        n = VIPS_MIN( 190, n );
-
-        for( i = 0; i < n; i++ )
-                buf[i] = ch;
-        buf[i] = '\0';
-
-        return( buf );
-}
-
-/* Return a string of n spaces. Buffer is zapped each time!
- */
-const char *
-spc( int n )
-{
-        return( rpt( ' ', n ) );
-}
-
-static void
-prettify_tree_sub( xmlNode *xnode, int indent )
-{
-        xmlNode *txt;
-        xmlNode *next;
-
-        for(;;) {
-                next = xnode->next;
-
-                /* According to memprof, this leaks :-( If you cut it out into
-                 * a separate prog though, it's OK
-
-                        FIXME ... how odd
-
-                 */
-                txt = xmlNewText( "\n" );
-                xmlAddPrevSibling( xnode, txt );
-                txt = xmlNewText( spc( indent ) );
-                xmlAddPrevSibling( xnode, txt );
-
-                if( xnode->children )
-                        prettify_tree_sub( xnode->children, indent + 2 );
-
-                if( !next )
-                        break;
-
-                xnode = next;
-        }
-
-        txt = xmlNewText( spc( indent - 2 ) );
-        xmlAddNextSibling( xnode, txt );
-        txt = xmlNewText( "\n" );
-        xmlAddNextSibling( xnode, txt );
-}
-
-/* Walk an XML document, adding extra blank text elements so that it's easier
- * to read. Don't call me twice!
- */
-void
-prettify_tree( xmlDoc *xdoc )
-{
-        xmlNode *xnode = xmlDocGetRootElement( xdoc );
-
-        prettify_tree_sub( xnode, 0 );
-}
-#endif /*DEBUG*/
-
 /* Append XML to output fd.
  */
 int 
@@ -897,45 +824,23 @@ vips__writehist( VipsImage *im )
                 return( -1 );
         }
 
-	/* Bizarre double-cast stops a bogus gcc 4.1 compiler warning.
-	 */
-	xmlDocDumpMemory( doc, (xmlChar **) ((char *) &dump), &dump_size );
+	xmlDocDumpFormatMemory( doc, (xmlChar **) &dump, &dump_size, 1 );
 	if( !dump ) {
 		vips_error( "VipsImage", "%s", _( "xml save error" ) );
                 xmlFreeDoc( doc );
                 return( -1 );
 	}
+	xmlFreeDoc( doc );
 
 	if( vips__write_extension_block( im, dump, dump_size ) ) {
-                xmlFreeDoc( doc );
 		xmlFree( dump );
                 return( -1 );
         }
 
 #ifdef DEBUG
-{
-	char *dump2;
-	int dump_size2;
-
-	/* Uncomment to have XML pretty-printed. Can be annoying during
- 	 * debugging tho'
-	 */
-	prettify_tree( doc );
-
-	xmlDocDumpMemory( doc, (xmlChar **) &dump2, &dump_size2 );
-	if( !dump2 ) {
-		vips_error( "VipsImage", "%s", _( "xml save error" ) );
-                xmlFreeDoc( doc );
-		xmlFree( dump );
-                return( -1 );
-	}
-	
-	printf( "vips__writehist: saved XML is: \"%s\"", dump2 );
-	xmlFree( dump2 );
-}
+	printf( "vips__writehist: saved XML is: \"%s\"", dump );
 #endif /*DEBUG*/
 
-	xmlFreeDoc( doc );
 	xmlFree( dump );
 
 	return( 0 );
