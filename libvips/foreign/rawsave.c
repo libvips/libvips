@@ -280,7 +280,7 @@ vips_rawsave_fd( VipsImage *in, int fd, ... )
 	int result;
 
 	va_start( ap, fd );
-	result = vips_call_split( "rawsave_fd", ap, fd );
+	result = vips_call_split( "rawsave_fd", ap, in, fd );
 	va_end( ap );
 
 	return( result );
