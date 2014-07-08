@@ -7,6 +7,8 @@
 
   part of fixing up ruby-vips self-tests
 
+  dx/dy seem broken, esp. with clipping
+
 
 
 - threadpool recyling might be useful for dzsave?

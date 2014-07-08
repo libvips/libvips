@@ -450,7 +450,11 @@ vips_affine_build( VipsObject *object )
 	if( vips__transform_calc_inverse( &affine->trn ) )
 		return( -1 );
 
-	if( vips__transform_isidentity( &affine->trn ) )
+	if( vips__transform_isidentity( &affine->trn ) &&
+		affine->trn.oarea.left == 0 &&
+		affine->trn.oarea.top == 0 &&
+		affine->trn.oarea.width == in->Xsize &&
+		affine->trn.oarea.height == in->Ysize ) 
 		return( vips_image_write( in, resample->out ) );
 
 	/* Check for coordinate overflow ... we want to be able to hold the
