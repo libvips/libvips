@@ -84,7 +84,7 @@ im_point( IMAGE *im, VipsInterpolate *interpolate,
 		im_affinei( t[0], t[1], 
 			interpolate,
 			1, 0, 0, 1,
-			x - floor( x ), y - floor( y ),
+			floor( x ) - x, floor( y ) - y,
 			floor( x ), floor( y ), 1, 1 ) ||
 		im_avg( t[1], out ) ) {
 		im_close( mem );

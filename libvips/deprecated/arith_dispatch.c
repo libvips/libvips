@@ -172,7 +172,7 @@ point_vec( im_object *argv )
 	VipsInterpolate *interpolate = VIPS_INTERPOLATE( argv[1] );
 	double x = *((double *) argv[2]);
 	double y = *((double *) argv[3]);
-	int band = *((double *) argv[4]);
+	int band = *((int *) argv[4]);
 
 	return( im_point( argv[0], interpolate, x, y, band, argv[5] ) );
 }

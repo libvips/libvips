@@ -1,15 +1,3 @@
-- im_point() is broken?
-
-	$ vips im_point k2.jpg bilinear 0 0 2
-	110.926
-
-  doesn't seem right, should be 0, see deprecated/im_point_bilinear.c
-
-  part of fixing up ruby-vips self-tests
-
-  dx/dy seem broken, esp. with clipping
-
-
 
 - threadpool recyling might be useful for dzsave?
 
