@@ -2341,6 +2341,7 @@ im_lindetect( IMAGE *in, IMAGE *out, INTMASK *mask )
 		return( -1 );
 	if( vips_compass( in, &t2, t1, 
 		"times", 4, 
+		"angle", VIPS_ANGLE45_45, 
 		NULL ) ) {
 		g_object_unref( t1 );
 		return( -1 );
