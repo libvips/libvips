@@ -20,6 +20,8 @@
  * 	- add log scale and exponent as an option
  * 14/1/14
  * 	- use linear uchar mode
+ * 14/7/14
+ * 	- round to nearest on uchar output
  */
 
 /*
@@ -117,7 +119,10 @@ vips_scale_build( VipsObject *object )
 	}
 	else {
 		double f = 255.0 / (mx - mn);
-		double a = -(mn * f);
+
+		/* Add .5 to get round-to-nearest.
+		 */
+		double a = -(mn * f) + 0.5;
 
 		if( vips_linear1( scale->in, &t[2], f, a, 
 			"uchar", TRUE, 
