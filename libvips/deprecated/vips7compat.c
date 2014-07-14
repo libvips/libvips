@@ -2315,7 +2315,7 @@ im_compass( VipsImage *in, VipsImage *out, INTMASK *mask )
 		im_imask2vips( mask, t1 ) )
 		return( -1 );
 	if( vips_compass( in, &t2, t1, 
-		"times", 4, 
+		"times", 8, 
 		"angle", VIPS_ANGLE45_45, 
 		NULL ) ) {
 		g_object_unref( t1 );
