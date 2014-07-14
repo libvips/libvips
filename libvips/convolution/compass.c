@@ -145,7 +145,7 @@ vips_compass_class_init( VipsCompassClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "compass";
-	object_class->description = _( "convolve with rotaing mask" );
+	object_class->description = _( "convolve with rotating mask" );
 	object_class->build = vips_compass_build;
 
 	VIPS_ARG_INT( class, "times", 101, 
