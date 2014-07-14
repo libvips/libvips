@@ -397,10 +397,14 @@ vips_argument_instance_detach( VipsArgumentInstance *argument_instance )
 {
 	VipsObject *object = argument_instance->object;
 	VipsArgumentClass *argument_class = argument_instance->argument_class;
-	GObject *member = G_STRUCT_MEMBER( GObject *, object,
-		argument_class->offset );
 
 	if( argument_instance->close_id ) {
+		/* If close_id is set, the argument must be a gobject of some
+		 * sort, so we can fetch it.
+		 */
+		GObject *member = G_STRUCT_MEMBER( GObject *, object,
+			argument_class->offset );
+
 		if( g_signal_handler_is_connected( member,
 			argument_instance->close_id ) )
 			g_signal_handler_disconnect( member,
@@ -409,6 +413,9 @@ vips_argument_instance_detach( VipsArgumentInstance *argument_instance )
 	}
 
 	if( argument_instance->invalidate_id ) {
+		GObject *member = G_STRUCT_MEMBER( GObject *, object,
+			argument_class->offset );
+
 		if( g_signal_handler_is_connected( member,
 			argument_instance->invalidate_id ) )
 			g_signal_handler_disconnect( member,
