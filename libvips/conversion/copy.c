@@ -476,6 +476,7 @@ vips_copy( VipsImage *in, VipsImage **out, ... )
  *
  * Returns: 0 on success, -1 on error
  */
+
 int
 vips_copy_file( VipsImage *in, VipsImage **out, ... )
 {
@@ -487,11 +488,11 @@ vips_copy_file( VipsImage *in, VipsImage **out, ... )
 	if( !(file = vips_image_new_temp_file( "%s.v" )) )
 		return( -1 ); 
 	if( vips_image_write( in, file ) ||
-		vips_copy( file, out, NULL ) ) {
+		vips_image_pio_input( file ) ) {
 		g_object_unref( file );
 		return( -1 );
 	}
-	g_object_unref( file );
+	*out = file;
 
 	return( 0 );
 }
