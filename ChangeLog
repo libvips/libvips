@@ -2,6 +2,7 @@
 - fix vips_rawsave_fd(), thanks aferrero2707 
 - fix im_point()
 - vips_scale() now does round to nearest to avoid rounding errors
+- improve im_openout() compat macro
 
 30/6/14 started 7.40.3
 - fix interlaced thumbnails in vipsthumbnail, thanks lovell
