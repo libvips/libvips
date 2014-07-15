@@ -67,39 +67,39 @@ build_freq_mask( IMAGE *out, int xs, int ys, ImMaskType flag, va_list ap )
 	switch( flag ) {
 	case IM_MASK_IDEAL_HIGHPASS:
 		if( vips_mask_ideal( &t, xs, ys, p0,
-			"reject", TRUE, 
 			NULL ) )
 			return( -1 );
 		break;
 
 	case IM_MASK_IDEAL_LOWPASS:
 		if( vips_mask_ideal( &t, xs, ys, p0,
+			"reject", TRUE, 
 			NULL ) )
 			return( -1 );
 		break;
 
 	case IM_MASK_BUTTERWORTH_HIGHPASS:
 		if( vips_mask_butterworth( &t, xs, ys, p0, p1, p2,
-			"reject", TRUE, 
 			NULL ) )
 			return( -1 );
 		break;
 
 	case IM_MASK_BUTTERWORTH_LOWPASS:
 		if( vips_mask_butterworth( &t, xs, ys, p0, p1, p2,
+			"reject", TRUE, 
 			NULL ) )
 			return( -1 );
 		break;
 
 	case IM_MASK_GAUSS_HIGHPASS:
 		if( vips_mask_gaussian( &t, xs, ys, p0, p1, 
-			"reject", TRUE, 
 			NULL ) )
 			return( -1 );
 		break;
 
 	case IM_MASK_GAUSS_LOWPASS:
 		if( vips_mask_gaussian( &t, xs, ys, p0, p1, 
+			"reject", TRUE, 
 			NULL ) )
 			return( -1 );
 		break;

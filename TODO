@@ -1,3 +1,73 @@
+- butterworth highpass is wrong! actually makes a lowpass filter
+
+  $ ~/vips-7.26/bin/vips-7.26 vips im_create_fmask x2.v 32 32 2 42 0.5 0.5 0 0
+
+  is correct: a black circle on a white bg, with a white dot top left
+
+  2 because we have
+
+  	vips7compat.h:        IM_MASK_BUTTERWORTH_HIGHPASS = 2,
+
+  in vip8 this is
+
+  $ vips mask_butterworth x.v 32 32 42 0.5 0.5
+
+  generates a highpass filter, or 
+
+  $ vips mask_butterworth x.v 32 32 42 0.5 0.5 --reject
+
+  for a lowpass filter
+
+  doesn't match ideal! there we have --reject to make a highpass filter
+
+
+im_freq_mask has:
+
+	IM_MASK_IDEAL_HIGHPASS: 	0
+		if( vips_mask_ideal( 
+	IM_MASK_IDEAL_LOWPASS:		1
+		if( vips_mask_ideal( "reject", TRUE,  
+	IM_MASK_BUTTERWORTH_HIGHPASS:	2
+		if( vips_mask_butterworth( 
+	IM_MASK_BUTTERWORTH_LOWPASS:	3
+		if( vips_mask_butterworth( "reject", TRUE, 
+	IM_MASK_GAUSS_HIGHPASS:		4
+		if( vips_mask_gaussian(
+	IM_MASK_GAUSS_LOWPASS:		5
+		if( vips_mask_gaussian( "reject", TRUE,
+
+	IM_MASK_IDEAL_RINGPASS:		6
+		if( vips_mask_ideal_ring( 
+	IM_MASK_IDEAL_RINGREJECT:	7
+		if( vips_mask_ideal_ring(  "reject", TRUE,
+	IM_MASK_BUTTERWORTH_RINGPASS:	8
+		if( vips_mask_butterworth_ring( 
+	IM_MASK_BUTTERWORTH_RINGREJECT:	9
+		if( vips_mask_butterworth_ring(  "reject", TRUE,
+	IM_MASK_GAUSS_RINGPASS:		10
+		if( vips_mask_gaussian_ring(  
+	IM_MASK_GAUSS_RINGREJECT:	11
+		if( vips_mask_gaussian_ring(  "reject", TRUE,
+
+	IM_MASK_IDEAL_BANDPASS:		12
+		if( vips_mask_ideal_ring( 
+	IM_MASK_IDEAL_BANDREJECT:	13
+		if( vips_mask_ideal_ring(  "reject", TRUE,
+	IM_MASK_BUTTERWORTH_BANDPASS:	14
+		if( vips_mask_butterworth_ring( 
+	IM_MASK_BUTTERWORTH_BANDREJECT:	15
+		if( vips_mask_butterworth_ring(  "reject", TRUE,
+	IM_MASK_GAUSS_BANDPASS:		16
+		if( vips_mask_gaussian_ring(  
+	IM_MASK_GAUSS_BANDREJECT:	17
+		if( vips_mask_gaussian_ring(  "reject", TRUE,
+
+	IM_MASK_FRACTAL_FLT:		18
+		// not implemented
+
+
+
+
 
 - maxpos_avg seems to give variable results
 

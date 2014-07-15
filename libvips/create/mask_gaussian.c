@@ -64,7 +64,7 @@ vips_mask_gaussian_point( VipsMask *mask, double dx, double dy )
 	double fc2 = fc * fc;
 	double dist2 = (dx * dx + dy * dy) / fc2;
 
-	return( exp( cnst * dist2 ) ); 
+	return( 1.0 - exp( cnst * dist2 ) ); 
 }
 
 static void
