@@ -1,3 +1,6 @@
+- butterworth item in filter menu in nip2 makes a mask, it doesn't filter the
+  image
+
 - butterworth highpass is wrong! actually makes a lowpass filter
 
   $ ~/vips-7.26/bin/vips-7.26 vips im_create_fmask x2.v 32 32 2 42 0.5 0.5 0 0
