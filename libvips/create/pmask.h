@@ -35,6 +35,12 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* vips7compat.h defines VIPS_MASK(), an old compat macro.
+ */
+#ifdef VIPS_MASK
+#undef VIPS_MASK
+#endif /*VIPS_MASK*/
+
 #define VIPS_TYPE_MASK (vips_mask_get_type())
 #define VIPS_MASK( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \

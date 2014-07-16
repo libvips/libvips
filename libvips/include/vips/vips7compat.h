@@ -987,6 +987,8 @@ typedef enum {
 #define VIPS_MASK_GAUSS_BANDREJECT IM_MASK_GAUSS_BANDREJECT 
 #define VIPS_MASK_FRACTAL_FLT IM_MASK_FRACTAL_FLT 
 
+#define VIPS_MASK IM_MASK
+
 int im_flt_image_freq( VipsImage *in, VipsImage *out, ImMaskType flag, ... );
 int im_create_fmask( VipsImage *out, 
 	int xsize, int ysize, ImMaskType flag, ... );
@@ -1096,6 +1098,13 @@ int im_tbmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int hwindowsize, int hsearchsize,
 	int balancetype,
 	int mwidth );
+
+/* These were public for a while, keep for compat.
+ */
+int vips_foreign_load( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_foreign_save( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
 
 #ifdef __cplusplus
 }
