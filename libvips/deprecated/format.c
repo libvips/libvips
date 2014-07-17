@@ -458,6 +458,10 @@ im__format_init( void )
 	extern GType vips_format_png_get_type();
 	vips_format_png_get_type();
 #endif /*HAVE_PNG*/
+#ifdef HAVE_LIBWEBP
+	extern GType vips_format_webp_get_type();
+	vips_format_webp_get_type();
+#endif /*HAVE_LIBWEBP*/
 	vips_format_csv_get_type();
 	vips_format_ppm_get_type();
 	vips_format_analyze_get_type();

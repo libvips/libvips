@@ -153,6 +153,9 @@ int im_vips2png( VipsImage *in, const char *filename );
 int im_vips2bufpng( VipsImage *in, VipsImage *out,
 	int compression, int interlace, char **obuf, size_t *olen  );
 
+int im_webp2vips( const char *filename, VipsImage *out );
+int im_vips2webp( VipsImage *in, const char *filename );
+
 int im_raw2vips( const char *filename, VipsImage *out,
 	int width, int height, int bpp, int offset );
 int im_vips2raw( VipsImage *in, int fd );
