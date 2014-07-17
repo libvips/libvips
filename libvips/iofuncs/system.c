@@ -177,7 +177,8 @@ vips_system_build( VipsObject *object )
 			memmove( p, p + 1, strlen( p ) );
 
 	if( !g_spawn_command_line_sync( cmd, 
-		&std_output, &std_error, &result, &error ) ) {
+		&std_output, &std_error, &result, &error ) ||
+		result ) {
 		if( error ) {
 			vips_error( class->nickname, "%s", error->message );
 			g_error_free( error );
@@ -201,8 +202,6 @@ vips_system_build( VipsObject *object )
 
 		return( -1 ); 
 	}
-
-	g_assert( !result ); 
 
 	if( std_error ) {
 		vips__chomp( std_error ); 
