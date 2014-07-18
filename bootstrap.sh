@@ -31,7 +31,6 @@ cp $ACDIR/codeset.m4 m4
 cp $ACDIR/gettext.m4 m4
 cp $ACDIR/glibc21.m4 m4
 cp $ACDIR/iconv.m4 m4
-cp $ACDIR/isc-posix.m4 m4
 cp $ACDIR/lcmessage.m4 m4
 cp $ACDIR/progtest.m4 m4
 cp $ACDIR/introspection.m4 m4
