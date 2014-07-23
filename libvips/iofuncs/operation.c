@@ -61,7 +61,33 @@
  * libvips. 
  *
  * It also maintains a cache of recent operations. You can tune the cache
- * behaviour in various ways. 
+ * behaviour in various ways, see vips_cache_set_max() and friends. 
+ *
+ * Use vips_call() to call any vips operation from C. For example:
+ *
+ * |[
+ * VipsImage *in = ...
+ * VipsImaghe *out;
+ *
+ * if( vips_call( "embed", in, &out, 10, 10, 100, 100,
+ * 	"extend", VIPS_EXTEND_COPY,
+ * 	NULL ) )
+ * 	...
+ * ]|
+ *
+ * Will execute vips_embed() setting the optional `extend` property to
+ * #VIPS_EXTEND_COPY. 
+ *
+ * If you want to search for operations, see what arguments they need, and
+ * test argument properties, see
+ * <link linkend="libvips-object">object</link>. 
+ *
+ * vips_call_split() lets you run an operation with the optional and required
+ * arguments split into separate lists. vips_call_split_option_string() lets
+ * you set options from strings as well.
+ *
+ * Use vips_call_argv() to run any vips operation from a command-line style
+ * argc/argv array. 
  *
  */
 

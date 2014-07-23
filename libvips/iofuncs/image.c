@@ -63,9 +63,21 @@
  *
  * The image class and associated types and macros.
  *
- * vips_image_wio_input() and friends indicate the image IO style you
- * intend to use, transforming the underlying #VipsImage structure if
- * necessary.
+ * Images can be created from files on disc (with vips_image_new_from_file()),
+ * from formatted buffers held in memory (with vips_image_new_from_buffer()),
+ * and from C-style arrays held in memory (with vips_image_new_from_memory()).
+ *
+ * Use things like vips_invert() to manipulate your images. When you are done,
+ * you can write images to disc files (with vips_image_write_to_file()),
+ * to formatted memory buffers (with vips_image_write_to_buffer()) and to
+ * C-style memory arrays (with vips_image_write_to_memory().
+ *
+ * See <link linkend="VipsOperation">operation</link> for an introduction to
+ * running operations on images, see <link
+ * linkend="libvips-header">header</link> for getting and setting image
+ * metadata. See <link linkend="VipsObject">object</link> for a discussion of
+ * the lower levels. 
+ *
  */
 
 /**

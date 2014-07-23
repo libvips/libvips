@@ -73,12 +73,10 @@
  *
  * <emphasis>Run-time introspection</emphasis> Vips objects can be fully 
  * introspected at
- * run-time. There is not need for a separate source-code analysis. 
+ * run-time. There is not need for separate source-code analysis. 
  *
- * <emphasis>Command-line interface</emphasis> Vips objects have an 
- * automatic command-line
- * line interface with a set of virtual methods. 
- *
+ * <emphasis>Command-line interface</emphasis> Any vips object can be run from
+ * the command-line with the `vips` driver program. 
  */
 
 /** 
