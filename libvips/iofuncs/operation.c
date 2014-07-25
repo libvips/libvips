@@ -63,24 +63,46 @@
  * It also maintains a cache of recent operations. You can tune the cache
  * behaviour in various ways, see vips_cache_set_max() and friends. 
  *
- * Use vips_call() to call any vips operation from C. For example:
+ * vips_call(), vips_call_split() and vips_call_split_option_string() are used
+ * by vips to implement the C API. They can execute any #VipsOperation,
+ * passing in a set of required and optional arguments. Normally you would not
+ * use these functions directly: every operation has a tiny wrapper function
+ * which provides type-safety for the required arguments. For example,
+ * vips_embed() is defined as:
  *
  * |[
- * VipsImage *in = ...
- * VipsImaghe *out;
+ * int
+ * vips_embed( VipsImage *in, VipsImage **out, 
+ *   int x, int y, int width, int height, ... )
+ * {
+ *   va_list ap;
+ *   int result;
  *
- * if( vips_call( "embed", in, &out, 10, 10, 100, 100,
- * 	"extend", VIPS_EXTEND_COPY,
- * 	NULL ) )
- * 	...
+ *   va_start( ap, height );
+ *   result = vips_call_split( "embed", ap, in, out, x, y, width, height );
+ *   va_end( ap );
+ *
+ *   return( result );
+ * }
  * ]|
  *
- * Will execute vips_embed() setting the optional `extend` property to
- * #VIPS_EXTEND_COPY. 
+ * If you are writing a language binding, you won't need these. Instead, make
+ * a new operation with vips_operation_new() (all it does is look up the
+ * operation by name with vips_type_find(), then call g_object_new() for you),
+ * then use vips_argument_map() and friends to loop over the operation's
+ * arguments setting them. Once you have set all arguments, use
+ * vips_cache_operation_build() to look up the operation in the cache and
+ * either build or dup it. If something goes wrong, you'll need to use
+ * vips_object_unref_outputs() and g_object_unref(). :wq
  *
- * If you want to search for operations, see what arguments they need, and
- * test argument properties, see
- * <link linkend="libvips-object">object</link>. 
+
+
+ *
+ * Use vips_call() to call any vips operation from C. If you want to search 
+ * for operations, see what arguments they need, and test argument 
+ * properties, see
+ * <link linkend="libvips-object">object</link>. Each operation also has a
+ * wrapper function, of course, to give type safety for required arguments.
  *
  * vips_call_split() lets you run an operation with the optional and required
  * arguments split into separate lists. vips_call_split_option_string() lets
@@ -752,6 +774,36 @@ vips_call_by_name( const char *operation_name,
 	return( result );
 }
 
+/**
+ * vips_call:
+ * @operation_name:
+ * @...: required args, then a %NULL-terminated list of argument/value pairs
+ *
+ * vips_call() calls the named operation, passing in required arguments, and
+ * then setting any optional ones from the remainder of the arguments as a set
+ * of name/value pairs. 
+ *
+ * For example, vips_embed() takes six required arguments, @in, @out, @x, @y, 
+ * @width, @height; and has two optional arguments, @extend and @background.
+ * You can run it with vips_call() like this: 
+ *
+ * |[
+ * VipsImage *in = ...
+ * VipsImage *out;
+ *
+ * if( vips_call( "embed", in, &out, 10, 10, 100, 100,
+ * 	"extend", VIPS_EXTEND_COPY,
+ * 	NULL ) )
+ * 	... error
+ * ]|
+ *
+ * Normally of course you'd just use the vips_embed() wrapper function and get
+ * type-safety for the required arguments. 
+ *
+ * See also: vips_call_split(), vips_call_options().
+ *
+ * Returns: 0 on success, -1 on error
+ */
 int
 vips_call( const char *operation_name, ... )
 {
@@ -760,7 +812,7 @@ vips_call( const char *operation_name, ... )
 	va_list required;
 	va_list optional;
 
-	if( !(operation = vips_operation_new( operation_name ) ) )
+	if( !(operation = vips_operation_new( operation_name )) )
 		return( -1 );
 
 	/* We have to break the va_list into separate required and optional 

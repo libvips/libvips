@@ -1,3 +1,6 @@
+- vips_object_unref_outputs() needs docs ... bindings will need it
+ 
+
 
 - maxpos_avg seems to give variable results
 

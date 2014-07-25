@@ -131,6 +131,10 @@ vips_get_argv0( void )
  *
  * <itemizedlist>
  *   <listitem> 
+ *     <para>checks that the libvips your program is expecting is 
+ *     binary-compatible with the vips library you're running against</para>
+ *   </listitem>
+ *   <listitem> 
  *     <para>initialises any libraries that VIPS is using, including GObject
  *     and the threading system, if neccessary</para>
  *   </listitem>

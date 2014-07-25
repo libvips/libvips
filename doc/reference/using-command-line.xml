@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+]>
+<refentry id="using-cli">
+  <refmeta>
+    <refentrytitle>VIPS from the command-line</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo>VIPS Library</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>Using VIPS</refname>
+    <refpurpose>How to use the VIPS library</refpurpose>
+  </refnamediv>
+
+  <refsect1 id="using-command-line">
+    <title>Using VIPS from the command-line</title>
+    <para>
+      Use the <command>vips</command> command to execute VIPS operations from 
+      the command-line. You can show all classes with:
+
+      <literallayout>
+        <userinput>vips list classes</userinput>
+      </literallayout>
+
+      This produces output something like:
+
+      <literallayout>
+        <userinput>VipsOperation (operation), operations</userinput>
+        <userinput>  VipsSystem (system), run an external command</userinput>
+        <userinput>    VipsArithmetic (arithmetic), arithmetic operations</userinput>
+        <userinput>      VipsBinary (binary), binary operations</userinput>
+        <userinput>        VipsAdd (add), add two images</userinput>
+        <userinput>        .... and so on</userinput>
+      </literallayout>
+
+      Each line shows the canonical name of the class (for example 
+      <literal>VipsAdd</literal>), the class nickname 
+      (<literal>add</literal> in this case), and a short description. 
+      Some subclasses of operation will show more, for example subclasses of 
+      <literal>VipsForeign</literal> will show some of the extra flags 
+      supported by the file load/save operations. 
+
+      You can get help on a specific operation by running it with no arguments,
+      for example:
+
+      <literallayout>
+        <userinput>vips gamma</userinput>
+      </literallayout>
+
+      produces the output:
+
+      <literallayout>
+        <userinput>gamma an image</userinput>
+        <userinput>usage:</userinput>
+        <userinput>   gamma in out</userinput>
+        <userinput>where:</userinput>
+        <userinput>   in           - Input image, input VipsImage</userinput>
+        <userinput>   out          - Output image, output VipsImage</userinput>
+        <userinput>optional arguments:</userinput>
+        <userinput>   exponent     - Gamma factor, input gdouble</userinput>
+        <userinput>operation flags: sequential-unbuffered</userinput>
+      </literallayout>
+
+      <command>vips gamma</command> applies a gamma factor to an image. By 
+      default, it uses 2.4, the sRGB gamma factor, but you can specify any 
+      gamma with the <literal>exponent</literal> option. You can use the 
+      C API docs for <function>vips_gamma()</function> if you need more 
+      information. 
+
+      Use it from the command-line like this:
+
+      <literallayout>
+        <userinput>vips gamma k2.jpg x.jpg --exponent 0.42</userinput>
+      </literallayout>
+
+      This will read file <literal>k2.jpg</literal>, un-gamma it, and 
+      write the result to file <literal>x.jpg</literal>.
+
+      Some operations take arrays of values as arguments, for example, 
+      <command>vips affine</command> needs an array of four numbers for the 
+      2x2 transform matrix. You pass arrays as space-separated lists, for 
+      example:
+
+      <literallayout>
+        <userinput>vips affine k2.jpg x.jpg "2 0 0 1"</userinput>
+      </literallayout>
+
+      Or <command>vips bandjoin</command> needs an array of input images to 
+      join, run it like this:
+
+      <literallayout>
+        <userinput>vips bandjoin "k2.jpg k4.jpg" x.tif</userinput>
+      </literallayout>
+
+      <command>vips</command> will automatically convert between image file 
+      formats for you. Input images are detected by sniffing their first few 
+      bytes; output formats are set from the filename suffix. You can see a 
+      list of all the supported file formats with something like:
+
+      <literallayout>
+        <userinput>vips list classes | grep -i foreign</userinput>
+      </literallayout>
+
+      Then get a list of the options a format supports with, for example:
+
+      <literallayout>
+        <userinput>vips jpegsave</userinput>
+      </literallayout>
+
+      You can pass options to the implicit load and save operations enclosed 
+      in square brackets after the filename. For example:
+
+      <literallayout>
+        <userinput>vips affine k2.jpg x.jpg[Q=90,strip] "2 0 0 1"</userinput>
+      </literallayout>
+
+      Will write <literal>x.jpg</literal> at quality level 90 and will 
+      strip all metadata from the image.
+
+      Finally, <command>vips</command> has a couple of useful extra options. 
+
+      <itemizedlist>
+        <listitem>
+          <para>
+            Use <option>--vips-progress</option> to get 
+            <command>vips</command> to display a simple progress indicator. 
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            Use <option>--vips-leak</option> and <command>vips</command> will 
+            leak-test on exit, and also display an estimate of peak memory use.
+          </para>
+        </listitem>
+      </itemizedlist>
+    </para>
+
+    <para>
+      VIPS comes with a couple of other useful programs. 
+      <command>vipsheader</command> is a command which can print image header
+      fields. <command>vipsedit</command> can change fields in vips format 
+      images. <command>vipsthumbnail</command> can make image thumbnails 
+      quickly. 
+
+    </para>
+  </refsect1>
+
+</refentry>
