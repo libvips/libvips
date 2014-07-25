@@ -169,7 +169,7 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	VipsRect *r = &or->valid;
 	VipsInsert *insert = (VipsInsert *) b; 
 
-	Rect ovl;
+	VipsRect ovl;
 
 	/* Does the rect we have been asked for fall entirely inside the
 	 * sub-image?

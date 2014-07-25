@@ -102,9 +102,9 @@ vips_rot90_gen( VipsRegion *or, void *seq, void *a, void *b,
 	 */
 	VipsRect *r = &or->valid;
 	int le = r->left;
-	int ri = IM_RECT_RIGHT(r);
+	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
+	int bo = VIPS_RECT_BOTTOM(r);
 
 	int x, y, i;
 
@@ -164,9 +164,9 @@ vips_rot180_gen( VipsRegion *or, void *seq, void *a, void *b,
 	 */
 	VipsRect *r = &or->valid;
 	int le = r->left;
-	int ri = IM_RECT_RIGHT(r);
+	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
+	int bo = VIPS_RECT_BOTTOM(r);
 
 	int x, y;
 
@@ -176,7 +176,7 @@ vips_rot180_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 	/* Find the area of the input image we need.
 	 */
-	Rect need;
+	VipsRect need;
 
 	need.left = in->Xsize - ri;
 	need.top = in->Ysize - bo;
@@ -225,9 +225,9 @@ vips_rot270_gen( VipsRegion *or, void *seq, void *a, void *b,
 	 */
 	VipsRect *r = &or->valid;
 	int le = r->left;
-	int ri = IM_RECT_RIGHT(r);
+	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
+	int bo = VIPS_RECT_BOTTOM(r);
 
 	int x, y, i;
 

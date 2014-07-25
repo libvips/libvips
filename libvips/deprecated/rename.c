@@ -277,7 +277,7 @@ im_isfloat( IMAGE *im )
 gboolean
 im_iscomplex( IMAGE *im )
 {	
-	return( vips_bandfmt_iscomplex( im->BandFmt ) );
+	return( vips_band_format_iscomplex( im->BandFmt ) );
 }
 
 gboolean

@@ -825,7 +825,7 @@ write_profile_meta( Write *write )
 }
 
 static int
-write_jpeg_block( REGION *region, Rect *area, void *a )
+write_jpeg_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
 	int i;

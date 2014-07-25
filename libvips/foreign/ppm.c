@@ -622,7 +622,7 @@ write_ppm_line_binary( VipsImage *in, FILE *fp, VipsPel *p )
 }
 
 static int
-write_ppm_block( REGION *region, Rect *area, void *a )
+write_ppm_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
 	int i;

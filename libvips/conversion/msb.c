@@ -190,7 +190,7 @@ vips_msb_build( VipsObject *object )
 		msb->band > 0 )
 		msb->sign = TRUE;
 	if( msb->in->Coding == VIPS_CODING_NONE &&
-		!vips_bandfmt_isuint( msb->in->BandFmt ) )
+		!vips_band_format_isuint( msb->in->BandFmt ) )
 		msb->sign = TRUE;
 
 	if( msb->band == -1 &&

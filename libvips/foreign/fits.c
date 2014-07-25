@@ -351,7 +351,7 @@ fits2vips_generate( VipsRegion *out,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsFits *fits = (VipsFits *) a;
-	Rect *r = &out->valid;
+	VipsRect *r = &out->valid;
 
 	VipsPel *q;
 	int z;

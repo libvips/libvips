@@ -125,7 +125,8 @@ vips_bandmean_buffer( VipsBandary *bandary,
 {
 	VipsImage *im = bandary->ready[0];
 	const int bands = im->Bands;
-	const int sz = width * (vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1);
+	const int sz = width * 
+		(vips_band_format_iscomplex( im->BandFmt ) ? 2 : 1);
 
 	int i, j;
 

@@ -13,6 +13,8 @@
  * 17/7/10
  * 	- set pool->error whenever we set thr->error, lets us catch allocate
  * 	  errors (thanks Tim)
+ * 25/7/14
+ * 	- limit nthr on tiny images
  */
 
 /*
@@ -343,24 +345,6 @@ vips_concurrency_get( void )
 
 	return( nthr );
 }
-
-/**
- * VipsThreadState:
- * @im: the #VipsImage being operated upon
- * @reg: a #REGION
- * @pos: a #Rect
- * @x: an int
- * @y: an int
- * @a: client data
- *
- * These per-thread values are carried around for your use by
- * vips_threadpool_run(). They are private to each thread, so they are a
- * useful place
- * for #VipsThreadpoolAllocate and #VipsThreadpoolWork to communicate.
- *
- * @reg is created for you at the start of processing and freed at the end,
- * but you can do what you like with it.
- */
 
 G_DEFINE_TYPE( VipsThreadState, vips_thread_state, VIPS_TYPE_OBJECT );
 
@@ -706,6 +690,10 @@ static VipsThreadpool *
 vips_threadpool_new( VipsImage *im )
 {
 	VipsThreadpool *pool;
+	int tile_width;
+	int tile_height;
+	int n_tiles;
+	int n_lines;
 
 	/* Allocate and init new thread block.
 	 */
@@ -722,6 +710,14 @@ vips_threadpool_new( VipsImage *im )
 	pool->error = FALSE;
 	pool->stop = FALSE;
 	pool->done_first = FALSE;
+
+	/* If this is a tiny image, we won't need all nthr threads. Guess how
+	 * many tiles we might need to cover the image and use that to limit
+	 * the number of threads we create.
+	 */
+	vips_get_tile_size( im, &tile_width, &tile_height, &n_lines );
+	n_tiles = (1 + im->Xsize / tile_width) * (1 + im->Ysize / tile_height);
+	pool->nthr = VIPS_MIN( pool->nthr, n_tiles ); 
 
 	/* Attach tidy-up callback.
 	 */
@@ -937,7 +933,7 @@ vips_threadpool_run( VipsImage *im,
  * @im: image to guess for
  * @tile_width: return selected tile width 
  * @tile_height: return selected tile height 
- * @nlines: return buffer height in scanlines
+ * @n_lines: return buffer height in scanlines
  *
  * Pick a tile size and a buffer height for this image and the current
  * value of vips_concurrency_get(). The buffer height 
@@ -945,7 +941,7 @@ vips_threadpool_run( VipsImage *im,
  */
 void
 vips_get_tile_size( VipsImage *im, 
-	int *tile_width, int *tile_height, int *nlines )
+	int *tile_width, int *tile_height, int *n_lines )
 {
 	const int nthr = vips_concurrency_get();
 
@@ -972,25 +968,25 @@ vips_get_tile_size( VipsImage *im,
 		g_assert( 0 );
 	}
 
-	/* We can't set nlines for the current demand style: a later bit of
+	/* We can't set n_lines for the current demand style: a later bit of
 	 * the pipeline might see a different hint and we need to synchronise
 	 * buffer sizes everywhere.
 	 *
 	 * Pick the maximum buffer size we might possibly need, then round up
 	 * to a multiple of tileheight.
 	 */
-	*nlines = vips__tile_height * 
+	*n_lines = vips__tile_height * 
 		(1 + nthr / VIPS_MAX( 1, im->Xsize / vips__tile_width )) * 2;
-	*nlines = VIPS_MAX( *nlines, vips__fatstrip_height * nthr * 2 );
-	*nlines = VIPS_MAX( *nlines, vips__thinstrip_height * nthr * 2 );
-	*nlines = ROUND_UP( *nlines, *tile_height );
+	*n_lines = VIPS_MAX( *n_lines, vips__fatstrip_height * nthr * 2 );
+	*n_lines = VIPS_MAX( *n_lines, vips__thinstrip_height * nthr * 2 );
+	*n_lines = ROUND_UP( *n_lines, *tile_height );
 
 	/* We make this assumption in several places.
 	 */
-	g_assert( *nlines % *tile_height == 0 );
+	g_assert( *n_lines % *tile_height == 0 );
 
 	VIPS_DEBUG_MSG( "vips_get_tile_size: %d by %d patches, "
 		"groups of %d scanlines\n", 
-		*tile_width, *tile_height, *nlines );
+		*tile_width, *tile_height, *n_lines );
 }
 

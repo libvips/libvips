@@ -106,7 +106,8 @@ vips_avg_build( VipsObject *object )
 		vips_image_get_height( statistic->in ) * 
 		vips_image_get_bands( statistic->in );
 	average = avg->sum / vals;
-	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) )
+	if( vips_band_format_iscomplex( 
+		vips_image_get_format( statistic->in ) ) )
 		average = sqrt( average );
 	g_object_set( object, "out", average, NULL );
 

@@ -187,8 +187,8 @@ typedef void (*transform_fn)( const VipsTransformation *,
  */
 static void
 transform_rect( const VipsTransformation *trn, transform_fn transform,
-	const Rect *in,		/* In input space */
-	Rect *out )		/* In output space */
+	const VipsRect *in,		/* In input space */
+	VipsRect *out )		/* In output space */
 {
 	double x1, y1;		/* Map corners */
 	double x2, y2;
@@ -196,25 +196,26 @@ transform_rect( const VipsTransformation *trn, transform_fn transform,
 	double x4, y4;
 	double left, right, top, bottom;
 
-	/* Map input Rect.
+	/* Map input VipsRect.
 	 */
 	transform( trn, in->left, in->top, &x1, &y1 );
-	transform( trn, in->left, IM_RECT_BOTTOM( in ), &x3, &y3 );
-	transform( trn, IM_RECT_RIGHT( in ), in->top, &x2, &y2 );
-	transform( trn, IM_RECT_RIGHT( in ), IM_RECT_BOTTOM( in ), &x4, &y4 );
+	transform( trn, in->left, VIPS_RECT_BOTTOM( in ), &x3, &y3 );
+	transform( trn, VIPS_RECT_RIGHT( in ), in->top, &x2, &y2 );
+	transform( trn, VIPS_RECT_RIGHT( in ), VIPS_RECT_BOTTOM( in ), 
+		&x4, &y4 );
 
 	/* Find bounding box for these four corners. Round-to-nearest to try
 	 * to stop rounding errors growing images.
 	 */
-	left = IM_MIN( x1, IM_MIN( x2, IM_MIN( x3, x4 ) ) );
-	right = IM_MAX( x1, IM_MAX( x2, IM_MAX( x3, x4 ) ) );
-	top = IM_MIN( y1, IM_MIN( y2, IM_MIN( y3, y4 ) ) );
-	bottom = IM_MAX( y1, IM_MAX( y2, IM_MAX( y3, y4 ) ) );
+	left = VIPS_MIN( x1, VIPS_MIN( x2, VIPS_MIN( x3, x4 ) ) );
+	right = VIPS_MAX( x1, VIPS_MAX( x2, VIPS_MAX( x3, x4 ) ) );
+	top = VIPS_MIN( y1, VIPS_MIN( y2, VIPS_MIN( y3, y4 ) ) );
+	bottom = VIPS_MAX( y1, VIPS_MAX( y2, VIPS_MAX( y3, y4 ) ) );
 
-	out->left = IM_RINT( left );
-	out->top = IM_RINT( top );
-	out->width = IM_RINT( right - left );
-	out->height = IM_RINT( bottom - top );
+	out->left = VIPS_RINT( left );
+	out->top = VIPS_RINT( top );
+	out->width = VIPS_RINT( right - left );
+	out->height = VIPS_RINT( bottom - top );
 }
 
 /* Given an area in the input image, calculate the bounding box for those
@@ -222,8 +223,8 @@ transform_rect( const VipsTransformation *trn, transform_fn transform,
  */
 void
 vips__transform_forward_rect( const VipsTransformation *trn,
-	const Rect *in, 	/* In input space */
-	Rect *out )		/* In output space */
+	const VipsRect *in, 	/* In input space */
+	VipsRect *out )		/* In output space */
 {
 	transform_rect( trn, vips__transform_forward_point, in, out );
 }
@@ -233,8 +234,8 @@ vips__transform_forward_rect( const VipsTransformation *trn,
  */
 void
 vips__transform_invert_rect( const VipsTransformation *trn, 
-	const Rect *in,		/* In output space */
-	Rect *out )		/* In input space */
+	const VipsRect *in,		/* In output space */
+	VipsRect *out )		/* In input space */
 {
 	transform_rect( trn, vips__transform_invert_point, in, out );
 }

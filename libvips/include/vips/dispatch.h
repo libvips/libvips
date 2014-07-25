@@ -292,6 +292,8 @@ int im_allocate_vargv( im_function *fn, im_object *vargv );
  */
 int im_run_command( char *name, int argc, char **argv );
 
+int vips__input_interpolate_init( im_object *obj, char *str );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

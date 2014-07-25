@@ -1,34 +1,9 @@
 - vips_object_unref_outputs() needs docs ... bindings will need it
  
+- rewrite im_conv() etc. as vips_conv()
 
+  finally finish --disable-deprecated option
 
-- maxpos_avg seems to give variable results
-
-	irb(main):022:0> im.maxpos_avg
-	=> [141.0, 138.0, 248.0]
-	irb(main):023:0> im.maxpos_avg
-	=> [73.0, 95.0, 248.0]
-
-  [107.0, 116.5, 248.0] is correct, checked by hand
-
-$ vips max --size 10 spec/samples/wagon.v --x-array --y-array --out-array
-72 107 78 73 74 75 99 100 141 73 
-95 141 94 94 94 95 131 131 138 95 
-245 246 246 247 247 247 247 247 248 248 
-248.000000
-
-  so there are two maxes of 248, result should be average of the two
-
-  seems to be a race in maxpos_avg, it's still some Tom code, replace with a
-  wrapper over vips_max()
-
-  hard to do, since vips_max() needs to be told in advance the number of maxes
-  it should search for
-
-
-
-
-- threadpool recyling might be useful for dzsave?
 
 
 - check and fix up docs

@@ -197,7 +197,8 @@ vips_max_build( VipsObject *object )
 
 	/* For speed we accumulate max ** 2 for complex.
 	 */
-	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) ) {
+	if( vips_band_format_iscomplex( 
+		vips_image_get_format( statistic->in ) ) ) {
 		int i;
 
 		for( i = 0; i < values->n; i++ ) 

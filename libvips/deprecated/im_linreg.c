@@ -183,7 +183,7 @@ int im_linreg( IMAGE **ins, IMAGE *out, double *xs ){
       }
     }
     else {
-      if( vips_bandfmt_iscomplex( ins[ 0 ]->BandFmt ) ){
+      if( vips_band_format_iscomplex( ins[ 0 ]->BandFmt ) ){
         im_error( FUNCTION_NAME, "image has non-scalar band format" );
         return( -1 );
       }

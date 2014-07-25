@@ -88,7 +88,7 @@ vips_foreign_save_raw_dispose( GObject *gobject )
 }
 
 static int
-vips_foreign_save_raw_write( VipsRegion *region, Rect *area, void *a )
+vips_foreign_save_raw_write( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSave *save = (VipsForeignSave *) a;
 	VipsForeignSaveRaw *raw = (VipsForeignSaveRaw *) a;
@@ -195,7 +195,7 @@ G_DEFINE_TYPE( VipsForeignSaveRawFd, vips_foreign_save_raw_fd,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static int
-vips_foreign_save_raw_fd_write( VipsRegion *region, Rect *area, void *a )
+vips_foreign_save_raw_fd_write( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSave *save = (VipsForeignSave *) a;
 	VipsForeignSaveRawFd *fd = (VipsForeignSaveRawFd *) a;

@@ -75,7 +75,7 @@ vips_round_build( VipsObject *object )
 	 * is.
 	 */
 	if( unary->in &&
-		vips_bandfmt_isint( unary->in->BandFmt ) ) 
+		vips_band_format_isint( unary->in->BandFmt ) ) 
 		return( vips_unary_copy( unary ) ); 
 
 	if( VIPS_OBJECT_CLASS( vips_round_parent_class )->build( object ) )
@@ -115,7 +115,7 @@ vips_round_buffer( VipsArithmetic *arithmetic,
 	/* Complex just doubles the size.
 	 */
 	const int sz = width * im->Bands * 
-		(vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1);
+		(vips_band_format_iscomplex( im->BandFmt ) ? 2 : 1);
 
 	int x;
 

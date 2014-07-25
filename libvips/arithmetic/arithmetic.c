@@ -464,7 +464,7 @@ vips_arithmetic_gen( VipsRegion *or,
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( b ); 
 	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS( arithmetic ); 
-	Rect *r = &or->valid;
+	VipsRect *r = &or->valid;
 
 	VipsPel *p[MAX_INPUT_IMAGES], *q;
 	int i, y;

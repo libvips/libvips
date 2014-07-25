@@ -145,12 +145,12 @@ vips_col_dE00( float L1, float a1, float b1,
 
 	/* RT, T.
 	 */
-	double RT = -sin( IM_RAD( 2 * dtheta ) ) * RC;
+	double RT = -sin( VIPS_RAD( 2 * dtheta ) ) * RC;
 	double T = 1 - 
-		0.17 * cos( IM_RAD( hdb - 30 ) ) +
-		0.24 * cos( IM_RAD( 2 * hdb ) ) +
-		0.32 * cos( IM_RAD( 3 * hdb + 6 ) ) -
-		0.20 * cos( IM_RAD( 4 * hdb - 63 ) );
+		0.17 * cos( VIPS_RAD( hdb - 30 ) ) +
+		0.24 * cos( VIPS_RAD( 2 * hdb ) ) +
+		0.32 * cos( VIPS_RAD( 3 * hdb + 6 ) ) -
+		0.20 * cos( VIPS_RAD( 4 * hdb - 63 ) );
 
 	/* SL, SC, SH
 	 */
@@ -169,7 +169,7 @@ vips_col_dE00( float L1, float a1, float b1,
 	 */
 	double dLd = L1d - L2d;
 	double dCd = C1d - C2d;
-	double dHd = 2 * sqrt( C1d * C2d ) * sin( IM_RAD( dhd / 2 ) );
+	double dHd = 2 * sqrt( C1d * C2d ) * sin( VIPS_RAD( dhd / 2 ) );
 
 	/* Parametric factors for viewing parameters.
 	 */

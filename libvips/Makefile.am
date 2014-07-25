@@ -1,12 +1,21 @@
+OPTIONAL_COMPILE_DIR = 
+OPTIONAL_DIST_DIR =
+OPTIONAL_LIB = 
+
 # only build in the cimg dir if C++ is enabled
 if ENABLE_CXX
-C_COMPILE_DIR = cimg
-C_DIST_DIR =
-C_LIB = cimg/libcimg.la
+OPTIONAL_COMPILE_DIR += cimg
+OPTIONAL_LIB += cimg/libcimg.la
 else
-C_COMPILE_DIR =
-C_DIST_DIR = cimg
-C_LIB = 
+OPTIONAL_DIST_DIR += cimg
+endif
+
+# same for deprecated
+if ENABLE_DEPRECATED
+OPTIONAL_COMPILE_DIR += deprecated
+OPTIONAL_LIB += deprecated/libdeprecated.la
+else
+OPTIONAL_DIST_DIR += deprecated
 endif
 
 SUBDIRS = \
@@ -16,9 +25,8 @@ SUBDIRS = \
 	resample \
 	colour \
 	conversion \
-	deprecated \
 	convolution \
-	$(C_COMPILE_DIR) \
+	$(OPTIONAL_COMPILE_DIR) \
 	freqfilt \
 	histogram \
 	draw \
@@ -49,8 +57,7 @@ libvips_la_LIBADD = \
 	colour/libcolour.la \
 	conversion/libconversion.la \
 	convolution/libconvolution.la \
-	deprecated/libdeprecated.la \
-	$(C_LIB) \
+	$(OPTIONAL_LIB) \
 	foreign/libforeign.la \
 	freqfilt/libfreqfilt.la \
 	histogram/libhistogram.la \
@@ -71,7 +78,7 @@ libvips_la_LDFLAGS = \
 	-version-info @LIBRARY_CURRENT@:@LIBRARY_REVISION@:@LIBRARY_AGE@ 
 
 EXTRA_DIST = \
-	$(C_DIST_DIR)
+	$(OPTIONAL_DIST_DIR)
 
 CLEANFILES = 
 

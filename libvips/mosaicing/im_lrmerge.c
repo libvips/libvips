@@ -187,7 +187,7 @@ find_first( REGION *ir, int *pos, int x, int y, int w )
 
 	/* Double the number of bands in a complex.
 	 */
-	if( vips_bandfmt_iscomplex( im->BandFmt ) )
+	if( vips_band_format_iscomplex( im->BandFmt ) )
 		ne *= 2;
 
 /* Search for the first non-zero band element from the left edge of the image.
@@ -236,7 +236,7 @@ find_last( REGION *ir, int *pos, int x, int y, int w )
 
 	/* Double the number of bands in a complex.
 	 */
-	if( vips_bandfmt_iscomplex( im->BandFmt ) )
+	if( vips_band_format_iscomplex( im->BandFmt ) )
 		ne *= 2;
 
 /* Search for the first non-zero band element from the right.

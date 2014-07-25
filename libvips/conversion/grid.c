@@ -93,7 +93,7 @@ vips_grid_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	/* If the request fits inside a single tile, we can just pointer-copy.
 	 */
 	if( vips_rect_includesrect( &tile, r ) ) {
-		Rect irect;
+		VipsRect irect;
 
 		/* Translate request to input space.
 		 */
