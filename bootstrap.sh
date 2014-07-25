@@ -13,7 +13,16 @@ rm -f swig/vipsCC/*.cxx
 rm -f swig/vipsCC/VImage.h
 rm -f swig/vipsCC/VImage.py python/vipsCC/VError.py python/vipsCC/VMask.py python/vipsCC/Display.py
 rm -f benchmark/temp*
-( cd doc ; mkdir poop ; mv reference/libvips-docs.sgml.in poop ; mv reference/Makefile.am poop ; mv reference/images poop ; rm -rf reference/* ; mv poop/* reference ; rmdir poop )
+( cd doc ; \
+	mkdir poop ; \
+	mv reference/libvips-docs.sgml.in poop ; \
+	mv reference/Makefile.am poop ; \
+	mv reference/images poop ; \
+	mv reference/*.xml poop ; \
+	rm -rf reference/* ; \
+	mv poop/* reference ; \
+	rmdir poop \
+)
 
 # glib-gettextize asks us to copy these files to m4 if they aren't there
 # I don't have $ACDIR/isc-posix.m4, how mysterious

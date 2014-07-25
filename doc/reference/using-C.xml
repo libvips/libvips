@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+]>
+<refentry id="using-from-c">
+  <refmeta>
+    <refentrytitle>Using VIPS from C</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>VIPS Library</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>Using VIPS</refname>
+    <refpurpose>How to use the VIPS library</refpurpose>
+  </refnamediv>
+
+  <refsect1 id="using-C">
+    <title>Using VIPS from C</title>
+    <para>
+      VIPS comes with a convenient, high-level C API. You should read the API 
+      docs for full details, but this section will try to give a brief 
+      overview. The <command>vips</command> program is handy for getting a 
+      summary of an operation's parameters.
+
+      When your program starts, use <function>vips_init()</function> to set up 
+      the VIPS library. You should pass it the name of your program, usually 
+      <literal>argv[0]</literal>. Use <function>vips_shutdown()</function> 
+      when you exit. 
+
+      You can add the VIPS flags to your GObject command-line processing
+      with vips_get_option_group(), see below.
+
+      The basic data object is #VipsImage. You can create an image from a 
+      file on disc or from an area of memory, either as a C-style array, 
+      or as a formatted object, like JPEG. See vips_image_new_from_file() and 
+      friends.  
+      Loading an image is fast. VIPS read just enough of the image to be able 
+      to get the various properties, such as width in pixels. It delays 
+      reading any pixels until they are really needed. 
+
+      Once you have an image, you can get properties from it in the usual way. 
+      You can use projection functions like vips_image_get_width(), or 
+      g_object_get() to get GObject properties. 
+
+      VIPS is based on the GObject library and is therefore refcounted. 
+      vips_image_new_from_file() returns an object with a count of 1. 
+      When you are done with an image, use g_object_unref() to dispose of it. 
+      If you pass an image to an operation and that operation needs to keep a 
+      copy of the image, it will ref it. So you can unref an image as soon as 
+      you no longer need it, you don't need to hang on to it in case anyone 
+      else is still using it. 
+
+      VIPS images are three-dimensional arrays, the dimensions being width, 
+      height and bands. Each dimension can be up to 2 ** 31 pixels (or band 
+      elements). An image has a format, meaning the machine number type used 
+      to represent each value. VIPS supports 10 formats, from 8-bit unsigned 
+      integer up to 128-bit double complex, see #VipsBandFormat. 
+
+      In VIPS, images are uninterpreted arrays, meaning that from the point of 
+      view of most operations, they are just large collections of numbers. 
+      There's no difference between an RGBA (RGB with alpha) image and a CMYK 
+      image, for example, they are both just four-band images. It's up to the 
+      user of the library to pass the right sort of image to each operation. 
+
+      To take an example, VIPS has vips_Lab2XYZ(), an operation to transform 
+      an image from CIE LAB colour space to CIE XYZ space. It assumes the 
+      first three bands represent pixels in LAB colour space and returns an 
+      image where the first three bands 
+
+    </para>
+  </refsect1>
+
+</refentry>

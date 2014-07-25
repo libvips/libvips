@@ -1,3 +1,6 @@
+- vips_object_unref_outputs() needs docs ... bindings will need it
+ 
+
 
 
 - check and fix up docs
