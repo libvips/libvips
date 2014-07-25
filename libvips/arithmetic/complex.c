@@ -135,7 +135,7 @@ G_DEFINE_TYPE( VipsComplex, vips_complex, VIPS_TYPE_UNARY );
 	double am, ph; \
 	\
 	am = sqrt( re * re + im * im ); \
-	ph = im_col_ab2h( re, im ); \
+	ph = vips_col_ab2h( re, im ); \
 	\
 	Q[0] = am; \
 	Q[1] = ph; \

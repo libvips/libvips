@@ -309,7 +309,7 @@ vips_fwfft_build( VipsObject *object )
 		return( -1 );
 	in = t[0]; 
 
-	if( vips_bandfmt_iscomplex( in->BandFmt ) ) {
+	if( vips_band_format_iscomplex( in->BandFmt ) ) {
 		if( vips__fftproc( VIPS_OBJECT( fwfft ), in, &t[1], 
 			cfwfft1 ) )
 			return( -1 );

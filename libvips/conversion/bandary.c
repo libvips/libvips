@@ -87,7 +87,7 @@ vips_bandary_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsBandary *bandary = (VipsBandary *) b;
 	VipsBandaryClass *class = VIPS_BANDARY_GET_CLASS( bandary ); 
-	Rect *r = &or->valid;
+	VipsRect *r = &or->valid;
 
 	VipsPel *p[MAX_INPUT_IMAGES], *q;
 	int y, i;

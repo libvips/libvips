@@ -1343,7 +1343,7 @@ make_tiff_write( VipsImage *im, const char *filename,
 	 */
 	if( tw->pyramid ) {
 		if( im->Coding == VIPS_CODING_NONE && 
-			vips_bandfmt_iscomplex( im->BandFmt ) ) {
+			vips_band_format_iscomplex( im->BandFmt ) ) {
 			vips_error( "vips2tiff", 
 				"%s", _( "can only pyramid LABQ and "
 				"non-complex images" ) );

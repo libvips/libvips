@@ -1227,7 +1227,7 @@ vips2rad_put_header( Write *write )
 }
 
 static int
-vips2rad_put_data_block( VipsRegion *region, Rect *area, void *a )
+vips2rad_put_data_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
 	int i;

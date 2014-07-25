@@ -147,16 +147,19 @@ extern "C" {
 #include <vips/video.h>
 #include <vips/cimg_funcs.h>
 
-#ifndef VIPS_DISABLE_VIPS7COMPAT
-#include <vips/vips7compat.h>
-#endif /*VIPS_DISABLE_VIPS7COMPAT*/
-
-#ifdef VIPS_ENABLE_DEPRECATED
+/* This stuff is very, very old and should not be used by anyone now.
+ */
+#ifdef VIPS_ENABLE_ANCIENT
 #include <vips/deprecated.h>
-#endif /*VIPS_ENABLE_DEPRECATED*/
+#endif /*VIPS_ENABLE_ANCIENT*/
 
-#include <vips/almostdeprecated.h>
+/* Still in use, but can be turned off.
+ */
+#if VIPS_ENABLE_DEPRECATED
+#include <vips/vips7compat.h>
 #include <vips/dispatch.h>
+#include <vips/almostdeprecated.h>
+#endif /*VIPS_ENABLE_DEPRECATED*/
 
 /* We can't use _ here since this will be compiled by our clients and they may
  * not have _().

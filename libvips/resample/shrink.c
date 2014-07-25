@@ -135,7 +135,7 @@ vips_shrink_start( VipsImage *out, void *a, void *b )
 	VipsShrink *shrink = (VipsShrink *) b;
 	VipsShrinkSequence *seq;
 
-	if( !(seq = IM_NEW( out, VipsShrinkSequence )) )
+	if( !(seq = VIPS_NEW( out, VipsShrinkSequence )) )
 		return( NULL );
 
 	seq->ir = vips_region_new( in );

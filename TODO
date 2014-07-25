@@ -1,3 +1,7 @@
+- rewrite im_conv() etc. as vips_conv()
+
+  finally finish --disable-deprecated option
+
 
 
 - check and fix up docs

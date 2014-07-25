@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [7.40.5], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [7.41.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -17,8 +17,8 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [7])
-m4_define([vips_minor_version], [40])
-m4_define([vips_micro_version], [5])
+m4_define([vips_minor_version], [41])
+m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -124,9 +124,26 @@ else
   fi
 fi
 
+# option to disable deprecated code, shaves a bit off the library size
+AC_ARG_ENABLE(deprecated,
+  AS_HELP_STRING([--enable-deprecated], [build deprecated components (default: yes)]))
+
+VIPS_ENABLE_DEPRECATED=0
+if test x"$enable_deprecated" != x"no"; then
+  VIPS_ENABLE_DEPRECATED=1
+  enable_deprecated=yes
+  AM_CONDITIONAL(ENABLE_DEPRECATED, true)
+else
+  AM_CONDITIONAL(ENABLE_DEPRECATED, false)
+fi
+
+# this gets pasted into version.h as a #define
+AC_SUBST(VIPS_ENABLE_DEPRECATED)
+
 # we are a C library with some optional C++ components inside it
-# on most platforms, we just include -lstdc++ in the link line for programs
-# using vips, but not all
+
+# on most platforms, but not all, we just include -lstdc++ in the link line 
+# for programs
 
 # we ought to write a proper configure test for this :( 
 
@@ -806,6 +823,7 @@ native win32:				$vips_os_win32
 native OS X:				$vips_os_darwin
 open files in binary mode: 		$vips_binary_open
 enable debug:				$enable_debug
+build deprecated components:		$enable_deprecated
 build C++ components:			$enable_cxx
 build docs with gtkdoc:			$enable_gtk_doc
 install docs:				$enable_docs

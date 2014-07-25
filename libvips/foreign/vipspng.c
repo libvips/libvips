@@ -729,7 +729,7 @@ write_new( VipsImage *in )
 }
 
 static int
-write_png_block( VipsRegion *region, Rect *area, void *a )
+write_png_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
 

@@ -176,7 +176,7 @@ vips_recomb_build( VipsObject *object )
 		return( -1 );
 
 	conversion->out->Bands = recomb->m->Ysize;
-	if( vips_bandfmt_isint( in->BandFmt ) ) 
+	if( vips_band_format_isint( in->BandFmt ) ) 
 		conversion->out->BandFmt = VIPS_FORMAT_FLOAT;
 
 	if( vips_image_generate( conversion->out,

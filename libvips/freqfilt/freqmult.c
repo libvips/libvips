@@ -80,7 +80,7 @@ vips_freqmult_build( VipsObject *object )
 
 	in = freqfilt->in;
 
-	if( vips_bandfmt_iscomplex( in->BandFmt ) ) {
+	if( vips_band_format_iscomplex( in->BandFmt ) ) {
 		if( vips_multiply( in, freqmult->mask, &t[0], NULL ) ||
 			vips_invfft( t[0], &t[1], "real", TRUE, NULL ) ) 
 			return( -1 );

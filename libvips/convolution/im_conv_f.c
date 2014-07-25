@@ -245,7 +245,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	int to = r->top;
 	int bo = IM_RECT_BOTTOM(r);
 	int sz = IM_REGION_N_ELEMENTS( or ) * 
-		(vips_bandfmt_iscomplex( in->BandFmt ) ? 2 : 1);
+		(vips_band_format_iscomplex( in->BandFmt ) ? 2 : 1);
 
 	int x, y, z, i;
 

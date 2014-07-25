@@ -224,7 +224,7 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	VipsEmbed *embed = (VipsEmbed *) b;
 	VipsRect *r = &or->valid;
 
-	Rect ovl;
+	VipsRect ovl;
 	int i;
 	VipsPel *p;
 	int plsk;
