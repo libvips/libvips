@@ -344,24 +344,6 @@ vips_concurrency_get( void )
 	return( nthr );
 }
 
-/**
- * VipsThreadState:
- * @im: the #VipsImage being operated upon
- * @reg: a #REGION
- * @pos: a #Rect
- * @x: an int
- * @y: an int
- * @a: client data
- *
- * These per-thread values are carried around for your use by
- * vips_threadpool_run(). They are private to each thread, so they are a
- * useful place
- * for #VipsThreadpoolAllocate and #VipsThreadpoolWork to communicate.
- *
- * @reg is created for you at the start of processing and freed at the end,
- * but you can do what you like with it.
- */
-
 G_DEFINE_TYPE( VipsThreadState, vips_thread_state, VIPS_TYPE_OBJECT );
 
 static void
