@@ -1,6 +1,7 @@
 25/7/14 started 7.40.5
 - fix a race in im_maxpos_avg()
 - limit n_thr on tiny images
+- don't exit() on memleak detected, just warn
 
 4/7/14 started 7.40.4
 - fix vips_rawsave_fd(), thanks aferrero2707 

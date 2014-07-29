@@ -234,7 +234,8 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	VipsRect image, want, need, clipped;
 
 #ifdef DEBUG
-	printf( "affine: generating left=%d, top=%d, width=%d, height=%d\n", 
+	printf( "vips_affine_gen: "
+		"generating left=%d, top=%d, width=%d, height=%d\n", 
 		r->left,
 		r->top,
 		r->width,
@@ -430,6 +431,7 @@ vips_affine_build( VipsObject *object )
 	affine->trn.ody = 0;
 
 	vips__transform_set_area( &affine->trn );
+
 	if( vips_object_argument_isset( object, "oarea" ) ) {
 		affine->trn.oarea.left = ((int *) affine->oarea->data)[0];
 		affine->trn.oarea.top = ((int *) affine->oarea->data)[1];
@@ -456,6 +458,9 @@ vips_affine_build( VipsObject *object )
 		affine->trn.oarea.width == in->Xsize &&
 		affine->trn.oarea.height == in->Ysize ) 
 		return( vips_image_write( in, resample->out ) );
+	/*
+	printf( "vips_affine_build: identity shortcut disabled\n" ); 
+	 */
 
 	/* Check for coordinate overflow ... we want to be able to hold the
 	 * output space inside INT_MAX / TRANSFORM_SCALE.
@@ -505,6 +510,15 @@ vips_affine_build( VipsObject *object )
 		affine->trn.b, 
 		affine->trn.c, 
 		affine->trn.d );  
+#endif /*DEBUG*/
+
+#ifdef DEBUG
+	printf( "vips_affine_build: output area: "
+		"left = %d, top = %d, width = %d, height = %d\n",
+		affine->trn.oarea.left, 
+		affine->trn.oarea.top, 
+		affine->trn.oarea.width, 
+		affine->trn.oarea.height );  
 #endif /*DEBUG*/
 
 	/* Generate!

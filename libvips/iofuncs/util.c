@@ -419,6 +419,9 @@ vips_vsnprintf( char *str, size_t size, const char *format, va_list ap )
 	int n;
 	static char buf[MAX_BUF];
 
+	/* We can't return an error code, we may already have trashed the
+	 * stack. We must stop immediately.
+	 */
 	if( size > MAX_BUF )
 		vips_error_exit( "panic: buffer overflow "
 			"(request to write %d bytes to buffer of %d bytes)",

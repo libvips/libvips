@@ -254,7 +254,7 @@ vips_invfft_class_init( VipsInvfftClass *class )
 
 	VIPS_ARG_BOOL( class, "real", 4, 
 		_( "Real" ), 
-		_( "Ouput only the real part of the transform" ),
+		_( "Output only the real part of the transform" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsInvfft, real ),
 		FALSE );

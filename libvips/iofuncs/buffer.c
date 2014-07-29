@@ -582,7 +582,10 @@ vips_buffer_print( VipsBuffer *buffer )
 static void
 vips__buffer_init_cb( VipsBufferThread *buffer_thread )
 {
-	vips_error_exit( "vips_thread_shutdown() not called for thread %p",
+	/* This is a mem leak, not catastrophic.
+	 */
+	vips_warn( "VipsBuffer", 
+		_( "vips_thread_shutdown() not called for thread %p" ),
 		g_thread_self() ); 
 }
 

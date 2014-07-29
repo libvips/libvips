@@ -8,6 +8,8 @@
 
 - vipsthumbnail -t plus large -s seems to fail?
 
+- bicubic adds noise to 255/255/255, why? try babe.jpg background
+
 
 
 - vips_object_unref_outputs() needs docs ... bindings will need it
