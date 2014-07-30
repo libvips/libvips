@@ -37,9 +37,9 @@ extern "C" {
 
 int vips__openslide_isslide( const char *filename );
 int vips__openslide_read_header( const char *filename, VipsImage *out, 
-	int level, char *associated );
+	int level, gboolean whole_slide, char *associated );
 int vips__openslide_read( const char *filename, VipsImage *out, 
-	int level );
+	int level, gboolean whole_slide );
 int vips__openslide_read_associated( const char *filename, VipsImage *out, 
 	const char *associated );
 

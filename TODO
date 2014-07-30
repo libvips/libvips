@@ -1,7 +1,5 @@
 - affine makes black lines with interp window_offset > 1, see nohalo
 
-- get rid of libexif, try exiv2
-
 - experiment with size down to two sizes above in vipsthumbnail
 
   how does this affect speed and sharpness?
