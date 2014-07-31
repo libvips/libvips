@@ -2307,6 +2307,7 @@ vips_openexrload( const char *filename, VipsImage **out, ... )
  *
  * @level: load this level
  * @associated: load this associated image
+ * @autocrop: crop to image bounds
  *
  * Read a virtual slide supported by the OpenSlide library into a VIPS image.
  * OpenSlide supports images in Aperio, Hamamatsu, MIRAX, Sakura, Trestle,
@@ -2324,8 +2325,7 @@ vips_openexrload( const char *filename, VipsImage **out, ... )
  * A slide's associated images are listed in the
  * "slide-associated-images" metadata item.
  *
- * The output of this operator is in pre-multipled ARGB format. Use
- * im_argb2rgba() to decode to png-style RGBA. 
+ * The output of this operator is always RGBA.
  *
  * See also: vips_image_new_from_file().
  *

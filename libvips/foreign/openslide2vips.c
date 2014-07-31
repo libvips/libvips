@@ -42,7 +42,7 @@
  * 25/1/14
  * 	- use openslide_detect_vendor() on >= 3.4.0
  * 30/7/14
- * 	- add whole_slide toggle
+ * 	- add autocrop toggle
  */
 
 /*
@@ -94,10 +94,9 @@ typedef struct {
 
 	char *associated;
 
-	/* Normally we crop to image bounds, if set. @whole_slide means, get the
-	 * whole image.
+	/* Crop to image bounds if @autocrop is set. 
 	 */
-	gboolean whole_slide;
+	gboolean autocrop;
 	VipsRect bounds;
 
 	/* Only valid if associated == NULL.
@@ -218,7 +217,7 @@ get_bounds( openslide_t *osr, VipsRect *rect )
 
 static ReadSlide *
 readslide_new( const char *filename, VipsImage *out, 
-	int level, gboolean whole_slide, const char *associated )
+	int level, gboolean autocrop, const char *associated )
 {
 	ReadSlide *rslide;
 	int64_t w, h;
@@ -240,7 +239,7 @@ readslide_new( const char *filename, VipsImage *out,
 		rslide );
 
 	rslide->level = level;
-	rslide->whole_slide = whole_slide;
+	rslide->autocrop = autocrop;
 	rslide->associated = g_strdup( associated );
 
 	/* Non-crazy defaults, override below if we can.
@@ -305,18 +304,35 @@ readslide_new( const char *filename, VipsImage *out,
 		if( value )
 			VIPS_DEBUG_MSG( "readslide_new: found tile-size\n" );
 
-		/* Some images have a bounds in the header. Try to crop to 
-		 * that, unless whole_slide is set. 
+		/* Some images have a bounds in the header. Crop to 
+		 * that if autocrop is set. 
 		 */
-		if( !rslide->whole_slide ) 
+		if( rslide->autocrop ) 
 			if( !get_bounds( rslide->osr, &rslide->bounds ) )
-				rslide->whole_slide = TRUE; 
-		if( !rslide->whole_slide ) {
+				rslide->autocrop = FALSE; 
+		if( rslide->autocrop ) {
+			VipsRect image;
+
 			rslide->bounds.left /= rslide->downsample;
 			rslide->bounds.top /= rslide->downsample;
 			rslide->bounds.width /= rslide->downsample;
 			rslide->bounds.height /= rslide->downsample;
 
+			/* Clip against image size.
+			 */
+			image.left = 0;
+			image.top = 0;
+			image.width = w;
+			image.height = h;
+			vips_rect_intersectrect( &rslide->bounds, &image, 
+				&rslide->bounds );
+
+			/* If we've clipped to nothing, ignore bounds.
+			 */
+			if( vips_rect_isempty( &rslide->bounds ) )
+				rslide->autocrop = FALSE;
+		}
+		if( rslide->autocrop ) {
 			w = rslide->bounds.width;
 			h = rslide->bounds.height;
 		}
@@ -341,7 +357,7 @@ readslide_new( const char *filename, VipsImage *out,
 		return( NULL );
 	}
 
-	if( rslide->whole_slide ) {
+	if( !rslide->autocrop ) {
 		rslide->bounds.left = 0;
 		rslide->bounds.top = 0;
 		rslide->bounds.width = w;
@@ -366,9 +382,9 @@ readslide_new( const char *filename, VipsImage *out,
 
 int
 vips__openslide_read_header( const char *filename, VipsImage *out, 
-	int level, gboolean whole_slide, char *associated )
+	int level, gboolean autocrop, char *associated )
 {
-	if( !readslide_new( filename, out, level, whole_slide, associated ) )
+	if( !readslide_new( filename, out, level, autocrop, associated ) )
 		return( -1 );
 
 	return( 0 );
@@ -457,7 +473,7 @@ vips__openslide_generate( VipsRegion *out,
 
 int
 vips__openslide_read( const char *filename, VipsImage *out, 
-	int level, gboolean whole_slide )
+	int level, gboolean autocrop )
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
@@ -470,7 +486,7 @@ vips__openslide_read( const char *filename, VipsImage *out,
 	vips_object_local( out, raw );
 
 	if( !(rslide = readslide_new( filename, raw, 
-		level, whole_slide, NULL )) )
+		level, autocrop, NULL )) )
 		return( -1 );
 
 	if( vips_image_generate( raw, 
