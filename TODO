@@ -1,3 +1,15 @@
+- affine makes black lines with interp window_offset > 1, see nohalo
+
+- experiment with size down to two sizes above in vipsthumbnail
+
+  how does this affect speed and sharpness?
+
+- vipsthumbnail -t plus large -s seems to fail?
+
+- bicubic adds noise to 255/255/255, why? try babe.jpg background
+
+
+
 - vips_object_unref_outputs() needs docs ... bindings will need it
  
 - rewrite im_conv() etc. as vips_conv()

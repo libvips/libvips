@@ -156,8 +156,8 @@ vips__transform_print( const VipsTransformation *trn )
  */
 void
 vips__transform_forward_point( const VipsTransformation *trn, 
-	double x, double y,			/* In input space */
-	double *ox, double *oy )		/* In output space */
+	double x, double y,	/* In input space */
+	double *ox, double *oy )/* In output space */
 {
 	x += trn->idx;
 	y += trn->idy;
@@ -170,11 +170,11 @@ vips__transform_forward_point( const VipsTransformation *trn,
  */
 void
 vips__transform_invert_point( const VipsTransformation *trn, 
-	double x, double y,			/* In output space */
-	double *ox, double *oy )		/* In input space */
+	double x, double y,	/* In output space */
+	double *ox, double *oy )/* In input space */
 {
-	x -=  trn->odx;
-	y -=  trn->ody;
+	x -= trn->odx;
+	y -= trn->ody;
 
 	*ox = trn->ia * x + trn->ib * y - trn->idx;
 	*oy = trn->ic * x + trn->id * y - trn->idy;
@@ -187,7 +187,7 @@ typedef void (*transform_fn)( const VipsTransformation *,
  */
 static void
 transform_rect( const VipsTransformation *trn, transform_fn transform,
-	const VipsRect *in,		/* In input space */
+	const VipsRect *in,	/* In input space */
 	VipsRect *out )		/* In output space */
 {
 	double x1, y1;		/* Map corners */
@@ -198,9 +198,12 @@ transform_rect( const VipsTransformation *trn, transform_fn transform,
 
 	/* Map input VipsRect.
 	 */
-	transform( trn, in->left, in->top, &x1, &y1 );
-	transform( trn, in->left, VIPS_RECT_BOTTOM( in ), &x3, &y3 );
-	transform( trn, VIPS_RECT_RIGHT( in ), in->top, &x2, &y2 );
+	transform( trn, in->left, in->top, 
+		&x1, &y1 );
+	transform( trn, in->left, VIPS_RECT_BOTTOM( in ), 
+		&x3, &y3 );
+	transform( trn, VIPS_RECT_RIGHT( in ), in->top, 
+		&x2, &y2 );
 	transform( trn, VIPS_RECT_RIGHT( in ), VIPS_RECT_BOTTOM( in ), 
 		&x4, &y4 );
 
@@ -234,7 +237,7 @@ vips__transform_forward_rect( const VipsTransformation *trn,
  */
 void
 vips__transform_invert_rect( const VipsTransformation *trn, 
-	const VipsRect *in,		/* In output space */
+	const VipsRect *in,	/* In output space */
 	VipsRect *out )		/* In input space */
 {
 	transform_rect( trn, vips__transform_invert_point, in, out );

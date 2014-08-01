@@ -76,7 +76,7 @@ typedef struct _VipsBuildlut {
 	int xlow;		/* Index 0 in output is this x */
 	int lut_size;		/* Number of output elements to generate */
 	double **data;		/* Matrix row pointers */
-	double *buf;		/* Ouput buffer */
+	double *buf;		/* Output buffer */
 } VipsBuildlut;
 
 typedef VipsCreateClass VipsBuildlutClass;

@@ -130,7 +130,9 @@ vips_thread_profile_save( VipsThreadProfile *profile )
 			vips__file_open_write( "vips-profile.txt", TRUE );
 		if( !vips__thread_fp ) {
 			g_mutex_unlock( vips__global_lock );
-			vips_error_exit( "unable to create profile log" ); 
+			vips_warn( "VipsGate", 
+				"%s", "unable to create profile log" ); 
+			return;
 		}
 
 		printf( "recording profile in vips-profile.txt\n" );  
@@ -192,7 +194,8 @@ vips__thread_profile_init_cb( VipsThreadProfile *profile )
 	 * We can't do the freeing in this callback since GPrivate has already
 	 * stopped working. 
 	 */
-	vips_error_exit( "vips_thread_shutdown() not called for thread %p", 
+	vips_warn( "VipsBuffer", 
+		_( "vips_thread_shutdown() not called for thread %p" ), 
 		g_thread_self() ); 
 }
 
