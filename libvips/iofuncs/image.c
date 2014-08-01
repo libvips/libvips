@@ -709,10 +709,6 @@ vips_image_rewind( VipsObject *object )
 /* Delayed save.
  */
 
-/* If we write to (eg.) TIFF, actually do the write
- * to a "p" and on "written" do im_vips2tiff() or whatever. 
- */
-
 /* From "written" callback: save to image->filename using VipsForeign.
  */
 static void
@@ -1102,10 +1098,10 @@ vips_image_class_init( VipsImageClass *class )
 	 * can't :-( 
 	 *
 	 * For example, a "p" image might be made with vips_image_new() and
-	 * constructed, then passed to im_copy() of whatever to be written to.
+	 * constructed, then passed to vips_copy() of whatever to be written to.
 	 * That operation will then need to set width/height etc.
 	 *
-	 * We can't set_once either, since im_copy_set() etc. need to update
+	 * We can't set_once either, since vips_copy() etc. need to update
 	 * xoffset and friends on the way through.
 	 */
 
@@ -2321,10 +2317,10 @@ vips_image_write_to_memory( VipsImage *in, void **buf_out, size_t *len_out )
 
 	len = VIPS_IMAGE_SIZEOF_IMAGE( in );
 	if( !(buf = g_try_malloc( len )) ) {
-		vips_error( "vips_image_write_to_buffer", 
+		vips_error( "vips_image_write_to_memory", 
 			_( "out of memory --- size == %dMB" ), 
 			(int) (len / (1024.0 * 1024.0))  );
-		vips_warn( "vips_image_write_to_buffer", 
+		vips_warn( "vips_image_write_to_memory", 
 			_( "out of memory --- size == %dMB" ), 
 			(int) (len / (1024.0*1024.0))  );
 		return( -1 );
@@ -3025,7 +3021,7 @@ vips_image_pio_output( VipsImage *image )
 
 	case VIPS_IMAGE_PARTIAL:
 		if( image->generate_fn ) {
-			vips_error( "im_poutcheck", 
+			vips_error( "vips_image_pio_output", 
 				"%s", _( "image already written" ) );
 			return( -1 );
 		}
