@@ -1,10 +1,25 @@
-- affine makes black lines with interp window_offset > 1, see nohalo
+- vipsthumbnail -t plus large -s seems to fail?
+
+  change caching:
+
+  - png and jpg interlaced write need to make a memory copy before writing,
+    they advertse as seq, they need to be seq
+
+  - autorotate should make a mem copy if it find rotation is necessary
+
+  - remove second vips_cache()
 
 - experiment with size down to two sizes above in vipsthumbnail
 
   how does this affect speed and sharpness?
 
-- vipsthumbnail -t plus large -s seems to fail?
+  do shrink / VIPS_MAX( window_size / 2, 1 )
+
+  find shrink needs a copy of the interpolator: make a single interp during
+  startup
+
+
+
 
 - bicubic adds noise to 255/255/255, why? try babe.jpg background
 
