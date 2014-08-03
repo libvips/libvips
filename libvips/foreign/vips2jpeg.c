@@ -58,6 +58,7 @@
  * 	- attach IPCT data (app13), thanks Gary
  * 2/10/13 Lovell Fuller
  * 	- add optimize_coding parameter
+ * 	- add progressive mode
  * 12/11/13
  * 	- add "strip" option to remove all metadata
  * 13/11/13

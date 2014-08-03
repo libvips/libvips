@@ -2,9 +2,6 @@
 
   change caching:
 
-  - png and jpg interlaced write need to make a memory copy before writing,
-    they advertse as seq, they need to be seq
-
   - autorotate should make a mem copy if it find rotation is necessary
 
   - remove second vips_cache()

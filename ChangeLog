@@ -4,6 +4,7 @@
 - don't exit() on memleak detected, just warn
 - add "autocrop" option to openslide load
 - argh fix affine, again
+- pngsave in interlaced mode make a copy of the whole image
 
 4/7/14 started 7.40.4
 - fix vips_rawsave_fd(), thanks aferrero2707 
