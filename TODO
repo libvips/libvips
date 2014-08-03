@@ -1,10 +1,13 @@
-- vipsthumbnail -t plus large -s seems to fail?
+- try:
 
-  change caching:
+	$ vipsthumbnail Chicago.png --vips-concurrency=1
+	memory: high-water mark 180.57 MB
+	$ vipsthumbnail Chicago.png --vips-concurrency=4
+	memory: high-water mark 180.57 MB
 
-  - autorotate should make a mem copy if it find rotation is necessary
+  shouldn't memuse drop with concurrency 1?
 
-  - remove second vips_cache()
+- bicubic adds noise to 255/255/255, why? try babe.jpg background
 
 - experiment with size down to two sizes above in vipsthumbnail
 
@@ -18,7 +21,6 @@
 
 
 
-- bicubic adds noise to 255/255/255, why? try babe.jpg background
 
 
 

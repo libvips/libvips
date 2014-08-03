@@ -862,7 +862,7 @@ write_vips( Write *write, int compress, int interlace )
 	/* Write data.
 	 */
 	for( i = 0; i < nb_passes; i++ ) 
-		if( vips_sink_disc( write->in, write_png_block, write ) )
+		if( vips_sink_disc( in, write_png_block, write ) )
 			return( -1 );
 
 	/* The setjmp() was held by our background writer: reset it.

@@ -570,12 +570,18 @@ thumbnail_crop( VipsObject *process, VipsImage *im )
 static VipsImage *
 thumbnail_rotate( VipsObject *process, VipsImage *im )
 {
-	VipsImage **t = (VipsImage **) vips_object_local_array( process, 1 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
+	VipsAngle angle = get_angle( im );
 
-	if( rotate_image ) {
-		if( vips_rot( im, &t[0], get_angle( im ), NULL ) )
+	if( rotate_image &&
+		angle != VIPS_ANGLE_0 ) {
+		/* Need to copy to memory, we have to stay seq.
+		 */
+		t[0] = vips_image_new_memory();
+		if( vips_image_write( im, t[0] ) ||
+			vips_rot( t[0], &t[1], angle, NULL ) )
 			return( NULL ); 
-		im = t[0];
+		im = t[1];
 
 		(void) vips_image_remove( im, ORIENTATION );
 	}
@@ -589,8 +595,6 @@ thumbnail_rotate( VipsObject *process, VipsImage *im )
 static int
 thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 {
-	VipsImage **t = (VipsImage **) vips_object_local_array( process, 1 );
-
 	char *file;
 	char *p;
 	char buf[FILENAME_MAX];
@@ -622,16 +626,7 @@ thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 
 	g_free( file );
 
-	/* We need to cache the whole of the thumbnail before we write it 
-	 * in case we are writing an interlaced image. Interlaced png (for
-	 * example) will make 7 passes over the image during write.
-	 */
-	if( vips_tilecache( im, &t[0], 
-		"threaded", TRUE,
-		"persistent", TRUE,
-		"max_tiles", -1,
-		NULL ) ||
-		vips_image_write_to_file( t[0], output_name, NULL ) ) {
+	if( vips_image_write_to_file( im, output_name, NULL ) ) {
 		g_free( output_name );
 		return( -1 );
 	}
