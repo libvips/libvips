@@ -353,6 +353,7 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 		bicubic_int_tab<unsigned char, 0, UCHAR_MAX>(
 			out, p, bands, lskip,
 			cxi, cyi );
+
 	/*
 
 	   Handy for benchmarking
@@ -360,11 +361,13 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 		bicubic_float_tab<unsigned char>(
 			out, p, bands, lskip,
 			cxf, cyf );
+
 		bicubic_notab<unsigned char>(
 			out, p, bands, lskip,
 			x - ix, y - iy );
 
 	 */
+
 		break;
 
 	case VIPS_FORMAT_CHAR:

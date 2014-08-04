@@ -229,7 +229,8 @@ calculate_shrink( VipsImage *im, double *residual,
 	 *
 	 * We want to shrink by less for interpolators with larger windows.
 	 */
-	int shrink = floor( factor2 ) / VIPS_MAX( window_size / 2, 1 );
+	int shrink = VIPS_MAX( 1, 
+		floor( factor2 ) / VIPS_MAX( 1, window_size / 2 ) );
 
 	if( residual &&
 		direction == VIPS_DIRECTION_HORIZONTAL ) {
