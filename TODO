@@ -1,3 +1,4 @@
+
 - try:
 
 	$ vipsthumbnail Chicago.png --vips-concurrency=1
@@ -8,16 +9,6 @@
   shouldn't memuse drop with concurrency 1?
 
 - bicubic adds noise to 255/255/255, why? try babe.jpg background
-
-- experiment with size down to two sizes above in vipsthumbnail
-
-  how does this affect speed and sharpness?
-
-  do shrink / VIPS_MAX( window_size / 2, 1 )
-
-  find shrink needs a copy of the interpolator: make a single interp during
-  startup
-
 
 
 

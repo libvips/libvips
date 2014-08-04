@@ -51,6 +51,10 @@
  * 	  unlike the main image wrt. rotation / colour / etc.
  * 30/6/14
  * 	- fix interlaced thumbnail output, thanks lovell
+ * 3/8/14
+ * 	- box shrink less, use interpolator more, if the window_size is large
+ * 	  enough
+ * 	- default to bicubic + nosharpen if bicubic is available
  */
 
 #ifdef HAVE_CONFIG_H
@@ -67,6 +71,10 @@
 #include <vips/vips.h>
 
 #define ORIENTATION ("exif-ifd0-Orientation")
+
+/* Default settings. We change the default to bicubic + nosharpen in main() if
+ * this vips has been compiled with bicubic support.
+ */
 
 static char *thumbnail_size = "128";
 static int thumbnail_width = 128;
@@ -170,14 +178,20 @@ get_angle( VipsImage *im )
  * We shrink in two stages: first, a shrink with a block average. This can
  * only accurately shrink by integer factors. We then do a second shrink with
  * a supplied interpolator to get the exact size we want.
+ *
+ * We aim to do the second shrink by roughly half the interpolator's 
+ * window_size.
  */
 static int
-calculate_shrink( VipsImage *im, double *residual )
+calculate_shrink( VipsImage *im, double *residual, 
+	VipsInterpolate *interp )
 {
 	VipsAngle angle = get_angle( im ); 
 	gboolean rotate = angle == VIPS_ANGLE_90 || angle == VIPS_ANGLE_270;
 	int width = rotate_image && rotate ? im->Ysize : im->Xsize;
 	int height = rotate_image && rotate ? im->Xsize : im->Ysize;
+	const int window_size =
+		interp ?  vips_interpolate_get_window_size( interp ) : 2;
 
 	VipsDirection direction;
 
@@ -211,9 +225,11 @@ calculate_shrink( VipsImage *im, double *residual )
 	 */
 	double factor2 = factor < 1.0 ? 1.0 : factor;
 
-	/* Int component of shrink.
+	/* Int component of factor2. 
+	 *
+	 * We want to shrink by less for interpolators with larger windows.
 	 */
-	int shrink = floor( factor2 );
+	int shrink = floor( factor2 ) / VIPS_MAX( window_size / 2, 1 );
 
 	if( residual &&
 		direction == VIPS_DIRECTION_HORIZONTAL ) {
@@ -243,7 +259,7 @@ calculate_shrink( VipsImage *im, double *residual )
 static int
 thumbnail_find_jpegshrink( VipsImage *im )
 {
-	int shrink = calculate_shrink( im, NULL );
+	int shrink = calculate_shrink( im, NULL, NULL );
 
 	/* We can't use pre-shrunk images in linear mode. libjpeg shrinks in Y
 	 * (of YCbCR), not linear space.
@@ -324,7 +340,7 @@ thumbnail_interpolator( VipsObject *process, VipsImage *in )
 	double residual;
 	VipsInterpolate *interp;
 
-	calculate_shrink( in, &residual );
+	calculate_shrink( in, &residual, NULL );
 
 	/* For images smaller than the thumbnail, we upscale with nearest
 	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
@@ -430,7 +446,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		return( NULL ); 
 	in = t[2];
 
-	shrink = calculate_shrink( in, &residual );
+	shrink = calculate_shrink( in, &residual, interp );
 
 	vips_info( "vipsthumbnail", "integer shrink by %d", shrink );
 
@@ -669,6 +685,14 @@ main( int argc, char **argv )
 	        vips_error_exit( "unable to start VIPS" );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
+
+	/* Does this vips have bicubic? Default to that + nosharpen if it
+	 * does.
+	 */
+	if( vips_type_find( "VipsInterpolate", "bicubic" ) ) {
+		interpolator = "bicubic";
+		convolution_mask = "none";
+	}
 
         context = g_option_context_new( _( "- thumbnail generator" ) );
 

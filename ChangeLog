@@ -5,6 +5,8 @@
 - add "autocrop" option to openslide load
 - argh fix affine, again
 - pngsave in interlaced mode make a copy of the whole image
+- vipsthumbnail shrinks to 1/2 window_size
+- vipsthumbnail defaults to bicubic + nosharpen
 
 4/7/14 started 7.40.4
 - fix vips_rawsave_fd(), thanks aferrero2707 
