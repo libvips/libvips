@@ -262,6 +262,7 @@ vips_spcor_correlation( VipsCorrelation *correlation,
 
 				default:
 					g_assert( 0 );
+					return; 
 				}
 
 				c2 = sqrt( sum2 );

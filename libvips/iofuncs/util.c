@@ -1599,8 +1599,7 @@ vips_enum_from_nick( const char *domain, GType type, const char *nick )
 #define BIGBUF (10000)
 
 /* Scan @buf for the first "%ns" (eg. "%12s") and substitute the 
- * lowest-numbered one for @sub. @buf is @len bytes
- * in size.
+ * lowest-numbered one for @sub. @buf is @len bytes in size.
  *
  * If there are no %ns, use the first %s.
  */
@@ -1620,6 +1619,7 @@ vips__substitute( const char *domain, char *buf, size_t len, char *sub )
 
 	lowest_n = -1;
 	sub_start = NULL;
+	sub_end = NULL;
 	for( p = buf; (p = strchr( p, '%' )); p++ )  
 		if( isdigit( p[1] ) ) {
 			char *q;
