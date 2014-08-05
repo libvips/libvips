@@ -93,24 +93,12 @@
  * arguments setting them. Once you have set all arguments, use
  * vips_cache_operation_build() to look up the operation in the cache and
  * either build or dup it. If something goes wrong, you'll need to use
- * vips_object_unref_outputs() and g_object_unref(). :wq
- *
-
-
- *
- * Use vips_call() to call any vips operation from C. If you want to search 
- * for operations, see what arguments they need, and test argument 
- * properties, see
- * <link linkend="libvips-object">object</link>. Each operation also has a
- * wrapper function, of course, to give type safety for required arguments.
- *
- * vips_call_split() lets you run an operation with the optional and required
- * arguments split into separate lists. vips_call_split_option_string() lets
- * you set options from strings as well.
+ * vips_object_unref_outputs() and g_object_unref() to free the
+ * partially-built object.
  *
  * Use vips_call_argv() to run any vips operation from a command-line style
- * argc/argv array. 
- *
+ * argc/argv array. This is the thing used by the vips main program to
+ * implement the vips command-line interface. 
  */
 
 /** 

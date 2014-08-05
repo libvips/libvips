@@ -1,15 +1,4 @@
 
-- try:
-
-	$ vipsthumbnail Chicago.png --vips-concurrency=1
-	memory: high-water mark 180.57 MB
-	$ vipsthumbnail Chicago.png --vips-concurrency=4
-	memory: high-water mark 180.57 MB
-
-  shouldn't memuse drop with concurrency 1 ?
-
-
-
 - vips_object_unref_outputs() needs docs ... bindings will need it
  
 
