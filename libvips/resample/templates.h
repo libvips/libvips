@@ -183,30 +183,35 @@ bicubic_int(
 		(cx[0] * uno_one +
 		 cx[1] * uno_two +
 		 cx[2] * uno_thr +
-		 cx[3] * uno_fou) >> VIPS_INTERPOLATE_SHIFT;
+		 cx[3] * uno_fou +
+		 (VIPS_INTERPOLATE_SCALE >> 1)) >> VIPS_INTERPOLATE_SHIFT;
 
 	const int r1 =
 		(cx[0] * dos_one +
 		 cx[1] * dos_two +
 		 cx[2] * dos_thr +
-		 cx[3] * dos_fou) >> VIPS_INTERPOLATE_SHIFT;
+		 cx[3] * dos_fou +
+		 (VIPS_INTERPOLATE_SCALE >> 1)) >> VIPS_INTERPOLATE_SHIFT;
 
 	const int r2 =
 		(cx[0] * tre_one +
 		 cx[1] * tre_two +
 		 cx[2] * tre_thr +
-		 cx[3] * tre_fou) >> VIPS_INTERPOLATE_SHIFT;
+		 cx[3] * tre_fou +
+		 (VIPS_INTERPOLATE_SCALE >> 1)) >> VIPS_INTERPOLATE_SHIFT;
 
 	const int r3 =
 		(cx[0] * qua_one +
 		 cx[1] * qua_two +
 		 cx[2] * qua_thr +
-		 cx[3] * qua_fou) >> VIPS_INTERPOLATE_SHIFT;
+		 cx[3] * qua_fou +
+		 (VIPS_INTERPOLATE_SCALE >> 1)) >> VIPS_INTERPOLATE_SHIFT;
 
 	return( (cy[0] * r0 +
 		 cy[1] * r1 +
 		 cy[2] * r2 +
-		 cy[3] * r3) >> VIPS_INTERPOLATE_SHIFT );
+		 cy[3] * r3 +
+		 (VIPS_INTERPOLATE_SCALE >> 1)) >> VIPS_INTERPOLATE_SHIFT );
 }
 
 /* Floating-point bicubic, used for int/float/double types.

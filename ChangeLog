@@ -7,6 +7,7 @@
 - pngsave in interlaced mode make a copy of the whole image
 - vipsthumbnail shrinks to 1/2 window_size
 - vipsthumbnail defaults to bicubic + nosharpen
+- better rounding behaviour for fixed-point bicubic
 
 4/7/14 started 7.40.4
 - fix vips_rawsave_fd(), thanks aferrero2707 

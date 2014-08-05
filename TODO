@@ -6,12 +6,7 @@
 	$ vipsthumbnail Chicago.png --vips-concurrency=4
 	memory: high-water mark 180.57 MB
 
-  shouldn't memuse drop with concurrency 1?
-
-- bicubic adds noise to 255/255/255, why? try babe.jpg background
-
-
-
+  shouldn't memuse drop with concurrency 1 ?
 
 
 
