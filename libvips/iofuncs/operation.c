@@ -94,11 +94,69 @@
  * vips_cache_operation_build() to look up the operation in the cache and
  * either build or dup it. If something goes wrong, you'll need to use
  * vips_object_unref_outputs() and g_object_unref() to free the
- * partially-built object.
+ * partially-built object. See 
+ * <link linkend="binding">binding</link> for an introduction to libvips
+ * introspection. 
  *
  * Use vips_call_argv() to run any vips operation from a command-line style
  * argc/argv array. This is the thing used by the vips main program to
  * implement the vips command-line interface. 
+ *
+ * ## #VipsOperation and reference counting
+ *
+ * After calling a #VipsOperation you are responsible for unreffing any output
+ * objects. For example, consider:
+ *
+ * |[
+ * VipsImage *im = ...;
+ * VipsImage *t1; 
+ *
+ * if (vips_invert (im, &t1, NULL)) 
+ *   error ..
+ * ]|
+ *
+ * This will invert @im and return it as a new #VipsImage, @t1. As the caller
+ * of vips_invert(), you are responsible for @t1 and must unref it when you no
+ * longer need it. If vips_invert() fails, no @t1 is returned and you don't
+ * need to do anything. 
+ *
+ * Consider running two operations, one after the other. You could write:
+ *
+ * |[
+ * VipsImage *im = ...;
+ * VipsImage *t1, *t2;
+ *
+ * if (vips_invert (im, &t1, NULL)) {
+ *   g_object_unref (im);
+ *   return -1;
+ * }
+ * g_object_unref (im);
+ *
+ * if (vips_flip (t1, &t2, VIPS_DIRECTION_HORIZONTAL, NULL)) {
+ *   g_object_unref (t1);
+ *   return -1;
+ * }
+ * g_object_unref (t1);
+ * ]|
+ *
+ * This is correct, but rather long-winded. libvips provides a handy thing to
+ * make a vector of auto-freeing object references. You can write this as:
+ *
+ * |[
+ * VipsObject *parent = ...;
+ * VipsImage *im = ...;
+ * VipsImage *t = (VipsImage **) vips_object_local_array (parent, 2);
+ *
+ * if (vips_invert (im, &t[0], NULL) ||
+ *   vips_flip (t[0], &t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
+ *   return -1;
+ * ]|
+ *
+ * where @parent is some enclosing object which will be unreffed when this
+ * task is complete. vips_object_local_array() makes an array of #VipsObject
+ * (or #VipsImage, in this case) where when @parent is freed, all non-NULL
+ * #VipsObject in the array are also unreffed.
+ *
  */
 
 /** 

@@ -1,3 +1,5 @@
+- bicubic needs a signed int lut path with rounding in the other direction
+  for negatives
 
 - vips_object_unref_outputs() needs docs ... bindings will need it
  
