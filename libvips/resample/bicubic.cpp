@@ -104,9 +104,10 @@ G_DEFINE_TYPE( VipsInterpolateBicubic, vips_interpolate_bicubic,
 
 /* Fixed-point version, for 8 and 16-bit types.
  */
-template <typename T, int min_value, int max_value>
+
+template <typename T, int max_value>
 static void inline
-bicubic_int_tab( void *pout, const VipsPel *pin,
+bicubic_unsigned_int_tab( void *pout, const VipsPel *pin,
 	const int bands, const int lskip,
 	const int *cx, const int *cy )
 {
@@ -152,7 +153,73 @@ bicubic_int_tab( void *pout, const VipsPel *pin,
 		const T qua_thr = in[l3_plus_b2];
 		const T qua_fou = in[l3_plus_b3];
 
-		int bicubic = bicubic_int<T>(
+		int bicubic = bicubic_unsigned_int<T>(
+			uno_one, uno_two, uno_thr, uno_fou,
+			dos_one, dos_two, dos_thr, dos_fou,
+			tre_one, tre_two, tre_thr, tre_fou,
+			qua_one, qua_two, qua_thr, qua_fou,
+			cx, cy );
+
+		if( bicubic < 0 )
+			bicubic = 0;
+		else if( bicubic > max_value )
+			bicubic = max_value;
+
+		out[z] = bicubic;
+
+		in += 1;
+	}
+}
+
+template <typename T, int min_value, int max_value>
+static void inline
+bicubic_signed_int_tab( void *pout, const VipsPel *pin,
+	const int bands, const int lskip,
+	const int *cx, const int *cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	const int b1 = bands;
+	const int b2 = b1 + b1;
+	const int b3 = b1 + b2;
+
+	const int l1 = lskip / sizeof( T );
+	const int l2 = l1 + l1;
+	const int l3 = l1 + l2;
+
+        const int l1_plus_b1 = l1 + b1;
+        const int l1_plus_b2 = l1 + b2;
+        const int l1_plus_b3 = l1 + b3;
+        const int l2_plus_b1 = l2 + b1;
+        const int l2_plus_b2 = l2 + b2;
+        const int l2_plus_b3 = l2 + b3;
+        const int l3_plus_b1 = l3 + b1;
+        const int l3_plus_b2 = l3 + b2;
+        const int l3_plus_b3 = l3 + b3;
+
+	for( int z = 0; z < bands; z++ ) {
+		const T uno_one = in[0];
+		const T uno_two = in[b1];
+		const T uno_thr = in[b2];
+		const T uno_fou = in[b3];
+
+		const T dos_one = in[l1];
+		const T dos_two = in[l1_plus_b1];
+		const T dos_thr = in[l1_plus_b2];
+		const T dos_fou = in[l1_plus_b3];
+
+		const T tre_one = in[l2];
+		const T tre_two = in[l2_plus_b1];
+		const T tre_thr = in[l2_plus_b2];
+		const T tre_fou = in[l2_plus_b3];
+
+		const T qua_one = in[l3];
+		const T qua_two = in[l3_plus_b1];
+		const T qua_thr = in[l3_plus_b2];
+		const T qua_fou = in[l3_plus_b3];
+
+		int bicubic = bicubic_signed_int<T>(
 			uno_one, uno_two, uno_thr, uno_fou,
 			dos_one, dos_two, dos_thr, dos_fou,
 			tre_one, tre_two, tre_thr, tre_fou,
@@ -350,7 +417,7 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 
 	switch( in->im->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
-		bicubic_int_tab<unsigned char, 0, UCHAR_MAX>(
+		bicubic_unsigned_int_tab<unsigned char, UCHAR_MAX>(
 			out, p, bands, lskip,
 			cxi, cyi );
 
@@ -371,19 +438,19 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 		break;
 
 	case VIPS_FORMAT_CHAR:
-		bicubic_int_tab<signed char, SCHAR_MIN, SCHAR_MAX>(
+		bicubic_signed_int_tab<signed char, SCHAR_MIN, SCHAR_MAX>(
 			out, p, bands, lskip,
 			cxi, cyi );
 		break;
 
 	case VIPS_FORMAT_USHORT:
-		bicubic_int_tab<unsigned short, 0, USHRT_MAX>(
+		bicubic_unsigned_int_tab<unsigned short, USHRT_MAX>(
 			out, p, bands, lskip,
 			cxi, cyi );
 		break;
 
 	case VIPS_FORMAT_SHORT:
-		bicubic_int_tab<signed short, SHRT_MIN, SHRT_MAX>(
+		bicubic_signed_int_tab<signed short, SHRT_MIN, SHRT_MAX>(
 			out, p, bands, lskip,
 			cxi, cyi );
 		break;
