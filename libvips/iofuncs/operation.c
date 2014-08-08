@@ -60,8 +60,7 @@
  * on #VipsObject to provide the introspection and command-line interface to
  * libvips. 
  *
- * It also maintains a cache of recent operations. You can tune the cache
- * behaviour in various ways, see vips_cache_set_max() and friends. 
+ * It also maintains a cache of recent operations. See below. 
  *
  * vips_call(), vips_call_split() and vips_call_split_option_string() are used
  * by vips to implement the C API. They can execute any #VipsOperation,
@@ -85,18 +84,6 @@
  *   return( result );
  * }
  * ]|
- *
- * If you are writing a language binding, you won't need these. Instead, make
- * a new operation with vips_operation_new() (all it does is look up the
- * operation by name with vips_type_find(), then call g_object_new() for you),
- * then use vips_argument_map() and friends to loop over the operation's
- * arguments setting them. Once you have set all arguments, use
- * vips_cache_operation_build() to look up the operation in the cache and
- * either build or dup it. If something goes wrong, you'll need to use
- * vips_object_unref_outputs() and g_object_unref() to free the
- * partially-built object. See 
- * <link linkend="binding">binding</link> for an introduction to libvips
- * introspection. 
  *
  * Use vips_call_argv() to run any vips operation from a command-line style
  * argc/argv array. This is the thing used by the vips main program to
@@ -157,6 +144,16 @@
  * (or #VipsImage, in this case) where when @parent is freed, all non-NULL
  * #VipsObject in the array are also unreffed.
  *
+ * ## The #VipsOperation cache
+ *
+ * Because all #VipsObject are immutable, they can be cached. The cache is
+ * very simple to use: instead of calling vips_object_build(), instead call 
+ * vips_cache_operation_build(). This function calculates a hash from the
+ * operations's input arguments and looks it up in table of all recent
+ * operations. If there's a hit, the new operation is unreffed, the old
+ * operation reffed, and the old operation returned in place of the new one.
+ *
+ * The cache size is controlled with vips_cache_set_max() and friends. 
  */
 
 /** 

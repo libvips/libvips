@@ -131,16 +131,13 @@
  * 3. #VipsObject::postclose. This runs right at the end. The object
  * pointer is still valid, but nothing else is. 
  *
- * ## The #VipsOperation cache
+ * ## #VipsArgument
  *
- * Because all #VipsObject are immutable, they can be cached. The cache is
- * very simple to use: instead of calling vips_object_build(), instead call 
- * vips_cache_operation_build(). This function calculates a hash from the
- * operations's input arguments and looks it up in table of all recent
- * operations. If there's a hit, the new operation is unreffed, the old
- * operation reffed, and the old operation returned in place of the new one.
+ * libvips has a simple mechanism for automating at least some aspects of
+ * %GObject properties. You add a set of macros to your _class_init() which
+ * describe the arguments, and set the get and set functions to the vips ones.
  *
- * The cache size is controlled with vips_cache_set_max() and friends. 
+ * See <link linkend="extending">extending</link> for a complete example. 
  *
  * ## The #VipsObject reference counting convention
  *
