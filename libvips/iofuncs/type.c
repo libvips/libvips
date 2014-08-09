@@ -55,6 +55,16 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
+/**
+ * SECTION: type
+ * @short_description: basic types
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-operation">operation</link>
+ * @include: vips/vips.h
+ *
+ * A selection of GType defintions used by VIPS. 
+ */
+
 /* A very simple boxed type for testing. Just an int.
  */
 

@@ -1,7 +1,9 @@
 
 - vips_object_unref_outputs() needs docs ... bindings will need it
  
+- copy-paste blog post about writing vips8 operations into 'extending'
 
+- vips_init() has a deprecation warning, bizarre
 
 
 - check and fix up docs
@@ -13,7 +15,7 @@
 
   need better vipsobject docs
 
-  gtk-doc now used markdown, phew, use this to expand some sections
+  gtk-doc now uses markdown, phew, use this to expand some sections
 
 
 
