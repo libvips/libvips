@@ -789,10 +789,18 @@ write_vips( Write *write, int compress, int interlace )
 	if( setjmp( png_jmpbuf( write->pPng ) ) ) 
 		return( -1 );
 
-	/* Check input image.
+	/* Check input image. If we are writing interlaced, we need to make 7
+	 * passes over the image. We advertise ourselves as seq, so to ensure
+	 * we only suck once from upstream, switch to WIO. 
 	 */
-	if( vips_image_pio_input( in ) )
-		return( -1 );
+	if( interlace ) {
+		if( vips_image_wio_input( in ) )
+			return( -1 );
+	}
+	else {
+		if( vips_image_pio_input( in ) )
+			return( -1 );
+	}
 	if( compress < 0 || compress > 9 ) {
 		vips_error( "vips2png", 
 			"%s", _( "compress should be in [0,9]" ) );
@@ -825,7 +833,7 @@ write_vips( Write *write, int compress, int interlace )
 		in->Xsize, in->Ysize, bit_depth, color_type, interlace_type, 
 		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT );
 
-	/* Set resolution. libpnbg uses pixels per meter.
+	/* Set resolution. libpng uses pixels per meter.
 	 */
 	png_set_pHYs( write->pPng, write->pInfo, 
 		VIPS_RINT( in->Xres * 1000 ), VIPS_RINT( in->Yres * 1000 ), 
@@ -866,7 +874,7 @@ write_vips( Write *write, int compress, int interlace )
 	/* Write data.
 	 */
 	for( i = 0; i < nb_passes; i++ ) 
-		if( vips_sink_disc( write->in, write_png_block, write ) )
+		if( vips_sink_disc( in, write_png_block, write ) )
 			return( -1 );
 
 	/* The setjmp() was held by our background writer: reset it.

@@ -60,8 +60,7 @@
  * on #VipsObject to provide the introspection and command-line interface to
  * libvips. 
  *
- * It also maintains a cache of recent operations. You can tune the cache
- * behaviour in various ways, see vips_cache_set_max() and friends. 
+ * It also maintains a cache of recent operations. See below. 
  *
  * vips_call(), vips_call_split() and vips_call_split_option_string() are used
  * by vips to implement the C API. They can execute any #VipsOperation,
@@ -86,31 +85,75 @@
  * }
  * ]|
  *
- * If you are writing a language binding, you won't need these. Instead, make
- * a new operation with vips_operation_new() (all it does is look up the
- * operation by name with vips_type_find(), then call g_object_new() for you),
- * then use vips_argument_map() and friends to loop over the operation's
- * arguments setting them. Once you have set all arguments, use
- * vips_cache_operation_build() to look up the operation in the cache and
- * either build or dup it. If something goes wrong, you'll need to use
- * vips_object_unref_outputs() and g_object_unref(). :wq
- *
-
-
- *
- * Use vips_call() to call any vips operation from C. If you want to search 
- * for operations, see what arguments they need, and test argument 
- * properties, see
- * <link linkend="libvips-object">object</link>. Each operation also has a
- * wrapper function, of course, to give type safety for required arguments.
- *
- * vips_call_split() lets you run an operation with the optional and required
- * arguments split into separate lists. vips_call_split_option_string() lets
- * you set options from strings as well.
- *
  * Use vips_call_argv() to run any vips operation from a command-line style
- * argc/argv array. 
+ * argc/argv array. This is the thing used by the vips main program to
+ * implement the vips command-line interface. 
  *
+ * ## #VipsOperation and reference counting
+ *
+ * After calling a #VipsOperation you are responsible for unreffing any output
+ * objects. For example, consider:
+ *
+ * |[
+ * VipsImage *im = ...;
+ * VipsImage *t1; 
+ *
+ * if (vips_invert (im, &t1, NULL)) 
+ *   error ..
+ * ]|
+ *
+ * This will invert @im and return it as a new #VipsImage, @t1. As the caller
+ * of vips_invert(), you are responsible for @t1 and must unref it when you no
+ * longer need it. If vips_invert() fails, no @t1 is returned and you don't
+ * need to do anything. 
+ *
+ * Consider running two operations, one after the other. You could write:
+ *
+ * |[
+ * VipsImage *im = ...;
+ * VipsImage *t1, *t2;
+ *
+ * if (vips_invert (im, &t1, NULL)) {
+ *   g_object_unref (im);
+ *   return -1;
+ * }
+ * g_object_unref (im);
+ *
+ * if (vips_flip (t1, &t2, VIPS_DIRECTION_HORIZONTAL, NULL)) {
+ *   g_object_unref (t1);
+ *   return -1;
+ * }
+ * g_object_unref (t1);
+ * ]|
+ *
+ * This is correct, but rather long-winded. libvips provides a handy thing to
+ * make a vector of auto-freeing object references. You can write this as:
+ *
+ * |[
+ * VipsObject *parent = ...;
+ * VipsImage *im = ...;
+ * VipsImage *t = (VipsImage **) vips_object_local_array (parent, 2);
+ *
+ * if (vips_invert (im, &t[0], NULL) ||
+ *   vips_flip (t[0], &t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
+ *   return -1;
+ * ]|
+ *
+ * where @parent is some enclosing object which will be unreffed when this
+ * task is complete. vips_object_local_array() makes an array of #VipsObject
+ * (or #VipsImage, in this case) where when @parent is freed, all non-NULL
+ * #VipsObject in the array are also unreffed.
+ *
+ * ## The #VipsOperation cache
+ *
+ * Because all #VipsObject are immutable, they can be cached. The cache is
+ * very simple to use: instead of calling vips_object_build(), instead call 
+ * vips_cache_operation_build(). This function calculates a hash from the
+ * operations's input arguments and looks it up in table of all recent
+ * operations. If there's a hit, the new operation is unreffed, the old
+ * operation reffed, and the old operation returned in place of the new one.
+ *
+ * The cache size is controlled with vips_cache_set_max() and friends. 
  */
 
 /** 

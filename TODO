@@ -1,14 +1,3 @@
-- affine makes black lines with interp window_offset > 1, see nohalo
-
-- experiment with size down to two sizes above in vipsthumbnail
-
-  how does this affect speed and sharpness?
-
-- vipsthumbnail -t plus large -s seems to fail?
-
-- bicubic adds noise to 255/255/255, why? try babe.jpg background
-
-
 
 - vips_object_unref_outputs() needs docs ... bindings will need it
  
@@ -16,6 +5,9 @@
 
   finally finish --disable-deprecated option
 
+- copy-paste blog post about writing vips8 operations into 'extending'
+
+- vips_init() has a deprecation warning, bizarre
 
 
 - check and fix up docs
@@ -27,7 +19,7 @@
 
   need better vipsobject docs
 
-  gtk-doc now used markdown, phew, use this to expand some sections
+  gtk-doc now uses markdown, phew, use this to expand some sections
 
 
 

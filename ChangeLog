@@ -7,7 +7,12 @@
 - limit n_thr on tiny images
 - don't exit() on memleak detected, just warn
 - add "autocrop" option to openslide load
-- argh fix affine, again
+- argh fix affine, again, there were sometimes black bars with nohalo and the
+  vips8 interface
+- pngsave in interlaced mode makes a copy of the image, so it's always seq 
+- vipsthumbnail shrinks to 1/2 window_size: faster and better quality
+- vipsthumbnail defaults to bicubic + nosharpen
+- better rounding behaviour for fixed-point bicubic reduces noise
 
 4/7/14 started 7.40.4
 - fix vips_rawsave_fd(), thanks aferrero2707 

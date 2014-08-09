@@ -17,7 +17,7 @@
   <refsect1 id="binding-goi">
     <title>Binding and gobject-introspection</title>
     <para>
-      Stuff about goi.
+      Write this section once the vips8 Python binding is done. 
     </para>
   </refsect1>
 

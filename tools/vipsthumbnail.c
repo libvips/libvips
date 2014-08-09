@@ -51,6 +51,10 @@
  * 	  unlike the main image wrt. rotation / colour / etc.
  * 30/6/14
  * 	- fix interlaced thumbnail output, thanks lovell
+ * 3/8/14
+ * 	- box shrink less, use interpolator more, if the window_size is large
+ * 	  enough
+ * 	- default to bicubic + nosharpen if bicubic is available
  */
 
 #ifdef HAVE_CONFIG_H
@@ -67,6 +71,10 @@
 #include <vips/vips.h>
 
 #define ORIENTATION ("exif-ifd0-Orientation")
+
+/* Default settings. We change the default to bicubic + nosharpen in main() if
+ * this vips has been compiled with bicubic support.
+ */
 
 static char *thumbnail_size = "128";
 static int thumbnail_width = 128;
@@ -170,14 +178,20 @@ get_angle( VipsImage *im )
  * We shrink in two stages: first, a shrink with a block average. This can
  * only accurately shrink by integer factors. We then do a second shrink with
  * a supplied interpolator to get the exact size we want.
+ *
+ * We aim to do the second shrink by roughly half the interpolator's 
+ * window_size.
  */
 static int
-calculate_shrink( VipsImage *im, double *residual )
+calculate_shrink( VipsImage *im, double *residual, 
+	VipsInterpolate *interp )
 {
 	VipsAngle angle = get_angle( im ); 
 	gboolean rotate = angle == VIPS_ANGLE_90 || angle == VIPS_ANGLE_270;
 	int width = rotate_image && rotate ? im->Ysize : im->Xsize;
 	int height = rotate_image && rotate ? im->Xsize : im->Ysize;
+	const int window_size =
+		interp ?  vips_interpolate_get_window_size( interp ) : 2;
 
 	VipsDirection direction;
 
@@ -211,9 +225,12 @@ calculate_shrink( VipsImage *im, double *residual )
 	 */
 	double factor2 = factor < 1.0 ? 1.0 : factor;
 
-	/* Int component of shrink.
+	/* Int component of factor2. 
+	 *
+	 * We want to shrink by less for interpolators with larger windows.
 	 */
-	int shrink = floor( factor2 );
+	int shrink = VIPS_MAX( 1, 
+		floor( factor2 ) / VIPS_MAX( 1, window_size / 2 ) );
 
 	if( residual &&
 		direction == VIPS_DIRECTION_HORIZONTAL ) {
@@ -243,7 +260,7 @@ calculate_shrink( VipsImage *im, double *residual )
 static int
 thumbnail_find_jpegshrink( VipsImage *im )
 {
-	int shrink = calculate_shrink( im, NULL );
+	int shrink = calculate_shrink( im, NULL, NULL );
 
 	/* We can't use pre-shrunk images in linear mode. libjpeg shrinks in Y
 	 * (of YCbCR), not linear space.
@@ -324,7 +341,7 @@ thumbnail_interpolator( VipsObject *process, VipsImage *in )
 	double residual;
 	VipsInterpolate *interp;
 
-	calculate_shrink( in, &residual );
+	calculate_shrink( in, &residual, NULL );
 
 	/* For images smaller than the thumbnail, we upscale with nearest
 	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
@@ -430,7 +447,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		return( NULL ); 
 	in = t[2];
 
-	shrink = calculate_shrink( in, &residual );
+	shrink = calculate_shrink( in, &residual, interp );
 
 	vips_info( "vipsthumbnail", "integer shrink by %d", shrink );
 
@@ -570,12 +587,18 @@ thumbnail_crop( VipsObject *process, VipsImage *im )
 static VipsImage *
 thumbnail_rotate( VipsObject *process, VipsImage *im )
 {
-	VipsImage **t = (VipsImage **) vips_object_local_array( process, 1 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
+	VipsAngle angle = get_angle( im );
 
-	if( rotate_image ) {
-		if( vips_rot( im, &t[0], get_angle( im ), NULL ) )
+	if( rotate_image &&
+		angle != VIPS_ANGLE_0 ) {
+		/* Need to copy to memory, we have to stay seq.
+		 */
+		t[0] = vips_image_new_memory();
+		if( vips_image_write( im, t[0] ) ||
+			vips_rot( t[0], &t[1], angle, NULL ) )
 			return( NULL ); 
-		im = t[0];
+		im = t[1];
 
 		(void) vips_image_remove( im, ORIENTATION );
 	}
@@ -589,8 +612,6 @@ thumbnail_rotate( VipsObject *process, VipsImage *im )
 static int
 thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 {
-	VipsImage **t = (VipsImage **) vips_object_local_array( process, 1 );
-
 	char *file;
 	char *p;
 	char buf[FILENAME_MAX];
@@ -622,16 +643,7 @@ thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 
 	g_free( file );
 
-	/* We need to cache the whole of the thumbnail before we write it 
-	 * in case we are writing an interlaced image. Interlaced png (for
-	 * example) will make 7 passes over the image during write.
-	 */
-	if( vips_tilecache( im, &t[0], 
-		"threaded", TRUE,
-		"persistent", TRUE,
-		"max_tiles", -1,
-		NULL ) ||
-		vips_image_write_to_file( t[0], output_name, NULL ) ) {
+	if( vips_image_write_to_file( im, output_name, NULL ) ) {
 		g_free( output_name );
 		return( -1 );
 	}
@@ -674,6 +686,14 @@ main( int argc, char **argv )
 	        vips_error_exit( "unable to start VIPS" );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
+
+	/* Does this vips have bicubic? Default to that + nosharpen if it
+	 * does.
+	 */
+	if( vips_type_find( "VipsInterpolate", "bicubic" ) ) {
+		interpolator = "bicubic";
+		convolution_mask = "none";
+	}
 
         context = g_option_context_new( _( "- thumbnail generator" ) );
 

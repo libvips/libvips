@@ -169,44 +169,103 @@ bilinear_nosign(
  * Bicubic (Catmull-Rom) interpolation templates:
  */
 
+static int inline
+unsigned_fixed_round( int v )
+{
+	const int round_by = VIPS_INTERPOLATE_SCALE >> 1;
+
+	return( (v + round_by) >> VIPS_INTERPOLATE_SHIFT );
+}
+
 /* Fixed-point integer bicubic, used for 8 and 16-bit types.
  */
 template <typename T> static int inline
-bicubic_int(
+bicubic_unsigned_int(
 	const T uno_one, const T uno_two, const T uno_thr, const T uno_fou,
 	const T dos_one, const T dos_two, const T dos_thr, const T dos_fou,
 	const T tre_one, const T tre_two, const T tre_thr, const T tre_fou,
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
 	const int* restrict cx, const int* restrict cy )
 {
-	const int r0 =
-		(cx[0] * uno_one +
-		 cx[1] * uno_two +
-		 cx[2] * uno_thr +
-		 cx[3] * uno_fou) >> VIPS_INTERPOLATE_SHIFT;
+	const int r0 = unsigned_fixed_round( 
+		cx[0] * uno_one +
+		cx[1] * uno_two +
+		cx[2] * uno_thr +
+		cx[3] * uno_fou ); 
 
-	const int r1 =
-		(cx[0] * dos_one +
-		 cx[1] * dos_two +
-		 cx[2] * dos_thr +
-		 cx[3] * dos_fou) >> VIPS_INTERPOLATE_SHIFT;
+	const int r1 = unsigned_fixed_round( 
+		cx[0] * dos_one +
+		cx[1] * dos_two +
+		cx[2] * dos_thr +
+		cx[3] * dos_fou );
 
-	const int r2 =
-		(cx[0] * tre_one +
-		 cx[1] * tre_two +
-		 cx[2] * tre_thr +
-		 cx[3] * tre_fou) >> VIPS_INTERPOLATE_SHIFT;
+	const int r2 = unsigned_fixed_round( 
+		cx[0] * tre_one +
+		cx[1] * tre_two +
+		cx[2] * tre_thr +
+		cx[3] * tre_fou );
 
-	const int r3 =
-		(cx[0] * qua_one +
-		 cx[1] * qua_two +
-		 cx[2] * qua_thr +
-		 cx[3] * qua_fou) >> VIPS_INTERPOLATE_SHIFT;
+	const int r3 = unsigned_fixed_round( 
+		cx[0] * qua_one +
+		cx[1] * qua_two +
+		cx[2] * qua_thr +
+		cx[3] * qua_fou );
 
-	return( (cy[0] * r0 +
-		 cy[1] * r1 +
-		 cy[2] * r2 +
-		 cy[3] * r3) >> VIPS_INTERPOLATE_SHIFT );
+	return( unsigned_fixed_round( 
+		cy[0] * r0 +
+		cy[1] * r1 +
+		cy[2] * r2 +
+		cy[3] * r3 ) );
+}
+
+static int inline
+signed_fixed_round( int v )
+{
+	const int sign_of_v = 2 * (v > 0) - 1;
+	const int round_by = sign_of_v * (VIPS_INTERPOLATE_SCALE >> 1);
+
+	return( (v + round_by) >> VIPS_INTERPOLATE_SHIFT );
+}
+
+/* Fixed-point integer bicubic, used for 8 and 16-bit types.
+ */
+template <typename T> static int inline
+bicubic_signed_int(
+	const T uno_one, const T uno_two, const T uno_thr, const T uno_fou,
+	const T dos_one, const T dos_two, const T dos_thr, const T dos_fou,
+	const T tre_one, const T tre_two, const T tre_thr, const T tre_fou,
+	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
+	const int* restrict cx, const int* restrict cy )
+{
+	const int r0 = signed_fixed_round( 
+		cx[0] * uno_one +
+		cx[1] * uno_two +
+		cx[2] * uno_thr +
+		cx[3] * uno_fou ); 
+
+	const int r1 = signed_fixed_round( 
+		cx[0] * dos_one +
+		cx[1] * dos_two +
+		cx[2] * dos_thr +
+		cx[3] * dos_fou );
+
+	const int r2 = signed_fixed_round( 
+		cx[0] * tre_one +
+		cx[1] * tre_two +
+		cx[2] * tre_thr +
+		cx[3] * tre_fou );
+
+	const int r3 = signed_fixed_round( 
+		cx[0] * qua_one +
+		cx[1] * qua_two +
+		cx[2] * qua_thr +
+		cx[3] * qua_fou );
+
+	return( signed_fixed_round( 
+		cy[0] * r0 +
+		cy[1] * r1 +
+		cy[2] * r2 +
+		cy[3] * r3 ) );
 }
 
 /* Floating-point bicubic, used for int/float/double types.

@@ -4,14 +4,14 @@
 ]>
 <refentry id="using-from-c">
   <refmeta>
-    <refentrytitle>Using VIPS from C</refentrytitle>
+    <refentrytitle>VIPS from C</refentrytitle>
     <manvolnum>3</manvolnum>
     <refmiscinfo>VIPS Library</refmiscinfo>
   </refmeta>
 
   <refnamediv>
     <refname>Using VIPS</refname>
-    <refpurpose>How to use the VIPS library</refpurpose>
+    <refpurpose>How to use the VIPS library from C</refpurpose>
   </refnamediv>
 
   <refsect1 id="using-C">
