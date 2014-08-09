@@ -1,5 +1,6 @@
 25/7/14 started 7.41.0
 - start working on --disable-deprecated
+- fix pngload with libpng >1.6.1
 
 25/7/14 started 7.40.5
 - fix a race in im_maxpos_avg()
