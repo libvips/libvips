@@ -10,6 +10,7 @@
 - vipsthumbnail defaults to bicubic + nosharpen
 - better rounding behaviour for fixed-point bicubic reduces noise
 - fix pngload with libpng >=1.6.11
+- fix colour for openslide read associated
 
 4/7/14 started 7.40.4
 - fix vips_rawsave_fd(), thanks aferrero2707 
