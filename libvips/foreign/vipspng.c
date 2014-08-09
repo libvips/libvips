@@ -48,6 +48,8 @@
  * 	  still set color_type to alpha
  * 16/7/13
  * 	- more robust error handling from libpng
+ * 9/8/14
+ * 	- don't check profiles, helps with libpng >=1.6.11
  */
 
 /*
@@ -187,6 +189,13 @@ read_new( VipsImage *out, gboolean readbehind )
 		PNG_LIBPNG_VER_STRING, NULL,
 		user_error_function, user_warning_function )) ) 
 		return( NULL );
+
+#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
+	/* Prevent libpng (>=1.6.11) verifying sRGB profiles.
+	 */
+	png_set_option( read->pPng, 
+		PNG_SKIP_sRGB_CHECK_PROFILE, PNG_OPTION_ON );
+#endif /*PNG_SKIP_sRGB_CHECK_PROFILE*/
 
 	/* Catch PNG errors from png_create_info_struct().
 	 */
@@ -716,6 +725,13 @@ write_new( VipsImage *in )
 		PNG_LIBPNG_VER_STRING, NULL,
 		user_error_function, user_warning_function )) ) 
 		return( NULL );
+
+#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
+	/* Prevent libpng (>=1.6.11) verifying sRGB profiles.
+	 */
+	png_set_option( write->pPng, 
+		PNG_SKIP_sRGB_CHECK_PROFILE, PNG_OPTION_ON );
+#endif /*PNG_SKIP_sRGB_CHECK_PROFILE*/
 
 	/* Catch PNG errors from png_create_info_struct().
 	 */
