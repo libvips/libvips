@@ -52,9 +52,10 @@
  * 30/6/14
  * 	- fix interlaced thumbnail output, thanks lovell
  * 3/8/14
- * 	- box shrink less, use interpolator more, if the window_size is large
+ * 	- box shrink less, use interpolator more, if window_size is large
  * 	  enough
- * 	- default to bicubic + nosharpen if bicubic is available
+ * 	- default to bicubic if available
+ * 	- add an anti-alias filter between shrink and affine
  */
 
 #ifdef HAVE_CONFIG_H
@@ -72,7 +73,7 @@
 
 #define ORIENTATION ("exif-ifd0-Orientation")
 
-/* Default settings. We change the default to bicubic + nosharpen in main() if
+/* Default settings. We change the default to bicubic in main() if
  * this vips has been compiled with bicubic support.
  */
 
@@ -391,12 +392,15 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	VipsImage **t = (VipsImage **) vips_object_local_array( process, 10 );
 	VipsInterpretation interpretation = linear_processing ?
 		VIPS_INTERPRETATION_XYZ : VIPS_INTERPRETATION_sRGB; 
+	const int window_size =
+		interp ?  vips_interpolate_get_window_size( interp ) : 2;
 
 	int shrink; 
 	double residual; 
 	int tile_width;
 	int tile_height;
 	int nlines;
+	double sigma;
 
 	/* RAD needs special unpacking.
 	 */
@@ -474,6 +478,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	 * has been used ... but it never will, since thread1 will block on 
 	 * this cache lock. 
 	 */
+
 	vips_get_tile_size( in, 
 		&tile_width, &tile_height, &nlines );
 	if( vips_tilecache( in, &t[4], 
@@ -482,12 +487,38 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		"max_tiles", (nlines * 2) / 10,
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		"threaded", TRUE, 
-		NULL ) ||
-		vips_affine( t[4], &t[5], residual, 0, 0, residual, 
-			"interpolate", interp,
-			NULL ) )  
+		NULL ) )
 		return( NULL );
-	in = t[5];
+	in = t[4];
+
+	/* If the final affine will be doing a large downsample, we can get 
+	 * nasty aliasing on hard edges. Blur before affine to smooth this out.
+	 *
+	 * Don't blur for very small shrinks, blur with radius 1 for x1.5
+	 * shrinks, blur radius 2 for x2.5 shrinks and above, etc.
+	 */
+	sigma = ((1.0 / residual) - 0.5) / 1.5;
+	if( sigma > 0.1 ) { 
+		if( vips_gaussmat( &t[9], sigma, 0.2,
+			"separable", TRUE,
+			"integer", TRUE,
+			NULL ) ||
+			vips_convsep( in, &t[5], t[9], NULL ) )
+			return( NULL );
+		vips_info( "vipsthumbnail", "anti-alias, sigma %g",
+			sigma );
+#ifdef DEBUG
+		printf( "anti-alias blur matrix is:\n" ); 
+		vips_matrixprint( t[9], NULL ); 
+#endif /*DEBUG*/
+		in = t[5];
+	}
+
+	if( vips_affine( in, &t[6], residual, 0, 0, residual, 
+		"interpolate", interp,
+		NULL ) )  
+		return( NULL );
+	in = t[6];
 
 	vips_info( "vipsthumbnail", "residual scale by %g", residual );
 	vips_info( "vipsthumbnail", "%s interpolation", 
@@ -511,10 +542,10 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		}
 		else {
 			vips_info( "vipsthumbnail", "converting to sRGB" );
-			if( vips_colourspace( in, &t[6], 
+			if( vips_colourspace( in, &t[7], 
 				VIPS_INTERPRETATION_sRGB, NULL ) ) 
 				return( NULL ); 
-			in = t[6];
+			in = t[7];
 		}
 	}
 	else if( export_profile &&
@@ -530,13 +561,13 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		vips_info( "vipsthumbnail", 
 			"exporting with profile %s", export_profile );
 
-		if( vips_icc_transform( in, &t[6], export_profile,
+		if( vips_icc_transform( in, &t[7], export_profile,
 			"input_profile", import_profile,
 			"embedded", TRUE,
 			NULL ) )  
 			return( NULL );
 
-		in = t[6];
+		in = t[7];
 	}
 
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
@@ -687,13 +718,11 @@ main( int argc, char **argv )
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
-	/* Does this vips have bicubic? Default to that + nosharpen if it
+	/* Does this vips have bicubic? Default to that if it
 	 * does.
 	 */
-	if( vips_type_find( "VipsInterpolate", "bicubic" ) ) {
+	if( vips_type_find( "VipsInterpolate", "bicubic" ) ) 
 		interpolator = "bicubic";
-		convolution_mask = "none";
-	}
 
         context = g_option_context_new( _( "- thumbnail generator" ) );
 
