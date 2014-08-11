@@ -56,6 +56,8 @@
  * 	  enough
  * 	- default to bicubic if available
  * 	- add an anti-alias filter between shrink and affine
+ * 	- support CMYK
+ * 	- use SEQ_UNBUF for a memory saving
  */
 
 #ifdef HAVE_CONFIG_H
@@ -317,7 +319,7 @@ thumbnail_open( VipsObject *process, const char *filename )
 			jpegshrink ); 
 
 		if( !(im = vips_image_new_from_file( filename, 
-			"access", VIPS_ACCESS_SEQUENTIAL,
+			"access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 			"shrink", jpegshrink,
 			NULL )) )
 			return( NULL );
@@ -326,7 +328,7 @@ thumbnail_open( VipsObject *process, const char *filename )
 		/* All other formats.
 		 */
 		if( !(im = vips_image_new_from_file( filename, 
-			"access", VIPS_ACCESS_SEQUENTIAL,
+			"access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 			NULL )) )
 			return( NULL );
 	}
@@ -345,7 +347,7 @@ thumbnail_interpolator( VipsObject *process, VipsImage *in )
 	calculate_shrink( in, &residual, NULL );
 
 	/* For images smaller than the thumbnail, we upscale with nearest
-	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
+	 * neighbor. Otherwise we make thumbnails that look fuzzy and awful.
 	 */
 	if( !(interp = VIPS_INTERPOLATE( vips_object_new_from_string( 
 		g_type_class_ref( VIPS_TYPE_INTERPOLATE ), 
@@ -392,8 +394,6 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	VipsImage **t = (VipsImage **) vips_object_local_array( process, 10 );
 	VipsInterpretation interpretation = linear_processing ?
 		VIPS_INTERPRETATION_XYZ : VIPS_INTERPRETATION_sRGB; 
-	const int window_size =
-		interp ?  vips_interpolate_get_window_size( interp ) : 2;
 
 	int shrink; 
 	double residual; 
@@ -416,11 +416,15 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 
 	/* In linear mode, we import right at the start. 
 	 *
+	 * We also have to import the whole image if it's CMYK, since
+	 * vips_colourspace() (see below) doesn't know about CMYK.
+	 *
 	 * This is only going to work for images in device space. If you have
 	 * an image in PCS which also has an attached profile, strange things
 	 * will happen. 
 	 */
-	if( linear_processing &&
+	if( (linear_processing ||
+		in->Type == VIPS_INTERPRETATION_CMYK) &&
 		in->Coding == VIPS_CODING_NONE &&
 		(in->BandFmt == VIPS_FORMAT_UCHAR ||
 		 in->BandFmt == VIPS_FORMAT_USHORT) &&
@@ -498,7 +502,8 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	 * shrinks, blur radius 2 for x2.5 shrinks and above, etc.
 	 */
 	sigma = ((1.0 / residual) - 0.5) / 1.5;
-	if( sigma > 0.1 ) { 
+	if( residual < 1.0 &&
+		sigma > 0.1 ) { 
 		if( vips_gaussmat( &t[9], sigma, 0.2,
 			"separable", TRUE,
 			"integer", TRUE,

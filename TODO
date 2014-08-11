@@ -1,3 +1,4 @@
+- can we pick the vipsthumbnail int shrink factor more intelligently?
 
 - vips_object_unref_outputs() needs docs ... bindings will need it
  
