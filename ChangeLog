@@ -1,3 +1,6 @@
+12/8/14 started 7.40.5
+- more doc fixes
+
 25/7/14 started 7.40.5
 - fix a race in im_maxpos_avg()
 - limit n_thr on tiny images
