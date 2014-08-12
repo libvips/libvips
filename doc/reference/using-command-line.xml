@@ -11,7 +11,7 @@
 
   <refnamediv>
     <refname>Using VIPS</refname>
-    <refpurpose>How to use the VIPS library</refpurpose>
+    <refpurpose>How to use the VIPS library from the command-line</refpurpose>
   </refnamediv>
 
   <refsect1 id="using-command-line">

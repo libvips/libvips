@@ -88,6 +88,21 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
+/**
+ * SECTION: vips
+ * @short_description: startup, shutdown, version
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-operation">operation</link>
+ * @include: vips/vips.h
+ *
+ * Start VIPS up, shut VIPS down, get version information, relocation. 
+ *
+ * VIPS is a relocatable package, meaning you can move the directory tree you
+ * compiled it to at runtime and it will still be able to find all data files.
+ * This is required for OS X and Windows, but slightly unusual in the Unix
+ * world. See vips_init() and vips_guess_prefix().
+ */
+
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
  */
 #ifdef BINARY_OPEN

@@ -127,6 +127,9 @@ vips_get_argv0( void )
  * it may not be able to get hold of @argv0 and VIPS may therefore be unable
  * to find its data files. It is much better to call this function yourself.
  *
+ * vips_init() is a macro, since it tries to check binary compatibility
+ * between the caller and the library. 
+ *
  * vips_init() does approximately the following:
  *
  * <itemizedlist>
@@ -157,14 +160,14 @@ vips_get_argv0( void )
  * Example:
  *
  * |[
- * int main( int argc, char **argv )
+ * int main (int argc, char **argv)
  * {
- *   if( vips_init( argv[0] ) )
- *     vips_error_exit( "unable to start VIPS" );
+ *   if (vips_init (argv[0]))
+ *     vips_error_exit ("unable to start VIPS");
  *
- *   vips_shutdown();
+ *   vips_shutdown ();
  *
- *   return( 0 );
+ *   return 0;
  * }
  * ]|
  *
@@ -174,7 +177,7 @@ vips_get_argv0( void )
  * Returns: 0 on success, -1 otherwise
  */
 
-/* vips_init() is actually a macro which checks library and application
+/* vips_init() is a macro which checks library and application
  * compatibility before calling vips__init().
  */
 

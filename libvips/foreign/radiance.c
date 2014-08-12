@@ -827,6 +827,11 @@ scanline_write( COLR *scanline, int width, FILE *fp )
 
 	for( i = 0; i < 4; i++ ) {
 		for( j = 0; j < width; ) {
+			/* Not needed, but keeps gcc used-before-set wsrning
+			 * quiet.
+			 */
+			cnt = 1;
+
 			/* Set beg / cnt to the start and length of the next 
 			 * run longer than MINRUN.
 			 */

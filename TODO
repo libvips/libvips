@@ -1,20 +1,16 @@
-- affine makes black lines with interp window_offset > 1, see nohalo
+- can we pick the vipsthumbnail int shrink factor more intelligently?
 
-- experiment with size down to two sizes above in vipsthumbnail
+- did we include the exif patch in the latest windows build? check on laptop
 
-  how does this affect speed and sharpness?
-
-- vipsthumbnail -t plus large -s seems to fail?
-
-- bicubic adds noise to 255/255/255, why? try babe.jpg background
-
-
+  we don't seem to have this fix in the repository!
 
 - vips_object_unref_outputs() needs docs ... bindings will need it
  
 - rewrite im_conv() etc. as vips_conv()
 
   finally finish --disable-deprecated option
+
+- vips_init() has a deprecation warning, bizarre
 
 
 
@@ -27,7 +23,7 @@
 
   need better vipsobject docs
 
-  gtk-doc now used markdown, phew, use this to expand some sections
+  gtk-doc now uses markdown, phew, use this to expand some sections
 
 
 

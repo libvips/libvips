@@ -1053,7 +1053,8 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	if( tfexists( rtiff->tiff, TIFFTAG_PLANARCONFIG ) ) {
 		int v; 
 
-		tfget16( rtiff->tiff, TIFFTAG_PLANARCONFIG, &v );
+		if( !tfget16( rtiff->tiff, TIFFTAG_PLANARCONFIG, &v ) )
+			return( -1 );
 		if( v == PLANARCONFIG_SEPARATE )
 			rtiff->separate = TRUE; 
 	}
