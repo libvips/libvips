@@ -12,6 +12,9 @@
 
 - vips_init() has a deprecation warning, bizarre
 
+- vips_affine() for simple resize is slow at the command-line, since it has to
+  be non-seq ... make a seq version that can only up/down size
+
 
 
 - check and fix up docs
