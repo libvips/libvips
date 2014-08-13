@@ -157,8 +157,8 @@ vips_gaussmat_class_init( VipsGaussmatClass *class )
 	vobject_class->build = vips_gaussmat_build;
 
 	VIPS_ARG_DOUBLE( class, "sigma", 2, 
-		_( "Radius" ), 
-		_( "Radius of Gaussian" ),
+		_( "Sigma" ), 
+		_( "Sigma of Gaussian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGaussmat, sigma ),
 		0.000001, 10000.0, 1.0 );

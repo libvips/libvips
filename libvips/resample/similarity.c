@@ -1,8 +1,8 @@
-/* simple wrapper over vips_similarity() to make scale / rotate easy from the
+/* simple wrapper over vips_affine() to make scale / rotate easy from the
  * command-line
  *
  * 3/10/13
- * 	- from similarity.c
+ * 	- from affine.c
  * 25/10/13
  * 	- oops, reverse rotation direction to match the convention used in the
  * 	  rest of vips

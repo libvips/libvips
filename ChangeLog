@@ -1,5 +1,6 @@
 25/7/14 started 7.41.0
 - start working on --disable-deprecated
+- add vips_resize()
 
 12/8/14 started 7.40.5
 - more doc fixes

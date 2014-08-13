@@ -1,4 +1,4 @@
-/* im_affine() ... affine transform with a supplied interpolator.
+/* affine transform with a supplied interpolator.
  *
  * 
  * Copyright N. Dessipris
