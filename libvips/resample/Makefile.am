@@ -26,6 +26,7 @@ libresample_la_SOURCES = \
 	resample.c \
 	similarity.c \
 	presample.h \
+	resize.c \
 	shrink.c \
 	affine.c \
 	interpolate.c \
