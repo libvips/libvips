@@ -3,8 +3,9 @@
 - fix pngload with libpng >1.6.1
 - add vips_resize()
 
-12/8/14 started 7.40.5
+12/8/14 started 7.40.6
 - more doc fixes
+- fix similarity rotate+scale, thanks Topochicho
 
 25/7/14 started 7.40.5
 - fix a race in im_maxpos_avg()

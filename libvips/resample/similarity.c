@@ -6,6 +6,8 @@
  * 25/10/13
  * 	- oops, reverse rotation direction to match the convention used in the
  * 	  rest of vips
+ * 13/8/14
+ * 	- oops, missing scale from b, thanks Topochicho
  */
 
 /*
@@ -82,7 +84,7 @@ vips_similarity_build( VipsObject *object )
 		return( -1 );
 
 	a = similarity->scale * cos( VIPS_RAD( similarity->angle ) ); 
-	b = -sin( VIPS_RAD( similarity->angle ) );
+	b = similarity->scale * -sin( VIPS_RAD( similarity->angle ) );
 	c = -b;
 	d = a;
 
