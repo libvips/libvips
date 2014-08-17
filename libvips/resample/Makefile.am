@@ -9,6 +9,7 @@ libresample_la_SOURCES = \
 	quadratic.c \
 	resample.c \
 	similarity.c \
+	resize.c \
 	presample.h \
 	shrink.c \
 	interpolate.c \

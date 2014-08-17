@@ -1,6 +1,10 @@
 25/7/14 started 7.41.0
 - start working on --disable-deprecated
 - fix pngload with libpng >1.6.1
+- add vips_resize()
+
+12/8/14 started 7.40.5
+- more doc fixes
 
 25/7/14 started 7.40.5
 - fix a race in im_maxpos_avg()
@@ -10,9 +14,12 @@
 - argh fix affine, again, there were sometimes black bars with nohalo and the
   vips8 interface
 - pngsave in interlaced mode makes a copy of the image, so it's always seq 
-- vipsthumbnail shrinks to 1/2 window_size: faster and better quality
-- vipsthumbnail defaults to bicubic + nosharpen
+- vipsthumbnail shrinks to 1/2 window_size
+- vipsthumbnail has an anti-alias filter between shrink and affine
+- vipsthumbnail defaults to bicubic 
 - better rounding behaviour for fixed-point bicubic reduces noise
+- fix pngload with libpng >=1.6.11
+- fix colour for openslide read associated
 
 4/7/14 started 7.40.4
 - fix vips_rawsave_fd(), thanks aferrero2707 

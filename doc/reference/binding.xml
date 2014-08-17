@@ -19,6 +19,18 @@
     <para>
       Write this section once the vips8 Python binding is done. 
     </para>
+
+    <para>
+If you are writing a language binding, you won't need these. Instead, make
+a new operation with vips_operation_new() (all it does is look up the
+operation by name with vips_type_find(), then call g_object_new() for you),
+then use vips_argument_map() and friends to loop over the operation's
+arguments setting them. Once you have set all arguments, use
+vips_cache_operation_build() to look up the operation in the cache and
+either build or dup it. If something goes wrong, you'll need to use
+vips_object_unref_outputs() and g_object_unref() to free the
+partially-built object. 
+    </para>
   </refsect1>
 
 </refentry>

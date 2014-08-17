@@ -52,9 +52,12 @@
  * 30/6/14
  * 	- fix interlaced thumbnail output, thanks lovell
  * 3/8/14
- * 	- box shrink less, use interpolator more, if the window_size is large
+ * 	- box shrink less, use interpolator more, if window_size is large
  * 	  enough
- * 	- default to bicubic + nosharpen if bicubic is available
+ * 	- default to bicubic if available
+ * 	- add an anti-alias filter between shrink and affine
+ * 	- support CMYK
+ * 	- use SEQ_UNBUF for a memory saving
  */
 
 #ifdef HAVE_CONFIG_H
@@ -72,7 +75,7 @@
 
 #define ORIENTATION ("exif-ifd0-Orientation")
 
-/* Default settings. We change the default to bicubic + nosharpen in main() if
+/* Default settings. We change the default to bicubic in main() if
  * this vips has been compiled with bicubic support.
  */
 
@@ -316,7 +319,7 @@ thumbnail_open( VipsObject *process, const char *filename )
 			jpegshrink ); 
 
 		if( !(im = vips_image_new_from_file( filename, 
-			"access", VIPS_ACCESS_SEQUENTIAL,
+			"access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 			"shrink", jpegshrink,
 			NULL )) )
 			return( NULL );
@@ -325,7 +328,7 @@ thumbnail_open( VipsObject *process, const char *filename )
 		/* All other formats.
 		 */
 		if( !(im = vips_image_new_from_file( filename, 
-			"access", VIPS_ACCESS_SEQUENTIAL,
+			"access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 			NULL )) )
 			return( NULL );
 	}
@@ -344,7 +347,7 @@ thumbnail_interpolator( VipsObject *process, VipsImage *in )
 	calculate_shrink( in, &residual, NULL );
 
 	/* For images smaller than the thumbnail, we upscale with nearest
-	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
+	 * neighbor. Otherwise we make thumbnails that look fuzzy and awful.
 	 */
 	if( !(interp = VIPS_INTERPOLATE( vips_object_new_from_string( 
 		g_type_class_ref( VIPS_TYPE_INTERPOLATE ), 
@@ -397,6 +400,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	int tile_width;
 	int tile_height;
 	int nlines;
+	double sigma;
 
 	/* RAD needs special unpacking.
 	 */
@@ -412,11 +416,15 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 
 	/* In linear mode, we import right at the start. 
 	 *
+	 * We also have to import the whole image if it's CMYK, since
+	 * vips_colourspace() (see below) doesn't know about CMYK.
+	 *
 	 * This is only going to work for images in device space. If you have
 	 * an image in PCS which also has an attached profile, strange things
 	 * will happen. 
 	 */
-	if( linear_processing &&
+	if( (linear_processing ||
+		in->Type == VIPS_INTERPRETATION_CMYK) &&
 		in->Coding == VIPS_CODING_NONE &&
 		(in->BandFmt == VIPS_FORMAT_UCHAR ||
 		 in->BandFmt == VIPS_FORMAT_USHORT) &&
@@ -474,6 +482,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	 * has been used ... but it never will, since thread1 will block on 
 	 * this cache lock. 
 	 */
+
 	vips_get_tile_size( in, 
 		&tile_width, &tile_height, &nlines );
 	if( vips_tilecache( in, &t[4], 
@@ -482,12 +491,39 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		"max_tiles", (nlines * 2) / 10,
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		"threaded", TRUE, 
-		NULL ) ||
-		vips_affine( t[4], &t[5], residual, 0, 0, residual, 
-			"interpolate", interp,
-			NULL ) )  
+		NULL ) )
 		return( NULL );
-	in = t[5];
+	in = t[4];
+
+	/* If the final affine will be doing a large downsample, we can get 
+	 * nasty aliasing on hard edges. Blur before affine to smooth this out.
+	 *
+	 * Don't blur for very small shrinks, blur with radius 1 for x1.5
+	 * shrinks, blur radius 2 for x2.5 shrinks and above, etc.
+	 */
+	sigma = ((1.0 / residual) - 0.5) / 1.5;
+	if( residual < 1.0 &&
+		sigma > 0.1 ) { 
+		if( vips_gaussmat( &t[9], sigma, 0.2,
+			"separable", TRUE,
+			"integer", TRUE,
+			NULL ) ||
+			vips_convsep( in, &t[5], t[9], NULL ) )
+			return( NULL );
+		vips_info( "vipsthumbnail", "anti-alias, sigma %g",
+			sigma );
+#ifdef DEBUG
+		printf( "anti-alias blur matrix is:\n" ); 
+		vips_matrixprint( t[9], NULL ); 
+#endif /*DEBUG*/
+		in = t[5];
+	}
+
+	if( vips_affine( in, &t[6], residual, 0, 0, residual, 
+		"interpolate", interp,
+		NULL ) )  
+		return( NULL );
+	in = t[6];
 
 	vips_info( "vipsthumbnail", "residual scale by %g", residual );
 	vips_info( "vipsthumbnail", "%s interpolation", 
@@ -511,10 +547,10 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		}
 		else {
 			vips_info( "vipsthumbnail", "converting to sRGB" );
-			if( vips_colourspace( in, &t[6], 
+			if( vips_colourspace( in, &t[7], 
 				VIPS_INTERPRETATION_sRGB, NULL ) ) 
 				return( NULL ); 
-			in = t[6];
+			in = t[7];
 		}
 	}
 	else if( export_profile &&
@@ -530,13 +566,13 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		vips_info( "vipsthumbnail", 
 			"exporting with profile %s", export_profile );
 
-		if( vips_icc_transform( in, &t[6], export_profile,
+		if( vips_icc_transform( in, &t[7], export_profile,
 			"input_profile", import_profile,
 			"embedded", TRUE,
 			NULL ) )  
 			return( NULL );
 
-		in = t[6];
+		in = t[7];
 	}
 
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
@@ -687,13 +723,11 @@ main( int argc, char **argv )
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
-	/* Does this vips have bicubic? Default to that + nosharpen if it
+	/* Does this vips have bicubic? Default to that if it
 	 * does.
 	 */
-	if( vips_type_find( "VipsInterpolate", "bicubic" ) ) {
+	if( vips_type_find( "VipsInterpolate", "bicubic" ) ) 
 		interpolator = "bicubic";
-		convolution_mask = "none";
-	}
 
         context = g_option_context_new( _( "- thumbnail generator" ) );
 

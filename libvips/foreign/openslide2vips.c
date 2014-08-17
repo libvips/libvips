@@ -43,6 +43,8 @@
  * 	- use openslide_detect_vendor() on >= 3.4.0
  * 30/7/14
  * 	- add autocrop toggle
+ * 9/8/14
+ * 	- do argb -> rgba for associated as well 
  */
 
 /*
@@ -390,6 +392,45 @@ vips__openslide_read_header( const char *filename, VipsImage *out,
 	return( 0 );
 }
 
+/* Convert from ARGB to RGBA and undo premultiplication. 
+ *
+ * We throw away transparency. Formats like Mirax use transparent + bg
+ * colour for areas with no useful pixels. But if we output
+ * transparent pixels and then convert to RGB for jpeg write later, we
+ * would have to pass the bg colour down the pipe somehow. The
+ * structure of dzsave makes this tricky.
+ *
+ * We could output plain RGB instead, but that would break
+ * compatibility with older vipses.
+ */
+static void
+argb2rgba( uint32_t *buf, int n, uint32_t bg )
+{
+	int i;
+
+	for( i = 0; i < n; i++ ) {
+		uint32_t *p = buf + i;
+		uint32_t x = *p;
+		uint8_t a = x >> 24;
+		VipsPel *out = (VipsPel *) p;
+
+		if( a != 0 ) {
+			out[0] = 255 * ((x >> 16) & 255) / a;
+			out[1] = 255 * ((x >> 8) & 255) / a;
+			out[2] = 255 * (x & 255) / a;
+			out[3] = 255;
+		} 
+		else {
+			/* Use background color.
+			 */
+			out[0] = (bg >> 16) & 255;
+			out[1] = (bg >> 8) & 255;
+			out[2] = bg & 255;
+			out[3] = 255;
+		}
+	}
+}
+
 static int
 vips__openslide_generate( VipsRegion *out, 
 	void *_seq, void *_rslide, void *unused, gboolean *stop )
@@ -401,7 +442,6 @@ vips__openslide_generate( VipsRegion *out,
 	uint32_t *buf = (uint32_t *) VIPS_REGION_ADDR( out, r->left, r->top );
 
 	const char *error;
-	int i;
 
 	VIPS_DEBUG_MSG( "vips__openslide_generate: %dx%d @ %dx%d\n",
 		r->width, r->height, r->left, r->top );
@@ -434,39 +474,9 @@ vips__openslide_generate( VipsRegion *out,
 		return( -1 );
 	}
 
-	/* Convert from ARGB to RGBA and undo premultiplication. Since we are
-	 * inside a cache, we know buf must be continuous.
-	 *
-	 * We throw away transparency. Formats like Mirax use transparent + bg
-	 * colour for areas with no useful pixels. But if we output
-	 * transparent pixels and then convert to RGB for jpeg write later, we
-	 * would have to pass the bg colour down the pipe somehow. The
-	 * structure of dzsave makes this tricky.
-	 *
-	 * We could output plain RGB instead, but that would break
-	 * compatibility with older vipses.
+	/* Since we are inside a cache, we know buf must be continuous.
 	 */
-	for( i = 0; i < n; i++ ) {
-		uint32_t *p = buf + i;
-		uint32_t x = *p;
-		uint8_t a = x >> 24;
-		VipsPel *out = (VipsPel *) p;
-
-		if( a != 0 ) {
-			out[0] = 255 * ((x >> 16) & 255) / a;
-			out[1] = 255 * ((x >> 8) & 255) / a;
-			out[2] = 255 * (x & 255) / a;
-			out[3] = 255;
-		} 
-		else {
-			/* Use background color.
-			 */
-			out[0] = (bg >> 16) & 255;
-			out[1] = (bg >> 8) & 255;
-			out[2] = bg & 255;
-			out[3] = 255;
-		}
-	}
+	argb2rgba( buf, n, bg );
 
 	return( 0 );
 }
@@ -519,6 +529,7 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
+	uint32_t *buf;
 	const char *error;
 
 	VIPS_DEBUG_MSG( "vips__openslide_read_associated: %s %s\n", 
@@ -532,14 +543,15 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 	if( !(rslide = readslide_new( filename, raw, 0, FALSE, associated )) ||
 		vips_image_write_prepare( raw ) )
 		return( -1 );
-	openslide_read_associated_image( rslide->osr, rslide->associated, 
-		(uint32_t *) VIPS_IMAGE_ADDR( raw, 0, 0 ) );
+	buf = (uint32_t *) VIPS_IMAGE_ADDR( raw, 0, 0 );
+	openslide_read_associated_image( rslide->osr, rslide->associated, buf );
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
 		vips_error( "openslide2vips",
 			_( "reading associated image: %s" ), error );
 		return( -1 );
 	}
+	argb2rgba( buf, raw->Xsize * raw->Ysize, rslide->bg );
 
 	if( vips_image_write( raw, out ) ) 
 		return( -1 );
