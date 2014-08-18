@@ -1061,12 +1061,9 @@ vips_image_class_init( VipsImageClass *class )
 
 	VIPS_DEBUG_MSG( "vips_image_class_init:\n" );
 
-	/* Pass in a nonsense name for argv0 ... this init world is only here
-	 * for old programs which are missing a vips_init() call. We must
-	 * have threads set up before we can process.
+	/* We must have threads set up before we can process.
 	 */
-	if( vips_init( "vips" ) )
-		vips_error_clear();
+	vips_check_init(); 
 
 	gobject_class->finalize = vips_image_finalize;
 	gobject_class->dispose = vips_image_dispose;

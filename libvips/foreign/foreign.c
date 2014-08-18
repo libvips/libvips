@@ -8,6 +8,8 @@
  * 	- auto rshift down to 8 bits during save
  * 19/1/14
  * 	- pack and unpack rad to scrgb
+ * 18/8/14
+ * 	- fix conversion to 16-bit RGB, thanks John
  */
 
 /*
@@ -1228,14 +1230,27 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 			in = out;
 		}
 	}
-	else if( in->Bands == 3 &&
-		vips_colourspace_issupported( in ) ) {
-		/* Interpret the Type field for colorimetric images.
+	else if( in->Bands >= 3 &&
+		vips_colourspace_issupported( in ) &&
+		(class->saveable == VIPS_SAVEABLE_RGB ||
+		 class->saveable == VIPS_SAVEABLE_RGBA ||
+		 class->saveable == VIPS_SAVEABLE_RGB_CMYK) ) { 
+		/* Use vips_colourspace() to make an RGB image from LAB or
+		 * whatever this thing is. 
 		 */
 		VipsImage *out;
+		VipsInterpretation interpretation;
 
-		if( vips_colourspace( in, &out, 
-			VIPS_INTERPRETATION_sRGB, NULL ) ) {
+		/* Do we make RGB or RGB16? We don't want to squash a 16-bit
+		 * RGB down to 8 bits if the saver supports 16. 
+		 */
+		if( vips_band_format_is8bit( 
+			class->format_table[in->BandFmt] ) )
+			interpretation = VIPS_INTERPRETATION_sRGB;
+		else
+			interpretation = VIPS_INTERPRETATION_RGB16;
+
+		if( vips_colourspace( in, &out, interpretation, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}
