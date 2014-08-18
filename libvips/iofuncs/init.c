@@ -904,3 +904,45 @@ vips_guess_libdir( const char *argv0, const char *env_name )
 
 	return( libdir );
 }
+
+/**
+ * vips_version_string:
+ *
+ * Get the VIPS version as a static string, including a build date and time.
+ * Do not free.
+ *
+ * Returns: (transfer none): a static version string
+ */
+const char *
+vips_version_string( void )
+{
+	return( VIPS_VERSION_STRING );
+}
+
+/**
+ * vips_version:
+ * @flag: which field of the version to get
+ *
+ * Get the major, minor or micro library version, with @flag values 0, 1 and
+ * 2.
+ *
+ * Returns: library version number
+ */
+int
+vips_version( int flag )
+{
+	switch( flag ) {
+	case 0:
+		return( VIPS_MAJOR_VERSION );
+	
+	case 1:
+		return( VIPS_MINOR_VERSION );
+	
+	case 2:
+		return( VIPS_MICRO_VERSION );
+
+	default:
+		vips_error( "vips_version", "%s", _( "flag not 0, 1, 2" ) );
+		return( -1 );
+	}
+}
