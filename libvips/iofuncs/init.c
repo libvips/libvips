@@ -349,7 +349,7 @@ vips_check_init( void )
 	 * for old programs which are missing an vips_init() call. We need
 	 * i18n set up before we can translate.
 	 */
-	if( vips__init( "giant_banana" ) )
+	if( vips__init( "vips" ) )
 		vips_error_clear();
 }
 
@@ -393,9 +393,11 @@ vips_leak( void )
  * by vips_g_thread_new(). 
  *
  * You will need to call it from threads created in
- * other ways. If you do not call it, vips will generate an error message.
+ * other ways or there will be memory leaks. If you do not call it, vips 
+ * will generate a warning message.
  *
- * May be called many times. 
+ * It may be called many times, and you can continue using vips after 
+ * calling it. Calling it too often will reduce performance. 
  */
 void
 vips_thread_shutdown( void )
@@ -561,14 +563,14 @@ static GOptionEntry option_entries[] = {
 /**
  * vips_get_option_group: (skip)
  *
- * vips_get_option_group()  returns  a GOptionGroup containing various VIPS
- * command-line options. It  can  be  used  with  GOption  to  help
+ * vips_get_option_group() returns a %GOptionGroup containing various VIPS
+ * command-line options. It can be used with %GOption to help
  * parse argc/argv.
  *
  * See also: vips_version(), vips_guess_prefix(),
  * vips_guess_libdir(), vips_init().
  *
- * Returns: a GOptionGroup for VIPS, see GOption
+ * Returns: a %GOptionGroup for VIPS, see %GOption
  */
 GOptionGroup *
 vips_get_option_group( void )

@@ -175,7 +175,6 @@ extern "C" {
 		vips__init( ARGV0 ))
 
 const char *vips_get_argv0( void );
-void vips_check_init( void );
 void vips_shutdown( void );
 void vips_thread_shutdown( void );
 GOptionGroup *vips_get_option_group( void );

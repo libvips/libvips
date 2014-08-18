@@ -242,12 +242,7 @@ im_open( const char *filename, const char *mode )
 {
 	VipsImage *image;
 
-	/* Pass in a nonsense name for argv0 ... this init path is only here
-	 * for old programs which are missing an vips_init() call. We need
-	 * i18n set up before we can translate.
-	 */
-	if( vips__init( "giant_banana" ) )
-		vips_error_clear();
+	vips_check_init(); 
 
 	/* We have to go via the old VipsFormat system so we can support the
 	 * "filename:option" syntax.
