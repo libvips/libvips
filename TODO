@@ -1,9 +1,5 @@
 - can we pick the vipsthumbnail int shrink factor more intelligently?
 
-- did we include the exif patch in the latest windows build? check on laptop
-
-  we don't seem to have this fix in the repository!
-
 - vips_object_unref_outputs() needs docs ... bindings will need it
  
 - vips_init() has a deprecation warning, bizarre
