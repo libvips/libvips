@@ -161,7 +161,7 @@ extern "C" {
 /* We can't use _ here since this will be compiled by our clients and they may
  * not have _().
  */
-#define vips_init( ARGV0 ) \
+#define VIPS_INIT( ARGV0 ) \
 	(sizeof( VipsObject ) != vips__get_sizeof_vipsobject() ? ( \
 		vips_info( "vips_init", "ABI mismatch" ), \
 		vips_info( "vips_init", \

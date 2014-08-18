@@ -1065,7 +1065,7 @@ vips_image_class_init( VipsImageClass *class )
 	 * for old programs which are missing a vips_init() call. We must
 	 * have threads set up before we can process.
 	 */
-	if( vips_init( "vips" ) )
+	if( vips__init( "vips" ) )
 		vips_error_clear();
 
 	gobject_class->finalize = vips_image_finalize;

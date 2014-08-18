@@ -117,52 +117,41 @@ vips_get_argv0( void )
 }
 
 /**
- * vips_init:
+ * VIPS_INIT:
  * @argv0: name of application
  *
- * vips_init() starts up the world of VIPS. You should call this on
+ * VIPS_INIT() starts up the world of VIPS. You should call this on
  * program startup before using any other VIPS operations. If you do not call
- * vips_init(), VIPS will call it for you when you use your first VIPS 
- * operation, but
- * it may not be able to get hold of @argv0 and VIPS may therefore be unable
- * to find its data files. It is much better to call this function yourself.
+ * VIPS_INIT(), VIPS will call it for you when you use your first VIPS 
+ * operation, but it may not be able to get hold of @argv0 and VIPS may 
+ * therefore be unable to find its data files. It is much better to call 
+ * this macro yourself.
  *
- * vips_init() is a macro, since it tries to check binary compatibility
+ * VIPS_INIT() is a macro, since it tries to check binary compatibility
  * between the caller and the library. 
  *
- * vips_init() does approximately the following:
+ * VIPS_INIT() does approximately the following:
  *
- * <itemizedlist>
- *   <listitem> 
- *     <para>checks that the libvips your program is expecting is 
- *     binary-compatible with the vips library you're running against</para>
- *   </listitem>
- *   <listitem> 
- *     <para>initialises any libraries that VIPS is using, including GObject
- *     and the threading system, if neccessary</para>
- *   </listitem>
- *   <listitem> 
- *     <para>guesses where the VIPS data files are and sets up
- *     internationalisation --- see vips_guess_prefix()
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>creates the main vips types, including VipsImage and friends
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>loads any plugins from $libdir/vips-x.y/, where x and y are the
- *     major and minor version numbers for this VIPS.
- *     </para>
- *   </listitem>
- * </itemizedlist>
+ * + checks that the libvips your program is expecting is 
+ *   binary-compatible with the vips library you're running against
+ *
+ * + initialises any libraries that VIPS is using, including GObject
+ *   and the threading system, if neccessary
+ *
+ * + guesses where the VIPS data files are and sets up
+ *   internationalisation --- see vips_guess_prefix()
+ *
+ * + creates the main vips types, including #VipsImage and friends
+ *
+ * + loads any plugins from $libdir/vips-x.y/, where x and y are the
+ *   major and minor version numbers for this VIPS.
  *
  * Example:
  *
  * |[
  * int main (int argc, char **argv)
  * {
- *   if (vips_init (argv[0]))
+ *   if (VIPS_INIT (argv[0]))
  *     vips_error_exit ("unable to start VIPS");
  *
  *   vips_shutdown ();
@@ -360,7 +349,7 @@ vips_check_init( void )
 	 * for old programs which are missing an vips_init() call. We need
 	 * i18n set up before we can translate.
 	 */
-	if( vips_init( "giant_banana" ) )
+	if( vips__init( "giant_banana" ) )
 		vips_error_clear();
 }
 

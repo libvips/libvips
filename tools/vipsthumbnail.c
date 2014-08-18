@@ -718,7 +718,7 @@ main( int argc, char **argv )
 	GError *error = NULL;
 	int i;
 
-	if( vips_init( argv[0] ) )
+	if( vips__init( argv[0] ) )
 	        vips_error_exit( "unable to start VIPS" );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );

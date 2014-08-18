@@ -246,7 +246,7 @@ im_open( const char *filename, const char *mode )
 	 * for old programs which are missing an vips_init() call. We need
 	 * i18n set up before we can translate.
 	 */
-	if( vips_init( "giant_banana" ) )
+	if( vips__init( "giant_banana" ) )
 		vips_error_clear();
 
 	/* We have to go via the old VipsFormat system so we can support the
@@ -427,7 +427,7 @@ im_init( const char *filename )
 int
 im_init_world( const char *argv0 )
 {
-	return( vips_init( argv0 ) );
+	return( vips__init( argv0 ) );
 }
 
 /* Prettyprint various header fields. Just for vips7 compat, use
