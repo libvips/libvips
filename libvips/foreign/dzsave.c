@@ -45,6 +45,8 @@
  * 25/6/14
  * 	- stop on zip write >4gb, thanks bgilbert
  * 	- save metadata, see https://github.com/jcupitt/libvips/issues/137
+ * 18/8/14
+ * 	- use g_ date funcs, helps Windows
  */
 
 /*
@@ -809,16 +811,12 @@ write_vips_meta( VipsForeignSaveDz *dz )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
 
-	time_t now;
-	char time_string[50];
 	xmlDoc *doc;
+	GTimeVal now;
+	char *date;
 	char *dump;
 	int dump_size;
 	GsfOutput *out;
-
-	time( &now );
-	strftime( time_string, sizeof( time_string ), 
-		"%FT%TZ", gmtime( &now ) );
 
 	if( !(doc = xmlNewDoc( (xmlChar *) "1.0" )) ) { 
 		vips_error( class->nickname, "%s", _( "xml save error" ) );
@@ -830,14 +828,19 @@ write_vips_meta( VipsForeignSaveDz *dz )
                 xmlFreeDoc( doc );
 		return( -1 );
 	}
+
+	g_get_current_time( &now );
+	date = g_time_val_to_iso8601( &now ); 
 	if( set_prop( dz, doc->children, "xmlns", 
 			"http://www.vips.ecs.soton.ac.uk/dzsave" ) ||  
-		set_prop( dz, doc->children, "date", time_string ) ||
+		set_prop( dz, doc->children, "date", date ) ||
 		set_prop( dz, doc->children, "version", VIPS_VERSION ) ||
 		write_vips_properties( dz, doc->children ) ) {
+		g_free( date );
                 xmlFreeDoc( doc );
                 return( -1 );
         }
+	g_free( date );
 
 	xmlDocDumpFormatMemory( doc, (xmlChar **) &dump, &dump_size, 1 );
 	if( !dump ) {

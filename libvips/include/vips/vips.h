@@ -164,7 +164,7 @@ extern "C" {
 /* We can't use _ here since this will be compiled by our clients and they may
  * not have _().
  */
-#define vips_init( ARGV0 ) \
+#define VIPS_INIT( ARGV0 ) \
 	(sizeof( VipsObject ) != vips__get_sizeof_vipsobject() ? ( \
 		vips_info( "vips_init", "ABI mismatch" ), \
 		vips_info( "vips_init", \
@@ -178,7 +178,6 @@ extern "C" {
 		vips__init( ARGV0 ))
 
 const char *vips_get_argv0( void );
-void vips_check_init( void );
 void vips_shutdown( void );
 void vips_thread_shutdown( void );
 GOptionGroup *vips_get_option_group( void );

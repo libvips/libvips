@@ -105,11 +105,11 @@
  * The stages inside vips_object_build() are:
  *
  * 1. Chain up through the object's @build class methods. At each stage,
- * each object does any initial setup and checking, then chains up to its
+ * each class does any initial setup and checking, then chains up to its
  * superclass.
  *
- * 2. The innermost @build method in #VipsObject itself checks that all input
- * arguments have been set and then returns. 
+ * 2. The innermost @build method inside #VipsObject itself checks that all 
+ * input arguments have been set and then returns. 
  *
  * 3. All object @build methods now finish executing, from innermost to
  * outermost. They know all input arguments have been checked and supplied, so
@@ -120,7 +120,10 @@
  * signal. #VipsObject::postbuild only runs if the object has constructed
  * successfuly.
  *
- * And the stages inside close are:
+ * #VipsOperation has a cache of recent operation objects, see that class for
+ * an explanation of vips_cache_operation_build(). 
+ *
+ * Finally the stages inside close are:
  *
  * 1. #VipsObject::preclose. This is emitted at the start of
  * the #VipsObject dispose. The object is still functioning. 

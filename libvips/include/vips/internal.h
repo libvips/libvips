@@ -52,6 +52,8 @@ typedef struct _VipsMeta {
 	GValue value;			/* copy of value */
 } VipsMeta;
 
+void vips_check_init( void );
+
 void vips__meta_init_types( void );
 void vips__meta_destroy( VipsImage *im );
 int vips__meta_cp( VipsImage *, const VipsImage * );
@@ -101,6 +103,8 @@ extern gboolean vips__cache_dump;
 extern gboolean vips__cache_trace;
 
 void vips__cache_init( void );
+
+void vips__print_renders( void );
 
 void vips__type_leak( void );
 

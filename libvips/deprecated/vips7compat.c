@@ -242,12 +242,7 @@ im_open( const char *filename, const char *mode )
 {
 	VipsImage *image;
 
-	/* Pass in a nonsense name for argv0 ... this init path is only here
-	 * for old programs which are missing an vips_init() call. We need
-	 * i18n set up before we can translate.
-	 */
-	if( vips_init( "giant_banana" ) )
-		vips_error_clear();
+	vips_check_init(); 
 
 	/* We have to go via the old VipsFormat system so we can support the
 	 * "filename:option" syntax.
@@ -427,7 +422,7 @@ im_init( const char *filename )
 int
 im_init_world( const char *argv0 )
 {
-	return( vips_init( argv0 ) );
+	return( vips__init( argv0 ) );
 }
 
 /* Prettyprint various header fields. Just for vips7 compat, use

@@ -179,7 +179,7 @@ vips_sumv( VipsImage **in, VipsImage **out, int n, va_list ap )
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation sums @in1 + @in2 and writes the result to @out. 
+ * This operation sums all images in @in and writes the result to @out. 
  *
  * If the images differ in size, the smaller images are enlarged to match the
  * largest by adding zero pixels along the bottom and right.
@@ -191,7 +191,7 @@ vips_sumv( VipsImage **in, VipsImage **out, int n, va_list ap )
  *
  * The input images are cast up to the smallest common format (see table 
  * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
+ * <link linkend="libvips-arithmetic">arithmetic</link>), then the 
  * following table is used to determine the output type:
  *
  * <table>

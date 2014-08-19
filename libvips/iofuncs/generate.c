@@ -112,12 +112,12 @@
  * SECTION: generate
  * @short_description: calculate pixels and pixel buffers
  * @stability: Stable
- * @see_also: <link linkend="libvips-image">image</link>, 
- * <link linkend="libvips-region">region</link>
+ * @see_also: <link linkend="VipsImage">VipsImage</link>, 
+ * <link linkend="VipsRegion">VipsRegion</link>
  * @include: vips/vips.h
  *
- * These functions let you generate regions of pixels in an image
- * processing operation, and ask for regions of image to be calculated.
+ * These functions let you attach generate functions to images  
+ * and ask for regions of images to be calculated.
  */
 
 /* Max number of images we can handle.
@@ -349,7 +349,7 @@ vips__demand_hint_array( VipsImage *image,
  * @image prefers to supply pixels according to @hint.
  *
  * Operations can set demand hints, that is, hints to the VIPS IO system about
- * the type of region geometry this operation works best with. For example,
+ * the type of region geometry they work best with. For example,
  * operations which transform coordinates will usually work best with
  * %VIPS_DEMAND_STYLE_SMALLTILE, operations which work on local windows of 
  * pixels will like %VIPS_DEMAND_STYLE_FATSTRIP.
@@ -642,13 +642,14 @@ write_vips( VipsRegion *region, VipsRect *area, void *a, void *b )
  *
  * Generates an image. The action depends on the image type.
  *
- * For images opened with "p", vips_image_generate() just attaches the
- * start/generate/stop callbacks and returns.
+ * For images created with vips_image_new(), vips_image_generate() just 
+ * attaches the start/generate/stop callbacks and returns.
  *
- * For "t" images, memory is allocated for the whole image and it is entirely
- * generated using vips_sink().
+ * For images created with vips_image_new_memory(), memory is allocated for 
+ * the whole image and it is entirely generated using vips_sink_memory().
  *
- * For "w" images, memory for a few scanlines is allocated and
+ * For images created with vips_image_new_temp_file() and friends, memory for 
+ * a few scanlines is allocated and
  * vips_sink_disc() used to generate the image in small chunks. As each
  * chunk is generated, it is written to disc.
  *
