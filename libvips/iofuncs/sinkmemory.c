@@ -313,10 +313,10 @@ sink_memory_init( SinkMemory *memory, VipsImage *image )
  * vips_sink_memory:
  * @im: generate this image to memory
  *
- * Loops over an image, generating it to a memory buffer attached to the
- * image. 
+ * Loops over @im, generating it to a memory buffer attached to @im. It is
+ * used by vips to implement writing to a memory buffer.
  *
- * See also: vips_sink(), vips_get_tile_size().
+ * See also: vips_sink(), vips_get_tile_size(), vips_image_new_memory().
  *
  * Returns: 0 on success, or -1 on error.
  */

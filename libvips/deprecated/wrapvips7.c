@@ -36,7 +36,7 @@
    	TODO:
 
 	- masks would be hard, vips8 won't really have these
-	- keep for testing, mostly ... iofuncs/init.c has a commeted-out
+	- keep for testing, mostly ... iofuncs/init.c has a commented-out
 	  call to init this thing
 
  */

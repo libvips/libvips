@@ -811,7 +811,7 @@ guess_prefix( const char *argv0, const char *name )
  * 
  * See also: vips_guess_libdir().
  *
- * Returns: the install prefix as a static string, do not free.
+ * Returns: (transfer none): the install prefix as a static string, do not free.
  */
 const char *
 vips_guess_prefix( const char *argv0, const char *env_name )
@@ -876,7 +876,7 @@ vips_guess_prefix( const char *argv0, const char *env_name )
  * 
  * See also: vips_guess_prefix().
  *
- * Returns: the libdir as a static string, do not free.
+ * Returns: (transfer none): the libdir as a static string, do not free.
  */
 const char *
 vips_guess_libdir( const char *argv0, const char *env_name )

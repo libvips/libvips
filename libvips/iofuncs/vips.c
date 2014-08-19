@@ -92,7 +92,7 @@
  * SECTION: vips
  * @short_description: startup, shutdown, version
  * @stability: Stable
- * @see_also: <link linkend="libvips-operation">operation</link>
+ * @see_also: <link linkend="VipsOperation">VipsOperation</link>
  * @include: vips/vips.h
  *
  * Start VIPS up, shut VIPS down, get version information, relocation. 

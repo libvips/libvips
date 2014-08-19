@@ -59,10 +59,10 @@
  * SECTION: type
  * @short_description: basic types
  * @stability: Stable
- * @see_also: <link linkend="libvips-operation">operation</link>
+ * @see_also: <link linkend="libvips-header">header</link>
  * @include: vips/vips.h
  *
- * A selection of GType defintions used by VIPS. 
+ * A selection of %GType defintions used by VIPS. 
  */
 
 /* A very simple boxed type for testing. Just an int.
