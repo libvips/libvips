@@ -91,7 +91,6 @@ typedef struct _VipsArea {
 
 VipsArea *vips_area_copy( VipsArea *area );
 void vips_area_unref( VipsArea *area );
-void vips__type_leak( void );
 
 VipsArea *vips_area_new( VipsCallbackFn free_fn, void *data );
 VipsArea *vips_area_new_blob( VipsCallbackFn free_fn, 
@@ -197,8 +196,6 @@ int vips_value_set_array_object( GValue *value, int n );
 /* See also image.h, that has vips_value_get_array_image() and 
  * vips_value_set_array_image(). They need to be declared after VipsImage. 
  */
-
-void vips__meta_init_types( void );
 
 #ifdef __cplusplus
 }

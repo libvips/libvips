@@ -158,12 +158,14 @@
  * @X: x coordinate
  * @Y: y coordinate
  *
- * This macro returns a pointer to a pixel in a region. The (x, y) coordinates
- * need to be within the #VipsRect (@R->valid).
+ * This macro returns a pointer to a pixel in a region. The (@X, @Y) 
+ * coordinates need to be within the #VipsRect (@R->valid).
  * 
  * If DEBUG is defined, you get a version that checks bounds for you.
  *
- * Returns: The address of pixel (x,y) in the region.
+ * See also: vips_region_prepare().
+ *
+ * Returns: The address of pixel (@X,@Y) in @R.
  */
 
 /**
@@ -172,6 +174,8 @@
  *
  * This macro returns a pointer to the top-left pixel in the #VipsRegion, that 
  * is, the pixel at (@R->valid.left, @R->valid.top).
+ *
+ * See also: vips_region_prepare().
  * 
  * Returns: The address of the top-left pixel in the region.
  */
@@ -1090,11 +1094,10 @@ vips_region_generate( VipsRegion *reg )
  * the calling thread, no new threads are involved, and computation 
  * blocks until the pixels are ready.
  *
- * Use vips_region_prepare_thread() to calculate an area of pixels with many
- * threads. Use vips_sink_screen() to calculate an area of pixels in the 
+ * Use vips_sink_screen() to calculate an area of pixels in the 
  * background.
  *
- * See also: vips_region_prepare_thread(), vips_sink_screen(), 
+ * See also: vips_sink_screen(), 
  * vips_region_prepare_to().
  *
  * Returns: 0 on success, or -1 on error.

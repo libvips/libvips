@@ -270,7 +270,7 @@ vips_relationalv( VipsImage *left, VipsImage *right, VipsImage **out,
  *
  * The two input images are cast up to the smallest common format (see table 
  * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * To decide if pixels match exactly, that is have the same value in every
  * band, use vips_bandbool() after this operation to AND or OR image bands 
