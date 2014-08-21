@@ -318,8 +318,10 @@ thumbnail_open( VipsObject *process, const char *filename )
 			"loading jpeg with factor %d pre-shrink", 
 			jpegshrink ); 
 
+		/* We can't use UNBUFERRED safely on very-many-core systems.
+		 */
 		if( !(im = vips_image_new_from_file( filename, 
-			"access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
+			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", jpegshrink,
 			NULL )) )
 			return( NULL );
@@ -328,7 +330,7 @@ thumbnail_open( VipsObject *process, const char *filename )
 		/* All other formats.
 		 */
 		if( !(im = vips_image_new_from_file( filename, 
-			"access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
+			"access", VIPS_ACCESS_SEQUENTIAL,
 			NULL )) )
 			return( NULL );
 	}
