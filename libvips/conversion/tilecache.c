@@ -941,7 +941,7 @@ vips_line_cache_build( VipsObject *object )
 
 		vips_get_tile_size( block_cache->in, 
 			&tile_width, &tile_height, &nlines );
-		block_cache->max_tiles = 3 * 
+		block_cache->max_tiles = 4 * 
 			(1 + nlines / block_cache->tile_height);
 
 		VIPS_DEBUG_MSG( "vips_line_cache_build: nlines = %d\n", 
