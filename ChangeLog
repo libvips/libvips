@@ -1,5 +1,6 @@
 21/8/14 started 7.40.7
 - fix matlab load
+- fix memleak in tilecache [Lovell]
 
 12/8/14 started 7.40.6
 - more doc fixes
