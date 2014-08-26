@@ -336,6 +336,8 @@ vips_area_free_array_object( GObject **array, VipsArea *area )
 		VIPS_FREEF( g_object_unref, array[i] );
 
 	area->n = 0;
+
+	VIPS_FREE( array );
 }
 
 /**

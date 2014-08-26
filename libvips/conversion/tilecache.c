@@ -155,6 +155,7 @@ vips_block_cache_dispose( GObject *gobject )
 	vips_block_cache_drop_all( cache );
 	VIPS_FREEF( vips_g_mutex_free, cache->lock );
 	VIPS_FREEF( vips_g_cond_free, cache->new_tile );
+	VIPS_FREEF( g_hash_table_destroy, cache->tiles );
 
 	G_OBJECT_CLASS( vips_block_cache_parent_class )->dispose( gobject );
 }
