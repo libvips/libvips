@@ -451,7 +451,7 @@ write_free( Write *write )
  * @a: client data
  *
  * The function should write the pixels in @area from @region. @a is the 
- * value passed into vips_discsink().
+ * value passed into vips_sink_disc().
  *
  * See also: vips_sink_disc().
  *
@@ -472,7 +472,8 @@ write_free( Write *write )
  * sections in top-to-bottom order, and there are never any gaps.
  *
  * This operation is handy for making image sinks which output to things like 
- * disc files.
+ * disc files. Things like vips_jpegsave(), for example, use this to write
+ * images to files in JPEG format. 
  *
  * See also: vips_concurrency_set().
  *

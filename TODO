@@ -1,18 +1,17 @@
 - can we pick the vipsthumbnail int shrink factor more intelligently?
 
+- vips_resize() should use vipsthumbnail's block/cache/affine/sharpen chain
+
 - vips_object_unref_outputs() needs docs ... bindings will need it
  
 - rewrite im_conv() etc. as vips_conv()
 
   finally finish --disable-deprecated option
 
-
-
-
-- vips_init() has a deprecation warning, bizarre
-
-- vips_affine() for simple resize is slow at the command-line, since it has to
-  be non-seq ... make a seq version that can only up/down size
+- vips_object_unref_outputs() needs docs ... bindings will need it
+ 
+- where should we explain VIPS_IMAGE_ADDR(), VIPS_REGION_ADDR(),
+  vips_region_region() etc.?
 
 
 

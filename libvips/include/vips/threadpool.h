@@ -131,8 +131,6 @@ int vips_threadpool_run( VipsImage *im,
 void vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *nlines );
 
-void vips__print_renders( void );
-
 void vips_concurrency_set( int concurrency );
 int vips_concurrency_get( void );
 

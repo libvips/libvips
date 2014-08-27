@@ -59,10 +59,10 @@
  * SECTION: type
  * @short_description: basic types
  * @stability: Stable
- * @see_also: <link linkend="libvips-operation">operation</link>
+ * @see_also: <link linkend="libvips-header">header</link>
  * @include: vips/vips.h
  *
- * A selection of GType defintions used by VIPS. 
+ * A selection of %GType defintions used by VIPS. 
  */
 
 /* A very simple boxed type for testing. Just an int.
@@ -138,21 +138,6 @@ vips_thing_get_type( void )
 	return( type );
 }
 
-/**
- * SECTION: VipsArea
- * @short_description: an area of memory
- * @stability: Stable
- * @see_also: <link linkend="libvips-meta">header</link>,
- * @include: vips/vips.h
- *
- * A VipsArea wraps a chunk of memory. It adds reference counting and a free
- * function. It also keeps a count and a GType, so the area can be an array.
- *
- * This type is used for things like passing an array of double or an array of
- * VipsObject pointers to operations, and for reference-counted immutable
- * strings. 
- */
-
 static GSList *vips_area_all = NULL;
 
 VipsArea *
@@ -227,8 +212,14 @@ vips_area_unref( VipsArea *area )
  * @free_fn: (scope async): @data will be freed with this function
  * @data: data will be freed with this function
  *
- * An area of memory with a free function. (eg. \0-terminated string, or a 
- * struct). Inital count == 1, so _unref() after attaching somewhere.
+ * A VipsArea wraps a chunk of memory. It adds reference counting and a free
+ * function. It also keeps a count and a %GType, so the area can be an array.
+ *
+ * This type is used for things like passing an array of double or an array of
+ * #VipsObject pointers to operations, and for reference-counted immutable
+ * strings. 
+ *
+ * Inital count == 1, so _unref() after attaching somewhere.
  *
  * See also: vips_area_unref().
  *
@@ -313,7 +304,7 @@ vips_area_new_blob( VipsCallbackFn free_fn, void *data, size_t length )
  * @sizeof_type: sizeof() an element in the array
  * @n: number of elements in the array
  *
- * An area which holds an array of elements of some GType. To set values for
+ * An area which holds an array of elements of some %GType. To set values for
  * the elements, get the pointer and write.
  *
  * See also: vips_area_unref().
@@ -351,7 +342,7 @@ vips_area_free_array_object( GObject **array, VipsArea *area )
  * vips_area_new_array_object:
  * @n: number of elements in the array
  *
- * An area which holds an array of GObjects. See vips_area_new_array(). When
+ * An area which holds an array of %GObjects. See vips_area_new_array(). When
  * the area is freed, each %GObject will be unreffed.
  *
  * See also: vips_area_unref().
@@ -934,7 +925,7 @@ vips_value_set_save_stringf( GValue *value, const char *fmt, ... )
  * @value: %GValue to get from
  * @length: (allow-none): return length here, optionally
  *
- * Get the C string held internally by the GValue.
+ * Get the C string held internally by the %GValue.
  *
  * Returns: (transfer none): The C string held by @value. 
  */
@@ -946,14 +937,14 @@ vips_value_get_ref_string( const GValue *value, size_t *length )
 
 /** 
  * vips_value_set_ref_string:
- * @value: (out): GValue to set
+ * @value: (out): %GValue to set
  * @str: C string to copy into the GValue
  *
  * Copies the C string @str into @value. 
  *
  * vips_ref_string are immutable C strings that are copied between images by
  * copying reference-counted pointers, making the much more efficient than
- * regular GValue strings.
+ * regular %GValue strings.
  *
  * Returns: 0 on success, -1 otherwise.
  */
@@ -1353,7 +1344,7 @@ vips_value_get_array_object( const GValue *value, int *n )
  * @value: (out): %GValue to set
  * @n: the number of elements 
  *
- * Set @value to hold an array of GObject. Pass in the array length in @n. 
+ * Set @value to hold an array of %GObject. Pass in the array length in @n. 
  *
  * See also: vips_array_object_get().
  *

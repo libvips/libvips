@@ -24,14 +24,14 @@
     </para>
 
     <para>
-      When your program starts, use <function>vips_init()</function> to set up 
+      When your program starts, use <function>VIPS_INIT()</function> to set up 
       the VIPS library. You should pass it the name of your program, usually 
       <literal>argv[0]</literal>. Use <function>vips_shutdown()</function> 
       when you exit. 
     </para>
 
     <para>
-      You can add the VIPS flags to your GObject command-line processing
+      You can add the VIPS flags to your %GObject command-line processing
       with vips_get_option_group(), see below.
     </para>
 
@@ -74,6 +74,13 @@
     </para>
 
     <para>
+      Use #VipsRegion to read pixels out of images. You can use 
+      VIPS_IMAGE_ADDR() as well, but this can need a large amount of 
+      memory to work. See <link linkend="extending">extending</link> 
+      for an introduxction to writing your own operations. 
+    </para>
+
+    <para>
       VIPS keeps a log of error message, see  <link
       linkend="libvips-error">VIPS Error</link> to find out how to get and
       set the error log.
@@ -100,7 +107,7 @@ main( int argc, char **argv )
 	double mean;
 	VipsImage *out;
 
-	if( vips_init( argv[0] ) )
+	if( VIPS_INIT( argv[0] ) )
 		vips_error_exit( NULL ); 
 
 	context = g_option_context_new( "hello infile outfile - VIPS demo" );

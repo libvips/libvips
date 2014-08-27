@@ -364,6 +364,10 @@ if( negative( in, &amp;out, "image_max", 128, NULL ) )
       #VipsRect in _generate().
     </para>
 
+    <para>
+      Make zero-copy operations, like vips_insert(), with vips_region_region().
+    </para>
+
   </refsect1>
 
 </refentry>
