@@ -29,6 +29,8 @@
  * 	- could deadlock if downstream raised an error (thanks Todd)
  * 25/4/13
  * 	- cache minimisation is optional, see "persistent" flag
+ * 26/8/14 Lovell
+ * 	- free the hash table in _dispose()
  */
 
 /*
@@ -155,6 +157,10 @@ vips_block_cache_dispose( GObject *gobject )
 	vips_block_cache_drop_all( cache );
 	VIPS_FREEF( vips_g_mutex_free, cache->lock );
 	VIPS_FREEF( vips_g_cond_free, cache->new_tile );
+
+	if( cache->tiles )
+		g_assert( g_hash_table_size( cache->tiles ) == 0 );
+	VIPS_FREEF( g_hash_table_destroy, cache->tiles );
 
 	G_OBJECT_CLASS( vips_block_cache_parent_class )->dispose( gobject );
 }
@@ -941,7 +947,7 @@ vips_line_cache_build( VipsObject *object )
 
 		vips_get_tile_size( block_cache->in, 
 			&tile_width, &tile_height, &nlines );
-		block_cache->max_tiles = 3 * 
+		block_cache->max_tiles = 4 * 
 			(1 + nlines / block_cache->tile_height);
 
 		VIPS_DEBUG_MSG( "vips_line_cache_build: nlines = %d\n", 

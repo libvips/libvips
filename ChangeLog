@@ -3,11 +3,17 @@
 - fix pngload with libpng >1.6.1
 - add vips_resize()
 
+21/8/14 started 7.40.7
+- fix matlab load
+- fix memleak in tilecache [Lovell]
+- fix memleak in VipsArray [Lovell]
+
 12/8/14 started 7.40.6
 - more doc fixes
 - fix similarity rotate+scale, thanks Topochicho
 - fix 16-bit PNG save, thanks John
 - fix dzsave date on Windows, thanks John
+- fix vipsthumbnail on many-core systems, thanks James
 
 25/7/14 started 7.40.5
 - fix a race in im_maxpos_avg()
