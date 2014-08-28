@@ -298,6 +298,8 @@ vips__webp_read_buffer( void *buf, size_t len, VipsImage *out )
 	if( read_image( read, out ) )
 		return( -1 );
 
+	read_free( read );
+
 	return( 0 );
 }
 
