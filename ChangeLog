@@ -4,9 +4,12 @@
 - add vips_resize()
 
 21/8/14 started 7.40.7
-- fix matlab load
+- width and height were swapped in matlab load
+- set interpretation more carefully on matlab load
 - fix memleak in tilecache [Lovell]
 - fix memleak in VipsArray [Lovell]
+- fix memleak in webp load from buffer [Lovell]
+- fix memleak in png save to buffer [Lovell]
 
 12/8/14 started 7.40.6
 - more doc fixes

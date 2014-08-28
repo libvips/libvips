@@ -211,6 +211,8 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 
 	g_object_set( object, "buffer", area, NULL );
 
+	vips_area_unref( area );
+
 	return( 0 );
 }
 
