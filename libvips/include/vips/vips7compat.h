@@ -266,10 +266,6 @@ vips_image_new_mode( const char *filename, const char *mode );
 
 int im_init_world( const char *argv0 ); 
 
-/* We used to have this in lowercase.
- */
-#define vips_init(X) VIPS_INIT(X)
-
 VipsImage *im_open( const char *filename, const char *mode );
 
 VipsImage *im_open_local( VipsImage *parent, 

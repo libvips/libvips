@@ -422,7 +422,7 @@ im_init( const char *filename )
 int
 im_init_world( const char *argv0 )
 {
-	return( vips__init( argv0 ) );
+	return( vips_init( argv0 ) );
 }
 
 /* Prettyprint various header fields. Just for vips7 compat, use
@@ -5346,4 +5346,12 @@ im_insertset( IMAGE *main, IMAGE *sub, IMAGE *out, int n, int *x, int *y )
 		return( -1 );
 
 	return( 0 );
+}
+
+/* We had this entry point in earlier libvipses, hilariously.
+ */
+int
+vips__init( const char *argv0 )
+{
+	return( vips_init( argv0 ) );
 }

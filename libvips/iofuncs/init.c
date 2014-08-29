@@ -166,12 +166,22 @@ vips_get_argv0( void )
  * Returns: 0 on success, -1 otherwise
  */
 
-/* vips_init() is a macro which checks library and application
- * compatibility before calling vips__init().
+/**
+ * vips_init:
+ * @argv0: name of application
+ *
+ * This function starts up libvips, see VIPS_INIT(). 
+ *
+ * This function is for bindings which need to start up vips. C programs
+ * should use the VIPS_INIT() macro, which does some extra checks. 
+ *
+ * See also: VIPS_INIT(). 
+ *
+ * Returns: 0 on success, -1 otherwise
  */
 
 int
-vips__init( const char *argv0 )
+vips_init( const char *argv0 )
 {
 	extern GType vips_system_get_type( void );
 
@@ -349,7 +359,7 @@ vips_check_init( void )
 	 * for old programs which are missing an vips_init() call. We need
 	 * i18n set up before we can translate.
 	 */
-	if( vips__init( "vips" ) )
+	if( vips_init( "vips" ) )
 		vips_error_clear();
 }
 

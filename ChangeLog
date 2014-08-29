@@ -2,6 +2,7 @@
 - start working on --disable-deprecated
 - fix pngload with libpng >1.6.1
 - add vips_resize()
+- return of vips_init(), but just for bindings
 
 21/8/14 started 7.40.7
 - width and height were swapped in matlab load

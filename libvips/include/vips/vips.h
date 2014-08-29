@@ -175,7 +175,9 @@ extern "C" {
 			sizeof( VipsObject ) ), \
 		vips_error( "vips_init", "ABI mismatch" ), \
 		-1 ) : \
-		vips__init( ARGV0 ))
+		vips_init( ARGV0 ))
+
+int vips_init( const char *argv0 );
 
 const char *vips_get_argv0( void );
 void vips_shutdown( void );
