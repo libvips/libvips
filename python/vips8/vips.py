@@ -1,14 +1,15 @@
 #!/usr/bin/python
 
-import logging
 import sys
+
+import logging
 
 from gi.repository import GLib
 from gi.repository import GObject
 
 # you might need this in your .bashrc
 # export GI_TYPELIB_PATH=$VIPSHOME/lib/girepository-1.0
-from gi.repository import Vips
+from gi.repository import Vips 
 
 class Error(Exception):
 
@@ -28,7 +29,7 @@ class Error(Exception):
         logging.debug('vips: Error %s %s', self.message, self.detail)
 
     def __str__(self):
-        return '%s %s' % (self.message, self.detail)
+        return '%s\n  %s' % (self.message, self.detail)
 
 class Argument:
     def __init__(self, op, prop):
@@ -76,7 +77,7 @@ def _call_base(name, self, required, optional):
 
     if len(required_input) != len(required):
         raise Error('Wrong number of arguments.', 
-                    '"%s" needs %d arguments, you supplied %d' % 
+                    '%s needs %d arguments, you supplied %d' % 
                     (name, len(required_input), len(required)))
 
     for i in range(len(required_input)):
@@ -130,34 +131,57 @@ def _call_base(name, self, required, optional):
     # unref everything now we have refs to all outputs we want
     op2.unref_outputs()
 
+    logging.debug('success, out = %s' % out)
+
     return out
 
 # general user entrypoint 
 def call(name, *args, **kwargs):
     return _call_base(name, None, args, kwargs)
 
-# from getattr ... try to run the attr as a method
+# here from getattr ... try to run the attr as a method
 def _call_instance(self, name, args, kwargs):
     return _call_base(name, self, args, kwargs)
 
-class Image(Vips.Image):
-    def __init__(self, filename = None, mode = None):
-        Vips.Image.__init__(self)
+# this is a class method
+def vips_image_new_from_file(cls, filename, **kwargs):
+    loader = Vips.Foreign.find_load(filename)
+    if loader == None:
+        raise Error('No known loader for "%s".' % filename)
+    logging.debug('Image.new_from_file: loader = %s' % loader)
 
-        if filename:
-            self.props.filename = filename
-            if not mode:
-                mode = "rd"
-        if mode:
-            self.props.mode = mode
+    return _call_base(loader, None, [filename], kwargs)
 
-        if self.build() != 0:
-            print 'build failed'
-            raise Error('Unable to build image')
+def vips_image_getattr(self, name):
+    logging.debug('Image.__getattr__ %s' % name)
 
-    def __getattr__(self, name):
-        logging.debug('vipsimage: __getattr__ %s' % name)
-        return lambda *args, **kwargs: _call_instance(self, name, args, kwargs)
+    # look up in props first, eg. x.props.width
+    if name in dir(self.props):
+        return getattr(self.props, name)
+
+    return lambda *args, **kwargs: _call_instance(self, name, args, kwargs)
+
+def vips_image_write_to_file(self, filename, **kwargs):
+    saver = Vips.Foreign.find_save(filename)
+    if saver == None:
+        raise Error('No known saver for "%s".' % filename)
+    logging.debug('Image.write_to_file: saver = %s' % saver)
+
+    _call_base(saver, self, [filename], kwargs)
+
+# paste our methods into Vips.Image
+
+# class methods
+setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
+
+# instance methods
+Vips.Image.write_to_file = vips_image_write_to_file
+Vips.Image.__getattr__ = vips_image_getattr
+
+# Add other classes to Vips
+Vips.Error = Error
+Vips.Argument = Argument
+Vips.call = call
 
 # start up vips!
 Vips.init(sys.argv[0])

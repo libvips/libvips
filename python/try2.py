@@ -9,17 +9,17 @@ from gi.repository import Vips
 Vips.cache_set_trace(True)
 
 try:
-    a = vips.Image("/home/john/pics/babe.poop")
-except vips.Error, e:
+    a = Vips.Image.new_from_file("/home/john/pics/babe.poop")
+except Vips.Error, e:
     print e
 
-a = vips.Image("/home/john/pics/babe.jpg")
-b = vips.Image("/home/john/pics/k2.jpg")
+a = Vips.Image.new_from_file("/home/john/pics/babe.jpg")
+b = Vips.Image.new_from_file("/home/john/pics/k2.jpg")
 
 print 'a =', a
 print 'b =', b
 
-out = vips.call("add", a, b)
+out = Vips.call("add", a, b)
 
 print 'out =', out
 
@@ -27,4 +27,5 @@ out = a.add(b)
 
 print 'out =', out
 
-out = a.linear(1, 2)
+# we need to get GBoxed working for this
+#out = a.linear(1, 2)
