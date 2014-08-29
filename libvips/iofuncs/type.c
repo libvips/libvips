@@ -688,6 +688,70 @@ vips_array_int_get_type( void )
 	return( type );
 }
 
+/**
+ * vips_array_double_new:
+ * @array: (array length=n): array of double
+ * @n: number of doubles
+ *
+ * Allocate a new array of doubles and copy @array into it. Free with
+ * vips_area_unref().
+ *
+ * See also: #VipsArea.
+ *
+ * Returns: (transfer full): A new #VipsArrayDouble.
+ */
+VipsArrayDouble *
+vips_array_double_new( const double *array, int n )
+{
+	VipsArea *area;
+	double *array_copy;
+
+	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
+	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+	memcpy( array_copy, array, n * sizeof( double ) );
+
+{
+	int i;
+
+	printf( "vips_array_double_new: %p\n", area ); 
+	for( i = 0; i < n; i++ )
+		printf( "\t%d) %g\n", i, array[i] );
+}
+
+	return( area );
+}
+
+/**
+ * vips_array_double_newv:
+ * @n: number of doubles
+ * @...: list of double arguments
+ *
+ * Allocate a new array of @n doubles and copy @... into it. Free with
+ * vips_area_unref().
+ *
+ * See also: vips_array_double_new()
+ *
+ * Returns: (transfer full): A new #VipsArrayDouble.
+ */
+VipsArrayDouble *
+vips_array_double_newv( int n, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	double *array;
+	int i;
+
+	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
+	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+
+	va_start( ap, n );
+	for( i = 0; i < n; i++ )
+		array[i] = va_arg( ap, double ); 
+	va_end( ap );
+
+	return( area );
+}
+
 static void
 transform_array_double_g_string( const GValue *src_value, GValue *dest_value )
 {
@@ -1177,62 +1241,6 @@ vips_value_set_array_int( GValue *value, const int *array, int n )
 	memcpy( array_copy, array, n * sizeof( int ) );
 
 	return( 0 );
-}
-
-/**
- * vips_array_double_new:
- * @array: (array length=n): array of double
- * @n: number of doubles
- *
- * Allocate a new array of doubles and copy @array into it. Free with
- * vips_area_unref().
- *
- * See also: #VipsArea.
- *
- * Returns: (transfer full): A new #VipsArrayDouble.
- */
-VipsArrayDouble *
-vips_array_double_new( const double *array, int n )
-{
-	VipsArea *area;
-	double *array_copy;
-
-	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
-	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
-	memcpy( array_copy, array, n * sizeof( double ) );
-
-	return( area );
-}
-
-/**
- * vips_array_double_newv:
- * @n: number of doubles
- * @...: list of double arguments
- *
- * Allocate a new array of @n doubles and copy @... into it. Free with
- * vips_area_unref().
- *
- * See also: vips_array_double_new()
- *
- * Returns: (transfer full): A new #VipsArrayDouble.
- */
-VipsArrayDouble *
-vips_array_double_newv( int n, ... )
-{
-	va_list ap;
-	VipsArea *area;
-	double *array;
-	int i;
-
-	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
-	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
-
-	va_start( ap, n );
-	for( i = 0; i < n; i++ )
-		array[i] = va_arg( ap, double ); 
-	va_end( ap );
-
-	return( area );
 }
 
 /** 

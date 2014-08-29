@@ -27,5 +27,9 @@ out = a.add(b)
 
 print 'out =', out
 
-# we need to get GBoxed working for this
-#out = a.linear(1, 2)
+ones = Vips.array_double_new([1])
+twos = Vips.array_double_new([2])
+
+out = out.linear(ones, twos)
+
+out.write_to_file("x.v")

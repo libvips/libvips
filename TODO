@@ -1,3 +1,27 @@
+- python:
+
+	- add more constructors
+
+	- need the filename splitter
+
+	- need more writers
+
+	- need GBoxed
+
+		seems to be almost there!
+
+		we have:
+
+			 a = Vips.array_double_new([1,2,3])
+
+		but no VipsArrayDouble type, strangely
+
+		VipsThing is there? odd
+
+		seems be have spotted that it's just an alias for VipsArea and
+		elided the type
+
+
 - can we pick the vipsthumbnail int shrink factor more intelligently?
 
 - vips_resize() should use vipsthumbnail's block/cache/affine/sharpen chain
