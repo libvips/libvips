@@ -14,7 +14,7 @@ except vips.Error, e:
     print e
 
 a = vips.Image("/home/john/pics/babe.jpg")
-b = vips.Image("/home/john/pics/xmaspank2b.jpg")
+b = vips.Image("/home/john/pics/k2.jpg")
 
 print 'a =', a
 print 'b =', b

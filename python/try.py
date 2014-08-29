@@ -18,9 +18,35 @@ if a.build() != 0:
 print 'a.get_width() =', a.get_width()
 print 'a.props.width =', a.props.width
 
-print 'direct call:'
+print 'via foreign load system:'
 
-b = Vips.Image.new_from_file(sys.argv[1])
+loader = Vips.Foreign.find_load(sys.argv[1])
+if loader == None:
+    print Vips.error_buffer()
+    sys.exit(-1)
+
+op = Vips.Operation.new(loader)
+for prop in op.props:
+    print 'prop.name =', prop.name
+    flags = op.get_argument_flags(prop.name)
+    if flags & Vips.ArgumentFlags.OUTPUT:
+        print '\toutput'
+    if flags & Vips.ArgumentFlags.INPUT:
+        print '\tinput'
+    if flags & Vips.ArgumentFlags.REQUIRED:
+        print '\trequired'
+    print '\tisset', op.argument_isset(prop.name)
+
+op.props.filename = sys.argv[1]
+
+op2 = Vips.cache_operation_build(op)
+if op2 == None:
+    print Vips.error_buffer()
+    sys.exit(-1)
+
+b = op2.props.out
+
+op2.unref_outputs()
 
 print 'b.get_width() =', b.get_width()
 print 'b.props.width =', b.props.width
@@ -51,7 +77,34 @@ op2.unref_outputs()
 print 'out.get_format() =', out.get_format()
 print 'out.props.format =', out.props.format
 
-out.write_to_file("x.v")
+print 'save via foreign save system:'
+
+saver = Vips.Foreign.find_save("x.v")
+if saver == None:
+    print Vips.error_buffer()
+    sys.exit(-1)
+
+op = Vips.Operation.new(saver)
+for prop in op.props:
+    print 'prop.name =', prop.name
+    flags = op.get_argument_flags(prop.name)
+    if flags & Vips.ArgumentFlags.OUTPUT:
+        print '\toutput'
+    if flags & Vips.ArgumentFlags.INPUT:
+        print '\tinput'
+    if flags & Vips.ArgumentFlags.REQUIRED:
+        print '\trequired'
+    print '\tisset', op.argument_isset(prop.name)
+
+setattr(op.props, "in", out)
+op.props.filename = "x.v"
+
+op2 = Vips.cache_operation_build(op)
+if op2 == None:
+    print Vips.error_buffer()
+    sys.exit(-1)
+
+op2.unref_outputs()
 
 print 'generic call:'
 
@@ -120,5 +173,31 @@ def vips_call(name, *required, **optional):
 
 im = vips_call("add", a, b)
 
-im.write_to_file("x2.v")
+print 'save via foreign save system:'
 
+saver = Vips.Foreign.find_save("x2.v")
+if saver == None:
+    print Vips.error_buffer()
+    sys.exit(-1)
+
+op = Vips.Operation.new(saver)
+for prop in op.props:
+    print 'prop.name =', prop.name
+    flags = op.get_argument_flags(prop.name)
+    if flags & Vips.ArgumentFlags.OUTPUT:
+        print '\toutput'
+    if flags & Vips.ArgumentFlags.INPUT:
+        print '\tinput'
+    if flags & Vips.ArgumentFlags.REQUIRED:
+        print '\trequired'
+    print '\tisset', op.argument_isset(prop.name)
+
+setattr(op.props, "in", im)
+op.props.filename = "x2.v"
+
+op2 = Vips.cache_operation_build(op)
+if op2 == None:
+    print Vips.error_buffer()
+    sys.exit(-1)
+
+op2.unref_outputs()
