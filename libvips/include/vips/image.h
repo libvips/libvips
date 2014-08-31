@@ -406,6 +406,9 @@ void vips_image_minimise_all( VipsImage *image );
 
 void vips_image_set_progress( VipsImage *image, gboolean progress );
 
+char *vips_filename_get_filename( const char *vips_filename );
+char *vips_filename_get_options( const char *vips_filename );
+
 VipsImage *vips_image_new( void );
 VipsImage *vips_image_new_memory( void );
 VipsImage *vips_image_new_from_file( const char *name, ... )

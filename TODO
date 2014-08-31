@@ -16,35 +16,16 @@
 
 	- GBoxed
 
-		can we write generic array index? 
+		from gi.repository import Vips 
 
-		vips_area_index_array( VipsArea *area, int i, GValue *value )
+		a = Vips.ArrayDouble.new([1,2,3])
+		a.get()
 
-		ie. get element i from array out as a GValue? do we need a
-		switch for all possible types?
+		a = Vips.ArrayInt.new([1,2,3])
+		a.get()
 
-from gi.repository import GLib
-from gi.repository import GObject
-
-
-	gint_type = GObject.GType.from_name('gint')
-	a = GObject.Value(gint_type)
-	a.set_value(12)
-	a.get_value()
-	12
-	a.unset()
-	>>> a
-	<Value (invalid) None>
-	a.init(gint_type)
-
-	a = GObject.Value(None)
-	>>> a
-	<Value (invalid) None>
-
-
-	b = Vips.ArrayDouble.new([1,2,3])
-	b.area.index_array(1)
-	segv
+		a = Vips.ArrayImage.new([c, d, e])
+		a.get()
 
 
 

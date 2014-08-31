@@ -1737,6 +1737,54 @@ vips_image_new_memory( void )
 }
 
 /**
+ * vips_filename_get_filename:
+ * @vips_filename: a filename including a set of options
+ *
+ * Given a vips filename like "fred.jpg[Q=90]", return a new string of
+ * just the filename part, "fred.jpg" in this case. 
+ *
+ * Useful for language bindings. 
+ *
+ * See also: vips_filename_get_options().
+ *
+ * Returns: transfer full: just the filename component.
+ */
+char *
+vips_filename_get_filename( const char *vips_filename )
+{
+	char filename[VIPS_PATH_MAX];
+	char options[VIPS_PATH_MAX];
+
+	vips__filename_split8( vips_filename, filename, options ); 
+
+	return( g_strdup( filename ) );
+}
+
+/**
+ * vips_filename_get_options:
+ * @vips_filename: a filename including a set of options
+ *
+ * Given a vips filename like "fred.jpg[Q=90]", return a new string of
+ * just the options part, "[Q=90]" in this case. 
+ *
+ * Useful for language bindings. 
+ *
+ * See also: vips_filename_get_filename().
+ *
+ * Returns: transfer full: just the options component.
+ */
+char *
+vips_filename_get_options( const char *vips_filename )
+{
+	char filename[VIPS_PATH_MAX];
+	char options[VIPS_PATH_MAX];
+
+	vips__filename_split8( vips_filename, filename, options ); 
+
+	return( g_strdup( options ) );
+}
+
+/**
  * vips_image_new_from_file:
  * @name: file to open
  * @...: %NULL-terminated list of optional named arguments

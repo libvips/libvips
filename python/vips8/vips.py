@@ -40,14 +40,24 @@ class Argument:
         self.priority = op.get_argument_priority(self.name)
         self.isset = op.argument_isset(self.name)
 
-def _call_base(name, self, required, optional):
-    logging.debug('_call_base name=%s, self=%s, required=%s optional=%s' % 
-                  (name, self, required, optional))
+def _call_base(name, required, optional, self = None, option_string = None):
+    logging.debug('_call_base name=%s, required=%s optional=%s' % 
+                  (name, required, optional))
+    if self:
+        logging.debug('_call_base self=%s' % self)
+    if option_string:
+        logging.debug('_call_base option_string = %s' % option_string)
 
     try:
         op = Vips.Operation.new(name)
     except TypeError, e:
         raise Error('No such operator.')
+
+    # set str options first so the user can't override things we set
+    # deliberately and beak stuff
+    if option_string:
+        if op.set_from_string(option_string) != 0:
+            raise Error('Bad arguments.')
 
     # find all the args for this op, sort into priority order
     args = [Argument(op, x) for x in op.props]
@@ -137,20 +147,22 @@ def _call_base(name, self, required, optional):
 
 # general user entrypoint 
 def call(name, *args, **kwargs):
-    return _call_base(name, None, args, kwargs)
+    return _call_base(name, args, kwargs)
 
 # here from getattr ... try to run the attr as a method
 def _call_instance(self, name, args, kwargs):
-    return _call_base(name, self, args, kwargs)
+    return _call_base(name, args, kwargs, self)
 
 # this is a class method
-def vips_image_new_from_file(cls, filename, **kwargs):
+def vips_image_new_from_file(cls, vips_filename, **kwargs):
+    filename = Vips.filename_get_filename(vips_filename)
+    option_string = Vips.filename_get_options(vips_filename)
     loader = Vips.Foreign.find_load(filename)
     if loader == None:
         raise Error('No known loader for "%s".' % filename)
     logging.debug('Image.new_from_file: loader = %s' % loader)
 
-    return _call_base(loader, None, [filename], kwargs)
+    return _call_base(loader, [filename], kwargs, None, option_string)
 
 def vips_image_getattr(self, name):
     logging.debug('Image.__getattr__ %s' % name)
@@ -161,13 +173,15 @@ def vips_image_getattr(self, name):
 
     return lambda *args, **kwargs: _call_instance(self, name, args, kwargs)
 
-def vips_image_write_to_file(self, filename, **kwargs):
+def vips_image_write_to_file(self, vips_filename, **kwargs):
+    filename = Vips.filename_get_filename(vips_filename)
+    option_string = Vips.filename_get_options(vips_filename)
     saver = Vips.Foreign.find_save(filename)
     if saver == None:
         raise Error('No known saver for "%s".' % filename)
     logging.debug('Image.write_to_file: saver = %s' % saver)
 
-    _call_base(saver, self, [filename], kwargs)
+    _call_base(saver, [filename], kwargs, self, option_string)
 
 # paste our methods into Vips.Image
 
