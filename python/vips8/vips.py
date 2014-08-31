@@ -40,6 +40,11 @@ class Argument:
         self.priority = op.get_argument_priority(self.name)
         self.isset = op.argument_isset(self.name)
 
+    def set_value(self, value):
+        logging.debug('assigning %s to %s' % (value, self.name))
+        logging.debug('%s needs a %s' % (self.name, self.prop.value_type))
+        self.op.props.__setattr__(self.name, value)
+
 def _call_base(name, required, optional, self = None, option_string = None):
     logging.debug('_call_base name=%s, required=%s optional=%s' % 
                   (name, required, optional))
@@ -54,7 +59,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
         raise Error('No such operator.')
 
     # set str options first so the user can't override things we set
-    # deliberately and beak stuff
+    # deliberately and break stuff
     if option_string:
         if op.set_from_string(option_string) != 0:
             raise Error('Bad arguments.')
@@ -70,13 +75,13 @@ def _call_base(name, required, optional, self = None, option_string = None):
                       x.flags & enm.REQUIRED and 
                       not x.isset]
 
-    # do we have a non-NULL self pointer? this is used to set the first
+    # do we have a non-None self pointer? this is used to set the first
     # compatible input arg
     if self != None:
         found = False
         for x in required_input:
             if GObject.type_is_a(self, x.prop.value_type):
-                op.props.__setattr__(x.name, self)
+                x.set_value(self)
                 required_input.remove(x)
                 found = True
                 break
@@ -91,25 +96,20 @@ def _call_base(name, required, optional, self = None, option_string = None):
                     (name, len(required_input), len(required)))
 
     for i in range(len(required_input)):
-        logging.debug('assigning %s to %s' % (required[i],
-                                               required_input[i].name))
-        logging.debug('%s needs a %s' % (required_input[i].name,
-                                         required_input[i].prop.value_type))
-        op.props.__setattr__(required_input[i].name, required[i])
+        required_input[i].set_value(required[i])
 
-    # find all optional, unassigned input args ... just need the names
-    optional_input = [x.name for x in args if x.flags & enm.INPUT and 
+    # find all optional, unassigned input args ... make a hash from name to
+    # Argument
+    optional_input = {x.name: x for x in args if x.flags & enm.INPUT and 
                       not x.flags & enm.REQUIRED and 
-                      not x.isset]
-
-    for key in optional.keys():
-            if not key in optional_input:
-                raise Error('Unknown argument.', 
-                            'Operator %s has no argument %s' % (name, key))
+                      not x.isset}
 
     # set optional input args
     for key in optional.keys():
-        op.props.__setattr__(key, optional[key])
+        if not key in optional_input:
+            raise Error('Unknown argument.', 
+                        'Operator %s has no argument %s' % (name, key))
+        optional_input[key].set_value(optional[key])
 
     # call
     op2 = Vips.cache_operation_build(op)

@@ -2,8 +2,8 @@
 
 import sys
 
-#import logging
-#logging.basicConfig(level = logging.DEBUG)
+import logging
+logging.basicConfig(level = logging.DEBUG)
 
 from gi.repository import Vips 
 from vips8 import vips
