@@ -173,10 +173,10 @@ vips_match_build( VipsObject *object )
 		"ody", dy, 
 		"oarea", oarea, 
 		NULL ) ) {
-		vips_area_unref( oarea );
+		vips_area_unref( VIPS_AREA( oarea ) );
 		return( -1 );
 	}
-	vips_area_unref( oarea );
+	vips_area_unref( VIPS_AREA( oarea ) );
 
 	if( vips_image_write( x, match->out ) ) {
 		g_object_unref( x ); 

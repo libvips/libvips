@@ -87,6 +87,7 @@ vips_draw_rect_build( VipsObject *object )
 {
 	VipsDraw *draw = VIPS_DRAW( object );
 	VipsDrawink *drawink = VIPS_DRAWINK( object );
+	VipsArea *ink = VIPS_AREA( drawink->ink );
 	VipsDrawRect *draw_rect = (VipsDrawRect *) object;
 	int left = draw_rect->left;
 	int top = draw_rect->top;
@@ -106,16 +107,16 @@ vips_draw_rect_build( VipsObject *object )
 		width > 2 &&
 		height > 2 ) 
 		return( vips_draw_rect( draw->image, 
-				drawink->ink->data, drawink->ink->n, 
+				ink->data, ink->n, 
 				left, top, width, 1, NULL ) ||
 			vips_draw_rect( draw->image, 
-				drawink->ink->data, drawink->ink->n, 
+				ink->data, ink->n, 
 				left + width - 1, top, 1, height, NULL ) ||
 			vips_draw_rect( draw->image, 
-				drawink->ink->data, drawink->ink->n, 
+				ink->data, ink->n, 
 				left, top + height - 1, width, 1, NULL ) ||
 			vips_draw_rect( draw->image, 
-				drawink->ink->data, drawink->ink->n, 
+				ink->data, ink->n, 
 				left, top, 1, height, NULL ) );
 
 	image.left = 0;

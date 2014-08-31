@@ -1588,7 +1588,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 		background = vips_array_double_newv( 1, 255.0 );
 		g_object_set( object, "background", background, NULL );
-		vips_area_unref( background ); 
+		vips_area_unref( VIPS_AREA( background ) ); 
 	}
 
 	if( dz->overlap >= dz->tile_size ) {

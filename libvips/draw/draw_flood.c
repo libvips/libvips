@@ -519,7 +519,8 @@ vips_draw_flood_build( VipsObject *object )
 		 */
 		if( !(flood.edge = vips__vector_to_ink( class->nickname, 
 			flood.test, 
-			drawink->ink->data, NULL, drawink->ink->n )) )
+			VIPS_ARRAY_ADDR( drawink->ink, 0 ), NULL, 
+			VIPS_AREA( drawink->ink )->n )) )
 			return( -1 );
 
 		flood_all( &flood, drawflood->x, drawflood->y );

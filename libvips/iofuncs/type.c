@@ -66,6 +66,16 @@
  */
 
 /* A very simple boxed type for testing. Just an int.
+ *
+ * You can manipulate this thing from Python (for example) with:
+ *
+ * from gi.repository import Vips
+ * a = Vips.Thing.new(12)
+ * print a.i
+ * b = a
+ * del a
+ * print b.i
+ * del b
  */
 
 /**
@@ -105,14 +115,6 @@ vips_thing_free( VipsThing *thing )
 	printf( "vips_thing_free: %d %p\n", thing->i, thing );
 
 	g_free( thing );
-}
-
-int 
-vips_thing_get_i( VipsThing *thing )
-{
-	printf( "vips_thing_get_i: %d %p\n", thing->i, thing );
-
-	return( thing->i );
 }
 
 /*
@@ -599,6 +601,84 @@ vips_blob_get_type( void )
 	return( type );
 }
 
+/**
+ * vips_array_int_new:
+ * @array: (array length=n): array of int
+ * @n: number of ints
+ *
+ * Allocate a new array of ints and copy @array into it. Free with
+ * vips_area_unref().
+ *
+ * See also: #VipsArea.
+ *
+ * Returns: (transfer full): A new #VipsArrayInt.
+ */
+VipsArrayInt *
+vips_array_int_new( const int *array, int n )
+{
+	VipsArea *area;
+	int *array_copy;
+
+	area = vips_area_new_array( G_TYPE_INT, sizeof( int ), n );
+	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+	memcpy( array_copy, array, n * sizeof( int ) );
+
+	return( (VipsArrayInt *) area );
+}
+
+/**
+ * vips_array_int_newv:
+ * @n: number of ints
+ * @...: list of int arguments
+ *
+ * Allocate a new array of @n ints and copy @... into it. Free with
+ * vips_area_unref().
+ *
+ * See also: vips_array_int_new()
+ *
+ * Returns: (transfer full): A new #VipsArrayInt.
+ */
+VipsArrayInt *
+vips_array_int_newv( int n, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int *array;
+	int i;
+
+	area = vips_area_new_array( G_TYPE_INT, sizeof( int ), n );
+	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+
+	va_start( ap, n );
+	for( i = 0; i < n; i++ )
+		array[i] = va_arg( ap, int ); 
+	va_end( ap );
+
+	return( (VipsArrayInt *) area );
+}
+
+/**
+ * vips_array_int_get:
+ * @array: the #VipsArrayInt to fetch from
+ * @n: length of array
+ *
+ * Fetch an int array from a #VipsArrayInt. Useful for language bindings. 
+ *
+ * Returns: (array length=n): (transfer none): array of int
+ */
+int *
+vips_array_int_get( VipsArrayInt *array, int *n )
+{
+	VipsArea *area = VIPS_AREA( array );
+
+	g_assert( area->type == G_TYPE_INT ); 
+
+	if( n )
+		*n = area->n;
+
+	return( (int *) VIPS_ARRAY_ADDR( array, 0 ) ); 
+}
+
 static void
 transform_array_int_g_string( const GValue *src_value, GValue *dest_value )
 {
@@ -710,15 +790,7 @@ vips_array_double_new( const double *array, int n )
 	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
 	memcpy( array_copy, array, n * sizeof( double ) );
 
-{
-	int i;
-
-	printf( "vips_array_double_new: %p\n", area ); 
-	for( i = 0; i < n; i++ )
-		printf( "\t%d) %g\n", i, array[i] );
-}
-
-	return( area );
+	return( (VipsArrayDouble *) area );
 }
 
 /**
@@ -749,7 +821,29 @@ vips_array_double_newv( int n, ... )
 		array[i] = va_arg( ap, double ); 
 	va_end( ap );
 
-	return( area );
+	return( (VipsArrayDouble *) area );
+}
+
+/**
+ * vips_array_double_get:
+ * @array: the #VipsArrayDouble to fetch from
+ * @n: length of array
+ *
+ * Fetch a double array from a #VipsArrayDouble. Useful for language bindings. 
+ *
+ * Returns: (array length=n): (transfer none): array of double
+ */
+double *
+vips_array_double_get( VipsArrayDouble *array, int *n )
+{
+	VipsArea *area = VIPS_AREA( array );
+
+	g_assert( area->type == G_TYPE_DOUBLE ); 
+
+	if( n )
+		*n = area->n;
+
+	return( VIPS_ARRAY_ADDR( array, 0 ) ); 
 }
 
 static void
@@ -877,6 +971,53 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 		}
 
 	g_free( str );
+}
+
+/**
+ * vips_array_image_new:
+ * @array: (array length=n): array of #VipsImage
+ * @n: number of images
+ *
+ * Allocate a new array of images and copy @array into it. Free with
+ * vips_area_unref().
+ *
+ * See also: #VipsArea.
+ *
+ * Returns: (transfer full): A new #VipsArrayImage.
+ */
+VipsArrayImage *
+vips_array_image_new( const VipsImage **array, int n )
+{
+	VipsArea *area;
+	VipsImage *array_copy;
+
+	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
+	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+	memcpy( array_copy, array, n * sizeof( double ) );
+
+	return( (VipsArrayImage *) area );
+}
+
+/**
+ * vips_array_image_get:
+ * @array: the #VipsArrayImage to fetch from
+ * @n: length of array
+ *
+ * Fetch an image array from a #VipsArrayImage. Useful for language bindings. 
+ *
+ * Returns: (array length=n): (transfer none): array of #VipsImage
+ */
+VipsImage **
+vips_array_image_get( VipsArrayImage *array, int *n )
+{
+	VipsArea *area = VIPS_AREA( array );
+
+	g_assert( area->type == VIPS_TYPE_IMAGE ); 
+
+	if( n )
+		*n = area->n;
+
+	return( (VipsImage **) VIPS_ARRAY_ADDR( array, 0 ) ); 
 }
 
 GType
@@ -1142,62 +1283,6 @@ vips_value_get_array( const GValue *value,
 		*sizeof_type = area->sizeof_type;
 
 	return( area->data );
-}
-
-/**
- * vips_array_int_new:
- * @array: (array length=n): array of int
- * @n: number of ints
- *
- * Allocate a new array of ints and copy @array into it. Free with
- * vips_area_unref().
- *
- * See also: #VipsArea.
- *
- * Returns: (transfer full): A new #VipsArrayInt.
- */
-VipsArrayInt *
-vips_array_int_new( const int *array, int n )
-{
-	VipsArea *area;
-	int *array_copy;
-
-	area = vips_area_new_array( G_TYPE_INT, sizeof( int ), n );
-	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
-	memcpy( array_copy, array, n * sizeof( int ) );
-
-	return( area );
-}
-
-/**
- * vips_array_int_newv:
- * @n: number of ints
- * @...: list of int arguments
- *
- * Allocate a new array of @n ints and copy @... into it. Free with
- * vips_area_unref().
- *
- * See also: vips_array_int_new()
- *
- * Returns: (transfer full): A new #VipsArrayInt.
- */
-VipsArrayInt *
-vips_array_int_newv( int n, ... )
-{
-	va_list ap;
-	VipsArea *area;
-	int *array;
-	int i;
-
-	area = vips_area_new_array( G_TYPE_INT, sizeof( int ), n );
-	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
-
-	va_start( ap, n );
-	for( i = 0; i < n; i++ )
-		array[i] = va_arg( ap, int ); 
-	va_end( ap );
-
-	return( area );
 }
 
 /** 

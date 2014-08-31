@@ -66,7 +66,8 @@ vips_drawink_build( VipsObject *object )
 	if( drawink->ink &&
 		!(drawink->pixel_ink = vips__vector_to_ink( class->nickname, 
 			draw->image,
-			drawink->ink->data, NULL, drawink->ink->n )) )
+			VIPS_ARRAY_ADDR( drawink->ink, 0 ), NULL, 
+			VIPS_AREA( drawink->ink )->n )) )
 		return( -1 );
 
 	return( 0 );
@@ -97,9 +98,7 @@ vips_drawink_class_init( VipsDrawinkClass *class )
 static void
 vips_drawink_init( VipsDrawink *drawink )
 {
-	drawink->ink = 
-		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
-	((double *) (drawink->ink->data))[0] = 0;
+	drawink->ink = vips_array_double_newv( 1, 0.0 ); 
 }
 
 /* Fill a scanline between points x1 and x2 inclusive. x1 < x2.

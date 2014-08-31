@@ -422,7 +422,8 @@ vips_insert_build( VipsObject *object )
 
 	if( !(insert->ink = vips__vector_to_ink( 
 		class->nickname, conversion->out,
-		insert->background->data, NULL, insert->background->n )) )
+		(double *) VIPS_ARRAY_ADDR( insert->background, 0 ), NULL, 
+		VIPS_AREA( insert->background )->n )) )
 		return( -1 );
 
 	if( vips_image_generate( conversion->out,
@@ -503,9 +504,7 @@ vips_insert_init( VipsInsert *insert )
 {
 	/* Init our instance fields.
 	 */
-	insert->background = 
-		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
-	((double *) (insert->background->data))[0] = 0.0;
+	insert->background = vips_array_double_newv( 1, 0.0 );
 }
 
 /**

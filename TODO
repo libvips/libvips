@@ -2,24 +2,50 @@
 
 	- add more constructors
 
+	- could import like this:
+
+		from gi.repository import Vips 
+		import vips_additions
+		
+	  ie. make it a module, not a package, and make it clear that it
+	  modifies Vips rather than adding anything itself
+
 	- need the filename splitter
 
 	- need more writers
 
-	- need GBoxed
+	- GBoxed
 
-		seems to be almost there!
+		can we write generic array index? 
 
-		we have:
+		vips_area_index_array( VipsArea *area, int i, GValue *value )
 
-			 a = Vips.array_double_new([1,2,3])
+		ie. get element i from array out as a GValue? do we need a
+		switch for all possible types?
 
-		but no VipsArrayDouble type, strangely
+from gi.repository import GLib
+from gi.repository import GObject
 
-		VipsThing is there? odd
 
-		seems be have spotted that it's just an alias for VipsArea and
-		elided the type
+	gint_type = GObject.GType.from_name('gint')
+	a = GObject.Value(gint_type)
+	a.set_value(12)
+	a.get_value()
+	12
+	a.unset()
+	>>> a
+	<Value (invalid) None>
+	a.init(gint_type)
+
+	a = GObject.Value(None)
+	>>> a
+	<Value (invalid) None>
+
+
+	b = Vips.ArrayDouble.new([1,2,3])
+	b.area.index_array(1)
+	segv
+
 
 
 - can we pick the vipsthumbnail int shrink factor more intelligently?

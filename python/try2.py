@@ -27,8 +27,8 @@ out = a.add(b)
 
 print 'out =', out
 
-ones = Vips.array_double_new([1])
-twos = Vips.array_double_new([2])
+ones = Vips.ArrayDouble.new([1])
+twos = Vips.ArrayDouble.new([2])
 
 out = out.linear(ones, twos)
 

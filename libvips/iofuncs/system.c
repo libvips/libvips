@@ -97,7 +97,7 @@ vips_system_dispose( GObject *gobject )
 	if( system->in_name ) {
 		int i;
 
-		for( i = 0; i < system->in->n; i++ ) { 
+		for( i = 0; i < VIPS_AREA( system->in )->n; i++ ) { 
 			g_unlink( system->in_name[i] );
 			VIPS_FREE( system->in_name[i] );
 		}
@@ -134,13 +134,13 @@ vips_system_build( VipsObject *object )
 	if( system->in ) { 
 		char *in_format = system->in_format ? 
 			system->in_format : "%s.tif";
-		VipsImage **in = (VipsImage **) system->in->data; 
+		int n;
+		VipsImage **in = vips_array_image_get( system->in, &n ); 
 
-		if( !(system->in_name = VIPS_ARRAY( object, 
-			system->in->n, char * )) )
+		if( !(system->in_name = VIPS_ARRAY( object, n, char * )) )
 			return( -1 ); 
-		memset( system->in_name, 0, system->in->n * sizeof( char * ) ); 
-		for( i = 0; i < system->in->n; i++ ) { 
+		memset( system->in_name, 0, n * sizeof( char * ) ); 
+		for( i = 0; i < n; i++ ) { 
 			if( !(system->in_name[i] = 
 				vips__temp_name( in_format )) )
 				return( -1 );
@@ -158,7 +158,7 @@ vips_system_build( VipsObject *object )
 
 	vips_strncpy( cmd, system->cmd_format, VIPS_PATH_MAX );
 	if( system->in ) 
-		for( i = 0; i < system->in->n; i++ ) 
+		for( i = 0; i < VIPS_AREA( system->in )->n; i++ ) 
 			if( vips__substitute( class->nickname, 
 				cmd, VIPS_PATH_MAX, system->in_name[i] ) )
 				return( -1 ); 

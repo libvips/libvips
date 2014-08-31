@@ -57,6 +57,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include <vips/vips.h>
@@ -192,8 +193,8 @@ vips_getpoint( VipsImage *in, double **vector, int *n, int x, int y, ... )
 {
 	va_list ap;
 	VipsArrayDouble *out_array;
+	VipsArea *area;
 	int result;
-	int i;
 
 	va_start( ap, y );
 	result = vips_call_split( "getpoint", ap, in, &out_array, x, y );
@@ -202,13 +203,14 @@ vips_getpoint( VipsImage *in, double **vector, int *n, int x, int y, ... )
 	if( !result )
 		return( -1 ); 
 
-	if( !(*vector = VIPS_ARRAY( NULL, out_array->n, double )) ) {
-		vips_area_unref( (VipsArea *) out_array );
+	area = VIPS_AREA( out_array );
+	*vector = VIPS_ARRAY( NULL, area->n, double );
+	if( !*vector ) {
+		vips_area_unref( area );
 		return( -1 );
 	}
-	for( i = 0; i < out_array->n; i++ )
-		(*vector)[i] = ((double *) out_array->data)[i];
-	*n = out_array->n;
+	memcpy( *vector, area->data, area->n * area->sizeof_type ); 
+	*n = area->n;
 
 	return( 0 );
 }

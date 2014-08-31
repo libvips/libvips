@@ -3963,19 +3963,13 @@ im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n )
 		NULL ) )
 		return( -1 );
 
-	memcpy( xpos, 
-		vips_area_get_data( x_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( int ) );
-	memcpy( ypos, 
-		vips_area_get_data( y_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( int ) );
-	memcpy( maxima, 
-		vips_area_get_data( out_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( double ) );
+	memcpy( xpos, VIPS_ARRAY_ADDR( x_array, 0 ), n * sizeof( int ) );
+	memcpy( ypos, VIPS_ARRAY_ADDR( y_array, 0 ), n * sizeof( int ) );
+	memcpy( maxima, VIPS_ARRAY_ADDR( out_array, 0 ), n * sizeof( double ) );
 
-	vips_area_unref( (VipsArea *) out_array );
-	vips_area_unref( (VipsArea *) x_array );
-	vips_area_unref( (VipsArea *) y_array );
+	vips_area_unref( VIPS_AREA( out_array ) );
+	vips_area_unref( VIPS_AREA( x_array ) );
+	vips_area_unref( VIPS_AREA( y_array ) );
 
 	return( 0 );
 }
@@ -3996,19 +3990,13 @@ im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n )
 		NULL ) )
 		return( -1 );
 
-	memcpy( xpos, 
-		vips_area_get_data( x_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( int ) );
-	memcpy( ypos, 
-		vips_area_get_data( y_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( int ) );
-	memcpy( minima, 
-		vips_area_get_data( out_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( double ) );
+	memcpy( xpos, VIPS_ARRAY_ADDR( x_array, 0 ), n * sizeof( int ) );
+	memcpy( ypos, VIPS_ARRAY_ADDR( y_array, 0 ), n * sizeof( int ) );
+	memcpy( minima, VIPS_ARRAY_ADDR( out_array, 0 ), n * sizeof( double ) );
 
-	vips_area_unref( (VipsArea *) out_array );
-	vips_area_unref( (VipsArea *) x_array );
-	vips_area_unref( (VipsArea *) y_array );
+	vips_area_unref( VIPS_AREA( out_array ) );
+	vips_area_unref( VIPS_AREA( x_array ) );
+	vips_area_unref( VIPS_AREA( y_array ) );
 
 	return( 0 );
 }

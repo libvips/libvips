@@ -130,8 +130,8 @@ vips_bandjoin_build( VipsObject *object )
 	VipsBandjoin *bandjoin = (VipsBandjoin *) object;
 
 	if( bandjoin->in ) {
-		bandary->in = bandjoin->in->data;
-		bandary->n = bandjoin->in->n;
+		bandary->in = VIPS_AREA( bandjoin->in )->data;
+		bandary->n = VIPS_AREA( bandjoin->in )->n;
 
 		if( bandary->n == 1 ) 
 			return( vips_bandary_copy( bandary ) );
