@@ -11,6 +11,14 @@ from gi.repository import GObject
 # export GI_TYPELIB_PATH=$VIPSHOME/lib/girepository-1.0
 from gi.repository import Vips 
 
+# start up vips!
+Vips.init(sys.argv[0])
+
+# need the gtypes for the vips array types
+vips_type_array_int = GObject.GType.from_name("VipsArrayInt")
+vips_type_array_double = GObject.GType.from_name("VipsArrayDouble")
+vips_type_array_image = GObject.GType.from_name("VipsArrayImage")
+
 class Error(Exception):
 
     """An error from vips.
@@ -43,6 +51,18 @@ class Argument:
     def set_value(self, value):
         logging.debug('assigning %s to %s' % (value, self.name))
         logging.debug('%s needs a %s' % (self.name, self.prop.value_type))
+        
+        # array-ize some types, if necessary
+        if not isinstance(value, list):
+            if GObject.type_is_a(self.prop.value_type, vips_type_array_int):
+                value = Vips.ArrayInt.new([value])
+            if GObject.type_is_a(self.prop.value_type, vips_type_array_double):
+                value = Vips.ArrayDouble.new([value])
+            if GObject.type_is_a(self.prop.value_type, vips_type_array_image):
+                value = Vips.ArrayImage.new([value])
+
+        logging.debug('assigning %s' % self.prop.value_type)
+
         self.op.props.__setattr__(self.name, value)
 
 def _call_base(name, required, optional, self = None, option_string = None):
@@ -196,7 +216,4 @@ Vips.Image.__getattr__ = vips_image_getattr
 Vips.Error = Error
 Vips.Argument = Argument
 Vips.call = call
-
-# start up vips!
-Vips.init(sys.argv[0])
 

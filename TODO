@@ -2,6 +2,10 @@
 
 	- add more constructors
 
+	- need more writers
+
+	- need operator overloads
+
 	- could import like this:
 
 		from gi.repository import Vips 
@@ -9,23 +13,6 @@
 		
 	  ie. make it a module, not a package, and make it clear that it
 	  modifies Vips rather than adding anything itself
-
-	- need the filename splitter
-
-	- need more writers
-
-	- GBoxed
-
-		from gi.repository import Vips 
-
-		a = Vips.ArrayDouble.new([1,2,3])
-		a.get()
-
-		a = Vips.ArrayInt.new([1,2,3])
-		a.get()
-
-		a = Vips.ArrayImage.new([c, d, e])
-		a.get()
 
 
 

@@ -105,10 +105,10 @@ int vips__leak = 0;
 /**
  * vips_get_argv0:
  *
- * See also: vips_init().
+ * See also: VIPS_INIT().
  *
  * Returns: a pointer to an internal copy of the argv0 string passed to
- * vips_init(). Do not free this value
+ * VIPS_INIT(). Do not free this value
  */
 const char *
 vips_get_argv0( void )

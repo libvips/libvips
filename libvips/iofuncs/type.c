@@ -1457,7 +1457,7 @@ vips_value_set_array_object( GValue *value, int n )
 	return( 0 );
 }
 
-/* Make the types we need for basic functioning. Called from init_world().
+/* Make the types we need for basic functioning. Called from vips_init().
  */
 void
 vips__meta_init_types( void )
@@ -1467,6 +1467,7 @@ vips__meta_init_types( void )
 	(void) vips_area_get_type();
 	(void) vips_ref_string_get_type();
 	(void) vips_blob_get_type();
+	(void) vips_array_int_get_type();
 	(void) vips_array_double_get_type();
 	(void) vips_array_image_get_type();
 
