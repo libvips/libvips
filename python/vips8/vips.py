@@ -18,7 +18,6 @@ Vips.init(sys.argv[0])
 vips_type_array_int = GObject.GType.from_name("VipsArrayInt")
 vips_type_array_double = GObject.GType.from_name("VipsArrayDouble")
 vips_type_array_image = GObject.GType.from_name("VipsArrayImage")
-vips_type_image = GObject.GType.from_name("VipsImage")
 
 class Error(Exception):
 
@@ -49,18 +48,22 @@ class Argument:
         self.priority = op.get_argument_priority(self.name)
         self.isset = op.argument_isset(self.name)
 
+    def arrayize(self, vips_type_array, vips_cast, value):
+        if GObject.type_is_a(self.prop.value_type, vips_type_array):
+            if not isinstance(value, list):
+                value = [value]
+            value = vips_cast(value)
+
+        return value
+
     def set_value(self, value):
         logging.debug('assigning %s to %s' % (value, self.name))
         logging.debug('%s needs a %s' % (self.name, self.prop.value_type))
-        
+
         # array-ize some types, if necessary
-        if not isinstance(value, list):
-            if GObject.type_is_a(self.prop.value_type, vips_type_array_int):
-                value = Vips.ArrayInt.new([value])
-            if GObject.type_is_a(self.prop.value_type, vips_type_array_double):
-                value = Vips.ArrayDouble.new([value])
-            if GObject.type_is_a(self.prop.value_type, vips_type_array_image):
-                value = Vips.ArrayImage.new([value])
+        value = self.arrayize(vips_type_array_int, Vips.ArrayInt.new, value)
+        value = self.arrayize(vips_type_array_double, Vips.ArrayDouble.new, value)
+        value = self.arrayize(vips_type_array_image, Vips.ArrayImage.new, value)
 
         logging.debug('assigning %s' % self.prop.value_type)
 
@@ -204,6 +207,15 @@ def vips_image_write_to_file(self, vips_filename, **kwargs):
 
     _call_base(saver, [filename], kwargs, self, option_string)
 
+# apply a function to a thing, or map over a list
+# we often need to do something like (1.0 / other) and need to work for lists
+# as well as scalars
+def smap(func, x):
+    if isinstance(x, list):
+        return map(func, x)
+    else:
+        return func(x)
+
 def vips_add(self, other):
     if isinstance(other, Vips.Image):
         return self.add(other)
@@ -214,13 +226,91 @@ def vips_sub(self, other):
     if isinstance(other, Vips.Image):
         return self.subtract(other)
     else:
-        return self.linear(1, -1 * other)
+        return self.linear(1, smap(lambda x: -1 * x, other))
+
+def vips_rsub(self, other):
+    return self.linear(-1, other)
 
 def vips_mul(self, other):
     if isinstance(other, Vips.Image):
         return self.multiply(other)
     else:
         return self.linear(other, 0)
+
+def vips_div(self, other):
+    if isinstance(other, Vips.Image):
+        return self.divide(other)
+    else:
+        return self.linear(smap(lambda x: 1.0 / x, other), 0)
+
+def vips_rdiv(self, other):
+    return (self ** -1) * other
+
+def vips_floordiv(self, other):
+    if isinstance(other, Vips.Image):
+        return self.divide(other).round(Vips.OperationRound.FLOOR)
+    else:
+        return self.linear(smap(lambda x: 1.0 / x, other), 0).round(Vips.OperationRound.FLOOR)
+
+def vips_rfloordiv(self, other):
+    return ((self ** -1) * other).round(Vips.OperationRound.FLOOR)
+
+def vips_mod(self, other):
+    if isinstance(other, Vips.Image):
+        return self.remainder(other)
+    else:
+        return self.remainder_const(other)
+
+def vips_pow(self, other):
+    if isinstance(other, Vips.Image):
+        return self.math2(other, Vips.OperationMath2.POW)
+    else:
+        return self.math2_const(other, Vips.OperationMath2.POW)
+
+def vips_rpow(self, other):
+    return self.math2_const(other, Vips.OperationMath2.WOP)
+
+def vips_lshift(self, other):
+    if isinstance(other, Vips.Image):
+        return self.boolean(other, Vips.OperationBoolean.LSHIFT)
+    else:
+        return self.boolean_const(other, Vips.OperationBoolean.LSHIFT)
+
+def vips_rshift(self, other):
+    if isinstance(other, Vips.Image):
+        return self.boolean(other, Vips.OperationBoolean.RSHIFT)
+    else:
+        return self.boolean_const(other, Vips.OperationBoolean.RSHIFT)
+
+def vips_and(self, other):
+    if isinstance(other, Vips.Image):
+        return self.boolean(other, Vips.OperationBoolean.AND)
+    else:
+        return self.boolean_const(other, Vips.OperationBoolean.AND)
+
+def vips_or(self, other):
+    if isinstance(other, Vips.Image):
+        return self.boolean(other, Vips.OperationBoolean.OR)
+    else:
+        return self.boolean_const(other, Vips.OperationBoolean.OR)
+
+def vips_xor(self, other):
+    if isinstance(other, Vips.Image):
+        return self.boolean(other, Vips.OperationBoolean.EOR)
+    else:
+        return self.boolean_const(other, Vips.OperationBoolean.EOR)
+
+def vips_neg(self):
+    return -1 * self
+
+def vips_pos(self):
+    return self
+
+def vips_abs(self):
+    return self.abs()
+
+def vips_invert(self):
+    return self ^ -1
 
 # paste our methods into Vips.Image
 
@@ -231,8 +321,33 @@ setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
 Vips.Image.write_to_file = vips_image_write_to_file
 Vips.Image.__getattr__ = vips_image_getattr
 Vips.Image.__add__ = vips_add
+Vips.Image.__radd__ = vips_add
 Vips.Image.__sub__ = vips_sub
+Vips.Image.__rsub__ = vips_rsub
 Vips.Image.__mul__ = vips_mul
+Vips.Image.__rmul__ = vips_mul
+Vips.Image.__div__ = vips_div
+Vips.Image.__rdiv__ = vips_rdiv
+Vips.Image.__floordiv__ = vips_floordiv
+Vips.Image.__rfloordiv__ = vips_floordiv
+Vips.Image.__mod__ = vips_mod
+Vips.Image.__pow__ = vips_pow
+Vips.Image.__rpow__ = vips_rpow
+Vips.Image.__lshift__ = vips_lshift
+Vips.Image.__rshift__ = vips_rshift
+Vips.Image.__and__ = vips_and
+Vips.Image.__rand__ = vips_and
+Vips.Image.__or__ = vips_or
+Vips.Image.__ror__ = vips_or
+Vips.Image.__xor__ = vips_xor
+Vips.Image.__rxor__ = vips_xor
+Vips.Image.__neg__ = vips_neg
+Vips.Image.__pos__ = vips_pos
+Vips.Image.__abs__ = vips_abs
+Vips.Image.__invert__ = vips_invert
+
+# the cast operators int(), long() and float() must return numeric types, so we
+# can't define them for images
 
 # Add other classes to Vips
 Vips.Error = Error
