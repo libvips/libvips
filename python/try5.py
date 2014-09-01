@@ -10,8 +10,9 @@ from vips8 import vips
 
 a = Vips.Image.new_from_file(sys.argv[1])
 
-b = Vips.Image.new_from_file(sys.argv[2])
+# test operator overloads
+b = a + 12
+b = a + [12, 0, 0]
+b = a + b
 
-c = a.join(b, Vips.Direction.HORIZONTAL, expand = True)
-
-d.write_to_file(sys.argv[3])
+b.write_to_file(sys.argv[2])

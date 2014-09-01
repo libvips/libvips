@@ -14,10 +14,11 @@ from gi.repository import Vips
 # start up vips!
 Vips.init(sys.argv[0])
 
-# need the gtypes for the vips array types
+# need the gtypes for various vips types
 vips_type_array_int = GObject.GType.from_name("VipsArrayInt")
 vips_type_array_double = GObject.GType.from_name("VipsArrayDouble")
 vips_type_array_image = GObject.GType.from_name("VipsArrayImage")
+vips_type_image = GObject.GType.from_name("VipsImage")
 
 class Error(Exception):
 
@@ -203,6 +204,24 @@ def vips_image_write_to_file(self, vips_filename, **kwargs):
 
     _call_base(saver, [filename], kwargs, self, option_string)
 
+def vips_add(self, other):
+    if isinstance(other, Vips.Image):
+        return self.add(other)
+    else:
+        return self.linear(1, other)
+
+def vips_sub(self, other):
+    if isinstance(other, Vips.Image):
+        return self.subtract(other)
+    else:
+        return self.linear(1, -1 * other)
+
+def vips_mul(self, other):
+    if isinstance(other, Vips.Image):
+        return self.multiply(other)
+    else:
+        return self.linear(other, 0)
+
 # paste our methods into Vips.Image
 
 # class methods
@@ -211,6 +230,9 @@ setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
 # instance methods
 Vips.Image.write_to_file = vips_image_write_to_file
 Vips.Image.__getattr__ = vips_image_getattr
+Vips.Image.__add__ = vips_add
+Vips.Image.__sub__ = vips_sub
+Vips.Image.__mul__ = vips_mul
 
 # Add other classes to Vips
 Vips.Error = Error

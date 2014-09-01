@@ -1,3 +1,15 @@
+- mysterious
+
+from gi.repository import Vips
+from vips8 import vips
+
+a = Vips.Image.new_from_file("/home/john/pics/k2.jpg")
+a.linear(1,2)
+	works
+a.linear([1],[2])
+	fails !?!?
+
+
 - python:
 
 	- add more constructors
