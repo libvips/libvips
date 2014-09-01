@@ -207,6 +207,16 @@ def vips_image_write_to_file(self, vips_filename, **kwargs):
 
     _call_base(saver, [filename], kwargs, self, option_string)
 
+def vips_image_write_to_buffer(self, vips_filename, **kwargs):
+    filename = Vips.filename_get_filename(vips_filename)
+    option_string = Vips.filename_get_options(vips_filename)
+    saver = Vips.Foreign.find_save_buffer(filename)
+    if saver == None:
+        raise Error('No known saver for "%s".' % filename)
+    logging.debug('Image.write_to_buffer: saver = %s' % saver)
+
+    return _call_base(saver, [], kwargs, self, option_string)
+
 # apply a function to a thing, or map over a list
 # we often need to do something like (1.0 / other) and need to work for lists
 # as well as scalars
@@ -319,6 +329,8 @@ setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
 
 # instance methods
 Vips.Image.write_to_file = vips_image_write_to_file
+Vips.Image.write_to_buffer = vips_image_write_to_buffer
+
 Vips.Image.__getattr__ = vips_image_getattr
 Vips.Image.__add__ = vips_add
 Vips.Image.__radd__ = vips_add

@@ -1,6 +1,9 @@
 
 - python:
 
+	- try6 produces a VipsBlob object ... need to turn this into a Python
+	  buffer, or whatever they are called now
+
 	- add more constructors
 
 	- need more writers
