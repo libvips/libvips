@@ -4,6 +4,16 @@
 	- try6 produces a VipsBlob object ... need to turn this into a Python
 	  buffer, or whatever they are called now
 
+	  memoryview, but that's py3 only, stick with buffer
+
+	  swig/vipsCC/VImage.i has code:
+
+	  	  $result = PyBuffer_FromMemory ($1.data, $1.size);
+
+	  how can we do this from VipsBlob?
+
+
+
 	- add more constructors
 
 	- need more writers

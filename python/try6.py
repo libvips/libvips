@@ -10,4 +10,4 @@ from vips8 import vips
 
 a = Vips.Image.new_from_file(sys.argv[1])
 
-a.write_to_buffer(".jpg")
+b = a.write_to_buffer(".jpg")
