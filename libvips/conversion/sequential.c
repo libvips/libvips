@@ -71,7 +71,7 @@
 #include "pconversion.h"
 
 /* Stall threads that run ahead for up to this long, in seconds. Normally they
- * will be woken up long before this, once their data is ready. The timeout is
+ * will be woken once their data is ready and long before this. The timeout is
  * just to prevent a total crash in the case of accidental deadlock. 
  *
  * This has to be a long time: if we're trying to use all cores on a busy 
