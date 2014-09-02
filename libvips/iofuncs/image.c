@@ -2020,7 +2020,7 @@ vips_image_new_from_buffer( void *buf, size_t len,
 	const char *option_string, ... )
 {
 	const char *operation_name;
-	VipsArea *area;
+	VipsBlob *blob;
 	va_list ap;
 	int result;
 	VipsImage *out;
@@ -2032,14 +2032,14 @@ vips_image_new_from_buffer( void *buf, size_t len,
 
 	/* We don't take a copy of the data or free it.
 	 */
-	area = vips_area_new_blob( NULL, buf, len );
+	blob = vips_blob_new( NULL, buf, len );
 
 	va_start( ap, option_string );
 	result = vips_call_split_option_string( operation_name, 
-		option_string, ap, area, &out );
+		option_string, ap, blob, &out );
 	va_end( ap );
 
-	vips_area_unref( area );
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	if( result )
 		return( NULL );

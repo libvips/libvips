@@ -197,7 +197,7 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 
 	void *obuf;
 	size_t olen;
-	VipsArea *area;
+	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_buffer_parent_class )->
 		build( object ) )
@@ -207,11 +207,9 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 		png->compression, png->interlace ) )
 		return( -1 );
 
-	area = vips_area_new_blob( (VipsCallbackFn) vips_free, obuf, olen );
-
-	g_object_set( object, "buffer", area, NULL );
-
-	vips_area_unref( area );
+	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );
+	g_object_set( object, "buffer", blob, NULL );
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( 0 );
 }

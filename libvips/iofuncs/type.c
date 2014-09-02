@@ -275,32 +275,6 @@ vips__type_leak( void )
 }
 
 /**
- * vips_area_new_blob: 
- * @free_fn: (scope async): @data will be freed with this function
- * @data: data will be freed with this function
- * @length: number of bytes in @data
- *
- * Like vips_area_new(), but track a length as well.
- *
- * An area of mem with a free func and a length (some sort of binary object,
- * like an ICC profile).
- * 
- * See also: vips_area_unref().
- *
- * Returns: (transfer full): the new #VipsArea.
- */
-VipsArea *
-vips_area_new_blob( VipsCallbackFn free_fn, void *data, size_t length )
-{
-	VipsArea *area;
-
-	area = vips_area_new( free_fn, data );
-	area->length = length;
-
-	return( area );
-}
-
-/**
  * vips_area_new_array: 
  * @type: %GType of elements to store
  * @sizeof_type: sizeof() an element in the array
@@ -535,6 +509,52 @@ vips_ref_string_get_type( void )
 	}
 
 	return( type );
+}
+
+/**
+ * vips_blob_new: 
+ * @free_fn: (scope async): (allow-none): @data will be freed with this function
+ * @data: (array length=size) (element-type guint8) (transfer full): data to store
+ * @size: number of bytes in @data
+ *
+ * Like vips_area_new(), but track a length as well. The returned #VipsBlob
+ * takes ownership of @data and will free it with @free_fn. Pass NULL for
+ * @free_fn to not transfer ownership.
+ *
+ * An area of mem with a free func and a length (some sort of binary object,
+ * like an ICC profile).
+ * 
+ * See also: vips_area_unref().
+ *
+ * Returns: (transfer full): the new #VipsBlob.
+ */
+VipsBlob *
+vips_blob_new( VipsCallbackFn free_fn, void *data, size_t size )
+{
+	VipsArea *area;
+
+	area = vips_area_new( free_fn, data );
+	area->length = size;
+
+	return( (VipsBlob *) area );
+}
+
+/**
+ * vips_blob_get: 
+ * @blob: #VipsBlob to fetch from
+ * @size: return number of bytes of data
+ *
+ * Get the data from a #VipsBlob. 
+ * 
+ * See also: vips_blob_new().
+ *
+ * Returns: (array length=size) (element-type guint8) (transfer none): the data
+ */
+void *
+vips_blob_get( VipsBlob *blob, size_t *size )
+{
+	return( vips_area_get_data( VIPS_AREA( blob ), 
+		size, NULL, NULL, NULL ) ); 
 }
 
 /* Transform a blob to a G_TYPE_STRING.
@@ -1196,13 +1216,13 @@ void
 vips_value_set_blob( GValue *value, 
 	VipsCallbackFn free_fn, void *data, size_t length ) 
 {
-	VipsArea *area;
+	VipsBlob *blob;
 
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_BLOB );
 
-	area = vips_area_new_blob( free_fn, data, length );
-	g_value_set_boxed( value, area );
-	vips_area_unref( area );
+	blob = vips_blob_new( free_fn, data, length );
+	g_value_set_boxed( value, blob );
+	vips_area_unref( VIPS_AREA( blob ) );
 }
 
 /** 

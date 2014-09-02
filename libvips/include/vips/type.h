@@ -92,8 +92,6 @@ VipsArea *vips_area_copy( VipsArea *area );
 void vips_area_unref( VipsArea *area );
 
 VipsArea *vips_area_new( VipsCallbackFn free_fn, void *data );
-VipsArea *vips_area_new_blob( VipsCallbackFn free_fn, 
-	void *data, size_t length );
 VipsArea *vips_area_new_array( GType type, size_t sizeof_type, int n );
 VipsArea *vips_area_new_array_object( int n );
 void *vips_area_get_data( VipsArea *area, 
@@ -145,6 +143,13 @@ GType vips_ref_string_get_type( void );
  * The %GType for a #VipsBlob.
  */
 #define VIPS_TYPE_BLOB (vips_blob_get_type())
+
+typedef struct _VipsBlob { 
+	VipsArea area;
+} VipsBlob;
+
+VipsBlob *vips_blob_new( VipsCallbackFn free_fn, void *data, size_t size );
+void *vips_blob_get( VipsBlob *blob, size_t *size );
 GType vips_blob_get_type( void );
 
 /**

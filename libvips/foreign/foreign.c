@@ -1755,18 +1755,18 @@ int
 vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
 {
 	va_list ap;
-	VipsArea *area;
+	VipsBlob *blob;
 	int result;
 
 	/* We don't take a copy of the data or free it.
 	 */
-	area = vips_area_new_blob( NULL, buf, len );
+	blob = vips_blob_new( NULL, buf, len );
 
 	va_start( ap, out );
-	result = vips_call_split( "tiffload_buffer", ap, area, out );
+	result = vips_call_split( "tiffload_buffer", ap, blob, out );
 	va_end( ap );
 
-	vips_area_unref( area );
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( result );
 }
@@ -1955,18 +1955,18 @@ int
 vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
 {
 	va_list ap;
-	VipsArea *area;
+	VipsBlob *blob;
 	int result;
 
 	/* We don't take a copy of the data or free it.
 	 */
-	area = vips_area_new_blob( NULL, buf, len );
+	blob = vips_blob_new( NULL, buf, len );
 
 	va_start( ap, out );
-	result = vips_call_split( "jpegload_buffer", ap, area, out );
+	result = vips_call_split( "jpegload_buffer", ap, blob, out );
 	va_end( ap );
 
-	vips_area_unref( area );
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( result );
 }
@@ -2168,18 +2168,18 @@ int
 vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
 {
 	va_list ap;
-	VipsArea *area;
+	VipsBlob *blob;
 	int result;
 
 	/* We don't take a copy of the data or free it.
 	 */
-	area = vips_area_new_blob( NULL, buf, len );
+	blob = vips_blob_new( NULL, buf, len );
 
 	va_start( ap, out );
-	result = vips_call_split( "webpload_buffer", ap, area, out );
+	result = vips_call_split( "webpload_buffer", ap, blob, out );
 	va_end( ap );
 
-	vips_area_unref( area );
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( result );
 }
@@ -2472,18 +2472,18 @@ int
 vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
 {
 	va_list ap;
-	VipsArea *area;
+	VipsBlob *blob;
 	int result;
 
 	/* We don't take a copy of the data or free it.
 	 */
-	area = vips_area_new_blob( NULL, buf, len );
+	blob = vips_blob_new( NULL, buf, len );
 
 	va_start( ap, out );
-	result = vips_call_split( "pngload_buffer", ap, area, out );
+	result = vips_call_split( "pngload_buffer", ap, blob, out );
 	va_end( ap );
 
-	vips_area_unref( area );
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( result );
 }
