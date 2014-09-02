@@ -5,6 +5,7 @@
 - fix memleak in VipsArray [Lovell]
 - fix memleak in webp load from buffer [Lovell]
 - fix memleak in png save to buffer [Lovell]
+- make out of order read in png and jpg a fatal error
 
 12/8/14 started 7.40.6
 - more doc fixes
