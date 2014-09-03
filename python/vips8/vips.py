@@ -211,6 +211,15 @@ def vips_image_new_from_file(cls, vips_filename, **kwargs):
 
     return _call_base(loader, [filename], kwargs, None, option_string)
 
+# this is a class method
+def vips_image_new_from_buffer(cls, data, option_string, **kwargs):
+    loader = Vips.Foreign.find_load_buffer(data)
+    if loader == None:
+        raise Error('No known loader for buffer.')
+    logging.debug('Image.new_from_buffer: loader = %s' % loader)
+
+    return _call_base(loader, [data], kwargs, None, option_string)
+
 def vips_image_getattr(self, name):
     logging.debug('Image.__getattr__ %s' % name)
 
@@ -352,6 +361,7 @@ def vips_invert(self):
 
 # class methods
 setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
+setattr(Vips.Image, 'new_from_buffer', classmethod(vips_image_new_from_buffer))
 
 # instance methods
 Vips.Image.write_to_file = vips_image_write_to_file

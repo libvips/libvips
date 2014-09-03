@@ -1,9 +1,17 @@
 
 - python:
 
-	- turns blobs into strings on return with .get()
+	- new_from_memory() needs length as well as data so we can pass it a
+	  string
 
-		finish get_value
+	- do write_to_memory as well
+
+	- something to make a mask from a list of lists
+
+	- set scale and offset on masko
+
+	- how about the in-place things? draw a circle?
+
 
 	- add more constructors
 

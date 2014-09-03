@@ -214,7 +214,7 @@ typedef struct _VipsForeignLoadClass {
 GType vips_foreign_load_get_type( void );
 
 const char *vips_foreign_find_load( const char *filename );
-const char *vips_foreign_find_load_buffer( void *buf, size_t len );
+const char *vips_foreign_find_load_buffer( void *data, size_t size );
 
 VipsForeignFlags vips_foreign_flags( const char *loader, const char *filename );
 gboolean vips_foreign_is_a( const char *loader, const char *filename );

@@ -582,24 +582,26 @@ vips_foreign_find_load_buffer_sub( VipsForeignLoadClass *load_class,
 
 /**
  * vips_foreign_find_load_buffer:
- * @buf: start of memory buffer
- * @len: length of memory buffer
+ * @data: (array length=size) (element-type guint8) (transfer none): start of 
+ * memory buffer
+ * @size: number of bytes in @data
  *
  * Searches for an operation you could use to load a memory buffer.
  *
  * See also: vips_image_new_from_buffer().
  *
- * Returns: the name of an operation on success, %NULL on error
+ * Returns: (transfer none): the name of an operation on success, %NULL on 
+ * error.
  */
 const char *
-vips_foreign_find_load_buffer( void *buf, size_t len )
+vips_foreign_find_load_buffer( void *data, size_t size )
 {
 	VipsForeignLoadClass *load_class;
 
 	if( !(load_class = (VipsForeignLoadClass *) vips_foreign_map( 
 		"VipsForeignLoad",
 		(VipsSListMap2Fn) vips_foreign_find_load_buffer_sub, 
-		&buf, &len )) ) {
+		&data, &size )) ) {
 		vips_error( "VipsForeignLoad", 
 			"%s", _( "buffer is not in a known format" ) ); 
 		return( NULL );
