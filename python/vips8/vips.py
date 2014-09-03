@@ -68,7 +68,7 @@ class Argument:
 
         # blob-ize
         if GObject.type_is_a(self.prop.value_type, vips_type_blob):
-            if not isinstance(gi.repository.Vips.Blob, value):
+            if not isinstance(value, Vips.Blob):
                 value = Vips.Blob.new(None, value)
 
         logging.debug('assigning %s' % self.prop.value_type)
@@ -76,9 +76,17 @@ class Argument:
         self.op.props.__setattr__(self.name, value)
 
     def get_value(self):
-        x = self.op.props.__getattribute__(self.name)
+        value = self.op.props.__getattribute__(self.name)
 
-        return x
+        logging.debug('read out %s from %s' % (value, self.name))
+
+        # turn VipsBlobs into strings 
+        # FIXME ... this will involve a copy, we should use
+        # buffer() instead
+        if isinstance(value, Vips.Blob):
+            value = value.get()
+
+        return value
 
 def _call_base(name, required, optional, self = None, option_string = None):
     logging.debug('_call_base name=%s, required=%s optional=%s' % 
@@ -151,24 +159,28 @@ def _call_base(name, required, optional, self = None, option_string = None):
     if op2 == None:
         raise Error('Error calling operator %s.' % name)
 
-    # find all required output args ... just need the names
+    # rescan args, op2 has changed
+    args = [Argument(op2, x) for x in op2.props]
+    args.sort(lambda a, b: a.priority - b.priority)
+
+    # find all required output args 
     # we can't check assigned here (since we captured the value before the call)
     # but the getattr will test that for us anyway
-    required_output = [x.name for x in args if x.flags & enm.OUTPUT and 
+    required_output = [x for x in args if x.flags & enm.OUTPUT and 
                        x.flags & enm.REQUIRED]
 
     # gather output args 
     out = []
     for x in required_output:
-        out.append(op2.props.__getattribute__(x))
+        out.append(x.get_value())
 
-    # find all optional output args ... just need the names
+    # find all optional output args 
     optional_output = [x.name for x in args if x.flags & enm.OUTPUT and 
                        not x.flags & enm.REQUIRED]
 
     for x in optional.keys():
         if x in optional_output:
-            out.append(op2.props.__getattribute__(x))
+            out.append(x.get_value())
 
     if len(out) == 1:
         out = out[0]
@@ -176,7 +188,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
     # unref everything now we have refs to all outputs we want
     op2.unref_outputs()
 
-    logging.debug('success, out = %s' % out)
+    logging.debug('success')
 
     return out
 
