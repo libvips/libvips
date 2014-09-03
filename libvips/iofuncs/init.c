@@ -956,3 +956,18 @@ vips_version( int flag )
 		return( -1 );
 	}
 }
+
+/**
+ * vips_leak_set:
+ * @leak: turn leak checking on or off
+ *
+ * Turn on or off vips leak checking. See also --vips-leak and
+ * vips_get_option_group(). 
+ *
+ * You should call this very early in your program. 
+ */
+void 
+vips_leak_set( gboolean leak )
+{
+	vips__leak = leak; 
+}

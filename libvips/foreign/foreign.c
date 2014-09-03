@@ -166,96 +166,96 @@
  * calls to libpng.
  *
  * |[
-typedef struct _VipsForeignLoadPng {
-	VipsForeignLoad parent_object;
-
-	char *filename; 
-} VipsForeignLoadPng;
-
-typedef VipsForeignLoadClass VipsForeignLoadPngClass;
-
-G_DEFINE_TYPE( VipsForeignLoadPng, vips_foreign_load_png, 
-	VIPS_TYPE_FOREIGN_LOAD );
-
-static VipsForeignFlags
-vips_foreign_load_png_get_flags_filename( const char *filename )
-{
-	VipsForeignFlags flags;
-
-	flags = 0;
-	if( vips__png_isinterlaced( filename ) )
-		flags = VIPS_FOREIGN_PARTIAL;
-	else
-		flags = VIPS_FOREIGN_SEQUENTIAL;
-
-	return( flags );
-}
-
-static VipsForeignFlags
-vips_foreign_load_png_get_flags( VipsForeignLoad *load )
-{
-	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
-
-	return( vips_foreign_load_png_get_flags_filename( png->filename ) );
-}
-
-static int
-vips_foreign_load_png_header( VipsForeignLoad *load )
-{
-	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
-
-	if( vips__png_header( png->filename, load->out ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_load_png_load( VipsForeignLoad *load )
-{
-	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
-
-	if( vips__png_read( png->filename, load->real ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-static void
-vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
-{
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
-
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
-	object_class->nickname = "pngload";
-	object_class->description = _( "load png from file" );
-
-	foreign_class->suffs = vips__png_suffs;
-
-	load_class->is_a = vips__png_ispng;
-	load_class->get_flags_filename = 
-		vips_foreign_load_png_get_flags_filename;
-	load_class->get_flags = vips_foreign_load_png_get_flags;
-	load_class->header = vips_foreign_load_png_header;
-	load_class->load = vips_foreign_load_png_load;
-
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadPng, filename ),
-		NULL );
-}
-
-static void
-vips_foreign_load_png_init( VipsForeignLoadPng *png )
-{
-}
+ * typedef struct _VipsForeignLoadPng {
+ *   VipsForeignLoad parent_object;
+ * 
+ *   char *filename; 
+ * } VipsForeignLoadPng;
+ * 
+ * typedef VipsForeignLoadClass VipsForeignLoadPngClass;
+ * 
+ * G_DEFINE_TYPE( VipsForeignLoadPng, vips_foreign_load_png, 
+ *   VIPS_TYPE_FOREIGN_LOAD );
+ * 
+ * static VipsForeignFlags
+ * vips_foreign_load_png_get_flags_filename( const char *filename )
+ * {
+ *   VipsForeignFlags flags;
+ * 
+ *   flags = 0;
+ *   if( vips__png_isinterlaced( filename ) )
+ *   	flags = VIPS_FOREIGN_PARTIAL;
+ *   else
+ *   	flags = VIPS_FOREIGN_SEQUENTIAL;
+ * 
+ *   return( flags );
+ * }
+ * 
+ * static VipsForeignFlags
+ * vips_foreign_load_png_get_flags( VipsForeignLoad *load )
+ * {
+ *   VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
+ * 
+ *   return( vips_foreign_load_png_get_flags_filename( png->filename ) );
+ * }
+ * 
+ * static int
+ * vips_foreign_load_png_header( VipsForeignLoad *load )
+ * {
+ *   VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
+ * 
+ *   if( vips__png_header( png->filename, load->out ) )
+ *   	return( -1 );
+ * 
+ *   return( 0 );
+ * }
+ * 
+ * static int
+ * vips_foreign_load_png_load( VipsForeignLoad *load )
+ * {
+ *   VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
+ * 
+ *   if( vips__png_read( png->filename, load->real ) )
+ *   	return( -1 );
+ * 
+ *   return( 0 );
+ * }
+ * 
+ * static void
+ * vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
+ * {
+ *   GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+ *   VipsObjectClass *object_class = (VipsObjectClass *) class;
+ *   VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+ *   VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+ * 
+ *   gobject_class->set_property = vips_object_set_property;
+ *   gobject_class->get_property = vips_object_get_property;
+ * 
+ *   object_class->nickname = "pngload";
+ *   object_class->description = _( "load png from file" );
+ * 
+ *   foreign_class->suffs = vips__png_suffs;
+ * 
+ *   load_class->is_a = vips__png_ispng;
+ *   load_class->get_flags_filename = 
+ *   	vips_foreign_load_png_get_flags_filename;
+ *   load_class->get_flags = vips_foreign_load_png_get_flags;
+ *   load_class->header = vips_foreign_load_png_header;
+ *   load_class->load = vips_foreign_load_png_load;
+ * 
+ *   VIPS_ARG_STRING( class, "filename", 1, 
+ *   	_( "Filename" ),
+ *   	_( "Filename to load from" ),
+ *   	VIPS_ARGUMENT_REQUIRED_INPUT, 
+ *   	G_STRUCT_OFFSET( VipsForeignLoadPng, filename ),
+ *   	NULL );
+ * }
+ * 
+ * static void
+ * vips_foreign_load_png_init( VipsForeignLoadPng *png )
+ * {
+ * }
  * ]|
  */
 
@@ -269,75 +269,75 @@ vips_foreign_load_png_init( VipsForeignLoadPng *png )
  * to the actual save routines.
  *
  * |[
-typedef struct _VipsForeignSaveCsv {
-	VipsForeignSave parent_object;
-
-	char *filename; 
-	const char *separator;
-} VipsForeignSaveCsv;
-
-typedef VipsForeignSaveClass VipsForeignSaveCsvClass;
-
-G_DEFINE_TYPE( VipsForeignSaveCsv, vips_foreign_save_csv, 
-	VIPS_TYPE_FOREIGN_SAVE );
-
-static int
-vips_foreign_save_csv_build( VipsObject *object )
-{
-	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveCsv *csv = (VipsForeignSaveCsv *) object;
-
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_csv_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	if( vips__csv_write( save->ready, csv->filename, csv->separator ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-static void
-vips_foreign_save_csv_class_init( VipsForeignSaveCsvClass *class )
-{
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
-	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
-
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
-	object_class->nickname = "csvsave";
-	object_class->description = _( "save image to csv file" );
-	object_class->build = vips_foreign_save_csv_build;
-
-	foreign_class->suffs = vips__foreign_csv_suffs;
-
-	save_class->saveable = VIPS_SAVEABLE_MONO;
-	// no need to define ->format_table, we don't want the input 
-	// cast for us
-
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveCsv, filename ),
-		NULL );
-
-	VIPS_ARG_STRING( class, "separator", 13, 
-		_( "Separator" ), 
-		_( "Separator characters" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveCsv, separator ),
-		"\t" ); 
-}
-
-static void
-vips_foreign_save_csv_init( VipsForeignSaveCsv *csv )
-{
-	csv->separator = g_strdup( "\t" );
-}
+ * typedef struct _VipsForeignSaveCsv {
+ *   VipsForeignSave parent_object;
+ * 
+ *   char *filename; 
+ *   const char *separator;
+ * } VipsForeignSaveCsv;
+ * 
+ * typedef VipsForeignSaveClass VipsForeignSaveCsvClass;
+ * 
+ * G_DEFINE_TYPE( VipsForeignSaveCsv, vips_foreign_save_csv, 
+ *   VIPS_TYPE_FOREIGN_SAVE );
+ * 
+ * static int
+ * vips_foreign_save_csv_build( VipsObject *object )
+ * {
+ *   VipsForeignSave *save = (VipsForeignSave *) object;
+ *   VipsForeignSaveCsv *csv = (VipsForeignSaveCsv *) object;
+ * 
+ *   if( VIPS_OBJECT_CLASS( vips_foreign_save_csv_parent_class )->
+ *   	build( object ) )
+ *   	return( -1 );
+ * 
+ *   if( vips__csv_write( save->ready, csv->filename, csv->separator ) )
+ *   	return( -1 );
+ * 
+ *   return( 0 );
+ * }
+ * 
+ * static void
+ * vips_foreign_save_csv_class_init( VipsForeignSaveCsvClass *class )
+ * {
+ *   GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+ *   VipsObjectClass *object_class = (VipsObjectClass *) class;
+ *   VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+ *   VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
+ * 
+ *   gobject_class->set_property = vips_object_set_property;
+ *   gobject_class->get_property = vips_object_get_property;
+ * 
+ *   object_class->nickname = "csvsave";
+ *   object_class->description = _( "save image to csv file" );
+ *   object_class->build = vips_foreign_save_csv_build;
+ * 
+ *   foreign_class->suffs = vips__foreign_csv_suffs;
+ * 
+ *   save_class->saveable = VIPS_SAVEABLE_MONO;
+ *   // no need to define ->format_table, we don't want the input 
+ *   // cast for us
+ * 
+ *   VIPS_ARG_STRING( class, "filename", 1, 
+ *   	_( "Filename" ),
+ *   	_( "Filename to save to" ),
+ *   	VIPS_ARGUMENT_REQUIRED_INPUT, 
+ *   	G_STRUCT_OFFSET( VipsForeignSaveCsv, filename ),
+ *   	NULL );
+ * 
+ *   VIPS_ARG_STRING( class, "separator", 13, 
+ *   	_( "Separator" ), 
+ *   	_( "Separator characters" ),
+ *   	VIPS_ARGUMENT_OPTIONAL_INPUT,
+ *   	G_STRUCT_OFFSET( VipsForeignSaveCsv, separator ),
+ *   	"\t" ); 
+ * }
+ * 
+ * static void
+ * vips_foreign_save_csv_init( VipsForeignSaveCsv *csv )
+ * {
+ *   csv->separator = g_strdup( "\t" );
+ * }
  * ]|
  */
 

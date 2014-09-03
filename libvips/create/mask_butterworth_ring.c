@@ -141,7 +141,7 @@ vips_mask_butterworth_ring_init(
  * smooth transition
  * positioned at @frequency_cutoff of width @width, where @frequency_cutoff is 
  * in the range 0 - 1. The shape of the curve is controlled by
- * @order: higher values give a sharper transition. See Gonzalez and Wintz,
+ * @order --- higher values give a sharper transition. See Gonzalez and Wintz,
  * Digital Image Processing, 1987. 
  *
  * See also: vips_mask_ideal(). 

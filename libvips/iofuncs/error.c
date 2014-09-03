@@ -220,7 +220,7 @@ vips_verror( const char *domain, const char *fmt, va_list ap )
  * vips_error: 
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
- * @Varargs: arguments to the format string
+ * @...: arguments to the format string
  *
  * Format the string in the style of printf() and append to the error buffer.
  *
@@ -286,7 +286,7 @@ vips_verror_system( int err, const char *domain, const char *fmt, va_list ap )
  * @err: the system error code
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
- * @Varargs: arguments to the format string
+ * @...: arguments to the format string
  *
  * Format the string in the style of printf() and append to the error buffer.
  * Then create and append a localised message based on the system error code,
@@ -403,7 +403,7 @@ vips_vinfo( const char *domain, const char *fmt, va_list ap )
  * vips_info: 
  * @domain: the source of the diagnostic message
  * @fmt: printf()-style format string for the message
- * @Varargs: arguments to the format string
+ * @...: arguments to the format string
  *
  * Sends a formatted informational message to stderr if the --vips-info flag
  * has been given to the program or the environment variable IM_INFO has been
@@ -459,7 +459,7 @@ vips_vwarn( const char *domain, const char *fmt, va_list ap )
  * vips_warn: 
  * @domain: the source of the warning message
  * @fmt: printf()-style format string for the message
- * @Varargs: arguments to the format string
+ * @...: arguments to the format string
  *
  * Sends a formatted warning message to stderr. If you define the
  * environment variable IM_WARNING, these message are surpressed.
@@ -481,7 +481,7 @@ vips_warn( const char *domain, const char *fmt, ... )
 /**
  * vips_error_exit: 
  * @fmt: printf()-style format string for the message
- * @Varargs: arguments to the format string
+ * @...: arguments to the format string
  *
  * Sends a formatted error message to stderr, then sends the contents of the
  * error buffer, if any, then shuts down vips and terminates the program with 

@@ -60,7 +60,7 @@ typedef enum /*< flags >*/ {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 		VIPS_TYPE_OPERATION, VipsOperationClass ))
 
-typedef gboolean (*VipsOperationBuildFn)( VipsObject * );
+typedef gboolean (*VipsOperationBuildFn)( VipsObject *object );
 
 typedef struct _VipsOperation {
 	VipsObject parent_instance;
@@ -81,17 +81,17 @@ typedef struct _VipsOperationClass {
 
 	/* Print the usage message.
 	 */
-	void (*usage)( struct _VipsOperationClass *, VipsBuf * );
+	void (*usage)( struct _VipsOperationClass *cls, VipsBuf *buf );
 
 	/* Return a set of operation flags. 
 	 */
-	VipsOperationFlags (*get_flags)( VipsOperation * ); 
+	VipsOperationFlags (*get_flags)( VipsOperation *operation ); 
 	VipsOperationFlags flags;
 
 	/* One of our input images has signalled "invalidate". The cache uses
 	 * VipsOperation::invalidate to drop dirty ops.
 	 */
-	void (*invalidate)( VipsOperation * );
+	void (*invalidate)( VipsOperation *operation );
 } VipsOperationClass;
 
 GType vips_operation_get_type( void );

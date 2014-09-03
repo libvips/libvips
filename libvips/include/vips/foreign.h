@@ -159,14 +159,14 @@ typedef struct _VipsForeignLoadClass {
 	 * this type. If you don't define this function, #VipsForeignLoad
 	 * will use @suffs instead.
 	 */
-	gboolean (*is_a)( const char * );
+	gboolean (*is_a)( const char *filename );
 
 	/* Is a buffer in this format. 
 	 *
 	 * This function should return %TRUE if the buffer contains an image of 
 	 * this type. 
 	 */
-	gboolean (*is_a_buffer)( void *, size_t );
+	gboolean (*is_a_buffer)( void *data, size_t size );
 
 	/* Get the flags from a filename. 
 	 *
@@ -176,13 +176,13 @@ typedef struct _VipsForeignLoadClass {
 	 *
 	 * This operation is necessary for vips7 compatibility. 
 	 */
-	VipsForeignFlags (*get_flags_filename)( const char * );
+	VipsForeignFlags (*get_flags_filename)( const char *filename );
 
 	/* Get the flags for this load operation. Images can be loaded from 
 	 * (for example) memory areas rather than files, so you can't just use
 	 * @get_flags_filename().
 	 */
-	VipsForeignFlags (*get_flags)( VipsForeignLoad * );
+	VipsForeignFlags (*get_flags)( VipsForeignLoad *load );
 
 	/* Do the minimum read we can. 
 	 *
@@ -197,7 +197,7 @@ typedef struct _VipsForeignLoadClass {
 	 * Return 0 for success, -1 for error, setting
 	 * vips_error().
 	 */
-	int (*header)( VipsForeignLoad * );
+	int (*header)( VipsForeignLoad *load );
 
 	/* Read the whole image into @real. The pixels will get copied to @out 
 	 * later.
@@ -208,7 +208,7 @@ typedef struct _VipsForeignLoadClass {
 	 * Return 0 for success, -1 for error, setting
 	 * vips_error().
 	 */
-	int (*load)( VipsForeignLoad * );
+	int (*load)( VipsForeignLoad *load );
 } VipsForeignLoadClass;
 
 GType vips_foreign_load_get_type( void );
@@ -496,7 +496,7 @@ typedef enum {
 	VIPS_FOREIGN_DZ_CONTAINER_LAST
 } VipsForeignDzContainer;
 
-int vips_dzsave( VipsImage *in, const char *basename, ... )
+int vips_dzsave( VipsImage *in, const char *name, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus

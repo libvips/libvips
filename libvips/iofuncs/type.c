@@ -80,7 +80,7 @@
 
 /**
  * vips_thing_new:
- * @n:
+ * @i:
  *
  * Returns: (transfer full): a new #VipsThing.
  */
@@ -1025,7 +1025,7 @@ vips_array_image_new( const VipsImage **array, int n )
  *
  * Fetch an image array from a #VipsArrayImage. Useful for language bindings. 
  *
- * Returns: (array length=n): (transfer none): array of #VipsImage
+ * Returns: (array length=n) (transfer none): array of #VipsImage
  */
 VipsImage **
 vips_array_image_get( VipsArrayImage *array, int *n )
@@ -1127,7 +1127,7 @@ vips_value_set_save_string( GValue *value, const char *str )
  * vips_value_set_save_stringf:
  * @value: (out): GValue to set
  * @fmt: printf()-style format string
- * @Varargs: arguments to printf()-formatted @fmt
+ * @...: arguments to printf()-formatted @fmt
  *
  * Generates a string and copies it into @value.
  */

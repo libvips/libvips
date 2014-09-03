@@ -407,35 +407,35 @@ vips_sharpen_init( VipsSharpen *sharpen )
  * The lookup table is formed like this:
  *
  * |[
-                      ^
-                   y2 |- - - - - -----------
-                      |         / 
-                      |        / slope m2
-                      |    .../    
-              -x1     | ...   |    
-  -------------------...---------------------->
-              |   ... |      x1           
-              |... slope m1
-              /       |
-             / m2     |
-            /         |
-           /          |
-          /           |
-         /            |
-  ______/ _ _ _ _ _ _ | -y3
-                      |
+ *                      ^
+ *                   y2 |- - - - - -----------
+ *                      |         / 
+ *                      |        / slope m2
+ *                      |    .../    
+ *              -x1     | ...   |    
+ *  -------------------...---------------------->
+ *              |   ... |      x1           
+ *              |... slope m1
+ *              /       |
+ *             / m2     |
+ *            /         |
+ *           /          |
+ *          /           |
+ *         /            |
+ *  ______/ _ _ _ _ _ _ | -y3
+ *                      |
  * ]|
  *
  * For printing, we recommend the following settings (the defaults):
  *
  * |[
-   radius == 3
-   x1 == 1.5
-   y2 == 20         (don't brighten by more than 20 L*)
-   y3 == 50         (can darken by up to 50 L*)
-
-   m1 == 1          (some sharpening in flat areas)
-   m2 == 2          (more sharpening in jaggy areas)
+ *   radius == 3
+ *   x1 == 1.5
+ *   y2 == 20         (don't brighten by more than 20 L*)
+ *   y3 == 50         (can darken by up to 50 L*)
+ *
+ *   m1 == 1          (some sharpening in flat areas)
+ *   m2 == 2          (more sharpening in jaggy areas)
  * ]|
  *
  * If you want more or less sharpening, we suggest you just change the m1 
@@ -448,7 +448,7 @@ vips_sharpen_init( VipsSharpen *sharpen )
  * pixels/mm). These figures refer to the image raster, not the half-tone 
  * resolution.
  *
- * See also: im_conv().
+ * See also: vips_conv().
  * 
  * Returns: 0 on success, -1 on error.
  */

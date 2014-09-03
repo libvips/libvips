@@ -236,8 +236,8 @@ vips_divide_init( VipsDivide *divide )
 
 /**
  * vips_divide:
- * @in1: input image 1
- * @in2: input image 2
+ * @left: input image 
+ * @right: input image 
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *

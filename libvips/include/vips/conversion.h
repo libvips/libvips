@@ -102,16 +102,16 @@ int vips_flip( VipsImage *in, VipsImage **out, VipsDirection direction, ... )
 int vips_insert( VipsImage *main, VipsImage *sub, VipsImage **out, 
 	int x, int y, ... )
 	__attribute__((sentinel));
-int vips_join( VipsImage *main, VipsImage *sub, VipsImage **out, 
+int vips_join( VipsImage *in1, VipsImage *in2, VipsImage **out, 
 	VipsDirection direction, ... )
 	__attribute__((sentinel));
-int vips_extract_area( VipsImage *input, VipsImage **output, 
+int vips_extract_area( VipsImage *in, VipsImage **out, 
 	int left, int top, int width, int height, ... )
 	__attribute__((sentinel));
-int vips_crop( VipsImage *input, VipsImage **output, 
+int vips_crop( VipsImage *in, VipsImage **out, 
 	int left, int top, int width, int height, ... )
 	__attribute__((sentinel));
-int vips_extract_band( VipsImage *input, VipsImage **output, int band, ... )
+int vips_extract_band( VipsImage *in, VipsImage **out, int band, ... )
 	__attribute__((sentinel));
 int vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
 	__attribute__((sentinel));
@@ -164,7 +164,7 @@ int vips_bandrank( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
 
 int vips_bandbool( VipsImage *in, VipsImage **out, 
-	VipsOperationBoolean operation, ... )
+	VipsOperationBoolean boolean, ... )
 	__attribute__((sentinel));
 int vips_bandand( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));

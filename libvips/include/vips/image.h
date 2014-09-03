@@ -428,15 +428,14 @@ void vips_image_set_delete_on_close( VipsImage *image,
 VipsImage *vips_image_new_temp_file( const char *format );
 
 int vips_image_write( VipsImage *image, VipsImage *out );
-int vips_image_write_to_file( VipsImage *image, const char *filename, ... )
+int vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	__attribute__((sentinel));
 int vips_image_write_to_buffer( VipsImage *in, 
-	const char *name, void **buf, size_t *len, ... )
+	const char *suffix, void **buf, size_t *len, ... )
 	__attribute__((sentinel));
-int vips_image_write_to_memory( VipsImage *in, 
-	void **buf_out, size_t *len_out );
+int vips_image_write_to_memory( VipsImage *in, void **buf, size_t *len );
 
-int vips_image_decode_predict( VipsImage *im, 
+int vips_image_decode_predict( VipsImage *in, 
 	int *bands, VipsBandFormat *format );
 int vips_image_decode( VipsImage *in, VipsImage **out );
 int vips_image_encode( VipsImage *in, VipsImage **out, VipsCoding coding );

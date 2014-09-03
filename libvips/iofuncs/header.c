@@ -613,13 +613,13 @@ vips_image_get_mode( const VipsImage *image )
  * Returns: the scale.
  */
 double
-vips_image_get_scale( const VipsImage *array )
+vips_image_get_scale( const VipsImage *image )
 {
 	double scale;
 
 	scale = 1.0;
-	if( vips_image_get_typeof( array, "scale" ) ) 
-		vips_image_get_double( array, "scale", &scale );
+	if( vips_image_get_typeof( image, "scale" ) ) 
+		vips_image_get_double( image, "scale", &scale );
 
 	return( scale );
 }
@@ -634,13 +634,13 @@ vips_image_get_scale( const VipsImage *array )
  * Returns: the offset.
  */
 double
-vips_image_get_offset( const VipsImage *array )
+vips_image_get_offset( const VipsImage *image )
 {
 	double offset;
 
 	offset = 0.0;
-	if( vips_image_get_typeof( array, "offset" ) ) 
-		vips_image_get_double( array, "offset", &offset );
+	if( vips_image_get_typeof( image, "offset" ) ) 
+		vips_image_get_double( image, "offset", &offset );
 
 	return( offset );
 }
@@ -655,9 +655,9 @@ vips_image_get_offset( const VipsImage *array )
  *
  * See also: vips_image_wio_input().
  *
- * Returns: a pointer to pixel data, if possible.
+ * Returns: (transfer none): a pointer to pixel data, if possible.
  */
-void *
+const void *
 vips_image_get_data( VipsImage *image )
 {
 	if( vips_image_wio_input( image ) )
@@ -1017,7 +1017,7 @@ vips_image_map_fn( VipsMeta *meta, VipsImageMapFn fn, void *a )
 /**
  * vips_image_map: 
  * @image: image to map over
- * @fn: function to call for each header field
+ * @fn: (scope call): function to call for each header field
  * @a: user data for function
  *
  * This function calls @fn for every header field, including every item of 
@@ -1028,7 +1028,7 @@ vips_image_map_fn( VipsMeta *meta, VipsImageMapFn fn, void *a )
  *
  * See also: vips_image_get_typeof(), vips_image_get().
  *
- * Returns: %NULL on success, the failing pointer otherwise.
+ * Returns: (transfer none): %NULL on success, the failing pointer otherwise.
  */
 void *
 vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )

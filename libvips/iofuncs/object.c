@@ -2441,11 +2441,11 @@ vips_object_to_string_optional( VipsObject *object,
 }
 
 /**
- * vips_object_to_string: (skip)
+ * vips_object_to_string: 
  * @object: object to stringify
  * @buf: write string here
  *
- * The inverse of vips_object_new_from_string(): turn an object into eg.
+ * The inverse of vips_object_new_from_string(): turn @object into eg.
  * "VipsInterpolateSnohalo1(blur=.333333)".
  */
 void

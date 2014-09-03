@@ -1793,7 +1793,6 @@ vips_filename_get_options( const char *vips_filename )
  *
  * @access: hint #VipsAccess mode to loader
  * @disc: load via a temporary disc file
- * @...: other arguments depend on the loader
  *
  * vips_image_new_from_file() opens @name for reading. It can load files
  * in many image formats, including VIPS, TIFF, PNG, JPEG, FITS, Matlab,
@@ -1802,6 +1801,7 @@ vips_filename_get_options( const char *vips_filename )
  * Load options may be appended to @filename as "[name=value,...]" or given as
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename. 
+ * Many loaders add extra options, see vips_jpegload(), for example. 
  *
  * vips_image_new_from_file() always returns immediately with the header
  * fields filled in. No pixels are actually read until you first access them. 
@@ -2313,34 +2313,34 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
  */
 int
 vips_image_write_to_buffer( VipsImage *in, 
-	const char *name, void **buf, size_t *len, 
+	const char *suffix, void **buf, size_t *len, 
 	... )
 {
-	char suffix[VIPS_PATH_MAX];
+	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
 	const char *operation_name;
-	VipsArea *area;
+	VipsBlob *blob;
 	va_list ap;
 	int result;
 
-	vips__filename_split8( name, suffix, option_string );
-	if( !(operation_name = vips_foreign_find_save_buffer( suffix )) )
+	vips__filename_split8( suffix, filename, option_string );
+	if( !(operation_name = vips_foreign_find_save_buffer( filename )) )
 		return( -1 );
 
 	va_start( ap, len );
 	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, in, &area );
+		ap, in, &blob );
 	va_end( ap );
 
-	if( area ) { 
+	if( blob ) { 
 		if( buf ) {
-			*buf = area->data;
-			area->free_fn = NULL;
+			*buf = VIPS_AREA( blob )->data;
+			VIPS_AREA( blob )->free_fn = NULL;
 		}
 		if( len ) 
-			*len = area->length;
+			*len = VIPS_AREA( blob )->length;
 
-		vips_area_unref( area );
+		vips_area_unref( VIPS_AREA( blob ) );
 	}
 
 	return( result );
@@ -2444,23 +2444,23 @@ vips_image_decode( VipsImage *in, VipsImage **out )
  * See also: vips_image_decode().
  */
 int
-vips_image_decode_predict( VipsImage *im, 
+vips_image_decode_predict( VipsImage *in, 
 	int *out_bands, VipsBandFormat *out_format )
 {
 	VipsBandFormat format;
 	int bands; 
 
-	if( im->Coding == VIPS_CODING_LABQ ) {
+	if( in->Coding == VIPS_CODING_LABQ ) {
 		bands = 3;
 		format = VIPS_FORMAT_FLOAT;
 	}
-	else if( im->Coding == VIPS_CODING_RAD ) {
+	else if( in->Coding == VIPS_CODING_RAD ) {
 		bands = 3;
 		format = VIPS_FORMAT_FLOAT;
 	}
 	else {
-		bands = im->Bands;
-		format = im->BandFmt;
+		bands = in->Bands;
+		format = in->BandFmt;
 	}
 
 	if( out_bands )

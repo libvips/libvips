@@ -239,9 +239,9 @@ vips_bandboolv( VipsImage *in, VipsImage **out,
 
 /**
  * vips_bandbool:
- * @im: left-hand input #VipsImage
+ * @in: left-hand input #VipsImage
  * @out: output #VipsImage
- * @operation: boolean operation to perform
+ * @boolean: boolean operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform various boolean operations across the bands of an image. For
@@ -265,13 +265,13 @@ vips_bandboolv( VipsImage *in, VipsImage **out,
  */
 int
 vips_bandbool( VipsImage *in, VipsImage **out, 
-	VipsOperationBoolean operation, ... )
+	VipsOperationBoolean boolean, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, operation );
-	result = vips_bandboolv( in, out, operation, ap );
+	va_start( ap, boolean );
+	result = vips_bandboolv( in, out, boolean, ap );
 	va_end( ap );
 
 	return( result );

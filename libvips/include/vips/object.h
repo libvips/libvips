@@ -295,18 +295,21 @@ typedef struct _VipsArgumentInstance {
  */
 typedef GHashTable VipsArgumentTable;
 
-VipsArgumentInstance *vips__argument_get_instance( VipsArgumentClass *,
-	VipsObject * );
-VipsArgument *vips__argument_table_lookup( VipsArgumentTable *, 
-	GParamSpec * );
+VipsArgumentInstance *vips__argument_get_instance( 
+	VipsArgumentClass *argument_class,
+	VipsObject *object );
+VipsArgument *vips__argument_table_lookup( VipsArgumentTable *argument_class, 
+	GParamSpec *pspec );
 void vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 	GObject **member, GObject *argument );
-typedef void *(*VipsArgumentMapFn)( VipsObject *, GParamSpec *,
-	VipsArgumentClass *, VipsArgumentInstance *, void *a, void *b );
+typedef void *(*VipsArgumentMapFn)( VipsObject *object, GParamSpec *pspec,
+	VipsArgumentClass *argument_class, 
+	VipsArgumentInstance *argument_instance, void *a, void *b );
 void *vips_argument_map( VipsObject *object, 
 	VipsArgumentMapFn fn, void *a, void *b );
-typedef void *(*VipsArgumentClassMapFn)( VipsObjectClass *, GParamSpec *,
-	VipsArgumentClass *, void *a, void *b );
+typedef void *(*VipsArgumentClassMapFn)( VipsObjectClass *object_class, 
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class, void *a, void *b );
 void *vips_argument_class_map( VipsObjectClass *object_class, 
 	VipsArgumentClassMapFn fn, void *a, void *b );
 gboolean vips_argument_class_needsstring( VipsArgumentClass *argument_class );
@@ -457,40 +460,40 @@ struct _VipsObjectClass {
 	/* Try to print something about the class, handy for help displays.
 	 * Keep to one line.
 	 */
-	void (*summary_class)( struct _VipsObjectClass *, VipsBuf * );
+	void (*summary_class)( struct _VipsObjectClass *cls, VipsBuf *buf );
 
 	/* Try to print a one-line summary for the object, the user can see
 	 * this output via things like "header fred.tif", --vips-cache-trace,
 	 * etc. 
 	 */
-	void (*summary)( VipsObject *, VipsBuf * );
+	void (*summary)( VipsObject *object, VipsBuf *buf );
 
 	/* Try to print everything about the object, handy for debugging.
 	 */
-	void (*dump)( VipsObject *, VipsBuf * );
+	void (*dump)( VipsObject *object, VipsBuf *buf );
 
 	/* Sanity-check the object. Print messages and stuff. 
 	 * Handy for debugging.
 	 */
-	void (*sanity)( VipsObject *, VipsBuf * );
+	void (*sanity)( VipsObject *object, VipsBuf *buf );
 
 	/* Rewind. Save and restore any stuff that needs to survive a
 	 * dispose().
 	 */
-	void (*rewind)( VipsObject * );
+	void (*rewind)( VipsObject *object );
 
 	/* Just before close, everything is still alive.
 	 */
-	void (*preclose)( VipsObject * );
+	void (*preclose)( VipsObject *object );
 
 	/* Close, time to free stuff.
 	 */
-	void (*close)( VipsObject * );
+	void (*close)( VipsObject *object );
 
 	/* Post-close, everything is dead, except the VipsObject pointer.
 	 * Useful for eg. deleting the file associated with a temp image.
 	 */
-	void (*postclose)( VipsObject * );
+	void (*postclose)( VipsObject *object );
 
 	/* The CLI interface. Implement these four to get CLI input and output
 	 * for your object.
@@ -506,7 +509,7 @@ struct _VipsObjectClass {
 	/* The inverse of ^^. Given an object, output what ->new_from_string()
 	 * would have been given to make that object. 
 	 */
-	void (*to_string)( VipsObject *, VipsBuf * ); 
+	void (*to_string)( VipsObject *object, VipsBuf *buf ); 
 
 	/* Does this output arg need an arg from the command line? Image
 	 * output, for example, needs a filename to write to.
@@ -582,8 +585,9 @@ gboolean vips_object_sanity( VipsObject *object );
 
 GType vips_object_get_type( void );
 
-void vips_object_class_install_argument( VipsObjectClass *, GParamSpec *pspec, 
-	VipsArgumentFlags flags, int priority, guint offset );
+void vips_object_class_install_argument( VipsObjectClass *cls, 
+	GParamSpec *pspec, VipsArgumentFlags flags, 
+	int priority, guint offset );
 int vips_object_set_argument_from_string( VipsObject *object, 
 	const char *name, const char *value );
 gboolean vips_object_argument_needsstring( VipsObject *object, 
@@ -592,7 +596,7 @@ int vips_object_get_argument_to_string( VipsObject *object,
 	const char *name, const char *arg );
 int vips_object_set_required( VipsObject *object, const char *value );
 
-typedef void *(*VipsObjectSetArguments)( VipsObject *, void *, void * );
+typedef void *(*VipsObjectSetArguments)( VipsObject *object, void *a, void *b );
 VipsObject *vips_object_new( GType type, 
 	VipsObjectSetArguments set, void *a, void *b );
 
@@ -607,9 +611,9 @@ void vips_object_to_string( VipsObject *object, VipsBuf *buf );
 
 void *vips_object_map( VipsSListMap2Fn fn, void *a, void *b );
 
-typedef void *(*VipsTypeMapFn)( GType, void * );
-typedef void *(*VipsTypeMap2Fn)( GType, void *, void * );
-typedef void *(*VipsClassMapFn)( VipsObjectClass *, void * );
+typedef void *(*VipsTypeMapFn)( GType type, void *a );
+typedef void *(*VipsTypeMap2Fn)( GType type, void *a, void *b );
+typedef void *(*VipsClassMapFn)( VipsObjectClass *cls, void *a );
 void *vips_type_map( GType base, VipsTypeMap2Fn fn, void *a, void *b );
 void *vips_type_map_all( GType base, VipsTypeMapFn fn, void *a );
 int vips_type_depth( GType type );
