@@ -513,7 +513,7 @@ vips_ref_string_get_type( void )
 
 /**
  * vips_blob_new: 
- * @free_fn: (scope async): (allow-none): @data will be freed with this function
+ * @free_fn: (scope async) (allow-none): @data will be freed with this function
  * @data: (array length=size) (element-type guint8) (transfer full): data to store
  * @size: number of bytes in @data
  *
@@ -684,7 +684,7 @@ vips_array_int_newv( int n, ... )
  *
  * Fetch an int array from a #VipsArrayInt. Useful for language bindings. 
  *
- * Returns: (array length=n): (transfer none): array of int
+ * Returns: (array length=n) (transfer none): array of int
  */
 int *
 vips_array_int_get( VipsArrayInt *array, int *n )
@@ -851,7 +851,7 @@ vips_array_double_newv( int n, ... )
  *
  * Fetch a double array from a #VipsArrayDouble. Useful for language bindings. 
  *
- * Returns: (array length=n): (transfer none): array of double
+ * Returns: (array length=n) (transfer none): array of double
  */
 double *
 vips_array_double_get( VipsArrayDouble *array, int *n )

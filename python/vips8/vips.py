@@ -18,6 +18,7 @@ Vips.init(sys.argv[0])
 vips_type_array_int = GObject.GType.from_name("VipsArrayInt")
 vips_type_array_double = GObject.GType.from_name("VipsArrayDouble")
 vips_type_array_image = GObject.GType.from_name("VipsArrayImage")
+vips_type_blob = GObject.GType.from_name("VipsBlob")
 
 class Error(Exception):
 
@@ -65,9 +66,19 @@ class Argument:
         value = self.arrayize(vips_type_array_double, Vips.ArrayDouble.new, value)
         value = self.arrayize(vips_type_array_image, Vips.ArrayImage.new, value)
 
+        # blob-ize
+        if GObject.type_is_a(self.prop.value_type, vips_type_blob):
+            if not isinstance(gi.repository.Vips.Blob, value):
+                value = Vips.Blob.new(None, value)
+
         logging.debug('assigning %s' % self.prop.value_type)
 
         self.op.props.__setattr__(self.name, value)
+
+    def get_value(self):
+        x = self.op.props.__getattribute__(self.name)
+
+        return x
 
 def _call_base(name, required, optional, self = None, option_string = None):
     logging.debug('_call_base name=%s, required=%s optional=%s' % 
@@ -256,14 +267,17 @@ def vips_div(self, other):
 def vips_rdiv(self, other):
     return (self ** -1) * other
 
+def vips_floor(self):
+    self.round(Vips.OperationRound.FLOOR)
+
 def vips_floordiv(self, other):
     if isinstance(other, Vips.Image):
-        return self.divide(other).round(Vips.OperationRound.FLOOR)
+        return self.divide(other).floor()
     else:
-        return self.linear(smap(lambda x: 1.0 / x, other), 0).round(Vips.OperationRound.FLOOR)
+        return self.linear(smap(lambda x: 1.0 / x, other), 0).floor()
 
 def vips_rfloordiv(self, other):
-    return ((self ** -1) * other).round(Vips.OperationRound.FLOOR)
+    return ((self ** -1) * other).floor()
 
 def vips_mod(self, other):
     if isinstance(other, Vips.Image):
@@ -330,6 +344,8 @@ setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
 # instance methods
 Vips.Image.write_to_file = vips_image_write_to_file
 Vips.Image.write_to_buffer = vips_image_write_to_buffer
+
+Vips.Image.floor = vips_floor
 
 Vips.Image.__getattr__ = vips_image_getattr
 Vips.Image.__add__ = vips_add

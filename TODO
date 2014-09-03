@@ -3,6 +3,8 @@
 
 	- turns blobs into strings on return with .get()
 
+		finish get_value
+
 	- add more constructors
 
 	- need more writers
