@@ -148,8 +148,9 @@ typedef struct _VipsBlob {
 	VipsArea area;
 } VipsBlob;
 
-VipsBlob *vips_blob_new( VipsCallbackFn free_fn, void *data, size_t size );
-void *vips_blob_get( VipsBlob *blob, size_t *size );
+VipsBlob *vips_blob_new( VipsCallbackFn free_fn, 
+	const void *data, size_t size );
+const void *vips_blob_get( VipsBlob *blob, size_t *size );
 GType vips_blob_get_type( void );
 
 /**

@@ -529,11 +529,11 @@ vips_ref_string_get_type( void )
  * Returns: (transfer full): the new #VipsBlob.
  */
 VipsBlob *
-vips_blob_new( VipsCallbackFn free_fn, void *data, size_t size )
+vips_blob_new( VipsCallbackFn free_fn, const void *data, size_t size )
 {
 	VipsArea *area;
 
-	area = vips_area_new( free_fn, data );
+	area = vips_area_new( free_fn, (void *) data );
 	area->length = size;
 
 	return( (VipsBlob *) area );
@@ -550,7 +550,7 @@ vips_blob_new( VipsCallbackFn free_fn, void *data, size_t size )
  *
  * Returns: (array length=size) (element-type guint8) (transfer none): the data
  */
-void *
+const void *
 vips_blob_get( VipsBlob *blob, size_t *size )
 {
 	return( vips_area_get_data( VIPS_AREA( blob ), 

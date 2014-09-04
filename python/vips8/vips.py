@@ -83,8 +83,8 @@ class Argument:
         # turn VipsBlobs into strings 
         # FIXME ... this will involve a copy, we should use
         # buffer() instead
-        if isinstance(value, Vips.Blob):
-            value = value.get()
+#        if isinstance(value, Vips.Blob):
+#            value = value.get()
 
         return value
 
