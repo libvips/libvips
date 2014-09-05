@@ -304,7 +304,7 @@ vips__ink_to_vector( const char *domain, VipsImage *im, VipsPel *ink, int *n )
 
 	/* Wrap a VipsImage around ink.
 	 */
-	t[0] = vips_image_new_from_memory( ink, 
+	t[0] = vips_image_new_from_memory( ink, VIPS_IMAGE_SIZEOF_PEL( im ),
 		1, 1, VIPS_IMAGE_SIZEOF_PEL( im ), VIPS_FORMAT_UCHAR );
 	if( vips_copy( t[0], &t[1], 
 		"bands", im->Bands, 

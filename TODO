@@ -1,21 +1,11 @@
 
 - python:
 
-	- new_from_memory() needs length as well as data so we can pass it a
-	  string
-
-	- do write_to_memory as well
-
 	- something to make a mask from a list of lists
 
-	- set scale and offset on masko
+	- set scale and offset on mask
 
 	- how about the in-place things? draw a circle?
-
-
-	- add more constructors
-
-	- need more writers
 
 	- could import like this:
 

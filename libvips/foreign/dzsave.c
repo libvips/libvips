@@ -1031,6 +1031,7 @@ strip_init( Strip *strip, Layer *layer )
 
 	if( !(strip->image = vips_image_new_from_memory( 
 		VIPS_REGION_ADDR( layer->strip, 0, line.top ),
+		VIPS_IMAGE_SIZEOF_LINE( layer->image ) * line.height,
 		line.width, line.height, 
 		layer->image->Bands, layer->image->BandFmt )) ) {
 		strip_free( strip );

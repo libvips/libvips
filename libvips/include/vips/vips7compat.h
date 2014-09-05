@@ -214,7 +214,9 @@ int im_cp_descv (IMAGE * im, ...);
 int im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...);
 #define im_demand_hint_array( A, B, C ) (vips__demand_hint_array( A, B, C ), 0)
 
-#define im_image vips_image_new_from_memory
+#define im_image(P, W, H, B, F) \
+	vips_image_new_from_memory((P), 0, (W), (H), (B), (F))
+
 #define im_binfile vips_image_new_from_file_raw
 #define im__open_temp vips_image_new_temp_file
 #define im__test_kill( I ) (vips_image_get_kill( I ))

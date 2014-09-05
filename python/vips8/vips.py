@@ -218,14 +218,16 @@ def vips_image_new_from_buffer(cls, data, option_string, **kwargs):
         raise Error('No known loader for buffer.')
     logging.debug('Image.new_from_buffer: loader = %s' % loader)
 
-    return _call_base(loader, [data], kwargs, None, option_string)
-
 def vips_image_getattr(self, name):
     logging.debug('Image.__getattr__ %s' % name)
 
     # look up in props first, eg. x.props.width
     if name in dir(self.props):
         return getattr(self.props, name)
+
+    # 'format' is a reserved word, annoying, have bandfmt as an alias
+    if name == 'bandfmt':
+        return getattr(self.props, 'format')
 
     return lambda *args, **kwargs: _call_instance(self, name, args, kwargs)
 
@@ -366,6 +368,7 @@ setattr(Vips.Image, 'new_from_buffer', classmethod(vips_image_new_from_buffer))
 # instance methods
 Vips.Image.write_to_file = vips_image_write_to_file
 Vips.Image.write_to_buffer = vips_image_write_to_buffer
+# we can use Vips.Image.write_to_memory() directly
 
 Vips.Image.floor = vips_floor
 

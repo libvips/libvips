@@ -1944,11 +1944,12 @@ vips_image_new_from_file_raw( const char *filename,
 
 /**
  * vips_image_new_from_memory:
- * @buffer: start of memory area
- * @xsize: image width
- * @ysize: image height
+ * @buffer: (array length=size) (element-type guint8) (transfer full): start of memory area
+ * @size: length of memory area
+ * @width: image width
+ * @height: image height
  * @bands: image bands (or bytes per pixel)
- * @bandfmt: image format
+ * @format: image format
  *
  * This function wraps a #VipsImage around a memory area. The memory area
  * must be a simple array, for example RGBRGBRGB, left-to-right,
@@ -1966,8 +1967,8 @@ vips_image_new_from_file_raw( const char *filename,
  * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_from_memory( void *buffer, 
-	int xsize, int ysize, int bands, VipsBandFormat bandfmt )
+vips_image_new_from_memory( void *buffer, size_t size,
+	int width, int height, int bands, VipsBandFormat format )
 {
 	VipsImage *image;
 
@@ -1978,12 +1979,25 @@ vips_image_new_from_memory( void *buffer,
 		"filename", vips_image_temp_name(),
 		"mode", "m",
 		"foreign_buffer", buffer,
-		"width", xsize,
-		"height", ysize,
+		"width", width,
+		"height", height,
 		"bands", bands,
-		"format", bandfmt,
+		"format", format,
 		NULL );
 	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
+		VIPS_UNREF( image );
+		return( NULL );
+	}
+
+	/* Allow len == 0 meaning don't check. Used for im_image()
+	 * compatibility.
+	 */
+	if( size > 0 && 
+		size < VIPS_IMAGE_SIZEOF_IMAGE( image ) ) {
+		vips_error( "VipsImage",
+			_( "buffer too small --- "
+				"should be %zd bytes, you passed %zd" ),
+			VIPS_IMAGE_SIZEOF_IMAGE( image ), size ); 
 		VIPS_UNREF( image );
 		return( NULL );
 	}
@@ -2292,8 +2306,8 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
  * vips_image_write_to_buffer:
  * @in: image to write
  * @suffix: format to write 
- * @buf: return buffer start here
- * @len: return buffer length here
+ * @buf: (array length=size) (element-type guint8) (transfer full): return buffer start here
+ * @size: return buffer length here
  * @...: %NULL-terminated list of optional named arguments
  *
  * Writes @in to a memory buffer in a format specified by @suffix. 
@@ -2313,7 +2327,7 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
  */
 int
 vips_image_write_to_buffer( VipsImage *in, 
-	const char *suffix, void **buf, size_t *len, 
+	const char *suffix, void **buf, size_t *size, 
 	... )
 {
 	char filename[VIPS_PATH_MAX];
@@ -2327,7 +2341,7 @@ vips_image_write_to_buffer( VipsImage *in,
 	if( !(operation_name = vips_foreign_find_save_buffer( filename )) )
 		return( -1 );
 
-	va_start( ap, len );
+	va_start( ap, size );
 	result = vips_call_split_option_string( operation_name, option_string, 
 		ap, in, &blob );
 	va_end( ap );
@@ -2337,8 +2351,8 @@ vips_image_write_to_buffer( VipsImage *in,
 			*buf = VIPS_AREA( blob )->data;
 			VIPS_AREA( blob )->free_fn = NULL;
 		}
-		if( len ) 
-			*len = VIPS_AREA( blob )->length;
+		if( size ) 
+			*size = VIPS_AREA( blob )->length;
 
 		vips_area_unref( VIPS_AREA( blob ) );
 	}
@@ -2349,51 +2363,47 @@ vips_image_write_to_buffer( VipsImage *in,
 /**
  * vips_image_write_to_memory:
  * @in: image to write
- * @buf: (transfer full): return buffer start here
- * @len: return buffer length here
+ * @size: return buffer length here
  *
  * Writes @in to memory as a simple, unformatted C-style array. 
  *
- * The caller is responsible for freeing memory. 
+ * The caller is responsible for freeing this memory. 
  *
  * See also: vips_image_write_to_buffer().
  *
- * Returns: 0 on success, -1 on error
+ * Returns: (array length=size) (element-type guint8) (transfer full): return buffer start here
  */
-int
-vips_image_write_to_memory( VipsImage *in, void **buf_out, size_t *len_out )
+void *
+vips_image_write_to_memory( VipsImage *in, size_t *size_out )
 {
 	void *buf;
-	size_t len;
+	size_t size;
 	VipsImage *x;
 
-	g_assert( buf_out ); 
-
-	len = VIPS_IMAGE_SIZEOF_IMAGE( in );
-	if( !(buf = g_try_malloc( len )) ) {
+	size = VIPS_IMAGE_SIZEOF_IMAGE( in );
+	if( !(buf = g_try_malloc( size )) ) {
 		vips_error( "vips_image_write_to_memory", 
 			_( "out of memory --- size == %dMB" ), 
-			(int) (len / (1024.0 * 1024.0))  );
+			(int) (size / (1024.0 * 1024.0))  );
 		vips_warn( "vips_image_write_to_memory", 
 			_( "out of memory --- size == %dMB" ), 
-			(int) (len / (1024.0*1024.0))  );
-		return( -1 );
+			(int) (size / (1024.0*1024.0))  );
+		return( NULL );
 	}
 
-	x = vips_image_new_from_memory( buf, 
+	x = vips_image_new_from_memory( buf, size,
 		in->Xsize, in->Ysize, in->Bands, in->BandFmt );
 	if( vips_image_write( in, x ) ) {
 		g_object_unref( x );
 		g_free( buf ); 
-		return( -1 ); 
+		return( NULL ); 
 	}
 	g_object_unref( x );
 
-	*buf_out = buf;
-	if( len_out )
-		*len_out = len;
+	if( size_out )
+		*size_out = size;
 
-	return( 0 ); 
+	return( buf ); 
 }
 
 /**
