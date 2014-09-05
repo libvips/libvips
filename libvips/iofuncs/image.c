@@ -179,7 +179,7 @@
  * #VIPS_DEMAND_STYLE_FATSTRIP --- This operation would like to output strips 
  * the width of the image and as high as possible. This option is suitable 
  * for area operations which do not violently transform coordinates, such 
- * as im_conv(). 
+ * as vips_conv(). 
  *
  * #VIPS_DEMAND_STYLE_SMALLTILE --- This is the most general demand format.
  * Output is demanded in small (around 100x100 pel) sections. This style works 
@@ -187,7 +187,7 @@
  *
  * #VIPS_DEMAND_STYLE_ANY --- This image is not being demand-read from a disc 
  * file (even indirectly) so any demand style is OK. It's used for things like
- * im_black() where the pixels are calculated.
+ * vips_black() where the pixels are calculated.
  *
  * See also: vips_image_pipelinev().
  */

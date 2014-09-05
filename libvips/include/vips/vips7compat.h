@@ -1005,6 +1005,9 @@ int im_label_regions( VipsImage *test, VipsImage *mask, int *segments );
 int im_rank( VipsImage *in, VipsImage *out, int width, int height, int index );
 int im_zerox( VipsImage *in, VipsImage *out, int sign );
 
+int im_benchmarkn( VipsImage *in, VipsImage *out, int n );
+int im_benchmark2( VipsImage *in, double *out );
+
 int im_draw_circle( VipsImage *image, 
 	int x, int y, int radius, gboolean fill, VipsPel *ink );
 
@@ -1014,6 +1017,9 @@ int im_draw_image( VipsImage *image, VipsImage *sub, int x, int y );
 int im_draw_rect( VipsImage *image, 
 	int left, int top, int width, int height, int fill, VipsPel *ink );
 
+typedef int (*VipsPlotFn)( VipsImage *image, int x, int y, 
+	void *a, void *b, void *c ); 
+
 int im_draw_line_user( VipsImage *image, 
 	int x1, int y1, int x2, int y2, 
 	VipsPlotFn plot, void *a, void *b, void *c );
@@ -1021,6 +1027,8 @@ int im_draw_line( VipsImage *image,
 	int x1, int y1, int x2, int y2, VipsPel *ink );
 int im_lineset( VipsImage *in, VipsImage *out, VipsImage *mask, VipsImage *ink,
 	int n, int *x1v, int *y1v, int *x2v, int *y2v );
+
+int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x, int *y );
 
 int im_draw_flood( VipsImage *image, int x, int y, VipsPel *ink, VipsRect *dout );
 int im_draw_flood_blob( VipsImage *image, 
@@ -1096,6 +1104,14 @@ int im_tbmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int hwindowsize, int hsearchsize,
 	int balancetype,
 	int mwidth );
+
+int im_correl( VipsImage *ref, VipsImage *sec,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	double *correlation, int *x, int *y );
+
+int im_align_bands( VipsImage *in, VipsImage *out );
+int im_maxpos_subpel( VipsImage *in, double *x, double *y );
 
 /* These were public for a while, keep for compat.
  */

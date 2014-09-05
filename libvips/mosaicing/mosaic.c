@@ -320,6 +320,7 @@ vips_mosaic_init( VipsMosaic *mosaic )
  * @yref: position in reference image
  * @xsec: position in secondary image
  * @ysec: position in secondary image
+ * @...: %NULL-terminated list of optional named arguments
  * 
  * Optional arguments:
  *

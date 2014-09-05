@@ -354,7 +354,7 @@ static VipsColourRoute vips_colour_routes[] = {
 
 /**
  * vips_colourspace_issupported:
- * @in: input image
+ * @image: input image
  *
  * Test if @image is in a colourspace that vips_colourspace() can process. For
  * example, #VIPS_INTERPRETATION_RGB images are not in a well-defined 
@@ -528,6 +528,7 @@ vips_colourspace_init( VipsColourspace *colourspace )
  * @in: input image
  * @out: output image
  * @space: convert to this colour space
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

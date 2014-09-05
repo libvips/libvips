@@ -143,21 +143,22 @@ vips_labelregions_init( VipsLabelregions *labelregions )
 
 /**
  * vips_labelregions:
- * @test: image to test
+ * @in: image to test
  * @mask: write labelled regions here
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
  * @segments: return number of regions found here
  *
- * Repeatedly scans @test for regions of 4-connected pixels
+ * Repeatedly scans @in for regions of 4-connected pixels
  * with the same pixel value. Every time a region is discovered, those
  * pixels are marked in @mask with a unique serial number. Once all pixels
  * have been labelled, the operation returns, setting @segments to the number
  * of discrete regions which were detected.
  *
  * @mask is always a 1-band #VIPS_FORMAT_INT image of the same dimensions as
- * @test.
+ * @in.
  *
  * This operation is useful for, for example, blob counting. You can use the
  * morphological operators to detect and isolate a series of objects, then use

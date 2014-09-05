@@ -631,6 +631,7 @@ vips_mosaic1_init( VipsMosaic1 *mosaic1 )
  * @yr2: second reference tie-point
  * @xs2: second secondary tie-point
  * @ys2: second secondary tie-point
+ * @...: %NULL-terminated list of optional named arguments
  * 
  * Optional arguments:
  *

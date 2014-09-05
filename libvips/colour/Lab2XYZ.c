@@ -195,6 +195,7 @@ vips_Lab2XYZ_init( VipsLab2XYZ *Lab2XYZ )
  * vips_Lab2XYZ:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * optional arguments:
  *

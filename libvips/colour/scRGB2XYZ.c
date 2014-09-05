@@ -104,6 +104,7 @@ vips_scRGB2XYZ_init( VipsscRGB2XYZ *scRGB2XYZ )
  * vips_scRGB2XYZ:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Turn XYZ to scRGB.
  *

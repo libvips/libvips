@@ -100,8 +100,8 @@ vips_zone_init( VipsZone *zone )
 /**
  * vips_zone:
  * @out: output image
- * @xsize: image size
- * @ysize: image size
+ * @width: image size
+ * @height: image size
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

@@ -367,6 +367,7 @@ vips_quadratic_init( VipsQuadratic *quadratic )
  * @in: input image
  * @out: output image
  * @coeff: horizontal quadratic
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

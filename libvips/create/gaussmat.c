@@ -195,6 +195,7 @@ vips_gaussmat_init( VipsGaussmat *gaussmat )
 
 /**
  * vips_gaussmat:
+ * @out: output image
  * @sigma: standard deviation of mask
  * @min_ampl: minimum amplitude
  * @...: %NULL-terminated list of optional named arguments

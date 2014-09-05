@@ -221,6 +221,7 @@ vips_scRGB2sRGB_init( VipsscRGB2sRGB *scRGB2sRGB )
  * vips_scRGB2sRGB:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

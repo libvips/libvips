@@ -289,6 +289,7 @@ vips_draw_circlev( VipsImage *image,
  * @cx: centre of draw_circle
  * @cy: centre of draw_circle
  * @radius: draw_circle radius
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
@@ -324,6 +325,7 @@ vips_draw_circle( VipsImage *image,
  * @cx: centre of draw_circle
  * @cy: centre of draw_circle
  * @radius: draw_circle radius
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

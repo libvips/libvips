@@ -78,7 +78,8 @@ int vips_mask_ideal_ring( VipsImage **out, int width, int height,
 	double frequency_cutoff, double ringwidth, ... )
 	__attribute__((sentinel));
 int vips_mask_ideal_band( VipsImage **out, int width, int height, 
-	double frequency_cutoff_x, double frequency_cutoff_y, double r, ... )
+	double frequency_cutoff_x, double frequency_cutoff_y, 
+	double radius, ... )
 	__attribute__((sentinel));
 int vips_mask_butterworth( VipsImage **out, int width, int height, 
 	double order, 
@@ -91,7 +92,7 @@ int vips_mask_butterworth_ring( VipsImage **out, int width, int height,
 	__attribute__((sentinel));
 int vips_mask_butterworth_band( VipsImage **out, int width, int height, 
 	double order, 
-	double frequency_cutoff_x, double frequency_cutoff_y, double r, 
+	double frequency_cutoff_x, double frequency_cutoff_y, double radius, 
 	double amplitude_cutoff, ... )
 	__attribute__((sentinel));
 int vips_mask_gaussian( VipsImage **out, int width, int height, 
@@ -102,7 +103,7 @@ int vips_mask_gaussian_ring( VipsImage **out, int width, int height,
 	double ringwidth, ... )
 	__attribute__((sentinel));
 int vips_mask_gaussian_band( VipsImage **out, int width, int height, 
-	double frequency_cutoff_x, double frequency_cutoff_y, double r, 
+	double frequency_cutoff_x, double frequency_cutoff_y, double radius, 
 	double amplitude_cutoff, ... )
 	__attribute__((sentinel));
 int vips_mask_fractal( VipsImage **out, int width, int height, 
@@ -112,9 +113,6 @@ int vips_mask_fractal( VipsImage **out, int width, int height,
 int vips_fractsurf( VipsImage **out, 
 	int width, int height, double fractal_dimension, ... )
 	__attribute__((sentinel));
-
-int im_benchmarkn( VipsImage *in, VipsImage *out, int n );
-int im_benchmark2( VipsImage *in, double *out );
 
 #ifdef __cplusplus
 }

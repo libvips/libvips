@@ -141,7 +141,7 @@ vips_malloc_cb( VipsObject *object, char *buf )
  *
  * See also: vips_tracked_malloc().
  *
- * Returns: a pointer to the allocated memory
+ * Returns: (transfer full): a pointer to the allocated memory
  */
 void *
 vips_malloc( VipsObject *object, size_t size )
@@ -172,7 +172,7 @@ vips_malloc( VipsObject *object, size_t size )
  *
  * See also: vips_malloc().
  *
- * Returns: a pointer to the allocated memory
+ * Returns: (transfer full): a pointer to the allocated memory
  */
 char *
 vips_strdup( VipsObject *object, const char *str )
@@ -210,7 +210,7 @@ vips_free( void *buf )
 
 /**
  * vips_tracked_free:
- * @s: memory to free
+ * @s: (transfer full): memory to free
  *
  * Only use it to free
  * memory that was previously allocated with vips_tracked_malloc() with a 
@@ -271,7 +271,7 @@ vips_tracked_init( void )
  *
  * See also: vips_tracked_free(), vips_malloc().
  *
- * Returns: a pointer to the allocated memory, or %NULL on error.
+ * Returns: (transfer full): a pointer to the allocated memory, or %NULL on error.
  */
 void *
 vips_tracked_malloc( size_t size )
@@ -322,7 +322,7 @@ vips_tracked_malloc( size_t size )
  * vips_tracked_open:
  * @pathname: name of file to open
  * @flags: flags for open()
- * @mode: open mode
+ * @...: open mode
  *
  * Exactly as open(2), but the number of files current open via
  * vips_tracked_open() is available via vips_tracked_get_files(). This is used

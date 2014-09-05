@@ -173,6 +173,7 @@ vips_similarity_init( VipsSimilarity *similarity )
  * vips_similarity:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

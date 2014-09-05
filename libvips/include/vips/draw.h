@@ -78,11 +78,6 @@ int vips_draw_line_mask( VipsImage *image,
 int vips_draw_line_mask1( VipsImage *image, 
 	double ink, int x1, int y1, int x2, int y2, VipsImage *mask, ... )
 	__attribute__((sentinel));
-typedef int (*VipsPlotFn)( VipsImage *, int, int, void *, void *, void * ); 
-int vips_draw_line_user( VipsImage *image, 
-	int x1, int y1, int x2, int y2, 
-	VipsPlotFn plot_fn, void *a, void *b, void *c, ... )
-	__attribute__((sentinel));
 
 int vips_draw_circle( VipsImage *image, 
 	double *ink, int n, int cx, int cy, int radius, ... )

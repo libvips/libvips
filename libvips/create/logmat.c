@@ -219,6 +219,7 @@ vips_logmat_init( VipsLogmat *logmat )
 
 /**
  * vips_logmat:
+ * @out: output image
  * @sigma: standard deviation of mask
  * @min_ampl: minimum amplitude
  * @...: %NULL-terminated list of optional named arguments

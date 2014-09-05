@@ -105,9 +105,7 @@ Vips_8_0_gir_SCANNERFLAGS = \
 			    --verbose \
 			    --identifier-prefix=Vips \
 			    --identifier-prefix=vips \
-			    --symbol-prefix=vips \
-			    --symbol-prefix=im \
-			    --symbol-prefix=im_ 
+			    --symbol-prefix=vips 
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)

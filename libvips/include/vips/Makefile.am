@@ -58,6 +58,7 @@ EXTRA_DIST = version.h.in internal.h enumtemplate
 # well
 vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/memory.h \
+	${top_srcdir}/libvips/include/vips/create.h \
 	${top_srcdir}/libvips/include/vips/foreign.h \
 	${top_srcdir}/libvips/include/vips/arithmetic.h \
 	${top_srcdir}/libvips/include/vips/conversion.h \

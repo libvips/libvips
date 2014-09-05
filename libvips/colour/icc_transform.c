@@ -1112,6 +1112,7 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
  * vips_icc_import:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
@@ -1150,6 +1151,7 @@ vips_icc_import( VipsImage *in, VipsImage **out, ... )
  * vips_icc_export:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
@@ -1185,6 +1187,7 @@ vips_icc_export( VipsImage *in, VipsImage **out, ... )
  * @in: input image
  * @out: output image
  * @output_profile: get the output profile from here
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

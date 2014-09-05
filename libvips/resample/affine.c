@@ -625,6 +625,7 @@ vips_affine_init( VipsAffine *affine )
  * @b: transformation matrix coefficient
  * @c: transformation matrix coefficient
  * @d: transformation matrix coefficient
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

@@ -683,6 +683,7 @@ vips_draw_floodv( VipsImage *image,
  * @n: length of ink array
  * @x: centre of circle
  * @y: centre of circle
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
@@ -733,6 +734,7 @@ vips_draw_flood( VipsImage *image,
  * @ink: value to draw
  * @x: centre of circle
  * @y: centre of circle
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

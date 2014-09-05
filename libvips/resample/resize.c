@@ -163,6 +163,7 @@ vips_resize_init( VipsResize *resize )
  * @out: output image
  * @h_scale: horizontal scale factor
  * @v_scale: vertical scale factor
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

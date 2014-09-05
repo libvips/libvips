@@ -63,16 +63,6 @@ int vips_remosaic( VipsImage *in, VipsImage **out,
 	__attribute__((sentinel));
 
 
-#include <vips/vips.h>
-
-int im_correl( VipsImage *ref, VipsImage *sec,
-	int xref, int yref, int xsec, int ysec,
-	int hwindowsize, int hsearchsize,
-	double *correlation, int *x, int *y );
-
-int im_align_bands( VipsImage *in, VipsImage *out );
-int im_maxpos_subpel( VipsImage *in, double *x, double *y );
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -148,8 +148,8 @@ vips_sines_init( VipsSines *sines )
 /**
  * vips_sines:
  * @out: output image
- * @xsize: image size
- * @ysize: image size
+ * @width: image size
+ * @height: image size
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

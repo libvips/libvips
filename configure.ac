@@ -94,7 +94,36 @@ vips_introspection_sources="$introspection_sources2"
 
 # add headers that form the public vips8 API .. don't do a find and exclude,
 # we end up excluding almost everything argh
-headers="basic.h vips.h object.h image.h error.h foreign.h interpolate.h header.h operation.h enumtypes.h arithmetic.h conversion.h type.h"
+headers="\
+	basic.h \
+	vips.h \
+	object.h \
+	image.h \
+	error.h \
+	foreign.h \
+	interpolate.h \
+	header.h \
+	type.h \
+	operation.h \
+	buf.h \
+	colour.h \
+	conversion.h \
+	convolution.h \
+	create.h \
+	draw.h \
+	freqfilt.h \
+	histogram.h \
+	memory.h \
+	morphology.h \
+	mosaicing.h \
+	arithmetic.h \
+	rect.h \
+	region.h \
+	relational.h \
+	resample.h"
+
+#headers="basic.h vips.h object.h image.h error.h foreign.h interpolate.h header.h operation.h enumtypes.h arithmetic.h conversion.h type.h"
+
 for name in $headers; do
   vips_introspection_sources="$vips_introspection_sources include/vips/$name"
 done

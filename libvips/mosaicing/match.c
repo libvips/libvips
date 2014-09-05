@@ -324,6 +324,7 @@ vips_match_init( VipsMatch *match )
  * @yr2: second reference tie-point
  * @xs2: second secondary tie-point
  * @ys2: second secondary tie-point
+ * @...: %NULL-terminated list of optional named arguments
  * 
  * Optional arguments:
  *
