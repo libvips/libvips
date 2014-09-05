@@ -423,6 +423,8 @@ VipsImage *vips_image_new_from_buffer( void *buf, size_t len,
 	__attribute__((sentinel));
 VipsImage *vips_image_new_matrix( int width, int height );
 VipsImage *vips_image_new_matrixv( int width, int height, ... );
+VipsImage *vips_image_new_matrix_from_array( int width, int height, 
+	double *array, int size );
 void vips_image_set_delete_on_close( VipsImage *image, 
 	gboolean delete_on_close );
 VipsImage *vips_image_new_temp_file( const char *format );

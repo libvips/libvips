@@ -837,7 +837,7 @@ vips_image_set( VipsImage *image, const char *field, GValue *value )
  * vips_image_get:
  * @image: image to get the field from from
  * @field: the name to give the metadata
- * @value_copy: the %GValue is copied into this
+ * @value_copy: (transfer full) (out caller-allocates): the %GValue is copied into this
  *
  * Fill @value_copy with a copy of the header field. @value_copy must be zeroed 
  * but uninitialised.
@@ -871,7 +871,7 @@ vips_image_set( VipsImage *image, const char *field, GValue *value )
  *
  * See also: vips_image_get_typeof(), vips_image_get_double().
  *
- * Returns: 0 on success, -1 otherwise.
+ * Returns: (skip): 0 on success, -1 otherwise.
  */
 int
 vips_image_get( const VipsImage *image, const char *field, GValue *value_copy )

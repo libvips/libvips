@@ -2142,6 +2142,44 @@ vips_image_new_matrixv( int width, int height, ... )
 }
 
 /**
+ * vips_image_new_matrix_from_array:
+ * @width: image width
+ * @height: image height
+ * @array: (array length=size) (transfer none): array of elements
+ * @size: number of elements
+ *
+ * A binding-friendly version of vips_image_new_matrixv().
+ *
+ * Returns: the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_matrix_from_array( int width, int height, 
+	double *array, int size )
+{
+	VipsImage *matrix;
+	int x, y;
+	int i;
+
+	if( size != width * height ) {
+		vips_error( "VipsImage",
+			_( "bad array length --- should be %d, you passed %d" ),
+			width * height, size );
+		return( NULL );
+	}
+
+	vips_check_init();
+
+	matrix = vips_image_new_matrix( width, height ); 
+
+	i = 0;
+	for( y = 0; y < height; y++ )
+		for( x = 0; x < width; x++ )
+			*VIPS_MATRIX( matrix, x, y ) = array[i++];
+
+	return( matrix ); 
+}
+
+/**
  * vips_image_set_delete_on_close:
  * @image: image to set
  * @delete_on_close: format of file

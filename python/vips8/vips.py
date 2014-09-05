@@ -218,6 +218,32 @@ def vips_image_new_from_buffer(cls, data, option_string, **kwargs):
         raise Error('No known loader for buffer.')
     logging.debug('Image.new_from_buffer: loader = %s' % loader)
 
+# this is a class method
+def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
+    # we accept a 1D array and assume height == 1, or a 2D array and check all
+    # lines are the same length
+    if not isinstance(array, list):
+        raise TypeError('new_from_array() takes a list argument')
+    if not isinstance(array[0], list):
+        height = 1
+        width = len(array)
+    else:
+        flat_array = array[0]
+        height = len(array)
+        width = len(array[0])
+        for i in range(1, height):
+            if len(array[i]) != width:
+                raise TypeError('new_from_array() array not rectangular')
+            flat_array += array[i]
+        array = flat_array
+
+    image = cls.new_matrix_from_array(width, height, array)
+
+    image.set('scale', scale)
+    image.set('offset', offset)
+
+    return image
+
 def vips_image_getattr(self, name):
     logging.debug('Image.__getattr__ %s' % name)
 
@@ -364,6 +390,7 @@ def vips_invert(self):
 # class methods
 setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
 setattr(Vips.Image, 'new_from_buffer', classmethod(vips_image_new_from_buffer))
+setattr(Vips.Image, 'new_from_array', classmethod(vips_image_new_from_array))
 
 # instance methods
 Vips.Image.write_to_file = vips_image_write_to_file

@@ -1,11 +1,9 @@
 
 - python:
 
-	- something to make a mask from a list of lists
-
-	- set scale and offset on mask
-
 	- how about the in-place things? draw a circle?
+
+	- try vips benchmark in vips8 python, how much slower?
 
 	- could import like this:
 
