@@ -256,7 +256,7 @@ vips_logmat_init( VipsLogmat *logmat )
  *
  * "scale" is set to the sum of all the mask elements.
  *
- * See also: vips_gauss(), vips_conv().
+ * See also: vips_gaussmat(), vips_conv().
  *
  * Returns: 0 on success, -1 on error
  */

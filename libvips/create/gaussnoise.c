@@ -207,7 +207,7 @@ vips_gaussnoise_init( VipsGaussnoise *gaussnoise )
  * distribution. The noise distribution is created by averaging 12 random 
  * numbers with the appropriate weights.
  *
- * See also: vips_black(), im_make_xy(), im_text().
+ * See also: vips_black(), vips_xyz(), vips_text().
  *
  * Returns: 0 on success, -1 on error
  */

@@ -225,7 +225,7 @@ vips_gaussmat_init( VipsGaussmat *gaussmat )
  *
  * "scale" is set to the sum of all the mask elements.
  *
- * See also: im_log_dmask(), vips_conv().
+ * See also: vips_logmat(), vips_conv().
  *
  * Returns: 0 on success, -1 on error
  */

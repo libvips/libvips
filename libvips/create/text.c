@@ -212,7 +212,8 @@ vips_text_build( VipsObject *object )
 	text->bitmap.pitch = (text->bitmap.width + 3) & ~3;
 	text->bitmap.rows = height;
 	if( !(text->bitmap.buffer = 
-		im_malloc( NULL, text->bitmap.pitch * text->bitmap.rows )) ) {
+		VIPS_ARRAY( NULL, 
+			text->bitmap.pitch * text->bitmap.rows, VipsPel )) ) {
 		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
 	}
