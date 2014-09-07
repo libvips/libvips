@@ -2,16 +2,15 @@
 
 import sys
 
-#import logging
-#logging.basicConfig(level = logging.DEBUG)
+import logging
+logging.basicConfig(level = logging.DEBUG)
 
+from gi.repository import GLib
+from gi.repository import GObject
 from gi.repository import Vips 
+
 from vips8 import vips
 
 a = Vips.Image.black(100, 100)
 
-b = Vips.Image.new_memory()
-
-a.write(b)
-
-b.write_to_file("x.v")
+a.write_to_file("x.v")

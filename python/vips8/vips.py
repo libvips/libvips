@@ -4,12 +4,10 @@ import sys
 
 import logging
 
-from gi.repository import GLib
-from gi.repository import GObject
-
 # you might need this in your .bashrc
 # export GI_TYPELIB_PATH=$VIPSHOME/lib/girepository-1.0
-from gi.repository import Vips 
+
+from gi.repository import GLib, GObject, Vips
 
 # start up vips!
 Vips.init(sys.argv[0])
@@ -19,6 +17,8 @@ vips_type_array_int = GObject.GType.from_name("VipsArrayInt")
 vips_type_array_double = GObject.GType.from_name("VipsArrayDouble")
 vips_type_array_image = GObject.GType.from_name("VipsArrayImage")
 vips_type_blob = GObject.GType.from_name("VipsBlob")
+vips_type_image = GObject.GType.from_name("VipsImage")
+vips_type_operation = GObject.GType.from_name("VipsOperation")
 
 class Error(Exception):
 
@@ -83,8 +83,8 @@ class Argument:
         # turn VipsBlobs into strings 
         # FIXME ... this will involve a copy, we should use
         # buffer() instead
-#        if isinstance(value, Vips.Blob):
-#            value = value.get()
+        if isinstance(value, Vips.Blob):
+            value = value.get()
 
         return value
 
@@ -244,6 +244,10 @@ def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
 
     return image
 
+# this is a class method
+def vips_black(cls, width, height, **kwargs):
+    return _call_base("black", [width, height], kwargs)
+
 def vips_image_getattr(self, name):
     logging.debug('Image.__getattr__ %s' % name)
 
@@ -391,6 +395,39 @@ def vips_invert(self):
 setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
 setattr(Vips.Image, 'new_from_buffer', classmethod(vips_image_new_from_buffer))
 setattr(Vips.Image, 'new_from_array', classmethod(vips_image_new_from_array))
+
+# yuk, we should run these via a metaclass somehow
+setattr(Vips.Image, 'black', classmethod(vips_black))
+
+# Search for all VipsOperation which don't have an input image object ... these
+# become class methods
+
+def vips_image_class_method(name, args, kwargs):
+    logging.debug('vips_image_class_method %s' % name)
+
+    return _call_instance(None, name, args, kwargs)
+
+def define_class_methods(cls):
+    if len(cls.children) > 0:
+        for child in cls.children:
+            # not easy to get at the deprecated flag in an abtract type?
+            if cls.name != 'VipsWrap7':
+                define_class_methods(child)
+    elif cls.is_instantiatable():
+        op = Vips.Operation.new(cls.name)
+        found = False
+        for prop in op.props:
+            flags = op.get_argument_flags(prop.name)
+            if flags & Vips.ArgumentFlags.INPUT and flags & Vips.ArgumentFlags.REQUIRED:
+                if GObject.type_is_a(vips_type_image, prop.value_type):
+                    found = True
+                    break
+
+        if not found:
+            print 'operation %s has no input image args' % cls.name
+            setattr(Vips.Image, cls.name, classmethod(lambda *args, **kwargs: vips_image_class_method(cls.name, args, kwargs)))
+
+define_class_methods(vips_type_operation)
 
 # instance methods
 Vips.Image.write_to_file = vips_image_write_to_file

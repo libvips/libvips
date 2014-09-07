@@ -1,7 +1,31 @@
 
 - python:
 
+	- can we override __getattr__ on a type object?
+
+		Vips.Image.black
+		AttributeError: type object 'Image' has no attribute 'black'
+
+	  we'd like to attack black as a class method, or override __getattr__
+	  to let us patch class methods in
+
+	  looks like defining a metaclass might do it, but 
+
+ 	  	Vips.Image.__metaclass__ = ImageType
+		setattr(Vips.Image, '__metaclass__', ImageType)
+		setattr(Vips.Image, '__metaclass__', classmethod(ImageType))
+
+	  don't work, nor any other obvious variations
+
+	  we could walk all vips operators and paste in ones without an
+	  image instance arg as class methods, but that would be very slow and
+	  wouldn't work for loading plugins
+
+
 	- how about the in-place things? draw a circle?
+
+	- try getting / setting / deleting metadata such as an ICC profile or
+	  an exif tag
 
 	- try vips benchmark in vips8 python, how much slower?
 
