@@ -37,9 +37,9 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=38
-LIBRARY_REVISION=5
-LIBRARY_AGE=0
+LIBRARY_CURRENT=39
+LIBRARY_REVISION=0
+LIBRARY_AGE=1
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
@@ -411,7 +411,7 @@ PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0 gmodule-2.0 gobject-2.0"
 # after 2.28 we have a monotonic timer
 PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,[
   AC_DEFINE(HAVE_MONOTONIC_TIME,1,[define if your glib has g_get_monotonic_time().])
-  ],[
+  ],[:
   ]
 )
 
@@ -432,7 +432,7 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
 # with 2.36 and after the type system inits itself
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,[
   AC_DEFINE(NEED_TYPE_INIT,1,[define if your glib needs g_type_init().])
-  ],[
+  ],[:
   ]
 )
 

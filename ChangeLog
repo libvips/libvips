@@ -5,6 +5,9 @@
 - return of vips_init(), but just for bindings
 - revised type.c to make it more binding-friendly
 
+8/9/14 started 7.40.8
+- fix configure on rhel6 [Lovell]
+
 21/8/14 started 7.40.7
 - width and height were swapped in matlab load
 - set interpretation more carefully on matlab load
@@ -12,6 +15,8 @@
 - fix memleak in VipsArray [Lovell]
 - fix memleak in webp load from buffer [Lovell]
 - fix memleak in png save to buffer [Lovell]
+- make out of order read in png and jpg a fatal error
+- add thread_shutdown() to C++ (and thereby to python)
 
 12/8/14 started 7.40.6
 - more doc fixes

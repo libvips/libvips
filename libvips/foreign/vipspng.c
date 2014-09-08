@@ -483,7 +483,11 @@ png2vips_generate( VipsRegion *or,
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
 	 */
-	g_assert( r->top == read->y_pos ); 
+	if( r->top != read->y_pos ) {
+		vips_error( "vipspng", 
+			_( "out of order read at line %d" ), read->y_pos );
+		return( -1 );
+	}
 
 	for( y = 0; y < r->height; y++ ) {
 		png_bytep q = (png_bytep) VIPS_REGION_ADDR( or, 0, r->top + y );

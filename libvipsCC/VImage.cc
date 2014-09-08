@@ -64,6 +64,11 @@ void shutdown()
 	vips_shutdown(); 
 }
 
+void thread_shutdown()
+{
+	vips_thread_shutdown(); 
+}
+
 void VImage::refblock::debug_print()
 {
 	std::list<refblock *>::iterator i;

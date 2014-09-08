@@ -490,7 +490,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	if( vips_tilecache( in, &t[4], 
 		"tile_width", in->Xsize,
 		"tile_height", 10,
-		"max_tiles", (nlines * 2) / 10,
+		"max_tiles", 1 + (nlines * 2) / 10,
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		"threaded", TRUE, 
 		NULL ) )

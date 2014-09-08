@@ -916,7 +916,11 @@ read_jpeg_generate( VipsRegion *or,
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
 	 */
-	g_assert( r->top == jpeg->y_pos ); 
+	if( r->top != jpeg->y_pos ) {
+		vips_error( "VipsJpeg", 
+			_( "out of order read at line %d" ), jpeg->y_pos );
+		return( -1 );
+	}
 
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
