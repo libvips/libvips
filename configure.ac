@@ -365,7 +365,7 @@ PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0 gmodule-2.0 gobject-2.0"
 # after 2.28 we have a monotonic timer
 PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,[
   AC_DEFINE(HAVE_MONOTONIC_TIME,1,[define if your glib has g_get_monotonic_time().])
-  ],[
+  ],[:
   ]
 )
 
@@ -386,7 +386,7 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
 # with 2.36 and after the type system inits itself
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,[
   AC_DEFINE(NEED_TYPE_INIT,1,[define if your glib needs g_type_init().])
-  ],[
+  ],[:
   ]
 )
 
