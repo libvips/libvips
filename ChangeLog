@@ -1,3 +1,6 @@
+8/9/14 started 7.40.8
+- fix configure on rhel6 [Lovell]
+
 21/8/14 started 7.40.7
 - width and height were swapped in matlab load
 - set interpretation more carefully on matlab load
