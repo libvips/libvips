@@ -397,7 +397,7 @@ setattr(Vips.Image, 'new_from_buffer', classmethod(vips_image_new_from_buffer))
 setattr(Vips.Image, 'new_from_array', classmethod(vips_image_new_from_array))
 
 # yuk, we should run these via a metaclass somehow
-setattr(Vips.Image, 'black', classmethod(vips_black))
+#setattr(Vips.Image, 'black', classmethod(vips_black))
 
 # Search for all VipsOperation which don't have an input image object ... these
 # become class methods
@@ -405,7 +405,10 @@ setattr(Vips.Image, 'black', classmethod(vips_black))
 def vips_image_class_method(name, args, kwargs):
     logging.debug('vips_image_class_method %s' % name)
 
-    return _call_instance(None, name, args, kwargs)
+    # the first arg is the class we are called from ... drop it
+    args = tuple(list(args)[1::])
+
+    return _call_base(name, args, kwargs)
 
 def define_class_methods(cls):
     if len(cls.children) > 0:
@@ -424,8 +427,11 @@ def define_class_methods(cls):
                     break
 
         if not found:
-            print 'operation %s has no input image args' % cls.name
-            setattr(Vips.Image, cls.name, classmethod(lambda *args, **kwargs: vips_image_class_method(cls.name, args, kwargs)))
+            gtype = Vips.type_find("VipsOperation", cls.name)
+            nickname = Vips.nickname_find(gtype)
+            logging.debug('adding %s as a class method' % nickname)
+            method = lambda *args, **kwargs: vips_image_class_method( nickname, args, kwargs)
+            setattr(Vips.Image, nickname, classmethod(method))
 
 define_class_methods(vips_type_operation)
 

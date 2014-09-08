@@ -2746,6 +2746,29 @@ vips_type_find( const char *basename, const char *nickname )
 	return( type );
 }
 
+/**
+ * vips_nickname_find:
+ * @type: #GType to search for
+ *
+ * Return the VIPS nickanme for a %GType. Handy for language bindings. 
+ *
+ * Returns: (transfer none): the class nickname. 
+ */
+const char *
+vips_nickname_find( GType type )
+{
+	gpointer p;
+	VipsObjectClass *class;
+
+	if( type &&
+		(p = g_type_class_ref( type )) &&
+		VIPS_IS_OBJECT_CLASS( p ) &&
+		(class = VIPS_OBJECT_CLASS( p )) )
+		return( class->nickname );
+
+	return( NULL );
+}
+
 /* The vips_object_local() macro uses this as its callback.
  */
 void

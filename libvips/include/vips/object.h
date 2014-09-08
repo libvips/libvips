@@ -618,6 +618,7 @@ void *vips_type_map( GType base, VipsTypeMap2Fn fn, void *a, void *b );
 void *vips_type_map_all( GType base, VipsTypeMapFn fn, void *a );
 int vips_type_depth( GType type );
 GType vips_type_find( const char *basename, const char *nickname );
+const char *vips_nickname_find( GType type );
 
 void *vips_class_map_all( GType base, VipsClassMapFn fn, void *a );
 VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
