@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys
+import re
 
 import logging
 
@@ -44,7 +45,7 @@ class Argument:
     def __init__(self, op, prop):
         self.op = op;
         self.prop = prop;
-        self.name = prop.name;
+        self.name = re.sub("-", "_", prop.name);
         self.flags = op.get_argument_flags(self.name)
         self.priority = op.get_argument_priority(self.name)
         self.isset = op.argument_isset(self.name)

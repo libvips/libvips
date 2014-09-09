@@ -1,8 +1,6 @@
 
 - python:
 
-	- how about the in-place things? draw a circle?
-
 	- try getting / setting / deleting metadata such as an ICC profile or
 	  an exif tag
 
