@@ -457,8 +457,9 @@ vips_image_guess_interpretation( const VipsImage *image )
 		break;
 
 	case VIPS_INTERPRETATION_B_W: 
-		if( image->Bands > 1 )
-			sane = FALSE;
+		/* Don't test bands, we allow bands after the first to be
+		 * unused extras, like alpha.
+		 */
 		break;
 
 	case VIPS_INTERPRETATION_HISTOGRAM: 

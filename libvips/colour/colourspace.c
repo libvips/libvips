@@ -11,7 +11,9 @@
  * 3/2/14
  * 	- add "source_space", overrides source space guess
  * 8/5/14
- * 	- oops, don't treat RGB16 to sRGB
+ * 	- oops, don't treat RGB16 as sRGB
+ * 9/9/14	
+ * 	- mono <-> rgb converters were not handling extra bands, thanks James
  */
 
 /*
@@ -59,16 +61,66 @@
 
 #include "pcolour.h"
 
+/* A colour-transforming function.
+ */
+typedef int (*VipsColourTransformFn)( VipsImage *in, VipsImage **out, ... );
+
 static int
 vips_scRGB2RGB16( VipsImage *in, VipsImage **out, ... )
 {
 	return( vips_scRGB2sRGB( in, out, "depth", 16, NULL ) );
 }
 
+/* Process the first @n bands with @fn, detach and reattach remaining bands.
+ */
+static int
+vips_process_n( const char *domain, VipsImage *in, VipsImage **out, 
+	int n, VipsColourTransformFn fn )
+{
+	if( in->Bands > n ) {
+		VipsImage *scope = vips_image_new();
+		VipsImage **t = (VipsImage **) 
+			vips_object_local_array( VIPS_OBJECT( scope ), 3 );
+
+		if( vips_extract_band( in, &t[0], 0,
+			"n", n, 
+			NULL ) ||
+			vips_extract_band( in, &t[1], n,
+				"n", in->Bands - n, 
+				NULL ) ||
+			fn( t[0], &t[2], NULL ) ||
+			vips_bandjoin2( t[2], t[1], out, NULL ) ) {
+			g_object_unref( scope );
+			return( -1 );
+		}
+
+		g_object_unref( scope );
+	}
+	else if( in->Bands == n ) {
+		if( fn( in, out, NULL ) )
+			return( -1 );
+	}
+	else {
+		vips_error( domain, "%s", _( "too few bands for operation" ) ); 
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
+vips_sRGB2BW_op( VipsImage *in, VipsImage **out, ... )
+{
+	if( vips_extract_band( in, out, 1, NULL ) )
+		return( -1 );
+
+	return( 0 ); 
+}
+
 static int
 vips_sRGB2BW( VipsImage *in, VipsImage **out, ... )
 {
-	if( vips_extract_band( in, out, 1, NULL ) )
+	if( vips_process_n( "sRGB2BW", in, out, 3, vips_sRGB2BW_op ) )
 		return( -1 );
 	(*out)->Type = VIPS_INTERPRETATION_B_W;
 
@@ -76,15 +128,23 @@ vips_sRGB2BW( VipsImage *in, VipsImage **out, ... )
 }
 
 static int
-vips_BW2sRGB( VipsImage *in, VipsImage **out, ... )
+vips_BW2sRGB_op( VipsImage *in, VipsImage **out, ... )
 {
 	VipsImage *t[3];
 
 	t[0] = in;
 	t[1] = in;
 	t[2] = in;
-
 	if( vips_bandjoin( t, out, 3, NULL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_BW2sRGB( VipsImage *in, VipsImage **out, ... )
+{
+	if( vips_process_n( "BW2sRGB", in, out, 1, vips_BW2sRGB_op ) )
 		return( -1 );
 	(*out)->Type = VIPS_INTERPRETATION_sRGB;
 
@@ -94,7 +154,7 @@ vips_BW2sRGB( VipsImage *in, VipsImage **out, ... )
 static int
 vips_RGB162GREY16( VipsImage *in, VipsImage **out, ... )
 {
-	if( vips_extract_band( in, out, 1, NULL ) )
+	if( vips_process_n( "RGB162GREY16", in, out, 3, vips_sRGB2BW_op ) )
 		return( -1 );
 	(*out)->Type = VIPS_INTERPRETATION_GREY16;
 
@@ -104,22 +164,12 @@ vips_RGB162GREY16( VipsImage *in, VipsImage **out, ... )
 static int
 vips_GREY162RGB16( VipsImage *in, VipsImage **out, ... )
 {
-	VipsImage *t[3];
-
-	t[0] = in;
-	t[1] = in;
-	t[2] = in;
-
-	if( vips_bandjoin( t, out, 3, NULL ) )
+	if( vips_process_n( "GREY162RGB16", in, out, 1, vips_BW2sRGB_op ) )
 		return( -1 );
 	(*out)->Type = VIPS_INTERPRETATION_RGB16;
 
 	return( 0 );
 }
-
-/* A colour-transforming function.
- */
-typedef int (*VipsColourTransformFn)( VipsImage *in, VipsImage **out, ... );
 
 /* Maximum number of steps we allow in a route. 10 steps should be enough 
  * for anyone. 
