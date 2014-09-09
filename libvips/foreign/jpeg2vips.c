@@ -57,6 +57,8 @@
  * 	- null-terminate exif strings, thanks Mike
  * 24/2/14
  * 	- don't write to our input buffer, thanks Lovell
+ * 9/9/14
+ * 	- support "none" as a resolution unit
  */
 
 /*
@@ -547,6 +549,13 @@ res_from_exif( VipsImage *im, ExifData *ed )
 #endif /*DEBUG*/
 
 	switch( unit ) {
+	case 1:
+		/* No unit ... just pass the fields straight to vips.
+		 */
+		vips_image_set_string( im, 
+			VIPS_META_RESOLUTION_UNIT, "none" );
+		break;
+
 	case 2:
 		/* In inches.
 		 */
