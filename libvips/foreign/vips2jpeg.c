@@ -63,6 +63,8 @@
  * 	- add "strip" option to remove all metadata
  * 13/11/13
  * 	- add a "no_subsample" option to disable chroma subsample
+ * 9/9/14
+ * 	- support "none" as a resolution unit
  */
 
 /*
@@ -460,11 +462,19 @@ set_exif_resolution( ExifData *ed, VipsImage *im )
 	 */
 	unit = 2;
 	if( vips_image_get_typeof( im, VIPS_META_RESOLUTION_UNIT ) &&
-		!vips_image_get_string( im, VIPS_META_RESOLUTION_UNIT, &p ) &&
-		vips_isprefix( "cm", p ) ) 
-		unit = 3;
+		!vips_image_get_string( im, VIPS_META_RESOLUTION_UNIT, &p ) ) {
+		if( vips_isprefix( "cm", p ) ) 
+			unit = 3;
+		else if( vips_isprefix( "none", p ) ) 
+			unit = 1;
+	}
 
 	switch( unit ) {
+	case 1:
+		xres = im->Xres;
+		yres = im->Yres;
+		break;
+
 	case 2:
 		xres = im->Xres * 25.4;
 		yres = im->Yres * 25.4;
