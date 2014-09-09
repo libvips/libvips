@@ -1,3 +1,6 @@
+8/9/14 started 7.40.9
+- support jfif resunit "none"
+
 8/9/14 started 7.40.8
 - fix configure on rhel6 [Lovell]
 - mono <-> rgb converters were not handling extra bands, thanks James

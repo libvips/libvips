@@ -744,6 +744,13 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 #endif /*DEBUG*/
 
 		switch( cinfo->density_unit ) {
+		case 0:
+			/* None. Just set.
+			 */
+			xres = cinfo->X_density;
+			yres = cinfo->Y_density;
+			break;
+
 		case 1:
 			/* Pixels per inch.
 			 */
