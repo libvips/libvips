@@ -1272,7 +1272,8 @@ vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
 {
 	*out = NULL;
 
-	if( im->Xsize > 100000 || im->Ysize > 100000 ) {
+	if( im->Xsize > 100000 || 
+		im->Ysize > 100000 ) {
 		vips_error( domain, "%s", _( "matrix image too large" ) );
 		return( -1 );
 	}

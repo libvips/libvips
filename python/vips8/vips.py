@@ -240,8 +240,9 @@ def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
 
     image = cls.new_matrix_from_array(width, height, array)
 
-    image.set('scale', scale)
-    image.set('offset', offset)
+    # be careful to set them as double
+    image.set('scale', float(scale))
+    image.set('offset', float(offset))
 
     return image
 

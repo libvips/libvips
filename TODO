@@ -1,11 +1,6 @@
 
 - python:
 
-	- try getting / setting / deleting metadata such as an ICC profile or
-	  an exif tag
-
-	- try vips benchmark in vips8 python, how much slower?
-
 	- could import like this:
 
 		from gi.repository import Vips 
