@@ -247,6 +247,7 @@ vips_icc_build( VipsObject *object )
 				TYPE_RGB_16 : TYPE_RGB_8;
 			break;
 
+#ifdef HAVE_LCMS2
 		case cmsSigGrayData:
 			code->input_bands = 1;
 			code->input_format = 
@@ -256,6 +257,7 @@ vips_icc_build( VipsObject *object )
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
 				TYPE_GRAY_16 : TYPE_GRAY_8;
 			break;
+#endif /*HAVE_LCMS2*/
 
 		case cmsSigCmykData:
 			code->input_bands = 4;
@@ -305,6 +307,7 @@ vips_icc_build( VipsObject *object )
 				TYPE_RGB_16 : TYPE_RGB_8;
 			break;
 
+#ifdef HAVE_LCMS2
 		case cmsSigGrayData:
 			colour->interpretation = 
 				icc->depth == 8 ? 
@@ -318,6 +321,7 @@ vips_icc_build( VipsObject *object )
 				icc->depth == 16 ? 
 				TYPE_GRAY_16 : TYPE_GRAY_8;
 			break;
+#endif /*HAVE_LCMS2*/
 
 		case cmsSigCmykData:
 			colour->interpretation = VIPS_INTERPRETATION_CMYK;
