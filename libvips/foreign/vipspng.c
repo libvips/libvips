@@ -509,6 +509,11 @@ png2vips_generate( VipsRegion *or,
 		read->y_pos += 1;
 	}
 
+	/* Turn errors back on. png_read_end() can trigger them too.
+	 */
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+		return( -1 );
+
 	/* We need to shut down the reader immediately at the end of read or
 	 * we won't detach ready for the next image.
 	 */

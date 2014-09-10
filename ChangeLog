@@ -7,6 +7,8 @@
 
 8/9/14 started 7.40.9
 - support jfif resunit "none"
+- support GRAY as an input and output ICC space
+- fix a read loop with setjmp() in png read, if the png file is broken
 
 8/9/14 started 7.40.8
 - fix configure on rhel6 [Lovell]
