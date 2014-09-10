@@ -26,6 +26,8 @@
  * 	- import and export would segv on very wide images
  * 12/11/13
  * 	- support XYZ as an alternative PCS
+ * 10/9/14
+ * 	- support GRAY as an input and output space
  */
 
 /*
@@ -245,6 +247,16 @@ vips_icc_build( VipsObject *object )
 				TYPE_RGB_16 : TYPE_RGB_8;
 			break;
 
+		case cmsSigGrayData:
+			code->input_bands = 1;
+			code->input_format = 
+				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
+				VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
+			icc->in_icc_format = 
+				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
+				TYPE_GRAY_16 : TYPE_GRAY_8;
+			break;
+
 		case cmsSigCmykData:
 			code->input_bands = 4;
 			code->input_format = 
@@ -266,8 +278,6 @@ vips_icc_build( VipsObject *object )
 		case cmsSigXYZData:
 			code->input_bands = 3;
 			code->input_format = VIPS_FORMAT_FLOAT;
-			code->input_interpretation = 
-				VIPS_INTERPRETATION_XYZ;
 			icc->in_icc_format = TYPE_XYZ_16;
 			break;
 
@@ -293,6 +303,20 @@ vips_icc_build( VipsObject *object )
 			icc->out_icc_format = 
 				icc->depth == 16 ? 
 				TYPE_RGB_16 : TYPE_RGB_8;
+			break;
+
+		case cmsSigGrayData:
+			colour->interpretation = 
+				icc->depth == 8 ? 
+				VIPS_INTERPRETATION_B_W : 
+					VIPS_INTERPRETATION_GREY16;
+			colour->format = 
+				icc->depth == 8 ? 
+				VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
+			colour->bands = 1;
+			icc->out_icc_format = 
+				icc->depth == 16 ? 
+				TYPE_GRAY_16 : TYPE_GRAY_8;
 			break;
 
 		case cmsSigCmykData:
