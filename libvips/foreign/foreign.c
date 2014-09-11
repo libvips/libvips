@@ -1146,7 +1146,9 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 			 class->saveable == VIPS_SAVEABLE_RGB_CMYK) ) {
 			VipsImage *out;
 
-			if( vips_flatten( in, &out, 0, NULL ) ) {
+			if( vips_flatten( in, &out, 
+				"background", save->background,
+				NULL ) ) {
 				g_object_unref( in );
 				return( -1 );
 			}
@@ -1414,11 +1416,19 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSave, strip ),
 		FALSE );
+
+	VIPS_ARG_BOXED( class, "background", 101, 
+		_( "Background" ), 
+		_( "Background value" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSave, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
 }
 
 static void
-vips_foreign_save_init( VipsForeignSave *object )
+vips_foreign_save_init( VipsForeignSave *save )
 {
+	save->background = vips_array_double_newv( 1, 0.0 );
 }
 
 /* Can we write this filename with this file? 

@@ -256,9 +256,14 @@ typedef enum {
 typedef struct _VipsForeignSave {
 	VipsForeign parent_object;
 
-	/* Dont't attach metadata.
+	/* Don't attach metadata.
 	 */
 	gboolean strip;
+
+	/* If flattening out alpha, the background colour to use. Default to
+	 * 0 (black).
+	 */
+	VipsArrayDouble *background;
 
 	/*< public >*/
 

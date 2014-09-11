@@ -61,7 +61,7 @@ typedef struct _VipsFlatten {
 
 	/* Background colour.
 	 */
-	VipsArea *background;
+	VipsArrayDouble *background;
 
 	/* The [double] converted to the input image format.
 	 */
@@ -319,8 +319,9 @@ vips_flatten_build( VipsObject *object )
 	/* Is the background black? We have a special path for this.
 	 */
 	black = TRUE;
-	for( i = 0; i < flatten->background->n; i++ )
-		if( ((double *) flatten->background->data)[i] != 0.0 ) {
+	for( i = 0; i < VIPS_AREA( flatten->background )->n; i++ )
+		if( vips_array_double_get( flatten->background, NULL )[i] != 
+			0.0 ) {
 			black = FALSE;
 			break;
 		}
@@ -336,8 +337,8 @@ vips_flatten_build( VipsObject *object )
 		 */
 		if( !(flatten->ink = vips__vector_to_ink( class->nickname, 
 			conversion->out, 
-			flatten->background->data, NULL, 
-				flatten->background->n )) )
+			VIPS_AREA( flatten->background )->data, NULL, 
+			VIPS_AREA( flatten->background )->n )) )
 			return( -1 );
 
 		if( vips_image_generate( conversion->out,
@@ -384,9 +385,7 @@ vips_flatten_class_init( VipsFlattenClass *class )
 static void
 vips_flatten_init( VipsFlatten *flatten )
 {
-	flatten->background = 
-		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
-	((double *) (flatten->background->data))[0] = 0.0;
+	flatten->background = vips_array_double_newv( 1, 0.0 );
 }
 
 /**
@@ -397,7 +396,7 @@ vips_flatten_init( VipsFlatten *flatten )
  *
  * Optional arguments:
  *
- * @background: colour for new pixels
+ * @background: #VipsArrayDouble colour for new pixels 
  *
  * Take the last band of @in as an alpha and use it to blend the
  * remaining channels with @background. 

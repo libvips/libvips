@@ -4,6 +4,7 @@
 - add vips_resize()
 - return of vips_init(), but just for bindings
 - revised type.c to make it more binding-friendly
+- add @background arg to save: the colour to flatten against
 
 8/9/14 started 7.40.9
 - support jfif resunit "none"
