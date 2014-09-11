@@ -323,7 +323,7 @@ def vips_rdiv(self, other):
     return (self ** -1) * other
 
 def vips_floor(self):
-    self.round(Vips.OperationRound.FLOOR)
+    return self.round(Vips.OperationRound.FLOOR)
 
 def vips_floordiv(self, other):
     if isinstance(other, Vips.Image):
@@ -454,7 +454,7 @@ Vips.Image.__rmul__ = vips_mul
 Vips.Image.__div__ = vips_div
 Vips.Image.__rdiv__ = vips_rdiv
 Vips.Image.__floordiv__ = vips_floordiv
-Vips.Image.__rfloordiv__ = vips_floordiv
+Vips.Image.__rfloordiv__ = vips_rfloordiv
 Vips.Image.__mod__ = vips_mod
 Vips.Image.__pow__ = vips_pow
 Vips.Image.__rpow__ = vips_rpow
