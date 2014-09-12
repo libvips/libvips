@@ -33,7 +33,7 @@ class TestArithmetic(unittest.TestCase):
         def add12(x):
             return x + 12
 
-        self.assertEqual([add12(x).avg for x in self.test_set], 
+        self.assertEqual([add12(x).avg() for x in self.test_set], 
                          [add12(x) for x in self.avgs])
 
 if __name__ == '__main__':

@@ -185,6 +185,8 @@ def _call_base(name, required, optional, self = None, option_string = None):
 
     if len(out) == 1:
         out = out[0]
+    elif len(out) == 0:
+        out = None
 
     # unref everything now we have refs to all outputs we want
     op2.unref_outputs()
