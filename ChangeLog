@@ -10,6 +10,9 @@
 - support jfif resunit "none"
 - support GRAY as an input and output ICC space
 - fix a read loop with setjmp() in png read, if the png file is broken
+- fix vipsthumbnail with both input cmyk and output rgb profiles specified
+- vipsthumbnail retries with specified input profile if embedded profile is
+  broken
 
 8/9/14 started 7.40.8
 - fix configure on rhel6 [Lovell]

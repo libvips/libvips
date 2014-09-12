@@ -58,6 +58,9 @@
  * 	- add an anti-alias filter between shrink and affine
  * 	- support CMYK
  * 	- use SEQ_UNBUF for a memory saving
+ * 12/9/14
+ * 	- try with embedded profile first, if that fails retry with fallback
+ * 	  profile
  */
 
 #ifdef HAVE_CONFIG_H
@@ -397,6 +400,11 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	VipsInterpretation interpretation = linear_processing ?
 		VIPS_INTERPRETATION_XYZ : VIPS_INTERPRETATION_sRGB; 
 
+	/* TRUE if we've done the import of an ICC transform and still need to
+	 * export.
+	 */
+	gboolean have_imported;
+
 	int shrink; 
 	double residual; 
 	int tile_width;
@@ -425,6 +433,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	 * an image in PCS which also has an attached profile, strange things
 	 * will happen. 
 	 */
+	have_imported = FALSE;
 	if( (linear_processing ||
 		in->Type == VIPS_INTERPRETATION_CMYK) &&
 		in->Coding == VIPS_CODING_NONE &&
@@ -447,6 +456,8 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 			return( NULL );
 
 		in = t[1];
+
+		have_imported = TRUE;
 	}
 
 	/* To the processing colourspace. This will unpack LABQ as well.
@@ -533,10 +544,11 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 
 	/* Colour management.
 	 *
-	 * In linear mode, just export. In device space mode, do a combined
+	 * If we've already imported, just export. Otherwise, we're in 
+	 * device space device and we need a combined
 	 * import/export to transform to the target space.
 	 */
-	if( linear_processing ) {
+	if( have_imported ) { 
 		if( export_profile ||
 			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
 			vips_info( "vipsthumbnail", 
@@ -558,23 +570,48 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	else if( export_profile &&
 		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
 		 import_profile) ) {
-		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) )
-			vips_info( "vipsthumbnail", 
-				"importing with embedded profile" );
-		else
-			vips_info( "vipsthumbnail", 
-				"importing with profile %s", import_profile );
+		VipsImage *out;
 
 		vips_info( "vipsthumbnail", 
 			"exporting with profile %s", export_profile );
 
-		if( vips_icc_transform( in, &t[7], export_profile,
-			"input_profile", import_profile,
-			"embedded", TRUE,
-			NULL ) )  
-			return( NULL );
+		/* We first try with the embedded profile, if any, then if
+		 * that fails try again with the supplied fallback profile.
+		 */
+		out = NULL; 
+		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+			vips_info( "vipsthumbnail", 
+				"importing with embedded profile" );
 
-		in = t[7];
+			if( vips_icc_transform( in, &t[7], export_profile,
+				"embedded", TRUE,
+				NULL ) ) {
+				vips_warn( "vipsthumbnail", 
+					_( "unable to import with "
+						"embedded profile: %s" ),
+					vips_error_buffer() );
+
+				vips_error_clear();
+			}
+			else
+				out = t[7];
+		}
+
+		if( !out &&
+			import_profile ) { 
+			vips_info( "vipsthumbnail", 
+				"importing with fallback profile" );
+
+			if( vips_icc_transform( in, &t[7], export_profile,
+				"input_profile", import_profile,
+				"embedded", FALSE,
+				NULL ) )  
+				return( NULL );
+
+			out = t[7];
+		}
+
+		in = out;
 	}
 
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
