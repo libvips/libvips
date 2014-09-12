@@ -397,6 +397,11 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	VipsInterpretation interpretation = linear_processing ?
 		VIPS_INTERPRETATION_XYZ : VIPS_INTERPRETATION_sRGB; 
 
+	/* TRUE if we've done the import of an ICC transform and still need to
+	 * export.
+	 */
+	gboolean have_imported;
+
 	int shrink; 
 	double residual; 
 	int tile_width;
@@ -425,6 +430,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	 * an image in PCS which also has an attached profile, strange things
 	 * will happen. 
 	 */
+	have_imported = FALSE;
 	if( (linear_processing ||
 		in->Type == VIPS_INTERPRETATION_CMYK) &&
 		in->Coding == VIPS_CODING_NONE &&
@@ -447,6 +453,8 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 			return( NULL );
 
 		in = t[1];
+
+		have_imported = TRUE;
 	}
 
 	/* To the processing colourspace. This will unpack LABQ as well.
@@ -533,10 +541,11 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 
 	/* Colour management.
 	 *
-	 * In linear mode, just export. In device space mode, do a combined
+	 * If we've already imported, just export. Otherwise, we're in 
+	 * device space device and we need a combined
 	 * import/export to transform to the target space.
 	 */
-	if( linear_processing ) {
+	if( have_imported ) { 
 		if( export_profile ||
 			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
 			vips_info( "vipsthumbnail", 
