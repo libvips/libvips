@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
 import unittest
+import gc
 
-import logging
-logging.basicConfig(level = logging.DEBUG)
+#import logging
+#logging.basicConfig(level = logging.DEBUG)
 
 from gi.repository import Vips 
 from vips8 import vips
@@ -19,11 +20,6 @@ formats = [Vips.BandFormat.UCHAR,
 cformats = [Vips.BandFormat.COMPLEX, 
             Vips.BandFormat.DPCOMPLEX] 
 all_formats = formats + cformats;
-
-im = Vips.Image.mask_ideal(100, 100, 0.5)
-colour = im * [100, 128, 140] + [20, 30, 40]
-mono = colour.extract_band(1)
-all_images = [mono, colour]
 
 # an expanding zip ... if either of the args is not a list, duplicate it down
 # the other
@@ -83,8 +79,8 @@ class TestArithmetic(unittest.TestCase):
 
     def run_arith_const(self, fn, fmt = all_formats):
         [self.run_testconst(fn.func_name + ' scalar', fn, x.cast(y), 12)
-         for x in all_images for y in fmt]
-        [self.run_testconst(fn.func_name + ' vector', fn, colour.cast(y), 
+         for x in self.all_images for y in fmt]
+        [self.run_testconst(fn.func_name + ' vector', fn, self.colour.cast(y), 
                             [12, 13, 14])
          for y in formats]
 
@@ -108,28 +104,34 @@ class TestArithmetic(unittest.TestCase):
 
     def run_arith(self, fn, fmt = all_formats):
         [self.run_test2(fn.func_name + ' image', x.cast(y), x.cast(z), fn)
-         for x in all_images for y in fmt for z in fmt]
+         for x in self.all_images for y in fmt for z in fmt]
+
+    def setUp(self):
+        im = Vips.Image.mask_ideal(100, 100, 0.5)
+        self.colour = im * [100, 128, 140] + [20, 30, 40]
+        self.mono = self.colour.extract_band(1)
+        self.all_images = [self.mono, self.colour]
 
     def test_add(self):
         def add(x, y):
             return x + y
 
-        #self.run_arith_const(add)
-        #self.run_arith(add)
+        self.run_arith_const(add)
+        self.run_arith(add)
 
     def test_sub(self):
         def sub(x, y):
             return x - y
 
-        #self.run_arith_const(sub)
-        #self.run_arith(sub)
+        self.run_arith_const(sub)
+        self.run_arith(sub)
 
     def test_mul(self):
         def mul(x, y):
             return x * y
 
-        #self.run_arith_const(mul)
-        #self.run_arith(mul)
+        self.run_arith_const(mul)
+        self.run_arith(mul)
 
     def test_div(self):
         def div(x, y):
@@ -137,8 +139,8 @@ class TestArithmetic(unittest.TestCase):
 
         # div(const / image) needs (image ** -1), which won't work for complex
         # images ... just test with non-complex
-        #self.run_arith_const(div, fmt = formats)
-        #self.run_arith(div)
+        self.run_arith_const(div, fmt = formats)
+        self.run_arith(div)
 
     # run a function on an image, 
     # 50,50 and 10,10 should have different values on the test image
@@ -146,7 +148,7 @@ class TestArithmetic(unittest.TestCase):
         self.run_cmp(message, im, 50, 50, lambda x: run_fn(fn, x))
         self.run_cmp(message, im, 10, 10, lambda x: run_fn(fn, x))
 
-    def run_unary(self, fn, images = all_images, fmt = all_formats):
+    def run_unary(self, images, fn, fmt = all_formats):
         [self.run_testunary(fn.func_name + ' image', x.cast(y), fn)
          for x in images for y in fmt]
 
@@ -154,8 +156,10 @@ class TestArithmetic(unittest.TestCase):
         def my_abs(x):
             return abs(x)
 
-        #im = -mono;
-        #self.run_unary(my_abs, [im])
+        im = -self.mono;
+        #self.run_unary([im], my_abs)
+
+        self.run_cmp('poop', im, 50, 50, lambda x: run_fn(my_abs, im))
 
 if __name__ == '__main__':
     unittest.main()

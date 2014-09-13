@@ -72,8 +72,6 @@ vips_mask_ideal_class_init( VipsMaskIdealClass *class )
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 	VipsMaskClass *mask_class = VIPS_MASK_CLASS( class );
 
-	printf( "vips_mask_ideal_class_init\n" ); 
-
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
