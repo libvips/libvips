@@ -9,17 +9,19 @@ import gc
 from gi.repository import Vips 
 from vips8 import vips
 
-formats = [Vips.BandFormat.UCHAR, 
-           Vips.BandFormat.CHAR, 
-           Vips.BandFormat.USHORT, 
-           Vips.BandFormat.SHORT, 
-           Vips.BandFormat.UINT, 
-           Vips.BandFormat.INT, 
-           Vips.BandFormat.FLOAT, 
-           Vips.BandFormat.DOUBLE]
-cformats = [Vips.BandFormat.COMPLEX, 
-            Vips.BandFormat.DPCOMPLEX] 
-all_formats = formats + cformats;
+unsigned_formats = [Vips.BandFormat.UCHAR, 
+                    Vips.BandFormat.USHORT, 
+                    Vips.BandFormat.UINT] 
+signed_formats = [Vips.BandFormat.CHAR, 
+                  Vips.BandFormat.SHORT, 
+                  Vips.BandFormat.INT] 
+float_formats = [Vips.BandFormat.FLOAT, 
+                 Vips.BandFormat.DOUBLE]
+complex_formats = [Vips.BandFormat.COMPLEX, 
+                   Vips.BandFormat.DPCOMPLEX] 
+int_formats = unsigned_formats + signed_formats
+noncomplex_formats = int_formats + float_formats
+all_formats = int_formats + float_formats + complex_formats
 
 # an expanding zip ... if either of the args is not a list, duplicate it down
 # the other
@@ -56,8 +58,8 @@ def run_fn2(fn, x, y):
 class TestArithmetic(unittest.TestCase):
     # test a pair of things which can be lists for approx. equality
     def assertAlmostEqualObjects(self, a, b, msg = ''):
-        [self.assertAlmostEqual(x, y, places = 2, msg = msg)
-         for x, y in zip_expand(a, b)]
+        for x, y in zip_expand(a, b):
+            self.assertAlmostEqual(x, y, places = 2, msg = msg)
 
     # run a function on an image and on a single pixel, the results 
     # should match 
@@ -66,7 +68,6 @@ class TestArithmetic(unittest.TestCase):
         v1 = fn(a)
         im2 = fn(im)
         v2 = im2.getpoint(x, y)
-        #print 'self.assertAlmostEqualObjects: %s = %s' % (v1, v2) 
         self.assertAlmostEqualObjects(v1, v2, msg = message)
 
     # run a function on (image, constant), and on (constant, image).
@@ -82,7 +83,7 @@ class TestArithmetic(unittest.TestCase):
          for x in self.all_images for y in fmt]
         [self.run_testconst(fn.func_name + ' vector', fn, self.colour.cast(y), 
                             [12, 13, 14])
-         for y in formats]
+         for y in fmt]
 
     # run a function on a pair of images and on a pair of pixels, the results 
     # should match 
@@ -108,7 +109,7 @@ class TestArithmetic(unittest.TestCase):
 
     def setUp(self):
         im = Vips.Image.mask_ideal(100, 100, 0.5)
-        self.colour = im * [100, 128, 140] + [20, 30, 40]
+        self.colour = im * [10, 20, 30] + [20, 30, 40]
         self.mono = self.colour.extract_band(1)
         self.all_images = [self.mono, self.colour]
 
@@ -139,7 +140,7 @@ class TestArithmetic(unittest.TestCase):
 
         # div(const / image) needs (image ** -1), which won't work for complex
         # images ... just test with non-complex
-        self.run_arith_const(div, fmt = formats)
+        self.run_arith_const(div, fmt = noncomplex_formats)
         self.run_arith(div)
 
     # run a function on an image, 
@@ -156,10 +157,8 @@ class TestArithmetic(unittest.TestCase):
         def my_abs(x):
             return abs(x)
 
-        im = -self.mono;
-        #self.run_unary([im], my_abs)
-
-        self.run_cmp('poop', im, 50, 50, lambda x: run_fn(my_abs, im))
+        im = -self.colour
+        self.run_unary([im], my_abs, fmt = signed_formats + float_formats)
 
 if __name__ == '__main__':
     unittest.main()
