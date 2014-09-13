@@ -425,13 +425,9 @@ def vips_image_class_method(name, args, kwargs):
     return _call_base(name, args, kwargs)
 
 def define_class_methods(cls):
-    if len(cls.children) > 0:
-        for child in cls.children:
-            # not easy to get at the deprecated flag in an abtract type?
-            if cls.name != 'VipsWrap7':
-                define_class_methods(child)
-    elif cls.is_instantiatable():
+    if not cls.is_abstract():
         op = Vips.Operation.new(cls.name)
+
         found = False
         for prop in op.props:
             flags = op.get_argument_flags(prop.name)
@@ -446,6 +442,12 @@ def define_class_methods(cls):
             logging.debug('adding %s as a class method' % nickname)
             method = lambda *args, **kwargs: vips_image_class_method( nickname, args, kwargs)
             setattr(Vips.Image, nickname, classmethod(method))
+
+    if len(cls.children) > 0:
+        for child in cls.children:
+            # not easy to get at the deprecated flag in an abtract type?
+            if cls.name != 'VipsWrap7':
+                define_class_methods(child)
 
 define_class_methods(vips_type_operation)
 
