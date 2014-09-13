@@ -21,6 +21,13 @@ vips_type_blob = GObject.GType.from_name("VipsBlob")
 vips_type_image = GObject.GType.from_name("VipsImage")
 vips_type_operation = GObject.GType.from_name("VipsOperation")
 
+unpack_types = [Vips.Blob, Vips.ArrayDouble, Vips.ArrayImage, Vips.ArrayInt]
+def isunpack(obj):
+    for t in unpack_types:
+        if isinstance(obj, t):
+            return True
+    return False
+
 class Error(Exception):
 
     """An error from vips.
@@ -81,10 +88,10 @@ class Argument:
 
         logging.debug('read out %s from %s' % (value, self.name))
 
-        # turn VipsBlobs into strings 
+        # turn VipsBlobs into strings, VipsArrayDouble into lists etc.
         # FIXME ... this will involve a copy, we should use
         # buffer() instead
-        if isinstance(value, Vips.Blob):
+        if isunpack(value):
             value = value.get()
 
         return value
@@ -285,6 +292,9 @@ def vips_image_write_to_buffer(self, vips_filename, **kwargs):
 
     return _call_base(saver, [], kwargs, self, option_string)
 
+def vips_bandsplit(self):
+    return [self.extract_band(i) for i in range(0, self.bands)]
+
 # apply a function to a thing, or map over a list
 # we often need to do something like (1.0 / other) and need to work for lists
 # as well as scalars
@@ -444,8 +454,11 @@ Vips.Image.write_to_file = vips_image_write_to_file
 Vips.Image.write_to_buffer = vips_image_write_to_buffer
 # we can use Vips.Image.write_to_memory() directly
 
+# a few useful things
 Vips.Image.floor = vips_floor
+Vips.Image.bandsplit = vips_bandsplit
 
+# operator overloads
 Vips.Image.__getattr__ = vips_image_getattr
 Vips.Image.__add__ = vips_add
 Vips.Image.__radd__ = vips_add
