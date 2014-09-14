@@ -139,27 +139,17 @@ class TestArithmetic(unittest.TestCase):
         def div(x, y):
             return x / y
 
-        # div(const / image) needs (image ** -1), which won't work for complex
-        # images ... just test with non-complex
+        # (const / image) needs (image ** -1), which won't work for complex
         self.run_arith_const(div, fmt = noncomplex_formats)
         self.run_arith(div)
 
-    # run a function on an image, 
-    # 50,50 and 10,10 should have different values on the test image
-    def run_testunary(self, message, im, fn):
-        self.run_cmp(message, im, 50, 50, lambda x: run_fn(fn, x))
-        self.run_cmp(message, im, 10, 10, lambda x: run_fn(fn, x))
+    def test_floordiv(self):
+        def my_floordiv(x, y):
+            return x // y
 
-    def run_unary(self, images, fn, fmt = all_formats):
-        [self.run_testunary(fn.func_name + ' image', x.cast(y), fn)
-         for x in images for y in fmt]
-
-    def test_abs(self):
-        def my_abs(x):
-            return abs(x)
-
-        im = -self.colour
-        self.run_unary([im], my_abs, fmt = all_formats)
+        # (const // image) needs (image ** -1), which won't work for complex
+        self.run_arith_const(my_floordiv, fmt = noncomplex_formats)
+        self.run_arith(my_floordiv, fmt = noncomplex_formats)
 
     def test_pow(self):
         def my_pow(x, y):
@@ -168,26 +158,6 @@ class TestArithmetic(unittest.TestCase):
         # (image ** x) won't work for complex images ... just test non-complex
         self.run_arith_const(my_pow, fmt = noncomplex_formats)
         self.run_arith(my_pow, fmt = noncomplex_formats)
-
-    def test_lshift(self):
-        def my_lshift(x):
-            # python doesn't allow float << int
-            if isinstance(x, float):
-                x = int(x)
-            return x << 2
-
-        # we don't support constant << image, treat as a unary
-        self.run_unary(self.all_images, my_lshift, fmt = noncomplex_formats)
-
-    def test_rshift(self):
-        def my_rshift(x):
-            # python doesn't allow float >> int
-            if isinstance(x, float):
-                x = int(x)
-            return x >> 2
-
-        # we don't support constant >> image, treat as a unary
-        self.run_unary(self.all_images, my_rshift, fmt = noncomplex_formats)
 
     def test_and(self):
         def my_and(x, y):
@@ -224,6 +194,73 @@ class TestArithmetic(unittest.TestCase):
 
         self.run_arith_const(my_xor, fmt = noncomplex_formats)
         self.run_arith(my_xor, fmt = noncomplex_formats)
+
+    # run a function on an image, 
+    # 50,50 and 10,10 should have different values on the test image
+    def run_testunary(self, message, im, fn):
+        self.run_cmp(message, im, 50, 50, lambda x: run_fn(fn, x))
+        self.run_cmp(message, im, 10, 10, lambda x: run_fn(fn, x))
+
+    def run_unary(self, images, fn, fmt = all_formats):
+        [self.run_testunary(fn.func_name + ' image', x.cast(y), fn)
+         for x in images for y in fmt]
+
+    def test_abs(self):
+        def my_abs(x):
+            return abs(x)
+
+        im = -self.colour
+        self.run_unary([im], my_abs)
+
+    def test_lshift(self):
+        def my_lshift(x):
+            # python doesn't allow float << int
+            if isinstance(x, float):
+                x = int(x)
+            return x << 2
+
+        # we don't support constant << image, treat as a unary
+        self.run_unary(self.all_images, my_lshift, fmt = noncomplex_formats)
+
+    def test_rshift(self):
+        def my_rshift(x):
+            # python doesn't allow float >> int
+            if isinstance(x, float):
+                x = int(x)
+            return x >> 2
+
+        # we don't support constant >> image, treat as a unary
+        self.run_unary(self.all_images, my_rshift, fmt = noncomplex_formats)
+
+    def test_mod(self):
+        def my_mod(x):
+            return x % 2
+
+        # we don't support constant % image, treat as a unary
+        self.run_unary(self.all_images, my_mod, fmt = noncomplex_formats)
+
+    def test_pos(self):
+        def my_pos(x):
+            return +x
+
+        self.run_unary(self.all_images, my_pos)
+
+    def test_neg(self):
+        def my_neg(x):
+            return -x
+
+        self.run_unary(self.all_images, my_neg)
+
+    def test_invert(self):
+        def my_invert(x):
+            if isinstance(x, float):
+                x = int(x)
+            return ~x & 0xff
+
+        # ~image is trimmed to image max so it's hard to test for all formats
+        # just test uchar
+        self.run_unary(self.all_images, my_invert, 
+                       fmt = [Vips.BandFormat.UCHAR])
 
     # test the rest of VipsArithmetic
 
