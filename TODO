@@ -1,6 +1,12 @@
 
 - python:
 
+	- this is very annoying:
+
+		 real = im.complexget(Vips.OperationComplexget.REAL)
+
+	  define im.real() and im.imag()
+
 	- could import like this:
 
 		from gi.repository import Vips 

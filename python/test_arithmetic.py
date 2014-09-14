@@ -264,5 +264,47 @@ class TestArithmetic(unittest.TestCase):
 
     # test the rest of VipsArithmetic
 
+    def test_avg(self):
+        im = Vips.Image.black(50, 100)
+        test = im.insert(im + 100, 50, 0, expand = True)
+
+        test.write_to_file("x.v")
+
+        for fmt in all_formats:
+            self.assertAlmostEqual(test.cast(fmt).avg(), 50)
+
+    def test_polar(self):
+        im = Vips.Image.black(100, 100) + 100
+        im = im.complexform(im)
+
+        im = im.complex(Vips.OperationComplex.POLAR)
+
+        real = im.complexget(Vips.OperationComplexget.REAL)
+        self.assertAlmostEqual(real.avg(), 100 * 2 ** 0.5)
+        imag = im.complexget(Vips.OperationComplexget.IMAG)
+        self.assertAlmostEqual(imag.avg(), 45)
+
+    def test_rect(self):
+        im = Vips.Image.black(100, 100)
+        im = (im + 100 * 2 ** 0.5).complexform(im + 45)
+
+        im = im.complex(Vips.OperationComplex.RECT)
+
+        real = im.complexget(Vips.OperationComplexget.REAL)
+        self.assertAlmostEqual(real.avg(), 100)
+        imag = im.complexget(Vips.OperationComplexget.IMAG)
+        self.assertAlmostEqual(imag.avg(), 100)
+
+    def test_conjugate(self):
+        im = Vips.Image.black(100, 100) + 100
+        im = im.complexform(im)
+
+        im = im.complex(Vips.OperationComplex.CONJ)
+
+        real = im.complexget(Vips.OperationComplexget.REAL)
+        self.assertAlmostEqual(real.avg(), 100)
+        imag = im.complexget(Vips.OperationComplexget.IMAG)
+        self.assertAlmostEqual(imag.avg(), -100)
+
 if __name__ == '__main__':
     unittest.main()
