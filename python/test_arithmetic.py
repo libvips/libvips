@@ -38,9 +38,7 @@ def zip_expand(x, y):
 # run a 1-ary function on a thing -- loop over elements if the 
 # thing is a list
 def run_fn(fn, x):
-    if isinstance(x, Vips.Image) :
-        return fn(x)
-    elif isinstance(x, list):
+    if isinstance(x, list):
         return [fn(i) for i in x]
     else:
         return fn(x)
@@ -59,7 +57,8 @@ class TestArithmetic(unittest.TestCase):
     # test a pair of things which can be lists for approx. equality
     def assertAlmostEqualObjects(self, a, b, msg = ''):
         for x, y in zip_expand(a, b):
-            self.assertAlmostEqual(x, y, places = 2, msg = msg)
+            #print 'assertAlmostEqual %s = %s' % (x, y)
+            self.assertAlmostEqual(x, y, places = 4, msg = msg)
 
     # run a function on an image and on a single pixel, the results 
     # should match 
@@ -79,10 +78,10 @@ class TestArithmetic(unittest.TestCase):
         self.run_cmp(message, im, 10, 10, lambda x: run_fn2(fn, c, x))
 
     def run_arith_const(self, fn, fmt = all_formats):
-        [self.run_testconst(fn.func_name + ' scalar', fn, x.cast(y), 12)
+        [self.run_testconst(fn.func_name + ' scalar', fn, x.cast(y), 2)
          for x in self.all_images for y in fmt]
         [self.run_testconst(fn.func_name + ' vector', fn, self.colour.cast(y), 
-                            [12, 13, 14])
+                            [1, 2, 3])
          for y in fmt]
 
     # run a function on a pair of images and on a pair of pixels, the results 
@@ -109,9 +108,11 @@ class TestArithmetic(unittest.TestCase):
 
     def setUp(self):
         im = Vips.Image.mask_ideal(100, 100, 0.5)
-        self.colour = im * [10, 20, 30] + [20, 30, 40]
+        self.colour = im * [1, 2, 3] + [2, 3, 4]
         self.mono = self.colour.extract_band(1)
         self.all_images = [self.mono, self.colour]
+
+    # test all operator overloads we define
 
     def test_add(self):
         def add(x, y):
@@ -158,7 +159,73 @@ class TestArithmetic(unittest.TestCase):
             return abs(x)
 
         im = -self.colour
-        self.run_unary([im], my_abs, fmt = signed_formats + float_formats)
+        self.run_unary([im], my_abs, fmt = all_formats)
+
+    def test_pow(self):
+        def my_pow(x, y):
+            return x ** y
+
+        # (image ** x) won't work for complex images ... just test non-complex
+        self.run_arith_const(my_pow, fmt = noncomplex_formats)
+        self.run_arith(my_pow, fmt = noncomplex_formats)
+
+    def test_lshift(self):
+        def my_lshift(x):
+            # python doesn't allow float << int
+            if isinstance(x, float):
+                x = int(x)
+            return x << 2
+
+        # we don't support constant << image, treat as a unary
+        self.run_unary(self.all_images, my_lshift, fmt = noncomplex_formats)
+
+    def test_rshift(self):
+        def my_rshift(x):
+            # python doesn't allow float >> int
+            if isinstance(x, float):
+                x = int(x)
+            return x >> 2
+
+        # we don't support constant >> image, treat as a unary
+        self.run_unary(self.all_images, my_rshift, fmt = noncomplex_formats)
+
+    def test_and(self):
+        def my_and(x, y):
+            # python doesn't allow bools on float 
+            if isinstance(x, float):
+                x = int(x)
+            if isinstance(y, float):
+                y = int(y)
+            return x & y
+
+        self.run_arith_const(my_and, fmt = noncomplex_formats)
+        self.run_arith(my_and, fmt = noncomplex_formats)
+
+    def test_or(self):
+        def my_or(x, y):
+            # python doesn't allow bools on float 
+            if isinstance(x, float):
+                x = int(x)
+            if isinstance(y, float):
+                y = int(y)
+            return x | y
+
+        self.run_arith_const(my_or, fmt = noncomplex_formats)
+        self.run_arith(my_or, fmt = noncomplex_formats)
+
+    def test_xor(self):
+        def my_xor(x, y):
+            # python doesn't allow bools on float 
+            if isinstance(x, float):
+                x = int(x)
+            if isinstance(y, float):
+                y = int(y)
+            return x ^ y
+
+        self.run_arith_const(my_xor, fmt = noncomplex_formats)
+        self.run_arith(my_xor, fmt = noncomplex_formats)
+
+    # test the rest of VipsArithmetic
 
 if __name__ == '__main__':
     unittest.main()
