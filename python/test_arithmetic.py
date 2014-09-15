@@ -307,26 +307,40 @@ class TestArithmetic(unittest.TestCase):
 
     def test_histfind(self):
         im = Vips.Image.black(50, 100)
-        test = im.insert(im + 100, 50, 0, expand = True)
+        test = im.insert(im + 10, 50, 0, expand = True)
 
         for fmt in all_formats:
             hist = test.cast(fmt).hist_find()
             self.assertAlmostEqualObjects(hist.getpoint(0,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(100,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(12,0), [0])
+            self.assertAlmostEqualObjects(hist.getpoint(10,0), [5000])
+            self.assertAlmostEqualObjects(hist.getpoint(5,0), [0])
 
         test = test * [1, 2, 3]
 
         for fmt in all_formats:
             hist = test.cast(fmt).hist_find(band = 0)
             self.assertAlmostEqualObjects(hist.getpoint(0,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(100,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(12,0), [0])
+            self.assertAlmostEqualObjects(hist.getpoint(10,0), [5000])
+            self.assertAlmostEqualObjects(hist.getpoint(5,0), [0])
 
             hist = test.cast(fmt).hist_find(band = 1)
             self.assertAlmostEqualObjects(hist.getpoint(0,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(200,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(12,0), [0])
+            self.assertAlmostEqualObjects(hist.getpoint(20,0), [5000])
+            self.assertAlmostEqualObjects(hist.getpoint(5,0), [0])
+
+    def test_histfind_indexed(self):
+        im = Vips.Image.black(50, 100)
+        test = im.insert(im + 10, 50, 0, expand = True)
+        index = test / 10
+
+        for x in noncomplex_formats:
+            for y in [Vips.BandFormat.UCHAR, Vips.BandFormat.USHORT]:
+                a = test.cast(x)
+                b = index.cast(y)
+                hist = a.hist_find_indexed(b)
+
+                self.assertAlmostEqualObjects(hist.getpoint(0,0), [0])
+                self.assertAlmostEqualObjects(hist.getpoint(1,0), [50000])
 
 if __name__ == '__main__':
     unittest.main()
