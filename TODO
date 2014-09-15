@@ -1,6 +1,12 @@
 
 - python:
 
+	- try
+
+		python test_arithmetic.py -v TestArithmetic.test_histfind
+
+	  segv
+
 	- could import like this:
 
 		from gi.repository import Vips 

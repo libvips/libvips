@@ -82,7 +82,7 @@ typedef struct _VipsEmbed {
 	VipsImage *in;
 
 	VipsExtend extend;
-	VipsArea *background;
+	VipsArrayDouble *background;
 	int x;
 	int y;
 	int width;
@@ -362,7 +362,8 @@ vips_embed_build( VipsObject *object )
 
 	if( !(embed->ink = vips__vector_to_ink( 
 		class->nickname, embed->in,
-		embed->background->data, NULL, embed->background->n )) )
+		VIPS_AREA( embed->background )->data, NULL, 
+		VIPS_AREA( embed->background )->n )) )
 		return( -1 );
 
 	if( !vips_object_argument_isset( object, "extend" ) &&
@@ -614,9 +615,7 @@ static void
 vips_embed_init( VipsEmbed *embed )
 {
 	embed->extend = VIPS_EXTEND_BLACK;
-	embed->background = 
-		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
-	((double *) (embed->background->data))[0] = 0;
+	embed->background = vips_array_double_newv( 1, 0.0 );
 }
 
 /**

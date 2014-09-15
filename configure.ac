@@ -103,26 +103,16 @@ headers="\
 	foreign.h \
 	interpolate.h \
 	header.h \
-	type.h \
 	operation.h \
-	buf.h \
-	colour.h \
+	enumtypes.h \
 	conversion.h \
-	convolution.h \
-	create.h \
-	draw.h \
-	freqfilt.h \
-	histogram.h \
-	memory.h \
-	morphology.h \
-	mosaicing.h \
 	arithmetic.h \
-	rect.h \
-	region.h \
-	relational.h \
-	resample.h"
-
-#headers="basic.h vips.h object.h image.h error.h foreign.h interpolate.h header.h operation.h enumtypes.h arithmetic.h conversion.h type.h"
+	colour.h \
+	convolution.h \
+	draw.h \
+	morphology.h \
+	type.h \
+	region.h"
 
 for name in $headers; do
   vips_introspection_sources="$vips_introspection_sources include/vips/$name"

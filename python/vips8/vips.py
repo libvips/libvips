@@ -21,6 +21,13 @@ vips_type_blob = GObject.GType.from_name("VipsBlob")
 vips_type_image = GObject.GType.from_name("VipsImage")
 vips_type_operation = GObject.GType.from_name("VipsOperation")
 
+unpack_types = [Vips.Blob, Vips.ArrayDouble, Vips.ArrayImage, Vips.ArrayInt]
+def isunpack(obj):
+    for t in unpack_types:
+        if isinstance(obj, t):
+            return True
+    return False
+
 class Error(Exception):
 
     """An error from vips.
@@ -81,10 +88,10 @@ class Argument:
 
         logging.debug('read out %s from %s' % (value, self.name))
 
-        # turn VipsBlobs into strings 
+        # turn VipsBlobs into strings, VipsArrayDouble into lists etc.
         # FIXME ... this will involve a copy, we should use
         # buffer() instead
-        if isinstance(value, Vips.Blob):
+        if isunpack(value):
             value = value.get()
 
         return value
@@ -185,6 +192,8 @@ def _call_base(name, required, optional, self = None, option_string = None):
 
     if len(out) == 1:
         out = out[0]
+    elif len(out) == 0:
+        out = None
 
     # unref everything now we have refs to all outputs we want
     op2.unref_outputs()
@@ -246,10 +255,6 @@ def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
 
     return image
 
-# this is a class method
-def vips_black(cls, width, height, **kwargs):
-    return _call_base("black", [width, height], kwargs)
-
 def vips_image_getattr(self, name):
     logging.debug('Image.__getattr__ %s' % name)
 
@@ -282,6 +287,9 @@ def vips_image_write_to_buffer(self, vips_filename, **kwargs):
     logging.debug('Image.write_to_buffer: saver = %s' % saver)
 
     return _call_base(saver, [], kwargs, self, option_string)
+
+def vips_bandsplit(self):
+    return [self.extract_band(i) for i in range(0, self.bands)]
 
 # apply a function to a thing, or map over a list
 # we often need to do something like (1.0 / other) and need to work for lists
@@ -323,7 +331,7 @@ def vips_rdiv(self, other):
     return (self ** -1) * other
 
 def vips_floor(self):
-    self.round(Vips.OperationRound.FLOOR)
+    return self.round(Vips.OperationRound.FLOOR)
 
 def vips_floordiv(self, other):
     if isinstance(other, Vips.Image):
@@ -391,15 +399,27 @@ def vips_abs(self):
 def vips_invert(self):
     return self ^ -1
 
+def vips_real(self):
+        return self.complexget(Vips.OperationComplexget.REAL)
+
+def vips_imag(self):
+        return self.complexget(Vips.OperationComplexget.IMAG)
+
+def vips_polar(self):
+        return self.complex(Vips.OperationComplex.POLAR)
+
+def vips_rect(self):
+        return self.complex(Vips.OperationComplex.RECT)
+
+def vips_conj(self):
+        return self.complex(Vips.OperationComplex.CONJ)
+
 # paste our methods into Vips.Image
 
 # class methods
 setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
 setattr(Vips.Image, 'new_from_buffer', classmethod(vips_image_new_from_buffer))
 setattr(Vips.Image, 'new_from_array', classmethod(vips_image_new_from_array))
-
-# yuk, we should run these via a metaclass somehow
-#setattr(Vips.Image, 'black', classmethod(vips_black))
 
 # Search for all VipsOperation which don't have an input image object ... these
 # become class methods
@@ -413,13 +433,9 @@ def vips_image_class_method(name, args, kwargs):
     return _call_base(name, args, kwargs)
 
 def define_class_methods(cls):
-    if len(cls.children) > 0:
-        for child in cls.children:
-            # not easy to get at the deprecated flag in an abtract type?
-            if cls.name != 'VipsWrap7':
-                define_class_methods(child)
-    elif cls.is_instantiatable():
+    if not cls.is_abstract():
         op = Vips.Operation.new(cls.name)
+
         found = False
         for prop in op.props:
             flags = op.get_argument_flags(prop.name)
@@ -435,6 +451,12 @@ def define_class_methods(cls):
             method = lambda *args, **kwargs: vips_image_class_method( nickname, args, kwargs)
             setattr(Vips.Image, nickname, classmethod(method))
 
+    if len(cls.children) > 0:
+        for child in cls.children:
+            # not easy to get at the deprecated flag in an abtract type?
+            if cls.name != 'VipsWrap7':
+                define_class_methods(child)
+
 define_class_methods(vips_type_operation)
 
 # instance methods
@@ -442,8 +464,16 @@ Vips.Image.write_to_file = vips_image_write_to_file
 Vips.Image.write_to_buffer = vips_image_write_to_buffer
 # we can use Vips.Image.write_to_memory() directly
 
+# a few useful things
 Vips.Image.floor = vips_floor
+Vips.Image.bandsplit = vips_bandsplit
+Vips.Image.real = vips_real
+Vips.Image.imag = vips_imag
+Vips.Image.polar = vips_polar
+Vips.Image.rect = vips_rect
+Vips.Image.conj = vips_conj
 
+# operator overloads
 Vips.Image.__getattr__ = vips_image_getattr
 Vips.Image.__add__ = vips_add
 Vips.Image.__radd__ = vips_add
@@ -454,7 +484,7 @@ Vips.Image.__rmul__ = vips_mul
 Vips.Image.__div__ = vips_div
 Vips.Image.__rdiv__ = vips_rdiv
 Vips.Image.__floordiv__ = vips_floordiv
-Vips.Image.__rfloordiv__ = vips_floordiv
+Vips.Image.__rfloordiv__ = vips_rfloordiv
 Vips.Image.__mod__ = vips_mod
 Vips.Image.__pow__ = vips_pow
 Vips.Image.__rpow__ = vips_rpow

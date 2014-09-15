@@ -128,10 +128,13 @@ vips_create_operation_init( void )
 	extern GType vips_invertlut_get_type( void ); 
 	extern GType vips_tonelut_get_type( void ); 
 	extern GType vips_identity_get_type( void ); 
+	extern GType vips_mask_butterworth_get_type( void ); 
 	extern GType vips_mask_butterworth_ring_get_type( void ); 
 	extern GType vips_mask_butterworth_band_get_type( void ); 
+	extern GType vips_mask_gaussian_get_type( void ); 
 	extern GType vips_mask_gaussian_ring_get_type( void ); 
 	extern GType vips_mask_gaussian_band_get_type( void ); 
+	extern GType vips_mask_ideal_get_type( void ); 
 	extern GType vips_mask_ideal_ring_get_type( void ); 
 	extern GType vips_mask_ideal_band_get_type( void ); 
 	extern GType vips_mask_fractal_get_type( void ); 

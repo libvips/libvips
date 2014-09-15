@@ -151,17 +151,17 @@ vips_getpoint_class_init( VipsGetpointClass *class )
 
 	VIPS_ARG_INT( class, "x", 5, 
 		_( "x" ), 
-		_( "Getpoint to read from" ),
+		_( "Point to read" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGetpoint, x ),
-		1, RANGE, 1 );
+		0, RANGE, 0 );
 
 	VIPS_ARG_INT( class, "y", 6, 
 		_( "y" ), 
-		_( "Getpoint to read from" ),
+		_( "Point to read" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGetpoint, y ),
-		1, RANGE, 1 );
+		0, RANGE, 0 );
 
 }
 
