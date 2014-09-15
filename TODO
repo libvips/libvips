@@ -1,11 +1,13 @@
 
 - python:
 
-	- try
+	- draw_circle() etc. should copy() the image before writing, and
+	  return the copy
 
-		python test_arithmetic.py -v TestArithmetic.test_histfind
+	  accidental segvs are too easy otherwise :( 
 
-	  segv
+	  draw.c should declare arg as VIPS_ARGUMENT_REQUIRED_INPUT_OUTPUT 
+	  maybe?
 
 	- could import like this:
 

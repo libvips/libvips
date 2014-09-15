@@ -342,5 +342,21 @@ class TestArithmetic(unittest.TestCase):
                 self.assertAlmostEqualObjects(hist.getpoint(0,0), [0])
                 self.assertAlmostEqualObjects(hist.getpoint(1,0), [50000])
 
+    def test_histfind_ndim(self):
+        im = Vips.Image.black(100, 100) + [1, 2, 3]
+
+        for fmt in noncomplex_formats:
+            hist = im.cast(fmt).hist_find_ndim()
+
+            self.assertAlmostEqualObjects(hist.getpoint(0,0)[0], 10000)
+            self.assertAlmostEqualObjects(hist.getpoint(5,5)[5], 0)
+
+            hist = im.cast(fmt).hist_find_ndim(bins = 1)
+
+            self.assertAlmostEqualObjects(hist.getpoint(0,0)[0], 10000)
+            self.assertEqual(hist.width, 1)
+            self.assertEqual(hist.height, 1)
+            self.assertEqual(hist.bands, 1)
+
 if __name__ == '__main__':
     unittest.main()
