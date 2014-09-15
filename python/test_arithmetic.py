@@ -268,43 +268,52 @@ class TestArithmetic(unittest.TestCase):
         im = Vips.Image.black(50, 100)
         test = im.insert(im + 100, 50, 0, expand = True)
 
-        test.write_to_file("x.v")
-
         for fmt in all_formats:
             self.assertAlmostEqual(test.cast(fmt).avg(), 50)
+
+    def test_deviate(self):
+        im = Vips.Image.black(50, 100)
+        test = im.insert(im + 100, 50, 0, expand = True)
+
+        for fmt in noncomplex_formats:
+            self.assertAlmostEqual(test.cast(fmt).deviate(), 50, places = 2)
 
     def test_polar(self):
         im = Vips.Image.black(100, 100) + 100
         im = im.complexform(im)
 
-        im = im.complex(Vips.OperationComplex.POLAR)
+        im = im.polar()
 
-        real = im.complexget(Vips.OperationComplexget.REAL)
-        self.assertAlmostEqual(real.avg(), 100 * 2 ** 0.5)
-        imag = im.complexget(Vips.OperationComplexget.IMAG)
-        self.assertAlmostEqual(imag.avg(), 45)
+        self.assertAlmostEqual(im.real().avg(), 100 * 2 ** 0.5)
+        self.assertAlmostEqual(im.imag().avg(), 45)
 
     def test_rect(self):
         im = Vips.Image.black(100, 100)
         im = (im + 100 * 2 ** 0.5).complexform(im + 45)
 
-        im = im.complex(Vips.OperationComplex.RECT)
+        im = im.rect()
 
-        real = im.complexget(Vips.OperationComplexget.REAL)
-        self.assertAlmostEqual(real.avg(), 100)
-        imag = im.complexget(Vips.OperationComplexget.IMAG)
-        self.assertAlmostEqual(imag.avg(), 100)
+        self.assertAlmostEqual(im.real().avg(), 100)
+        self.assertAlmostEqual(im.imag().avg(), 100)
 
     def test_conjugate(self):
         im = Vips.Image.black(100, 100) + 100
         im = im.complexform(im)
 
-        im = im.complex(Vips.OperationComplex.CONJ)
+        im = im.conj()
 
-        real = im.complexget(Vips.OperationComplexget.REAL)
-        self.assertAlmostEqual(real.avg(), 100)
-        imag = im.complexget(Vips.OperationComplexget.IMAG)
-        self.assertAlmostEqual(imag.avg(), -100)
+        self.assertAlmostEqual(im.real().avg(), 100)
+        self.assertAlmostEqual(im.imag().avg(), -100)
+
+    def test_histfind(self):
+        im = Vips.Image.black(50, 100)
+        test = im.insert(im + 100, 50, 0, expand = True)
+
+        for fmt in all_formats:
+            hist = test.cast(fmt).hist_find()
+            self.assertAlmostEqualObjects(hist.getpoint(0,0), [5000])
+            self.assertAlmostEqualObjects(hist.getpoint(100,0), [5000])
+            self.assertAlmostEqualObjects(hist.getpoint(12,0), [0])
 
 if __name__ == '__main__':
     unittest.main()

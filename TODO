@@ -1,11 +1,11 @@
 
 - python:
 
-	- this is very annoying:
+	- try
 
-		 real = im.complexget(Vips.OperationComplexget.REAL)
+		python test_arithmetic.py -v TestArithmetic.test_histfind
 
-	  define im.real() and im.imag()
+	  segv
 
 	- could import like this:
 

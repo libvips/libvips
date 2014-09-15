@@ -255,10 +255,6 @@ def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
 
     return image
 
-# this is a class method
-def vips_black(cls, width, height, **kwargs):
-    return _call_base("black", [width, height], kwargs)
-
 def vips_image_getattr(self, name):
     logging.debug('Image.__getattr__ %s' % name)
 
@@ -403,15 +399,27 @@ def vips_abs(self):
 def vips_invert(self):
     return self ^ -1
 
+def vips_real(self):
+        return self.complexget(Vips.OperationComplexget.REAL)
+
+def vips_imag(self):
+        return self.complexget(Vips.OperationComplexget.IMAG)
+
+def vips_polar(self):
+        return self.complex(Vips.OperationComplex.POLAR)
+
+def vips_rect(self):
+        return self.complex(Vips.OperationComplex.RECT)
+
+def vips_conj(self):
+        return self.complex(Vips.OperationComplex.CONJ)
+
 # paste our methods into Vips.Image
 
 # class methods
 setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
 setattr(Vips.Image, 'new_from_buffer', classmethod(vips_image_new_from_buffer))
 setattr(Vips.Image, 'new_from_array', classmethod(vips_image_new_from_array))
-
-# yuk, we should run these via a metaclass somehow
-#setattr(Vips.Image, 'black', classmethod(vips_black))
 
 # Search for all VipsOperation which don't have an input image object ... these
 # become class methods
@@ -459,6 +467,11 @@ Vips.Image.write_to_buffer = vips_image_write_to_buffer
 # a few useful things
 Vips.Image.floor = vips_floor
 Vips.Image.bandsplit = vips_bandsplit
+Vips.Image.real = vips_real
+Vips.Image.imag = vips_imag
+Vips.Image.polar = vips_polar
+Vips.Image.rect = vips_rect
+Vips.Image.conj = vips_conj
 
 # operator overloads
 Vips.Image.__getattr__ = vips_image_getattr
