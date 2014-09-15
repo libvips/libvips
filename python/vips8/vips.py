@@ -81,7 +81,6 @@ class Argument:
 
         # MODIFY input images need to be copied before assigning them
         if self.flags & Vips.ArgumentFlags.MODIFY:
-            print 'taking copy of MODIFY image arg'
             value = value.copy()
 
         logging.debug('assigning %s' % self.prop.value_type)

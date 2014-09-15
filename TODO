@@ -1,13 +1,11 @@
 
 - python:
 
-	- draw_circle() etc. should copy() the image before writing, and
-	  return the copy
+	- maxpos?
 
-	  accidental segvs are too easy otherwise :( 
+	  perhaps:
 
-	  draw.c should declare arg as VIPS_ARGUMENT_REQUIRED_INPUT_OUTPUT 
-	  maybe?
+	  	v, x, y = im.max(x = True, y = True)
 
 	- could import like this:
 

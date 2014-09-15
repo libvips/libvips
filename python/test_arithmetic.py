@@ -358,5 +358,13 @@ class TestArithmetic(unittest.TestCase):
             self.assertEqual(hist.height, 1)
             self.assertEqual(hist.bands, 1)
 
+    def test_hough_circle(self):
+        im = Vips.Image.black(100, 100).draw_circle(100, 50, 50, 40)
+
+        hough = im.hough_circle(min_radius = 35, max_radius = 45)
+
+        
+
+
 if __name__ == '__main__':
     unittest.main()
