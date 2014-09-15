@@ -63,7 +63,8 @@ typedef enum /*< flags >*/ {
 	VIPS_ARGUMENT_SET_ALWAYS = 8,
 	VIPS_ARGUMENT_INPUT = 16,
 	VIPS_ARGUMENT_OUTPUT = 32,
-	VIPS_ARGUMENT_DEPRECATED = 64
+	VIPS_ARGUMENT_DEPRECATED = 64,
+	VIPS_ARGUMENT_MODIFY = 128
 } VipsArgumentFlags;
 
 /* Useful flag combinations. User-visible ones are:

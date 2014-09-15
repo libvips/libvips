@@ -5,6 +5,8 @@
 - return of vips_init(), but just for bindings
 - revised type.c to make it more binding-friendly
 - add @background arg to save: the colour to flatten against
+- add VIPS_ARGUMENT_MODIFY flag ... used for draw_circle etc, meaning an op
+  which modifies its argument
 
 8/9/14 started 7.40.9
 - support jfif resunit "none"

@@ -169,6 +169,7 @@
  * @VIPS_ARGUMENT_INPUT: is an input argument (one we depend on)
  * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
  * @VIPS_ARGUMENT_DEPRECATED: just there for back-compat, hide 
+ * @VIPS_ARGUMENT_MODIFY: the input argument will be modified
  *
  * Flags we associate with each object argument.
  *
@@ -186,6 +187,9 @@
  * looked for if required, are not checked for "have-been-set". You can
  * deprecate a required argument, but you must obviously add a new required
  * argument if you do.
+ *
+ * Input args with @VIPS_ARGUMENT_MODIFY will be modified by the operation.
+ * This is used for things like the in-place drawing operations. 
  */
 
 /* Our signals. 

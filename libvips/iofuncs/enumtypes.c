@@ -743,6 +743,7 @@ vips_argument_flags_get_type( void )
 			{VIPS_ARGUMENT_INPUT, "VIPS_ARGUMENT_INPUT", "input"},
 			{VIPS_ARGUMENT_OUTPUT, "VIPS_ARGUMENT_OUTPUT", "output"},
 			{VIPS_ARGUMENT_DEPRECATED, "VIPS_ARGUMENT_DEPRECATED", "deprecated"},
+			{VIPS_ARGUMENT_MODIFY, "VIPS_ARGUMENT_MODIFY", "modify"},
 			{0, NULL, NULL}
 		};
 		

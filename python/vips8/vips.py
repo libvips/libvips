@@ -79,6 +79,11 @@ class Argument:
             if not isinstance(value, Vips.Blob):
                 value = Vips.Blob.new(None, value)
 
+        # MODIFY input images need to be copied before assigning them
+        if self.flags & Vips.ArgumentFlags.MODIFY:
+            print 'taking copy of MODIFY image arg'
+            value = value.copy()
+
         logging.debug('assigning %s' % self.prop.value_type)
 
         self.op.props.__setattr__(self.name, value)
@@ -171,16 +176,18 @@ def _call_base(name, required, optional, self = None, option_string = None):
     args = [Argument(op2, x) for x in op2.props]
     args.sort(lambda a, b: a.priority - b.priority)
 
-    # find all required output args 
-    # we can't check assigned here (since we captured the value before the call)
-    # but the getattr will test that for us anyway
-    required_output = [x for x in args if x.flags & enm.OUTPUT and 
-                       x.flags & enm.REQUIRED]
-
     # gather output args 
     out = []
-    for x in required_output:
-        out.append(x.get_value())
+
+    for x in args:
+        # required output arg
+        if x.flags & enm.OUTPUT and x.flags & enm.REQUIRED:
+            out.append(x.get_value())
+
+        # modified input arg ... this will get the result of the copy() we 
+        # did above
+        if x.flags & enm.INPUT and x.flags & enm.MODIFY:
+            out.append(x.get_value())
 
     # find all optional output args 
     optional_output = [x.name for x in args if x.flags & enm.OUTPUT and 
