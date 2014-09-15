@@ -315,5 +315,18 @@ class TestArithmetic(unittest.TestCase):
             self.assertAlmostEqualObjects(hist.getpoint(100,0), [5000])
             self.assertAlmostEqualObjects(hist.getpoint(12,0), [0])
 
+        test = test * [1, 2, 3]
+
+        for fmt in all_formats:
+            hist = test.cast(fmt).hist_find(band = 0)
+            self.assertAlmostEqualObjects(hist.getpoint(0,0), [5000])
+            self.assertAlmostEqualObjects(hist.getpoint(100,0), [5000])
+            self.assertAlmostEqualObjects(hist.getpoint(12,0), [0])
+
+            hist = test.cast(fmt).hist_find(band = 1)
+            self.assertAlmostEqualObjects(hist.getpoint(0,0), [5000])
+            self.assertAlmostEqualObjects(hist.getpoint(200,0), [5000])
+            self.assertAlmostEqualObjects(hist.getpoint(12,0), [0])
+
 if __name__ == '__main__':
     unittest.main()
