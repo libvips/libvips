@@ -149,7 +149,7 @@ vips_relational_build( VipsObject *object )
 	} 
 
 #define CEQUAL( x1, y1, x2, y2 ) (x1 == x2 && y1 == y2)
-#define CNOTEQUAL( x1, y1, x2, y2 ) (x1 != x2 || y1 != y2)
+#define CNOTEQ( x1, y1, x2, y2 ) (x1 != x2 || y1 != y2)
 #define CLESS( x1, y1, x2, y2 ) (x1 * x1 + y1 * y1 < x2 * x2 + y2 * y2)
 #define CLESSEQ( x1, y1, x2, y2 ) (x1 * x1 + y1 * y1 <= x2 * x2 + y2 * y2)
 #define CMORE( x1, y1, x2, y2 ) (x1 * x1 + y1 * y1 > x2 * x2 + y2 * y2)
@@ -170,8 +170,8 @@ vips_relational_buffer( VipsArithmetic *arithmetic,
 		SWITCH( RLOOP, CLOOP, ==, CEQUAL ); 
 		break;
 
-	case VIPS_OPERATION_RELATIONAL_NOTEQUAL:
-		SWITCH( RLOOP, CLOOP, !=, CNOTEQUAL ); 
+	case VIPS_OPERATION_RELATIONAL_NOTEQ:
+		SWITCH( RLOOP, CLOOP, !=, CNOTEQ ); 
 		break;
 
 	case VIPS_OPERATION_RELATIONAL_LESS: 	
@@ -327,7 +327,7 @@ vips_equal( VipsImage *left, VipsImage *right, VipsImage **out, ... )
  * @out: output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_RELATIONAL_NOTEQUAL on a pair of images. See
+ * Perform #VIPS_OPERATION_RELATIONAL_NOTEQ on a pair of images. See
  * vips_relational().
  *
  * Returns: 0 on success, -1 on error
@@ -340,7 +340,7 @@ vips_notequal( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 
 	va_start( ap, out );
 	result = vips_relationalv( left, right, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQUAL, ap );
+		VIPS_OPERATION_RELATIONAL_NOTEQ, ap );
 	va_end( ap );
 
 	return( result );
@@ -517,8 +517,8 @@ vips_relational_const_buffer( VipsArithmetic *arithmetic,
 		SWITCH( RLOOPC, CLOOPC, ==, CEQUAL ); 
 		break;
 
-	case VIPS_OPERATION_RELATIONAL_NOTEQUAL:
-		SWITCH( RLOOPC, CLOOPC, !=, CNOTEQUAL ); 
+	case VIPS_OPERATION_RELATIONAL_NOTEQ:
+		SWITCH( RLOOPC, CLOOPC, !=, CNOTEQ ); 
 		break;
 
 	case VIPS_OPERATION_RELATIONAL_LESS: 	
@@ -672,7 +672,7 @@ vips_equal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_RELATIONAL_NOTEQUAL on an image and a constant. See
+ * Perform #VIPS_OPERATION_RELATIONAL_NOTEQ on an image and a constant. See
  * vips_relational_const().
  *
  * Returns: 0 on success, -1 on error
@@ -685,7 +685,7 @@ vips_notequal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQUAL, c, n, ap );
+		VIPS_OPERATION_RELATIONAL_NOTEQ, c, n, ap );
 	va_end( ap );
 
 	return( result );
@@ -861,7 +861,7 @@ vips_equal_const1( VipsImage *in, VipsImage **out, double c, ... )
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_RELATIONAL_NOTEQUAL on an image and a constant. See
+ * Perform #VIPS_OPERATION_RELATIONAL_NOTEQ on an image and a constant. See
  * vips_relational_const().
  *
  * Returns: 0 on success, -1 on error
@@ -874,7 +874,7 @@ vips_notequal_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQUAL, &c, 1, ap );
+		VIPS_OPERATION_RELATIONAL_NOTEQ, &c, 1, ap );
 	va_end( ap );
 
 	return( result );

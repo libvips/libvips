@@ -2631,7 +2631,7 @@ int
 im_notequal( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
 	return( vips__relational( in1, in2, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQUAL ) );
+		VIPS_OPERATION_RELATIONAL_NOTEQ ) );
 }
 
 int 
@@ -2691,7 +2691,7 @@ int
 im_notequal_vec( VipsImage *in, VipsImage *out, int n, double *c )
 {
 	return( vips__relational_vec( in, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQUAL, c, n ) );
+		VIPS_OPERATION_RELATIONAL_NOTEQ, c, n ) );
 }
 
 int 

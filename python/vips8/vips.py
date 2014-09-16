@@ -132,7 +132,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
 
     # do we have a non-None self pointer? this is used to set the first
     # compatible input arg
-    if self != None:
+    if self is not None:
         found = False
         for x in required_input:
             if GObject.type_is_a(self, x.prop.value_type):
@@ -423,6 +423,36 @@ def vips_more(self, other):
         return self.relational(other, Vips.OperationRelational.MORE)
     else:
         return self.relational_const(Vips.OperationRelational.MORE, other)
+
+def vips_moreeq(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.MOREEQ)
+    else:
+        return self.relational_const(Vips.OperationRelational.MOREEQ, other)
+
+def vips_less(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.MORE)
+    else:
+        return self.relational_const(Vips.OperationRelational.MORE, other)
+
+def vips_lesseq(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.LESSEQ)
+    else:
+        return self.relational_const(Vips.OperationRelational.LESSEQ, other)
+
+def vips_equal(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.EQUAL)
+    else:
+        return self.relational_const(Vips.OperationRelational.EQUAL, other)
+
+def vips_notequal(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.NOTEQ)
+    else:
+        return self.relational_const(Vips.OperationRelational.NOTEQ, other)
 
 def vips_neg(self):
     return -1 * self

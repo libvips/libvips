@@ -7,6 +7,8 @@
 - add @background arg to save: the colour to flatten against
 - add VIPS_ARGUMENT_MODIFY flag ... used for draw_circle etc, meaning an op
   which modifies its argument
+- rename VIPS_OPERATION_RELATIONAL_NOTEQUAL as VIPS_OPERATION_RELATIONAL_NOTEQ
+  for consistency
 
 8/9/14 started 7.40.9
 - support jfif resunit "none"
