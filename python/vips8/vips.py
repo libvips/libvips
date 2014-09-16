@@ -159,12 +159,23 @@ def _call_base(name, required, optional, self = None, option_string = None):
                       not x.flags & enm.REQUIRED and 
                       not x.isset}
 
+    # and the names of all optional output args ... we use "x = True" 
+    # in args to mean add that to output
+    optional_output = {x.name: x for x in args if x.flags & enm.OUTPUT and 
+                       not x.flags & enm.REQUIRED}
+
     # set optional input args
     for key in optional.keys():
-        if not key in optional_input:
+        if key in optional_input:
+            optional_input[key].set_value(optional[key])
+        elif key in optional_output:
+            # must be a literal True value
+            if optional[key] is not True:
+                raise Error('Optional output argument must be True.',
+                            'Argument %s should equal True.' % key)
+        else:
             raise Error('Unknown argument.', 
                         'Operator %s has no argument %s' % (name, key))
-        optional_input[key].set_value(optional[key])
 
     # call
     op2 = Vips.cache_operation_build(op)
@@ -188,13 +199,9 @@ def _call_base(name, required, optional, self = None, option_string = None):
         if x.flags & enm.INPUT and x.flags & enm.MODIFY:
             out.append(x.get_value())
 
-    # find all optional output args 
-    optional_output = [x.name for x in args if x.flags & enm.OUTPUT and 
-                       not x.flags & enm.REQUIRED]
-
     for x in optional.keys():
         if x in optional_output:
-            out.append(x.get_value())
+            out.append(optional_output[x].get_value())
 
     if len(out) == 1:
         out = out[0]
