@@ -159,7 +159,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
                       not x.flags & enm.REQUIRED and 
                       not x.isset}
 
-    # and the names of all optional output args ... we use "x = True" 
+    # find all optional output args ... we use "x = True" 
     # in args to mean add that to output
     optional_output = {x.name: x for x in args if x.flags & enm.OUTPUT and 
                        not x.flags & enm.REQUIRED}
@@ -182,9 +182,12 @@ def _call_base(name, required, optional, self = None, option_string = None):
     if op2 == None:
         raise Error('Error calling operator %s.' % name)
 
-    # rescan args, op2 has changed
-    args = [Argument(op2, x) for x in op2.props]
-    args.sort(lambda a, b: a.priority - b.priority)
+    # rescan args if op2 is different from op
+    if op2 != op:
+        args = [Argument(op2, x) for x in op2.props]
+        args.sort(lambda a, b: a.priority - b.priority)
+        optional_output = {x.name: x for x in args if x.flags & enm.OUTPUT and 
+                           not x.flags & enm.REQUIRED}
 
     # gather output args 
     out = []
@@ -415,6 +418,12 @@ def vips_xor(self, other):
     else:
         return self.boolean_const(other, Vips.OperationBoolean.EOR)
 
+def vips_more(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.MORE)
+    else:
+        return self.relational_const(Vips.OperationRelational.MORE, other)
+
 def vips_neg(self):
     return -1 * self
 
@@ -556,8 +565,11 @@ Vips.Image.__rdiv__ = vips_rdiv
 Vips.Image.__floordiv__ = vips_floordiv
 Vips.Image.__rfloordiv__ = vips_rfloordiv
 Vips.Image.__mod__ = vips_mod
+
 Vips.Image.__pow__ = vips_pow
 Vips.Image.__rpow__ = vips_rpow
+Vips.Image.__abs__ = vips_abs
+
 Vips.Image.__lshift__ = vips_lshift
 Vips.Image.__rshift__ = vips_rshift
 Vips.Image.__and__ = vips_and
@@ -566,10 +578,17 @@ Vips.Image.__or__ = vips_or
 Vips.Image.__ror__ = vips_or
 Vips.Image.__xor__ = vips_xor
 Vips.Image.__rxor__ = vips_xor
+
 Vips.Image.__neg__ = vips_neg
 Vips.Image.__pos__ = vips_pos
-Vips.Image.__abs__ = vips_abs
 Vips.Image.__invert__ = vips_invert
+
+Vips.Image.__lt__ = vips_less
+Vips.Image.__le__ = vips_lesseq
+Vips.Image.__gt__ = vips_more
+Vips.Image.__ge__ = vips_moreeq
+Vips.Image.__eq__ = vips_equal
+Vips.Image.__ne__ = vips_notequal
 
 # the cast operators int(), long() and float() must return numeric types, so we
 # can't define them for images

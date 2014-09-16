@@ -481,5 +481,73 @@ class TestArithmetic(unittest.TestCase):
 
         self.run_unary(self.all_images, my_exp10, fmt = noncomplex_formats)
 
+    def test_max(self):
+        test = Vips.Image.black(100, 100).draw_rect(100, 40, 50, 1, 1)
+
+        for fmt in all_formats:
+            v = test.cast(fmt).max()
+
+            self.assertAlmostEqual(v, 100)
+            v, x, y = test.cast(fmt).maxpos()
+            self.assertAlmostEqual(v, 100)
+            self.assertAlmostEqual(x, 40)
+            self.assertAlmostEqual(y, 50)
+
+    def test_min(self):
+        test = (Vips.Image.black(100, 100) + 100).draw_rect(0, 40, 50, 1, 1)
+
+        for fmt in all_formats:
+            v = test.cast(fmt).min()
+
+            self.assertAlmostEqual(v, 0)
+            v, x, y = test.cast(fmt).minpos()
+            self.assertAlmostEqual(v, 0)
+            self.assertAlmostEqual(x, 40)
+            self.assertAlmostEqual(y, 50)
+
+    def test_measure(self):
+        im = Vips.Image.black(50, 50)
+        test = im.insert(im + 10, 50, 0, expand = True)
+
+        for x in noncomplex_formats:
+            a = test.cast(x)
+            matrix = a.measure(2, 1)
+            [p1] = matrix.getpoint(0, 0)
+            [p2] = matrix.getpoint(0, 1)
+
+            self.assertAlmostEqual(p1, 0)
+            self.assertAlmostEqual(p2, 10)
+
+    def test_profile(self):
+        test = Vips.Image.black(100, 100).draw_rect(100, 40, 50, 1, 1)
+
+        for fmt in noncomplex_formats:
+            columns, rows = test.cast(fmt).profile()
+
+            v, x, y = columns.minpos()
+            self.assertAlmostEqual(v, 50)
+            self.assertAlmostEqual(x, 40)
+            self.assertAlmostEqual(y, 0)
+
+            v, x, y = rows.minpos()
+            self.assertAlmostEqual(v, 40)
+            self.assertAlmostEqual(x, 0)
+            self.assertAlmostEqual(y, 50)
+
+    def test_project(self):
+        im = Vips.Image.black(50, 50)
+        test = im.insert(im + 10, 50, 0, expand = True)
+
+        for fmt in noncomplex_formats:
+            columns, rows = test.cast(fmt).project()
+
+            self.assertAlmostEqualObjects(columns.getpoint(10,0), [0])
+            self.assertAlmostEqualObjects(columns.getpoint(70,0), [50 * 10])
+
+            self.assertAlmostEqualObjects(rows.getpoint(0,10), [50 * 10])
+
+
+
+
 if __name__ == '__main__':
     unittest.main()
