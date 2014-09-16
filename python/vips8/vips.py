@@ -442,6 +442,36 @@ def vips_rect(self):
 def vips_conj(self):
         return self.complex(Vips.OperationComplex.CONJ)
 
+def vips_sin(self):
+        return self.math(Vips.OperationMath.SIN)
+
+def vips_cos(self):
+        return self.math(Vips.OperationMath.COS)
+
+def vips_tan(self):
+        return self.math(Vips.OperationMath.TAN)
+
+def vips_asin(self):
+        return self.math(Vips.OperationMath.ASIN)
+
+def vips_acos(self):
+        return self.math(Vips.OperationMath.ACOS)
+
+def vips_atan(self):
+        return self.math(Vips.OperationMath.ATAN)
+
+def vips_log(self):
+        return self.math(Vips.OperationMath.LOG)
+
+def vips_log10(self):
+        return self.math(Vips.OperationMath.LOG10)
+
+def vips_exp(self):
+        return self.math(Vips.OperationMath.EXP)
+
+def vips_exp10(self):
+        return self.math(Vips.OperationMath.EXP10)
+
 # paste our methods into Vips.Image
 
 # class methods
@@ -502,6 +532,16 @@ Vips.Image.imag = vips_imag
 Vips.Image.polar = vips_polar
 Vips.Image.rect = vips_rect
 Vips.Image.conj = vips_conj
+Vips.Image.sin = vips_sin
+Vips.Image.cos = vips_cos
+Vips.Image.tan = vips_tan
+Vips.Image.asin = vips_asin
+Vips.Image.acos = vips_acos
+Vips.Image.atan = vips_atan
+Vips.Image.log = vips_log
+Vips.Image.log10 = vips_log10
+Vips.Image.exp = vips_exp
+Vips.Image.exp10 = vips_exp10
 
 # operator overloads
 Vips.Image.__getattr__ = vips_image_getattr

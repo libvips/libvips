@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import unittest
+import math
 
 #import logging
 #logging.basicConfig(level = logging.DEBUG)
@@ -386,6 +387,99 @@ class TestArithmetic(unittest.TestCase):
 
             self.assertAlmostEqual(angle, 45)
             self.assertAlmostEqual(distance, 70)
+
+    def test_sin(self):
+        def my_sin(x):
+            if isinstance(x, Vips.Image):
+                return x.sin()
+            else:
+                return math.sin(math.radians(x))
+
+        self.run_unary(self.all_images, my_sin, fmt = noncomplex_formats)
+
+    def test_cos(self):
+        def my_cos(x):
+            if isinstance(x, Vips.Image):
+                return x.cos()
+            else:
+                return math.cos(math.radians(x))
+
+        self.run_unary(self.all_images, my_cos, fmt = noncomplex_formats)
+
+    def test_tan(self):
+        def my_tan(x):
+            if isinstance(x, Vips.Image):
+                return x.tan()
+            else:
+                return math.tan(math.radians(x))
+
+        self.run_unary(self.all_images, my_tan, fmt = noncomplex_formats)
+
+    def test_asin(self):
+        def my_asin(x):
+            if isinstance(x, Vips.Image):
+                return x.asin()
+            else:
+                return math.degrees(math.asin(x))
+
+        im = (Vips.Image.black(100, 100) + [1, 2, 3]) / 3.0
+        self.run_unary([im], my_asin, fmt = noncomplex_formats)
+
+    def test_acos(self):
+        def my_acos(x):
+            if isinstance(x, Vips.Image):
+                return x.acos()
+            else:
+                return math.degrees(math.acos(x))
+
+        im = (Vips.Image.black(100, 100) + [1, 2, 3]) / 3.0
+        self.run_unary([im], my_acos, fmt = noncomplex_formats)
+
+    def test_atan(self):
+        def my_atan(x):
+            if isinstance(x, Vips.Image):
+                return x.atan()
+            else:
+                return math.degrees(math.atan(x))
+
+        im = (Vips.Image.black(100, 100) + [1, 2, 3]) / 3.0
+        self.run_unary([im], my_atan, fmt = noncomplex_formats)
+
+    def test_log(self):
+        def my_log(x):
+            if isinstance(x, Vips.Image):
+                return x.log()
+            else:
+                return math.log(x)
+
+        self.run_unary(self.all_images, my_log, fmt = noncomplex_formats)
+
+    def test_log10(self):
+        def my_log10(x):
+            if isinstance(x, Vips.Image):
+                return x.log10()
+            else:
+                return math.log10(x)
+
+        self.run_unary(self.all_images, my_log10, fmt = noncomplex_formats)
+
+    def test_exp(self):
+        def my_exp(x):
+            if isinstance(x, Vips.Image):
+                return x.exp()
+            else:
+                return math.exp(x)
+
+        self.run_unary(self.all_images, my_exp, fmt = noncomplex_formats)
+
+    def test_exp10(self):
+        def my_exp10(x):
+            if isinstance(x, Vips.Image):
+                return x.exp10()
+            else:
+                return math.pow(10, x)
+
+        self.run_unary(self.all_images, my_exp10, fmt = noncomplex_formats)
 
 if __name__ == '__main__':
     unittest.main()
