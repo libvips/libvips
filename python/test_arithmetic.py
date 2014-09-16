@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import unittest
-import gc
 
 #import logging
 #logging.basicConfig(level = logging.DEBUG)
@@ -359,12 +358,34 @@ class TestArithmetic(unittest.TestCase):
             self.assertEqual(hist.bands, 1)
 
     def test_hough_circle(self):
-        im = Vips.Image.black(100, 100).draw_circle(100, 50, 50, 40)
+        test = Vips.Image.black(100, 100).draw_circle(100, 50, 50, 40)
 
-        hough = im.hough_circle(min_radius = 35, max_radius = 45)
+        for fmt in all_formats:
+            im = test.cast(fmt)
+            hough = im.hough_circle(min_radius = 35, max_radius = 45)
 
-        
+            v, x, y = hough.maxpos()
+            vec = hough.getpoint(x, y)
+            r = vec.index(v) + 35
 
+            self.assertAlmostEqual(x, 50)
+            self.assertAlmostEqual(y, 50)
+            self.assertAlmostEqual(r, 40)
+
+    def test_hough_line(self):
+        test = Vips.Image.black(100, 100).draw_line(100, 10, 90, 90, 10)
+
+        for fmt in all_formats:
+            im = test.cast(fmt)
+            hough = im.hough_line()
+            
+            v, x, y = hough.maxpos()
+
+            angle = 360.0 * x / hough.width 
+            distance = test.height * y / hough.height
+
+            self.assertAlmostEqual(angle, 45)
+            self.assertAlmostEqual(distance, 70)
 
 if __name__ == '__main__':
     unittest.main()

@@ -199,9 +199,12 @@ def _call_base(name, required, optional, self = None, option_string = None):
         if x.flags & enm.INPUT and x.flags & enm.MODIFY:
             out.append(x.get_value())
 
+    out_dict = {}
     for x in optional.keys():
         if x in optional_output:
-            out.append(optional_output[x].get_value())
+            out_dict[x] = optional_output[x].get_value()
+    if out_dict != {}:
+        out.append(out_dict)
 
     if len(out) == 1:
         out = out[0]
@@ -303,6 +306,18 @@ def vips_image_write_to_buffer(self, vips_filename, **kwargs):
 
 def vips_bandsplit(self):
     return [self.extract_band(i) for i in range(0, self.bands)]
+
+def vips_maxpos(self):
+    v, opts = self.max(x = True, y = True)
+    x = opts['x']
+    y = opts['y']
+    return v, x, y
+
+def vips_minpos(self):
+    v, opts = self.min(x = True, y = True)
+    x = opts['x']
+    y = opts['y']
+    return v, x, y
 
 # apply a function to a thing, or map over a list
 # we often need to do something like (1.0 / other) and need to work for lists
@@ -480,6 +495,8 @@ Vips.Image.write_to_buffer = vips_image_write_to_buffer
 # a few useful things
 Vips.Image.floor = vips_floor
 Vips.Image.bandsplit = vips_bandsplit
+Vips.Image.maxpos = vips_maxpos
+Vips.Image.minpos = vips_minpos
 Vips.Image.real = vips_real
 Vips.Image.imag = vips_imag
 Vips.Image.polar = vips_polar

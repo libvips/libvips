@@ -1,12 +1,6 @@
 
 - python:
 
-	- maxpos?
-
-	  perhaps:
-
-	  	v, x, y = im.max(x = True, y = True)
-
 	- could import like this:
 
 		from gi.repository import Vips 
