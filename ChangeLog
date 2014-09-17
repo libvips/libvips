@@ -9,6 +9,8 @@
   which modifies its argument
 - rename VIPS_OPERATION_RELATIONAL_NOTEQUAL as VIPS_OPERATION_RELATIONAL_NOTEQ
   for consistency
+- python vips8 binding
+- python vips8 test suite: test_arithmetic.py
 
 8/9/14 started 7.40.9
 - support jfif resunit "none"

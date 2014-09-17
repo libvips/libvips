@@ -364,6 +364,12 @@ def vips_rdiv(self, other):
 def vips_floor(self):
     return self.round(Vips.OperationRound.FLOOR)
 
+def vips_ceil(self):
+    return self.round(Vips.OperationRound.CEIL)
+
+def vips_rint(self):
+    return self.round(Vips.OperationRound.RINT)
+
 def vips_floordiv(self, other):
     if isinstance(other, Vips.Image):
         return self.divide(other).floor()
@@ -563,6 +569,8 @@ Vips.Image.write_to_buffer = vips_image_write_to_buffer
 
 # a few useful things
 Vips.Image.floor = vips_floor
+Vips.Image.ceil = vips_ceil
+Vips.Image.rint = vips_rint
 Vips.Image.bandsplit = vips_bandsplit
 Vips.Image.maxpos = vips_maxpos
 Vips.Image.minpos = vips_minpos

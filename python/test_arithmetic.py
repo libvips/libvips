@@ -107,7 +107,7 @@ class TestArithmetic(unittest.TestCase):
          for x in self.all_images for y in fmt for z in fmt]
 
     def setUp(self):
-        im = Vips.Image.mask_ideal(100, 100, 0.5)
+        im = Vips.Image.mask_ideal(100, 100, 0.5, optical = True)
         self.colour = im * [1, 2, 3] + [2, 3, 4]
         self.mono = self.colour.extract_band(1)
         self.all_images = [self.mono, self.colour]
@@ -559,6 +559,47 @@ class TestArithmetic(unittest.TestCase):
 
         self.run_unary(self.all_images, my_exp10, fmt = noncomplex_formats)
 
+    def test_floor(self):
+        def my_floor(x):
+            if isinstance(x, Vips.Image):
+                return x.floor()
+            else:
+                return math.floor(x)
+
+        self.run_unary(self.all_images, my_floor)
+
+    def test_ceil(self):
+        def my_ceil(x):
+            if isinstance(x, Vips.Image):
+                return x.ceil()
+            else:
+                return math.ceil(x)
+
+        self.run_unary(self.all_images, my_ceil)
+
+    def test_rint(self):
+        def my_rint(x):
+            if isinstance(x, Vips.Image):
+                return x.rint()
+            else:
+                return round(x)
+
+        self.run_unary(self.all_images, my_rint)
+
+    def test_sign(self):
+        def my_sign(x):
+            if isinstance(x, Vips.Image):
+                return x.sign()
+            else:
+                if x > 0:
+                    return 1
+                elif x < 0:
+                    return -1
+                else:
+                    return 0
+
+        self.run_unary(self.all_images, my_sign)
+
     def test_max(self):
         test = Vips.Image.black(100, 100).draw_rect(100, 40, 50, 1, 1)
 
@@ -624,8 +665,34 @@ class TestArithmetic(unittest.TestCase):
 
             self.assertAlmostEqualObjects(rows.getpoint(0,10), [50 * 10])
 
+    def test_stats(self):
+        im = Vips.Image.black(50, 50)
+        test = im.insert(im + 10, 50, 0, expand = True)
 
+        for x in noncomplex_formats:
+            a = test.cast(x)
+            matrix = a.stats()
 
+            self.assertAlmostEqualObjects(matrix.getpoint(0, 0), [a.min()])
+            self.assertAlmostEqualObjects(matrix.getpoint(1, 0), [a.max()])
+            self.assertAlmostEqualObjects(matrix.getpoint(2, 0), [50 * 50 * 10])
+            self.assertAlmostEqualObjects(matrix.getpoint(3, 0), [50 * 50 * 100])
+            self.assertAlmostEqualObjects(matrix.getpoint(4, 0), [a.avg()])
+            self.assertAlmostEqualObjects(matrix.getpoint(5, 0), [a.deviate()])
+
+            self.assertAlmostEqualObjects(matrix.getpoint(0, 1), [a.min()])
+            self.assertAlmostEqualObjects(matrix.getpoint(1, 1), [a.max()])
+            self.assertAlmostEqualObjects(matrix.getpoint(2, 1), [50 * 50 * 10])
+            self.assertAlmostEqualObjects(matrix.getpoint(3, 1), [50 * 50 * 100])
+            self.assertAlmostEqualObjects(matrix.getpoint(4, 1), [a.avg()])
+            self.assertAlmostEqualObjects(matrix.getpoint(5, 1), [a.deviate()])
+
+    def test_sum(self):
+        for fmt in all_formats:
+            im = Vips.Image.black(50, 50)
+            im2 = [(im + x).cast(fmt) for x in range(0, 100, 10)]
+            im3 = Vips.Image.sum(im2)
+            self.assertAlmostEqual(im3.max(), sum(range(0, 100, 10)))
 
 if __name__ == '__main__':
     unittest.main()
