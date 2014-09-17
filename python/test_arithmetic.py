@@ -56,8 +56,8 @@ def run_fn2(fn, x, y):
 class TestArithmetic(unittest.TestCase):
     # test a pair of things which can be lists for approx. equality
     def assertAlmostEqualObjects(self, a, b, msg = ''):
+        #print 'assertAlmostEqualObjects %s = %s' % (a, b)
         for x, y in zip_expand(a, b):
-            #print 'assertAlmostEqual %s = %s' % (x, y)
             self.assertAlmostEqual(x, y, places = 4, msg = msg)
 
     # run a function on an image and on a single pixel, the results 
@@ -194,6 +194,84 @@ class TestArithmetic(unittest.TestCase):
 
         self.run_arith_const(my_xor, fmt = noncomplex_formats)
         self.run_arith(my_xor, fmt = noncomplex_formats)
+
+    def test_more(self):
+        def more(x, y):
+            if isinstance(x, Vips.Image) or isinstance(y, Vips.Image):
+                return x > y
+            else:
+                if x > y:
+                    return 255
+                else:
+                    return 0
+
+        self.run_arith_const(more)
+        self.run_arith(more)
+
+    def test_moreeq(self):
+        def moreeq(x, y):
+            if isinstance(x, Vips.Image) or isinstance(y, Vips.Image):
+                return x >= y
+            else:
+                if x >= y:
+                    return 255
+                else:
+                    return 0
+
+        self.run_arith_const(moreeq)
+        self.run_arith(moreeq)
+
+    def test_less(self):
+        def less(x, y):
+            if isinstance(x, Vips.Image) or isinstance(y, Vips.Image):
+                return x < y
+            else:
+                if x < y:
+                    return 255
+                else:
+                    return 0
+
+        self.run_arith_const(less)
+        self.run_arith(less)
+
+    def test_lesseq(self):
+        def lesseq(x, y):
+            if isinstance(x, Vips.Image) or isinstance(y, Vips.Image):
+                return x <= y
+            else:
+                if x <= y:
+                    return 255
+                else:
+                    return 0
+
+        self.run_arith_const(lesseq)
+        self.run_arith(lesseq)
+
+    def test_equal(self):
+        def equal(x, y):
+            if isinstance(x, Vips.Image) or isinstance(y, Vips.Image):
+                return x == y
+            else:
+                if x == y:
+                    return 255
+                else:
+                    return 0
+
+        self.run_arith_const(equal)
+        self.run_arith(equal)
+
+    def test_noteq(self):
+        def noteq(x, y):
+            if isinstance(x, Vips.Image) or isinstance(y, Vips.Image):
+                return x != y
+            else:
+                if x != y:
+                    return 255
+                else:
+                    return 0
+
+        self.run_arith_const(noteq)
+        self.run_arith(noteq)
 
     # run a function on an image, 
     # 50,50 and 10,10 should have different values on the test image

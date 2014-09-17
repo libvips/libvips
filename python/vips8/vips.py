@@ -422,37 +422,37 @@ def vips_more(self, other):
     if isinstance(other, Vips.Image):
         return self.relational(other, Vips.OperationRelational.MORE)
     else:
-        return self.relational_const(Vips.OperationRelational.MORE, other)
+        return self.relational_const(other, Vips.OperationRelational.MORE)
 
 def vips_moreeq(self, other):
     if isinstance(other, Vips.Image):
         return self.relational(other, Vips.OperationRelational.MOREEQ)
     else:
-        return self.relational_const(Vips.OperationRelational.MOREEQ, other)
+        return self.relational_const(other, Vips.OperationRelational.MOREEQ)
 
 def vips_less(self, other):
     if isinstance(other, Vips.Image):
-        return self.relational(other, Vips.OperationRelational.MORE)
+        return self.relational(other, Vips.OperationRelational.LESS)
     else:
-        return self.relational_const(Vips.OperationRelational.MORE, other)
+        return self.relational_const(other, Vips.OperationRelational.LESS)
 
 def vips_lesseq(self, other):
     if isinstance(other, Vips.Image):
         return self.relational(other, Vips.OperationRelational.LESSEQ)
     else:
-        return self.relational_const(Vips.OperationRelational.LESSEQ, other)
+        return self.relational_const(other, Vips.OperationRelational.LESSEQ)
 
 def vips_equal(self, other):
     if isinstance(other, Vips.Image):
         return self.relational(other, Vips.OperationRelational.EQUAL)
     else:
-        return self.relational_const(Vips.OperationRelational.EQUAL, other)
+        return self.relational_const(other, Vips.OperationRelational.EQUAL)
 
 def vips_notequal(self, other):
     if isinstance(other, Vips.Image):
         return self.relational(other, Vips.OperationRelational.NOTEQ)
     else:
-        return self.relational_const(Vips.OperationRelational.NOTEQ, other)
+        return self.relational_const(other, Vips.OperationRelational.NOTEQ)
 
 def vips_neg(self):
     return -1 * self
