@@ -1,16 +1,6 @@
 
 - python:
 
-	- try:
-
-		$ python test_arithmetic.py -v TestArithmetic.test_moreeq
-		test_moreeq (__main__.TestArithmetic) ... **
-		VIPS:ERROR:cache.c:606:vips_cache_insert: assertion failed:
-		(!g_hash_table_lookup( vips_cache_table, operation ))
-		Aborted (core dumped)
-
-	  same for more; less, lesseq, equal and noteq are fine
-
 	- could import like this:
 
 		from gi.repository import Vips 
@@ -19,6 +9,9 @@
 	  ie. make it a module, not a package, and make it clear that it
 	  modifies Vips rather than adding anything itself
 
+	- should be a separate package?
+
+	  easier to get into CPAN or whatever the python thing is called
 
 
 - can we pick the vipsthumbnail int shrink factor more intelligently?
