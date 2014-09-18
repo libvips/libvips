@@ -5,6 +5,7 @@
 - fix vipsthumbnail with both input cmyk and output rgb profiles specified
 - vipsthumbnail retries with specified input profile if embedded profile is
   broken
+- add @profile option to pngsave, matching tiff and jpeg
 
 8/9/14 started 7.40.8
 - fix configure on rhel6 [Lovell]

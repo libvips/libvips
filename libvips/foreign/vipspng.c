@@ -783,7 +783,7 @@ write_png_block( VipsRegion *region, Rect *area, void *a )
 /* Write a VIPS image to PNG.
  */
 static int
-write_vips( Write *write, int compress, int interlace )
+write_vips( Write *write, int compress, int interlace, const char *profile )
 {
 	VipsImage *in = write->in;
 
@@ -854,21 +854,42 @@ write_vips( Write *write, int compress, int interlace )
 
 	/* Set ICC Profile.
 	 */
-	if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-		void *profile;
-		size_t profile_length;
+	if( profile ) {
+		if( strcmp( profile, "none" ) != 0 ) { 
+			void *data;
+			unsigned int length;
+
+			if( !(data = 
+				vips__file_read_name( profile, VIPS_ICC_DIR, 
+				&length )) ) 
+				return( -1 );
+
+#ifdef DEBUG
+			printf( "write_vips: "
+				"attaching %d bytes of ICC profile\n",
+				length );
+#endif /*DEBUG*/
+
+			png_set_iCCP( write->pPng, write->pInfo, "icc", 
+				PNG_COMPRESSION_TYPE_BASE, 
+				data, length );
+		}
+	}
+	else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+		void *data;
+		size_t length;
 
 		if( vips_image_get_blob( in, VIPS_META_ICC_NAME, 
-			&profile, &profile_length ) ) 
+			&data, &length ) ) 
 			return( -1 ); 
 
 #ifdef DEBUG
 		printf( "write_vips: attaching %zd bytes of ICC profile\n",
-			profile_length );
+			length );
 #endif /*DEBUG*/
 
 		png_set_iCCP( write->pPng, write->pInfo, "icc", 
-			PNG_COMPRESSION_TYPE_BASE, profile, profile_length );
+			PNG_COMPRESSION_TYPE_BASE, data, length );
 	}
 
 	png_write_info( write->pPng, write->pInfo ); 
@@ -902,7 +923,7 @@ write_vips( Write *write, int compress, int interlace )
 
 int
 vips__png_write( VipsImage *in, const char *filename, 
-	int compress, int interlace )
+	int compress, int interlace, const char *profile )
 {
 	Write *write;
 
@@ -921,7 +942,7 @@ vips__png_write( VipsImage *in, const char *filename,
 
 	/* Convert it!
 	 */
-	if( write_vips( write, compress, interlace ) ) {
+	if( write_vips( write, compress, interlace, profile ) ) {
 		vips_error( "vips2png", 
 			_( "unable to write \"%s\"" ), filename );
 
@@ -1007,7 +1028,8 @@ user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
 
 int
 vips__png_write_buf( VipsImage *in, 
-	void **obuf, size_t *olen, int compression, int interlace )
+	void **obuf, size_t *olen, int compression, int interlace,
+	const char *profile )
 {
 	WriteBuf *wbuf;
 	Write *write;
@@ -1023,7 +1045,7 @@ vips__png_write_buf( VipsImage *in,
 
 	/* Convert it!
 	 */
-	if( write_vips( write, compression, interlace ) ) {
+	if( write_vips( write, compression, interlace, profile ) ) {
 		write_buf_free( wbuf );
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );

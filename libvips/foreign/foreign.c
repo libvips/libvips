@@ -2498,6 +2498,7 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * @compression: compression level
  * @interlace: interlace image
+ * @profile: ICC profile to embed
  *
  * Write a VIPS image to a file as PNG.
  *
@@ -2508,7 +2509,12 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * than an interlaced PNG can be up to 7 times slower to write than a
  * non-interlaced image.
  *
- * If the VIPS header 
+ * Use @profile to give the filename of a profile to be embedded in the PNG.
+ * This does not affect the pixels which are written, just the way 
+ * they are tagged. You can use the special string "none" to mean 
+ * "don't attach a profile".
+ *
+ * If @profile is specified and the VIPS header 
  * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
  * profile from the VIPS header will be attached.
  *
@@ -2544,6 +2550,7 @@ vips_pngsave( VipsImage *in, const char *filename, ... )
  *
  * @compression: compression level
  * @interlace: interlace image
+ * @profile: ICC profile to embed
  *
  * As vips_pngsave(), but save to a memory buffer. 
  *
