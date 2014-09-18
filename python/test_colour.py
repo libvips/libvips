@@ -25,7 +25,6 @@ all_formats = int_formats + float_formats + complex_formats
 
 colour_colourspaces = [Vips.Interpretation.XYZ,
                        Vips.Interpretation.LAB,
-                       Vips.Interpretation.LABQ,
                        Vips.Interpretation.LCH,
                        Vips.Interpretation.CMC,
                        Vips.Interpretation.LABS,
@@ -33,9 +32,10 @@ colour_colourspaces = [Vips.Interpretation.XYZ,
                        Vips.Interpretation.SRGB,
                        Vips.Interpretation.RGB16,
                        Vips.Interpretation.YXY]
+coded_colourspaces = [Vips.Interpretation.LABQ]
 mono_colourspaces = [Vips.Interpretation.GREY16,
                      Vips.Interpretation.B_W]
-all_colourspaces = colour_colourspaces + mono_colourspaces
+all_colourspaces = colour_colourspaces + mono_colourspaces + coded_colourspaces
 
 # an expanding zip ... if either of the args is not a list, duplicate it down
 # the other
@@ -107,28 +107,87 @@ class TestColour(unittest.TestCase):
         self.mono = self.colour.extract_band(1)
         self.all_images = [self.mono, self.colour]
 
+    def test_bug(self):
+        test = Vips.Image.black(100, 100) + [50, 0, 0, 42]
+        test = test.copy(interpretation = Vips.Interpretation.LAB)
+        im = test.colourspace(Vips.Interpretation.XYZ)
+        after = im.getpoint(10, 10)
+        self.assertAlmostEqualObjects(after, [17.5064, 18.4187, 20.0547, 42])
+
     def test_colourspace(self):
-        # mid-grey in Lab
-        test = Vips.Image.black(100, 100) + [50, 0, 0]
+        # mid-grey in Lab ... put 42 in the extra band, it should be copied
+        # unmodified
+        test = Vips.Image.black(100, 100) + [50, 0, 0, 42]
         test = test.copy(interpretation = Vips.Interpretation.LAB)
 
+        # a long series should come in a circle
         im = test
         for col in colour_colourspaces + [Vips.Interpretation.LAB]:
             im = im.colourspace(col)
             self.assertEqual(im.interpretation, col)
+            pixel = im.getpoint(10, 10)
+            self.assertAlmostEqual(pixel[3], 42, places = 2)
 
         before = test.getpoint(10, 10)
         after = im.getpoint(10, 10)
         self.assertAlmostEqualObjects(before, after, places = 1)
 
-        test = Vips.Image.black(100, 100) + [50, 0, 0]
-        test = test.copy(interpretation = Vips.Interpretation.LAB)
-        im = im.colourspace(Vips.Interpretation.XYZ)
+        # test Lab->XYZ on mid-grey
+        # checked against http://www.brucelindbloom.com
+        im = test.colourspace(Vips.Interpretation.XYZ)
         after = im.getpoint(10, 10)
+        self.assertAlmostEqualObjects(after, [17.5064, 18.4187, 20.0547, 42])
 
-        print 'after =', after
-        self.assertAlmostEqualObjects(after, [17.5064, 18.4187, 20.0547])
-    
+        # grey->colour->grey should be equal
+        for mono_fmt in mono_colourspaces:
+            test_grey = test.colourspace(mono_fmt)
+            im = test_grey
+            for col in colour_colourspaces + [mono_fmt]:
+                im = im.colourspace(col)
+                self.assertEqual(im.interpretation, col)
+            [before, alpha_before] = test_grey.getpoint(10, 10)
+            [after, alpha_after] = im.getpoint(10, 10)
+            self.assertLess(abs(alpha_after - alpha_before), 1)
+            if mono_fmt == Vips.Interpretation.GREY16:
+                # GREY16 can wind up rather different due to rounding
+                self.assertLess(abs(after - before), 30)
+            else:
+                # but 8-bit we should hit exactly
+                self.assertLess(abs(after - before), 1)
+
+    # checked against Bruce Lindbloom's calculator:
+    # http://www.brucelindbloom.com/index.html?Eqn_DeltaE_CIE2000.html
+
+    def test_dE00(self):
+        reference = Vips.Image.black(100, 100) + [50, 10, 20]
+        reference = reference.copy(interpretation = Vips.Interpretation.LAB)
+        sample = Vips.Image.black(100, 100) + [40, -20, 10]
+        sample = sample.copy(interpretation = Vips.Interpretation.LAB)
+
+        difference = reference.dE00(sample)
+        result = difference.getpoint(10, 10)
+        self.assertAlmostEqualObjects(result, [30.238], places = 3)
+
+    def test_dE76(self):
+        reference = Vips.Image.black(100, 100) + [50, 10, 20]
+        reference = reference.copy(interpretation = Vips.Interpretation.LAB)
+        sample = Vips.Image.black(100, 100) + [40, -20, 10]
+        sample = sample.copy(interpretation = Vips.Interpretation.LAB)
+
+        difference = reference.dE76(sample)
+        result = difference.getpoint(10, 10)
+        self.assertAlmostEqualObjects(result, [33.166], places = 3)
+
+    def test_dECMC(self):
+        reference = Vips.Image.black(100, 100) + [50, 10, 20]
+        reference = reference.copy(interpretation = Vips.Interpretation.LAB)
+        sample = Vips.Image.black(100, 100) + [40, -20, 10]
+        sample = sample.copy(interpretation = Vips.Interpretation.LAB)
+
+        difference = reference.dECMC(sample)
+        result = difference.getpoint(10, 10)
+        self.assertAlmostEqualObjects(result, [44.1147], places = 3)
+
 
 
 
