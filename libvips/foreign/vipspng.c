@@ -857,22 +857,20 @@ write_vips( Write *write, int compress, int interlace, const char *profile )
 	if( profile ) {
 		if( strcmp( profile, "none" ) != 0 ) { 
 			void *data;
-			unsigned int length;
+			size_t length;
 
-			if( !(data = 
-				vips__file_read_name( profile, VIPS_ICC_DIR, 
-				&length )) ) 
+			if( !(data = vips__file_read_name( profile, 
+				VIPS_ICC_DIR, &length )) ) 
 				return( -1 );
 
 #ifdef DEBUG
 			printf( "write_vips: "
-				"attaching %d bytes of ICC profile\n",
+				"attaching %zd bytes of ICC profile\n",
 				length );
 #endif /*DEBUG*/
 
 			png_set_iCCP( write->pPng, write->pInfo, "icc", 
-				PNG_COMPRESSION_TYPE_BASE, 
-				data, length );
+				PNG_COMPRESSION_TYPE_BASE, data, length );
 		}
 	}
 	else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {

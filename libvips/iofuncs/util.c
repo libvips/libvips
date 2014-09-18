@@ -620,7 +620,7 @@ vips__file_open_write( const char *filename, gboolean text_mode )
 /* Load up a file as a string.
  */
 char *
-vips__file_read( FILE *fp, const char *filename, unsigned int *length_out )
+vips__file_read( FILE *fp, const char *filename, size_t *length_out )
 {
         gint64 len;
 	size_t read;
@@ -697,7 +697,7 @@ vips__file_read( FILE *fp, const char *filename, unsigned int *length_out )
  */
 char *
 vips__file_read_name( const char *filename, const char *fallback_dir, 
-	unsigned int *length_out )
+	size_t *length_out )
 {
 	FILE *fp;
 	char *buffer;

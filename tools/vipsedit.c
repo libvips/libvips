@@ -216,7 +216,7 @@ main( int argc, char **argv )
 
 	if( setext ) {
 		char *xml;
-		unsigned int size;
+		size_t size;
 
 		if( !(xml = im__file_read( stdin, "stdin", &size )) )
 			error_exit( "%s", _( "could not get ext data" ) );

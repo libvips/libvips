@@ -402,7 +402,7 @@ static int
 embed_profile_file( TIFF *tif, const char *profile )
 {
 	char *buffer;
-	unsigned int length;
+	size_t length;
 
 	if( !(buffer = vips__file_read_name( profile, VIPS_ICC_DIR, &length )) )
 		return( -1 );

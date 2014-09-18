@@ -181,7 +181,7 @@ typedef struct {
         ErrorManager eman;
 	JSAMPROW *row_pointer;
 	char *profile_bytes;
-	unsigned int profile_length;
+	size_t profile_length;
 	VipsImage *inverted;
 } Write;
 

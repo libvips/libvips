@@ -277,7 +277,7 @@ static int
 vips_colour_attach_profile( VipsImage *im, const char *filename )
 {
 	char *data;
-	unsigned int data_length;
+	size_t data_length;
 
 	if( !(data = vips__file_read_name( filename, VIPS_ICC_DIR, 
 		&data_length )) ) 

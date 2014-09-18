@@ -201,9 +201,9 @@ FILE *vips__file_open_read( const char *filename,
 	const char *fallback_dir, gboolean text_mode );
 FILE *vips__file_open_write( const char *filename, 
 	gboolean text_mode );
-char *vips__file_read( FILE *fp, const char *name, unsigned int *length_out );
+char *vips__file_read( FILE *fp, const char *name, size_t *length_out );
 char *vips__file_read_name( const char *name, const char *fallback_dir, 
-	unsigned int *length_out );
+	size_t *length_out );
 int vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
 int vips__get_bytes( const char *filename, unsigned char buf[], int len );
 
