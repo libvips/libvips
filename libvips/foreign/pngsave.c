@@ -58,6 +58,7 @@ typedef struct _VipsForeignSavePng {
 
 	int compression;
 	gboolean interlace;
+	char *profile;
 } VipsForeignSavePng;
 
 typedef VipsForeignSaveClass VipsForeignSavePngClass;
@@ -115,6 +116,14 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePng, interlace ),
 		FALSE );
+
+	VIPS_ARG_STRING( class, "profile", 11, 
+		_( "Profile" ), 
+		_( "ICC profile to embed" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, profile ),
+		NULL );
+
 }
 
 static void
@@ -146,7 +155,7 @@ vips_foreign_save_png_file_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__png_write( save->ready, png_file->filename,
-		png->compression, png->interlace ) ) 
+		png->compression, png->interlace, png->profile ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -204,7 +213,7 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__png_write_buf( save->ready, &obuf, &olen,
-		png->compression, png->interlace ) )
+		png->compression, png->interlace, png->profile ) )
 		return( -1 );
 
 	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );

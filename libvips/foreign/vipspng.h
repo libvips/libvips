@@ -46,9 +46,10 @@ int vips__png_read_buffer( char *buffer, size_t length, VipsImage *out,
 int vips__png_header_buffer( char *buffer, size_t length, VipsImage *out );
 
 int vips__png_write( VipsImage *in, const char *filename, 
-	int compress, int interlace );
+	int compress, int interlace, const char *profile );
 int vips__png_write_buf( VipsImage *in, 
-	void **obuf, size_t *olen, int compression, int interlace );
+	void **obuf, size_t *olen, int compression, int interlace, 
+	const char *profile );
 
 #ifdef __cplusplus
 }
