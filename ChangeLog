@@ -6,6 +6,7 @@
 - vipsthumbnail retries with specified input profile if embedded profile is
   broken
 - add @profile option to pngsave, matching tiff and jpeg
+- fix a race in the operation cache [Lovell]
 
 8/9/14 started 7.40.8
 - fix configure on rhel6 [Lovell]
