@@ -599,12 +599,9 @@ vips_cache_ref( VipsOperation *operation )
 static void
 vips_cache_insert( VipsOperation *operation )
 {
-	VipsOperationCacheEntry *entry = g_new( VipsOperationCacheEntry, 1 ); 
+	VipsOperationCacheEntry *entry = g_new( VipsOperationCacheEntry, 1 );
 
-	/* It must not be in cache.
-	 */
-	g_assert( !g_hash_table_lookup( vips_cache_table, operation ) );
-
+	entry = g_new( VipsOperationCacheEntry, 1 );
 	entry->operation = operation;
 	entry->time = 0;
 	entry->invalidate_id = 0;
@@ -759,28 +756,38 @@ vips_cache_operation_buildp( VipsOperation **operation )
 		*operation = hit->operation;
 	}
 
+	/* We have to unlock between search and add so that more than one
+	 * _build() can run at once. 
+	 */
 	g_mutex_unlock( vips_cache_lock );
 
 	if( !hit ) {
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
 
-		/* Has to be after _build() so we can see output args.
-		 */
-		if( vips__cache_trace ) {
-			if( vips_operation_get_flags( *operation ) & 
-				VIPS_OPERATION_NOCACHE )
-				printf( "vips cache : " );
-			else
-				printf( "vips cache+: " );
-			vips_object_print_summary( VIPS_OBJECT( *operation ) );
-		}
-
 		g_mutex_lock( vips_cache_lock );
 
-		if( !(vips_operation_get_flags( *operation ) & 
-			VIPS_OPERATION_NOCACHE) ) 
-			vips_cache_insert( *operation );
+		/* If two threads call the same operation at the same time, 
+		 * we can get multiple adds. Let the first one win. See
+		 * https://github.com/jcupitt/libvips/pull/181
+		 */
+		if( !g_hash_table_lookup( vips_cache_table, operation ) ) {
+			/* Has to be after _build() so we can see output args.
+			 */
+			if( vips__cache_trace ) {
+				if( vips_operation_get_flags( *operation ) & 
+					VIPS_OPERATION_NOCACHE )
+					printf( "vips cache : " );
+				else
+					printf( "vips cache+: " );
+				vips_object_print_summary( 
+					VIPS_OBJECT( *operation ) );
+			}
+
+			if( !(vips_operation_get_flags( *operation ) & 
+				VIPS_OPERATION_NOCACHE) ) 
+				vips_cache_insert( *operation );
+		}
 
 		g_mutex_unlock( vips_cache_lock );
 	}
