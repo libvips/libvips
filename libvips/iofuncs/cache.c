@@ -599,12 +599,12 @@ vips_cache_ref( VipsOperation *operation )
 static void
 vips_cache_insert( VipsOperation *operation )
 {
-	VipsOperationCacheEntry *entry = g_new( VipsOperationCacheEntry, 1 ); 
-
 	/* It must not be in cache.
 	 */
-	g_assert( !g_hash_table_lookup( vips_cache_table, operation ) );
+	if( g_hash_table_lookup( vips_cache_table, operation ) )
+		return;
 
+	VipsOperationCacheEntry *entry = g_new( VipsOperationCacheEntry, 1 );
 	entry->operation = operation;
 	entry->time = 0;
 	entry->invalidate_id = 0;
