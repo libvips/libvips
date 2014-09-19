@@ -771,7 +771,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 		 * we can get multiple adds. Let the first one win. See
 		 * https://github.com/jcupitt/libvips/pull/181
 		 */
-		if( !g_hash_table_lookup( vips_cache_table, operation ) ) {
+		if( !g_hash_table_lookup( vips_cache_table, *operation ) ) {
 			/* Has to be after _build() so we can see output args.
 			 */
 			if( vips__cache_trace ) {
