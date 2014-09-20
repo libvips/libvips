@@ -601,7 +601,6 @@ vips_cache_insert( VipsOperation *operation )
 {
 	VipsOperationCacheEntry *entry = g_new( VipsOperationCacheEntry, 1 );
 
-	entry = g_new( VipsOperationCacheEntry, 1 );
 	entry->operation = operation;
 	entry->time = 0;
 	entry->invalidate_id = 0;
