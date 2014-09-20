@@ -1,18 +1,6 @@
 
 - python:
 
-	- try:
-
-		$ python test_colour.py -v TestColour.test_bug
-
-	  about 1 time in 5 we see:
-
-		(test_colour.py:30997): GLib-GObject-WARNING **: instance of invalid non-instantiatable type '(null)'
-
-	  stops if we remove the extra alpha channel
-
-	  seems to be caused by band handling in vips_colour_space_build()
-
 	- dECMC result differs from Lindbloom's result:
 
 		http://www.brucelindbloom.com/index.html?Eqn_DeltaE_CIE2000.html
