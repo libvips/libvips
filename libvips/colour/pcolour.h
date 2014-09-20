@@ -65,6 +65,11 @@ typedef struct _VipsColour {
 	VipsImage **in;
 	int n;
 
+	/* If this is >0, only process this many bands from the input. Extra
+	 * bands are removed and reattached after processing.
+	 */
+	int input_bands; 
+
 	VipsImage *out;
 
 	/* Set fields on ->out from these.
