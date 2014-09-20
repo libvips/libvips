@@ -293,7 +293,6 @@ vips_colour_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsColour *colour = VIPS_COLOUR( object );
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage **in;
 	VipsImage **extra_bands; 
@@ -359,8 +358,11 @@ vips_colour_build( VipsObject *object )
 	}
 
 	out = vips_image_new();
-	if( vips_image_pipeline_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in ) )
+	if( vips_image_pipeline_array( out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, in ) ) {
+		g_object_unref( out );
 		return( -1 );
+	}
 	out->Coding = colour->coding;
 	out->Type = colour->interpretation;
 	out->BandFmt = colour->format;
@@ -368,28 +370,36 @@ vips_colour_build( VipsObject *object )
 
 	if( colour->profile_filename ) 
 		if( vips_colour_attach_profile( out, 
-			colour->profile_filename ) )
+			colour->profile_filename ) ) {
+			g_object_unref( out );
 			return( -1 );
+		}
 
 	if( vips_image_generate( out,
 		vips_start_many, vips_colour_gen, vips_stop_many, 
-		in, colour ) ) 
+		in, colour ) ) {
+		g_object_unref( out );
 		return( -1 );
+	}
 
 	/* Reattach higher bands, if necessary. If we have more than one input
 	 * image, just use the first extra bands. 
 	 */
 	for( i = 0; i < colour->n; i++ ) 
 		if( extra_bands[i] ) {
-			if( vips_bandjoin2( out, extra_bands[i], &t[1], NULL ) )
+			VipsImage *x;
+
+			if( vips_bandjoin2( out, extra_bands[i], &x,
+				NULL ) ) {
+				g_object_unref( out );
 				return( -1 );
-			out = t[1]; 
+			}
+			g_object_unref( out );
+			out = x;
 			break;
 		}
 
 	g_object_set( colour, "out", out, NULL ); 
-
-	g_object_unref( out ); 
 
 	return( 0 );
 }
@@ -447,8 +457,6 @@ vips_colour_space_build( VipsObject *object )
 
 	colour->n = 1;
 	colour->in = t;
-	if( colour->in[0] )
-		g_object_ref( colour->in[0] );
 
 	if( VIPS_OBJECT_CLASS( vips_colour_space_parent_class )->
 		build( object ) )
