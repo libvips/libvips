@@ -102,17 +102,10 @@ class TestColour(unittest.TestCase):
                       lambda x, y: run_fn2(fn, x, y))
 
     def setUp(self):
-        im = Vips.Image.mask_ideal(100, 100, 0.5, optical = True)
+        im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
         self.colour = im * [1, 2, 3] + [2, 3, 4]
         self.mono = self.colour.extract_band(1)
         self.all_images = [self.mono, self.colour]
-
-    def test_bug(self):
-        test = Vips.Image.black(100, 100) + [50, 0, 0, 42]
-        test = test.copy(interpretation = Vips.Interpretation.LAB)
-        im = test.colourspace(Vips.Interpretation.XYZ)
-        after = im.getpoint(10, 10)
-        self.assertAlmostEqualObjects(after, [17.5064, 18.4187, 20.0547, 42])
 
     def test_colourspace(self):
         # mid-grey in Lab ... put 42 in the extra band, it should be copied
@@ -155,8 +148,8 @@ class TestColour(unittest.TestCase):
                 # but 8-bit we should hit exactly
                 self.assertLess(abs(after - before), 1)
 
-    # checked against Bruce Lindbloom's calculator:
-    # http://www.brucelindbloom.com/index.html?Eqn_DeltaE_CIE2000.html
+    # test results from Bruce Lindbloom's calculator:
+    # http://www.brucelindbloom.com
 
     def test_dE00(self):
         reference = Vips.Image.black(100, 100) + [50, 10, 20]
@@ -178,6 +171,8 @@ class TestColour(unittest.TestCase):
         result = difference.getpoint(10, 10)
         self.assertAlmostEqualObjects(result, [33.166], places = 3)
 
+    # this fails ... redo the CMC space from Ronnier Luo's paper
+    # though it'll probably still fail
     def test_dECMC(self):
         reference = Vips.Image.black(100, 100) + [50, 10, 20]
         reference = reference.copy(interpretation = Vips.Interpretation.LAB)
@@ -188,8 +183,8 @@ class TestColour(unittest.TestCase):
         result = difference.getpoint(10, 10)
         self.assertAlmostEqualObjects(result, [44.1147], places = 3)
 
-
-
+    # hard to test ICC stuff without including test images 
+    # rely on the nip2 test suite for this
 
 if __name__ == '__main__':
     unittest.main()

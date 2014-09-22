@@ -107,7 +107,7 @@ class TestArithmetic(unittest.TestCase):
          for x in self.all_images for y in fmt for z in fmt]
 
     def setUp(self):
-        im = Vips.Image.mask_ideal(100, 100, 0.5, optical = True)
+        im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
         self.colour = im * [1, 2, 3] + [2, 3, 4]
         self.mono = self.colour.extract_band(1)
         self.all_images = [self.mono, self.colour]

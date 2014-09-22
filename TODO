@@ -5,6 +5,8 @@
 
 		http://www.brucelindbloom.com/index.html?Eqn_DeltaE_CIE2000.html
 
+	  requesting Ronnier's paper on his CMC colourspece, try that
+
 	- could import like this:
 
 		from gi.repository import Vips 
