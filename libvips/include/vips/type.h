@@ -196,6 +196,9 @@ typedef struct _VipsArrayImage {
 	VipsArea area;
 } VipsArrayImage;
 
+/* See image.h for vips_array_image_new() etc., they need to be declared after
+ * VipsImage.
+ */
 GType vips_array_image_get_type( void );
 
 void vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data );

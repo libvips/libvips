@@ -999,6 +999,10 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
  * @n: number of images
  *
  * Allocate a new array of images and copy @array into it. Free with
+ * vips_area_unref(). 
+ *
+ * The images will all be reffed by this function. They 
+ * will be automatically unreffed for you by
  * vips_area_unref().
  *
  * See also: #VipsArea.
@@ -1006,14 +1010,58 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
  * Returns: (transfer full): A new #VipsArrayImage.
  */
 VipsArrayImage *
-vips_array_image_new( const VipsImage **array, int n )
+vips_array_image_new( VipsImage **array, int n )
 {
 	VipsArea *area;
-	VipsImage *array_copy;
+	VipsImage **array_copy;
+	int i;
 
-	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
+	area = vips_area_new_array_object( n );
+	area->type = VIPS_TYPE_IMAGE;
+
 	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
-	memcpy( array_copy, array, n * sizeof( double ) );
+	for( i = 0; i < n; i++ ) {
+		array_copy[i] = (VipsImage *) array[i]; 
+		g_object_ref( array_copy[i] ); 
+	}
+
+	return( (VipsArrayImage *) area );
+}
+
+/**
+ * vips_array_image_newv:
+ * @n: number of images
+ * @...: list of #VipsImage arguments
+ *
+ * Allocate a new array of @n #VipsImage and copy @... into it. Free with
+ * vips_area_unref(). 
+ *
+ * The images will all be reffed by this function. They 
+ * will be automatically unreffed for you by
+ * vips_area_unref().
+ *
+ * See also: vips_array_image_new()
+ *
+ * Returns: (transfer full): A new #VipsArrayImage.
+ */
+VipsArrayImage *
+vips_array_image_newv( int n, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	VipsImage **array;
+	int i;
+
+	area = vips_area_new_array_object( n );
+	area->type = VIPS_TYPE_IMAGE;
+
+	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+	va_start( ap, n );
+	for( i = 0; i < n; i++ ) {
+		array[i] = va_arg( ap, VipsImage * ); 
+		g_object_ref( array[i] ); 
+	}
+	va_end( ap );
 
 	return( (VipsArrayImage *) area );
 }

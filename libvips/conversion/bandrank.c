@@ -256,21 +256,12 @@ vips_bandrank_init( VipsBandrank *bandrank )
 static int
 vips_bandrankv( VipsImage **in, VipsImage **out, int n, va_list ap )
 {
-	VipsArea *area;
-	VipsImage **array; 
-	int i;
+	VipsArrayImage *array; 
 	int result;
 
-	area = vips_area_new_array_object( n );
-	array = (VipsImage **) area->data;
-	for( i = 0; i < n; i++ ) {
-		array[i] = in[i];
-		g_object_ref( array[i] );
-	}
-
-	result = vips_call_split( "bandrank", ap, area, out );
-
-	vips_area_unref( area );
+	array = vips_array_image_new( in, n ); 
+	result = vips_call_split( "bandrank", ap, array, out );
+	vips_area_unref( VIPS_AREA( array ) );
 
 	return( result );
 }
