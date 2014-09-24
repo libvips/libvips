@@ -110,5 +110,14 @@ class TestConversion(unittest.TestCase):
 
         self.run_unary([self.colour], band_eor, fmt = int_formats)
 
+    def test_bandjoin(self):
+        im2 = Vips.Image.bandjoin([self.colour, self.mono])
+
+        self.assertEqual(im2.bands, self.colour.bands + self.mono.bands)
+        v = im2.getpoint(10, 10)
+        self.assertAlmostEqualObjects(v, [2, 3, 4, 3])
+        v = im2.getpoint(50, 50)
+        self.assertAlmostEqualObjects(v, [3, 5, 7, 5])
+
 if __name__ == '__main__':
     unittest.main()

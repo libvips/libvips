@@ -517,6 +517,9 @@ def vips_exp(self):
 def vips_exp10(self):
         return self.math(Vips.OperationMath.EXP10)
 
+def vips_bandjoin2(self, other):
+        return Vips.Image.bandjoin([self, other])
+
 # paste our methods into Vips.Image
 
 # class methods
@@ -589,6 +592,7 @@ Vips.Image.log = vips_log
 Vips.Image.log10 = vips_log10
 Vips.Image.exp = vips_exp
 Vips.Image.exp10 = vips_exp10
+Vips.Image.bandjoin2 = vips_bandjoin2
 
 # operator overloads
 Vips.Image.__getattr__ = vips_image_getattr
