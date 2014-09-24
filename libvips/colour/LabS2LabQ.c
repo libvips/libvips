@@ -141,7 +141,7 @@ vips_LabS2LabQ_init( VipsLabS2LabQ *LabS2LabQ )
 
 	code->input_coding = VIPS_CODING_NONE;
 	code->input_format = VIPS_FORMAT_SHORT;
-	code->input_bands = 3;
+	colour->input_bands = 3;
 }
 
 /**

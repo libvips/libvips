@@ -216,7 +216,7 @@ vips_float2rad_init( VipsFloat2rad *float2rad )
 
 	code->input_coding = VIPS_CODING_NONE;
 	code->input_format = VIPS_FORMAT_FLOAT;
-	code->input_bands = 3;
+	colour->input_bands = 3;
 }
 
 /**

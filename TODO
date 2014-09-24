@@ -1,28 +1,4 @@
-
 - python:
-
-	- oh argh still getting this sometimes
-
-		$ python test_colour.py -v TestColour.test_colourspace
-		test_colourspace (__main__.TestColour) ... ok
-
-		----------------------------------------------------------------------
-		Ran 1 test in 0.144s
-
-		OK
-
-		(test_colour.py:10826): GLib-GObject-WARNING **: instance of invalid
-		non-instantiatable type '(null)'
-		Trace/breakpoint trap (core dumped)
-
-	- colour difference does detach / reattach bands (badly), it should 
-	  use the thing in the base class instead
-
-	- dECMC result differs from Lindbloom's result:
-
-		http://www.brucelindbloom.com/index.html?Eqn_DeltaE_CIE2000.html
-
-	  requesting Ronnier's paper on his CMC colourspece, try that
 
 	- could import like this:
 
@@ -32,7 +8,7 @@
 	  ie. make it a module, not a package, and make it clear that it
 	  modifies Vips rather than adding anything itself
 
-	- should be a separate package?
+	- should be a separate package? pyvips?
 
 	  easier to get into CPAN or whatever the python thing is called
 

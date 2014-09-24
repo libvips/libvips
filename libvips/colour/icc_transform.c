@@ -238,7 +238,7 @@ vips_icc_build( VipsObject *object )
 		code->in ) {
 		switch( cmsGetColorSpace( icc->in_profile ) ) {
 		case cmsSigRgbData:
-			code->input_bands = 3;
+			colour->input_bands = 3;
 			code->input_format = 
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
 				VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
@@ -249,7 +249,7 @@ vips_icc_build( VipsObject *object )
 
 #ifdef HAVE_LCMS2
 		case cmsSigGrayData:
-			code->input_bands = 1;
+			colour->input_bands = 1;
 			code->input_format = 
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
 				VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
@@ -260,7 +260,7 @@ vips_icc_build( VipsObject *object )
 #endif /*HAVE_LCMS2*/
 
 		case cmsSigCmykData:
-			code->input_bands = 4;
+			colour->input_bands = 4;
 			code->input_format = 
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
 				VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
@@ -270,7 +270,7 @@ vips_icc_build( VipsObject *object )
 			break;
 
 		case cmsSigLabData:
-			code->input_bands = 3;
+			colour->input_bands = 3;
 			code->input_format = VIPS_FORMAT_FLOAT;
 			code->input_interpretation = 
 				VIPS_INTERPRETATION_LAB;
@@ -278,7 +278,7 @@ vips_icc_build( VipsObject *object )
 			break;
 
 		case cmsSigXYZData:
-			code->input_bands = 3;
+			colour->input_bands = 3;
 			code->input_format = VIPS_FORMAT_FLOAT;
 			icc->in_icc_format = TYPE_XYZ_16;
 			break;

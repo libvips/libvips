@@ -107,17 +107,6 @@ class TestColour(unittest.TestCase):
         self.mono = self.colour.extract_band(1)
         self.all_images = [self.mono, self.colour]
 
-    def test_bug(self):
-        # mid-grey in Lab ... put 42 in the extra band, it should be copied
-        # unmodified
-        test = Vips.Image.black(100, 100) + [50, 0, 0, 42]
-        test = test.copy(interpretation = Vips.Interpretation.LAB)
-
-        # a long series should come in a circle
-        im = test
-        for col in [Vips.Interpretation.RGB16]:
-            im = im.colourspace(col)
-
     def test_colourspace(self):
         # mid-grey in Lab ... put 42 in the extra band, it should be copied
         # unmodified

@@ -166,7 +166,7 @@ vips_sRGB2scRGB_init( VipssRGB2scRGB *sRGB2scRGB )
 	colour->bands = 3;
 
 	code->input_coding = VIPS_CODING_NONE;
-	code->input_bands = 3;
+	colour->input_bands = 3;
 
 	/* The default. This can get changed above ^^ if we see a 
 	 * 16-bit input.
