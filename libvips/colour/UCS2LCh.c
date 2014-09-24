@@ -284,6 +284,8 @@ vips_CMC2LCh_init( VipsCMC2LCh *CMC2LCh )
  *
  * Turn LCh to CMC.
  *
+ * See also: vips_LCh2CMC(). 
+ *
  * Returns: 0 on success, -1 on error
  */
 int

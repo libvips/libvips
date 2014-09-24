@@ -1,10 +1,12 @@
-/* im_LCh2CMC
+/* LCh2CMC
  *
  * Modified:
  * 2/11/09
  * 	- gtkdoc
  * 19/9/12
  * 	- redone as a class
+ * 24/9/14
+ * 	- rechecked against original paper, seems OK
  */
 
 /*
@@ -51,6 +53,31 @@ typedef VipsColourSpaceClass VipsLCh2CMCClass;
 
 G_DEFINE_TYPE( VipsLCh2CMC, vips_LCh2CMC, VIPS_TYPE_COLOUR_SPACE );
 
+/* I ordered this paper from the library and it took ages. For reference, the
+ * recommended short formula are:
+ *
+ * Lucs 
+ * 	= 1.744 * L, L < 16
+ * 	= (1/l) * (21.75 * ln(L) + 0.3838 * L - 38.54), otherwise
+ *
+ * Cucs = (l/c) * (0.162 * C + 10.92 * (ln(0.638 + 0.07216 * C)) + 4.907)
+ *
+ * hucs = h + D * f
+ * where
+ *	D = k4 + k5 * P * | P | ** k6
+ *	P = cos(k7 * h + k8)
+ *	f = (C ** 4 / (C ** 4 + 1900)) ** 0.5
+ *
+ * h		k4	k5	k6	k7 	k8
+ * 0 - 49	133.87	-134.5	-0.924	1.727	340
+ * 49 - 110	11.78	-12.7	-0.218	2.120	333
+ * 110 - 269.5	13.87	10.93	0.140	1.000	-83
+ * 269.5 - 360	0.14	5.23	0.170	1.610	233
+ *
+ * They have a much more complicated but slightly more accurate formula for 
+ * hucs. This one is pretty good, simple approximation. 
+ */
+
 /**
  * vips_col_L2Lcmc:
  * @L: CIE L*
@@ -64,10 +91,10 @@ vips_col_L2Lcmc( float L )
 {	
 	float Lcmc;
 
-	if( L >= 16.0 )
-		Lcmc = (21.75 * log( L ) + 0.3838 * L - 38.54);
-	else
+	if( L < 16.0 )
 		Lcmc = 1.744 * L;
+	else
+		Lcmc = 21.75 * log( L ) + 0.3838 * L - 38.54;
 
 	return( Lcmc );
 }
@@ -137,7 +164,7 @@ vips_col_Ch2hcmc( float C, float h )
 		k8 = 233.0;
 	}
 
-	P = cos( VIPS_RAD( k8 + k7 * h ) );
+	P = cos( VIPS_RAD( k7 * h + k8 ) );
 	D = k4 + k5 * P * pow( fabs( P ), k6 );
 	g = C * C * C * C;
 	f = sqrt( g / (g + 1900.0) );
@@ -195,6 +222,17 @@ vips_LCh2CMC_init( VipsLCh2CMC *LCh2CMC )
  * @out: output image
  *
  * Turn LCh to CMC.
+ *
+ * The CMC colourspace is described in "Uniform Colour Space Based on the
+ * CMC(l:c) Colour-difference Formula", M R Luo and B Rigg, Journal of the
+ * Society of Dyers and Colourists, vol 102, 1986. Distances in this 
+ * colourspace approximate, within 10% or so, differences in the CMC(l:c)
+ * colour difference formula.
+ *
+ * This operation generates CMC(1:1). For CMC(2:1), halve Lucs and double
+ * Cucs. 
+ *
+ * See also: vips_CMC2LCh(). 
  *
  * Returns: 0 on success, -1 on error
  */

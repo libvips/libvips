@@ -165,6 +165,12 @@
  *       This is a highly uniform colour space, much better than CIELAB for 
  *       expressing small differences. 
  *
+ * The CMC colourspace is described in "Uniform Colour Space Based on the
+ * CMC(l:c) Colour-difference Formula", M R Luo and B Rigg, Journal of the
+ * Society of Dyers and Colourists, vol 102, 1986. Distances in this 
+ * colourspace approximate, within 10% or so, differences in the CMC(l:c)
+ * colour difference formula.
+ *
  *       You can calculate metrics like CMC(2:1) by scaling the spaces before
  *       finding differences. 
  *     </para>
