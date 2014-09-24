@@ -1,6 +1,20 @@
 
 - python:
 
+	- oh argh still getting this sometimes
+
+		$ python test_colour.py -v TestColour.test_colourspace
+		test_colourspace (__main__.TestColour) ... ok
+
+		----------------------------------------------------------------------
+		Ran 1 test in 0.144s
+
+		OK
+
+		(test_colour.py:10826): GLib-GObject-WARNING **: instance of invalid
+		non-instantiatable type '(null)'
+		Trace/breakpoint trap (core dumped)
+
 	- dECMC result differs from Lindbloom's result:
 
 		http://www.brucelindbloom.com/index.html?Eqn_DeltaE_CIE2000.html
