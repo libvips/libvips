@@ -389,8 +389,8 @@ vips_leak( void )
 	vips__type_leak();
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 	vips_buffer_dump_all();
+#endif /*DEBUG*/
 }
 
 /**

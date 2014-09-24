@@ -444,7 +444,7 @@ vips_colour_space_build( VipsObject *object )
 {
 	VipsColour *colour = VIPS_COLOUR( object );
 	VipsColourSpace *space = VIPS_COLOUR_SPACE( object );
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
 
 	/* We only process float.
 	 */

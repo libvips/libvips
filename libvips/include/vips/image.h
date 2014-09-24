@@ -465,7 +465,8 @@ int vips_system( const char *cmd_format, ... )
 
 /* Defined in type.c, but declared here since they use VipsImage.
  */
-VipsArrayImage *vips_array_image_new( const VipsImage **array, int n );
+VipsArrayImage *vips_array_image_new( VipsImage **array, int n );
+VipsArrayImage *vips_array_image_newv( int n, ... );
 VipsImage **vips_array_image_get( VipsArrayImage *array, int *n );
 VipsImage **vips_value_get_array_image( const GValue *value, int *n );
 int vips_value_set_array_image( GValue *value, VipsImage **array, int n );
