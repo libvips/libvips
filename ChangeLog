@@ -11,6 +11,7 @@
   for consistency
 - python vips8 binding
 - python vips8 test suite: test_arithmetic.py
+- better extra band handling by colour, again
 
 8/9/14 started 7.40.9
 - support jfif resunit "none"

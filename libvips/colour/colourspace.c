@@ -80,7 +80,7 @@ vips_process_n( const char *domain, VipsImage *in, VipsImage **out,
 	if( in->Bands > n ) {
 		VipsImage *scope = vips_image_new();
 		VipsImage **t = (VipsImage **) 
-			vips_object_local_array( VIPS_OBJECT( scope ), 3 );
+			vips_object_local_array( VIPS_OBJECT( scope ), 4 );
 
 		if( vips_extract_band( in, &t[0], 0,
 			"n", n, 
@@ -89,7 +89,8 @@ vips_process_n( const char *domain, VipsImage *in, VipsImage **out,
 				"n", in->Bands - n, 
 				NULL ) ||
 			fn( t[0], &t[2], NULL ) ||
-			vips_bandjoin2( t[2], t[1], out, NULL ) ) {
+			vips_cast( t[1], &t[3], t[2]->BandFmt, NULL ) ||
+			vips_bandjoin2( t[2], t[3], out, NULL ) ) {
 			g_object_unref( scope );
 			return( -1 );
 		}
