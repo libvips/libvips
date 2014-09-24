@@ -1,6 +1,9 @@
 
 - python:
 
+	- colour difference does detach / reattach bands (badly), it should 
+	  use the thing in the base class instead
+
 	- dECMC result differs from Lindbloom's result:
 
 		http://www.brucelindbloom.com/index.html?Eqn_DeltaE_CIE2000.html
