@@ -906,14 +906,25 @@ vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
 	return( 0 );
 }
 
+#define FILL_LINE( TYPE, Q, N, V ) { \
+	int x; \
+	TYPE *QT = (TYPE *) Q; \
+	\
+	for( x = 0; x < (N); x++ )  \
+		QT[x] = (V); \
+}
+
 /**
  * vips_region_paint:
  * @reg: region to operate upon
  * @r: area to paint
  * @value: value to paint
  *
- * Paints @value into @reg covering rectangle @r. @value is passed to
- * memset(), so it usually needs to be 0 or 255. @r is clipped against
+ * Paints @value into @reg covering rectangle @r. For int images, @value is 
+ * passed to memset(), so it usually needs to be 0 or 255. For float images,
+ * value is cast to a float and copied in to each band element. 
+ *
+ * @r is clipped against
  * @reg->valid.
  *
  * See also: vips_region_black().
@@ -921,19 +932,51 @@ vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
 void
 vips_region_paint( VipsRegion *reg, VipsRect *r, int value )
 {
-	VipsRect ovl;
+	VipsRect clipped;
 
-	vips_rect_intersectrect( r, &reg->valid, &ovl );
-	if( !vips_rect_isempty( &ovl ) ) {
-		VipsPel *q = VIPS_REGION_ADDR( reg, ovl.left, ovl.top );
-		size_t wd = ovl.width * VIPS_IMAGE_SIZEOF_PEL( reg->im );
+	vips_rect_intersectrect( r, &reg->valid, &clipped );
+	if( !vips_rect_isempty( &clipped ) ) {
+		VipsPel *q = VIPS_REGION_ADDR( reg, clipped.left, clipped.top );
 		size_t ls = VIPS_REGION_LSKIP( reg );
-
+		size_t wd = clipped.width * VIPS_IMAGE_SIZEOF_PEL( reg->im );
 		int y;
 
-		for( y = 0; y < ovl.height; y++ ) {
-			memset( (char *) q, value, wd );
-			q += ls;
+		if( vips_band_format_isint( reg->im->BandFmt ) ) { 
+
+			for( y = 0; y < clipped.height; y++ ) {
+				memset( (char *) q, value, wd );
+				q += ls;
+			}
+		}
+		else {
+			gboolean iscomplex = 
+				vips_band_format_iscomplex( reg->im->BandFmt );
+			int nele = clipped.width * reg->im->Bands * 
+				(iscomplex ?  2 : 1);
+			VipsPel *q1;
+
+			switch( reg->im->BandFmt ) { 
+			case VIPS_FORMAT_FLOAT:
+			case VIPS_FORMAT_COMPLEX:
+				FILL_LINE( float, q, nele, value );
+				break;
+
+			case VIPS_FORMAT_DOUBLE:
+			case VIPS_FORMAT_DPCOMPLEX:
+				FILL_LINE( double, q, nele, value );
+				break;
+
+			default:
+				g_assert( 0 );
+				break;
+			}
+
+			q1 = q + ls;
+
+			for( y = 1; y < clipped.height; y++ ) {
+				memcpy( (char *) q1, (char *) q, wd );
+				q1 += ls;
+			}
 		}
 	}
 }

@@ -178,5 +178,45 @@ class TestConversion(unittest.TestCase):
         x = self.colour.copy(height = 42)
         self.assertEqual(x.height, 42)
 
+    def test_embed(self):
+        im = self.colour.embed(20, 20, 
+                               self.colour.width + 40,
+                               self.colour.height + 40)
+        pixel = im.getpoint(10, 10)
+        self.assertAlmostEqualObjects(pixel, [0, 0, 0])
+        pixel = im.getpoint(30, 30)
+        self.assertAlmostEqualObjects(pixel, [2, 3, 4])
+        pixel = im.getpoint(im.width - 10, im.height - 10)
+        self.assertAlmostEqualObjects(pixel, [0, 0, 0])
+
+        im = self.colour.embed(20, 20, 
+                               self.colour.width + 40,
+                               self.colour.height + 40,
+                               extend = Vips.Extend.COPY)
+        pixel = im.getpoint(10, 10)
+        self.assertAlmostEqualObjects(pixel, [2, 3, 4])
+        pixel = im.getpoint(im.width - 10, im.height - 10)
+        self.assertAlmostEqualObjects(pixel, [2, 3, 4])
+
+        im = self.colour.embed(20, 20, 
+                               self.colour.width + 40,
+                               self.colour.height + 40,
+                               extend = Vips.Extend.BACKGROUND,
+                               background = [7, 8, 9])
+        pixel = im.getpoint(10, 10)
+        self.assertAlmostEqualObjects(pixel, [7, 8, 9])
+        pixel = im.getpoint(im.width - 10, im.height - 10)
+        self.assertAlmostEqualObjects(pixel, [7, 8, 9])
+
+        im = self.colour.embed(20, 20, 
+                               self.colour.width + 40,
+                               self.colour.height + 40,
+                               extend = Vips.Extend.WHITE)
+        pixel = im.getpoint(10, 10)
+        self.assertAlmostEqualObjects(pixel, [255, 255, 255])
+        pixel = im.getpoint(im.width - 10, im.height - 10)
+        self.assertAlmostEqualObjects(pixel, [255, 255, 255])
+
+
 if __name__ == '__main__':
     unittest.main()
