@@ -641,8 +641,7 @@ write_properties( VipsForeignSaveDz *dz )
 {
 	GsfOutput *out;
 
-	out = vips_gsf_path( dz->tree, 
-		"ImageProperties.xml", dz->root_name, NULL ); 
+	out = vips_gsf_path( dz->tree, "ImageProperties.xml", NULL ); 
 
 	gsf_output_printf( out, "<IMAGE_PROPERTIES "
 		"WIDTH=\"%d\" HEIGHT=\"%d\" NUMTILES=\"%d\" "
