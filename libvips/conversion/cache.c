@@ -159,7 +159,10 @@ vips_cache_init( VipsCache *cache )
  * documentation for that operation for details. 
  *
  * It uses a set of background threads to calculate pixels and the various
- * active cache operations coordinate so as not to overwhelm your system.
+ * active cache operations coordinate so as not to overwhelm your system. When
+ * a request is made for an area of pixels, the operation will block until all
+ * of those pixels have been calculated. Pixels are calculated with a set of
+ * threads. 
  *
  * See also: vips_tilecache().
  *

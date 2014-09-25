@@ -147,5 +147,36 @@ class TestConversion(unittest.TestCase):
 
         self.run_binary(self.all_images, bandrank, fmt = noncomplex_formats)
 
+    def test_cache(self):
+        def cache(x):
+            if isinstance(x, Vips.Image):
+                return x.cache()
+            else:
+                return x
+
+        self.run_unary(self.all_images, cache)
+
+    def test_copy(self):
+        x = self.colour.copy(interpretation = Vips.Interpretation.LAB)
+        self.assertEqual(x.interpretation, Vips.Interpretation.LAB)
+        x = self.colour.copy(xres = 42)
+        self.assertEqual(x.xres, 42)
+        x = self.colour.copy(yres = 42)
+        self.assertEqual(x.yres, 42)
+        x = self.colour.copy(xoffset = 42)
+        self.assertEqual(x.xoffset, 42)
+        x = self.colour.copy(yoffset = 42)
+        self.assertEqual(x.yoffset, 42)
+        x = self.colour.copy(bands = 1)
+        self.assertEqual(x.bands, 1)
+        x = self.colour.copy(format = Vips.BandFormat.USHORT, bands = 1)
+        self.assertEqual(x.format, Vips.BandFormat.USHORT)
+        x = self.colour.copy(coding = Vips.Coding.NONE)
+        self.assertEqual(x.coding, Vips.Coding.NONE)
+        x = self.colour.copy(width = 42)
+        self.assertEqual(x.width, 42)
+        x = self.colour.copy(height = 42)
+        self.assertEqual(x.height, 42)
+
 if __name__ == '__main__':
     unittest.main()
