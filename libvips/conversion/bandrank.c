@@ -62,7 +62,7 @@ typedef struct _VipsBandrank {
 
 	/* The input images.
 	 */
-	VipsArea *in;
+	VipsArrayImage *in;
 	int index;		/* Pick out this one */
 } VipsBandrank;
 
@@ -178,27 +178,34 @@ vips_bandrank_build( VipsObject *object )
 	VipsBandrank *bandrank = (VipsBandrank *) object;
 
 	if( bandrank->in ) {
+		int n;
+		VipsImage **in = vips_array_image_get( bandrank->in, &n );
 		VipsImage **band = (VipsImage **) 
-			vips_object_local_array( object, bandrank->in->n );
+			vips_object_local_array( object, n );
 
-		if( bandrank->in->n == 1 ) 
+		int i;
+
+		for( i = 0; i < n; i++ ) 
+			if( vips_check_noncomplex( class->nickname, in[i] ) )
+				return( -1 );
+
+		if( n == 1 ) 
 			return( vips_bandary_copy( bandary ) );
 
 		/* We need to keep one band element for every input image 
 		 * on the stack.
 		 */
-		if( sizeof( double ) * bandrank->in->n > SORT_BUFFER ) {
+		if( sizeof( double ) * n > SORT_BUFFER ) {
 			vips_error( class->nickname, 
 				"%s", _( "too many input images" ) );
 			return( -1 );
 		}
 
-		if( vips__bandalike_vec( class->nickname, 
-			bandrank->in->data, band, bandrank->in->n, 0 ) )
+		if( vips__bandalike_vec( class->nickname, in, band, n, 0 ) )
 			return( -1 ); 
 
 		bandary->in = band;
-		bandary->n = bandrank->in->n;
+		bandary->n = n;
 		bandary->out_bands = band[0]->Bands;
 
 		if( bandrank->index == -1 )
@@ -281,7 +288,7 @@ vips_bandrankv( VipsImage **in, VipsImage **out, int n, va_list ap )
  * image in which each band element is selected from the sorted list by the 
  * @index parameter. For example, if @index
  * is zero, then each output band element will be the minimum of all the 
- * corresponding input band element. 
+ * corresponding input band elements. 
  *
  * By default, @index is -1, meaning pick the median value. 
  *
