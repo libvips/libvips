@@ -401,10 +401,11 @@ vips_flatten_init( VipsFlatten *flatten )
  * Take the last band of @in as an alpha and use it to blend the
  * remaining channels with @background. 
  *
- * The alpha channel is 0 - 255 for
- * integer images and 0 - 1 for float images, where 255 means 100% image and 0
+ * The alpha channel is 0 - MAX for
+ * integer images and 0 - 1 for float images, where MAX means 100% image and 0
  * means 100% background.  Non-complex images only.
- * @background defaults to zero (black).
+ * @background defaults to zero (black). MAX is the largest possible positive
+ * value for that int type. 
  *
  * Useful for flattening PNG images to RGB.
  *

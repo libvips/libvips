@@ -135,9 +135,11 @@ class TestConversion(unittest.TestCase):
 
     def test_bandrank(self):
         def median(x, y):
-            joined = zip(x, y)
-            map(lambda x: list(x).sort(), joined)
-            return map(lambda x: x[len(x) / 2], joined)
+            joined = [[a, b] for a, b in zip(x, y)]
+            # .sort() isn't a function, so we have to run this as a separate
+            # pass
+            [x.sort() for x in joined]
+            return [x[len(x) / 2] for x in joined]
 
         def bandrank(x, y):
             if isinstance(x, Vips.Image) and isinstance(y, Vips.Image):
@@ -179,44 +181,121 @@ class TestConversion(unittest.TestCase):
         self.assertEqual(x.height, 42)
 
     def test_embed(self):
-        im = self.colour.embed(20, 20, 
-                               self.colour.width + 40,
-                               self.colour.height + 40)
-        pixel = im.getpoint(10, 10)
-        self.assertAlmostEqualObjects(pixel, [0, 0, 0])
-        pixel = im.getpoint(30, 30)
-        self.assertAlmostEqualObjects(pixel, [2, 3, 4])
-        pixel = im.getpoint(im.width - 10, im.height - 10)
-        self.assertAlmostEqualObjects(pixel, [0, 0, 0])
+        for fmt in all_formats:
+            test = self.colour.cast(fmt)
 
-        im = self.colour.embed(20, 20, 
-                               self.colour.width + 40,
-                               self.colour.height + 40,
-                               extend = Vips.Extend.COPY)
-        pixel = im.getpoint(10, 10)
-        self.assertAlmostEqualObjects(pixel, [2, 3, 4])
-        pixel = im.getpoint(im.width - 10, im.height - 10)
-        self.assertAlmostEqualObjects(pixel, [2, 3, 4])
+            im = test.embed(20, 20, 
+                            self.colour.width + 40,
+                            self.colour.height + 40)
+            pixel = im.getpoint(10, 10)
+            self.assertAlmostEqualObjects(pixel, [0, 0, 0])
+            pixel = im.getpoint(30, 30)
+            self.assertAlmostEqualObjects(pixel, [2, 3, 4])
+            pixel = im.getpoint(im.width - 10, im.height - 10)
+            self.assertAlmostEqualObjects(pixel, [0, 0, 0])
 
-        im = self.colour.embed(20, 20, 
-                               self.colour.width + 40,
-                               self.colour.height + 40,
-                               extend = Vips.Extend.BACKGROUND,
-                               background = [7, 8, 9])
-        pixel = im.getpoint(10, 10)
-        self.assertAlmostEqualObjects(pixel, [7, 8, 9])
-        pixel = im.getpoint(im.width - 10, im.height - 10)
-        self.assertAlmostEqualObjects(pixel, [7, 8, 9])
+            im = test.embed(20, 20, 
+                            self.colour.width + 40,
+                            self.colour.height + 40,
+                            extend = Vips.Extend.COPY)
+            pixel = im.getpoint(10, 10)
+            self.assertAlmostEqualObjects(pixel, [2, 3, 4])
+            pixel = im.getpoint(im.width - 10, im.height - 10)
+            self.assertAlmostEqualObjects(pixel, [2, 3, 4])
 
-        im = self.colour.embed(20, 20, 
-                               self.colour.width + 40,
-                               self.colour.height + 40,
-                               extend = Vips.Extend.WHITE)
-        pixel = im.getpoint(10, 10)
-        self.assertAlmostEqualObjects(pixel, [255, 255, 255])
-        pixel = im.getpoint(im.width - 10, im.height - 10)
-        self.assertAlmostEqualObjects(pixel, [255, 255, 255])
+            im = test.embed(20, 20, 
+                            self.colour.width + 40,
+                            self.colour.height + 40,
+                            extend = Vips.Extend.BACKGROUND,
+                            background = [7, 8, 9])
+            pixel = im.getpoint(10, 10)
+            self.assertAlmostEqualObjects(pixel, [7, 8, 9])
+            pixel = im.getpoint(im.width - 10, im.height - 10)
+            self.assertAlmostEqualObjects(pixel, [7, 8, 9])
 
+            im = test.embed(20, 20, 
+                            self.colour.width + 40,
+                            self.colour.height + 40,
+                            extend = Vips.Extend.WHITE)
+            pixel = im.getpoint(10, 10)
+            # uses 255 in all bytes of ints, 255.0 for float
+            pixel = [int(x) & 0xff for x in pixel]
+            self.assertAlmostEqualObjects(pixel, [255, 255, 255])
+            pixel = im.getpoint(im.width - 10, im.height - 10)
+            pixel = [int(x) & 0xff for x in pixel]
+            self.assertAlmostEqualObjects(pixel, [255, 255, 255])
+
+    def test_extract(self):
+        for fmt in all_formats:
+            test = self.colour.cast(fmt)
+
+            pixel = test.getpoint(30, 30)
+            self.assertAlmostEqualObjects(pixel, [2, 3, 4])
+
+            sub = test.extract_area(25, 25, 10, 10)
+
+            pixel = sub.getpoint(5, 5)
+            self.assertAlmostEqualObjects(pixel, [2, 3, 4])
+
+            sub = test.extract_band(1, n = 2)
+
+            pixel = sub.getpoint(30, 30)
+            self.assertAlmostEqualObjects(pixel, [3, 4])
+
+    def test_crop(self):
+        for fmt in all_formats:
+            test = self.colour.cast(fmt)
+
+            pixel = test.getpoint(30, 30)
+            self.assertAlmostEqualObjects(pixel, [2, 3, 4])
+
+            sub = test.crop(25, 25, 10, 10)
+
+            pixel = sub.getpoint(5, 5)
+            self.assertAlmostEqualObjects(pixel, [2, 3, 4])
+
+    def test_falsecolour(self):
+        for fmt in all_formats:
+            test = self.colour.cast(fmt)
+
+            im = test.falsecolour()
+
+            self.assertEqual(im.width, test.width)
+            self.assertEqual(im.height, test.height)
+            self.assertEqual(im.bands, 3)
+
+            pixel = im.getpoint(30, 30)
+            self.assertAlmostEqualObjects(pixel, [20, 0, 41])
+
+    def test_flatten(self):
+        max_value = {Vips.BandFormat.UCHAR: 0xff,
+                     Vips.BandFormat.USHORT: 0xffff,
+                     Vips.BandFormat.UINT: 0xffffffff, 
+                     Vips.BandFormat.CHAR: 0x7f,
+                     Vips.BandFormat.SHORT: 0x7fff, 
+                     Vips.BandFormat.INT: 0x7fffffff,
+                     Vips.BandFormat.FLOAT: 1.0,
+                     Vips.BandFormat.DOUBLE: 1.0,
+                     Vips.BandFormat.COMPLEX: 1.0,
+                     Vips.BandFormat.DPCOMPLEX: 1.0}
+        black = self.mono * 0.0
+
+        for fmt in all_formats:
+            test = self.colour.bandjoin2(black + max_value[fmt] / 2]).cast(fmt)
+
+            im = test.flatten()
+
+            self.assertEqual(im.bands, 3)
+            pixel = im.getpoint(30, 30)
+            self.assertAlmostEqualObjects(pixel, [2, 2, 3])
+
+            im = test.flatten(background = [100, 100, 100])
+
+            self.assertEqual(im.bands, 3)
+            pixel = im.getpoint(30, 30)
+            self.assertAlmostEqualObjects(pixel, [50, 50, 51])
+            
+            
 
 if __name__ == '__main__':
     unittest.main()

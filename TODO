@@ -12,6 +12,11 @@
 
 	  easier to get into CPAN or whatever the python thing is called
 
+- [put exif autorotate into jpeg load
+
+  see
+
+  	https://github.com/jcupitt/ruby-vips/issues/53
 
 - can we pick the vipsthumbnail int shrink factor more intelligently?
 
