@@ -159,13 +159,19 @@ vips_system_build( VipsObject *object )
 	vips_strncpy( cmd, system->cmd_format, VIPS_PATH_MAX );
 	if( system->in ) 
 		for( i = 0; i < VIPS_AREA( system->in )->n; i++ ) 
-			if( vips__substitute( class->nickname, 
-				cmd, VIPS_PATH_MAX, system->in_name[i] ) )
+			if( vips__substitute( cmd, VIPS_PATH_MAX, 
+				system->in_name[i] ) ) {
+				vips_error( class->nickname, "%s",
+					_( "unable to substitute "
+					"input filename" ) ); 
 				return( -1 ); 
+			}
 	if( system->out_name &&
-		vips__substitute( class->nickname, 
-			cmd, VIPS_PATH_MAX, system->out_name ) )
+		vips__substitute( cmd, VIPS_PATH_MAX, system->out_name ) ) {
+		vips_error( class->nickname, "%s",
+			_( "unable to substitute output filename" ) ); 
 		return( -1 ); 
+	}
 
 	/* Swap all "%%" in the string for a single "%". We need this for
 	 * compatibility with older printf-based vips_system()s which

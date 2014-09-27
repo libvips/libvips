@@ -75,6 +75,7 @@
 #include <locale.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #define ORIENTATION ("exif-ifd0-Orientation")
 
@@ -699,10 +700,15 @@ thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 	if( (p = strrchr( file, '.' )) ) 
 		*p = '\0';
 
+	/* Don't use vips_snprintf(), we only want to optionally substitute a 
+	 * single %s.
+	 */
+	vips_strncpy( buf, output_format, FILENAME_MAX ); 
+	vips__substitute( buf, FILENAME_MAX, file ); 
+
 	/* output_format can be an absolute path, in which case we discard the
 	 * path from the incoming file.
 	 */
-	vips_snprintf( buf, FILENAME_MAX, output_format, file );
 	if( g_path_is_absolute( output_format ) ) 
 		output_name = g_strdup( buf );
 	else {

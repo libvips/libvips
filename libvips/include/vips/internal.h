@@ -218,7 +218,7 @@ void vips_draw_operation_init( void );
 void vips_mosaicing_operation_init( void );
 
 guint64 vips__parse_size( const char *size_string );
-int vips__substitute( const char *domain, char *buf, size_t len, char *sub );
+int vips__substitute( char *buf, size_t len, char *sub );
 
 int vips_check_coding_labq( const char *domain, VipsImage *im );
 int vips_check_coding_rad( const char *domain, VipsImage *im );

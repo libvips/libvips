@@ -281,19 +281,24 @@ class TestConversion(unittest.TestCase):
         black = self.mono * 0.0
 
         for fmt in all_formats:
-            test = self.colour.bandjoin2(black + max_value[fmt] / 2]).cast(fmt)
+            print fmt
+            test = self.colour.bandjoin2(black + max_value[fmt] / 2.0).cast(fmt)
+            pixel = test.getpoint(30, 30)
+            print 'before', pixel
 
             im = test.flatten()
 
             self.assertEqual(im.bands, 3)
             pixel = im.getpoint(30, 30)
-            self.assertAlmostEqualObjects(pixel, [2, 2, 3])
+            print 'after', pixel
+            self.assertAlmostEqualObjects(pixel, [0, 1, 1])
 
             im = test.flatten(background = [100, 100, 100])
 
             self.assertEqual(im.bands, 3)
             pixel = im.getpoint(30, 30)
-            self.assertAlmostEqualObjects(pixel, [50, 50, 51])
+            print pixel
+            self.assertAlmostEqualObjects(pixel, [50, 51, 51])
             
             
 
