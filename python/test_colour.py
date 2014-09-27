@@ -125,6 +125,17 @@ class TestColour(unittest.TestCase):
         after = im.getpoint(10, 10)
         self.assertAlmostEqualObjects(before, after, places = 1)
 
+        # go between every pair of colour spaces
+        for start in colour_colourspaces:
+            for end in colour_colourspaces:
+                im = test.colourspace(start)
+                im2 = im.colourspace(end)
+                im3 = im2.colourspace(Vips.Interpretation.LAB)
+
+                before = test.getpoint(10, 10)
+                after = im3.getpoint(10, 10)
+                self.assertAlmostEqualObjects(before, after, places = 1)
+
         # test Lab->XYZ on mid-grey
         # checked against http://www.brucelindbloom.com
         im = test.colourspace(Vips.Interpretation.XYZ)

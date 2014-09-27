@@ -299,8 +299,8 @@ class TestConversion(unittest.TestCase):
             pixel = im.getpoint(30, 30)
             print pixel
             self.assertAlmostEqualObjects(pixel, [50, 51, 51])
-            
-            
+
+
 
 if __name__ == '__main__':
     unittest.main()
