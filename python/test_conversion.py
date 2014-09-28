@@ -23,6 +23,17 @@ int_formats = unsigned_formats + signed_formats
 noncomplex_formats = int_formats + float_formats
 all_formats = int_formats + float_formats + complex_formats
 
+max_value = {Vips.BandFormat.UCHAR: 0xff,
+             Vips.BandFormat.USHORT: 0xffff,
+             Vips.BandFormat.UINT: 0xffffffff, 
+             Vips.BandFormat.CHAR: 0x7f,
+             Vips.BandFormat.SHORT: 0x7fff, 
+             Vips.BandFormat.INT: 0x7fffffff,
+             Vips.BandFormat.FLOAT: 1.0,
+             Vips.BandFormat.DOUBLE: 1.0,
+             Vips.BandFormat.COMPLEX: 1.0,
+             Vips.BandFormat.DPCOMPLEX: 1.0}
+
 # an expanding zip ... if either of the args is not a list, duplicate it down
 # the other
 def zip_expand(x, y):
@@ -280,27 +291,190 @@ class TestConversion(unittest.TestCase):
                      Vips.BandFormat.DPCOMPLEX: 1.0}
         black = self.mono * 0.0
 
-        for fmt in all_formats:
-            print fmt
-            test = self.colour.bandjoin2(black + max_value[fmt] / 2.0).cast(fmt)
+        for fmt in noncomplex_formats:
+            mx = max_value[fmt]
+            alpha = mx / 2
+            nalpha = mx - alpha
+            test = self.colour.bandjoin2(black + alpha).cast(fmt)
             pixel = test.getpoint(30, 30)
-            print 'before', pixel
+
+            predict = [int(x) * alpha / mx for x in pixel[:-1]]
 
             im = test.flatten()
 
             self.assertEqual(im.bands, 3)
             pixel = im.getpoint(30, 30)
-            print 'after', pixel
-            self.assertAlmostEqualObjects(pixel, [0, 1, 1])
+            for x, y in zip(pixel, predict):
+                # we use float arithetic for int and uint, so the rounding
+                # differs ... don't require huge accuracy
+                self.assertLess(abs(x - y), 2)
 
             im = test.flatten(background = [100, 100, 100])
 
+            pixel = test.getpoint(30, 30)
+            predict = [int(x) * alpha / mx + (100 * nalpha) / mx 
+                       for x in pixel[:-1]]
+
             self.assertEqual(im.bands, 3)
             pixel = im.getpoint(30, 30)
-            print pixel
-            self.assertAlmostEqualObjects(pixel, [50, 51, 51])
+            for x, y in zip(pixel, predict):
+                self.assertLess(abs(x - y), 2)
 
+    def test_flip(self):
+        for fmt in all_formats:
+            test = self.colour.cast(fmt)
 
+            result = test.flip(Vips.Direction.HORIZONTAL)
+            result = result.flip(Vips.Direction.VERTICAL)
+            result = result.flip(Vips.Direction.HORIZONTAL)
+            result = result.flip(Vips.Direction.VERTICAL)
+
+            diff = (test - result).abs().max()
+
+            self.assertEqual(diff, 0)
+
+    def test_gamma(self):
+        exponent = 2.4
+        for fmt in noncomplex_formats:
+            mx = max_value[fmt]
+            test = (self.colour + mx / 2).cast(fmt)
+
+            norm = mx ** exponent / mx
+            result = test.gamma()
+            before = test.getpoint(30, 30)
+            after = result.getpoint(30, 30)
+            predict = [x ** exponent / norm for x in before]
+            for a, b in zip(after, predict):
+                # ie. less than 1% error, rounding on 7-bit images means this is
+                # all we can expect
+                self.assertLess(abs(a - b), mx / 100.0)
+
+        exponent = 1.2
+        for fmt in noncomplex_formats:
+            mx = max_value[fmt]
+            test = (self.colour + mx / 2).cast(fmt)
+
+            norm = mx ** exponent / mx
+            result = test.gamma(exponent = 1.0 / 1.2)
+            before = test.getpoint(30, 30)
+            after = result.getpoint(30, 30)
+            predict = [x ** exponent / norm for x in before]
+            for a, b in zip(after, predict):
+                # ie. less than 1% error, rounding on 7-bit images means this is
+                # all we can expect
+                self.assertLess(abs(a - b), mx / 100.0)
+
+    def test_grid(self):
+        test = self.colour.replicate(1, 12)
+        self.assertEqual(test.width, self.colour.width)
+        self.assertEqual(test.height, self.colour.height * 12)
+
+        for fmt in all_formats:
+            im = test.cast(fmt)
+            result = im.grid(test.width, 3, 4)
+            self.assertEqual(result.width, self.colour.width * 3)
+            self.assertEqual(result.height, self.colour.height * 4)
+
+            before = im.getpoint(10, 10)
+            after = result.getpoint(10 + test.width * 2, 10 + test.width * 2)
+            self.assertAlmostEqualObjects(before, after)
+
+            before = im.getpoint(50, 50)
+            after = result.getpoint(50 + test.width * 2, 50 + test.width * 2)
+            self.assertAlmostEqualObjects(before, after)
+
+    def test_ifthenelse(self):
+        test = self.mono > 3
+        for x in all_formats:
+            for y in all_formats:
+                t = (self.colour + 10).cast(x)
+                e = self.colour.cast(y)
+                r = test.ifthenelse(t, e)
+
+                self.assertEqual(r.width, self.colour.width)
+                self.assertEqual(r.height, self.colour.height)
+                self.assertEqual(r.bands, self.colour.bands)
+
+                predict = e.getpoint(10, 10)
+                result = r.getpoint(10, 10)
+                self.assertAlmostEqualObjects(result, predict)
+
+                predict = t.getpoint(50, 50)
+                result = r.getpoint(50, 50)
+                self.assertAlmostEqualObjects(result, predict)
+
+        test = self.colour > 3
+        for x in all_formats:
+            for y in all_formats:
+                t = (self.mono + 10).cast(x)
+                e = self.mono.cast(y)
+                r = test.ifthenelse(t, e)
+
+                self.assertEqual(r.width, self.colour.width)
+                self.assertEqual(r.height, self.colour.height)
+                self.assertEqual(r.bands, self.colour.bands)
+
+                cp = test.getpoint(10, 10)
+                tp = t.getpoint(10, 10) * 3
+                ep = e.getpoint(10, 10) * 3
+                predict = [te if ce != 0 else ee 
+                           for ce, te, ee in zip(cp, tp, ep)]
+                result = r.getpoint(10, 10)
+                self.assertAlmostEqualObjects(result, predict)
+
+                cp = test.getpoint(50, 50)
+                tp = t.getpoint(50, 50) * 3
+                ep = e.getpoint(50, 50) * 3
+                predict = [te if ce != 0 else ee 
+                           for ce, te, ee in zip(cp, tp, ep)]
+                result = r.getpoint(50, 50)
+                self.assertAlmostEqualObjects(result, predict)
+
+        test = self.colour > 3
+        for x in all_formats:
+            for y in all_formats:
+                t = (self.mono + 10).cast(x)
+                e = self.mono.cast(y)
+                r = test.ifthenelse(t, e, blend = True)
+
+                self.assertEqual(r.width, self.colour.width)
+                self.assertEqual(r.height, self.colour.height)
+                self.assertEqual(r.bands, self.colour.bands)
+
+                result = r.getpoint(10, 10)
+                self.assertAlmostEqualObjects(result, [3, 3, 13])
+
+    def test_insert(self):
+        for x in all_formats:
+            for y in all_formats:
+                main = self.mono.cast(x)
+                sub = self.colour.cast(y)
+                r = main.insert(sub, 10, 10)
+
+                self.assertEqual(r.width, main.width)
+                self.assertEqual(r.height, main.height)
+                self.assertEqual(r.bands, sub.bands)
+
+                a = r.getpoint(10, 10)
+                b = sub.getpoint(0, 0)
+                self.assertAlmostEqualObjects(a, b)
+
+                a = r.getpoint(0, 0)
+                b = main.getpoint(0, 0) * 3
+                self.assertAlmostEqualObjects(a, b)
+
+        for x in all_formats:
+            for y in all_formats:
+                main = self.mono.cast(x)
+                sub = self.colour.cast(y)
+                r = main.insert(sub, 10, 10, expand = True, background = 128)
+
+                self.assertEqual(r.width, main.width + 10)
+                self.assertEqual(r.height, main.height + 10)
+                self.assertEqual(r.bands, sub.bands)
+
+                a = r.getpoint(r.width - 5, 5)
+                self.assertAlmostEqualObjects(a, [128, 128, 128])
 
 if __name__ == '__main__':
     unittest.main()
