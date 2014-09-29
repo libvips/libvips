@@ -10,9 +10,14 @@
 - rename VIPS_OPERATION_RELATIONAL_NOTEQUAL as VIPS_OPERATION_RELATIONAL_NOTEQ
   for consistency
 - python vips8 binding
-- python vips8 test suite: test_arithmetic.py
+- python vips8 test suite: test_arithmetic.py, test_colour.py,
+  test_conversion.py
 - better extra band handling by colour, again
 - move zoomify ImageProperties file, now a better match to the offical tool
+
+8/9/14 started 7.40.10
+- icc_import and icc_transform checks the input profile for compatibility 
+  with the image, thanks James
 
 8/9/14 started 7.40.9
 - support jfif resunit "none"

@@ -575,7 +575,8 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 	if( (fp = fopen( filename, mode )) )
 		return( fp );
 
-	if( fallback_dir && !filename_hasdir( filename ) ) {
+	if( fallback_dir && 
+		!filename_hasdir( filename ) ) {
 		char *path;
 
 		path = g_build_filename( fallback_dir, filename, NULL );
@@ -586,7 +587,7 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 			return( fp );
 	}
 
-	vips_error( "vips__file_open_read", 
+	vips_error_system( errno, "vips__file_open_read", 
 		_( "unable to open file \"%s\" for reading" ), filename );
 
 	return( NULL );
@@ -608,7 +609,7 @@ vips__file_open_write( const char *filename, gboolean text_mode )
 #endif /*BINARY_OPEN*/
 
         if( !(fp = fopen( filename, mode )) ) {
-		vips_error( "vips__file_open_write", 
+		vips_error_system( errno, "vips__file_open_write", 
 			_( "unable to open file \"%s\" for writing" ), 
 			filename );
 		return( NULL );
