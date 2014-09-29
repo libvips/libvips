@@ -54,6 +54,25 @@ rot45_angles = [Vips.Angle45.D0,
                 Vips.Angle45.D270,
                 Vips.Angle45.D315]
 
+rot45_angle_bonds = [Vips.Angle45.D0,
+                     Vips.Angle45.D315,
+                     Vips.Angle45.D270,
+                     Vips.Angle45.D225,
+                     Vips.Angle45.D180,
+                     Vips.Angle45.D135,
+                     Vips.Angle45.D90,
+                     Vips.Angle45.D45]
+
+rot_angles = [Vips.Angle.D0,
+              Vips.Angle.D90,
+              Vips.Angle.D180,
+              Vips.Angle.D270]
+
+rot_angle_bonds = [Vips.Angle.D0,
+                   Vips.Angle.D270,
+                   Vips.Angle.D180,
+                   Vips.Angle.D90]
+
 # an expanding zip ... if either of the args is not a list, duplicate it down
 # the other
 def zip_expand(x, y):
@@ -487,14 +506,14 @@ class TestConversion(unittest.TestCase):
             for y in all_formats:
                 main = self.mono.cast(x)
                 sub = self.colour.cast(y)
-                r = main.insert(sub, 10, 10, expand = True, background = 128)
+                r = main.insert(sub, 10, 10, expand = True, background = 100)
 
                 self.assertEqual(r.width, main.width + 10)
                 self.assertEqual(r.height, main.height + 10)
                 self.assertEqual(r.bands, sub.bands)
 
                 a = r.getpoint(r.width - 5, 5)
-                self.assertAlmostEqualObjects(a, [128, 128, 128])
+                self.assertAlmostEqualObjects(a, [100, 100, 100])
 
     def test_msb(self):
         for fmt in unsigned_formats:
@@ -577,11 +596,89 @@ class TestConversion(unittest.TestCase):
             self.assertAlmostEqualObjects(before, after)
 
     def test_rot45(self):
+        # test has a quarter-circle in the bottom right
         test = self.colour.crop(0, 0, 51, 51)
         for fmt in all_formats:
             im = test.cast(fmt)
 
-            im.write_to_file("x.v")
+            im2 = im.rot45()
+            before = im.getpoint(50, 50)
+            after = im2.getpoint(25, 50)
+            self.assertAlmostEqualObjects(before, after)
+
+            for a, b in zip(rot45_angles, rot45_angle_bonds):
+                im2 = im.rot45(angle = a)
+                after = im2.rot45(angle = b)
+                diff = (after - im).abs().max()
+                self.assertEqual(diff, 0)
+
+    def test_rot(self):
+        # test has a quarter-circle in the bottom right
+        test = self.colour.crop(0, 0, 51, 51)
+        for fmt in all_formats:
+            im = test.cast(fmt)
+
+            im2 = im.rot(Vips.Angle.D90)
+            before = im.getpoint(50, 50)
+            after = im2.getpoint(0, 50)
+            self.assertAlmostEqualObjects(before, after)
+
+            for a, b in zip(rot_angles, rot_angle_bonds):
+                im2 = im.rot(a)
+                after = im2.rot(b)
+                diff = (after - im).abs().max()
+                self.assertEqual(diff, 0)
+
+    def test_scale(self):
+        for fmt in noncomplex_formats:
+            test = self.colour.cast(fmt)
+
+            im = test.scale()
+            self.assertEqual(im.max(), 255)
+            self.assertEqual(im.min(), 0)
+
+            im = test.scale(log = True)
+            self.assertEqual(im.max(), 255)
+
+    def test_subsample(self):
+        for fmt in all_formats:
+            test = self.colour.cast(fmt)
+
+            im = test.subsample(3, 3)
+            self.assertEqual(im.width, test.width / 3)
+            self.assertEqual(im.height, test.height / 3)
+
+            before = test.getpoint(60, 60)
+            after = im.getpoint(20, 20)
+            self.assertAlmostEqualObjects(before, after)
+
+    def test_zoom(self):
+        for fmt in all_formats:
+            test = self.colour.cast(fmt)
+
+            im = test.zoom(3, 3)
+            self.assertEqual(im.width, test.width * 3)
+            self.assertEqual(im.height, test.height * 3)
+
+            before = test.getpoint(50, 50)
+            after = im.getpoint(150, 150)
+            self.assertAlmostEqualObjects(before, after)
+
+    def test_wrap(self):
+        for fmt in all_formats:
+            test = self.colour.cast(fmt)
+
+            im = test.wrap()
+            self.assertEqual(im.width, test.width)
+            self.assertEqual(im.height, test.height)
+
+            before = test.getpoint(0, 0)
+            after = im.getpoint(50, 50)
+            self.assertAlmostEqualObjects(before, after)
+
+            before = test.getpoint(50, 50)
+            after = im.getpoint(0, 0)
+            self.assertAlmostEqualObjects(before, after)
 
 if __name__ == '__main__':
     unittest.main()
