@@ -28,6 +28,9 @@
  * 	- support XYZ as an alternative PCS
  * 10/9/14
  * 	- support GRAY as an input and output space
+ * 29/9/14
+ * 	- check input profiles for compatibility with the input image, thanks
+ * 	  James
  */
 
 /*
@@ -457,6 +460,86 @@ vips_check_intent( const char *domain,
 }
 
 static int
+vips_icc_profile_needs_bands( cmsHPROFILE profile )
+{
+	int needs_bands;
+
+	switch( cmsGetColorSpace( profile ) ) {
+#ifdef HAVE_LCMS2
+	case cmsSigGrayData:
+		needs_bands = 1;
+		break;
+#endif /*HAVE_LCMS2*/
+
+	case cmsSigRgbData:
+	case cmsSigLabData:
+	case cmsSigXYZData:
+		needs_bands = 3;
+		break;
+
+	case cmsSigCmykData:
+		needs_bands = 4;
+		break;
+
+	default:
+		needs_bands = -1;
+		break;
+	}
+
+	return( needs_bands );
+}
+
+static cmsHPROFILE
+vips_icc_load_profile_image( const char *domain, VipsImage *image )
+{
+	void *data;
+	size_t data_length;
+	cmsHPROFILE profile;
+
+	if( !vips_image_get_typeof( image, VIPS_META_ICC_NAME ) )
+		return( NULL ); 
+
+	if( vips_image_get_blob( image, VIPS_META_ICC_NAME, 
+		&data, &data_length ) ||
+		!(profile = cmsOpenProfileFromMem( data, data_length )) ) {
+		vips_warn( domain, "%s", _( "corrupt embedded profile" ) );
+		return( NULL ); 
+	}
+
+	if( image->Bands != vips_icc_profile_needs_bands( profile ) ) {
+		VIPS_FREEF( cmsCloseProfile, profile );
+		vips_warn( domain, 
+			"%s", _( "embedded profile incompatible with image" ) );
+		return( NULL );
+	}
+
+	return( profile );
+}
+
+static cmsHPROFILE
+vips_icc_load_profile_file( const char *domain, 
+	VipsImage *image, const char *filename )
+{
+	cmsHPROFILE profile;
+
+	if( !(profile = cmsOpenProfileFromFile( filename, "r" )) ) {
+		vips_error( domain, 
+			_( "unable to open profile \"%s\"" ), filename );
+		return( NULL );
+	}
+
+	if( image->Bands != vips_icc_profile_needs_bands( profile ) ) {
+		VIPS_FREEF( cmsCloseProfile, profile );
+		vips_warn( domain, 
+			_( "profile \"%s\" incompatible with image" ),
+			filename );
+		return( NULL );
+	}
+
+	return( profile );
+}
+
+static int
 vips_icc_import_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
@@ -477,30 +560,16 @@ vips_icc_import_build( VipsObject *object )
 
 	if( code->in &&
 		(import->embedded ||
-			!import->input_profile_filename) &&
-		vips_image_get_typeof( code->in, VIPS_META_ICC_NAME ) ) {
-		void *data;
-		size_t data_length;
+			!import->input_profile_filename) )
+		icc->in_profile = vips_icc_load_profile_image( class->nickname,
+			code->in );
 
-		if( vips_image_get_blob( code->in, VIPS_META_ICC_NAME, 
-			&data, &data_length ) ||
-			!(icc->in_profile = cmsOpenProfileFromMem( 
-				data, data_length )) ) {
-			vips_error( class->nickname,
-				"%s", _( "unable to load embedded profile" ) );
-			return( -1 );
-		}
-	}
-	else if( import->input_profile_filename ) {
-		if( !(icc->in_profile = cmsOpenProfileFromFile(
-			import->input_profile_filename, "r" )) ) {
-			vips_error( class->nickname,
-				_( "unable to open profile \"%s\"" ), 
-				import->input_profile_filename );
-			return( -1 );
-		}
-	}
-	else {
+	if( !icc->in_profile &&
+		import->input_profile_filename ) 
+		icc->in_profile = vips_icc_load_profile_file( class->nickname,
+			code->in, import->input_profile_filename );
+
+	if( !icc->in_profile ) {
 		vips_error( class->nickname, "%s", _( "no input profile" ) ); 
 		return( -1 );
 	}
@@ -902,30 +971,16 @@ vips_icc_transform_build( VipsObject *object )
 
 	if( code->in &&
 		(transform->embedded ||
-			!transform->input_profile_filename) &&
-		vips_image_get_typeof( code->in, VIPS_META_ICC_NAME ) ) {
-		void *data;
-		size_t data_length;
+			!transform->input_profile_filename) )
+		icc->in_profile = vips_icc_load_profile_image( class->nickname,
+			code->in );
 
-		if( vips_image_get_blob( code->in, VIPS_META_ICC_NAME, 
-			&data, &data_length ) ||
-			!(icc->in_profile = cmsOpenProfileFromMem( 
-				data, data_length )) ) {
-			vips_error( class->nickname,
-				"%s", _( "unable to load embedded profile" ) );
-			return( -1 );
-		}
-	}
-	else if( transform->input_profile_filename ) {
-		if( !(icc->in_profile = cmsOpenProfileFromFile(
-			transform->input_profile_filename, "r" )) ) {
-			vips_error( class->nickname,
-				_( "unable to open profile \"%s\"" ), 
-				transform->input_profile_filename );
-			return( -1 );
-		}
-	}
-	else {
+	if( !icc->in_profile &&
+		transform->input_profile_filename ) 
+		icc->in_profile = vips_icc_load_profile_file( class->nickname,
+			code->in, transform->input_profile_filename );
+
+	if( !icc->in_profile ) {
 		vips_error( class->nickname, "%s", _( "no input profile" ) ); 
 		return( -1 );
 	}
