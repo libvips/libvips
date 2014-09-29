@@ -160,7 +160,7 @@ vips_compass_class_init( VipsCompassClass *class )
 		_( "Rotate mask by this much between convolutions" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCompass, angle ), 
-		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_90 ); 
+		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_D90 ); 
 
 	VIPS_ARG_ENUM( class, "combine", 104, 
 		_( "Combine" ), 
@@ -196,7 +196,7 @@ static void
 vips_compass_init( VipsCompass *compass )
 {
 	compass->times = 2;
-	compass->angle = VIPS_ANGLE45_90;
+	compass->angle = VIPS_ANGLE45_D90;
 	compass->combine = VIPS_COMBINE_MAX;
 	compass->precision = VIPS_PRECISION_INTEGER;
 	compass->layers = 5;

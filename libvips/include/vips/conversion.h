@@ -62,22 +62,22 @@ typedef enum {
 } VipsAlign;
 
 typedef enum {
-	VIPS_ANGLE_0,
-	VIPS_ANGLE_90,
-	VIPS_ANGLE_180,
-	VIPS_ANGLE_270,
+	VIPS_ANGLE_D0,
+	VIPS_ANGLE_D90,
+	VIPS_ANGLE_D180,
+	VIPS_ANGLE_D270,
 	VIPS_ANGLE_LAST
 } VipsAngle;
 
 typedef enum {
-	VIPS_ANGLE45_0,
-	VIPS_ANGLE45_45,
-	VIPS_ANGLE45_90,
-	VIPS_ANGLE45_135,
-	VIPS_ANGLE45_180,
-	VIPS_ANGLE45_225,
-	VIPS_ANGLE45_270,
-	VIPS_ANGLE45_315,
+	VIPS_ANGLE45_D0,
+	VIPS_ANGLE45_D45,
+	VIPS_ANGLE45_D90,
+	VIPS_ANGLE45_D135,
+	VIPS_ANGLE45_D180,
+	VIPS_ANGLE45_D225,
+	VIPS_ANGLE45_D270,
+	VIPS_ANGLE45_D315,
 	VIPS_ANGLE45_LAST
 } VipsAngle45;
 
@@ -188,7 +188,6 @@ int vips_falsecolour( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_gamma( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-
 
 #ifdef __cplusplus
 }

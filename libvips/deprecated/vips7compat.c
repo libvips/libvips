@@ -1303,7 +1303,7 @@ im_rot90( IMAGE *in, IMAGE *out )
 {
 	VipsImage *t;
 
-	if( vips_rot( in, &t, VIPS_ANGLE_90, NULL ) )
+	if( vips_rot( in, &t, VIPS_ANGLE_D90, NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
 		g_object_unref( t );
@@ -1319,7 +1319,7 @@ im_rot180( IMAGE *in, IMAGE *out )
 {
 	VipsImage *t;
 
-	if( vips_rot( in, &t, VIPS_ANGLE_180, NULL ) )
+	if( vips_rot( in, &t, VIPS_ANGLE_D180, NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
 		g_object_unref( t );
@@ -1335,7 +1335,7 @@ im_rot270( IMAGE *in, IMAGE *out )
 {
 	VipsImage *t;
 
-	if( vips_rot( in, &t, VIPS_ANGLE_270, NULL ) )
+	if( vips_rot( in, &t, VIPS_ANGLE_D270, NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
 		g_object_unref( t );
@@ -2311,7 +2311,7 @@ im_compass( VipsImage *in, VipsImage *out, INTMASK *mask )
 		return( -1 );
 	if( vips_compass( in, &t2, t1, 
 		"times", 8, 
-		"angle", VIPS_ANGLE45_45, 
+		"angle", VIPS_ANGLE45_D45, 
 		NULL ) ) {
 		g_object_unref( t1 );
 		return( -1 );
@@ -2336,7 +2336,7 @@ im_lindetect( IMAGE *in, IMAGE *out, INTMASK *mask )
 		return( -1 );
 	if( vips_compass( in, &t2, t1, 
 		"times", 4, 
-		"angle", VIPS_ANGLE45_45, 
+		"angle", VIPS_ANGLE45_D45, 
 		NULL ) ) {
 		g_object_unref( t1 );
 		return( -1 );
@@ -2361,7 +2361,7 @@ im_gradient( IMAGE *in, IMAGE *out, INTMASK *mask )
 		return( -1 );
 	if( vips_compass( in, &t2, t1, 
 		"times", 2, 
-		"angle", VIPS_ANGLE45_90, 
+		"angle", VIPS_ANGLE45_D90, 
 		"combine", VIPS_COMBINE_SUM, 
 		NULL ) ) {
 		g_object_unref( t1 );

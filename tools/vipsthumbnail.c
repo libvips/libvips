@@ -157,16 +157,16 @@ get_angle( VipsImage *im )
 	VipsAngle angle;
 	const char *orientation;
 
-	angle = VIPS_ANGLE_0;
+	angle = VIPS_ANGLE_D0;
 
 	if( vips_image_get_typeof( im, ORIENTATION ) && 
 		!vips_image_get_string( im, ORIENTATION, &orientation ) ) {
 		if( vips_isprefix( "6", orientation ) )
-			angle = VIPS_ANGLE_90;
+			angle = VIPS_ANGLE_D90;
 		else if( vips_isprefix( "8", orientation ) )
-			angle = VIPS_ANGLE_270;
+			angle = VIPS_ANGLE_D270;
 		else if( vips_isprefix( "3", orientation ) )
-			angle = VIPS_ANGLE_180;
+			angle = VIPS_ANGLE_D180;
 
 		/* Other values do rotate + mirror, don't bother handling them
 		 * though, how common can mirroring be. 
@@ -194,7 +194,7 @@ calculate_shrink( VipsImage *im, double *residual,
 	VipsInterpolate *interp )
 {
 	VipsAngle angle = get_angle( im ); 
-	gboolean rotate = angle == VIPS_ANGLE_90 || angle == VIPS_ANGLE_270;
+	gboolean rotate = angle == VIPS_ANGLE_D90 || angle == VIPS_ANGLE_D270;
 	int width = rotate_image && rotate ? im->Ysize : im->Xsize;
 	int height = rotate_image && rotate ? im->Xsize : im->Ysize;
 	const int window_size =
@@ -667,7 +667,7 @@ thumbnail_rotate( VipsObject *process, VipsImage *im )
 	VipsAngle angle = get_angle( im );
 
 	if( rotate_image &&
-		angle != VIPS_ANGLE_0 ) {
+		angle != VIPS_ANGLE_D0 ) {
 		/* Need to copy to memory, we have to stay seq.
 		 */
 		t[0] = vips_image_new_memory();

@@ -14,6 +14,7 @@
   test_conversion.py
 - better extra band handling by colour, again
 - move zoomify ImageProperties file, now a better match to the offical tool
+- rename VIPS_ANGLE_180 as VIPS_ANGLE_D180 etc. to help python
 
 8/9/14 started 7.40.10
 - icc_import and icc_transform checks the input profile for compatibility 

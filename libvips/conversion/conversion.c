@@ -85,16 +85,34 @@
 
 /** 
  * VipsAngle:
- * @VIPS_ANGLE_0: no rotate
- * @VIPS_ANGLE_90: 90 degrees anti-clockwise
- * @VIPS_ANGLE_180: 180 degree rotate
- * @VIPS_ANGLE_270: 90 degrees clockwise
+ * @VIPS_ANGLE_D0: no rotate
+ * @VIPS_ANGLE_D90: 90 degrees anti-clockwise
+ * @VIPS_ANGLE_D180: 180 degree rotate
+ * @VIPS_ANGLE_D270: 90 degrees clockwise
  *
  * See vips_rot() and so on.
  *
  * Fixed rotate angles.
  *
  * See also: vips_rot().
+ */
+
+/**
+ * VipsAngle45:
+ * @VIPS_ANGLE45_D0: no rotate
+ * @VIPS_ANGLE45_D45: 45 degrees anti-clockwise 
+ * @VIPS_ANGLE45_D90: 90 degrees anti-clockwise
+ * @VIPS_ANGLE45_D135: 135 degrees anti-clockwise
+ * @VIPS_ANGLE45_D180: 180 degrees 
+ * @VIPS_ANGLE45_D225: 135 degrees clockwise
+ * @VIPS_ANGLE45_D270: 90 degrees clockwise
+ * @VIPS_ANGLE45_D315: 45 degrees clockwise
+ *
+ * See vips_rot45() and so on.
+ *
+ * Fixed rotate angles.
+ *
+ * See also: vips_rot45().
  */
 
 /** 

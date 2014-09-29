@@ -61,7 +61,7 @@ im_vips2dz( IMAGE *in, const char *filename )
 	int tile_size = 256;
 	VipsForeignDzDepth depth = VIPS_FOREIGN_DZ_DEPTH_1PIXEL; 
 	gboolean centre = FALSE;
-	VipsAngle angle = VIPS_ANGLE_0; 
+	VipsAngle angle = VIPS_ANGLE_D0; 
 
 	/* We can't use im_filename_split() --- it assumes that we have a
 	 * filename with an extension before the ':', and filename here is

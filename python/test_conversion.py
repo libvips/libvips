@@ -34,6 +34,26 @@ max_value = {Vips.BandFormat.UCHAR: 0xff,
              Vips.BandFormat.COMPLEX: 1.0,
              Vips.BandFormat.DPCOMPLEX: 1.0}
 
+sizeof_format = {Vips.BandFormat.UCHAR: 1,
+                 Vips.BandFormat.USHORT: 2,
+                 Vips.BandFormat.UINT: 4,
+                 Vips.BandFormat.CHAR: 1,
+                 Vips.BandFormat.SHORT: 2,
+                 Vips.BandFormat.INT: 4,
+                 Vips.BandFormat.FLOAT: 4,
+                 Vips.BandFormat.DOUBLE: 8,
+                 Vips.BandFormat.COMPLEX: 8,
+                 Vips.BandFormat.DPCOMPLEX: 16}
+
+rot45_angles = [Vips.Angle45.D0,
+                Vips.Angle45.D45,
+                Vips.Angle45.D90,
+                Vips.Angle45.D135,
+                Vips.Angle45.D180,
+                Vips.Angle45.D225,
+                Vips.Angle45.D270,
+                Vips.Angle45.D315]
+
 # an expanding zip ... if either of the args is not a list, duplicate it down
 # the other
 def zip_expand(x, y):
@@ -475,6 +495,93 @@ class TestConversion(unittest.TestCase):
 
                 a = r.getpoint(r.width - 5, 5)
                 self.assertAlmostEqualObjects(a, [128, 128, 128])
+
+    def test_msb(self):
+        for fmt in unsigned_formats:
+            mx = max_value[fmt]
+            size = sizeof_format[fmt]
+            test = (self.colour + mx / 8).cast(fmt)
+            im = test.msb()
+
+            before = test.getpoint(10, 10)
+            predict = [int(x) >> ((size - 1) * 8) for x in before]
+            result = im.getpoint(10, 10)
+            self.assertAlmostEqualObjects(result, predict)
+
+            before = test.getpoint(50, 50)
+            predict = [int(x) >> ((size - 1) * 8) for x in before]
+            result = im.getpoint(50, 50)
+            self.assertAlmostEqualObjects(result, predict)
+
+        for fmt in signed_formats:
+            mx = max_value[fmt]
+            size = sizeof_format[fmt]
+            test = (self.colour + mx / 8).cast(fmt)
+            im = test.msb()
+
+            before = test.getpoint(10, 10)
+            predict = [128 + (int(x) >> ((size - 1) * 8)) for x in before]
+            result = im.getpoint(10, 10)
+            self.assertAlmostEqualObjects(result, predict)
+
+            before = test.getpoint(50, 50)
+            predict = [128 + (int(x) >> ((size - 1) * 8)) for x in before]
+            result = im.getpoint(50, 50)
+            self.assertAlmostEqualObjects(result, predict)
+
+        for fmt in unsigned_formats:
+            mx = max_value[fmt]
+            size = sizeof_format[fmt]
+            test = (self.colour + mx / 8).cast(fmt)
+            im = test.msb(band = 1)
+
+            before = [test.getpoint(10, 10)[1]]
+            predict = [int(x) >> ((size - 1) * 8) for x in before]
+            result = im.getpoint(10, 10)
+            self.assertAlmostEqualObjects(result, predict)
+
+            before = [test.getpoint(50, 50)[1]]
+            predict = [int(x) >> ((size - 1) * 8) for x in before]
+            result = im.getpoint(50, 50)
+            self.assertAlmostEqualObjects(result, predict)
+
+    def test_recomb(self):
+        array = [[0.2, 0.5, 0.3]] 
+        mask = Vips.Image.new_from_array(array)
+
+        def recomb(x):
+            if isinstance(x, Vips.Image):
+                return x.recomb(mask)
+            else:
+                sum = 0
+                for i, c in zip(array[0], x):
+                    sum += i * c
+                return [sum]
+
+        self.run_unary([self.colour], recomb, fmt = noncomplex_formats)
+
+    def test_replicate(self):
+        for fmt in all_formats:
+            im = self.colour.cast(fmt)
+
+            test = im.replicate(10, 10)
+            self.assertEqual(test.width, self.colour.width * 10)
+            self.assertEqual(test.height, self.colour.height * 10)
+
+            before = im.getpoint(10, 10)
+            after = test.getpoint(10 + im.width * 2, 10 + im.width * 2)
+            self.assertAlmostEqualObjects(before, after)
+
+            before = im.getpoint(50, 50)
+            after = test.getpoint(50 + im.width * 2, 50 + im.width * 2)
+            self.assertAlmostEqualObjects(before, after)
+
+    def test_rot45(self):
+        test = self.colour.crop(0, 0, 51, 51)
+        for fmt in all_formats:
+            im = test.cast(fmt)
+
+            im.write_to_file("x.v")
 
 if __name__ == '__main__':
     unittest.main()

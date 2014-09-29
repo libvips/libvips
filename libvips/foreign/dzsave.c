@@ -1961,7 +1961,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Rotate image during save" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, angle ),
-		VIPS_TYPE_ANGLE, VIPS_ANGLE_0 ); 
+		VIPS_TYPE_ANGLE, VIPS_ANGLE_D0 ); 
 
 	VIPS_ARG_ENUM( class, "container", 15, 
 		_( "Container" ), 
@@ -2020,7 +2020,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->tile_size = 256;
 	dz->tile_count = 0;
 	dz->depth = VIPS_FOREIGN_DZ_DEPTH_1PIXEL; 
-	dz->angle = VIPS_ANGLE_0; 
+	dz->angle = VIPS_ANGLE_D0; 
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_FS; 
 }
 

@@ -71,7 +71,7 @@ vips_convsep_build( VipsObject *object )
 	if( vips_check_separable( class->nickname, convolution->M ) ) 
                 return( -1 );
 
-	if( vips_rot( convolution->M, &t[0], VIPS_ANGLE_90, NULL ) ||
+	if( vips_rot( convolution->M, &t[0], VIPS_ANGLE_D90, NULL ) ||
 		vips_conv( convolution->in, &t[1], convolution->M, 
 			"precision", convsep->precision,
 			"layers", convsep->layers,
