@@ -1,6 +1,7 @@
 8/9/14 started 7.40.10
 - icc_import and icc_transform checks the input profile for compatibility 
   with the image, thanks James
+- try to make vips_thread_shutdown() optional
 
 8/9/14 started 7.40.9
 - support jfif resunit "none"

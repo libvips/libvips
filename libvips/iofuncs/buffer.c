@@ -582,24 +582,12 @@ vips_buffer_print( VipsBuffer *buffer )
 static void
 vips__buffer_init_cb( VipsBufferThread *buffer_thread )
 {
-	/* This is a mem leak, not catastrophic.
-	 */
-
-	/* Threads (including the main thread) must call 
-	 * vips_thread_shutdown() before exiting. Check that they have.
+	/* We only come here if vips_thread_shutdown() was not called for this
+	 * thread. Do our best to clean up.
 	 *
-	 * We can't save automatically, because the shutdown order is
-	 * important. We must free all memory before saving the thread
-	 * profile, for example.
-	 *
-	 * We can't do the freeing in this callback since GPrivate has already
-	 * stopped working. 
+	 * GPrivate has stopped working, be careful not to touch that. 
 	 */
-
-	vips_warn( "VipsBuffer", 
-		_( "vips_thread_shutdown() not called for thread %p, see %s" ),
-		g_thread_self(),
-		"https://github.com/jcupitt/ruby-vips/issues/55" ); 
+	buffer_thread_free( buffer_thread );
 }
 
 /* Init the buffer cache system.
