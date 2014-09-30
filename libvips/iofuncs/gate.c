@@ -186,8 +186,16 @@ vips__thread_profile_init_cb( VipsThreadProfile *profile )
 	 *
 	 * GPrivate has stopped working, be careful not to touch that. 
 	 *
-	 * Don't try to save: this is an emergency recovery path. 
+	 * Don't try to save: we must free all mem before saving and we
+	 * probably haven't done that because vips_thread_shutdown() has not
+	 * been called. 
 	 */
+	if( vips__thread_profile ) 
+		vips_warn( "VipsGate", 
+			"discarding unsaved state for thread %p --- "
+			"call vips_thread_shutdown() for this thread",
+			profile->thread ); 
+
 	vips_thread_profile_free( profile );
 }
 
