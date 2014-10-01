@@ -200,8 +200,46 @@ class TestColour(unittest.TestCase):
         self.assertLess(abs(result - 4.97), 0.5)
         self.assertAlmostEqual(alpha, 42.0, places = 3)
 
-    # hard to test ICC stuff without including test images 
-    # rely on the nip2 test suite for this
+    def test_icc(self):
+        test = Vips.Image.new_from_file("images/IMG_4618.jpg")
+
+        im = test.icc_import().icc_export()
+        self.assertLess(im.dE76(test).max(), 6)
+
+        im = test.icc_import()
+        im2 = im.icc_export(depth = 16)
+        self.assertEqual(im2.format, Vips.BandFormat.USHORT)
+        im3 = im2.icc_import()
+        self.assertLess((im - im3).abs().max(), 3)
+
+        im = test.icc_import(intent = Vips.Intent.ABSOLUTE)
+        im2 = im.icc_export(intent = Vips.Intent.ABSOLUTE)
+        self.assertLess(im2.dE76(test).max(), 6)
+
+        im = test.icc_import()
+        im2 = im.icc_export(output_profile = "images/sRGB.icm")
+        im3 = im.colourspace(Vips.Interpretation.SRGB)
+        self.assertLess(im2.dE76(im3).max(), 6)
+
+        before_profile = test.get("icc-profile-data").get()
+        im = test.icc_transform("images/sRGB.icm")
+        after_profile = im.get("icc-profile-data").get()
+        im2 = test.icc_import()
+        im3 = im2.colourspace(Vips.Interpretation.SRGB)
+        self.assertLess(im.dE76(im3).max(), 6)
+        self.assertNotEqual(len(before_profile), len(after_profile))
+
+        im = test.icc_import(input_profile = "images/sRGB.icm")
+        im2 = test.icc_import()
+        self.assertLess(6, im.dE76(im2).max())
+
+        im = test.icc_import(pcs = Vips.PCS.XYZ)
+        self.assertEqual(im.interpretation, Vips.Interpretation.XYZ)
+        im = test.icc_import()
+        self.assertEqual(im.interpretation, Vips.Interpretation.LAB)
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

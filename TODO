@@ -1,5 +1,10 @@
 - python:
 
+	- image.get() / .set() should autodeblob / blob, just like operation
+	  arguments and returns
+
+	  update a few tests where we use .get(), eg. test_icc()
+
 	- could import like this:
 
 		from gi.repository import Vips 
