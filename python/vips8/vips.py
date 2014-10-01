@@ -28,6 +28,18 @@ def isunpack(obj):
             return True
     return False
 
+arrayize_types = [[vips_type_array_int, Vips.ArrayInt.new],
+                  [vips_type_array_double, Vips.ArrayDouble.new],
+                  [vips_type_array_image, Vips.ArrayImage.new]]
+def arrayize(gtype, value):
+    for t, cast in arrayize_types:
+        if GObject.type_is_a(gtype, t):
+            if not isinstance(value, list):
+                value = [value]
+            value = cast(value)
+
+    return value
+
 class Error(Exception):
 
     """An error from vips.
@@ -57,22 +69,12 @@ class Argument:
         self.priority = op.get_argument_priority(self.name)
         self.isset = op.argument_isset(self.name)
 
-    def arrayize(self, vips_type_array, vips_cast, value):
-        if GObject.type_is_a(self.prop.value_type, vips_type_array):
-            if not isinstance(value, list):
-                value = [value]
-            value = vips_cast(value)
-
-        return value
-
     def set_value(self, value):
         logging.debug('assigning %s to %s' % (value, self.name))
         logging.debug('%s needs a %s' % (self.name, self.prop.value_type))
 
         # array-ize some types, if necessary
-        value = self.arrayize(vips_type_array_int, Vips.ArrayInt.new, value)
-        value = self.arrayize(vips_type_array_double, Vips.ArrayDouble.new, value)
-        value = self.arrayize(vips_type_array_image, Vips.ArrayImage.new, value)
+        value = arrayize(self.prop.value_type, value)
 
         # blob-ize
         if GObject.type_is_a(self.prop.value_type, vips_type_blob):
@@ -281,10 +283,6 @@ def vips_image_getattr(self, name):
     if name in dir(self.props):
         return getattr(self.props, name)
 
-    # 'format' is a reserved word, annoying, have bandfmt as an alias
-    if name == 'bandfmt':
-        return getattr(self.props, 'format')
-
     return lambda *args, **kwargs: _call_instance(self, name, args, kwargs)
 
 def vips_image_write_to_file(self, vips_filename, **kwargs):
@@ -363,6 +361,34 @@ def vips_rdiv(self, other):
 
 def vips_floor(self):
     return self.round(Vips.OperationRound.FLOOR)
+
+def vips_get_value(self, field):
+    value = self.get(field)
+
+    logging.debug('read out %s from %s' % (value, self))
+
+    # turn VipsBlobs into strings, VipsArrayDouble into lists etc.
+    # FIXME ... this will involve a copy, we should use
+    # buffer() instead
+    if isunpack(value):
+        value = value.get()
+
+    return value
+
+def vips_set_value(self, field, value):
+    gtype = self.get_typeof(field)
+    logging.debug('assigning %s to %s' % (value, self))
+    logging.debug('%s needs a %s' % (self, gtype))
+
+    # array-ize some types, if necessary
+    value = arrayize(gtype, value)
+
+    # blob-ize
+    if GObject.type_is_a(gtype, vips_type_blob):
+        if not isinstance(value, Vips.Blob):
+            value = Vips.Blob.new(None, value)
+
+    self.set(field, value)
 
 def vips_ceil(self):
     return self.round(Vips.OperationRound.CEIL)
@@ -571,6 +597,8 @@ Vips.Image.write_to_buffer = vips_image_write_to_buffer
 # we can use Vips.Image.write_to_memory() directly
 
 # a few useful things
+Vips.Image.get_value = vips_get_value
+Vips.Image.set_value = vips_set_value
 Vips.Image.floor = vips_floor
 Vips.Image.ceil = vips_ceil
 Vips.Image.rint = vips_rint

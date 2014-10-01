@@ -221,9 +221,9 @@ class TestColour(unittest.TestCase):
         im3 = im.colourspace(Vips.Interpretation.SRGB)
         self.assertLess(im2.dE76(im3).max(), 6)
 
-        before_profile = test.get("icc-profile-data").get()
+        before_profile = test.get_value("icc-profile-data")
         im = test.icc_transform("images/sRGB.icm")
-        after_profile = im.get("icc-profile-data").get()
+        after_profile = im.get_value("icc-profile-data")
         im2 = test.icc_import()
         im3 = im2.colourspace(Vips.Interpretation.SRGB)
         self.assertLess(im.dE76(im3).max(), 6)
@@ -237,9 +237,6 @@ class TestColour(unittest.TestCase):
         self.assertEqual(im.interpretation, Vips.Interpretation.XYZ)
         im = test.icc_import()
         self.assertEqual(im.interpretation, Vips.Interpretation.LAB)
-
-
-
 
 if __name__ == '__main__':
     unittest.main()
