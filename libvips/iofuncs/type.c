@@ -322,6 +322,9 @@ vips_area_free_array_object( GObject **array, VipsArea *area )
  * An area which holds an array of %GObjects. See vips_area_new_array(). When
  * the area is freed, each %GObject will be unreffed.
  *
+ * Add an extra NULL element at the end, handy for eg.
+ * vips_image_pipeline_array() etc. 
+ *
  * See also: vips_area_unref().
  *
  * Returns: (transfer full): the new #VipsArea.
@@ -332,7 +335,7 @@ vips_area_new_array_object( int n )
 	GObject **array;
 	VipsArea *area;
 
-	array = g_new0( GObject *, n );
+	array = g_new0( GObject *, n + 1 );
 	area = vips_area_new( (VipsCallbackFn) vips_area_free_array_object, 
 		array );
 	area->n = n;
@@ -962,7 +965,7 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 	int n;
 	char *p, *q;
 	int i;
-	GObject **array;
+	VipsImage **array;
 
 	/* We need a copy of the string, since we insert \0 during
 	 * scan.
@@ -975,17 +978,16 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 
 	g_free( str );
 
-	vips_value_set_array_object( dest_value, n );
-	array = vips_value_get_array_object( dest_value, NULL );
+	vips_value_set_array_image( dest_value, n );
+	array = vips_value_get_array_image( dest_value, NULL );
 
 	str = g_value_dup_string( src_value );
 
 	for( i = 0, p = str; (q = vips_break_token( p, " " )); i++, p = q )
-		if( !(array[i] = G_OBJECT( vips_image_new_from_file( p, 
-			NULL ) )) ) {
+		if( !(array[i] = vips_image_new_from_file( p, NULL )) ) {
 			/* Set the dest to length zero to indicate error.
 			 */
-			vips_value_set_array_object( dest_value, 0 );
+			vips_value_set_array_image( dest_value, 0 );
 			g_free( str );
 			return;
 		}
@@ -1004,6 +1006,9 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
  * The images will all be reffed by this function. They 
  * will be automatically unreffed for you by
  * vips_area_unref().
+ *
+ * Add an extra NULL element at the end, handy for eg.
+ * vips_image_pipeline_array() etc. 
  *
  * See also: #VipsArea.
  *
@@ -1039,6 +1044,9 @@ vips_array_image_new( VipsImage **array, int n )
  * The images will all be reffed by this function. They 
  * will be automatically unreffed for you by
  * vips_area_unref().
+ *
+ * Add an extra NULL element at the end, handy for eg.
+ * vips_image_pipeline_array() etc. 
  *
  * See also: vips_array_image_new()
  *
@@ -1219,10 +1227,8 @@ vips_value_get_ref_string( const GValue *value, size_t *length )
  * vips_ref_string are immutable C strings that are copied between images by
  * copying reference-counted pointers, making the much more efficient than
  * regular %GValue strings.
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_value_set_ref_string( GValue *value, const char *str )
 {
 	VipsArea *area;
@@ -1239,8 +1245,6 @@ vips_value_set_ref_string( GValue *value, const char *str )
 
 	g_value_set_boxed( value, area );
 	vips_area_unref( area );
-
-	return( 0 );
 }
 
 /** 
@@ -1380,10 +1384,8 @@ vips_value_get_array_int( const GValue *value, int *n )
  * Set @value to hold a copy of @array. Pass in the array length in @n. 
  *
  * See also: vips_array_int_get().
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_value_set_array_int( GValue *value, const int *array, int n )
 {
 	int *array_copy;
@@ -1392,8 +1394,6 @@ vips_value_set_array_int( GValue *value, const int *array, int n )
 	vips_value_set_array( value, n, G_TYPE_INT, sizeof( int ) );
 	array_copy = vips_value_get_array_int( value, NULL );
 	memcpy( array_copy, array, n * sizeof( int ) );
-
-	return( 0 );
 }
 
 /** 
@@ -1423,10 +1423,8 @@ vips_value_get_array_double( const GValue *value, int *n )
  * Set @value to hold a copy of @array. Pass in the array length in @n. 
  *
  * See also: vips_array_double_get().
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_value_set_array_double( GValue *value, const double *array, int n )
 {
 	double *array_copy;
@@ -1435,8 +1433,6 @@ vips_value_set_array_double( GValue *value, const double *array, int n )
 	vips_value_set_array( value, n, G_TYPE_DOUBLE, sizeof( double ) );
 	array_copy = vips_value_get_array_double( value, NULL );
 	memcpy( array_copy, array, n * sizeof( double ) );
-
-	return( 0 );
 }
 
 /** 
@@ -1460,27 +1456,21 @@ vips_value_get_array_image( const GValue *value, int *n )
 /** 
  * vips_value_set_array_image:
  * @value: (out): %GValue to get from
- * @array: (array length=n): array of images
  * @n: the number of elements 
  *
  * Set @value to hold a copy of @array. Pass in the array length in @n. 
  *
  * See also: vips_array_image_get().
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
-vips_value_set_array_image( GValue *value, VipsImage **array, int n )
+void
+vips_value_set_array_image( GValue *value, int n )
 {
-	VipsImage **array_copy;
+	VipsArea *area;
 
-	g_value_init( value, VIPS_TYPE_ARRAY_IMAGE );
-	vips_value_set_array( value, n, VIPS_TYPE_ARRAY_IMAGE, 
-		sizeof( VipsImage * ) );
-	array_copy = vips_value_get_array_image( value, NULL );
-	memcpy( array_copy, array, n * sizeof( VipsImage * ) );
-
-	return( 0 );
+	area = vips_area_new_array_object( n );
+	area->type = VIPS_TYPE_IMAGE;
+	g_value_set_boxed( value, area );
+	vips_area_unref( area );
 }
 
 /** 
@@ -1502,27 +1492,22 @@ vips_value_get_array_object( const GValue *value, int *n )
 }
 
 /** 
- * vips_array_object_set:
+ * vips_value_set_array_object:
  * @value: (out): %GValue to set
  * @n: the number of elements 
  *
  * Set @value to hold an array of %GObject. Pass in the array length in @n. 
  *
  * See also: vips_array_object_get().
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_value_set_array_object( GValue *value, int n )
 {
 	VipsArea *area;
 
-	if( !(area = vips_area_new_array_object( n )) )
-		return( -1 );
+	area = vips_area_new_array_object( n );
 	g_value_set_boxed( value, area );
 	vips_area_unref( area );
-
-	return( 0 );
 }
 
 /* Make the types we need for basic functioning. Called from vips_init().

@@ -210,7 +210,7 @@ void vips_value_set_save_stringf( GValue *value, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 
 const char *vips_value_get_ref_string( const GValue *value, size_t *length );
-int vips_value_set_ref_string( GValue *value, const char *str );
+void vips_value_set_ref_string( GValue *value, const char *str );
 
 void *vips_value_get_blob( const GValue *value, size_t *length );
 void vips_value_set_blob( GValue *value, 
@@ -222,13 +222,13 @@ void *vips_value_get_array( const GValue *value,
 	int *n, GType *type, size_t *sizeof_type );
 
 double *vips_value_get_array_double( const GValue *value, int *n );
-int vips_value_set_array_double( GValue *value, const double *array, int n );
+void vips_value_set_array_double( GValue *value, const double *array, int n );
 
 int *vips_value_get_array_int( const GValue *value, int *n );
-int vips_value_set_array_int( GValue *value, const int *array, int n );
+void vips_value_set_array_int( GValue *value, const int *array, int n );
 
 GObject **vips_value_get_array_object( const GValue *value, int *n );
-int vips_value_set_array_object( GValue *value, int n );
+void vips_value_set_array_object( GValue *value, int n );
 
 /* See also image.h, that has vips_array_image_get(), vips_array_image_new(), 
  * vips_value_get_array_image() and vips_value_set_array_image(). They need 

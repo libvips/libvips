@@ -463,13 +463,13 @@ gboolean vips_band_format_iscomplex( VipsBandFormat format );
 int vips_system( const char *cmd_format, ... )
 	__attribute__((sentinel));
 
-/* Defined in type.c, but declared here since they use VipsImage.
+/* Defined in type.c but declared here, since they use VipsImage.
  */
 VipsArrayImage *vips_array_image_new( VipsImage **array, int n );
 VipsArrayImage *vips_array_image_newv( int n, ... );
 VipsImage **vips_array_image_get( VipsArrayImage *array, int *n );
 VipsImage **vips_value_get_array_image( const GValue *value, int *n );
-int vips_value_set_array_image( GValue *value, VipsImage **array, int n );
+void vips_value_set_array_image( GValue *value, int n );
 
 #ifdef __cplusplus
 }

@@ -285,6 +285,8 @@ vips_init( const char *argv0 )
 	vips_morphology_operation_init();
 	vips_draw_operation_init();
 	vips_mosaicing_operation_init();
+
+	extern int vips_gmic_get_type( void ); 
 	vips_gmic_get_type();
 
 	/* Load up any plugins in the vips libdir. We don't error on failure,
