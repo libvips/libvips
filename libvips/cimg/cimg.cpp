@@ -65,10 +65,6 @@ struct Greyc {
 
         int iterations;
 	float amplitude; 
-	float sharpness; 
-	float anisotropy;
-	float alpha; 
-	float sigma; 
 	float dl; 
 	float da; 
 	float gauss_prec; 
@@ -126,7 +122,6 @@ cimg_to_vips( CImg<T> *img, Rect *img_rect, REGION *out )
 template<typename T> static int
 greyc_gen( REGION *out, REGION **in, IMAGE **arry, Greyc *greyc )
 {
-	static const float gfact = (sizeof( T ) == 2) ? 1.0 / 256 : 1.0;
 	static const int tile_border = 4;
 
 	Rect *ir = &out->valid;
@@ -161,12 +156,9 @@ greyc_gen( REGION *out, REGION **in, IMAGE **arry, Greyc *greyc )
 
 		for( int i = 0; i < greyc->iterations; i++ ) 
 			img->blur_anisotropic( *msk,
-				greyc->amplitude, greyc->sharpness, 
-				greyc->anisotropy,
-				greyc->alpha, greyc->sigma, greyc->dl, 
-				greyc->da, greyc->gauss_prec, 
-				greyc->interpolation, greyc->fast_approx, 
-				gfact );
+				greyc->amplitude, 
+				greyc->dl, greyc->da, greyc->gauss_prec, 
+				greyc->interpolation, greyc->fast_approx );  
 
 		cimg_to_vips<T>( img, &need, out );
 	}
@@ -176,7 +168,7 @@ greyc_gen( REGION *out, REGION **in, IMAGE **arry, Greyc *greyc )
 		if( msk )
 			delete( msk );
 
-		im_error( "GREYCstoration", "%s", e.message );
+		im_error( "GREYCstoration", "%s", e.what() );
 
 		return( -1 );
 	}
@@ -201,10 +193,10 @@ typedef int (*generate_fn)( REGION *out, REGION **in,
  * @mask: input mask 
  * @iterations: number of iterations to perform (eg. 1)
  * @amplitude: scaling factor (eg. 40)
- * @sharpness: degree of sharpening to apply (eg. 0.9)
- * @anisotropy: how much to blur along lines (eg. 0.15)
- * @alpha: blur by this much before calculating geometry (eg. 0.6)
- * @sigma: blur geometry by this much (eg. 1.1)
+ * @sharpness: (unused)
+ * @anisotropy: (unused)
+ * @alpha: (unused)
+ * @sigma: (unused)
  * @dl: spatial integration step (eg. 0.8)
  * @da: angular integration step (eg. 30)
  * @gauss_prec: precision (eg. 2)
@@ -252,10 +244,6 @@ im_greyc_mask( IMAGE *in, IMAGE *out, IMAGE *mask,
 	greyc->arry = arry;
 	greyc->iterations = iterations;
 	greyc->amplitude = amplitude;
-	greyc->sharpness = sharpness;
-	greyc->anisotropy = anisotropy;
-	greyc->alpha = alpha;
-	greyc->sigma = sigma;
 	greyc->dl = dl;
 	greyc->da = da;
 	greyc->gauss_prec = gauss_prec;

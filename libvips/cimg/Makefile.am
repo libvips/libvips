@@ -3,21 +3,30 @@ noinst_LTLIBRARIES = libcimg.la
 libcimg_la_SOURCES = \
 	CImg.h \
 	cimg_dispatch.c \
-	cimg.cpp 
+	cimg.cpp \
+	vips_gmic.cpp \
+	gmic.cpp
 
 # various cimg settings as well
-# we need to change these a bit for win32
+# display=0 means don't build the cimg display stuff
+# don't turn on the parallel stuff, we rely on vips for that
+# don't use cimg_use_rng, we want the system generator
+# don't turn on jpg/png/tiff/exr read write, we use vips for that
+# don't use -Dcimg_use_fftw3, CImg wants fftw_init_threads() etc. which 
+#   are not widely available
 if OS_WIN32
 AM_CPPFLAGS = \
-	-Dcimg_strict \
-	-Dcimg_OS=0 \
-	-Dcimg_display_type=0 \
+	-Dcimg_OS=2 \
+	-Dgmic_build \
+	-Dcimg_strict_warnings \
+	-Dcimg_display=0 \
 	-DLOCALEDIR=\""$(LOCALEDIR)"\"
 else
 AM_CPPFLAGS = \
-	-Dcimg_strict \
 	-Dcimg_OS=1 \
-	-Dcimg_display_type=0 \
+	-Dgmic_build \
+	-Dcimg_strict_warnings \
+	-Dcimg_display=0 \
 	-DLOCALEDIR=\""$(LOCALEDIR)"\"
 endif
 

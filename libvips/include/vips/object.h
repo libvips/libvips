@@ -107,11 +107,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_object( (NAME), (LONG), (DESC),  \
 		VIPS_TYPE_IMAGE, \
-		G_PARAM_READWRITE ); \
+		(GParamFlags) (G_PARAM_READWRITE) ); \
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_INTERPOLATE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) { \
@@ -119,11 +119,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_object( (NAME), (LONG), (DESC),  \
 		VIPS_TYPE_INTERPOLATE, \
-		G_PARAM_READWRITE ); \
+		(GParamFlags) (G_PARAM_READWRITE) ); \
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_BOOL( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -132,11 +132,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_boolean( (NAME), (LONG), (DESC), \
 		(VALUE), \
-		G_PARAM_READWRITE ); \
+		(GParamFlags) (G_PARAM_READWRITE) ); \
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_DOUBLE( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -145,11 +145,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_double( (NAME), (LONG), (DESC), \
 		(MIN), (MAX), (VALUE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_BOXED( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -158,11 +158,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_boxed( (NAME), (LONG), (DESC), \
 		(TYPE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_INT( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -171,11 +171,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_int( (NAME), (LONG), (DESC), \
 		(MIN), (MAX), (VALUE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_UINT64( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -184,11 +184,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_uint64( (NAME), (LONG), (DESC), \
 		(MIN), (MAX), (VALUE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_ENUM( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -197,11 +197,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_enum( (NAME), (LONG), (DESC), \
 		(TYPE), (VALUE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_FLAGS( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -210,11 +210,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_flags( (NAME), (LONG), (DESC), \
 		(TYPE), (VALUE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_STRING( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, \
@@ -223,22 +223,22 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_string( (NAME), (LONG), (DESC), \
 		(VALUE), \
-		G_PARAM_READWRITE ); \
+		(GParamFlags) (G_PARAM_READWRITE) ); \
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_POINTER( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) { \
 	GParamSpec *pspec; \
 	\
 	pspec = g_param_spec_pointer( (NAME), (LONG), (DESC), \
-		G_PARAM_READWRITE ); \
+		(GParamFlags) (G_PARAM_READWRITE) ); \
 	g_object_class_install_property( gobject_class,  \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 /* Keep one of these for every argument.

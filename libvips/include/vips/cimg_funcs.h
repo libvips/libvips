@@ -45,6 +45,10 @@ int im_greyc_mask( VipsImage *in, VipsImage *out, VipsImage *mask,
 	float alpha, float sigma, float dl, float da, float gauss_prec, 
 	int interpolation, int fast_approx );
 
+int vips_gmic( int n, VipsImage** out, const char* command, 
+	int padding, float x_scale, float y_scale, ... )
+	__attribute__((sentinel));
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
