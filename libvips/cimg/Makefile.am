@@ -1,11 +1,20 @@
 noinst_LTLIBRARIES = libcimg.la
 
+OPTIONAL_SRC = 
+OPTIONAL_DIST =
+
+if ENABLE_GMIC
+OPTIONAL_SRC += vips_gmic.cpp gmic.cpp 
+else
+OPTIONAL_DIST += vips_gmic.cpp gmic.cpp
+endif
+
 libcimg_la_SOURCES = \
 	CImg.h \
-	cimg_dispatch.c \
-	cimg.cpp \
-	vips_gmic.cpp \
-	gmic.cpp
+	gmic_def.h \
+	gmic.h \
+	cimg.c \
+	$(OPTIONAL_SRC)
 
 # various cimg settings as well
 # display=0 means don't build the cimg display stuff
@@ -31,6 +40,8 @@ AM_CPPFLAGS = \
 endif
 
 # used by the final libvips link rather than us
-EXTRA_DIST = dummy2.cc
+EXTRA_DIST = \
+	dummy2.cc \
+	$(OPTIONAL_DIST)
 
 AM_CPPFLAGS += -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

@@ -40,13 +40,8 @@ extern "C" {
 
 #include <vips/vips.h>
 
-int im_greyc_mask( VipsImage *in, VipsImage *out, VipsImage *mask, 
-	int iterations, float amplitude, float sharpness, float anisotropy, 
-	float alpha, float sigma, float dl, float da, float gauss_prec, 
-	int interpolation, int fast_approx );
-
-int vips_gmic( int n, VipsImage** out, const char* command, 
-	int padding, float x_scale, float y_scale, ... )
+int vips_gmic( VipsImage **in, VipsImage **out, int n, 
+	int padding, double x_scale, double y_scale, const char *command, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus

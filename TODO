@@ -1,3 +1,11 @@
+- im_greyc_mask compat is not working?
+
+	vips im_greyc_mask k2.jpg x.jpg k4.jpg 1 100 0.5 0.5 0.5 0.5 0.5 0.5 1
+	1 1
+
+  vips_gmic_gen is never called
+
+
 - python:
 
 	- could import like this:

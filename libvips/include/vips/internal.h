@@ -216,6 +216,7 @@ void vips_morphology_operation_init( void );
 void vips_convolution_operation_init( void );
 void vips_draw_operation_init( void );
 void vips_mosaicing_operation_init( void );
+void vips_cimg_operation_init( void );
 
 guint64 vips__parse_size( const char *size_string );
 int vips__substitute( char *buf, size_t len, char *sub );

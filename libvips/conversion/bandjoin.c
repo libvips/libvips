@@ -198,7 +198,7 @@ vips_bandjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
 
 /**
  * vips_bandjoin:
- * @in: array of input images
+ * @in: (array length=n) (transfer none): array of input images
  * @out: output image
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments

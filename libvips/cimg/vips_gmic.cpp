@@ -349,21 +349,3 @@ static void
 vips_gmic_init( VipsGMic *vipsgmic )
 {
 }
-
-int
-vips_gmic( VipsImage **in, VipsImage **out, int n, 
-	int padding, double x_scale, double y_scale, const char *command, ...)
-{
-	VipsArrayImage *array; 
-	va_list ap;
-	int result;
-
-	array = vips_array_image_new( in, n ); 
-	va_start( ap, command );
-	result = vips_call_split( "gmic", ap, array, out, 
-		padding, x_scale, y_scale, command );
-	va_end( ap );
-	vips_area_unref( VIPS_AREA( array ) );
-
-	return( result );
-}

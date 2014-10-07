@@ -1225,6 +1225,11 @@ int *im_offsets45( int size );
 int im_conv_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
 int im_convsep_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
 
+int im_greyc_mask( VipsImage *in, VipsImage *out, VipsImage *mask, 
+	int iterations, float amplitude, float sharpness, float anisotropy, 
+	float alpha, float sigma, float dl, float da, float gauss_prec, 
+	int interpolation, int fast_approx );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -5343,3 +5343,29 @@ vips__init( const char *argv0 )
 {
 	return( vips_init( argv0 ) );
 }
+
+int
+im_greyc_mask( IMAGE *in, IMAGE *out, IMAGE *mask,
+	int iterations,
+	float amplitude, float sharpness, float anisotropy,
+	float alpha, float sigma,
+	float dl, float da, float gauss_prec,
+	int interpolation, int fast_approx )
+{
+	VipsImage *input_images[2];
+	VipsImage *output_image;
+	char *command;
+	int result;
+
+	input_images[0] = in;
+	input_images[1] = mask;
+	command = g_strdup_printf( "-smooth %g,%g,%g,%g,%g,%g,%g,%g,%d,%d", 
+		amplitude, sharpness, anisotropy, 
+		alpha, sigma, dl, da, gauss_prec, 
+		interpolation, fast_approx );
+	result = vips_gmic( input_images, &output_image, 2, 
+		4, 1, 1, command, NULL ); 
+	g_free( command );
+
+	return( result ); 
+}
