@@ -13201,9 +13201,19 @@ int main(int argc, char **argv) {
 }
 
 #else
-// Explicitely instanciate constructor for float-valued images.
+// Explicitely instanciate constructor for other image types
 template gmic::gmic(const char *const commands_line,
                     gmic_list<float>& images, gmic_list<char>& images_names,
+                    const char *const custom_commands=0,
+                    const bool include_default_commands=true,
+                    float *const p_progress=0, int *const p_cancel=0);
+template gmic::gmic(const char *const commands_line,
+                    gmic_list<unsigned char>& images, gmic_list<char>& images_names,
+                    const char *const custom_commands=0,
+                    const bool include_default_commands=true,
+                    float *const p_progress=0, int *const p_cancel=0);
+template gmic::gmic(const char *const commands_line,
+                    gmic_list<unsigned short>& images, gmic_list<char>& images_names,
                     const char *const custom_commands=0,
                     const bool include_default_commands=true,
                     float *const p_progress=0, int *const p_cancel=0);
