@@ -20,6 +20,9 @@ libresample_la_SOURCES = \
 	vsqbs.cpp \
 	templates.h 
 
+EXTRA_DIST = \
+	dummy2.cc 
+
 else
 
 libresample_la_SOURCES = \
@@ -34,6 +37,7 @@ libresample_la_SOURCES = \
 	transform.c 
 
 EXTRA_DIST = \
+	dummy2.cc \
 	bicubic.cpp \
 	lbb.cpp \
 	nohalo.cpp \

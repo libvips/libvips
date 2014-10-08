@@ -2,15 +2,6 @@ OPTIONAL_COMPILE_DIR =
 OPTIONAL_DIST_DIR =
 OPTIONAL_LIB = 
 
-# only build in the cimg dir if C++ is enabled
-if ENABLE_CXX
-OPTIONAL_COMPILE_DIR += cimg
-OPTIONAL_LIB += cimg/libcimg.la
-else
-OPTIONAL_DIST_DIR += cimg
-endif
-
-# same for deprecated
 if ENABLE_DEPRECATED
 OPTIONAL_COMPILE_DIR += deprecated
 OPTIONAL_LIB += deprecated/libdeprecated.la
@@ -47,7 +38,7 @@ libvips_la_SOURCES =
 # sadly the if/endif isn't enough to stop automake detecting a c++ link even
 # when c++ is disabled ... comment out this line if you have linking problems
 if ENABLE_CXX
-nodist_EXTRA_libvips_la_SOURCES = cimg/dummy2.cc
+nodist_EXTRA_libvips_la_SOURCES = resample/dummy2.cc
 endif
 
 # DLLs need dependant libs there too ... put @VIPS_LIBS@ at the end

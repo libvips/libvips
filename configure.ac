@@ -665,19 +665,6 @@ if test x"$with_pangoft2" != "xno"; then
     ])
 fi
 
-# g'mic ... embedding the gmic interpreter needs a C++ compiler and a lot of
-# patience. And tolerance for huge object files. 
-AC_ARG_WITH([gmic], 
-  AS_HELP_STRING([--with-gmic], [build with gmic (default: no)]))
-
-if test x"$with_gmic" == "xyes"; then
-  AC_DEFINE(HAVE_GMIC,1,[define to enable the gmic interpreter.])
-  AM_CONDITIONAL(ENABLE_GMIC, true)
-else
-  AM_CONDITIONAL(ENABLE_GMIC, false)
-  with_gmic=no
-fi
-
 # hmm, these don't have .pc files on ubuntu 5.10, how odd
 FIND_ZIP(
   [with_zip=yes],
@@ -815,7 +802,6 @@ AC_OUTPUT([
 	libvips/include/vips/Makefile 
 	libvips/Makefile 
 	libvips/arithmetic/Makefile 
-	libvips/cimg/Makefile 
 	libvips/colour/Makefile 
 	libvips/conversion/Makefile 
 	libvips/convolution/Makefile 
@@ -882,5 +868,4 @@ file import/export with libjpeg:	$with_jpeg
 image pyramid export:			$with_gsf
   (requires libgsf-1 1.14.27 or later)
 use libexif to load/save JPEG metadata: $with_libexif
-build Python binding: 			$with_python
-embed gmic interpreter: 		$with_gmic])
+build Python binding: 			$with_python])
