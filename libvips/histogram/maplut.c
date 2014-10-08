@@ -602,6 +602,13 @@ vips_maplut_build( VipsObject *object )
 	if( lut->Bands != 1 )
 		maplut->out->Bands = lut->Bands;
 
+	/* The Type comes from the image with many bands. A B_W index image,
+	 * for example, needs to become an RGB image when it goes through a
+	 * three-band LUT.
+	 */
+	if( lut->Bands != 1 )
+		maplut->out->Type = lut->Type;
+
 	g_signal_connect( in, "preeval", 
 		G_CALLBACK( vips_maplut_preeval ), maplut );
 	g_signal_connect( in, "posteval", 

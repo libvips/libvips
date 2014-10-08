@@ -90,11 +90,11 @@ vips_Lab2LabS_init( VipsLab2LabS *Lab2LabS )
 
 	colour->interpretation = VIPS_INTERPRETATION_LABS;
 	colour->format = VIPS_FORMAT_SHORT;
+	colour->input_bands = 3;
 	colour->bands = 3;
 
 	code->input_coding = VIPS_CODING_NONE;
 	code->input_format = VIPS_FORMAT_FLOAT;
-	colour->input_bands = 3;
 }
 
 /**
