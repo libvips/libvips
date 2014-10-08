@@ -1,5 +1,6 @@
-8/10/14 started 7.40.10
+8/10/14 started 7.40.11
 - rework extra band handling for colour functions
+- set interpretation of matlut output more carefully
 
 8/9/14 started 7.40.10
 - icc_import and icc_transform checks the input profile for compatibility 
