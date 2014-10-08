@@ -506,7 +506,9 @@ vips_icc_load_profile_image( const char *domain, VipsImage *image )
 		return( NULL ); 
 	}
 
-	if( image->Bands != vips_icc_profile_needs_bands( profile ) ) {
+	/* We allow extra bands for eg. alpha.
+	 */
+	if( image->Bands < vips_icc_profile_needs_bands( profile ) ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
 		vips_warn( domain, 
 			"%s", _( "embedded profile incompatible with image" ) );
@@ -528,7 +530,9 @@ vips_icc_load_profile_file( const char *domain,
 		return( NULL );
 	}
 
-	if( image->Bands != vips_icc_profile_needs_bands( profile ) ) {
+	/* We allow extra bands for eg. alpha.
+	 */
+	if( image->Bands < vips_icc_profile_needs_bands( profile ) ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
 		vips_warn( domain, 
 			_( "profile \"%s\" incompatible with image" ),
