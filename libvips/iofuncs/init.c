@@ -166,6 +166,63 @@ vips_get_argv0( void )
  * Returns: 0 on success, -1 otherwise
  */
 
+/* Load all plugins in a directory ... look for '.plg' suffix. Error if we had
+ * any probs.
+ */
+static int
+vips_load_plugins( const char *fmt, ... )
+{
+        va_list ap;
+        char dir_name[VIPS_PATH_MAX];
+        GDir *dir;
+	const char *name;
+        int result;
+
+	/* Silently succeed if we can't do modules.
+	 */
+	if( !g_module_supported() )
+		return( 0 );
+
+        va_start( ap, fmt );
+        (void) vips_vsnprintf( dir_name, VIPS_PATH_MAX - 1, fmt, ap );
+        va_end( ap );
+
+#ifdef DEBUG
+	printf( "vips_load_plugins: searching \"%s\"\n", dir_name );
+#endif /*DEBUG*/
+
+        if( !(dir = g_dir_open( dir_name, 0, NULL )) ) 
+		/* Silent success for dir not there.
+		 */
+                return( 0 );
+
+        result = 0;
+        while( (name = g_dir_read_name( dir )) )
+                if( vips_ispostfix( name, ".plg" ) ) { 
+			char path[VIPS_PATH_MAX];
+			GModule *module;
+
+			vips_snprintf( path, VIPS_PATH_MAX - 1, 
+				"%s" G_DIR_SEPARATOR_S "%s", dir_name, name );
+
+#ifdef DEBUG
+			printf( "vips_load_plugins: loading \"%s\"\n", path );
+#endif /*DEBUG*/
+
+			module = g_module_open( path, G_MODULE_BIND_LAZY );
+			if( !module ) {
+				vips_warn( "vips_init", 
+					_( "unable to load \"%s\" -- %s" ), 
+					path, 
+					g_module_error() ); 
+				result = -1;
+			}
+                }
+        g_dir_close( dir );
+
+	return( result );
+}
+
 /**
  * vips_init:
  * @argv0: name of application
@@ -286,9 +343,15 @@ vips_init( const char *argv0 )
 	vips_draw_operation_init();
 	vips_mosaicing_operation_init();
 
-	/* Load up any plugins in the vips libdir. We don't error on failure,
-	 * it's too annoying to have VIPS refuse to start because of a broken
-	 * plugin.
+	/* Load any vips8 plugins from the vips libdir. Keep going, even if
+	 * some plugins fail to load. 
+	 */
+	(void) vips_load_plugins( "%s/vips-plugins-%d.%d", 
+		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
+
+	/* Load up any vips7 plugins in the vips libdir. We don't error on 
+	 * failure, it's too annoying to have VIPS refuse to start because of 
+	 * a broken plugin.
 	 */
 	if( im_load_plugins( "%s/vips-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION ) ) {
