@@ -1672,7 +1672,7 @@ readtiff_new( VipsImage *out, int page, gboolean readbehind )
 	g_signal_connect( out, "close", 
 		G_CALLBACK( readtiff_destroy ), rtiff ); 
 
-	if( rtiff->page < 0 || rtiff->page > 1000 ) {
+	if( rtiff->page < 0 || rtiff->page > 1000000 ) {
 		vips_error( "tiff2vips", _( "bad page number %d" ),
 			rtiff->page );
 		return( NULL );
