@@ -25,9 +25,9 @@ import sys
 import re
 import logging
 
-from gi.overrides import override
-from gi.importer import modules
+from gi import _gobject
 from gi.repository import GObject
+from ..importer import modules
 
 Vips = modules['Vips']._introspection_module
 __all__ = []
@@ -259,6 +259,7 @@ Vips.call = call
 def _call_instance(self, name, args, kwargs):
     return _call_base(name, args, kwargs, self)
 
+# this is a class method
 def vips_image_new_from_file(cls, vips_filename, **kwargs):
     filename = Vips.filename_get_filename(vips_filename)
     option_string = Vips.filename_get_options(vips_filename)
@@ -271,6 +272,7 @@ def vips_image_new_from_file(cls, vips_filename, **kwargs):
 
 setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
 
+# this is a class method
 def vips_image_new_from_buffer(cls, data, option_string, **kwargs):
     loader = Vips.Foreign.find_load_buffer(data)
     if loader == None:
@@ -279,6 +281,7 @@ def vips_image_new_from_buffer(cls, data, option_string, **kwargs):
 
 setattr(Vips.Image, 'new_from_buffer', classmethod(vips_image_new_from_buffer))
 
+# this is a class method
 def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
     # we accept a 1D array and assume height == 1, or a 2D array and check all
     # lines are the same length
@@ -307,6 +310,50 @@ def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
 
 setattr(Vips.Image, 'new_from_array', classmethod(vips_image_new_from_array))
 
+def vips_image_getattr(self, name):
+    logging.debug('Image.__getattr__ %s' % name)
+
+    # look up in props first, eg. x.props.width
+    if name in dir(self.props):
+        return getattr(self.props, name)
+
+    return lambda *args, **kwargs: _call_instance(self, name, args, kwargs)
+
+def vips_image_write_to_file(self, vips_filename, **kwargs):
+    filename = Vips.filename_get_filename(vips_filename)
+    option_string = Vips.filename_get_options(vips_filename)
+    saver = Vips.Foreign.find_save(filename)
+    if saver == None:
+        raise Error('No known saver for "%s".' % filename)
+    logging.debug('Image.write_to_file: saver = %s' % saver)
+
+    _call_base(saver, [filename], kwargs, self, option_string)
+
+def vips_image_write_to_buffer(self, vips_filename, **kwargs):
+    filename = Vips.filename_get_filename(vips_filename)
+    option_string = Vips.filename_get_options(vips_filename)
+    saver = Vips.Foreign.find_save_buffer(filename)
+    if saver == None:
+        raise Error('No known saver for "%s".' % filename)
+    logging.debug('Image.write_to_buffer: saver = %s' % saver)
+
+    return _call_base(saver, [], kwargs, self, option_string)
+
+def vips_bandsplit(self):
+    return [self.extract_band(i) for i in range(0, self.bands)]
+
+def vips_maxpos(self):
+    v, opts = self.max(x = True, y = True)
+    x = opts['x']
+    y = opts['y']
+    return v, x, y
+
+def vips_minpos(self):
+    v, opts = self.min(x = True, y = True)
+    x = opts['x']
+    y = opts['y']
+    return v, x, y
+
 # apply a function to a thing, or map over a list
 # we often need to do something like (1.0 / other) and need to work for lists
 # as well as scalars
@@ -316,310 +363,225 @@ def smap(func, x):
     else:
         return func(x)
 
-class Image(Vips.Image):
+def vips_add(self, other):
+    if isinstance(other, Vips.Image):
+        return self.add(other)
+    else:
+        return self.linear(1, other)
 
-    # constructors, see class methods above
+def vips_sub(self, other):
+    if isinstance(other, Vips.Image):
+        return self.subtract(other)
+    else:
+        return self.linear(1, smap(lambda x: -1 * x, other))
 
-    def __init__(self):
-        Vips.Image.__init__(self)
+def vips_rsub(self, other):
+    return self.linear(-1, other)
 
-    # output
+def vips_mul(self, other):
+    if isinstance(other, Vips.Image):
+        return self.multiply(other)
+    else:
+        return self.linear(other, 0)
 
-    def write_to_file(self, vips_filename, **kwargs):
-        filename = Vips.filename_get_filename(vips_filename)
-        option_string = Vips.filename_get_options(vips_filename)
-        saver = Vips.Foreign.find_save(filename)
-        if saver == None:
-            raise Error('No known saver for "%s".' % filename)
-        logging.debug('Image.write_to_file: saver = %s' % saver)
+def vips_div(self, other):
+    if isinstance(other, Vips.Image):
+        return self.divide(other)
+    else:
+        return self.linear(smap(lambda x: 1.0 / x, other), 0)
 
-        _call_base(saver, [filename], kwargs, self, option_string)
+def vips_rdiv(self, other):
+    return (self ** -1) * other
 
-    def write_to_buffer(self, vips_filename, **kwargs):
-        filename = Vips.filename_get_filename(vips_filename)
-        option_string = Vips.filename_get_options(vips_filename)
-        saver = Vips.Foreign.find_save_buffer(filename)
-        if saver == None:
-            raise Error('No known saver for "%s".' % filename)
-        logging.debug('Image.write_to_buffer: saver = %s' % saver)
+def vips_floor(self):
+    return self.round(Vips.OperationRound.FLOOR)
 
-        return _call_base(saver, [], kwargs, self, option_string)
+def vips_get_value(self, field):
+    value = self.get(field)
 
-    # we can use Vips.Image.write_to_memory() directly
+    logging.debug('read out %s from %s' % (value, self))
 
-    # operator overloads
+    # turn VipsBlobs into strings, VipsArrayDouble into lists etc.
+    # FIXME ... this will involve a copy, we should use
+    # buffer() instead
+    if isunpack(value):
+        value = value.get()
 
-    def __getattr__(self, name):
-        logging.debug('Image.__getattr__ %s' % name)
+    return value
 
-        # look up in props first, eg. x.props.width
-        if name in dir(self.props):
-            return getattr(self.props, name)
+def vips_set_value(self, field, value):
+    gtype = self.get_typeof(field)
+    logging.debug('assigning %s to %s' % (value, self))
+    logging.debug('%s needs a %s' % (self, gtype))
 
-        return lambda *args, **kwargs: _call_instance(self, name, args, kwargs)
+    # array-ize some types, if necessary
+    value = arrayize(gtype, value)
 
-    def __add__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.add(other)
-        else:
-            return self.linear(1, other)
+    # blob-ize
+    if GObject.type_is_a(gtype, vips_type_blob):
+        if not isinstance(value, Vips.Blob):
+            value = Vips.Blob.new(None, value)
 
-    def __radd__(self, other):
-        return self.__add__(other)
+    self.set(field, value)
 
-    def __sub__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.subtract(other)
-        else:
-            return self.linear(1, smap(lambda x: -1 * x, other))
+def vips_ceil(self):
+    return self.round(Vips.OperationRound.CEIL)
 
-    def __rsub__(self, other):
-        return self.linear(-1, other)
+def vips_rint(self):
+    return self.round(Vips.OperationRound.RINT)
 
-    def __mul__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.multiply(other)
-        else:
-            return self.linear(other, 0)
+def vips_floordiv(self, other):
+    if isinstance(other, Vips.Image):
+        return self.divide(other).floor()
+    else:
+        return self.linear(smap(lambda x: 1.0 / x, other), 0).floor()
 
-    def __rmul__(self, other):
-        return self.__mul__(other)
+def vips_rfloordiv(self, other):
+    return ((self ** -1) * other).floor()
 
-    def __div__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.divide(other)
-        else:
-            return self.linear(smap(lambda x: 1.0 / x, other), 0)
+def vips_mod(self, other):
+    if isinstance(other, Vips.Image):
+        return self.remainder(other)
+    else:
+        return self.remainder_const(other)
 
-    def __rdiv__(self, other):
-        return (self ** -1) * other
+def vips_pow(self, other):
+    if isinstance(other, Vips.Image):
+        return self.math2(other, Vips.OperationMath2.POW)
+    else:
+        return self.math2_const(other, Vips.OperationMath2.POW)
 
-    def __floordiv__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.divide(other).floor()
-        else:
-            return self.linear(smap(lambda x: 1.0 / x, other), 0).floor()
+def vips_rpow(self, other):
+    return self.math2_const(other, Vips.OperationMath2.WOP)
 
-    def __rfloordiv__(self, other):
-        return ((self ** -1) * other).floor()
+def vips_lshift(self, other):
+    if isinstance(other, Vips.Image):
+        return self.boolean(other, Vips.OperationBoolean.LSHIFT)
+    else:
+        return self.boolean_const(other, Vips.OperationBoolean.LSHIFT)
 
-    def __mod__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.remainder(other)
-        else:
-            return self.remainder_const(other)
+def vips_rshift(self, other):
+    if isinstance(other, Vips.Image):
+        return self.boolean(other, Vips.OperationBoolean.RSHIFT)
+    else:
+        return self.boolean_const(other, Vips.OperationBoolean.RSHIFT)
 
-    def __pow__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.math2(other, Vips.OperationMath2.POW)
-        else:
-            return self.math2_const(other, Vips.OperationMath2.POW)
+def vips_and(self, other):
+    if isinstance(other, Vips.Image):
+        return self.boolean(other, Vips.OperationBoolean.AND)
+    else:
+        return self.boolean_const(other, Vips.OperationBoolean.AND)
 
-    def __rpow__(self, other):
-        return self.math2_const(other, Vips.OperationMath2.WOP)
+def vips_or(self, other):
+    if isinstance(other, Vips.Image):
+        return self.boolean(other, Vips.OperationBoolean.OR)
+    else:
+        return self.boolean_const(other, Vips.OperationBoolean.OR)
 
-    def __abs__(self):
-        return self.abs()
+def vips_xor(self, other):
+    if isinstance(other, Vips.Image):
+        return self.boolean(other, Vips.OperationBoolean.EOR)
+    else:
+        return self.boolean_const(other, Vips.OperationBoolean.EOR)
 
-    def __lshift__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.boolean(other, Vips.OperationBoolean.LSHIFT)
-        else:
-            return self.boolean_const(other, Vips.OperationBoolean.LSHIFT)
+def vips_more(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.MORE)
+    else:
+        return self.relational_const(other, Vips.OperationRelational.MORE)
 
-    def __rshift__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.boolean(other, Vips.OperationBoolean.RSHIFT)
-        else:
-            return self.boolean_const(other, Vips.OperationBoolean.RSHIFT)
+def vips_moreeq(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.MOREEQ)
+    else:
+        return self.relational_const(other, Vips.OperationRelational.MOREEQ)
 
-    def __and__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.boolean(other, Vips.OperationBoolean.AND)
-        else:
-            return self.boolean_const(other, Vips.OperationBoolean.AND)
+def vips_less(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.LESS)
+    else:
+        return self.relational_const(other, Vips.OperationRelational.LESS)
 
-    def __rand__(self, other):
-        return self.__and__(other)
+def vips_lesseq(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.LESSEQ)
+    else:
+        return self.relational_const(other, Vips.OperationRelational.LESSEQ)
 
-    def __or__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.boolean(other, Vips.OperationBoolean.OR)
-        else:
-            return self.boolean_const(other, Vips.OperationBoolean.OR)
+def vips_equal(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.EQUAL)
+    else:
+        return self.relational_const(other, Vips.OperationRelational.EQUAL)
 
-    def __ror__(self, other):
-        return self.__or__(other)
+def vips_notequal(self, other):
+    if isinstance(other, Vips.Image):
+        return self.relational(other, Vips.OperationRelational.NOTEQ)
+    else:
+        return self.relational_const(other, Vips.OperationRelational.NOTEQ)
 
-    def __xor__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.boolean(other, Vips.OperationBoolean.EOR)
-        else:
-            return self.boolean_const(other, Vips.OperationBoolean.EOR)
+def vips_neg(self):
+    return -1 * self
 
-    def __rxor__(self, other):
-        return self.__xor__(other)
+def vips_pos(self):
+    return self
 
-    def __neg__(self):
-        return -1 * self
+def vips_abs(self):
+    return self.abs()
 
-    def __pos__(self):
-        return self
+def vips_invert(self):
+    return self ^ -1
 
-    def __invert__(self):
-        return self ^ -1
-
-    def __gt__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.MORE)
-        else:
-            return self.relational_const(other, Vips.OperationRelational.MORE)
-
-    def __ge__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.MOREEQ)
-        else:
-            return self.relational_const(other, Vips.OperationRelational.MOREEQ)
-
-    def __lt__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.LESS)
-        else:
-            return self.relational_const(other, Vips.OperationRelational.LESS)
-
-    def __le__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.LESSEQ)
-        else:
-            return self.relational_const(other, Vips.OperationRelational.LESSEQ)
-
-    def __eq__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.EQUAL)
-        else:
-            return self.relational_const(other, Vips.OperationRelational.EQUAL)
-
-    def __ne__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.NOTEQ)
-        else:
-            return self.relational_const(other, Vips.OperationRelational.NOTEQ)
-
-    # the cast operators int(), long() and float() must return numeric types, 
-    # so we can't define them for images
-
-    # a few useful things
-
-    def get_value(self, field):
-        value = self.get(field)
-
-        logging.debug('read out %s from %s' % (value, self))
-
-        # turn VipsBlobs into strings, VipsArrayDouble into lists etc.
-        # FIXME ... this will involve a copy, we should use
-        # buffer() instead
-        if isunpack(value):
-            value = value.get()
-
-        return value
-
-    def set_value(self, field, value):
-        gtype = self.get_typeof(field)
-        logging.debug('assigning %s to %s' % (value, self))
-        logging.debug('%s needs a %s' % (self, gtype))
-
-        # array-ize some types, if necessary
-        value = arrayize(gtype, value)
-
-        # blob-ize
-        if GObject.type_is_a(gtype, vips_type_blob):
-            if not isinstance(value, Vips.Blob):
-                value = Vips.Blob.new(None, value)
-
-        self.set(field, value)
-
-    def floor(self):
-        return self.round(Vips.OperationRound.FLOOR)
-
-    def ceil(self):
-        return self.round(Vips.OperationRound.CEIL)
-
-    def rint(self):
-        return self.round(Vips.OperationRound.RINT)
-
-    def bandsplit(self):
-        return [self.extract_band(i) for i in range(0, self.bands)]
-
-    def bandjoin(self, other):
-        if not isinstance(other, list):
-            other = [other]
-
-        return Vips.Image.bandjoin([self] + other)
-
-    def maxpos(self):
-        v, opts = self.max(x = True, y = True)
-        x = opts['x']
-        y = opts['y']
-        return v, x, y
-
-    def minpos(self):
-        v, opts = self.min(x = True, y = True)
-        x = opts['x']
-        y = opts['y']
-        return v, x, y
-
-    def real(self):
+def vips_real(self):
         return self.complexget(Vips.OperationComplexget.REAL)
 
-    def imag(self):
+def vips_imag(self):
         return self.complexget(Vips.OperationComplexget.IMAG)
 
-    def polar(self):
+def vips_polar(self):
         return self.complex(Vips.OperationComplex.POLAR)
 
-    def rect(self):
+def vips_rect(self):
         return self.complex(Vips.OperationComplex.RECT)
 
-    def conj(self):
+def vips_conj(self):
         return self.complex(Vips.OperationComplex.CONJ)
 
-    def sin(self):
+def vips_sin(self):
         return self.math(Vips.OperationMath.SIN)
 
-    def cos(self):
+def vips_cos(self):
         return self.math(Vips.OperationMath.COS)
 
-    def tan(self):
+def vips_tan(self):
         return self.math(Vips.OperationMath.TAN)
 
-    def asin(self):
+def vips_asin(self):
         return self.math(Vips.OperationMath.ASIN)
 
-    def acos(self):
+def vips_acos(self):
         return self.math(Vips.OperationMath.ACOS)
 
-    def atan(self):
+def vips_atan(self):
         return self.math(Vips.OperationMath.ATAN)
 
-    def log(self):
+def vips_log(self):
         return self.math(Vips.OperationMath.LOG)
 
-    def log10(self):
+def vips_log10(self):
         return self.math(Vips.OperationMath.LOG10)
 
-    def exp(self):
+def vips_exp(self):
         return self.math(Vips.OperationMath.EXP)
 
-    def exp10(self):
+def vips_exp10(self):
         return self.math(Vips.OperationMath.EXP10)
 
-Image = override(Image)
-__all__.append('Image')
+def vips_bandjoin2(self, other):
+        return Vips.Image.bandjoin([self, other])
 
 # Search for all VipsOperation which don't have an input image object ... these
 # become class methods
-
-# This is slow :-( 
 
 def vips_image_class_method(name, args, kwargs):
     logging.debug('vips_image_class_method %s' % name)
@@ -655,4 +617,76 @@ def define_class_methods(cls):
                 define_class_methods(child)
 
 define_class_methods(vips_type_operation)
+
+# instance methods
+Vips.Image.write_to_file = vips_image_write_to_file
+Vips.Image.write_to_buffer = vips_image_write_to_buffer
+# we can use Vips.Image.write_to_memory() directly
+
+# a few useful things
+Vips.Image.get_value = vips_get_value
+Vips.Image.set_value = vips_set_value
+Vips.Image.floor = vips_floor
+Vips.Image.ceil = vips_ceil
+Vips.Image.rint = vips_rint
+Vips.Image.bandsplit = vips_bandsplit
+Vips.Image.maxpos = vips_maxpos
+Vips.Image.minpos = vips_minpos
+Vips.Image.real = vips_real
+Vips.Image.imag = vips_imag
+Vips.Image.polar = vips_polar
+Vips.Image.rect = vips_rect
+Vips.Image.conj = vips_conj
+Vips.Image.sin = vips_sin
+Vips.Image.cos = vips_cos
+Vips.Image.tan = vips_tan
+Vips.Image.asin = vips_asin
+Vips.Image.acos = vips_acos
+Vips.Image.atan = vips_atan
+Vips.Image.log = vips_log
+Vips.Image.log10 = vips_log10
+Vips.Image.exp = vips_exp
+Vips.Image.exp10 = vips_exp10
+Vips.Image.bandjoin2 = vips_bandjoin2
+
+# operator overloads
+Vips.Image.__getattr__ = vips_image_getattr
+Vips.Image.__add__ = vips_add
+Vips.Image.__radd__ = vips_add
+Vips.Image.__sub__ = vips_sub
+Vips.Image.__rsub__ = vips_rsub
+Vips.Image.__mul__ = vips_mul
+Vips.Image.__rmul__ = vips_mul
+Vips.Image.__div__ = vips_div
+Vips.Image.__rdiv__ = vips_rdiv
+Vips.Image.__floordiv__ = vips_floordiv
+Vips.Image.__rfloordiv__ = vips_rfloordiv
+Vips.Image.__mod__ = vips_mod
+
+Vips.Image.__pow__ = vips_pow
+Vips.Image.__rpow__ = vips_rpow
+Vips.Image.__abs__ = vips_abs
+
+Vips.Image.__lshift__ = vips_lshift
+Vips.Image.__rshift__ = vips_rshift
+Vips.Image.__and__ = vips_and
+Vips.Image.__rand__ = vips_and
+Vips.Image.__or__ = vips_or
+Vips.Image.__ror__ = vips_or
+Vips.Image.__xor__ = vips_xor
+Vips.Image.__rxor__ = vips_xor
+
+Vips.Image.__neg__ = vips_neg
+Vips.Image.__pos__ = vips_pos
+Vips.Image.__invert__ = vips_invert
+
+Vips.Image.__lt__ = vips_less
+Vips.Image.__le__ = vips_lesseq
+Vips.Image.__gt__ = vips_more
+Vips.Image.__ge__ = vips_moreeq
+Vips.Image.__eq__ = vips_equal
+Vips.Image.__ne__ = vips_notequal
+
+# the cast operators int(), long() and float() must return numeric types, so we
+# can't define them for images
 
