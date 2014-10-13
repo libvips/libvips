@@ -1,14 +1,36 @@
-#!/usr/bin/python
+# -*- Mode: Python; py-indent-offset: 4 -*-
+# vim: tabstop=4 shiftwidth=4 expandtab
+
+# copy this file to /usr/lib/python2.7/dist-packages/gi/overrides/
+
+# This file is part of VIPS.
+# 
+# VIPS is free software; you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+# 
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
+# more details.
+# 
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+# 
+# These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
 import sys
 import re
-
 import logging
 
-# you might need this in your .bashrc
-# export GI_TYPELIB_PATH=$VIPSHOME/lib/girepository-1.0
+from gi import _gobject
+from gi.repository import GObject
+from ..importer import modules
 
-from gi.repository import GLib, GObject, Vips
+Vips = modules['Vips']._introspection_module
+__all__ = []
 
 # start up vips!
 Vips.init(sys.argv[0])
@@ -60,6 +82,8 @@ class Error(Exception):
     def __str__(self):
         return '%s\n  %s' % (self.message, self.detail)
 
+Vips.Error = Error
+
 class Argument:
     def __init__(self, op, prop):
         self.op = op;
@@ -101,6 +125,8 @@ class Argument:
             value = value.get()
 
         return value
+
+Vips.Argument = Argument
 
 def _call_base(name, required, optional, self = None, option_string = None):
     logging.debug('_call_base name=%s, required=%s optional=%s' % 
@@ -227,6 +253,8 @@ def _call_base(name, required, optional, self = None, option_string = None):
 def call(name, *args, **kwargs):
     return _call_base(name, args, kwargs)
 
+Vips.call = call
+
 # here from getattr ... try to run the attr as a method
 def _call_instance(self, name, args, kwargs):
     return _call_base(name, args, kwargs, self)
@@ -242,12 +270,16 @@ def vips_image_new_from_file(cls, vips_filename, **kwargs):
 
     return _call_base(loader, [filename], kwargs, None, option_string)
 
+setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
+
 # this is a class method
 def vips_image_new_from_buffer(cls, data, option_string, **kwargs):
     loader = Vips.Foreign.find_load_buffer(data)
     if loader == None:
         raise Error('No known loader for buffer.')
     logging.debug('Image.new_from_buffer: loader = %s' % loader)
+
+setattr(Vips.Image, 'new_from_buffer', classmethod(vips_image_new_from_buffer))
 
 # this is a class method
 def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
@@ -275,6 +307,8 @@ def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
     image.set('offset', float(offset))
 
     return image
+
+setattr(Vips.Image, 'new_from_array', classmethod(vips_image_new_from_array))
 
 def vips_image_getattr(self, name):
     logging.debug('Image.__getattr__ %s' % name)
@@ -546,13 +580,6 @@ def vips_exp10(self):
 def vips_bandjoin2(self, other):
         return Vips.Image.bandjoin([self, other])
 
-# paste our methods into Vips.Image
-
-# class methods
-setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
-setattr(Vips.Image, 'new_from_buffer', classmethod(vips_image_new_from_buffer))
-setattr(Vips.Image, 'new_from_array', classmethod(vips_image_new_from_array))
-
 # Search for all VipsOperation which don't have an input image object ... these
 # become class methods
 
@@ -662,9 +689,4 @@ Vips.Image.__ne__ = vips_notequal
 
 # the cast operators int(), long() and float() must return numeric types, so we
 # can't define them for images
-
-# Add other classes to Vips
-Vips.Error = Error
-Vips.Argument = Argument
-Vips.call = call
 

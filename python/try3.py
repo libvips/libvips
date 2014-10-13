@@ -5,8 +5,6 @@ import sys
 #import logging
 #logging.basicConfig(level = logging.DEBUG)
 
-from vips8 import vips
-
 from gi.repository import Vips
 
 Vips.cache_set_trace(True)

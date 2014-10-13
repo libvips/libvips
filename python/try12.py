@@ -3,7 +3,6 @@
 import sys
 
 from gi.repository import Vips 
-from vips8 import vips
 
 im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
 

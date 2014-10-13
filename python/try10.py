@@ -7,8 +7,6 @@ logging.basicConfig(level = logging.DEBUG)
 
 from gi.repository import Vips 
 
-from vips8 import vips
-
 a = Vips.Image.black(100, 100)
 
 a.draw_circle(128, 50, 50, 20)

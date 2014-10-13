@@ -5,3 +5,7 @@ binding for libvips.
 
 This is the vips8 API, so it's not yet fully implemented. Use the older vipsCC
 binding if you want a more complete system.
+
+To install, try:
+
+sudo cp Vips.py /usr/lib/python2.7/dist-packages/gi/overrides

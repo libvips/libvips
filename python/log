@@ -1,0 +1,429 @@
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+======================================================================
+ERROR: test_abs (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_acos (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_add (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_and (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_asin (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_atan (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_avg (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_ceil (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_conjugate (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_cos (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_deviate (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_div (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_equal (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_exp (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_exp10 (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_floor (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_floordiv (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_histfind (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_histfind_indexed (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_histfind_ndim (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_hough_circle (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_hough_line (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_invert (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_less (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_lesseq (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_log (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_log10 (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_lshift (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_max (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_measure (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_min (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_mod (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_more (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_moreeq (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_mul (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_neg (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_noteq (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_or (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_polar (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_pos (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_pow (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_profile (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_project (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_rect (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_rint (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_rshift (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_sign (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_sin (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_stats (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_sub (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_sum (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_tan (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+======================================================================
+ERROR: test_xor (__main__.TestArithmetic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_arithmetic.py", line 110, in setUp
+    im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+AttributeError: type object 'Image' has no attribute 'mask_ideal'
+
+----------------------------------------------------------------------
+Ran 53 tests in 0.010s
+
+FAILED (errors=53)

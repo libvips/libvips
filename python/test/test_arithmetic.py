@@ -7,7 +7,6 @@ import math
 #logging.basicConfig(level = logging.DEBUG)
 
 from gi.repository import Vips 
-from vips8 import vips
 
 unsigned_formats = [Vips.BandFormat.UCHAR, 
                     Vips.BandFormat.USHORT, 

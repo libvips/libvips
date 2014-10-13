@@ -1,24 +1,11 @@
-- im_greyc_mask compat is not working?
-
-	vips im_greyc_mask k2.jpg x.jpg k4.jpg 1 100 0.5 0.5 0.5 0.5 0.5 0.5 1
-	1 1
-
-  vips_gmic_gen is never called
-
 
 - python:
-
-	- could import like this:
-
-		from gi.repository import Vips 
-		import vips_additions
-		
-	  ie. make it a module, not a package, and make it clear that it
-	  modifies Vips rather than adding anything itself
 
 	- should be a separate package? pyvips?
 
 	  easier to get into CPAN or whatever the python thing is called
+
+	- do more tests
 
 - put exif autorotate into jpeg load
 
