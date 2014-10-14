@@ -783,8 +783,6 @@ VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES" 
 VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
-# we need this to generate paths in swig/python/setup.py.in
-AC_SUBST(top_srcdir)
 AC_SUBST(VIPS_LIBDIR)
 
 AC_SUBST(VIPS_CFLAGS)
@@ -827,7 +825,6 @@ AC_OUTPUT([
 	tools/shrink_width 
 	swig/Makefile 
 	swig/vipsCC/Makefile 
-	swig/python/setup.py 
 	man/Makefile
 	doc/Makefile
 	doc/reference/Makefile
