@@ -616,51 +616,9 @@ class Image(Vips.Image):
     def exp10(self):
         return self.math(Vips.OperationMath.EXP10)
 
-Image = override(Image)
-__all__.append('Image')
+# add operators which needs to be class methods
 
-# Search for all VipsOperation which don't have an input image object ... these
-# become class methods
-
-# This is slow :-( 
-
-def vips_image_class_method(name, args, kwargs):
-    logging.debug('vips_image_class_method %s' % name)
-
-    # the first arg is the class we are called from ... drop it
-    args = tuple(list(args)[1::])
-
-    return _call_base(name, args, kwargs)
-
-def define_class_methods(cls):
-    if not cls.is_abstract():
-        op = Vips.Operation.new(cls.name)
-
-        found = False
-        for prop in op.props:
-            flags = op.get_argument_flags(prop.name)
-            if flags & Vips.ArgumentFlags.INPUT and flags & Vips.ArgumentFlags.REQUIRED:
-                if GObject.type_is_a(vips_type_image, prop.value_type):
-                    found = True
-                    break
-
-        if not found:
-            gtype = Vips.type_find("VipsOperation", cls.name)
-            nickname = Vips.nickname_find(gtype)
-            logging.debug('adding %s as a class method' % nickname)
-            method = lambda *args, **kwargs: vips_image_class_method(nickname, args, kwargs)
-            setattr(Vips.Image, nickname, classmethod(method))
-
-    if len(cls.children) > 0:
-        for child in cls.children:
-            # not easy to get at the deprecated flag in an abtract type?
-            if cls.name != 'VipsWrap7':
-                define_class_methods(child)
-
-# for speed, only run this occasionally ... we add class methods from the list
-# below
-
-# define_class_methods(vips_type_operation)
+# use find_class_methods.py to generate this list
 
 class_methods = [
                     "system",
@@ -711,6 +669,17 @@ class_methods = [
                     "fitsload",
                     "openexrload"]
 
+def generate_class_method(name):
+    @classmethod
+    def class_method(cls, *args, **kwargs):
+        return _call_base(name, args, kwargs)
+
+    return class_method
+
 for nickname in class_methods:
-    method = lambda *args, **kwargs: vips_image_class_method(nickname, args, kwargs)
-    setattr(Vips.Image, nickname, classmethod(method))
+    logging.debug('adding %s as a class method' % nickname)
+    method = generate_class_method(nickname)
+    setattr(Vips.Image, nickname, method)
+
+Image = override(Image)
+__all__.append('Image')
