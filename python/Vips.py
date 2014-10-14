@@ -645,7 +645,7 @@ def define_class_methods(cls):
             gtype = Vips.type_find("VipsOperation", cls.name)
             nickname = Vips.nickname_find(gtype)
             logging.debug('adding %s as a class method' % nickname)
-            method = lambda *args, **kwargs: vips_image_class_method( nickname, args, kwargs)
+            method = lambda *args, **kwargs: vips_image_class_method(nickname, args, kwargs)
             setattr(Vips.Image, nickname, classmethod(method))
 
     if len(cls.children) > 0:
@@ -654,5 +654,60 @@ def define_class_methods(cls):
             if cls.name != 'VipsWrap7':
                 define_class_methods(child)
 
-define_class_methods(vips_type_operation)
+# for speed, only run this occasionally ... we add class methods from the list
+# below
 
+# define_class_methods(vips_type_operation)
+
+class_methods = [
+                    "system",
+                    "sum",
+                    "bandjoin",
+                    "bandrank",
+                    "black",
+                    "gaussnoise",
+                    "text",
+                    "xyz",
+                    "gaussmat",
+                    "logmat",
+                    "eye",
+                    "grey",
+                    "zone",
+                    "sines",
+                    "mask_ideal",
+                    "mask_ideal_ring",
+                    "mask_ideal_band",
+                    "mask_butterworth",
+                    "mask_butterworth_ring",
+                    "mask_butterworth_band",
+                    "mask_gaussian",
+                    "mask_gaussian_ring",
+                    "mask_gaussian_band",
+                    "mask_fractal",
+                    "tonelut",
+                    "identity",
+                    "fractsurf",
+                    "radload",
+                    "ppmload",
+                    "csvload",
+                    "matrixload",
+                    "analyzeload",
+                    "rawload",
+                    "vipsload",
+                    "pngload",
+                    "pngload_buffer",
+                    "matload",
+                    "jpegload",
+                    "jpegload_buffer",
+                    "webpload",
+                    "webpload_buffer",
+                    "tiffload",
+                    "tiffload_buffer",
+                    "openslideload",
+                    "magickload",
+                    "fitsload",
+                    "openexrload"]
+
+for nickname in class_methods:
+    method = lambda *args, **kwargs: vips_image_class_method(nickname, args, kwargs)
+    setattr(Vips.Image, nickname, classmethod(method))

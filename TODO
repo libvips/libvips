@@ -1,6 +1,8 @@
 
 - python:
 
+	- can we hook into class method lookup? read the sources again
+
 	- should be a separate package? pyvips?
 
 	  easier to get into CPAN or whatever the python thing is called

@@ -167,7 +167,7 @@ class TestConversion(unittest.TestCase):
     def test_bandjoin(self):
         def bandjoin(x, y):
             if isinstance(x, Vips.Image) and isinstance(y, Vips.Image):
-                return x.bandjoin2(y)
+                return x.bandjoin(y)
             else:
                 return x + y
 
@@ -333,7 +333,7 @@ class TestConversion(unittest.TestCase):
             mx = max_value[fmt]
             alpha = mx / 2
             nalpha = mx - alpha
-            test = self.colour.bandjoin2(black + alpha).cast(fmt)
+            test = self.colour.bandjoin(black + alpha).cast(fmt)
             pixel = test.getpoint(30, 30)
 
             predict = [int(x) * alpha / mx for x in pixel[:-1]]
