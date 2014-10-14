@@ -745,7 +745,7 @@ AC_ARG_WITH([python],
 
 if test x"$with_python" != "xno"; then
   if test x"$enable_cxx" = "xno"; then
-    # if C++ if off, we can't do Python
+    # if C++ is off, we can't do Python
     with_python=no
     AC_MSG_WARN([C++ is off, disabling Python binding])
   else
@@ -823,6 +823,7 @@ AC_OUTPUT([
 	tools/batch_rubber_sheet 
 	tools/light_correct 
 	tools/shrink_width 
+	python/Makefile 
 	swig/Makefile 
 	swig/vipsCC/Makefile 
 	man/Makefile

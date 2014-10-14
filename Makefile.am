@@ -19,6 +19,15 @@ P_COMPILE_DIR =
 P_DIST_DIR = swig
 endif
 
+# turn on vips8 Python if we can 
+if HAVE_PYTHON
+P8_COMPILE_DIR = python
+P8_DIST_DIR =
+else
+P8_COMPILE_DIR = 
+P8_DIST_DIR = python
+endif
+
 if ENABLE_DOCS
 D_DIST_DIR = 
 D_BUILD_DIR = doc
@@ -35,6 +44,7 @@ SUBDIRS = \
 	doc \
 	$(C_COMPILE_DIR) \
 	$(P_COMPILE_DIR) \
+	$(P8_COMPILE_DIR) \
 	$(D_BUILD_DIR) 
 
 EXTRA_DIST = \
@@ -48,6 +58,7 @@ EXTRA_DIST = \
 	depcomp \
 	$(C_DIST_DIR) \
 	$(P_DIST_DIR) \
+	$(P8_DIST_DIR) \
 	$(D_DIST_DIR)
 
 pkgconfigdir = $(libdir)/pkgconfig
