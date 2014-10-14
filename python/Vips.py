@@ -259,6 +259,7 @@ Vips.call = call
 def _call_instance(self, name, args, kwargs):
     return _call_base(name, args, kwargs, self)
 
+@classmethod
 def vips_image_new_from_file(cls, vips_filename, **kwargs):
     filename = Vips.filename_get_filename(vips_filename)
     option_string = Vips.filename_get_options(vips_filename)
@@ -269,16 +270,18 @@ def vips_image_new_from_file(cls, vips_filename, **kwargs):
 
     return _call_base(loader, [filename], kwargs, None, option_string)
 
-setattr(Vips.Image, 'new_from_file', classmethod(vips_image_new_from_file))
+setattr(Vips.Image, 'new_from_file', vips_image_new_from_file)
 
+@classmethod
 def vips_image_new_from_buffer(cls, data, option_string, **kwargs):
     loader = Vips.Foreign.find_load_buffer(data)
     if loader == None:
         raise Error('No known loader for buffer.')
     logging.debug('Image.new_from_buffer: loader = %s' % loader)
 
-setattr(Vips.Image, 'new_from_buffer', classmethod(vips_image_new_from_buffer))
+setattr(Vips.Image, 'new_from_buffer', vips_image_new_from_buffer)
 
+@classmethod
 def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
     # we accept a 1D array and assume height == 1, or a 2D array and check all
     # lines are the same length
@@ -305,7 +308,7 @@ def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
 
     return image
 
-setattr(Vips.Image, 'new_from_array', classmethod(vips_image_new_from_array))
+setattr(Vips.Image, 'new_from_array', vips_image_new_from_array)
 
 # apply a function to a thing, or map over a list
 # we often need to do something like (1.0 / other) and need to work for lists
