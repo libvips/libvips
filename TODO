@@ -1,5 +1,12 @@
 
 - python:
+	
+	- oops
+
+		from gi.repository import Vips 
+		a = Vips.Image.black(100, 100)
+		b = a.bandjoin(2)
+		segv
 
 	- do more tests
 

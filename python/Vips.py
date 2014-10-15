@@ -62,6 +62,16 @@ def arrayize(gtype, value):
 
     return value
 
+def imageize(match_image, value):
+    if match_image is None:
+        return value
+
+    pixel = (Vips.Image.black(1, 1) + value).cast(match_image.format)
+    image = pixel.embed(0, 0, match_image.width, match_image.height,
+                        extend = Vips.Extend.Copy)
+
+    return image
+
 class Error(Exception):
 
     """An error from vips.
@@ -93,7 +103,7 @@ class Argument:
         self.priority = op.get_argument_priority(self.name)
         self.isset = op.argument_isset(self.name)
 
-    def set_value(self, value):
+    def set_value(self, match_image, value):
         logging.debug('assigning %s to %s' % (value, self.name))
         logging.debug('%s needs a %s' % (self.name, self.prop.value_type))
 
@@ -104,6 +114,11 @@ class Argument:
         if GObject.type_is_a(self.prop.value_type, vips_type_blob):
             if not isinstance(value, Vips.Blob):
                 value = Vips.Blob.new(None, value)
+
+        # image-ize
+        if GObject.type_is_a(self.prop.value_type, vips_type_image):
+            if not isinstance(value, Vips.Image):
+                value = imageize(match_image, value)
 
         # MODIFY input images need to be copied before assigning them
         if self.flags & Vips.ArgumentFlags.MODIFY:
@@ -127,6 +142,17 @@ class Argument:
         return value
 
 Vips.Argument = Argument
+
+# search a list recursively for a Vips.Image object
+def find_image(x):
+    if isinstance(x, Vips.Image):
+        return x
+    if isinstance(x, list):
+        for i in x:
+            y = find_image(i)
+            if y is not None:
+                return y
+    return None
 
 def _call_base(name, required, optional, self = None, option_string = None):
     logging.debug('_call_base name=%s, required=%s optional=%s' % 
@@ -164,7 +190,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
         found = False
         for x in required_input:
             if GObject.type_is_a(self, x.prop.value_type):
-                x.set_value(self)
+                x.set_value(None, self)
                 required_input.remove(x)
                 found = True
                 break
@@ -178,8 +204,25 @@ def _call_base(name, required, optional, self = None, option_string = None):
                     '%s needs %d arguments, you supplied %d' % 
                     (name, len(required_input), len(required)))
 
+    # if we need an image arg but the user supplied a number or list of 
+    # numbers, we expand it into an image automatically ... the number is
+    # expanded to match self, or if that's None, the first image we can find in
+    # the required or optional arguments
+    match_image = self
+    if match_image is None:
+        for arg in required:
+            match_image = find_image(arg)
+            if match_image is not None:
+                break
+
+    if match_image is None:
+        for arg_name in optional:
+            match_image = find_image(optional[arg_name])
+            if match_image is not None:
+                break
+
     for i in range(len(required_input)):
-        required_input[i].set_value(required[i])
+        required_input[i].set_value(match_image, required[i])
 
     # find all optional, unassigned input args ... make a hash from name to
     # Argument
@@ -195,7 +238,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
     # set optional input args
     for key in optional.keys():
         if key in optional_input:
-            optional_input[key].set_value(optional[key])
+            optional_input[key].set_value(match_image, optional[key])
         elif key in optional_output:
             # must be a literal True value
             if optional[key] is not True:
