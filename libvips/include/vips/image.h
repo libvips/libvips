@@ -427,6 +427,7 @@ VipsImage *vips_image_new_matrix_from_array( int width, int height,
 	double *array, int size );
 void vips_image_set_delete_on_close( VipsImage *image, 
 	gboolean delete_on_close );
+guint64 vips_get_disc_threshold( void );
 VipsImage *vips_image_new_temp_file( const char *format );
 
 int vips_image_write( VipsImage *image, VipsImage *out );

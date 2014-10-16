@@ -682,36 +682,6 @@ vips_foreign_load_new_from_string( const char *string )
 	return( VIPS_OBJECT( load ) );
 }
 
-static guint64
-vips_get_disc_threshold( void )
-{
-	static gboolean done = FALSE;
-	static guint64 threshold;
-
-	if( !done ) {
-		const char *env;
-
-		done = TRUE;
-
-		/* 100mb default.
-		 */
-		threshold = 100 * 1024 * 1024;
-
-		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) || 
-			(env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
-			threshold = vips__parse_size( env );
-
-		if( vips__disc_threshold ) 
-			threshold = vips__parse_size( vips__disc_threshold );
-
-#ifdef DEBUG
-		printf( "vips_get_disc_threshold: %zd bytes\n", threshold );
-#endif /*DEBUG*/
-	}
-
-	return( threshold );
-}
-
 static VipsImage *
 vips_foreign_load_temp( VipsForeignLoad *load )
 {
@@ -742,12 +712,10 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 
 	/* We open via disc if:
 	 * - 'disc' is set
-	 * - disc-threshold has not been set to zero
 	 * - the uncompressed image will be larger than 
 	 *   vips_get_disc_threshold()
 	 */
 	if( load->disc && 
-		disc_threshold && 
 		image_size > disc_threshold ) {
 #ifdef DEBUG
 		printf( "vips_foreign_load_temp: disc temp\n" );

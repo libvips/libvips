@@ -59,6 +59,8 @@
  * 	- don't write to our input buffer, thanks Lovell
  * 9/9/14
  * 	- support "none" as a resolution unit
+ * 16/10/14
+ * 	- add "autorotate" option
  */
 
 /*
@@ -131,6 +133,12 @@
 typedef struct _ReadJpeg {
 	VipsImage *out;
 
+	/* The raw image size: out may have width and height swapped if we are
+	 * autorotating.
+	 */
+	int width;
+	int height;
+
 	/* Shrink by this much during load. 1, 2, 4, 8.
 	 */
 	int shrink;
@@ -158,6 +166,10 @@ typedef struct _ReadJpeg {
 	/* Track the y pos during a read with this.
 	 */
 	int y_pos;
+
+	/* Use exif tags to automatically rotate and flip image.
+	 */
+	gboolean autorotate;
 } ReadJpeg;
 
 static int
@@ -211,7 +223,8 @@ readjpeg_close( VipsObject *object, ReadJpeg *jpeg )
 }
 
 static ReadJpeg *
-readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean readbehind )
+readjpeg_new( VipsImage *out, 
+	int shrink, gboolean fail, gboolean readbehind, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
@@ -224,13 +237,12 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean readbehind )
 	jpeg->readbehind = readbehind;
 	jpeg->filename = NULL;
 	jpeg->decompressing = FALSE;
-
         jpeg->cinfo.err = jpeg_std_error( &jpeg->eman.pub );
 	jpeg->eman.pub.error_exit = vips__new_error_exit;
 	jpeg->eman.pub.output_message = vips__new_output_message;
 	jpeg->eman.fp = NULL;
-
 	jpeg->y_pos = 0;
+	jpeg->autorotate = autorotate;
 
 	/* jpeg_create_decompress() can fail on some sanity checks. Don't
 	 * readjpeg_free() since we don't want to jpeg_destroy_decompress().
@@ -678,6 +690,35 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 	return( 0 );
 }
 
+#define ORIENTATION ("exif-ifd0-Orientation")
+
+static VipsAngle
+get_angle( VipsImage *im )
+{
+	VipsAngle angle;
+	const char *orientation;
+
+	angle = VIPS_ANGLE_D0;
+	if( vips_image_get_typeof( im, ORIENTATION ) &&
+		!vips_image_get_string( im, ORIENTATION, &orientation ) ) {
+		if( vips_isprefix( "6", orientation ) )
+			angle = VIPS_ANGLE_D90;
+		else if( vips_isprefix( "8", orientation ) )
+			angle = VIPS_ANGLE_D270;
+		else if( vips_isprefix( "3", orientation ) )
+			angle = VIPS_ANGLE_D180;
+		/* Other values do rotate + mirror, don't bother handling them
+		 * though, how common can mirroring be.
+		 *
+		 * See:
+		 *
+		 * http://www.80sidea.com/archives/2316
+		 */
+	}
+
+	return( angle );
+}
+
 /* Number of app2 sections we can capture. Each one can be 64k, so 6400k should
  * be enough for anyone (haha).
  */
@@ -892,6 +933,20 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			(VipsCallbackFn) vips_free, data, data_length );
 	}
 
+	/* Swap width and height if we're going to rotate this image. Keep the
+	 * unrotated dimensions around too. 
+	 */
+	jpeg->width = out->Xsize;
+	jpeg->height = out->Ysize;
+
+	if( jpeg->autorotate ) { 
+		VipsAngle angle = get_angle( out ); 
+
+		if( angle == VIPS_ANGLE_D90 || 
+			angle == VIPS_ANGLE_D270 )
+			VIPS_SWAP( int, out->Xsize, out->Ysize )
+	}
+
 	return( 0 );
 }
 
@@ -966,6 +1021,35 @@ read_jpeg_generate( VipsRegion *or,
 	return( 0 );
 }
 
+/* Auto-rotate, if rotate_image is set.
+ */
+static VipsImage *
+read_jpeg_rotate( VipsObject *process, VipsImage *im )
+{
+	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
+	VipsAngle angle = get_angle( im );
+
+	if( angle != VIPS_ANGLE_D0 ) {
+		/* Need to copy to memory or disc, we have to stay seq.
+		 */
+		const guint64 image_size = VIPS_IMAGE_SIZEOF_IMAGE( im );
+		const guint64 disc_threshold = vips_get_disc_threshold();
+
+		if( image_size > disc_threshold ) 
+			t[0] = vips_image_new_temp_file( "%s.v" );
+		else
+			t[0] = vips_image_new_memory();
+
+		if( vips_image_write( im, t[0] ) ||
+			vips_rot( t[0], &t[1], angle, NULL ) )
+			return( NULL );
+		im = t[1];
+		(void) vips_image_remove( im, ORIENTATION );
+	}
+
+	return( im );
+}
+
 /* Read a cinfo to a VIPS image.
  */
 static int
@@ -974,6 +1058,8 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
+
+	VipsImage *im;
 
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
@@ -1002,8 +1088,14 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 			"access", jpeg->readbehind ? 
 				VIPS_ACCESS_SEQUENTIAL : 
 				VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
-			NULL ) ||
-		vips_image_write( t[1], out ) )
+			NULL ) )
+		return( -1 );
+
+	im = t[1];
+	if( jpeg->autorotate )
+		im = read_jpeg_rotate( VIPS_OBJECT( out ), im );
+
+	if( vips_image_write( im, out ) )
 		return( -1 );
 
 	return( 0 );
@@ -1013,12 +1105,14 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
  */
 int
 vips__jpeg_read_file( const char *filename, VipsImage *out, 
-	gboolean header_only, int shrink, gboolean fail, gboolean readbehind )
+	gboolean header_only, int shrink, gboolean fail, gboolean readbehind,
+	gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 	int result;
 
-	if( !(jpeg = readjpeg_new( out, shrink, fail, readbehind )) )
+	if( !(jpeg = readjpeg_new( out, 
+		shrink, fail, readbehind, autorotate )) )
 		return( -1 );
 
 	/* Here for longjmp() from vips__new_error_exit() during startup.
@@ -1231,12 +1325,14 @@ readjpeg_buffer (ReadJpeg *jpeg, void *buf, size_t len)
 
 int
 vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out, 
-	gboolean header_only, int shrink, int fail, gboolean readbehind )
+	gboolean header_only, int shrink, int fail, gboolean readbehind, 
+	gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 	int result;
 
-	if( !(jpeg = readjpeg_new( out, shrink, fail, readbehind )) )
+	if( !(jpeg = readjpeg_new( out, 
+		shrink, fail, readbehind, autorotate )) )
 		return( -1 );
 
 	if( setjmp( jpeg->eman.jmp ) ) {

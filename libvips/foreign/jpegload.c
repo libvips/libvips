@@ -81,6 +81,10 @@ typedef struct _VipsForeignLoadJpeg {
 	 */
 	gboolean fail;
 
+	/* Autorotate using exif orientation tag.
+	 */
+	gboolean autorotate;
+
 } VipsForeignLoadJpeg;
 
 typedef VipsForeignLoadClass VipsForeignLoadJpegClass;
@@ -146,6 +150,13 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadJpeg, fail ),
 		FALSE );
+
+	VIPS_ARG_BOOL( class, "autorotate", 12, 
+		_( "Autorotate" ), 
+		_( "Automatically rotate image using exif orientation" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadJpeg, autorotate ),
+		FALSE );
 }
 
 static void
@@ -189,7 +200,7 @@ vips_foreign_load_jpeg_file_header( VipsForeignLoad *load )
 	VipsForeignLoadJpegFile *file = (VipsForeignLoadJpegFile *) load;
 
 	if( vips__jpeg_read_file( file->filename, load->out, 
-		TRUE, jpeg->shrink, jpeg->fail, FALSE ) ) 
+		TRUE, jpeg->shrink, jpeg->fail, FALSE, jpeg->autorotate ) ) 
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
@@ -205,7 +216,7 @@ vips_foreign_load_jpeg_file_load( VipsForeignLoad *load )
 
 	if( vips__jpeg_read_file( file->filename, load->real, 
 		FALSE, jpeg->shrink, jpeg->fail,
-		load->access == VIPS_ACCESS_SEQUENTIAL ) )
+		load->access == VIPS_ACCESS_SEQUENTIAL, jpeg->autorotate ) )
 		return( -1 );
 
 	return( 0 );
@@ -269,7 +280,8 @@ vips_foreign_load_jpeg_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadJpegBuffer *buffer = (VipsForeignLoadJpegBuffer *) load;
 
 	if( vips__jpeg_read_buffer( buffer->buf->data, buffer->buf->length, 
-		load->out, TRUE, jpeg->shrink, jpeg->fail, FALSE ) )
+		load->out, TRUE, jpeg->shrink, jpeg->fail, FALSE, 
+		jpeg->autorotate ) )
 		return( -1 );
 
 	return( 0 );
@@ -283,7 +295,7 @@ vips_foreign_load_jpeg_buffer_load( VipsForeignLoad *load )
 
 	if( vips__jpeg_read_buffer( buffer->buf->data, buffer->buf->length, 
 		load->real, FALSE, jpeg->shrink, jpeg->fail,
-		load->access == VIPS_ACCESS_SEQUENTIAL ) )
+		load->access == VIPS_ACCESS_SEQUENTIAL, jpeg->autorotate ) )
 		return( -1 );
 
 	return( 0 );

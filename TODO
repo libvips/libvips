@@ -1,11 +1,14 @@
+- the jpeg loader needs _header() and _load() to return the same dimensions
 
-- python:
+  this is going to be tough with read_jpeg_image(): it uses the read-header
+  thing to set up the image that it generates
 
-	- update examples with new image constant rules
 
-		update blog post with new examples/try12.py
 
-	- do more tests
+
+- update blog post with new examples/try12.py
+
+- fix up aconv
 
 - put exif autorotate into jpeg load
 
@@ -13,11 +16,11 @@
 
   	https://github.com/jcupitt/ruby-vips/issues/53
 
+- more python tests
+
 - can we pick the vipsthumbnail int shrink factor more intelligently?
 
 - vips_resize() should use vipsthumbnail's block/cache/affine/sharpen chain
-
-- fix up aconv
 
 - rewrite im_conv() etc. as vips_conv(), also the mosaicing functions
 

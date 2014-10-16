@@ -2205,6 +2205,46 @@ vips_image_set_delete_on_close( VipsImage *image, gboolean delete_on_close )
 }
 
 /**
+ * vips_get_disc_threshold:
+ *
+ * Return the number of bytes at which we flip between open via memory and
+ * open via disc. This defaults to 100mb, but can be changed with the
+ * VIPS_DISC_THRESHOLD environment variable or the --vips-disc-threshold
+ * command-line flag. See vips_image_new_from_file(). 
+ *
+ * Returns: disc threshold in bytes.
+ */
+guint64
+vips_get_disc_threshold( void )
+{
+	static gboolean done = FALSE;
+	static guint64 threshold;
+
+	if( !done ) {
+		const char *env;
+
+		done = TRUE;
+
+		/* 100mb default.
+		 */
+		threshold = 100 * 1024 * 1024;
+
+		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) || 
+			(env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
+			threshold = vips__parse_size( env );
+
+		if( vips__disc_threshold ) 
+			threshold = vips__parse_size( vips__disc_threshold );
+
+#ifdef DEBUG
+		printf( "vips_get_disc_threshold: %zd bytes\n", threshold );
+#endif /*DEBUG*/
+	}
+
+	return( threshold );
+}
+
+/**
  * vips_image_new_temp_file:
  * @format: format of file
  *
