@@ -590,13 +590,18 @@ class Image(Vips.Image):
         logging.debug('assigning %s to %s' % (value, self))
         logging.debug('%s needs a %s' % (self, gtype))
 
-        # array-ize some types, if necessary
-        value = arrayize(gtype, value)
-
         # blob-ize
         if GObject.type_is_a(gtype, vips_type_blob):
             if not isinstance(value, Vips.Blob):
                 value = Vips.Blob.new(None, value)
+
+        # image-ize
+        if GObject.type_is_a(gtype, vips_type_image):
+            if not isinstance(value, Vips.Image):
+                value = imageize(match_image, value)
+
+        # array-ize some types, if necessary
+        value = arrayize(gtype, value)
 
         self.set(field, value)
 
@@ -674,6 +679,20 @@ class Image(Vips.Image):
 
     def exp10(self):
         return self.math(Vips.OperationMath.EXP10)
+
+    # we need different imageize rules for this operator ... we need to 
+    # imageize th and el to match each other first
+    def ifthenelse(self, th, el, **kwargs):
+        for match_image in [th, el, self]:
+            if isinstance(match_image, Vips.Image):
+                break
+
+        if not isinstance(th, Vips.Image):
+            th = imageize(match_image, th)
+        if not isinstance(el, Vips.Image):
+            el = imageize(match_image, el)
+
+        return _call_base("ifthenelse", [th, el], kwargs, self)
 
 # add operators which needs to be class methods
 

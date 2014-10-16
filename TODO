@@ -1,17 +1,8 @@
 
 - python:
 
-	- constants for images:
+	- update examples with new image constant rules
 
-		- support a.set_value('x', 2), where 'x' is an image arg, or
-		  an imagearray arg
-
-		- c.ifthenelse(t, e) ... if t or e are constants, we need to
-		  match to the other branch of the conditional, not to the
-		  constant
-
-		  maybe match to the constant if both t and e are numbers
-	
 	- do more tests
 
 - put exif autorotate into jpeg load
