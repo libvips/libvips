@@ -43,6 +43,15 @@ vips_type_blob = GObject.GType.from_name("VipsBlob")
 vips_type_image = GObject.GType.from_name("VipsImage")
 vips_type_operation = GObject.GType.from_name("VipsOperation")
 
+def imageize(match_image, value):
+    if match_image is None:
+        return value
+
+    pixel = (Vips.Image.black(1, 1) + value).cast(match_image.format)
+    image = pixel.embed(0, 0, match_image.width, match_image.height,
+                        extend = Vips.Extend.COPY)
+    return image
+
 unpack_types = [Vips.Blob, Vips.ArrayDouble, Vips.ArrayImage, Vips.ArrayInt]
 def isunpack(obj):
     for t in unpack_types:
@@ -50,9 +59,26 @@ def isunpack(obj):
             return True
     return False
 
+def array_image_new(array):
+    match_image = None
+    for i in range(0, len(array)):
+        if isinstance(array[i], Vips.Image):
+            match_image = array[i]
+            break
+
+    if match_image is None:
+        raise Error('Unable to make image array argument.', 
+                    'Array must contain at least one image.')
+
+    for i in range(0, len(array)):
+        if not isinstance(array[i], Vips.Image):
+            array[i] = imageize(match_image, array[i])
+
+    return Vips.ArrayImage.new(array)
+
 arrayize_types = [[vips_type_array_int, Vips.ArrayInt.new],
                   [vips_type_array_double, Vips.ArrayDouble.new],
-                  [vips_type_array_image, Vips.ArrayImage.new]]
+                  [vips_type_array_image, array_image_new]]
 def arrayize(gtype, value):
     for t, cast in arrayize_types:
         if GObject.type_is_a(gtype, t):
@@ -61,16 +87,6 @@ def arrayize(gtype, value):
             value = cast(value)
 
     return value
-
-def imageize(match_image, value):
-    if match_image is None:
-        return value
-
-    pixel = (Vips.Image.black(1, 1) + value).cast(match_image.format)
-    image = pixel.embed(0, 0, match_image.width, match_image.height,
-                        extend = Vips.Extend.Copy)
-
-    return image
 
 class Error(Exception):
 
@@ -87,7 +103,7 @@ class Error(Exception):
             Vips.error_clear()
         self.detail = detail
 
-        logging.debug('vips: Error %s %s', self.message, self.detail)
+        logging.debug('Error %s %s', self.message, self.detail)
 
     def __str__(self):
         return '%s\n  %s' % (self.message, self.detail)
@@ -107,9 +123,6 @@ class Argument:
         logging.debug('assigning %s to %s' % (value, self.name))
         logging.debug('%s needs a %s' % (self.name, self.prop.value_type))
 
-        # array-ize some types, if necessary
-        value = arrayize(self.prop.value_type, value)
-
         # blob-ize
         if GObject.type_is_a(self.prop.value_type, vips_type_blob):
             if not isinstance(value, Vips.Blob):
@@ -119,6 +132,9 @@ class Argument:
         if GObject.type_is_a(self.prop.value_type, vips_type_image):
             if not isinstance(value, Vips.Image):
                 value = imageize(match_image, value)
+
+        # array-ize some types, if necessary
+        value = arrayize(self.prop.value_type, value)
 
         # MODIFY input images need to be copied before assigning them
         if self.flags & Vips.ArgumentFlags.MODIFY:
@@ -201,7 +217,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
 
     if len(required_input) != len(required):
         raise Error('Wrong number of arguments.', 
-                    '%s needs %d arguments, you supplied %d' % 
+                    '%s needs %d arguments, you supplied %d.' % 
                     (name, len(required_input), len(required)))
 
     # if we need an image arg but the user supplied a number or list of 
@@ -246,7 +262,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
                             'Argument %s should equal True.' % key)
         else:
             raise Error('Unknown argument.', 
-                        'Operator %s has no argument %s' % (name, key))
+                        'Operator %s has no argument %s.' % (name, key))
 
     # call
     op2 = Vips.cache_operation_build(op)
