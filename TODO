@@ -3,6 +3,8 @@
 
 	- update examples with new image constant rules
 
+		update blog post with new examples/try12.py
+
 	- do more tests
 
 - put exif autorotate into jpeg load
@@ -15,16 +17,11 @@
 
 - vips_resize() should use vipsthumbnail's block/cache/affine/sharpen chain
 
-- vips_object_unref_outputs() needs docs ... bindings will need it
- 
-- rewrite im_conv() etc. as vips_conv()
+- fix up aconv
+
+- rewrite im_conv() etc. as vips_conv(), also the mosaicing functions
 
   finally finish --disable-deprecated option
-
-- vips_object_unref_outputs() needs docs ... bindings will need it
- 
-- where should we explain VIPS_IMAGE_ADDR(), VIPS_REGION_ADDR(),
-  vips_region_region() etc.?
 
 
 

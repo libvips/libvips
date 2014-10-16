@@ -2954,12 +2954,18 @@ vips_object_unref_outputs_sub( VipsObject *object,
 	return( NULL );
 }
 
-/* Unref all assigned output objects.
+/**
+ * vips_object_unref_outputs:
+ * @object: object to drop output refs from
+ *
+ * Unref all assigned output objects. Useful for language bindings. 
  *
  * After an object is built, all output args are owned by the caller. If
  * something goes wrong before then, we have to unref the outputs that have
- * been made so far. And this function can also be useful for callers when
+ * been made so far. This function can also be useful for callers when
  * they've finished processing outputs themselves.
+ *
+ * See also: vips_cache_operation_build().
  */
 void
 vips_object_unref_outputs( VipsObject *object )
