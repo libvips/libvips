@@ -1,20 +1,5 @@
-- the jpeg loader needs _header() and _load() to return the same dimensions
-
-  this is going to be tough with read_jpeg_image(): it uses the read-header
-  thing to set up the image that it generates
-
-
-
-
-- update blog post with new examples/try12.py
 
 - fix up aconv
-
-- put exif autorotate into jpeg load
-
-  see
-
-  	https://github.com/jcupitt/ruby-vips/issues/53
 
 - more python tests
 
