@@ -133,12 +133,6 @@
 typedef struct _ReadJpeg {
 	VipsImage *out;
 
-	/* The raw image size: out may have width and height swapped if we are
-	 * autorotating.
-	 */
-	int width;
-	int height;
-
 	/* Shrink by this much during load. 1, 2, 4, 8.
 	 */
 	int shrink;
@@ -167,7 +161,8 @@ typedef struct _ReadJpeg {
 	 */
 	int y_pos;
 
-	/* Use exif tags to automatically rotate and flip image.
+	/* Use Orientation exif tag to automatically rotate and flip image
+	 * during load.
 	 */
 	gboolean autorotate;
 } ReadJpeg;
@@ -933,20 +928,6 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			(VipsCallbackFn) vips_free, data, data_length );
 	}
 
-	/* Swap width and height if we're going to rotate this image. Keep the
-	 * unrotated dimensions around too. 
-	 */
-	jpeg->width = out->Xsize;
-	jpeg->height = out->Ysize;
-
-	if( jpeg->autorotate ) { 
-		VipsAngle angle = get_angle( out ); 
-
-		if( angle == VIPS_ANGLE_D90 || 
-			angle == VIPS_ANGLE_D270 )
-			VIPS_SWAP( int, out->Xsize, out->Ysize )
-	}
-
 	return( 0 );
 }
 
@@ -1101,36 +1082,11 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	return( 0 );
 }
 
-/* Read a JPEG file into a VIPS image.
+/* Read the jpeg from file or buffer.
  */
-int
-vips__jpeg_read_file( const char *filename, VipsImage *out, 
-	gboolean header_only, int shrink, gboolean fail, gboolean readbehind,
-	gboolean autorotate )
+static int
+vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 {
-	ReadJpeg *jpeg;
-	int result;
-
-	if( !(jpeg = readjpeg_new( out, 
-		shrink, fail, readbehind, autorotate )) )
-		return( -1 );
-
-	/* Here for longjmp() from vips__new_error_exit() during startup.
-	 */
-	if( setjmp( jpeg->eman.jmp ) ) {
-		(void) readjpeg_free( jpeg );
-
-		return( -1 );
-	}
-
-	/* Set input to file.
-	 */
-	if( readjpeg_file( jpeg, filename ) ) {
-		(void) readjpeg_free( jpeg );
-
-		return( -1 );
-	}
-
 	/* Need to read in APP1 (EXIF metadata), APP2 (ICC profile), APP13
 	 * (photoshop IPCT).
 	 */
@@ -1140,15 +1096,59 @@ vips__jpeg_read_file( const char *filename, VipsImage *out,
 
 	/* Convert!
 	 */
-	if( header_only )
-		result = read_jpeg_header( jpeg, out );
-	else
-		result = read_jpeg_image( jpeg, out );
+	if( header_only ) {
+		if( read_jpeg_header( jpeg, out ) )
+			return( -1 ); 
 
-	/* Don't call readjpeg_free(), we're probably still live.
+		/* Swap width and height if we're going to rotate this image.
+		 */
+		if( jpeg->autorotate ) { 
+			VipsAngle angle = get_angle( out ); 
+
+			if( angle == VIPS_ANGLE_D90 || 
+				angle == VIPS_ANGLE_D270 )
+				VIPS_SWAP( int, out->Xsize, out->Ysize );
+
+			/* We won't be returning an orientation tag.
+			 */
+			(void) vips_image_remove( out, ORIENTATION );
+		}
+	}
+	else {
+		if( read_jpeg_image( jpeg, out ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+/* Read a JPEG file into a VIPS image.
+ */
+int
+vips__jpeg_read_file( const char *filename, VipsImage *out, 
+	gboolean header_only, int shrink, gboolean fail, gboolean readbehind,
+	gboolean autorotate )
+{
+	ReadJpeg *jpeg;
+
+	if( !(jpeg = readjpeg_new( out, 
+		shrink, fail, readbehind, autorotate )) )
+		return( -1 );
+
+	/* Here for longjmp() from vips__new_error_exit() during startup.
 	 */
+	if( setjmp( jpeg->eman.jmp ) ) 
+		return( -1 );
 
-	return( result );
+	/* Set input to file.
+	 */
+	if( readjpeg_file( jpeg, filename ) ) 
+		return( -1 );
+
+	if( vips__jpeg_read( jpeg, out, header_only ) ) 
+		return( -1 );
+
+	return( 0 );
 }
 
 /* Just like the above, but we read from a memory buffer.
@@ -1329,38 +1329,22 @@ vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out,
 	gboolean autorotate )
 {
 	ReadJpeg *jpeg;
-	int result;
 
 	if( !(jpeg = readjpeg_new( out, 
 		shrink, fail, readbehind, autorotate )) )
 		return( -1 );
 
-	if( setjmp( jpeg->eman.jmp ) ) {
-		(void) readjpeg_free( jpeg );
-
+	if( setjmp( jpeg->eman.jmp ) ) 
 		return( -1 );
-	}
 
 	/* Set input to buffer.
 	 */
 	readjpeg_buffer( jpeg, buf, len );
 
-	/* Need to read in APP1 (EXIF metadata) and APP2 (ICC profile).
-	 */
-	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 1, 0xffff );
-	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 2, 0xffff );
+	if( vips__jpeg_read( jpeg, out, header_only ) ) 
+		return( -1 );
 
-	/* Convert!
-	 */
-	if( header_only )
-		result = read_jpeg_header( jpeg, out );
-	else
-		result = read_jpeg_image( jpeg, out );
-
-	/* Don't call readjpeg_free(), we're probably still live.
-	 */
-
-	return( result );
+	return( 0 );
 }
 
 int

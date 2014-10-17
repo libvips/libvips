@@ -16,6 +16,7 @@
 - rename VIPS_ANGLE_180 as VIPS_ANGLE_D180 etc. to help python
 - remove cimg support, we have a gmic plugin now instead
 - add support for vips8 plugins
+- added "autorotate" option to jpeg load
 
 8/10/14 started 7.40.11
 - rework extra band handling for colour functions

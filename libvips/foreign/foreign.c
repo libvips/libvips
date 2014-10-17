@@ -1853,6 +1853,7 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  *
  * @shrink: shrink by this much on load
  * @fail: fail on warnings
+ * @autorotate: use exif Orientation tag to rotate the image during load
  *
  * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
  * including CMYK and YCbCr.
@@ -1861,9 +1862,14 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * are 1, 2, 4 and 8. Shrinking during read is very much faster than 
  * decompressing the whole image and then shrinking later.
  *
- * Setting @fail to true makes the JPEG reader fail on any warnings. 
+ * Setting @fail to %TRUE makes the JPEG reader fail on any warnings. 
  * This can be useful for detecting truncated files, for example. Normally 
  * reading these produces a warning, but no fatal error.  
+ *
+ * Setting @autorotate to %TRUE will make the loader interpret the EXIF
+ * Orientation field and automatically rotate the image appropriately during
+ * load. After rotation, the Orientation tag will be removed to prevent
+ * accidental double-rotation.  
  *
  * Example:
  *
@@ -1892,8 +1898,7 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * "jpeg-thumbnail-data". See vips_image_get_blob().
  *
  * This function only reads the image header and does not decompress any pixel
- * data. Decompression only occurs when pixels are accessed by some other
- * function.
+ * data. Decompression only occurs when pixels are accessed.
  *
  * See also: vips_jpegload_buffer(), vips_image_new_from_file().
  *
