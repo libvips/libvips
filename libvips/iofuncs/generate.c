@@ -526,7 +526,7 @@ vips_start_many( VipsImage *out, void *a, void *b )
 /**
  * vips_allocate_input_array:
  * @image: free array when this image closes
- * @Varargs: %NULL-terminated list of input images
+ * @...: %NULL-terminated list of input images
  *
  * Convenience function --- make a %NULL-terminated array of input images.
  * Use with vips_start_many().

@@ -1966,31 +1966,28 @@ im_system_image( VipsImage *im,
 	const char *in_format, const char *out_format, const char *cmd_format,
 	char **log )
 {
-	VipsArea *area;
-	VipsImage **array;
+	VipsArrayImage *array;
 	char *str;
 	VipsImage *out; 
 
-	area = vips_area_new_array_object( 1 );
-	array = (VipsImage **) area->data;
-	array[0] = im;
+	array = vips_array_image_newv( 1, im );
 
 	/* im will be unreffed when area is unreffed.
 	 */
 	g_object_ref( im ); 
 
 	if( vips_system( cmd_format, 
-		"in", area,
+		"in", array,
 		"out", &out,
 		"in_format", in_format,
 		"out_format", out_format,
 		"log", &str,
 		NULL ) ) {
-		vips_area_unref( area );
+		vips_area_unref( VIPS_AREA( array ) );
 		return( NULL );
 	}
 
-	vips_area_unref( area );
+	vips_area_unref( VIPS_AREA( array ) );
 
 	if( log )
 		*log = str;

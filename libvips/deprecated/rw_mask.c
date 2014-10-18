@@ -261,7 +261,7 @@ im_create_imask( const char *filename, int xsize, int ysize )
  * @filename: set mask filename to this
  * @xsize: mask width
  * @ysize: mask height
- * @Varargs: values to set for the mask
+ * @...: values to set for the mask
  *
  * Create an imask and initialise it from the function parameter list.
  *
@@ -344,7 +344,7 @@ im_create_dmask( const char *filename, int xsize, int ysize )
  * @filename: set mask filename to this
  * @xsize: mask width
  * @ysize: mask height
- * @Varargs: values to set for the mask
+ * @...: values to set for the mask
  *
  * Create a dmask and initialise it from the function parameter list.
  *
