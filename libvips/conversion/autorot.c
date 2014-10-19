@@ -87,12 +87,17 @@ vips_autorot_build( VipsObject *object )
 {
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsAutorot *autorot = (VipsAutorot *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
 
 	if( VIPS_OBJECT_CLASS( vips_autorot_parent_class )->build( object ) )
 		return( -1 );
 
+	g_object_set( object, 
+		"angle", vips_autorot_get_angle( autorot->in ),
+		NULL ); 
 	autorot->angle = vips_autorot_get_angle( autorot->in );
-	if( vips_rot( autorot->in, &conversion->out, autorot->angle, NULL ) )
+	if( vips_rot( autorot->in, &t[0], autorot->angle, NULL ) ||
+		vips_image_write( t[0], conversion->out ) )
 		return( -1 );
 	(void) vips_image_remove( conversion->out, ORIENTATION );
 
