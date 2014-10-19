@@ -25,6 +25,7 @@ libconversion_la_SOURCES = \
 	bandary.c \
 	rot.c \
 	rot45.c \
+	autorot.c \
 	ifthenelse.c \
 	falsecolour.c \
 	msb.c \

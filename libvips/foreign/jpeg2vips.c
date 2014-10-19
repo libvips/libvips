@@ -685,35 +685,6 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 	return( 0 );
 }
 
-#define ORIENTATION ("exif-ifd0-Orientation")
-
-static VipsAngle
-get_angle( VipsImage *im )
-{
-	VipsAngle angle;
-	const char *orientation;
-
-	angle = VIPS_ANGLE_D0;
-	if( vips_image_get_typeof( im, ORIENTATION ) &&
-		!vips_image_get_string( im, ORIENTATION, &orientation ) ) {
-		if( vips_isprefix( "6", orientation ) )
-			angle = VIPS_ANGLE_D90;
-		else if( vips_isprefix( "8", orientation ) )
-			angle = VIPS_ANGLE_D270;
-		else if( vips_isprefix( "3", orientation ) )
-			angle = VIPS_ANGLE_D180;
-		/* Other values do rotate + mirror, don't bother handling them
-		 * though, how common can mirroring be.
-		 *
-		 * See:
-		 *
-		 * http://www.80sidea.com/archives/2316
-		 */
-	}
-
-	return( angle );
-}
-
 /* Number of app2 sections we can capture. Each one can be 64k, so 6400k should
  * be enough for anyone (haha).
  */
@@ -1002,13 +973,15 @@ read_jpeg_generate( VipsRegion *or,
 	return( 0 );
 }
 
+#define ORIENTATION ("exif-ifd0-Orientation")
+
 /* Auto-rotate, if rotate_image is set.
  */
 static VipsImage *
 read_jpeg_rotate( VipsObject *process, VipsImage *im )
 {
 	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
-	VipsAngle angle = get_angle( im );
+	VipsAngle angle = vips_autorot_get_angle( im );
 
 	if( angle != VIPS_ANGLE_D0 ) {
 		/* Need to copy to memory or disc, we have to stay seq.
@@ -1103,7 +1076,7 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 		/* Swap width and height if we're going to rotate this image.
 		 */
 		if( jpeg->autorotate ) { 
-			VipsAngle angle = get_angle( out ); 
+			VipsAngle angle = vips_autorot_get_angle( out ); 
 
 			if( angle == VIPS_ANGLE_D90 || 
 				angle == VIPS_ANGLE_D270 )
