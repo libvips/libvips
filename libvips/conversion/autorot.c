@@ -45,6 +45,8 @@ typedef struct _VipsAutorot {
 
 	VipsImage *in;
 
+	VipsAngle angle;
+
 } VipsAutorot;
 
 typedef VipsConversionClass VipsAutorotClass;
@@ -89,9 +91,10 @@ vips_autorot_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_autorot_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_rot( autorot->in, &conversion->out, 
-		vips_autorot_get_angle( autorot->in ), NULL ) )
+	autorot->angle = vips_autorot_get_angle( autorot->in );
+	if( vips_rot( autorot->in, &conversion->out, autorot->angle, NULL ) )
 		return( -1 );
+	(void) vips_image_remove( conversion->out, ORIENTATION );
 
 	return( 0 );
 }
@@ -115,11 +118,18 @@ vips_autorot_class_init( VipsAutorotClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsAutorot, in ) );
 
+	VIPS_ARG_ENUM( class, "angle", 6, 
+		_( "Angle" ), 
+		_( "Angle image was rotated by" ),
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsAutorot, angle ),
+		VIPS_TYPE_ANGLE, VIPS_ANGLE_D0 ); 
 }
 
 static void
 vips_autorot_init( VipsAutorot *autorot )
 {
+	autorot->angle = VIPS_ANGLE_D0;
 }
 
 /**
@@ -128,7 +138,14 @@ vips_autorot_init( VipsAutorot *autorot )
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Look at the exif tags and rotate the image to make it upright. 
+ * Optional arguments:
+ *
+ * @angle: output #VipsAngle the image was rotated by
+ *
+ * Look at the exif tags and rotate the image to make it upright. The
+ * orientation tag is removed from @out to prevent accidental double rotation. 
+ *
+ * Read @angle to find the amount the image was rotated by. 
  *
  * See also: vips_rot().
  *
