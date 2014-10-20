@@ -40,7 +40,7 @@ VIPS_NAMESPACE_START
 
 /* vips_init() and vips_shutdown as namespaced C++ functions.
  */
-bool init( const char *argv0 = "nothing" );
+void init( const char *argv0 = "nothing" ) throw( VError );
 void thread_shutdown( void ); 
 void shutdown( void ); 
 
@@ -48,53 +48,145 @@ void shutdown( void );
  */
 class VImage {
 protected:
-	_VipsImage *im;			// Underlying vips pointer
+	VipsImage *im = NULL;		// Underlying vips pointer
 
 public:
-	// Plain constructors
-	VImage( const char *name, const char *mode = "rd" ) throw( VError );
-	VImage( void *data, int width, int height, 
-		int bands, VipsBandFormat format ) throw( VError );
-	VImage( VipsImage *image );
-	VImage() throw( VError );
+	VImage() 
+	{
+		im = NULL; 
+	}
+
+	// ref the VipsImage ... see new_steal() for one that steals the
+	// caller's ref
+	VImage( VipsImage *vips_image )
+	{
+		g_assert( !im );
+
+		im = vips_image;
+		g_object_ref( im ); 
+	}
+
+	// make a VImage, stealing the caller's ref
+	VImage new_steal( VipsImage *vips_image )
+	{
+		VImage image;
+
+		g_assert( !image.im );
+
+		image.im = vips_image;
+	}
+
+	VImage( const char *filename, const char *mode = "r" ) 
+		throw( VError )
+	{
+		vips_check_init();
+
+		if( !(im = vips_image_new_mode( filename, mode )) )
+			throw VError();
+	}
+
+	// see vips_image_new_from_file()
+	VImage( const char *name, ... ) 
+		__attribute__((sentinel)) throw( VError );
+
+	// see vips_image_new_from_buffer()
+	VImage( void *buffer, size_t length, const char *option_string, ... )
+		__attribute__((sentinel)) throw( VError );
+
+	// see vips_image_new_from_memory()
+	VImage( void *data, size_t size, int width, int height, 
+		int bands, VipsBandFormat format ) throw( VError )
+	{
+		vips_check_init();
+
+		if( !(im = vips_image_new_from_memory( data, size, 
+			width, height, bands, format )) )
+			throw VError();
+	}
+
+	// also do
+	// vips_image_new_matrix()
+	// vips_image_new_matrixv()
+	// vips_image_new_matrix_from_array()
+	// vips_image_new_from_file_raw:()
+	// vips_image_new_from_file_RW()
+	// vips_image_new_memory()
 
 	// Copy constructor 
-	VImage( const VImage &a );
+	VImage( const VImage &a )
+	{
+		g_assert( !im );
+
+		im = a.im;
+		g_object_ref( im );
+	}
 
 	// Assignment - delete old ref
-	VImage &operator=( const VImage &a ) throw( VError );
+	VImage &operator=( const VImage &a ) 
+	{
+		VIPS_UNREF( im );
+		im = a.im;
+		g_object_ref( im );
+	}
 
 	// Destructor
 	~VImage() throw( VError ) { VIPS_UNREF( im ); }
 
-	// Extract underlying VipsImage pointer
+	// Peek at the underlying VipsImage pointer
 	VipsImage *image() const { return( im ); }
 
-	// Write this to another VImage, to a file, or to a mem buffer
-	VImage write( VImage out ) throw( VError );
-	VImage write( const char *name ) throw( VError );
-	VImage write() throw( VError );
+	// get a pointer to the pixels ... can be very slow! this may render
+	// the whole image to a memory buffer
+	void *data()
+		throw( VError )
+	{
+		if( vips_image_wio_input( im ) )
+			throw VError();
 
-	// Debugging ... print header fields
-	void debug_print();
+		return( VIPS_IMAGE_ADDR( im, 0, 0 ) ); 
+	}
+
+	// Write this to another VImage, to a file, or to a mem buffer
+	void write( VImage out ) 
+		throw( VError )
+	{
+		if( vips_image_write( im, out.im ) )
+			throw VError(); 
+	}
+
+	void write( const char *name, ... ) 
+		throw( VError );
+	{
+		if( vips_image_write_to_file( im, out.im ) )
+			throw VError(); 
+	}
+
+	// see vips_image_write_to_buffer()
+	void *write( const char *suffix, size_t *size, ... )
+		throw( VError );
+
+	// also need
+	//  vips_image_write_to_memory()
 
 	// Projection functions to get header fields
-	int width();
-	int height();
-	int bands();
-	VipsBandFormat format();
-	VipsCoding coding();
-	VipsInterpretation interpretation();
-	float xres();
-	float yres();
-	int xoffset();
-	int yoffset();
+	int width() { return( im->Xsize ); } 
+	int height() { return( im->Ysize ); } 
+	int bands() { return( im->Bands ); } 
+	VipsBandFormat format() { return( im->BandFmt ); } 
+	VipsCoding coding() { return( im->Coding ); } 
+	VipsInterpretation interpretation() { return( im->Type ); } 
+	float xres() { return( im->Xres ); } 
+	float yres() { return( im->Yres ); } 
+	int xoffset() { return( im->Xoffset ); } 
+	int yoffset() { return( im->Yoffset ); } 
 
 	// Derived fields
-	const char *filename();
-	const char *hist();
+	const char *filename() { return( im->filename ); } 
+	const char *hist() { return( vips_image_get_history( im ) ); } 
 
 	// metadata
+
+	/*
 
 	// base functionality
 	void meta_set( const char *field, GValue *value ) throw( VError );
@@ -125,10 +217,13 @@ public:
 	void initdesc( int, int, int, 
 		VipsBandFormat, VipsCoding, VipsInterpretation, 
 		float = 1.0, float = 1.0, int = 0, int = 0 ) throw( VError );
+	 */
 
 	/* Insert automatically generated headers.
 	 */
 #include "vips-operators.h"
+
+	/*
 
 	// And some in-line operator equivalences done by hand
 	friend VImage operator+( VImage a, VImage b ) throw( VError ) 
@@ -234,6 +329,7 @@ public:
 
 	friend VImage operator-( VImage a ) throw( VError )
 		{ return( a * -1 ); }
+	 */
 
 };
 

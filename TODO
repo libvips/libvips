@@ -1,3 +1,9 @@
+- see 
+
+	http://www.parashift.com/c++-faq/named-parameter-idiom.html
+
+  good idea? seems clumsy
+
 - use vips_autorot() in jpegload and vipsthumbnail
 
 - fix up aconv

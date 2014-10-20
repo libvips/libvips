@@ -416,7 +416,7 @@ VipsImage *vips_image_new_from_file( const char *name, ... )
 VipsImage *vips_image_new_from_file_RW( const char *filename );
 VipsImage *vips_image_new_from_file_raw( const char *filename, 
 	int xsize, int ysize, int bands, guint64 offset );
-VipsImage *vips_image_new_from_memory( void *buffer, size_t size,
+VipsImage *vips_image_new_from_memory( void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format );
 VipsImage *vips_image_new_from_buffer( void *buf, size_t len, 
 	const char *option_string, ... )

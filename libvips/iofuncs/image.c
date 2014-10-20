@@ -1944,7 +1944,7 @@ vips_image_new_from_file_raw( const char *filename,
 
 /**
  * vips_image_new_from_memory:
- * @buffer: (array length=size) (element-type guint8) (transfer full): start of memory area
+ * @data: (array length=size) (element-type guint8) (transfer full): start of memory area
  * @size: length of memory area
  * @width: image width
  * @height: image height
@@ -1967,7 +1967,7 @@ vips_image_new_from_file_raw( const char *filename,
  * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_from_memory( void *buffer, size_t size,
+vips_image_new_from_memory( void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format )
 {
 	VipsImage *image;
@@ -1978,7 +1978,7 @@ vips_image_new_from_memory( void *buffer, size_t size,
 	g_object_set( image,
 		"filename", vips_image_temp_name(),
 		"mode", "m",
-		"foreign_buffer", buffer,
+		"foreign_buffer", data,
 		"width", width,
 		"height", height,
 		"bands", bands,
@@ -1989,7 +1989,7 @@ vips_image_new_from_memory( void *buffer, size_t size,
 		return( NULL );
 	}
 
-	/* Allow len == 0 meaning don't check. Used for im_image()
+	/* Allow len == 0, meaning don't check. Used for im_image()
 	 * compatibility.
 	 */
 	if( size > 0 && 
