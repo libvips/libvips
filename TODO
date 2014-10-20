@@ -1,3 +1,5 @@
+- use vips_autorot() in jpegload and vipsthumbnail
+
 - fix up aconv
 
 - more python tests

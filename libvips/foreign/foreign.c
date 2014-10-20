@@ -1871,6 +1871,9 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * load. After rotation, the Orientation tag will be removed to prevent
  * accidental double-rotation.  
  *
+ * Using @autorotate can be much slower than doing the rotate later
+ * in processing. See vips_autorot().
+ *
  * Example:
  *
  * |[
