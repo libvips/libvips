@@ -74,6 +74,20 @@ typedef struct _VipsOperation {
 	 */
 	int pixels;
 
+	/* Get and set functions, used by eg. the C++ interface to box and
+	 * unbox VImage.
+	 */
+
+	/* The value has been read from the VipsOperation and written to the arg
+	 * pointer. @arg is eg. gboolean* for a bool value.
+	 */
+	void (*collect_get)( GParamSpec *pspec, void *arg ); 
+
+	/* The value has been read from argv into a GValue. Do any
+	 * boxing/unboxing before the GValue is used to set the property.
+	 */
+	void (*collect_set)( GParamSpec *pspec, GValue *value );
+
 } VipsOperation;
 
 typedef struct _VipsOperationClass {

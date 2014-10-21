@@ -70,6 +70,11 @@ void thread_shutdown()
 	vips_thread_shutdown(); 
 }
 
+
+
+
+
+
 // see vips_image_new_from_file()
 VImage::VImage( const char *name, ... ) 
 	__attribute__((sentinel)) throw( VError )
@@ -140,7 +145,7 @@ void VImage::write( const char *name, ... )
 
 	va_start( ap, name );
 	result = vips_call_split_option_string( operation_name, option_string,
-		ap, image, filename );
+		ap, this.im, filename );
 	va_end( ap );
 
 	if( result )
@@ -165,7 +170,7 @@ void *VImage::write( const char *suffix, size_t *size, ... )
 
 	va_start( ap, size );
 	result = vips_call_split_option_string( operation_name, option_string,
-		ap, in, &blob );
+		ap, this.im, &blob );
 	va_end( ap );
 
 	if( result )

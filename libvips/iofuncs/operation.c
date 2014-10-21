@@ -603,6 +603,9 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 			}
 #endif /*VIPS_DEBUG */
 
+			if( operation->collect_set )
+				operation->collect_set( pspec, &value ); 
+
 			g_object_set_property( G_OBJECT( operation ),
 				g_param_spec_get_name( pspec ), &value );
 
@@ -645,7 +648,7 @@ vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
 
 			/* It'd be nice to be able to test for arg being a
 			 * valid gobject pointer, since passing in a valid
-			 * pointer, and having us destroy it, is a common
+			 * pointer (and having us destroy it) is a common
 			 * error and a cause of hard-to-find leaks.
 			 *
 			 * Unfortunately, G_IS_OBJECT() can't be given an
@@ -666,6 +669,11 @@ vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
 				object = *((GObject **) arg);
 				g_object_unref( object ); 
 			}
+
+			/* Do any boxing/unboxing.
+			 */
+			if( operation->collect_get )
+				operation->collect_get( pspec, arg );
 
 			VIPS_ARGUMENT_COLLECT_END
 		}
@@ -725,6 +733,11 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 				object = *((GObject **) arg);
 				g_object_unref( object ); 
 			}
+
+			/* Do any boxing/unboxing.
+			 */
+			if( operation->collect_get )
+				operation->collect_get( pspec, arg );
 		}
 
 		VIPS_ARGUMENT_COLLECT_END
