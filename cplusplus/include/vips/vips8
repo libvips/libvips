@@ -37,7 +37,7 @@
 #define VIPS_NAMESPACE_START namespace vips8 {
 #define VIPS_NAMESPACE_END }
 
-#include <vips/VError.h>
-#include <vips/VImage.h>
+#include "VError.h"
+#include "VImage.h"
 
 #endif /*VIPS_CPLUSPLUS*/

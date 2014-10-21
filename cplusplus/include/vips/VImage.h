@@ -79,26 +79,22 @@ public:
 	VImage( const char *filename, const char *mode = "r" ) 
 		throw( VError )
 	{
-		vips_check_init();
-
 		if( !(im = vips_image_new_mode( filename, mode )) )
 			throw VError();
 	}
 
 	// see vips_image_new_from_file()
 	VImage( const char *name, ... ) 
-		__attribute__((sentinel)) throw( VError );
+		throw( VError ) __attribute__((sentinel));
 
 	// see vips_image_new_from_buffer()
 	VImage( void *buffer, size_t length, const char *option_string, ... )
-		__attribute__((sentinel)) throw( VError );
+		throw( VError ) __attribute__((sentinel));
 
 	// see vips_image_new_from_memory()
 	VImage( void *data, size_t size, int width, int height, 
 		int bands, VipsBandFormat format ) throw( VError )
 	{
-		vips_check_init();
-
 		if( !(im = vips_image_new_from_memory( data, size, 
 			width, height, bands, format )) )
 			throw VError();
@@ -154,15 +150,15 @@ public:
 			throw VError(); 
 	}
 
-	void write( const char *name, ... ) 
-		throw( VError );
+	void write_to_file( const char *name, ... ) 
+		throw( VError )
 	{
-		if( vips_image_write_to_file( im, out.im ) )
+		if( vips_image_write_to_file( im, name, NULL ) )
 			throw VError(); 
 	}
 
 	// see vips_image_write_to_buffer()
-	void *write( const char *suffix, size_t *size, ... )
+	void *write_to_buffer( const char *suffix, size_t *size, ... )
 		throw( VError );
 
 	// also need

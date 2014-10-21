@@ -35,8 +35,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <vips/vips.h>
-
 typedef enum /*< flags >*/ {
 	VIPS_OPERATION_NONE = 0,
 	VIPS_OPERATION_SEQUENTIAL = 1,
@@ -74,20 +72,6 @@ typedef struct _VipsOperation {
 	 */
 	int pixels;
 
-	/* Get and set functions, used by eg. the C++ interface to box and
-	 * unbox VImage.
-	 */
-
-	/* The value has been read from the VipsOperation and written to the arg
-	 * pointer. @arg is eg. gboolean* for a bool value.
-	 */
-	void (*collect_get)( GParamSpec *pspec, void *arg ); 
-
-	/* The value has been read from argv into a GValue. Do any
-	 * boxing/unboxing before the GValue is used to set the property.
-	 */
-	void (*collect_set)( GParamSpec *pspec, GValue *value );
-
 } VipsOperation;
 
 typedef struct _VipsOperationClass {
@@ -116,6 +100,8 @@ void vips_operation_invalidate( VipsOperation *operation );
 
 int vips_operation_call_valist( VipsOperation *operation, va_list ap );
 VipsOperation *vips_operation_new( const char *name ); 
+int vips_call_required_optional( VipsOperation **operation,
+	VipsCollect *collect, va_list required, va_list optional );
 int vips_call( const char *operation_name, ... )
 	__attribute__((sentinel));
 int vips_call_split( const char *operation_name, va_list optional, ... );

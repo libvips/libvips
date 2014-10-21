@@ -37,10 +37,11 @@
 #include <cstdio>
 
 #include <vips/vips.h>
-#include <vips/internal.h>
 #include <vips/debug.h>
 
-#include <vips/vipscpp.h>
+#include <gobject/gvaluecollector.h>
+
+#include "include/vips/vips8"
 
 #ifdef WITH_DMALLOC
 #include <dmalloc.h>
@@ -54,7 +55,9 @@ VIPS_NAMESPACE_START
 
 /* Useful to have these as namespaced C++ functions.
  */
-void init( const char *argv0 )
+void 
+init( const char *argv0 )
+	throw( VError )
 {
 	if( vips_init( argv0 ) )
 		throw VError();
@@ -70,22 +73,145 @@ void thread_shutdown()
 	vips_thread_shutdown(); 
 }
 
+static void
+call_get( GParamSpec *pspec, void *arg )
+{
+	/* We've read out of the VipsObject to the pointer. If it's a
+	 * VipsImage, we need to box it.
+	 */
+	if( G_IS_PARAM_SPEC_OBJECT( pspec ) ) {
+		VImage *image = new VImage( *((VipsImage **) arg) ); 
 
+		*((VImage *) arg) = *image; 
+	}
+}
 
+static void
+call_set( GParamSpec *pspec, GValue *value )
+{
+	if( G_VALUE_HOLDS( value, VIPS_TYPE_IMAGE ) ) {
+		/* A VImage has been written to the GValue, extract the VImage
+		 * and swap it for the underlying VipsImage* pointer.
+		 */
+		VImage *image = static_cast<VImage *>( 
+			g_value_peek_pointer( value ) );
 
+		g_value_set_object( value, (gpointer) (image->image()) ); 
+	}
+}
 
+/* Some systems do not have va_copy() ... this might work (it does on MSVC,
+ * apparently).
+ *
+ * FIXME ... this should be in configure.in
+ */
+#ifndef va_copy
+#define va_copy(d,s) ((d) = (s))
+#endif
+
+void
+call( const char *operation_name, ... )
+	throw( VError )
+{
+	VipsCollect collect;
+	VipsOperation *operation;
+	int result;
+	va_list required;
+	va_list optional;
+
+	if( !(operation = vips_operation_new( operation_name )) )
+		throw VError(); 
+
+	/* We have to break the va_list into separate required and optional 
+	 * components.
+	 *
+	 * Note the start, grab the required, then copy and reuse.
+	 */
+	va_start( required, operation_name );
+
+	va_copy( optional, required );
+
+	VIPS_ARGUMENT_FOR_ALL( operation, 
+		pspec, argument_class, argument_instance ) {
+
+		g_assert( argument_instance );
+
+		if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) ) {
+			VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, 
+				optional );
+
+			VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, 
+				optional );
+
+			VIPS_ARGUMENT_COLLECT_END
+		}
+	} VIPS_ARGUMENT_FOR_ALL_END
+
+	collect.get = call_get;
+	collect.set = call_set;
+	result = vips_call_required_optional( &operation, 
+		&collect, required, optional );
+
+	va_end( required );
+	va_end( optional );
+
+	/* Build failed: junk args.
+	 */
+	if( result ) 
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+
+	/* The operation we have built should now have been reffed by one of 
+	 * its arguments or have finished its work. Either way, we can unref.
+	 */
+	g_object_unref( operation );
+
+	if( result )
+		throw VError(); 
+}
+
+int
+call_split( const char *operation_name, va_list optional, ... ) 
+{
+	VipsOperation *operation;
+	va_list required;
+	VipsCollect collect;
+	int result;
+
+	if( !(operation = vips_operation_new( operation_name )) )
+		throw VError(); 
+
+	va_start( required, optional );
+
+	collect.get = call_get;
+	collect.set = call_set;
+	result = vips_call_required_optional( &operation, 
+		&collect, required, optional );
+
+	va_end( required );
+
+	/* Build failed: junk args.
+	 */
+	if( result ) 
+		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+
+	/* The operation we have built should now have been reffed by one of 
+	 * its arguments or have finished its work. Either way, we can unref.
+	 */
+	g_object_unref( operation );
+
+	if( result )
+		throw VError(); 
+}
 
 // see vips_image_new_from_file()
 VImage::VImage( const char *name, ... ) 
-	__attribute__((sentinel)) throw( VError )
+	throw( VError ) 
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
 	const char *operation_name;
 	va_list ap;
 	int result;
-
-	vips_check_init();
 
 	vips__filename_split8( name, filename, option_string );
 	if( !(operation_name = vips_foreign_find_load( filename )) )
@@ -102,13 +228,12 @@ VImage::VImage( const char *name, ... )
 
 // see vips_image_new_from_buffer()
 VImage::VImage( void *buffer, size_t length, const char *option_string, ... )
+	throw( VError )
 {
 	const char *operation_name;
 	VipsBlob *blob;
 	va_list ap;
 	int result;
-
-	vips_check_init();
 
 	if( !(operation_name = 
 		vips_foreign_find_load_buffer( buffer, length )) )
@@ -130,7 +255,7 @@ VImage::VImage( void *buffer, size_t length, const char *option_string, ... )
 }
 
 // see vips_image_write_to_file()
-void VImage::write( const char *name, ... ) 
+void VImage::write_to_file( const char *name, ... ) 
 	throw( VError )
 {
 	char filename[VIPS_PATH_MAX];
@@ -145,7 +270,7 @@ void VImage::write( const char *name, ... )
 
 	va_start( ap, name );
 	result = vips_call_split_option_string( operation_name, option_string,
-		ap, this.im, filename );
+		ap, this->im, filename );
 	va_end( ap );
 
 	if( result )
@@ -153,7 +278,7 @@ void VImage::write( const char *name, ... )
 }
 
 // see vips_image_write_to_buffer()
-void *VImage::write( const char *suffix, size_t *size, ... )
+void *VImage::write_to_buffer( const char *suffix, size_t *size, ... )
 	throw( VError )
 {
 	char filename[VIPS_PATH_MAX];
@@ -170,7 +295,7 @@ void *VImage::write( const char *suffix, size_t *size, ... )
 
 	va_start( ap, size );
 	result = vips_call_split_option_string( operation_name, option_string,
-		ap, this.im, &blob );
+		ap, this->im, &blob );
 	va_end( ap );
 
 	if( result )
@@ -194,3 +319,16 @@ void *VImage::write( const char *suffix, size_t *size, ... )
 #include "vips-operators.cc"
 
 VIPS_NAMESPACE_END
+
+
+int
+main( int argc, char **argv )
+{
+	vips8::init( argv[0] ); 
+
+	vips8::VImage x( "/home/john/pics/k2.jpg", NULL );
+
+	printf( "width = %d\n", x.width() ); 
+
+	return( 0 ); 
+}

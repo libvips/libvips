@@ -181,6 +181,13 @@
  * compatibility only and should be hidden from users.
  */
 
+/**
+ * VipsCollect:
+ *
+ * We need to be able to use different things to collect values for the C++
+ * API: we have to box and unbox VipsImage. Set/get need to be parameters.
+ */
+
 /* Abstract base class for operations.
  */
 
@@ -567,8 +574,8 @@ vips_operation_new( const char *name )
 	return( operation );
 }
 
-/* Some systems do not have va_copy() ... this might work (it does on MSVC),
- * apparently.
+/* Some systems do not have va_copy() ... this might work (it does on MSVC,
+ * apparently).
  *
  * FIXME ... this should be in configure.in
  */
@@ -577,7 +584,8 @@ vips_operation_new( const char *name )
 #endif
 
 static int
-vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
+vips_operation_set_valist_required( VipsOperation *operation, 
+	VipsCollect *collect, va_list ap )
 {
 	VIPS_DEBUG_MSG( "vips_operation_set_valist_required:\n" );
 
@@ -603,8 +611,8 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 			}
 #endif /*VIPS_DEBUG */
 
-			if( operation->collect_set )
-				operation->collect_set( pspec, &value ); 
+			if( collect )
+				collect->set( pspec, &value ); 
 
 			g_object_set_property( G_OBJECT( operation ),
 				g_param_spec_get_name( pspec ), &value );
@@ -624,7 +632,8 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 }
 
 static int
-vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
+vips_operation_get_valist_required( VipsOperation *operation, 
+	VipsCollect *collect, va_list ap )
 {
 	VIPS_DEBUG_MSG( "vips_operation_get_valist_required:\n" );
 
@@ -672,8 +681,8 @@ vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
 
 			/* Do any boxing/unboxing.
 			 */
-			if( operation->collect_get )
-				operation->collect_get( pspec, arg );
+			if( collect )
+				collect->get( pspec, arg );
 
 			VIPS_ARGUMENT_COLLECT_END
 		}
@@ -683,7 +692,8 @@ vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
 }
 
 static int
-vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
+vips_operation_get_valist_optional( VipsOperation *operation, 
+	VipsCollect *collect, va_list ap )
 {
 	char *name;
 
@@ -736,8 +746,8 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 
 			/* Do any boxing/unboxing.
 			 */
-			if( operation->collect_get )
-				operation->collect_get( pspec, arg );
+			if( collect )
+				collect->get( pspec, arg );
 		}
 
 		VIPS_ARGUMENT_COLLECT_END
@@ -746,11 +756,25 @@ vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 	return( 0 );
 }
 
-/* This can change operation to point at an old, cached one.
+/**
+ * vips_call_required_optional:
+ * @operation: the operation to execute
+ * @collect: how to box and unbox arguments
+ * @required: %va_list of required arguments
+ * @optional: NULL-terminated %va_list of name / value pairs 
+ *
+ * This is the main entry point for the C and C++ varargs APIs. @operation 
+ * is executed, supplying @required and @optional arguments. @collect is used
+ * to do any boxing or unboxing. It can be %NULL for no boxing on unboxing
+ * required (the C case). 
+ *
+ * Beware, this can change @operation to point at an old, cached one.
+ *
+ * Returns: 0 on success, -1 on error
  */
-static int
+int
 vips_call_required_optional( VipsOperation **operation,
-	va_list required, va_list optional ) 
+	VipsCollect *collect, va_list required, va_list optional ) 
 {
 	int result;
 	va_list a;
@@ -762,8 +786,8 @@ vips_call_required_optional( VipsOperation **operation,
 	 */
 	va_copy( a, required );
 	va_copy( b, optional );
-	result = vips_operation_set_valist_required( *operation, a ) ||
-		vips_object_set_valist( VIPS_OBJECT( *operation ), b );
+	result = vips_operation_set_valist_required( *operation, collect, a ) ||
+		vips_object_set_valist( VIPS_OBJECT( *operation ), collect, b );
 	va_end( a );
 	va_end( b );
 
@@ -779,8 +803,10 @@ vips_call_required_optional( VipsOperation **operation,
 	 */
 	va_copy( a, required );
 	va_copy( b, optional );
-	result = vips_operation_get_valist_required( *operation, required ) ||
-		vips_operation_get_valist_optional( *operation, optional );
+	result = vips_operation_get_valist_required( *operation, 
+			collect, required ) ||
+		vips_operation_get_valist_optional( *operation, 
+			collect, optional );
 	va_end( a );
 	va_end( b );
 
@@ -801,7 +827,7 @@ vips_call_by_name( const char *operation_name,
 		return( -1 );
 
 	/* Set str options before vargs options, so the user can't override
-	 * thnigs we set deliberately.
+	 * things we set deliberately.
 	 */
 	if( option_string &&
 		vips_object_set_from_string( VIPS_OBJECT( operation ), 
@@ -812,7 +838,8 @@ vips_call_by_name( const char *operation_name,
 		return( -1 ); 
 	}
 
-	result = vips_call_required_optional( &operation, required, optional );
+	result = vips_call_required_optional( &operation, 
+		NULL, required, optional );
 
 	/* Build failed: junk args and back out.
 	 */

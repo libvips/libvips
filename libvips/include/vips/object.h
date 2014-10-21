@@ -601,7 +601,8 @@ typedef void *(*VipsObjectSetArguments)( VipsObject *object, void *a, void *b );
 VipsObject *vips_object_new( GType type, 
 	VipsObjectSetArguments set, void *a, void *b );
 
-int vips_object_set_valist( VipsObject *object, va_list ap );
+int vips_object_set_valist( VipsObject *object, 
+	VipsCollect *collect, va_list ap );
 int vips_object_set( VipsObject *object, ... )
 	__attribute__((sentinel));
 int vips_object_set_from_string( VipsObject *object, const char *string );
