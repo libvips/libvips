@@ -4,6 +4,22 @@
 
   good idea? seems clumsy
 
+  could do it something like:
+
+  	VImage sum = image.add(image2).set("max", 12).build();
+
+  or maybe:
+
+  	VImage result = image.sin().build().cos().build();
+
+  could the options go into an optional param?
+
+  	VImage result = image.sin().cos();
+
+  	VImage sum = image.add(image2, 
+		VOption().set("max", 12).set("title", "poop"));
+
+
 - use vips_autorot() in jpegload and vipsthumbnail
 
 - fix up aconv
