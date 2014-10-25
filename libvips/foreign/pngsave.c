@@ -59,6 +59,7 @@ typedef struct _VipsForeignSavePng {
 	int compression;
 	gboolean interlace;
 	char *profile;
+	VipsForeignPngFilter filter;
 } VipsForeignSavePng;
 
 typedef VipsForeignSaveClass VipsForeignSavePngClass;
@@ -124,12 +125,21 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		G_STRUCT_OFFSET( VipsForeignSavePng, profile ),
 		NULL );
 
+	VIPS_ARG_FLAGS( class, "filter", 12,
+		_( "Filter" ),
+		_( "libpng row filter flag(s)" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, filter ),
+		VIPS_TYPE_FOREIGN_PNG_FILTER,
+		VIPS_FOREIGN_PNG_FILTER_ALL );
+
 }
 
 static void
 vips_foreign_save_png_init( VipsForeignSavePng *png )
 {
 	png->compression = 6;
+	png->filter = VIPS_FOREIGN_PNG_FILTER_ALL;
 }
 
 typedef struct _VipsForeignSavePngFile {
@@ -155,7 +165,7 @@ vips_foreign_save_png_file_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__png_write( save->ready, png_file->filename,
-		png->compression, png->interlace, png->profile ) ) 
+		png->compression, png->interlace, png->profile, png->filter ) )
 		return( -1 );
 
 	return( 0 );
@@ -213,7 +223,7 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__png_write_buf( save->ready, &obuf, &olen,
-		png->compression, png->interlace, png->profile ) )
+		png->compression, png->interlace, png->profile, png->filter ) )
 		return( -1 );
 
 	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );

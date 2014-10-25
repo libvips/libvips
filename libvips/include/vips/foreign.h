@@ -436,6 +436,28 @@ int vips_matrixprint( VipsImage *in, ... )
 int vips_magickload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+/**
+ * VipsForeignPngFilter:
+ * @VIPS_FOREIGN_PNG_FILTER_NONE
+ * @VIPS_FOREIGN_PNG_FILTER_SUB
+ * @VIPS_FOREIGN_PNG_FILTER_UP
+ * @VIPS_FOREIGN_PNG_FILTER_AVG
+ * @VIPS_FOREIGN_PNG_FILTER_PAETH
+ * @VIPS_FOREIGN_PNG_FILTER_ALL
+ *
+ * http://www.w3.org/TR/PNG-Filters.html
+ * The values mirror those of png.h in libpng.
+ */
+typedef enum /*< flags >*/ {
+	VIPS_FOREIGN_PNG_FILTER_NONE = 0x08,
+	VIPS_FOREIGN_PNG_FILTER_SUB = 0x10,
+	VIPS_FOREIGN_PNG_FILTER_UP = 0x20,
+	VIPS_FOREIGN_PNG_FILTER_AVG = 0x40,
+	VIPS_FOREIGN_PNG_FILTER_PAETH = 0x80,
+	VIPS_FOREIGN_PNG_FILTER_ALL = 0xEA,
+	VIPS_FOREIGN_PNG_FILTER_LAST = 0xFF
+} VipsForeignPngFilter;
+
 int vips_pngload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
