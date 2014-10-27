@@ -5,6 +5,8 @@
  *
  */
 
+#define DEBUG
+
 #include <vips/vips8>
 
 using namespace vips8;
@@ -40,7 +42,9 @@ main( int argc, char **argv )
 	printf( "sizeof( VImage ) = %zd\n", sizeof( VImage ) ); 
 
 { 
-	VImage in = VImage::new_from_file( argv[1] ); 
+	VImage in = VImage::new_from_file( argv[1], 
+		VImage::option()->set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
+
 	VImage out; 
 
 	out = in.invert();

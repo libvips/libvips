@@ -37,8 +37,9 @@
 #include <vips/debug.h>
 
 /*
-#define DEBUG
  */
+#define VIPS_DEBUG
+#define DEBUG
 
 VIPS_NAMESPACE_START
 
@@ -62,6 +63,7 @@ VOption *VOption::set( const char *name, const char *value )
 	return( this );
 }
 
+// input int ... this path is used for enums as well
 VOption *VOption::set( const char *name, int value )
 {
 	Pair *pair = new Pair( name );
@@ -74,6 +76,7 @@ VOption *VOption::set( const char *name, int value )
 	return( this );
 }
 
+// input image
 VOption *VOption::set( const char *name, VImage value )
 {
 	Pair *pair = new Pair( name );
@@ -87,6 +90,7 @@ VOption *VOption::set( const char *name, VImage value )
 	return( this );
 }
 
+// output image
 VOption *VOption::set( const char *name, VImage *value )
 {
 	Pair *pair = new Pair( name );
@@ -108,12 +112,14 @@ void VOption::set_operation( VipsOperation *operation )
 
 	for( i = options.begin(); i != options.end(); i++ ) 
 		if( (*i)->input ) {
+#ifdef DEBUG
 			printf( "set_operation: " );
 			vips_object_print_name( VIPS_OBJECT( operation ) );
 			char *str_value = 
 				g_strdup_value_contents( &(*i)->value );
 			printf( ".%s = %s\n", (*i)->name, str_value );
 			g_free( str_value );
+#endif /*DEBUG*/
 
 			g_object_set_property( G_OBJECT( operation ),
 				(*i)->name, &(*i)->value );
@@ -130,12 +136,14 @@ void VOption::get_operation( VipsOperation *operation )
 			g_object_get_property( G_OBJECT( operation ),
 				(*i)->name, &(*i)->value );
 
+#ifdef DEBUG
 			printf( "get_operation: " );
 			vips_object_print_name( VIPS_OBJECT( operation ) );
 			char *str_value = 
 				g_strdup_value_contents( &(*i)->value );
 			printf( ".%s = %s\n", (*i)->name, str_value );
 			g_free( str_value );
+#endif /*DEBUG*/
 
 			// rebox object
 			VipsImage *image = VIPS_IMAGE( 
