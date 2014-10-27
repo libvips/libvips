@@ -50,6 +50,8 @@
  * 	- more robust error handling from libpng
  * 9/8/14
  * 	- don't check profiles, helps with libpng >=1.6.11
+ * 27/10/14 Lovell
+ * 	- add @filter option 
  */
 
 /*

@@ -2487,7 +2487,7 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * @compression: compression level
  * @interlace: interlace image
  * @profile: ICC profile to embed
- * @filter: libpng row filter flag(s)
+ * @filter: #VipsForeignPngFilter row filter flag(s)
  *
  * Write a VIPS image to a file as PNG.
  *
@@ -2507,7 +2507,8 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
  * profile from the VIPS header will be attached.
  *
- * Use @filter to specify one or more filters (instead of adaptive filtering).
+ * Use @filter to specify one or more filters (instead of adaptive filtering),
+ * see #VipsForeignPngFilter. 
  *
  * The image is automatically converted to RGB, RGBA, Monochrome or Mono +
  * alpha before saving. Images with more than one byte per band element are

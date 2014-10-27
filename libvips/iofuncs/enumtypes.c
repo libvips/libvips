@@ -118,10 +118,9 @@ vips_foreign_png_filter_get_type( void )
 			{VIPS_FOREIGN_PNG_FILTER_AVG, "VIPS_FOREIGN_PNG_FILTER_AVG", "avg"},
 			{VIPS_FOREIGN_PNG_FILTER_PAETH, "VIPS_FOREIGN_PNG_FILTER_PAETH", "paeth"},
 			{VIPS_FOREIGN_PNG_FILTER_ALL, "VIPS_FOREIGN_PNG_FILTER_ALL", "all"},
-			{VIPS_FOREIGN_PNG_FILTER_LAST, "VIPS_FOREIGN_PNG_FILTER_LAST", "last"},
 			{0, NULL, NULL}
 		};
-
+		
 		etype = g_flags_register_static( "VipsForeignPngFilter", values );
 	}
 

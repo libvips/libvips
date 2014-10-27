@@ -1961,7 +1961,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 		g_value_set_enum( &gvalue, i );
 	}
 	else if( G_IS_PARAM_SPEC_FLAGS( pspec ) ) {
-		/* Hard to set from a symbolic name. Just take an int.
+		/* Allow a symbolic name, or an int. 
 		 */
 		int i;
 
@@ -1970,7 +1970,9 @@ vips_object_set_argument_from_string( VipsObject *object,
 			return( -1 );
 		}
 
-		if( sscanf( value, "%d", &i ) != 1 ) {
+		if( sscanf( value, "%d", &i ) != 1 &&
+			(i = vips_flags_from_nick( class->nickname, 
+			otype, value )) < 0 ) {
 			vips_error( class->nickname,
 				_( "'%s' is not an integer" ), value );
 			return( -1 );

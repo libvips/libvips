@@ -18,6 +18,7 @@
 - add support for vips8 plugins
 - added "autorotate" option to jpeg load
 - added autorot operator
+- added @filter option to pngsave (Lovell)
 
 8/10/14 started 7.40.11
 - rework extra band handling for colour functions

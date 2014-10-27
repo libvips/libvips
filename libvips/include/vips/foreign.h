@@ -438,12 +438,12 @@ int vips_magickload( const char *filename, VipsImage **out, ... )
 
 /**
  * VipsForeignPngFilter:
- * @VIPS_FOREIGN_PNG_FILTER_NONE
- * @VIPS_FOREIGN_PNG_FILTER_SUB
- * @VIPS_FOREIGN_PNG_FILTER_UP
- * @VIPS_FOREIGN_PNG_FILTER_AVG
- * @VIPS_FOREIGN_PNG_FILTER_PAETH
- * @VIPS_FOREIGN_PNG_FILTER_ALL
+ * @VIPS_FOREIGN_PNG_FILTER_NONE: no filtering
+ * @VIPS_FOREIGN_PNG_FILTER_SUB: difference to the left
+ * @VIPS_FOREIGN_PNG_FILTER_UP: difference up
+ * @VIPS_FOREIGN_PNG_FILTER_AVG: average of left and up
+ * @VIPS_FOREIGN_PNG_FILTER_PAETH: pick best neighbor predictor automatically
+ * @VIPS_FOREIGN_PNG_FILTER_ALL: adaptive
  *
  * http://www.w3.org/TR/PNG-Filters.html
  * The values mirror those of png.h in libpng.
@@ -454,8 +454,7 @@ typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_PNG_FILTER_UP = 0x20,
 	VIPS_FOREIGN_PNG_FILTER_AVG = 0x40,
 	VIPS_FOREIGN_PNG_FILTER_PAETH = 0x80,
-	VIPS_FOREIGN_PNG_FILTER_ALL = 0xEA,
-	VIPS_FOREIGN_PNG_FILTER_LAST = 0xFF
+	VIPS_FOREIGN_PNG_FILTER_ALL = 0xEA
 } VipsForeignPngFilter;
 
 int vips_pngload( const char *filename, VipsImage **out, ... )

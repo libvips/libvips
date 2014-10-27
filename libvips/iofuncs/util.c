@@ -1597,6 +1597,40 @@ vips_enum_from_nick( const char *domain, GType type, const char *nick )
 	return( -1 );
 }
 
+int
+vips_flags_from_nick( const char *domain, GType type, const char *nick )
+{
+	GTypeClass *class;
+	GFlagsClass *gflags;
+	GFlagsValue *flags_value;
+	int i;
+	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	if( !(class = g_type_class_ref( type )) ) {
+		vips_error( domain, "%s", _( "no such flag type" ) ); 
+		return( -1 );
+	}
+	gflags = G_FLAGS_CLASS( class );
+
+	if( (flags_value = g_flags_get_value_by_name( gflags, nick )) ) 
+		return( flags_value->value );
+	if( (flags_value = g_flags_get_value_by_nick( gflags, nick )) ) 
+		return( flags_value->value );
+
+	for( i = 0; i < gflags->n_values; i++ ) {
+		if( i > 0 )
+			vips_buf_appends( &buf, ", " );
+		vips_buf_appends( &buf, gflags->values[i].value_nick );
+	}
+
+	vips_error( domain, _( "flags '%s' has no member '%s', " 
+		"should be one of: %s" ),
+		g_type_name( type ), nick, vips_buf_all( &buf ) );
+
+	return( -1 );
+}
+
 /* Scan @buf for the first "%ns" (eg. "%12s") and substitute the 
  * lowest-numbered one for @sub. @buf is @len bytes in size.
  *

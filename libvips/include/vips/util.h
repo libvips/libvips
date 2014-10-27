@@ -165,6 +165,7 @@ G_STMT_START { \
 const char *vips_enum_string( GType enm, int value );
 const char *vips_enum_nick( GType enm, int value );
 int vips_enum_from_nick( const char *domain, GType type, const char *str );
+int vips_flags_from_nick( const char *domain, GType type, const char *nick );
 
 gboolean vips_slist_equal( GSList *l1, GSList *l2 );
 void *vips_slist_map2( GSList *list, VipsSListMap2Fn fn, void *a, void *b );
