@@ -1,3 +1,1 @@
-
-VImage add( VImage add_in2, ... ) 
-	throw( VError ) __attribute__((sentinel));
+VImage invert( VOption *options = 0 ) throw( VError );

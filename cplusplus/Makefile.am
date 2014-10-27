@@ -8,28 +8,28 @@ AM_CPPFLAGS = \
 
 lib_LTLIBRARIES = libvips-cc.la
 
-libvipsCC_la_SOURCES = \
+libvips_cc_la_SOURCES = \
 	VImage.cc \
 	VError.cc 
 
-libvipsCC_la_LDFLAGS = \
+libvips_cc_la_LDFLAGS = \
 	-no-undefined \
 	-version-info @LIBRARY_CURRENT@:@LIBRARY_REVISION@:@LIBRARY_AGE@
 
-libvipsCC_la_LIBADD = \
+libvips_cc_la_LIBADD = \
 	$(top_builddir)/libvips/libvips.la @VIPS_LIBS@
 
 # swap the 'awk' line for this:
 # awk '{if($$1!="deprecated") print $$1}'` ; \
 # to not generate the wrappers for deprecated functions
-vipsc++.cc:
+vips-operators.cc:
 	packages=`vips list packages | \
 	  awk '{print $$1}'` ; \
-	  echo > vipsc++.cc ; \
+	  echo > vips-operators.cc ; \
 	  for name in $$packages; do \
-	    echo "// bodies for package $$name" >> vipsc++.cc ; \
-	    vips cppc $$name >> vipsc++.cc ; \
-	    echo >> vipsc++.cc ; \
+	    echo "// bodies for package $$name" >> vips-operators.cc ; \
+	    vips cppc $$name >> vips-operators.cc ; \
+	    echo >> vips-operators.cc ; \
 	  done 
 
 EXTRA_DIST = vips-operators.cc

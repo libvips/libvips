@@ -32,69 +32,21 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#include <cstdio>
-#include <cstdlib>
-
 #include <iostream>
 
-#include <vips/vips.h>
-
-#include <vips/vipscpp.h>
-
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
+#include <vips/vips8>
 
 VIPS_NAMESPACE_START
 
-void VError::perror() 
-{ 
-	std::cerr << _what; 
-	exit( 1 );
+std::ostream &operator<<( std::ostream &file, const VError &err )
+{
+	err.ostream_print( file );
+	return( file );
 }
-
-void VError::perror( const char *name ) 
-{ 
-	std::cerr << name << ": " << _what; 
-	exit( 1 );
-}
-
-// Add a new bit to the end of the error buffer
-VError &VError::app( const int i )
-{ 
-	char buf[ 256 ];
-
-	sprintf( buf, "%d", i );
-	_what += buf;
-
-	return( *this );
-}
-
-VError &VError::app( std::string txt ) 
-{ 
-	_what += txt; 
-
-	return( *this );
-}; 
 
 void VError::ostream_print( std::ostream &file ) const
 {
 	file << _what;
-}
-
-void verror( std::string str ) throw( VError )
-{
-	VError err;
-
-	err.app( "VIPS error: " );
-	if( str == "" ) {
-		err.app( im_error_buffer() );
-		im_error_clear();
-	}
-	else 
-		err.app( str ).app( "\n" );
-
-	throw( err );
 }
 
 VIPS_NAMESPACE_END

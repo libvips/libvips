@@ -794,6 +794,7 @@ AC_SUBST(PACKAGES_USED)
 AC_OUTPUT([
 	vips.pc
 	vipsCC.pc
+	vips-cc.pc
 	Makefile 
 	libvips/include/vips/version.h 
 	libvips/include/Makefile 
@@ -817,6 +818,9 @@ AC_OUTPUT([
 	libvipsCC/include/Makefile 
 	libvipsCC/include/vips/Makefile 
 	libvipsCC/Makefile 
+	cplusplus/include/Makefile 
+	cplusplus/include/vips/Makefile 
+	cplusplus/Makefile 
 	tools/Makefile 
 	tools/batch_crop 
 	tools/batch_image_convert 

@@ -1,9 +1,9 @@
 
-# turn off libvipsCC if C++ is disabled
+# turn off C++ APIs if C++ is disabled
 if ENABLE_CXX
-C_COMPILE_DIR = libvipsCC
+C_COMPILE_DIR = libvipsCC cplusplus
 C_DIST_DIR =
-C_PKGCONFIG = vipsCC.pc
+C_PKGCONFIG = vipsCC.pc vips-cc.pc
 
 # turn on Python if we can (requires C++)
 if HAVE_PYTHON
@@ -13,7 +13,7 @@ endif
 
 else
 C_COMPILE_DIR =
-C_DIST_DIR = libvipsCC 
+C_DIST_DIR = libvipsCC  cplusplus
 C_PKGCONFIG =
 P_COMPILE_DIR =
 P_DIST_DIR = swig
@@ -53,6 +53,7 @@ EXTRA_DIST = \
 	bootstrap.sh \
 	vips.pc.in \
 	vipsCC.pc.in \
+	vips-cc.pc.in \
 	libvips.supp \
 	acinclude.m4 \
 	depcomp \

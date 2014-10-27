@@ -3,8 +3,8 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: vipsCC
-Description: C++ API for vips7 image processing library
+Name: vips-cc
+Description: C++ API for vips8 image processing library
 Version: @VERSION@
 Requires: vips = @VERSION@
-Libs: -L${libdir} -lvipsCC
+Libs: -L${libdir} -lvips-cc

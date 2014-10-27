@@ -1,6 +1,6 @@
 pkginclude_HEADERS = \
-	VError.h \
-	VImage.h \
+	VError8.h \
+	VImage8.h \
 	vips8 \
 	vips-operators.h 
 
