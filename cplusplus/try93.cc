@@ -52,11 +52,17 @@ public:
 	VObject( VipsObject *new_vobject, VSteal steal = STEAL ) : 
 		vobject( new_vobject )
 	{
-		g_assert( new_vobject &&
+		// we allow NULL init, eg. "VImage a;"
+		g_assert( !new_vobject ||
 			VIPS_IS_OBJECT( new_vobject ) ); 
 
 		printf( "VObject constructor, obj = %p, steal = %d\n",
 			new_vobject, steal ); 
+		if( new_vobject ) { 
+			printf( "   obj " ); 
+			vips_object_print_name( VIPS_OBJECT( new_vobject ) );
+			printf( "\n" ); 
+		}
 		if( !steal ) {
 			printf( "   reffing object\n" ); 
 			g_object_ref( vobject ); 
@@ -68,7 +74,7 @@ public:
 	{
 	}
 
-	// copy constructor
+	// copy constructor 
 	VObject( const VObject &a ) : 
 		vobject( a.vobject )
 	{
@@ -106,7 +112,8 @@ public:
 		return( *this ); 
 	}
 
-	// this mustn't be virtual: we want this class to only be a pointer
+	// this mustn't be virtual: we want this class to only be a pointer,
+	// no vtable allowed
 	~VObject()
 	{
 		printf( "VObject destructor\n" );  
@@ -141,15 +148,16 @@ private:
 		// the thing we pass to VipsOperation
 		GValue value;
 
+		// an input or output parameter ... we guess the direction
+		// from the arg to set()
+		bool input; 
+
 		// we need to box and unbox VImage ... keep a pointer to the
 		// VImage from C++ here
 		VImage *vimage;
 
-		// keep a VipsImage pointer from VipsOperation here
-		VipsImage *vips_image;
-
 		Pair( const char *name ) : 
-			name( name ), vimage( 0 ), vips_image( 0 )
+			name( name ), input( false ), vimage( 0 )
 		{
 			G_VALUE_TYPE( &value ) = 0;
 		}
@@ -169,13 +177,13 @@ public:
 
 	virtual ~VOption();
 
-	VOption set( const char *name, const char *value );
-	VOption set( const char *name, int value );
-	VOption set( const char *name, VImage value );
-	VOption set( const char *name, VImage *value );
+	VOption *set( const char *name, const char *value );
+	VOption *set( const char *name, int value );
+	VOption *set( const char *name, VImage value );
+	VOption *set( const char *name, VImage *value );
 
-	int set_operation( VipsOperation *operation );
-	int get_operation( VipsOperation *operation );
+	void set_operation( VipsOperation *operation );
+	void get_operation( VipsOperation *operation );
 
 };
 
@@ -203,13 +211,13 @@ public:
 		return( new VOption() );
 	}
 
-	void call_option_string( const char *operation_name, 
+	static void call_option_string( const char *operation_name, 
 		const char *option_string, VOption *options = 0 ) 
 		throw( VError );
-	void call( const char *operation_name, VOption *options = 0 ) 
+	static void call( const char *operation_name, VOption *options = 0 ) 
 		throw( VError );
 
-	VImage new_from_file( const char *name, VOption *options = 0 )
+	static VImage new_from_file( const char *name, VOption *options = 0 )
 		throw( VError );
 
 	void write_to_file( const char *name, VOption *options = 0 )
@@ -228,79 +236,99 @@ VOption::~VOption()
 		delete *i;
 }
 
-VOption VOption::set( const char *name, const char *value )
+VOption *VOption::set( const char *name, const char *value )
 {
 	Pair *pair = new Pair( name );
 
+	pair->input = true;
 	g_value_init( &pair->value, G_TYPE_STRING );
 	g_value_set_string( &pair->value, value );
 	options.push_back( pair );
 
-	return( *this );
+	return( this );
 }
 
-VOption VOption::set( const char *name, int value )
+VOption *VOption::set( const char *name, int value )
 {
 	Pair *pair = new Pair( name );
 
+	pair->input = true;
 	g_value_init( &pair->value, G_TYPE_INT );
 	g_value_set_int( &pair->value, value );
 	options.push_back( pair );
 
-	return( *this );
+	return( this );
 }
 
-VOption VOption::set( const char *name, VImage value )
+VOption *VOption::set( const char *name, VImage value )
 {
 	Pair *pair = new Pair( name );
 
+	pair->input = true;
+	g_value_init( &pair->value, VIPS_TYPE_IMAGE );
 	// we need to unbox
-	g_value_init( &pair->value, G_TYPE_OBJECT );
-	g_value_set_pointer( &pair->value, value.get_image() );
+	g_value_set_object( &pair->value, value.get_image() );
 	options.push_back( pair );
 
-	return( *this );
+	return( this );
 }
 
-VOption VOption::set( const char *name, VImage *value )
+VOption *VOption::set( const char *name, VImage *value )
 {
 	Pair *pair = new Pair( name );
 
-	// where we will write the VImage  on success
+	// note where we will write the VImage on success
+	pair->input = false;
 	pair->vimage = value;
+	g_value_init( &pair->value, VIPS_TYPE_IMAGE );
 
-	// get VipsOperation to write the VipsImage * here
-	g_value_init( &pair->value, G_TYPE_POINTER );
-	g_value_set_pointer( &pair->value, &pair->vips_image );
 	options.push_back( pair );
 
-	return( *this );
+	return( this );
 }
 
 // walk the options and set props on the operation 
-int VOption::set_operation( VipsOperation *operation )
+void VOption::set_operation( VipsOperation *operation )
 {
 	std::list<Pair *>::iterator i;
 
 	for( i = options.begin(); i != options.end(); i++ ) 
-		if( vips_object_set( VIPS_OBJECT( operation ),
-			(*i)->name, &(*i)->value,
-			NULL ) )
-			return( -1 ); 
+		if( (*i)->input ) {
+			printf( "set_operation: " );
+			vips_object_print_name( VIPS_OBJECT( operation ) );
+			char *str_value = 
+				g_strdup_value_contents( &(*i)->value );
+			printf( ".%s = %s\n", (*i)->name, str_value );
+			g_free( str_value );
 
-	return( 0 ); 
+			g_object_set_property( G_OBJECT( operation ),
+				(*i)->name, &(*i)->value );
+		}
 }
 
 // walk the options and do any processing needed for output objects
-int VOption::get_operation( VipsOperation *operation )
+void VOption::get_operation( VipsOperation *operation )
 {
 	std::list<Pair *>::iterator i;
 
 	for( i = options.begin(); i != options.end(); i++ ) 
-		if( (*i)->vimage )
-			*((*i)->vimage) = VImage( (*i)->vips_image ); 
+		if( not (*i)->input ) {
+			g_object_get_property( G_OBJECT( operation ),
+				(*i)->name, &(*i)->value );
 
-	return( 0 ); 
+			printf( "get_operation: " );
+			vips_object_print_name( VIPS_OBJECT( operation ) );
+			char *str_value = 
+				g_strdup_value_contents( &(*i)->value );
+			printf( ".%s = %s\n", (*i)->name, str_value );
+			g_free( str_value );
+
+			// rebox object
+			VipsImage *image = VIPS_IMAGE( 
+				g_value_get_object( &(*i)->value ) );  
+			if( (*i)->vimage )
+				*((*i)->vimage) = VImage( image ); 
+		}
 }
 
 void VImage::call_option_string( const char *operation_name, 
@@ -330,12 +358,8 @@ void VImage::call_option_string( const char *operation_name,
 		throw( VError() ); 
 	}
 
-	if( options &&
-		options->set_operation( operation ) ) {
-		g_object_unref( operation ); 
-		delete options; 
-		throw( VError() ); 
-	}
+	if( options )
+		options->set_operation( operation );
 
 	/* Build from cache.
 	 */
@@ -347,12 +371,8 @@ void VImage::call_option_string( const char *operation_name,
 
 	/* Walk args again, writing output.
 	 */
-	if( options &&
-		options->get_operation( operation ) ) {
-		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
-		delete options; 
-		throw( VError() ); 
-	}
+	if( options )
+		options->get_operation( operation );
 
 	/* The operation we have built should now have been reffed by 
 	 * one of its arguments or have finished its work. Either 
@@ -386,6 +406,8 @@ VImage VImage::new_from_file( const char *name, VOption *options )
 		(options ? options : VImage::option())-> 
 			set( "filename", filename )->
 			set( "out", &out ) );
+
+	return( out ); 
 }
 
 void VImage::write_to_file( const char *name, VOption *options )
@@ -403,7 +425,7 @@ void VImage::write_to_file( const char *name, VOption *options )
 
 	call_option_string( operation_name, option_string, 
 		(options ? options : VImage::option())-> 
-			set( "in", this )->
+			set( "in", *this )->
 			set( "filename", filename ) );
 }
 
@@ -414,7 +436,7 @@ VImage VImage::invert( VOption *options )
 
 	call( "invert", 
 		(options ? options : VImage::option())-> 
-			set( "in", this )->
+			set( "in", *this )->
 			set( "out", &out ) );
 
 	return( out );
@@ -471,9 +493,9 @@ main( int argc, char **argv )
 	VImage in = VImage::new_from_file( argv[1] ); 
 	VImage out; 
 
-	out = in.invert()
+	//out = in.invert();
 
-	out.write_to_file( argv[2] );
+	//out.write_to_file( argv[2] );
 }
 
 	vips_shutdown();

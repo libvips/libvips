@@ -2185,8 +2185,7 @@ vips_object_set_valist( VipsObject *object, VipsCollect *collect, va_list ap )
 		if( collect )
 			collect->set( pspec, &value ); 
 
-		g_object_set_property( G_OBJECT( object ), 
-			name, &value );
+		g_object_set_property( G_OBJECT( object ), name, &value );
 
 		VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, ap );
 
