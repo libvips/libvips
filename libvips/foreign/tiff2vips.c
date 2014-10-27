@@ -148,6 +148,8 @@
  * 	- add read from buffer
  * 30/4/14
  * 	- 1/2/4 bit palette images can have alpha
+ * 27/10/14 Lovell
+ * 	- better istiff detector spots bigtiff
  */
 
 /*
