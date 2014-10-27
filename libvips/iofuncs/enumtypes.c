@@ -106,6 +106,28 @@ vips_foreign_tiff_resunit_get_type( void )
 	return( etype );
 }
 GType
+vips_foreign_png_filter_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GFlagsValue values[] = {
+			{VIPS_FOREIGN_PNG_FILTER_NONE, "VIPS_FOREIGN_PNG_FILTER_NONE", "none"},
+			{VIPS_FOREIGN_PNG_FILTER_SUB, "VIPS_FOREIGN_PNG_FILTER_SUB", "sub"},
+			{VIPS_FOREIGN_PNG_FILTER_UP, "VIPS_FOREIGN_PNG_FILTER_UP", "up"},
+			{VIPS_FOREIGN_PNG_FILTER_AVG, "VIPS_FOREIGN_PNG_FILTER_AVG", "avg"},
+			{VIPS_FOREIGN_PNG_FILTER_PAETH, "VIPS_FOREIGN_PNG_FILTER_PAETH", "paeth"},
+			{VIPS_FOREIGN_PNG_FILTER_ALL, "VIPS_FOREIGN_PNG_FILTER_ALL", "all"},
+			{VIPS_FOREIGN_PNG_FILTER_LAST, "VIPS_FOREIGN_PNG_FILTER_LAST", "last"},
+			{0, NULL, NULL}
+		};
+
+		etype = g_flags_register_static( "VipsForeignPngFilter", values );
+	}
+
+	return( etype );
+}
+GType
 vips_foreign_dz_layout_get_type( void )
 {
 	static GType etype = 0;

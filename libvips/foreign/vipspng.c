@@ -783,7 +783,8 @@ write_png_block( VipsRegion *region, VipsRect *area, void *a )
 /* Write a VIPS image to PNG.
  */
 static int
-write_vips( Write *write, int compress, int interlace, const char *profile )
+write_vips( Write *write, int compress, int interlace, const char *profile,
+	VipsForeignPngFilter filter )
 {
 	VipsImage *in = write->in;
 
@@ -823,6 +824,10 @@ write_vips( Write *write, int compress, int interlace, const char *profile )
 	/* Set compression parameters.
 	 */
 	png_set_compression_level( write->pPng, compress );
+
+	/* Set row filter.
+	 */
+	png_set_filter( write->pPng, 0, filter );
 
 	bit_depth = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
 
@@ -921,7 +926,8 @@ write_vips( Write *write, int compress, int interlace, const char *profile )
 
 int
 vips__png_write( VipsImage *in, const char *filename, 
-	int compress, int interlace, const char *profile )
+	int compress, int interlace, const char *profile,
+	VipsForeignPngFilter filter )
 {
 	Write *write;
 
@@ -940,7 +946,7 @@ vips__png_write( VipsImage *in, const char *filename,
 
 	/* Convert it!
 	 */
-	if( write_vips( write, compress, interlace, profile ) ) {
+	if( write_vips( write, compress, interlace, profile, filter ) ) {
 		vips_error( "vips2png", 
 			_( "unable to write \"%s\"" ), filename );
 
@@ -1027,7 +1033,7 @@ user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
 int
 vips__png_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, int compression, int interlace,
-	const char *profile )
+	const char *profile, VipsForeignPngFilter filter )
 {
 	WriteBuf *wbuf;
 	Write *write;
@@ -1043,7 +1049,7 @@ vips__png_write_buf( VipsImage *in,
 
 	/* Convert it!
 	 */
-	if( write_vips( write, compression, interlace, profile ) ) {
+	if( write_vips( write, compression, interlace, profile, filter ) ) {
 		write_buf_free( wbuf );
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );

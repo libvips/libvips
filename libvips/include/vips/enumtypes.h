@@ -17,6 +17,8 @@ GType vips_foreign_tiff_predictor_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_TIFF_PREDICTOR (vips_foreign_tiff_predictor_get_type())
 GType vips_foreign_tiff_resunit_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_TIFF_RESUNIT (vips_foreign_tiff_resunit_get_type())
+GType vips_foreign_png_filter_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_FOREIGN_PNG_FILTER (vips_foreign_png_filter_get_type())
 GType vips_foreign_dz_layout_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_DZ_LAYOUT (vips_foreign_dz_layout_get_type())
 GType vips_foreign_dz_depth_get_type (void) G_GNUC_CONST;
