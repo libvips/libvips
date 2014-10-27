@@ -374,6 +374,10 @@ void VImage::call_option_string( const char *operation_name,
 	if( options )
 		options->get_operation( operation );
 
+	/* We're done with options!
+	 */
+	delete options; 
+
 	/* The operation we have built should now have been reffed by 
 	 * one of its arguments or have finished its work. Either 
 	 * way, we can unref.
@@ -467,25 +471,9 @@ main( int argc, char **argv )
 		vips_error_exit( NULL );
 	}
 
-	/*
-	 
-	VipsImage *in;
-	VipsImage *out;
 
-	if( !(in = vips_image_new_from_file( argv[1], NULL )) )
-		vips_error_exit( NULL ); 
-
-	if( vips_invert( in, &out, NULL ) ) 
-		vips_error_exit( NULL ); 
-
-	if( vips_image_write_to_file( out, argv[2], NULL ) )
-		vips_error_exit( NULL ); 
-
-	g_object_unref( in );
-	g_object_unref( out );
-
-	 */
-
+	printf( "these should match, if the class is compile-time-only,\n" ); 
+	printf( "as it should be\n" ); 
 	printf( "sizeof( VipsImage *) = %zd\n", sizeof( VipsImage *) ); 
 	printf( "sizeof( VImage ) = %zd\n", sizeof( VImage ) ); 
 
@@ -493,9 +481,9 @@ main( int argc, char **argv )
 	VImage in = VImage::new_from_file( argv[1] ); 
 	VImage out; 
 
-	//out = in.invert();
+	out = in.invert();
 
-	//out.write_to_file( argv[2] );
+	out.write_to_file( argv[2] );
 }
 
 	vips_shutdown();

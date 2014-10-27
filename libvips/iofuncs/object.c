@@ -2157,7 +2157,6 @@ vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
 /**
  * vips_object_set_valist:
  * @object: object to set arguments on
- * @collect: how to box or unbox values
  * @ap: %NULL-terminated list of argument/value pairs
  *
  * See vips_object_set().
@@ -2165,7 +2164,7 @@ vips_object_new( GType type, VipsObjectSetArguments set, void *a, void *b )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_object_set_valist( VipsObject *object, VipsCollect *collect, va_list ap )
+vips_object_set_valist( VipsObject *object, va_list ap )
 {
 	char *name;
 
@@ -2183,9 +2182,6 @@ vips_object_set_valist( VipsObject *object, VipsCollect *collect, va_list ap )
 			return( -1 );
 
 		VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
-
-		if( collect )
-			collect->set( pspec, &value ); 
 
 		g_object_set_property( G_OBJECT( object ), name, &value );
 
@@ -2225,7 +2221,7 @@ vips_object_set( VipsObject *object, ... )
 	int result;
 
 	va_start( ap, object );
-	result = vips_object_set_valist( object, NULL, ap );
+	result = vips_object_set_valist( object, ap );
 	va_end( ap );
 
 	return( result );

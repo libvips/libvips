@@ -101,7 +101,7 @@ void vips_operation_invalidate( VipsOperation *operation );
 int vips_operation_call_valist( VipsOperation *operation, va_list ap );
 VipsOperation *vips_operation_new( const char *name ); 
 int vips_call_required_optional( VipsOperation **operation,
-	VipsCollect *collect, va_list required, va_list optional );
+	va_list required, va_list optional );
 int vips_call( const char *operation_name, ... )
 	__attribute__((sentinel));
 int vips_call_split( const char *operation_name, va_list optional, ... );

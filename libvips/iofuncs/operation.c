@@ -181,13 +181,6 @@
  * compatibility only and should be hidden from users.
  */
 
-/**
- * VipsCollect:
- *
- * We need to be able to use different things to collect values for the C++
- * API: we have to box and unbox VipsImage. Set/get need to be parameters.
- */
-
 /* Abstract base class for operations.
  */
 
@@ -584,8 +577,7 @@ vips_operation_new( const char *name )
 #endif
 
 static int
-vips_operation_set_valist_required( VipsOperation *operation, 
-	VipsCollect *collect, va_list ap )
+vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 {
 	VIPS_DEBUG_MSG( "vips_operation_set_valist_required:\n" );
 
@@ -611,9 +603,6 @@ vips_operation_set_valist_required( VipsOperation *operation,
 			}
 #endif /*VIPS_DEBUG */
 
-			if( collect )
-				collect->set( pspec, &value ); 
-
 			g_object_set_property( G_OBJECT( operation ),
 				g_param_spec_get_name( pspec ), &value );
 
@@ -632,8 +621,7 @@ vips_operation_set_valist_required( VipsOperation *operation,
 }
 
 static int
-vips_operation_get_valist_required( VipsOperation *operation, 
-	VipsCollect *collect, va_list ap )
+vips_operation_get_valist_required( VipsOperation *operation, va_list ap )
 {
 	VIPS_DEBUG_MSG( "vips_operation_get_valist_required:\n" );
 
@@ -679,11 +667,6 @@ vips_operation_get_valist_required( VipsOperation *operation,
 				g_object_unref( object ); 
 			}
 
-			/* Do any boxing/unboxing.
-			 */
-			if( collect )
-				collect->get( pspec, arg );
-
 			VIPS_ARGUMENT_COLLECT_END
 		}
 	} VIPS_ARGUMENT_FOR_ALL_END
@@ -692,8 +675,7 @@ vips_operation_get_valist_required( VipsOperation *operation,
 }
 
 static int
-vips_operation_get_valist_optional( VipsOperation *operation, 
-	VipsCollect *collect, va_list ap )
+vips_operation_get_valist_optional( VipsOperation *operation, va_list ap )
 {
 	char *name;
 
@@ -743,11 +725,6 @@ vips_operation_get_valist_optional( VipsOperation *operation,
 				object = *((GObject **) arg);
 				g_object_unref( object ); 
 			}
-
-			/* Do any boxing/unboxing.
-			 */
-			if( collect )
-				collect->get( pspec, arg );
 		}
 
 		VIPS_ARGUMENT_COLLECT_END
@@ -759,14 +736,11 @@ vips_operation_get_valist_optional( VipsOperation *operation,
 /**
  * vips_call_required_optional:
  * @operation: the operation to execute
- * @collect: how to box and unbox arguments
  * @required: %va_list of required arguments
  * @optional: NULL-terminated %va_list of name / value pairs 
  *
  * This is the main entry point for the C and C++ varargs APIs. @operation 
- * is executed, supplying @required and @optional arguments. @collect is used
- * to do any boxing or unboxing. It can be %NULL for no boxing on unboxing
- * required (the C case). 
+ * is executed, supplying @required and @optional arguments. 
  *
  * Beware, this can change @operation to point at an old, cached one.
  *
@@ -774,7 +748,7 @@ vips_operation_get_valist_optional( VipsOperation *operation,
  */
 int
 vips_call_required_optional( VipsOperation **operation,
-	VipsCollect *collect, va_list required, va_list optional ) 
+	va_list required, va_list optional ) 
 {
 	int result;
 	va_list a;
@@ -786,8 +760,8 @@ vips_call_required_optional( VipsOperation **operation,
 	 */
 	va_copy( a, required );
 	va_copy( b, optional );
-	result = vips_operation_set_valist_required( *operation, collect, a ) ||
-		vips_object_set_valist( VIPS_OBJECT( *operation ), collect, b );
+	result = vips_operation_set_valist_required( *operation, a ) ||
+		vips_object_set_valist( VIPS_OBJECT( *operation ), b );
 	va_end( a );
 	va_end( b );
 
@@ -803,10 +777,8 @@ vips_call_required_optional( VipsOperation **operation,
 	 */
 	va_copy( a, required );
 	va_copy( b, optional );
-	result = vips_operation_get_valist_required( *operation, 
-			collect, required ) ||
-		vips_operation_get_valist_optional( *operation, 
-			collect, optional );
+	result = vips_operation_get_valist_required( *operation, required ) ||
+		vips_operation_get_valist_optional( *operation, optional );
 	va_end( a );
 	va_end( b );
 
@@ -838,8 +810,7 @@ vips_call_by_name( const char *operation_name,
 		return( -1 ); 
 	}
 
-	result = vips_call_required_optional( &operation, 
-		NULL, required, optional );
+	result = vips_call_required_optional( &operation, required, optional );
 
 	/* Build failed: junk args and back out.
 	 */

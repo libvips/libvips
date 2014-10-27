@@ -59,25 +59,6 @@ typedef void *(*VipsSListMap4Fn)( void *item,
 typedef void *(*VipsSListFold2Fn)( void *item, 
 	void *a, void *b, void *c );
 
-/* The value has been read from the VipsOperation and written to the 
- * arg pointer. @arg is eg. gboolean* for a bool value.
- */
-typedef void (*VipsCollectGet)( GParamSpec *pspec, void *arg );
-
-/* The value has been read from argv into a GValue. Do any
- * boxing/unboxing before the GValue is used to set the property.
- */
-typedef void (*VipsCollectSet)( GParamSpec *pspec, GValue *value );
-
-/* We need to be able to use different things to collect values for the C++
- * API: we have to box and unbox VipsImage. Set/get need to be parameters.
- */
-typedef struct _VipsCollect {
-	VipsCollectGet get; 
-	VipsCollectSet set; 
-
-} VipsCollect; 
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
