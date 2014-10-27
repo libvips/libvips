@@ -90,6 +90,52 @@ VOption *VOption::set( const char *name, VImage value )
 	return( this );
 }
 
+// input double array
+VOption *VOption::set( const char *name, std::vector<double> value )
+{
+	Pair *pair = new Pair( name );
+
+	double *array;
+	unsigned int i; 
+
+	pair->input = true;
+
+	vips_value_set_array_double( &pair->value, NULL, value.size() ); 
+	array = vips_value_get_array_double( &pair->value, NULL ); 
+
+	for( i = 0; i < value.size(); i++ )  
+		array[i] = value[i]; 
+
+	options.push_back( pair );
+
+	return( this );
+}
+
+// input image array
+VOption *VOption::set( const char *name, std::vector<VImage> value )
+{
+	Pair *pair = new Pair( name );
+
+	VipsImage **array;
+	unsigned int i; 
+
+	pair->input = true;
+
+	vips_value_set_array_image( &pair->value, value.size() );
+	array = vips_value_get_array_image( &pair->value, NULL );
+
+	for( i = 0; i < value.size(); i++ ) { 
+		VipsImage *vips_image = value[i].get_image();
+
+		array[i] = vips_image; 
+		g_object_ref( vips_image );  
+	}
+
+	options.push_back( pair );
+
+	return( this );
+}
+
 // output image
 VOption *VOption::set( const char *name, VImage *value )
 {
@@ -99,6 +145,50 @@ VOption *VOption::set( const char *name, VImage *value )
 	pair->input = false;
 	pair->vimage = value;
 	g_value_init( &pair->value, VIPS_TYPE_IMAGE );
+
+	options.push_back( pair );
+
+	return( this );
+}
+
+// output double
+VOption *VOption::set( const char *name, double *value )
+{
+	Pair *pair = new Pair( name );
+
+	// note where we will write the VImage on success
+	pair->input = false;
+	pair->vdouble = value;
+	g_value_init( &pair->value, G_TYPE_DOUBLE );
+
+	options.push_back( pair );
+
+	return( this );
+}
+
+// output int
+VOption *VOption::set( const char *name, int *value )
+{
+	Pair *pair = new Pair( name );
+
+	// note where we will write the VImage on success
+	pair->input = false;
+	pair->vint = value;
+	g_value_init( &pair->value, G_TYPE_INT );
+
+	options.push_back( pair );
+
+	return( this );
+}
+
+// output doublearray
+VOption *VOption::set( const char *name, std::vector<double> **value )
+{
+	Pair *pair = new Pair( name );
+
+	// note where we will write the VImage on success
+	pair->input = false;
+	pair->vdoublearray = value;
 
 	options.push_back( pair );
 
@@ -133,23 +223,45 @@ void VOption::get_operation( VipsOperation *operation )
 
 	for( i = options.begin(); i != options.end(); i++ ) 
 		if( not (*i)->input ) {
+			const char *name = (*i)->name;
+			GValue *value = &(*i)->value;
+
 			g_object_get_property( G_OBJECT( operation ),
-				(*i)->name, &(*i)->value );
+				name, value );
 
 #ifdef DEBUG
 			printf( "get_operation: " );
 			vips_object_print_name( VIPS_OBJECT( operation ) );
-			char *str_value = 
-				g_strdup_value_contents( &(*i)->value );
-			printf( ".%s = %s\n", (*i)->name, str_value );
+			char *str_value = g_strdup_value_contents( value );
+			printf( ".%s = %s\n", name, str_value );
 			g_free( str_value );
 #endif /*DEBUG*/
 
-			// rebox object
-			VipsImage *image = VIPS_IMAGE( 
-				g_value_get_object( &(*i)->value ) );  
-			if( (*i)->vimage )
+			GType type = G_VALUE_TYPE( value );
+			if( type == VIPS_TYPE_IMAGE ) {
+				// rebox object
+				VipsImage *image = VIPS_IMAGE( 
+					g_value_get_object( value ) );  
 				*((*i)->vimage) = VImage( image ); 
+			}
+			else if( type == G_TYPE_INT ) 
+				*((*i)->vint) = g_value_get_int( value ); 
+			else if( type == G_TYPE_DOUBLE ) 
+				*((*i)->vint) = g_value_get_double( value ); 
+			else if( type == VIPS_TYPE_ARRAY_DOUBLE ) {
+				int length;
+				double *array = 
+					vips_value_get_array_double( value, 
+					&length );
+				std::vector<double> *vector = 
+					new std::vector<double>( length ); 
+				int j;
+
+				for( j = 0; j < length; j++ )
+					(*vector)[j] = array[j];
+
+				*((*i)->vdoublearray) = vector;
+			}
 		}
 }
 

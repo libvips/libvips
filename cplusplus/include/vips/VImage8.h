@@ -167,9 +167,20 @@ private:
 		// from the arg to set()
 		bool input; 
 
-		// we need to box and unbox VImage ... keep a pointer to the
-		// VImage from C++ here
-		VImage *vimage;
+		union {
+			// we need to box and unbox VImage ... keep a pointer 
+			// to the VImage from C++ here
+			VImage *vimage;
+
+			// output double
+			double *vdouble;
+
+			// output int
+			int *vint;
+
+			// output doublearray
+			std::vector<double> **vdoublearray;
+		}; 
 
 		Pair( const char *name ) : 
 			name( name ), input( false ), vimage( 0 )
@@ -196,6 +207,12 @@ public:
 	VOption *set( const char *name, int value );
 	VOption *set( const char *name, VImage value );
 	VOption *set( const char *name, VImage *value );
+	VOption *set( const char *name, std::vector<VImage> value );
+	VOption *set( const char *name, std::vector<double> value );
+
+	VOption *set( const char *name, int *value );
+	VOption *set( const char *name, double *value );
+	VOption *set( const char *name, std::vector<double> **value );
 
 	void set_operation( VipsOperation *operation );
 	void get_operation( VipsOperation *operation );

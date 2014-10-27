@@ -1458,7 +1458,7 @@ vips_value_get_array_image( const GValue *value, int *n )
  * @value: (out): %GValue to get from
  * @n: the number of elements 
  *
- * Set @value to hold a copy of @array. Pass in the array length in @n. 
+ * Set @value to hold an array of images. Pass in the array length in @n. 
  *
  * See also: vips_array_image_get().
  */
@@ -1479,7 +1479,7 @@ vips_value_set_array_image( GValue *value, int n )
  * @n: (allow-none): return the number of elements here, optionally
  *
  * Return the start of the array of %GObject held by @value.
- * optionally return the number of elements in @n.
+ * Optionally return the number of elements in @n.
  *
  * See also: vips_array_object_set().
  *

@@ -1,4 +1,23 @@
-- remove VipsCollect
+- output arrays need an extra * in
+
+  body must be:
+
+  	std::vector<double> *out_array;
+
+	call( "thing", options->set( "out-array", &out_array ) ); 
+
+  and call will new() a vector and place the pointer in out_array
+
+  alternative:
+
+  	std::vector<double> out_array;
+
+	call( "thing", options->set( "out-array", &out_array ) ); 
+
+  now the caller must pass in an empty vector (or not?) which we fill (or
+  empty?) ... seems odd, but makes lifetime management much simpler
+
+
 
 
 
