@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Mon Oct 27 17:08:34 GMT 2014
+// Tue Oct 28 10:00:00 GMT 2014
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -1450,7 +1450,7 @@ VImage VImage::pngload( char * filename , VOption *options )
     return( out );
 }
 
-VImage VImage::pngload_buffer( void * buffer , VOption *options )
+VImage VImage::pngload_buffer( VipsBlob * buffer , VOption *options )
     throw( VError )
 {
     VImage out;
@@ -1489,7 +1489,7 @@ VImage VImage::jpegload( char * filename , VOption *options )
     return( out );
 }
 
-VImage VImage::jpegload_buffer( void * buffer , VOption *options )
+VImage VImage::jpegload_buffer( VipsBlob * buffer , VOption *options )
     throw( VError )
 {
     VImage out;
@@ -1515,7 +1515,7 @@ VImage VImage::webpload( char * filename , VOption *options )
     return( out );
 }
 
-VImage VImage::webpload_buffer( void * buffer , VOption *options )
+VImage VImage::webpload_buffer( VipsBlob * buffer , VOption *options )
     throw( VError )
 {
     VImage out;
@@ -1541,7 +1541,7 @@ VImage VImage::tiffload( char * filename , VOption *options )
     return( out );
 }
 
-VImage VImage::tiffload_buffer( void * buffer , VOption *options )
+VImage VImage::tiffload_buffer( VipsBlob * buffer , VOption *options )
     throw( VError )
 {
     VImage out;
@@ -1695,10 +1695,10 @@ void VImage::pngsave( char * filename , VOption *options )
             set( "filename", filename ) );
 }
 
-void * VImage::pngsave_buffer( VOption *options )
+VipsBlob * VImage::pngsave_buffer( VOption *options )
     throw( VError )
 {
-    void * buffer;
+    VipsBlob * buffer;
 
     call( "pngsave_buffer" ,
         (options ? options : VImage::option()) ->
@@ -1717,10 +1717,10 @@ void VImage::jpegsave( char * filename , VOption *options )
             set( "filename", filename ) );
 }
 
-void * VImage::jpegsave_buffer( VOption *options )
+VipsBlob * VImage::jpegsave_buffer( VOption *options )
     throw( VError )
 {
-    void * buffer;
+    VipsBlob * buffer;
 
     call( "jpegsave_buffer" ,
         (options ? options : VImage::option()) ->
@@ -1747,10 +1747,10 @@ void VImage::webpsave( char * filename , VOption *options )
             set( "filename", filename ) );
 }
 
-void * VImage::webpsave_buffer( VOption *options )
+VipsBlob * VImage::webpsave_buffer( VOption *options )
     throw( VError )
 {
-    void * buffer;
+    VipsBlob * buffer;
 
     call( "webpsave_buffer" ,
         (options ? options : VImage::option()) ->

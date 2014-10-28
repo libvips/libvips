@@ -38,7 +38,7 @@ gtype_to_cpp = {
     "gchararray" : "char *",
     "VipsArrayDouble" : "std::vector<double>",
     "VipsArrayImage" : "std::vector<VImage>",
-    "VipsBlob" : "void *"
+    "VipsBlob" : "VipsBlob *"
 }
 
 def get_ctype(prop):

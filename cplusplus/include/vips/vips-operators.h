@@ -1,5 +1,5 @@
 // headers for vips operations
-// Mon Oct 27 17:00:38 GMT 2014
+// Tue Oct 28 10:00:17 GMT 2014
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 )
@@ -208,21 +208,21 @@ static VImage vipsload( char * filename , VOption *options = 0 )
     throw( VError );
 static VImage pngload( char * filename , VOption *options = 0 )
     throw( VError );
-static VImage pngload_buffer( void * buffer , VOption *options = 0 )
+static VImage pngload_buffer( VipsBlob * buffer , VOption *options = 0 )
     throw( VError );
 static VImage matload( char * filename , VOption *options = 0 )
     throw( VError );
 static VImage jpegload( char * filename , VOption *options = 0 )
     throw( VError );
-static VImage jpegload_buffer( void * buffer , VOption *options = 0 )
+static VImage jpegload_buffer( VipsBlob * buffer , VOption *options = 0 )
     throw( VError );
 static VImage webpload( char * filename , VOption *options = 0 )
     throw( VError );
-static VImage webpload_buffer( void * buffer , VOption *options = 0 )
+static VImage webpload_buffer( VipsBlob * buffer , VOption *options = 0 )
     throw( VError );
 static VImage tiffload( char * filename , VOption *options = 0 )
     throw( VError );
-static VImage tiffload_buffer( void * buffer , VOption *options = 0 )
+static VImage tiffload_buffer( VipsBlob * buffer , VOption *options = 0 )
     throw( VError );
 static VImage openslideload( char * filename , VOption *options = 0 )
     throw( VError );
@@ -252,17 +252,17 @@ void dzsave( char * filename , VOption *options = 0 )
     throw( VError );
 void pngsave( char * filename , VOption *options = 0 )
     throw( VError );
-void * pngsave_buffer( VOption *options = 0 )
+VipsBlob * pngsave_buffer( VOption *options = 0 )
     throw( VError );
 void jpegsave( char * filename , VOption *options = 0 )
     throw( VError );
-void * jpegsave_buffer( VOption *options = 0 )
+VipsBlob * jpegsave_buffer( VOption *options = 0 )
     throw( VError );
 void jpegsave_mime( VOption *options = 0 )
     throw( VError );
 void webpsave( char * filename , VOption *options = 0 )
     throw( VError );
-void * webpsave_buffer( VOption *options = 0 )
+VipsBlob * webpsave_buffer( VOption *options = 0 )
     throw( VError );
 void tiffsave( char * filename , VOption *options = 0 )
     throw( VError );

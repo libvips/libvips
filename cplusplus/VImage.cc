@@ -51,13 +51,14 @@ VOption::~VOption()
 		delete *i;
 }
 
-VOption *VOption::set( const char *name, const char *value )
+// input bool
+VOption *VOption::set( const char *name, bool value )
 {
 	Pair *pair = new Pair( name );
 
 	pair->input = true;
-	g_value_init( &pair->value, G_TYPE_STRING );
-	g_value_set_string( &pair->value, value );
+	g_value_init( &pair->value, G_TYPE_BOOLEAN );
+	g_value_set_boolean( &pair->value, value );
 	options.push_back( pair );
 
 	return( this );
@@ -71,6 +72,31 @@ VOption *VOption::set( const char *name, int value )
 	pair->input = true;
 	g_value_init( &pair->value, G_TYPE_INT );
 	g_value_set_int( &pair->value, value );
+	options.push_back( pair );
+
+	return( this );
+}
+
+// input double 
+VOption *VOption::set( const char *name, double value )
+{
+	Pair *pair = new Pair( name );
+
+	pair->input = true;
+	g_value_init( &pair->value, G_TYPE_DOUBLE );
+	g_value_set_double( &pair->value, value );
+	options.push_back( pair );
+
+	return( this );
+}
+
+VOption *VOption::set( const char *name, const char *value )
+{
+	Pair *pair = new Pair( name );
+
+	pair->input = true;
+	g_value_init( &pair->value, G_TYPE_STRING );
+	g_value_set_string( &pair->value, value );
 	options.push_back( pair );
 
 	return( this );
@@ -136,30 +162,28 @@ VOption *VOption::set( const char *name, std::vector<VImage> value )
 	return( this );
 }
 
-// output image
-VOption *VOption::set( const char *name, VImage *value )
+// input blob
+VOption *VOption::set( const char *name, VipsBlob *value )
 {
 	Pair *pair = new Pair( name );
 
-	// note where we will write the VImage on success
-	pair->input = false;
-	pair->vimage = value;
-	g_value_init( &pair->value, VIPS_TYPE_IMAGE );
-
+	pair->input = true;
+	g_value_init( &pair->value, VIPS_TYPE_BLOB );
+	g_value_set_boxed( &pair->value, value );
 	options.push_back( pair );
 
 	return( this );
 }
 
-// output double
-VOption *VOption::set( const char *name, double *value )
+// output bool
+VOption *VOption::set( const char *name, bool *value )
 {
 	Pair *pair = new Pair( name );
 
 	// note where we will write the VImage on success
 	pair->input = false;
-	pair->vdouble = value;
-	g_value_init( &pair->value, G_TYPE_DOUBLE );
+	pair->vbool = value;
+	g_value_init( &pair->value, G_TYPE_BOOLEAN );
 
 	options.push_back( pair );
 
@@ -181,14 +205,57 @@ VOption *VOption::set( const char *name, int *value )
 	return( this );
 }
 
-// output doublearray
-VOption *VOption::set( const char *name, std::vector<double> **value )
+// output double
+VOption *VOption::set( const char *name, double *value )
 {
 	Pair *pair = new Pair( name );
 
 	// note where we will write the VImage on success
 	pair->input = false;
-	pair->vdoublearray = value;
+	pair->vdouble = value;
+	g_value_init( &pair->value, G_TYPE_DOUBLE );
+
+	options.push_back( pair );
+
+	return( this );
+}
+
+// output image
+VOption *VOption::set( const char *name, VImage *value )
+{
+	Pair *pair = new Pair( name );
+
+	// note where we will write the VImage on success
+	pair->input = false;
+	pair->vimage = value;
+	g_value_init( &pair->value, VIPS_TYPE_IMAGE );
+
+	options.push_back( pair );
+
+	return( this );
+}
+
+// output doublearray
+VOption *VOption::set( const char *name, std::vector<double> *value )
+{
+	Pair *pair = new Pair( name );
+
+	// note where we will write the VImage on success
+	pair->input = false;
+	pair->vvector = value;
+
+	options.push_back( pair );
+
+	return( this );
+}
+
+// output blob
+VOption *VOption::set( const char *name, VipsBlob **value )
+{
+	Pair *pair = new Pair( name );
+
+	pair->input = false;
+	pair->vblob = value;
 
 	options.push_back( pair );
 
@@ -246,6 +313,8 @@ void VOption::get_operation( VipsOperation *operation )
 			}
 			else if( type == G_TYPE_INT ) 
 				*((*i)->vint) = g_value_get_int( value ); 
+			else if( type == G_TYPE_BOOLEAN ) 
+				*((*i)->vbool) = g_value_get_boolean( value ); 
 			else if( type == G_TYPE_DOUBLE ) 
 				*((*i)->vint) = g_value_get_double( value ); 
 			else if( type == VIPS_TYPE_ARRAY_DOUBLE ) {
@@ -253,14 +322,15 @@ void VOption::get_operation( VipsOperation *operation )
 				double *array = 
 					vips_value_get_array_double( value, 
 					&length );
-				std::vector<double> *vector = 
-					new std::vector<double>( length ); 
 				int j;
 
+				((*i)->vvector)->resize( length ); 
 				for( j = 0; j < length; j++ )
-					(*vector)[j] = array[j];
-
-				*((*i)->vdoublearray) = vector;
+					(*((*i)->vvector))[j] = array[j];
+			}
+			else if( type == VIPS_TYPE_BLOB ) {
+				*((*i)->vblob) = 
+					(VipsBlob *) g_value_get_boxed( value );
 			}
 		}
 }

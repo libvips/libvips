@@ -179,7 +179,13 @@ private:
 			int *vint;
 
 			// output doublearray
-			std::vector<double> **vdoublearray;
+			std::vector<double> *vvector;
+
+			// output Blob
+			VipsBlob **vblob;
+
+			// output bool
+			bool *vbool;
 		}; 
 
 		Pair( const char *name ) : 
@@ -203,16 +209,21 @@ public:
 
 	virtual ~VOption();
 
-	VOption *set( const char *name, const char *value );
+	VOption *set( const char *name, bool value ); 
 	VOption *set( const char *name, int value );
+	VOption *set( const char *name, double value );
+	VOption *set( const char *name, const char *value );
 	VOption *set( const char *name, VImage value );
-	VOption *set( const char *name, VImage *value );
 	VOption *set( const char *name, std::vector<VImage> value );
 	VOption *set( const char *name, std::vector<double> value );
+	VOption *set( const char *name, VipsBlob *value ); 
 
+	VOption *set( const char *name, bool *value ); 
 	VOption *set( const char *name, int *value );
 	VOption *set( const char *name, double *value );
-	VOption *set( const char *name, std::vector<double> **value );
+	VOption *set( const char *name, VImage *value );
+	VOption *set( const char *name, std::vector<double> *value );
+	VOption *set( const char *name, VipsBlob **blob ); 
 
 	void set_operation( VipsOperation *operation );
 	void get_operation( VipsOperation *operation );
