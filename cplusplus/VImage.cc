@@ -316,7 +316,7 @@ void VOption::get_operation( VipsOperation *operation )
 			else if( type == G_TYPE_BOOLEAN ) 
 				*((*i)->vbool) = g_value_get_boolean( value ); 
 			else if( type == G_TYPE_DOUBLE ) 
-				*((*i)->vint) = g_value_get_double( value ); 
+				*((*i)->vdouble) = g_value_get_double( value ); 
 			else if( type == VIPS_TYPE_ARRAY_DOUBLE ) {
 				int length;
 				double *array = 
@@ -438,5 +438,72 @@ void VImage::write_to_file( const char *name, VOption *options )
 }
 
 #include "vips-operators.cc"
+
+VImage VImage::linear( double a, double b, VOption *options )
+    throw( VError )
+{
+    double av[1] = { a }; 
+    std::vector<double> avec( av, av + VIPS_NUMBER( av ) );
+
+    double bv[1] = { b }; 
+    std::vector<double> bvec( bv, bv + VIPS_NUMBER( bv ) );
+
+    VImage out;
+
+    call( "linear",
+        (options ? options : VImage::option()) ->
+            set( "out", &out ) ->
+            set( "in", *this ) ->
+            set( "a", avec ) ->
+            set( "b", bvec ) );
+
+    return( out );
+}
+
+std::vector<VImage> VImage::bandsplit( VOption *options )
+	throw( VError )
+{
+	std::vector<VImage> bands; 
+
+	for( int i = 0; i < this->bands(); i++ )
+		bands.push_back( this->extract_band( i ) ); 
+
+	return( bands ); 
+}
+
+VImage VImage::bandjoin( VImage other, VOption *options )
+	throw( VError )
+{
+    VImage v[2] = { *this, other }; 
+    std::vector<VImage> vec( v, v + VIPS_NUMBER( v ) );
+
+    return( bandjoin( vec, options ) ); 
+}
+
+std::complex<double> VImage::minpos( VOption *options )
+	throw( VError )
+{
+	double x, y;
+
+	(void) this->min( 
+		(options ? options : VImage::option()) ->
+			set( "x", &x ) ->
+			set( "y", &y ) );
+
+	return( std::complex<double>( x, y ) ); 
+}
+
+std::complex<double> VImage::maxpos( VOption *options )
+	throw( VError )
+{
+	double x, y;
+
+	(void) this->max( 
+		(options ? options : VImage::option()) ->
+			set( "x", &x ) ->
+			set( "y", &y ) );
+
+	return( std::complex<double>( x, y ) ); 
+}
 
 VIPS_NAMESPACE_END

@@ -249,6 +249,81 @@ public:
 		return( (VipsImage *) VObject::get_object() );
 	}
 
+	int width()
+	{
+		return( vips_image_get_width( get_image() ) ); 
+	}
+
+	int height()
+	{
+		return( vips_image_get_height( get_image() ) ); 
+	}
+
+	int bands()
+	{
+		return( vips_image_get_bands( get_image() ) ); 
+	}
+
+	VipsBandFormat format()
+	{
+		return( vips_image_get_format( get_image() ) ); 
+	}
+
+	VipsCoding coding()
+	{
+		return( vips_image_get_coding( get_image() ) ); 
+	}
+
+	VipsInterpretation interpretation()
+	{
+		return( vips_image_get_interpretation( get_image() ) ); 
+	}
+
+	VipsInterpretation guess_interpretation()
+	{
+		return( vips_image_guess_interpretation( get_image() ) ); 
+	}
+
+	double xres()
+	{
+		return( vips_image_get_xres( get_image() ) ); 
+	}
+
+	double yres()
+	{
+		return( vips_image_get_yres( get_image() ) ); 
+	}
+
+	double xoffset()
+	{
+		return( vips_image_get_xoffset( get_image() ) ); 
+	}
+
+	double yoffset()
+	{
+		return( vips_image_get_yoffset( get_image() ) ); 
+	}
+
+	const char *filename()
+	{
+		return( vips_image_get_filename( get_image() ) ); 
+	}
+
+	double scale()
+	{
+		return( vips_image_get_scale( get_image() ) ); 
+	}
+
+	double offset()
+	{
+		return( vips_image_get_offset( get_image() ) ); 
+	}
+
+	const void *data()
+	{
+		return( vips_image_get_data( get_image() ) ); 
+	}
+
 	static VOption *option()
 	{
 		return( new VOption() );
@@ -267,6 +342,150 @@ public:
 		throw( VError );
 
 #include "vips-operators.h"
+
+	// a few useful things
+	
+	VImage linear( double a, double b, VOption *options = 0 )
+		throw( VError );
+
+	std::vector<VImage> bandsplit( VOption *options = 0 )
+		throw( VError );
+
+	VImage bandjoin( VImage other, VOption *options = 0 )
+		throw( VError );
+
+	std::complex<double> minpos( VOption *options = 0 )
+		throw( VError );
+
+	std::complex<double> maxpos( VOption *options = 0 )
+		throw( VError );
+
+	VImage floor( VOption *options = 0 )
+		throw( VError )
+	{
+		return( round( VIPS_OPERATION_ROUND_FLOOR, options ) ); 
+	}
+
+	VImage ceil( VOption *options = 0 )
+		throw( VError )
+	{
+		return( round( VIPS_OPERATION_ROUND_CEIL, options ) ); 
+	}
+
+	VImage rint( VOption *options = 0 )
+		throw( VError )
+	{
+		return( round( VIPS_OPERATION_ROUND_RINT, options ) ); 
+	}
+
+	VImage real( VOption *options = 0 )
+		throw( VError )
+	{
+		return( complexget( VIPS_OPERATION_COMPLEXGET_REAL, options ) );
+	}
+
+	VImage imag( VOption *options = 0 )
+		throw( VError )
+	{
+		return( complexget( VIPS_OPERATION_COMPLEXGET_IMAG, options ) );
+	}
+
+	VImage polar( VOption *options = 0 )
+		throw( VError )
+	{
+		return( complex( VIPS_OPERATION_COMPLEX_POLAR, options ) );
+	}
+
+	VImage rect( VOption *options = 0 )
+		throw( VError )
+	{
+		return( complex( VIPS_OPERATION_COMPLEX_RECT, options ) );
+	}
+
+	VImage conj( VOption *options = 0 )
+		throw( VError )
+	{
+		return( complex( VIPS_OPERATION_COMPLEX_CONJ, options ) );
+	}
+
+	VImage sin( VOption *options = 0 )
+		throw( VError )
+	{
+		return( math( VIPS_OPERATION_MATH_SIN, options ) );
+	}
+
+	VImage cos( VOption *options = 0 )
+		throw( VError )
+	{
+		return( math( VIPS_OPERATION_MATH_COS, options ) );
+	}
+
+	VImage tan( VOption *options = 0 )
+		throw( VError )
+	{
+		return( math( VIPS_OPERATION_MATH_TAN, options ) );
+	}
+
+	VImage asin( VOption *options = 0 )
+		throw( VError )
+	{
+		return( math( VIPS_OPERATION_MATH_ASIN, options ) );
+	}
+
+	VImage acos( VOption *options = 0 )
+		throw( VError )
+	{
+		return( math( VIPS_OPERATION_MATH_ACOS, options ) );
+	}
+
+	VImage atan( VOption *options = 0 )
+		throw( VError )
+	{
+		return( math( VIPS_OPERATION_MATH_ATAN, options ) );
+	}
+
+	VImage log( VOption *options = 0 )
+		throw( VError )
+	{
+		return( math( VIPS_OPERATION_MATH_LOG, options ) );
+	}
+
+	VImage log10( VOption *options = 0 )
+		throw( VError )
+	{
+		return( math( VIPS_OPERATION_MATH_LOG10, options ) );
+	}
+
+	VImage exp( VOption *options = 0 )
+		throw( VError )
+	{
+		return( math( VIPS_OPERATION_MATH_EXP, options ) );
+	}
+
+	VImage exp10( VOption *options = 0 )
+		throw( VError )
+	{
+		return( math( VIPS_OPERATION_MATH_EXP10, options ) );
+	}
+
+	/*
+	VImage ifthenelse( double th, VImage el, VOption *options = 0 )
+		throw( VError );
+	VImage ifthenelse( VImage th, double el, VOption *options = 0 )
+		throw( VError );
+	VImage ifthenelse( double th, double el, VOption *options = 0 )
+		throw( VError );
+
+	VImage ifthenelse( std::vector<double> th, VImage el, 
+		VOption *options = 0 )
+		throw( VError );
+	VImage ifthenelse( VImage th, std::vector<double> el, 
+		VOption *options = 0 )
+		throw( VError );
+	VImage ifthenelse( std::vector<double> th, std::vector<double> el, 
+		VOption *options = 0 )
+		throw( VError );
+	 */
 
 };
 

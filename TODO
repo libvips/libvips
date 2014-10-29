@@ -1,22 +1,30 @@
-- output arrays need an extra * in
+- test other arg types
 
-  body must be:
+	input int		works
+	input double
+	input enum		works
+	input image		works
+	input doublevec
+	input imagevec
+	input blob
 
-  	std::vector<double> *out_array;
+	output int		
+	output double		works
+	output enum		
+	output image		works
+	output doublevec
+	output imagevec
+	output blob
 
-	call( "thing", options->set( "out-array", &out_array ) ); 
+- set of overloads
 
-  and call will new() a vector and place the pointer in out_array
+- something to make an image matched to another image from a vector or a 
+  single constant
 
-  alternative:
+- something to make an image from an array of constants, need to set
+  scale/offset too
 
-  	std::vector<double> out_array;
-
-	call( "thing", options->set( "out-array", &out_array ) ); 
-
-  now the caller must pass in an empty vector (or not?) which we fill (or
-  empty?) ... seems odd, but makes lifetime management much simpler
-
+- new_from_buffer(), new_from_memory(), write_to_memory() etc etc
 
 
 

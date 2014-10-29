@@ -1378,7 +1378,7 @@ vips_value_get_array_int( const GValue *value, int *n )
 /** 
  * vips_value_set_array_int:
  * @value: (out): %GValue to get from
- * @array: (array length=n): array of ints
+ * @array: (array length=n) (allow_none): array of ints
  * @n: the number of elements 
  *
  * Set @value to hold a copy of @array. Pass in the array length in @n. 
@@ -1388,12 +1388,15 @@ vips_value_get_array_int( const GValue *value, int *n )
 void
 vips_value_set_array_int( GValue *value, const int *array, int n )
 {
-	int *array_copy;
-
 	g_value_init( value, VIPS_TYPE_ARRAY_INT );
 	vips_value_set_array( value, n, G_TYPE_INT, sizeof( int ) );
-	array_copy = vips_value_get_array_int( value, NULL );
-	memcpy( array_copy, array, n * sizeof( int ) );
+
+	if( array ) { 
+		int *array_copy;
+
+		array_copy = vips_value_get_array_int( value, NULL );
+		memcpy( array_copy, array, n * sizeof( int ) );
+	}
 }
 
 /** 
@@ -1417,7 +1420,7 @@ vips_value_get_array_double( const GValue *value, int *n )
 /** 
  * vips_value_set_array_double:
  * @value: (out): %GValue to get from
- * @array: (array length=n): array of doubles
+ * @array: (array length=n) (allow-none): array of doubles
  * @n: the number of elements 
  *
  * Set @value to hold a copy of @array. Pass in the array length in @n. 
@@ -1427,12 +1430,15 @@ vips_value_get_array_double( const GValue *value, int *n )
 void
 vips_value_set_array_double( GValue *value, const double *array, int n )
 {
-	double *array_copy;
-
 	g_value_init( value, VIPS_TYPE_ARRAY_DOUBLE );
 	vips_value_set_array( value, n, G_TYPE_DOUBLE, sizeof( double ) );
-	array_copy = vips_value_get_array_double( value, NULL );
-	memcpy( array_copy, array, n * sizeof( double ) );
+
+	if( array ) { 
+		double *array_copy;
+
+		array_copy = vips_value_get_array_double( value, NULL );
+		memcpy( array_copy, array, n * sizeof( double ) );
+	}
 }
 
 /** 
