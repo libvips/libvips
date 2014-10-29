@@ -337,6 +337,10 @@ public:
 
 	static VImage new_from_file( const char *name, VOption *options = 0 )
 		throw( VError );
+	VImage new_from_image( std::vector<double> pixel )
+		throw( VError );
+	VImage new_from_image( double pixel )
+		throw( VError );
 
 	void write_to_file( const char *name, VOption *options = 0 )
 		throw( VError );

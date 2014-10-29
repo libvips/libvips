@@ -79,6 +79,13 @@ main( int argc, char **argv )
 	out.write_to_file( "linear1.jpg" );
 }
 
+{ 
+	VImage in = VImage::new_from_file( argv[1] ); 
+	VImage out = in.new_from_image( 128 );
+
+	out.write_to_file( "const.jpg" );
+}
+
 	vips_shutdown();
 
         return( 0 );

@@ -18,9 +18,6 @@
 
 - set of overloads
 
-- something to make an image matched to another image from a vector or a 
-  single constant
-
 - something to make an image from an array of constants, need to set
   scale/offset too
 

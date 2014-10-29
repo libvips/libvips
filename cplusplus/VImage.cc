@@ -418,6 +418,40 @@ VImage VImage::new_from_file( const char *name, VOption *options )
 	return( out ); 
 }
 
+VImage VImage::new_from_image( std::vector<double> pixel )
+	throw( VError )
+{
+	VImage onepx = VImage::black( 1, 1, 
+		VImage::option()->set( "bands", bands() ) ); 
+
+	double v[1] = { 1.0 };
+	std::vector<double> ones( v, v + VIPS_NUMBER( v ) );
+
+	onepx = onepx.linear( ones, pixel ).cast( format() );
+
+	VImage big = onepx.embed( 0, 0, width(), height(), 
+		VImage::option()->set( "extend", VIPS_EXTEND_COPY ) ); 
+
+	big = big.copy( 
+		VImage::option()->
+			set( "interpretation", interpretation() )->
+			set( "xres", xres() )->
+			set( "yres", yres() )->
+			set( "xoffset", xres() )->
+			set( "yoffset", yres() ) ); 
+
+	return( big ); 
+}
+
+VImage VImage::new_from_image( double pixel )
+	throw( VError )
+{
+	double v[1] = { pixel }; 
+	std::vector<double> vec( v, v + VIPS_NUMBER( v ) );
+
+	return( new_from_image( vec ) ); 
+}
+
 void VImage::write_to_file( const char *name, VOption *options )
 	throw( VError )
 {
@@ -463,12 +497,12 @@ VImage VImage::linear( double a, double b, VOption *options )
 std::vector<VImage> VImage::bandsplit( VOption *options )
 	throw( VError )
 {
-	std::vector<VImage> bands; 
+	std::vector<VImage> b; 
 
-	for( int i = 0; i < this->bands(); i++ )
-		bands.push_back( this->extract_band( i ) ); 
+	for( int i = 0; i < bands(); i++ )
+		b.push_back( extract_band( i ) ); 
 
-	return( bands ); 
+	return( b ); 
 }
 
 VImage VImage::bandjoin( VImage other, VOption *options )
@@ -485,7 +519,7 @@ std::complex<double> VImage::minpos( VOption *options )
 {
 	double x, y;
 
-	(void) this->min( 
+	(void) min( 
 		(options ? options : VImage::option()) ->
 			set( "x", &x ) ->
 			set( "y", &y ) );
@@ -498,7 +532,7 @@ std::complex<double> VImage::maxpos( VOption *options )
 {
 	double x, y;
 
-	(void) this->max( 
+	(void) max( 
 		(options ? options : VImage::option()) ->
 			set( "x", &x ) ->
 			set( "y", &y ) );
