@@ -38,6 +38,15 @@
 
 VIPS_NAMESPACE_START
 
+/* Small utility things.
+ */
+
+std::vector<double> to_vectorv( int n, ... ); 
+std::vector<double> to_vector( double value );
+std::vector<double> to_vector( int n, double array[] );
+std::vector<double> negate( std::vector<double> value ); 
+std::vector<double> invert( std::vector<double> value ); 
+
 enum VSteal {
 	NOSTEAL = 0,
 	STEAL = 1
@@ -324,6 +333,77 @@ public:
 		return( vips_image_get_data( get_image() ) ); 
 	}
 
+	void set( const char *field, int value )
+	{
+		vips_image_set_int( this->get_image(), field, value ); 
+	}
+
+	void set( const char *field, double value )
+	{
+		vips_image_set_double( this->get_image(), field, value ); 
+	}
+
+	void set( const char *field, const char *value )
+	{
+		vips_image_set_string( this->get_image(), field, value ); 
+	}
+
+	void set( const char *field, 
+		VipsCallbackFn free_fn, void *data, size_t length )
+	{
+		vips_image_set_blob( this->get_image(), field, 
+			free_fn, data, length ); 
+	}
+
+	int get_typeof( const char *field )
+	{
+		return( vips_image_get_typeof( this->get_image(), field ) ); 
+	}
+
+	int get_int( const char *field )
+		throw( VError )
+	{
+		int value;
+
+		if( vips_image_get_int( this->get_image(), field, &value ) )
+			throw( VError() ); 
+
+		return( value ); 
+	}
+
+	double get_double( const char *field )
+		throw( VError )
+	{
+		double value;
+
+		if( vips_image_get_double( this->get_image(), field, &value ) )
+			throw( VError() ); 
+
+		return( value ); 
+	}
+
+	const char *get_string( const char *field )
+		throw( VError )
+	{
+		const char *value; 
+
+		if( vips_image_get_string( this->get_image(), field, &value ) )
+			throw( VError() ); 
+
+		return( value ); 
+	}
+
+	const void *get_blob( const char *field, size_t *length )
+	{
+		void *value; 
+
+		if( vips_image_get_blob( this->get_image(), field, 
+			&value, length ) )
+			throw( VError() ); 
+
+		return( value ); 
+	}
+
 	static VOption *option()
 	{
 		return( new VOption() );
@@ -341,6 +421,8 @@ public:
 		throw( VError );
 	VImage new_from_image( double pixel )
 		throw( VError );
+	VImage new_matrix( int width, int height ) ;
+	VImage new_matrixv( int width, int height, ... );
 
 	void write_to_file( const char *name, VOption *options = 0 )
 		throw( VError );
@@ -348,15 +430,41 @@ public:
 #include "vips-operators.h"
 
 	// a few useful things
-	
+
 	VImage linear( double a, double b, VOption *options = 0 )
-		throw( VError );
+		throw( VError )
+	{
+		return( this->linear( to_vector( a ), to_vector( b ), 
+			options ) ); 
+	}
+
+	VImage linear( std::vector<double> a, double b, VOption *options = 0 )
+		throw( VError )
+	{
+		return( this->linear( a, to_vector( b ), options ) ); 
+	}
+
+	VImage linear( double a, std::vector<double> b, VOption *options = 0 )
+		throw( VError )
+	{
+		return( this->linear( to_vector( a ), b, options ) ); 
+	}
 
 	std::vector<VImage> bandsplit( VOption *options = 0 )
 		throw( VError );
 
 	VImage bandjoin( VImage other, VOption *options = 0 )
 		throw( VError );
+	VImage bandjoin( double other, VOption *options = 0 )
+		throw( VError )
+	{
+		return( bandjoin( this->new_from_image( other ), options ) ); 
+	}
+	VImage bandjoin( std::vector<double> other, VOption *options = 0 )
+		throw( VError )
+	{
+		return( bandjoin( this->new_from_image( other ), options ) ); 
+	}
 
 	std::complex<double> minpos( VOption *options = 0 )
 		throw( VError );
@@ -472,24 +580,570 @@ public:
 		return( math( VIPS_OPERATION_MATH_EXP10, options ) );
 	}
 
-	/*
-	VImage ifthenelse( double th, VImage el, VOption *options = 0 )
-		throw( VError );
-	VImage ifthenelse( VImage th, double el, VOption *options = 0 )
-		throw( VError );
-	VImage ifthenelse( double th, double el, VOption *options = 0 )
-		throw( VError );
+	VImage pow( VImage other, VOption *options = 0 )
+		throw( VError )
+	{
+		return( math2( other, VIPS_OPERATION_MATH2_POW, options ) );
+	}
+
+	VImage pow( double other, VOption *options = 0 )
+		throw( VError )
+	{
+		return( math2_const( to_vector( other ), 
+			VIPS_OPERATION_MATH2_POW, options ) );
+	}
+
+	VImage pow( std::vector<double> other, VOption *options = 0 )
+		throw( VError )
+	{
+		return( math2_const( other, 
+			VIPS_OPERATION_MATH2_POW, options ) );
+	}
+
+	VImage wop( VImage other, VOption *options = 0 )
+		throw( VError )
+	{
+		return( math2( other, VIPS_OPERATION_MATH2_WOP, options ) );
+	}
+
+	VImage wop( double other, VOption *options = 0 )
+		throw( VError )
+	{
+		return( math2_const( to_vector( other ), 
+			VIPS_OPERATION_MATH2_WOP, options ) );
+	}
+
+	VImage wop( std::vector<double> other, VOption *options = 0 )
+		throw( VError )
+	{
+		return( math2_const( other, 
+			VIPS_OPERATION_MATH2_WOP, options ) );
+	}
 
 	VImage ifthenelse( std::vector<double> th, VImage el, 
 		VOption *options = 0 )
-		throw( VError );
+		throw( VError )
+	{
+		return( ifthenelse( el.new_from_image( th ), el, options ) ); 
+	}
+
 	VImage ifthenelse( VImage th, std::vector<double> el, 
 		VOption *options = 0 )
-		throw( VError );
+		throw( VError )
+	{
+		return( ifthenelse( th, th.new_from_image( el ), options ) ); 
+	}
+
 	VImage ifthenelse( std::vector<double> th, std::vector<double> el, 
 		VOption *options = 0 )
-		throw( VError );
-	 */
+		throw( VError )
+	{
+		return( ifthenelse( new_from_image( th ), new_from_image( el ),
+			options ) ); 
+	}
+
+	VImage ifthenelse( double th, VImage el, VOption *options )
+		throw( VError )
+	{
+		return( ifthenelse( to_vector( th ), el, options ) ); 
+	}
+
+	VImage ifthenelse( VImage th, double el, VOption *options )
+		throw( VError )
+	{
+		return( ifthenelse( th, to_vector( el ), options ) ); 
+	}
+
+	VImage ifthenelse( double th, double el, VOption *options )
+		throw( VError )
+	{
+		return( ifthenelse( to_vector( th ), to_vector( el ), 
+			options ) );
+	}
+
+	// Operator overloads
+
+	friend VImage operator+( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.add( b ) );
+	}
+
+	friend VImage operator+( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.linear( 1.0, a ) ); 
+	}
+
+	friend VImage operator+( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.linear( 1.0, b ) ); 
+	}
+
+	friend VImage operator+( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.linear( 1.0, a ) ); 
+	}
+
+	friend VImage operator+( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.linear( 1.0, b ) ); 
+	}
+
+	friend VImage operator-( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.subtract( b ) );
+	}
+
+	friend VImage operator-( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.linear( -1.0, a ) ); 
+	}
+
+	friend VImage operator-( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.linear( 1.0, -b ) ); 
+	}
+
+	friend VImage operator-( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.linear( -1.0, a ) ); 
+	}
+
+	friend VImage operator-( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.linear( 1.0, vips8::negate( b ) ) ); 
+	}
+
+	friend VImage operator*( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.multiply( b ) );
+	}
+
+	friend VImage operator*( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.linear( a, 0.0 ) ); 
+	}
+
+	friend VImage operator*( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.linear( b, 0.0 ) ); 
+	}
+
+	friend VImage operator*( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.linear( a, 0.0 ) ); 
+	}
+
+	friend VImage operator*( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.linear( b, 0.0 ) ); 
+	}
+
+	friend VImage operator/( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.divide( b ) );
+	}
+
+	friend VImage operator/( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.pow( -1.0 ).linear( a, 0.0 ) ); 
+	}
+
+	friend VImage operator/( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.linear( 1.0 / b, 0.0 ) ); 
+	}
+
+	friend VImage operator/( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.pow( -1.0 ).linear( a, 0.0 ) ); 
+	}
+
+	friend VImage operator/( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.linear( vips8::invert( b ), 0.0 ) ); 
+	}
+
+	friend VImage operator%( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.remainder( b ) );
+	}
+
+	friend VImage operator%( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.remainder_const( to_vector( b ) ) ); 
+	}
+
+	friend VImage operator%( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.remainder_const( b ) ); 
+	}
+
+	friend VImage operator<( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.relational( b, VIPS_OPERATION_RELATIONAL_LESS ) );
+	}
+
+	friend VImage operator<( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( to_vector( a ), 
+			VIPS_OPERATION_RELATIONAL_MORE ) );
+	}
+
+	friend VImage operator<( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( to_vector( b ), 
+			VIPS_OPERATION_RELATIONAL_LESS ) );
+	}
+
+	friend VImage operator<( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( a, 
+			VIPS_OPERATION_RELATIONAL_MORE ) );
+	}
+
+	friend VImage operator<( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( b, 
+			VIPS_OPERATION_RELATIONAL_LESS ) );
+	}
+
+	friend VImage operator<=( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.relational( b, VIPS_OPERATION_RELATIONAL_LESSEQ ) );
+	}
+
+	friend VImage operator<=( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( to_vector( a ), 
+			VIPS_OPERATION_RELATIONAL_MOREEQ ) );
+	}
+
+	friend VImage operator<=( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( to_vector( b ), 
+			VIPS_OPERATION_RELATIONAL_LESSEQ ) );
+	}
+
+	friend VImage operator<=( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( a, 
+			VIPS_OPERATION_RELATIONAL_MOREEQ ) );
+	}
+
+	friend VImage operator<=( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( b, 
+			VIPS_OPERATION_RELATIONAL_LESSEQ ) );
+	}
+
+	friend VImage operator>( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.relational( b, VIPS_OPERATION_RELATIONAL_MORE ) );
+	}
+
+	friend VImage operator>( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( to_vector( a ), 
+			VIPS_OPERATION_RELATIONAL_LESS ) );
+	}
+
+	friend VImage operator>( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( to_vector( b ), 
+			VIPS_OPERATION_RELATIONAL_MORE ) );
+	}
+
+	friend VImage operator>( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( a, 
+			VIPS_OPERATION_RELATIONAL_LESS ) );
+	}
+
+	friend VImage operator>( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( b, 
+			VIPS_OPERATION_RELATIONAL_MORE ) );
+	}
+
+	friend VImage operator>=( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.relational( b, VIPS_OPERATION_RELATIONAL_MOREEQ ) );
+	}
+
+	friend VImage operator>=( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( to_vector( a ), 
+			VIPS_OPERATION_RELATIONAL_LESSEQ ) );
+	}
+
+	friend VImage operator>=( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( to_vector( b ), 
+			VIPS_OPERATION_RELATIONAL_MOREEQ ) );
+	}
+
+	friend VImage operator>=( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( a, 
+			VIPS_OPERATION_RELATIONAL_LESSEQ ) );
+	}
+
+	friend VImage operator>=( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( b, 
+			VIPS_OPERATION_RELATIONAL_MOREEQ ) );
+	}
+
+	friend VImage operator==( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.relational( b, VIPS_OPERATION_RELATIONAL_EQUAL ) );
+	}
+
+	friend VImage operator==( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( to_vector( a ), 
+			VIPS_OPERATION_RELATIONAL_EQUAL ) );
+	}
+
+	friend VImage operator==( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( to_vector( b ), 
+			VIPS_OPERATION_RELATIONAL_EQUAL ) );
+	}
+
+	friend VImage operator==( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( a, 
+			VIPS_OPERATION_RELATIONAL_EQUAL ) );
+	}
+
+	friend VImage operator==( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( b, 
+			VIPS_OPERATION_RELATIONAL_EQUAL ) );
+	}
+
+	friend VImage operator!=( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.relational( b, VIPS_OPERATION_RELATIONAL_NOTEQ ) );
+	}
+
+	friend VImage operator!=( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( to_vector( a ), 
+			VIPS_OPERATION_RELATIONAL_NOTEQ ) );
+	}
+
+	friend VImage operator!=( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( to_vector( b ), 
+			VIPS_OPERATION_RELATIONAL_NOTEQ ) );
+	}
+
+	friend VImage operator!=( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.relational_const( a, 
+			VIPS_OPERATION_RELATIONAL_NOTEQ ) );
+	}
+
+	friend VImage operator!=( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.relational_const( b, 
+			VIPS_OPERATION_RELATIONAL_NOTEQ ) );
+	}
+
+	friend VImage operator&( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.boolean( b, VIPS_OPERATION_BOOLEAN_AND ) );
+	}
+
+	friend VImage operator&( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.boolean_const( to_vector( a ), 
+			VIPS_OPERATION_BOOLEAN_AND ) );
+	}
+
+	friend VImage operator&( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.boolean_const( to_vector( b ), 
+			VIPS_OPERATION_BOOLEAN_AND ) );
+	}
+
+	friend VImage operator&( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.boolean_const( a, VIPS_OPERATION_BOOLEAN_AND ) );
+	}
+
+	friend VImage operator&( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_AND ) );
+	}
+
+	friend VImage operator|( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.boolean( b, VIPS_OPERATION_BOOLEAN_OR ) );
+	}
+
+	friend VImage operator|( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.boolean_const( to_vector( a ), 
+			VIPS_OPERATION_BOOLEAN_OR ) );
+	}
+
+	friend VImage operator|( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.boolean_const( to_vector( b ), 
+			VIPS_OPERATION_BOOLEAN_OR ) );
+	}
+
+	friend VImage operator|( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.boolean_const( a, VIPS_OPERATION_BOOLEAN_OR ) );
+	}
+
+	friend VImage operator|( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_OR ) );
+	}
+
+	friend VImage operator^( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.boolean( b, VIPS_OPERATION_BOOLEAN_EOR ) );
+	}
+
+	friend VImage operator^( double a, VImage b ) 
+		throw( VError )
+	{
+		return( b.boolean_const( to_vector( a ), 
+			VIPS_OPERATION_BOOLEAN_EOR ) );
+	}
+
+	friend VImage operator^( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.boolean_const( to_vector( b ), 
+			VIPS_OPERATION_BOOLEAN_EOR ) );
+	}
+
+	friend VImage operator^( std::vector<double> a, VImage b ) 
+		throw( VError )
+	{
+		return( b.boolean_const( a, VIPS_OPERATION_BOOLEAN_EOR ) );
+	}
+
+	friend VImage operator^( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_EOR ) );
+	}
+
+	friend VImage operator<<( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.boolean( b, VIPS_OPERATION_BOOLEAN_LSHIFT ) );
+	}
+
+	friend VImage operator<<( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.boolean_const( to_vector( b ), 
+			VIPS_OPERATION_BOOLEAN_LSHIFT ) ); 
+	}
+
+	friend VImage operator<<( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_LSHIFT ) ); 
+	}
+
+	friend VImage operator>>( VImage a, VImage b ) 
+		throw( VError ) 
+	{
+		return( a.boolean( b, VIPS_OPERATION_BOOLEAN_RSHIFT ) );
+	}
+
+	friend VImage operator>>( VImage a, double b ) 
+		throw( VError )
+	{ 
+		return( a.boolean_const( to_vector( b ), 
+			VIPS_OPERATION_BOOLEAN_RSHIFT ) ); 
+	}
+
+	friend VImage operator>>( VImage a, std::vector<double> b ) 
+		throw( VError )
+	{ 
+		return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_RSHIFT ) ); 
+	}
+
+	friend VImage operator-( VImage a ) 
+		throw( VError )
+	{ 
+		return( a * -1 );
+	}
 
 };
 

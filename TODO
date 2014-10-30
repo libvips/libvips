@@ -1,3 +1,5 @@
+- need a thing to test overloads 
+
 - test other arg types
 
 	input int		works
@@ -15,11 +17,6 @@
 	output doublevec
 	output imagevec
 	output blob
-
-- set of overloads
-
-- something to make an image from an array of constants, need to set
-  scale/offset too
 
 - new_from_buffer(), new_from_memory(), write_to_memory() etc etc
 

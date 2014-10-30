@@ -43,6 +43,54 @@
 
 VIPS_NAMESPACE_START
 
+std::vector<double> to_vectorv( int n, ... )
+{
+	std::vector<double> vector( n );
+	va_list ap;
+
+	va_start( ap, n );
+	for( int i = 0; i < n; i++ )
+		vector[i] = va_arg( ap, double );
+	va_end( ap );
+
+	return( vector );
+}
+
+std::vector<double> to_vector( double value )
+{
+	return( to_vectorv( 1, value ) );
+}
+
+std::vector<double> to_vector( int n, double array[] )
+{
+	std::vector<double> vector( n );
+
+	for( int i = 0; i < n; i++ )
+		vector[i] = array[i];
+
+	return( vector );
+}
+
+std::vector<double> negate( std::vector<double> vector )
+{
+	std::vector<double> new_vector( vector.size() ); 
+
+	for( unsigned int i = 0; i < vector.size(); i++ )
+		new_vector[i] = vector[i] * -1;
+
+	return( new_vector );
+}
+
+std::vector<double> invert( std::vector<double> vector )
+{
+	std::vector<double> new_vector( vector.size() );
+
+	for( unsigned int i = 0; i < vector.size(); i++ )
+		new_vector[i] = 1.0 / vector[i];
+
+	return( new_vector );
+}
+
 VOption::~VOption()
 {
 	std::list<Pair *>::iterator i;
@@ -424,10 +472,7 @@ VImage VImage::new_from_image( std::vector<double> pixel )
 	VImage onepx = VImage::black( 1, 1, 
 		VImage::option()->set( "bands", bands() ) ); 
 
-	double v[1] = { 1.0 };
-	std::vector<double> ones( v, v + VIPS_NUMBER( v ) );
-
-	onepx = onepx.linear( ones, pixel ).cast( format() );
+	onepx = onepx.linear( to_vectorv( 1, 1.0 ), pixel ).cast( format() );
 
 	VImage big = onepx.embed( 0, 0, width(), height(), 
 		VImage::option()->set( "extend", VIPS_EXTEND_COPY ) ); 
@@ -446,10 +491,29 @@ VImage VImage::new_from_image( std::vector<double> pixel )
 VImage VImage::new_from_image( double pixel )
 	throw( VError )
 {
-	double v[1] = { pixel }; 
-	std::vector<double> vec( v, v + VIPS_NUMBER( v ) );
+	return( new_from_image( to_vectorv( 1, pixel ) ) ); 
+}
 
-	return( new_from_image( vec ) ); 
+VImage VImage::new_matrix( int width, int height ) 
+{
+	return( VImage( vips_image_new_matrix( width, height ) ) ); 
+}
+
+VImage VImage::new_matrixv( int width, int height, ... )
+{
+	VImage matrix = new_matrix( width, height );
+	VipsImage *vips_matrix = matrix.get_image(); 
+
+	va_list ap;
+
+	va_start( ap, height );
+	for( int y = 0; y < height; y++ )
+		for( int x = 0; x < width; x++ )
+			*VIPS_MATRIX( vips_matrix, x, y ) = 
+				va_arg( ap, double );
+	va_end( ap );
+
+	return( matrix ); 
 }
 
 void VImage::write_to_file( const char *name, VOption *options )
@@ -472,27 +536,6 @@ void VImage::write_to_file( const char *name, VOption *options )
 }
 
 #include "vips-operators.cc"
-
-VImage VImage::linear( double a, double b, VOption *options )
-    throw( VError )
-{
-    double av[1] = { a }; 
-    std::vector<double> avec( av, av + VIPS_NUMBER( av ) );
-
-    double bv[1] = { b }; 
-    std::vector<double> bvec( bv, bv + VIPS_NUMBER( bv ) );
-
-    VImage out;
-
-    call( "linear",
-        (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) ->
-            set( "a", avec ) ->
-            set( "b", bvec ) );
-
-    return( out );
-}
 
 std::vector<VImage> VImage::bandsplit( VOption *options )
 	throw( VError )
