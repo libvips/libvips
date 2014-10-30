@@ -43,7 +43,8 @@
 
 VIPS_NAMESPACE_START
 
-std::vector<double> to_vectorv( int n, ... )
+std::vector<double> 
+to_vectorv( int n, ... )
 {
 	std::vector<double> vector( n );
 	va_list ap;
@@ -56,12 +57,14 @@ std::vector<double> to_vectorv( int n, ... )
 	return( vector );
 }
 
-std::vector<double> to_vector( double value )
+std::vector<double> 
+to_vector( double value )
 {
 	return( to_vectorv( 1, value ) );
 }
 
-std::vector<double> to_vector( int n, double array[] )
+std::vector<double> 
+to_vector( int n, double array[] )
 {
 	std::vector<double> vector( n );
 
@@ -71,7 +74,8 @@ std::vector<double> to_vector( int n, double array[] )
 	return( vector );
 }
 
-std::vector<double> negate( std::vector<double> vector )
+std::vector<double> 
+negate( std::vector<double> vector )
 {
 	std::vector<double> new_vector( vector.size() ); 
 
@@ -81,7 +85,8 @@ std::vector<double> negate( std::vector<double> vector )
 	return( new_vector );
 }
 
-std::vector<double> invert( std::vector<double> vector )
+std::vector<double> 
+invert( std::vector<double> vector )
 {
 	std::vector<double> new_vector( vector.size() );
 
@@ -100,7 +105,8 @@ VOption::~VOption()
 }
 
 // input bool
-VOption *VOption::set( const char *name, bool value )
+VOption *
+VOption::set( const char *name, bool value )
 {
 	Pair *pair = new Pair( name );
 
@@ -113,7 +119,8 @@ VOption *VOption::set( const char *name, bool value )
 }
 
 // input int ... this path is used for enums as well
-VOption *VOption::set( const char *name, int value )
+VOption *
+VOption::set( const char *name, int value )
 {
 	Pair *pair = new Pair( name );
 
@@ -126,7 +133,8 @@ VOption *VOption::set( const char *name, int value )
 }
 
 // input double 
-VOption *VOption::set( const char *name, double value )
+VOption *
+VOption::set( const char *name, double value )
 {
 	Pair *pair = new Pair( name );
 
@@ -138,7 +146,8 @@ VOption *VOption::set( const char *name, double value )
 	return( this );
 }
 
-VOption *VOption::set( const char *name, const char *value )
+VOption *
+VOption::set( const char *name, const char *value )
 {
 	Pair *pair = new Pair( name );
 
@@ -151,7 +160,8 @@ VOption *VOption::set( const char *name, const char *value )
 }
 
 // input image
-VOption *VOption::set( const char *name, VImage value )
+VOption *
+VOption::set( const char *name, VImage value )
 {
 	Pair *pair = new Pair( name );
 
@@ -165,7 +175,8 @@ VOption *VOption::set( const char *name, VImage value )
 }
 
 // input double array
-VOption *VOption::set( const char *name, std::vector<double> value )
+VOption *
+VOption::set( const char *name, std::vector<double> value )
 {
 	Pair *pair = new Pair( name );
 
@@ -186,7 +197,8 @@ VOption *VOption::set( const char *name, std::vector<double> value )
 }
 
 // input image array
-VOption *VOption::set( const char *name, std::vector<VImage> value )
+VOption *
+VOption::set( const char *name, std::vector<VImage> value )
 {
 	Pair *pair = new Pair( name );
 
@@ -211,7 +223,8 @@ VOption *VOption::set( const char *name, std::vector<VImage> value )
 }
 
 // input blob
-VOption *VOption::set( const char *name, VipsBlob *value )
+VOption *
+VOption::set( const char *name, VipsBlob *value )
 {
 	Pair *pair = new Pair( name );
 
@@ -224,7 +237,8 @@ VOption *VOption::set( const char *name, VipsBlob *value )
 }
 
 // output bool
-VOption *VOption::set( const char *name, bool *value )
+VOption *
+VOption::set( const char *name, bool *value )
 {
 	Pair *pair = new Pair( name );
 
@@ -239,7 +253,8 @@ VOption *VOption::set( const char *name, bool *value )
 }
 
 // output int
-VOption *VOption::set( const char *name, int *value )
+VOption *
+VOption::set( const char *name, int *value )
 {
 	Pair *pair = new Pair( name );
 
@@ -254,7 +269,8 @@ VOption *VOption::set( const char *name, int *value )
 }
 
 // output double
-VOption *VOption::set( const char *name, double *value )
+VOption *
+VOption::set( const char *name, double *value )
 {
 	Pair *pair = new Pair( name );
 
@@ -269,7 +285,8 @@ VOption *VOption::set( const char *name, double *value )
 }
 
 // output image
-VOption *VOption::set( const char *name, VImage *value )
+VOption *
+VOption::set( const char *name, VImage *value )
 {
 	Pair *pair = new Pair( name );
 
@@ -284,7 +301,8 @@ VOption *VOption::set( const char *name, VImage *value )
 }
 
 // output doublearray
-VOption *VOption::set( const char *name, std::vector<double> *value )
+VOption *
+VOption::set( const char *name, std::vector<double> *value )
 {
 	Pair *pair = new Pair( name );
 
@@ -298,7 +316,8 @@ VOption *VOption::set( const char *name, std::vector<double> *value )
 }
 
 // output blob
-VOption *VOption::set( const char *name, VipsBlob **value )
+VOption *
+VOption::set( const char *name, VipsBlob **value )
 {
 	Pair *pair = new Pair( name );
 
@@ -311,7 +330,8 @@ VOption *VOption::set( const char *name, VipsBlob **value )
 }
 
 // walk the options and set props on the operation 
-void VOption::set_operation( VipsOperation *operation )
+void 
+VOption::set_operation( VipsOperation *operation )
 {
 	std::list<Pair *>::iterator i;
 
@@ -332,7 +352,8 @@ void VOption::set_operation( VipsOperation *operation )
 }
 
 // walk the options and do any processing needed for output objects
-void VOption::get_operation( VipsOperation *operation )
+void 
+VOption::get_operation( VipsOperation *operation )
 {
 	std::list<Pair *>::iterator i;
 
@@ -383,7 +404,8 @@ void VOption::get_operation( VipsOperation *operation )
 		}
 }
 
-void VImage::call_option_string( const char *operation_name, 
+void 
+VImage::call_option_string( const char *operation_name, 
 	const char *option_string, VOption *options ) 
 	throw( VError )
 {
@@ -437,13 +459,15 @@ void VImage::call_option_string( const char *operation_name,
 	g_object_unref( operation );
 }
 
-void VImage::call( const char *operation_name, VOption *options ) 
+void 
+	VImage::call( const char *operation_name, VOption *options ) 
 	throw( VError )
 {
 	call_option_string( operation_name, NULL, options ); 
 }
 
-VImage VImage::new_from_file( const char *name, VOption *options )
+VImage 
+VImage::new_from_file( const char *name, VOption *options )
 	throw( VError )
 {
 	char filename[VIPS_PATH_MAX];
@@ -466,7 +490,8 @@ VImage VImage::new_from_file( const char *name, VOption *options )
 	return( out ); 
 }
 
-VImage VImage::new_from_image( std::vector<double> pixel )
+VImage 
+VImage::new_from_image( std::vector<double> pixel )
 	throw( VError )
 {
 	VImage onepx = VImage::black( 1, 1, 
@@ -488,18 +513,21 @@ VImage VImage::new_from_image( std::vector<double> pixel )
 	return( big ); 
 }
 
-VImage VImage::new_from_image( double pixel )
+VImage 
+VImage::new_from_image( double pixel )
 	throw( VError )
 {
 	return( new_from_image( to_vectorv( 1, pixel ) ) ); 
 }
 
-VImage VImage::new_matrix( int width, int height ) 
+VImage 
+VImage::new_matrix( int width, int height ) 
 {
 	return( VImage( vips_image_new_matrix( width, height ) ) ); 
 }
 
-VImage VImage::new_matrixv( int width, int height, ... )
+VImage 
+VImage::new_matrixv( int width, int height, ... )
 {
 	VImage matrix = new_matrix( width, height );
 	VipsImage *vips_matrix = matrix.get_image(); 
@@ -516,7 +544,8 @@ VImage VImage::new_matrixv( int width, int height, ... )
 	return( matrix ); 
 }
 
-void VImage::write_to_file( const char *name, VOption *options )
+void 
+VImage::write_to_file( const char *name, VOption *options )
 	throw( VError )
 {
 	char filename[VIPS_PATH_MAX];
@@ -537,7 +566,8 @@ void VImage::write_to_file( const char *name, VOption *options )
 
 #include "vips-operators.cc"
 
-std::vector<VImage> VImage::bandsplit( VOption *options )
+std::vector<VImage> 
+VImage::bandsplit( VOption *options )
 	throw( VError )
 {
 	std::vector<VImage> b; 
@@ -548,7 +578,8 @@ std::vector<VImage> VImage::bandsplit( VOption *options )
 	return( b ); 
 }
 
-VImage VImage::bandjoin( VImage other, VOption *options )
+VImage 
+VImage::bandjoin( VImage other, VOption *options )
 	throw( VError )
 {
     VImage v[2] = { *this, other }; 
@@ -557,7 +588,8 @@ VImage VImage::bandjoin( VImage other, VOption *options )
     return( bandjoin( vec, options ) ); 
 }
 
-std::complex<double> VImage::minpos( VOption *options )
+std::complex<double> 
+VImage::minpos( VOption *options )
 	throw( VError )
 {
 	double x, y;
@@ -570,7 +602,8 @@ std::complex<double> VImage::minpos( VOption *options )
 	return( std::complex<double>( x, y ) ); 
 }
 
-std::complex<double> VImage::maxpos( VOption *options )
+std::complex<double> 
+VImage::maxpos( VOption *options )
 	throw( VError )
 {
 	double x, y;

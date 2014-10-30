@@ -253,114 +253,136 @@ public:
 	{
 	}
 
-	VipsImage *get_image()
+	VipsImage *
+	get_image()
 	{
 		return( (VipsImage *) VObject::get_object() );
 	}
 
-	int width()
+	int 
+	width()
 	{
 		return( vips_image_get_width( get_image() ) ); 
 	}
 
-	int height()
+	int 
+	height()
 	{
 		return( vips_image_get_height( get_image() ) ); 
 	}
 
-	int bands()
+	int 
+	bands()
 	{
 		return( vips_image_get_bands( get_image() ) ); 
 	}
 
-	VipsBandFormat format()
+	VipsBandFormat 
+	format()
 	{
 		return( vips_image_get_format( get_image() ) ); 
 	}
 
-	VipsCoding coding()
+	VipsCoding 
+	coding()
 	{
 		return( vips_image_get_coding( get_image() ) ); 
 	}
 
-	VipsInterpretation interpretation()
+	VipsInterpretation 
+	interpretation()
 	{
 		return( vips_image_get_interpretation( get_image() ) ); 
 	}
 
-	VipsInterpretation guess_interpretation()
+	VipsInterpretation 
+	guess_interpretation()
 	{
 		return( vips_image_guess_interpretation( get_image() ) ); 
 	}
 
-	double xres()
+	double 
+	xres()
 	{
 		return( vips_image_get_xres( get_image() ) ); 
 	}
 
-	double yres()
+	double 
+	yres()
 	{
 		return( vips_image_get_yres( get_image() ) ); 
 	}
 
-	double xoffset()
+	double 
+	xoffset()
 	{
 		return( vips_image_get_xoffset( get_image() ) ); 
 	}
 
-	double yoffset()
+	double 
+	yoffset()
 	{
 		return( vips_image_get_yoffset( get_image() ) ); 
 	}
 
-	const char *filename()
+	const char *
+	filename()
 	{
 		return( vips_image_get_filename( get_image() ) ); 
 	}
 
-	double scale()
+	double 
+	scale()
 	{
 		return( vips_image_get_scale( get_image() ) ); 
 	}
 
-	double offset()
+	double 
+	offset()
 	{
 		return( vips_image_get_offset( get_image() ) ); 
 	}
 
-	const void *data()
+	const void *
+	data()
 	{
 		return( vips_image_get_data( get_image() ) ); 
 	}
 
-	void set( const char *field, int value )
+	void 
+	set( const char *field, int value )
 	{
 		vips_image_set_int( this->get_image(), field, value ); 
 	}
 
-	void set( const char *field, double value )
+	void 
+	set( const char *field, double value )
 	{
 		vips_image_set_double( this->get_image(), field, value ); 
 	}
 
-	void set( const char *field, const char *value )
+	void 
+	set( const char *field, const char *value )
 	{
 		vips_image_set_string( this->get_image(), field, value ); 
 	}
 
-	void set( const char *field, 
+	void 
+	set( const char *field, 
 		VipsCallbackFn free_fn, void *data, size_t length )
 	{
 		vips_image_set_blob( this->get_image(), field, 
 			free_fn, data, length ); 
 	}
 
-	int get_typeof( const char *field )
+	int 
+	get_typeof( const char *field )
 	{
 		return( vips_image_get_typeof( this->get_image(), field ) ); 
 	}
 
-	int get_int( const char *field )
+	int 
+	get_int( const char *field )
 		throw( VError )
 	{
 		int value;
@@ -371,7 +393,8 @@ public:
 		return( value ); 
 	}
 
-	double get_double( const char *field )
+	double 
+	get_double( const char *field )
 		throw( VError )
 	{
 		double value;
@@ -382,7 +405,8 @@ public:
 		return( value ); 
 	}
 
-	const char *get_string( const char *field )
+	const char *
+	get_string( const char *field )
 		throw( VError )
 	{
 		const char *value; 
@@ -393,7 +417,8 @@ public:
 		return( value ); 
 	}
 
-	const void *get_blob( const char *field, size_t *length )
+	const void *
+	get_blob( const char *field, size_t *length )
 	{
 		void *value; 
 
@@ -404,7 +429,8 @@ public:
 		return( value ); 
 	}
 
-	static VOption *option()
+	static VOption *
+	option()
 	{
 		return( new VOption() );
 	}
@@ -431,20 +457,23 @@ public:
 
 	// a few useful things
 
-	VImage linear( double a, double b, VOption *options = 0 )
+	VImage
+	linear( double a, double b, VOption *options = 0 )
 		throw( VError )
 	{
 		return( this->linear( to_vector( a ), to_vector( b ), 
 			options ) ); 
 	}
 
-	VImage linear( std::vector<double> a, double b, VOption *options = 0 )
+	VImage
+	linear( std::vector<double> a, double b, VOption *options = 0 )
 		throw( VError )
 	{
 		return( this->linear( a, to_vector( b ), options ) ); 
 	}
 
-	VImage linear( double a, std::vector<double> b, VOption *options = 0 )
+	VImage
+	linear( double a, std::vector<double> b, VOption *options = 0 )
 		throw( VError )
 	{
 		return( this->linear( to_vector( a ), b, options ) ); 
@@ -455,12 +484,15 @@ public:
 
 	VImage bandjoin( VImage other, VOption *options = 0 )
 		throw( VError );
-	VImage bandjoin( double other, VOption *options = 0 )
+	VImage
+	bandjoin( double other, VOption *options = 0 )
 		throw( VError )
 	{
 		return( bandjoin( this->new_from_image( other ), options ) ); 
 	}
-	VImage bandjoin( std::vector<double> other, VOption *options = 0 )
+
+	VImage
+	bandjoin( std::vector<double> other, VOption *options = 0 )
 		throw( VError )
 	{
 		return( bandjoin( this->new_from_image( other ), options ) ); 
@@ -472,169 +504,194 @@ public:
 	std::complex<double> maxpos( VOption *options = 0 )
 		throw( VError );
 
-	VImage floor( VOption *options = 0 )
+	VImage 
+	floor( VOption *options = 0 )
 		throw( VError )
 	{
 		return( round( VIPS_OPERATION_ROUND_FLOOR, options ) ); 
 	}
 
-	VImage ceil( VOption *options = 0 )
+	VImage 
+	ceil( VOption *options = 0 )
 		throw( VError )
 	{
 		return( round( VIPS_OPERATION_ROUND_CEIL, options ) ); 
 	}
 
-	VImage rint( VOption *options = 0 )
+	VImage 
+	rint( VOption *options = 0 )
 		throw( VError )
 	{
 		return( round( VIPS_OPERATION_ROUND_RINT, options ) ); 
 	}
 
-	VImage real( VOption *options = 0 )
+	VImage 
+	real( VOption *options = 0 )
 		throw( VError )
 	{
 		return( complexget( VIPS_OPERATION_COMPLEXGET_REAL, options ) );
 	}
 
-	VImage imag( VOption *options = 0 )
+	VImage 
+	imag( VOption *options = 0 )
 		throw( VError )
 	{
 		return( complexget( VIPS_OPERATION_COMPLEXGET_IMAG, options ) );
 	}
 
-	VImage polar( VOption *options = 0 )
+	VImage 
+	polar( VOption *options = 0 )
 		throw( VError )
 	{
 		return( complex( VIPS_OPERATION_COMPLEX_POLAR, options ) );
 	}
 
-	VImage rect( VOption *options = 0 )
+	VImage 
+	rect( VOption *options = 0 )
 		throw( VError )
 	{
 		return( complex( VIPS_OPERATION_COMPLEX_RECT, options ) );
 	}
 
-	VImage conj( VOption *options = 0 )
+	VImage 
+	conj( VOption *options = 0 )
 		throw( VError )
 	{
 		return( complex( VIPS_OPERATION_COMPLEX_CONJ, options ) );
 	}
 
-	VImage sin( VOption *options = 0 )
+	VImage 
+	sin( VOption *options = 0 )
 		throw( VError )
 	{
 		return( math( VIPS_OPERATION_MATH_SIN, options ) );
 	}
 
-	VImage cos( VOption *options = 0 )
+	VImage 
+	cos( VOption *options = 0 )
 		throw( VError )
 	{
 		return( math( VIPS_OPERATION_MATH_COS, options ) );
 	}
 
-	VImage tan( VOption *options = 0 )
+	VImage 
+	tan( VOption *options = 0 )
 		throw( VError )
 	{
 		return( math( VIPS_OPERATION_MATH_TAN, options ) );
 	}
 
-	VImage asin( VOption *options = 0 )
+	VImage 
+	asin( VOption *options = 0 )
 		throw( VError )
 	{
 		return( math( VIPS_OPERATION_MATH_ASIN, options ) );
 	}
 
-	VImage acos( VOption *options = 0 )
+	VImage 
+	acos( VOption *options = 0 )
 		throw( VError )
 	{
 		return( math( VIPS_OPERATION_MATH_ACOS, options ) );
 	}
 
-	VImage atan( VOption *options = 0 )
+	VImage 
+	atan( VOption *options = 0 )
 		throw( VError )
 	{
 		return( math( VIPS_OPERATION_MATH_ATAN, options ) );
 	}
 
-	VImage log( VOption *options = 0 )
+	VImage 
+	log( VOption *options = 0 )
 		throw( VError )
 	{
 		return( math( VIPS_OPERATION_MATH_LOG, options ) );
 	}
 
-	VImage log10( VOption *options = 0 )
+	VImage 
+	log10( VOption *options = 0 )
 		throw( VError )
 	{
 		return( math( VIPS_OPERATION_MATH_LOG10, options ) );
 	}
 
-	VImage exp( VOption *options = 0 )
+	VImage 
+	exp( VOption *options = 0 )
 		throw( VError )
 	{
 		return( math( VIPS_OPERATION_MATH_EXP, options ) );
 	}
 
-	VImage exp10( VOption *options = 0 )
+	VImage 
+	exp10( VOption *options = 0 )
 		throw( VError )
 	{
 		return( math( VIPS_OPERATION_MATH_EXP10, options ) );
 	}
 
-	VImage pow( VImage other, VOption *options = 0 )
+	VImage 
+	pow( VImage other, VOption *options = 0 )
 		throw( VError )
 	{
 		return( math2( other, VIPS_OPERATION_MATH2_POW, options ) );
 	}
 
-	VImage pow( double other, VOption *options = 0 )
+	VImage 
+	pow( double other, VOption *options = 0 )
 		throw( VError )
 	{
 		return( math2_const( to_vector( other ), 
 			VIPS_OPERATION_MATH2_POW, options ) );
 	}
 
-	VImage pow( std::vector<double> other, VOption *options = 0 )
+	VImage 
+	pow( std::vector<double> other, VOption *options = 0 )
 		throw( VError )
 	{
 		return( math2_const( other, 
 			VIPS_OPERATION_MATH2_POW, options ) );
 	}
 
-	VImage wop( VImage other, VOption *options = 0 )
+	VImage 
+	wop( VImage other, VOption *options = 0 )
 		throw( VError )
 	{
 		return( math2( other, VIPS_OPERATION_MATH2_WOP, options ) );
 	}
 
-	VImage wop( double other, VOption *options = 0 )
+	VImage 
+	wop( double other, VOption *options = 0 )
 		throw( VError )
 	{
 		return( math2_const( to_vector( other ), 
 			VIPS_OPERATION_MATH2_WOP, options ) );
 	}
 
-	VImage wop( std::vector<double> other, VOption *options = 0 )
+	VImage 
+	wop( std::vector<double> other, VOption *options = 0 )
 		throw( VError )
 	{
 		return( math2_const( other, 
 			VIPS_OPERATION_MATH2_WOP, options ) );
 	}
 
-	VImage ifthenelse( std::vector<double> th, VImage el, 
-		VOption *options = 0 )
+	VImage 
+	ifthenelse( std::vector<double> th, VImage el, VOption *options = 0 )
 		throw( VError )
 	{
 		return( ifthenelse( el.new_from_image( th ), el, options ) ); 
 	}
 
-	VImage ifthenelse( VImage th, std::vector<double> el, 
-		VOption *options = 0 )
+	VImage 
+	ifthenelse( VImage th, std::vector<double> el, VOption *options = 0 )
 		throw( VError )
 	{
 		return( ifthenelse( th, th.new_from_image( el ), options ) ); 
 	}
 
-	VImage ifthenelse( std::vector<double> th, std::vector<double> el, 
+	VImage 
+	ifthenelse( std::vector<double> th, std::vector<double> el, 
 		VOption *options = 0 )
 		throw( VError )
 	{
@@ -642,19 +699,22 @@ public:
 			options ) ); 
 	}
 
-	VImage ifthenelse( double th, VImage el, VOption *options )
+	VImage 
+	ifthenelse( double th, VImage el, VOption *options )
 		throw( VError )
 	{
 		return( ifthenelse( to_vector( th ), el, options ) ); 
 	}
 
-	VImage ifthenelse( VImage th, double el, VOption *options )
+	VImage 
+	ifthenelse( VImage th, double el, VOption *options )
 		throw( VError )
 	{
 		return( ifthenelse( th, to_vector( el ), options ) ); 
 	}
 
-	VImage ifthenelse( double th, double el, VOption *options )
+	VImage 
+	ifthenelse( double th, double el, VOption *options )
 		throw( VError )
 	{
 		return( ifthenelse( to_vector( th ), to_vector( el ), 
