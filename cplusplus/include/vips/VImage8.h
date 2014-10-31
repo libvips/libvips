@@ -433,17 +433,87 @@ public:
 	static void call( const char *operation_name, VOption *options = 0 ) 
 		throw( VError );
 
+	static VImage 
+	new_memory()
+	{
+		return( VImage( vips_image_new_memory() ) ); 
+	}
+
+	static VImage 
+	new_temp_file( const char *file_format = ".v" )
+		throw( VError ) 
+	{
+		VipsImage *image;
+
+		if( !(image = vips_image_new_temp_file( file_format )) )
+			throw( VError() ); 
+
+		return( VImage( image ) ); 
+	}
+
 	static VImage new_from_file( const char *name, VOption *options = 0 )
 		throw( VError );
+
+	static VImage new_from_memory( void *data, size_t size,
+		int width, int height, int bands, VipsBandFormat format )
+		throw( VError )
+	{
+		VipsImage *image;
+
+		if( !(image = vips_image_new_from_memory( data, size, 
+			width, height, bands, format )) )
+			throw( VError() ); 
+
+		return( VImage( image ) ); 
+	}
+
+	static VImage new_from_buffer( void *buf, size_t len,
+		const char *option_string, VOption *options = 0 )
+		throw( VError );
+
+	static VImage new_matrix( int width, int height );
+
+	static VImage new_matrix( int width, int height, 
+		double *array, int size )
+		throw( VError )
+	{
+		VipsImage *image;
+
+		if( !(image = vips_image_new_matrix_from_array( width, height,
+			array, size )) )
+			throw( VError() ); 
+
+		return( VImage( image ) ); 
+	}
+
+	static VImage new_matrixv( int width, int height, ... );
+
 	VImage new_from_image( std::vector<double> pixel )
 		throw( VError );
 	VImage new_from_image( double pixel )
 		throw( VError );
-	VImage new_matrix( int width, int height ) ;
-	VImage new_matrixv( int width, int height, ... );
+
+	void write( VImage out )
+		throw( VError );
 
 	void write_to_file( const char *name, VOption *options = 0 )
 		throw( VError );
+
+	void write_to_buffer( const char *suffix, void **buf, size_t *size, 
+		VOption *options = 0 )
+		throw( VError );
+
+	void *write_to_memory( size_t *size )
+		throw( VError )
+	{
+		void *result;
+
+		if( !(result = vips_image_write_to_memory( this->get_image(), 
+			size )) )
+			throw( VError() ); 
+
+		return( result ); 
+	}
 
 #include "vips-operators.h"
 
@@ -476,6 +546,7 @@ public:
 
 	VImage bandjoin( VImage other, VOption *options = 0 )
 		throw( VError );
+
 	VImage
 	bandjoin( double other, VOption *options = 0 )
 		throw( VError )
@@ -772,7 +843,7 @@ public:
 	friend VImage operator-( VImage a, std::vector<double> b ) 
 		throw( VError )
 	{ 
-		return( a.linear( 1.0, vips8::negate( b ) ) ); 
+		return( a.linear( 1.0, vips::negate( b ) ) ); 
 	}
 
 	friend VImage operator*( VImage a, VImage b ) 
@@ -832,7 +903,7 @@ public:
 	friend VImage operator/( VImage a, std::vector<double> b ) 
 		throw( VError )
 	{ 
-		return( a.linear( vips8::invert( b ), 0.0 ) ); 
+		return( a.linear( vips::invert( b ), 0.0 ) ); 
 	}
 
 	friend VImage operator%( VImage a, VImage b ) 

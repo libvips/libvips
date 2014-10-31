@@ -490,6 +490,33 @@ VImage::new_from_file( const char *name, VOption *options )
 }
 
 VImage 
+VImage::new_from_buffer( void *buf, size_t len, const char *option_string, 
+	VOption *options )
+	throw( VError )
+{
+	const char *operation_name;
+	VipsBlob *blob;
+	VImage out;
+
+	if( !(operation_name = vips_foreign_find_load_buffer( buf, len )) ) {
+		delete options; 
+		throw( VError() ); 
+	}
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+	options = (options ? options : VImage::option())-> 
+		set( "buffer", blob )->
+		set( "out", &out );
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	call_option_string( operation_name, option_string, options ); 
+
+	return( out );
+}
+
+VImage 
 VImage::new_from_image( std::vector<double> pixel )
 	throw( VError )
 {
@@ -561,6 +588,39 @@ VImage::write_to_file( const char *name, VOption *options )
 		(options ? options : VImage::option())-> 
 			set( "in", *this )->
 			set( "filename", filename ) );
+}
+
+void 
+VImage::write_to_buffer( const char *suffix, void **buf, size_t *size, 
+	VOption *options )
+	throw( VError )
+{
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
+	const char *operation_name;
+	VipsBlob *blob;
+
+	vips__filename_split8( suffix, filename, option_string );
+	if( !(operation_name = vips_foreign_find_save_buffer( filename )) ) {
+		delete options; 
+		throw VError(); 
+	}
+
+	call_option_string( operation_name, option_string, 
+		(options ? options : VImage::option())-> 
+			set( "in", *this )->
+			set( "buffer", &blob ) );
+
+	if( blob ) { 
+		if( buf ) {
+			*buf = VIPS_AREA( blob )->data;
+			VIPS_AREA( blob )->free_fn = NULL;
+		}
+		if( size )
+			*size = VIPS_AREA( blob )->length;
+
+		vips_area_unref( VIPS_AREA( blob ) );
+	}
 }
 
 #include "vips-operators.cc"

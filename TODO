@@ -19,9 +19,6 @@
 	output imagevec
 	output blob
 
-- new_from_buffer(), new_from_memory(), write_to_memory() etc etc
-
-
 
 
 - use vips_autorot() in jpegload and vipsthumbnail

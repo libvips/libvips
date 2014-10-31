@@ -34,7 +34,7 @@
 
 #include <glib-object.h>
 
-#define VIPS_NAMESPACE_START namespace vips8 {
+#define VIPS_NAMESPACE_START namespace vips {
 #define VIPS_NAMESPACE_END }
 
 #include "VError8.h"
