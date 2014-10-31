@@ -11,6 +11,31 @@
 
 using namespace vips8;
 
+template <typename A, typename B, typename C> 
+C test_add( T left, T right )
+{
+	return( left + right );
+}
+
+std::vector<double> 
+get_pixel( VImage x, int x, int y )
+{
+	VImage pixel = x.extract_area( x, y, 1, 1 );
+	std::vector<VImage> split = pixel.bandsplit()
+	std::vector<double> values( split.bands() ); 
+
+	for( int i = 0; i < split.bands(); i++ )
+		values[i] = split.avg(); 
+	
+	return( values ); 
+}
+
+void
+test_binary
+{
+
+}
+
 int
 main( int argc, char **argv )
 {
@@ -46,47 +71,6 @@ main( int argc, char **argv )
 
 	printf( "avg = %g\n", avg ); 
 }
-
-{ 
-	VImage in = VImage::new_from_file( argv[1], 
-		VImage::option()->set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
-
-	VImage out = in.embed( 10, 10, 1000, 1000, 
-		VImage::option()->set( "extend", VIPS_EXTEND_COPY ) );
-
-	out.write_to_file( "embed.jpg" );
-}
-
-{ 
-	VImage in = VImage::new_from_file( argv[1], 
-		VImage::option()->set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
-	double a[] = { 1.0, 2.0, 3.0 }; 
-	double b[] = { 4.0, 5.0, 6.0 }; 
-
-	std::vector<double> avec( a, a + VIPS_NUMBER( a ) ); 
-	std::vector<double> bvec( b, b + VIPS_NUMBER( b ) ); 
-
-	VImage out = in.linear( avec, bvec ); 
-
-	out.write_to_file( "linear.jpg" );
-}
-
-{ 
-	VImage in = VImage::new_from_file( argv[1], 
-		VImage::option()->set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
-	VImage out = in.linear( 1, 2 ); 
-
-	out.write_to_file( "linear1.jpg" );
-}
-
-{ 
-	VImage in = VImage::new_from_file( argv[1] ); 
-	VImage out = in.new_from_image( 128 );
-
-	out.write_to_file( "const.jpg" );
-}
-
-	vips_shutdown();
 
         return( 0 );
 }

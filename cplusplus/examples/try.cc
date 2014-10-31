@@ -52,7 +52,8 @@ main( int argc, char **argv )
 		VImage::option()->set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
 
 	VImage out = in.embed( 10, 10, 1000, 1000, 
-		VImage::option()->set( "extend", VIPS_EXTEND_COPY ) );
+		VImage::option()->set( "extend", VIPS_EXTEND_BACKGROUND )->
+		set( "background", 128 ) );
 
 	out.write_to_file( "embed.jpg" );
 }

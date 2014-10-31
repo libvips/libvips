@@ -167,7 +167,6 @@ VOption::set( const char *name, VImage value )
 
 	pair->input = true;
 	g_value_init( &pair->value, VIPS_TYPE_IMAGE );
-	// we need to unbox
 	g_value_set_object( &pair->value, value.get_image() );
 	options.push_back( pair );
 
@@ -185,6 +184,7 @@ VOption::set( const char *name, std::vector<double> value )
 
 	pair->input = true;
 
+	g_value_init( &pair->value, VIPS_TYPE_ARRAY_DOUBLE );
 	vips_value_set_array_double( &pair->value, NULL, value.size() ); 
 	array = vips_value_get_array_double( &pair->value, NULL ); 
 
@@ -207,6 +207,7 @@ VOption::set( const char *name, std::vector<VImage> value )
 
 	pair->input = true;
 
+	g_value_init( &pair->value, VIPS_TYPE_ARRAY_IMAGE );
 	vips_value_set_array_image( &pair->value, value.size() );
 	array = vips_value_get_array_image( &pair->value, NULL );
 
@@ -242,10 +243,9 @@ VOption::set( const char *name, bool *value )
 {
 	Pair *pair = new Pair( name );
 
-	// note where we will write the VImage on success
 	pair->input = false;
 	pair->vbool = value;
-	g_value_init( &pair->value, G_TYPE_BOOLEAN );
+	g_value_init( &pair->value, G_TYPE_BOOLEAN ); 
 
 	options.push_back( pair );
 
@@ -258,10 +258,9 @@ VOption::set( const char *name, int *value )
 {
 	Pair *pair = new Pair( name );
 
-	// note where we will write the VImage on success
 	pair->input = false;
 	pair->vint = value;
-	g_value_init( &pair->value, G_TYPE_INT );
+	g_value_init( &pair->value, G_TYPE_INT ); 
 
 	options.push_back( pair );
 
@@ -274,10 +273,9 @@ VOption::set( const char *name, double *value )
 {
 	Pair *pair = new Pair( name );
 
-	// note where we will write the VImage on success
 	pair->input = false;
 	pair->vdouble = value;
-	g_value_init( &pair->value, G_TYPE_DOUBLE );
+	g_value_init( &pair->value, G_TYPE_DOUBLE ); 
 
 	options.push_back( pair );
 
@@ -290,7 +288,6 @@ VOption::set( const char *name, VImage *value )
 {
 	Pair *pair = new Pair( name );
 
-	// note where we will write the VImage on success
 	pair->input = false;
 	pair->vimage = value;
 	g_value_init( &pair->value, VIPS_TYPE_IMAGE );
@@ -306,9 +303,9 @@ VOption::set( const char *name, std::vector<double> *value )
 {
 	Pair *pair = new Pair( name );
 
-	// note where we will write the VImage on success
 	pair->input = false;
 	pair->vvector = value;
+	g_value_init( &pair->value, VIPS_TYPE_ARRAY_DOUBLE ); 
 
 	options.push_back( pair );
 
@@ -323,6 +320,7 @@ VOption::set( const char *name, VipsBlob **value )
 
 	pair->input = false;
 	pair->vblob = value;
+	g_value_init( &pair->value, VIPS_TYPE_BLOB ); 
 
 	options.push_back( pair );
 
@@ -340,8 +338,7 @@ VOption::set_operation( VipsOperation *operation )
 #ifdef DEBUG
 			printf( "set_operation: " );
 			vips_object_print_name( VIPS_OBJECT( operation ) );
-			char *str_value = 
-				g_strdup_value_contents( &(*i)->value );
+			char *str_value = g_strdup_value_contents( &(*i)->value );
 			printf( ".%s = %s\n", (*i)->name, str_value );
 			g_free( str_value );
 #endif /*DEBUG*/
@@ -351,7 +348,7 @@ VOption::set_operation( VipsOperation *operation )
 		}
 }
 
-// walk the options and do any processing needed for output objects
+// walk the options and fetch any requested outputs
 void 
 VOption::get_operation( VipsOperation *operation )
 {
@@ -360,20 +357,22 @@ VOption::get_operation( VipsOperation *operation )
 	for( i = options.begin(); i != options.end(); i++ ) 
 		if( not (*i)->input ) {
 			const char *name = (*i)->name;
-			GValue *value = &(*i)->value;
 
 			g_object_get_property( G_OBJECT( operation ),
-				name, value );
+				name, &(*i)->value );
 
 #ifdef DEBUG
 			printf( "get_operation: " );
 			vips_object_print_name( VIPS_OBJECT( operation ) );
-			char *str_value = g_strdup_value_contents( value );
+			char *str_value = g_strdup_value_contents( 
+				&(*i)->value );
 			printf( ".%s = %s\n", name, str_value );
 			g_free( str_value );
 #endif /*DEBUG*/
 
+			GValue *value = &(*i)->value;
 			GType type = G_VALUE_TYPE( value );
+
 			if( type == VIPS_TYPE_IMAGE ) {
 				// rebox object
 				VipsImage *image = VIPS_IMAGE( 

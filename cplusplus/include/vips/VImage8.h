@@ -34,6 +34,8 @@
 #include <complex>
 #include <vector>
 
+#include <string.h>
+
 #include <vips/vips.h>
 
 VIPS_NAMESPACE_START
@@ -169,38 +171,28 @@ private:
 	struct Pair {
 		const char *name;
 
-		// the thing we pass to VipsOperation
-		GValue value;
+		// the thing we pass to and from our caller
+		GValue value; 
 
 		// an input or output parameter ... we guess the direction
 		// from the arg to set()
 		bool input; 
 
+		// the pointer we write output values to
 		union {
-			// we need to box and unbox VImage ... keep a pointer 
-			// to the VImage from C++ here
-			VImage *vimage;
-
-			// output double
-			double *vdouble;
-
-			// output int
-			int *vint;
-
-			// output doublearray
-			std::vector<double> *vvector;
-
-			// output Blob
-			VipsBlob **vblob;
-
-			// output bool
 			bool *vbool;
+			int *vint;
+			double *vdouble;
+			VImage *vimage;
+			std::vector<double> *vvector;
+			VipsBlob **vblob;
 		}; 
 
 		Pair( const char *name ) : 
 			name( name ), input( false ), vimage( 0 )
 		{
-			G_VALUE_TYPE( &value ) = 0;
+			// argh = {0} won't work wil vanilla C++
+			memset( &value, 0, sizeof( GValue ) ); 
 		}
 
 		~Pair()

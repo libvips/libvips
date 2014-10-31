@@ -749,8 +749,8 @@ transform_g_string_array_int( const GValue *src_value, GValue *dest_value )
 
 	g_free( str );
 
-	vips_value_set_array( dest_value, n, G_TYPE_INT, sizeof( int ) );
-	array = (int *) vips_value_get_array( dest_value, NULL, NULL, NULL );
+	vips_value_set_array_int( dest_value, NULL, n ); 
+	array = vips_value_get_array_int( dest_value, NULL ); 
 
 	str = g_value_dup_string( src_value );
 
@@ -773,6 +773,28 @@ transform_g_string_array_int( const GValue *src_value, GValue *dest_value )
 	g_free( str );
 }
 
+/* We need a arrayint, we have an int, make a one-element array.
+ */
+static void
+transform_int_array_int( const GValue *src_value, GValue *dest_value )
+{
+	int *array;
+
+	vips_value_set_array_int( dest_value, NULL, 1 ); 
+	array = vips_value_get_array_int( dest_value, NULL ); 
+	array[0] = g_value_get_int( src_value ); 
+}
+
+static void
+transform_double_array_int( const GValue *src_value, GValue *dest_value )
+{
+	int *array;
+
+	vips_value_set_array_int( dest_value, NULL, 1 ); 
+	array = vips_value_get_array_int( dest_value, NULL ); 
+	array[0] = g_value_get_double( src_value ); 
+}
+
 GType
 vips_array_int_get_type( void )
 {
@@ -786,6 +808,10 @@ vips_array_int_get_type( void )
 			transform_array_int_g_string );
 		g_value_register_transform_func( G_TYPE_STRING, type,
 			transform_g_string_array_int );
+		g_value_register_transform_func( G_TYPE_INT, type,
+			transform_int_array_int );
+		g_value_register_transform_func( G_TYPE_DOUBLE, type,
+			transform_double_array_int );
 	}
 
 	return( type );
@@ -902,8 +928,7 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 	double *array;
 
 	/* Walk the string to get the number of elements. 
-	 * We need a copy of the string since we insert \0 during
-	 * scan.
+	 * We need a copy of the string, since we insert \0 during scan.
 	 *
 	 * We can't allow ',' as a separator since some locales use it as a
 	 * decimal point.
@@ -916,8 +941,8 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 
 	g_free( str );
 
-	vips_value_set_array( dest_value, n, G_TYPE_DOUBLE, sizeof( double ) );
-	array = (double *) vips_value_get_array( dest_value, NULL, NULL, NULL );
+	vips_value_set_array_double( dest_value, NULL, n );
+	array = vips_value_get_array_double( dest_value, NULL ); 
 
 	str = g_value_dup_string( src_value );
 
@@ -928,8 +953,7 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 			 */
 			vips_error( "vipstype", 
 				_( "unable to convert \"%s\" to float" ), p );
-			vips_value_set_array( dest_value, 
-				0, G_TYPE_DOUBLE, sizeof( double ) );
+			vips_value_set_array_double( dest_value, NULL, 0 ); 
 			g_free( str );
 			return;
 		}
@@ -938,6 +962,28 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 	}
 
 	g_free( str );
+}
+
+/* We need a arraydouble, we have a double, make a one-element array.
+ */
+static void
+transform_double_array_double( const GValue *src_value, GValue *dest_value )
+{
+	double *array;
+
+	vips_value_set_array_double( dest_value, NULL, 1 ); 
+	array = vips_value_get_array_double( dest_value, NULL ); 
+	array[0] = g_value_get_double( src_value ); 
+}
+
+static void
+transform_int_array_double( const GValue *src_value, GValue *dest_value )
+{
+	double *array;
+
+	vips_value_set_array_double( dest_value, NULL, 1 ); 
+	array = vips_value_get_array_double( dest_value, NULL ); 
+	array[0] = g_value_get_int( src_value ); 
 }
 
 GType
@@ -953,6 +999,10 @@ vips_array_double_get_type( void )
 			transform_array_double_g_string );
 		g_value_register_transform_func( G_TYPE_STRING, type,
 			transform_g_string_array_double );
+		g_value_register_transform_func( G_TYPE_DOUBLE, type,
+			transform_double_array_double );
+		g_value_register_transform_func( G_TYPE_INT, type,
+			transform_int_array_double );
 	}
 
 	return( type );
@@ -1388,7 +1438,6 @@ vips_value_get_array_int( const GValue *value, int *n )
 void
 vips_value_set_array_int( GValue *value, const int *array, int n )
 {
-	g_value_init( value, VIPS_TYPE_ARRAY_INT );
 	vips_value_set_array( value, n, G_TYPE_INT, sizeof( int ) );
 
 	if( array ) { 
@@ -1430,7 +1479,6 @@ vips_value_get_array_double( const GValue *value, int *n )
 void
 vips_value_set_array_double( GValue *value, const double *array, int n )
 {
-	g_value_init( value, VIPS_TYPE_ARRAY_DOUBLE );
 	vips_value_set_array( value, n, G_TYPE_DOUBLE, sizeof( double ) );
 
 	if( array ) { 
