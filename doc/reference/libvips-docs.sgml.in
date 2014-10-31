@@ -31,6 +31,8 @@
 
     <xi:include href="using-command-line.xml"/>
     <xi:include href="using-C.xml"/>
+    <xi:include href="using-python.xml"/>
+    <xi:include href="using-cpp.xml"/>
     <xi:include href="binding.xml"/>
     <xi:include href="extending.xml"/>
   </chapter>

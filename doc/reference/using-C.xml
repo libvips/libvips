@@ -32,15 +32,16 @@
 
     <para>
       You can add the VIPS flags to your %GObject command-line processing
-      with vips_get_option_group(), see below.
+      with <function>vips_get_option_group()</function>, see below.
     </para>
 
     <para>
-      The basic data object is the #VipsImage, see <link
-      linkend="VipsImage">VIPS Image</link> for details on the
-      image class. You can create an image from a file on disc or from an
+      The basic data object is the <link
+      linkend="VipsImage">VipsImage</link>.
+      You can create an image from a file on disc or from an
       area of memory, either as a C-style array, or as a formatted object,
-      like JPEG. See vips_image_new_from_file() and friends.  Loading an
+      like JPEG. See <function>vips_image_new_from_file()</function> and 
+      friends.  Loading an
       image is fast. VIPS read just enough of the image to be able to get
       the various properties, such as width in pixels. It delays reading
       any pixels until they are really needed.
@@ -77,7 +78,7 @@
       Use #VipsRegion to read pixels out of images. You can use 
       VIPS_IMAGE_ADDR() as well, but this can need a large amount of 
       memory to work. See <link linkend="extending">extending</link> 
-      for an introduxction to writing your own operations. 
+      for an introduction to writing your own operations. 
     </para>
 
     <para>

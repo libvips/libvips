@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+]>
+<refentry id="using-from-python">
+  <refmeta>
+    <refentrytitle>VIPS from Python</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>VIPS Library</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>Using VIPS</refname>
+    <refpurpose>How to use the VIPS library from Python</refpurpose>
+  </refnamediv>
+
+  <refsect1 id="using-python">
+    <title>Using VIPS from Python</title>
+    <para>
+      VIPS comes with a convenient, high-level C API. You should read the API 
+      docs for full details, but this section will try to give a brief 
+      overview. The <command>vips</command> program is handy for getting a 
+      summary of an operation's parameters.
+    </para>
+
+<example>
+<title>VIPS from Python example</title>
+<programlisting language="Python">
+#!/usr/bin/python
+
+import sys
+
+import logging
+#logging.basicConfig(level = logging.DEBUG)
+
+from gi.repository import Vips
+
+a = Vips.Image.black(100, 100)
+b = a.bandjoin(2)
+
+b.write_to_file("x.v")
+
+txt = Vips.Image.text("left corner", dpi = 300)
+
+c = txt.ifthenelse(2, [0, 255, 0], blend = True)
+
+c.write_to_file("x2.v")
+</programlisting>
+</example>
+
+  </refsect1>
+</refentry>
