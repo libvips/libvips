@@ -786,6 +786,11 @@ public:
 
 	// Operator overloads
 
+	double operator()( int x, int y, int z = 0 )
+	{
+		return( this->getpoint( x, y )[z] ); 
+	}
+
 	friend VImage operator+( VImage a, VImage b ) 
 		throw( VError ) 
 	{
