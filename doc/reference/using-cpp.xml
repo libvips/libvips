@@ -41,7 +41,7 @@ main( int argc, char **argv )
   GOptionGroup *main_group;
   GError *error = NULL;
 
-  if( vips_init( argv[0] ) )
+  if( VIPS_INIT( argv[0] ) )
     vips_error_exit( NULL ); 
 
   context = g_option_context_new( "" ); 
