@@ -1,6 +1,6 @@
-- write manual chapters for C++ (and Python?)
+- why don't we get gtk-doc expansions in the leading chapters? we turn them on
 
-- need a thing to test overloads 
+- need a thing to test C++ overloads 
 
 - test other arg types
 
@@ -19,8 +19,6 @@
 	output doublevec
 	output imagevec
 	output blob
-
-
 
 - use vips_autorot() in jpegload and vipsthumbnail
 
