@@ -34,4 +34,6 @@ vipsc++.cc:
 	    echo >> vipsc++.cc ; \
 	  done 
 
-EXTRA_DIST = vipsc++.cc
+EXTRA_DIST = \
+	README.txt \
+	vipsc++.cc

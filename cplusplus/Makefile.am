@@ -28,5 +28,6 @@ vips-operators.cc:
 	./gen-operators.py >> vips-operators.cc 
 
 EXTRA_DIST = \
-	     vips-operators.cc \
-	     gen-operators.py
+	README.txt \
+	vips-operators.cc \
+	gen-operators.py
