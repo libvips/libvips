@@ -2,6 +2,7 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
                "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
 ]>
+<!-- set ts=2 sw=2 expandtab; retab --> 
 <refentry id="using-from-python">
   <refmeta>
     <refentrytitle>VIPS from Python</refentrytitle>
@@ -17,10 +18,11 @@
   <refsect1 id="using-python">
     <title>Using VIPS from Python</title>
     <para>
-      VIPS comes with a convenient, high-level C API. You should read the API 
-      docs for full details, but this section will try to give a brief 
-      overview. The <command>vips</command> program is handy for getting a 
-      summary of an operation's parameters.
+      VIPS comes with a convenient, high-level Python API based 
+      on <code>gobject-introspection</code>. As long as you can get GOI 
+      for your platform, you should be able to use vips. The Vips.py file 
+      needs to be copied to the overrides directory of your GOI install,
+      and you need to have the vips typelib on your GI_TYPELIB_PATH. 
     </para>
 
 <example>
@@ -30,23 +32,36 @@
 
 import sys
 
-import logging
-#logging.basicConfig(level = logging.DEBUG)
-
 from gi.repository import Vips
 
-a = Vips.Image.black(100, 100)
-b = a.bandjoin(2)
+im = Vips.Image.new_from_file(sys.argv[1])
 
-b.write_to_file("x.v")
+im = im.crop(100, 100, im.width - 200, im.height - 200)
+im = im.affine([0.9, 0, 0, 0.9])
+mask = Vips.Image.new_from_array([[-1, -1,  -1], 
+                                  [-1,  16, -1], 
+                                  [-1, -1,  -1]], scale = 8)
+im = im.conv(mask)
 
-txt = Vips.Image.text("left corner", dpi = 300)
-
-c = txt.ifthenelse(2, [0, 255, 0], blend = True)
-
-c.write_to_file("x2.v")
+im.write_to_file(sys.argv[2])
 </programlisting>
 </example>
 
+    <para>
+      Reading the example, the first line loads the input file. There are 
+      several other loaders: you can also load a formatted image (for example, 
+      a JPEG format image) 
+    </para>
+
   </refsect1>
+
+  <refsect1 id="python-basics">
+    <title><code>pyvips8</code> Basics</title>
+    <para>
+      Stuff.
+    </para>
+      
+  </refsect1>
+    
+
 </refentry>
