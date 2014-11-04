@@ -339,15 +339,15 @@ png2vips_header( Read *read, VipsImage *out )
 	/* If we're an INTEL byte order machine and this is 16bits, we need
 	 * to swap bytes.
 	 */
-	if( bit_depth > 8 && !vips_amiMSBfirst() )
+	if( bit_depth > 8 && 
+		!vips_amiMSBfirst() )
 		png_set_swap( read->pPng );
 
-	/* Get resolution. I'm not sure what we should do for UNKNOWN, since
-	 * vips is always pixels/mm.
+	/* Get resolution. Default to 72 pixels per inch, the usual png value. 
 	 */
 	unit_type = PNG_RESOLUTION_METER;
-	res_x = 1000;
-	res_y = 1000;
+	res_x = (72 / 2.54 * 100);
+	res_y = (72 / 2.54 * 100);
 	png_get_pHYs( read->pPng, read->pInfo, &res_x, &res_y, &unit_type );
 	switch( unit_type ) {
 	case PNG_RESOLUTION_METER:
