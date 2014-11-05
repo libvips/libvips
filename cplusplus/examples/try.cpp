@@ -1,7 +1,7 @@
 /* 
  * compile with:
  *
- *      g++ -g -Wall try.cc `pkg-config vips-cc --cflags --libs`
+ *      g++ -g -Wall try.cc `pkg-config vips-cpp --cflags --libs`
  *
  */
 

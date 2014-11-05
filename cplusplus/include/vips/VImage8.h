@@ -71,7 +71,7 @@ public:
 		g_assert( !new_vobject ||
 			VIPS_IS_OBJECT( new_vobject ) ); 
 
-#ifdef DEBUG
+#ifdef VIPS_DEBUG_VERBOSE
 		printf( "VObject constructor, obj = %p, steal = %d\n",
 			new_vobject, steal ); 
 		if( new_vobject ) { 
@@ -79,12 +79,12 @@ public:
 			vips_object_print_name( VIPS_OBJECT( new_vobject ) );
 			printf( "\n" ); 
 		}
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG_VERBOSE*/
 
 		if( !steal ) {
-#ifdef DEBUG
+#ifdef VIPS_DEBUG_VERBOSE
 			printf( "   reffing object\n" ); 
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG_VERBOSE*/
 			g_object_ref( vobject ); 
 		}
 	}
@@ -100,11 +100,11 @@ public:
 	{
 		g_assert( VIPS_IS_OBJECT( a.vobject ) ); 
 
-#ifdef DEBUG
+#ifdef VIPS_DEBUG_VERBOSE
 		printf( "VObject copy constructor, obj = %p\n", 
 			vobject ); 
 		printf( "   reffing object\n" ); 
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG_VERBOSE*/
 		g_object_ref( vobject );
 	}
 
@@ -114,11 +114,11 @@ public:
 	{
 		VipsObject *old_vobject;
 
-#ifdef DEBUG
+#ifdef VIPS_DEBUG_VERBOSE
 		printf( "VObject assignment\n" );  
 		printf( "   reffing %p\n", a.vobject ); 
 		printf( "   unreffing %p\n", vobject ); 
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG_VERBOSE*/
 
 		g_assert( !vobject ||
 			VIPS_IS_OBJECT( vobject ) ); 
@@ -140,10 +140,10 @@ public:
 	// no vtable allowed
 	~VObject()
 	{
-#ifdef DEBUG
+#ifdef VIPS_DEBUG_VERBOSE
 		printf( "VObject destructor\n" );  
 		printf( "   unreffing %p\n", vobject ); 
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG_VERBOSE*/
 
 		g_assert( !vobject ||
 			VIPS_IS_OBJECT( vobject ) ); 

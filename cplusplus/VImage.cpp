@@ -37,9 +37,9 @@
 #include <vips/debug.h>
 
 /*
- */
 #define VIPS_DEBUG
-#define DEBUG
+#define VIPS_DEBUG_VERBOSE
+ */
 
 VIPS_NAMESPACE_START
 
@@ -335,13 +335,13 @@ VOption::set_operation( VipsOperation *operation )
 
 	for( i = options.begin(); i != options.end(); i++ ) 
 		if( (*i)->input ) {
-#ifdef DEBUG
+#ifdef VIPS_DEBUG_VERBOSE
 			printf( "set_operation: " );
 			vips_object_print_name( VIPS_OBJECT( operation ) );
 			char *str_value = g_strdup_value_contents( &(*i)->value );
 			printf( ".%s = %s\n", (*i)->name, str_value );
 			g_free( str_value );
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG_VERBOSE*/
 
 			g_object_set_property( G_OBJECT( operation ),
 				(*i)->name, &(*i)->value );
@@ -361,14 +361,14 @@ VOption::get_operation( VipsOperation *operation )
 			g_object_get_property( G_OBJECT( operation ),
 				name, &(*i)->value );
 
-#ifdef DEBUG
+#ifdef VIPS_DEBUG_VERBOSE
 			printf( "get_operation: " );
 			vips_object_print_name( VIPS_OBJECT( operation ) );
 			char *str_value = g_strdup_value_contents( 
 				&(*i)->value );
 			printf( ".%s = %s\n", name, str_value );
 			g_free( str_value );
-#endif /*DEBUG*/
+#endif /*VIPS_DEBUG_VERBOSE*/
 
 			GValue *value = &(*i)->value;
 			GType type = G_VALUE_TYPE( value );
@@ -623,7 +623,7 @@ VImage::write_to_buffer( const char *suffix, void **buf, size_t *size,
 	}
 }
 
-#include "vips-operators.cc"
+#include "vips-operators.cpp"
 
 std::vector<VImage> 
 VImage::bandsplit( VOption *options )

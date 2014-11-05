@@ -794,7 +794,7 @@ AC_SUBST(PACKAGES_USED)
 AC_OUTPUT([
 	vips.pc
 	vipsCC.pc
-	vips-cc.pc
+	vips-cpp.pc
 	Makefile 
 	libvips/include/vips/version.h 
 	libvips/include/Makefile 

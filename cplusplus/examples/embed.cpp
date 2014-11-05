@@ -1,7 +1,7 @@
 /* 
  * compile with:
  *
- *      g++ -g -Wall try.cc `pkg-config vips-cc --cflags --libs`
+ *      g++ -g -Wall embed.cc `pkg-config vips-cpp --cflags --libs`
  *
  */
 
@@ -10,31 +10,6 @@
 #include <vips/vips8>
 
 using namespace vips8;
-
-template <typename A, typename B, typename C> 
-C test_add( T left, T right )
-{
-	return( left + right );
-}
-
-std::vector<double> 
-get_pixel( VImage x, int x, int y )
-{
-	VImage pixel = x.extract_area( x, y, 1, 1 );
-	std::vector<VImage> split = pixel.bandsplit()
-	std::vector<double> values( split.bands() ); 
-
-	for( int i = 0; i < split.bands(); i++ )
-		values[i] = split.avg(); 
-	
-	return( values ); 
-}
-
-void
-test_binary
-{
-
-}
 
 int
 main( int argc, char **argv )
@@ -65,12 +40,14 @@ main( int argc, char **argv )
 { 
 	VImage in = VImage::new_from_file( argv[1], 
 		VImage::option()->set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
-	double avg;
 
-	avg = in.avg(); 
+	VImage out = in.embed( 10, 10, 1000, 1000, 
+		VImage::option()->set( "extend", VIPS_EXTEND_COPY ) );
 
-	printf( "avg = %g\n", avg ); 
+	out.write_to_file( argv[2] );
 }
+
+	vips_shutdown();
 
         return( 0 );
 }

@@ -3,7 +3,7 @@
 if ENABLE_CXX
 C_COMPILE_DIR = libvipsCC cplusplus
 C_DIST_DIR =
-C_PKGCONFIG = vipsCC.pc vips-cc.pc
+C_PKGCONFIG = vipsCC.pc vips-cpp.pc
 
 # turn on Python if we can (requires C++)
 if HAVE_PYTHON
@@ -53,7 +53,7 @@ EXTRA_DIST = \
 	bootstrap.sh \
 	vips.pc.in \
 	vipsCC.pc.in \
-	vips-cc.pc.in \
+	vips-cpp.pc.in \
 	libvips.supp \
 	acinclude.m4 \
 	depcomp \

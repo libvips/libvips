@@ -1,7 +1,7 @@
 /* 
  * compile with:
  *
- *      g++ -g -Wall invert.cc `pkg-config vips-cc --cflags --libs`
+ *      g++ -g -Wall avg.cc `pkg-config vips-cpp --cflags --libs`
  *
  */
 
@@ -37,19 +37,14 @@ main( int argc, char **argv )
 	}
 
 
-	printf( "these should match if VImage is compile-time-only\n" ); 
-	printf( "sizeof( VipsImage *) = %zd\n", sizeof( VipsImage *) ); 
-	printf( "sizeof( VImage ) = %zd\n", sizeof( VImage ) ); 
-
 { 
 	VImage in = VImage::new_from_file( argv[1], 
 		VImage::option()->set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
+	double avg;
 
-	VImage out; 
+	avg = in.avg(); 
 
-	out = in.invert();
-
-	out.write_to_file( argv[2] );
+	printf( "avg = %g\n", avg ); 
 }
 
 	vips_shutdown();
