@@ -2,7 +2,7 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
                "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
 ]>
-<!-- set ts=2 sw=2 expandtab; retab --> 
+<!-- vim: set ts=2 sw=2 expandtab: --> 
 <refentry id="using-from-python">
   <refmeta>
     <refentrytitle>VIPS from Python</refentrytitle>
@@ -20,9 +20,11 @@
     <para>
       VIPS comes with a convenient, high-level Python API based 
       on <code>gobject-introspection</code>. As long as you can get GOI 
-      for your platform, you should be able to use vips. The Vips.py file 
+      for your platform, you should be able to use vips. The 
+      <code>Vips.py</code> file 
       needs to be copied to the overrides directory of your GOI install,
-      and you need to have the vips typelib on your GI_TYPELIB_PATH. 
+      and you need to have the vips typelib on your 
+      <code>GI_TYPELIB_PATH</code>. 
     </para>
 
 <example>
@@ -48,9 +50,13 @@ im.write_to_file(sys.argv[2])
 </example>
 
     <para>
-      Reading the example, the first line loads the input file. There are 
-      several other loaders: you can also load a formatted image (for example, 
-      a JPEG format image) 
+      Reading the example, the first line loads the input file. You can put load options after the
+	  </para>
+
+    <para>
+	    There are 
+      several other constructors: you can load a formatted image (for example, 
+      a JPEG format image) from a string with new_from_buffer()
     </para>
 
   </refsect1>

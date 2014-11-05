@@ -1,4 +1,6 @@
-/* 
+/* Test +/-* overloads with every combination of vector, image and double.
+ * This isn't a full test suite, look in the Python area for that. 
+ *
  * compile with:
  *
  *      g++ -g -Wall test_overloads.cpp `pkg-config vips-cpp --cflags --libs`
@@ -236,7 +238,7 @@ main( int argc, char **argv )
 	GOptionGroup *main_group;
 	GError *error = NULL;
 
-	if( vips_init( argv[0] ) )
+	if( VIPS_INIT( argv[0] ) )
 		vips_error_exit( NULL ); 
 
 	context = g_option_context_new( "" ); 
@@ -254,6 +256,7 @@ main( int argc, char **argv )
 		vips_error_exit( NULL );
 	}
 
+{
 	VImage left = VImage::new_from_file( argv[1] ); 
 	VImage right = VImage::new_from_file( argv[2] ); 
 
@@ -261,6 +264,9 @@ main( int argc, char **argv )
 	test_binary_test_subtract( left, right );
 	test_binary_test_multiply( left, right );
 	test_binary_test_divide( left, right );
+}
+
+	vips_shutdown();
 
         return( 0 );
 }
