@@ -38,8 +38,8 @@ from gi.repository import Vips
 
 im = Vips.Image.new_from_file(sys.argv[1])
 
-im = im.crop(100, 100, im.width - 200, im.height - 200)
-im = im.affine([0.9, 0, 0, 0.9])
+im = im.extract_area(100, 100, im.width - 200, im.height - 200)
+im = im.similarity(scale = 0.9)
 mask = Vips.Image.new_from_array([[-1, -1,  -1], 
                                   [-1,  16, -1], 
                                   [-1, -1,  -1]], scale = 8)
@@ -50,21 +50,146 @@ im.write_to_file(sys.argv[2])
 </example>
 
     <para>
-      Reading the example, the first line loads the input file. You can put load options after the
+      Reading the example, the first line loads the input file. You can append
+      load options to the argument list as keyword arguments, for example:
+
+<programlisting language="Python">
+im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
+</programlisting>
+
+      See the various loaders for a list of the available options for each 
+      file format. The C 
+      equivalent to this function, vips_image_new_from_file(), has more 
+      extensive documentation. 
 	  </para>
 
     <para>
 	    There are 
       several other constructors: you can load a formatted image (for example, 
-      a JPEG format image) from a string with new_from_buffer()
+      a JPEG format image) from a string with <code>.new_from_buffer()</code>. 
     </para>
 
+    <para>
+      The next line crops 100 pixels off every edge. See the docs for the C 
+      function vips_extract_area() for details of the parameters. You can use 
+      <code>.crop()</code> as a synonym, if you like. 
+      <code>im.width</code> gets the image width in pixels, see 
+      vips_image_get_width() and friends for a list of the other getters. 
+    </para>
+
+    <para>
+      The <code>similarity</code> line shrinks by 10%, see the docs for the C 
+      function vips_similarity() for details. By default it uses bilinear 
+      interpolation, use <code>interpolate</code> to pick another 
+      interpolator, for example:
+
+<programlisting language="Python">
+im = im.similarity(scale = 0.9, interpolate = Vips.Interpolate.new("bicubic"))
+</programlisting>
+
+    </para>
+
+    <para>
+      <code>.new_from_array()</code> makes an image from a 2D array. The 
+      <code>scale</code> keyword argument lets you set a divisor for 
+      convolution, handy for integer convolutions. You can set 
+      <code>offset</code> as well. See vips_conv() for details on the vips 
+      convolution operator. 
+    </para>
+
+    <para>
+      Finally, <code>.write_to_file()</code> sends the image back to the 
+      filesystem. There's also <code>.write_to_buffer()</code> to make a 
+      string containing the formatted image. 
+    </para>
   </refsect1>
 
   <refsect1 id="python-basics">
     <title><code>pyvips8</code> Basics</title>
     <para>
-      Stuff.
+      The Python interface comes in two main parts. First, the C source code 
+      to libvips has been marked up with special comments describing the 
+      internals in a standard way. These comments are read by 
+      gobject-introspection when libvips is compiled and used to generate a 
+      typelib, a description of the library's internals. When your Python 
+      program starts, the import line:
+
+<programlisting language="Python">
+from gi.repository import Vips
+</programlisting>
+
+      loads the typelib and creates Python classes for all the objects and 
+      all the functions in the library. You can then call these functions 
+      from your code, and they will call into libvips for you. C functions 
+      become Python functions in an obvious way: vips_operation_new(), 
+      for example, the constructor for the class #VipsOperation, becomes 
+      <code>Vips.Operation.new()</code>.
+    </para>
+
+    <para>
+      Using libvips like this is possible, but a bit painful. To make the API 
+      seem more pythonesque, vips includes a set of overrides which wrap up 
+      the bare functions created by gobject-introspection in a nicer package. 
+      These overrides do the following things:
+
+      <itemizedlist>
+        <listitem>
+          <para>
+            Automatic wrapping of vips operations. It intercepts member lookup 
+            on the <code>Vips.Image</code> class and looks for vips operations
+            with that name. So the vips operation "add", which appears in the 
+            C API as vips_add(), appears in Python as 
+            <code>Vips.Image.add</code>.
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            Automatic wrapping of operation arguments. The first input image 
+            argument becomes the <code>self</code> argument. If there are no 
+            input image arguments, the operation appears as a class member. 
+            Optional input 
+            arguments become keyword arguments. The result is a list of all 
+            the output arguments, or a single output if there is only one. 
+          </para>
+            
+          <para>
+            Optional output arguments are enabled with a boolean keyword 
+            argument of that name. For example, "min" (the operation which 
+            appears in the C API as vips_min()), can be called like this:
+
+<programlisting language="Python">
+min_value = im.min()
+</programlisting>
+
+            and <code>min_value</code> will be a floating point value giving 
+            the minimum value in the image. "min" can also find the position 
+            of the minimum value with the <code>x</code> and <code>y</code>
+            optional output arguments. Call it like this:
+
+<programlisting language="Python">
+min_value, x_pos, y_pos = im.min(x = True, y = True)
+</programlisting>
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            Automatic type conversion. The override looks at the type of 
+            argument required by the operation and converts the value you 
+            supply, when it can. For example, "linear" takes a 
+            #VipsArrayDouble as an argument for the constant to use for 
+            multiplication. You can supply this value as an integer, a float, 
+            or some kind of compound object and it will be converted for you.
+          </para>
+
+          <para>
+            It does a couple of more ambitious conversions. If an operation 
+            takes several input images, you can use a constant for all but 
+            one of them and the wrapper will make a constant image for you.
+          </para>
+        </listitem>
+      </itemizedlist>
     </para>
       
   </refsect1>
