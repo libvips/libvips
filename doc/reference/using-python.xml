@@ -186,7 +186,8 @@ min_value, x_pos, y_pos = im.min(x = True, y = True)
           <para>
             It does a couple of more ambitious conversions. If an operation 
             takes several input images, you can use a constant for all but 
-            one of them and the wrapper will make a constant image for you.
+            one of them and the wrapper will make a constant image for you. 
+            For example, <code>.bandjoin()</code> 
           </para>
         </listitem>
       </itemizedlist>

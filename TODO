@@ -1,3 +1,13 @@
+- try:
+
+	$ vipsthumbnail 360mp.png --vips-leak --vips-concurrency=1
+	--vips-progress
+
+
+  works in tiles ... should it be strips?
+
+  no %complete feedback
+
 - why don't we get gtk-doc expansions in the leading chapters? we turn them on
 
 - need a thing to test C++ overloads 

@@ -146,6 +146,7 @@ vips_gaussnoise_class_init( VipsGaussnoiseClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -153,6 +154,10 @@ vips_gaussnoise_class_init( VipsGaussnoiseClass *class )
 	vobject_class->nickname = "gaussnoise";
 	vobject_class->description = _( "make a gaussnoise image" );
 	vobject_class->build = vips_gaussnoise_build;
+
+	/* We want a new set of numbers each time.
+	 */
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_INT( class, "width", 4, 
 		_( "Width" ), 
