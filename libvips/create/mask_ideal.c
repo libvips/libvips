@@ -100,7 +100,7 @@ vips_mask_ideal_init( VipsMaskIdeal *ideal )
  * @out: output image
  * @width: image size
  * @height: image size
- * @frequency_cutoff: 
+ * @frequency_cutoff: threshold at which filter ends
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

@@ -134,8 +134,12 @@ from gi.repository import Vips
 
       <itemizedlist>
         <listitem>
+          <para><emphasis>
+            Automatic wrapping of vips operations
+          </emphasis> </para>
+
           <para>
-            Automatic wrapping of vips operations. It intercepts member lookup 
+            It intercepts member lookup 
             on the <code>Vips.Image</code> class and looks for vips operations
             with that name. So the vips operation "add", which appears in the 
             C API as vips_add(), appears in Python as 
@@ -174,8 +178,9 @@ min_value, x_pos, y_pos = im.min(x = True, y = True)
         </listitem>
 
         <listitem>
+          <para><emphasis>Automatic type conversion</emphasis></para>
           <para>
-            Automatic type conversion. The override looks at the type of 
+            The override looks at the type of 
             argument required by the operation and converts the value you 
             supply, when it can. For example, "linear" takes a 
             #VipsArrayDouble as an argument for the constant to use for 
@@ -184,16 +189,120 @@ min_value, x_pos, y_pos = im.min(x = True, y = True)
           </para>
 
           <para>
-            It does a couple of more ambitious conversions. If an operation 
+            It does a couple of more ambitious conversions. It will 
+            automatically convert to and from the various vips types, 
+            like #VipsBlob and #VipsArrayImage. For example, you can read the
+            ICC profile out of an image like this:
+
+<programlisting language="Python">
+profile = im.get_value("icc-profile-data")
+</programlisting>
+
+            and <code>profile</code> will be a string. 
+          </para>
+
+          <para>
+            If an operation 
             takes several input images, you can use a constant for all but 
             one of them and the wrapper will make a constant image for you. 
-            For example, <code>.bandjoin()</code> 
+            For example, <code>.ifthenelse()</code> uses a condition image to 
+            pick pixels between a then and an else image: 
+
+<programlisting language="Python">
+result_image = condition_image.ifthenelse(then_image, else_image)
+</programlisting>
+
+            You can use a constant instead of either the then or the else 
+            parts, and it will be expanded to an image for you. If you use a 
+            constant for both then and else, it will be expanded to match the 
+            condition image. For example:
+
+<programlisting language="Python">
+result_image = condition_image.ifthenelse([0, 255, 0], [255, 0, 0])
+</programlisting>
+
+            Will make an image where true pixels are green and false pixels 
+            are red.
+          </para>
+
+          <para>
+            This is useful for <code>.bandjoin()</code>, the thing to join 
+            two, or a set of images up bandwise. You can write:
+
+<programlisting language="Python">
+rgba = rgb.bandjoin(255)
+</programlisting>
+      
+            to add a constant 255 band to an image, perhaps to add an alpha 
+            channel. Of course you can also write:
+
+<programlisting language="Python">
+result_image = image1.bandjoin(image2)
+result_image = image1.bandjoin([image2, image3])
+result_image = Vips.Image.bandjoin([image1, image2, image3])
+result_image = image1.bandjoin([image2, 255])
+</programlisting>
+      
+            and so on. 
           </para>
         </listitem>
+
+        <listitem>
+          <para><emphasis>Exceptions</emphasis></para>
+          
+          <para>
+            The wrapper spots errors from vips operations and raises the 
+            <code>Vips.Error</code> exception. You can catch it in the 
+            usual way. 
+          </para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis>Overloads</emphasis></para>
+
+          <para>
+            The wrapper defines the usual set of arithmetic, boolean and 
+            relation overloads on 
+            <code>image</code>. You can mix images, constants and lists of 
+            constants (almost) freely. 
+          </para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis>Expansions</emphasis></para>
+
+          <para>
+            Some vips operators take an enum to select an action, for example
+            <code>.math()</code> can be used to calculate sine of every pixel 
+            like this:
+
+<programlisting language="Python">
+result_image = image.math(Vips.OperationMath.SIN)
+</programlisting>
+
+            This is annoying, so the wrapper expands all these enums into 
+            separate members named after the enum. So you can write:
+
+<programlisting language="Python">
+result_image = image.sin()
+</programlisting>
+          </para>
+        </listitem>
+
+        <listitem>
+          <para><emphasis>Utility functions</emphasis></para>
+
+          <para>
+            The wrapper defines a few extra useful utility functions: 
+            <code>.get_value()</code>, <code>.set_value()</code>
+            <code>.bandsplit()</code>, <code>.maxpos()</code>
+            <code>.minpos()</code>.
+          </para>
+        </listitem>
+
       </itemizedlist>
     </para>
       
   </refsect1>
-    
 
 </refentry>

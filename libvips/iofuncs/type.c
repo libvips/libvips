@@ -1428,7 +1428,7 @@ vips_value_get_array_int( const GValue *value, int *n )
 /** 
  * vips_value_set_array_int:
  * @value: (out): %GValue to get from
- * @array: (array length=n) (allow_none): array of ints
+ * @array: (array length=n) (allow-none): array of ints
  * @n: the number of elements 
  *
  * Set @value to hold a copy of @array. Pass in the array length in @n. 

@@ -67,7 +67,7 @@ int vips_stop_many( void *seq, void *a, void *b );
 VipsImage **vips_allocate_input_array( VipsImage *out, ... )
 	__attribute__((sentinel));
 
-int vips_image_generate( VipsImage *im,
+int vips_image_generate( VipsImage *image,
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b
 );

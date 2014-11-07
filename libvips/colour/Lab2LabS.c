@@ -101,6 +101,7 @@ vips_Lab2LabS_init( VipsLab2LabS *Lab2LabS )
  * vips_Lab2LabS:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Turn Lab to LabS, signed 16-bit int fixed point.
  *

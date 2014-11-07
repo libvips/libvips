@@ -1,16 +1,26 @@
 - try:
 
-	$ vipsthumbnail 360mp.png --vips-leak --vips-concurrency=1
-	--vips-progress
-
+	$ vipsthumbnail 360mp.png --vips-leak --vips-concurrency=1 --vips-progress
 
   works in tiles ... should it be strips?
 
   no %complete feedback
 
+- try:
+
+	vips gaussnoise r.v 64 64 
+	vips gaussnoise g.v 64 64 
+	vips gaussnoise b.v 64 64 
+	vips bandjoin "r.v g.v b.v" out.png
+
+  out.png is monochrome for the first line of tiles ... do we need to seed the
+  generator?
+
 - why don't we get gtk-doc expansions in the leading chapters? we turn them on
 
-- need a thing to test C++ overloads 
+- can we generate python docstrings?
+
+  when we make a __getattr__ object, make it respond to __doc__
 
 - test other arg types
 

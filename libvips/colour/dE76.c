@@ -128,6 +128,7 @@ vips_dE76_init( VipsdE76 *dE76 )
  * @left: first input image
  * @right: second input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Calculate dE 76.
  *

@@ -235,6 +235,7 @@ vips_draw_smudge_init( VipsDrawSmudge *draw_smudge )
  * @top: point to paint
  * @width: area to paint
  * @height: area to paint
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Smudge a section of @image. Each pixel in the area @left, @top, @width,
  * @height is replaced by the average of the surrounding 3x3 pixels. 

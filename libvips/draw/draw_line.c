@@ -339,6 +339,7 @@ vips_draw_linev( VipsImage *image,
  * @y1: start of draw_line
  * @x2: end of draw_line
  * @y2: end of draw_line
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Draws a 1-pixel-wide line on an image. Subclass and override ::plot to draw
  * lines made of other objects. See vips_draw_line_mask(), for example.  
@@ -371,6 +372,7 @@ vips_draw_line( VipsImage *image,
  * @y1: start of draw_line
  * @x2: end of draw_line
  * @y2: end of draw_line
+ * @...: %NULL-terminated list of optional named arguments
  *
  * As vips_draw_line(), but just take a single double for @ink. 
  *

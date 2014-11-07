@@ -158,13 +158,13 @@ vips_foreign_load_raw_init( VipsForeignLoadRaw *raw )
  * vips_rawload:
  * @filename: file to load
  * @out: output image
+ * @width: width of image in pixels
+ * @height: height of image in pixels
+ * @bands: number of image bands
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
- * @width: width of image in pixels
- * @height: height of image in pixels
- * @bands: number of image bands
  * @offset: offset in bytes from start of file
  *
  * This operation mmaps the file, setting @out so that access to that 

@@ -177,6 +177,7 @@ vips_getpoint_init( VipsGetpoint *getpoint )
  * @n: length of output vector
  * @x: position to read
  * @y: position to read
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Reads a single pixel on an image. 
  *

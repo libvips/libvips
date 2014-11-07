@@ -525,7 +525,7 @@ vips_start_many( VipsImage *out, void *a, void *b )
 
 /**
  * vips_allocate_input_array:
- * @image: free array when this image closes
+ * @out: free array when this image closes
  * @...: %NULL-terminated list of input images
  *
  * Convenience function --- make a %NULL-terminated array of input images.
@@ -536,7 +536,7 @@ vips_start_many( VipsImage *out, void *a, void *b )
  * Returns: %NULL-terminated array of images. Do not free the result.
  */
 VipsImage **
-vips_allocate_input_array( VipsImage *image, ... )
+vips_allocate_input_array( VipsImage *out, ... )
 {
 	va_list ap;
 	VipsImage **ar;
@@ -544,19 +544,19 @@ vips_allocate_input_array( VipsImage *image, ... )
 
 	/* Count input images.
 	 */
-	va_start( ap, image );
+	va_start( ap, out );
 	for( n = 0; va_arg( ap, VipsImage * ); n++ )
 		;
 	va_end( ap );
 
 	/* Allocate array.
 	 */
-	if( !(ar = VIPS_ARRAY( image, n + 1, VipsImage * )) )
+	if( !(ar = VIPS_ARRAY( out, n + 1, VipsImage * )) )
 		return( NULL );
 
 	/* Fill array.
 	 */
-	va_start( ap, image );
+	va_start( ap, out );
 	for( i = 0; i < n; i++ ) 
 		ar[i] = va_arg( ap, VipsImage * );
 	va_end( ap );
@@ -567,7 +567,7 @@ vips_allocate_input_array( VipsImage *image, ... )
 
 /**
  * VipsStartFn:
- * @image: image being calculated
+ * @out: image being calculated
  * @a: user data
  * @b: user data
  *
@@ -581,13 +581,14 @@ vips_allocate_input_array( VipsImage *image, ... )
 
 /**
  * VipsGenerateFn:
- * @region: #VipsRegion to fill
+ * @out: #VipsRegion to fill
  * @seq: sequence value
  * @a: user data
  * @b: user data
+ * @stop: set this to stop processing
  *
- * Fill @image->valid with pixels. @seq contains per-thread state, such as the
- * input regions.
+ * Fill @out->valid with pixels. @seq contains per-thread state, such as the
+ * input regions. Set @stop to %TRUE to stop processing. 
  *
  * See also: vips_image_generate(), vips_stop_many().
  *

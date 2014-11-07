@@ -20,6 +20,7 @@ libdeprecated_la_SOURCES = \
 	im_zerox.c \
 	arith_dispatch.c \
 	hist_dispatch.c \
+	other_dispatch.c \
 	im_maxpos_avg.c \
 	wrapvips7.c \
 	lazy.c \
@@ -31,6 +32,7 @@ libdeprecated_la_SOURCES = \
 	cooc_funcs.c \
 	glds_funcs.c \
 	im_fav4.c \
+	im_benchmark.c \
 	im_gadd.c \
 	im_gaddim.c \
 	im_gradcor.c \

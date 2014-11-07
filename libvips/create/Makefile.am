@@ -30,9 +30,7 @@ libcreate_la_SOURCES = \
 	black.c \
 	text.c \
 	gaussnoise.c \
-	im_benchmark.c \
 	sines.c \
-	zone.c \
-	other_dispatch.c
+	zone.c 
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

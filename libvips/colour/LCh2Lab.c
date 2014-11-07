@@ -134,6 +134,7 @@ vips_LCh2Lab_init( VipsLCh2Lab *LCh2Lab )
  * vips_LCh2Lab:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Turn LCh to Lab.
  *

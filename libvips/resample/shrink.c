@@ -435,6 +435,7 @@ vips_shrink_init( VipsShrink *shrink )
  * @out: output image
  * @xshrink: horizontal shrink
  * @yshrink: vertical shrink
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Shrink @in by a pair of factors with a simple box filter. 
  *

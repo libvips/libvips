@@ -210,6 +210,7 @@ vips_rad2float_init( VipsRad2float *rad2float )
  * vips_rad2float:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Unpack a RAD (#IM_CODING_RAD) image to a three-band float image.
  *

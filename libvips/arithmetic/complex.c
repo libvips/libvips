@@ -932,6 +932,7 @@ vips_complexform_init( VipsComplexform *complexform )
  * @left: input image 
  * @right: input image 
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Compose two real images to make a complex image. If either @left or @right 
  * are #VIPS_FORMAT_DOUBLE, @out is #VIPS_FORMAT_DPCOMPLEX. Otherwise @out 

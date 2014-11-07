@@ -160,7 +160,8 @@
 /** 
  * VipsOperationFlags:
  * @VIPS_OPERATION_NONE: no flags
- * @VIPS_OPERATION_SEQUENTIAL: can work sequentially
+ * @VIPS_OPERATION_SEQUENTIAL: can work sequentially with a small buffer
+ * @VIPS_OPERATION_SEQUENTIAL_UNBUFFERED: can work sequentially with no buffer
  * @VIPS_OPERATION_NOCACHE: must not be cached
  * @VIPS_OPERATION_DEPRECATED: a compatibility thing
  *
@@ -831,15 +832,15 @@ vips_call_by_name( const char *operation_name,
 
 /**
  * vips_call:
- * @operation_name:
+ * @operation_name: name of operation to call
  * @...: required args, then a %NULL-terminated list of argument/value pairs
  *
- * vips_call() calls the named operation, passing in required arguments, and
+ * vips_call() calls the named operation, passing in required arguments and
  * then setting any optional ones from the remainder of the arguments as a set
  * of name/value pairs. 
  *
  * For example, vips_embed() takes six required arguments, @in, @out, @x, @y, 
- * @width, @height; and has two optional arguments, @extend and @background.
+ * @width, @height, and has two optional arguments, @extend and @background.
  * You can run it with vips_call() like this: 
  *
  * |[
