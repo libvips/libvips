@@ -1,13 +1,5 @@
 - try:
 
-	$ vipsthumbnail 360mp.png --vips-leak --vips-concurrency=1 --vips-progress
-
-  works in tiles ... should it be strips?
-
-  no %complete feedback
-
-- try:
-
 	vips gaussnoise r.v 64 64 
 	vips gaussnoise g.v 64 64 
 	vips gaussnoise b.v 64 64 

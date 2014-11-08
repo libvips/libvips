@@ -42,7 +42,7 @@ VipsForeignFlags vips__ppm_flags( const char *filename );
 extern const char *vips__ppm_suffs[];
 
 int vips__ppm_save( VipsImage *in, const char *filename, 
-	gboolean ascii ); 
+	gboolean ascii, gboolean squash ); 
 
 #ifdef __cplusplus
 }

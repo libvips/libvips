@@ -54,6 +54,7 @@ typedef struct _VipsForeignSavePpm {
 
 	char *filename; 
 	gboolean ascii;
+	gboolean squash;
 } VipsForeignSavePpm;
 
 typedef VipsForeignSaveClass VipsForeignSavePpmClass;
@@ -71,7 +72,8 @@ vips_foreign_save_ppm_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__ppm_save( save->ready, ppm->filename, ppm->ascii ) )
+	if( vips__ppm_save( save->ready, ppm->filename, 
+		ppm->ascii, ppm->squash ) )
 		return( -1 );
 
 	return( 0 );
@@ -128,6 +130,13 @@ vips_foreign_save_ppm_class_init( VipsForeignSavePpmClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePpm, ascii ),
 		FALSE );
+
+	VIPS_ARG_BOOL( class, "squash", 11, 
+		_( "Squash" ), 
+		_( "save as one bit" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePpm, squash ),
+		FALSE );
 }
 
 static void
@@ -144,8 +153,9 @@ vips_foreign_save_ppm_init( VipsForeignSavePpm *ppm )
  * Optional arguments:
  *
  * @ascii: save as ASCII rather than binary
+ * @squash: squash 8-bit images down to one bit
  *
- * Write a VIPS image to a file as PPM. It can write 8, 16 or
+ * Write a VIPS image to a file as PPM. It can write 1, 8, 16 or
  * 32 bit unsigned integer images, float images, colour or monochrome, 
  * stored as binary or ASCII. 
  * Integer images of more than 8 bits can only be stored in ASCII.
@@ -156,10 +166,10 @@ vips_foreign_save_ppm_init( VipsForeignSavePpm *ppm )
  * Set @ascii to %TRUE to write as human-readable ASCII. Normally data is
  * written in binary. 
  *
- * The storage format is indicated by a filename extension. Use one of .pbm,
- * .pgm, .ppm, .pfm. 
+ * Set @squash to %TRUE to squash 8-bit images down to one bit. The saver does
+ * no dithering, that's up to you.
  *
- * See also: vips_image_write_file().
+ * See also: vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */
