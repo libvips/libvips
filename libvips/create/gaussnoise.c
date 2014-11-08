@@ -20,6 +20,8 @@
  * 	- gtkdoc
  * 29/5/13
  * 	- redo as a class
+ * 8/11/14
+ * 	- use g_random_double()
  */
 
 /*
@@ -75,18 +77,6 @@ typedef VipsCreateClass VipsGaussnoiseClass;
 
 G_DEFINE_TYPE( VipsGaussnoise, vips_gaussnoise, VIPS_TYPE_CREATE );
 
-/* Make a random number in 0 - 1. Prefer random(). 
- */
-#ifdef HAVE_RANDOM
-#define VIPS_RND() ((double) random() / RAND_MAX)
-#else /*!HAVE_RANDOM*/
-#ifdef HAVE_RAND
-#define VIPS_RND() ((double) rand() / RAND_MAX)
-#else /*!HAVE_RAND*/
-#error "no random number generator found"
-#endif /*HAVE_RAND*/
-#endif /*HAVE_RANDOM*/
-
 static int
 vips_gaussnoise_gen( VipsRegion *or, void *seq, void *a, void *b,
 	gboolean *stop )
@@ -108,7 +98,7 @@ vips_gaussnoise_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 			sum = 0.0;
 			for( i = 0; i < 12; i++ ) 
-				sum += VIPS_RND(); 
+				sum += g_random_double(); 
 
 			q[x] = (sum - 6.0) * gaussnoise->sigma + 
 				gaussnoise->mean;

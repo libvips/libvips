@@ -5,8 +5,7 @@
 	vips gaussnoise b.v 64 64 
 	vips bandjoin "r.v g.v b.v" out.png
 
-  out.png is monochrome for the first line of tiles ... do we need to seed the
-  generator?
+  out.png has length zero!
 
 - why don't we get gtk-doc expansions in the leading chapters? we turn them on
 
