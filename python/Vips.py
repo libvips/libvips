@@ -418,7 +418,11 @@ class Image(Vips.Image):
         if name in dir(self.props):
             return getattr(self.props, name)
 
-        return lambda *args, **kwargs: _call_instance(self, name, args, kwargs)
+        def call_function(*args, **kwargs):
+            return _call_instance(self, name, args, kwargs)
+        call_function.__doc__ = "hello world, from " + name
+
+        return call_function
 
     def __add__(self, other):
         if isinstance(other, Vips.Image):
@@ -747,8 +751,15 @@ class_methods = [
                     "fitsload",
                     "openexrload"]
 
+def add_doc(value):
+    def _doc(func):
+        func.__doc__ = value
+        return func
+    return _doc
+
 def generate_class_method(name):
     @classmethod
+    @add_doc('hello, world!')
     def class_method(cls, *args, **kwargs):
         return _call_base(name, args, kwargs)
 

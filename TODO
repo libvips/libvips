@@ -2,7 +2,20 @@
 
 - can we generate python docstrings?
 
-  when we make a __getattr__ object, make it respond to __doc__
+  this works
+
+  	help(Vips.Image.black)
+
+  but this does not
+
+  	help(Vips.Image.add)
+
+  since add is an instance method ... this does work
+
+  	a = Vips.Image.black(10, 10)
+	help(a.add)
+
+  do we need to override __getattribute__ as well?
 
 - test other arg types
 
