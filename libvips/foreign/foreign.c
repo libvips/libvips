@@ -1,4 +1,4 @@
-/* VIPS function dispatch tables for image file load/save.
+/* foreign file formats base class
  *
  * 7/2/12
  * 	- add support for sequential reads
@@ -1099,7 +1099,57 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		in = out;
 	}
 
-	/* Get the bands right. 
+	/* If the saver supports RAD, we need to go to scRGB or XYZ. 
+	 */
+	if( class->coding[VIPS_CODING_RAD] ) {
+		if( in->Type != VIPS_INTERPRETATION_scRGB &&
+			in->Type != VIPS_INTERPRETATION_XYZ ) {
+			VipsImage *out;
+
+			if( vips_colourspace( in, &out, 
+				VIPS_INTERPRETATION_scRGB, NULL ) ) {
+				g_object_unref( in );
+				return( -1 );
+			}
+			g_object_unref( in );
+
+			in = out;
+		}
+	}
+
+	/* If this is something other than CMYK or RAD, eg. maybe a LAB image,
+	 * we need to transform to RGB.
+	 */
+	if( !class->coding[VIPS_CODING_RAD] &&
+		in->Bands >= 3 &&
+		in->Type != VIPS_INTERPRETATION_CMYK &&
+		vips_colourspace_issupported( in ) &&
+		(class->saveable == VIPS_SAVEABLE_RGB ||
+		 class->saveable == VIPS_SAVEABLE_RGBA ||
+		 class->saveable == VIPS_SAVEABLE_RGB_CMYK) ) { 
+		VipsImage *out;
+		VipsInterpretation interpretation;
+
+		/* Do we make RGB or RGB16? We don't want to squash a 16-bit
+		 * RGB down to 8 bits if the saver supports 16. 
+		 */
+		if( vips_band_format_is8bit( 
+			class->format_table[in->BandFmt] ) )
+			interpretation = VIPS_INTERPRETATION_sRGB;
+		else
+			interpretation = VIPS_INTERPRETATION_RGB16;
+
+		if( vips_colourspace( in, &out, interpretation, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
+		}
+		g_object_unref( in );
+
+		in = out;
+	}
+
+	/* Get the bands right. We must do this after all colourspace
+	 * transforms, since they can change the number of bands. 
 	 */
 	if( in->Coding == VIPS_CODING_NONE ) {
 		/* Do we need to flatten out an alpha channel? There needs to
@@ -1183,52 +1233,6 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 		/* Else we have VIPS_SAVEABLE_ANY and we don't chop bands down.
 		 */
-	}
-
-	/* If the saver supports RAD, we need to go to scRGB or XYZ. 
-	 */
-	if( class->coding[VIPS_CODING_RAD] ) {
-		if( in->Type != VIPS_INTERPRETATION_scRGB &&
-			in->Type != VIPS_INTERPRETATION_XYZ ) {
-			VipsImage *out;
-
-			if( vips_colourspace( in, &out, 
-				VIPS_INTERPRETATION_scRGB, NULL ) ) {
-				g_object_unref( in );
-				return( -1 );
-			}
-			g_object_unref( in );
-
-			in = out;
-		}
-	}
-	else if( in->Bands >= 3 &&
-		vips_colourspace_issupported( in ) &&
-		(class->saveable == VIPS_SAVEABLE_RGB ||
-		 class->saveable == VIPS_SAVEABLE_RGBA ||
-		 class->saveable == VIPS_SAVEABLE_RGB_CMYK) ) { 
-		/* Use vips_colourspace() to make an RGB image from LAB or
-		 * whatever this thing is. 
-		 */
-		VipsImage *out;
-		VipsInterpretation interpretation;
-
-		/* Do we make RGB or RGB16? We don't want to squash a 16-bit
-		 * RGB down to 8 bits if the saver supports 16. 
-		 */
-		if( vips_band_format_is8bit( 
-			class->format_table[in->BandFmt] ) )
-			interpretation = VIPS_INTERPRETATION_sRGB;
-		else
-			interpretation = VIPS_INTERPRETATION_RGB16;
-
-		if( vips_colourspace( in, &out, interpretation, NULL ) ) {
-			g_object_unref( in );
-			return( -1 );
-		}
-		g_object_unref( in );
-
-		in = out;
 	}
 
 	/* Shift down to 8 bits. Handy for 8-bit-only formats like jpeg.

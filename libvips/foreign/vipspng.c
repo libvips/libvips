@@ -841,11 +841,9 @@ write_vips( Write *write, int compress, int interlace, const char *profile,
 	case 4: color_type = PNG_COLOR_TYPE_RGB_ALPHA; break;
 
 	default:
-		g_assert( 0 );
-
-		/* Keep -Wall happy.
-		 */
-		return( 0 );
+		vips_error( "vips2png", 
+			_( "can't save %d band image as png" ), in->Bands );
+		return( -1 );
 	}
 
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
