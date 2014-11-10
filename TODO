@@ -7,6 +7,12 @@
 
   out.png has length zero!
 
+  bandjoin will make a three-band b-w image, convert to saveable thinks this
+  is b_w plus two alpha channels, so it converts the first channel to sRGB,
+  making a five channel image
+
+  pngsave does a return(0) given a five channel image
+
 - why don't we get gtk-doc expansions in the leading chapters? we turn them on
 
 - can we generate python docstrings?

@@ -83,6 +83,7 @@
 
 /*
 #define DEBUG
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
