@@ -369,6 +369,30 @@ def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
 
 setattr(Vips.Image, 'new_from_array', vips_image_new_from_array)
 
+def generate_docstring(name):
+    try:
+        op = Vips.Operation.new(name)
+    except TypeError, e:
+        return 'No such operator ' + name
+
+    # find all the args for this op, sort into priority order
+    args = [Argument(op, x) for x in op.props]
+    args.sort(lambda a, b: a.priority - b.priority)
+
+    enm = Vips.ArgumentFlags
+
+    # find all required, unassigned input args
+    required_input = [x for x in args if x.flags & enm.INPUT and 
+                      x.flags & enm.REQUIRED and 
+                      not x.isset]
+
+    result = ""
+
+    for x in required_input:
+        result += x.name + "\n"
+
+    return result
+
 # apply a function to a thing, or map over a list
 # we often need to do something like (1.0 / other) and need to work for lists
 # as well as scalars
@@ -420,7 +444,7 @@ class Image(Vips.Image):
 
         def call_function(*args, **kwargs):
             return _call_instance(self, name, args, kwargs)
-        call_function.__doc__ = "hello world, from " + name
+        call_function.__doc__ = generate_docstring(name)
 
         return call_function
 
@@ -759,7 +783,7 @@ def add_doc(value):
 
 def generate_class_method(name):
     @classmethod
-    @add_doc('hello, world!')
+    @add_doc(generate_docstring(name))
     def class_method(cls, *args, **kwargs):
         return _call_base(name, args, kwargs)
 

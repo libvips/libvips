@@ -1,9 +1,18 @@
 - why don't we get gtk-doc expansions in the leading chapters? we turn them on
 
+- try:
+
+	$ cd vips-x.x.x/libvips
+	$ g-ir-doc-tool --language=Python -o /tmp/vips-doc Vips-8.0.gir 
+	$ yelp /tmp/vips-doc
+
+  shows gir contents
+
 - can we generate python docstrings?
 
   this works
 
+	from gi.repository import Vips
   	help(Vips.Image.black)
 
   but this does not
@@ -15,7 +24,91 @@
   	a = Vips.Image.black(10, 10)
 	help(a.add)
 
-  do we need to override __getattribute__ as well?
+  this has loads of stuff from gi!!
+
+  	op = Vips.Operation.new("black")
+	help(op)
+
+- want to get the description for an operation 
+
+	op = Vips.Operation.new("black")
+
+  can't look at op.description, since that's not set until build(), we need to
+  get the class and walk that
+  
+
+  try:
+
+	GType a = Vips.type_find("VipsObject", "black")
+
+  in C, use this to get the class from a gtype:
+
+	g_type_class_ref(gtype)
+
+	from gi.repository import GObject
+	dir(GObject.GType)
+	['__class__', '__delattr__', '__doc__', '__eq__', '__format__',
+	'__ge__', '__getattribute__', '__gt__', '__hash__', '__init__',
+	'__le__', '__lt__', '__ne__', '__new__', '__reduce__',
+	'__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__',
+	'__subclasshook__', 'children', 'depth', 'from_name', 'fundamental',
+	'has_value_table', 'interfaces', 'is_a', 'is_abstract', 'is_classed',
+	'is_deep_derivable', 'is_derivable', 'is_instantiatable',
+	'is_interface', 'is_value_abstract', 'is_value_type', 'name',
+	'parent', 'pytype']
+
+	a = Vips.type_find("VipsObject", "black")
+	dir(a)
+	['__class__', '__delattr__', '__doc__', '__eq__', '__format__',
+	'__ge__', '__getattribute__', '__gt__', '__hash__', '__init__',
+	'__le__', '__lt__', '__ne__', '__new__', '__reduce__',
+	'__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__',
+	'__subclasshook__', 'children', 'depth', 'from_name', 'fundamental',
+	'has_value_table', 'interfaces', 'is_a', 'is_abstract', 'is_classed',
+	'is_deep_derivable', 'is_derivable', 'is_instantiatable',
+	'is_interface', 'is_value_abstract', 'is_value_type', 'name',
+	'parent', 'pytype']
+
+	>>> op = Vips.Operation.new("black")
+	>>> dir(op)
+	['__class__', '__copy__', '__deepcopy__', '__delattr__', '__dict__',
+	'__doc__', '__eq__', '__format__', '__gdoc__', '__ge__',
+	'__getattribute__', '__gpointer__', '__grefcount__', '__gsignals__',
+	'__gt__', '__gtype__', '__hash__', '__info__', '__init__', '__le__',
+	'__lt__', '__module__', '__ne__', '__new__', '__reduce__',
+	'__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__',
+	'__subclasshook__', '_force_floating', '_ref', '_ref_sink', '_unref',
+	'_unsupported_data_method', '_unsupported_method', 'argument_isset',
+	'argument_needsstring', 'argument_table', 'bind_property',
+	'bind_property_full', 'build', 'chain', 'close', 'compat_control',
+	'connect', 'connect_after', 'connect_object', 'connect_object_after',
+	'constructed', 'description', 'disconnect', 'disconnect_by_func',
+	'do_build', 'do_close', 'do_get_flags', 'do_invalidate',
+	'do_output_to_arg', 'do_postbuild', 'do_postclose', 'do_preclose',
+	'do_rewind', 'emit', 'emit_stop_by_name', 'force_floating',
+	'found_hash', 'freeze_notify', 'g_type_instance',
+	'get_argument_flags', 'get_argument_priority',
+	'get_argument_to_string', 'get_data', 'get_flags', 'get_properties',
+	'get_property', 'get_qdata', 'handler_block', 'handler_block_by_func',
+	'handler_disconnect', 'handler_is_connected', 'handler_unblock',
+	'handler_unblock_by_func', 'hash', 'interface_find_property',
+	'interface_install_property', 'interface_list_properties',
+	'invalidate', 'is_floating', 'local_cb', 'local_memory', 'new',
+	'new_from_string', 'nickname', 'notify', 'notify_by_pspec',
+	'parent_instance', 'parent_object', 'pixels', 'postclose', 'preclose',
+	'print_all', 'print_dump', 'print_name', 'print_summary',
+	'print_summary_class', 'props', 'qdata', 'ref', 'ref_count',
+	'ref_sink', 'replace_data', 'replace_qdata', 'rewind', 'run_dispose',
+	'sanity', 'sanity_all', 'set_argument_from_string', 'set_data',
+	'set_from_string', 'set_properties', 'set_property', 'set_required',
+	'set_static', 'static_object', 'steal_data', 'steal_qdata',
+	'stop_emission', 'stop_emission_by_name', 'thaw_notify', 'unref',
+	'unref_outputs', 'watch_closure', 'weak_ref']
+
+
+
+
+  
 
 - test other arg types
 

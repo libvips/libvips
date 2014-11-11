@@ -118,12 +118,12 @@ vips_get_argv0( void )
 
 /**
  * VIPS_INIT:
- * @argv0: name of application
+ * @ARGV0: name of application
  *
  * VIPS_INIT() starts up the world of VIPS. You should call this on
  * program startup before using any other VIPS operations. If you do not call
  * VIPS_INIT(), VIPS will call it for you when you use your first VIPS 
- * operation, but it may not be able to get hold of @argv0 and VIPS may 
+ * operation, but it may not be able to get hold of @ARGV0 and VIPS may 
  * therefore be unable to find its data files. It is much better to call 
  * this macro yourself.
  *
