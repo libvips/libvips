@@ -251,7 +251,7 @@ vips_sharpen_build( VipsObject *object )
 	sharpen->ix2 = ix2 = sharpen->x2 * 327.67;
 	sharpen->ix3 = ix3 = sharpen->x3 * 327.67;
 
-	if( !(sharpen->lut = VIPS_ARRAY( sharpen->out, ix2 + ix3 + 1, int )) )
+	if( !(sharpen->lut = VIPS_ARRAY( object, ix2 + ix3 + 1, int )) )
 		return( -1 );
 
 	for( i = 0; i < ix1; i++ ) {
