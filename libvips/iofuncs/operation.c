@@ -103,10 +103,15 @@
  *   error ..
  * ]|
  *
- * This will invert @im and return it as a new #VipsImage, @t1. As the caller
+ * This will invert @im and return a new #VipsImage, @t1. As the caller
  * of vips_invert(), you are responsible for @t1 and must unref it when you no
  * longer need it. If vips_invert() fails, no @t1 is returned and you don't
  * need to do anything. 
+ *
+ * If you don't need to use @im for another operation, 
+ * you can unref @im immediately after the call. If @im is needed to calculate
+ * @t1, vips_invert() will add a ref to @im and automatically drop it when @t1
+ * is unreffed.
  *
  * Consider running two operations, one after the other. You could write:
  *
@@ -148,7 +153,7 @@
  * ## The #VipsOperation cache
  *
  * Because all #VipsObject are immutable, they can be cached. The cache is
- * very simple to use: instead of calling vips_object_build(), instead call 
+ * very simple to use: instead of calling vips_object_build(), call 
  * vips_cache_operation_build(). This function calculates a hash from the
  * operations's input arguments and looks it up in table of all recent
  * operations. If there's a hit, the new operation is unreffed, the old
