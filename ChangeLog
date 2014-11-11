@@ -1,5 +1,6 @@
 27/10/14 started 7.40.12
 - better tiff detection (Lovell)
+- fix memleak in sharpen (Lovell)
 
 8/10/14 started 7.40.11
 - rework extra band handling for colour functions
