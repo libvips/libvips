@@ -386,7 +386,17 @@ def generate_docstring(name):
                       x.flags & enm.REQUIRED and 
                       not x.isset]
 
-    result = ""
+    optional_input = [x for x in args if x.flags & enm.INPUT and 
+                      not x.flags & enm.REQUIRED and 
+                      not x.isset]
+
+    required_output = [x for x in args if x.flags & enm.OUTPUT and 
+                       not x.flags & enm.REQUIRED]
+
+    optional_output = [x for x in args if x.flags & enm.OUTPUT and 
+                       not x.flags & enm.REQUIRED]
+
+    result = "usage:\n"
 
     for x in required_input:
         result += x.name + "\n"
@@ -403,6 +413,9 @@ def smap(func, x):
         return func(x)
 
 class Image(Vips.Image):
+    """This is a test docstring in Vips.py ... does this get attached to the 
+       class we are overriding?
+    """
 
     # constructors, see class methods above
 
