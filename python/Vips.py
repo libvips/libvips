@@ -89,13 +89,11 @@ def arrayize(gtype, value):
     return value
 
 class Error(Exception):
-
     """An error from vips.
 
     message -- a high-level description of the error
     detail -- a string with some detailed diagnostics
     """
-
     def __init__(self, message, detail = None):
         self.message = message
         if detail == None:
@@ -159,7 +157,7 @@ class Argument:
 
     def description(self):
         result = self.name
-        result += " " * (10 - len(self.name)) + " - " + self.prop.blurb
+        result += " " * (10 - len(self.name)) + " -- " + self.prop.blurb
         result += ", " + self.prop.value_type.name
 
         return result
@@ -327,6 +325,11 @@ def _call_instance(self, name, args, kwargs):
 
 @classmethod
 def vips_image_new_from_file(cls, vips_filename, **kwargs):
+    """Create a new Image from a filename.
+
+    Extra optional arguments depend on the loader selected by libvips. See each
+    loader for details. 
+    """
     filename = Vips.filename_get_filename(vips_filename)
     option_string = Vips.filename_get_options(vips_filename)
     loader = Vips.Foreign.find_load(filename)
@@ -340,6 +343,14 @@ setattr(Vips.Image, 'new_from_file', vips_image_new_from_file)
 
 @classmethod
 def vips_image_new_from_buffer(cls, data, option_string, **kwargs):
+    """Create a new Image from binary data in a string.
+
+    data -- binary image data
+    option_string -- optional arguments in string form
+
+    option_string can be something like "page=10" to load the 10th page of a
+    tiff file. You can also give load options as keyword arguments. 
+    """
     loader = Vips.Foreign.find_load_buffer(data)
     if loader == None:
         raise Error('No known loader for buffer.')
@@ -349,6 +360,12 @@ setattr(Vips.Image, 'new_from_buffer', vips_image_new_from_buffer)
 
 @classmethod
 def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
+    """Create a new image from an array.
+
+    The array argument can be a 1D array to create a height == 1 image, or a 2D
+    array to make a 2D image. Use scale and offset to set the scale factor,
+    handy for integer convolutions. 
+    """
     # we accept a 1D array and assume height == 1, or a 2D array and check all
     # lines are the same length
     if not isinstance(array, list):
@@ -412,8 +429,9 @@ def generate_docstring(name):
             member_x = x
             break
 
-    result = op.get_description() + "\n"
-    result += "usage:\n"
+    description = op.get_description()
+    result = description[0].upper() + description[1:] + ".\n\n"
+    result += "Usage:\n"
 
     result += "   " + ", ".join([x.name for x in required_output]) + " = "
     if member_x:
@@ -428,29 +446,20 @@ def generate_docstring(name):
                          for x in optional_input])
     result += ")\n"
 
-    result += "\n"
-
-    result += "where:\n"
+    result += "Where:\n"
     for x in required_output:
         result += "   " + x.description() + "\n"
 
-    result += "\n"
-
-    result += "required parameters:\n"
     for x in required_input:
         result += "   " + x.description() + "\n"
 
     if len(optional_input) > 0:
-        result += "\n"
-
-        result += "optional parameters:\n"
+        result += "Keyword parameters:\n"
         for x in optional_input:
             result += "   " + x.description() + "\n"
 
     if len(optional_output) > 0:
-        result += "\n"
-
-        result += "extra output options:\n"
+        result += "Extra output options:\n"
         for x in optional_output:
             result += "   " + x.description() + "\n"
 
@@ -473,10 +482,6 @@ def add_doc(value):
     return _doc
 
 class Image(Vips.Image):
-    """This is a test docstring in Vips.py ... does this get attached to the 
-       class we are overriding?
-    """
-
     # constructors, see class methods above
 
     def __init__(self):
@@ -485,6 +490,12 @@ class Image(Vips.Image):
     # output
 
     def write_to_file(self, vips_filename, **kwargs):
+        """Write an Image to a file. 
+
+        The filename can contain save options, for example
+        "fred.tif[compression=jpeg]", or save options can be given as keyword
+        arguments. Save options depend on the selected saver. 
+        """
         filename = Vips.filename_get_filename(vips_filename)
         option_string = Vips.filename_get_options(vips_filename)
         saver = Vips.Foreign.find_save(filename)
@@ -494,9 +505,15 @@ class Image(Vips.Image):
 
         _call_base(saver, [filename], kwargs, self, option_string)
 
-    def write_to_buffer(self, vips_filename, **kwargs):
-        filename = Vips.filename_get_filename(vips_filename)
-        option_string = Vips.filename_get_options(vips_filename)
+    def write_to_buffer(self, format_string, **kwargs):
+        """Write an Image to memory.
+
+        Return the image as a binary string, encoded in the selected format.
+        Save options can be given in the format_string, for example
+        ".jpg[Q=90]". Save options depend on the selected saver.
+        """
+        filename = Vips.filename_get_filename(format_string)
+        option_string = Vips.filename_get_options(format_string)
         saver = Vips.Foreign.find_save_buffer(filename)
         if saver == None:
             raise Error('No known saver for "%s".' % filename)
@@ -674,6 +691,11 @@ class Image(Vips.Image):
     # a few useful things
 
     def get_value(self, field):
+        """Get a named item from an Image.
+
+        Fetch an item of metadata and convert it to a Python-friendly format.
+        For example, VipsBlob things will be converted to strings.
+        """
         value = self.get(field)
 
         logging.debug('read out %s from %s' % (value, self))
@@ -687,6 +709,11 @@ class Image(Vips.Image):
         return value
 
     def set_value(self, field, value):
+        """Set a named item on an Image.
+
+        Values are converted from Python types to something libvips can swallow.
+        For example, strings can be used to set VipsBlob fields. 
+        """
         gtype = self.get_typeof(field)
         logging.debug('assigning %s to %s' % (value, self))
         logging.debug('%s needs a %s' % (self, gtype))
@@ -707,82 +734,105 @@ class Image(Vips.Image):
         self.set(field, value)
 
     def floor(self):
+        """Return the largest integral value not greater than the argument."""
         return self.round(Vips.OperationRound.FLOOR)
 
     def ceil(self):
+        """Return the smallest integral value not less than the argument."""
         return self.round(Vips.OperationRound.CEIL)
 
     def rint(self):
+        """Return the nearest integral value."""
         return self.round(Vips.OperationRound.RINT)
 
     def bandsplit(self):
+        """Split an n-band image into n separate images."""
         return [self.extract_band(i) for i in range(0, self.bands)]
 
     def bandjoin(self, other):
+        """Join a set of images bandwise."""
         if not isinstance(other, list):
             other = [other]
 
         return Vips.Image.bandjoin([self] + other)
 
     def maxpos(self):
+        """Return the coordinates of the image maximum."""
         v, opts = self.max(x = True, y = True)
         x = opts['x']
         y = opts['y']
         return v, x, y
 
     def minpos(self):
+        """Return the coordinates of the image minimum."""
         v, opts = self.min(x = True, y = True)
         x = opts['x']
         y = opts['y']
         return v, x, y
 
     def real(self):
+        """Return the real part of a complex image."""
         return self.complexget(Vips.OperationComplexget.REAL)
 
     def imag(self):
+        """Return the imaginary part of a complex image."""
         return self.complexget(Vips.OperationComplexget.IMAG)
 
     def polar(self):
+        """Return an image converted to polar coordinates."""
         return self.complex(Vips.OperationComplex.POLAR)
 
     def rect(self):
+        """Return an image converted to rectangular coordinates."""
         return self.complex(Vips.OperationComplex.RECT)
 
     def conj(self):
+        """Return the complex conjugate of an image."""
         return self.complex(Vips.OperationComplex.CONJ)
 
     def sin(self):
+        """Return the sine of an image in degrees."""
         return self.math(Vips.OperationMath.SIN)
 
     def cos(self):
+        """Return the cosine of an image in degrees."""
         return self.math(Vips.OperationMath.COS)
 
     def tan(self):
+        """Return the tangent of an image in degrees."""
         return self.math(Vips.OperationMath.TAN)
 
     def asin(self):
+        """Return the inverse sine of an image in degrees."""
         return self.math(Vips.OperationMath.ASIN)
 
     def acos(self):
+        """Return the inverse cosine of an image in degrees."""
         return self.math(Vips.OperationMath.ACOS)
 
     def atan(self):
+        """Return the inverse tangent of an image in degrees."""
         return self.math(Vips.OperationMath.ATAN)
 
     def log(self):
+        """Return the natural log of an image."""
         return self.math(Vips.OperationMath.LOG)
 
     def log10(self):
+        """Return the log base 10 of an image."""
         return self.math(Vips.OperationMath.LOG10)
 
     def exp(self):
+        """Return e ** pixel."""
         return self.math(Vips.OperationMath.EXP)
 
     def exp10(self):
+        """Return 10 ** pixel."""
         return self.math(Vips.OperationMath.EXP10)
 
     # we need different imageize rules for this operator ... we need to 
     # imageize th and el to match each other first
+    @add_doc(generate_docstring("ifthenelse"))
     def ifthenelse(self, th, el, **kwargs):
         for match_image in [th, el, self]:
             if isinstance(match_image, Vips.Image):

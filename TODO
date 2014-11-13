@@ -1,4 +1,4 @@
-- why don't we get gtk-doc expansions in the leading chapters? we turn them on
+- update python section in manual
 
 - try:
 
@@ -8,34 +8,7 @@
 
   shows gir contents
 
-- can we generate python docstrings?
-
-  this works
-
-	from gi.repository import Vips
-  	help(Vips.Image.black)
-
-  but this does not
-
-  	help(Vips.Image.add)
-
-  since add is an instance method ... this does work
-
-  	a = Vips.Image.black(10, 10)
-	help(a.add)
-
-  this has loads of stuff from gi!!
-
-  	op = Vips.Operation.new("black")
-	help(op)
-
-  but does not include our docstring, strange
-
-  this has stuff from comments in Vips.py
-
-  	help(Vips.Image)
-
-  we should trim and rewrite comments
+- why don't we get gtk-doc expansions in the leading chapters? we turn them on
 
 - python fitsload has both "access" and "sequential" as kwargs, is this right?
   why do we need both?
