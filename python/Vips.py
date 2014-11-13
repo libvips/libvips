@@ -157,6 +157,13 @@ class Argument:
 
         return value
 
+    def description(self):
+        result = self.name
+        result += " " * (10 - len(self.name)) + " - " + self.prop.blurb
+        result += ", " + self.prop.value_type.name
+
+        return result
+
 Vips.Argument = Argument
 
 # search a list recursively for a Vips.Image object
@@ -391,15 +398,61 @@ def generate_docstring(name):
                       not x.isset]
 
     required_output = [x for x in args if x.flags & enm.OUTPUT and 
-                       not x.flags & enm.REQUIRED]
+                       x.flags & enm.REQUIRED]
 
     optional_output = [x for x in args if x.flags & enm.OUTPUT and 
                        not x.flags & enm.REQUIRED]
 
-    result = "usage:\n"
+    # find the first required input image, if any ... we will be a member
+    # function of this instance
+    member_x = None
+    for i in range(0, len(required_input)):
+        x = required_input[i]
+        if GObject.type_is_a(vips_type_image, x.prop.value_type):
+            member_x = x
+            break
 
+    result = op.get_description() + "\n"
+    result += "usage:\n"
+
+    result += "   " + ", ".join([x.name for x in required_output]) + " = "
+    if member_x:
+        result += member_x.name + "." + name + "("
+    else:
+        result += "Vips.Image." + name + "("
+    result += ", ".join([x.name for x in required_input
+                         if x != member_x])
+    if len(optional_input) > 0:
+        result += ", "
+    result += ", ".join([x.name + " = " + x.prop.value_type.name 
+                         for x in optional_input])
+    result += ")\n"
+
+    result += "\n"
+
+    result += "where:\n"
+    for x in required_output:
+        result += "   " + x.description() + "\n"
+
+    result += "\n"
+
+    result += "required parameters:\n"
     for x in required_input:
-        result += x.name + "\n"
+        result += "   " + x.description() + "\n"
+
+    if len(optional_input) > 0:
+        result += "\n"
+
+        result += "optional parameters:\n"
+        for x in optional_input:
+            result += "   " + x.description() + "\n"
+
+    if len(optional_output) > 0:
+        result += "\n"
+
+        result += "extra output options:\n"
+        for x in optional_output:
+            result += "   " + x.description() + "\n"
 
     return result
 
@@ -411,6 +464,13 @@ def smap(func, x):
         return map(func, x)
     else:
         return func(x)
+
+# decorator to set docstring
+def add_doc(value):
+    def _doc(func):
+        func.__doc__ = value
+        return func
+    return _doc
 
 class Image(Vips.Image):
     """This is a test docstring in Vips.py ... does this get attached to the 
@@ -455,9 +515,9 @@ class Image(Vips.Image):
         if name in dir(self.props):
             return getattr(self.props, name)
 
+        @add_doc(generate_docstring(name))
         def call_function(*args, **kwargs):
             return _call_instance(self, name, args, kwargs)
-        call_function.__doc__ = generate_docstring(name)
 
         return call_function
 
@@ -787,12 +847,6 @@ class_methods = [
                     "magickload",
                     "fitsload",
                     "openexrload"]
-
-def add_doc(value):
-    def _doc(func):
-        func.__doc__ = value
-        return func
-    return _doc
 
 def generate_class_method(name):
     @classmethod

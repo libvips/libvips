@@ -2974,3 +2974,26 @@ vips_object_unref_outputs( VipsObject *object )
 	(void) vips_argument_map( object,
 		vips_object_unref_outputs_sub, NULL, NULL );
 }
+
+/**
+ * vips_object_get_description:
+ * @object: object to fetch description from
+ *
+ * Fetch the object description. Useful for language bindings. 
+ *
+ * @object.description is only avaliable after _build(), which can be too
+ * late. This function fetches from the instance, if possible, but falls back
+ * to the class description if we are too early. 
+ * 
+ * Returns: the object description
+ */
+const char *
+vips_object_get_description( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	if( object->description ) 
+		return( object->description ) ;
+	else
+		return( class->description ) ;
+}

@@ -639,6 +639,8 @@ void vips_object_rewind( VipsObject *object );
 
 void vips_object_unref_outputs( VipsObject *object );
 
+const char *vips_object_get_description( VipsObject *object );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
