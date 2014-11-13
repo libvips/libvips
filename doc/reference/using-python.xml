@@ -24,7 +24,8 @@
       <code>Vips.py</code> file 
       needs to be copied to the overrides directory of your GOI install,
       and you need to have the vips typelib on your 
-      <code>GI_TYPELIB_PATH</code>. 
+      <code>GI_TYPELIB_PATH</code>. This may already have happened, depending 
+      on your platform. 
     </para>
 
 <example>
@@ -41,7 +42,7 @@ im = Vips.Image.new_from_file(sys.argv[1])
 im = im.extract_area(100, 100, im.width - 200, im.height - 200)
 im = im.similarity(scale = 0.9)
 mask = Vips.Image.new_from_array([[-1, -1,  -1], 
-                                  [-1,  16, -1], 
+                                  [-1, 16,  -1], 
                                   [-1, -1,  -1]], scale = 8)
 im = im.conv(mask)
 
@@ -109,9 +110,9 @@ im = im.similarity(scale = 0.9, interpolate = Vips.Interpolate.new("bicubic"))
     <para>
       The Python interface comes in two main parts. First, the C source code 
       to libvips has been marked up with special comments describing the 
-      internals in a standard way. These comments are read by 
+      interface in a standard way. These comments are read by 
       gobject-introspection when libvips is compiled and used to generate a 
-      typelib, a description of the library's internals. When your Python 
+      typelib, a description of how to call the library. When your Python 
       program starts, the import line:
 
 <programlisting language="Python">
@@ -133,10 +134,9 @@ from gi.repository import Vips
       These overrides do the following things:
 
       <itemizedlist>
+
         <listitem>
-          <para><emphasis>
-            Automatic wrapping of vips operations
-          </emphasis> </para>
+          <para><emphasis>Automatic wrapping of vips operations</emphasis> </para>
 
           <para>
             It intercepts member lookup 
@@ -148,18 +148,37 @@ from gi.repository import Vips
         </listitem>
 
         <listitem>
+          <para><emphasis>Add docstrings</emphasis> </para>
+
           <para>
-            Automatic wrapping of operation arguments. The first input image 
-            argument becomes the <code>self</code> argument. If there are no 
-            input image arguments, the operation appears as a class member. 
-            Optional input 
-            arguments become keyword arguments. The result is a list of all 
-            the output arguments, or a single output if there is only one. 
+            Try <code>help(Vips.Image)</code>, or something like:
+
+<programlisting language="Python">
+image = Vips.Image.new_from_file("x.jpg")
+help(image.add)
+</programlisting>
+
+            For any operator it'll list the required and optional input and 
+            output arguments, using all the rules listed below. This plus the 
+            C API docs should be enough to answer most questions. IDEs should
+            display the help text automatically as you work. 
           </para>
-            
+        </listitem>
+
+        <listitem>
+          <para><emphasis>Automatic wrapping of operation arguments</emphasis> </para>
+
           <para>
-            Optional output arguments are enabled with a boolean keyword 
-            argument of that name. For example, "min" (the operation which 
+            The first input image argument becomes the <code>self</code>
+            argument. If there are no input image arguments, the operation
+            appears as a class member.  Optional input arguments become
+            keyword arguments. The result is a list of all the output
+            arguments, or a single output if there is only one.
+          </para>
+
+          <para>
+            Optional output arguments are enabled with a boolean keyword
+            argument of that name. For example, "min" (the operation which
             appears in the C API as vips_min()), can be called like this:
 
 <programlisting language="Python">
@@ -174,6 +193,9 @@ min_value = im.min()
 <programlisting language="Python">
 min_value, x_pos, y_pos = im.min(x = True, y = True)
 </programlisting>
+
+            Although in this case, the <code>.minpos()</code> convenience 
+            function would be simpler. 
           </para>
         </listitem>
 
@@ -253,7 +275,8 @@ result_image = image1.bandjoin([image2, 255])
           <para>
             The wrapper spots errors from vips operations and raises the 
             <code>Vips.Error</code> exception. You can catch it in the 
-            usual way. 
+            usual way. The <code>.detail</code> member gives the detailed 
+            error message. 
           </para>
         </listitem>
 
@@ -286,6 +309,8 @@ result_image = image.math(Vips.OperationMath.SIN)
 <programlisting language="Python">
 result_image = image.sin()
 </programlisting>
+
+            See <code>help(Vips.Image)</code> for a list. 
           </para>
         </listitem>
 
@@ -297,6 +322,7 @@ result_image = image.sin()
             <code>.get_value()</code>, <code>.set_value()</code>
             <code>.bandsplit()</code>, <code>.maxpos()</code>
             <code>.minpos()</code>.
+            Again, see <code>help(Vips.Image)</code> for a list. 
           </para>
         </listitem>
 
