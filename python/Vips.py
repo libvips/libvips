@@ -174,7 +174,7 @@ class Operation(Vips.Operation):
     def get_args(self):
         args = [Argument(self, x) for x in self.props]
         args = [y for y in args 
-                if not (y.flags & Vips.ArgumentFlags.DEPRECATED)]
+                if not y.flags & Vips.ArgumentFlags.DEPRECATED]
         args.sort(lambda a, b: a.priority - b.priority)
 
         return args
@@ -205,6 +205,8 @@ def _call_base(name, required, optional, self = None, option_string = None):
         op = Vips.Operation.new(name)
     except TypeError, e:
         raise Error('No such operator.')
+    if op.get_flags() & Vips.OperationFlags.DEPRECATED:
+        raise Error('No such operator.', 'operator "%s" is deprecated' % name)
 
     # set str options first so the user can't override things we set
     # deliberately and break stuff
@@ -412,7 +414,9 @@ def generate_docstring(name):
     try:
         op = Vips.Operation.new(name)
     except TypeError, e:
-        return 'No such operator ' + name
+        raise Error('No such operator.')
+    if op.get_flags() & Vips.OperationFlags.DEPRECATED:
+        raise Error('No such operator.', 'operator "%s" is deprecated' % name)
 
     # find all the args for this op, sort into priority order
     args = op.get_args()

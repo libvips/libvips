@@ -22,7 +22,6 @@ libdeprecated_la_SOURCES = \
 	hist_dispatch.c \
 	other_dispatch.c \
 	im_maxpos_avg.c \
-	wrapvips7.c \
 	lazy.c \
 	im_dif_std.c \
 	im_simcontr.c \

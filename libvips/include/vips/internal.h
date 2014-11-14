@@ -198,10 +198,6 @@ void vips__draw_circle_direct( VipsImage *image, int cx, int cy, int r,
  */
 void vips__interpolate_init( void );
 
-/* Register wrappers for all the vips7 operations.
- */
-void vips__init_wrap7_classes( void );
-
 /* Start up various packages.
  */
 void vips_arithmetic_operation_init( void );

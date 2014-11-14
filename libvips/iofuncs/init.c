@@ -367,10 +367,6 @@ vips_init( const char *argv0 )
 		vips_error_clear();
 	}
 
-	/* Build classes which wrap old vips7 operations.
-	 */
-	vips__init_wrap7_classes();
-
 	/* Start up the buffer cache.
 	 */
 	vips__buffer_init();
