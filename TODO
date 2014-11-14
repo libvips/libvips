@@ -8,26 +8,11 @@
 
 - why don't we get gtk-doc expansions in the leading chapters? we turn them on
 
-- python fitsload has both "access" and "sequential" as kwargs, is this right?
-  why do we need both?
+- does Vips.py need to hide deprecated operations?
 
-  try:
+- note we automatically copy modified args in Vips.py
 
-	$ vips fitsload
-	load a FITS image
-	usage:
-	   fitsload filename out
-	where:
-	   filename     - Filename to load from, input gchararray
-	   out          - Output image, output VipsImage
-	optional arguments:
-	   flags        - Flags for this file, output VipsForeignFlags
-	   disc         - Open to disc, input gboolean
-	   access       - Required access pattern for this file, input VipsAccess
-
-  seq is not there ... do we need to hide deprecated?
-
-  check cplusplus as well
+- does cplusplus need to hide deprecated args and operations?
 
 - test other arg types
 

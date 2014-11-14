@@ -164,6 +164,24 @@ class Argument:
 
 Vips.Argument = Argument
 
+class Operation(Vips.Operation):
+
+    def __init__(self):
+        Vips.Operation.__init__(self)
+
+    # find all the args for this op, sort into priority order
+    # remember to ignore deprecated ones
+    def get_args(self):
+        args = [Argument(self, x) for x in self.props]
+        args = [y for y in args 
+                if not (y.flags & Vips.ArgumentFlags.DEPRECATED)]
+        args.sort(lambda a, b: a.priority - b.priority)
+
+        return args
+
+Operation = override(Operation)
+__all__.append('Operation')
+
 # search a list recursively for a Vips.Image object
 def find_image(x):
     if isinstance(x, Vips.Image):
@@ -194,9 +212,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
         if op.set_from_string(option_string) != 0:
             raise Error('Bad arguments.')
 
-    # find all the args for this op, sort into priority order
-    args = [Argument(op, x) for x in op.props]
-    args.sort(lambda a, b: a.priority - b.priority)
+    args = op.get_args()
 
     enm = Vips.ArgumentFlags
 
@@ -276,8 +292,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
 
     # rescan args if op2 is different from op
     if op2 != op:
-        args = [Argument(op2, x) for x in op2.props]
-        args.sort(lambda a, b: a.priority - b.priority)
+        args = op2.get_args()
         optional_output = {x.name: x for x in args if x.flags & enm.OUTPUT and 
                            not x.flags & enm.REQUIRED}
 
@@ -400,8 +415,7 @@ def generate_docstring(name):
         return 'No such operator ' + name
 
     # find all the args for this op, sort into priority order
-    args = [Argument(op, x) for x in op.props]
-    args.sort(lambda a, b: a.priority - b.priority)
+    args = op.get_args()
 
     enm = Vips.ArgumentFlags
 
