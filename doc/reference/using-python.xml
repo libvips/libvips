@@ -15,8 +15,8 @@
     <refpurpose>How to use the VIPS library from Python</refpurpose>
   </refnamediv>
 
-  <refsect1 id="using-python">
-    <title>Using VIPS from Python</title>
+  <refsect1 id="python-intro">
+    <title>Introduction</title>
     <para>
       VIPS comes with a convenient, high-level Python API based 
       on <code>gobject-introspection</code>. As long as you can get GOI 
@@ -28,8 +28,7 @@
       on your platform. 
     </para>
 
-<example>
-<title>VIPS from Python example</title>
+    <para>
 <programlisting language="Python">
 #!/usr/bin/python
 
@@ -48,40 +47,34 @@ im = im.conv(mask)
 
 im.write_to_file(sys.argv[2])
 </programlisting>
-</example>
 
-    <para>
-      Reading the example, the first line loads the input file. You can append
+      Reading this example, the first line loads the input file. You can append
       load options to the argument list as keyword arguments, for example:
 
 <programlisting language="Python">
 im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
 </programlisting>
 
-      See the various loaders for a list of the available options for each 
-      file format. The C 
-      equivalent to this function, vips_image_new_from_file(), has more 
-      extensive documentation. 
+      See the various loaders for a list of the available options
+      for each file format. The C equivalent to this function,
+      vips_image_new_from_file(), has more extensive documentation. Try
+      <code>help(Vips.Image)</code> to see a list of all the image 
+      constructors --- you can load from memory, or create from an array, 
+      for example. 
 	  </para>
 
     <para>
-	    There are 
-      several other constructors: you can load a formatted image (for example, 
-      a JPEG format image) from a string with <code>.new_from_buffer()</code>. 
+      The next line crops 100 pixels off every edge. Try
+      <code>help(im.extract_area)</code> and the C API docs for
+      vips_extract_area() for details. You can use <code>.crop()</code> as a
+      synonym, if you like. <code>im.width</code> gets the image width in
+      pixels, see <code>help(Vips.Image)</code> and vips_image_get_width()
+      and friends for a list of the other getters.
     </para>
 
     <para>
-      The next line crops 100 pixels off every edge. See the docs for the C 
-      function vips_extract_area() for details of the parameters. You can use 
-      <code>.crop()</code> as a synonym, if you like. 
-      <code>im.width</code> gets the image width in pixels, see 
-      vips_image_get_width() and friends for a list of the other getters. 
-    </para>
-
-    <para>
-      The <code>similarity</code> line shrinks by 10%, see the docs for the C 
-      function vips_similarity() for details. By default it uses bilinear 
-      interpolation, use <code>interpolate</code> to pick another 
+      The <code>similarity</code> line shrinks by 10%.  By default it uses
+      bilinear interpolation, use <code>interpolate</code> to pick another
       interpolator, for example:
 
 <programlisting language="Python">
@@ -124,139 +117,134 @@ from gi.repository import Vips
       from your code, and they will call into libvips for you. C functions 
       become Python functions in an obvious way: vips_operation_new(), 
       for example, the constructor for the class #VipsOperation, becomes 
-      <code>Vips.Operation.new()</code>.
+      <code>Vips.Operation.new()</code>. See the C API docs for details. 
     </para>
 
     <para>
       Using libvips like this is possible, but a bit painful. To make the API 
-      seem more pythonesque, vips includes a set of overrides which wrap up 
-      the bare functions created by gobject-introspection in a nicer package. 
-      These overrides do the following things:
+      seem more pythonesque, vips includes a set of overrides which form a 
+      layer over the bare functions created by gobject-introspection.
+    </para>
+  </refsect1>
 
-      <itemizedlist>
+  <refsect1 id="python-wrapping">
+    <title>Automatic wrapping</title>
+    <para>
+      The overrides intercept member lookup 
+      on the <code>Vips.Image</code> class and look for vips operations
+      with that name. So the vips operation "add", which appears in the 
+      C API as vips_add(), appears in Python as 
+      <code>image.add()</code>. 
+    </para>
 
-        <listitem>
-          <para><emphasis>Automatic wrapping of vips operations</emphasis> </para>
+    <para>
+      The first input image argument becomes the <code>self</code>
+      argument. If there are no input image arguments, the operation
+      appears as a class member.  Optional input arguments become
+      keyword arguments. The result is a list of all the output
+      arguments, or a single output if there is only one.
+    </para>
 
-          <para>
-            It intercepts member lookup 
-            on the <code>Vips.Image</code> class and looks for vips operations
-            with that name. So the vips operation "add", which appears in the 
-            C API as vips_add(), appears in Python as 
-            <code>Vips.Image.add</code>.
-          </para>
-        </listitem>
-
-        <listitem>
-          <para><emphasis>Add docstrings</emphasis> </para>
-
-          <para>
-            Try <code>help(Vips.Image)</code>, or something like:
-
-<programlisting language="Python">
-image = Vips.Image.new_from_file("x.jpg")
-help(image.add)
-</programlisting>
-
-            For any operator it'll list the required and optional input and 
-            output arguments, using all the rules listed below. This plus the 
-            C API docs should be enough to answer most questions. IDEs should
-            display the help text automatically as you work. 
-          </para>
-        </listitem>
-
-        <listitem>
-          <para><emphasis>Automatic wrapping of operation arguments</emphasis> </para>
-
-          <para>
-            The first input image argument becomes the <code>self</code>
-            argument. If there are no input image arguments, the operation
-            appears as a class member.  Optional input arguments become
-            keyword arguments. The result is a list of all the output
-            arguments, or a single output if there is only one.
-          </para>
-
-          <para>
-            Optional output arguments are enabled with a boolean keyword
-            argument of that name. For example, "min" (the operation which
-            appears in the C API as vips_min()), can be called like this:
+    <para>
+      Optional output arguments are enabled with a boolean keyword
+      argument of that name. For example, "min" (the operation which
+      appears in the C API as vips_min()), can be called like this:
 
 <programlisting language="Python">
 min_value = im.min()
 </programlisting>
 
-            and <code>min_value</code> will be a floating point value giving 
-            the minimum value in the image. "min" can also find the position 
-            of the minimum value with the <code>x</code> and <code>y</code>
-            optional output arguments. Call it like this:
+      and <code>min_value</code> will be a floating point value giving 
+      the minimum value in the image. "min" can also find the position 
+      of the minimum value with the <code>x</code> and <code>y</code>
+      optional output arguments. Call it like this:
 
 <programlisting language="Python">
 min_value, x_pos, y_pos = im.min(x = True, y = True)
 </programlisting>
 
-            Although in this case, the <code>.minpos()</code> convenience 
-            function would be simpler. 
-          </para>
-        </listitem>
+      Although in this case, the <code>.minpos()</code> convenience 
+      function would be simpler. 
+    </para>
 
-        <listitem>
-          <para><emphasis>Automatic type conversion</emphasis></para>
-          <para>
-            The override looks at the type of 
-            argument required by the operation and converts the value you 
-            supply, when it can. For example, "linear" takes a 
-            #VipsArrayDouble as an argument for the constant to use for 
-            multiplication. You can supply this value as an integer, a float, 
-            or some kind of compound object and it will be converted for you.
-          </para>
+    <para>
+      Because operations are member functions and return the result image,
+      you can chain them. For example, you can write:
 
-          <para>
-            It does a couple of more ambitious conversions. It will 
-            automatically convert to and from the various vips types, 
-            like #VipsBlob and #VipsArrayImage. For example, you can read the
-            ICC profile out of an image like this:
+<programlisting language="Python">
+result_image = image.sin().pow(2)
+</programlisting>
+
+      to calculate the square of the sine for each pixel. There is also a
+      full set of arithmetic operator overloads, see below.
+    </para>
+
+    <para>
+      VIPS types are also automatically wrapped.  The override looks
+      at the type of argument required by the operation and converts
+      the value you supply, when it can. For example, "linear" takes a
+      #VipsArrayDouble as an argument for the set of constants to use for
+      multiplication. You can supply this value as an integer, a float,
+      or some kind of compound object and it will be converted for you.
+      You can write:
+
+<programlisting language="Python">
+result_image = image.linear(1, 3)
+result_image = image.linear(12.4, 13.9)
+result_image = image.linear([1, 2, 3], [4, 5, 6])
+result_image = image.linear(1, [4, 5, 6])
+</programlisting>
+
+      And so on. A set of overloads are defined for <code>.linear()</code>, 
+      see below. 
+    </para>
+
+    <para>
+      It does a couple of more ambitious conversions. It will 
+      automatically convert to and from the various vips types, 
+      like #VipsBlob and #VipsArrayImage. For example, you can read the
+      ICC profile out of an image like this:
 
 <programlisting language="Python">
 profile = im.get_value("icc-profile-data")
 </programlisting>
 
-            and <code>profile</code> will be a string. 
-          </para>
+      and <code>profile</code> will be a string. 
+    </para>
 
-          <para>
-            If an operation 
-            takes several input images, you can use a constant for all but 
-            one of them and the wrapper will make a constant image for you. 
-            For example, <code>.ifthenelse()</code> uses a condition image to 
-            pick pixels between a then and an else image: 
+    <para>
+      If an operation takes several input images, you can use a constant
+      for all but one of them and the wrapper will expand the constant
+      to an image for you.  For example, <code>.ifthenelse()</code> uses
+      a condition image to pick pixels between a then and an else image:
 
 <programlisting language="Python">
 result_image = condition_image.ifthenelse(then_image, else_image)
 </programlisting>
 
-            You can use a constant instead of either the then or the else 
-            parts, and it will be expanded to an image for you. If you use a 
-            constant for both then and else, it will be expanded to match the 
-            condition image. For example:
+      You can use a constant instead of either the then or the else 
+      parts, and it will be expanded to an image for you. If you use a 
+      constant for both then and else, it will be expanded to match the 
+      condition image. For example:
 
 <programlisting language="Python">
 result_image = condition_image.ifthenelse([0, 255, 0], [255, 0, 0])
 </programlisting>
 
-            Will make an image where true pixels are green and false pixels 
-            are red.
-          </para>
+      Will make an image where true pixels are green and false pixels 
+      are red.
+    </para>
 
-          <para>
-            This is useful for <code>.bandjoin()</code>, the thing to join 
-            two, or a set of images up bandwise. You can write:
+    <para>
+      This is useful for <code>.bandjoin()</code>, the thing to join 
+      two or more images up bandwise. You can write:
 
 <programlisting language="Python">
 rgba = rgb.bandjoin(255)
 </programlisting>
       
-            to add a constant 255 band to an image, perhaps to add an alpha 
-            channel. Of course you can also write:
+      to add a constant 255 band to an image, perhaps to add an alpha 
+      channel. Of course you can also write:
 
 <programlisting language="Python">
 result_image = image1.bandjoin(image2)
@@ -265,70 +253,89 @@ result_image = Vips.Image.bandjoin([image1, image2, image3])
 result_image = image1.bandjoin([image2, 255])
 </programlisting>
       
-            and so on. 
-          </para>
-        </listitem>
+      and so on. 
+    </para>
+  </refsect1>
 
-        <listitem>
-          <para><emphasis>Exceptions</emphasis></para>
-          
-          <para>
-            The wrapper spots errors from vips operations and raises the 
-            <code>Vips.Error</code> exception. You can catch it in the 
-            usual way. The <code>.detail</code> member gives the detailed 
-            error message. 
-          </para>
-        </listitem>
+  <refsect1 id="python-doc">
+    <title>Automatic docstrings</title>
+    <para>
+      Try <code>help(Vips)</code> for everything,
+      <code>help(Vips.Image)</code> for something slightly more digestible, or
+      something like <code>help(Vips.Image.black)</code> for help on a
+      specific class member.
+    </para>
 
-        <listitem>
-          <para><emphasis>Overloads</emphasis></para>
+    <para>
+      You can't get help on dynamically bound member functions like 
+      <code>.add()</code> this way. Instead, make an image and get help
+      from that, for example:
 
-          <para>
-            The wrapper defines the usual set of arithmetic, boolean and 
-            relation overloads on 
-            <code>image</code>. You can mix images, constants and lists of 
-            constants (almost) freely. 
-          </para>
-        </listitem>
+<programlisting language="Python">
+image = Vips.Image.new_from_file("x.jpg")
+help(image.add)
+</programlisting>
 
-        <listitem>
-          <para><emphasis>Expansions</emphasis></para>
+      And you'll get a summary of the operator's behaviour and how the
+      arguments are represented in Python. Use the C API docs for more detail.
+    </para>
+  </refsect1>
 
-          <para>
-            Some vips operators take an enum to select an action, for example
-            <code>.math()</code> can be used to calculate sine of every pixel 
-            like this:
+  <refsect1 id="python-exceptions">
+    <title>Exceptions</title>
+    <para>
+      The wrapper spots errors from vips operations and raises the 
+      <code>Vips.Error</code> exception. You can catch it in the 
+      usual way. The <code>.detail</code> member gives the detailed 
+      error message. 
+    </para>
+  </refsect1>
+
+  <refsect1 id="python-overloads">
+    <title>Overloads</title>
+    <para>
+      The wrapper defines the usual set of arithmetic, boolean and 
+      relational overloads on 
+      <code>image</code>. You can mix images, constants and lists of 
+      constants (almost) freely. For example, you can write:
+
+<programlisting language="Python">
+result_image = ((image * [1, 2, 3]).abs() &lt; 128) | 4
+</programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 id="python-expansions">
+    <title>Expansions</title>
+    <para>
+      Some vips operators take an enum to select an action, for example
+      <code>.math()</code> can be used to calculate sine of every pixel 
+      like this:
 
 <programlisting language="Python">
 result_image = image.math(Vips.OperationMath.SIN)
 </programlisting>
 
-            This is annoying, so the wrapper expands all these enums into 
-            separate members named after the enum. So you can write:
+      This is annoying, so the wrapper expands all these enums into 
+      separate members named after the enum. So you can write:
 
 <programlisting language="Python">
 result_image = image.sin()
 </programlisting>
 
-            See <code>help(Vips.Image)</code> for a list. 
-          </para>
-        </listitem>
-
-        <listitem>
-          <para><emphasis>Utility functions</emphasis></para>
-
-          <para>
-            The wrapper defines a few extra useful utility functions: 
-            <code>.get_value()</code>, <code>.set_value()</code>
-            <code>.bandsplit()</code>, <code>.maxpos()</code>
-            <code>.minpos()</code>.
-            Again, see <code>help(Vips.Image)</code> for a list. 
-          </para>
-        </listitem>
-
-      </itemizedlist>
+      See <code>help(Vips.Image)</code> for a list. 
     </para>
-      
+  </refsect1>
+
+  <refsect1 id="python-utility">
+    <title>Convenience functions</title>
+    <para>
+      The wrapper defines a few extra useful utility functions: 
+      <code>.get_value()</code>, <code>.set_value()</code>
+      <code>.bandsplit()</code>, <code>.maxpos()</code>
+      <code>.minpos()</code>.
+      Again, see <code>help(Vips.Image)</code> for a list. 
+    </para>
   </refsect1>
 
 </refentry>

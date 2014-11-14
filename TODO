@@ -1,5 +1,3 @@
-- update python section in manual
-
 - try:
 
 	$ cd vips-x.x.x/libvips
@@ -12,6 +10,24 @@
 
 - python fitsload has both "access" and "sequential" as kwargs, is this right?
   why do we need both?
+
+  try:
+
+	$ vips fitsload
+	load a FITS image
+	usage:
+	   fitsload filename out
+	where:
+	   filename     - Filename to load from, input gchararray
+	   out          - Output image, output VipsImage
+	optional arguments:
+	   flags        - Flags for this file, output VipsForeignFlags
+	   disc         - Open to disc, input gboolean
+	   access       - Required access pattern for this file, input VipsAccess
+
+  seq is not there ... do we need to hide deprecated?
+
+  check cplusplus as well
 
 - test other arg types
 
