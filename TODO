@@ -1,12 +1,3 @@
-- try:
-
-	$ cd vips-x.x.x/libvips
-	$ g-ir-doc-tool --language=Python -o /tmp/vips-doc Vips-8.0.gir 
-	$ yelp /tmp/vips-doc
-
-  shows gir contents
-
-- why don't we get gtk-doc expansions in the leading chapters? we turn them on
 
 - test other cpp arg types
 

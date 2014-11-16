@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
+<!-- vim: set ts=2 sw=2 expandtab: --> 
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
                "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
 ]>
-<!-- vim: set ts=2 sw=2 expandtab: --> 
 <refentry id="using-from-c">
   <refmeta>
     <refentrytitle>VIPS from C</refentrytitle>
@@ -28,7 +28,7 @@
       When your program starts, use <code>VIPS_INIT()</code>
       to start up the VIPS library. You should pass it the name
       of your program, usually <code>argv[0]</code>. Use
-      <code>vips_shutdown()</code> when you exit.
+      vips_shutdown() when you exit.
     </para>
 
     <para>
@@ -37,12 +37,10 @@
     </para>
 
     <para>
-      The basic data object is the <link
-      linkend="VipsImage">VipsImage</link>.
-      You can create an image from a file on disc or from an
-      area of memory, either as a C-style array, or as a formatted object,
-      like JPEG. See <function>vips_image_new_from_file()</function> and 
-      friends.  Loading an
+      The basic data object is the #VipsImage. You can create an
+      image from a file on disc or from an area of memory, either
+      as a C-style array, or as a formatted object, like JPEG. See
+      vips_image_new_from_file() and friends.  Loading an
       image is fast. VIPS read just enough of the image to be able to get
       the various properties, such as width in pixels. It delays reading
       any pixels until they are really needed.
@@ -51,14 +49,14 @@
     <para>
       Once you have an image, you can get properties from it in the usual way. 
       You can use projection functions, like vips_image_get_width() or 
-      g_object_get(), to get GObject properties. All VIPS objects are
+      g_object_get(), to get %GObject properties. All VIPS objects are
       immutable, meaning you can only get properties, you can't set them.
       See <link linkend="libvips-header">VIPS Header</link> to read about 
       image properties.
     </para>
 
     <para>
-      VIPS is based on the GObject library and is therefore refcounted. 
+      VIPS is based on the %GObject library and is therefore refcounted. 
       vips_image_new_from_file() returns an object with a count of 1. 
       When you are done with an image, use g_object_unref() to dispose of it. 
       If you pass an image to an operation and that operation needs to keep a 

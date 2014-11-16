@@ -85,9 +85,9 @@ main( int argc, char **argv )
 </programlisting>
 
     <para>
-      Everything before <code>VImage in = VImage::..</code> is exactly as the C 
-      API. This boilerplate gives the example a set of standard command-line 
-      flags. 
+      Everything before <code>VImage in = VImage::..</code> is exactly
+      as the C API. This boilerplate gives the example a set of standard
+      command-line flags.
     </para>
 
     <para>
@@ -104,7 +104,7 @@ main( int argc, char **argv )
 
         <listitem>
           <para>
-            Instead of using varargs and a NULL-terminated option list, this 
+            Instead of using varargs and a %NULL-terminated option list, this 
             function takes an optional <code>VOption</code> pointer. This 
             gives a list of name / value pairs for optional arguments to the 
             function.
@@ -117,8 +117,8 @@ main( int argc, char **argv )
           </para>
 
           <para>
-            The function will delete the #VOption pointer for us when it's 
-            finished with it.
+            The function will delete the <code>VOption</code> pointer for
+            us when it's finished with it.
           </para>
         </listitem>
 
@@ -156,13 +156,13 @@ main( int argc, char **argv )
 
           <para>
             Like VImage::new_from_file(), function raises the 
-            <code>vips::VError</code> exception on error.
+            <code>VError</code> exception on error.
           </para>
 
           <para>
             Like VImage::new_from_file(), extra arguments are passed 
-            via an optional #VOption parameter. There are none in this case, 
-            so the function brackets can be left empty.
+            via an optional <code>VOption</code> parameter. There are none
+            in this case, so the function brackets can be left empty.
           </para>
         </listitem>
       </itemizedlist>

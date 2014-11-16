@@ -53,14 +53,14 @@ typedef struct _NegativeClass {
     </para>
 
     <para>
-      GObject has a handy macro to write some of the boilerplate for you.
+      %GObject has a handy macro to write some of the boilerplate for you.
 
 <programlisting language="C">
 G_DEFINE_TYPE( Negative, negative, VIPS_TYPE_OPERATION );
 </programlisting>
 
       This defines a function called negative_get_type(),
-      which registers this new class and returns its #GType (a
+      which registers this new class and returns its %GType (a
       pointer-sized integer). negative_get_type() in turn needs two
       functions, negative_init(), to initialise a new instance, and
       negative_class_init(), to initialise a new class.
@@ -149,7 +149,7 @@ negative_class_init( NegativeClass *class )
     </para>
 
     <para>
-      The build function is the thing VipsObject calls after supplying
+      The build function is the thing #VipsObject calls after supplying
       arguments. It checks that all required arguments have been set and are
       valid and constructs the object. After build, the object is expected
       to be ready for use.
