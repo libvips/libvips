@@ -2,6 +2,7 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
                "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
 ]>
+<!-- vim: set ts=2 sw=2 expandtab: --> 
 <refentry id="using-from-c">
   <refmeta>
     <refentrytitle>VIPS from C</refentrytitle>
@@ -15,7 +16,7 @@
   </refnamediv>
 
   <refsect1 id="using-C">
-    <title>Using VIPS from C</title>
+    <title>Introduction</title>
     <para>
       VIPS comes with a convenient, high-level C API. You should read the API 
       docs for full details, but this section will try to give a brief 
@@ -24,15 +25,15 @@
     </para>
 
     <para>
-      When your program starts, use <function>VIPS_INIT()</function> to set up 
-      the VIPS library. You should pass it the name of your program, usually 
-      <literal>argv[0]</literal>. Use <function>vips_shutdown()</function> 
-      when you exit. 
+      When your program starts, use <code>VIPS_INIT()</code>
+      to start up the VIPS library. You should pass it the name
+      of your program, usually <code>argv[0]</code>. Use
+      <code>vips_shutdown()</code> when you exit.
     </para>
 
     <para>
       You can add the VIPS flags to your %GObject command-line processing
-      with <function>vips_get_option_group()</function>, see below.
+      with <code>vips_get_option_group()</code>, see below.
     </para>
 
     <para>

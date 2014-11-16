@@ -94,7 +94,8 @@ im = im.similarity(scale = 0.9, interpolate = Vips.Interpolate.new("bicubic"))
     <para>
       Finally, <code>.write_to_file()</code> sends the image back to the 
       filesystem. There's also <code>.write_to_buffer()</code> to make a 
-      string containing the formatted image. 
+      string containing the formatted image, and <code>.write()</code> to 
+      write to another image. 
     </para>
   </refsect1>
 
