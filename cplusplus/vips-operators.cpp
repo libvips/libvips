@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Tue Oct 28 10:00:00 GMT 2014
+// Sun Nov 16 12:18:23 GMT 2014
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -17,9 +17,9 @@ VImage VImage::add( VImage right , VOption *options )
 
     call( "add" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
-            set( "right", right ) );
+            set( "right", right ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -31,9 +31,9 @@ VImage VImage::subtract( VImage right , VOption *options )
 
     call( "subtract" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
-            set( "right", right ) );
+            set( "right", right ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -45,9 +45,9 @@ VImage VImage::multiply( VImage right , VOption *options )
 
     call( "multiply" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
-            set( "right", right ) );
+            set( "right", right ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -59,9 +59,9 @@ VImage VImage::divide( VImage right , VOption *options )
 
     call( "divide" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
-            set( "right", right ) );
+            set( "right", right ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -73,9 +73,9 @@ VImage VImage::relational( VImage right , VipsOperationRelational relational , V
 
     call( "relational" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
             set( "right", right ) ->
+            set( "out", &out ) ->
             set( "relational", relational ) );
 
     return( out );
@@ -88,9 +88,9 @@ VImage VImage::remainder( VImage right , VOption *options )
 
     call( "remainder" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
-            set( "right", right ) );
+            set( "right", right ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -102,9 +102,9 @@ VImage VImage::boolean( VImage right , VipsOperationBoolean boolean , VOption *o
 
     call( "boolean" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
             set( "right", right ) ->
+            set( "out", &out ) ->
             set( "boolean", boolean ) );
 
     return( out );
@@ -117,9 +117,9 @@ VImage VImage::math2( VImage right , VipsOperationMath2 math2 , VOption *options
 
     call( "math2" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
             set( "right", right ) ->
+            set( "out", &out ) ->
             set( "math2", math2 ) );
 
     return( out );
@@ -132,9 +132,9 @@ VImage VImage::complex2( VImage right , VipsOperationComplex2 cmplx , VOption *o
 
     call( "complex2" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
             set( "right", right ) ->
+            set( "out", &out ) ->
             set( "cmplx", cmplx ) );
 
     return( out );
@@ -147,9 +147,9 @@ VImage VImage::complexform( VImage right , VOption *options )
 
     call( "complexform" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
-            set( "right", right ) );
+            set( "right", right ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -161,8 +161,8 @@ VImage VImage::sum( std::vector<VImage> in , VOption *options )
 
     call( "sum" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", in ) );
+            set( "in", in ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -174,8 +174,8 @@ VImage VImage::invert( VOption *options )
 
     call( "invert" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -187,8 +187,8 @@ VImage VImage::linear( std::vector<double> a , std::vector<double> b , VOption *
 
     call( "linear" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "a", a ) ->
             set( "b", b ) );
 
@@ -202,8 +202,8 @@ VImage VImage::math( VipsOperationMath math , VOption *options )
 
     call( "math" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "math", math ) );
 
     return( out );
@@ -216,8 +216,8 @@ VImage VImage::abs( VOption *options )
 
     call( "abs" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -229,8 +229,8 @@ VImage VImage::sign( VOption *options )
 
     call( "sign" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -242,8 +242,8 @@ VImage VImage::round( VipsOperationRound round , VOption *options )
 
     call( "round" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "round", round ) );
 
     return( out );
@@ -256,8 +256,8 @@ VImage VImage::relational_const( std::vector<double> c , VipsOperationRelational
 
     call( "relational_const" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "c", c ) ->
             set( "relational", relational ) );
 
@@ -271,8 +271,8 @@ VImage VImage::remainder_const( std::vector<double> c , VOption *options )
 
     call( "remainder_const" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "c", c ) );
 
     return( out );
@@ -285,8 +285,8 @@ VImage VImage::boolean_const( std::vector<double> c , VipsOperationBoolean boole
 
     call( "boolean_const" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "c", c ) ->
             set( "boolean", boolean ) );
 
@@ -300,8 +300,8 @@ VImage VImage::math2_const( std::vector<double> c , VipsOperationMath2 math2 , V
 
     call( "math2_const" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "c", c ) ->
             set( "math2", math2 ) );
 
@@ -315,8 +315,8 @@ VImage VImage::complex( VipsOperationComplex cmplx , VOption *options )
 
     call( "complex" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "cmplx", cmplx ) );
 
     return( out );
@@ -329,8 +329,8 @@ VImage VImage::complexget( VipsOperationComplexget get , VOption *options )
 
     call( "complexget" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "get", get ) );
 
     return( out );
@@ -610,8 +610,8 @@ VImage VImage::embed( int x , int y , int width , int height , VOption *options 
 
     call( "embed" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "x", x ) ->
             set( "y", y ) ->
             set( "width", width ) ->
@@ -641,9 +641,9 @@ VImage VImage::insert( VImage sub , int x , int y , VOption *options )
 
     call( "insert" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "main", *this ) ->
             set( "sub", sub ) ->
+            set( "out", &out ) ->
             set( "x", x ) ->
             set( "y", y ) );
 
@@ -657,9 +657,9 @@ VImage VImage::join( VImage in2 , VipsDirection direction , VOption *options )
 
     call( "join" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in1", *this ) ->
             set( "in2", in2 ) ->
+            set( "out", &out ) ->
             set( "direction", direction ) );
 
     return( out );
@@ -672,8 +672,8 @@ VImage VImage::extract_area( int left , int top , int width , int height , VOpti
 
     call( "extract_area" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "input", *this ) ->
+            set( "out", &out ) ->
             set( "left", left ) ->
             set( "top", top ) ->
             set( "width", width ) ->
@@ -689,8 +689,8 @@ VImage VImage::extract_band( int band , VOption *options )
 
     call( "extract_band" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "band", band ) );
 
     return( out );
@@ -703,8 +703,8 @@ VImage VImage::bandjoin( std::vector<VImage> in , VOption *options )
 
     call( "bandjoin" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", in ) );
+            set( "in", in ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -716,8 +716,8 @@ VImage VImage::bandrank( std::vector<VImage> in , VOption *options )
 
     call( "bandrank" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", in ) );
+            set( "in", in ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -729,8 +729,8 @@ VImage VImage::bandmean( VOption *options )
 
     call( "bandmean" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -742,8 +742,8 @@ VImage VImage::bandbool( VipsOperationBoolean boolean , VOption *options )
 
     call( "bandbool" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "boolean", boolean ) );
 
     return( out );
@@ -756,8 +756,8 @@ VImage VImage::replicate( int across , int down , VOption *options )
 
     call( "replicate" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "across", across ) ->
             set( "down", down ) );
 
@@ -825,10 +825,10 @@ VImage VImage::ifthenelse( VImage in1 , VImage in2 , VOption *options )
 
     call( "ifthenelse" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "cond", *this ) ->
             set( "in1", in1 ) ->
-            set( "in2", in2 ) );
+            set( "in2", in2 ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -840,8 +840,8 @@ VImage VImage::recomb( VImage m , VOption *options )
 
     call( "recomb" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "m", m ) );
 
     return( out );
@@ -909,8 +909,8 @@ VImage VImage::zoom( int xfac , int yfac , VOption *options )
 
     call( "zoom" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "input", *this ) ->
+            set( "out", &out ) ->
             set( "xfac", xfac ) ->
             set( "yfac", yfac ) );
 
@@ -924,8 +924,8 @@ VImage VImage::subsample( int xfac , int yfac , VOption *options )
 
     call( "subsample" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "input", *this ) ->
+            set( "out", &out ) ->
             set( "xfac", xfac ) ->
             set( "yfac", yfac ) );
 
@@ -939,8 +939,8 @@ VImage VImage::msb( VOption *options )
 
     call( "msb" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -952,8 +952,8 @@ VImage VImage::falsecolour( VOption *options )
 
     call( "falsecolour" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -965,8 +965,8 @@ VImage VImage::gamma( VOption *options )
 
     call( "gamma" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1285,8 +1285,8 @@ VImage VImage::buildlut( VOption *options )
 
     call( "buildlut" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1298,8 +1298,8 @@ VImage VImage::invertlut( VOption *options )
 
     call( "invertlut" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1350,8 +1350,8 @@ VImage VImage::radload( char * filename , VOption *options )
 
     call( "radload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1363,8 +1363,8 @@ VImage VImage::ppmload( char * filename , VOption *options )
 
     call( "ppmload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1376,8 +1376,8 @@ VImage VImage::csvload( char * filename , VOption *options )
 
     call( "csvload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1389,8 +1389,8 @@ VImage VImage::matrixload( char * filename , VOption *options )
 
     call( "matrixload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1402,8 +1402,8 @@ VImage VImage::analyzeload( char * filename , VOption *options )
 
     call( "analyzeload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1415,8 +1415,8 @@ VImage VImage::rawload( char * filename , int width , int height , int bands , V
 
     call( "rawload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "filename", filename ) ->
+            set( "out", &out ) ->
             set( "width", width ) ->
             set( "height", height ) ->
             set( "bands", bands ) );
@@ -1431,8 +1431,8 @@ VImage VImage::vipsload( char * filename , VOption *options )
 
     call( "vipsload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1444,8 +1444,8 @@ VImage VImage::pngload( char * filename , VOption *options )
 
     call( "pngload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1457,8 +1457,8 @@ VImage VImage::pngload_buffer( VipsBlob * buffer , VOption *options )
 
     call( "pngload_buffer" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "buffer", buffer ) );
+            set( "buffer", buffer ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1470,8 +1470,8 @@ VImage VImage::matload( char * filename , VOption *options )
 
     call( "matload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1483,8 +1483,8 @@ VImage VImage::jpegload( char * filename , VOption *options )
 
     call( "jpegload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1496,8 +1496,8 @@ VImage VImage::jpegload_buffer( VipsBlob * buffer , VOption *options )
 
     call( "jpegload_buffer" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "buffer", buffer ) );
+            set( "buffer", buffer ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1509,8 +1509,8 @@ VImage VImage::webpload( char * filename , VOption *options )
 
     call( "webpload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1522,8 +1522,8 @@ VImage VImage::webpload_buffer( VipsBlob * buffer , VOption *options )
 
     call( "webpload_buffer" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "buffer", buffer ) );
+            set( "buffer", buffer ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1535,8 +1535,8 @@ VImage VImage::tiffload( char * filename , VOption *options )
 
     call( "tiffload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1548,8 +1548,8 @@ VImage VImage::tiffload_buffer( VipsBlob * buffer , VOption *options )
 
     call( "tiffload_buffer" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "buffer", buffer ) );
+            set( "buffer", buffer ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1561,8 +1561,8 @@ VImage VImage::openslideload( char * filename , VOption *options )
 
     call( "openslideload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1574,8 +1574,8 @@ VImage VImage::magickload( char * filename , VOption *options )
 
     call( "magickload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1587,8 +1587,8 @@ VImage VImage::fitsload( char * filename , VOption *options )
 
     call( "fitsload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1600,8 +1600,8 @@ VImage VImage::openexrload( char * filename , VOption *options )
 
     call( "openexrload" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "filename", filename ) );
+            set( "filename", filename ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1870,8 +1870,8 @@ VImage VImage::Lab2XYZ( VOption *options )
 
     call( "Lab2XYZ" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1883,8 +1883,8 @@ VImage VImage::XYZ2Lab( VOption *options )
 
     call( "XYZ2Lab" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1896,8 +1896,8 @@ VImage VImage::Lab2LCh( VOption *options )
 
     call( "Lab2LCh" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1909,8 +1909,8 @@ VImage VImage::LCh2Lab( VOption *options )
 
     call( "LCh2Lab" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1922,8 +1922,8 @@ VImage VImage::LCh2CMC( VOption *options )
 
     call( "LCh2CMC" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1935,8 +1935,8 @@ VImage VImage::CMC2LCh( VOption *options )
 
     call( "CMC2LCh" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1948,8 +1948,8 @@ VImage VImage::XYZ2Yxy( VOption *options )
 
     call( "XYZ2Yxy" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1961,8 +1961,8 @@ VImage VImage::Yxy2XYZ( VOption *options )
 
     call( "Yxy2XYZ" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1974,8 +1974,8 @@ VImage VImage::scRGB2XYZ( VOption *options )
 
     call( "scRGB2XYZ" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -1987,8 +1987,8 @@ VImage VImage::XYZ2scRGB( VOption *options )
 
     call( "XYZ2scRGB" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2000,8 +2000,8 @@ VImage VImage::LabQ2Lab( VOption *options )
 
     call( "LabQ2Lab" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2013,8 +2013,8 @@ VImage VImage::Lab2LabQ( VOption *options )
 
     call( "Lab2LabQ" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2026,8 +2026,8 @@ VImage VImage::LabQ2LabS( VOption *options )
 
     call( "LabQ2LabS" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2039,8 +2039,8 @@ VImage VImage::LabS2LabQ( VOption *options )
 
     call( "LabS2LabQ" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2052,8 +2052,8 @@ VImage VImage::LabS2Lab( VOption *options )
 
     call( "LabS2Lab" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2065,8 +2065,8 @@ VImage VImage::Lab2LabS( VOption *options )
 
     call( "Lab2LabS" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2078,8 +2078,8 @@ VImage VImage::rad2float( VOption *options )
 
     call( "rad2float" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2091,8 +2091,8 @@ VImage VImage::float2rad( VOption *options )
 
     call( "float2rad" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2104,8 +2104,8 @@ VImage VImage::LabQ2sRGB( VOption *options )
 
     call( "LabQ2sRGB" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2117,8 +2117,8 @@ VImage VImage::sRGB2scRGB( VOption *options )
 
     call( "sRGB2scRGB" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2130,8 +2130,8 @@ VImage VImage::scRGB2sRGB( VOption *options )
 
     call( "scRGB2sRGB" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2143,8 +2143,8 @@ VImage VImage::icc_import( VOption *options )
 
     call( "icc_import" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2156,8 +2156,8 @@ VImage VImage::icc_export( VOption *options )
 
     call( "icc_export" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2169,8 +2169,8 @@ VImage VImage::icc_transform( char * output_profile , VOption *options )
 
     call( "icc_transform" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
+            set( "out", &out ) ->
             set( "output-profile", output_profile ) );
 
     return( out );
@@ -2183,9 +2183,9 @@ VImage VImage::dE76( VImage right , VOption *options )
 
     call( "dE76" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
-            set( "right", right ) );
+            set( "right", right ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2197,9 +2197,9 @@ VImage VImage::dE00( VImage right , VOption *options )
 
     call( "dE00" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
-            set( "right", right ) );
+            set( "right", right ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2211,9 +2211,9 @@ VImage VImage::dECMC( VImage right , VOption *options )
 
     call( "dECMC" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "left", *this ) ->
-            set( "right", right ) );
+            set( "right", right ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2268,8 +2268,8 @@ VImage VImage::hist_cum( VOption *options )
 
     call( "hist_cum" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
+            set( "in", *this ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2281,9 +2281,9 @@ VImage VImage::hist_match( VImage ref , VOption *options )
 
     call( "hist_match" ,
         (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
             set( "in", *this ) ->
-            set( "ref", ref ) );
+            set( "ref", ref ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2486,8 +2486,8 @@ VImage VImage::freqmult( VImage mask , VOption *options )
     call( "freqmult" ,
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
-            set( "out", &out ) ->
-            set( "mask", mask ) );
+            set( "mask", mask ) ->
+            set( "out", &out ) );
 
     return( out );
 }
@@ -2513,8 +2513,8 @@ VImage VImage::phasecor( VImage in2 , VOption *options )
     call( "phasecor" ,
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
-            set( "out", &out ) ->
-            set( "in2", in2 ) );
+            set( "in2", in2 ) ->
+            set( "out", &out ) );
 
     return( out );
 }

@@ -54,8 +54,18 @@ def find_required(op):
         flags = op.get_argument_flags(prop.name)
         if not flags & Vips.ArgumentFlags.REQUIRED:
             continue
+        if flags & Vips.ArgumentFlags.DEPRECATED:
+            continue
 
         required.append(prop)
+
+    def priority_sort(a, b):
+        pa = op.get_argument_priority(a.name)
+        pb = op.get_argument_priority(b.name)
+
+        return pa - pb
+
+    required.sort(priority_sort)
 
     return required
 
@@ -184,9 +194,7 @@ def find_class_methods(cls):
 
     if len(cls.children) > 0:
         for child in cls.children:
-            # not easy to get at the deprecated flag in an abtract type?
-            if cls.name != 'VipsWrap7':
-                find_class_methods(child)
+            find_class_methods(child)
 
 if __name__ == '__main__':
     find_class_methods(vips_type_operation)
