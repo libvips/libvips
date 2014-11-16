@@ -99,7 +99,7 @@ im = im.similarity(scale = 0.9, interpolate = Vips.Interpolate.new("bicubic"))
   </refsect1>
 
   <refsect1 id="python-basics">
-    <title><code>pyvips8</code> Basics</title>
+    <title><code>pyvips8</code> basics</title>
     <para>
       The Python interface comes in two main parts. First, the C source code 
       to libvips has been marked up with special comments describing the 
@@ -288,6 +288,30 @@ help(image.add)
       <code>Vips.Error</code> exception. You can catch it in the 
       usual way. The <code>.detail</code> member gives the detailed 
       error message. 
+    </para>
+  </refsect1>
+
+  <refsect1 id="python-modify">
+    <title>Draw operations</title>
+    <para>
+      Paint operations like <code>draw_circle</code> and <code>draw_line</code> 
+      modify their input image. This makes them hard to use with the rest of 
+      libvips: you need to be very careful about the order in which operations 
+      execute or you can get nasty crashes.
+    </para>
+
+    <para>
+      The wrapper spots operations of this type and makes a private copy of 
+      the image in memory before calling the operation. This stops crashes, 
+      but it does make it inefficient. If you draw 100 lines on an image, 
+      for example, you'll copy the image 100 times. The wrapper does make sure 
+      that memory is recycled where possible, so you won't have 100 copies in 
+      memory. At least you can execute these operations. 
+    </para>
+
+    <para>
+      If you want to avoid the copies, you'll need to call drawing 
+      operations yourself. 
     </para>
   </refsect1>
 

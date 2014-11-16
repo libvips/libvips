@@ -136,7 +136,12 @@ class Argument:
 
         # MODIFY input images need to be copied before assigning them
         if self.flags & Vips.ArgumentFlags.MODIFY:
-            value = value.copy()
+            # don't use .copy(): we want to make a new pipeline with no
+            # reference back to the old stuff ... this way we can free the
+            # previous image earlier
+            new_image = Vips.Image.new_memory()
+            value.write(new_image)
+            value = new_image
 
         logging.debug('assigning %s' % self.prop.value_type)
 

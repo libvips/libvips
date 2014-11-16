@@ -8,8 +8,6 @@
 
 - why don't we get gtk-doc expansions in the leading chapters? we turn them on
 
-- note we automatically copy modified args in Vips.py
-
 - does cplusplus need to hide deprecated args and operations?
 
 - test other cpp arg types
