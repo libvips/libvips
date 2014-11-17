@@ -63,6 +63,11 @@ int vips_sharpen( VipsImage *in, VipsImage **out, ... )
 int vips_gaussblur( VipsImage *in, VipsImage **out, int radius, ... )
 	__attribute__((sentinel));
 
+int vips_spcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_fastcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

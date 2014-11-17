@@ -386,7 +386,7 @@ vips_sequential_init( VipsSequential *sequential )
  * @access can be set to #VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, meaning don't
  * keep a large cache behind the read point. This can save some memory. 
  *
- * See also: vips_image_cache().
+ * See also: vips_cache(), vips_linecache(), vips_tilecache().
  *
  * Returns: 0 on success, -1 on error.
  */

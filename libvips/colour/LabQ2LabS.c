@@ -126,7 +126,7 @@ vips_LabQ2LabS_init( VipsLabQ2LabS *LabQ2LabS )
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Unpack a LabQ (#IM_CODING_LABQ) image to a three-band short image.
+ * Unpack a LabQ (#VIPS_CODING_LABQ) image to a three-band short image.
  *
  * See also: vips_LabS2LabQ(), vips_LabQ2LabS(), vips_rad2float().
  *

@@ -66,35 +66,14 @@
  *
  * The operations share a base class that offers a simple way to search for a
  * subclass of #VipsForeign which can load a certain file (see
- * vips_foreign_find_load()) or which could be used to save an image to a
- * certain file type (see vips_foreign_find_save()). You can then run these
+ * vips_foreign_find_load()) or buffer (see vips_foreign_find_load_buffer()), 
+ * or which could be used to save an image to a
+ * certain file type (see vips_foreign_find_save() and
+ * vips_foreign_find_save_buffer()). You can then run these
  * operations using vips_call() and friends to perform the load or save.
  *
- * A pair of convenience
- * functions, vips_foreign_load() and vips_foreign_save(), automate the
- * process, loading an image from a file or saving an image to a file. These
- * functions let you give load or save options as name - value pairs in the C
- * argument list. You can also
- * include options in the file name.
- *
- * For example:
- *
- * |[
- * vips_foreign_save (my_image, "frank.tiff", 
- *     "compression", VIPS_FOREIGN_TIFF_COMPRESSION_JPEG,
- *     NULL);
- * ]|
- *
- * Will save an image to the file "frank.tiff" in TIFF format (selected by
- * the file name extension) with JPEG compression.
- *
- * |[
- * vips_foreign_save (my_image, "frank.tiff[compression=jpeg]", NULL);  
- * ]|
- *
- * Is the same thing, but with the option in the filename. You can put
- * name - value pairs after the filename as well: these will override any
- * options set in the filename. 
+ * vips_image_write_to_file() and vips_image_new_from_file() and friends use
+ * these functions to automate file load and save. 
  *
  * You can also invoke the operations directly, for example:
  *
@@ -511,7 +490,7 @@ vips_foreign_find_load_sub( VipsForeignLoadClass *load_class,
  * Searches for an operation you could use to load @filename. Any trailing
  * options on @filename are stripped and ignored. 
  *
- * See also: vips_foreign_load().
+ * See also: vips_foreign_find_load_buffer(), vips_image_new_from_file().
  *
  * Returns: the name of an operation on success, %NULL on error
  */
@@ -1425,7 +1404,7 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
  * Searches for an operation you could use to write to @filename.
  * Any trailing options on @filename are stripped and ignored. 
  *
- * See also: vips_foreign_save().
+ * See also: vips_foreign_find_save_buffer(), vips_image_write_to_file().
  *
  * Returns: the name of an operation on success, %NULL on error
  */
@@ -1830,7 +1809,7 @@ vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Bigtiff is a variant of the TIFF
  * format that allows more than 4GB in a file.
  *
- * See also: vips_tiffload(), vips_image_write_file().
+ * See also: vips_tiffload(), vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2014,7 +1993,7 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * If @no-subsample is set, chrominance subsampling is disabled. This will 
  * improve quality at the cost of larger file size. Useful for high Q factors. 
  *
- * See also: vips_jpegsave_buffer(), vips_image_write_file().
+ * See also: vips_jpegsave_buffer(), vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2392,7 +2371,7 @@ vips_fitsload( const char *filename, VipsImage **out, ... )
  *
  * Write a VIPS image to a file in FITS format.
  *
- * See also: vips_image_write_file().
+ * See also: vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */

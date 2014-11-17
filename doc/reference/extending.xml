@@ -354,7 +354,7 @@ if( negative( in, &amp;out, "image_max", 128, NULL ) )
 
     <para>
       Make area operations, like filters, by enlarging the #VipsRect that
-      _generate() is given before calling vips_image_prepare(). You can
+      _generate() is given before calling vips_region_prepare(). You can
       enlarge the input image, so that the output image is the same size as
       the original input, by using vips_embed() within the _build() function.
     </para>

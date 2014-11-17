@@ -524,7 +524,8 @@ vips_castv( VipsImage *in, VipsImage **out, VipsBandFormat format, va_list ap )
  *
  * Casting from complex to real returns the real part. 
  *
- * See also: im_scale(), im_ri2c().
+ * See also: vips_scale(), vips_complexform(), vips_real(), vips_imag(),
+ * vips_cast_uchar().
  *
  * Returns: 0 on success, -1 on error
  */

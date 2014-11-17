@@ -245,7 +245,7 @@ vips_draw_rectv( VipsImage *image,
  * Paint pixels within @left, @top, @width, @height in @image with @ink. If
  * @fill is zero, just paint a 1-pixel-wide outline.
  *
- * See also: vips_circle().
+ * See also: vips_draw_circle().
  *
  * Returns: 0 on success, or -1 on error.
  */

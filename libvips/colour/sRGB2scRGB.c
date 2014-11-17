@@ -182,7 +182,7 @@ vips_sRGB2scRGB_init( VipssRGB2scRGB *sRGB2scRGB )
  *
  * Convert an sRGB image to scRGB.
  *
- * See also: vips_sRGB2XYZ(), vips_rad2float().
+ * See also: vips_scRGB2XYZ(), vips_rad2float().
  *
  * Returns: 0 on success, -1 on error.
  */

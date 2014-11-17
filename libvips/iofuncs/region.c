@@ -99,7 +99,7 @@
  * SECTION: region
  * @short_description: small, rectangular parts of images
  * @stability: Stable
- * @see_also: <link linkend="libvips-image">image</link>, 
+ * @see_also: <link linkend="VipsImage">image</link>, 
  * <link linkend="libvips-generate">generate</link>
  * @include: vips/vips.h
  *
@@ -1270,7 +1270,8 @@ vips_region_prepare_to_generate( VipsRegion *reg,
  * you with
  * vips_region_buffer(). You can
  * point @dest at anything, and pixels really will be written there. 
- * This makes vips_prepare_to() useful for making the ends of pipelines, since
+ * This makes vips_region_prepare_to() useful for making the ends of 
+ * pipelines, since
  * it (effectively) makes a break in the pipe.
  *
  * See also: vips_region_prepare(), vips_sink_disc().

@@ -837,7 +837,7 @@ vips_tile_cache_init( VipsTileCache *cache )
  * by @tile_height pixels. 
  *
  * Each cache tile is made with a single call to 
- * vips_image_prepare(). 
+ * vips_region_prepare(). 
  *
  * When the cache fills, a tile is chosen for reuse. If @access is
  * #VIPS_ACCESS_RANDOM, then the least-recently-used tile is reused. If 
@@ -1029,7 +1029,7 @@ vips_line_cache_init( VipsLineCache *cache )
  * save some memory and set @access to #VIPS_ACCESS_SEQUENTIAL_UNBUFFERED. 
  *
  * Each cache tile is made with a single call to 
- * vips_image_prepare(). 
+ * vips_region_prepare(). 
  *
  * When the cache fills, a tile is chosen for reuse. If @access is
  * #VIPS_ACCESS_RANDOM, then the least-recently-used tile is reused. If 

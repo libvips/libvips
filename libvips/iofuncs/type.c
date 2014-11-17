@@ -319,7 +319,7 @@ vips_area_free_array_object( GObject **array, VipsArea *area )
  * vips_area_new_array_object:
  * @n: number of elements in the array
  *
- * An area which holds an array of %GObjects. See vips_area_new_array(). When
+ * An area which holds an array of %GObject s. See vips_area_new_array(). When
  * the area is freed, each %GObject will be unreffed.
  *
  * Add an extra NULL element at the end, handy for eg.
@@ -1415,7 +1415,7 @@ vips_value_get_array( const GValue *value,
  * Return the start of the array of ints held by @value.
  * optionally return the number of elements in @n.
  *
- * See also: vips_array_int_set().
+ * See also: vips_array_int_new().
  *
  * Returns: (transfer none): The array address.
  */
@@ -1456,7 +1456,7 @@ vips_value_set_array_int( GValue *value, const int *array, int n )
  * Return the start of the array of doubles held by @value.
  * optionally return the number of elements in @n.
  *
- * See also: vips_array_double_set().
+ * See also: vips_array_double_new().
  *
  * Returns: (transfer none): The array address.
  */
@@ -1535,7 +1535,7 @@ vips_value_set_array_image( GValue *value, int n )
  * Return the start of the array of %GObject held by @value.
  * Optionally return the number of elements in @n.
  *
- * See also: vips_array_object_set().
+ * See also: vips_area_new_array_object().
  *
  * Returns: (transfer none): The array address.
  */
@@ -1552,7 +1552,7 @@ vips_value_get_array_object( const GValue *value, int *n )
  *
  * Set @value to hold an array of %GObject. Pass in the array length in @n. 
  *
- * See also: vips_array_object_get().
+ * See also: vips_value_get_array_object().
  */
 void
 vips_value_set_array_object( GValue *value, int n )

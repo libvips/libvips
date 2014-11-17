@@ -2721,7 +2721,7 @@ vips_image_write_prepare( VipsImage *image )
  * @linebuffer: scanline of pixels
  *
  * Write a line of pixels to an image. This function must be called repeatedly
- * with @ypos increasing from 0 to #VipsImage.height .
+ * with @ypos increasing from 0 to #VipsImage::height .
  * @linebuffer must be VIPS_IMAGE_SIZEOF_LINE() bytes long.
  *
  * See also: vips_image_generate().

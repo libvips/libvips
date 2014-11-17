@@ -163,7 +163,7 @@ vips_foreign_save_raw_init( VipsForeignSaveRaw *raw )
  * Writes the pixels in @in to the file @filename with no header or other
  * metadata. 
  *
- * See also: vips_image_write_file().
+ * See also: vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */

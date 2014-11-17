@@ -1230,6 +1230,10 @@ int im_greyc_mask( VipsImage *in, VipsImage *out, VipsImage *mask,
 	float alpha, float sigma, float dl, float da, float gauss_prec, 
 	int interpolation, int fast_approx );
 
+int vips_check_imask( const char *domain, INTMASK *mask );
+int vips_check_dmask( const char *domain, DOUBLEMASK *mask );
+int vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

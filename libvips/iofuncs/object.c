@@ -58,7 +58,7 @@
  * SECTION: object
  * @short_description: the VIPS base object class
  * @stability: Stable
- * @see_also: <link linkend="libvips-operation">operation</link>
+ * @see_also: <link linkend="VipsOperation">operation</link>
  * @include: vips/vips.h
  *
  * The #VipsObject class and associated types and macros.
@@ -363,17 +363,23 @@ vips_object_build( VipsObject *object )
 
 /**
  * vips_object_summary_class: (skip)
+ * @klass: class to summarise
+ * @buf: write summary here
  *
+ * Generate a human-readable summary for a class. 
  */
 void
-vips_object_summary_class( VipsObjectClass *class, VipsBuf *buf )
+vips_object_summary_class( VipsObjectClass *klass, VipsBuf *buf )
 {
-	class->summary_class( class, buf );
+	klass->summary_class( klass, buf );
 }
 
 /**
  * vips_object_summary: (skip)
+ * @object: object to summarise
+ * @buf: write summary here
  *
+ * Generate a human-readable summary for an object. 
  */
 void
 vips_object_summary( VipsObject *object, VipsBuf *buf )
@@ -385,7 +391,10 @@ vips_object_summary( VipsObject *object, VipsBuf *buf )
 
 /**
  * vips_object_dump: (skip)
+ * @object: object to dump
+ * @buf: write dump here
  *
+ * Dump everything that vips knows about an object to a string.
  */
 void
 vips_object_dump( VipsObject *object, VipsBuf *buf )
@@ -791,7 +800,7 @@ vips_object_argument_isset( VipsObject *object, const char *name )
  *
  * Convenience: get the flags for an argument. Useful for bindings.
  *
- * Returns: The #VipsArgmentFlags for this argument.
+ * Returns: The #VipsArgumentFlags for this argument.
  */
 VipsArgumentFlags
 vips_object_get_argument_flags( VipsObject *object, const char *name )
@@ -2581,8 +2590,16 @@ vips_type_map_all( GType base, VipsTypeMapFn fn, void *a )
 
 /**
  * vips_class_map_all: (skip) 
+ * @type: base type
+ * @fn: call this function for every type
+ * @a: client data
  *
- * Loop over all the subclasses of a base type. Non-abstract classes only.
+ * Loop over all the subclasses of @type. Non-abstract classes only.
+ * Stop when @fn returns 
+ * non-%NULL and return that value. 
+ *
+ * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
+ * non-%NULL value from @fn.
  */
 void *
 vips_class_map_all( GType type, VipsClassMapFn fn, void *a )

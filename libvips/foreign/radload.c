@@ -153,8 +153,8 @@ vips_foreign_load_rad_init( VipsForeignLoadRad *rad )
  * red, green and blue, and one byte of shared exponent. Some operations (like
  * vips_extract_area()) can work directly with images in this format, but 
  * mmany (all the arithmetic operations, for example) will not. Unpack 
- * #VIPS_CODING_RAD images to 3 band float with im_rad2float() if you want to do
- * arithmetic on them.
+ * #VIPS_CODING_RAD images to 3 band float with vips_rad2float() if 
+ * you want to do arithmetic on them.
  *
  * This operation ignores some header fields, like VIEW and DATE. It will not 
  * rotate/flip as the FORMAT string asks.

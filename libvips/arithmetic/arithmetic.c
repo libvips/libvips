@@ -58,7 +58,6 @@
 /** 
  * SECTION: arithmetic
  * @short_description: operations which perform pixel arithmetic, trig, log, statistics
- * @see_also: <link linkend="libvips-boolean">boolean</link>
  * @stability: Stable
  * @include: vips/vips.h
  *
@@ -81,7 +80,7 @@
  * bits in the output image when necessary. Generally, this follows the ANSI C
  * conventions for type promotion, so multiplying two
  * #VIPS_FORMAT_UCHAR images together, for example, produces a 
- * #VIPS_FORMAT_USHORT image, and taking the im_costra() of a 
+ * #VIPS_FORMAT_USHORT image, and taking the vips_cos() of a 
  * #VIPS_FORMAT_USHORT image produces #VIPS_FORMAT_FLOAT image. 
  *
  * For binary arithmetic operations, type promotion occurs in two stages. 

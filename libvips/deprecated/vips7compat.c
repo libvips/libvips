@@ -5354,3 +5354,51 @@ im_greyc_mask( IMAGE *in, IMAGE *out, IMAGE *mask,
 
 	return( -1 ); 
 }
+
+int
+vips_check_imask( const char *domain, INTMASK *mask )
+{
+	if( !mask || 
+		mask->xsize > 1000 || 
+		mask->ysize > 1000 || 
+		mask->xsize <= 0 || 
+		mask->ysize <= 0 || 
+		mask->scale == 0 || 
+		!mask->coeff ) {
+		vips_error( domain, "%s", _( "nonsense mask parameters" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+vips_check_dmask( const char *domain, DOUBLEMASK *mask )
+{
+	if( !mask || 
+		mask->xsize > 1000 || 
+		mask->ysize > 1000 || 
+		mask->xsize <= 0 || 
+		mask->ysize <= 0 || 
+		mask->scale == 0 || 
+		!mask->coeff ) {
+		vips_error( domain, "%s", _( "nonsense mask parameters" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask )
+{
+	if( vips_check_dmask( domain, mask ) )
+		return( -1 );
+	if( mask->xsize != 1 &&
+		mask->ysize != 1 ) {
+		vips_error( domain, "%s", _( "mask must be 1D" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}

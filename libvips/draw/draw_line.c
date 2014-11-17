@@ -346,7 +346,7 @@ vips_draw_linev( VipsImage *image,
  *
  * @ink is an array of double containing values to draw. 
  *
- * See also: vips_draw_line1(), vips_circle(), vips_draw_mask(). 
+ * See also: vips_draw_line1(), vips_draw_circle(), vips_draw_mask(). 
  *
  * Returns: 0 on success, or -1 on error.
  */

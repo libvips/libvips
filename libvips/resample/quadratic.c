@@ -373,7 +373,7 @@ vips_quadratic_init( VipsQuadratic *quadratic )
  *
  * @interpolate: use this interpolator (default bilinear)
  *
- * See also: im_affinei().
+ * See also: vips_affine().
  *
  * Returns: 0 on success, -1 on error
  */

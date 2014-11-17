@@ -735,7 +735,6 @@ vips_colour_operation_init( void )
 	extern GType vips_float2rad_get_type( void ); 
 	extern GType vips_LabQ2sRGB_get_type( void ); 
 	extern GType vips_XYZ2sRGB_get_type( void ); 
-	extern GType vips_sRGB2XYZ_get_type( void ); 
 	extern GType vips_sRGB2scRGB_get_type( void ); 
 	extern GType vips_scRGB2XYZ_get_type( void ); 
 	extern GType vips_XYZ2scRGB_get_type( void ); 

@@ -48,7 +48,7 @@
  * SECTION: rect
  * @short_description: the VIPS rectangle class
  * @stability: Stable
- * @see_also: <link linkend="libvips-region">region</link>
+ * @see_also: <link linkend="VipsRegion">region</link>
  * @include: vips/vips.h
  *
  * The #VipsRect class and associated types and macros.

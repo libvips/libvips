@@ -47,7 +47,7 @@
  * @stability: Stable
  * @include: vips/vips.h
  *
- * Resample an image in various ways, using a #VipsInterpolator to generate
+ * Resample an image in various ways, using a #VipsInterpolate to generate
  * intermediate values.
  */
 

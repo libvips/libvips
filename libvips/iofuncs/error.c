@@ -412,7 +412,7 @@ vips_vinfo( const char *domain, const char *fmt, va_list ap )
  * Informational messages are used to report details about the operation of
  * functions.
  *
- * See also: vips_vdiag(), vips_warn().
+ * See also: vips_vinfo(), vips_warn().
  */
 void 
 vips_info( const char *domain, const char *fmt, ... )
@@ -1312,87 +1312,6 @@ vips_check_separable( const char *domain, VipsImage *im )
 		vips_error( domain, 
 			"%s", _( "separable matrix images must have "
 			"width or height 1" ) );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
-/**
- * vips_check_imask: (skip)
- * @domain: the originating domain for the error message
- * @mask: mask to check
- *
- * Sanity-check a mask parameter.
- *
- * See also: vips_error().
- *
- * Returns: 0 if OK, -1 otherwise.
- */
-int
-vips_check_imask( const char *domain, INTMASK *mask )
-{
-	if( !mask || 
-		mask->xsize > 1000 || 
-		mask->ysize > 1000 || 
-		mask->xsize <= 0 || 
-		mask->ysize <= 0 || 
-		mask->scale == 0 || 
-		!mask->coeff ) {
-		vips_error( domain, "%s", _( "nonsense mask parameters" ) );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
-/**
- * vips_check_dmask: (skip)
- * @domain: the originating domain for the error message
- * @mask: mask to check
- *
- * Sanity-check a mask parameter.
- *
- * See also: vips_error().
- *
- * Returns: 0 if OK, -1 otherwise.
- */
-int
-vips_check_dmask( const char *domain, DOUBLEMASK *mask )
-{
-	if( !mask || 
-		mask->xsize > 1000 || 
-		mask->ysize > 1000 || 
-		mask->xsize <= 0 || 
-		mask->ysize <= 0 || 
-		mask->scale == 0 || 
-		!mask->coeff ) {
-		vips_error( domain, "%s", _( "nonsense mask parameters" ) );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
-/**
- * vips_check_dmask_1d: (skip)
- * @domain: the originating domain for the error message
- * @mask: mask to check
- *
- * A mask must be one-dimensional (width or height 1).
- *
- * See also: vips_error().
- *
- * Returns: 0 if OK, -1 otherwise.
- */
-int
-vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask )
-{
-	if( vips_check_dmask( domain, mask ) )
-		return( -1 );
-	if( mask->xsize != 1 &&
-		mask->ysize != 1 ) {
-		vips_error( domain, "%s", _( "mask must be 1D" ) );
 		return( -1 );
 	}
 

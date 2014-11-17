@@ -40,6 +40,7 @@
 
   <chapter>
     <title>Core VIPS API</title>
+    <xi:include href="xml/basic.xml"/>
     <xi:include href="xml/vips.xml"/>
     <xi:include href="xml/image.xml"/>
     <xi:include href="xml/header.xml"/>

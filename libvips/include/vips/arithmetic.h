@@ -336,6 +336,9 @@ int vips_lshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 	__attribute__((sentinel));
 int vips_rshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 	__attribute__((sentinel));
+int vips_boolean_const1( VipsImage *in, VipsImage **out, 
+	VipsOperationBoolean boolean, double c, ... )
+	__attribute__((sentinel));
 int vips_andimage_const1( VipsImage *in, VipsImage **out, double c, ... )
 	__attribute__((sentinel));
 int vips_orimage_const1( VipsImage *in, VipsImage **out, double c, ... )

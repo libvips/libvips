@@ -50,19 +50,22 @@
  * SECTION: histogram
  * @short_description: find, manipulate and apply histograms and lookup tables
  * @stability: Stable
- * @see_also: <link linkend="libvips-image">image</link>
+ * @see_also: <link linkend="VipsImage">image</link>
+ * <link linkend="libvips-arithmetic">arithmetic</link>
+ * <link linkend="libvips-create">create</link>
  * @include: vips/vips.h
  *
  * Histograms and look-up tables are 1xn or nx1 images, where n is less than
  * 256 or less than 65536, corresponding to 8- and 16-bit unsigned int images. 
- * They are
- * tagged with a #VipsType of IM_TYPE_HISTOGRAM and usually displayed by
- * user-interfaces such as nip2 as plots rather than images.
+ * They are tagged with a #VipsInterpretation of 
+ * #VIPS_INTERPRETATION_HISTOGRAM and usually displayed by user-interfaces 
+ * such as nip2 as plots rather than images.
  *
  * These functions can be broadly grouped as things to find or build 
- * histograms (im_histgr(), im_buildlut(), in_identity()), operations that 
- * manipulate histograms in some way (im_histcum(), im_histnorm()), operations
- * to apply histograms (im_maplut()), and a variety of utility 
+ * histograms (vips_hist_find(), vips_buildlut(), vips_identity()), 
+ * operations that 
+ * manipulate histograms in some way (vips_hist_cum(), vips_hist_norm()), 
+ * operations to apply histograms (vips_maplut()), and a variety of utility 
  * operations.
  *
  * A final group of operations build tone curves. These are useful in

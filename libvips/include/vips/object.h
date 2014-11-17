@@ -621,7 +621,7 @@ int vips_type_depth( GType type );
 GType vips_type_find( const char *basename, const char *nickname );
 const char *vips_nickname_find( GType type );
 
-void *vips_class_map_all( GType base, VipsClassMapFn fn, void *a );
+void *vips_class_map_all( GType type, VipsClassMapFn fn, void *a );
 VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
 
 VipsObject **vips_object_local_array( VipsObject *parent, int n );

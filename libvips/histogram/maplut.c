@@ -756,7 +756,7 @@ vips_maplut_init( VipsMaplut *maplut )
  * separately. If @in has one band, then @lut may have many bands and
  * the output will have the same number of bands as @lut.
  *
- * See also: im_histgr(), vips_identity().
+ * See also: vips_hist_find(), vips_identity().
  *
  * Returns: 0 on success, -1 on error
  */

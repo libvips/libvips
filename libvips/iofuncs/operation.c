@@ -52,7 +52,7 @@
  * SECTION: operation
  * @short_description: the VIPS operation base object class
  * @stability: Stable
- * @see_also: <link linkend="libvips-object">object</link>
+ * @see_also: <link linkend="VipsObject">object</link>
  * @include: vips/vips.h
  *
  * The #VipsOperation class and associated types and macros.

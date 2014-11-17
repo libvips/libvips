@@ -322,7 +322,7 @@ vips_join_init( VipsJoin *join )
  *
  * The two input images are cast up to the smallest common type (see table 
  * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * See also: vips_insert().
  *

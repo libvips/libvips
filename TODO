@@ -1,3 +1,4 @@
+- can we use markdown for the intro sections?
 
 - test other cpp arg types
 
@@ -30,20 +31,6 @@
 - rewrite im_conv() etc. as vips_conv(), also the mosaicing functions
 
   finally finish --disable-deprecated option
-
-
-
-- check and fix up docs
-
-  index items should all be links
-
-  check each func in each section has a comment doc ... if they don't and
-  shouldn't be there, move to internal
-
-  need better vipsobject docs
-
-  gtk-doc now uses markdown, phew, use this to expand some sections
-
 
 
 
