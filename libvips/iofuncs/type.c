@@ -56,6 +56,15 @@
 #include <vips/debug.h>
 
 /**
+ * SECTION: basic
+ * @short_description: a few typedefs used everywhere
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * A few simple typedefs used by VIPS. 
+ */
+
+/**
  * SECTION: type
  * @short_description: basic types
  * @stability: Stable

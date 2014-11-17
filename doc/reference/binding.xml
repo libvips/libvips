@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- vim: set ts=2 sw=2 expandtab: --> 
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
                "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
 ]>
@@ -17,7 +18,47 @@
   <refsect1 id="binding-goi">
     <title>Binding and gobject-introspection</title>
     <para>
-      Write this section once the vips8 Python binding is done. 
+      The C source code 
+      to libvips has been marked up with special comments describing the 
+      interface in a standard way. These comments are read by 
+      gobject-introspection
+      when libvips is compiled and used to generate a 
+      typelib, a description of how to call the library. Many languages have 
+      gobject-introspection packages: all you need to do to call libvips
+      from your favorite language is to start g-o-i, load the libvips typelib,
+      and you should have the whole library available. For example, from 
+      Python it's as simple as:
+
+<programlisting language="Python">
+from gi.repository import Vips
+</programlisting>
+    </para>
+
+    <para>
+      libvips used in this way is likely to be rather bare-bones. For Python,
+      we wrote a set of overrides which layer a more Pythonesque interface
+      on top of the one provided for libvips by pygobject. These overrides
+      are simply a set of Python classes, there's no magic. You are likely
+      to want to do the same for your language.
+    </para>
+
+    <para>
+      A second problem is that the libvips C API makes heavy use of varargs to
+      pass optional parameters to operations. For example, in C you can write:
+
+<programlisting language="C">
+VipsImage *in = vips_image_new_from_file (filename, NULL);
+VipsImage *out; 
+
+vips_embed(in, &amp;out, 10, 10, 100, 100,
+  "extend", VIPS_EXTEND_COPY,
+  NULL);
+</programlisting>
+
+      to call <code>embed</code> with the optional parameter
+      <code>extend</code>. varargs parameter lists are not supported by 
+      gobject-introspection, so you'll need to find some other way to call 
+      <code>embed</code>.
     </para>
 
     <para>
