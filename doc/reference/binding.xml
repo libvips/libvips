@@ -38,40 +38,30 @@ from gi.repository import Vips
       libvips used in this way is likely to be rather bare-bones. For Python,
       we wrote a set of overrides which layer a more Pythonesque interface
       on top of the one provided for libvips by pygobject. These overrides
-      are simply a set of Python classes, there's no magic. You are likely
-      to want to do the same for your language.
+      are simply a set of Python classes.
     </para>
 
     <para>
-      A second problem is that the libvips C API makes heavy use of varargs to
-      pass optional parameters to operations. For example, in C you can write:
-
-<programlisting language="C">
-VipsImage *in = vips_image_new_from_file (filename, NULL);
-VipsImage *out; 
-
-vips_embed(in, &amp;out, 10, 10, 100, 100,
-  "extend", VIPS_EXTEND_COPY,
-  NULL);
-</programlisting>
-
-      to call <code>embed</code> with the optional parameter
-      <code>extend</code>. varargs parameter lists are not supported by 
-      gobject-introspection, so you'll need to find some other way to call 
-      <code>embed</code>.
+      To call a vips operation, you'll need to make a new operation with
+      vips_operation_new() (all it does is look up the operation by name
+      with vips_type_find(), then call g_object_new() for you), then
+      use vips_argument_map() and friends to loop over the operation's
+      arguments setting them. Once you have set all arguments, use
+      vips_cache_operation_build() to look up the operation in the cache
+      and either build or dup it. If something goes wrong, you'll need
+      to use vips_object_unref_outputs() and g_object_unref() to free the
+      partially-built object.
+      The Python binding uses this technique to implement a function which
+      can call any vips operation, turning optional vips arguments into
+      Python keyword arguments.
     </para>
 
     <para>
-If you are writing a language binding, you won't need these. Instead, make
-a new operation with vips_operation_new() (all it does is look up the
-operation by name with vips_type_find(), then call g_object_new() for you),
-then use vips_argument_map() and friends to loop over the operation's
-arguments setting them. Once you have set all arguments, use
-vips_cache_operation_build() to look up the operation in the cache and
-either build or dup it. If something goes wrong, you'll need to use
-vips_object_unref_outputs() and g_object_unref() to free the
-partially-built object. 
+      If your language does not have a gobject-introspection package, you'll 
+      need to write something in C or C++ doing approximately the same thing. 
+      The C++ API takes this route.
     </para>
+
   </refsect1>
 
 </refentry>
