@@ -28,6 +28,6 @@ vips-operators.cpp:
 	./gen-operators.py >> vips-operators.cpp 
 
 EXTRA_DIST = \
-	README.txt \
+	README \
 	vips-operators.cpp \
 	gen-operators.py

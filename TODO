@@ -1,4 +1,6 @@
-- python should have some way to do cmd-line args
+- test building without cpp
+
+- test building without python
 
 - test other cpp arg types
 
