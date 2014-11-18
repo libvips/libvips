@@ -183,7 +183,7 @@ const char *vips_get_argv0( void );
 void vips_shutdown( void );
 void vips_thread_shutdown( void );
 
-GOptionGroup *vips_get_option_group( void );
+void vips_add_option_entries( GOptionGroup *option_group );
 
 extern void vips_leak_set( gboolean leak ); 
 

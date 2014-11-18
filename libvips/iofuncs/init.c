@@ -630,30 +630,17 @@ static GOptionEntry option_entries[] = {
 };
 
 /**
- * vips_get_option_group: (skip)
+ * vips_add_option_entries: 
+ * @option_group: group to add to
  *
- * vips_get_option_group() returns a %GOptionGroup containing various VIPS
- * command-line options. It can be used with %GOption to help
- * parse argc/argv.
+ * Add the standard vips %GOptionEntry to a %GOptionGroup. 
  *
- * See also: vips_version(), vips_guess_prefix(),
- * vips_guess_libdir(), vips_init().
- *
- * Returns: a %GOptionGroup for VIPS, see %GOption
+ * See also: g_option_group_new(). 
  */
-GOptionGroup *
-vips_get_option_group( void )
+void
+vips_add_option_entries( GOptionGroup *option_group )
 {
-	static GOptionGroup *option_group = NULL;
-
-	if( !option_group ) {
-		option_group = g_option_group_new( 
-			"vips", _( "VIPS Options" ), _( "Show VIPS options" ),
-			NULL, NULL );
-		g_option_group_add_entries( option_group, option_entries );
-	}
-
-	return( option_group );
+	g_option_group_add_entries( option_group, option_entries );
 }
 
 /* Find the prefix part of a dir ... name is the name of this prog from argv0.

@@ -760,10 +760,11 @@ int
 main( int argc, char **argv )
 {
 	GOptionContext *context;
+	GOptionGroup *main_group;
 	GError *error = NULL;
 	int i;
 
-	if( vips__init( argv[0] ) )
+	if( VIPS_INIT( argv[0] ) )
 	        vips_error_exit( "unable to start VIPS" );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
@@ -776,8 +777,11 @@ main( int argc, char **argv )
 
         context = g_option_context_new( _( "- thumbnail generator" ) );
 
-	g_option_context_add_main_entries( context, options, GETTEXT_PACKAGE );
-	g_option_context_add_group( context, vips_get_option_group() );
+	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
+	g_option_group_add_entries( main_group, options );
+	vips_add_option_entries( main_group ); 
+	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
+	g_option_context_set_main_group( context, main_group );
 
 	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
 		if( error ) {

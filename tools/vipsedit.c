@@ -126,19 +126,24 @@ int
 main( int argc, char **argv )
 {
 	GOptionContext *context;
+	GOptionGroup *main_group;
 	GError *error = NULL;
 	IMAGE *im;
 	unsigned char header[IM_SIZEOF_HEADER];
 
-	if( im_init_world( argv[0] ) )
-	        error_exit( "%s", _( "unable to start VIPS" ) );
+	if( VIPS_INIT( argv[0] ) )
+	        vips_error_exit( "%s", _( "unable to start VIPS" ) );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
 	context = g_option_context_new( 
 		_( "vipsedit - edit vips file header" ) );
-	g_option_context_add_main_entries( context, entries, GETTEXT_PACKAGE );
-	g_option_context_add_group( context, im_get_option_group() );
+	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
+	g_option_group_add_entries( main_group, entries );
+	vips_add_option_entries( main_group ); 
+	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
+	g_option_context_set_main_group( context, main_group );
+
 	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
 		if( error ) {
 			fprintf( stderr, "%s\n", error->message );

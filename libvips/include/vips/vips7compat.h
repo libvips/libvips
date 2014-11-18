@@ -1234,6 +1234,8 @@ int vips_check_imask( const char *domain, INTMASK *mask );
 int vips_check_dmask( const char *domain, DOUBLEMASK *mask );
 int vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask );
 
+GOptionGroup *vips_get_option_group( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

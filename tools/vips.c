@@ -1042,8 +1042,8 @@ main( int argc, char **argv )
 
 	GError *error = NULL;
 
-	if( im_init_world( argv[0] ) )
-	        error_exit( NULL );
+	if( VIPS_INIT( argv[0] ) )
+	        vips_error_exit( NULL );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
@@ -1068,12 +1068,9 @@ main( int argc, char **argv )
 	 */
 	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
 	g_option_group_add_entries( main_group, main_option );
+	vips_add_option_entries( main_group ); 
 	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
 	g_option_context_set_main_group( context, main_group );
-
-	/* Add the libvips options too.
-	 */
-	g_option_context_add_group( context, im_get_option_group() );
 
 	/* We add more options later, for example as options to vips8
 	 * operations. Ignore any unknown options in this first parse.

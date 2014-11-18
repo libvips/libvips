@@ -62,6 +62,33 @@ from gi.repository import Vips
       The C++ API takes this route.
     </para>
 
+    <para>
+      You can generate searchable docs from a <code>.gir</code> (the thing that 
+      is built from scanning libvips and which in turn turn the typelib is 
+      made from) with <command>g-ir-doc-tool</command>, for example:
+
+<programlisting language="bash">
+$ g-ir-doc-tool --language=Python -o ~/mydocs Vips-8.0.gir
+</programlisting>
+
+      Then to view them, either:
+
+<programlisting language="bash">
+$ yelp ~/mydocs 
+</programlisting>
+
+      Or perhaps
+
+<programlisting language="bash">
+$ cd ~/mydocs 
+$ yelp-build html .
+</programlisting>
+
+      To make HTML docs. This is an easy way to see what you can call in the 
+      library. 
+    </para>
+
+
   </refsect1>
 
 </refentry>

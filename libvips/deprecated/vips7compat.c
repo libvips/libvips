@@ -5402,3 +5402,18 @@ vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask )
 
 	return( 0 );
 }
+
+GOptionGroup *
+vips_get_option_group( void )
+{
+	static GOptionGroup *option_group = NULL;
+
+	if( !option_group ) {
+		option_group = g_option_group_new( "vips", 
+				_( "VIPS Options" ), _( "Show VIPS options" ),
+				NULL, NULL );
+		vips_add_option_entries( option_group ); 
+	}
+
+	return( option_group );
+}
