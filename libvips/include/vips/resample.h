@@ -43,8 +43,7 @@ int vips_shrink( VipsImage *in, VipsImage **out,
 	__attribute__((sentinel));
 int vips_similarity( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_resize( VipsImage *in, VipsImage **out, 
-	double h_scale, double v_scale, ... )
+int vips_resize( VipsImage *in, VipsImage **out, double scale, ... )
 	__attribute__((sentinel));
 int vips_affine( VipsImage *in, VipsImage **out, 
 	double a, double b, double c, double d, ... )

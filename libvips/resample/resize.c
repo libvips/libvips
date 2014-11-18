@@ -1,4 +1,4 @@
-/* resize an image ... a simple wrapper over affine
+/* resize an image ... up and down resampling.
  *
  * 13/8/14
  * 	- from affine.c
@@ -57,8 +57,7 @@
 typedef struct _VipsResize {
 	VipsResample parent_instance;
 
-	double h_scale;
-	double v_scale;
+	double scale;
 	VipsInterpolate *interpolate;
 	double idx;
 	double idy;
@@ -78,22 +77,84 @@ vips_resize_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( object, 4 );
 
-	double a, b, c, d; 
+	VipsImage *in;
+	int window_size;
+	int int_shrink;
+	int int_shrink_width;
+	double residual;
+	double sigma;
 
 	if( VIPS_OBJECT_CLASS( vips_resize_parent_class )->build( object ) )
 		return( -1 );
 
-	a = resize->h_scale;
-	b = 0.0;
-	c = 0.0;
-	d = resize->v_scale;
+	if( !vips_object_argument_isset( object, "interpolate" ) ) {
+		char *nick;
 
-	if( vips_affine( resample->in, &t[0], a, b, c, d, 
+		if( vips_type_find( "VipsInterpolate", "bicubic" ) )
+			nick = "bicubic";
+		else
+			nick = "bilinear";
+		g_object_set( object, 
+			"interpolate", vips_interpolate_new( nick ),
+			NULL ); 
+	}
+
+	in = resample->in;
+
+	window_size = resize->interpolate ? 
+		vips_interpolate_get_window_size( resize->interpolate ) : 2;
+
+	/* If the factor is > 1.0, we need to zoom rather than shrink.
+	 * Just set the int part to 1 in this case.
+	 */
+	int_shrink = resize->scale > 1.0 ? 1 : floor( 1.0 / resize->scale );
+
+	/* We want to shrink by less for interpolators with larger windows.
+	 */
+	int_shrink = VIPS_MAX( 1,
+		int_shrink / VIPS_MAX( 1, window_size / 2 ) );
+
+	/* Size after int shrink.
+	 */
+	int_shrink_width = in->Xsize / int_shrink;
+
+	/* Therefore residual scale factor is.
+	 */
+	residual = (in->Xsize * resize->scale) / int_shrink_width;
+
+	/* A copy for enlarge resize.
+	 */
+	if( vips_shrink( in, &t[0], int_shrink, int_shrink, NULL ) )
+		return( -1 );
+	in = t[0];
+
+	/* If the final affine will be doing a large downsample, we can get 
+	 * nasty aliasing on hard edges. Blur before affine to smooth this out.
+	 *
+	 * Don't blur for very small shrinks, blur with radius 1 for x1.5
+	 * shrinks, blur radius 2 for x2.5 shrinks and above, etc.
+	 */
+	sigma = ((1.0 / residual) - 0.5) / 1.5;
+	if( residual < 1.0 &&
+		sigma > 0.1 ) { 
+		if( vips_gaussmat( &t[1], sigma, 0.2,
+			"separable", TRUE,
+			"integer", TRUE,
+			NULL ) ||
+			vips_convsep( in, &t[2], t[1], NULL ) )
+			return( -1 );
+		in = t[2];
+	}
+
+	if( vips_affine( in, &t[3], residual, 0, 0, residual, 
 		"interpolate", resize->interpolate,
 		"idx", resize->idx,
 		"idy", resize->idy,
-		NULL ) ||
-		vips_image_write( t[0], resample->out ) )
+		NULL ) )  
+		return( -1 );
+	in = t[3];
+
+	if( vips_image_write( in, resample->out ) )
 		return( -1 ); 
 
 	return( 0 );
@@ -117,18 +178,11 @@ vips_resize_class_init( VipsResizeClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_DOUBLE( class, "h_scale", 113, 
-		_( "Horizontal scale factor" ), 
-		_( "Scale image by this factor in the horizontal axis" ),
+	VIPS_ARG_DOUBLE( class, "scale", 113, 
+		_( "Scale factor" ), 
+		_( "Scale image by this factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsResize, h_scale ),
-		0, 10000000, 0 );
-
-	VIPS_ARG_DOUBLE( class, "v_scale", 114, 
-		_( "Vertical scale factor" ), 
-		_( "Scale image by this factor in the vertical axis" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsResize, v_scale ),
+		G_STRUCT_OFFSET( VipsResize, scale ),
 		0, 10000000, 0 );
 
 	VIPS_ARG_INTERPOLATE( class, "interpolate", 2, 
@@ -161,8 +215,7 @@ vips_resize_init( VipsResize *resize )
  * vips_resize:
  * @in: input image
  * @out: output image
- * @h_scale: horizontal scale factor
- * @v_scale: vertical scale factor
+ * @scale: scale factor
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -181,17 +234,14 @@ vips_resize_init( VipsResize *resize )
  */
 int
 vips_resize( VipsImage *in, VipsImage **out, 
-	double h_scale, double v_scale, ... )
+	double scale, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, v_scale );
-	result = vips_call_split( "affine", ap, in, out, h_scale, v_scale );
+	va_start( ap, scale );
+	result = vips_call_split( "affine", ap, in, out, scale );
 	va_end( ap );
 
 	return( result );
 }
-
-
-

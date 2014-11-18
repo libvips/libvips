@@ -28,8 +28,6 @@
 
 - can we pick the vipsthumbnail int shrink factor more intelligently?
 
-- vips_resize() should use vipsthumbnail's block/cache/affine/sharpen chain
-
 - rewrite im_conv() etc. as vips_conv(), also the mosaicing functions
 
   finally finish --disable-deprecated option

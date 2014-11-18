@@ -419,9 +419,10 @@ vips_affine_build( VipsObject *object )
 		vips_check_vector_length( class->nickname, 
 			affine->oarea->n, 4 ) )
 		return( -1 );
-
-	if( !affine->interpolate )
-		affine->interpolate = vips_interpolate_new( "bilinear" );
+	if( !vips_object_argument_isset( object, "interpolate" ) )
+		g_object_set( object, 
+			"interpolate", vips_interpolate_new( "bilinear" ),
+			NULL ); 
 
 	in = resample->in;
 
