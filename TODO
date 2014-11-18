@@ -2,6 +2,10 @@
 
 - test building without python
 
+- use vips_resize() in vipsthumbnail?
+
+  should the sharpening filter be selectable?
+
 - test other cpp arg types
 
 	input int		works
