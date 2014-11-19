@@ -791,6 +791,11 @@ AC_SUBST(VIPS_LIBS)
 AC_SUBST(VIPS_CXX_LIBS)
 AC_SUBST(PACKAGES_USED)
 
+# needed by test/variables.sh.in
+# :( what's a better way to do this, argh
+TOP_SRCDIR=$ac_pwd
+AC_SUBST(TOP_SRCDIR)
+
 AC_OUTPUT([
 	vips.pc
 	vipsCC.pc
@@ -828,6 +833,8 @@ AC_OUTPUT([
 	tools/light_correct 
 	tools/shrink_width 
 	python/Makefile 
+	test/Makefile 
+	test/variables.sh
 	swig/Makefile 
 	swig/vipsCC/Makefile 
 	man/Makefile

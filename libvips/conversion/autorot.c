@@ -55,6 +55,17 @@ G_DEFINE_TYPE( VipsAutorot, vips_autorot, VIPS_TYPE_CONVERSION );
 
 #define ORIENTATION ("exif-ifd0-Orientation")
 
+/**
+ * vips_autorot_get_angle:
+ * @im: image to fetch orientation from
+ *
+ * Examine the metadata on @im and return the #VipsAngle to rotate by to turn
+ * the image upright. 
+ *
+ * See also: vips_autorot(). 
+ *
+ * Returns: the #VipsAngle to rotate by to make the image upright.
+ */
 VipsAngle
 vips_autorot_get_angle( VipsImage *im )
 {

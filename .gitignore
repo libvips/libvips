@@ -1,4 +1,8 @@
 a.out
+*.log
+*.trs
+tmp
+test/variables.sh
 scan
 compile
 po/*.pot

@@ -42,6 +42,7 @@ SUBDIRS = \
 	po \
 	man \
 	doc \
+	test \
 	$(C_COMPILE_DIR) \
 	$(P_COMPILE_DIR) \
 	$(P8_COMPILE_DIR) \

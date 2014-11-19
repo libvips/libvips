@@ -151,35 +151,6 @@ static GOptionEntry options[] = {
 	{ NULL }
 };
 
-static VipsAngle 
-get_angle( VipsImage *im )
-{
-	VipsAngle angle;
-	const char *orientation;
-
-	angle = VIPS_ANGLE_D0;
-
-	if( vips_image_get_typeof( im, ORIENTATION ) && 
-		!vips_image_get_string( im, ORIENTATION, &orientation ) ) {
-		if( vips_isprefix( "6", orientation ) )
-			angle = VIPS_ANGLE_D90;
-		else if( vips_isprefix( "8", orientation ) )
-			angle = VIPS_ANGLE_D270;
-		else if( vips_isprefix( "3", orientation ) )
-			angle = VIPS_ANGLE_D180;
-
-		/* Other values do rotate + mirror, don't bother handling them
-		 * though, how common can mirroring be. 
-		 *
-		 * See:
-		 *
-		 * http://www.80sidea.com/archives/2316
-		 */
-	}
-
-	return( angle );
-}
-
 /* Calculate the shrink factors. 
  *
  * We shrink in two stages: first, a shrink with a block average. This can
@@ -193,7 +164,7 @@ static int
 calculate_shrink( VipsImage *im, double *residual, 
 	VipsInterpolate *interp )
 {
-	VipsAngle angle = get_angle( im ); 
+	VipsAngle angle = vips_autorot_get_angle( im ); 
 	gboolean rotate = angle == VIPS_ANGLE_D90 || angle == VIPS_ANGLE_D270;
 	int width = rotate_image && rotate ? im->Ysize : im->Xsize;
 	int height = rotate_image && rotate ? im->Xsize : im->Ysize;
@@ -518,18 +489,10 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	sigma = ((1.0 / residual) - 0.5) / 1.5;
 	if( residual < 1.0 &&
 		sigma > 0.1 ) { 
-		if( vips_gaussmat( &t[9], sigma, 0.2,
-			"separable", TRUE,
-			"integer", TRUE,
-			NULL ) ||
-			vips_convsep( in, &t[5], t[9], NULL ) )
+		if( vips_gaussblur( in, &t[5], sigma, NULL ) )
 			return( NULL );
 		vips_info( "vipsthumbnail", "anti-alias, sigma %g",
 			sigma );
-#ifdef DEBUG
-		printf( "anti-alias blur matrix is:\n" ); 
-		vips_matrixprint( t[9], NULL ); 
-#endif /*DEBUG*/
 		in = t[5];
 	}
 
@@ -664,7 +627,7 @@ static VipsImage *
 thumbnail_rotate( VipsObject *process, VipsImage *im )
 {
 	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
-	VipsAngle angle = get_angle( im );
+	VipsAngle angle = vips_autorot_get_angle( im );
 
 	if( rotate_image &&
 		angle != VIPS_ANGLE_D0 ) {
