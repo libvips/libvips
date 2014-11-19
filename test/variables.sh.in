@@ -2,3 +2,4 @@ top_srcdir=@TOP_SRCDIR@
 tmp=$top_srcdir/test/tmp
 test_images=$top_srcdir/test/images
 image=$test_images/IMG_4618.jpg
+mkdir -p $tmp

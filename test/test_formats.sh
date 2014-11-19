@@ -144,7 +144,7 @@ test_format $image tif 70 [compression=jpeg,tile]
 test_format $image tif 70 [compression=jpeg,tile,pyramid]
 test_format $image png 0
 test_format $image png 0 [compression=9,interlace=1]
-test_format $image jpg 15
+test_format $image jpg 70
 test_format $image ppm 0
 test_format $image pfm 0
 test_format $image fits 0
@@ -153,11 +153,11 @@ test_format $image fits 0
 test_format $mono csv 0
 
 # cmyk jpg is a special path
-test_format $cmyk jpg 15
+test_format $cmyk jpg 70
 test_format $cmyk tif 0
-test_format $cmyk tif 15 [compression=jpeg]
-test_format $cmyk tif 15 [compression=jpeg,tile]
-test_format $cmyk tif 15 [compression=jpeg,tile,pyramid]
+test_format $cmyk tif 70 [compression=jpeg]
+test_format $cmyk tif 70 [compression=jpeg,tile]
+test_format $cmyk tif 70 [compression=jpeg,tile,pyramid]
 
 test_rad $rad 
 
