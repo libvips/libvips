@@ -1,5 +1,17 @@
 - test building without cpp
 
+	need to add introspection.m4 to m4/ dir?
+
+	configure.ac has 
+
+		GOBJECT_INTROSPECTION_CHECK([1.30.0])
+
+	libvips/Makefile.am has
+
+		if HAVE_INTROSPECTION
+
+	what defines that? is it a left-over?
+
 - test building without python
 
 - use vips_resize() in vipsthumbnail?
