@@ -164,7 +164,7 @@ vips_gaussmat_class_init( VipsGaussmatClass *class )
 		0.000001, 10000.0, 1.0 );
 
 	VIPS_ARG_DOUBLE( class, "min_ampl", 3, 
-		_( "Width" ), 
+		_( "Minimum amplitude" ), 
 		_( "Minimum amplitude of Gaussian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGaussmat, min_ampl ),

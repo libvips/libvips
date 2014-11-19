@@ -176,11 +176,7 @@ vips_resize_build( VipsObject *object )
 	sigma = ((1.0 / residual) - 0.5) / 1.5;
 	if( residual < 1.0 &&
 		sigma > 0.1 ) { 
-		if( vips_gaussmat( &t[1], sigma, 0.2,
-			"separable", TRUE,
-			"integer", TRUE,
-			NULL ) ||
-			vips_convsep( in, &t[2], t[1], NULL ) )
+		if( vips_gaussblur( in, &t[2], sigma, NULL ) )
 			return( -1 );
 		in = t[2];
 	}

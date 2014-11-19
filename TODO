@@ -1,3 +1,6 @@
+- use vips_gaussblur() in vips_resize(), and vipsthumbnail.c
+
+
 - test building without cpp
 
 	need to add introspection.m4 to m4/ dir?
