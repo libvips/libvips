@@ -2,14 +2,12 @@
 
 # set -x
 
-source variables.sh 
+. ./variables.sh 
 
 chain=1
 
 # im_benchmark needs a labq
-vips im_sRGB2XYZ $image $tmp/t1.v
-vips im_XYZ2Lab $tmp/t1.v $tmp/t2.v
-vips im_Lab2LabQ $tmp/t2.v $tmp/t3.v
+vips colourspace $image $tmp/t3.v labq
 
 for tile in 10 64 128 512; do
 	# benchmark includes a dither which will vary with tile size
@@ -22,9 +20,9 @@ for tile in 10 64 128 512; do
 		vips --vips-concurrency=$cpus \
 			--vips-tile-width=$tile --vips-tile-height=$tile \
 			im_benchmarkn $tmp/t3.v $tmp/t7.v $chain
-		vips im_subtract $tmp/t5.v $tmp/t7.v $tmp/t8.v
-		vips im_abs $tmp/t8.v $tmp/t9.v
-		max=`vips im_max $tmp/t9.v`
+		vips subtract $tmp/t5.v $tmp/t7.v $tmp/t8.v
+		vips abs $tmp/t8.v $tmp/t9.v
+		max=$(vips max $tmp/t9.v)
 		if [ $max -gt 0 ]; then
 			break
 		fi

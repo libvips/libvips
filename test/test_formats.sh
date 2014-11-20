@@ -40,8 +40,6 @@ save_load() {
 
 # is a difference beyond a threshold? return 0 (meaning all ok) or 1 (meaning
 # error, or outside threshold)
-# 
-# use bc since bash does not support fp math
 break_threshold() {
 	diff=$1
 	threshold=$2
@@ -56,7 +54,7 @@ test_difference() {
 
 	vips subtract $before $after $tmp/difference.v
 	vips abs $tmp/difference.v $tmp/abs.v 
-	dif=`vips max $tmp/abs.v`
+	dif=$(vips max $tmp/abs.v)
 
 	if break_threshold $dif $threshold; then
 		echo "save / load difference is $dif"
@@ -106,9 +104,9 @@ test_raw() {
 	echo -n "testing $(basename $in) raw ... "
 
 	vips copy $in $tmp/before.v
-	width=`vipsheader -f Xsize $tmp/before.v`
-	height=`vipsheader -f Ysize $tmp/before.v`
-	bands=`vipsheader -f Bands $tmp/before.v`
+	width=$(vipsheader -f width $tmp/before.v)
+	height=$(vipsheader -f height $tmp/before.v)
+	bands=$(vipsheader -f bands $tmp/before.v)
 
 	vips rawsave $tmp/before.v $tmp/raw
 	vips rawload $tmp/raw $tmp/after.v $width $height $bands
