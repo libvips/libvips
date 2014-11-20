@@ -1385,15 +1385,16 @@ make_tiff_write( VipsImage *im, const char *filename,
 	else
 		tw->tls = VIPS_IMAGE_SIZEOF_PEL( im ) * tw->tilew;
 
-	/* If we will be writing tiles, we need to cache tileh pixels of the
+	/* If we will be writing tiles, we need to cache tileh lines of the
 	 * input, since we say we're sequential.
 	 */
 	if( tw->tile ) { 
 		if( vips_tilecache( tw->im, &tw->cache,
 			"tile_width", tw->im->Xsize,
-			"tile_height", tw->tileh,
-			"max_tiles", 1,
-			NULL ) ) 
+			"tile_height", 1,
+			"max_tiles", 2 * tw->tileh,
+			"threaded", TRUE,
+			NULL ) )
 			return( NULL );
 
 		tw->im = tw->cache;
