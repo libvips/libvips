@@ -138,6 +138,8 @@
  * 	  of bands, etc., see the tiff loader
  * 26/1/14
  * 	- add RGB as well as YCbCr write
+ * 20/11/14
+ * 	- cache input in tile write mode to keep us seqential
  */
 
 /*
@@ -266,6 +268,8 @@ typedef struct tiff_write {
 	int rgbjpeg;			/* True for RGB not YCbCr */
 
 	GMutex *write_lock;		/* Lock TIFF*() calls with this */
+
+	VipsImage *cache; 		/* Cache a chunk of input */
 } TiffWrite;
 
 /* Open TIFF for output.
@@ -1229,6 +1233,7 @@ free_tiff_write( TiffWrite *tw )
 	VIPS_FREEF( vips_free, tw->tbuf );
 	VIPS_FREEF( vips_g_mutex_free, tw->write_lock );
 	VIPS_FREEF( free_pyramid, tw->layer );
+	VIPS_UNREF( tw->cache );
 	VIPS_FREEF( vips_free, tw->icc_profile );
 }
 
@@ -1320,6 +1325,7 @@ make_tiff_write( VipsImage *im, const char *filename,
 	tw->bigtiff = bigtiff;
 	tw->rgbjpeg = rgbjpeg;
 	tw->write_lock = NULL;
+	tw->cache = NULL;
 
 	tw->resunit = get_resunit( resunit );
 	tw->xres = xres;
@@ -1378,6 +1384,20 @@ make_tiff_write( VipsImage *im, const char *filename,
 		tw->tls = ROUND_UP( tw->tilew, 8 ) / 8;
 	else
 		tw->tls = VIPS_IMAGE_SIZEOF_PEL( im ) * tw->tilew;
+
+	/* If we will be writing tiles, we need to cache tileh pixels of the
+	 * input, since we say we're sequential.
+	 */
+	if( tw->tile ) { 
+		if( vips_tilecache( tw->im, &tw->cache,
+			"tile_width", tw->im->Xsize,
+			"tile_height", tw->tileh,
+			"max_tiles", 1,
+			NULL ) ) 
+			return( NULL );
+
+		tw->im = tw->cache;
+	}
 
 	return( tw );
 }

@@ -1,15 +1,3 @@
-- getting an error in test_formats.sh
-
-	$ ./test_formats.sh 
-	testing IMG_4618.jpg v ... ok
-	testing IMG_4618.jpg tif ... ok
-	testing IMG_4618.jpg tif[compression=jpeg] ... ok
-	testing IMG_4618.jpg tif[compression=deflate] ... ok
-	testing IMG_4618.jpg tif[compression=packbits] ... ok
-	testing IMG_4618.jpg tif[compression=jpeg,tile] ... vips warning: linecache:
-	error reading tile 0x128: VipsJpeg: out of order read at line 384
-
-
 - use vips_resize() in vipsthumbnail?
 
   should the sharpening filter be selectable?

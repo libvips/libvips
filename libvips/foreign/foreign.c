@@ -1337,7 +1337,9 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 	object_class->nickname = "filesave";
 	object_class->description = _( "file savers" );
 
-	/* I think all savers are sequential. Hopefully.
+	/* All savers are seqential by definition. Things like tiled tiff 
+	 * write and interlaced png write, which are not, add extra caches 
+	 * on their input. 
 	 */
 	operation_class->flags |= VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
