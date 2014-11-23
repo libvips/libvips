@@ -58,6 +58,7 @@ EXTRA_DIST = \
 	libvips.supp \
 	acinclude.m4 \
 	depcomp \
+	README.md \
 	$(C_DIST_DIR) \
 	$(P_DIST_DIR) \
 	$(P8_DIST_DIR) \

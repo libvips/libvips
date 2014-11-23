@@ -127,14 +127,14 @@ vips_gaussblur_class_init( VipsGaussblurClass *class )
 
 	VIPS_ARG_DOUBLE( class, "sigma", 3, 
 		_( "Sigma" ), 
-		_( "Sigma of gaussian" ),
+		_( "Sigma of Gaussian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGaussblur, sigma ),
 		0.01, 1000, 1.5 );
 
 	VIPS_ARG_DOUBLE( class, "min_ampl", 3, 
 		_( "Minimum amplitude" ), 
-		_( "Minimum amplitude of gaussian" ),
+		_( "Minimum amplitude of Gaussian" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsGaussblur, min_ampl ),
 		0.001, 1.0, 0.2 );
