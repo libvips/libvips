@@ -3,6 +3,7 @@
 - better pbm (one bit) load, better pfm (float) load/save
 - added pbm (one bit) save
 - changed vips_gaussblur() parameters, sorry
+- fixed XYZ2scRGB profile handling, thanks Lovell
 
 25/7/14 started 7.41.0
 - start working on --disable-deprecated
