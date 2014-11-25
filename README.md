@@ -57,6 +57,15 @@ Then for a debug build:
 	$ make
 	$ make install
 
+Or to build on osx:
+
+	$ brew install gtk-doc swig
+	$ gtkdocize
+	$ ./bootstrap.sh
+	$ ./configure
+	$ make
+	$ make install
+
 Leak check:
 
 	$ export G_DEBUG=gc-friendly
