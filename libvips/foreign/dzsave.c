@@ -1700,11 +1700,13 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( (p = strrchr( dz->basename, '.' )) ) {
 		*p = '\0';
 
-		/* If we're writing to thing.zip, default to zip container.
+		/* If we're writing to thing.zip or thing.szi, default to zip 
+		 * container.
 		 */
-		if( strcasecmp( p + 1, "zip" ) == 0 &&
-			!vips_object_argument_isset( object, "container" ) )
-			dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
+		if( !vips_object_argument_isset( object, "container" ) )
+			if( strcasecmp( p + 1, "zip" ) == 0 ||
+				strcasecmp( p + 1, "szi" ) == 0 )
+				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
 	}
 }
 
