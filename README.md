@@ -43,26 +43,25 @@ Windows](http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_windows)
 and [building on OS
 X](http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_OS_X).
 
-# Building libvips from GIT
+# Building libvips from git
 
 Checkout the latest sources with:
 
 	$ git clone git://github.com/jcupitt/libvips.git
 
-Then for a debug build:
-
-	$ ./bootstrap.sh
-	$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
-		./configure --prefix=/home/john/vips --enable-gtk-doc
-	$ make
-	$ make install
-
-Or to build on osx:
+Building from git needs more packages. You'll need at least swig and gtk-doc,
+see the dependencies section below. For example:
 
 	$ brew install gtk-doc swig
-	$ gtkdocize
+
+Then build the build system with:
+
 	$ ./bootstrap.sh
-	$ ./configure
+
+Debug build:
+
+	$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
+		./configure --prefix=/home/john/vips 
 	$ make
 	$ make install
 
