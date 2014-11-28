@@ -575,7 +575,11 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 			out = t[7];
 		}
 
-		in = out;
+		/* If the embedded profile failed and there's no fallback or
+		 * the fallback failed, out will still be NULL.
+		 */
+		if( out )
+			in = out;
 	}
 
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
