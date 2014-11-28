@@ -110,9 +110,9 @@ Vips.Error = Error
 
 class Argument:
     def __init__(self, op, prop):
-        self.op = op;
-        self.prop = prop;
-        self.name = re.sub("-", "_", prop.name);
+        self.op = op
+        self.prop = prop
+        self.name = re.sub("-", "_", prop.name)
         self.flags = op.get_argument_flags(self.name)
         self.priority = op.get_argument_priority(self.name)
         self.isset = op.argument_isset(self.name)
@@ -377,6 +377,8 @@ def vips_image_new_from_buffer(cls, data, option_string, **kwargs):
     if loader == None:
         raise Error('No known loader for buffer.')
     logging.debug('Image.new_from_buffer: loader = %s' % loader)
+
+    return _call_base(loader, [data], kwargs, None, option_string)
 
 setattr(Vips.Image, 'new_from_buffer', vips_image_new_from_buffer)
 

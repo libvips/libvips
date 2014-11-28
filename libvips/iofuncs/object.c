@@ -1179,7 +1179,7 @@ vips_object_set_property( GObject *gobject,
 	printf( ".%s\n", g_param_spec_get_name( pspec ) );
 
 	/* This can crash horribly with some values, have it as a separate
-	 * chunk so we can easily commenmt it out.
+	 * chunk so we can easily comment it out.
 	 */
 {
 	char *str_value;
