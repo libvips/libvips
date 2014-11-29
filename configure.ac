@@ -359,6 +359,11 @@ AM_GLIB_GNU_GETTEXT
 # build list of pkg-config packages we used here
 PACKAGES_USED=""
 
+# build list of extra libs we need here
+# the main one is jpeg: it does not have a .pc file, so when we make vips.pc
+# we need to put -ljpeg into libs ourselves
+EXTRA_LIBS_USED=""
+
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
@@ -708,7 +713,8 @@ if test x"$with_png" != "xno"; then
 fi
 
 FIND_JPEG(
-  [with_jpeg=yes],
+  [with_jpeg=yes
+   EXTRA_LIBS_USED="$EXTRA_LIBS_USED -ljpeg"],
   [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
    with_jpeg=no
   ])
@@ -790,6 +796,7 @@ AC_SUBST(VIPS_INCLUDES)
 AC_SUBST(VIPS_LIBS)
 AC_SUBST(VIPS_CXX_LIBS)
 AC_SUBST(PACKAGES_USED)
+AC_SUBST(EXTRA_LIBS_USED)
 
 # needed by test/variables.sh.in
 # :( what's a better way to do this, argh
