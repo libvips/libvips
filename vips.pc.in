@@ -8,4 +8,6 @@ Description: Image processing library
 Version: @VERSION@
 Requires: @PACKAGES_USED@
 Libs: -L${libdir} -lvips 
+# necessary for static linking with mingw
+Libs.private: @VIPS_LIBS@ @VIPS_CXX_LIBS@
 Cflags: -I${includedir} 
