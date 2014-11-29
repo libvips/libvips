@@ -7,5 +7,5 @@ Name: vips
 Description: Image processing library
 Version: @VERSION@
 Requires: @PACKAGES_USED@
-Libs: -L${libdir} -lvips @VIPS_LIBS@ @VIPS_CXX_LIBS@
+Libs: -L${libdir} -lvips 
 Cflags: -I${includedir} 
