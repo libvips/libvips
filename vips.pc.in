@@ -6,6 +6,8 @@ includedir=@includedir@
 Name: vips
 Description: Image processing library
 Version: @VERSION@
-Requires: @PACKAGES_USED@
-Libs: -L${libdir} -lvips @EXTRA_LIBS_USED@
-Cflags: -I${includedir} 
+Requires.private: @PACKAGES_USED@
+Libs: -L${libdir} -lvips -pthread
+Libs.private: @EXTRA_LIBS_USED@
+Cflags: -I${includedir}
+
