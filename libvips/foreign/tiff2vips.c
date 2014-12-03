@@ -150,6 +150,8 @@
  * 	- 1/2/4 bit palette images can have alpha
  * 27/10/14 Lovell
  * 	- better istiff detector spots bigtiff
+ * 3/12/14
+ * 	- read any XMP metadata
  */
 
 /*
@@ -1138,6 +1140,19 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 			return( -1 );
 		memcpy( data_copy, data, data_length );
 		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
+			(VipsCallbackFn) vips_free, data_copy, data_length );
+	}
+
+	/* Read any XMP metadata.
+	 */
+	if( TIFFGetField( rtiff->tiff, 
+		TIFFTAG_XMLPACKET, &data_length, &data ) ) {
+		void *data_copy;
+
+		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+			return( -1 );
+		memcpy( data_copy, data, data_length );
+		vips_image_set_blob( out, VIPS_META_XMP_NAME, 
 			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 

@@ -139,7 +139,9 @@
  * 26/1/14
  * 	- add RGB as well as YCbCr write
  * 20/11/14
- * 	- cache input in tile write mode to keep us seqential
+ * 	- cache input in tile write mode to keep us sequential
+ * 3/12/14
+ * 	- embed XMP in output
  */
 
 /*
@@ -455,6 +457,28 @@ embed_profile( TiffWrite *tw, TIFF *tif )
 	return( 0 );
 }
 
+/* Embed any XMP metadata. 
+ */
+static int
+embed_xmp( TiffWrite *tw, TIFF *tif )
+{
+	void *data;
+	size_t data_length;
+
+	if( !vips_image_get_typeof( tw->im, VIPS_META_XMP_NAME ) )
+		return( 0 );
+	if( vips_image_get_blob( tw->im, VIPS_META_XMP_NAME, 
+		&data, &data_length ) )
+		return( -1 );
+	TIFFSetField( tif, TIFFTAG_XMLPACKET, data_length, data );
+
+#ifdef DEBUG
+	printf( "vips2tiff: attached XMP from meta\n" );
+#endif /*DEBUG*/
+
+	return( 0 );
+}
+
 /* Write a TIFF header. width and height are the size of the VipsImage we are
  * writing (may have been shrunk!).
  */
@@ -486,9 +510,9 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 	TIFFSetField( tif, TIFFTAG_YRESOLUTION, 
 		VIPS_CLIP( 0.01, tw->yres, 10000 ) );
 
-	/* Attach ICC profile.
-	 */
 	if( embed_profile( tw, tif ) )
+		return( -1 );
+	if( embed_xmp( tw, tif ) )
 		return( -1 );
 
 	/* And colour fields.
@@ -1466,9 +1490,11 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 		}
 	}
 
-	/* We can't copy profiles :( Set again from TiffWrite.
+	/* We can't copy profiles or xmp :( Set again from TiffWrite.
 	 */
 	if( embed_profile( tw, out ) )
+		return( -1 );
+	if( embed_xmp( tw, out ) )
 		return( -1 );
 
 	buf = vips_malloc( NULL, TIFFTileSize( in ) );

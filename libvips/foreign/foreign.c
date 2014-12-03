@@ -1679,7 +1679,8 @@ vips_magickload( const char *filename, VipsImage **out, ... )
  * @page means load this page from the file. By default the first page (page
  * 0) is read.
  *
- * Any ICC profile is read and attached to the VIPS image.
+ * Any ICC profile is read and attached to the VIPS image. Any XMP metadata is
+ * read and attached to the image. 
  *
  * See also: vips_image_new_from_file().
  *
@@ -1810,6 +1811,9 @@ vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Set @bigtiff to attempt to write a bigtiff. 
  * Bigtiff is a variant of the TIFF
  * format that allows more than 4GB in a file.
+ *
+ * If @in has a field called VIPS_META_XMP_NAME ("xmp-data") it is written to
+ * the tiff image. 
  *
  * See also: vips_tiffload(), vips_image_write_to_file().
  *
