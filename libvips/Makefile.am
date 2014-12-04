@@ -91,9 +91,10 @@ Vips_8_0_gir_LIBS = libvips.la
 Vips_8_0_gir_FILES = $(introspection_sources)
 INTROSPECTION_GIRS += Vips-8.0.gir
 
+# don't use --warn-all --verbose 
+# we have an unusual markup with optional args and we don't want to see all
+# those warnings
 Vips_8_0_gir_SCANNERFLAGS = \
-			    --warn-all \
-			    --verbose \
 			    --identifier-prefix=Vips \
 			    --identifier-prefix=vips \
 			    --symbol-prefix=vips 
