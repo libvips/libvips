@@ -141,7 +141,8 @@ read_destroy( VipsImage *im, Read *read )
 }
 
 static Read *
-read_new( const char *filename, VipsImage *im, gboolean all_frames )
+read_new( const char *filename, VipsImage *im, gboolean all_frames,
+	const char* density )
 {
 	Read *read;
 	static int inited = 0;
@@ -174,6 +175,10 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames )
 		return( NULL );
 
 	vips_strncpy( read->image_info->filename, filename, MaxTextExtent );
+
+	/* Canvas resolution for rendering vector formats like SVG
+	 */
+	VIPS_SETSTR( read->image_info->density, density );
 
 #ifdef DEBUG
 	printf( "magick2vips: read_new: %s\n", read->filename );
@@ -647,7 +652,8 @@ magick_fill_region( VipsRegion *out,
 }
 
 int
-vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames )
+vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames,
+	const char *density )
 {
 	Read *read;
 
@@ -655,7 +661,7 @@ vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames )
 	printf( "magick2vips: vips__magick_read: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out, all_frames )) )
+	if( !(read = read_new( filename, out, all_frames, density )) )
 		return( -1 );
 
 #ifdef HAVE_SETIMAGEOPTION
@@ -697,7 +703,7 @@ vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames )
  */
 int
 vips__magick_read_header( const char *filename, VipsImage *im, 
-	gboolean all_frames )
+	gboolean all_frames, const char *density )
 {
 	Read *read;
 
@@ -705,7 +711,7 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 	printf( "vips__magick_read_header: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, im, all_frames )) )
+	if( !(read = read_new( filename, im, all_frames, density )) )
 		return( -1 );
 
 #ifdef DEBUG
