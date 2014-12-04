@@ -40,6 +40,8 @@
  * 	- turn into a set of read fns ready to be called from a class
  * 11/6/13
  * 	- add @all_frames option, off by default
+ * 4/12/14 Lovell
+ * 	- add @density option 
  */
 
 /*
@@ -142,7 +144,7 @@ read_destroy( VipsImage *im, Read *read )
 
 static Read *
 read_new( const char *filename, VipsImage *im, gboolean all_frames,
-	const char* density )
+	const char *density )
 {
 	Read *read;
 	static int inited = 0;
@@ -176,7 +178,7 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames,
 
 	vips_strncpy( read->image_info->filename, filename, MaxTextExtent );
 
-	/* Canvas resolution for rendering vector formats like SVG
+	/* Canvas resolution for rendering vector formats like SVG.
 	 */
 	VIPS_SETSTR( read->image_info->density, density );
 

@@ -5,6 +5,7 @@
 - changed vips_gaussblur() parameters, sorry
 - add .szi as a dzsave zip synonym
 - support tiff XMP metadata
+- support @density arg to magickload [Lovell]
 
 25/7/14 started 7.41.0
 - start working on --disable-deprecated

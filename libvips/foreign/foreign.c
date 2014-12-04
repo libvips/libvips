@@ -1646,7 +1646,7 @@ vips_foreign_operation_init( void )
  * Normally it will only load the first image in a many-image sequence (such
  * as a GIF). Set @all_frames to true to read the whole image sequence. 
  *
- * @density is "WxH" in DPI, e.g. "600x300" or "600" (default is "72x72")
+ * @density is "WxH" in DPI, e.g. "600x300" or "600" (default is "72x72"). See
  * http://www.imagemagick.org/script/command-line-options.php#density
  *
  * See also: vips_image_new_from_file().
