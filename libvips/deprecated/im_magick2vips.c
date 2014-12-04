@@ -50,7 +50,7 @@ im_magick2vips( const char *filename, IMAGE *out )
 #ifdef HAVE_MAGICK
 	/* Old behaviour was always to read all frames.
 	 */
-	return( vips__magick_read( filename, out, TRUE ) ); 
+	return( vips__magick_read( filename, out, TRUE, NULL ) );
 #else
 	vips_error( "im_magick2vips", 
 		"%s", _( "no libMagick support in your libvips" ) ); 

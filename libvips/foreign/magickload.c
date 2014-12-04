@@ -61,6 +61,7 @@ typedef struct _VipsForeignLoadMagick {
 
 	char *filename; 
 	gboolean all_frames;
+	char *density;
 
 } VipsForeignLoadMagick;
 
@@ -77,7 +78,7 @@ ismagick( const char *filename )
 
 	t = vips_image_new();
 	vips_error_freeze();
-	result = vips__magick_read_header( filename, t, FALSE );
+	result = vips__magick_read_header( filename, t, FALSE, NULL );
 	g_object_unref( t );
 	vips_error_thaw();
 
@@ -113,7 +114,7 @@ vips_foreign_load_magick_header( VipsForeignLoad *load )
 	VipsForeignLoadMagick *magick = (VipsForeignLoadMagick *) load;
 
 	if( vips__magick_read( magick->filename, 
-		load->out, magick->all_frames ) ) 
+		load->out, magick->all_frames, magick->density ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, magick->filename );
@@ -160,6 +161,13 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick, all_frames ),
 		FALSE );
+
+	VIPS_ARG_STRING( class, "density", 4,
+		_( "Density" ),
+		_( "Canvas resolution for rendering vector formats like SVG" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadMagick, density ),
+		NULL );
 }
 
 static void

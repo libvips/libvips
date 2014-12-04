@@ -1631,6 +1631,7 @@ vips_foreign_operation_init( void )
  * Optional arguments:
  *
  * @all_frames: load all frames in sequence
+ * @density: canvas resolution for rendering vector formats like SVG
  *
  * Read in an image using libMagick, the ImageMagick library. This library can
  * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many 
@@ -1644,6 +1645,9 @@ vips_foreign_operation_init( void )
  *
  * Normally it will only load the first image in a many-image sequence (such
  * as a GIF). Set @all_frames to true to read the whole image sequence. 
+ *
+ * @density is "WxH" in DPI, e.g. "600x300" or "600" (default is "72x72")
+ * http://www.imagemagick.org/script/command-line-options.php#density
  *
  * See also: vips_image_new_from_file().
  *
