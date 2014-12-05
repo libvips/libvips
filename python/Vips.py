@@ -933,8 +933,12 @@ def generate_class_method(name):
 
 for nickname in class_methods:
     logging.debug('adding %s as a class method' % nickname)
-    method = generate_class_method(nickname)
-    setattr(Vips.Image, nickname, method)
+    # some may be missing in this vips, eg. we might not have "webpload"
+    try:
+        method = generate_class_method(nickname)
+        setattr(Vips.Image, nickname, method)
+    except Error:
+        pass
 
 Image = override(Image)
 __all__.append('Image')
