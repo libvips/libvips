@@ -1,7 +1,12 @@
 # -*- Mode: Python; py-indent-offset: 4 -*-
 # vim: tabstop=4 shiftwidth=4 expandtab
 
-# copy this file to /usr/lib/python2.7/dist-packages/gi/overrides/
+# copy this file to /usr/lib/python2.7/dist-packages/gi/overrides, eg.
+# 
+#   sudo cp Vips.py /usr/lib/python2.7/dist-packages/gi/overrides
+#
+# Alternatively, build vips to another prefix, then copy Vips.py and Vips.pyc
+# from $prefix/lib/python2.7/dist-packages/gi/overrides to /usr
 
 # This file is part of VIPS.
 # 

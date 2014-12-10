@@ -1,3 +1,5 @@
+- try new binding with python3
+
 - use vips_resize() in vipsthumbnail?
 
   should the sharpening filter be selectable?
