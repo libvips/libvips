@@ -1,9 +1,13 @@
 # -*- Mode: Python; py-indent-offset: 4 -*-
 # vim: tabstop=4 shiftwidth=4 expandtab
 
-# copy this file to /usr/lib/python2.7/dist-packages/gi/overrides, eg.
+# overrides for pygobject gobject-introspection binding for libvips, tested 
+# with python2.7 and python3.4
+
+# copy this file to dist-packages/gi/overrides, eg.
 # 
 #   sudo cp Vips.py /usr/lib/python2.7/dist-packages/gi/overrides
+#   sudo cp Vips.py /usr/lib/python3/dist-packages/gi/overrides
 #
 # Alternatively, build vips to another prefix, then copy Vips.py and Vips.pyc
 # from $prefix/lib/python2.7/dist-packages/gi/overrides to /usr
@@ -25,6 +29,12 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 # 
 # These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+
+from __future__ import division
+from builtins import map
+from builtins import str
+from builtins import range
+from builtins import object
 
 import sys
 import re
@@ -113,7 +123,7 @@ class Error(Exception):
 
 Vips.Error = Error
 
-class Argument:
+class Argument(object):
     def __init__(self, op, prop):
         self.op = op
         self.prop = prop
@@ -185,7 +195,7 @@ class Operation(Vips.Operation):
         args = [Argument(self, x) for x in self.props]
         args = [y for y in args 
                 if not y.flags & Vips.ArgumentFlags.DEPRECATED]
-        args.sort(lambda a, b: a.priority - b.priority)
+        args.sort(key = lambda x: x.priority)
 
         return args
 
@@ -213,7 +223,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
 
     try:
         op = Vips.Operation.new(name)
-    except TypeError, e:
+    except TypeError as e:
         raise Error('No such operator.')
     if op.get_flags() & Vips.OperationFlags.DEPRECATED:
         raise Error('No such operator.', 'operator "%s" is deprecated' % name)
@@ -285,7 +295,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
                        not x.flags & enm.REQUIRED}
 
     # set optional input args
-    for key in optional.keys():
+    for key in list(optional.keys()):
         if key in optional_input:
             optional_input[key].set_value(match_image, optional[key])
         elif key in optional_output:
@@ -322,7 +332,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
             out.append(x.get_value())
 
     out_dict = {}
-    for x in optional.keys():
+    for x in list(optional.keys()):
         if x in optional_output:
             out_dict[x] = optional_output[x].get_value()
     if out_dict != {}:
@@ -425,7 +435,7 @@ setattr(Vips.Image, 'new_from_array', vips_image_new_from_array)
 def generate_docstring(name):
     try:
         op = Vips.Operation.new(name)
-    except TypeError, e:
+    except TypeError as e:
         raise Error('No such operator.')
     if op.get_flags() & Vips.OperationFlags.DEPRECATED:
         raise Error('No such operator.', 'operator "%s" is deprecated' % name)
@@ -500,7 +510,7 @@ def generate_docstring(name):
 # as well as scalars
 def smap(func, x):
     if isinstance(x, list):
-        return map(func, x)
+        return list(map(func, x))
     else:
         return func(x)
 
@@ -595,6 +605,8 @@ class Image(Vips.Image):
     def __rmul__(self, other):
         return self.__mul__(other)
 
+    # a / const has always been a float in vips, so div and truediv are the 
+    # same
     def __div__(self, other):
         if isinstance(other, Vips.Image):
             return self.divide(other)
@@ -603,6 +615,12 @@ class Image(Vips.Image):
 
     def __rdiv__(self, other):
         return (self ** -1) * other
+
+    def __truediv__(self, other):
+        return self.__div__(other)
+
+    def __rtruediv__(self, other):
+        return self.__rdiv__(other)
 
     def __floordiv__(self, other):
         if isinstance(other, Vips.Image):

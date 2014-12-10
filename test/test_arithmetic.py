@@ -1,5 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
+from __future__ import division
+from builtins import zip
+from builtins import range
 import unittest
 import math
 
@@ -26,7 +29,7 @@ all_formats = int_formats + float_formats + complex_formats
 # the other
 def zip_expand(x, y):
     if isinstance(x, list) and isinstance(y, list):
-        return zip(x, y)
+        return list(zip(x, y))
     elif isinstance(x, list):
         return [[i, y] for i in x]
     elif isinstance(y, list):
@@ -77,9 +80,9 @@ class TestArithmetic(unittest.TestCase):
         self.run_cmp(message, im, 10, 10, lambda x: run_fn2(fn, c, x))
 
     def run_arith_const(self, fn, fmt = all_formats):
-        [self.run_testconst(fn.func_name + ' scalar', fn, x.cast(y), 2)
+        [self.run_testconst(fn.__name__ + ' scalar', fn, x.cast(y), 2)
          for x in self.all_images for y in fmt]
-        [self.run_testconst(fn.func_name + ' vector', fn, self.colour.cast(y), 
+        [self.run_testconst(fn.__name__ + ' vector', fn, self.colour.cast(y), 
                             [1, 2, 3])
          for y in fmt]
 
@@ -102,7 +105,7 @@ class TestArithmetic(unittest.TestCase):
                       lambda x, y: run_fn2(fn, x, y))
 
     def run_arith(self, fn, fmt = all_formats):
-        [self.run_test2(fn.func_name + ' image', x.cast(y), x.cast(z), fn)
+        [self.run_test2(fn.__name__ + ' image', x.cast(y), x.cast(z), fn)
          for x in self.all_images for y in fmt for z in fmt]
 
     def setUp(self):
@@ -279,7 +282,7 @@ class TestArithmetic(unittest.TestCase):
         self.run_cmp(message, im, 10, 10, lambda x: run_fn(fn, x))
 
     def run_unary(self, images, fn, fmt = all_formats):
-        [self.run_testunary(fn.func_name + ' image', x.cast(y), fn)
+        [self.run_testunary(fn.__name__ + ' image', x.cast(y), fn)
          for x in images for y in fmt]
 
     def test_abs(self):
@@ -408,7 +411,7 @@ class TestArithmetic(unittest.TestCase):
     def test_histfind_indexed(self):
         im = Vips.Image.black(50, 100)
         test = im.insert(im + 10, 50, 0, expand = True)
-        index = test / 10
+        index = test // 10
 
         for x in noncomplex_formats:
             for y in [Vips.BandFormat.UCHAR, Vips.BandFormat.USHORT]:
@@ -459,8 +462,8 @@ class TestArithmetic(unittest.TestCase):
             
             v, x, y = hough.maxpos()
 
-            angle = 360.0 * x / hough.width 
-            distance = test.height * y / hough.height
+            angle = 360.0 * x // hough.width 
+            distance = test.height * y // hough.height
 
             self.assertAlmostEqual(angle, 45)
             self.assertAlmostEqual(distance, 70)

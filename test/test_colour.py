@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from builtins import zip
+
 import unittest
 import math
 
@@ -40,7 +42,7 @@ all_colourspaces = colour_colourspaces + mono_colourspaces + coded_colourspaces
 # the other
 def zip_expand(x, y):
     if isinstance(x, list) and isinstance(y, list):
-        return zip(x, y)
+        return list(zip(x, y))
     elif isinstance(x, list):
         return [[i, y] for i in x]
     elif isinstance(y, list):

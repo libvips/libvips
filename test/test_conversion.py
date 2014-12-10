@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import division
+from builtins import zip
 import unittest
 import math
 
@@ -7,6 +9,7 @@ import math
 #logging.basicConfig(level = logging.DEBUG)
 
 from gi.repository import Vips 
+from functools import reduce
 
 unsigned_formats = [Vips.BandFormat.UCHAR, 
                     Vips.BandFormat.USHORT, 
@@ -76,7 +79,7 @@ rot_angle_bonds = [Vips.Angle.D0,
 # the other
 def zip_expand(x, y):
     if isinstance(x, list) and isinstance(y, list):
-        return zip(x, y)
+        return list(zip(x, y))
     elif isinstance(x, list):
         return [[i, y] for i in x]
     elif isinstance(y, list):
@@ -123,11 +126,11 @@ class TestConversion(unittest.TestCase):
         self.run_cmp_unary(message, im, 10, 10, fn)
 
     def run_unary(self, images, fn, fmt = all_formats):
-        [self.run_testunary(fn.func_name + (' %s' % y), x.cast(y), fn)
+        [self.run_testunary(fn.__name__ + (' %s' % y), x.cast(y), fn)
          for x in images for y in fmt]
 
     def run_binary(self, images, fn, fmt = all_formats):
-        [self.run_testbinary(fn.func_name + (' %s %s' % (y, z)), 
+        [self.run_testbinary(fn.__name__ + (' %s %s' % (y, z)), 
                              x.cast(y), x.cast(z), fn)
          for x in images for y in fmt for z in fmt]
 
@@ -178,7 +181,7 @@ class TestConversion(unittest.TestCase):
             if isinstance(x, Vips.Image):
                 return x.bandmean()
             else:
-                return [sum(x) / len(x)]
+                return [sum(x) // len(x)]
 
         self.run_unary([self.colour], bandmean, fmt = noncomplex_formats)
 
@@ -188,7 +191,7 @@ class TestConversion(unittest.TestCase):
             # .sort() isn't a function, so we have to run this as a separate
             # pass
             [x.sort() for x in joined]
-            return [x[len(x) / 2] for x in joined]
+            return [x[len(x) // 2] for x in joined]
 
         def bandrank(x, y):
             if isinstance(x, Vips.Image) and isinstance(y, Vips.Image):
@@ -331,7 +334,7 @@ class TestConversion(unittest.TestCase):
 
         for fmt in noncomplex_formats:
             mx = max_value[fmt]
-            alpha = mx / 2
+            alpha = mx / 2.0
             nalpha = mx - alpha
             test = self.colour.bandjoin(black + alpha).cast(fmt)
             pixel = test.getpoint(30, 30)
@@ -350,7 +353,7 @@ class TestConversion(unittest.TestCase):
             im = test.flatten(background = [100, 100, 100])
 
             pixel = test.getpoint(30, 30)
-            predict = [int(x) * alpha / mx + (100 * nalpha) / mx 
+            predict = [int(x) * alpha / mx + (100 * nalpha) / mx
                        for x in pixel[:-1]]
 
             self.assertEqual(im.bands, 3)
@@ -375,7 +378,7 @@ class TestConversion(unittest.TestCase):
         exponent = 2.4
         for fmt in noncomplex_formats:
             mx = max_value[fmt]
-            test = (self.colour + mx / 2).cast(fmt)
+            test = (self.colour + mx / 2.0).cast(fmt)
 
             norm = mx ** exponent / mx
             result = test.gamma()
@@ -390,7 +393,7 @@ class TestConversion(unittest.TestCase):
         exponent = 1.2
         for fmt in noncomplex_formats:
             mx = max_value[fmt]
-            test = (self.colour + mx / 2).cast(fmt)
+            test = (self.colour + mx / 2.0).cast(fmt)
 
             norm = mx ** exponent / mx
             result = test.gamma(exponent = 1.0 / 1.2)
@@ -518,7 +521,7 @@ class TestConversion(unittest.TestCase):
         for fmt in unsigned_formats:
             mx = max_value[fmt]
             size = sizeof_format[fmt]
-            test = (self.colour + mx / 8).cast(fmt)
+            test = (self.colour + mx / 8.0).cast(fmt)
             im = test.msb()
 
             before = test.getpoint(10, 10)
@@ -534,7 +537,7 @@ class TestConversion(unittest.TestCase):
         for fmt in signed_formats:
             mx = max_value[fmt]
             size = sizeof_format[fmt]
-            test = (self.colour + mx / 8).cast(fmt)
+            test = (self.colour + mx / 8.0).cast(fmt)
             im = test.msb()
 
             before = test.getpoint(10, 10)
@@ -550,7 +553,7 @@ class TestConversion(unittest.TestCase):
         for fmt in unsigned_formats:
             mx = max_value[fmt]
             size = sizeof_format[fmt]
-            test = (self.colour + mx / 8).cast(fmt)
+            test = (self.colour + mx / 8.0).cast(fmt)
             im = test.msb(band = 1)
 
             before = [test.getpoint(10, 10)[1]]
@@ -644,8 +647,8 @@ class TestConversion(unittest.TestCase):
             test = self.colour.cast(fmt)
 
             im = test.subsample(3, 3)
-            self.assertEqual(im.width, test.width / 3)
-            self.assertEqual(im.height, test.height / 3)
+            self.assertEqual(im.width, test.width // 3)
+            self.assertEqual(im.height, test.height // 3)
 
             before = test.getpoint(60, 60)
             after = im.getpoint(20, 20)
