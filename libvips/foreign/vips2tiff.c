@@ -263,8 +263,8 @@ typedef struct tiff_write {
 	int pyramid;			/* Write pyramid */
 	int onebit;			/* Write as 1-bit TIFF */
         int resunit;                    /* Resolution unit (inches or cm) */
-        float xres;                    	/* Resolution in X */
-        float yres;                    	/* Resolution in Y */
+        double xres;                   	/* Resolution in X */
+        double yres;                   	/* Resolution in Y */
 	char *icc_profile;		/* Profile to embed */
 	int bigtiff;			/* True for bigtiff write */
 	int rgbjpeg;			/* True for RGB not YCbCr */
@@ -506,9 +506,9 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 	 */
 	TIFFSetField( tif, TIFFTAG_RESOLUTIONUNIT, tw->resunit );
 	TIFFSetField( tif, TIFFTAG_XRESOLUTION, 
-		VIPS_CLIP( 0.01, tw->xres, 10000 ) );
+		VIPS_CLIP( 0.01, tw->xres, 1000000 ) );
 	TIFFSetField( tif, TIFFTAG_YRESOLUTION, 
-		VIPS_CLIP( 0.01, tw->yres, 10000 ) );
+		VIPS_CLIP( 0.01, tw->yres, 1000000 ) );
 
 	if( embed_profile( tw, tif ) )
 		return( -1 );

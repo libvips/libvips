@@ -238,14 +238,14 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		_( "Horizontal resolution in pixels/mm" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, xres ),
-		-0.0, 1000000, 0 );
+		0.001, 1000000, 1 );
 
 	VIPS_ARG_DOUBLE( class, "yres", 17, 
 		_( "Yres" ), 
 		_( "Vertical resolution in pixels/mm" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, yres ),
-		-0.0, 1000000, 0 );
+		0.001, 1000000, 1 );
 
 	VIPS_ARG_BOOL( class, "bigtiff", 18, 
 		_( "Bigtiff" ), 
