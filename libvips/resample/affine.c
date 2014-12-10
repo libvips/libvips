@@ -419,7 +419,10 @@ vips_affine_build( VipsObject *object )
 		vips_check_vector_length( class->nickname, 
 			affine->oarea->n, 4 ) )
 		return( -1 );
-	if( !vips_object_argument_isset( object, "interpolate" ) )
+	/* We can't use vips_object_argument_isset(), since it may have been
+	 * set to NULL, see vips_similarity().
+	 */
+	if( !affine->interpolate ) 
 		g_object_set( object, 
 			"interpolate", vips_interpolate_new( "bilinear" ),
 			NULL ); 
