@@ -751,7 +751,7 @@ class Image(Vips.Image):
         # image-ize
         if GObject.type_is_a(gtype, vips_type_image):
             if not isinstance(value, Vips.Image):
-                value = imageize(match_image, value)
+                value = imageize(self, value)
 
         # array-ize some types, if necessary
         value = arrayize(gtype, value)

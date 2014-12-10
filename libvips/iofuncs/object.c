@@ -1473,6 +1473,7 @@ vips_object_real_summary_class( VipsObjectClass *class, VipsBuf *buf )
 static void
 vips_object_real_summary( VipsObject *object, VipsBuf *buf )
 {
+	vips_buf_appendf( buf, " count=%d", G_OBJECT( object )->ref_count );
 }
 
 static void
