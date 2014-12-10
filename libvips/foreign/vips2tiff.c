@@ -142,6 +142,8 @@
  * 	- cache input in tile write mode to keep us sequential
  * 3/12/14
  * 	- embed XMP in output
+ * 10/12/14
+ * 	- zero out edge tile buffers before jpeg write, thanks iwbh15
  */
 
 /*
@@ -383,6 +385,18 @@ static void
 pack2tiff( TiffWrite *tw, VipsRegion *in, VipsPel *q, VipsRect *area )
 {
 	int y;
+
+	/* JPEG compression can read outside the pixel area for edge tiles. It
+	 * always compresses 8x8 blocks, so if the image width or height is
+	 * not a multiple of 8, it can look beyond the pixels we will write.
+	 *
+	 * Black out the tile first to make sure these edge pixels are always
+	 * zero.
+	 */
+	if( tw->compression == COMPRESSION_JPEG &&
+		(area->width < tw->tilew || 
+		 area->height < tw->tileh) )
+		memset( q, 0, TIFFTileSize( tw->tif ) );
 
 	for( y = area->top; y < VIPS_RECT_BOTTOM( area ); y++ ) {
 		VipsPel *p = (VipsPel *) VIPS_REGION_ADDR( in, area->left, y );
@@ -697,7 +711,8 @@ build_pyramid( TiffWrite *tw, PyramidLayer *above,
 	 */
 	*zap = layer;
 
-	if( layer->width > tw->tilew || layer->height > tw->tileh ) 
+	if( layer->width > tw->tilew || 
+		layer->height > tw->tileh ) 
 		if( build_pyramid( tw, layer, 
 			&layer->below, layer->width, layer->height ) )
 			return( -1 );
