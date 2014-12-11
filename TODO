@@ -1,5 +1,3 @@
-- do binary / text string split in Vips.py 
-
 - use vips_resize() in vipsthumbnail?
 
   should the sharpening filter be selectable?

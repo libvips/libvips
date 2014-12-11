@@ -67,12 +67,20 @@ def imageize(match_image, value):
                         extend = Vips.Extend.COPY)
     return image
 
-unpack_types = [Vips.Blob, Vips.ArrayDouble, Vips.ArrayImage, Vips.ArrayInt]
-def isunpack(obj):
-    for t in unpack_types:
-        if isinstance(obj, t):
-            return True
-    return False
+# we'd like to use memoryview to avoid copying things like ICC profiles, but
+# unfortunately pygobject does not support this ... so for blobs we just use
+# bytes(). 
+
+unpack_types = [[Vips.Blob, bytes],
+                [Vips.ArrayDouble, lambda x: x.get()],
+                [Vips.ArrayImage, lambda x: x.get()], 
+                [Vips.ArrayInt, lambda x: x.get()]]
+def unpack(value):
+    for t, cast in unpack_types:
+        if isinstance(value, t):
+            return cast(value)
+
+    return value
 
 def array_image_new(array):
     match_image = None
@@ -99,7 +107,7 @@ def arrayize(gtype, value):
         if GObject.type_is_a(gtype, t):
             if not isinstance(value, list):
                 value = [value]
-            value = cast(value)
+            return cast(value)
 
     return value
 
@@ -167,13 +175,7 @@ class Argument(object):
 
         logging.debug('read out %s from %s' % (value, self.name))
 
-        # turn VipsBlobs into strings, VipsArrayDouble into lists etc.
-        # FIXME ... this will involve a copy, we should use
-        # buffer() instead
-        if isunpack(value):
-            value = value.get()
-
-        return value
+        return unpack(value)
 
     def description(self):
         result = self.name
@@ -742,25 +744,19 @@ class Image(Vips.Image):
         """Get a named item from an Image.
 
         Fetch an item of metadata and convert it to a Python-friendly format.
-        For example, VipsBlob things will be converted to strings.
+        For example, VipsBlob values will be converted to bytes().
         """
         value = self.get(field)
 
         logging.debug('read out %s from %s' % (value, self))
 
-        # turn VipsBlobs into strings, VipsArrayDouble into lists etc.
-        # FIXME ... this will involve a copy, we should use
-        # buffer() instead
-        if isunpack(value):
-            value = value.get()
-
-        return value
+        return unpack(value)
 
     def set_value(self, field, value):
         """Set a named item on an Image.
 
         Values are converted from Python types to something libvips can swallow.
-        For example, strings can be used to set VipsBlob fields. 
+        For example, bytes() can be used to set VipsBlob fields. 
         """
         gtype = self.get_typeof(field)
         logging.debug('assigning %s to %s' % (value, self))
