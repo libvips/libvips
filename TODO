@@ -1,6 +1,3 @@
-- update gtkdoc Makefile.am ... copy the sample in examples/Makefile.am in the
-  gtkdoc sources
-
 - use vips_resize() in vipsthumbnail?
 
   should the sharpening filter be selectable?
