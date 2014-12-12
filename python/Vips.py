@@ -1,6 +1,12 @@
 # -*- Mode: Python; py-indent-offset: 4 -*-
 # vim: tabstop=4 shiftwidth=4 expandtab
 
+from __future__ import division
+from builtins import map
+from builtins import str
+from builtins import range
+from builtins import object
+
 # overrides for pygobject gobject-introspection binding for libvips, tested 
 # with python2.7 and python3.4
 
@@ -29,12 +35,6 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 # 
 # These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
-
-from __future__ import division
-from builtins import map
-from builtins import str
-from builtins import range
-from builtins import object
 
 import sys
 import re
