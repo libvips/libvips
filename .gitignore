@@ -39,6 +39,7 @@ depcomp
 autom4te.cache/
 doc/reference/gtk-doc.make
 doc/reference/libvips-docs.sgml
+doc/reference/libvips-docs.xml
 install-sh
 libtool
 libvips/include/vips/version.h

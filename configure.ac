@@ -847,7 +847,7 @@ AC_OUTPUT([
 	man/Makefile
 	doc/Makefile
 	doc/reference/Makefile
-	doc/reference/libvips-docs.sgml
+	doc/reference/libvips-docs.xml
 	po/Makefile.in
 ])
 

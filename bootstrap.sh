@@ -15,7 +15,7 @@ rm -f swig/vipsCC/VImage.py python/vipsCC/VError.py python/vipsCC/VMask.py pytho
 rm -f benchmark/temp*
 ( cd doc ; \
 	mkdir poop ; \
-	mv reference/libvips-docs.sgml.in poop ; \
+	mv reference/libvips-docs.xml.in poop ; \
 	mv reference/Makefile.am poop ; \
 	mv reference/images poop ; \
 	mv reference/*.xml poop ; \

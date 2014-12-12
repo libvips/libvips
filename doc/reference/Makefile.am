@@ -9,20 +9,19 @@ AUTOMAKE_OPTIONS = 1.6
 # of using the various options.
 
 # The name of the module, e.g. 'glib'.
-# (vips: we put the version in the module name rather than defining
-# DOC_MODULE_VERSION to avoid some broken links)
 DOC_MODULE=libvips
 
 # Uncomment for versioned docs and specify the version of the module, e.g. '2'.
-#DOC_MODULE_VERSION=7
+#DOC_MODULE_VERSION=2
 
-# The top-level SGML file. You can change this if you want to.
-DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.sgml
 
-# The directory containing the source code. Relative to $(srcdir).
-# gtk-doc will search all .c & .h files beneath here for inline comments
-# documenting the functions and macros.
-# e.g. DOC_SOURCE_DIR=../../../gtk
+# The top-level XML file (SGML in the past). You can change this if you want to.
+DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.xml
+
+# Directories containing the source code.
+# gtk-doc will search all .c and .h files beneath these paths
+# for inline comments documenting functions and macros.
+# e.g. DOC_SOURCE_DIR=$(top_srcdir)/gtk $(top_srcdir)/gdk
 DOC_SOURCE_DIR=$(top_srcdir)/libvips
 
 # Extra options to pass to gtkdoc-scangobj. Not normally needed.
@@ -33,8 +32,8 @@ SCANGOBJ_OPTIONS=
 SCAN_OPTIONS=--rebuild-types
 
 # Extra options to supply to gtkdoc-mkdb.
-# e.g. MKDB_OPTIONS=--sgml-mode --output-format=xml
-MKDB_OPTIONS=--sgml-mode --output-format=xml
+# e.g. MKDB_OPTIONS=--xml-mode --output-format=xml
+MKDB_OPTIONS=--xml-mode --output-format=xml
 
 # Extra options to supply to gtkdoc-mktmpl
 # e.g. MKTMPL_OPTIONS=--only-section-tmpl
@@ -57,11 +56,8 @@ CFILE_GLOB=$(top_srcdir)/libvips/*/*.c
 # e.g. EXTRA_HFILES=$(top_srcdir}/contrib/extra.h
 EXTRA_HFILES=
 
-# Header files to ignore when scanning. Use base file name, no paths
-# e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
-
-# we only want to document public API, so have all .h files not in
-# libvips/include in here ... and a few from libvips/include as well
+# Header files or dirs to ignore when scanning. Use base file/dir names
+# e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h private_code
 
 IGNORE_VIPS_INCLUDE = \
 	almostdeprecated.h \
@@ -158,8 +154,6 @@ expand_content_files = \
 # signals and properties.
 # e.g. GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(GTK_DEBUG_FLAGS)
 # e.g. GTKDOC_LIBS=$(top_builddir)/gtk/$(gtktargetlib)
-# (use VIPS_CFLAGS/VIPS_LIBS/VIPS_LIBS so we pick up the glib-object.h that
-# the scanner uses)
 GTKDOC_CFLAGS = @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
 GTKDOC_LIBS = @VIPS_CFLAGS@ ${top_builddir}/libvips/libvips.la @VIPS_LIBS@
 
@@ -176,8 +170,13 @@ EXTRA_DIST += \
 # for --rebuild-sections in $(SCAN_OPTIONS) e.g. $(DOC_MODULE)-sections.txt
 DISTCLEANFILES = libvips.types
 
-# Comment this out if you want your docs-status tested during 'make check'
+# Comment this out if you want 'make check' to test you doc status
+# and run some sanity checks
 if ENABLE_GTK_DOC
-TESTS_ENVIRONMENT = cd $(srcsrc)
-TESTS = $(GTKDOC_CHECK)
+TESTS_ENVIRONMENT = \
+  DOC_MODULE=$(DOC_MODULE) DOC_MAIN_SGML_FILE=$(DOC_MAIN_SGML_FILE) \
+  SRCDIR=$(abs_srcdir) BUILDDIR=$(abs_builddir)
+#TESTS = $(GTKDOC_CHECK)
 endif
+
+-include $(top_srcdir)/git.mk
