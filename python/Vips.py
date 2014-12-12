@@ -2,7 +2,18 @@
 # vim: tabstop=4 shiftwidth=4 expandtab
 
 from __future__ import division
-from builtins import map
+
+# if this is py2 and future is not found, it's the first import from builtins 
+# that fails silently, for some reason 
+
+# raise a RuntimeError, this is not caught by our importer
+
+try:
+    from builtins import map
+except Exception as e:
+    raise RuntimeError("Unable to import 'map' from 'builtins': " + str(e) + 
+                       " -- maybe try 'pip install future'")
+
 from builtins import str
 from builtins import range
 from builtins import object
