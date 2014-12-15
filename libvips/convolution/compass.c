@@ -114,16 +114,13 @@ vips_compass_build( VipsObject *object )
 		break;
 
 	case VIPS_COMBINE_SUM:
-		x = abs[0];
-		for( i = 1; i < compass->times; i++ ) {
-			if( vips_add( x, abs[i], &combine[i], NULL ) )
-				return( -1 );
-			x = combine[i];
-		}
+		if( vips_sum( abs, &combine[0], compass->times, NULL ) )
+			return( -1 );
+		x = combine[0];
 		break;
 
 	default:
-		/* Silence compiler wrning.
+		/* Silence compiler warning.
 		 */
 		x = NULL;
 		g_assert( 0 );
