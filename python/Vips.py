@@ -58,7 +58,8 @@ from gi.repository import GObject
 Vips = modules['Vips']._introspection_module
 __all__ = []
 
-# start up vips!
+# start up vips! 
+# passing argv[0] helps vips find it's data files on some platforms
 Vips.init(sys.argv[0])
 
 # need the gtypes for various vips types
@@ -198,9 +199,6 @@ class Argument(object):
 Vips.Argument = Argument
 
 class Operation(Vips.Operation):
-
-    def __init__(self):
-        Vips.Operation.__init__(self)
 
     # find all the args for this op, sort into priority order
     # remember to ignore deprecated ones
@@ -535,10 +533,7 @@ def add_doc(value):
     return _doc
 
 class Image(Vips.Image):
-    # constructors, see class methods above
-
-    def __init__(self):
-        Vips.Image.__init__(self)
+    # for constructors, see class methods above
 
     # output
 

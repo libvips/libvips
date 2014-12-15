@@ -17,5 +17,5 @@ pygobject area, for example:
 
 or 
 
-    sudo cp Vips.py /usr/lib/python3.4/dist-packages/gi/overrides
+    sudo cp Vips.py /usr/lib/python3/dist-packages/gi/overrides
 
