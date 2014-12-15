@@ -755,7 +755,9 @@ if test x"$with_python" != "xno"; then
     with_python=no
     AC_MSG_WARN([C++ is off, disabling Python binding])
   else
-    AM_PATH_PYTHON(2.2,,
+    AM_PATH_PYTHON(2.7,
+      [pyoverridesdir="\$(pyexecdir)/gi/overrides"
+       AC_SUBST(pyoverridesdir)],
       [with_python=no
        AC_MSG_WARN([Python not found; disabling Python binding])])
   fi

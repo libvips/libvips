@@ -1,7 +1,5 @@
-pygioverridesdir = $(pyexecdir)/gi/overrides
-
-pygioverrides_PYTHON = \
-       Vips.py 
+vips_overridesdir = $(pyoverridesdir)
+vips_overrides_PYTHON = Vips.py 
 
 EXTRA_DIST = \
 	README.md
@@ -10,7 +8,7 @@ EXTRA_DIST = \
 # source tree; Python does not accept the extensions and modules in different
 # paths
 build_pylinks:
-	for f in $(pygioverrides_PYTHON); do \
+	for f in $(vips_overrides_PYTHON); do \
 	    [ -e $(builddir)/$$f ] || $(LN_S) $(srcdir)/$$f $(builddir)/$$f; \
 	done
 
