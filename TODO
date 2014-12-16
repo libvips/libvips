@@ -1,6 +1,14 @@
-- something screwy in compass def?
+- try:
 
-	$ python2 ./test_convolution.py TestConvolution.test_x
+	vips gaussmat m2.v 2 0.1 --separable
+	vips convsep k2.jpg x2.jpg m2.v
+	eog x2.jpg
+
+  it's too bright ... because gaussmat makes a float mask by default, but
+  conv does an int convolution by default
+
+  rather than an --integer switch on gaussmat, should it take --precision
+  instead, and default to INT, like conv?
 
 - configure should check for pygobject too
 

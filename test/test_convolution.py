@@ -142,5 +142,27 @@ class TestConvolution(unittest.TestCase):
                         true = compass(im, msk, 24, 49, times, operator.add)
                         self.assertAlmostEqualObjects(result, true)
 
+    def test_convsep(self):
+        for im in self.all_images:
+            for prec in [Vips.Precision.INTEGER, Vips.Precision.FLOAT]:
+                integer = prec == Vips.Precision.INTEGER
+                gmask = Vips.Image.gaussmat(2, 0.1, 
+                                            integer = integer)
+                gmask_sep = Vips.Image.gaussmat(2, 0.1, 
+                                                separable = True,
+                                                integer = integer) 
+
+                self.assertEqual(gmask.width, gmask.height)
+                self.assertEqual(gmask_sep.width, gmask.width)
+                self.assertEqual(gmask_sep.height, 1)
+
+                a = im.conv(gmask, precision = prec)
+                b = im.convsep(gmask_sep, precision = prec)
+
+                a_point = a.getpoint(25, 50)
+                b_point = b.getpoint(25, 50)
+
+                self.assertAlmostEqualObjects(a_point, b_point, places = 1)
+
 if __name__ == '__main__':
     unittest.main()
