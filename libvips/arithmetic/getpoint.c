@@ -17,6 +17,8 @@
  * 	- read_getpoint partial-ised
  * 10/2/14
  * 	- redo as a class
+ * 16/12/14
+ * 	- free the input region much earlier
  */
 
 /*
@@ -97,17 +99,19 @@ vips_getpoint_build( VipsObject *object )
 	if( vips_check_coding_known( class->nickname, getpoint->in ) ||
 		!(region = vips_region_new( getpoint->in )) )
 		return( -1 );
-	vips_object_local( object, region ); 
 
 	area.left = getpoint->x;
 	area.top = getpoint->y;
 	area.width = 1;
 	area.height = 1;
-	if( vips_region_prepare( region, &area ) ) 
+	if( vips_region_prepare( region, &area ) ||
+		!(vector = vips__ink_to_vector( class->nickname, getpoint->in, 
+			VIPS_REGION_ADDR( region, area.left, area.top ), 
+			&n )) ) {
+		VIPS_UNREF( region );
 		return( -1 );
-	if( !(vector = vips__ink_to_vector( class->nickname, getpoint->in, 
-		VIPS_REGION_ADDR( region, getpoint->x, getpoint->y ), &n )) )
-		return( -1 ); 
+	}
+	VIPS_UNREF( region );
 
 	out_array = vips_array_double_new( vector, n );
 	g_object_set( object, 

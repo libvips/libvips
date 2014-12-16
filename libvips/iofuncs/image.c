@@ -2925,7 +2925,7 @@ vips_image_wio_input( VipsImage *image )
 
 		/* We need to zap any start/gen/stop callbacks. If we don't,
 		 * calling vips_region_prepare_to() later to read from this 
-		 * image will fail, since it will think it need to create the
+		 * image will fail, since it will think it needs to create the
 		 * image, not read from it.
 		 */
 		image->start_fn = NULL;
