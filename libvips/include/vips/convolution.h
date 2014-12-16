@@ -39,13 +39,6 @@ extern "C" {
 #endif /*__cplusplus*/
 
 typedef enum {
-	VIPS_PRECISION_INTEGER,
-	VIPS_PRECISION_FLOAT,
-	VIPS_PRECISION_APPROXIMATE,
-	VIPS_PRECISION_LAST
-} VipsPrecision;
-
-typedef enum {
 	VIPS_COMBINE_MAX,
 	VIPS_COMBINE_SUM,
 	VIPS_COMBINE_LAST

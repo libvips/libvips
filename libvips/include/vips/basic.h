@@ -59,6 +59,13 @@ typedef void *(*VipsSListMap4Fn)( void *item,
 typedef void *(*VipsSListFold2Fn)( void *item, 
 	void *a, void *b, void *c );
 
+typedef enum {
+	VIPS_PRECISION_INTEGER,
+	VIPS_PRECISION_FLOAT,
+	VIPS_PRECISION_APPROXIMATE,
+	VIPS_PRECISION_LAST
+} VipsPrecision;
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

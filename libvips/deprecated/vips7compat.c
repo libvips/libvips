@@ -2169,6 +2169,7 @@ im_gauss_dmask( const char *filename, double sigma, double min_ampl )
 	DOUBLEMASK *msk;
 
 	if( vips_gaussmat( &t, sigma, min_ampl,
+		"precision", VIPS_PRECISION_FLOAT,
 		NULL ) )
 		return( NULL );
 	if( !(msk = im_vips2mask( t, filename )) ) {
@@ -2187,6 +2188,7 @@ im_gauss_dmask_sep( const char *filename, double sigma, double min_ampl )
 	DOUBLEMASK *msk;
 
 	if( vips_gaussmat( &t, sigma, min_ampl,
+		"precision", VIPS_PRECISION_FLOAT,
 		"separable", TRUE,
 		NULL ) )
 		return( NULL );
@@ -2205,9 +2207,7 @@ im_gauss_imask( const char *filename, double sigma, double min_ampl )
 	VipsImage *t;
 	INTMASK *msk;
 
-	if( vips_gaussmat( &t, sigma, min_ampl,
-		"integer", TRUE,
-		NULL ) )
+	if( vips_gaussmat( &t, sigma, min_ampl, NULL ) )
 		return( NULL );
 	if( !(msk = im_vips2imask( t, filename )) ) {
 		g_object_unref( t );
@@ -2225,7 +2225,6 @@ im_gauss_imask_sep( const char *filename, double sigma, double min_ampl )
 	INTMASK *msk;
 
 	if( vips_gaussmat( &t, sigma, min_ampl,
-		"integer", TRUE,
 		"separable", TRUE,
 		NULL ) )
 		return( NULL );
@@ -2244,9 +2243,7 @@ im_log_imask( const char *filename, double sigma, double min_ampl )
 	VipsImage *t;
 	INTMASK *msk;
 
-	if( vips_logmat( &t, sigma, min_ampl,
-		"integer", TRUE,
-		NULL ) )
+	if( vips_logmat( &t, sigma, min_ampl, NULL ) )
 		return( NULL );
 	if( !(msk = im_vips2imask( t, filename )) ) {
 		g_object_unref( t );
@@ -2264,6 +2261,7 @@ im_log_dmask( const char *filename, double sigma, double min_ampl )
 	DOUBLEMASK *msk;
 
 	if( vips_logmat( &t, sigma, min_ampl,
+		"precision", VIPS_PRECISION_FLOAT,
 		NULL ) )
 		return( NULL );
 	if( !(msk = im_vips2mask( t, filename )) ) {

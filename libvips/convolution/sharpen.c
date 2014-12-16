@@ -236,7 +236,7 @@ vips_sharpen_build( VipsObject *object )
 	 */
 	if( vips_gaussmat( &t[1], 1 + sharpen->radius / 2, 0.2, 
 		"separable", TRUE,
-		"integer", TRUE,
+		"precision", VIPS_PRECISION_INTEGER,
 		NULL ) )
 		return( -1 ); 
 

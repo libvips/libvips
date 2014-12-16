@@ -7,6 +7,8 @@
 - support tiff XMP metadata
 - support @density arg to magickload [Lovell]
 - support python3.4 and python2.7 in new python binding
+- vips_gaussmat() and vips_logmat() are now int by default, to match
+  vips_conv(), and use @precision, not @integer
 
 25/7/14 started 7.41.0
 - start working on --disable-deprecated

@@ -1317,3 +1317,29 @@ vips_check_separable( const char *domain, VipsImage *im )
 
 	return( 0 );
 }
+
+/**
+ * vips_check_precision_intfloat:
+ * @domain: the originating domain for the error message
+ * @precision: precision to check
+ *
+ * Check that @prec image is either float or int.
+ * If not, set an error message
+ * and return non-zero.
+ *
+ * See also: vips_error().
+ *
+ * Returns: 0 on OK, or -1 on error.
+ */
+int
+vips_check_precision_intfloat( const char *domain, VipsPrecision precision )
+{
+	if( precision != VIPS_PRECISION_INTEGER &&
+		precision != VIPS_PRECISION_FLOAT ) {
+		vips_error( domain,
+			"%s", _( "precision must be int or float" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}

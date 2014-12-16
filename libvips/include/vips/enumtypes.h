@@ -78,8 +78,6 @@ GType vips_pcs_get_type (void) G_GNUC_CONST;
 GType vips_operation_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_FLAGS (vips_operation_flags_get_type())
 /* enumerations from "../../../libvips/include/vips/convolution.h" */
-GType vips_precision_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_PRECISION (vips_precision_get_type())
 GType vips_combine_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_COMBINE (vips_combine_get_type())
 /* enumerations from "../../../libvips/include/vips/morphology.h" */
@@ -88,6 +86,9 @@ GType vips_operation_morphology_get_type (void) G_GNUC_CONST;
 /* enumerations from "../../../libvips/include/vips/draw.h" */
 GType vips_combine_mode_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_COMBINE_MODE (vips_combine_mode_get_type())
+/* enumerations from "../../../libvips/include/vips/basic.h" */
+GType vips_precision_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_PRECISION (vips_precision_get_type())
 /* enumerations from "../../../libvips/include/vips/object.h" */
 GType vips_argument_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_ARGUMENT_FLAGS (vips_argument_flags_get_type())

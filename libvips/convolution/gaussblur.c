@@ -75,7 +75,7 @@ vips_gaussblur_build( VipsObject *object )
 
 	if( vips_gaussmat( &t[0], gaussblur->sigma, gaussblur->min_ampl, 
 		"separable", TRUE,
-		"integer", gaussblur->precision != VIPS_PRECISION_FLOAT,
+		"precision", gaussblur->precision,
 		NULL ) )
 		return( -1 ); 
 

@@ -674,25 +674,6 @@ vips_operation_flags_get_type( void )
 }
 /* enumerations from "../../libvips/include/vips/convolution.h" */
 GType
-vips_precision_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_PRECISION_INTEGER, "VIPS_PRECISION_INTEGER", "integer"},
-			{VIPS_PRECISION_FLOAT, "VIPS_PRECISION_FLOAT", "float"},
-			{VIPS_PRECISION_APPROXIMATE, "VIPS_PRECISION_APPROXIMATE", "approximate"},
-			{VIPS_PRECISION_LAST, "VIPS_PRECISION_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsPrecision", values );
-	}
-
-	return( etype );
-}
-GType
 vips_combine_get_type( void )
 {
 	static GType etype = 0;
@@ -744,6 +725,26 @@ vips_combine_mode_get_type( void )
 		};
 		
 		etype = g_enum_register_static( "VipsCombineMode", values );
+	}
+
+	return( etype );
+}
+/* enumerations from "../../libvips/include/vips/basic.h" */
+GType
+vips_precision_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_PRECISION_INTEGER, "VIPS_PRECISION_INTEGER", "integer"},
+			{VIPS_PRECISION_FLOAT, "VIPS_PRECISION_FLOAT", "float"},
+			{VIPS_PRECISION_APPROXIMATE, "VIPS_PRECISION_APPROXIMATE", "approximate"},
+			{VIPS_PRECISION_LAST, "VIPS_PRECISION_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsPrecision", values );
 	}
 
 	return( etype );
