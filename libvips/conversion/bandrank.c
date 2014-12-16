@@ -189,8 +189,12 @@ vips_bandrank_build( VipsObject *object )
 			if( vips_check_noncomplex( class->nickname, in[i] ) )
 				return( -1 );
 
-		if( n == 1 ) 
+		if( n == 1 ) {
+			bandary->in = in;
+			bandary->n = 1;
+
 			return( vips_bandary_copy( bandary ) );
+		}
 
 		/* We need to keep one band element for every input image 
 		 * on the stack.

@@ -82,13 +82,14 @@ vips_bandbool_build( VipsObject *object )
 		if( vips_check_noncomplex( class->nickname, bandbool->in ) )
 			return( -1 );
 
+		bandary->n = 1;
+		bandary->in = &bandbool->in;
+
 		if( bandbool->in->Bands == 1 ) 
 			return( vips_bandary_copy( bandary ) );
 	}
 
 	bandary->out_bands = 1;
-	bandary->n = 1;
-	bandary->in = &bandbool->in;
 
 	if( VIPS_OBJECT_CLASS( vips_bandbool_parent_class )->
 		build( object ) )

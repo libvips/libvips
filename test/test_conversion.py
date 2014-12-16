@@ -147,7 +147,7 @@ class TestConversion(unittest.TestCase):
             else:
                 return [reduce(lambda a, b: int(a) & int(b), x)]
 
-        self.run_unary([self.colour], band_and, fmt = int_formats)
+        self.run_unary(self.all_images, band_and, fmt = int_formats)
 
     def test_band_or(self):
         def band_or(x):
@@ -156,7 +156,7 @@ class TestConversion(unittest.TestCase):
             else:
                 return [reduce(lambda a, b: int(a) | int(b), x)]
 
-        self.run_unary([self.colour], band_or, fmt = int_formats)
+        self.run_unary(self.all_images, band_or, fmt = int_formats)
 
     def test_band_eor(self):
         def band_eor(x):
@@ -165,7 +165,7 @@ class TestConversion(unittest.TestCase):
             else:
                 return [reduce(lambda a, b: int(a) ^ int(b), x)]
 
-        self.run_unary([self.colour], band_eor, fmt = int_formats)
+        self.run_unary(self.all_images, band_eor, fmt = int_formats)
 
     def test_bandjoin(self):
         def bandjoin(x, y):
@@ -183,7 +183,7 @@ class TestConversion(unittest.TestCase):
             else:
                 return [sum(x) // len(x)]
 
-        self.run_unary([self.colour], bandmean, fmt = noncomplex_formats)
+        self.run_unary(self.all_images, bandmean, fmt = noncomplex_formats)
 
     def test_bandrank(self):
         def median(x, y):

@@ -4,6 +4,7 @@ from __future__ import division
 from builtins import zip
 from builtins import range
 from numbers import Number
+from functools import reduce
 
 import unittest
 import operator
@@ -60,7 +61,7 @@ def conv(image, mask, x_position, y_position):
             p = run_fn2(operator.mul, m, i)
             s = run_fn2(operator.add, s, p)
 
-    return run_fn2(operator.div, s, mask.get_scale())
+    return run_fn2(operator.truediv, s, mask.get_scale())
 
 def compass(image, mask, x_position, y_position, n_rot, fn):
     acc = []
@@ -112,29 +113,34 @@ class TestConvolution(unittest.TestCase):
                     true = conv(im, msk, 49, 49)
                     self.assertAlmostEqualObjects(result, true)
 
-    def test_x(self):
-        im = self.mono
-        msk = self.sobel
-
-        result = conv(im, msk, 24, 49)
-        msk = msk.rot45()
-
-        result = conv(im, msk, 24, 49)
-        msk = msk.rot45()
-
     def test_compass(self):
         for im in self.all_images:
             for msk in self.all_masks:
                 for prec in [Vips.Precision.INTEGER, Vips.Precision.FLOAT]:
-                    convolved = im.compass(msk, 
-                                           times = 3, 
-                                           angle = Vips.Angle45.D45,
-                                           combine = Vips.Combine.MAX,
-                                           precision = prec)
+                    for times in range(1, 4):
+                        convolved = im.compass(msk, 
+                                               times = times, 
+                                               angle = Vips.Angle45.D45,
+                                               combine = Vips.Combine.MAX,
+                                               precision = prec)
 
-                    result = convolved.getpoint(25, 50)
-                    true = compass(im, msk, 24, 49, 3, max)
-                    self.assertAlmostEqualObjects(result, true)
+                        result = convolved.getpoint(25, 50)
+                        true = compass(im, msk, 24, 49, times, max)
+                        self.assertAlmostEqualObjects(result, true)
+
+        for im in self.all_images:
+            for msk in self.all_masks:
+                for prec in [Vips.Precision.INTEGER, Vips.Precision.FLOAT]:
+                    for times in range(1, 4):
+                        convolved = im.compass(msk, 
+                                               times = times, 
+                                               angle = Vips.Angle45.D45,
+                                               combine = Vips.Combine.SUM,
+                                               precision = prec)
+
+                        result = convolved.getpoint(25, 50)
+                        true = compass(im, msk, 24, 49, times, operator.add)
+                        self.assertAlmostEqualObjects(result, true)
 
 if __name__ == '__main__':
     unittest.main()
