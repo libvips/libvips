@@ -1,3 +1,5 @@
+- tests have stopped working with python2?
+
 - configure should check for pygobject too
 
 	PKG_CHECK_MODULES(PYTHON, [pygobject-3.0 >= $PYGOBJECT_REQUIRED])

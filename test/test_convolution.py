@@ -188,5 +188,45 @@ class TestConvolution(unittest.TestCase):
                 self.assertEqual(x, 25)
                 self.assertEqual(y, 50)
 
+    def test_spcor(self):
+        for im in self.all_images:
+            for fmt in noncomplex_formats:
+                small = im.crop(20, 45, 10, 10).cast(fmt)
+                cor = im.spcor(small)
+                v, x, y = cor.maxpos()
+
+                self.assertEqual(v, 1.0)
+                self.assertEqual(x, 25)
+                self.assertEqual(y, 50)
+
+    def test_gaussblur(self):
+        for im in self.all_images:
+            for prec in [Vips.Precision.INTEGER, Vips.Precision.FLOAT]:
+                for i in range(5, 10):
+                    sigma = i / 5.0
+                    gmask = Vips.Image.gaussmat(sigma, 0.2, 
+                                                precision = prec)
+
+                    a = im.conv(gmask, precision = prec)
+                    b = im.gaussblur(sigma, min_ampl = 0.2, precision = prec)
+
+                    a_point = a.getpoint(25, 50)
+                    b_point = b.getpoint(25, 50)
+
+                    self.assertAlmostEqualObjects(a_point, b_point, places = 1)
+
+    def test_sharpen(self):
+        for im in self.all_images:
+            for fmt in noncomplex_formats:
+                for radius in range(1, 7):
+                    im = im.cast(fmt)
+                    if im.bands == 3:
+                        im = im.copy(interpretation = Vips.Interpretation.SRGB)
+                    sharp = im.sharpen(radius = radius)
+
+                    # hard to test much more than this
+                    self.assertEqual(im.width, sharp.width)
+                    self.assertEqual(im.height, sharp.height)
+
 if __name__ == '__main__':
     unittest.main()
