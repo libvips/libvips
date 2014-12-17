@@ -100,9 +100,15 @@ vips_gaussmat_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_gaussmat_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_object_argument_isset( object, "integer" ) ) 
-		vips_warn( class->nickname, 
-			"'integer' is deprecated, use 'precision' instead" );
+	/* The old, deprecated @integer property has been deliberately set to
+	 * FALSE and they've not used the new @precision property ... switch
+	 * to float to help them out.
+	 */
+	if( vips_object_argument_isset( object, "integer" ) &&
+		!vips_object_argument_isset( object, "precision" ) &&
+		!gaussmat->integer ) 
+		gaussmat->precision = VIPS_PRECISION_FLOAT;
+
 	if( vips_check_precision_intfloat( class->nickname, 
 		gaussmat->precision ) )
 		return( -1 ); 
