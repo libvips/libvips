@@ -94,11 +94,13 @@ vips_correlation_build( VipsObject *object )
 		correlation->in->Xsize + correlation->ref->Xsize - 1, 
 		correlation->in->Ysize + correlation->ref->Ysize - 1,
 		"extend", VIPS_EXTEND_COPY,
-		NULL ) ||
-		vips__formatalike( t[0], correlation->ref, &t[1], &t[2] ) ||
+		NULL ) )
+		return( -1 );
+	if( vips__formatalike( t[0], correlation->ref, &t[1], &t[2] ) ||
 		vips__bandalike( class->nickname, t[1], t[2], &t[3], &t[4] ) ||
 		vips_image_wio_input( t[4] ) ) 
 		return( -1 );
+
 	correlation->in_ready = t[3];
 	correlation->ref_ready = t[4];
 

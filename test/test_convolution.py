@@ -15,6 +15,20 @@ import math
 
 from gi.repository import Vips 
 
+unsigned_formats = [Vips.BandFormat.UCHAR, 
+                    Vips.BandFormat.USHORT, 
+                    Vips.BandFormat.UINT] 
+signed_formats = [Vips.BandFormat.CHAR, 
+                  Vips.BandFormat.SHORT, 
+                  Vips.BandFormat.INT] 
+float_formats = [Vips.BandFormat.FLOAT, 
+                 Vips.BandFormat.DOUBLE]
+complex_formats = [Vips.BandFormat.COMPLEX, 
+                   Vips.BandFormat.DPCOMPLEX] 
+int_formats = unsigned_formats + signed_formats
+noncomplex_formats = int_formats + float_formats
+all_formats = int_formats + float_formats + complex_formats
+
 # an expanding zip ... if either of the args is a scalar or a one-element list,
 # duplicate it down the other side 
 def zip_expand(x, y):
@@ -145,12 +159,11 @@ class TestConvolution(unittest.TestCase):
     def test_convsep(self):
         for im in self.all_images:
             for prec in [Vips.Precision.INTEGER, Vips.Precision.FLOAT]:
-                integer = prec == Vips.Precision.INTEGER
                 gmask = Vips.Image.gaussmat(2, 0.1, 
-                                            integer = integer)
+                                            precision = prec)
                 gmask_sep = Vips.Image.gaussmat(2, 0.1, 
                                                 separable = True,
-                                                integer = integer) 
+                                                precision = prec)
 
                 self.assertEqual(gmask.width, gmask.height)
                 self.assertEqual(gmask_sep.width, gmask.width)
@@ -163,6 +176,17 @@ class TestConvolution(unittest.TestCase):
                 b_point = b.getpoint(25, 50)
 
                 self.assertAlmostEqualObjects(a_point, b_point, places = 1)
+
+    def test_fastcor(self):
+        for im in self.all_images:
+            for fmt in noncomplex_formats:
+                small = im.crop(20, 45, 10, 10).cast(fmt)
+                cor = im.fastcor(small)
+                v, x, y = cor.minpos()
+
+                self.assertEqual(v, 0)
+                self.assertEqual(x, 25)
+                self.assertEqual(y, 50)
 
 if __name__ == '__main__':
     unittest.main()
