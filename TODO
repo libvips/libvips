@@ -1,5 +1,3 @@
-- tests have stopped working with python2?
-
 - use vips_resize() in vipsthumbnail?
 
   should the sharpening filter be selectable?
