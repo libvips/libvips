@@ -1,5 +1,5 @@
 // headers for vips operations
-// Sun Nov 16 12:18:15 GMT 2014
+// Thu Dec 18 11:24:18 GMT 2014
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 )
@@ -276,7 +276,7 @@ VImage affine( std::vector<double> matrix , VOption *options = 0 )
     throw( VError );
 VImage similarity( VOption *options = 0 )
     throw( VError );
-VImage resize( double h_scale , double v_scale , VOption *options = 0 )
+VImage resize( double scale , VOption *options = 0 )
     throw( VError );
 VImage colourspace( VipsInterpretation space , VOption *options = 0 )
     throw( VError );
@@ -366,7 +366,7 @@ VImage spcor( VImage ref , VOption *options = 0 )
     throw( VError );
 VImage sharpen( VOption *options = 0 )
     throw( VError );
-VImage gaussblur( int radius , VOption *options = 0 )
+VImage gaussblur( double sigma , VOption *options = 0 )
     throw( VError );
 VImage fwfft( VOption *options = 0 )
     throw( VError );

@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Sun Nov 16 12:18:23 GMT 2014
+// Thu Dec 18 11:24:06 GMT 2014
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -1834,7 +1834,7 @@ VImage VImage::similarity( VOption *options )
     return( out );
 }
 
-VImage VImage::resize( double h_scale , double v_scale , VOption *options )
+VImage VImage::resize( double scale , VOption *options )
     throw( VError )
 {
     VImage out;
@@ -1843,8 +1843,7 @@ VImage VImage::resize( double h_scale , double v_scale , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) ->
-            set( "h-scale", h_scale ) ->
-            set( "v-scale", v_scale ) );
+            set( "scale", scale ) );
 
     return( out );
 }
@@ -2438,7 +2437,7 @@ VImage VImage::sharpen( VOption *options )
     return( out );
 }
 
-VImage VImage::gaussblur( int radius , VOption *options )
+VImage VImage::gaussblur( double sigma , VOption *options )
     throw( VError )
 {
     VImage out;
@@ -2447,7 +2446,7 @@ VImage VImage::gaussblur( int radius , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) ->
-            set( "radius", radius ) );
+            set( "sigma", sigma ) );
 
     return( out );
 }

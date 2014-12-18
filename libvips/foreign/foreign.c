@@ -1630,8 +1630,8 @@ vips_foreign_operation_init( void )
  *
  * Optional arguments:
  *
- * @all_frames: load all frames in sequence
- * @density: canvas resolution for rendering vector formats like SVG
+ * @all_frames: %gboolean, load all frames in sequence
+ * @density: string, canvas resolution for rendering vector formats like SVG
  *
  * Read in an image using libMagick, the ImageMagick library. This library can
  * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many 
@@ -1647,7 +1647,9 @@ vips_foreign_operation_init( void )
  * as a GIF). Set @all_frames to true to read the whole image sequence. 
  *
  * @density is "WxH" in DPI, e.g. "600x300" or "600" (default is "72x72"). See
- * http://www.imagemagick.org/script/command-line-options.php#density
+ * the [density 
+ * docs](http://www.imagemagick.org/script/command-line-options.php#density) 
+ * on the imagemagick website.
  *
  * See also: vips_image_new_from_file().
  *
@@ -1674,7 +1676,7 @@ vips_magickload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @page: load this page
+ * @page: int, load this page
  *
  * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
  * with extensions for tiled images, multipage images, LAB colour space, 
