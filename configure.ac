@@ -664,10 +664,33 @@ if test x"$with_pangoft2" != "xno"; then
   PKG_CHECK_MODULES(PANGOFT2, pangoft2,
     [AC_DEFINE(HAVE_PANGOFT2,1,[define if you have pangoft2 installed.])
      with_pangoft2=yes
-     PACKAGES_USED="$PACKAGES_USED pangoft2"],
+     PACKAGES_USED="$PACKAGES_USED pangoft2"
+    ],
     [AC_MSG_WARN([pangoft2 not found; disabling pangoft2 support])
      with_pangoft2=no
     ])
+fi
+
+# install vips8 python
+AC_ARG_ENABLE([pyvips8], 
+  AS_HELP_STRING([--enable-pyvips8], 
+		 [install vips8 Python overrides (default: install)]))
+
+if test x"$enable_pyvips8" != "xno"; then
+  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.1.0],
+    [pyoverridesdir="\$(pyexecdir)/gi/overrides"
+     AC_SUBST(pyoverridesdir)
+    ],
+    [AC_MSG_WARN([pgobject-3.0 not found; disabling vips8 python support])
+    ])
+fi
+
+if test x"$enable_pyvips8" != x"no"; then
+  AM_CONDITIONAL(ENABLE_PYVIPS8, true)
+  enable_pyvips8=yes
+else
+  AM_CONDITIONAL(ENABLE_PYVIPS8, false)
+  enable_pyvips8=no
 fi
 
 # hmm, these don't have .pc files on ubuntu 5.10, how odd
@@ -755,9 +778,7 @@ if test x"$with_python" != "xno"; then
     with_python=no
     AC_MSG_WARN([C++ is off, disabling Python binding])
   else
-    AM_PATH_PYTHON(2.7,
-      [pyoverridesdir="\$(pyexecdir)/gi/overrides"
-       AC_SUBST(pyoverridesdir)],
+    AM_PATH_PYTHON(2.7,,
       [with_python=no
        AC_MSG_WARN([Python not found; disabling Python binding])])
   fi
@@ -854,7 +875,7 @@ AC_OUTPUT([
 ])
 
 AC_MSG_RESULT([
-* general build options
+* build options
 native win32:				$vips_os_win32
 native OS X:				$vips_os_darwin
 open files in binary mode: 		$vips_binary_open
@@ -864,8 +885,11 @@ build C++ components:			$enable_cxx
 build docs with gtkdoc:			$enable_gtk_doc
 install docs:				$enable_docs
 gobject introspection: 			$found_introspection
+build vips7 Python binding:		$with_python
+install vips8 Python overrides:		$enable_pyvips8
+  (requires pygobject-3.1.0 or later)
 
-* optional packages and modules
+* optional dependencies
 use fftw3 for FFT: 			$with_fftw
 Magick package: 			$with_magickpackage
 file import with libMagick: 		$with_magick
@@ -886,4 +910,4 @@ file import/export with libjpeg:	$with_jpeg
 image pyramid export:			$with_gsf
   (requires libgsf-1 1.14.27 or later)
 use libexif to load/save JPEG metadata: $with_libexif
-build Python binding: 			$with_python])
+])

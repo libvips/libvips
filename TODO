@@ -1,11 +1,5 @@
 - tests have stopped working with python2?
 
-- configure should check for pygobject too
-
-	PKG_CHECK_MODULES(PYTHON, [pygobject-3.0 >= $PYGOBJECT_REQUIRED])
-
-  have separate conditionals for old py and new py
-
 - use vips_resize() in vipsthumbnail?
 
   should the sharpening filter be selectable?

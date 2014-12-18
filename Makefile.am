@@ -13,14 +13,14 @@ endif
 
 else
 C_COMPILE_DIR =
-C_DIST_DIR = libvipsCC  cplusplus
+C_DIST_DIR = libvipsCC cplusplus
 C_PKGCONFIG =
 P_COMPILE_DIR =
 P_DIST_DIR = swig
 endif
 
 # turn on vips8 Python if we can 
-if HAVE_PYTHON
+if ENABLE_PYVIPS8
 P8_COMPILE_DIR = python
 P8_DIST_DIR =
 else
@@ -28,6 +28,7 @@ P8_COMPILE_DIR =
 P8_DIST_DIR = python
 endif
 
+# turn docs on or off
 if ENABLE_DOCS
 D_DIST_DIR = 
 D_BUILD_DIR = doc
