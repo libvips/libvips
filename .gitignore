@@ -3,6 +3,7 @@ a.out
 *.trs
 tmp
 test/variables.sh
+libvips/introspect
 scan
 compile
 po/*.pot

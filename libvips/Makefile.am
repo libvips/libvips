@@ -79,6 +79,25 @@ INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir)
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
 if HAVE_INTROSPECTION
+
+AM_CPPFLAGS = \
+	     `pkg-config gobject-introspection-1.0 --cflags` \
+	      -I${top_srcdir}/libvips/include \
+	      @VIPS_CFLAGS@ \
+	      @VIPS_INCLUDES@
+AM_LDFLAGS = \
+	     `pkg-config gobject-introspection-1.0 --libs` \
+	     @LDFLAGS@ 
+LDADD = @VIPS_CFLAGS@ libvips.la @VIPS_LIBS@ 
+if ENABLE_CXX
+LDADD += @VIPS_CXX_LIBS@
+endif
+
+noinst_PROGRAMS = \
+	introspect
+introspect_SOURCES = \
+	introspect.c
+
 # we can't get the _SOURCES lists from the subdirs directly, we get passed it
 # by configure instead
 introspection_sources = @vips_introspection_sources@
@@ -95,6 +114,7 @@ INTROSPECTION_GIRS += Vips-8.0.gir
 # we have an unusual markup with optional args and we don't want to see all
 # those warnings
 Vips_8_0_gir_SCANNERFLAGS = \
+			    --program=./introspect \
 			    --identifier-prefix=Vips \
 			    --identifier-prefix=vips \
 			    --symbol-prefix=vips 
