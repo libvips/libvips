@@ -158,7 +158,7 @@ GTKDOC_CFLAGS = @VIPS_CFLAGS@ @VIPS_INCLUDES@
 GTKDOC_LIBS = @VIPS_CFLAGS@ ${top_builddir}/libvips/libvips.la @VIPS_LIBS@
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
-include $(top_srcdir)/gtk-doc.make
+include gtk-doc.make
 
 # Other files to distribute
 # e.g. EXTRA_DIST += version.xml.in
