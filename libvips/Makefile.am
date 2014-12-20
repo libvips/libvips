@@ -81,14 +81,14 @@ INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 if HAVE_INTROSPECTION
 
 AM_CPPFLAGS = \
-	     `pkg-config gobject-introspection-1.0 --cflags` \
 	      -I${top_srcdir}/libvips/include \
 	      @VIPS_CFLAGS@ \
-	      @VIPS_INCLUDES@
+	      @VIPS_INCLUDES@ \
+	      @INTROSPECTION_CFLAGS@ 
 AM_LDFLAGS = \
-	     `pkg-config gobject-introspection-1.0 --libs` \
+	     @INTROSPECTION_LIBS@ \
 	     @LDFLAGS@ 
-LDADD = @VIPS_CFLAGS@ libvips.la @VIPS_LIBS@ 
+LDADD = @INTROSPECTION_LIBS@ @VIPS_CFLAGS@ libvips.la @VIPS_LIBS@ 
 if ENABLE_CXX
 LDADD += @VIPS_CXX_LIBS@
 endif

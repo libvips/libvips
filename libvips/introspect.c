@@ -32,6 +32,10 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -46,7 +50,7 @@ static char *main_option_introspect_dump = NULL;
 
 static GOptionEntry main_option[] = {
 	{ "introspect-dump", 'i', 0, 
-		G_OPTION_ARG_NONE, &main_option_introspect_dump, 
+		G_OPTION_ARG_STRING, &main_option_introspect_dump, 
 		N_( "dump introspection data" ), NULL },
 	{ NULL }
 };
@@ -60,6 +64,7 @@ main( int argc, char *argv[] )
 
 	if( VIPS_INIT( argv[0] ) )
 	        vips_error_exit( "unable to start VIPS" );
+
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
@@ -80,6 +85,21 @@ main( int argc, char *argv[] )
 	}
 
 	g_option_context_free( context );
+
+#ifdef DEBUG
+	/* For debugging it's handy to have a copy of the input file.
+	 */
+	if( main_option_introspect_dump ) { 
+		char **args;
+		char *cmd;
+
+		args = g_strsplit( main_option_introspect_dump, ",", 2 );
+		cmd = g_strdup_printf( "cp %s ~/functions.txt", args[0]);
+		printf( "introspect: running '%s'\n", cmd );
+		system( cmd );
+		g_free( cmd );
+	}
+#endif /*DEBUG*/
 
 	if( main_option_introspect_dump &&
 		!g_irepository_dump( main_option_introspect_dump, &error ) ) {
