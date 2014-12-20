@@ -26,7 +26,7 @@ break_threshold() {
 for interp in nearest bilinear bicubic lbb nohalo vsqbs; do
   size=1000
   while [ $size -gt 499 ]; do
-    echo -n "testing $interp, size to $size ... "
+    printf "testing $interp, size to $size ... "
     vipsthumbnail $tmp/t1.v -o $tmp/t2.v --size $size --interpolator $interp
     if [ $(vipsheader -f width $tmp/t2.v) -ne $size ]; then
       echo failed -- bad size

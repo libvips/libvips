@@ -5,13 +5,13 @@
 . ./variables.sh
 
 # make a large PNG, roughly the size of Chicago.png
-echo -n "building huge test PNG image ... "
+printf "building huge test PNG image ... "
 vips replicate $image $tmp/huge.png 30 5
 echo "ok"
 
 huge=$tmp/huge.png
 
-echo -n "testing vipsthumbnail ... "
+printf "testing vipsthumbnail ... "
 rm -f $tmp/x.png
 vipsthumbnail $huge -o $tmp/x.png
 if ! vipsheader $tmp/x.png > /dev/null 2>&1 ; then
@@ -26,7 +26,7 @@ if [ ! -d $tmp/readonly ] ; then
 fi 
 export TMPDIR=$tmp/readonly
 
-echo -n "testing vipsthumbnail does not make temps ... "
+printf "testing vipsthumbnail does not make temps ... "
 rm -f $tmp/x.png
 vipsthumbnail $huge -o $tmp/x.png
 if ! vipsheader $tmp/x.png > /dev/null 2>&1 ; then
@@ -35,7 +35,7 @@ if ! vipsheader $tmp/x.png > /dev/null 2>&1 ; then
 fi
 echo "ok"
 
-echo -n "testing shrink does not make temps ... "
+printf "testing shrink does not make temps ... "
 rm -f $tmp/x.png
 vips shrink $huge $tmp/x.png 230 230 
 if ! vipsheader $tmp/x.png > /dev/null 2>&1 ; then

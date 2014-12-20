@@ -70,7 +70,7 @@ test_format() {
 	threshold=$3
 	mode=$4
 
-	echo -n "testing $(basename $in) $format$mode ... "
+	printf "testing $(basename $in) $format$mode ... "
 
 	save_load $in $format $mode
 	test_difference $in $tmp/back.v $threshold
@@ -84,7 +84,7 @@ test_format() {
 test_rad() {
 	in=$1
 
-	echo -n "testing $(basename $in) hdr ... "
+	printf "testing $(basename $in) hdr ... "
 
 	save_load $in hdr
 
@@ -101,7 +101,7 @@ test_rad() {
 test_raw() {
 	in=$1
 
-	echo -n "testing $(basename $in) raw ... "
+	printf "testing $(basename $in) raw ... "
 
 	vips copy $in $tmp/before.v
 	width=$(vipsheader -f width $tmp/before.v)
@@ -123,7 +123,7 @@ test_loader() {
 	in=$2
 	format=$3
 
-	echo -n "testing $(basename $in) $format ... "
+	printf "testing $(basename $in) $format ... "
 
 	vips copy $ref $tmp/before.v
 	vips copy $in $tmp/after.v
@@ -135,14 +135,14 @@ test_loader() {
 
 test_format $image v 0
 test_format $image tif 0
-test_format $image tif 70 [compression=jpeg]
+test_format $image tif 90 [compression=jpeg]
 test_format $image tif 0 [compression=deflate]
 test_format $image tif 0 [compression=packbits]
-test_format $image tif 70 [compression=jpeg,tile]
-test_format $image tif 70 [compression=jpeg,tile,pyramid]
+test_format $image tif 90 [compression=jpeg,tile]
+test_format $image tif 90 [compression=jpeg,tile,pyramid]
 test_format $image png 0
 test_format $image png 0 [compression=9,interlace=1]
-test_format $image jpg 70
+test_format $image jpg 90
 test_format $image ppm 0
 test_format $image pfm 0
 test_format $image fits 0
@@ -151,11 +151,11 @@ test_format $image fits 0
 test_format $mono csv 0
 
 # cmyk jpg is a special path
-test_format $cmyk jpg 70
+test_format $cmyk jpg 90
 test_format $cmyk tif 0
-test_format $cmyk tif 70 [compression=jpeg]
-test_format $cmyk tif 70 [compression=jpeg,tile]
-test_format $cmyk tif 70 [compression=jpeg,tile,pyramid]
+test_format $cmyk tif 90 [compression=jpeg]
+test_format $cmyk tif 90 [compression=jpeg,tile]
+test_format $cmyk tif 90 [compression=jpeg,tile,pyramid]
 
 test_rad $rad 
 

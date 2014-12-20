@@ -34,7 +34,7 @@ test_rotate() {
 	im=$1
 	inter=$2
 
-	echo -n "testing $inter ... "
+	printf "testing $inter ... "
 
 	# 90 degree clockwise rotate 
 	trn="0 1 1 0"
