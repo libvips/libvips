@@ -24,6 +24,6 @@ TESTS = \
 	test_threading.sh 
 
 clean-local: 
-	-rm -rf tmp
+	-rm -rf tmp-*
 	-rm -f *.pyc
 
