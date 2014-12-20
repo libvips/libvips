@@ -6,15 +6,15 @@
 
 # make a large PNG, roughly the size of Chicago.png
 printf "building huge test PNG image ... "
-vips replicate $image $tmp/huge.png 30 5
+$vips replicate $image $tmp/huge.png 30 5
 echo "ok"
 
 huge=$tmp/huge.png
 
 printf "testing vipsthumbnail ... "
 rm -f $tmp/x.png
-vipsthumbnail $huge -o $tmp/x.png
-if ! vipsheader $tmp/x.png > /dev/null 2>&1 ; then
+$vipsthumbnail $huge -o $tmp/x.png
+if ! $vipsheader $tmp/x.png > /dev/null 2>&1 ; then
 	echo "vipsthumbnail failed in basic mode"
 	exit 1
 fi
@@ -28,8 +28,8 @@ export TMPDIR=$tmp/readonly
 
 printf "testing vipsthumbnail does not make temps ... "
 rm -f $tmp/x.png
-vipsthumbnail $huge -o $tmp/x.png
-if ! vipsheader $tmp/x.png > /dev/null 2>&1 ; then
+$vipsthumbnail $huge -o $tmp/x.png
+if ! $vipsheader $tmp/x.png > /dev/null 2>&1 ; then
 	echo "vipsthumbnail made a temp"
 	exit 1
 fi
@@ -37,8 +37,8 @@ echo "ok"
 
 printf "testing shrink does not make temps ... "
 rm -f $tmp/x.png
-vips shrink $huge $tmp/x.png 230 230 
-if ! vipsheader $tmp/x.png > /dev/null 2>&1 ; then
+$vips shrink $huge $tmp/x.png 230 230 
+if ! $vipsheader $tmp/x.png > /dev/null 2>&1 ; then
 	echo "shrink made a temp"
 	exit 1
 fi

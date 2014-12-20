@@ -9,16 +9,16 @@ matlab=$test_images/sample.mat
 matlab_ref=$test_images/sample.png
 
 # make a mono image
-vips extract_band $image $tmp/mono.v 1
+$vips extract_band $image $tmp/mono.v 1
 mono=$tmp/mono.v
 
 # make a radiance image
-vips float2rad $image $tmp/rad.v 
+$vips float2rad $image $tmp/rad.v 
 rad=$tmp/rad.v
 
 # make a cmyk image
-vips bandjoin "$image $tmp/mono.v" $tmp/t1.v
-vips copy $tmp/t1.v $tmp/cmyk.v --interpretation cmyk
+$vips bandjoin "$image $tmp/mono.v" $tmp/t1.v
+$vips copy $tmp/t1.v $tmp/cmyk.v --interpretation cmyk
 cmyk=$tmp/cmyk.v
 
 # save to t1.format, load as back.v
@@ -27,12 +27,12 @@ save_load() {
 	format=$2
 	mode=$3
 
-	if ! vips copy $in $tmp/t1.$format$mode ; then
+	if ! $vips copy $in $tmp/t1.$format$mode ; then
 		echo "write to $out failed"
 		exit 1
 	fi
 
-	if ! vips copy $tmp/t1.$format $tmp/back.v ; then
+	if ! $vips copy $tmp/t1.$format $tmp/back.v ; then
 		echo "read from $out failed"
 		exit 1
 	fi
@@ -52,9 +52,9 @@ test_difference() {
 	after=$2
 	threshold=$3
 
-	vips subtract $before $after $tmp/difference.v
-	vips abs $tmp/difference.v $tmp/abs.v 
-	dif=$(vips max $tmp/abs.v)
+	$vips subtract $before $after $tmp/difference.v
+	$vips abs $tmp/difference.v $tmp/abs.v 
+	dif=$($vips max $tmp/abs.v)
 
 	if break_threshold $dif $threshold; then
 		echo "save / load difference is $dif"
@@ -88,8 +88,8 @@ test_rad() {
 
 	save_load $in hdr
 
-	vips rad2float $in $tmp/before.v
-	vips rad2float $tmp/back.v $tmp/after.v
+	$vips rad2float $in $tmp/before.v
+	$vips rad2float $tmp/back.v $tmp/after.v
 
 	test_difference $tmp/before.v $tmp/after.v 0
 
@@ -103,13 +103,13 @@ test_raw() {
 
 	printf "testing $(basename $in) raw ... "
 
-	vips copy $in $tmp/before.v
-	width=$(vipsheader -f width $tmp/before.v)
-	height=$(vipsheader -f height $tmp/before.v)
-	bands=$(vipsheader -f bands $tmp/before.v)
+	$vips copy $in $tmp/before.v
+	width=$($vipsheader -f width $tmp/before.v)
+	height=$($vipsheader -f height $tmp/before.v)
+	bands=$($vipsheader -f bands $tmp/before.v)
 
-	vips rawsave $tmp/before.v $tmp/raw
-	vips rawload $tmp/raw $tmp/after.v $width $height $bands
+	$vips rawsave $tmp/before.v $tmp/raw
+	$vips rawload $tmp/raw $tmp/after.v $width $height $bands
 
 	test_difference $tmp/before.v $tmp/after.v 0
 
@@ -125,8 +125,8 @@ test_loader() {
 
 	printf "testing $(basename $in) $format ... "
 
-	vips copy $ref $tmp/before.v
-	vips copy $in $tmp/after.v
+	$vips copy $ref $tmp/before.v
+	$vips copy $in $tmp/after.v
 
 	test_difference $tmp/before.v $tmp/after.v 0
 

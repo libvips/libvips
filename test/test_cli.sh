@@ -20,9 +20,9 @@ test_difference() {
 	after=$2
 	threshold=$3
 
-	vips subtract $before $after $tmp/difference.v
-	vips abs $tmp/difference.v $tmp/abs.v 
-	dif=$(vips max $tmp/abs.v)
+	$vips subtract $before $after $tmp/difference.v
+	$vips abs $tmp/difference.v $tmp/abs.v 
+	dif=$($vips max $tmp/abs.v)
 
 	if break_threshold $dif $threshold; then
 		echo "difference is $dif"
@@ -39,10 +39,10 @@ test_rotate() {
 	# 90 degree clockwise rotate 
 	trn="0 1 1 0"
 
-	vips affine $im $tmp/t1.v "$trn" --interpolate $inter
-	vips affine $tmp/t1.v $tmp/t2.v "$trn" --interpolate $inter
-	vips affine $tmp/t2.v $tmp/t1.v "$trn" --interpolate $inter
-	vips affine $tmp/t1.v $tmp/t2.v "$trn" --interpolate $inter
+	$vips affine $im $tmp/t1.v "$trn" --interpolate $inter
+	$vips affine $tmp/t1.v $tmp/t2.v "$trn" --interpolate $inter
+	$vips affine $tmp/t2.v $tmp/t1.v "$trn" --interpolate $inter
+	$vips affine $tmp/t1.v $tmp/t2.v "$trn" --interpolate $inter
 
 	test_difference $im $tmp/t2.v 1
 
