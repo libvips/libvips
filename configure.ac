@@ -681,7 +681,7 @@ if test x"$enable_pyvips8" != "xno"; then
     [pyoverridesdir="\$(pyexecdir)/gi/overrides"
      AC_SUBST(pyoverridesdir)
     ],
-    [AC_MSG_WARN([pgobject-3.0 not found; disabling vips8 python support])
+    [AC_MSG_WARN([pygobject-3.0 not found; disabling vips8 python support])
     ])
 fi
 

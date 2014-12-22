@@ -10,6 +10,7 @@
 - vips_gaussmat() and vips_logmat() are now int by default, to match
   vips_conv(), and use @precision, not @integer
 - added --disable-pyvips8 switch to turn off new py binding
+- "vips thing" exit status can now be used to test for optional components
 
 25/7/14 started 7.41.0
 - start working on --disable-deprecated

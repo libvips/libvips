@@ -1,8 +1,3 @@
-- need some way to disable tests in test_formats if those load/save options
-  are not there
-
-  perhaps "vips fitsload" with no args should not set errno?
-
 - use vips_resize() in vipsthumbnail?
 
   should the sharpening filter be selectable?

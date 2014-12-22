@@ -2,6 +2,7 @@ a.out
 *.log
 *.trs
 tmp
+tmp-*
 test/variables.sh
 libvips/introspect
 scan

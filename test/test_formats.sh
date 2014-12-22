@@ -133,36 +133,64 @@ test_loader() {
 	echo "ok"
 }
 
+# test for file format supported
+test_supported() {
+	format=$1
+
+	if $vips $format > /dev/null 2>&1; then
+		result=0
+	else
+		echo "support for $format not configured, skipping test"
+		result=1
+	fi
+
+	return $result
+}
+
 test_format $image v 0
-test_format $image tif 0
-test_format $image tif 90 [compression=jpeg]
-test_format $image tif 0 [compression=deflate]
-test_format $image tif 0 [compression=packbits]
-test_format $image tif 90 [compression=jpeg,tile]
-test_format $image tif 90 [compression=jpeg,tile,pyramid]
-test_format $image png 0
-test_format $image png 0 [compression=9,interlace=1]
-test_format $image jpg 90
+if test_supported tiffload; then
+	test_format $image tif 0
+	test_format $image tif 90 [compression=jpeg]
+	test_format $image tif 0 [compression=deflate]
+	test_format $image tif 0 [compression=packbits]
+	test_format $image tif 90 [compression=jpeg,tile]
+	test_format $image tif 90 [compression=jpeg,tile,pyramid]
+fi
+if test_supported pngload; then
+	test_format $image png 0
+	test_format $image png 0 [compression=9,interlace=1]
+fi
+if test_supported jpegload; then
+	test_format $image jpg 90
+fi
 test_format $image ppm 0
 test_format $image pfm 0
-test_format $image fits 0
+if test_supported fitsload; then
+	test_format $image fits 0
+fi
 
 # csv can only do mono
 test_format $mono csv 0
 
 # cmyk jpg is a special path
-test_format $cmyk jpg 90
-test_format $cmyk tif 0
-test_format $cmyk tif 90 [compression=jpeg]
-test_format $cmyk tif 90 [compression=jpeg,tile]
-test_format $cmyk tif 90 [compression=jpeg,tile,pyramid]
+if test_supported jpegload; then
+	test_format $cmyk jpg 90
+fi
+if test_supported tiffload; then
+	test_format $cmyk tif 0
+	test_format $cmyk tif 90 [compression=jpeg]
+	test_format $cmyk tif 90 [compression=jpeg,tile]
+	test_format $cmyk tif 90 [compression=jpeg,tile,pyramid]
+fi
 
 test_rad $rad 
 
 test_raw $mono 
 test_raw $image 
 
-test_loader $matlab_ref $matlab matlab
+if test_supported matload; then
+	test_loader $matlab_ref $matlab matlab
+fi
 
 # we have loaders but not savers for other formats, add tests here
 
