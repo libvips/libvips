@@ -51,11 +51,12 @@ import sys
 import re
 import logging
 
-from gi.overrides import override
-from gi.importer import modules
 from gi.repository import GObject
+from ..overrides import override
+from ..module import get_introspection_module
 
-Vips = modules['Vips']._introspection_module
+Vips = get_introspection_module('Vips')
+
 __all__ = []
 
 # start up vips! 
