@@ -1,3 +1,6 @@
+24/12/14 started 7.42.1
+- add gobject-2.0 to Requires: in vips and vips-cpp .pc files
+
 4/11/14 started 7.42.0
 - better default resolution for png load
 - better pbm (one bit) load, better pfm (float) load/save

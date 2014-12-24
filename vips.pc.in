@@ -7,6 +7,7 @@ Name: vips
 Description: Image processing library
 Version: @VERSION@
 Requires.private: @PACKAGES_USED@
+Requires: gobject-2.0
 Libs: -L${libdir} -lvips 
 Libs.private: @EXTRA_LIBS_USED@
 Cflags: -I${includedir}
