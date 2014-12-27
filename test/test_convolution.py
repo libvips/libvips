@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
 from __future__ import division
-from builtins import zip
-from builtins import range
 from numbers import Number
 from functools import reduce
 

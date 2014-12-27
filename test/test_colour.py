@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-from builtins import zip
-
 import unittest
 import math
 

@@ -3,21 +3,6 @@
 
 from __future__ import division
 
-# if this is py2 and future is not found, it's the first import from builtins 
-# that fails silently, for some reason 
-
-# raise a RuntimeError, this is not caught by our importer
-
-try:
-    from builtins import map
-except Exception as e:
-    raise RuntimeError("Unable to import 'map' from 'builtins': " + str(e) + 
-                       " -- maybe try 'pip install future'")
-
-from builtins import str
-from builtins import range
-from builtins import object
-
 # overrides for pygobject gobject-introspection binding for libvips, tested 
 # with python2.7 and python3.4
 

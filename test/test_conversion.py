@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 from __future__ import division
-from builtins import zip
 import unittest
 import math
 
