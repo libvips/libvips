@@ -33,10 +33,3 @@ or
     sudo cp Vips.py /usr/lib/python3/dist-packages/gi/overrides
 
 You can optionally pre-compile this file for a small speedup.
-
-For python2.7, you need to install the "future" package. In Ubuntu, for
-example, you can do something like:
-
-    sudo apt-get install python-pip
-    sudo pip install future
-
