@@ -677,7 +677,7 @@ AC_ARG_ENABLE([pyvips8],
 		 [install vips8 Python overrides (default: install)]))
 
 if test x"$enable_pyvips8" != "xno"; then
-  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.1.0],
+  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.12.0],
     [pyoverridesdir="\$(pyexecdir)/gi/overrides"
      AC_SUBST(pyoverridesdir)
     ],
@@ -887,7 +887,7 @@ install docs:				$enable_docs
 gobject introspection: 			$found_introspection
 build vips7 Python binding:		$with_python
 install vips8 Python overrides:		$enable_pyvips8
-  (requires pygobject-3.1.0 or later)
+  (requires pygobject-3.12.0 or later)
 
 * optional dependencies
 use fftw3 for FFT: 			$with_fftw
