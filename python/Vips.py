@@ -45,7 +45,7 @@ Vips = get_introspection_module('Vips')
 __all__ = []
 
 # start up vips! 
-# passing argv[0] helps vips find it's data files on some platforms
+# passing argv[0] helps vips find its data files on some platforms
 Vips.init(sys.argv[0])
 
 # need the gtypes for various vips types
