@@ -1,5 +1,6 @@
 30/12/14 started 7.42.2
 - allow c++ set enum from string
+- display param default and range in usage
 
 24/12/14 started 7.42.1
 - add gobject-2.0 to Requires: in vips and vips-cpp .pc files

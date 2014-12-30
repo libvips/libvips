@@ -1,4 +1,7 @@
 /* base class for all vips operations
+ *
+ * 30/12/14
+ * 	- display default/min/max for pspec in usage
  */
 
 /*
@@ -275,6 +278,80 @@ vips_operation_class_usage_classify( VipsArgumentClass *argument_class )
 	return( USAGE_NONE ); 
 }
 
+static void
+vips_operation_pspec_usage( VipsBuf *buf, GParamSpec *pspec )
+{
+	GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
+
+	/* These are the pspecs that vips uses that have interesting values.
+	 */
+	if( G_IS_PARAM_SPEC_ENUM( pspec ) ) {
+		GTypeClass *class = g_type_class_ref( type );
+		GParamSpecEnum *pspec_enum = (GParamSpecEnum *) pspec;
+
+		GEnumClass *genum;
+		int i; 
+
+		/* Should be impossible, no need to warn.
+		 */
+		if( !class )
+			return;
+
+		genum = G_ENUM_CLASS( class );
+
+		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, "%s", _( "default" ) );
+		vips_buf_appendf( buf, ": %s\n", 
+			vips_enum_nick( type, pspec_enum->default_value ) ); 
+		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, "%s", _( "allowed" ) );
+		vips_buf_appendf( buf, ": " ); 
+
+		/* -1 since we always have a "last" member.
+		 */
+		for( i = 0; i < genum->n_values - 1; i++ ) {
+			if( i > 0 )
+				vips_buf_appends( buf, ", " );
+			vips_buf_appends( buf, genum->values[i].value_nick );
+		}
+
+		vips_buf_appendf( buf, "\n" ); 
+	}
+	else if( G_IS_PARAM_SPEC_BOOLEAN( pspec ) ) {
+		GParamSpecBoolean *pspec_boolean = (GParamSpecBoolean *) pspec;
+
+		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, "%s", _( "default" ) );
+		vips_buf_appendf( buf, ": %s\n", 
+			pspec_boolean->default_value ? "true" : "false" ); 
+	}
+	else if( G_IS_PARAM_SPEC_DOUBLE( pspec ) ) {
+		GParamSpecDouble *pspec_double = (GParamSpecDouble *) pspec;
+
+		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, "%s", _( "default" ) );
+		vips_buf_appendf( buf, ": %g\n", pspec_double->default_value ); 
+		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, "%s", _( "min" ) );
+		vips_buf_appendf( buf, ": %g, ", pspec_double->minimum ); 
+		vips_buf_appendf( buf, "%s", _( "max" ) );
+		vips_buf_appendf( buf, ": %g\n", pspec_double->maximum ); 
+	}
+	else if( G_IS_PARAM_SPEC_INT( pspec ) ) {
+		GParamSpecInt *pspec_int = (GParamSpecInt *) pspec;
+
+		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, "%s", _( "default" ) );
+		vips_buf_appendf( buf, ": %d\n", pspec_int->default_value ); 
+		vips_buf_appendf( buf, "\t\t\t" ); 
+		vips_buf_appendf( buf, "%s", _( "min" ) );
+		vips_buf_appendf( buf, ": %d, ", pspec_int->minimum ); 
+		vips_buf_appendf( buf, "%s", _( "max" ) );
+		vips_buf_appendf( buf, ": %d\n", pspec_int->maximum ); 
+	}
+
+}
+
 static void *
 vips_operation_class_usage_arg( VipsObjectClass *object_class, 
 	GParamSpec *pspec, VipsArgumentClass *argument_class,
@@ -286,7 +363,7 @@ vips_operation_class_usage_arg( VipsObjectClass *object_class,
 			usage->n == 0 ) 
 			vips_buf_appendf( buf, "%s\n", usage->message );
 
-		if( usage->oftype ) 
+		if( usage->oftype ) {
 			vips_buf_appendf( buf, "   %-12s - %s, %s %s\n",
 				g_param_spec_get_name( pspec ), 
 				g_param_spec_get_blurb( pspec ), 
@@ -294,6 +371,8 @@ vips_operation_class_usage_arg( VipsObjectClass *object_class,
 					_( "input" ) : _( "output" ),
 				g_type_name( 
 					G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
+			vips_operation_pspec_usage( buf, pspec );
+		}
 		else {
 				if( usage->n > 0 )
 					vips_buf_appends( buf, " " );

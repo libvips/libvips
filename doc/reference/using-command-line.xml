@@ -61,6 +61,8 @@
         <userinput>   out          - Output image, output VipsImage</userinput>
         <userinput>optional arguments:</userinput>
         <userinput>   exponent     - Gamma factor, input gdouble</userinput>
+        <userinput>                    default: 2.4 </userinput>
+        <userinput>                    min: 1e-06, max: 1000 </userinput>
         <userinput>operation flags: sequential-unbuffered</userinput>
       </literallayout>
 
