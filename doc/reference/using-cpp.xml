@@ -73,7 +73,7 @@ main( int argc, char **argv )
 
   VImage out = in.embed( 10, 10, 1000, 1000, 
     VImage::option()->
-      set( "extend", VIPS_EXTEND_BACKGROUND )->
+      set( "extend", "background" )->
       set( "background", 128 ) );
 
   out.write_to_file( argv[2] );
@@ -113,7 +113,9 @@ main( int argc, char **argv )
           <para>
             In this case we request unbuffered IO for the image, meaning, we 
             expect to do a single top-to-bottom scan of the image and do not 
-            need it to be decompressed entirely. 
+            need it to be decompressed entirely. You can use the C enum name, 
+            as is done in this case, or use a string and have the string 
+            looked up. See below.
           </para>
 
           <para>
@@ -197,7 +199,9 @@ VImage VImage::add( VImage right, VOption *options = 0 );
 
     <para>
       The next line runs vips_embed() with two optional parameters. The first 
-      sets the value to an enum (you just use the ones from the C API), the 
+      sets the value to an enum (here we use a string to set the value, it'll 
+      be looked up in the list of possible enum values, or you can use the 
+      symbols from the C API), the 
       second sets the value to an <code>int</code>. The 
       <code>"background"</code> 
       parameter is actually a #VipsArrayDouble: if you pass an 

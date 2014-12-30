@@ -206,7 +206,8 @@ vips_verror( const char *domain, const char *fmt, va_list ap )
 	g_mutex_lock( vips__global_lock );
 	g_assert( vips_error_freeze_count >= 0 );
 	if( !vips_error_freeze_count ) {
-		vips_buf_appendf( &vips_error_buf, "%s: ", domain );
+		if( domain ) 
+			vips_buf_appendf( &vips_error_buf, "%s: ", domain );
 		vips_buf_vappendf( &vips_error_buf, fmt, ap );
 		vips_buf_appends( &vips_error_buf, "\n" );
 	}
