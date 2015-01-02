@@ -1045,8 +1045,7 @@
 <row>
   <entry>draw_line</entry>
   <entry>draw a line on an image</entry>
-  <entry>vips_draw_line(), vips_draw_line1(),
-    vips_draw_line_mask(), vips_draw_line_mask1()</entry>
+  <entry>vips_draw_line(), vips_draw_line1()</entry>
 </row>
 <row>
   <entry>draw_circle</entry>

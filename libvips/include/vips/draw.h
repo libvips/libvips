@@ -71,13 +71,6 @@ int vips_draw_line( VipsImage *image,
 int vips_draw_line1( VipsImage *image, 
 	double ink, int x1, int y1, int x2, int y2, ... )
 	__attribute__((sentinel));
-int vips_draw_line_mask( VipsImage *image, 
-	double *ink, int n, int x1, int y1, int x2, int y2, 
-	VipsImage *mask, ... )
-	__attribute__((sentinel));
-int vips_draw_line_mask1( VipsImage *image, 
-	double ink, int x1, int y1, int x2, int y2, VipsImage *mask, ... )
-	__attribute__((sentinel));
 
 int vips_draw_circle( VipsImage *image, 
 	double *ink, int n, int cx, int cy, int radius, ... )
