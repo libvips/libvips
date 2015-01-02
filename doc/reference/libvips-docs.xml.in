@@ -37,6 +37,7 @@
     <xi:include href="xml/binding.xml"/>
     <xi:include href="xml/extending.xml"/>
     <xi:include href="xml/function-list.xml"/>
+    <xi:include href="xml/file-format.xml"/>
   </chapter>
 
   <chapter>

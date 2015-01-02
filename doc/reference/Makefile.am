@@ -137,6 +137,7 @@ content_files = \
 	using-cpp.xml \
 	extending.xml \
 	function-list.xml \
+	file-format.xml \
 	binding.xml
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
@@ -149,6 +150,7 @@ expand_content_files = \
 	using-cpp.xml \
 	extending.xml \
 	function-list.xml \
+	file-format.xml \
 	binding.xml
 
 # CFLAGS and LDFLAGS for compiling gtkdoc-scangobj with your library.
