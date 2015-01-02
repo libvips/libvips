@@ -135,7 +135,8 @@ typedef struct _VipsBlockCache {
 
 typedef VipsConversionClass VipsBlockCacheClass;
 
-G_DEFINE_TYPE( VipsBlockCache, vips_block_cache, VIPS_TYPE_CONVERSION );
+G_DEFINE_ABSTRACT_TYPE( VipsBlockCache, vips_block_cache, 
+	VIPS_TYPE_CONVERSION );
 
 #define VIPS_TYPE_BLOCK_CACHE (vips_block_cache_get_type())
 

@@ -227,7 +227,7 @@ vips_draw_circle_class_init( VipsDrawCircleClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "draw_circle";
-	vobject_class->description = _( "draw a draw_circle on an image" );
+	vobject_class->description = _( "draw a circle on an image" );
 	vobject_class->build = vips_draw_circle_build;
 
 	VIPS_ARG_INT( class, "cx", 3, 

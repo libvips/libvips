@@ -136,6 +136,7 @@ content_files = \
 	using-python.xml \
 	using-cpp.xml \
 	extending.xml \
+	function-list.xml \
 	binding.xml
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
@@ -147,6 +148,7 @@ expand_content_files = \
 	using-python.xml \
 	using-cpp.xml \
 	extending.xml \
+	function-list.xml \
 	binding.xml
 
 # CFLAGS and LDFLAGS for compiling gtkdoc-scangobj with your library.
@@ -163,7 +165,8 @@ include gtk-doc.make
 # Other files to distribute
 # e.g. EXTRA_DIST += version.xml.in
 EXTRA_DIST += \
-	images
+	images \
+	gen-function-list.py
 
 # Files not to distribute
 # for --rebuild-types in $(SCAN_OPTIONS), e.g. $(DOC_MODULE).types

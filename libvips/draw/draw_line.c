@@ -277,7 +277,7 @@ vips_draw_line_class_init( VipsDrawLineClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "draw_line";
-	vobject_class->description = _( "draw a draw_line on an image" );
+	vobject_class->description = _( "draw a line on an image" );
 	vobject_class->build = vips_draw_line_build;
 
 	VIPS_ARG_INT( class, "x1", 3, 

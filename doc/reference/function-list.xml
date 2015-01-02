@@ -1,0 +1,1104 @@
+<?xml version="1.0"?>
+<!-- vim: set ts=2 sw=2 expandtab: --> 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+]>
+<refentry id="func-list">
+  <refmeta>
+    <refentrytitle>VIPS function list</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>VIPS Library</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>Using VIPS</refname>
+    <refpurpose>List of VIPS functions and operators</refpurpose>
+  </refnamediv>
+
+  <refsect1 id="function-list">
+    <title>Function list</title>
+    <para>
+      VIPS has a set of operators, each of which computes some useful image 
+      processing operation. Each operator is 
+      implemented as a %GObject class, for example <code>VipsGamma</code>. 
+      Classes are identified by their <code>nickname</code>, in this case 
+      <code>gamma</code>. 
+
+      From the command-line, C++ and most language bindings, you use the 
+      nickname to call the operator. For example in C++:
+
+<programlisting language="C++">
+  vips::VImage fred = ...;
+  vips::VImage jim = fred.gamma();
+</programlisting>
+
+      or Python:
+
+<programlisting language="Python">
+  fred = jim.gamma()
+</programlisting>
+
+      VIPS has a set of C wrapper functions for calling operators, in this 
+      case vips_gamma():
+
+<programlisting language="C">
+  VipsImage *fred = ...;
+  VipsImage *jim;
+
+  if (vips_gamma(fred, *jim, NULL))
+    ...error; 
+</programlisting>
+
+      Some operators have many convenience functions.
+    </para>
+
+    <para>
+      This table lists all the VIPS operators with their C convenience 
+      functions and a short description. It's supposed to be useful for 
+      searching. See the API docs each function links to for details.
+    </para>
+
+    <para>
+      <table>
+        <title>VIPS functions and operators</title>
+        <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+          <thead>
+            <row>
+              <entry>Operator</entry>
+              <entry>Description</entry>
+              <entry>C functions</entry>
+            </row>
+          </thead>
+          <tbody>
+
+<row>
+  <entry>system</entry>
+  <entry>run an external command</entry>
+  <entry>vips_system()</entry>
+</row>
+<row>
+  <entry>add</entry>
+  <entry>add two images</entry>
+  <entry>vips_add()</entry>
+</row>
+<row>
+  <entry>subtract</entry>
+  <entry>subtract two images</entry>
+  <entry>vips_subtract()</entry>
+</row>
+<row>
+  <entry>multiply</entry>
+  <entry>multiply two images</entry>
+  <entry>vips_multiply()</entry>
+</row>
+<row>
+  <entry>divide</entry>
+  <entry>divide two images</entry>
+  <entry>vips_divide()</entry>
+</row>
+<row>
+  <entry>relational</entry>
+  <entry>relational operation on two images</entry>
+  <entry>vips_relational(), vips_equal(), vips_notequal(), vips_less(), 
+    vips_lesseq(), vips_more(), vips_moreeq()</entry>
+</row>
+<row>
+  <entry>remainder</entry>
+  <entry>remainder after integer division of two images</entry>
+  <entry>vips_remainder()</entry>
+</row>
+<row>
+  <entry>boolean</entry>
+  <entry>boolean operation on two images</entry>
+  <entry>vips_boolean(), vips_andimage(), vips_orimage(), vips_eorimage(),
+    vips_lshift(), vips_rshift() </entry>
+</row>
+<row>
+  <entry>math2</entry>
+  <entry>binary math operations</entry>
+  <entry>vips_math2(), vips_pow(), vips_wop()</entry>
+</row>
+<row>
+  <entry>complex2</entry>
+  <entry>complex binary operations on two images</entry>
+  <entry>vips_complex2(), vips_cross_phase()</entry>
+</row>
+<row>
+  <entry>complexform</entry>
+  <entry>form a complex image from two real images</entry>
+  <entry>vips_complexform()</entry>
+</row>
+<row>
+  <entry>sum</entry>
+  <entry>sum an array of images</entry>
+  <entry>vips_sum()</entry>
+</row>
+<row>
+  <entry>invert</entry>
+  <entry>invert an image</entry>
+  <entry>vips_invert()</entry>
+</row>
+<row>
+  <entry>linear</entry>
+  <entry>calculate (a * in + b)</entry>
+  <entry>vips_linear(), vips_linear1()</entry>
+</row>
+<row>
+  <entry>math</entry>
+  <entry>apply a math operation to an image</entry>
+  <entry>vips_math(), vips_sin(), vips_cos(), vips_tan(), vips_asin(), 
+    vips_acos(), vips_atan(), vips_exp(), vips_exp10(), vips_log(), 
+    vips_log10()</entry>
+</row>
+<row>
+  <entry>abs</entry>
+  <entry>absolute value of an image</entry>
+  <entry>vips_abs()</entry>
+</row>
+<row>
+  <entry>sign</entry>
+  <entry>unit vector of pixel</entry>
+  <entry>vips_sign()</entry>
+</row>
+<row>
+  <entry>round</entry>
+  <entry>perform a round function on an image</entry>
+  <entry>vips_round(), vips_floor(), vips_ceil(), vips_rint()</entry>
+</row>
+<row>
+  <entry>relational_const</entry>
+  <entry>relational operations against a constant</entry>
+  <entry>vips_relational_const(), vips_equal_const(), vips_notequal_const(),
+    vips_less_const(), vips_lesseq_const(), vips_more_const(),
+    vips_moreeq_const(), vips_relational_const1(), vips_equal_const1(),
+    vips_notequal_const1(), vips_less_const1(), vips_lesseq_const1(),
+    vips_more_const1(), vips_moreeq_const1()</entry>
+</row>
+<row>
+  <entry>remainder_const</entry>
+  <entry>remainder after integer division of an image and a constant</entry>
+  <entry>vips_remainder_const(), vips_remainder_const1()</entry>
+</row>
+<row>
+  <entry>boolean_const</entry>
+  <entry>boolean operations against a constant</entry>
+  <entry>vips_boolean_const(), vips_andimage_const(), vips_orimage_const(),
+    vips_eorimage_const(), vips_lshift_const(), vips_rshift_const(),
+    vips_boolean_const1(), vips_andimage_const1(), vips_orimage_const1(),
+    vips_eorimage_const1(), vips_lshift_const1(), vips_rshift_const1()</entry>
+</row>
+<row>
+  <entry>math2_const</entry>
+  <entry>pow( @in, @c )</entry>
+  <entry>vips_math2_const(), vips_pow_const(), vips_wop_const(),
+    vips_math2_const1(), vips_pow_const1(), vips_wop_const1()</entry>
+</row>
+<row>
+  <entry>complex</entry>
+  <entry>perform a complex operation on an image</entry>
+  <entry>vips_complex(), vips_polar(), vips_rect(), vips_conj()</entry>
+</row>
+<row>
+  <entry>complexget</entry>
+  <entry>get a component from a complex image</entry>
+  <entry>vips_complexget(), vips_real(), vips_imag()</entry>
+</row>
+<row>
+  <entry>avg</entry>
+  <entry>find image average</entry>
+  <entry>vips_avg()</entry>
+</row>
+<row>
+  <entry>min</entry>
+  <entry>find image minimum</entry>
+  <entry>vips_min()</entry>
+</row>
+<row>
+  <entry>max</entry>
+  <entry>find image maximum</entry>
+  <entry>vips_max()</entry>
+</row>
+<row>
+  <entry>deviate</entry>
+  <entry>find image standard deviation</entry>
+  <entry>vips_deviate()</entry>
+</row>
+<row>
+  <entry>stats</entry>
+  <entry>find image average</entry>
+  <entry>vips_stats()</entry>
+</row>
+<row>
+  <entry>hist_find</entry>
+  <entry>find image histogram</entry>
+  <entry>vips_hist_find()</entry>
+</row>
+<row>
+  <entry>hist_find_ndim</entry>
+  <entry>find n-dimensional image histogram</entry>
+  <entry>vips_hist_find_ndim()</entry>
+</row>
+<row>
+  <entry>hist_find_indexed</entry>
+  <entry>find indexed image histogram</entry>
+  <entry>vips_hist_find_indexed()</entry>
+</row>
+<row>
+  <entry>hough_line</entry>
+  <entry>find hough line transform</entry>
+  <entry>vips_hough_line()</entry>
+</row>
+<row>
+  <entry>hough_circle</entry>
+  <entry>find hough circle transform</entry>
+  <entry>vips_hough_circle()</entry>
+</row>
+<row>
+  <entry>project</entry>
+  <entry>find image projections</entry>
+  <entry>vips_project()</entry>
+</row>
+<row>
+  <entry>profile</entry>
+  <entry>find image profiles</entry>
+  <entry>vips_profile()</entry>
+</row>
+<row>
+  <entry>measure</entry>
+  <entry>measure a set of patches on a color chart</entry>
+  <entry>vips_measure()</entry>
+</row>
+<row>
+  <entry>getpoint</entry>
+  <entry>read a point from an image</entry>
+  <entry>vips_getpoint()</entry>
+</row>
+<row>
+  <entry>copy</entry>
+  <entry>copy an image</entry>
+  <entry>vips_copy()</entry>
+</row>
+<row>
+  <entry>tilecache</entry>
+  <entry>cache an image as a set of tiles</entry>
+  <entry>vips_tilecache()</entry>
+</row>
+<row>
+  <entry>linecache</entry>
+  <entry>cache an image as a set of lines</entry>
+  <entry>vips_linecache()</entry>
+</row>
+<row>
+  <entry>sequential</entry>
+  <entry>check sequential access</entry>
+  <entry>vips_sequential()</entry>
+</row>
+<row>
+  <entry>cache</entry>
+  <entry>cache an image</entry>
+  <entry>vips_cache()</entry>
+</row>
+<row>
+  <entry>embed</entry>
+  <entry>embed an image in a larger image</entry>
+  <entry>vips_embed()</entry>
+</row>
+<row>
+  <entry>flip</entry>
+  <entry>flip an image</entry>
+  <entry>vips_flip()</entry>
+</row>
+<row>
+  <entry>insert</entry>
+  <entry>insert image @sub into @main at @x, @y</entry>
+  <entry>vips_insert()</entry>
+</row>
+<row>
+  <entry>join</entry>
+  <entry>join a pair of images</entry>
+  <entry>vips_join()</entry>
+</row>
+<row>
+  <entry>extract_area</entry>
+  <entry>extract an area from an image</entry>
+  <entry>vips_extract_area(), vips_crop()</entry>
+</row>
+<row>
+  <entry>extract_band</entry>
+  <entry>extract band from an image</entry>
+  <entry>vips_extract_band()</entry>
+</row>
+<row>
+  <entry>bandjoin</entry>
+  <entry>bandwise join a set of images</entry>
+  <entry>vips_bandjoin(), vips_bandjoin2()</entry>
+</row>
+<row>
+  <entry>bandrank</entry>
+  <entry>band-wise rank of a set of images</entry>
+  <entry>vips_bandrank()</entry>
+</row>
+<row>
+  <entry>bandmean</entry>
+  <entry>band-wise average</entry>
+  <entry>vips_bandmean()</entry>
+</row>
+<row>
+  <entry>bandbool</entry>
+  <entry>boolean operation across image bands</entry>
+  <entry>vips_bandbool(), vips_bandand(), vips_bandor(), vips_bandeor(),
+    vips_bandmean()</entry>
+</row>
+<row>
+  <entry>replicate</entry>
+  <entry>replicate an image</entry>
+  <entry>vips_replicate()</entry>
+</row>
+<row>
+  <entry>cast</entry>
+  <entry>cast an image</entry>
+  <entry>vips_cast(), vips_cast_uchar(), vips_cast_char(), vips_cast_ushort(),
+    vips_cast_short(), vips_cast_uint(), vips_cast_int(), vips_cast_float(),
+    vips_cast_double(), vips_cast_complex(), vips_cast_dpcomplex()</entry>
+</row>
+<row>
+  <entry>rot</entry>
+  <entry>rotate an image</entry>
+  <entry>vips_rot()</entry>
+</row>
+<row>
+  <entry>rot45</entry>
+  <entry>rotate an image</entry>
+  <entry>vips_rot45()</entry>
+</row>
+<row>
+  <entry>autorot</entry>
+  <entry>autorotate image by exif tag</entry>
+  <entry>vips_autorot()</entry>
+</row>
+<row>
+  <entry>ifthenelse</entry>
+  <entry>ifthenelse an image</entry>
+  <entry>vips_ifthenelse()</entry>
+</row>
+<row>
+  <entry>recomb</entry>
+  <entry>linear recombination with matrix</entry>
+  <entry>vips_recomb()</entry>
+</row>
+<row>
+  <entry>flatten</entry>
+  <entry>flatten alpha out of an image</entry>
+  <entry>vips_flatten()</entry>
+</row>
+<row>
+  <entry>grid</entry>
+  <entry>grid an image</entry>
+  <entry>vips_grid()</entry>
+</row>
+<row>
+  <entry>scale</entry>
+  <entry>scale an image to uchar</entry>
+  <entry>vips_scale()</entry>
+</row>
+<row>
+  <entry>wrap</entry>
+  <entry>wrap image origin</entry>
+  <entry>vips_wrap()</entry>
+</row>
+<row>
+  <entry>zoom</entry>
+  <entry>zoom an image</entry>
+  <entry>vips_zoom()</entry>
+</row>
+<row>
+  <entry>subsample</entry>
+  <entry>subsample an image</entry>
+  <entry>vips_subsample()</entry>
+</row>
+<row>
+  <entry>msb</entry>
+  <entry>pick most-significant byte from an image</entry>
+  <entry>vips_msb()</entry>
+</row>
+<row>
+  <entry>falsecolour</entry>
+  <entry>false colour an image</entry>
+  <entry>vips_falsecolour()</entry>
+</row>
+<row>
+  <entry>gamma</entry>
+  <entry>gamma an image</entry>
+  <entry>vips_gamma()</entry>
+</row>
+<row>
+  <entry>black</entry>
+  <entry>make a black image</entry>
+  <entry>vips_black()</entry>
+</row>
+<row>
+  <entry>gaussnoise</entry>
+  <entry>make a gaussnoise image</entry>
+  <entry>vips_gaussnoise()</entry>
+</row>
+<row>
+  <entry>text</entry>
+  <entry>make a text image</entry>
+  <entry>vips_text()</entry>
+</row>
+<row>
+  <entry>xyz</entry>
+  <entry>make an image where pixel values are coordinates</entry>
+  <entry>vips_xyz()</entry>
+</row>
+<row>
+  <entry>gaussmat</entry>
+  <entry>make a gaussian image</entry>
+  <entry>vips_gaussmat()</entry>
+</row>
+<row>
+  <entry>logmat</entry>
+  <entry>make a laplacian of gaussian image</entry>
+  <entry>vips_logmat()</entry>
+</row>
+<row>
+  <entry>eye</entry>
+  <entry>make an image showing the eye's spatial response</entry>
+  <entry>vips_eye()</entry>
+</row>
+<row>
+  <entry>grey</entry>
+  <entry>make a grey ramp image</entry>
+  <entry>vips_grey()</entry>
+</row>
+<row>
+  <entry>zone</entry>
+  <entry>make a zone plate</entry>
+  <entry>vips_zone()</entry>
+</row>
+<row>
+  <entry>sines</entry>
+  <entry>make a 2D sine wave</entry>
+  <entry>vips_sines()</entry>
+</row>
+<row>
+  <entry>mask_ideal</entry>
+  <entry>make an ideal filter</entry>
+  <entry>vips_mask_ideal()</entry>
+</row>
+<row>
+  <entry>mask_ideal_ring</entry>
+  <entry>make an ideal ring filter</entry>
+  <entry>vips_mask_ideal_ring()</entry>
+</row>
+<row>
+  <entry>mask_ideal_band</entry>
+  <entry>make an ideal band filter</entry>
+  <entry>vips_mask_ideal_band()</entry>
+</row>
+<row>
+  <entry>mask_butterworth</entry>
+  <entry>make a butterworth filter</entry>
+  <entry>vips_mask_butterworth()</entry>
+</row>
+<row>
+  <entry>mask_butterworth_ring</entry>
+  <entry>make a butterworth ring filter</entry>
+  <entry>vips_mask_butterworth_ring()</entry>
+</row>
+<row>
+  <entry>mask_butterworth_band</entry>
+  <entry>make a butterworth_band filter</entry>
+  <entry>vips_mask_butterworth_band()</entry>
+</row>
+<row>
+  <entry>mask_gaussian</entry>
+  <entry>make a gaussian filter</entry>
+  <entry>vips_mask_gaussian()</entry>
+</row>
+<row>
+  <entry>mask_gaussian_ring</entry>
+  <entry>make a gaussian ring filter</entry>
+  <entry>vips_mask_gaussian_ring()</entry>
+</row>
+<row>
+  <entry>mask_gaussian_band</entry>
+  <entry>make a gaussian filter</entry>
+  <entry>vips_mask_gaussian_band()</entry>
+</row>
+<row>
+  <entry>mask_fractal</entry>
+  <entry>make fractal filter</entry>
+  <entry>vips_mask_fractal()</entry>
+</row>
+<row>
+  <entry>buildlut</entry>
+  <entry>build a look-up table</entry>
+  <entry>vips_buildlut()</entry>
+</row>
+<row>
+  <entry>invertlut</entry>
+  <entry>build an inverted look-up table</entry>
+  <entry>vips_invertlut()</entry>
+</row>
+<row>
+  <entry>tonelut</entry>
+  <entry>build a look-up table</entry>
+  <entry>vips_tonelut()</entry>
+</row>
+<row>
+  <entry>identity</entry>
+  <entry>make a 1D image where pixel values are indexes</entry>
+  <entry>vips_identity()</entry>
+</row>
+<row>
+  <entry>fractsurf</entry>
+  <entry>make a fractal surface</entry>
+  <entry>vips_fractsurf()</entry>
+</row>
+<row>
+  <entry>radload</entry>
+  <entry>load a Radiance image from a file</entry>
+  <entry>vips_radload()</entry>
+</row>
+<row>
+  <entry>ppmload</entry>
+  <entry>load ppm from file</entry>
+  <entry>vips_ppmload()</entry>
+</row>
+<row>
+  <entry>csvload</entry>
+  <entry>load csv from file</entry>
+  <entry>vips_csvload()</entry>
+</row>
+<row>
+  <entry>matrixload</entry>
+  <entry>load matrix from file</entry>
+  <entry>vips_matrixload()</entry>
+</row>
+<row>
+  <entry>analyzeload</entry>
+  <entry>load an Analyze6 image</entry>
+  <entry>vips_analyzeload()</entry>
+</row>
+<row>
+  <entry>rawload</entry>
+  <entry>load raw data from a file</entry>
+  <entry>vips_rawload()</entry>
+</row>
+<row>
+  <entry>pngload</entry>
+  <entry>load png from file</entry>
+  <entry>vips_pngload()</entry>
+</row>
+<row>
+  <entry>pngload_buffer</entry>
+  <entry>load png from buffer</entry>
+  <entry>vips_pngload_buffer()</entry>
+</row>
+<row>
+  <entry>matload</entry>
+  <entry>load mat from file</entry>
+  <entry>vips_matload()</entry>
+</row>
+<row>
+  <entry>jpegload</entry>
+  <entry>load jpeg from file</entry>
+  <entry>vips_jpegload()</entry>
+</row>
+<row>
+  <entry>jpegload_buffer</entry>
+  <entry>load jpeg from buffer</entry>
+  <entry>vips_jpegload_buffer()</entry>
+</row>
+<row>
+  <entry>webpload</entry>
+  <entry>load webp from file</entry>
+  <entry>vips_webpload()</entry>
+</row>
+<row>
+  <entry>webpload_buffer</entry>
+  <entry>load webp from buffer</entry>
+  <entry>vips_webpload_buffer()</entry>
+</row>
+<row>
+  <entry>tiffload</entry>
+  <entry>load tiff from file</entry>
+  <entry>vips_tiffload()</entry>
+</row>
+<row>
+  <entry>tiffload_buffer</entry>
+  <entry>load tiff from buffer</entry>
+  <entry>vips_tiffload_buffer()</entry>
+</row>
+<row>
+  <entry>openslideload</entry>
+  <entry>load file with OpenSlide</entry>
+  <entry>vips_openslideload()</entry>
+</row>
+<row>
+  <entry>magickload</entry>
+  <entry>load file with ImageMagick</entry>
+  <entry>vips_magickload()</entry>
+</row>
+<row>
+  <entry>fitsload</entry>
+  <entry>load a FITS image</entry>
+  <entry>vips_fitsload()</entry>
+</row>
+<row>
+  <entry>openexrload</entry>
+  <entry>load an OpenEXR image</entry>
+  <entry>vips_openexrload()</entry>
+</row>
+<row>
+  <entry>radsave</entry>
+  <entry>save image to Radiance file</entry>
+  <entry>vips_radsave()</entry>
+</row>
+<row>
+  <entry>ppmsave</entry>
+  <entry>save image to ppm file</entry>
+  <entry>vips_ppmsave()</entry>
+</row>
+<row>
+  <entry>csvsave</entry>
+  <entry>save image to csv file</entry>
+  <entry>vips_csvsave()</entry>
+</row>
+<row>
+  <entry>matrixsave</entry>
+  <entry>save image to matrix file</entry>
+  <entry>vips_matrixsave()</entry>
+</row>
+<row>
+  <entry>matrixprint</entry>
+  <entry>print matrix</entry>
+  <entry>vips_matrixprint()</entry>
+</row>
+<row>
+  <entry>rawsave</entry>
+  <entry>save image to raw file</entry>
+  <entry>vips_rawsave()</entry>
+</row>
+<row>
+  <entry>rawsave_fd</entry>
+  <entry>write raw image to file descriptor</entry>
+  <entry>vips_rawsave_fd()</entry>
+</row>
+<row>
+  <entry>dzsave</entry>
+  <entry>save image to deep zoom format</entry>
+  <entry>vips_dzsave()</entry>
+</row>
+<row>
+  <entry>pngsave</entry>
+  <entry>save image to png file</entry>
+  <entry>vips_pngsave()</entry>
+</row>
+<row>
+  <entry>pngsave_buffer</entry>
+  <entry>save image to png buffer</entry>
+  <entry>vips_pngsave_buffer()</entry>
+</row>
+<row>
+  <entry>jpegsave</entry>
+  <entry>save image to jpeg file</entry>
+  <entry>vips_jpegsave()</entry>
+</row>
+<row>
+  <entry>jpegsave_buffer</entry>
+  <entry>save image to jpeg buffer</entry>
+  <entry>vips_jpegsave_buffer()</entry>
+</row>
+<row>
+  <entry>jpegsave_mime</entry>
+  <entry>save image to jpeg mime</entry>
+  <entry>vips_jpegsave_mime()</entry>
+</row>
+<row>
+  <entry>webpsave</entry>
+  <entry>save image to webp file</entry>
+  <entry>vips_webpsave()</entry>
+</row>
+<row>
+  <entry>webpsave_buffer</entry>
+  <entry>save image to webp buffer</entry>
+  <entry>vips_webpsave_buffer()</entry>
+</row>
+<row>
+  <entry>tiffsave</entry>
+  <entry>save image to tiff file</entry>
+  <entry>vips_tiffsave()</entry>
+</row>
+<row>
+  <entry>fitssave</entry>
+  <entry>save image to fits file</entry>
+  <entry>vips_fitssave()</entry>
+</row>
+<row>
+  <entry>shrink</entry>
+  <entry>shrink an image</entry>
+  <entry>vips_shrink()</entry>
+</row>
+<row>
+  <entry>quadratic</entry>
+  <entry>resample an image with a quadratic transform</entry>
+  <entry>vips_quadratic()</entry>
+</row>
+<row>
+  <entry>affine</entry>
+  <entry>affine transform of an image</entry>
+  <entry>vips_affine()</entry>
+</row>
+<row>
+  <entry>similarity</entry>
+  <entry>similarity transform of an image</entry>
+  <entry>vips_similarity()</entry>
+</row>
+<row>
+  <entry>resize</entry>
+  <entry>resize an image</entry>
+  <entry>vips_resize()</entry>
+</row>
+<row>
+  <entry>colourspace</entry>
+  <entry>convert to a new colourspace</entry>
+  <entry>vips_colourspace()</entry>
+</row>
+<row>
+  <entry>Lab2XYZ</entry>
+  <entry>transform CIELAB to XYZ</entry>
+  <entry>vips_Lab2XYZ()</entry>
+</row>
+<row>
+  <entry>XYZ2Lab</entry>
+  <entry>transform XYZ to Lab</entry>
+  <entry>vips_XYZ2Lab()</entry>
+</row>
+<row>
+  <entry>Lab2LCh</entry>
+  <entry>transform Lab to LCh</entry>
+  <entry>vips_Lab2LCh()</entry>
+</row>
+<row>
+  <entry>LCh2Lab</entry>
+  <entry>transform LCh to Lab</entry>
+  <entry>vips_LCh2Lab()</entry>
+</row>
+<row>
+  <entry>LCh2CMC</entry>
+  <entry>transform LCh to CMC</entry>
+  <entry>vips_LCh2CMC()</entry>
+</row>
+<row>
+  <entry>CMC2LCh</entry>
+  <entry>transform LCh to CMC</entry>
+  <entry>vips_CMC2LCh()</entry>
+</row>
+<row>
+  <entry>XYZ2Yxy</entry>
+  <entry>transform XYZ to Yxy</entry>
+  <entry>vips_XYZ2Yxy()</entry>
+</row>
+<row>
+  <entry>Yxy2XYZ</entry>
+  <entry>transform Yxy to XYZ</entry>
+  <entry>vips_Yxy2XYZ()</entry>
+</row>
+<row>
+  <entry>scRGB2XYZ</entry>
+  <entry>transform scRGB to XYZ</entry>
+  <entry>vips_scRGB2XYZ()</entry>
+</row>
+<row>
+  <entry>XYZ2scRGB</entry>
+  <entry>transform XYZ to scRGB</entry>
+  <entry>vips_XYZ2scRGB()</entry>
+</row>
+<row>
+  <entry>LabQ2Lab</entry>
+  <entry>unpack a LabQ image to float Lab</entry>
+  <entry>vips_LabQ2Lab()</entry>
+</row>
+<row>
+  <entry>Lab2LabQ</entry>
+  <entry>transform float Lab to LabQ coding</entry>
+  <entry>vips_Lab2LabQ()</entry>
+</row>
+<row>
+  <entry>LabQ2LabS</entry>
+  <entry>unpack a LabQ image to short Lab</entry>
+  <entry>vips_LabQ2LabS()</entry>
+</row>
+<row>
+  <entry>LabS2LabQ</entry>
+  <entry>transform short Lab to LabQ coding</entry>
+  <entry>vips_LabS2LabQ()</entry>
+</row>
+<row>
+  <entry>LabS2Lab</entry>
+  <entry>transform signed short Lab to float</entry>
+  <entry>vips_LabS2Lab()</entry>
+</row>
+<row>
+  <entry>Lab2LabS</entry>
+  <entry>transform float Lab to signed short</entry>
+  <entry>vips_Lab2LabS()</entry>
+</row>
+<row>
+  <entry>rad2float</entry>
+  <entry>unpack Radiance coding to float RGB</entry>
+  <entry>vips_rad2float()</entry>
+</row>
+<row>
+  <entry>float2rad</entry>
+  <entry>transform float RGB to Radiance coding</entry>
+  <entry>vips_float2rad()</entry>
+</row>
+<row>
+  <entry>LabQ2sRGB</entry>
+  <entry>unpack a LabQ image to short Lab</entry>
+  <entry>vips_LabQ2sRGB()</entry>
+</row>
+<row>
+  <entry>sRGB2scRGB</entry>
+  <entry>convert an sRGB image to scRGB</entry>
+  <entry>vips_sRGB2scRGB()</entry>
+</row>
+<row>
+  <entry>scRGB2sRGB</entry>
+  <entry>convert an scRGB image to sRGB</entry>
+  <entry>vips_scRGB2sRGB()</entry>
+</row>
+<row>
+  <entry>icc_import</entry>
+  <entry>import from device with ICC profile</entry>
+  <entry>vips_icc_import()</entry>
+</row>
+<row>
+  <entry>icc_export</entry>
+  <entry>output to device with ICC profile</entry>
+  <entry>vips_icc_export()</entry>
+</row>
+<row>
+  <entry>icc_transform</entry>
+  <entry>transform between devices with ICC profiles</entry>
+  <entry>vips_icc_transform()</entry>
+</row>
+<row>
+  <entry>dE76</entry>
+  <entry>calculate dE76</entry>
+  <entry>vips_dE76()</entry>
+</row>
+<row>
+  <entry>dE00</entry>
+  <entry>calculate dE00</entry>
+  <entry>vips_dE00()</entry>
+</row>
+<row>
+  <entry>dECMC</entry>
+  <entry>calculate dECMC</entry>
+  <entry>vips_dECMC()</entry>
+</row>
+<row>
+  <entry>maplut</entry>
+  <entry>map an image though a lut</entry>
+  <entry>vips_maplut()</entry>
+</row>
+<row>
+  <entry>percent</entry>
+  <entry>find threshold for percent of pixels</entry>
+  <entry>vips_percent()</entry>
+</row>
+<row>
+  <entry>stdif</entry>
+  <entry>statistical difference</entry>
+  <entry>vips_stdif()</entry>
+</row>
+<row>
+  <entry>hist_cum</entry>
+  <entry>form cumulative histogram</entry>
+  <entry>vips_hist_cum()</entry>
+</row>
+<row>
+  <entry>hist_match</entry>
+  <entry>match two histograms</entry>
+  <entry>vips_hist_match()</entry>
+</row>
+<row>
+  <entry>hist_norm</entry>
+  <entry>normalise histogram</entry>
+  <entry>vips_hist_norm()</entry>
+</row>
+<row>
+  <entry>hist_equal</entry>
+  <entry>histogram equalisation</entry>
+  <entry>vips_hist_equal()</entry>
+</row>
+<row>
+  <entry>hist_plot</entry>
+  <entry>plot histogram</entry>
+  <entry>vips_hist_plot()</entry>
+</row>
+<row>
+  <entry>hist_local</entry>
+  <entry>local histogram equalisation</entry>
+  <entry>vips_hist_local()</entry>
+</row>
+<row>
+  <entry>hist_ismonotonic</entry>
+  <entry>test for monotonicity</entry>
+  <entry>vips_hist_ismonotonic()</entry>
+</row>
+<row>
+  <entry>conv</entry>
+  <entry>convolution operation</entry>
+  <entry>vips_conv()</entry>
+</row>
+<row>
+  <entry>compass</entry>
+  <entry>convolve with rotating mask</entry>
+  <entry>vips_compass()</entry>
+</row>
+<row>
+  <entry>convsep</entry>
+  <entry>seperable convolution operation</entry>
+  <entry>vips_convsep()</entry>
+</row>
+<row>
+  <entry>fastcor</entry>
+  <entry>fast correlation</entry>
+  <entry>vips_fastcor()</entry>
+</row>
+<row>
+  <entry>spcor</entry>
+  <entry>spatial correlation</entry>
+  <entry>vips_spcor()</entry>
+</row>
+<row>
+  <entry>sharpen</entry>
+  <entry>unsharp masking for print</entry>
+  <entry>vips_sharpen()</entry>
+</row>
+<row>
+  <entry>gaussblur</entry>
+  <entry>gaussian blur</entry>
+  <entry>vips_gaussblur()</entry>
+</row>
+<row>
+  <entry>fwfft</entry>
+  <entry>forward FFT</entry>
+  <entry>vips_fwfft()</entry>
+</row>
+<row>
+  <entry>invfft</entry>
+  <entry>inverse FFT</entry>
+  <entry>vips_invfft()</entry>
+</row>
+<row>
+  <entry>freqmult</entry>
+  <entry>frequency-domain filtering</entry>
+  <entry>vips_freqmult()</entry>
+</row>
+<row>
+  <entry>spectrum</entry>
+  <entry>make displayable power spectrum</entry>
+  <entry>vips_spectrum()</entry>
+</row>
+<row>
+  <entry>phasecor</entry>
+  <entry>calculate phase correlation</entry>
+  <entry>vips_phasecor()</entry>
+</row>
+<row>
+  <entry>morph</entry>
+  <entry>morphology operation</entry>
+  <entry>vips_morph()</entry>
+</row>
+<row>
+  <entry>rank</entry>
+  <entry>rank filter</entry>
+  <entry>vips_rank(), vips_median()</entry>
+</row>
+<row>
+  <entry>countlines</entry>
+  <entry>count lines in an image</entry>
+  <entry>vips_countlines()</entry>
+</row>
+<row>
+  <entry>labelregions</entry>
+  <entry>label regions in an image</entry>
+  <entry>vips_labelregions()</entry>
+</row>
+<row>
+  <entry>draw_rect</entry>
+  <entry>paint a rectangle on an image</entry>
+  <entry>vips_draw_rect(), vips_draw_rect1(), vips_draw_point(), 
+    vips_draw_point1()</entry>
+</row>
+<row>
+  <entry>draw_mask</entry>
+  <entry>draw a mask on an image</entry>
+  <entry>vips_draw_mask(), vips_draw_mask1()</entry>
+</row>
+<row>
+  <entry>draw_line</entry>
+  <entry>draw a line on an image</entry>
+  <entry>vips_draw_line(), vips_draw_line1(),
+    vips_draw_line_mask(), vips_draw_line_mask1()</entry>
+</row>
+<row>
+  <entry>draw_circle</entry>
+  <entry>draw a circle on an image</entry>
+  <entry>vips_draw_circle(), vips_draw_circle1()</entry>
+</row>
+<row>
+  <entry>draw_flood</entry>
+  <entry>flood-fill an area</entry>
+  <entry>vips_draw_flood(), vips_draw_flood1()</entry>
+</row>
+<row>
+  <entry>draw_image</entry>
+  <entry>paint an image into another image</entry>
+  <entry>vips_draw_image()</entry>
+</row>
+<row>
+  <entry>draw_smudge</entry>
+  <entry>blur a rectangle on an image</entry>
+  <entry>vips_draw_smudge()</entry>
+</row>
+<row>
+  <entry>merge</entry>
+  <entry>merge two images</entry>
+  <entry>vips_merge()</entry>
+</row>
+<row>
+  <entry>mosaic</entry>
+  <entry>mosaic two images</entry>
+  <entry>vips_mosaic()</entry>
+</row>
+<row>
+  <entry>mosaic1</entry>
+  <entry>first-order mosaic of two images</entry>
+  <entry>vips_mosaic1()</entry>
+</row>
+<row>
+  <entry>match</entry>
+  <entry>first-order match of two images</entry>
+  <entry>vips_match()</entry>
+</row>
+<row>
+  <entry>globalbalance</entry>
+  <entry>global balance an image mosaic</entry>
+  <entry>vips_globalbalance()</entry>
+</row>
+
+          </tbody>
+        </tgroup>
+      </table>
+    </para>
+
+  </refsect1>
+
+</refentry>
