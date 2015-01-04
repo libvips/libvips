@@ -52,10 +52,10 @@
 
 #include "pcolour.h"
 
-typedef VipsColourSpace VipsLCh2Lab;
-typedef VipsColourSpaceClass VipsLCh2LabClass;
+typedef VipsColourTransform VipsLCh2Lab;
+typedef VipsColourTransformClass VipsLCh2LabClass;
 
-G_DEFINE_TYPE( VipsLCh2Lab, vips_LCh2Lab, VIPS_TYPE_COLOUR_SPACE );
+G_DEFINE_TYPE( VipsLCh2Lab, vips_LCh2Lab, VIPS_TYPE_COLOUR_TRANSFORM );
 
 /* Process a buffer of data.
  */

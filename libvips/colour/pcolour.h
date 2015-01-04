@@ -98,34 +98,34 @@ GType vips_colour_get_type( void );
 /* A float in, float out colourspace transformation.
  */
 
-#define VIPS_TYPE_COLOUR_SPACE (vips_colour_space_get_type())
-#define VIPS_COLOUR_SPACE( obj ) \
+#define VIPS_TYPE_COLOUR_TRANSFORM (vips_colour_transform_get_type())
+#define VIPS_COLOUR_TRANSFORM( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-		VIPS_TYPE_COLOUR_SPACE, VipsColourSpace ))
-#define VIPS_COLOUR_SPACE_CLASS( klass ) \
+		VIPS_TYPE_COLOUR_TRANSFORM, VipsColourTransform ))
+#define VIPS_COLOUR_TRANSFORM_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-		VIPS_TYPE_COLOUR_SPACE, VipsColourSpaceClass))
-#define VIPS_IS_COLOUR_SPACE( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_COLOUR_SPACE ))
-#define VIPS_IS_COLOUR_SPACE_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_COLOUR_SPACE ))
-#define VIPS_COLOUR_SPACE_GET_CLASS( obj ) \
+		VIPS_TYPE_COLOUR_TRANSFORM, VipsColourTransformClass))
+#define VIPS_IS_COLOUR_TRANSFORM( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_COLOUR_TRANSFORM ))
+#define VIPS_IS_COLOUR_TRANSFORM_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_COLOUR_TRANSFORM ))
+#define VIPS_COLOUR_TRANSFORM_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-		VIPS_TYPE_COLOUR_SPACE, VipsColourSpaceClass ))
+		VIPS_TYPE_COLOUR_TRANSFORM, VipsColourTransformClass ))
 
-typedef struct _VipsColourSpace {
+typedef struct _VipsColourTransform {
 	VipsColour parent_instance;
 
 	VipsImage *in;
 
-} VipsColourSpace;
+} VipsColourTransform;
 
-typedef struct _VipsColourSpaceClass {
+typedef struct _VipsColourTransformClass {
 	VipsColourClass parent_class;
 
-} VipsColourSpaceClass;
+} VipsColourTransformClass;
 
-GType vips_colour_space_get_type( void );
+GType vips_colour_transform_get_type( void );
 
 /* Change colour encoding ... either in or out is not three-band float.
  */

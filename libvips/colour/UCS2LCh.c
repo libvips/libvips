@@ -58,10 +58,10 @@ static float LI[1001];
 static float CI[3001];
 static float hI[101][361];
 
-typedef VipsColourSpace VipsCMC2LCh;
-typedef VipsColourSpaceClass VipsCMC2LChClass;
+typedef VipsColourTransform VipsCMC2LCh;
+typedef VipsColourTransformClass VipsCMC2LChClass;
 
-G_DEFINE_TYPE( VipsCMC2LCh, vips_CMC2LCh, VIPS_TYPE_COLOUR_SPACE );
+G_DEFINE_TYPE( VipsCMC2LCh, vips_CMC2LCh, VIPS_TYPE_COLOUR_TRANSFORM );
 
 /* Generate LI (inverse) tables. 
  */

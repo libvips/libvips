@@ -49,7 +49,7 @@ typedef struct _VipsdE00 {
 
 } VipsdE00;
 
-typedef VipsColourSpaceClass VipsdE00Class;
+typedef VipsColourDifferenceClass VipsdE00Class;
 
 G_DEFINE_TYPE( VipsdE00, vips_dE00, VIPS_TYPE_COLOUR_DIFFERENCE );
 

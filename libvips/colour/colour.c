@@ -458,18 +458,19 @@ vips_colour_init( VipsColour *colour )
 	colour->input_bands = -1;
 }
 
-G_DEFINE_ABSTRACT_TYPE( VipsColourSpace, vips_colour_space, VIPS_TYPE_COLOUR );
+G_DEFINE_ABSTRACT_TYPE( VipsColourTransform, vips_colour_transform, 
+	VIPS_TYPE_COLOUR );
 
 static int
-vips_colour_space_build( VipsObject *object )
+vips_colour_transform_build( VipsObject *object )
 {
 	VipsColour *colour = VIPS_COLOUR( object );
-	VipsColourSpace *space = VIPS_COLOUR_SPACE( object );
+	VipsColourTransform *transform = VIPS_COLOUR_TRANSFORM( object );
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
 
 	/* We only process float.
 	 */
-	if( vips_cast_float( space->in, &t[0], NULL ) )
+	if( vips_cast_float( transform->in, &t[0], NULL ) )
 		return( -1 );
 
 	/* We always do 3 bands -> 3 bands. 
@@ -479,7 +480,7 @@ vips_colour_space_build( VipsObject *object )
 	colour->n = 1;
 	colour->in = t;
 
-	if( VIPS_OBJECT_CLASS( vips_colour_space_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_colour_transform_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -487,7 +488,7 @@ vips_colour_space_build( VipsObject *object )
 }
 
 static void
-vips_colour_space_class_init( VipsColourSpaceClass *class )
+vips_colour_transform_class_init( VipsColourTransformClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -497,17 +498,17 @@ vips_colour_space_class_init( VipsColourSpaceClass *class )
 
 	vobject_class->nickname = "space";
 	vobject_class->description = _( "colour space transformations" );
-	vobject_class->build = vips_colour_space_build;
+	vobject_class->build = vips_colour_transform_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsColourSpace, in ) );
+		G_STRUCT_OFFSET( VipsColourTransform, in ) );
 }
 
 static void
-vips_colour_space_init( VipsColourSpace *space )
+vips_colour_transform_init( VipsColourTransform *space )
 {
 	VipsColour *colour = (VipsColour *) space; 
 

@@ -49,10 +49,10 @@
 
 #include "pcolour.h"
 
-typedef VipsColourSpace VipsscRGB2XYZ;
-typedef VipsColourSpaceClass VipsscRGB2XYZClass;
+typedef VipsColourTransform VipsscRGB2XYZ;
+typedef VipsColourTransformClass VipsscRGB2XYZClass;
 
-G_DEFINE_TYPE( VipsscRGB2XYZ, vips_scRGB2XYZ, VIPS_TYPE_COLOUR_SPACE );
+G_DEFINE_TYPE( VipsscRGB2XYZ, vips_scRGB2XYZ, VIPS_TYPE_COLOUR_TRANSFORM );
 
 void
 vips_scRGB2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )

@@ -54,7 +54,7 @@ typedef struct _VipsdE76 {
 
 } VipsdE76;
 
-typedef VipsColourSpaceClass VipsdE76Class;
+typedef VipsColourDifferenceClass VipsdE76Class;
 
 G_DEFINE_TYPE( VipsdE76, vips_dE76, VIPS_TYPE_COLOUR_DIFFERENCE );
 

@@ -47,10 +47,10 @@
 
 #include "pcolour.h"
 
-typedef VipsColourSpace VipsXYZ2scRGB;
-typedef VipsColourSpaceClass VipsXYZ2scRGBClass;
+typedef VipsColourTransform VipsXYZ2scRGB;
+typedef VipsColourTransformClass VipsXYZ2scRGBClass;
 
-G_DEFINE_TYPE( VipsXYZ2scRGB, vips_XYZ2scRGB, VIPS_TYPE_COLOUR_SPACE );
+G_DEFINE_TYPE( VipsXYZ2scRGB, vips_XYZ2scRGB, VIPS_TYPE_COLOUR_TRANSFORM );
 
 /* We used to have the comment:
 

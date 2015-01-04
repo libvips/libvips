@@ -48,10 +48,10 @@
 
 #include "pcolour.h"
 
-typedef VipsColourSpace VipsLCh2CMC;
-typedef VipsColourSpaceClass VipsLCh2CMCClass;
+typedef VipsColourTransform VipsLCh2CMC;
+typedef VipsColourTransformClass VipsLCh2CMCClass;
 
-G_DEFINE_TYPE( VipsLCh2CMC, vips_LCh2CMC, VIPS_TYPE_COLOUR_SPACE );
+G_DEFINE_TYPE( VipsLCh2CMC, vips_LCh2CMC, VIPS_TYPE_COLOUR_TRANSFORM );
 
 /* I ordered this paper from the library and it took ages. For reference, the
  * recommended short formula are:
