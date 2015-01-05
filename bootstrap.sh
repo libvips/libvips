@@ -19,6 +19,7 @@ rm -f benchmark/temp*
 	mv reference/Makefile.am poop ; \
 	mv reference/images poop ; \
 	mv reference/*.xml poop ; \
+	mv reference/*.py poop ; \
 	rm -rf reference/* ; \
 	mv poop/* reference ; \
 	rmdir poop \
