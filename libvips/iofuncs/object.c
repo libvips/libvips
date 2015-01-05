@@ -2903,6 +2903,7 @@ vips_object_print_all_cb( VipsObject *object, int *n )
 		*n, G_OBJECT_TYPE_NAME( object ), object );
 	if( object->local_memory )
 		fprintf( stderr, " %zd bytes", object->local_memory ); 
+	fprintf( stderr, ", count=%d", G_OBJECT( object )->ref_count ); 
 	fprintf( stderr, "\n" ); 
 
 	vips_object_summary_class( class, &buf );
