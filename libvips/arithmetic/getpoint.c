@@ -96,9 +96,18 @@ vips_getpoint_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_getpoint_parent_class )->build( object ) )
 		return( -1 );
 
+	/* <0 ruled out already.
+	 */
+	if( getpoint->x >= getpoint->in->Xsize ||
+		getpoint->y >= getpoint->in->Ysize ) { 
+		vips_error( class->nickname, 
+			"%s", _( "coordinates out of range" ) ); 
+		return( -1 );
+	}
+
 	if( vips_check_coding_known( class->nickname, getpoint->in ) ||
 		!(region = vips_region_new( getpoint->in )) )
-		return( -1 );
+		return( -1 ); 
 
 	area.left = getpoint->x;
 	area.top = getpoint->y;
