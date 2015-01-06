@@ -1,7 +1,7 @@
 /* 
  * compile with:
  *
- *      g++ -g -Wall avg.cc `pkg-config vips-cpp --cflags --libs`
+ *      g++ -g -Wall avg.cpp `pkg-config vips-cpp --cflags --libs`
  *
  */
 
@@ -9,7 +9,7 @@
 
 #include <vips/vips8>
 
-using namespace vips8;
+using namespace vips;
 
 int
 main( int argc, char **argv )

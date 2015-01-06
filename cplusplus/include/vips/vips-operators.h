@@ -1,5 +1,5 @@
 // headers for vips operations
-// Thu Dec 18 11:24:18 GMT 2014
+// Tue Jan  6 11:41:51 GMT 2015
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 )
@@ -70,17 +70,15 @@ VImage hough_line( VOption *options = 0 )
     throw( VError );
 VImage hough_circle( VOption *options = 0 )
     throw( VError );
-VImage project( VImage rows , VOption *options = 0 )
+VImage project( VImage * rows , VOption *options = 0 )
     throw( VError );
-VImage profile( VImage rows , VOption *options = 0 )
+VImage profile( VImage * rows , VOption *options = 0 )
     throw( VError );
 VImage measure( int h , int v , VOption *options = 0 )
     throw( VError );
 std::vector<double> getpoint( int x , int y , VOption *options = 0 )
     throw( VError );
 VImage copy( VOption *options = 0 )
-    throw( VError );
-VImage blockcache( VOption *options = 0 )
     throw( VError );
 VImage tilecache( VOption *options = 0 )
     throw( VError );

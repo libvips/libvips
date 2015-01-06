@@ -1,7 +1,7 @@
 /* 
  * compile with:
  *
- *      g++ -g -Wall invert.cc `pkg-config vips-cpp --cflags --libs`
+ *      g++ -g -Wall invert.cpp `pkg-config vips-cpp --cflags --libs`
  *
  */
 
@@ -9,7 +9,7 @@
 
 #include <vips/vips8>
 
-using namespace vips8;
+using namespace vips;
 
 int
 main( int argc, char **argv )

@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Thu Dec 18 11:24:06 GMT 2014
+// Tue Jan  6 11:44:30 GMT 2015
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -467,7 +467,7 @@ VImage VImage::hough_circle( VOption *options )
     return( out );
 }
 
-VImage VImage::project( VImage rows , VOption *options )
+VImage VImage::project( VImage * rows , VOption *options )
     throw( VError )
 {
     VImage columns;
@@ -476,12 +476,12 @@ VImage VImage::project( VImage rows , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "columns", &columns ) ->
-            set( "rows", &rows ) );
+            set( "rows", rows ) );
 
     return( columns );
 }
 
-VImage VImage::profile( VImage rows , VOption *options )
+VImage VImage::profile( VImage * rows , VOption *options )
     throw( VError )
 {
     VImage columns;
@@ -490,7 +490,7 @@ VImage VImage::profile( VImage rows , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "columns", &columns ) ->
-            set( "rows", &rows ) );
+            set( "rows", rows ) );
 
     return( columns );
 }
@@ -531,19 +531,6 @@ VImage VImage::copy( VOption *options )
     VImage out;
 
     call( "copy" ,
-        (options ? options : VImage::option()) ->
-            set( "out", &out ) ->
-            set( "in", *this ) );
-
-    return( out );
-}
-
-VImage VImage::blockcache( VOption *options )
-    throw( VError )
-{
-    VImage out;
-
-    call( "blockcache" ,
         (options ? options : VImage::option()) ->
             set( "out", &out ) ->
             set( "in", *this ) );

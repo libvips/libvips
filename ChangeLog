@@ -1,4 +1,5 @@
 30/12/14 started 7.42.2
+- C++ required output params were broken, thanks Lovell
 - allow c++ set enum from string
 - display param default and range in usage
 - better docs

@@ -1,7 +1,7 @@
 /* 
  * compile with:
  *
- *      g++ -g -Wall embed.cpp `pkg-config vips-cpp --cflags --libs`
+ *      g++ -g -Wall profile.cpp `pkg-config vips-cpp --cflags --libs`
  *
  */
 
@@ -38,13 +38,13 @@ main( int argc, char **argv )
 
 
 { 
-	VImage in = VImage::new_from_file( argv[1], 
-		VImage::option()->set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
+	VImage in = VImage::new_from_file( argv[1] );  
 
-	VImage out = in.embed( 10, 10, 1000, 1000, 
-		VImage::option()->set( "extend", VIPS_EXTEND_COPY ) );
+	VImage rows; 
+	VImage cols = in.profile( &rows );
 
-	out.write_to_file( argv[2] );
+	rows.write_to_file( argv[2] );
+	cols.write_to_file( argv[3] );
 }
 
 	vips_shutdown();

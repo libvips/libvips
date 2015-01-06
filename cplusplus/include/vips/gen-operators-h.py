@@ -94,7 +94,7 @@ def find_first_output(op, required):
 def cppize(name):
     return re.sub('-', '_', name)
 
-def gen_arg_list(required):
+def gen_arg_list(op, required):
     first = True
     for prop in required:
         if not first:
@@ -103,6 +103,12 @@ def gen_arg_list(required):
             first = False
 
         print get_ctype(prop),
+
+        # output params are passed by reference
+        flags = op.get_argument_flags(prop.name)
+        if flags & Vips.ArgumentFlags.OUTPUT:
+            print '*',
+
         print cppize(prop.name),
 
     if not first:
@@ -136,7 +142,7 @@ def gen_operation(cls):
 
     print '%s(' % nickname,
 
-    gen_arg_list(required)
+    gen_arg_list(op, required)
 
     print ')'
     print '    throw( VError );'
