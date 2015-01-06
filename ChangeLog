@@ -1,5 +1,7 @@
 30/12/14 started 7.42.2
 - C++ required output params were broken, thanks Lovell
+- remove VImage::scale() to get scale from header, it clashed with the
+  VipsScale operator, thanks Lovell
 - allow c++ set enum from string
 - display param default and range in usage
 - better docs

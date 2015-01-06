@@ -323,18 +323,6 @@ public:
 		return( vips_image_get_filename( get_image() ) ); 
 	}
 
-	double 
-	scale()
-	{
-		return( vips_image_get_scale( get_image() ) ); 
-	}
-
-	double 
-	offset()
-	{
-		return( vips_image_get_offset( get_image() ) ); 
-	}
-
 	const void *
 	data()
 	{
