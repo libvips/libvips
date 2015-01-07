@@ -542,15 +542,15 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	}
 
 	switch( dz->depth ) {
-	case VIPS_FOREIGN_DZ_DEPTH_1PIXEL:
+	case VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL:
 		limit = 1;
 		break;
 
-	case VIPS_FOREIGN_DZ_DEPTH_1TILE:
+	case VIPS_FOREIGN_DZ_DEPTH_ONETILE:
 		limit = dz->tile_size;
 		break;
 
-	case VIPS_FOREIGN_DZ_DEPTH_1:
+	case VIPS_FOREIGN_DZ_DEPTH_ONE:
 		limit = VIPS_MAX( width, height );
 		break;
 
@@ -1603,11 +1603,11 @@ vips_foreign_save_dz_build( VipsObject *object )
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) {
 		if( !vips_object_argument_isset( object, "depth" ) )
-			dz->depth = VIPS_FOREIGN_DZ_DEPTH_1PIXEL;
+			dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL;
 	}
 	else
 		if( !vips_object_argument_isset( object, "depth" ) )
-			dz->depth = VIPS_FOREIGN_DZ_DEPTH_1TILE;
+			dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONETILE;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_parent_class )->
 		build( object ) )
@@ -1949,7 +1949,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, depth ),
 		VIPS_TYPE_FOREIGN_DZ_DEPTH, 
-			VIPS_FOREIGN_DZ_DEPTH_1PIXEL ); 
+			VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL ); 
 
 	VIPS_ARG_BOOL( class, "centre", 13, 
 		_( "Center" ), 
@@ -2021,7 +2021,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->overlap = 1;
 	dz->tile_size = 256;
 	dz->tile_count = 0;
-	dz->depth = VIPS_FOREIGN_DZ_DEPTH_1PIXEL; 
+	dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL; 
 	dz->angle = VIPS_ANGLE_D0; 
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_FS; 
 }

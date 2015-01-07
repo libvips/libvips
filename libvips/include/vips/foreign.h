@@ -496,16 +496,16 @@ typedef enum {
 
 /**
  * VipsForeignDzDepth:
- * @VIPS_FOREIGN_DZ_DEPTH_1PIXEL: create layers down to 1x1 pixel
- * @VIPS_FOREIGN_DZ_DEPTH_1TILE: create layers down to 1x1 tile
- * @VIPS_FOREIGN_DZ_DEPTH_1: only create a single layer
+ * @VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL: create layers down to 1x1 pixel
+ * @VIPS_FOREIGN_DZ_DEPTH_ONETILE: create layers down to 1x1 tile
+ * @VIPS_FOREIGN_DZ_DEPTH_ONE: only create a single layer
  *
  * How many pyramid layers to create.
  */
 typedef enum {
-	VIPS_FOREIGN_DZ_DEPTH_1PIXEL,
-	VIPS_FOREIGN_DZ_DEPTH_1TILE,
-	VIPS_FOREIGN_DZ_DEPTH_1,
+	VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL,
+	VIPS_FOREIGN_DZ_DEPTH_ONETILE,
+	VIPS_FOREIGN_DZ_DEPTH_ONE,
 	VIPS_FOREIGN_DZ_DEPTH_LAST
 } VipsForeignDzDepth;
 
