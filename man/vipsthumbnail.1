@@ -50,7 +50,13 @@ Set the output format string. The input filename has any file type suffix
 removed, then that value is substitued into 
 .B FORMAT
 replacing
-.B %s.
+.B %s. If 
+.B FORMAT
+is a relative path, the name of the input directory is prepended. In other
+words, any path in
+.B FORMAT
+is relative to the directory of the current input file.
+
 The default value is
 .B tn_%s.jpg
 meaning JPEG output, with
