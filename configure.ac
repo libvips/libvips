@@ -672,26 +672,27 @@ if test x"$with_pangoft2" != "xno"; then
 fi
 
 # install vips8 python
-AC_ARG_ENABLE([pyvips8], 
-  AS_HELP_STRING([--enable-pyvips8], 
-		 [install vips8 Python overrides (default: install)]))
+AC_ARG_ENABLE([pyvips8],
+  AS_HELP_STRING([--enable-pyvips8],
+    [install vips8 Python overrides (default: test)]),
+  [enable_pyvips8=$enableval], 
+  [enable_pyvips8="auto"])
 
-if test x"$enable_pyvips8" != "xno"; then
-  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.12.0],
-    [pyoverridesdir="\$(pyexecdir)/gi/overrides"
-     AC_SUBST(pyoverridesdir)
-    ],
+if test "x$enable_pyvips8" = "xauto"; then
+  PKG_CHECK_EXISTS([pygobject-3.0 >= 3.12.0],
+    [enable_pyvips8=yes],
     [AC_MSG_WARN([pygobject-3.0 not found; disabling vips8 python support])
+     enable_pyvips8=no
     ])
 fi
 
-if test x"$enable_pyvips8" != x"no"; then
-  AM_CONDITIONAL(ENABLE_PYVIPS8, true)
-  enable_pyvips8=yes
-else
-  AM_CONDITIONAL(ENABLE_PYVIPS8, false)
-  enable_pyvips8=no
+if test "x$enable_pyvips8" = "xyes"; then
+  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.12.0])
+  pyoverridesdir="\$(pyexecdir)/gi/overrides"
+  AC_SUBST(pyoverridesdir)
 fi
+
+AM_CONDITIONAL(ENABLE_PYVIPS8, test x"$enable_pyvips8" = "xyes")
 
 # hmm, these don't have .pc files on ubuntu 5.10, how odd
 FIND_ZIP(
