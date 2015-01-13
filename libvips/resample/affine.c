@@ -422,10 +422,15 @@ vips_affine_build( VipsObject *object )
 	/* We can't use vips_object_argument_isset(), since it may have been
 	 * set to NULL, see vips_similarity().
 	 */
-	if( !affine->interpolate ) 
+	if( !affine->interpolate ) {
+		VipsInterpolate *interpolate;
+
+		interpolate = vips_interpolate_new( "bilinear" );
 		g_object_set( object, 
-			"interpolate", vips_interpolate_new( "bilinear" ),
+			"interpolate", interpolate,
 			NULL ); 
+		g_object_unref( interpolate );
+	}
 
 	in = resample->in;
 
