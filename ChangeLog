@@ -8,6 +8,7 @@
 - more tests
 - renamed VIPS_FOREIGN_DZ_DEPTH_1 as VIPS_FOREIGN_DZ_DEPTH_ONE etc. to help
   bindings
+- vipsthumbnail will return an error code if one or more conversions failed
 
 24/12/14 started 7.42.1
 - add gobject-2.0 to Requires: in vips and vips-cpp .pc files

@@ -61,6 +61,8 @@
  * 12/9/14
  * 	- try with embedded profile first, if that fails retry with fallback
  * 	  profile
+ * 13/1/15
+ * 	- exit with an error code if one or more conversions failed
  */
 
 #ifdef HAVE_CONFIG_H
@@ -730,6 +732,7 @@ main( int argc, char **argv )
 	GOptionGroup *main_group;
 	GError *error = NULL;
 	int i;
+	int result;
 
 	if( VIPS_INIT( argv[0] ) )
 	        vips_error_exit( "unable to start VIPS" );
@@ -770,6 +773,8 @@ main( int argc, char **argv )
 		thumbnail_height = thumbnail_width;
 	}
 
+	result = 0;
+
 	for( i = 1; i < argc; i++ ) {
 		/* Hang resources for processing this thumbnail off @process.
 		 */
@@ -780,6 +785,11 @@ main( int argc, char **argv )
 				argv[0], argv[i] );
 			fprintf( stderr, "%s", vips_error_buffer() );
 			vips_error_clear();
+
+			/* We had a conversion failure: return an error code
+			 * when we finally exit.
+			 */
+			result = -1;
 		}
 
 		g_object_unref( process );
@@ -787,5 +797,5 @@ main( int argc, char **argv )
 
 	vips_shutdown();
 
-	return( 0 );
+	return( result );
 }
