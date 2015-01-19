@@ -10,6 +10,7 @@
   bindings
 - vipsthumbnail will return an error code if one or more conversions failed
 - disable chroma subsample in jpeg-tiff if Q >= 90
+- try to handle tiffs with old-style 8-bit colormaps
 
 24/12/14 started 7.42.1
 - add gobject-2.0 to Requires: in vips and vips-cpp .pc files

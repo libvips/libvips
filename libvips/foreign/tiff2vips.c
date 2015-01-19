@@ -152,6 +152,8 @@
  * 	- better istiff detector spots bigtiff
  * 3/12/14
  * 	- read any XMP metadata
+ * 19/1/15
+ * 	- try to handle 8-bit colormaps
  */
 
 /*
@@ -853,10 +855,31 @@ parse_palette( ReadTiff *rtiff, VipsImage *out )
 		vips_error( "tiff2vips", "%s", _( "bad colormap" ) );
 		return( -1 );
 	}
-	for( i = 0; i < len; i++ ) {
-		read->red8[i] = read->red16[i] >> 8;
-		read->green8[i] = read->green16[i] >> 8;
-		read->blue8[i] = read->blue16[i] >> 8;
+
+	/* Old-style colourmaps were 8-bit. If all the top bytes are zero,
+	 * assume we have one of these.
+	 *
+	 * See: https://github.com/jcupitt/libvips/issues/220
+	 */
+	for( i = 0; i < len; i++ ) 
+		if( (read->red16[i] >> 8) | 
+			(read->green16[i] >> 8) | 
+			(read->blue16[i] >> 8) )
+			break;
+	if( i < len ) 
+		for( i = 0; i < len; i++ ) {
+			read->red8[i] = read->red16[i] >> 8;
+			read->green8[i] = read->green16[i] >> 8;
+			read->blue8[i] = read->blue16[i] >> 8;
+		}
+	else {
+		vips_warn( "tiff2vips", "%s", _( "assuming 8-bit palette" ) );
+
+		for( i = 0; i < len; i++ ) {
+			read->red8[i] = read->red16[i] & 0xff;
+			read->green8[i] = read->green16[i] & 0xff;
+			read->blue8[i] = read->blue16[i] & 0xff;
+		}
 	}
 
 	/* Are all the maps equal? We have a mono image.
