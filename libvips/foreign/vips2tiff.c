@@ -144,6 +144,8 @@
  * 	- embed XMP in output
  * 10/12/14
  * 	- zero out edge tile buffers before jpeg write, thanks iwbh15
+ * 19/1/15
+ * 	- disable chroma subsample if Q >= 90
  */
 
 /*
@@ -575,7 +577,7 @@ write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 			else if( tw->compression == COMPRESSION_JPEG &&
 				tw->im->Bands == 3 &&
 				tw->im->BandFmt == VIPS_FORMAT_UCHAR &&
-				!tw->rgbjpeg ) { 
+				(!tw->rgbjpeg && tw->jpqual < 90) ) { 
 				/* This signals to libjpeg that it can do
 				 * YCbCr chrominance subsampling from RGB, not
 				 * that we will supply the image as YCbCr.
@@ -1493,8 +1495,11 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 			tw->im->BandFmt == VIPS_FORMAT_UCHAR ) { 
 			/* Enable rgb->ycbcr conversion in the jpeg write. 
 			 */
-			TIFFSetField( out, 
-				TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+			if( !tw->rgbjpeg &&
+				tw->jpqual >= 90 ) 
+				TIFFSetField( out, 
+					TIFFTAG_JPEGCOLORMODE, 
+						JPEGCOLORMODE_RGB );
 
 			/* And we want ycbcr expanded to rgb on read. Otherwise
 			 * TIFFTileSize() will give us the size of a chrominance
