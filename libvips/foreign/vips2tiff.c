@@ -1496,7 +1496,7 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 			/* Enable rgb->ycbcr conversion in the jpeg write. 
 			 */
 			if( !tw->rgbjpeg &&
-				tw->jpqual >= 90 ) 
+				tw->jpqual < 90 ) 
 				TIFFSetField( out, 
 					TIFFTAG_JPEGCOLORMODE, 
 						JPEGCOLORMODE_RGB );

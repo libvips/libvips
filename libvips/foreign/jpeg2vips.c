@@ -61,6 +61,9 @@
  * 	- support "none" as a resolution unit
  * 16/10/14
  * 	- add "autorotate" option
+ * 20/1/15
+ * 	- don't call jpeg_finish_decompress(), all it does is read and check 
+ * 	  the tail of the file
  */
 
 /*
@@ -153,10 +156,6 @@ typedef struct _ReadJpeg {
         ErrorManager eman;
 	gboolean invert_pels;
 
-	/* Set if we need to finish the decompress.
-	 */
-	gboolean decompressing;
-
 	/* Track the y pos during a read with this.
 	 */
 	int y_pos;
@@ -191,14 +190,10 @@ readjpeg_free( ReadJpeg *jpeg )
 		jpeg->eman.pub.num_warnings = 0;
 	}
 
-	if( jpeg->decompressing ) {
-		/* jpeg_finish_decompress() can fail ... catch any errors.
-		 */
-		if( !setjmp( jpeg->eman.jmp ) ) 
-			jpeg_finish_decompress( &jpeg->cinfo );
-
-		jpeg->decompressing = FALSE;
-	}
+	/* Don't call jpeg_finish_decompress(). It just checks the tail of the
+	 * file and who cares about that. All mem is freed in
+	 * jpeg_destroy_decompress().
+	 */
 
 	VIPS_FREEF( fclose, jpeg->eman.fp );
 	VIPS_FREE( jpeg->filename );
@@ -231,7 +226,6 @@ readjpeg_new( VipsImage *out,
 	jpeg->fail = fail;
 	jpeg->readbehind = readbehind;
 	jpeg->filename = NULL;
-	jpeg->decompressing = FALSE;
         jpeg->cinfo.err = jpeg_std_error( &jpeg->eman.pub );
 	jpeg->eman.pub.error_exit = vips__new_error_exit;
 	jpeg->eman.pub.output_message = vips__new_output_message;
@@ -1024,11 +1018,7 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	if( read_jpeg_header( jpeg, t[0] ) )
 		return( -1 );
 
-	/* Set decompressing to make readjpeg_free() call 
-	 * jpeg_stop_decompress().
-	 */
 	jpeg_start_decompress( cinfo );
-	jpeg->decompressing = TRUE;
 
 #ifdef DEBUG
 	printf( "read_jpeg_image: starting decompress\n" );
