@@ -26,7 +26,7 @@ and write thumbnails to the files
 and
 .B tn_jim.jpg.
 
- $ vipsthumbnail --size=64 -o thumbnails/%s.png fred.jpg
+ $ vipsthumbnail --size=64 -f thumbnails/%s.png fred.jpg
 
 will read image file
 .B fred.jpg
@@ -45,7 +45,7 @@ The image is shrunk so that it just fits within this area, images
 which are smaller than this are expanded.
 
 .TP
-.B -o FORMAT, --output=FORMAT     
+.B -f FORMAT, --format=FORMAT     
 Set the output format string. The input filename has any file type suffix
 removed, then that value is substitued into 
 .B FORMAT

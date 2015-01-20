@@ -63,6 +63,8 @@
  * 	  profile
  * 13/1/15
  * 	- exit with an error code if one or more conversions failed
+ * 20/1/15
+ * 	- rename -o as -f, keep -o as a hidden flag
  */
 
 #ifdef HAVE_CONFIG_H
@@ -109,9 +111,13 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_STRING, &thumbnail_size, 
 		N_( "shrink to SIZE or to WIDTHxHEIGHT" ), 
 		N_( "SIZE" ) },
-	{ "output", 'o', 0, 
+	{ "output", 'o', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_STRING, &output_format, 
 		N_( "set output to FORMAT" ), 
+		N_( "FORMAT" ) },
+	{ "format", 'f', 0, 
+		G_OPTION_ARG_STRING, &output_format, 
+		N_( "set output format string to FORMAT" ), 
 		N_( "FORMAT" ) },
 	{ "interpolator", 'p', 0, 
 		G_OPTION_ARG_STRING, &interpolator, 
