@@ -1719,6 +1719,9 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  * Read a TIFF-formatted memory block into a VIPS image. Exactly as
  * vips_tiffload(), but read from a memory source. 
  *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
  * See also: vips_tiffload().
  *
  * Returns: 0 on success, -1 on error.
@@ -1930,6 +1933,9 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  * Read a JPEG-formatted memory block into a VIPS image. Exactly as
  * vips_jpegload(), but read from a memory buffer. 
  *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
  * See also: vips_jpegload().
  *
  * Returns: 0 on success, -1 on error.
@@ -2114,12 +2120,9 @@ vips_jpegsave_mime( VipsImage *in, ... )
  * @out: decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
+ * Read a WebP file into a VIPS image. 
  *
- *
- * Read a webp file into a VIPS image. 
- *
- * See also: 
+ * See also: vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2143,7 +2146,13 @@ vips_webpload( const char *filename, VipsImage **out, ... )
  * @out: image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * See also: 
+ * Read a WebP-formatted memory block into a VIPS image. Exactly as
+ * vips_webpload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_webpload()
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2177,7 +2186,7 @@ vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * @Q: quality factor
  *
- * See also: 
+ * See also: vips_webpload(), vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2205,7 +2214,7 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  *
  * @Q: JPEG quality factor
  *
- * See also: 
+ * See also: vips_webpsave().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2246,7 +2255,9 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  *
  * @Q: quality factor
  *
- * See also: 
+ * As vips_webpsave(), but save as a mime webp on stdout.
+ *
+ * See also: vips_webpsave(), vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2443,9 +2454,8 @@ vips_pngload( const char *filename, VipsImage **out, ... )
  *
  * Any ICC profile is read and attached to the VIPS image.
  *
- * Caution: on return only the header will have been read, the pixel data is
- * not decompressed until the first pixel is read. Therefore you must not free
- * @buf until you have read pixel data from @out.
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
  *
  * See also: vips_pngload().
  *
