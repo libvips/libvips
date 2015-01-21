@@ -296,7 +296,7 @@ vips_resize( VipsImage *in, VipsImage **out,
 	int result;
 
 	va_start( ap, scale );
-	result = vips_call_split( "affine", ap, in, out, scale );
+	result = vips_call_split( "resize", ap, in, out, scale );
 	va_end( ap );
 
 	return( result );
