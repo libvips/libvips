@@ -45,6 +45,12 @@
  */
 #define BLEND_SCALE (4096)
 
+struct _MergeInfo;
+struct _Overlapping;
+
+typedef int (*VipsBlendFn)( VipsRegion *or, 
+	struct _MergeInfo *inf, struct _Overlapping *ovlap, VipsRect *oreg );
+
 /* Keep state for each call in one of these.
  */
 typedef struct _Overlapping {
@@ -78,7 +84,7 @@ typedef struct _Overlapping {
 
 	/* Blend function.
 	 */
-	int (*blend)();
+	VipsBlendFn blend;
 } Overlapping;
 
 /* Keep per-thread state here.
@@ -98,7 +104,7 @@ extern double *im__coef1;
 extern double *im__coef2;
 extern int *im__icoef1;
 extern int *im__icoef2;
-int im__make_blend_luts();
+int im__make_blend_luts( void );
 
 void im__add_mosaic_name( VipsImage *image );
 const char *im__get_mosaic_name( VipsImage *image );

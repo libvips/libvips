@@ -1111,6 +1111,8 @@ vips_region_generate( VipsRegion *reg )
 {
 	VipsImage *im = reg->im;
 
+	gboolean stop;
+
         /* Start new sequence, if necessary.
          */
         if( vips__region_start( reg ) )
@@ -1118,8 +1120,14 @@ vips_region_generate( VipsRegion *reg )
 
 	/* Ask for evaluation.
 	 */
-	if( im->generate_fn( reg, reg->seq, im->client1, im->client2 ) )
+	stop = FALSE;
+	if( im->generate_fn( reg, reg->seq, im->client1, im->client2, &stop ) )
 		return( -1 );
+	if( stop ) {
+		vips_error( "vips_region_generate", 
+			"%s", _( "stop requested" ) );
+		return( -1 );
+	}
 
 	return( 0 );
 }

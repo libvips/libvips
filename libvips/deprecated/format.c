@@ -444,49 +444,49 @@ G_DEFINE_TYPE( VipsFormatVips, vips_format_vips, VIPS_TYPE_FORMAT );
 void
 im__format_init( void )
 {
-	extern GType vips_format_csv_get_type();
-	extern GType vips_format_ppm_get_type();
-	extern GType vips_format_analyze_get_type();
-	extern GType vips_format_rad_get_type();
+	extern GType vips_format_csv_get_type( void );
+	extern GType vips_format_ppm_get_type( void );
+	extern GType vips_format_analyze_get_type( void );
+	extern GType vips_format_rad_get_type( void );
 
 	vips_format_vips_get_type();
 #ifdef HAVE_JPEG
-	extern GType vips_format_jpeg_get_type();
+	extern GType vips_format_jpeg_get_type( void );
 	vips_format_jpeg_get_type();
 #endif /*HAVE_JPEG*/
 #ifdef HAVE_PNG
-	extern GType vips_format_png_get_type();
+	extern GType vips_format_png_get_type( void );
 	vips_format_png_get_type();
 #endif /*HAVE_PNG*/
 #ifdef HAVE_LIBWEBP
-	extern GType vips_format_webp_get_type();
+	extern GType vips_format_webp_get_type( void );
 	vips_format_webp_get_type();
 #endif /*HAVE_LIBWEBP*/
 	vips_format_csv_get_type();
 	vips_format_ppm_get_type();
 	vips_format_analyze_get_type();
 #ifdef HAVE_OPENEXR
-	extern GType vips_format_exr_get_type();
+	extern GType vips_format_exr_get_type( void );
 	vips_format_exr_get_type();
 #endif /*HAVE_OPENEXR*/
 #ifdef HAVE_MATIO
-	extern GType vips_format_mat_get_type();
+	extern GType vips_format_mat_get_type( void );
 	vips_format_mat_get_type();
 #endif /*HAVE_MATIO*/
 #ifdef HAVE_CFITSIO
-	extern GType vips_format_fits_get_type();
+	extern GType vips_format_fits_get_type( void );
 	vips_format_fits_get_type();
 #endif /*HAVE_CFITSIO*/
 	vips_format_rad_get_type();
 #ifdef HAVE_MAGICK
-	extern GType vips_format_magick_get_type();
+	extern GType vips_format_magick_get_type( void );
 	vips_format_magick_get_type();
 #endif /*HAVE_MAGICK*/
 #ifdef HAVE_TIFF
-	extern GType vips_format_tiff_get_type();
+	extern GType vips_format_tiff_get_type( void );
 	vips_format_tiff_get_type();
 #endif /*HAVE_TIFF*/
-	extern GType vips_format_openslide_get_type();
+	extern GType vips_format_openslide_get_type( void );
 	vips_format_openslide_get_type();
 }
 

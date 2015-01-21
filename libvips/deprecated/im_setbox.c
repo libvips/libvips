@@ -49,9 +49,7 @@
 
 #include <vips/vips.h>
 
-void im_setbox(pbox, xst, yst, xsiz, ysiz, ch_select)
-IMAGE_BOX *pbox;
-int xst, yst, xsiz, ysiz, ch_select;
+void im_setbox(IMAGE_BOX *pbox, int xst, int yst, int xsiz, int ysiz, int ch_select)
 {
 	pbox->xstart = xst;
 	pbox->ystart = yst;

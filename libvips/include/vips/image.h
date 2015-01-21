@@ -122,6 +122,14 @@ typedef enum {
 	VIPS_ACCESS_LAST
 } VipsAccess;
 
+struct _VipsImage; 
+struct _VipsRegion; 
+
+typedef void *(*VipsStartFn)( struct _VipsImage *out, void *a, void *b );
+typedef int (*VipsGenerateFn)( struct _VipsRegion *out, 
+	void *seq, void *a, void *b, gboolean *stop );
+typedef int (*VipsStopFn)( void *seq, void *a, void *b );
+
 /* Struct we keep a record of execution time in. Passed to eval signal so
  * it can assess progress.
  */
@@ -217,9 +225,9 @@ typedef struct _VipsImage {
 	/* Partial image stuff. All these fields are initialised 
 	 * to NULL and ignored unless set by vips_image_generate() etc.
 	 */
-	void *(*start_fn)();	/* user-supplied start function */
-	int (*generate_fn)();	/* user-supplied generate function */
-	int (*stop_fn)();	/* user-supplied stop function */
+	VipsStartFn start_fn;
+	VipsGenerateFn generate_fn;
+	VipsStopFn stop_fn;
 	void *client1;		/* user arguments */
 	void *client2;
 	GMutex *sslock;		/* start-stop lock */

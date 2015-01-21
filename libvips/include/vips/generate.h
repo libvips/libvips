@@ -40,10 +40,6 @@ extern "C" {
 typedef int (*VipsRegionWrite)( VipsRegion *region, VipsRect *area, void *a );
 int vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a );
 
-typedef void *(*VipsStartFn)( VipsImage *out, void *a, void *b );
-typedef int (*VipsGenerateFn)( VipsRegion *out, 
-	void *seq, void *a, void *b, gboolean *stop );
-typedef int (*VipsStopFn)( void *seq, void *a, void *b );
 int vips_sink( VipsImage *im, 
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b );

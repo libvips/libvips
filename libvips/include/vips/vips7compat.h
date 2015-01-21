@@ -1204,19 +1204,21 @@ void vips__LabQ2Lab_vec( float *out, VipsPel *in, int width );
 void im_copy_dmask_matrix( DOUBLEMASK *mask, double **matrix );
 void im_copy_matrix_dmask( double **matrix, DOUBLEMASK *mask );
 
-int *im_ivector();
-float *im_fvector();
-double *im_dvector();
-void im_free_ivector();
-void im_free_fvector();
-void im_free_dvector();
 
-int **im_imat_alloc();
-float **im_fmat_alloc();
-double **im_dmat_alloc();
-void im_free_imat();
-void im_free_fmat();
-void im_free_dmat();
+
+int *im_ivector(int nl, int nh);
+float *im_fvector(int nl, int nh);
+double *im_dvector(int nl, int nh);
+void im_free_ivector(int *v, int nl, int nh);
+void im_free_fvector(float *v, int nl, int nh);
+void im_free_dvector(double *v, int nl, int nh);
+
+int **im_imat_alloc(int nrl, int nrh, int ncl, int nch);
+void im_free_imat(int **m, int nrl, int nrh, int ncl, int nch);
+float **im_fmat_alloc(int nrl, int nrh, int ncl, int nch);
+void im_free_fmat(float **m, int nrl, int nrh, int ncl, int nch);
+double **im_dmat_alloc(int nrl, int nrh, int ncl, int nch);
+void im_free_dmat(double **m, int nrl, int nrh, int ncl, int nch);
 
 int im_invmat( double **, int );
 

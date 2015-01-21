@@ -122,6 +122,6 @@ struct _SymbolTable {
 IMAGE *im__global_open_image( SymbolTable *st, char *name );
 SymbolTable *im__build_symtab( IMAGE *out, int sz );
 int im__parse_desc( SymbolTable *st, IMAGE *in );
-void *im__map_table( SymbolTable *st, void *(*fn)(), void *a, void *b );
+void *im__map_table( SymbolTable *st, VSListMap2Fn fn, void *a, void *b );
 int im__build_mosaic( SymbolTable *st, 
 	IMAGE *out, transform_fn tfn, void * );

@@ -5023,7 +5023,7 @@ im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 
 	for( i = 0; i < n; i++ ) {
 		if( im_fastlineuser( out, x1v[i], y1v[i], x2v[i], y2v[i], 
-			im_plotmask, ink->data, mask->data, &mask_rect ) )
+			(VipsPlotFn) im_plotmask, ink->data, mask->data, &mask_rect ) )
 			return( -1 );
 	}
 

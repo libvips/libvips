@@ -137,9 +137,7 @@ typedef COLORV  COLOR[3];	/* red, green, blue (or X,Y,Z) */
 #define  copycolor(c1,c2)	((c1)[0]=(c2)[0],(c1)[1]=(c2)[1],(c1)[2]=(c2)[2])
 
 static void
-colr_color(col, clr)		/* convert short to float color */
-register COLOR  col;
-register COLR  clr;
+colr_color(COLOR col, COLR clr)		/* convert short to float color */
 {
 	if (clr[EXP] == 0)
 		col[RED] = col[GRN] = col[BLU] = 0.0;

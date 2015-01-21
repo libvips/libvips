@@ -547,9 +547,7 @@ static char  resolu_buf[RESOLU_BUFLEN];	/* resolution line buffer */
 
 
 static int
-str2resolu(rp, buf)		/* convert resolution line to struct */
-register RESOLU  *rp;
-char  *buf;
+str2resolu(RESOLU *rp, char *buf)		/* convert resolution line to struct */
 {
 	register char  *xndx, *yndx;
 	register char  *cp;
@@ -599,9 +597,7 @@ fputformat(		/* put out a format value */
 }
 
 char *
-resolu2str(buf, rp)		/* convert resolution struct to line */
-char  *buf;
-register RESOLU  *rp;
+resolu2str(char *buf, RESOLU *rp)		/* convert resolution struct to line */
 {
 	if (rp->rt&YMAJOR)
 		sprintf(buf, "%cY %d %cX %d\n",

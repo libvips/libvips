@@ -51,9 +51,7 @@
 #include <vips/internal.h>
 
 int
-im_clamp( in, out,black, hstep, vstep )
-IMAGE *in, *black, *out;
-int hstep, vstep;
+im_clamp( IMAGE *in, IMAGE *out, IMAGE *black, int hstep, int vstep )
 {	PEL *p, *blk, *bline, *bexp;
 PEL *q, *outbuf;
 int rep;

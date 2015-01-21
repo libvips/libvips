@@ -244,8 +244,11 @@ vips_image_open_lazy( VipsImage *image,
  * to a "p" and on "written" do im_vips2tiff() or whatever. Track save
  * parameters here.
  */
+
+typedef int (*VipsSaveFn)( VipsImage *image, const char *filename );
+
 typedef struct {
-	int (*save_fn)();	/* Save function */
+	VipsSaveFn save_fn;	/* Save function */
 	char *filename;		/* Save args */
 } SaveBlock;
 
@@ -262,7 +265,7 @@ vips_image_save_cb( VipsImage *image, int *result, SaveBlock *sb )
 }
 
 static void
-vips_attach_save( VipsImage *image, int (*save_fn)(), const char *filename )
+vips_attach_save( VipsImage *image, VipsSaveFn save_fn, const char *filename )
 {
 	SaveBlock *sb;
 

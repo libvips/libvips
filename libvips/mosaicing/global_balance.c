@@ -356,14 +356,13 @@ add_node( SymbolTable *st, char *name )
 /* Map a user function over the whole of the symbol table. 
  */
 void *
-im__map_table( SymbolTable *st, void *(*fn)(), void *a, void *b )
+im__map_table( SymbolTable *st, VSListMap2Fn fn, void *a, void *b )
 {
 	int i;
 	void *r;
 	
 	for( i = 0; i < st->sz; i++ )
-		if( (r = im_slist_map2( st->table[i], 
-			(VSListMap2Fn) fn, a, b )) )
+		if( (r = im_slist_map2( st->table[i], fn, a, b )) )
 			return( r );
 	
 	return( NULL );
@@ -384,7 +383,8 @@ set_dirty( JoinNode *node, int state )
 static void
 clean_table( SymbolTable *st )
 {
-	(void) im__map_table( st, set_dirty, (void *) 0, NULL );
+	(void) im__map_table( st, 
+		(VipsSListMap2Fn) set_dirty, (void *) 0, NULL );
 }
 
 /* Do geometry calculations on a node, assuming geo is up to date for any 
@@ -716,11 +716,12 @@ find_root( SymbolTable *st )
 	/* Clean the table, then scan it, setting all pointed-to nodes dirty.
 	 */
 	clean_table( st );
-	im__map_table( st, set_referenced, NULL, NULL );
+	im__map_table( st, (VipsSListMap2Fn) set_referenced, NULL, NULL );
 
 	/* Look for the first clean symbol.
 	 */
-	root = (JoinNode *) im__map_table( st, is_root, NULL, NULL );
+	root = (JoinNode *) im__map_table( st, 
+		(VipsSListMap2Fn) is_root, NULL, NULL );
 
 	/* No root? Hot dang!
 	 */
@@ -735,7 +736,7 @@ find_root( SymbolTable *st )
 	 * more than one root.
 	 */
 	root->dirty = 1;
-	if( im__map_table( st, is_root, NULL, NULL ) ) {
+	if( im__map_table( st, (VipsSListMap2Fn) is_root, NULL, NULL ) ) {
 		im_error( "im_global_balance", 
 			"%s", _( "more than one root" ) );
 		return( NULL );
@@ -1194,7 +1195,8 @@ find_overlaps( JoinNode *node, SymbolTable *st )
 		if( !node->trnim ) 
 			error_exit( "global_balance: sanity failure #9834" );
 
-		return( im__map_table( st, test_overlap, node, NULL ) );
+		return( im__map_table( st, 
+			(VipsSListMap2Fn) test_overlap, node, NULL ) );
 	}
 	
 	return( NULL );
@@ -1275,7 +1277,7 @@ fill_matricies( SymbolTable *st, double gamma, DOUBLEMASK *K, DOUBLEMASK *M )
 
 	/* Build matricies.
 	 */
-	im__map_table( st, add_row, &bun, &gamma );
+	im__map_table( st, (VipsSListMap2Fn) add_row, &bun, &gamma );
 }
 
 /* Used to select the leaf whose coefficient we set to 1.
@@ -1501,12 +1503,14 @@ find_factors( SymbolTable *st, double gamma )
 		printf( "balance factor %d = %g\n", i, st->fac[i] );
 	total = 0.0;
 	printf( "Overlap errors:\n" );
-	im__map_table( st, print_overlap_errors, NULL, &total );
+	im__map_table( st, 
+		(VipsSListMap2Fn) print_overlap_errors, NULL, &total );
 	printf( "RMS error = %g\n", sqrt( total / st->novl ) );
 
 	total = 0.0;
 	printf( "Overlap errors after adjustment:\n" );
-	im__map_table( st, print_overlap_errors, st->fac, &total );
+	im__map_table( st, 
+		(VipsSListMap2Fn) print_overlap_errors, st->fac, &total );
 	printf( "RMS error = %g\n", sqrt( total / st->novl ) );
 #endif /*DEBUG*/
 
@@ -1560,7 +1564,7 @@ analyse_mosaic( SymbolTable *st, IMAGE *in )
 	 */
 #ifdef DEBUG
 	printf( "Input files:\n" );
-	im__map_table( st, print_leaf, NULL, NULL );
+	im__map_table( st, (VipsSListMap2Fn) print_leaf, NULL, NULL );
 	printf( "\nOutput file:\n" );
 	print_node( st->root );
 	printf( "\nJoin commands:\n" );
@@ -1569,23 +1573,25 @@ analyse_mosaic( SymbolTable *st, IMAGE *in )
 
 	/* Generate transformed leaves.
 	 */
-	if( im__map_table( st, generate_trn_leaves, st, NULL ) )
+	if( im__map_table( st, 
+		(VipsSListMap2Fn) generate_trn_leaves, st, NULL ) )
 		return( -1 );
 
 	/* Find overlaps.
 	 */
-	if( im__map_table( st, find_overlaps, st, NULL ) )
+	if( im__map_table( st, (VipsSListMap2Fn) find_overlaps, st, NULL ) )
 		return( -1 );
 
 	/* Scan table, counting and indexing input images and joins. 
 	 */
-	im__map_table( st, count_leaves, NULL, NULL );
-	im__map_table( st, count_joins, NULL, NULL );
+	im__map_table( st, (VipsSListMap2Fn) count_leaves, NULL, NULL );
+	im__map_table( st, (VipsSListMap2Fn) count_joins, NULL, NULL );
 
 	/* Select leaf to be 1.000.
 	 * This must be index == 0, unless you change stuff above!
 	 */
-	st->leaf = im__map_table( st, choose_leaf, NULL, NULL );
+	st->leaf = im__map_table( st, 
+		(VipsSListMap2Fn) choose_leaf, NULL, NULL );
 
 	/* And print overlaps.
 	 */
@@ -1593,7 +1599,7 @@ analyse_mosaic( SymbolTable *st, IMAGE *in )
 	printf( "\nLeaf to be 1.000:\n" );
 	print_node( st->leaf );
 	printf( "\nOverlaps:\n" );
-	im__map_table( st, print_overlaps, NULL, NULL );
+	im__map_table( st, (VipsSListMap2Fn) print_overlaps, NULL, NULL );
 	printf( "\n%d input files, %d unique overlaps, %d joins\n", 
 		st->nim, st->novl, st->njoin );
 #endif /*DEBUG*/

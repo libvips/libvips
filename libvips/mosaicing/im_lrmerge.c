@@ -145,7 +145,7 @@ int *im__icoef2 = NULL;
  * scale later when we index it.
  */
 int
-im__make_blend_luts()
+im__make_blend_luts( void )
 {
 	int x;
 

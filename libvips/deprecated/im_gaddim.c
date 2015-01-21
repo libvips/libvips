@@ -119,9 +119,7 @@ static int array[6][6] = {
  *
  * Deprecated.
  */
-int im_gaddim(a, in1, b, in2, c, out)
-IMAGE *in1, *in2, *out;
-double a, b, c;
+int im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 {
 	static int fmt[] = { IM_BANDFMT_UCHAR, IM_BANDFMT_CHAR,
 	IM_BANDFMT_USHORT, IM_BANDFMT_SHORT, 

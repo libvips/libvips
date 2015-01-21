@@ -84,11 +84,7 @@ im__mean_std_int_buffer( int *buffer, int size,
 	return(0);
 }
 
-int im_dif_std(im, xpos, ypos, xsize, ysize, dx, dy, pmean, pstd)
-IMAGE *im;
-int xpos, ypos, xsize, ysize; /* location of the box within im */
-int dx, dy; /* displacements */
-double *pmean, *pstd;
+int im_dif_std(IMAGE *im, int xpos, int ypos, int xsize, int ysize, int dx, int dy, double *pmean, double *pstd)
 {
 	PEL *input, *cpinput;
 	double m, s;

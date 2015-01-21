@@ -77,10 +77,7 @@
 #include <vips/vips.h>
 
 static
-int im_cooc_sym(im, m, xpos, ypos, xsize, ysize, dx, dy)
-IMAGE *im, *m;
-int xpos, ypos, xsize, ysize; /* location of the box within im */
-int dx, dy; /* displacements */
+int im_cooc_sym(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, int dx, int dy)
 {
 	VipsPel *input, *cpinput;
 	int *buf, *pnt, *cpnt;
@@ -154,10 +151,7 @@ int dx, dy; /* displacements */
 }
 
 static
-int im_cooc_ord(im, m, xpos, ypos, xsize, ysize, dx, dy)
-IMAGE *im, *m;
-int xpos, ypos, xsize, ysize; /* location of the box within im */
-int dx, dy; /* displacements */
+int im_cooc_ord(IMAGE *im, IMAGE *m, int xpos, int ypos, int xsize, int ysize, int dx, int dy)
 {
 	VipsPel *input, *cpinput;
 	int *buf, *pnt, *cpnt;
@@ -304,12 +298,11 @@ im_cooc_contrast( IMAGE *m, double *contrast )
 	return(0);
 }
 
+/* buffer contains the frequency distributions f[i] */
+/*  Note that sum(f[i]) = 1.0 and that the */
+/* cooccurence matrix is symmetrical */
 static void 
-stats(buffer, size, pmean, pstd)
-double *buffer;		/* buffer contains the frequency distributions f[i] */
-int size;		/*  Note that sum(f[i]) = 1.0 and that the */
-			/* cooccurence matrix is symmetrical */
-double *pmean, *pstd;
+stats(double *buffer, int size, double *pmean, double *pstd)
 {
 	double mean, std;
 	register int i;

@@ -72,8 +72,7 @@
  *   If maximum output is < 255 do the light correction without scaling
  */
 static int
-im_litecor0( in, white, out )
-IMAGE *in, *white, *out;
+im_litecor0( IMAGE *in, IMAGE *white, IMAGE *out )
 {	PEL *p, *w;
 	PEL *q, *bu;
 	int c;
@@ -204,9 +203,7 @@ IMAGE *in, *white, *out;
 /* Clip all corrected values above 255, if any.
  */
 static int
-im_litecor1( in, white, out, factor )
-IMAGE *in, *white, *out;
-double factor;
+im_litecor1( IMAGE *in, IMAGE *white, IMAGE *out, double factor )
 {	PEL *p, *w;
 	PEL *q, *bu;
 	int c;
@@ -285,10 +282,7 @@ double factor;
  * parameters.
  */
 int
-im_litecor( in, white, out, clip, factor )
-IMAGE *in, *white, *out;
-int clip;
-double factor;
+im_litecor( IMAGE *in, IMAGE *white, IMAGE *out, int clip, double factor )
 {	/* Check our args. 
 	 */
 	if( im_iocheck( in, out ) ) 

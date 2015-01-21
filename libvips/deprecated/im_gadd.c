@@ -58,8 +58,8 @@
 
 #include <vips/vips.h>
 
-extern int im_gfadd();
-extern int im_gaddim();
+int im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out);
+int im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out);
 
 /* This function works on either mmaped files or on images in buffer
  */
@@ -69,9 +69,7 @@ extern int im_gaddim();
  *
  * Deprecated.
  */
-int im_gadd(a, in1, b, in2, c, out)
-IMAGE *in1, *in2, *out;
-double a, b, c;
+int im_gadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 {
 	int flagint = 0;
 	int flagfloat = 0;

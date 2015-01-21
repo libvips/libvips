@@ -186,7 +186,7 @@ trace_mmap_usage( void )
 #endif /*DEBUG_TOTAL*/
 
 static int
-vips_getpagesize()
+vips_getpagesize( void )
 {
 	static int pagesize = 0;
 
