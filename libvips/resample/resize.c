@@ -90,15 +90,16 @@ vips_resize_build( VipsObject *object )
 		return( -1 );
 
 	if( !vips_object_argument_isset( object, "interpolate" ) ) {
+		VipsInterpolate *interpolate;
 		char *nick;
 
 		if( vips_type_find( "VipsInterpolate", "bicubic" ) )
 			nick = "bicubic";
 		else
 			nick = "bilinear";
-		g_object_set( object, 
-			"interpolate", vips_interpolate_new( nick ),
-			NULL ); 
+		interpolate = vips_interpolate_new( nick );
+		g_object_set( object, "interpolate", interpolate, NULL ); 
+		VIPS_UNREF( interpolate ); 
 	}
 
 	in = resample->in;
@@ -280,7 +281,7 @@ vips_resize_init( VipsResize *resize )
  * then resampled with vips_affine() and the supplied interpolator, then
  * sharpened. 
  *
- * @interpolate defaults to bucubic, or bilinear if that is not available. 
+ * @interpolate defaults to bicubic, or bilinear if that is not available. 
  *
  * @idx, @idy default to zero. Offset them by 0.5 to get pixel-centre sampling. 
  *
