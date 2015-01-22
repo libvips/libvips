@@ -77,7 +77,7 @@ vips_resize_build( VipsObject *object )
 	VipsResize *resize = (VipsResize *) object;
 
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 6 );
+		vips_object_local_array( object, 7 );
 
 	VipsImage *in;
 	int window_size;
