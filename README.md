@@ -2,23 +2,22 @@
 
 [![Build Status](https://secure.travis-ci.org/jcupitt/libvips.png)](http://travis-ci.org/jcupitt/libvips)
 
-libvips is a 2D image processing library. Compared to similar libraries, 
-[libvips runs quickly and uses little
+libvips is a 2D image processing library. Compared to
+similar libraries, [libvips runs quickly and uses little
 memory](http://www.vips.ecs.soton.ac.uk/index.php?title=Speed_and_Memory_Use).
+livips is licensed under the LGPL 2.1+.
 
 It has around 300 operations covering arithmetic, histograms, convolutions,
 morphological operations, frequency filtering, colour, resampling, statistics
 and others. It supports a large range of numeric formats, from 8-bit int to
 128-bit complex. It supports a good range of image formats, including
-JPEG, TIFF, PNG, FITS, Matlab, OpenEXR, and OpenSlide. It can also load
-images via ImageMagick or GraphicsMagick.
+JPEG, TIFF, PNG, WebP, FITS, Matlab, OpenEXR, DeepZoom, and OpenSlide. 
+It can also load images via ImageMagick or GraphicsMagick.
 
 It has APIs for C and C++ and comes with a Python
 binding and a command-line interface. Bindings are
-available for Ruby, JavaScript and others.  There is [API
-documentation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/index.html),
-plus a [tutorial-style
-manual](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/vipsmanual/vipsmanual.html).
+available for Ruby, JavaScript and others. There is full
+[documentation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/index.html).
 
 There's a GUI as well, see the [VIPS website](http://www.vips.ecs.soton.ac.uk).
 
@@ -208,6 +207,10 @@ If available, vips can load images from Matlab save files.
 ## cfitsio
 
 If available, vips can load FITS images.
+
+## libwebp
+
+If available, vips can load and save WebP images.
 
 ## OpenEXR
 
