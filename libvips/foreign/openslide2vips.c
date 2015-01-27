@@ -2,7 +2,7 @@
  *
  * Benjamin Gilbert
  *
- * Copyright (c) 2011-2014 Carnegie Mellon University
+ * Copyright (c) 2011-2015 Carnegie Mellon University
  *
  * 26/11/11
  *	- initial version
@@ -45,6 +45,8 @@
  * 	- add autocrop toggle
  * 9/8/14
  * 	- do argb -> rgba for associated as well 
+ * 27/1/15
+ * 	- unpremultiplication speedups for fully opaque/transparent pixels
  */
 
 /*
@@ -414,18 +416,20 @@ argb2rgba( uint32_t *buf, int n, uint32_t bg )
 		uint8_t a = x >> 24;
 		VipsPel *out = (VipsPel *) p;
 
-		if( a != 0 ) {
+		if( a == 255 ) {
+			*p = GUINT32_TO_BE((x << 8) | 255);
+		} 
+		else if( a == 0 ) {
+			/* Use background color.
+			 */
+			*p = GUINT32_TO_BE((bg << 8) | 255);
+		}
+		else {
+			/* Undo premultiplication.
+			 */
 			out[0] = 255 * ((x >> 16) & 255) / a;
 			out[1] = 255 * ((x >> 8) & 255) / a;
 			out[2] = 255 * (x & 255) / a;
-			out[3] = 255;
-		} 
-		else {
-			/* Use background color.
-			 */
-			out[0] = (bg >> 16) & 255;
-			out[1] = (bg >> 8) & 255;
-			out[2] = bg & 255;
 			out[3] = 255;
 		}
 	}
