@@ -46,7 +46,7 @@
  * 9/8/14
  * 	- do argb -> rgba for associated as well 
  * 27/1/15
- * 	- improve unpremultiplication performance for opaque pixels
+ * 	- unpremultiplication speedups for fully opaque/transparent pixels
  */
 
 /*
@@ -417,18 +417,12 @@ argb2rgba( uint32_t *buf, int n, uint32_t bg )
 		VipsPel *out = (VipsPel *) p;
 
 		if( a == 255 ) {
-			out[0] = (x >> 16) & 255;
-			out[1] = (x >> 8) & 255;
-			out[2] = x & 255;
-			out[3] = 255;
+			*p = GUINT32_TO_BE((x << 8) | 255);
 		} 
 		else if( a == 0 ) {
 			/* Use background color.
 			 */
-			out[0] = (bg >> 16) & 255;
-			out[1] = (bg >> 8) & 255;
-			out[2] = bg & 255;
-			out[3] = 255;
+			*p = GUINT32_TO_BE((bg << 8) | 255);
 		}
 		else {
 			/* Undo premultiplication.
