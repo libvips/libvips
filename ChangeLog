@@ -13,6 +13,7 @@
 - try to handle tiffs with old-style 8-bit colormaps
 - rename vipsthumbnail -o as -f, -o stays as a hidden flag
 - fix some small leaks
+- faster openslide load, thanks Benjamin
 
 24/12/14 started 7.42.1
 - add gobject-2.0 to Requires: in vips and vips-cpp .pc files
