@@ -315,6 +315,127 @@ class TestCreate(unittest.TestCase):
         p = im.getpoint(64, 64)
         self.assertEqual(p[0], 255)
 
+    def test_mask_butterworth_ring(self):
+        im = Vips.Image.mask_butterworth_ring(128, 128, 2, 0.7, 0.1, 0.5,
+                                         nodc = True)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+        p = im.getpoint(45, 0)
+        self.assertAlmostEqual(p[0], 1.0, places = 4)
+        v, x, y = im.minpos()
+        self.assertEqual(x, 64)
+        self.assertEqual(y, 64)
+
+    def test_mask_fractal(self):
+        im = Vips.Image.mask_fractal(128, 128, 2.3)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+
+    def test_mask_gaussian_band(self):
+        im = Vips.Image.mask_gaussian_band(128, 128, 0.5, 0.5, 0.7, 0.1)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+        self.assertAlmostEqual(im.max(), 1, places = 2)
+        p = im.getpoint(32, 32)
+        self.assertEqual(p[0], 1.0)
+
+    def test_mask_gaussian(self):
+        im = Vips.Image.mask_gaussian(128, 128, 0.7, 0.1, 
+                                         nodc = True)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+        self.assertAlmostEqual(im.min(), 0, places = 2)
+        p = im.getpoint(0, 0)
+        self.assertEqual(p[0], 0.0)
+
+    def test_mask_gaussian_ring(self):
+        im = Vips.Image.mask_gaussian_ring(128, 128, 0.7, 0.1, 0.5,
+                                         nodc = True)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+        p = im.getpoint(45, 0)
+        self.assertAlmostEqual(p[0], 1.0, places = 3)
+
+    def test_mask_ideal_band(self):
+        im = Vips.Image.mask_ideal_band(128, 128, 0.5, 0.5, 0.7)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+        self.assertAlmostEqual(im.max(), 1, places = 2)
+        p = im.getpoint(32, 32)
+        self.assertEqual(p[0], 1.0)
+
+    def test_mask_ideal(self):
+        im = Vips.Image.mask_ideal(128, 128, 0.7, 
+                                         nodc = True)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+        self.assertAlmostEqual(im.min(), 0, places = 2)
+        p = im.getpoint(0, 0)
+        self.assertEqual(p[0], 0.0)
+
+    def test_mask_gaussian_ring(self):
+        im = Vips.Image.mask_ideal_ring(128, 128, 0.7, 0.5,
+                                         nodc = True)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+        p = im.getpoint(45, 0)
+        self.assertAlmostEqual(p[0], 1.0, places = 3)
+
+    def test_sines(self):
+        im = Vips.Image.sines(128, 128)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+
+    def test_text(self):
+        im = Vips.Image.text("Hello, world!")
+        self.assertTrue(im.width > 10)
+        self.assertTrue(im.height > 10)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.UCHAR)
+        self.assertEqual(im.max(), 255)
+        self.assertEqual(im.min(), 0)
+
+    def test_tonelut(self):
+        im = Vips.Image.tonelut()
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.USHORT)
+        self.assertEqual(im.width, 32768)
+        self.assertEqual(im.height, 1)
+        self.assertTrue(im.hist_ismonotonic())
+
+    def test_xyz(self):
+        im = Vips.Image.xyz(128, 128)
+        self.assertEqual(im.bands, 2)
+        self.assertEqual(im.format, Vips.BandFormat.UINT)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        p = im.getpoint(45, 35)
+        self.assertAlmostEqualObjects(p, [45, 35])
+
+    def test_zone(self):
+        im = Vips.Image.zone(128, 128)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
 
 if __name__ == '__main__':
     unittest.main()

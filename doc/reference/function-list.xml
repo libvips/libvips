@@ -45,7 +45,7 @@
   VipsImage *fred = ...;
   VipsImage *jim;
 
-  if (vips_gamma(fred, *jim, NULL))
+  if (vips_gamma(fred, &amp;jim, NULL))
     ...error; 
 </programlisting>
 
