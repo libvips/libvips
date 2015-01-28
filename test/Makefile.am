@@ -10,11 +10,12 @@ EXTRA_DIST = \
 	test_python.sh
 	test_arithmetic.py \
 	test_colour.py \
+	test_conversion.py \
+	test_convolution.py \
 	test_create.py \
 	test_draw.py \
-	test_cum.py \
-	test_convolution.py \
-	test_conversion.py 
+	test_histogram.py \
+	test_morphology.py 
 
 # don't run test_thumbnail.sh by default, it takes ages
 

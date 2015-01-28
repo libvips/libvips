@@ -17,6 +17,7 @@ python2 test_convolution.py
 python2 test_create.py
 python2 test_draw.py
 python2 test_histogram.py
+python2 test_morphology.py
 
 echo "testing with python3 ..."
 
@@ -27,3 +28,4 @@ python3 test_convolution.py
 python3 test_create.py
 python3 test_draw.py
 python3 test_histogram.py
+python3 test_morphology.py
