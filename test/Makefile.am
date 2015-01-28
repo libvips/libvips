@@ -11,6 +11,7 @@ EXTRA_DIST = \
 	test_arithmetic.py \
 	test_colour.py \
 	test_create.py \
+	test_draw.py \
 	test_convolution.py \
 	test_conversion.py 
 
