@@ -1,3 +1,15 @@
+- add imageize from 2D arrays, eg. we should be able to write
+
+        im = im.erode([[128, 255, 128], 
+		       [255, 255, 255], 
+		       [128, 255, 128]])
+
+  see test_morphology.py
+
+- add median convenience function, see test_morphology.py
+
+
+
 - use vips_resize() in vipsthumbnail?
 
   should the sharpening filter be selectable?

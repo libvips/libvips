@@ -866,6 +866,14 @@ class Image(Vips.Image):
         """Return 10 ** pixel."""
         return self.math(Vips.OperationMath.EXP10)
 
+    def erode(self, mask):
+        """Erode with a structuring element."""
+        return self.morph(mask, Vips.OperationMorphology.ERODE)
+
+    def dilate(self, mask):
+        """Dilate with a structuring element."""
+        return self.morph(mask, Vips.OperationMorphology.DILATE)
+
     # we need different imageize rules for this operator ... we need to 
     # imageize th and el to match each other first
     @add_doc(generate_docstring("ifthenelse"))
