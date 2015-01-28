@@ -160,7 +160,7 @@ vips_get_argv0( void )
  * }
  * ]|
  *
- * See also: vips_shutdown(), vips_get_option_group(), vips_version(), 
+ * See also: vips_shutdown(), vips_add_option_entries(), vips_version(), 
  * vips_guess_prefix(), vips_guess_libdir().
  *
  * Returns: 0 on success, -1 otherwise
@@ -1008,7 +1008,7 @@ vips_version( int flag )
  * @leak: turn leak checking on or off
  *
  * Turn on or off vips leak checking. See also --vips-leak and
- * vips_get_option_group(). 
+ * vips_add_option_entries(). 
  *
  * You should call this very early in your program. 
  */
