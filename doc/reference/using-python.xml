@@ -161,11 +161,15 @@ min_value = im.min()
       optional output arguments. Call it like this:
 
 <programlisting language="Python">
-min_value, x_pos, y_pos = im.min(x = True, y = True)
+min_value, opts = im.min(x = True, y = True)
+x = opts['x']
+y = opts['y']
 </programlisting>
 
-      Although in this case, the <code>.minpos()</code> convenience 
-      function would be simpler. 
+      In other words, if optional output args are requested, an extra 
+      dictionary is returned containing those objects. 
+      Of course in this case, the <code>.minpos()</code> convenience 
+      function would be simpler, see below. 
     </para>
 
     <para>
