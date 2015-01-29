@@ -395,29 +395,41 @@ vips_object_equal_arg( VipsObject *object,
 {
 	VipsObject *other = (VipsObject *) a;
 
-	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
-		argument_instance->assigned ) {
-		const char *name = g_param_spec_get_name( pspec );
-		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
-		GValue v1 = { 0, };
-		GValue v2 = { 0, };
+	const char *name = g_param_spec_get_name( pspec );
+	GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
+	GValue v1 = { 0, };
+	GValue v2 = { 0, };
 
-		gboolean equal;
+	gboolean equal;
 
-		g_value_init( &v1, type );
-		g_value_init( &v2, type );
-		g_object_get_property( G_OBJECT( object ), name, &v1 ); 
-		g_object_get_property( G_OBJECT( other ), name, &v2 ); 
-		equal = vips_value_equal( pspec, &v1, &v2 );
-		g_value_unset( &v1 );
-		g_value_unset( &v2 );
+	/* Only test assigned input constructor args.
+	 */
+	if( !(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
+		!(argument_class->flags & VIPS_ARGUMENT_INPUT) ||
+		!argument_instance->assigned ) 
+		return( NULL );
 
-		if( !equal )
-			return( object );
-	}
+	/* If this is an optional arg, we need to check that this was
+	 * assigned on @other as well.
+	 */
+	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		!vips_object_argument_isset( other, name ) )
+		/* Optional and was not set on other ... can't be
+		 * equal.
+		 */
+		return( NULL ); 
 
-	return( NULL );
+	g_value_init( &v1, type );
+	g_value_init( &v2, type );
+	g_object_get_property( G_OBJECT( object ), name, &v1 ); 
+	g_object_get_property( G_OBJECT( other ), name, &v2 ); 
+	equal = vips_value_equal( pspec, &v1, &v2 );
+	g_value_unset( &v1 );
+	g_value_unset( &v2 );
+
+	/* Stop (return non-NULL) if we've found a difference.
+	 */
+	return( !equal ? object : NULL ); 
 }
 
 /* Are two objects equal, ie. have the same inputs.

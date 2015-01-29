@@ -167,6 +167,12 @@ static void
 vips_similarity_init( VipsSimilarity *similarity )
 {
 	similarity->scale = 1; 
+	similarity->angle = 0; 
+	similarity->interpolate = NULL; 
+	similarity->odx = 0; 
+	similarity->ody = 0; 
+	similarity->idx = 0; 
+	similarity->idy = 0; 
 }
 
 /**

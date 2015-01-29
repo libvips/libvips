@@ -305,17 +305,21 @@ def _call_base(name, required, optional, self = None, option_string = None):
                         'Operator %s has no argument %s.' % (name, key))
 
     # call
+    logging.debug('_call_base checking cache for op %s' % op)
     op2 = Vips.cache_operation_build(op)
+    logging.debug('_call_base got op2 %s' % op2)
     if op2 == None:
         raise Error('Error calling operator %s.' % name)
 
     # rescan args if op2 is different from op
     if op2 != op:
+        logging.debug('_call_base rescanning args')
         args = op2.get_args()
         optional_output = {x.name: x for x in args if x.flags & enm.OUTPUT and 
                            not x.flags & enm.REQUIRED}
 
     # gather output args 
+    logging.debug('_call_base fetching required output args')
     out = []
 
     for x in args:
@@ -328,6 +332,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
         if x.flags & enm.INPUT and x.flags & enm.MODIFY:
             out.append(x.get_value())
 
+    logging.debug('_call_base fetching optional output args')
     out_dict = {}
     for x in list(optional.keys()):
         if x in optional_output:
