@@ -56,10 +56,32 @@ vips_type_blob = GObject.GType.from_name("VipsBlob")
 vips_type_image = GObject.GType.from_name("VipsImage")
 vips_type_operation = GObject.GType.from_name("VipsOperation")
 
-def imageize(match_image, value):
-    if match_image is None:
-        return value
+def is_2D(value):
+    if not isinstance(value, list):
+        return False
 
+    for x in value:
+        if not isinstance(x, list):
+            return False
+
+        if len(x) != len(value[0]):
+            return False
+
+    return True
+
+def imageize(match_image, value):
+    logging.debug('imageize match_image=%s, value=%s' % (match_image, value))
+
+    # 2D arrays become array images
+    if is_2D(value):
+        return Vips.Image.new_from_array(value)
+
+    # if there's nothing to match to, also make an array
+    if match_image is None:
+        return Vips.Image.new_from_array(value)
+
+    # assume this is a pixel constant ... expand into an image using
+    # match as a template
     pixel = (Vips.Image.black(1, 1) + value).cast(match_image.format)
     image = pixel.embed(0, 0, match_image.width, match_image.height,
                         extend = Vips.Extend.COPY)

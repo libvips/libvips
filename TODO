@@ -7,6 +7,8 @@
 
   see test_morphology.py
 
+  seems to work ... add note to docs, update morph and conv tests
+
 - add median convenience function, see test_morphology.py
 
 
