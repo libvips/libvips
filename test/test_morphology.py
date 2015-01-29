@@ -33,11 +33,6 @@ class TestMorphology(unittest.TestCase):
         for x, y in zip_expand(a, b):
             self.assertAlmostEqual(x, y, places = places, msg = msg)
 
-    def setUp(self):
-        self.mask = Vips.Image.new_from_array([[128, 255, 128], 
-                                               [255, 255, 255], 
-                                               [128, 255, 128]])
-
     def test_countlines(self):
         im = Vips.Image.black(100, 100)
         im = im.draw_line(255, 0, 50, 100, 50)
@@ -55,7 +50,9 @@ class TestMorphology(unittest.TestCase):
     def test_erode(self):
         im = Vips.Image.black(100, 100)
         im = im.draw_circle(255, 50, 50, 25, fill = True)
-        im2 = im.erode(self.mask)
+        im2 = im.erode([[128, 255, 128], 
+                        [255, 255, 255], 
+                        [128, 255, 128]])
         self.assertEqual(im.width, im2.width)
         self.assertEqual(im.height, im2.height)
         self.assertEqual(im.bands, im2.bands)
@@ -64,7 +61,9 @@ class TestMorphology(unittest.TestCase):
     def test_dilate(self):
         im = Vips.Image.black(100, 100)
         im = im.draw_circle(255, 50, 50, 25, fill = True)
-        im2 = im.dilate(self.mask)
+        im2 = im.dilate([[128, 255, 128], 
+                         [255, 255, 255], 
+                         [128, 255, 128]])
         self.assertEqual(im.width, im2.width)
         self.assertEqual(im.height, im2.height)
         self.assertEqual(im.bands, im2.bands)

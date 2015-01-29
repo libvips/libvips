@@ -901,6 +901,10 @@ class Image(Vips.Image):
         """Dilate with a structuring element."""
         return self.morph(mask, Vips.OperationMorphology.DILATE)
 
+    def median(self, size):
+        """size x size median filter."""
+        return self.rank(size, size, (size * size) / 2)
+
     # we need different imageize rules for this operator ... we need to 
     # imageize th and el to match each other first
     @add_doc(generate_docstring("ifthenelse"))

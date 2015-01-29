@@ -566,12 +566,11 @@ class TestConversion(unittest.TestCase):
             self.assertAlmostEqualObjects(result, predict)
 
     def test_recomb(self):
-        array = [[0.2, 0.5, 0.3]] 
-        mask = Vips.Image.new_from_array(array)
+        array = [[0.2, 0.5, 0.3]]
 
         def recomb(x):
             if isinstance(x, Vips.Image):
-                return x.recomb(mask)
+                return x.recomb(array)
             else:
                 sum = 0
                 for i, c in zip(array[0], x):

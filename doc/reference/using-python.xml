@@ -218,9 +218,24 @@ profile = im.get_value("icc-profile-data")
     </para>
 
     <para>
-      If an operation takes several input images, you can use a constant
-      for all but one of them and the wrapper will expand the constant
-      to an image for you.  For example, <code>.ifthenelse()</code> uses
+      You can use array constants instead of images. A 2D array is simply 
+      changed into a one-band double image. This is handy for things like 
+      <code>.erode()</code>, for example:
+
+<programlisting language="Python">
+im = im.erode([[128, 255, 128],
+               [255, 255, 255],
+               [128, 255, 128]])
+</programlisting>
+
+      will erode an image with a 4-connected structuring element.
+    </para>
+
+    <para>
+      If an operation takes several input images, you can use a 1D array 
+      constant or a number constant
+      for all but one of them and the wrapper will expand it
+      to an image for you. For example, <code>.ifthenelse()</code> uses
       a condition image to pick pixels between a then and an else image:
 
 <programlisting language="Python">
@@ -241,7 +256,7 @@ result_image = condition_image.ifthenelse([0, 255, 0], [255, 0, 0])
     </para>
 
     <para>
-      This is useful for <code>.bandjoin()</code>, the thing to join 
+      This is also useful for <code>.bandjoin()</code>, the thing to join 
       two or more images up bandwise. You can write:
 
 <programlisting language="Python">
@@ -360,9 +375,12 @@ result_image = image.sin()
     <title>Convenience functions</title>
     <para>
       The wrapper defines a few extra useful utility functions: 
-      <code>.get_value()</code>, <code>.set_value()</code>
-      <code>.bandsplit()</code>, <code>.maxpos()</code>
-      <code>.minpos()</code>.
+      <code>.get_value()</code>, 
+      <code>.set_value()</code>,
+      <code>.bandsplit()</code>, 
+      <code>.maxpos()</code>,
+      <code>.minpos()</code>,
+      <code>.median()</code>.
       Again, see <code>help(Vips.Image)</code> for a list. 
     </para>
   </refsect1>
