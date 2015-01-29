@@ -62,16 +62,17 @@ class TestResample(unittest.TestCase):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")
         im2 = im.similarity(angle = 90)
         im3 = im.affine([0, -1, 1, 0])
+        # rounding in calculating the affine transform from the angle stops this
+        # being exactly true
+        self.assertTrue((im2 - im3).abs().max() < 50)
+
+    def test_similarity_scale(self):
+        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        im2 = im.similarity(scale = 2)
+        im3 = im.affine([2, 0, 0, 2])
         im2.write_to_file("im2.v")
         im3.write_to_file("im3.v")
         self.assertEqual((im2 - im3).abs().max(), 0)
-
-        #im = Vips.Image.new_from_file("images/IMG_4618.jpg")
-        #im2 = im.similarity(scale = 2)
-        #im3 = im.affine([2, 0, 0, 2])
-        #im2.write_to_file("im2.v")
-        #im3.write_to_file("im3.v")
-        #self.assertEqual((im2 - im3).abs().max(), 0)
 
 if __name__ == '__main__':
     unittest.main()

@@ -414,10 +414,10 @@ vips_object_equal_arg( VipsObject *object,
 	 */
 	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
 		!vips_object_argument_isset( other, name ) )
-		/* Optional and was not set on other ... can't be
-		 * equal.
+		/* Optional and was not set on other ... we've found a
+		 * difference!
 		 */
-		return( NULL ); 
+		return( object ); 
 
 	g_value_init( &v1, type );
 	g_value_init( &v2, type );
