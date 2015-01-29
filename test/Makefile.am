@@ -8,6 +8,7 @@ EXTRA_DIST = \
 	test_thumbnail.sh \
 	test_threading.sh \
 	test_python.sh
+	test_all.py \
 	test_arithmetic.py \
 	test_colour.py \
 	test_conversion.py \
@@ -19,8 +20,6 @@ EXTRA_DIST = \
 	test_resample.py 
 
 # don't run test_thumbnail.sh by default, it takes ages
-
-# test with python2 and python3 ... we are supposed to work with either
 
 TESTS = \
 	test_cli.sh \

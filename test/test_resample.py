@@ -41,8 +41,7 @@ class TestResample(unittest.TestCase):
             x = im
             interpolate = Vips.Interpolate.new(name)
             for i in range(4):
-                # 90 degree rotate
-                x = x.affine([0, -1, 1, 0], interpolate = interpolate)
+                x = x.affine([0, 1, 1, 0], interpolate = interpolate)
  
             self.assertEqual((x - im).abs().max(), 0)
 
