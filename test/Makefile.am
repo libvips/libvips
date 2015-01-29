@@ -15,7 +15,8 @@ EXTRA_DIST = \
 	test_create.py \
 	test_draw.py \
 	test_histogram.py \
-	test_morphology.py 
+	test_morphology.py \
+	test_resample.py 
 
 # don't run test_thumbnail.sh by default, it takes ages
 

@@ -1,3 +1,5 @@
+- similarity problems? see test_resample
+
 - add imageize from 2D arrays, eg. we should be able to write
 
         im = im.erode([[128, 255, 128], 

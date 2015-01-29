@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# this test is also in test_resample.py (though much smaller and neater) ...
+# keep this test to exercise the cli interface
+
 set -x
 
 . ./variables.sh
