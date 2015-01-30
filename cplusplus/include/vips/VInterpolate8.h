@@ -1,4 +1,4 @@
-// Include file to get vips C++ binding
+// VIPS interpolate wrapper
 
 /*
 
@@ -27,18 +27,39 @@
 
  */
 
-#ifndef VIPS_CPLUSPLUS
-#define VIPS_CPLUSPLUS
+#ifndef VIPS_VINTERPOLATE_H
+#define VIPS_VINTERPOLATE_H
 
-#include <vips/version.h>
+#include <list>
+#include <complex>
+#include <vector>
 
-#include <glib-object.h>
+#include <string.h>
 
-#define VIPS_NAMESPACE_START namespace vips {
-#define VIPS_NAMESPACE_END }
+#include <vips/vips.h>
 
-#include "VError8.h"
-#include "VImage8.h"
-#include "VInterpolate8.h"
+VIPS_NAMESPACE_START
 
-#endif /*VIPS_CPLUSPLUS*/
+class VInterpolate : VObject
+{
+public:
+	VInterpolate( VipsInterpolate *interpolate, VSteal steal = STEAL ) : 
+		VObject( (VipsObject *) interpolate, steal )
+	{
+	}
+
+	static 
+	VInterpolate new_from_name( const char *name, VOption *options = 0 )
+		throw( VError );
+
+	VipsInterpolate *
+	get_interpolate()
+	{
+		return( (VipsInterpolate *) VObject::get_object() );
+	}
+
+};
+
+VIPS_NAMESPACE_END
+
+#endif /*VIPS_VIMAGE_H*/

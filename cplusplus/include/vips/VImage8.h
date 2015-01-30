@@ -163,6 +163,7 @@ public:
 };
 
 class VImage; 
+class VInterpolate; 
 class VOption; 
 
 class VOption
@@ -215,6 +216,7 @@ public:
 	VOption *set( const char *name, double value );
 	VOption *set( const char *name, const char *value );
 	VOption *set( const char *name, VImage value );
+	VOption *set( const char *name, VInterpolate value ); 
 	VOption *set( const char *name, std::vector<VImage> value );
 	VOption *set( const char *name, std::vector<double> value );
 	VOption *set( const char *name, VipsBlob *value ); 
