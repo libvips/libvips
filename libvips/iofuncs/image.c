@@ -1675,7 +1675,7 @@ vips_image_temp_name( void )
  * vips_image_write_line(). Write a whole image to another image with
  * vips_image_write(). 
  *
- * Returns: the new #VipsImage, or %NULL on error.
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new( void )
