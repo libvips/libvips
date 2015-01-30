@@ -1478,8 +1478,10 @@ vips_object_real_summary( VipsObject *object, VipsBuf *buf )
 static void
 vips_object_real_dump( VipsObject *object, VipsBuf *buf )
 {
-	vips_buf_appendf( buf, " %s (%p)", 
-		G_OBJECT_TYPE_NAME( object ), object );
+	vips_buf_appendf( buf, " %s (%p) count=%d", 
+		G_OBJECT_TYPE_NAME( object ), 
+		object, 
+		G_OBJECT( object )->ref_count );
 
 	if( object->local_memory )
 		vips_buf_appendf( buf, " %zd bytes", object->local_memory ); 
