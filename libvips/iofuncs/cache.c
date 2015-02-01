@@ -729,6 +729,84 @@ vips_cache_trim( void )
 }
 
 /**
+ * vips_cache_operation_lookup:
+ * @operation: pointer to operation to lookup
+ *
+ * Look up an unbuilt @operation in the cache. If we get a hit, ref and 
+ * return the old operation. If there's no hit, return NULL.
+ *
+ * Returns: (transfer full): the cache hit, if any.
+ */
+VipsOperation *
+vips_cache_operation_lookup( VipsOperation *operation )
+{
+	VipsOperationCacheEntry *hit;
+	VipsOperation *result;
+
+	g_assert( VIPS_IS_OPERATION( operation ) );
+
+#ifdef VIPS_DEBUG
+	printf( "vips_cache_operation_lookup: " );
+	vips_object_print_dump( VIPS_OBJECT( operation ) );
+#endif /*VIPS_DEBUG*/
+
+	g_mutex_lock( vips_cache_lock );
+
+	result = NULL;
+
+	if( (hit = g_hash_table_lookup( vips_cache_table, operation )) ) {
+		if( vips__cache_trace ) {
+			printf( "vips cache-: " );
+			vips_object_print_summary( VIPS_OBJECT( operation ) );
+		}
+
+		result = hit->operation;
+		vips_cache_ref( result );
+	}
+
+	g_mutex_unlock( vips_cache_lock );
+
+	return( result );
+}
+
+/**
+ * vips_cache_operation_add:
+ * @operation: pointer to operation to lookup
+ *
+ * Add a built operation to the cache.
+ */
+void
+vips_cache_operation_add( VipsOperation *operation )
+{
+	g_mutex_lock( vips_cache_lock );
+
+	/* If two threads call the same operation at the same time, 
+	 * we can get multiple adds. Let the first one win. See
+	 * https://github.com/jcupitt/libvips/pull/181
+	 */
+	if( !g_hash_table_lookup( vips_cache_table, operation ) ) {
+		/* Has to be after _build() so we can see output args.
+		 */
+		if( vips__cache_trace ) {
+			if( vips_operation_get_flags( operation ) & 
+				VIPS_OPERATION_NOCACHE )
+				printf( "vips cache : " );
+			else
+				printf( "vips cache+: " );
+			vips_object_print_summary( VIPS_OBJECT( operation ) );
+		}
+
+		if( !(vips_operation_get_flags( operation ) & 
+			VIPS_OPERATION_NOCACHE) ) 
+			vips_cache_insert( operation );
+	}
+
+	g_mutex_unlock( vips_cache_lock );
+
+	vips_cache_trim();
+}
+
+/**
  * vips_cache_operation_buildp: (skip)
  * @operation: pointer to operation to lookup
  *
@@ -742,68 +820,26 @@ vips_cache_trim( void )
 int
 vips_cache_operation_buildp( VipsOperation **operation )
 {
-	VipsOperationCacheEntry *hit;
+	VipsOperation *hit;
 
 	g_assert( VIPS_IS_OPERATION( *operation ) );
 
 #ifdef VIPS_DEBUG
-	printf( "vips_cache_operation_build: " );
+	printf( "vips_cache_operation_buildp: " );
 	vips_object_print_dump( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
 
-	g_mutex_lock( vips_cache_lock );
-
-	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
-		if( vips__cache_trace ) {
-			printf( "vips cache-: " );
-			vips_object_print_summary( VIPS_OBJECT( *operation ) );
-		}
-
-		/* Ref before unref in case *operation == hit.
-		 */
-		vips_cache_ref( hit->operation );
+	if( (hit = vips_cache_operation_lookup( *operation )) ) {
 		g_object_unref( *operation );
-
-		*operation = hit->operation;
+		*operation = hit;
 	}
-
-	/* We have to unlock between search and add so that more than one
-	 * _build() can run at once. 
-	 */
-	g_mutex_unlock( vips_cache_lock );
-
-	if( !hit ) {
+	else {
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
 
-		g_mutex_lock( vips_cache_lock );
-
-		/* If two threads call the same operation at the same time, 
-		 * we can get multiple adds. Let the first one win. See
-		 * https://github.com/jcupitt/libvips/pull/181
-		 */
-		if( !g_hash_table_lookup( vips_cache_table, *operation ) ) {
-			/* Has to be after _build() so we can see output args.
-			 */
-			if( vips__cache_trace ) {
-				if( vips_operation_get_flags( *operation ) & 
-					VIPS_OPERATION_NOCACHE )
-					printf( "vips cache : " );
-				else
-					printf( "vips cache+: " );
-				vips_object_print_summary( 
-					VIPS_OBJECT( *operation ) );
-			}
-
-			if( !(vips_operation_get_flags( *operation ) & 
-				VIPS_OPERATION_NOCACHE) ) 
-				vips_cache_insert( *operation );
-		}
-
-		g_mutex_unlock( vips_cache_lock );
+		vips_cache_operation_add( *operation ); 
 	}
 
-	vips_cache_trim();
 
 	return( 0 );
 }

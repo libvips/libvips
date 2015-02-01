@@ -112,6 +112,8 @@ void vips_call_options( GOptionGroup *group, VipsOperation *operation );
 int vips_call_argv( VipsOperation *operation, int argc, char **argv );
 
 void vips_cache_drop_all( void );
+VipsOperation *vips_cache_operation_lookup( VipsOperation *operation );
+void vips_cache_operation_add( VipsOperation *operation );
 int vips_cache_operation_buildp( VipsOperation **operation );
 VipsOperation *vips_cache_operation_build( VipsOperation *operation );
 void vips_cache_print( void );
