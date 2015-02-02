@@ -9,6 +9,9 @@ import math
 
 from gi.repository import Vips 
 
+Vips.leak_set(True)
+
+
 unsigned_formats = [Vips.BandFormat.UCHAR, 
                     Vips.BandFormat.USHORT, 
                     Vips.BandFormat.UINT] 

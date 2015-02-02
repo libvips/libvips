@@ -8,6 +8,8 @@ import math
 
 from gi.repository import Vips 
 
+Vips.leak_set(True)
+
 # an expanding zip ... if either of the args is a scalar or a one-element list,
 # duplicate it down the other side 
 def zip_expand(x, y):
