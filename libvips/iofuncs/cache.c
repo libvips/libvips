@@ -730,7 +730,7 @@ vips_cache_trim( void )
 
 /**
  * vips_cache_operation_lookup:
- * @operation: pointer to operation to lookup
+ * @operation: (transfer none): pointer to operation to lookup
  *
  * Look up an unbuilt @operation in the cache. If we get a hit, ref and 
  * return the old operation. If there's no hit, return NULL.
@@ -744,6 +744,7 @@ vips_cache_operation_lookup( VipsOperation *operation )
 	VipsOperation *result;
 
 	g_assert( VIPS_IS_OPERATION( operation ) );
+	g_assert( !VIPS_OBJECT( operation )->constructed ); 
 
 #ifdef VIPS_DEBUG
 	printf( "vips_cache_operation_lookup: " );
@@ -771,13 +772,15 @@ vips_cache_operation_lookup( VipsOperation *operation )
 
 /**
  * vips_cache_operation_add:
- * @operation: pointer to operation to lookup
+ * @operation: (transfer none): pointer to operation to add
  *
- * Add a built operation to the cache.
+ * Add a built operation to the cache. The cache will ref the operation. 
  */
 void
 vips_cache_operation_add( VipsOperation *operation )
 {
+	g_assert( VIPS_OBJECT( operation )->constructed ); 
+
 	g_mutex_lock( vips_cache_lock );
 
 	/* If two threads call the same operation at the same time, 
@@ -846,7 +849,7 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 /**
  * vips_cache_operation_build:
- * @operation: operation to lookup
+ * @operation: (transfer none): operation to lookup
  *
  * A binding-friendly version of vips_cache_operation_buildp().
  *
