@@ -2909,7 +2909,7 @@ vips_object_print_all_cb( VipsObject *object, int *n )
 	fprintf( stderr, "\n" ); 
 
 	vips_object_summary_class( class, &buf );
-	vips_buf_appends( &buf, " " );
+	vips_buf_appends( &buf, ", " );
 	vips_object_summary( object, &buf ); 
 	fprintf( stderr, "%s\n", vips_buf_all( &buf ) );
 

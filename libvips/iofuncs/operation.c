@@ -504,9 +504,9 @@ vips_operation_vips_operation_print_summary_arg( VipsObject *object,
 {
 	VipsBuf *buf = (VipsBuf *) a;
 
-	/* Just assigned required input construct args
+	/* Just assigned input construct args
 	 */
-	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+	if( (argument_class->flags & VIPS_ARGUMENT_INPUT) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		argument_instance->assigned ) {
 		const char *name = g_param_spec_get_name( pspec );
