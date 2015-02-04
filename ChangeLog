@@ -17,6 +17,7 @@
 - add VInterpolate class to cplusplus binding, thanks Lovell
 - add lower-level operation cache access
 - turn on leak testing in test suite
+- don't use isnormal() to test for crazy FP numbers, thanks Murat
 
 24/12/14 started 7.42.1
 - add gobject-2.0 to Requires: in vips and vips-cpp .pc files
