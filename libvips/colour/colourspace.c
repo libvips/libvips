@@ -14,6 +14,8 @@
  * 	- oops, don't treat RGB16 as sRGB
  * 9/9/14	
  * 	- mono <-> rgb converters were not handling extra bands, thanks James
+ * 4/2/15
+ * 	- much faster RGB16->sRGB path
  */
 
 /*
@@ -69,6 +71,17 @@ static int
 vips_scRGB2RGB16( VipsImage *in, VipsImage **out, ... )
 {
 	return( vips_scRGB2sRGB( in, out, "depth", 16, NULL ) );
+}
+
+static int
+vips_RGB162sRGB( VipsImage *in, VipsImage **out, ... )
+{
+	if( vips_msb( in, out, NULL ) )
+		return( -1 );
+
+	(*out)->Type = VIPS_INTERPRETATION_sRGB;
+
+	return( 0 ); 
 }
 
 /* Process the first @n bands with @fn, detach and reattach remaining bands.
@@ -335,8 +348,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ RGB16, CMC, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, 
 		vips_Lab2LCh, vips_LCh2CMC, NULL } },
 	{ RGB16, scRGB, { vips_sRGB2scRGB, NULL } },
-	{ RGB16, sRGB, { vips_sRGB2scRGB, vips_scRGB2sRGB, NULL } },
-	{ RGB16, BW, { vips_sRGB2scRGB, vips_scRGB2sRGB, vips_sRGB2BW, NULL } },
+	{ RGB16, sRGB, { vips_RGB162sRGB, NULL } },
+	{ RGB16, BW, { vips_RGB162sRGB, vips_sRGB2BW, NULL } },
 	{ RGB16, LABS, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, 
 		vips_Lab2LabS, NULL } },
 	{ RGB16, GREY16, { vips_RGB162GREY16, NULL } },

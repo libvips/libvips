@@ -1,5 +1,3 @@
-
-
 - use vips_resize() in vipsthumbnail?
 
   should the sharpening filter be selectable?
@@ -23,8 +21,6 @@
 	output blob
 
 - fix up aconv
-
-- more python tests
 
 - can we pick the vipsthumbnail int shrink factor more intelligently?
 
