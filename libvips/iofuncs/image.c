@@ -1728,12 +1728,28 @@ vips_image_new_mode( const char *filename, const char *mode )
  *
  * See also: vips_image_new().
  *
- * Returns: the new #VipsImage, or %NULL on error.
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new_memory( void )
 {
 	return( vips_image_new_mode( vips_image_temp_name(), "t" ) );
+}
+
+/**
+ * vips_image_memory:
+ *
+ * A renamed vips_image_new_memory() ... Some gobject binding systems do not 
+ * like more than one _new() method.
+ *
+ * See also: vips_image_new_memory().
+ *
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_memory( void )
+{
+	return( vips_image_new_memory() ); 
 }
 
 /**

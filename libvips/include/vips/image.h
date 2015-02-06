@@ -419,6 +419,7 @@ char *vips_filename_get_options( const char *vips_filename );
 
 VipsImage *vips_image_new( void );
 VipsImage *vips_image_new_memory( void );
+VipsImage *vips_image_memory( void );
 VipsImage *vips_image_new_from_file( const char *name, ... )
 	__attribute__((sentinel));
 VipsImage *vips_image_new_from_file_RW( const char *filename );
