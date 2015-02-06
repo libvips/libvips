@@ -683,16 +683,24 @@ if test "x$enable_pyvips8" = "xauto"; then
     [enable_pyvips8=yes],
     [AC_MSG_WARN([pygobject-3.0 not found; disabling vips8 python support])
      enable_pyvips8=no
-    ])
+    ]
+  )
 fi
 
-if test "x$enable_pyvips8" = "xyes"; then
+if test x"$enable_pyvips8" = x"yes"; then
+  AM_PATH_PYTHON(2.7,,
+    [enable_pyvips8=no
+     AC_MSG_WARN([Python not found; disabling vips8 Python binding])]
+  )
+fi
+
+if test x"$enable_pyvips8" = x"yes"; then
   PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.12.0])
   pyoverridesdir="\$(pyexecdir)/gi/overrides"
   AC_SUBST(pyoverridesdir)
 fi
 
-AM_CONDITIONAL(ENABLE_PYVIPS8, test x"$enable_pyvips8" = "xyes")
+AM_CONDITIONAL(ENABLE_PYVIPS8, test x"$enable_pyvips8" = x"yes")
 
 # hmm, these don't have .pc files on ubuntu 5.10, how odd
 FIND_ZIP(
@@ -771,24 +779,27 @@ fi
 # make python binding?
 AC_ARG_WITH([python], 
   AS_HELP_STRING([--without-python], 
-    [build without Python bindings (default: test)]))
+    [build without vips7 Python bindings (default: test)]))
 
-if test x"$with_python" != "xno"; then
-  if test x"$enable_cxx" = "xno"; then
+if test x"$with_python" != x"no"; then
+  if test x"$enable_cxx" = x"no"; then
     # if C++ is off, we can't do Python
     with_python=no
-    AC_MSG_WARN([C++ is off, disabling Python binding])
-  else
-    AM_PATH_PYTHON(2.7,,
-      [with_python=no
-       AC_MSG_WARN([Python not found; disabling Python binding])])
+    AC_MSG_WARN([C++ is off, disabling vips7 Python binding])
   fi
 fi
 
-if test x"$with_python" != "xno"; then
+if test x"$with_python" != x"no"; then
+  AM_PATH_PYTHON(2.7,,
+    [with_python=no
+     AC_MSG_WARN([Python not found; disabling vips7 Python binding])]
+  )
+fi
+
+if test x"$with_python" != x"no"; then
   AM_CHECK_PYTHON_HEADERS(,
     [with_python=no
-     AC_MSG_WARN([Python headers not found])])
+     AC_MSG_WARN([Python headers not found; disabling vips7 Python binding])])
 fi
 
 # we don't check for swig: we include the generated bindings in the

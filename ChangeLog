@@ -1,6 +1,7 @@
 6/2/15 started 7.42.3
 - bump version for back-compat ABI change
 - added vips_image_memory(), an alias for vips_image_new_memory()
+- improvements to configure for python
 
 30/12/14 started 7.42.2
 - C++ required output params were broken, thanks Lovell
