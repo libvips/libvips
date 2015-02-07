@@ -1,9 +1,3 @@
-# only build the C++ stuff if ENABLE_CXX
-# you'd think we could just define a couple of variables, but that seems to
-# confuse libtool and make it link the library with g++
-# instead, have two completely different paths
-if ENABLE_CXX
-
 libresample_la_SOURCES = \
 	affine.c \
 	quadratic.c \
@@ -22,29 +16,6 @@ libresample_la_SOURCES = \
 
 EXTRA_DIST = \
 	dummy2.cc 
-
-else
-
-libresample_la_SOURCES = \
-	resample.c \
-	similarity.c \
-	presample.h \
-	resize.c \
-	shrink.c \
-	affine.c \
-	interpolate.c \
-	quadratic.c \
-	transform.c 
-
-EXTRA_DIST = \
-	dummy2.cc \
-	bicubic.cpp \
-	lbb.cpp \
-	nohalo.cpp \
-	vsqbs.cpp \
-	templates.h 
-
-endif
 
 noinst_LTLIBRARIES = libresample.la
 

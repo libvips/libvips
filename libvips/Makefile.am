@@ -33,13 +33,8 @@ lib_LTLIBRARIES = libvips.la
 # empty means default to C linking
 libvips_la_SOURCES = 
 
-# if we have C++ components enabled, make sure we link the top-level with c++
-#
-# sadly the if/endif isn't enough to stop automake detecting a c++ link even
-# when c++ is disabled ... comment out this line if you have linking problems
-if ENABLE_CXX
+# make sure we link the top-level with c++
 nodist_EXTRA_libvips_la_SOURCES = resample/dummy2.cc
-endif
 
 # DLLs need dependant libs there too ... put @VIPS_LIBS@ at the end
 libvips_la_LIBADD = \
@@ -59,10 +54,6 @@ libvips_la_LIBADD = \
 	create/libcreate.la \
 	video/libvideo.la \
 	@VIPS_LIBS@
-
-if ENABLE_CXX
-libvips_la_LIBADD += @VIPS_CXX_LIBS@
-endif
 
 libvips_la_LDFLAGS = \
 	-no-undefined \
@@ -89,9 +80,6 @@ AM_LDFLAGS = \
 	     @INTROSPECTION_LIBS@ \
 	     @LDFLAGS@ 
 LDADD = @INTROSPECTION_LIBS@ @VIPS_CFLAGS@ libvips.la @VIPS_LIBS@ 
-if ENABLE_CXX
-LDADD += @VIPS_CXX_LIBS@
-endif
 
 noinst_PROGRAMS = \
 	introspect

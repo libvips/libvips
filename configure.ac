@@ -272,47 +272,6 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AM_WITH_DMALLOC
 
-# vips_PROG_CXX_WORKS
-# Check whether the C++ compiler works.
-AC_DEFUN([vips_PROG_CXX_WORKS],
-  [AC_REQUIRE([AC_PROG_CXX])dnl
-   AC_CACHE_CHECK([whether the C++ compiler works],
-   [vips_cv_prog_cxx_works],
-   [AC_LANG_PUSH([C++])
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
-                   [vips_cv_prog_cxx_works=yes],
-                   [vips_cv_prog_cxx_works=no])
-    AC_LANG_POP([C++])])
-])
-
-# option to build without C++
-# handy for some embedded applications
-# also, including C++ source causes link problems on some
-# platforms, so have an option to disable it
-AC_ARG_ENABLE(cxx, 
-  AS_HELP_STRING([--enable-cxx], [build C++ components (default: test)]))
-
-if test x"$enable_cxx" != x"no"; then
-  vips_PROG_CXX_WORKS
-  if test x"$vips_cv_prog_cxx_works" = x"yes"; then 
-    AC_DEFINE(ENABLE_CXX,1,[build C++ components])
-    AM_CONDITIONAL(ENABLE_CXX, true)
-    # need -lstdc++ for (eg.) the C++ format loaders
-    # this gets added to vips.pc to help mingw and friends link programs
-    # using libvips
-    if test x"$vips_needs_stdcpp" != x"no"; then
-      VIPS_CXX_LIBS="-lstdc++"
-    fi
-    enable_cxx=yes
-  fi
-fi
-
-if test x"$enable_cxx" != x"yes"; then
-  AM_CONDITIONAL(ENABLE_CXX, false)
-  VIPS_CXX_LIBS=""
-  enable_cxx=no
-fi
-
 # we need a fully expanded version of $libdir
 # without this we get something like
 #    define VIPS_LIBDIR ${exec_prefix}/lib
@@ -812,7 +771,7 @@ else
   AM_CONDITIONAL(HAVE_PYTHON, false)
 fi
 
-# Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS and VIPS_CXX_LIBS
+# Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
 VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
@@ -829,7 +788,6 @@ AC_SUBST(VIPS_LIBDIR)
 AC_SUBST(VIPS_CFLAGS)
 AC_SUBST(VIPS_INCLUDES)
 AC_SUBST(VIPS_LIBS)
-AC_SUBST(VIPS_CXX_LIBS)
 AC_SUBST(PACKAGES_USED)
 AC_SUBST(EXTRA_LIBS_USED)
 
@@ -893,7 +851,6 @@ native OS X:				$vips_os_darwin
 open files in binary mode: 		$vips_binary_open
 enable debug:				$enable_debug
 build deprecated components:		$enable_deprecated
-build C++ components:			$enable_cxx
 build docs with gtkdoc:			$enable_gtk_doc
 install docs:				$enable_docs
 gobject introspection: 			$found_introspection

@@ -1,20 +1,9 @@
 
-# turn off C++ APIs if C++ is disabled
-if ENABLE_CXX
-C_COMPILE_DIR = libvipsCC cplusplus
-C_DIST_DIR =
-C_PKGCONFIG = vipsCC.pc vips-cpp.pc
-
-# turn on Python if we can (requires C++)
+# turn on Python if we can 
 if HAVE_PYTHON
 P_COMPILE_DIR = swig
 P_DIST_DIR =
-endif
-
 else
-C_COMPILE_DIR =
-C_DIST_DIR = libvipsCC cplusplus
-C_PKGCONFIG =
 P_COMPILE_DIR =
 P_DIST_DIR = swig
 endif
@@ -39,12 +28,13 @@ endif
 
 SUBDIRS = \
 	libvips \
+	libvipsCC \
+	cplusplus \
 	tools \
 	po \
 	man \
 	doc \
 	test \
-	$(C_COMPILE_DIR) \
 	$(P_COMPILE_DIR) \
 	$(P8_COMPILE_DIR) \
 	$(D_BUILD_DIR) 
@@ -60,13 +50,12 @@ EXTRA_DIST = \
 	acinclude.m4 \
 	depcomp \
 	README.md \
-	$(C_DIST_DIR) \
 	$(P_DIST_DIR) \
 	$(P8_DIST_DIR) \
 	$(D_DIST_DIR)
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = vips.pc $(C_PKGCONFIG)
+pkgconfig_DATA = vips.pc vipsCC.pc vips-cpp.pc
 
 if ENABLE_DOCS
 install-exec-hook:
