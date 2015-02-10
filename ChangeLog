@@ -3,6 +3,7 @@
 - added vips_image_memory(), an alias for vips_image_new_memory()
 - improvements to configure for python
 - remove --disable-cxx configure flag
+- python imageize preserves interpretation
 
 30/12/14 started 7.42.2
 - C++ required output params were broken, thanks Lovell

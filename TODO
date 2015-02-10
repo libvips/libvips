@@ -1,10 +1,13 @@
-- should cplusplus and ruby imageize preserve interpretation too?
-
 - why can't we do
 
 	im = Vips.Image.new_from_file(sys.argv[1], access = "sequential")
 
   ValueError: invalid literal for int() with base 10: 'sequential'
+
+  no idea ... this works fine:
+
+  	im.embed(10, 10, 100, 100, extend = "copy")
+
 
 - msb in colour should not touch alpha channel
 

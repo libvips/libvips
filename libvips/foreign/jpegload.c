@@ -153,7 +153,7 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 
 	VIPS_ARG_BOOL( class, "autorotate", 12, 
 		_( "Autorotate" ), 
-		_( "Automatically rotate image using exif orientation" ),
+		_( "Rotate image using exif orientation" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadJpeg, autorotate ),
 		FALSE );
