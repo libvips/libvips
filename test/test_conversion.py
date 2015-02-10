@@ -486,6 +486,30 @@ class TestConversion(unittest.TestCase):
                 result = r.getpoint(10, 10)
                 self.assertAlmostEqualObjects(result, [3, 3, 13])
 
+        test = self.mono > 3
+        r = test.ifthenelse([1, 2, 3], self.colour)
+        self.assertEqual(r.width, self.colour.width)
+        self.assertEqual(r.height, self.colour.height)
+        self.assertEqual(r.bands, self.colour.bands)
+        self.assertEqual(r.format, self.colour.format)
+        self.assertEqual(r.interpretation, self.colour.interpretation)
+        result = r.getpoint(10, 10)
+        self.assertAlmostEqualObjects(result, [2, 3, 4])
+        result = r.getpoint(50, 50)
+        self.assertAlmostEqualObjects(result, [1, 2, 3])
+
+        test = self.mono
+        r = test.ifthenelse([1, 2, 3], self.colour, blend = True)
+        self.assertEqual(r.width, self.colour.width)
+        self.assertEqual(r.height, self.colour.height)
+        self.assertEqual(r.bands, self.colour.bands)
+        self.assertEqual(r.format, self.colour.format)
+        self.assertEqual(r.interpretation, self.colour.interpretation)
+        result = r.getpoint(10, 10)
+        self.assertAlmostEqualObjects(result, [2, 3, 4], places = 1)
+        result = r.getpoint(50, 50)
+        self.assertAlmostEqualObjects(result, [3.0, 4.9, 6.9], places = 1)
+
     def test_insert(self):
         for x in all_formats:
             for y in all_formats:

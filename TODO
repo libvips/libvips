@@ -1,41 +1,18 @@
-- try:
+- should cplusplus and ruby imageize preserve interpretation too?
 
-#!/usr/bin/python
+- why can't we do
 
-import sys
+	im = Vips.Image.new_from_file(sys.argv[1], access = "sequential")
 
-from gi.repository import Vips
-
-# we can stream the image, turn on sequential access
-#im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
-im = Vips.Image.new_from_file(sys.argv[1])
-
-text = Vips.Image.text(sys.argv[3], width = 500, dpi = 300)
-text = (text * 0.3).cast("uchar")
-text = text.embed(100, 100, text.width + 200, text.width + 200)
-text = text.replicate(1 + im.width / text.width, 1 + im.height / text.height)
-text = text.crop(0, 0, im.width, im.height)
-
-im = text.ifthenelse([255, 0, 0], im, blend = True)
-
-im.write_to_file(sys.argv[2])
-
-  makes a mono output from a colour input!
-
-	x = c.ifthenelse(a, b)
-
-  	c - mono image
-	a - vector constant
-	b - colour image
-
-  
-  
-
+  ValueError: invalid literal for int() with base 10: 'sequential'
 
 - msb in colour should not touch alpha channel
 
   ... or should it? should converting RGBA from 8 to 16-bit touch alpha too?
   probably
+
+
+
 
 - use vips_resize() in vipsthumbnail?
 

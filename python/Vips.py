@@ -85,6 +85,9 @@ def imageize(match_image, value):
     pixel = (Vips.Image.black(1, 1) + value).cast(match_image.format)
     image = pixel.embed(0, 0, match_image.width, match_image.height,
                         extend = Vips.Extend.COPY)
+    image = image.copy(interpretation = match_image.interpretation,
+                       xres = match_image.xres,
+                       yres = match_image.yres)
     return image
 
 # we'd like to use memoryview to avoid copying things like ICC profiles, but
