@@ -135,6 +135,7 @@ class TestColour(unittest.TestCase):
 
                 before = test.getpoint(10, 10)
                 after = im3.getpoint(10, 10)
+
                 self.assertAlmostEqualObjects(before, after, places = 1)
 
         # test Lab->XYZ on mid-grey
