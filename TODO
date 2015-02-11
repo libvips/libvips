@@ -1,3 +1,41 @@
+- at the moment we have a policy of just ignoring extra bands
+
+  we are proposing to change this to modify band 2, 4 or 5, if present, when
+  going to and from RGB16 or GREY16
+
+  if we make this change, we must support it for all transforms of this type,
+  not just for a couple, or it'll be incredibly confusing
+
+  vips_process_n() could use cast(shift = TRUE)
+
+  vips_colour_build() could use cast shift too
+
+  
+
+
+- use vips_sRGB2RGB16()
+
+
+- check vips_sRGB2scRGB() with a 16-bit source ... what does it do for alpha?
+
+  alpha is untouched ... rgb->0-1, alpha stays at 0-65535
+
+  maybe should move everything to 0-1? otherwise when we do scRGB2sRGB we'll
+  (effectively) do alpha * 256
+
+  but what if we then do scRGB -> XYZ (for example), should alpha stay 0 - 1?
+
+
+
+
+
+
+- we have 
+
+	im.flip("horizontal")
+
+  maybe add fliphor() and flipver() as convenience functions, cf. .sin() etc.
+
 - why can't we do
 
 	im = Vips.Image.new_from_file(sys.argv[1], access = "sequential")
@@ -8,11 +46,11 @@
 
   	im.embed(10, 10, 100, 100, extend = "copy")
 
+  what about 
 
-- msb in colour should not touch alpha channel
+	im = Vips.Image.jpegload(sys.argv[1], access = "sequential")
 
-  ... or should it? should converting RGBA from 8 to 16-bit touch alpha too?
-  probably
+  nope, fails too
 
 
 

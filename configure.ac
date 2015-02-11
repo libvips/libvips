@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [7.42.3], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.0.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -16,9 +16,9 @@ AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
-m4_define([vips_major_version], [7])
-m4_define([vips_minor_version], [42])
-m4_define([vips_micro_version], [3])
+m4_define([vips_major_version], [8])
+m4_define([vips_minor_version], [0])
+m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -38,7 +38,7 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=41
-LIBRARY_REVISION=0
+LIBRARY_REVISION=1
 LIBRARY_AGE=1
 
 # patched into include/vips/version.h
@@ -59,7 +59,7 @@ GOBJECT_INTROSPECTION_CHECK([1.30.0])
 # gir needs a list of source files to scan for introspection
 #
 # build with a glob and a list of files to exclude from scanning
-# see also IGNORE_HFILES in doc/reference/Makefile.am
+# see also IGNORE_HFILES in doc/Makefile.am
 introspection_sources=$(cd libvips ; find . -name "*.c")
 filter_list="deprecated "
 
@@ -839,8 +839,7 @@ AC_OUTPUT([
 	swig/vipsCC/Makefile 
 	man/Makefile
 	doc/Makefile
-	doc/reference/Makefile
-	doc/reference/libvips-docs.xml
+	doc/libvips-docs.xml
 	po/Makefile.in
 ])
 

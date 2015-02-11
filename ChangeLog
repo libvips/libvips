@@ -1,3 +1,10 @@
+11/2/15 started 8.0
+- remove old doc stuff
+- add fliphor(), flipver(), rot90(), rot180(), rot270() convenience methods to
+  Python
+- add shift option to cast
+- better alpha handling for 16 <-> 8 bit colour conversions
+
 6/2/15 started 7.42.3
 - bump version for back-compat ABI change
 - added vips_image_memory(), an alias for vips_image_new_memory()

@@ -402,6 +402,7 @@ vips_colour_build( VipsObject *object )
 			 */
 
 			if( vips_cast( extra_bands[i], &t1, out->BandFmt,
+				"shift", TRUE,
 				NULL ) ) {
 				g_object_unref( out );
 				return( -1 );

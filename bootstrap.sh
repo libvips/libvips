@@ -13,15 +13,14 @@ rm -f swig/vipsCC/*.cxx
 rm -f swig/vipsCC/VImage.h
 rm -f swig/vipsCC/VImage.py python/vipsCC/VError.py python/vipsCC/VMask.py python/vipsCC/Display.py
 rm -f benchmark/temp*
-( cd doc ; \
-	mkdir poop ; \
-	mv reference/libvips-docs.xml.in poop ; \
-	mv reference/Makefile.am poop ; \
-	mv reference/images poop ; \
-	mv reference/*.xml poop ; \
-	mv reference/*.py poop ; \
-	rm -rf reference/* ; \
-	mv poop/* reference ; \
+( mkdir poop ; \
+	mv doc/libvips-docs.xml.in poop ; \
+	mv doc/Makefile.am poop ; \
+	mv doc/images poop ; \
+	mv doc/*.xml poop ; \
+	mv doc/*.py poop ; \
+	rm -rf doc/* ; \
+	mv poop/* doc ; \
 	rmdir poop \
 )
 
@@ -45,7 +44,7 @@ cp $ACDIR/lcmessage.m4 m4
 cp $ACDIR/progtest.m4 m4
 cp $ACDIR/introspection.m4 m4
 
-gtkdocize --copy --docdir doc/reference --flavour no-tmpl || exit 1
+gtkdocize --copy --docdir doc --flavour no-tmpl || exit 1
 
 # some systems need libtoolize, some glibtoolize ... how annoying
 echo testing for glibtoolize ...

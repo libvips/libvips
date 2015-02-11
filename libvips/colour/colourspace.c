@@ -73,13 +73,30 @@ vips_scRGB2RGB16( VipsImage *in, VipsImage **out, ... )
 	return( vips_scRGB2sRGB( in, out, "depth", 16, NULL ) );
 }
 
+/* Do these two with a simple cast ... since we're just cast shifting, we can
+ * short-circuit the extra band processing in vips_colour_build().
+ */
+
 static int
 vips_RGB162sRGB( VipsImage *in, VipsImage **out, ... )
 {
-	if( vips_msb( in, out, NULL ) )
+	if( vips_cast( in, out, VIPS_FORMAT_UCHAR,
+		"shift", TRUE,
+		NULL ) )
 		return( -1 );
-
 	(*out)->Type = VIPS_INTERPRETATION_sRGB;
+
+	return( 0 ); 
+}
+
+static int
+vips_sRGB2RGB16( VipsImage *in, VipsImage **out, ... )
+{
+	if( vips_cast( in, out, VIPS_FORMAT_USHORT,
+		"shift", TRUE,
+		NULL ) )
+		return( -1 );
+	(*out)->Type = VIPS_INTERPRETATION_RGB16;
 
 	return( 0 ); 
 }
@@ -102,7 +119,9 @@ vips_process_n( const char *domain, VipsImage *in, VipsImage **out,
 				"n", in->Bands - n, 
 				NULL ) ||
 			fn( t[0], &t[2], NULL ) ||
-			vips_cast( t[1], &t[3], t[2]->BandFmt, NULL ) ||
+			vips_cast( t[1], &t[3], t[2]->BandFmt, 
+				"shift", TRUE,
+				NULL ) ||
 			vips_bandjoin2( t[2], t[3], out, NULL ) ) {
 			g_object_unref( scope );
 			return( -1 );
