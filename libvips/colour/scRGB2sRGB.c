@@ -25,6 +25,8 @@
  * 	- added 16-bit option
  * 11/12/12
  * 	- cut about to make scRGB2sRGB.c
+ * 12/2/15
+ * 	- add 16-bit alpha handling
  */
 
 /*
@@ -66,22 +68,29 @@
 
 #include "pcolour.h"
 
+/* We can't use VipsColourCode as our parent class. We want to handle
+ * alpha ourselves so we can get 16 -> 8 bit conversion right.
+ */
+
 typedef struct _VipsscRGB2sRGB {
-	VipsColourCode parent_instance;
-	
+	VipsOperation parent_instance;
+
+	VipsImage *in;
+	VipsImage *out;
 	int depth;
 } VipsscRGB2sRGB;
 
-typedef VipsColourCodeClass VipsscRGB2sRGBClass;
+typedef VipsOperationClass VipsscRGB2sRGBClass;
 
-G_DEFINE_TYPE( VipsscRGB2sRGB, vips_scRGB2sRGB, VIPS_TYPE_COLOUR_CODE );
+G_DEFINE_TYPE( VipsscRGB2sRGB, vips_scRGB2sRGB, VIPS_TYPE_OPERATION );
 
 /* Process a buffer of data.
  */
 static void
-vips_scRGB2sRGB_line_8( VipsPel * restrict q, float * restrict p, int width )
+vips_scRGB2sRGB_line_8( VipsPel * restrict q, float * restrict p, 
+	int extra_bands, int width )
 {
-	int i;
+	int i, j;
 
 	for( i = 0; i < width; i++ ) {
 		float R = p[0];
@@ -100,14 +109,19 @@ vips_scRGB2sRGB_line_8( VipsPel * restrict q, float * restrict p, int width )
 		q[2] = b;
 
 		q += 3;
+
+		for( j = 0; j < extra_bands; j++ ) 
+			q[j] = p[j];
+		p += extra_bands;
+		q += extra_bands;
 	}
 }
 
 static void
 vips_scRGB2sRGB_line_16( unsigned short * restrict q, float * restrict p, 
-	int width )
+	int extra_bands, int width )
 {
-	int i;
+	int i, j;
 
 	for( i = 0; i < width; i++ ) {
 		float R = p[0];
@@ -126,21 +140,47 @@ vips_scRGB2sRGB_line_16( unsigned short * restrict q, float * restrict p,
 		q[2] = b;
 
 		q += 3;
+
+		for( j = 0; j < extra_bands; j++ ) 
+			q[j] = VIPS_CLIP( 0, p[j] * 256.0, USHRT_MAX ); 
+		p += extra_bands;
+		q += extra_bands;
 	}
 }
 
-static void
-vips_scRGB2sRGB_line( VipsColour *colour, 
-	VipsPel *out, VipsPel **in, int width )
+static int
+vips_scRGB2sRGB_gen( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
-	VipsscRGB2sRGB *scRGB2sRGB = (VipsscRGB2sRGB *) colour;
+	VipsRegion *ir = (VipsRegion *) seq;
+	VipsscRGB2sRGB *scRGB2sRGB = (VipsscRGB2sRGB *) b;
+	VipsRect *r = &or->valid;
+	VipsImage *in = ir->im;
 
-	if( scRGB2sRGB->depth == 16 ) 
-		vips_scRGB2sRGB_line_16( (unsigned short *) out, 
-			(float *) in[0], width );
-	else
-		vips_scRGB2sRGB_line_8( (VipsPel *) out, 
-			(float *) in[0], width );
+	int y;
+
+	if( vips_region_prepare( ir, r ) ) 
+		return( -1 );
+
+	VIPS_GATE_START( "vips_scRGB2sRGB_gen: work" ); 
+
+	for( y = 0; y < r->height; y++ ) {
+		float *p = (float *) 
+			VIPS_REGION_ADDR( ir, r->left, r->top + y );
+		VipsPel *q = (VipsPel *) 
+			VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+		if( scRGB2sRGB->depth == 16 ) 
+			vips_scRGB2sRGB_line_16( (unsigned short *) q, p, 
+				in->Bands - 3, r->width );
+		else
+			vips_scRGB2sRGB_line_8( q, p, 
+				in->Bands - 3, r->width );
+	}
+
+	VIPS_GATE_STOP( "vips_scRGB2sRGB_gen: work" ); 
+
+	return( 0 );
 }
 
 static int
@@ -148,17 +188,30 @@ vips_scRGB2sRGB_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsscRGB2sRGB *scRGB2sRGB = (VipsscRGB2sRGB *) object;
-	VipsColour *colour = VIPS_COLOUR( scRGB2sRGB );
+
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
+
+	VipsImage *in; 
+	VipsBandFormat format;
+	VipsInterpretation interpretation;
+	VipsImage *out; 
+
+	if( VIPS_OBJECT_CLASS( vips_scRGB2sRGB_parent_class )->build( object ) )
+		return( -1 );
+
+	in = scRGB2sRGB->in;
+	if( vips_check_bands_atleast( class->nickname, in, 3 ) )
+		return( -1 ); 
 
 	switch( scRGB2sRGB->depth ) { 
 	case 16:
-		colour->interpretation = VIPS_INTERPRETATION_RGB16;
-		colour->format = VIPS_FORMAT_USHORT;
+		interpretation = VIPS_INTERPRETATION_RGB16;
+		format = VIPS_FORMAT_USHORT;
 		break;
 
 	case 8:
-		colour->interpretation = VIPS_INTERPRETATION_sRGB;
-		colour->format = VIPS_FORMAT_UCHAR;
+		interpretation = VIPS_INTERPRETATION_sRGB;
+		format = VIPS_FORMAT_UCHAR;
 		break;
 
 	default:
@@ -167,8 +220,27 @@ vips_scRGB2sRGB_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( VIPS_OBJECT_CLASS( vips_scRGB2sRGB_parent_class )->build( object ) )
+	if( vips_cast_float( in, &t[0], NULL ) )
 		return( -1 );
+	in = t[0];
+
+	out = vips_image_new();
+	if( vips_image_pipelinev( out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) ) {
+		g_object_unref( out );
+		return( -1 );
+	}
+	out->Type = interpretation;
+	out->BandFmt = format;
+
+	if( vips_image_generate( out,
+		vips_start_one, vips_scRGB2sRGB_gen, vips_stop_one, 
+		in, scRGB2sRGB ) ) {
+		g_object_unref( out );
+		return( -1 );
+	}
+
+	g_object_set( object, "out", out, NULL ); 
 
 	return( 0 );
 }
@@ -178,7 +250,7 @@ vips_scRGB2sRGB_class_init( VipsscRGB2sRGBClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -187,7 +259,19 @@ vips_scRGB2sRGB_class_init( VipsscRGB2sRGBClass *class )
 	object_class->description = _( "convert an scRGB image to sRGB" ); 
 	object_class->build = vips_scRGB2sRGB_build;
 
-	colour_class->process_line = vips_scRGB2sRGB_line;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsscRGB2sRGB, in ) );
+
+	VIPS_ARG_IMAGE( class, "out", 100, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsscRGB2sRGB, out ) );
 
 	VIPS_ARG_INT( class, "depth", 130, 
 		_( "Depth" ),
@@ -195,25 +279,12 @@ vips_scRGB2sRGB_class_init( VipsscRGB2sRGBClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsscRGB2sRGB, depth ),
 		8, 16, 8 );
+
 }
 
 static void
 vips_scRGB2sRGB_init( VipsscRGB2sRGB *scRGB2sRGB )
 {
-	VipsColour *colour = VIPS_COLOUR( scRGB2sRGB );
-	VipsColourCode *code = VIPS_COLOUR_CODE( scRGB2sRGB );
-
-	/* Just the default, can be overridden, see above.
-	 */
-	colour->coding = VIPS_CODING_NONE;
-	colour->interpretation = VIPS_INTERPRETATION_sRGB;
-	colour->format = VIPS_FORMAT_UCHAR;
-	colour->input_bands = 3;
-	colour->bands = 3;
-
-	code->input_coding = VIPS_CODING_NONE;
-	code->input_format = VIPS_FORMAT_FLOAT;
-
 	scRGB2sRGB->depth = 8;
 }
 
@@ -229,7 +300,10 @@ vips_scRGB2sRGB_init( VipsscRGB2sRGB *scRGB2sRGB )
  *
  * Convert an scRGB image to sRGB. Set @depth to 16 to get 16-bit output.
  *
- * See also: vips_LabS2LabQ(), vips_scRGB2sRGB(), vips_rad2float().
+ * If @depth is 16, any extra channels after RGB are 
+ * multiplied by 256. 
+ *
+ * See also: vips_LabS2LabQ(), vips_sRGB2scRGB(), vips_rad2float().
  *
  * Returns: 0 on success, -1 on error.
  */

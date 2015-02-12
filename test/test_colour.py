@@ -31,12 +31,13 @@ colour_colourspaces = [Vips.Interpretation.XYZ,
                        Vips.Interpretation.LABS,
                        Vips.Interpretation.SCRGB,
                        Vips.Interpretation.SRGB,
-                       Vips.Interpretation.RGB16,
                        Vips.Interpretation.YXY]
 coded_colourspaces = [Vips.Interpretation.LABQ]
-mono_colourspaces = [Vips.Interpretation.GREY16,
-                     Vips.Interpretation.B_W]
-all_colourspaces = colour_colourspaces + mono_colourspaces + coded_colourspaces
+mono_colourspaces = [Vips.Interpretation.B_W]
+sixteenbit_colourspaces = [Vips.Interpretation.GREY16,
+                           Vips.Interpretation.RGB16]
+all_colourspaces = colour_colourspaces + mono_colourspaces + \
+                    coded_colourspaces + sixteenbit_colourspaces
 
 # an expanding zip ... if either of the args is not a list, duplicate it down
 # the other
@@ -119,8 +120,19 @@ class TestColour(unittest.TestCase):
         for col in colour_colourspaces + [Vips.Interpretation.LAB]:
             im = im.colourspace(col)
             self.assertEqual(im.interpretation, col)
+
+            for i in range(0, 4):
+                l = im.extract_band(i).min()
+                h = im.extract_band(i).max()
+                self.assertAlmostEqual(l, h)
+
             pixel = im.getpoint(10, 10)
             self.assertAlmostEqual(pixel[3], 42, places = 2)
+
+        # alpha won't be equal for RGB16, but it should be preserved if we go
+        # there and back
+        im = im.colourspace(Vips.Interpretation.RGB16)
+        im = im.colourspace(Vips.Interpretation.LAB)
 
         before = test.getpoint(10, 10)
         after = im.getpoint(10, 10)

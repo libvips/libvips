@@ -13,6 +13,8 @@
  * 	- add 16-bit sRGB import
  * 11/12/12
  * 	- cut about to make sRGB2scRGB.c
+ * 12/2/15
+ * 	- add 16-bit alpha handling
  */
 
 /*
@@ -54,17 +56,28 @@
 
 #include "pcolour.h"
 
-typedef VipsColourCode VipssRGB2scRGB;
-typedef VipsColourCodeClass VipssRGB2scRGBClass;
+/* We can't use VipsColourCode as our parent class. We want to handle
+ * alpha ourselves so we can get 16 -> 8 bit conversion right.
+ */
 
-G_DEFINE_TYPE( VipssRGB2scRGB, vips_sRGB2scRGB, VIPS_TYPE_COLOUR_CODE );
+typedef struct _VipssRGB2scRGB {
+	VipsOperation parent_instance;
+
+	VipsImage *in;
+	VipsImage *out;
+} VipssRGB2scRGB; 
+
+typedef VipsOperationClass VipssRGB2scRGBClass;
+
+G_DEFINE_TYPE( VipssRGB2scRGB, vips_sRGB2scRGB, VIPS_TYPE_OPERATION );
 
 /* Convert a buffer of 8-bit pixels.
  */
 static void
-vips_sRGB2scRGB_line_8( float * restrict q, VipsPel * restrict p, int width )
+vips_sRGB2scRGB_line_8( float * restrict q, VipsPel * restrict p, 
+	int extra_bands, int width )
 {
-	int i;
+	int i, j;
 
 	for( i = 0; i < width; i++ ) {
 		int r = p[0];
@@ -82,6 +95,11 @@ vips_sRGB2scRGB_line_8( float * restrict q, VipsPel * restrict p, int width )
 		q[2] = B;
 
 		q += 3;
+
+		for( j = 0; j < extra_bands; j++ ) 
+			q[j] = p[j];
+		p += extra_bands;
+		q += extra_bands;
 	}
 }
 
@@ -89,9 +107,9 @@ vips_sRGB2scRGB_line_8( float * restrict q, VipsPel * restrict p, int width )
  */
 static void
 vips_sRGB2scRGB_line_16( float * restrict q, unsigned short * restrict p, 
-	int width )
+	int extra_bands, int width )
 {
-	int i;
+	int i, j;
 
 	for( i = 0; i < width; i++ ) {
 		int r = p[0];
@@ -109,34 +127,90 @@ vips_sRGB2scRGB_line_16( float * restrict q, unsigned short * restrict p,
 		q[2] = B;
 
 		q += 3;
+
+		for( j = 0; j < extra_bands; j++ ) 
+			q[j] = p[j] / 256.0; 
+		p += extra_bands;
+		q += extra_bands;
 	}
 }
 
-static void
-vips_sRGB2scRGB_line( VipsColour *colour, 
-	VipsPel *out, VipsPel **in, int width )
+static int
+vips_sRGB2scRGB_gen( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
-	if( colour->in[0]->BandFmt == VIPS_FORMAT_UCHAR )
-		vips_sRGB2scRGB_line_8( (float *) out, 
-			(VipsPel *) in[0], width );
-	else
-		vips_sRGB2scRGB_line_16( (float *) out, 
-			(unsigned short *) in[0], width );
+	VipsRegion *ir = (VipsRegion *) seq;
+	VipsRect *r = &or->valid;
+	VipsImage *in = ir->im;
+
+	int y;
+
+	if( vips_region_prepare( ir, r ) ) 
+		return( -1 );
+
+	VIPS_GATE_START( "vips_sRGB2scRGB_gen: work" ); 
+
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, r->top + y );
+		float *q = (float *) 
+			VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+		if( in->BandFmt == VIPS_FORMAT_UCHAR )
+			vips_sRGB2scRGB_line_8( q, p, 
+				in->Bands - 3, r->width );
+		else
+			vips_sRGB2scRGB_line_16( q, (unsigned short *) p, 
+				in->Bands - 3, r->width );
+	}
+
+	VIPS_GATE_STOP( "vips_sRGB2scRGB_gen: work" ); 
+
+	return( 0 );
 }
 
 static int
 vips_sRGB2scRGB_build( VipsObject *object )
 {
-	VipsColourCode *code = (VipsColourCode *) object;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
+	VipssRGB2scRGB *sRGB2scRGB = (VipssRGB2scRGB *) object;
 
-	if( code->in ) 
-		code->input_format = 
-			code->in->BandFmt == VIPS_FORMAT_USHORT ? 
-			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
+
+	VipsImage *in;
+	VipsImage *out;
+	VipsBandFormat format;
 
 	if( VIPS_OBJECT_CLASS( vips_sRGB2scRGB_parent_class )->
 		build( object ) )
 		return( -1 );
+
+	in = sRGB2scRGB->in;
+	if( vips_check_bands_atleast( class->nickname, in, 3 ) )
+		return( -1 ); 
+
+	format = in->BandFmt == VIPS_FORMAT_USHORT ?
+		VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
+	if( vips_cast( in, &t[0], format, NULL ) )
+		return( -1 );
+	in = t[0];
+
+	out = vips_image_new();
+	if( vips_image_pipelinev( out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) ) {
+		g_object_unref( out );
+		return( -1 );
+	}
+	out->Type = VIPS_INTERPRETATION_scRGB;
+	out->BandFmt = VIPS_FORMAT_FLOAT;
+
+	if( vips_image_generate( out,
+		vips_start_one, vips_sRGB2scRGB_gen, vips_stop_one, 
+		in, sRGB2scRGB ) ) {
+		g_object_unref( out );
+		return( -1 );
+	}
+
+	g_object_set( object, "out", out, NULL ); 
 
 	return( 0 );
 }
@@ -144,34 +218,36 @@ vips_sRGB2scRGB_build( VipsObject *object )
 static void
 vips_sRGB2scRGB_class_init( VipssRGB2scRGBClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "sRGB2scRGB";
 	object_class->description = _( "convert an sRGB image to scRGB" );
 	object_class->build = vips_sRGB2scRGB_build;
 
-	colour_class->process_line = vips_sRGB2scRGB_line;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipssRGB2scRGB, in ) );
+
+	VIPS_ARG_IMAGE( class, "out", 100, 
+		_( "Output" ), 
+		_( "Output image" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipssRGB2scRGB, out ) );
+
 }
 
 static void
 vips_sRGB2scRGB_init( VipssRGB2scRGB *sRGB2scRGB )
 {
-	VipsColour *colour = VIPS_COLOUR( sRGB2scRGB );
-	VipsColourCode *code = VIPS_COLOUR_CODE( sRGB2scRGB );
-
-	colour->coding = VIPS_CODING_NONE;
-	colour->interpretation = VIPS_INTERPRETATION_scRGB;
-	colour->format = VIPS_FORMAT_FLOAT;
-	colour->input_bands = 3;
-	colour->bands = 3;
-
-	code->input_coding = VIPS_CODING_NONE;
-
-	/* The default. This can get changed above ^^ if we see a 
-	 * 16-bit input.
-	 */
-	code->input_format = VIPS_FORMAT_UCHAR;
 }
 
 /**
@@ -180,9 +256,13 @@ vips_sRGB2scRGB_init( VipssRGB2scRGB *sRGB2scRGB )
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert an sRGB image to scRGB.
+ * Convert an sRGB image to scRGB. The input image can be 8 or 16-bit 
+ * unsigned int.
  *
- * See also: vips_scRGB2XYZ(), vips_rad2float().
+ * If the input image is unsigned 16-bit, any extra channels after RGB are 
+ * divided by 256. Thus, scRGB alpha is always 0 - 255.99.
+ *
+ * See also: vips_scRGB2XYZ(), vips_scRGB2sRGB(), vips_rad2float().
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -17,15 +17,6 @@ P8_COMPILE_DIR =
 P8_DIST_DIR = python
 endif
 
-# turn docs on or off
-if ENABLE_DOCS
-D_DIST_DIR = 
-D_BUILD_DIR = doc
-else
-D_DIST_DIR = doc
-D_BUILD_DIR = 
-endif
-
 SUBDIRS = \
 	libvips \
 	libvipsCC \
@@ -36,8 +27,7 @@ SUBDIRS = \
 	doc \
 	test \
 	$(P_COMPILE_DIR) \
-	$(P8_COMPILE_DIR) \
-	$(D_BUILD_DIR) 
+	$(P8_COMPILE_DIR) 
 
 EXTRA_DIST = \
 	m4 \
@@ -51,29 +41,16 @@ EXTRA_DIST = \
 	depcomp \
 	README.md \
 	$(P_DIST_DIR) \
-	$(P8_DIST_DIR) \
-	$(D_DIST_DIR)
+	$(P8_DIST_DIR) 
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = vips.pc vipsCC.pc vips-cpp.pc
-
-if ENABLE_DOCS
-install-exec-hook:
-	-rm -rf ${DESTDIR}$(datadir)/doc/vips
-	$(mkinstalldirs) ${DESTDIR}$(datadir)/doc/vips
-	-cp -r ${top_srcdir}/doc/html ${top_srcdir}/doc/pdf ${DESTDIR}$(datadir)/doc/vips 
-endif
 
 dist-hook:
 # make sure we don't get any .svn dirs from EXTRA_DIST
 # also "fred" gets left around occasionally
 	-find $(distdir) -name .svn -exec rm -rf {} \;
 	-find $(distdir) -name fred -exec rm {} \;
-
-uninstall-hook:
-# make sure we have write permission for 'rm'
-	-chmod -R u+w ${DESTDIR}$(datadir)/doc/vips
-	-rm -rf ${DESTDIR}$(datadir)/doc/vips
 
 ACLOCAL_AMFLAGS = -I m4
 

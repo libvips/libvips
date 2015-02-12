@@ -3,7 +3,7 @@
 - add fliphor(), flipver(), rot90(), rot180(), rot270() convenience methods to
   Python
 - add shift option to cast
-- better alpha handling for 16 <-> 8 bit colour conversions
+- sRGB2scRGB and scRGB2sRGB scale 16-bit alpha to and from 8-bit
 
 6/2/15 started 7.42.3
 - bump version for back-compat ABI change

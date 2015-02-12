@@ -74,7 +74,7 @@ vips_scRGB2RGB16( VipsImage *in, VipsImage **out, ... )
 }
 
 /* Do these two with a simple cast ... since we're just cast shifting, we can
- * short-circuit the extra band processing in vips_colour_build().
+ * short-circuit the extra band processing.
  */
 
 static int
@@ -353,9 +353,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ sRGB, BW, { vips_sRGB2BW, NULL } },
 	{ sRGB, LABS, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, 
 		vips_Lab2LabS, NULL } },
-	{ sRGB, RGB16, { vips_sRGB2scRGB, vips_scRGB2RGB16, NULL } },
-	{ sRGB, GREY16, { vips_sRGB2scRGB, vips_scRGB2RGB16, 
-		vips_RGB162GREY16, NULL } },
+	{ sRGB, RGB16, { vips_sRGB2RGB16, NULL } },
+	{ sRGB, GREY16, { vips_sRGB2RGB16, vips_RGB162GREY16, NULL } },
 	{ sRGB, YXY, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Yxy, NULL } },
 
 	{ RGB16, XYZ, { vips_sRGB2scRGB, vips_scRGB2XYZ, NULL } },
@@ -385,9 +384,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ GREY16, CMC, { vips_GREY162RGB16, vips_sRGB2scRGB, vips_scRGB2XYZ, 
 		vips_XYZ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
 	{ GREY16, scRGB, { vips_GREY162RGB16, vips_sRGB2scRGB, NULL } },
-	{ GREY16, sRGB, { vips_GREY162RGB16, vips_sRGB2scRGB, 
-		vips_scRGB2sRGB, NULL } },
-	{ GREY16, BW, { vips_GREY162RGB16, vips_sRGB2scRGB, vips_scRGB2sRGB, 
+	{ GREY16, sRGB, { vips_GREY162RGB16, vips_RGB162sRGB, NULL } },
+	{ GREY16, BW, { vips_GREY162RGB16, vips_RGB162sRGB, 
 		vips_sRGB2BW, NULL } },
 	{ GREY16, LABS, { vips_GREY162RGB16, vips_sRGB2scRGB, vips_scRGB2XYZ, 
 		vips_XYZ2Lab, vips_Lab2LabS, NULL } },
@@ -408,10 +406,9 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ BW, sRGB, { vips_BW2sRGB, NULL } },
 	{ BW, LABS, { vips_BW2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, 
 		vips_XYZ2Lab, vips_Lab2LabS, NULL } },
-	{ BW, RGB16, { vips_BW2sRGB, vips_sRGB2scRGB, 
-		vips_scRGB2RGB16, NULL } },
-	{ BW, GREY16, { vips_BW2sRGB, vips_sRGB2scRGB, 
-		vips_scRGB2RGB16, vips_RGB162GREY16, NULL } },
+	{ BW, RGB16, { vips_BW2sRGB, vips_sRGB2RGB16, NULL } },
+	{ BW, GREY16, { vips_BW2sRGB, vips_sRGB2RGB16, 
+		vips_RGB162GREY16, NULL } },
 	{ BW, YXY, { vips_BW2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, 
 		vips_XYZ2Yxy, NULL } },
 

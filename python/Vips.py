@@ -908,6 +908,26 @@ class Image(Vips.Image):
         """size x size median filter."""
         return self.rank(size, size, (size * size) / 2)
 
+    def fliphor(self):
+        """Flip horizontally."""
+        return self.flip(Vips.Direction.HORIZONTAL)
+
+    def flipver(self):
+        """Flip vertically."""
+        return self.flip(Vips.Direction.VERTICAL)
+
+    def rot90(self):
+        """Rotate 90 degrees clockwise."""
+        return self.rot(Vips.Angle.D90)
+
+    def rot180(self):
+        """Rotate 180 degrees."""
+        return self.rot(Vips.Angle.D180)
+
+    def rot270(self):
+        """Rotate 270 degrees clockwise."""
+        return self.rot(Vips.Angle.D270)
+
     # we need different imageize rules for this operator ... we need to 
     # imageize th and el to match each other first
     @add_doc(generate_docstring("ifthenelse"))
