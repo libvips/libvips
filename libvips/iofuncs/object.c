@@ -2656,12 +2656,14 @@ test_name( VipsObjectClass *class, const char *nickname )
 }
 
 /**
- * vips_class_find: (skip)
+ * vips_class_find: 
  * @basename: name of base class
  * @nickname: search for a class with this nickname
  *
- * Search below basename, return the first class whose name or nickname
+ * Search below @basename, return the first class whose name or @nickname
  * matches.
+ *
+ * See also: vips_type_find()
  *
  * Returns: the found class.
  */
@@ -2731,6 +2733,21 @@ vips_class_build_hash( void )
 	return( table ); 
 }
 
+/**
+ * vips_type_find:
+ * @basename: name of base class
+ * @nickname: search for a class with this nickname
+ *
+ * Search below @basename, return the %GType of the class whose name or 
+ * @nickname matches, or 0 for not found. 
+ * If @basename is NULL, the whole of #VipsObject is searched.
+ *
+ * This function uses a cache, so it should be quick. 
+ *
+ * See also: vips_class_find()
+ *
+ * Returns: the %GType of the class, or 0 if the class is not found.
+ */
 GType
 vips_type_find( const char *basename, const char *nickname )
 {
@@ -2774,7 +2791,7 @@ vips_type_find( const char *basename, const char *nickname )
  * vips_nickname_find:
  * @type: #GType to search for
  *
- * Return the VIPS nickanme for a %GType. Handy for language bindings. 
+ * Return the VIPS nickname for a %GType. Handy for language bindings. 
  *
  * Returns: (transfer none): the class nickname. 
  */
