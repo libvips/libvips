@@ -146,6 +146,8 @@
  * 	- zero out edge tile buffers before jpeg write, thanks iwbh15
  * 19/1/15
  * 	- disable chroma subsample if Q >= 90
+ * 13/2/15
+ * 	- append later layers, don't copy the base image
  */
 
 /*
@@ -200,6 +202,13 @@
 #include <tiffio.h>
 
 #include "tiff.h"
+
+/* FIXME ... this is not the best way to organise a pyramid builder, dzsave is
+ * much better. 
+ *
+ * Rip out all the PyramidTile stuff and redo dzsave-style. We could scrap the
+ * input cache as well. 
+ */
 
 /* Max no of tiles we buffer in a layer. Enough to buffer a line of 64x64
  * tiles on a 100k pixel across image.
@@ -1538,59 +1547,32 @@ tiff_copy( TiffWrite *tw, TIFF *out, TIFF *in )
 	return( 0 );
 }
 
-/* Append a file to a TIFF file.
- */
-static int
-tiff_append( TiffWrite *tw, TIFF *out, const char *name )
-{
-	TIFF *in;
-
-	if( !(in = tiff_openin( name )) ) 
-		return( -1 );
-
-	if( tiff_copy( tw, out, in ) ) {
-		TIFFClose( in );
-		return( -1 );
-	}
-	TIFFClose( in );
-
-	if( !TIFFWriteDirectory( out ) ) 
-		return( -1 );
-
-	return( 0 );
-}
-
-/* Gather all of the files we wrote into single output file.
+/* Append all of the lower layers we wrote to the output.
  */
 static int
 gather_pyramid( TiffWrite *tw )
 {
 	PyramidLayer *layer;
-	TIFF *out;
+
+	for( layer = tw->layer; layer; layer = layer->below ) {
+		TIFF *in;
 
 #ifdef DEBUG
-	printf( "Starting pyramid gather ...\n" );
+		printf( "Appending layer %s ...\n", layer->lname );
 #endif /*DEBUG*/
 
-	if( !(out = tiff_openout( tw, tw->name )) ) 
-		return( -1 );
+		if( !(in = tiff_openin( layer->lname )) ) 
+			return( -1 );
 
-	if( tiff_append( tw, out, tw->bname ) ) {
-		TIFFClose( out );
-		return( -1 );
-	}
-
-	for( layer = tw->layer; layer; layer = layer->below ) 
-		if( tiff_append( tw, out, layer->lname ) ) {
-			TIFFClose( out );
+		if( tiff_copy( tw, tw->tif, in ) ) {
+			TIFFClose( in );
 			return( -1 );
 		}
+		TIFFClose( in );
 
-	TIFFClose( out );
-
-#ifdef DEBUG
-	printf( "Pyramid built\n" );
-#endif /*DEBUG*/
+		if( !TIFFWriteDirectory( tw->tif ) ) 
+			return( -1 );
+	}
 
 	return( 0 );
 }
@@ -1621,28 +1603,16 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	if( vips_check_coding_known( "vips2tiff", in ) )
 		return( -1 );
 
-	/* Make output image. If this is a pyramid, write the base image to
-	 * tmp/xx.tif rather than fred.tif.
+	/* Make output image. 
 	 */
 	if( !(tw = make_tiff_write( in, filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		resunit, xres, yres, bigtiff, rgbjpeg )) )
 		return( -1 );
-	if( tw->pyramid ) {
-		if( !(tw->bname = vips__temp_name( "%s.tif" )) ||
-			!(tw->tif = tiff_openout( tw, tw->bname )) ) {
-			free_tiff_write( tw );
-			return( -1 );
-		}
-	}
-	else {
-		/* No pyramid ... write straight to name.
-		 */
-		if( !(tw->tif = tiff_openout( tw, tw->name )) ) {
-			free_tiff_write( tw );
-			return( -1 );
-		}
+	if( !(tw->tif = tiff_openout( tw, tw->name )) ) {
+		free_tiff_write( tw );
+		return( -1 );
 	}
 
 	/* Write the TIFF header for the full-res file.
@@ -1651,7 +1621,6 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		free_tiff_write( tw );
 		return( -1 );
 	}
-
 
 	if( tw->tile ) 
 		res = write_tif_tilewise( tw );
@@ -1662,17 +1631,16 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		return( -1 );
 	}
 
-	/* Free pyramid resources ... this will TIFFClose() the intermediates,
+	if( !TIFFWriteDirectory( tw->tif ) ) 
+		return( -1 );
+
+	/* Free pyramid resources ... this will TIFFClose() the smaller layers
 	 * ready for us to read from them again.
 	 */
 	if( tw->layer )
 		free_pyramid( tw->layer );
-	if( tw->tif ) {
-		TIFFClose( tw->tif );
-		tw->tif = NULL;
-	}
 
-	/* Gather layers together into final pyramid file.
+	/* Append smaller layers to the main file.
 	 */
 	if( tw->pyramid && 
 		gather_pyramid( tw ) ) {
