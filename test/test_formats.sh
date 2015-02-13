@@ -133,6 +133,26 @@ test_loader() {
 	echo "ok"
 }
 
+# a format for which we only have a saver (eg. dzsave)
+# just run the operation and check exit status
+test_saver() {
+	oper=$1
+	in=$2
+	suffix=$3
+
+	printf "testing $oper $(basename $in) $suffix ... "
+
+	rm -rf $tmp/savertest*
+	cmd="$vips $oper $in $tmp/savertest$suffix"
+	if !  $cmd ; then
+		echo "error executing:"
+		echo "   $cmd"
+		exit 1
+	fi
+
+	echo "ok"
+}
+
 # test for file format supported
 test_supported() {
 	format=$1
@@ -192,5 +212,9 @@ if test_supported matload; then
 	test_loader $matlab_ref $matlab matlab
 fi
 
-# we have loaders but not savers for other formats, add tests here
+if test_supported dzsave; then
+	test_saver dzsave $image .zip
+	test_saver copy $image .dz
+	test_saver copy $image .dz[container=zip]
+fi
 

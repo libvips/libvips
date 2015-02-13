@@ -4,6 +4,7 @@
 - improvements to configure for python
 - remove --disable-cxx configure flag
 - python imageize preserves interpretation
+- fix dzsave as a target format 
 
 30/12/14 started 7.42.2
 - C++ required output params were broken, thanks Lovell

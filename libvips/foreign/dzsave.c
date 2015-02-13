@@ -1734,12 +1734,12 @@ vips_foreign_save_dz_build( VipsObject *object )
 {
 		GsfOutput *out;
 		GError *error = NULL;
+		char name[VIPS_PATH_MAX];
 
-		/* We can't write to dirname: gsf_outfile_stdio_new() will
-		 * make a dir called @arg1 to hold the things we make.
-		 */
+		vips_snprintf( name, VIPS_PATH_MAX, "%s/%s", 
+			dz->dirname, dz->basename ); 
 		if( !(out = (GsfOutput *) 
-			gsf_outfile_stdio_new( dz->name, &error )) ) {
+			gsf_outfile_stdio_new( name, &error )) ) {
 			vips_g_error( &error );
 			return( -1 );
 		}
@@ -1754,10 +1754,13 @@ vips_foreign_save_dz_build( VipsObject *object )
 		GsfOutput *zip;
 		GsfOutput *out2;
 		GError *error = NULL;
+		char name[VIPS_PATH_MAX];
 
 		/* This is the zip we are building. 
 		 */
-		if( !(out = gsf_output_stdio_new( dz->name, &error )) ) {
+		vips_snprintf( name, VIPS_PATH_MAX, "%s/%s.zip", 
+			dz->dirname, dz->basename ); 
+		if( !(out = gsf_output_stdio_new( name, &error )) ) {
 			vips_g_error( &error );
 			return( -1 );
 		}
