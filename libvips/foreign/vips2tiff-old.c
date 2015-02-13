@@ -203,43 +203,70 @@
 
 #include "tiff.h"
 
-typedef struct pyramid_layer PyramidLayer;
-typedef struct tiff_write TiffWrite;
+/* FIXME ... this is not the best way to organise a pyramid builder, dzsave is
+ * much better. 
+ *
+ * Rip out all the PyramidTile stuff and redo dzsave-style. We could scrap the
+ * input cache as well. 
+ */
+
+/* Max no of tiles we buffer in a layer. Enough to buffer a line of 64x64
+ * tiles on a 100k pixel across image.
+ */
+#define MAX_LAYER_BUFFER (10000)
+
+/* Bits we OR together for quadrants in a tile.
+ */
+typedef enum pyramid_bits {
+	PYR_TL = 1,			/* Top-left etc. */
+	PYR_TR = 2,
+	PYR_BL = 4,
+	PYR_BR = 8,
+	PYR_ALL = 15,
+	PYR_NONE = 0
+} PyramidBits;
+
+/* A tile in our pyramid.
+ */
+typedef struct pyramid_tile {
+	VipsRegion *tile;
+	PyramidBits bits;
+} PyramidTile;
 
 /* A layer in the pyramid.
  */
-struct pyramid_layer {
-	TiffWrite *tw;			/* Main TIFF write struct */
-
+typedef struct pyramid_layer {
+	/* Parameters.
+	 */
+	struct tiff_write *tw;		/* Main TIFF write struct */
 	int width, height;		/* Layer size */
 	int sub;			/* Subsample factor for this layer */
+
 	char *lname;			/* Name of this TIFF file */
 	TIFF *tif;			/* TIFF file we write this layer to */
+	VipsPel *tbuf;			/* TIFF output buffer */
+	PyramidTile tiles[MAX_LAYER_BUFFER];
 
-	/* The image we build. We only keep a few scanlines of this around in
-	 * @strip. 
-	 */
-	VipsImage *image;
-
-	/* The next line we write to in this strip. 
-	 */
-	int write_y;
-
-	VipsRegion *strip;		/* The current strip of pixels */
-	VipsRegion *copy;		/* Pixels we copy to the next strip */
-
-	PyramidLayer *below;		/* The smaller layer below us */
-	PyramidLayer *above;		/* The larger layer above */
-};
+	struct pyramid_layer *below;	/* Tiles go to here */
+	struct pyramid_layer *above;	/* Tiles come from here */
+} PyramidLayer;
 
 /* A TIFF image in the process of being written.
  */
-struct tiff_write {
+typedef struct tiff_write {
 	VipsImage *im;			/* Original input image */
-	char *name;			/* Name we write to */
+	char *name;			/* Final name we write to */
 
-	PyramidLayer *layer;		/* Top of pyramid */
+	/* Read from im with these.
+	 */
+	VipsRegion *reg;
+
+	char *bname;			/* Name for base layer */
+	TIFF *tif;			/* Image we write to */
+
+	PyramidLayer *layer;		/* Top of pyramid, if in use */
 	VipsPel *tbuf;			/* TIFF output buffer */
+	int tls;			/* Tile line size */
 
 	int compression;		/* Compression type */
 	int jpqual;			/* JPEG q-factor */
@@ -254,7 +281,11 @@ struct tiff_write {
 	char *icc_profile;		/* Profile to embed */
 	int bigtiff;			/* True for bigtiff write */
 	int rgbjpeg;			/* True for RGB not YCbCr */
-};
+
+	GMutex *write_lock;		/* Lock TIFF*() calls with this */
+
+	VipsImage *cache; 		/* Cache a chunk of input */
+} TiffWrite;
 
 /* Open TIFF for output.
  */
@@ -474,20 +505,18 @@ embed_xmp( TiffWrite *tw, TIFF *tif )
 }
 
 /* Write a TIFF header. width and height are the size of the VipsImage we are
- * writing (it may have been shrunk).
+ * writing (may have been shrunk!).
  */
 static int
-write_tiff_header( TiffWrite *tw, PyramidLayer *layer )
+write_tiff_header( TiffWrite *tw, TIFF *tif, int width, int height )
 {
-	TIFF *tif = layer->tif;
-
 	uint16 v[1];
 	int format; 
 
 	/* Output base header fields.
 	 */
-	TIFFSetField( tif, TIFFTAG_IMAGEWIDTH, layer->width );
-	TIFFSetField( tif, TIFFTAG_IMAGELENGTH, layer->height );
+	TIFFSetField( tif, TIFFTAG_IMAGEWIDTH, width );
+	TIFFSetField( tif, TIFFTAG_IMAGELENGTH, height );
 	TIFFSetField( tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG );
 	TIFFSetField( tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
 	TIFFSetField( tif, TIFFTAG_COMPRESSION, tw->compression );
@@ -632,12 +661,14 @@ write_tiff_header( TiffWrite *tw, PyramidLayer *layer )
 static void
 free_layer( PyramidLayer *layer )
 {
-	VIPS_FREE( layer->lname );
+	int i;
 
-	VIPS_UNREF( layer->strip );
-	VIPS_UNREF( layer->copy );
-	VIPS_UNREF( layer->image );
+	for( i = 0; i < MAX_LAYER_BUFFER; i++ )
+		VIPS_FREEF( g_object_unref, layer->tiles[i].tile );
 
+	/* And close the TIFF file we are writing to.
+	 */
+	VIPS_FREEF( vips_free, layer->tbuf );
 	VIPS_FREEF( TIFFClose, layer->tif );
 }
 
@@ -652,53 +683,168 @@ free_pyramid( PyramidLayer *layer )
 	free_layer( layer );
 }
 
-static PyramidLayer *
-build_pyramid( TiffWrite *tw, PyramidLayer *above, int width, int height )
+/* Build a pyramid. w & h are size of layer above this layer. Write new layer
+ * struct into *zap, return 0/-1 for success/fail.
+ */
+static int
+build_pyramid( TiffWrite *tw, PyramidLayer *above, 
+	PyramidLayer **zap, int w, int h )
 {
-	PyramidLayer *layer;
+	PyramidLayer *layer = VIPS_NEW( tw->im, PyramidLayer );
 	int i;
 
-	layer = VIPS_NEW( tw->im, PyramidLayer );
+	if( !layer )
+		return( -1 );
 	layer->tw = tw;
-	layer->width = width;
-	layer->height = height; 
+	layer->width = w / 2;
+	layer->height = h / 2;
 
 	if( !above )
 		/* Top of pyramid.
 		 */
-		layer->sub = 1;	
+		layer->sub = 2;	
 	else
 		layer->sub = above->sub * 2;
 
 	layer->lname = NULL;
 	layer->tif = NULL;
-	layer->image = NULL;
-	layer->write_y = 0;
-	layer->strip = NULL;
-	layer->copy = NULL;
+	layer->tbuf = NULL;
+
+	for( i = 0; i < MAX_LAYER_BUFFER; i++ ) {
+		layer->tiles[i].tile = NULL;
+		layer->tiles[i].bits = PYR_NONE;
+	}
 
 	layer->below = NULL;
 	layer->above = above;
 
-	if( tw->pyramid )
-		if( layer->width > tw->tilew || 
-			layer->height > tw->tileh ) 
-			layer->below = build_pyramid( tw, layer, 
-				width / 2, height / 2 );
+	/* Save layer, to make sure it gets freed properly.
+	 */
+	*zap = layer;
 
-	return( layer );
-}
+	if( layer->width > tw->tilew || 
+		layer->height > tw->tileh ) 
+		if( build_pyramid( tw, layer, 
+			&layer->below, layer->width, layer->height ) )
+			return( -1 );
 
 	if( !(layer->lname = vips__temp_name( "%s.tif" )) )
 		return( -1 );
 
+	/* Make output image.
+	 */
 	if( !(layer->tif = tiff_openout( tw, layer->lname )) ) 
 		return( -1 );
 
-	if( write_tiff_header( tw, layer ) )
+	/* Write the TIFF header for this layer.
+	 */
+	if( write_tiff_header( tw, layer->tif, layer->width, layer->height ) )
+		return( -1 );
+
+	if( !(layer->tbuf = vips_malloc( NULL, TIFFTileSize( layer->tif ) )) ) 
 		return( -1 );
 
 	return( 0 );
+}
+
+/* Pick a new tile to write to in this layer. Either reuse a tile we have
+ * previously filled, or make a new one.
+ */
+static int
+find_new_tile( PyramidLayer *layer )
+{
+	int i;
+
+	/* Existing buffer we have finished with? 
+	 */
+	for( i = 0; i < MAX_LAYER_BUFFER; i++ )
+		if( layer->tiles[i].bits == PYR_ALL ) 
+			return( i );
+
+	/* Have to make a new one.
+	 */
+	for( i = 0; i < MAX_LAYER_BUFFER; i++ )
+		if( !layer->tiles[i].tile ) {
+			if( !(layer->tiles[i].tile = 
+				vips_region_new( layer->tw->im )) )
+				return( -1 );
+
+			return( i );
+		}
+
+	/* Out of space!
+	 */
+	vips_error( "vips2tiff", 
+		"%s", _( "layer buffer exhausted -- "
+			"try making TIFF output tiles smaller" ) );
+
+	return( -1 );
+}
+
+/* Find a tile in the layer buffer - if it's not there, make a new one.
+ */
+static int
+find_tile( PyramidLayer *layer, VipsRect *pos )
+{
+	int i;
+	VipsRect quad;
+	VipsRect image;
+	VipsRect inter;
+
+	/* Do we have a VipsRegion for this position?
+	 */
+	for( i = 0; i < MAX_LAYER_BUFFER; i++ ) {
+		VipsRegion *reg = layer->tiles[i].tile;
+
+		if( reg && reg->valid.left == pos->left && 
+			reg->valid.top == pos->top )
+			return( i );
+	}
+
+	/* Make a new one.
+	 */
+	if( (i = find_new_tile( layer )) < 0 )
+		return( -1 );
+	if( vips_region_buffer( layer->tiles[i].tile, pos ) )
+		return( -1 );
+	vips__region_no_ownership( layer->tiles[i].tile );
+	layer->tiles[i].bits = PYR_NONE;
+
+	/* Do any quadrants of this tile fall entirely outside the image? 
+	 * If they do, set their bits now.
+	 */
+	quad.width = layer->tw->tilew / 2;
+	quad.height = layer->tw->tileh / 2;
+	image.left = 0;
+	image.top = 0;
+	image.width = layer->width;
+	image.height = layer->height;
+
+	quad.left = pos->left;
+	quad.top = pos->top;
+	vips_rect_intersectrect( &quad, &image, &inter );
+	if( vips_rect_isempty( &inter ) )
+		layer->tiles[i].bits |= PYR_TL;
+
+	quad.left = pos->left + quad.width;
+	quad.top = pos->top;
+	vips_rect_intersectrect( &quad, &image, &inter );
+	if( vips_rect_isempty( &inter ) )
+		layer->tiles[i].bits |= PYR_TR;
+
+	quad.left = pos->left;
+	quad.top = pos->top + quad.height;
+	vips_rect_intersectrect( &quad, &image, &inter );
+	if( vips_rect_isempty( &inter ) )
+		layer->tiles[i].bits |= PYR_BL;
+
+	quad.left = pos->left + quad.width;
+	quad.top = pos->top + quad.height;
+	vips_rect_intersectrect( &quad, &image, &inter );
+	if( vips_rect_isempty( &inter ) )
+		layer->tiles[i].bits |= PYR_BR;
+
+	return( i );
 }
 
 /* Shrink a region by a factor of two, writing the result to a specified 
@@ -1021,6 +1167,13 @@ write_tif_tilewise( TiffWrite *tw )
 	g_assert( !tw->write_lock );
 	tw->write_lock = vips_g_mutex_new();
 
+	/* Write pyramid too? Only bother if bigger than tile size.
+	 */
+	if( tw->pyramid && 
+		(im->Xsize > tw->tilew || im->Ysize > tw->tileh) &&
+		build_pyramid( tw, NULL, &tw->layer, im->Xsize, im->Ysize ) )
+			return( -1 );
+
 	if( vips_sink_tile( im, tw->tilew, tw->tileh,
 		NULL, write_tif_tile, NULL, tw, NULL ) ) 
 		return( -1 );
@@ -1090,147 +1243,22 @@ write_tif_stripwise( TiffWrite *tw )
 	return( 0 );
 }
 
-
-
-
-
-
-
-/* A new strip has arrived! The strip has enough pixels in to write a line of 
- * tiles. 
- *
- * - write a line of tiles
- * - shrink what we can to the layer below
- * - move our strip down by the tile height
- * - copy the overlap with the previous strip
- */
-static int
-strip_arrived( Layer *layer )
-{
-	VipsForeignSaveDz *dz = layer->dz;
-	VipsRect new_strip;
-	VipsRect overlap;
-
-	if( strip_save( layer ) )
-		return( -1 );
-
-	if( layer->below &&
-		strip_shrink( layer ) )
-		return( -1 );
-
-	/* Position our strip down the image.  
-	 *
-	 * Expand the strip if necessary to make sure we have an even 
-	 * number of lines. 
-	 */
-	layer->y += dz->tile_size;
-	new_strip.left = 0;
-	new_strip.top = layer->y - dz->overlap;
-	new_strip.width = layer->image->Xsize;
-	new_strip.height = dz->tile_size + 2 * dz->overlap;
-	if( (new_strip.height & 1) == 1 )
-		new_strip.height += 1;
-
-	/* We may exactly hit the bottom of the real image (ie. before borders
-	 * have been possibly expanded by 1 pixel). In this case, we'll not 
-	 * be able to do the expansion in layer_generate_extras(), since the 
-	 * region won't be large enough, and we'll not get another chance 
-	 * since this is the bottom. 
-	 *
-	 * Add another scanline if this has happened.
-	 */
-	if( VIPS_RECT_BOTTOM( &new_strip ) == layer->height )
-		new_strip.height = layer->image->Ysize - new_strip.top;
-
-	/* What pixels that we will need do we already have? Save them in 
-	 * overlap.
-	 */
-	vips_rect_intersectrect( &new_strip, &layer->strip->valid, &overlap );
-	if( !vips_rect_isempty( &overlap ) ) {
-		if( vips_region_buffer( layer->copy, &overlap ) )
-			return( -1 );
-		vips_region_copy( layer->strip, layer->copy, 
-			&overlap, overlap.left, overlap.top );
-	}
-
-	if( vips_region_buffer( layer->strip, &new_strip ) )
-		return( -1 );
-
-	/* And copy back again.
-	 */
-	if( !vips_rect_isempty( &overlap ) ) 
-		vips_region_copy( layer->copy, layer->strip, 
-			&overlap, overlap.left, overlap.top );
-
-	return( 0 );
-}
-
-/* Another strip of image pixels from vips_sink_disc(). Write into the top
- * pyramid layer. 
- */
-static int
-write_strip( VipsRegion *region, VipsRect *area, void *a )
-{
-	TiffWrite *tw = (TiffWrite *) a;
-	PyramidLayer *layer = tw->layer; 
-
-#ifdef DEBUG
-	printf( "write_strip: strip at %d, height %d\n", 
-		area->top, area->height );
-#endif/*DEBUG*/
-
-	for(;;) {
-		VipsRect *to = &layer->strip->valid;
-		VipsRect target;
-
-		/* The bit of strip that needs filling.
-		 */
-		target.left = 0;
-		target.top = layer->write_y;
-		target.width = layer->image->Xsize;
-		target.height = to->height;
-		vips_rect_intersectrect( &target, to, &target );
-
-		/* Clip against what we have available.
-		 */
-		vips_rect_intersectrect( &target, area, &target );
-
-		/* Are we empty? All done.
-		 */
-		if( vips_rect_isempty( &target ) ) 
-			break;
-
-		/* And copy those pixels in.
-		 *
-		 * FIXME: If the strip fits inside the region we've just 
-		 * received, we could skip the copy. Will this happen very
-		 * often? Unclear.
-		 */
-		vips_region_copy( region, layer->strip, 
-			&target, target.left, target.top );
-
-		layer->write_y += target.height;
-
-		/* We can either fill the strip, if it's somewhere half-way
-		 * down the image, or, if it's at the bottom, get to the last
-		 * real line of pixels.
-		 */
-		if( layer->write_y == VIPS_RECT_BOTTOM( to ) ||
-			layer->write_y == layer->height ) {
-			if( strip_arrived( layer ) ) 
-				return( -1 );
-		}
-	}
-
-	return( 0 );
-}
-
 /* Delete any temp files we wrote.
  */
 static void
 delete_files( TiffWrite *tw )
 {
 	PyramidLayer *layer;
+
+	if( tw->bname ) {
+#ifndef DEBUG
+		unlink( tw->bname );
+#else
+		printf( "delete_files: leaving %s\n", tw->bname );
+#endif /*DEBUG*/
+
+		tw->bname = NULL;
+	}
 
 	for( layer = tw->layer; layer; layer = layer->below ) 
 		if( layer->lname ) {
@@ -1331,6 +1359,7 @@ make_tiff_write( VipsImage *im, const char *filename,
 		return( NULL );
 	tw->im = im;
 	tw->name = vips_strdup( VIPS_OBJECT( im ), filename );
+	tw->bname = NULL;
 	tw->tif = NULL;
 	tw->layer = NULL;
 	tw->tbuf = NULL;
@@ -1406,9 +1435,20 @@ make_tiff_write( VipsImage *im, const char *filename,
 	else
 		tw->tls = VIPS_IMAGE_SIZEOF_PEL( im ) * tw->tilew;
 
-	/* We always need at least a base layer.
+	/* If we will be writing tiles, we need to cache tileh lines of the
+	 * input, since we say we're sequential.
 	 */
-	tw->layer = build_pyramid( tw, NULL, im->Xsize, im->Ysize );
+	if( tw->tile ) { 
+		if( vips_tilecache( tw->im, &tw->cache,
+			"tile_width", tw->im->Xsize,
+			"tile_height", 1,
+			"max_tiles", 2 * tw->tileh,
+			"threaded", TRUE,
+			NULL ) )
+			return( NULL );
+
+		tw->im = tw->cache;
+	}
 
 	return( tw );
 }
@@ -1550,7 +1590,6 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean rgbjpeg )
 {
 	TiffWrite *tw;
-	PyramidLayer *layer;
 	int res;
 
 #ifdef DEBUG
@@ -1559,6 +1598,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 
 	vips__tiff_init();
 
+	/* Check input image.
+	 */
 	if( vips_check_coding_known( "vips2tiff", in ) )
 		return( -1 );
 
@@ -1569,31 +1610,42 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		tile, tile_width, tile_height, pyramid, squash,
 		resunit, xres, yres, bigtiff, rgbjpeg )) )
 		return( -1 );
-	layer = tw->layer;
-	layer->lname = g_strdup( filename );
-
-	if( !(layer->tif = tiff_openout( tw, layer->lname )) ||
-		write_tiff_header( tw, layer ) ||
-		vips_sink_disc( tw->im, write_strip, tw ) ) {
+	if( !(tw->tif = tiff_openout( tw, tw->name )) ) {
 		free_tiff_write( tw );
 		return( -1 );
 	}
 
-	if( tw->pyramid ) { 
-		if( !TIFFWriteDirectory( layer->tif ) ) 
-			return( -1 );
+	/* Write the TIFF header for the full-res file.
+	 */
+	if( write_tiff_header( tw, tw->tif, in->Xsize, in->Ysize ) ) {
+		free_tiff_write( tw );
+		return( -1 );
+	}
 
-		/* Free lower pyramid resources ... this will TIFFClose() the 
-		 * smaller layers ready for us to read from them again.
-		 */
-		free_pyramid( layer->below );
+	if( tw->tile ) 
+		res = write_tif_tilewise( tw );
+	else
+		res = write_tif_stripwise( tw );
+	if( res ) {
+		free_tiff_write( tw );
+		return( -1 );
+	}
 
-		/* Append smaller layers to the main file.
-		 */
-		if( gather_pyramid( tw ) ) {
-			free_tiff_write( tw );
-			return( -1 );
-		}
+	if( !TIFFWriteDirectory( tw->tif ) ) 
+		return( -1 );
+
+	/* Free pyramid resources ... this will TIFFClose() the smaller layers
+	 * ready for us to read from them again.
+	 */
+	if( tw->layer )
+		free_pyramid( tw->layer );
+
+	/* Append smaller layers to the main file.
+	 */
+	if( tw->pyramid && 
+		gather_pyramid( tw ) ) {
+		free_tiff_write( tw );
+		return( -1 );
 	}
 
 	free_tiff_write( tw );
