@@ -120,7 +120,6 @@ vips_process_n( const char *domain, VipsImage *in, VipsImage **out,
 				NULL ) ||
 			fn( t[0], &t[2], NULL ) ||
 			vips_cast( t[1], &t[3], t[2]->BandFmt, 
-				"shift", TRUE,
 				NULL ) ||
 			vips_bandjoin2( t[2], t[3], out, NULL ) ) {
 			g_object_unref( scope );
