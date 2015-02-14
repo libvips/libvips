@@ -5,6 +5,7 @@
 - add shift option to cast
 - sRGB2scRGB and scRGB2sRGB scale 16-bit alpha to and from 8-bit
 - tiff pyramid writer no longer copies base image
+- added vips_region_shrink(), fast x2 shrinker
 
 6/2/15 started 7.42.3
 - bump version for back-compat ABI change

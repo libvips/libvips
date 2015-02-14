@@ -1104,6 +1104,159 @@ vips_region_copy( VipsRegion *reg, VipsRegion *dest, VipsRect *r, int x, int y )
 	}
 }
 
+/* Generate area @target in @to using pixels in @from. 
+ *
+ * VIPS_CODING_LABQ only.
+ */
+static void
+vips_region_shrink_labpack( VipsRegion *from, VipsRegion *to, VipsRect *target )
+{
+	int ls = VIPS_REGION_LSKIP( from );
+
+	int x, y;
+
+	for( y = 0; y < target->height; y++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( from, 
+			target->left * 2, (target->top + y) * 2 );
+		VipsPel *q = VIPS_REGION_ADDR( to, 
+			target->left, target->top + y );
+
+		/* Ignore the extra bits for speed.
+		 */
+		for( x = 0; x < target->width; x++ ) {
+			signed char *sp = (signed char *) p;
+			unsigned char *up = (unsigned char *) p;
+
+			int l = up[0] + up[4] + 
+				up[ls] + up[ls + 4];
+			int a = sp[1] + sp[5] + 
+				sp[ls + 1] + sp[ls + 5];
+			int b = sp[2] + sp[6] + 
+				sp[ls + 2] + sp[ls + 6];
+
+			q[0] = l >> 2;
+			q[1] = a >> 2;
+			q[2] = b >> 2;
+			q[3] = 0;
+
+			q += 4;
+			p += 8;
+		}
+	}
+}
+
+#define SHRINK_TYPE_INT( TYPE ) \
+	for( x = 0; x < target->width; x++ ) { \
+		TYPE *tp = (TYPE *) p; \
+		TYPE *tp1 = (TYPE *) (p + ls); \
+		TYPE *tq = (TYPE *) q; \
+ 		\
+		for( z = 0; z < nb; z++ ) { \
+			int tot = tp[z] + tp[z + nb] +  \
+				tp1[z] + tp1[z + nb]; \
+			\
+			tq[z] = tot >> 2; \
+		} \
+		\
+		/* Move on two pels in input. \
+		 */ \
+		p += ps << 1; \
+		q += ps; \
+	}
+
+#define SHRINK_TYPE_FLOAT( TYPE )  \
+	for( x = 0; x < target->width; x++ ) { \
+		TYPE *tp = (TYPE *) p; \
+		TYPE *tp1 = (TYPE *) (p + ls); \
+		TYPE *tq = (TYPE *) q; \
+		\
+		for( z = 0; z < nb; z++ ) { \
+			double tot = tp[z] + tp[z + nb] +  \
+				tp1[z] + tp1[z + nb]; \
+			\
+			tq[z] = tot / 4; \
+		} \
+		\
+		/* Move on two pels in input. \
+		 */ \
+		p += ps << 1; \
+		q += ps; \
+	}
+
+/* Generate area @target in @to using pixels in @from. Non-complex.
+ */
+static void
+vips_region_shrink_uncoded( VipsRegion *from, VipsRegion *to, VipsRect *target )
+{
+	int ls = VIPS_REGION_LSKIP( from );
+	int ps = VIPS_IMAGE_SIZEOF_PEL( from->im );
+	int nb = from->im->Bands;
+
+	int x, y, z;
+
+	for( y = 0; y < target->height; y++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( from, 
+			target->left * 2, (target->top + y) * 2 );
+		VipsPel *q = VIPS_REGION_ADDR( to, 
+			target->left, target->top + y );
+
+		/* Process this line of pels.
+		 */
+		switch( from->im->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:	
+			SHRINK_TYPE_INT( unsigned char );  break; 
+		case VIPS_FORMAT_CHAR:	
+			SHRINK_TYPE_INT( signed char );  break; 
+		case VIPS_FORMAT_USHORT:	
+			SHRINK_TYPE_INT( unsigned short );  break; 
+		case VIPS_FORMAT_SHORT:	
+			SHRINK_TYPE_INT( signed short );  break; 
+		case VIPS_FORMAT_UINT:	
+			SHRINK_TYPE_INT( unsigned int );  break; 
+		case VIPS_FORMAT_INT:	
+			SHRINK_TYPE_INT( signed int );  break; 
+		case VIPS_FORMAT_FLOAT:	
+			SHRINK_TYPE_FLOAT( float );  break; 
+		case VIPS_FORMAT_DOUBLE:	
+			SHRINK_TYPE_FLOAT( double );  break; 
+
+		default:
+			g_assert( 0 );
+		}
+	}
+}
+
+/**
+ * vips_region_shrink:
+ * @reg: source region 
+ * @dest: destination region 
+ * @target: #VipsRect of pixels you need to copy
+ *
+ * Write the pixels @target in @to from the x2 larger area in @from.
+ * Non-complex uncoded images and LABQ only.
+ *
+ * See also: vips_region_copy().
+ */
+int
+vips_region_shrink( VipsRegion *from, VipsRegion *to, VipsRect *target )
+{
+	VipsImage *image = from->im;
+
+	if( vips_check_coding_noneorlabq( "vips_region_shrink", image ) )
+		return( -1 );
+
+	if( from->im->Coding == VIPS_CODING_NONE ) {
+		if( vips_check_noncomplex(  "vips_region_shrink", image ) )
+			return( -1 );
+
+		vips_region_shrink_uncoded( from, to, target );
+	}
+	else
+		vips_region_shrink_labpack( from, to, target );
+
+	return( 0 );
+}
+
 /* Generate into a region. 
  */
 static int
