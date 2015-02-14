@@ -435,6 +435,8 @@ int vips_matrixprint( VipsImage *in, ... )
 
 int vips_magickload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_magickload_buffer( void *buf, size_t len, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 /**
  * VipsForeignPngFilter:
