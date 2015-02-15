@@ -226,6 +226,8 @@ static VImage openslideload( char * filename , VOption *options = 0 )
     throw( VError );
 static VImage magickload( char * filename , VOption *options = 0 )
     throw( VError );
+static VImage magickload_buffer( VipsBlob * buffer , VOption *options = 0 )
+    throw( VError );
 static VImage fitsload( char * filename , VOption *options = 0 )
     throw( VError );
 static VImage openexrload( char * filename , VOption *options = 0 )

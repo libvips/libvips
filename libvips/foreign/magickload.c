@@ -175,4 +175,114 @@ vips_foreign_load_magick_init( VipsForeignLoadMagick *magick )
 {
 }
 
+typedef struct _VipsForeignLoadMagickBuffer {
+	VipsForeignLoad parent_object;
+
+	VipsArea *buf;
+	gboolean all_frames;
+	char *density;
+
+} VipsForeignLoadMagickBuffer;
+
+typedef VipsForeignLoadClass VipsForeignLoadMagickBufferClass;
+
+G_DEFINE_TYPE( VipsForeignLoadMagickBuffer, vips_foreign_load_magick_buffer, 
+	VIPS_TYPE_FOREIGN_LOAD );
+
+static gboolean
+vips_foreign_load_magick_buffer_is_a_buffer ( void* buf, size_t len )
+{
+	VipsImage *t;
+	int result;
+
+	t = vips_image_new();
+	vips_error_freeze();
+	result = vips__magick_read_buffer_header( buf, len, t, FALSE, NULL );
+	g_object_unref( t );
+	vips_error_thaw();
+
+	return( result == 0 );
+}
+
+static VipsForeignFlags
+vips_foreign_load_magick_buffer_get_flags( VipsForeignLoad *load )
+{
+	return( VIPS_FOREIGN_PARTIAL );
+}
+
+static int
+vips_foreign_load_magick_buffer_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadMagickBuffer *magick = (VipsForeignLoadMagickBuffer *) load;
+
+	if( vips__magick_read_buffer_header( magick->buf->data, magick->buf->length, 
+		load->out, magick->all_frames, magick->density ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_magick_buffer_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadMagickBuffer *magick = (VipsForeignLoadMagickBuffer *) load;
+
+	if( vips__magick_read_buffer( magick->buf->data, magick->buf->length, 
+		load->real, magick->all_frames, magick->density ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_magick_buffer_class_init( VipsForeignLoadMagickBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "magickload_buffer";
+	object_class->description = _( "load buffer with ImageMagick" );
+
+	/* We need to be well to the back of the queue since the vips's
+	 * dedicated loaders are usually preferable.
+	 */
+	foreign_class->priority = -100;
+
+	load_class->is_a_buffer = vips_foreign_load_magick_buffer_is_a_buffer;
+	load_class->get_flags = vips_foreign_load_magick_buffer_get_flags;
+	load_class->header = vips_foreign_load_magick_buffer_header;
+	load_class->load = vips_foreign_load_magick_buffer_load;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadMagickBuffer, buf ),
+		VIPS_TYPE_BLOB );
+
+	VIPS_ARG_BOOL( class, "all_frames", 3, 
+		_( "all_frames" ), 
+		_( "Read all frames from an image" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadMagickBuffer, all_frames ),
+		FALSE );
+
+	VIPS_ARG_STRING( class, "density", 4,
+		_( "Density" ),
+		_( "Canvas resolution for rendering vector formats like SVG" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadMagickBuffer, density ),
+		NULL );
+}
+
+static void
+vips_foreign_load_magick_buffer_init( VipsForeignLoadMagickBuffer *buffer )
+{
+}
+
 #endif /*HAVE_MAGICK*/

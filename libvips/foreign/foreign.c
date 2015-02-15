@@ -1546,6 +1546,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_raw_get_type( void ); 
 	extern GType vips_foreign_save_raw_fd_get_type( void ); 
 	extern GType vips_foreign_load_magick_get_type( void ); 
+	extern GType vips_foreign_load_magick_buffer_get_type( void ); 
 	extern GType vips_foreign_save_dz_get_type( void ); 
 	extern GType vips_foreign_load_webp_file_get_type( void ); 
 	extern GType vips_foreign_load_webp_buffer_get_type( void ); 
@@ -1610,6 +1611,7 @@ vips_foreign_operation_init( void )
 
 #ifdef HAVE_MAGICK
 	vips_foreign_load_magick_get_type(); 
+	vips_foreign_load_magick_buffer_get_type(); 
 #endif /*HAVE_MAGICK*/
 
 #ifdef HAVE_CFITSIO
@@ -1664,6 +1666,48 @@ vips_magickload( const char *filename, VipsImage **out, ... )
 	va_start( ap, out );
 	result = vips_call_split( "magickload", ap, filename, out );
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_magickload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @all_frames: %gboolean, load all frames in sequence
+ * @density: string, canvas resolution for rendering vector formats like SVG
+ *
+ * Read an image memory block using libMagick into a VIPS image. Exactly as
+ * vips_magickload(), but read from a memory source. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_magickload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_magickload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "magickload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( result );
 }
