@@ -148,6 +148,8 @@
  * 	- disable chroma subsample if Q >= 90
  * 13/2/15
  * 	- append later layers, don't copy the base image
+ * 14/2/15
+ * 	- use the nice dzsave pyramid code
  */
 
 /*
@@ -221,7 +223,11 @@ struct pyramid_layer {
 	 */
 	VipsImage *image;
 
-	/* The next line we write to in this strip. 
+	/* The y position of strip in image.
+	 */
+	int y;
+
+	/* The next line we write to in strip. 
 	 */
 	int write_y;
 
@@ -674,6 +680,7 @@ build_pyramid( TiffWrite *tw, PyramidLayer *above, int width, int height )
 	layer->tif = NULL;
 	layer->image = NULL;
 	layer->write_y = 0;
+	layer->y = 0;
 	layer->strip = NULL;
 	layer->copy = NULL;
 
@@ -699,147 +706,6 @@ build_pyramid( TiffWrite *tw, PyramidLayer *above, int width, int height )
 		return( -1 );
 
 	return( 0 );
-}
-
-/* Shrink a region by a factor of two, writing the result to a specified 
- * offset in another region. VIPS_CODING_LABQ only.
- */
-static void
-shrink_region_labpack( VipsRegion *from, VipsRect *area, 
-	VipsRegion *to, int xoff, int yoff )
-{
-	int ls = VIPS_REGION_LSKIP( from );
-	VipsRect *t = &to->valid;
-
-	int x, y;
-	VipsRect out;
-
-	/* Calculate output size and position.
-	 */
-	out.left = t->left + xoff;
-	out.top = t->top + yoff;
-	out.width = area->width / 2;
-	out.height = area->height / 2;
-
-	/* Shrink ... ignore the extension byte for speed.
-	 */
-	for( y = 0; y < out.height; y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( from, 
-			area->left, area->top + y * 2 );
-		VipsPel *q = VIPS_REGION_ADDR( to, out.left, out.top + y );
-
-		for( x = 0; x < out.width; x++ ) {
-			signed char *sp = (signed char *) p;
-			unsigned char *up = (unsigned char *) p;
-
-			int l = up[0] + up[4] + 
-				up[ls] + up[ls + 4];
-			int a = sp[1] + sp[5] + 
-				sp[ls + 1] + sp[ls + 5];
-			int b = sp[2] + sp[6] + 
-				sp[ls + 2] + sp[ls + 6];
-
-			q[0] = l >> 2;
-			q[1] = a >> 2;
-			q[2] = b >> 2;
-			q[3] = 0;
-
-			q += 4;
-			p += 8;
-		}
-	}
-}
-
-#define SHRINK_TYPE_INT( TYPE ) \
-	for( x = 0; x < out.width; x++ ) { \
-		TYPE *tp = (TYPE *) p; \
-		TYPE *tp1 = (TYPE *) (p + ls); \
-		TYPE *tq = (TYPE *) q; \
- 		\
-		for( z = 0; z < nb; z++ ) { \
-			int tot = tp[z] + tp[z + nb] +  \
-				tp1[z] + tp1[z + nb]; \
-			 \
-			tq[z] = tot >> 2; \
-		} \
-		\
-		/* Move on two pels in input. \
-		 */ \
-		p += ps << 1; \
-		q += ps; \
-	}
-
-#define SHRINK_TYPE_FLOAT( TYPE ) \
-	for( x = 0; x < out.width; x++ ) { \
-		TYPE *tp = (TYPE *) p; \
-		TYPE *tp1 = (TYPE *) (p + ls); \
-		TYPE *tq = (TYPE *) q; \
- 		\
-		for( z = 0; z < nb; z++ ) { \
-			double tot = (double) tp[z] + tp[z + nb] +  \
-				tp1[z] + tp1[z + nb]; \
-			 \
-			tq[z] = tot / 4; \
-		} \
-		\
-		/* Move on two pels in input. \
-		 */ \
-		p += ps << 1; \
-		q += ps; \
-	}
-
-/* Shrink a region by a factor of two, writing the result to a specified 
- * offset in another region. n-band, non-complex.
- */
-static void
-shrink_region( VipsRegion *from, VipsRect *area,
-	VipsRegion *to, int xoff, int yoff )
-{
-	int ls = VIPS_REGION_LSKIP( from );
-	int ps = VIPS_IMAGE_SIZEOF_PEL( from->im );
-	int nb = from->im->Bands;
-	VipsRect *t = &to->valid;
-
-	int x, y, z;
-	VipsRect out;
-
-	/* Calculate output size and position.
-	 */
-	out.left = t->left + xoff;
-	out.top = t->top + yoff;
-	out.width = area->width / 2;
-	out.height = area->height / 2;
-
-	for( y = 0; y < out.height; y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( from, 
-			area->left, area->top + y * 2 );
-		VipsPel *q = VIPS_REGION_ADDR( to, 
-			out.left, out.top + y );
-
-		/* Process this line of pels.
-		 */
-		switch( from->im->BandFmt ) {
-		case VIPS_FORMAT_UCHAR:	
-			SHRINK_TYPE_INT( unsigned char );  break; 
-		case VIPS_FORMAT_CHAR:	
-			SHRINK_TYPE_INT( signed char );  break; 
-		case VIPS_FORMAT_USHORT:	
-			SHRINK_TYPE_INT( unsigned short );  break; 
-		case VIPS_FORMAT_SHORT:	
-			SHRINK_TYPE_INT( signed short );  break; 
-		case VIPS_FORMAT_UINT:	
-			SHRINK_TYPE_INT( unsigned int );  break; 
-		case VIPS_FORMAT_INT:	
-			SHRINK_TYPE_INT( signed int );  break; 
-		case VIPS_FORMAT_FLOAT:	
-			SHRINK_TYPE_FLOAT( float );  break; 
-		case VIPS_FORMAT_DOUBLE:	
-			SHRINK_TYPE_FLOAT( double );  break; 
-
-		default:
-			g_assert( 0 );
-		}
-	}
 }
 
 /* Write a tile from a layer.
@@ -1095,19 +961,95 @@ write_tif_stripwise( TiffWrite *tw )
 
 
 
+static int strip_arrived( Layer *layer );
 
-/* A new strip has arrived! The strip has enough pixels in to write a line of 
- * tiles. 
+/* Shrink what pixels we can from this strip into the layer below. If the
+ * strip below fills, recurse.
+ */
+static int
+strip_shrink( Layer *layer )
+{
+	VipsForeignSaveDz *dz = layer->dz;
+	VipsForeignSave *save = VIPS_FOREIGN_SAVE( dz );
+	Layer *below = layer->below;
+	VipsRegion *from = layer->strip;
+	VipsRegion *to = below->strip;
+
+	VipsRect target;
+	VipsRect source;
+
+	/* We may have an extra column of pixels on the right or
+	 * bottom that need filling: generate them.
+	 */
+	layer_generate_extras( layer );
+
+	/* Our pixels might cross a strip boundary in the layer below, so we
+	 * have to write repeatedly until we run out of pixels.
+	 */
+	for(;;) {
+		/* The pixels the layer below needs.
+		 */
+		target.left = 0;
+		target.top = below->write_y;
+		target.width = below->image->Xsize;
+		target.height = to->valid.height;
+		vips_rect_intersectrect( &target, &to->valid, &target );
+
+		/* Those pixels need this area of this layer. 
+		 */
+		source.left = target.left * 2;
+		source.top = target.top * 2;
+		source.width = target.width * 2;
+		source.height = target.height * 2;
+
+		/* Of which we have these available.
+		 */
+		vips_rect_intersectrect( &source, &from->valid, &source );
+
+		/* So these are the pixels in the layer below we can provide.
+		 */
+		target.left = source.left / 2;
+		target.top = source.top / 2;
+		target.width = source.width / 2;
+		target.height = source.height / 2;
+
+		/* None? All done.
+		 */
+		if( vips_rect_isempty( &target ) ) 
+			break;
+
+		(void) vips_region_shrink( from, to, &target );
+
+		below->write_y += target.height;
+
+		/* If we've filled the strip below, let it know.
+		 * We can either fill the region, if it's somewhere half-way
+		 * down the image, or, if it's at the bottom, get to the last
+		 * real line of pixels.
+		 */
+		if( below->write_y == VIPS_RECT_BOTTOM( &to->valid ) ||
+			below->write_y == below->height ) {
+			if( strip_arrived( below ) )
+				return( -1 );
+		}
+	}
+
+	return( 0 );
+}
+
+/* A new strip has arrived! The strip has at least enough pixels in to 
+ * write a line of tiles or a set of scanlines.  
  *
- * - write a line of tiles
+ * - write a line of tiles / set of scanlines
  * - shrink what we can to the layer below
  * - move our strip down by the tile height
  * - copy the overlap with the previous strip
  */
 static int
-strip_arrived( Layer *layer )
+strip_arrived( PyramidLayer *layer )
 {
-	VipsForeignSaveDz *dz = layer->dz;
+	TiffWrite *tw = layer->tw;
+
 	VipsRect new_strip;
 	VipsRect overlap;
 
@@ -1123,24 +1065,13 @@ strip_arrived( Layer *layer )
 	 * Expand the strip if necessary to make sure we have an even 
 	 * number of lines. 
 	 */
-	layer->y += dz->tile_size;
+	layer->y += tw->tileh;
 	new_strip.left = 0;
-	new_strip.top = layer->y - dz->overlap;
+	new_strip.top = layer->y;
 	new_strip.width = layer->image->Xsize;
-	new_strip.height = dz->tile_size + 2 * dz->overlap;
+	new_strip.height = tw->tileh;
 	if( (new_strip.height & 1) == 1 )
 		new_strip.height += 1;
-
-	/* We may exactly hit the bottom of the real image (ie. before borders
-	 * have been possibly expanded by 1 pixel). In this case, we'll not 
-	 * be able to do the expansion in layer_generate_extras(), since the 
-	 * region won't be large enough, and we'll not get another chance 
-	 * since this is the bottom. 
-	 *
-	 * Add another scanline if this has happened.
-	 */
-	if( VIPS_RECT_BOTTOM( &new_strip ) == layer->height )
-		new_strip.height = layer->image->Ysize - new_strip.top;
 
 	/* What pixels that we will need do we already have? Save them in 
 	 * overlap.

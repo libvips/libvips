@@ -114,6 +114,7 @@ void vips_region_paint_pel( VipsRegion *reg, VipsRect *r, VipsPel *ink );
 void vips_region_black( VipsRegion *reg );
 void vips_region_copy( VipsRegion *reg, VipsRegion *dest, 
 	VipsRect *r, int x, int y );
+int vips_region_shrink( VipsRegion *from, VipsRegion *to, VipsRect *target );
 
 int vips_region_prepare( VipsRegion *reg, VipsRect *r );
 int vips_region_prepare_to( VipsRegion *reg, 
