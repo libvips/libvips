@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# this has now been mostly superceeded by test_foreign.py ... keep this around
+# as a test of the command-line interface
+
 # set -x
 
 . ./variables.sh
