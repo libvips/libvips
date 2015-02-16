@@ -42,6 +42,8 @@
  * 	- add @all_frames option, off by default
  * 4/12/14 Lovell
  * 	- add @density option 
+ * 16/2/15 mcuelenaere
+ * 	- add blob read
  */
 
 /*
@@ -176,9 +178,9 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames,
 	if( !read->image_info ) 
 		return( NULL );
 
-	if (filename) {
-		vips_strncpy( read->image_info->filename, filename, MaxTextExtent );
-	}
+	if( filename ) 
+		vips_strncpy( read->image_info->filename, 
+			filename, MaxTextExtent );
 
 	/* Canvas resolution for rendering vector formats like SVG.
 	 */
@@ -770,7 +772,8 @@ vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
 	printf( "magick2vips: calling BlobToImage() ...\n" );
 #endif /*DEBUG*/
 
-	read->image = BlobToImage( read->image_info, buf, len, &read->exception );
+	read->image = BlobToImage( read->image_info, 
+		buf, len, &read->exception );
 	if( !read->image ) {
 		vips_error( "magick2vips", _( "unable to read buffer\n"
 			"libMagick error: %s %s" ),
@@ -815,7 +818,8 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 	if( parse_header( read ) ) 
 		return( -1 );
 
-	if( im->Xsize <= 0 || im->Ysize <= 0 ) {
+	if( im->Xsize <= 0 || 
+		im->Ysize <= 0 ) {
 		vips_error( "magick2vips", "%s", _( "bad image size" ) );
 		return( -1 );
 	}

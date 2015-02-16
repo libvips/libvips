@@ -1674,7 +1674,7 @@ vips_magickload( const char *filename, VipsImage **out, ... )
  * vips_magickload_buffer:
  * @buf: memory area to load
  * @len: size of memory area
- * @out: decompressed image
+ * @out: image to write
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
