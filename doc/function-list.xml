@@ -642,6 +642,11 @@
   <entry>vips_magickload()</entry>
 </row>
 <row>
+  <entry>magickload_buffer</entry>
+  <entry>load image from buffer with ImageMagick</entry>
+  <entry>vips_magickload_buffer()</entry>
+</row>
+<row>
   <entry>fitsload</entry>
   <entry>load a FITS image</entry>
   <entry>vips_fitsload()</entry>

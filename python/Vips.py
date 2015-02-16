@@ -993,6 +993,7 @@ class_methods = [
                     "tiffload_buffer",
                     "openslideload",
                     "magickload",
+                    "magickload_buffer",
                     "fitsload",
                     "openexrload"]
 
