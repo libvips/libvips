@@ -1567,6 +1567,19 @@ VImage VImage::magickload( char * filename , VOption *options )
     return( out );
 }
 
+VImage VImage::magickload_buffer( VipsBlob * buffer , VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "magickload_buffer" ,
+        (options ? options : VImage::option()) ->
+            set( "buffer", buffer ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
 VImage VImage::fitsload( char * filename , VOption *options )
     throw( VError )
 {

@@ -14,6 +14,7 @@ EXTRA_DIST = \
 	test_conversion.py \
 	test_convolution.py \
 	test_create.py \
+	test_foreign.py \
 	test_draw.py \
 	test_histogram.py \
 	test_morphology.py \

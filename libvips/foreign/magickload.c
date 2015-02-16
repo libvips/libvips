@@ -59,7 +59,6 @@
 typedef struct _VipsForeignLoadMagick {
 	VipsForeignLoad parent_object;
 
-	char *filename; 
 	gboolean all_frames;
 	char *density;
 
@@ -67,23 +66,8 @@ typedef struct _VipsForeignLoadMagick {
 
 typedef VipsForeignLoadClass VipsForeignLoadMagickClass;
 
-G_DEFINE_TYPE( VipsForeignLoadMagick, vips_foreign_load_magick, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadMagick, vips_foreign_load_magick, 
 	VIPS_TYPE_FOREIGN_LOAD );
-
-static gboolean
-ismagick( const char *filename )
-{
-	VipsImage *t;
-	int result;
-
-	t = vips_image_new();
-	vips_error_freeze();
-	result = vips__magick_read_header( filename, t, FALSE, NULL );
-	g_object_unref( t );
-	vips_error_thaw();
-
-	return( result == 0 );
-}
 
 static VipsForeignFlags
 vips_foreign_load_magick_get_flags_filename( const char *filename )
@@ -94,32 +78,7 @@ vips_foreign_load_magick_get_flags_filename( const char *filename )
 static VipsForeignFlags
 vips_foreign_load_magick_get_flags( VipsForeignLoad *load )
 {
-	VipsForeignLoadMagick *magick = (VipsForeignLoadMagick *) load;
-
-	return( vips_foreign_load_magick_get_flags_filename( 
-		magick->filename ) );
-}
-
-/*
- * Unfortunately, libMagick does not support header-only reads very well. See
- *
- * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=20017
- *
- * Test especially with BMP, GIF, TGA. So we are forced to read the entire 
- * image in the @header() method.
- */
-static int
-vips_foreign_load_magick_header( VipsForeignLoad *load )
-{
-	VipsForeignLoadMagick *magick = (VipsForeignLoadMagick *) load;
-
-	if( vips__magick_read( magick->filename, 
-		load->out, magick->all_frames, magick->density ) )
-		return( -1 );
-
-	VIPS_SETSTR( load->out->filename, magick->filename );
-
-	return( 0 );
+	return( VIPS_FOREIGN_PARTIAL );
 }
 
 static void
@@ -133,27 +92,17 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "magickload";
-	object_class->description = _( "load file with ImageMagick" );
+	object_class->nickname = "magickload_base";
+	object_class->description = _( "load with ImageMagick" );
 
-	/* We need to be well to the back of the queue since the vips's
+	/* We need to be well to the back of the queue since vips's
 	 * dedicated loaders are usually preferable.
 	 */
 	foreign_class->priority = -100;
 
-	load_class->is_a = ismagick;
 	load_class->get_flags_filename = 
 		vips_foreign_load_magick_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_magick_get_flags;
-	load_class->header = vips_foreign_load_magick_header;
-	load_class->load = NULL;
-
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadMagick, filename ),
-		NULL );
 
 	VIPS_ARG_BOOL( class, "all_frames", 3, 
 		_( "all_frames" ), 
@@ -172,6 +121,169 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 
 static void
 vips_foreign_load_magick_init( VipsForeignLoadMagick *magick )
+{
+}
+
+typedef struct _VipsForeignLoadMagickFile {
+	VipsForeignLoadMagick parent_object;
+
+	char *filename; 
+
+} VipsForeignLoadMagickFile;
+
+typedef VipsForeignLoadMagickClass VipsForeignLoadMagickFileClass;
+
+G_DEFINE_TYPE( VipsForeignLoadMagickFile, vips_foreign_load_magick_file, 
+	vips_foreign_load_magick_get_type() );
+
+static gboolean
+ismagick( const char *filename )
+{
+	VipsImage *t;
+	int result;
+
+	t = vips_image_new();
+	vips_error_freeze();
+	result = vips__magick_read_header( filename, t, FALSE, NULL );
+	g_object_unref( t );
+	vips_error_thaw();
+
+	return( result == 0 );
+}
+
+/* Unfortunately, libMagick does not support header-only reads very well. See
+ *
+ * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=20017
+ *
+ * Test especially with BMP, GIF, TGA. So we are forced to read the entire 
+ * image in the @header() method.
+ */
+static int
+vips_foreign_load_magick_file_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadMagick *magick = (VipsForeignLoadMagick *) load;
+	VipsForeignLoadMagickFile *magick_file = 
+		(VipsForeignLoadMagickFile *) load;
+
+	if( vips__magick_read( magick_file->filename, 
+		load->out, magick->all_frames, magick->density ) )
+		return( -1 );
+
+	VIPS_SETSTR( load->out->filename, magick_file->filename );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_magick_file_class_init( 
+	VipsForeignLoadMagickFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "magickload";
+	object_class->description = _( "load file with ImageMagick" );
+
+	load_class->is_a = ismagick;
+	load_class->header = vips_foreign_load_magick_file_header;
+	load_class->load = NULL;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadMagickFile, filename ),
+		NULL );
+
+}
+
+static void
+vips_foreign_load_magick_file_init( VipsForeignLoadMagickFile *magick_file )
+{
+}
+
+typedef struct _VipsForeignLoadMagickBuffer {
+	VipsForeignLoadMagick parent_object;
+
+	VipsArea *buf;
+
+} VipsForeignLoadMagickBuffer;
+
+typedef VipsForeignLoadMagickClass VipsForeignLoadMagickBufferClass;
+
+G_DEFINE_TYPE( VipsForeignLoadMagickBuffer, vips_foreign_load_magick_buffer, 
+	vips_foreign_load_magick_get_type() );
+
+static gboolean
+vips_foreign_load_magick_buffer_is_a_buffer ( void* buf, size_t len )
+{
+	VipsImage *t;
+	int result;
+
+	t = vips_image_new();
+	vips_error_freeze();
+	result = vips__magick_read_buffer_header( buf, len, t, FALSE, NULL );
+	g_object_unref( t );
+	vips_error_thaw();
+
+	return( result == 0 );
+}
+
+/* Unfortunately, libMagick does not support header-only reads very well. See
+ *
+ * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=20017
+ *
+ * Test especially with BMP, GIF, TGA. So we are forced to read the entire 
+ * image in the @header() method.
+ */
+static int
+vips_foreign_load_magick_buffer_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadMagick *magick = (VipsForeignLoadMagick *) load;
+	VipsForeignLoadMagickBuffer *magick_buffer = 
+		(VipsForeignLoadMagickBuffer *) load;
+
+	if( vips__magick_read_buffer( 
+		magick_buffer->buf->data, magick_buffer->buf->length, 
+		load->out, magick->all_frames, magick->density ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_magick_buffer_class_init( 
+	VipsForeignLoadMagickBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "magickload_buffer";
+	object_class->description = _( "load buffer with ImageMagick" );
+
+	load_class->is_a_buffer = vips_foreign_load_magick_buffer_is_a_buffer;
+	load_class->header = vips_foreign_load_magick_buffer_header;
+	load_class->load = NULL;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadMagickBuffer, buf ),
+		VIPS_TYPE_BLOB );
+
+}
+
+static void
+vips_foreign_load_magick_buffer_init( VipsForeignLoadMagickBuffer *buffer )
 {
 }
 

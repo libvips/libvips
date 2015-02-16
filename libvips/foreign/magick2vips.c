@@ -42,6 +42,8 @@
  * 	- add @all_frames option, off by default
  * 4/12/14 Lovell
  * 	- add @density option 
+ * 16/2/15 mcuelenaere
+ * 	- add blob read
  */
 
 /*
@@ -160,7 +162,7 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames,
 
 	if( !(read = VIPS_NEW( im, Read )) )
 		return( NULL );
-	read->filename = g_strdup( filename );
+	read->filename = filename ? g_strdup( filename ) : NULL;
 	read->all_frames = all_frames;
 	read->im = im;
 	read->image = NULL;
@@ -176,7 +178,9 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames,
 	if( !read->image_info ) 
 		return( NULL );
 
-	vips_strncpy( read->image_info->filename, filename, MaxTextExtent );
+	if( filename ) 
+		vips_strncpy( read->image_info->filename, 
+			filename, MaxTextExtent );
 
 	/* Canvas resolution for rendering vector formats like SVG.
 	 */
@@ -733,6 +737,89 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 		return( -1 );
 
 	if( im->Xsize <= 0 || im->Ysize <= 0 ) {
+		vips_error( "magick2vips", "%s", _( "bad image size" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
+	gboolean all_frames, const char *density )
+{
+	Read *read;
+
+#ifdef DEBUG
+	printf( "magick2vips: vips__magick_read_buffer: %p %zu\n", buf, len );
+#endif /*DEBUG*/
+
+	if( !(read = read_new( NULL, out, all_frames, density )) )
+		return( -1 );
+
+#ifdef HAVE_SETIMAGEOPTION
+	/* When reading DICOM images, we want to ignore any
+	 * window_center/_width setting, since it may put pixels outside the
+	 * 0-65535 range and lose data. 
+	 *
+	 * These window settings are attached as vips metadata, so our caller
+	 * can interpret them if it wants.
+	 */
+  	SetImageOption( read->image_info, "dcm:display-range", "reset" );
+#endif /*HAVE_SETIMAGEOPTION*/
+
+#ifdef DEBUG
+	printf( "magick2vips: calling BlobToImage() ...\n" );
+#endif /*DEBUG*/
+
+	read->image = BlobToImage( read->image_info, 
+		buf, len, &read->exception );
+	if( !read->image ) {
+		vips_error( "magick2vips", _( "unable to read buffer\n"
+			"libMagick error: %s %s" ),
+			read->exception.reason, read->exception.description );
+		return( -1 );
+	}
+
+	if( parse_header( read ) )
+		return( -1 );
+	if( vips_image_generate( out, 
+		NULL, magick_fill_region, NULL, read, NULL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+int
+vips__magick_read_buffer_header( const void *buf, const size_t len,
+	VipsImage *im, gboolean all_frames, const char *density )
+{
+	Read *read;
+
+#ifdef DEBUG
+	printf( "vips__magick_read_buffer_header: %p %zu\n", buf, len );
+#endif /*DEBUG*/
+
+	if( !(read = read_new( NULL, im, all_frames, density )) )
+		return( -1 );
+
+#ifdef DEBUG
+	printf( "vips__magick_read_buffer_header: pinging blob ...\n" );
+#endif /*DEBUG*/
+
+	read->image = PingBlob( read->image_info, buf, len, &read->exception );
+	if( !read->image ) {
+		vips_error( "magick2vips", _( "unable to ping blob\n"
+			"libMagick error: %s %s" ),
+			read->exception.reason, read->exception.description );
+		return( -1 );
+	}
+
+	if( parse_header( read ) ) 
+		return( -1 );
+
+	if( im->Xsize <= 0 || 
+		im->Ysize <= 0 ) {
 		vips_error( "magick2vips", "%s", _( "bad image size" ) );
 		return( -1 );
 	}
