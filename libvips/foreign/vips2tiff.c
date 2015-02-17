@@ -148,8 +148,8 @@
  * 	- disable chroma subsample if Q >= 90
  * 13/2/15
  * 	- append later layers, don't copy the base image
- * 14/2/15
  * 	- use the nice dzsave pyramid code, much faster and simpler
+ * 	- we now allow strip pyramids
  */
 
 /*
@@ -785,13 +785,6 @@ write_new( VipsImage *im, const char *filename,
 		vips_error( "vips2tiff", 
 			"%s", _( "tile size not a multiple of 16" ) );
 		return( NULL );
-	}
-
-	if( !write->tile && write->pyramid ) {
-		vips_warn( "vips2tiff", 
-			"%s", _( "can't have strip pyramid -- "
-			"enabling tiling" ) );
-		write->tile = 1;
 	}
 
 	/* We can only pyramid LABQ and non-complex images. 

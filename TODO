@@ -1,11 +1,4 @@
-
-
-
-- tiff pyramid builder:
-
-	- only write level 0 once ... append levels 1 and up afterwards
-
-	- try to copy levels 1 and up without decompress / recompress
+- add more tests for the tiff writer
 
 
 
