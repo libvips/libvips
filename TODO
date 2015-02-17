@@ -1,5 +1,3 @@
-- add more tests for the tiff writer
-
 - rerun vips-bench .. have we changed the timing there at all?
 
 
