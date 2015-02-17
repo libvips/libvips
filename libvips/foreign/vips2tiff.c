@@ -149,7 +149,7 @@
  * 13/2/15
  * 	- append later layers, don't copy the base image
  * 14/2/15
- * 	- use the nice dzsave pyramid code
+ * 	- use the nice dzsave pyramid code, much faster and simpler
  */
 
 /*
@@ -242,10 +242,11 @@ struct _Layer {
  */
 struct _Write {
 	VipsImage *im;			/* Original input image */
-	char *name;			/* Name we write to */
+	char *filename;			/* Name we write to */
 
 	Layer *layer;			/* Top of pyramid */
 	VipsPel *tbuf;			/* TIFF output buffer */
+	int tls;			/* Tile line size */
 
 	int compression;		/* Compression type */
 	int jpqual;			/* JPEG q-factor */
@@ -347,8 +348,8 @@ pyramid_new( Write *write, Layer *above, int width, int height )
 	 * alive until after write_gather().
 	 */
 	if( !above ) 
-		layer->lname = 
-			vips_strdup( VIPS_OBJECT( write->im ), write->name );
+		layer->lname = vips_strdup( VIPS_OBJECT( write->im ), 
+			write->filename );
 	else {
 		char *lname;
 
@@ -567,7 +568,7 @@ write_tiff_header( Write *write, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_TILELENGTH, write->tileh );
 	}
 	else
-		TIFFSetField( tif, TIFFTAG_ROWSPERSTRIP, 16 );
+		TIFFSetField( tif, TIFFTAG_ROWSPERSTRIP, write->tileh );
 
 	if( layer->above ) 
 		/* Pyramid layer.
@@ -602,7 +603,7 @@ pyramid_fill( Write *write )
 
 		layer->image = vips_image_new();
 		if( vips_image_pipelinev( layer->image, 
-			VIPS_DEMAND_STYLE_ANY, write->in, NULL ) ) 
+			VIPS_DEMAND_STYLE_ANY, write->im, NULL ) ) 
 			return( -1 );
 		layer->image->Xsize = layer->width;
 		layer->image->Ysize = layer->height;
@@ -756,13 +757,11 @@ write_new( VipsImage *im, const char *filename,
 	gboolean rgbjpeg )
 {
 	Write *write;
-	Layer *layer;
 
 	if( !(write = VIPS_NEW( im, Write )) )
 		return( NULL );
 	write->im = im;
-	write->name = vips_strdup( VIPS_OBJECT( im ), filename );
-	write->tif = NULL;
+	write->filename = vips_strdup( VIPS_OBJECT( im ), filename );
 	write->layer = NULL;
 	write->tbuf = NULL;
 	write->compression = get_compression( compression );
@@ -776,7 +775,6 @@ write_new( VipsImage *im, const char *filename,
 	write->icc_profile = profile;
 	write->bigtiff = bigtiff;
 	write->rgbjpeg = rgbjpeg;
-	write->cache = NULL;
 
 	write->resunit = get_resunit( resunit );
 	write->xres = xres;
@@ -836,13 +834,24 @@ write_new( VipsImage *im, const char *filename,
 	else
 		write->tls = VIPS_IMAGE_SIZEOF_PEL( im ) * write->tilew;
 
-	/* We always need at least a base layer.
+	/* Build the pyramid framework.
 	 */
 	write->layer = pyramid_new( write, NULL, im->Xsize, im->Ysize );
 
-	/* Build all the layer images.
+	/* Fill all the layers.
 	 */
 	if( pyramid_fill( write ) ) {
+		write_free( write );
+		return( NULL );
+	}
+
+	if( tile ) 
+		write->tbuf = vips_malloc( NULL, 
+			TIFFTileSize( write->layer->tif ) );
+	else
+		write->tbuf = vips_malloc( NULL, 
+			TIFFScanlineSize( write->layer->tif ) );
+	if( !write->tbuf ) {
 		write_free( write );
 		return( NULL );
 	}
@@ -916,10 +925,11 @@ LabS2Lab16( VipsPel *q, VipsPel *p, int n )
         }
 }
 
-/* Pack a VIPS region into a TIFF tile buffer.
+/* Pack the pixels in @area from @in into a TIFF tile buffer.
  */
 static void
-pack2tiff( Write *write, VipsRegion *in, VipsPel *q, VipsRect *area )
+pack2tiff( Write *write, Layer *layer, 
+	VipsRegion *in, VipsRect *area, VipsPel *q )
 {
 	int y;
 
@@ -933,21 +943,22 @@ pack2tiff( Write *write, VipsRegion *in, VipsPel *q, VipsRect *area )
 	if( write->compression == COMPRESSION_JPEG &&
 		(area->width < write->tilew || 
 		 area->height < write->tileh) )
-		memset( q, 0, TIFFTileSize( write->tif ) );
+		memset( q, 0, TIFFTileSize( layer->tif ) );
 
 	for( y = area->top; y < VIPS_RECT_BOTTOM( area ); y++ ) {
 		VipsPel *p = (VipsPel *) VIPS_REGION_ADDR( in, area->left, y );
 
-		if( in->im->Coding == VIPS_CODING_LABQ )
+		if( write->im->Coding == VIPS_CODING_LABQ )
 			LabQ2LabC( q, p, area->width );
 		else if( write->onebit ) 
 			eightbit2onebit( q, p, area->width );
-		else if( in->im->BandFmt == VIPS_FORMAT_SHORT &&
-			in->im->Type == VIPS_INTERPRETATION_LABS )
+		else if( write->im->BandFmt == VIPS_FORMAT_SHORT &&
+			write->im->Type == VIPS_INTERPRETATION_LABS )
 			LabS2Lab16( q, p, area->width );
 		else
 			memcpy( q, p, 
-				area->width * VIPS_IMAGE_SIZEOF_PEL( in->im ) );
+				area->width * 
+				 VIPS_IMAGE_SIZEOF_PEL( write->im ) );
 
 		q += write->tls;
 	}
@@ -956,23 +967,42 @@ pack2tiff( Write *write, VipsRegion *in, VipsPel *q, VipsRect *area )
 /* Write a set of tiles across the strip.
  */
 static int
-layer_write_tile( Layer *layer, VipsRegion *strip )
+layer_write_tile( Write *write, Layer *layer, VipsRegion *strip )
 {
+	VipsImage *im = layer->image;
+	VipsRect *area = &strip->valid;
+
+	VipsRect image;
 	int x;
 
+	image.left = 0;
+	image.top = 0;
+	image.width = im->Xsize;
+	image.height = im->Ysize;
+
 	for( x = 0; x < im->Xsize; x += write->tilew ) {
+		VipsRect tile;
+
+		tile.left = x;
+		tile.top = area->top;
+		tile.width = write->tilew;
+		tile.height = write->tileh;
+		vips_rect_intersectrect( &tile, &image, &tile );
+
 		/* Have to repack pixels.
 		 */
-		pack2tiff( write, reg, tbuf, area );
+		pack2tiff( write, layer, strip, &tile, write->tbuf );
 
 #ifdef DEBUG_VERBOSE
-		printf( "Writing %dx%d pixels at position %dx%d to image %s\n",
-			write->tilew, write->tileh, area->left, area->top,
-			TIFFFileName( tif ) );
+		printf( "Writing %dx%d tile at position %dx%d to image %s\n",
+			tile.width, tile.height, tile.left, tile.top,
+			TIFFFileName( layer->tif ) );
 #endif /*DEBUG_VERBOSE*/
 
-		if( TIFFWriteTile( tif, tbuf, area->left, area->top, 0, 0 ) < 0 ) {
-			vips_error( "vips2tiff", "%s", _( "TIFF write tile failed" ) );
+		if( TIFFWriteTile( layer->tif, write->tbuf, 
+			tile.left, tile.top, 0, 0 ) < 0 ) {
+			vips_error( "vips2tiff", 
+				"%s", _( "TIFF write tile failed" ) );
 			return( -1 );
 		}
 	}
@@ -983,13 +1013,18 @@ layer_write_tile( Layer *layer, VipsRegion *strip )
 /* Write tileh scanlines, less for the last strip.
  */
 static int
-layer_write_strip( Layer *layer, VipsRegion *strip )
+layer_write_strip( Write *write, Layer *layer, VipsRegion *strip )
 {
-	VipsImage *im = write->im;
+	VipsImage *im = layer->image;
 	VipsRect *area = &strip->valid;
 	int height = VIPS_MIN( write->tileh, area->height ); 
 
 	int y;
+
+#ifdef DEBUG_VERBOSE
+	printf( "Writing %d pixel strip at height %d to image %s\n",
+		height, area->top, TIFFFileName( layer->tif ) );
+#endif /*DEBUG_VERBOSE*/
 
 	for( y = 0; y < height; y++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( strip, 0, area->top + y );
@@ -1010,7 +1045,7 @@ layer_write_strip( Layer *layer, VipsRegion *strip )
 			p = write->tbuf;
 		}
 
-		if( TIFFWriteScanline( write->tif, p, area->top + y, 0 ) < 0 ) 
+		if( TIFFWriteScanline( layer->tif, p, area->top + y, 0 ) < 0 ) 
 			return( -1 );
 	}
 
@@ -1025,7 +1060,6 @@ static int layer_strip_arrived( Layer *layer );
 static int
 layer_strip_shrink( Layer *layer )
 {
-	Write *write = layer->write; 
 	Layer *below = layer->below;
 	VipsRegion *from = layer->strip;
 	VipsRegion *to = below->strip;
@@ -1100,13 +1134,16 @@ layer_strip_arrived( Layer *layer )
 {
 	Write *write = layer->write;
 
+	int result;
 	VipsRect new_strip;
 	VipsRect overlap;
 
 	if( write->tile ) 
-		res = layer_write_tile( layer, layer->strip );
+		result = layer_write_tile( write, layer, layer->strip );
 	else
-		res = layer_write_strip( layer, layer->strip );
+		result = layer_write_strip( write, layer, layer->strip );
+	if( result )
+		return( -1 );
 
 	if( layer->below &&
 		layer_strip_shrink( layer ) )
