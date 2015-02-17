@@ -3,6 +3,7 @@
 from __future__ import division
 import unittest
 import math
+import os
 
 #import logging
 #logging.basicConfig(level = logging.DEBUG)
@@ -75,6 +76,20 @@ class TestForeign(unittest.TestCase):
         max_diff = (im - x).abs().max()
         self.assertEqual(max_diff, 0)
 
+    def save_load_file(self, filename, options, im, thresh):
+        # yuk! 
+        # but we can't set format parameters for Vips.Image.new_temp_file()
+        im.write_to_file(filename + options)
+        x = Vips.Image.new_from_file(filename)
+
+        self.assertEqual(im.width, x.width)
+        self.assertEqual(im.height, x.height)
+        self.assertEqual(im.bands, x.bands)
+        max_diff = (im - x).abs().max()
+        self.assertTrue(max_diff <= thresh)
+        x = None
+        os.unlink(filename)
+
     def test_jpeg(self):
         if not Vips.type_find("VipsForeign", "jpegload"):
             print("no jpeg support in this vips, skipping test")
@@ -128,6 +143,15 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.tif", self.mono)
         self.save_load("%s.tif", self.colour)
         self.save_load("%s.tif", self.cmyk)
+
+        self.save_load_file("test.tif", "[tile]", self.colour, 0)
+        self.save_load_file("test.tif", "[tile,pyramid]", self.colour, 0)
+        self.save_load_file("test.tif", 
+                            "[tile,pyramid,compression=jpeg]", self.colour, 0)
+        self.save_load_file("test.tif", "[bigtiff]", self.colour, 0)
+        self.save_load_file("test.tif", "[compression=jpeg]", self.colour, 10)
+        self.save_load_file("test.tif", 
+                            "[tile,tile-width=256]", self.colour, 10)
 
     def test_magickload(self):
         if not Vips.type_find("VipsForeign", "magickload"):
