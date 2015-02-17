@@ -234,8 +234,8 @@ struct _Layer {
 	VipsRegion *strip;		/* The current strip of pixels */
 	VipsRegion *copy;		/* Pixels we copy to the next strip */
 
-	Layer *below;		/* The smaller layer below us */
-	Layer *above;		/* The larger layer above */
+	Layer *below;			/* The smaller layer below us */
+	Layer *above;			/* The larger layer above */
 };
 
 /* A TIFF image in the process of being written.
@@ -244,7 +244,7 @@ struct _Write {
 	VipsImage *im;			/* Original input image */
 	char *name;			/* Name we write to */
 
-	Layer *layer;		/* Top of pyramid */
+	Layer *layer;			/* Top of pyramid */
 	VipsPel *tbuf;			/* TIFF output buffer */
 
 	int compression;		/* Compression type */
@@ -299,107 +299,65 @@ tiff_openin( const char *name )
 	return( tif );
 }
 
-/* Convert VIPS LabQ to TIFF LAB. Just take the first three bands.
+/* Round N down to P boundary. 
  */
-static void
-LabQ2LabC( VipsPel *q, VipsPel *p, int n )
-{
-        int x;
+#define ROUND_DOWN(N,P) ((N) - ((N) % P)) 
 
-        for( x = 0; x < n; x++ ) {
-                /* Get most significant 8 bits of lab.
-                 */
-                q[0] = p[0];
-                q[1] = p[1];
-                q[2] = p[2];
-
-                p += 4;
-                q += 3;
-        }
-}
-
-/* Pack 8 bit VIPS to 1 bit TIFF.
+/* Round N up to P boundary. 
  */
-static void
-eightbit2onebit( VipsPel *q, VipsPel *p, int n )
+#define ROUND_UP(N,P) (ROUND_DOWN( (N) + (P) - 1, (P) ))
+
+static Layer *
+pyramid_new( Write *write, Layer *above, int width, int height )
 {
-        int x;
-	VipsPel bits;
+	Layer *layer;
 
-	bits = 0;
-        for( x = 0; x < n; x++ ) {
-		bits <<= 1;
-		if( p[x] )
-			bits |= 1;
+	layer = VIPS_NEW( write->im, Layer );
+	layer->write = write;
+	layer->width = width;
+	layer->height = height; 
 
-		if( (x & 0x7) == 0x7 ) {
-			*q++ = bits;
-			bits = 0;
-		}
-        }
+	if( !above )
+		/* Top of pyramid.
+		 */
+		layer->sub = 1;	
+	else
+		layer->sub = above->sub * 2;
 
-	/* Any left-over bits? Need to be left-aligned.
-	 */
-	if( (x & 0x7) != 0 ) 
-		*q++ = bits << (8 - (x & 0x7));
-}
+	layer->lname = NULL;
+	layer->tif = NULL;
+	layer->image = NULL;
+	layer->write_y = 0;
+	layer->y = 0;
+	layer->strip = NULL;
+	layer->copy = NULL;
 
-/* Convert VIPS LABS to TIFF 16 bit LAB.
- */
-static void
-LabS2Lab16( VipsPel *q, VipsPel *p, int n )
-{
-        int x;
-	short *p1 = (short *) p;
-	unsigned short *q1 = (unsigned short *) q;
+	layer->below = NULL;
+	layer->above = above;
 
-        for( x = 0; x < n; x++ ) {
-                /* TIFF uses unsigned 16 bit ... move zero, scale up L.
-                 */
-                q1[0] = (int) p1[0] << 1;
-                q1[1] = p1[1];
-                q1[2] = p1[2];
+	if( write->pyramid )
+		if( layer->width > write->tilew || 
+			layer->height > write->tileh ) 
+			layer->below = pyramid_new( write, layer, 
+				width / 2, height / 2 );
 
-                p1 += 3;
-                q1 += 3;
-        }
-}
-
-/* Pack a VIPS region into a TIFF tile buffer.
- */
-static void
-pack2tiff( Write *write, VipsRegion *in, VipsPel *q, VipsRect *area )
-{
-	int y;
-
-	/* JPEG compression can read outside the pixel area for edge tiles. It
-	 * always compresses 8x8 blocks, so if the image width or height is
-	 * not a multiple of 8, it can look beyond the pixels we will write.
+	/* The name for the top layer is the output filename.
 	 *
-	 * Black out the tile first to make sure these edge pixels are always
-	 * zero.
+	 * We need lname to be freed automatically: it has to stay 
+	 * alive until after write_gather().
 	 */
-	if( write->compression == COMPRESSION_JPEG &&
-		(area->width < write->tilew || 
-		 area->height < write->tileh) )
-		memset( q, 0, TIFFTileSize( write->tif ) );
+	if( !above ) 
+		layer->lname = 
+			vips_strdup( VIPS_OBJECT( write->im ), write->name );
+	else {
+		char *lname;
 
-	for( y = area->top; y < VIPS_RECT_BOTTOM( area ); y++ ) {
-		VipsPel *p = (VipsPel *) VIPS_REGION_ADDR( in, area->left, y );
-
-		if( in->im->Coding == VIPS_CODING_LABQ )
-			LabQ2LabC( q, p, area->width );
-		else if( write->onebit ) 
-			eightbit2onebit( q, p, area->width );
-		else if( in->im->BandFmt == VIPS_FORMAT_SHORT &&
-			in->im->Type == VIPS_INTERPRETATION_LABS )
-			LabS2Lab16( q, p, area->width );
-		else
-			memcpy( q, p, 
-				area->width * VIPS_IMAGE_SIZEOF_PEL( in->im ) );
-
-		q += write->tls;
+		lname = vips__temp_name( "%s.tif" );
+		layer->lname = vips_strdup( VIPS_OBJECT( write->im ), lname );
+		g_free( lname );
 	}
+
+	return( layer );
 }
 
 /* Embed an ICC profile from a file.
@@ -610,11 +568,11 @@ write_tiff_header( Write *write, Layer *layer )
 	}
 	else
 		TIFFSetField( tif, TIFFTAG_ROWSPERSTRIP, 16 );
-	if( tif != write->tif ) {
+
+	if( layer->above ) 
 		/* Pyramid layer.
 		 */
 		TIFFSetField( tif, TIFFTAG_SUBFILETYPE, FILETYPE_REDUCEDIMAGE );
-	}
 
 	/* Sample format.
 	 */
@@ -627,10 +585,81 @@ write_tiff_header( Write *write, Layer *layer )
 		format = SAMPLEFORMAT_IEEEFP;
 	else if( vips_band_format_iscomplex( write->im->BandFmt ) )
 		format = SAMPLEFORMAT_COMPLEXIEEEFP;
-
 	TIFFSetField( tif, TIFFTAG_SAMPLEFORMAT, format );
 
 	return( 0 );
+}
+
+/* Walk the pyramid allocating resources. 
+ */
+static int
+pyramid_fill( Write *write )
+{
+	Layer *layer;
+
+	for( layer = write->layer; layer; layer = layer->below ) {
+		VipsRect strip_size;
+
+		layer->image = vips_image_new();
+		if( vips_image_pipelinev( layer->image, 
+			VIPS_DEMAND_STYLE_ANY, write->in, NULL ) ) 
+			return( -1 );
+		layer->image->Xsize = layer->width;
+		layer->image->Ysize = layer->height;
+
+		layer->strip = vips_region_new( layer->image );
+		layer->copy = vips_region_new( layer->image );
+
+		/* The regions will get used in the bg thread callback, so 
+		 * make sure we don't own them.
+		 */
+		vips__region_no_ownership( layer->strip );
+		vips__region_no_ownership( layer->copy );
+
+		/* Build a line of tiles here. 
+		 *
+		 * Expand the strip if necessary to make sure we have an even 
+		 * number of lines. 
+		 */
+		strip_size.left = 0;
+		strip_size.top = 0;
+		strip_size.width = layer->image->Xsize;
+		strip_size.height = write->tileh;
+		if( (strip_size.height & 1) == 1 )
+			strip_size.height += 1;
+		if( vips_region_buffer( layer->strip, &strip_size ) ) 
+			return( -1 );
+
+		if( !(layer->tif = tiff_openout( write, layer->lname )) ||
+			write_tiff_header( write, layer ) )  
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+/* Delete any temp files we wrote.
+ */
+static void
+write_delete_temps( Write *write )
+{
+	Layer *layer;
+
+	/* Don't delete the top layer: that's the output file.
+	 */
+	if( write->layer &&
+		write->layer->below )
+		for( layer = write->layer->below; layer; layer = layer->below ) 
+			if( layer->lname ) {
+#ifndef DEBUG
+				unlink( layer->lname );
+#else
+				printf( "write_delete_temps: leaving %s\n", 
+					layer->lname );
+#endif /*DEBUG*/
+
+				layer->lname = NULL;
+			}
 }
 
 /* Free a single pyramid layer.
@@ -656,59 +685,275 @@ pyramid_free( Layer *layer )
 	layer_free( layer );
 }
 
-static Layer *
-pyramid_new( Write *write, Layer *above, int width, int height )
+/* Free a Write.
+ */
+static void
+write_free( Write *write )
 {
-	Layer *layer;
+	write_delete_temps( write );
 
-	layer = VIPS_NEW( write->im, Layer );
-	layer->write = write;
-	layer->width = width;
-	layer->height = height; 
-
-	if( !above )
-		/* Top of pyramid.
-		 */
-		layer->sub = 1;	
-	else
-		layer->sub = above->sub * 2;
-
-	layer->lname = NULL;
-	layer->tif = NULL;
-	layer->image = NULL;
-	layer->write_y = 0;
-	layer->y = 0;
-	layer->strip = NULL;
-	layer->copy = NULL;
-
-	layer->below = NULL;
-	layer->above = above;
-
-	if( write->pyramid )
-		if( layer->width > write->tilew || 
-			layer->height > write->tileh ) 
-			layer->below = pyramid_new( write, layer, 
-				width / 2, height / 2 );
-
-	/* The name for the top layer is the output filename.
-	 *
-	 * We need lname to be freed automatically: it has to stay 
-	 * alive until after write_gather().
-	 */
-	if( !above ) 
-		layer->lname = vips_strdup( write->im, write->filename );
-	else {
-		char *lname;
-
-		lname = vips__temp_name( "%s.tif" );
-		layer->lname = vips_strdup( write->im, lname );
-		g_free( lname );
-	}
-
-	return( layer );
+	VIPS_FREEF( vips_free, write->tbuf );
+	VIPS_FREEF( pyramid_free, write->layer );
+	VIPS_FREEF( vips_free, write->icc_profile );
 }
 
-/* Write a tile from a layer.
+static int
+get_compression( VipsForeignTiffCompression compression )
+{
+	switch( compression ) {
+	case VIPS_FOREIGN_TIFF_COMPRESSION_NONE:
+		return( COMPRESSION_NONE );
+	case VIPS_FOREIGN_TIFF_COMPRESSION_JPEG:
+		return( COMPRESSION_JPEG );
+	case VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE:
+		return( COMPRESSION_ADOBE_DEFLATE );
+	case VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS:
+		return( COMPRESSION_PACKBITS );
+	case VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4:
+		return( COMPRESSION_CCITTFAX4 );
+	case VIPS_FOREIGN_TIFF_COMPRESSION_LZW:
+		return( COMPRESSION_LZW );
+	
+	default:
+		g_assert( 0 );
+	}
+
+	/* Keep -Wall happy.
+	 */
+	return( -1 );
+}
+
+static int
+get_resunit( VipsForeignTiffResunit resunit )
+{
+	switch( resunit ) {
+	case VIPS_FOREIGN_TIFF_RESUNIT_CM:
+		return( RESUNIT_CENTIMETER );
+	case VIPS_FOREIGN_TIFF_RESUNIT_INCH:
+		return( RESUNIT_INCH );
+
+	default:
+		g_assert( 0 );
+	}
+
+	/* Keep -Wall happy.
+	 */
+	return( -1 );
+}
+
+/* Make and init a Write.
+ */
+static Write *
+write_new( VipsImage *im, const char *filename,
+	VipsForeignTiffCompression compression, int Q, 
+		VipsForeignTiffPredictor predictor,
+	char *profile,
+	gboolean tile, int tile_width, int tile_height,
+	gboolean pyramid,
+	gboolean squash,
+	VipsForeignTiffResunit resunit, double xres, double yres,
+	gboolean bigtiff,
+	gboolean rgbjpeg )
+{
+	Write *write;
+	Layer *layer;
+
+	if( !(write = VIPS_NEW( im, Write )) )
+		return( NULL );
+	write->im = im;
+	write->name = vips_strdup( VIPS_OBJECT( im ), filename );
+	write->tif = NULL;
+	write->layer = NULL;
+	write->tbuf = NULL;
+	write->compression = get_compression( compression );
+	write->jpqual = Q;
+	write->predictor = predictor;
+	write->tile = tile;
+	write->tilew = tile_width;
+	write->tileh = tile_height;
+	write->pyramid = pyramid;
+	write->onebit = squash;
+	write->icc_profile = profile;
+	write->bigtiff = bigtiff;
+	write->rgbjpeg = rgbjpeg;
+	write->cache = NULL;
+
+	write->resunit = get_resunit( resunit );
+	write->xres = xres;
+	write->yres = yres;
+
+	if( (write->tilew & 0xf) != 0 || 
+		(write->tileh & 0xf) != 0 ) {
+		vips_error( "vips2tiff", 
+			"%s", _( "tile size not a multiple of 16" ) );
+		return( NULL );
+	}
+
+	if( !write->tile && write->pyramid ) {
+		vips_warn( "vips2tiff", 
+			"%s", _( "can't have strip pyramid -- "
+			"enabling tiling" ) );
+		write->tile = 1;
+	}
+
+	/* We can only pyramid LABQ and non-complex images. 
+	 */
+	if( write->pyramid ) {
+		if( im->Coding == VIPS_CODING_NONE && 
+			vips_band_format_iscomplex( im->BandFmt ) ) {
+			vips_error( "vips2tiff", 
+				"%s", _( "can only pyramid LABQ and "
+				"non-complex images" ) );
+			return( NULL );
+		}
+	}
+
+	/* Only 1-bit-ize 8 bit mono images.
+	 */
+	if( write->onebit &&
+		(im->Coding != VIPS_CODING_NONE || 
+			im->BandFmt != VIPS_FORMAT_UCHAR ||
+			im->Bands != 1) ) {
+		vips_warn( "vips2tiff", 
+			"%s", _( "can only squash 1 band uchar images -- "
+				"disabling squash" ) );
+		write->onebit = 0;
+	}
+
+	if( write->onebit && 
+		write->compression == COMPRESSION_JPEG ) {
+		vips_warn( "vips2tiff", 
+			"%s", _( "can't have 1-bit JPEG -- disabling JPEG" ) );
+		write->compression = COMPRESSION_NONE;
+	}
+
+	/* Sizeof a line of bytes in the TIFF tile.
+	 */
+	if( im->Coding == VIPS_CODING_LABQ )
+		write->tls = write->tilew * 3;
+	else if( write->onebit )
+		write->tls = ROUND_UP( write->tilew, 8 ) / 8;
+	else
+		write->tls = VIPS_IMAGE_SIZEOF_PEL( im ) * write->tilew;
+
+	/* We always need at least a base layer.
+	 */
+	write->layer = pyramid_new( write, NULL, im->Xsize, im->Ysize );
+
+	/* Build all the layer images.
+	 */
+	if( pyramid_fill( write ) ) {
+		write_free( write );
+		return( NULL );
+	}
+
+	return( write );
+}
+
+/* Convert VIPS LabQ to TIFF LAB. Just take the first three bands.
+ */
+static void
+LabQ2LabC( VipsPel *q, VipsPel *p, int n )
+{
+        int x;
+
+        for( x = 0; x < n; x++ ) {
+                /* Get most significant 8 bits of lab.
+                 */
+                q[0] = p[0];
+                q[1] = p[1];
+                q[2] = p[2];
+
+                p += 4;
+                q += 3;
+        }
+}
+
+/* Pack 8 bit VIPS to 1 bit TIFF.
+ */
+static void
+eightbit2onebit( VipsPel *q, VipsPel *p, int n )
+{
+        int x;
+	VipsPel bits;
+
+	bits = 0;
+        for( x = 0; x < n; x++ ) {
+		bits <<= 1;
+		if( p[x] )
+			bits |= 1;
+
+		if( (x & 0x7) == 0x7 ) {
+			*q++ = bits;
+			bits = 0;
+		}
+        }
+
+	/* Any left-over bits? Need to be left-aligned.
+	 */
+	if( (x & 0x7) != 0 ) 
+		*q++ = bits << (8 - (x & 0x7));
+}
+
+/* Convert VIPS LABS to TIFF 16 bit LAB.
+ */
+static void
+LabS2Lab16( VipsPel *q, VipsPel *p, int n )
+{
+        int x;
+	short *p1 = (short *) p;
+	unsigned short *q1 = (unsigned short *) q;
+
+        for( x = 0; x < n; x++ ) {
+                /* TIFF uses unsigned 16 bit ... move zero, scale up L.
+                 */
+                q1[0] = (int) p1[0] << 1;
+                q1[1] = p1[1];
+                q1[2] = p1[2];
+
+                p1 += 3;
+                q1 += 3;
+        }
+}
+
+/* Pack a VIPS region into a TIFF tile buffer.
+ */
+static void
+pack2tiff( Write *write, VipsRegion *in, VipsPel *q, VipsRect *area )
+{
+	int y;
+
+	/* JPEG compression can read outside the pixel area for edge tiles. It
+	 * always compresses 8x8 blocks, so if the image width or height is
+	 * not a multiple of 8, it can look beyond the pixels we will write.
+	 *
+	 * Black out the tile first to make sure these edge pixels are always
+	 * zero.
+	 */
+	if( write->compression == COMPRESSION_JPEG &&
+		(area->width < write->tilew || 
+		 area->height < write->tileh) )
+		memset( q, 0, TIFFTileSize( write->tif ) );
+
+	for( y = area->top; y < VIPS_RECT_BOTTOM( area ); y++ ) {
+		VipsPel *p = (VipsPel *) VIPS_REGION_ADDR( in, area->left, y );
+
+		if( in->im->Coding == VIPS_CODING_LABQ )
+			LabQ2LabC( q, p, area->width );
+		else if( write->onebit ) 
+			eightbit2onebit( q, p, area->width );
+		else if( in->im->BandFmt == VIPS_FORMAT_SHORT &&
+			in->im->Type == VIPS_INTERPRETATION_LABS )
+			LabS2Lab16( q, p, area->width );
+		else
+			memcpy( q, p, 
+				area->width * VIPS_IMAGE_SIZEOF_PEL( in->im ) );
+
+		q += write->tls;
+	}
+}
+
+/* Write a set of tiles across the strip.
  */
 static int
 layer_write_tile( Layer *layer, VipsRegion *strip )
@@ -735,15 +980,19 @@ layer_write_tile( Layer *layer, VipsRegion *strip )
 	return( 0 );
 }
 
+/* Write tileh scanlines, less for the last strip.
+ */
 static int
 layer_write_strip( Layer *layer, VipsRegion *strip )
 {
 	VipsImage *im = write->im;
+	VipsRect *area = &strip->valid;
+	int height = VIPS_MIN( write->tileh, area->height ); 
 
 	int y;
 
-	for( y = 0; y < area->height; y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + y );
+	for( y = 0; y < height; y++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( strip, 0, area->top + y );
 
 		/* Any repacking necessary.
 		 */
@@ -776,90 +1025,13 @@ static int layer_strip_arrived( Layer *layer );
 static int
 layer_strip_shrink( Layer *layer )
 {
-	VipsForeignSaveDz *dz = layer->dz;
-	VipsForeignSave *save = VIPS_FOREIGN_SAVE( dz );
+	Write *write = layer->write; 
 	Layer *below = layer->below;
 	VipsRegion *from = layer->strip;
 	VipsRegion *to = below->strip;
 
 	VipsRect target;
 	VipsRect source;
-
-	/* Our pixels might cross a strip boundary in the layer below, so we
-	 * have to write repeatedly until we run out of pixels.
-	 */
-	for(;;) {
-		/* The pixels the layer below needs.
-		 */
-		target.left = 0;
-		target.top = below->write_y;
-		target.width = below->image->Xsize;
-		target.height = to->valid.height;
-		vips_rect_intersectrect( &target, &to->valid, &target );
-
-		/* Those pixels need this area of this layer. 
-		 */
-		source.left = target.left * 2;
-		source.top = target.top * 2;
-		source.width = target.width * 2;
-		source.height = target.height * 2;
-
-		/* Of which we have these available.
-		 */
-		vips_rect_intersectrect( &source, &from->valid, &source );
-
-		/* So these are the pixels in the layer below we can provide.
-		 */
-		target.left = source.left / 2;
-		target.top = source.top / 2;
-		target.width = source.width / 2;
-		target.height = source.height / 2;
-
-		/* None? All done.
-		 */
-		if( vips_rect_isempty( &target ) ) 
-			break;
-
-		if( save->ready->Coding == VIPS_CODING_NONE )
-			shrink_region_uncoded( from, to, &target );
-		else
-			shrink_region_labpack( from, to, &target );
-
-		below->write_y += target.height;
-
-		/* If we've filled the strip below, let it know.
-		 * We can either fill the region, if it's somewhere half-way
-		 * down the image, or, if it's at the bottom, get to the last
-		 * real line of pixels.
-		 */
-		if( below->write_y == VIPS_RECT_BOTTOM( &to->valid ) ||
-			below->write_y == below->height ) {
-			if( layer_strip_arrived( below ) )
-				return( -1 );
-		}
-	}
-
-static int strip_arrived( Layer *layer );
-
-/* Shrink what pixels we can from this strip into the layer below. If the
- * strip below fills, recurse.
- */
-static int
-strip_shrink( Layer *layer )
-{
-	VipsForeignSaveDz *dz = layer->dz;
-	VipsForeignSave *save = VIPS_FOREIGN_SAVE( dz );
-	Layer *below = layer->below;
-	VipsRegion *from = layer->strip;
-	VipsRegion *to = below->strip;
-
-	VipsRect target;
-	VipsRect source;
-
-	/* We may have an extra column of pixels on the right or
-	 * bottom that need filling: generate them.
-	 */
-	layer_generate_extras( layer );
 
 	/* Our pixels might cross a strip boundary in the layer below, so we
 	 * have to write repeatedly until we run out of pixels.
@@ -907,7 +1079,7 @@ strip_shrink( Layer *layer )
 		 */
 		if( below->write_y == VIPS_RECT_BOTTOM( &to->valid ) ||
 			below->write_y == below->height ) {
-			if( strip_arrived( below ) )
+			if( layer_strip_arrived( below ) )
 				return( -1 );
 		}
 	}
@@ -945,11 +1117,11 @@ layer_strip_arrived( Layer *layer )
 	 * Expand the strip if necessary to make sure we have an even 
 	 * number of lines. 
 	 */
-	layer->y += tw->tileh;
+	layer->y += write->tileh;
 	new_strip.left = 0;
 	new_strip.top = layer->y;
 	new_strip.width = layer->image->Xsize;
-	new_strip.height = tw->tileh;
+	new_strip.height = write->tileh;
 	if( (new_strip.height & 1) == 1 )
 		new_strip.height += 1;
 
@@ -1034,196 +1206,6 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 	}
 
 	return( 0 );
-}
-
-/* Delete any temp files we wrote.
- */
-static void
-write_delete_temps( Write *write )
-{
-	Layer *layer;
-
-	/* Don't delete the top layer: that's the output file.
-	 */
-	if( write->layer &&
-		write->layer->below )
-		for( layer = write->layer->below; layer; layer = layer->below ) 
-			if( layer->lname ) {
-#ifndef DEBUG
-				unlink( layer->lname );
-#else
-				printf( "write_delete_temps: leaving %s\n", 
-					layer->lname );
-#endif /*DEBUG*/
-
-				layer->lname = NULL;
-			}
-}
-
-/* Free a Write.
- */
-static void
-write_free( Write *write )
-{
-	write_delete_temps( write );
-
-	VIPS_FREEF( TIFFClose, write->tif );
-	VIPS_FREEF( vips_free, write->tbuf );
-	VIPS_FREEF( pyramid_free, write->layer );
-	VIPS_FREEF( vips_free, write->icc_profile );
-}
-
-/* Round N down to P boundary. 
- */
-#define ROUND_DOWN(N,P) ((N) - ((N) % P)) 
-
-/* Round N up to P boundary. 
- */
-#define ROUND_UP(N,P) (ROUND_DOWN( (N) + (P) - 1, (P) ))
-
-static int
-get_compression( VipsForeignTiffCompression compression )
-{
-	switch( compression ) {
-	case VIPS_FOREIGN_TIFF_COMPRESSION_NONE:
-		return( COMPRESSION_NONE );
-	case VIPS_FOREIGN_TIFF_COMPRESSION_JPEG:
-		return( COMPRESSION_JPEG );
-	case VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE:
-		return( COMPRESSION_ADOBE_DEFLATE );
-	case VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS:
-		return( COMPRESSION_PACKBITS );
-	case VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4:
-		return( COMPRESSION_CCITTFAX4 );
-	case VIPS_FOREIGN_TIFF_COMPRESSION_LZW:
-		return( COMPRESSION_LZW );
-	
-	default:
-		g_assert( 0 );
-	}
-
-	/* Keep -Wall happy.
-	 */
-	return( -1 );
-}
-
-static int
-get_resunit( VipsForeignTiffResunit resunit )
-{
-	switch( resunit ) {
-	case VIPS_FOREIGN_TIFF_RESUNIT_CM:
-		return( RESUNIT_CENTIMETER );
-	case VIPS_FOREIGN_TIFF_RESUNIT_INCH:
-		return( RESUNIT_INCH );
-
-	default:
-		g_assert( 0 );
-	}
-
-	/* Keep -Wall happy.
-	 */
-	return( -1 );
-}
-
-/* Make and init a Write.
- */
-static Write *
-write_new( VipsImage *im, const char *filename,
-	VipsForeignTiffCompression compression, int Q, 
-		VipsForeignTiffPredictor predictor,
-	char *profile,
-	gboolean tile, int tile_width, int tile_height,
-	gboolean pyramid,
-	gboolean squash,
-	VipsForeignTiffResunit resunit, double xres, double yres,
-	gboolean bigtiff,
-	gboolean rgbjpeg )
-{
-	Write *write;
-
-	if( !(write = VIPS_NEW( im, Write )) )
-		return( NULL );
-	write->im = im;
-	write->name = vips_strdup( VIPS_OBJECT( im ), filename );
-	write->tif = NULL;
-	write->layer = NULL;
-	write->tbuf = NULL;
-	write->compression = get_compression( compression );
-	write->jpqual = Q;
-	write->predictor = predictor;
-	write->tile = tile;
-	write->tilew = tile_width;
-	write->tileh = tile_height;
-	write->pyramid = pyramid;
-	write->onebit = squash;
-	write->icc_profile = profile;
-	write->bigtiff = bigtiff;
-	write->rgbjpeg = rgbjpeg;
-	write->cache = NULL;
-
-	write->resunit = get_resunit( resunit );
-	write->xres = xres;
-	write->yres = yres;
-
-	if( (write->tilew & 0xf) != 0 || 
-		(write->tileh & 0xf) != 0 ) {
-		vips_error( "vips2tiff", 
-			"%s", _( "tile size not a multiple of 16" ) );
-		return( NULL );
-	}
-
-	if( !write->tile && write->pyramid ) {
-		vips_warn( "vips2tiff", 
-			"%s", _( "can't have strip pyramid -- "
-			"enabling tiling" ) );
-		write->tile = 1;
-	}
-
-	/* We can only pyramid LABQ and non-complex images. 
-	 */
-	if( write->pyramid ) {
-		if( im->Coding == VIPS_CODING_NONE && 
-			vips_band_format_iscomplex( im->BandFmt ) ) {
-			vips_error( "vips2tiff", 
-				"%s", _( "can only pyramid LABQ and "
-				"non-complex images" ) );
-			return( NULL );
-		}
-	}
-
-	/* Only 1-bit-ize 8 bit mono images.
-	 */
-	if( write->onebit &&
-		(im->Coding != VIPS_CODING_NONE || 
-			im->BandFmt != VIPS_FORMAT_UCHAR ||
-			im->Bands != 1) ) {
-		vips_warn( "vips2tiff", 
-			"%s", _( "can only squash 1 band uchar images -- "
-				"disabling squash" ) );
-		write->onebit = 0;
-	}
-
-	if( write->onebit && 
-		write->compression == COMPRESSION_JPEG ) {
-		vips_warn( "vips2tiff", 
-			"%s", _( "can't have 1-bit JPEG -- disabling JPEG" ) );
-		write->compression = COMPRESSION_NONE;
-	}
-
-	/* Sizeof a line of bytes in the TIFF tile.
-	 */
-	if( im->Coding == VIPS_CODING_LABQ )
-		write->tls = write->tilew * 3;
-	else if( write->onebit )
-		write->tls = ROUND_UP( write->tilew, 8 ) / 8;
-	else
-		write->tls = VIPS_IMAGE_SIZEOF_PEL( im ) * write->tilew;
-
-	/* We always need at least a base layer.
-	 */
-	write->layer = pyramid_new( write, NULL, im->Xsize, im->Ysize );
-
-	return( write );
 }
 
 /* Copy fields.
@@ -1327,25 +1309,27 @@ write_gather( Write *write )
 {
 	Layer *layer;
 
-	for( layer = write->layer; layer; layer = layer->below ) {
-		TIFF *in;
+	if( write->layer &&
+		write->layer->below )
+		for( layer = write->layer->below; layer; 
+			layer = layer->below ) {
+			TIFF *in;
 
 #ifdef DEBUG
-		printf( "Appending layer %s ...\n", layer->lname );
+			printf( "Appending layer %s ...\n", layer->lname );
 #endif /*DEBUG*/
 
-		if( !(in = tiff_openin( layer->lname )) ) 
-			return( -1 );
-
-		if( write_copy_tiff( write, write->tif, in ) ) {
+			if( !(in = tiff_openin( layer->lname )) ) 
+				return( -1 );
+			if( write_copy_tiff( write, write->layer->tif, in ) ) {
+				TIFFClose( in );
+				return( -1 );
+			}
 			TIFFClose( in );
-			return( -1 );
-		}
-		TIFFClose( in );
 
-		if( !TIFFWriteDirectory( write->tif ) ) 
-			return( -1 );
-	}
+			if( !TIFFWriteDirectory( write->layer->tif ) ) 
+				return( -1 );
+		}
 
 	return( 0 );
 }
@@ -1353,7 +1337,7 @@ write_gather( Write *write )
 int 
 vips__tiff_write( VipsImage *in, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 
-		VipsForeignTiffPredictor predictor,
+	VipsForeignTiffPredictor predictor,
 	char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
@@ -1363,8 +1347,6 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean rgbjpeg )
 {
 	Write *write;
-	Layer *layer;
-	int res;
 
 #ifdef DEBUG
 	printf( "tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
@@ -1383,24 +1365,15 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		resunit, xres, yres, bigtiff, rgbjpeg )) )
 		return( -1 );
 
-	/* Make all the layer images.
-	 */
-	for( layer = write->layer; layer; layer = layer->below ) {
-		if( !(layer->tif = tiff_openout( write, layer->lname )) ||
-			write_tiff_header( write, layer ) ) { 
-			write_free( write );
-			return( -1 );
-		}
-
 	if( vips_sink_disc( write->im, write_strip, write ) ) {
 		write_free( write );
 		return( -1 );
 	}
 
-	if( write->pyramid ) { 
-		if( !TIFFWriteDirectory( write->layer->tif ) ) 
-			return( -1 );
+	if( !TIFFWriteDirectory( write->layer->tif ) ) 
+		return( -1 );
 
+	if( write->pyramid ) { 
 		/* Free lower pyramid resources ... this will TIFFClose() (but
 		 * not delete) the smaller layers ready for us to read from 
 		 * them again.
