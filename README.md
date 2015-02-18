@@ -5,7 +5,7 @@
 libvips is a 2D image processing library. Compared to
 similar libraries, [libvips runs quickly and uses little
 memory](http://www.vips.ecs.soton.ac.uk/index.php?title=Speed_and_Memory_Use).
-livips is licensed under the LGPL 2.1+.
+libvips is licensed under the LGPL 2.1+.
 
 It has around 300 operations covering arithmetic, histograms, convolutions,
 morphological operations, frequency filtering, colour, resampling, statistics
@@ -18,8 +18,8 @@ It has APIs for C and C++ and comes with a Python
 binding and a command-line interface. Bindings are
 available for Ruby, JavaScript and others. There is full
 [documentation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/index.html).
-
-There's a GUI as well, see the [VIPS website](http://www.vips.ecs.soton.ac.uk).
+There are several GUIs as well, see the 
+[VIPS website](http://www.vips.ecs.soton.ac.uk).
 
 There are packages for most unix-like operating systems and binaries for
 Windows and OS X.
