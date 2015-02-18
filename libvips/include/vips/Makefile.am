@@ -35,7 +35,6 @@ pkginclude_HEADERS = \
 	private.h \
 	rect.h \
 	region.h \
-	relational.h \
 	resample.h \
 	semaphore.h \
 	threadpool.h \

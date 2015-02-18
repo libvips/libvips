@@ -99,8 +99,8 @@
  * VipsForeignFlags: 
  * @VIPS_FOREIGN_NONE: no flags set
  * @VIPS_FOREIGN_PARTIAL: the image may be read lazilly
- * @VIPS_FOREIGN_SEQUENTIAL: top-to-bottom lazy reading
  * @VIPS_FOREIGN_BIGENDIAN: image pixels are most-significant byte first
+ * @VIPS_FOREIGN_SEQUENTIAL: top-to-bottom lazy reading
  *
  * Some hints about the image loader.
  *

@@ -625,6 +625,7 @@ vips_intent_get_type( void )
 			{VIPS_INTENT_RELATIVE, "VIPS_INTENT_RELATIVE", "relative"},
 			{VIPS_INTENT_SATURATION, "VIPS_INTENT_SATURATION", "saturation"},
 			{VIPS_INTENT_ABSOLUTE, "VIPS_INTENT_ABSOLUTE", "absolute"},
+			{VIPS_INTENT_LAST, "VIPS_INTENT_LAST", "last"},
 			{0, NULL, NULL}
 		};
 		
