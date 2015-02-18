@@ -21,7 +21,8 @@
       VIPS has a simple, native file format. It's very fast, there is no image 
       size limit, and it supports 
       arbitrary metadata. Although few other programs can read these images 
-      (though recent versions of ImageMagick do support <code>.vips</code> 
+      (though recent versions of ImageMagick do have basic support for 
+      <code>.vips</code> 
       format), it can be useful as an intermediate format for command-line 
       processing. For example:
 
@@ -47,7 +48,7 @@ $ vips gamma t.v output.tif
       such as image width in pixels. Next, the image data is stored as a set 
       of band-interleaved scanlines, from the top of the image to the bottom.
       Finally, after the pixel data comes an optional block of XML containing 
-      any extra metadata, such as ICC profiles. 
+      any extra metadata, such as an ICC profile or the EXIF data. 
     </para>
   </refsect1>
 
@@ -58,6 +59,16 @@ $ vips gamma t.v output.tif
       first (Intel ordering). Only the most basic information about the image 
       is in the header: most metadata is stored in the XML extension block 
       after the pixel data.
+    </para>
+
+    <para>
+      If the first four bytes of the file are in order 08 f2 a6 b6, the image 
+      data (see the next section)
+      is stored in Intel byte order (LSB first) and will need to be swapped 
+      if read on a SPARC-style machine (MSB first). 
+      If the magic number is b6 a6 f2 08, the image data is in SPARC order
+      and will need to swapped if read on an Intel-style machine. libvips does 
+      this swapping automatically. 
 
       <table>
         <title>The VIPS header</title>
@@ -76,7 +87,7 @@ $ vips gamma t.v output.tif
               <entry>0 -- 3</entry>
               <entry></entry>
               <entry></entry>
-              <entry>VIPS magic number, 08 f2 f6 b6</entry>
+              <entry>VIPS magic number: 08 f2 a6 b6, or b6 a6 f2 08</entry>
             </row>
 
             <row>
@@ -163,6 +174,13 @@ $ vips gamma t.v output.tif
               <entry>Vertical offset of origin, in pixels</entry>
             </row>
 
+            <row>
+              <entry>56 -- 63</entry>
+              <entry></entry>
+              <entry></entry>
+              <entry>Unused</entry>
+            </row>
+
           </tbody>
         </tgroup>
       </table>
@@ -193,8 +211,8 @@ $ vips gamma t.v output.tif
 
     <para>
       If <code>coding</code> is set to #VIPS_CODING_RAD, each pixel is 
-      RGB or XYZ float, with 8 bytes of mantissa
-      and then 8 bytes of exponent, shared between the three channels. This 
+      RGB or XYZ float, with 8 bits of mantissa
+      and then 8 bits of exponent, shared between the three channels. This 
       coding style is used by the Radiance family of programs (and the HDR 
       format) commonly used for HDR imaging.
     </para>
@@ -216,10 +234,10 @@ $ vips gamma t.v output.tif
     </para>
 
     <para>
-      You can use <command>vipsheader -f getext x.v</command> to get the 
-      XML from a VIPS image, and 
-      <command>vipsedit --setext x.v &lt; file.xml</command> to replace the 
-      XML.  
+      You can use <command>vipsheader -f getext some_file.v</command> to get 
+      the XML from a VIPS image, and 
+      <command>vipsedit --setext some_file.v &lt; file.xml</command> to 
+      replace the XML.  
     </para>
 
   </refsect1>

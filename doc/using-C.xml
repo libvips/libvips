@@ -31,7 +31,9 @@
       When your program starts, use VIPS_INIT()
       to start up the VIPS library. You should pass it the name
       of your program, usually <code>argv[0]</code>. Use
-      vips_shutdown() when you exit.
+      vips_shutdown() when you exit. VIPS_INIT() is a macro to let it check 
+      that the libvips library you have linked to matches the libvips headers 
+      you included. 
     </para>
 
     <para>
