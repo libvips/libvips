@@ -1,4 +1,7 @@
-- rerun vips-bench .. have we changed the timing there at all?
+- dzsave should write to a mkstemp() temp directory in the output dir 
+  and rename from that, see
+
+	https://github.com/jcupitt/libvips/issues/242
 
 
 

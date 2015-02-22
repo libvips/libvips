@@ -183,6 +183,7 @@ mat2vips_get_header( matvar_t *var, VipsImage *im )
 	VipsInterpretation interpretation; 
 	int i;
 
+	width = 1;
 	height = 1;
 	bands = 1;
 	switch( var->rank ) {
