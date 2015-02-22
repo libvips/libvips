@@ -49,6 +49,8 @@
  * 	- use g_ date funcs, helps Windows
  * 14/2/15
  * 	- use vips_region_shrink()
+ * 22/2/15
+ * 	- use a better temp dir name for fs dz output
  */
 
 /*
@@ -417,6 +419,10 @@ struct _VipsForeignSaveDz {
 	 */
 	char *dirname; 
 
+	/* For DZ save, we have to write to a temp dir. Track the name here.
+	 */
+	char *tempdir;
+
 	/* The root directory name ... $basename with perhaps some extra
 	 * stuff, eg. $(basename)_files, etc.
 	 */
@@ -459,6 +465,7 @@ vips_foreign_save_dz_dispose( GObject *gobject )
 	VIPS_FREEF( vips_gsf_tree_free,  dz->tree );
 	VIPS_FREE( dz->basename );
 	VIPS_FREE( dz->dirname );
+	VIPS_FREE( dz->tempdir );
 	VIPS_FREE( dz->root_name );
 	VIPS_FREE( dz->file_suffix );
 
@@ -1445,6 +1452,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) object;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
 	VipsRect real_pixels; 
 
 	/* Google and zoomify default to zero overlap, ".jpg".
@@ -1608,21 +1616,53 @@ vips_foreign_save_dz_build( VipsObject *object )
 	 */
 	switch( dz->container ) {
 	case VIPS_FOREIGN_DZ_CONTAINER_FS:
-{
-		GsfOutput *out;
-		GError *error = NULL;
-		char name[VIPS_PATH_MAX];
+		if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) {
+			/* For deepzoom, we have to rearrange the output
+			 * directory after writing it, see the end of this
+			 * function. We write to a temporary directory, then
+			 * pull ${basename}_files and ${basename}.dzi out into
+			 * the current directory and remove the temp. The temp
+			 * dir must not clash with another file.
+			 */
+			GsfOutput *out;
+			GError *error = NULL;
+			int fd;
 
-		vips_snprintf( name, VIPS_PATH_MAX, "%s/%s", 
-			dz->dirname, dz->basename ); 
-		if( !(out = (GsfOutput *) 
-			gsf_outfile_stdio_new( name, &error )) ) {
-			vips_g_error( &error );
-			return( -1 );
+			dz->tempdir = g_build_filename( dz->dirname, 
+				"dzsave-temp-XXXXXXX", NULL );
+			if( (fd = g_mkstemp( dz->tempdir )) == -1 ) {
+				vips_error(  class->nickname,
+					_( "unable to make temporary file %s" ),
+					dz->tempdir );
+				return( -1 );
+			}
+			close( fd );
+			g_unlink( dz->tempdir );
+
+			if( !(out = (GsfOutput *) 
+				gsf_outfile_stdio_new( dz->tempdir, 
+					&error )) ) {
+				vips_g_error( &error );
+				return( -1 );
+			}
+		
+			dz->tree = vips_gsf_tree_new( out, FALSE );
 		}
-	
-		dz->tree = vips_gsf_tree_new( out, FALSE );
-}
+		else { 
+			GsfOutput *out;
+			GError *error = NULL;
+			char name[VIPS_PATH_MAX];
+
+			vips_snprintf( name, VIPS_PATH_MAX, "%s/%s", 
+				dz->dirname, dz->basename ); 
+			if( !(out = (GsfOutput *) 
+				gsf_outfile_stdio_new( name, &error )) ) {
+				vips_g_error( &error );
+				return( -1 );
+			}
+		
+			dz->tree = vips_gsf_tree_new( out, FALSE );
+		}
 		break;
 
 	case VIPS_FOREIGN_DZ_CONTAINER_ZIP:
@@ -1717,21 +1757,21 @@ vips_foreign_save_dz_build( VipsObject *object )
 		char old_name[VIPS_PATH_MAX];
 		char new_name[VIPS_PATH_MAX];
 
-		vips_snprintf( old_name, VIPS_PATH_MAX, "%s/%s/%s.dzi", 
-			dz->dirname, dz->basename, dz->basename );
+		vips_snprintf( old_name, VIPS_PATH_MAX, "%s/%s.dzi", 
+			dz->tempdir, dz->basename );
 		vips_snprintf( new_name, VIPS_PATH_MAX, "%s/%s.dzi", 
 			dz->dirname, dz->basename );
 		if( vips_rename( old_name, new_name ) )
 			return( -1 ); 
 
-		vips_snprintf( old_name, VIPS_PATH_MAX, "%s/%s/%s_files", 
-			dz->dirname, dz->basename, dz->basename );
+		vips_snprintf( old_name, VIPS_PATH_MAX, "%s/%s_files", 
+			dz->tempdir, dz->basename );
 		vips_snprintf( new_name, VIPS_PATH_MAX, "%s/%s_files", 
 			dz->dirname, dz->basename );
 		if( vips_rename( old_name, new_name ) )
 			return( -1 ); 
 
-		if( vips_rmdirf(  "%s/%s", dz->dirname, dz->basename ) )
+		if( vips_rmdirf(  "%s", dz->tempdir ) )
 			return( -1 ); 
 	}
 

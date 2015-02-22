@@ -1,11 +1,3 @@
-- dzsave should write to a mkstemp() temp directory in the output dir 
-  and rename from that, see
-
-	https://github.com/jcupitt/libvips/issues/242
-
-
-
-
 - why can't we do
 
 	im = Vips.Image.new_from_file(sys.argv[1], access = "sequential")
