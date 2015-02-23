@@ -15,7 +15,7 @@
     <refpurpose>How to write bindings for libvips</refpurpose>
   </refnamediv>
 
-  <refsect1 id="binding-goi">
+  <refsect3 id="binding-goi">
     <title>Binding and gobject-introspection</title>
     <para>
       The C source code 
@@ -89,6 +89,6 @@ $ yelp-build html .
     </para>
 
 
-  </refsect1>
+  </refsect3>
 
 </refentry>

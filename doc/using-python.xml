@@ -15,7 +15,7 @@
     <refpurpose>How to use the VIPS library from Python</refpurpose>
   </refnamediv>
 
-  <refsect1 id="python-intro">
+  <refsect3 id="python-intro">
     <title>Introduction</title>
     <para>
       VIPS comes with a convenient, high-level Python API based 
@@ -97,9 +97,9 @@ im = im.similarity(scale = 0.9, interpolate = Vips.Interpolate.new("bicubic"))
       string containing the formatted image, and <code>.write()</code> to 
       write to another image. 
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="python-basics">
+  <refsect3 id="python-basics">
     <title><code>pyvips8</code> basics</title>
     <para>
       The Python interface comes in two main parts. First, the C source code 
@@ -126,9 +126,9 @@ from gi.repository import Vips
       seem more pythonesque, vips includes a set of overrides which form a 
       layer over the bare functions created by gobject-introspection.
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="python-wrapping">
+  <refsect3 id="python-wrapping">
     <title>Automatic wrapping</title>
     <para>
       The overrides intercept member lookup 
@@ -275,9 +275,9 @@ result_image = image1.bandjoin([image2, 255])
       
       and so on. 
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="python-doc">
+  <refsect3 id="python-doc">
     <title>Automatic docstrings</title>
     <para>
       Try <code>help(Vips)</code> for everything,
@@ -299,9 +299,9 @@ help(image.add)
       And you'll get a summary of the operator's behaviour and how the
       arguments are represented in Python. Use the C API docs for more detail.
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="python-exceptions">
+  <refsect3 id="python-exceptions">
     <title>Exceptions</title>
     <para>
       The wrapper spots errors from vips operations and raises the 
@@ -309,9 +309,9 @@ help(image.add)
       usual way. The <code>.detail</code> member gives the detailed 
       error message. 
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="python-modify">
+  <refsect3 id="python-modify">
     <title>Draw operations</title>
     <para>
       Paint operations like <code>draw_circle</code> and <code>draw_line</code> 
@@ -333,9 +333,9 @@ help(image.add)
       If you want to avoid the copies, you'll need to call drawing 
       operations yourself. 
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="python-overloads">
+  <refsect3 id="python-overloads">
     <title>Overloads</title>
     <para>
       The wrapper defines the usual set of arithmetic, boolean and 
@@ -347,9 +347,9 @@ help(image.add)
 result_image = ((image * [1, 2, 3]).abs() &lt; 128) | 4
 </programlisting>
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="python-expansions">
+  <refsect3 id="python-expansions">
     <title>Expansions</title>
     <para>
       Some vips operators take an enum to select an action, for example
@@ -369,9 +369,9 @@ result_image = image.sin()
 
       See <code>help(Vips.Image)</code> for a list. 
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="python-utility">
+  <refsect3 id="python-utility">
     <title>Convenience functions</title>
     <para>
       The wrapper defines a few extra useful utility functions: 
@@ -383,9 +383,9 @@ result_image = image.sin()
       <code>.median()</code>.
       Again, see <code>help(Vips.Image)</code> for a list. 
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="python-args">
+  <refsect3 id="python-args">
     <title>Command-line option parsing</title>
     <para>
       GLib includes a command-line option parser, and Vips defines a set of 
@@ -405,6 +405,6 @@ context.parse(sys.argv)
 </programlisting>
     </para>
 
-</refsect1>
+</refsect3>
 
 </refentry>

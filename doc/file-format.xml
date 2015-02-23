@@ -15,7 +15,7 @@
     <refpurpose>The VIPS file format</refpurpose>
   </refnamediv>
 
-  <refsect1 id="vips-format">
+  <refsect3 id="vips-format">
     <title>Introduction</title>
     <para>
       VIPS has a simple, native file format. It's very fast, there is no image 
@@ -50,9 +50,9 @@ $ vips gamma t.v output.tif
       Finally, after the pixel data comes an optional block of XML containing 
       any extra metadata, such as an ICC profile or the EXIF data. 
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="vips-format-header">
+  <refsect3 id="vips-format-header">
     <title>The header</title>
     <para>
       The fields in the VIPS header are always stored least-significant byte 
@@ -186,9 +186,9 @@ $ vips gamma t.v output.tif
       </table>
     </para>
 
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="vips-format-data">
+  <refsect3 id="vips-format-data">
     <title>The image data</title>
     <para>
       If <code>coding</code> is set to #VIPS_CODING_NONE, pixels are stored in 
@@ -223,9 +223,9 @@ $ vips gamma t.v output.tif
       section. 
     </para>
 
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="vips-format-metadata">
+  <refsect3 id="vips-format-metadata">
     <title>The metadata</title>
     <para>
       Following the image data is a chunk of XML holding a simple list of 
@@ -240,6 +240,6 @@ $ vips gamma t.v output.tif
       replace the XML.  
     </para>
 
-  </refsect1>
+  </refsect3>
 
 </refentry>

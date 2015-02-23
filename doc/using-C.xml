@@ -15,7 +15,7 @@
     <refpurpose>How to use the VIPS library from C</refpurpose>
   </refnamediv>
 
-  <refsect1 id="using-C-intro">
+  <refsect3 id="using-C-intro">
     <title>Introduction</title>
     <para>
       VIPS comes with a convenient, high-level C API. You should read the API 
@@ -23,9 +23,9 @@
       overview. The <command>vips</command> program is handy for getting a 
       summary of an operation's parameters.
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-C-startup">
+  <refsect3 id="using-C-startup">
     <title>Library startup</title>
     <para>
       When your program starts, use VIPS_INIT()
@@ -40,9 +40,9 @@
       You can add the VIPS flags to your %GObject command-line processing
       with vips_add_option_entries(), see below.
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-C-vipsimage">
+  <refsect3 id="using-C-vipsimage">
     <title>The #VipsImage class</title>
     <para>
       The basic data object is the #VipsImage. You can create an
@@ -62,9 +62,9 @@
       See <link linkend="libvips-header">VIPS Header</link> to read about 
       image properties.
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-C-ref">
+  <refsect3 id="using-C-ref">
     <title>Reference counting</title>
     <para>
       VIPS is based on the %GObject library and is therefore reference counted. 
@@ -80,9 +80,9 @@
       See #VipsOperation for more detail on VIPS 
       reference counting conventions.
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-C-operations">
+  <refsect3 id="using-C-operations">
     <title>VIPS operations</title>
     <para>
       Use things like vips_invert() to manipulate your images. See 
@@ -92,9 +92,9 @@
       the final image to a disc file, to a formatted memory buffer, or to
       C-style memory array. See vips_image_write_to_file() and friends.
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-C-pixels">
+  <refsect3 id="using-C-pixels">
     <title>Getting pixels</title>
     <para>
       Use #VipsRegion to read pixels out of images. You can use 
@@ -102,9 +102,9 @@
       memory to work. See <link linkend="extending">extending</link> 
       for an introduction to writing your own operations. 
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-C-errors">
+  <refsect3 id="using-C-errors">
     <title>Error handling</title>
 
     <para>
@@ -112,9 +112,9 @@
       linkend="libvips-error">VIPS Error</link> to find out how to get and
       clear the error log.
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-C-example">
+  <refsect3 id="using-C-example">
     <title>Example</title>
 
 <example>
@@ -184,6 +184,6 @@ main( int argc, char **argv )
 </programlisting>
 </example>
 
-  </refsect1>
+  </refsect3>
 
 </refentry>

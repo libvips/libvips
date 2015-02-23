@@ -14,13 +14,29 @@
     <refpurpose>How to add operations to VIPS</refpurpose>
   </refnamediv>
 
-  <refsect1 id="extending-pointtopoint">
-    <title>A simple point-to-point operation</title>
+  <refsect3 id="extending-intro">
+    <title>Introduction</title>
+    <para>
+			This section runs quickly through adding a simple operator to VIPS. 
+			For more information, see #VipsOperation and #VipsRegion. A good 
+			starting point for a new operation is a similar one in the VIPS library. 
+    </para>
 
     <para>
-      All operations are subclasses of #VipsOperation, which in turn
-      subclasses #VipsObject and then %GObject. You need to define a new
-      instance struct and a new class struct.
+      All VIPS operations are subclasses of #VipsOperation, which in turn
+			subclasses #VipsObject and then %GObject. You add an operation to VIPS
+			by defining a new subclass of #VipsOperation and arranging for its 
+			<code>class_init()</code> to be called, perhaps by calling its get_type()
+			function.
+    </para>
+  </refsect3>
+
+  <refsect3 id="extending-classstruct">
+    <title>The class and object structures</title>
+
+    <para>
+      First you need to define a new
+      object struct and a new class struct.
 
 <programlisting language="C">
 typedef struct _Negative {
@@ -48,8 +64,8 @@ typedef struct _NegativeClass {
       8-bit image, optionally letting you specify the value which the pixels
       "pivot" about. It doesn't need any class members (ie. values common
       to all operations of this type), so the second struct is empty. See
-      vips_invert() for a more complete version of this operation that's
-      actually in the library.
+			the source to vips_invert() for a more complete version of this 
+			operation that's actually in the library.
     </para>
 
     <para>
@@ -59,16 +75,19 @@ typedef struct _NegativeClass {
 G_DEFINE_TYPE( Negative, negative, VIPS_TYPE_OPERATION );
 </programlisting>
 
-      This defines a function called negative_get_type(),
+      G_DEFINE_TYPE() defines a function called negative_get_type(),
       which registers this new class and returns its %GType (a
       pointer-sized integer). negative_get_type() in turn needs two
       functions, negative_init(), to initialise a new instance, and
       negative_class_init(), to initialise a new class.
     </para>
+  </refsect3>
 
+  <refsect3 id="extending-init">
+    <title>Class and object initialisation</title>
     <para>
       negative_init() is very simple, it just sets the default value for
-      our optional class parameter.
+      our optional parameter.
 
 <programlisting language="C">
 static void
@@ -81,7 +100,7 @@ negative_init( Negative *negative )
 
     <para>
       negative_class_init() is more complicated: it has to set various
-      fields in various superclasses.
+      fields in various superclasses and define the operation's parameters. 
 
 <programlisting language="C">
 static void
@@ -133,8 +152,13 @@ negative_class_init( NegativeClass *class )
     </para>
 
     <para>
-      Finally, it needs to set the arguments this class constructor
-      takes. There are a set of handy macros for doing this. The first few
+      Finally, it needs to define the arguments the constructor for this class
+			takes. There are a set of handy macros for doing this, see 
+			VIPS_ARG_INT() and friends.
+    </para>
+
+    <para>
+			The first few
       parameters are always the same and mean: class pointer for argument,
       argument name, argument priority (bindings expect required arguments in
       order of priority), long argument name (this one is internationalised
@@ -147,11 +171,15 @@ negative_class_init( NegativeClass *class )
       Integer arguments take three more values: the minimum, maximum and
       default value for the argument.
     </para>
+  </refsect3>
 
+  <refsect3 id="extending-build">
+    <title>The build() function</title>
     <para>
-      The build function is the thing #VipsObject calls after supplying
-      arguments. It checks that all required arguments have been set and are
-      valid and constructs the object. After build, the object is expected
+			The build function is the thing #VipsObject calls during object 
+			construction, after all arguments have been supplied and before the 
+			object is used. It has two roles: to verify that arguments are correct, 
+			and then to construct the object.  After build(), the object is expected
       to be ready for use.
 
 <programlisting language="C">
@@ -193,7 +221,8 @@ negative_build( VipsObject *object )
 
     <para>
       Next, it adds its own checks. This is a demo operation, so we just
-      work for uncoded, unsigned 8-bit images.
+			work for uncoded, unsigned 8-bit images. There are a lot of 
+			convenience functions like vips_check_format(), see the docs. 
     </para>
 
     <para>
@@ -204,18 +233,35 @@ negative_build( VipsObject *object )
 
     <para>
       vips_image_pipelinev() links our new image onto the input image and
-      notes that this operation prefers to work in lines.
+      notes that this operation prefers to work in lines. You can request 
+      other input geometries, see #VipsDemandStyle. 
+    </para>
+
+    <para>
+			The geometry hint is just a hint, an operation needs to be able to 
+			supply any size 
+      #VipsRegion on request. If you must have a certain size request, you can 
+      put a cache in the pipeline after your operation, see vips_linecache() 
+			and vips_tilecache(). You can also make requests to your operation 
+			ordered, see vips_sequential(). 
     </para>
 
     <para>
       Finally, vips_image_generate() attaches a set of callbacks to the
       output image to generate chunks of it on request. vips_start_one()
       and vips_stop_one() are convenience functions that make the input
-      region for you.
+      region for you, see below. 
     </para>
+  </refsect3>
+
+  <refsect3 id="extending-gen">
+    <title>The generate() function</title>
 
     <para>
-      And then the actual image processing.
+			The generate() function does the actual image processing. 
+			negative_generate() (of type #VipsGenerateFn, supplied to 
+			vips_image_generate() above) is 
+			called whenever some pixels of our output image are required. 
 
 <programlisting language="C">
 static int
@@ -230,6 +276,7 @@ negative_generate( VipsRegion *or,
    */
   VipsRegion *ir = (VipsRegion *) vseq;
 
+  VipsImage *in = (VipsImage *) a;
   Negative *negative = (Negative *) b;
   int line_size = r-&gt;width * negative-&gt;in-&gt;Bands; 
 
@@ -258,14 +305,57 @@ negative_generate( VipsRegion *or,
     <para>
       This has to calculate a section of the output image. The output
       #VipsRegion, @or, contains a #VipsRect called @valid which is the
-      area needing calculation. negative_generate() asks for the
-      corresponding pixels from the input region, then loops over the
-      area. VIPS_REGION_ADDR() is a simple macro that does pointer arithmetic
-      for you: you need to stay within the valid area.
+			area needing calculation. This call to negative_generate() must 
+			somehow make this part of @or contain pixel data. 
     </para>
 
     <para>
-      To add the operation to vips, just call negative_get_type(). You
+			@vseq is the sequence value. This is the 
+			per-thread state for this generate, created (in this example) by 
+			vips_start_one(). In this simple case it's just a #VipsRegion defined on 
+			the input image. If you need more per-thread state you can write your 
+			own start and stop functions and have a struct you create and pass as a 
+			sequence value. There are plenty of examples in the VIPS source code, 
+			see vips_rank(). 
+    </para>
+
+    <para>
+			@a and @b are the last two arguments to vips_image_generate() above. 
+			@stop is a bool pointer you can set to stop computation early. vips_min()
+			on an unsigned int image, for example, will set @stop as soon as it sees 
+			a zero, and will not scan the entire image.
+    </para>
+
+    <para>
+			The first thing negative_generate() does is 
+			use vips_region_prepare() to 
+			ask for the corresponding pixels from the input image. Operations which 
+			do coordinate transforms or which need an area of input for each output 
+			point will need to calculate a new rect before calling 
+			vips_region_prepare(). 
+    </para>
+
+    <para>
+			Finally, it can calculate some pixels. negative_generate() loops
+			over the valid area of the output and calls VIPS_REGION_ADDR() for each 
+			line. This macro is reasonaly quick, but it's best not to call it for 
+			each pixel. Once per line is fine though. 
+    </para>
+  </refsect3>
+
+  <refsect3 id="extending-add">
+    <title>Adding to VIPS</title>
+    <para>
+			To add the operation to vips, just call negative_get_type(). You can 
+			include the source in your program, or use %GModule to make a binary 
+			plugin that will be loaded by libvips at startup. There are some <ulink 
+				role="online-location"
+				url="https://github.com/jcupitt/vips-gmic">example 
+			plugins available</ulink>.
+    </para>
+
+    <para>
+			You
       can then use @negative from any of the vips interfaces. For example,
       in Python you'd use it like this:
 
@@ -324,10 +414,9 @@ if( negative( in, &amp;out, "image_max", 128, NULL ) )
 
       and it's at least a bit safer.
     </para>
+  </refsect3>
 
-  </refsect1>
-
-  <refsect1 id="extending-othertypes">
+  <refsect3 id="extending-othertypes">
     <title>Other types of operation</title>
     <para>
       Change the _build() function to make other types of operation. 
@@ -368,6 +457,6 @@ if( negative( in, &amp;out, "image_max", 128, NULL ) )
       Make zero-copy operations, like vips_insert(), with vips_region_region().
     </para>
 
-  </refsect1>
+  </refsect3>
 
 </refentry>

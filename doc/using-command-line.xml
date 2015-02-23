@@ -15,7 +15,7 @@
     <refpurpose>How to use the VIPS library from the command-line</refpurpose>
   </refnamediv>
 
-  <refsect1 id="using-command-line-intro">
+  <refsect3 id="using-command-line-intro">
     <title>Introduction</title>
     <para>
       Use the <command>vips</command> command to execute VIPS operations from 
@@ -46,9 +46,9 @@ where:
       There's a straightforward relationship with the C API: compare this to 
       the API docs for vips_rot(), for example.
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-command-line-list">
+  <refsect3 id="using-command-line-list">
     <title>Listing all operations</title>
     <para>
       You can list all classes with:
@@ -71,9 +71,9 @@ VipsOperation (operation), operations
       <literal>VipsForeign</literal> will show some of the extra flags 
       supported by the file load/save operations. 
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-command-line-options">
+  <refsect3 id="using-command-line-options">
     <title>Optional arguments</title>
     <para>
       Many operations take optional arguments. You can supply these as 
@@ -109,9 +109,9 @@ $ vips gamma k2.jpg x.jpg --exponent 0.42
       This will read file <literal>k2.jpg</literal>, un-gamma it, and 
       write the result to file <literal>x.jpg</literal>.
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-command-line-array">
+  <refsect3 id="using-command-line-array">
     <title>Array arguments</title>
     <para>
       Some operations take arrays of values as arguments, for example, 
@@ -131,9 +131,9 @@ $ vips affine k2.jpg x.jpg "2 0 0 1"
 $ vips bandjoin "k2.jpg k4.jpg" x.tif
 </programlisting>
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-command-line-conversion">
+  <refsect3 id="using-command-line-conversion">
     <title>Implicit file format conversion</title>
     <para>
       <command>vips</command> will automatically convert between image file 
@@ -163,9 +163,9 @@ vips affine k2.jpg x.jpg[Q=90,strip] "2 0 0 1"
       Will write <literal>x.jpg</literal> at quality level 90 and will 
       strip all metadata from the image.
     </para>
-  </refsect1>
+  </refsect3>
 
-  <refsect1 id="using-command-line-other">
+  <refsect3 id="using-command-line-other">
     <title>Other features</title>
 
     <para>
@@ -195,6 +195,6 @@ vips affine k2.jpg x.jpg[Q=90,strip] "2 0 0 1"
       images. <command>vipsthumbnail</command> can make image thumbnails 
       quickly. 
     </para>
-  </refsect1>
+  </refsect3>
 
 </refentry>

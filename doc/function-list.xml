@@ -15,7 +15,7 @@
     <refpurpose>List of VIPS functions and operators</refpurpose>
   </refnamediv>
 
-  <refsect1 id="function-list">
+  <refsect3 id="function-list">
     <title>Function list</title>
     <para>
       VIPS has a set of operators, each of which computes some useful image 
@@ -1103,6 +1103,6 @@
       </table>
     </para>
 
-  </refsect1>
+  </refsect3>
 
 </refentry>
