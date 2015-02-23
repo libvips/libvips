@@ -1624,12 +1624,15 @@ vips_foreign_save_dz_build( VipsObject *object )
 			 * the current directory and remove the temp. The temp
 			 * dir must not clash with another file.
 			 */
+			char name[VIPS_PATH_MAX];
+			int fd;
 			GsfOutput *out;
 			GError *error = NULL;
-			int fd;
 
+			vips_snprintf( name, VIPS_PATH_MAX, "%s-XXXXXX", 
+				dz->basename ); 
 			dz->tempdir = g_build_filename( dz->dirname, 
-				"dzsave-temp-XXXXXXX", NULL );
+				name, NULL );
 			if( (fd = g_mkstemp( dz->tempdir )) == -1 ) {
 				vips_error(  class->nickname,
 					_( "unable to make temporary file %s" ),
