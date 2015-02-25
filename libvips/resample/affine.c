@@ -665,7 +665,10 @@ vips_affine_init( VipsAffine *affine )
  *
  * @idx, @idy, @odx, @ody default to zero.
  *
- * See also: vips_shrink(), #VipsInterpolate.
+ * This operation does not change xres or yres. The image resolution needs to
+ * be updated by the application. 
+ *
+ * See also: vips_shrink(), vips_resize(), #VipsInterpolate.
  *
  * Returns: 0 on success, -1 on error
  */

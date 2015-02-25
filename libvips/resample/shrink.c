@@ -442,9 +442,12 @@ vips_shrink_init( VipsShrink *shrink )
  * You will get aliasing for non-integer shrinks. In this case, shrink with
  * this function to the nearest integer size above the target shrink, then
  * downsample to the exact size with vips_affine() and your choice of
- * interpolator.
+ * interpolator. See vips_resize() for a convenient way to do this.
  *
- * See also: vips_affine().
+ * This operation does not change xres or yres. The image resolution needs to
+ * be updated by the application. 
+ *
+ * See also: vips_resize(), vips_affine().
  *
  * Returns: 0 on success, -1 on error
  */

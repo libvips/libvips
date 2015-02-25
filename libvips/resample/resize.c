@@ -281,9 +281,12 @@ vips_resize_init( VipsResize *resize )
  * then resampled with vips_affine() and the supplied interpolator, then
  * sharpened. 
  *
- * @interpolate defaults to bicubic, or bilinear if that is not available. 
+ * @interpolate defaults to bicubic.
  *
  * @idx, @idy default to zero. Offset them by 0.5 to get pixel-centre sampling. 
+ *
+ * This operation does not change xres or yres. The image resolution needs to
+ * be updated by the application. 
  *
  * See also: vips_shrink(), vips_affine(), #VipsInterpolate.
  *
