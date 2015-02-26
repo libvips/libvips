@@ -64,6 +64,9 @@
  * 20/1/15
  * 	- don't call jpeg_finish_decompress(), all it does is read and check 
  * 	  the tail of the file
+ * 26/2/15
+ * 	- close the jpeg read down early for a header read ... this saves an
+ * 	  fd during jpg read, handy for large numbers of input images 
  */
 
 /*
@@ -166,6 +169,8 @@ typedef struct _ReadJpeg {
 	gboolean autorotate;
 } ReadJpeg;
 
+/* This can be called many times.
+ */
 static int
 readjpeg_free( ReadJpeg *jpeg )
 {
@@ -199,7 +204,7 @@ readjpeg_free( ReadJpeg *jpeg )
 	VIPS_FREE( jpeg->filename );
 	jpeg->eman.fp = NULL;
 
-	/* I don't think this can fail.
+	/* I don't think this can fail. It's harmless to call many times. 
 	 */
 	jpeg_destroy_decompress( &jpeg->cinfo );
 
@@ -1110,6 +1115,12 @@ vips__jpeg_read_file( const char *filename, VipsImage *out,
 
 	if( vips__jpeg_read( jpeg, out, header_only ) ) 
 		return( -1 );
+
+	/* We can kill off the decompress early if this is just a header read.
+	 * This saves an fd during read.
+	 */
+	if( header_only )
+		readjpeg_free( jpeg );
 
 	return( 0 );
 }

@@ -44,6 +44,9 @@
  * 	- add @density option 
  * 16/2/15 mcuelenaere
  * 	- add blob read
+ * 26/2/15
+ * 	- close the read down early for a header read ... this saves an
+ * 	  fd during file read, handy for large numbers of input images 
  */
 
 /*
@@ -127,11 +130,13 @@ typedef struct _Read {
 	GMutex *lock;
 } Read;
 
-static int
-read_destroy( VipsImage *im, Read *read )
+/* Can be called many times.
+ */
+static void
+read_free( Read *read )
 {
 #ifdef DEBUG
-	printf( "magick2vips: read_destroy: %s\n", read->filename );
+	printf( "magick2vips: read_free: %s\n", read->filename );
 #endif /*DEBUG*/
 
 	VIPS_FREE( read->filename );
@@ -140,6 +145,14 @@ read_destroy( VipsImage *im, Read *read )
 	VIPS_FREE( read->frames );
 	DestroyExceptionInfo( &read->exception );
 	VIPS_FREEF( vips_g_mutex_free, read->lock );
+}
+
+/* Can be called many times.
+ */
+static int
+read_close( VipsImage *im, Read *read )
+{
+	read_free( read ); 
 
 	return( 0 );
 }
@@ -173,7 +186,7 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames,
 	read->frame_height = 0;
 	read->lock = vips_g_mutex_new();
 
-	g_signal_connect( im, "close", G_CALLBACK( read_destroy ), read );
+	g_signal_connect( im, "close", G_CALLBACK( read_close ), read );
 
 	if( !read->image_info ) 
 		return( NULL );
@@ -740,6 +753,10 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 		vips_error( "magick2vips", "%s", _( "bad image size" ) );
 		return( -1 );
 	}
+
+	/* Just a header read: we can free the read early and save an fd.
+	 */
+	read_free( read );
 
 	return( 0 );
 }

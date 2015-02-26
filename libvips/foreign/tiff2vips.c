@@ -154,6 +154,9 @@
  * 	- read any XMP metadata
  * 19/1/15
  * 	- try to handle 8-bit colormaps
+ * 26/2/15
+ * 	- close the read down early for a header read ... this saves an
+ * 	  fd during file read, handy for large numbers of input images 
  */
 
 /*
@@ -1678,10 +1681,18 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
+/* Can be called many times.
+ */
 static void
-readtiff_destroy( VipsObject *object, ReadTiff *rtiff )
+readtiff_free( ReadTiff *rtiff )
 {
 	VIPS_FREEF( TIFFClose, rtiff->tiff );
+}
+
+static void
+readtiff_close( VipsObject *object, ReadTiff *rtiff )
+{
+	readtiff_free( rtiff ); 
 }
 
 static ReadTiff *
@@ -1710,7 +1721,7 @@ readtiff_new( VipsImage *out, int page, gboolean readbehind )
 	rtiff->contig_buf = NULL;
 
 	g_signal_connect( out, "close", 
-		G_CALLBACK( readtiff_destroy ), rtiff ); 
+		G_CALLBACK( readtiff_close ), rtiff ); 
 
 	if( rtiff->page < 0 || rtiff->page > 1000000 ) {
 		vips_error( "tiff2vips", _( "bad page number %d" ),
@@ -1917,6 +1928,10 @@ vips__tiff_read_header( const char *filename, VipsImage *out, int page )
 
 	if( parse_header( rtiff, out ) )
 		return( -1 );
+
+	/* Just a header read: we can free the tiff read early and save an fd.
+	 */
+	readtiff_free( rtiff );
 
 	return( 0 );
 }

@@ -52,6 +52,9 @@
  * 	- don't check profiles, helps with libpng >=1.6.11
  * 27/10/14 Lovell
  * 	- add @filter option 
+ * 26/2/15
+ * 	- close the read down early for a header read ... this saves an
+ * 	  fd during file read, handy for large numbers of input images 
  */
 
 /*
@@ -150,6 +153,8 @@ typedef struct {
 
 } Read;
 
+/* Can be called many times.
+ */
 static void
 read_destroy( Read *read )
 {
@@ -422,6 +427,10 @@ vips__png_header( const char *name, VipsImage *out )
 	if( !(read = read_new_filename( out, name, FALSE )) ||
 		png2vips_header( read, out ) ) 
 		return( -1 );
+
+	/* Just a header read: we can free the read early and save an fd.
+	 */
+	read_destroy( read );
 
 	return( 0 );
 }
