@@ -527,13 +527,12 @@ vips_insert_init( VipsInsert *insert )
  * @expand: expand output to hold whole of both images
  * @background: colour for new pixels
  *
- * Insert one image into another. @sub is inserted into image @main at
- * position @x, @y relative to the top LH corner of @main. 
+ * Insert @sub into @main at position @x, @y. 
  *
  * Normally @out shows the whole of @main. If @expand is #TRUE then @out is
  * made large enough to hold all of @main and @sub. 
  * Any areas of @out not coming from
- * either @main or @sub are set to @background (default 0).
+ * either @main or @sub are set to @background (default 0). 
  *
  * If @sub overlaps @main,
  * @sub will appear on top of @main. 

@@ -634,7 +634,9 @@ vips_embed_init( VipsEmbed *embed )
  * @background: #VipsArrayDouble colour for edge pixels
  *
  * The opposite of vips_extract_area(): embed @in within an image of size 
- * @width by @height at position @x, @y.  @extend
+ * @width by @height at position @x, @y.  
+ *
+ * @extend
  * controls what appears in the new pels, see #VipsExtend. 
  *
  * See also: vips_extract_area(), vips_insert().
