@@ -384,8 +384,12 @@ vips_insert_build( VipsObject *object )
 		insert->main_processed, insert->sub_processed, NULL )) )
 		return( -1 );
 
+	/* Joins can get very wide (eg. consider joining a set of tiles
+	 * horizontally to make a large image), we don't want mem use to shoot
+	 * up. SMALLTILE will guarantee we keep small and local.
+	 */
 	if( vips_image_pipeline_array( conversion->out, 
-		VIPS_DEMAND_STYLE_ANY, arry ) )
+		VIPS_DEMAND_STYLE_SMALLTILE, arry ) )
 		return( -1 );
 
 	/* Calculate geometry. 
@@ -456,7 +460,9 @@ vips_insert_class_init( VipsInsertClass *class )
 		_( "insert image @sub into @main at @x, @y" );
 	vobject_class->build = vips_insert_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	/* Can't be UNBUFFERED, we are a SMALLTILE operation.
+	 */
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "main", -1, 
 		_( "Main" ), 
