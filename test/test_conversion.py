@@ -366,10 +366,10 @@ class TestConversion(unittest.TestCase):
         for fmt in all_formats:
             test = self.colour.cast(fmt)
 
-            result = test.flip(Vips.Direction.HORIZONTAL)
-            result = result.flip(Vips.Direction.VERTICAL)
-            result = result.flip(Vips.Direction.HORIZONTAL)
-            result = result.flip(Vips.Direction.VERTICAL)
+            result = test.fliphor()
+            result = result.flipver()
+            result = result.fliphor()
+            result = result.flipver()
 
             diff = (test - result).abs().max()
 
