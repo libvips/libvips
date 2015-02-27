@@ -1,3 +1,9 @@
+- need API for the stuff that's currently settable only by --whatever flags,
+  eg. --vips-profile
+
+  python people are not going to want to use the glib arg parser, for example
+
+
 
 - support orientation tag in tiff images
 
