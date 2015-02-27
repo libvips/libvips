@@ -616,6 +616,33 @@ vips_foreign_is_a( const char *loader, const char *filename )
 }
 
 /**
+ * vips_foreign_is_a_buffer:
+ * @loader: name of loader to use for test
+ * @data: pointer to the buffer to test
+ * @size: size of the buffer to test
+ *
+ * Return %TRUE if @data can be loaded by @loader. @loader is something
+ * like "tiffload_buffer" or "VipsForeignLoadTiffBuffer".
+ *
+ * Returns: %TRUE if @data can be loaded by @loader.
+ */
+gboolean
+vips_foreign_is_a_buffer( const char *loader, void *data, size_t size )
+{
+	VipsObjectClass *class;
+	VipsForeignLoadClass *load_class;
+
+	if( !(class = vips_class_find( "VipsForeignLoad", loader )) )
+		return( FALSE );
+	load_class = VIPS_FOREIGN_LOAD_CLASS( class );
+	if( load_class->is_a_buffer &&
+		load_class->is_a_buffer( data, size ) )
+		return( TRUE );
+
+	return( FALSE );
+}
+
+/**
  * vips_foreign_flags:
  * @loader: name of loader to use for test
  * @filename: file to test

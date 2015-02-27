@@ -218,6 +218,7 @@ const char *vips_foreign_find_load_buffer( void *data, size_t size );
 
 VipsForeignFlags vips_foreign_flags( const char *loader, const char *filename );
 gboolean vips_foreign_is_a( const char *loader, const char *filename );
+gboolean vips_foreign_is_a_buffer( const char *loader, void *data, size_t size );
 
 #define VIPS_TYPE_FOREIGN_SAVE (vips_foreign_save_get_type())
 #define VIPS_FOREIGN_SAVE( obj ) \
