@@ -1263,6 +1263,12 @@ public:
 		return( a * -1 );
 	}
 
+	friend VImage operator[]( VImage a, int index ) 
+		throw( VError )
+	{ 
+		return( a.extract_band( index ) ); 
+	}
+
 };
 
 VIPS_NAMESPACE_END

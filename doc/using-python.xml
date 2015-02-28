@@ -347,6 +347,26 @@ help(image.add)
 result_image = ((image * [1, 2, 3]).abs() &lt; 128) | 4
 </programlisting>
     </para>
+
+    <para>
+      The wrapper overloads <code>[]</code> to be band indexing. You can write:
+
+<programlisting language="Python">
+result_image = image[2]
+</programlisting>
+
+      to extract the third band of the image. It implements the usual 
+      slicing and negative indexes, so you can write:
+
+<programlisting language="Python">
+result_image = image[1:]
+result_image = image[:3]
+result_image = image[-2:]
+result_image = [x.avg() for x in image]
+</programlisting>
+
+      and so on.
+    </para>
   </refsect3>
 
   <refsect3 id="python-expansions">

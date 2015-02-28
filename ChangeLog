@@ -10,6 +10,7 @@
 - added test_foreign.py, plus more test images
 - rewritten tiff writer is about 3 - 4x faster at making pyramids
 - jpg, magick, png, tiff readers now use only 1 fd per input image
+- python: use [] to index and slice image bands
 
 6/2/15 started 7.42.3
 - bump version for back-compat ABI change

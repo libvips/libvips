@@ -80,6 +80,8 @@ rot_angle_bonds = [Vips.Angle.D0,
 # the other
 def zip_expand(x, y):
     if isinstance(x, list) and isinstance(y, list):
+        if len(x) != len(y):
+            raise Vips.Error("zip_expand list args not equal length")
         return list(zip(x, y))
     elif isinstance(x, list):
         return [[i, y] for i in x]
@@ -138,7 +140,7 @@ class TestConversion(unittest.TestCase):
     def setUp(self):
         im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
         self.colour = im * [1, 2, 3] + [2, 3, 4]
-        self.mono = self.colour.extract_band(1)
+        self.mono = self.colour[1]
         self.all_images = [self.mono, self.colour]
 
     def test_band_and(self):
@@ -294,6 +296,31 @@ class TestConversion(unittest.TestCase):
 
             pixel = sub.getpoint(30, 30)
             self.assertAlmostEqualObjects(pixel, [3, 4])
+
+    def test_slice(self):
+        test = self.colour
+        bands = [x.avg() for x in test]
+
+        x = test[0].avg()
+        self.assertEqual(x, bands[0])
+
+        x = test[-1].avg()
+        self.assertAlmostEqualObjects(x, bands[2])
+
+        x = [i.avg() for i in test[1:3]]
+        self.assertAlmostEqualObjects(x, bands[1:3])
+
+        x = [i.avg() for i in test[1:-1]]
+        self.assertAlmostEqualObjects(x, bands[1:-1])
+
+        x = [i.avg() for i in test[:2]]
+        self.assertAlmostEqualObjects(x, bands[:2])
+
+        x = [i.avg() for i in test[1:]]
+        self.assertAlmostEqualObjects(x, bands[1:])
+
+        x = [i.avg() for i in test[-1]]
+        self.assertAlmostEqualObjects(x, bands[-1])
 
     def test_crop(self):
         for fmt in all_formats:

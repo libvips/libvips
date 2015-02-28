@@ -3,6 +3,14 @@
 
   python people are not going to want to use the glib arg parser, for example
 
+- need to add [] overload to Ruby bindings
+
+- overload (x, y) to be getpoint()?
+
+
+
+
+
 
 
 - support orientation tag in tiff images

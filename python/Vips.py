@@ -757,6 +757,32 @@ class Image(Vips.Image):
         else:
             return self.relational_const(other, Vips.OperationRelational.NOTEQ)
 
+    def __getitem__(self, arg):
+        if isinstance(arg, slice):
+            i = 0
+            if arg.start != None:
+                i = arg.start
+
+            n = self.bands - i
+            if arg.stop != None:
+                if arg.stop < 0:
+                    n = self.bands + arg.stop - i
+                else:
+                    n = arg.stop - i
+        elif isinstance(arg, int):
+            i = arg
+            n = 1
+        else:
+            raise TypeError
+
+        if i < 0:
+            i = self.bands + i
+
+        if i < 0 or i >= self.bands:
+            raise IndexError
+
+        return self.extract_band(i, n = n)
+
     # the cast operators int(), long() and float() must return numeric types, 
     # so we can't define them for images
 
@@ -813,7 +839,7 @@ class Image(Vips.Image):
 
     def bandsplit(self):
         """Split an n-band image into n separate images."""
-        return [self.extract_band(i) for i in range(0, self.bands)]
+        return [x for x in self]
 
     def bandjoin(self, other):
         """Join a set of images bandwise."""
