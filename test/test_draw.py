@@ -38,21 +38,21 @@ class TestDraw(unittest.TestCase):
     def test_draw_circle(self):
         im = Vips.Image.black(100, 100)
         im = im.draw_circle(100, 50, 50, 25)
-        pixel = im.getpoint(25, 50)
+        pixel = im(25, 50)
         self.assertEqual(len(pixel), 1)
         self.assertEqual(pixel[0], 100)
-        pixel = im.getpoint(26, 50)
+        pixel = im(26, 50)
         self.assertEqual(len(pixel), 1)
         self.assertEqual(pixel[0], 0)
 
         im = Vips.Image.black(100, 100)
         im = im.draw_circle(100, 50, 50, 25, fill = True)
-        pixel = im.getpoint(25, 50)
+        pixel = im(25, 50)
         self.assertEqual(len(pixel), 1)
         self.assertEqual(pixel[0], 100)
-        pixel = im.getpoint(26, 50)
+        pixel = im(26, 50)
         self.assertEqual(pixel[0], 100)
-        pixel = im.getpoint(24, 50)
+        pixel = im(24, 50)
         self.assertEqual(pixel[0], 0)
 
     def test_draw_flood(self):
@@ -82,10 +82,10 @@ class TestDraw(unittest.TestCase):
     def test_draw_line(self):
         im = Vips.Image.black(100, 100)
         im = im.draw_line(100, 0, 0, 100, 0)
-        pixel = im.getpoint(0, 0)
+        pixel = im(0, 0)
         self.assertEqual(len(pixel), 1)
         self.assertEqual(pixel[0], 100)
-        pixel = im.getpoint(0, 1)
+        pixel = im(0, 1)
         self.assertEqual(len(pixel), 1)
         self.assertEqual(pixel[0], 0)
 

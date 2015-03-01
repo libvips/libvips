@@ -79,20 +79,20 @@ class TestColour(unittest.TestCase):
     # run a function on an image and on a single pixel, the results 
     # should match 
     def run_cmp(self, message, im, x, y, fn):
-        a = im.getpoint(x, y)
+        a = im(x, y)
         v1 = fn(a)
         im2 = fn(im)
-        v2 = im2.getpoint(x, y)
+        v2 = im2(x, y)
         self.assertAlmostEqualObjects(v1, v2, msg = message)
 
     # run a function on a pair of images and on a pair of pixels, the results 
     # should match 
     def run_cmp2(self, message, left, right, x, y, fn):
-        a = left.getpoint(x, y)
-        b = right.getpoint(x, y)
+        a = left(x, y)
+        b = right(x, y)
         v1 = fn(a, b)
         after = fn(left, right)
-        v2 = after.getpoint(x, y)
+        v2 = after(x, y)
         self.assertAlmostEqualObjects(v1, v2, msg = message)
 
     # run a function on a pair of images
@@ -126,7 +126,7 @@ class TestColour(unittest.TestCase):
                 h = im.extract_band(i).max()
                 self.assertAlmostEqual(l, h)
 
-            pixel = im.getpoint(10, 10)
+            pixel = im(10, 10)
             self.assertAlmostEqual(pixel[3], 42, places = 2)
 
         # alpha won't be equal for RGB16, but it should be preserved if we go
@@ -134,8 +134,8 @@ class TestColour(unittest.TestCase):
         im = im.colourspace(Vips.Interpretation.RGB16)
         im = im.colourspace(Vips.Interpretation.LAB)
 
-        before = test.getpoint(10, 10)
-        after = im.getpoint(10, 10)
+        before = test(10, 10)
+        after = im(10, 10)
         self.assertAlmostEqualObjects(before, after, places = 1)
 
         # go between every pair of colour spaces
@@ -145,15 +145,15 @@ class TestColour(unittest.TestCase):
                 im2 = im.colourspace(end)
                 im3 = im2.colourspace(Vips.Interpretation.LAB)
 
-                before = test.getpoint(10, 10)
-                after = im3.getpoint(10, 10)
+                before = test(10, 10)
+                after = im3(10, 10)
 
                 self.assertAlmostEqualObjects(before, after, places = 1)
 
         # test Lab->XYZ on mid-grey
         # checked against http://www.brucelindbloom.com
         im = test.colourspace(Vips.Interpretation.XYZ)
-        after = im.getpoint(10, 10)
+        after = im(10, 10)
         self.assertAlmostEqualObjects(after, [17.5064, 18.4187, 20.0547, 42])
 
         # grey->colour->grey should be equal
@@ -163,8 +163,8 @@ class TestColour(unittest.TestCase):
             for col in colour_colourspaces + [mono_fmt]:
                 im = im.colourspace(col)
                 self.assertEqual(im.interpretation, col)
-            [before, alpha_before] = test_grey.getpoint(10, 10)
-            [after, alpha_after] = im.getpoint(10, 10)
+            [before, alpha_before] = test_grey(10, 10)
+            [after, alpha_after] = im(10, 10)
             self.assertLess(abs(alpha_after - alpha_before), 1)
             if mono_fmt == Vips.Interpretation.GREY16:
                 # GREY16 can wind up rather different due to rounding
@@ -184,7 +184,7 @@ class TestColour(unittest.TestCase):
         sample = sample.copy(interpretation = Vips.Interpretation.LAB)
 
         difference = reference.dE00(sample)
-        result, alpha = difference.getpoint(10, 10)
+        result, alpha = difference(10, 10)
         self.assertAlmostEqual(result, 30.238, places = 3)
         self.assertAlmostEqual(alpha, 42.0, places = 3)
 
@@ -196,7 +196,7 @@ class TestColour(unittest.TestCase):
         sample = sample.copy(interpretation = Vips.Interpretation.LAB)
 
         difference = reference.dE76(sample)
-        result, alpha = difference.getpoint(10, 10)
+        result, alpha = difference(10, 10)
         self.assertAlmostEqual(result, 33.166, places = 3)
         self.assertAlmostEqual(alpha, 42.0, places = 3)
 
@@ -210,7 +210,7 @@ class TestColour(unittest.TestCase):
         sample = sample.copy(interpretation = Vips.Interpretation.LAB)
 
         difference = reference.dECMC(sample)
-        result, alpha = difference.getpoint(10, 10)
+        result, alpha = difference(10, 10)
         self.assertLess(abs(result - 4.97), 0.5)
         self.assertAlmostEqual(alpha, 42.0, places = 3)
 

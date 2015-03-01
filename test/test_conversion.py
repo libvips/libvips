@@ -100,20 +100,20 @@ class TestConversion(unittest.TestCase):
     # run a function on an image and on a single pixel, the results 
     # should match 
     def run_cmp_unary(self, message, im, x, y, fn):
-        a = im.getpoint(x, y)
+        a = im(x, y)
         v1 = fn(a)
         im2 = fn(im)
-        v2 = im2.getpoint(x, y)
+        v2 = im2(x, y)
         self.assertAlmostEqualObjects(v1, v2, msg = message)
 
     # run a function on a pair of images and on a pair of pixels, the results 
     # should match 
     def run_cmp_binary(self, message, left, right, x, y, fn):
-        a = left.getpoint(x, y)
-        b = right.getpoint(x, y)
+        a = left(x, y)
+        b = right(x, y)
         v1 = fn(a, b)
         after = fn(left, right)
-        v2 = after.getpoint(x, y)
+        v2 = after(x, y)
         self.assertAlmostEqualObjects(v1, v2, msg = message)
 
     # run a function on a pair of images
@@ -242,20 +242,20 @@ class TestConversion(unittest.TestCase):
             im = test.embed(20, 20, 
                             self.colour.width + 40,
                             self.colour.height + 40)
-            pixel = im.getpoint(10, 10)
+            pixel = im(10, 10)
             self.assertAlmostEqualObjects(pixel, [0, 0, 0])
-            pixel = im.getpoint(30, 30)
+            pixel = im(30, 30)
             self.assertAlmostEqualObjects(pixel, [2, 3, 4])
-            pixel = im.getpoint(im.width - 10, im.height - 10)
+            pixel = im(im.width - 10, im.height - 10)
             self.assertAlmostEqualObjects(pixel, [0, 0, 0])
 
             im = test.embed(20, 20, 
                             self.colour.width + 40,
                             self.colour.height + 40,
                             extend = Vips.Extend.COPY)
-            pixel = im.getpoint(10, 10)
+            pixel = im(10, 10)
             self.assertAlmostEqualObjects(pixel, [2, 3, 4])
-            pixel = im.getpoint(im.width - 10, im.height - 10)
+            pixel = im(im.width - 10, im.height - 10)
             self.assertAlmostEqualObjects(pixel, [2, 3, 4])
 
             im = test.embed(20, 20, 
@@ -263,20 +263,20 @@ class TestConversion(unittest.TestCase):
                             self.colour.height + 40,
                             extend = Vips.Extend.BACKGROUND,
                             background = [7, 8, 9])
-            pixel = im.getpoint(10, 10)
+            pixel = im(10, 10)
             self.assertAlmostEqualObjects(pixel, [7, 8, 9])
-            pixel = im.getpoint(im.width - 10, im.height - 10)
+            pixel = im(im.width - 10, im.height - 10)
             self.assertAlmostEqualObjects(pixel, [7, 8, 9])
 
             im = test.embed(20, 20, 
                             self.colour.width + 40,
                             self.colour.height + 40,
                             extend = Vips.Extend.WHITE)
-            pixel = im.getpoint(10, 10)
+            pixel = im(10, 10)
             # uses 255 in all bytes of ints, 255.0 for float
             pixel = [int(x) & 0xff for x in pixel]
             self.assertAlmostEqualObjects(pixel, [255, 255, 255])
-            pixel = im.getpoint(im.width - 10, im.height - 10)
+            pixel = im(im.width - 10, im.height - 10)
             pixel = [int(x) & 0xff for x in pixel]
             self.assertAlmostEqualObjects(pixel, [255, 255, 255])
 
@@ -284,17 +284,17 @@ class TestConversion(unittest.TestCase):
         for fmt in all_formats:
             test = self.colour.cast(fmt)
 
-            pixel = test.getpoint(30, 30)
+            pixel = test(30, 30)
             self.assertAlmostEqualObjects(pixel, [2, 3, 4])
 
             sub = test.extract_area(25, 25, 10, 10)
 
-            pixel = sub.getpoint(5, 5)
+            pixel = sub(5, 5)
             self.assertAlmostEqualObjects(pixel, [2, 3, 4])
 
             sub = test.extract_band(1, n = 2)
 
-            pixel = sub.getpoint(30, 30)
+            pixel = sub(30, 30)
             self.assertAlmostEqualObjects(pixel, [3, 4])
 
     def test_slice(self):
@@ -326,12 +326,12 @@ class TestConversion(unittest.TestCase):
         for fmt in all_formats:
             test = self.colour.cast(fmt)
 
-            pixel = test.getpoint(30, 30)
+            pixel = test(30, 30)
             self.assertAlmostEqualObjects(pixel, [2, 3, 4])
 
             sub = test.crop(25, 25, 10, 10)
 
-            pixel = sub.getpoint(5, 5)
+            pixel = sub(5, 5)
             self.assertAlmostEqualObjects(pixel, [2, 3, 4])
 
     def test_falsecolour(self):
@@ -344,7 +344,7 @@ class TestConversion(unittest.TestCase):
             self.assertEqual(im.height, test.height)
             self.assertEqual(im.bands, 3)
 
-            pixel = im.getpoint(30, 30)
+            pixel = im(30, 30)
             self.assertAlmostEqualObjects(pixel, [20, 0, 41])
 
     def test_flatten(self):
@@ -365,14 +365,14 @@ class TestConversion(unittest.TestCase):
             alpha = mx / 2.0
             nalpha = mx - alpha
             test = self.colour.bandjoin(black + alpha).cast(fmt)
-            pixel = test.getpoint(30, 30)
+            pixel = test(30, 30)
 
             predict = [int(x) * alpha / mx for x in pixel[:-1]]
 
             im = test.flatten()
 
             self.assertEqual(im.bands, 3)
-            pixel = im.getpoint(30, 30)
+            pixel = im(30, 30)
             for x, y in zip(pixel, predict):
                 # we use float arithetic for int and uint, so the rounding
                 # differs ... don't require huge accuracy
@@ -380,12 +380,12 @@ class TestConversion(unittest.TestCase):
 
             im = test.flatten(background = [100, 100, 100])
 
-            pixel = test.getpoint(30, 30)
+            pixel = test(30, 30)
             predict = [int(x) * alpha / mx + (100 * nalpha) / mx
                        for x in pixel[:-1]]
 
             self.assertEqual(im.bands, 3)
-            pixel = im.getpoint(30, 30)
+            pixel = im(30, 30)
             for x, y in zip(pixel, predict):
                 self.assertLess(abs(x - y), 2)
 
@@ -410,8 +410,8 @@ class TestConversion(unittest.TestCase):
 
             norm = mx ** exponent / mx
             result = test.gamma()
-            before = test.getpoint(30, 30)
-            after = result.getpoint(30, 30)
+            before = test(30, 30)
+            after = result(30, 30)
             predict = [x ** exponent / norm for x in before]
             for a, b in zip(after, predict):
                 # ie. less than 1% error, rounding on 7-bit images means this is
@@ -425,8 +425,8 @@ class TestConversion(unittest.TestCase):
 
             norm = mx ** exponent / mx
             result = test.gamma(exponent = 1.0 / 1.2)
-            before = test.getpoint(30, 30)
-            after = result.getpoint(30, 30)
+            before = test(30, 30)
+            after = result(30, 30)
             predict = [x ** exponent / norm for x in before]
             for a, b in zip(after, predict):
                 # ie. less than 1% error, rounding on 7-bit images means this is
@@ -444,12 +444,12 @@ class TestConversion(unittest.TestCase):
             self.assertEqual(result.width, self.colour.width * 3)
             self.assertEqual(result.height, self.colour.height * 4)
 
-            before = im.getpoint(10, 10)
-            after = result.getpoint(10 + test.width * 2, 10 + test.width * 2)
+            before = im(10, 10)
+            after = result(10 + test.width * 2, 10 + test.width * 2)
             self.assertAlmostEqualObjects(before, after)
 
-            before = im.getpoint(50, 50)
-            after = result.getpoint(50 + test.width * 2, 50 + test.width * 2)
+            before = im(50, 50)
+            after = result(50 + test.width * 2, 50 + test.width * 2)
             self.assertAlmostEqualObjects(before, after)
 
     def test_ifthenelse(self):
@@ -464,12 +464,12 @@ class TestConversion(unittest.TestCase):
                 self.assertEqual(r.height, self.colour.height)
                 self.assertEqual(r.bands, self.colour.bands)
 
-                predict = e.getpoint(10, 10)
-                result = r.getpoint(10, 10)
+                predict = e(10, 10)
+                result = r(10, 10)
                 self.assertAlmostEqualObjects(result, predict)
 
-                predict = t.getpoint(50, 50)
-                result = r.getpoint(50, 50)
+                predict = t(50, 50)
+                result = r(50, 50)
                 self.assertAlmostEqualObjects(result, predict)
 
         test = self.colour > 3
@@ -483,20 +483,20 @@ class TestConversion(unittest.TestCase):
                 self.assertEqual(r.height, self.colour.height)
                 self.assertEqual(r.bands, self.colour.bands)
 
-                cp = test.getpoint(10, 10)
-                tp = t.getpoint(10, 10) * 3
-                ep = e.getpoint(10, 10) * 3
+                cp = test(10, 10)
+                tp = t(10, 10) * 3
+                ep = e(10, 10) * 3
                 predict = [te if ce != 0 else ee 
                            for ce, te, ee in zip(cp, tp, ep)]
-                result = r.getpoint(10, 10)
+                result = r(10, 10)
                 self.assertAlmostEqualObjects(result, predict)
 
-                cp = test.getpoint(50, 50)
-                tp = t.getpoint(50, 50) * 3
-                ep = e.getpoint(50, 50) * 3
+                cp = test(50, 50)
+                tp = t(50, 50) * 3
+                ep = e(50, 50) * 3
                 predict = [te if ce != 0 else ee 
                            for ce, te, ee in zip(cp, tp, ep)]
-                result = r.getpoint(50, 50)
+                result = r(50, 50)
                 self.assertAlmostEqualObjects(result, predict)
 
         test = self.colour > 3
@@ -510,7 +510,7 @@ class TestConversion(unittest.TestCase):
                 self.assertEqual(r.height, self.colour.height)
                 self.assertEqual(r.bands, self.colour.bands)
 
-                result = r.getpoint(10, 10)
+                result = r(10, 10)
                 self.assertAlmostEqualObjects(result, [3, 3, 13])
 
         test = self.mono > 3
@@ -520,9 +520,9 @@ class TestConversion(unittest.TestCase):
         self.assertEqual(r.bands, self.colour.bands)
         self.assertEqual(r.format, self.colour.format)
         self.assertEqual(r.interpretation, self.colour.interpretation)
-        result = r.getpoint(10, 10)
+        result = r(10, 10)
         self.assertAlmostEqualObjects(result, [2, 3, 4])
-        result = r.getpoint(50, 50)
+        result = r(50, 50)
         self.assertAlmostEqualObjects(result, [1, 2, 3])
 
         test = self.mono
@@ -532,9 +532,9 @@ class TestConversion(unittest.TestCase):
         self.assertEqual(r.bands, self.colour.bands)
         self.assertEqual(r.format, self.colour.format)
         self.assertEqual(r.interpretation, self.colour.interpretation)
-        result = r.getpoint(10, 10)
+        result = r(10, 10)
         self.assertAlmostEqualObjects(result, [2, 3, 4], places = 1)
-        result = r.getpoint(50, 50)
+        result = r(50, 50)
         self.assertAlmostEqualObjects(result, [3.0, 4.9, 6.9], places = 1)
 
     def test_insert(self):
@@ -548,12 +548,12 @@ class TestConversion(unittest.TestCase):
                 self.assertEqual(r.height, main.height)
                 self.assertEqual(r.bands, sub.bands)
 
-                a = r.getpoint(10, 10)
-                b = sub.getpoint(0, 0)
+                a = r(10, 10)
+                b = sub(0, 0)
                 self.assertAlmostEqualObjects(a, b)
 
-                a = r.getpoint(0, 0)
-                b = main.getpoint(0, 0) * 3
+                a = r(0, 0)
+                b = main(0, 0) * 3
                 self.assertAlmostEqualObjects(a, b)
 
         for x in all_formats:
@@ -566,7 +566,7 @@ class TestConversion(unittest.TestCase):
                 self.assertEqual(r.height, main.height + 10)
                 self.assertEqual(r.bands, sub.bands)
 
-                a = r.getpoint(r.width - 5, 5)
+                a = r(r.width - 5, 5)
                 self.assertAlmostEqualObjects(a, [100, 100, 100])
 
     def test_msb(self):
@@ -576,14 +576,14 @@ class TestConversion(unittest.TestCase):
             test = (self.colour + mx / 8.0).cast(fmt)
             im = test.msb()
 
-            before = test.getpoint(10, 10)
+            before = test(10, 10)
             predict = [int(x) >> ((size - 1) * 8) for x in before]
-            result = im.getpoint(10, 10)
+            result = im(10, 10)
             self.assertAlmostEqualObjects(result, predict)
 
-            before = test.getpoint(50, 50)
+            before = test(50, 50)
             predict = [int(x) >> ((size - 1) * 8) for x in before]
-            result = im.getpoint(50, 50)
+            result = im(50, 50)
             self.assertAlmostEqualObjects(result, predict)
 
         for fmt in signed_formats:
@@ -592,14 +592,14 @@ class TestConversion(unittest.TestCase):
             test = (self.colour + mx / 8.0).cast(fmt)
             im = test.msb()
 
-            before = test.getpoint(10, 10)
+            before = test(10, 10)
             predict = [128 + (int(x) >> ((size - 1) * 8)) for x in before]
-            result = im.getpoint(10, 10)
+            result = im(10, 10)
             self.assertAlmostEqualObjects(result, predict)
 
-            before = test.getpoint(50, 50)
+            before = test(50, 50)
             predict = [128 + (int(x) >> ((size - 1) * 8)) for x in before]
-            result = im.getpoint(50, 50)
+            result = im(50, 50)
             self.assertAlmostEqualObjects(result, predict)
 
         for fmt in unsigned_formats:
@@ -608,14 +608,14 @@ class TestConversion(unittest.TestCase):
             test = (self.colour + mx / 8.0).cast(fmt)
             im = test.msb(band = 1)
 
-            before = [test.getpoint(10, 10)[1]]
+            before = [test(10, 10)[1]]
             predict = [int(x) >> ((size - 1) * 8) for x in before]
-            result = im.getpoint(10, 10)
+            result = im(10, 10)
             self.assertAlmostEqualObjects(result, predict)
 
-            before = [test.getpoint(50, 50)[1]]
+            before = [test(50, 50)[1]]
             predict = [int(x) >> ((size - 1) * 8) for x in before]
-            result = im.getpoint(50, 50)
+            result = im(50, 50)
             self.assertAlmostEqualObjects(result, predict)
 
     def test_recomb(self):
@@ -640,12 +640,12 @@ class TestConversion(unittest.TestCase):
             self.assertEqual(test.width, self.colour.width * 10)
             self.assertEqual(test.height, self.colour.height * 10)
 
-            before = im.getpoint(10, 10)
-            after = test.getpoint(10 + im.width * 2, 10 + im.width * 2)
+            before = im(10, 10)
+            after = test(10 + im.width * 2, 10 + im.width * 2)
             self.assertAlmostEqualObjects(before, after)
 
-            before = im.getpoint(50, 50)
-            after = test.getpoint(50 + im.width * 2, 50 + im.width * 2)
+            before = im(50, 50)
+            after = test(50 + im.width * 2, 50 + im.width * 2)
             self.assertAlmostEqualObjects(before, after)
 
     def test_rot45(self):
@@ -655,8 +655,8 @@ class TestConversion(unittest.TestCase):
             im = test.cast(fmt)
 
             im2 = im.rot45()
-            before = im.getpoint(50, 50)
-            after = im2.getpoint(25, 50)
+            before = im(50, 50)
+            after = im2(25, 50)
             self.assertAlmostEqualObjects(before, after)
 
             for a, b in zip(rot45_angles, rot45_angle_bonds):
@@ -672,8 +672,8 @@ class TestConversion(unittest.TestCase):
             im = test.cast(fmt)
 
             im2 = im.rot(Vips.Angle.D90)
-            before = im.getpoint(50, 50)
-            after = im2.getpoint(0, 50)
+            before = im(50, 50)
+            after = im2(0, 50)
             self.assertAlmostEqualObjects(before, after)
 
             for a, b in zip(rot_angles, rot_angle_bonds):
@@ -701,8 +701,8 @@ class TestConversion(unittest.TestCase):
             self.assertEqual(im.width, test.width // 3)
             self.assertEqual(im.height, test.height // 3)
 
-            before = test.getpoint(60, 60)
-            after = im.getpoint(20, 20)
+            before = test(60, 60)
+            after = im(20, 20)
             self.assertAlmostEqualObjects(before, after)
 
     def test_zoom(self):
@@ -713,8 +713,8 @@ class TestConversion(unittest.TestCase):
             self.assertEqual(im.width, test.width * 3)
             self.assertEqual(im.height, test.height * 3)
 
-            before = test.getpoint(50, 50)
-            after = im.getpoint(150, 150)
+            before = test(50, 50)
+            after = im(150, 150)
             self.assertAlmostEqualObjects(before, after)
 
     def test_wrap(self):
@@ -725,12 +725,12 @@ class TestConversion(unittest.TestCase):
             self.assertEqual(im.width, test.width)
             self.assertEqual(im.height, test.height)
 
-            before = test.getpoint(0, 0)
-            after = im.getpoint(50, 50)
+            before = test(0, 0)
+            after = im(50, 50)
             self.assertAlmostEqualObjects(before, after)
 
-            before = test.getpoint(50, 50)
-            after = im.getpoint(0, 0)
+            before = test(50, 50)
+            after = im(0, 0)
             self.assertAlmostEqualObjects(before, after)
 
 if __name__ == '__main__':

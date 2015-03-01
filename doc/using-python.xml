@@ -349,7 +349,8 @@ result_image = ((image * [1, 2, 3]).abs() &lt; 128) | 4
     </para>
 
     <para>
-      The wrapper overloads <code>[]</code> to be band indexing. You can write:
+      The wrapper overloads <code>[]</code> to be vips_extract_band(). You 
+      can write:
 
 <programlisting language="Python">
 result_image = image[2]
@@ -367,6 +368,19 @@ result_image = [x.avg() for x in image]
 
       and so on.
     </para>
+
+    <para>
+      The wrapper overloads <code>()</code> to be vips_getpoint(). You can 
+      write:
+
+<programlisting language="Python">
+r, g, b = image(10, 10)
+</programlisting>
+
+      to read out the value of the pixel at coordinates (10, 10) from an RGB 
+      image. 
+    </para>
+
   </refsect3>
 
   <refsect3 id="python-expansions">

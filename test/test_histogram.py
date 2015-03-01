@@ -42,7 +42,7 @@ class TestHistogram(unittest.TestCase):
 
         cum = im.hist_cum()
 
-        p = cum.getpoint(255, 0)
+        p = cum(255, 0)
         self.assertEqual(p[0], sum)
 
     def test_hist_equal(self):

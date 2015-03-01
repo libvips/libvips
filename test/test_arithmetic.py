@@ -66,10 +66,10 @@ class TestArithmetic(unittest.TestCase):
     # run a function on an image and on a single pixel, the results 
     # should match 
     def run_cmp(self, message, im, x, y, fn):
-        a = im.getpoint(x, y)
+        a = im(x, y)
         v1 = fn(a)
         im2 = fn(im)
-        v2 = im2.getpoint(x, y)
+        v2 = im2(x, y)
         self.assertAlmostEqualObjects(v1, v2, msg = message)
 
     # run a function on (image, constant), and on (constant, image).
@@ -90,11 +90,11 @@ class TestArithmetic(unittest.TestCase):
     # run a function on a pair of images and on a pair of pixels, the results 
     # should match 
     def run_cmp2(self, message, left, right, x, y, fn):
-        a = left.getpoint(x, y)
-        b = right.getpoint(x, y)
+        a = left(x, y)
+        b = right(x, y)
         v1 = fn(a, b)
         after = fn(left, right)
-        v2 = after.getpoint(x, y)
+        v2 = after(x, y)
         self.assertAlmostEqualObjects(v1, v2, msg = message)
 
     # run a function on a pair of images
@@ -392,22 +392,22 @@ class TestArithmetic(unittest.TestCase):
 
         for fmt in all_formats:
             hist = test.cast(fmt).hist_find()
-            self.assertAlmostEqualObjects(hist.getpoint(0,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(10,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(5,0), [0])
+            self.assertAlmostEqualObjects(hist(0,0), [5000])
+            self.assertAlmostEqualObjects(hist(10,0), [5000])
+            self.assertAlmostEqualObjects(hist(5,0), [0])
 
         test = test * [1, 2, 3]
 
         for fmt in all_formats:
             hist = test.cast(fmt).hist_find(band = 0)
-            self.assertAlmostEqualObjects(hist.getpoint(0,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(10,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(5,0), [0])
+            self.assertAlmostEqualObjects(hist(0,0), [5000])
+            self.assertAlmostEqualObjects(hist(10,0), [5000])
+            self.assertAlmostEqualObjects(hist(5,0), [0])
 
             hist = test.cast(fmt).hist_find(band = 1)
-            self.assertAlmostEqualObjects(hist.getpoint(0,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(20,0), [5000])
-            self.assertAlmostEqualObjects(hist.getpoint(5,0), [0])
+            self.assertAlmostEqualObjects(hist(0,0), [5000])
+            self.assertAlmostEqualObjects(hist(20,0), [5000])
+            self.assertAlmostEqualObjects(hist(5,0), [0])
 
     def test_histfind_indexed(self):
         im = Vips.Image.black(50, 100)
@@ -420,8 +420,8 @@ class TestArithmetic(unittest.TestCase):
                 b = index.cast(y)
                 hist = a.hist_find_indexed(b)
 
-                self.assertAlmostEqualObjects(hist.getpoint(0,0), [0])
-                self.assertAlmostEqualObjects(hist.getpoint(1,0), [50000])
+                self.assertAlmostEqualObjects(hist(0,0), [0])
+                self.assertAlmostEqualObjects(hist(1,0), [50000])
 
     def test_histfind_ndim(self):
         im = Vips.Image.black(100, 100) + [1, 2, 3]
@@ -429,12 +429,12 @@ class TestArithmetic(unittest.TestCase):
         for fmt in noncomplex_formats:
             hist = im.cast(fmt).hist_find_ndim()
 
-            self.assertAlmostEqualObjects(hist.getpoint(0,0)[0], 10000)
-            self.assertAlmostEqualObjects(hist.getpoint(5,5)[5], 0)
+            self.assertAlmostEqualObjects(hist(0,0)[0], 10000)
+            self.assertAlmostEqualObjects(hist(5,5)[5], 0)
 
             hist = im.cast(fmt).hist_find_ndim(bins = 1)
 
-            self.assertAlmostEqualObjects(hist.getpoint(0,0)[0], 10000)
+            self.assertAlmostEqualObjects(hist(0,0)[0], 10000)
             self.assertEqual(hist.width, 1)
             self.assertEqual(hist.height, 1)
             self.assertEqual(hist.bands, 1)
@@ -447,7 +447,7 @@ class TestArithmetic(unittest.TestCase):
             hough = im.hough_circle(min_radius = 35, max_radius = 45)
 
             v, x, y = hough.maxpos()
-            vec = hough.getpoint(x, y)
+            vec = hough(x, y)
             r = vec.index(v) + 35
 
             self.assertAlmostEqual(x, 50)
@@ -634,8 +634,8 @@ class TestArithmetic(unittest.TestCase):
         for x in noncomplex_formats:
             a = test.cast(x)
             matrix = a.measure(2, 1)
-            [p1] = matrix.getpoint(0, 0)
-            [p2] = matrix.getpoint(0, 1)
+            [p1] = matrix(0, 0)
+            [p2] = matrix(0, 1)
 
             self.assertAlmostEqual(p1, 0)
             self.assertAlmostEqual(p2, 10)
@@ -663,10 +663,10 @@ class TestArithmetic(unittest.TestCase):
         for fmt in noncomplex_formats:
             columns, rows = test.cast(fmt).project()
 
-            self.assertAlmostEqualObjects(columns.getpoint(10,0), [0])
-            self.assertAlmostEqualObjects(columns.getpoint(70,0), [50 * 10])
+            self.assertAlmostEqualObjects(columns(10,0), [0])
+            self.assertAlmostEqualObjects(columns(70,0), [50 * 10])
 
-            self.assertAlmostEqualObjects(rows.getpoint(0,10), [50 * 10])
+            self.assertAlmostEqualObjects(rows(0,10), [50 * 10])
 
     def test_stats(self):
         im = Vips.Image.black(50, 50)
@@ -676,19 +676,19 @@ class TestArithmetic(unittest.TestCase):
             a = test.cast(x)
             matrix = a.stats()
 
-            self.assertAlmostEqualObjects(matrix.getpoint(0, 0), [a.min()])
-            self.assertAlmostEqualObjects(matrix.getpoint(1, 0), [a.max()])
-            self.assertAlmostEqualObjects(matrix.getpoint(2, 0), [50 * 50 * 10])
-            self.assertAlmostEqualObjects(matrix.getpoint(3, 0), [50 * 50 * 100])
-            self.assertAlmostEqualObjects(matrix.getpoint(4, 0), [a.avg()])
-            self.assertAlmostEqualObjects(matrix.getpoint(5, 0), [a.deviate()])
+            self.assertAlmostEqualObjects(matrix(0, 0), [a.min()])
+            self.assertAlmostEqualObjects(matrix(1, 0), [a.max()])
+            self.assertAlmostEqualObjects(matrix(2, 0), [50 * 50 * 10])
+            self.assertAlmostEqualObjects(matrix(3, 0), [50 * 50 * 100])
+            self.assertAlmostEqualObjects(matrix(4, 0), [a.avg()])
+            self.assertAlmostEqualObjects(matrix(5, 0), [a.deviate()])
 
-            self.assertAlmostEqualObjects(matrix.getpoint(0, 1), [a.min()])
-            self.assertAlmostEqualObjects(matrix.getpoint(1, 1), [a.max()])
-            self.assertAlmostEqualObjects(matrix.getpoint(2, 1), [50 * 50 * 10])
-            self.assertAlmostEqualObjects(matrix.getpoint(3, 1), [50 * 50 * 100])
-            self.assertAlmostEqualObjects(matrix.getpoint(4, 1), [a.avg()])
-            self.assertAlmostEqualObjects(matrix.getpoint(5, 1), [a.deviate()])
+            self.assertAlmostEqualObjects(matrix(0, 1), [a.min()])
+            self.assertAlmostEqualObjects(matrix(1, 1), [a.max()])
+            self.assertAlmostEqualObjects(matrix(2, 1), [50 * 50 * 10])
+            self.assertAlmostEqualObjects(matrix(3, 1), [50 * 50 * 100])
+            self.assertAlmostEqualObjects(matrix(4, 1), [a.avg()])
+            self.assertAlmostEqualObjects(matrix(5, 1), [a.deviate()])
 
     def test_sum(self):
         for fmt in all_formats:

@@ -70,8 +70,8 @@ def conv(image, mask, x_position, y_position):
     s = 0.0
     for x in range(0, mask.width):
         for y in range(0, mask.height):
-            m = mask.getpoint(x, y)
-            i = image.getpoint(x + x_position, y + y_position)
+            m = mask(x, y)
+            i = image(x + x_position, y + y_position)
             p = run_fn2(operator.mul, m, i)
             s = run_fn2(operator.add, s, p)
 
@@ -119,11 +119,11 @@ class TestConvolution(unittest.TestCase):
                 for prec in [Vips.Precision.INTEGER, Vips.Precision.FLOAT]:
                     convolved = im.conv(msk, precision = prec)
 
-                    result = convolved.getpoint(25, 50)
+                    result = convolved(25, 50)
                     true = conv(im, msk, 24, 49)
                     self.assertAlmostEqualObjects(result, true)
 
-                    result = convolved.getpoint(50, 50)
+                    result = convolved(50, 50)
                     true = conv(im, msk, 49, 49)
                     self.assertAlmostEqualObjects(result, true)
 
@@ -138,7 +138,7 @@ class TestConvolution(unittest.TestCase):
                                                combine = Vips.Combine.MAX,
                                                precision = prec)
 
-                        result = convolved.getpoint(25, 50)
+                        result = convolved(25, 50)
                         true = compass(im, msk, 24, 49, times, max)
                         self.assertAlmostEqualObjects(result, true)
 
@@ -152,7 +152,7 @@ class TestConvolution(unittest.TestCase):
                                                combine = Vips.Combine.SUM,
                                                precision = prec)
 
-                        result = convolved.getpoint(25, 50)
+                        result = convolved(25, 50)
                         true = compass(im, msk, 24, 49, times, operator.add)
                         self.assertAlmostEqualObjects(result, true)
 
@@ -172,8 +172,8 @@ class TestConvolution(unittest.TestCase):
                 a = im.conv(gmask, precision = prec)
                 b = im.convsep(gmask_sep, precision = prec)
 
-                a_point = a.getpoint(25, 50)
-                b_point = b.getpoint(25, 50)
+                a_point = a(25, 50)
+                b_point = b(25, 50)
 
                 self.assertAlmostEqualObjects(a_point, b_point, places = 1)
 
@@ -210,8 +210,8 @@ class TestConvolution(unittest.TestCase):
                     a = im.conv(gmask, precision = prec)
                     b = im.gaussblur(sigma, min_ampl = 0.2, precision = prec)
 
-                    a_point = a.getpoint(25, 50)
-                    b_point = b.getpoint(25, 50)
+                    a_point = a(25, 50)
+                    b_point = b(25, 50)
 
                     self.assertAlmostEqualObjects(a_point, b_point, places = 1)
 

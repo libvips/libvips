@@ -3,20 +3,6 @@
 
   python people are not going to want to use the glib arg parser, for example
 
-- need to add [] overload to Ruby bindings
-
-- overload (x, y) to be getpoint()? py/rb
-
-  c++ has:
-
-	std::vector<double> operator()( int x, int y )
-	{
-		return( this->getpoint( x, y ) ); 
-	}
-
-
-
-
 
 
 

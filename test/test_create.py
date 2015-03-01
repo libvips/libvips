@@ -43,7 +43,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.format, Vips.BandFormat.UCHAR)
         self.assertEqual(im.bands, 1)
         for i in range (0, 100):
-            pixel = im.getpoint(i, i)
+            pixel = im(i, i)
             self.assertEqual(len(pixel), 1)
             self.assertEqual(pixel[0], 0)
 
@@ -54,7 +54,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.format, Vips.BandFormat.UCHAR)
         self.assertEqual(im.bands, 3)
         for i in range (0, 100):
-            pixel = im.getpoint(i, i)
+            pixel = im(i, i)
             self.assertEqual(len(pixel), 3)
             self.assertAlmostEqualObjects(pixel, [0, 0, 0])
 
@@ -65,11 +65,11 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(lut.width, 256)
         self.assertEqual(lut.height, 1)
         self.assertEqual(lut.bands, 1)
-        p = lut.getpoint(0, 0)
+        p = lut(0, 0)
         self.assertEqual(p[0], 0.0)
-        p = lut.getpoint(255, 0)
+        p = lut(255, 0)
         self.assertEqual(p[0], 100.0)
-        p = lut.getpoint(10, 0)
+        p = lut(10, 0)
         self.assertEqual(p[0], 100 * 10.0 / 255.0)
 
         M = Vips.Image.new_from_array([[0, 0, 100], 
@@ -79,9 +79,9 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(lut.width, 256)
         self.assertEqual(lut.height, 1)
         self.assertEqual(lut.bands, 2)
-        p = lut.getpoint(0, 0)
+        p = lut(0, 0)
         self.assertAlmostEqualObjects(p, [0.0, 100.0])
-        p = lut.getpoint(64, 0)
+        p = lut(64, 0)
         self.assertAlmostEqualObjects(p, [5.0, 95.0])
 
     def test_eye(self):
@@ -118,7 +118,7 @@ class TestCreate(unittest.TestCase):
         total = im.avg() * im.width * im.height
         scale = im.get("scale")
         self.assertEqual(total, scale)
-        p = im.getpoint(im.width / 2, im.height / 2)
+        p = im(im.width / 2, im.height / 2)
         self.assertEqual(p[0], 20.0)
 
         im = Vips.Image.gaussmat(1, 0.1, 
@@ -131,7 +131,7 @@ class TestCreate(unittest.TestCase):
         total = im.avg() * im.width * im.height
         scale = im.get("scale")
         self.assertEqual(total, scale)
-        p = im.getpoint(im.width / 2, im.height / 2)
+        p = im(im.width / 2, im.height / 2)
         self.assertEqual(p[0], 1.0)
 
     def test_gaussnoise(self):
@@ -160,13 +160,13 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
 
-        p = im.getpoint(0, 0)
+        p = im(0, 0)
         self.assertEqual(p[0], 0.0)
-        p = im.getpoint(99, 0)
+        p = im(99, 0)
         self.assertEqual(p[0], 1.0)
-        p = im.getpoint(0, 89)
+        p = im(0, 89)
         self.assertEqual(p[0], 0.0)
-        p = im.getpoint(99, 89)
+        p = im(99, 89)
         self.assertEqual(p[0], 1.0)
 
         im = Vips.Image.grey(100, 90, uchar = True)
@@ -175,13 +175,13 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.UCHAR)
 
-        p = im.getpoint(0, 0)
+        p = im(0, 0)
         self.assertEqual(p[0], 0)
-        p = im.getpoint(99, 0)
+        p = im(99, 0)
         self.assertEqual(p[0], 255)
-        p = im.getpoint(0, 89)
+        p = im(0, 89)
         self.assertEqual(p[0], 0)
-        p = im.getpoint(99, 89)
+        p = im(99, 89)
         self.assertEqual(p[0], 255)
 
     def test_identity(self):
@@ -191,11 +191,11 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.UCHAR)
 
-        p = im.getpoint(0, 0)
+        p = im(0, 0)
         self.assertEqual(p[0], 0.0)
-        p = im.getpoint(255, 0)
+        p = im(255, 0)
         self.assertEqual(p[0], 255.0)
-        p = im.getpoint(128, 0)
+        p = im(128, 0)
         self.assertEqual(p[0], 128.0)
 
         im = Vips.Image.identity(ushort = True)
@@ -204,11 +204,11 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.USHORT)
 
-        p = im.getpoint(0, 0)
+        p = im(0, 0)
         self.assertEqual(p[0], 0)
-        p = im.getpoint(99, 0)
+        p = im(99, 0)
         self.assertEqual(p[0], 99)
-        p = im.getpoint(65535, 0)
+        p = im(65535, 0)
         self.assertEqual(p[0], 65535)
 
     def test_invertlut(self):
@@ -221,15 +221,15 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 3)
         self.assertEqual(im.format, Vips.BandFormat.DOUBLE)
 
-        p = im.getpoint(0, 0)
+        p = im(0, 0)
         self.assertAlmostEqualObjects(p, [0, 0, 0])
-        p = im.getpoint(255, 0)
+        p = im(255, 0)
         self.assertAlmostEqualObjects(p, [1, 1, 1])
-        p = im.getpoint(0.2 * 255, 0)
+        p = im(0.2 * 255, 0)
         self.assertAlmostEqual(p[0], 0.1, places = 2)
-        p = im.getpoint(0.3 * 255, 0)
+        p = im(0.3 * 255, 0)
         self.assertAlmostEqual(p[1], 0.1, places = 2)
-        p = im.getpoint(0.1 * 255, 0)
+        p = im(0.1 * 255, 0)
         self.assertAlmostEqual(p[2], 0.1, places = 2)
 
     def test_logmat(self):
@@ -242,7 +242,7 @@ class TestCreate(unittest.TestCase):
         total = im.avg() * im.width * im.height
         scale = im.get("scale")
         self.assertEqual(total, scale)
-        p = im.getpoint(im.width / 2, im.height / 2)
+        p = im(im.width / 2, im.height / 2)
         self.assertEqual(p[0], 20.0)
 
         im = Vips.Image.logmat(1, 0.1, 
@@ -255,7 +255,7 @@ class TestCreate(unittest.TestCase):
         total = im.avg() * im.width * im.height
         scale = im.get("scale")
         self.assertEqual(total, scale)
-        p = im.getpoint(im.width / 2, im.height / 2)
+        p = im(im.width / 2, im.height / 2)
         self.assertEqual(p[0], 1.0)
 
     def test_mask_butterworth_band(self):
@@ -265,7 +265,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
         self.assertAlmostEqual(im.max(), 1, places = 2)
-        p = im.getpoint(32, 32)
+        p = im(32, 32)
         self.assertEqual(p[0], 1.0)
 
         im = Vips.Image.mask_butterworth_band(128, 128, 2, 0.5, 0.5, 0.7, 0.1,
@@ -275,9 +275,9 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.UCHAR)
         self.assertEqual(im.max(), 255)
-        p = im.getpoint(32, 32)
+        p = im(32, 32)
         self.assertEqual(p[0], 255.0)
-        p = im.getpoint(64, 64)
+        p = im(64, 64)
         self.assertEqual(p[0], 255.0)
 
         im = Vips.Image.mask_butterworth_band(128, 128, 2, 0.5, 0.5, 0.7, 0.1,
@@ -288,9 +288,9 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.UCHAR)
         self.assertEqual(im.max(), 255)
-        p = im.getpoint(32, 32)
+        p = im(32, 32)
         self.assertEqual(p[0], 255.0)
-        p = im.getpoint(64, 64)
+        p = im(64, 64)
         self.assertNotEqual(p[0], 255)
 
     def test_mask_butterworth(self):
@@ -301,7 +301,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
         self.assertAlmostEqual(im.min(), 0, places = 2)
-        p = im.getpoint(0, 0)
+        p = im(0, 0)
         self.assertEqual(p[0], 0.0)
         v, x, y = im.maxpos()
         self.assertEqual(x, 64)
@@ -314,7 +314,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.UCHAR)
         self.assertAlmostEqual(im.min(), 0, places = 2)
-        p = im.getpoint(64, 64)
+        p = im(64, 64)
         self.assertEqual(p[0], 255)
 
     def test_mask_butterworth_ring(self):
@@ -324,7 +324,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.height, 128)
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
-        p = im.getpoint(45, 0)
+        p = im(45, 0)
         self.assertAlmostEqual(p[0], 1.0, places = 4)
         v, x, y = im.minpos()
         self.assertEqual(x, 64)
@@ -344,7 +344,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
         self.assertAlmostEqual(im.max(), 1, places = 2)
-        p = im.getpoint(32, 32)
+        p = im(32, 32)
         self.assertEqual(p[0], 1.0)
 
     def test_mask_gaussian(self):
@@ -355,7 +355,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
         self.assertAlmostEqual(im.min(), 0, places = 2)
-        p = im.getpoint(0, 0)
+        p = im(0, 0)
         self.assertEqual(p[0], 0.0)
 
     def test_mask_gaussian_ring(self):
@@ -365,7 +365,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.height, 128)
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
-        p = im.getpoint(45, 0)
+        p = im(45, 0)
         self.assertAlmostEqual(p[0], 1.0, places = 3)
 
     def test_mask_ideal_band(self):
@@ -375,7 +375,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
         self.assertAlmostEqual(im.max(), 1, places = 2)
-        p = im.getpoint(32, 32)
+        p = im(32, 32)
         self.assertEqual(p[0], 1.0)
 
     def test_mask_ideal(self):
@@ -386,7 +386,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
         self.assertAlmostEqual(im.min(), 0, places = 2)
-        p = im.getpoint(0, 0)
+        p = im(0, 0)
         self.assertEqual(p[0], 0.0)
 
     def test_mask_gaussian_ring(self):
@@ -396,7 +396,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.height, 128)
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
-        p = im.getpoint(45, 0)
+        p = im(45, 0)
         self.assertAlmostEqual(p[0], 1.0, places = 3)
 
     def test_sines(self):
@@ -429,7 +429,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.format, Vips.BandFormat.UINT)
         self.assertEqual(im.width, 128)
         self.assertEqual(im.height, 128)
-        p = im.getpoint(45, 35)
+        p = im(45, 35)
         self.assertAlmostEqualObjects(p, [45, 35])
 
     def test_zone(self):

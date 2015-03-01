@@ -96,7 +96,7 @@ class TestForeign(unittest.TestCase):
             return
 
         def jpeg_valid(self, im):
-            a = im.getpoint(10, 10)
+            a = im(10, 10)
             self.assertAlmostEqualObjects(a, [6, 5, 3])
             profile = im.get_value("icc-profile-data")
             self.assertEqual(len(profile), 1352)
@@ -115,7 +115,7 @@ class TestForeign(unittest.TestCase):
             return
 
         def png_valid(self, im):
-            a = im.getpoint(10, 10)
+            a = im(10, 10)
             self.assertAlmostEqualObjects(a, [38671.0, 33914.0, 26762.0])
             self.assertEqual(im.width, 290)
             self.assertEqual(im.height, 442)
@@ -132,7 +132,7 @@ class TestForeign(unittest.TestCase):
             return
 
         def tiff_valid(self, im):
-            a = im.getpoint(10, 10)
+            a = im(10, 10)
             self.assertAlmostEqualObjects(a, [38671.0, 33914.0, 26762.0])
             self.assertEqual(im.width, 290)
             self.assertEqual(im.height, 442)
@@ -159,7 +159,7 @@ class TestForeign(unittest.TestCase):
             return
 
         def gif_valid(self, im):
-            a = im.getpoint(10, 10)
+            a = im(10, 10)
             self.assertAlmostEqual(a, [33, 33, 33])
             self.assertEqual(im.width, 159)
             self.assertEqual(im.height, 203)
@@ -174,7 +174,7 @@ class TestForeign(unittest.TestCase):
             return
 
         def webp_valid(self, im):
-            a = im.getpoint(10, 10)
+            a = im(10, 10)
             self.assertAlmostEqualObjects(a, [71, 166, 236])
             self.assertEqual(im.width, 550)
             self.assertEqual(im.height, 368)
@@ -186,7 +186,7 @@ class TestForeign(unittest.TestCase):
 
     def test_analyzeload(self):
         def analyze_valid(self, im):
-            a = im.getpoint(10, 10)
+            a = im(10, 10)
             self.assertAlmostEqual(a[0], 3335)
             self.assertEqual(im.width, 128)
             self.assertEqual(im.height, 8064)
@@ -200,7 +200,7 @@ class TestForeign(unittest.TestCase):
             return
 
         def matlab_valid(self, im):
-            a = im.getpoint(10, 10)
+            a = im(10, 10)
             self.assertAlmostEqualObjects(a, [38671.0, 33914.0, 26762.0])
             self.assertEqual(im.width, 290)
             self.assertEqual(im.height, 442)
@@ -214,7 +214,7 @@ class TestForeign(unittest.TestCase):
             return
 
         def exr_valid(self, im):
-            a = im.getpoint(10, 10)
+            a = im(10, 10)
             self.assertAlmostEqualObjects(a, [0.124512, 0.159668, 
                                               0.040375, 1.0], 
                                           places = 5)
@@ -230,7 +230,7 @@ class TestForeign(unittest.TestCase):
             return
 
         def fits_valid(self, im):
-            a = im.getpoint(10, 10)
+            a = im(10, 10)
             self.assertAlmostEqualObjects(a, [-0.165013, -0.148553, 1.09122,
                                               -0.942242], 
                                           places = 5)
@@ -247,7 +247,7 @@ class TestForeign(unittest.TestCase):
             return
 
         def openslide_valid(self, im):
-            a = im.getpoint(10, 10)
+            a = im(10, 10)
             self.assertAlmostEqualObjects(a, [244, 250, 243, 255])
             self.assertEqual(im.width, 2220)
             self.assertEqual(im.height, 2967)

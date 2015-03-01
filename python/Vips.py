@@ -783,6 +783,9 @@ class Image(Vips.Image):
 
         return self.extract_band(i, n = n)
 
+    def __call__(self, x, y):
+        return self.getpoint(x, y)
+
     # the cast operators int(), long() and float() must return numeric types, 
     # so we can't define them for images
 
