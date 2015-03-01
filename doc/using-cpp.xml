@@ -256,6 +256,30 @@ VImage a = (a &lt; 128).ifthenelse( 128, a );
       The C++ API includes the usual range of arithmetic operator overloads. 
       You can mix constants, vectors and images freely.
     </para>
+
+    <para>
+      The API overloads <code>[]</code> to be vips_extract_band(). You can 
+      write:
+
+<programlisting language="C++">
+VImage xyz = VImage::xyz( 256, 256 ) - VImage::to_vectorv( 2, 128.0, 128.0 ); 
+VImage mask = (xyz[0].pow( 2 ) + xyz[1].pow( 2 )).pow( 0.5 ) &lt; 100;
+</programlisting>
+
+      to make a circular mask, for example.
+    </para>
+
+    <para>
+      The API overloads <code>()<code> to be vips_getpoint(). You can 
+      write:
+
+<programlisting language="C++">
+VImage xyz = VImage::xyz( 256, 256 ) - VImage::to_vectorv( 2, 128.0, 128.0 ); 
+// this will have the value [0, 0]
+std::vector<double> point = xyz(128, 128);
+</programlisting>
+    </para>
+
   </refsect3>
 
   <refsect3 id="cpp-enum">

@@ -776,9 +776,15 @@ public:
 
 	// Operator overloads
 
-	double operator()( int x, int y, int z = 0 )
+	VImage operator[]( int index ) 
+		throw( VError )
 	{
-		return( this->getpoint( x, y )[z] ); 
+		return( this->extract_band( index ) ); 
+	}
+
+	std::vector<double> operator()( int x, int y )
+	{
+		return( this->getpoint( x, y ) ); 
 	}
 
 	friend VImage operator+( VImage a, VImage b ) 

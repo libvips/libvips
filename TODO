@@ -5,19 +5,14 @@
 
 - need to add [] overload to Ruby bindings
 
-- add
+- overload (x, y) to be getpoint()? py/rb
 
-	VImage &operator[]( int index ) 
-		throw( VError )
-	{ 
-		VImage result = this->extract_band( index ); 
+  c++ has:
 
-		return( result );
+	std::vector<double> operator()( int x, int y )
+	{
+		return( this->getpoint( x, y ) ); 
 	}
-
-  to cpp bindings
-
-- overload (x, y) to be getpoint()? c++/py/rb
 
 
 

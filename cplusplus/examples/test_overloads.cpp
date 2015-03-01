@@ -5,6 +5,10 @@
  *
  *      g++ -g -Wall test_overloads.cpp `pkg-config vips-cpp --cflags --libs`
  *
+ * run with:
+ *
+ * 	valgrind --leak-check=yes ./a.out ~/pics/k2.jpg ~/pics/shark.jpg 
+ *
  */
 
 /*
@@ -256,6 +260,8 @@ main( int argc, char **argv )
 		vips_error_exit( NULL );
 	}
 
+	g_option_context_free( context );
+
 {
 	VImage left = VImage::new_from_file( argv[1] ); 
 	VImage right = VImage::new_from_file( argv[2] ); 
@@ -264,6 +270,10 @@ main( int argc, char **argv )
 	test_binary_test_subtract( left, right );
 	test_binary_test_multiply( left, right );
 	test_binary_test_divide( left, right );
+
+	VImage band_one = left[1];
+
+	std::vector<double> point = left(0, 0);
 }
 
 	vips_shutdown();
