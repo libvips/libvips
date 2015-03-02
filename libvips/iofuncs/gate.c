@@ -84,6 +84,19 @@ static GPrivate *vips_thread_profile_key = NULL;
 
 static FILE *vips__thread_fp = NULL;;
 
+/**
+ * vips_profile_set:
+ * @info: %TRUE to enable profile recording
+ *
+ * If set, vips will record profiling information, and dump it on program
+ * exit. These profiles can be analysed with the `vipsprofile` program. 
+ */
+void
+vips_profile_set( gboolean profile )
+{
+	vips__thread_profile = profile;
+}
+
 static void
 vips_thread_gate_block_save( VipsThreadGateBlock *block, FILE *fp )
 {

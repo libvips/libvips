@@ -313,7 +313,7 @@ vips_init( const char *argv0 )
 	 */
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
-		vips__info = 1;
+		vips_info_set( TRUE );
 
 	/* Register base vips types.
 	 */

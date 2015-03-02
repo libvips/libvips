@@ -270,13 +270,13 @@ VImage mask = (xyz[0].pow( 2 ) + xyz[1].pow( 2 )).pow( 0.5 ) &lt; 100;
     </para>
 
     <para>
-      The API overloads <code>()<code> to be vips_getpoint(). You can 
+      The API overloads <code>()</code> to be vips_getpoint(). You can 
       write:
 
 <programlisting language="C++">
 VImage xyz = VImage::xyz( 256, 256 ) - VImage::to_vectorv( 2, 128.0, 128.0 ); 
 // this will have the value [0, 0]
-std::vector<double> point = xyz(128, 128);
+std::vector&lt;double&gt; point = xyz(128, 128);
 </programlisting>
     </para>
 

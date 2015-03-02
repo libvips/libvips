@@ -372,19 +372,33 @@ vips_error_clear( void )
 }
 
 /**
+ * vips_info_set:
+ * @info: %TRUE to enable info messages
+ *
+ * If set, vips will output various informative messages to stderr as it works.
+ *
+ * See also: vips_info().
+ */
+void
+vips_info_set( gboolean info )
+{
+	vips__info = info;
+}
+
+/**
  * vips_vinfo: 
  * @domain: the source of the message
  * @fmt: printf()-style format string for the message
  * @ap: arguments to the format string
  *
  * Sends a formatted informational message to stderr if the --vips-info flag
- * has been given to the program or the environment variable IM_INFO has been
- * defined. 
+ * has been given to the program, or the environment variable VIPS_INFO has been
+ * defined, or if vips_info_set() has been called. 
  *
  * Informational messages are used to report details about the operation of
  * functions.
  *
- * See also: vips_info(), vips_warn().
+ * See also: vips_info(), vips_info_set(), vips_warn().
  */
 void 
 vips_vinfo( const char *domain, const char *fmt, va_list ap )
@@ -407,13 +421,13 @@ vips_vinfo( const char *domain, const char *fmt, va_list ap )
  * @...: arguments to the format string
  *
  * Sends a formatted informational message to stderr if the --vips-info flag
- * has been given to the program or the environment variable IM_INFO has been
- * defined. 
+ * has been given to the program or the environment variable VIPS_INFO has been
+ * defined, or if vips_info_set() has been called. 
  *
  * Informational messages are used to report details about the operation of
  * functions.
  *
- * See also: vips_vinfo(), vips_warn().
+ * See also: vips_info_set(), vips_vinfo(), vips_warn().
  */
 void 
 vips_info( const char *domain, const char *fmt, ... )

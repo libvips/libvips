@@ -379,6 +379,20 @@ static guint vips_image_signals[SIG_LAST] = { 0 };
 
 G_DEFINE_TYPE( VipsImage, vips_image, VIPS_TYPE_OBJECT );
 
+/**
+ * vips_progress_set:
+ * @info: %TRUE to enable progress messages
+ *
+ * If set, vips will print messages about the progress of computation to
+ * stdout. This can also be enabled with the --vips-progress option, or by
+ * setting the environment variable VIPS_PROGRESS.
+ */
+void
+vips_progress_set( gboolean progress )
+{
+	vips__progress = progress;
+}
+
 static void
 vips_image_delete( VipsImage *image )
 {

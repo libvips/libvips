@@ -88,7 +88,7 @@
  */
 #define MAX_THREADS (1024)
 
-/* Default tile geometry ... can be set by init_world.
+/* Default tile geometry ... can be set by vips_init().
  */
 int vips__tile_width = VIPS__TILE_WIDTH;
 int vips__tile_height = VIPS__TILE_HEIGHT;

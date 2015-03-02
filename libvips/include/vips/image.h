@@ -408,6 +408,8 @@ extern const guint64 vips__image_sizeof_bandformat[];
 	((double *) VIPS_IMAGE_ADDR( I, X, Y ))
 #endif /*VIPS_DEBUG*/
 
+void vips_progress_set( gboolean progress );
+
 void vips_image_invalidate_all( VipsImage *image );
 
 void vips_image_minimise_all( VipsImage *image );
