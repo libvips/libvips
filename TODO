@@ -1,3 +1,15 @@
+- are the mosaic functions calling vips_fastcor()? it must be very slow
+
+  add vips_fastcor_direct()
+
+- make a crappy gir_ffi patch to add unset for GValue, perhaps it will produce
+  a response
+
+- perhaps im_maxpos_subpel() / im_minpos_subpel() should be undeprecated,
+  useful with vips_fastcor()
+
+
+
 - need API for the stuff that's currently settable only by --whatever flags,
   eg. --vips-profile
 
