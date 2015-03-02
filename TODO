@@ -2,6 +2,17 @@
 
   add vips_fastcor_direct()
 
+  nope .. it's im_chkpair.c:im_correl()
+  	
+	im_extract_area(main)
+	im_extract_area(sub)
+	im_extract_band(main)
+	im_extract_band(sub)
+	im_spcor(sub)
+	im_maxpos(sub)
+
+  then im__chkpair() runs that 20 times, then loops ... oh dear
+
 - make a crappy gir_ffi patch to add unset for GValue, perhaps it will produce
   a response
 
