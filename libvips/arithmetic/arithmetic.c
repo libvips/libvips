@@ -382,15 +382,34 @@ vips__bandalike_vec( const char *domain,
 {
 	int i;
 	int max_bands;
+	VipsInterpretation interpretation;
 
 	g_assert( n >= 1 );
 
+	/* We try to set the interpretation of the output images from the
+	 * interpretation of the n-band input. For example, if we are matching
+	 * a set of BW images to an RGB image, we want the BW images to be
+	 * tagged as RGB.
+	 */
 	max_bands = base_bands;
-	for( i = 0; i < n; i++ )
-		max_bands = VIPS_MAX( max_bands, in[i]->Bands );
-	for( i = 0; i < n; i++ )
+	interpretation = VIPS_INTERPRETATION_ERROR;
+	for( i = 0; i < n; i++ ) {
+		/* >= so we can pick up interpretation if base_bands is equal
+		 * to the number of bands of the largest image.
+		 */
+		if( in[i]->Bands >= max_bands ) { 
+			max_bands = in[i]->Bands;
+			interpretation = in[i]->Type;
+		}
+	}
+
+	for( i = 0; i < n; i++ ) {
 		if( vips__bandup( domain, in[i], &out[i], max_bands ) )
 			return( -1 );
+
+		if( interpretation != VIPS_INTERPRETATION_ERROR ) 
+			out[i]->Type = interpretation;
+	}
 
 	return( 0 );
 }

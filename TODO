@@ -1,3 +1,15 @@
+- where do we futz with interpretation? can we remove any of that now we
+  auto-futz in bandalike?
+
+  what about other uses of bandalike, eg. matching a one-band image to a
+  three-band vector, should we change anything there?
+
+- jpegsave saves a three-band RGB image tagged as BW with three different 
+  channels as a three-band jpg with all bands equal
+
+  cant be right!
+
+
 - does cplusplus need flipver() etc.?
 
 - are the mosaic functions calling vips_fastcor()? it must be very slow
