@@ -1,18 +1,19 @@
 11/2/15 started 8.0
-- remove old doc stuff
+- remove old doc stuff, lots of doc improvements
 - add fliphor(), flipver(), rot90(), rot180(), rot270() convenience methods to
   Python
+- python: use [] to index and slice image bands, use () to get a point
+- c++: use [] to band index, () returns a vector<double>
 - add shift option to cast
 - sRGB2scRGB and scRGB2sRGB scale 16-bit alpha to and from 8-bit
-- added vips_region_shrink(), fast x2 shrinker
-- add magicload_buffer() [mcuelenaere]
+- add magickload_buffer() [mcuelenaere]
 - add vips_foreign_is_a_buffer() [mcuelenaere]
 - added test_foreign.py, plus more test images
+- added vips_region_shrink(), fast x2 shrinker
 - rewritten tiff writer is about 3 - 4x faster at making pyramids
 - jpg, magick, png, tiff readers now use only 1 fd per input image
-- python: use [] to index and slice image bands
-- c++: use [] to band index, () returns a vector<double>
-- added vips_info_set(), vips_progress_set(), vips_profile_set()
+- added vips_info_set(), vips_progress_set(), vips_profile_set() ... bindings
+  can now support all the vips command-line options if they wish 
 
 6/2/15 started 7.42.3
 - bump version for back-compat ABI change

@@ -214,7 +214,7 @@ vips_getpoint( VipsImage *in, double **vector, int *n, int x, int y, ... )
 	result = vips_call_split( "getpoint", ap, in, &out_array, x, y );
 	va_end( ap );
 
-	if( !result )
+	if( result )
 		return( -1 ); 
 
 	area = VIPS_AREA( out_array );
