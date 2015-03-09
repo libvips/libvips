@@ -62,7 +62,7 @@ vips_mask_ideal_point( VipsMask *mask, double dx, double dy )
 	double dist2 = dx * dx + dy * dy;
 	double fc2 = fc * fc;
 
-	return( dist2 <= fc2 ? 1.0 : 0.0 ); 
+	return( dist2 <= fc2 ? 0.0 : 1.0 ); 
 }
 
 static void
@@ -100,7 +100,7 @@ vips_mask_ideal_init( VipsMaskIdeal *ideal )
  * @out: output image
  * @width: image size
  * @height: image size
- * @frequency_cutoff: 
+ * @frequency_cutoff: threshold at which filter ends
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

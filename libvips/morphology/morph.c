@@ -188,11 +188,11 @@ vips_morph_init( VipsMorph *morph )
  * based on the book "Fundamentals of Digital Image Processing" by A. Jain, 
  * pp 384-388, Prentice-Hall, 1989. 
  *
- * For #VIPS_OPERATION_MOPHOLOGY_ERODE, 
+ * For #VIPS_OPERATION_MORPHOLOGY_ERODE, 
  * the whole mask must match for the output pixel to be
  * set, that is, the result is the logical AND of the selected input pixels.
  *
- * For #VIPS_OPERATION_MOPHOLOGY_DILATE, 
+ * For #VIPS_OPERATION_MORPHOLOGY_DILATE, 
  * the output pixel is set if any part of the mask 
  * matches, that is, the result is the logical OR of the selected input pixels.
  *

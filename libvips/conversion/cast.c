@@ -47,6 +47,8 @@
  * 	- redone as a class
  * 10/4/12
  * 	- cast to uint now removes <0 values
+ * 11/2/15
+ * 	- add @shift option
  */
 
 /*
@@ -101,6 +103,7 @@ typedef struct _VipsCast {
 
 	VipsImage *in;
 	VipsBandFormat format;
+	gboolean shift;
 
 	int underflow;		/* Number of underflows */
 	int overflow;		/* Number of overflows */
@@ -179,6 +182,33 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 	return( seq );
 }
 
+/* Rightshift an integer type, ie. sizeof(ITYPE) > sizeof(OTYPE).
+ */
+#define VIPS_SHIFT_RIGHT( ITYPE, OTYPE ) { \
+	ITYPE * restrict p = (ITYPE *) in; \
+	OTYPE * restrict q = (OTYPE *) out; \
+	int n = ((int) sizeof( ITYPE ) << 3) - ((int) sizeof( OTYPE ) << 3); \
+	\
+	g_assert( sizeof( ITYPE ) > sizeof( OTYPE ) ); \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = p[x] >> n; \
+}
+
+/* Leftshift an integer type, ie. sizeof(ITYPE) < sizeof(OTYPE). We need to
+ * copy the bottom bit up into the fresh new bits
+ */
+#define VIPS_SHIFT_LEFT( ITYPE, OTYPE ) { \
+	ITYPE * restrict p = (ITYPE *) in; \
+	OTYPE * restrict q = (OTYPE *) out; \
+	int n = ((int) sizeof( OTYPE ) << 3) - ((int) sizeof( ITYPE ) << 3); \
+	\
+	g_assert( sizeof( ITYPE ) < sizeof( OTYPE ) ); \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = (p[x] << n) | (((p[x] & 1) << n) - (p[x] & 1)); \
+}
+
 /* Cast int types to an int type.
  */
 #define VIPS_CLIP_INT_INT( ITYPE, OTYPE, VIPS_CLIP ) { \
@@ -193,6 +223,21 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 		q[x] = t; \
 	} \
 }
+
+/* Int to int handling. 
+ */
+#define VIPS_INT_INT( ITYPE, OTYPE, VIPS_CLIP ) { \
+	if( cast->shift && \
+		sizeof( ITYPE ) > sizeof( OTYPE ) ) { \
+		VIPS_SHIFT_RIGHT( ITYPE, OTYPE ); \
+	} \
+	else if( cast->shift ) { \
+		VIPS_SHIFT_LEFT( ITYPE, OTYPE ); \
+	} \
+	else { \
+		VIPS_CLIP_INT_INT( ITYPE, OTYPE, VIPS_CLIP ); \
+	} \
+} 
 
 /* Cast float types to an int type.
  */
@@ -348,42 +393,42 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 		switch( cast->in->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
 			BAND_SWITCH_INNER( unsigned char,
-				VIPS_CLIP_INT_INT, 
+				VIPS_INT_INT, 
 				VIPS_CLIP_REAL_FLOAT, 
 				VIPS_CLIP_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_CHAR: 
 			BAND_SWITCH_INNER( signed char,
-				VIPS_CLIP_INT_INT, 
+				VIPS_INT_INT, 
 				VIPS_CLIP_REAL_FLOAT, 
 				VIPS_CLIP_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
 			BAND_SWITCH_INNER( unsigned short,
-				VIPS_CLIP_INT_INT, 
+				VIPS_INT_INT, 
 				VIPS_CLIP_REAL_FLOAT, 
 				VIPS_CLIP_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
 			BAND_SWITCH_INNER( signed short,
-				VIPS_CLIP_INT_INT, 
+				VIPS_INT_INT, 
 				VIPS_CLIP_REAL_FLOAT, 
 				VIPS_CLIP_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_UINT: 
 			BAND_SWITCH_INNER( unsigned int,
-				VIPS_CLIP_INT_INT, 
+				VIPS_INT_INT, 
 				VIPS_CLIP_REAL_FLOAT, 
 				VIPS_CLIP_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_INT: 
 			BAND_SWITCH_INNER( signed int,
-				VIPS_CLIP_INT_INT, 
+				VIPS_INT_INT, 
 				VIPS_CLIP_REAL_FLOAT, 
 				VIPS_CLIP_REAL_COMPLEX );
 			break; 
@@ -499,6 +544,13 @@ vips_cast_class_init( VipsCastClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCast, format ),
 		VIPS_TYPE_BAND_FORMAT, VIPS_FORMAT_UCHAR ); 
+
+	VIPS_ARG_BOOL( class, "shift", 7, 
+		_( "Shift" ), 
+		_( "Shift integer values up and down" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCast, shift ),
+		FALSE );
 }
 
 static void
@@ -519,12 +571,22 @@ vips_castv( VipsImage *in, VipsImage **out, VipsBandFormat format, va_list ap )
  * @format: format to convert to
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @shift: integer values are shifted
+ *
  * Convert @in to @format. You can convert between any pair of formats.
  * Floats are truncated (not rounded). Out of range values are clipped.
  *
  * Casting from complex to real returns the real part. 
  *
- * See also: im_scale(), im_ri2c().
+ * If @shift is %TRUE, integer values are shifted up and down. For example,
+ * casting from unsigned 8 bit to unsigned 16 bit would
+ * shift every value left by 8 bits. The bottom bit is copied into the new
+ * bits, so 255 would become 65535.  
+ *
+ * See also: vips_scale(), vips_complexform(), vips_real(), vips_imag(),
+ * vips_cast_uchar(), vips_msb().
  *
  * Returns: 0 on success, -1 on error
  */

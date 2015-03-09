@@ -1227,7 +1227,7 @@ aconv_vertical( Boxes *boxes, IMAGE *in, IMAGE *out )
  * Perform an approximate convolution of @in with @mask.
  *
  * The output image 
- * always has the same #VipsBandFmt as the input image. 
+ * always has the same #VipsBandFormat as the input image. 
  *
  * Larger values for @n_layers give more accurate
  * results, but are slower. As @n_layers approaches the mask radius, the

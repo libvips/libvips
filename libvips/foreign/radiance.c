@@ -547,9 +547,7 @@ static char  resolu_buf[RESOLU_BUFLEN];	/* resolution line buffer */
 
 
 static int
-str2resolu(rp, buf)		/* convert resolution line to struct */
-register RESOLU  *rp;
-char  *buf;
+str2resolu(RESOLU *rp, char *buf)		/* convert resolution line to struct */
 {
 	register char  *xndx, *yndx;
 	register char  *cp;
@@ -599,9 +597,7 @@ fputformat(		/* put out a format value */
 }
 
 char *
-resolu2str(buf, rp)		/* convert resolution struct to line */
-char  *buf;
-register RESOLU  *rp;
+resolu2str(char *buf, RESOLU *rp)		/* convert resolution struct to line */
 {
 	if (rp->rt&YMAJOR)
 		sprintf(buf, "%cY %d %cX %d\n",
@@ -827,6 +823,11 @@ scanline_write( COLR *scanline, int width, FILE *fp )
 
 	for( i = 0; i < 4; i++ ) {
 		for( j = 0; j < width; ) {
+			/* Not needed, but keeps gcc used-before-set wsrning
+			 * quiet.
+			 */
+			cnt = 1;
+
 			/* Set beg / cnt to the start and length of the next 
 			 * run longer than MINRUN.
 			 */
@@ -1227,7 +1228,7 @@ vips2rad_put_header( Write *write )
 }
 
 static int
-vips2rad_put_data_block( VipsRegion *region, Rect *area, void *a )
+vips2rad_put_data_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
 	int i;

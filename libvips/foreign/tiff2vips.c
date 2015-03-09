@@ -148,6 +148,15 @@
  * 	- add read from buffer
  * 30/4/14
  * 	- 1/2/4 bit palette images can have alpha
+ * 27/10/14 Lovell
+ * 	- better istiff detector spots bigtiff
+ * 3/12/14
+ * 	- read any XMP metadata
+ * 19/1/15
+ * 	- try to handle 8-bit colormaps
+ * 26/2/15
+ * 	- close the read down early for a header read ... this saves an
+ * 	  fd during file read, handy for large numbers of input images 
  */
 
 /*
@@ -212,7 +221,7 @@ typedef struct _ReadTiff {
 	/* Parameters.
 	 */
 	char *filename;
-	void *buf;
+	const void *buf;
 	size_t len;
 	VipsImage *out;
 	int page;
@@ -849,10 +858,31 @@ parse_palette( ReadTiff *rtiff, VipsImage *out )
 		vips_error( "tiff2vips", "%s", _( "bad colormap" ) );
 		return( -1 );
 	}
-	for( i = 0; i < len; i++ ) {
-		read->red8[i] = read->red16[i] >> 8;
-		read->green8[i] = read->green16[i] >> 8;
-		read->blue8[i] = read->blue16[i] >> 8;
+
+	/* Old-style colourmaps were 8-bit. If all the top bytes are zero,
+	 * assume we have one of these.
+	 *
+	 * See: https://github.com/jcupitt/libvips/issues/220
+	 */
+	for( i = 0; i < len; i++ ) 
+		if( (read->red16[i] >> 8) | 
+			(read->green16[i] >> 8) | 
+			(read->blue16[i] >> 8) )
+			break;
+	if( i < len ) 
+		for( i = 0; i < len; i++ ) {
+			read->red8[i] = read->red16[i] >> 8;
+			read->green8[i] = read->green16[i] >> 8;
+			read->blue8[i] = read->blue16[i] >> 8;
+		}
+	else {
+		vips_warn( "tiff2vips", "%s", _( "assuming 8-bit palette" ) );
+
+		for( i = 0; i < len; i++ ) {
+			read->red8[i] = read->red16[i] & 0xff;
+			read->green8[i] = read->green16[i] & 0xff;
+			read->blue8[i] = read->blue16[i] & 0xff;
+		}
 	}
 
 	/* Are all the maps equal? We have a mono image.
@@ -1053,7 +1083,8 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	if( tfexists( rtiff->tiff, TIFFTAG_PLANARCONFIG ) ) {
 		int v; 
 
-		tfget16( rtiff->tiff, TIFFTAG_PLANARCONFIG, &v );
+		if( !tfget16( rtiff->tiff, TIFFTAG_PLANARCONFIG, &v ) )
+			return( -1 );
 		if( v == PLANARCONFIG_SEPARATE )
 			rtiff->separate = TRUE; 
 	}
@@ -1135,6 +1166,19 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 			return( -1 );
 		memcpy( data_copy, data, data_length );
 		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
+			(VipsCallbackFn) vips_free, data_copy, data_length );
+	}
+
+	/* Read any XMP metadata.
+	 */
+	if( TIFFGetField( rtiff->tiff, 
+		TIFFTAG_XMLPACKET, &data_length, &data ) ) {
+		void *data_copy;
+
+		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+			return( -1 );
+		memcpy( data_copy, data, data_length );
+		vips_image_set_blob( out, VIPS_META_XMP_NAME, 
 			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
@@ -1637,10 +1681,18 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
+/* Can be called many times.
+ */
 static void
-readtiff_destroy( VipsObject *object, ReadTiff *rtiff )
+readtiff_free( ReadTiff *rtiff )
 {
 	VIPS_FREEF( TIFFClose, rtiff->tiff );
+}
+
+static void
+readtiff_close( VipsObject *object, ReadTiff *rtiff )
+{
+	readtiff_free( rtiff ); 
 }
 
 static ReadTiff *
@@ -1669,9 +1721,9 @@ readtiff_new( VipsImage *out, int page, gboolean readbehind )
 	rtiff->contig_buf = NULL;
 
 	g_signal_connect( out, "close", 
-		G_CALLBACK( readtiff_destroy ), rtiff ); 
+		G_CALLBACK( readtiff_close ), rtiff ); 
 
-	if( rtiff->page < 0 || rtiff->page > 1000 ) {
+	if( rtiff->page < 0 || rtiff->page > 1000000 ) {
 		vips_error( "tiff2vips", _( "bad page number %d" ),
 			rtiff->page );
 		return( NULL );
@@ -1782,7 +1834,7 @@ my_tiff_unmap( thandle_t st, tdata_t start, toff_t len )
 }
 
 static ReadTiff *
-readtiff_new_buffer( void *buf, size_t len, VipsImage *out, int page, 
+readtiff_new_buffer( const void *buf, size_t len, VipsImage *out, int page, 
 	gboolean readbehind )
 {
 	ReadTiff *rtiff;
@@ -1877,6 +1929,10 @@ vips__tiff_read_header( const char *filename, VipsImage *out, int page )
 	if( parse_header( rtiff, out ) )
 		return( -1 );
 
+	/* Just a header read: we can free the tiff read early and save an fd.
+	 */
+	readtiff_free( rtiff );
+
 	return( 0 );
 }
 
@@ -1899,11 +1955,15 @@ vips__istifftiled( const char *filename )
 }
 
 gboolean
-vips__istiff_buffer( const unsigned char *buf, size_t len )
+vips__istiff_buffer( const void *buf, size_t len )
 {
-	if( len >= 2 &&
-		((buf[0] == 'M' && buf[1] == 'M') ||
-		 (buf[0] == 'I' && buf[1] == 'I')) ) 
+	char *str = (char *) buf; 
+
+	if( len >= 4 &&
+		((str[0] == 'M' && str[1] == 'M' &&
+			str[2] == '\0' && (str[3] == '*' || str[3] == '+')) ||
+		(str[0] == 'I' && str[1] == 'I' &&
+			(str[2] == '*' || str[2] == '+') && str[3] == '\0')) )
 		return( TRUE );
 
 	return( FALSE );
@@ -1912,17 +1972,18 @@ vips__istiff_buffer( const unsigned char *buf, size_t len )
 gboolean
 vips__istiff( const char *filename )
 {
-	unsigned char buf[2];
+	unsigned char buf[4];
 
-	if( vips__get_bytes( filename, buf, 2 ) &&
-		vips__istiff_buffer( buf, 2 ) )
+	if( vips__get_bytes( filename, buf, 4 ) &&
+		vips__istiff_buffer( buf, 4 ) )
 		return( TRUE );
 
 	return( FALSE );
 }
 
 int
-vips__tiff_read_header_buffer( void *buf, size_t len, VipsImage *out, int page )
+vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out, 
+	int page )
 {
 	ReadTiff *rtiff;
 
@@ -1938,7 +1999,7 @@ vips__tiff_read_header_buffer( void *buf, size_t len, VipsImage *out, int page )
 }
 
 int
-vips__tiff_read_buffer( void *buf, size_t len, VipsImage *out, 
+vips__tiff_read_buffer( const void *buf, size_t len, VipsImage *out, 
 	int page, gboolean readbehind )
 {
 	ReadTiff *rtiff;

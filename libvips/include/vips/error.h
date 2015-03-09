@@ -53,6 +53,7 @@ void vips_g_error( GError **error );
 void vips_warn( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 void vips_vwarn( const char *domain, const char *fmt, va_list ap );
+void vips_info_set( gboolean info );
 void vips_info( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 void vips_vinfo( const char *domain, const char *fmt, va_list ap );
@@ -67,12 +68,13 @@ int vips_check_coding_noneorlabq( const char *domain, VipsImage *im );
 int vips_check_coding_same( const char *domain, VipsImage *im1, VipsImage *im2 );
 int vips_check_mono( const char *domain, VipsImage *im );
 int vips_check_bands( const char *domain, VipsImage *im, int bands );
-int vips_check_bands_1or3( const char *domain, VipsImage *in );
+int vips_check_bands_1or3( const char *domain, VipsImage *im );
 int vips_check_bands_atleast( const char *domain, VipsImage *im, int bands );
 int vips_check_bands_1orn( const char *domain, VipsImage *im1, VipsImage *im2 );
 int vips_check_bands_1orn_unary( const char *domain, VipsImage *im, int n );
 int vips_check_bands_same( const char *domain, VipsImage *im1, VipsImage *im2 );
 int vips_check_bandno( const char *domain, VipsImage *im, int bandno );
+
 int vips_check_int( const char *domain, VipsImage *im );
 int vips_check_uint( const char *domain, VipsImage *im );
 int vips_check_uintorf( const char *domain, VipsImage *im );
@@ -91,9 +93,8 @@ int vips_check_hist( const char *domain, VipsImage *im );
 int vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out );
 int vips_check_separable( const char *domain, VipsImage *im );
 
-int vips_check_imask( const char *domain, INTMASK *mask );
-int vips_check_dmask( const char *domain, DOUBLEMASK *mask );
-int vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask );
+int vips_check_precision_intfloat( const char *domain, 
+	VipsPrecision precision );
 
 #ifdef __cplusplus
 }

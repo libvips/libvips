@@ -1,11 +1,13 @@
-/* simple wrapper over vips_similarity() to make scale / rotate easy from the
+/* simple wrapper over vips_affine() to make scale / rotate easy from the
  * command-line
  *
  * 3/10/13
- * 	- from similarity.c
+ * 	- from affine.c
  * 25/10/13
  * 	- oops, reverse rotation direction to match the convention used in the
  * 	  rest of vips
+ * 13/8/14
+ * 	- oops, missing scale from b, thanks Topochicho
  */
 
 /*
@@ -82,7 +84,7 @@ vips_similarity_build( VipsObject *object )
 		return( -1 );
 
 	a = similarity->scale * cos( VIPS_RAD( similarity->angle ) ); 
-	b = -sin( VIPS_RAD( similarity->angle ) );
+	b = similarity->scale * -sin( VIPS_RAD( similarity->angle ) );
 	c = -b;
 	d = a;
 
@@ -165,12 +167,19 @@ static void
 vips_similarity_init( VipsSimilarity *similarity )
 {
 	similarity->scale = 1; 
+	similarity->angle = 0; 
+	similarity->interpolate = NULL; 
+	similarity->odx = 0; 
+	similarity->ody = 0; 
+	similarity->idx = 0; 
+	similarity->idy = 0; 
 }
 
 /**
  * vips_similarity:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

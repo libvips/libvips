@@ -47,7 +47,7 @@ typedef struct _VipsdECMC {
 
 } VipsdECMC;
 
-typedef VipsColourSpaceClass VipsdECMCClass;
+typedef VipsColourDifferenceClass VipsdECMCClass;
 
 G_DEFINE_TYPE( VipsdECMC, vips_dECMC, VIPS_TYPE_COLOUR_DIFFERENCE );
 
@@ -76,6 +76,7 @@ vips_dECMC_init( VipsdECMC *dECMC )
  * @left: first input image
  * @right: second input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Calculate dE CMC. The input images are transformed to CMC colour space and
  * the euclidean distance between corresponding pixels calculated. 

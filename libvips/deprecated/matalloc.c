@@ -53,8 +53,7 @@
  */
 
 int *
-im_ivector(nl, nh)
-int nl, nh;
+im_ivector(int nl, int nh)
 {
 	int *v;
 
@@ -65,8 +64,7 @@ int nl, nh;
 		return(v-nl);
 }
 
-float *im_fvector(nl, nh)
-int nl, nh;
+float *im_fvector(int nl, int nh)
 {
 	float *v;
 
@@ -77,8 +75,7 @@ int nl, nh;
 		return(v-nl);
 }
 
-double *im_dvector(nl, nh)
-int nl, nh;
+double *im_dvector(int nl, int nh)
 {
 	double *v;
 
@@ -89,23 +86,17 @@ int nl, nh;
 		return(v-nl);
 }
 
-void im_free_ivector(v, nl, nh)
-int *v;
-int nl, nh;
+void im_free_ivector(int *v, int nl, int nh)
 {
 	im_free((char*) (v+nl));
 }
 
-void im_free_fvector(v, nl, nh)
-float *v;
-int nl, nh;
+void im_free_fvector(float *v, int nl, int nh)
 {
 	im_free((char*) (v+nl));
 }
 
-void im_free_dvector(v, nl, nh)
-double *v;
-int nl, nh;
+void im_free_dvector(double *v, int nl, int nh)
 {
 	im_free((char*) (v+nl));
 }
@@ -140,8 +131,7 @@ int nl, nh;
  * @(#) int nrl, nrh, ncl, nch;
  * @(#)
  */
-int **im_imat_alloc(nrl, nrh, ncl, nch)
-int nrl, nrh, ncl, nch;
+int **im_imat_alloc(int nrl, int nrh, int ncl, int nch)
 {
 	int i;
 	int **m;
@@ -161,9 +151,7 @@ int nrl, nrh, ncl, nch;
 	return (m);
 }
 
-void im_free_imat(m, nrl, nrh, ncl, nch)
-int **m;
-int nrl, nrh, ncl, nch;
+void im_free_imat(int **m, int nrl, int nrh, int ncl, int nch)
 {
 	int i;
 
@@ -172,8 +160,7 @@ int nrl, nrh, ncl, nch;
 	im_free((char*) (m+nrl));
 }
 
-float **im_fmat_alloc(nrl, nrh, ncl, nch)
-int nrl, nrh, ncl, nch;
+float **im_fmat_alloc(int nrl, int nrh, int ncl, int nch)
 {
 	int i;
 	float **m;
@@ -193,9 +180,7 @@ int nrl, nrh, ncl, nch;
 	return (m);
 }
 
-void im_free_fmat(m, nrl, nrh, ncl, nch)
-float **m;
-int nrl, nrh, ncl, nch;
+void im_free_fmat(float **m, int nrl, int nrh, int ncl, int nch)
 {
 	int i;
 
@@ -204,8 +189,7 @@ int nrl, nrh, ncl, nch;
 	im_free((char*) (m+nrl));
 }
 
-double **im_dmat_alloc(nrl, nrh, ncl, nch)
-int nrl, nrh, ncl, nch;
+double **im_dmat_alloc(int nrl, int nrh, int ncl, int nch)
 {
 	int i;
 	double **m;
@@ -225,9 +209,7 @@ int nrl, nrh, ncl, nch;
 	return (m);
 }
 
-void im_free_dmat(m, nrl, nrh, ncl, nch)
-double **m;
-int nrl, nrh, ncl, nch;
+void im_free_dmat(double **m, int nrl, int nrh, int ncl, int nch)
 {
 	int i;
 

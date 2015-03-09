@@ -132,14 +132,16 @@ vips_linear_build( VipsObject *object )
 	 */
 	linear->n = 1;
 	if( linear->a )
-		linear->n = VIPS_MAX( linear->n, linear->b->n );
+		linear->n = VIPS_MAX( linear->n, linear->a->n );
 	if( linear->b )
 		linear->n = VIPS_MAX( linear->n, linear->b->n );
 	if( unary->in )
 		linear->n = VIPS_MAX( linear->n, bands );
 	arithmetic->base_bands = linear->n;
 
-	if( unary->in && linear->a && linear->b ) {
+	if( unary->in && 
+		linear->a && 
+		linear->b ) {
 		if( vips_check_vector( class->nickname, 
 			linear->a->n, unary->in ) ||
 			vips_check_vector( class->nickname, 

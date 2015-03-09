@@ -15,6 +15,8 @@
  * 8/9/08
  * 	- rewrite from im_maxpos()
  * 	- now handles many bands, complex, faster
+ * 27/7/14
+ * 	- fix a race ... did not merge states if max was equal
  */
 
 /*
@@ -116,6 +118,11 @@ maxposavg_stop( void *seq, void *a, void *b )
 	 */
 	if( maxposavg->max > global_maxposavg->max ) 
 		*global_maxposavg = *maxposavg;
+	else if( maxposavg->max == global_maxposavg->max ) {
+		global_maxposavg->xpos += maxposavg->xpos;
+		global_maxposavg->ypos += maxposavg->ypos;
+		global_maxposavg->occurences += maxposavg->occurences;
+	}
 
 	im_free( seq );
 
@@ -252,7 +259,7 @@ im_maxpos_avg( IMAGE *in, double *xpos, double *ypos, double *out )
 
 	/* We use square mod for scanning, for speed.
 	 */
-	if( vips_bandfmt_iscomplex( in->BandFmt ) )
+	if( vips_band_format_iscomplex( in->BandFmt ) )
 		global_maxposavg->max *= global_maxposavg->max;
 
 	if( vips_sink( in, maxposavg_start, maxposavg_scan, maxposavg_stop, 
@@ -261,7 +268,7 @@ im_maxpos_avg( IMAGE *in, double *xpos, double *ypos, double *out )
 
 	/* Back to modulus.
 	 */
-	if( vips_bandfmt_iscomplex( in->BandFmt ) )
+	if( vips_band_format_iscomplex( in->BandFmt ) )
 		global_maxposavg->max = sqrt( global_maxposavg->max );
 
 	if( xpos )

@@ -88,7 +88,7 @@ vips_foreign_save_raw_dispose( GObject *gobject )
 }
 
 static int
-vips_foreign_save_raw_write( VipsRegion *region, Rect *area, void *a )
+vips_foreign_save_raw_write( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSave *save = (VipsForeignSave *) a;
 	VipsForeignSaveRaw *raw = (VipsForeignSaveRaw *) a;
@@ -163,7 +163,7 @@ vips_foreign_save_raw_init( VipsForeignSaveRaw *raw )
  * Writes the pixels in @in to the file @filename with no header or other
  * metadata. 
  *
- * See also: vips_image_write_file().
+ * See also: vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -195,7 +195,7 @@ G_DEFINE_TYPE( VipsForeignSaveRawFd, vips_foreign_save_raw_fd,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static int
-vips_foreign_save_raw_fd_write( VipsRegion *region, Rect *area, void *a )
+vips_foreign_save_raw_fd_write( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSave *save = (VipsForeignSave *) a;
 	VipsForeignSaveRawFd *fd = (VipsForeignSaveRawFd *) a;
@@ -280,7 +280,7 @@ vips_rawsave_fd( VipsImage *in, int fd, ... )
 	int result;
 
 	va_start( ap, fd );
-	result = vips_call_split( "rawsave_fd", ap, fd );
+	result = vips_call_split( "rawsave_fd", ap, in, fd );
 	va_end( ap );
 
 	return( result );

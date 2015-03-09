@@ -259,7 +259,7 @@ vips_measure_init( VipsMeasure *measure )
 
 /**
  * vips_measure:
- * @im: image to measure
+ * @in: image to measure
  * @out: array of measurements
  * @h: patches across chart
  * @v: patches down chart

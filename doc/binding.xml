@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!-- vim: set ts=2 sw=2 expandtab: --> 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+]>
+<refentry id="binding">
+  <refmeta>
+    <refentrytitle>Writing bindings for libvips</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>VIPS Library</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>Binding</refname>
+    <refpurpose>How to write bindings for libvips</refpurpose>
+  </refnamediv>
+
+  <refsect3 id="binding-goi">
+    <title>Binding and gobject-introspection</title>
+    <para>
+      The C source code 
+      to libvips has been marked up with special comments describing the 
+      interface in a standard way. These comments are read by 
+      gobject-introspection
+      when libvips is compiled and used to generate a 
+      typelib, a description of how to call the library. Many languages have 
+      gobject-introspection packages: all you need to do to call libvips
+      from your favorite language is to start g-o-i, load the libvips typelib,
+      and you should have the whole library available. For example, from 
+      Python it's as simple as:
+
+<programlisting language="Python">
+from gi.repository import Vips
+</programlisting>
+    </para>
+
+    <para>
+      libvips used in this way is likely to be rather bare-bones. For Python,
+      we wrote a set of overrides which layer a more Pythonesque interface
+      on top of the one provided for libvips by pygobject. These overrides
+      are simply a set of Python classes.
+    </para>
+
+    <para>
+      To call a vips operation, you'll need to make a new operation with
+      vips_operation_new() (all it does is look up the operation by name
+      with vips_type_find(), then call g_object_new() for you), then
+      use vips_argument_map() and friends to loop over the operation's
+      arguments setting them. Once you have set all arguments, use
+      vips_cache_operation_build() to look up the operation in the cache
+      and either build or dup it. If something goes wrong, you'll need
+      to use vips_object_unref_outputs() and g_object_unref() to free the
+      partially-built object.
+      The Python binding uses this technique to implement a function which
+      can call any vips operation, turning optional vips arguments into
+      Python keyword arguments.
+    </para>
+
+    <para>
+      If your language does not have a gobject-introspection package, you'll 
+      need to write something in C or C++ doing approximately the same thing. 
+      The C++ API takes this route.
+    </para>
+
+    <para>
+      You can generate searchable docs from a <code>.gir</code> (the thing that 
+      is built from scanning libvips and which in turn turn the typelib is 
+      made from) with <command>g-ir-doc-tool</command>, for example:
+
+<programlisting language="bash">
+$ g-ir-doc-tool --language=Python -o ~/mydocs Vips-8.0.gir
+</programlisting>
+
+      Then to view them, either:
+
+<programlisting language="bash">
+$ yelp ~/mydocs 
+</programlisting>
+
+      Or perhaps
+
+<programlisting language="bash">
+$ cd ~/mydocs 
+$ yelp-build html .
+</programlisting>
+
+      To make HTML docs. This is an easy way to see what you can call in the 
+      library. 
+    </para>
+
+
+  </refsect3>
+
+</refentry>

@@ -582,8 +582,12 @@ vips_buffer_print( VipsBuffer *buffer )
 static void
 vips__buffer_init_cb( VipsBufferThread *buffer_thread )
 {
-	vips_error_exit( "vips_thread_shutdown() not called for thread %p",
-		g_thread_self() ); 
+	/* We only come here if vips_thread_shutdown() was not called for this
+	 * thread. Do our best to clean up.
+	 *
+	 * GPrivate has stopped working, be careful not to touch that. 
+	 */
+	buffer_thread_free( buffer_thread );
 }
 
 /* Init the buffer cache system.

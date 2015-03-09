@@ -340,7 +340,9 @@ vips_falsecolour_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(t[0] = vips_image_new_from_memory( (void *) vips_falsecolour_pet, 
+	if( !(t[0] = vips_image_new_from_memory( 
+		(void *) vips_falsecolour_pet, 
+		sizeof( vips_falsecolour_pet ),
 		1, VIPS_NUMBER( vips_falsecolour_pet ), 3, 
 		VIPS_FORMAT_UCHAR )) )
 		return( -1 );

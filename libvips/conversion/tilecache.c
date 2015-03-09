@@ -29,6 +29,8 @@
  * 	- could deadlock if downstream raised an error (thanks Todd)
  * 25/4/13
  * 	- cache minimisation is optional, see "persistent" flag
+ * 26/8/14 Lovell
+ * 	- free the hash table in _dispose()
  */
 
 /*
@@ -133,7 +135,8 @@ typedef struct _VipsBlockCache {
 
 typedef VipsConversionClass VipsBlockCacheClass;
 
-G_DEFINE_TYPE( VipsBlockCache, vips_block_cache, VIPS_TYPE_CONVERSION );
+G_DEFINE_ABSTRACT_TYPE( VipsBlockCache, vips_block_cache, 
+	VIPS_TYPE_CONVERSION );
 
 #define VIPS_TYPE_BLOCK_CACHE (vips_block_cache_get_type())
 
@@ -155,6 +158,10 @@ vips_block_cache_dispose( GObject *gobject )
 	vips_block_cache_drop_all( cache );
 	VIPS_FREEF( vips_g_mutex_free, cache->lock );
 	VIPS_FREEF( vips_g_cond_free, cache->new_tile );
+
+	if( cache->tiles )
+		g_assert( g_hash_table_size( cache->tiles ) == 0 );
+	VIPS_FREEF( g_hash_table_destroy, cache->tiles );
 
 	G_OBJECT_CLASS( vips_block_cache_parent_class )->dispose( gobject );
 }
@@ -831,7 +838,7 @@ vips_tile_cache_init( VipsTileCache *cache )
  * by @tile_height pixels. 
  *
  * Each cache tile is made with a single call to 
- * vips_image_prepare(). 
+ * vips_region_prepare(). 
  *
  * When the cache fills, a tile is chosen for reuse. If @access is
  * #VIPS_ACCESS_RANDOM, then the least-recently-used tile is reused. If 
@@ -941,7 +948,7 @@ vips_line_cache_build( VipsObject *object )
 
 		vips_get_tile_size( block_cache->in, 
 			&tile_width, &tile_height, &nlines );
-		block_cache->max_tiles = 3 * 
+		block_cache->max_tiles = 4 * 
 			(1 + nlines / block_cache->tile_height);
 
 		VIPS_DEBUG_MSG( "vips_line_cache_build: nlines = %d\n", 
@@ -1023,7 +1030,7 @@ vips_line_cache_init( VipsLineCache *cache )
  * save some memory and set @access to #VIPS_ACCESS_SEQUENTIAL_UNBUFFERED. 
  *
  * Each cache tile is made with a single call to 
- * vips_image_prepare(). 
+ * vips_region_prepare(). 
  *
  * When the cache fills, a tile is chosen for reuse. If @access is
  * #VIPS_ACCESS_RANDOM, then the least-recently-used tile is reused. If 

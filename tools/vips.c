@@ -146,7 +146,7 @@ map_name( const char *name, map_name_fn fn )
 		 */
 		fn( func );
 	else {
-		im_error( "map_name", 
+		vips_error( "map_name", 
 			_( "no package or function \"%s\"" ), name );
 		return( fn );
 	}
@@ -208,7 +208,7 @@ print_list( int argc, char **argv )
 	}
 	else {
 		if( map_name( argv[0], list_function ) )
-			error_exit( "unknown package \"%s\"", argv[0] ); 
+			vips_error_exit( "unknown package \"%s\"", argv[0] ); 
 	}
 
 	return( 0 );
@@ -253,6 +253,17 @@ has_print( im_function *fn )
 	return( 0 );
 }
 
+static int
+isvips( const char *name )
+{
+	/* If we're running uninstalled we get the lt- prefix.
+	 */
+	if( vips_isprefix( "lt-", name ) ) 
+		name += 3;
+
+	return( vips_isprefix( "vips", name ) );
+}
+
 /* Print a usage string from an im_function descriptor.
  */
 static void
@@ -264,7 +275,7 @@ usage( im_function *fn )
 	/* Don't print the prgname if we're being run as a symlink.
 	 */
 	fprintf( stderr, "usage: " );
-	if( im_isprefix( "vips", g_get_prgname() ) ) 
+	if( isvips( g_get_prgname() ) ) 
 		fprintf( stderr, "%s ", g_get_prgname() );
 	fprintf( stderr, "%s ", fn->name ); 
 
@@ -895,10 +906,10 @@ static int
 print_cppdecls( int argc, char **argv )
 {
 	printf( "// this file automatically generated from\n"
-		"// VIPS library %s\n", im_version_string() );
+		"// VIPS library %s\n", vips_version_string() );
 
 	if( map_name( argv[0], print_cppdecl ) )
-		error_exit( NULL );
+		vips_error_exit( NULL );
 
 	return( 0 );
 }
@@ -909,10 +920,10 @@ static int
 print_cppdefs( int argc, char **argv ) 
 {
 	printf( "// this file automatically generated from\n"
-		"// VIPS library %s\n", im_version_string() );
+		"// VIPS library %s\n", vips_version_string() );
 
 	if( map_name( argv[0], print_cppdef ) )
-		error_exit( NULL );
+		vips_error_exit( NULL );
 
 	return( 0 );
 }
@@ -996,7 +1007,7 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 			g_error_free( error );
 		}
 
-		error_exit( NULL );
+		vips_error_exit( NULL );
 	}
 
 	/* Remove any "--" argument. If one of our arguments is a negative
@@ -1042,8 +1053,8 @@ main( int argc, char **argv )
 
 	GError *error = NULL;
 
-	if( im_init_world( argv[0] ) )
-	        error_exit( NULL );
+	if( VIPS_INIT( argv[0] ) )
+	        vips_error_exit( NULL );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
@@ -1068,12 +1079,9 @@ main( int argc, char **argv )
 	 */
 	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
 	g_option_group_add_entries( main_group, main_option );
+	vips_add_option_entries( main_group ); 
 	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
 	g_option_context_set_main_group( context, main_group );
-
-	/* Add the libvips options too.
-	 */
-	g_option_context_add_group( context, im_get_option_group() );
 
 	/* We add more options later, for example as options to vips8
 	 * operations. Ignore any unknown options in this first parse.
@@ -1091,16 +1099,16 @@ main( int argc, char **argv )
 			g_error_free( error );
 		}
 
-		error_exit( NULL );
+		vips_error_exit( NULL );
 	}
 
 	if( main_option_plugin ) {
 		if( !im_load_plugin( main_option_plugin ) )
-			error_exit( NULL ); 
+			vips_error_exit( NULL ); 
 	}
 
 	if( main_option_version ) 
-		printf( "vips-%s\n", im_version_string() );
+		printf( "vips-%s\n", vips_version_string() );
 
 	/* Reenable help and unknown option detection ready for the second
 	 * option parse.
@@ -1115,7 +1123,7 @@ main( int argc, char **argv )
 
 	/* Should we try to run the thing we are named as?
 	 */
-	if( !im_isprefix( "vips", g_get_prgname() ) ) 
+	if( !isvips( g_get_prgname() ) ) 
 		action = argv[0];
 
 	if( !action ) {
@@ -1148,7 +1156,7 @@ main( int argc, char **argv )
 				parse_options( context, &argc, argv );
 
 				if( actions[i].action( argc - 1, argv + 1 ) ) 
-					error_exit( "%s", action );
+					vips_error_exit( "%s", action );
 
 				handled = TRUE;
 				break;
@@ -1165,7 +1173,7 @@ main( int argc, char **argv )
 			if( argc == 1 ) 
 				usage( fn );
 			else
-				error_exit( NULL );
+				vips_error_exit( NULL );
 		}
 
 		handled = TRUE;
@@ -1175,7 +1183,7 @@ main( int argc, char **argv )
 	 */
 	if( action &&
 		!handled )
-		im_error_clear();
+		vips_error_clear();
 
 	/* Could be a vips8 VipsOperation.
 	 */
@@ -1194,7 +1202,18 @@ main( int argc, char **argv )
 			vips_object_unref_outputs( VIPS_OBJECT( operation ) );
 			g_object_unref( operation );
 
-			error_exit( NULL );
+			if( argc == 1 )
+				/* We don't exit with an error for something
+				 * like "vips fitsload" failing, we use it to
+				 * decide if an optional component has been
+				 * configured. If we've been built without
+				 * fits support, fitsload will fail to find
+				 * the operation and we'll error with "unknown
+				 * action" below.
+				 */
+				exit( 0 );
+			else
+				vips_error_exit( NULL );
 		}
 
 		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
@@ -1207,12 +1226,12 @@ main( int argc, char **argv )
 	 */
 	if( action &&
 		!handled )
-		im_error_clear();
+		vips_error_clear();
 
 	if( action && 
 		!handled ) {
 		print_help( argc, argv );
-		error_exit( _( "unknown action \"%s\"" ), action );
+		vips_error_exit( _( "unknown action \"%s\"" ), action );
 	}
 
 	/* Still not handled? We may not have called parse_options(), so

@@ -49,6 +49,22 @@
  * 7/3/14
  * 	- remove the embedded thumbnail reader, embedded thumbnails are too
  * 	  unlike the main image wrt. rotation / colour / etc.
+ * 30/6/14
+ * 	- fix interlaced thumbnail output, thanks lovell
+ * 3/8/14
+ * 	- box shrink less, use interpolator more, if window_size is large
+ * 	  enough
+ * 	- default to bicubic if available
+ * 	- add an anti-alias filter between shrink and affine
+ * 	- support CMYK
+ * 	- use SEQ_UNBUF for a memory saving
+ * 12/9/14
+ * 	- try with embedded profile first, if that fails retry with fallback
+ * 	  profile
+ * 13/1/15
+ * 	- exit with an error code if one or more conversions failed
+ * 20/1/15
+ * 	- rename -o as -f, keep -o as a hidden flag
  */
 
 #ifdef HAVE_CONFIG_H
@@ -63,8 +79,13 @@
 #include <locale.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #define ORIENTATION ("exif-ifd0-Orientation")
+
+/* Default settings. We change the default to bicubic in main() if
+ * this vips has been compiled with bicubic support.
+ */
 
 static char *thumbnail_size = "128";
 static int thumbnail_width = 128;
@@ -90,9 +111,13 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_STRING, &thumbnail_size, 
 		N_( "shrink to SIZE or to WIDTHxHEIGHT" ), 
 		N_( "SIZE" ) },
-	{ "output", 'o', 0, 
+	{ "output", 'o', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_STRING, &output_format, 
 		N_( "set output to FORMAT" ), 
+		N_( "FORMAT" ) },
+	{ "format", 'f', 0, 
+		G_OPTION_ARG_STRING, &output_format, 
+		N_( "set output format string to FORMAT" ), 
 		N_( "FORMAT" ) },
 	{ "interpolator", 'p', 0, 
 		G_OPTION_ARG_STRING, &interpolator, 
@@ -134,48 +159,25 @@ static GOptionEntry options[] = {
 	{ NULL }
 };
 
-static VipsAngle 
-get_angle( VipsImage *im )
-{
-	VipsAngle angle;
-	const char *orientation;
-
-	angle = VIPS_ANGLE_0;
-
-	if( vips_image_get_typeof( im, ORIENTATION ) && 
-		!vips_image_get_string( im, ORIENTATION, &orientation ) ) {
-		if( vips_isprefix( "6", orientation ) )
-			angle = VIPS_ANGLE_90;
-		else if( vips_isprefix( "8", orientation ) )
-			angle = VIPS_ANGLE_270;
-		else if( vips_isprefix( "3", orientation ) )
-			angle = VIPS_ANGLE_180;
-
-		/* Other values do rotate + mirror, don't bother handling them
-		 * though, how common can mirroring be. 
-		 *
-		 * See:
-		 *
-		 * http://www.80sidea.com/archives/2316
-		 */
-	}
-
-	return( angle );
-}
-
 /* Calculate the shrink factors. 
  *
  * We shrink in two stages: first, a shrink with a block average. This can
  * only accurately shrink by integer factors. We then do a second shrink with
  * a supplied interpolator to get the exact size we want.
+ *
+ * We aim to do the second shrink by roughly half the interpolator's 
+ * window_size.
  */
 static int
-calculate_shrink( VipsImage *im, double *residual )
+calculate_shrink( VipsImage *im, double *residual, 
+	VipsInterpolate *interp )
 {
-	VipsAngle angle = get_angle( im ); 
-	gboolean rotate = angle == VIPS_ANGLE_90 || angle == VIPS_ANGLE_270;
+	VipsAngle angle = vips_autorot_get_angle( im ); 
+	gboolean rotate = angle == VIPS_ANGLE_D90 || angle == VIPS_ANGLE_D270;
 	int width = rotate_image && rotate ? im->Ysize : im->Xsize;
 	int height = rotate_image && rotate ? im->Xsize : im->Ysize;
+	const int window_size =
+		interp ?  vips_interpolate_get_window_size( interp ) : 2;
 
 	VipsDirection direction;
 
@@ -209,9 +211,12 @@ calculate_shrink( VipsImage *im, double *residual )
 	 */
 	double factor2 = factor < 1.0 ? 1.0 : factor;
 
-	/* Int component of shrink.
+	/* Int component of factor2. 
+	 *
+	 * We want to shrink by less for interpolators with larger windows.
 	 */
-	int shrink = floor( factor2 );
+	int shrink = VIPS_MAX( 1, 
+		floor( factor2 ) / VIPS_MAX( 1, window_size / 2 ) );
 
 	if( residual &&
 		direction == VIPS_DIRECTION_HORIZONTAL ) {
@@ -241,7 +246,7 @@ calculate_shrink( VipsImage *im, double *residual )
 static int
 thumbnail_find_jpegshrink( VipsImage *im )
 {
-	int shrink = calculate_shrink( im, NULL );
+	int shrink = calculate_shrink( im, NULL, NULL );
 
 	/* We can't use pre-shrunk images in linear mode. libjpeg shrinks in Y
 	 * (of YCbCR), not linear space.
@@ -296,6 +301,8 @@ thumbnail_open( VipsObject *process, const char *filename )
 			"loading jpeg with factor %d pre-shrink", 
 			jpegshrink ); 
 
+		/* We can't use UNBUFERRED safely on very-many-core systems.
+		 */
 		if( !(im = vips_image_new_from_file( filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", jpegshrink,
@@ -322,10 +329,10 @@ thumbnail_interpolator( VipsObject *process, VipsImage *in )
 	double residual;
 	VipsInterpolate *interp;
 
-	calculate_shrink( in, &residual );
+	calculate_shrink( in, &residual, NULL );
 
 	/* For images smaller than the thumbnail, we upscale with nearest
-	 * neighbor. Otherwise we makes thumbnails that look fuzzy and awful.
+	 * neighbor. Otherwise we make thumbnails that look fuzzy and awful.
 	 */
 	if( !(interp = VIPS_INTERPOLATE( vips_object_new_from_string( 
 		g_type_class_ref( VIPS_TYPE_INTERPOLATE ), 
@@ -373,11 +380,17 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	VipsInterpretation interpretation = linear_processing ?
 		VIPS_INTERPRETATION_XYZ : VIPS_INTERPRETATION_sRGB; 
 
+	/* TRUE if we've done the import of an ICC transform and still need to
+	 * export.
+	 */
+	gboolean have_imported;
+
 	int shrink; 
 	double residual; 
 	int tile_width;
 	int tile_height;
 	int nlines;
+	double sigma;
 
 	/* RAD needs special unpacking.
 	 */
@@ -393,11 +406,16 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 
 	/* In linear mode, we import right at the start. 
 	 *
+	 * We also have to import the whole image if it's CMYK, since
+	 * vips_colourspace() (see below) doesn't know about CMYK.
+	 *
 	 * This is only going to work for images in device space. If you have
 	 * an image in PCS which also has an attached profile, strange things
 	 * will happen. 
 	 */
-	if( linear_processing &&
+	have_imported = FALSE;
+	if( (linear_processing ||
+		in->Type == VIPS_INTERPRETATION_CMYK) &&
 		in->Coding == VIPS_CODING_NONE &&
 		(in->BandFmt == VIPS_FORMAT_UCHAR ||
 		 in->BandFmt == VIPS_FORMAT_USHORT) &&
@@ -418,6 +436,8 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 			return( NULL );
 
 		in = t[1];
+
+		have_imported = TRUE;
 	}
 
 	/* To the processing colourspace. This will unpack LABQ as well.
@@ -428,7 +448,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		return( NULL ); 
 	in = t[2];
 
-	shrink = calculate_shrink( in, &residual );
+	shrink = calculate_shrink( in, &residual, interp );
 
 	vips_info( "vipsthumbnail", "integer shrink by %d", shrink );
 
@@ -455,20 +475,40 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	 * has been used ... but it never will, since thread1 will block on 
 	 * this cache lock. 
 	 */
+
 	vips_get_tile_size( in, 
 		&tile_width, &tile_height, &nlines );
 	if( vips_tilecache( in, &t[4], 
 		"tile_width", in->Xsize,
 		"tile_height", 10,
-		"max_tiles", (nlines * 2) / 10,
+		"max_tiles", 1 + (nlines * 2) / 10,
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		"threaded", TRUE, 
-		NULL ) ||
-		vips_affine( t[4], &t[5], residual, 0, 0, residual, 
-			"interpolate", interp,
-			NULL ) )  
+		NULL ) )
 		return( NULL );
-	in = t[5];
+	in = t[4];
+
+	/* If the final affine will be doing a large downsample, we can get 
+	 * nasty aliasing on hard edges. Blur before affine to smooth this out.
+	 *
+	 * Don't blur for very small shrinks, blur with radius 1 for x1.5
+	 * shrinks, blur radius 2 for x2.5 shrinks and above, etc.
+	 */
+	sigma = ((1.0 / residual) - 0.5) / 1.5;
+	if( residual < 1.0 &&
+		sigma > 0.1 ) { 
+		if( vips_gaussblur( in, &t[5], sigma, NULL ) )
+			return( NULL );
+		vips_info( "vipsthumbnail", "anti-alias, sigma %g",
+			sigma );
+		in = t[5];
+	}
+
+	if( vips_affine( in, &t[6], residual, 0, 0, residual, 
+		"interpolate", interp,
+		NULL ) )  
+		return( NULL );
+	in = t[6];
 
 	vips_info( "vipsthumbnail", "residual scale by %g", residual );
 	vips_info( "vipsthumbnail", "%s interpolation", 
@@ -476,10 +516,11 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 
 	/* Colour management.
 	 *
-	 * In linear mode, just export. In device space mode, do a combined
+	 * If we've already imported, just export. Otherwise, we're in 
+	 * device space device and we need a combined
 	 * import/export to transform to the target space.
 	 */
-	if( linear_processing ) {
+	if( have_imported ) { 
 		if( export_profile ||
 			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
 			vips_info( "vipsthumbnail", 
@@ -492,32 +533,61 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		}
 		else {
 			vips_info( "vipsthumbnail", "converting to sRGB" );
-			if( vips_colourspace( in, &t[6], 
+			if( vips_colourspace( in, &t[7], 
 				VIPS_INTERPRETATION_sRGB, NULL ) ) 
 				return( NULL ); 
-			in = t[6];
+			in = t[7];
 		}
 	}
 	else if( export_profile &&
 		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
 		 import_profile) ) {
-		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) )
-			vips_info( "vipsthumbnail", 
-				"importing with embedded profile" );
-		else
-			vips_info( "vipsthumbnail", 
-				"importing with profile %s", import_profile );
+		VipsImage *out;
 
 		vips_info( "vipsthumbnail", 
 			"exporting with profile %s", export_profile );
 
-		if( vips_icc_transform( in, &t[6], export_profile,
-			"input_profile", import_profile,
-			"embedded", TRUE,
-			NULL ) )  
-			return( NULL );
+		/* We first try with the embedded profile, if any, then if
+		 * that fails try again with the supplied fallback profile.
+		 */
+		out = NULL; 
+		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+			vips_info( "vipsthumbnail", 
+				"importing with embedded profile" );
 
-		in = t[6];
+			if( vips_icc_transform( in, &t[7], export_profile,
+				"embedded", TRUE,
+				NULL ) ) {
+				vips_warn( "vipsthumbnail", 
+					_( "unable to import with "
+						"embedded profile: %s" ),
+					vips_error_buffer() );
+
+				vips_error_clear();
+			}
+			else
+				out = t[7];
+		}
+
+		if( !out &&
+			import_profile ) { 
+			vips_info( "vipsthumbnail", 
+				"importing with fallback profile" );
+
+			if( vips_icc_transform( in, &t[7], export_profile,
+				"input_profile", import_profile,
+				"embedded", FALSE,
+				NULL ) )  
+				return( NULL );
+
+			out = t[7];
+		}
+
+		/* If the embedded profile failed and there's no fallback or
+		 * the fallback failed, out will still be NULL.
+		 */
+		if( out )
+			in = out;
 	}
 
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
@@ -568,12 +638,18 @@ thumbnail_crop( VipsObject *process, VipsImage *im )
 static VipsImage *
 thumbnail_rotate( VipsObject *process, VipsImage *im )
 {
-	VipsImage **t = (VipsImage **) vips_object_local_array( process, 1 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
+	VipsAngle angle = vips_autorot_get_angle( im );
 
-	if( rotate_image ) {
-		if( vips_rot( im, &t[0], get_angle( im ), NULL ) )
+	if( rotate_image &&
+		angle != VIPS_ANGLE_D0 ) {
+		/* Need to copy to memory, we have to stay seq.
+		 */
+		t[0] = vips_image_new_memory();
+		if( vips_image_write( im, t[0] ) ||
+			vips_rot( t[0], &t[1], angle, NULL ) )
 			return( NULL ); 
-		im = t[0];
+		im = t[1];
 
 		(void) vips_image_remove( im, ORIENTATION );
 	}
@@ -585,7 +661,7 @@ thumbnail_rotate( VipsObject *process, VipsImage *im )
  * (eg.) "/poop/tn_somefile.jpg".
  */
 static int
-thumbnail_write( VipsImage *im, const char *filename )
+thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 {
 	char *file;
 	char *p;
@@ -599,10 +675,15 @@ thumbnail_write( VipsImage *im, const char *filename )
 	if( (p = strrchr( file, '.' )) ) 
 		*p = '\0';
 
+	/* Don't use vips_snprintf(), we only want to optionally substitute a 
+	 * single %s.
+	 */
+	vips_strncpy( buf, output_format, FILENAME_MAX ); 
+	vips__substitute( buf, FILENAME_MAX, file ); 
+
 	/* output_format can be an absolute path, in which case we discard the
 	 * path from the incoming file.
 	 */
-	vips_snprintf( buf, FILENAME_MAX, output_format, file );
 	if( g_path_is_absolute( output_format ) ) 
 		output_name = g_strdup( buf );
 	else {
@@ -644,7 +725,7 @@ thumbnail_process( VipsObject *process, const char *filename )
 			thumbnail_shrink( process, in, interp, sharpen )) ||
 		!(crop = thumbnail_crop( process, thumbnail )) ||
 		!(rotate = thumbnail_rotate( process, crop )) ||
-		thumbnail_write( rotate, filename ) )
+		thumbnail_write( process, rotate, filename ) )
 		return( -1 );
 
 	return( 0 );
@@ -654,18 +735,29 @@ int
 main( int argc, char **argv )
 {
 	GOptionContext *context;
+	GOptionGroup *main_group;
 	GError *error = NULL;
 	int i;
+	int result;
 
-	if( vips_init( argv[0] ) )
+	if( VIPS_INIT( argv[0] ) )
 	        vips_error_exit( "unable to start VIPS" );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
+	/* Does this vips have bicubic? Default to that if it
+	 * does.
+	 */
+	if( vips_type_find( "VipsInterpolate", "bicubic" ) ) 
+		interpolator = "bicubic";
+
         context = g_option_context_new( _( "- thumbnail generator" ) );
 
-	g_option_context_add_main_entries( context, options, GETTEXT_PACKAGE );
-	g_option_context_add_group( context, vips_get_option_group() );
+	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
+	g_option_group_add_entries( main_group, options );
+	vips_add_option_entries( main_group ); 
+	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
+	g_option_context_set_main_group( context, main_group );
 
 	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
 		if( error ) {
@@ -687,6 +779,8 @@ main( int argc, char **argv )
 		thumbnail_height = thumbnail_width;
 	}
 
+	result = 0;
+
 	for( i = 1; i < argc; i++ ) {
 		/* Hang resources for processing this thumbnail off @process.
 		 */
@@ -697,6 +791,11 @@ main( int argc, char **argv )
 				argv[0], argv[i] );
 			fprintf( stderr, "%s", vips_error_buffer() );
 			vips_error_clear();
+
+			/* We had a conversion failure: return an error code
+			 * when we finally exit.
+			 */
+			result = -1;
 		}
 
 		g_object_unref( process );
@@ -704,5 +803,5 @@ main( int argc, char **argv )
 
 	vips_shutdown();
 
-	return( 0 );
+	return( result );
 }

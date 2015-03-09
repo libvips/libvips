@@ -277,7 +277,7 @@ im_isfloat( IMAGE *im )
 gboolean
 im_iscomplex( IMAGE *im )
 {	
-	return( vips_bandfmt_iscomplex( im->BandFmt ) );
+	return( vips_band_format_iscomplex( im->BandFmt ) );
 }
 
 gboolean
@@ -522,7 +522,7 @@ im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel )
 int 
 im_fastlineuser( IMAGE *im, 
 	int x1, int y1, int x2, int y2, 
-	int (*fn)(), void *client1, void *client2, void *client3 )
+	VipsPlotFn fn, void *client1, void *client2, void *client3 )
 {
 	return( im_draw_line_user( im, x1, y1, x2, y2, 
 		fn, client1, client2, client3 ) );

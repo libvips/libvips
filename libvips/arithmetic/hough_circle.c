@@ -262,7 +262,7 @@ vips_hough_circle_class_init( VipsHoughClass *class )
 static void
 vips_hough_circle_init( VipsHoughCircle *hough_circle )
 {
-	hough_circle->scale = 3; 
+	hough_circle->scale = 1; 
 	hough_circle->min_radius = 10; 
 	hough_circle->max_radius = 20; 
 }

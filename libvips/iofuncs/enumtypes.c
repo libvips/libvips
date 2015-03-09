@@ -106,6 +106,27 @@ vips_foreign_tiff_resunit_get_type( void )
 	return( etype );
 }
 GType
+vips_foreign_png_filter_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GFlagsValue values[] = {
+			{VIPS_FOREIGN_PNG_FILTER_NONE, "VIPS_FOREIGN_PNG_FILTER_NONE", "none"},
+			{VIPS_FOREIGN_PNG_FILTER_SUB, "VIPS_FOREIGN_PNG_FILTER_SUB", "sub"},
+			{VIPS_FOREIGN_PNG_FILTER_UP, "VIPS_FOREIGN_PNG_FILTER_UP", "up"},
+			{VIPS_FOREIGN_PNG_FILTER_AVG, "VIPS_FOREIGN_PNG_FILTER_AVG", "avg"},
+			{VIPS_FOREIGN_PNG_FILTER_PAETH, "VIPS_FOREIGN_PNG_FILTER_PAETH", "paeth"},
+			{VIPS_FOREIGN_PNG_FILTER_ALL, "VIPS_FOREIGN_PNG_FILTER_ALL", "all"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_flags_register_static( "VipsForeignPngFilter", values );
+	}
+
+	return( etype );
+}
+GType
 vips_foreign_dz_layout_get_type( void )
 {
 	static GType etype = 0;
@@ -131,9 +152,9 @@ vips_foreign_dz_depth_get_type( void )
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
-			{VIPS_FOREIGN_DZ_DEPTH_1PIXEL, "VIPS_FOREIGN_DZ_DEPTH_1PIXEL", "1pixel"},
-			{VIPS_FOREIGN_DZ_DEPTH_1TILE, "VIPS_FOREIGN_DZ_DEPTH_1TILE", "1tile"},
-			{VIPS_FOREIGN_DZ_DEPTH_1, "VIPS_FOREIGN_DZ_DEPTH_1", "1"},
+			{VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL, "VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL", "onepixel"},
+			{VIPS_FOREIGN_DZ_DEPTH_ONETILE, "VIPS_FOREIGN_DZ_DEPTH_ONETILE", "onetile"},
+			{VIPS_FOREIGN_DZ_DEPTH_ONE, "VIPS_FOREIGN_DZ_DEPTH_ONE", "one"},
 			{VIPS_FOREIGN_DZ_DEPTH_LAST, "VIPS_FOREIGN_DZ_DEPTH_LAST", "last"},
 			{0, NULL, NULL}
 		};
@@ -228,10 +249,10 @@ vips_angle_get_type( void )
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
-			{VIPS_ANGLE_0, "VIPS_ANGLE_0", "0"},
-			{VIPS_ANGLE_90, "VIPS_ANGLE_90", "90"},
-			{VIPS_ANGLE_180, "VIPS_ANGLE_180", "180"},
-			{VIPS_ANGLE_270, "VIPS_ANGLE_270", "270"},
+			{VIPS_ANGLE_D0, "VIPS_ANGLE_D0", "d0"},
+			{VIPS_ANGLE_D90, "VIPS_ANGLE_D90", "d90"},
+			{VIPS_ANGLE_D180, "VIPS_ANGLE_D180", "d180"},
+			{VIPS_ANGLE_D270, "VIPS_ANGLE_D270", "d270"},
 			{VIPS_ANGLE_LAST, "VIPS_ANGLE_LAST", "last"},
 			{0, NULL, NULL}
 		};
@@ -248,14 +269,14 @@ vips_angle45_get_type( void )
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
-			{VIPS_ANGLE45_0, "VIPS_ANGLE45_0", "0"},
-			{VIPS_ANGLE45_45, "VIPS_ANGLE45_45", "45"},
-			{VIPS_ANGLE45_90, "VIPS_ANGLE45_90", "90"},
-			{VIPS_ANGLE45_135, "VIPS_ANGLE45_135", "135"},
-			{VIPS_ANGLE45_180, "VIPS_ANGLE45_180", "180"},
-			{VIPS_ANGLE45_225, "VIPS_ANGLE45_225", "225"},
-			{VIPS_ANGLE45_270, "VIPS_ANGLE45_270", "270"},
-			{VIPS_ANGLE45_315, "VIPS_ANGLE45_315", "315"},
+			{VIPS_ANGLE45_D0, "VIPS_ANGLE45_D0", "d0"},
+			{VIPS_ANGLE45_D45, "VIPS_ANGLE45_D45", "d45"},
+			{VIPS_ANGLE45_D90, "VIPS_ANGLE45_D90", "d90"},
+			{VIPS_ANGLE45_D135, "VIPS_ANGLE45_D135", "d135"},
+			{VIPS_ANGLE45_D180, "VIPS_ANGLE45_D180", "d180"},
+			{VIPS_ANGLE45_D225, "VIPS_ANGLE45_D225", "d225"},
+			{VIPS_ANGLE45_D270, "VIPS_ANGLE45_D270", "d270"},
+			{VIPS_ANGLE45_D315, "VIPS_ANGLE45_D315", "d315"},
 			{VIPS_ANGLE45_LAST, "VIPS_ANGLE45_LAST", "last"},
 			{0, NULL, NULL}
 		};
@@ -337,7 +358,7 @@ vips_operation_relational_get_type( void )
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
 			{VIPS_OPERATION_RELATIONAL_EQUAL, "VIPS_OPERATION_RELATIONAL_EQUAL", "equal"},
-			{VIPS_OPERATION_RELATIONAL_NOTEQUAL, "VIPS_OPERATION_RELATIONAL_NOTEQUAL", "notequal"},
+			{VIPS_OPERATION_RELATIONAL_NOTEQ, "VIPS_OPERATION_RELATIONAL_NOTEQ", "noteq"},
 			{VIPS_OPERATION_RELATIONAL_LESS, "VIPS_OPERATION_RELATIONAL_LESS", "less"},
 			{VIPS_OPERATION_RELATIONAL_LESSEQ, "VIPS_OPERATION_RELATIONAL_LESSEQ", "lesseq"},
 			{VIPS_OPERATION_RELATIONAL_MORE, "VIPS_OPERATION_RELATIONAL_MORE", "more"},
@@ -604,6 +625,7 @@ vips_intent_get_type( void )
 			{VIPS_INTENT_RELATIVE, "VIPS_INTENT_RELATIVE", "relative"},
 			{VIPS_INTENT_SATURATION, "VIPS_INTENT_SATURATION", "saturation"},
 			{VIPS_INTENT_ABSOLUTE, "VIPS_INTENT_ABSOLUTE", "absolute"},
+			{VIPS_INTENT_LAST, "VIPS_INTENT_LAST", "last"},
 			{0, NULL, NULL}
 		};
 		
@@ -652,25 +674,6 @@ vips_operation_flags_get_type( void )
 	return( etype );
 }
 /* enumerations from "../../libvips/include/vips/convolution.h" */
-GType
-vips_precision_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_PRECISION_INTEGER, "VIPS_PRECISION_INTEGER", "integer"},
-			{VIPS_PRECISION_FLOAT, "VIPS_PRECISION_FLOAT", "float"},
-			{VIPS_PRECISION_APPROXIMATE, "VIPS_PRECISION_APPROXIMATE", "approximate"},
-			{VIPS_PRECISION_LAST, "VIPS_PRECISION_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsPrecision", values );
-	}
-
-	return( etype );
-}
 GType
 vips_combine_get_type( void )
 {
@@ -727,6 +730,26 @@ vips_combine_mode_get_type( void )
 
 	return( etype );
 }
+/* enumerations from "../../libvips/include/vips/basic.h" */
+GType
+vips_precision_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_PRECISION_INTEGER, "VIPS_PRECISION_INTEGER", "integer"},
+			{VIPS_PRECISION_FLOAT, "VIPS_PRECISION_FLOAT", "float"},
+			{VIPS_PRECISION_APPROXIMATE, "VIPS_PRECISION_APPROXIMATE", "approximate"},
+			{VIPS_PRECISION_LAST, "VIPS_PRECISION_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsPrecision", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/object.h" */
 GType
 vips_argument_flags_get_type( void )
@@ -743,6 +766,7 @@ vips_argument_flags_get_type( void )
 			{VIPS_ARGUMENT_INPUT, "VIPS_ARGUMENT_INPUT", "input"},
 			{VIPS_ARGUMENT_OUTPUT, "VIPS_ARGUMENT_OUTPUT", "output"},
 			{VIPS_ARGUMENT_DEPRECATED, "VIPS_ARGUMENT_DEPRECATED", "deprecated"},
+			{VIPS_ARGUMENT_MODIFY, "VIPS_ARGUMENT_MODIFY", "modify"},
 			{0, NULL, NULL}
 		};
 		

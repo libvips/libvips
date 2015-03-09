@@ -53,11 +53,14 @@ int vips__jpeg_write_stream( VipsImage *in,
 int vips__isjpeg_buffer( const unsigned char *buf, size_t len );
 int vips__isjpeg( const char *filename );
 int vips__jpeg_read_file( const char *name, VipsImage *out, 
-	gboolean header_only, int shrink, gboolean fail, gboolean readbehind );
+	gboolean header_only, int shrink, gboolean fail, gboolean readbehind,
+	gboolean autorotate );
 int vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out, 
-	gboolean header_only, int shrink, int fail, gboolean readbehind );
+	gboolean header_only, int shrink, gboolean fail, gboolean readbehind,
+	gboolean autorotate );
 int vips__jpeg_read_stream( VipsStreamInput *stream, VipsImage *out, 
-	int shrink, int fail, gboolean readbehind );
+	gboolean header_only, int shrink, gboolean fail, gboolean readbehind,
+	gboolean autorotate );
 
 #ifdef __cplusplus
 }

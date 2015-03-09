@@ -97,7 +97,7 @@ vips_system_dispose( GObject *gobject )
 	if( system->in_name ) {
 		int i;
 
-		for( i = 0; i < system->in->n; i++ ) { 
+		for( i = 0; i < VIPS_AREA( system->in )->n; i++ ) { 
 			g_unlink( system->in_name[i] );
 			VIPS_FREE( system->in_name[i] );
 		}
@@ -134,13 +134,13 @@ vips_system_build( VipsObject *object )
 	if( system->in ) { 
 		char *in_format = system->in_format ? 
 			system->in_format : "%s.tif";
-		VipsImage **in = (VipsImage **) system->in->data; 
+		int n;
+		VipsImage **in = vips_array_image_get( system->in, &n ); 
 
-		if( !(system->in_name = VIPS_ARRAY( object, 
-			system->in->n, char * )) )
+		if( !(system->in_name = VIPS_ARRAY( object, n, char * )) )
 			return( -1 ); 
-		memset( system->in_name, 0, system->in->n * sizeof( char * ) ); 
-		for( i = 0; i < system->in->n; i++ ) { 
+		memset( system->in_name, 0, n * sizeof( char * ) ); 
+		for( i = 0; i < n; i++ ) { 
 			if( !(system->in_name[i] = 
 				vips__temp_name( in_format )) )
 				return( -1 );
@@ -158,14 +158,20 @@ vips_system_build( VipsObject *object )
 
 	vips_strncpy( cmd, system->cmd_format, VIPS_PATH_MAX );
 	if( system->in ) 
-		for( i = 0; i < system->in->n; i++ ) 
-			if( vips__substitute( class->nickname, 
-				cmd, VIPS_PATH_MAX, system->in_name[i] ) )
+		for( i = 0; i < VIPS_AREA( system->in )->n; i++ ) 
+			if( vips__substitute( cmd, VIPS_PATH_MAX, 
+				system->in_name[i] ) ) {
+				vips_error( class->nickname, "%s",
+					_( "unable to substitute "
+					"input filename" ) ); 
 				return( -1 ); 
+			}
 	if( system->out_name &&
-		vips__substitute( class->nickname, 
-			cmd, VIPS_PATH_MAX, system->out_name ) )
+		vips__substitute( cmd, VIPS_PATH_MAX, system->out_name ) ) {
+		vips_error( class->nickname, "%s",
+			_( "unable to substitute output filename" ) ); 
 		return( -1 ); 
+	}
 
 	/* Swap all "%%" in the string for a single "%". We need this for
 	 * compatibility with older printf-based vips_system()s which
@@ -177,7 +183,8 @@ vips_system_build( VipsObject *object )
 			memmove( p, p + 1, strlen( p ) );
 
 	if( !g_spawn_command_line_sync( cmd, 
-		&std_output, &std_error, &result, &error ) ) {
+		&std_output, &std_error, &result, &error ) ||
+		result ) {
 		if( error ) {
 			vips_error( class->nickname, "%s", error->message );
 			g_error_free( error );
@@ -197,12 +204,10 @@ vips_system_build( VipsObject *object )
 			VIPS_FREE( std_output );
 		}
 		vips_error_system( result, class->nickname, 
-			"%s", _( "command failed" ) ); 
+			_( "command \"%s\" failed" ), cmd ); 
 
 		return( -1 ); 
 	}
-
-	g_assert( !result ); 
 
 	if( std_error ) {
 		vips__chomp( std_error ); 

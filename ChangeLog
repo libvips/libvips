@@ -1,3 +1,185 @@
+11/2/15 started 8.0
+- remove old doc stuff, lots of doc improvements
+- add fliphor(), flipver(), rot90(), rot180(), rot270() convenience methods to
+  Python
+- python: use [] to index and slice image bands, use () to get a point
+- c++: use [] to band index, () returns a vector<double>
+- add shift option to cast
+- sRGB2scRGB and scRGB2sRGB scale 16-bit alpha to and from 8-bit
+- add magickload_buffer() [mcuelenaere]
+- add vips_foreign_is_a_buffer() [mcuelenaere]
+- added test_foreign.py, plus more test images
+- added vips_region_shrink(), fast x2 shrinker
+- rewritten tiff writer is about 3 - 4x faster at making pyramids
+- jpg, magick, png, tiff readers now use only 1 fd per input image
+- added vips_info_set(), vips_progress_set(), vips_profile_set() ... bindings
+  can now support all the vips command-line options, if they wish 
+- added stream system
+
+6/2/15 started 7.42.3
+- bump version for back-compat ABI change
+- added vips_image_memory(), an alias for vips_image_new_memory()
+- improvements to configure for python
+- remove --disable-cxx configure flag
+- python imageize preserves interpretation
+- fix dzsave as a target format 
+
+30/12/14 started 7.42.2
+- C++ required output params were broken, thanks Lovell
+- remove VImage::scale() to get scale from header, it clashed with the
+  VipsScale operator, thanks Lovell
+- allow c++ set enum from string
+- display param default and range in usage
+- better docs
+- more tests
+- renamed VIPS_FOREIGN_DZ_DEPTH_1 as VIPS_FOREIGN_DZ_DEPTH_ONE etc. to help
+  bindings
+- vipsthumbnail will return an error code if one or more conversions failed
+- disable chroma subsample in jpeg-tiff if Q >= 90
+- try to handle tiffs with old-style 8-bit colormaps
+- rename vipsthumbnail -o as -f, -o stays as a hidden flag
+- fix some small leaks
+- faster openslide load, thanks Benjamin
+- add VInterpolate class to cplusplus binding, thanks Lovell
+- add lower-level operation cache access
+- turn on leak testing in test suite
+- don't use isnormal() to test for crazy FP numbers, thanks Murat
+- much faster RGB16 -> sRGB path
+
+24/12/14 started 7.42.1
+- add gobject-2.0 to Requires: in vips and vips-cpp .pc files
+- bump soname
+- fix VipsBlob read
+- remove "future" dependency, thanks bgilbert
+
+4/11/14 started 7.42.0
+- better default resolution for png load
+- better pbm (one bit) load, better pfm (float) load/save
+- added pbm (one bit) save
+- changed vips_gaussblur() parameters, sorry
+- add .szi as a dzsave zip synonym
+- support tiff XMP metadata
+- support @density arg to magickload [Lovell]
+- support python3.4 and python2.7 in new python binding
+- vips_gaussmat() and vips_logmat() are now int by default, to match
+  vips_conv(), and use @precision, not @integer
+- added --disable-pyvips8 switch to turn off new py binding
+- "vips thing" exit status can now be used to test for optional components
+
+25/7/14 started 7.41.0
+- start working on --disable-deprecated
+- fix pngload with libpng >1.6.1
+- add vips_resize()
+- return of vips_init(), but just for bindings
+- revised type.c to make it more binding-friendly
+- add @background arg to save: the colour to flatten against
+- add VIPS_ARGUMENT_MODIFY flag ... used for draw_circle etc, meaning an op
+  which modifies its argument
+- rename VIPS_OPERATION_RELATIONAL_NOTEQUAL as VIPS_OPERATION_RELATIONAL_NOTEQ
+  for consistency
+- python vips8 binding
+- python vips8 test suite: test_arithmetic.py, test_colour.py,
+  test_conversion.py
+- move zoomify ImageProperties file, now a better match to the offical tool
+- rename VIPS_ANGLE_180 as VIPS_ANGLE_D180 etc. to help python
+- remove cimg support, we have a gmic plugin now instead
+- add support for vips8 plugins
+- added "autorotate" option to jpeg load
+- added autorot operator
+- added @filter option to pngsave (Lovell)
+- C++ vips8 binding
+
+27/10/14 started 7.40.12
+- better tiff detection (Lovell)
+- fix memleak in sharpen (Lovell)
+- fix profile handling in XYZ2scRGB, thanks Lovell
+
+8/10/14 started 7.40.11
+- rework extra band handling for colour functions
+- set interpretation of matlut output more carefully
+
+8/9/14 started 7.40.10
+- icc_import and icc_transform checks the input profile for compatibility 
+  with the image, thanks James
+- try to make vips_thread_shutdown() optional
+
+8/9/14 started 7.40.9
+- support jfif resunit "none"
+- support GRAY as an input and output ICC space
+- fix a read loop with setjmp() in png read, if the png file is broken
+- fix vipsthumbnail with both input cmyk and output rgb profiles specified
+- vipsthumbnail retries with specified input profile if embedded profile is
+  broken
+- add @profile option to pngsave, matching tiff and jpeg
+- fix a race in the operation cache [Lovell]
+
+8/9/14 started 7.40.8
+- fix configure on rhel6 [Lovell]
+- mono <-> rgb converters were not handling extra bands, thanks James
+- support jpeg resunit "none"
+
+21/8/14 started 7.40.7
+- width and height were swapped in matlab load
+- set interpretation more carefully on matlab load
+- fix memleak in tilecache [Lovell]
+- fix memleak in VipsArray [Lovell]
+- fix memleak in webp load from buffer [Lovell]
+- fix memleak in png save to buffer [Lovell]
+- make out of order read in png and jpg a fatal error
+- add thread_shutdown() to C++ (and thereby to python)
+
+12/8/14 started 7.40.6
+- more doc fixes
+- fix similarity rotate+scale, thanks Topochicho
+- fix 16-bit PNG save, thanks John
+- fix dzsave date on Windows, thanks John
+- fix vipsthumbnail on many-core systems, thanks James
+
+25/7/14 started 7.40.5
+- fix a race in im_maxpos_avg()
+- limit n_thr on tiny images
+- don't exit() on memleak detected, just warn
+- add "autocrop" option to openslide load
+- argh fix affine, again, there were sometimes black bars with nohalo and the
+  vips8 interface
+- pngsave in interlaced mode makes a copy of the image, so it's always seq 
+- vipsthumbnail shrinks to 1/2 window_size
+- vipsthumbnail has an anti-alias filter between shrink and affine
+- vipsthumbnail defaults to bicubic 
+- better rounding behaviour for fixed-point bicubic reduces noise
+- fix pngload with libpng >=1.6.11
+- fix colour for openslide read associated
+
+4/7/14 started 7.40.4
+- fix vips_rawsave_fd(), thanks aferrero2707 
+- fix im_point()
+- vips_scale() now does round to nearest to avoid rounding errors
+- improve im_openout() compat macro
+- more vips7 compatibility fixes, thanks steve
+- more robust vips_system()
+- add webp support to vips7 
+
+30/6/14 started 7.40.3
+- fix interlaced thumbnails in vipsthumbnail, thanks lovell
+- fix use of "header" in benchmark/, thanks David
+- fits save now caches the image before write, so it's top-to-bottom
+- add --properties argument to dzsave, thanks bgilbert, jhenriksen
+
+25/6/14 started 7.40.2
+- dzsave write to zip stops at 4gb, thanks bgilbert
+- improve short option name handling, thanks bgilbert
+- added --enable-docs configure option to help freebsd
+- removed a bash-ism from configure to help freebsd
+- don't assume GType fits in an int to help freebsd
+
+24/6/14 started 7.40.1
+- revise man.1 pages
+- fix vips_guess_prefix()
+
+23/6/14 started 7.40.0
+- version bump
+- renamed "header" as "vipsheader" and "edvips" as "vipsedit"
+
 21/1/14 started 7.39.0
 - auto-decode for (almost) all operations, see vips_image_decode()
 - background render thread cleans up and quits neatly
@@ -40,7 +222,6 @@
 - operations emit "invalidate" if any of their input images invalidate
 - operation cache drops ops on invalidate
 - skipahead is back, thanks to a new threadpool tweak
-- added stream system
 
 6/3/14 started 7.38.6
 - grey ramp minimum was wrong

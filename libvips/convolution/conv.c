@@ -188,7 +188,7 @@ vips_conv_init( VipsConv *conv )
  *
  * If @precision is #VIPS_PRECISION_INTEGER then the convolution is performed
  * with integer arithmetic and the output image 
- * always has the same #VipsBandFmt as the input image. 
+ * always has the same #VipsBandFormat as the input image. 
  *
  * Convolutions on unsigned 8-bit images are calculated with the 
  * processor's vector unit, if possible. Disable this with --vips-novector or 
@@ -200,7 +200,7 @@ vips_conv_init( VipsConv *conv )
  * @out is also %VIPS_FORMAT_DOUBLE. 
  *
  * If @precision is #VIPS_PRECISION_APPROXIMATE then the output image 
- * always has the same #VipsBandFmt as the input image. 
+ * always has the same #VipsBandFormat as the input image. 
  *
  * Larger values for @layers give more accurate
  * results, but are slower. As @layers approaches the mask radius, the

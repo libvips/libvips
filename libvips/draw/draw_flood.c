@@ -100,9 +100,9 @@ typedef struct _Buffer {
 	Scan scan[PBUFSIZE];
 } Buffer;
 
-/* What we track during a flood. We have this in a separet struct so that we
+/* What we track during a flood. We have this in a separate struct so that we
  * can support vips__draw_flood_direct() ... a fast path for 
- * vips_labelregions() taht avoids all of the GObject call overhead. This
+ * vips_labelregions() that avoids all of the GObject call overhead. This
  * gives a huge speedup, >x10 in many cases.
  */
 typedef struct _Flood {
@@ -184,7 +184,7 @@ buffer_free( Buffer *buf )
 /* Add a scanline to a buffer, prepending a new buffer if necessary. Return
  * the new head buffer.
  */
-static inline Buffer * 
+static Buffer * 
 buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
 {
 	/* Clip against image size.
@@ -218,7 +218,7 @@ buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
  * whether we are flooding to the edge boundary or flooding edge-coloured
  * pixels. p is a pel in @test. 
  */
-static inline gboolean
+static gboolean
 flood_connected( Flood *flood, VipsPel *p )
 {
  	int j;
@@ -234,7 +234,7 @@ flood_connected( Flood *flood, VipsPel *p )
 
 /* Is p painted? p is a pel in @image. 
  */
-static inline gboolean
+static gboolean
 flood_painted( Flood *flood, VipsPel *p )
 {
  	int j;
@@ -246,7 +246,7 @@ flood_painted( Flood *flood, VipsPel *p )
 	return( j == flood->psize );
 }
 
-static inline void
+static void
 flood_pel( Flood *flood, VipsPel *q )
 {
  	int j;
@@ -491,8 +491,7 @@ vips_draw_flood_build( VipsObject *object )
 	if( flood.equal ) {
 		/* Edge is set by colour of the start pixel in @test.
 		 */
-		if( !(flood.edge = 
-			(VipsPel *) im_malloc( object, flood.tsize )) ) 
+		if( !(flood.edge = VIPS_ARRAY( object, flood.tsize, VipsPel )) )
 			return( -1 );
 		memcpy( flood.edge, 
 			VIPS_IMAGE_ADDR( flood.test, 
@@ -519,7 +518,8 @@ vips_draw_flood_build( VipsObject *object )
 		 */
 		if( !(flood.edge = vips__vector_to_ink( class->nickname, 
 			flood.test, 
-			drawink->ink->data, NULL, drawink->ink->n )) )
+			VIPS_ARRAY_ADDR( drawink->ink, 0 ), NULL, 
+			VIPS_AREA( drawink->ink )->n )) )
 			return( -1 );
 
 		flood_all( &flood, drawflood->x, drawflood->y );
@@ -650,8 +650,7 @@ vips__draw_flood_direct( VipsImage *image, VipsImage *test,
 	flood.top = y;
 	flood.bottom = y;
 
-	if( !(flood.edge = 
-		(VipsPel *) im_malloc( image, flood.tsize )) ) 
+	if( !(flood.edge = VIPS_ARRAY( image, flood.tsize, VipsPel )) )
 		return( -1 );
 	memcpy( flood.edge, 
 		VIPS_IMAGE_ADDR( test, x, y ), flood.tsize );
@@ -682,6 +681,7 @@ vips_draw_floodv( VipsImage *image,
  * @n: length of ink array
  * @x: centre of circle
  * @y: centre of circle
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
@@ -732,6 +732,7 @@ vips_draw_flood( VipsImage *image,
  * @ink: value to draw
  * @x: centre of circle
  * @y: centre of circle
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

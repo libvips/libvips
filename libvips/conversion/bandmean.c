@@ -125,7 +125,8 @@ vips_bandmean_buffer( VipsBandary *bandary,
 {
 	VipsImage *im = bandary->ready[0];
 	const int bands = im->Bands;
-	const int sz = width * (vips_bandfmt_iscomplex( im->BandFmt ) ? 2 : 1);
+	const int sz = width * 
+		(vips_band_format_iscomplex( im->BandFmt ) ? 2 : 1);
 
 	int i, j;
 
@@ -162,13 +163,14 @@ vips_bandmean_build( VipsObject *object )
 	VipsBandary *bandary = (VipsBandary *) object;
 	VipsBandmean *bandmean = (VipsBandmean *) object;
 
+	bandary->n = 1;
+	bandary->in = &bandmean->in;
+
 	if( bandmean->in &&
 		bandmean->in->Bands == 1 ) 
 		return( vips_bandary_copy( bandary ) );
 
 	bandary->out_bands = 1;
-	bandary->n = 1;
-	bandary->in = &bandmean->in;
 
 	if( VIPS_OBJECT_CLASS( vips_bandmean_parent_class )->build( object ) )
 		return( -1 );
@@ -206,8 +208,8 @@ vips_bandmean_init( VipsBandmean *bandmean )
 
 /**
  * vips_bandmean:
- * @in: input #IMAGE
- * @out: output #IMAGE
+ * @in: input image
+ * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation writes a one-band image where each pixel is the average of 

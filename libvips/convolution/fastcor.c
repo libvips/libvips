@@ -108,8 +108,8 @@ G_DEFINE_TYPE( VipsFastcor, vips_fastcor, VIPS_TYPE_CORRELATION );
 		\
 		for( x = 0; x < r->width; x++ ) \
 			for( b = 0; b < bands; b++ ) {  \
-				TYPE *p1 = (TYPE *) ref->data; \
-				TYPE *p2 = (TYPE *) VIPS_REGION_ADDR( in,  \
+				TYPE *p_ref = (TYPE *) ref->data; \
+				TYPE *p_in = (TYPE *) VIPS_REGION_ADDR( in,  \
 					r->left + x, r->top + y ); \
 				\
 				TYPE sum; \
@@ -117,13 +117,13 @@ G_DEFINE_TYPE( VipsFastcor, vips_fastcor, VIPS_TYPE_CORRELATION );
 				sum = 0; \
 				for( j = 0; j < ref->Ysize; j++ ) { \
 					for( i = b; i < sz; i += bands ) { \
-						TYPE t = p1[i] - p2[i]; \
+						TYPE dif = p_ref[i] - p_in[i]; \
 						\
-						sum += t * t; \
+						sum += dif * dif; \
 					} \
 					\
-					p1 += sz; \
-					p2 += lsk; \
+					p_ref += sz; \
+					p_in += lsk; \
 				} \
 				\
 				*q++ = sum; \
@@ -140,7 +140,7 @@ vips_fastcor_correlation( VipsCorrelation *correlation,
 	int bands = vips_band_format_iscomplex( ref->BandFmt ) ? 
 		ref->Bands * 2 : ref->Bands; 
 	int sz = ref->Xsize * bands; 
-	int lsk = VIPS_REGION_LSKIP( in ); 
+	int lsk = VIPS_REGION_LSKIP( in ) / VIPS_IMAGE_SIZEOF_ELEMENT( in->im );
 
 	int x, y, i, j, b;
 

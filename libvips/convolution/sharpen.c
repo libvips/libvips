@@ -236,7 +236,7 @@ vips_sharpen_build( VipsObject *object )
 	 */
 	if( vips_gaussmat( &t[1], 1 + sharpen->radius / 2, 0.2, 
 		"separable", TRUE,
-		"integer", TRUE,
+		"precision", VIPS_PRECISION_INTEGER,
 		NULL ) )
 		return( -1 ); 
 
@@ -251,7 +251,7 @@ vips_sharpen_build( VipsObject *object )
 	sharpen->ix2 = ix2 = sharpen->x2 * 327.67;
 	sharpen->ix3 = ix3 = sharpen->x3 * 327.67;
 
-	if( !(sharpen->lut = VIPS_ARRAY( sharpen->out, ix2 + ix3 + 1, int )) )
+	if( !(sharpen->lut = VIPS_ARRAY( object, ix2 + ix3 + 1, int )) )
 		return( -1 );
 
 	for( i = 0; i < ix1; i++ ) {
@@ -407,35 +407,35 @@ vips_sharpen_init( VipsSharpen *sharpen )
  * The lookup table is formed like this:
  *
  * |[
-                      ^
-                   y2 |- - - - - -----------
-                      |         / 
-                      |        / slope m2
-                      |    .../    
-              -x1     | ...   |    
-  -------------------...---------------------->
-              |   ... |      x1           
-              |... slope m1
-              /       |
-             / m2     |
-            /         |
-           /          |
-          /           |
-         /            |
-  ______/ _ _ _ _ _ _ | -y3
-                      |
+ *                      ^
+ *                   y2 |- - - - - -----------
+ *                      |         / 
+ *                      |        / slope m2
+ *                      |    .../    
+ *              -x1     | ...   |    
+ *  -------------------...---------------------->
+ *              |   ... |      x1           
+ *              |... slope m1
+ *              /       |
+ *             / m2     |
+ *            /         |
+ *           /          |
+ *          /           |
+ *         /            |
+ *  ______/ _ _ _ _ _ _ | -y3
+ *                      |
  * ]|
  *
  * For printing, we recommend the following settings (the defaults):
  *
  * |[
-   radius == 3
-   x1 == 1.5
-   y2 == 20         (don't brighten by more than 20 L*)
-   y3 == 50         (can darken by up to 50 L*)
-
-   m1 == 1          (some sharpening in flat areas)
-   m2 == 2          (more sharpening in jaggy areas)
+ *   radius == 3
+ *   x1 == 1.5
+ *   y2 == 20         (don't brighten by more than 20 L*)
+ *   y3 == 50         (can darken by up to 50 L*)
+ *
+ *   m1 == 1          (some sharpening in flat areas)
+ *   m2 == 2          (more sharpening in jaggy areas)
  * ]|
  *
  * If you want more or less sharpening, we suggest you just change the m1 
@@ -448,7 +448,7 @@ vips_sharpen_init( VipsSharpen *sharpen )
  * pixels/mm). These figures refer to the image raster, not the half-tone 
  * resolution.
  *
- * See also: im_conv().
+ * See also: vips_conv().
  * 
  * Returns: 0 on success, -1 on error.
  */

@@ -85,16 +85,34 @@
 
 /** 
  * VipsAngle:
- * @VIPS_ANGLE_0: no rotate
- * @VIPS_ANGLE_90: 90 degrees anti-clockwise
- * @VIPS_ANGLE_180: 180 degree rotate
- * @VIPS_ANGLE_270: 90 degrees clockwise
+ * @VIPS_ANGLE_D0: no rotate
+ * @VIPS_ANGLE_D90: 90 degrees clockwise
+ * @VIPS_ANGLE_D180: 180 degree rotate
+ * @VIPS_ANGLE_D270: 90 degrees anti-clockwise
  *
  * See vips_rot() and so on.
  *
  * Fixed rotate angles.
  *
  * See also: vips_rot().
+ */
+
+/**
+ * VipsAngle45:
+ * @VIPS_ANGLE45_D0: no rotate
+ * @VIPS_ANGLE45_D45: 45 degrees clockwise 
+ * @VIPS_ANGLE45_D90: 90 degrees clockwise
+ * @VIPS_ANGLE45_D135: 135 degrees clockwise
+ * @VIPS_ANGLE45_D180: 180 degrees 
+ * @VIPS_ANGLE45_D225: 135 degrees anti-clockwise
+ * @VIPS_ANGLE45_D270: 90 degrees anti-clockwise
+ * @VIPS_ANGLE45_D315: 45 degrees anti-clockwise
+ *
+ * See vips_rot45() and so on.
+ *
+ * Fixed rotate angles.
+ *
+ * See also: vips_rot45().
  */
 
 /** 
@@ -215,6 +233,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_black_get_type( void ); 
 	extern GType vips_rot_get_type( void ); 
 	extern GType vips_rot45_get_type( void ); 
+	extern GType vips_autorot_get_type( void ); 
 	extern GType vips_ifthenelse_get_type( void ); 
 	extern GType vips_recomb_get_type( void ); 
 	extern GType vips_bandmean_get_type( void ); 
@@ -253,6 +272,7 @@ vips_conversion_operation_init( void )
 	vips_black_get_type();
 	vips_rot_get_type();
 	vips_rot45_get_type();
+	vips_autorot_get_type();
 	vips_ifthenelse_get_type();
 	vips_recomb_get_type(); 
 	vips_bandmean_get_type(); 
@@ -271,101 +291,4 @@ vips_conversion_operation_init( void )
 	vips_xyz_get_type(); 
 	vips_falsecolour_get_type(); 
 	vips_gamma_get_type(); 
-}
-
-/* The common part of most binary conversion
- * operators. We:
- *
- * - check in and out
- * - cast in1 and in2 up to a common format
- * - equalise bands 
- * - make an input array
- * - return the matched images in vec[0] and vec[1]
- *
- * A left-over, remove soon.
- */
-IMAGE **
-im__insert_base( const char *domain, 
-	IMAGE *in1, IMAGE *in2, IMAGE *out ) 
-{
-	IMAGE *t[4];
-	IMAGE **vec;
-
-	if( im_piocheck( in1, out ) || 
-		im_pincheck( in2 ) ||
-		im_check_bands_1orn( domain, in1, in2 ) ||
-		im_check_coding_known( domain, in1 ) ||
-		im_check_coding_same( domain, in1, in2 ) )
-		return( NULL );
-
-	/* Cast our input images up to a common format and bands.
-	 */
-	if( im_open_local_array( out, t, 4, domain, "p" ) ||
-		im__formatalike( in1, in2, t[0], t[1] ) ||
-		im__bandalike( domain, t[0], t[1], t[2], t[3] ) ||
-		!(vec = im_allocate_input_array( out, t[2], t[3], NULL )) )
-		return( NULL );
-
-	/* Generate the output.
-	 */
-	if( im_cp_descv( out, vec[0], vec[1], NULL ) ||
-		im_demand_hint_array( out, IM_SMALLTILE, vec ) )
-		return( NULL );
-
-	return( vec );
-}
-
-/**
- * im_insertset:
- * @main: big image
- * @sub: small image
- * @out: output image
- * @n: number of positions
- * @x: left positions of @sub
- * @y: top positions of @sub
- *
- * Insert @sub repeatedly into @main at the positions listed in the arrays @x,
- * @y of length @n. @out is the same
- * size as @main. @sub is clipped against the edges of @main. 
- *
- * This operation is fast for large @n, but will use a memory buffer the size
- * of @out. It's useful for things like making scatter plots.
- *
- * If the number of bands differs, one of the images 
- * must have one band. In this case, an n-band image is formed from the 
- * one-band image by joining n copies of the one-band image together, and then
- * the two n-band images are operated upon.
- *
- * The two input images are cast up to the smallest common type (see table 
- * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
- *
- * See also: im_insert(), im_lrjoin().
- *
- * Returns: 0 on success, -1 on error
- */
-int
-im_insertset( IMAGE *main, IMAGE *sub, IMAGE *out, int n, int *x, int *y )
-{
-	IMAGE **vec;
-	IMAGE *t;
-	int i;
-
-	if( !(vec = im__insert_base( "im_insert", main, sub, out )) )
-		return( -1 );
-
-	/* Copy to a memory image, zap that, then copy to out.
-	 */
-	if( !(t = im_open_local( out, "im_insertset", "t" )) ||
-		im_copy( vec[0], t ) )
-		return( -1 );
-
-	for( i = 0; i < n; i++ ) 
-		if( im_insertplace( t, vec[1], x[i], y[i] ) )
-			return( -1 );
-
-	if( im_copy( t, out ) )
-		return( -1 );
-
-	return( 0 );
 }

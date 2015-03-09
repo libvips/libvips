@@ -53,7 +53,7 @@
  * SECTION: freqfilt
  * @short_description: fourier transforms and frequency-domin filters
  * @stability: Stable
- * @see_also: <link linkend="libvips-image">image</link>
+ * @see_also: <link linkend="VipsImage">image</link>
  * @include: vips/vips.h
  *
  * To and from Fourier space, filter in Fourier space, convert Fourier-space

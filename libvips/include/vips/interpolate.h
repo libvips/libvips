@@ -74,7 +74,7 @@ typedef struct _VipsInterpolateClass {
 
 	/* This interpolator needs a window this many pixels across and down.
 	 */
-	int (*get_window_size)( VipsInterpolate * );
+	int (*get_window_size)( VipsInterpolate *interpolate );
 
 	/* Or just set this if you want a constant.
 	 */
@@ -83,7 +83,7 @@ typedef struct _VipsInterpolateClass {
 	/* Stencils are offset by this much. Default to window_size / 2 - 1
 	 * (centering) if get_window_offset is NULL and window_offset is -1.
 	 */
-	int (*get_window_offset)( VipsInterpolate * );
+	int (*get_window_offset)( VipsInterpolate *interpolate );
 	int window_offset;
 } VipsInterpolateClass;
 

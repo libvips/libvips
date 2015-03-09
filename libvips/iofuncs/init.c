@@ -105,10 +105,10 @@ int vips__leak = 0;
 /**
  * vips_get_argv0:
  *
- * See also: vips_init().
+ * See also: VIPS_INIT().
  *
  * Returns: a pointer to an internal copy of the argv0 string passed to
- * vips_init(). Do not free this value
+ * VIPS_INIT(). Do not free this value
  */
 const char *
 vips_get_argv0( void )
@@ -117,65 +117,128 @@ vips_get_argv0( void )
 }
 
 /**
- * vips_init:
- * @argv0: name of application
+ * VIPS_INIT:
+ * @ARGV0: name of application
  *
- * vips_init() starts up the world of VIPS. You should call this on
+ * VIPS_INIT() starts up the world of VIPS. You should call this on
  * program startup before using any other VIPS operations. If you do not call
- * vips_init(), VIPS will call it for you when you use your first VIPS 
- * operation, but
- * it may not be able to get hold of @argv0 and VIPS may therefore be unable
- * to find its data files. It is much better to call this function yourself.
+ * VIPS_INIT(), VIPS will call it for you when you use your first VIPS 
+ * operation, but it may not be able to get hold of @ARGV0 and VIPS may 
+ * therefore be unable to find its data files. It is much better to call 
+ * this macro yourself.
  *
- * vips_init() does approximately the following:
+ * VIPS_INIT() is a macro, since it tries to check binary compatibility
+ * between the caller and the library. 
  *
- * <itemizedlist>
- *   <listitem> 
- *     <para>initialises any libraries that VIPS is using, including GObject
- *     and the threading system, if neccessary</para>
- *   </listitem>
- *   <listitem> 
- *     <para>guesses where the VIPS data files are and sets up
- *     internationalisation --- see vips_guess_prefix()
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>creates the main vips types, including VipsImage and friends
- *     </para>
- *   </listitem>
- *   <listitem> 
- *     <para>loads any plugins from $libdir/vips-x.y/, where x and y are the
- *     major and minor version numbers for this VIPS.
- *     </para>
- *   </listitem>
- * </itemizedlist>
+ * VIPS_INIT() does approximately the following:
+ *
+ * + checks that the libvips your program is expecting is 
+ *   binary-compatible with the vips library you're running against
+ *
+ * + initialises any libraries that VIPS is using, including GObject
+ *   and the threading system, if neccessary
+ *
+ * + guesses where the VIPS data files are and sets up
+ *   internationalisation --- see vips_guess_prefix()
+ *
+ * + creates the main vips types, including #VipsImage and friends
+ *
+ * + loads any plugins from $libdir/vips-x.y/, where x and y are the
+ *   major and minor version numbers for this VIPS.
  *
  * Example:
  *
  * |[
- * int main( int argc, char **argv )
+ * int main (int argc, char **argv)
  * {
- *   if( vips_init( argv[0] ) )
- *     vips_error_exit( "unable to start VIPS" );
+ *   if (VIPS_INIT (argv[0]))
+ *     vips_error_exit ("unable to start VIPS");
  *
- *   vips_shutdown();
+ *   vips_shutdown ();
  *
- *   return( 0 );
+ *   return 0;
  * }
  * ]|
  *
- * See also: vips_shutdown(), vips_get_option_group(), vips_version(), 
+ * See also: vips_shutdown(), vips_add_option_entries(), vips_version(), 
  * vips_guess_prefix(), vips_guess_libdir().
  *
  * Returns: 0 on success, -1 otherwise
  */
 
-/* vips_init() is actually a macro which checks library and application
- * compatibility before calling vips__init().
+/* Load all plugins in a directory ... look for '.plg' suffix. Error if we had
+ * any probs.
+ */
+static int
+vips_load_plugins( const char *fmt, ... )
+{
+        va_list ap;
+        char dir_name[VIPS_PATH_MAX];
+        GDir *dir;
+	const char *name;
+        int result;
+
+	/* Silently succeed if we can't do modules.
+	 */
+	if( !g_module_supported() )
+		return( 0 );
+
+        va_start( ap, fmt );
+        (void) vips_vsnprintf( dir_name, VIPS_PATH_MAX - 1, fmt, ap );
+        va_end( ap );
+
+#ifdef DEBUG
+	printf( "vips_load_plugins: searching \"%s\"\n", dir_name );
+#endif /*DEBUG*/
+
+        if( !(dir = g_dir_open( dir_name, 0, NULL )) ) 
+		/* Silent success for dir not there.
+		 */
+                return( 0 );
+
+        result = 0;
+        while( (name = g_dir_read_name( dir )) )
+                if( vips_ispostfix( name, ".plg" ) ) { 
+			char path[VIPS_PATH_MAX];
+			GModule *module;
+
+			vips_snprintf( path, VIPS_PATH_MAX - 1, 
+				"%s" G_DIR_SEPARATOR_S "%s", dir_name, name );
+
+#ifdef DEBUG
+			printf( "vips_load_plugins: loading \"%s\"\n", path );
+#endif /*DEBUG*/
+
+			module = g_module_open( path, G_MODULE_BIND_LAZY );
+			if( !module ) {
+				vips_warn( "vips_init", 
+					_( "unable to load \"%s\" -- %s" ), 
+					path, 
+					g_module_error() ); 
+				result = -1;
+			}
+                }
+        g_dir_close( dir );
+
+	return( result );
+}
+
+/**
+ * vips_init:
+ * @argv0: name of application
+ *
+ * This function starts up libvips, see VIPS_INIT(). 
+ *
+ * This function is for bindings which need to start up vips. C programs
+ * should use the VIPS_INIT() macro, which does some extra checks. 
+ *
+ * See also: VIPS_INIT(). 
+ *
+ * Returns: 0 on success, -1 otherwise
  */
 
 int
-vips__init( const char *argv0 )
+vips_init( const char *argv0 )
 {
 	extern GType vips_system_get_type( void );
 
@@ -250,7 +313,7 @@ vips__init( const char *argv0 )
 	 */
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
-		vips__info = 1;
+		vips_info_set( TRUE );
 
 	/* Register base vips types.
 	 */
@@ -280,9 +343,15 @@ vips__init( const char *argv0 )
 	vips_draw_operation_init();
 	vips_mosaicing_operation_init();
 
-	/* Load up any plugins in the vips libdir. We don't error on failure,
-	 * it's too annoying to have VIPS refuse to start because of a broken
-	 * plugin.
+	/* Load any vips8 plugins from the vips libdir. Keep going, even if
+	 * some plugins fail to load. 
+	 */
+	(void) vips_load_plugins( "%s/vips-plugins-%d.%d", 
+		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
+
+	/* Load up any vips7 plugins in the vips libdir. We don't error on 
+	 * failure, it's too annoying to have VIPS refuse to start because of 
+	 * a broken plugin.
 	 */
 	if( im_load_plugins( "%s/vips-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION ) ) {
@@ -297,10 +366,6 @@ vips__init( const char *argv0 )
 		vips_warn( "vips_init", "%s", vips_error_buffer() );
 		vips_error_clear();
 	}
-
-	/* Build classes which wrap old vips7 operations.
-	 */
-	vips__init_wrap7_classes();
 
 	/* Start up the buffer cache.
 	 */
@@ -353,7 +418,7 @@ vips_check_init( void )
 	 * for old programs which are missing an vips_init() call. We need
 	 * i18n set up before we can translate.
 	 */
-	if( vips_init( "giant_banana" ) )
+	if( vips_init( "vips" ) )
 		vips_error_clear();
 }
 
@@ -383,8 +448,8 @@ vips_leak( void )
 	vips__type_leak();
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 	vips_buffer_dump_all();
+#endif /*DEBUG*/
 }
 
 /**
@@ -397,9 +462,11 @@ vips_leak( void )
  * by vips_g_thread_new(). 
  *
  * You will need to call it from threads created in
- * other ways. If you do not call it, vips will generate an error message.
+ * other ways or there will be memory leaks. If you do not call it, vips 
+ * will generate a warning message.
  *
- * May be called many times. 
+ * It may be called many times, and you can continue using vips after 
+ * calling it. Calling it too often will reduce performance. 
  */
 void
 vips_thread_shutdown( void )
@@ -563,30 +630,17 @@ static GOptionEntry option_entries[] = {
 };
 
 /**
- * vips_get_option_group: (skip)
+ * vips_add_option_entries: 
+ * @option_group: group to add to
  *
- * vips_get_option_group()  returns  a GOptionGroup containing various VIPS
- * command-line options. It  can  be  used  with  GOption  to  help
- * parse argc/argv.
+ * Add the standard vips %GOptionEntry to a %GOptionGroup. 
  *
- * See also: vips_version(), vips_guess_prefix(),
- * vips_guess_libdir(), vips_init().
- *
- * Returns: a GOptionGroup for VIPS, see GOption
+ * See also: g_option_group_new(). 
  */
-GOptionGroup *
-vips_get_option_group( void )
+void
+vips_add_option_entries( GOptionGroup *option_group )
 {
-	static GOptionGroup *option_group = NULL;
-
-	if( !option_group ) {
-		option_group = g_option_group_new( 
-			"vips", _( "VIPS Options" ), _( "Show VIPS options" ),
-			NULL, NULL );
-		g_option_group_add_entries( option_group, option_entries );
-	}
-
-	return( option_group );
+	g_option_group_add_entries( option_group, option_entries );
 }
 
 /* Find the prefix part of a dir ... name is the name of this prog from argv0.
@@ -813,13 +867,13 @@ guess_prefix( const char *argv0, const char *name )
  * 
  * See also: vips_guess_libdir().
  *
- * Returns: the install prefix as a static string, do not free.
+ * Returns: (transfer none): the install prefix as a static string, do not free.
  */
 const char *
 vips_guess_prefix( const char *argv0, const char *env_name )
 {
         const char *prefix;
-        char *dirname;
+        char *basename;
         char name[VIPS_PATH_MAX];
 
 	/* Already set?
@@ -834,20 +888,20 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 
 	/* Get the program name from argv0.
 	 */
-	dirname = g_path_get_dirname( argv0 );
+	basename = g_path_get_basename( argv0 );
 
 	/* Add the exe suffix, if it's missing.
 	 */
 	if( strlen( VIPS_EXEEXT ) > 0 ) {
 		const char *olds[] = { VIPS_EXEEXT };
 
-		vips__change_suffix( dirname, name, 
+		vips__change_suffix( basename, name, 
 			VIPS_PATH_MAX, VIPS_EXEEXT, olds, 1 );
 	}
 	else
-		vips_strncpy( name, dirname, VIPS_PATH_MAX );
+		vips_strncpy( name, basename, VIPS_PATH_MAX );
 
-	g_free( dirname ); 
+	g_free( basename ); 
 
 #ifdef DEBUG
 	printf( "vips_guess_prefix: argv0 = %s\n", argv0 );
@@ -878,7 +932,7 @@ vips_guess_prefix( const char *argv0, const char *env_name )
  * 
  * See also: vips_guess_prefix().
  *
- * Returns: the libdir as a static string, do not free.
+ * Returns: (transfer none): the libdir as a static string, do not free.
  */
 const char *
 vips_guess_libdir( const char *argv0, const char *env_name )
@@ -905,4 +959,61 @@ vips_guess_libdir( const char *argv0, const char *env_name )
 #endif /*DEBUG*/
 
 	return( libdir );
+}
+
+/**
+ * vips_version_string:
+ *
+ * Get the VIPS version as a static string, including a build date and time.
+ * Do not free.
+ *
+ * Returns: (transfer none): a static version string
+ */
+const char *
+vips_version_string( void )
+{
+	return( VIPS_VERSION_STRING );
+}
+
+/**
+ * vips_version:
+ * @flag: which field of the version to get
+ *
+ * Get the major, minor or micro library version, with @flag values 0, 1 and
+ * 2.
+ *
+ * Returns: library version number
+ */
+int
+vips_version( int flag )
+{
+	switch( flag ) {
+	case 0:
+		return( VIPS_MAJOR_VERSION );
+	
+	case 1:
+		return( VIPS_MINOR_VERSION );
+	
+	case 2:
+		return( VIPS_MICRO_VERSION );
+
+	default:
+		vips_error( "vips_version", "%s", _( "flag not 0, 1, 2" ) );
+		return( -1 );
+	}
+}
+
+/**
+ * vips_leak_set:
+ * @leak: turn leak checking on or off
+ *
+ * Turn on or off vips leak checking. See also --vips-leak and
+ * vips_add_option_entries(). 
+ *
+ * You should call this very early in your program. 
+ */
+void 
+vips_leak_set( gboolean leak )
+{
+	vips__leak = leak; 
 }

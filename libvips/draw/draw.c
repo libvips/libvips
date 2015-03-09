@@ -115,7 +115,7 @@ vips_draw_class_init( VipsDrawClass *class )
 	VIPS_ARG_IMAGE( class, "image", 1, 
 		_( "Image" ), 
 		_( "Image to draw on" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_MODIFY, 
 		G_STRUCT_OFFSET( VipsDraw, image ) );
 
 }

@@ -2,4 +2,4 @@ SUBDIRS = \
 	vipsCC 
 
 EXTRA_DIST = \
-	test   
+	README.txt

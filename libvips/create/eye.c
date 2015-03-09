@@ -117,8 +117,8 @@ vips_eye_init( VipsEye *eye )
 /**
  * vips_eye:
  * @out: output image
- * @xsize: image size
- * @ysize: image size
+ * @width: image size
+ * @height: image size
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

@@ -173,7 +173,7 @@ int im_glds_contrast( IMAGE *m, double *contrast );
 int im_glds_entropy( IMAGE *m, double *entropy );
 int im_glds_mean( IMAGE *m, double *mean );
 
-int im_dif_std();
+int im_dif_std(IMAGE *im, int xpos, int ypos, int xsize, int ysize, int dx, int dy, double *pmean, double *pstd);
 int im_simcontr( IMAGE *out, int xsize, int ysize );
 int im_spatres( IMAGE *in,  IMAGE *out, int step );
 
@@ -275,7 +275,7 @@ int im_flood_other( IMAGE *test, IMAGE *mark,
 int im_fastline( IMAGE *im, int x1, int y1, int x2, int y2, PEL *pel );
 int im_fastlineuser( IMAGE *im, 
 	int x1, int y1, int x2, int y2, 
-	int (*fn)(), void *client1, void *client2, void *client3 );
+	VipsPlotFn fn, void *client1, void *client2, void *client3 );
 
 int im_plotmask( IMAGE *im, int ix, int iy, PEL *ink, PEL *mask, VipsRect *r );
 int im_readpoint( IMAGE *im, int x, int y, PEL *pel );

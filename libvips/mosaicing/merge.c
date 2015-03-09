@@ -183,7 +183,7 @@ vips_merge_init( VipsMerge *merge )
  *
  * The two input images are cast up to the smallest common type (see table 
  * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * @dx and @dy give the displacement of @sec relative to @ref, in other words,
  * the vector to get from the origin of @sec to the origin of @ref, in other

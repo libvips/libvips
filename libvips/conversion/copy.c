@@ -200,7 +200,8 @@ vips_copy_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	if( vips_region_prepare( ir, r ) )
 		return( -1 );
 
-	if( copy->swap && swap ) {
+	if( copy->swap && 
+		swap ) {
 		int y;
 
 		for( y = 0; y < r->height; y++ ) {
@@ -239,9 +240,12 @@ static const char *vips_copy_names[] = {
 static int
 vips_copy_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsCopy *copy = (VipsCopy *) object;
 
+	guint64 image_size_before;
+	guint64 image_size_after;
 	int i;
 
 	if( VIPS_OBJECT_CLASS( vips_copy_parent_class )->build( object ) )
@@ -253,6 +257,11 @@ vips_copy_build( VipsObject *object )
 	if( vips_image_pipelinev( conversion->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, copy->in, NULL ) )
 		return( -1 );
+
+	/* We try to stop the worst crashes by at least ensuring that we don't
+	 * increase the number of pixels which might be addressed.
+	 */
+	image_size_before = VIPS_IMAGE_SIZEOF_IMAGE( conversion->out );
 
 	/* Use props to adjust header fields.
 	 */
@@ -289,6 +298,13 @@ vips_copy_build( VipsObject *object )
 				name, &value );
 			g_value_unset( &value );
 		}
+	}
+
+	image_size_after = VIPS_IMAGE_SIZEOF_IMAGE( conversion->out );
+	if( image_size_after > image_size_before ) {
+		vips_error( class->nickname, 
+			"%s", _( "image size too large" ) ); 
+		return( -1 );
 	}
 
 	if( vips_image_generate( conversion->out,
@@ -439,7 +455,8 @@ vips_copy_init( VipsCopy *copy )
  * You can optionally set any or all header fields during the copy. Some
  * header fields, such as "xres", the horizontal resolution, are safe to
  * change in any way, others, such as "width" will cause immediate crashes if
- * they are not set carefully. 
+ * they are not set carefully. The operation will block changes which make the
+ * image size grow, see VIPS_IMAGE_SIZEOF_IMAGE(). 
  *
  * Setting @swap to %TRUE will make vips_copy() swap the byte ordering of
  * pixels according to the image's format. 
@@ -476,6 +493,7 @@ vips_copy( VipsImage *in, VipsImage **out, ... )
  *
  * Returns: 0 on success, -1 on error
  */
+
 int
 vips_copy_file( VipsImage *in, VipsImage **out, ... )
 {
@@ -487,11 +505,11 @@ vips_copy_file( VipsImage *in, VipsImage **out, ... )
 	if( !(file = vips_image_new_temp_file( "%s.v" )) )
 		return( -1 ); 
 	if( vips_image_write( in, file ) ||
-		vips_copy( file, out, NULL ) ) {
+		vips_image_pio_input( file ) ) {
 		g_object_unref( file );
 		return( -1 );
 	}
-	g_object_unref( file );
+	*out = file;
 
 	return( 0 );
 }

@@ -134,7 +134,6 @@ extern "C" {
 #include <vips/enumtypes.h>
 
 #include <vips/arithmetic.h>
-#include <vips/relational.h>
 #include <vips/conversion.h>
 #include <vips/convolution.h>
 #include <vips/morphology.h>
@@ -148,21 +147,24 @@ extern "C" {
 #include <vips/video.h>
 #include <vips/cimg_funcs.h>
 
-#ifndef VIPS_DISABLE_VIPS7COMPAT
-#include <vips/vips7compat.h>
-#endif /*VIPS_DISABLE_VIPS7COMPAT*/
-
-#ifdef VIPS_ENABLE_DEPRECATED
+/* This stuff is very, very old and should not be used by anyone now.
+ */
+#ifdef VIPS_ENABLE_ANCIENT
 #include <vips/deprecated.h>
-#endif /*VIPS_ENABLE_DEPRECATED*/
+#endif /*VIPS_ENABLE_ANCIENT*/
 
-#include <vips/almostdeprecated.h>
+/* Still in use, but can be turned off.
+ */
+#if VIPS_ENABLE_DEPRECATED
+#include <vips/vips7compat.h>
 #include <vips/dispatch.h>
+#include <vips/almostdeprecated.h>
+#endif /*VIPS_ENABLE_DEPRECATED*/
 
 /* We can't use _ here since this will be compiled by our clients and they may
  * not have _().
  */
-#define vips_init( ARGV0 ) \
+#define VIPS_INIT( ARGV0 ) \
 	(sizeof( VipsObject ) != vips__get_sizeof_vipsobject() ? ( \
 		vips_info( "vips_init", "ABI mismatch" ), \
 		vips_info( "vips_init", \
@@ -173,13 +175,17 @@ extern "C" {
 			sizeof( VipsObject ) ), \
 		vips_error( "vips_init", "ABI mismatch" ), \
 		-1 ) : \
-		vips__init( ARGV0 ))
+		vips_init( ARGV0 ))
+
+int vips_init( const char *argv0 );
 
 const char *vips_get_argv0( void );
-void vips_check_init( void );
 void vips_shutdown( void );
 void vips_thread_shutdown( void );
-GOptionGroup *vips_get_option_group( void );
+
+void vips_add_option_entries( GOptionGroup *option_group );
+
+extern void vips_leak_set( gboolean leak ); 
 
 const char *vips_version_string( void );
 int vips_version( int flag );

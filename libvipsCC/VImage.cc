@@ -56,12 +56,17 @@ VIPS_NAMESPACE_START
  */
 bool init( const char *argv0 )
 {
-	return( vips_init( argv0 ) == 0 ); 
+	return( vips__init( argv0 ) == 0 ); 
 }
 
 void shutdown()
 {
 	vips_shutdown(); 
+}
+
+void thread_shutdown()
+{
+	vips_thread_shutdown(); 
 }
 
 void VImage::refblock::debug_print()

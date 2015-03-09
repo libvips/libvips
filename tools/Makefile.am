@@ -1,24 +1,17 @@
 bin_PROGRAMS = \
-	find_mosaic \
-	mergeup \
 	vips \
-	edvips \
+	vipsedit \
 	vipsthumbnail \
-	header 
+	vipsheader 
 
 vips_SOURCES = vips.c
-edvips_SOURCES = edvips.c
-header_SOURCES = header.c
+vipsedit_SOURCES = vipsedit.c
+vipsheader_SOURCES = vipsheader.c
 vipsthumbnail_SOURCES = vipsthumbnail.c
-find_mosaic_SOURCES = find_mosaic.c
-mergeup_SOURCES =  mergeup.c
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 AM_LDFLAGS = @LDFLAGS@ 
 LDADD = @VIPS_CFLAGS@ ${top_builddir}/libvips/libvips.la @VIPS_LIBS@
-if ENABLE_CXX
-LDADD += @VIPS_CXX_LIBS@
-endif
 
 bin_SCRIPTS = \
 	light_correct \
@@ -27,11 +20,11 @@ bin_SCRIPTS = \
 	batch_rubber_sheet \
 	batch_crop \
 	vipsprofile \
-	vips-7.39
+	vips-8.0
 
 EXTRA_DIST = \
 	vipsprofile \
-	vips-7.39 \
+	vips-8.0 \
 	light_correct.in \
 	shrink_width.in \
 	batch_image_convert.in \

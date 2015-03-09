@@ -69,7 +69,14 @@
  * @VIPS_PRECISION_APPROXIMATE: approximate integer output
  *
  * How accurate an operation should be. 
+ */
+
+/** 
+ * VipsCombine:
+ * @VIPS_COMBINE_MAX: take the maximum of the possible values
+ * @VIPS_COMBINE_SUM: sum all the values
  *
+ * How to combine values. 
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsConvolution, vips_convolution, 

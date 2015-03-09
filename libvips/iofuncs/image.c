@@ -58,14 +58,69 @@
  * SECTION: image
  * @short_description: the VIPS image class
  * @stability: Stable
- * @see_also: <link linkend="libvips-region">region</link>
+ * @see_also: <link linkend="libvips-header">header</link> 
+ * <link linkend="VipsRegion">VipsRegion</link> 
+ * <link linkend="libvips-generate">generate</link>
+ * <link linkend="VipsOperation">VipsOperation</link> 
  * @include: vips/vips.h
  *
  * The image class and associated types and macros.
  *
- * vips_image_wio_input() and friends indicate the image IO style you
- * intend to use, transforming the underlying #VipsImage structure if
- * necessary.
+ * Images can be created from formatted files on disc, from C-style arrays on
+ * disc, from formatted areas of memory, or from C-style arrays in memory. See
+ * vips_image_new_from_file() and friends. 
+ * Creating an image is fast. VIPS reads just enough of
+ * the image to be able to get the various properties, such as width in
+ * pixels. It delays reading any pixels until they are really needed.
+ *
+ * Once you have an image, you can get properties from it in the usual way. 
+ * You can use projection functions, like vips_image_get_width() or 
+ * g_object_get(), to get %GObject properties. 
+ * 
+ * VIPS images are three-dimensional arrays, the dimensions being width, 
+ * height and bands. Each dimension can be up to 2 ** 31 pixels (or band 
+ * elements). An image has a format, meaning the machine number type used 
+ * to represent each value. VIPS supports 10 formats, from 8-bit unsigned 
+ * integer up to 128-bit double complex, see vips_image_get_format(). 
+ *
+ * In VIPS, images are uninterpreted arrays, meaning that from the point of 
+ * view of most operations, they are just large collections of numbers. 
+ * There's no difference between an RGBA (RGB with alpha) image and a CMYK 
+ * image, for example, they are both just four-band images. It's up to the 
+ * user of the library to pass the right sort of image to each operation. 
+ *
+ * To take an example, VIPS has vips_Lab2XYZ(), an operation to transform 
+ * an image from CIE LAB colour space to CIE XYZ space. It assumes the 
+ * first three bands represent pixels in LAB colour space and returns an 
+ * image where the first three bands are transformed to XYZ and any 
+ * remaining bands are just copied. Pass it a RGB image by mistake and 
+ * you'll just get nonsense.
+ *
+ * VIPS has a feature to help (a little) with this: it sets a 
+ * #VipsInterpretation hint for each image (see 
+ * vips_image_get_interpretation()); a hint which says how pixels should
+ * be interpreted. For example, vips_Lab2XYZ() will set the
+ * interpretation of the output image to #VIPS_INTERPRETATION_XYZ. A
+ * few utility operations will also use interpretation as a guide. For
+ * example, you can give vips_colourspace() an input image and a desired
+ * colourspace and it will use the input's interpretation hint to apply
+ * the best sequence of colourspace transforms to get to the desired space.
+ *
+ * Use things like vips_invert() to manipulate your images. When you are done,
+ * you can write images to disc files (with vips_image_write_to_file()),
+ * to formatted memory buffers (with vips_image_write_to_buffer()) and to
+ * C-style memory arrays (with vips_image_write_to_memory().
+ *
+ * You can also write image to other images. Create, for example, a temporary
+ * disc image with vips_image_new_temp_file(), then write your image to that
+ * with vips_image_write(). You can create several other types of image and
+ * write to them, see vips_image_new_memory(), for example. 
+ *
+ * See <link linkend="VipsOperation">operation</link> for an introduction to
+ * running operations on images, see <link
+ * linkend="libvips-header">header</link> for getting and setting image
+ * metadata. See <link linkend="VipsObject">object</link> for a discussion of
+ * the lower levels. 
  */
 
 /**
@@ -105,8 +160,8 @@
  * @VIPS_DEMAND_STYLE_THINSTRIP: demand in thin (typically 1 pixel high) strips
  * @VIPS_DEMAND_STYLE_ANY: demand geometry does not matter
  *
- * See vips_image_pipelinev(). Operations can hint to the VIPS image IO system about
- * the kind of demand geometry they prefer. 
+ * See vips_image_pipelinev(). Operations can hint to the VIPS image IO 
+ * system about the kind of demand geometry they prefer. 
  *
  * These demand styles are given below in order of increasing
  * restrictiveness.  When demanding output from a pipeline, 
@@ -124,7 +179,7 @@
  * #VIPS_DEMAND_STYLE_FATSTRIP --- This operation would like to output strips 
  * the width of the image and as high as possible. This option is suitable 
  * for area operations which do not violently transform coordinates, such 
- * as im_conv(). 
+ * as vips_conv(). 
  *
  * #VIPS_DEMAND_STYLE_SMALLTILE --- This is the most general demand format.
  * Output is demanded in small (around 100x100 pel) sections. This style works 
@@ -132,7 +187,7 @@
  *
  * #VIPS_DEMAND_STYLE_ANY --- This image is not being demand-read from a disc 
  * file (even indirectly) so any demand style is OK. It's used for things like
- * im_black() where the pixels are calculated.
+ * vips_black() where the pixels are calculated.
  *
  * See also: vips_image_pipelinev().
  */
@@ -166,7 +221,7 @@
  * of VIPS to help them show images to the user in a meaningful way. 
  * Operations do not use these values to decide their action.
  *
- * The gaps in the numbering are historical and must be maintained. Allocate 
+ * The gaps in numbering are historical and must be maintained. Allocate 
  * new numbers from the end.
  */
 
@@ -186,7 +241,7 @@
  *
  * The format used for each band element. 
  *
- * Each corresponnds to a native C type for the current machine. For example,
+ * Each corresponds to a native C type for the current machine. For example,
  * #VIPS_FORMAT_USHORT is <type>unsigned short</type>.
  */
 
@@ -275,9 +330,9 @@
  * 
  * If VIPS_DEBUG is defined, you get a version that checks bounds for you.
  *
- * See also: VIPS_REGION_ADDR().
+ * See also: vips_image_wio_input(), vips_image_inplace(), VIPS_REGION_ADDR().
  *
- * Returns: The address of pixel (x,y) in the image.
+ * Returns: The address of pixel (@X,@Y) in @I. 
  */
 
 /**
@@ -294,9 +349,9 @@
  * If VIPS_DEBUG is defined, you get a version that checks bounds and image
  * type for you.
  *
- * See also: VIPS_IMAGE_ADDR().
+ * See also: vips_image_wio_input(), vips_image_inplace(), vips_check_matrix(). 
  *
- * Returns: The address of pixel (x,y) in the image.
+ * Returns: The address of pixel (@X,@Y) in @I.
  */
 
 /* Our signals. 
@@ -323,6 +378,20 @@ char *vips__disc_threshold = NULL;
 static guint vips_image_signals[SIG_LAST] = { 0 };
 
 G_DEFINE_TYPE( VipsImage, vips_image, VIPS_TYPE_OBJECT );
+
+/**
+ * vips_progress_set:
+ * @info: %TRUE to enable progress messages
+ *
+ * If set, vips will print messages about the progress of computation to
+ * stdout. This can also be enabled with the --vips-progress option, or by
+ * setting the environment variable VIPS_PROGRESS.
+ */
+void
+vips_progress_set( gboolean progress )
+{
+	vips__progress = progress;
+}
 
 static void
 vips_image_delete( VipsImage *image )
@@ -660,10 +729,6 @@ vips_image_rewind( VipsObject *object )
 }
 
 /* Delayed save.
- */
-
-/* If we write to (eg.) TIFF, actually do the write
- * to a "p" and on "written" do im_vips2tiff() or whatever. 
  */
 
 /* From "written" callback: save to image->filename using VipsForeign.
@@ -1018,12 +1083,9 @@ vips_image_class_init( VipsImageClass *class )
 
 	VIPS_DEBUG_MSG( "vips_image_class_init:\n" );
 
-	/* Pass in a nonsense name for argv0 ... this init world is only here
-	 * for old programs which are missing a vips_init() call. We must
-	 * have threads set up before we can process.
+	/* We must have threads set up before we can process.
 	 */
-	if( vips_init( "vips" ) )
-		vips_error_clear();
+	vips_check_init(); 
 
 	gobject_class->finalize = vips_image_finalize;
 	gobject_class->dispose = vips_image_dispose;
@@ -1055,10 +1117,10 @@ vips_image_class_init( VipsImageClass *class )
 	 * can't :-( 
 	 *
 	 * For example, a "p" image might be made with vips_image_new() and
-	 * constructed, then passed to im_copy() of whatever to be written to.
+	 * constructed, then passed to vips_copy() of whatever to be written to.
 	 * That operation will then need to set width/height etc.
 	 *
-	 * We can't set_once either, since im_copy_set() etc. need to update
+	 * We can't set_once either, since vips_copy() etc. need to update
 	 * xoffset and friends on the way through.
 	 */
 
@@ -1205,8 +1267,8 @@ vips_image_class_init( VipsImageClass *class )
 	 * 128 area of pixels) during image computation. 
 	 *
 	 * You can use this signal to update user-interfaces with progress
-	 * feedback. Beware of updating too frequently: there will usually
-	 * need to be some mechanism to limit update frequency. 
+	 * feedback. Beware of updating too frequently: you will usually
+	 * need some throttling mechanism.
 	 *
 	 * Use vips_image_set_progress() to turn on progress reporting for an
 	 * image. 
@@ -1245,9 +1307,10 @@ vips_image_class_init( VipsImageClass *class )
 	 * @image: the image that was calculated
 	 * @result: set to non-zero to indicate error
 	 *
-	 * The ::written signal is emitted when an image is written to. It is
-	 * used by things like vips_image_new_mode("x.jpg", "w") to do the 
-	 * final write of @image. 
+	 * The ::written signal is emitted just after an image has been 
+	 * written to. It is
+	 * used by vips to implement things like write to foreign file
+	 * formats. 
 	 */
 	vips_image_signals[SIG_WRITTEN] = g_signal_new( "written",
 		G_TYPE_FROM_CLASS( class ),
@@ -1622,10 +1685,11 @@ vips_image_temp_name( void )
  * If you write to one of these images, vips will just attach some callbacks,
  * no pixels will be generated. 
  *
- * It is the equivalent of 
- * vips_image_new_mode() with @mode "p". 
+ * Write pixels to an image with vips_image_generate() or 
+ * vips_image_write_line(). Write a whole image to another image with
+ * vips_image_write(). 
  *
- * Returns: the new #VipsImage, or %NULL on error.
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new( void )
@@ -1676,18 +1740,78 @@ vips_image_new_mode( const char *filename, const char *mode )
  * vips_image_new_memory() creates a new #VipsImage which, when written to, will
  * create a memory image. 
  *
- * It is a convenience function for
- * vips_image_new_mode() with @filename set by vips_image_temp_name() and
- * @mode "t".
- *
  * See also: vips_image_new().
  *
- * Returns: the new #VipsImage, or %NULL on error.
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new_memory( void )
 {
 	return( vips_image_new_mode( vips_image_temp_name(), "t" ) );
+}
+
+/**
+ * vips_image_memory:
+ *
+ * A renamed vips_image_new_memory() ... Some gobject binding systems do not 
+ * like more than one _new() method.
+ *
+ * See also: vips_image_new_memory().
+ *
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_memory( void )
+{
+	return( vips_image_new_memory() ); 
+}
+
+/**
+ * vips_filename_get_filename:
+ * @vips_filename: a filename including a set of options
+ *
+ * Given a vips filename like "fred.jpg[Q=90]", return a new string of
+ * just the filename part, "fred.jpg" in this case. 
+ *
+ * Useful for language bindings. 
+ *
+ * See also: vips_filename_get_options().
+ *
+ * Returns: transfer full: just the filename component.
+ */
+char *
+vips_filename_get_filename( const char *vips_filename )
+{
+	char filename[VIPS_PATH_MAX];
+	char options[VIPS_PATH_MAX];
+
+	vips__filename_split8( vips_filename, filename, options ); 
+
+	return( g_strdup( filename ) );
+}
+
+/**
+ * vips_filename_get_options:
+ * @vips_filename: a filename including a set of options
+ *
+ * Given a vips filename like "fred.jpg[Q=90]", return a new string of
+ * just the options part, "[Q=90]" in this case. 
+ *
+ * Useful for language bindings. 
+ *
+ * See also: vips_filename_get_filename().
+ *
+ * Returns: transfer full: just the options component.
+ */
+char *
+vips_filename_get_options( const char *vips_filename )
+{
+	char filename[VIPS_PATH_MAX];
+	char options[VIPS_PATH_MAX];
+
+	vips__filename_split8( vips_filename, filename, options ); 
+
+	return( g_strdup( options ) );
 }
 
 /**
@@ -1699,7 +1823,6 @@ vips_image_new_memory( void )
  *
  * @access: hint #VipsAccess mode to loader
  * @disc: load via a temporary disc file
- * @...: other arguments depend on the loader
  *
  * vips_image_new_from_file() opens @name for reading. It can load files
  * in many image formats, including VIPS, TIFF, PNG, JPEG, FITS, Matlab,
@@ -1708,6 +1831,7 @@ vips_image_new_memory( void )
  * Load options may be appended to @filename as "[name=value,...]" or given as
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename. 
+ * Many loaders add extra options, see vips_jpegload(), for example. 
  *
  * vips_image_new_from_file() always returns immediately with the header
  * fields filled in. No pixels are actually read until you first access them. 
@@ -1808,8 +1932,8 @@ vips_image_new_from_file_RW( const char *filename )
 /**
  * vips_image_new_from_file_raw:
  * @filename: filename to open
- * @xsize: image width
- * @ysize: image height
+ * @width: image width
+ * @height: image height
  * @bands: image bands (or bytes per pixel)
  * @offset: bytes to skip at start of file
  *
@@ -1825,7 +1949,7 @@ vips_image_new_from_file_RW( const char *filename )
  */
 VipsImage *
 vips_image_new_from_file_raw( const char *filename, 
-	int xsize, int ysize, int bands, guint64 offset )
+	int width, int height, int bands, guint64 offset )
 {
 	VipsImage *image;
 
@@ -1835,8 +1959,8 @@ vips_image_new_from_file_raw( const char *filename,
 	g_object_set( image,
 		"filename", filename,
 		"mode", "a",
-		"width", xsize,
-		"height", ysize,
+		"width", width,
+		"height", height,
 		"bands", bands,
 		"sizeof_header", offset,
 		NULL );
@@ -1850,11 +1974,12 @@ vips_image_new_from_file_raw( const char *filename,
 
 /**
  * vips_image_new_from_memory:
- * @buffer: start of memory area
- * @xsize: image width
- * @ysize: image height
+ * @data: (array length=size) (element-type guint8) (transfer full): start of memory area
+ * @size: length of memory area
+ * @width: image width
+ * @height: image height
  * @bands: image bands (or bytes per pixel)
- * @bandfmt: image format
+ * @format: image format
  *
  * This function wraps a #VipsImage around a memory area. The memory area
  * must be a simple array, for example RGBRGBRGB, left-to-right,
@@ -1872,8 +1997,8 @@ vips_image_new_from_file_raw( const char *filename,
  * Returns: the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_from_memory( void *buffer, 
-	int xsize, int ysize, int bands, VipsBandFormat bandfmt )
+vips_image_new_from_memory( const void *data, size_t size,
+	int width, int height, int bands, VipsBandFormat format )
 {
 	VipsImage *image;
 
@@ -1883,13 +2008,26 @@ vips_image_new_from_memory( void *buffer,
 	g_object_set( image,
 		"filename", vips_image_temp_name(),
 		"mode", "m",
-		"foreign_buffer", buffer,
-		"width", xsize,
-		"height", ysize,
+		"foreign_buffer", data,
+		"width", width,
+		"height", height,
 		"bands", bands,
-		"format", bandfmt,
+		"format", format,
 		NULL );
 	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
+		VIPS_UNREF( image );
+		return( NULL );
+	}
+
+	/* Allow len == 0, meaning don't check. Used for im_image()
+	 * compatibility.
+	 */
+	if( size > 0 && 
+		size < VIPS_IMAGE_SIZEOF_IMAGE( image ) ) {
+		vips_error( "VipsImage",
+			_( "buffer too small --- "
+				"should be %zd bytes, you passed %zd" ),
+			VIPS_IMAGE_SIZEOF_IMAGE( image ), size ); 
 		VIPS_UNREF( image );
 		return( NULL );
 	}
@@ -1922,11 +2060,11 @@ vips_image_new_from_memory( void *buffer,
  * Returns: 0 on success, -1 on error
  */
 VipsImage *
-vips_image_new_from_buffer( const unsigned char *buf, size_t len, 
+vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 {
 	const char *operation_name;
-	VipsArea *area;
+	VipsBlob *blob;
 	va_list ap;
 	int result;
 	VipsImage *out;
@@ -1938,14 +2076,14 @@ vips_image_new_from_buffer( const unsigned char *buf, size_t len,
 
 	/* We don't take a copy of the data or free it.
 	 */
-	area = vips_area_new_blob( NULL, (void *) buf, len );
+	blob = vips_blob_new( NULL, buf, len );
 
 	va_start( ap, option_string );
 	result = vips_call_split_option_string( operation_name, 
-		option_string, ap, area, &out );
+		option_string, ap, blob, &out );
 	va_end( ap );
 
-	vips_area_unref( area );
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	if( result )
 		return( NULL );
@@ -2078,13 +2216,51 @@ vips_image_new_matrixv( int width, int height, ... )
 }
 
 /**
+ * vips_image_new_matrix_from_array:
+ * @width: image width
+ * @height: image height
+ * @array: (array length=size) (transfer none): array of elements
+ * @size: number of elements
+ *
+ * A binding-friendly version of vips_image_new_matrixv().
+ *
+ * Returns: the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_matrix_from_array( int width, int height, 
+	double *array, int size )
+{
+	VipsImage *matrix;
+	int x, y;
+	int i;
+
+	if( size != width * height ) {
+		vips_error( "VipsImage",
+			_( "bad array length --- should be %d, you passed %d" ),
+			width * height, size );
+		return( NULL );
+	}
+
+	vips_check_init();
+
+	matrix = vips_image_new_matrix( width, height ); 
+
+	i = 0;
+	for( y = 0; y < height; y++ )
+		for( x = 0; x < width; x++ )
+			*VIPS_MATRIX( matrix, x, y ) = array[i++];
+
+	return( matrix ); 
+}
+
+/**
  * vips_image_set_delete_on_close:
  * @image: image to set
  * @delete_on_close: format of file
  *
  * Sets the delete_on_close flag for the image. If this flag is set, when
  * @image is finalized, the filename held in @image->filename at the time of
- * this call is unlinked.
+ * this call is deleted.
  *
  * This function is clearly extremely dangerous, use with great caution.
  *
@@ -2103,11 +2279,52 @@ vips_image_set_delete_on_close( VipsImage *image, gboolean delete_on_close )
 }
 
 /**
+ * vips_get_disc_threshold:
+ *
+ * Return the number of bytes at which we flip between open via memory and
+ * open via disc. This defaults to 100mb, but can be changed with the
+ * VIPS_DISC_THRESHOLD environment variable or the --vips-disc-threshold
+ * command-line flag. See vips_image_new_from_file(). 
+ *
+ * Returns: disc threshold in bytes.
+ */
+guint64
+vips_get_disc_threshold( void )
+{
+	static gboolean done = FALSE;
+	static guint64 threshold;
+
+	if( !done ) {
+		const char *env;
+
+		done = TRUE;
+
+		/* 100mb default.
+		 */
+		threshold = 100 * 1024 * 1024;
+
+		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) || 
+			(env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
+			threshold = vips__parse_size( env );
+
+		if( vips__disc_threshold ) 
+			threshold = vips__parse_size( vips__disc_threshold );
+
+#ifdef DEBUG
+		printf( "vips_get_disc_threshold: %zd bytes\n", threshold );
+#endif /*DEBUG*/
+	}
+
+	return( threshold );
+}
+
+/**
  * vips_image_new_temp_file:
  * @format: format of file
  *
- * Make a "w" disc #VipsImage which will be automatically unlinked when it is
- * destroyed. @format is something like "&percnt;s.v" for a vips file.
+ * Make a #VipsImage which, when written to, will create a temporary file on
+ * disc. The file will be automatically deleted when the image is destroyed. 
+ * @format is something like "&percnt;s.v" for a vips file.
  *
  * The file is created in the temporary directory. This is set with the
  * environment variable TMPDIR. If this is not set, then on Unix systems, vips
@@ -2116,6 +2333,8 @@ vips_image_set_delete_on_close( VipsImage *image, gboolean delete_on_close )
  *
  * vips uses g_mkstemp() to make the temporary filename. They generally look
  * something like "vips-12-EJKJFGH.v".
+ *
+ * See also: vips_image_new().
  *
  * Returns: the new #VipsImage, or %NULL on error.
  */
@@ -2239,8 +2458,8 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
  * vips_image_write_to_buffer:
  * @in: image to write
  * @suffix: format to write 
- * @buf: return buffer start here
- * @len: return buffer length here
+ * @buf: (array length=size) (element-type guint8) (transfer full): return buffer start here
+ * @size: return buffer length here
  * @...: %NULL-terminated list of optional named arguments
  *
  * Writes @in to a memory buffer in a format specified by @suffix. 
@@ -2260,34 +2479,33 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
  */
 int
 vips_image_write_to_buffer( VipsImage *in, 
-	const char *name, unsigned char **buf, size_t *len, 
-	... )
+	const char *suffix, void **buf, size_t *size, ... )
 {
-	char suffix[VIPS_PATH_MAX];
+	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
 	const char *operation_name;
-	VipsArea *area;
+	VipsBlob *blob;
 	va_list ap;
 	int result;
 
-	vips__filename_split8( name, suffix, option_string );
-	if( !(operation_name = vips_foreign_find_save_buffer( suffix )) )
+	vips__filename_split8( suffix, filename, option_string );
+	if( !(operation_name = vips_foreign_find_save_buffer( filename )) )
 		return( -1 );
 
-	va_start( ap, len );
+	va_start( ap, size );
 	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, in, &area );
+		ap, in, &blob );
 	va_end( ap );
 
-	if( area ) { 
+	if( blob ) { 
 		if( buf ) {
-			*buf = area->data;
-			area->free_fn = NULL;
+			*buf = VIPS_AREA( blob )->data;
+			VIPS_AREA( blob )->free_fn = NULL;
 		}
-		if( len ) 
-			*len = area->length;
+		if( size ) 
+			*size = VIPS_AREA( blob )->length;
 
-		vips_area_unref( area );
+		vips_area_unref( VIPS_AREA( blob ) );
 	}
 
 	return( result );
@@ -2340,51 +2558,47 @@ vips_image_write_to_stream( VipsImage *in,
 /**
  * vips_image_write_to_memory:
  * @in: image to write
- * @buf: return buffer start here
- * @len: return buffer length here
+ * @size: return buffer length here
  *
- * Writes @in to memory as a simple, unformatted array. 
+ * Writes @in to memory as a simple, unformatted C-style array. 
  *
- * The caller is responsible for freeing memory. 
+ * The caller is responsible for freeing this memory. 
  *
  * See also: vips_image_write_to_buffer().
  *
- * Returns: 0 on success, -1 on error
+ * Returns: (array length=size) (element-type guint8) (transfer full): return buffer start here
  */
-int
-vips_image_write_to_memory( VipsImage *in, void **buf_out, size_t *len_out )
+void *
+vips_image_write_to_memory( VipsImage *in, size_t *size_out )
 {
 	void *buf;
-	size_t len;
+	size_t size;
 	VipsImage *x;
 
-	g_assert( buf_out ); 
-
-	len = VIPS_IMAGE_SIZEOF_IMAGE( in );
-	if( !(buf = g_try_malloc( len )) ) {
-		vips_error( "vips_image_write_to_buffer", 
+	size = VIPS_IMAGE_SIZEOF_IMAGE( in );
+	if( !(buf = g_try_malloc( size )) ) {
+		vips_error( "vips_image_write_to_memory", 
 			_( "out of memory --- size == %dMB" ), 
-			(int) (len / (1024.0 * 1024.0))  );
-		vips_warn( "vips_image_write_to_buffer", 
+			(int) (size / (1024.0 * 1024.0))  );
+		vips_warn( "vips_image_write_to_memory", 
 			_( "out of memory --- size == %dMB" ), 
-			(int) (len / (1024.0*1024.0))  );
-		return( -1 );
+			(int) (size / (1024.0*1024.0))  );
+		return( NULL );
 	}
 
-	x = vips_image_new_from_memory( buf, 
+	x = vips_image_new_from_memory( buf, size,
 		in->Xsize, in->Ysize, in->Bands, in->BandFmt );
 	if( vips_image_write( in, x ) ) {
 		g_object_unref( x );
 		g_free( buf ); 
-		return( -1 ); 
+		return( NULL ); 
 	}
 	g_object_unref( x );
 
-	*buf_out = buf;
-	if( len_out )
-		*len_out = len;
+	if( size_out )
+		*size_out = size;
 
-	return( 0 ); 
+	return( buf ); 
 }
 
 /**
@@ -2429,29 +2643,29 @@ vips_image_decode( VipsImage *in, VipsImage **out )
  * @bands: predict bands here
  * @format: predict format here
  *
- * We often need to know what an image will decode to without actuaklly
+ * We often need to know what an image will decode to without actually
  * decoding it, for example, in arg checking.
  *
  * See also: vips_image_decode().
  */
 int
-vips_image_decode_predict( VipsImage *im, 
+vips_image_decode_predict( VipsImage *in, 
 	int *out_bands, VipsBandFormat *out_format )
 {
 	VipsBandFormat format;
 	int bands; 
 
-	if( im->Coding == VIPS_CODING_LABQ ) {
+	if( in->Coding == VIPS_CODING_LABQ ) {
 		bands = 3;
 		format = VIPS_FORMAT_FLOAT;
 	}
-	else if( im->Coding == VIPS_CODING_RAD ) {
+	else if( in->Coding == VIPS_CODING_RAD ) {
 		bands = 3;
 		format = VIPS_FORMAT_FLOAT;
 	}
 	else {
-		bands = im->Bands;
-		format = im->BandFmt;
+		bands = in->Bands;
+		format = in->BandFmt;
 	}
 
 	if( out_bands )
@@ -2562,7 +2776,7 @@ vips_image_ispartial( VipsImage *image )
  *
  * Normally this function is called for you by vips_image_generate() or
  * vips_image_write_line(). You will need to call it yourself if you plan to
- * write directly to the ->data member of a "t" image.
+ * write directly to the ->data member of a memory image.
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -2624,7 +2838,7 @@ vips_image_write_prepare( VipsImage *image )
  * @linebuffer: scanline of pixels
  *
  * Write a line of pixels to an image. This function must be called repeatedly
- * with @ypos increasing from 0 to #VipsImage.height .
+ * with @ypos increasing from 0 to #VipsImage::height .
  * @linebuffer must be VIPS_IMAGE_SIZEOF_LINE() bytes long.
  *
  * See also: vips_image_generate().
@@ -2825,6 +3039,24 @@ vips_image_wio_input( VipsImage *image )
 		/* Close temp image.
 		 */
 		g_object_unref( t1 );
+
+		/* We need to zap any start/gen/stop callbacks. If we don't,
+		 * calling vips_region_prepare_to() later to read from this 
+		 * image will fail, since it will think it needs to create the
+		 * image, not read from it.
+		 */
+		image->start_fn = NULL;
+		image->generate_fn = NULL;
+		image->stop_fn = NULL;
+		image->client1 = NULL;
+		image->client2 = NULL;
+
+		/* ... and that may confuse any regions which are trying to
+		 * generate from this image.
+		 */
+		if( image->regions ) 
+			vips_warn( "vips_image_wio_input", "%s",
+				"rewinding image with active regions" ); 
 
 		break;
 
@@ -3066,7 +3298,7 @@ vips_image_pio_output( VipsImage *image )
 
 	case VIPS_IMAGE_PARTIAL:
 		if( image->generate_fn ) {
-			vips_error( "im_poutcheck", 
+			vips_error( "vips_image_pio_output", 
 				"%s", _( "image already written" ) );
 			return( -1 );
 		}

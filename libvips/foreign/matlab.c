@@ -4,6 +4,9 @@
  *	- transpose on load, assemble planes into bands (thanks Mikhail)
  * 20/12/11
  * 	- reworked as some fns ready for new-style classes
+ * 21/8/14
+ * 	- swap width/height
+ * 	- set interpretation to rgb16 etc. 
  */
 
 /*
@@ -150,6 +153,28 @@ static int mat2vips_formats[][2] = {
 	{ MAT_C_DOUBLE, VIPS_FORMAT_DOUBLE }
 };
 
+/* Pick an interpretation.
+ */
+static VipsInterpretation 
+mat2vips_pick_interpretation( int bands, VipsBandFormat format )
+{
+	if( bands == 3 &&
+		vips_band_format_is8bit( format ) )
+		return( VIPS_INTERPRETATION_sRGB );
+	if( bands == 3 &&
+		(format == VIPS_FORMAT_USHORT || 
+		 format == VIPS_FORMAT_SHORT) )
+		return( VIPS_INTERPRETATION_RGB16 );
+	if( bands == 1 &&
+		(format == VIPS_FORMAT_USHORT || 
+		 format == VIPS_FORMAT_SHORT) )
+		return( VIPS_INTERPRETATION_GREY16 );
+	if( bands > 1 )
+		return( VIPS_INTERPRETATION_MULTIBAND ); 
+
+	return( VIPS_INTERPRETATION_MULTIBAND );
+}
+
 static int
 mat2vips_get_header( matvar_t *var, VipsImage *im )
 {
@@ -158,6 +183,7 @@ mat2vips_get_header( matvar_t *var, VipsImage *im )
 	VipsInterpretation interpretation; 
 	int i;
 
+	width = 1;
 	height = 1;
 	bands = 1;
 	switch( var->rank ) {
@@ -165,10 +191,10 @@ mat2vips_get_header( matvar_t *var, VipsImage *im )
 		bands = var->dims[2];
 
 	case 2:
-		height = var->dims[1];
+		width = var->dims[1];
 
 	case 1:
-		width = var->dims[0];
+		height = var->dims[0];
 		break;
 
 	default:
@@ -176,11 +202,6 @@ mat2vips_get_header( matvar_t *var, VipsImage *im )
 			_( "unsupported rank %d\n" ), var->rank );
 		return( -1 );
 	}
-
-	if( bands > 1 )
-		interpretation = VIPS_INTERPRETATION_MULTIBAND;
-	else
-		interpretation = VIPS_INTERPRETATION_B_W;
 
 	for( i = 0; i < VIPS_NUMBER( mat2vips_formats ); i++ )
 		if( mat2vips_formats[i][0] == var->class_type )
@@ -191,6 +212,7 @@ mat2vips_get_header( matvar_t *var, VipsImage *im )
 		return( -1 );
 	}
 	format = mat2vips_formats[i][1];
+	interpretation = mat2vips_pick_interpretation( bands, format );
 
 	vips_image_init_fields( im,
 		 width, height, bands,

@@ -797,7 +797,8 @@ vips_interpolate_lbb_interpolate( VipsInterpolate* restrict interpolate,
    */
   const int actual_bands = in->im->Bands;
   const int bands =
-    vips_bandfmt_iscomplex( in->im->BandFmt ) ? 2 * actual_bands : actual_bands;
+    vips_band_format_iscomplex( in->im->BandFmt ) ? 
+      2 * actual_bands : actual_bands;
 
   /* Confirm that absolute_x and absolute_y are >= 1, see above. 
    */

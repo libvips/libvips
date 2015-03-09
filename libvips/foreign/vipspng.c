@@ -48,6 +48,13 @@
  * 	  still set color_type to alpha
  * 16/7/13
  * 	- more robust error handling from libpng
+ * 9/8/14
+ * 	- don't check profiles, helps with libpng >=1.6.11
+ * 27/10/14 Lovell
+ * 	- add @filter option 
+ * 26/2/15
+ * 	- close the read down early for a header read ... this saves an
+ * 	  fd during file read, handy for large numbers of input images 
  */
 
 /*
@@ -79,6 +86,7 @@
 
 /*
 #define DEBUG
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -139,7 +147,7 @@ typedef struct {
 
 	/* For memory input.
 	 */
-	char *buffer;
+	const void *buffer;
 	size_t length;
 	size_t read_pos;
 
@@ -149,6 +157,8 @@ typedef struct {
 
 } Read;
 
+/* Can be called many times.
+ */
 static void
 read_destroy( Read *read )
 {
@@ -198,6 +208,13 @@ read_new( VipsImage *out, gboolean readbehind )
 		PNG_LIBPNG_VER_STRING, NULL,
 		user_error_function, user_warning_function )) ) 
 		return( NULL );
+
+#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
+	/* Prevent libpng (>=1.6.11) verifying sRGB profiles.
+	 */
+	png_set_option( read->pPng, 
+		PNG_SKIP_sRGB_CHECK_PROFILE, PNG_OPTION_ON );
+#endif /*PNG_SKIP_sRGB_CHECK_PROFILE*/
 
 	/* Catch PNG errors from png_create_info_struct().
 	 */
@@ -339,15 +356,15 @@ png2vips_header( Read *read, VipsImage *out )
 	/* If we're an INTEL byte order machine and this is 16bits, we need
 	 * to swap bytes.
 	 */
-	if( bit_depth > 8 && !vips_amiMSBfirst() )
+	if( bit_depth > 8 && 
+		!vips_amiMSBfirst() )
 		png_set_swap( read->pPng );
 
-	/* Get resolution. I'm not sure what we should do for UNKNOWN, since
-	 * vips is always pixels/mm.
+	/* Get resolution. Default to 72 pixels per inch, the usual png value. 
 	 */
 	unit_type = PNG_RESOLUTION_METER;
-	res_x = 1000;
-	res_y = 1000;
+	res_x = (72 / 2.54 * 100);
+	res_y = (72 / 2.54 * 100);
 	png_get_pHYs( read->pPng, read->pInfo, &res_x, &res_y, &unit_type );
 	switch( unit_type ) {
 	case PNG_RESOLUTION_METER:
@@ -422,6 +439,10 @@ vips__png_header( const char *name, VipsImage *out )
 		png2vips_header( read, out ) ) 
 		return( -1 );
 
+	/* Just a header read: we can free the read early and save an fd.
+	 */
+	read_destroy( read );
+
 	return( 0 );
 }
 
@@ -485,7 +506,11 @@ png2vips_generate( VipsRegion *or,
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
 	 */
-	g_assert( r->top == read->y_pos ); 
+	if( r->top != read->y_pos ) {
+		vips_error( "vipspng", 
+			_( "out of order read at line %d" ), read->y_pos );
+		return( -1 );
+	}
 
 	for( y = 0; y < r->height; y++ ) {
 		png_bytep q = (png_bytep) VIPS_REGION_ADDR( or, 0, r->top + y );
@@ -506,6 +531,11 @@ png2vips_generate( VipsRegion *or,
 
 		read->y_pos += 1;
 	}
+
+	/* Turn errors back on. png_read_end() can trigger them too.
+	 */
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+		return( -1 );
 
 	/* We need to shut down the reader immediately at the end of read or
 	 * we won't detach ready for the next image.
@@ -596,7 +626,7 @@ vips__png_read( const char *filename, VipsImage *out, gboolean readbehind )
 }
 
 int
-vips__png_ispng_buffer( const unsigned char *buf, size_t len )
+vips__png_ispng_buffer( const void *buf, size_t len )
 {
 	if( len >= 8 &&
 		!png_sig_cmp( (png_bytep) buf, 0, 8 ) )
@@ -631,7 +661,7 @@ vips_png_read_buffer( png_structp pPng, png_bytep data, png_size_t length )
 }
 
 static Read *
-read_new_buffer( VipsImage *out, char *buffer, size_t length, 
+read_new_buffer( VipsImage *out, const void *buffer, size_t length, 
 	gboolean readbehind )
 {
 	Read *read;
@@ -658,7 +688,7 @@ read_new_buffer( VipsImage *out, char *buffer, size_t length,
 }
 
 int
-vips__png_header_buffer( char *buffer, size_t length, VipsImage *out )
+vips__png_header_buffer( const void *buffer, size_t length, VipsImage *out )
 {
 	Read *read;
 
@@ -670,7 +700,7 @@ vips__png_header_buffer( char *buffer, size_t length, VipsImage *out )
 }
 
 int
-vips__png_read_buffer( char *buffer, size_t length, VipsImage *out, 
+vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out, 
 	gboolean readbehind  )
 {
 	Read *read;
@@ -798,6 +828,13 @@ write_new( VipsImage *in )
 		user_error_function, user_warning_function )) ) 
 		return( NULL );
 
+#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
+	/* Prevent libpng (>=1.6.11) verifying sRGB profiles.
+	 */
+	png_set_option( write->pPng, 
+		PNG_SKIP_sRGB_CHECK_PROFILE, PNG_OPTION_ON );
+#endif /*PNG_SKIP_sRGB_CHECK_PROFILE*/
+
 	/* Catch PNG errors from png_create_info_struct().
 	 */
 	if( setjmp( png_jmpbuf( write->pPng ) ) ) 
@@ -810,7 +847,7 @@ write_new( VipsImage *in )
 }
 
 static int
-write_png_block( VipsRegion *region, Rect *area, void *a )
+write_png_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
 
@@ -839,7 +876,8 @@ write_png_block( VipsRegion *region, Rect *area, void *a )
 /* Write a VIPS image to PNG.
  */
 static int
-write_vips( Write *write, int compress, int interlace )
+write_vips( Write *write, int compress, int interlace, const char *profile,
+	VipsForeignPngFilter filter )
 {
 	VipsImage *in = write->in;
 
@@ -858,10 +896,18 @@ write_vips( Write *write, int compress, int interlace )
 	if( setjmp( png_jmpbuf( write->pPng ) ) ) 
 		return( -1 );
 
-	/* Check input image.
+	/* Check input image. If we are writing interlaced, we need to make 7
+	 * passes over the image. We advertise ourselves as seq, so to ensure
+	 * we only suck once from upstream, switch to WIO. 
 	 */
-	if( vips_image_pio_input( in ) )
-		return( -1 );
+	if( interlace ) {
+		if( vips_image_wio_input( in ) )
+			return( -1 );
+	}
+	else {
+		if( vips_image_pio_input( in ) )
+			return( -1 );
+	}
 	if( compress < 0 || compress > 9 ) {
 		vips_error( "vips2png", 
 			"%s", _( "compress should be in [0,9]" ) );
@@ -872,6 +918,10 @@ write_vips( Write *write, int compress, int interlace )
 	 */
 	png_set_compression_level( write->pPng, compress );
 
+	/* Set row filter.
+	 */
+	png_set_filter( write->pPng, 0, filter );
+
 	bit_depth = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
 
 	switch( in->Bands ) {
@@ -881,11 +931,9 @@ write_vips( Write *write, int compress, int interlace )
 	case 4: color_type = PNG_COLOR_TYPE_RGB_ALPHA; break;
 
 	default:
-		g_assert( 0 );
-
-		/* Keep -Wall happy.
-		 */
-		return( 0 );
+		vips_error( "vips2png", 
+			_( "can't save %d band image as png" ), in->Bands );
+		return( -1 );
 	}
 
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
@@ -894,7 +942,7 @@ write_vips( Write *write, int compress, int interlace )
 		in->Xsize, in->Ysize, bit_depth, color_type, interlace_type, 
 		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT );
 
-	/* Set resolution. libpnbg uses pixels per meter.
+	/* Set resolution. libpng uses pixels per meter.
 	 */
 	png_set_pHYs( write->pPng, write->pInfo, 
 		VIPS_RINT( in->Xres * 1000 ), VIPS_RINT( in->Yres * 1000 ), 
@@ -902,21 +950,40 @@ write_vips( Write *write, int compress, int interlace )
 
 	/* Set ICC Profile.
 	 */
-	if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-		void *profile;
-		size_t profile_length;
+	if( profile ) {
+		if( strcmp( profile, "none" ) != 0 ) { 
+			void *data;
+			size_t length;
+
+			if( !(data = vips__file_read_name( profile, 
+				VIPS_ICC_DIR, &length )) ) 
+				return( -1 );
+
+#ifdef DEBUG
+			printf( "write_vips: "
+				"attaching %zd bytes of ICC profile\n",
+				length );
+#endif /*DEBUG*/
+
+			png_set_iCCP( write->pPng, write->pInfo, "icc", 
+				PNG_COMPRESSION_TYPE_BASE, data, length );
+		}
+	}
+	else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+		void *data;
+		size_t length;
 
 		if( vips_image_get_blob( in, VIPS_META_ICC_NAME, 
-			&profile, &profile_length ) ) 
+			&data, &length ) ) 
 			return( -1 ); 
 
 #ifdef DEBUG
 		printf( "write_vips: attaching %zd bytes of ICC profile\n",
-			profile_length );
+			length );
 #endif /*DEBUG*/
 
 		png_set_iCCP( write->pPng, write->pInfo, "icc", 
-			PNG_COMPRESSION_TYPE_BASE, profile, profile_length );
+			PNG_COMPRESSION_TYPE_BASE, data, length );
 	}
 
 	png_write_info( write->pPng, write->pInfo ); 
@@ -935,7 +1002,7 @@ write_vips( Write *write, int compress, int interlace )
 	/* Write data.
 	 */
 	for( i = 0; i < nb_passes; i++ ) 
-		if( vips_sink_disc( write->in, write_png_block, write ) )
+		if( vips_sink_disc( in, write_png_block, write ) )
 			return( -1 );
 
 	/* The setjmp() was held by our background writer: reset it.
@@ -950,7 +1017,8 @@ write_vips( Write *write, int compress, int interlace )
 
 int
 vips__png_write( VipsImage *in, const char *filename, 
-	int compress, int interlace )
+	int compression, int interlace, const char *profile,
+	VipsForeignPngFilter filter )
 {
 	Write *write;
 
@@ -969,7 +1037,7 @@ vips__png_write( VipsImage *in, const char *filename,
 
 	/* Convert it!
 	 */
-	if( write_vips( write, compress, interlace ) ) {
+	if( write_vips( write, compression, interlace, profile, filter ) ) {
 		vips_error( "vips2png", 
 			_( "unable to write \"%s\"" ), filename );
 
@@ -1055,7 +1123,8 @@ user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
 
 int
 vips__png_write_buf( VipsImage *in, 
-	void **obuf, size_t *olen, int compression, int interlace )
+	void **obuf, size_t *olen, int compression, int interlace,
+	const char *profile, VipsForeignPngFilter filter )
 {
 	WriteBuf *wbuf;
 	Write *write;
@@ -1071,7 +1140,7 @@ vips__png_write_buf( VipsImage *in,
 
 	/* Convert it!
 	 */
-	if( write_vips( write, compression, interlace ) ) {
+	if( write_vips( write, compression, interlace, profile, filter ) ) {
 		write_buf_free( wbuf );
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );
@@ -1102,8 +1171,9 @@ user_write_stream( png_structp png_ptr, png_bytep data, png_size_t length )
 }
 
 int
-vips__png_write_stream( VipsImage *in, 
-	VipsStreamOutput *stream, int compression, int interlace )
+vips__png_write_stream( VipsImage *in, VipsStreamOutput *stream, 
+	int compression, int interlace, const char *profile,
+	VipsForeignPngFilter filter )
 {
 	Write *write;
 
@@ -1115,7 +1185,7 @@ vips__png_write_stream( VipsImage *in,
 
 	/* Convert it!
 	 */
-	if( write_vips( write, compression, interlace ) ) {
+	if( write_vips( write, compression, interlace, profile, filter ) ) {
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );
 	      

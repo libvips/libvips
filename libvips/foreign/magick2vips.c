@@ -40,6 +40,13 @@
  * 	- turn into a set of read fns ready to be called from a class
  * 11/6/13
  * 	- add @all_frames option, off by default
+ * 4/12/14 Lovell
+ * 	- add @density option 
+ * 16/2/15 mcuelenaere
+ * 	- add blob read
+ * 26/2/15
+ * 	- close the read down early for a header read ... this saves an
+ * 	  fd during file read, handy for large numbers of input images 
  */
 
 /*
@@ -123,11 +130,13 @@ typedef struct _Read {
 	GMutex *lock;
 } Read;
 
-static int
-read_destroy( VipsImage *im, Read *read )
+/* Can be called many times.
+ */
+static void
+read_free( Read *read )
 {
 #ifdef DEBUG
-	printf( "magick2vips: read_destroy: %s\n", read->filename );
+	printf( "magick2vips: read_free: %s\n", read->filename );
 #endif /*DEBUG*/
 
 	VIPS_FREE( read->filename );
@@ -136,12 +145,21 @@ read_destroy( VipsImage *im, Read *read )
 	VIPS_FREE( read->frames );
 	DestroyExceptionInfo( &read->exception );
 	VIPS_FREEF( vips_g_mutex_free, read->lock );
+}
+
+/* Can be called many times.
+ */
+static int
+read_close( VipsImage *im, Read *read )
+{
+	read_free( read ); 
 
 	return( 0 );
 }
 
 static Read *
-read_new( const char *filename, VipsImage *im, gboolean all_frames )
+read_new( const char *filename, VipsImage *im, gboolean all_frames,
+	const char *density )
 {
 	Read *read;
 	static int inited = 0;
@@ -157,7 +175,7 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames )
 
 	if( !(read = VIPS_NEW( im, Read )) )
 		return( NULL );
-	read->filename = g_strdup( filename );
+	read->filename = filename ? g_strdup( filename ) : NULL;
 	read->all_frames = all_frames;
 	read->im = im;
 	read->image = NULL;
@@ -168,12 +186,18 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames )
 	read->frame_height = 0;
 	read->lock = vips_g_mutex_new();
 
-	g_signal_connect( im, "close", G_CALLBACK( read_destroy ), read );
+	g_signal_connect( im, "close", G_CALLBACK( read_close ), read );
 
 	if( !read->image_info ) 
 		return( NULL );
 
-	vips_strncpy( read->image_info->filename, filename, MaxTextExtent );
+	if( filename ) 
+		vips_strncpy( read->image_info->filename, 
+			filename, MaxTextExtent );
+
+	/* Canvas resolution for rendering vector formats like SVG.
+	 */
+	VIPS_SETSTR( read->image_info->density, density );
 
 #ifdef DEBUG
 	printf( "magick2vips: read_new: %s\n", read->filename );
@@ -647,7 +671,8 @@ magick_fill_region( VipsRegion *out,
 }
 
 int
-vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames )
+vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames,
+	const char *density )
 {
 	Read *read;
 
@@ -655,7 +680,7 @@ vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames )
 	printf( "magick2vips: vips__magick_read: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out, all_frames )) )
+	if( !(read = read_new( filename, out, all_frames, density )) )
 		return( -1 );
 
 #ifdef HAVE_SETIMAGEOPTION
@@ -697,7 +722,7 @@ vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames )
  */
 int
 vips__magick_read_header( const char *filename, VipsImage *im, 
-	gboolean all_frames )
+	gboolean all_frames, const char *density )
 {
 	Read *read;
 
@@ -705,7 +730,7 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 	printf( "vips__magick_read_header: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, im, all_frames )) )
+	if( !(read = read_new( filename, im, all_frames, density )) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -725,6 +750,93 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 		return( -1 );
 
 	if( im->Xsize <= 0 || im->Ysize <= 0 ) {
+		vips_error( "magick2vips", "%s", _( "bad image size" ) );
+		return( -1 );
+	}
+
+	/* Just a header read: we can free the read early and save an fd.
+	 */
+	read_free( read );
+
+	return( 0 );
+}
+
+int
+vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
+	gboolean all_frames, const char *density )
+{
+	Read *read;
+
+#ifdef DEBUG
+	printf( "magick2vips: vips__magick_read_buffer: %p %zu\n", buf, len );
+#endif /*DEBUG*/
+
+	if( !(read = read_new( NULL, out, all_frames, density )) )
+		return( -1 );
+
+#ifdef HAVE_SETIMAGEOPTION
+	/* When reading DICOM images, we want to ignore any
+	 * window_center/_width setting, since it may put pixels outside the
+	 * 0-65535 range and lose data. 
+	 *
+	 * These window settings are attached as vips metadata, so our caller
+	 * can interpret them if it wants.
+	 */
+  	SetImageOption( read->image_info, "dcm:display-range", "reset" );
+#endif /*HAVE_SETIMAGEOPTION*/
+
+#ifdef DEBUG
+	printf( "magick2vips: calling BlobToImage() ...\n" );
+#endif /*DEBUG*/
+
+	read->image = BlobToImage( read->image_info, 
+		buf, len, &read->exception );
+	if( !read->image ) {
+		vips_error( "magick2vips", _( "unable to read buffer\n"
+			"libMagick error: %s %s" ),
+			read->exception.reason, read->exception.description );
+		return( -1 );
+	}
+
+	if( parse_header( read ) )
+		return( -1 );
+	if( vips_image_generate( out, 
+		NULL, magick_fill_region, NULL, read, NULL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+int
+vips__magick_read_buffer_header( const void *buf, const size_t len,
+	VipsImage *im, gboolean all_frames, const char *density )
+{
+	Read *read;
+
+#ifdef DEBUG
+	printf( "vips__magick_read_buffer_header: %p %zu\n", buf, len );
+#endif /*DEBUG*/
+
+	if( !(read = read_new( NULL, im, all_frames, density )) )
+		return( -1 );
+
+#ifdef DEBUG
+	printf( "vips__magick_read_buffer_header: pinging blob ...\n" );
+#endif /*DEBUG*/
+
+	read->image = PingBlob( read->image_info, buf, len, &read->exception );
+	if( !read->image ) {
+		vips_error( "magick2vips", _( "unable to ping blob\n"
+			"libMagick error: %s %s" ),
+			read->exception.reason, read->exception.description );
+		return( -1 );
+	}
+
+	if( parse_header( read ) ) 
+		return( -1 );
+
+	if( im->Xsize <= 0 || 
+		im->Ysize <= 0 ) {
 		vips_error( "magick2vips", "%s", _( "bad image size" ) );
 		return( -1 );
 	}

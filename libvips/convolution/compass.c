@@ -114,15 +114,15 @@ vips_compass_build( VipsObject *object )
 		break;
 
 	case VIPS_COMBINE_SUM:
-		x = abs[0];
-		for( i = 1; i < compass->times; i++ ) {
-			if( vips_add( x, abs[i], &combine[i], NULL ) )
-				return( -1 );
-			x = combine[i];
-		}
+		if( vips_sum( abs, &combine[0], compass->times, NULL ) )
+			return( -1 );
+		x = combine[0];
 		break;
 
 	default:
+		/* Silence compiler warning.
+		 */
+		x = NULL;
 		g_assert( 0 );
 	}
 
@@ -142,7 +142,7 @@ vips_compass_class_init( VipsCompassClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "compass";
-	object_class->description = _( "convolve with rotaing mask" );
+	object_class->description = _( "convolve with rotating mask" );
 	object_class->build = vips_compass_build;
 
 	VIPS_ARG_INT( class, "times", 101, 
@@ -157,7 +157,7 @@ vips_compass_class_init( VipsCompassClass *class )
 		_( "Rotate mask by this much between convolutions" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCompass, angle ), 
-		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_90 ); 
+		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_D90 ); 
 
 	VIPS_ARG_ENUM( class, "combine", 104, 
 		_( "Combine" ), 
@@ -193,7 +193,7 @@ static void
 vips_compass_init( VipsCompass *compass )
 {
 	compass->times = 2;
-	compass->angle = VIPS_ANGLE45_90;
+	compass->angle = VIPS_ANGLE45_D90;
 	compass->combine = VIPS_COMBINE_MAX;
 	compass->precision = VIPS_PRECISION_INTEGER;
 	compass->layers = 5;

@@ -335,8 +335,9 @@ vips_sink_base_progress( void *a )
  * @a: user data
  * @b: user data
  *
- * Loops over an image. @generate is called for every pixel in the image, with
- * the @reg argument being a region of pixels for processing. 
+ * Loops over an image. @generate_fn is called for every 
+ * pixel in the image, with
+ * the @reg argument being a region of calculated pixels.
  *
  * Each set of pixels is @tile_width by @tile_height pixels (less at the 
  * image edges). This is handy for things like writing a tiled TIFF image, 
@@ -398,9 +399,10 @@ vips_sink_tile( VipsImage *im,
  * @a: user data
  * @b: user data
  *
- * Loops over an image. @generate is called for every pixel in the image, with
- * the @reg argument being a region of pixels for processing. vips_sink() is
- * used to implement operations like #VipsAvg which have no image output.
+ * Loops over an image. @generate_fn is called for every pixel in 
+ * the image, with
+ * the @reg argument being a region of calculated pixels. vips_sink() is
+ * used to implement operations like vips_avg() which have no image output.
  *
  * Each set of pixels is sized according to the requirements of the image
  * pipeline that generated @im.

@@ -1,0 +1,354 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+]>
+<!-- vim: set ts=2 sw=2 expandtab: --> 
+<refentry id="using-from-cpp">
+  <refmeta>
+    <refentrytitle>VIPS from C++</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>VIPS Library</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>Using VIPS</refname>
+    <refpurpose>How to use the VIPS library from C++</refpurpose>
+  </refnamediv>
+
+  <refsect3 id="using-cpp">
+    <title>Introduction</title>
+    <para>
+      VIPS comes with a convenient C++ API. It is a very thin wrapper over the 
+      C API and adds automatic reference counting, exceptions, operator 
+      overloads, and automatic constant expansion. You can drop down to the C 
+      API at any point, so all the C API docs also work for C++. 
+    </para>
+
+<programlisting language="C++">
+/* compile with:
+ *      g++ -g -Wall try.cc `pkg-config vips-cpp --cflags --libs`
+ */
+
+#include &lt;vips/vips8&gt;
+
+using namespace vips;
+
+int
+main( int argc, char **argv )
+{
+  GOptionContext *context;
+  GOptionGroup *main_group;
+  GError *error = NULL;
+
+  if( VIPS_INIT( argv[0] ) )
+    vips_error_exit( NULL ); 
+
+  context = g_option_context_new( "" ); 
+
+  main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
+  g_option_context_set_main_group( context, main_group );
+  g_option_context_add_group( context, vips_get_option_group() );
+
+  if( !g_option_context_parse( context, &amp;argc, &amp;argv, &amp;error ) ) {
+    if( error ) {
+      fprintf( stderr, "%s\n", error->message );
+      g_error_free( error );
+    }
+
+    vips_error_exit( NULL );
+  }
+
+  VImage in = VImage::new_from_file( argv[1], 
+    VImage::option()->
+      set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
+
+  double avg = in.avg(); 
+
+  printf( "avg = %g\n", avg ); 
+  printf( "width = %d\n", in.width() ); 
+
+  VImage in = VImage::new_from_file( argv[1],
+    VImage::option()->
+      set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
+
+  VImage out = in.embed( 10, 10, 1000, 1000, 
+    VImage::option()->
+      set( "extend", "background" )->
+      set( "background", 128 ) );
+
+  out.write_to_file( argv[2] );
+
+  vips_shutdown();
+
+  return( 0 );
+}
+</programlisting>
+
+    <para>
+      Everything before <code>VImage in = VImage::..</code> is exactly
+      as the C API. This boilerplate gives the example a set of standard
+      command-line flags.
+    </para>
+
+    <para>
+      This line is the C++ equivalent of vips_image_new_from_file(). It works 
+      in the same way, the differences being:
+
+      <itemizedlist>
+        <listitem>
+          <para>
+            <code>VImage</code> lifetime is managed automatically, like a smart 
+            pointer. You don't need to call g_object_unref(). 
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            Instead of using varargs and a %NULL-terminated option list, this 
+            function takes an optional <code>VOption</code> pointer. This 
+            gives a list of name / value pairs for optional arguments to the 
+            function.
+          </para>
+
+          <para>
+            In this case we request unbuffered IO for the image, meaning, we 
+            expect to do a single top-to-bottom scan of the image and do not 
+            need it to be decompressed entirely. You can use the C enum name, 
+            as is done in this case, or use a string and have the string 
+            looked up. See below.
+          </para>
+
+          <para>
+            The function will delete the <code>VOption</code> pointer for
+            us when it's finished with it.
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+            Instead of returning %NULL on error, this constructor will 
+            raise a <code>VError</code> exception. 
+          </para>
+        </listitem>
+      </itemizedlist>
+
+      There are a series of similar constructors which parallel the other 
+      constructors in the C API, see VImage::new_from_memory(),
+      VImage::new_from_buffer(), and VImage::new_matrix(). There's also 
+      VImage::new_memory() and VImage::new_temp_file(), which when written to 
+      with VImage::write() will create whole images on memory or on disc. 
+    </para>
+    
+    <para>
+      The next line finds the average pixel value, it's the equivalent of the 
+      vips_avg() function. The differences from the C API are:
+
+      <itemizedlist>
+        <listitem>
+          <para>
+            VImage::avg() is a member function: the <code>this</code> 
+            parameter is the first (the only, in this case) input image. 
+          </para>
+
+          <para>
+            The function returns the first output parameter, in this case the 
+            average pixel value. Other return values are via pointer arguments, 
+            as in the C API. 
+          </para>
+
+          <para>
+            Like VImage::new_from_file(), function raises the 
+            <code>VError</code> exception on error.
+          </para>
+
+          <para>
+            Like VImage::new_from_file(), extra arguments are passed 
+            via an optional <code>VOption</code> parameter. There are none
+            in this case, so the function brackets can be left empty.
+          </para>
+        </listitem>
+      </itemizedlist>
+
+      All other operations follow the same pattern, for example the C API call 
+      vips_add():
+
+<programlisting language="C++">
+int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... );
+</programlisting>
+
+      appears in C++ as:
+
+<programlisting language="C++">
+VImage VImage::add( VImage right, VOption *options = 0 );
+</programlisting>
+    </para>
+
+    <para>
+      The next line uses VImage::width() to get the image width in pixels. 
+      There are similar functions paralleling vips_image_get_format() and 
+      friends. Use VImage::set() to set metadata fields, VImage::get_int() and 
+      c. to fetch metadata. 
+    </para>
+
+    <para>
+      Next we reload the image. The VImage::avg() will have scanned the image 
+      and reached the end of the file, we need to scan again for the next 
+      operation. If we'd selected random access mode (the default) in the 
+      original VImage::new_from_file(), we would not need to reload.
+    </para>
+
+    <para>
+      The next line runs vips_embed() with two optional parameters. The first 
+      sets the value to an enum (here we use a string to set the value, it'll 
+      be looked up in the list of possible enum values, or you can use the 
+      symbols from the C API), the 
+      second sets the value to an <code>int</code>. The 
+      <code>"background"</code> 
+      parameter is actually a #VipsArrayDouble: if you pass an 
+      <code>int</code> instead, it will be automatically converted to a 
+      one-element array for you. You can pass a 
+      <code>std::vector&lt;double&gt;</code> too: the utility function 
+      VImage::to_vectorv() is a convenient way to make one. 
+    </para>
+
+    <para>
+      Finally, VImage::write_to_file() will write the new image to the 
+      filesystem. You can add a #VOption as a final parameter and set options 
+      for the writer if you wish. Again, the operation will throw a #VError 
+      exception on error. The other writers from the C API are also present: 
+      you can write to a memory array, to a formatted image in memory, or to 
+      another image. 
+    </para>
+  </refsect3>
+
+  <refsect3 id="cpp-expansion">
+    <title>Automatic constant expansion</title>
+
+    <para>
+      The C++ API will automatically turn constants into images in some cases. 
+      For example, you can join two images together bandwise (the 
+      bandwise join of two RGB images would be a six-band image) with:
+
+<programlisting language="C++">
+VImage rgb = ...; 
+VImage six_band = rgb.bandjoin( rgb );
+</programlisting>
+
+      You can also bandjoin a constant, for example: 
+
+<programlisting language="C++">
+VImage rgb_with_alpha = rgb.bandjoin( 255 );
+</programlisting>
+
+      Will add an extra band to an image, with every element in the new band 
+      having the value 255. This is quite a general feature. You can use a 
+      constant in most places where you can use an image and it will be 
+      converted. For example:
+
+<programlisting language="C++">
+VImage a = (a &lt; 128).ifthenelse( 128, a ); 
+</programlisting>
+
+      Will set every band element of <code>a</code> less than 128 to 128. 
+    </para>
+
+    <para>
+      The C++ API includes the usual range of arithmetic operator overloads. 
+      You can mix constants, vectors and images freely.
+    </para>
+
+    <para>
+      The API overloads <code>[]</code> to be vips_extract_band(). You can 
+      write:
+
+<programlisting language="C++">
+VImage xyz = VImage::xyz( 256, 256 ) - VImage::to_vectorv( 2, 128.0, 128.0 ); 
+VImage mask = (xyz[0].pow( 2 ) + xyz[1].pow( 2 )).pow( 0.5 ) &lt; 100;
+</programlisting>
+
+      to make a circular mask, for example.
+    </para>
+
+    <para>
+      The API overloads <code>()</code> to be vips_getpoint(). You can 
+      write:
+
+<programlisting language="C++">
+VImage xyz = VImage::xyz( 256, 256 ) - VImage::to_vectorv( 2, 128.0, 128.0 ); 
+// this will have the value [0, 0]
+std::vector&lt;double&gt; point = xyz(128, 128);
+</programlisting>
+    </para>
+
+  </refsect3>
+
+  <refsect3 id="cpp-enum">
+    <title>Enum expansion</title>
+
+    <para>
+      VIPS operations which implement several functions with a controlling 
+      enum, such as vips_math(), are expanded to a set of member functions 
+      named after the enum. For example, the C function:
+
+<programlisting language="C++">
+int vips_math( VipsImage *in, VipsImage **out, VipsOperationMath math, ... );
+</programlisting>
+
+      where #VipsOperationMath has the member #VIPS_OPERATION_MATH_SIN, has a 
+      C convenience function vips_sin():
+
+<programlisting language="C++">
+int vips_sin( VipsImage *in, VipsImage **out, ... );
+</programlisting>
+
+      and a C++ member function VImage::sin():
+
+<programlisting language="C++">
+VImage VImage::sin( VOption *options = 0 );
+</programlisting>
+
+    </para>
+  </refsect3>
+
+  <refsect3 id="cpp-extend">
+    <title>Extending the C++ interface</title>
+
+    <para>
+      The C++ interface comes in two parts. First, <code>VImage8.h</code>
+      defines a simple layer over #GObject for automatic reference counting,
+      then a generic way to call any vips8 operation with VImage::call(),
+      then a few convenience functions, then a set of overloads.
+    </para>
+
+    <para>
+      The member function for each operation, for example VImage::add(), is 
+      generated by a small Python program called <code>gen-operators.py</code>,
+      and its companion, <code>gen-operators-h.py</code> to generate the 
+      headers. If you write a new VIPS operator, you'll need to rerun these 
+      programs to make the new member function. 
+    </para>
+
+    <para>
+      You can write the wrapper yourself, of course, they are very simple. 
+      The one for VImage::add() looks like this:
+
+<programlisting language="C++">
+VImage VImage::add(VImage right, VOption *options)
+  throw VError
+{
+  VImage out;
+
+  call("add" ,
+    (options ? options : VImage::option()) ->
+      set("out", &amp;out) ->
+      set("left", *this) ->
+      set("right", right));
+
+  return out;
+}
+</programlisting>
+
+      Where VImage::call() is the generic call-a-vips8-operation function.
+    </para>
+  </refsect3>
+</refentry>

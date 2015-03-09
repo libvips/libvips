@@ -269,10 +269,13 @@ vips_col_scRGB2sRGB( int range, int *lut,
 
 	/* XYZ can be Nan, Inf etc. Throw those values out, they will break
 	 * our clipping.
+	 *
+	 * Don't use isnormal(), it is false for 0.0 and for subnormal
+	 * numbers. 
 	 */
-	if( !isnormal( R ) ||
-		!isnormal( G ) ||
-		!isnormal( B ) ) {
+	if( isnan( R ) || isinf( R ) ||
+		isnan( G ) || isinf( G ) ||
+		isnan( B ) || isinf( B ) ) { 
 		*r = 0; 
 		*g = 0; 
 		*b = 0; 
@@ -476,6 +479,7 @@ vips_LabQ2sRGB_init( VipsLabQ2sRGB *LabQ2sRGB )
  * vips_LabQ2sRGB:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Unpack a LabQ (#VIPS_CODING_LABQ) image to a three-band short image.
  *

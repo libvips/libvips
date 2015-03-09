@@ -166,7 +166,7 @@ vips_countlines_init( VipsCountlines *countlines )
  * Xsize or Ysize and returns the mean of the result
  * Input should be one band, 8-bit.
  *
- * See also: vips_morph(), vips_zerox(), vips_conv().
+ * See also: vips_morph(), vips_conv().
  *
  * Returns: 0 on success, -1 on error.
  */

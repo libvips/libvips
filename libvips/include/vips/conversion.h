@@ -62,22 +62,22 @@ typedef enum {
 } VipsAlign;
 
 typedef enum {
-	VIPS_ANGLE_0,
-	VIPS_ANGLE_90,
-	VIPS_ANGLE_180,
-	VIPS_ANGLE_270,
+	VIPS_ANGLE_D0,
+	VIPS_ANGLE_D90,
+	VIPS_ANGLE_D180,
+	VIPS_ANGLE_D270,
 	VIPS_ANGLE_LAST
 } VipsAngle;
 
 typedef enum {
-	VIPS_ANGLE45_0,
-	VIPS_ANGLE45_45,
-	VIPS_ANGLE45_90,
-	VIPS_ANGLE45_135,
-	VIPS_ANGLE45_180,
-	VIPS_ANGLE45_225,
-	VIPS_ANGLE45_270,
-	VIPS_ANGLE45_315,
+	VIPS_ANGLE45_D0,
+	VIPS_ANGLE45_D45,
+	VIPS_ANGLE45_D90,
+	VIPS_ANGLE45_D135,
+	VIPS_ANGLE45_D180,
+	VIPS_ANGLE45_D225,
+	VIPS_ANGLE45_D270,
+	VIPS_ANGLE45_D315,
 	VIPS_ANGLE45_LAST
 } VipsAngle45;
 
@@ -102,16 +102,16 @@ int vips_flip( VipsImage *in, VipsImage **out, VipsDirection direction, ... )
 int vips_insert( VipsImage *main, VipsImage *sub, VipsImage **out, 
 	int x, int y, ... )
 	__attribute__((sentinel));
-int vips_join( VipsImage *main, VipsImage *sub, VipsImage **out, 
+int vips_join( VipsImage *in1, VipsImage *in2, VipsImage **out, 
 	VipsDirection direction, ... )
 	__attribute__((sentinel));
-int vips_extract_area( VipsImage *input, VipsImage **output, 
+int vips_extract_area( VipsImage *in, VipsImage **out, 
 	int left, int top, int width, int height, ... )
 	__attribute__((sentinel));
-int vips_crop( VipsImage *input, VipsImage **output, 
+int vips_crop( VipsImage *in, VipsImage **out, 
 	int left, int top, int width, int height, ... )
 	__attribute__((sentinel));
-int vips_extract_band( VipsImage *input, VipsImage **output, int band, ... )
+int vips_extract_band( VipsImage *in, VipsImage **out, int band, ... )
 	__attribute__((sentinel));
 int vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
 	__attribute__((sentinel));
@@ -123,6 +123,9 @@ int vips_wrap( VipsImage *in, VipsImage **out, ... )
 int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 	__attribute__((sentinel));
 int vips_rot45( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+VipsAngle vips_autorot_get_angle( VipsImage *im );
+int vips_autorot( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_zoom( VipsImage *in, VipsImage **out, int xfac, int yfac, ... )
 	__attribute__((sentinel));
@@ -164,7 +167,7 @@ int vips_bandrank( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
 
 int vips_bandbool( VipsImage *in, VipsImage **out, 
-	VipsOperationBoolean operation, ... )
+	VipsOperationBoolean boolean, ... )
 	__attribute__((sentinel));
 int vips_bandand( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -188,8 +191,6 @@ int vips_falsecolour( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_gamma( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-
-int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x, int *y );
 
 #ifdef __cplusplus
 }

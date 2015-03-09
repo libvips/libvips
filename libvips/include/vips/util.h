@@ -165,6 +165,7 @@ G_STMT_START { \
 const char *vips_enum_string( GType enm, int value );
 const char *vips_enum_nick( GType enm, int value );
 int vips_enum_from_nick( const char *domain, GType type, const char *str );
+int vips_flags_from_nick( const char *domain, GType type, const char *nick );
 
 gboolean vips_slist_equal( GSList *l1, GSList *l2 );
 void *vips_slist_map2( GSList *list, VipsSListMap2Fn fn, void *a, void *b );
@@ -201,9 +202,9 @@ FILE *vips__file_open_read( const char *filename,
 	const char *fallback_dir, gboolean text_mode );
 FILE *vips__file_open_write( const char *filename, 
 	gboolean text_mode );
-char *vips__file_read( FILE *fp, const char *name, unsigned int *length_out );
+char *vips__file_read( FILE *fp, const char *name, size_t *length_out );
 char *vips__file_read_name( const char *name, const char *fallback_dir, 
-	unsigned int *length_out );
+	size_t *length_out );
 int vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
 int vips__get_bytes( const char *filename, unsigned char buf[], int len );
 

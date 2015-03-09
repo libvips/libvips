@@ -63,7 +63,8 @@ typedef enum /*< flags >*/ {
 	VIPS_ARGUMENT_SET_ALWAYS = 8,
 	VIPS_ARGUMENT_INPUT = 16,
 	VIPS_ARGUMENT_OUTPUT = 32,
-	VIPS_ARGUMENT_DEPRECATED = 64
+	VIPS_ARGUMENT_DEPRECATED = 64,
+	VIPS_ARGUMENT_MODIFY = 128
 } VipsArgumentFlags;
 
 /* Useful flag combinations. User-visible ones are:
@@ -101,7 +102,8 @@ VIPS_ARGUMENT_OPTIONAL_OUTPUT   Eg. the x pos of the image minimum
 
 extern int _vips__argument_id;
 
-#define VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, TYPE ) { \
+#define VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, \
+	FLAGS, OFFSET, TYPE ) { \
 	GParamSpec *pspec; \
 	\
 	pspec = g_param_spec_object( (NAME), (LONG), (DESC),  \
@@ -110,20 +112,27 @@ extern int _vips__argument_id;
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_IMAGE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) \
-	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, VIPS_TYPE_IMAGE )
+	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, \
+		FLAGS, OFFSET, VIPS_TYPE_IMAGE )
 
-#define VIPS_ARG_INTERPOLATE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) \
-	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, VIPS_TYPE_INTERPOLATE )
+#define VIPS_ARG_INTERPOLATE( CLASS, NAME, PRIORITY, LONG, DESC, \
+	FLAGS, OFFSET ) \
+	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, \
+		FLAGS, OFFSET, VIPS_TYPE_INTERPOLATE )
 
-#define VIPS_ARG_STREAM_INPUT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) \
-	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, VIPS_TYPE_STREAM_INPUT )
+#define VIPS_ARG_STREAM_INPUT( CLASS, NAME, PRIORITY, LONG, DESC, \
+	FLAGS, OFFSET ) \
+	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, \
+		FLAGS, OFFSET, VIPS_TYPE_STREAM_INPUT )
 
-#define VIPS_ARG_STREAM_OUTPUT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) \
-	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, VIPS_TYPE_STREAM_OUTPUT )
+#define VIPS_ARG_STREAM_OUTPUT( CLASS, NAME, PRIORITY, LONG, DESC, \
+	FLAGS, OFFSET ) \
+	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, \
+		OFFSET, VIPS_TYPE_STREAM_OUTPUT )
 
 #define VIPS_ARG_BOOL( CLASS, NAME, PRIORITY, LONG, DESC, \
 	FLAGS, OFFSET, VALUE ) { \
@@ -131,11 +140,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_boolean( (NAME), (LONG), (DESC), \
 		(VALUE), \
-		G_PARAM_READWRITE ); \
+		(GParamFlags) (G_PARAM_READWRITE) ); \
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_DOUBLE( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -144,11 +153,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_double( (NAME), (LONG), (DESC), \
 		(MIN), (MAX), (VALUE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_BOXED( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -157,11 +166,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_boxed( (NAME), (LONG), (DESC), \
 		(TYPE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_INT( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -170,11 +179,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_int( (NAME), (LONG), (DESC), \
 		(MIN), (MAX), (VALUE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_UINT64( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -183,11 +192,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_uint64( (NAME), (LONG), (DESC), \
 		(MIN), (MAX), (VALUE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_ENUM( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -196,11 +205,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_enum( (NAME), (LONG), (DESC), \
 		(TYPE), (VALUE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_FLAGS( CLASS, NAME, PRIORITY, LONG, DESC, \
@@ -209,11 +218,11 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_flags( (NAME), (LONG), (DESC), \
 		(TYPE), (VALUE), \
-		G_PARAM_READWRITE );\
+		(GParamFlags) (G_PARAM_READWRITE) );\
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_STRING( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, \
@@ -222,22 +231,22 @@ extern int _vips__argument_id;
 	\
 	pspec = g_param_spec_string( (NAME), (LONG), (DESC), \
 		(VALUE), \
-		G_PARAM_READWRITE ); \
+		(GParamFlags) (G_PARAM_READWRITE) ); \
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 #define VIPS_ARG_POINTER( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) { \
 	GParamSpec *pspec; \
 	\
 	pspec = g_param_spec_pointer( (NAME), (LONG), (DESC), \
-		G_PARAM_READWRITE ); \
+		(GParamFlags) (G_PARAM_READWRITE) ); \
 	g_object_class_install_property( gobject_class,  \
 		_vips__argument_id++, pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
-		pspec, (FLAGS), (PRIORITY), (OFFSET) ); \
+		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
 /* Keep one of these for every argument.
@@ -295,18 +304,21 @@ typedef struct _VipsArgumentInstance {
  */
 typedef GHashTable VipsArgumentTable;
 
-VipsArgumentInstance *vips__argument_get_instance( VipsArgumentClass *,
-	VipsObject * );
-VipsArgument *vips__argument_table_lookup( VipsArgumentTable *, 
-	GParamSpec * );
+VipsArgumentInstance *vips__argument_get_instance( 
+	VipsArgumentClass *argument_class,
+	VipsObject *object );
+VipsArgument *vips__argument_table_lookup( VipsArgumentTable *argument_class, 
+	GParamSpec *pspec );
 void vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 	GObject **member, GObject *argument );
-typedef void *(*VipsArgumentMapFn)( VipsObject *, GParamSpec *,
-	VipsArgumentClass *, VipsArgumentInstance *, void *a, void *b );
+typedef void *(*VipsArgumentMapFn)( VipsObject *object, GParamSpec *pspec,
+	VipsArgumentClass *argument_class, 
+	VipsArgumentInstance *argument_instance, void *a, void *b );
 void *vips_argument_map( VipsObject *object, 
 	VipsArgumentMapFn fn, void *a, void *b );
-typedef void *(*VipsArgumentClassMapFn)( VipsObjectClass *, GParamSpec *,
-	VipsArgumentClass *, void *a, void *b );
+typedef void *(*VipsArgumentClassMapFn)( VipsObjectClass *object_class, 
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class, void *a, void *b );
 void *vips_argument_class_map( VipsObjectClass *object_class, 
 	VipsArgumentClassMapFn fn, void *a, void *b );
 gboolean vips_argument_class_needsstring( VipsArgumentClass *argument_class );
@@ -457,40 +469,40 @@ struct _VipsObjectClass {
 	/* Try to print something about the class, handy for help displays.
 	 * Keep to one line.
 	 */
-	void (*summary_class)( struct _VipsObjectClass *, VipsBuf * );
+	void (*summary_class)( struct _VipsObjectClass *cls, VipsBuf *buf );
 
 	/* Try to print a one-line summary for the object, the user can see
 	 * this output via things like "header fred.tif", --vips-cache-trace,
 	 * etc. 
 	 */
-	void (*summary)( VipsObject *, VipsBuf * );
+	void (*summary)( VipsObject *object, VipsBuf *buf );
 
 	/* Try to print everything about the object, handy for debugging.
 	 */
-	void (*dump)( VipsObject *, VipsBuf * );
+	void (*dump)( VipsObject *object, VipsBuf *buf );
 
 	/* Sanity-check the object. Print messages and stuff. 
 	 * Handy for debugging.
 	 */
-	void (*sanity)( VipsObject *, VipsBuf * );
+	void (*sanity)( VipsObject *object, VipsBuf *buf );
 
 	/* Rewind. Save and restore any stuff that needs to survive a
 	 * dispose().
 	 */
-	void (*rewind)( VipsObject * );
+	void (*rewind)( VipsObject *object );
 
 	/* Just before close, everything is still alive.
 	 */
-	void (*preclose)( VipsObject * );
+	void (*preclose)( VipsObject *object );
 
 	/* Close, time to free stuff.
 	 */
-	void (*close)( VipsObject * );
+	void (*close)( VipsObject *object );
 
 	/* Post-close, everything is dead, except the VipsObject pointer.
 	 * Useful for eg. deleting the file associated with a temp image.
 	 */
-	void (*postclose)( VipsObject * );
+	void (*postclose)( VipsObject *object );
 
 	/* The CLI interface. Implement these four to get CLI input and output
 	 * for your object.
@@ -506,7 +518,7 @@ struct _VipsObjectClass {
 	/* The inverse of ^^. Given an object, output what ->new_from_string()
 	 * would have been given to make that object. 
 	 */
-	void (*to_string)( VipsObject *, VipsBuf * ); 
+	void (*to_string)( VipsObject *object, VipsBuf *buf ); 
 
 	/* Does this output arg need an arg from the command line? Image
 	 * output, for example, needs a filename to write to.
@@ -582,8 +594,9 @@ gboolean vips_object_sanity( VipsObject *object );
 
 GType vips_object_get_type( void );
 
-void vips_object_class_install_argument( VipsObjectClass *, GParamSpec *pspec, 
-	VipsArgumentFlags flags, int priority, guint offset );
+void vips_object_class_install_argument( VipsObjectClass *cls, 
+	GParamSpec *pspec, VipsArgumentFlags flags, 
+	int priority, guint offset );
 int vips_object_set_argument_from_string( VipsObject *object, 
 	const char *name, const char *value );
 gboolean vips_object_argument_needsstring( VipsObject *object, 
@@ -592,7 +605,7 @@ int vips_object_get_argument_to_string( VipsObject *object,
 	const char *name, const char *arg );
 int vips_object_set_required( VipsObject *object, const char *value );
 
-typedef void *(*VipsObjectSetArguments)( VipsObject *, void *, void * );
+typedef void *(*VipsObjectSetArguments)( VipsObject *object, void *a, void *b );
 VipsObject *vips_object_new( GType type, 
 	VipsObjectSetArguments set, void *a, void *b );
 
@@ -607,15 +620,16 @@ void vips_object_to_string( VipsObject *object, VipsBuf *buf );
 
 void *vips_object_map( VipsSListMap2Fn fn, void *a, void *b );
 
-typedef void *(*VipsTypeMapFn)( GType, void * );
-typedef void *(*VipsTypeMap2Fn)( GType, void *, void * );
-typedef void *(*VipsClassMapFn)( VipsObjectClass *, void * );
+typedef void *(*VipsTypeMapFn)( GType type, void *a );
+typedef void *(*VipsTypeMap2Fn)( GType type, void *a, void *b );
+typedef void *(*VipsClassMapFn)( VipsObjectClass *cls, void *a );
 void *vips_type_map( GType base, VipsTypeMap2Fn fn, void *a, void *b );
 void *vips_type_map_all( GType base, VipsTypeMapFn fn, void *a );
 int vips_type_depth( GType type );
 GType vips_type_find( const char *basename, const char *nickname );
+const char *vips_nickname_find( GType type );
 
-void *vips_class_map_all( GType base, VipsClassMapFn fn, void *a );
+void *vips_class_map_all( GType type, VipsClassMapFn fn, void *a );
 VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
 
 VipsObject **vips_object_local_array( VipsObject *parent, int n );
@@ -632,6 +646,8 @@ void vips_object_sanity_all( void );
 void vips_object_rewind( VipsObject *object );
 
 void vips_object_unref_outputs( VipsObject *object );
+
+const char *vips_object_get_description( VipsObject *object );
 
 #ifdef __cplusplus
 }

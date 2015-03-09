@@ -63,6 +63,7 @@ VIPS_NAMESPACE_START
 /* vips_init() and vips_shutdown as namespaced C++ functions.
  */
 bool init( const char *argv0 = "nothing" );
+void thread_shutdown( void ); 
 void shutdown( void ); 
 
 /* A VIPS callback, our name for im_callback_fn.
@@ -451,6 +452,8 @@ VIPS_NAMESPACE_END
 // Other VIPS protos we need 
 extern "C" {
 extern int im_init_world( const char *argv0 ); 
+extern int im_init_world( const char *argv0 ); 
+extern void vips_thread_shutdown( void ); 
 extern void im__print_all(); 
 extern void im_col_Lab2XYZ( 
 	float, float, float,

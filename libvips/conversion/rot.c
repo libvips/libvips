@@ -102,9 +102,9 @@ vips_rot90_gen( VipsRegion *or, void *seq, void *a, void *b,
 	 */
 	VipsRect *r = &or->valid;
 	int le = r->left;
-	int ri = IM_RECT_RIGHT(r);
+	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
+	int bo = VIPS_RECT_BOTTOM(r);
 
 	int x, y, i;
 
@@ -164,9 +164,9 @@ vips_rot180_gen( VipsRegion *or, void *seq, void *a, void *b,
 	 */
 	VipsRect *r = &or->valid;
 	int le = r->left;
-	int ri = IM_RECT_RIGHT(r);
+	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
+	int bo = VIPS_RECT_BOTTOM(r);
 
 	int x, y;
 
@@ -176,7 +176,7 @@ vips_rot180_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 	/* Find the area of the input image we need.
 	 */
-	Rect need;
+	VipsRect need;
 
 	need.left = in->Xsize - ri;
 	need.top = in->Ysize - bo;
@@ -225,9 +225,9 @@ vips_rot270_gen( VipsRegion *or, void *seq, void *a, void *b,
 	 */
 	VipsRect *r = &or->valid;
 	int le = r->left;
-	int ri = IM_RECT_RIGHT(r);
+	int ri = VIPS_RECT_RIGHT(r);
 	int to = r->top;
-	int bo = IM_RECT_BOTTOM(r);
+	int bo = VIPS_RECT_BOTTOM(r);
 
 	int x, y, i;
 
@@ -288,13 +288,13 @@ vips_rot_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_rot_parent_class )->build( object ) )
 		return( -1 );
 
-	if( rot->angle == VIPS_ANGLE_0 )
+	if( rot->angle == VIPS_ANGLE_D0 )
 		return( vips_image_write( rot->in, conversion->out ) );
 
 	if( vips_image_pio_input( rot->in ) )
 		return( -1 );
 
-	hint = rot->angle == VIPS_ANGLE_180 ? 
+	hint = rot->angle == VIPS_ANGLE_D180 ? 
 		VIPS_DEMAND_STYLE_THINSTRIP :
 		VIPS_DEMAND_STYLE_SMALLTILE; 
 
@@ -302,7 +302,7 @@ vips_rot_build( VipsObject *object )
 		return( -1 );
 
 	switch( rot->angle ) {
-	case VIPS_ANGLE_90:
+	case VIPS_ANGLE_D90:
 		generate_fn = vips_rot90_gen;
 		conversion->out->Xsize = rot->in->Ysize;
 		conversion->out->Ysize = rot->in->Xsize;
@@ -310,13 +310,13 @@ vips_rot_build( VipsObject *object )
 		conversion->out->Yoffset = 0;
 		break;
 
-	case VIPS_ANGLE_180:
+	case VIPS_ANGLE_D180:
 		generate_fn = vips_rot180_gen;
 		conversion->out->Xoffset = rot->in->Xsize;
 		conversion->out->Yoffset = rot->in->Ysize;
 		break;
 
-	case VIPS_ANGLE_270:
+	case VIPS_ANGLE_D270:
 		generate_fn = vips_rot270_gen;
 		conversion->out->Xsize = rot->in->Ysize;
 		conversion->out->Ysize = rot->in->Xsize;
@@ -366,7 +366,7 @@ vips_rot_class_init( VipsRotClass *class )
 		_( "Angle to rotate image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRot, angle ),
-		VIPS_TYPE_ANGLE, VIPS_ANGLE_90 ); 
+		VIPS_TYPE_ANGLE, VIPS_ANGLE_D90 ); 
 }
 
 static void

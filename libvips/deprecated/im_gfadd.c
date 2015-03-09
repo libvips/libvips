@@ -128,9 +128,7 @@ static int array[8][8] = {
  *
  * Deprecated.
  */
-int im_gfadd(a, in1, b, in2, c, out)
-double a, b, c;
-IMAGE *in1, *in2, *out;
+int im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out)
 {
 	static int fmt[] = { IM_BANDFMT_FLOAT, IM_BANDFMT_DOUBLE };
 	int y, x;

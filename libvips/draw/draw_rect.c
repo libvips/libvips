@@ -87,6 +87,7 @@ vips_draw_rect_build( VipsObject *object )
 {
 	VipsDraw *draw = VIPS_DRAW( object );
 	VipsDrawink *drawink = VIPS_DRAWINK( object );
+	VipsArea *ink = VIPS_AREA( drawink->ink );
 	VipsDrawRect *draw_rect = (VipsDrawRect *) object;
 	int left = draw_rect->left;
 	int top = draw_rect->top;
@@ -106,16 +107,16 @@ vips_draw_rect_build( VipsObject *object )
 		width > 2 &&
 		height > 2 ) 
 		return( vips_draw_rect( draw->image, 
-				drawink->ink->data, drawink->ink->n, 
+				ink->data, ink->n, 
 				left, top, width, 1, NULL ) ||
 			vips_draw_rect( draw->image, 
-				drawink->ink->data, drawink->ink->n, 
+				ink->data, ink->n, 
 				left + width - 1, top, 1, height, NULL ) ||
 			vips_draw_rect( draw->image, 
-				drawink->ink->data, drawink->ink->n, 
+				ink->data, ink->n, 
 				left, top + height - 1, width, 1, NULL ) ||
 			vips_draw_rect( draw->image, 
-				drawink->ink->data, drawink->ink->n, 
+				ink->data, ink->n, 
 				left, top, 1, height, NULL ) );
 
 	image.left = 0;
@@ -235,6 +236,7 @@ vips_draw_rectv( VipsImage *image,
  * @top: area to paint
  * @width: area to paint
  * @height: area to paint
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
@@ -243,7 +245,7 @@ vips_draw_rectv( VipsImage *image,
  * Paint pixels within @left, @top, @width, @height in @image with @ink. If
  * @fill is zero, just paint a 1-pixel-wide outline.
  *
- * See also: vips_circle().
+ * See also: vips_draw_circle().
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -270,6 +272,7 @@ vips_draw_rect( VipsImage *image,
  * @top: area to paint
  * @width: area to paint
  * @height: area to paint
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
@@ -304,8 +307,9 @@ vips_draw_rect1( VipsImage *image,
  * @image: image to draw on
  * @ink: (array length=n): value to draw
  * @n: length of ink array
- * @left: point to paint
- * @top: point to paint
+ * @x: point to paint
+ * @y: point to paint
+ * @...: %NULL-terminated list of optional named arguments
  *
  * As vips_draw_rect(), but draw a single pixel at @x, @y.
  *
@@ -332,6 +336,7 @@ vips_draw_point( VipsImage *image, double *ink, int n, int x, int y, ... )
  * @ink: value to draw
  * @x: point to draw
  * @y: point to draw
+ * @...: %NULL-terminated list of optional named arguments
  *
  * As vips_draw_point(), but just take a single double for @ink. 
  *

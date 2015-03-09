@@ -32,6 +32,8 @@
  * 	- remove liboil
  * 24/8/11
  * 	- rewrite as a class
+ * 12/9/14
+ * 	- oops, fix complex avg
  */
 
 /*
@@ -98,16 +100,11 @@ vips_avg_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_avg_parent_class )->build( object ) )
 		return( -1 );
 
-	/* Calculate average. For complex, we accumulate re*re +
-	 * im*im, so we need to sqrt.
-	 */
 	vals = (gint64) 
 		vips_image_get_width( statistic->in ) * 
 		vips_image_get_height( statistic->in ) * 
 		vips_image_get_bands( statistic->in );
 	average = avg->sum / vals;
-	if( vips_bandfmt_iscomplex( vips_image_get_format( statistic->in ) ) )
-		average = sqrt( average );
 	g_object_set( object, "out", average, NULL );
 
 	return( 0 );
@@ -150,12 +147,10 @@ vips_avg_stop( VipsStatistic *statistic, void *seq )
 	TYPE *p = (TYPE *) in; \
 	\
 	for( i = 0; i < sz; i++ ) { \
-		double mod; \
-		\
-		mod = p[0] * p[0] + p[1] * p[1]; \
-		p += 2; \
+		double mod = sqrt( p[0] * p[0] + p[1] * p[1] ); \
 		\
 		m += mod; \
+		p += 2; \
 	} \
 } 
 

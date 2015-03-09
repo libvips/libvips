@@ -30,6 +30,8 @@
  * 	- complex ==, != were broken
  * 16/7/12
  * 	- im1 > im2, im1 >= im2 were broken 
+ * 17/9/14
+ * 	- im1 > im2, im1 >= im2 were still broken, but in a more subtle way
  */
 
 /*
@@ -87,31 +89,9 @@ typedef VipsBinaryClass VipsRelationalClass;
 
 G_DEFINE_TYPE( VipsRelational, vips_relational, VIPS_TYPE_BINARY );
 
-static int
-vips_relational_build( VipsObject *object )
-{
-	VipsRelational *relational = (VipsRelational *) object;
-	VipsBinary *binary = (VipsBinary *) object;
-
-	if( relational->relational == VIPS_OPERATION_RELATIONAL_MORE ) {
-		relational->relational = VIPS_OPERATION_RELATIONAL_LESS;
-		VIPS_SWAP( VipsImage *, binary->left, binary->right );
-	}
-
-	if( relational->relational == VIPS_OPERATION_RELATIONAL_MOREEQ ) {
-		relational->relational = VIPS_OPERATION_RELATIONAL_LESSEQ;
-		VIPS_SWAP( VipsImage *, binary->left, binary->right );
-	}
-
-	if( VIPS_OBJECT_CLASS( vips_relational_parent_class )->build( object ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 #define RLOOP( TYPE, ROP ) { \
-	TYPE * restrict left = (TYPE *) in[0]; \
-	TYPE * restrict right = (TYPE *) in[1]; \
+	TYPE * restrict left = (TYPE *) in0; \
+	TYPE * restrict right = (TYPE *) in1; \
 	VipsPel * restrict q = (VipsPel *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
@@ -119,8 +99,8 @@ vips_relational_build( VipsObject *object )
 }
 
 #define CLOOP( TYPE, COP ) { \
-	TYPE * restrict left = (TYPE *) in[0]; \
-	TYPE * restrict right = (TYPE *) in[1]; \
+	TYPE * restrict left = (TYPE *) in0; \
+	TYPE * restrict right = (TYPE *) in1; \
 	VipsPel * restrict q = (VipsPel *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
@@ -149,7 +129,7 @@ vips_relational_build( VipsObject *object )
 	} 
 
 #define CEQUAL( x1, y1, x2, y2 ) (x1 == x2 && y1 == y2)
-#define CNOTEQUAL( x1, y1, x2, y2 ) (x1 != x2 || y1 != y2)
+#define CNOTEQ( x1, y1, x2, y2 ) (x1 != x2 || y1 != y2)
 #define CLESS( x1, y1, x2, y2 ) (x1 * x1 + y1 * y1 < x2 * x2 + y2 * y2)
 #define CLESSEQ( x1, y1, x2, y2 ) (x1 * x1 + y1 * y1 <= x2 * x2 + y2 * y2)
 #define CMORE( x1, y1, x2, y2 ) (x1 * x1 + y1 * y1 > x2 * x2 + y2 * y2)
@@ -163,15 +143,32 @@ vips_relational_buffer( VipsArithmetic *arithmetic,
 	VipsImage *im = arithmetic->ready[0];
 	const int sz = width * vips_image_get_bands( im );
 
+	VipsOperationRelational op;
+	VipsPel *in0;
+	VipsPel *in1;
 	int x;
 
-	switch( relational->relational ) {
+	in0 = in[0];
+	in1 = in[1];
+	op = relational->relational;
+
+	if( op == VIPS_OPERATION_RELATIONAL_MORE ) {
+		op = VIPS_OPERATION_RELATIONAL_LESS;
+		VIPS_SWAP( VipsPel *, in0, in1 );
+	}
+
+	if( op == VIPS_OPERATION_RELATIONAL_MOREEQ ) {
+		op = VIPS_OPERATION_RELATIONAL_LESSEQ;
+		VIPS_SWAP( VipsPel *, in0, in1 );
+	}
+
+	switch( op ) {
 	case VIPS_OPERATION_RELATIONAL_EQUAL: 	
 		SWITCH( RLOOP, CLOOP, ==, CEQUAL ); 
 		break;
 
-	case VIPS_OPERATION_RELATIONAL_NOTEQUAL:
-		SWITCH( RLOOP, CLOOP, !=, CNOTEQUAL ); 
+	case VIPS_OPERATION_RELATIONAL_NOTEQ:
+		SWITCH( RLOOP, CLOOP, !=, CNOTEQ ); 
 		break;
 
 	case VIPS_OPERATION_RELATIONAL_LESS: 	
@@ -217,7 +214,6 @@ vips_relational_class_init( VipsRelationalClass *class )
 
 	object_class->nickname = "relational";
 	object_class->description = _( "relational operation on two images" );
-	object_class->build = vips_relational_build;
 
 	aclass->process_line = vips_relational_buffer;
 
@@ -270,7 +266,7 @@ vips_relationalv( VipsImage *left, VipsImage *right, VipsImage **out,
  *
  * The two input images are cast up to the smallest common format (see table 
  * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * To decide if pixels match exactly, that is have the same value in every
  * band, use vips_bandbool() after this operation to AND or OR image bands 
@@ -327,7 +323,7 @@ vips_equal( VipsImage *left, VipsImage *right, VipsImage **out, ... )
  * @out: output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_RELATIONAL_NOTEQUAL on a pair of images. See
+ * Perform #VIPS_OPERATION_RELATIONAL_NOTEQ on a pair of images. See
  * vips_relational().
  *
  * Returns: 0 on success, -1 on error
@@ -340,7 +336,7 @@ vips_notequal( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 
 	va_start( ap, out );
 	result = vips_relationalv( left, right, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQUAL, ap );
+		VIPS_OPERATION_RELATIONAL_NOTEQ, ap );
 	va_end( ap );
 
 	return( result );
@@ -517,8 +513,8 @@ vips_relational_const_buffer( VipsArithmetic *arithmetic,
 		SWITCH( RLOOPC, CLOOPC, ==, CEQUAL ); 
 		break;
 
-	case VIPS_OPERATION_RELATIONAL_NOTEQUAL:
-		SWITCH( RLOOPC, CLOOPC, !=, CNOTEQUAL ); 
+	case VIPS_OPERATION_RELATIONAL_NOTEQ:
+		SWITCH( RLOOPC, CLOOPC, !=, CNOTEQ ); 
 		break;
 
 	case VIPS_OPERATION_RELATIONAL_LESS: 	
@@ -672,7 +668,7 @@ vips_equal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_RELATIONAL_NOTEQUAL on an image and a constant. See
+ * Perform #VIPS_OPERATION_RELATIONAL_NOTEQ on an image and a constant. See
  * vips_relational_const().
  *
  * Returns: 0 on success, -1 on error
@@ -685,7 +681,7 @@ vips_notequal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQUAL, c, n, ap );
+		VIPS_OPERATION_RELATIONAL_NOTEQ, c, n, ap );
 	va_end( ap );
 
 	return( result );
@@ -861,7 +857,7 @@ vips_equal_const1( VipsImage *in, VipsImage **out, double c, ... )
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
  *
- * Perform #VIPS_OPERATION_RELATIONAL_NOTEQUAL on an image and a constant. See
+ * Perform #VIPS_OPERATION_RELATIONAL_NOTEQ on an image and a constant. See
  * vips_relational_const().
  *
  * Returns: 0 on success, -1 on error
@@ -874,7 +870,7 @@ vips_notequal_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQUAL, &c, 1, ap );
+		VIPS_OPERATION_RELATIONAL_NOTEQ, &c, 1, ap );
 	va_end( ap );
 
 	return( result );

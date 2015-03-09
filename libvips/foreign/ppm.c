@@ -29,6 +29,8 @@
  * 	- add PFM (portable float map) support
  * 19/12/11
  * 	- rework as a set of fns ready to be called from a class
+ * 8/11/14
+ * 	- add 1 bit write
  */
 
 /*
@@ -68,6 +70,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <errno.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -216,7 +219,8 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 	/* For binary images, there is always exactly 1 more whitespace
 	 * character before the data starts.
 	 */
-	if( !*ascii && !isspace( fgetc( fp ) ) ) {
+	if( !*ascii && 
+		!isspace( fgetc( fp ) ) ) {
 		vips_error( "ppm2vips", "%s", 
 			_( "not whitespace before start of binary data" ) );
 		return( -1 );
@@ -291,7 +295,7 @@ read_mmap( FILE *fp, const char *filename, int msb_first, VipsImage *out )
 			"coding", out->Coding, 
 			NULL ) ||
 		vips_copy( t[1], &t[2], 
-			"swap", !vips_amiMSBfirst(), 
+			"swap", vips_amiMSBfirst() != msb_first, 
 			NULL ) ||
 		vips_image_write( t[2], out ) ) {
 		g_object_unref( x );
@@ -364,7 +368,7 @@ read_1bit_ascii( FILE *fp, VipsImage *out )
 			if( read_int( fp, &val ) )
 				return( -1 );
 
-			if( val == 1 )
+			if( val )
 				buf[x] = 0;
 			else
 				buf[x] = 255;
@@ -382,7 +386,7 @@ read_1bit_ascii( FILE *fp, VipsImage *out )
 static int
 read_1bit_binary( FILE *fp, VipsImage *out )
 {
-	int x, y, i;
+	int x, y;
 	int bits;
 	VipsPel *buf;
 
@@ -390,13 +394,18 @@ read_1bit_binary( FILE *fp, VipsImage *out )
 		return( -1 );
 
 	bits = fgetc( fp );
-	for( i = 0, y = 0; y < out->Ysize; y++ ) {
-		for( x = 0; x < out->Xsize * out->Bands; x++, i++ ) {
-			buf[x] = (bits & 128) ? 255 : 0;
+	for( y = 0; y < out->Ysize; y++ ) {
+		for( x = 0; x < out->Xsize * out->Bands; x++ ) {
+			buf[x] = (bits & 128) ? 0 : 255;
 			bits <<= 1;
-			if( (i & 7) == 7 )
+			if( (x & 7) == 7 )
 				bits = fgetc( fp );
 		}
+
+		/* Skip any unaligned bits at end of line.
+		 */
+		if( (x & 7) != 0 )
+			bits = fgetc( fp );
 
 		if( vips_image_write_line( out, y, buf ) )
 			return( -1 );
@@ -529,11 +538,13 @@ vips__ppm_flags( const char *filename )
 
 const char *vips__ppm_suffs[] = { ".ppm", ".pgm", ".pbm", ".pfm", NULL };
 
-typedef int (*write_fn)( VipsImage *in, FILE *fp, VipsPel *p );
+struct _Write;
+
+typedef int (*write_fn)( struct _Write *write, VipsPel *p );
 
 /* What we track during a PPM write.
  */
-typedef struct {
+typedef struct _Write {
 	VipsImage *in;
 	FILE *fp;
 	char *name;
@@ -570,24 +581,27 @@ write_new( VipsImage *in, const char *name )
 }
 
 static int
-write_ppm_line_ascii( VipsImage *in, FILE *fp, VipsPel *p )
+write_ppm_line_ascii( Write *write, VipsPel *p )
 {
-	const int sk = VIPS_IMAGE_SIZEOF_PEL( in );
+	const int sk = VIPS_IMAGE_SIZEOF_PEL( write->in );
 	int x, k;
 
-	for( x = 0; x < in->Xsize; x++ ) {
-		for( k = 0; k < in->Bands; k++ ) {
-			switch( in->BandFmt ) {
+	for( x = 0; x < write->in->Xsize; x++ ) {
+		for( k = 0; k < write->in->Bands; k++ ) {
+			switch( write->in->BandFmt ) {
 			case VIPS_FORMAT_UCHAR:
-				fprintf( fp, "%d ", p[k] );
+				fprintf( write->fp, 
+					"%d ", p[k] );
 				break;
 
 			case VIPS_FORMAT_USHORT:
-				fprintf( fp, "%d ", ((unsigned short *) p)[k] );
+				fprintf( write->fp, 
+					"%d ", ((unsigned short *) p)[k] );
 				break;
 
 			case VIPS_FORMAT_UINT:
-				fprintf( fp, "%d ", ((unsigned int *) p)[k] );
+				fprintf( write->fp, 
+					"%d ", ((unsigned int *) p)[k] );
 				break;
 
 			default:
@@ -595,14 +609,12 @@ write_ppm_line_ascii( VipsImage *in, FILE *fp, VipsPel *p )
 			}
 		}
 
-		fprintf( fp, " " );
-
 		p += sk;
 	}
 
-	if( !fprintf( fp, "\n" ) ) {
-		vips_error( "vips2ppm", 
-			"%s", _( "write error ... disc full?" ) );
+	if( !fprintf( write->fp, "\n" ) ) {
+		vips_error_system( errno, "vips2ppm", 
+			"%s", _( "write error" ) );
 		return( -1 );
 	}
 
@@ -610,11 +622,16 @@ write_ppm_line_ascii( VipsImage *in, FILE *fp, VipsPel *p )
 }
 
 static int
-write_ppm_line_binary( VipsImage *in, FILE *fp, VipsPel *p )
+write_ppm_line_ascii_squash( Write *write, VipsPel *p )
 {
-	if( !fwrite( p, VIPS_IMAGE_SIZEOF_LINE( in ), 1, fp ) ) {
-		vips_error( "vips2ppm", 
-			"%s", _( "write error ... disc full?" ) );
+	int x;
+
+	for( x = 0; x < write->in->Xsize; x++ ) 
+		fprintf( write->fp, "%d ", p[x] ? 0 : 1 );
+
+	if( !fprintf( write->fp, "\n" ) ) {
+		vips_error_system( errno, "vips2ppm", 
+			"%s", _( "write error" ) );
 		return( -1 );
 	}
 
@@ -622,7 +639,56 @@ write_ppm_line_binary( VipsImage *in, FILE *fp, VipsPel *p )
 }
 
 static int
-write_ppm_block( REGION *region, Rect *area, void *a )
+write_ppm_line_binary( Write *write, VipsPel *p )
+{
+	if( vips__file_write( p, VIPS_IMAGE_SIZEOF_LINE( write->in ), 1, 
+		write->fp ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+write_ppm_line_binary_squash( Write *write, VipsPel *p )
+{
+	int x;
+	int bits;
+	int n_bits;
+
+	bits = 0;
+	n_bits = 0;
+	for( x = 0; x < write->in->Xsize; x++ ) {
+		bits <<= 1;
+		n_bits += 1;
+		bits |= p[x] ? 0 : 1;
+
+		if( n_bits == 8 ) {
+			if( fputc( bits, write->fp ) == EOF ) {
+				vips_error_system( errno, "vips2ppm", 
+					"%s", _( "write error" ) );
+				return( -1 );
+			}
+
+			bits = 0;
+			n_bits = 0;
+		}
+	}
+
+	/* Flush any remaining bits in this line.
+	 */
+	if( n_bits ) {
+		if( fputc( bits, write->fp ) == EOF ) {
+			vips_error_system( errno, "vips2ppm", 
+				"%s", _( "write error" ) );
+			return( -1 );
+		}
+	}
+
+	return( 0 );
+}
+
+static int
+write_ppm_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
 	int i;
@@ -630,7 +696,7 @@ write_ppm_block( REGION *region, Rect *area, void *a )
 	for( i = 0; i < area->height; i++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
 
-		if( write->fn( write->in, write->fp, p ) )
+		if( write->fn( write, p ) )
 			return( -1 );
 	}
 
@@ -638,19 +704,24 @@ write_ppm_block( REGION *region, Rect *area, void *a )
 }
 
 static int
-write_ppm( Write *write, int ascii ) 
+write_ppm( Write *write, gboolean ascii, gboolean squash ) 
 {
 	VipsImage *in = write->in;
 
 	char *magic;
 	time_t timebuf;
 
+	magic = "unset";
 	if( in->BandFmt == VIPS_FORMAT_FLOAT && in->Bands == 3 ) 
 		magic = "PF";
 	else if( in->BandFmt == VIPS_FORMAT_FLOAT && in->Bands == 1 ) 
 		magic = "Pf";
+	else if( in->Bands == 1 && ascii && squash )
+		magic = "P1";
 	else if( in->Bands == 1 && ascii )
 		magic = "P2";
+	else if( in->Bands == 1 && !ascii && squash )
+		magic = "P4";
 	else if( in->Bands == 1 && !ascii )
 		magic = "P5";
 	else if( in->Bands == 3 && ascii )
@@ -665,36 +736,44 @@ write_ppm( Write *write, int ascii )
 	fprintf( write->fp, "#vips2ppm - %s\n", ctime( &timebuf ) );
 	fprintf( write->fp, "%d %d\n", in->Xsize, in->Ysize );
 
-	switch( in->BandFmt ) {
-	case VIPS_FORMAT_UCHAR:
-		fprintf( write->fp, "%d\n", UCHAR_MAX );
-		break;
+	if( !squash ) 
+		switch( in->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:
+			fprintf( write->fp, "%d\n", UCHAR_MAX );
+			break;
 
-	case VIPS_FORMAT_USHORT:
-		fprintf( write->fp, "%d\n", USHRT_MAX );
-		break;
+		case VIPS_FORMAT_USHORT:
+			fprintf( write->fp, "%d\n", USHRT_MAX );
+			break;
 
-	case VIPS_FORMAT_UINT:
-		fprintf( write->fp, "%d\n", UINT_MAX );
-		break;
+		case VIPS_FORMAT_UINT:
+			fprintf( write->fp, "%d\n", UINT_MAX );
+			break;
 
-	case VIPS_FORMAT_FLOAT:
+		case VIPS_FORMAT_FLOAT:
 {
-		double scale;
+			double scale;
 
-		if( vips_image_get_double( in, "pfm-scale", &scale ) )
-			scale = 1;
-		if( !vips_amiMSBfirst() )
-			scale *= -1;
-		fprintf( write->fp, "%g\n", scale );
+			if( vips_image_get_double( in, "pfm-scale", &scale ) )
+				scale = 1;
+			if( !vips_amiMSBfirst() )
+				scale *= -1;
+			fprintf( write->fp, "%g\n", scale );
 }
-		break;
+			break;
 
-	default:
-		g_assert( 0 );
-	}
+		default:
+			g_assert( 0 );
+		}
 
-	write->fn = ascii ? write_ppm_line_ascii : write_ppm_line_binary;
+	if( squash )
+		write->fn = ascii ? 
+			write_ppm_line_ascii_squash : 
+			write_ppm_line_binary_squash;
+	else
+		write->fn = ascii ? 
+			write_ppm_line_ascii : 
+			write_ppm_line_binary;
 
 	if( vips_sink_disc( write->in, write_ppm_block, write ) )
 		return( -1 );
@@ -703,7 +782,8 @@ write_ppm( Write *write, int ascii )
 }
 
 int
-vips__ppm_save( VipsImage *in, const char *filename, gboolean ascii )
+vips__ppm_save( VipsImage *in, const char *filename, 
+	gboolean ascii, gboolean squash )
 {
 	Write *write;
 
@@ -713,20 +793,29 @@ vips__ppm_save( VipsImage *in, const char *filename, gboolean ascii )
 		vips_image_pio_input( in ) )
 		return( -1 );
 
-	/* We can only write >8 bit binary images in float.
+	if( ascii && 
+		in->BandFmt == VIPS_FORMAT_FLOAT ) {
+		vips_warn( "vips2ppm", 
+			"%s", _( "float images must be binary -- "
+				"disabling ascii" ) );
+		ascii = FALSE;
+	}
+
+	/* One bit images must come from a 8 bit, one band source. 
 	 */
-	if( vips_format_sizeof( in->BandFmt ) > 1 && 
-		!ascii && 
-		in->BandFmt != VIPS_FORMAT_FLOAT ) {
-		vips_error( "vips2ppm", 
-			"%s", _( "binary >8 bit images must be float" ) );
-		return( -1 );
+	if( squash && 
+		(in->Bands != 1 || 
+		 in->BandFmt != VIPS_FORMAT_UCHAR) ) {
+		vips_warn( "vips2ppm", 
+			"%s", _( "can only squash 1 band uchar images -- "
+				"disabling squash" ) );
+		squash = FALSE; 
 	}
 
 	if( !(write = write_new( in, filename )) )
 		return( -1 );
 
-	if( write_ppm( write, ascii ) ) {
+	if( write_ppm( write, ascii, squash ) ) {
 		write_destroy( write );
 		return( -1 );
 	}

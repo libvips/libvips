@@ -35,7 +35,6 @@ libvips/arithmetic/math2.c
 libvips/arithmetic/linear.c
 libvips/arithmetic/boolean.c
 libvips/arithmetic/sign.c
-libvips/cimg/cimg_dispatch.c
 libvips/colour/scRGB2sRGB.c
 libvips/colour/XYZ2scRGB.c
 libvips/colour/Lab2XYZ.c
@@ -76,6 +75,7 @@ libvips/conversion/cache.c
 libvips/conversion/join.c
 libvips/conversion/gamma.c
 libvips/conversion/rot45.c
+libvips/conversion/autorot.c
 libvips/conversion/extract.c
 libvips/conversion/wrap.c
 libvips/conversion/zoom.c
@@ -107,7 +107,6 @@ libvips/convolution/conv.c
 libvips/convolution/im_conv_f.c
 libvips/convolution/convolution.c
 libvips/create/mask.c
-libvips/create/other_dispatch.c
 libvips/create/zone.c
 libvips/create/invertlut.c
 libvips/create/mask_gaussian.c
@@ -127,7 +126,6 @@ libvips/create/eye.c
 libvips/create/text.c
 libvips/create/gaussmat.c
 libvips/create/xyz.c
-libvips/create/im_benchmark.c
 libvips/create/mask_butterworth.c
 libvips/create/mask_gaussian_ring.c
 libvips/create/mask_fractal.c
@@ -264,6 +262,7 @@ libvips/mosaicing/match.c
 libvips/mosaicing/global_balance.c
 libvips/resample/interpolate.c
 libvips/resample/resample.c
+libvips/resample/resize.c
 libvips/resample/transform.c
 libvips/resample/similarity.c
 libvips/resample/shrink.c
@@ -271,18 +270,16 @@ libvips/resample/quadratic.c
 libvips/resample/affine.c
 libvips/video/im_video_test.c
 libvips/video/video_dispatch.c
-tools/edvips.c
-tools/find_mosaic.c
-tools/header.c
-tools/mergeup.c
 tools/vips.c
+tools/vipsedit.c
+tools/vipsheader.c
 tools/vipsthumbnail.c
 libvipsCC/VDisplay.cc
 libvipsCC/VError.cc
 libvipsCC/VImage.cc
-libvipsCC/vipsc++.cc
 libvipsCC/VMask.cc
-libvips/cimg/dummy2.cc
+cplusplus/include/vips/VImage8.h
+cplusplus/include/vips/VError8.h
 libvips/arithmetic/unaryconst.h
 libvips/arithmetic/nary.h
 libvips/arithmetic/binary.h
@@ -296,7 +293,6 @@ libvipsCC/include/vips/VImage.h
 libvipsCC/include/vips/vipsc++.h
 libvipsCC/include/vips/vipscpp.h
 libvipsCC/include/vips/VMask.h
-libvips/cimg/CImg.h
 libvips/colour/pcolour.h
 libvips/conversion/pconversion.h
 libvips/conversion/bandary.h
@@ -382,7 +378,8 @@ libvips/mosaicing/pmosaicing.h
 libvips/mosaicing/global_balance.h
 libvips/resample/presample.h
 libvips/resample/templates.h
-libvips/cimg/cimg.cpp
+cplusplus/VError.cpp
+cplusplus/VImage.cpp
 libvips/resample/vsqbs.cpp
 libvips/resample/bicubic.cpp
 libvips/resample/lbb.cpp

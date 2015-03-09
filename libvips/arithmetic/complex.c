@@ -135,7 +135,7 @@ G_DEFINE_TYPE( VipsComplex, vips_complex, VIPS_TYPE_UNARY );
 	double am, ph; \
 	\
 	am = sqrt( re * re + im * im ); \
-	ph = im_col_ab2h( re, im ); \
+	ph = vips_col_ab2h( re, im ); \
 	\
 	Q[0] = am; \
 	Q[1] = ph; \
@@ -932,6 +932,7 @@ vips_complexform_init( VipsComplexform *complexform )
  * @left: input image 
  * @right: input image 
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Compose two real images to make a complex image. If either @left or @right 
  * are #VIPS_FORMAT_DOUBLE, @out is #VIPS_FORMAT_DPCOMPLEX. Otherwise @out 

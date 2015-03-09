@@ -87,7 +87,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsUnaryConst, vips_unary_const, VIPS_TYPE_UNARY );
  */
 static VipsPel *
 make_pixel( VipsObject *obj, 
-	int m, VipsBandFmt fmt, int n, double * restrict p )
+	int m, VipsBandFormat fmt, int n, double * restrict p )
 {
 	VipsPel *q;
 	int i;

@@ -212,7 +212,8 @@ vips_text_build( VipsObject *object )
 	text->bitmap.pitch = (text->bitmap.width + 3) & ~3;
 	text->bitmap.rows = height;
 	if( !(text->bitmap.buffer = 
-		im_malloc( NULL, text->bitmap.pitch * text->bitmap.rows )) ) {
+		VIPS_ARRAY( NULL, 
+			text->bitmap.pitch * text->bitmap.rows, VipsPel )) ) {
 		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
 	}
@@ -350,7 +351,7 @@ vips_text_init( VipsText *text )
  * @dpi sets the resolution to render at. "sans 12" at 72 dpi draws characters
  * approximately 12 pixels high.
  *
- * See also: vips_make_xy(), vips_text(), vips_gaussnoise().
+ * See also: vips_xyz(), vips_text(), vips_gaussnoise().
  *
  * Returns: 0 on success, -1 on error
  */

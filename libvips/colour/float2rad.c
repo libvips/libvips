@@ -212,21 +212,22 @@ vips_float2rad_init( VipsFloat2rad *float2rad )
 	colour->coding = VIPS_CODING_RAD;
 	colour->interpretation = VIPS_INTERPRETATION_scRGB;
 	colour->format = VIPS_FORMAT_UCHAR;
+	colour->input_bands = 3;
 	colour->bands = 4;
 
 	code->input_coding = VIPS_CODING_NONE;
 	code->input_format = VIPS_FORMAT_FLOAT;
-	code->input_bands = 3;
 }
 
 /**
  * vips_float2rad:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Convert a three-band float image to Radiance 32-bit packed format.
  *
- * See also: vips_rad2float(), #VipsFormatRad, vips_LabQ2Lab().
+ * See also: vips_rad2float(), #VIPS_CODING_RAD, vips_LabQ2Lab().
  *
  * Returns: 0 on success, -1 on error.
  */

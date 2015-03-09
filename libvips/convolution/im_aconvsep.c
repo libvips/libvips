@@ -827,7 +827,7 @@ aconvsep_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
  *
  * The mask must be 1xn or nx1 elements. 
  * The output image 
- * always has the same #VipsBandFmt as the input image. 
+ * always has the same #VipsBandFormat as the input image. 
  *
  * The image is convolved twice: once with @mask and then again with @mask 
  * rotated by 90 degrees. 

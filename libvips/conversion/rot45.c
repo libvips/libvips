@@ -194,7 +194,7 @@ vips_rot45_build( VipsObject *object )
 	if( vips_check_oddsquare( class->nickname, rot45->in ) )
 		return( -1 ); 
 
-	if( rot45->angle == VIPS_ANGLE45_0 )
+	if( rot45->angle == VIPS_ANGLE45_D0 )
 		return( vips_image_write( rot45->in, conversion->out ) );
 
 	if( vips_image_wio_input( rot45->in ) )
@@ -210,31 +210,31 @@ vips_rot45_build( VipsObject *object )
 	from = rot45->in;
 
 	switch( rot45->angle ) {
-	case VIPS_ANGLE45_315:
+	case VIPS_ANGLE45_D315:
 		vips_rot45_rot45( t[0], from );
 		from = t[0];
 		
-	case VIPS_ANGLE45_270:
+	case VIPS_ANGLE45_D270:
 		vips_rot45_rot45( t[0], from );
 		from = t[0];
 
-	case VIPS_ANGLE45_225:
+	case VIPS_ANGLE45_D225:
 		vips_rot45_rot45( t[0], from );
 		from = t[0];
 
-	case VIPS_ANGLE45_180:
+	case VIPS_ANGLE45_D180:
 		vips_rot45_rot45( t[0], from );
 		from = t[0];
 
-	case VIPS_ANGLE45_135:
+	case VIPS_ANGLE45_D135:
 		vips_rot45_rot45( t[0], from );
 		from = t[0];
 
-	case VIPS_ANGLE45_90:
+	case VIPS_ANGLE45_D90:
 		vips_rot45_rot45( t[0], from );
 		from = t[0];
 
-	case VIPS_ANGLE45_45:
+	case VIPS_ANGLE45_D45:
 		vips_rot45_rot45( t[0], from );
 		break;
 
@@ -278,13 +278,13 @@ vips_rot45_class_init( VipsRot45Class *class )
 		_( "Angle to rotate image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsRot45, angle ),
-		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_45 ); 
+		VIPS_TYPE_ANGLE45, VIPS_ANGLE45_D45 ); 
 }
 
 static void
 vips_rot45_init( VipsRot45 *rot45 )
 {
-	rot45->angle = VIPS_ANGLE45_45;
+	rot45->angle = VIPS_ANGLE45_D45;
 }
 
 /**

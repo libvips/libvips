@@ -153,21 +153,12 @@ vips_sum_init( VipsSum *sum )
 static int
 vips_sumv( VipsImage **in, VipsImage **out, int n, va_list ap )
 {
-	VipsArea *area;
-	VipsImage **array; 
-	int i;
+	VipsArrayImage *array; 
 	int result;
 
-	area = vips_area_new_array_object( n );
-	array = (VipsImage **) area->data;
-	for( i = 0; i < n; i++ ) {
-		array[i] = in[i];
-		g_object_ref( array[i] );
-	}
-
-	result = vips_call_split( "sum", ap, area, out );
-
-	vips_area_unref( area );
+	array = vips_array_image_new( in, n );
+	result = vips_call_split( "sum", ap, array, out );
+	vips_area_unref( VIPS_AREA( array ) );
 
 	return( result );
 }
@@ -179,7 +170,7 @@ vips_sumv( VipsImage **in, VipsImage **out, int n, va_list ap )
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
  *
- * This operation sums @in1 + @in2 and writes the result to @out. 
+ * This operation sums all images in @in and writes the result to @out. 
  *
  * If the images differ in size, the smaller images are enlarged to match the
  * largest by adding zero pixels along the bottom and right.
@@ -191,7 +182,7 @@ vips_sumv( VipsImage **in, VipsImage **out, int n, va_list ap )
  *
  * The input images are cast up to the smallest common format (see table 
  * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
+ * <link linkend="libvips-arithmetic">arithmetic</link>), then the 
  * following table is used to determine the output type:
  *
  * <table>

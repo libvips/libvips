@@ -227,7 +227,7 @@ vips_draw_circle_class_init( VipsDrawCircleClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "draw_circle";
-	vobject_class->description = _( "draw a draw_circle on an image" );
+	vobject_class->description = _( "draw a circle on an image" );
 	vobject_class->build = vips_draw_circle_build;
 
 	VIPS_ARG_INT( class, "cx", 3, 
@@ -289,6 +289,7 @@ vips_draw_circlev( VipsImage *image,
  * @cx: centre of draw_circle
  * @cy: centre of draw_circle
  * @radius: draw_circle radius
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
@@ -299,7 +300,7 @@ vips_draw_circlev( VipsImage *image,
  *
  * @ink is an array of double containing values to draw. 
  *
- * See also: vips_draw_circle1(), vips_line().
+ * See also: vips_draw_circle1(), vips_draw_line().
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -324,6 +325,7 @@ vips_draw_circle( VipsImage *image,
  * @cx: centre of draw_circle
  * @cy: centre of draw_circle
  * @radius: draw_circle radius
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *

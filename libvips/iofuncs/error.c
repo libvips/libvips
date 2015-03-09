@@ -206,7 +206,8 @@ vips_verror( const char *domain, const char *fmt, va_list ap )
 	g_mutex_lock( vips__global_lock );
 	g_assert( vips_error_freeze_count >= 0 );
 	if( !vips_error_freeze_count ) {
-		vips_buf_appendf( &vips_error_buf, "%s: ", domain );
+		if( domain ) 
+			vips_buf_appendf( &vips_error_buf, "%s: ", domain );
 		vips_buf_vappendf( &vips_error_buf, fmt, ap );
 		vips_buf_appends( &vips_error_buf, "\n" );
 	}
@@ -220,7 +221,7 @@ vips_verror( const char *domain, const char *fmt, va_list ap )
  * vips_error: 
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
- * @Varargs: arguments to the format string
+ * @...: arguments to the format string
  *
  * Format the string in the style of printf() and append to the error buffer.
  *
@@ -286,7 +287,7 @@ vips_verror_system( int err, const char *domain, const char *fmt, va_list ap )
  * @err: the system error code
  * @domain: the source of the error
  * @fmt: printf()-style format string for the error
- * @Varargs: arguments to the format string
+ * @...: arguments to the format string
  *
  * Format the string in the style of printf() and append to the error buffer.
  * Then create and append a localised message based on the system error code,
@@ -371,19 +372,33 @@ vips_error_clear( void )
 }
 
 /**
+ * vips_info_set:
+ * @info: %TRUE to enable info messages
+ *
+ * If set, vips will output various informative messages to stderr as it works.
+ *
+ * See also: vips_info().
+ */
+void
+vips_info_set( gboolean info )
+{
+	vips__info = info;
+}
+
+/**
  * vips_vinfo: 
  * @domain: the source of the message
  * @fmt: printf()-style format string for the message
  * @ap: arguments to the format string
  *
  * Sends a formatted informational message to stderr if the --vips-info flag
- * has been given to the program or the environment variable IM_INFO has been
- * defined. 
+ * has been given to the program, or the environment variable VIPS_INFO has been
+ * defined, or if vips_info_set() has been called. 
  *
  * Informational messages are used to report details about the operation of
  * functions.
  *
- * See also: vips_info(), vips_warn().
+ * See also: vips_info(), vips_info_set(), vips_warn().
  */
 void 
 vips_vinfo( const char *domain, const char *fmt, va_list ap )
@@ -403,16 +418,16 @@ vips_vinfo( const char *domain, const char *fmt, va_list ap )
  * vips_info: 
  * @domain: the source of the diagnostic message
  * @fmt: printf()-style format string for the message
- * @Varargs: arguments to the format string
+ * @...: arguments to the format string
  *
  * Sends a formatted informational message to stderr if the --vips-info flag
- * has been given to the program or the environment variable IM_INFO has been
- * defined. 
+ * has been given to the program or the environment variable VIPS_INFO has been
+ * defined, or if vips_info_set() has been called. 
  *
  * Informational messages are used to report details about the operation of
  * functions.
  *
- * See also: vips_vdiag(), vips_warn().
+ * See also: vips_info_set(), vips_vinfo(), vips_warn().
  */
 void 
 vips_info( const char *domain, const char *fmt, ... )
@@ -459,7 +474,7 @@ vips_vwarn( const char *domain, const char *fmt, va_list ap )
  * vips_warn: 
  * @domain: the source of the warning message
  * @fmt: printf()-style format string for the message
- * @Varargs: arguments to the format string
+ * @...: arguments to the format string
  *
  * Sends a formatted warning message to stderr. If you define the
  * environment variable IM_WARNING, these message are surpressed.
@@ -481,7 +496,7 @@ vips_warn( const char *domain, const char *fmt, ... )
 /**
  * vips_error_exit: 
  * @fmt: printf()-style format string for the message
- * @Varargs: arguments to the format string
+ * @...: arguments to the format string
  *
  * Sends a formatted error message to stderr, then sends the contents of the
  * error buffer, if any, then shuts down vips and terminates the program with 
@@ -1272,7 +1287,8 @@ vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
 {
 	*out = NULL;
 
-	if( im->Xsize > 100000 || im->Ysize > 100000 ) {
+	if( im->Xsize > 100000 || 
+		im->Ysize > 100000 ) {
 		vips_error( domain, "%s", _( "matrix image too large" ) );
 		return( -1 );
 	}
@@ -1318,80 +1334,25 @@ vips_check_separable( const char *domain, VipsImage *im )
 }
 
 /**
- * vips_check_imask: (skip)
+ * vips_check_precision_intfloat:
  * @domain: the originating domain for the error message
- * @mask: mask to check
+ * @precision: precision to check
  *
- * Sanity-check a mask parameter.
+ * Check that @prec image is either float or int.
+ * If not, set an error message
+ * and return non-zero.
  *
  * See also: vips_error().
  *
- * Returns: 0 if OK, -1 otherwise.
+ * Returns: 0 on OK, or -1 on error.
  */
 int
-vips_check_imask( const char *domain, INTMASK *mask )
+vips_check_precision_intfloat( const char *domain, VipsPrecision precision )
 {
-	if( !mask || 
-		mask->xsize > 1000 || 
-		mask->ysize > 1000 || 
-		mask->xsize <= 0 || 
-		mask->ysize <= 0 || 
-		mask->scale == 0 || 
-		!mask->coeff ) {
-		vips_error( domain, "%s", _( "nonsense mask parameters" ) );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
-/**
- * vips_check_dmask: (skip)
- * @domain: the originating domain for the error message
- * @mask: mask to check
- *
- * Sanity-check a mask parameter.
- *
- * See also: vips_error().
- *
- * Returns: 0 if OK, -1 otherwise.
- */
-int
-vips_check_dmask( const char *domain, DOUBLEMASK *mask )
-{
-	if( !mask || 
-		mask->xsize > 1000 || 
-		mask->ysize > 1000 || 
-		mask->xsize <= 0 || 
-		mask->ysize <= 0 || 
-		mask->scale == 0 || 
-		!mask->coeff ) {
-		vips_error( domain, "%s", _( "nonsense mask parameters" ) );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
-/**
- * vips_check_dmask_1d: (skip)
- * @domain: the originating domain for the error message
- * @mask: mask to check
- *
- * A mask must be one-dimensional (width or height 1).
- *
- * See also: vips_error().
- *
- * Returns: 0 if OK, -1 otherwise.
- */
-int
-vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask )
-{
-	if( vips_check_dmask( domain, mask ) )
-		return( -1 );
-	if( mask->xsize != 1 &&
-		mask->ysize != 1 ) {
-		vips_error( domain, "%s", _( "mask must be 1D" ) );
+	if( precision != VIPS_PRECISION_INTEGER &&
+		precision != VIPS_PRECISION_FLOAT ) {
+		vips_error( domain,
+			"%s", _( "precision must be int or float" ) );
 		return( -1 );
 	}
 

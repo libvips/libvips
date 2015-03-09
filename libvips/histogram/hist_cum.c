@@ -87,7 +87,8 @@ vips_hist_cum_process( VipsHistogram *histogram,
 	VipsPel *out, VipsPel **in, int width )
 {
 	const int bands = vips_image_get_bands( histogram->ready[0] );
-	const int nb = vips_bandfmt_iscomplex( histogram->ready[0]->BandFmt ) ? 
+	const int nb = 
+		vips_band_format_iscomplex( histogram->ready[0]->BandFmt ) ? 
 		bands * 2 : bands;
 	int mx = width * nb;
 

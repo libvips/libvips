@@ -98,7 +98,7 @@ typedef enum {
 /** 
  * VipsOperationRelational:
  * @VIPS_OPERATION_RELATIONAL_EQUAL: ==
- * @VIPS_OPERATION_RELATIONAL_NOTEQUAL: !=
+ * @VIPS_OPERATION_RELATIONAL_NOTEQ: !=
  * @VIPS_OPERATION_RELATIONAL_LESS: <
  * @VIPS_OPERATION_RELATIONAL_LESSEQ: <=
  * @VIPS_OPERATION_RELATIONAL_MORE: >
@@ -108,7 +108,7 @@ typedef enum {
  */
 typedef enum {
 	VIPS_OPERATION_RELATIONAL_EQUAL,
-	VIPS_OPERATION_RELATIONAL_NOTEQUAL,
+	VIPS_OPERATION_RELATIONAL_NOTEQ,
 	VIPS_OPERATION_RELATIONAL_LESS,
 	VIPS_OPERATION_RELATIONAL_LESSEQ,
 	VIPS_OPERATION_RELATIONAL_MORE,
@@ -121,6 +121,8 @@ typedef enum {
  * @VIPS_OPERATION_BOOLEAN_AND: &
  * @VIPS_OPERATION_BOOLEAN_OR: |
  * @VIPS_OPERATION_BOOLEAN_EOR: ^
+ * @VIPS_OPERATION_BOOLEAN_LSHIFT: >>
+ * @VIPS_OPERATION_BOOLEAN_RSHIFT: <<
  *
  * See also: vips_boolean().
  */
@@ -333,6 +335,9 @@ int vips_eorimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 int vips_lshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 	__attribute__((sentinel));
 int vips_rshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_boolean_const1( VipsImage *in, VipsImage **out, 
+	VipsOperationBoolean boolean, double c, ... )
 	__attribute__((sentinel));
 int vips_andimage_const1( VipsImage *in, VipsImage **out, double c, ... )
 	__attribute__((sentinel));

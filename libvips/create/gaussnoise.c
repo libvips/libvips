@@ -20,6 +20,8 @@
  * 	- gtkdoc
  * 29/5/13
  * 	- redo as a class
+ * 8/11/14
+ * 	- use g_random_double()
  */
 
 /*
@@ -75,18 +77,6 @@ typedef VipsCreateClass VipsGaussnoiseClass;
 
 G_DEFINE_TYPE( VipsGaussnoise, vips_gaussnoise, VIPS_TYPE_CREATE );
 
-/* Make a random number in 0 - 1. Prefer random(). 
- */
-#ifdef HAVE_RANDOM
-#define VIPS_RND() ((double) random() / RAND_MAX)
-#else /*!HAVE_RANDOM*/
-#ifdef HAVE_RAND
-#define VIPS_RND() ((double) rand() / RAND_MAX)
-#else /*!HAVE_RAND*/
-#error "no random number generator found"
-#endif /*HAVE_RAND*/
-#endif /*HAVE_RANDOM*/
-
 static int
 vips_gaussnoise_gen( VipsRegion *or, void *seq, void *a, void *b,
 	gboolean *stop )
@@ -108,7 +98,7 @@ vips_gaussnoise_gen( VipsRegion *or, void *seq, void *a, void *b,
 
 			sum = 0.0;
 			for( i = 0; i < 12; i++ ) 
-				sum += VIPS_RND(); 
+				sum += g_random_double(); 
 
 			q[x] = (sum - 6.0) * gaussnoise->sigma + 
 				gaussnoise->mean;
@@ -146,6 +136,7 @@ vips_gaussnoise_class_init( VipsGaussnoiseClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -153,6 +144,10 @@ vips_gaussnoise_class_init( VipsGaussnoiseClass *class )
 	vobject_class->nickname = "gaussnoise";
 	vobject_class->description = _( "make a gaussnoise image" );
 	vobject_class->build = vips_gaussnoise_build;
+
+	/* We want a new set of numbers each time.
+	 */
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_INT( class, "width", 4, 
 		_( "Width" ), 
@@ -207,7 +202,7 @@ vips_gaussnoise_init( VipsGaussnoise *gaussnoise )
  * distribution. The noise distribution is created by averaging 12 random 
  * numbers with the appropriate weights.
  *
- * See also: vips_black(), im_make_xy(), im_text().
+ * See also: vips_black(), vips_xyz(), vips_text().
  *
  * Returns: 0 on success, -1 on error
  */

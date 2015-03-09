@@ -62,7 +62,7 @@
 #include "pcolour.h"
 
 typedef struct _VipsLab2XYZ {
-	VipsColourSpace parent_instance;
+	VipsColourTransform parent_instance;
 
 	/* The colour temperature -- default to D65. 
 	 */
@@ -76,9 +76,9 @@ typedef struct _VipsLab2XYZ {
 
 } VipsLab2XYZ;
 
-typedef VipsColourSpaceClass VipsLab2XYZClass;
+typedef VipsColourTransformClass VipsLab2XYZClass;
 
-G_DEFINE_TYPE( VipsLab2XYZ, vips_Lab2XYZ, VIPS_TYPE_COLOUR_SPACE );
+G_DEFINE_TYPE( VipsLab2XYZ, vips_Lab2XYZ, VIPS_TYPE_COLOUR_TRANSFORM );
 
 /* Process a buffer of data.
  */
@@ -195,6 +195,7 @@ vips_Lab2XYZ_init( VipsLab2XYZ *Lab2XYZ )
  * vips_Lab2XYZ:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * optional arguments:
  *

@@ -55,12 +55,41 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
+/**
+ * SECTION: basic
+ * @short_description: a few typedefs used everywhere
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * A few simple typedefs used by VIPS. 
+ */
+
+/**
+ * SECTION: type
+ * @short_description: basic types
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-header">header</link>
+ * @include: vips/vips.h
+ *
+ * A selection of %GType defintions used by VIPS. 
+ */
+
 /* A very simple boxed type for testing. Just an int.
+ *
+ * You can manipulate this thing from Python (for example) with:
+ *
+ * from gi.repository import Vips
+ * a = Vips.Thing.new(12)
+ * print a.i
+ * b = a
+ * del a
+ * print b.i
+ * del b
  */
 
 /**
  * vips_thing_new:
- * @n:
+ * @i:
  *
  * Returns: (transfer full): a new #VipsThing.
  */
@@ -97,14 +126,6 @@ vips_thing_free( VipsThing *thing )
 	g_free( thing );
 }
 
-int 
-vips_thing_get_i( VipsThing *thing )
-{
-	printf( "vips_thing_get_i: %d %p\n", thing->i, thing );
-
-	return( thing->i );
-}
-
 /*
  * glib-2.26+ only 
  
@@ -127,21 +148,6 @@ vips_thing_get_type( void )
 
 	return( type );
 }
-
-/**
- * SECTION: VipsArea
- * @short_description: an area of memory
- * @stability: Stable
- * @see_also: <link linkend="libvips-meta">header</link>,
- * @include: vips/vips.h
- *
- * A VipsArea wraps a chunk of memory. It adds reference counting and a free
- * function. It also keeps a count and a GType, so the area can be an array.
- *
- * This type is used for things like passing an array of double or an array of
- * VipsObject pointers to operations, and for reference-counted immutable
- * strings. 
- */
 
 static GSList *vips_area_all = NULL;
 
@@ -217,8 +223,14 @@ vips_area_unref( VipsArea *area )
  * @free_fn: (scope async): @data will be freed with this function
  * @data: data will be freed with this function
  *
- * An area of memory with a free function. (eg. \0-terminated string, or a 
- * struct). Inital count == 1, so _unref() after attaching somewhere.
+ * A VipsArea wraps a chunk of memory. It adds reference counting and a free
+ * function. It also keeps a count and a %GType, so the area can be an array.
+ *
+ * This type is used for things like passing an array of double or an array of
+ * #VipsObject pointers to operations, and for reference-counted immutable
+ * strings. 
+ *
+ * Inital count == 1, so _unref() after attaching somewhere.
  *
  * See also: vips_area_unref().
  *
@@ -272,38 +284,12 @@ vips__type_leak( void )
 }
 
 /**
- * vips_area_new_blob: 
- * @free_fn: (scope async): @data will be freed with this function
- * @data: data will be freed with this function
- * @length: number of bytes in @data
- *
- * Like vips_area_new(), but track a length as well.
- *
- * An area of mem with a free func and a length (some sort of binary object,
- * like an ICC profile).
- * 
- * See also: vips_area_unref().
- *
- * Returns: (transfer full): the new #VipsArea.
- */
-VipsArea *
-vips_area_new_blob( VipsCallbackFn free_fn, void *data, size_t length )
-{
-	VipsArea *area;
-
-	area = vips_area_new( free_fn, data );
-	area->length = length;
-
-	return( area );
-}
-
-/**
  * vips_area_new_array: 
  * @type: %GType of elements to store
  * @sizeof_type: sizeof() an element in the array
  * @n: number of elements in the array
  *
- * An area which holds an array of elements of some GType. To set values for
+ * An area which holds an array of elements of some %GType. To set values for
  * the elements, get the pointer and write.
  *
  * See also: vips_area_unref().
@@ -333,6 +319,7 @@ vips_area_free_array_object( GObject **array, VipsArea *area )
 
 	for( i = 0; i < area->n; i++ ) 
 		VIPS_FREEF( g_object_unref, array[i] );
+	VIPS_FREE( array ); 
 
 	area->n = 0;
 }
@@ -341,8 +328,11 @@ vips_area_free_array_object( GObject **array, VipsArea *area )
  * vips_area_new_array_object:
  * @n: number of elements in the array
  *
- * An area which holds an array of GObjects. See vips_area_new_array(). When
+ * An area which holds an array of %GObject s. See vips_area_new_array(). When
  * the area is freed, each %GObject will be unreffed.
+ *
+ * Add an extra NULL element at the end, handy for eg.
+ * vips_image_pipeline_array() etc. 
  *
  * See also: vips_area_unref().
  *
@@ -354,7 +344,7 @@ vips_area_new_array_object( int n )
 	GObject **array;
 	VipsArea *area;
 
-	array = g_new0( GObject *, n );
+	array = g_new0( GObject *, n + 1 );
 	area = vips_area_new( (VipsCallbackFn) vips_area_free_array_object, 
 		array );
 	area->n = n;
@@ -533,6 +523,52 @@ vips_ref_string_get_type( void )
 	return( type );
 }
 
+/**
+ * vips_blob_new: 
+ * @free_fn: (scope async) (allow-none): @data will be freed with this function
+ * @data: (array length=size) (element-type guint8) (transfer full): data to store
+ * @size: number of bytes in @data
+ *
+ * Like vips_area_new(), but track a length as well. The returned #VipsBlob
+ * takes ownership of @data and will free it with @free_fn. Pass NULL for
+ * @free_fn to not transfer ownership.
+ *
+ * An area of mem with a free func and a length (some sort of binary object,
+ * like an ICC profile).
+ * 
+ * See also: vips_area_unref().
+ *
+ * Returns: (transfer full): the new #VipsBlob.
+ */
+VipsBlob *
+vips_blob_new( VipsCallbackFn free_fn, const void *data, size_t size )
+{
+	VipsArea *area;
+
+	area = vips_area_new( free_fn, (void *) data );
+	area->length = size;
+
+	return( (VipsBlob *) area );
+}
+
+/**
+ * vips_blob_get: 
+ * @blob: #VipsBlob to fetch from
+ * @size: return number of bytes of data
+ *
+ * Get the data from a #VipsBlob. 
+ * 
+ * See also: vips_blob_new().
+ *
+ * Returns: (array length=size) (element-type guint8) (transfer none): the data
+ */
+const void *
+vips_blob_get( VipsBlob *blob, size_t *size )
+{
+	return( vips_area_get_data( VIPS_AREA( blob ), 
+		size, NULL, NULL, NULL ) ); 
+}
+
 /* Transform a blob to a G_TYPE_STRING.
  */
 static void
@@ -597,6 +633,84 @@ vips_blob_get_type( void )
 	return( type );
 }
 
+/**
+ * vips_array_int_new:
+ * @array: (array length=n): array of int
+ * @n: number of ints
+ *
+ * Allocate a new array of ints and copy @array into it. Free with
+ * vips_area_unref().
+ *
+ * See also: #VipsArea.
+ *
+ * Returns: (transfer full): A new #VipsArrayInt.
+ */
+VipsArrayInt *
+vips_array_int_new( const int *array, int n )
+{
+	VipsArea *area;
+	int *array_copy;
+
+	area = vips_area_new_array( G_TYPE_INT, sizeof( int ), n );
+	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+	memcpy( array_copy, array, n * sizeof( int ) );
+
+	return( (VipsArrayInt *) area );
+}
+
+/**
+ * vips_array_int_newv:
+ * @n: number of ints
+ * @...: list of int arguments
+ *
+ * Allocate a new array of @n ints and copy @... into it. Free with
+ * vips_area_unref().
+ *
+ * See also: vips_array_int_new()
+ *
+ * Returns: (transfer full): A new #VipsArrayInt.
+ */
+VipsArrayInt *
+vips_array_int_newv( int n, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int *array;
+	int i;
+
+	area = vips_area_new_array( G_TYPE_INT, sizeof( int ), n );
+	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+
+	va_start( ap, n );
+	for( i = 0; i < n; i++ )
+		array[i] = va_arg( ap, int ); 
+	va_end( ap );
+
+	return( (VipsArrayInt *) area );
+}
+
+/**
+ * vips_array_int_get:
+ * @array: the #VipsArrayInt to fetch from
+ * @n: length of array
+ *
+ * Fetch an int array from a #VipsArrayInt. Useful for language bindings. 
+ *
+ * Returns: (array length=n) (transfer none): array of int
+ */
+int *
+vips_array_int_get( VipsArrayInt *array, int *n )
+{
+	VipsArea *area = VIPS_AREA( array );
+
+	g_assert( area->type == G_TYPE_INT ); 
+
+	if( n )
+		*n = area->n;
+
+	return( (int *) VIPS_ARRAY_ADDR( array, 0 ) ); 
+}
+
 static void
 transform_array_int_g_string( const GValue *src_value, GValue *dest_value )
 {
@@ -644,8 +758,8 @@ transform_g_string_array_int( const GValue *src_value, GValue *dest_value )
 
 	g_free( str );
 
-	vips_value_set_array( dest_value, n, G_TYPE_INT, sizeof( int ) );
-	array = (int *) vips_value_get_array( dest_value, NULL, NULL, NULL );
+	vips_value_set_array_int( dest_value, NULL, n ); 
+	array = vips_value_get_array_int( dest_value, NULL ); 
 
 	str = g_value_dup_string( src_value );
 
@@ -668,6 +782,28 @@ transform_g_string_array_int( const GValue *src_value, GValue *dest_value )
 	g_free( str );
 }
 
+/* We need a arrayint, we have an int, make a one-element array.
+ */
+static void
+transform_int_array_int( const GValue *src_value, GValue *dest_value )
+{
+	int *array;
+
+	vips_value_set_array_int( dest_value, NULL, 1 ); 
+	array = vips_value_get_array_int( dest_value, NULL ); 
+	array[0] = g_value_get_int( src_value ); 
+}
+
+static void
+transform_double_array_int( const GValue *src_value, GValue *dest_value )
+{
+	int *array;
+
+	vips_value_set_array_int( dest_value, NULL, 1 ); 
+	array = vips_value_get_array_int( dest_value, NULL ); 
+	array[0] = g_value_get_double( src_value ); 
+}
+
 GType
 vips_array_int_get_type( void )
 {
@@ -681,9 +817,91 @@ vips_array_int_get_type( void )
 			transform_array_int_g_string );
 		g_value_register_transform_func( G_TYPE_STRING, type,
 			transform_g_string_array_int );
+		g_value_register_transform_func( G_TYPE_INT, type,
+			transform_int_array_int );
+		g_value_register_transform_func( G_TYPE_DOUBLE, type,
+			transform_double_array_int );
 	}
 
 	return( type );
+}
+
+/**
+ * vips_array_double_new:
+ * @array: (array length=n): array of double
+ * @n: number of doubles
+ *
+ * Allocate a new array of doubles and copy @array into it. Free with
+ * vips_area_unref().
+ *
+ * See also: #VipsArea.
+ *
+ * Returns: (transfer full): A new #VipsArrayDouble.
+ */
+VipsArrayDouble *
+vips_array_double_new( const double *array, int n )
+{
+	VipsArea *area;
+	double *array_copy;
+
+	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
+	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+	memcpy( array_copy, array, n * sizeof( double ) );
+
+	return( (VipsArrayDouble *) area );
+}
+
+/**
+ * vips_array_double_newv:
+ * @n: number of doubles
+ * @...: list of double arguments
+ *
+ * Allocate a new array of @n doubles and copy @... into it. Free with
+ * vips_area_unref().
+ *
+ * See also: vips_array_double_new()
+ *
+ * Returns: (transfer full): A new #VipsArrayDouble.
+ */
+VipsArrayDouble *
+vips_array_double_newv( int n, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	double *array;
+	int i;
+
+	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
+	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+
+	va_start( ap, n );
+	for( i = 0; i < n; i++ )
+		array[i] = va_arg( ap, double ); 
+	va_end( ap );
+
+	return( (VipsArrayDouble *) area );
+}
+
+/**
+ * vips_array_double_get:
+ * @array: the #VipsArrayDouble to fetch from
+ * @n: length of array
+ *
+ * Fetch a double array from a #VipsArrayDouble. Useful for language bindings. 
+ *
+ * Returns: (array length=n) (transfer none): array of double
+ */
+double *
+vips_array_double_get( VipsArrayDouble *array, int *n )
+{
+	VipsArea *area = VIPS_AREA( array );
+
+	g_assert( area->type == G_TYPE_DOUBLE ); 
+
+	if( n )
+		*n = area->n;
+
+	return( VIPS_ARRAY_ADDR( array, 0 ) ); 
 }
 
 static void
@@ -719,8 +937,7 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 	double *array;
 
 	/* Walk the string to get the number of elements. 
-	 * We need a copy of the string since we insert \0 during
-	 * scan.
+	 * We need a copy of the string, since we insert \0 during scan.
 	 *
 	 * We can't allow ',' as a separator since some locales use it as a
 	 * decimal point.
@@ -733,8 +950,8 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 
 	g_free( str );
 
-	vips_value_set_array( dest_value, n, G_TYPE_DOUBLE, sizeof( double ) );
-	array = (double *) vips_value_get_array( dest_value, NULL, NULL, NULL );
+	vips_value_set_array_double( dest_value, NULL, n );
+	array = vips_value_get_array_double( dest_value, NULL ); 
 
 	str = g_value_dup_string( src_value );
 
@@ -745,8 +962,7 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 			 */
 			vips_error( "vipstype", 
 				_( "unable to convert \"%s\" to float" ), p );
-			vips_value_set_array( dest_value, 
-				0, G_TYPE_DOUBLE, sizeof( double ) );
+			vips_value_set_array_double( dest_value, NULL, 0 ); 
 			g_free( str );
 			return;
 		}
@@ -755,6 +971,28 @@ transform_g_string_array_double( const GValue *src_value, GValue *dest_value )
 	}
 
 	g_free( str );
+}
+
+/* We need a arraydouble, we have a double, make a one-element array.
+ */
+static void
+transform_double_array_double( const GValue *src_value, GValue *dest_value )
+{
+	double *array;
+
+	vips_value_set_array_double( dest_value, NULL, 1 ); 
+	array = vips_value_get_array_double( dest_value, NULL ); 
+	array[0] = g_value_get_double( src_value ); 
+}
+
+static void
+transform_int_array_double( const GValue *src_value, GValue *dest_value )
+{
+	double *array;
+
+	vips_value_set_array_double( dest_value, NULL, 1 ); 
+	array = vips_value_get_array_double( dest_value, NULL ); 
+	array[0] = g_value_get_int( src_value ); 
 }
 
 GType
@@ -770,6 +1008,10 @@ vips_array_double_get_type( void )
 			transform_array_double_g_string );
 		g_value_register_transform_func( G_TYPE_STRING, type,
 			transform_g_string_array_double );
+		g_value_register_transform_func( G_TYPE_DOUBLE, type,
+			transform_double_array_double );
+		g_value_register_transform_func( G_TYPE_INT, type,
+			transform_int_array_double );
 	}
 
 	return( type );
@@ -782,7 +1024,7 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 	int n;
 	char *p, *q;
 	int i;
-	GObject **array;
+	VipsImage **array;
 
 	/* We need a copy of the string, since we insert \0 during
 	 * scan.
@@ -795,22 +1037,122 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 
 	g_free( str );
 
-	vips_value_set_array_object( dest_value, n );
-	array = vips_value_get_array_object( dest_value, NULL );
+	vips_value_set_array_image( dest_value, n );
+	array = vips_value_get_array_image( dest_value, NULL );
 
 	str = g_value_dup_string( src_value );
 
 	for( i = 0, p = str; (q = vips_break_token( p, " " )); i++, p = q )
-		if( !(array[i] = G_OBJECT( vips_image_new_from_file( p, 
-			NULL ) )) ) {
+		if( !(array[i] = vips_image_new_from_file( p, NULL )) ) {
 			/* Set the dest to length zero to indicate error.
 			 */
-			vips_value_set_array_object( dest_value, 0 );
+			vips_value_set_array_image( dest_value, 0 );
 			g_free( str );
 			return;
 		}
 
 	g_free( str );
+}
+
+/**
+ * vips_array_image_new:
+ * @array: (array length=n): array of #VipsImage
+ * @n: number of images
+ *
+ * Allocate a new array of images and copy @array into it. Free with
+ * vips_area_unref(). 
+ *
+ * The images will all be reffed by this function. They 
+ * will be automatically unreffed for you by
+ * vips_area_unref().
+ *
+ * Add an extra NULL element at the end, handy for eg.
+ * vips_image_pipeline_array() etc. 
+ *
+ * See also: #VipsArea.
+ *
+ * Returns: (transfer full): A new #VipsArrayImage.
+ */
+VipsArrayImage *
+vips_array_image_new( VipsImage **array, int n )
+{
+	VipsArea *area;
+	VipsImage **array_copy;
+	int i;
+
+	area = vips_area_new_array_object( n );
+	area->type = VIPS_TYPE_IMAGE;
+
+	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+	for( i = 0; i < n; i++ ) {
+		array_copy[i] = (VipsImage *) array[i]; 
+		g_object_ref( array_copy[i] ); 
+	}
+
+	return( (VipsArrayImage *) area );
+}
+
+/**
+ * vips_array_image_newv:
+ * @n: number of images
+ * @...: list of #VipsImage arguments
+ *
+ * Allocate a new array of @n #VipsImage and copy @... into it. Free with
+ * vips_area_unref(). 
+ *
+ * The images will all be reffed by this function. They 
+ * will be automatically unreffed for you by
+ * vips_area_unref().
+ *
+ * Add an extra NULL element at the end, handy for eg.
+ * vips_image_pipeline_array() etc. 
+ *
+ * See also: vips_array_image_new()
+ *
+ * Returns: (transfer full): A new #VipsArrayImage.
+ */
+VipsArrayImage *
+vips_array_image_newv( int n, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	VipsImage **array;
+	int i;
+
+	area = vips_area_new_array_object( n );
+	area->type = VIPS_TYPE_IMAGE;
+
+	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+	va_start( ap, n );
+	for( i = 0; i < n; i++ ) {
+		array[i] = va_arg( ap, VipsImage * ); 
+		g_object_ref( array[i] ); 
+	}
+	va_end( ap );
+
+	return( (VipsArrayImage *) area );
+}
+
+/**
+ * vips_array_image_get:
+ * @array: the #VipsArrayImage to fetch from
+ * @n: length of array
+ *
+ * Fetch an image array from a #VipsArrayImage. Useful for language bindings. 
+ *
+ * Returns: (array length=n) (transfer none): array of #VipsImage
+ */
+VipsImage **
+vips_array_image_get( VipsArrayImage *array, int *n )
+{
+	VipsArea *area = VIPS_AREA( array );
+
+	g_assert( area->type == VIPS_TYPE_IMAGE ); 
+
+	if( n )
+		*n = area->n;
+
+	return( (VipsImage **) VIPS_ARRAY_ADDR( array, 0 ) ); 
 }
 
 GType
@@ -900,7 +1242,7 @@ vips_value_set_save_string( GValue *value, const char *str )
  * vips_value_set_save_stringf:
  * @value: (out): GValue to set
  * @fmt: printf()-style format string
- * @Varargs: arguments to printf()-formatted @fmt
+ * @...: arguments to printf()-formatted @fmt
  *
  * Generates a string and copies it into @value.
  */
@@ -924,7 +1266,7 @@ vips_value_set_save_stringf( GValue *value, const char *fmt, ... )
  * @value: %GValue to get from
  * @length: (allow-none): return length here, optionally
  *
- * Get the C string held internally by the GValue.
+ * Get the C string held internally by the %GValue.
  *
  * Returns: (transfer none): The C string held by @value. 
  */
@@ -936,18 +1278,16 @@ vips_value_get_ref_string( const GValue *value, size_t *length )
 
 /** 
  * vips_value_set_ref_string:
- * @value: (out): GValue to set
+ * @value: (out): %GValue to set
  * @str: C string to copy into the GValue
  *
  * Copies the C string @str into @value. 
  *
  * vips_ref_string are immutable C strings that are copied between images by
  * copying reference-counted pointers, making the much more efficient than
- * regular GValue strings.
- *
- * Returns: 0 on success, -1 otherwise.
+ * regular %GValue strings.
  */
-int
+void
 vips_value_set_ref_string( GValue *value, const char *str )
 {
 	VipsArea *area;
@@ -964,8 +1304,6 @@ vips_value_set_ref_string( GValue *value, const char *str )
 
 	g_value_set_boxed( value, area );
 	vips_area_unref( area );
-
-	return( 0 );
 }
 
 /** 
@@ -989,13 +1327,13 @@ void
 vips_value_set_blob( GValue *value, 
 	VipsCallbackFn free_fn, void *data, size_t length ) 
 {
-	VipsArea *area;
+	VipsBlob *blob;
 
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_BLOB );
 
-	area = vips_area_new_blob( free_fn, data, length );
-	g_value_set_boxed( value, area );
-	vips_area_unref( area );
+	blob = vips_blob_new( free_fn, data, length );
+	g_value_set_boxed( value, blob );
+	vips_area_unref( VIPS_AREA( blob ) );
 }
 
 /** 
@@ -1078,62 +1416,6 @@ vips_value_get_array( const GValue *value,
 	return( area->data );
 }
 
-/**
- * vips_array_int_new:
- * @array: (array length=n): array of int
- * @n: number of ints
- *
- * Allocate a new array of ints and copy @array into it. Free with
- * vips_area_unref().
- *
- * See also: #VipsArea.
- *
- * Returns: (transfer full): A new #VipsArrayInt.
- */
-VipsArrayInt *
-vips_array_int_new( const int *array, int n )
-{
-	VipsArea *area;
-	int *array_copy;
-
-	area = vips_area_new_array( G_TYPE_INT, sizeof( int ), n );
-	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
-	memcpy( array_copy, array, n * sizeof( int ) );
-
-	return( area );
-}
-
-/**
- * vips_array_int_newv:
- * @n: number of ints
- * @...: list of int arguments
- *
- * Allocate a new array of @n ints and copy @... into it. Free with
- * vips_area_unref().
- *
- * See also: vips_array_int_new()
- *
- * Returns: (transfer full): A new #VipsArrayInt.
- */
-VipsArrayInt *
-vips_array_int_newv( int n, ... )
-{
-	va_list ap;
-	VipsArea *area;
-	int *array;
-	int i;
-
-	area = vips_area_new_array( G_TYPE_INT, sizeof( int ), n );
-	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
-
-	va_start( ap, n );
-	for( i = 0; i < n; i++ )
-		array[i] = va_arg( ap, int ); 
-	va_end( ap );
-
-	return( area );
-}
-
 /** 
  * vips_value_get_array_int:
  * @value: %GValue to get from
@@ -1142,7 +1424,7 @@ vips_array_int_newv( int n, ... )
  * Return the start of the array of ints held by @value.
  * optionally return the number of elements in @n.
  *
- * See also: vips_array_int_set().
+ * See also: vips_array_int_new().
  *
  * Returns: (transfer none): The array address.
  */
@@ -1155,82 +1437,24 @@ vips_value_get_array_int( const GValue *value, int *n )
 /** 
  * vips_value_set_array_int:
  * @value: (out): %GValue to get from
- * @array: (array length=n): array of ints
+ * @array: (array length=n) (allow-none): array of ints
  * @n: the number of elements 
  *
  * Set @value to hold a copy of @array. Pass in the array length in @n. 
  *
  * See also: vips_array_int_get().
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_value_set_array_int( GValue *value, const int *array, int n )
 {
-	int *array_copy;
-
-	g_value_init( value, VIPS_TYPE_ARRAY_INT );
 	vips_value_set_array( value, n, G_TYPE_INT, sizeof( int ) );
-	array_copy = vips_value_get_array_int( value, NULL );
-	memcpy( array_copy, array, n * sizeof( int ) );
 
-	return( 0 );
-}
+	if( array ) { 
+		int *array_copy;
 
-/**
- * vips_array_double_new:
- * @array: (array length=n): array of double
- * @n: number of doubles
- *
- * Allocate a new array of doubles and copy @array into it. Free with
- * vips_area_unref().
- *
- * See also: #VipsArea.
- *
- * Returns: (transfer full): A new #VipsArrayDouble.
- */
-VipsArrayDouble *
-vips_array_double_new( const double *array, int n )
-{
-	VipsArea *area;
-	double *array_copy;
-
-	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
-	array_copy = vips_area_get_data( area, NULL, NULL, NULL, NULL );
-	memcpy( array_copy, array, n * sizeof( double ) );
-
-	return( area );
-}
-
-/**
- * vips_array_double_newv:
- * @n: number of doubles
- * @...: list of double arguments
- *
- * Allocate a new array of @n doubles and copy @... into it. Free with
- * vips_area_unref().
- *
- * See also: vips_array_double_new()
- *
- * Returns: (transfer full): A new #VipsArrayDouble.
- */
-VipsArrayDouble *
-vips_array_double_newv( int n, ... )
-{
-	va_list ap;
-	VipsArea *area;
-	double *array;
-	int i;
-
-	area = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
-	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
-
-	va_start( ap, n );
-	for( i = 0; i < n; i++ )
-		array[i] = va_arg( ap, double ); 
-	va_end( ap );
-
-	return( area );
+		array_copy = vips_value_get_array_int( value, NULL );
+		memcpy( array_copy, array, n * sizeof( int ) );
+	}
 }
 
 /** 
@@ -1241,7 +1465,7 @@ vips_array_double_newv( int n, ... )
  * Return the start of the array of doubles held by @value.
  * optionally return the number of elements in @n.
  *
- * See also: vips_array_double_set().
+ * See also: vips_array_double_new().
  *
  * Returns: (transfer none): The array address.
  */
@@ -1254,26 +1478,24 @@ vips_value_get_array_double( const GValue *value, int *n )
 /** 
  * vips_value_set_array_double:
  * @value: (out): %GValue to get from
- * @array: (array length=n): array of doubles
+ * @array: (array length=n) (allow-none): array of doubles
  * @n: the number of elements 
  *
  * Set @value to hold a copy of @array. Pass in the array length in @n. 
  *
  * See also: vips_array_double_get().
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
+void
 vips_value_set_array_double( GValue *value, const double *array, int n )
 {
-	double *array_copy;
-
-	g_value_init( value, VIPS_TYPE_ARRAY_DOUBLE );
 	vips_value_set_array( value, n, G_TYPE_DOUBLE, sizeof( double ) );
-	array_copy = vips_value_get_array_double( value, NULL );
-	memcpy( array_copy, array, n * sizeof( double ) );
 
-	return( 0 );
+	if( array ) { 
+		double *array_copy;
+
+		array_copy = vips_value_get_array_double( value, NULL );
+		memcpy( array_copy, array, n * sizeof( double ) );
+	}
 }
 
 /** 
@@ -1297,27 +1519,21 @@ vips_value_get_array_image( const GValue *value, int *n )
 /** 
  * vips_value_set_array_image:
  * @value: (out): %GValue to get from
- * @array: (array length=n): array of images
  * @n: the number of elements 
  *
- * Set @value to hold a copy of @array. Pass in the array length in @n. 
+ * Set @value to hold an array of images. Pass in the array length in @n. 
  *
  * See also: vips_array_image_get().
- *
- * Returns: 0 on success, -1 otherwise.
  */
-int
-vips_value_set_array_image( GValue *value, VipsImage **array, int n )
+void
+vips_value_set_array_image( GValue *value, int n )
 {
-	VipsImage **array_copy;
+	VipsArea *area;
 
-	g_value_init( value, VIPS_TYPE_ARRAY_IMAGE );
-	vips_value_set_array( value, n, VIPS_TYPE_ARRAY_IMAGE, 
-		sizeof( VipsImage * ) );
-	array_copy = vips_value_get_array_image( value, NULL );
-	memcpy( array_copy, array, n * sizeof( VipsImage * ) );
-
-	return( 0 );
+	area = vips_area_new_array_object( n );
+	area->type = VIPS_TYPE_IMAGE;
+	g_value_set_boxed( value, area );
+	vips_area_unref( area );
 }
 
 /** 
@@ -1326,9 +1542,9 @@ vips_value_set_array_image( GValue *value, VipsImage **array, int n )
  * @n: (allow-none): return the number of elements here, optionally
  *
  * Return the start of the array of %GObject held by @value.
- * optionally return the number of elements in @n.
+ * Optionally return the number of elements in @n.
  *
- * See also: vips_array_object_set().
+ * See also: vips_area_new_array_object().
  *
  * Returns: (transfer none): The array address.
  */
@@ -1339,30 +1555,25 @@ vips_value_get_array_object( const GValue *value, int *n )
 }
 
 /** 
- * vips_array_object_set:
+ * vips_value_set_array_object:
  * @value: (out): %GValue to set
  * @n: the number of elements 
  *
- * Set @value to hold an array of GObject. Pass in the array length in @n. 
+ * Set @value to hold an array of %GObject. Pass in the array length in @n. 
  *
- * See also: vips_array_object_get().
- *
- * Returns: 0 on success, -1 otherwise.
+ * See also: vips_value_get_array_object().
  */
-int
+void
 vips_value_set_array_object( GValue *value, int n )
 {
 	VipsArea *area;
 
-	if( !(area = vips_area_new_array_object( n )) )
-		return( -1 );
+	area = vips_area_new_array_object( n );
 	g_value_set_boxed( value, area );
 	vips_area_unref( area );
-
-	return( 0 );
 }
 
-/* Make the types we need for basic functioning. Called from init_world().
+/* Make the types we need for basic functioning. Called from vips_init().
  */
 void
 vips__meta_init_types( void )
@@ -1372,6 +1583,7 @@ vips__meta_init_types( void )
 	(void) vips_area_get_type();
 	(void) vips_ref_string_get_type();
 	(void) vips_blob_get_type();
+	(void) vips_array_int_get_type();
 	(void) vips_array_double_get_type();
 	(void) vips_array_image_get_type();
 

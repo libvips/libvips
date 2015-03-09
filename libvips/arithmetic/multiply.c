@@ -187,6 +187,7 @@ vips_multiply_init( VipsMultiply *multiply )
  * @left: left-hand image
  * @right: right-hand image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * This operation calculates @left * @right and writes the result to @out. 
  *
@@ -200,7 +201,7 @@ vips_multiply_init( VipsMultiply *multiply )
  *
  * The two input images are cast up to the smallest common format (see table 
  * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>), then the 
+ * <link linkend="libvips-arithmetic">arithmetic</link>), then the 
  * following table is used to determine the output type:
  *
  * <table>

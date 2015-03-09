@@ -242,12 +242,7 @@ im_open( const char *filename, const char *mode )
 {
 	VipsImage *image;
 
-	/* Pass in a nonsense name for argv0 ... this init path is only here
-	 * for old programs which are missing an vips_init() call. We need
-	 * i18n set up before we can translate.
-	 */
-	if( vips_init( "giant_banana" ) )
-		vips_error_clear();
+	vips_check_init(); 
 
 	/* We have to go via the old VipsFormat system so we can support the
 	 * "filename:option" syntax.
@@ -769,8 +764,8 @@ static int bandfmt_largest[6][6] = {
 static VipsBandFmt
 im__format_common( VipsBandFmt in1, VipsBandFmt in2 )
 {
-	if( vips_bandfmt_iscomplex( in1 ) || 
-		vips_bandfmt_iscomplex( in2 ) ) {
+	if( vips_band_format_iscomplex( in1 ) || 
+		vips_band_format_iscomplex( in2 ) ) {
 		/* What kind of complex?
 		 */
 		if( in1 == IM_BANDFMT_DPCOMPLEX || in2 == IM_BANDFMT_DPCOMPLEX )
@@ -884,101 +879,6 @@ im__bandalike( const char *domain,
 	out[0] = out1;
 	out[1] = out2;
 	if( im__bandalike_vec( domain, in, out, 2 ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-int
-im__sizealike_vec( VipsImage **in, VipsImage **out, int n )
-{
-	int i;
-	int width_max;
-	int height_max;
-
-	g_assert( n >= 1 );
-
-	width_max = in[0]->Xsize;
-	height_max = in[0]->Ysize;
-	for( i = 1; i < n; i++ ) {
-		width_max = VIPS_MAX( width_max, in[i]->Xsize );
-		height_max = VIPS_MAX( height_max, in[i]->Ysize );
-	}
-
-	for( i = 0; i < n; i++ )
-		if( im_embed( in[i], out[i], 0, 0, 0, width_max, height_max ) )
-			return( -1 );
-
-	return( 0 );
-}
-
-int
-im__sizealike( VipsImage *in1, VipsImage *in2, 
-	VipsImage *out1, VipsImage *out2 )
-{
-	IMAGE *in[2];
-	IMAGE *out[2];
-
-	in[0] = in1;
-	in[1] = in2;
-	out[0] = out1;
-	out[1] = out2;
-
-	return( im__sizealike_vec( in, out, 2 ) );
-}
-
-/* The common part of most binary arithmetic, relational and boolean
- * operators. We:
- *
- * - check in and out
- * - cast in1 and in2 up to a common format
- * - cast the common format to the output format with the supplied table
- * - equalise bands 
- * - equalise size 
- * - run the supplied buffer operation passing one of the up-banded,
- *   up-casted and up-sized inputs as the first param
- */
-int
-im__arith_binary( const char *domain, 
-	IMAGE *in1, IMAGE *in2, IMAGE *out, 
-	int format_table[10], 
-	im_wrapmany_fn fn, void *b )
-{
-	IMAGE *t[7];
-
-	if( im_piocheck( in1, out ) || 
-		im_pincheck( in2 ) ||
-		im_check_bands_1orn( domain, in1, in2 ) ||
-		im_check_uncoded( domain, in1 ) ||
-		im_check_uncoded( domain, in2 ) )
-		return( -1 );
-
-	/* Cast our input images up to a common format and bands.
-	 */
-	if( im_open_local_array( out, t, 6, domain, "p" ) ||
-		im__formatalike( in1, in2, t[0], t[1] ) ||
-		im__bandalike( domain, t[0], t[1], t[2], t[3] ) ||
-		im__sizealike( t[2], t[3], t[4], t[5] ) )
-		return( -1 );
-
-	/* Generate the output.
-	 */
-	if( im_cp_descv( out, t[4], t[5], NULL ) )
-		return( -1 );
-
-	/* What number of bands will we write? Same as up-banded input.
-	 */
-	out->Bands = t[4]->Bands;
-
-	/* What output type will we write? 
-	 */
-	out->BandFmt = format_table[t[4]->BandFmt];
-
-	/* And process! The buffer function gets one of the input images as a
-	 * sample.
-	 */
-	t[6] = NULL;
-	if( im_wrapmany( t + 4, out, fn, t[4], b ) )	
 		return( -1 );
 
 	return( 0 );
@@ -1308,7 +1208,7 @@ im_rot90( IMAGE *in, IMAGE *out )
 {
 	VipsImage *t;
 
-	if( vips_rot( in, &t, VIPS_ANGLE_90, NULL ) )
+	if( vips_rot( in, &t, VIPS_ANGLE_D90, NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
 		g_object_unref( t );
@@ -1324,7 +1224,7 @@ im_rot180( IMAGE *in, IMAGE *out )
 {
 	VipsImage *t;
 
-	if( vips_rot( in, &t, VIPS_ANGLE_180, NULL ) )
+	if( vips_rot( in, &t, VIPS_ANGLE_D180, NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
 		g_object_unref( t );
@@ -1340,7 +1240,7 @@ im_rot270( IMAGE *in, IMAGE *out )
 {
 	VipsImage *t;
 
-	if( vips_rot( in, &t, VIPS_ANGLE_270, NULL ) )
+	if( vips_rot( in, &t, VIPS_ANGLE_D270, NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
 		g_object_unref( t );
@@ -1971,31 +1871,28 @@ im_system_image( VipsImage *im,
 	const char *in_format, const char *out_format, const char *cmd_format,
 	char **log )
 {
-	VipsArea *area;
-	VipsImage **array;
+	VipsArrayImage *array;
 	char *str;
 	VipsImage *out; 
 
-	area = vips_area_new_array_object( 1 );
-	array = (VipsImage **) area->data;
-	array[0] = im;
+	array = vips_array_image_newv( 1, im );
 
 	/* im will be unreffed when area is unreffed.
 	 */
 	g_object_ref( im ); 
 
 	if( vips_system( cmd_format, 
-		"in", area,
+		"in", array,
 		"out", &out,
 		"in_format", in_format,
 		"out_format", out_format,
 		"log", &str,
 		NULL ) ) {
-		vips_area_unref( area );
+		vips_area_unref( VIPS_AREA( array ) );
 		return( NULL );
 	}
 
-	vips_area_unref( area );
+	vips_area_unref( VIPS_AREA( array ) );
 
 	if( log )
 		*log = str;
@@ -2177,6 +2074,7 @@ im_gauss_dmask( const char *filename, double sigma, double min_ampl )
 	DOUBLEMASK *msk;
 
 	if( vips_gaussmat( &t, sigma, min_ampl,
+		"precision", VIPS_PRECISION_FLOAT,
 		NULL ) )
 		return( NULL );
 	if( !(msk = im_vips2mask( t, filename )) ) {
@@ -2195,6 +2093,7 @@ im_gauss_dmask_sep( const char *filename, double sigma, double min_ampl )
 	DOUBLEMASK *msk;
 
 	if( vips_gaussmat( &t, sigma, min_ampl,
+		"precision", VIPS_PRECISION_FLOAT,
 		"separable", TRUE,
 		NULL ) )
 		return( NULL );
@@ -2213,9 +2112,7 @@ im_gauss_imask( const char *filename, double sigma, double min_ampl )
 	VipsImage *t;
 	INTMASK *msk;
 
-	if( vips_gaussmat( &t, sigma, min_ampl,
-		"integer", TRUE,
-		NULL ) )
+	if( vips_gaussmat( &t, sigma, min_ampl, NULL ) )
 		return( NULL );
 	if( !(msk = im_vips2imask( t, filename )) ) {
 		g_object_unref( t );
@@ -2233,7 +2130,6 @@ im_gauss_imask_sep( const char *filename, double sigma, double min_ampl )
 	INTMASK *msk;
 
 	if( vips_gaussmat( &t, sigma, min_ampl,
-		"integer", TRUE,
 		"separable", TRUE,
 		NULL ) )
 		return( NULL );
@@ -2252,9 +2148,7 @@ im_log_imask( const char *filename, double sigma, double min_ampl )
 	VipsImage *t;
 	INTMASK *msk;
 
-	if( vips_logmat( &t, sigma, min_ampl,
-		"integer", TRUE,
-		NULL ) )
+	if( vips_logmat( &t, sigma, min_ampl, NULL ) )
 		return( NULL );
 	if( !(msk = im_vips2imask( t, filename )) ) {
 		g_object_unref( t );
@@ -2272,6 +2166,7 @@ im_log_dmask( const char *filename, double sigma, double min_ampl )
 	DOUBLEMASK *msk;
 
 	if( vips_logmat( &t, sigma, min_ampl,
+		"precision", VIPS_PRECISION_FLOAT,
 		NULL ) )
 		return( NULL );
 	if( !(msk = im_vips2mask( t, filename )) ) {
@@ -2316,6 +2211,7 @@ im_compass( VipsImage *in, VipsImage *out, INTMASK *mask )
 		return( -1 );
 	if( vips_compass( in, &t2, t1, 
 		"times", 8, 
+		"angle", VIPS_ANGLE45_D45, 
 		NULL ) ) {
 		g_object_unref( t1 );
 		return( -1 );
@@ -2340,6 +2236,7 @@ im_lindetect( IMAGE *in, IMAGE *out, INTMASK *mask )
 		return( -1 );
 	if( vips_compass( in, &t2, t1, 
 		"times", 4, 
+		"angle", VIPS_ANGLE45_D45, 
 		NULL ) ) {
 		g_object_unref( t1 );
 		return( -1 );
@@ -2364,7 +2261,7 @@ im_gradient( IMAGE *in, IMAGE *out, INTMASK *mask )
 		return( -1 );
 	if( vips_compass( in, &t2, t1, 
 		"times", 2, 
-		"angle", VIPS_ANGLE45_90, 
+		"angle", VIPS_ANGLE45_D90, 
 		"combine", VIPS_COMBINE_SUM, 
 		NULL ) ) {
 		g_object_unref( t1 );
@@ -2634,7 +2531,7 @@ int
 im_notequal( IMAGE *in1, IMAGE *in2, IMAGE *out )
 {
 	return( vips__relational( in1, in2, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQUAL ) );
+		VIPS_OPERATION_RELATIONAL_NOTEQ ) );
 }
 
 int 
@@ -2694,7 +2591,7 @@ int
 im_notequal_vec( VipsImage *in, VipsImage *out, int n, double *c )
 {
 	return( vips__relational_vec( in, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQUAL, c, n ) );
+		VIPS_OPERATION_RELATIONAL_NOTEQ, c, n ) );
 }
 
 int 
@@ -3966,19 +3863,13 @@ im_maxpos_vec( VipsImage *im, int *xpos, int *ypos, double *maxima, int n )
 		NULL ) )
 		return( -1 );
 
-	memcpy( xpos, 
-		vips_area_get_data( x_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( int ) );
-	memcpy( ypos, 
-		vips_area_get_data( y_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( int ) );
-	memcpy( maxima, 
-		vips_area_get_data( out_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( double ) );
+	memcpy( xpos, VIPS_ARRAY_ADDR( x_array, 0 ), n * sizeof( int ) );
+	memcpy( ypos, VIPS_ARRAY_ADDR( y_array, 0 ), n * sizeof( int ) );
+	memcpy( maxima, VIPS_ARRAY_ADDR( out_array, 0 ), n * sizeof( double ) );
 
-	vips_area_unref( (VipsArea *) out_array );
-	vips_area_unref( (VipsArea *) x_array );
-	vips_area_unref( (VipsArea *) y_array );
+	vips_area_unref( VIPS_AREA( out_array ) );
+	vips_area_unref( VIPS_AREA( x_array ) );
+	vips_area_unref( VIPS_AREA( y_array ) );
 
 	return( 0 );
 }
@@ -3999,19 +3890,13 @@ im_minpos_vec( VipsImage *im, int *xpos, int *ypos, double *minima, int n )
 		NULL ) )
 		return( -1 );
 
-	memcpy( xpos, 
-		vips_area_get_data( x_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( int ) );
-	memcpy( ypos, 
-		vips_area_get_data( y_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( int ) );
-	memcpy( minima, 
-		vips_area_get_data( out_array, NULL, NULL, NULL, NULL ),
-		n * sizeof( double ) );
+	memcpy( xpos, VIPS_ARRAY_ADDR( x_array, 0 ), n * sizeof( int ) );
+	memcpy( ypos, VIPS_ARRAY_ADDR( y_array, 0 ), n * sizeof( int ) );
+	memcpy( minima, VIPS_ARRAY_ADDR( out_array, 0 ), n * sizeof( double ) );
 
-	vips_area_unref( (VipsArea *) out_array );
-	vips_area_unref( (VipsArea *) x_array );
-	vips_area_unref( (VipsArea *) y_array );
+	vips_area_unref( VIPS_AREA( out_array ) );
+	vips_area_unref( VIPS_AREA( x_array ) );
+	vips_area_unref( VIPS_AREA( y_array ) );
 
 	return( 0 );
 }
@@ -5043,7 +4928,7 @@ im_lineset( IMAGE *in, IMAGE *out, IMAGE *mask, IMAGE *ink,
 
 	for( i = 0; i < n; i++ ) {
 		if( im_fastlineuser( out, x1v[i], y1v[i], x2v[i], y2v[i], 
-			im_plotmask, ink->data, mask->data, &mask_rect ) )
+			(VipsPlotFn) im_plotmask, ink->data, mask->data, &mask_rect ) )
 			return( -1 );
 	}
 
@@ -5252,4 +5137,186 @@ im_tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	g_object_unref( x );
 
 	return( 0 );
+}
+
+/* The common part of most binary conversion
+ * operators. We:
+ *
+ * - check in and out
+ * - cast in1 and in2 up to a common format
+ * - equalise bands 
+ * - make an input array
+ * - return the matched images in vec[0] and vec[1]
+ *
+ * A left-over, remove soon.
+ */
+IMAGE **
+im__insert_base( const char *domain, 
+	IMAGE *in1, IMAGE *in2, IMAGE *out ) 
+{
+	IMAGE *t[4];
+	IMAGE **vec;
+
+	if( im_piocheck( in1, out ) || 
+		im_pincheck( in2 ) ||
+		im_check_bands_1orn( domain, in1, in2 ) ||
+		im_check_coding_known( domain, in1 ) ||
+		im_check_coding_same( domain, in1, in2 ) )
+		return( NULL );
+
+	/* Cast our input images up to a common format and bands.
+	 */
+	if( im_open_local_array( out, t, 4, domain, "p" ) ||
+		im__formatalike( in1, in2, t[0], t[1] ) ||
+		im__bandalike( domain, t[0], t[1], t[2], t[3] ) ||
+		!(vec = im_allocate_input_array( out, t[2], t[3], NULL )) )
+		return( NULL );
+
+	/* Generate the output.
+	 */
+	if( im_cp_descv( out, vec[0], vec[1], NULL ) ||
+		im_demand_hint_array( out, IM_SMALLTILE, vec ) )
+		return( NULL );
+
+	return( vec );
+}
+
+/**
+ * im_insertset:
+ * @main: big image
+ * @sub: small image
+ * @out: output image
+ * @n: number of positions
+ * @x: left positions of @sub
+ * @y: top positions of @sub
+ *
+ * Insert @sub repeatedly into @main at the positions listed in the arrays @x,
+ * @y of length @n. @out is the same
+ * size as @main. @sub is clipped against the edges of @main. 
+ *
+ * This operation is fast for large @n, but will use a memory buffer the size
+ * of @out. It's useful for things like making scatter plots.
+ *
+ * If the number of bands differs, one of the images 
+ * must have one band. In this case, an n-band image is formed from the 
+ * one-band image by joining n copies of the one-band image together, and then
+ * the two n-band images are operated upon.
+ *
+ * The two input images are cast up to the smallest common type (see table 
+ * Smallest common format in 
+ * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ *
+ * See also: im_insert(), im_lrjoin().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+im_insertset( IMAGE *main, IMAGE *sub, IMAGE *out, int n, int *x, int *y )
+{
+	IMAGE **vec;
+	IMAGE *t;
+	int i;
+
+	if( !(vec = im__insert_base( "im_insert", main, sub, out )) )
+		return( -1 );
+
+	/* Copy to a memory image, zap that, then copy to out.
+	 */
+	if( !(t = im_open_local( out, "im_insertset", "t" )) ||
+		im_copy( vec[0], t ) )
+		return( -1 );
+
+	for( i = 0; i < n; i++ ) 
+		if( im_insertplace( t, vec[1], x[i], y[i] ) )
+			return( -1 );
+
+	if( im_copy( t, out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/* We had this entry point in earlier libvipses, hilariously.
+ */
+int
+vips__init( const char *argv0 )
+{
+	return( vips_init( argv0 ) );
+}
+
+int
+im_greyc_mask( IMAGE *in, IMAGE *out, IMAGE *mask,
+	int iterations,
+	float amplitude, float sharpness, float anisotropy,
+	float alpha, float sigma,
+	float dl, float da, float gauss_prec,
+	int interpolation, int fast_approx )
+{
+	vips_error( "im_greyc_mask", 
+		"This function is no longer in the core library" ); 
+
+	return( -1 ); 
+}
+
+int
+vips_check_imask( const char *domain, INTMASK *mask )
+{
+	if( !mask || 
+		mask->xsize > 1000 || 
+		mask->ysize > 1000 || 
+		mask->xsize <= 0 || 
+		mask->ysize <= 0 || 
+		mask->scale == 0 || 
+		!mask->coeff ) {
+		vips_error( domain, "%s", _( "nonsense mask parameters" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+vips_check_dmask( const char *domain, DOUBLEMASK *mask )
+{
+	if( !mask || 
+		mask->xsize > 1000 || 
+		mask->ysize > 1000 || 
+		mask->xsize <= 0 || 
+		mask->ysize <= 0 || 
+		mask->scale == 0 || 
+		!mask->coeff ) {
+		vips_error( domain, "%s", _( "nonsense mask parameters" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask )
+{
+	if( vips_check_dmask( domain, mask ) )
+		return( -1 );
+	if( mask->xsize != 1 &&
+		mask->ysize != 1 ) {
+		vips_error( domain, "%s", _( "mask must be 1D" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+GOptionGroup *
+vips_get_option_group( void )
+{
+	static GOptionGroup *option_group = NULL;
+
+	if( !option_group ) {
+		option_group = g_option_group_new( "vips", 
+				_( "VIPS Options" ), _( "Show VIPS options" ),
+				NULL, NULL );
+		vips_add_option_entries( option_group ); 
+	}
+
+	return( option_group );
 }

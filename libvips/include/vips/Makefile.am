@@ -36,7 +36,6 @@ pkginclude_HEADERS = \
 	rect.h \
 	stream.h \
 	region.h \
-	relational.h \
 	resample.h \
 	semaphore.h \
 	threadpool.h \
@@ -60,6 +59,7 @@ EXTRA_DIST = version.h.in internal.h enumtemplate
 vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/stream.h \
 	${top_srcdir}/libvips/include/vips/memory.h \
+	${top_srcdir}/libvips/include/vips/create.h \
 	${top_srcdir}/libvips/include/vips/foreign.h \
 	${top_srcdir}/libvips/include/vips/arithmetic.h \
 	${top_srcdir}/libvips/include/vips/conversion.h \
@@ -70,6 +70,7 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/convolution.h \
 	${top_srcdir}/libvips/include/vips/morphology.h \
 	${top_srcdir}/libvips/include/vips/draw.h \
+	${top_srcdir}/libvips/include/vips/basic.h \
 	${top_srcdir}/libvips/include/vips/object.h
 
 enumtypes.h: $(vips_scan_headers) Makefile

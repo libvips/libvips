@@ -62,7 +62,7 @@ typedef struct _VipsUnaryConst {
 	/* The format the constant should be cast to. Subclasses set this
 	 * ready for unaryconst's build method.
 	 */
-	VipsBandFmt const_format;
+	VipsBandFormat const_format;
 
 	/* Our constant expanded to match arith->ready in size and
 	 * const_format in type.

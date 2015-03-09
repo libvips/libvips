@@ -39,13 +39,6 @@ extern "C" {
 #endif /*__cplusplus*/
 
 typedef enum {
-	VIPS_PRECISION_INTEGER,
-	VIPS_PRECISION_FLOAT,
-	VIPS_PRECISION_APPROXIMATE,
-	VIPS_PRECISION_LAST
-} VipsPrecision;
-
-typedef enum {
 	VIPS_COMBINE_MAX,
 	VIPS_COMBINE_SUM,
 	VIPS_COMBINE_LAST
@@ -60,7 +53,12 @@ int vips_convsep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 
 int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 
 	__attribute__((sentinel));
-int vips_gaussblur( VipsImage *in, VipsImage **out, int radius, ... )
+int vips_gaussblur( VipsImage *in, VipsImage **out, double sigma, ... )
+	__attribute__((sentinel));
+
+int vips_spcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_fastcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus

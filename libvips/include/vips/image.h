@@ -122,6 +122,14 @@ typedef enum {
 	VIPS_ACCESS_LAST
 } VipsAccess;
 
+struct _VipsImage; 
+struct _VipsRegion; 
+
+typedef void *(*VipsStartFn)( struct _VipsImage *out, void *a, void *b );
+typedef int (*VipsGenerateFn)( struct _VipsRegion *out, 
+	void *seq, void *a, void *b, gboolean *stop );
+typedef int (*VipsStopFn)( void *seq, void *a, void *b );
+
 /* Struct we keep a record of execution time in. Passed to eval signal so
  * it can assess progress.
  */
@@ -217,9 +225,9 @@ typedef struct _VipsImage {
 	/* Partial image stuff. All these fields are initialised 
 	 * to NULL and ignored unless set by vips_image_generate() etc.
 	 */
-	void *(*start_fn)();	/* user-supplied start function */
-	int (*generate_fn)();	/* user-supplied generate function */
-	int (*stop_fn)();	/* user-supplied stop function */
+	VipsStartFn start_fn;
+	VipsGenerateFn generate_fn;
+	VipsStopFn stop_fn;
 	void *client1;		/* user arguments */
 	void *client2;
 	GMutex *sslock;		/* start-stop lock */
@@ -400,22 +408,28 @@ extern const guint64 vips__image_sizeof_bandformat[];
 	((double *) VIPS_IMAGE_ADDR( I, X, Y ))
 #endif /*VIPS_DEBUG*/
 
+void vips_progress_set( gboolean progress );
+
 void vips_image_invalidate_all( VipsImage *image );
 
 void vips_image_minimise_all( VipsImage *image );
 
 void vips_image_set_progress( VipsImage *image, gboolean progress );
 
+char *vips_filename_get_filename( const char *vips_filename );
+char *vips_filename_get_options( const char *vips_filename );
+
 VipsImage *vips_image_new( void );
 VipsImage *vips_image_new_memory( void );
+VipsImage *vips_image_memory( void );
 VipsImage *vips_image_new_from_file( const char *name, ... )
 	__attribute__((sentinel));
 VipsImage *vips_image_new_from_file_RW( const char *filename );
 VipsImage *vips_image_new_from_file_raw( const char *filename, 
-	int xsize, int ysize, int bands, guint64 offset );
-VipsImage *vips_image_new_from_memory( void *buffer, 
-	int xsize, int ysize, int bands, VipsBandFormat bandfmt );
-VipsImage *vips_image_new_from_buffer( const unsigned char *buf, size_t len, 
+	int width, int height, int bands, guint64 offset );
+VipsImage *vips_image_new_from_memory( const void *data, size_t size,
+	int width, int height, int bands, VipsBandFormat format );
+VipsImage *vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 	__attribute__((sentinel));
 VipsImage *vips_image_new_from_stream( VipsStreamInput *stream,
@@ -423,23 +437,25 @@ VipsImage *vips_image_new_from_stream( VipsStreamInput *stream,
 	__attribute__((sentinel));
 VipsImage *vips_image_new_matrix( int width, int height );
 VipsImage *vips_image_new_matrixv( int width, int height, ... );
+VipsImage *vips_image_new_matrix_from_array( int width, int height, 
+	double *array, int size );
 void vips_image_set_delete_on_close( VipsImage *image, 
 	gboolean delete_on_close );
+guint64 vips_get_disc_threshold( void );
 VipsImage *vips_image_new_temp_file( const char *format );
 
 int vips_image_write( VipsImage *image, VipsImage *out );
-int vips_image_write_to_file( VipsImage *image, const char *filename, ... )
+int vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	__attribute__((sentinel));
 int vips_image_write_to_buffer( VipsImage *in, 
-	const char *name, unsigned char **buf, size_t *len, ... )
+	const char *suffix, void **buf, size_t *size, ... )
 	__attribute__((sentinel));
 int vips_image_write_to_stream( VipsImage *in, 
-	const char *name, VipsStreamOutput *stream, ... )
+	const char *suffix, VipsStreamOutput *stream, ... )
 	__attribute__((sentinel));
-int vips_image_write_to_memory( VipsImage *in, 
-	void **buf_out, size_t *len_out );
+void *vips_image_write_to_memory( VipsImage *in, size_t *size );
 
-int vips_image_decode_predict( VipsImage *im, 
+int vips_image_decode_predict( VipsImage *in, 
 	int *bands, VipsBandFormat *format );
 int vips_image_decode( VipsImage *in, VipsImage **out );
 int vips_image_encode( VipsImage *in, VipsImage **out, VipsCoding coding );
@@ -465,10 +481,13 @@ gboolean vips_band_format_iscomplex( VipsBandFormat format );
 int vips_system( const char *cmd_format, ... )
 	__attribute__((sentinel));
 
-/* Defined in type.c, but declared here since they use VipsImage.
+/* Defined in type.c but declared here, since they use VipsImage.
  */
+VipsArrayImage *vips_array_image_new( VipsImage **array, int n );
+VipsArrayImage *vips_array_image_newv( int n, ... );
+VipsImage **vips_array_image_get( VipsArrayImage *array, int *n );
 VipsImage **vips_value_get_array_image( const GValue *value, int *n );
-int vips_value_set_array_image( GValue *value, VipsImage **array, int n );
+void vips_value_set_array_image( GValue *value, int n );
 
 #ifdef __cplusplus
 }

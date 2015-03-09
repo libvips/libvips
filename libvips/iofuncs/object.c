@@ -58,7 +58,7 @@
  * SECTION: object
  * @short_description: the VIPS base object class
  * @stability: Stable
- * @see_also: <link linkend="libvips-operation">operation</link>
+ * @see_also: <link linkend="VipsOperation">operation</link>
  * @include: vips/vips.h
  *
  * The #VipsObject class and associated types and macros.
@@ -67,17 +67,95 @@
  * following major features:
  *
  * <emphasis>Functional class creation</emphasis> Vips objects have a very 
- * regular
- * lifecycle: initialise, build, use, destroy. They behave rather like
+ * regular lifecycle: initialise, build, use, destroy. They behave rather like
  * function calls and are free of side-effects. 
  *
  * <emphasis>Run-time introspection</emphasis> Vips objects can be fully 
- * introspected at
- * run-time. There is not need for a separate source-code analysis. 
+ * introspected at run-time. There is not need for separate source-code 
+ * analysis. 
  *
- * <emphasis>Command-line interface</emphasis> Vips objects have an 
- * automatic command-line
- * line interface with a set of virtual methods. 
+ * <emphasis>Command-line interface</emphasis> Any vips object can be run from
+ * the command-line with the `vips` driver program. 
+ *
+ * ## The #VipsObject lifecycle
+ *
+ * #VipsObject s have a strictly defined lifecycle, split broadly as construct
+ * and then use. In detail, the stages are:
+ *
+ * 1. g_object_new(). The #VipsObject is created with g_object_new(). Objects
+ * in this state are blank slates and need to have their various parameters
+ * set.
+ *
+ * 2. g_object_set(). You loop over the #VipsArgument that the object has
+ * defined with vips_argument_map(). Arguments have a set of flags attached to
+ * them for required, optional, input, output, type, and so on. You must set
+ * all required arguments. 
+ *
+ * 3. vips_object_build(). Call this to construct the object and get it ready
+ * for use. Building an object happens in four stages, see below.
+ *
+ * 4. g_object_get(). The object has now been built. You can read out any 
+ * computed values.  
+ *
+ * 5. g_object_unref(). When you are done with an object, you can unref it.
+ * See the section on reference counting for an explanation of the convention
+ * that #VipsObject uses. When the last ref to an object is released, the
+ * object is closed. Objects close in three stages, see below.
+ *
+ * The stages inside vips_object_build() are:
+ *
+ * 1. Chain up through the object's @build class methods. At each stage,
+ * each class does any initial setup and checking, then chains up to its
+ * superclass.
+ *
+ * 2. The innermost @build method inside #VipsObject itself checks that all 
+ * input arguments have been set and then returns. 
+ *
+ * 3. All object @build methods now finish executing, from innermost to
+ * outermost. They know all input arguments have been checked and supplied, so
+ * now they set all output arguments. 
+ *
+ * 4. vips_object_build() finishes the process by checking that all output
+ * objects have been set, and then triggering the #VipsObject::postbuild
+ * signal. #VipsObject::postbuild only runs if the object has constructed
+ * successfuly.
+ *
+ * #VipsOperation has a cache of recent operation objects, see that class for
+ * an explanation of vips_cache_operation_build(). 
+ *
+ * Finally the stages inside close are:
+ *
+ * 1. #VipsObject::preclose. This is emitted at the start of
+ * the #VipsObject dispose. The object is still functioning. 
+ *
+ * 2. #VipsObject::close. This runs just after all #VipsArgument held by
+ * the object have been released.
+ *
+ * 3. #VipsObject::postclose. This runs right at the end. The object
+ * pointer is still valid, but nothing else is. 
+ *
+ * ## #VipsArgument
+ *
+ * libvips has a simple mechanism for automating at least some aspects of
+ * %GObject properties. You add a set of macros to your _class_init() which
+ * describe the arguments, and set the get and set functions to the vips ones.
+ *
+ * See <link linkend="extending">extending</link> for a complete example. 
+ *
+ * ## The #VipsObject reference counting convention
+ *
+ * #VipsObject has a set of conventions to simplify reference counting.
+ *
+ * 1. All input %GObject have a ref added to them, owned by the object. When a
+ * #VipsObject is unreffed, all of these refs to input objects are
+ * automatically dropped.
+ *
+ * 2. All output %GObject hold a ref to the object. When a %GObject which is an
+ * output of a #VipsObject is disposed, it must drop this reference.
+ * #VipsObject which are outputs of other #VipsObject will do this
+ * automatically. 
+ *
+ * See #VipsOperation for an example of #VipsObject reference counting. 
  *
  */
 
@@ -91,6 +169,7 @@
  * @VIPS_ARGUMENT_INPUT: is an input argument (one we depend on)
  * @VIPS_ARGUMENT_OUTPUT: is an output argument (depends on us)
  * @VIPS_ARGUMENT_DEPRECATED: just there for back-compat, hide 
+ * @VIPS_ARGUMENT_MODIFY: the input argument will be modified
  *
  * Flags we associate with each object argument.
  *
@@ -108,6 +187,9 @@
  * looked for if required, are not checked for "have-been-set". You can
  * deprecate a required argument, but you must obviously add a new required
  * argument if you do.
+ *
+ * Input args with @VIPS_ARGUMENT_MODIFY will be modified by the operation.
+ * This is used for things like the in-place drawing operations. 
  */
 
 /* Our signals. 
@@ -281,17 +363,23 @@ vips_object_build( VipsObject *object )
 
 /**
  * vips_object_summary_class: (skip)
+ * @klass: class to summarise
+ * @buf: write summary here
  *
+ * Generate a human-readable summary for a class. 
  */
 void
-vips_object_summary_class( VipsObjectClass *class, VipsBuf *buf )
+vips_object_summary_class( VipsObjectClass *klass, VipsBuf *buf )
 {
-	class->summary_class( class, buf );
+	klass->summary_class( klass, buf );
 }
 
 /**
  * vips_object_summary: (skip)
+ * @object: object to summarise
+ * @buf: write summary here
  *
+ * Generate a human-readable summary for an object. 
  */
 void
 vips_object_summary( VipsObject *object, VipsBuf *buf )
@@ -303,7 +391,10 @@ vips_object_summary( VipsObject *object, VipsBuf *buf )
 
 /**
  * vips_object_dump: (skip)
+ * @object: object to dump
+ * @buf: write dump here
  *
+ * Dump everything that vips knows about an object to a string.
  */
 void
 vips_object_dump( VipsObject *object, VipsBuf *buf )
@@ -397,10 +488,14 @@ vips_argument_instance_detach( VipsArgumentInstance *argument_instance )
 {
 	VipsObject *object = argument_instance->object;
 	VipsArgumentClass *argument_class = argument_instance->argument_class;
-	GObject *member = G_STRUCT_MEMBER( GObject *, object,
-		argument_class->offset );
 
 	if( argument_instance->close_id ) {
+		/* If close_id is set, the argument must be a gobject of some
+		 * sort, so we can fetch it.
+		 */
+		GObject *member = G_STRUCT_MEMBER( GObject *, object,
+			argument_class->offset );
+
 		if( g_signal_handler_is_connected( member,
 			argument_instance->close_id ) )
 			g_signal_handler_disconnect( member,
@@ -409,6 +504,9 @@ vips_argument_instance_detach( VipsArgumentInstance *argument_instance )
 	}
 
 	if( argument_instance->invalidate_id ) {
+		GObject *member = G_STRUCT_MEMBER( GObject *, object,
+			argument_class->offset );
+
 		if( g_signal_handler_is_connected( member,
 			argument_instance->invalidate_id ) )
 			g_signal_handler_disconnect( member,
@@ -702,7 +800,7 @@ vips_object_argument_isset( VipsObject *object, const char *name )
  *
  * Convenience: get the flags for an argument. Useful for bindings.
  *
- * Returns: The #VipsArgmentFlags for this argument.
+ * Returns: The #VipsArgumentFlags for this argument.
  */
 VipsArgumentFlags
 vips_object_get_argument_flags( VipsObject *object, const char *name )
@@ -1081,7 +1179,7 @@ vips_object_set_property( GObject *gobject,
 	printf( ".%s\n", g_param_spec_get_name( pspec ) );
 
 	/* This can crash horribly with some values, have it as a separate
-	 * chunk so we can easily commenmt it out.
+	 * chunk so we can easily comment it out.
 	 */
 {
 	char *str_value;
@@ -1380,8 +1478,10 @@ vips_object_real_summary( VipsObject *object, VipsBuf *buf )
 static void
 vips_object_real_dump( VipsObject *object, VipsBuf *buf )
 {
-	vips_buf_appendf( buf, " %s (%p)", 
-		G_OBJECT_TYPE_NAME( object ), object );
+	vips_buf_appendf( buf, " %s (%p) count=%d", 
+		G_OBJECT_TYPE_NAME( object ), 
+		object, 
+		G_OBJECT( object )->ref_count );
 
 	if( object->local_memory )
 		vips_buf_appendf( buf, " %zd bytes", object->local_memory ); 
@@ -1497,6 +1597,13 @@ vips_object_class_init( VipsObjectClass *class )
 		G_STRUCT_OFFSET( VipsObject, description ), 
 		"" );
 
+	/**
+	 * VipsObject::postbuild:
+	 * @object: the object that has been built
+	 *
+	 * The ::postbuild signal is emitted once just after successful object
+	 * construction. Return non-zero to cause object construction to fail. 
+	 */
 	vips_object_signals[SIG_POSTBUILD] = g_signal_new( "postbuild",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST,
@@ -1504,6 +1611,14 @@ vips_object_class_init( VipsObjectClass *class )
 		NULL, NULL,
 		vips_INT__VOID,
 		G_TYPE_INT, 0 );
+
+	/**
+	 * VipsObject::preclose:
+	 * @object: the object that is to close
+	 *
+	 * The ::preclose signal is emitted once just before object close
+	 * starts. The oject is still alive.
+	 */
 	vips_object_signals[SIG_PRECLOSE] = g_signal_new( "preclose",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST,
@@ -1511,6 +1626,14 @@ vips_object_class_init( VipsObjectClass *class )
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0 );
+
+	/**
+	 * VipsObject::close:
+	 * @object: the object that is closing
+	 *
+	 * The ::close signal is emitted once during object close. The object
+	 * is dying and may not work. 
+	 */
 	vips_object_signals[SIG_CLOSE] = g_signal_new( "close",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST,
@@ -1518,6 +1641,14 @@ vips_object_class_init( VipsObjectClass *class )
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0 );
+
+	/**
+	 * VipsObject::postclose:
+	 * @object: the object that has closed
+	 *
+	 * The ::postclose signal is emitted once after object close. The 
+	 * object pointer is still valid, but nothing else. 
+	 */
 	vips_object_signals[SIG_POSTCLOSE] = g_signal_new( "postclose",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_RUN_LAST,
@@ -1841,7 +1972,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 		g_value_set_enum( &gvalue, i );
 	}
 	else if( G_IS_PARAM_SPEC_FLAGS( pspec ) ) {
-		/* Hard to set from a symbolic name. Just take an int.
+		/* Allow a symbolic name, or an int. 
 		 */
 		int i;
 
@@ -1850,7 +1981,9 @@ vips_object_set_argument_from_string( VipsObject *object,
 			return( -1 );
 		}
 
-		if( sscanf( value, "%d", &i ) != 1 ) {
+		if( sscanf( value, "%d", &i ) != 1 &&
+			(i = vips_flags_from_nick( class->nickname, 
+			otype, value )) < 0 ) {
 			vips_error( class->nickname,
 				_( "'%s' is not an integer" ), value );
 			return( -1 );
@@ -2061,8 +2194,7 @@ vips_object_set_valist( VipsObject *object, va_list ap )
 
 		VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
 
-		g_object_set_property( G_OBJECT( object ), 
-			name, &value );
+		g_object_set_property( G_OBJECT( object ), name, &value );
 
 		VIPS_ARGUMENT_COLLECT_GET( pspec, argument_class, ap );
 
@@ -2325,11 +2457,11 @@ vips_object_to_string_optional( VipsObject *object,
 }
 
 /**
- * vips_object_to_string: (skip)
+ * vips_object_to_string: 
  * @object: object to stringify
  * @buf: write string here
  *
- * The inverse of vips_object_new_from_string(): turn an object into eg.
+ * The inverse of vips_object_new_from_string(): turn @object into eg.
  * "VipsInterpolateSnohalo1(blur=.333333)".
  */
 void
@@ -2460,8 +2592,16 @@ vips_type_map_all( GType base, VipsTypeMapFn fn, void *a )
 
 /**
  * vips_class_map_all: (skip) 
+ * @type: base type
+ * @fn: call this function for every type
+ * @a: client data
  *
- * Loop over all the subclasses of a base type. Non-abstract classes only.
+ * Loop over all the subclasses of @type. Non-abstract classes only.
+ * Stop when @fn returns 
+ * non-%NULL and return that value. 
+ *
+ * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
+ * non-%NULL value from @fn.
  */
 void *
 vips_class_map_all( GType type, VipsClassMapFn fn, void *a )
@@ -2516,12 +2656,14 @@ test_name( VipsObjectClass *class, const char *nickname )
 }
 
 /**
- * vips_class_find: (skip)
+ * vips_class_find: 
  * @basename: name of base class
  * @nickname: search for a class with this nickname
  *
- * Search below basename, return the first class whose name or nickname
+ * Search below @basename, return the first class whose name or @nickname
  * matches.
+ *
+ * See also: vips_type_find()
  *
  * Returns: the found class.
  */
@@ -2541,25 +2683,36 @@ vips_class_find( const char *basename, const char *nickname )
 	return( class );
 }
 
+/* What we store for each nickname. We can't just store the type with
+ * GINT_TO_POINTER() since GType is 64 bits on some platforms.
+ */
+typedef struct _NicknameGType {
+	const char *nickname;
+	GType type;
+	gboolean duplicate;
+} NicknameGType;
+
 static void *
 vips_class_add_hash( VipsObjectClass *class, GHashTable *table )
 {
 	GType type = G_OBJECT_CLASS_TYPE( class );
+	NicknameGType *hit;
 
-	/* If this is not a unique name, store -1 for the GType. In this case
+	hit = (NicknameGType *) 
+		g_hash_table_lookup( table, (void *) class->nickname );
+
+	/* If this is not a unique name, mark as a duplicate. In this case
 	 * we'll need to fall back to a search.
 	 */
-	if( g_hash_table_lookup( table, (void *) class->nickname ) ) {
-		g_hash_table_insert( table, 
-			(void *) class->nickname, GINT_TO_POINTER( -1 ) );
-#ifdef DEBUG
-		printf( "vips_class_add_hash: duplicate nickname %s\n", 
-			class->nickname );
-#endif /*DEBUG*/
+	if( hit ) 
+		hit->duplicate = TRUE;
+	else {
+		hit = g_new( NicknameGType, 1 );
+		hit->nickname = class->nickname;
+		hit->type = type;
+		hit->duplicate = FALSE;
+		g_hash_table_insert( table, (void *) hit->nickname, hit );
 	}
-	else
-		g_hash_table_insert( table, 
-			(void *) class->nickname, GINT_TO_POINTER( type ) );
 
 	return( NULL ); 
 }
@@ -2580,6 +2733,21 @@ vips_class_build_hash( void )
 	return( table ); 
 }
 
+/**
+ * vips_type_find:
+ * @basename: name of base class
+ * @nickname: search for a class with this nickname
+ *
+ * Search below @basename, return the %GType of the class whose name or 
+ * @nickname matches, or 0 for not found. 
+ * If @basename is NULL, the whole of #VipsObject is searched.
+ *
+ * This function uses a cache, so it should be quick. 
+ *
+ * See also: vips_class_find()
+ *
+ * Returns: the %GType of the class, or 0 if the class is not found.
+ */
 GType
 vips_type_find( const char *basename, const char *nickname )
 {
@@ -2587,31 +2755,59 @@ vips_type_find( const char *basename, const char *nickname )
 
 	const char *classname = basename ? basename : "VipsObject";
 
+	NicknameGType *hit;
 	GType base;
 	GType type;
 
 	vips__object_nickname_table = (GHashTable *) g_once( &once, 
 		(GThreadFunc) vips_class_build_hash, NULL ); 
 
-	type = GPOINTER_TO_INT( g_hash_table_lookup( 
-		vips__object_nickname_table, (void *) nickname ) );
+	hit = (NicknameGType *) 
+		g_hash_table_lookup( vips__object_nickname_table, 
+			(void *) nickname );
 
 	/* We must only search below basename ... check that the cache hit is
 	 * in the right part of the tree.
 	 */
 	if( !(base = g_type_from_name( classname )) )
 		return( 0 );
-	if( !type ||
-		type == -1 ||
-		!g_type_is_a( type, base ) ) {
+	if( hit &&
+		!hit->duplicate &&
+		g_type_is_a( hit->type, base ) ) 
+		type = hit->type;
+	else {
 		VipsObjectClass *class;
 
 		if( !(class = vips_class_find( basename, nickname )) )
 			return( 0 );
+
 		type = G_OBJECT_CLASS_TYPE( class );
 	}
 
 	return( type );
+}
+
+/**
+ * vips_nickname_find:
+ * @type: #GType to search for
+ *
+ * Return the VIPS nickname for a %GType. Handy for language bindings. 
+ *
+ * Returns: (transfer none): the class nickname. 
+ */
+const char *
+vips_nickname_find( GType type )
+{
+	gpointer p;
+	VipsObjectClass *class;
+
+	if( type &&
+		(p = g_type_class_ref( type )) &&
+		VIPS_IS_OBJECT_CLASS( p ) &&
+		(class = VIPS_OBJECT_CLASS( p )) )
+		return( class->nickname );
+
+	return( NULL );
 }
 
 /* The vips_object_local() macro uses this as its callback.
@@ -2726,10 +2922,11 @@ vips_object_print_all_cb( VipsObject *object, int *n )
 		*n, G_OBJECT_TYPE_NAME( object ), object );
 	if( object->local_memory )
 		fprintf( stderr, " %zd bytes", object->local_memory ); 
+	fprintf( stderr, ", count=%d", G_OBJECT( object )->ref_count ); 
 	fprintf( stderr, "\n" ); 
 
 	vips_object_summary_class( class, &buf );
-	vips_buf_appends( &buf, " " );
+	vips_buf_appends( &buf, ", " );
 	vips_object_summary( object, &buf ); 
 	fprintf( stderr, "%s\n", vips_buf_all( &buf ) );
 
@@ -2795,16 +2992,45 @@ vips_object_unref_outputs_sub( VipsObject *object,
 	return( NULL );
 }
 
-/* Unref all assigned output objects.
+/**
+ * vips_object_unref_outputs:
+ * @object: object to drop output refs from
+ *
+ * Unref all assigned output objects. Useful for language bindings. 
  *
  * After an object is built, all output args are owned by the caller. If
  * something goes wrong before then, we have to unref the outputs that have
- * been made so far. And this function can also be useful for callers when
+ * been made so far. This function can also be useful for callers when
  * they've finished processing outputs themselves.
+ *
+ * See also: vips_cache_operation_build().
  */
 void
 vips_object_unref_outputs( VipsObject *object )
 {
 	(void) vips_argument_map( object,
 		vips_object_unref_outputs_sub, NULL, NULL );
+}
+
+/**
+ * vips_object_get_description:
+ * @object: object to fetch description from
+ *
+ * Fetch the object description. Useful for language bindings. 
+ *
+ * @object.description is only avaliable after _build(), which can be too
+ * late. This function fetches from the instance, if possible, but falls back
+ * to the class description if we are too early. 
+ * 
+ * Returns: the object description
+ */
+const char *
+vips_object_get_description( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+	if( object->description ) 
+		return( object->description ) ;
+	else
+		return( class->description ) ;
 }

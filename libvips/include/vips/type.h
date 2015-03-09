@@ -52,7 +52,6 @@ typedef struct _VipsThing {
 #define VIPS_TYPE_THING (vips_thing_get_type())
 GType vips_thing_get_type( void );
 VipsThing *vips_thing_new( int i );
-int vips_thing_get_i( VipsThing *thing );
 
 /* A ref-counted area of memory. Can hold arrays of things as well.
  */
@@ -91,16 +90,27 @@ typedef struct _VipsArea {
 
 VipsArea *vips_area_copy( VipsArea *area );
 void vips_area_unref( VipsArea *area );
-void vips__type_leak( void );
 
 VipsArea *vips_area_new( VipsCallbackFn free_fn, void *data );
-VipsArea *vips_area_new_blob( VipsCallbackFn free_fn, 
-	void *data, size_t length );
 VipsArea *vips_area_new_array( GType type, size_t sizeof_type, int n );
 VipsArea *vips_area_new_array_object( int n );
-
 void *vips_area_get_data( VipsArea *area, 
 	size_t *length, int *n, GType *type, size_t *sizeof_type );
+
+#ifdef VIPS_DEBUG
+#define VIPS_ARRAY_ADDR( X, I ) \
+	(((I) >= 0 && (I) < VIPS_AREA( X )->n) ? \
+	 (VIPS_AREA( X )->data + VIPS_AREA( X )->sizeof_type * (I)) : \
+	 (fprintf( stderr, \
+		"VIPS_ARRAY_ADDR: index out of bounds, " \
+		"file \"%s\", line %d\n" \
+		"(index %d should have been within [0,%d])\n", \
+		__FILE__, __LINE__, \
+		(I), VIPS_AREA( X )->n ), NULL ))
+#else /*!VIPS_DEBUG*/
+#define VIPS_ARRAY_ADDR( X, I ) \
+	(VIPS_AREA( X )->data + VIPS_AREA( X )->sizeof_type * (I))
+#endif /*VIPS_DEBUG*/
 
 /**
  * VIPS_TYPE_AREA:
@@ -108,6 +118,7 @@ void *vips_area_get_data( VipsArea *area,
  * The #GType for a #VipsArea.
  */
 #define VIPS_TYPE_AREA (vips_area_get_type())
+#define VIPS_AREA( X ) ((VipsArea *) (X))
 GType vips_area_get_type( void );
 
 /**
@@ -132,6 +143,14 @@ GType vips_ref_string_get_type( void );
  * The %GType for a #VipsBlob.
  */
 #define VIPS_TYPE_BLOB (vips_blob_get_type())
+
+typedef struct _VipsBlob { 
+	VipsArea area;
+} VipsBlob;
+
+VipsBlob *vips_blob_new( VipsCallbackFn free_fn, 
+	const void *data, size_t size );
+const void *vips_blob_get( VipsBlob *blob, size_t *size );
 GType vips_blob_get_type( void );
 
 /**
@@ -140,9 +159,14 @@ GType vips_blob_get_type( void );
  * The #GType for a #VipsArrayDouble.
  */
 #define VIPS_TYPE_ARRAY_DOUBLE (vips_array_double_get_type())
-typedef VipsArea VipsArrayDouble;
+
+typedef struct _VipsArrayDouble { 
+	VipsArea area;
+} VipsArrayDouble;
+
 VipsArrayDouble *vips_array_double_new( const double *array, int n );
 VipsArrayDouble *vips_array_double_newv( int n, ... );
+double *vips_array_double_get( VipsArrayDouble *array, int *n );
 GType vips_array_double_get_type( void );
 
 /**
@@ -151,9 +175,14 @@ GType vips_array_double_get_type( void );
  * The #GType for a #VipsArrayInt.
  */
 #define VIPS_TYPE_ARRAY_INT (vips_array_int_get_type())
-typedef VipsArea VipsArrayInt;
+
+typedef struct _VipsArrayInt { 
+	VipsArea area;
+} VipsArrayInt;
+
 VipsArrayInt *vips_array_int_new( const int *array, int n );
 VipsArrayInt *vips_array_int_newv( int n, ... );
+int *vips_array_int_get( VipsArrayInt *array, int *n );
 GType vips_array_int_get_type( void );
 
 /**
@@ -162,7 +191,14 @@ GType vips_array_int_get_type( void );
  * The #GType for a #VipsArrayImage.
  */
 #define VIPS_TYPE_ARRAY_IMAGE (vips_array_image_get_type())
-typedef VipsArea VipsArrayImage;
+
+typedef struct _VipsArrayImage { 
+	VipsArea area;
+} VipsArrayImage;
+
+/* See image.h for vips_array_image_new() etc., they need to be declared after
+ * VipsImage.
+ */
 GType vips_array_image_get_type( void );
 
 void vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data );
@@ -174,7 +210,7 @@ void vips_value_set_save_stringf( GValue *value, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 
 const char *vips_value_get_ref_string( const GValue *value, size_t *length );
-int vips_value_set_ref_string( GValue *value, const char *str );
+void vips_value_set_ref_string( GValue *value, const char *str );
 
 void *vips_value_get_blob( const GValue *value, size_t *length );
 void vips_value_set_blob( GValue *value, 
@@ -186,19 +222,18 @@ void *vips_value_get_array( const GValue *value,
 	int *n, GType *type, size_t *sizeof_type );
 
 double *vips_value_get_array_double( const GValue *value, int *n );
-int vips_value_set_array_double( GValue *value, const double *array, int n );
+void vips_value_set_array_double( GValue *value, const double *array, int n );
 
 int *vips_value_get_array_int( const GValue *value, int *n );
-int vips_value_set_array_int( GValue *value, const int *array, int n );
+void vips_value_set_array_int( GValue *value, const int *array, int n );
 
 GObject **vips_value_get_array_object( const GValue *value, int *n );
-int vips_value_set_array_object( GValue *value, int n );
+void vips_value_set_array_object( GValue *value, int n );
 
-/* See also image.h, that has vips_value_get_array_image() and 
- * vips_value_set_array_image(). They need to be declared after VipsImage. 
+/* See also image.h, that has vips_array_image_get(), vips_array_image_new(), 
+ * vips_value_get_array_image() and vips_value_set_array_image(). They need 
+ * to be declared after VipsImage. 
  */
-
-void vips__meta_init_types( void );
 
 #ifdef __cplusplus
 }

@@ -214,7 +214,9 @@ int im_cp_descv (IMAGE * im, ...);
 int im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...);
 #define im_demand_hint_array( A, B, C ) (vips__demand_hint_array( A, B, C ), 0)
 
-#define im_image vips_image_new_from_memory
+#define im_image(P, W, H, B, F) \
+	vips_image_new_from_memory((P), 0, (W), (H), (B), (F))
+
 #define im_binfile vips_image_new_from_file_raw
 #define im__open_temp vips_image_new_temp_file
 #define im__test_kill( I ) (vips_image_get_kill( I ))
@@ -225,6 +227,12 @@ int im_demand_hint (IMAGE * im, VipsDemandStyle hint, ...);
 #define im_invalidate vips_image_invalidate_all
 #define im_isfile vips_image_isfile
 #define im_printdesc( I ) vips_object_print_dump( VIPS_OBJECT( I ) )
+
+/* im_openout() needs to have this visible.
+ */
+VipsImage * 
+vips_image_new_mode( const char *filename, const char *mode );
+
 #define im_openout( F ) vips_image_new_mode( F, "w" )
 #define im_setbuf( F ) vips_image_new( "t" )
 
@@ -435,10 +443,6 @@ G_STMT_START { \
 #define vips_bandfmt_iscomplex vips_band_format_iscomplex 
 
 #define im__change_suffix vips__change_suffix
-
-int vips_check_coding_labq( const char *domain, VipsImage *im );
-int vips_check_coding_rad( const char *domain, VipsImage *im );
-int vips_check_bands_3ormore( const char *domain, VipsImage *im );
 
 /* Buffer processing.
  */
@@ -981,6 +985,8 @@ typedef enum {
 #define VIPS_MASK_GAUSS_BANDREJECT IM_MASK_GAUSS_BANDREJECT 
 #define VIPS_MASK_FRACTAL_FLT IM_MASK_FRACTAL_FLT 
 
+#define VIPS_MASK IM_MASK
+
 int im_flt_image_freq( VipsImage *in, VipsImage *out, ImMaskType flag, ... );
 int im_create_fmask( VipsImage *out, 
 	int xsize, int ysize, ImMaskType flag, ... );
@@ -999,6 +1005,9 @@ int im_label_regions( VipsImage *test, VipsImage *mask, int *segments );
 int im_rank( VipsImage *in, VipsImage *out, int width, int height, int index );
 int im_zerox( VipsImage *in, VipsImage *out, int sign );
 
+int im_benchmarkn( VipsImage *in, VipsImage *out, int n );
+int im_benchmark2( VipsImage *in, double *out );
+
 int im_draw_circle( VipsImage *image, 
 	int x, int y, int radius, gboolean fill, VipsPel *ink );
 
@@ -1008,6 +1017,9 @@ int im_draw_image( VipsImage *image, VipsImage *sub, int x, int y );
 int im_draw_rect( VipsImage *image, 
 	int left, int top, int width, int height, int fill, VipsPel *ink );
 
+typedef int (*VipsPlotFn)( VipsImage *image, int x, int y, 
+	void *a, void *b, void *c ); 
+
 int im_draw_line_user( VipsImage *image, 
 	int x1, int y1, int x2, int y2, 
 	VipsPlotFn plot, void *a, void *b, void *c );
@@ -1015,6 +1027,8 @@ int im_draw_line( VipsImage *image,
 	int x1, int y1, int x2, int y2, VipsPel *ink );
 int im_lineset( VipsImage *in, VipsImage *out, VipsImage *mask, VipsImage *ink,
 	int n, int *x1v, int *y1v, int *x2v, int *y2v );
+
+int im_insertset( VipsImage *main, VipsImage *sub, VipsImage *out, int n, int *x, int *y );
 
 int im_draw_flood( VipsImage *image, int x, int y, VipsPel *ink, VipsRect *dout );
 int im_draw_flood_blob( VipsImage *image, 
@@ -1090,6 +1104,139 @@ int im_tbmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int hwindowsize, int hsearchsize,
 	int balancetype,
 	int mwidth );
+
+int im_correl( VipsImage *ref, VipsImage *sec,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	double *correlation, int *x, int *y );
+
+int im_align_bands( VipsImage *in, VipsImage *out );
+int im_maxpos_subpel( VipsImage *in, double *x, double *y );
+
+/* These were public for a while, keep for compat.
+ */
+int vips_foreign_load( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_foreign_save( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+
+VipsImage *vips__deprecated_open_read( const char *filename, gboolean sequential );
+VipsImage *vips__deprecated_open_write( const char *filename );
+
+void im__format_init( void );
+
+void im__tiff_register( void );
+void im__jpeg_register( void );
+void im__png_register( void );
+void im__csv_register( void );
+void im__ppm_register( void );
+void im__analyze_register( void );
+void im__exr_register( void );
+void im__magick_register( void );
+
+int im__bandup( const char *domain, VipsImage *in, VipsImage *out, int n );
+int im__bandalike_vec( const char *domain, VipsImage **in, VipsImage **out, int n );
+int im__bandalike( const char *domain, 
+	VipsImage *in1, VipsImage *in2, VipsImage *out1, VipsImage *out2 );
+int im__formatalike_vec( VipsImage **in, VipsImage **out, int n );
+int im__formatalike( VipsImage *in1, VipsImage *in2, VipsImage *out1, VipsImage *out2 );
+int im__sizealike_vec( VipsImage **in, VipsImage **out, int n );
+int im__sizealike( VipsImage *in1, VipsImage *in2, 
+	VipsImage *out1, VipsImage *out2 );
+
+int im__arith_binary( const char *domain, 
+	VipsImage *in1, VipsImage *in2, VipsImage *out, 
+	int format_table[10], 
+	im_wrapmany_fn fn, void *b );
+int im__arith_binary_const( const char *domain,
+	VipsImage *in, VipsImage *out, 
+	int n, double *c, VipsBandFormat vfmt,
+	int format_table[10], 
+	im_wrapone_fn fn1, im_wrapone_fn fnn );
+int im__value( VipsImage *im, double *value );
+typedef int (*im__wrapscan_fn)( void *p, int n, void *seq, void *a, void *b );
+int im__wrapscan( VipsImage *in, 
+	VipsStartFn start, im__wrapscan_fn scan, VipsStopFn stop,
+	void *a, void *b );
+int im__colour_difference( const char *domain,
+	VipsImage *in1, VipsImage *in2, VipsImage *out, 
+	im_wrapmany_fn buffer_fn, void *a, void *b );
+int im__colour_unary( const char *domain,
+	VipsImage *in, VipsImage *out, VipsInterpretation interpretation,
+	im_wrapone_fn buffer_fn, void *a, void *b );
+VipsImage **im__insert_base( const char *domain, 
+	VipsImage *in1, VipsImage *in2, VipsImage *out );
+
+int im__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
+        int bandno_in,
+        int xref, int yref, int xsec, int ysec,
+        int halfcorrelation, int halfarea,
+        int *dx0, int *dy0,
+        double *scale1, double *angle1, double *dx1, double *dy1 );
+int im__find_tboverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
+        int bandno_in,
+        int xref, int yref, int xsec, int ysec,
+        int halfcorrelation, int halfarea,
+        int *dx0, int *dy0,
+        double *scale1, double *angle1, double *dx1, double *dy1 );
+int im__find_best_contrast( VipsImage *image,
+	int xpos, int ypos, int xsize, int ysize,
+	int xarray[], int yarray[], int cont[],
+	int nbest, int hcorsize );
+int im__balance( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	VipsImage **ref_out, VipsImage **sec_out, int dx, int dy, int balancetype );
+
+void imb_LCh2Lab( float *, float *, int );
+
+/* A colour temperature.
+ */
+typedef struct {
+	double X0, Y0, Z0;
+} im_colour_temperature;
+
+void imb_XYZ2Lab( float *, float *, int, im_colour_temperature * );
+void imb_LabS2Lab( signed short *, float *, int );
+void imb_Lab2LabS( float *, signed short *, int n );
+
+void vips__Lab2LabQ_vec( VipsPel *out, float *in, int width );
+void vips__LabQ2Lab_vec( float *out, VipsPel *in, int width );
+
+void im_copy_dmask_matrix( DOUBLEMASK *mask, double **matrix );
+void im_copy_matrix_dmask( double **matrix, DOUBLEMASK *mask );
+
+
+
+int *im_ivector(int nl, int nh);
+float *im_fvector(int nl, int nh);
+double *im_dvector(int nl, int nh);
+void im_free_ivector(int *v, int nl, int nh);
+void im_free_fvector(float *v, int nl, int nh);
+void im_free_dvector(double *v, int nl, int nh);
+
+int **im_imat_alloc(int nrl, int nrh, int ncl, int nch);
+void im_free_imat(int **m, int nrl, int nrh, int ncl, int nch);
+float **im_fmat_alloc(int nrl, int nrh, int ncl, int nch);
+void im_free_fmat(float **m, int nrl, int nrh, int ncl, int nch);
+double **im_dmat_alloc(int nrl, int nrh, int ncl, int nch);
+void im_free_dmat(double **m, int nrl, int nrh, int ncl, int nch);
+
+int im_invmat( double **, int );
+
+int *im_offsets45( int size );
+
+int im_conv_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
+int im_convsep_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask );
+
+int im_greyc_mask( VipsImage *in, VipsImage *out, VipsImage *mask, 
+	int iterations, float amplitude, float sharpness, float anisotropy, 
+	float alpha, float sigma, float dl, float da, float gauss_prec, 
+	int interpolation, int fast_approx );
+
+int vips_check_imask( const char *domain, INTMASK *mask );
+int vips_check_dmask( const char *domain, DOUBLEMASK *mask );
+int vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask );
+
+GOptionGroup *vips_get_option_group( void );
 
 #ifdef __cplusplus
 }

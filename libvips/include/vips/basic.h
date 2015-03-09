@@ -52,9 +52,19 @@ typedef int (*VipsCallbackFn)( void *a, void *b );
 
 /* Like GFunc, but return a value.
  */
-typedef void *(*VipsSListMap2Fn)( void *, void *, void * );
-typedef void *(*VipsSListMap4Fn)( void *, void *, void *, void *, void * );
-typedef void *(*VipsSListFold2Fn)( void *, void *, void *, void * );
+typedef void *(*VipsSListMap2Fn)( void *item, 
+	void *a, void *b );
+typedef void *(*VipsSListMap4Fn)( void *item, 
+	void *a, void *b, void *c, void *d );
+typedef void *(*VipsSListFold2Fn)( void *item, 
+	void *a, void *b, void *c );
+
+typedef enum {
+	VIPS_PRECISION_INTEGER,
+	VIPS_PRECISION_FLOAT,
+	VIPS_PRECISION_APPROXIMATE,
+	VIPS_PRECISION_LAST
+} VipsPrecision;
 
 #ifdef __cplusplus
 }

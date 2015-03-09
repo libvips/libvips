@@ -35,8 +35,6 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <vips/vips.h>
-
 typedef enum /*< flags >*/ {
 	VIPS_OPERATION_NONE = 0,
 	VIPS_OPERATION_SEQUENTIAL = 1,
@@ -60,7 +58,7 @@ typedef enum /*< flags >*/ {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 		VIPS_TYPE_OPERATION, VipsOperationClass ))
 
-typedef gboolean (*VipsOperationBuildFn)( VipsObject * );
+typedef gboolean (*VipsOperationBuildFn)( VipsObject *object );
 
 typedef struct _VipsOperation {
 	VipsObject parent_instance;
@@ -81,17 +79,17 @@ typedef struct _VipsOperationClass {
 
 	/* Print the usage message.
 	 */
-	void (*usage)( struct _VipsOperationClass *, VipsBuf * );
+	void (*usage)( struct _VipsOperationClass *cls, VipsBuf *buf );
 
 	/* Return a set of operation flags. 
 	 */
-	VipsOperationFlags (*get_flags)( VipsOperation * ); 
+	VipsOperationFlags (*get_flags)( VipsOperation *operation ); 
 	VipsOperationFlags flags;
 
 	/* One of our input images has signalled "invalidate". The cache uses
 	 * VipsOperation::invalidate to drop dirty ops.
 	 */
-	void (*invalidate)( VipsOperation * );
+	void (*invalidate)( VipsOperation *operation );
 } VipsOperationClass;
 
 GType vips_operation_get_type( void );
@@ -102,6 +100,8 @@ void vips_operation_invalidate( VipsOperation *operation );
 
 int vips_operation_call_valist( VipsOperation *operation, va_list ap );
 VipsOperation *vips_operation_new( const char *name ); 
+int vips_call_required_optional( VipsOperation **operation,
+	va_list required, va_list optional );
 int vips_call( const char *operation_name, ... )
 	__attribute__((sentinel));
 int vips_call_split( const char *operation_name, va_list optional, ... );
@@ -112,6 +112,8 @@ void vips_call_options( GOptionGroup *group, VipsOperation *operation );
 int vips_call_argv( VipsOperation *operation, int argc, char **argv );
 
 void vips_cache_drop_all( void );
+VipsOperation *vips_cache_operation_lookup( VipsOperation *operation );
+void vips_cache_operation_add( VipsOperation *operation );
 int vips_cache_operation_buildp( VipsOperation **operation );
 VipsOperation *vips_cache_operation_build( VipsOperation *operation );
 void vips_cache_print( void );

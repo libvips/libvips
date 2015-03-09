@@ -229,7 +229,7 @@ vips_replicate_init( VipsReplicate *replicate )
  *
  * Repeats an image many times.
  *
- * See also: vips_extract().
+ * See also: vips_extract_area().
  *
  * Returns: 0 on success, -1 on error
  */

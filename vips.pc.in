@@ -6,6 +6,9 @@ includedir=@includedir@
 Name: vips
 Description: Image processing library
 Version: @VERSION@
-Requires: @PACKAGES_USED@
-Libs: -L${libdir} -lvips @VIPS_LIBS@ @VIPS_CXX_LIBS@
-Cflags: -I${includedir} 
+Requires.private: @PACKAGES_USED@
+Requires: gobject-2.0
+Libs: -L${libdir} -lvips 
+Libs.private: @EXTRA_LIBS_USED@
+Cflags: -I${includedir}
+

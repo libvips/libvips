@@ -139,7 +139,7 @@ vips_foreign_save_csv_init( VipsForeignSaveCsv *csv )
  * @separator gives the string to use to separate numbers in the output. 
  * The default is "\\t" (tab).
  *
- * See also: vips_image_write_file().
+ * See also: vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */

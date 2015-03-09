@@ -55,7 +55,7 @@ int vips_median( VipsImage *in, VipsImage **out, int size, ... )
 int vips_countlines( VipsImage *in, double *nolines, 
 	VipsDirection direction, ... )
 	__attribute__((sentinel));
-int vips_labelregions( VipsImage *in, VipsImage **out, ... )
+int vips_labelregions( VipsImage *in, VipsImage **mask, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus

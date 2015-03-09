@@ -70,6 +70,10 @@ typedef struct _VipsForeignLoadOpenslide {
 	 */
 	int level;
 
+	/* Crop to image bounds.
+	 */
+	gboolean autocrop;
+
 	/* Load this associated image. 
 	 */
 	char *associated;
@@ -109,7 +113,8 @@ vips_foreign_load_openslide_header( VipsForeignLoad *load )
 	VipsForeignLoadOpenslide *openslide = (VipsForeignLoadOpenslide *) load;
 
 	if( vips__openslide_read_header( openslide->filename, load->out, 
-		openslide->level, openslide->associated ) )
+		openslide->level, openslide->autocrop, 
+		openslide->associated ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, openslide->filename );
@@ -124,7 +129,7 @@ vips_foreign_load_openslide_load( VipsForeignLoad *load )
 
 	if( !openslide->associated ) {
 		if( vips__openslide_read( openslide->filename, load->real, 
-			openslide->level ) )
+			openslide->level, openslide->autocrop ) )
 			return( -1 );
 	}
 	else {
@@ -190,7 +195,14 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, level ),
 		0, 100000, 0 );
 
-	VIPS_ARG_STRING( class, "associated", 11, 
+	VIPS_ARG_BOOL( class, "autocrop", 11,
+		_( "Autocrop" ),
+		_( "Crop to image bounds" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, autocrop ),
+		FALSE ); 
+
+	VIPS_ARG_STRING( class, "associated", 12, 
 		_( "Associated" ),
 		_( "Load this associated image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 

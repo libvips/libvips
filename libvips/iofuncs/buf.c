@@ -403,7 +403,7 @@ vips_buf_removec( VipsBuf *buf, char ch )
  * vips_buf_appendf:
  * @buf: the buffer
  * @fmt: <function>printf()</function>-style format string
- * @Varargs: arguments to format string
+ * @...: arguments to format string
  *
  * Format the string and append to @buf.
  * 

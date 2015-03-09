@@ -1,3 +1,4 @@
+- does cplusplus need flipver() etc.?
 
 - how can we do things like subsample on load? we'd have to pass the
   dimensions out of band I guess
@@ -16,17 +17,112 @@
 
 - threadpool recyling might be useful for dzsave?
 
+- are the mosaic functions calling vips_fastcor()? it must be very slow
 
-- check and fix up docs
+  add vips_fastcor_direct()
 
-  index items should all be links
+  nope .. it's im_chkpair.c:im_correl()
+  	
+	im_extract_area(main)
+	im_extract_area(sub)
+	im_extract_band(main)
+	im_extract_band(sub)
+	im_spcor(sub)
+	im_maxpos(sub)
 
-  check each func in each section has a comment doc ... if they don't and
-  shouldn't be there, move to internal
+  then im__chkpair() runs that 20 times, then loops ... oh dear
 
-  need better vipsobject docs
+- make a crappy gir_ffi patch to add unset for GValue, perhaps it will produce
+  a response
 
-  gtk-doc now used markdown, phew, use this to expand some sections
+- perhaps im_maxpos_subpel() / im_minpos_subpel() should be undeprecated,
+  useful with vips_fastcor()
+
+
+
+- support orientation tag in tiff images
+
+  see
+
+  	http://www.awaresystems.be/imaging/tiff/tifftags/orientation.html
+
+  seems to be the same values used for exif
+
+  jpg uses "exif-ifd0-Orientation", see conversion/autorot.c
+
+  instead, standardize on "orientation" and give it an int value
+
+  jpg load and save need to use this in preference to the exif value
+
+  tiff load and save need to set and recover this value
+
+  tiff load needs an autorot flag 
+
+  	don't touch parse_header()
+
+	on header-only read, just swap width/height and delete the tag
+
+	on full image read, use read_jpeg_rotate(), broken out into a separate
+	func
+
+  see https://github.com/jcupitt/libvips/issues/243
+
+
+
+
+
+- why can't we do
+
+	im = Vips.Image.new_from_file(sys.argv[1], access = "sequential")
+
+  ValueError: invalid literal for int() with base 10: 'sequential'
+
+  no idea ... this works fine:
+
+  	im.embed(10, 10, 100, 100, extend = "copy")
+
+  what about 
+
+	im = Vips.Image.jpegload(sys.argv[1], access = "sequential")
+
+  nope, fails too ... mysterious!
+
+
+
+
+
+- use vips_resize() in vipsthumbnail?
+
+  should the sharpening filter be selectable?
+
+- look over vipsthumbnail with a profiler again
+
+- test other cpp arg types
+
+	input int		works
+	input double
+	input enum		works
+	input image		works
+	input doublevec
+	input imagevec
+	input blob
+
+	output int		
+	output double		works
+	output enum		
+	output image		works
+	output doublevec
+	output imagevec
+	output blob
+
+- fix up aconv
+
+- can we pick the vipsthumbnail int shrink factor more intelligently?
+
+- rewrite im_conv() etc. as vips_conv(), also the mosaicing functions
+
+  finally finish --disable-deprecated option
+
 
 
 - can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
@@ -51,7 +147,9 @@
 
 - vips_getpoint() needs an optional imag return
 
+- add porter-duff compositing, see
 
+	https://github.com/jcupitt/ruby-vips/issues/28
 
 - now vips_linear() has uchar output, can we do something with orc?
 

@@ -139,7 +139,7 @@ vips_foreign_save_rad_init( VipsForeignSaveRad *rad )
  *
  * Sections of this reader from Greg Ward and Radiance with kind permission. 
  *
- * See also: vips_image_write_file().
+ * See also: vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */

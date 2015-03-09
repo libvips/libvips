@@ -1047,11 +1047,11 @@ mask_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
  * @tile_height: tile height
  * @max_tiles: maximum tiles to cache
  * @priority: rendering priority
- * @notify: pixels are ready notification callback
+ * @notify_fn: pixels are ready notification callback
  * @a: client data for callback
  *
  * This operation renders @in in the background, making pixels available on
- * @out as they are calculated. The @notify callback is run every time a new
+ * @out as they are calculated. The @notify_fn callback is run every time a new
  * set of pixels are available. Calculated pixels are kept in a cache with
  * tiles sized @tile_width by @tile_height pixels and with at most @max_tiles 
  * tiles.
@@ -1071,15 +1071,15 @@ mask_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
  * currently in cache for that #VipsRect (check @mask to see which parts of the
  * #VipsRect are valid). Any pixels in the #VipsRect which are not in 
  * cache are added
- * to a queue, and the @notify callback will trigger when those pixels are
+ * to a queue, and the @notify_fn callback will trigger when those pixels are
  * ready.
  *
- * The @notify callback is run from one of the background threads. In the 
+ * The @notify_fn callback is run from one of the background threads. In the 
  * callback
  * you need to somehow send a message to the main thread that the pixels are
  * ready. In a glib-based application, this is easily done with g_idle_add().
  *
- * If @notify is %NULL then vips_sink_screen() runs synchronously.
+ * If @notify_fn is %NULL then vips_sink_screen() runs synchronously.
  * vips_region_prepare() on @out will always block until the pixels have been
  * calculated.
  *
@@ -1093,7 +1093,7 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int tile_width, int tile_height, 
 	int max_tiles, 
 	int priority,
-	VipsSinkNotify notify, void *a )
+	VipsSinkNotify notify_fn, void *a )
 {
 	Render *render;
 
@@ -1125,7 +1125,7 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	}
 
 	if( !(render = render_new( in, out, mask, 
-		tile_width, tile_height, max_tiles, priority, notify, a )) )
+		tile_width, tile_height, max_tiles, priority, notify_fn, a )) )
 		return( -1 );
 
 	VIPS_DEBUG_MSG( "vips_sink_screen: max = %d, %p\n", max_tiles, render );

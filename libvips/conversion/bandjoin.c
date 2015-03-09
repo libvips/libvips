@@ -130,8 +130,7 @@ vips_bandjoin_build( VipsObject *object )
 	VipsBandjoin *bandjoin = (VipsBandjoin *) object;
 
 	if( bandjoin->in ) {
-		bandary->in = bandjoin->in->data;
-		bandary->n = bandjoin->in->n;
+		bandary->in = vips_array_image_get( bandjoin->in, &bandary->n );
 
 		if( bandary->n == 1 ) 
 			return( vips_bandary_copy( bandary ) );
@@ -187,28 +186,19 @@ vips_bandjoin_init( VipsBandjoin *bandjoin )
 static int
 vips_bandjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
 {
-	VipsArea *area;
-	VipsImage **array; 
-	int i;
+	VipsArrayImage *array; 
 	int result;
 
-	area = vips_area_new_array_object( n );
-	array = (VipsImage **) area->data;
-	for( i = 0; i < n; i++ ) {
-		array[i] = in[i];
-		g_object_ref( array[i] );
-	}
-
-	result = vips_call_split( "bandjoin", ap, area, out );
-
-	vips_area_unref( area );
+	array = vips_array_image_new( in, n ); 
+	result = vips_call_split( "bandjoin", ap, array, out );
+	vips_area_unref( VIPS_AREA( array ) );
 
 	return( result );
 }
 
 /**
  * vips_bandjoin:
- * @in: array of input images
+ * @in: (array length=n) (transfer none): array of input images
  * @out: output image
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
@@ -225,7 +215,7 @@ vips_bandjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
  *
  * The input images are cast up to the smallest common type (see table 
  * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * See also: vips_insert().
  *

@@ -2,6 +2,8 @@
  * 
  * 15/11/13
  * 	- from vips_sharpen()
+ * 19/11/14
+ * 	- change parameters to be more imagemagick-like
  */
 
 /*
@@ -52,7 +54,8 @@ typedef struct _VipsGaussblur {
 	VipsImage *in;
 	VipsImage *out;
 
-	int radius; 
+	gdouble sigma; 
+	gdouble min_ampl; 
 	VipsPrecision precision; 
 
 } VipsGaussblur;
@@ -70,12 +73,9 @@ vips_gaussblur_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_gaussblur_parent_class )->build( object ) )
 		return( -1 );
 
-	/* Stop at 20% of max ... bit mean, but means mask radius is roughly
-	 * right.
-	 */
-	if( vips_gaussmat( &t[0], gaussblur->radius / 2.0, 0.2, 
+	if( vips_gaussmat( &t[0], gaussblur->sigma, gaussblur->min_ampl, 
 		"separable", TRUE,
-		"integer", gaussblur->precision != VIPS_PRECISION_FLOAT,
+		"precision", gaussblur->precision,
 		NULL ) )
 		return( -1 ); 
 
@@ -125,12 +125,19 @@ vips_gaussblur_class_init( VipsGaussblurClass *class )
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsGaussblur, out ) );
 
-	VIPS_ARG_INT( class, "radius", 3, 
-		_( "radius" ), 
-		_( "Mask radius" ),
+	VIPS_ARG_DOUBLE( class, "sigma", 3, 
+		_( "Sigma" ), 
+		_( "Sigma of Gaussian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsGaussblur, radius ),
-		1, 1000000, 3 );
+		G_STRUCT_OFFSET( VipsGaussblur, sigma ),
+		0.01, 1000, 1.5 );
+
+	VIPS_ARG_DOUBLE( class, "min_ampl", 3, 
+		_( "Minimum amplitude" ), 
+		_( "Minimum amplitude of Gaussian" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsGaussblur, min_ampl ),
+		0.001, 1.0, 0.2 );
 
 	VIPS_ARG_ENUM( class, "precision", 4, 
 		_( "Precision" ), 
@@ -144,7 +151,8 @@ vips_gaussblur_class_init( VipsGaussblurClass *class )
 static void
 vips_gaussblur_init( VipsGaussblur *gaussblur )
 {
-	gaussblur->radius = 3; 
+	gaussblur->sigma = 1.5; 
+	gaussblur->min_ampl = 0.2;
 	gaussblur->precision = VIPS_PRECISION_INTEGER; 
 }
 
@@ -152,31 +160,30 @@ vips_gaussblur_init( VipsGaussblur *gaussblur )
  * vips_gaussblur:
  * @in: input image
  * @out: output image
- * @radius: how large a mask to use
+ * @sigma: how large a mask to use
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
- * @precision: #VipsPrecision for blur
+ * @precision: #VipsPrecision for blur, default VIPS_PRECISION_INTEGER
+ * @min_ampl: minimum amplitude, default 0.2
  *
- * This operator runs vips_gaussmat() and vips_convsep() for you on an image. 
+ * This operator runs vips_gaussmat() and vips_convsep() for you on an image.
+ * Set @min_ampl smaller to generate a larger, more accurate mask. Set @sigma
+ * larger to make the blur more blurry. 
  *
- * @radius is not used directly. Instead the standard deviation of
- * vips_gaussmat() is set to @radius / 2.0 and the minimum amplitude set to 
- * 20%. This gives a mask radius of approximately @radius pixels.
- *
- * See also: vips_gaussmat(), vips_conv().
+ * See also: vips_gaussmat(), vips_convsep().
  * 
  * Returns: 0 on success, -1 on error.
  */
 int 
-vips_gaussblur( VipsImage *in, VipsImage **out, int radius, ... )
+vips_gaussblur( VipsImage *in, VipsImage **out, double sigma, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, radius );
-	result = vips_call_split( "gaussblur", ap, in, out, radius );  
+	va_start( ap, sigma );
+	result = vips_call_split( "gaussblur", ap, in, out, sigma );  
 	va_end( ap );
 
 	return( result );

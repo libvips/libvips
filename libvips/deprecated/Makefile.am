@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libdeprecated.la
 
 libdeprecated_la_SOURCES = \
+	cimg_dispatch.c \
 	inplace_dispatch.c \
 	tone.c \
 	freq_dispatch.c \
@@ -19,8 +20,8 @@ libdeprecated_la_SOURCES = \
 	im_zerox.c \
 	arith_dispatch.c \
 	hist_dispatch.c \
+	other_dispatch.c \
 	im_maxpos_avg.c \
-	wrapvips7.c \
 	lazy.c \
 	im_dif_std.c \
 	im_simcontr.c \
@@ -30,6 +31,7 @@ libdeprecated_la_SOURCES = \
 	cooc_funcs.c \
 	glds_funcs.c \
 	im_fav4.c \
+	im_benchmark.c \
 	im_gadd.c \
 	im_gaddim.c \
 	im_gradcor.c \
@@ -70,11 +72,13 @@ libdeprecated_la_SOURCES = \
 	im_jpeg2vips.c \
 	im_magick2vips.c \
 	im_png2vips.c \
+	im_webp2vips.c \
 	im_ppm2vips.c \
 	im_tiff2vips.c \
 	im_vips2csv.c \
 	im_vips2jpeg.c \
 	im_vips2png.c \
+	im_vips2webp.c \
 	im_vips2ppm.c \
 	im_vips2tiff.c \
 	conver_dispatch.c \

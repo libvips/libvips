@@ -112,12 +112,12 @@
  * SECTION: generate
  * @short_description: calculate pixels and pixel buffers
  * @stability: Stable
- * @see_also: <link linkend="libvips-image">image</link>, 
- * <link linkend="libvips-region">region</link>
+ * @see_also: <link linkend="VipsImage">VipsImage</link>, 
+ * <link linkend="VipsRegion">VipsRegion</link>
  * @include: vips/vips.h
  *
- * These functions let you generate regions of pixels in an image
- * processing operation, and ask for regions of image to be calculated.
+ * These functions let you attach generate functions to images  
+ * and ask for regions of images to be calculated.
  */
 
 /* Max number of images we can handle.
@@ -349,7 +349,7 @@ vips__demand_hint_array( VipsImage *image,
  * @image prefers to supply pixels according to @hint.
  *
  * Operations can set demand hints, that is, hints to the VIPS IO system about
- * the type of region geometry this operation works best with. For example,
+ * the type of region geometry they work best with. For example,
  * operations which transform coordinates will usually work best with
  * %VIPS_DEMAND_STYLE_SMALLTILE, operations which work on local windows of 
  * pixels will like %VIPS_DEMAND_STYLE_FATSTRIP.
@@ -525,8 +525,8 @@ vips_start_many( VipsImage *out, void *a, void *b )
 
 /**
  * vips_allocate_input_array:
- * @image: free array when this image closes
- * @Varargs: %NULL-terminated list of input images
+ * @out: free array when this image closes
+ * @...: %NULL-terminated list of input images
  *
  * Convenience function --- make a %NULL-terminated array of input images.
  * Use with vips_start_many().
@@ -536,7 +536,7 @@ vips_start_many( VipsImage *out, void *a, void *b )
  * Returns: %NULL-terminated array of images. Do not free the result.
  */
 VipsImage **
-vips_allocate_input_array( VipsImage *image, ... )
+vips_allocate_input_array( VipsImage *out, ... )
 {
 	va_list ap;
 	VipsImage **ar;
@@ -544,19 +544,19 @@ vips_allocate_input_array( VipsImage *image, ... )
 
 	/* Count input images.
 	 */
-	va_start( ap, image );
+	va_start( ap, out );
 	for( n = 0; va_arg( ap, VipsImage * ); n++ )
 		;
 	va_end( ap );
 
 	/* Allocate array.
 	 */
-	if( !(ar = VIPS_ARRAY( image, n + 1, VipsImage * )) )
+	if( !(ar = VIPS_ARRAY( out, n + 1, VipsImage * )) )
 		return( NULL );
 
 	/* Fill array.
 	 */
-	va_start( ap, image );
+	va_start( ap, out );
 	for( i = 0; i < n; i++ ) 
 		ar[i] = va_arg( ap, VipsImage * );
 	va_end( ap );
@@ -567,7 +567,7 @@ vips_allocate_input_array( VipsImage *image, ... )
 
 /**
  * VipsStartFn:
- * @image: image being calculated
+ * @out: image being calculated
  * @a: user data
  * @b: user data
  *
@@ -581,13 +581,14 @@ vips_allocate_input_array( VipsImage *image, ... )
 
 /**
  * VipsGenerateFn:
- * @region: #VipsRegion to fill
+ * @out: #VipsRegion to fill
  * @seq: sequence value
  * @a: user data
  * @b: user data
+ * @stop: set this to stop processing
  *
- * Fill @image->valid with pixels. @seq contains per-thread state, such as the
- * input regions.
+ * Fill @out->valid with pixels. @seq contains per-thread state, such as the
+ * input regions. Set @stop to %TRUE to stop processing. 
  *
  * See also: vips_image_generate(), vips_stop_many().
  *
@@ -642,13 +643,14 @@ write_vips( VipsRegion *region, VipsRect *area, void *a, void *b )
  *
  * Generates an image. The action depends on the image type.
  *
- * For images opened with "p", vips_image_generate() just attaches the
- * start/generate/stop callbacks and returns.
+ * For images created with vips_image_new(), vips_image_generate() just 
+ * attaches the start/generate/stop callbacks and returns.
  *
- * For "t" images, memory is allocated for the whole image and it is entirely
- * generated using vips_sink().
+ * For images created with vips_image_new_memory(), memory is allocated for 
+ * the whole image and it is entirely generated using vips_sink_memory().
  *
- * For "w" images, memory for a few scanlines is allocated and
+ * For images created with vips_image_new_temp_file() and friends, memory for 
+ * a few scanlines is allocated and
  * vips_sink_disc() used to generate the image in small chunks. As each
  * chunk is generated, it is written to disc.
  *

@@ -84,6 +84,19 @@ static GPrivate *vips_thread_profile_key = NULL;
 
 static FILE *vips__thread_fp = NULL;;
 
+/**
+ * vips_profile_set:
+ * @info: %TRUE to enable profile recording
+ *
+ * If set, vips will record profiling information, and dump it on program
+ * exit. These profiles can be analysed with the `vipsprofile` program. 
+ */
+void
+vips_profile_set( gboolean profile )
+{
+	vips__thread_profile = profile;
+}
+
 static void
 vips_thread_gate_block_save( VipsThreadGateBlock *block, FILE *fp )
 {
@@ -130,7 +143,9 @@ vips_thread_profile_save( VipsThreadProfile *profile )
 			vips__file_open_write( "vips-profile.txt", TRUE );
 		if( !vips__thread_fp ) {
 			g_mutex_unlock( vips__global_lock );
-			vips_error_exit( "unable to create profile log" ); 
+			vips_warn( "VipsGate", 
+				"%s", "unable to create profile log" ); 
+			return;
 		}
 
 		printf( "recording profile in vips-profile.txt\n" );  
@@ -164,9 +179,6 @@ vips_thread_profile_free( VipsThreadProfile *profile )
 {
 	VIPS_DEBUG_MSG( "vips_thread_profile_free: %s\n", profile->name ); 
 
-	if( vips__thread_profile ) 
-		vips_thread_profile_save( profile ); 
-
 	VIPS_FREEF( g_hash_table_destroy, profile->gates );
 	VIPS_FREEF( vips_thread_gate_free, profile->memory );
 	VIPS_FREE( profile );
@@ -181,19 +193,23 @@ vips__thread_profile_stop( void )
 
 static void
 vips__thread_profile_init_cb( VipsThreadProfile *profile )
-{  
-	/* Threads (including the main thread) must call 
-	 * vips_thread_shutdown() before exiting. Check that they have.
+{
+	/* We only come here if vips_thread_shutdown() was not called for this
+	 * thread. Do our best to clean up.
 	 *
-	 * We can't save automatically, because the shutdown order is
-	 * important. We must free all memory before saving the thread
-	 * profile, for example.
+	 * GPrivate has stopped working, be careful not to touch that. 
 	 *
-	 * We can't do the freeing in this callback since GPrivate has already
-	 * stopped working. 
+	 * Don't try to save: we must free all mem before saving and we
+	 * probably haven't done that because vips_thread_shutdown() has not
+	 * been called. 
 	 */
-	vips_error_exit( "vips_thread_shutdown() not called for thread %p", 
-		g_thread_self() ); 
+	if( vips__thread_profile ) 
+		vips_warn( "VipsGate", 
+			"discarding unsaved state for thread %p --- "
+			"call vips_thread_shutdown() for this thread",
+			profile->thread ); 
+
+	vips_thread_profile_free( profile );
 }
 
 static void
@@ -266,6 +282,9 @@ vips__thread_profile_detach( void )
 	VIPS_DEBUG_MSG( "vips__thread_profile_detach:\n" ); 
 
 	if( (profile = vips_thread_profile_get()) ) {
+		if( vips__thread_profile ) 
+			vips_thread_profile_save( profile ); 
+
 		vips_thread_profile_free( profile );
 		g_private_set( vips_thread_profile_key, NULL );
 	}

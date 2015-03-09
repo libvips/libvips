@@ -159,14 +159,14 @@ typedef struct _VipsForeignLoadClass {
 	 * this type. If you don't define this function, #VipsForeignLoad
 	 * will use @suffs instead.
 	 */
-	gboolean (*is_a)( const char * );
+	gboolean (*is_a)( const char *filename );
 
 	/* Is a buffer in this format. 
 	 *
 	 * This function should return %TRUE if the buffer contains an image of 
 	 * this type. 
 	 */
-	gboolean (*is_a_buffer)( const unsigned char *, size_t );
+	gboolean (*is_a_buffer)( const void *data, size_t size );
 
 	/* Get the flags from a filename. 
 	 *
@@ -176,13 +176,13 @@ typedef struct _VipsForeignLoadClass {
 	 *
 	 * This operation is necessary for vips7 compatibility. 
 	 */
-	VipsForeignFlags (*get_flags_filename)( const char * );
+	VipsForeignFlags (*get_flags_filename)( const char *filename );
 
 	/* Get the flags for this load operation. Images can be loaded from 
 	 * (for example) memory areas rather than files, so you can't just use
 	 * @get_flags_filename().
 	 */
-	VipsForeignFlags (*get_flags)( VipsForeignLoad * );
+	VipsForeignFlags (*get_flags)( VipsForeignLoad *load );
 
 	/* Do the minimum read we can. 
 	 *
@@ -197,7 +197,7 @@ typedef struct _VipsForeignLoadClass {
 	 * Return 0 for success, -1 for error, setting
 	 * vips_error().
 	 */
-	int (*header)( VipsForeignLoad * );
+	int (*header)( VipsForeignLoad *load );
 
 	/* Read the whole image into @real. The pixels will get copied to @out 
 	 * later.
@@ -208,18 +208,19 @@ typedef struct _VipsForeignLoadClass {
 	 * Return 0 for success, -1 for error, setting
 	 * vips_error().
 	 */
-	int (*load)( VipsForeignLoad * );
+	int (*load)( VipsForeignLoad *load );
 } VipsForeignLoadClass;
 
 GType vips_foreign_load_get_type( void );
 
 const char *vips_foreign_find_load( const char *filename );
-const char *vips_foreign_find_load_buffer( const unsigned char *buf, 
-	size_t len );
+const char *vips_foreign_find_load_buffer( const void *data, size_t size );
 const char *vips_foreign_find_load_stream( VipsStreamInput *stream );
 
 VipsForeignFlags vips_foreign_flags( const char *loader, const char *filename );
 gboolean vips_foreign_is_a( const char *loader, const char *filename );
+gboolean vips_foreign_is_a_buffer( const char *loader, 
+	const void *data, size_t size );
 
 #define VIPS_TYPE_FOREIGN_SAVE (vips_foreign_save_get_type())
 #define VIPS_FOREIGN_SAVE( obj ) \
@@ -258,9 +259,14 @@ typedef enum {
 typedef struct _VipsForeignSave {
 	VipsForeign parent_object;
 
-	/* Dont't attach metadata.
+	/* Don't attach metadata.
 	 */
 	gboolean strip;
+
+	/* If flattening out alpha, the background colour to use. Default to
+	 * 0 (black).
+	 */
+	VipsArrayDouble *background;
 
 	/*< public >*/
 
@@ -437,6 +443,29 @@ int vips_matrixprint( VipsImage *in, ... )
 
 int vips_magickload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_magickload_buffer( void *buf, size_t len, VipsImage **out, ... )
+	__attribute__((sentinel));
+
+/**
+ * VipsForeignPngFilter:
+ * @VIPS_FOREIGN_PNG_FILTER_NONE: no filtering
+ * @VIPS_FOREIGN_PNG_FILTER_SUB: difference to the left
+ * @VIPS_FOREIGN_PNG_FILTER_UP: difference up
+ * @VIPS_FOREIGN_PNG_FILTER_AVG: average of left and up
+ * @VIPS_FOREIGN_PNG_FILTER_PAETH: pick best neighbor predictor automatically
+ * @VIPS_FOREIGN_PNG_FILTER_ALL: adaptive
+ *
+ * http://www.w3.org/TR/PNG-Filters.html
+ * The values mirror those of png.h in libpng.
+ */
+typedef enum /*< flags >*/ {
+	VIPS_FOREIGN_PNG_FILTER_NONE = 0x08,
+	VIPS_FOREIGN_PNG_FILTER_SUB = 0x10,
+	VIPS_FOREIGN_PNG_FILTER_UP = 0x20,
+	VIPS_FOREIGN_PNG_FILTER_AVG = 0x40,
+	VIPS_FOREIGN_PNG_FILTER_PAETH = 0x80,
+	VIPS_FOREIGN_PNG_FILTER_ALL = 0xEA
+} VipsForeignPngFilter;
 
 int vips_pngload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -481,16 +510,16 @@ typedef enum {
 
 /**
  * VipsForeignDzDepth:
- * @VIPS_FOREIGN_DZ_DEPTH_1PIXEL: create layers down to 1x1 pixel
- * @VIPS_FOREIGN_DZ_DEPTH_1TILE: create layers down to 1x1 tile
- * @VIPS_FOREIGN_DZ_DEPTH_1: only create a single layer
+ * @VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL: create layers down to 1x1 pixel
+ * @VIPS_FOREIGN_DZ_DEPTH_ONETILE: create layers down to 1x1 tile
+ * @VIPS_FOREIGN_DZ_DEPTH_ONE: only create a single layer
  *
  * How many pyramid layers to create.
  */
 typedef enum {
-	VIPS_FOREIGN_DZ_DEPTH_1PIXEL,
-	VIPS_FOREIGN_DZ_DEPTH_1TILE,
-	VIPS_FOREIGN_DZ_DEPTH_1,
+	VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL,
+	VIPS_FOREIGN_DZ_DEPTH_ONETILE,
+	VIPS_FOREIGN_DZ_DEPTH_ONE,
 	VIPS_FOREIGN_DZ_DEPTH_LAST
 } VipsForeignDzDepth;
 
@@ -507,7 +536,7 @@ typedef enum {
 	VIPS_FOREIGN_DZ_CONTAINER_LAST
 } VipsForeignDzContainer;
 
-int vips_dzsave( VipsImage *in, const char *basename, ... )
+int vips_dzsave( VipsImage *in, const char *name, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus

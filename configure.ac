@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [7.39.0], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.0.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -16,8 +16,8 @@ AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
-m4_define([vips_major_version], [7])
-m4_define([vips_minor_version], [39])
+m4_define([vips_major_version], [8])
+m4_define([vips_minor_version], [0])
 m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
@@ -37,9 +37,9 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=37
-LIBRARY_REVISION=5
-LIBRARY_AGE=0
+LIBRARY_CURRENT=41
+LIBRARY_REVISION=1
+LIBRARY_AGE=1
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
@@ -59,17 +59,29 @@ GOBJECT_INTROSPECTION_CHECK([1.30.0])
 # gir needs a list of source files to scan for introspection
 #
 # build with a glob and a list of files to exclude from scanning
-# see also IGNORE_HFILES in doc/reference/Makefile.am
+# see also IGNORE_HFILES in doc/Makefile.am
 introspection_sources=$(cd libvips ; find . -name "*.c")
 filter_list="deprecated "
+
+# contains(string, substring)
+#
+# Returns 0 if the specified string contains the specified substring,
+# otherwise returns 1.
+contains() {
+  string="$1"
+  substring="$2"
+  if test "${string#*$substring}" != "$string"; then
+    return 0    # $substring is in $string
+  else
+    return 1 	# $substring is not in $string
+  fi
+}
 
 introspection_sources2=
 for name in $introspection_sources; do
   found=0
   for filter in $filter_list; do
-    # FIXME .. argh a bash-ism :( not sure of a nice, portable way to do 
-    # regexp matching
-    if [[[ $name == *${filter}* ]]]; then
+    if contains $name ${filter}; then
       found=1
     fi
   done    
@@ -82,7 +94,26 @@ vips_introspection_sources="$introspection_sources2"
 
 # add headers that form the public vips8 API .. don't do a find and exclude,
 # we end up excluding almost everything argh
-headers="basic.h vips.h object.h image.h error.h foreign.h interpolate.h header.h operation.h enumtypes.h arithmetic.h conversion.h type.h"
+headers="\
+	basic.h \
+	vips.h \
+	object.h \
+	image.h \
+	error.h \
+	foreign.h \
+	interpolate.h \
+	header.h \
+	operation.h \
+	enumtypes.h \
+	conversion.h \
+	arithmetic.h \
+	colour.h \
+	convolution.h \
+	draw.h \
+	morphology.h \
+	type.h \
+	region.h"
+
 for name in $headers; do
   vips_introspection_sources="$vips_introspection_sources include/vips/$name"
 done
@@ -111,6 +142,40 @@ else
     VIPS_DEBUG_FLAGS="-DG_DISABLE_ASSERT -DG_DISABLE_CHECKS"
   fi
 fi
+
+# option to disable deprecated code, shaves a bit off the library size
+AC_ARG_ENABLE(deprecated,
+  AS_HELP_STRING([--enable-deprecated], [build deprecated components (default: yes)]))
+
+VIPS_ENABLE_DEPRECATED=0
+if test x"$enable_deprecated" != x"no"; then
+  VIPS_ENABLE_DEPRECATED=1
+  enable_deprecated=yes
+  AM_CONDITIONAL(ENABLE_DEPRECATED, true)
+else
+  AM_CONDITIONAL(ENABLE_DEPRECATED, false)
+fi
+
+# this gets pasted into version.h as a #define
+AC_SUBST(VIPS_ENABLE_DEPRECATED)
+
+# we are a C library with some optional C++ components inside it
+
+# on most platforms, but not all, we just include -lstdc++ in the link line 
+# for programs
+
+# we ought to write a proper configure test for this :( 
+
+AC_MSG_CHECKING([for needs -lstdc++])
+case "$host_os" in
+  freebsd*)
+    vips_needs_stdcpp=no
+    ;;
+  *)
+    vips_needs_stdcpp=yes
+    ;;
+esac
+AC_MSG_RESULT([$vips_needs_stdcpp])
 
 AC_MSG_CHECKING([for native Win32])
 case "$host" in
@@ -193,45 +258,6 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AM_WITH_DMALLOC
 
-# vips_PROG_CXX_WORKS
-# Check whether the C++ compiler works.
-AC_DEFUN([vips_PROG_CXX_WORKS],
-  [AC_REQUIRE([AC_PROG_CXX])dnl
-   AC_CACHE_CHECK([whether the C++ compiler works],
-   [vips_cv_prog_cxx_works],
-   [AC_LANG_PUSH([C++])
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
-                   [vips_cv_prog_cxx_works=yes],
-                   [vips_cv_prog_cxx_works=no])
-    AC_LANG_POP([C++])])
-])
-
-# option to build without C++
-# handy for some embedded applications
-# also, including C++ source causes link problems on some
-# platforms, so have an option to disable it
-AC_ARG_ENABLE(cxx, 
-  AS_HELP_STRING([--enable-cxx], [build C++ components (default: test)]))
-
-if test x"$enable_cxx" != x"no"; then
-  vips_PROG_CXX_WORKS
-  if test x"$vips_cv_prog_cxx_works" = x"yes"; then 
-    AC_DEFINE(ENABLE_CXX,1,[build C++ components])
-    AM_CONDITIONAL(ENABLE_CXX, true)
-    # need -lstdc++ for (eg.) the C++ format loaders
-    # this gets added to vips.pc to help mingw and friends link programs
-    # using libvips
-    VIPS_CXX_LIBS="-lstdc++"
-    enable_cxx=yes
-  fi
-fi
-
-if test x"$enable_cxx" != x"yes"; then
-  AM_CONDITIONAL(ENABLE_CXX, false)
-  VIPS_CXX_LIBS=""
-  enable_cxx=no
-fi
-
 # we need a fully expanded version of $libdir
 # without this we get something like
 #    define VIPS_LIBDIR ${exec_prefix}/lib
@@ -278,6 +304,11 @@ AM_GLIB_GNU_GETTEXT
 # build list of pkg-config packages we used here
 PACKAGES_USED=""
 
+# build list of extra libs we need here
+# the main one is jpeg: it does not have a .pc file, so when we make vips.pc
+# we need to put -ljpeg into libs ourselves
+EXTRA_LIBS_USED=""
+
 # Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
@@ -320,7 +351,7 @@ PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0 gmodule-2.0 gobject-2.0"
 # after 2.28 we have a monotonic timer
 PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,[
   AC_DEFINE(HAVE_MONOTONIC_TIME,1,[define if your glib has g_get_monotonic_time().])
-  ],[
+  ],[:
   ]
 )
 
@@ -338,10 +369,10 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
   ]
 )
 
-# after 2.36 the type system inits itself
+# with 2.36 and after the type system inits itself
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,[
   AC_DEFINE(NEED_TYPE_INIT,1,[define if your glib needs g_type_init().])
-  ],[
+  ],[:
   ]
 )
 
@@ -578,11 +609,43 @@ if test x"$with_pangoft2" != "xno"; then
   PKG_CHECK_MODULES(PANGOFT2, pangoft2,
     [AC_DEFINE(HAVE_PANGOFT2,1,[define if you have pangoft2 installed.])
      with_pangoft2=yes
-     PACKAGES_USED="$PACKAGES_USED pangoft2"],
+     PACKAGES_USED="$PACKAGES_USED pangoft2"
+    ],
     [AC_MSG_WARN([pangoft2 not found; disabling pangoft2 support])
      with_pangoft2=no
     ])
 fi
+
+# install vips8 python
+AC_ARG_ENABLE([pyvips8],
+  AS_HELP_STRING([--enable-pyvips8],
+    [install vips8 Python overrides (default: test)]),
+  [enable_pyvips8=$enableval], 
+  [enable_pyvips8="auto"])
+
+if test "x$enable_pyvips8" = "xauto"; then
+  PKG_CHECK_EXISTS([pygobject-3.0 >= 3.12.0],
+    [enable_pyvips8=yes],
+    [AC_MSG_WARN([pygobject-3.0 not found; disabling vips8 python support])
+     enable_pyvips8=no
+    ]
+  )
+fi
+
+if test x"$enable_pyvips8" = x"yes"; then
+  AM_PATH_PYTHON(2.7,,
+    [enable_pyvips8=no
+     AC_MSG_WARN([Python not found; disabling vips8 Python binding])]
+  )
+fi
+
+if test x"$enable_pyvips8" = x"yes"; then
+  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.12.0])
+  pyoverridesdir="\$(pyexecdir)/gi/overrides"
+  AC_SUBST(pyoverridesdir)
+fi
+
+AM_CONDITIONAL(ENABLE_PYVIPS8, test x"$enable_pyvips8" = x"yes")
 
 # hmm, these don't have .pc files on ubuntu 5.10, how odd
 FIND_ZIP(
@@ -627,7 +690,8 @@ if test x"$with_png" != "xno"; then
 fi
 
 FIND_JPEG(
-  [with_jpeg=yes],
+  [with_jpeg=yes
+   EXTRA_LIBS_USED="$EXTRA_LIBS_USED -ljpeg"],
   [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
    with_jpeg=no
   ])
@@ -660,24 +724,27 @@ fi
 # make python binding?
 AC_ARG_WITH([python], 
   AS_HELP_STRING([--without-python], 
-    [build without Python bindings (default: test)]))
+    [build without vips7 Python bindings (default: test)]))
 
-if test x"$with_python" != "xno"; then
-  if test x"$enable_cxx" = "xno"; then
-    # if C++ if off, we can't do Python
+if test x"$with_python" != x"no"; then
+  if test x"$enable_cxx" = x"no"; then
+    # if C++ is off, we can't do Python
     with_python=no
-    AC_MSG_WARN([C++ is off, disabling Python binding])
-  else
-    AM_PATH_PYTHON(2.2,,
-      [with_python=no
-       AC_MSG_WARN([Python not found; disabling Python binding])])
+    AC_MSG_WARN([C++ is off, disabling vips7 Python binding])
   fi
 fi
 
-if test x"$with_python" != "xno"; then
+if test x"$with_python" != x"no"; then
+  AM_PATH_PYTHON(2.7,,
+    [with_python=no
+     AC_MSG_WARN([Python not found; disabling vips7 Python binding])]
+  )
+fi
+
+if test x"$with_python" != x"no"; then
   AM_CHECK_PYTHON_HEADERS(,
     [with_python=no
-     AC_MSG_WARN([Python headers not found])])
+     AC_MSG_WARN([Python headers not found; disabling vips7 Python binding])])
 fi
 
 # we don't check for swig: we include the generated bindings in the
@@ -690,7 +757,7 @@ else
   AM_CONDITIONAL(HAVE_PYTHON, false)
 fi
 
-# Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS and VIPS_CXX_LIBS
+# Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
 VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
@@ -702,26 +769,29 @@ VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES" 
 VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
-# we need this to generate paths in swig/python/setup.py.in
-AC_SUBST(top_srcdir)
 AC_SUBST(VIPS_LIBDIR)
 
 AC_SUBST(VIPS_CFLAGS)
 AC_SUBST(VIPS_INCLUDES)
 AC_SUBST(VIPS_LIBS)
-AC_SUBST(VIPS_CXX_LIBS)
 AC_SUBST(PACKAGES_USED)
+AC_SUBST(EXTRA_LIBS_USED)
+
+# needed by test/variables.sh.in
+# :( what's a better way to do this, argh
+TOP_SRCDIR=$ac_pwd
+AC_SUBST(TOP_SRCDIR)
 
 AC_OUTPUT([
 	vips.pc
 	vipsCC.pc
+	vips-cpp.pc
 	Makefile 
 	libvips/include/vips/version.h 
 	libvips/include/Makefile 
 	libvips/include/vips/Makefile 
 	libvips/Makefile 
 	libvips/arithmetic/Makefile 
-	libvips/cimg/Makefile 
 	libvips/colour/Makefile 
 	libvips/conversion/Makefile 
 	libvips/convolution/Makefile 
@@ -739,33 +809,40 @@ AC_OUTPUT([
 	libvipsCC/include/Makefile 
 	libvipsCC/include/vips/Makefile 
 	libvipsCC/Makefile 
+	cplusplus/include/Makefile 
+	cplusplus/include/vips/Makefile 
+	cplusplus/Makefile 
 	tools/Makefile 
 	tools/batch_crop 
 	tools/batch_image_convert 
 	tools/batch_rubber_sheet 
 	tools/light_correct 
 	tools/shrink_width 
+	python/Makefile 
+	test/Makefile 
+	test/variables.sh
 	swig/Makefile 
 	swig/vipsCC/Makefile 
-	swig/python/setup.py 
 	man/Makefile
 	doc/Makefile
-	doc/reference/Makefile
-	doc/reference/libvips-docs.sgml
+	doc/libvips-docs.xml
 	po/Makefile.in
 ])
 
 AC_MSG_RESULT([
-* general build options
+* build options
 native win32:				$vips_os_win32
 native OS X:				$vips_os_darwin
 open files in binary mode: 		$vips_binary_open
 enable debug:				$enable_debug
-build C++ components:			$enable_cxx
+build deprecated components:		$enable_deprecated
 build docs with gtkdoc:			$enable_gtk_doc
 gobject introspection: 			$found_introspection
+build vips7 Python binding:		$with_python
+install vips8 Python overrides:		$enable_pyvips8
+  (requires pygobject-3.12.0 or later)
 
-* optional packages and modules
+* optional dependencies
 use fftw3 for FFT: 			$with_fftw
 Magick package: 			$with_magickpackage
 file import with libMagick: 		$with_magick
@@ -786,4 +863,4 @@ file import/export with libjpeg:	$with_jpeg
 image pyramid export:			$with_gsf
   (requires libgsf-1 1.14.27 or later)
 use libexif to load/save JPEG metadata: $with_libexif
-build Python binding: 			$with_python])
+])

@@ -299,7 +299,7 @@ static struct dsr *
 read_header( const char *header )
 {
 	struct dsr *d;
-	unsigned int len;
+	size_t len;
 
 	if( !(d = (struct dsr *) vips__file_read_name( header, NULL, &len )) )
 		return( NULL );
@@ -437,7 +437,7 @@ get_vips_properties( struct dsr *d,
 }
 
 static void
-attach_meta( IMAGE *out, struct dsr *d )
+attach_meta( VipsImage *out, struct dsr *d )
 {
 	int i;
 

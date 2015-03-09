@@ -14,6 +14,9 @@
  * 	- gtkdoc
  * 20/10/13
  * 	- redone as a class from logmat.c
+ * 16/12/14
+ * 	- default to int output to match vips_conv()
+ * 	- use @precision, not @integer
  */
 
 /*
@@ -68,7 +71,8 @@ typedef struct _VipsLogmat {
 	double min_ampl;
 
 	gboolean separable;
-	gboolean integer;
+	gboolean integer;		/* Deprecated */
+	VipsPrecision precision; 
 
 } VipsLogmat;
 
@@ -94,6 +98,19 @@ vips_logmat_build( VipsObject *object )
 
 	if( VIPS_OBJECT_CLASS( vips_logmat_parent_class )->build( object ) )
 		return( -1 );
+
+	/* The old, deprecated @integer property has been deliberately set to
+	 * FALSE and they've not used the new @precision property ... switch
+	 * to float to help them out.
+	 */
+	if( vips_object_argument_isset( object, "integer" ) &&
+		!vips_object_argument_isset( object, "precision" ) &&
+		!logmat->integer ) 
+		logmat->precision = VIPS_PRECISION_FLOAT;
+
+	if( vips_check_precision_intfloat( class->nickname, 
+		logmat->precision ) )
+		return( -1 ); 
 
 	/* Find the size of the mask. We want to eval the mask out to the 
 	 * flat zero part, ie. beyond the minimum and to the point where it 
@@ -153,7 +170,7 @@ vips_logmat_build( VipsObject *object )
 				(2.0 - (distance / sig2)) *
 				exp( -distance / (2.0 * sig2) );
 
-			if( logmat->integer )
+			if( logmat->precision == VIPS_PRECISION_INTEGER )
 				v = VIPS_RINT( 20 * v );
 
 			*VIPS_MATRIX( create->out, x, y ) = v;
@@ -204,9 +221,16 @@ vips_logmat_class_init( VipsLogmatClass *class )
 	VIPS_ARG_BOOL( class, "integer", 5, 
 		_( "Integer" ), 
 		_( "Generate integer Logmatian" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsLogmat, integer ),
 		FALSE );
+
+	VIPS_ARG_ENUM( class, "precision", 6, 
+		_( "Precision" ), 
+		_( "Generate with this precision" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsLogmat, precision ), 
+		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER ); 
 
 }
 
@@ -215,18 +239,20 @@ vips_logmat_init( VipsLogmat *logmat )
 {
 	logmat->sigma = 1;
 	logmat->min_ampl = 0.1;
+	logmat->precision = VIPS_PRECISION_INTEGER;
 }
 
 /**
  * vips_logmat:
+ * @out: output image
  * @sigma: standard deviation of mask
  * @min_ampl: minimum amplitude
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
- * @separable: generate a separable logmatian
- * @integer: generate an integer logmatian
+ * @separable: generate a separable mask
+ * @precision: #VipsPrecision for @out
  *
  * Creates a circularly symmetric Laplacian of Gaussian mask 
  * of radius 
@@ -245,17 +271,17 @@ vips_logmat_init( VipsLogmat *logmat )
  * where s2 = @sigma * @sigma, s4 = s2 * s2, r2 = r * r.  
  *
  * The generated mask has odd size and its maximum value is normalised to 
- * 1.0, unless @integer is set.
+ * 1.0, unless @precision is #VIPS_PRECISION_INTEGER.
  *
  * If @separable is set, only the centre horizontal is generated. This is
  * useful for separable convolutions. 
  *
- * If @integer is set, an integer logmatian is generated. This is useful for
- * integer convolutions. 
+ * If @precision is #VIPS_PRECISION_INTEGER, an integer mask is generated. 
+ * This is useful for integer convolutions. 
  *
  * "scale" is set to the sum of all the mask elements.
  *
- * See also: vips_gauss(), vips_conv().
+ * See also: vips_gaussmat(), vips_conv().
  *
  * Returns: 0 on success, -1 on error
  */

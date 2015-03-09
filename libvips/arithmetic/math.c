@@ -129,12 +129,12 @@ vips_math_build( VipsObject *object )
 
 /* sin/cos/tan in degrees.
  */
-#define DSIN( X ) (sin( IM_RAD( X ) ))
-#define DCOS( X ) (cos( IM_RAD( X ) ))
-#define DTAN( X ) (tan( IM_RAD( X ) ))
-#define ADSIN( X ) (IM_DEG( asin( X ) ))
-#define ADCOS( X ) (IM_DEG( acos( X ) ))
-#define ADTAN( X ) (IM_DEG( atan( X ) ))
+#define DSIN( X ) (sin( VIPS_RAD( X ) ))
+#define DCOS( X ) (cos( VIPS_RAD( X ) ))
+#define DTAN( X ) (tan( VIPS_RAD( X ) ))
+#define ADSIN( X ) (VIPS_DEG( asin( X ) ))
+#define ADCOS( X ) (VIPS_DEG( acos( X ) ))
+#define ADTAN( X ) (VIPS_DEG( atan( X ) ))
 
 /* exp10() is a gnu extension, use pow().
  */

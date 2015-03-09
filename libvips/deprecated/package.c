@@ -595,9 +595,7 @@ static im_package im__iofuncs = {
  */
 static im_package *built_in[] = {
 	&im__arithmetic,
-#ifdef ENABLE_CXX
 	&im__cimg,
-#endif /*ENABLE_CXX*/
 	&im__colour,
 	&im__conversion,
 	&im__convolution,
@@ -1197,46 +1195,4 @@ im_run_command( char *name, int argc, char **argv )
 	im_free_vargv( fn, vargv );
 
 	return( 0 );
-}
-
-/**
- * im_version_string:
- *
- * Get the VIPS version as a static string, including a build date and time.
- * Do not free.
- *
- * Returns: a static version string
- */
-const char *
-im_version_string( void )
-{
-	return( IM_VERSION_STRING );
-}
-
-/**
- * im_version:
- * @flag: which field of the version to get
- *
- * Get the major, minor or micro library version, with @flag values 0, 1 and
- * 2.
- *
- * Returns: library version number
- */
-int
-im_version( int flag )
-{
-	switch( flag ) {
-	case 0:
-		return( IM_MAJOR_VERSION );
-	
-	case 1:
-		return( IM_MINOR_VERSION );
-	
-	case 2:
-		return( IM_MICRO_VERSION );
-
-	default:
-		vips_error( "im_version", "%s", _( "flag not 0, 1, 2" ) );
-		return( -1 );
-	}
 }

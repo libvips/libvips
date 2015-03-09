@@ -137,17 +137,18 @@ vips_LabS2LabQ_init( VipsLabS2LabQ *LabS2LabQ )
 	colour->coding = VIPS_CODING_LABQ;
 	colour->interpretation = VIPS_INTERPRETATION_LABQ;
 	colour->format = VIPS_FORMAT_UCHAR;
+	colour->input_bands = 3;
 	colour->bands = 4;
 
 	code->input_coding = VIPS_CODING_NONE;
 	code->input_format = VIPS_FORMAT_SHORT;
-	code->input_bands = 3;
 }
 
 /**
  * vips_LabS2LabQ:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Convert a LabS three-band signed short image to LabQ
  *

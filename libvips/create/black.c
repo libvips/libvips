@@ -1,4 +1,4 @@
-/* im_black.c
+/* black.c
  *
  * Copyright: 1990, J. Cupitt
  *
@@ -166,7 +166,7 @@ vips_black_init( VipsBlack *black )
  *
  * Make a black unsigned char image of a specified size.
  *
- * See also: im_make_xy(), im_text(), im_gaussnoise().
+ * See also: vips_xyz(), vips_text(), vips_gaussnoise().
  *
  * Returns: 0 on success, -1 on error
  */

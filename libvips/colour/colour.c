@@ -165,6 +165,12 @@
  *       This is a highly uniform colour space, much better than CIELAB for 
  *       expressing small differences. 
  *
+ * The CMC colourspace is described in "Uniform Colour Space Based on the
+ * CMC(l:c) Colour-difference Formula", M R Luo and B Rigg, Journal of the
+ * Society of Dyers and Colourists, vol 102, 1986. Distances in this 
+ * colourspace approximate, within 10% or so, differences in the CMC(l:c)
+ * colour difference formula.
+ *
  *       You can calculate metrics like CMC(2:1) by scaling the spaces before
  *       finding differences. 
  *     </para>
@@ -277,7 +283,7 @@ static int
 vips_colour_attach_profile( VipsImage *im, const char *filename )
 {
 	char *data;
-	unsigned int data_length;
+	size_t data_length;
 
 	if( !(data = vips__file_read_name( filename, VIPS_ICC_DIR, 
 		&data_length )) ) 
@@ -294,6 +300,10 @@ vips_colour_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsColour *colour = VIPS_COLOUR( object );
 
+	VipsImage **in;
+	VipsImage **extra_bands; 
+	VipsImage *out;
+
 	int i;
 
 #ifdef DEBUG
@@ -306,8 +316,6 @@ vips_colour_build( VipsObject *object )
 		build( object ) ) 
 		return( -1 );
 
-	g_object_set( colour, "out", vips_image_new(), NULL ); 
-
 	if( colour->n > MAX_INPUT_IMAGES ) {
 		vips_error( class->nickname,
 			"%s", _( "too many input images" ) );
@@ -317,28 +325,102 @@ vips_colour_build( VipsObject *object )
 		if( vips_image_pio_input( colour->in[i] ) )
 			return( -1 );
 
-	/* colour->in[] must be NULL-terminated, we use it as an arg to
+	/* colour->in[] must be NULL-terminated, we can use it as an arg to
 	 * vips_start_many().
 	 */
 	g_assert( !colour->in[colour->n] ); 
 
-	if( vips_image_pipeline_array( colour->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, colour->in ) ) 
+	in = colour->in;
+	extra_bands = (VipsImage **) 
+		vips_object_local_array( object, colour->n );
+
+	/* If there are more than @input_bands bands, we detach and reattach
+	 * after processing.
+	 */
+	if( colour->input_bands > 0 ) {
+		VipsImage **new_in = (VipsImage **) 
+			vips_object_local_array( object, colour->n );
+
+		for( i = 0; i < colour->n; i++ ) {
+			if( vips_check_bands_atleast( class->nickname, 
+				in[i], colour->input_bands ) )
+				return( -1 ); 
+
+			if( vips_extract_band( in[i], &new_in[i], 0, 
+				"n", colour->input_bands, 
+				NULL ) )
+				return( -1 ); 
+
+			if( in[i]->Bands > colour->input_bands ) 
+				if( vips_extract_band( in[i], &extra_bands[i], 
+					colour->input_bands, 
+					"n", in[i]->Bands - 
+						colour->input_bands, 
+					NULL ) )
+					return( -1 );
+		}
+
+		in = new_in;
+	}
+
+	out = vips_image_new();
+	if( vips_image_pipeline_array( out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, in ) ) {
+		g_object_unref( out );
 		return( -1 );
-	colour->out->Coding = colour->coding;
-	colour->out->Type = colour->interpretation;
-	colour->out->BandFmt = colour->format;
-	colour->out->Bands = colour->bands;
+	}
+	out->Coding = colour->coding;
+	out->Type = colour->interpretation;
+	out->BandFmt = colour->format;
+	out->Bands = colour->bands;
 
 	if( colour->profile_filename ) 
-		if( vips_colour_attach_profile( colour->out, 
-			colour->profile_filename ) )
+		if( vips_colour_attach_profile( out, 
+			colour->profile_filename ) ) {
+			g_object_unref( out );
 			return( -1 );
+		}
 
-	if( vips_image_generate( colour->out,
+	if( vips_image_generate( out,
 		vips_start_many, vips_colour_gen, vips_stop_many, 
-		colour->in, colour ) ) 
+		in, colour ) ) {
+		g_object_unref( out );
 		return( -1 );
+	}
+
+	/* Reattach higher bands, if necessary. If we have more than one input
+	 * image, just use the first extra bands. 
+	 */
+	for( i = 0; i < colour->n; i++ ) 
+		if( extra_bands[i] ) {
+			VipsImage *t1, *t2;
+
+			/* We can't just reattach the extra bands: they might
+			 * be float (for example) and we might be trying to
+			 * make a short image. Cast extra to match the body of
+			 * the image.
+			 */
+
+			if( vips_cast( extra_bands[i], &t1, out->BandFmt,
+				NULL ) ) {
+				g_object_unref( out );
+				return( -1 );
+			}
+
+			if( vips_bandjoin2( out, t1, &t2,
+				NULL ) ) {
+				g_object_unref( t1 );
+				g_object_unref( out );
+				return( -1 );
+			}
+			g_object_unref( out );
+			g_object_unref( t1 );
+			out = t2;
+
+			break;
+		}
+
+	g_object_set( colour, "out", out, NULL ); 
 
 	return( 0 );
 }
@@ -373,76 +455,40 @@ vips_colour_init( VipsColour *colour )
 	colour->interpretation = VIPS_INTERPRETATION_sRGB;
 	colour->format = VIPS_FORMAT_UCHAR;
 	colour->bands = 3;
+	colour->input_bands = -1;
 }
 
-G_DEFINE_ABSTRACT_TYPE( VipsColourSpace, vips_colour_space, VIPS_TYPE_COLOUR );
+G_DEFINE_ABSTRACT_TYPE( VipsColourTransform, vips_colour_transform, 
+	VIPS_TYPE_COLOUR );
 
 static int
-vips_colour_space_build( VipsObject *object )
+vips_colour_transform_build( VipsObject *object )
 {
 	VipsColour *colour = VIPS_COLOUR( object );
-	VipsColourSpace *space = VIPS_COLOUR_SPACE( object );
-
-	VipsImage **t;
-	VipsImage *in;
-	VipsImage *extra;
-
-	t = (VipsImage **) vips_object_local_array( object, 4 );
-
-	in = space->in;
-	extra = NULL;
+	VipsColourTransform *transform = VIPS_COLOUR_TRANSFORM( object );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
 
 	/* We only process float.
 	 */
-	if( vips_cast_float( in, &t[0], NULL ) )
+	if( vips_cast_float( transform->in, &t[0], NULL ) )
 		return( -1 );
-	in = t[0];
 
-	/* If there are more than n bands, process just the first three and
-	 * reattach the rest after. This lets us handle RGBA etc. 
+	/* We always do 3 bands -> 3 bands. 
 	 */
-	if( in->Bands > 3 ) {
-		if( vips_extract_band( in, &t[1], 0, "n", 3, NULL ) ||
-			vips_extract_band( in, &t[2], 3, 
-				"n", in->Bands - 3, NULL ) )
-			return( -1 );
-
-		in = t[1];
-		extra = t[2];
-	}
-	else if( vips_check_bands_atleast( 
-		VIPS_OBJECT_GET_CLASS( object )->nickname, in, 3 ) )
-		return( -1 );
+	colour->input_bands = 3;
 
 	colour->n = 1;
-	colour->in = (VipsImage **) vips_object_local_array( object, 2 );
-	colour->in[0] = in;
-	colour->in[1] = NULL;
-	if( colour->in[0] )
-		g_object_ref( colour->in[0] );
+	colour->in = t;
 
-	if( VIPS_OBJECT_CLASS( vips_colour_space_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_colour_transform_parent_class )->
 		build( object ) )
 		return( -1 );
-
-	/* Reattach higher bands, if necessary.
-	 */
-	if( extra ) {
-		VipsImage *x;
-
-		if( vips_bandjoin2( colour->out, extra, &x, NULL ) )
-			return( -1 );
-
-		VIPS_UNREF( colour->out );
-
-		colour->out = x;
-	}
 
 	return( 0 );
 }
 
 static void
-vips_colour_space_class_init( VipsColourSpaceClass *class )
+vips_colour_transform_class_init( VipsColourTransformClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -452,17 +498,17 @@ vips_colour_space_class_init( VipsColourSpaceClass *class )
 
 	vobject_class->nickname = "space";
 	vobject_class->description = _( "colour space transformations" );
-	vobject_class->build = vips_colour_space_build;
+	vobject_class->build = vips_colour_transform_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsColourSpace, in ) );
+		G_STRUCT_OFFSET( VipsColourTransform, in ) );
 }
 
 static void
-vips_colour_space_init( VipsColourSpace *space )
+vips_colour_transform_init( VipsColourTransform *space )
 {
 	VipsColour *colour = (VipsColour *) space; 
 
@@ -486,11 +532,8 @@ vips_colour_code_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 6 );
 
 	VipsImage *in;
-	VipsImage *extra;
-
 
 	in = code->in;
-	extra = NULL;
 
 	/* If this is a LABQ and the coder wants uncoded, unpack.
 	 */
@@ -506,30 +549,6 @@ vips_colour_code_build( VipsObject *object )
 		vips_check_coding( VIPS_OBJECT_CLASS( class )->nickname,
 			in, code->input_coding ) )
 		return( -1 );
-
-	/* Extra band processing. don't do automatic detach/reattach if either
-	 * input or output will be coded.
-	 */
-	if( in &&
-		code->input_coding == VIPS_CODING_NONE &&
-		colour->coding == VIPS_CODING_NONE &&
-		code->input_bands > 0 ) { 
-		if( in->Bands > code->input_bands ) { 
-			if( vips_extract_band( in, &t[1], 0, 
-				"n", code->input_bands, NULL ) )
-				return( -1 );
-			if( vips_extract_band( in, &t[2], code->input_bands, 
-				"n", in->Bands - code->input_bands, 
-				NULL ) )
-				return( -1 );
-			in = t[1];
-			extra = t[2];
-		}
-		else if( vips_check_bands_atleast( 
-			VIPS_OBJECT_CLASS( class )->nickname,
-			in, code->input_bands ) )
-			return( -1 );
-	}
 
 	if( in &&
 		code->input_coding == VIPS_CODING_NONE &&
@@ -549,32 +568,13 @@ vips_colour_code_build( VipsObject *object )
 	}
 
 	colour->n = 1;
-	colour->in = (VipsImage **) vips_object_local_array( object, 2 );
+	colour->in = VIPS_ARRAY( object, 2, VipsImage * );
 	colour->in[0] = in;
 	colour->in[1] = NULL;
-	if( colour->in[0] )
-		g_object_ref( colour->in[0] );
 
-	if( VIPS_OBJECT_CLASS( vips_colour_space_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_colour_code_parent_class )->
 		build( object ) )
 		return( -1 );
-
-	/* Reattach higher bands, if necessary.
-	 *
-	 * Our processing on the first three bands may have changed the image
-	 * format. For example, converting LAB to LABS will make a short
-	 * image. We need to force the extra bands to match this new type. 
-	 */
-	if( extra ) {
-		VipsImage *x;
-
-		if( vips_cast( extra, &t[5], colour->out->BandFmt, NULL ) ||
-			vips_bandjoin2( colour->out, t[5], &x, NULL ) )
-			return( -1 );
-
-		VIPS_UNREF( colour->out );
-		colour->out = x;
-	}
 
 	return( 0 );
 }
@@ -613,19 +613,15 @@ vips_colour_difference_build( VipsObject *object )
 {
 	VipsColour *colour = VIPS_COLOUR( object );
 	VipsColourDifference *difference = VIPS_COLOUR_DIFFERENCE( object );
-	VipsColourDifferenceClass *class = 
-		VIPS_COLOUR_DIFFERENCE_GET_CLASS( object ); 
 
 	VipsImage **t;
 	VipsImage *left;
 	VipsImage *right;
-	VipsImage *extra;
 
 	t = (VipsImage **) vips_object_local_array( object, 12 );
 
 	left = difference->left;
 	right = difference->right;
-	extra = NULL;
 
 	if( left ) {
 		if( vips_image_decode( left, &t[0] ) )
@@ -639,52 +635,9 @@ vips_colour_difference_build( VipsObject *object )
 		right = t[1];
 	}
 
-	/* Detach and reattach extra bands, if any. If both left and right
-	 * have extra bands, give up.
+	/* Detach and reattach any extra bands. 
 	 */
-	if( left &&
-		left->Bands > 3 &&
-		right &&
-		right->Bands > 3 ) {
-		vips_error( VIPS_OBJECT_CLASS( class )->nickname,
-			"%s", "both images have extra bands" );
-		return( -1 );
-	}
-
-	if( left &&
-		left->Bands > 3 ) {
-		if( vips_extract_band( left, &t[2], 0, 
-			"n", 3, 
-			NULL ) )
-			return( -1 );
-		if( vips_extract_band( left, &t[3], 3, 
-			"n", left->Bands - 3, 
-			NULL ) )
-			return( -1 );
-		left = t[2];
-		extra = t[3];
-	}
-
-	if( right &&
-		right->Bands > 3 ) {
-		if( vips_extract_band( right, &t[4], 0, 
-			"n", 3, 
-			NULL ) )
-			return( -1 );
-		if( vips_extract_band( right, &t[5], 3, 
-			"n", right->Bands - 3, 
-			NULL ) )
-			return( -1 );
-		right = t[4];
-		extra = t[5];
-	}
-
-	if( vips_check_bands_atleast( VIPS_OBJECT_CLASS( class )->nickname,
-		left, 3 ) )
-		return( -1 );
-	if( vips_check_bands_atleast( VIPS_OBJECT_CLASS( class )->nickname,
-		right, 3 ) )
-		return( -1 );
+	colour->input_bands = 3;
 
 	if( vips_colourspace( left, &t[6], difference->interpretation, NULL ) )
 		return( -1 );
@@ -708,31 +661,14 @@ vips_colour_difference_build( VipsObject *object )
 	right = t[11];
 
 	colour->n = 2;
-	colour->in = (VipsImage **) vips_object_local_array( object, 3 );
+	colour->in = VIPS_ARRAY( object, 3, VipsImage * );
 	colour->in[0] = left;
 	colour->in[1] = right;
 	colour->in[2] = NULL;
-	if( colour->in[0] )
-		g_object_ref( colour->in[0] );
-	if( colour->in[1] )
-		g_object_ref( colour->in[1] );
 
-	if( VIPS_OBJECT_CLASS( vips_colour_space_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_colour_difference_parent_class )->
 		build( object ) )
 		return( -1 );
-
-	/* Reattach higher bands, if necessary.
-	 */
-	if( extra ) {
-		VipsImage *x;
-
-		if( vips_bandjoin2( colour->out, extra, &x, NULL ) )
-			return( -1 );
-
-		VIPS_UNREF( colour->out );
-
-		colour->out = x;
-	}
 
 	return( 0 );
 }
@@ -800,7 +736,6 @@ vips_colour_operation_init( void )
 	extern GType vips_float2rad_get_type( void ); 
 	extern GType vips_LabQ2sRGB_get_type( void ); 
 	extern GType vips_XYZ2sRGB_get_type( void ); 
-	extern GType vips_sRGB2XYZ_get_type( void ); 
 	extern GType vips_sRGB2scRGB_get_type( void ); 
 	extern GType vips_scRGB2XYZ_get_type( void ); 
 	extern GType vips_XYZ2scRGB_get_type( void ); 

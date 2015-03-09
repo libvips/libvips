@@ -17,6 +17,8 @@
  * 	- read_getpoint partial-ised
  * 10/2/14
  * 	- redo as a class
+ * 16/12/14
+ * 	- free the input region much earlier
  */
 
 /*
@@ -57,6 +59,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include <vips/vips.h>
@@ -93,20 +96,31 @@ vips_getpoint_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_getpoint_parent_class )->build( object ) )
 		return( -1 );
 
+	/* <0 ruled out already.
+	 */
+	if( getpoint->x >= getpoint->in->Xsize ||
+		getpoint->y >= getpoint->in->Ysize ) { 
+		vips_error( class->nickname, 
+			"%s", _( "coordinates out of range" ) ); 
+		return( -1 );
+	}
+
 	if( vips_check_coding_known( class->nickname, getpoint->in ) ||
 		!(region = vips_region_new( getpoint->in )) )
-		return( -1 );
-	vips_object_local( object, region ); 
+		return( -1 ); 
 
 	area.left = getpoint->x;
 	area.top = getpoint->y;
 	area.width = 1;
 	area.height = 1;
-	if( vips_region_prepare( region, &area ) ) 
+	if( vips_region_prepare( region, &area ) ||
+		!(vector = vips__ink_to_vector( class->nickname, getpoint->in, 
+			VIPS_REGION_ADDR( region, area.left, area.top ), 
+			&n )) ) {
+		VIPS_UNREF( region );
 		return( -1 );
-	if( !(vector = vips__ink_to_vector( class->nickname, getpoint->in, 
-		VIPS_REGION_ADDR( region, getpoint->x, getpoint->y ), &n )) )
-		return( -1 ); 
+	}
+	VIPS_UNREF( region );
 
 	out_array = vips_array_double_new( vector, n );
 	g_object_set( object, 
@@ -150,17 +164,17 @@ vips_getpoint_class_init( VipsGetpointClass *class )
 
 	VIPS_ARG_INT( class, "x", 5, 
 		_( "x" ), 
-		_( "Getpoint to read from" ),
+		_( "Point to read" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGetpoint, x ),
-		1, RANGE, 1 );
+		0, RANGE, 0 );
 
 	VIPS_ARG_INT( class, "y", 6, 
 		_( "y" ), 
-		_( "Getpoint to read from" ),
+		_( "Point to read" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGetpoint, y ),
-		1, RANGE, 1 );
+		0, RANGE, 0 );
 
 }
 
@@ -171,11 +185,12 @@ vips_getpoint_init( VipsGetpoint *getpoint )
 
 /**
  * vips_getpoint:
- * @image: image to read from
+ * @in: image to read from
  * @vector: array length=n: output pixel value here
  * @n: length of output vector
  * @x: position to read
  * @y: position to read
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Reads a single pixel on an image. 
  *
@@ -192,23 +207,24 @@ vips_getpoint( VipsImage *in, double **vector, int *n, int x, int y, ... )
 {
 	va_list ap;
 	VipsArrayDouble *out_array;
+	VipsArea *area;
 	int result;
-	int i;
 
 	va_start( ap, y );
 	result = vips_call_split( "getpoint", ap, in, &out_array, x, y );
 	va_end( ap );
 
-	if( !result )
+	if( result )
 		return( -1 ); 
 
-	if( !(*vector = VIPS_ARRAY( NULL, out_array->n, double )) ) {
-		vips_area_unref( (VipsArea *) out_array );
+	area = VIPS_AREA( out_array );
+	*vector = VIPS_ARRAY( NULL, area->n, double );
+	if( !*vector ) {
+		vips_area_unref( area );
 		return( -1 );
 	}
-	for( i = 0; i < out_array->n; i++ )
-		(*vector)[i] = ((double *) out_array->data)[i];
-	*n = out_array->n;
+	memcpy( *vector, area->data, area->n * area->sizeof_type ); 
+	*n = area->n;
 
 	return( 0 );
 }

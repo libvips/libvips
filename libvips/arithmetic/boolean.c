@@ -241,7 +241,7 @@ vips_booleanv( VipsImage *left, VipsImage *right, VipsImage **out,
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
  * @out: output #VipsImage
- * @operation: boolean operation to perform
+ * @boolean: boolean operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform various boolean operations on pairs of images. 
@@ -260,7 +260,7 @@ vips_booleanv( VipsImage *left, VipsImage *right, VipsImage **out,
  *
  * The two input images are cast up to the smallest common format (see table 
  * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * See also: vips_boolean_const().
  *
@@ -268,13 +268,13 @@ vips_booleanv( VipsImage *left, VipsImage *right, VipsImage **out,
  */
 int
 vips_boolean( VipsImage *left, VipsImage *right, VipsImage **out, 
-	VipsOperationBoolean operation, ... )
+	VipsOperationBoolean boolean, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, operation );
-	result = vips_booleanv( left, right, out, operation, ap );
+	va_start( ap, boolean );
+	result = vips_booleanv( left, right, out, boolean, ap );
 	va_end( ap );
 
 	return( result );
@@ -557,7 +557,7 @@ vips_boolean_constv( VipsImage *in, VipsImage **out,
  * vips_boolean_const:
  * @in: input image
  * @out: output image
- * @operation: boolean operation to perform
+ * @boolean: boolean operation to perform
  * @c: array of constants 
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
@@ -580,13 +580,13 @@ vips_boolean_constv( VipsImage *in, VipsImage **out,
  */
 int
 vips_boolean_const( VipsImage *in, VipsImage **out, 
-	VipsOperationBoolean operation, double *c, int n, ... )
+	VipsOperationBoolean boolean, double *c, int n, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, n );
-	result = vips_boolean_constv( in, out, operation, c, n, ap );
+	result = vips_boolean_constv( in, out, boolean, c, n, ap );
 	va_end( ap );
 
 	return( result );

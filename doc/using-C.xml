@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<!-- vim: set ts=2 sw=2 expandtab: --> 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+]>
+<refentry id="using-from-c">
+  <refmeta>
+    <refentrytitle>VIPS from C</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>VIPS Library</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>Using VIPS</refname>
+    <refpurpose>How to use the VIPS library from C</refpurpose>
+  </refnamediv>
+
+  <refsect3 id="using-C-intro">
+    <title>Introduction</title>
+    <para>
+      VIPS comes with a convenient, high-level C API. You should read the API 
+      docs for full details, but this section will try to give a brief 
+      overview. The <command>vips</command> program is handy for getting a 
+      summary of an operation's parameters.
+    </para>
+  </refsect3>
+
+  <refsect3 id="using-C-startup">
+    <title>Library startup</title>
+    <para>
+      When your program starts, use VIPS_INIT()
+      to start up the VIPS library. You should pass it the name
+      of your program, usually <code>argv[0]</code>. Use
+      vips_shutdown() when you exit. VIPS_INIT() is a macro to let it check 
+      that the libvips library you have linked to matches the libvips headers 
+      you included. 
+    </para>
+
+    <para>
+      You can add the VIPS flags to your %GObject command-line processing
+      with vips_add_option_entries(), see below.
+    </para>
+  </refsect3>
+
+  <refsect3 id="using-C-vipsimage">
+    <title>The #VipsImage class</title>
+    <para>
+      The basic data object is the #VipsImage. You can create an
+      image from a file on disc or from an area of memory, either
+      as a C-style array, or as a formatted object, like JPEG. See
+      vips_image_new_from_file() and friends.  Loading an
+      image is fast: VIPS read just enough of the image to be able to get
+      the various properties, such as width, but no decoding occurs until 
+      pixel values are really needed.
+    </para>
+
+    <para>
+      Once you have an image, you can get properties from it in the usual way. 
+      You can use projection functions, like vips_image_get_width() or 
+      g_object_get(), to get %GObject properties. All VIPS objects are
+      immutable, meaning you can only get properties, you can't set them.
+      See <link linkend="libvips-header">VIPS Header</link> to read about 
+      image properties.
+    </para>
+  </refsect3>
+
+  <refsect3 id="using-C-ref">
+    <title>Reference counting</title>
+    <para>
+      VIPS is based on the %GObject library and is therefore reference counted. 
+      vips_image_new_from_file() returns an object with a count of 1. 
+      When you are done with an image, use g_object_unref() to dispose of it. 
+      If you pass an image to an operation and that operation needs to keep a 
+      copy of the image, it will ref it. So you can unref an image as soon as 
+      you no longer need it, you don't need to hang on to it in case anyone 
+      else is still using it. 
+    </para>
+
+    <para>
+      See #VipsOperation for more detail on VIPS 
+      reference counting conventions.
+    </para>
+  </refsect3>
+
+  <refsect3 id="using-C-operations">
+    <title>VIPS operations</title>
+    <para>
+      Use things like vips_invert() to manipulate your images. See 
+      #VipsOperation 
+      for information on
+      running operations on images. When you are done, you can write
+      the final image to a disc file, to a formatted memory buffer, or to
+      C-style memory array. See vips_image_write_to_file() and friends.
+    </para>
+  </refsect3>
+
+  <refsect3 id="using-C-pixels">
+    <title>Getting pixels</title>
+    <para>
+      Use #VipsRegion to read pixels out of images. You can use 
+      VIPS_IMAGE_ADDR() as well, but this can need a large amount of 
+      memory to work. See <link linkend="extending">extending</link> 
+      for an introduction to writing your own operations. 
+    </para>
+  </refsect3>
+
+  <refsect3 id="using-C-errors">
+    <title>Error handling</title>
+
+    <para>
+      VIPS keeps a log of error message, see  <link
+      linkend="libvips-error">VIPS Error</link> to find out how to get and
+      clear the error log.
+    </para>
+  </refsect3>
+
+  <refsect3 id="using-C-example">
+    <title>Example</title>
+
+<example>
+<title>VIPS from C example</title>
+<programlisting language="C">
+/* compile with:
+ *
+ *      gcc -g -Wall try211.c `pkg-config vips --cflags --libs`
+ */
+
+#include &lt;stdio.h&gt;
+#include &lt;vips/vips.h&gt;
+
+int
+main( int argc, char **argv )
+{
+  GOptionContext *context;
+  GOptionGroup *main_group;
+  GError *error = NULL;
+  VipsImage *in;
+  double mean;
+  VipsImage *out;
+
+  if( VIPS_INIT( argv[0] ) )
+    vips_error_exit( NULL ); 
+
+  context = g_option_context_new( "hello infile outfile - VIPS demo" );
+
+  main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
+  g_option_context_set_main_group( context, main_group );
+  vips_add_option_entries( main_group ); 
+
+  if( !g_option_context_parse( context, &amp;argc, &amp;argv, &amp;error ) ) {
+    if( error ) {
+      fprintf( stderr, "%s\n", error-&gt;message );
+      g_error_free( error );
+    }
+
+    vips_error_exit( NULL );
+  }
+
+  if( argc != 3 )
+    vips_error_exit( "usage: %s infile outfile", argv[0] ); 
+  
+  if( !(in = vips_image_new_from_file( argv[1], NULL )) )
+    vips_error_exit( NULL );
+
+  printf( "image width = %d\n", vips_image_get_width( in ) ); 
+
+  if( vips_avg( in, &amp;mean, NULL ) )
+    vips_error_exit( NULL );
+
+  printf( "mean pixel value = %g\n", mean ); 
+
+  if( vips_invert( in, &amp;out, NULL ) )
+    vips_error_exit( NULL );
+
+  g_object_unref( in ); 
+
+  if( vips_image_write_to_file( out, argv[2], NULL ) )
+    vips_error_exit( NULL );
+
+  g_object_unref( out ); 
+
+  return( 0 );
+}
+</programlisting>
+</example>
+
+  </refsect3>
+
+</refentry>

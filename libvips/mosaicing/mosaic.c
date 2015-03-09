@@ -128,6 +128,15 @@ vips_mosaic_build( VipsObject *object )
 		break;
 
 	default:
+		/* Silence compiler warnings.
+		 */
+		dx0 = 0;
+		dy0 = 0;
+		scale1 = 0.0;
+		angle1 = 0.0;
+		dx1 = 0.0;
+		dy1 = 0.0;
+
 		g_assert( 0 );
 	}
 
@@ -311,6 +320,7 @@ vips_mosaic_init( VipsMosaic *mosaic )
  * @yref: position in reference image
  * @xsec: position in secondary image
  * @ysec: position in secondary image
+ * @...: %NULL-terminated list of optional named arguments
  * 
  * Optional arguments:
  *

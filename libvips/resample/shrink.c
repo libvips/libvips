@@ -135,7 +135,7 @@ vips_shrink_start( VipsImage *out, void *a, void *b )
 	VipsShrink *shrink = (VipsShrink *) b;
 	VipsShrinkSequence *seq;
 
-	if( !(seq = IM_NEW( out, VipsShrinkSequence )) )
+	if( !(seq = VIPS_NEW( out, VipsShrinkSequence )) )
 		return( NULL );
 
 	seq->ir = vips_region_new( in );
@@ -435,15 +435,19 @@ vips_shrink_init( VipsShrink *shrink )
  * @out: output image
  * @xshrink: horizontal shrink
  * @yshrink: vertical shrink
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Shrink @in by a pair of factors with a simple box filter. 
  *
  * You will get aliasing for non-integer shrinks. In this case, shrink with
  * this function to the nearest integer size above the target shrink, then
  * downsample to the exact size with vips_affine() and your choice of
- * interpolator.
+ * interpolator. See vips_resize() for a convenient way to do this.
  *
- * See also: vips_affine().
+ * This operation does not change xres or yres. The image resolution needs to
+ * be updated by the application. 
+ *
+ * See also: vips_resize(), vips_affine().
  *
  * Returns: 0 on success, -1 on error
  */

@@ -169,7 +169,7 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	VipsRect *r = &or->valid;
 	VipsInsert *insert = (VipsInsert *) b; 
 
-	Rect ovl;
+	VipsRect ovl;
 
 	/* Does the rect we have been asked for fall entirely inside the
 	 * sub-image?
@@ -304,7 +304,7 @@ vips__ink_to_vector( const char *domain, VipsImage *im, VipsPel *ink, int *n )
 
 	/* Wrap a VipsImage around ink.
 	 */
-	t[0] = vips_image_new_from_memory( ink, 
+	t[0] = vips_image_new_from_memory( ink, VIPS_IMAGE_SIZEOF_PEL( im ),
 		1, 1, VIPS_IMAGE_SIZEOF_PEL( im ), VIPS_FORMAT_UCHAR );
 	if( vips_copy( t[0], &t[1], 
 		"bands", im->Bands, 
@@ -384,8 +384,12 @@ vips_insert_build( VipsObject *object )
 		insert->main_processed, insert->sub_processed, NULL )) )
 		return( -1 );
 
+	/* Joins can get very wide (eg. consider joining a set of tiles
+	 * horizontally to make a large image), we don't want mem use to shoot
+	 * up. SMALLTILE will guarantee we keep small and local.
+	 */
 	if( vips_image_pipeline_array( conversion->out, 
-		VIPS_DEMAND_STYLE_ANY, arry ) )
+		VIPS_DEMAND_STYLE_SMALLTILE, arry ) )
 		return( -1 );
 
 	/* Calculate geometry. 
@@ -422,7 +426,8 @@ vips_insert_build( VipsObject *object )
 
 	if( !(insert->ink = vips__vector_to_ink( 
 		class->nickname, conversion->out,
-		insert->background->data, NULL, insert->background->n )) )
+		(double *) VIPS_ARRAY_ADDR( insert->background, 0 ), NULL, 
+		VIPS_AREA( insert->background )->n )) )
 		return( -1 );
 
 	if( vips_image_generate( conversion->out,
@@ -455,7 +460,9 @@ vips_insert_class_init( VipsInsertClass *class )
 		_( "insert image @sub into @main at @x, @y" );
 	vobject_class->build = vips_insert_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	/* Can't be UNBUFFERED, we are a SMALLTILE operation.
+	 */
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "main", -1, 
 		_( "Main" ), 
@@ -503,9 +510,7 @@ vips_insert_init( VipsInsert *insert )
 {
 	/* Init our instance fields.
 	 */
-	insert->background = 
-		vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), 1 ); 
-	((double *) (insert->background->data))[0] = 0.0;
+	insert->background = vips_array_double_newv( 1, 0.0 );
 }
 
 /**
@@ -522,13 +527,12 @@ vips_insert_init( VipsInsert *insert )
  * @expand: expand output to hold whole of both images
  * @background: colour for new pixels
  *
- * Insert one image into another. @sub is inserted into image @main at
- * position @x, @y relative to the top LH corner of @main. 
+ * Insert @sub into @main at position @x, @y. 
  *
  * Normally @out shows the whole of @main. If @expand is #TRUE then @out is
  * made large enough to hold all of @main and @sub. 
  * Any areas of @out not coming from
- * either @main or @sub are set to @background (default 0).
+ * either @main or @sub are set to @background (default 0). 
  *
  * If @sub overlaps @main,
  * @sub will appear on top of @main. 
@@ -540,7 +544,7 @@ vips_insert_init( VipsInsert *insert )
  *
  * The two input images are cast up to the smallest common type (see table 
  * Smallest common format in 
- * <link linkend="VIPS-arithmetic">arithmetic</link>).
+ * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
  * See also: vips_join(), vips_embed(), vips_extract_area().
  *

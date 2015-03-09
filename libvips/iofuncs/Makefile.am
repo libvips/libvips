@@ -57,6 +57,7 @@ AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/stream.h \
 	${top_srcdir}/libvips/include/vips/memory.h \
+	${top_srcdir}/libvips/include/vips/create.h \
 	${top_srcdir}/libvips/include/vips/foreign.h \
 	${top_srcdir}/libvips/include/vips/conversion.h \
 	${top_srcdir}/libvips/include/vips/arithmetic.h \
@@ -67,6 +68,7 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/convolution.h \
 	${top_srcdir}/libvips/include/vips/morphology.h \
 	${top_srcdir}/libvips/include/vips/draw.h \
+	${top_srcdir}/libvips/include/vips/basic.h \
 	${top_srcdir}/libvips/include/vips/object.h
 
 enumtypes.c: $(vips_scan_headers) Makefile

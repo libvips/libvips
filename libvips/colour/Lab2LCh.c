@@ -46,10 +46,10 @@
 
 #include "pcolour.h"
 
-typedef VipsColourSpace VipsLab2LCh;
-typedef VipsColourSpaceClass VipsLab2LChClass;
+typedef VipsColourTransform VipsLab2LCh;
+typedef VipsColourTransformClass VipsLab2LChClass;
 
-G_DEFINE_TYPE( VipsLab2LCh, vips_Lab2LCh, VIPS_TYPE_COLOUR_SPACE );
+G_DEFINE_TYPE( VipsLab2LCh, vips_Lab2LCh, VIPS_TYPE_COLOUR_TRANSFORM );
 
 /**
  * vips_col_ab2h:
@@ -146,6 +146,7 @@ vips_Lab2LCh_init( VipsLab2LCh *Lab2LCh )
  * vips_Lab2LCh:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Turn Lab to LCh.
  *

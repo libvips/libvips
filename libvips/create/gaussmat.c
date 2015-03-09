@@ -15,6 +15,9 @@
  * 	- gtkdoc
  * 20/10/13
  * 	- redone as a class 
+ * 16/12/14
+ * 	- default to int output to match vips_conv()
+ * 	- use @precision, not @integer
  */
 
 /*
@@ -69,7 +72,8 @@ typedef struct _VipsGaussmat {
 	double min_ampl;
 
 	gboolean separable;
-	gboolean integer;
+	gboolean integer;		/* Deprecated */
+	VipsPrecision precision; 
 
 } VipsGaussmat;
 
@@ -95,6 +99,19 @@ vips_gaussmat_build( VipsObject *object )
 
 	if( VIPS_OBJECT_CLASS( vips_gaussmat_parent_class )->build( object ) )
 		return( -1 );
+
+	/* The old, deprecated @integer property has been deliberately set to
+	 * FALSE and they've not used the new @precision property ... switch
+	 * to float to help them out.
+	 */
+	if( vips_object_argument_isset( object, "integer" ) &&
+		!vips_object_argument_isset( object, "precision" ) &&
+		!gaussmat->integer ) 
+		gaussmat->precision = VIPS_PRECISION_FLOAT;
+
+	if( vips_check_precision_intfloat( class->nickname, 
+		gaussmat->precision ) )
+		return( -1 ); 
 
 	/* Find the size of the mask. Limit the mask size to 10k x 10k for 
 	 * sanity. 
@@ -129,7 +146,7 @@ vips_gaussmat_build( VipsObject *object )
 			double distance = xo * xo + yo * yo;
 			double v = exp( -distance / sig2 );
 
-			if( gaussmat->integer )
+			if( gaussmat->precision == VIPS_PRECISION_INTEGER )
 				v = VIPS_RINT( 20 * v );
 
 			*VIPS_MATRIX( create->out, x, y ) = v;
@@ -157,14 +174,14 @@ vips_gaussmat_class_init( VipsGaussmatClass *class )
 	vobject_class->build = vips_gaussmat_build;
 
 	VIPS_ARG_DOUBLE( class, "sigma", 2, 
-		_( "Radius" ), 
-		_( "Radius of Gaussian" ),
+		_( "Sigma" ), 
+		_( "Sigma of Gaussian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGaussmat, sigma ),
 		0.000001, 10000.0, 1.0 );
 
 	VIPS_ARG_DOUBLE( class, "min_ampl", 3, 
-		_( "Width" ), 
+		_( "Minimum amplitude" ), 
 		_( "Minimum amplitude of Gaussian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGaussmat, min_ampl ),
@@ -180,9 +197,16 @@ vips_gaussmat_class_init( VipsGaussmatClass *class )
 	VIPS_ARG_BOOL( class, "integer", 5, 
 		_( "Integer" ), 
 		_( "Generate integer Gaussian" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsGaussmat, integer ),
 		FALSE );
+
+	VIPS_ARG_ENUM( class, "precision", 6, 
+		_( "Precision" ), 
+		_( "Generate with this precision" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsGaussmat, precision ), 
+		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER ); 
 
 }
 
@@ -191,10 +215,12 @@ vips_gaussmat_init( VipsGaussmat *gaussmat )
 {
 	gaussmat->sigma = 1;
 	gaussmat->min_ampl = 0.1;
+	gaussmat->precision = VIPS_PRECISION_INTEGER;
 }
 
 /**
  * vips_gaussmat:
+ * @out: output image
  * @sigma: standard deviation of mask
  * @min_ampl: minimum amplitude
  * @...: %NULL-terminated list of optional named arguments
@@ -202,7 +228,7 @@ vips_gaussmat_init( VipsGaussmat *gaussmat )
  * Optional arguments:
  *
  * @separable: generate a separable gaussian
- * @integer: generate an integer gaussian
+ * @precision: #VipsPrecision for @out
  *
  * Creates a circularly symmetric Gaussian image of radius 
  * @sigma.  The size of the mask is determined by the variable @min_ampl; 
@@ -214,17 +240,17 @@ vips_gaussmat_init( VipsGaussmat *gaussmat )
  *   H(r) = exp( -(r * r) / (2 * @sigma * @sigma) )
  *
  * The generated image has odd size and its maximum value is normalised to
- * 1.0, unless @integer is set.
+ * 1.0, unless @precision is #VIPS_PRECISION_INTEGER.
  *
  * If @separable is set, only the centre horizontal is generated. This is
  * useful for separable convolutions. 
  *
- * If @integer is set, an integer gaussian is generated. This is useful for
- * integer convolutions. 
+ * If @precision is #VIPS_PRECISION_INTEGER, an integer gaussian is generated. 
+ * This is useful for integer convolutions. 
  *
  * "scale" is set to the sum of all the mask elements.
  *
- * See also: im_log_dmask(), vips_conv().
+ * See also: vips_logmat(), vips_conv().
  *
  * Returns: 0 on success, -1 on error
  */

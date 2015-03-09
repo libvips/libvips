@@ -4,7 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: vipsCC
-Description: C++ API for vips image processing library
+Description: deprecated C++ API for vips image processing library
 Version: @VERSION@
 Requires: vips = @VERSION@
 Libs: -L${libdir} -lvipsCC

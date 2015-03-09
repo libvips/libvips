@@ -411,6 +411,9 @@ vips_vsnprintf( char *str, size_t size, const char *format, va_list ap )
 	int n;
 	static char buf[MAX_BUF];
 
+	/* We can't return an error code, we may already have trashed the
+	 * stack. We must stop immediately.
+	 */
 	if( size > MAX_BUF )
 		vips_error_exit( "panic: buffer overflow "
 			"(request to write %d bytes to buffer of %d bytes)",
@@ -564,7 +567,8 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 	if( (fp = fopen( filename, mode )) )
 		return( fp );
 
-	if( fallback_dir && !filename_hasdir( filename ) ) {
+	if( fallback_dir && 
+		!filename_hasdir( filename ) ) {
 		char *path;
 
 		path = g_build_filename( fallback_dir, filename, NULL );
@@ -575,7 +579,7 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 			return( fp );
 	}
 
-	vips_error( "vips__file_open_read", 
+	vips_error_system( errno, "vips__file_open_read", 
 		_( "unable to open file \"%s\" for reading" ), filename );
 
 	return( NULL );
@@ -597,7 +601,7 @@ vips__file_open_write( const char *filename, gboolean text_mode )
 #endif /*BINARY_OPEN*/
 
         if( !(fp = fopen( filename, mode )) ) {
-		vips_error( "vips__file_open_write", 
+		vips_error_system( errno, "vips__file_open_write", 
 			_( "unable to open file \"%s\" for writing" ), 
 			filename );
 		return( NULL );
@@ -609,7 +613,7 @@ vips__file_open_write( const char *filename, gboolean text_mode )
 /* Load up a file as a string.
  */
 char *
-vips__file_read( FILE *fp, const char *filename, unsigned int *length_out )
+vips__file_read( FILE *fp, const char *filename, size_t *length_out )
 {
         gint64 len;
 	size_t read;
@@ -686,7 +690,7 @@ vips__file_read( FILE *fp, const char *filename, unsigned int *length_out )
  */
 char *
 vips__file_read_name( const char *filename, const char *fallback_dir, 
-	unsigned int *length_out )
+	size_t *length_out )
 {
 	FILE *fp;
 	char *buffer;
@@ -713,9 +717,9 @@ vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
 		return( 0 );
 
 	if( (n = fwrite( data, size, nmemb, stream )) != nmemb ) {
-		vips_error( "vips__file_write", 
-			_( "write error (%zd out of %zd blocks written) "
-			"... disc full?" ), n, nmemb );
+		vips_error_system( errno, "vips__file_write", 
+			_( "write error (%zd out of %zd blocks written)" ),
+			n, nmemb );
 		return( -1 );
 	}
 
@@ -1585,16 +1589,47 @@ vips_enum_from_nick( const char *domain, GType type, const char *nick )
 	return( -1 );
 }
 
-#define BIGBUF (10000)
+int
+vips_flags_from_nick( const char *domain, GType type, const char *nick )
+{
+	GTypeClass *class;
+	GFlagsClass *gflags;
+	GFlagsValue *flags_value;
+	int i;
+	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
+
+	if( !(class = g_type_class_ref( type )) ) {
+		vips_error( domain, "%s", _( "no such flag type" ) ); 
+		return( -1 );
+	}
+	gflags = G_FLAGS_CLASS( class );
+
+	if( (flags_value = g_flags_get_value_by_name( gflags, nick )) ) 
+		return( flags_value->value );
+	if( (flags_value = g_flags_get_value_by_nick( gflags, nick )) ) 
+		return( flags_value->value );
+
+	for( i = 0; i < gflags->n_values; i++ ) {
+		if( i > 0 )
+			vips_buf_appends( &buf, ", " );
+		vips_buf_appends( &buf, gflags->values[i].value_nick );
+	}
+
+	vips_error( domain, _( "flags '%s' has no member '%s', " 
+		"should be one of: %s" ),
+		g_type_name( type ), nick, vips_buf_all( &buf ) );
+
+	return( -1 );
+}
 
 /* Scan @buf for the first "%ns" (eg. "%12s") and substitute the 
- * lowest-numbered one for @sub. @buf is @len bytes
- * in size.
+ * lowest-numbered one for @sub. @buf is @len bytes in size.
  *
  * If there are no %ns, use the first %s.
  */
 int
-vips__substitute( const char *domain, char *buf, size_t len, char *sub )
+vips__substitute( char *buf, size_t len, char *sub )
 {
 	size_t buflen = strlen( buf ); 
 	size_t sublen = strlen( sub ); 
@@ -1609,6 +1644,7 @@ vips__substitute( const char *domain, char *buf, size_t len, char *sub )
 
 	lowest_n = -1;
 	sub_start = NULL;
+	sub_end = NULL;
 	for( p = buf; (p = strchr( p, '%' )); p++ )  
 		if( isdigit( p[1] ) ) {
 			char *q;
@@ -1635,21 +1671,15 @@ vips__substitute( const char *domain, char *buf, size_t len, char *sub )
 				break;
 			}
 
-	if( !sub_start ) {
-		vips_error( domain, 
-			"%s", _( "string contains no substitute marker" ) ); 
+	if( !sub_start ) 
 		return( -1 ); 
-	}
 
 	before_len = sub_start - buf;
 	marker_len = sub_end - sub_start;
 	after_len = buflen - (before_len + marker_len);
 	final_len = before_len + sublen + after_len + 1;
-	if( final_len > len ) { 
-		vips_error( domain, 
-			"%s", _( "not enough space to substitute" ) ); 
+	if( final_len > len )  
 		return( -1 ); 
-	}
 
 	memmove( buf + before_len + sublen, buf + before_len + marker_len, 
 		after_len + 1 );  

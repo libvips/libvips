@@ -157,6 +157,10 @@ vips_hist_find_indexed_build( VipsObject *object )
 		indexed->index_ready = t[0];
 	}
 
+	if( statistic->in ) 
+		if( vips_check_noncomplex( class->nickname, statistic->in ) )
+			return( -1 );
+
 	if( VIPS_OBJECT_CLASS( vips_hist_find_indexed_parent_class )->
 		build( object ) )
 		return( -1 );
@@ -407,13 +411,13 @@ vips_hist_find_indexed_init( VipsHistFindIndexed *hist_find )
  * words, element zero in @out contains the sum of all the pixels in @in
  * whose corresponding pixel in @index is zero.
  *
- * @index must have just one band and be u8 or u16. @value must be
- * non-complex. @out always has the same size and format as @value.
+ * @index must have just one band and be u8 or u16. @in must be
+ * non-complex. @out always has the same size and format as @in.
  *
- * This operation is useful in conjunction with im_label_regions(). You can
+ * This operation is useful in conjunction with vips_labelregions(). You can
  * use it to find the centre of gravity of blobs in an image, for example.
  *
- * See also: vips_hist_find(), im_label_regions().
+ * See also: vips_hist_find(), vips_labelregions().
  *
  * Returns: 0 on success, -1 on error
  */

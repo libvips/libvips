@@ -26,7 +26,7 @@ and write thumbnails to the files
 and
 .B tn_jim.jpg.
 
- $ vipsthumbnail --size=64 -o thumbnails/%s.png fred.jpg
+ $ vipsthumbnail --size=64 -f thumbnails/%s.png fred.jpg
 
 will read image file
 .B fred.jpg
@@ -45,12 +45,18 @@ The image is shrunk so that it just fits within this area, images
 which are smaller than this are expanded.
 
 .TP
-.B -o FORMAT, --output=FORMAT     
+.B -f FORMAT, --format=FORMAT     
 Set the output format string. The input filename has any file type suffix
 removed, then that value is substitued into 
 .B FORMAT
 replacing
-.B %s.
+.B %s. If 
+.B FORMAT
+is a relative path, the name of the input directory is prepended. In other
+words, any path in
+.B FORMAT
+is relative to the directory of the current input file.
+
 The default value is
 .B tn_%s.jpg
 meaning JPEG output, with
@@ -114,6 +120,8 @@ normally runs silently, except for warning and error messages. This option
 makes it print a list of the operations it performs on each image.
 
 .SH RETURN VALUE
-returns 0 on success and non-zero on error.
+returns 0 on success and non-zero on error. Error can mean one or more
+conversions failed.
+
 .SH SEE ALSO
-header(1)
+vipsheader(1)

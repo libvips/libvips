@@ -76,7 +76,7 @@ vips_mask_ideal_band_point( VipsMask *mask, double dx, double dy )
 	double d1 = (dx - fcx) * (dx - fcx) + (dy - fcy) * (dy - fcy);
 	double d2 = (dx + fcx) * (dx + fcx) + (dy + fcy) * (dy + fcy);
 
-	return( d1 < r2 || d2 < r2 ? 1.0 : 0.0 ); 
+	return( (d1 < r2 || d2 < r2) ? 1.0 : 0.0 ); 
 }
 
 static void
@@ -144,7 +144,7 @@ vips_mask_ideal_band_init( VipsMaskIdealBand *ideal_band )
  *
  * Make an ideal band-pass or band-reject filter, that is, one with a 
  * sharp cutoff around the point @frequency_cutoff_x, @frequency_cutoff_y, 
- * of size @r. 
+ * of size @radius. 
  *
  * See also: vips_mask_ideal().
  *

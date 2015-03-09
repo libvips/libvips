@@ -102,7 +102,8 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 			return( -1 );
 	}
 #else
-	vips_error( "im_tiff2vips", _( "no TIFF support in your libvips" ) ); 
+	vips_error( "im_tiff2vips", 
+		"%s", _( "no TIFF support in your libvips" ) ); 
 
 	return( -1 );
 #endif /*HAVE_TIFF*/

@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: vips-cpp
+Description: C++ API for vips8 image processing library
+Version: @VERSION@
+Requires: vips gobject-2.0
+Libs: -L${libdir} -lvips-cpp

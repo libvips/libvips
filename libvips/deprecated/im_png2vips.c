@@ -91,7 +91,8 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 			return( -1 );
 	}
 #else
-	vips_error( "im_png2vips", _( "no PNG support in your libvips" ) ); 
+	vips_error( "im_png2vips", 
+		"%s", _( "no PNG support in your libvips" ) ); 
 
 	return( -1 );
 #endif /*HAVE_PNG*/

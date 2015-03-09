@@ -40,10 +40,6 @@ extern "C" {
 typedef int (*VipsRegionWrite)( VipsRegion *region, VipsRect *area, void *a );
 int vips_sink_disc( VipsImage *im, VipsRegionWrite write_fn, void *a );
 
-typedef void *(*VipsStartFn)( VipsImage *out, void *a, void *b );
-typedef int (*VipsGenerateFn)( VipsRegion *out, 
-	void *seq, void *a, void *b, gboolean *stop );
-typedef int (*VipsStopFn)( void *seq, void *a, void *b );
 int vips_sink( VipsImage *im, 
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b );
@@ -56,10 +52,9 @@ typedef void (*VipsSinkNotify)( VipsImage *im, VipsRect *rect, void *a );
 int vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int tile_width, int tile_height, int max_tiles,
 	int priority,
-	VipsSinkNotify notify, void *a );
+	VipsSinkNotify notify_fn, void *a );
 
 int vips_sink_memory( VipsImage *im );
-int vips_sink_memory2( VipsImage *image );
 
 void *vips_start_one( VipsImage *out, void *a, void *b );
 int vips_stop_one( void *seq, void *a, void *b );
@@ -68,7 +63,7 @@ int vips_stop_many( void *seq, void *a, void *b );
 VipsImage **vips_allocate_input_array( VipsImage *out, ... )
 	__attribute__((sentinel));
 
-int vips_image_generate( VipsImage *im,
+int vips_image_generate( VipsImage *image,
 	VipsStartFn start_fn, VipsGenerateFn generate_fn, VipsStopFn stop_fn,
 	void *a, void *b
 );

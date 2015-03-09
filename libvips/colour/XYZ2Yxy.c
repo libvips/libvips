@@ -49,10 +49,10 @@
 
 #include "pcolour.h"
 
-typedef VipsColourSpace VipsXYZ2Yxy;
-typedef VipsColourSpaceClass VipsXYZ2YxyClass;
+typedef VipsColourTransform VipsXYZ2Yxy;
+typedef VipsColourTransformClass VipsXYZ2YxyClass;
 
-G_DEFINE_TYPE( VipsXYZ2Yxy, vips_XYZ2Yxy, VIPS_TYPE_COLOUR_SPACE );
+G_DEFINE_TYPE( VipsXYZ2Yxy, vips_XYZ2Yxy, VIPS_TYPE_COLOUR_TRANSFORM );
 
 static void
 vips_XYZ2Yxy_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
@@ -106,6 +106,7 @@ vips_XYZ2Yxy_init( VipsXYZ2Yxy *XYZ2Yxy )
  * vips_XYZ2Yxy:
  * @in: input image
  * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Turn XYZ to Yxy.
  *

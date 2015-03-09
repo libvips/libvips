@@ -395,29 +395,41 @@ vips_object_equal_arg( VipsObject *object,
 {
 	VipsObject *other = (VipsObject *) a;
 
-	if( (argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
-		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
-		argument_instance->assigned ) {
-		const char *name = g_param_spec_get_name( pspec );
-		GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
-		GValue v1 = { 0, };
-		GValue v2 = { 0, };
+	const char *name = g_param_spec_get_name( pspec );
+	GType type = G_PARAM_SPEC_VALUE_TYPE( pspec );
+	GValue v1 = { 0, };
+	GValue v2 = { 0, };
 
-		gboolean equal;
+	gboolean equal;
 
-		g_value_init( &v1, type );
-		g_value_init( &v2, type );
-		g_object_get_property( G_OBJECT( object ), name, &v1 ); 
-		g_object_get_property( G_OBJECT( other ), name, &v2 ); 
-		equal = vips_value_equal( pspec, &v1, &v2 );
-		g_value_unset( &v1 );
-		g_value_unset( &v2 );
+	/* Only test assigned input constructor args.
+	 */
+	if( !(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) ||
+		!(argument_class->flags & VIPS_ARGUMENT_INPUT) ||
+		!argument_instance->assigned ) 
+		return( NULL );
 
-		if( !equal )
-			return( object );
-	}
+	/* If this is an optional arg, we need to check that this was
+	 * assigned on @other as well.
+	 */
+	if( !(argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+		!vips_object_argument_isset( other, name ) )
+		/* Optional and was not set on other ... we've found a
+		 * difference!
+		 */
+		return( object ); 
 
-	return( NULL );
+	g_value_init( &v1, type );
+	g_value_init( &v2, type );
+	g_object_get_property( G_OBJECT( object ), name, &v1 ); 
+	g_object_get_property( G_OBJECT( other ), name, &v2 ); 
+	equal = vips_value_equal( pspec, &v1, &v2 );
+	g_value_unset( &v1 );
+	g_value_unset( &v2 );
+
+	/* Stop (return non-NULL) if we've found a difference.
+	 */
+	return( !equal ? object : NULL ); 
 }
 
 /* Are two objects equal, ie. have the same inputs.
@@ -599,11 +611,7 @@ vips_cache_ref( VipsOperation *operation )
 static void
 vips_cache_insert( VipsOperation *operation )
 {
-	VipsOperationCacheEntry *entry = g_new( VipsOperationCacheEntry, 1 ); 
-
-	/* It must not be in cache.
-	 */
-	g_assert( !g_hash_table_lookup( vips_cache_table, operation ) );
+	VipsOperationCacheEntry *entry = g_new( VipsOperationCacheEntry, 1 );
 
 	entry->operation = operation;
 	entry->time = 0;
@@ -721,6 +729,87 @@ vips_cache_trim( void )
 }
 
 /**
+ * vips_cache_operation_lookup:
+ * @operation: (transfer none): pointer to operation to lookup
+ *
+ * Look up an unbuilt @operation in the cache. If we get a hit, ref and 
+ * return the old operation. If there's no hit, return NULL.
+ *
+ * Returns: (transfer full): the cache hit, if any.
+ */
+VipsOperation *
+vips_cache_operation_lookup( VipsOperation *operation )
+{
+	VipsOperationCacheEntry *hit;
+	VipsOperation *result;
+
+	g_assert( VIPS_IS_OPERATION( operation ) );
+	g_assert( !VIPS_OBJECT( operation )->constructed ); 
+
+#ifdef VIPS_DEBUG
+	printf( "vips_cache_operation_lookup: " );
+	vips_object_print_dump( VIPS_OBJECT( operation ) );
+#endif /*VIPS_DEBUG*/
+
+	g_mutex_lock( vips_cache_lock );
+
+	result = NULL;
+
+	if( (hit = g_hash_table_lookup( vips_cache_table, operation )) ) {
+		if( vips__cache_trace ) {
+			printf( "vips cache-: " );
+			vips_object_print_summary( VIPS_OBJECT( operation ) );
+		}
+
+		result = hit->operation;
+		vips_cache_ref( result );
+	}
+
+	g_mutex_unlock( vips_cache_lock );
+
+	return( result );
+}
+
+/**
+ * vips_cache_operation_add:
+ * @operation: (transfer none): pointer to operation to add
+ *
+ * Add a built operation to the cache. The cache will ref the operation. 
+ */
+void
+vips_cache_operation_add( VipsOperation *operation )
+{
+	g_assert( VIPS_OBJECT( operation )->constructed ); 
+
+	g_mutex_lock( vips_cache_lock );
+
+	/* If two threads call the same operation at the same time, 
+	 * we can get multiple adds. Let the first one win. See
+	 * https://github.com/jcupitt/libvips/pull/181
+	 */
+	if( !g_hash_table_lookup( vips_cache_table, operation ) ) {
+		/* Has to be after _build() so we can see output args.
+		 */
+		if( vips__cache_trace ) {
+			if( vips_operation_get_flags( operation ) & 
+				VIPS_OPERATION_NOCACHE )
+				printf( "vips cache : " );
+			else
+				printf( "vips cache+: " );
+			vips_object_print_summary( VIPS_OBJECT( operation ) );
+		}
+
+		if( !(vips_operation_get_flags( operation ) & 
+			VIPS_OPERATION_NOCACHE) ) 
+			vips_cache_insert( operation );
+	}
+
+	g_mutex_unlock( vips_cache_lock );
+
+	vips_cache_trim();
+}
+
+/**
  * vips_cache_operation_buildp: (skip)
  * @operation: pointer to operation to lookup
  *
@@ -734,65 +823,33 @@ vips_cache_trim( void )
 int
 vips_cache_operation_buildp( VipsOperation **operation )
 {
-	VipsOperationCacheEntry *hit;
+	VipsOperation *hit;
 
 	g_assert( VIPS_IS_OPERATION( *operation ) );
 
 #ifdef VIPS_DEBUG
-	printf( "vips_cache_operation_build: " );
+	printf( "vips_cache_operation_buildp: " );
 	vips_object_print_dump( VIPS_OBJECT( *operation ) );
 #endif /*VIPS_DEBUG*/
 
-	g_mutex_lock( vips_cache_lock );
-
-	if( (hit = g_hash_table_lookup( vips_cache_table, *operation )) ) {
-		if( vips__cache_trace ) {
-			printf( "vips cache-: " );
-			vips_object_print_summary( VIPS_OBJECT( *operation ) );
-		}
-
-		/* Ref before unref in case *operation == hit.
-		 */
-		vips_cache_ref( hit->operation );
+	if( (hit = vips_cache_operation_lookup( *operation )) ) {
 		g_object_unref( *operation );
-
-		*operation = hit->operation;
+		*operation = hit;
 	}
-
-	g_mutex_unlock( vips_cache_lock );
-
-	if( !hit ) {
+	else {
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
 
-		/* Has to be after _build() so we can see output args.
-		 */
-		if( vips__cache_trace ) {
-			if( vips_operation_get_flags( *operation ) & 
-				VIPS_OPERATION_NOCACHE )
-				printf( "vips cache : " );
-			else
-				printf( "vips cache+: " );
-			vips_object_print_summary( VIPS_OBJECT( *operation ) );
-		}
-
-		g_mutex_lock( vips_cache_lock );
-
-		if( !(vips_operation_get_flags( *operation ) & 
-			VIPS_OPERATION_NOCACHE) ) 
-			vips_cache_insert( *operation );
-
-		g_mutex_unlock( vips_cache_lock );
+		vips_cache_operation_add( *operation ); 
 	}
 
-	vips_cache_trim();
 
 	return( 0 );
 }
 
 /**
  * vips_cache_operation_build:
- * @operation: operation to lookup
+ * @operation: (transfer none): operation to lookup
  *
  * A binding-friendly version of vips_cache_operation_buildp().
  *

@@ -173,10 +173,10 @@ vips_match_build( VipsObject *object )
 		"ody", dy, 
 		"oarea", oarea, 
 		NULL ) ) {
-		vips_area_unref( oarea );
+		vips_area_unref( VIPS_AREA( oarea ) );
 		return( -1 );
 	}
-	vips_area_unref( oarea );
+	vips_area_unref( VIPS_AREA( oarea ) );
 
 	if( vips_image_write( x, match->out ) ) {
 		g_object_unref( x ); 
@@ -324,6 +324,7 @@ vips_match_init( VipsMatch *match )
  * @yr2: second reference tie-point
  * @xs2: second secondary tie-point
  * @ys2: second secondary tie-point
+ * @...: %NULL-terminated list of optional named arguments
  * 
  * Optional arguments:
  *
