@@ -1,8 +1,3 @@
-- does cplusplus need flipver() etc.?
-
-- how can we do things like subsample on load? we'd have to pass the
-  dimensions out of band I guess
-
 - add webp?
 
 - add stream subclasses which go to and from memory 
@@ -11,9 +6,14 @@
 
   or maybe not? what do we do about _header() etc. ?
 
+  test we can still open 900 images
 
 
 
+
+
+
+- does cplusplus need flipver() etc.?
 
 - threadpool recyling might be useful for dzsave?
 
