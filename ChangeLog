@@ -1,4 +1,5 @@
 26/3/15 started 7.42.4
+- im_maxpos_avg() avoids NaN
 
 6/2/15 started 7.42.3
 - bump version for back-compat ABI change
