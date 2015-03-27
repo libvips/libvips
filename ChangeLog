@@ -1,5 +1,8 @@
 26/3/15 started 7.42.4
 - im_maxpos_avg() avoids NaN
+- small tiffsave doc improvements
+- better thresholding for tiffsave "squash" mode
+- add @miniswhite mode to tiffsave
 
 6/2/15 started 7.42.3
 - bump version for back-compat ABI change

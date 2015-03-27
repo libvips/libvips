@@ -73,6 +73,7 @@ typedef struct _VipsForeignSaveTiff {
 	int tile_height;
 	gboolean pyramid;
 	gboolean squash;
+	gboolean miniswhite;
 	VipsForeignTiffResunit resunit;
 	double xres;
 	double yres;
@@ -125,6 +126,7 @@ vips_foreign_save_tiff_build( VipsObject *object )
 		tiff->tile, tiff->tile_width, tiff->tile_height,
 		tiff->pyramid,
 		tiff->squash,
+		tiff->miniswhite,
 		tiff->resunit, tiff->xres, tiff->yres,
 		tiff->bigtiff,
 		tiff->rgbjpeg ) )
@@ -225,13 +227,19 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, squash ),
 		FALSE );
 
+	VIPS_ARG_BOOL( class, "miniswhite", 14, 
+		_( "Miniswhite" ), 
+		_( "Use 0 for white in 1-bit images" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, miniswhite ),
+		FALSE );
+
 	VIPS_ARG_ENUM( class, "resunit", 15, 
 		_( "Resolution unit" ), 
 		_( "Resolution unit" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, resunit ),
-		VIPS_TYPE_FOREIGN_TIFF_RESUNIT, 
-			VIPS_FOREIGN_TIFF_RESUNIT_CM ); 
+		VIPS_TYPE_FOREIGN_TIFF_RESUNIT, VIPS_FOREIGN_TIFF_RESUNIT_CM ); 
 
 	VIPS_ARG_DOUBLE( class, "xres", 16, 
 		_( "Xres" ), 
