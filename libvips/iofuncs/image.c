@@ -963,13 +963,6 @@ vips_image_build( VipsObject *object )
                 break;
 
 	case 'a':
-		/* Ban crazy numbers. 
-		 */
-		if( image->sizeof_header > 1000000 ) {
-			vips_error( "VipsImage", "%s", _( "bad parameters" ) );
-			return( -1 );
-		}
-
 		if( (image->fd = vips__open_image_read( filename )) == -1 ) 
 			return( -1 );
 		image->dtype = VIPS_IMAGE_OPENIN;
@@ -1227,7 +1220,7 @@ vips_image_class_init( VipsImageClass *class )
 		_( "Offset in bytes from start of file" ),
 		VIPS_ARGUMENT_SET_ONCE | VIPS_ARGUMENT_CONSTRUCT, 
 		G_STRUCT_OFFSET( VipsImage, sizeof_header ),
-		0, 1000000, VIPS_SIZEOF_HEADER );
+		0, 1000000000, VIPS_SIZEOF_HEADER );
 
 	VIPS_ARG_POINTER( class, "foreign_buffer", 17, 
 		_( "Foreign buffer" ),
