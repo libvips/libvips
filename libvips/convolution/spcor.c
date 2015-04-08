@@ -36,6 +36,8 @@
  * 	- cleanups
  * 7/11/13
  * 	- redone as a class
+ * 8/4/15
+ * 	- avoid /0 for constant reference or zero image
  */
 
 /*
@@ -176,20 +178,20 @@ vips_spcor_pre_generate( VipsCorrelation *correlation )
 	sum3 = 0.0; \
 	for( j = 0; j < ref->Ysize; j++ ) { \
 		for( i = 0; i < sz; i += bands ) { \
-			/* Reference pel, and input pel. \
+			/* Reference pel and input pel. \
 			 */ \
 			IN ip = p1a[i]; \
 			IN rp = r1a[i]; \
 			\
-			/* Accumulate sum-of-squares-of- \
-			 * differences for input image. \
+			/* Accumulate sum-of-squares-of-differences for \
+			 * input image. \
 			 */ \
 			double t = ip - imean; \
 			sum2 += t * t; \
 			\
 			/* Accumulate product-of-difference from mean. \
 			 */ \
-			sum3 += (rp - spcor->rmean[b]) * (ip - imean); \
+			sum3 += (rp - spcor->rmean[b]) * t; \
 		} \
 		\
 		p1a += in_lsk; \
@@ -265,8 +267,15 @@ vips_spcor_correlation( VipsCorrelation *correlation,
 					return; 
 				}
 
-				c2 = sqrt( sum2 );
-				cc = sum3 / (spcor->c1[b] * c2);
+				c2 = spcor->c1[b] * sqrt( sum2 );
+
+				if( c2 == 0.0 )
+					/* Something like constant ref.
+					 * We regard this as uncorrelated.
+					 */
+					cc = 0.0;
+				else
+					cc = sum3 / c2;
 
 				*q++ = cc;
 			}
