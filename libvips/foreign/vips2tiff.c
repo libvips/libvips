@@ -491,7 +491,7 @@ write_tiff_header( Write *write, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, 1 );
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 1 );
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, 
-			tw->miniswhite ? 
+			write->miniswhite ? 
 				PHOTOMETRIC_MINISWHITE :  
 				PHOTOMETRIC_MINISBLACK ); 
 	}
@@ -505,7 +505,7 @@ write_tiff_header( Write *write, Layer *layer )
 		switch( write->im->Bands ) {
 		case 1:
 		case 2:
-			photometric = tw->miniswhite ? 
+			photometric = write->miniswhite ? 
 				PHOTOMETRIC_MINISWHITE :  
 				PHOTOMETRIC_MINISBLACK;
 			if( write->im->Bands == 2 ) {
@@ -896,14 +896,14 @@ LabQ2LabC( VipsPel *q, VipsPel *p, int n )
 /* Pack 8 bit VIPS to 1 bit TIFF.
  */
 static void
-eightbit2onebit( TiffWrite *tw, VipsPel *q, VipsPel *p, int n )
+eightbit2onebit( Write *write, VipsPel *q, VipsPel *p, int n )
 {
         int x;
 	VipsPel bits;
 
 	/* Invert in miniswhite mode.
 	 */
-	int white = tw->miniswhite ? 0 : 1;
+	int white = write->miniswhite ? 0 : 1;
 	int black = white ^ 1;
 
 	bits = 0;
@@ -953,10 +953,10 @@ eightbit2onebit( TiffWrite *tw, VipsPel *q, VipsPel *p, int n )
  * the opposite conversion.
  */
 static void
-invert_band0( TiffWrite *tw, VipsPel *q, VipsPel *p, int n )
+invert_band0( Write *write, VipsPel *q, VipsPel *p, int n )
 {
-	VipsImage *im = tw->im;
-	gboolean invert = tw->miniswhite;
+	VipsImage *im = write->im;
+	gboolean invert = write->miniswhite;
 
         int x, i;
 
@@ -1042,10 +1042,10 @@ pack2tiff( Write *write, Layer *layer,
 		if( write->im->Coding == VIPS_CODING_LABQ )
 			LabQ2LabC( q, p, area->width );
 		else if( write->onebit ) 
-			eightbit2onebit( tw, q, p, area->width );
+			eightbit2onebit( write, q, p, area->width );
 		else if( (in->im->Bands == 1 || in->im->Bands == 2) && 
-			tw->miniswhite ) 
-			invert_band0( tw, q, p, area->width );
+			write->miniswhite ) 
+			invert_band0( write, q, p, area->width );
 		else if( write->im->BandFmt == VIPS_FORMAT_SHORT &&
 			write->im->Type == VIPS_INTERPRETATION_LABS )
 			LabS2Lab16( q, p, area->width );
@@ -1135,12 +1135,12 @@ layer_write_strip( Write *write, Layer *layer, VipsRegion *strip )
 			p = write->tbuf;
 		}
 		else if( write->onebit ) {
-			eightbit2onebit( tw, tw->tbuf, p, im->Xsize );
+			eightbit2onebit( write, write->tbuf, p, im->Xsize );
 			p = write->tbuf;
 		}
 		else if( (im->Bands == 1 || im->Bands == 2) && 
-			tw->miniswhite ) {
-			invert_band0( tw, tw->tbuf, p, im->Xsize );
+			write->miniswhite ) {
+			invert_band0( write, write->tbuf, p, im->Xsize );
 			p = write->tbuf;
 		}
 
