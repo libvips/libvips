@@ -1785,7 +1785,7 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @page: load this page
+ * @page: %gint, load this page
  *
  * Read a TIFF-formatted memory block into a VIPS image. Exactly as
  * vips_tiffload(), but read from a memory source. 
@@ -1825,19 +1825,20 @@ vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @compression; use this compression scheme
- * @Q: quality factor
- * @predictor; compress with this prediction
- * @profile: attach this ICC profile
- * @tile; set %TRUE to write a tiled tiff
- * @tile_width; set tile size
- * @tile_height; set tile size
- * @pyramid; set %TRUE to write an image pyramid
- * @squash; squash 8-bit images down to 1 bit
- * @resunit; convert resolution to pixels per inch or cm during write
- * @xres; horizontal resolution in pixels/mm
- * @yres; vertical resolution in pixels/mm
- * @bigtiff; write a BigTiff file
+ * @compression: use this #VipsForeignTiffCompression
+ * @Q: %gint quality factor
+ * @predictor: use this #VipsForeignTiffPredictor
+ * @profile: filename of ICC profile to attach
+ * @tile: set %TRUE to write a tiled tiff
+ * @tile_width: %gint for tile size
+ * @tile_height: %gint for tile size
+ * @pyramid: set %TRUE to write an image pyramid
+ * @squash: set %TRUE to squash 8-bit images down to 1 bit
+ * @miniswhite: set %TRUE to write 1-bit images as MINISWHITE
+ * @resunit: #VipsForeignTiffResunit for resolution unit
+ * @xres: %gdouble horizontal resolution in pixels/mm
+ * @yres: %gdouble vertical resolution in pixels/mm
+ * @bigtiff: set %TRUE to write a BigTiff file
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -1875,8 +1876,12 @@ vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Set @pyramid to write the image as a set of images, one per page, of
  * decreasing size. 
  *
- * Set @squash to make 8-bit uchar images write as 1-bit TIFFs with zero
- * pixels written as 0 and non-zero as 1.
+ * Set @squash to make 8-bit uchar images write as 1-bit TIFFs. Values >128
+ * are written as white, values <=128 as black. Normally vips will write
+ * MINISBLACK TIFFs where black is a 0 bit, but if you set @miniswhite, it
+ * will use 0 for a white bit. Many pre-press applications only work with
+ * images which use this sense. @miniswhite only affects one-bit images, it
+ * does nothing for greyscale images. 
  *
  * Use @resunit to override the default resolution unit.  
  * The default 
@@ -1920,9 +1925,9 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * @shrink: shrink by this much on load
- * @fail: fail on warnings
- * @autorotate: use exif Orientation tag to rotate the image during load
+ * @shrink: %gint, shrink by this much on load
+ * @fail: %gboolean, fail on warnings
+ * @autorotate: %gboolean, use exif Orientation tag to rotate the image during load
  *
  * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
  * including CMYK and YCbCr.
@@ -1998,8 +2003,8 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @shrink: shrink by this much on load
- * @fail: fail on warnings
+ * @shrink: %gint, shrink by this much on load
+ * @fail: %gboolean, fail on warnings
  *
  * Read a JPEG-formatted memory block into a VIPS image. Exactly as
  * vips_jpegload(), but read from a memory buffer. 
@@ -2039,12 +2044,12 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @Q: quality factor
- * @profile: attach this ICC profile
- * @optimize_coding: compute optimal Huffman coding tables
- * @interlace: write an interlaced (progressive) jpeg
- * @strip: remove all metadata from image
- * @no-subsample: disable chroma subsampling
+ * @Q: %gint, quality factor
+ * @profile: filename of ICC profile to attach
+ * @optimize_coding: %gboolean, compute optimal Huffman coding tables
+ * @interlace: %gboolean, write an interlaced (progressive) jpeg
+ * @strip: %gboolean, remove all metadata from image
+ * @no-subsample: %gboolean, disable chroma subsampling
  *
  * Write a VIPS image to a file as JPEG.
  *

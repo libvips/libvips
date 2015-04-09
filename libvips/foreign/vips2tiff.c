@@ -150,6 +150,9 @@
  * 	- append later layers, don't copy the base image
  * 	- use the nice dzsave pyramid code, much faster and simpler
  * 	- we now allow strip pyramids
+ * 27/3/15
+ * 	- squash >128 rather than >0, nicer results for shrink
+ * 	- add miniswhite option
  */
 
 /*
@@ -255,6 +258,7 @@ struct _Write {
 	int tilew, tileh;		/* Tile size */
 	int pyramid;			/* Write pyramid */
 	int onebit;			/* Write as 1-bit TIFF */
+	int miniswhite;			/* Write as 0 == white */
         int resunit;                    /* Resolution unit (inches or cm) */
         double xres;                   	/* Resolution in X */
         double yres;                   	/* Resolution in Y */
@@ -486,8 +490,10 @@ write_tiff_header( Write *write, Layer *layer )
 	else if( write->onebit ) {
 		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, 1 );
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 1 );
-		TIFFSetField( tif, 
-			TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK );
+		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, 
+			tw->miniswhite ? 
+				PHOTOMETRIC_MINISWHITE :  
+				PHOTOMETRIC_MINISBLACK ); 
 	}
 	else {
 		int photometric;
@@ -499,7 +505,9 @@ write_tiff_header( Write *write, Layer *layer )
 		switch( write->im->Bands ) {
 		case 1:
 		case 2:
-			photometric = PHOTOMETRIC_MINISBLACK;
+			photometric = tw->miniswhite ? 
+				PHOTOMETRIC_MINISWHITE :  
+				PHOTOMETRIC_MINISBLACK;
 			if( write->im->Bands == 2 ) {
 				v[0] = EXTRASAMPLE_ASSOCALPHA;
 				TIFFSetField( tif, TIFFTAG_EXTRASAMPLES, 1, v );
@@ -752,6 +760,7 @@ write_new( VipsImage *im, const char *filename,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
 	gboolean squash,
+	gboolean miniswhite,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg )
@@ -772,6 +781,7 @@ write_new( VipsImage *im, const char *filename,
 	write->tileh = tile_height;
 	write->pyramid = pyramid;
 	write->onebit = squash;
+	write->miniswhite = miniswhite;
 	write->icc_profile = profile;
 	write->bigtiff = bigtiff;
 	write->rgbjpeg = rgbjpeg;
@@ -816,6 +826,18 @@ write_new( VipsImage *im, const char *filename,
 		vips_warn( "vips2tiff", 
 			"%s", _( "can't have 1-bit JPEG -- disabling JPEG" ) );
 		write->compression = COMPRESSION_NONE;
+	}
+ 
+	/* We can only MINISWHITE non-complex images of 1 or 2 bands.
+	 */
+	if( write->miniswhite &&
+		(im->Coding != VIPS_CODING_NONE || 
+			vips_band_format_iscomplex( im->BandFmt ) ||
+			im->Bands > 2) ) {
+		vips_warn( "vips2tiff", 
+			"%s", _( "can only save non-complex greyscale images "
+				"as miniswhite -- disabling miniswhite" ) );
+		write->miniswhite = FALSE;
 	}
 
 	/* Sizeof a line of bytes in the TIFF tile.
@@ -874,16 +896,23 @@ LabQ2LabC( VipsPel *q, VipsPel *p, int n )
 /* Pack 8 bit VIPS to 1 bit TIFF.
  */
 static void
-eightbit2onebit( VipsPel *q, VipsPel *p, int n )
+eightbit2onebit( TiffWrite *tw, VipsPel *q, VipsPel *p, int n )
 {
         int x;
 	VipsPel bits;
 
+	/* Invert in miniswhite mode.
+	 */
+	int white = tw->miniswhite ? 0 : 1;
+	int black = white ^ 1;
+
 	bits = 0;
         for( x = 0; x < n; x++ ) {
 		bits <<= 1;
-		if( p[x] )
-			bits |= 1;
+		if( p[x] > 128 )
+			bits |= white;
+		else
+			bits |= black;
 
 		if( (x & 0x7) == 0x7 ) {
 			*q++ = bits;
@@ -895,6 +924,75 @@ eightbit2onebit( VipsPel *q, VipsPel *p, int n )
 	 */
 	if( (x & 0x7) != 0 ) 
 		*q++ = bits << (8 - (x & 0x7));
+}
+
+/* Swap the sense of the first channel, if necessary. 
+ */
+#define GREY_LOOP( TYPE, MAX ) { \
+	TYPE *p1; \
+	TYPE *q1; \
+	\
+	p1 = (TYPE *) p; \
+	q1 = (TYPE *) q; \
+	for( x = 0; x < n; x++ ) { \
+		if( invert ) \
+			q1[0] = MAX - p1[0]; \
+		else \
+			q1[0] = p1[0]; \
+		\
+		for( i = 1; i < im->Bands; i++ ) \
+			q1[i] = p1[i]; \
+		\
+		q1 += im->Bands; \
+		p1 += im->Bands; \
+	} \
+}
+
+/* If we're writing a 1 or 2 band image as a greyscale and MINISWHITE, we need
+ * to swap the sense of the first band. See tiff2vips.c, greyscale_line() for
+ * the opposite conversion.
+ */
+static void
+invert_band0( TiffWrite *tw, VipsPel *q, VipsPel *p, int n )
+{
+	VipsImage *im = tw->im;
+	gboolean invert = tw->miniswhite;
+
+        int x, i;
+
+	switch( im->BandFmt ) {
+	case VIPS_FORMAT_UCHAR:
+	case VIPS_FORMAT_CHAR:
+		GREY_LOOP( guchar, UCHAR_MAX ); 
+		break;
+
+	case VIPS_FORMAT_SHORT:
+		GREY_LOOP( gshort, SHRT_MAX ); 
+		break;
+
+	case VIPS_FORMAT_USHORT:
+		GREY_LOOP( gushort, USHRT_MAX ); 
+		break;
+
+	case VIPS_FORMAT_INT:
+		GREY_LOOP( gint, INT_MAX ); 
+		break;
+
+	case VIPS_FORMAT_UINT:
+		GREY_LOOP( guint, UINT_MAX ); 
+		break;
+
+	case VIPS_FORMAT_FLOAT:
+		GREY_LOOP( float, 1.0 ); 
+		break;
+
+	case VIPS_FORMAT_DOUBLE:
+		GREY_LOOP( double, 1.0 ); 
+		break;
+
+	default:
+		g_assert( 0 );
+	}
 }
 
 /* Convert VIPS LABS to TIFF 16 bit LAB.
@@ -944,7 +1042,10 @@ pack2tiff( Write *write, Layer *layer,
 		if( write->im->Coding == VIPS_CODING_LABQ )
 			LabQ2LabC( q, p, area->width );
 		else if( write->onebit ) 
-			eightbit2onebit( q, p, area->width );
+			eightbit2onebit( tw, q, p, area->width );
+		else if( (in->im->Bands == 1 || in->im->Bands == 2) && 
+			tw->miniswhite ) 
+			invert_band0( tw, q, p, area->width );
 		else if( write->im->BandFmt == VIPS_FORMAT_SHORT &&
 			write->im->Type == VIPS_INTERPRETATION_LABS )
 			LabS2Lab16( q, p, area->width );
@@ -1034,7 +1135,12 @@ layer_write_strip( Write *write, Layer *layer, VipsRegion *strip )
 			p = write->tbuf;
 		}
 		else if( write->onebit ) {
-			eightbit2onebit( write->tbuf, p, im->Xsize );
+			eightbit2onebit( tw, tw->tbuf, p, im->Xsize );
+			p = write->tbuf;
+		}
+		else if( (im->Bands == 1 || im->Bands == 2) && 
+			tw->miniswhite ) {
+			invert_band0( tw, tw->tbuf, p, im->Xsize );
 			p = write->tbuf;
 		}
 
@@ -1372,6 +1478,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
 	gboolean squash,
+	gboolean miniswhite,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg )
@@ -1392,7 +1499,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	if( !(write = write_new( in, filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
-		resunit, xres, yres, bigtiff, rgbjpeg )) )
+		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg )) )
 		return( -1 );
 
 	if( vips_sink_disc( write->im, write_strip, write ) ) {
