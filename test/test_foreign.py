@@ -50,6 +50,10 @@ class TestForeign(unittest.TestCase):
         self.cmyk = self.colour.bandjoin(self.mono)
         self.cmyk = self.cmyk.copy(interpretation = Vips.Interpretation.CMYK)
 
+	# this will load via libMagick as a colour image
+        im = Vips.Image.new_from_file(self.gif_file)
+        self.onebit = im[1] > 128
+
     # we have test files for formats which have a clear standard
     def file_loader(self, loader, test_file, validate):
         im = Vips.call(loader, test_file)
@@ -143,6 +147,11 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.tif", self.mono)
         self.save_load("%s.tif", self.colour)
         self.save_load("%s.tif", self.cmyk)
+
+        self.save_load("%s.tif", self.onebit)
+        self.save_load("%s.tif[squash]", self.onebit)
+        self.save_load("%s.tif[miniswhite]", self.onebit)
+        self.save_load("%s.tif[squash,miniswhite]", self.onebit)
 
         self.save_load_file("test.tif", "[tile]", self.colour, 0)
         self.save_load_file("test.tif", "[tile,pyramid]", self.colour, 0)

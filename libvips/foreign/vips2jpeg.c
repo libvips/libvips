@@ -845,8 +845,7 @@ write_jpeg_block( VipsRegion *region, VipsRect *area, void *a )
 		write->row_pointer[i] = (JSAMPROW) 
 			VIPS_REGION_ADDR( region, 0, area->top + i );
 
-	/* We are running in a background thread. We need to catch any
-	 * longjmp()s from jpeg_write_scanlines() here.
+	/* Catch any longjmp()s from jpeg_write_scanlines() here.
 	 */
 	if( setjmp( write->eman.jmp ) ) 
 		return( -1 );
