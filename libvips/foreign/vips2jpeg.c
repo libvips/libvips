@@ -860,7 +860,8 @@ write_jpeg_block( VipsRegion *region, VipsRect *area, void *a )
 static int
 write_vips( Write *write, int qfac, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
-	gboolean no_subsample )
+	gboolean no_subsample, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans )
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -908,6 +909,14 @@ write_vips( Write *write, int qfac, const char *profile,
 	if( !(write->row_pointer = VIPS_ARRAY( NULL, in->Ysize, JSAMPROW )) )
 		return( -1 );
 
+#ifdef HAVE_JPEG_EXT_PARAMS
+	/* Reset compression profile to libjpeg defaults
+	 */
+	if( jpeg_c_int_param_supported( &write->cinfo, JINT_COMPRESS_PROFILE ) ) {
+		jpeg_c_set_int_param( &write->cinfo, JINT_COMPRESS_PROFILE, JCP_FASTEST );
+	}
+#endif
+
 	/* Rest to default. 
 	 */
         jpeg_set_defaults( &write->cinfo );
@@ -916,6 +925,64 @@ write_vips( Write *write, int qfac, const char *profile,
  	/* Compute optimal Huffman coding tables.
 	 */
 	write->cinfo.optimize_coding = optimize_coding;
+
+#ifdef HAVE_JPEG_EXT_PARAMS
+	/* Apply trellis quantisation to each 8x8 block. Infers "optimize_coding".
+	 */
+	if( trellis_quant ) {
+		if ( jpeg_c_bool_param_supported(
+			&write->cinfo, JBOOLEAN_TRELLIS_QUANT ) ) {
+			jpeg_c_set_bool_param( &write->cinfo,
+				JBOOLEAN_TRELLIS_QUANT, TRUE );
+			write->cinfo.optimize_coding = TRUE;
+		}
+		else {
+			vips_warn( "vips2jpeg", "%s", _( "trellis_quant unsupported" ) );
+		}
+	}
+	/* Apply overshooting to samples with extreme values e.g. 0 & 255 for 8-bit.
+	 */
+	if( overshoot_deringing ) {
+		if ( jpeg_c_bool_param_supported(
+			&write->cinfo, JBOOLEAN_OVERSHOOT_DERINGING ) ) {
+			jpeg_c_set_bool_param( &write->cinfo,
+				JBOOLEAN_OVERSHOOT_DERINGING, TRUE );
+		}
+		else {
+			vips_warn( "vips2jpeg", "%s", _( "overshoot_deringing unsupported" ) );
+		}
+	}
+	/* Split the spectrum of DCT coefficients into separate scans.
+	 * Requires progressive output. Must be set before jpeg_simple_progression.
+	 */
+	if( optimize_scans ) {
+		if( progressive ) {
+			if( jpeg_c_bool_param_supported(
+				&write->cinfo, JBOOLEAN_OPTIMIZE_SCANS ) ) {
+				jpeg_c_set_bool_param( &write->cinfo, JBOOLEAN_OPTIMIZE_SCANS, TRUE );
+			}
+			else {
+				vips_warn( "vips2jpeg", "%s", _( "Ignoring optimize_scans" ) );
+			}
+		}
+		else {
+			vips_warn( "vips2jpeg", "%s",
+				_( "Ignoring optimize_scans for baseline" ) );
+		}
+	}
+#else
+	/* Using jpeglib.h without extension parameters, warn of ignored options.
+	 */
+	if ( trellis_quant ) {
+		vips_warn( "vips2jpeg", "%s", _( "Ignoring trellis_quant" ) );
+	}
+	if ( overshoot_deringing ) {
+		vips_warn( "vips2jpeg", "%s", _( "Ignoring overshoot_deringing" ) );
+	}
+	if ( optimize_scans ) {
+		vips_warn( "vips2jpeg", "%s", _( "Ignoring optimize_scans" ) );
+	}
+#endif
 
 	/* Enable progressive write.
 	 */
@@ -981,7 +1048,8 @@ int
 vips__jpeg_write_file( VipsImage *in, 
 	const char *filename, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
-	gboolean no_subsample )
+	gboolean no_subsample, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans )
 {
 	Write *write;
 
@@ -1012,8 +1080,8 @@ vips__jpeg_write_file( VipsImage *in,
 	/* Convert!
 	 */
 	if( write_vips( write, 
-		Q, profile, optimize_coding, progressive, strip, 
-		no_subsample ) ) {
+		Q, profile, optimize_coding, progressive, strip, no_subsample,
+		trellis_quant, overshoot_deringing, optimize_scans ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
@@ -1261,7 +1329,8 @@ int
 vips__jpeg_write_buffer( VipsImage *in, 
 	void **obuf, size_t *olen, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean no_subsample )
+	gboolean strip, gboolean no_subsample, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans )
 {
 	Write *write;
 
@@ -1291,8 +1360,8 @@ vips__jpeg_write_buffer( VipsImage *in,
 	/* Convert!
 	 */
 	if( write_vips( write, 
-		Q, profile, optimize_coding, progressive, strip, 
-		no_subsample ) ) {
+		Q, profile, optimize_coding, progressive, strip, no_subsample,
+		trellis_quant, overshoot_deringing, optimize_scans ) ) {
 		write_destroy( write );
 
 		return( -1 );

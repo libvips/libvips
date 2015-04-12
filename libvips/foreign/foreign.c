@@ -2050,6 +2050,9 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * @strip: %gboolean, remove all metadata from image
  * @no-subsample: %gboolean, disable chroma subsampling
+ * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -2087,6 +2090,20 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * If @no-subsample is set, chrominance subsampling is disabled. This will 
  * improve quality at the cost of larger file size. Useful for high Q factors. 
  *
+ * If @trellis_quant is set and the version of libjpeg supports it
+ * (e.g. mozjpeg >= 3.0), apply trellis quantisation to each 8x8 block.
+ * Reduces file size but increases compression time.
+ *
+ * If @overshoot_deringing is set and the version of libjpeg supports it
+ * (e.g. mozjpeg >= 3.0), apply overshooting to samples with extreme values
+ * for example 0 and 255 for 8-bit. Overshooting may reduce ringing artifacts
+ * from compression, in particular in areas where black text appears on a
+ * white background.
+ *
+ * If @optimize_scans is set and the version of libjpeg supports it
+ * (e.g. mozjpeg >= 3.0), split the spectrum of DCT coefficients into
+ * separate scans. Reduces file size but increases compression time.
+ *
  * See also: vips_jpegsave_buffer(), vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -2119,6 +2136,9 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * @interlace: write an interlaced (progressive) jpeg
  * @strip: remove all metadata from image
  * @no-subsample: disable chroma subsampling
+ * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
@@ -2170,6 +2190,9 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * @optimize_coding: compute optimal Huffman coding tables
  * @strip: remove all metadata from image
  * @no-subsample: disable chroma subsampling
+ * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  *
  * As vips_jpegsave(), but save as a mime jpeg on stdout.
  *
