@@ -18,7 +18,7 @@
  * 27/7/14
  * 	- fix a race ... did not merge states if max was equal
  * 26/3/15
- * 	- avoid NaN
+ * 	- avoid NaN, thanks Paul
  */
 
 /*
