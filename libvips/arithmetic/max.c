@@ -495,8 +495,9 @@ vips_max_init( VipsMax *max )
  *
  * This operation finds the maximum value in an image. 
  *
- * If the image contains several maximum values, only the first @size 
- * found are returned.
+ * By default it finds the single largest value. If @size is set >1, it will 
+ * find the @size largest values. It will stop searching early if has found 
+ * enough values. 
  *
  * It operates on all 
  * bands of the input image: use vips_stats() if you need to find an 
@@ -506,7 +507,8 @@ vips_max_init( VipsMax *max )
  *
  * You can read out the position of the maximum with @x and @y. You can read
  * out arrays of the values and positions of the top @size maxima with
- * @out_array, @x_array and @y_array.
+ * @out_array, @x_array and @y_array. These values are returned sorted from 
+ * largest to smallest.
  *
  * See also: vips_min(), vips_stats().
  *
