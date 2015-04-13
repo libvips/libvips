@@ -3,15 +3,17 @@ before_install:
   - sudo add-apt-repository ppa:lyrasis/precise-backports -y
   - sudo apt-get update -qq
   - sudo apt-get install -qq automake gobject-introspection gtk-doc-tools libfftw3-dev libglib2.0-dev libjpeg-turbo8-dev libpng12-dev libwebp-dev libtiff4-dev libxml2-dev swig libmagick++-dev bc libgsf-1-dev libcfitsio3-dev libgsl0-dev libmatio-dev
+  - sudo apt-get install -qq liborc-0.4-dev
+  - sudo apt-get install -qq python-dev python3-dev 
+  - sudo apt-get install -qq libpython3-dev libpython2-dev
+  - sudo apt-get install -qq python-gi-dev python3-gi
 before_script:
   - ./bootstrap.sh
-  - ./configure --enable-debug=no --enable-cxx=yes --without-orc --without-python
+  - ./configure --enable-debug=no --without-orc 
   - make
   - sudo make install
   - sudo ldconfig
-  - git clone https://github.com/jcupitt/nip2.git
-  - cd nip2
-  - git checkout $TRAVIS_BRANCH || true
-  - ./bootstrap.sh
-  - ./configure
-script: make check
+  - sudo cp python/Vips.py /usr/lib/python2.7/dist-packages/gi/overrides
+  - sudo cp python/Vips.py /usr/lib/python3/dist-packages/gi/overrides
+script: 
+  - make check
