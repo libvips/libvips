@@ -5,10 +5,10 @@ before_install:
   - sudo apt-get install -qq automake gobject-introspection gtk-doc-tools libfftw3-dev libglib2.0-dev libjpeg-turbo8-dev libpng12-dev libwebp-dev libtiff4-dev libxml2-dev swig libmagick++-dev bc libgsf-1-dev libcfitsio3-dev libgsl0-dev libmatio-dev
   - sudo apt-get install -qq liborc-0.4-dev
   - sudo apt-get install -qq python-dev python3-dev 
-  - sudo apt-get install -qq python-gi-dev python3-gi
+  - sudo apt-get install python-gi-dev python3-gi
 before_script:
   - ./bootstrap.sh
-  - ./configure --enable-debug=no --without-orc 
+  - ./configure 
   - make
   - sudo make install
   - sudo ldconfig
