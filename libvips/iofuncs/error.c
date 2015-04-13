@@ -445,12 +445,9 @@ vips_info( const char *domain, const char *fmt, ... )
  * @fmt: printf()-style format string for the message
  * @ap: arguments to the format string
  *
- * Sends a formatted warning message to stderr. If you define the
- * environment variable VIPS_WARNING, these message are surpressed.
+ * Exactly as vips_warn(), but takes a va_list argument. 
  *
- * Warning messages are used to report things like overflow counts.
- *
- * See also: vips_info(), vips_warn().
+ * See also: vips_warn().
  */
 void 
 vips_vwarn( const char *domain, const char *fmt, va_list ap )
@@ -477,7 +474,7 @@ vips_vwarn( const char *domain, const char *fmt, va_list ap )
  * @...: arguments to the format string
  *
  * Sends a formatted warning message to stderr. If you define the
- * environment variable IM_WARNING, these message are surpressed.
+ * environment variable VIPS_WARNING, these message are supressed.
  *
  * Warning messages are used to report things like overflow counts.
  *
