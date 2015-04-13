@@ -504,9 +504,11 @@ vips_operation_vips_operation_print_summary_arg( VipsObject *object,
 {
 	VipsBuf *buf = (VipsBuf *) a;
 
-	/* Just assigned input construct args
+	/* Just assigned input and output construct args. _summary() is used 
+	 * for things like cache tracing, so it's useful to show output args.
 	 */
-	if( (argument_class->flags & VIPS_ARGUMENT_INPUT) &&
+	if( ((argument_class->flags & VIPS_ARGUMENT_INPUT) ||
+		 (argument_class->flags & VIPS_ARGUMENT_OUTPUT)) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		argument_instance->assigned ) {
 		const char *name = g_param_spec_get_name( pspec );

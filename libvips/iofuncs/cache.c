@@ -757,7 +757,7 @@ vips_cache_operation_lookup( VipsOperation *operation )
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, operation )) ) {
 		if( vips__cache_trace ) {
-			printf( "vips cache-: " );
+			printf( "vips cache*: " );
 			vips_object_print_summary( VIPS_OBJECT( operation ) );
 		}
 
@@ -788,19 +788,21 @@ vips_cache_operation_add( VipsOperation *operation )
 	 * https://github.com/jcupitt/libvips/pull/181
 	 */
 	if( !g_hash_table_lookup( vips_cache_table, operation ) ) {
+		VipsOperationFlags flags = 
+			vips_operation_get_flags( operation );
+		gboolean nocache = flags & VIPS_OPERATION_NOCACHE;
+
 		/* Has to be after _build() so we can see output args.
 		 */
 		if( vips__cache_trace ) {
-			if( vips_operation_get_flags( operation ) & 
-				VIPS_OPERATION_NOCACHE )
+			if( nocache )
 				printf( "vips cache : " );
 			else
 				printf( "vips cache+: " );
 			vips_object_print_summary( VIPS_OBJECT( operation ) );
 		}
 
-		if( !(vips_operation_get_flags( operation ) & 
-			VIPS_OPERATION_NOCACHE) ) 
+		if( !nocache ) 
 			vips_cache_insert( operation );
 	}
 
@@ -842,7 +844,6 @@ vips_cache_operation_buildp( VipsOperation **operation )
 
 		vips_cache_operation_add( *operation ); 
 	}
-
 
 	return( 0 );
 }
