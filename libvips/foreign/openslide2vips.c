@@ -380,6 +380,7 @@ readslide_new( const char *filename, VipsImage *out,
 	associated = g_strjoinv( ", ", (char **)
 		openslide_get_associated_image_names( rslide->osr ) );
 	vips_image_set_string( out, "slide-associated-images", associated );
+	VIPS_FREE( associated );
 
 	return( rslide );
 }
