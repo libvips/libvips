@@ -2,14 +2,19 @@ language: cpp
 before_install:
   - sudo add-apt-repository ppa:lyrasis/precise-backports -y
   - sudo apt-get update -qq
-  - sudo apt-get install automake gobject-introspection gtk-doc-tools 
+  - sudo apt-get install automake gtk-doc-tools 
   - sudo apt-get install libfftw3-dev libglib2.0-dev libjpeg-turbo8-dev 
   - sudo apt-get install libpng12-dev libwebp-dev libtiff4-dev libxml2-dev 
   - sudo apt-get install swig libmagick++-dev bc libgsf-1-dev 
   - sudo apt-get install libcfitsio3-dev libgsl0-dev libmatio-dev
   - sudo apt-get install liborc-0.4-dev liblcms2-dev libopenslide-dev
   - sudo apt-get install python-dev python3-dev 
-  - sudo apt-get install python-gi-dev python3-gi python-gi-cairo
+  - wget http://ftp.gnome.org/pub/GNOME/sources/gobject-introspection/1.31/gobject-introspection-1.31.22.tar.xz
+  - tar -xf gobject-introspection-1.31.22.tar.xz
+  - cd gobject-introspection-1.31.22 && ./configure --prefix=/usr && make && make install
+  - wget http://ftp.gnome.org/pub/GNOME/sources/pygobject/3.10/pygobject-3.10.2.tar.xz
+  - tar -xf pygobject-3.10.2.tar.xz
+  - cd pygobject-3.10.2 && ./configure --prefix=/usr && make && make install
 before_script:
   - ./bootstrap.sh
   - ./configure 
