@@ -14,5 +14,6 @@ before_script:
   - ./configure 
   - make
   - sudo make install
+  - sudo ldconfig
 script: 
   - make check
