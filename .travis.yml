@@ -3,12 +3,17 @@ before_install:
   - sudo add-apt-repository ppa:lyrasis/precise-backports -y
   - sudo apt-get update -qq
   - sudo apt-get install automake gtk-doc-tools 
-  - sudo apt-get install libfftw3-dev libglib2.0-dev libjpeg-turbo8-dev 
+  - sudo apt-get install libfftw3-dev libjpeg-turbo8-dev 
   - sudo apt-get install libpng12-dev libwebp-dev libtiff4-dev libxml2-dev 
-  - sudo apt-get install swig libmagick++-dev bc libgsf-1-dev 
+  - sudo apt-get install swig libmagick++-dev bc 
   - sudo apt-get install libcfitsio3-dev libgsl0-dev libmatio-dev
-  - sudo apt-get install liborc-0.4-dev liblcms2-dev libopenslide-dev
+  - sudo apt-get install liborc-0.4-dev liblcms2-dev 
   - sudo apt-get install python-dev python3-dev 
+  - wget http://ftp.gnome.org/pub/gnome/sources/glib/2.44/glib-2.44.0.tar.xz
+  - tar -xf glib-2.44.0.tar.xz
+  - export DIR=$(pwd)/glib-2.44.0
+  - cd $DIR && ./configure --prefix=/usr && make 
+  - sudo bash -c "cd $DIR && make install"
   - wget http://ftp.gnome.org/pub/GNOME/sources/gobject-introspection/1.31/gobject-introspection-1.31.22.tar.xz
   - tar -xf gobject-introspection-1.31.22.tar.xz
   - export DIR=$(pwd)/gobject-introspection-1.31.22
