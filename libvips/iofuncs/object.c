@@ -1849,9 +1849,9 @@ vips_object_set_argument_from_string( VipsObject *object,
 		else
 			access = VIPS_ACCESS_RANDOM; 
 
-		if( vips_foreign_load( value, &out, 
+		if( !(out = vips_image_new_from_file( value, 
 			"access", access,
-			NULL ) )
+			NULL )) )
 			return( -1 );
 
 		g_value_init( &gvalue, VIPS_TYPE_IMAGE );
@@ -2073,11 +2073,10 @@ vips_object_get_argument_to_string( VipsObject *object,
 
 	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
 		VipsImage *in;
-
-		/* Pull out the image and write it.
+/* Pull out the image and write it.
 		 */
 		g_object_get( object, name, &in, NULL );
-		if( vips_foreign_save( in, arg, NULL ) ) {
+		if( vips_image_write_to_file( in, arg, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}

@@ -1358,6 +1358,13 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 	if( vips_object_build( VIPS_OBJECT( operation ) ) ) 
 		return( -1 );
 
+	/* We're not using the cache, so we need to print the trace line.
+	 */
+	if( vips__cache_trace ) {
+		printf( "vips cache : " );
+		vips_object_print_summary( VIPS_OBJECT( operation ) );
+	}
+
 	call.i = 0;
 	if( vips_argument_map( VIPS_OBJECT( operation ),
 		vips_call_argv_output, &call, NULL ) ) 
