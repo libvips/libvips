@@ -11,10 +11,12 @@ before_install:
   - sudo apt-get install python-dev python3-dev 
   - wget http://ftp.gnome.org/pub/GNOME/sources/gobject-introspection/1.31/gobject-introspection-1.31.22.tar.xz
   - tar -xf gobject-introspection-1.31.22.tar.xz
-  - cd gobject-introspection-1.31.22 && ./configure --prefix=/usr && make && make install
+  - cd gobject-introspection-1.31.22 && ./configure --prefix=/usr && make 
+  - sudo (cd gobject-introspection-1.31.22 && make install)
   - wget http://ftp.gnome.org/pub/GNOME/sources/pygobject/3.10/pygobject-3.10.2.tar.xz
   - tar -xf pygobject-3.10.2.tar.xz
-  - cd pygobject-3.10.2 && ./configure --prefix=/usr && make && make install
+  - cd pygobject-3.10.2 && ./configure --prefix=/usr && make 
+  - sudo (cd pygobject-3.10.2 && make install)
 before_script:
   - ./bootstrap.sh
   - ./configure 
