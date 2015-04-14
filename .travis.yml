@@ -3,6 +3,7 @@ before_install:
   - sudo add-apt-repository ppa:lyrasis/precise-backports -y
   - sudo apt-get update -qq
   - sudo apt-get install automake gtk-doc-tools 
+  - sudo apt-get install gobject-introspection
   - sudo apt-get install libfftw3-dev libjpeg-turbo8-dev 
   - sudo apt-get install libpng12-dev libwebp-dev libtiff4-dev libxml2-dev 
   - sudo apt-get install swig libmagick++-dev bc 
