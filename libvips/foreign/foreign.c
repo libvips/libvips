@@ -816,6 +816,14 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		if( !vips_foreign_load_iscompat( load->real, out ) )
 			return( NULL );
 
+		/* We copy the metadata from @out to @real
+		 * to preserve custom-added fields, which would
+		 * otherwise be destroyed by the call to
+		 * vips_image_pipelinev().
+		 */
+		VipsImage* imgv[2] = {load->out, NULL};
+		vips__image_copy_fields_array(load->real, imgv);
+
 		/* We have to tell vips that out depends on real. We've set
 		 * the demand hint below, but not given an input there.
 		 */
