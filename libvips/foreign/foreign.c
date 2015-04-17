@@ -1132,7 +1132,36 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		vips_colourspace_issupported( in ) &&
 		(class->saveable == VIPS_SAVEABLE_RGB ||
 		 class->saveable == VIPS_SAVEABLE_RGBA ||
+		 class->saveable == VIPS_SAVEABLE_RGBA_ONLY ||
 		 class->saveable == VIPS_SAVEABLE_RGB_CMYK) ) { 
+		VipsImage *out;
+		VipsInterpretation interpretation;
+
+		/* Do we make RGB or RGB16? We don't want to squash a 16-bit
+		 * RGB down to 8 bits if the saver supports 16. 
+		 */
+		if( vips_band_format_is8bit( 
+			class->format_table[in->BandFmt] ) )
+			interpretation = VIPS_INTERPRETATION_sRGB;
+		else
+			interpretation = VIPS_INTERPRETATION_RGB16;
+
+		if( vips_colourspace( in, &out, interpretation, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
+		}
+		g_object_unref( in );
+
+		in = out;
+	}
+
+	/* VIPS_SAVEABLE_RGBA_ONLY does not support 1 or 2 bands ... convert 
+	 * to sRGB. 
+	 */
+	if( !class->coding[VIPS_CODING_RAD] &&
+		in->Bands < 3 &&
+		vips_colourspace_issupported( in ) &&
+		class->saveable == VIPS_SAVEABLE_RGBA_ONLY ) { 
 		VipsImage *out;
 		VipsInterpretation interpretation;
 
@@ -1211,7 +1240,8 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		else if( in->Bands > 4 && 
 			((class->saveable == VIPS_SAVEABLE_RGB_CMYK &&
 			  in->Type == VIPS_INTERPRETATION_CMYK) ||
-			 class->saveable == VIPS_SAVEABLE_RGBA) ) {
+			 class->saveable == VIPS_SAVEABLE_RGBA ||
+			 class->saveable == VIPS_SAVEABLE_RGBA_ONLY) ) {
 			VipsImage *out;
 
 			if( vips_extract_band( in, &out, 0, 
