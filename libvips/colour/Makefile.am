@@ -27,6 +27,7 @@ libcolour_la_SOURCES = \
 	LabQ2sRGB.c \
 	sRGB2scRGB.c \
 	scRGB2XYZ.c \
+	scRGB2BW.c \
 	XYZ2scRGB.c \
 	scRGB2sRGB.c 
 

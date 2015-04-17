@@ -14,6 +14,7 @@
 - jpg, magick, png, tiff readers now use only 1 fd per input image
 - added vips_info_set(), vips_progress_set(), vips_profile_set() ... bindings
   can now support all the vips command-line options if they wish 
+- better conversion to greyscale, thanks bkw
 
 26/3/15 started 7.42.4
 - im_maxpos_avg() avoids NaN

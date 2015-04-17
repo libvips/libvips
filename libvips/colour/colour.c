@@ -738,6 +738,7 @@ vips_colour_operation_init( void )
 	extern GType vips_XYZ2sRGB_get_type( void ); 
 	extern GType vips_sRGB2scRGB_get_type( void ); 
 	extern GType vips_scRGB2XYZ_get_type( void ); 
+	extern GType vips_scRGB2BW_get_type( void ); 
 	extern GType vips_XYZ2scRGB_get_type( void ); 
 	extern GType vips_scRGB2sRGB_get_type( void ); 
 #if defined(HAVE_LCMS) || defined(HAVE_LCMS2)
@@ -769,6 +770,7 @@ vips_colour_operation_init( void )
 	vips_LabQ2sRGB_get_type();
 	vips_sRGB2scRGB_get_type();
 	vips_scRGB2XYZ_get_type();
+	vips_scRGB2BW_get_type();
 	vips_XYZ2scRGB_get_type();
 	vips_scRGB2sRGB_get_type();
 #if defined(HAVE_LCMS) || defined(HAVE_LCMS2)

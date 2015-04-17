@@ -249,7 +249,7 @@ vips_col_XYZ2scRGB( float X, float Y, float Z, float *R, float *G, float *B )
 	return( 0 ); 
 } 
 
-/* Turn scRGB into sRGB. Return or=1 for out of gamut - rgb will contain an 
+/* Turn scRGB into sRGB. Return og=1 for out of gamut - rgb will contain an 
  * approximation of the right colour.
  *
  * Return -1 for NaN, Inf etc. 
@@ -258,11 +258,11 @@ static int
 vips_col_scRGB2sRGB( int range, int *lut, 
 	float R, float G, float B, 
 	int *r, int *g, int *b, 
-	int *or_ret )
+	int *og_ret )
 {
 	int maxval = range - 1;
 
-	int or;
+	int og;
 	float Yf;
 	int Yi;
 	float v;
@@ -283,16 +283,16 @@ vips_col_scRGB2sRGB( int range, int *lut,
 		return( -1 );
 	}
 
-	/* Clip range, set the out-of-range flag.
+	/* Clip range, set the out-of-gamut flag.
 	 */
 #define CLIP( L, V, H ) { \
 	if( (V) < (L) ) { \
 		(V) = (L); \
-		or = 1; \
+		og = 1; \
 	} \
 	if( (V) > (H) ) { \
 		(V) = (H); \
-		or = 1; \
+		og = 1; \
 	} \
 }
 
@@ -302,7 +302,7 @@ vips_col_scRGB2sRGB( int range, int *lut,
 	 * The +1 on the index is safe, see above.
 	 */
 
-	or = 0;
+	og = 0;
 
 	Yf = R * maxval;
 	CLIP( 0, Yf, maxval );
@@ -322,31 +322,100 @@ vips_col_scRGB2sRGB( int range, int *lut,
 	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
 	*b = VIPS_RINT( v );
 
-	if( or_ret )
-		*or_ret = or; 
+	if( og_ret )
+		*og_ret = og; 
 
 	return( 0 ); 
 } 
 
 int
 vips_col_scRGB2sRGB_8( float R, float G, float B, 
-	int *r, int *g, int *b, 
-	int *or )
+	int *r, int *g, int *b, int *og )
 {
 	vips_col_make_tables_RGB_8();
 
-	return( vips_col_scRGB2sRGB( 256, vips_Y2v_8, R, G, B, r, g, b, or ) ); 
+	return( vips_col_scRGB2sRGB( 256, vips_Y2v_8, R, G, B, r, g, b, og ) ); 
 }
 
 int
 vips_col_scRGB2sRGB_16( float R, float G, float B, 
-	int *r, int *g, int *b, 
-	int *or )
+	int *r, int *g, int *b, int *og )
 {
 	vips_col_make_tables_RGB_16();
 
 	return( vips_col_scRGB2sRGB( 65536, vips_Y2v_16, 
-		R, G, B, r, g, b, or ) ); 
+		R, G, B, r, g, b, og ) ); 
+}
+
+/* Turn scRGB into BW. Return or=1 for out of gamut - g will contain an 
+ * approximation of the right colour.
+ *
+ * Return -1 for NaN, Inf etc. 
+ */
+static int
+vips_col_scRGB2BW( int range, int *lut, float R, float G, float B, 
+	int *g, int *og_ret )
+{
+	int maxval = range - 1;
+
+	float Y;
+	int og;
+	float Yf;
+	int Yi;
+	float v;
+
+	/* RGB can be Nan, Inf etc. Throw those values out, they will break
+	 * our clipping.
+	 *
+	 * Don't use isnormal(), it is false for 0.0 and for subnormal
+	 * numbers. 
+	 */
+	if( isnan( R ) || isinf( R ) ||
+		isnan( G ) || isinf( G ) ||
+		isnan( B ) || isinf( B ) ) { 
+		*g = 0; 
+
+		return( -1 );
+	}
+
+	/* The usual ratio. We do this in linear space before we gamma.
+	 */
+	Y = 0.2 * R + 0.7 * G + 0.1 * B;
+
+	/* Look up with a float index: interpolate between the nearest two
+	 * points.
+	 *
+	 * The +1 on the index is safe, see above.
+	 */
+
+	og = 0;
+
+	Yf = Y * maxval;
+	CLIP( 0, Yf, maxval );
+	Yi = (int) Yf;
+	v = lut[Yi] + (lut[Yi + 1] - lut[Yi]) * (Yf - Yi);
+	*g = VIPS_RINT( v );
+
+	if( og_ret )
+		*og_ret = og; 
+
+	return( 0 ); 
+} 
+
+int
+vips_col_scRGB2BW_16( float R, float G, float B, int *g, int *og )
+{
+	vips_col_make_tables_RGB_16();
+
+	return( vips_col_scRGB2BW( 65536, vips_Y2v_16, R, G, B, g, og ) ); 
+}
+
+int
+vips_col_scRGB2BW_8( float R, float G, float B, int *g, int *og )
+{
+	vips_col_make_tables_RGB_8();
+
+	return( vips_col_scRGB2BW( 256, vips_Y2v_8, R, G, B, g, og ) ); 
 }
 
 /* Build Lab->disp dither tables. 
