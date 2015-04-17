@@ -110,6 +110,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
+#include <math.h>
 
 #include <vips/vips.h>
 #include <vips/debug.h>
@@ -389,7 +390,7 @@ vips_exif_set_double( ExifData *ed,
 
 		rv = exif_get_rational( entry->data + offset, bo );
 		old_value = (double) rv.numerator / rv.denominator;
-		if( abs( old_value - value ) > 0.0001 ) {
+		if( fabs( old_value - value ) > 0.0001 ) {
 			vips_exif_double_to_rational( value, &rv ); 
 
 			VIPS_DEBUG_MSG( "vips_exif_set_double: %u / %u\n", 
@@ -404,7 +405,7 @@ vips_exif_set_double( ExifData *ed,
 
 		srv = exif_get_srational( entry->data + offset, bo );
 		old_value = (double) srv.numerator / srv.denominator;
-		if( abs( old_value - value ) > 0.0001 ) {
+		if( fabs( old_value - value ) > 0.0001 ) {
 			vips_exif_double_to_srational( value, &srv ); 
 
 			VIPS_DEBUG_MSG( "vips_exif_set_double: %d / %d\n", 
