@@ -696,6 +696,22 @@ FIND_JPEG(
    with_jpeg=no
   ])
 
+# JPEG extension parameters available in libjpeg-turbo >=1.5.0, mozjpeg >=3.0
+if test x"$with_jpeg" = "xyes"; then
+  AC_MSG_CHECKING([for JPEG extension parameters])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    #include <stdio.h>
+    #include <jpeglib.h>
+  ]], [[
+    J_BOOLEAN_PARAM test;
+  ]])], [
+    AC_MSG_RESULT([yes])
+    AC_DEFINE([HAVE_JPEG_EXT_PARAMS],1,[libjpeg has extension parameters])
+  ], [
+    AC_MSG_RESULT([no])
+  ])
+fi
+
 # libexif
 AC_ARG_WITH([libexif], 
   AS_HELP_STRING([--without-libexif], [build without libexif (default: test)]))
