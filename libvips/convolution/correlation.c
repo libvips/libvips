@@ -81,7 +81,7 @@ vips_correlation_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsCorrelationClass *cclass = VIPS_CORRELATION_CLASS( class );
 	VipsCorrelation *correlation = (VipsCorrelation *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 6 );
 
 	if( VIPS_OBJECT_CLASS( vips_correlation_parent_class )->
 		build( object ) )
@@ -98,11 +98,11 @@ vips_correlation_build( VipsObject *object )
 		return( -1 );
 	if( vips__formatalike( t[0], correlation->ref, &t[1], &t[2] ) ||
 		vips__bandalike( class->nickname, t[1], t[2], &t[3], &t[4] ) ||
-		vips_image_wio_input( t[4] ) ) 
+		!(t[5] = vips_image_copy_memory( t[4] )) )
 		return( -1 );
 
 	correlation->in_ready = t[3];
-	correlation->ref_ready = t[4];
+	correlation->ref_ready = t[5];
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 

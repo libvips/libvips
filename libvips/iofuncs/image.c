@@ -4,6 +4,8 @@
  * 	- hacked up from various places
  * 6/6/13
  * 	- vips_image_write() didn't ref non-partial sources
+ * 18/4/15
+ * 	- add vips_image_copy_memory()
  */
 
 /*
@@ -2842,8 +2844,8 @@ vips_image_rewind_output( VipsImage *image )
 
 	/* And reopen ... recurse to get a mmaped image. 
 	 *
-	 * We use "v" mode to get it opened as a vips image, byopassing the
-	 * file type checks. They will fail on Windows becasue you can't open
+	 * We use "v" mode to get it opened as a vips image, bypassing the
+	 * file type checks. They will fail on Windows because you can't open
 	 * fds more than once.
 	 */
 	image->fd = fd;
@@ -2873,18 +2875,74 @@ vips_image_rewind_output( VipsImage *image )
 	return( 0 );
 }
 
+/** 
+ * vips_image_copy_memory:
+ * @image: image to copy to a memory buffer
+ *
+ * Allocate a memory buffer and copy @image to it. This is a thread-safe
+ * equivalent of vips_image_wio_input(), useful if @image is small and from an
+ * unknown source.
+ *
+ * If @image is already in memory (perhaps a mmaped file on disc),
+ * vips_image_copy_memory() will just ref @image and return that.
+ *
+ * If you are sure that @image is not shared with another thread (perhaps you
+ * have made it yourself), use vips_image_wio_input() instead.
+ *
+ * See also: vips_image_wio_input().
+ */
+VipsImage *
+vips_image_copy_memory( VipsImage *image )
+{
+	VipsImage *new;
+
+	switch( image->dtype ) {
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+	case VIPS_IMAGE_MMAPIN:
+	case VIPS_IMAGE_MMAPINRW:
+		/* Can read from all these, in principle anyway.
+		 */
+		new = image;
+		g_object_ref( new );
+		break;
+
+	case VIPS_IMAGE_OPENOUT:
+	case VIPS_IMAGE_OPENIN:
+	case VIPS_IMAGE_PARTIAL:
+		/* Copy to a new memory image.
+		 */
+		new = vips_image_new_memory();
+		if( vips_image_write( image, new ) ) {
+			g_object_unref( new );
+			return( NULL );
+		}
+		break;
+
+	default:
+		vips_error( "vips_image_copy_memory", 
+			"%s", _( "image not readable" ) );
+		return( NULL );
+	}
+
+	return( new );
+}
+
 /**
  * vips_image_wio_input:
  * @image: image to transform
  *
  * Check that an image is readable via the VIPS_IMAGE_ADDR() macro, that is,
  * that the entire image is in memory and all pixels can be read with 
- * VIPS_IMAGE_ADDR().
- *
- * If it 
+ * VIPS_IMAGE_ADDR().  If it 
  * isn't, try to transform it so that VIPS_IMAGE_ADDR() can work. 
  *
- * See also: vips_image_pio_input(), vips_image_inplace(), VIPS_IMAGE_ADDR().
+ * Since this function modifies @image, it is not thread-safe. Only call it on
+ * images which you are sure have not been shared with another thread. If the
+ * image might have been shared, use the less efficient
+ * vips_image_copy_memory() instead.
+ *
+ * See also: vips_image_copy_memory(), vips_image_pio_input(), vips_image_inplace(), VIPS_IMAGE_ADDR().
  *
  * Returns: 0 on succeess, or -1 on error.
  */
@@ -3052,6 +3110,11 @@ vips__image_wio_output( VipsImage *image )
  * Gets @image ready for an in-place operation, such as vips_draw_circle().
  * After calling this function you can both read and write the image with 
  * VIPS_IMAGE_ADDR().
+ *
+ * Since this function modifies @image, it is not thread-safe. Only call it on
+ * images which you are sure have not been shared with another thread. 
+ * All in-place operations are inherently not thread-safe, so you need to take
+ * great care in any case.
  *
  * See also: vips_draw_circle(), vips_image_wio_input().
  *

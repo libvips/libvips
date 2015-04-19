@@ -1282,6 +1282,8 @@ vips_check_hist( const char *domain, VipsImage *im )
 int
 vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
 {
+	VipsImage *t;
+
 	*out = NULL;
 
 	if( im->Xsize > 100000 || 
@@ -1295,10 +1297,13 @@ vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
 		return( -1 );
 	}
 
-	if( vips_cast( im, out, VIPS_FORMAT_DOUBLE, NULL ) )
+	if( vips_cast( im, &t, VIPS_FORMAT_DOUBLE, NULL ) )
                 return( -1 );
-        if( vips_image_wio_input( *out ) )
-                return( -1 );
+	if( !(*out = vips_image_copy_memory( t )) ) {
+		VIPS_UNREF( t );
+		return( -1 );
+	}
+	VIPS_UNREF( t );
 
 	return( 0 );
 }

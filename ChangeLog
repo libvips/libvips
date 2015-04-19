@@ -21,6 +21,7 @@
 - small tiffsave doc improvements
 - better thresholding for tiffsave "squash" mode
 - add @miniswhite mode to tiffsave
+- add vips_image_copy_memory(), improve stability with heavy threading
 
 6/2/15 started 7.42.3
 - bump version for back-compat ABI change

@@ -741,7 +741,12 @@ vips_image_generate( VipsImage *image,
                  */
                 if( res )
                         return( -1 );
- 
+
+		/* We've written to image ... rewind it ready for reading.
+		 */
+		if( vips_image_pio_input( image ) )
+			return( -1 ); 
+
                 break;
  
         default:

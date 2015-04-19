@@ -707,6 +707,7 @@ const char *vips__png_suffs[] = { ".png", NULL };
  */
 typedef struct {
 	VipsImage *in;
+	VipsImage *memory;
 
 	FILE *fp;
 	png_structp pPng;
@@ -718,6 +719,7 @@ static void
 write_finish( Write *write )
 {
 	VIPS_FREEF( fclose, write->fp );
+	VIPS_UNREF( write->memory );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
 }
@@ -737,6 +739,7 @@ write_new( VipsImage *in )
 		return( NULL );
 	memset( write, 0, sizeof( Write ) );
 	write->in = in;
+	write->memory = NULL;
 	g_signal_connect( in, "close", 
 		G_CALLBACK( write_destroy ), write ); 
 
@@ -820,8 +823,9 @@ write_vips( Write *write, int compress, int interlace, const char *profile,
 	 * we only suck once from upstream, switch to WIO. 
 	 */
 	if( interlace ) {
-		if( vips_image_wio_input( in ) )
+		if( !(write->memory = vips_image_copy_memory( in )) )
 			return( -1 );
+		in = write->memory;
 	}
 	else {
 		if( vips_image_pio_input( in ) )

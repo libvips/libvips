@@ -311,13 +311,14 @@ vips_quadratic_build( VipsObject *object )
 		NULL ) )
 		return( -1 );
 	vips_object_local( object, t );
-
 	in = t;
 
         /* We need random access to our input.
          */
-        if( vips_image_wio_input( in ) )
+        if( !(t = vips_image_copy_memory( in )) )
                 return( -1 );
+	vips_object_local( object, t );
+	in = t;
 
 	if( vips_image_generate( resample->out,
 		vips_start_one, vips_quadratic_gen, vips_stop_one, 

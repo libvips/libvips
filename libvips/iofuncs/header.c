@@ -654,7 +654,10 @@ vips_image_get_offset( const VipsImage *image )
  * allocating large amounts of memory and performing a long computation. Image
  * pixels are laid out in band-packed rows.
  *
- * See also: vips_image_wio_input().
+ * Since this function modifies @image, it is not threadsafe. Only call it on
+ * images which you are sure have not been shared with another thread. 
+ *
+ * See also: vips_image_wio_input(), vips_image_copy_memory().
  *
  * Returns: (transfer none): a pointer to pixel data, if possible.
  */

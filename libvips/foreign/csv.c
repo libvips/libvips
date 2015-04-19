@@ -430,19 +430,25 @@ int
 vips__csv_write( VipsImage *in, const char *filename, const char *separator )
 {
 	FILE *fp;
+	VipsImage *memory;
 
 	if( vips_check_mono( "vips2csv", in ) ||
 		vips_check_uncoded( "vips2csv", in ) ||
-		vips_image_wio_input( in ) )
+		!(memory = vips_image_copy_memory( in )) )
 		return( -1 );
 
-	if( !(fp = vips__file_open_write( filename, TRUE )) ) 
+	if( !(fp = vips__file_open_write( filename, TRUE )) ) { 
+		VIPS_UNREF( memory ); 
 		return( -1 );
-	if( vips2csv( in, fp, separator ) ) {
+	}
+
+	if( vips2csv( memory, fp, separator ) ) {
 		fclose( fp );
+		VIPS_UNREF( memory ); 
 		return( -1 );
 	}
 	fclose( fp );
+	VIPS_UNREF( memory ); 
 
 	return( 0 );
 }
