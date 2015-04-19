@@ -118,6 +118,7 @@ vips_histogram_build( VipsObject *object )
 	VipsImage **format;
 	VipsImage **band;
 	VipsImage **size;
+	VipsImage **memory;
 
 	VipsPel *outbuf;		
 	VipsPel **inbuf;		
@@ -142,6 +143,7 @@ vips_histogram_build( VipsObject *object )
 	format = (VipsImage **) vips_object_local_array( object, histogram->n );
 	band = (VipsImage **) vips_object_local_array( object, histogram->n );
 	size = (VipsImage **) vips_object_local_array( object, histogram->n );
+	memory = (VipsImage **) vips_object_local_array( object, histogram->n );
 
 	g_object_set( histogram, "out", vips_image_new(), NULL ); 
 
@@ -169,13 +171,24 @@ vips_histogram_build( VipsObject *object )
 		vips__hist_sizealike_vec( band, size, histogram->n ) ) 
 		return( -1 );
 
-	/* Keep a copy of the processed images here for subclasses.
-	 */
-	histogram->ready = size;
-
 	if( vips_image_pipeline_array( histogram->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, histogram->ready ) ) 
+		VIPS_DEMAND_STYLE_THINSTRIP, size ) ) 
 		return( -1 );
+
+	/* Need a copy of the inputs in memory.
+	 */
+	if( !(inbuf = VIPS_ARRAY( object, histogram->n + 1, VipsPel * )) )
+                return( -1 );
+	for( i = 0; i < histogram->n; i++ ) {
+		if( !(memory[i] = vips_image_copy_memory( size[i] )) )
+			return( -1 ); 
+		inbuf[i] = VIPS_IMAGE_ADDR( memory[i], 0, 0 );
+	}
+	inbuf[i] = NULL; 
+
+	/* Keep a copy of the memory images here for subclasses.
+	 */
+	histogram->ready = memory;
 
 	histogram->out->Xsize = VIPS_IMAGE_N_PELS( histogram->ready[0] );
 	histogram->out->Ysize = 1;
@@ -187,15 +200,6 @@ vips_histogram_build( VipsObject *object )
 	if( !(outbuf = vips_malloc( object, 
 		VIPS_IMAGE_SIZEOF_LINE( histogram->out ))) )
                 return( -1 );
-
-	if( !(inbuf = VIPS_ARRAY( object, histogram->n + 1, VipsPel * )) )
-                return( -1 );
-	for( i = 0; i < histogram->n; i++ ) {
-		if( vips_image_wio_input( histogram->ready[i] ) )
-			return( -1 ); 
-		inbuf[i] = VIPS_IMAGE_ADDR( histogram->ready[i], 0, 0 );
-	}
-	inbuf[i] = NULL; 
 
 	hclass->process( histogram, outbuf, inbuf, histogram->ready[0]->Xsize );
 

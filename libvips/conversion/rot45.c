@@ -184,9 +184,9 @@ vips_rot45_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsRot45 *rot45 = (VipsRot45 *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
-	VipsImage *from;
+	VipsImage *in;
 
 	if( VIPS_OBJECT_CLASS( vips_rot45_parent_class )->build( object ) )
 		return( -1 );
@@ -197,8 +197,9 @@ vips_rot45_build( VipsObject *object )
 	if( rot45->angle == VIPS_ANGLE45_D0 )
 		return( vips_image_write( rot45->in, conversion->out ) );
 
-	if( vips_image_wio_input( rot45->in ) )
+	if( !(t[1] = vips_image_copy_memory( rot45->in )) )
 		return( -1 );
+	in = t[1];
 
 	t[0] = vips_image_new_memory();
 	if( vips_image_pipelinev( t[0], 
@@ -207,35 +208,34 @@ vips_rot45_build( VipsObject *object )
 	if( vips_image_write_prepare( t[0] ) )
 		return( -1 );
 
-	from = rot45->in;
-
 	switch( rot45->angle ) {
 	case VIPS_ANGLE45_D315:
-		vips_rot45_rot45( t[0], from );
-		from = t[0];
+		vips_rot45_rot45( t[0], in );
+		in = t[0];
 		
 	case VIPS_ANGLE45_D270:
-		vips_rot45_rot45( t[0], from );
-		from = t[0];
+		vips_rot45_rot45( t[0], in );
+		in = t[0];
 
 	case VIPS_ANGLE45_D225:
-		vips_rot45_rot45( t[0], from );
-		from = t[0];
+		vips_rot45_rot45( t[0], in );
+		in = t[0];
 
 	case VIPS_ANGLE45_D180:
-		vips_rot45_rot45( t[0], from );
-		from = t[0];
+		vips_rot45_rot45( t[0], in );
+		in = t[0];
 
 	case VIPS_ANGLE45_D135:
-		vips_rot45_rot45( t[0], from );
-		from = t[0];
+		vips_rot45_rot45( t[0], in );
+		in = t[0];
 
 	case VIPS_ANGLE45_D90:
-		vips_rot45_rot45( t[0], from );
-		from = t[0];
+		vips_rot45_rot45( t[0], in );
+		in = t[0];
 
 	case VIPS_ANGLE45_D45:
-		vips_rot45_rot45( t[0], from );
+		vips_rot45_rot45( t[0], in );
+		in = t[0];
 		break;
 
 	default:
@@ -246,7 +246,7 @@ vips_rot45_build( VipsObject *object )
 		return( 0 );
 	}
 
-	if( vips_image_write( t[0], conversion->out ) )
+	if( vips_image_write( in, conversion->out ) )
 		return( -1 );
 
 	return( 0 );

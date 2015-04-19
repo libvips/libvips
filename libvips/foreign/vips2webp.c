@@ -62,11 +62,12 @@ int
 vips__webp_write_file( VipsImage *in, const char *filename, 
 	int Q, gboolean lossless )
 {
+	VipsImage *memory;
 	size_t len;
 	uint8_t *buffer;
 	FILE *fp;
 
-	if( vips_image_wio_input( in ) )
+	if( !(memory = vips_image_copy_memory( in )) )
 		return( -1 );
 
 	if( lossless ) {
@@ -77,10 +78,11 @@ vips__webp_write_file( VipsImage *in, const char *filename,
 		else
 			encoder = WebPEncodeLosslessRGB;
 
-		if( !(len = encoder( VIPS_IMAGE_ADDR( in, 0, 0 ), 
-			in->Xsize, in->Ysize, 
-			VIPS_IMAGE_SIZEOF_LINE( in ),
+		if( !(len = encoder( VIPS_IMAGE_ADDR( memory, 0, 0 ), 
+			memory->Xsize, memory->Ysize, 
+			VIPS_IMAGE_SIZEOF_LINE( memory ),
 			&buffer )) ) {
+			VIPS_UNREF( memory ); 
 			vips_error( "vips2webp", 
 				"%s", _( "unable to encode" ) ); 
 			return( -1 );
@@ -94,15 +96,18 @@ vips__webp_write_file( VipsImage *in, const char *filename,
 		else
 			encoder = WebPEncodeRGB;
 
-		if( !(len = encoder( VIPS_IMAGE_ADDR( in, 0, 0 ), 
-			in->Xsize, in->Ysize, 
-			VIPS_IMAGE_SIZEOF_LINE( in ),
+		if( !(len = encoder( VIPS_IMAGE_ADDR( memory, 0, 0 ), 
+			memory->Xsize, memory->Ysize, 
+			VIPS_IMAGE_SIZEOF_LINE( memory ),
 			Q, &buffer )) ) {
+			VIPS_UNREF( memory ); 
 			vips_error( "vips2webp", 
 				"%s", _( "unable to encode" ) ); 
 			return( -1 );
 		}
 	}
+
+	VIPS_UNREF( memory ); 
 
 	if( !(fp = vips__file_open_write( filename, FALSE )) ) {
 		free( buffer );
@@ -125,9 +130,10 @@ int
 vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen, 
 	int Q, gboolean lossless )
 {
+	VipsImage *memory;
 	webp_encoder encoder;
 
-	if( vips_image_wio_input( in ) )
+	if( !(memory = vips_image_copy_memory( in )) )
 		return( -1 );
 
 	if( in->Bands == 4 )
@@ -135,13 +141,15 @@ vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen,
 	else
 		encoder = WebPEncodeRGB;
 
-	if( !(*olen = encoder( VIPS_IMAGE_ADDR( in, 0, 0 ), 
-		in->Xsize, in->Ysize, 
-		VIPS_IMAGE_SIZEOF_LINE( in ),
+	if( !(*olen = encoder( VIPS_IMAGE_ADDR( memory, 0, 0 ), 
+		memory->Xsize, memory->Ysize, 
+		VIPS_IMAGE_SIZEOF_LINE( memory ),
 		Q, (uint8_t **) obuf )) ) {
+		VIPS_UNREF( memory );
 		vips_error( "vips2webp", "%s", _( "unable to encode" ) ); 
 		return( -1 );
 	}
+	VIPS_UNREF( memory );
 
 	return( 0 );
 }

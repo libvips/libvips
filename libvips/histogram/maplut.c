@@ -561,7 +561,7 @@ vips_maplut_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsMaplut *maplut = (VipsMaplut *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *in;
 	VipsImage *lut;
@@ -576,8 +576,7 @@ vips_maplut_build( VipsObject *object )
 	lut = maplut->lut;
 
 	if( vips_check_hist( class->nickname, lut ) ||
-		vips_check_uncoded( class->nickname, lut ) ||
-		vips_image_wio_input( lut ) )
+		vips_check_uncoded( class->nickname, lut ) )
 		return( -1 );
 
 	/* Cast @in to u8/u16/u32 to make the index image.
@@ -617,6 +616,9 @@ vips_maplut_build( VipsObject *object )
 	/* Make luts. We unpack the LUT image into a 2D C array to speed
 	 * processing.
 	 */
+	if( !(t[1] = vips_image_copy_memory( lut )) )
+		return( -1 );
+	lut = t[1];
 	maplut->fmt = lut->BandFmt;
 	maplut->es = VIPS_IMAGE_SIZEOF_ELEMENT( lut );
 	maplut->sz = lut->Xsize * lut->Ysize;
