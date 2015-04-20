@@ -165,10 +165,12 @@ static HeaderField old_double_field[] = {
 };
 
 /* This is used by (eg.) VIPS_IMAGE_SIZEOF_ELEMENT() to calculate object
- * size.
+ * size via vips_format_sizeof(). 
  *
  * It needs to be guint64 and not size_t since we use this as the basis for 
  * image address calcs and they have to be 64-bit, even on 32-bit machines. 
+ *
+ * Can't be static, we need this to be visible for vips7 compat.
  */
 const guint64 vips__image_sizeof_bandformat[] = {
 	sizeof( unsigned char ), 	/* VIPS_FORMAT_UCHAR */
@@ -187,15 +189,15 @@ const guint64 vips__image_sizeof_bandformat[] = {
  * vips_format_sizeof:
  * @format: format type
  *
- * Returns: number of bytes for a band format, or -1 on error.
+ * Returns: number of bytes for a band format.
  */
 guint64 
 vips_format_sizeof( VipsBandFormat format )
 {
-	return( (format < 0 || format > VIPS_FORMAT_DPCOMPLEX) ?
-		vips_error( "vips_format_sizeof", 
-			_( "unknown band format %d" ), format ), -1 :
-		vips__image_sizeof_bandformat[format] );
+	g_assert( format >= 0 && 
+		format < VIPS_FORMAT_LAST ); 
+
+	return( vips__image_sizeof_bandformat[format] );
 }
 
 #ifdef DEBUG

@@ -182,7 +182,7 @@ extern "C" {
 
 /* Renamed externs.
  */
-
+extern const guint64 vips__image_sizeof_bandformat[];
 #define im__sizeof_bandfmt vips__image_sizeof_bandformat
 
 /* Renamed functions.

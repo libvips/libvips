@@ -97,7 +97,7 @@ histogram_new( VipsProject *project )
 	VipsStatistic *statistic = VIPS_STATISTIC( project ); 
 	VipsImage *in = statistic->ready; 
 	VipsBandFormat outfmt = vips_project_format_table[in->BandFmt];
-	int psize = vips__image_sizeof_bandformat[outfmt] * in->Bands; 
+	int psize = vips_format_sizeof( outfmt ) * in->Bands; 
 
 	Histogram *hist;
 
