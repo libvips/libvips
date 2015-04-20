@@ -523,7 +523,7 @@ vips_LabQ2sRGB_class_init( VipsLabQ2sRGBClass *class )
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
 
 	object_class->nickname = "LabQ2sRGB";
-	object_class->description = _( "unpack a LabQ image to short Lab" );
+	object_class->description = _( "convert a LabQ image to sRGB" );
 
 	colour_class->process_line = vips_LabQ2sRGB_line;
 
