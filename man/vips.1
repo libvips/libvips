@@ -9,15 +9,25 @@ is the VIPS universal main program. You can use it to run any VIPS operation
 from the command line, to query the VIPS class hierarchy, and to
 maintain parts of the VIPS library.
 
-To run a VIPS function, the first argument should be the name of the function
-and following arguments should be the function parameters. For example:
+To run a VIPS operation, the first argument should be the name of the
+operation
+and following arguments should be the operation arguments. For example:
 
   $ vips invert lena.v lena2.v
 
 .SH OPTIONS
 .TP
+.B -l BASE-NAME, --list=BASE-NAME       
+List operations below BASE-NAME. This prints a one-line summary of every
+operation in vips below the class BASE-NAME, where BASE-NAME may be a full
+vips class name, or a nickname. 
+
+If BASE-NAME is not supplied, this will list all classes below VipsOperation.
+
+.TP
 .B -p PLUGIN, --plugin=PLUGIN       
-Load PLUGIN. Note that plugins in $VIPSHOME/lib are loaded automatically.
+Load PLUGIN. Note that plugins in $VIPSHOME/lib/vips-plugins-MAJOR.MINOR are 
+loaded automatically.
 
 .TP
 .B -v, --version
@@ -26,23 +36,8 @@ Show VIPS version.
 .SH COMMANDS
 
 .TP
-.B list PACKAGE
-List operations defined in PACKAGE. PACKAGE can also be "classes", "packages"
-or "all". 
-
-.TP
-.B cpph PACKAGE
-Print C++ header for PACKAGE. PACKAGE can also be a function name, or "all".
-
-.TP
-.B cppc PACKAGE
-Print C++ binding for PACKAGE. PACKAGE can also be a function name, or "all".
-
-.TP
 .B operation-name operation-arguments
-Execute a named operation, for example im_invert, or add. Names prefixed with
-"im_" are called via the vips7 interface, names without the prefix use the new
-vips8 interface.
+Execute a named operation, for example add. 
 
 .SH EXAMPLES
 
@@ -50,7 +45,7 @@ Run a vips8 operation. Operation options must follow the operation name.
 
   $ vips insert lena.v lena2.v out.v 0 0 --background "128 0 0"
 
-Get a "usage" message for an operation
+Get a "usage" message for an operation.
 
   $ vips insert 
   insert image @sub into @main at @x, @y
@@ -61,12 +56,29 @@ Get a "usage" message for an operation
      sub          - Sub-image to insert into main image, input VipsImage
      out          - Output image, output VipsImage
      x            - Left edge of sub in main, input gint
+			  default: 0
+			  min: -100000000, max: 100000000
      y            - Top edge of sub in main, input gint
+			  default: 0
+			  min: -100000000, max: 100000000
   optional arguments:
      expand       - Expand output to hold all of both inputs, input gboolean
+			  default: false
      background   - Colour for new pixels, input VipsArrayDouble
-  operation flags: sequential-unbuffered 
-  insert: too few arguments
+  operation flags: sequential 
+
+List all draw operations.
+
+  $ vips -l draw
+    VipsDraw (draw), draw operations
+      VipsDrawink (drawink), draw with ink operations
+        VipsDrawRect (draw_rect), paint a rectangle on an image
+        VipsDrawMask (draw_mask), draw a mask on an image
+        VipsDrawLine (draw_line), draw a line on an image
+        VipsDrawCircle (draw_circle), draw a circle on an image
+        VipsDrawFlood (draw_flood), flood-fill an area
+      VipsDrawImage (draw_image), paint an image into another image
+      VipsDrawSmudge (draw_smudge), blur a rectangle on an image
 
 .SH RETURN VALUE
 returns 0 on success and non-zero on error.
