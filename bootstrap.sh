@@ -57,7 +57,9 @@ else
 fi
 
 test -r aclocal.m4 || touch aclocal.m4
-glib-gettextize --force --copy
+# gettextize produces quite a bit of benign and misleading text output, hide
+# it ... hopefully any errors will go to stderr and not be hidden
+glib-gettextize --force --copy > /dev/null
 test -r aclocal.m4 && chmod u+w aclocal.m4
 # intltoolize --copy --force --automake
 aclocal 
@@ -68,5 +70,5 @@ automake --add-missing --copy
 
 swig -version > /dev/null
 if [ $? -ne 0 ]; then
-  echo you need swig to build from SVN
+  echo you need swig to build from source control
 fi
