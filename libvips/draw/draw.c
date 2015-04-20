@@ -109,7 +109,7 @@ vips_draw_class_init( VipsDrawClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "draw";
-	vobject_class->description = _( "Draw operations" );
+	vobject_class->description = _( "draw operations" );
 	vobject_class->build = vips_draw_build;
 
 	VIPS_ARG_IMAGE( class, "image", 1, 
