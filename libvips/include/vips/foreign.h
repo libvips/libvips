@@ -1,10 +1,10 @@
-/* Base type for supported image foreigns. Subclass this to add a new
- * foreign.
+/* Base type for supported image formats. Subclass this to add a new
+ * format.
  */
 
 /*
 
-    This foreign is part of VIPS.
+    This file is part of VIPS.
     
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,7 @@
 
 /*
 
-    These foreigns are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -140,7 +140,7 @@ typedef struct _VipsForeignLoad {
 	VipsImage *out;
 
 	/* The behind-the-scenes real image we decompress to. This can be a
-	 * disc foreign or a memory buffer. This must be set by ->load().
+	 * disc file or a memory buffer. This must be set by ->load().
 	 */
 	VipsImage *real;
 
