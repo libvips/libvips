@@ -371,11 +371,12 @@ vips_foreign_init( VipsForeign *object )
  */
 
 static void *
-file_add_class( VipsForeignClass *file, GSList **files )
+file_add_class( VipsForeignClass *class, GSList **files )
 {
-	/* Append so we don't reverse the list of files.
+	/* Append so we don't reverse the list of files. Sort will not reorder
+	 * items of equal priority. 
 	 */
-	*files = g_slist_append( *files, file );
+	*files = g_slist_append( *files, class );
 
 	return( NULL );
 }
@@ -1679,6 +1680,56 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_OPENEXR
 	vips_foreign_load_openexr_get_type(); 
 #endif /*HAVE_OPENEXR*/
+}
+
+/**
+ * vips_vipsload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read in a vips image. 
+ *
+ * See also: vips_vipssave().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_vipsload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "vipsload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_vipssave:
+ * @in: image to save 
+ * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Write @in to @filename in VIPS format.
+ *
+ * See also: vips_vipsload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_vipssave( VipsImage *in, const char *filename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, filename );
+	result = vips_call_split( "vipssave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
 }
 
 /**
