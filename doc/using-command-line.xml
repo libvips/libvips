@@ -54,7 +54,7 @@ where:
       You can list all classes with:
 
 <programlisting>
-$ vips list classes
+$ vips -l
 ... 
 VipsOperation (operation), operations
   VipsSystem (system), run an external command
@@ -142,7 +142,7 @@ $ vips bandjoin "k2.jpg k4.jpg" x.tif
       list of all the supported file formats with something like:
 
 <programlisting>
-$ vips list classes | grep -i foreign
+$ vips -l foreign
 </programlisting>
 
       Then get a list of the options a format supports with, for example:
@@ -163,6 +163,29 @@ vips affine k2.jpg x.jpg[Q=90,strip] "2 0 0 1"
       Will write <literal>x.jpg</literal> at quality level 90 and will 
       strip all metadata from the image.
     </para>
+  </refsect3>
+
+  <refsect3 id="using-command-line-chaining">
+    <title>Chaining operations</title>
+
+    <para>
+      Because each operation runs in a separate process, you can't use 
+      libvips's chaining system to join operations together, you have to use 
+      intermediate files. The command-line interface is therefore quite a bit 
+      slower than Python or C. 
+    </para>
+
+    <para>
+      The best alternative is to use vips files for intermediates. 
+      Something like:
+
+<programlisting>
+vips invert input.jpg t1.v
+vips affine t1.v output.jpg "2 0 0 1"
+rm t1.v
+</programlisting>
+    </para>
+
   </refsect3>
 
   <refsect3 id="using-command-line-other">
