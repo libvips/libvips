@@ -41,16 +41,6 @@
 #include <vips/internal.h>
 #include <vips/transform.h>
 
-/** 
- * SECTION: resample
- * @short_description: shrink, expand, rotate with a choice of interpolators
- * @stability: Stable
- * @include: vips/vips.h
- *
- * Resample an image in various ways, using a #VipsInterpolate to generate
- * intermediate values.
- */
-
 /* Args to im_rightshift_size.
  */
 static im_arg_desc rightshift_size_args[] = {

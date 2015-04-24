@@ -94,7 +94,7 @@
  *   // vips_image_new_from_file() will set a message, we don't need to
  *   return( -1 );
  *
- * if( vips_image_get_width( im ) < 100 ) {
+ * if( vips_image_get_width( im ) &lt; 100 ) {
  *   // we have detected an error, we must set a message
  *   vips_error( "myprogram", "%s", _( "width too small" ) );
  *   return( -1 );

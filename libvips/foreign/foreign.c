@@ -2032,7 +2032,7 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * Example:
  *
  * |[
- * vips_jpegload( "fred.jpg", &out,
+ * vips_jpegload( "fred.jpg", &amp;out,
  * 	"shrink", 8,
  * 	"fail", TRUE,
  * 	NULL );

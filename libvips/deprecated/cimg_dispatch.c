@@ -37,16 +37,6 @@
 
 #include <vips/vips.h>
 
-/** 
- * SECTION: cimg_funcs
- * @short_description: expose operations from the CImg library, mostly noise
- * removal
- * @stability: Stable
- * @include: vips/vips.h
- *
- * The GREYCstoration filter.
- */
-
 static int
 greyc_vec( im_object *argv )
 {

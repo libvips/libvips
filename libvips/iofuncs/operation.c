@@ -102,7 +102,7 @@
  * VipsImage *im = ...;
  * VipsImage *t1; 
  *
- * if (vips_invert (im, &t1, NULL)) 
+ * if (vips_invert (im, &amp;t1, NULL)) 
  *   error ..
  * ]|
  *
@@ -122,13 +122,13 @@
  * VipsImage *im = ...;
  * VipsImage *t1, *t2;
  *
- * if (vips_invert (im, &t1, NULL)) {
+ * if (vips_invert (im, &amp;t1, NULL)) {
  *   g_object_unref (im);
  *   return -1;
  * }
  * g_object_unref (im);
  *
- * if (vips_flip (t1, &t2, VIPS_DIRECTION_HORIZONTAL, NULL)) {
+ * if (vips_flip (t1, &amp;t2, VIPS_DIRECTION_HORIZONTAL, NULL)) {
  *   g_object_unref (t1);
  *   return -1;
  * }
@@ -143,8 +143,8 @@
  * VipsImage *im = ...;
  * VipsImage *t = (VipsImage **) vips_object_local_array (parent, 2);
  *
- * if (vips_invert (im, &t[0], NULL) ||
- *   vips_flip (t[0], &t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
+ * if (vips_invert (im, &amp;t[0], NULL) ||
+ *   vips_flip (t[0], &amp;t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
  *   return -1;
  * ]|
  *
@@ -933,7 +933,7 @@ vips_call_by_name( const char *operation_name,
  * VipsImage *in = ...
  * VipsImage *out;
  *
- * if( vips_call( "embed", in, &out, 10, 10, 100, 100,
+ * if( vips_call( "embed", in, &amp;out, 10, 10, 100, 100,
  * 	"extend", VIPS_EXTEND_COPY,
  * 	NULL ) )
  * 	... error

@@ -817,10 +817,10 @@ vips__image_copy_fields_array( VipsImage *out, VipsImage *in[] )
  * |[
  * GValue value = { 0 };
  *
- * g_value_init (&value, G_TYPE_INT);
- * g_value_set_int (&value, 42);
- * vips_image_set (image, field, &value);
- * g_value_unset (&value);
+ * g_value_init (&amp;value, G_TYPE_INT);
+ * g_value_set_int (&amp;value, 42);
+ * vips_image_set (image, field, &amp;value);
+ * g_value_unset (&amp;value);
  * ]|
  *
  * See also: vips_image_get().
@@ -859,20 +859,20 @@ vips_image_set( VipsImage *image, const char *field, GValue *value )
  * GValue value = { 0 };
  * double d;
  *
- * if (vips_image_get (image, field, &value))
+ * if (vips_image_get (image, field, &amp;value))
  *   return -1;
  *
- * if (G_VALUE_TYPE (&value) != G_TYPE_DOUBLE) {
+ * if (G_VALUE_TYPE (&amp;value) != G_TYPE_DOUBLE) {
  *   vips_error( "mydomain", 
  *     _("field \"%s\" is of type %s, not double"),
  *     field, 
- *     g_type_name (G_VALUE_TYPE (&value)));
- *   g_value_unset (&value);
+ *     g_type_name (G_VALUE_TYPE (&amp;value)));
+ *   g_value_unset (&amp;value);
  *   return -1;
  * }
  *
- * d = g_value_get_double (&value);
- * g_value_unset (&value);
+ * d = g_value_get_double (&amp;value);
+ * g_value_unset (&amp;value);
  * ]|
  *
  * See also: vips_image_get_typeof(), vips_image_get_double().

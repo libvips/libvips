@@ -383,7 +383,7 @@ G_DEFINE_TYPE( VipsImage, vips_image, VIPS_TYPE_OBJECT );
 
 /**
  * vips_progress_set:
- * @info: %TRUE to enable progress messages
+ * @progress: %TRUE to enable progress messages
  *
  * If set, vips will print messages about the progress of computation to
  * stdout. This can also be enabled with the --vips-progress option, or by
