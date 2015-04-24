@@ -37,9 +37,9 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=41
+LIBRARY_CURRENT=42
 LIBRARY_REVISION=1
-LIBRARY_AGE=1
+LIBRARY_AGE=2
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
