@@ -332,8 +332,8 @@ vips_mosaic_init( VipsMosaic *mosaic )
  * This operation joins two images left-right (with @ref on the left) or
  * top-bottom (with @ref above) given an approximate overlap.
  *
- * @sec is positioned so that the pixel (@xsec, @ysec) lies on top of the
- * pixel in @ref at (@xref, @yref). The overlap area is divided into three
+ * @sec is positioned so that the pixel (@xsec, @ysec) in @sec lies on top of 
+ * the pixel (@xref, @yref) in @ref. The overlap area is divided into three
  * sections, 20 high-contrast points in band @bandno of image @ref are found 
  * in each, and each high-contrast point is searched for in @sec using
  * @hwindow and @harea (see vips_correl()). 
