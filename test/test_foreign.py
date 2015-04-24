@@ -95,7 +95,8 @@ class TestForeign(unittest.TestCase):
         os.unlink(filename)
 
     def test_jpeg(self):
-        if not Vips.type_find("VipsForeign", "jpegload"):
+        x = Vips.type_find("VipsForeign", "jpegload")
+        if not x.is_instantiatable():
             print("no jpeg support in this vips, skipping test")
             return
 
@@ -114,7 +115,8 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.jpg", self.colour)
 
     def test_png(self):
-        if not Vips.type_find("VipsForeign", "pngload"):
+        x = Vips.type_find("VipsForeign", "pngload")
+        if not x.is_instantiatable():
             print("no png support in this vips, skipping test")
             return
 
@@ -131,7 +133,8 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.png", self.colour)
 
     def test_tiff(self):
-        if not Vips.type_find("VipsForeign", "tiffload"):
+        x = Vips.type_find("VipsForeign", "tiffload")
+        if not x.is_instantiatable():
             print("no tiff support in this vips, skipping test")
             return
 
@@ -163,7 +166,8 @@ class TestForeign(unittest.TestCase):
                             "[tile,tile-width=256]", self.colour, 10)
 
     def test_magickload(self):
-        if not Vips.type_find("VipsForeign", "magickload"):
+        x = Vips.type_find("VipsForeign", "magickload")
+        if not x.is_instantiatable():
             print("no magick support in this vips, skipping test")
             return
 
@@ -178,7 +182,8 @@ class TestForeign(unittest.TestCase):
         self.buffer_loader("magickload_buffer", self.gif_file, gif_valid)
 
     def test_webp(self):
-        if not Vips.type_find("VipsForeign", "webpload"):
+        x = Vips.type_find("VipsForeign", "webpload")
+        if not x.is_instantiatable():
             print("no webp support in this vips, skipping test")
             return
 
@@ -204,7 +209,8 @@ class TestForeign(unittest.TestCase):
         self.file_loader("analyzeload", self.analyze_file, analyze_valid)
 
     def test_matload(self):
-        if not Vips.type_find("VipsForeign", "matload"):
+        x = Vips.type_find("VipsForeign", "matload")
+        if not x.is_instantiatable():
             print("no matlab support in this vips, skipping test")
             return
 
@@ -218,7 +224,8 @@ class TestForeign(unittest.TestCase):
         self.file_loader("matload", self.matlab_file, matlab_valid)
 
     def test_openexrload(self):
-        if not Vips.type_find("VipsForeign", "openexrload"):
+        x = Vips.type_find("VipsForeign", "openexrload")
+        if not x.is_instantiatable():
             print("no openexr support in this vips, skipping test")
             return
 
@@ -234,7 +241,8 @@ class TestForeign(unittest.TestCase):
         self.file_loader("openexrload", self.exr_file, exr_valid)
 
     def test_fitsload(self):
-        if not Vips.type_find("VipsForeign", "fitsload"):
+        x = Vips.type_find("VipsForeign", "fitsload")
+        if not x.is_instantiatable():
             print("no fits support in this vips, skipping test")
             return
 
@@ -251,7 +259,8 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.fits", self.mono)
 
     def test_openslideload(self):
-        if not Vips.type_find("VipsForeign", "openslideload"):
+        x = Vips.type_find("VipsForeign", "openslideload")
+        if not x.is_instantiatable():
             print("no openslide support in this vips, skipping test")
             return
 
