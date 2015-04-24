@@ -88,7 +88,7 @@ vips_drawink_class_init( VipsDrawinkClass *class )
 
 	VIPS_ARG_BOXED( class, "ink", 2, 
 		_( "Ink" ), 
-		_( "Colour for pixels" ),
+		_( "Color for pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawink, ink ),
 		VIPS_TYPE_ARRAY_DOUBLE );
