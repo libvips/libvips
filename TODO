@@ -1,11 +1,3 @@
-- try:
-
-	vips embed k2.jpg x.jpg 10 10 1000 1000 --vips-cache-trace
-
-  we don't seem to show all ops or images, can we improve this?
-
-
-- does cplusplus need flipver() etc.?
 
 - are the mosaic functions calling vips_fastcor()? it must be very slow
 
@@ -21,9 +13,6 @@
 	im_maxpos(sub)
 
   then im__chkpair() runs that 20 times, then loops ... oh dear
-
-- make a crappy gir_ffi patch to add unset for GValue, perhaps it will produce
-  a response
 
 - perhaps im_maxpos_subpel() / im_minpos_subpel() should be undeprecated,
   useful with vips_fastcor()

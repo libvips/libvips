@@ -1,7 +1,7 @@
 11/2/15 started 8.0
 - remove old doc stuff, lots of doc improvements
-- add fliphor(), flipver(), rot90(), rot180(), rot270() convenience methods to
-  Python
+- add fliphor(), flipver(), rot90(), rot180(), rot270(), median(), dilate(), 
+  erode() convenience methods to Python and C++
 - python: use [] to index and slice image bands, use () to get a point
 - c++: use [] to band index, () returns a vector<double>
 - add shift option to cast
