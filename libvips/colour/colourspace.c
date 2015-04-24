@@ -540,7 +540,7 @@ vips_colourspace_class_init( VipsColourspaceClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "colourspace";
-	vobject_class->description = _( "convert to a new colourspace" );
+	vobject_class->description = _( "convert to a new colorspace" );
 	vobject_class->build = vips_colourspace_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
@@ -559,14 +559,14 @@ vips_colourspace_class_init( VipsColourspaceClass *class )
 
 	VIPS_ARG_ENUM( class, "space", 6, 
 		_( "Space" ), 
-		_( "Destination colour space" ),
+		_( "Destination color space" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsColourspace, space ),
 		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_sRGB );
 
 	VIPS_ARG_ENUM( class, "source-space", 6, 
 		_( "Source space" ), 
-		_( "Source colour space" ),
+		_( "Source color space" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsColourspace, source_space ),
 		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_sRGB );

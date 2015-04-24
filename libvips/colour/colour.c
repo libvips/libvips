@@ -436,7 +436,7 @@ vips_colour_class_init( VipsColourClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "colour";
-	vobject_class->description = _( "colour operations" );
+	vobject_class->description = _( "color operations" );
 	vobject_class->build = vips_colour_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
@@ -497,7 +497,7 @@ vips_colour_transform_class_init( VipsColourTransformClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "space";
-	vobject_class->description = _( "colour space transformations" );
+	vobject_class->description = _( "color space transformations" );
 	vobject_class->build = vips_colour_transform_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
@@ -589,7 +589,7 @@ vips_colour_code_class_init( VipsColourCodeClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "code";
-	vobject_class->description = _( "change colour coding" );
+	vobject_class->description = _( "change color coding" );
 	vobject_class->build = vips_colour_code_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
@@ -683,7 +683,7 @@ vips_colour_difference_class_init( VipsColourDifferenceClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "difference";
-	vobject_class->description = _( "calculate colour difference" );
+	vobject_class->description = _( "calculate color difference" );
 	vobject_class->build = vips_colour_difference_build;
 
 	VIPS_ARG_IMAGE( class, "left", 1, 

@@ -372,7 +372,7 @@ vips_falsecolour_class_init( VipsFalsecolourClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "falsecolour";
-	vobject_class->description = _( "false colour an image" );
+	vobject_class->description = _( "false-color an image" );
 	vobject_class->build = vips_falsecolour_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;

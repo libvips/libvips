@@ -605,7 +605,7 @@ vips_embed_class_init( VipsEmbedClass *class )
 
 	VIPS_ARG_BOXED( class, "background", 12, 
 		_( "Background" ), 
-		_( "Colour for background pixels" ),
+		_( "Color for background pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
