@@ -1,3 +1,6 @@
+25/4/15 started 8.0.1
+- fix some compiler warnings 
+
 11/2/15 started 8.0
 - remove old doc stuff, lots of doc improvements
 - add fliphor(), flipver(), rot90(), rot180(), rot270(), median(), dilate(), 

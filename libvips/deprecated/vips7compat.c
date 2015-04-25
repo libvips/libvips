@@ -1155,7 +1155,7 @@ im_copy_set_meta( IMAGE *in, IMAGE *out, const char *field, GValue *value )
 {
 	if( vips_image_write( in, out ) )
 		return( -1 );
-	im_meta_set( out, field, value );
+	(void) im_meta_set( out, field, value );
 
 	return( 0 );
 }
