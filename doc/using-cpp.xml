@@ -24,7 +24,7 @@
       API at any point, so all the C API docs also work for C++. 
     </para>
 
-<programlisting language="C++">
+<programlisting language="cpp">
 /* compile with:
  *      g++ -g -Wall try.cc `pkg-config vips-cpp --cflags --libs`
  */
@@ -172,13 +172,13 @@ main( int argc, char **argv )
       All other operations follow the same pattern, for example the C API call 
       vips_add():
 
-<programlisting language="C++">
+<programlisting language="cpp">
 int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... );
 </programlisting>
 
       appears in C++ as:
 
-<programlisting language="C++">
+<programlisting language="cpp">
 VImage VImage::add( VImage right, VOption *options = 0 );
 </programlisting>
     </para>
@@ -229,14 +229,14 @@ VImage VImage::add( VImage right, VOption *options = 0 );
       For example, you can join two images together bandwise (the 
       bandwise join of two RGB images would be a six-band image) with:
 
-<programlisting language="C++">
+<programlisting language="cpp">
 VImage rgb = ...; 
 VImage six_band = rgb.bandjoin( rgb );
 </programlisting>
 
       You can also bandjoin a constant, for example: 
 
-<programlisting language="C++">
+<programlisting language="cpp">
 VImage rgb_with_alpha = rgb.bandjoin( 255 );
 </programlisting>
 
@@ -245,7 +245,7 @@ VImage rgb_with_alpha = rgb.bandjoin( 255 );
       constant in most places where you can use an image and it will be 
       converted. For example:
 
-<programlisting language="C++">
+<programlisting language="cpp">
 VImage a = (a &lt; 128).ifthenelse( 128, a ); 
 </programlisting>
 
@@ -261,7 +261,7 @@ VImage a = (a &lt; 128).ifthenelse( 128, a );
       The API overloads <code>[]</code> to be vips_extract_band(). You can 
       write:
 
-<programlisting language="C++">
+<programlisting language="cpp">
 VImage xyz = VImage::xyz( 256, 256 ) - VImage::to_vectorv( 2, 128.0, 128.0 ); 
 VImage mask = (xyz[0].pow( 2 ) + xyz[1].pow( 2 )).pow( 0.5 ) &lt; 100;
 </programlisting>
@@ -273,7 +273,7 @@ VImage mask = (xyz[0].pow( 2 ) + xyz[1].pow( 2 )).pow( 0.5 ) &lt; 100;
       The API overloads <code>()</code> to be vips_getpoint(). You can 
       write:
 
-<programlisting language="C++">
+<programlisting language="cpp">
 VImage xyz = VImage::xyz( 256, 256 ) - VImage::to_vectorv( 2, 128.0, 128.0 ); 
 // this will have the value [0, 0]
 std::vector&lt;double&gt; point = xyz(128, 128);
@@ -290,20 +290,20 @@ std::vector&lt;double&gt; point = xyz(128, 128);
       enum, such as vips_math(), are expanded to a set of member functions 
       named after the enum. For example, the C function:
 
-<programlisting language="C++">
+<programlisting language="cpp">
 int vips_math( VipsImage *in, VipsImage **out, VipsOperationMath math, ... );
 </programlisting>
 
       where #VipsOperationMath has the member #VIPS_OPERATION_MATH_SIN, has a 
       C convenience function vips_sin():
 
-<programlisting language="C++">
+<programlisting language="cpp">
 int vips_sin( VipsImage *in, VipsImage **out, ... );
 </programlisting>
 
       and a C++ member function VImage::sin():
 
-<programlisting language="C++">
+<programlisting language="cpp">
 VImage VImage::sin( VOption *options = 0 );
 </programlisting>
 
@@ -332,7 +332,7 @@ VImage VImage::sin( VOption *options = 0 );
       You can write the wrapper yourself, of course, they are very simple. 
       The one for VImage::add() looks like this:
 
-<programlisting language="C++">
+<programlisting language="cpp">
 VImage VImage::add(VImage right, VOption *options)
   throw VError
 {
