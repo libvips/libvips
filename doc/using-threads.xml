@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+<!-- vim: set ts=2 sw=2 expandtab: --> 
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+]>
+<refentry id="using-threads">
+  <refmeta>
+    <refentrytitle>VIPS and threads</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>VIPS Library</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>Using VIPS</refname>
+    <refpurpose>VIPS and threading</refpurpose>
+  </refnamediv>
+
+  <refsect3 id="using-threads-intro">
+    <title>Introduction</title>
+    <para>
+      This section tries to summarise the rules for threaded programs using 
+      libvips. Generally, libvips is threaded and thread-safe, with a few 
+      exceptions.
+    </para>
+  </refsect3>
+
+  <refsect3 id="using-threads-images">
+    <title>Images</title>
+    <para>
+      On startup, you need to call VIPS_INIT() single-threaded. After that,
+      you can freely create images in any thread and read them in any other 
+      thread. See the example at the end of this chapter. 
+      Note that results can also be shared between threads for you by the vips 
+      operation cache. 
+    </para>
+
+    <para>
+      When libvips calculates an image, by default it will use as many 
+      threads as you have CPU cores. Use vips_concurrency_set() to change this.
+    </para>
+
+    <para>
+      The exception is the drawing operators, such as vips_draw_circle(). 
+      These operations modify their image argument, so you can't call them on 
+      the same image from more than one thread. Reading from an iamge while 
+      another thread is writing to it with one of the draw operations will 
+      obviously also fail.
+    </para>
+
+  </refsect3>
+
+  <refsect3 id="using-threads-errors">
+    <title>Error handling</title>
+    <para>
+    </para>
+
+  </refsect3>
+
+  <refsect3 id="using-threads-regions">
+    <title>Using #VipsRegion between threads</title>
+    <para>
+    </para>
+  </refsect3>
+
+  <refsect3 id="using-threads-example">
+    <title>Example</title>
+
+<example>
+<title>VIPS and threads example</title>
+<programlisting language="C">
+/* Read from many threads. 
+ *
+ * Compile with:
+ *
+ * 	gcc -g -Wall soak.c `pkg-config vips --cflags --libs`
+ *
+ * Run with:
+ *
+ * 	rm -rf x
+ * 	mkdir x
+ * 	for i in {0..10}; do ./a.out ~/pics/k2.jpg; done
+ *
+ */
+
+#include &lt;stdio.h&gt;
+#include &lt;glib.h&gt;
+
+#include &lt;vips/vips.h&gt;
+
+/* How many pings we run at once.
+ */
+#define NUM_IN_PARALLEL (50)
+
+/* Number of tests we do in total.
+ */
+#define TOTAL_TESTS (NUM_IN_PARALLEL * 20)
+
+/* Workers queue up on this.
+ */
+GMutex allocation_lock;
+
+/* Our set of threads.
+ */
+GThread *workers[NUM_IN_PARALLEL];
+
+/* Number of calls so far.
+ */
+int n_calls = 0;
+
+/* Our test function. This is called by NUM_IN_PARALLEL threads a total of
+ * TOTAL_TESTS times. 
+ */
+static int
+test (const char *filename)
+{
+  VipsImage *im, *x;
+  char output_file[256];
+
+  snprintf (output_file, 256, "x/tmp-%p.jpg", g_thread_self ());
+
+  if (!(im = vips_image_new_from_file (filename,
+				       "access",
+				       VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
+				       NULL)))
+    return (-1);
+
+  if (vips_resize (im, &amp;x, 0.1, NULL))
+    {
+      g_object_unref (im);
+      return (-1);
+    }
+  g_object_unref (im);
+  im = x;
+
+  if (vips_image_write_to_file (im, output_file, NULL))
+    {
+      g_object_unref (im);
+      return (-1);
+    }
+  g_object_unref (im);
+
+  return (0);
+}
+
+/* What we run as a thread.
+ */
+static void *
+worker (void *data)
+{
+  const char *filename = (const char *) data;
+
+  for (;;)
+    {
+      gboolean done;
+
+      done = FALSE;
+      g_mutex_lock (&amp;allocation_lock);
+      n_calls += 1;
+      if (n_calls &gt; TOTAL_TESTS)
+	done = TRUE;
+      g_mutex_unlock (&amp;allocation_lock);
+
+      if (done)
+	break;
+
+      if (test (filename))
+	vips_error_exit (NULL);
+    }
+
+  return (NULL);
+}
+
+int
+main (int argc, char **argv)
+{
+  int i;
+
+  if (VIPS_INIT (argv[0]))
+    vips_error_exit (NULL);
+
+  g_mutex_init (&amp;allocation_lock);
+
+  for (i = 0; i &lt; NUM_IN_PARALLEL; i++)
+    workers[i] = g_thread_new (NULL, (GThreadFunc) worker, argv[1]);
+
+  for (i = 0; i &lt; NUM_IN_PARALLEL; i++)
+    g_thread_join (workers[i]);
+
+  return (0);
+}
+</programlisting>
+</example>
+
+  </refsect3>
+
+</refentry>

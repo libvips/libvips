@@ -133,6 +133,7 @@ HTML_IMAGES = \
 content_files = \
 	using-command-line.xml \
 	using-C.xml \
+	using-threads.xml \
 	using-python.xml \
 	using-cpp.xml \
 	extending.xml \
@@ -146,6 +147,7 @@ content_files = \
 expand_content_files = \
 	using-command-line.xml \
 	using-C.xml \
+	using-threads.xml \
 	using-python.xml \
 	using-cpp.xml \
 	extending.xml \
