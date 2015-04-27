@@ -35,16 +35,16 @@
     </para>
 
     <para>
-      When libvips calculates an image, by default it will use as many 
-      threads as you have CPU cores. Use vips_concurrency_set() to change this.
+      The exception is the drawing operators, such as vips_draw_circle(). 
+      These operations modify their image argument so you can't call them on 
+      the same image from more than one thread. Reading from an image while 
+      another thread is writing to it with one of the draw operations will 
+      obviously also fail.
     </para>
 
     <para>
-      The exception is the drawing operators, such as vips_draw_circle(). 
-      These operations modify their image argument, so you can't call them on 
-      the same image from more than one thread. Reading from an iamge while 
-      another thread is writing to it with one of the draw operations will 
-      obviously also fail.
+      When libvips calculates an image, by default it will use as many 
+      threads as you have CPU cores. Use vips_concurrency_set() to change this.
     </para>
 
   </refsect3>
@@ -52,6 +52,24 @@
   <refsect3 id="using-threads-errors">
     <title>Error handling</title>
     <para>
+      libvips has a single error code (-1 or %NULL) returned by all functions 
+      on error. Error messages are not returned, instead they are logged  
+      in a single global error buffer shared by all threads, see 
+      vips_error_buffer(). 
+    </para>
+
+    <para>
+      This makes error handling very simple but the obvious downside is that
+      because error returns and error messages are separate when you 
+      detect an error return you can't be 
+      sure that what's in the error buffer is the message that matches your
+      error. 
+    </para>
+
+    <para>
+      The simplest way to handle this is to present the whole error log to 
+      the user on the next interaction and leave it to them to decide what 
+      action caused the failure. 
     </para>
 
   </refsect3>
@@ -59,11 +77,35 @@
   <refsect3 id="using-threads-regions">
     <title>Using #VipsRegion between threads</title>
     <para>
+      #VipsImage objects are immutable and can be shared between 
+      threads very simply.
+      However the lower-level #VipsRegion object used to implement #VipsImage 
+      (see <link linkend="extending">Extending VIPS</link>) is mutable and you 
+      can only use a #VipsRegion from one thread at once. 
     </para>
+
+    <para>
+      In fact it's worse than that: to reduce locking, #VipsRegion keeps a 
+      lot of state in per-thread storage. If you want to create a region in 
+      one thread and use it in another, you have to first tag the region as 
+      unowned from the creating thread with vips__region_no_ownership(), then 
+      in the recieving thread take ownership with 
+      vips__region_take_ownership(). See the source for operations like 
+      vips_tilecache() if you're curious how this works. 
+    </para>
+
+    <para>
+      libvips includes a set of sanity checks for region ownership and will
+      fail if you don't pass ownership correctly. 
+    </para>
+
   </refsect3>
 
   <refsect3 id="using-threads-example">
     <title>Example</title>
+    <para>
+      This example runs many vips_resize() in parallel from many threads. 
+    </para>
 
 <example>
 <title>VIPS and threads example</title>
