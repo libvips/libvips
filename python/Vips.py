@@ -185,11 +185,12 @@ class Argument(object):
             # don't use .copy(): we want to make a new pipeline with no
             # reference back to the old stuff ... this way we can free the
             # previous image earlier
+            logging.debug('MODIFY argument: copying image')
             new_image = Vips.Image.new_memory()
             value.write(new_image)
             value = new_image
 
-        logging.debug('assigning %s' % self.prop.value_type)
+        logging.debug('assigning %s' % value)
 
         self.op.props.__setattr__(self.name, value)
 
@@ -352,8 +353,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
         if x.flags & enm.OUTPUT and x.flags & enm.REQUIRED:
             out.append(x.get_value())
 
-        # modified input arg ... this will get the result of the copy() we 
-        # did above
+        # modified input arg ... this will get the memory image we made above
         if x.flags & enm.INPUT and x.flags & enm.MODIFY:
             out.append(x.get_value())
 
