@@ -13,8 +13,8 @@ bname=`basename $0`
 if [[ $# < 1 ]]; then
 	echo "usage: $bname [command ...]"
 	echo "examples:"
-	echo "    $bname man im_invert"
-	echo "    $bname vips im_invert /pics/tmp/fred.jpg /pics/tmp/fred2.tif"
+	echo "    $bname man vipsthumbnail"
+	echo "    $bname vips invert /pics/tmp/fred.jpg /pics/tmp/fred2.tif"
 	exit 1
 fi
 
@@ -103,10 +103,9 @@ fi
 
 export VIPSHOME=$prefix
 
-# add VIPSHOME to man pages
-prepend_var MANPATH $VIPSHOME/man
+# add VIPSHOME to various paths
+prepend_var MANPATH $VIPSHOME/share/man
 
-# add the VIPS lib area to the library path
 case `uname` in
 HPUX)
 	libvar=SHLIB_PATH 
@@ -122,8 +121,10 @@ Darwin)
 esac
 prepend_var $libvar $VIPSHOME/lib
 
-# add VIPS bin area to path
 prepend_var PATH $VIPSHOME/bin
+prepend_var PKG_CONFIG_PATH $VIPSHOME/lib/pkgconfig
+prepend_var GI_TYPELIB_PATH $VIPSHOME/lib/girepository-1.0
+prepend_var PYTHONPATH $VIPSHOME/lib/python2.7/site-packages
 
 # run, passing in args we were passed
 exec $*

@@ -48,8 +48,8 @@ Checkout the latest sources with:
 
 	$ git clone git://github.com/jcupitt/libvips.git
 
-Building from git needs more packages. You'll need at least swig and gtk-doc,
-see the dependencies section below. For example:
+Building from git needs more packages. You'll need at least swig, gtk-doc and
+gobject-introspection, see the dependencies section below. For example:
 
 	$ brew install gtk-doc swig
 
@@ -116,8 +116,8 @@ Static analysis with:
 
 # Dependencies 
 
-libvips has to have gettext, glib-2.x and libxml-2.0. The build system
-needs sh, pkg-config, swig, gtk-doc-tools, automake, gobject-introspection
+libvips has to have gettext, glib-2.0 and libxml-2.0. The build system
+needs sh, pkg-config, swig, gtk-doc-tools, autoconf, gobject-introspection
 and gnu make.
 
 # Optional dependencies
