@@ -2,6 +2,7 @@
 - fix some compiler warnings 
 - work around a glib bug that can cause segv under load
 - add some notes on threading to the docs
+- better leak reporting
 
 11/2/15 started 8.0
 - remove old doc stuff, lots of doc improvements

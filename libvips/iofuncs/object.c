@@ -2949,6 +2949,8 @@ vips_object_print_all( void )
 		vips_object_map( 
 			(VipsSListMap2Fn) vips_object_print_all_cb, &n, NULL );
 	}
+
+	vips__type_leak();
 }
 
 static void *

@@ -451,8 +451,6 @@ vips_leak( void )
 
 	fprintf( stderr, "%s", vips_buf_all( &buf ) );
 
-	vips__type_leak();
-
 #ifdef DEBUG
 	vips_buffer_dump_all();
 #endif /*DEBUG*/

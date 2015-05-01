@@ -273,13 +273,14 @@ vips__type_leak( void )
 	if( vips_area_all ) {
 		GSList *p; 
 
-		printf( "VipsArea leaks:\n" ); 
+		fprintf( stderr, "%d VipsArea alive\n", 
+			g_slist_length( vips_area_all ) );
 		for( p = vips_area_all; p; p = p->next ) {
 			VipsArea *area = (VipsArea *) p->data;
 
-			printf( "\t%p count = %d\n", area, area->count );
+			fprintf( stderr, "\t%p count = %d, bytes = %zd\n", 
+				area, area->count, area->length );
 		}
-		printf( "%d in total\n", g_slist_length( vips_area_all ) );
 	}
 }
 
