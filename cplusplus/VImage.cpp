@@ -442,8 +442,9 @@ VOption::get_operation( VipsOperation *operation )
 					(*((*i)->vvector))[j] = array[j];
 			}
 			else if( type == VIPS_TYPE_BLOB ) {
+				// our caller gets a reference
 				*((*i)->vblob) = 
-					(VipsBlob *) g_value_get_boxed( value );
+					(VipsBlob *) g_value_dup_boxed( value );
 			}
 		}
 }
@@ -504,7 +505,7 @@ VImage::call_option_string( const char *operation_name,
 }
 
 void 
-	VImage::call( const char *operation_name, VOption *options ) 
+VImage::call( const char *operation_name, VOption *options ) 
 	throw( VError )
 {
 	call_option_string( operation_name, NULL, options ); 
