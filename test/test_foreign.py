@@ -50,9 +50,10 @@ class TestForeign(unittest.TestCase):
         self.cmyk = self.colour.bandjoin(self.mono)
         self.cmyk = self.cmyk.copy(interpretation = Vips.Interpretation.CMYK)
 
-	# this will load via libMagick as a colour image
         im = Vips.Image.new_from_file(self.gif_file)
-        self.onebit = im[1] > 128
+	# some libMagick will load this mono image as RGB, some as mono ... test
+        # band 0 to be safe
+        self.onebit = im[0] > 128
 
     # we have test files for formats which have a clear standard
     def file_loader(self, loader, test_file, validate):
@@ -94,6 +95,15 @@ class TestForeign(unittest.TestCase):
         x = None
         os.unlink(filename)
 
+    def save_load_buffer(self, saver, loader, im, max_diff = 0):
+        buf = Vips.call(saver, im)
+        x = Vips.call(loader, buf)
+
+        self.assertEqual(im.width, x.width)
+        self.assertEqual(im.height, x.height)
+        self.assertEqual(im.bands, x.bands)
+        self.assertLessEqual((im - x).abs().max(), max_diff)
+
     def test_jpeg(self):
         x = Vips.type_find("VipsForeign", "jpegload")
         if not x.is_instantiatable():
@@ -111,6 +121,8 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("jpegload", self.jpeg_file, jpeg_valid)
         self.buffer_loader("jpegload_buffer", self.jpeg_file, jpeg_valid)
+        self.save_load_buffer("jpegsave_buffer", "jpegload_buffer", self.colour,
+                             60)
         self.save_load("%s.jpg", self.mono)
         self.save_load("%s.jpg", self.colour)
 
@@ -129,6 +141,7 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("pngload", self.png_file, png_valid)
         self.buffer_loader("pngload_buffer", self.png_file, png_valid)
+        self.save_load_buffer("pngsave_buffer", "pngload_buffer", self.colour)
         self.save_load("%s.png", self.mono)
         self.save_load("%s.png", self.colour)
 
@@ -173,10 +186,16 @@ class TestForeign(unittest.TestCase):
 
         def gif_valid(self, im):
             a = im(10, 10)
-            self.assertAlmostEqual(a, [33, 33, 33])
+            # some libMagick produce an RGB for this image, some a mono
+            if len(a) > 1:
+                self.assertAlmostEqual(a, [33, 33, 33])
+                self.assertEqual(im.bands, 3)
+            else:
+                self.assertAlmostEqual(a, [33])
+                self.assertEqual(im.bands, 1)
+
             self.assertEqual(im.width, 159)
             self.assertEqual(im.height, 203)
-            self.assertEqual(im.bands, 3)
 
         self.file_loader("magickload", self.gif_file, gif_valid)
         self.buffer_loader("magickload_buffer", self.gif_file, gif_valid)
@@ -196,6 +215,8 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("webpload", self.webp_file, webp_valid)
         self.buffer_loader("webpload_buffer", self.webp_file, webp_valid)
+        self.save_load_buffer("webpsave_buffer", "webpload_buffer", self.colour,
+                             50)
         self.save_load("%s.webp", self.colour)
 
     def test_analyzeload(self):

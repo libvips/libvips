@@ -1,6 +1,8 @@
 4/5/15 started 8.0.2
 - fix a refcount error in C++ wrapper, thanks huskier
-- reomve a couple of stray header decls, thanks benjamin
+- better C++ api test
+- test suite improvements
+- remove a couple of stray header decls, thanks benjamin
 
 25/4/15 started 8.0.1
 - fix some compiler warnings 
