@@ -1,3 +1,5 @@
+7/5/15 started 8.0.3
+
 4/5/15 started 8.0.2
 - fix a refcount error in C++ wrapper, thanks huskier
 - better C++ api test
