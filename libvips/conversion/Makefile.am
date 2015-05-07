@@ -7,6 +7,7 @@ libconversion_la_SOURCES = \
 	gamma.c \
 	sequential.c \
 	flatten.c \
+	premultiply.c \
 	cache.c \
 	copy.c \
 	embed.c \

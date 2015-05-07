@@ -186,6 +186,8 @@ int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2,
 	__attribute__((sentinel));
 int vips_flatten( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_premultiply( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_falsecolour( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
