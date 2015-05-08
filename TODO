@@ -1,3 +1,38 @@
+- how odd, why is resize much faster?
+
+	$ time vips resize wtc.tif small.tif 0.25
+	memory: high-water mark 138.09 MB
+	real	0m0.430s
+	user	0m2.700s
+	sys	0m0.172s
+	$ time vipsthumbnail wtc.tif -o small.tif -s 2500
+	memory: high-water mark 210.05 MB
+	real	0m0.959s
+	user	0m9.984s
+	sys	0m0.184s
+
+  about the same speed for jpg
+
+	$ time vips resize big.jpg[shrink=8] small.jpg 0.6666
+	memory: high-water mark 47.21 MB
+	real	0m1.320s
+	user	0m2.216s
+	sys	0m0.060s
+	$ time vipsthumbnail big.jpg -s 2500 -o small.jpg 
+	memory: high-water mark 58.65 MB
+	real	0m1.360s
+	user	0m2.392s
+	sys	0m0.100s
+
+  seems to be because vipsthumbnail is not int shrinking enough:
+
+	 $ vipsthumbnail wtc.tif -o small.tif -s 2500 --vips-info
+	 info: vipsthumbnail: integer shrink by 1
+	 info: vipsthumbnail: residual scale by 0.266752
+
+  should int shrink by 2! vips resize is doing this right, what's the
+  difference?
+
 
 - are the mosaic functions calling vips_fastcor()? it must be very slow
 
