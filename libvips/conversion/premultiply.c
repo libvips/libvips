@@ -63,26 +63,27 @@ typedef VipsConversionClass VipsPremultiplyClass;
 
 G_DEFINE_TYPE( VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION );
 
-/* Premultiply a greyscale (two band) image.
+/* Premultiply an n-band image.
  */
-#define PRE_GREY( IN, OUT ) { \
+#define PRE_MANY( IN, OUT ) { \
 	IN * restrict p = (IN *) in; \
 	OUT * restrict q = (OUT *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
-		IN alpha = p[1]; \
+		IN alpha = p[bands - 1]; \
 		int clip_alpha = VIPS_CLIP( 0, alpha, max_value ); \
 		double nalpha = (double) clip_alpha / max_value; \
 		\
-		q[0] = p[0] * nalpha; \
-		q[1] = alpha; \
+		for( b = 0; b < bands - 1; b++ ) \
+			q[b] = p[b] * nalpha; \
+		q[b] = alpha; \
 		\
-		p += 2; \
-		q += 2; \
+		p += bands; \
+		q += bands; \
 	} \
 }
 
-/* Premultiply an RGB (four band) image.
+/* Special case for RGBA, it's very common.
  */
 #define PRE_RGB( IN, OUT ) { \
 	IN * restrict p = (IN *) in; \
@@ -103,37 +104,12 @@ G_DEFINE_TYPE( VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION );
 	} \
 }
 
-/* Premultiply a CMYK (five band) image.
- */
-#define PRE_CMYK( IN, OUT ) { \
-	IN * restrict p = (IN *) in; \
-	OUT * restrict q = (OUT *) out; \
-	\
-	for( x = 0; x < width; x++ ) { \
-		IN alpha = p[4]; \
-		int clip_alpha = VIPS_CLIP( 0, alpha, max_value ); \
-		double nalpha = (double) clip_alpha / max_value; \
-		\
-		q[0] = p[0] * nalpha; \
-		q[1] = p[1] * nalpha; \
-		q[2] = p[2] * nalpha; \
-		q[3] = p[3] * nalpha; \
-		q[4] = alpha; \
-		\
-		p += 5; \
-		q += 5; \
-	} \
-}
-
 #define PRE( IN, OUT ) { \
-	if( bands == 2 ) { \
-		PRE_GREY( IN, OUT ); \
-	} \
-	else if( bands == 4 ) { \
+	if( bands == 3 ) { \
 		PRE_RGB( IN, OUT ); \
 	} \
 	else { \
-		PRE_CMYK( IN, OUT ); \
+		PRE_MANY( IN, OUT ); \
 	} \
 }
 
@@ -148,7 +124,7 @@ vips_premultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	int bands = im->Bands; 
 
 	int max_value;
-	int x, y;
+	int x, y, b;
 
 	if( vips_region_prepare( ir, r ) )
 		return( -1 );
@@ -229,10 +205,7 @@ vips_premultiply_build( VipsObject *object )
 
 	/* Trivial case: fall back to copy().
 	 */
-	if( in->Bands == 1 || 
-		in->Bands == 3 || 
-		(in->Bands == 4 && 
-		 in->Type == VIPS_INTERPRETATION_CMYK) ) 
+	if( in->Bands == 1 )
 		return( vips_image_write( in, conversion->out ) );
 
 	if( vips_check_noncomplex( class->nickname, in ) )
