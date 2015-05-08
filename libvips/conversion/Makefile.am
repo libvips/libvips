@@ -8,6 +8,7 @@ libconversion_la_SOURCES = \
 	sequential.c \
 	flatten.c \
 	premultiply.c \
+	unpremultiply.c \
 	cache.c \
 	copy.c \
 	embed.c \

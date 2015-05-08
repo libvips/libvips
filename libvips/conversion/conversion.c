@@ -239,6 +239,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_bandmean_get_type( void ); 
 	extern GType vips_flatten_get_type( void ); 
 	extern GType vips_premultiply_get_type( void ); 
+	extern GType vips_unpremultiply_get_type( void ); 
 	extern GType vips_bandbool_get_type( void ); 
 	extern GType vips_gaussnoise_get_type( void ); 
 	extern GType vips_grid_get_type( void ); 
@@ -279,6 +280,7 @@ vips_conversion_operation_init( void )
 	vips_bandmean_get_type(); 
 	vips_flatten_get_type(); 
 	vips_premultiply_get_type(); 
+	vips_unpremultiply_get_type(); 
 	vips_bandbool_get_type(); 
 	vips_gaussnoise_get_type(); 
 	vips_grid_get_type(); 
