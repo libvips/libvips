@@ -1204,7 +1204,7 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 				"background", save->background,
 				"max_alpha", 
 					in->BandFmt == VIPS_FORMAT_USHORT ?
-						65535 : 255, 
+						65535.0 : 255.0, 
 				NULL ) ) {
 				g_object_unref( in );
 				return( -1 );
