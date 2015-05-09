@@ -57,6 +57,8 @@ typedef struct _VipsPremultiply {
 
 	VipsImage *in;
 
+	double max_alpha;
+
 } VipsPremultiply;
 
 typedef VipsConversionClass VipsPremultiplyClass;
@@ -71,12 +73,12 @@ G_DEFINE_TYPE( VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION );
 	\
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[bands - 1]; \
-		int clip_alpha = VIPS_CLIP( 0, alpha, max_value ); \
-		double nalpha = (double) clip_alpha / max_value; \
+		IN clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
+		double nalpha = (double) clip_alpha / max_alpha; \
 		\
-		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = p[b] * nalpha; \
-		q[b] = alpha; \
+		for( i = 0; i < bands - 1; i++ ) \
+			q[i] = p[i] * nalpha; \
+		q[i] = alpha; \
 		\
 		p += bands; \
 		q += bands; \
@@ -91,8 +93,8 @@ G_DEFINE_TYPE( VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION );
 	\
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[3]; \
-		int clip_alpha = VIPS_CLIP( 0, alpha, max_value ); \
-		double nalpha = (double) clip_alpha / max_value; \
+		IN clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
+		double nalpha = (double) clip_alpha / max_alpha; \
 		\
 		q[0] = p[0] * nalpha; \
 		q[1] = p[1] * nalpha; \
@@ -117,23 +119,18 @@ static int
 vips_premultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	gboolean *stop )
 {
+	VipsPremultiply *premultiply = (VipsPremultiply *) b;
 	VipsRegion *ir = (VipsRegion *) vseq;
 	VipsImage *im = ir->im;
 	VipsRect *r = &or->valid;
 	int width = r->width;
 	int bands = im->Bands; 
+	double max_alpha = premultiply->max_alpha;
 
-	int max_value;
-	int x, y, b;
+	int x, y, i;
 
 	if( vips_region_prepare( ir, r ) )
 		return( -1 );
-
-	if( im->Type == VIPS_INTERPRETATION_GREY16 ||
-		im->Type == VIPS_INTERPRETATION_RGB16 )
-		max_value = 65535;
-	else
-		max_value = 255;
 
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel *in = VIPS_REGION_ADDR( ir, r->left, r->top + y ); 
@@ -252,11 +249,18 @@ vips_premultiply_class_init( VipsPremultiplyClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsPremultiply, in ) );
 
+	VIPS_ARG_DOUBLE( class, "max_alpha", 115, 
+		_( "Maximum value" ), 
+		_( "Maximum value of alpha channel" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsPremultiply, max_alpha ),
+		0, 100000000, 255 );
 }
 
 static void
 vips_premultiply_init( VipsPremultiply *premultiply )
 {
+	premultiply->max_alpha = 255.0;
 }
 
 /**
@@ -265,25 +269,32 @@ vips_premultiply_init( VipsPremultiply *premultiply )
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Premultiplies any alpha channel. If @in is an 8-bit RGBA image, @out will 
- * also have four bands, where:
+ * Optional arguments:
+ *
+ * @max_alpha: %gdouble, maximum value for alpha
+ *
+ * Premultiplies any alpha channel. 
+ * The final band is taken to be the alpha
+ * and the bands are transformed as:
  *
  * |[
- *   n = in[3] / 255.0; // normalised alpha
- *   out = [in[0] * n, in[1] * n, in[2] * n, in[3]];
+ *   alpha = clip( 0, in[in.bands - 1], @max_alpha ); 
+ *   norm = alpha / @max_alpha; 
+ *   out = [in[0] * norm, ..., in[in.bands - 1] * norm, alpha];
  * |]
  *
- * So the RGB bands are scaled by alpha, alpha is untouched. 
+ * So for an N-band image, the first N - 1 bands are multiplied by the clipped 
+ * and normalised final band, the final band is clipped. 
+ * If there is only a single band, 
+ * the image is passed through unaltered.
+ *
  * The result is
  * #VIPS_FORMAT_FLOAT unless the input format is #VIPS_FORMAT_DOUBLE, in which
  * case the output is double as well.
- * If there is no alpha,
- * the image is passed through unaltered.
  *
- * The operation works for 1 - 5 band images, from greyscale to CMYKA. 
- * If interpretation is #VIPS_INTERPRETATION_GREY16 or
- * #VIPS_INTERPRETATION_RGB16, alpha is assumed to have a 0 - 65535 range.
- * Otherwise alpha is assumed to have a 0 - 255 range. 
+ * @max_alpha has the default value 255. You will need to set this to 65535
+ * for images with a 16-bit alpha, or perhaps 1.0 for images with a float
+ * alpha. 
  *
  * See also: vips_unpremultiply(), vips_flatten().
  *
