@@ -1,9 +1,3 @@
-- looks like flatten has some confusion with flatten->in and in
-
-  change rules for flatten alpha max ... copy the premultiply thing of being
-  255 + a param, look at convert savveable
-
-
 
 - are the mosaic functions calling vips_fastcor()? it must be very slow
 

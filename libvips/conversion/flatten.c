@@ -5,6 +5,8 @@
  *
  * 4/1/14
  * 	- better rounding 
+ * 9/5/15
+ * 	- add max_alpha to match vips_premultiply() etc.
  */
 
 /*
@@ -67,6 +69,10 @@ typedef struct _VipsFlatten {
 	 */
 	VipsPel *ink;
 
+	/* Use this to scale alpha to 0 - 1.
+	 */
+	double max_alpha;
+
 } VipsFlatten;
 
 typedef VipsConversionClass VipsFlattenClass;
@@ -75,7 +81,7 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 
 /* Flatten with black background.
  */
-#define VIPS_FLATTEN_BLACK( TYPE, MAX ) { \
+#define VIPS_FLATTEN_BLACK( TYPE ) { \
 	TYPE * restrict p = (TYPE *) in; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
@@ -84,7 +90,7 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 		int b; \
 		\
 		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = (p[b] * alpha) / (MAX); \
+			q[b] = (p[b] * alpha) / max_alpha; \
 		\
 		p += bands; \
 		q += bands - 1; \
@@ -93,19 +99,19 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 
 /* Flatten with any background.
  */
-#define VIPS_FLATTEN( TYPE, MAX ) { \
+#define VIPS_FLATTEN( TYPE ) { \
 	TYPE * restrict p = (TYPE *) in; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
 		TYPE alpha = p[bands - 1]; \
-		TYPE nalpha = (MAX) - alpha; \
+		TYPE nalpha = max_alpha - alpha; \
 		TYPE * restrict bg = (TYPE *) flatten->ink; \
 		int b; \
 		\
 		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = (p[b] * alpha) / (MAX) + \
-				(bg[b] * nalpha) / (MAX); \
+			q[b] = (p[b] * alpha) / max_alpha + \
+				(bg[b] * nalpha) / max_alpha; \
 		\
 		p += bands; \
 		q += bands - 1; \
@@ -115,7 +121,7 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 /* Same, but with float arithmetic. Necessary for int/uint to prevent
  * overflow.
  */
-#define VIPS_FLATTEN_BLACK_FLOAT( TYPE, MAX ) { \
+#define VIPS_FLATTEN_BLACK_FLOAT( TYPE ) { \
 	TYPE * restrict p = (TYPE *) in; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
@@ -124,26 +130,26 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 		int b; \
 		\
 		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = ((double) p[b] * alpha) / (MAX); \
+			q[b] = ((double) p[b] * alpha) / max_alpha; \
 		\
 		p += bands; \
 		q += bands - 1; \
 	} \
 }
 
-#define VIPS_FLATTEN_FLOAT( TYPE, MAX ) { \
+#define VIPS_FLATTEN_FLOAT( TYPE ) { \
 	TYPE * restrict p = (TYPE *) in; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
 		TYPE alpha = p[bands - 1]; \
-		TYPE nalpha = (MAX) - alpha; \
+		TYPE nalpha = max_alpha - alpha; \
 		TYPE * restrict bg = (TYPE *) flatten->ink; \
 		int b; \
 		\
 		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = ((double) p[b] * alpha) / (MAX) + \
-				((double) bg[b] * nalpha) / (MAX); \
+			q[b] = ((double) p[b] * alpha) / max_alpha + \
+				((double) bg[b] * nalpha) / max_alpha; \
 		\
 		p += bands; \
 		q += bands - 1; \
@@ -159,6 +165,7 @@ vips_flatten_black_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	VipsRect *r = &or->valid;
 	int width = r->width;
 	int bands = ir->im->Bands; 
+	double max_alpha = flatten->max_alpha;
 
 	int x, y;
 
@@ -171,37 +178,35 @@ vips_flatten_black_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 		switch( flatten->in->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
-			VIPS_FLATTEN_BLACK( unsigned char, UCHAR_MAX ); 
+			VIPS_FLATTEN_BLACK( unsigned char ); 
 			break; 
 
 		case VIPS_FORMAT_CHAR: 
-			/* Alpha is 0 - 127? No idea, really.
-			 */
-			VIPS_FLATTEN_BLACK( signed char, CHAR_MAX ); 
+			VIPS_FLATTEN_BLACK( signed char ); 
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-			VIPS_FLATTEN_BLACK( unsigned short, USHRT_MAX ); 
+			VIPS_FLATTEN_BLACK( unsigned short ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
-			VIPS_FLATTEN_BLACK( signed short, SHRT_MAX ); 
+			VIPS_FLATTEN_BLACK( signed short ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 
-			VIPS_FLATTEN_BLACK_FLOAT( unsigned int, UINT_MAX ); 
+			VIPS_FLATTEN_BLACK_FLOAT( unsigned int ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 
-			VIPS_FLATTEN_BLACK_FLOAT( signed int, INT_MAX ); 
+			VIPS_FLATTEN_BLACK_FLOAT( signed int ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
-			VIPS_FLATTEN_BLACK_FLOAT( float, 1.0 ); 
+			VIPS_FLATTEN_BLACK_FLOAT( float ); 
 			break; 
 
 		case VIPS_FORMAT_DOUBLE: 
-			VIPS_FLATTEN_BLACK_FLOAT( double, 1.0 ); 
+			VIPS_FLATTEN_BLACK_FLOAT( double ); 
 			break; 
 
 		case VIPS_FORMAT_COMPLEX: 
@@ -225,6 +230,7 @@ vips_flatten_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	VipsRect *r = &or->valid;
 	int width = r->width;
 	int bands = ir->im->Bands; 
+	double max_alpha = flatten->max_alpha;
 
 	int x, y;
 
@@ -237,37 +243,35 @@ vips_flatten_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 		switch( flatten->in->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
-			VIPS_FLATTEN( unsigned char, UCHAR_MAX ); 
+			VIPS_FLATTEN( unsigned char ); 
 			break; 
 
 		case VIPS_FORMAT_CHAR: 
-			/* Alpha is 0 - 127? No idea, really.
-			 */
-			VIPS_FLATTEN( signed char, CHAR_MAX ); 
+			VIPS_FLATTEN( signed char ); 
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-			VIPS_FLATTEN( unsigned short, USHRT_MAX ); 
+			VIPS_FLATTEN( unsigned short ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
-			VIPS_FLATTEN( signed short, SHRT_MAX ); 
+			VIPS_FLATTEN( signed short ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 
-			VIPS_FLATTEN_FLOAT( unsigned int, UINT_MAX ); 
+			VIPS_FLATTEN_FLOAT( unsigned int ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 
-			VIPS_FLATTEN_FLOAT( signed int, INT_MAX ); 
+			VIPS_FLATTEN_FLOAT( signed int ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
-			VIPS_FLATTEN_FLOAT( float, 1.0 ); 
+			VIPS_FLATTEN_FLOAT( float ); 
 			break; 
 
 		case VIPS_FORMAT_DOUBLE: 
-			VIPS_FLATTEN_FLOAT( double, 1.0 ); 
+			VIPS_FLATTEN_FLOAT( double ); 
 			break; 
 
 		case VIPS_FORMAT_COMPLEX: 
@@ -304,7 +308,7 @@ vips_flatten_build( VipsObject *object )
 
 	/* Trivial case: fall back to copy().
 	 */
-	if( flatten->in->Bands == 1 ) 
+	if( in->Bands == 1 ) 
 		return( vips_image_write( in, conversion->out ) );
 
 	if( vips_check_noncomplex( class->nickname, in ) )
@@ -380,12 +384,21 @@ vips_flatten_class_init( VipsFlattenClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsFlatten, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
+
+	VIPS_ARG_DOUBLE( class, "max_alpha", 115, 
+		_( "Maximum alpha" ), 
+		_( "Maximum value of alpha channel" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsFlatten, max_alpha ),
+		0, 100000000, 255 );
+
 }
 
 static void
 vips_flatten_init( VipsFlatten *flatten )
 {
 	flatten->background = vips_array_double_newv( 1, 0.0 );
+	flatten->max_alpha= 255.0;
 }
 
 /**
@@ -397,19 +410,24 @@ vips_flatten_init( VipsFlatten *flatten )
  * Optional arguments:
  *
  * @background: #VipsArrayDouble colour for new pixels 
+ * @max_alpha: %gdouble, maximum value for alpha
  *
  * Take the last band of @in as an alpha and use it to blend the
  * remaining channels with @background. 
  *
- * The alpha channel is 0 - MAX for
- * integer images and 0 - 1 for float images, where MAX means 100% image and 0
- * means 100% background.  Non-complex images only.
- * @background defaults to zero (black). MAX is the largest possible positive
- * value for that int type. 
+ * The alpha channel is 0 - @max_alpha,
+ * where 1 means 100% image and 0
+ * means 100% background.  
+ * Non-complex images only.
+ * @background defaults to zero (black). 
+ *
+ * @max_alpha has the default value 255. You will need to set this to 65535
+ * for images with a 16-bit alpha, or perhaps 1.0 for images with a float
+ * alpha. 
  *
  * Useful for flattening PNG images to RGB.
  *
- * See also: pngload().
+ * See also: vips_premultiply(), vips_pngload().
  *
  * Returns: 0 on success, -1 on error
  */

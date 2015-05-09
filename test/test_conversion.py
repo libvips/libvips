@@ -348,23 +348,12 @@ class TestConversion(unittest.TestCase):
             self.assertAlmostEqualObjects(pixel, [20, 0, 41])
 
     def test_flatten(self):
-        max_value = {Vips.BandFormat.UCHAR: 0xff,
-                     Vips.BandFormat.USHORT: 0xffff,
-                     Vips.BandFormat.UINT: 0xffffffff, 
-                     Vips.BandFormat.CHAR: 0x7f,
-                     Vips.BandFormat.SHORT: 0x7fff, 
-                     Vips.BandFormat.INT: 0x7fffffff,
-                     Vips.BandFormat.FLOAT: 1.0,
-                     Vips.BandFormat.DOUBLE: 1.0,
-                     Vips.BandFormat.COMPLEX: 1.0,
-                     Vips.BandFormat.DPCOMPLEX: 1.0}
-        black = self.mono * 0.0
-
-        for fmt in noncomplex_formats:
-            mx = max_value[fmt]
+        for fmt in unsigned_formats + [Vips.BandFormat.SHORT, 
+                Vips.BandFormat.INT] + float_formats:
+            mx = 255
             alpha = mx / 2.0
             nalpha = mx - alpha
-            test = self.colour.bandjoin(black + alpha).cast(fmt)
+            test = self.colour.bandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
 
             predict = [int(x) * alpha / mx for x in pixel[:-1]]
@@ -387,6 +376,46 @@ class TestConversion(unittest.TestCase):
             self.assertEqual(im.bands, 3)
             pixel = im(30, 30)
             for x, y in zip(pixel, predict):
+                self.assertLess(abs(x - y), 2)
+
+    def test_premultiply(self):
+        for fmt in unsigned_formats + [Vips.BandFormat.SHORT, 
+                Vips.BandFormat.INT] + float_formats:
+            mx = 255
+            alpha = mx / 2.0
+            nalpha = mx - alpha
+            test = self.colour.bandjoin(alpha).cast(fmt)
+            pixel = test(30, 30)
+
+            predict = [int(x) * alpha / mx for x in pixel[:-1]] + [alpha]
+
+            im = test.premultiply()
+
+            self.assertEqual(im.bands, test.bands)
+            pixel = im(30, 30)
+            for x, y in zip(pixel, predict):
+                # we use float arithetic for int and uint, so the rounding
+                # differs ... don't require huge accuracy
+                self.assertLess(abs(x - y), 2)
+
+    def test_unpremultiply(self):
+        for fmt in unsigned_formats + [Vips.BandFormat.SHORT, 
+                Vips.BandFormat.INT] + float_formats:
+            mx = 255
+            alpha = mx / 2.0
+            nalpha = mx - alpha
+            test = self.colour.bandjoin(alpha).cast(fmt)
+            pixel = test(30, 30)
+
+            predict = [int(x) / (alpha / mx) for x in pixel[:-1]] + [alpha]
+
+            im = test.unpremultiply()
+
+            self.assertEqual(im.bands, test.bands)
+            pixel = im(30, 30)
+            for x, y in zip(pixel, predict):
+                # we use float arithetic for int and uint, so the rounding
+                # differs ... don't require huge accuracy
                 self.assertLess(abs(x - y), 2)
 
     def test_flip(self):

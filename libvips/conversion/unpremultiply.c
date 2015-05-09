@@ -311,6 +311,8 @@ vips_unpremultiply_init( VipsUnpremultiply *unpremultiply )
  * for images with a 16-bit alpha, or perhaps 1.0 for images with a float
  * alpha. 
  *
+ * Non-complex images only.
+ *
  * See also: vips_premultiply(), vips_flatten().
  *
  * Returns: 0 on success, -1 on error
