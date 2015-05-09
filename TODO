@@ -1,9 +1,7 @@
-- does flatten work with float?
+- looks like flatten has some confusion with flatten->in and in
 
-  looks like it has some confusion with flatten->in and in
-
-  change rules for alphha max ... copy the premultiply convention of using
-  Type to set the range
+  change rules for flatten alpha max ... copy the premultiply thing of being
+  255 + a param, look at convert savveable
 
 
 

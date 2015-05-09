@@ -250,7 +250,7 @@ vips_premultiply_class_init( VipsPremultiplyClass *class )
 		G_STRUCT_OFFSET( VipsPremultiply, in ) );
 
 	VIPS_ARG_DOUBLE( class, "max_alpha", 115, 
-		_( "Maximum value" ), 
+		_( "Maximum alpha" ), 
 		_( "Maximum value of alpha channel" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsPremultiply, max_alpha ),
