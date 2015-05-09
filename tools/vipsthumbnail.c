@@ -67,6 +67,7 @@
  * 	- rename -o as -f, keep -o as a hidden flag
  * 9/5/15
  * 	- use vips_resize() instead of our own code
+ * 	- premultiply alpha
  */
 
 #ifdef HAVE_CONFIG_H
@@ -346,12 +347,15 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	 */
 	gboolean have_imported;
 
-	int shrink; 
-	double residual; 
-	int tile_width;
-	int tile_height;
-	int nlines;
-	double sigma;
+	/* TRUE if we've premultiplied and need to unpremultiply.
+	 */
+	gboolean have_premultiplied;
+
+	/* Sniff the incoming image and try to guess what the alpha max is.
+	 */
+	double max_alpha;
+
+	double shrink; 
 
 	/* RAD needs special unpacking.
 	 */
@@ -364,6 +368,12 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 			return( NULL );
 		in = t[0];
 	}
+
+	/* Try to guess what the maximum alpha might be.
+	 */
+	max_alpha = 255;
+	if( in->BandFmt == VIPS_FORMAT_USHORT )
+		max_alpha = 65535;
 
 	/* In linear mode, we import right at the start. 
 	 *
@@ -409,17 +419,42 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		return( NULL ); 
 	in = t[2];
 
+	/* If there's an alpha, we have to premultiply before shrinking. See
+	 * https://github.com/jcupitt/libvips/issues/291
+	 */
+	have_premultiplied = FALSE;
+	if( in->Bands == 2 ||
+		(in->Bands == 4 && in->Type != VIPS_INTERPRETATION_CMYK) ||
+		in->Bands == 5 ) {
+		vips_info( "vipsthumbnail", "premultiplying alpha" ); 
+		if( vips_premultiply( in, &t[3], 
+			"max_alpha", max_alpha,
+			NULL ) ) 
+			return( NULL );
+		in = t[3];
+		have_premultiplied = TRUE;
+	}
+
 	shrink = calculate_shrink( in );
 
-	vips_info( "vipsthumbnail", "resize by %d", shrink );
+	vips_info( "vipsthumbnail", "shrink by %g", shrink );
 	vips_info( "vipsthumbnail", "%s interpolation", 
 		VIPS_OBJECT_GET_CLASS( interp )->nickname );
 
-	if( vips_resize( in, &t[3], 1.0 / shrink, 
+	if( vips_resize( in, &t[4], 1.0 / shrink, 
 		"interpolate", interp,
 		NULL ) ) 
 		return( NULL );
-	in = t[3];
+	in = t[4];
+
+	if( have_premultiplied ) {
+		vips_info( "vipsthumbnail", "unpremultiplying alpha" ); 
+		if( vips_unpremultiply( in, &t[5], 
+			"max_alpha", max_alpha,
+			NULL ) ) 
+			return( NULL );
+		in = t[5];
+	}
 
 	/* Colour management.
 	 *
@@ -500,8 +535,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
 	 * sharpened.
 	 */
-	if( shrink >= 1 && 
-		residual <= 1.0 && 
+	if( shrink > 1.0 &&
 		sharpen ) { 
 		vips_info( "vipsthumbnail", "sharpening thumbnail" );
 		if( vips_conv( in, &t[8], sharpen, NULL ) ) 
