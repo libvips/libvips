@@ -65,6 +65,9 @@
  * 	- exit with an error code if one or more conversions failed
  * 20/1/15
  * 	- rename -o as -f, keep -o as a hidden flag
+ * 9/5/15
+ * 	- use vips_resize() instead of our own code
+ * 	- premultiply alpha
  */
 
 #ifdef HAVE_CONFIG_H
@@ -94,7 +97,7 @@ static char *output_format = "tn_%s.jpg";
 static char *interpolator = "bilinear";
 static char *export_profile = NULL;
 static char *import_profile = NULL;
-static char *convolution_mask = "mild";
+static char *convolution_mask = "none";
 static gboolean delete_profile = FALSE;
 static gboolean linear_processing = FALSE;
 static gboolean crop_image = FALSE;
@@ -159,25 +162,16 @@ static GOptionEntry options[] = {
 	{ NULL }
 };
 
-/* Calculate the shrink factors. 
- *
- * We shrink in two stages: first, a shrink with a block average. This can
- * only accurately shrink by integer factors. We then do a second shrink with
- * a supplied interpolator to get the exact size we want.
- *
- * We aim to do the second shrink by roughly half the interpolator's 
- * window_size.
+/* Calculate the shrink factor, taking into account auto-rotate, the fit mode,
+ * and so on.
  */
-static int
-calculate_shrink( VipsImage *im, double *residual, 
-	VipsInterpolate *interp )
+static double
+calculate_shrink( VipsImage *im )
 {
 	VipsAngle angle = vips_autorot_get_angle( im ); 
 	gboolean rotate = angle == VIPS_ANGLE_D90 || angle == VIPS_ANGLE_D270;
 	int width = rotate_image && rotate ? im->Ysize : im->Xsize;
 	int height = rotate_image && rotate ? im->Xsize : im->Ysize;
-	const int window_size =
-		interp ?  vips_interpolate_get_window_size( interp ) : 2;
 
 	VipsDirection direction;
 
@@ -203,42 +197,8 @@ calculate_shrink( VipsImage *im, double *residual,
 			direction = VIPS_DIRECTION_HORIZONTAL;
 	}
 
-	double factor = direction == VIPS_DIRECTION_HORIZONTAL ?
-		horizontal : vertical; 
-
-	/* If the shrink factor is <= 1.0, we need to zoom rather than shrink.
-	 * Just set the factor to 1 in this case.
-	 */
-	double factor2 = factor < 1.0 ? 1.0 : factor;
-
-	/* Int component of factor2. 
-	 *
-	 * We want to shrink by less for interpolators with larger windows.
-	 */
-	int shrink = VIPS_MAX( 1, 
-		floor( factor2 ) / VIPS_MAX( 1, window_size / 2 ) );
-
-	if( residual &&
-		direction == VIPS_DIRECTION_HORIZONTAL ) {
-		/* Size after int shrink. 
-		 */
-		int iwidth = width / shrink;
-
-		/* Therefore residual scale factor is.
-		 */
-		double hresidual = (width / factor) / iwidth; 
-
-		*residual = hresidual;
-	}
-	else if( residual &&
-		direction == VIPS_DIRECTION_VERTICAL ) {
-		int iheight = height / shrink;
-		double vresidual = (height / factor) / iheight; 
-
-		*residual = vresidual;
-	}
-
-	return( shrink );
+	return( direction == VIPS_DIRECTION_HORIZONTAL ?
+		horizontal : vertical );  
 }
 
 /* Find the best jpeg preload shrink.
@@ -246,19 +206,22 @@ calculate_shrink( VipsImage *im, double *residual,
 static int
 thumbnail_find_jpegshrink( VipsImage *im )
 {
-	int shrink = calculate_shrink( im, NULL, NULL );
+	double shrink = calculate_shrink( im ); 
 
 	/* We can't use pre-shrunk images in linear mode. libjpeg shrinks in Y
 	 * (of YCbCR), not linear space.
 	 */
-
 	if( linear_processing )
 		return( 1 ); 
-	else if( shrink >= 8 )
+
+	/* We want to leave a bit of shrinking for our interpolator, we don't
+	 * want to do all the shrinking with libjpeg.
+	 */
+	if( shrink >= 16 )
 		return( 8 );
-	else if( shrink >= 4 )
+	else if( shrink >= 8 )
 		return( 4 );
-	else if( shrink >= 2 )
+	else if( shrink >= 4 )
 		return( 2 );
 	else 
 		return( 1 );
@@ -326,17 +289,16 @@ thumbnail_open( VipsObject *process, const char *filename )
 static VipsInterpolate *
 thumbnail_interpolator( VipsObject *process, VipsImage *in )
 {
-	double residual;
-	VipsInterpolate *interp;
+	double shrink = calculate_shrink( in );
 
-	calculate_shrink( in, &residual, NULL );
+	VipsInterpolate *interp;
 
 	/* For images smaller than the thumbnail, we upscale with nearest
 	 * neighbor. Otherwise we make thumbnails that look fuzzy and awful.
 	 */
 	if( !(interp = VIPS_INTERPOLATE( vips_object_new_from_string( 
 		g_type_class_ref( VIPS_TYPE_INTERPOLATE ), 
-		residual > 1.0 ? "nearest" : interpolator ) )) )
+		shrink <= 1.0 ? "nearest" : interpolator ) )) )
 		return( NULL );
 
 	vips_object_local( process, interp );
@@ -385,12 +347,15 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	 */
 	gboolean have_imported;
 
-	int shrink; 
-	double residual; 
-	int tile_width;
-	int tile_height;
-	int nlines;
-	double sigma;
+	/* TRUE if we've premultiplied and need to unpremultiply.
+	 */
+	gboolean have_premultiplied;
+
+	/* Sniff the incoming image and try to guess what the alpha max is.
+	 */
+	double max_alpha;
+
+	double shrink; 
 
 	/* RAD needs special unpacking.
 	 */
@@ -403,6 +368,12 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 			return( NULL );
 		in = t[0];
 	}
+
+	/* Try to guess what the maximum alpha might be.
+	 */
+	max_alpha = 255;
+	if( in->BandFmt == VIPS_FORMAT_USHORT )
+		max_alpha = 65535;
 
 	/* In linear mode, we import right at the start. 
 	 *
@@ -448,71 +419,42 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		return( NULL ); 
 	in = t[2];
 
-	shrink = calculate_shrink( in, &residual, interp );
-
-	vips_info( "vipsthumbnail", "integer shrink by %d", shrink );
-
-	if( vips_shrink( in, &t[3], shrink, shrink, NULL ) ) 
-		return( NULL );
-	in = t[3];
-
-	/* We want to make sure we read the image sequentially.
-	 * However, the convolution we may be doing later will force us 
-	 * into SMALLTILE or maybe FATSTRIP mode and that will break
-	 * sequentiality.
-	 *
-	 * So ... read into a cache where tiles are scanlines, and make sure
-	 * we keep enough scanlines to be able to serve a line of tiles.
-	 *
-	 * We use a threaded tilecache to avoid a deadlock: suppose thread1,
-	 * evaluating the top block of the output, is delayed, and thread2, 
-	 * evaluating the second block, gets here first (this can happen on 
-	 * a heavily-loaded system). 
-	 *
-	 * With an unthreaded tilecache (as we had before), thread2 will get
-	 * the cache lock and start evaling the second block of the shrink. 
-	 * When it reaches the png reader it will stall until the first block 
-	 * has been used ... but it never will, since thread1 will block on 
-	 * this cache lock. 
+	/* If there's an alpha, we have to premultiply before shrinking. See
+	 * https://github.com/jcupitt/libvips/issues/291
 	 */
+	have_premultiplied = FALSE;
+	if( in->Bands == 2 ||
+		(in->Bands == 4 && in->Type != VIPS_INTERPRETATION_CMYK) ||
+		in->Bands == 5 ) {
+		vips_info( "vipsthumbnail", "premultiplying alpha" ); 
+		if( vips_premultiply( in, &t[3], 
+			"max_alpha", max_alpha,
+			NULL ) ) 
+			return( NULL );
+		in = t[3];
+		have_premultiplied = TRUE;
+	}
 
-	vips_get_tile_size( in, 
-		&tile_width, &tile_height, &nlines );
-	if( vips_tilecache( in, &t[4], 
-		"tile_width", in->Xsize,
-		"tile_height", 10,
-		"max_tiles", 1 + (nlines * 2) / 10,
-		"access", VIPS_ACCESS_SEQUENTIAL,
-		"threaded", TRUE, 
-		NULL ) )
+	shrink = calculate_shrink( in );
+
+	vips_info( "vipsthumbnail", "shrink by %g", shrink );
+	vips_info( "vipsthumbnail", "%s interpolation", 
+		VIPS_OBJECT_GET_CLASS( interp )->nickname );
+
+	if( vips_resize( in, &t[4], 1.0 / shrink, 
+		"interpolate", interp,
+		NULL ) ) 
 		return( NULL );
 	in = t[4];
 
-	/* If the final affine will be doing a large downsample, we can get 
-	 * nasty aliasing on hard edges. Blur before affine to smooth this out.
-	 *
-	 * Don't blur for very small shrinks, blur with radius 1 for x1.5
-	 * shrinks, blur radius 2 for x2.5 shrinks and above, etc.
-	 */
-	sigma = ((1.0 / residual) - 0.5) / 1.5;
-	if( residual < 1.0 &&
-		sigma > 0.1 ) { 
-		if( vips_gaussblur( in, &t[5], sigma, NULL ) )
+	if( have_premultiplied ) {
+		vips_info( "vipsthumbnail", "unpremultiplying alpha" ); 
+		if( vips_unpremultiply( in, &t[5], 
+			"max_alpha", max_alpha,
+			NULL ) ) 
 			return( NULL );
-		vips_info( "vipsthumbnail", "anti-alias, sigma %g",
-			sigma );
 		in = t[5];
 	}
-
-	if( vips_affine( in, &t[6], residual, 0, 0, residual, 
-		"interpolate", interp,
-		NULL ) )  
-		return( NULL );
-	in = t[6];
-
-	vips_info( "vipsthumbnail", "residual scale by %g", residual );
-	vips_info( "vipsthumbnail", "%s interpolation", 
-		VIPS_OBJECT_GET_CLASS( interp )->nickname );
 
 	/* Colour management.
 	 *
@@ -593,8 +535,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	/* If we are upsampling, don't sharpen, since nearest looks dumb
 	 * sharpened.
 	 */
-	if( shrink >= 1 && 
-		residual <= 1.0 && 
+	if( shrink > 1.0 &&
 		sharpen ) { 
 		vips_info( "vipsthumbnail", "sharpening thumbnail" );
 		if( vips_conv( in, &t[8], sharpen, NULL ) ) 

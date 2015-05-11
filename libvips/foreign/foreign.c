@@ -1202,6 +1202,9 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 			if( vips_flatten( in, &out, 
 				"background", save->background,
+				"max_alpha", 
+					in->BandFmt == VIPS_FORMAT_USHORT ?
+						65535.0 : 255.0, 
 				NULL ) ) {
 				g_object_unref( in );
 				return( -1 );
