@@ -1,24 +1,12 @@
-- try making a 1000 x 500 x 500 float image on disc, then
+- how about something like vips_grid() which turns a tall thin one-band 
+  image into a much smaller many-band image?
 
-	https://gist.github.com/jcupitt/93e7248bf9eddc34c4cb
+  at the moment making a 500-band image uses huge amounts of memory :-( since
+  we have at least 500 bytes per pixel, times 128x128 for each tile, times N
+  for the number of threads, times 500, since we need a 500-stage pipeline
 
-  see:
-
-	$ time ./slice.py ~/pics/1000x500x500.v 
-	vips warning: VipsImage: /Users/john/pics/1000x500x500.v is longer than
-	expected
-	Traceback (most recent call last):
-	File "./slice.py", line 26, in <module> row.falsecolour().write_to_file("row.v")
-	File "/usr/local/lib/python2.7/site-packages/gi/overrides/Vips.py", line 570, in write_to_file _call_base(saver, [filename], kwargs, self, option_string)
-	File "/usr/local/lib/python2.7/site-packages/gi/overrides/Vips.py", line 338, in _call_base
-	raise Error('Error calling operator %s.' % name)
-	gi.overrides.Vips.Error: Error calling operator
-	VipsForeignSaveVips.
-	VipsRegion: images do not match in pixel size
-	VipsRegion: valid clipped to nothing
-
-  caching is breaking with copy() stuff, somehow?
-
+  much faster to make a very tall, thin image and fold it up in a single
+  operation
 
 - are the mosaic functions calling vips_fastcor()? it must be very slow
 

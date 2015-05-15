@@ -47,6 +47,8 @@
  * 	- rewrite as a class
  * 1/12/11
  * 	- use glib byteswap macros
+ * 15/5/15
+ * 	- support bands -> width conversion
  */
 
 /*
@@ -87,6 +89,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include <vips/vips.h>
@@ -185,6 +188,70 @@ static SwapFn vips_copy_swap_fn[] = {
 	vips_copy_swap8 	/* VIPS_FORMAT_DPCOMPLEX = 9, */
 };
 
+/* Copy, turning bands into the x axis.
+ */
+static int
+vips_copy_unbandize_gen( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+	VipsRegion *ir = (VipsRegion *) seq;
+	VipsImage *in = ir->im;
+	VipsRect *r = &or->valid;
+	VipsCopy *copy = (VipsCopy *) b; 
+	SwapFn swap = vips_copy_swap_fn[copy->in->BandFmt];
+
+	VipsRect need;
+	int y;
+
+	/* Ask for input we need.
+	 */
+	if( in->Xsize == 1 ) {
+		need.left = 0;
+		need.top = r->top;
+		need.width = 1;
+		need.height = r->height;
+	}
+	else { 
+		need.left = r->top;
+		need.top = 0;
+		need.width = r->height;
+		need.height = 1;
+	}
+	if( vips_region_prepare( ir, &need ) )
+		return( -1 );
+
+
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *p;
+		VipsPel *q;
+
+		if( in->Xsize == 1 ) {
+			p = r->left * VIPS_IMAGE_SIZEOF_ELEMENT( in ) +
+				VIPS_REGION_ADDR( ir, 0, r->top + y );
+		}
+		else {
+			p = r->left * VIPS_IMAGE_SIZEOF_ELEMENT( in ) +
+				VIPS_REGION_ADDR( ir, r->top + y, 0 );
+		}
+		q = VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+		if( copy->swap && 
+			swap ) {
+			swap( p, q, r->width, copy->in );
+		}
+		else
+			/* We can't use vips_region_region(), it doesn't do
+			 * coordinate transforms. If we want to avoid the
+			 * memcpy() we'd need to add another vips_region_
+			 * function.
+			 */
+			memcpy( q, p, 
+				r->width * VIPS_IMAGE_SIZEOF_ELEMENT( in ) );
+	}
+
+	return( 0 );
+}
+
 /* Copy a small area.
  */
 static int
@@ -246,6 +313,8 @@ vips_copy_build( VipsObject *object )
 
 	guint64 image_size_before;
 	guint64 image_size_after;
+	VipsImage copy_of_fields;
+	VipsGenerateFn copy_generate_fn;
 	int i;
 
 	if( VIPS_OBJECT_CLASS( vips_copy_parent_class )->build( object ) )
@@ -258,10 +327,10 @@ vips_copy_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_THINSTRIP, copy->in, NULL ) )
 		return( -1 );
 
-	/* We try to stop the worst crashes by at least ensuring that we don't
-	 * increase the number of pixels which might be addressed.
+	/* Take a copy of all the basic header fields. We use this for
+	 * sanity-checking the changes our caller has made.
 	 */
-	image_size_before = VIPS_IMAGE_SIZEOF_IMAGE( conversion->out );
+	copy_of_fields = *conversion->out;
 
 	/* Use props to adjust header fields.
 	 */
@@ -300,6 +369,10 @@ vips_copy_build( VipsObject *object )
 		}
 	}
 
+	/* We try to stop the worst crashes by at least ensuring that we don't
+	 * increase the number of pixels which might be addressed.
+	 */
+	image_size_before = VIPS_IMAGE_SIZEOF_IMAGE( &copy_of_fields );
 	image_size_after = VIPS_IMAGE_SIZEOF_IMAGE( conversion->out );
 	if( image_size_after > image_size_before ) {
 		vips_error( class->nickname, 
@@ -307,8 +380,23 @@ vips_copy_build( VipsObject *object )
 		return( -1 );
 	}
 
+	/* Pick a generate function. 
+	 */
+	copy_generate_fn = vips_copy_gen;
+
+	/* We let our caller change a 1xN or Nx1 image with M bands into a MxN
+	 * image. In other words, bands becomes width. 
+	 */
+	if( (copy_of_fields.Xsize == 1 || copy_of_fields.Ysize == 1) &&
+		 conversion->out->Bands == 1 &&
+		 conversion->out->Xsize == copy_of_fields.Bands &&
+		 conversion->out->Ysize == VIPS_MAX(
+			 copy_of_fields.Xsize, copy_of_fields.Ysize ) ) {
+		copy_generate_fn = vips_copy_unbandize_gen;
+	}
+
 	if( vips_image_generate( conversion->out,
-		vips_start_one, vips_copy_gen, vips_stop_one, 
+		vips_start_one, copy_generate_fn, vips_stop_one, 
 		copy->in, copy ) )
 		return( -1 );
 
@@ -460,6 +548,9 @@ vips_copy_init( VipsCopy *copy )
  *
  * Setting @swap to %TRUE will make vips_copy() swap the byte ordering of
  * pixels according to the image's format. 
+ *
+ * You can use this operation to turn 1xN or Nx1 images with M bands into MxN
+ * one band images. 
  *
  * Returns: 0 on success, -1 on error.
  */
