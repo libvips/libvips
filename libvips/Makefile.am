@@ -91,7 +91,7 @@ introspect_SOURCES = \
 introspection_sources = @vips_introspection_sources@
 
 # we make the vips8 API
-Vips-8.0.gir: libvips.la
+Vips-8.0.gir: introspect
 Vips_8_0_gir_INCLUDES = GObject-2.0
 Vips_8_0_gir_CFLAGS = $(INCLUDES) -I${top_srcdir}/libvips/include
 Vips_8_0_gir_LIBS = libvips.la
