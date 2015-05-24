@@ -1330,8 +1330,10 @@ static int
 strip_arrived( Layer *layer )
 {
 	VipsForeignSaveDz *dz = layer->dz;
+
 	VipsRect new_strip;
 	VipsRect overlap;
+	VipsRect image_area;
 
 	if( strip_save( layer ) )
 		return( -1 );
@@ -1350,6 +1352,13 @@ strip_arrived( Layer *layer )
 	new_strip.top = layer->y - dz->overlap;
 	new_strip.width = layer->image->Xsize;
 	new_strip.height = dz->tile_size + 2 * dz->overlap;
+
+	image_area.left = 0;
+	image_area.top = 0;
+	image_area.width = layer->image->Xsize;
+	image_area.height = layer->image->Ysize;
+	vips_rect_intersectrect( &new_strip, &image_area, &new_strip ); 
+
 	if( (new_strip.height & 1) == 1 )
 		new_strip.height += 1;
 
@@ -1375,14 +1384,16 @@ strip_arrived( Layer *layer )
 			&overlap, overlap.left, overlap.top );
 	}
 
-	if( vips_region_buffer( layer->strip, &new_strip ) )
-		return( -1 );
+	if( !vips_rect_isempty( &new_strip ) ) {
+		if( vips_region_buffer( layer->strip, &new_strip ) )
+			return( -1 );
 
-	/* And copy back again.
-	 */
-	if( !vips_rect_isempty( &overlap ) ) 
-		vips_region_copy( layer->copy, layer->strip, 
-			&overlap, overlap.left, overlap.top );
+		/* And copy back again.
+		 */
+		if( !vips_rect_isempty( &overlap ) ) 
+			vips_region_copy( layer->copy, layer->strip, 
+				&overlap, overlap.left, overlap.top );
+	}
 
 	return( 0 );
 }
