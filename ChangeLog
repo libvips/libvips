@@ -5,6 +5,9 @@
 - vipsthumbnail uses vips_premultiply() for better alpha quality
 - vips_copy() can turn 1xN or Nx1 M-band images into MxN one-band images
 
+7/5/15 started 8.0.3
+- dzsave and tif pyr write could fail for some image dimensions, thanks Jonas
+
 4/5/15 started 8.0.2
 - fix a refcount error in C++ wrapper, thanks huskier
 - better C++ api test
