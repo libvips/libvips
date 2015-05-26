@@ -840,6 +840,18 @@ class Image(Vips.Image):
         """Return the nearest integral value."""
         return self.round(Vips.OperationRound.RINT)
 
+    def bandand(self):
+        """AND image bands together."""
+        return self.bandbool(Vips.OperationBoolean.AND)
+
+    def bandor(self):
+        """OR image bands together."""
+        return self.bandbool(Vips.OperationBoolean.OR)
+
+    def bandeor(self):
+        """EOR image bands together."""
+        return self.bandbool(Vips.OperationBoolean.EOR)
+
     def bandsplit(self):
         """Split an n-band image into n separate images."""
         return [x for x in self]

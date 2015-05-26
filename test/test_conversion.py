@@ -146,7 +146,7 @@ class TestConversion(unittest.TestCase):
     def test_band_and(self):
         def band_and(x):
             if isinstance(x, Vips.Image):
-                return x.bandbool(Vips.OperationBoolean.AND)
+                return x.bandand()
             else:
                 return [reduce(lambda a, b: int(a) & int(b), x)]
 
@@ -155,7 +155,7 @@ class TestConversion(unittest.TestCase):
     def test_band_or(self):
         def band_or(x):
             if isinstance(x, Vips.Image):
-                return x.bandbool(Vips.OperationBoolean.OR)
+                return x.bandor()
             else:
                 return [reduce(lambda a, b: int(a) | int(b), x)]
 
@@ -164,7 +164,7 @@ class TestConversion(unittest.TestCase):
     def test_band_eor(self):
         def band_eor(x):
             if isinstance(x, Vips.Image):
-                return x.bandbool(Vips.OperationBoolean.EOR)
+                return x.bandeor()
             else:
                 return [reduce(lambda a, b: int(a) ^ int(b), x)]
 
