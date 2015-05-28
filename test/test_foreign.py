@@ -104,6 +104,21 @@ class TestForeign(unittest.TestCase):
         self.assertEqual(im.bands, x.bands)
         self.assertLessEqual((im - x).abs().max(), max_diff)
 
+    def test_vips(self):
+        self.save_load_file("test.v", "", self.colour, 0)
+
+        # check we can save and restore metadata
+        self.colour.write_to_file("test.v")
+        x = Vips.Image.new_from_file("test.v")
+        before_exif = self.colour.get_value("exif-data")
+        after_exif = x.get_value("exif-data")
+
+        for i in range(len(before_exif)):
+            self.assertEqual(before_exif[i], after_exif[i])
+
+        x = None
+        os.unlink("test.v")
+
     def test_jpeg(self):
         x = Vips.type_find("VipsForeign", "jpegload")
         if not x.is_instantiatable():

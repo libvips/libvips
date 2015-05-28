@@ -1,3 +1,21 @@
+- extra character in exif-data?
+
+  try:
+
+	$ cd test
+	$ vipsheader -a images/IMG_4618.jpg | grep exif-data
+	exif-data: VIPS_TYPE_BLOB, data = 0x16e0a20, length = 6626
+	$ vips copy images/IMG_4618.jpg x.v
+	$ vipsheader -a x.v | grep exif-data
+	exif-data: VIPS_TYPE_BLOB, data = 0x20679f0, length = 6627
+
+  one byte longer!
+
+  fix, and add a test for exif length to test/test_foreign.py
+
+
+
+
 - how about something like vips_grid() which turns a tall thin one-band 
   image into a much smaller many-band image?
 
