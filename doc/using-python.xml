@@ -18,17 +18,45 @@
   <refsect3 id="python-intro">
     <title>Introduction</title>
     <para>
-      VIPS comes with a convenient, high-level Python API based 
+      VIPS comes with a convenient, high-level Python API built on 
       on <code>gobject-introspection</code>. As long as you can get GOI 
-      for your platform, you should be able to use vips. The 
-      <code>Vips.py</code> file 
-      needs to be copied to the overrides directory of your GOI install,
-      and you need to have the vips typelib on your 
-      <code>GI_TYPELIB_PATH</code>. This may already have happened, depending 
-      on your platform. 
+      for your platform, you should be able to use libvips. 
     </para>
 
     <para>
+      To test the binding, start up Python and at the console enter:
+
+<programlisting language="Python">
+>>> from gi.repository import Vips
+>>> x = Vips.Image.new_from_file("/path/to/some/image/file.jpg")
+>>> x.width
+1450
+>>>
+</programlisting>
+
+      <orderedlist>
+        <listitem>
+          <para>
+            If import fails, check you have the Python
+            gobject-introspection packages installed, that you have the
+            libvips typelib installed, and that the typelib is either
+            in the system area or on your <code>GI_TYPELIB_PATH</code>.
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+	   If <code>.new_from_file()</code> fails, the vips overrides
+	   have not been found. Make sure <code>Vips.py</code> is in
+	   your system overrides area.
+	  </para>
+	</listitem>
+      </orderedlist>
+    </para>
+
+    <para>
+      Here's a complete example program:
+
 <programlisting language="Python">
 #!/usr/bin/python
 
@@ -48,9 +76,7 @@ im = im.conv(mask)
 im.write_to_file(sys.argv[2])
 </programlisting>
 
-      Reading this example, here's what happens when Python executes the 
-      import line. Skip this list unless it's not working for you or you're 
-      curious about the details:
+      When Python executes the import line:
     </para>
 
     <orderedlist>
@@ -107,7 +133,7 @@ im.write_to_file(sys.argv[2])
     </orderedlist>
 
     <para>
-      The next line loads the input file. You can append
+      The next line loads the input image. You can append
       load options to the argument list as keyword arguments, for example:
 
 <programlisting language="Python">
@@ -164,9 +190,6 @@ im = im.similarity(scale = 0.9, interpolate = Vips.Interpolate.new("bicubic"))
       As noted above, the Python interface comes in two main parts,
       an automatically generated binding based on the vips typelib,
       plus a set of extra features provided by overrides. 
-    </para>
-
-    <para>
       The rest of this chapter runs through the features provided by the 
       overrides.
     </para>
