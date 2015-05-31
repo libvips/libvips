@@ -113,6 +113,7 @@ class TestForeign(unittest.TestCase):
         before_exif = self.colour.get_value("exif-data")
         after_exif = x.get_value("exif-data")
 
+        self.assertEqual(len(before_exif), len(after_exif))
         for i in range(len(before_exif)):
             self.assertEqual(before_exif[i], after_exif[i])
 
