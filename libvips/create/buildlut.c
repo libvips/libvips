@@ -129,7 +129,7 @@ vips_buildlut_build_init( VipsBuildlut *lut )
 			
 		/* Allow for being a bit off.
 		 */
-		if( abs( v - VIPS_RINT( v ) ) > 0.001 ) {
+		if( fabs( v - VIPS_RINT( v ) ) > 0.001 ) {
 			vips_error( class->nickname,
 				_( "x value row %d not an int" ), y );
 			return( -1 );
