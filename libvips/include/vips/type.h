@@ -135,6 +135,12 @@ GType vips_save_string_get_type( void );
  * The #GType for a #VipsRefString.
  */
 #define VIPS_TYPE_REF_STRING (vips_ref_string_get_type())
+
+typedef struct _VipsRefString { 
+	VipsArea area;
+} VipsRefString;
+
+const char *vips_ref_string_get( VipsRefString *refstr, size_t *length );
 GType vips_ref_string_get_type( void );
 
 /**

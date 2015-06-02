@@ -95,6 +95,7 @@ def imageize(match_image, value):
 # bytes(). 
 
 unpack_types = [[Vips.Blob, lambda x: bytes(x.get())],
+                [Vips.RefString, lambda x: x.get()],
                 [Vips.ArrayDouble, lambda x: x.get()],
                 [Vips.ArrayImage, lambda x: x.get()], 
                 [Vips.ArrayInt, lambda x: x.get()]]

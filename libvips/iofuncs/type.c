@@ -502,6 +502,28 @@ transform_save_string_ref_string( const GValue *src_value, GValue *dest_value )
 		vips_value_get_save_string( src_value ) );
 }
 
+/**
+ * vips_ref_string_get:
+ * @refstr: the #VipsRefString to fetch from
+ * @length: (allow-none): return length here, optionally
+ *
+ * Get a pointer to the private string inside a refstr. Handy for language
+ * bindings. 
+ *
+ * See also: vips_value_get_ref_string().
+ *
+ * Returns: (transfer none): The C string held by @refstr. 
+ */
+const char *
+vips_ref_string_get( VipsRefString *refstr, size_t *length )
+{
+	VipsArea *area = VIPS_AREA( refstr );
+
+	g_assert( area->type == G_TYPE_DOUBLE ); 
+
+	return( vips_area_get_data( area, length, NULL, NULL, NULL ) ); 
+}
+
 GType
 vips_ref_string_get_type( void )
 {
