@@ -588,6 +588,12 @@ class Image(Vips.Image):
 
     # we can use Vips.Image.write_to_memory() directly
 
+    # support with in the most trivial way
+    def __enter__(self):
+        return self
+    def __exit__(self, type, value, traceback):
+        pass
+
     # operator overloads
 
     def __getattr__(self, name):
