@@ -49,6 +49,8 @@
  * 	- use glib byteswap macros
  * 15/5/15
  * 	- support bands -> width conversion
+ * 4/6/15
+ * 	- support width -> bands conversion
  */
 
 /*
@@ -196,12 +198,14 @@ vips_copy_unbandize_gen( VipsRegion *or,
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsImage *in = ir->im;
+	VipsImage *out = or->im;
 	VipsRect *r = &or->valid;
 	VipsCopy *copy = (VipsCopy *) b; 
 	SwapFn swap = vips_copy_swap_fn[copy->in->BandFmt];
+	int sze = VIPS_IMAGE_SIZEOF_ELEMENT( in );
 
 	VipsRect need;
-	int y;
+	int x, y;
 
 	/* Ask for input we need.
 	 */
@@ -220,33 +224,97 @@ vips_copy_unbandize_gen( VipsRegion *or,
 	if( vips_region_prepare( ir, &need ) )
 		return( -1 );
 
+	/* We copy 1 pixel at a time. A vertical input image won't be
+	 * guaranteed to have continuous data. 
+	 */
 
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *p;
-		VipsPel *q;
+		for( x = 0; x < r->width; x++ ) {
+			VipsPel *p;
+			VipsPel *q;
 
-		if( in->Xsize == 1 ) {
-			p = r->left * VIPS_IMAGE_SIZEOF_ELEMENT( in ) +
-				VIPS_REGION_ADDR( ir, 0, r->top + y );
-		}
-		else {
-			p = r->left * VIPS_IMAGE_SIZEOF_ELEMENT( in ) +
-				VIPS_REGION_ADDR( ir, r->top + y, 0 );
-		}
-		q = VIPS_REGION_ADDR( or, r->left, r->top + y );
+			if( in->Xsize == 1 ) 
+				p = VIPS_REGION_ADDR( ir, 0, r->top + y ) + 
+					(r->left + x) * sze;
+			else 
+				p = VIPS_REGION_ADDR( ir, r->top + y, 0 ) + 
+					(r->left + x) * sze;
+			q = VIPS_REGION_ADDR( or, r->left + x, r->top + y );
 
-		if( copy->swap && 
-			swap ) {
-			swap( p, q, r->width, copy->in );
+			if( copy->swap && 
+				swap ) 
+				swap( p, q, 1, out );
+			else
+				memcpy( q, p, sze );
 		}
-		else
-			/* We can't use vips_region_region(), it doesn't do
-			 * coordinate transforms. If we want to avoid the
-			 * memcpy() we'd need to add another vips_region_
-			 * function.
-			 */
-			memcpy( q, p, 
-				r->width * VIPS_IMAGE_SIZEOF_ELEMENT( in ) );
+	}
+
+	return( 0 );
+}
+
+/* Copy, turning the x axis into bands, the inverse of the above. Useful for
+ * turning CSV files into RGB LUTs, for example. 
+ *
+ * output has bands == input width, one of width or height 1.
+ */
+static int
+vips_copy_bandize_gen( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+	VipsRegion *ir = (VipsRegion *) seq;
+	VipsImage *in = ir->im;
+	VipsImage *out = or->im;
+	VipsRect *r = &or->valid;
+	VipsCopy *copy = (VipsCopy *) b; 
+	SwapFn swap = vips_copy_swap_fn[copy->in->BandFmt];
+	int sze = VIPS_IMAGE_SIZEOF_ELEMENT( in );
+
+	VipsRect need;
+	int x, y;
+
+	/* Ask for input we need.
+	 */
+	if( out->Xsize == 1 ) {
+		need.left = 0;
+		need.top = r->top;
+		need.width = in->Xsize;
+		need.height = r->height;
+	}
+	else { 
+		need.left = 0;
+		need.top = r->left;
+		need.width = in->Xsize;
+		need.height = r->width;
+	}
+	if( vips_region_prepare( ir, &need ) )
+		return( -1 );
+
+	/* We have to copy 1 pixel at a time. Each scanline in our input
+	 * becomes a pixel in the output. Scanlines are not guaranteed to be
+	 * continuous after vips_region_prepare(), they may be a window on a
+	 * larger image.
+	 */
+
+	for( y = 0; y < r->height; y++ ) {
+		for( x = 0; x < r->width; x++ ) { 
+			VipsPel *p;
+			VipsPel *q;
+
+			if( out->Xsize == 1 ) {
+				p = VIPS_REGION_ADDR( ir, 0, r->top + y );
+				q = VIPS_REGION_ADDR( or, 0, r->top + y );
+			}
+			else {
+				p = VIPS_REGION_ADDR( ir, 0, r->left + x );
+				q = VIPS_REGION_ADDR( or, 0, r->left + x );
+			}
+
+			if( copy->swap && 
+				swap ) 
+				swap( p, q, 1, out );
+			else
+				memcpy( q, p, out->Bands * sze );
+		}
 	}
 
 	return( 0 );
@@ -391,9 +459,18 @@ vips_copy_build( VipsObject *object )
 		 conversion->out->Bands == 1 &&
 		 conversion->out->Xsize == copy_of_fields.Bands &&
 		 conversion->out->Ysize == VIPS_MAX(
-			 copy_of_fields.Xsize, copy_of_fields.Ysize ) ) {
+			 copy_of_fields.Xsize, copy_of_fields.Ysize ) ) 
 		copy_generate_fn = vips_copy_unbandize_gen;
-	}
+
+	/* And the inverse: change a MxN one-band image into a 1xN or Nx1
+	 * M-band image. That is, squash M into bands. 
+	 */
+	if( (conversion->out->Xsize == 1 || conversion->out->Ysize == 1) &&
+		conversion->out->Bands == copy_of_fields.Xsize &&
+		copy_of_fields.Bands == 1 &&
+		copy_of_fields.Ysize == VIPS_MAX( 
+			conversion->out->Xsize, conversion->out->Ysize ) )
+		copy_generate_fn = vips_copy_bandize_gen;
 
 	if( vips_image_generate( conversion->out,
 		vips_start_one, copy_generate_fn, vips_stop_one, 

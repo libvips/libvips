@@ -1,14 +1,11 @@
 - try:
 
-	$ vips copy y.v x.v --width 1 --bands 3
-	VipsRegion: images do not match in pixel size
+	$ vips csvload ~/Desktop/NDVI_VGYRM-lut.txt x.v --skip 1
+	$ vips copy x.v x2.v --width 256 --height 1 --bands 4
+	Segmentation fault (core dumped)
 
-  copy will make 1xN or Nx1 M-band images into MxN one-band images, but it
-  won't go the other way
+  see commented-out test in test_conversion.py
 
-  
-
-  
 
 - does ruby need to unpack RefString as well? what about C++?
 
