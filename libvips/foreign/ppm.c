@@ -31,6 +31,9 @@
  * 	- rework as a set of fns ready to be called from a class
  * 8/11/14
  * 	- add 1 bit write
+ * 4/6/15
+ * 	- try to support DOS files under linux ... we have to look for \r\n
+ * 	  linebreaks
  */
 
 /*
@@ -84,7 +87,7 @@
 static void 
 skip_line( FILE *fp )
 {
-        while( fgetc( fp ) != '\n' )
+        while( vips__fgetc( fp ) != '\n' )
 		;
 }
 
@@ -93,7 +96,7 @@ skip_white_space( FILE *fp )
 {
         int ch;
 
-        while( isspace( ch = fgetc( fp ) ) )
+        while( isspace( ch = vips__fgetc( fp ) ) )
 		;
 	ungetc( ch, fp );
 
@@ -163,8 +166,8 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 
 	/* Read in the magic number.
 	 */
-	buf[0] = fgetc( fp );
-	buf[1] = fgetc( fp );
+	buf[0] = vips__fgetc( fp );
+	buf[1] = vips__fgetc( fp );
 	buf[2] = '\0';
 
 	for( index = 0; index < VIPS_NUMBER( magic_names ); index++ )
@@ -220,7 +223,7 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 	 * character before the data starts.
 	 */
 	if( !*ascii && 
-		!isspace( fgetc( fp ) ) ) {
+		!isspace( vips__fgetc( fp ) ) ) {
 		vips_error( "ppm2vips", "%s", 
 			_( "not whitespace before start of binary data" ) );
 		return( -1 );

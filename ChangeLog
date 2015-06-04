@@ -8,6 +8,7 @@
 - oops, base64 encode could pad by up to two zero bytes
 - added VipsRefString as a thing that gi bindings can unpack
 - support "with Vips.Image as ...:" in Python
+- try to support DOS CSV and PPM files on linux
 
 7/5/15 started 8.0.3
 - dzsave and tif pyr write could fail for some image dimensions, thanks Jonas

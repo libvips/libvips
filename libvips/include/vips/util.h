@@ -207,6 +207,7 @@ char *vips__file_read_name( const char *name, const char *fallback_dir,
 	size_t *length_out );
 int vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
 int vips__get_bytes( const char *filename, unsigned char buf[], int len );
+int vips__fgetc( FILE *fp );
 
 GValue *vips__gvalue_ref_string_new( const char *text );
 void vips__gslist_gvalue_free( GSList *list );

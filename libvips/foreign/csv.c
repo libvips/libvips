@@ -27,6 +27,9 @@
  * 	- report positions for EOF/EOL errors
  * 2/7/13
  * 	- add matrix read/write
+ * 4/6/15
+ * 	- try to support DOS files under linux ... we have to look for \r\n
+ * 	  linebreaks
  */
 
 /*
@@ -84,13 +87,13 @@ skip_line( FILE *fp )
 
 	/* Are we at a delayed EOF? See below.
 	 */
-	if( (ch = fgetc( fp )) == EOF )
+	if( (ch = vips__fgetc( fp )) == EOF )
 		return( 0 );
 	ungetc( ch, fp );
 
 	/* If we hit EOF and no \n, wait until the next call to report EOF.
 	 */
-        while( (ch = fgetc( fp )) != '\n' && 
+        while( (ch = vips__fgetc( fp )) != '\n' && 
 		ch != EOF )
 		;
 
@@ -103,7 +106,7 @@ skip_white( FILE *fp, const char whitemap[256] )
         int ch;
 
 	do {
-		ch = fgetc( fp );
+		ch = vips__fgetc( fp );
 	} while( ch != EOF && 
 		ch != '\n' && 
 		whitemap[ch] );
@@ -119,12 +122,12 @@ skip_to_quote( FILE *fp )
         int ch;
 
 	do {
-		ch = fgetc( fp );
+		ch = vips__fgetc( fp );
 
 		/* Ignore \" in strings.
 		 */
 		if( ch == '\\' ) 
-			ch = fgetc( fp );
+			ch = vips__fgetc( fp );
 		else if( ch == '"' )
 			break;
 	} while( ch != EOF && 
@@ -141,7 +144,7 @@ skip_to_sep( FILE *fp, const char sepmap[256] )
         int ch;
 
 	do {
-		ch = fgetc( fp );
+		ch = vips__fgetc( fp );
 	} while( ch != EOF && 
 		ch != '\n' && 
 		!sepmap[ch] );
@@ -181,9 +184,9 @@ read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
 		return( ch );
 
 	if( ch == '"' ) {
-		(void) fgetc( fp );
+		(void) vips__fgetc( fp );
 		(void) skip_to_quote( fp );
-		(void) fgetc( fp );
+		(void) vips__fgetc( fp );
 	}
 	else if( !sepmap[ch] && 
 		fscanf( fp, "%lf", out ) != 1 ) {
@@ -207,7 +210,7 @@ read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
 	 */
 	if( ch != EOF && 
 		sepmap[ch] ) 
-		(void) fgetc( fp );
+		(void) vips__fgetc( fp );
 
 	return( 0 );
 }
@@ -462,7 +465,7 @@ fetch_nonwhite( FILE *fp, const char whitemap[256], char *buf, int max )
 	int i;
 
 	for( i = 0; i < max - 1; i++ ) {
-		ch = fgetc( fp );
+		ch = vips__fgetc( fp );
 
 		if( ch == EOF || ch == '\n' || whitemap[ch] )
 			break;

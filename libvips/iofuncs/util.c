@@ -763,6 +763,29 @@ vips__get_bytes( const char *filename, unsigned char buf[], int len )
 	return( 1 );
 }
 
+/* We try to support stupid DOS files too. These have \r\n (13, 10) as line
+ * separators. Strategy: an fgetc() that swaps \r\n for \n. 
+ *
+ * On Windows, stdio will automatically swap \r\n for \n, but on Linux we have
+ * to do this by hand. 
+ */
+int
+vips__fgetc( FILE *fp )
+{
+	int ch;
+
+	ch = fgetc( fp );
+	if( ch == '\r' ) {
+		ch = fgetc( fp );
+		if( ch != '\n' ) {
+			ungetc( ch, fp );
+			ch = '\r';
+		}
+	}
+
+	return( ch ); 
+}
+
 /* Alloc/free a GValue.
  */
 static GValue *

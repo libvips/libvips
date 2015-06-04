@@ -1,21 +1,10 @@
 - try:
 
-	http://i.publiclab.org/system/images/photos/000/006/146/original/NDVI_VGYRM-lut.txt
-
-  tab-separated, four columns
-
-	$ vips csvload ~/Desktop/NDVI_VGYRM-lut.txt x.v --skip 1 
-	vips warning: csv2vips: error parsing number, line 2, column 1025
-
-  strange ... works without the --skip, though the first row is blank
-
-- try:
-
 	$ vips copy y.v x.v --width 1 --bands 3
 	VipsRegion: images do not match in pixel size
 
-  copy will make 1xN or Nx1 M-band images into MxN oone-nband images, but it
-  won't go tyhe other way
+  copy will make 1xN or Nx1 M-band images into MxN one-band images, but it
+  won't go the other way
 
   
 
