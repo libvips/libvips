@@ -888,9 +888,7 @@ vips_image_build( VipsObject *object )
 					"v" )) )
 					return( -1 );
 
-				if( vips_copy( t, &t2, 
-					"swap", TRUE,
-					NULL ) ) {
+				if( vips_byteswap( t, &t2, NULL ) ) {
 					g_object_unref( t );
 					return( -1 );
 				}

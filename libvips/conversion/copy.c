@@ -51,6 +51,8 @@
  * 	- support bands -> width conversion
  * 4/6/15
  * 	- support width -> bands conversion
+ * 5/6/15
+ * 	- move byteswap out to vips_byteswap()
  */
 
 /*
@@ -107,12 +109,9 @@ typedef struct _VipsCopy {
 	 */
 	VipsImage *in;
 
-	/* Swap bytes on the way through.
-	 */
-	gboolean swap;
-
 	/* Fields we can optionally set on the way through.
 	 */
+	gboolean swap;
 	VipsInterpretation interpretation;
 	double xres;
 	double yres;
@@ -130,66 +129,6 @@ typedef VipsConversionClass VipsCopyClass;
 
 G_DEFINE_TYPE( VipsCopy, vips_copy, VIPS_TYPE_CONVERSION );
 
-/* Swap pairs of bytes.
- */
-static void
-vips_copy_swap2( VipsPel *in, VipsPel *out, int width, VipsImage *im )
-{ 
-	guint16 *p = (guint16 *) in;
-	guint16 *q = (guint16 *) out;
-        int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 2;    
-
-        int x;
-
-        for( x = 0; x < sz; x++ ) 
-		q[x] = GUINT16_SWAP_LE_BE( p[x] );
-}
-
-/* Swap 4- of bytes.
- */
-static void
-vips_copy_swap4( VipsPel *in, VipsPel *out, int width, VipsImage *im )
-{
-	guint32 *p = (guint32 *) in;
-	guint32 *q = (guint32 *) out;
-        int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 4;    
-
-        int x;
-
-        for( x = 0; x < sz; x++ ) 
-		q[x] = GUINT32_SWAP_LE_BE( p[x] );
-}
-
-/* Swap 8- of bytes.
- */
-static void
-vips_copy_swap8( VipsPel *in, VipsPel *out, int width, VipsImage *im )
-{
-	guint64 *p = (guint64 *) in;
-	guint64 *q = (guint64 *) out;
-        int sz = (VIPS_IMAGE_SIZEOF_PEL( im ) * width) / 8;    
-
-        int x;
-
-        for( x = 0; x < sz; x++ ) 
-		q[x] = GUINT64_SWAP_LE_BE( p[x] );
-}
-
-typedef void (*SwapFn)( VipsPel *in, VipsPel *out, int width, VipsImage *im );
-
-static SwapFn vips_copy_swap_fn[] = {
-	NULL, 			/* VIPS_FORMAT_UCHAR = 0, */
-	NULL, 			/* VIPS_FORMAT_CHAR = 1, */
-	vips_copy_swap2,	/* VIPS_FORMAT_USHORT = 2, */
-	vips_copy_swap2, 	/* VIPS_FORMAT_SHORT = 3, */
-	vips_copy_swap4, 	/* VIPS_FORMAT_UINT = 4, */
-	vips_copy_swap4, 	/* VIPS_FORMAT_INT = 5, */
-	vips_copy_swap4, 	/* VIPS_FORMAT_FLOAT = 6, */
-	vips_copy_swap4, 	/* VIPS_FORMAT_COMPLEX = 7, */
-	vips_copy_swap8, 	/* VIPS_FORMAT_DOUBLE = 8, */
-	vips_copy_swap8 	/* VIPS_FORMAT_DPCOMPLEX = 9, */
-};
-
 /* Copy, turning bands into the x axis.
  */
 static int
@@ -198,10 +137,7 @@ vips_copy_unbandize_gen( VipsRegion *or,
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsImage *in = ir->im;
-	VipsImage *out = or->im;
 	VipsRect *r = &or->valid;
-	VipsCopy *copy = (VipsCopy *) b; 
-	SwapFn swap = vips_copy_swap_fn[copy->in->BandFmt];
 	int sze = VIPS_IMAGE_SIZEOF_ELEMENT( in );
 
 	VipsRect need;
@@ -241,11 +177,7 @@ vips_copy_unbandize_gen( VipsRegion *or,
 					(r->left + x) * sze;
 			q = VIPS_REGION_ADDR( or, r->left + x, r->top + y );
 
-			if( copy->swap && 
-				swap ) 
-				swap( p, q, 1, out );
-			else
-				memcpy( q, p, sze );
+			memcpy( q, p, sze );
 		}
 	}
 
@@ -265,8 +197,6 @@ vips_copy_bandize_gen( VipsRegion *or,
 	VipsImage *in = ir->im;
 	VipsImage *out = or->im;
 	VipsRect *r = &or->valid;
-	VipsCopy *copy = (VipsCopy *) b; 
-	SwapFn swap = vips_copy_swap_fn[copy->in->BandFmt];
 	int sze = VIPS_IMAGE_SIZEOF_ELEMENT( in );
 
 	VipsRect need;
@@ -309,11 +239,7 @@ vips_copy_bandize_gen( VipsRegion *or,
 				q = VIPS_REGION_ADDR( or, 0, r->left + x );
 			}
 
-			if( copy->swap && 
-				swap ) 
-				swap( p, q, 1, out );
-			else
-				memcpy( q, p, out->Bands * sze );
+			memcpy( q, p, out->Bands * sze );
 		}
 	}
 
@@ -327,32 +253,14 @@ vips_copy_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
-	VipsCopy *copy = (VipsCopy *) b; 
-	SwapFn swap = vips_copy_swap_fn[copy->in->BandFmt];
 
 	/* Ask for input we need.
 	 */
 	if( vips_region_prepare( ir, r ) )
 		return( -1 );
 
-	if( copy->swap && 
-		swap ) {
-		int y;
-
-		for( y = 0; y < r->height; y++ ) {
-			VipsPel *p = VIPS_REGION_ADDR( ir, 
-				r->left, r->top + y );
-			VipsPel *q = VIPS_REGION_ADDR( or, 
-				r->left, r->top + y );
-
-			swap( p, q, r->width, copy->in );
-		}
-	}
-	else
-		/* Nothing to do, just copy with pointers.
-		 */
-		if( vips_region_region( or, ir, r, r->left, r->top ) )
-			return( -1 );
+	if( vips_region_region( or, ir, r, r->left, r->top ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -390,6 +298,10 @@ vips_copy_build( VipsObject *object )
 
 	if( vips_image_pio_input( copy->in ) )
 		return( -1 );
+
+	if( copy->swap ) 
+		vips_warn( class->nickname, "%s", 
+			_( "copy swap is deprecated, use byteswap instead" ) );
 
 	if( vips_image_pipelinev( conversion->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, copy->in, NULL ) )
@@ -512,7 +424,7 @@ vips_copy_class_init( VipsCopyClass *class )
 	VIPS_ARG_BOOL( class, "swap", 2, 
 		_( "Swap" ), 
 		_( "Swap bytes in image between little and big-endian" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsCopy, swap ),
 		FALSE );
 
@@ -612,7 +524,6 @@ vips_copy_init( VipsCopy *copy )
  * @yres: set image yres
  * @xoffset: set image xoffset
  * @yoffset: set image yoffset
- * @swap: swap byte order
  *
  * Copy an image, optionally modifying the header. VIPS copies images by 
  * copying pointers, so this operation is instant, even for very large images.
@@ -622,9 +533,6 @@ vips_copy_init( VipsCopy *copy )
  * change in any way, others, such as "width" will cause immediate crashes if
  * they are not set carefully. The operation will block changes which make the
  * image size grow, see VIPS_IMAGE_SIZEOF_IMAGE(). 
- *
- * Setting @swap to %TRUE will make vips_copy() swap the byte ordering of
- * pixels according to the image's format. 
  *
  * You can use this operation to turn 1xN or Nx1 images with M bands into MxN
  * one band images. 

@@ -9,6 +9,7 @@ libconversion_la_SOURCES = \
 	flatten.c \
 	premultiply.c \
 	unpremultiply.c \
+	byteswap.c \
 	cache.c \
 	copy.c \
 	embed.c \

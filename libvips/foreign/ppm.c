@@ -297,9 +297,8 @@ read_mmap( FILE *fp, const char *filename, int msb_first, VipsImage *out )
 			"format", out->BandFmt, 
 			"coding", out->Coding, 
 			NULL ) ||
-		vips_copy( t[1], &t[2], 
-			"swap", vips_amiMSBfirst() != msb_first, 
-			NULL ) ||
+		vips__byteswap_bool( t[1], &t[2], 
+			vips_amiMSBfirst() != msb_first ) ||
 		vips_image_write( t[2], out ) ) {
 		g_object_unref( x );
 		return( -1 );

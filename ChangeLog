@@ -9,6 +9,7 @@
 - added VipsRefString as a thing that gi bindings can unpack
 - support "with Vips.Image as ...:" in Python
 - try to support DOS CSV and PPM files on linux
+- add vips_byteswap(), remove byteswap from vips_copy()
 
 7/5/15 started 8.0.3
 - dzsave and tif pyr write could fail for some image dimensions, thanks Jonas

@@ -1137,9 +1137,7 @@ im_copy_swap( IMAGE *in, IMAGE *out )
 {
 	VipsImage *x;
 
-	if( vips_copy( in, &x, 
-		"swap", TRUE, 
-		NULL ) )
+	if( vips_byteswap( in, &x, NULL ) )
 		return( -1 );
 	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );

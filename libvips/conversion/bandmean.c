@@ -1,4 +1,4 @@
-/* im_bandmean.c
+/* average image bands
  *
  * Author: Simon Goodall
  * Written on: 17/7/07

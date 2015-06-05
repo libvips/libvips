@@ -248,6 +248,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_zoom_get_type( void ); 
 	extern GType vips_subsample_get_type( void ); 
 	extern GType vips_msb_get_type( void ); 
+	extern GType vips_byteswap_get_type( void ); 
 #ifdef HAVE_PANGOFT2
 	extern GType vips_text_get_type( void ); 
 #endif /*HAVE_PANGOFT2*/
@@ -289,6 +290,7 @@ vips_conversion_operation_init( void )
 	vips_zoom_get_type(); 
 	vips_subsample_get_type(); 
 	vips_msb_get_type(); 
+	vips_byteswap_get_type(); 
 #ifdef HAVE_PANGOFT2
 	vips_text_get_type(); 
 #endif /*HAVE_PANGOFT2*/
