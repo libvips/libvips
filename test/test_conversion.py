@@ -227,29 +227,15 @@ class TestConversion(unittest.TestCase):
         x = self.colour.copy(coding = Vips.Coding.NONE)
         self.assertEqual(x.coding, Vips.Coding.NONE)
 
-        # test squashing width of mono image into bands
-        x = self.mono.copy(width = 1, bands = self.mono.width)
+    def test_bandfold(self):
+        x = self.mono.bandfold()
         self.assertEqual(x.width, 1)
         self.assertEqual(x.bands, self.mono.width)
 
-        # back the other way
-        y = x.copy(width = self.mono.width, bands = 1)
+        y = x.bandunfold()
         self.assertEqual(y.width, self.mono.width)
         self.assertEqual(y.bands, 1)
         self.assertEqual(x.avg(), y.avg())
-
-        # test squashing width of mono image into bands
-        x = self.mono.copy(width = self.mono.height, height = 1, bands = self.mono.width)
-        self.assertEqual(x.width, self.mono.height)
-        self.assertEqual(x.height, 1)
-        self.assertEqual(x.bands, self.mono.width)
-
-        # back the other way
-        y = x.copy(width = self.mono.width, height = self.mono.height, bands = 1)
-        self.assertEqual(y.width, self.mono.width)
-        self.assertEqual(y.height, self.mono.height)
-        self.assertEqual(y.bands, 1)
-        #self.assertEqual(x.avg(), y.avg())
 
     def test_embed(self):
         for fmt in all_formats:

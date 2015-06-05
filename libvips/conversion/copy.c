@@ -53,6 +53,7 @@
  * 	- support width -> bands conversion
  * 5/6/15
  * 	- move byteswap out to vips_byteswap()
+ * 	- move band folding out to vips_bandfold()/vips_unfold()
  */
 
 /*
@@ -129,137 +130,14 @@ typedef VipsConversionClass VipsCopyClass;
 
 G_DEFINE_TYPE( VipsCopy, vips_copy, VIPS_TYPE_CONVERSION );
 
-/* Copy, turning bands into the x axis.
- */
-static int
-vips_copy_unbandize_gen( VipsRegion *or, 
-	void *seq, void *a, void *b, gboolean *stop )
-{
-	VipsRegion *ir = (VipsRegion *) seq;
-	VipsImage *in = ir->im;
-	VipsRect *r = &or->valid;
-	int sze = VIPS_IMAGE_SIZEOF_ELEMENT( in );
-
-	VipsRect need;
-	int x, y;
-
-	/* Ask for input we need.
-	 */
-	if( in->Xsize == 1 ) {
-		need.left = 0;
-		need.top = r->top;
-		need.width = 1;
-		need.height = r->height;
-	}
-	else { 
-		need.left = r->top;
-		need.top = 0;
-		need.width = r->height;
-		need.height = 1;
-	}
-	if( vips_region_prepare( ir, &need ) )
-		return( -1 );
-
-	/* We copy 1 pixel at a time. A vertical input image won't be
-	 * guaranteed to have continuous data. 
-	 */
-
-	for( y = 0; y < r->height; y++ ) {
-		for( x = 0; x < r->width; x++ ) {
-			VipsPel *p;
-			VipsPel *q;
-
-			if( in->Xsize == 1 ) 
-				p = VIPS_REGION_ADDR( ir, 0, r->top + y ) + 
-					(r->left + x) * sze;
-			else 
-				p = VIPS_REGION_ADDR( ir, r->top + y, 0 ) + 
-					(r->left + x) * sze;
-			q = VIPS_REGION_ADDR( or, r->left + x, r->top + y );
-
-			memcpy( q, p, sze );
-		}
-	}
-
-	return( 0 );
-}
-
-/* Copy, turning the x axis into bands, the inverse of the above. Useful for
- * turning CSV files into RGB LUTs, for example. 
- *
- * output has bands == input width, one of width or height 1.
- */
-static int
-vips_copy_bandize_gen( VipsRegion *or, 
-	void *seq, void *a, void *b, gboolean *stop )
-{
-	VipsRegion *ir = (VipsRegion *) seq;
-	VipsImage *in = ir->im;
-	VipsImage *out = or->im;
-	VipsRect *r = &or->valid;
-	int sze = VIPS_IMAGE_SIZEOF_ELEMENT( in );
-
-	VipsRect need;
-	int x, y;
-
-	/* Ask for input we need.
-	 */
-	if( out->Xsize == 1 ) {
-		need.left = 0;
-		need.top = r->top;
-		need.width = in->Xsize;
-		need.height = r->height;
-	}
-	else { 
-		need.left = 0;
-		need.top = r->left;
-		need.width = in->Xsize;
-		need.height = r->width;
-	}
-	if( vips_region_prepare( ir, &need ) )
-		return( -1 );
-
-	/* We have to copy 1 pixel at a time. Each scanline in our input
-	 * becomes a pixel in the output. Scanlines are not guaranteed to be
-	 * continuous after vips_region_prepare(), they may be a window on a
-	 * larger image.
-	 */
-
-	for( y = 0; y < r->height; y++ ) {
-		for( x = 0; x < r->width; x++ ) { 
-			VipsPel *p;
-			VipsPel *q;
-
-			if( out->Xsize == 1 ) {
-				p = VIPS_REGION_ADDR( ir, 0, r->top + y );
-				q = VIPS_REGION_ADDR( or, 0, r->top + y );
-			}
-			else {
-				p = VIPS_REGION_ADDR( ir, 0, r->left + x );
-				q = VIPS_REGION_ADDR( or, 0, r->left + x );
-			}
-
-			memcpy( q, p, out->Bands * sze );
-		}
-	}
-
-	return( 0 );
-}
-
-/* Copy a small area.
- */
 static int
 vips_copy_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
 
-	/* Ask for input we need.
-	 */
-	if( vips_region_prepare( ir, r ) )
-		return( -1 );
-
-	if( vips_region_region( or, ir, r, r->left, r->top ) )
+	if( vips_region_prepare( ir, r ) ||
+		vips_region_region( or, ir, r, r->left, r->top ) )
 		return( -1 );
 
 	return( 0 );
@@ -287,10 +165,9 @@ vips_copy_build( VipsObject *object )
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsCopy *copy = (VipsCopy *) object;
 
-	guint64 image_size_before;
-	guint64 image_size_after;
+	guint64 pel_size_before;
+	guint64 pel_size_after;
 	VipsImage copy_of_fields;
-	VipsGenerateFn copy_generate_fn;
 	int i;
 
 	if( VIPS_OBJECT_CLASS( vips_copy_parent_class )->build( object ) )
@@ -349,43 +226,18 @@ vips_copy_build( VipsObject *object )
 		}
 	}
 
-	/* We try to stop the worst crashes by at least ensuring that we don't
-	 * increase the number of pixels which might be addressed.
+	/* Disallow changes which alter sizeof(pel).
 	 */
-	image_size_before = VIPS_IMAGE_SIZEOF_IMAGE( &copy_of_fields );
-	image_size_after = VIPS_IMAGE_SIZEOF_IMAGE( conversion->out );
-	if( image_size_after > image_size_before ) {
+	pel_size_before = VIPS_IMAGE_SIZEOF_PEL( &copy_of_fields );
+	pel_size_after = VIPS_IMAGE_SIZEOF_PEL( conversion->out );
+	if( pel_size_after != pel_size_before ) {
 		vips_error( class->nickname, 
-			"%s", _( "image size too large" ) ); 
+			"%s", _( "must not change pel size" ) ); 
 		return( -1 );
 	}
 
-	/* Pick a generate function. 
-	 */
-	copy_generate_fn = vips_copy_gen;
-
-	/* We let our caller change a 1xN or Nx1 image with M bands into a MxN
-	 * image. In other words, bands becomes width. 
-	 */
-	if( (copy_of_fields.Xsize == 1 || copy_of_fields.Ysize == 1) &&
-		 conversion->out->Bands == 1 &&
-		 conversion->out->Xsize == copy_of_fields.Bands &&
-		 conversion->out->Ysize == VIPS_MAX(
-			 copy_of_fields.Xsize, copy_of_fields.Ysize ) ) 
-		copy_generate_fn = vips_copy_unbandize_gen;
-
-	/* And the inverse: change a MxN one-band image into a 1xN or Nx1
-	 * M-band image. That is, squash M into bands. 
-	 */
-	if( (conversion->out->Xsize == 1 || conversion->out->Ysize == 1) &&
-		conversion->out->Bands == copy_of_fields.Xsize &&
-		copy_of_fields.Bands == 1 &&
-		copy_of_fields.Ysize == VIPS_MAX( 
-			conversion->out->Xsize, conversion->out->Ysize ) )
-		copy_generate_fn = vips_copy_bandize_gen;
-
 	if( vips_image_generate( conversion->out,
-		vips_start_one, copy_generate_fn, vips_stop_one, 
+		vips_start_one, vips_copy_gen, vips_stop_one, 
 		copy->in, copy ) )
 		return( -1 );
 
@@ -528,14 +380,12 @@ vips_copy_init( VipsCopy *copy )
  * Copy an image, optionally modifying the header. VIPS copies images by 
  * copying pointers, so this operation is instant, even for very large images.
  *
- * You can optionally set any or all header fields during the copy. Some
- * header fields, such as "xres", the horizontal resolution, are safe to
- * change in any way, others, such as "width" will cause immediate crashes if
- * they are not set carefully. The operation will block changes which make the
- * image size grow, see VIPS_IMAGE_SIZEOF_IMAGE(). 
+ * You can optionally change any or all header fields during the copy. You can
+ * make any change which does not change the size of a pel, so for example
+ * you can turn a 4-band uchar image into a 2-band ushort image, but you
+ * cannot change a 100 x 100 RGB image into a 300 x 100 mono image.
  *
- * You can use this operation to turn 1xN or Nx1 images with M bands into MxN
- * one band images. 
+ * See also: vips_byteswap(), vips_bandfold(), vips_bandunfold(). 
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -1,18 +1,5 @@
-- break up vips_copy(), it's become unwieldy
+- add tests for bandfold/unfold, byteswap
 
-  - just let it make changes which don't change sizeof(pixel)
-
-  - split swap out to vips_byteswap()
-
-  - split 1xN -> MxN out to vips_band_fold() / vips_band_unfold(), have an
-    option for fold direction
-
-    horizontal (default): M x N image, B bands -> (M * B) x N mono image
-
-    vertical: M x N image, B bands -> M x (N * B) mono, copy image N times
-      vertically
-
-    maybe leave direction option for later
 
 - how about something like vips_grid() which turns a tall thin one-band 
   image into a much smaller many-band image?
@@ -24,15 +11,9 @@
   much faster to make a very tall, thin image and fold it up in a single
   operation
 
+  can't make it an option for bandfold() since it would have a different seq
+  behaviour
 
-
-- try:
-
-	$ vips csvload ~/Desktop/NDVI_VGYRM-lut.txt x.v --skip 1
-	$ vips copy x.v x2.v --width 256 --height 1 --bands 4
-	Segmentation fault (core dumped)
-
-  see commented-out test in test_conversion.py
 
 
 - does ruby need to unpack RefString as well? what about C++?

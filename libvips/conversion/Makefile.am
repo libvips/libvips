@@ -23,6 +23,8 @@ libconversion_la_SOURCES = \
 	bandrank.c \
 	recomb.c \
 	bandmean.c \
+	bandfold.c \
+	bandunfold.c \
 	bandbool.c \
 	bandary.h \
 	bandary.c \

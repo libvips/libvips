@@ -3,13 +3,13 @@
 - change the alpha range rules for vips_flatten() to match vips_premultiply()
 - vipsthumbnail uses vips_resize() rather than its own code
 - vipsthumbnail uses vips_premultiply() for better alpha quality
-- vips_copy() can turn 1xN or Nx1 M-band images into MxN one-band images
 - added bandand() bandor() bandeor() convenience funcs to Python
 - oops, base64 encode could pad by up to two zero bytes
 - added VipsRefString as a thing that gi bindings can unpack
-- support "with Vips.Image as ...:" in Python
+- support "with Vips.Image as i:" in Python
 - try to support DOS CSV and PPM files on linux
-- add vips_byteswap(), remove byteswap from vips_copy()
+- add vips_byteswap(), remove byteswap option from vips_copy()
+- add vips_bandfold()/vips_bandunfold()
 
 7/5/15 started 8.0.3
 - dzsave and tif pyr write could fail for some image dimensions, thanks Jonas
