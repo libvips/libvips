@@ -237,6 +237,14 @@ class TestConversion(unittest.TestCase):
         self.assertEqual(y.bands, 1)
         self.assertEqual(x.avg(), y.avg())
 
+    def test_byteswap(self):
+        x = self.mono.cast("ushort")
+        y = x.byteswap().byteswap()
+        self.assertEqual(x.width, y.width)
+        self.assertEqual(x.height, y.height)
+        self.assertEqual(x.bands, y.bands)
+        self.assertEqual(x.avg(), y.avg())
+
     def test_embed(self):
         for fmt in all_formats:
             test = self.colour.cast(fmt)

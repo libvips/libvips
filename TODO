@@ -1,5 +1,3 @@
-- add tests for bandfold/unfold, byteswap
-
 
 - how about something like vips_grid() which turns a tall thin one-band 
   image into a much smaller many-band image?
