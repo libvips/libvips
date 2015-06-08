@@ -51,6 +51,8 @@
  * 	- use vips_region_shrink()
  * 22/2/15
  * 	- use a better temp dir name for fs dz output
+ * 8/8/15
+ * 	- allow zip > 4gb if we have a recent libgsf
  */
 
 /*
@@ -333,6 +335,16 @@ vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
 	return( obj ); 
 }
 
+/* libgsf before 1.14.31 did not support zip64.
+ */
+static gboolean
+vips_gsf_has_zip64( void )
+{
+	return( libgsf_major_version > 1 ||
+		libgsf_minor_version > 14 ||
+		libgsf_micro_version > 31 );
+}
+
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
 typedef struct _Layer Layer;
 
@@ -433,8 +445,8 @@ struct _VipsForeignSaveDz {
 	 */
 	char *file_suffix;
 
-	/* libgsf can't write zip files larger than 4gb. Track bytes written
-	 * here and try to guess when we'll go over.
+	/* libgsf before 1.14.31 can't write zip files larger than 4gb. 
+	 * Track bytes written here and try to guess when we'll go over.
 	 */
 	size_t bytes_written;
 };
@@ -1151,6 +1163,7 @@ strip_work( VipsThreadState *state, void *a )
 	 * outputting apart from the gsf_output_write() above.
 	 */
 	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP &&
+		!vips_gsf_has_zip64() &&
 		dz->bytes_written > (size_t) UINT_MAX - 100000 ) {
 		g_mutex_unlock( vips__global_lock );
 
