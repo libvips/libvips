@@ -1560,7 +1560,7 @@ vips_foreign_find_save_buffer( const char *name )
 		(VipsSListMap2Fn) vips_foreign_find_save_buffer_sub, 
 		(void *) suffix, NULL )) ) {
 		vips_error( "VipsForeignSave",
-			_( "\"%s\" is not a known file format" ), name );
+			_( "\"%s\" is not a known buffer format" ), name );
 
 		return( NULL );
 	}
