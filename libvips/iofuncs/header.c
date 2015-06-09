@@ -521,6 +521,7 @@ vips_image_guess_interpretation( const VipsImage *image )
 		break;
 
 	default:
+		g_assert( 0 );
 		sane = FALSE;
 		break;
 	}
