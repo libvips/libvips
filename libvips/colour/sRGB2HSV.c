@@ -66,7 +66,7 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 				c_max = p[0];
 				c_min = p[1];
 				secondary_diff = p[1] - p[2];
-				wrap_around_hue = 256.0f;
+				wrap_around_hue = 255.0f;
 			} else {
 				c_max = p[2];
 				c_min = VIPS_MIN(p[1], p[0]);
@@ -102,7 +102,7 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 				q[0] = (unsigned char) ((secondary_diff / (float) delta) + wrap_around_hue);
 			}
 
-			q[1] = (( delta*256.0f / (float) c_max));
+			q[1] = (( delta*255.0f / (float) c_max));
 		}
 
 		p += 3;
