@@ -75,10 +75,11 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		if (c_max == 0) {
 			 q[0] = q[1] = 0;
 		} else {
-
 			delta=c_max-c_min;
 
-			if (c_max == p[0]) {
+			if (delta == 0) {
+				q[0] = 0;
+			} else if (c_max == p[0]) {
 				q[0] = (unsigned char) (((int)(p[1] - p[2]) / delta)+wrap_around_hue);
 			} else if (c_max == p[1]) {
 				q[0] = (unsigned char) (((int)(p[2] - p[0]) / delta) + 85);
