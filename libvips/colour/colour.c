@@ -602,7 +602,9 @@ vips_colour_code_class_init( VipsColourCodeClass *class )
 static void
 vips_colour_code_init( VipsColourCode *code )
 {
+	code->input_coding = VIPS_CODING_NONE;
 	code->input_interpretation = VIPS_INTERPRETATION_ERROR;
+	code->input_format = VIPS_FORMAT_NOTSET;
 }
 
 G_DEFINE_ABSTRACT_TYPE( VipsColourDifference, vips_colour_difference, 
@@ -737,6 +739,8 @@ vips_colour_operation_init( void )
 	extern GType vips_LabQ2sRGB_get_type( void ); 
 	extern GType vips_XYZ2sRGB_get_type( void ); 
 	extern GType vips_sRGB2scRGB_get_type( void ); 
+	extern GType vips_sRGB2HSV_get_type( void ); 
+	extern GType vips_HSV2sRGB_get_type( void ); 
 	extern GType vips_scRGB2XYZ_get_type( void ); 
 	extern GType vips_scRGB2BW_get_type( void ); 
 	extern GType vips_XYZ2scRGB_get_type( void ); 
@@ -771,6 +775,8 @@ vips_colour_operation_init( void )
 	vips_sRGB2scRGB_get_type();
 	vips_scRGB2XYZ_get_type();
 	vips_scRGB2BW_get_type();
+	vips_sRGB2HSV_get_type(); 
+	vips_HSV2sRGB_get_type(); 
 	vips_XYZ2scRGB_get_type();
 	vips_scRGB2sRGB_get_type();
 #if defined(HAVE_LCMS) || defined(HAVE_LCMS2)
