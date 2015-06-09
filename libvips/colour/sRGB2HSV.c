@@ -78,12 +78,12 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 			delta=c_max-c_min;
 
-			if (c_max == c1) {
-				q[0] = (unsigned char) (((int)(c2 - c3) / delta)+wrap_around_hue);
-			} else if (c_max == c2) {
-				q[0] = (unsigned char) (((int)(c3 - c1) / delta) + 85)
-			} else if (c_max == c3) {
-				q[0] = (unsigned char) (((int)(c1 - c2) / delta) + 171);
+			if (c_max == p[0]) {
+				q[0] = (unsigned char) (((int)(p[1] - p[2]) / delta)+wrap_around_hue);
+			} else if (c_max == p[1]) {
+				q[0] = (unsigned char) (((int)(p[2] - p[0]) / delta) + 85)
+			} else if (c_max == p[2]) {
+				q[0] = (unsigned char) (((int)(p[0] - p[1]) / delta) + 171);
 			}
 
 			q[1]= (unsigned char) (int) (delta/c_max);
