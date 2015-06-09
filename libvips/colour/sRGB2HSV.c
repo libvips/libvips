@@ -99,7 +99,7 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 			if (delta == 0) {
 				q[0] = 0;
 			} else {
-				q[0] = (unsigned char) ((secondary_diff / (float) delta) + wrap_around_hue);
+				q[0] = (unsigned char) (85.333f*(secondary_diff / (float) delta) + wrap_around_hue);
 			}
 
 			q[1] = (( delta*255.0f / (float) c_max));
