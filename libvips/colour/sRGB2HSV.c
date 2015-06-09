@@ -87,11 +87,13 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 			}
 		}
 
-		q[2] = c_max;
 
 		if (c_max == 0) {
-			q[0] = q[1] = 0;
+			q[0] = 0;
+			q[1] = 0;
+			q[2] = 0;
 		} else {
+			q[2] = c_max;
 			delta = c_max - c_min;
 
 			if (delta == 0) {
@@ -100,7 +102,7 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 				q[0] = (unsigned char) ((secondary_diff / (float) delta) + wrap_around_hue);
 			}
 
-			q[1] = (((float) delta / (float) c_max));
+			q[1] = (( delta*256.0f / (float) c_max));
 		}
 
 		p += 3;
