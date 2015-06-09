@@ -101,7 +101,6 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 			}
 
 			q[1] = (((float) delta / (float) c_max));
-			q[1] *= 256;
 		}
 
 		p += 3;
