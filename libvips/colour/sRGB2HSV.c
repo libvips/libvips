@@ -56,7 +56,7 @@ vips_sRGB2HSV_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 	unsigned char c_max,c_min,delta;
 
-	float wrap_around_hue = 0, secondary_diff = 0;
+	float wrap_around_hue, secondary_diff;
 
 
 	for( i = 0; i < width; i++ ) {
