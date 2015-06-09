@@ -149,6 +149,10 @@ int vips_sRGB2scRGB( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_scRGB2XYZ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_HSV2sRGB( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_sRGB2HSV( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_LCh2CMC( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));

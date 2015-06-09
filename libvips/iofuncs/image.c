@@ -209,6 +209,7 @@
  * @VIPS_INTERPRETATION_LCH: pixels are in CIE LCh space
  * @VIPS_INTERPRETATION_LABS: CIE LAB coded as three signed 16-bit values
  * @VIPS_INTERPRETATION_sRGB: pixels are sRGB
+ * @VIPS_INTERPRETATION_HSV: pixels are HSV
  * @VIPS_INTERPRETATION_scRGB: pixels are scRGB
  * @VIPS_INTERPRETATION_YXY: pixels are CIE Yxy
  * @VIPS_INTERPRETATION_RGB16: generic 16-bit RGB
@@ -684,7 +685,7 @@ vips_image_sanity( VipsObject *object, VipsBuf *buf )
 				image->Coding != VIPS_CODING_NONE && 
 				image->Coding != VIPS_CODING_LABQ &&
 				image->Coding != VIPS_CODING_RAD) ||
-			image->Type > VIPS_INTERPRETATION_scRGB ||
+			image->Type >= VIPS_INTERPRETATION_LAST ||
 			image->dtype > VIPS_IMAGE_PARTIAL || 
 			image->dhint > VIPS_DEMAND_STYLE_ANY ) 
 			vips_buf_appends( buf, "bad enum\n" );
