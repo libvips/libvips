@@ -82,14 +82,14 @@ vips_HSV2sRGB_init( VipsHSV2sRGB *HSV2sRGB )
 	VipsColour *colour = VIPS_COLOUR( HSV2sRGB );
 	VipsColourCode *code = VIPS_COLOUR_CODE( HSV2sRGB );
 
-	colour->interpretation = VIPS_INTERPRETATION_HSV;
+	colour->interpretation = VIPS_INTERPRETATION_sRGB;
 	colour->format = VIPS_FORMAT_UCHAR;
 	colour->bands = 3;
 	colour->input_bands = 3;
 
 	code->input_coding = VIPS_CODING_NONE;
 	code->input_format = VIPS_FORMAT_UCHAR;
-	code->input_interpretation = VIPS_INTERPRETATION_sRGB;
+	code->input_interpretation = VIPS_INTERPRETATION_HSV;
 }
 
 /**
