@@ -74,7 +74,6 @@ vips_bandfold_gen( VipsRegion *or,
 {
 	VipsBandfold *bandfold = (VipsBandfold *) b;
 	VipsRegion *ir = (VipsRegion *) seq;
-	VipsImage *in = ir->im;
 	VipsImage *out = or->im;
 	VipsRect *r = &or->valid;
 	int psize = VIPS_IMAGE_SIZEOF_PEL( out );
@@ -82,16 +81,16 @@ vips_bandfold_gen( VipsRegion *or,
 	VipsRect need;
 	int y;
 
-	need.left = bandfold->factor * r->left;
+	need.left = r->left * bandfold->factor;
 	need.top = r->top;
-	need.width = bandfold->factor * r->width;
+	need.width = r->width * bandfold->factor;
 	need.height = r->height;
 	if( vips_region_prepare( ir, &need ) )
 		return( -1 );
 
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( ir, 
-			bandfold->factor * r->left, r->top + y );
+			r->left * bandfold->factor, r->top + y );
 		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		/* We can't use vips_region_region() since we change pixel
@@ -190,7 +189,7 @@ vips_bandfold_init( VipsBandfold *bandfold )
  * @factor: fold by this factor
  *
  * Fold up an image horizontally: width is collapsed into bands. 
- * Set @factor to set how much to fold by: @factor 3, for example, will make
+ * Use @factor to set how much to fold by: @factor 3, for example, will make
  * the output image three times narrower than the input, and with three times
  * as many bands. By default the whole of the input width is folded up. 
  *
