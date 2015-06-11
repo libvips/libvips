@@ -38,26 +38,65 @@
 
 #include <stdio.h>
 
+#include <math.h>
+
 #include <vips/vips.h>
 
 #include "pcolour.h"
+
+#define sixth_of_char 42.5
+#define H p[0]
+#define S p[1]
+#define V p[2]
+#define R p[0]
+#define G p[1]
+#define B p[2]
 
 typedef VipsColourCode VipsHSV2sRGB;
 typedef VipsColourCodeClass VipsHSV2sRGBClass;
 
 G_DEFINE_TYPE( VipsHSV2sRGB, vips_HSV2sRGB, VIPS_TYPE_COLOUR_CODE );
 
-static void
-vips_HSV2sRGB_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
-{
+static void vips_HSV2sRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in,
+		int width) {
 	unsigned char *p = (unsigned char *) in[0];
 	unsigned char *q = (unsigned char *) out;
 	int i;
 
-	for( i = 0; i < width; i++ ) {
-		q[0] = p[0];
-		q[1] = p[1];
-		q[2] = p[2];
+
+
+	float c, x, m, s, t, u;
+	for (i = 0; i < width; i++) {
+
+		c = V* S / 255.0f;
+		x = C * (1 - abs(fmod(H / sixth_of_char, 2) - 1));
+		m = V - c;
+
+		if (H < sixth_of_char) {
+			R= (c+m);
+			G= (x+m);
+			B= (0+m);
+		} else if (H < 2*sixth_of_char) {
+			R= (x+m);
+			G= (c+m);
+			B= (0+m);
+		} else if (H < 3*sixth_of_char) {
+			R= (0+m);
+			G= (c+m);
+			B= (x+m);
+		} else if (H < 4*sixth_of_char) {
+			R= (0+m);
+			G= (x+m);
+			B= (c+m);
+		} else if (H < 5*sixth_of_char) {
+			R= (x+m);
+			G= (0+m);
+			B= (c+m);
+		} else {
+			R= (c+m);
+			G= (0+m);
+			B= (x+m);
+		}
 
 		p += 3;
 		q += 3;
