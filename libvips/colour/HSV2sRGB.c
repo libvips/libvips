@@ -45,12 +45,7 @@
 #include "pcolour.h"
 
 #define sixth_of_char 42.5
-#define H p[0]
-#define S p[1]
-#define V p[2]
-#define R p[0]
-#define G p[1]
-#define B p[2]
+
 
 typedef VipsColourCode VipsHSV2sRGB;
 typedef VipsColourCodeClass VipsHSV2sRGBClass;
@@ -63,9 +58,14 @@ static void vips_HSV2sRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in,
 	unsigned char *q = (unsigned char *) out;
 	int i;
 
+	#define H p[0]
+	#define S p[1]
+	#define V p[2]
+	#define R q[0]
+	#define G q[1]
+	#define B q[2]
 
-
-	float c, x, m, s, t, u;
+	float c, x, m;
 	for (i = 0; i < width; i++) {
 
 		c = V* S / 255.0f;
