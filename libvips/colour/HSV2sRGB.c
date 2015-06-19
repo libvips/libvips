@@ -1,7 +1,7 @@
 /* to sRGB from HSV
  *
  * 9/6/15
- * 	- from HSV2sRGB.c
+ * 	- from sRGB2HSV.c
  */
 
 /*
