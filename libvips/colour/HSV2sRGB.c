@@ -68,8 +68,8 @@ static void vips_HSV2sRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in,
 	float c, x, m;
 	for (i = 0; i < width; i++) {
 
-		c = V* S / 255.0f;
-		x = c * (1 - abs(fmod(H / sixth_of_char, 2) - 1));
+		c = V * S / 255.0f;
+		x = c * (1 - fabs(fmod(H / sixth_of_char, 2) - 1));
 		m = V - c;
 
 		if (H < sixth_of_char) {
