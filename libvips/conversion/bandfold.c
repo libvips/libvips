@@ -2,6 +2,8 @@
  *
  * 5/6/15
  * 	- from copy.c
+ * 10/6/15
+ * 	- add @factor option
  */
 
 /*
@@ -58,6 +60,8 @@ typedef struct _VipsBandfold {
 	 */
 	VipsImage *in;
 
+	int factor;
+
 } VipsBandfold;
 
 typedef VipsConversionClass VipsBandfoldClass;
@@ -68,8 +72,8 @@ static int
 vips_bandfold_gen( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
+	VipsBandfold *bandfold = (VipsBandfold *) b;
 	VipsRegion *ir = (VipsRegion *) seq;
-	VipsImage *in = ir->im;
 	VipsImage *out = or->im;
 	VipsRect *r = &or->valid;
 	int psize = VIPS_IMAGE_SIZEOF_PEL( out );
@@ -77,21 +81,22 @@ vips_bandfold_gen( VipsRegion *or,
 	VipsRect need;
 	int y;
 
-	need.left = 0;
+	need.left = r->left * bandfold->factor;
 	need.top = r->top;
-	need.width = in->Xsize;
+	need.width = r->width * bandfold->factor;
 	need.height = r->height;
 	if( vips_region_prepare( ir, &need ) )
 		return( -1 );
 
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( ir, 0, r->top + y );
-		VipsPel *q = VIPS_REGION_ADDR( or, 0, r->top + y );
+		VipsPel *p = VIPS_REGION_ADDR( ir, 
+			r->left * bandfold->factor, r->top + y );
+		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		/* We can't use vips_region_region() since we change pixel
 		 * coordinates.
 		 */
-		memcpy( q, p, psize );
+		memcpy( q, p, psize * r->width );
 	}
 
 	return( 0 );
@@ -100,6 +105,7 @@ vips_bandfold_gen( VipsRegion *or,
 static int
 vips_bandfold_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsBandfold *bandfold = (VipsBandfold *) object;
 
@@ -109,12 +115,20 @@ vips_bandfold_build( VipsObject *object )
 	if( vips_image_pio_input( bandfold->in ) )
 		return( -1 );
 
+	if( bandfold->factor == 0 )
+		bandfold->factor = bandfold->in->Xsize;
+	if( bandfold->in->Xsize % bandfold->factor != 0 ) {
+		vips_error( class->nickname, 
+			"%s", _( "@factor must be a factor of image width" ) );
+		return( -1 ); 
+	}
+
 	if( vips_image_pipelinev( conversion->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, bandfold->in, NULL ) )
 		return( -1 );
 
-	conversion->out->Xsize = 1;
-	conversion->out->Bands *= bandfold->in->Xsize;
+	conversion->out->Xsize /= bandfold->factor;
+	conversion->out->Bands *= bandfold->factor;
 
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_bandfold_gen, vips_stop_one, 
@@ -148,11 +162,20 @@ vips_bandfold_class_init( VipsBandfoldClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsBandfold, in ) );
 
+	VIPS_ARG_INT( class, "factor", 11, 
+		_( "Factor" ), 
+		_( "Fold by this factor" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsBandfold, factor ),
+		0, 10000000, 0 );
 }
 
 static void
 vips_bandfold_init( VipsBandfold *bandfold )
 {
+	/* 0 means fold by width, see above.
+	 */
+	bandfold->factor = 0;
 }
 
 /**
@@ -161,9 +184,14 @@ vips_bandfold_init( VipsBandfold *bandfold )
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @factor: fold by this factor
+ *
  * Fold up an image horizontally: width is collapsed into bands. 
- * @out has width 1 and has bands 
- * equal to @in bands times @in width. 
+ * Use @factor to set how much to fold by: @factor 3, for example, will make
+ * the output image three times narrower than the input, and with three times
+ * as many bands. By default the whole of the input width is folded up. 
  *
  * See also: vips_csvload(), vips_bandunfold().
  *

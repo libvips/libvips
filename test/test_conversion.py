@@ -237,6 +237,15 @@ class TestConversion(unittest.TestCase):
         self.assertEqual(y.bands, 1)
         self.assertEqual(x.avg(), y.avg())
 
+        x = self.mono.bandfold(factor = 2)
+        self.assertEqual(x.width, self.mono.width / 2)
+        self.assertEqual(x.bands, 2)
+
+        y = x.bandunfold(factor = 2)
+        self.assertEqual(y.width, self.mono.width)
+        self.assertEqual(y.bands, 1)
+        self.assertEqual(x.avg(), y.avg())
+
     def test_byteswap(self):
         x = self.mono.cast("ushort")
         y = x.byteswap().byteswap()
