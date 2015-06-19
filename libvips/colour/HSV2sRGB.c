@@ -44,7 +44,7 @@
 
 #include "pcolour.h"
 
-#define sixth_of_char 42.5
+#define SIXTH_OF_CHAR 42.5
 
 
 typedef VipsColourCode VipsHSV2sRGB;
@@ -58,44 +58,37 @@ static void vips_HSV2sRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in,
 	unsigned char *q = (unsigned char *) out;
 	int i;
 
-	#define H p[0]
-	#define S p[1]
-	#define V p[2]
-	#define R q[0]
-	#define G q[1]
-	#define B q[2]
-
 	float c, x, m;
 	for (i = 0; i < width; i++) {
 
-		c = V * S / 255.0f;
-		x = c * (1 - fabs(fmod(H / sixth_of_char, 2) - 1));
-		m = V - c;
+		c = p[2] * p[1] / 255.0f;
+		x = c * (1 - fabs(fmod(p[0] / SIXTH_OF_CHAR, 2) - 1));
+		m = p[2] - c;
 
-		if (H < sixth_of_char) {
-			R= (c+m);
-			G= (x+m);
-			B= (0+m);
-		} else if (H < 2*sixth_of_char) {
-			R= (x+m);
-			G= (c+m);
-			B= (0+m);
-		} else if (H < 3*sixth_of_char) {
-			R= (0+m);
-			G= (c+m);
-			B= (x+m);
-		} else if (H < 4*sixth_of_char) {
-			R= (0+m);
-			G= (x+m);
-			B= (c+m);
-		} else if (H < 5*sixth_of_char) {
-			R= (x+m);
-			G= (0+m);
-			B= (c+m);
+		if (p[0] < SIXTH_OF_CHAR) {
+			q[0]= (c+m);
+			q[1]= (x+m);
+			q[2]= (0+m);
+		} else if (p[0] < 2*SIXTH_OF_CHAR) {
+			q[0]= (x+m);
+			q[1]= (c+m);
+			q[2]= (0+m);
+		} else if (p[0] < 3*SIXTH_OF_CHAR) {
+			q[0]= (0+m);
+			q[1]= (c+m);
+			q[2]= (x+m);
+		} else if (p[0] < 4*SIXTH_OF_CHAR) {
+			q[0]= (0+m);
+			q[1]= (x+m);
+			q[2]= (c+m);
+		} else if (p[0] < 5*SIXTH_OF_CHAR) {
+			q[0]= (x+m);
+			q[1]= (0+m);
+			q[2]= (c+m);
 		} else {
-			R= (c+m);
-			G= (0+m);
-			B= (x+m);
+			q[0]= (c+m);
+			q[1]= (0+m);
+			q[2]= (x+m);
 		}
 
 		p += 3;
