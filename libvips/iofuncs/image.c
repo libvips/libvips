@@ -745,7 +745,7 @@ vips_image_save_cb( VipsImage *image, int *result )
 /* Progress feedback. 
  */
 
-static int
+static void
 vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 {
 	int tile_width; 
@@ -753,7 +753,7 @@ vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 	int nlines;
 
 	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return( 0 ); 
+		return;
 
 	*last = -1;
 
@@ -766,15 +766,13 @@ vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 		vips_concurrency_get(),
 		tile_width, tile_height, nlines );
 	printf( "\n" );
-
-	return( 0 );
 }
 
-static int
+static void
 vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 {
 	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return( 0 ); 
+		return;
 
 	if( progress->percent != *last ) {
 		printf( _( "%s %s: %d%% complete" ), 
@@ -789,23 +787,19 @@ vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 		vips_region_dump_all();
 		 */
 	}
-
-	return( 0 );
 }
 
-static int
+static void
 vips_image_posteval_cb( VipsImage *image, VipsProgress *progress )
 {
 	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return( 0 ); 
+		return;
 
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
 	printf( _( "%s %s: done in %.3gs          \n" ), 
 		g_get_prgname(), image->filename, 
 		g_timer_elapsed( progress->start, NULL ) );
-
-	return( 0 );
 }
 
 /* Attach progress feedback, if required.
