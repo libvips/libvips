@@ -482,7 +482,6 @@ vips_image_guess_interpretation( const VipsImage *image )
 	case VIPS_INTERPRETATION_sRGB: 
 	case VIPS_INTERPRETATION_HSV: 
 	case VIPS_INTERPRETATION_scRGB: 
-	case VIPS_INTERPRETATION_HSV:
 	case VIPS_INTERPRETATION_YXY: 
 		if( image->Bands < 3 )
 			sane = FALSE;
