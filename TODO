@@ -1,5 +1,11 @@
-- vips_sink_screen() should create its output images
+- try:
 
+	$ python test_colour.py TestColour.test_icc
+	Segmentation fault (core dumped)
+
+  C stack overflow, related to the progress changes?
+
+- vips_sink_screen() should create its output images
 
 - how about something like vips_grid() which turns a tall thin one-band 
   image into a much smaller many-band image?
