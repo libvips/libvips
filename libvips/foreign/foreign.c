@@ -10,6 +10,8 @@
  * 	- pack and unpack rad to scrgb
  * 18/8/14
  * 	- fix conversion to 16-bit RGB, thanks John
+ * 18/6/15
+ * 	- forward progress signals from load
  */
 
 /*
@@ -758,6 +760,31 @@ vips_foreign_load_iscompat( VipsImage *a, VipsImage *b )
 	return( TRUE );
 }
 
+/* Forward pre-eval-post signals to our output image so our caller can see
+ * progress for load via disc or memory.
+ */
+
+static void
+vips_foreign_load_preeval( VipsImage *image, 
+	VipsProgress *progress, VipsForeignLoad *load )
+{
+	vips_image_preeval( load->out );
+}
+
+static void
+vips_foreign_load_eval( VipsImage *image, 
+	VipsProgress *progress, VipsForeignLoad *load )
+{
+	vips_image_eval( load->out, progress->npels );
+}
+
+static void
+vips_foreign_load_posteval( VipsImage *image, 
+	VipsProgress *progress, VipsForeignLoad *load )
+{
+	vips_image_posteval( load->out );
+}
+
 /* Our start function ... do the lazy open, if necessary, and return a region
  * on the new image.
  */
@@ -775,8 +802,20 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		printf( "vips_foreign_load_start: triggering ->load()\n" );
 #endif /*DEBUG*/
 
-		/* Read the image in.
+		/* Read the image in. This may involve a long computation and
+		 * will finish with load->real holding the decompressed image. 
+		 *
+		 * We want our caller to be able to see this computation on
+		 * @out, so we need to forward the signals.
 		 */
+		g_signal_connect( load->real, "preeval",
+			G_CALLBACK( vips_foreign_load_preeval ), load );
+		g_signal_connect( load->real, "eval",
+			G_CALLBACK( vips_foreign_load_eval ), load );
+		g_signal_connect( load->real, "posteval",
+			G_CALLBACK( vips_foreign_load_posteval ), load );
+		vips_image_set_progress( load->real, TRUE );
+
 		if( class->load( load ) ||
 			vips_image_pio_input( load->real ) ) 
 			return( NULL );

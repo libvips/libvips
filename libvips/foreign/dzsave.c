@@ -342,7 +342,7 @@ vips_gsf_has_zip64( void )
 {
 	return( libgsf_major_version > 1 ||
 		libgsf_minor_version > 14 ||
-		libgsf_micro_version > 31 );
+		libgsf_micro_version >= 31 );
 }
 
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
