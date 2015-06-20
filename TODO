@@ -3,6 +3,8 @@
 	$ python test_colour.py TestColour.test_icc
 	segv
 
+  it's a C stack overflow ... from the new progress stuff?
+
 - vips_sink_screen() should create its output images
 
 
