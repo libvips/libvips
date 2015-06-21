@@ -1,13 +1,3 @@
-- try:
-
-	$ python test_colour.py TestColour.test_icc
-	segv
-
-  it's a C stack overflow ... from the new progress stuff?
-
-- vips_sink_screen() should create its output images
-
-
 - how about something like vips_grid() which turns a tall thin one-band 
   image into a much smaller many-band image?
 

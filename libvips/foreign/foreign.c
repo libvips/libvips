@@ -760,31 +760,6 @@ vips_foreign_load_iscompat( VipsImage *a, VipsImage *b )
 	return( TRUE );
 }
 
-/* Forward pre-eval-post signals to our output image so our caller can see
- * progress for load via disc or memory.
- */
-
-static void
-vips_foreign_load_preeval( VipsImage *image, 
-	VipsProgress *progress, VipsForeignLoad *load )
-{
-	vips_image_preeval( load->out );
-}
-
-static void
-vips_foreign_load_eval( VipsImage *image, 
-	VipsProgress *progress, VipsForeignLoad *load )
-{
-	vips_image_eval( load->out, progress->npels );
-}
-
-static void
-vips_foreign_load_posteval( VipsImage *image, 
-	VipsProgress *progress, VipsForeignLoad *load )
-{
-	vips_image_posteval( load->out );
-}
-
 /* Our start function ... do the lazy open, if necessary, and return a region
  * on the new image.
  */
@@ -806,15 +781,9 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		 * will finish with load->real holding the decompressed image. 
 		 *
 		 * We want our caller to be able to see this computation on
-		 * @out, so we need to forward the signals.
+		 * @out, so eval signals on ->real need to appear on ->out.
 		 */
-		g_signal_connect( load->real, "preeval",
-			G_CALLBACK( vips_foreign_load_preeval ), load );
-		g_signal_connect( load->real, "eval",
-			G_CALLBACK( vips_foreign_load_eval ), load );
-		g_signal_connect( load->real, "posteval",
-			G_CALLBACK( vips_foreign_load_posteval ), load );
-		vips_image_set_progress( load->real, TRUE );
+		load->real->progress_signal = load->out;
 
 		if( class->load( load ) ||
 			vips_image_pio_input( load->real ) ) 
@@ -835,6 +804,7 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		 */
 		vips_image_pipelinev( load->out, load->out->dhint, 
 			load->real, NULL );
+
 	}
 
 	return( vips_region_new( load->real ) );
