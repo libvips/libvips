@@ -11,6 +11,7 @@
 - add vips_byteswap(), remove byteswap option from vips_copy()
 - add vips_bandfold()/vips_bandunfold()
 - dzsave supports zip output > 4gb, thanks benjamin
+- add support for HSV colourspace [Jonas Øgaard]
 
 7/5/15 started 8.0.3
 - dzsave and tif pyr write could fail for some image dimensions, thanks Jonas
