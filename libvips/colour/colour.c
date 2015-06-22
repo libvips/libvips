@@ -128,6 +128,9 @@
  *   #VIPS_INTERPRETATION_RGB16 is the same, but using three 16-bit values for
  *   RGB.
  *
+ *   #VIPS_INTERPRETATION_HSV is sRGB, but in polar coordinates.
+ *   #VIPS_INTERPRETATION_LCH is much better, only use HSV if you have to. 
+ *
  * * #VIPS_INTERPRETATION_B_W -- a monochrome image, roughly G from sRGB.
  *   The grey value is
  *   calculated in #VIPS_INTERPRETATION_scRGB space with the usual 0.2, 0.7, 0.1
