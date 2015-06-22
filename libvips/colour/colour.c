@@ -64,7 +64,8 @@
  *
  * The colour functions can be divided into three main groups. First, 
  * functions to transform images between the different colour spaces supported 
- * by VIPS: <emphasis>RGB</emphasis>, <emphasis>sRGB</emphasis>,  
+ * by VIPS: <emphasis>sRGB</emphasis>,  
+ * <emphasis>scRGB</emphasis>,  
  * <emphasis>XYZ</emphasis>, <emphasis>Yxy</emphasis>, 
  * <emphasis>Lab</emphasis>, <emphasis>LabQ</emphasis>, 
  * <emphasis>LabS</emphasis>, <emphasis>LCh</emphasis> and
@@ -77,7 +78,9 @@
  *
  * This figure shows how the VIPS colour spaces interconvert:
  *
- * <inlinegraphic fileref="interconvert.png" format="PNG" />
+ * <para>
+ *   <inlinegraphic fileref="interconvert.png" format="PNG" />
+ * </para>
  *
  * The colour spaces supported by VIPS are:
  *
@@ -135,9 +138,10 @@
  *	 image.
  *     </para>
  *   </listitem>
+ *
  *   <listitem>
  *     <para>
- *       <emphasis><code>RGB</code> / <code>sRGB</code></emphasis>
+ *       <emphasis><code>sRGB</code></emphasis>
  *
  * 	 VIPS converts XYZ to and from sRGB using the usual formula:
  *
@@ -147,6 +151,16 @@
  * 	 device space with a generic profile. 
  *     </para>
  *   </listitem>
+ *   <listitem>
+ *     <para>
+ *       <emphasis><code>scRGB</code></emphasis>
+ *
+ * 	 scRGB is sRGB bit with linear primaries. It uses floats in the range
+ * 	 0 - 1. It's convenient if you need a linear colourspace but don't
+ * 	 care too much what the primaries are. 
+ *     </para>
+ *   </listitem>
+ *
  *   <listitem>
  *     <para>
  *       <emphasis><code>LCh</code></emphasis>
