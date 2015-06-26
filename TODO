@@ -1,4 +1,9 @@
-- fix up docs for HSV 
+- colour needs to split _build() into preprocess / process / postprocess
+  phases
+
+  in icc_import, for example, we want to check that the supplied profile is
+  compatible with the input image as it will be when unpacked and ready for
+  process_line 
 
 - how about something like vips_grid() which turns a tall thin one-band 
   image into a much smaller many-band image?
