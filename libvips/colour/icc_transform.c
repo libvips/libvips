@@ -503,7 +503,7 @@ vips_image_expected_bands( VipsImage *image )
 {
 	int expected_bands;
 
-	switch( image->Bands ) { 
+	switch( image->Type ) { 
 	case VIPS_INTERPRETATION_B_W:
 	case VIPS_INTERPRETATION_GREY16:
 		expected_bands = 1;
