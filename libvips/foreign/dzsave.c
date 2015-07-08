@@ -1636,6 +1636,18 @@ vips_foreign_save_dz_build( VipsObject *object )
 	dz->file_suffix = g_strdup( filename ); 
 }
 
+	/* If we will be renaming our temp dir to an existing directory or
+	 * file, stop now. See vips_rename() use below.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ &&
+		dz->container == VIPS_FOREIGN_DZ_CONTAINER_FS &&
+		vips_existsf( "%s/%s_files", dz->dirname, dz->basename ) ) {
+		vips_error( "dzsave", 
+			_( "output directory %s/%s_files exists" ),
+			dz->dirname, dz->basename );
+		return( -1 ); 
+	}
+
 	/* Make the thing we write the tiles into.
 	 */
 	switch( dz->container ) {
@@ -1798,7 +1810,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		if( vips_rename( old_name, new_name ) )
 			return( -1 ); 
 
-		if( vips_rmdirf(  "%s", dz->tempdir ) )
+		if( vips_rmdirf( "%s", dz->tempdir ) )
 			return( -1 ); 
 	}
 
