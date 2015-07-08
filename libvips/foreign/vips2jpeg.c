@@ -65,6 +65,8 @@
  * 	- add a "no_subsample" option to disable chroma subsample
  * 9/9/14
  * 	- support "none" as a resolution unit
+ * 8/7/15
+ * 	- omit oversized jpeg markers
  */
 
 /*
@@ -634,12 +636,28 @@ write_blob( Write *write, const char *field, int app )
 			(void *) &data, &data_length ) )
 			return( -1 );
 
+		/* Single jpeg markers can only hold 64kb, large objects must
+		 * be split into multiple markers.
+		 *
+		 * Unfortunately, how this splitting is done depends on the
+		 * data type. For example, ICC and XMP have completely 
+		 * different ways of doing this.
+		 *
+		 * For now, just ignore oversize objects and warn.
+		 */
+		if( data_length > 65530 ) 
+			vips_warn( "VipsJpeg", _( "field \"%s\" is too large "
+				"for a single JPEG marker, ignoring" ), 
+				field );
+		else {
 #ifdef DEBUG
-		printf( "write_blob: attaching %zd bytes of %s\n", 
-			data_length, field );
+			printf( "write_blob: attaching %zd bytes of %s\n", 
+				data_length, field );
 #endif /*DEBUG*/
 
-		jpeg_write_marker( &write->cinfo, app, data, data_length );
+			jpeg_write_marker( &write->cinfo, app, 
+				data, data_length );
+		}
 	}
 
 	return( 0 );
