@@ -140,7 +140,7 @@ read_free( Read *read )
 #endif /*DEBUG*/
 
 	VIPS_FREE( read->filename );
-	VIPS_FREEF( DestroyImage, read->image );
+	VIPS_FREEF( DestroyImageList, read->image );
 	VIPS_FREEF( DestroyImageInfo, read->image_info ); 
 	VIPS_FREE( read->frames );
 	if ( (&read->exception)->signature == MagickSignature ) {
