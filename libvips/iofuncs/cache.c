@@ -37,8 +37,6 @@
 
    TODO
 
-	will we need to drop all on exit? unclear
-
 	what about delayed writes ... do we ever write in close? we shouldn't,
 	should do in evalend or written or somesuch
 
@@ -650,7 +648,8 @@ vips_cache_get_first( void )
 /**
  * vips_cache_drop_all:
  *
- * Drop the whole operation cache, handy for leak tracking.
+ * Drop the whole operation cache, handy for leak tracking. Also called
+ * automatically on vips_shutdown().
  */
 void
 vips_cache_drop_all( void )
