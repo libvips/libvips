@@ -124,10 +124,7 @@ AC_CANONICAL_HOST
 
 AC_DEFINE_UNQUOTED(G_LOG_DOMAIN, "VIPS", [Domain for glib logging messages.])
 
-# disable debugging by default for production releases
-m4_define([debug_default],
-  m4_if(m4_eval(vips_minor_version() % 2), [1], [yes], [no]))
-
+m4_define([debug_default], [no])
 AC_ARG_ENABLE(debug,
   AC_HELP_STRING([--enable-debug=@<:@no/minimum/yes@:>@],
     [turn on debugging @<:@default=debug_default()@:>@]),,

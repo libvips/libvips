@@ -73,7 +73,7 @@ Then build the build system with:
 Debug build:
 
 	$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
-		./configure --prefix=/home/john/vips 
+		./configure --prefix=/home/john/vips --enable-debug
 	$ make
 	$ make install
 
@@ -120,8 +120,7 @@ Build with the GCC auto-vectorizer and diagnostics (or just -O3):
 	$ FLAGS="-O2 -msse4.2 -ffast-math"
 	$ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
 	$ CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-		./configure --prefix=/home/john/vips --disable-introspection \
-		--enable-debug=no
+		./configure --prefix=/home/john/vips --disable-introspection 
 
 Static analysis with:
 
