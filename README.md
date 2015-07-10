@@ -139,8 +139,8 @@ libraries automatically. See `./configure --help` for a set of flags to
 control library detection. Packages are generally found with `pkg-config`,
 so make sure that is working.
 
-libtiff and libjpeg do not usually use pkg-config so libvips looks for
-them in the default path and in $prefix. If you have installed your own
+libtiff and libjpeg do not usually use `pkg-config` so libvips looks for
+them in the default path and in `$prefix`. If you have installed your own
 versions of these libraries in a different location, libvips will not see
 them. Use switches to libvips configure like:
 
@@ -158,88 +158,87 @@ or perhaps:
 
 to get libvips to see your builds.
 
-## vips8 Python binding
+### vips8 Python binding
 
 If `gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev` are
 available, libvips will install the vips8 Python binding. 
 
-## libjpeg
+### libjpeg
 
-The IJG JPEG library. 
+The IJG JPEG library. Use the `-turbo` version if you can. 
 
-## libexif
+### libexif
 
 If available, libvips adds support for EXIF metadata in JPEG files.
 
-## libgsf-1
+### libgsf-1
 
-If available, libvips adds support for creating image pyramids with dzsave. 
+If available, libvips adds support for creating image pyramids with `dzsave`. 
 
-## libtiff
+### libtiff
 
 The TIFF library. It needs to be built with support for JPEG and
 ZIP compression. 3.4b037 and later are known to be OK. 
 
-## fftw3
+### fftw3
 
-If libvips finds this library, it uses it for fourier transforms. It
-can also use fftw2, but 3 is faster and more accurate.
+If libvips finds this library, it uses it for fourier transforms. 
 
-## lcms2, lcms
+### lcms2, lcms
 
-If present, vips_icc_import(), vips_icc_export() and vips_icc_transform() are 
-available for transforming images with ICC profiles. If lcms2 is available,
-it is used in preference to lcms, since it is faster.
+If present, `vips_icc_import()`, `vips_icc_export()` and `vips_icc_transform()`
+are available for transforming images with ICC profiles. If `lcms2` is 
+available it is used in preference to `lcms`, since it is faster.
 
-## Large files
+### Large files
 
 libvips uses the standard autoconf tests to work out how to support
 large files (>2GB) on your system. Any reasonably recent unix should
 be OK.
 
-## libpng
+### libpng
 
 If present, libvips can load and save png files. 
 
-## libMagick, or optionally GraphicsMagick
+### ImageMagick, or optionally GraphicsMagick
 
-if available, libvips adds support for loading all libMagick supported
-image file types (about 80 different formats). Use
-`--with-magickpackage` to build against graphicsmagick instead.
+If available, libvips adds support for loading all libMagick-supported
+image file types. Use `--with-magickpackage=GraphicsMagick` to build against 
+graphicsmagick instead.
 
-## pangoft2
+### pangoft2
 
 If available, libvips adds support for text rendering. You need the
 package pangoft2 in `pkg-config --list-all`.
 
-## orc-0.4
+### orc-0.4
 
 If available, vips will accelerate some operations with this run-time
 compiler.
 
-## matio
+### matio
 
 If available, vips can load images from Matlab save files.
 
-## cfitsio
+### cfitsio
 
 If available, vips can load FITS images.
 
-## libwebp
+### libwebp
 
 If available, vips can load and save WebP images.
 
-## OpenEXR
+### OpenEXR
 
 If available, libvips will directly read (but not write, sadly)
 OpenEXR images.
 
-## OpenSlide
+### OpenSlide
 
 If available, libvips can load OpenSlide-supported virtual slide
 files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
 
-## swig, python, python-dev
+### swig, python, python-dev
 
 If available, we build the vips7 python binding.
 
