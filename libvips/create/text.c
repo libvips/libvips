@@ -64,6 +64,7 @@ typedef struct _VipsText {
 	char *text;
 	char *font;
 	int width;
+	int linespacing;
 	VipsAlign align;
 	int dpi;
 
@@ -103,7 +104,7 @@ vips_text_dispose( GObject *gobject )
 
 static PangoLayout *
 text_layout_new( PangoContext *context, 
-	const char *text, const char *font, int width, 
+	const char *text, const char *font, int width, int linespacing,
 	VipsAlign align, int dpi )
 {
 	PangoLayout *layout;
@@ -119,6 +120,9 @@ text_layout_new( PangoContext *context,
 
 	if( width > 0 )
 		pango_layout_set_width( layout, width * PANGO_SCALE );
+
+	if (linespacing > 0)
+		pango_layout_set_spacing( layout, linespacing * PANGO_SCALE);
 
 	switch( align ) {
 	case VIPS_ALIGN_LOW:
@@ -180,7 +184,7 @@ vips_text_build( VipsObject *object )
 
 	if( !(text->layout = text_layout_new( text->context, 
 		text->text, text->font, 
-		text->width, text->align, text->dpi )) ) {
+		text->width, text->linespacing, text->align, text->dpi )) ) {
 		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
 	}
@@ -307,6 +311,13 @@ vips_text_class_init( VipsTextClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, dpi ),
 		1, 1000000, 72 );
+
+	VIPS_ARG_INT( class, "linespacing", 4, 
+		_( "Line Spacing" ), 
+		_( "Line Spacing to render at" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsText, linespacing ),
+		0, 1000000, 0 );
 
 }
 
