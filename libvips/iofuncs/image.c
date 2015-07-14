@@ -1531,7 +1531,8 @@ vips_image_preeval( VipsImage *image )
 void
 vips_image_eval( VipsImage *image, guint64 processed )
 {
-	if( image->progress_signal ) {
+	if( image->progress_signal &&
+		image->time ) {
 		VIPS_DEBUG_MSG( "vips_image_eval: %p\n", image );
 
 		g_assert( vips_object_sanity( 
