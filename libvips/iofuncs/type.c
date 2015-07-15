@@ -519,8 +519,6 @@ vips_ref_string_get( VipsRefString *refstr, size_t *length )
 {
 	VipsArea *area = VIPS_AREA( refstr );
 
-	g_assert( area->type == G_TYPE_DOUBLE ); 
-
 	return( vips_area_get_data( area, length, NULL, NULL, NULL ) ); 
 }
 
