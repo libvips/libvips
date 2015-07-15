@@ -13,6 +13,8 @@
 - dzsave supports zip output > 4gb, thanks benjamin
 - add support for HSV colourspace [Jonas Øgaard]
 - skip oversized markers in jpeg write
+- jpeg exif tags saved as name rather than title
+- can now set any jpeg exif tag, not just modify existing tags
 
 7/5/15 started 8.0.3
 - dzsave and tif pyr write could fail for some image dimensions, thanks Jonas

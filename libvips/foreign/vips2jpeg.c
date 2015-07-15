@@ -67,6 +67,9 @@
  * 	- support "none" as a resolution unit
  * 8/7/15
  * 	- omit oversized jpeg markers
+ * 15/7/15
+ * 	- exif tags use @name, not @title
+* 	- set arbitrary exif tags from metadata
  */
 
 /*
@@ -111,6 +114,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <setjmp.h>
 #include <math.h>
 
@@ -580,49 +584,66 @@ vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 	}
 }
 
-typedef struct _VipsExif {
-	VipsImage *image;
-	ExifData *ed;
-	ExifContent *content;
-} VipsExif;
-
-static void
-vips_exif_update_entry( ExifEntry *entry, VipsExif *ve )
+static void 
+vips_exif_set_entry( ExifData *ed, ExifEntry *entry, 
+	unsigned long component, void *data )
 {
-	char name[256];
-	const char *value;
+	const char *string = (const char *) data; 
 
-	vips_snprintf( name, 256, "exif-ifd%d-%s", 
-		exif_entry_get_ifd( entry ),
-		exif_tag_get_title( entry->tag ) );
-	if( vips_image_get_typeof( ve->image, name ) ) {
-		(void) vips_image_get_string( ve->image, name, &value );
-		vips_exif_from_s( ve->ed, entry, value ); 
-	}
-	else
-		exif_content_remove_entry( ve->content, entry );
+	vips_exif_from_s( ed, entry, string ); 
 }
 
-static void
-vips_exif_update_content( ExifContent *content, VipsExif *ve )
+static void *
+vips_exif_image_field( VipsImage *image, 
+	const char *field, GValue *value, void *data )
 {
-	ve->content = content;
-        exif_content_foreach_entry( content, 
-		(ExifContentForeachEntryFunc) vips_exif_update_entry, ve );
+	ExifData *ed = (ExifData *) data;
+
+	const char *string;
+	int ifd;
+	const char *p;
+	ExifTag tag;
+
+	if( !vips_isprefix( "exif-ifd", field ) ) 
+		return( NULL );
+
+	/* value must be a string.
+	 */
+	if( vips_image_get_string( image, field, &string ) ) {
+		vips_warn( "VipsJpeg", _( "bad exif meta \"%s\"" ), field );
+		return( NULL ); 
+	}
+
+	p = field + strlen( "exif-ifd" );
+	ifd = atoi( p ); 
+
+	for( ; isdigit( *p ); p++ )
+		;
+	if( *p != '-' ) {
+		vips_warn( "VipsJpeg", _( "bad exif meta \"%s\"" ), field );
+		return( NULL ); 
+	}
+
+	if( !(tag = exif_tag_from_name( p + 1 )) ) {
+		vips_warn( "VipsJpeg", _( "bad exif meta \"%s\"" ), field );
+		return( NULL ); 
+	}
+
+	VIPS_DEBUG_MSG( "vips_exif_image_field: %s = %s\n", p + 1, string ); 
+	write_tag( ed, ifd, tag, vips_exif_set_entry, (void *) string );
+
+	return( NULL ); 
 }
 
 static void
 vips_exif_update( ExifData *ed, VipsImage *image )
 {
-	VipsExif ve;
-
 	VIPS_DEBUG_MSG( "vips_exif_update: \n" );
 
-	ve.image = image;
-	ve.ed = ed;
-	exif_data_foreach_content( ed, 
-		(ExifDataForeachContentFunc) vips_exif_update_content, &ve );
+	vips_image_map( image, 
+		vips_exif_image_field, ed );
 }
+
 #endif /*HAVE_EXIF*/
 
 static int
