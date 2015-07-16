@@ -503,6 +503,31 @@ transform_save_string_ref_string( const GValue *src_value, GValue *dest_value )
 }
 
 /**
+ * vips_ref_string_new: 
+ * @str: (transfer none): string to store
+ *
+ * Create a new refstring. These are reference-counted immutable strings, used
+ * to store string data in vips image metadata.
+ *
+ * See also: vips_area_unref().
+ *
+ * Returns: (transfer full): the new #VipsRefString.
+ */
+VipsRefString *
+vips_ref_string_new( const char *str )
+{
+	VipsArea *area;
+
+	area = vips_area_new( (VipsCallbackFn) g_free, g_strdup( str ) );
+
+	/* Handy place to cache this.
+	 */
+	area->length = strlen( str );
+
+	return( (VipsRefString *) area );
+}
+
+/**
  * vips_ref_string_get:
  * @refstr: the #VipsRefString to fetch from
  * @length: (allow-none): return length here, optionally
@@ -1311,20 +1336,12 @@ vips_value_get_ref_string( const GValue *value, size_t *length )
 void
 vips_value_set_ref_string( GValue *value, const char *str )
 {
-	VipsArea *area;
-	char *str_copy;
+	VipsRefString *ref_str;
 
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_REF_STRING );
-
-	str_copy = g_strdup( str );
-	area = vips_area_new( (VipsCallbackFn) vips_free, str_copy );
-
-	/* Handy place to cache this.
-	 */
-	area->length = strlen( str );
-
-	g_value_set_boxed( value, area );
-	vips_area_unref( area );
+	ref_str = vips_ref_string_new( str );
+	g_value_set_boxed( value, ref_str );
+	vips_area_unref( VIPS_AREA( ref_str ) );
 }
 
 /** 

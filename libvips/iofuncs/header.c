@@ -1106,18 +1106,22 @@ static int
 meta_get_value( const VipsImage *image,
 	const char *field, GType type, GValue *value_copy )
 {
-	if( vips_image_get( image, field, value_copy ) )
+	GValue value = { 0 }; 
+
+	if( vips_image_get( image, field, &value ) )
 		return( -1 );
-	if( G_VALUE_TYPE( value_copy ) != type ) {
+	g_value_init( value_copy, type );
+	if( !g_value_transform( &value, value_copy ) ) { 
 		vips_error( "VipsImage",
 			_( "field \"%s\" is of type %s, not %s" ),
 			field,
 			g_type_name( G_VALUE_TYPE( value_copy ) ),
 			g_type_name( type ) );
-		g_value_unset( value_copy );
+		g_value_unset( &value );
 
 		return( -1 );
 	}
+	g_value_unset( &value );
 
 	return( 0 );
 }

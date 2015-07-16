@@ -55,6 +55,7 @@ vips_type_array_image = GObject.GType.from_name("VipsArrayImage")
 vips_type_blob = GObject.GType.from_name("VipsBlob")
 vips_type_image = GObject.GType.from_name("VipsImage")
 vips_type_operation = GObject.GType.from_name("VipsOperation")
+vips_type_ref_string = GObject.GType.from_name("VipsRefString")
 
 def is_2D(value):
     if not isinstance(value, list):

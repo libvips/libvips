@@ -1,3 +1,18 @@
+- try:
+
+>>> from gi.repository import Vips
+>>> x = Vips.Image.new_from_file("images/IMG_4618.jpg")
+>>> x.get_value("exif-ifd0-Orientation")
+'1 (Top-left, Short, 1 components, 2 bytes)'
+>>> x.set_value("exif-ifd0-Orientation", "2")
+>>> x.write_to_file("x.jpg")
+
+  Orientation comes out as zero in vipsheader -a x.jpg
+
+  add a test-case for changing exif from py
+
+
+
 - colour needs to split _build() into preprocess / process / postprocess
   phases
 

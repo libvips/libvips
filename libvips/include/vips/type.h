@@ -140,6 +140,7 @@ typedef struct _VipsRefString {
 	VipsArea area;
 } VipsRefString;
 
+VipsRefString *vips_ref_string_new( const char *str );
 const char *vips_ref_string_get( VipsRefString *refstr, size_t *length );
 GType vips_ref_string_get_type( void );
 
