@@ -1,15 +1,15 @@
 - try:
 
->>> from gi.repository import Vips
->>> x = Vips.Image.new_from_file("images/IMG_4618.jpg")
->>> x.get_value("exif-ifd0-Orientation")
-'1 (Top-left, Short, 1 components, 2 bytes)'
->>> x.set_value("exif-ifd0-Orientation", "2")
->>> x.write_to_file("x.jpg")
+	./test_foreign.py TestForeign.test_jpeg
 
-  Orientation comes out as zero in vipsheader -a x.jpg
+  the 2 is being lost somehow .... we set it, and can read it back, 
+  but when jpeg write loops over the header fields it just sees the 1
 
-  add a test-case for changing exif from py
+  works if we use vips format
+
+  works if we run from python shell
+
+  some kind of caching issue?
 
 
 

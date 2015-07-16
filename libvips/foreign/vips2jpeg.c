@@ -249,7 +249,7 @@ vips_exif_set_int( ExifData *ed,
 	offset = component * sizeof_component;
 
 	VIPS_DEBUG_MSG( "vips_exif_set_int: %s = %d\n",
-		exif_tag_get_title( entry->tag ), value );
+		exif_tag_get_name( entry->tag ), value );
 
 	if( entry->format == EXIF_FORMAT_SHORT ) 
 		exif_set_short( entry->data + offset, bo, value );
@@ -335,7 +335,7 @@ vips_exif_set_rational( ExifData *ed,
 	offset = component * sizeof_component;
 
 	VIPS_DEBUG_MSG( "vips_exif_set_rational: %s = \"%s\"\n",
-		exif_tag_get_title( entry->tag ), value );
+		exif_tag_get_name( entry->tag ), value );
 
 	if( entry->format == EXIF_FORMAT_RATIONAL ) {
 		ExifRational rv;
@@ -389,7 +389,7 @@ vips_exif_set_double( ExifData *ed,
 	offset = component * sizeof_component;
 
 	VIPS_DEBUG_MSG( "vips_exif_set_double: %s = %g\n",
-		exif_tag_get_title( entry->tag ), value );
+		exif_tag_get_name( entry->tag ), value );
 
 	if( entry->format == EXIF_FORMAT_RATIONAL ) {
 		ExifRational rv;
@@ -629,7 +629,6 @@ vips_exif_image_field( VipsImage *image,
 		return( NULL ); 
 	}
 
-	VIPS_DEBUG_MSG( "vips_exif_image_field: %s = %s\n", p + 1, string ); 
 	write_tag( ed, ifd, tag, vips_exif_set_entry, (void *) string );
 
 	return( NULL ); 
@@ -640,8 +639,7 @@ vips_exif_update( ExifData *ed, VipsImage *image )
 {
 	VIPS_DEBUG_MSG( "vips_exif_update: \n" );
 
-	vips_image_map( image, 
-		vips_exif_image_field, ed );
+	vips_image_map( image, vips_exif_image_field, ed );
 }
 
 #endif /*HAVE_EXIF*/

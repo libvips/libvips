@@ -142,6 +142,32 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.jpg", self.mono)
         self.save_load("%s.jpg", self.colour)
 
+        # see if we have exif parsing
+        have_exif = False
+        x = Vips.Image.new_from_file(self.jpeg_file)
+        try:
+            # our test image does have this field
+            y = x.get_value("exif-ifd0-Orientation")
+            have_exif = True
+        except:
+            pass
+
+        if have_exif:
+            print("have exif")
+            x.set_value("exif-ifd0-Orientation", "2")
+            y = x.get_value("exif-ifd0-Orientation")
+            print("orientation is", y)
+            x.write_to_file("test.jpg")
+            y = x.get_value("exif-ifd0-Orientation")
+            print("orientation is", y)
+            x = Vips.Image.new_from_file("test.jpg")
+            y = x.get_value("exif-ifd0-Orientation")
+            print("orientation is", y)
+            self.assertEqual(y[0], "2")
+
+            os.unlink("test.jpg")
+
+
     def test_png(self):
         x = Vips.type_find("VipsForeign", "pngload")
         if not x.is_instantiatable():
