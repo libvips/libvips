@@ -1339,6 +1339,7 @@ vips_value_set_ref_string( GValue *value, const char *str )
 	VipsRefString *ref_str;
 
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_REF_STRING );
+
 	ref_str = vips_ref_string_new( str );
 	g_value_set_boxed( value, ref_str );
 	vips_area_unref( VIPS_AREA( ref_str ) );

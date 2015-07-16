@@ -20,6 +20,8 @@
  * 22/3/11
  * 	- rename fields for vips8
  * 	- move to vips_ prefix
+ * 16/7/15
+ * 	- auto wrap GString as RefString
  */
 
 /*
@@ -284,8 +286,21 @@ meta_new( VipsImage *image, const char *field, GValue *value )
 	memset( &meta->value, 0, sizeof( GValue ) );
 	meta->field = g_strdup( field );
 
-	g_value_init( &meta->value, G_VALUE_TYPE( value ) );
-	g_value_copy( value, &meta->value );
+	/* Special case: we don't want to have G_STRING on meta. They will be
+	 * copied down pipelines, plus some of our API (like
+	 * vips_image_get_string()) assumes that the GValue is a refstring and
+	 * that read-only pointers can be handed out.
+	 *
+	 * Turn G_TYPE_STRING into VIPS_TYPE_REF_STRING.
+	 */
+	if( G_VALUE_TYPE( value ) == G_TYPE_STRING )
+		g_value_init( &meta->value, VIPS_TYPE_REF_STRING );
+	else
+		g_value_init( &meta->value, G_VALUE_TYPE( value ) );
+
+	/* We don't do any conversions that can fail.
+	 */
+	(void) g_value_transform( value, &meta->value );
 
 	image->meta_traverse = g_slist_append( image->meta_traverse, meta );
 	g_hash_table_replace( image->meta, meta->field, meta ); 
