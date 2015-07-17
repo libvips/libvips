@@ -1,18 +1,3 @@
-- try:
-
-	./test_foreign.py TestForeign.test_jpeg
-
-  the 2 is being lost somehow .... we set it, and can read it back, 
-  but when jpeg write loops over the header fields it just sees the 1
-
-  works if we use vips format
-
-  works if we run from python shell
-
-  some kind of caching issue?
-
-
-
 - colour needs to split _build() into preprocess / process / postprocess
   phases
 
