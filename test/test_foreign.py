@@ -153,20 +153,16 @@ class TestForeign(unittest.TestCase):
             pass
 
         if have_exif:
-            print("have exif")
+            # we need a copy of the image to set the new metadata on
+            # otherwise we get caching problems
+            x = x.copy()
             x.set_value("exif-ifd0-Orientation", "2")
-            y = x.get_value("exif-ifd0-Orientation")
-            print("orientation is", y)
             x.write_to_file("test.jpg")
-            y = x.get_value("exif-ifd0-Orientation")
-            print("orientation is", y)
             x = Vips.Image.new_from_file("test.jpg")
             y = x.get_value("exif-ifd0-Orientation")
-            print("orientation is", y)
             self.assertEqual(y[0], "2")
 
             os.unlink("test.jpg")
-
 
     def test_png(self):
         x = Vips.type_find("VipsForeign", "pngload")
