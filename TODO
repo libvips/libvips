@@ -5,18 +5,8 @@
   compatible with the input image as it will be when unpacked and ready for
   process_line 
 
-- how about something like vips_grid() which turns a tall thin one-band 
-  image into a much smaller many-band image?
-
-  at the moment making a 500-band image uses huge amounts of memory :-( since
-  we have at least 500 bytes per pixel, times 128x128 for each tile, times N
-  for the number of threads, times 500, since we need a 500-stage pipeline
-
-  much faster to make a very tall, thin image and fold it up in a single
-  operation
-
-  can't make it an option for bandfold() since it would have a different seq
-  behaviour
+  see vips_image_expected_bands() in icc_transform.c for the current hacky
+  solution
 
 
 
