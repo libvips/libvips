@@ -51,6 +51,8 @@
  * 	- use vips_region_shrink()
  * 22/2/15
  * 	- use a better temp dir name for fs dz output
+ * 8/8/15
+ * 	- allow zip > 4gb if we have a recent libgsf
  */
 
 /*
@@ -333,6 +335,16 @@ vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
 	return( obj ); 
 }
 
+/* libgsf before 1.14.31 did not support zip64.
+ */
+static gboolean
+vips_gsf_has_zip64( void )
+{
+	return( libgsf_major_version > 1 ||
+		libgsf_minor_version > 14 ||
+		libgsf_micro_version >= 31 );
+}
+
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
 typedef struct _Layer Layer;
 
@@ -433,8 +445,8 @@ struct _VipsForeignSaveDz {
 	 */
 	char *file_suffix;
 
-	/* libgsf can't write zip files larger than 4gb. Track bytes written
-	 * here and try to guess when we'll go over.
+	/* libgsf before 1.14.31 can't write zip files larger than 4gb. 
+	 * Track bytes written here and try to guess when we'll go over.
 	 */
 	size_t bytes_written;
 };
@@ -1151,6 +1163,7 @@ strip_work( VipsThreadState *state, void *a )
 	 * outputting apart from the gsf_output_write() above.
 	 */
 	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP &&
+		!vips_gsf_has_zip64() &&
 		dz->bytes_written > (size_t) UINT_MAX - 100000 ) {
 		g_mutex_unlock( vips__global_lock );
 
@@ -1330,8 +1343,10 @@ static int
 strip_arrived( Layer *layer )
 {
 	VipsForeignSaveDz *dz = layer->dz;
+
 	VipsRect new_strip;
 	VipsRect overlap;
+	VipsRect image_area;
 
 	if( strip_save( layer ) )
 		return( -1 );
@@ -1350,6 +1365,13 @@ strip_arrived( Layer *layer )
 	new_strip.top = layer->y - dz->overlap;
 	new_strip.width = layer->image->Xsize;
 	new_strip.height = dz->tile_size + 2 * dz->overlap;
+
+	image_area.left = 0;
+	image_area.top = 0;
+	image_area.width = layer->image->Xsize;
+	image_area.height = layer->image->Ysize;
+	vips_rect_intersectrect( &new_strip, &image_area, &new_strip ); 
+
 	if( (new_strip.height & 1) == 1 )
 		new_strip.height += 1;
 
@@ -1375,14 +1397,16 @@ strip_arrived( Layer *layer )
 			&overlap, overlap.left, overlap.top );
 	}
 
-	if( vips_region_buffer( layer->strip, &new_strip ) )
-		return( -1 );
+	if( !vips_rect_isempty( &new_strip ) ) {
+		if( vips_region_buffer( layer->strip, &new_strip ) )
+			return( -1 );
 
-	/* And copy back again.
-	 */
-	if( !vips_rect_isempty( &overlap ) ) 
-		vips_region_copy( layer->copy, layer->strip, 
-			&overlap, overlap.left, overlap.top );
+		/* And copy back again.
+		 */
+		if( !vips_rect_isempty( &overlap ) ) 
+			vips_region_copy( layer->copy, layer->strip, 
+				&overlap, overlap.left, overlap.top );
+	}
 
 	return( 0 );
 }
@@ -1612,6 +1636,18 @@ vips_foreign_save_dz_build( VipsObject *object )
 	dz->file_suffix = g_strdup( filename ); 
 }
 
+	/* If we will be renaming our temp dir to an existing directory or
+	 * file, stop now. See vips_rename() use below.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ &&
+		dz->container == VIPS_FOREIGN_DZ_CONTAINER_FS &&
+		vips_existsf( "%s/%s_files", dz->dirname, dz->basename ) ) {
+		vips_error( "dzsave", 
+			_( "output directory %s/%s_files exists" ),
+			dz->dirname, dz->basename );
+		return( -1 ); 
+	}
+
 	/* Make the thing we write the tiles into.
 	 */
 	switch( dz->container ) {
@@ -1774,7 +1810,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		if( vips_rename( old_name, new_name ) )
 			return( -1 ); 
 
-		if( vips_rmdirf(  "%s", dz->tempdir ) )
+		if( vips_rmdirf( "%s", dz->tempdir ) )
 			return( -1 ); 
 	}
 

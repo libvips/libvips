@@ -102,7 +102,7 @@
  * VipsImage *im = ...;
  * VipsImage *t1; 
  *
- * if (vips_invert (im, &t1, NULL)) 
+ * if (vips_invert (im, &amp;t1, NULL)) 
  *   error ..
  * ]|
  *
@@ -122,13 +122,13 @@
  * VipsImage *im = ...;
  * VipsImage *t1, *t2;
  *
- * if (vips_invert (im, &t1, NULL)) {
+ * if (vips_invert (im, &amp;t1, NULL)) {
  *   g_object_unref (im);
  *   return -1;
  * }
  * g_object_unref (im);
  *
- * if (vips_flip (t1, &t2, VIPS_DIRECTION_HORIZONTAL, NULL)) {
+ * if (vips_flip (t1, &amp;t2, VIPS_DIRECTION_HORIZONTAL, NULL)) {
  *   g_object_unref (t1);
  *   return -1;
  * }
@@ -143,8 +143,8 @@
  * VipsImage *im = ...;
  * VipsImage *t = (VipsImage **) vips_object_local_array (parent, 2);
  *
- * if (vips_invert (im, &t[0], NULL) ||
- *   vips_flip (t[0], &t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
+ * if (vips_invert (im, &amp;t[0], NULL) ||
+ *   vips_flip (t[0], &amp;t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
  *   return -1;
  * ]|
  *
@@ -504,9 +504,11 @@ vips_operation_vips_operation_print_summary_arg( VipsObject *object,
 {
 	VipsBuf *buf = (VipsBuf *) a;
 
-	/* Just assigned input construct args
+	/* Just assigned input and output construct args. _summary() is used 
+	 * for things like cache tracing, so it's useful to show output args.
 	 */
-	if( (argument_class->flags & VIPS_ARGUMENT_INPUT) &&
+	if( ((argument_class->flags & VIPS_ARGUMENT_INPUT) ||
+		 (argument_class->flags & VIPS_ARGUMENT_OUTPUT)) &&
 		(argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
 		argument_instance->assigned ) {
 		const char *name = g_param_spec_get_name( pspec );
@@ -931,7 +933,7 @@ vips_call_by_name( const char *operation_name,
  * VipsImage *in = ...
  * VipsImage *out;
  *
- * if( vips_call( "embed", in, &out, 10, 10, 100, 100,
+ * if( vips_call( "embed", in, &amp;out, 10, 10, 100, 100,
  * 	"extend", VIPS_EXTEND_COPY,
  * 	NULL ) )
  * 	... error
@@ -1355,6 +1357,13 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 	 */
 	if( vips_object_build( VIPS_OBJECT( operation ) ) ) 
 		return( -1 );
+
+	/* We're not using the cache, so we need to print the trace line.
+	 */
+	if( vips__cache_trace ) {
+		printf( "vips cache : " );
+		vips_object_print_summary( VIPS_OBJECT( operation ) );
+	}
 
 	call.i = 0;
 	if( vips_argument_map( VIPS_OBJECT( operation ),

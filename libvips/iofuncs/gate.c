@@ -86,7 +86,7 @@ static FILE *vips__thread_fp = NULL;;
 
 /**
  * vips_profile_set:
- * @info: %TRUE to enable profile recording
+ * @profile: %TRUE to enable profile recording
  *
  * If set, vips will record profiling information, and dump it on program
  * exit. These profiles can be analysed with the `vipsprofile` program. 

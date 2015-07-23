@@ -39,18 +39,6 @@
 
 #include <vips/vips.h>
 
-/** 
- * SECTION: other
- * @short_description: miscellaneous operators
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These functions generate various test images. You can combine them with
- * the arithmetic and rotate functions to build more complicated images.
- *
- * The im_benchmark() operations are for testing the VIPS SMP system.
- */
-
 /* Args for im_sines.
  */
 static im_arg_desc sines_args[] = {

@@ -20,6 +20,8 @@
  * 22/3/11
  * 	- rename fields for vips8
  * 	- move to vips_ prefix
+ * 16/7/15
+ * 	- auto wrap GString as RefString
  */
 
 /*
@@ -165,10 +167,12 @@ static HeaderField old_double_field[] = {
 };
 
 /* This is used by (eg.) VIPS_IMAGE_SIZEOF_ELEMENT() to calculate object
- * size.
+ * size via vips_format_sizeof(). 
  *
  * It needs to be guint64 and not size_t since we use this as the basis for 
  * image address calcs and they have to be 64-bit, even on 32-bit machines. 
+ *
+ * Can't be static, we need this to be visible for vips7 compat.
  */
 const guint64 vips__image_sizeof_bandformat[] = {
 	sizeof( unsigned char ), 	/* VIPS_FORMAT_UCHAR */
@@ -187,15 +191,15 @@ const guint64 vips__image_sizeof_bandformat[] = {
  * vips_format_sizeof:
  * @format: format type
  *
- * Returns: number of bytes for a band format, or -1 on error.
+ * Returns: number of bytes for a band format.
  */
 guint64 
 vips_format_sizeof( VipsBandFormat format )
 {
-	return( (format < 0 || format > VIPS_FORMAT_DPCOMPLEX) ?
-		vips_error( "vips_format_sizeof", 
-			_( "unknown band format %d" ), format ), -1 :
-		vips__image_sizeof_bandformat[format] );
+	g_assert( format >= 0 && 
+		format < VIPS_FORMAT_LAST ); 
+
+	return( vips__image_sizeof_bandformat[format] );
 }
 
 #ifdef DEBUG
@@ -282,8 +286,21 @@ meta_new( VipsImage *image, const char *field, GValue *value )
 	memset( &meta->value, 0, sizeof( GValue ) );
 	meta->field = g_strdup( field );
 
-	g_value_init( &meta->value, G_VALUE_TYPE( value ) );
-	g_value_copy( value, &meta->value );
+	/* Special case: we don't want to have G_STRING on meta. They will be
+	 * copied down pipelines, plus some of our API (like
+	 * vips_image_get_string()) assumes that the GValue is a refstring and
+	 * that read-only pointers can be handed out.
+	 *
+	 * Turn G_TYPE_STRING into VIPS_TYPE_REF_STRING.
+	 */
+	if( G_VALUE_TYPE( value ) == G_TYPE_STRING )
+		g_value_init( &meta->value, VIPS_TYPE_REF_STRING );
+	else
+		g_value_init( &meta->value, G_VALUE_TYPE( value ) );
+
+	/* We don't do any conversions that can fail.
+	 */
+	(void) g_value_transform( value, &meta->value );
 
 	image->meta_traverse = g_slist_append( image->meta_traverse, meta );
 	g_hash_table_replace( image->meta, meta->field, meta ); 
@@ -478,6 +495,7 @@ vips_image_guess_interpretation( const VipsImage *image )
 	case VIPS_INTERPRETATION_CMC: 
 	case VIPS_INTERPRETATION_LCH: 
 	case VIPS_INTERPRETATION_sRGB: 
+	case VIPS_INTERPRETATION_HSV: 
 	case VIPS_INTERPRETATION_scRGB: 
 	case VIPS_INTERPRETATION_YXY: 
 		if( image->Bands < 3 )
@@ -654,7 +672,10 @@ vips_image_get_offset( const VipsImage *image )
  * allocating large amounts of memory and performing a long computation. Image
  * pixels are laid out in band-packed rows.
  *
- * See also: vips_image_wio_input().
+ * Since this function modifies @image, it is not threadsafe. Only call it on
+ * images which you are sure have not been shared with another thread. 
+ *
+ * See also: vips_image_wio_input(), vips_image_copy_memory().
  *
  * Returns: (transfer none): a pointer to pixel data, if possible.
  */
@@ -812,10 +833,10 @@ vips__image_copy_fields_array( VipsImage *out, VipsImage *in[] )
  * |[
  * GValue value = { 0 };
  *
- * g_value_init (&value, G_TYPE_INT);
- * g_value_set_int (&value, 42);
- * vips_image_set (image, field, &value);
- * g_value_unset (&value);
+ * g_value_init (&amp;value, G_TYPE_INT);
+ * g_value_set_int (&amp;value, 42);
+ * vips_image_set (image, field, &amp;value);
+ * g_value_unset (&amp;value);
  * ]|
  *
  * See also: vips_image_get().
@@ -854,20 +875,20 @@ vips_image_set( VipsImage *image, const char *field, GValue *value )
  * GValue value = { 0 };
  * double d;
  *
- * if (vips_image_get (image, field, &value))
+ * if (vips_image_get (image, field, &amp;value))
  *   return -1;
  *
- * if (G_VALUE_TYPE (&value) != G_TYPE_DOUBLE) {
+ * if (G_VALUE_TYPE (&amp;value) != G_TYPE_DOUBLE) {
  *   vips_error( "mydomain", 
  *     _("field \"%s\" is of type %s, not double"),
  *     field, 
- *     g_type_name (G_VALUE_TYPE (&value)));
- *   g_value_unset (&value);
+ *     g_type_name (G_VALUE_TYPE (&amp;value)));
+ *   g_value_unset (&amp;value);
  *   return -1;
  * }
  *
- * d = g_value_get_double (&value);
- * g_value_unset (&value);
+ * d = g_value_get_double (&amp;value);
+ * g_value_unset (&amp;value);
  * ]|
  *
  * See also: vips_image_get_typeof(), vips_image_get_double().
@@ -1100,18 +1121,22 @@ static int
 meta_get_value( const VipsImage *image,
 	const char *field, GType type, GValue *value_copy )
 {
-	if( vips_image_get( image, field, value_copy ) )
+	GValue value = { 0 }; 
+
+	if( vips_image_get( image, field, &value ) )
 		return( -1 );
-	if( G_VALUE_TYPE( value_copy ) != type ) {
+	g_value_init( value_copy, type );
+	if( !g_value_transform( &value, value_copy ) ) { 
 		vips_error( "VipsImage",
 			_( "field \"%s\" is of type %s, not %s" ),
 			field,
 			g_type_name( G_VALUE_TYPE( value_copy ) ),
 			g_type_name( type ) );
-		g_value_unset( value_copy );
+		g_value_unset( &value );
 
 		return( -1 );
 	}
+	g_value_unset( &value );
 
 	return( 0 );
 }

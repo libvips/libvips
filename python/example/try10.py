@@ -9,7 +9,7 @@ from gi.repository import Vips
 
 a = Vips.Image.black(100, 100)
 
-a.draw_circle(128, 50, 50, 20)
+a = a.draw_circle(128, 50, 50, 20)
 
 b = a.hough_circle(scale = 1, min_radius = 15, max_radius = 25)
 

@@ -10,6 +10,8 @@
  * 	- pack and unpack rad to scrgb
  * 18/8/14
  * 	- fix conversion to 16-bit RGB, thanks John
+ * 18/6/15
+ * 	- forward progress signals from load
  */
 
 /*
@@ -371,11 +373,12 @@ vips_foreign_init( VipsForeign *object )
  */
 
 static void *
-file_add_class( VipsForeignClass *file, GSList **files )
+file_add_class( VipsForeignClass *class, GSList **files )
 {
-	/* Append so we don't reverse the list of files.
+	/* Append so we don't reverse the list of files. Sort will not reorder
+	 * items of equal priority. 
 	 */
-	*files = g_slist_append( *files, file );
+	*files = g_slist_append( *files, class );
 
 	return( NULL );
 }
@@ -826,8 +829,14 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		printf( "vips_foreign_load_start: triggering ->load()\n" );
 #endif /*DEBUG*/
 
-		/* Read the image in.
+		/* Read the image in. This may involve a long computation and
+		 * will finish with load->real holding the decompressed image. 
+		 *
+		 * We want our caller to be able to see this computation on
+		 * @out, so eval signals on ->real need to appear on ->out.
 		 */
+		load->real->progress_signal = load->out;
+
 		if( class->load( load ) ||
 			vips_image_pio_input( load->real ) ) 
 			return( NULL );
@@ -847,6 +856,7 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		 */
 		vips_image_pipelinev( load->out, load->out->dhint, 
 			load->real, NULL );
+
 	}
 
 	return( vips_region_new( load->real ) );
@@ -1184,7 +1194,36 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		vips_colourspace_issupported( in ) &&
 		(class->saveable == VIPS_SAVEABLE_RGB ||
 		 class->saveable == VIPS_SAVEABLE_RGBA ||
+		 class->saveable == VIPS_SAVEABLE_RGBA_ONLY ||
 		 class->saveable == VIPS_SAVEABLE_RGB_CMYK) ) { 
+		VipsImage *out;
+		VipsInterpretation interpretation;
+
+		/* Do we make RGB or RGB16? We don't want to squash a 16-bit
+		 * RGB down to 8 bits if the saver supports 16. 
+		 */
+		if( vips_band_format_is8bit( 
+			class->format_table[in->BandFmt] ) )
+			interpretation = VIPS_INTERPRETATION_sRGB;
+		else
+			interpretation = VIPS_INTERPRETATION_RGB16;
+
+		if( vips_colourspace( in, &out, interpretation, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
+		}
+		g_object_unref( in );
+
+		in = out;
+	}
+
+	/* VIPS_SAVEABLE_RGBA_ONLY does not support 1 or 2 bands ... convert 
+	 * to sRGB. 
+	 */
+	if( !class->coding[VIPS_CODING_RAD] &&
+		in->Bands < 3 &&
+		vips_colourspace_issupported( in ) &&
+		class->saveable == VIPS_SAVEABLE_RGBA_ONLY ) { 
 		VipsImage *out;
 		VipsInterpretation interpretation;
 
@@ -1224,6 +1263,9 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 			if( vips_flatten( in, &out, 
 				"background", save->background,
+				"max_alpha", 
+					in->BandFmt == VIPS_FORMAT_USHORT ?
+						65535.0 : 255.0, 
 				NULL ) ) {
 				g_object_unref( in );
 				return( -1 );
@@ -1263,7 +1305,8 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		else if( in->Bands > 4 && 
 			((class->saveable == VIPS_SAVEABLE_RGB_CMYK &&
 			  in->Type == VIPS_INTERPRETATION_CMYK) ||
-			 class->saveable == VIPS_SAVEABLE_RGBA) ) {
+			 class->saveable == VIPS_SAVEABLE_RGBA ||
+			 class->saveable == VIPS_SAVEABLE_RGBA_ONLY) ) {
 			VipsImage *out;
 
 			if( vips_extract_band( in, &out, 0, 
@@ -1578,7 +1621,7 @@ vips_foreign_find_save_buffer( const char *name )
 		(VipsSListMap2Fn) vips_foreign_find_save_buffer_sub, 
 		(void *) suffix, NULL )) ) {
 		vips_error( "VipsForeignSave",
-			_( "\"%s\" is not a known file format" ), name );
+			_( "\"%s\" is not a known buffer format" ), name );
 
 		return( NULL );
 	}
@@ -1762,6 +1805,56 @@ vips_foreign_operation_init( void )
 }
 
 /**
+ * vips_vipsload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read in a vips image. 
+ *
+ * See also: vips_vipssave().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_vipsload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "vipsload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_vipssave:
+ * @in: image to save 
+ * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Write @in to @filename in VIPS format.
+ *
+ * See also: vips_vipsload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_vipssave( VipsImage *in, const char *filename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, filename );
+	result = vips_call_split( "vipssave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
  * vips_magickload:
  * @filename: file to load
  * @out: decompressed image
@@ -1895,7 +1988,7 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @page: load this page
+ * @page: %gint, load this page
  *
  * Read a TIFF-formatted memory block into a VIPS image. Exactly as
  * vips_tiffload(), but read from a memory source. 
@@ -1935,19 +2028,20 @@ vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @compression; use this compression scheme
- * @Q: quality factor
- * @predictor; compress with this prediction
- * @profile: attach this ICC profile
- * @tile; set %TRUE to write a tiled tiff
- * @tile_width; set tile size
- * @tile_height; set tile size
- * @pyramid; set %TRUE to write an image pyramid
- * @squash; squash 8-bit images down to 1 bit
- * @resunit; convert resolution to pixels per inch or cm during write
- * @xres; horizontal resolution in pixels/mm
- * @yres; vertical resolution in pixels/mm
- * @bigtiff; write a BigTiff file
+ * @compression: use this #VipsForeignTiffCompression
+ * @Q: %gint quality factor
+ * @predictor: use this #VipsForeignTiffPredictor
+ * @profile: filename of ICC profile to attach
+ * @tile: set %TRUE to write a tiled tiff
+ * @tile_width: %gint for tile size
+ * @tile_height: %gint for tile size
+ * @pyramid: set %TRUE to write an image pyramid
+ * @squash: set %TRUE to squash 8-bit images down to 1 bit
+ * @miniswhite: set %TRUE to write 1-bit images as MINISWHITE
+ * @resunit: #VipsForeignTiffResunit for resolution unit
+ * @xres: %gdouble horizontal resolution in pixels/mm
+ * @yres: %gdouble vertical resolution in pixels/mm
+ * @bigtiff: set %TRUE to write a BigTiff file
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -1985,8 +2079,12 @@ vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Set @pyramid to write the image as a set of images, one per page, of
  * decreasing size. 
  *
- * Set @squash to make 8-bit uchar images write as 1-bit TIFFs with zero
- * pixels written as 0 and non-zero as 1.
+ * Set @squash to make 8-bit uchar images write as 1-bit TIFFs. Values >128
+ * are written as white, values <=128 as black. Normally vips will write
+ * MINISBLACK TIFFs where black is a 0 bit, but if you set @miniswhite, it
+ * will use 0 for a white bit. Many pre-press applications only work with
+ * images which use this sense. @miniswhite only affects one-bit images, it
+ * does nothing for greyscale images. 
  *
  * Use @resunit to override the default resolution unit.  
  * The default 
@@ -2030,9 +2128,9 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * @shrink: shrink by this much on load
- * @fail: fail on warnings
- * @autorotate: use exif Orientation tag to rotate the image during load
+ * @shrink: %gint, shrink by this much on load
+ * @fail: %gboolean, fail on warnings
+ * @autorotate: %gboolean, use exif Orientation tag to rotate the image during load
  *
  * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
  * including CMYK and YCbCr.
@@ -2056,7 +2154,7 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * Example:
  *
  * |[
- * vips_jpegload( "fred.jpg", &out,
+ * vips_jpegload( "fred.jpg", &amp;out,
  * 	"shrink", 8,
  * 	"fail", TRUE,
  * 	NULL );
@@ -2108,8 +2206,8 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @shrink: shrink by this much on load
- * @fail: fail on warnings
+ * @shrink: %gint, shrink by this much on load
+ * @fail: %gboolean, fail on warnings
  *
  * Read a JPEG-formatted memory block into a VIPS image. Exactly as
  * vips_jpegload(), but read from a memory buffer. 
@@ -2180,12 +2278,15 @@ vips_jpegload_stream( VipsStreamInput *stream, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @Q: quality factor
- * @profile: attach this ICC profile
- * @optimize_coding: compute optimal Huffman coding tables
- * @interlace: write an interlaced (progressive) jpeg
- * @strip: remove all metadata from image
- * @no-subsample: disable chroma subsampling
+ * @Q: %gint, quality factor
+ * @profile: filename of ICC profile to attach
+ * @optimize_coding: %gboolean, compute optimal Huffman coding tables
+ * @interlace: %gboolean, write an interlaced (progressive) jpeg
+ * @strip: %gboolean, remove all metadata from image
+ * @no-subsample: %gboolean, disable chroma subsampling
+ * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -2223,6 +2324,20 @@ vips_jpegload_stream( VipsStreamInput *stream, VipsImage **out, ... )
  * If @no-subsample is set, chrominance subsampling is disabled. This will 
  * improve quality at the cost of larger file size. Useful for high Q factors. 
  *
+ * If @trellis_quant is set and the version of libjpeg supports it
+ * (e.g. mozjpeg >= 3.0), apply trellis quantisation to each 8x8 block.
+ * Reduces file size but increases compression time.
+ *
+ * If @overshoot_deringing is set and the version of libjpeg supports it
+ * (e.g. mozjpeg >= 3.0), apply overshooting to samples with extreme values
+ * for example 0 and 255 for 8-bit. Overshooting may reduce ringing artifacts
+ * from compression, in particular in areas where black text appears on a
+ * white background.
+ *
+ * If @optimize_scans is set and the version of libjpeg supports it
+ * (e.g. mozjpeg >= 3.0), split the spectrum of DCT coefficients into
+ * separate scans. Reduces file size but increases compression time.
+ *
  * See also: vips_jpegsave_buffer(), vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -2255,6 +2370,9 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * @interlace: write an interlaced (progressive) jpeg
  * @strip: remove all metadata from image
  * @no-subsample: disable chroma subsampling
+ * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
@@ -2306,6 +2424,9 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * @optimize_coding: compute optimal Huffman coding tables
  * @strip: remove all metadata from image
  * @no-subsample: disable chroma subsampling
+ * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  *
  * As vips_jpegsave(), but save as a mime jpeg on stdout.
  *

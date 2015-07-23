@@ -1,10 +1,10 @@
-/* Base type for supported image foreigns. Subclass this to add a new
- * foreign.
+/* Base type for supported image formats. Subclass this to add a new
+ * format.
  */
 
 /*
 
-    This foreign is part of VIPS.
+    This file is part of VIPS.
     
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,7 @@
 
 /*
 
-    These foreigns are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
 
@@ -140,7 +140,7 @@ typedef struct _VipsForeignLoad {
 	VipsImage *out;
 
 	/* The behind-the-scenes real image we decompress to. This can be a
-	 * disc foreign or a memory buffer. This must be set by ->load().
+	 * disc file or a memory buffer. This must be set by ->load().
 	 */
 	VipsImage *real;
 
@@ -242,6 +242,7 @@ gboolean vips_foreign_is_a_buffer( const char *loader,
  * @VIPS_SAVEABLE_MONO: 1 band (eg. CSV)
  * @VIPS_SAVEABLE_RGB: 1 or 3 bands (eg. PPM) 
  * @VIPS_SAVEABLE_RGBA: 1, 2, 3 or 4 bands (eg. PNG)
+ * @VIPS_SAVEABLE_RGBA_ONLY: 3 or 4 bands (eg. WEBP)
  * @VIPS_SAVEABLE_RGB_CMYK: 1, 3 or 4 bands (eg. JPEG)
  * @VIPS_SAVEABLE_ANY: any number of bands (eg. TIFF)
  *
@@ -251,6 +252,7 @@ typedef enum {
 	VIPS_SAVEABLE_MONO,
 	VIPS_SAVEABLE_RGB,
 	VIPS_SAVEABLE_RGBA,
+	VIPS_SAVEABLE_RGBA_ONLY,
 	VIPS_SAVEABLE_RGB_CMYK,
 	VIPS_SAVEABLE_ANY,
 	VIPS_SAVEABLE_LAST
@@ -317,6 +319,11 @@ GType vips_foreign_save_get_type( void );
 const char *vips_foreign_find_save( const char *filename );
 const char *vips_foreign_find_save_buffer( const char *suffix );
 const char *vips_foreign_find_save_stream( const char *suffix );
+
+int vips_vipsload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_vipssave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
 
 int vips_openslideload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));

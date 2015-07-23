@@ -40,15 +40,18 @@ extern const char *vips__jpeg_suffs[];
 int vips__jpeg_write_file( VipsImage *in, 
 	const char *filename, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
-	gboolean no_subsample );
+	gboolean no_subsample, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans );
 int vips__jpeg_write_buffer( VipsImage *in, 
 	void **obuf, size_t *olen, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
-	gboolean no_subsample );
+	gboolean no_subsample, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans );
 int vips__jpeg_write_stream( VipsImage *in, 
 	VipsStreamOutput *stream, int Q, const char *profile, 
-	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean no_subsample );
+	gboolean optimize_coding, gboolean progressive, gboolean strip, 
+	gboolean no_subsample, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans );
 
 int vips__isjpeg_buffer( const unsigned char *buf, size_t len );
 int vips__isjpeg( const char *filename );

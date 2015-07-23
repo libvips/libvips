@@ -64,6 +64,9 @@ Modified on:
 25/3/11
 	- move to vips_ namespace
 
+31/5/15
+	- oops siged/unsignned mess-up meant we were not padding correctly
+
  */
 
 /*
@@ -112,7 +115,7 @@ static unsigned char b64_index[256] = {
  * end up with in[2] in the bottom few bits.
  */
 static int
-read24( const unsigned char *in, size_t remaining )
+read24( const unsigned char *in, int remaining )
 {
 	int bits;
 	int i;
@@ -132,12 +135,12 @@ read24( const unsigned char *in, size_t remaining )
 /* Output (up to) 24 bits as four base64 chars. Pad with '=' characters.
  */
 static void
-encode24( char *p, int bits, size_t remaining )
+encode24( char *p, int bits, int remaining )
 {
 	int i;
 
 	for( i = 0; i < 4; i++ ) {
-		if( remaining == 0 )
+		if( remaining <= 0 )
 			p[i] = '=';
 		else {
 			/* Take the top 6 bits of 24.
@@ -162,7 +165,7 @@ vips__b64_encode( const unsigned char *data, size_t data_length )
 
 	char *buffer;
 	char *p;
-	size_t i;
+	int i;
 	int cursor;
 
 	if( data_length == 0 ) {
@@ -170,7 +173,8 @@ vips__b64_encode( const unsigned char *data, size_t data_length )
 		return( NULL );
 	}
 	if( output_data_length > 1024 * 1024 ) {
-		/* We shouldn't really be used for large amounts of data.
+		/* We shouldn't really be used for large amounts of data, plus
+		 * we are using int offsets.
 		 */
 		vips_error( "vips__b64_encode", "%s", _( "too much data" ) );
 		return( NULL );
@@ -183,7 +187,7 @@ vips__b64_encode( const unsigned char *data, size_t data_length )
 	cursor = 0;
 
 	for( i = 0; i < data_length; i += 3 ) {
-		size_t remaining = data_length - i;
+		int remaining = data_length - i;
 		int bits;
 
 		bits = read24( data + i, remaining );
@@ -232,10 +236,11 @@ vips__b64_decode( const char *buffer, size_t *data_length )
 	unsigned char *p;
 	unsigned int bits;
 	int nbits;
-	size_t i;
+	int i;
 
 	if( output_data_length > 1024 * 1024 ) {
-		/* We shouldn't really be used for large amounts of data.
+		/* We shouldn't really be used for large amounts of data, plus
+		 * we are using an int for offset.
 		 */
 		vips_error( "vips__b64_decode", "%s", _( "too much data" ) );
 		return( NULL );

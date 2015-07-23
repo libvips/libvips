@@ -97,20 +97,6 @@
 #include <vips/vips.h>
 
 /**
- * SECTION: mask
- * @short_description: load, save and process mask (matrix) objects
- * @stability: Stable
- * @include: vips/vips.h
- *
- * These operations load, save and process mask objects. Masks are used as
- * paramaters to convolution and morphology operators, and to represent
- * matrices. There are two types of matrix: integer #INTMASK and double 
- * precision floating point #DOUBLEMASK.
- *
- * This API is horrible and clunky. Surely it will be replaced soon.
- */
-
-/**
  * INTMASK:
  * @xsize: mask width
  * @ysize: mask height

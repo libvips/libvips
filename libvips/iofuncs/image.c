@@ -4,6 +4,8 @@
  * 	- hacked up from various places
  * 6/6/13
  * 	- vips_image_write() didn't ref non-partial sources
+ * 18/4/15
+ * 	- add vips_image_copy_memory()
  */
 
 /*
@@ -207,6 +209,7 @@
  * @VIPS_INTERPRETATION_LCH: pixels are in CIE LCh space
  * @VIPS_INTERPRETATION_LABS: CIE LAB coded as three signed 16-bit values
  * @VIPS_INTERPRETATION_sRGB: pixels are sRGB
+ * @VIPS_INTERPRETATION_HSV: pixels are HSV
  * @VIPS_INTERPRETATION_scRGB: pixels are scRGB
  * @VIPS_INTERPRETATION_YXY: pixels are CIE Yxy
  * @VIPS_INTERPRETATION_RGB16: generic 16-bit RGB
@@ -381,7 +384,7 @@ G_DEFINE_TYPE( VipsImage, vips_image, VIPS_TYPE_OBJECT );
 
 /**
  * vips_progress_set:
- * @info: %TRUE to enable progress messages
+ * @progress: %TRUE to enable progress messages
  *
  * If set, vips will print messages about the progress of computation to
  * stdout. This can also be enabled with the --vips-progress option, or by
@@ -682,7 +685,7 @@ vips_image_sanity( VipsObject *object, VipsBuf *buf )
 				image->Coding != VIPS_CODING_NONE && 
 				image->Coding != VIPS_CODING_LABQ &&
 				image->Coding != VIPS_CODING_RAD) ||
-			image->Type > VIPS_INTERPRETATION_scRGB ||
+			image->Type >= VIPS_INTERPRETATION_LAST ||
 			image->dtype > VIPS_IMAGE_PARTIAL || 
 			image->dhint > VIPS_DEMAND_STYLE_ANY ) 
 			vips_buf_appends( buf, "bad enum\n" );
@@ -743,7 +746,7 @@ vips_image_save_cb( VipsImage *image, int *result )
 /* Progress feedback. 
  */
 
-static int
+static void
 vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 {
 	int tile_width; 
@@ -751,7 +754,7 @@ vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 	int nlines;
 
 	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return( 0 ); 
+		return;
 
 	*last = -1;
 
@@ -764,15 +767,13 @@ vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 		vips_concurrency_get(),
 		tile_width, tile_height, nlines );
 	printf( "\n" );
-
-	return( 0 );
 }
 
-static int
+static void
 vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 {
 	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return( 0 ); 
+		return;
 
 	if( progress->percent != *last ) {
 		printf( _( "%s %s: %d%% complete" ), 
@@ -787,23 +788,19 @@ vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 		vips_region_dump_all();
 		 */
 	}
-
-	return( 0 );
 }
 
-static int
+static void
 vips_image_posteval_cb( VipsImage *image, VipsProgress *progress )
 {
 	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return( 0 ); 
+		return;
 
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
 	printf( _( "%s %s: done in %.3gs          \n" ), 
 		g_get_prgname(), image->filename, 
 		g_timer_elapsed( progress->start, NULL ) );
-
-	return( 0 );
 }
 
 /* Attach progress feedback, if required.
@@ -886,9 +883,7 @@ vips_image_build( VipsObject *object )
 					"v" )) )
 					return( -1 );
 
-				if( vips_copy( t, &t2, 
-					"swap", TRUE,
-					NULL ) ) {
+				if( vips_byteswap( t, &t2, NULL ) ) {
 					g_object_unref( t );
 					return( -1 );
 				}
@@ -963,13 +958,6 @@ vips_image_build( VipsObject *object )
                 break;
 
 	case 'a':
-		/* Ban crazy numbers. 
-		 */
-		if( image->sizeof_header > 1000000 ) {
-			vips_error( "VipsImage", "%s", _( "bad parameters" ) );
-			return( -1 );
-		}
-
 		if( (image->fd = vips__open_image_read( filename )) == -1 ) 
 			return( -1 );
 		image->dtype = VIPS_IMAGE_OPENIN;
@@ -1227,7 +1215,7 @@ vips_image_class_init( VipsImageClass *class )
 		_( "Offset in bytes from start of file" ),
 		VIPS_ARGUMENT_SET_ONCE | VIPS_ARGUMENT_CONSTRUCT, 
 		G_STRUCT_OFFSET( VipsImage, sizeof_header ),
-		0, 1000000, VIPS_SIZEOF_HEADER );
+		0, 1000000000, VIPS_SIZEOF_HEADER );
 
 	VIPS_ARG_POINTER( class, "foreign_buffer", 17, 
 		_( "Foreign buffer" ),
@@ -1543,7 +1531,8 @@ vips_image_preeval( VipsImage *image )
 void
 vips_image_eval( VipsImage *image, guint64 processed )
 {
-	if( image->progress_signal ) {
+	if( image->progress_signal &&
+		image->time ) {
 		VIPS_DEBUG_MSG( "vips_image_eval: %p\n", image );
 
 		g_assert( vips_object_sanity( 
@@ -2936,8 +2925,8 @@ vips_image_rewind_output( VipsImage *image )
 
 	/* And reopen ... recurse to get a mmaped image. 
 	 *
-	 * We use "v" mode to get it opened as a vips image, byopassing the
-	 * file type checks. They will fail on Windows becasue you can't open
+	 * We use "v" mode to get it opened as a vips image, bypassing the
+	 * file type checks. They will fail on Windows because you can't open
 	 * fds more than once.
 	 */
 	image->fd = fd;
@@ -2967,18 +2956,74 @@ vips_image_rewind_output( VipsImage *image )
 	return( 0 );
 }
 
+/** 
+ * vips_image_copy_memory:
+ * @image: image to copy to a memory buffer
+ *
+ * Allocate a memory buffer and copy @image to it. This is a thread-safe
+ * equivalent of vips_image_wio_input(), useful if @image is small and from an
+ * unknown source.
+ *
+ * If @image is already in memory (perhaps a mmaped file on disc),
+ * vips_image_copy_memory() will just ref @image and return that.
+ *
+ * If you are sure that @image is not shared with another thread (perhaps you
+ * have made it yourself), use vips_image_wio_input() instead.
+ *
+ * See also: vips_image_wio_input().
+ */
+VipsImage *
+vips_image_copy_memory( VipsImage *image )
+{
+	VipsImage *new;
+
+	switch( image->dtype ) {
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+	case VIPS_IMAGE_MMAPIN:
+	case VIPS_IMAGE_MMAPINRW:
+		/* Can read from all these, in principle anyway.
+		 */
+		new = image;
+		g_object_ref( new );
+		break;
+
+	case VIPS_IMAGE_OPENOUT:
+	case VIPS_IMAGE_OPENIN:
+	case VIPS_IMAGE_PARTIAL:
+		/* Copy to a new memory image.
+		 */
+		new = vips_image_new_memory();
+		if( vips_image_write( image, new ) ) {
+			g_object_unref( new );
+			return( NULL );
+		}
+		break;
+
+	default:
+		vips_error( "vips_image_copy_memory", 
+			"%s", _( "image not readable" ) );
+		return( NULL );
+	}
+
+	return( new );
+}
+
 /**
  * vips_image_wio_input:
  * @image: image to transform
  *
  * Check that an image is readable via the VIPS_IMAGE_ADDR() macro, that is,
  * that the entire image is in memory and all pixels can be read with 
- * VIPS_IMAGE_ADDR().
- *
- * If it 
+ * VIPS_IMAGE_ADDR().  If it 
  * isn't, try to transform it so that VIPS_IMAGE_ADDR() can work. 
  *
- * See also: vips_image_pio_input(), vips_image_inplace(), VIPS_IMAGE_ADDR().
+ * Since this function modifies @image, it is not thread-safe. Only call it on
+ * images which you are sure have not been shared with another thread. If the
+ * image might have been shared, use the less efficient
+ * vips_image_copy_memory() instead.
+ *
+ * See also: vips_image_copy_memory(), vips_image_pio_input(), vips_image_inplace(), VIPS_IMAGE_ADDR().
  *
  * Returns: 0 on succeess, or -1 on error.
  */
@@ -3146,6 +3191,11 @@ vips__image_wio_output( VipsImage *image )
  * Gets @image ready for an in-place operation, such as vips_draw_circle().
  * After calling this function you can both read and write the image with 
  * VIPS_IMAGE_ADDR().
+ *
+ * Since this function modifies @image, it is not thread-safe. Only call it on
+ * images which you are sure have not been shared with another thread. 
+ * All in-place operations are inherently not thread-safe, so you need to take
+ * great care in any case.
  *
  * See also: vips_draw_circle(), vips_image_wio_input().
  *

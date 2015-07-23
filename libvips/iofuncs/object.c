@@ -1849,9 +1849,9 @@ vips_object_set_argument_from_string( VipsObject *object,
 		else
 			access = VIPS_ACCESS_RANDOM; 
 
-		if( vips_foreign_load( value, &out, 
+		if( !(out = vips_image_new_from_file( value, 
 			"access", access,
-			NULL ) )
+			NULL )) )
 			return( -1 );
 
 		g_value_init( &gvalue, VIPS_TYPE_IMAGE );
@@ -2073,11 +2073,10 @@ vips_object_get_argument_to_string( VipsObject *object,
 
 	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
 		VipsImage *in;
-
-		/* Pull out the image and write it.
+/* Pull out the image and write it.
 		 */
 		g_object_get( object, name, &in, NULL );
-		if( vips_foreign_save( in, arg, NULL ) ) {
+		if( vips_image_write_to_file( in, arg, NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}
@@ -2214,7 +2213,7 @@ vips_object_set_valist( VipsObject *object, va_list ap )
  * |[
  * vips_object_set (operation,
  *   "input", in,
- *   "output", &out,
+ *   "output", &amp;out,
  *   NULL);
  * ]|
  *
@@ -2854,9 +2853,9 @@ vips_object_local_array_cb( GObject *parent, VipsObjectLocal *local )
  *
  * t = vips_object_local_array( a, 5 );
  * if( 
- *   vips_add( a, b, &t[0], NULL ) ||
- *   vips_invert( t[0], &t[1], NULL ) ||
- *   vips_add( t[1], t[0], &t[2], NULL ) ||
+ *   vips_add( a, b, &amp;t[0], NULL ) ||
+ *   vips_invert( t[0], &amp;t[1], NULL ) ||
+ *   vips_add( t[1], t[0], &amp;t[2], NULL ) ||
  *   vips_costra( t[2], out, NULL ) )
  *   return( -1 );
  * ]|
@@ -2950,6 +2949,8 @@ vips_object_print_all( void )
 		vips_object_map( 
 			(VipsSListMap2Fn) vips_object_print_all_cb, &n, NULL );
 	}
+
+	vips__type_leak();
 }
 
 static void *

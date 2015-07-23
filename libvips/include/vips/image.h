@@ -89,7 +89,9 @@ typedef enum {
 	VIPS_INTERPRETATION_RGB16 = 25,
 	VIPS_INTERPRETATION_GREY16 = 26,
 	VIPS_INTERPRETATION_MATRIX = 27,
-	VIPS_INTERPRETATION_scRGB = 28
+	VIPS_INTERPRETATION_scRGB = 28,
+	VIPS_INTERPRETATION_HSV = 29,
+	VIPS_INTERPRETATION_LAST = 30
 } VipsInterpretation;
 
 typedef enum {
@@ -350,12 +352,10 @@ GType vips_image_get_type( void );
 /* Has to be guint64 and not size_t/off_t since we have to be able to address
  * huge images on platforms with 32-bit files.
  */
-extern const guint64 vips__image_sizeof_bandformat[];
-
 /* Pixel address calculation macros.
  */
 #define VIPS_IMAGE_SIZEOF_ELEMENT( I ) \
-	(vips__image_sizeof_bandformat[(I)->BandFmt])
+	(vips_format_sizeof((I)->BandFmt))
 #define VIPS_IMAGE_SIZEOF_PEL( I ) \
 	(VIPS_IMAGE_SIZEOF_ELEMENT( I ) * (I)->Bands)
 #define VIPS_IMAGE_SIZEOF_LINE( I ) \
@@ -464,6 +464,7 @@ gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );
 gboolean vips_image_ispartial( VipsImage *image );
 
+VipsImage *vips_image_copy_memory( VipsImage *image );
 int vips_image_wio_input( VipsImage *image );
 int vips_image_pio_input( VipsImage *image );
 int vips_image_pio_output( VipsImage *image );

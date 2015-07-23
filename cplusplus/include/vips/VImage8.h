@@ -558,6 +558,64 @@ public:
 		throw( VError );
 
 	VImage 
+	fliphor( VOption *options = 0 )
+		throw( VError )
+	{
+		return( flip( VIPS_DIRECTION_HORIZONTAL, options ) ); 
+	}
+
+	VImage 
+	flipver( VOption *options = 0 )
+		throw( VError )
+	{
+		return( flip( VIPS_DIRECTION_VERTICAL, options ) ); 
+	}
+
+	VImage 
+	rot90( VOption *options = 0 )
+		throw( VError )
+	{
+		return( rot( VIPS_ANGLE_D90, options ) ); 
+	}
+
+	VImage 
+	rot180( VOption *options = 0 )
+		throw( VError )
+	{
+		return( rot( VIPS_ANGLE_D180, options ) ); 
+	}
+
+	VImage 
+	rot270( VOption *options = 0 )
+		throw( VError )
+	{
+		return( rot( VIPS_ANGLE_D270, options ) ); 
+	}
+
+	VImage 
+	dilate( VImage mask, VOption *options = 0 )
+		throw( VError )
+	{
+		return( morph( mask, VIPS_OPERATION_MORPHOLOGY_DILATE, 
+			options ) ); 
+	}
+
+	VImage 
+	erode( VImage mask, VOption *options = 0 )
+		throw( VError )
+	{
+		return( morph( mask, VIPS_OPERATION_MORPHOLOGY_ERODE, 
+			options ) ); 
+	}
+
+	VImage 
+	median( int size = 3, VOption *options = 0 )
+		throw( VError )
+	{
+		return( rank( size, size, (size * size) / 2, options ) ); 
+	}
+
+	VImage 
 	floor( VOption *options = 0 )
 		throw( VError )
 	{

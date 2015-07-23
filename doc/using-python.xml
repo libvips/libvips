@@ -18,17 +18,45 @@
   <refsect3 id="python-intro">
     <title>Introduction</title>
     <para>
-      VIPS comes with a convenient, high-level Python API based 
+      VIPS comes with a convenient, high-level Python API built on 
       on <code>gobject-introspection</code>. As long as you can get GOI 
-      for your platform, you should be able to use vips. The 
-      <code>Vips.py</code> file 
-      needs to be copied to the overrides directory of your GOI install,
-      and you need to have the vips typelib on your 
-      <code>GI_TYPELIB_PATH</code>. This may already have happened, depending 
-      on your platform. 
+      for your platform, you should be able to use libvips. 
     </para>
 
     <para>
+      To test the binding, start up Python and at the console enter:
+
+<programlisting language="Python">
+>>> from gi.repository import Vips
+>>> x = Vips.Image.new_from_file("/path/to/some/image/file.jpg")
+>>> x.width
+1450
+>>>
+</programlisting>
+
+      <orderedlist>
+        <listitem>
+          <para>
+            If import fails, check you have the Python
+            gobject-introspection packages installed, that you have the
+            libvips typelib installed, and that the typelib is either
+            in the system area or on your <code>GI_TYPELIB_PATH</code>.
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>
+	   If <code>.new_from_file()</code> fails, the vips overrides
+	   have not been found. Make sure <code>Vips.py</code> is in
+	   your system overrides area.
+	  </para>
+	</listitem>
+      </orderedlist>
+    </para>
+
+    <para>
+      Here's a complete example program:
+
 <programlisting language="Python">
 #!/usr/bin/python
 
@@ -48,7 +76,64 @@ im = im.conv(mask)
 im.write_to_file(sys.argv[2])
 </programlisting>
 
-      Reading this example, the first line loads the input file. You can append
+      When Python executes the import line:
+    </para>
+
+    <orderedlist>
+      <listitem>
+        <para>
+          It searches for a file called <code>Vips-x.y.typelib</code>. This 
+          is a binary file generated automatically during libvips build
+          by introspection of the libvips shared library plus scanning
+          of the C headers. It lists all the API entry points, all the
+          types the library uses, and has an extra set of hints for object
+          ownership and reference counting. The typelib is searched for
+          in <code>/usr/lib/gi-repository-1.0</code> and along the path
+          in the environment variable <code>GI_TYPELIB_PATH</code>.
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>
+          It uses the typelib to make a basic binding for libvips. It's
+          just the C API with a little very light mangling, so for
+          example the enum member <code>VIPS_FORMAT_UCHAR</code>
+          of the enum <code>VipsBandFormat</code> becomes
+          <code>Vips.BandFormat.UCHAR</code>.
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>
+          The binding you get can be rather unfriendly, so it also
+          loads a set of overrides from <code>Vips.py</code> in
+          <code>/usr/lib/python2.7/dist-packages/gi/overrides</code>
+          (on my system at least). If you're using python3, it's
+          <code>/usr/lib/python3/dist-packages/gi/overrides</code>.
+          Unfortunately, as far as I know, there is no way to extend
+          this search using environment variables. You MUST have
+          <code>Vips.py</code> in exactly this directory. If you install
+          vips via a package manager this will happen automatically,
+          since vips and pygobject will have been built to the same
+          prefix, but if you are installing vips from source and the
+          prefix does not match, it will not be installed for you,
+          you will need to copy it.
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>
+          Finally, <code>Vips.py</code> makes the rest of the binding. In
+          fact, <code>Vips.py</code> makes almost all the binding: it
+          defines <code>__getattr__</code> on <code>Vips.Image</code>
+          and binds at runtime by searching libvips for an operation of
+          that name. 
+        </para>
+      </listitem>
+    </orderedlist>
+
+    <para>
+      The next line loads the input image. You can append
       load options to the argument list as keyword arguments, for example:
 
 <programlisting language="Python">
@@ -102,29 +187,11 @@ im = im.similarity(scale = 0.9, interpolate = Vips.Interpolate.new("bicubic"))
   <refsect3 id="python-basics">
     <title><code>pyvips8</code> basics</title>
     <para>
-      The Python interface comes in two main parts. First, the C source code 
-      to libvips has been marked up with special comments describing the 
-      interface in a standard way. These comments are read by 
-      gobject-introspection when libvips is compiled and used to generate a 
-      typelib, a description of how to call the library. When your Python 
-      program starts, the import line:
-
-<programlisting language="Python">
-from gi.repository import Vips
-</programlisting>
-
-      loads the typelib and creates Python classes for all the objects and 
-      all the functions in the library. You can then call these functions 
-      from your code, and they will call into libvips for you. C functions 
-      become Python functions in an obvious way: vips_operation_new(), 
-      for example, the constructor for the class #VipsOperation, becomes 
-      <code>Vips.Operation.new()</code>. See the C API docs for details. 
-    </para>
-
-    <para>
-      Using libvips like this is possible, but a bit painful. To make the API 
-      seem more pythonesque, vips includes a set of overrides which form a 
-      layer over the bare functions created by gobject-introspection.
+      As noted above, the Python interface comes in two main parts,
+      an automatically generated binding based on the vips typelib,
+      plus a set of extra features provided by overrides. 
+      The rest of this chapter runs through the features provided by the 
+      overrides.
     </para>
   </refsect3>
 

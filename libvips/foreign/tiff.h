@@ -46,6 +46,7 @@ int vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
 	gboolean squash,
+	gboolean miniswhite,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg );

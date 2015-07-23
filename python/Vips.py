@@ -55,6 +55,7 @@ vips_type_array_image = GObject.GType.from_name("VipsArrayImage")
 vips_type_blob = GObject.GType.from_name("VipsBlob")
 vips_type_image = GObject.GType.from_name("VipsImage")
 vips_type_operation = GObject.GType.from_name("VipsOperation")
+vips_type_ref_string = GObject.GType.from_name("VipsRefString")
 
 def is_2D(value):
     if not isinstance(value, list):
@@ -95,6 +96,7 @@ def imageize(match_image, value):
 # bytes(). 
 
 unpack_types = [[Vips.Blob, lambda x: bytes(x.get())],
+                [Vips.RefString, lambda x: x.get()],
                 [Vips.ArrayDouble, lambda x: x.get()],
                 [Vips.ArrayImage, lambda x: x.get()], 
                 [Vips.ArrayInt, lambda x: x.get()]]
@@ -185,11 +187,12 @@ class Argument(object):
             # don't use .copy(): we want to make a new pipeline with no
             # reference back to the old stuff ... this way we can free the
             # previous image earlier
+            logging.debug('MODIFY argument: copying image')
             new_image = Vips.Image.new_memory()
             value.write(new_image)
             value = new_image
 
-        logging.debug('assigning %s' % self.prop.value_type)
+        logging.debug('assigning %s' % value)
 
         self.op.props.__setattr__(self.name, value)
 
@@ -352,8 +355,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
         if x.flags & enm.OUTPUT and x.flags & enm.REQUIRED:
             out.append(x.get_value())
 
-        # modified input arg ... this will get the result of the copy() we 
-        # did above
+        # modified input arg ... this will get the memory image we made above
         if x.flags & enm.INPUT and x.flags & enm.MODIFY:
             out.append(x.get_value())
 
@@ -586,6 +588,12 @@ class Image(Vips.Image):
         return _call_base(saver, [], kwargs, self, option_string)
 
     # we can use Vips.Image.write_to_memory() directly
+
+    # support with in the most trivial way
+    def __enter__(self):
+        return self
+    def __exit__(self, type, value, traceback):
+        pass
 
     # operator overloads
 
@@ -839,6 +847,18 @@ class Image(Vips.Image):
     def rint(self):
         """Return the nearest integral value."""
         return self.round(Vips.OperationRound.RINT)
+
+    def bandand(self):
+        """AND image bands together."""
+        return self.bandbool(Vips.OperationBoolean.AND)
+
+    def bandor(self):
+        """OR image bands together."""
+        return self.bandbool(Vips.OperationBoolean.OR)
+
+    def bandeor(self):
+        """EOR image bands together."""
+        return self.bandbool(Vips.OperationBoolean.EOR)
 
     def bandsplit(self):
         """Split an n-band image into n separate images."""

@@ -216,8 +216,8 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
  * #VipsThreadPool. 
  *
  * The special value 0 means "default". In this case, the number of threads is
- * set by the environmnt variable VIPS_CONCURRENCY, or if that is not set, the
- * number of threads availble on the hist machine. 
+ * set by the environment variable VIPS_CONCURRENCY, or if that is not set, the
+ * number of threads availble on the host machine. 
  *
  * See also: vips_concurrency_get().
  */

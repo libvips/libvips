@@ -228,6 +228,7 @@ readslide_new( const char *filename, VipsImage *out,
 	const char *error;
 	const char *background;
 	const char * const *properties;
+	char *associated_names;
 
 	if( level && 
 		associated ) {
@@ -377,9 +378,11 @@ readslide_new( const char *filename, VipsImage *out,
 			openslide_get_property_value( rslide->osr,
 			*properties ) );
 
-	associated = g_strjoinv( ", ", (char **)
+	associated_names = g_strjoinv( ", ", (char **)
 		openslide_get_associated_image_names( rslide->osr ) );
-	vips_image_set_string( out, "slide-associated-images", associated );
+	vips_image_set_string( out, 
+		"slide-associated-images", associated_names );
+	VIPS_FREE( associated_names );
 
 	return( rslide );
 }

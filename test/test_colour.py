@@ -30,6 +30,7 @@ colour_colourspaces = [Vips.Interpretation.XYZ,
                        Vips.Interpretation.CMC,
                        Vips.Interpretation.LABS,
                        Vips.Interpretation.SCRGB,
+                       Vips.Interpretation.HSV,
                        Vips.Interpretation.SRGB,
                        Vips.Interpretation.YXY]
 coded_colourspaces = [Vips.Interpretation.LABQ]

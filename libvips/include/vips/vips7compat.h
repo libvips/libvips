@@ -182,7 +182,7 @@ extern "C" {
 
 /* Renamed externs.
  */
-
+extern const guint64 vips__image_sizeof_bandformat[];
 #define im__sizeof_bandfmt vips__image_sizeof_bandformat
 
 /* Renamed functions.
@@ -1140,20 +1140,7 @@ int im__bandalike( const char *domain,
 	VipsImage *in1, VipsImage *in2, VipsImage *out1, VipsImage *out2 );
 int im__formatalike_vec( VipsImage **in, VipsImage **out, int n );
 int im__formatalike( VipsImage *in1, VipsImage *in2, VipsImage *out1, VipsImage *out2 );
-int im__sizealike_vec( VipsImage **in, VipsImage **out, int n );
-int im__sizealike( VipsImage *in1, VipsImage *in2, 
-	VipsImage *out1, VipsImage *out2 );
 
-int im__arith_binary( const char *domain, 
-	VipsImage *in1, VipsImage *in2, VipsImage *out, 
-	int format_table[10], 
-	im_wrapmany_fn fn, void *b );
-int im__arith_binary_const( const char *domain,
-	VipsImage *in, VipsImage *out, 
-	int n, double *c, VipsBandFormat vfmt,
-	int format_table[10], 
-	im_wrapone_fn fn1, im_wrapone_fn fnn );
-int im__value( VipsImage *im, double *value );
 typedef int (*im__wrapscan_fn)( void *p, int n, void *seq, void *a, void *b );
 int im__wrapscan( VipsImage *in, 
 	VipsStartFn start, im__wrapscan_fn scan, VipsStopFn stop,

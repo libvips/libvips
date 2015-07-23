@@ -498,8 +498,9 @@ vips_min_init( VipsMin *min )
  *
  * This operation finds the minimum value in an image. 
  *
- * If the image contains several minimum values, only the first @size 
- * found are returned.
+ * By default it finds the single smallest value. If @size is set >1, it will 
+ * find the @size smallest values. It will stop searching early if has found 
+ * enough values. 
  *
  * It operates on all 
  * bands of the input image: use vips_stats() if you need to find an 
@@ -510,6 +511,8 @@ vips_min_init( VipsMin *min )
  * You can read out the position of the minimum with @x and @y. You can read
  * out arrays of the values and positions of the top @size minima with
  * @out_array, @x_array and @y_array.
+ * These values are returned sorted from 
+ * smallest to largest.
  *
  * See also: vips_min(), vips_stats().
  *

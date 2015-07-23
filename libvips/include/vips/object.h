@@ -636,8 +636,7 @@ VipsObject **vips_object_local_array( VipsObject *parent, int n );
 
 void vips_object_local_cb( VipsObject *vobject, GObject *gobject );
 #define vips_object_local( V, G ) \
-	(g_signal_connect( V, "close", \
-		G_CALLBACK( vips_object_local_cb ), G ), 0)
+	(g_signal_connect( V, "close", G_CALLBACK( vips_object_local_cb ), G ))
 
 void vips_object_set_static( VipsObject *object, gboolean static_object );
 void vips_object_print_all( void );

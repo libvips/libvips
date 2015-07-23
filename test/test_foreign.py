@@ -50,6 +50,11 @@ class TestForeign(unittest.TestCase):
         self.cmyk = self.colour.bandjoin(self.mono)
         self.cmyk = self.cmyk.copy(interpretation = Vips.Interpretation.CMYK)
 
+        im = Vips.Image.new_from_file(self.gif_file)
+	# some libMagick will load this mono image as RGB, some as mono ... test
+        # band 0 to be safe
+        self.onebit = im[0] > 128
+
     # we have test files for formats which have a clear standard
     def file_loader(self, loader, test_file, validate):
         im = Vips.call(loader, test_file)
@@ -90,8 +95,34 @@ class TestForeign(unittest.TestCase):
         x = None
         os.unlink(filename)
 
+    def save_load_buffer(self, saver, loader, im, max_diff = 0):
+        buf = Vips.call(saver, im)
+        x = Vips.call(loader, buf)
+
+        self.assertEqual(im.width, x.width)
+        self.assertEqual(im.height, x.height)
+        self.assertEqual(im.bands, x.bands)
+        self.assertLessEqual((im - x).abs().max(), max_diff)
+
+    def test_vips(self):
+        self.save_load_file("test.v", "", self.colour, 0)
+
+        # check we can save and restore metadata
+        self.colour.write_to_file("test.v")
+        x = Vips.Image.new_from_file("test.v")
+        before_exif = self.colour.get_value("exif-data")
+        after_exif = x.get_value("exif-data")
+
+        self.assertEqual(len(before_exif), len(after_exif))
+        for i in range(len(before_exif)):
+            self.assertEqual(before_exif[i], after_exif[i])
+
+        x = None
+        os.unlink("test.v")
+
     def test_jpeg(self):
-        if not Vips.type_find("VipsForeign", "jpegload"):
+        x = Vips.type_find("VipsForeign", "jpegload")
+        if not x.is_instantiatable():
             print("no jpeg support in this vips, skipping test")
             return
 
@@ -106,11 +137,36 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("jpegload", self.jpeg_file, jpeg_valid)
         self.buffer_loader("jpegload_buffer", self.jpeg_file, jpeg_valid)
+        self.save_load_buffer("jpegsave_buffer", "jpegload_buffer", self.colour,
+                             60)
         self.save_load("%s.jpg", self.mono)
         self.save_load("%s.jpg", self.colour)
 
+        # see if we have exif parsing
+        have_exif = False
+        x = Vips.Image.new_from_file(self.jpeg_file)
+        try:
+            # our test image does have this field
+            y = x.get_value("exif-ifd0-Orientation")
+            have_exif = True
+        except:
+            pass
+
+        if have_exif:
+            # we need a copy of the image to set the new metadata on
+            # otherwise we get caching problems
+            x = x.copy()
+            x.set_value("exif-ifd0-Orientation", "2")
+            x.write_to_file("test.jpg")
+            x = Vips.Image.new_from_file("test.jpg")
+            y = x.get_value("exif-ifd0-Orientation")
+            self.assertEqual(y[0], "2")
+
+            os.unlink("test.jpg")
+
     def test_png(self):
-        if not Vips.type_find("VipsForeign", "pngload"):
+        x = Vips.type_find("VipsForeign", "pngload")
+        if not x.is_instantiatable():
             print("no png support in this vips, skipping test")
             return
 
@@ -123,11 +179,13 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("pngload", self.png_file, png_valid)
         self.buffer_loader("pngload_buffer", self.png_file, png_valid)
+        self.save_load_buffer("pngsave_buffer", "pngload_buffer", self.colour)
         self.save_load("%s.png", self.mono)
         self.save_load("%s.png", self.colour)
 
     def test_tiff(self):
-        if not Vips.type_find("VipsForeign", "tiffload"):
+        x = Vips.type_find("VipsForeign", "tiffload")
+        if not x.is_instantiatable():
             print("no tiff support in this vips, skipping test")
             return
 
@@ -144,6 +202,11 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.tif", self.colour)
         self.save_load("%s.tif", self.cmyk)
 
+        self.save_load("%s.tif", self.onebit)
+        self.save_load("%s.tif[squash]", self.onebit)
+        self.save_load("%s.tif[miniswhite]", self.onebit)
+        self.save_load("%s.tif[squash,miniswhite]", self.onebit)
+
         self.save_load_file("test.tif", "[tile]", self.colour, 0)
         self.save_load_file("test.tif", "[tile,pyramid]", self.colour, 0)
         self.save_load_file("test.tif", 
@@ -154,22 +217,30 @@ class TestForeign(unittest.TestCase):
                             "[tile,tile-width=256]", self.colour, 10)
 
     def test_magickload(self):
-        if not Vips.type_find("VipsForeign", "magickload"):
+        x = Vips.type_find("VipsForeign", "magickload")
+        if not x.is_instantiatable():
             print("no magick support in this vips, skipping test")
             return
 
         def gif_valid(self, im):
             a = im(10, 10)
-            self.assertAlmostEqual(a, [33, 33, 33])
+            # some libMagick produce an RGB for this image, some a mono
+            if len(a) > 1:
+                self.assertAlmostEqual(a, [33, 33, 33])
+                self.assertEqual(im.bands, 3)
+            else:
+                self.assertAlmostEqual(a, [33])
+                self.assertEqual(im.bands, 1)
+
             self.assertEqual(im.width, 159)
             self.assertEqual(im.height, 203)
-            self.assertEqual(im.bands, 3)
 
         self.file_loader("magickload", self.gif_file, gif_valid)
         self.buffer_loader("magickload_buffer", self.gif_file, gif_valid)
 
     def test_webp(self):
-        if not Vips.type_find("VipsForeign", "webpload"):
+        x = Vips.type_find("VipsForeign", "webpload")
+        if not x.is_instantiatable():
             print("no webp support in this vips, skipping test")
             return
 
@@ -182,6 +253,8 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("webpload", self.webp_file, webp_valid)
         self.buffer_loader("webpload_buffer", self.webp_file, webp_valid)
+        self.save_load_buffer("webpsave_buffer", "webpload_buffer", self.colour,
+                             50)
         self.save_load("%s.webp", self.colour)
 
     def test_analyzeload(self):
@@ -195,7 +268,8 @@ class TestForeign(unittest.TestCase):
         self.file_loader("analyzeload", self.analyze_file, analyze_valid)
 
     def test_matload(self):
-        if not Vips.type_find("VipsForeign", "matload"):
+        x = Vips.type_find("VipsForeign", "matload")
+        if not x.is_instantiatable():
             print("no matlab support in this vips, skipping test")
             return
 
@@ -209,7 +283,8 @@ class TestForeign(unittest.TestCase):
         self.file_loader("matload", self.matlab_file, matlab_valid)
 
     def test_openexrload(self):
-        if not Vips.type_find("VipsForeign", "openexrload"):
+        x = Vips.type_find("VipsForeign", "openexrload")
+        if not x.is_instantiatable():
             print("no openexr support in this vips, skipping test")
             return
 
@@ -225,7 +300,8 @@ class TestForeign(unittest.TestCase):
         self.file_loader("openexrload", self.exr_file, exr_valid)
 
     def test_fitsload(self):
-        if not Vips.type_find("VipsForeign", "fitsload"):
+        x = Vips.type_find("VipsForeign", "fitsload")
+        if not x.is_instantiatable():
             print("no fits support in this vips, skipping test")
             return
 
@@ -242,7 +318,8 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.fits", self.mono)
 
     def test_openslideload(self):
-        if not Vips.type_find("VipsForeign", "openslideload"):
+        x = Vips.type_find("VipsForeign", "openslideload")
+        if not x.is_instantiatable():
             print("no openslide support in this vips, skipping test")
             return
 

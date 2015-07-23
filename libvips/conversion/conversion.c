@@ -237,7 +237,11 @@ vips_conversion_operation_init( void )
 	extern GType vips_ifthenelse_get_type( void ); 
 	extern GType vips_recomb_get_type( void ); 
 	extern GType vips_bandmean_get_type( void ); 
+	extern GType vips_bandfold_get_type( void ); 
+	extern GType vips_bandunfold_get_type( void ); 
 	extern GType vips_flatten_get_type( void ); 
+	extern GType vips_premultiply_get_type( void ); 
+	extern GType vips_unpremultiply_get_type( void ); 
 	extern GType vips_bandbool_get_type( void ); 
 	extern GType vips_gaussnoise_get_type( void ); 
 	extern GType vips_grid_get_type( void ); 
@@ -246,6 +250,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_zoom_get_type( void ); 
 	extern GType vips_subsample_get_type( void ); 
 	extern GType vips_msb_get_type( void ); 
+	extern GType vips_byteswap_get_type( void ); 
 #ifdef HAVE_PANGOFT2
 	extern GType vips_text_get_type( void ); 
 #endif /*HAVE_PANGOFT2*/
@@ -276,7 +281,11 @@ vips_conversion_operation_init( void )
 	vips_ifthenelse_get_type();
 	vips_recomb_get_type(); 
 	vips_bandmean_get_type(); 
+	vips_bandfold_get_type(); 
+	vips_bandunfold_get_type(); 
 	vips_flatten_get_type(); 
+	vips_premultiply_get_type(); 
+	vips_unpremultiply_get_type(); 
 	vips_bandbool_get_type(); 
 	vips_gaussnoise_get_type(); 
 	vips_grid_get_type(); 
@@ -285,6 +294,7 @@ vips_conversion_operation_init( void )
 	vips_zoom_get_type(); 
 	vips_subsample_get_type(); 
 	vips_msb_get_type(); 
+	vips_byteswap_get_type(); 
 #ifdef HAVE_PANGOFT2
 	vips_text_get_type(); 
 #endif /*HAVE_PANGOFT2*/

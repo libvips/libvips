@@ -1137,9 +1137,7 @@ im_copy_swap( IMAGE *in, IMAGE *out )
 {
 	VipsImage *x;
 
-	if( vips_copy( in, &x, 
-		"swap", TRUE, 
-		NULL ) )
+	if( vips_byteswap( in, &x, NULL ) )
 		return( -1 );
 	if( vips_image_write( x, out ) ) {
 		g_object_unref( x );
@@ -1155,7 +1153,7 @@ im_copy_set_meta( IMAGE *in, IMAGE *out, const char *field, GValue *value )
 {
 	if( vips_image_write( in, out ) )
 		return( -1 );
-	im_meta_set( out, field, value );
+	(void) im_meta_set( out, field, value );
 
 	return( 0 );
 }

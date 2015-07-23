@@ -584,7 +584,7 @@ vips__analyze_read( const char *filename, VipsImage *out )
 	}
 
 	if( vips_copy( t[0], &t[1], "bands", bands, "format", fmt, NULL ) ||
-		vips_copy( t[1], &t[2], "swap", !vips_amiMSBfirst(), NULL ) ||
+		vips__byteswap_bool( t[1], &t[2], !vips_amiMSBfirst() ) ||
 		vips_image_write( t[2], out ) ) {
 		g_object_unref( x );
 		return( -1 );

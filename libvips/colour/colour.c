@@ -57,19 +57,33 @@
  * spaces, calculate colour differences, and move 
  * to and from device spaces.
  *
+ * All operations process colour from the first few bands and pass other bands
+ * through unaltered. This means you can operate on images with alpha channels
+ * safely. If you move to or from 16-bit RGB, any alpha channels are rescaled
+ * for you.
+ *
  * Radiance images have four 8-bits bands and store 8 bits of R, G and B and
  * another 8 bits of exponent, common to all channels. They are widely used in
  * the HDR imaging community.
  *
- *
  * The colour functions can be divided into three main groups. First, 
  * functions to transform images between the different colour spaces supported 
- * by VIPS: <emphasis>RGB</emphasis>, <emphasis>sRGB</emphasis>,  
- * <emphasis>XYZ</emphasis>, <emphasis>Yxy</emphasis>, 
- * <emphasis>Lab</emphasis>, <emphasis>LabQ</emphasis>, 
- * <emphasis>LabS</emphasis>, <emphasis>LCh</emphasis> and
- * <emphasis>CMC</emphasis>). Use vips_colourspace() to move an image to a
+ * by VIPS: #VIPS_INTERPRETATION_sRGB, #VIPS_INTERPRETATION_scRGB,  
+ * #VIPS_INTERPRETATION_B_W,
+ * #VIPS_INTERPRETATION_XYZ, #VIPS_INTERPRETATION_YXY,  
+ * #VIPS_INTERPRETATION_LAB, 
+ * #VIPS_INTERPRETATION_LCH, and
+ * #VIPS_INTERPRETATION_CMC.
+ *
+ * There are also a set of minor colourspaces which are one of the above in a
+ * slightly different format:
+ * #VIPS_INTERPRETATION_LAB, #VIPS_INTERPRETATION_LABQ, 
+ * #VIPS_INTERPRETATION_LABS, #VIPS_INTERPRETATION_LCH, 
+ * #VIPS_INTERPRETATION_RGB16, and #VIPS_INTERPRETATION_GREY16.
+ *
+ * Use vips_colourspace() to move an image to a
  * target colourspace using the best sequence of colour transform operations. 
+ *
  * Secondly, there are a set of operations for 
  * calculating colour difference metrics. Finally, VIPS wraps LittleCMS and
  * uses it to provide a set of operations for reading and writing images with
@@ -77,105 +91,66 @@
  *
  * This figure shows how the VIPS colour spaces interconvert:
  *
- * <inlinegraphic fileref="interconvert.png" format="PNG" />
+ * <para>
+ *   <inlinegraphic fileref="interconvert.png" format="PNG" />
+ * </para>
  *
  * The colour spaces supported by VIPS are:
  *
- * <itemizedlist>
- *   <listitem>
- *     <para>
- *       <emphasis><code>LabQ</code></emphasis>
+ * * #VIPS_INTERPRETATION_LAB -- CIELAB '76 colourspace with a D65 white. This 
+ *   uses three floats for each band, and bands have the obvious range. 
  *
- *	 This is the principal VIPS colorimetric storage format. 
- * 	 LabQ images have four 8-bit bands and store 10 bits of L and 11 bits 
- * 	 of a and b.
+ *   There are two
+ *   variants, #VIPS_INTERPRETATION_LABQ and #VIPS_INTERPRETATION_LABS, which
+ *   use ints to store values. These are less precise, but can be quicker to
+ *   store and process. 
  *
- * 	 You cannot perform calculations on <code>LabQ</code> images (they are
- * 	 tagged with %VIPS_CODING_LABQ), though a few operations such as
- * 	 vips_extract_area() will work directly with them.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- *       <emphasis><code>LabS</code></emphasis>
+ *   #VIPS_INTERPRETATION_LCH is the same, but with a*b* as polar coordinates.
+ *   Hue is expressed in degrees.
  *
- *	 This format represents coordinates in CIELAB space as a 
- *	 three-band #VIPS_FORMAT_SHORT image, scaled to fit the full range of 
- *	 bits. It is the best format for computation, being relatively 
- *	 compact, quick, and accurate. Colour values expressed in this way 
- *	 are hard to visualise.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- *       <emphasis><code>Lab</code></emphasis>
+ * * #VIPS_INTERPRETATION_XYZ -- CIE XYZ. This uses three floats.
+ *   See #VIPS_D75_X0 and friends for values for the ranges
+ *   under various illuminants.
  *
- * 	 Lab colourspace represents CIELAB colour values with a three-band
- *	 #VIPS_FORMAT_FLOAT image. This is the simplest format for general 
- *	 work: adding the constant 50 to the L channel, for example, has the 
- *	 expected result.
+ *   #VIPS_INTERPRETATION_YXY is the same, but with little x and y. 
  *
- *	 VIPS uses D65 LAB, but you can use other colour temperatures with a
- *	 little effort, see vips_XYZ2Lab().
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- *       <emphasis><code>XYZ</code></emphasis>
+ * * #VIPS_INTERPRETATION_scRGB -- a linear colourspace with the sRGB
+ *   primaries. This is useful if you need linear light and don't care
+ *   much what the primaries are. 
  *
- * 	 CIE XYZ colour space represented as a three-band #VIPS_FORMAT_FLOAT
- *	 image.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- *       <emphasis><code>Yxy</code></emphasis>
+ *   Linearization is performed with the usual sRGB equations, see below.
  *
- * 	 CIE Yxy colour space represented as a three-band #VIPS_FORMAT_FLOAT
- *	 image.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- *       <emphasis><code>RGB</code> / <code>sRGB</code></emphasis>
+ * * #VIPS_INTERPRETATION_sRGB -- the standard sRGB colourspace, see: 
+ *   [wikipedia sRGB](http://en.wikipedia.org/wiki/SRGB).
  *
- * 	 VIPS converts XYZ to and from sRGB using the usual formula:
+ *   This uses three 8-bit values for each of RGB. 
  *
- * 	   http://en.wikipedia.org/wiki/SRGB
+ *   #VIPS_INTERPRETATION_RGB16 is the same, but using three 16-bit values for
+ *   RGB.
  *
- * 	 You can also use vips_icc_transform() and friends to go to and from
- * 	 device space with a generic profile. 
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- *       <emphasis><code>LCh</code></emphasis>
+ *   #VIPS_INTERPRETATION_HSV is sRGB, but in polar coordinates.
+ *   #VIPS_INTERPRETATION_LCH is much better, only use HSV if you have to. 
  *
- * 	 Like <code>Lab</code>, but rectangular <code>ab</code> coordinates 
- * 	 are replaced with 
- * 	 polar <code>Ch</code> (Chroma and hue) coordinates. 
- * 	 Hue angles are expressed in degrees.
- *     </para>
- *   </listitem>
- *   <listitem>
- *     <para>
- *       <emphasis><code>CMC</code></emphasis>
+ * * #VIPS_INTERPRETATION_B_W -- a monochrome image, roughly G from sRGB.
+ *   The grey value is
+ *   calculated in #VIPS_INTERPRETATION_scRGB space with the usual 0.2, 0.7, 0.1
+ *   RGB ratios.
  *
- *       A colour space based on the CMC(1:1) colour difference measurement. 
- *       This is a highly uniform colour space, much better than CIELAB for 
- *       expressing small differences. 
+ *   #VIPS_INTERPRETATION_GREY16 is the same, but using 16-bits.
  *
- * The CMC colourspace is described in "Uniform Colour Space Based on the
- * CMC(l:c) Colour-difference Formula", M R Luo and B Rigg, Journal of the
- * Society of Dyers and Colourists, vol 102, 1986. Distances in this 
- * colourspace approximate, within 10% or so, differences in the CMC(l:c)
- * colour difference formula.
+ * * #VIPS_INTERPRETATION_CMC -- a colour space based on the CMC(1:1) 
+ *   colour difference measurement. This is a highly uniform colour space, 
+ *   much better than CIELAB for expressing small differences. 
  *
- *       You can calculate metrics like CMC(2:1) by scaling the spaces before
- *       finding differences. 
- *     </para>
- *   </listitem>
- * </itemizedlist>
+ *   The CMC colourspace is described in "Uniform Colour Space Based on the
+ *   CMC(l:c) Colour-difference Formula", M R Luo and B Rigg, Journal of the
+ *   Society of Dyers and Colourists, vol 102, 1986. Distances in this 
+ *   colourspace approximate, within 10% or so, differences in the CMC(l:c)
+ *   colour difference formula.
+ *
+ *   You can calculate metrics like CMC(2:1) by scaling the spaces before
+ *   finding differences. 
+ * 
  */
 
 /* Areas under curves for Dxx. 2 degree observer.
@@ -436,7 +411,7 @@ vips_colour_class_init( VipsColourClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "colour";
-	vobject_class->description = _( "colour operations" );
+	vobject_class->description = _( "color operations" );
 	vobject_class->build = vips_colour_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
@@ -497,7 +472,7 @@ vips_colour_transform_class_init( VipsColourTransformClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "space";
-	vobject_class->description = _( "colour space transformations" );
+	vobject_class->description = _( "color space transformations" );
 	vobject_class->build = vips_colour_transform_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
@@ -589,7 +564,7 @@ vips_colour_code_class_init( VipsColourCodeClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "code";
-	vobject_class->description = _( "change colour coding" );
+	vobject_class->description = _( "change color coding" );
 	vobject_class->build = vips_colour_code_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
@@ -602,7 +577,9 @@ vips_colour_code_class_init( VipsColourCodeClass *class )
 static void
 vips_colour_code_init( VipsColourCode *code )
 {
+	code->input_coding = VIPS_CODING_NONE;
 	code->input_interpretation = VIPS_INTERPRETATION_ERROR;
+	code->input_format = VIPS_FORMAT_NOTSET;
 }
 
 G_DEFINE_ABSTRACT_TYPE( VipsColourDifference, vips_colour_difference, 
@@ -683,7 +660,7 @@ vips_colour_difference_class_init( VipsColourDifferenceClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "difference";
-	vobject_class->description = _( "calculate colour difference" );
+	vobject_class->description = _( "calculate color difference" );
 	vobject_class->build = vips_colour_difference_build;
 
 	VIPS_ARG_IMAGE( class, "left", 1, 
@@ -737,7 +714,10 @@ vips_colour_operation_init( void )
 	extern GType vips_LabQ2sRGB_get_type( void ); 
 	extern GType vips_XYZ2sRGB_get_type( void ); 
 	extern GType vips_sRGB2scRGB_get_type( void ); 
+	extern GType vips_sRGB2HSV_get_type( void ); 
+	extern GType vips_HSV2sRGB_get_type( void ); 
 	extern GType vips_scRGB2XYZ_get_type( void ); 
+	extern GType vips_scRGB2BW_get_type( void ); 
 	extern GType vips_XYZ2scRGB_get_type( void ); 
 	extern GType vips_scRGB2sRGB_get_type( void ); 
 #if defined(HAVE_LCMS) || defined(HAVE_LCMS2)
@@ -769,6 +749,9 @@ vips_colour_operation_init( void )
 	vips_LabQ2sRGB_get_type();
 	vips_sRGB2scRGB_get_type();
 	vips_scRGB2XYZ_get_type();
+	vips_scRGB2BW_get_type();
+	vips_sRGB2HSV_get_type(); 
+	vips_HSV2sRGB_get_type(); 
 	vips_XYZ2scRGB_get_type();
 	vips_scRGB2sRGB_get_type();
 #if defined(HAVE_LCMS) || defined(HAVE_LCMS2)

@@ -13,7 +13,19 @@
 
 
 
-- does cplusplus need flipver() etc.?
+- colour needs to split _build() into preprocess / process / postprocess
+  phases
+
+  in icc_import, for example, we want to check that the supplied profile is
+  compatible with the input image as it will be when unpacked and ready for
+  process_line 
+
+  see vips_image_expected_bands() in icc_transform.c for the current hacky
+  solution
+
+
+
+- does ruby need to unpack RefString as well? what about C++?
 
 - threadpool recyling might be useful for dzsave?
 
@@ -31,9 +43,6 @@
 	im_maxpos(sub)
 
   then im__chkpair() runs that 20 times, then loops ... oh dear
-
-- make a crappy gir_ffi patch to add unset for GValue, perhaps it will produce
-  a response
 
 - perhaps im_maxpos_subpel() / im_minpos_subpel() should be undeprecated,
   useful with vips_fastcor()

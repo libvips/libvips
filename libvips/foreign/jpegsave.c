@@ -91,6 +91,18 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	gboolean no_subsample;
 
+	/* Apply trellis quantisation to each 8x8 block.
+	 */
+	gboolean trellis_quant;
+
+	/* Apply overshooting to samples with extreme values e.g. 0 & 255 for 8-bit.
+	 */
+	gboolean overshoot_deringing;
+
+	/* Split the spectrum of DCT coefficients into separate scans.
+	 */
+	gboolean optimize_scans;
+
 } VipsForeignSaveJpeg;
 
 typedef VipsForeignSaveClass VipsForeignSaveJpegClass;
@@ -161,6 +173,27 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, no_subsample ),
 		FALSE );
 
+	VIPS_ARG_BOOL( class, "trellis_quant", 15,
+		_( "Trellis quantisation" ),
+		_( "Apply trellis quantisation to each 8x8 block" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, trellis_quant ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "overshoot_deringing", 16,
+		_( "Overshoot de-ringing" ),
+		_( "Apply overshooting to samples with extreme values" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, overshoot_deringing ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "optimize_scans", 17,
+		_( "Optimize scans" ),
+		_( "Split the spectrum of DCT coefficients into separate scans" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, optimize_scans ),
+		FALSE );
+
 }
 
 static void
@@ -196,7 +229,8 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 
 	if( vips__jpeg_write_file( save->ready, file->filename,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, save->strip, jpeg->no_subsample ) )
+		jpeg->interlace, save->strip, jpeg->no_subsample,
+		jpeg->trellis_quant, jpeg->overshoot_deringing, jpeg->optimize_scans) )
 		return( -1 );
 
 	return( 0 );
@@ -259,7 +293,8 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 
 	if( vips__jpeg_write_buffer( save->ready, 
 		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, save->strip, jpeg->no_subsample ) )
+		jpeg->interlace, save->strip, jpeg->no_subsample,
+		jpeg->trellis_quant, jpeg->overshoot_deringing, jpeg->optimize_scans) )
 		return( -1 );
 
 	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );
@@ -321,7 +356,8 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 
 	if( vips__jpeg_write_buffer( save->ready, 
 		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, save->strip, jpeg->no_subsample ) )
+		jpeg->interlace, save->strip, jpeg->no_subsample,
+		jpeg->trellis_quant, jpeg->overshoot_deringing, jpeg->optimize_scans) )
 		return( -1 );
 
 	printf( "Content-length: %zd\r\n", olen );

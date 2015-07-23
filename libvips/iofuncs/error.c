@@ -94,7 +94,7 @@
  *   // vips_image_new_from_file() will set a message, we don't need to
  *   return( -1 );
  *
- * if( vips_image_get_width( im ) < 100 ) {
+ * if( vips_image_get_width( im ) &lt; 100 ) {
  *   // we have detected an error, we must set a message
  *   vips_error( "myprogram", "%s", _( "width too small" ) );
  *   return( -1 );
@@ -445,12 +445,9 @@ vips_info( const char *domain, const char *fmt, ... )
  * @fmt: printf()-style format string for the message
  * @ap: arguments to the format string
  *
- * Sends a formatted warning message to stderr. If you define the
- * environment variable VIPS_WARNING, these message are surpressed.
+ * Exactly as vips_warn(), but takes a va_list argument. 
  *
- * Warning messages are used to report things like overflow counts.
- *
- * See also: vips_info(), vips_warn().
+ * See also: vips_warn().
  */
 void 
 vips_vwarn( const char *domain, const char *fmt, va_list ap )
@@ -477,7 +474,7 @@ vips_vwarn( const char *domain, const char *fmt, va_list ap )
  * @...: arguments to the format string
  *
  * Sends a formatted warning message to stderr. If you define the
- * environment variable IM_WARNING, these message are surpressed.
+ * environment variable VIPS_WARNING, these message are supressed.
  *
  * Warning messages are used to report things like overflow counts.
  *
@@ -1285,6 +1282,8 @@ vips_check_hist( const char *domain, VipsImage *im )
 int
 vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
 {
+	VipsImage *t;
+
 	*out = NULL;
 
 	if( im->Xsize > 100000 || 
@@ -1298,10 +1297,13 @@ vips_check_matrix( const char *domain, VipsImage *im, VipsImage **out )
 		return( -1 );
 	}
 
-	if( vips_cast( im, out, VIPS_FORMAT_DOUBLE, NULL ) )
+	if( vips_cast( im, &t, VIPS_FORMAT_DOUBLE, NULL ) )
                 return( -1 );
-        if( vips_image_wio_input( *out ) )
-                return( -1 );
+	if( !(*out = vips_image_copy_memory( t )) ) {
+		VIPS_UNREF( t );
+		return( -1 );
+	}
+	VIPS_UNREF( t );
 
 	return( 0 );
 }

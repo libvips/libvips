@@ -499,7 +499,7 @@ vips_insert_class_init( VipsInsertClass *class )
 
 	VIPS_ARG_BOXED( class, "background", 5, 
 		_( "Background" ), 
-		_( "Colour for new pixels" ),
+		_( "Color for new pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsInsert, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );

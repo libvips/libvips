@@ -17,6 +17,8 @@
  * 	- now handles many bands, complex, faster
  * 27/7/14
  * 	- fix a race ... did not merge states if max was equal
+ * 26/3/15
+ * 	- avoid NaN, thanks Paul
  */
 
 /*
@@ -62,32 +64,15 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-/* Get the value of pixel (0, 0). Use this to init the min/max value for
- * im_max()/im_stats()/etc.
- */
-int
-im__value( IMAGE *im, double *value )
-{
-	IMAGE *t;
-
-	if( !(t = im_open( "im__value", "p" )) )
-		return( -1 );
-	if( im_extract_areabands( im, t, 0, 0, 1, 1, 0, 1 ) ||
-		im_avg( t, value ) ) {
-		im_close( t );
-		return( -1 );
-	}
-	im_close( t );
-
-	return( 0 );
-}
-
 /* A position and maximum.
  */
 typedef struct _Maxposavg {
 	int xpos;
 	int ypos;
 	double max;
+
+	/* occurences == 0 means we found no points, or we are uninitialised.
+	 */
 	int occurences;
 } Maxposavg;
 
@@ -116,7 +101,9 @@ maxposavg_stop( void *seq, void *a, void *b )
 
 	/* Merge.
 	 */
-	if( maxposavg->max > global_maxposavg->max ) 
+	if( maxposavg->occurences == 0 ) {
+	}
+	else if( maxposavg->max > global_maxposavg->max ) 
 		*global_maxposavg = *maxposavg;
 	else if( maxposavg->max == global_maxposavg->max ) {
 		global_maxposavg->xpos += maxposavg->xpos;
@@ -129,7 +116,9 @@ maxposavg_stop( void *seq, void *a, void *b )
 	return( 0 );
 }
 
-#define LOOP( TYPE ) { \
+/* int loop.
+ */
+#define ILOOP( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
 	TYPE m; \
 	\
@@ -138,22 +127,53 @@ maxposavg_stop( void *seq, void *a, void *b )
 	for( x = 0; x < sz; x++ ) { \
 		TYPE v = p[x]; \
 		\
-		if( v == m ) { \
-			xpos += r->left + x / reg->im->Bands; \
-			ypos += r->top + y; \
-			occurences += 1; \
-		} \
-		else if( v > m ) { \
+		if( occurences == 0 || v > m ) { \
 			m = v; \
 			xpos = r->left + x / reg->im->Bands; \
 			ypos = r->top + y; \
 			occurences = 1; \
+		} \
+		else if( v == m ) { \
+			xpos += r->left + x / reg->im->Bands; \
+			ypos += r->top + y; \
+			occurences += 1; \
 		} \
 	} \
 	\
 	max = m; \
 } 
 
+/* float/double loop ... avoid NaN.
+ */
+#define FLOOP( TYPE ) { \
+	TYPE *p = (TYPE *) in; \
+	TYPE m; \
+	\
+	m = max; \
+	\
+	for( x = 0; x < sz; x++ ) { \
+		TYPE v = p[x]; \
+		\
+		if( isnan( v ) ) { \
+		} \
+		else if( occurences == 0 || v > m ) { \
+			m = v; \
+			xpos = r->left + x / reg->im->Bands; \
+			ypos = r->top + y; \
+			occurences = 1; \
+		} \
+		else if( v == m ) { \
+			xpos += r->left + x / reg->im->Bands; \
+			ypos += r->top + y; \
+			occurences += 1; \
+		} \
+	} \
+	\
+	max = m; \
+} 
+
+/* complex/dpcomplex loop ... avoid NaN.
+ */
 #define CLOOP( TYPE ) { \
 	TYPE *p = (TYPE *) in; \
 	\
@@ -165,16 +185,18 @@ maxposavg_stop( void *seq, void *a, void *b )
 		p += 2; \
 		mod = re * re + im * im; \
 		\
-		if( mod == max ) { \
-			xpos += r->left + x / reg->im->Bands; \
-			ypos += r->top + y; \
-			occurences += 1; \
+		if( isnan( mod ) ) { \
 		} \
-		else if( mod > max ) { \
+		else if( occurences == 0 || mod > max ) { \
 			max = mod; \
 			xpos = r->left + x / reg->im->Bands; \
 			ypos = r->top + y; \
 			occurences = 1; \
+		} \
+		else if( mod == max ) { \
+			xpos += r->left + x / reg->im->Bands; \
+			ypos += r->top + y; \
+			occurences += 1; \
 		} \
 	} \
 } 
@@ -201,14 +223,14 @@ maxposavg_scan( REGION *reg, void *seq, void *a, void *b, gboolean *stop )
 		VipsPel *in = VIPS_REGION_ADDR( reg, r->left, r->top + y ); 
 
 		switch( reg->im->BandFmt ) {
-		case IM_BANDFMT_UCHAR:		LOOP( unsigned char ); break; 
-		case IM_BANDFMT_CHAR:		LOOP( signed char ); break; 
-		case IM_BANDFMT_USHORT:		LOOP( unsigned short ); break; 
-		case IM_BANDFMT_SHORT:		LOOP( signed short ); break; 
-		case IM_BANDFMT_UINT:		LOOP( unsigned int ); break;
-		case IM_BANDFMT_INT:		LOOP( signed int ); break; 
-		case IM_BANDFMT_FLOAT:		LOOP( float ); break; 
-		case IM_BANDFMT_DOUBLE:		LOOP( double ); break; 
+		case IM_BANDFMT_UCHAR:		ILOOP( unsigned char ); break; 
+		case IM_BANDFMT_CHAR:		ILOOP( signed char ); break; 
+		case IM_BANDFMT_USHORT:		ILOOP( unsigned short ); break; 
+		case IM_BANDFMT_SHORT:		ILOOP( signed short ); break; 
+		case IM_BANDFMT_UINT:		ILOOP( unsigned int ); break;
+		case IM_BANDFMT_INT:		ILOOP( signed int ); break; 
+		case IM_BANDFMT_FLOAT:		FLOOP( float ); break; 
+		case IM_BANDFMT_DOUBLE:		FLOOP( double ); break; 
 		case IM_BANDFMT_COMPLEX:	CLOOP( float ); break; 
 		case IM_BANDFMT_DPCOMPLEX:	CLOOP( double ); break; 
 
@@ -251,34 +273,32 @@ im_maxpos_avg( IMAGE *in, double *xpos, double *ypos, double *out )
 
 	if( !(global_maxposavg = IM_NEW( in, Maxposavg )) ) 
 		return( -1 );
-	if( im__value( in, &global_maxposavg->max ) )
-		return( -1 );
-	global_maxposavg->xpos = 0;
-	global_maxposavg->ypos = 0;
-	global_maxposavg->occurences = 1;
-
-	/* We use square mod for scanning, for speed.
-	 */
-	if( vips_band_format_iscomplex( in->BandFmt ) )
-		global_maxposavg->max *= global_maxposavg->max;
+	global_maxposavg->occurences = 0;
 
 	if( vips_sink( in, maxposavg_start, maxposavg_scan, maxposavg_stop, 
 		in, global_maxposavg ) ) 
 		return( -1 );
 
-	/* Back to modulus.
-	 */
-	if( vips_band_format_iscomplex( in->BandFmt ) )
-		global_maxposavg->max = sqrt( global_maxposavg->max );
+	if( global_maxposavg->occurences == 0 ) {
+		*xpos = nan("");
+		*ypos = nan("");
+		*out = nan("");
+	} 
+	else {
+		/* Back to modulus.
+		 */
+		if( vips_band_format_iscomplex( in->BandFmt ) )
+			global_maxposavg->max = sqrt( global_maxposavg->max );
 
-	if( xpos )
-		*xpos = (double) global_maxposavg->xpos / 
-			global_maxposavg->occurences;
-	if( ypos )
-		*ypos = (double) global_maxposavg->ypos / 
-			global_maxposavg->occurences;
-	if( out )
-		*out = global_maxposavg->max;
+		if( xpos )
+			*xpos = (double) global_maxposavg->xpos / 
+				global_maxposavg->occurences;
+		if( ypos )
+			*ypos = (double) global_maxposavg->ypos / 
+				global_maxposavg->occurences;
+		if( out )
+			*out = global_maxposavg->max;
+	}
 
 	return( 0 );
 }

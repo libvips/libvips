@@ -83,12 +83,12 @@ vips_drawink_class_init( VipsDrawinkClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "drawink";
-	vobject_class->description = _( "Draw with ink operations" );
+	vobject_class->description = _( "draw with ink operations" );
 	vobject_class->build = vips_drawink_build;
 
 	VIPS_ARG_BOXED( class, "ink", 2, 
 		_( "Ink" ), 
-		_( "Colour for pixels" ),
+		_( "Color for pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsDrawink, ink ),
 		VIPS_TYPE_ARRAY_DOUBLE );

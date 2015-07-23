@@ -67,6 +67,11 @@
  * 	- add stream output
  * 9/9/14
  * 	- support "none" as a resolution unit
+ * 8/7/15
+ * 	- omit oversized jpeg markers
+ * 15/7/15
+ * 	- exif tags use @name, not @title
+* 	- set arbitrary exif tags from metadata
  */
 
 /*
@@ -111,7 +116,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <setjmp.h>
+#include <math.h>
 
 #include <vips/vips.h>
 #include <vips/debug.h>
@@ -246,7 +253,7 @@ vips_exif_set_int( ExifData *ed,
 	offset = component * sizeof_component;
 
 	VIPS_DEBUG_MSG( "vips_exif_set_int: %s = %d\n",
-		exif_tag_get_title( entry->tag ), value );
+		exif_tag_get_name( entry->tag ), value );
 
 	if( entry->format == EXIF_FORMAT_SHORT ) 
 		exif_set_short( entry->data + offset, bo, value );
@@ -332,7 +339,7 @@ vips_exif_set_rational( ExifData *ed,
 	offset = component * sizeof_component;
 
 	VIPS_DEBUG_MSG( "vips_exif_set_rational: %s = \"%s\"\n",
-		exif_tag_get_title( entry->tag ), value );
+		exif_tag_get_name( entry->tag ), value );
 
 	if( entry->format == EXIF_FORMAT_RATIONAL ) {
 		ExifRational rv;
@@ -386,14 +393,14 @@ vips_exif_set_double( ExifData *ed,
 	offset = component * sizeof_component;
 
 	VIPS_DEBUG_MSG( "vips_exif_set_double: %s = %g\n",
-		exif_tag_get_title( entry->tag ), value );
+		exif_tag_get_name( entry->tag ), value );
 
 	if( entry->format == EXIF_FORMAT_RATIONAL ) {
 		ExifRational rv;
 
 		rv = exif_get_rational( entry->data + offset, bo );
 		old_value = (double) rv.numerator / rv.denominator;
-		if( abs( old_value - value ) > 0.0001 ) {
+		if( fabs( old_value - value ) > 0.0001 ) {
 			vips_exif_double_to_rational( value, &rv ); 
 
 			VIPS_DEBUG_MSG( "vips_exif_set_double: %u / %u\n", 
@@ -408,7 +415,7 @@ vips_exif_set_double( ExifData *ed,
 
 		srv = exif_get_srational( entry->data + offset, bo );
 		old_value = (double) srv.numerator / srv.denominator;
-		if( abs( old_value - value ) > 0.0001 ) {
+		if( fabs( old_value - value ) > 0.0001 ) {
 			vips_exif_double_to_srational( value, &srv ); 
 
 			VIPS_DEBUG_MSG( "vips_exif_set_double: %d / %d\n", 
@@ -581,49 +588,64 @@ vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 	}
 }
 
-typedef struct _VipsExif {
-	VipsImage *image;
-	ExifData *ed;
-	ExifContent *content;
-} VipsExif;
-
-static void
-vips_exif_update_entry( ExifEntry *entry, VipsExif *ve )
+static void 
+vips_exif_set_entry( ExifData *ed, ExifEntry *entry, 
+	unsigned long component, void *data )
 {
-	char name[256];
-	const char *value;
+	const char *string = (const char *) data; 
 
-	vips_snprintf( name, 256, "exif-ifd%d-%s", 
-		exif_entry_get_ifd( entry ),
-		exif_tag_get_title( entry->tag ) );
-	if( vips_image_get_typeof( ve->image, name ) ) {
-		(void) vips_image_get_string( ve->image, name, &value );
-		vips_exif_from_s( ve->ed, entry, value ); 
-	}
-	else
-		exif_content_remove_entry( ve->content, entry );
+	vips_exif_from_s( ed, entry, string ); 
 }
 
-static void
-vips_exif_update_content( ExifContent *content, VipsExif *ve )
+static void *
+vips_exif_image_field( VipsImage *image, 
+	const char *field, GValue *value, void *data )
 {
-	ve->content = content;
-        exif_content_foreach_entry( content, 
-		(ExifContentForeachEntryFunc) vips_exif_update_entry, ve );
+	ExifData *ed = (ExifData *) data;
+
+	const char *string;
+	int ifd;
+	const char *p;
+	ExifTag tag;
+
+	if( !vips_isprefix( "exif-ifd", field ) ) 
+		return( NULL );
+
+	/* value must be a string.
+	 */
+	if( vips_image_get_string( image, field, &string ) ) {
+		vips_warn( "VipsJpeg", _( "bad exif meta \"%s\"" ), field );
+		return( NULL ); 
+	}
+
+	p = field + strlen( "exif-ifd" );
+	ifd = atoi( p ); 
+
+	for( ; isdigit( *p ); p++ )
+		;
+	if( *p != '-' ) {
+		vips_warn( "VipsJpeg", _( "bad exif meta \"%s\"" ), field );
+		return( NULL ); 
+	}
+
+	if( !(tag = exif_tag_from_name( p + 1 )) ) {
+		vips_warn( "VipsJpeg", _( "bad exif meta \"%s\"" ), field );
+		return( NULL ); 
+	}
+
+	write_tag( ed, ifd, tag, vips_exif_set_entry, (void *) string );
+
+	return( NULL ); 
 }
 
 static void
 vips_exif_update( ExifData *ed, VipsImage *image )
 {
-	VipsExif ve;
-
 	VIPS_DEBUG_MSG( "vips_exif_update: \n" );
 
-	ve.image = image;
-	ve.ed = ed;
-	exif_data_foreach_content( ed, 
-		(ExifDataForeachContentFunc) vips_exif_update_content, &ve );
+	vips_image_map( image, vips_exif_image_field, ed );
 }
+
 #endif /*HAVE_EXIF*/
 
 static int
@@ -637,12 +659,28 @@ write_blob( Write *write, const char *field, int app )
 			(void *) &data, &data_length ) )
 			return( -1 );
 
+		/* Single jpeg markers can only hold 64kb, large objects must
+		 * be split into multiple markers.
+		 *
+		 * Unfortunately, how this splitting is done depends on the
+		 * data type. For example, ICC and XMP have completely 
+		 * different ways of doing this.
+		 *
+		 * For now, just ignore oversize objects and warn.
+		 */
+		if( data_length > 65530 ) 
+			vips_warn( "VipsJpeg", _( "field \"%s\" is too large "
+				"for a single JPEG marker, ignoring" ), 
+				field );
+		else {
 #ifdef DEBUG
-		printf( "write_blob: attaching %zd bytes of %s\n", 
-			data_length, field );
+			printf( "write_blob: attaching %zd bytes of %s\n", 
+				data_length, field );
 #endif /*DEBUG*/
 
-		jpeg_write_marker( &write->cinfo, app, data, data_length );
+			jpeg_write_marker( &write->cinfo, app, 
+				data, data_length );
+		}
 	}
 
 	return( 0 );
@@ -849,8 +887,7 @@ write_jpeg_block( VipsRegion *region, VipsRect *area, void *a )
 		write->row_pointer[i] = (JSAMPROW) 
 			VIPS_REGION_ADDR( region, 0, area->top + i );
 
-	/* We are running in a background thread. We need to catch any
-	 * longjmp()s from jpeg_write_scanlines() here.
+	/* Catch any longjmp()s from jpeg_write_scanlines() here.
 	 */
 	if( setjmp( write->eman.jmp ) ) 
 		return( -1 );
@@ -865,7 +902,8 @@ write_jpeg_block( VipsRegion *region, VipsRect *area, void *a )
 static int
 write_vips( Write *write, int qfac, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
-	gboolean no_subsample )
+	gboolean no_subsample, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans )
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -913,6 +951,14 @@ write_vips( Write *write, int qfac, const char *profile,
 	if( !(write->row_pointer = VIPS_ARRAY( NULL, in->Ysize, JSAMPROW )) )
 		return( -1 );
 
+#ifdef HAVE_JPEG_EXT_PARAMS
+	/* Reset compression profile to libjpeg defaults
+	 */
+	if( jpeg_c_int_param_supported( &write->cinfo, JINT_COMPRESS_PROFILE ) ) {
+		jpeg_c_set_int_param( &write->cinfo, JINT_COMPRESS_PROFILE, JCP_FASTEST );
+	}
+#endif
+
 	/* Rest to default. 
 	 */
         jpeg_set_defaults( &write->cinfo );
@@ -921,6 +967,64 @@ write_vips( Write *write, int qfac, const char *profile,
  	/* Compute optimal Huffman coding tables.
 	 */
 	write->cinfo.optimize_coding = optimize_coding;
+
+#ifdef HAVE_JPEG_EXT_PARAMS
+	/* Apply trellis quantisation to each 8x8 block. Infers "optimize_coding".
+	 */
+	if( trellis_quant ) {
+		if ( jpeg_c_bool_param_supported(
+			&write->cinfo, JBOOLEAN_TRELLIS_QUANT ) ) {
+			jpeg_c_set_bool_param( &write->cinfo,
+				JBOOLEAN_TRELLIS_QUANT, TRUE );
+			write->cinfo.optimize_coding = TRUE;
+		}
+		else {
+			vips_warn( "vips2jpeg", "%s", _( "trellis_quant unsupported" ) );
+		}
+	}
+	/* Apply overshooting to samples with extreme values e.g. 0 & 255 for 8-bit.
+	 */
+	if( overshoot_deringing ) {
+		if ( jpeg_c_bool_param_supported(
+			&write->cinfo, JBOOLEAN_OVERSHOOT_DERINGING ) ) {
+			jpeg_c_set_bool_param( &write->cinfo,
+				JBOOLEAN_OVERSHOOT_DERINGING, TRUE );
+		}
+		else {
+			vips_warn( "vips2jpeg", "%s", _( "overshoot_deringing unsupported" ) );
+		}
+	}
+	/* Split the spectrum of DCT coefficients into separate scans.
+	 * Requires progressive output. Must be set before jpeg_simple_progression.
+	 */
+	if( optimize_scans ) {
+		if( progressive ) {
+			if( jpeg_c_bool_param_supported(
+				&write->cinfo, JBOOLEAN_OPTIMIZE_SCANS ) ) {
+				jpeg_c_set_bool_param( &write->cinfo, JBOOLEAN_OPTIMIZE_SCANS, TRUE );
+			}
+			else {
+				vips_warn( "vips2jpeg", "%s", _( "Ignoring optimize_scans" ) );
+			}
+		}
+		else {
+			vips_warn( "vips2jpeg", "%s",
+				_( "Ignoring optimize_scans for baseline" ) );
+		}
+	}
+#else
+	/* Using jpeglib.h without extension parameters, warn of ignored options.
+	 */
+	if ( trellis_quant ) {
+		vips_warn( "vips2jpeg", "%s", _( "Ignoring trellis_quant" ) );
+	}
+	if ( overshoot_deringing ) {
+		vips_warn( "vips2jpeg", "%s", _( "Ignoring overshoot_deringing" ) );
+	}
+	if ( optimize_scans ) {
+		vips_warn( "vips2jpeg", "%s", _( "Ignoring optimize_scans" ) );
+	}
+#endif
 
 	/* Enable progressive write.
 	 */
@@ -986,7 +1090,8 @@ int
 vips__jpeg_write_file( VipsImage *in, 
 	const char *filename, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
-	gboolean no_subsample )
+	gboolean no_subsample, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans )
 {
 	Write *write;
 
@@ -1017,8 +1122,8 @@ vips__jpeg_write_file( VipsImage *in,
 	/* Convert!
 	 */
 	if( write_vips( write, 
-		Q, profile, optimize_coding, progressive, strip, 
-		no_subsample ) ) {
+		Q, profile, optimize_coding, progressive, strip, no_subsample,
+		trellis_quant, overshoot_deringing, optimize_scans ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
@@ -1266,7 +1371,8 @@ int
 vips__jpeg_write_buffer( VipsImage *in, 
 	void **obuf, size_t *olen, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean no_subsample )
+	gboolean strip, gboolean no_subsample, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans )
 {
 	Write *write;
 
@@ -1296,8 +1402,8 @@ vips__jpeg_write_buffer( VipsImage *in,
 	/* Convert!
 	 */
 	if( write_vips( write, 
-		Q, profile, optimize_coding, progressive, strip, 
-		no_subsample ) ) {
+		Q, profile, optimize_coding, progressive, strip, no_subsample,
+		trellis_quant, overshoot_deringing, optimize_scans ) ) {
 		write_destroy( write );
 
 		return( -1 );

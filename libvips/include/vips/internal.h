@@ -221,6 +221,8 @@ int vips_check_coding_labq( const char *domain, VipsImage *im );
 int vips_check_coding_rad( const char *domain, VipsImage *im );
 int vips_check_bands_3ormore( const char *domain, VipsImage *im );
 
+int vips__byteswap_bool( VipsImage *in, VipsImage **out, gboolean swap );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

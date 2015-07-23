@@ -63,13 +63,13 @@
  * VipsBuf buf = VIPS_BUF_STATIC (txt);
  * int i;
  *
- * vips_buf_appends (&buf, "Numbers are: ");
- * for (i = 0; i < array_length; i++) {
- *   if (i > 0)
- *     vips_buf_appends (&buf, ", ");
- *   vips_buf_appendg (&buf, array[i]);
+ * vips_buf_appends (&amp;buf, "Numbers are: ");
+ * for (i = 0; i &lt; array_length; i++) {
+ *   if (i &gt; 0)
+ *     vips_buf_appends (&amp;buf, ", ");
+ *   vips_buf_appendg (&amp;buf, array[i]);
  * }
- * printf ("%s", vips_buf_all (&buf));
+ * printf ("%s", vips_buf_all (&amp;buf));
  * ]|
  */
 
@@ -175,7 +175,7 @@ vips_buf_set_static( VipsBuf *buf, char *base, int mx )
  * char txt[256];
  * VipsBuf buf;
  * 
- * vips_buf_init_static (&buf, txt, 256);
+ * vips_buf_init_static (&amp;buf, txt, 256);
  * ]|
  * 
  * Static buffers don't need to be freed when they go out of scope, but their
@@ -231,7 +231,7 @@ vips_buf_set_dynamic( VipsBuf *buf, int mx )
  * |[
  * VipsBuf buf;
  * 
- * vips_buf_init_synamic (&buf, 256);
+ * vips_buf_init_synamic (&amp;buf, 256);
  * ]|
  *
  * Dynamic buffers must be freed with vips_buf_destroy(), but their size can

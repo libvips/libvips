@@ -41,6 +41,7 @@ libvips/colour/Lab2XYZ.c
 libvips/colour/LCh2Lab.c
 libvips/colour/LCh2UCS.c
 libvips/colour/dE00.c
+libvips/colour/scRGB2BW.c
 libvips/colour/scRGB2XYZ.c
 libvips/colour/icc_transform.c
 libvips/colour/dECMC.c
@@ -143,6 +144,7 @@ libvips/draw/draw_flood.c
 libvips/draw/draw.c
 libvips/draw/draw_rect.c
 libvips/draw/draw_mask.c
+libvips/dummy.c
 libvips/foreign/jpeg2vips.c
 libvips/foreign/radiance.c
 libvips/foreign/vips2jpeg.c
@@ -206,6 +208,7 @@ libvips/histogram/hist_match.c
 libvips/histogram/hist_unary.c
 libvips/histogram/hist_ismonotonic.c
 libvips/histogram/percent.c
+libvips/introspect.c
 libvips/iofuncs/gate.c
 libvips/iofuncs/window.c
 libvips/iofuncs/base64.c
@@ -277,9 +280,13 @@ tools/vipsthumbnail.c
 libvipsCC/VDisplay.cc
 libvipsCC/VError.cc
 libvipsCC/VImage.cc
+libvipsCC/vipsc++.cc
 libvipsCC/VMask.cc
+libvips/resample/dummy2.cc
 cplusplus/include/vips/VImage8.h
+cplusplus/include/vips/VInterpolate8.h
 cplusplus/include/vips/VError8.h
+cplusplus/include/vips/vips-operators.h
 libvips/arithmetic/unaryconst.h
 libvips/arithmetic/nary.h
 libvips/arithmetic/binary.h
@@ -309,6 +316,7 @@ libvips/foreign/analyze2vips.h
 libvips/foreign/jpeg.h
 libvips/foreign/fits.h
 libvips/foreign/dbh.h
+libvips/foreign/dzsave.h
 libvips/foreign/vipsjpeg.h
 libvips/foreign/openslide2vips.h
 libvips/foreign/magick.h
@@ -321,7 +329,6 @@ libvips/foreign/radiance.h
 libvips/freqfilt/pfreqfilt.h
 libvips/histogram/phistogram.h
 libvips/histogram/hist_unary.h
-libvips/include/vips/deprecated.h
 libvips/include/vips/conversion.h
 libvips/include/vips/vips.h
 libvips/include/vips/private.h
@@ -369,7 +376,6 @@ libvips/include/vips/histogram.h
 libvips/include/vips/header.h
 libvips/include/vips/arithmetic.h
 libvips/include/vips/rect.h
-libvips/include/vips/relational.h
 libvips/iofuncs/vipsmarshal.h
 libvips/iofuncs/base64.h
 libvips/iofuncs/sink.h
@@ -380,6 +386,8 @@ libvips/resample/presample.h
 libvips/resample/templates.h
 cplusplus/VError.cpp
 cplusplus/VImage.cpp
+cplusplus/VInterpolate.cpp
+cplusplus/vips-operators.cpp
 libvips/resample/vsqbs.cpp
 libvips/resample/bicubic.cpp
 libvips/resample/lbb.cpp

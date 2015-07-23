@@ -7,6 +7,9 @@ libconversion_la_SOURCES = \
 	gamma.c \
 	sequential.c \
 	flatten.c \
+	premultiply.c \
+	unpremultiply.c \
+	byteswap.c \
 	cache.c \
 	copy.c \
 	embed.c \
@@ -20,6 +23,8 @@ libconversion_la_SOURCES = \
 	bandrank.c \
 	recomb.c \
 	bandmean.c \
+	bandfold.c \
+	bandunfold.c \
 	bandbool.c \
 	bandary.h \
 	bandary.c \

@@ -351,10 +351,10 @@ vips_system_init( VipsSystem *system )
  *
  * if (vips_system ("convert %s -swirl 45 %s",
  * 	"in", in, 
- * 	"out", &out, 
+ * 	"out", &amp;out, 
  *   	"in_format", "%s.jpg", 
  *   	"out_format", "%s.jpg", 
- *   	"log", &log,
+ *   	"log", &amp;log,
  *   	NULL))
  *   	error ...
  * ]|

@@ -23,16 +23,16 @@ for tile in 10 64 128 512; do
 		vips subtract $tmp/t5.v $tmp/t7.v $tmp/t8.v
 		vips abs $tmp/t8.v $tmp/t9.v
 		max=$(vips max $tmp/t9.v)
-		if [ $max -gt 0 ]; then
+		if [ $(echo "$max > 0" | bc) -eq 1 ]; then
 			break
 		fi
 	done
-	if [ $max -gt 0 ]; then
+	if [ $(echo "$max > 0" | bc) -eq 1 ]; then
 		break
 	fi
 done
 
-if [ $max -gt 0 ]; then
+if [ $(echo "$max > 0" | bc) -eq 1 ]; then
 	echo error, max == $max
 	exit 1
 else

@@ -703,6 +703,9 @@ vips_image_generate( VipsImage *image,
  
                 VIPS_DEBUG_MSG( "vips_image_generate: "
 			"attaching partial callbacks\n" );
+
+		if( vips_image_written( image ) )
+			return( -1 );
  
                 break;
  
@@ -741,7 +744,17 @@ vips_image_generate( VipsImage *image,
                  */
                 if( res )
                         return( -1 );
- 
+
+		/* Must come before we rewind.
+		 */
+		if( vips_image_written( image ) )
+			return( -1 );
+
+		/* We've written to image ... rewind it ready for reading.
+		 */
+		if( vips_image_pio_input( image ) )
+			return( -1 ); 
+
                 break;
  
         default:
@@ -753,9 +766,6 @@ vips_image_generate( VipsImage *image,
 				image->dtype ) );
                 return( -1 );
         }
-
-	if( vips_image_written( image ) )
-		return( -1 );
 
         return( 0 );
 }

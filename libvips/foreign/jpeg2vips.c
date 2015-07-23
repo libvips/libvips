@@ -69,6 +69,8 @@
  * 26/2/15
  * 	- close the jpeg read down early for a header read ... this saves an
  * 	  fd during jpg read, handy for large numbers of input images 
+ * 15/7/15
+ * 	- save exif tags using @name, not @title ... @title is subject to i18n
  */
 
 /*
@@ -488,20 +490,23 @@ typedef struct _VipsExif {
 static void
 attach_exif_entry( ExifEntry *entry, VipsExif *ve )
 {
-	char name_txt[256];
-	VipsBuf name = VIPS_BUF_STATIC( name_txt );
+	const char *tag_name;
+	char vips_name_txt[256];
+	VipsBuf vips_name = VIPS_BUF_STATIC( vips_name_txt );
 	char value_txt[256];
 	VipsBuf value = VIPS_BUF_STATIC( value_txt );
 
-	vips_buf_appendf( &name, "exif-ifd%d-%s", 
-		exif_entry_get_ifd( entry ),
-		exif_tag_get_title( entry->tag ) );
+	if( !(tag_name = exif_tag_get_name( entry->tag )) )
+		return;
+
+	vips_buf_appendf( &vips_name, "exif-ifd%d-%s", 
+		exif_entry_get_ifd( entry ), tag_name );
 	vips_exif_to_s( ve->ed, entry, &value ); 
 
 	/* Can't do anything sensible with the error return.
 	 */
 	(void) vips_image_set_string( ve->image, 
-		vips_buf_all( &name ), vips_buf_all( &value ) );
+		vips_buf_all( &vips_name ), vips_buf_all( &value ) );
 }
 
 static void

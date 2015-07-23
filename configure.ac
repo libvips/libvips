@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [8.0.0], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.1.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [8])
-m4_define([vips_minor_version], [0])
+m4_define([vips_minor_version], [1])
 m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
@@ -37,9 +37,9 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=41
-LIBRARY_REVISION=1
-LIBRARY_AGE=1
+LIBRARY_CURRENT=42
+LIBRARY_REVISION=0
+LIBRARY_AGE=0
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
@@ -124,10 +124,7 @@ AC_CANONICAL_HOST
 
 AC_DEFINE_UNQUOTED(G_LOG_DOMAIN, "VIPS", [Domain for glib logging messages.])
 
-# disable debugging by default for production releases
-m4_define([debug_default],
-  m4_if(m4_eval(vips_minor_version() % 2), [1], [yes], [no]))
-
+m4_define([debug_default], [no])
 AC_ARG_ENABLE(debug,
   AC_HELP_STRING([--enable-debug=@<:@no/minimum/yes@:>@],
     [turn on debugging @<:@default=debug_default()@:>@]),,
@@ -695,6 +692,22 @@ FIND_JPEG(
   [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
    with_jpeg=no
   ])
+
+# JPEG extension parameters available in libjpeg-turbo >=1.5.0, mozjpeg >=3.0
+if test x"$with_jpeg" = "xyes"; then
+  AC_MSG_CHECKING([for JPEG extension parameters])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    #include <stdio.h>
+    #include <jpeglib.h>
+  ]], [[
+    J_BOOLEAN_PARAM test;
+  ]])], [
+    AC_MSG_RESULT([yes])
+    AC_DEFINE([HAVE_JPEG_EXT_PARAMS],1,[libjpeg has extension parameters])
+  ], [
+    AC_MSG_RESULT([no])
+  ])
+fi
 
 # libexif
 AC_ARG_WITH([libexif], 

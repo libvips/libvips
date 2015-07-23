@@ -189,7 +189,8 @@ vips_foreign_load_csv_init( VipsForeignLoadCsv *csv )
  * @separator: set of separator characters
  *
  * Load a CSV (comma-separated values) file. The output image is always 1 
- * band (monochrome), #VIPS_FORMAT_DOUBLE. 
+ * band (monochrome), #VIPS_FORMAT_DOUBLE. Use vips_bandfold() to turn
+ * RGBRGBRGB mono images into colour iamges. 
  *
  * Items in lines can be either floating point numbers in the C locale, or 
  * strings enclosed in double-quotes ("), or empty.
@@ -213,7 +214,7 @@ vips_foreign_load_csv_init( VipsForeignLoadCsv *csv )
  * @separator sets the characters that separate fields. 
  * Default ;,<emphasis>tab</emphasis>. Separators are never run together.
  *
- * See also: vips_image_new_from_file().
+ * See also: vips_image_new_from_file(), vips_bandfold().
  *
  * Returns: 0 on success, -1 on error.
  */

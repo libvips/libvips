@@ -173,7 +173,7 @@ vips_Lab2XYZ_class_init( VipsLab2XYZClass *class )
 
 	VIPS_ARG_BOXED( class, "temp", 110, 
 		_( "Temperature" ), 
-		_( "Colour temperature" ),
+		_( "Color temperature" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsLab2XYZ, temp ),
 		VIPS_TYPE_ARRAY_DOUBLE );

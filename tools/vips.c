@@ -97,9 +97,78 @@
 #endif
 
 static char *main_option_plugin = NULL;
-static gboolean *main_option_version;
+static gboolean main_option_version;
+
+static void *
+list_class( GType type )
+{
+	VipsObjectClass *class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
+	int depth = vips_type_depth( type );
+
+	int i;
+
+	if( class->deprecated )
+		return( NULL );
+	if( VIPS_IS_OPERATION_CLASS( class ) &&
+		(VIPS_OPERATION_CLASS( class )->flags & 
+		 VIPS_OPERATION_DEPRECATED) )
+		return( NULL ); 
+
+	for( i = 0; i < depth * 2; i++ )
+		printf( " " );
+	vips_object_print_summary_class( 
+		VIPS_OBJECT_CLASS( g_type_class_ref( type ) ) );
+
+	return( NULL );
+}
+
+static void *
+test_nickname( GType type, void *data )
+{
+	const char *nickname = (const char *) data;
+
+	VipsObjectClass *class;
+
+	if( (class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) )) &&
+		strcmp( class->nickname, nickname ) == 0 ) 
+		return( class ); 
+
+	return( NULL );
+}
+
+static gboolean
+parse_main_option_list( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	VipsObjectClass *class;
+
+	if( value &&
+		(class = (VipsObjectClass *) vips_type_map_all( 
+			g_type_from_name( "VipsObject" ), 
+			test_nickname, (void *) value )) ) { 
+		vips_type_map_all( G_TYPE_FROM_CLASS( class ), 
+			(VipsTypeMapFn) list_class, NULL );
+	}
+	else if( value ) {
+		vips_error( g_get_prgname(), 
+			_( "'%s' is not the name of a vips class" ), value );
+		vips_error_g( error );
+
+		return( FALSE );
+	}
+	else {
+		vips_type_map_all( g_type_from_name( "VipsOperation" ), 
+			(VipsTypeMapFn) list_class, NULL );
+	}
+
+	exit( 0 );
+}
 
 static GOptionEntry main_option[] = {
+	{ "list", 'l', G_OPTION_FLAG_OPTIONAL_ARG, G_OPTION_ARG_CALLBACK, 
+		(GOptionArgFunc) parse_main_option_list, 
+		N_( "list objects" ), 
+		N_( "BASE-NAME" ) },
 	{ "plugin", 'p', 0, G_OPTION_ARG_FILENAME, &main_option_plugin, 
 		N_( "load PLUGIN" ), 
 		N_( "PLUGIN" ) },
@@ -167,29 +236,6 @@ list_function( im_function *func )
 {
 	printf( "%-20s - %s\n", func->name, _( func->desc ) );
 	
-	return( NULL );
-}
-
-static void *
-list_class( GType type )
-{
-	VipsObjectClass *class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
-	int depth = vips_type_depth( type );
-
-	int i;
-
-	if( class->deprecated )
-		return( NULL );
-	if( VIPS_IS_OPERATION_CLASS( class ) &&
-		(VIPS_OPERATION_CLASS( class )->flags & 
-		 VIPS_OPERATION_DEPRECATED) )
-		return( NULL ); 
-
-	for( i = 0; i < depth * 2; i++ )
-		printf( " " );
-	vips_object_print_summary_class( 
-		VIPS_OBJECT_CLASS( g_type_class_ref( type ) ) );
-
 	return( NULL );
 }
 
@@ -928,17 +974,9 @@ print_cppdefs( int argc, char **argv )
 	return( 0 );
 }
 
-static void action_list( VipsBuf *buf );
-
 static int
 print_help( int argc, char **argv ) 
 {
-	char txt[1024];
-	VipsBuf buf = VIPS_BUF_STATIC( txt );
-
-	action_list( &buf ); 
-	printf( "%s", vips_buf_all( &buf ) );
-
 	return( 0 );
 }
 
@@ -972,19 +1010,6 @@ static ActionEntry actions[] = {
 };
 
 static void
-action_list( VipsBuf *buf )
-{
-	int i;
-
-	vips_buf_appends( buf, _( "possible actions:\n" ) );
-	vips_buf_appendf( buf, "%7s - %s\n", 
-		"OPER", _( "execute vips operation OPER" ) );
-	for( i = 0; i < VIPS_NUMBER( actions ); i++ )
-		vips_buf_appendf( buf, "%7s - %s\n", 
-			actions[i].name, _( actions[i].description ) ); 
-}
-
-static void
 parse_options( GOptionContext *context, int *argc, char **argv )
 {
 	char txt[1024];
@@ -998,7 +1023,8 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 		printf( "%d) %s\n", i, argv[i] );
 #endif /*DEBUG*/
 
-	action_list( &buf ); 
+	vips_buf_appendf( &buf, "%7s - %s\n", 
+		"OPER", _( "execute vips operation OPER" ) );
 	g_option_context_set_summary( context, vips_buf_all( &buf ) );
 
 	if( !g_option_context_parse( context, argc, &argv, &error ) ) {
@@ -1087,6 +1113,18 @@ main( int argc, char **argv )
 	 * operations. Ignore any unknown options in this first parse.
 	 */
 	g_option_context_set_ignore_unknown_options( context, TRUE );
+
+	/* "vips" with no arguments does "vips --help".
+	 */
+	if( argc == 1 ) { 
+		char *help;
+
+		help = g_option_context_get_help( context, TRUE, NULL );
+		printf( "%s", help );
+		g_free( help );
+
+		exit( 0 );
+	}
 
 	/* Also disable help output: we want to be able to display full help
 	 * in a second pass after all options have been created.
@@ -1230,7 +1268,6 @@ main( int argc, char **argv )
 
 	if( action && 
 		!handled ) {
-		print_help( argc, argv );
 		vips_error_exit( _( "unknown action \"%s\"" ), action );
 	}
 

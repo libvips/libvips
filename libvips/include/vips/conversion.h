@@ -158,12 +158,18 @@ int vips_scale( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_msb( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_byteswap( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
 int vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_bandrank( VipsImage **in, VipsImage **out, int n, ... )
+	__attribute__((sentinel));
+int vips_bandfold( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_bandunfold( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int vips_bandbool( VipsImage *in, VipsImage **out, 
@@ -184,7 +190,12 @@ int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
 int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2, 
 	VipsImage **out, ... )
 	__attribute__((sentinel));
+
 int vips_flatten( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_premultiply( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_unpremultiply( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int vips_falsecolour( VipsImage *in, VipsImage **out, ... )

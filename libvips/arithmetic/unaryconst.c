@@ -92,8 +92,7 @@ make_pixel( VipsObject *obj,
 	VipsPel *q;
 	int i;
 
-	if( !(q = VIPS_ARRAY( obj, 
-		m * vips__image_sizeof_bandformat[fmt], VipsPel )) )
+	if( !(q = VIPS_ARRAY( obj, m * vips_format_sizeof( fmt ), VipsPel )) )
 		return( NULL );
 
         switch( fmt ) {
