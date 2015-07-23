@@ -18,11 +18,11 @@
   <refsect3 id="function-list">
     <title>Function list</title>
     <para>
-      VIPS has a set of operators, each of which computes some useful image 
+      VIPS has a set of operators each of which computes some useful image 
       processing operation. Each operator is 
       implemented as a %GObject class, for example <code>VipsGamma</code>. 
-      Classes are identified by their <code>nickname</code>, in this case 
-      <code>gamma</code>. 
+      Classes are identified by their unique <code>nickname</code>, in this 
+      case <code>gamma</code>. 
 
       From the command-line, C++ and most language bindings, you use the 
       nickname to call the operator. For example in C++:
@@ -49,13 +49,13 @@
     ...error; 
 </programlisting>
 
-      Some operators have many convenience functions.
+      Some operators have many C convenience functions.
     </para>
 
     <para>
       This table lists all the VIPS operators with their C convenience 
       functions and a short description. It's supposed to be useful for 
-      searching. See the API docs each function links to for details.
+      searching. See the API docs each function links to for more details.
     </para>
 
     <para>
@@ -387,9 +387,29 @@
   <entry>vips_recomb()</entry>
 </row>
 <row>
+  <entry>bandfold</entry>
+  <entry>fold up x axis into bands</entry>
+  <entry>vips_bandfold()</entry>
+</row>
+<row>
+  <entry>bandunfold</entry>
+  <entry>unfold image bands into x axis</entry>
+  <entry>vips_bandunfold()</entry>
+</row>
+<row>
   <entry>flatten</entry>
   <entry>flatten alpha out of an image</entry>
   <entry>vips_flatten()</entry>
+</row>
+<row>
+  <entry>premultiply</entry>
+  <entry>premultiply image alpha</entry>
+  <entry>vips_premultiply()</entry>
+</row>
+<row>
+  <entry>unpremultiply</entry>
+  <entry>unpremultiply image alpha</entry>
+  <entry>vips_unpremultiply()</entry>
 </row>
 <row>
   <entry>grid</entry>
@@ -420,6 +440,11 @@
   <entry>msb</entry>
   <entry>pick most-significant byte from an image</entry>
   <entry>vips_msb()</entry>
+</row>
+<row>
+  <entry>byteswap</entry>
+  <entry>byteswap an image</entry>
+  <entry>vips_byteswap()</entry>
 </row>
 <row>
   <entry>falsecolour</entry>
@@ -865,6 +890,16 @@
   <entry>LabQ2sRGB</entry>
   <entry>unpack a LabQ image to short Lab</entry>
   <entry>vips_LabQ2sRGB()</entry>
+</row>
+<row>
+  <entry>sRGB2HSV</entry>
+  <entry>transform sRGB to HSV</entry>
+  <entry>vips_sRGB2HSV()</entry>
+</row>
+<row>
+  <entry>HSV2sRGB</entry>
+  <entry>transform HSV to sRGB</entry>
+  <entry>vips_HSV2sRGB()</entry>
 </row>
 <row>
   <entry>sRGB2scRGB</entry>
