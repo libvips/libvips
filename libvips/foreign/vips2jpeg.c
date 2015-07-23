@@ -1514,8 +1514,9 @@ stream_dest( j_compress_ptr cinfo, VipsStreamOutput *stream )
 int
 vips__jpeg_write_stream( VipsImage *in, 
 	VipsStreamOutput *stream, int Q, const char *profile, 
-	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean no_subsample )
+	gboolean optimize_coding, gboolean progressive, gboolean strip, 
+	gboolean no_subsample, gboolean trellis_quant,
+	gboolean overshoot_deringing, gboolean optimize_scans )
 {
 	Write *write;
 
@@ -1540,8 +1541,8 @@ vips__jpeg_write_stream( VipsImage *in,
 	/* Convert!
 	 */
 	if( write_vips( write, 
-		Q, profile, optimize_coding, progressive, strip, 
-		no_subsample ) ) {
+		Q, profile, optimize_coding, progressive, strip, no_subsample,
+		trellis_quant, overshoot_deringing, optimize_scans ) ) {
 		write_destroy( write );
 
 		return( -1 );

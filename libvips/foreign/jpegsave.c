@@ -95,7 +95,8 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	gboolean trellis_quant;
 
-	/* Apply overshooting to samples with extreme values e.g. 0 & 255 for 8-bit.
+	/* Apply overshooting to samples with extreme values e.g. 0 & 255 
+	 * for 8-bit.
 	 */
 	gboolean overshoot_deringing;
 
@@ -294,7 +295,8 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 	if( vips__jpeg_write_buffer( save->ready, 
 		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
-		jpeg->trellis_quant, jpeg->overshoot_deringing, jpeg->optimize_scans) )
+		jpeg->trellis_quant, jpeg->overshoot_deringing, 
+		jpeg->optimize_scans ) )
 		return( -1 );
 
 	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );
@@ -416,7 +418,9 @@ vips_foreign_save_jpeg_stream_build( VipsObject *object )
 
 	if( vips__jpeg_write_stream( save->ready, 
 		stream->stream, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, save->strip, jpeg->no_subsample ) )
+		jpeg->interlace, save->strip, jpeg->no_subsample,
+		jpeg->trellis_quant, jpeg->overshoot_deringing, 
+		jpeg->optimize_scans ) )
 		return( -1 );
 
 	return( 0 );
