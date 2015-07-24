@@ -61,6 +61,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	int shrink;
 	int seq;
 	gboolean fail_on_warn;
+	VipsStreamInput *stream;
 
 	/* By default, we ignore any warnings. We want to get as much of
 	 * the user's data as we can.
@@ -112,8 +113,11 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	}
 
 #ifdef HAVE_JPEG
-	if( vips__jpeg_read_file( filename, out, 
-		header_only, shrink, fail_on_warn, TRUE, FALSE ) )
+	if( !(stream = vips_stream_input_new_from_filename( filename )) )
+		return( -1 );
+	vips_object_local( VIPS_OBJECT( out ), VIPS_OBJECT( stream ) );
+	if( vips__jpeg_read_stream( stream, out, 
+		shrink, fail_on_warn, TRUE, FALSE ) )
 		return( -1 );
 #else
 	vips_error( "im_jpeg2vips", 

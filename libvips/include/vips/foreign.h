@@ -163,7 +163,7 @@ typedef struct _VipsForeignLoadClass {
 
 	/* Is a buffer in this format. 
 	 *
-	 * This function should return %TRUE if the buffer contains an image of 
+	 * This function should return %TRUE if the buffer contains an image of
 	 * this type. 
 	 */
 	gboolean (*is_a_buffer)( const void *data, size_t size );

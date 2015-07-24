@@ -1,17 +1,20 @@
+- try:
+
+	$ vipsheader k2.jpg 
+	temp-0: 1450x2048 uchar, 3 bands, srgb
+
+  how should it get the filename? from the stream?
+
+- test we can still open 900 images
+
+
+
+
 - add webp?
 
-- add stream subclasses which go to and from memory 
+- add write to expanding memory stream
 
   see https://gist.github.com/jcupitt/bfe69f5fcac3e372e29a
-
-  though that will write to a fixed-size memory area, we want to write to a
-  set of blocks which we then concatenate on end of write
-
-- we can now remove lots of jpeg2vips !!
-
-  or maybe not? what do we do about _header() etc.? how will that work?
-
-  test we can still open 900 images
 
 
 

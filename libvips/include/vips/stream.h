@@ -110,14 +110,23 @@ typedef struct _VipsStreamInput {
 
 	/*< public >*/
 
+	/* These are NULL and 0 after _build(), they become valid after the
+	 * first vips_stream_input_refill().
+	 */
 	unsigned char *next_byte;
 	size_t bytes_available;
 
 	/*< private >*/
 
-	int buffer_size;	/* How many bytes we buffer ... eg. 4096 */
+	/* For reading from a file, we need to buffer some bytes. This is a
+	 * small memory area we own and which we free on _finalize().
+	 */
+	int buffer_size;	
+	unsigned char *buffer;	
 
-	unsigned char *buffer;	/* The start of our buffer */
+	/* For a memory source, the blob we read from.
+	 */
+	VipsBlob *blob;
 
 	/* Set on EOF.
 	 */
@@ -138,6 +147,8 @@ GType vips_stream_input_get_type( void );
 
 VipsStreamInput *vips_stream_input_new_from_descriptor( int descriptor );
 VipsStreamInput *vips_stream_input_new_from_filename( const char *filename );
+VipsStreamInput *vips_stream_input_new_from_blob( VipsBlob *blob );
+VipsStreamInput *vips_stream_input_new_from_buffer( void *buf, size_t len );
 int vips_stream_input_refill( VipsStreamInput *stream );
 void vips_stream_input_detach( VipsStreamInput *stream, 
 	unsigned char *next_byte, size_t bytes_available );

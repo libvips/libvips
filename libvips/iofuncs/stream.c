@@ -84,7 +84,9 @@
  *
  * A #VipsStream is a source or sink of bytes for something like jpeg loading. 
  * It can be connected to a network socket, for example, or perhaps a node.js
- * stream.
+ * stream, or to an area of memory. 
+ *
+ * Subclass to add other input sources. 
  */
 
 /**
@@ -226,6 +228,13 @@ vips_stream_input_class_init( VipsStreamInputClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsStreamInput, buffer_size ),
 		1, 10000000, 4096 );
+
+	VIPS_ARG_BOXED( class, "blob", 3, 
+		_( "Blob" ),
+		_( "Memory area to read from" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsStreamInput, blob ),
+		VIPS_TYPE_BLOB );
 }
 
 static void
@@ -242,9 +251,9 @@ vips_stream_input_init( VipsStreamInput *stream )
  * the #VipsStream is finalized. 
  *
  * #VipsStream s start out empty, you need to call 
- * vips_stream_input_read() to fill them with bytes.
+ * vips_stream_input_refill() to fill them with bytes.
  *
- * See also: vips_stream_input_read().
+ * See also: vips_stream_input_refill().
  *
  * Returns: a new #VipsStream
  */
@@ -276,9 +285,9 @@ vips_stream_input_new_from_descriptor( int descriptor )
  * Create a stream attached to a file.
  *
  * #VipsStream s start out empty, you need to call 
- * vips_stream_input_read() to fill them with bytes.
+ * vips_stream_input_refill() to fill them with bytes.
  *
- * See also: vips_stream_input_read().
+ * See also: vips_stream_input_refill().
  *
  * Returns: a new #VipsStream
  */
@@ -303,6 +312,75 @@ vips_stream_input_new_from_filename( const char *filename )
 	return( stream ); 
 }
 
+/**
+ * vips_stream_input_new_from_blob:
+ * @blob: memory area to load
+ *
+ * Create a stream attached to an area of memory. 
+ *
+ * #VipsStream s start out empty, you need to call 
+ * vips_stream_input_refill() to fill them with bytes.
+ *
+ * See also: vips_stream_input_refill().
+ *
+ * Returns: a new #VipsStream
+ */
+VipsStreamInput *
+vips_stream_input_new_from_blob( VipsBlob *blob )
+{
+	VipsStreamInput *stream;
+
+	VIPS_DEBUG_MSG( "vips_stream_input_new_from_blob: %p\n", blob ); 
+
+	stream = VIPS_STREAM_INPUT( 
+		g_object_new( VIPS_TYPE_STREAM_INPUT, 
+			"blob", blob,
+			NULL ) );
+
+	if( vips_object_build( VIPS_OBJECT( stream ) ) ) {
+		VIPS_UNREF( stream );
+		return( NULL );
+	}
+
+	return( stream ); 
+}
+
+/**
+ * vips_stream_input_new_from_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ *
+ * Create a stream attached to an area of memory. 
+ *
+ * You must not free @buf while the stream is active. 
+ *
+ * #VipsStream s start out empty, you need to call 
+ * vips_stream_input_refill() to fill them with bytes.
+ *
+ * See also: vips_stream_input_refill().
+ *
+ * Returns: a new #VipsStream
+ */
+VipsStreamInput *
+vips_stream_input_new_from_buffer( void *buf, size_t len )
+{
+	VipsStreamInput *stream;
+	VipsBlob *blob;
+
+	VIPS_DEBUG_MSG( "vips_stream_input_new_from_buffer: %p, len = %zd\n", 
+		buf, len ); 
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	stream = vips_stream_input_new_from_blob( blob ); 
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( stream ); 
+}
+
 static ssize_t
 vips_stream_input_read( VipsStreamInput *stream, 
 	unsigned char *buffer, size_t buffer_size )
@@ -313,9 +391,11 @@ vips_stream_input_read( VipsStreamInput *stream,
 
 	if( class->read )
 		len = class->read( stream, buffer, buffer_size );
-	else 
+	else if( VIPS_STREAM( stream )->descriptor > 0 )
 		len = read( VIPS_STREAM( stream )->descriptor, 
 			buffer, buffer_size );
+	else
+		g_assert( 0 );
 
 	return( len );
 }
@@ -333,7 +413,10 @@ vips_stream_input_refill( VipsStreamInput *stream )
 {
 	ssize_t len;
 
-	/* If we're not attached, we can read even when the buffer isn't
+	/* If this is a memory source, we just set next_byte on the first
+	 * call and we're done. 
+	 *
+	 * If we're not attached, we can read even when the buffer isn't
 	 * empty. Just move the unused bytes down and top up.
 	 *
 	 * If we're attached, we don't own the next_byte and bytes_available
@@ -342,7 +425,17 @@ vips_stream_input_refill( VipsStreamInput *stream )
 	 * We need to be able to refill the unattached buffer so we can do
 	 * file format sniffing. 
 	 */
-	if( !VIPS_STREAM( stream )->attached ) {
+	if( stream->blob ) {
+		/* On the first call we read the whole of the input blob. On
+		 * the second call, we EOF.
+		 */
+		if( stream->next_byte )
+			len = 0;
+		else 
+			stream->next_byte = (void *) 
+				vips_blob_get( stream->blob, (size_t *) &len );
+	}
+	else if( !VIPS_STREAM( stream )->attached ) {
 		memmove( stream->buffer, stream->next_byte, 
 			stream->bytes_available );
 		stream->next_byte = stream->buffer;
@@ -416,11 +509,18 @@ vips_stream_input_detach( VipsStreamInput *stream,
 unsigned char *
 vips_stream_input_sniff( VipsStreamInput *stream, int bytes )
 {
-	g_assert( !VIPS_STREAM( stream )->attached );
+	if( VIPS_STREAM( stream )->attached ) {
+		vips_warn( "VipsStream", "%s", 
+			_( "cannot sniff attached streams" ) ); 
+		return( NULL );
+	}
 
 	while( stream->bytes_available < bytes )
-		if( vips_stream_input_refill( stream ) )
+		if( vips_stream_input_refill( stream ) ) {
+			vips_warn( "VipsStream", "%s", 
+				_( "not enough bytes in stream to sniff" ) ); 
 			return( NULL );
+		}
 
 	return( stream->next_byte );
 }
