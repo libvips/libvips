@@ -73,10 +73,6 @@
  * ]|
  */
 
-/* Largest string we can append in one operation.
- */
-#define MAX_STRSIZE (100000)
-
 /** 
  * VIPS_BUF_STATIC:
  * @TEXT: the storage area to use
@@ -320,7 +316,6 @@ vips_buf_appends( VipsBuf *buf, const char *str )
  * 
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
-
 gboolean
 vips_buf_appendc( VipsBuf *buf, char ch )
 {
@@ -342,7 +337,6 @@ vips_buf_appendc( VipsBuf *buf, char ch )
  * 
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
-
 gboolean
 vips_buf_change( VipsBuf *buf, const char *old, const char *new )
 {
@@ -400,29 +394,6 @@ vips_buf_removec( VipsBuf *buf, char ch )
 }
 
 /**
- * vips_buf_appendf:
- * @buf: the buffer
- * @fmt: <function>printf()</function>-style format string
- * @...: arguments to format string
- *
- * Format the string and append to @buf.
- * 
- * Returns: %FALSE on overflow, %TRUE otherwise.
- */
-gboolean
-vips_buf_appendf( VipsBuf *buf, const char *fmt, ... )
-{
-	char str[MAX_STRSIZE];
-	va_list ap;
-
-        va_start( ap, fmt );
-        (void) vips_vsnprintf( str, MAX_STRSIZE, fmt, ap );
-        va_end( ap );
-
-	return( vips_buf_appends( buf, str ) );
-}
-
-/**
  * vips_buf_vappendf:
  * @buf: the buffer
  * @fmt: <function>printf()</function>-style format string
@@ -435,11 +406,48 @@ vips_buf_appendf( VipsBuf *buf, const char *fmt, ... )
 gboolean
 vips_buf_vappendf( VipsBuf *buf, const char *fmt, va_list ap )
 {
-	char str[MAX_STRSIZE];
+	int avail;
+	char *p;
 
-        (void) vips_vsnprintf( str, MAX_STRSIZE, fmt, ap );
+	if( buf->full )
+		return( FALSE );
 
-	return( vips_buf_appends( buf, str ) );
+	avail = buf->mx - buf->i - 4;
+	p = buf->base + buf->i;
+	(void) vips_vsnprintf( p, avail, fmt, ap ); 
+	buf->i += strlen( p );
+
+	if( buf->i >= buf->mx - 4 ) {
+		buf->full = TRUE;
+		strcpy( buf->base + buf->mx - 4, "..." );
+		buf->i = buf->mx - 1;
+		return( FALSE );
+	}
+
+	return( TRUE );
+}
+
+/**
+ * vips_buf_appendf:
+ * @buf: the buffer
+ * @fmt: <function>printf()</function>-style format string
+ * @...: arguments to format string
+ *
+ * Format the string and append to @buf.
+ * 
+ * Returns: %FALSE on overflow, %TRUE otherwise.
+ */
+gboolean
+vips_buf_appendf( VipsBuf *buf, const char *fmt, ... )
+{
+	va_list ap;
+	gboolean result;
+
+        va_start( ap, fmt );
+        result = vips_buf_vappendf( buf, fmt, ap );
+        va_end( ap );
+
+	return( result );
 }
 
 /**
