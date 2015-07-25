@@ -42,8 +42,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -436,7 +436,7 @@ vips_foreign_load_dispose( GObject *gobject )
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_dispose: " ); 
-	vips_object_print_name( gobject );
+	vips_object_print_name( VIPS_OBJECT( gobject ) );
 	printf( "\n" );
 #endif /*DEBUG*/
 

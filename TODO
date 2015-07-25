@@ -1,5 +1,34 @@
 - try:
 
+	$ vips rot x.jpg x.v d90
+	vips warning: linecache: error reading tile 0x0: VipsJpeg: out of order read at line 768
+
+  I guess we are always opening in seq?
+
+  yes, turn on debug and see:
+
+  	$ vips rot ~/pics/babe.jpg x.v d90 --vips-progress
+	vips_foreign_load_build:
+	vips_foreign_load_build: triggering ->header()
+	vips x.v: 768 x 1024 pixels, 4 threads, 128 x 128 tiles, 256 lines in buffer
+	vips warning: linecache: error reading tile 0x0: VipsJpeg: out of order read at line 768
+
+  because we do everything in _header() we bypass the lazy load stuff 
+  
+  we are doing:
+
+  	vips_foreign_load_build(), run _header to make @out
+
+  we want all the stuff in vips_foreign_load_start()
+
+  	@real = vips_foreign_load_temp()
+	->load() (will decompress to disc or memory if @access asks for it)
+	vips_foreign_load_generate() to copy pels to @out from @real
+
+
+
+- try:
+
 	$ vipsheader k2.jpg 
 	temp-0: 1450x2048 uchar, 3 bands, srgb
 
