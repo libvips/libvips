@@ -25,6 +25,15 @@
 	->load() (will decompress to disc or memory if @access asks for it)
 	vips_foreign_load_generate() to copy pels to @out from @real
 
+  solution:
+
+	in _header, open stream to @real, copy header to @out
+	in _load generate @out
+	in _generate, copy pixels to @out from @real
+
+
+
+
 
 
 - try:
