@@ -31,6 +31,8 @@
 	in _load generate @out
 	in _generate, copy pixels to @out from @real
 
+  argh, all _header() methods currently read header to _out, we'd need to
+  change all of them
 
 
 
