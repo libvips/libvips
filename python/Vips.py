@@ -442,7 +442,8 @@ def vips_image_new_from_array(cls, array, scale = 1, offset = 0):
         height = 1
         width = len(array)
     else:
-        flat_array = array[0]
+        # must copy the first row, we don't want to modify the passed-in array
+        flat_array = list(array[0])
         height = len(array)
         width = len(array[0])
         for i in range(1, height):
