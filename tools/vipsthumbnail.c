@@ -68,6 +68,8 @@
  * 9/5/15
  * 	- use vips_resize() instead of our own code
  * 	- premultiply alpha
+ * 30/7/15
+ * 	- warn if you autorot and there's no exif support
  */
 
 #ifdef HAVE_CONFIG_H
@@ -718,6 +720,14 @@ main( int argc, char **argv )
 				"use eg. 128 or 200x300", thumbnail_size );
 
 		thumbnail_height = thumbnail_width;
+	}
+
+	if( rotate_image ) {
+#ifndef HAVE_EXIF
+		vips_warn( "vipsthumbnail", "%s",
+			_( "auto-rotate disabled: "
+			      "libvips built without exif support" ) );
+#endif /*!HAVE_EXIF*/
 	}
 
 	result = 0;
