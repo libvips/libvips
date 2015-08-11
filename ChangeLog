@@ -15,6 +15,8 @@
 - skip oversized markers in jpeg write
 - jpeg exif tags saved as name rather than title
 - can now set any jpeg exif tag, not just modify existing tags
+- add vips_hist_entropy()
+- vips_log(), vips_log10() are zero-avoiding
 
 7/5/15 started 8.0.3
 - dzsave and tif pyr write could fail for some image dimensions, thanks Jonas

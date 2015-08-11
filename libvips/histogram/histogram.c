@@ -258,6 +258,7 @@ vips_histogram_operation_init( void )
 	extern GType vips_hist_match_get_type( void ); 
 	extern GType vips_hist_local_get_type( void ); 
 	extern GType vips_hist_ismonotonic_get_type( void ); 
+	extern GType vips_hist_entropy_get_type( void ); 
 	extern GType vips_stdif_get_type( void ); 
 
 	vips_maplut_get_type(); 
@@ -270,4 +271,5 @@ vips_histogram_operation_init( void )
 	vips_hist_match_get_type(); 
 	vips_hist_local_get_type(); 
 	vips_hist_ismonotonic_get_type(); 
+	vips_hist_entropy_get_type(); 
 }

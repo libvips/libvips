@@ -380,8 +380,10 @@ vips_stdif_init( VipsStdif *stdif )
  *
  * At point (i,j) the output is given by the equation:
  *
+ * |[
  * vout(i,j) = @a * @m0 + (1 - @a) * meanv + 
  *       (vin(i,j) - meanv) * (@b * @s0) / (@s0 + @b * stdv)
+ * ]|
  *
  * Values @a, @m0, @b and @s0 are entered, while meanv and stdv are the values
  * calculated over a moving window of size @width, @height centred on pixel 
@@ -390,7 +392,9 @@ vips_stdif_init( VipsStdif *stdif )
  *
  * Try:
  *
+ * |[
  * vips stdif $VIPSHOME/pics/huysum.v fred.v 0.5 128 0.5 50 11 11
+ * ]|
  *
  * The operation works on one-band uchar images only, and writes a one-band 
  * uchar image as its result. The output image has the same size as the 
