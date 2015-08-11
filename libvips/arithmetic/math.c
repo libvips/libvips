@@ -23,6 +23,8 @@
  * 	- im_sintra() adapted to make math.c
  * 4/11/11
  * 	- redone as a class
+ * 11/8/15
+ * 	- log/log10 zero-avoid
  */
 
 /*
@@ -140,6 +142,11 @@ vips_math_build( VipsObject *object )
  */
 #define EXP10( X ) (pow( 10.0, (X) ))
 
+/* Zero-avoiding log, cf. zero-avoiding behaviour of /.
+ */
+#define LOGZ( X ) ((X) == 0.0 ? 0.0 : log( X ))
+#define LOGZ10( X ) ((X) == 0.0 ? 0.0 : log10( X ))
+
 static void
 vips_math_buffer( VipsArithmetic *arithmetic, 
 	VipsPel *out, VipsPel **in, int width )
@@ -157,8 +164,8 @@ vips_math_buffer( VipsArithmetic *arithmetic,
 	case VIPS_OPERATION_MATH_ASIN: 	SWITCH( ADSIN ); break;
 	case VIPS_OPERATION_MATH_ACOS: 	SWITCH( ADCOS ); break;
 	case VIPS_OPERATION_MATH_ATAN: 	SWITCH( ADTAN ); break;
-	case VIPS_OPERATION_MATH_LOG: 	SWITCH( log ); break;
-	case VIPS_OPERATION_MATH_LOG10:	SWITCH( log10 ); break;
+	case VIPS_OPERATION_MATH_LOG: 	SWITCH( LOGZ ); break;
+	case VIPS_OPERATION_MATH_LOG10:	SWITCH( LOGZ10 ); break;
 	case VIPS_OPERATION_MATH_EXP: 	SWITCH( exp ); break;
 	case VIPS_OPERATION_MATH_EXP10:	SWITCH( EXP10 ); break;
 
