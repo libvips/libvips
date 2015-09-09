@@ -53,6 +53,8 @@
  * 	- use a better temp dir name for fs dz output
  * 8/8/15
  * 	- allow zip > 4gb if we have a recent libgsf
+ * 9/9/15
+ * 	- better overlap handling, thanks robclouth 
  */
 
 /*
@@ -112,9 +114,9 @@
 
 /*
 #define DEBUG_VERBOSE
- */
 #define DEBUG
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -969,7 +971,7 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	/* Position this tile.
 	 */
 	state->pos.left = strip->x;
-	state->pos.top = 0;
+	state->pos.top = layer->y;
 	state->pos.width = dz->tile_size;
 	state->pos.height = dz->tile_size;
 
@@ -1202,7 +1204,6 @@ strip_save( Layer *layer )
 		vips_thread_state_new, strip_allocate, strip_work, NULL, 
 		&strip ) ) {
 		strip_free( &strip );
-		printf( "strip_save: error: %s\n", vips_error_buffer() ); 
 		return( -1 );
 	}
 	strip_free( &strip );

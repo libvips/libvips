@@ -1,10 +1,6 @@
-- try:
+- test dzsave deepzoom with new overlap code
 
-	$ vips dzsave k2.jpg x --layout google --overlap 200
-	...
-	extract_area: bad extract area
-
-  bottom tiles are not being clipped?
+- add some more dzsave tests, esp for overlap handling
 
 
 
