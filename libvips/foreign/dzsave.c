@@ -1323,11 +1323,6 @@ strip_shrink( Layer *layer )
 		target.width = source.width / 2;
 		target.height = source.height / 2;
 
-		if( below->n == 0 ) {
-			printf( "strip_shrink: generating %d lines in layer 0\n",
-					target.height ); 
-		}
-
 		/* None? All done.
 		 */
 		if( vips_rect_isempty( &target ) ) 
