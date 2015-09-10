@@ -1,8 +1,3 @@
-- test dzsave deepzoom with new overlap code
-
-- add some more dzsave tests, esp for overlap handling
-
-
 
 - colour needs to split _build() into preprocess / process / postprocess
   phases
