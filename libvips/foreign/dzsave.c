@@ -53,6 +53,8 @@
  * 	- use a better temp dir name for fs dz output
  * 8/8/15
  * 	- allow zip > 4gb if we have a recent libgsf
+ * 9/9/15
+ * 	- better overlap handling, thanks robclouth 
  */
 
 /*
@@ -375,8 +377,7 @@ struct _Layer {
 	 */
 	VipsImage *image;
 
-	/* The top of this strip of tiles, excluding the overlap. Go up from
-	 * this to get to the top pixel we write in each one.
+	/* The top of this strip of tiles.
 	 */
 	int y;
 
@@ -413,6 +414,11 @@ struct _VipsForeignSaveDz {
 	VipsForeignDzContainer container; 
 
 	Layer *layer;			/* x2 shrink pyr layer */
+
+	/* We step by tile_size - overlap as we move across the image ...
+	 * make a note of it.
+	 */
+	int tile_step;
 
 	/* Count zoomify tiles we write.
 	 */
@@ -481,7 +487,8 @@ vips_foreign_save_dz_dispose( GObject *gobject )
 	VIPS_FREE( dz->root_name );
 	VIPS_FREE( dz->file_suffix );
 
-	G_OBJECT_CLASS( vips_foreign_save_dz_parent_class )->dispose( gobject );
+	G_OBJECT_CLASS( vips_foreign_save_dz_parent_class )->
+		dispose( gobject );
 }
 
 /* Build a pyramid. 
@@ -503,8 +510,8 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	layer->width = width;
 	layer->height = height;
 
-	layer->tiles_across = ROUND_UP( width, dz->tile_size ) / dz->tile_size;
-	layer->tiles_down = ROUND_UP( height, dz->tile_size ) / dz->tile_size;
+	layer->tiles_across = ROUND_UP( width, dz->tile_step ) / dz->tile_step;
+	layer->tiles_down = ROUND_UP( height, dz->tile_step ) / dz->tile_step;
 
 	layer->real_pixels = *real_pixels; 
 
@@ -543,8 +550,7 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	vips__region_no_ownership( layer->strip );
 	vips__region_no_ownership( layer->copy );
 
-	/* Build a line of tiles here. Normally strips are height + 2 *
-	 * overlap, but the first row is missing the top edge.
+	/* Build a line of tiles here. 
 	 *
 	 * Expand the strip if necessary to make sure we have an even 
 	 * number of lines. 
@@ -554,7 +560,7 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	strip.left = 0;
 	strip.top = 0;
 	strip.width = layer->image->Xsize;
-	strip.height = dz->tile_size + dz->overlap;
+	strip.height = dz->tile_size;
 	if( (strip.height & 1) == 1 )
 		strip.height += 1;
 	if( vips_region_buffer( layer->strip, &strip ) ) {
@@ -638,7 +644,8 @@ write_dzi( VipsForeignSaveDz *dz )
 	if( (p = (char *) vips__find_rightmost_brackets( buf )) )
 		*p = '\0';
 
-	gsf_output_printf( out, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ); 
+	gsf_output_printf( out, "<?xml "
+		"version=\"1.0\" encoding=\"UTF-8\"?>\n" ); 
 	gsf_output_printf( out, "<Image "
 		"xmlns=\"http://schemas.microsoft.com/deepzoom/2008\"\n" );
 	gsf_output_printf( out, "  Format=\"%s\"\n", buf );
@@ -923,9 +930,9 @@ strip_init( Strip *strip, Layer *layer )
 	image.height = layer->height;
 
 	line.left = 0;
-	line.top = layer->y - dz->overlap;
+	line.top = layer->y;
 	line.width = image.width;
-	line.height = dz->tile_size + 2 * dz->overlap;
+	line.height = dz->tile_size;
 
 	vips_rect_intersectrect( &image, &line, &line );
 
@@ -963,16 +970,16 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 
 	/* Position this tile.
 	 */
-	state->pos.left = strip->x - dz->overlap;
-	state->pos.top = 0;
-	state->pos.width = dz->tile_size + 2 * dz->overlap;
-	state->pos.height = state->im->Ysize;
+	state->pos.left = strip->x;
+	state->pos.top = layer->y;
+	state->pos.width = dz->tile_size;
+	state->pos.height = dz->tile_size;
 
 	vips_rect_intersectrect( &image, &state->pos, &state->pos );
 	state->x = strip->x;
 	state->y = layer->y;
 
-	strip->x += dz->tile_size;
+	strip->x += dz->tile_step;
 
 	if( vips_rect_isempty( &state->pos ) ) {
 		*stop = TRUE;
@@ -1055,6 +1062,10 @@ tile_name( Layer *layer, int x, int y )
 		return( NULL );
 	}
 
+#ifdef DEBUG_VERBOSE
+	printf( "tile_name: writing to %s\n", name );
+#endif /*DEBUG_VERBOSE*/
+
 	return( out );
 }
 
@@ -1124,10 +1135,6 @@ strip_work( VipsThreadState *state, void *a )
 		x = t;
 	}
 
-#ifdef DEBUG_VERBOSE
-	printf( "strip_work: writing to %s\n", buf );
-#endif /*DEBUG_VERBOSE*/
-
 	vips_image_set_int( x, "hide-progress", 1 );
 	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, NULL ) ) {
 		g_object_unref( x );
@@ -1140,7 +1147,7 @@ strip_work( VipsThreadState *state, void *a )
 	g_mutex_lock( vips__global_lock );
 
 	out = tile_name( layer, 
-		state->x / dz->tile_size, state->y / dz->tile_size );
+		state->x / dz->tile_step, state->y / dz->tile_step );
 
 	status = gsf_output_write( out, len, buf );
 	dz->bytes_written += len;
@@ -1200,6 +1207,10 @@ strip_save( Layer *layer )
 		return( -1 );
 	}
 	strip_free( &strip );
+
+#ifdef DEBUG
+	printf( "strip_save: success\n" ); 
+#endif /*DEBUG*/
 
 	return( 0 );
 }
@@ -1272,6 +1283,11 @@ strip_shrink( Layer *layer )
 	VipsRect target;
 	VipsRect source;
 
+#ifdef DEBUG
+	printf( "strip_shrink: %d lines in layer %d to layer %d\n", 
+		from->valid.height, layer->n, below->n ); 
+#endif/*DEBUG*/
+
 	/* We may have an extra column of pixels on the right or
 	 * bottom that need filling: generate them.
 	 */
@@ -1336,7 +1352,7 @@ strip_shrink( Layer *layer )
  *
  * - write a line of tiles
  * - shrink what we can to the layer below
- * - move our strip down by the tile height
+ * - move our strip down by the tile step
  * - copy the overlap with the previous strip
  */
 static int
@@ -1347,6 +1363,11 @@ strip_arrived( Layer *layer )
 	VipsRect new_strip;
 	VipsRect overlap;
 	VipsRect image_area;
+
+#ifdef DEBUG
+	printf( "strip_arrived: layer %d, strip at %d, height %d\n", 
+		layer->n, layer->y, layer->strip->valid.height ); 
+#endif/*DEBUG*/
 
 	if( strip_save( layer ) )
 		return( -1 );
@@ -1360,11 +1381,11 @@ strip_arrived( Layer *layer )
 	 * Expand the strip if necessary to make sure we have an even 
 	 * number of lines. 
 	 */
-	layer->y += dz->tile_size;
+	layer->y += dz->tile_step;
 	new_strip.left = 0;
-	new_strip.top = layer->y - dz->overlap;
+	new_strip.top = layer->y;
 	new_strip.width = layer->image->Xsize;
-	new_strip.height = dz->tile_size + 2 * dz->overlap;
+	new_strip.height = dz->tile_size;
 
 	image_area.left = 0;
 	image_area.top = 0;
@@ -1534,6 +1555,9 @@ vips_foreign_save_dz_build( VipsObject *object )
 	save->ready = z;
 }
 
+	/* How much we step by as we write tiles.
+	 */
+	dz->tile_step = dz->tile_size - dz->overlap;
 
 	/* The real pixels we have from our input. This is about to get
 	 * expanded with background. 
