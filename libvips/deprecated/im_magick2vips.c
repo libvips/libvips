@@ -97,4 +97,3 @@ vips_format_magick_init( VipsFormatMagick *object )
 }
 
 G_DEFINE_TYPE( VipsFormatMagick, vips_format_magick, VIPS_TYPE_FORMAT );
-

@@ -79,6 +79,17 @@ im_filename_split( const char *path, char *name, char *mode )
 
 			if( *q == '.' )
 				break;
+
+			/* All the way back to the start? We probably have a
+			 * filename with no extension, eg. "I180:"
+			 */
+			if( q == name )
+				break;
+
+			/* .. or we could hit a dirsep.
+			 */
+			if( *q == G_DIR_SEPARATOR )
+				break;
 		}
 
 	if( *p == ':' ) {
