@@ -36,6 +36,8 @@ import sys
 import re
 import logging
 
+logger = logging.getLogger(__name__)
+
 from gi.repository import GObject
 from ..overrides import override
 from ..module import get_introspection_module
@@ -71,7 +73,7 @@ def is_2D(value):
     return True
 
 def imageize(match_image, value):
-    logging.debug('imageize match_image=%s, value=%s' % (match_image, value))
+    logger.debug('imageize match_image=%s, value=%s' % (match_image, value))
 
     # 2D arrays become array images
     if is_2D(value):
@@ -149,7 +151,7 @@ class Error(Exception):
             Vips.error_clear()
         self.detail = detail
 
-        logging.debug('Error %s %s', self.message, self.detail)
+        logger.debug('Error %s %s', self.message, self.detail)
 
     def __str__(self):
         return '%s\n  %s' % (self.message, self.detail)
@@ -166,8 +168,8 @@ class Argument(object):
         self.isset = op.argument_isset(self.name)
 
     def set_value(self, match_image, value):
-        logging.debug('assigning %s to %s' % (value, self.name))
-        logging.debug('%s needs a %s' % (self.name, self.prop.value_type))
+        logger.debug('assigning %s to %s' % (value, self.name))
+        logger.debug('%s needs a %s' % (self.name, self.prop.value_type))
 
         # blob-ize
         if GObject.type_is_a(self.prop.value_type, vips_type_blob):
@@ -187,19 +189,19 @@ class Argument(object):
             # don't use .copy(): we want to make a new pipeline with no
             # reference back to the old stuff ... this way we can free the
             # previous image earlier
-            logging.debug('MODIFY argument: copying image')
+            logger.debug('MODIFY argument: copying image')
             new_image = Vips.Image.new_memory()
             value.write(new_image)
             value = new_image
 
-        logging.debug('assigning %s' % value)
+        logger.debug('assigning %s' % value)
 
         self.op.props.__setattr__(self.name, value)
 
     def get_value(self):
         value = self.op.props.__getattribute__(self.name)
 
-        logging.debug('read out %s from %s' % (value, self.name))
+        logger.debug('read out %s from %s' % (value, self.name))
 
         return unpack(value)
 
@@ -239,12 +241,12 @@ def find_image(x):
     return None
 
 def _call_base(name, required, optional, self = None, option_string = None):
-    logging.debug('_call_base name=%s, required=%s optional=%s' % 
+    logger.debug('_call_base name=%s, required=%s optional=%s' % 
                   (name, required, optional))
     if self:
-        logging.debug('_call_base self=%s' % self)
+        logger.debug('_call_base self=%s' % self)
     if option_string:
-        logging.debug('_call_base option_string = %s' % option_string)
+        logger.debug('_call_base option_string = %s' % option_string)
 
     try:
         op = Vips.Operation.new(name)
@@ -333,21 +335,21 @@ def _call_base(name, required, optional, self = None, option_string = None):
                         'Operator %s has no argument %s.' % (name, key))
 
     # call
-    logging.debug('_call_base checking cache for op %s' % op)
+    logger.debug('_call_base checking cache for op %s' % op)
     op2 = Vips.cache_operation_build(op)
-    logging.debug('_call_base got op2 %s' % op2)
+    logger.debug('_call_base got op2 %s' % op2)
     if op2 == None:
         raise Error('Error calling operator %s.' % name)
 
     # rescan args if op2 is different from op
     if op2 != op:
-        logging.debug('_call_base rescanning args')
+        logger.debug('_call_base rescanning args')
         args = op2.get_args()
         optional_output = {x.name: x for x in args if x.flags & enm.OUTPUT and 
                            not x.flags & enm.REQUIRED}
 
     # gather output args 
-    logging.debug('_call_base fetching required output args')
+    logger.debug('_call_base fetching required output args')
     out = []
 
     for x in args:
@@ -359,7 +361,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
         if x.flags & enm.INPUT and x.flags & enm.MODIFY:
             out.append(x.get_value())
 
-    logging.debug('_call_base fetching optional output args')
+    logger.debug('_call_base fetching optional output args')
     out_dict = {}
     for x in list(optional.keys()):
         if x in optional_output:
@@ -375,7 +377,7 @@ def _call_base(name, required, optional, self = None, option_string = None):
     # unref everything now we have refs to all outputs we want
     op2.unref_outputs()
 
-    logging.debug('success')
+    logger.debug('success')
 
     return out
 
@@ -401,7 +403,7 @@ def vips_image_new_from_file(cls, vips_filename, **kwargs):
     loader = Vips.Foreign.find_load(filename)
     if loader == None:
         raise Error('No known loader for "%s".' % filename)
-    logging.debug('Image.new_from_file: loader = %s' % loader)
+    logger.debug('Image.new_from_file: loader = %s' % loader)
 
     return _call_base(loader, [filename], kwargs, None, option_string)
 
@@ -420,7 +422,7 @@ def vips_image_new_from_buffer(cls, data, option_string, **kwargs):
     loader = Vips.Foreign.find_load_buffer(data)
     if loader == None:
         raise Error('No known loader for buffer.')
-    logging.debug('Image.new_from_buffer: loader = %s' % loader)
+    logger.debug('Image.new_from_buffer: loader = %s' % loader)
 
     return _call_base(loader, [data], kwargs, None, option_string)
 
@@ -568,7 +570,7 @@ class Image(Vips.Image):
         saver = Vips.Foreign.find_save(filename)
         if saver == None:
             raise Error('No known saver for "%s".' % filename)
-        logging.debug('Image.write_to_file: saver = %s' % saver)
+        logger.debug('Image.write_to_file: saver = %s' % saver)
 
         _call_base(saver, [filename], kwargs, self, option_string)
 
@@ -584,7 +586,7 @@ class Image(Vips.Image):
         saver = Vips.Foreign.find_save_buffer(filename)
         if saver == None:
             raise Error('No known saver for "%s".' % filename)
-        logging.debug('Image.write_to_buffer: saver = %s' % saver)
+        logger.debug('Image.write_to_buffer: saver = %s' % saver)
 
         return _call_base(saver, [], kwargs, self, option_string)
 
@@ -599,7 +601,7 @@ class Image(Vips.Image):
     # operator overloads
 
     def __getattr__(self, name):
-        logging.debug('Image.__getattr__ %s' % name)
+        logger.debug('Image.__getattr__ %s' % name)
 
         # look up in props first, eg. x.props.width
         if name in dir(self.props):
@@ -808,7 +810,7 @@ class Image(Vips.Image):
         """
         value = self.get(field)
 
-        logging.debug('read out %s from %s' % (value, self))
+        logger.debug('read out %s from %s' % (value, self))
 
         return unpack(value)
 
@@ -819,8 +821,8 @@ class Image(Vips.Image):
         For example, bytes() can be used to set VipsBlob fields. 
         """
         gtype = self.get_typeof(field)
-        logging.debug('assigning %s to %s' % (value, self))
-        logging.debug('%s needs a %s' % (self, gtype))
+        logger.debug('assigning %s to %s' % (value, self))
+        logger.debug('%s needs a %s' % (self, gtype))
 
         # blob-ize
         if GObject.type_is_a(gtype, vips_type_blob):
@@ -1056,7 +1058,7 @@ def generate_class_method(name):
     return class_method
 
 for nickname in class_methods:
-    logging.debug('adding %s as a class method' % nickname)
+    logger.debug('adding %s as a class method' % nickname)
     # some may be missing in this vips, eg. we might not have "webpload"
     try:
         method = generate_class_method(nickname)
