@@ -1167,12 +1167,6 @@ vips_object_set_property( GObject *gobject,
 
 	g_assert( argument_instance );
 
-	if( !argument_class ) {
-		G_OBJECT_WARN_INVALID_PROPERTY_ID( gobject,
-			property_id, pspec );
-		return;
-	}
-
 #ifdef DEBUG
 	printf( "vips_object_set_property: " );
 	vips_object_print_name( object );

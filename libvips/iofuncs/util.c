@@ -1313,7 +1313,7 @@ vips__token_need( const char *p, VipsToken need_token,
 const char *
 vips__find_rightmost_brackets( const char *p )
 {
-	const char *start[MAX_TOKENS];
+	const char *start[MAX_TOKENS + 1];
 	VipsToken tokens[MAX_TOKENS];
 	char str[VIPS_PATH_MAX];
 	int n, i;

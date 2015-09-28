@@ -872,6 +872,11 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			break;
 
 		default:
+#ifdef DEBUG
+			printf( "read_jpeg_header: "
+				"ignoring %d byte APP%d block\n", 
+				p->data_length, p->marker - JPEG_APP0 );
+#endif /*DEBUG*/
 			break;
 		}
 	}
@@ -1066,6 +1071,18 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 1, 0xffff );
 	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 2, 0xffff );
 	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 13, 0xffff );
+
+#ifdef DEBUG
+{
+	int i;
+
+	/* Handy for debubgging ... spot any extra  markers.
+	 */
+	for( i = 0; i < 16; i++ ) 
+		jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + i, 0xffff );
+}
+#endif /*DEBUG*/
+
 
 	/* Convert!
 	 */

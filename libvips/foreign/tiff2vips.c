@@ -1772,7 +1772,7 @@ my_tiff_read( thandle_t st, tdata_t buffer, tsize_t size )
 	size_t available = rtiff->len - rtiff->pos;
 	size_t copy = VIPS_MIN( size, available );
 
-	memcpy( buffer, rtiff->buf + rtiff->pos, copy );
+	memcpy( buffer, (unsigned char *) rtiff->buf + rtiff->pos, copy );
 	rtiff->pos += copy;
 
 	return( copy ); 

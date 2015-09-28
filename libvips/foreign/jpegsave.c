@@ -360,7 +360,7 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 		jpeg->trellis_quant, jpeg->overshoot_deringing, jpeg->optimize_scans) )
 		return( -1 );
 
-	printf( "Content-length: %zd\r\n", olen );
+	printf( "Content-length: %zu\r\n", olen );
 	printf( "Content-type: image/jpeg\r\n" );
 	printf( "\r\n" );
 	if( fwrite( obuf, sizeof( char ), olen, stdout ) != olen ) {

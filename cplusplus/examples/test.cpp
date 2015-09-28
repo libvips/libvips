@@ -31,7 +31,7 @@ equal_vector( std::vector<double> a, std::vector<double> b )
 {
 	for( unsigned int i = 0; i < a.size(); i++ ) 
 		if( fabs( a[i] - b[i] ) > 0.001 ) {
-			printf( "vectors differ at %d: should be [", i );
+			printf( "vectors differ at %u: should be [", i );
 			for( unsigned int i = 0; i < a.size(); i++ ) {
 				if( i > 0 )
 					printf( ", " ); 
@@ -302,7 +302,7 @@ main( int argc, char **argv )
 	size_t size;
 	void *buf;
 	left.write_to_buffer( ".png", &buf, &size );
-	printf( "written to memory %p in png format, %zd bytes\n", buf, size );
+	printf( "written to memory %p in png format, %zu bytes\n", buf, size );
 
 	// load from the formatted memory area
 	VImage im = VImage::new_from_buffer( buf, size, "" );
@@ -323,7 +323,7 @@ main( int argc, char **argv )
 	size_t size;
 	void *buf;
 	buf = left.write_to_memory( &size );
-	printf( "written to memory %p as an array, %zd bytes\n", buf, size );
+	printf( "written to memory %p as an array, %zu bytes\n", buf, size );
 
 	// load from the memory array
 	VImage im = VImage::new_from_memory( buf, size, 

@@ -46,7 +46,7 @@ main( int argc, char **argv )
 	size_t size;
 	void *buf;
 	im.write_to_buffer( ".png", &buf, &size );
-	printf( "written to memory %p in png format, %zd bytes\n", buf, size );
+	printf( "written to memory %p in png format, %zu bytes\n", buf, size );
 
 	// load from the formatted memory area
 	im = VImage::new_from_buffer( buf, size, "" );

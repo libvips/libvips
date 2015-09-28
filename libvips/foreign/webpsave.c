@@ -269,7 +269,7 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 		webp->Q, webp->lossless ) )
 		return( -1 );
 
-	printf( "Content-length: %zd\r\n", olen );
+	printf( "Content-length: %zu\r\n", olen );
 	printf( "Content-type: image/webp\r\n" );
 	printf( "\r\n" );
 	if( fwrite( obuf, sizeof( char ), olen, stdout ) != olen ) {

@@ -81,7 +81,7 @@ void VImage::refblock::debug_print()
 	printf( "  close_on_delete = %d\n", close_on_delete );
 	printf( "  nrefs (refs to us) = %d\n", nrefs );
 	printf( "  orefs (refs we make) = refblocks " );
-	for( i = orefs.begin(); i != orefs.end(); i++ )
+	for( i = orefs.begin(); i != orefs.end(); ++i )
 		printf( "%p ", *i );
 	printf( "\n" );
 }
@@ -93,7 +93,7 @@ void VImage::print_all()
 	std::list<VImage::refblock *>::iterator i;
 
 	printf( "*** VImage::refblock::print_all() start\n" );
-	for( i = all_refblock.begin(); i != all_refblock.end(); i++ )
+	for( i = all_refblock.begin(); i != all_refblock.end(); ++i )
 		(*i)->debug_print();
 	printf( "*** VImage::refblock::print_all() end\n" );
 #endif /*DEBUG*/
@@ -143,7 +143,7 @@ VImage::refblock::~refblock() throw( VError )
 	}
 
 	// remove any refs we have ... may trigger other destructs in turn
-	for( i = orefs.begin(); i != orefs.end(); i++ )
+	for( i = orefs.begin(); i != orefs.end(); ++i )
 		(*i)->removeref();
 
 #ifdef DEBUG
