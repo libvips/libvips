@@ -157,6 +157,8 @@
  * 26/2/15
  * 	- close the read down early for a header read ... this saves an
  * 	  fd during file read, handy for large numbers of input images 
+ * 29/9/15
+ * 	- load IPCT metadata
  */
 
 /*
@@ -1179,6 +1181,24 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 			return( -1 );
 		memcpy( data_copy, data, data_length );
 		vips_image_set_blob( out, VIPS_META_XMP_NAME, 
+			(VipsCallbackFn) vips_free, data_copy, data_length );
+	}
+
+	/* Read any IPCT metadata.
+	 */
+	if( TIFFGetField( rtiff->tiff, 
+		TIFFTAG_RICHTIFFIPTC, &data_length, &data ) ) {
+		void *data_copy;
+
+		/* For no very good reason, libtiff stores IPCT as an array of
+		 * long, not byte.
+		 */
+		data_length *= 4;
+
+		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+			return( -1 );
+		memcpy( data_copy, data, data_length );
+		vips_image_set_blob( out, VIPS_META_IPCT_NAME, 
 			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
