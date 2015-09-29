@@ -759,9 +759,8 @@ vips_object_get_argument( VipsObject *object, const char *name,
 			_( "no vips argument named `%s'" ), name );
 		return( -1 );
 	}
-	if( argument_class &&
-		!(*argument_instance = vips__argument_get_instance( 
-			*argument_class, object )) ) {
+	if( !(*argument_instance = vips__argument_get_instance( 
+		*argument_class, object )) ) {
 		vips_error( class->nickname, 
 			_( "argument `%s' has no instance" ), name );
 		return( -1 );
@@ -1312,12 +1311,6 @@ vips_object_get_property( GObject *gobject,
 		vips__argument_table_lookup( class->argument_table, pspec );
 	VipsArgumentInstance *argument_instance =
 		vips__argument_get_instance( argument_class, object );
-
-	if( !argument_class ) {
-		G_OBJECT_WARN_INVALID_PROPERTY_ID( gobject,
-			property_id, pspec );
-		return;
-	}
 
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
 

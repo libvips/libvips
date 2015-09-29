@@ -1,3 +1,9 @@
+- try vips_shrink() in two passes: first, sum horizontal strips, second sum
+  vertical
+
+  we would then only need to demand the source a line at a time, and the
+  intermediate image would be much smaller ... possible cache savings as well
+
 - add bandjoinconst ... append a band (or bands?) from a constant
 
   see https://github.com/jcupitt/libvips/issues/325
