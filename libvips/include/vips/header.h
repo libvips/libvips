@@ -48,16 +48,24 @@ extern "C" {
 /**
  * VIPS_META_XMP_NAME:
  *
- * The name that JPEG read and write operations use for the image's XMP data.
+ * The name that read and write operations use for the image's XMP data.
  */
 #define VIPS_META_XMP_NAME "xmp-data"
 
 /**
  * VIPS_META_IPCT_NAME:
  *
- * The name that JPEG read and write operations use for the image's IPCT data.
+ * The name that read and write operations use for the image's IPCT data.
  */
 #define VIPS_META_IPCT_NAME "ipct-data"
+
+/**
+ * VIPS_META_PHOTOSHOP_NAME:
+ *
+ * The name that TIFF read and write operations use for the image's
+ * TIFFTAG_PHOTOSHOP data.
+ */
+#define VIPS_META_PHOTOSHOP_NAME "photoshop-data"
 
 /**
  * VIPS_META_ICC_NAME:

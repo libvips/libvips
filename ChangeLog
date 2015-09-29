@@ -19,7 +19,7 @@
 - vips_log(), vips_log10() are zero-avoiding
 - better overlap handling for dzsave, thanks robclouth
 - add @spacing option to vips_text()
-- tiff loads and saves IPCT data
+- tiff loads and saves IPCT and Photoshop data
 
 7/5/15 started 8.0.3
 - dzsave and tif pyr write could fail for some image dimensions, thanks Jonas
