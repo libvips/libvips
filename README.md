@@ -2,6 +2,8 @@
 
 [![Build Status](https://secure.travis-ci.org/jcupitt/libvips.png)](http://travis-ci.org/jcupitt/libvips)
 
+[![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
+
 libvips is a 2D image processing library. Compared to
 similar libraries, [libvips runs quickly and uses little
 memory](http://www.vips.ecs.soton.ac.uk/index.php?title=Speed_and_Memory_Use).
