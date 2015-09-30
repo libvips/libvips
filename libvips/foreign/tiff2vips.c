@@ -1110,14 +1110,16 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 {
 	uint16 v;
 
-	TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_SAMPLEFORMAT, &v );
+	rtiff->sample_format = SAMPLEFORMAT_INT;
 
-	/* Some images have this set to void, bizarre.
-	 */
-	if( v == SAMPLEFORMAT_VOID )
-		v = SAMPLEFORMAT_UINT;
+	if( TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_SAMPLEFORMAT, &v ) ) {
+		/* Some images have this set to void, bizarre.
+		 */
+		if( v == SAMPLEFORMAT_VOID )
+			v = SAMPLEFORMAT_UINT;
 
-	rtiff->sample_format = v;
+		rtiff->sample_format = v;
+	}
 }
 
 	/* Arbitrary sanity-checking limits.

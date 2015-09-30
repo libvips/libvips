@@ -1688,6 +1688,7 @@ vips__substitute( char *buf, size_t len, char *sub )
 				n = atoi( p + 1 );
 				if( lowest_n == -1 ||
 					n < lowest_n ) {
+					lowest_n = n;
 					sub_start = p;
 					sub_end = q + 1;
 				}

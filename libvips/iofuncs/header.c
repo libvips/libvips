@@ -1503,30 +1503,29 @@ int
 vips_image_history_printf( VipsImage *image, const char *fmt, ... )
 {
 	va_list args;
-	char line[VIPS_PATH_MAX];
+	char str[VIPS_PATH_MAX];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
 	time_t timebuf;
 
-	/* Format command. -40, to leave 26 for the ctime, three for the # and
-	 * a bit.
-	 */
 	va_start( args, fmt );
-	(void) vips_vsnprintf( line, VIPS_PATH_MAX - 40, fmt, args );
+	(void) vips_buf_vappendf( &buf, fmt, args );
 	va_end( args );
-	strcat( line, " # " );
+	vips_buf_appends( &buf, " # " );
 
 	/* Add the date. ctime always attaches a '\n', gah.
 	 */
 	time( &timebuf );
-	strcat( line, ctime( &timebuf ) );
-	line[strlen( line ) - 1] = '\0';
+	vips_buf_appends( &buf, ctime( &timebuf ) ); 
+	vips_buf_removec( &buf, '\n' ); 
 
 #ifdef DEBUG
 	printf( "vips_image_history_printf: "
-		"adding:\n\t%s\nto history on image %p\n", line, image );
+		"adding:\n\t%s\nto history on image %p\n", 
+		vips_buf_all( &buf ), image );
 #endif /*DEBUG*/
 
 	image->history_list = g_slist_append( image->history_list, 
-		vips__gvalue_ref_string_new( line ) );
+		vips__gvalue_ref_string_new( vips_buf_all( &buf ) ) );
 
 	return( 0 );
 }

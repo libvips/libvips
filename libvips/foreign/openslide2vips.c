@@ -419,14 +419,12 @@ argb2rgba( uint32_t *buf, int n, uint32_t bg )
 		uint8_t a = x >> 24;
 		VipsPel *out = (VipsPel *) p;
 
-		if( a == 255 ) {
-			*p = GUINT32_TO_BE((x << 8) | 255);
-		} 
-		else if( a == 0 ) {
+		if( a == 255 ) 
+			*p = GUINT32_TO_BE( (x << 8) | 255 );
+		else if( a == 0 ) 
 			/* Use background color.
 			 */
-			*p = GUINT32_TO_BE((bg << 8) | 255);
-		}
+			*p = GUINT32_TO_BE( (bg << 8) | 255 );
 		else {
 			/* Undo premultiplication.
 			 */

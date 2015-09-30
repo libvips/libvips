@@ -974,7 +974,7 @@ rad2vips_process_line( char *line, Read *read )
 		read->aspect *= aspectval( line );
 	}
 	else if( isprims( line ) ) {
-		primsval( read->prims, line );
+		(void) primsval( read->prims, line );
 	}
 
 	return( 0 );

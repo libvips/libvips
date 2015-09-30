@@ -1,6 +1,7 @@
 a.out
 *.log
 *.trs
+cov-int
 tmp
 tmp-*
 test/variables.sh

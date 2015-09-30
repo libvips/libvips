@@ -528,19 +528,19 @@ vips_buf_append_size( VipsBuf *buf, size_t n )
 		 */
 		N_( "bytes" ), 
 
-		/* Kilo byte unit.
+		/* Kilobyte unit.
 		 */
 		N_( "KB" ), 
 
-		/* Mega byte unit.
+		/* Megabyte unit.
 		 */
 		N_( "MB" ), 
 
-		/* Giga byte unit.
+		/* Gigabyte unit.
 		 */
 		N_( "GB" ), 
 
-		/* Tera byte unit.
+		/* Terabyte unit.
 		 */
 		N_( "TB" ) 
 	};
@@ -548,14 +548,16 @@ vips_buf_append_size( VipsBuf *buf, size_t n )
 	double sz = n;
 	int i;
 
-	for( i = 0; sz > 1024 && i < VIPS_NUMBER( names ); sz /= 1024, i++ )
+	/* -1, since we want to stop at TB, not run off the end.
+	 */
+	for( i = 0; sz > 1024 && i < VIPS_NUMBER( names ) - 1; sz /= 1024, i++ )
 		;
 
 	if( i == 0 )
 		/* No decimal places for bytes.
 		 */
 		return( vips_buf_appendf( buf, "%g %s", sz, _( names[i] ) ) );
-	else
+	else 
 		return( vips_buf_appendf( buf, "%.2f %s", sz, _( names[i] ) ) );
 }
 

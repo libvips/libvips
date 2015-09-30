@@ -430,6 +430,12 @@ vips_affine_build( VipsObject *object )
 			"interpolate", interpolate,
 			NULL ); 
 		g_object_unref( interpolate );
+
+		/* coverity gets confused by this, it thinks
+		 * affine->interpolate may still be null. Assign ourselves,
+		 * even though we don't need to.
+		 */
+		affine->interpolate = interpolate;
 	}
 
 	in = resample->in;
@@ -492,7 +498,7 @@ vips_affine_build( VipsObject *object )
 	/* Check for coordinate overflow ... we want to be able to hold the
 	 * output space inside INT_MAX / TRANSFORM_SCALE.
 	 */
-	edge = INT_MAX / VIPS_TRANSFORM_SCALE;
+	edge = (int) (INT_MAX / VIPS_TRANSFORM_SCALE);
 	if( affine->trn.oarea.left < -edge || 
 		affine->trn.oarea.top < -edge ||
 		VIPS_RECT_RIGHT( &affine->trn.oarea ) > edge || 

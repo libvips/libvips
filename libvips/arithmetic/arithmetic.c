@@ -424,7 +424,7 @@ vips__formatalike( VipsImage *in1, VipsImage *in2,
 	in[0] = in1;
 	in[1] = in2;
 
-	if( vips__formatalike_vec( in, out, 2 ) )
+	if( vips__formatalike_vec( in, &out[0], 2 ) )
 		return( -1 );
 
 	*out1 = out[0];
@@ -443,7 +443,7 @@ vips__sizealike( VipsImage *in1, VipsImage *in2,
 	in[0] = in1;
 	in[1] = in2;
 
-	if( vips__sizealike_vec( in, out, 2 ) )
+	if( vips__sizealike_vec( in, &out[0], 2 ) )
 		return( -1 );
 
 	*out1 = out[0];
@@ -462,7 +462,7 @@ vips__bandalike( const char *domain,
 	in[0] = in1;
 	in[1] = in2;
 
-	if( vips__bandalike_vec( domain, in, out, 2, 1 ) )
+	if( vips__bandalike_vec( domain, in, &out[0], 2, 1 ) )
 		return( -1 );
 
 	*out1 = out[0];
