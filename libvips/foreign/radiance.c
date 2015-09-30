@@ -966,7 +966,7 @@ rad2vips_process_line( char *line, Read *read )
 		COLOR cc;
 		int i;
 
-		colcorval( cc, line );
+		(void) colcorval( cc, line );
 		for( i = 0; i < 3; i++ )
 			read->colcor[i] *= cc[i];
 	}

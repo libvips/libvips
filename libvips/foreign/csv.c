@@ -467,7 +467,9 @@ fetch_nonwhite( FILE *fp, const char whitemap[256], char *buf, int max )
 	for( i = 0; i < max - 1; i++ ) {
 		ch = vips__fgetc( fp );
 
-		if( ch == EOF || ch == '\n' || whitemap[ch] )
+		if( ch == EOF || 
+			ch == '\n' || 
+			whitemap[ch] )
 			break;
 
 		buf[i] = ch;

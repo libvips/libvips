@@ -152,9 +152,13 @@ read_new( const char *filename, void *data, size_t length )
 		 * mmap the input file, it's slightly quicker.
 		 */
 		if( (read->fd = vips__open_image_read( read->filename )) < 0 ||
-			(read->length = vips_file_length( read->fd )) < 0 ||
-			!(read->data = vips__mmap( read->fd, 
-				FALSE, read->length, 0 )) ) {
+			(read->length = vips_file_length( read->fd )) < 0 ) {
+			read_free( read );
+			return( NULL );
+		}
+
+		if( !(read->data = 
+			vips__mmap( read->fd, FALSE, read->length, 0 )) ) {
 			read_free( read );
 			return( NULL );
 		}
