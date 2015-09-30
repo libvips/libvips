@@ -104,7 +104,8 @@ vips_measure_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_measure_parent_class )->build( object ) )
 		return( -1 );
 
-	vips_image_decode( measure->in, &ready );
+	if( vips_image_decode( measure->in, &ready ) )
+		return( -1 ); 
 	vips_object_local( measure, ready ); 
 
 	bands = vips_image_get_bands( ready );
