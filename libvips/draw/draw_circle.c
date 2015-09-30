@@ -100,11 +100,12 @@ vips__draw_circle_direct( VipsImage *image, int cx, int cy, int r,
 		}
 	}
 
-	if( x == y ) 
+	if( x == y ) {
 		draw_scanline( image, cy + y, cx - x, cx + x, client );
 		draw_scanline( image, cy - y, cx - x, cx + x, client );
 		draw_scanline( image, cy + x, cx - y, cx + y, client );
 		draw_scanline( image, cy - x, cx - y, cx + y, client );
+	}
 }
 
 static inline void

@@ -620,6 +620,7 @@ vips_icc_import_build( VipsObject *object )
 			code->in );
 
 	if( !icc->in_profile &&
+		code->in &&
 		import->input_profile_filename ) 
 		icc->in_profile = vips_icc_load_profile_file( class->nickname,
 			code->in, import->input_profile_filename );
@@ -1031,6 +1032,7 @@ vips_icc_transform_build( VipsObject *object )
 			code->in );
 
 	if( !icc->in_profile &&
+		code->in &&
 		transform->input_profile_filename ) 
 		icc->in_profile = vips_icc_load_profile_file( class->nickname,
 			code->in, transform->input_profile_filename );
