@@ -1587,7 +1587,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		 * not delete) the smaller layers ready for us to read from 
 		 * them again.
 		 */
-		pyramid_free( write->layer->below );
+		if( write->layer->below )
+			pyramid_free( write->layer->below );
 
 		/* Append smaller layers to the main file.
 		 */
