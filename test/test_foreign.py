@@ -371,7 +371,8 @@ class TestForeign(unittest.TestCase):
         self.assertEqual(x.height, 256)
         y = Vips.Image.new_from_file("test_files/10/3_3.jpeg")
         self.assertEqual(y.height, 
-                         self.colour.height - 255 * int(self.colour.height / 255))
+                         self.colour.height - 
+                         255 * int(self.colour.height / 255))
 
         # there should be a bottom layer
         x = Vips.Image.new_from_file("test_files/0/0_0.jpeg")

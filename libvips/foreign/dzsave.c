@@ -406,7 +406,6 @@ struct _VipsForeignSaveDz {
 	int overlap;
 	int tile_size;
 	VipsForeignDzLayout layout;
-	VipsArrayDouble *background;
 	VipsForeignDzDepth depth;
 	gboolean centre;
 	gboolean properties;
@@ -688,28 +687,34 @@ write_properties( VipsForeignSaveDz *dz )
 static int
 write_blank( VipsForeignSaveDz *dz )
 {
+	VipsForeignSave *save = (VipsForeignSave *) dz;
+
 	VipsImage *x, *t;
 	int n;
 	VipsArea *ones;
 	double *d;
+	double *bg;
 	int i;
 	void *buf;
 	size_t len;
 	GsfOutput *out; 
 
-	if( vips_black( &x, dz->tile_size, dz->tile_size, NULL ) ) 
+	/* Number of bands we will end up making. We need to set this in
+	 * vips_black() to make sure we set Type correctly, otherwise we can
+	 * try saving a B_W image as PNG, with disasterous results.
+	 */
+	bg = (double *) vips_area_get_data( (VipsArea *) save->background, 
+		NULL, &n, NULL, NULL );
+
+	if( vips_black( &x, dz->tile_size, dz->tile_size, "bands", n, NULL ) ) 
 		return( -1 );
 
-	vips_area_get_data( (VipsArea *) dz->background, NULL, &n, NULL, NULL );
 	ones = vips_area_new_array( G_TYPE_DOUBLE, sizeof( double ), n );
 	d = (double *) vips_area_get_data( ones, NULL, NULL, NULL, NULL );
 	for( i = 0; i < n; i++ )
 		d[i] = 1.0; 
-	if( vips_linear( x, &t, 
-		d, 
-		(double *) vips_area_get_data( (VipsArea *) dz->background, 
-			NULL, NULL, NULL, NULL ),
-		n, NULL ) ) {
+
+	if( vips_linear( x, &t, d, bg, n, NULL ) ) {
 		vips_area_unref( ones );
 		g_object_unref( x );
 		return( -1 );
@@ -1075,6 +1080,7 @@ strip_work( VipsThreadState *state, void *a )
 	Strip *strip = (Strip *) a;
 	Layer *layer = strip->layer;
 	VipsForeignSaveDz *dz = layer->dz;
+	VipsForeignSave *save = (VipsForeignSave *) dz;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
 
 	VipsImage *x;
@@ -1125,7 +1131,7 @@ strip_work( VipsThreadState *state, void *a )
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
 		if( vips_embed( x, &t, 0, 0, dz->tile_size, dz->tile_size,
-			"background", dz->background,
+			"background", save->background,
 			NULL ) ) {
 			g_object_unref( x );
 			return( -1 );
@@ -1510,7 +1516,8 @@ vips_foreign_save_dz_build( VipsObject *object )
 			VIPS_SETSTR( dz->suffix, ".jpg" );
 	}
 
-	/* Default to white background. 
+	/* Default to white background. vips_foreign_save_init() defaults to
+	 * black. 
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
 		!vips_object_argument_isset( object, "background" ) ) {
@@ -1594,7 +1601,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		if( vips_embed( save->ready, &z, 
 			real_pixels.left, real_pixels.top,
 			size, size,
-			"background", dz->background,
+			"background", save->background,
 			NULL ) ) 
 			return( -1 );
 
@@ -1918,13 +1925,6 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
 		1, 8192, 256 );
-
-	VIPS_ARG_BOXED( class, "background", 12, 
-		_( "Background" ), 
-		_( "Colour for background pixels" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveDz, background ),
-		VIPS_TYPE_ARRAY_DOUBLE );
 
 	VIPS_ARG_ENUM( class, "depth", 13, 
 		_( "Depth" ), 
