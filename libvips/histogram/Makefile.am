@@ -14,6 +14,7 @@ libhistogram_la_SOURCES = \
 	hist_local.c \
 	percent.c \
 	hist_ismonotonic.c \
+	hist_entropy.c \
 	stdif.c 
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

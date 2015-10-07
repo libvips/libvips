@@ -266,7 +266,7 @@ read_csv( FILE *fp, VipsImage *out,
 			skip + 1, columns + 1, &d )) == 0; 
 		columns++ )
 		;
-	fsetpos( fp, &pos );
+	(void) fsetpos( fp, &pos );
 
 	if( columns == 0 ) {
 		vips_error( "csv2vips", "%s", _( "empty line" ) );
@@ -277,10 +277,10 @@ read_csv( FILE *fp, VipsImage *out,
 	 * number of lines out.
 	 */
 	if( lines == -1 ) {
-		fgetpos( fp, &pos );
+		(void) fgetpos( fp, &pos );
 		for( lines = 0; skip_line( fp ); lines++ )
 			;
-		fsetpos( fp, &pos );
+		(void) fsetpos( fp, &pos );
 	}
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
@@ -467,7 +467,9 @@ fetch_nonwhite( FILE *fp, const char whitemap[256], char *buf, int max )
 	for( i = 0; i < max - 1; i++ ) {
 		ch = vips__fgetc( fp );
 
-		if( ch == EOF || ch == '\n' || whitemap[ch] )
+		if( ch == EOF || 
+			ch == '\n' || 
+			whitemap[ch] )
 			break;
 
 		buf[i] = ch;

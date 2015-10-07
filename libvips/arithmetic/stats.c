@@ -113,7 +113,7 @@ vips_stats_build( VipsObject *object )
 	double *row0, *row;
 	int b, y, i;
 
-	if( statistic->in ) {
+	if( vips_object_argument_isset( object, "in" ) ) {
 		int bands = vips_image_get_bands( statistic->in );
 
 		if( vips_check_noncomplex( class->nickname, statistic->in ) )

@@ -431,7 +431,7 @@ typedef void (*write_fn)( ExifData *ed,
 
 /* Write a tag. Update what's there, or make a new one.
  */
-static int
+static void
 write_tag( ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data )
 {
 	ExifEntry *entry;
@@ -452,8 +452,6 @@ write_tag( ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data )
 
 		fn( ed, entry, 0, data );
 	}
-
-	return( 0 );
 }
 
 /* This is different, we set the xres/yres from the vips header rather than
@@ -505,16 +503,12 @@ set_exif_resolution( ExifData *ed, VipsImage *im )
 	/* Main image xres/yres/unit are in ifd0. ifd1 has the thumbnail
 	 * xres/yres/unit.
 	 */
-	if( write_tag( ed, 0, EXIF_TAG_X_RESOLUTION, 
-		vips_exif_set_double, (void *) &xres ) ||
-		write_tag( ed, 0, EXIF_TAG_Y_RESOLUTION, 
-			vips_exif_set_double, (void *) &yres ) ||
-		write_tag( ed, 0, EXIF_TAG_RESOLUTION_UNIT, 
-			vips_exif_set_int, (void *) &unit ) ) {
-		vips_error( "VipsJpeg", 
-			"%s", _( "error setting JPEG resolution" ) );
-		return( -1 );
-	}
+	write_tag( ed, 0, EXIF_TAG_X_RESOLUTION, 
+		vips_exif_set_double, (void *) &xres );
+	write_tag( ed, 0, EXIF_TAG_Y_RESOLUTION, 
+		vips_exif_set_double, (void *) &yres );
+	write_tag( ed, 0, EXIF_TAG_RESOLUTION_UNIT, 
+		vips_exif_set_int, (void *) &unit );
 
 	return( 0 );
 }
@@ -527,14 +521,10 @@ set_exif_dimensions( ExifData *ed, VipsImage *im )
 	VIPS_DEBUG_MSG( "set_exif_dimensions: vips size of %d, %d\n",
 		im->Xsize, im->Ysize );
 
-	if( write_tag( ed, 2, EXIF_TAG_PIXEL_X_DIMENSION, 
-		vips_exif_set_int, (void *) &im->Xsize ) ||
-		write_tag( ed, 2, EXIF_TAG_PIXEL_Y_DIMENSION, 
-			vips_exif_set_int, (void *) &im->Ysize ) ) { 
-		vips_error( "VipsJpeg", 
-			"%s", _( "error setting JPEG dimensions" ) );
-		return( -1 );
-	}
+	write_tag( ed, 2, EXIF_TAG_PIXEL_X_DIMENSION, 
+		vips_exif_set_int, (void *) &im->Xsize );
+	write_tag( ed, 2, EXIF_TAG_PIXEL_Y_DIMENSION, 
+		vips_exif_set_int, (void *) &im->Ysize );
 
 	return( 0 );
 }
@@ -1328,10 +1318,15 @@ term_destination( j_compress_ptr cinfo )
 	 */
 	if( !(obuf = vips_malloc( NULL, len )) )
 		ERREXIT( cinfo, JERR_FILE_WRITE );
-	*(buf->obuf) = obuf;
-	*(buf->olen) = len;
+	else {
+		/* coverity doesn't know ERREXIT() does not return, so put
+		 * this in an else.
+		 */
+		*(buf->obuf) = obuf;
+		*(buf->olen) = len;
 
-	block_copy( buf->block, obuf );
+		block_copy( buf->block, obuf );
+	}
 }
 
 /* Set dest to one of our objects.

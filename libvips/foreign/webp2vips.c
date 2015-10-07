@@ -116,10 +116,10 @@ read_free( Read *read )
 	VIPS_FREEF( WebPIDelete, read->idec );
 	WebPFreeDecBuffer( &read->config.output );
 
-	if( read->fd &&
+	if( read->fd > 0 &&
 		read->data &&
-		read->length ) { 
-		vips__munmap( (void *) read->data, read->length ); 
+		read->length > 0 ) { 
+		vips__munmap( read->data, read->length ); 
 		read->data = NULL;
 		read->length = 0;
 	}
@@ -151,7 +151,7 @@ read_new( const char *filename, const void *data, size_t length )
 		 *
 		 * mmap the input file, it's slightly quicker.
 		 */
-		if( !(read->fd = vips__open_image_read( read->filename )) ||
+		if( (read->fd = vips__open_image_read( read->filename )) < 0 ||
 			(read->length = vips_file_length( read->fd )) < 0 ||
 			!(read->data = vips__mmap( read->fd, 
 				FALSE, read->length, 0 )) ) {

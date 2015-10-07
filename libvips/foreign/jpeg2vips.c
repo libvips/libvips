@@ -864,6 +864,11 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			break;
 
 		default:
+#ifdef DEBUG
+			printf( "read_jpeg_header: "
+				"ignoring %d byte APP%d block\n", 
+				p->data_length, p->marker - JPEG_APP0 );
+#endif /*DEBUG*/
 			break;
 		}
 	}
@@ -1009,20 +1014,13 @@ read_jpeg_rotate( VipsObject *process, VipsImage *im )
 /* Read the jpeg from file or buffer.
  */
 static int
-vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out )
+read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 {
 	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
 
 	VipsImage *im;
-
-	/* Need to read in APP1 (EXIF metadata), APP2 (ICC profile), APP13
-	 * (photoshop IPCT).
-	 */
-	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 1, 0xffff );
-	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 2, 0xffff );
-	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 13, 0xffff );
 
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
@@ -1060,6 +1058,60 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out )
 	return( 0 );
 }
 
+/* Read the jpeg from file or buffer.
+ */
+static int
+vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
+{
+	/* Need to read in APP1 (EXIF metadata), APP2 (ICC profile), APP13
+	 * (photoshop IPCT).
+	 */
+	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 1, 0xffff );
+	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 2, 0xffff );
+	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 13, 0xffff );
+
+#ifdef DEBUG
+{
+	int i;
+
+	/* Handy for debubgging ... spot any extra markers.
+	 */
+	for( i = 0; i < 16; i++ ) 
+		jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + i, 0xffff );
+}
+#endif /*DEBUG*/
+
+
+	/* Convert!
+	 */
+	if( header_only ) {
+		if( read_jpeg_header( jpeg, out ) )
+			return( -1 ); 
+
+		/* Swap width and height if we're going to rotate this image.
+		 */
+		if( jpeg->autorotate ) { 
+			VipsAngle angle = vips_autorot_get_angle( out ); 
+
+			if( angle == VIPS_ANGLE_D90 || 
+				angle == VIPS_ANGLE_D270 )
+				VIPS_SWAP( int, out->Xsize, out->Ysize );
+
+			/* We won't be returning an orientation tag.
+			 */
+			(void) vips_image_remove( out, ORIENTATION );
+		}
+	}
+	else {
+		if( read_jpeg_image( jpeg, out ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+/* Read a JPEG file into a VIPS image.
+ */
 int
 vips__isjpeg_buffer( const unsigned char *buf, size_t len )
 {

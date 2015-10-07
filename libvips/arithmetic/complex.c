@@ -21,6 +21,8 @@
  * 	- redo as a class
  * 21/11/11
  * 	- add vips_complexget()
+ * 29/9/15
+ * 	- return 0 for cross-product where one arg is zero
  */
 
 /*
@@ -411,16 +413,28 @@ G_DEFINE_TYPE( VipsComplex2, vips_complex2, VIPS_TYPE_BINARY );
 #ifdef USE_MODARG_DIV
 
 #define CROSS( Q, X1, Y1, X2, Y2 ) { \
-	double arg = atan2( X2, X1 ) - atan2( Y2, Y1 ); \
-	\
-	Q[0] = cos( arg ); \
-	Q[1] = sin( arg ); \
+	if( ((X1) == 0.0 && (Y1) == 0.0) || \
+		((X2) == 0.0 && (Y2) == 0.0) ) { \
+		Q[0] = 0.0; \
+		Q[1] = 0.0; \
+	} \
+	else { \
+		double arg = atan2( X2, X1 ) - atan2( Y2, Y1 ); \
+		\
+		Q[0] = cos( arg ); \
+		Q[1] = sin( arg ); \
+	} \
 }
 
 #else /* USE_MODARG_DIV */
 
 #define CROSS( Q, X1, Y1, X2, Y2 ) { \
-	if( ABS( Y1 ) > ABS( Y2 ) ) { \
+	if( ((X1) == 0.0 && (Y1) == 0.0) || \
+		((X2) == 0.0 && (Y2) == 0.0) ) { \
+		Q[0] = 0.0; \
+		Q[1] = 0.0; \
+	} \
+	else if( ABS( Y1 ) > ABS( Y2 ) ) { \
 		double a = Y2 / Y1; \
 		double b = Y1 + Y2 * a; \
 		double re = (X1 + X2 * a) / b; \
@@ -455,7 +469,9 @@ vips_complex2_buffer( VipsArithmetic *arithmetic,
 	int x;
 
 	switch( cmplx->cmplx ) {
-	case VIPS_OPERATION_COMPLEX2_CROSS_PHASE:	SWITCH2( CROSS ); break;
+	case VIPS_OPERATION_COMPLEX2_CROSS_PHASE:	
+		SWITCH2( CROSS ); 
+		break;
 
 	default:
 		g_assert( 0 );

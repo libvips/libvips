@@ -27,7 +27,7 @@ equal_vector( std::vector<double> a, std::vector<double> b )
 {
 	for( unsigned int i = 0; i < a.size(); i++ ) 
 		if( fabs( a[i] - b[i] ) > 0.001 ) {
-			printf( "vectors differ at %d: should be [", i );
+			printf( "vectors differ at %u: should be [", i );
 			for( unsigned int i = 0; i < a.size(); i++ ) {
 				if( i > 0 )
 					printf( ", " ); 

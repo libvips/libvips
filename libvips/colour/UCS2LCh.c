@@ -77,7 +77,9 @@ make_LI( void )
 	for( i = 0; i < 1001; i++ ) {
 		int j;
 
-		for( j = 0; j < 1001 && Ll[j] <= i / 10.0; j++ ) 
+		/* Must be 1000, since j will be +1 on exit.
+		 */
+		for( j = 0; j < 1000 && Ll[j] <= i / 10.0; j++ ) 
 			;
 
 		LI[i] = (j - 1) / 10.0 + 
@@ -99,8 +101,11 @@ make_CI( void )
 	for( i = 0; i < 3001; i++ ) {
 		int j;
 
-		for( j = 0; j < 3001 && Cl[j] <= i / 10.0; j++ )
+		/* Must be 3000, since j will be +1 on exit.
+		 */
+		for( j = 0; j < 3000 && Cl[j] <= i / 10.0; j++ )
 			;
+
 		CI[i] = (j - 1) / 10.0 + 
 			(i / 10.0 - Cl[j - 1]) / ((Cl[j] - Cl[j - 1]) * 10.0);
 	}
@@ -122,8 +127,9 @@ make_hI( void )
 		for( i = 0; i < 361; i++ ) {
 			int k;
 
-			for( k = 0; k < 361 && hl[j][k] <= i; k++ ) 
+			for( k = 0; k < 360 && hl[j][k] <= i; k++ ) 
 				;
+
 			hI[j][i] = k - 1 + (i - hl[j][k - 1]) / 
 				(hl[j][k] - hl[j][k - 1]);
 		}
@@ -145,7 +151,7 @@ vips_col_Lcmc2L( float Lcmc )
 	int known;
 
 	known = floor( Lcmc * 10.0 );
-	known = VIPS_CLIP( 0, known, 1000 );
+	known = VIPS_CLIP( 0, known, 999 );
 
 	return( LI[known] + 
 		(LI[known + 1] - LI[known]) * (Lcmc * 10.0 - known) );
@@ -167,7 +173,7 @@ vips_col_Ccmc2C( float Ccmc )
 	int known;
 
 	known = floor( Ccmc * 10.0 );
-	known = VIPS_CLIP( 0, known, 3000 );
+	known = VIPS_CLIP( 0, known, 2999 );
 
 	return( CI[known] + 
 		(CI[known + 1] - CI[known]) * (Ccmc * 10.0 - known) );
@@ -193,10 +199,10 @@ vips_col_Chcmc2h( float C, float hcmc )
 	/* Which row of the table?
 	 */
 	r = (int) ((C + 1.0) / 2.0);
-	r = VIPS_CLIP( 0, r, 100 ); 
+	r = VIPS_CLIP( 0, r, 99 ); 
 
 	known = floor( hcmc );
-	known = VIPS_CLIP( 0, known, 360 ); 
+	known = VIPS_CLIP( 0, known, 359 ); 
 
 	return( hI[r][known] + 
 		(hI[r][(known + 1) % 360] - hI[r][known]) * (hcmc - known) );

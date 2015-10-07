@@ -343,7 +343,7 @@ vips__ink_to_vector( const char *domain, VipsImage *im, VipsPel *ink, int *n )
 
 	printf( "\tvec = " ); 
 	for( i = 0; i < *n; i++ )
-		printf( "%d ", result[i] );
+		printf( "%g ", result[i] );
 	printf( "\n" ); 
 }
 #endif /*VIPS_DEBUG*/

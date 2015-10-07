@@ -1,4 +1,8 @@
-7/5/15 started 8.1.0
+7/10/15 started 8.2.0
+- added im_bufmagick2vips(), a vips7 wrapper for magick load from buffer
+- added VipsStreamInput / VipsStreamOutput
+
+7/5/15 starteld 8.1.0
 - add vips_premultiply(), vips_unpremultiply()
 - change the alpha range rules for vips_flatten() to match vips_premultiply()
 - vipsthumbnail uses vips_resize() rather than its own code
@@ -15,7 +19,11 @@
 - skip oversized markers in jpeg write
 - jpeg exif tags saved as name rather than title
 - can now set any jpeg exif tag, not just modify existing tags
-- added VipsStreamInput / VipsStreamOutput
+- add vips_hist_entropy()
+- vips_log(), vips_log10() are zero-avoiding
+- better overlap handling for dzsave, thanks robclouth
+- add @spacing option to vips_text()
+- tiff loads and saves IPCT and Photoshop data
 
 7/5/15 started 8.0.3
 - dzsave and tif pyr write could fail for some image dimensions, thanks Jonas

@@ -57,7 +57,9 @@ int vips_hist_match( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 int vips_hist_local( VipsImage *in, VipsImage **out, 
 	int width, int height, ... )
 	__attribute__((sentinel));
-int vips_hist_ismonotonic( VipsImage *in, gboolean *monotonic, ... )
+int vips_hist_ismonotonic( VipsImage *in, gboolean *out, ... )
+	__attribute__((sentinel));
+int vips_hist_entropy( VipsImage *in, double *out, ... )
 	__attribute__((sentinel));
 
 #ifdef __cplusplus

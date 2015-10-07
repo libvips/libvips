@@ -104,7 +104,7 @@ VOption::~VOption()
 {
 	std::list<Pair *>::iterator i;
 
-	for( i = options.begin(); i != options.end(); i++ ) 
+	for( i = options.begin(); i != options.end(); ++i ) 
 		delete *i;
 }
 
@@ -378,7 +378,7 @@ VOption::set_operation( VipsOperation *operation )
 {
 	std::list<Pair *>::iterator i;
 
-	for( i = options.begin(); i != options.end(); i++ ) 
+	for( i = options.begin(); i != options.end(); ++i ) 
 		if( (*i)->input ) {
 #ifdef VIPS_DEBUG_VERBOSE
 			printf( "set_operation: " );
@@ -399,7 +399,7 @@ VOption::get_operation( VipsOperation *operation )
 {
 	std::list<Pair *>::iterator i;
 
-	for( i = options.begin(); i != options.end(); i++ ) 
+	for( i = options.begin(); i != options.end(); ++i ) 
 		if( not (*i)->input ) {
 			const char *name = (*i)->name;
 

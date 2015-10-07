@@ -74,9 +74,14 @@ im__initialize( TIE_POINTS *points )
 				++j;
 			}
 
-		xdelta = xdelta/j;
-		ydelta = ydelta/j;
-		for(i = 0; i < npt; i++ ) {
+		if( j == 0 ) {
+			vips_error( "im_initialize", "no tie points" );
+			return( -1 );
+		}
+
+		xdelta = xdelta / j;
+		ydelta = ydelta / j;
+		for( i = 0; i < npt; i++ ) {
 			dx[i] = (xsec[i] - xref[i]) - xdelta;
 			dy[i] = (ysec[i] - yref[i]) - ydelta;
 		}
@@ -84,7 +89,7 @@ im__initialize( TIE_POINTS *points )
 		for( i = 0; i < npt; i++ ) {
 			a1 = dx[i];
 			a2 = dy[i];
-			points->deviation[i] = sqrt( a1*a1 + a2*a2 );
+			points->deviation[i] = sqrt( a1 * a1 + a2 * a2 );
 		}	
 
 		points->l_scale = 1.0;

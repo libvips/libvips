@@ -157,6 +157,9 @@
  * 26/2/15
  * 	- close the read down early for a header read ... this saves an
  * 	  fd during file read, handy for large numbers of input images 
+ * 29/9/15
+ * 	- load IPCT metadata
+ * 	- load photoshop metadata
  */
 
 /*
@@ -1107,14 +1110,16 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 {
 	uint16 v;
 
-	TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_SAMPLEFORMAT, &v );
+	rtiff->sample_format = SAMPLEFORMAT_INT;
 
-	/* Some images have this set to void, bizarre.
-	 */
-	if( v == SAMPLEFORMAT_VOID )
-		v = SAMPLEFORMAT_UINT;
+	if( TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_SAMPLEFORMAT, &v ) ) {
+		/* Some images have this set to void, bizarre.
+		 */
+		if( v == SAMPLEFORMAT_VOID )
+			v = SAMPLEFORMAT_UINT;
 
-	rtiff->sample_format = v;
+		rtiff->sample_format = v;
+	}
 }
 
 	/* Arbitrary sanity-checking limits.
@@ -1179,6 +1184,37 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 			return( -1 );
 		memcpy( data_copy, data, data_length );
 		vips_image_set_blob( out, VIPS_META_XMP_NAME, 
+			(VipsCallbackFn) vips_free, data_copy, data_length );
+	}
+
+	/* Read any IPCT metadata.
+	 */
+	if( TIFFGetField( rtiff->tiff, 
+		TIFFTAG_RICHTIFFIPTC, &data_length, &data ) ) {
+		void *data_copy;
+
+		/* For no very good reason, libtiff stores IPCT as an array of
+		 * long, not byte.
+		 */
+		data_length *= 4;
+
+		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+			return( -1 );
+		memcpy( data_copy, data, data_length );
+		vips_image_set_blob( out, VIPS_META_IPCT_NAME, 
+			(VipsCallbackFn) vips_free, data_copy, data_length );
+	}
+
+	/* Read any photoshop metadata.
+	 */
+	if( TIFFGetField( rtiff->tiff, 
+		TIFFTAG_PHOTOSHOP, &data_length, &data ) ) {
+		void *data_copy;
+
+		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+			return( -1 );
+		memcpy( data_copy, data, data_length );
+		vips_image_set_blob( out, VIPS_META_PHOTOSHOP_NAME, 
 			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
@@ -1772,7 +1808,7 @@ my_tiff_read( thandle_t st, tdata_t buffer, tsize_t size )
 	size_t available = rtiff->len - rtiff->pos;
 	size_t copy = VIPS_MIN( size, available );
 
-	memcpy( buffer, rtiff->buf + rtiff->pos, copy );
+	memcpy( buffer, (unsigned char *) rtiff->buf + rtiff->pos, copy );
 	rtiff->pos += copy;
 
 	return( copy ); 

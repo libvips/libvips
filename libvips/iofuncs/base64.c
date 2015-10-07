@@ -213,7 +213,7 @@ vips__b64_encode( const unsigned char *data, size_t data_length )
 	for( total = 0, i = 0; i < data_length; i++ )
 		total += data[i];
 
-	printf( "vips__b64_encode: length = %u, checksum 0x%x\n", 
+	printf( "vips__b64_encode: length = %zu, checksum 0x%x\n", 
 		data_length, total & 0xffff );
 }
 #endif /*DEBUG*/

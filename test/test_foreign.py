@@ -4,6 +4,7 @@ from __future__ import division
 import unittest
 import math
 import os
+import shutil
 
 #import logging
 #logging.basicConfig(level = logging.DEBUG)
@@ -344,6 +345,116 @@ class TestForeign(unittest.TestCase):
 
     def test_rad(self):
         self.save_load("%s.hdr", self.colour)
+
+    def test_dzsave(self):
+        x = Vips.type_find("VipsForeign", "dzsave")
+        if not x.is_instantiatable():
+            print("no dzsave support in this vips, skipping test")
+            return
+
+        # dzsave is hard to test, there are so many options
+        # test each option separately and hope they all function together
+        # correctly
+
+        # default deepzoom layout
+        self.colour.dzsave("test")
+
+        # test right edge ... default is 256x256 tiles, overlap 1
+        x = Vips.Image.new_from_file("test_files/10/3_2.jpeg")
+        self.assertEqual(x.width, 256)
+        y = Vips.Image.new_from_file("test_files/10/4_2.jpeg")
+        self.assertEqual(y.width, 
+                         self.colour.width - 255 * int(self.colour.width / 255))
+
+        # test bottom edge 
+        x = Vips.Image.new_from_file("test_files/10/3_2.jpeg")
+        self.assertEqual(x.height, 256)
+        y = Vips.Image.new_from_file("test_files/10/3_3.jpeg")
+        self.assertEqual(y.height, 
+                         self.colour.height - 
+                         255 * int(self.colour.height / 255))
+
+        # there should be a bottom layer
+        x = Vips.Image.new_from_file("test_files/0/0_0.jpeg")
+        self.assertEqual(x.width, 1)
+        self.assertEqual(x.height, 1)
+
+        # 10 should be the final layer
+        self.assertFalse(os.path.isdir("test_files/11"))
+
+        shutil.rmtree("test_files")
+        os.unlink("test.dzi")
+
+        # default google layout
+        self.colour.dzsave("test", layout = "google")
+
+        # test bottom-right tile ... default is 256x256 tiles, overlap 0
+        x = Vips.Image.new_from_file("test/2/2/3.jpg")
+        self.assertEqual(x.width, 256)
+        self.assertEqual(x.height, 256)
+        self.assertFalse(os.path.exists("test/2/2/4.jpg"))
+        self.assertFalse(os.path.exists("test/3"))
+        x = Vips.Image.new_from_file("test/blank.png")
+        self.assertEqual(x.width, 256)
+        self.assertEqual(x.height, 256)
+
+        shutil.rmtree("test")
+
+        # default zoomify layout
+        self.colour.dzsave("test", layout = "zoomify")
+
+        # 256x256 tiles, no overlap
+        self.assertTrue(os.path.exists("test/ImageProperties.xml"))
+        x = Vips.Image.new_from_file("test/TileGroup0/2-3-2.jpg")
+        self.assertEqual(x.width, 256)
+        self.assertEqual(x.height, 256)
+
+        shutil.rmtree("test")
+
+        # test zip output
+        self.colour.dzsave("test.zip")
+        self.assertFalse(os.path.exists("test_files"))
+        self.assertFalse(os.path.exists("test.dzi"))
+        os.unlink("test.zip")
+
+        # test suffix 
+        self.colour.dzsave("test", suffix = ".png")
+
+        x = Vips.Image.new_from_file("test_files/10/3_2.png")
+        self.assertEqual(x.width, 256)
+
+        shutil.rmtree("test_files")
+        os.unlink("test.dzi")
+
+        # test overlap
+        self.colour.dzsave("test", overlap = 200)
+
+        y = Vips.Image.new_from_file("test_files/10/18_6.jpeg")
+        self.assertEqual(y.width, 
+                         self.colour.width - 56 * int(self.colour.width / 56))
+
+        shutil.rmtree("test_files")
+        os.unlink("test.dzi")
+
+        # test tile-size
+        self.colour.dzsave("test", tile_size = 512)
+
+        y = Vips.Image.new_from_file("test_files/10/2_1.jpeg")
+        self.assertEqual(y.width, 
+                         self.colour.width - 511 * int(self.colour.width / 511))
+
+        shutil.rmtree("test_files")
+        os.unlink("test.dzi")
+
+        # test tile-size
+        self.colour.dzsave("test", tile_size = 512)
+
+        y = Vips.Image.new_from_file("test_files/10/2_1.jpeg")
+        self.assertEqual(y.width, 
+                         self.colour.width - 511 * int(self.colour.width / 511))
+
+        shutil.rmtree("test_files")
+        os.unlink("test.dzi")
 
 if __name__ == '__main__':
     unittest.main()

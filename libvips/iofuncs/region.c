@@ -363,7 +363,7 @@ vips_region_sanity( VipsObject *object, VipsBuf *buf )
 {
 	VipsRegion *region = VIPS_REGION( object );
 
-	vips_object_sanity( VIPS_OBJECT( region->im ) );
+	(void) vips_object_sanity( VIPS_OBJECT( region->im ) );
 
 	switch( region->im->dtype ) { 
 	case VIPS_IMAGE_PARTIAL:

@@ -153,6 +153,9 @@
  * 27/3/15
  * 	- squash >128 rather than >0, nicer results for shrink
  * 	- add miniswhite option
+ * 29/9/15
+ * 	- try to write IPCT metadata
+ * 	- try to write photoshop metadata
  */
 
 /*
@@ -442,6 +445,63 @@ write_embed_xmp( Write *write, TIFF *tif )
 	return( 0 );
 }
 
+/* Embed any IPCT metadata. 
+ */
+static int
+write_embed_ipct( Write *write, TIFF *tif )
+{
+	void *data;
+	size_t data_length;
+
+	if( !vips_image_get_typeof( write->im, VIPS_META_IPCT_NAME ) )
+		return( 0 );
+	if( vips_image_get_blob( write->im, VIPS_META_IPCT_NAME, 
+		&data, &data_length ) )
+		return( -1 );
+
+	/* For no very good reason, libtiff stores IPCT as an array of
+	 * long, not byte.
+	 */
+	if( data_length & 3 ) {
+		vips_warn( "vips2tiff", 
+			"%s", _( "rounding up IPCT data length" ) );
+		data_length /= 4;
+		data_length += 1;
+	}
+	else
+		data_length /= 4;
+
+	TIFFSetField( tif, TIFFTAG_RICHTIFFIPTC, data_length, data );
+
+#ifdef DEBUG
+	printf( "vips2tiff: attached IPCT from meta\n" );
+#endif /*DEBUG*/
+
+	return( 0 );
+}
+
+/* Embed any XMP metadata. 
+ */
+static int
+write_embed_photoshop( Write *write, TIFF *tif )
+{
+	void *data;
+	size_t data_length;
+
+	if( !vips_image_get_typeof( write->im, VIPS_META_PHOTOSHOP_NAME ) )
+		return( 0 );
+	if( vips_image_get_blob( write->im, VIPS_META_PHOTOSHOP_NAME, 
+		&data, &data_length ) )
+		return( -1 );
+	TIFFSetField( tif, TIFFTAG_PHOTOSHOP, data_length, data );
+
+#ifdef DEBUG
+	printf( "vips2tiff: attached photoshop data from meta\n" );
+#endif /*DEBUG*/
+
+	return( 0 );
+}
+
 /* Write a TIFF header. width and height are the size of the VipsImage we are
  * writing (it may have been shrunk).
  */
@@ -475,10 +535,11 @@ write_tiff_header( Write *write, Layer *layer )
 	TIFFSetField( tif, TIFFTAG_YRESOLUTION, 
 		VIPS_CLIP( 0.01, write->yres, 1000000 ) );
 
-	if( write_embed_profile( write, tif ) )
-		return( -1 );
-	if( write_embed_xmp( write, tif ) )
-		return( -1 );
+	if( write_embed_profile( write, tif ) ||
+		write_embed_xmp( write, tif ) ||
+		write_embed_ipct( write, tif ) ||
+		write_embed_photoshop( write, tif ) )
+		return( -1 ); 
 
 	/* And colour fields.
 	 */
@@ -1422,9 +1483,10 @@ write_copy_tiff( Write *write, TIFF *out, TIFF *in )
 
 	/* We can't copy profiles or xmp :( Set again from Write.
 	 */
-	if( write_embed_profile( write, out ) )
-		return( -1 );
-	if( write_embed_xmp( write, out ) )
+	if( write_embed_profile( write, out ) ||
+		write_embed_xmp( write, out ) ||
+		write_embed_ipct( write, out ) ||
+		write_embed_photoshop( write, out ) )
 		return( -1 );
 
 	buf = vips_malloc( NULL, TIFFTileSize( in ) );
@@ -1525,7 +1587,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		 * not delete) the smaller layers ready for us to read from 
 		 * them again.
 		 */
-		pyramid_free( write->layer->below );
+		if( write->layer->below )
+			pyramid_free( write->layer->below );
 
 		/* Append smaller layers to the main file.
 		 */

@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Tue Jan  6 11:44:30 GMT 2015
+// Tue Oct  6 16:53:55 BST 2015
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -834,12 +834,64 @@ VImage VImage::recomb( VImage m , VOption *options )
     return( out );
 }
 
+VImage VImage::bandfold( VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "bandfold" ,
+        (options ? options : VImage::option()) ->
+            set( "out", &out ) ->
+            set( "in", *this ) );
+
+    return( out );
+}
+
+VImage VImage::bandunfold( VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "bandunfold" ,
+        (options ? options : VImage::option()) ->
+            set( "out", &out ) ->
+            set( "in", *this ) );
+
+    return( out );
+}
+
 VImage VImage::flatten( VOption *options )
     throw( VError )
 {
     VImage out;
 
     call( "flatten" ,
+        (options ? options : VImage::option()) ->
+            set( "out", &out ) ->
+            set( "in", *this ) );
+
+    return( out );
+}
+
+VImage VImage::premultiply( VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "premultiply" ,
+        (options ? options : VImage::option()) ->
+            set( "out", &out ) ->
+            set( "in", *this ) );
+
+    return( out );
+}
+
+VImage VImage::unpremultiply( VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "unpremultiply" ,
         (options ? options : VImage::option()) ->
             set( "out", &out ) ->
             set( "in", *this ) );
@@ -928,6 +980,19 @@ VImage VImage::msb( VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::byteswap( VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "byteswap" ,
+        (options ? options : VImage::option()) ->
+            set( "out", &out ) ->
+            set( "in", *this ) );
 
     return( out );
 }
@@ -2109,12 +2174,12 @@ VImage VImage::LabQ2sRGB( VOption *options )
     return( out );
 }
 
-VImage VImage::sRGB2scRGB( VOption *options )
+VImage VImage::sRGB2HSV( VOption *options )
     throw( VError )
 {
     VImage out;
 
-    call( "sRGB2scRGB" ,
+    call( "sRGB2HSV" ,
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) );
@@ -2122,12 +2187,12 @@ VImage VImage::sRGB2scRGB( VOption *options )
     return( out );
 }
 
-VImage VImage::scRGB2sRGB( VOption *options )
+VImage VImage::HSV2sRGB( VOption *options )
     throw( VError )
 {
     VImage out;
 
-    call( "scRGB2sRGB" ,
+    call( "HSV2sRGB" ,
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) );
@@ -2212,6 +2277,45 @@ VImage VImage::dECMC( VImage right , VOption *options )
         (options ? options : VImage::option()) ->
             set( "left", *this ) ->
             set( "right", right ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::sRGB2scRGB( VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "sRGB2scRGB" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::scRGB2BW( VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "scRGB2BW" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::scRGB2sRGB( VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "scRGB2sRGB" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
             set( "out", &out ) );
 
     return( out );
@@ -2352,6 +2456,19 @@ bool VImage::hist_ismonotonic( VOption *options )
             set( "monotonic", &monotonic ) );
 
     return( monotonic );
+}
+
+double VImage::hist_entropy( VOption *options )
+    throw( VError )
+{
+    double out;
+
+    call( "hist_entropy" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) );
+
+    return( out );
 }
 
 VImage VImage::conv( VImage mask , VOption *options )

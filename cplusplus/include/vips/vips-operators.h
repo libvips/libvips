@@ -1,5 +1,5 @@
 // headers for vips operations
-// Tue Jan  6 11:41:51 GMT 2015
+// Tue Oct  6 16:54:32 BST 2015
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 )
@@ -122,7 +122,15 @@ VImage ifthenelse( VImage in1 , VImage in2 , VOption *options = 0 )
     throw( VError );
 VImage recomb( VImage m , VOption *options = 0 )
     throw( VError );
+VImage bandfold( VOption *options = 0 )
+    throw( VError );
+VImage bandunfold( VOption *options = 0 )
+    throw( VError );
 VImage flatten( VOption *options = 0 )
+    throw( VError );
+VImage premultiply( VOption *options = 0 )
+    throw( VError );
+VImage unpremultiply( VOption *options = 0 )
     throw( VError );
 VImage grid( int tile_height , int across , int down , VOption *options = 0 )
     throw( VError );
@@ -135,6 +143,8 @@ VImage zoom( int xfac , int yfac , VOption *options = 0 )
 VImage subsample( int xfac , int yfac , VOption *options = 0 )
     throw( VError );
 VImage msb( VOption *options = 0 )
+    throw( VError );
+VImage byteswap( VOption *options = 0 )
     throw( VError );
 VImage falsecolour( VOption *options = 0 )
     throw( VError );
@@ -318,9 +328,9 @@ VImage float2rad( VOption *options = 0 )
     throw( VError );
 VImage LabQ2sRGB( VOption *options = 0 )
     throw( VError );
-VImage sRGB2scRGB( VOption *options = 0 )
+VImage sRGB2HSV( VOption *options = 0 )
     throw( VError );
-VImage scRGB2sRGB( VOption *options = 0 )
+VImage HSV2sRGB( VOption *options = 0 )
     throw( VError );
 VImage icc_import( VOption *options = 0 )
     throw( VError );
@@ -333,6 +343,12 @@ VImage dE76( VImage right , VOption *options = 0 )
 VImage dE00( VImage right , VOption *options = 0 )
     throw( VError );
 VImage dECMC( VImage right , VOption *options = 0 )
+    throw( VError );
+VImage sRGB2scRGB( VOption *options = 0 )
+    throw( VError );
+VImage scRGB2BW( VOption *options = 0 )
+    throw( VError );
+VImage scRGB2sRGB( VOption *options = 0 )
     throw( VError );
 VImage maplut( VImage lut , VOption *options = 0 )
     throw( VError );
@@ -353,6 +369,8 @@ VImage hist_plot( VOption *options = 0 )
 VImage hist_local( int width , int height , VOption *options = 0 )
     throw( VError );
 bool hist_ismonotonic( VOption *options = 0 )
+    throw( VError );
+double hist_entropy( VOption *options = 0 )
     throw( VError );
 VImage conv( VImage mask , VOption *options = 0 )
     throw( VError );

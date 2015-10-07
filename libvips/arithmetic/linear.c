@@ -122,10 +122,7 @@ vips_linear_build( VipsObject *object )
 	VipsUnary *unary = (VipsUnary *) object;
 	VipsLinear *linear = (VipsLinear *) object;
 
-	int bands;
 	int i;
-
-	vips_image_decode_predict( unary->in, &bands, NULL ); 
 
 	/* If we have a three-element vector we need to bandup the image to
 	 * match.
@@ -135,8 +132,12 @@ vips_linear_build( VipsObject *object )
 		linear->n = VIPS_MAX( linear->n, linear->a->n );
 	if( linear->b )
 		linear->n = VIPS_MAX( linear->n, linear->b->n );
-	if( unary->in )
+	if( unary->in ) {
+		int bands;
+
+		vips_image_decode_predict( unary->in, &bands, NULL ); 
 		linear->n = VIPS_MAX( linear->n, bands );
+	}
 	arithmetic->base_bands = linear->n;
 
 	if( unary->in && 

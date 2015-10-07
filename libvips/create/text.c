@@ -12,6 +12,8 @@
  * 	- gtkdoc
  * 3/6/13
  * 	- rewrite as a class
+ * 20/9/15 leiyangyou 
+ * 	- add @spacing 
  */
 
 /*
@@ -64,6 +66,7 @@ typedef struct _VipsText {
 	char *text;
 	char *font;
 	int width;
+	int spacing;
 	VipsAlign align;
 	int dpi;
 
@@ -103,7 +106,7 @@ vips_text_dispose( GObject *gobject )
 
 static PangoLayout *
 text_layout_new( PangoContext *context, 
-	const char *text, const char *font, int width, 
+	const char *text, const char *font, int width, int spacing,
 	VipsAlign align, int dpi )
 {
 	PangoLayout *layout;
@@ -119,6 +122,9 @@ text_layout_new( PangoContext *context,
 
 	if( width > 0 )
 		pango_layout_set_width( layout, width * PANGO_SCALE );
+
+	if( spacing > 0 )
+		pango_layout_set_spacing( layout, spacing * PANGO_SCALE );
 
 	switch( align ) {
 	case VIPS_ALIGN_LOW:
@@ -180,7 +186,7 @@ vips_text_build( VipsObject *object )
 
 	if( !(text->layout = text_layout_new( text->context, 
 		text->text, text->font, 
-		text->width, text->align, text->dpi )) ) {
+		text->width, text->spacing, text->align, text->dpi )) ) {
 		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
 	}
@@ -280,33 +286,40 @@ vips_text_class_init( VipsTextClass *class )
 		G_STRUCT_OFFSET( VipsText, text ),
 		NULL ); 
 
-	VIPS_ARG_STRING( class, "font", 4, 
+	VIPS_ARG_STRING( class, "font", 5, 
 		_( "Font" ), 
 		_( "Font to render width" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, font ),
 		NULL ); 
 
-	VIPS_ARG_INT( class, "width", 4, 
+	VIPS_ARG_INT( class, "width", 6, 
 		_( "Width" ), 
 		_( "Maximum image width in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, width ),
 		0, 1000000, 0 );
 
-	VIPS_ARG_ENUM( class, "align", 5, 
+	VIPS_ARG_ENUM( class, "align", 7, 
 		_( "Align" ), 
-		_( "Align on the low, centre or high coordinate edge" ),
+		_( "Align on the low, centre or high edge" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, align ),
 		VIPS_TYPE_ALIGN, VIPS_ALIGN_LOW ); 
 
-	VIPS_ARG_INT( class, "dpi", 4, 
+	VIPS_ARG_INT( class, "dpi", 8, 
 		_( "DPI" ), 
 		_( "DPI to render at" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, dpi ),
 		1, 1000000, 72 );
+
+	VIPS_ARG_INT( class, "spacing", 9, 
+		_( "Spacing" ), 
+		_( "Line spacing" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsText, spacing ),
+		0, 1000000, 0 );
 
 }
 
@@ -332,6 +345,7 @@ vips_text_init( VipsText *text )
  * @width: render within this many pixels across
  * @alignment: left/centre/right alignment
  * @dpi: render at this resolution
+ * @spacing: space lines by this in points
  *
  * Draw the string @text to an image. @out is a one-band 8-bit
  * unsigned char image, with 0 for no text and 255 for text. Values inbetween
@@ -346,10 +360,13 @@ vips_text_init( VipsText *text )
  * @width is the maximum number of pixels across to draw within. If the
  * generated text is wider than this, it will wrap to a new line. In this
  * case, @alignment can be used to set the alignment style for multi-line
- * text. 0 means left-align, 1 centre, 2 right-align.
+ * text. 
  *
  * @dpi sets the resolution to render at. "sans 12" at 72 dpi draws characters
  * approximately 12 pixels high.
+ *
+ * @spacing sets the line spacing, in points. It would typicallly be something
+ * like font size times 1.2.
  *
  * See also: vips_xyz(), vips_text(), vips_gaussnoise().
  *
