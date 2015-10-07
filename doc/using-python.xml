@@ -46,13 +46,17 @@
 
         <listitem>
           <para>
-	   If <code>.new_from_file()</code> fails, the vips overrides
-	   have not been found. Make sure <code>Vips.py</code> is in
-	   your system overrides area.
-	  </para>
-	</listitem>
+             If <code>.new_from_file()</code> fails, the vips overrides
+             have not been found. Make sure <code>Vips.py</code> is in
+             your system overrides area.
+          </para>
+	      </listitem>
       </orderedlist>
     </para>
+  </refsect3>
+
+  <refsect3 id="python-example">
+    <title>Example program</title>
 
     <para>
       Here's a complete example program:
@@ -75,8 +79,16 @@ im = im.conv(mask)
 
 im.write_to_file(sys.argv[2])
 </programlisting>
+    </para>
 
-      When Python executes the import line:
+    <para>
+      Reading this code, the first interesting line is:
+
+<programlisting language="Python">
+from gi.repository import Vips
+</programlisting>
+
+      When Python executes the import line it performs the following steps:
     </para>
 
     <orderedlist>
@@ -133,7 +145,13 @@ im.write_to_file(sys.argv[2])
     </orderedlist>
 
     <para>
-      The next line loads the input image. You can append
+      The next line is:
+
+<programlisting language="Python">
+im = Vips.Image.new_from_file(sys.argv[1])
+</programlisting>
+
+      This loads the input image. You can append
       load options to the argument list as keyword arguments, for example:
 
 <programlisting language="Python">
@@ -149,16 +167,32 @@ im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
 	  </para>
 
     <para>
-      The next line crops 100 pixels off every edge. Try
-      <code>help(im.extract_area)</code> and the C API docs for
-      vips_extract_area() for details. You can use <code>.crop()</code> as a
-      synonym, if you like. <code>im.width</code> gets the image width in
-      pixels, see <code>help(Vips.Image)</code> and vips_image_get_width()
+      The next line is:
+
+<programlisting language="Python">
+im = im.extract_area(100, 100, im.width - 200, im.height - 200)
+</programlisting>
+
+      The arguments are left, top, width, height, so this crops 100 pixels off
+      every edge. Try <code>help(im.extract_area)</code> and the C API docs
+      for vips_extract_area() for details. You can use <code>.crop()</code>
+      as a synonym, if you like. 
+    </para>
+
+    <para>
+      <code>im.width</code> gets the image width
+      in pixels, see <code>help(Vips.Image)</code> and vips_image_get_width()
       and friends for a list of the other getters.
     </para>
 
     <para>
-      The <code>similarity</code> line shrinks by 10%.  By default it uses
+      The next line:
+
+<programlisting language="Python">
+im = im.similarity(scale = 0.9)
+</programlisting>
+
+      shrinks by 10%.  By default it uses
       bilinear interpolation, use <code>interpolate</code> to pick another
       interpolator, for example:
 
@@ -166,10 +200,22 @@ im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
 im = im.similarity(scale = 0.9, interpolate = Vips.Interpolate.new("bicubic"))
 </programlisting>
 
+      see vips_similarity() for full documentation. The similarity operator
+      will not give good results for large resizees (more than a factor of 
+      two). See vips_resize() if you need to make a large change. 
     </para>
 
     <para>
-      <code>.new_from_array()</code> makes an image from a 2D array. The 
+      Next:
+
+<programlisting language="Python">
+mask = Vips.Image.new_from_array([[-1, -1,  -1], 
+                                  [-1, 16,  -1], 
+                                  [-1, -1,  -1]], scale = 8)
+im = im.conv(mask)
+</programlisting>
+
+      makes an image from a 2D array, then convolves with that. The 
       <code>scale</code> keyword argument lets you set a divisor for 
       convolution, handy for integer convolutions. You can set 
       <code>offset</code> as well. See vips_conv() for details on the vips 
@@ -177,10 +223,98 @@ im = im.similarity(scale = 0.9, interpolate = Vips.Interpolate.new("bicubic"))
     </para>
 
     <para>
-      Finally, <code>.write_to_file()</code> sends the image back to the 
+      Finally, 
+
+<programlisting language="Python">
+im.write_to_file(sys.argv[2])
+</programlisting>
+      
+      sends the image back to the 
       filesystem. There's also <code>.write_to_buffer()</code> to make a 
       string containing the formatted image, and <code>.write()</code> to 
       write to another image. 
+    </para>
+
+    <para>
+      As with <code>.new_from_file()</code> you can append save options as 
+      keyword arguments. For example:
+
+<programlisting language="Python">
+im.write_to_file("test.jpg", Q = 90)
+</programlisting>
+      
+      will write a JPEG image with quality set to 90. See the various save 
+      operations for a list of all the save options, for example 
+      vips_jpegsave(). 
+    </para>
+
+  </refsect3>
+
+  <refsect3 id="python-doc">
+    <title>Getting help</title>
+    <para>
+      Try <code>help(Vips)</code> for everything,
+      <code>help(Vips.Image)</code> for something slightly more digestible, or
+      something like <code>help(Vips.Image.black)</code> for help on a
+      specific class member.
+    </para>
+
+    <para>
+      You can't get help on dynamically bound member functions like 
+      <code>.add()</code> this way. Instead, make an image and get help
+      from that, for example:
+
+<programlisting language="Python">
+image = Vips.Image.new_from_file("x.jpg")
+help(image.add)
+</programlisting>
+
+      And you'll get a summary of the operator's behaviour and how the
+      arguments are represented in Python. 
+    </para>
+
+    <para>
+      The API docs has a <link href="function-list">handy table of all vips 
+      operations</link>, if you want to find out how to do something, try 
+      searching that. 
+    </para>
+
+    <para>
+      The <command>vips</command> command can be useful too. For example, in a 
+      terminal you can type <command>vips jpegsave</command> to get a 
+      summary of an operation:
+
+<programlisting language="Python">
+$ vips jpegsave
+save image to jpeg file
+usage:
+   jpegsave in filename
+where:
+   in           - Image to save, input VipsImage
+   filename     - Filename to save to, input gchararray
+optional arguments:
+   Q            - Q factor, input gint
+                      default: 75
+                      min: 1, max: 100
+   profile      - ICC profile to embed, input gchararray
+   optimize-coding - Compute optimal Huffman coding tables, input gboolean
+                      default: false
+   interlace    - Generate an interlaced (progressive) jpeg, input gboolean
+                      default: false
+   no-subsample - Disable chroma subsample, input gboolean
+                      default: false
+   trellis-quant - Apply trellis quantisation to each 8x8 block, input gboolean
+                      default: false
+   overshoot-deringing - Apply overshooting to samples with extreme values, input gboolean
+                      default: false
+   optimize-scans - Split the spectrum of DCT coefficients into separate scans, input gboolean
+                      default: false
+   strip        - Strip all metadata from image, input gboolean
+                      default: false
+   background   - Background value, input VipsArrayDouble
+operation flags: sequential-unbuffered nocache 
+</programlisting>
+
     </para>
   </refsect3>
 
@@ -341,30 +475,6 @@ result_image = image1.bandjoin([image2, 255])
 </programlisting>
       
       and so on. 
-    </para>
-  </refsect3>
-
-  <refsect3 id="python-doc">
-    <title>Automatic docstrings</title>
-    <para>
-      Try <code>help(Vips)</code> for everything,
-      <code>help(Vips.Image)</code> for something slightly more digestible, or
-      something like <code>help(Vips.Image.black)</code> for help on a
-      specific class member.
-    </para>
-
-    <para>
-      You can't get help on dynamically bound member functions like 
-      <code>.add()</code> this way. Instead, make an image and get help
-      from that, for example:
-
-<programlisting language="Python">
-image = Vips.Image.new_from_file("x.jpg")
-help(image.add)
-</programlisting>
-
-      And you'll get a summary of the operator's behaviour and how the
-      arguments are represented in Python. Use the C API docs for more detail.
     </para>
   </refsect3>
 
