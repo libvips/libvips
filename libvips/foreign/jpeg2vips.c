@@ -1320,7 +1320,7 @@ vips__jpeg_read_stream( VipsStreamInput *stream, VipsImage *out,
 	 */
 	readjpeg_is( jpeg, stream );
 
-	if( vips__jpeg_read( jpeg, out ) ) 
+	if( vips__jpeg_read( jpeg, out, FALSE ) ) 
 		return( -1 );
 
 	return( 0 );

@@ -48,6 +48,8 @@
 - test we can still open 900 images
 
 
+- vips__jpeg_read( jpeg, out, FALSE ) ... does it need the headeronly param?
+  get rid of this
 
 
 - add webp?

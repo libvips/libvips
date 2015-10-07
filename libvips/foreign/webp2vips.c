@@ -119,7 +119,7 @@ read_free( Read *read )
 	if( read->fd > 0 &&
 		read->data &&
 		read->length > 0 ) { 
-		vips__munmap( read->data, read->length ); 
+		vips__munmap( (void *) read->data, read->length ); 
 		read->data = NULL;
 		read->length = 0;
 	}
