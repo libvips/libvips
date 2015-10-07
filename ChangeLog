@@ -1,3 +1,6 @@
+7/10/15 started 8.2.0
+- added im_bufmagick2vips(), a vips7 wrapper for magick load from buffer
+
 7/5/15 starteld 8.1.0
 - add vips_premultiply(), vips_unpremultiply()
 - change the alpha range rules for vips_flatten() to match vips_premultiply()

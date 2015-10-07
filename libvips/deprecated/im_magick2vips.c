@@ -97,3 +97,23 @@ vips_format_magick_init( VipsFormatMagick *object )
 }
 
 G_DEFINE_TYPE( VipsFormatMagick, vips_format_magick, VIPS_TYPE_FORMAT );
+
+int
+im_bufmagick2vips( void *buf, size_t len, IMAGE *out, gboolean header_only )
+{
+	VipsImage *t;
+
+	/* header_only is automatic ... this call will only decompress on 
+	 * pixel access.
+	 */
+
+	if( vips_magickload_buffer( buf, len, &t, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
+
+	return( 0 );
+}

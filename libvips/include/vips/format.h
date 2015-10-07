@@ -137,6 +137,8 @@ int im_tile_cache( VipsImage *in, VipsImage *out,
 	int tile_width, int tile_height, int max_tiles );
 
 int im_magick2vips( const char *filename, VipsImage *out );
+int im_bufmagick2vips( void *buf, size_t len, 
+	VipsImage *out, gboolean header_only );
 
 int im_exr2vips( const char *filename, VipsImage *out );
 
