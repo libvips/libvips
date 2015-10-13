@@ -51,7 +51,10 @@ class TestIofuncs(unittest.TestCase):
                  ""]],
             ["c:\\program files\\x:hello",
                 ["c:\\program files\\x",
-                 "hello"]]
+                 "hello"]],
+            ["C:\\fixtures\\2569067123_aca715a2ee_o.jpg",
+                ["C:\\fixtures\\2569067123_aca715a2ee_o.jpg",
+                 ""]]
         ]
             
         for case in cases:

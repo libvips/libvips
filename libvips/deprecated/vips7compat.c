@@ -69,6 +69,8 @@
  * 	  -> c:\silly ""
  * 	c:\silly
  * 	  -> c:\silly ""
+ * 	C:\fixtures\2569067123_aca715a2ee_o.jpg
+ * 	  -> C:\fixtures\2569067123_aca715a2ee_o.jpg ""
  *
  * vips8 handles this in a much better way :( 
  */
@@ -109,7 +111,11 @@ im_filename_split( const char *path, char *name, char *mode )
 				break;
 		}
 
-	if( *p == ':' ) {
+	/* Ignore a ':' in column 1, it's probably a drive letter on a
+	 * Windows path. 
+	 */
+	if( *p == ':' &&
+		p - name != 1 ) {
                 vips_strncpy( mode, p + 1, FILENAME_MAX );
                 *p = '\0';
         }
