@@ -1,3 +1,6 @@
+7/5/15 starteld 8.1.1
+- oop, vips-8.0 should be vips-8.1, thanks Danilo
+
 7/5/15 starteld 8.1.0
 - add vips_premultiply(), vips_unpremultiply()
 - change the alpha range rules for vips_flatten() to match vips_premultiply()
