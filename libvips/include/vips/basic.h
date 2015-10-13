@@ -66,6 +66,11 @@ typedef enum {
 	VIPS_PRECISION_LAST
 } VipsPrecision;
 
+/* Just for testing.
+ */
+char *vips_path_filename7( const char *path );
+char *vips_path_mode7( const char *path );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

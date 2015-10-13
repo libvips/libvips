@@ -55,11 +55,22 @@
  * FILENAME_MAX chars.
  *
  * We look for the ':' splitting the name and mode by searching for the
- * rightmost occurence of the regexp ".[A-Za-z0-9]+:". Example: consider the
- * horror that is
+ * rightmost occurrence of the regexp "\.[A-Za-z0-9]+:". The initial dot can
+ * be missing if there's a dirsep or start of string, meaning this is a
+ * filename without an extension.
+ *
+ * Examples:
  *
  * 	c:\silly:dir:name\fr:ed.tif:jpeg:95,,,,c:\icc\srgb.icc
+ * 	  -> c:\silly:dir:name\fr:ed.tif  jpeg:95,,,,c:\icc\srgb.icc
+ * 	I180:
+ * 	  -> I180 ""
+ * 	c:\silly:
+ * 	  -> c:\silly ""
+ * 	c:\silly
+ * 	  -> c:\silly ""
  *
+ * vips8 handles this in a much better way :( 
  */
 void
 im_filename_split( const char *path, char *name, char *mode )
@@ -74,11 +85,15 @@ im_filename_split( const char *path, char *name, char *mode )
 		if( *p == ':' ) {
 			char *q;
 
+			/* We are skipping back over the file extension,
+			 * isalnum() is probably sufficient.
+			 */
 			for( q = p - 1; isalnum( *q ) && q > name; q -= 1 )
 				;
 
-			if( *q == '.' )
+			if( *q == '.' ) {
 				break;
+			}
 
 			/* All the way back to the start? We probably have a
 			 * filename with no extension, eg. "I180:"
@@ -86,9 +101,11 @@ im_filename_split( const char *path, char *name, char *mode )
 			if( q == name )
 				break;
 
-			/* .. or we could hit a dirsep.
+			/* .. or we could hit a dirsep. Allow win or nix
+			 * separators.
 			 */
-			if( *q == G_DIR_SEPARATOR )
+			if( *q == '/' || 
+				*q == '\\' )
 				break;
 		}
 
@@ -98,6 +115,40 @@ im_filename_split( const char *path, char *name, char *mode )
         }
         else
                 strcpy( mode, "" );
+}
+
+/** 
+ * vips_path_filename7:
+ * @path: path to split
+ *
+ * Return the filename part of a vips7 path. For testing only.
+ */
+char *
+vips_path_filename7( const char *path )
+{
+	char name[FILENAME_MAX];
+	char mode[FILENAME_MAX];
+
+	im_filename_split( path, name, mode );
+
+	return( g_strdup( name ) );
+}
+
+/** 
+ * vips_path_mode7:
+ * @path: path to split
+ *
+ * Return the mode part of a vips7 path. For testing only.
+ */
+char *
+vips_path_mode7( const char *path )
+{
+	char name[FILENAME_MAX];
+	char mode[FILENAME_MAX];
+
+	im_filename_split( path, name, mode );
+
+	return( g_strdup( mode ) );
 }
 
 /* Skip any leading path stuff. Horrible: if this is a filename which came
