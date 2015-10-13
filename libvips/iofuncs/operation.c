@@ -626,6 +626,19 @@ vips_operation_invalidate( VipsOperation *operation )
 	g_signal_emit( operation, vips_operation_signals[SIG_INVALIDATE], 0 );
 }
 
+/**
+ * vips_operation_new:
+ * @name: nickname of operation to create
+ *
+ * Return a new #VipsOperation with the specified nickname. Useful for
+ * language bindings. 
+ *
+ * You'll need to set
+ * any arguments and build the operation before you can use it. See
+ * vips_call() for a higher-level way to make new operations. 
+ *
+ * Returns: (transfer full): the new operation. 
+ */
 VipsOperation *
 vips_operation_new( const char *name )
 {
