@@ -13,6 +13,7 @@ EXTRA_DIST = \
 	test_colour.py \
 	test_conversion.py \
 	test_convolution.py \
+	test_iofuncs.py \
 	test_create.py \
 	test_foreign.py \
 	test_draw.py \
