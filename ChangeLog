@@ -1,5 +1,6 @@
 7/10/15 started 8.2.0
 - added im_bufmagick2vips(), a vips7 wrapper for magick load from buffer
+- fetch unset property now returns default value rather than warning
 
 7/5/15 started 8.1.1
 - oop, vips-8.0 should be vips-8.1, thanks Danilo

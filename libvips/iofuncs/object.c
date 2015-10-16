@@ -1315,11 +1315,12 @@ vips_object_get_property( GObject *gobject,
 	g_assert( ((VipsArgument *) argument_class)->pspec == pspec );
 
 	if( !argument_instance->assigned ) {
-		g_warning( "%s: %s.%s attempt to read unset %s property",
-			G_STRLOC,
-			G_OBJECT_TYPE_NAME( gobject ),
-			g_param_spec_get_name( pspec ),
-			g_type_name( G_PARAM_SPEC_VALUE_TYPE( pspec ) ) );
+		/* Set the value to the default. Things like Ruby
+		 * gobject-introspection will walk objects during GC, and we
+		 * can find ourselves fetching object vaklues between init and
+		 * build.
+		 */
+		g_param_value_set_default( pspec, value );
 		return;
 	}
 
