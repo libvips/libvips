@@ -69,10 +69,10 @@ typedef struct {
 	 */
 	char *filename;
 
-	/* Memory source. We se gint64 rather than size_t since we use
+	/* Memory source. We use gint64 rather than size_t since we use
 	 * vips_file_length() and vips__mmap() for file sources.
 	 */
-	void *data;
+	const void *data;
 	gint64 length;
 
 	/* If we are opening a file object, the fd.
@@ -89,7 +89,7 @@ typedef struct {
 } Read;
 
 int
-vips__iswebp_buffer( void *buf, size_t len )
+vips__iswebp_buffer( const void *buf, size_t len )
 {
 	if( len >= MINIMAL_HEADER &&
 		WebPGetInfo( buf, MINIMAL_HEADER, NULL, NULL ) )
@@ -132,7 +132,7 @@ read_free( Read *read )
 }
 
 static Read *
-read_new( const char *filename, void *data, size_t length )
+read_new( const char *filename, const void *data, size_t length )
 {
 	Read *read;
 
@@ -266,7 +266,7 @@ vips__webp_read_file( const char *filename, VipsImage *out )
 }
 
 int
-vips__webp_read_buffer_header( void *buf, size_t len, VipsImage *out ) 
+vips__webp_read_buffer_header( const void *buf, size_t len, VipsImage *out ) 
 {
 	Read *read;
 
@@ -285,7 +285,7 @@ vips__webp_read_buffer_header( void *buf, size_t len, VipsImage *out )
 }
 
 int
-vips__webp_read_buffer( void *buf, size_t len, VipsImage *out ) 
+vips__webp_read_buffer( const void *buf, size_t len, VipsImage *out ) 
 {
 	Read *read;
 

@@ -189,16 +189,16 @@ vips__mmap( int fd, int writeable, size_t length, gint64 offset )
 }
 
 int
-vips__munmap( void *start, size_t length )
+vips__munmap( const void *start, size_t length )
 {
 #ifdef OS_WIN32
-	if( !UnmapViewOfFile( start ) ) {
+	if( !UnmapViewOfFile( (void *) start ) ) {
 		vips_error_system( GetLastError(), "vips_mapfile",
 			"%s", _( "unable to UnmapViewOfFile" ) );
 		return( -1 );
 	}
 #else /*!OS_WIN32*/
-	if( munmap( start, length ) < 0 ) {
+	if( munmap( (void *) start, length ) < 0 ) {
 		vips_error_system( errno, "vips_mapfile", 
 			"%s", _( "unable to munmap file" ) );
 		return( -1 );
