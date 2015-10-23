@@ -15,12 +15,19 @@ and others. It supports a large range of numeric formats, from 8-bit int to
 JPEG, TIFF, PNG, WebP, FITS, Matlab, OpenEXR, DeepZoom, and OpenSlide. 
 It can also load images via ImageMagick or GraphicsMagick.
 
-It has APIs for C and C++ and comes with a Python
-binding and a command-line interface. Bindings are
-available for Ruby, JavaScript and others. There is full
+It has APIs for
+[C](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-from-c.html)
+and
+[C++](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-from-cpp.html)
+and comes with a [Python
+binding](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-from-python.html)
+and a [command-line
+interface](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-cli.html).
+Bindings are available for [Ruby](https://rubygems.org/gems/ruby-vips),
+JavaScript and others. There is full
 [documentation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/index.html).
-There are several GUIs as well, see the 
-[VIPS website](http://www.vips.ecs.soton.ac.uk).
+There are several GUIs as well, see the [VIPS
+website](http://www.vips.ecs.soton.ac.uk).
 
 There are packages for most unix-like operating systems and binaries for
 Windows and OS X.
@@ -38,11 +45,10 @@ libvips must have `build-essential`, `pkg-config`, `glib2.0-dev`, and
 For the vips8 Python binding, you must have 
 `gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev`.
 
-You'll need the dev packages for the file format support you want. For basic
-jpeg and tiff support, you'll need 
-`libtiff5-dev`, `libjpeg-turbo8-dev`, and `libgsf-1-dev`.
-See the Dependencies section below for a full list of the things that
-libvips can be configured to use. 
+You'll need the dev packages for the file format support you
+want. For basic jpeg and tiff support, you'll need `libtiff5-dev`,
+`libjpeg-turbo8-dev`, and `libgsf-1-dev`.  See the Dependencies section
+below for a full list of the things that libvips can be configured to use.
 
 Once `configure` is looking OK, compile and install with the usual:
 
