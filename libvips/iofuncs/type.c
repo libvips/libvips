@@ -598,6 +598,32 @@ vips_blob_new( VipsCallbackFn free_fn, const void *data, size_t size )
 }
 
 /**
+ * vips_blob_copy: 
+ * @data: (array length=size) (element-type guint8) (transfer none): data to store
+ * @size: number of bytes in @data
+ *
+ * Like vips_blob_new(), but take a copy of the data. Useful for bindings
+ * which strugle with callbacks. 
+ *
+ * See also: vips_blob_new().
+ *
+ * Returns: (transfer full): the new #VipsBlob.
+ */
+VipsBlob *
+vips_blob_copy( const void *data, size_t size )
+{
+	void *data_copy; 
+	VipsArea *area;
+
+	data_copy = vips_malloc( NULL, size );
+	memcpy( data_copy, data, size );
+	area = vips_area_new( (VipsCallbackFn) g_free, data_copy );
+	area->length = size;
+
+	return( (VipsBlob *) area );
+}
+
+/**
  * vips_blob_get: 
  * @blob: #VipsBlob to fetch from
  * @size: return number of bytes of data
