@@ -1206,6 +1206,63 @@ vips_array_image_newv( int n, ... )
 }
 
 /**
+ * vips_array_image_empty:
+ *
+ * Make an empty image array. 
+ * Handy with vips_array_image_add() for bindings
+ * which can't handle object array arguments.
+ *
+ * See also: vips_array_image_add().
+ *
+ * Returns: (transfer full): A new #VipsArrayImage.
+ */
+VipsArrayImage *
+vips_array_image_empty( void )
+{
+	return( vips_array_image_new( NULL, 0 ) ); 
+}
+
+/**
+ * vips_array_image_append:
+ * @array: (transfer none): append to this
+ * @image: add this
+ *
+ * Make a new #VipsArrayImage, one larger than @array, with @image appended 
+ * to the end.
+ * Handy with vips_array_image_empty() for bindings
+ * which can't handle object array arguments.
+ *
+ * See also: vips_array_image_empty().
+ *
+ * Returns: (transfer full): A new #VipsArrayImage.
+ */
+VipsArrayImage *
+vips_array_image_append( VipsArrayImage *array, VipsImage *image )
+{
+	VipsArea *old_area = VIPS_AREA( array );
+	int n = old_area->n;
+
+	VipsArea *new_area;
+	VipsImage **old_vector;
+	VipsImage **new_vector;
+	int i;
+
+	new_area = vips_area_new_array_object( n + 1 );
+	new_area->type = VIPS_TYPE_IMAGE;
+
+	old_vector = vips_area_get_data( old_area, NULL, NULL, NULL, NULL );
+	new_vector = vips_area_get_data( new_area, NULL, NULL, NULL, NULL );
+	for( i = 0; i < n; i++ ) {
+		new_vector[i] = (VipsImage *) old_vector[i]; 
+		g_object_ref( new_vector[i] ); 
+	}
+	new_vector[i] = image;
+	g_object_ref( new_vector[i] ); 
+
+	return( (VipsArrayImage *) new_area );
+}
+
+/**
  * vips_array_image_get:
  * @array: the #VipsArrayImage to fetch from
  * @n: length of array

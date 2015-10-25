@@ -482,6 +482,9 @@ int vips_system( const char *cmd_format, ... )
  */
 VipsArrayImage *vips_array_image_new( VipsImage **array, int n );
 VipsArrayImage *vips_array_image_newv( int n, ... );
+VipsArrayImage *vips_array_image_empty( void );
+VipsArrayImage *vips_array_image_append( VipsArrayImage *array, 
+	VipsImage *image );
 VipsImage **vips_array_image_get( VipsArrayImage *array, int *n );
 VipsImage **vips_value_get_array_image( const GValue *value, int *n );
 void vips_value_set_array_image( GValue *value, int n );
