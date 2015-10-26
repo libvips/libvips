@@ -1165,18 +1165,12 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 		return( NULL );
 
 	switch( (ch = p[0]) ) {
-	case '{':
 	case '[':
-	case '(':
-	case '<':
 		*token = VIPS_TOKEN_LEFT;
 		p += 1;
 		break;
 
-	case ')':
 	case ']':
-	case '}':
-	case '>':
 		*token = VIPS_TOKEN_RIGHT;
 		p += 1;
 		break;
