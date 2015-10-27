@@ -1873,7 +1873,7 @@ vips_filename_get_options( const char *vips_filename )
  * See also: vips_foreign_find_load(), vips_foreign_is_a(), 
  * vips_image_write_to_file().
  *
- * Returns: the new #VipsImage, or %NULL on error.
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new_from_file( const char *name, ... )
@@ -1910,7 +1910,7 @@ vips_image_new_from_file( const char *name, ... )
  *
  * See also: vips_draw_circle().
  *
- * Returns: the new #VipsImage, or %NULL on error.
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new_from_file_RW( const char *filename )
@@ -1934,7 +1934,7 @@ vips_image_new_from_file_RW( const char *filename )
  *
  * See also: vips_copy(), vips_rawload(), vips_image_new_from_file().
  *
- * Returns: the new #VipsImage, or %NULL on error.
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new_from_file_raw( const char *filename, 
@@ -1963,7 +1963,7 @@ vips_image_new_from_file_raw( const char *filename,
 
 /**
  * vips_image_new_from_memory:
- * @data: (array length=size) (element-type guint8) (transfer full): start of memory area
+ * @data: (array length=size) (element-type guint8) (transfer none): start of memory area
  * @size: length of memory area
  * @width: image width
  * @height: image height
@@ -1983,10 +1983,10 @@ vips_image_new_from_file_raw( const char *filename,
  *
  * See also: vips_image_new(), vips_image_write_to_memory().
  *
- * Returns: the new #VipsImage, or %NULL on error.
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_from_memory( void *data, size_t size,
+vips_image_new_from_memory( const void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format )
 {
 	VipsImage *image;
@@ -2026,7 +2026,7 @@ vips_image_new_from_memory( void *data, size_t size,
 
 /**
  * vips_image_new_from_buffer:
- * @buf: start of memory buffer
+ * @buf: (array length=len) (element-type guint8) (transfer none): image data
  * @len: length of memory buffer
  * @option_string: set of extra options as a string
  * @...: %NULL-terminated list of optional named arguments
@@ -2046,10 +2046,10 @@ vips_image_new_from_memory( void *data, size_t size,
  *
  * See also: vips_image_write_to_buffer().
  *
- * Returns: 0 on success, -1 on error
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_from_buffer( void *buf, size_t len, 
+vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 {
 	const char *operation_name;
@@ -2094,7 +2094,7 @@ vips_image_new_from_buffer( void *buf, size_t len,
  *
  * See also: vips_image_new_matrixv()
  * 
- * Returns: the new #VipsImage, or %NULL on error.
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new_matrix( int width, int height )
@@ -2138,7 +2138,7 @@ vips_image_new_matrix( int width, int height )
  *
  * See also: vips_image_new_matrix()
  * 
- * Returns: the new #VipsImage, or %NULL on error.
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new_matrixv( int width, int height, ... )
@@ -2169,11 +2169,11 @@ vips_image_new_matrixv( int width, int height, ... )
  *
  * A binding-friendly version of vips_image_new_matrixv().
  *
- * Returns: the new #VipsImage, or %NULL on error.
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_new_matrix_from_array( int width, int height, 
-	double *array, int size )
+	const double *array, int size )
 {
 	VipsImage *matrix;
 	int x, y;
@@ -2196,6 +2196,26 @@ vips_image_new_matrix_from_array( int width, int height,
 			*VIPS_MATRIX( matrix, x, y ) = array[i++];
 
 	return( matrix ); 
+}
+
+/**
+ * vips_image_matrix_from_array:
+ * @width: image width
+ * @height: image height
+ * @array: (array length=size) (transfer none): array of elements
+ * @size: number of elements
+ *
+ * A renamed vips_image_new_matrix_from_array(). Some gobject bindings do not
+ * like more than one _new method.
+ *
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_matrix_from_array( int width, int height, 
+	const double *array, int size )
+{
+	return( vips_image_new_matrix_from_array( width, height, 
+		array, size ) ); 
 }
 
 /**

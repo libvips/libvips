@@ -1157,7 +1157,7 @@ typedef struct {
 	/* Private stuff during read.
 	 */
 	gboolean start_of_file;	/* have we gotten any data yet? */
-	JOCTET *buf;
+	const JOCTET *buf;
 	size_t len;
 } InputBuffer;
 
@@ -1288,7 +1288,7 @@ term_source (j_decompress_ptr cinfo)
  */
 
 static void
-readjpeg_buffer (ReadJpeg *jpeg, void *buf, size_t len)
+readjpeg_buffer (ReadJpeg *jpeg, const void *buf, size_t len)
 {
   j_decompress_ptr cinfo = &jpeg->cinfo;
   InputBuffer *src;
@@ -1320,7 +1320,7 @@ readjpeg_buffer (ReadJpeg *jpeg, void *buf, size_t len)
 }
 
 int
-vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out, 
+vips__jpeg_read_buffer( const void *buf, size_t len, VipsImage *out, 
 	gboolean header_only, int shrink, int fail, gboolean readbehind, 
 	gboolean autorotate )
 {
@@ -1344,9 +1344,9 @@ vips__jpeg_read_buffer( void *buf, size_t len, VipsImage *out,
 }
 
 int
-vips__isjpeg_buffer( void *buf, size_t len )
+vips__isjpeg_buffer( const void *buf, size_t len )
 {
-	guchar *str = (guchar *) buf;
+	const guchar *str = (const guchar *) buf;
 
 	if( len >= 2 &&
 		str[0] == 0xff && 

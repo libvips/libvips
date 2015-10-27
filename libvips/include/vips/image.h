@@ -427,15 +427,17 @@ VipsImage *vips_image_new_from_file( const char *name, ... )
 VipsImage *vips_image_new_from_file_RW( const char *filename );
 VipsImage *vips_image_new_from_file_raw( const char *filename, 
 	int xsize, int ysize, int bands, guint64 offset );
-VipsImage *vips_image_new_from_memory( void *data, size_t size,
+VipsImage *vips_image_new_from_memory( const void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format );
-VipsImage *vips_image_new_from_buffer( void *buf, size_t len, 
+VipsImage *vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 	__attribute__((sentinel));
 VipsImage *vips_image_new_matrix( int width, int height );
 VipsImage *vips_image_new_matrixv( int width, int height, ... );
 VipsImage *vips_image_new_matrix_from_array( int width, int height, 
-	double *array, int size );
+	const double *array, int size );
+VipsImage *vips_image_matrix_from_array( int width, int height, 
+	const double *array, int size );
 void vips_image_set_delete_on_close( VipsImage *image, 
 	gboolean delete_on_close );
 guint64 vips_get_disc_threshold( void );
@@ -480,6 +482,9 @@ int vips_system( const char *cmd_format, ... )
  */
 VipsArrayImage *vips_array_image_new( VipsImage **array, int n );
 VipsArrayImage *vips_array_image_newv( int n, ... );
+VipsArrayImage *vips_array_image_empty( void );
+VipsArrayImage *vips_array_image_append( VipsArrayImage *array, 
+	VipsImage *image );
 VipsImage **vips_array_image_get( VipsArrayImage *array, int *n );
 VipsImage **vips_value_get_array_image( const GValue *value, int *n );
 void vips_value_set_array_image( GValue *value, int n );

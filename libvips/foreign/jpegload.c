@@ -302,7 +302,7 @@ vips_foreign_load_jpeg_buffer_load( VipsForeignLoad *load )
 }
 
 static gboolean
-vips_foreign_load_jpeg_buffer_is_a( void *buf, size_t len )
+vips_foreign_load_jpeg_buffer_is_a( const void *buf, size_t len )
 {
 	return( vips__isjpeg_buffer( buf, len ) );
 }

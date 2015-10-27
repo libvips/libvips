@@ -147,7 +147,7 @@ typedef struct {
 
 	/* For memory input.
 	 */
-	char *buffer;
+	const void *buffer;
 	size_t length;
 	size_t read_pos;
 
@@ -614,8 +614,8 @@ vips__png_read( const char *filename, VipsImage *out, gboolean readbehind )
 	return( 0 );
 }
 
-int
-vips__png_ispng_buffer( void *buf, size_t len )
+gboolean
+vips__png_ispng_buffer( const void *buf, size_t len )
 {
 	if( len >= 8 &&
 		!png_sig_cmp( (png_bytep) buf, 0, 8 ) )
@@ -650,7 +650,7 @@ vips_png_read_buffer( png_structp pPng, png_bytep data, png_size_t length )
 }
 
 static Read *
-read_new_buffer( VipsImage *out, char *buffer, size_t length, 
+read_new_buffer( VipsImage *out, const void *buffer, size_t length, 
 	gboolean readbehind )
 {
 	Read *read;
@@ -677,7 +677,7 @@ read_new_buffer( VipsImage *out, char *buffer, size_t length,
 }
 
 int
-vips__png_header_buffer( char *buffer, size_t length, VipsImage *out )
+vips__png_header_buffer( const void *buffer, size_t length, VipsImage *out )
 {
 	Read *read;
 
@@ -689,7 +689,7 @@ vips__png_header_buffer( char *buffer, size_t length, VipsImage *out )
 }
 
 int
-vips__png_read_buffer( char *buffer, size_t length, VipsImage *out, 
+vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out, 
 	gboolean readbehind  )
 {
 	Read *read;

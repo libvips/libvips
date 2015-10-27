@@ -553,7 +553,7 @@ vips_foreign_load( const char *name, VipsImage **out, ... )
  */
 static void *
 vips_foreign_find_load_buffer_sub( VipsForeignLoadClass *load_class, 
-	void **buf, size_t *len )
+	const void **buf, size_t *len )
 {
 	if( load_class->is_a_buffer &&
 		load_class->is_a_buffer( *buf, *len ) ) 
@@ -576,7 +576,7 @@ vips_foreign_find_load_buffer_sub( VipsForeignLoadClass *load_class,
  * error.
  */
 const char *
-vips_foreign_find_load_buffer( void *data, size_t size )
+vips_foreign_find_load_buffer( const void *data, size_t size )
 {
 	VipsForeignLoadClass *load_class;
 
@@ -630,7 +630,7 @@ vips_foreign_is_a( const char *loader, const char *filename )
  * Returns: %TRUE if @data can be loaded by @loader.
  */
 gboolean
-vips_foreign_is_a_buffer( const char *loader, void *data, size_t size )
+vips_foreign_is_a_buffer( const char *loader, const void *data, size_t size )
 {
 	VipsObjectClass *class;
 	VipsForeignLoadClass *load_class;

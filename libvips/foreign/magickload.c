@@ -219,7 +219,7 @@ G_DEFINE_TYPE( VipsForeignLoadMagickBuffer, vips_foreign_load_magick_buffer,
 	vips_foreign_load_magick_get_type() );
 
 static gboolean
-vips_foreign_load_magick_buffer_is_a_buffer ( void* buf, size_t len )
+vips_foreign_load_magick_buffer_is_a_buffer( const void *buf, size_t len )
 {
 	VipsImage *t;
 	int result;

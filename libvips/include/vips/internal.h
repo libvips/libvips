@@ -127,7 +127,7 @@ char *vips__b64_encode( const unsigned char *data, size_t data_length );
 unsigned char *vips__b64_decode( const char *buffer, size_t *data_length );
 
 void *vips__mmap( int fd, int writeable, size_t length, gint64 offset );
-int vips__munmap( void *start, size_t length );
+int vips__munmap( const void *start, size_t length );
 int vips_mapfile( VipsImage * );
 int vips_mapfilerw( VipsImage * );
 int vips_remapfilerw( VipsImage * );
