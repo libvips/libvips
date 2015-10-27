@@ -1317,7 +1317,7 @@ vips_object_get_property( GObject *gobject,
 	if( !argument_instance->assigned ) {
 		/* Set the value to the default. Things like Ruby
 		 * gobject-introspection will walk objects during GC, and we
-		 * can find ourselves fetching object vaklues between init and
+		 * can find ourselves fetching object values between init and
 		 * build.
 		 */
 		g_param_value_set_default( pspec, value );
