@@ -1,3 +1,13 @@
+- recent imagemagick seems to have link problems
+
+  see:
+  
+  	http://www.imagemagick.org/discourse-server/viewtopic.php?f=3&t=28603
+
+  need to fix fairly soon, vips can't build against current IM
+
+
+
 - try vips_shrink() in two passes: first, sum horizontal strips, second sum
   vertical
 
