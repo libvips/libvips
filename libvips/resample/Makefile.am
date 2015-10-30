@@ -6,6 +6,8 @@ libresample_la_SOURCES = \
 	resize.c \
 	presample.h \
 	shrink.c \
+	shrinkh.c \
+	shrinkv.c \
 	interpolate.c \
 	transform.c \
 	bicubic.cpp \

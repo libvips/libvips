@@ -112,12 +112,16 @@ void
 vips_resample_operation_init( void )
 {
 	extern GType vips_shrink_get_type( void ); 
+	extern GType vips_shrinkh_get_type( void ); 
+	extern GType vips_shrinkv_get_type( void ); 
 	extern GType vips_quadratic_get_type( void ); 
 	extern GType vips_affine_get_type( void ); 
 	extern GType vips_similarity_get_type( void ); 
 	extern GType vips_resize_get_type( void ); 
 
 	vips_shrink_get_type(); 
+	vips_shrinkh_get_type(); 
+	vips_shrinkv_get_type(); 
 	vips_quadratic_get_type(); 
 	vips_affine_get_type(); 
 	vips_similarity_get_type(); 

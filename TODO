@@ -14,6 +14,19 @@
   we would then only need to demand the source a line at a time, and the
   intermediate image would be much smaller ... possible cache savings as well
 
+  added shrink2 for the new code
+
+  current state on work machine, debug build
+
+	  $ time vips shrink wtc.jpg x.v 10 10
+	  memory: high-water mark 238.09 MB
+	  real	0m1.178s
+	  user	0m1.384s
+	  sys	0m0.064s
+
+  done h/v, get shrink2 done and bench against plain shrink
+
+
 - add bandjoinconst ... append a band (or bands?) from a constant
 
   see https://github.com/jcupitt/libvips/issues/325

@@ -41,6 +41,8 @@ extern "C" {
 int vips_shrink( VipsImage *in, VipsImage **out, 
 	double xshrink, double yshrink, ... )
 	__attribute__((sentinel));
+int vips_shrinkh( VipsImage *in, VipsImage **out, int xshrink, ... );
+int vips_shrinkv( VipsImage *in, VipsImage **out, int yshrink, ... );
 int vips_similarity( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_resize( VipsImage *in, VipsImage **out, double scale, ... )
