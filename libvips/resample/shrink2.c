@@ -69,19 +69,15 @@ vips_shrink2_build( VipsObject *object )
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsShrink2 *shrink = (VipsShrink2 *) object;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 1 );
-
-	VipsImage *in;
+		vips_object_local_array( object, 2 );
 
 	if( VIPS_OBJECT_CLASS( vips_shrink2_parent_class )->build( object ) )
 		return( -1 );
 
-	in = resample->in; 
-
-	if( vips_shrinkh( in, &t[0], shrink->xshrink, NULL ) ||
-		vips_shrinkv( t[0], &t[1], shrink->yshrink, NULL ) )
+	if( vips_shrinkh( resample->in, &t[0], shrink->xshrink, NULL ) ||
+		vips_shrinkv( t[0], &t[1], shrink->yshrink, NULL ) ||
+		vips_image_write( t[1], resample->out ) )
 		return( -1 );
-	in = t[1];
 
 	return( 0 );
 }
@@ -102,7 +98,7 @@ vips_shrink2_class_init( VipsShrink2Class *class )
 	vobject_class->description = _( "shrink an image" );
 	vobject_class->build = vips_shrink2_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_INT( class, "xshrink", 8, 
 		_( "Xshrink" ), 

@@ -144,8 +144,8 @@ vips_shrinkv_start( VipsImage *out, void *a, void *b )
 }
 
 #define ADD( ACC_TYPE, TYPE ) { \
-	ACC_TYPE *sum = (ACC_TYPE *) seq->sum; \
-	TYPE *p = (TYPE *) in; \
+	ACC_TYPE * restrict sum = (ACC_TYPE *) seq->sum; \
+	TYPE * restrict p = (TYPE *) in; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		sum[x] += p[x]; \
@@ -196,8 +196,8 @@ vips_shrinkv_add_line( VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 /* Integer average. 
  */
 #define IAVG( TYPE ) { \
-	int *sum = (int *) seq->sum; \
-	TYPE *q = (TYPE *) out; \
+	int * restrict sum = (int *) seq->sum; \
+	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = (sum[x] + shrink->yshrink / 2) / shrink->yshrink; \
@@ -206,8 +206,8 @@ vips_shrinkv_add_line( VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 /* Float average. 
  */
 #define FAVG( TYPE ) { \
-	double *sum = (double *) seq->sum; \
-	TYPE *q = (TYPE *) out; \
+	double * restrict sum = (double *) seq->sum; \
+	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
 		q[x] = sum[x] / shrink->yshrink; \
@@ -407,7 +407,7 @@ vips_shrinkv_class_init( VipsShrinkvClass *class )
 	vobject_class->description = _( "shrink an image vertically" );
 	vobject_class->build = vips_shrinkv_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_INT( class, "yshrink", 9, 
 		_( "Yshrink" ), 

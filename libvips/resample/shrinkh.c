@@ -106,9 +106,9 @@ vips_shrinkh_start( VipsImage *out, void *a, void *b )
 /* Integer shrink. 
  */
 #define ISHRINK( TYPE ) { \
-	int *sum = (int *) seq->sum; \
-	TYPE *p = (TYPE *) in; \
-	TYPE *q = (TYPE *) out; \
+	int * restrict sum = (int *) seq->sum; \
+	TYPE * restrict p = (TYPE *) in; \
+	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
 		for( b = 0; b < bands; b++ ) \
@@ -127,9 +127,9 @@ vips_shrinkh_start( VipsImage *out, void *a, void *b )
 /* Float shrink. 
  */
 #define FSHRINK( TYPE ) { \
-	double *sum = (double *) seq->sum; \
-	TYPE *p = (TYPE *) in; \
-	TYPE *q = (TYPE *) out; \
+	double * restrict sum = (double *) seq->sum; \
+	TYPE * restrict p = (TYPE *) in; \
+	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
 		for( b = 0; b < bands; b++ ) \
@@ -324,7 +324,7 @@ vips_shrinkh_class_init( VipsShrinkhClass *class )
 	vobject_class->description = _( "shrink an image horizontally" );
 	vobject_class->build = vips_shrinkh_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_INT( class, "xshrink", 8, 
 		_( "Xshrink" ), 
