@@ -6,25 +6,6 @@
 
   need to fix fairly soon, vips can't build against current IM
 
-
-
-- try vips_shrink() in two passes: first, sum horizontal strips, second sum
-  vertical
-
-  we would then only need to demand the source a line at a time, and the
-  intermediate image would be much smaller ... possible cache savings as well
-
-  currently a bit slower than old shrink, much less mem though
-
-  try:
-
-	* special path for RGB and mono
-
-	* for shrinkh, prepare input in batches?
-
-	* change loop indexing? don't use *p++ etc., it'll break vectorization
-
-
 - add bandjoinconst ... append a band (or bands?) from a constant
 
   see https://github.com/jcupitt/libvips/issues/325

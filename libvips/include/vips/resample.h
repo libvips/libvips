@@ -44,13 +44,15 @@ int vips_shrink( VipsImage *in, VipsImage **out,
 int vips_shrinkh( VipsImage *in, VipsImage **out, int xshrink, ... );
 int vips_shrinkv( VipsImage *in, VipsImage **out, int yshrink, ... );
 int vips_shrink2( VipsImage *in, VipsImage **out, 
-	int xshrink, int yshrink, ... );
+	double xshrink, double yshrink, ... );
+
 int vips_similarity( VipsImage *in, VipsImage **out, ... )
-	__attribute__((sentinel));
-int vips_resize( VipsImage *in, VipsImage **out, double scale, ... )
 	__attribute__((sentinel));
 int vips_affine( VipsImage *in, VipsImage **out, 
 	double a, double b, double c, double d, ... )
+	__attribute__((sentinel));
+
+int vips_resize( VipsImage *in, VipsImage **out, double scale, ... )
 	__attribute__((sentinel));
 
 int vips_quadratic( VipsImage *in, VipsImage **out, VipsImage *coeff, ... )

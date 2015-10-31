@@ -114,13 +114,15 @@ vips_shrinkh_start( VipsImage *out, void *a, void *b )
 		for( b = 0; b < bands; b++ ) \
 			sum[b] = 0; \
 		\
-		for( x1 = 0; x1 < shrink->xshrink; x1++ ) \
-			for( b = 0; b < bands; b++ ) \
-				sum[b] += *p++; \
+		for( b = 0; b < bands; b++ ) \
+			for( x1 = b; x1 < ne; x1 += bands ) \
+				sum[b] += p[x1]; \
+		p += ne; \
 		\
 		for( b = 0; b < bands; b++ ) \
-			*q++ = (sum[b] + shrink->xshrink / 2) / \
+			q[b] = (sum[b] + shrink->xshrink / 2) / \
 				shrink->xshrink; \
+		q += b; \
 	} \
 }
 
@@ -135,12 +137,14 @@ vips_shrinkh_start( VipsImage *out, void *a, void *b )
 		for( b = 0; b < bands; b++ ) \
 			sum[b] = 0.0; \
 		\
-		for( x1 = 0; x1 < shrink->xshrink; x1++ ) \
-			for( b = 0; b < bands; b++ ) \
-				sum[b] += *p++; \
+		for( b = 0; b < bands; b++ ) \
+			for( x1 = b; x1 < ne; x1 += bands ) \
+				sum[b] += p[x1]; \
+		p += ne; \
 		\
 		for( b = 0; b < bands; b++ ) \
-			*q++ = sum[b] / shrink->xshrink; \
+			q[b] = sum[b] / shrink->xshrink; \
+		q += b; \
 	} \
 } 
 
@@ -155,6 +159,7 @@ vips_shrinkh_gen2( VipsShrinkh *shrink, VipsShrinkhSequence *seq,
 	const int bands = resample->in->Bands * 
 		(vips_band_format_iscomplex( resample->in->BandFmt ) ? 
 		 	2 : 1);
+	const int ne = shrink->xshrink * bands; 
 	VipsPel *out = VIPS_REGION_ADDR( or, left, top ); 
 	VipsPel *in = VIPS_REGION_ADDR( ir, left * shrink->xshrink, top ); 
 
@@ -350,7 +355,7 @@ vips_shrinkh_init( VipsShrinkh *shrink )
  * Shrink @in horizontally by an integer factor. Each pixel in the output is
  * the average of the corresponding line of @xshrink pixels in the input. 
  *
- * This is a evry low-level operation: see vips_resize() for a more
+ * This is a very low-level operation: see vips_resize() for a more
  * convenient way to resize images. 
  *
  * This operation does not change xres or yres. The image resolution needs to
