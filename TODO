@@ -1,11 +1,3 @@
-- test nip2 icc_import ... had problems?
- 
-  test with ~/Desktop/OHHFN.png
-
-- we have Vips.leak_set() and Vips.cache_set_trace() ... stupid! make
-  everything Vips.set_thing()
-
-- build-win32 should also generate def/lib files
 
 - convert float mask to int for int convolution has rounding problems
 
