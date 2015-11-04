@@ -2,8 +2,6 @@
  
   test with ~/Desktop/OHHFN.png
 
-- add a test suite test for vips_shrink with non-int args
-
 - we have Vips.leak_set() and Vips.cache_set_trace() ... stupid! make
   everything Vips.set_thing()
 

@@ -58,6 +58,12 @@ class TestResample(unittest.TestCase):
         im2 = im.shrink(4, 4)
         self.assertEqual(im2.width, im.width // 4)
         self.assertEqual(im2.height, im.height // 4)
+        self.assertTrue(abs(im.avg() - im2.avg()) < 1)
+
+        im2 = im.shrink(2.5, 2.5)
+        self.assertEqual(im2.width, im.width // 2.5)
+        self.assertEqual(im2.height, im.height // 2.5)
+        self.assertTrue(abs(im.avg() - im2.avg()) < 1)
 
     def test_similarity(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")

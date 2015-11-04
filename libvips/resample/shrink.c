@@ -95,16 +95,17 @@ vips_shrink_build( VipsObject *object )
 			vips_shrinkh( t[0], &t[1], xshrink_int, NULL ) )
 			return( -1 ); 
 
-		xresidual = target_width / t[1]->Xsize;
-		yresidual = target_height / t[1]->Ysize;
+		xresidual = (double) target_width / t[1]->Xsize;
+		yresidual = (double) target_height / t[1]->Ysize;
 
 		if( vips_affine( t[1], &t[2], 
-				xresidual, 0, 0, yresidual, NULL ) ||
+				xresidual, 0.0, 0.0, yresidual, NULL ) ||
 			vips_image_write( t[2], resample->out ) )
 			return( -1 );
 	}
 	else {
-		if( vips_shrinkv( resample->in, &t[0], shrink->yshrink, NULL ) ||
+		if( vips_shrinkv( resample->in, &t[0], 
+				shrink->yshrink, NULL ) ||
 			vips_shrinkh( t[0], &t[1], shrink->xshrink, NULL ) ||
 			vips_image_write( t[1], resample->out ) )
 			return( -1 );
