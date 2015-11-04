@@ -1284,25 +1284,57 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		 */
 	}
 
-	/* Shift down to 8 bits. Handy for 8-bit-only formats like jpeg.
+	/* Handle the ushort interpretations.
 	 *
-	 * If the operation wants to write 8 bits for this format and this
-	 * image is 16 bits or more and Type is RGB16 or GREY16 ...
-	 * automatically shift down.
+	 * RGB16 and GREY16 use 0-65535 for black-white. If we have an image
+	 * tagged like this, and it has more than 8 bits (we leave crazy uchar
+	 * images tagged as RGB16 alone), we'll need to get it ready for the
+	 * saver.
 	 */
-	if( vips_band_format_is8bit( class->format_table[in->BandFmt] ) &&
-		!vips_band_format_is8bit( in->BandFmt ) &&
-		(in->Type == VIPS_INTERPRETATION_RGB16 ||
-			in->Type == VIPS_INTERPRETATION_GREY16) ) {
-		VipsImage *out;
+	if( (in->Type == VIPS_INTERPRETATION_RGB16 ||
+		 in->Type == VIPS_INTERPRETATION_GREY16) &&
+		!vips_band_format_is8bit( in->BandFmt ) ) {
+		/* If the saver supports ushort, cast to ushort. It may be
+		 * float at the moment, for example.
+		 *
+		 * If the saver does not support ushort, automatically shift
+		 * it down. This is the behaviour we want for saving an RGB16
+		 * image as JPG, for example.
+		 */
+		if( class->format_table[VIPS_FORMAT_USHORT] == 
+			VIPS_FORMAT_USHORT ) {
+			VipsImage *out;
 
-		if( vips_rshift_const1( in, &out, 8, NULL ) ) { 
+			if( vips_cast( in, &out, VIPS_FORMAT_USHORT, NULL ) ) {
+				g_object_unref( in );
+				return( -1 );
+			}
 			g_object_unref( in );
-			return( -1 );
-		}
-		g_object_unref( in );
 
-		in = out;
+			in = out;
+		}
+		else {
+			VipsImage *out;
+
+			if( vips_rshift_const1( in, &out, 8, NULL ) ) { 
+				g_object_unref( in );
+				return( -1 );
+			}
+			g_object_unref( in );
+
+			in = out;
+
+			/* That could have produced an int image ... make sure 
+			 * we are now uchar.
+			 */
+			if( vips_cast( in, &out, VIPS_FORMAT_UCHAR, NULL ) ) {
+				g_object_unref( in );
+				return( -1 );
+			}
+			g_object_unref( in );
+
+			in = out;
+		}
 	}
 
 	/* Cast to the output format.

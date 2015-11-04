@@ -1,3 +1,25 @@
+- test nip2 icc_import ... had problems?
+ 
+  test with ~/Desktop/OHHFN.png
+
+- add a test suite test for vips_shrink with non-int args
+
+- we have Vips.leak_set() and Vips.cache_set_trace() ... stupid! make
+  everything Vips.set_thing()
+
+- build-win32 should also generate def/lib files
+
+- convert float mask to int for int convolution has rounding problems
+
+  we do rint() all elements, and rint(scale)
+
+  we ought to sum all float elements and take the ratio of the scale to the sum
+
+  then rint all elements, sum, and scale the sum by the ratio to get the int
+  scale
+
+  same for offset
+
 - recent imagemagick seems to have link problems
 
   see:
