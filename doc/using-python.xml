@@ -50,7 +50,7 @@
              have not been found. Make sure <code>Vips.py</code> is in
              your system overrides area.
           </para>
-	      </listitem>
+        </listitem>
       </orderedlist>
     </para>
   </refsect3>
@@ -164,7 +164,7 @@ im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
       <code>help(Vips.Image)</code> to see a list of all the image 
       constructors --- you can load from memory, or create from an array, 
       for example. 
-	  </para>
+    </para>
 
     <para>
       The next line is:
@@ -201,7 +201,7 @@ im = im.similarity(scale = 0.9, interpolate = Vips.Interpolate.new("bicubic"))
 </programlisting>
 
       see vips_similarity() for full documentation. The similarity operator
-      will not give good results for large resizees (more than a factor of 
+      will not give good results for large resizes (more than a factor of 
       two). See vips_resize() if you need to make a large change. 
     </para>
 
@@ -265,7 +265,7 @@ im.write_to_file("test.jpg", Q = 90)
       from that, for example:
 
 <programlisting language="Python">
-image = Vips.Image.new_from_file("x.jpg")
+image = Vips.Image.black(1, 1)
 help(image.add)
 </programlisting>
 
@@ -274,7 +274,7 @@ help(image.add)
     </para>
 
     <para>
-      The API docs has a <link href="function-list">handy table of all vips 
+      The API docs have a <link linkend="function-list">handy table of all vips 
       operations</link>, if you want to find out how to do something, try 
       searching that. 
     </para>
@@ -485,6 +485,62 @@ result_image = image1.bandjoin([image2, 255])
       <code>Vips.Error</code> exception. You can catch it in the 
       usual way. The <code>.detail</code> member gives the detailed 
       error message. 
+    </para>
+  </refsect3>
+
+  <refsect3 id="python-memory">
+    <title>Reading and writing areas of memory</title>
+    <para>
+      You can use the C API functions vips_image_new_from_memory() and 
+      vips_image_write_to_memory() directly from Python to read and write 
+      areas of memory. This can be useful if you need to get images to and 
+      from other other image processing libraries, like PIL or numpy.
+    </para>
+
+    <para>
+      Use them from Python like this:
+
+<programlisting language="Python">
+image = Vips.Image.new_from_file("/path/to/some/image/file.jpg")
+memory_area = image.write_to_memory()
+</programlisting>
+
+      <code>memory_area</code> is now a string containing uncompressed binary 
+      image data. For an RGB image, it will have bytes 
+      <code>RGBRGBRGB...</code>, being 
+      the first three pixels of the first scanline of the image. You can pass 
+      this string to the numpy or PIL constructors and make an image there.
+    </para>
+
+    <para>
+      Note that <code>.write_to_memory()</code> will make a copy of the image. 
+      It would 
+      be better to use a Python buffer to pass the data, but sadly this isn't 
+      possible with gobject-introspection, as far as I know.
+    </para>
+
+    <para>
+      Going the other way, you can construct a vips image from a string of 
+      binary data. For example:
+
+<programlisting language="Python">
+image = Vips.Image.new_from_file("/path/to/some/image/file.jpg")
+memory_area = image.write_to_memory()
+image2 = Vips.Image.new_from_memory(memory_area, 
+                                    image.width, image.height, image.bands, 
+                                    Vips.BandFormat.UCHAR)
+</programlisting>
+
+      Now <code>image2</code> should be an identical copy of <code>image</code>.
+    </para>
+
+    <para>
+      Be careful: in this direction, vips does not make a copy of the memory 
+      area, so if <code>memory_area</code> is freed by the Python garbage 
+      collector and 
+      you later try to use <code>image2</code>, you'll get a crash. 
+      Make sure you keep a reference to <code>memory_area</code> around 
+      for as long as you need it.
     </para>
   </refsect3>
 
