@@ -112,6 +112,7 @@ headers="\
 	draw.h \
 	morphology.h \
 	type.h \
+	memory.h \
 	region.h"
 
 for name in $headers; do

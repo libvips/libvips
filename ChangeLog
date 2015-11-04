@@ -4,6 +4,8 @@
 - many more const declarations to help gobject-introspection
 - rewritten vips_shrink() is 2x faster, much lower memuse, now handles complex
 - old code still there as vips_shrink2() for testing
+- only allow [] for filename options
+- add memory.h to Python API .. makes tracked highwater visible
 
 7/5/15 started 8.1.1
 - oop, vips-8.0 wrapper script should be vips-8.1, thanks Danilo
