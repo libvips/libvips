@@ -1,3 +1,6 @@
+- looks like we have a race in tiled threadcache? see 
+
+	https://github.com/jcupitt/libvips/issues/347
 
 - convert float mask to int for int convolution has rounding problems
 
