@@ -278,5 +278,5 @@ typedef struct _VipsBandjoinConst {
 
 typedef VipsBandaryClass VipsBandjoinConstClass;
 
-G_DEFINE_TYPE( VipsBandjoinConst, vips_bandjoin_const, VIPS_TYPE_BANDARY );
+//G_DEFINE_TYPE( VipsBandjoinConst, vips_bandjoin_const, VIPS_TYPE_BANDARY );
 
