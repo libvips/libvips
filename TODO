@@ -2,24 +2,7 @@
 
 	https://github.com/jcupitt/libvips/issues/347
 
-- convert float mask to int for int convolution has rounding problems
-
-  we do rint() all elements, and rint(scale)
-
-  we ought to sum all float elements and take the ratio of the scale to the sum
-
-  then rint all elements, sum, and scale the sum by the ratio to get the int
-  scale
-
-  same for offset
-
-- recent imagemagick seems to have link problems
-
-  see:
-  
-  	http://www.imagemagick.org/discourse-server/viewtopic.php?f=3&t=28603
-
-  need to fix fairly soon, vips can't build against current IM
+  oh argh out of order reads ... but why would they add a few black tiles?
 
 - add bandjoinconst ... append a band (or bands?) from a constant
 

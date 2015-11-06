@@ -145,6 +145,8 @@ im_vips2imask( IMAGE *in, const char *filename )
 
 	double *data;
 	int x, y;
+	double double_ratio;
+	int int_ratio;
 
 	/* double* only: cast if necessary.
 	 */
@@ -191,6 +193,22 @@ im_vips2imask( IMAGE *in, const char *filename )
 	if( !(out = im_create_imask( filename, width, height )) )
 		return( NULL );
 
+	/* We want to make an intmask which has the same input to output ratio
+	 * as the double image.
+	 *
+	 * Imagine convolving with the double image, what's the ratio of
+	 * brightness between input and output? We want the same ratio for the
+	 * int version, if we can.
+	 *
+	 * Imaging an input image where every pixel is 1, what will the output
+	 * be?
+	 */
+	double_ratio = 0;
+	for( y = 0; y < height; y++ )
+		for( x = 0; x < width; x++ )
+			double_ratio += data[x + width * y];
+	double_ratio /= vips_image_get_scale( in );
+
 	for( y = 0; y < height; y++ )
 		for( x = 0; x < width; x++ )
 			if( in->Bands > 1 && in->Ysize == 1 ) 
@@ -203,8 +221,27 @@ im_vips2imask( IMAGE *in, const char *filename )
 				out->coeff[x + y * width] =
 					VIPS_RINT( data[x + y * width] );
 
-	out->scale = vips_image_get_scale( in );
-	out->offset = vips_image_get_offset( in );
+	out->scale = VIPS_RINT( vips_image_get_scale( in ) );
+	out->offset = VIPS_RINT( vips_image_get_offset( in ) );
+
+	/* Now convolve a 1 everywhere image with the int version we've made,
+	 * what do we get?
+	 */
+	int_ratio = 0;
+	for( y = 0; y < height; y++ )
+		for( x = 0; x < width; x++ )
+			int_ratio += out->coeff[x + width * y];
+	int_ratio /= out->scale;
+
+	/* And adjust the scale to get as close to a match as we can.
+	 */
+	out->scale = VIPS_RINT( out->scale * int_ratio / double_ratio );
+	if( out->scale == 0 ) {
+		out->scale = 1;
+	}
+
+	/* We should probably do the same for offset, somehow.
+	 */
 
 	return( out );
 }
