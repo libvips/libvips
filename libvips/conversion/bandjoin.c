@@ -261,3 +261,22 @@ vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 
 	return( result );
 }
+
+typedef struct _VipsBandjoinConst {
+	VipsBandary parent_instance;
+
+	VipsImage *in;
+	VipsArrayDouble *c;
+
+	/* The constant expanded to in's format, ready to be appended to each
+	 * pixel.
+	 */
+	int n;
+	VipsPel *c_ready;
+
+} VipsBandjoinConst;
+
+typedef VipsBandaryClass VipsBandjoinConstClass;
+
+G_DEFINE_TYPE( VipsBandjoinConst, vips_bandjoin_const, VIPS_TYPE_BANDARY );
+
