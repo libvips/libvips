@@ -208,65 +208,79 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	return( 0 );
 }
 
-/* Calculate a pixel for an image from a vec of double. Valid while im is
- * valid. imag can be NULL, meaning all zero for the imaginary component.
+/* Make a pair of vector constants into a set of formatted pixels. bands can
+ * be 3 while n is 1, meaning expand the constant to the number of bands. 
+ * imag can be NULL, meaning all zero for the imaginary component.
  */
 VipsPel *
-vips__vector_to_ink( const char *domain, 
-	VipsImage *im, double *real, double *imag, int n )
+vips__vector_to_pels( const char *domain, 
+	int bands, VipsBandFormat format, VipsCoding coding, 
+	double *real, double *imag, int n )
 {
 	/* Run our pipeline relative to this.
 	 */
 	VipsImage *context = vips_image_new(); 
 
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( context ), 6 );
+		vips_object_local_array( VIPS_OBJECT( context ), 8 );
 
-	VipsBandFormat format;
-	int bands; 
+	VipsImage *in;
 	double *ones;
 	VipsPel *result;
 	int i;
 
 #ifdef VIPS_DEBUG
-	printf( "vips__vector_to_ink: starting\n" );
+	printf( "vips__vector_to_pels: starting\n" );
 #endif /*VIPS_DEBUG*/
 
-	vips_image_decode_predict( im, &bands, &format );
-	ones = VIPS_ARRAY( im, n, double );
+	ones = VIPS_ARRAY( context, n, double );
 	for( i = 0; i < n; i++ )
 		ones[i] = 1.0;
 
-	/* Cast vec to match the decoded image.
+	/* Make the real and imaginary parts.
 	 */
-	if( vips_black( &t[1], 1, 1, "bands", bands, NULL ) ||
-		vips_linear( t[1], &t[2], ones, real, n, NULL ) || 
-		vips_cast( t[2], &t[3], format, NULL ) ) {
+	if( vips_black( &t[0], 1, 1, "bands", bands, NULL ) ||
+		vips_linear( t[0], &t[1], ones, real, n, NULL ) ) {
 		g_object_unref( context );
 		return( NULL );
+	}
+	in = t[1];
+
+	if( imag ) { 
+		if( vips_black( &t[2], 1, 1, "bands", bands, NULL ) ||
+			vips_linear( t[2], &t[3], ones, imag, n, NULL ) ||
+			vips_complexform( in, t[3], &t[4], NULL ) ) {
+			g_object_unref( context );
+			return( NULL );
+		}
+		in = t[4];
 	}
 
-	/* And now recode the vec to match the original im.
+	/* Cast to the output type and coding. 
 	 */
-	if( vips_image_encode( t[3], &t[4], im->Coding ) || 
-		!(t[5] = vips_image_new_memory()) ||
-		vips_image_write( t[4], t[5] ) ) {
+	if( vips_cast( in, &t[5], format, NULL ) ||
+		vips_image_encode( t[5], &t[6], coding ) ) {
 		g_object_unref( context );
 		return( NULL );
 	}
+	in = t[6];
+
+	/* Write to memory, copy to output buffer. 
+	 */
+	if( !(t[7] = vips_image_new_memory()) ||
+		vips_image_write( in, t[7] ) ) {
+		g_object_unref( context );
+		return( NULL );
+	}
+	in = t[7];
 
 	if( !(result = 
-		VIPS_ARRAY( im, VIPS_IMAGE_SIZEOF_PEL( t[5] ), VipsPel )) ) {
+		VIPS_ARRAY( NULL, VIPS_IMAGE_SIZEOF_PEL( in ), VipsPel )) ) {
 		g_object_unref( context );
 		return( NULL );
 	}
 
-	g_assert( VIPS_IMAGE_SIZEOF_PEL( t[5] ) == 
-		VIPS_IMAGE_SIZEOF_PEL( im ) ); 
-
-	memcpy( result, t[5]->data, VIPS_IMAGE_SIZEOF_PEL( im ) ); 
-
-	g_object_unref( context );
+	memcpy( result, in->data, VIPS_IMAGE_SIZEOF_PEL( in ) ); 
 
 #ifdef VIPS_DEBUG
 {
@@ -278,11 +292,42 @@ vips__vector_to_ink( const char *domain,
 		printf( "(%g, %g) ", real[i], imag ? imag[i] : 0 );
 	printf( "\n" ); 
 	printf( "\tink = " ); 
-	for( i = 0; i < VIPS_IMAGE_SIZEOF_PEL( im ); i++ )
+	for( i = 0; i < VIPS_IMAGE_SIZEOF_PEL( in ); i++ )
 		printf( "%d ", result[i] );
 	printf( "\n" ); 
 }
 #endif /*VIPS_DEBUG*/
+
+	g_object_unref( context );
+
+	return( result ); 
+}
+
+static void
+vips__vector_to_ink_cb( VipsObject *object, char *buf )
+{
+	g_free( buf );
+}
+
+/* Calculate a pixel for an image from a vec of double. Valid while im is
+ * valid. 
+ */
+VipsPel *
+vips__vector_to_ink( const char *domain, 
+	VipsImage *im, double *real, double *imag, int n )
+{
+	int bands; 
+	VipsBandFormat format;
+	VipsPel *result;
+
+	vips_image_decode_predict( im, &bands, &format );
+
+	if( !(result = vips__vector_to_pels( domain, 
+		bands, format, im->Coding, real, imag, n )) )
+		return( NULL );
+
+	g_signal_connect( im, "postclose", 
+		G_CALLBACK( vips__vector_to_ink_cb ), result );
 
 	return( result ); 
 }

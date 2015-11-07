@@ -24,6 +24,8 @@
  * 	- sizealike inputs
  * 27/10/11
  * 	- rewrite as a class
+ * 7/11/15
+ * 	- added bandjoin_const
  */
 
 /*
@@ -278,5 +280,197 @@ typedef struct _VipsBandjoinConst {
 
 typedef VipsBandaryClass VipsBandjoinConstClass;
 
-//G_DEFINE_TYPE( VipsBandjoinConst, vips_bandjoin_const, VIPS_TYPE_BANDARY );
+G_DEFINE_TYPE( VipsBandjoinConst, vips_bandjoin_const, VIPS_TYPE_BANDARY );
 
+static void
+vips_bandjoin_const_finalize( GObject *object )
+{
+	VipsBandjoinConst *bandjoin = (VipsBandjoinConst *) object;
+
+	VIPS_FREE( bandjoin->c_ready ); 
+
+	G_OBJECT_CLASS( vips_bandjoin_const_parent_class )->finalize( object );
+}
+
+static void
+vips_bandjoin_const_buffer( VipsBandary *bandary, 
+	VipsPel *q, VipsPel **p, int width )
+{
+	VipsConversion *conversion = (VipsConversion *) bandary;
+	VipsBandjoinConst *bandjoin = (VipsBandjoinConst *) bandary;
+	VipsImage *in = bandary->ready[0];
+
+	/* Output pel size.
+	 */
+	const int ops = VIPS_IMAGE_SIZEOF_PEL( conversion->out );
+
+	/* Input pel size.
+	 */
+	const int ips = VIPS_IMAGE_SIZEOF_PEL( in );
+
+	/* Extra bands size.
+	 */
+	const int ebs = ops - ips; 
+
+	VipsPel * restrict p1;
+	VipsPel * restrict q1;
+	int x, z;
+
+	q1 = q;
+	p1 = p[0];
+
+	for( x = 0; x < width; x++ ) {
+		for( z = 0; z < ips; z++ )
+			q1[z] = p1[z];
+
+		p1 += ips;
+		q1 += ips;
+
+		for( z = 0; z < ebs; z++ )
+			q1[z] = bandjoin->c_ready[z];
+
+		q1 += ebs;
+	}
+}
+
+static int
+vips_bandjoin_const_build( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsBandary *bandary = (VipsBandary *) object;
+	VipsBandjoinConst *bandjoin = (VipsBandjoinConst *) object;
+
+	if( bandjoin->c &&
+		bandjoin->in ) {
+		double *c;
+		int n;
+
+		c = vips_array_double_get( bandjoin->c, &n );
+
+		if( n == 0 ) 
+			return( vips_bandary_copy( bandary ) );
+		else 
+			bandary->out_bands = bandjoin->in->Bands + n;
+
+		bandary->n = 1;
+		bandary->in = &bandjoin->in;
+
+		if( !(bandjoin->c_ready = vips__vector_to_pels( class->nickname,
+			n, bandjoin->in->BandFmt, bandjoin->in->Coding, 
+			c, NULL, n )) )
+			return( -1 );
+
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_bandjoin_const_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_bandjoin_const_class_init( VipsBandjoinConstClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsBandaryClass *bandary_class = VIPS_BANDARY_CLASS( class );
+
+	VIPS_DEBUG_MSG( "vips_bandjoin_const_class_init\n" );
+
+	gobject_class->finalize = vips_bandjoin_const_finalize;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "bandjoin_const";
+	vobject_class->description = _( "append a constant band to an image" );
+	vobject_class->build = vips_bandjoin_const_build;
+
+	bandary_class->process_line = vips_bandjoin_const_buffer;
+
+	VIPS_ARG_IMAGE( class, "in", 0, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsBandjoinConst, in ) ); 
+
+	VIPS_ARG_BOXED( class, "c", 12, 
+		_( "Constants" ), 
+		_( "Array of constants to add" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsBandjoinConst, c ),
+		VIPS_TYPE_ARRAY_DOUBLE );
+
+}
+
+static void
+vips_bandjoin_const_init( VipsBandjoinConst *bandjoin )
+{
+	/* Init our instance fields.
+	 */
+}
+
+static int
+vips_bandjoin_constv( VipsImage *in, VipsImage **out, 
+	double *c, int n, va_list ap )
+{
+	VipsArrayDouble *array; 
+	int result;
+
+	array = vips_array_double_new( c, n ); 
+	result = vips_call_split( "bandjoin_const", ap, in, out, array );
+	vips_area_unref( VIPS_AREA( array ) );
+
+	return( result );
+}
+
+/**
+ * vips_bandjoin_const:
+ * @in: (array length=n) (transfer none): array of input images
+ * @out: output image
+ * @c: (array length=n): array of constants to append
+ * @n: number of constants
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Append a set of constant bands to an image. 
+ *
+ * See also: vips_bandjoin().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_bandjoin_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_bandjoin_constv( in, out, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_bandjoin_const1:
+ * @in: input image
+ * @out: output image
+ * @c: constant to append
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Append a single constant band to an image.
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_bandjoin_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_bandjoin_constv( in, out, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}

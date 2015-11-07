@@ -1,6 +1,8 @@
-- started bandjoinconst
+- pyvips should use bandjoin_const when possible
 
-  see also unaryconst.c
+  benchmark, maybe not worthwhile
+
+- test suite is broken, float->int mask I guess
 
 - looks like we have a race in tiled threadcache? see 
 

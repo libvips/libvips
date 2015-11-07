@@ -171,6 +171,9 @@ int vips__bandalike( const char *domain,
 
 /* draw
  */
+VipsPel *vips__vector_to_pels( const char *domain, 
+	int bands, VipsBandFormat format, VipsCoding coding, 
+	double *real, double *imag, int n );
 VipsPel *vips__vector_to_ink( const char *domain, 
 	VipsImage *im, double *real, double *imag, int n );
 double *vips__ink_to_vector( const char *domain, 

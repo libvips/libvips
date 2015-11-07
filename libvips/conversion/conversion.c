@@ -229,6 +229,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_replicate_get_type( void ); 
 	extern GType vips_cast_get_type( void ); 
 	extern GType vips_bandjoin_get_type( void ); 
+	extern GType vips_bandjoin_const_get_type( void ); 
 	extern GType vips_bandrank_get_type( void ); 
 	extern GType vips_black_get_type( void ); 
 	extern GType vips_rot_get_type( void ); 
@@ -273,6 +274,7 @@ vips_conversion_operation_init( void )
 	vips_replicate_get_type();
 	vips_cast_get_type();
 	vips_bandjoin_get_type();
+	vips_bandjoin_const_get_type();
 	vips_bandrank_get_type();
 	vips_black_get_type();
 	vips_rot_get_type();
