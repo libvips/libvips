@@ -35,6 +35,7 @@ from __future__ import division
 import sys
 import re
 import logging
+import numbers
 
 logger = logging.getLogger(__name__)
 
@@ -110,12 +111,7 @@ def unpack(value):
     return value
 
 def array_image_new(array):
-    match_image = None
-    for i in range(0, len(array)):
-        if isinstance(array[i], Vips.Image):
-            match_image = array[i]
-            break
-
+    match_image = next((x for x in array if isinstance(x, Vips.Image)), None)
     if match_image is None:
         raise Error('Unable to make image array argument.', 
                     'Array must contain at least one image.')
@@ -757,16 +753,25 @@ class Image(Vips.Image):
             return self.relational_const(other, Vips.OperationRelational.LESSEQ)
 
     def __eq__(self, other):
+        # for == and != we need to allow comparison to None
         if isinstance(other, Vips.Image):
             return self.relational(other, Vips.OperationRelational.EQUAL)
-        else:
+        elif isinstance(other, list):
             return self.relational_const(other, Vips.OperationRelational.EQUAL)
+        elif isinstance(other, numbers.Number):
+            return self.relational_const(other, Vips.OperationRelational.EQUAL)
+        else:
+            return False
 
     def __ne__(self, other):
         if isinstance(other, Vips.Image):
             return self.relational(other, Vips.OperationRelational.NOTEQ)
-        else:
+        elif isinstance(other, list):
             return self.relational_const(other, Vips.OperationRelational.NOTEQ)
+        elif isinstance(other, numbers.Number):
+            return self.relational_const(other, Vips.OperationRelational.NOTEQ)
+        else:
+            return False
 
     def __getitem__(self, arg):
         if isinstance(arg, slice):
@@ -868,11 +873,19 @@ class Image(Vips.Image):
         return [x for x in self]
 
     def bandjoin(self, other):
-        """Join a set of images bandwise."""
+        """Append a set of images or constants bandwise."""
         if not isinstance(other, list):
             other = [other]
 
-        return Vips.Image.bandjoin([self] + other)
+        # if [other] is all numbers, we can use bandjoin_const
+        non_number = next((x for x in other 
+                            if not isinstance(x, numbers.Number)), 
+                           None)
+
+        if non_number == None:
+            return self.bandjoin_const(other)
+        else:
+            return Vips.Image.bandjoin([self] + other)
 
     def maxpos(self):
         """Return the coordinates of the image maximum."""

@@ -179,6 +179,16 @@ class TestConversion(unittest.TestCase):
 
         self.run_binary(self.all_images, bandjoin)
 
+    def test_bandjoin_const(self):
+        x = self.colour.bandjoin(1)
+        self.assertEqual(x.bands, 4)
+        self.assertEqual(x[3].avg(), 1)
+
+        x = self.colour.bandjoin([1,2])
+        self.assertEqual(x.bands, 5)
+        self.assertEqual(x[3].avg(), 1)
+        self.assertEqual(x[4].avg(), 2)
+
     def test_bandmean(self):
         def bandmean(x):
             if isinstance(x, Vips.Image):

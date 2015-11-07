@@ -1,6 +1,4 @@
-- pyvips should use bandjoin_const when possible
-
-  benchmark, maybe not worthwhile
+- need to update docs, c++ binding
 
 - test suite is broken, float->int mask I guess
 
