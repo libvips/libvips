@@ -1,5 +1,3 @@
-- need to update docs, c++ binding
-
 - test suite is broken, float->int mask I guess
 
 - looks like we have a race in tiled threadcache? see 

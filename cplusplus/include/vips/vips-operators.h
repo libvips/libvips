@@ -1,5 +1,5 @@
 // headers for vips operations
-// Tue Oct  6 16:54:32 BST 2015
+// Sat Nov  7 20:36:13 GMT 2015
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 )
@@ -101,6 +101,8 @@ VImage extract_area( int left , int top , int width , int height , VOption *opti
 VImage extract_band( int band , VOption *options = 0 )
     throw( VError );
 static VImage bandjoin( std::vector<VImage> in , VOption *options = 0 )
+    throw( VError );
+VImage bandjoin_const( std::vector<double> c , VOption *options = 0 )
     throw( VError );
 static VImage bandrank( std::vector<VImage> in , VOption *options = 0 )
     throw( VError );
@@ -279,6 +281,12 @@ void tiffsave( char * filename , VOption *options = 0 )
 void fitssave( char * filename , VOption *options = 0 )
     throw( VError );
 VImage shrink( double xshrink , double yshrink , VOption *options = 0 )
+    throw( VError );
+VImage shrinkh( int xshrink , VOption *options = 0 )
+    throw( VError );
+VImage shrinkv( int yshrink , VOption *options = 0 )
+    throw( VError );
+VImage shrink2( double xshrink , double yshrink , VOption *options = 0 )
     throw( VError );
 VImage quadratic( VImage coeff , VOption *options = 0 )
     throw( VError );

@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Tue Oct  6 16:53:55 BST 2015
+// Sat Nov  7 20:36:01 GMT 2015
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -692,6 +692,20 @@ VImage VImage::bandjoin( std::vector<VImage> in , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", in ) ->
             set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::bandjoin_const( std::vector<double> c , VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "bandjoin_const" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) ->
+            set( "c", c ) );
 
     return( out );
 }
@@ -1849,6 +1863,49 @@ VImage VImage::shrink( double xshrink , double yshrink , VOption *options )
     VImage out;
 
     call( "shrink" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) ->
+            set( "xshrink", xshrink ) ->
+            set( "yshrink", yshrink ) );
+
+    return( out );
+}
+
+VImage VImage::shrinkh( int xshrink , VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "shrinkh" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) ->
+            set( "xshrink", xshrink ) );
+
+    return( out );
+}
+
+VImage VImage::shrinkv( int yshrink , VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "shrinkv" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) ->
+            set( "yshrink", yshrink ) );
+
+    return( out );
+}
+
+VImage VImage::shrink2( double xshrink , double yshrink , VOption *options )
+    throw( VError )
+{
+    VImage out;
+
+    call( "shrink2" ,
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) ->

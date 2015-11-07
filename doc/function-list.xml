@@ -334,6 +334,11 @@
   <entry>vips_bandjoin(), vips_bandjoin2()</entry>
 </row>
 <row>
+  <entry>bandjoin_const</entry>
+  <entry>appendd a set of constants to an image</entry>
+  <entry>vips_bandjoin_const(), vips_bandjoin_const1()</entry>
+</row>
+<row>
   <entry>bandrank</entry>
   <entry>band-wise rank of a set of images</entry>
   <entry>vips_bandrank()</entry>
