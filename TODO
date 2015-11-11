@@ -3,6 +3,10 @@
   yes, what about the case where float mask sums to zero, we'll /0 when scaling
   the output mask
 
+  not sure the fix is right, think again
+
+  maybe look at change in sum? add difference to scale?
+
 - looks like we have a race in tiled threadcache? see 
 
 	https://github.com/jcupitt/libvips/issues/347

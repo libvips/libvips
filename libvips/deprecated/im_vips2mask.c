@@ -233,11 +233,14 @@ im_vips2imask( IMAGE *in, const char *filename )
 			int_ratio += out->coeff[x + width * y];
 	int_ratio /= out->scale;
 
-	/* And adjust the scale to get as close to a match as we can.
+	/* And adjust the scale to get as close to a match as we can. This
+	 * won't work for masks which sum to zero, obviously :-( 
 	 */
-	out->scale = VIPS_RINT( out->scale * int_ratio / double_ratio );
-	if( out->scale == 0 ) {
-		out->scale = 1;
+	if( double_ratio != 0.0 ) {
+		out->scale = VIPS_RINT( out->scale * int_ratio / double_ratio );
+		if( out->scale == 0 ) {
+			out->scale = 1;
+		}
 	}
 
 	/* We should probably do the same for offset, somehow.
