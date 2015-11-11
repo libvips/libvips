@@ -938,21 +938,21 @@ vips_line_cache_build( VipsObject *object )
 		block_cache->max_tiles = 2 * vips_concurrency_get();
 	else { 
 		/* Enough lines for two complete buffers would be exactly 
-		 * right. Make it 3 to give us some slop room. 
+		 * right. Make it 4 to give us some slop room. 
 		 *
 		 * This can go up with request size, see vips_line_cache_gen().
 		 */
 		int tile_width;
 		int tile_height;
-		int nlines;
+		int n_lines;
 
 		vips_get_tile_size( block_cache->in, 
-			&tile_width, &tile_height, &nlines );
+			&tile_width, &tile_height, &n_lines );
 		block_cache->max_tiles = 4 * 
-			(1 + nlines / block_cache->tile_height);
+			(1 + n_lines / block_cache->tile_height);
 
-		VIPS_DEBUG_MSG( "vips_line_cache_build: nlines = %d\n", 
-			nlines );
+		VIPS_DEBUG_MSG( "vips_line_cache_build: n_lines = %d\n", 
+			n_lines );
 	}
 
 	VIPS_DEBUG_MSG( "vips_line_cache_build: "

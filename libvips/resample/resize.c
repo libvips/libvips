@@ -161,18 +161,17 @@ vips_resize_build( VipsObject *object )
 	 * perhaps 0.5 or down as low as 0.3 depending on the interpolator. So
 	 * the number of scanlines we need to keep for the worst case is
 	 * 2 * @tile_height / @residual, plus a little extra.
-	 *
 	 */
 	if( int_shrink > 1 ) { 
 		int tile_width;
 		int tile_height;
-		int nlines;
+		int n_lines;
 
 		int need_lines;
 
 		vips_get_tile_size( in, 
-			&tile_width, &tile_height, &nlines );
-		need_lines = 2.5 * tile_height / residual;
+			&tile_width, &tile_height, &n_lines );
+		need_lines = 1.2 * n_lines / residual;
 		if( vips_tilecache( in, &t[6], 
 			"tile_width", in->Xsize,
 			"tile_height", 10,
