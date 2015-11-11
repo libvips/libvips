@@ -145,8 +145,8 @@ im_vips2imask( IMAGE *in, const char *filename )
 
 	double *data;
 	int x, y;
-	double double_ratio;
-	int int_ratio;
+	double double_result;
+	int int_result;
 
 	/* double* only: cast if necessary.
 	 */
@@ -203,11 +203,11 @@ im_vips2imask( IMAGE *in, const char *filename )
 	 * Imaging an input image where every pixel is 1, what will the output
 	 * be?
 	 */
-	double_ratio = 0;
+	double_result = 0;
 	for( y = 0; y < height; y++ )
 		for( x = 0; x < width; x++ )
-			double_ratio += data[x + width * y];
-	double_ratio /= vips_image_get_scale( in );
+			double_result += data[x + width * y];
+	double_result /= vips_image_get_scale( in );
 
 	for( y = 0; y < height; y++ )
 		for( x = 0; x < width; x++ )
@@ -222,26 +222,24 @@ im_vips2imask( IMAGE *in, const char *filename )
 					VIPS_RINT( data[x + y * width] );
 
 	out->scale = VIPS_RINT( vips_image_get_scale( in ) );
+	if( out->scale == 0 )
+		out->scale = 1;
 	out->offset = VIPS_RINT( vips_image_get_offset( in ) );
 
 	/* Now convolve a 1 everywhere image with the int version we've made,
 	 * what do we get?
 	 */
-	int_ratio = 0;
+	int_result = 0;
 	for( y = 0; y < height; y++ )
 		for( x = 0; x < width; x++ )
-			int_ratio += out->coeff[x + width * y];
-	int_ratio /= out->scale;
+			int_result += out->coeff[x + width * y];
+	int_result /= out->scale;
 
-	/* And adjust the scale to get as close to a match as we can. This
-	 * won't work for masks which sum to zero, obviously :-( 
+	/* And adjust the scale to get as close to a match as we can. 
 	 */
-	if( double_ratio != 0.0 ) {
-		out->scale = VIPS_RINT( out->scale * int_ratio / double_ratio );
-		if( out->scale == 0 ) {
-			out->scale = 1;
-		}
-	}
+	out->scale = VIPS_RINT( out->scale + (int_result - double_result) );
+	if( out->scale == 0 ) 
+		out->scale = 1;
 
 	/* We should probably do the same for offset, somehow.
 	 */
