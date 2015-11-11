@@ -156,6 +156,8 @@
  * 29/9/15
  * 	- try to write IPCT metadata
  * 	- try to write photoshop metadata
+ * 11/11/15
+ * 	- better alpha handling, thanks sadaqatullahn
  */
 
 /*
@@ -210,6 +212,10 @@
 #include <tiffio.h>
 
 #include "tiff.h"
+
+/* Max number of alpha channels we allow.
+ */
+#define MAX_ALPHA (64)
 
 typedef struct _Layer Layer;
 typedef struct _Write Write;
@@ -510,7 +516,6 @@ write_tiff_header( Write *write, Layer *layer )
 {
 	TIFF *tif = layer->tif;
 
-	uint16 v[1];
 	int format; 
 
 	/* Output base header fields.
@@ -559,34 +564,39 @@ write_tiff_header( Write *write, Layer *layer )
 	else {
 		int photometric;
 
+		/* Number of bands that have colour in .. other bands are saved
+		 * as alpha.
+		 */
+		int colour_bands;
+
+		int alpha_bands;
+
 		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, write->im->Bands );
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 
 			vips_format_sizeof( write->im->BandFmt ) << 3 );
 
-		switch( write->im->Bands ) {
-		case 1:
-		case 2:
+		if( write->im->Bands < 3 ) {
+			/* Mono or mono + alpha.
+			 */
 			photometric = write->miniswhite ? 
 				PHOTOMETRIC_MINISWHITE :  
 				PHOTOMETRIC_MINISBLACK;
-			if( write->im->Bands == 2 ) {
-				v[0] = EXTRASAMPLE_ASSOCALPHA;
-				TIFFSetField( tif, TIFFTAG_EXTRASAMPLES, 1, v );
-			}
-			break;
-
-		case 3:
-		case 4:
-			/* could be: RGB, RGBA, CMYK, LAB, LABA, generic
-			 * multi-band image.
+			colour_bands = 1;
+		}
+		else {
+			/* Could be: RGB, CMYK, LAB, perhaps with extra alpha.
 			 */
 			if( write->im->Type == VIPS_INTERPRETATION_LAB || 
-				write->im->Type == VIPS_INTERPRETATION_LABS ) 
+				write->im->Type == VIPS_INTERPRETATION_LABS ) {
 				photometric = PHOTOMETRIC_CIELAB;
-			else if( write->im->Type == VIPS_INTERPRETATION_CMYK ) {
+				colour_bands = 3;
+			}
+			else if( write->im->Type == VIPS_INTERPRETATION_CMYK &&
+				write->im->Bands >= 4 ) {
 				photometric = PHOTOMETRIC_SEPARATED;
 				TIFFSetField( tif, 
 					TIFFTAG_INKSET, INKSET_CMYK );
+				colour_bands = 4;
 			}
 			else if( write->compression == COMPRESSION_JPEG &&
 				write->im->Bands == 3 &&
@@ -599,32 +609,27 @@ write_tiff_header( Write *write, Layer *layer )
 				photometric = PHOTOMETRIC_YCBCR;
 				TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE, 
 					JPEGCOLORMODE_RGB );
+				colour_bands = 3;
 			}
-			else
+			else {
+				/* Some kind of generic multi-band image ..
+				 * save the first three bands as RGB, the rest
+				 * as alpha.
+				 */
 				photometric = PHOTOMETRIC_RGB;
-
-			if( write->im->Type != VIPS_INTERPRETATION_CMYK && 
-				write->im->Bands == 4 ) {
-				v[0] = EXTRASAMPLE_ASSOCALPHA;
-				TIFFSetField( tif, TIFFTAG_EXTRASAMPLES, 1, v );
+				colour_bands = 3;
 			}
+		}
 
-			break;
+		alpha_bands = write->im->Bands - colour_bands;
+		if( alpha_bands > 0 ) {
+			uint16 v[MAX_ALPHA];
+			int i;
 
-		case 5:
-			/* Only CMYKA
-			 */
-			photometric = PHOTOMETRIC_SEPARATED;
-			TIFFSetField( tif, TIFFTAG_INKSET, INKSET_CMYK );
-			v[0] = EXTRASAMPLE_ASSOCALPHA;
-			TIFFSetField( tif, TIFFTAG_EXTRASAMPLES, 1, v );
-			break;
-
-		default:
-			/* Who knows. Just call it RGB.
-			 */
-			photometric = PHOTOMETRIC_RGB;
-			break; 
+			for( i = 0; i < alpha_bands; i++ )
+				v[i] = EXTRASAMPLE_ASSOCALPHA;
+			TIFFSetField( tif, 
+				TIFFTAG_EXTRASAMPLES, alpha_bands, v );
 		}
 
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, photometric );
