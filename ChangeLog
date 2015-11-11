@@ -8,6 +8,7 @@
 - add memory.h to Python API .. makes tracked highwater visible
 - added bandjoin_const to add constant bands to an image
 - better alpha handling for tiff write, thanks sadaqatullahn
+- better cache sizing for vips_resize()
 
 7/5/15 started 8.1.1
 - oop, vips-8.0 wrapper script should be vips-8.1, thanks Danilo

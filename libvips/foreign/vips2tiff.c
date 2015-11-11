@@ -621,8 +621,9 @@ write_tiff_header( Write *write, Layer *layer )
 			}
 		}
 
-		alpha_bands = write->im->Bands - colour_bands;
-		if( alpha_bands > 0 ) {
+		alpha_bands = VIPS_CLIP( 0, 
+			write->im->Bands - colour_bands, MAX_ALPHA );
+		if( alpha_bands > 0 ) { 
 			uint16 v[MAX_ALPHA];
 			int i;
 

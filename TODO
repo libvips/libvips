@@ -11,6 +11,8 @@
 
   trying new shrinker
 
+  also try resize change
+
 - colour needs to split _build() into preprocess / process / postprocess
   phases
 
