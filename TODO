@@ -1,14 +1,15 @@
 - test suite is broken, float->int mask I guess
 
+  yes, what about the case where float mask sums to zero, we'll /0 when scaling
+  the output mask
+
 - looks like we have a race in tiled threadcache? see 
 
 	https://github.com/jcupitt/libvips/issues/347
 
   oh argh out of order reads ... but why would they add a few black tiles?
 
-- add bandjoinconst ... append a band (or bands?) from a constant
-
-  see https://github.com/jcupitt/libvips/issues/325
+  trying new shrinker
 
 - colour needs to split _build() into preprocess / process / postprocess
   phases
