@@ -1,3 +1,4 @@
+- still not happy about float->int mask conversion in im_vips2mask.c
 
 - looks like we have a race in tiled threadcache? see 
 
@@ -94,12 +95,6 @@
 
 
 
-- use vips_resize() in vipsthumbnail?
-
-  should the sharpening filter be selectable?
-
-- look over vipsthumbnail with a profiler again
-
 - test other cpp arg types
 
 	input int		works
@@ -119,8 +114,6 @@
 	output blob
 
 - fix up aconv
-
-- can we pick the vipsthumbnail int shrink factor more intelligently?
 
 - rewrite im_conv() etc. as vips_conv(), also the mosaicing functions
 

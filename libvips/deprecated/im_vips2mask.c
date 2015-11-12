@@ -241,9 +241,6 @@ im_vips2imask( IMAGE *in, const char *filename )
 	if( out->scale == 0 ) 
 		out->scale = 1;
 
-	/* We should probably do the same for offset, somehow.
-	 */
-
 	return( out );
 }
 

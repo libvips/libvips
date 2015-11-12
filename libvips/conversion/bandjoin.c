@@ -107,7 +107,8 @@ vips_bandjoin_buffer( VipsBandary *bandary, VipsPel *q, VipsPel **p, int width )
 		 */
 		int ips = VIPS_IMAGE_SIZEOF_PEL( in[i] );
 
-		VipsPel *p1, *q1;
+		VipsPel * restrict p1;
+		VipsPel * restrict q1;
 		int x, z;
 
 		q1 = q;
