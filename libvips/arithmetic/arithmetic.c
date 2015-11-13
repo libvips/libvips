@@ -315,8 +315,17 @@ vips__formatalike_vec( VipsImage **in, VipsImage **out, int n )
 		format = vips_format_common( format, in[i]->BandFmt );
 
 	for( i = 0; i < n; i++ )
-		if( vips_cast( in[i], &out[i], format, NULL ) )
-			return( -1 );
+		if( in[i]->BandFmt == format ) {
+			/* Already in the right format ... just copy the image
+			 * pointer and add a ref.
+			 */
+			out[i] = in[i];
+			g_object_ref( in[i] ); 
+		}
+		else {
+			if( vips_cast( in[i], &out[i], format, NULL ) )
+				return( -1 );
+		}
 
 	return( 0 );
 }
@@ -338,9 +347,19 @@ vips__sizealike_vec( VipsImage **in, VipsImage **out, int n )
 	}
 
 	for( i = 0; i < n; i++ )
-		if( vips_embed( in[i], &out[i], 
-			0, 0, width_max, height_max, NULL ) )
-			return( -1 );
+		if( in[i]->Xsize == width_max &&
+			in[i]->Ysize == height_max ) {
+			/* Already the right size ... just copy the image
+			 * pointer and add a ref.
+			 */
+			out[i] = in[i];
+			g_object_ref( in[i] ); 
+		}
+		else {
+			if( vips_embed( in[i], &out[i], 
+				0, 0, width_max, height_max, NULL ) )
+				return( -1 );
+		}
 
 	return( 0 );
 }
@@ -403,13 +422,21 @@ vips__bandalike_vec( const char *domain,
 		}
 	}
 
-	for( i = 0; i < n; i++ ) {
-		if( vips__bandup( domain, in[i], &out[i], max_bands ) )
-			return( -1 );
+	for( i = 0; i < n; i++ ) 
+		if( in[i]->Bands == max_bands ) {
+			/* Already the right number of bands ... just copy the 
+			 * image pointer and add a ref.
+			 */
+			out[i] = in[i];
+			g_object_ref( in[i] ); 
+		}
+		else {
+			if( vips__bandup( domain, in[i], &out[i], max_bands ) )
+				return( -1 );
 
-		if( interpretation != VIPS_INTERPRETATION_ERROR ) 
-			out[i]->Type = interpretation;
-	}
+			if( interpretation != VIPS_INTERPRETATION_ERROR ) 
+				out[i]->Type = interpretation;
+		}
 
 	return( 0 );
 }
