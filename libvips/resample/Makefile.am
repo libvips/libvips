@@ -1,5 +1,5 @@
 libresample_la_SOURCES = \
-	index.c \
+	mapim.c \
 	affine.c \
 	quadratic.c \
 	resample.c \

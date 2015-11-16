@@ -54,7 +54,7 @@
 
 #include "presample.h"
 
-typedef struct _VipsIndex {
+typedef struct _VipsMapim {
 	VipsResample parent_instance;
 
 	VipsImage *index;
@@ -64,11 +64,11 @@ typedef struct _VipsIndex {
 	 */
 	VipsImage *in_array[3];
 
-} VipsIndex;
+} VipsMapim;
 
-typedef VipsResampleClass VipsIndexClass;
+typedef VipsResampleClass VipsMapimClass;
 
-G_DEFINE_TYPE( VipsIndex, vips_index, VIPS_TYPE_RESAMPLE );
+G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 
 /*
  * FAST_PSEUDO_FLOOR is a floor and floorf replacement which has been
@@ -126,7 +126,7 @@ G_DEFINE_TYPE( VipsIndex, vips_index, VIPS_TYPE_RESAMPLE );
 /* Scan a region and find min/max in the two axes.
  */
 static void
-vips_index_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
+vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 {
 	int min_x;
 	int max_x;
@@ -189,7 +189,7 @@ vips_index_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 				q[z] = 0; \
 		} \
 		else  \
-			interpolate( index->interpolate, q, ir[0], \
+			interpolate( mapim->interpolate, q, ir[0], \
 				px + window_offset, py + window_offset ); \
 		\
 		p1 += 2; \
@@ -198,27 +198,27 @@ vips_index_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 }
 
 static int
-vips_index_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
+vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRect *r = &or->valid;
 	VipsRegion **ir = (VipsRegion **) seq;
 	const VipsImage **in_array = (const VipsImage **) a;
-	const VipsIndex *index = (VipsIndex *) b; 
-	const VipsResample *resample = VIPS_RESAMPLE( index );
+	const VipsMapim *mapim = (VipsMapim *) b; 
+	const VipsResample *resample = VIPS_RESAMPLE( mapim );
 	const VipsImage *in = in_array[0];
 	const int window_size = 
-		vips_interpolate_get_window_size( index->interpolate );
+		vips_interpolate_get_window_size( mapim->interpolate );
 	const int window_offset = 
-		vips_interpolate_get_window_offset( index->interpolate );
+		vips_interpolate_get_window_offset( mapim->interpolate );
 	const VipsInterpolateMethod interpolate = 
-		vips_interpolate_get_method( index->interpolate );
+		vips_interpolate_get_method( mapim->interpolate );
 	const int ps = VIPS_IMAGE_SIZEOF_PEL( in );
 
 	VipsRect bounds, image, clipped;
 	int x, y, z;
 	
 #ifdef DEBUG_VERBOSE
-	printf( "vips_index_gen: "
+	printf( "vips_mapim_gen: "
 		"generating left=%d, top=%d, width=%d, height=%d\n", 
 		r->left,
 		r->top,
@@ -226,17 +226,17 @@ vips_index_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		r->height );
 #endif /*DEBUG_VERBOSE*/
 
-	/* Fetch the chunk of the index image we need, and find the max/min in
+	/* Fetch the chunk of the mapim image we need, and find the max/min in
 	 * x and y.
 	 */
 	if( vips_region_prepare( ir[1], r ) )
 		return( -1 );
 
-	VIPS_GATE_START( "vips_index_gen: work" ); 
+	VIPS_GATE_START( "vips_mapim_gen: work" ); 
 
-	vips_index_region_minmax( ir[1], r, &bounds ); 
+	vips_mapim_region_minmax( ir[1], r, &bounds ); 
 
-	VIPS_GATE_STOP( "vips_index_gen: work" ); 
+	VIPS_GATE_STOP( "vips_mapim_gen: work" ); 
 
 	/* The bounding box of that area is what we will need from @in. Add
 	 * enough for the interpolation stencil as well.
@@ -255,7 +255,7 @@ vips_index_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	vips_rect_intersectrect( &bounds, &image, &clipped );
 
 #ifdef DEBUG_VERBOSE
-	printf( "vips_index_gen: "
+	printf( "vips_mapim_gen: "
 		"preparing left=%d, top=%d, width=%d, height=%d\n", 
 		clipped.left,
 		clipped.top,
@@ -270,7 +270,7 @@ vips_index_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	if( vips_region_prepare( ir[0], &clipped ) )
 		return( -1 );
 
-	VIPS_GATE_START( "vips_index_gen: work" ); 
+	VIPS_GATE_START( "vips_mapim_gen: work" ); 
 
 	/* Resample! x/y loop over pixels in the output image (5).
 	 */
@@ -305,28 +305,28 @@ vips_index_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		}
 	}
 
-	VIPS_GATE_STOP( "vips_index_gen: work" ); 
+	VIPS_GATE_STOP( "vips_mapim_gen: work" ); 
 
 	return( 0 );
 }
 
 static int
-vips_index_build( VipsObject *object )
+vips_mapim_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
-	VipsIndex *index = (VipsIndex *) object;
+	VipsMapim *mapim = (VipsMapim *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	VipsImage *in;
 	int window_size;
 	int window_offset;
 
-	if( VIPS_OBJECT_CLASS( vips_index_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_mapim_parent_class )->build( object ) )
 		return( -1 );
 
 	if( vips_check_coding_known( class->nickname, resample->in ) ||
-		vips_check_twocomponents( class->nickname, index->index ) )
+		vips_check_twocomponents( class->nickname, mapim->index ) )
 		return( -1 );
 
 	in = resample->in;
@@ -338,7 +338,7 @@ vips_index_build( VipsObject *object )
 	/* We can't use vips_object_argument_isset(), since it may have been
 	 * set to NULL, see vips_similarity().
 	 */
-	if( !index->interpolate ) {
+	if( !mapim->interpolate ) {
 		VipsInterpolate *interpolate;
 
 		interpolate = vips_interpolate_new( "bilinear" );
@@ -348,15 +348,15 @@ vips_index_build( VipsObject *object )
 		g_object_unref( interpolate );
 
 		/* coverity gets confused by this, it thinks
-		 * index->interpolate may still be null. Assign ourselves,
+		 * mapim->interpolate may still be null. Assign ourselves,
 		 * even though we don't need to.
 		 */
-		index->interpolate = interpolate;
+		mapim->interpolate = interpolate;
 	}
 
-	window_size = vips_interpolate_get_window_size( index->interpolate );
+	window_size = vips_interpolate_get_window_size( mapim->interpolate );
 	window_offset = 
-		vips_interpolate_get_window_offset( index->interpolate );
+		vips_interpolate_get_window_offset( mapim->interpolate );
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
@@ -372,56 +372,56 @@ vips_index_build( VipsObject *object )
 		in, NULL ) )
 		return( -1 );
 
-	resample->out->Xsize = index->index->Xsize;
-	resample->out->Ysize = index->index->Ysize;
+	resample->out->Xsize = mapim->index->Xsize;
+	resample->out->Ysize = mapim->index->Ysize;
 
-	index->in_array[0] = in;
-	index->in_array[1] = index->index;
-	index->in_array[2] = NULL;
+	mapim->in_array[0] = in;
+	mapim->in_array[1] = mapim->index;
+	mapim->in_array[2] = NULL;
 	if( vips_image_generate( resample->out, 
-		vips_start_many, vips_index_gen, vips_stop_many, 
-		index->in_array, index ) )
+		vips_start_many, vips_mapim_gen, vips_stop_many, 
+		mapim->in_array, mapim ) )
 		return( -1 );
 
 	return( 0 );
 }
 
 static void
-vips_index_class_init( VipsIndexClass *class )
+vips_mapim_class_init( VipsMapimClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
-	VIPS_DEBUG_MSG( "vips_index_class_init\n" );
+	VIPS_DEBUG_MSG( "vips_mapim_class_init\n" );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "index";
-	vobject_class->description = _( "resample with an index image" );
-	vobject_class->build = vips_index_build;
+	vobject_class->nickname = "mapim";
+	vobject_class->description = _( "resample with an mapim image" );
+	vobject_class->build = vips_mapim_build;
 
 	VIPS_ARG_IMAGE( class, "index", 3, 
 		_( "Index" ), 
 		_( "Index pixels with this" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsIndex, index ) );
+		G_STRUCT_OFFSET( VipsMapim, index ) );
 
 	VIPS_ARG_INTERPOLATE( class, "interpolate", 4, 
 		_( "Interpolate" ), 
 		_( "Interpolate pixels with this" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsIndex, interpolate ) );
+		G_STRUCT_OFFSET( VipsMapim, interpolate ) );
 
 }
 
 static void
-vips_index_init( VipsIndex *index )
+vips_mapim_init( VipsMapim *mapim )
 {
 }
 
 /**
- * vips_index:
+ * vips_mapim:
  * @in: input image
  * @out: output image
  * @index: index image
@@ -458,13 +458,13 @@ vips_index_init( VipsIndex *index )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_index( VipsImage *in, VipsImage **out, VipsImage *index, ... ) 
+vips_mapim( VipsImage *in, VipsImage **out, VipsImage *index, ... ) 
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, index );
-	result = vips_call_split( "index", ap, in, out, index );
+	result = vips_call_split( "mapim", ap, in, out, index );
 	va_end( ap );
 
 	return( result );
