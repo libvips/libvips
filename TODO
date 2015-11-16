@@ -1,3 +1,6 @@
+- vips_resize() should not use the anti-alias filter if vips_shrink() has
+  not been called, ie. for shrinks < 2 or so
+
 - still not happy about float->int mask conversion in im_vips2mask.c
 
 - looks like we have a race in tiled threadcache? see 

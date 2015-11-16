@@ -57,7 +57,7 @@
 typedef struct _VipsIndex {
 	VipsResample parent_instance;
 
-	VipsImage *image;
+	VipsImage *index;
 	VipsInterpolate *interpolate;
 
 	/* Need an image vector for start_many / stop_many
@@ -93,13 +93,117 @@ G_DEFINE_TYPE( VipsIndex, vips_index, VIPS_TYPE_RESAMPLE );
  */
 #define FAST_PSEUDO_FLOOR(x) ( (int)(x) - ( (x) < 0. ) )
 
+#define MINMAX( TYPE ) { \
+	TYPE *p1 = (TYPE *) p; \
+	\
+	for( x = 0; x < r->width; x++ ) { \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
+		\
+		if( first ) { \
+			min_x = px; \
+			max_x = px; \
+			min_y = py; \
+			max_y = py; \
+			\
+			first = FALSE; \
+		} \
+		else { \
+			if( px > max_x ) \
+				max_x = px; \
+			if( px < min_x ) \
+				min_x = px; \
+			if( py > max_y ) \
+				max_y = py; \
+			if( py < min_y ) \
+				min_y = py; \
+		} \
+		\
+		p1 += 2; \
+	} \
+}
+
+/* Scan a region and find min/max in the two axes.
+ */
+static void
+vips_index_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
+{
+	int min_x;
+	int max_x;
+	int min_y;
+	int max_y;
+	gboolean first;
+	int x, y;
+
+	first = TRUE;
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( region, r->left, y + r->top );
+
+		switch( region->im->BandFmt ) {
+		case VIPS_FORMAT_UCHAR: 	
+			MINMAX( unsigned char ); break; 
+		case VIPS_FORMAT_CHAR: 	
+			MINMAX( signed char ); break; 
+		case VIPS_FORMAT_USHORT: 
+			MINMAX( unsigned short ); break; 
+		case VIPS_FORMAT_SHORT: 	
+			MINMAX( signed short ); break; 
+		case VIPS_FORMAT_UINT: 	
+			MINMAX( unsigned int ); break; 
+		case VIPS_FORMAT_INT: 	
+			MINMAX( signed int ); break; 
+
+		case VIPS_FORMAT_FLOAT: 		
+		case VIPS_FORMAT_COMPLEX: 
+			MINMAX( float ); break; 
+
+		case VIPS_FORMAT_DOUBLE:	
+		case VIPS_FORMAT_DPCOMPLEX: 
+			MINMAX( double ); break;
+
+		default:
+			g_assert( 0 );
+		}
+	}
+
+	/* Add 1 to width/height, since we are rounding float down.
+	 */
+	bounds->left = min_x;
+	bounds->top = min_y;
+	bounds->width = 1 + max_x - min_x;
+	bounds->height = 1 + max_y - min_y;
+}
+
+#define LOOKUP( TYPE ) { \
+	TYPE *p1 = (TYPE *) p; \
+	\
+	for( x = 0; x < r->width; x++ ) { \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
+		\
+		if( px < 0 || \
+			px > resample->in->Xsize - 1 || \
+			py < 0 || \
+			py > resample->in->Ysize - 1 ) { \
+			for( z = 0; z < ps; z++ )  \
+				q[z] = 0; \
+		} \
+		else  \
+			interpolate( index->interpolate, \
+				q, ir[0], px, py ); \
+		\
+		p1 += 2; \
+	} \
+}
+
 static int
 vips_index_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 {
+	VipsRect *r = &or->valid;
 	VipsRegion **ir = (VipsRegion **) seq;
-	const VipsImage **in_array = (VipsImage **) a;
+	const VipsImage **in_array = (const VipsImage **) a;
 	const VipsIndex *index = (VipsIndex *) b; 
-	const VipsImage *in_array = (VipsImage **) a; 
+	const VipsResample *resample = VIPS_RESAMPLE( index );
 	const VipsImage *in = in_array[0];
 	const int window_size = 
 		vips_interpolate_get_window_size( index->interpolate );
@@ -107,20 +211,11 @@ vips_index_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		vips_interpolate_get_window_offset( index->interpolate );
 	const VipsInterpolateMethod interpolate = 
 		vips_interpolate_get_method( index->interpolate );
+	const int ps = VIPS_IMAGE_SIZEOF_PEL( in );
 
-	/* Area we generate in the output image.
-	 */
-	const VipsRect *r = &or->valid;
-	const int le = r->left;
-	const int ri = VIPS_RECT_RIGHT( r );
-	const int to = r->top;
-	const int bo = VIPS_RECT_BOTTOM( r );
-
-	int ps = VIPS_IMAGE_SIZEOF_PEL( in );
+	VipsRect bounds, image, clipped;
 	int x, y, z;
 	
-	VipsRect image, want, need, clipped;
-
 #ifdef DEBUG_VERBOSE
 	printf( "vips_index_gen: "
 		"generating left=%d, top=%d, width=%d, height=%d\n", 
@@ -133,47 +228,30 @@ vips_index_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	/* Fetch the chunk of the index image we need, and find the max/min in
 	 * x and y.
 	 */
-	if( vips_image_prepare( ir[1], r ) )
+	if( vips_region_prepare( ir[1], r ) )
 		return( -1 );
 
+	VIPS_GATE_START( "vips_index_gen: work" ); 
 
-	want = *r;
-	want.left += oarea->left;
-	want.top += oarea->top;
+	vips_index_region_minmax( ir[1], r, &bounds ); 
 
-	/* Find the area of the input image we need. This takes us to space 3. 
+	VIPS_GATE_STOP( "vips_index_gen: work" ); 
+
+	/* The bounding box of that area is what we will need from @in. Add
+	 * enough for the interpolation stencil as well.
 	 */
-	vips__transform_invert_rect( &index->trn, &want, &need );
+	bounds.width += window_size - 1;
+	bounds.height += window_size - 1;
+	bounds.left -= window_offset;
+	bounds.height -= window_offset;
 
-	/* That does round-to-nearest, because it has to stop rounding errors
-	 * growing images unexpectedly. We need round-down, so we must
-	 * add half a pixel along the left and top. But we are int :( so add 1
-	 * pixel. 
-	 *
-	 * Add an extra line along the right and bottom as well, for rounding.
-	 */
-	vips_rect_marginadjust( &need, 1 );
-
-	/* We need to fetch a larger area for the interpolator.
-	 */
-	need.left -= window_offset;
-	need.top -= window_offset;
-	need.width += window_size - 1;
-	need.height += window_size - 1;
-
-	/* Now go to space 2, the expanded input image. This is the one we
-	 * read pixels from. 
-	 */
-	need.left += window_offset;
-	need.top += window_offset;
-
-	/* Clip against the size of (2).
+	/* Clip against the source image.
 	 */
 	image.left = 0;
 	image.top = 0;
 	image.width = in->Xsize;
 	image.height = in->Ysize;
-	vips_rect_intersectrect( &need, &image, &clipped );
+	vips_rect_intersectrect( &bounds, &image, &clipped );
 
 #ifdef DEBUG_VERBOSE
 	printf( "vips_index_gen: "
@@ -188,90 +266,41 @@ vips_index_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		vips_region_black( or );
 		return( 0 );
 	}
-	if( vips_region_prepare( ir, &clipped ) )
+	if( vips_region_prepare( ir[0], &clipped ) )
 		return( -1 );
 
 	VIPS_GATE_START( "vips_index_gen: work" ); 
 
 	/* Resample! x/y loop over pixels in the output image (5).
 	 */
-	for( y = to; y < bo; y++ ) {
-		/* Input clipping rectangle. We offset this so we can clip in
-		 * space 2. 
-		 */
-		const int ile = iarea->left + window_offset;
-		const int ito = iarea->top + window_offset;
-		const int iri = ile + iarea->width;
-		const int ibo = ito + iarea->height;
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( ir[1], r->left, y + r->top );
+		VipsPel *q = VIPS_REGION_ADDR( or, r->left, y + r->top );
 
-		/* Derivative of matrix.
-		 */
-		const double ddx = index->trn.ia;
-		const double ddy = index->trn.ic;
+		switch( ir[1]->im->BandFmt ) {
+		case VIPS_FORMAT_UCHAR: 	
+			LOOKUP( unsigned char ); break; 
+		case VIPS_FORMAT_CHAR: 	
+			LOOKUP( signed char ); break; 
+		case VIPS_FORMAT_USHORT: 
+			LOOKUP( unsigned short ); break; 
+		case VIPS_FORMAT_SHORT: 	
+			LOOKUP( signed short ); break; 
+		case VIPS_FORMAT_UINT: 	
+			LOOKUP( unsigned int ); break; 
+		case VIPS_FORMAT_INT: 	
+			LOOKUP( signed int ); break; 
 
-		/* Continuous cods in transformed space.
-		 */
-		const double ox = le + oarea->left - index->trn.odx;
-		const double oy = y + oarea->top - index->trn.ody;
+		case VIPS_FORMAT_FLOAT: 		
+		case VIPS_FORMAT_COMPLEX: 
+			LOOKUP( float ); break; 
 
-		/* Continuous cods in input space.
-		 */
-		double ix, iy;
+		case VIPS_FORMAT_DOUBLE:	
+		case VIPS_FORMAT_DPCOMPLEX: 
+			LOOKUP( double ); break;
 
-		VipsPel *q;
-
-		/* To (3).
-		 */
-		ix = index->trn.ia * ox + index->trn.ib * oy;
-		iy = index->trn.ic * ox + index->trn.id * oy;
-
-		/* And the input offset in (3). 
-		 */
-		ix -= index->trn.idx;
-		iy -= index->trn.idy;
-
-		/* Finally to 2. 
-		 */
-		ix += window_offset;
-		iy += window_offset;
-
-		q = VIPS_REGION_ADDR( or, le, y );
-
-		for( x = le; x < ri; x++ ) {
-			int fx, fy; 	
-
-			fx = FAST_PSEUDO_FLOOR( ix );
-			fy = FAST_PSEUDO_FLOOR( iy );
-
-			/* Clip against iarea.
-			 */
-			if( fx >= ile &&
-				fx < iri &&
-				fy >= ito &&
-				fy < ibo ) {
-				/* Verify that we can read the whole stencil.
-				 * With DEBUG on this will range-check.
-				 */
-				g_assert( VIPS_REGION_ADDR( ir, 
-					(int) ix - window_offset,
-					(int) iy - window_offset ) );
-				g_assert( VIPS_REGION_ADDR( ir, 
-					(int) ix - window_offset + 
-						window_size - 1,
-					(int) iy - window_offset + 
-						window_size - 1 ) );
-
-				interpolate( index->interpolate, 
-					q, ir, ix, iy );
-			}
-			else {
-				for( z = 0; z < ps; z++ ) 
-					q[z] = 0;
-			}
-
-			ix += ddx;
-			iy += ddy;
-			q += ps;
+		default:
+			g_assert( 0 );
 		}
 	}
 
@@ -289,16 +318,14 @@ vips_index_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	VipsImage *in;
-	VipsDemandStyle hint; 
 	int window_size;
 	int window_offset;
-	double edge;
 
 	if( VIPS_OBJECT_CLASS( vips_index_parent_class )->build( object ) )
 		return( -1 );
 
 	if( vips_check_coding_known( class->nickname, resample->in ) ||
-		vips_check_complex( class->nickname, index->index ) )
+		vips_check_twocomponents( class->nickname, index->index ) )
 		return( -1 );
 
 	in = resample->in;
@@ -306,9 +333,6 @@ vips_index_build( VipsObject *object )
 	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
 	in = t[0];
-
-	if( vips_check_bands_1orn( class->nickname, in, index->index ) )
-		return( -1 );
 
 	/* We can't use vips_object_argument_isset(), since it may have been
 	 * set to NULL, see vips_similarity().
@@ -330,7 +354,8 @@ vips_index_build( VipsObject *object )
 	}
 
 	window_size = vips_interpolate_get_window_size( index->interpolate );
-	window_offset = vips_interpolate_get_window_offset( index->interpolate );
+	window_offset = 
+		vips_interpolate_get_window_offset( index->interpolate );
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
@@ -346,8 +371,8 @@ vips_index_build( VipsObject *object )
 		in, NULL ) )
 		return( -1 );
 
-	resample->out->Xsize = index->index->Xsize
-	resample->out->Ysize = index->index->Xsize
+	resample->out->Xsize = index->index->Xsize;
+	resample->out->Ysize = index->index->Ysize;
 
 	index->in_array[0] = in;
 	index->in_array[1] = index->index;
@@ -415,9 +440,9 @@ vips_index_init( VipsIndex *index )
  *
  * If @index has one band, that band must be complex. Otherwise, @index must
  * have two bands of any format. 
- *
  * Coordinates in @index are in pixels, with (0, 0) being the top-left corner 
- * of @in, and with y increasing down the image. 
+ * of @in, and with y increasing down the image. Use vips_xyz() to build index
+ * images. 
  *
  * @interpolate defaults to bilinear. 
  *
@@ -426,7 +451,8 @@ vips_index_init( VipsIndex *index )
  *
  * See vips_maplut() for a 1D equivalent of this operation. 
  *
- * See also: vips_affine(), vips_resize(), vips_maplut(), #VipsInterpolate.
+ * See also: vips_xyz(), vips_affine(), vips_resize(), 
+ * vips_maplut(), #VipsInterpolate.
  *
  * Returns: 0 on success, -1 on error
  */

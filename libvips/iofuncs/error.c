@@ -839,6 +839,33 @@ vips_check_complex( const char *domain, VipsImage *im )
 }
 
 /**
+ * vips_check_twocomponents:
+ * @domain: the originating domain for the error message
+ * @im: image to check
+ *
+ * Check that the image is has two "components", ie. is a one-band complex or
+ * a two-band non-complex. 
+ * Otherwise set an error message
+ * and return non-zero.
+ *
+ * See also: vips_error().
+ *
+ * Returns: 0 if OK, -1 otherwise.
+ */
+int
+vips_check_twocomponents( const char *domain, VipsImage *im )
+{
+	if( !vips_band_format_iscomplex( im->BandFmt ) &&
+		im->Bands != 2 ) {
+		vips_error( domain, 
+			"%s", _( "image must be two-band or complex" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
  * vips_check_format:
  * @domain: the originating domain for the error message
  * @im: image to check

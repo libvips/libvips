@@ -80,6 +80,7 @@ int vips_check_uint( const char *domain, VipsImage *im );
 int vips_check_uintorf( const char *domain, VipsImage *im );
 int vips_check_noncomplex( const char *domain, VipsImage *im );
 int vips_check_complex( const char *domain, VipsImage *im );
+int vips_check_twocomponents( const char *domain, VipsImage *im );
 int vips_check_format( const char *domain, VipsImage *im, VipsBandFormat fmt );
 int vips_check_u8or16( const char *domain, VipsImage *im );
 int vips_check_8or16( const char *domain, VipsImage *im );
