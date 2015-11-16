@@ -189,10 +189,11 @@ vips_index_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 				q[z] = 0; \
 		} \
 		else  \
-			interpolate( index->interpolate, \
-				q, ir[0], px, py ); \
+			interpolate( index->interpolate, q, ir[0], \
+				px + window_offset, py + window_offset ); \
 		\
 		p1 += 2; \
+		q += ps; \
 	} \
 }
 
@@ -400,7 +401,7 @@ vips_index_class_init( VipsIndexClass *class )
 	vobject_class->description = _( "resample with an index image" );
 	vobject_class->build = vips_index_build;
 
-	VIPS_ARG_IMAGE( class, "index", 2, 
+	VIPS_ARG_IMAGE( class, "index", 3, 
 		_( "Index" ), 
 		_( "Index pixels with this" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
