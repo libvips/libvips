@@ -11,7 +11,7 @@
 - better cache sizing for vips_resize()
 - sizealike / formatalike / bandsalike elide completely if they can for
   a x2 saving in C stack use in many cases
-- added vips_index() ... resample with an index image
+- added vips_mapim() ... resample with an index image
 
 7/5/15 started 8.1.1
 - oop, vips-8.0 wrapper script should be vips-8.1, thanks Danilo
