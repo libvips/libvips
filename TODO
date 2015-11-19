@@ -1,3 +1,7 @@
+- black lines in to_polar ... investigate
+
+- easy to get a segv with Nicolas's interpolators, argh
+
 - vips_resize() should not use the anti-alias filter if vips_shrink() has
   not been called, ie. for shrinks < 2 or so
 
