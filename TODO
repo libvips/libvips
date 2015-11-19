@@ -1,6 +1,8 @@
-- black lines in to_polar ... investigate
-
 - easy to get a segv with Nicolas's interpolators, argh
+
+  just with float images?
+
+  try to_polar, set LBB, zoom in and scroll around a bit
 
 - speed up rect with atan2?
 

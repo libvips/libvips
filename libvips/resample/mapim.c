@@ -182,9 +182,9 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 		TYPE py = p1[1]; \
 		\
 		if( px < 0 || \
-			px > resample->in->Xsize - 1 || \
+			px > resample->in->Xsize || \
 			py < 0 || \
-			py > resample->in->Ysize - 1 ) { \
+			py > resample->in->Ysize ) { \
 			for( z = 0; z < ps; z++ )  \
 				q[z] = 0; \
 		} \
@@ -295,6 +295,7 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		case VIPS_FORMAT_FLOAT: 		
 		case VIPS_FORMAT_COMPLEX: 
 			LOOKUP( float ); break; 
+			break;
 
 		case VIPS_FORMAT_DOUBLE:	
 		case VIPS_FORMAT_DPCOMPLEX: 
