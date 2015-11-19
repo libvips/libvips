@@ -75,6 +75,7 @@ G_DEFINE_TYPE( VipsResize, vips_resize, VIPS_TYPE_RESAMPLE );
 static int
 vips_resize_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsResize *resize = (VipsResize *) object;
 
@@ -87,6 +88,7 @@ vips_resize_build( VipsObject *object )
 	int int_shrink_width;
 	double residual;
 	double sigma;
+	gboolean anti_alias;
 
 	if( VIPS_OBJECT_CLASS( vips_resize_parent_class )->build( object ) )
 		return( -1 );
@@ -129,6 +131,7 @@ vips_resize_build( VipsObject *object )
 
 	/* A copy for enlarge resize.
 	 */
+	vips_info( class->nickname, "box shrink by x %d", int_shrink );
 	if( vips_shrink( in, &t[0], int_shrink, int_shrink, NULL ) )
 		return( -1 );
 	in = t[0];
@@ -189,13 +192,18 @@ vips_resize_build( VipsObject *object )
 	 * Don't blur for very small shrinks, blur with radius 1 for x1.5
 	 * shrinks, blur radius 2 for x2.5 shrinks and above, etc.
 	 */
-	sigma = ((1.0 / residual) - 0.5) / 1.5;
-	if( residual < 1.0 &&
-		sigma > 0.1 ) { 
+	sigma = ((1.0 / residual) - 0.5) / 2.0;
+	anti_alias = residual < 1.0 && sigma > 0.1;
+	if( anti_alias ) { 
+		vips_info( class->nickname, "anti-alias sigma %g", sigma );
 		if( vips_gaussblur( in, &t[2], sigma, NULL ) )
 			return( -1 );
 		in = t[2];
 	}
+
+	vips_info( class->nickname, "residual affine %g", residual );
+	vips_info( class->nickname, "%s interpolation", 
+		VIPS_OBJECT_GET_CLASS( resize->interpolate )->nickname );
 
 	if( vips_affine( in, &t[3], residual, 0, 0, residual, 
 		"interpolate", resize->interpolate,
@@ -205,9 +213,12 @@ vips_resize_build( VipsObject *object )
 		return( -1 );
 	in = t[3];
 
-	/* If we are upsampling, don't sharpen.
+	/* If we are upsampling, don't sharpen. Also don't sharpen if we
+	 * skipped the anti-alias filter. 
 	 */
-	if( int_shrink > 1 ) { 
+	if( int_shrink >= 1 && 
+		anti_alias ) { 
+		vips_info( class->nickname, "final sharpen" );
 		t[5] = vips_image_new_matrixv( 3, 3,
 			-1.0, -1.0, -1.0,
 			-1.0, 32.0, -1.0,

@@ -439,10 +439,6 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 
 	shrink = calculate_shrink( in );
 
-	vips_info( "vipsthumbnail", "shrink by %g", shrink );
-	vips_info( "vipsthumbnail", "%s interpolation", 
-		VIPS_OBJECT_GET_CLASS( interp )->nickname );
-
 	if( vips_resize( in, &t[4], 1.0 / shrink, 
 		"interpolate", interp,
 		NULL ) ) 
