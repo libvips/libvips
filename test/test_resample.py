@@ -10,6 +10,59 @@ from gi.repository import Vips
 
 Vips.leak_set(True)
 
+# Run a function expecting a complex image on a two-band image
+def run_cmplx(fn, image):
+    if image.format == Vips.BandFormat.FLOAT:
+        new_format = Vips.BandFormat.COMPLEX
+    elif image.format == Vips.BandFormat.DOUBLE:
+        new_format = Vips.BandFormat.DPCOMPLEX
+    else:
+        raise "run_cmplx: not float or double"
+
+    # tag as complex, run, revert tagging
+    cmplx = image.copy(bands = 1, format = new_format)
+    cmplx_result = fn(cmplx)
+
+    return cmplx_result.copy(bands = 2, format = image.format)
+
+def to_polar(image):
+    """Transform image coordinates to polar.
+
+    The image is transformed so that it is wrapped around a point in the
+    centre. Vertical straight lines become circles or segments of circles,
+    horizontal straight lines become radial spokes.
+    """
+    # xy image, zero in the centre, scaled to fit image to a circle
+    xy = Vips.Image.xyz(image.width, image.height)
+    xy -= [image.width / 2.0, image.height / 2.0]
+    scale = min(image.width, image.height) / float(image.width)
+    xy *= 2.0 / scale
+
+    # to polar, scale vertical axis to 360 degrees
+    index = run_cmplx(lambda x: x.polar(), xy)
+    index *= [1, image.height / 360.0]
+
+    return image.mapim(index)
+
+def to_rectangular(image):
+    """Transform image coordinates to rectangular.
+
+    The image is transformed so that it is unwrapped from a point in the
+    centre. Circles or segments of circles become vertical straight lines,
+    radial lines become horizontal lines.
+    """
+    # xy image, vertical scaled to 360 degrees
+    xy = Vips.Image.xyz(image.width, image.height)
+    xy *= [1, 360.0 / image.height]
+
+    # to rect, scale to image rect
+    index = run_cmplx(lambda x: x.rect(), xy)
+    scale = min(image.width, image.height) / float(image.width)
+    index *= scale / 2.0
+    index += [image.width / 2.0, image.height / 2.0]
+
+    return image.mapim(index)
+
 # an expanding zip ... if either of the args is a scalar or a one-element list,
 # duplicate it down the other side 
 def zip_expand(x, y):
@@ -63,7 +116,7 @@ class TestResample(unittest.TestCase):
         im2 = im.shrink(2.5, 2.5)
         self.assertEqual(im2.width, im.width // 2.5)
         self.assertEqual(im2.height, im.height // 2.5)
-        self.assertTrue(abs(im.avg() - im2.avg()) < 1)
+        self.assertLess(abs(im.avg() - im2.avg()), 1)
 
     def test_similarity(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")
@@ -71,13 +124,25 @@ class TestResample(unittest.TestCase):
         im3 = im.affine([0, -1, 1, 0])
         # rounding in calculating the affine transform from the angle stops this
         # being exactly true
-        self.assertTrue((im2 - im3).abs().max() < 50)
+        self.assertLess((im2 - im3).abs().max(), 50)
 
     def test_similarity_scale(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")
         im2 = im.similarity(scale = 2)
         im3 = im.affine([2, 0, 0, 2])
         self.assertEqual((im2 - im3).abs().max(), 0)
+
+    def test_mapim(self):
+        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+
+        p = to_polar(im)
+        r = to_rectangular(p)
+
+        # the left edge (which is squashed to the origin) will be badly
+        # distorted, but the rest should not be too bad
+        a = r.crop(50, 0, im.width - 50, im.height).gaussblur(2)
+        b = im.crop(50, 0, im.width - 50, im.height).gaussblur(2)
+        self.assertLess((a - b).abs().max(), 20)
 
 if __name__ == '__main__':
     unittest.main()
