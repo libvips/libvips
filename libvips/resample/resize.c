@@ -62,6 +62,7 @@ typedef struct _VipsResize {
 	VipsResample parent_instance;
 
 	double scale;
+	double vscale;
 	VipsInterpolate *interpolate;
 	double idx;
 	double idy;
@@ -84,9 +85,12 @@ vips_resize_build( VipsObject *object )
 
 	VipsImage *in;
 	int window_size;
-	int int_shrink;
+	int int_hshrink;
+	int int_vshrink;
 	int int_shrink_width;
-	double residual;
+	int int_shrink_height;
+	double hresidual;
+	double vresidual;
 	double sigma;
 	gboolean anti_alias;
 
@@ -106,6 +110,11 @@ vips_resize_build( VipsObject *object )
 		VIPS_UNREF( interpolate ); 
 	}
 
+	/* Unset vscale means it's equal to hscale.
+	 */
+	if( !vips_object_argument_isset( object, "vscale" ) ) 
+		resize->vscale = resize->scale;
+
 	in = resample->in;
 
 	window_size = resize->interpolate ? 
@@ -114,25 +123,31 @@ vips_resize_build( VipsObject *object )
 	/* If the factor is > 1.0, we need to zoom rather than shrink.
 	 * Just set the int part to 1 in this case.
 	 */
-	int_shrink = resize->scale > 1.0 ? 1 : floor( 1.0 / resize->scale );
+	int_hshrink = resize->scale > 1.0 ? 1 : floor( 1.0 / resize->scale );
+	int_vshrink = resize->vscale > 1.0 ? 1 : floor( 1.0 / resize->vscale );
 
 	/* We want to shrink by less for interpolators with larger windows.
 	 */
-	int_shrink = VIPS_MAX( 1,
-		int_shrink / VIPS_MAX( 1, window_size / 2 ) );
+	int_hshrink = VIPS_MAX( 1,
+		int_hshrink / VIPS_MAX( 1, window_size / 2 ) );
+	int_vshrink = VIPS_MAX( 1,
+		int_vshrink / VIPS_MAX( 1, window_size / 2 ) );
 
 	/* Size after int shrink.
 	 */
-	int_shrink_width = in->Xsize / int_shrink;
+	int_shrink_width = in->Xsize / int_hshrink;
+	int_shrink_height = in->Ysize / int_vshrink;
 
 	/* Therefore residual scale factor is.
 	 */
-	residual = (in->Xsize * resize->scale) / int_shrink_width;
+	hresidual = (in->Xsize * resize->scale) / int_shrink_width;
+	vresidual = (in->Ysize * resize->vscale) / int_shrink_height;
 
 	/* A copy for enlarge resize.
 	 */
-	vips_info( class->nickname, "box shrink by x %d", int_shrink );
-	if( vips_shrink( in, &t[0], int_shrink, int_shrink, NULL ) )
+	vips_info( class->nickname, "box shrink by %d x %d", 
+		int_hshrink, int_vshrink );
+	if( vips_shrink( in, &t[0], int_hshrink, int_vshrink, NULL ) )
 		return( -1 );
 	in = t[0];
 
@@ -165,7 +180,7 @@ vips_resize_build( VipsObject *object )
 	 * the number of scanlines we need to keep for the worst case is
 	 * 2 * @tile_height / @residual, plus a little extra.
 	 */
-	if( int_shrink > 1 ) { 
+	if( int_vshrink > 1 ) { 
 		int tile_width;
 		int tile_height;
 		int n_lines;
@@ -174,7 +189,7 @@ vips_resize_build( VipsObject *object )
 
 		vips_get_tile_size( in, 
 			&tile_width, &tile_height, &n_lines );
-		need_lines = 1.2 * n_lines / residual;
+		need_lines = 1.2 * n_lines / vresidual;
 		if( vips_tilecache( in, &t[6], 
 			"tile_width", in->Xsize,
 			"tile_height", 10,
@@ -191,9 +206,12 @@ vips_resize_build( VipsObject *object )
 	 *
 	 * Don't blur for very small shrinks, blur with radius 1 for x1.5
 	 * shrinks, blur radius 2 for x2.5 shrinks and above, etc.
+	 *
+	 * Don't try to be clever for non-rectangular shrinks. We just
+	 * consider the horizontal factor.
 	 */
-	sigma = ((1.0 / residual) - 0.5) / 2.0;
-	anti_alias = residual < 1.0 && sigma > 0.1;
+	sigma = ((1.0 / hresidual) - 0.5) / 2.0;
+	anti_alias = hresidual < 1.0 && sigma > 0.1;
 	if( anti_alias ) { 
 		vips_info( class->nickname, "anti-alias sigma %g", sigma );
 		if( vips_gaussblur( in, &t[2], sigma, NULL ) )
@@ -201,11 +219,12 @@ vips_resize_build( VipsObject *object )
 		in = t[2];
 	}
 
-	vips_info( class->nickname, "residual affine %g", residual );
+	vips_info( class->nickname, "residual affine %g x %g", 
+		hresidual, vresidual );
 	vips_info( class->nickname, "%s interpolation", 
 		VIPS_OBJECT_GET_CLASS( resize->interpolate )->nickname );
 
-	if( vips_affine( in, &t[3], residual, 0, 0, residual, 
+	if( vips_affine( in, &t[3], hresidual, 0, 0, vresidual, 
 		"interpolate", resize->interpolate,
 		"idx", resize->idx,
 		"idy", resize->idy,
@@ -216,7 +235,7 @@ vips_resize_build( VipsObject *object )
 	/* If we are upsampling, don't sharpen. Also don't sharpen if we
 	 * skipped the anti-alias filter. 
 	 */
-	if( int_shrink >= 1 && 
+	if( int_hshrink >= 1 && 
 		anti_alias ) { 
 		vips_info( class->nickname, "final sharpen" );
 		t[5] = vips_image_new_matrixv( 3, 3,
@@ -261,6 +280,13 @@ vips_resize_class_init( VipsResizeClass *class )
 		G_STRUCT_OFFSET( VipsResize, scale ),
 		0, 10000000, 0 );
 
+	VIPS_ARG_DOUBLE( class, "vscale", 113, 
+		_( "Vertical scale factor" ), 
+		_( "Vertical scale image by this factor" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsResize, vscale ),
+		0, 10000000, 0 );
+
 	VIPS_ARG_INTERPOLATE( class, "interpolate", 2, 
 		_( "Interpolate" ), 
 		_( "Interpolate pixels with this" ),
@@ -296,6 +322,7 @@ vips_resize_init( VipsResize *resize )
  *
  * Optional arguments:
  *
+ * @vscale: vertical scale factor
  * @interpolate: interpolate pixels with this
  * @idx: input horizontal offset
  * @idy: input vertical offset
@@ -307,9 +334,13 @@ vips_resize_init( VipsResize *resize )
  * then resampled with vips_affine() and the supplied interpolator, then
  * sharpened. 
  *
+ * vips_resize() normally maintains the image apect ratio. If you set
+ * @vscale, that factor is used for the vertical scale and @scale for the
+ * horizontal.
+ *
  * @interpolate defaults to bicubic.
  *
- * @idx, @idy default to zero. Offset them by 0.5 to get pixel-centre sampling. 
+ * @idx, @idy default to zero. Set them to 0.5 to get pixel-centre sampling. 
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 
