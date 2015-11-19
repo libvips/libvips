@@ -131,13 +131,41 @@ G_DEFINE_TYPE( VipsComplex, vips_complex, VIPS_TYPE_UNARY );
 		g_assert( 0 ); \
 	} 
 
+static double
+vips_complex_hypot( double a, double b )
+{
+	double d;
+
+#ifdef HAVE_HYPOT
+	d = hypot( a, b ); 
+#else
+	d = sqrt( a * a + b * b );
+#endif
+
+	return( d ); 
+}
+
+static double
+vips_complex_atan2( double a, double b )
+{
+	double h;
+
+#ifdef HAVE_ATAN2
+	h = VIPS_DEG( atan2( b, a ) );
+#else
+	h = vips_col_ab2h( a, b ); 
+#endif 
+
+	return( h ); 
+}
+
 #define POLAR( Q, X, Y ) { \
 	double re = (X); \
 	double im = (Y); \
 	double am, ph; \
 	\
-	am = sqrt( re * re + im * im ); \
-	ph = vips_col_ab2h( re, im ); \
+	am = vips_complex_hypot( re, im ); \
+	ph = vips_complex_atan2( re, im ); \
 	\
 	Q[0] = am; \
 	Q[1] = ph; \

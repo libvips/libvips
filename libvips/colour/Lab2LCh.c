@@ -63,6 +63,9 @@ vips_col_ab2h( double a, double b )
 {
 	double h;
 
+#ifdef HAVE_ATAN2
+	h = VIPS_DEG( atan2( b, a ) );
+#else
 	/* We have to get the right quadrant!
 	 */
 	if( a == 0 ) {
@@ -84,6 +87,7 @@ vips_col_ab2h( double a, double b )
 		else
 			h = VIPS_DEG( t + VIPS_PI );
 	}
+#endif
 
 	return( h );
 }
@@ -91,8 +95,17 @@ vips_col_ab2h( double a, double b )
 void
 vips_col_ab2Ch( float a, float b, float *C, float *h )
 {
+#ifdef HAVE_ATAN2
+	*h = VIPS_DEG( atan2( b, a ) );
+#else
 	*h = vips_col_ab2h( a, b ); 
+#endif 
+
+#ifdef HAVE_HYPOT
+	*C = hypot( a, b ); 
+#else
 	*C = sqrt( a * a + b * b );
+#endif
 }
 
 static void
