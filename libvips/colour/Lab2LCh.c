@@ -65,6 +65,8 @@ vips_col_ab2h( double a, double b )
 
 #ifdef HAVE_ATAN2
 	h = VIPS_DEG( atan2( b, a ) );
+	if( h < 0.0 )
+		h += 360;
 #else
 	/* We have to get the right quadrant!
 	 */
@@ -97,6 +99,8 @@ vips_col_ab2Ch( float a, float b, float *C, float *h )
 {
 #ifdef HAVE_ATAN2
 	*h = VIPS_DEG( atan2( b, a ) );
+	if( *h < 0.0 )
+		*h += 360;
 #else
 	*h = vips_col_ab2h( a, b ); 
 #endif 

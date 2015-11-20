@@ -1,3 +1,25 @@
+- we need to be able to run .polar() on xyz images ... argh
+
+   - could special-case vips_complex() to work for multi-band int images as
+     well as complex
+
+     would need to output as multi-band float
+
+     what about other cases though? cast real to complex?
+
+   - could add new ops for polar/rect of real images with two bands
+
+   - could add a thing to Vips.py to do this
+
+   - could add full support for complex arithmetic ... linear would need an
+     extra arg for complex constants
+
+   - could abandon complex images and just use 2*bands instead, have complex
+     as a flag you set? or just rely on FOURIER
+
+
+
+
 - easy to get a segv with Nicolas's interpolators, argh
 
   just with float images?

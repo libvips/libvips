@@ -152,6 +152,8 @@ vips_complex_atan2( double a, double b )
 
 #ifdef HAVE_ATAN2
 	h = VIPS_DEG( atan2( b, a ) );
+	if( h < 0.0 )
+		h += 360;
 #else
 	h = vips_col_ab2h( a, b ); 
 #endif 
