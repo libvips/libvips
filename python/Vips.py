@@ -134,6 +134,40 @@ def arrayize(gtype, value):
 
     return value
 
+def run_cmplx(fn, image):
+    """Run a complex function on a non-complex image.
+
+    The image needs to be complex, or have an even number of bands. The input
+    can be int, the output is always float or double.
+    """
+    original_format = image.format
+
+    if not Vips.band_format_iscomplex(image.format):
+        if image.bands % 2 != 0:
+            raise "not an even number of bands"
+
+        if not Vips.band_format_isfloat(image.format):
+            image = image.cast(Vips.BandFormat.FLOAT)
+
+        if image.format == Vips.BandFormat.DOUBLE:
+            new_format = Vips.BandFormat.DPCOMPLEX
+        else:
+            new_format = Vips.BandFormat.COMPLEX
+
+        image = image.copy(format = new_format, bands = image.bands / 2)
+
+    image = fn(image)
+
+    if not Vips.band_format_iscomplex(original_format):
+        if image.format == Vips.BandFormat.DPCOMPLEX:
+            new_format = Vips.BandFormat.DOUBLE
+        else:
+            new_format = Vips.BandFormat.FLOAT
+
+        image = image.copy(format = new_format, bands = image.bands * 2)
+
+    return image
+
 class Error(Exception):
     """An error from vips.
 
@@ -911,11 +945,11 @@ class Image(Vips.Image):
 
     def polar(self):
         """Return an image converted to polar coordinates."""
-        return self.complex(Vips.OperationComplex.POLAR)
+        return run_cmplx(lambda x: x.complex(Vips.OperationComplex.POLAR), self)
 
     def rect(self):
         """Return an image converted to rectangular coordinates."""
-        return self.complex(Vips.OperationComplex.RECT)
+        return run_cmplx(lambda x: x.complex(Vips.OperationComplex.RECT), self)
 
     def conj(self):
         """Return the complex conjugate of an image."""
