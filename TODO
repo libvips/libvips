@@ -17,8 +17,7 @@
    - could abandon complex images and just use 2*bands instead, have complex
      as a flag you set? or just rely on FOURIER
 
-
-
+  paste fixed up run_cmplx() into Vips.py
 
 - easy to get a segv with Nicolas's interpolators, argh
 

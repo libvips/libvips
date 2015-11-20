@@ -11,20 +11,36 @@ from gi.repository import Vips
 
 #Vips.cache_set_trace(True)
 
-# Run a function expecting a complex image on a two-band image
+# Run a function expecting a complex image on an image with an even number of
+# bands
 def run_cmplx(fn, image):
-    if image.format == Vips.BandFormat.FLOAT:
-        new_format = Vips.BandFormat.COMPLEX
-    elif image.format == Vips.BandFormat.DOUBLE:
-        new_format = Vips.BandFormat.DPCOMPLEX
-    else:
-        raise "run_cmplx: not float or double"
+    original_format = image.format
 
-    # tag as complex, run, revert tagging
-    cmplx = image.copy(bands = 1, format = new_format)
-    cmplx_result = fn(cmplx)
+    if not Vips.band_format_iscomplex(image.format):
+        if image.bands % 2 != 0:
+            raise "not an even number of bands"
 
-    return cmplx_result.copy(bands = 2, format = image.format)
+        if not Vips.band_format_isfloat(image.format):
+            image = image.cast(Vips.BandFormat.FLOAT)
+
+        if image.format == Vips.BandFormat.DOUBLE:
+            new_format = Vips.BandFormat.DPCOMPLEX
+        else:
+            new_format = Vips.BandFormat.COMPLEX
+
+        image = image.copy(format = new_format, bands = image.bands / 2)
+
+    image = fn(image)
+
+    if not Vips.band_format_iscomplex(original_format):
+        if image.format == Vips.BandFormat.DPCOMPLEX:
+            new_format = Vips.BandFormat.DOUBLE
+        else:
+            new_format = Vips.BandFormat.FLOAT
+
+        image = image.copy(format = new_format, bands = image.bands * 2)
+
+    return image
 
 def to_polar(image):
     """Transform image coordinates to polar.
