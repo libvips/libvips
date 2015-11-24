@@ -94,7 +94,7 @@ G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 #define FAST_PSEUDO_FLOOR(x) ( (int)(x) - ( (x) < 0. ) )
 
 #define MINMAX( TYPE ) { \
-	TYPE *p1 = (TYPE *) p; \
+	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
 		TYPE px = p1[0]; \
@@ -137,7 +137,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 
 	first = TRUE;
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( region, r->left, y + r->top );
+		VipsPel * restrict p = 
+			VIPS_REGION_ADDR( region, r->left, y + r->top );
 
 		switch( region->im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	
@@ -175,7 +176,7 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 }
 
 #define LOOKUP( TYPE ) { \
-	TYPE *p1 = (TYPE *) p; \
+	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
 		TYPE px = p1[0]; \
@@ -275,8 +276,10 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	/* Resample! x/y loop over pixels in the output image (5).
 	 */
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( ir[1], r->left, y + r->top );
-		VipsPel *q = VIPS_REGION_ADDR( or, r->left, y + r->top );
+		VipsPel * restrict p = 
+			VIPS_REGION_ADDR( ir[1], r->left, y + r->top );
+		VipsPel * restrict q = 
+			VIPS_REGION_ADDR( or, r->left, y + r->top );
 
 		switch( ir[1]->im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	
