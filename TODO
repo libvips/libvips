@@ -1,11 +1,5 @@
-
-- easy to get a segv with Nicolas's interpolators, argh
-
-  just with float images?
-
-  try to_polar workspace, set LBB, zoom in and scroll around a bit
-
-
+- get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very
+  odd, the interpolation shouldn't change between bands
 
 - still not happy about float->int mask conversion in im_vips2mask.c
 

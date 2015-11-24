@@ -513,6 +513,11 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 
 	int z;
 
+	g_assert( (int) x >= in->valid.left );
+	g_assert( (int) y >= in->valid.top );
+	g_assert( (int) x + 1 < VIPS_RECT_RIGHT( &in->valid ) );
+	g_assert( (int) y + 1 < VIPS_RECT_BOTTOM( &in->valid ) );
+
 	SWITCH_INTERPOLATE( in->im->BandFmt,
 		BILINEAR_INT, BILINEAR_FLOAT );
 }

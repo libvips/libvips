@@ -1493,8 +1493,8 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate* restrict interpolate,
    *
    * It's 2 not 0 since we ask for a window_offset of 2 at the bottom.
    */
-  const int ix = (int) (absolute_x + 0.5);
-  const int iy = (int) (absolute_y + 0.5);
+  const int ix = (int) absolute_x;
+  const int iy = (int) absolute_y;
 
   /*
    * Move the pointer to (the first band of) the top/left pixel of the
@@ -1520,6 +1520,11 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate* restrict interpolate,
   const int bands =
     vips_band_format_iscomplex( in->im->BandFmt ) ? 
       2 * actual_bands : actual_bands;
+
+  g_assert( ix - 2 >= in->valid.left );
+  g_assert( iy - 2 >= in->valid.top );
+  g_assert( ix + 2 < VIPS_RECT_RIGHT( &in->valid ) );
+  g_assert( iy + 2 < VIPS_RECT_BOTTOM( &in->valid ) );
 
   /* Confirm that absolute_x and absolute_y are >= 2, see above. 
    */

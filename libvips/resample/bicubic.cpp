@@ -408,6 +408,17 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	const int bands = in->im->Bands;
 	const int lskip = VIPS_REGION_LSKIP( in );
 
+	g_assert( ix - 1 >= in->valid.left );
+	g_assert( iy - 1 >= in->valid.top );
+	g_assert( ix + 2 < VIPS_RECT_RIGHT( &in->valid ) );
+	g_assert( iy + 2 < VIPS_RECT_BOTTOM( &in->valid ) );
+
+	/* Confirm that absolute_x and absolute_y are >= 1, because of
+	 * window_offset.
+	 */
+	g_assert( x >= 1.0 );
+	g_assert( y >= 1.0 );
+
 #ifdef DEBUG
 	printf( "vips_interpolate_bicubic_interpolate: %g %g\n", x, y );
 	printf( "\tleft=%d, top=%d, width=%d, height=%d\n",

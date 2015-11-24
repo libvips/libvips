@@ -800,6 +800,11 @@ vips_interpolate_lbb_interpolate( VipsInterpolate* restrict interpolate,
     vips_band_format_iscomplex( in->im->BandFmt ) ? 
       2 * actual_bands : actual_bands;
 
+  g_assert( ix - 1 >= in->valid.left );
+  g_assert( iy - 1 >= in->valid.top );
+  g_assert( ix + 2 < VIPS_RECT_RIGHT( &in->valid ) );
+  g_assert( iy + 2 < VIPS_RECT_BOTTOM( &in->valid ) );
+
   /* Confirm that absolute_x and absolute_y are >= 1, see above. 
    */
   g_assert( absolute_x >= 1.0 );

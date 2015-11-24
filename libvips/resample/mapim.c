@@ -189,7 +189,7 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 			for( z = 0; z < ps; z++ )  \
 				q[z] = 0; \
 		} \
-		else  \
+		else \
 			interpolate( mapim->interpolate, q, ir[0], \
 				px + window_offset, py + window_offset ); \
 		\
@@ -244,8 +244,6 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	 */
 	bounds.width += window_size - 1;
 	bounds.height += window_size - 1;
-	bounds.left -= window_offset;
-	bounds.height -= window_offset;
 
 	/* Clip against the source image.
 	 */
