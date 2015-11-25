@@ -15,6 +15,7 @@
 - try to improve vips_resize() quality a little more
 - vips_resize() can do non-square resizes
 - dzsave removes tile metadata by default, thanks Benjamin
+- added vips_image_new_from_memory_copy()
 
 7/5/15 started 8.1.1
 - oop, vips-8.0 wrapper script should be vips-8.1, thanks Danilo

@@ -429,6 +429,8 @@ VipsImage *vips_image_new_from_file_raw( const char *filename,
 	int xsize, int ysize, int bands, guint64 offset );
 VipsImage *vips_image_new_from_memory( const void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format );
+VipsImage *vips_image_new_from_memory_copy( const void *data, size_t size,
+	int width, int height, int bands, VipsBandFormat format );
 VipsImage *vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 	__attribute__((sentinel));
