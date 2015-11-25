@@ -69,7 +69,9 @@
  * 	- omit oversized jpeg markers
  * 15/7/15
  * 	- exif tags use @name, not @title
-* 	- set arbitrary exif tags from metadata
+ * 	- set arbitrary exif tags from metadata
+ * 25/11/15	
+ * 	- don't write JFIF headers if we are stripping, thanks Benjamin
  */
 
 /*
@@ -940,9 +942,9 @@ write_vips( Write *write, int qfac, const char *profile,
 #ifdef HAVE_JPEG_EXT_PARAMS
 	/* Reset compression profile to libjpeg defaults
 	 */
-	if( jpeg_c_int_param_supported( &write->cinfo, JINT_COMPRESS_PROFILE ) ) {
-		jpeg_c_set_int_param( &write->cinfo, JINT_COMPRESS_PROFILE, JCP_FASTEST );
-	}
+	if( jpeg_c_int_param_supported( &write->cinfo, JINT_COMPRESS_PROFILE ) )
+		jpeg_c_set_int_param( &write->cinfo, 
+			JINT_COMPRESS_PROFILE, JCP_FASTEST );
 #endif
 
 	/* Rest to default. 
@@ -955,61 +957,62 @@ write_vips( Write *write, int qfac, const char *profile,
 	write->cinfo.optimize_coding = optimize_coding;
 
 #ifdef HAVE_JPEG_EXT_PARAMS
-	/* Apply trellis quantisation to each 8x8 block. Infers "optimize_coding".
+	/* Apply trellis quantisation to each 8x8 block. Implies 
+	 * "optimize_coding".
 	 */
 	if( trellis_quant ) {
-		if ( jpeg_c_bool_param_supported(
-			&write->cinfo, JBOOLEAN_TRELLIS_QUANT ) ) {
+		if( jpeg_c_bool_param_supported( &write->cinfo, 
+			JBOOLEAN_TRELLIS_QUANT ) ) {
 			jpeg_c_set_bool_param( &write->cinfo,
 				JBOOLEAN_TRELLIS_QUANT, TRUE );
 			write->cinfo.optimize_coding = TRUE;
 		}
-		else {
-			vips_warn( "vips2jpeg", "%s", _( "trellis_quant unsupported" ) );
-		}
+		else 
+			vips_warn( "vips2jpeg", 
+				"%s", _( "trellis_quant unsupported" ) );
 	}
-	/* Apply overshooting to samples with extreme values e.g. 0 & 255 for 8-bit.
+
+	/* Apply overshooting to samples with extreme values e.g. 0 & 255 
+	 * for 8-bit.
 	 */
 	if( overshoot_deringing ) {
-		if ( jpeg_c_bool_param_supported(
-			&write->cinfo, JBOOLEAN_OVERSHOOT_DERINGING ) ) {
+		if( jpeg_c_bool_param_supported( &write->cinfo, 
+			JBOOLEAN_OVERSHOOT_DERINGING ) ) 
 			jpeg_c_set_bool_param( &write->cinfo,
 				JBOOLEAN_OVERSHOOT_DERINGING, TRUE );
-		}
-		else {
-			vips_warn( "vips2jpeg", "%s", _( "overshoot_deringing unsupported" ) );
-		}
+		else 
+			vips_warn( "vips2jpeg", 
+				"%s", _( "overshoot_deringing unsupported" ) );
 	}
 	/* Split the spectrum of DCT coefficients into separate scans.
-	 * Requires progressive output. Must be set before jpeg_simple_progression.
+	 * Requires progressive output. Must be set before 
+	 * jpeg_simple_progression.
 	 */
 	if( optimize_scans ) {
 		if( progressive ) {
-			if( jpeg_c_bool_param_supported(
-				&write->cinfo, JBOOLEAN_OPTIMIZE_SCANS ) ) {
-				jpeg_c_set_bool_param( &write->cinfo, JBOOLEAN_OPTIMIZE_SCANS, TRUE );
-			}
-			else {
-				vips_warn( "vips2jpeg", "%s", _( "Ignoring optimize_scans" ) );
-			}
+			if( jpeg_c_bool_param_supported( &write->cinfo, 
+				JBOOLEAN_OPTIMIZE_SCANS ) ) 
+				jpeg_c_set_bool_param( &write->cinfo, 
+					JBOOLEAN_OPTIMIZE_SCANS, TRUE );
+			else 
+				vips_warn( "vips2jpeg", 
+					"%s", _( "Ignoring optimize_scans" ) );
 		}
-		else {
+		else 
 			vips_warn( "vips2jpeg", "%s",
 				_( "Ignoring optimize_scans for baseline" ) );
-		}
 	}
 #else
-	/* Using jpeglib.h without extension parameters, warn of ignored options.
+	/* Using jpeglib.h without extension parameters, warn of ignored 
+	 * options.
 	 */
-	if ( trellis_quant ) {
+	if( trellis_quant ) 
 		vips_warn( "vips2jpeg", "%s", _( "Ignoring trellis_quant" ) );
-	}
-	if ( overshoot_deringing ) {
-		vips_warn( "vips2jpeg", "%s", _( "Ignoring overshoot_deringing" ) );
-	}
-	if ( optimize_scans ) {
+	if( overshoot_deringing ) 
+		vips_warn( "vips2jpeg", 
+			"%s", _( "Ignoring overshoot_deringing" ) );
+	if( optimize_scans ) 
 		vips_warn( "vips2jpeg", "%s", _( "Ignoring optimize_scans" ) );
-	}
 #endif
 
 	/* Enable progressive write.
@@ -1027,6 +1030,11 @@ write_vips( Write *write, int qfac, const char *profile,
 			write->cinfo.comp_info[i].v_samp_factor = 1;
 		}
 	}
+
+	/* Don't write the APP0 JFIF headers if we are stripping.
+	 */
+	if( strip ) 
+		write->cinfo.write_JFIF_header = FALSE;
 
 	/* Build compress tables.
 	 */
