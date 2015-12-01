@@ -7,6 +7,8 @@
  * 	  mem use
  * 20/1/14
  * 	- bg render thread quits on shutdown
+ * 1/12/15
+ * 	- don't do anything to out or mask after they have closed
  */
 
 /*
@@ -135,6 +137,11 @@ typedef struct _Render {
 	/* Hash of tiles with positions. Tiles can be dirty or painted.
 	 */
 	GHashTable *tiles;
+
+	/* A shutdown flag. If ->out or ->mask close, we must no longer do
+	 * anything to them until we shut down too.
+	 */
+	gboolean shutdown;
 } Render;
 
 /* Our per-thread state.
@@ -433,13 +440,16 @@ render_work( VipsThreadState *state, void *a )
 	/* All downstream images must drop caches, since we've (effectively)
 	 * modified render->out. 
 	 */
-	vips_image_invalidate_all( render->out ); 
-	if( render->mask ) 
+	if( !render->shutdown ) 
+		vips_image_invalidate_all( render->out ); 
+	if( !render->shutdown &&
+		render->mask ) 
 		vips_image_invalidate_all( render->mask ); 
 
 	/* Now clients can update.
 	 */
-	if( render->notify ) 
+	if( !render->shutdown &&
+		render->notify ) 
 		render->notify( render->out, &tile->area, render->a );
 
 	return( 0 );
@@ -590,6 +600,13 @@ render_close_cb( VipsImage *image, Render *render )
 {
 	VIPS_DEBUG_MSG_AMBER( "render_close_cb\n" );
 
+	/* The output image or mask are closing. This render will stick 
+	 * around for a while, since threads can still be running, but it 
+	 * must no longer reference ->out or ->mask (for example, invalidating
+	 * them).
+	 */
+	render->shutdown = TRUE;
+
 	render_unref( render );
 
 	/* If this render is being worked on, we want to jog the bg thread, 
@@ -638,6 +655,8 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 	render->tiles = g_hash_table_new( tile_hash, tile_equal ); 
 
 	render->dirty = NULL;
+
+	render->shutdown = FALSE;
 
 	/* Both out and mask must close before we can free the render.
 	 */
@@ -918,20 +937,12 @@ tile_copy( Tile *tile, VipsRegion *to )
 	}
 }
 
-static void *
-image_start( IMAGE *out, void *a, void *b )
-{
-	Render *render = (Render *) a;
-
-	return( vips_region_new( render->in ) );
-}
-
 /* Loop over the output region, filling with data from cache.
  */
 static int
 image_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 {
-	Render *render = (Render *) a;
+	Render *render = (Render *) b;
 	int tile_width = render->tile_width;
 	int tile_height = render->tile_height;
 	VipsRegion *reg = (VipsRegion *) seq;
@@ -975,16 +986,6 @@ image_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 		}
 
 	g_mutex_unlock( render->lock );
-
-	return( 0 );
-}
-
-static int
-image_stop( void *seq, void *a, void *b )
-{
-	VipsRegion *reg = (VipsRegion *) seq;
-
-	g_object_unref( reg );
 
 	return( 0 );
 }
@@ -1131,7 +1132,7 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	VIPS_DEBUG_MSG( "vips_sink_screen: max = %d, %p\n", max_tiles, render );
 
 	if( vips_image_generate( out, 
-		image_start, image_fill, image_stop, render, NULL ) )
+		vips_start_one, image_fill, vips_stop_one, in, render ) )
 		return( -1 );
 	if( mask && 
 		vips_image_generate( mask, 

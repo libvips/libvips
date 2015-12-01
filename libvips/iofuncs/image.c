@@ -1417,6 +1417,8 @@ vips_image_invalidate_all_cb( VipsImage *image )
 void
 vips_image_invalidate_all( VipsImage *image )
 {
+	VIPS_DEBUG_MSG( "vips_image_invalidate_all: %p\n", image );
+
 	(void) vips__link_map( image, FALSE,
 		(VipsSListMap2Fn) vips_image_invalidate_all_cb, NULL, NULL );
 }
