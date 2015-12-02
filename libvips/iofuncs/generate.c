@@ -193,7 +193,7 @@ vips__link_break_all( VipsImage *image )
 
 typedef struct _LinkMap {
 	gboolean upstream;
-	int *serial;
+	int serial;
 	VipsSListMap2Fn fn;
 	void *a;
 	void *b;
@@ -206,9 +206,9 @@ vips__link_mapp( VipsImage *image, LinkMap *map )
 
 	/* Loop?
 	 */
-	if( image->serial == *map->serial )
+	if( image->serial == map->serial )
 		return( NULL );
-	image->serial = *map->serial;
+	image->serial = map->serial;
 
 	if( (res = map->fn( image, map->a, map->b )) )
 		return( res );
@@ -240,8 +240,6 @@ vips__link_map( VipsImage *image, gboolean upstream,
 	GSList *p;
 	void *result;
 
-	serial += 1;
-
 	images = NULL;
 
 	/* The function might do anything, including removing images
@@ -251,12 +249,18 @@ vips__link_map( VipsImage *image, gboolean upstream,
 	 */
 
 	map.upstream = upstream;
-	map.serial = &serial;
 	map.fn = (VipsSListMap2Fn) vips__link_map_cb;
 	map.a = (void *) &images;
 	map.b = NULL;
 
+	/* We will be walking the tree of images and updating the ->serial
+	 * member. There will be intense confusion if two threads try to do
+	 * this at the same time.
+	 */
 	g_mutex_lock( vips__global_lock );
+
+	serial += 1;
+	map.serial = serial;
 
 	vips__link_mapp( image, &map ); 
 
