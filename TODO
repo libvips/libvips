@@ -1,12 +1,6 @@
 - get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very
   odd, the interpolation shouldn't change between bands
 
-- try:
-
-	$ ./test_resample.py TestResample.test_mapim
-	** VIPS:ERROR:interpolate.c:518:vips_interpolate_bilinear_interpolate: assertion failed: ((int) x + 1 < VIPS_RECT_RIGHT( &in->valid ))
-	Aborted (core dumped)
-
 - still not happy about float->int mask conversion in im_vips2mask.c
 
 - looks like we have a race in tiled threadcache? see 
