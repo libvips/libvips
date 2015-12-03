@@ -154,14 +154,14 @@ vips_gaussnoise_class_init( VipsGaussnoiseClass *class )
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGaussnoise, width ),
-		1, 1000000, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "height", 5, 
 		_( "Height" ), 
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGaussnoise, height ),
-		1, 1000000, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_DOUBLE( class, "mean", 6, 
 		_( "Mean" ), 

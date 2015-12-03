@@ -47,6 +47,15 @@ extern "C" {
 #define VIPS_MAGIC_INTEL (0xb6a6f208U)
 #define VIPS_MAGIC_SPARC (0x08f2a6b6U)
 
+/* We have a maximum value for a coordinate at various points for sanity
+ * checking. For example, vips_black() has a max with and height. We use int
+ * for width/height so we could go up to 2bn, but it's good to have a lower
+ * value set so we can see crazy numbers early.
+ *
+ * This was 1m for a while, but someone found a use for a 4m wide image.
+ */
+#define VIPS_MAX_COORD (10000000)
+
 typedef enum {
 	VIPS_DEMAND_STYLE_ERROR = -1,	
 	VIPS_DEMAND_STYLE_SMALLTILE,	

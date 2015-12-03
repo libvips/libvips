@@ -1126,9 +1126,9 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	 */
 
 	if( width <= 0 || 
-		width > 10000000 || 
+		width > VIPS_MAX_COORD || 
 		height <= 0 || 
-		height > 10000000 ) {
+		height > VIPS_MAX_COORD ) {
 		vips_error( "tiff2vips", 
 			"%s", _( "width/height out of range" ) );
 		return( -1 );

@@ -1119,21 +1119,21 @@ vips_image_class_init( VipsImageClass *class )
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Xsize ),
-		1, 1000000000, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "height", 3, 
 		_( "Height" ), 
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Ysize ),
-		1, 1000000000, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "bands", 4, 
 		_( "Bands" ), 
 		_( "Number of bands in image" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Bands ),
-		1, 1000000000, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_ENUM( class, "format", 5, 
 		_( "Format" ), 
@@ -1175,14 +1175,14 @@ vips_image_class_init( VipsImageClass *class )
 		_( "Horizontal offset of origin" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Xoffset ),
-		-1000000, 1000000, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "yoffset", 11, 
 		_( "Yoffset" ), 
 		_( "Vertical offset of origin" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Yoffset ),
-		-1000000, 1000000, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_STRING( class, "filename", 12, 
 		_( "Filename" ),
