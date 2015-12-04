@@ -437,14 +437,14 @@ vips_min_class_init( VipsMinClass *class )
 		_( "Horizontal position of minimum" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsMin, x ),
-		0, 1000000, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "y", 3, 
 		_( "y" ), 
 		_( "Vertical position of minimum" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsMin, y ),
-		0, 1000000, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "size", 4, 
 		_( "Size" ), 

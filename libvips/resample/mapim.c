@@ -183,9 +183,9 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 		TYPE py = p1[1]; \
 		\
 		if( px < 0 || \
-			px > resample->in->Xsize || \
+			px >= resample->in->Xsize || \
 			py < 0 || \
-			py > resample->in->Ysize ) { \
+			py >= resample->in->Ysize ) { \
 			for( z = 0; z < ps; z++ )  \
 				q[z] = 0; \
 		} \

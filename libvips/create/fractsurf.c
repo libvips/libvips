@@ -103,14 +103,14 @@ vips_fractsurf_class_init( VipsFractsurfClass *class )
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFractsurf, width ),
-		1, 1000000, 64 );
+		1, VIPS_MAX_COORD, 64 );
 
 	VIPS_ARG_INT( class, "height", 5, 
 		_( "Height" ), 
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsFractsurf, height ),
-		1, 1000000, 64 );
+		1, VIPS_MAX_COORD, 64 );
 
 	VIPS_ARG_DOUBLE( class, "fractal_dimension", 8, 
 		_( "Fractal dimension" ), 

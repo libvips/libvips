@@ -285,21 +285,21 @@ vips_copy_class_init( VipsCopyClass *class )
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, width ),
-		0, 1000000, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "height", 4, 
 		_( "Height" ), 
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, height ),
-		0, 1000000, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "bands", 5, 
 		_( "Bands" ), 
 		_( "Number of bands in image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, bands ),
-		0, 1000000, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_ENUM( class, "format", 6, 
 		_( "Format" ), 
@@ -341,14 +341,14 @@ vips_copy_class_init( VipsCopyClass *class )
 		_( "Horizontal offset of origin" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, xoffset ),
-		-1000000, 1000000, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "yoffset", 12, 
 		_( "Yoffset" ), 
 		_( "Vertical offset of origin" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCopy, yoffset ),
-		-1000000, 1000000, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 }
 
 static void

@@ -55,6 +55,8 @@
  * 	- allow zip > 4gb if we have a recent libgsf
  * 9/9/15
  * 	- better overlap handling, thanks robclouth 
+ * 25/11/15
+ * 	- always strip tile metadata 
  */
 
 /*
@@ -1141,8 +1143,12 @@ strip_work( VipsThreadState *state, void *a )
 		x = t;
 	}
 
+	/* Hopefully no one will want the same metadata on all the tiles.
+	 */
 	vips_image_set_int( x, "hide-progress", 1 );
-	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, NULL ) ) {
+	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, 
+		"strip", TRUE, 
+		NULL ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
