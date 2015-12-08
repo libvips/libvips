@@ -339,22 +339,26 @@ vips_vector_temporary( VipsVector *vector, char *name, int size )
 gboolean
 vips_vector_full( VipsVector *vector )
 {
+	/* Many orcs don't have ORC_MAX_CONST_VARS etc., stick to our own
+	 * constants for now.
+	 */
+
 	/* We can need a max of 2 constants plus one source per
 	 * coefficient, so stop if we're sure we don't have enough.
 	 */
-	if( vector->n_constant > ORC_MAX_CONST_VARS - 2 )
+	if( vector->n_constant + 2 > 8 )
 		return( TRUE );
 
 	/* You can have 8 parameters, and d1 counts as one of them, so +1
 	 * there.
 	 */
-	if( vector->n_source + vector->n_scanline + 1 > ORC_MAX_PARAM_VARS )
+	if( vector->n_source + vector->n_scanline + 1 > 7 )
 		return( TRUE );
 
 	/* After signalling full, some operations will add up to 4 more 
 	 * instructions as they finish up. Leave a margin.
 	 */
-	if( vector->n_instruction  + 10 > ORC_N_INSNS )
+	if( vector->n_instruction + 10 > 50 )
 		return( TRUE );
 
 	return( FALSE );
