@@ -497,7 +497,14 @@ if test x"$with_orc" != "xno"; then
   PKG_CHECK_MODULES(ORC, orc-0.4 >= 0.4.11,
     [AC_DEFINE(HAVE_ORC,1,[define if you have orc-0.4.11 or later installed.])
      with_orc=yes
-     PACKAGES_USED="$PACKAGES_USED orc-0.4"],
+     PACKAGES_USED="$PACKAGES_USED orc-0.4"
+     save_LIBS=$LIBS
+     LIBS="$LIBS $ORC_LIBS"
+     AC_CHECK_FUNCS(orc_program_get_error,
+       AC_DEFINE(HAVE_ORC_PROGRAM_GET_ERROR,1,
+	      [define if your orc has orc_program_get_error.]))
+     LIBS=$save_LIBS
+    ],
     [AC_MSG_WARN([orc-0.4.11 or later not found; disabling orc support])
      with_orc=no
     ])
