@@ -1050,6 +1050,7 @@ class_methods = [
                     "system",
                     "sum",
                     "bandjoin",
+                    "arrayjoin",
                     "bandrank",
                     "black",
                     "gaussnoise",

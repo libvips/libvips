@@ -110,9 +110,11 @@ typedef VipsConversionClass VipsInsertClass;
 G_DEFINE_TYPE( VipsInsert, vips_insert, VIPS_TYPE_CONVERSION );
 
 /* Trivial case: we just need pels from one of the inputs.
+ *
+ * Also used by vips_arrayjoin.
  */
-static int
-vips_insert_just_one( VipsRegion *or, VipsRegion *ir, int x, int y )
+int
+vips__insert_just_one( VipsRegion *or, VipsRegion *ir, int x, int y )
 {
 	VipsRect need;
 
@@ -134,9 +136,11 @@ vips_insert_just_one( VipsRegion *or, VipsRegion *ir, int x, int y )
 
 /* Paste in parts of ir that fall within or --- ir is an input REGION for an 
  * image positioned at pos within or.
+ *
+ * Also used by vips_arrayjoin.
  */
-static int
-vips_insert_paste_region( VipsRegion *or, VipsRegion *ir, VipsRect *pos )
+int
+vips__insert_paste_region( VipsRegion *or, VipsRegion *ir, VipsRect *pos )
 {
 	VipsRect ovl;
 
@@ -175,7 +179,7 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	 * sub-image?
 	 */
 	if( vips_rect_includesrect( &insert->rsub, &or->valid ) ) 
-		return( vips_insert_just_one( or, ir[1], 
+		return( vips__insert_just_one( or, ir[1], 
 			insert->rsub.left, insert->rsub.top ) );
 	
 	/* Does it fall entirely inside the main, and not at all inside the
@@ -184,7 +188,7 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	vips_rect_intersectrect( &or->valid, &insert->rsub, &ovl );
 	if( vips_rect_includesrect( &insert->rmain, &or->valid ) &&
 		vips_rect_isempty( &ovl ) ) 
-		return( vips_insert_just_one( or, ir[0], 
+		return( vips__insert_just_one( or, ir[0], 
 			insert->rmain.left, insert->rmain.top ) );
 
 	/* Output requires both (or neither) input. If it is not entirely 
@@ -197,12 +201,12 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 	/* Paste from main.
 	 */
-	if( vips_insert_paste_region( or, ir[0], &insert->rmain ) )
+	if( vips__insert_paste_region( or, ir[0], &insert->rmain ) )
 		return( -1 );
 
 	/* Paste from sub.
 	 */
-	if( vips_insert_paste_region( or, ir[1], &insert->rsub ) )
+	if( vips__insert_paste_region( or, ir[1], &insert->rsub ) )
 		return( -1 );
 
 	return( 0 );

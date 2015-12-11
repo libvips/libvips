@@ -329,7 +329,10 @@ vips_join_init( VipsJoin *join )
  * Smallest common format in 
  * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
- * See also: vips_insert().
+ * If you are going to be joining many thousands of images in a regular
+ * grid, vips_arrayjoin() is a better choice.
+ *
+ * See also: vips_arrayjoin(), vips_insert().
  *
  * Returns: 0 on success, -1 on error
  */
