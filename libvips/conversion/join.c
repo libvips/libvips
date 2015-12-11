@@ -193,14 +193,19 @@ vips_join_build( VipsObject *object )
 			return( 0 );
 		}
 
-		if( vips_extract_area( t, &t2, 
-			left, top, width, height, NULL ) ) {
+		if( left != 0 ||
+			top != 0 ||
+			width != t->Xsize ||
+			height != t->Ysize ) {
+			if( vips_extract_area( t, &t2, 
+				left, top, width, height, NULL ) ) {
+				g_object_unref( t );
+				return( -1 );
+			}
 			g_object_unref( t );
-			return( -1 );
-		}
-		g_object_unref( t );
 
-		t = t2;
+			t = t2;
+		}
 	}
 
 	if( vips_image_write( t, conversion->out ) ) {
