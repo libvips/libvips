@@ -906,7 +906,9 @@ class Image(Vips.Image):
         """Split an n-band image into n separate images."""
         return [x for x in self]
 
-    def bandjoin(self, other):
+    # bandjoin as an instance method ... it needs a different name,
+    # unfortunately
+    def ibandjoin(self, other):
         """Append a set of images or constants bandwise."""
         if not isinstance(other, list):
             other = [other]

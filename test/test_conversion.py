@@ -173,7 +173,7 @@ class TestConversion(unittest.TestCase):
     def test_bandjoin(self):
         def bandjoin(x, y):
             if isinstance(x, Vips.Image) and isinstance(y, Vips.Image):
-                return x.bandjoin(y)
+                return x.ibandjoin(y)
             else:
                 return x + y
 
@@ -382,7 +382,7 @@ class TestConversion(unittest.TestCase):
             mx = 255
             alpha = mx / 2.0
             nalpha = mx - alpha
-            test = self.colour.bandjoin(alpha).cast(fmt)
+            test = self.colour.ibandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
 
             predict = [int(x) * alpha / mx for x in pixel[:-1]]
@@ -413,7 +413,7 @@ class TestConversion(unittest.TestCase):
             mx = 255
             alpha = mx / 2.0
             nalpha = mx - alpha
-            test = self.colour.bandjoin(alpha).cast(fmt)
+            test = self.colour.ibandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
 
             predict = [int(x) * alpha / mx for x in pixel[:-1]] + [alpha]
@@ -433,7 +433,7 @@ class TestConversion(unittest.TestCase):
             mx = 255
             alpha = mx / 2.0
             nalpha = mx - alpha
-            test = self.colour.bandjoin(alpha).cast(fmt)
+            test = self.colour.ibandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
 
             predict = [int(x) / (alpha / mx) for x in pixel[:-1]] + [alpha]
@@ -626,6 +626,19 @@ class TestConversion(unittest.TestCase):
 
                 a = r(r.width - 5, 5)
                 self.assertAlmostEqualObjects(a, [100, 100, 100])
+
+    def test_arrayjoin(self):
+        max_width = 0
+        max_height = 0
+        for image in self.all_images:
+            if image.width > max_width:
+                max_width = image.width
+            if image.height > max_height:
+                max_height = image.height
+
+        im = Vips.Image.arrayjoin(self.all_images)
+        self.assertEqual(im.width, max_width * len(self.all_images))
+        self.assertEqual(im.height, max_height)
 
     def test_msb(self):
         for fmt in unsigned_formats:
