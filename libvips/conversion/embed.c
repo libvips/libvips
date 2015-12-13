@@ -357,9 +357,6 @@ vips_embed_build( VipsObject *object )
 		embed->height == embed->in->Ysize )
 		return( vips_image_write( embed->in, conversion->out ) );
 
-	if( vips_image_pio_input( embed->in ) )
-		return( -1 );
-
 	if( !(embed->ink = vips__vector_to_ink( 
 		class->nickname, embed->in,
 		VIPS_AREA( embed->background )->data, NULL, 

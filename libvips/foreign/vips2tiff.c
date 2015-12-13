@@ -857,11 +857,16 @@ write_new( VipsImage *im, const char *filename,
 	write->xres = xres;
 	write->yres = yres;
 
-	if( (write->tilew & 0xf) != 0 || 
-		(write->tileh & 0xf) != 0 ) {
-		vips_error( "vips2tiff", 
-			"%s", _( "tile size not a multiple of 16" ) );
-		return( NULL );
+	/* In strip mode we use tileh to set rowsperstrip, and that does not
+	 * have the multiple-of-16 restriction.
+	 */
+	if( tile ) { 
+		if( (write->tilew & 0xf) != 0 || 
+			(write->tileh & 0xf) != 0 ) {
+			vips_error( "vips2tiff", 
+				"%s", _( "tile size not a multiple of 16" ) );
+			return( NULL );
+		}
 	}
 
 	/* We can only pyramid LABQ and non-complex images. 

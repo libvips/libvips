@@ -2042,7 +2042,7 @@ vips__tiff_read_buffer( const void *buf, size_t len,
 
 #ifdef DEBUG
 	printf( "tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
-	printf( "tiff2vips: libtiff starting for %s\n", filename );
+	printf( "tiff2vips: libtiff starting for buffer %p\n", buf );
 #endif /*DEBUG*/
 
 	vips__tiff_init();
