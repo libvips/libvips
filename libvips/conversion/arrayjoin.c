@@ -267,7 +267,7 @@ vips_arrayjoin_build( VipsObject *object )
 	}
 
 	if( vips_image_pipeline_array( conversion->out, 
-		VIPS_DEMAND_STYLE_SMALLTILE, size ) )
+		VIPS_DEMAND_STYLE_THINSTRIP, size ) )
 		return( -1 );
 
 	conversion->out->Xsize = output_width;
