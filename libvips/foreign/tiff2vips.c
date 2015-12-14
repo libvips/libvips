@@ -1146,6 +1146,12 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	out->Xsize = width;
 	out->Ysize = height;
 
+	/* Even though we could end up serving tiled data, always hint
+	 * THINSTRIP, since we're quite happy doing that too, and it could need
+	 * a lot less memory.
+	 */
+        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
 #ifdef DEBUG
 	printf( "parse_header: samples_per_pixel = %d\n", 
 		rtiff->samples_per_pixel );
