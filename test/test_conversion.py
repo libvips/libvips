@@ -173,18 +173,18 @@ class TestConversion(unittest.TestCase):
     def test_bandjoin(self):
         def bandjoin(x, y):
             if isinstance(x, Vips.Image) and isinstance(y, Vips.Image):
-                return x.bandjoin(y)
+                return x.ibandjoin(y)
             else:
                 return x + y
 
         self.run_binary(self.all_images, bandjoin)
 
     def test_bandjoin_const(self):
-        x = self.colour.bandjoin(1)
+        x = self.colour.ibandjoin(1)
         self.assertEqual(x.bands, 4)
         self.assertEqual(x[3].avg(), 1)
 
-        x = self.colour.bandjoin([1,2])
+        x = self.colour.ibandjoin([1,2])
         self.assertEqual(x.bands, 5)
         self.assertEqual(x[3].avg(), 1)
         self.assertEqual(x[4].avg(), 2)
@@ -382,7 +382,7 @@ class TestConversion(unittest.TestCase):
             mx = 255
             alpha = mx / 2.0
             nalpha = mx - alpha
-            test = self.colour.bandjoin(alpha).cast(fmt)
+            test = self.colour.ibandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
 
             predict = [int(x) * alpha / mx for x in pixel[:-1]]
@@ -413,7 +413,7 @@ class TestConversion(unittest.TestCase):
             mx = 255
             alpha = mx / 2.0
             nalpha = mx - alpha
-            test = self.colour.bandjoin(alpha).cast(fmt)
+            test = self.colour.ibandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
 
             predict = [int(x) * alpha / mx for x in pixel[:-1]] + [alpha]
@@ -433,7 +433,7 @@ class TestConversion(unittest.TestCase):
             mx = 255
             alpha = mx / 2.0
             nalpha = mx - alpha
-            test = self.colour.bandjoin(alpha).cast(fmt)
+            test = self.colour.ibandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
 
             predict = [int(x) / (alpha / mx) for x in pixel[:-1]] + [alpha]
@@ -626,6 +626,34 @@ class TestConversion(unittest.TestCase):
 
                 a = r(r.width - 5, 5)
                 self.assertAlmostEqualObjects(a, [100, 100, 100])
+
+    def test_arrayjoin(self):
+        max_width = 0
+        max_height = 0
+        max_bands = 0
+        for image in self.all_images:
+            if image.width > max_width:
+                max_width = image.width
+            if image.height > max_height:
+                max_height = image.height
+            if image.bands > max_bands:
+                max_bands = image.bands
+
+        im = Vips.Image.arrayjoin(self.all_images)
+        self.assertEqual(im.width, max_width * len(self.all_images))
+        self.assertEqual(im.height, max_height)
+        self.assertEqual(im.bands, max_bands)
+
+        im = Vips.Image.arrayjoin(self.all_images, across = 1)
+        self.assertEqual(im.width, max_width)
+        self.assertEqual(im.height, max_height * len(self.all_images))
+        self.assertEqual(im.bands, max_bands)
+
+        im = Vips.Image.arrayjoin(self.all_images, shim = 10)
+        self.assertEqual(im.width, max_width * len(self.all_images) + 
+                         10 * (len(self.all_images) - 1))
+        self.assertEqual(im.height, max_height)
+        self.assertEqual(im.bands, max_bands)
 
     def test_msb(self):
         for fmt in unsigned_formats:

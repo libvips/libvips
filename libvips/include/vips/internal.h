@@ -197,6 +197,9 @@ void vips__draw_line_direct( VipsImage *image, int x1, int y1, int x2, int y2,
 void vips__draw_circle_direct( VipsImage *image, int cx, int cy, int r,
 	VipsDrawScanline draw_scanline, void *client );
 
+int vips__insert_just_one( VipsRegion *out, VipsRegion *in, int x, int y );
+int vips__insert_paste_region( VipsRegion *out, VipsRegion *in, VipsRect *pos );
+
 /* Register base vips interpolators, called during startup.
  */
 void vips__interpolate_init( void );

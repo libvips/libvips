@@ -133,7 +133,7 @@
 /**
  * VipsForeignLoad:
  *
- * @header() must set at least the header fields of @out. @laod(), if defined,
+ * @header() must set at least the header fields of @out. @load(), if defined,
  * must load the pixels to @real.
  */
 

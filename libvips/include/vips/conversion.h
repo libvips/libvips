@@ -105,6 +105,8 @@ int vips_insert( VipsImage *main, VipsImage *sub, VipsImage **out,
 int vips_join( VipsImage *in1, VipsImage *in2, VipsImage **out, 
 	VipsDirection direction, ... )
 	__attribute__((sentinel));
+int vips_arrayjoin( VipsImage **in, VipsImage **out, int n, ... )
+	__attribute__((sentinel));
 int vips_extract_area( VipsImage *in, VipsImage **out, 
 	int left, int top, int width, int height, ... )
 	__attribute__((sentinel));

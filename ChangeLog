@@ -18,6 +18,8 @@
 - jpeg strip option removes a little more, thanks Benjamin
 - added vips_image_new_from_memory_copy()
 - improve vips_sink_screen() stability under heavy load
+- added vips_arrayjoin()
+- Python x.bandjoin(y) is now x.ibandjoin(y), sorry
 
 7/5/15 started 8.1.1
 - oop, vips-8.0 wrapper script should be vips-8.1, thanks Danilo

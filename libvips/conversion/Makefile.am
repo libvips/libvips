@@ -16,6 +16,7 @@ libconversion_la_SOURCES = \
 	flip.c \
 	insert.c \
 	join.c \
+	arrayjoin.c \
 	extract.c \
 	replicate.c \
 	cast.c \
