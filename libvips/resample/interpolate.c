@@ -14,6 +14,8 @@
  * 	- faster, more accuarate uchar bilinear (thanks Nicolas)
  * 2/2/11
  * 	- gtk-doc
+ * 16/12/15
+ * 	- faster bilinear
  */
 
 /*
@@ -426,27 +428,65 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
  * p3  p4
  */
 
+#define BILINEAR_INT_INNER { \
+	tq[z] = (c1 * tp1[z] + c2 * tp2[z] + \
+		 c3 * tp3[z] + c4 * tp4[z]) >> VIPS_INTERPOLATE_SHIFT; \
+	z += 1; \
+}
+
 /* Fixed-point arithmetic, no tables.
- */
 #define BILINEAR_INT( TYPE ) { \
 	TYPE * restrict tq = (TYPE *) out; \
 	\
-	const int X = (x - ix) * VIPS_INTERPOLATE_SCALE; \
-	const int Y = (iy - y) * VIPS_INTERPOLATE_SCALE; \
-	\
+	float Y = y - iy; \
+	float X = x - ix; \
+        \
+	float Yd = 1.0f - Y; \
+        \
+	int c4 = VIPS_INTERPOLATE_SCALE * (Y * X); \
+	int c2 = VIPS_INTERPOLATE_SCALE * (Yd * X); \
+	int c3 = VIPS_INTERPOLATE_SCALE * (Y - c4); \
+	int c1 = VIPS_INTERPOLATE_SCALE * (Yd - c2); \
+ 	\
 	const TYPE * restrict tp1 = (TYPE *) p1; \
 	const TYPE * restrict tp2 = (TYPE *) p2; \
 	const TYPE * restrict tp3 = (TYPE *) p3; \
 	const TYPE * restrict tp4 = (TYPE *) p4; \
 	\
-	for( z = 0; z < b; z++ ) { \
-		const int top = tp1[z] + \
-			((X * (tp2[z] - tp1[z])) >> VIPS_INTERPOLATE_SHIFT); \
-		const int bot = tp3[z] + \
-			((X * (tp4[z] - tp3[z])) >> VIPS_INTERPOLATE_SHIFT); \
-		\
-		tq[z] = top - ((Y * (bot - top)) >> VIPS_INTERPOLATE_SHIFT); \
-	} \
+	z = 0; \
+	VIPS_UNROLL( b, BILINEAR_INT_INNER ); \
+}
+ */
+
+/* Fixed-point arithmetic, no tables.
+ */
+#define BILINEAR_INT( TYPE ) { \
+	TYPE * restrict tq = (TYPE *) out; \
+	\
+	float Y = y - iy; \
+	float X = x - ix; \
+        \
+	float Yd = 1.0f - Y; \
+        \
+	int c4 = VIPS_INTERPOLATE_SCALE * (Y * X); \
+	int c2 = VIPS_INTERPOLATE_SCALE * (Yd * X); \
+	int c3 = VIPS_INTERPOLATE_SCALE * (Y - c4); \
+	int c1 = VIPS_INTERPOLATE_SCALE * (Yd - c2); \
+ 	\
+	const TYPE * restrict tp1 = (TYPE *) p1; \
+	const TYPE * restrict tp2 = (TYPE *) p2; \
+	const TYPE * restrict tp3 = (TYPE *) p3; \
+	const TYPE * restrict tp4 = (TYPE *) p4; \
+	\
+	for( z = 0; z < b; z++ ) \
+		tq[z] = (c1 * tp1[z] + c2 * tp2[z] + \
+			 c3 * tp3[z] + c4 * tp4[z]) >> VIPS_INTERPOLATE_SHIFT; \
+}
+
+#define BILINEAR_FLOAT_INNER { \
+	tq[z] = c1 * tp1[z] + c2 * tp2[z] + \
+		c3 * tp3[z] + c4 * tp4[z]; \
+	z += 1; \
 }
 
 /* Interpolate a pel ... int32 and float types, no tables, float 
@@ -455,14 +495,14 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 #define BILINEAR_FLOAT( TYPE ) { \
 	TYPE * restrict tq = (TYPE *) out; \
 	\
-	float Y  = y - iy; \
-	float X  = x - ix; \
+	float Y = y - iy; \
+	float X = x - ix; \
         \
 	float Yd = 1.0f - Y; \
         \
-	float c4 = Y  * X; \
+	float c4 = Y * X; \
 	float c2 = Yd * X; \
-	float c3 = Y  - c4; \
+	float c3 = Y - c4; \
 	float c1 = Yd - c2; \
  	\
 	const TYPE * restrict tp1 = (TYPE *) p1; \
@@ -470,9 +510,8 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	const TYPE * restrict tp3 = (TYPE *) p3; \
 	const TYPE * restrict tp4 = (TYPE *) p4; \
 	\
-	for( z = 0; z < b; z++ ) \
-		tq[z] = c1 * tp1[z] + c2 * tp2[z] + \
-			c3 * tp3[z] + c4 * tp4[z]; \
+	z = 0; \
+	VIPS_UNROLL( b, BILINEAR_FLOAT_INNER ); \
 }
 
 /* Expand for band types. with a fixed-point interpolator and a float
