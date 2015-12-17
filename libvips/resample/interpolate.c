@@ -537,36 +537,8 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	g_assert( (int) x + 1 < VIPS_RECT_RIGHT( &in->valid ) );
 	g_assert( (int) y + 1 < VIPS_RECT_BOTTOM( &in->valid ) );
 
-	unsigned char * restrict tq = (unsigned char *) out; 
-	
-	float Y = y - iy; 
-	float X = x - ix; 
-        
-	float Yd = 1.0f - Y; 
- 
-	float c4 = Y * X; 
-	float c2 = Yd * X; 
-	float c3 = Y - c4; 
-	float c1 = Yd - c2; 
-
-	int sc1 = VIPS_INTERPOLATE_SCALE * c1;
-	int sc2 = VIPS_INTERPOLATE_SCALE * c2;
-	int sc3 = VIPS_INTERPOLATE_SCALE * c3;
-	int sc4 = VIPS_INTERPOLATE_SCALE * c4;
- 	
-	const unsigned char * restrict tp1 = (unsigned char *) p1; 
-	const unsigned char * restrict tp2 = (unsigned char *) p2; 
-	const unsigned char * restrict tp3 = (unsigned char *) p3; 
-	const unsigned char * restrict tp4 = (unsigned char *) p4; 
-	
-	for( z = 0; z < b; z++ ) 
-		tq[z] = (sc1 * tp1[z] + sc2 * tp2[z] + 
-			 sc3 * tp3[z] + sc4 * tp4[z]) >> VIPS_INTERPOLATE_SHIFT; 
-
-/*
 	SWITCH_INTERPOLATE( in->im->BandFmt,
 		BILINEAR_INT, BILINEAR_FLOAT );
-		 */
 }
 
 static void
