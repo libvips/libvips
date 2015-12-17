@@ -57,6 +57,8 @@
  * 	- better overlap handling, thanks robclouth 
  * 25/11/15
  * 	- always strip tile metadata 
+ * 16/12/15
+ * 	- fix overlap handling again, thanks erdmann
  */
 
 /*
@@ -111,6 +113,15 @@
 	Not all layers written. 
 
    various combinations of odd and even tile-size and overlap need testing too.
+
+	Overlap handling
+
+   For deepzoom, tile-size == 256 and overlap == 1 means that edge tiles are 
+   257 x 257 (though less at the bottom right) and non-edge tiles are 258 x 
+   258. Tiles are positioned across the image in tile-size steps. This means 
+   (confusingly) that two adjoining tiles will have two pixels in common.
+
+   This has caused bugs in the past. 
 
  */
 
@@ -416,11 +427,6 @@ struct _VipsForeignSaveDz {
 
 	Layer *layer;			/* x2 shrink pyr layer */
 
-	/* We step by tile_size - overlap as we move across the image ...
-	 * make a note of it.
-	 */
-	int tile_step;
-
 	/* Count zoomify tiles we write.
 	 */
 	int tile_count;
@@ -511,8 +517,8 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	layer->width = width;
 	layer->height = height;
 
-	layer->tiles_across = ROUND_UP( width, dz->tile_step ) / dz->tile_step;
-	layer->tiles_down = ROUND_UP( height, dz->tile_step ) / dz->tile_step;
+	layer->tiles_across = ROUND_UP( width, dz->tile_size ) / dz->tile_size;
+	layer->tiles_down = ROUND_UP( height, dz->tile_size ) / dz->tile_size;
 
 	layer->real_pixels = *real_pixels; 
 
@@ -561,7 +567,7 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	strip.left = 0;
 	strip.top = 0;
 	strip.width = layer->image->Xsize;
-	strip.height = dz->tile_size;
+	strip.height = dz->tile_size + dz->overlap;
 	if( (strip.height & 1) == 1 )
 		strip.height += 1;
 	if( vips_region_buffer( layer->strip, &strip ) ) {
@@ -940,6 +946,7 @@ strip_init( Strip *strip, Layer *layer )
 	line.top = layer->y;
 	line.width = image.width;
 	line.height = dz->tile_size;
+	vips_rect_marginadjust( &line, dz->overlap );
 
 	vips_rect_intersectrect( &image, &line, &line );
 
@@ -970,6 +977,19 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	printf( "strip_allocate\n" );
 #endif /*DEBUG_VERBOSE*/
 
+	/* We can't test for allocated area empty, since it might just have
+	 * bits of the left-hand overlap in and no new pixels. Safest to count
+	 * tiles across.
+	 */
+	if( strip->x / dz->tile_size >= layer->tiles_across ) {
+		*stop = TRUE;
+#ifdef DEBUG_VERBOSE
+		printf( "strip_allocate: done\n" );
+#endif /*DEBUG_VERBOSE*/
+
+		return( 0 );
+	}
+
 	image.left = 0;
 	image.top = 0;
 	image.width = layer->width;
@@ -981,21 +1001,13 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	state->pos.top = layer->y;
 	state->pos.width = dz->tile_size;
 	state->pos.height = dz->tile_size;
+	vips_rect_marginadjust( &state->pos, dz->overlap );
 
 	vips_rect_intersectrect( &image, &state->pos, &state->pos );
 	state->x = strip->x;
 	state->y = layer->y;
 
-	strip->x += dz->tile_step;
-
-	if( vips_rect_isempty( &state->pos ) ) {
-		*stop = TRUE;
-#ifdef DEBUG_VERBOSE
-		printf( "strip_allocate: done\n" );
-#endif /*DEBUG_VERBOSE*/
-
-		return( 0 );
-	}
+	strip->x += dz->tile_size;
 
 	return( 0 );
 }
@@ -1159,7 +1171,7 @@ strip_work( VipsThreadState *state, void *a )
 	g_mutex_lock( vips__global_lock );
 
 	out = tile_name( layer, 
-		state->x / dz->tile_step, state->y / dz->tile_step );
+		state->x / dz->tile_size, state->y / dz->tile_size );
 
 	status = gsf_output_write( out, len, buf );
 	dz->bytes_written += len;
@@ -1393,11 +1405,11 @@ strip_arrived( Layer *layer )
 	 * Expand the strip if necessary to make sure we have an even 
 	 * number of lines. 
 	 */
-	layer->y += dz->tile_step;
+	layer->y += dz->tile_size;
 	new_strip.left = 0;
-	new_strip.top = layer->y;
+	new_strip.top = layer->y - dz->overlap;
 	new_strip.width = layer->image->Xsize;
-	new_strip.height = dz->tile_size;
+	new_strip.height = dz->tile_size + 2 * dz->overlap;
 
 	image_area.left = 0;
 	image_area.top = 0;
@@ -1567,10 +1579,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 	VIPS_UNREF( save->ready );
 	save->ready = z;
 }
-
-	/* How much we step by as we write tiles.
-	 */
-	dz->tile_step = dz->tile_size - dz->overlap;
 
 	/* The real pixels we have from our input. This is about to get
 	 * expanded with background. 
@@ -1923,7 +1931,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Tile overlap in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, overlap ),
-		0, 8192, 0 );
+		0, 8192, 1 );
 
 	VIPS_ARG_INT( class, "tile_size", 11, 
 		_( "Tile size" ), 
