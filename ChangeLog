@@ -20,6 +20,7 @@
 - Python x.bandjoin(y) is now x.ibandjoin(y), sorry
 - oop, removed a DEBUG from buffer.c, vips is 30% faster
 - faster and lower-mem TIFF read
+- faster bilinear interpolator
 
 7/5/15 started 8.1.1
 - oop, vips-8.0 wrapper script should be vips-8.1, thanks Danilo
