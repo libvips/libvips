@@ -1413,7 +1413,7 @@ vips_value_get_ref_string( const GValue *value, size_t *length )
  * Copies the C string @str into @value. 
  *
  * vips_ref_string are immutable C strings that are copied between images by
- * copying reference-counted pointers, making the much more efficient than
+ * copying reference-counted pointers, making them much more efficient than
  * regular %GValue strings.
  */
 void

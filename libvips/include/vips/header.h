@@ -86,6 +86,13 @@ extern "C" {
 #define VIPS_META_XML "xml-header"
 
 /**
+ * VIPS_META_IMAGEDESCRIPTION:
+ *
+ * The IMAGEDESCRIPTION tag. Often has useful metadata. 
+ */
+#define VIPS_META_IMAGEDESCRIPTION "image-description"
+
+/**
  * VIPS_META_RESOLUTION_UNIT:
  *
  * The JPEG and TIFF read and write operations use this to record the

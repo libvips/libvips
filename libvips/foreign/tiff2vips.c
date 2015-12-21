@@ -160,6 +160,8 @@
  * 29/9/15
  * 	- load IPCT metadata
  * 	- load photoshop metadata
+ * 21/12/15
+ * 	- load TIFFTAG_IMAGEDESCRIPTION
  */
 
 /*
@@ -1222,6 +1224,16 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 		memcpy( data_copy, data, data_length );
 		vips_image_set_blob( out, VIPS_META_PHOTOSHOP_NAME, 
 			(VipsCallbackFn) vips_free, data_copy, data_length );
+	}
+
+	/* IMAGEDESCRIPTION often has useful metadata.
+	 */
+	if( TIFFGetField( rtiff->tiff, TIFFTAG_IMAGEDESCRIPTION, &data ) ) {
+		/* libtiff makes sure that data is null-terminated and contains
+		 * no embedded null characters.
+		 */
+		vips_image_set_string( out, 
+			VIPS_META_IMAGEDESCRIPTION, (char *) data ); 
 	}
 
 	return( 0 );

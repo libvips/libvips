@@ -158,6 +158,8 @@
  * 	- try to write photoshop metadata
  * 11/11/15
  * 	- better alpha handling, thanks sadaqatullahn
+ * 21/12/15
+ * 	- write TIFFTAG_IMAGEDESCRIPTION
  */
 
 /*
@@ -496,13 +498,34 @@ write_embed_photoshop( Write *write, TIFF *tif )
 
 	if( !vips_image_get_typeof( write->im, VIPS_META_PHOTOSHOP_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( write->im, VIPS_META_PHOTOSHOP_NAME, 
-		&data, &data_length ) )
+	if( vips_image_get_blob( write->im, 
+		VIPS_META_PHOTOSHOP_NAME, &data, &data_length ) )
 		return( -1 );
 	TIFFSetField( tif, TIFFTAG_PHOTOSHOP, data_length, data );
 
 #ifdef DEBUG
 	printf( "vips2tiff: attached photoshop data from meta\n" );
+#endif /*DEBUG*/
+
+	return( 0 );
+}
+
+/* Set IMAGEDESCRIPTION, if it's there.  
+ */
+static int
+write_embed_imagedescription( Write *write, TIFF *tif )
+{
+	const char *imagedescription;
+
+	if( !vips_image_get_typeof( write->im, VIPS_META_IMAGEDESCRIPTION ) )
+		return( 0 );
+	if( vips_image_get_string( write->im, 
+		VIPS_META_IMAGEDESCRIPTION, &imagedescription ) )
+		return( -1 );
+	TIFFSetField( tif, TIFFTAG_IMAGEDESCRIPTION, imagedescription );
+
+#ifdef DEBUG
+	printf( "vips2tiff: attached imagedescription from meta\n" );
 #endif /*DEBUG*/
 
 	return( 0 );
@@ -543,7 +566,8 @@ write_tiff_header( Write *write, Layer *layer )
 	if( write_embed_profile( write, tif ) ||
 		write_embed_xmp( write, tif ) ||
 		write_embed_ipct( write, tif ) ||
-		write_embed_photoshop( write, tif ) )
+		write_embed_photoshop( write, tif ) ||
+		write_embed_imagedescription( write, tif ) )
 		return( -1 ); 
 
 	/* And colour fields.
@@ -1497,7 +1521,8 @@ write_copy_tiff( Write *write, TIFF *out, TIFF *in )
 	if( write_embed_profile( write, out ) ||
 		write_embed_xmp( write, out ) ||
 		write_embed_ipct( write, out ) ||
-		write_embed_photoshop( write, out ) )
+		write_embed_photoshop( write, out ) ||
+		write_embed_imagedescription( write, out ) )
 		return( -1 );
 
 	buf = vips_malloc( NULL, TIFFTileSize( in ) );
