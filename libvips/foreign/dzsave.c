@@ -143,6 +143,138 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+/* Track this during property save.
+ */
+typedef struct _WriteInfo { 
+	const char *domain;
+	VipsImage *image;
+	xmlNode *node;
+} WriteInfo; 
+
+static int
+set_prop( WriteInfo *info, 
+	xmlNode *node, const char *name, const char *fmt, ... )
+{
+        va_list ap;
+        char value[1024];
+
+        va_start( ap, fmt );
+        (void) vips_vsnprintf( value, 1024, fmt, ap );
+        va_end( ap );
+
+        if( !xmlSetProp( node, (xmlChar *) name, (xmlChar *) value ) ) {
+                vips_error( info->domain, 
+			_( "unable to set property \"%s\" to value \"%s\"." ),
+                        name, value );
+                return( -1 );
+        }       
+        
+        return( 0 );
+}
+
+static xmlNode *
+new_child( WriteInfo *info, xmlNode *parent, const char *name )
+{
+	xmlNode *child;
+
+	if( !(child = xmlNewChild( parent, NULL, (xmlChar *) name, NULL )) ) {
+                vips_error( info->domain, 
+			_( "unable to set create node \"%s\"" ), name );
+                return( NULL );
+        } 
+
+	return( child );
+}
+
+static void *
+write_vips_property( VipsImage *image, 
+	const char *field, GValue *value, void *a )
+{
+	WriteInfo *info = (WriteInfo *) a;
+	GType type = G_VALUE_TYPE( value );
+
+	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) ) {
+		GValue save_value = { 0 };
+		xmlNode *property;
+		xmlNode *child;
+
+		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+		g_value_transform( value, &save_value );
+
+		if( !(property = new_child( info, info->node, "property" )) )
+			return( image ); 
+
+		if( !(child = new_child( info, property, "name" )) )
+			return( image ); 
+		xmlNodeSetContent( child, (xmlChar *) field );
+
+		if( !(child = new_child( info, property, "value" )) ||
+			set_prop( info, child, "type", g_type_name( type ) ) ) 
+			return( image ); 
+		xmlNodeSetContent( child, 
+			(xmlChar *) vips_value_get_save_string( &save_value ) );
+	}
+
+	return( NULL ); 
+}
+
+/* Pack up all the metadata from an image as XML. This called from vips2tiff
+ * as well.
+ *
+ * Free the result with xmlFree().
+ */
+char *
+vips__make_xml_metadata( const char *domain, VipsImage *image )
+{
+	xmlDoc *doc;
+	GTimeVal now;
+	char *date;
+	WriteInfo info;
+	char *dump;
+	int dump_size;
+
+	if( !(doc = xmlNewDoc( (xmlChar *) "1.0" )) ) { 
+		vips_error( domain, "%s", _( "xml save error" ) );
+		return( NULL );
+	}
+	if( !(doc->children = xmlNewDocNode( doc, NULL, 
+		(xmlChar *) "image", NULL )) ) {
+		vips_error( domain, "%s", _( "xml save error" ) );
+                xmlFreeDoc( doc );
+		return( NULL );
+	}
+
+	info.domain = domain;
+	info.image = image;
+	g_get_current_time( &now );
+	date = g_time_val_to_iso8601( &now ); 
+	if( set_prop( &info, doc->children, "xmlns", 
+			"http://www.vips.ecs.soton.ac.uk/dzsave" ) ||  
+		set_prop( &info, doc->children, "date", date ) ||
+		set_prop( &info, doc->children, "version", VIPS_VERSION ) ) {
+		g_free( date );
+                xmlFreeDoc( doc );
+                return( NULL );
+        }
+	g_free( date );
+
+	if( !(info.node = new_child( &info, doc->children, "properties" )) ||
+		vips_image_map( image, write_vips_property, &info ) ) {
+                xmlFreeDoc( doc );
+                return( NULL );
+        }
+
+	xmlDocDumpFormatMemory( doc, (xmlChar **) &dump, &dump_size, 1 );
+	if( !dump ) {
+		vips_error( domain, "%s", _( "xml save error" ) );
+                xmlFreeDoc( doc );
+                return( NULL );
+	}
+        xmlFreeDoc( doc );
+
+	return( dump );
+}
+
 #ifdef HAVE_GSF
 
 #include <gsf/gsf.h>
@@ -745,138 +877,6 @@ write_blank( VipsForeignSaveDz *dz )
 	g_free( buf );
 
 	return( 0 );
-}
-
-/* Track this during property save.
- */
-typedef struct _WriteInfo { 
-	const char *domain;
-	VipsImage *image;
-	xmlNode *node;
-} WriteInfo; 
-
-static int
-set_prop( WriteInfo *info, 
-	xmlNode *node, const char *name, const char *fmt, ... )
-{
-        va_list ap;
-        char value[1024];
-
-        va_start( ap, fmt );
-        (void) vips_vsnprintf( value, 1024, fmt, ap );
-        va_end( ap );
-
-        if( !xmlSetProp( node, (xmlChar *) name, (xmlChar *) value ) ) {
-                vips_error( info->domain, 
-			_( "unable to set property \"%s\" to value \"%s\"." ),
-                        name, value );
-                return( -1 );
-        }       
-        
-        return( 0 );
-}
-
-static xmlNode *
-new_child( WriteInfo *info, xmlNode *parent, const char *name )
-{
-	xmlNode *child;
-
-	if( !(child = xmlNewChild( parent, NULL, (xmlChar *) name, NULL )) ) {
-                vips_error( info->domain, 
-			_( "unable to set create node \"%s\"" ), name );
-                return( NULL );
-        } 
-
-	return( child );
-}
-
-static void *
-write_vips_property( VipsImage *image, 
-	const char *field, GValue *value, void *a )
-{
-	WriteInfo *info = (WriteInfo *) a;
-	GType type = G_VALUE_TYPE( value );
-
-	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) ) {
-		GValue save_value = { 0 };
-		xmlNode *property;
-		xmlNode *child;
-
-		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
-		g_value_transform( value, &save_value );
-
-		if( !(property = new_child( info, info->node, "property" )) )
-			return( image ); 
-
-		if( !(child = new_child( info, property, "name" )) )
-			return( image ); 
-		xmlNodeSetContent( child, (xmlChar *) field );
-
-		if( !(child = new_child( info, property, "value" )) ||
-			set_prop( info, child, "type", g_type_name( type ) ) ) 
-			return( image ); 
-		xmlNodeSetContent( child, 
-			(xmlChar *) vips_value_get_save_string( &save_value ) );
-	}
-
-	return( NULL ); 
-}
-
-/* Pack up all the metadata from an image as XML. This called from vips2tiff
- * as well.
- *
- * Free the result with xmlFree().
- */
-char *
-vips__make_xml_metadata( const char *domain, VipsImage *image )
-{
-	xmlDoc *doc;
-	GTimeVal now;
-	char *date;
-	WriteInfo info;
-	char *dump;
-	int dump_size;
-
-	if( !(doc = xmlNewDoc( (xmlChar *) "1.0" )) ) { 
-		vips_error( domain, "%s", _( "xml save error" ) );
-		return( NULL );
-	}
-	if( !(doc->children = xmlNewDocNode( doc, NULL, 
-		(xmlChar *) "image", NULL )) ) {
-		vips_error( domain, "%s", _( "xml save error" ) );
-                xmlFreeDoc( doc );
-		return( NULL );
-	}
-
-	info.domain = domain;
-	info.image = image;
-	g_get_current_time( &now );
-	date = g_time_val_to_iso8601( &now ); 
-	if( set_prop( &info, doc->children, "xmlns", 
-			"http://www.vips.ecs.soton.ac.uk/dzsave" ) ||  
-		set_prop( &info, doc->children, "date", date ) ||
-		set_prop( &info, doc->children, "version", VIPS_VERSION ) ) {
-		g_free( date );
-                xmlFreeDoc( doc );
-                return( NULL );
-        }
-	g_free( date );
-
-	if( !(info.node = new_child( &info, doc->children, "properties" )) ||
-		vips_image_map( image, write_vips_property, &info ) ) {
-                xmlFreeDoc( doc );
-                return( NULL );
-        }
-
-	xmlDocDumpFormatMemory( doc, (xmlChar **) &dump, &dump_size, 1 );
-	if( !dump ) {
-		vips_error( domain, "%s", _( "xml save error" ) );
-                xmlFreeDoc( doc );
-                return( NULL );
-	}
-        xmlFreeDoc( doc );
-
-	return( dump );
 }
 
 static int
