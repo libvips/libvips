@@ -6,6 +6,8 @@
  * 	- argh xres/yres macro was wrong
  * 26/1/14
  * 	- add rgbjpeg flag
+ * 21/12/15
+ * 	- add properties flag
  */
 
 /*
@@ -79,6 +81,7 @@ typedef struct _VipsForeignSaveTiff {
 	double yres;
 	gboolean bigtiff;
 	gboolean rgbjpeg;
+	gboolean properties;
 } VipsForeignSaveTiff;
 
 typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
@@ -129,7 +132,8 @@ vips_foreign_save_tiff_build( VipsObject *object )
 		tiff->miniswhite,
 		tiff->resunit, tiff->xres, tiff->yres,
 		tiff->bigtiff,
-		tiff->rgbjpeg ) )
+		tiff->rgbjpeg,
+		tiff->properties ) )
 		return( -1 );
 
 	return( 0 );
@@ -268,6 +272,14 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED, 
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, rgbjpeg ),
 		FALSE );
+
+	VIPS_ARG_BOOL( class, "properties", 21, 
+		_( "Properties" ), 
+		_( "Write a properties document to IMAGEDESCRIPTION" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, properties ),
+		FALSE );
+
 }
 
 static void

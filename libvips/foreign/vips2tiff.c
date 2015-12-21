@@ -207,6 +207,7 @@
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
 #include <string.h>
+#include <libxml/parser.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -276,6 +277,7 @@ struct _Write {
 	char *icc_profile;		/* Profile to embed */
 	int bigtiff;			/* True for bigtiff write */
 	int rgbjpeg;			/* True for RGB not YCbCr */
+	int properties;			/* Set to save XML props */
 };
 
 /* Open TIFF for output.
@@ -510,19 +512,31 @@ write_embed_photoshop( Write *write, TIFF *tif )
 	return( 0 );
 }
 
-/* Set IMAGEDESCRIPTION, if it's there.  
+/* Set IMAGEDESCRIPTION, if it's there.  If @properties is TRUE, set from
+ * vips' metadata.
  */
 static int
 write_embed_imagedescription( Write *write, TIFF *tif )
 {
-	const char *imagedescription;
+	if( write->properties ) {
+		char *doc;
 
-	if( !vips_image_get_typeof( write->im, VIPS_META_IMAGEDESCRIPTION ) )
-		return( 0 );
-	if( vips_image_get_string( write->im, 
-		VIPS_META_IMAGEDESCRIPTION, &imagedescription ) )
-		return( -1 );
-	TIFFSetField( tif, TIFFTAG_IMAGEDESCRIPTION, imagedescription );
+		if( !(doc = vips__make_xml_metadata( "vips2tiff", write->im )) )
+			return( -1 );
+		TIFFSetField( tif, TIFFTAG_IMAGEDESCRIPTION, doc );
+		xmlFree( doc );
+	}
+	else {
+		const char *imagedescription;
+
+		if( !vips_image_get_typeof( write->im, 
+			VIPS_META_IMAGEDESCRIPTION ) )
+			return( 0 );
+		if( vips_image_get_string( write->im, 
+			VIPS_META_IMAGEDESCRIPTION, &imagedescription ) )
+			return( -1 );
+		TIFFSetField( tif, TIFFTAG_IMAGEDESCRIPTION, imagedescription );
+	}
 
 #ifdef DEBUG
 	printf( "vips2tiff: attached imagedescription from meta\n" );
@@ -854,7 +868,8 @@ write_new( VipsImage *im, const char *filename,
 	gboolean miniswhite,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
-	gboolean rgbjpeg )
+	gboolean rgbjpeg,
+	gboolean properties )
 {
 	Write *write;
 
@@ -876,6 +891,7 @@ write_new( VipsImage *im, const char *filename,
 	write->icc_profile = profile;
 	write->bigtiff = bigtiff;
 	write->rgbjpeg = rgbjpeg;
+	write->properties = properties;
 
 	write->resunit = get_resunit( resunit );
 	write->xres = xres;
@@ -1589,7 +1605,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean miniswhite,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
-	gboolean rgbjpeg )
+	gboolean rgbjpeg,
+	gboolean properties )
 {
 	Write *write;
 
@@ -1607,7 +1624,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	if( !(write = write_new( in, filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
-		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg )) )
+		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
+		properties )) )
 		return( -1 );
 
 	if( vips_sink_disc( write->im, write_strip, write ) ) {

@@ -49,7 +49,8 @@ int vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean miniswhite,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
-	gboolean rgbjpeg );
+	gboolean rgbjpeg,
+	gboolean properties );
 
 int vips__tiff_read_header( const char *filename, VipsImage *out, int page );
 int vips__tiff_read( const char *filename, VipsImage *out, 
