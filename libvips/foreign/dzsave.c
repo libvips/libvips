@@ -116,9 +116,9 @@
 
 	Overlap handling
 
-   For deepzoom, tile-size == 256 and overlap == 1 means that edge tiles are 
-   257 x 257 (though less at the bottom right) and non-edge tiles are 258 x 
-   258. Tiles are positioned across the image in tile-size steps. This means 
+   For deepzoom, tile-size == 254 and overlap == 1 means that edge tiles are 
+   255 x 255 (though less at the bottom right) and non-edge tiles are 256 x 
+   256. Tiles are positioned across the image in tile-size steps. This means 
    (confusingly) that two adjoining tiles will have two pixels in common.
 
    This has caused bugs in the past. 
@@ -1938,7 +1938,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Tile size in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
-		1, 8192, 256 );
+		1, 8192, 254 );
 
 	VIPS_ARG_ENUM( class, "depth", 13, 
 		_( "Depth" ), 
@@ -1999,14 +1999,14 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Tile width in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
-		1, 8192, 256 );
+		1, 8192, 254 );
 
 	VIPS_ARG_INT( class, "tile_height", 12, 
 		_( "Tile height" ), 
 		_( "Tile height in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
-		1, 8192, 256 );
+		1, 8192, 254 );
 
 }
 
@@ -2016,7 +2016,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	VIPS_SETSTR( dz->suffix, ".jpeg" );
 	dz->layout = VIPS_FOREIGN_DZ_LAYOUT_DZ; 
 	dz->overlap = 1;
-	dz->tile_size = 256;
+	dz->tile_size = 254;
 	dz->tile_count = 0;
 	dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL; 
 	dz->angle = VIPS_ANGLE_D0; 
