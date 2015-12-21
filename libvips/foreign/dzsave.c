@@ -140,6 +140,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <libxml/parser.h>
+
 #include <vips/vips.h>
 #include <vips/internal.h>
 
