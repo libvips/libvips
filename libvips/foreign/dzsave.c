@@ -2063,7 +2063,9 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * but you can have them centred by turning on @centre. 
  *
  * You can set the size and overlap of tiles with @tile_size and @overlap.
- * They default to the correct settings for the selected @layout. 
+ * They default to the correct settings for the selected @layout. The deepzoom
+ * defaults produce 256x256 jpeg files for centre tiles, the most efficient
+ * size.
  *
  * Use @depth to control how low the pyramid goes. This defaults to the
  * correct setting for the @layout you select.
