@@ -20,7 +20,7 @@ bin_SCRIPTS = \
 	batch_rubber_sheet \
 	batch_crop \
 	vipsprofile \
-	vips-8.1
+	vips-8.2
 
 EXTRA_DIST = \
 	vipsprofile \
