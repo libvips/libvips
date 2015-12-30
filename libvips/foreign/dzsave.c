@@ -1537,6 +1537,14 @@ vips_foreign_save_dz_build( VipsObject *object )
 			VIPS_SETSTR( dz->suffix, ".jpg" );
 	}
 
+	/* Google and zoomify default to 256 pixel tiles.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY ||
+		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
+		if( !vips_object_argument_isset( object, "tile_size" ) )
+			dz->tile_size = 256;
+	}
+
 	/* Default to white background. vips_foreign_save_init() defaults to
 	 * black. 
 	 */

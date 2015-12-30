@@ -360,27 +360,26 @@ class TestForeign(unittest.TestCase):
         # test the overlap for equality
         self.colour.dzsave("test", suffix = ".png")
 
-        # test right edge ... default is 256x256 tiles, overlap 1
-        tiles_across = int(self.colour.width / 256)
-        tiles_down = int(self.colour.height / 256)
-
-        x = Vips.Image.new_from_file("test_files/10/%d_0.png" % (tiles_across - 2))
-        self.assertEqual(x.width, 258)
-        y = Vips.Image.new_from_file("test_files/10/%d_0.png" % (tiles_across - 1))
-        predict_width = self.colour.width - 256 * (tiles_across - 1) + 1
-        self.assertEqual(y.width, predict_width)
+        # tes horizontal overlap ... expect 256 step, overlap 1 
+        x = Vips.Image.new_from_file("test_files/10/0_0.png")
+        self.assertEqual(x.width, 255)
+        y = Vips.Image.new_from_file("test_files/10/1_0.png")
+        self.assertEqual(y.width, 256)
 
         # the right two columns of x should equal the left two columns of y
         left = x.crop(x.width - 2, 0, 2, x.height)
         right = y.crop(0, 0, 2, y.height)
         self.assertEqual((left - right).abs().max(), 0)
 
-        # test bottom edge 
-        x = Vips.Image.new_from_file("test_files/10/0_%d.png" % (tiles_down - 2))
-        self.assertEqual(x.height, 258)
-        y = Vips.Image.new_from_file("test_files/10/0_%d.png" % (tiles_down - 1))
-        predict_height = self.colour.height - 256 * (tiles_down - 1) + 1
-        self.assertEqual(y.height, predict_height)
+        # test vertical overlap
+        self.assertEqual(x.height, 255)
+        y = Vips.Image.new_from_file("test_files/10/0_1.png")
+        self.assertEqual(y.height, 256)
+
+        # the bottom two rows of x should equal the top two rows of y
+        top = x.crop(0, x.height - 2, x.width, 2)
+        bottom = y.crop(0, 0, y.width, 2)
+        self.assertEqual((top - bottom).abs().max(), 0)
 
         # there should be a bottom layer
         x = Vips.Image.new_from_file("test_files/0/0_0.png")
@@ -429,7 +428,7 @@ class TestForeign(unittest.TestCase):
         self.colour.dzsave("test", suffix = ".png")
 
         x = Vips.Image.new_from_file("test_files/10/0_0.png")
-        self.assertEqual(x.width, 257)
+        self.assertEqual(x.width, 255)
 
         shutil.rmtree("test_files")
         os.unlink("test.dzi")
@@ -438,7 +437,7 @@ class TestForeign(unittest.TestCase):
         self.colour.dzsave("test", overlap = 200)
 
         y = Vips.Image.new_from_file("test_files/10/1_1.jpeg")
-        self.assertEqual(y.width, 256 + 200 * 2)
+        self.assertEqual(y.width, 654)
 
         shutil.rmtree("test_files")
         os.unlink("test.dzi")
