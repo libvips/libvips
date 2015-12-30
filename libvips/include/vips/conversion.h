@@ -167,6 +167,10 @@ int vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
 int vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_bandjoin_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_bandjoin_const1( VipsImage *in, VipsImage **out, double c, ... )
+	__attribute__((sentinel));
 int vips_bandrank( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
 int vips_bandfold( VipsImage *in, VipsImage **out, ... )
