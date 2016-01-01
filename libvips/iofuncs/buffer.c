@@ -106,6 +106,7 @@ vips_buffer_dump( VipsBuffer *buffer, size_t *reserve, size_t *alive )
 
 	return( NULL );
 }
+#endif /*DEBUG*/
 
 #ifdef DEBUG_CREATE
 static void *
@@ -125,6 +126,7 @@ vips_buffer_cache_dump( VipsBufferCache *cache )
 void
 vips_buffer_dump_all( void )
 {
+#ifdef DEBUG
 	if( vips__buffer_all ) { 
 		size_t reserve;
 		size_t alive;
@@ -148,8 +150,8 @@ vips_buffer_dump_all( void )
 		printf( "g_thread_self() == %p\n", g_thread_self() ); 
 	}
 #endif /*DEBUG_CREATE*/
-}
 #endif /*DEBUG*/
+}
 
 static void
 vips_buffer_free( VipsBuffer *buffer )
