@@ -461,39 +461,19 @@ result_image = condition_image.ifthenelse([0, 255, 0], [255, 0, 0])
       two or more images up bandwise. You can write:
 
 <programlisting language="Python">
-rgba = rgb.ibandjoin(255)
+rgba = rgb.bandjoin(255)
 </programlisting>
       
       to add a constant 255 band to an image, perhaps to add an alpha 
       channel. Of course you can also write:
 
 <programlisting language="Python">
-result_image = image1.ibandjoin(image2)
-result_image = image1.ibandjoin([image2, image3])
-result_image = Vips.Image.bandjoin([image1, image2, image3])
-result_image = image1.ibandjoin([image2, 255])
+result_image = image1.bandjoin(image2)
+result_image = image1.bandjoin([image2, image3])
+result_image = image1.bandjoin([image2, 255])
 </programlisting>
       
       and so on. 
-    </para>
-
-    <para>
-      There's one annoying wrinkle in <code>.bandjoin()</code>. The vips 
-      operation <code>vips_bandjoin()</code> takes an array of images to join, 
-      so you can't use it as an instance member, it appears in the API as  
-
-<programlisting language="Python">
-result_image = Vips.Image.bandjoin([image1, image2, image3])
-</programlisting>
-
-      For convenience, the wrapper has an extra instance function called 
-      <code>.ibandjoin()</code> which puts the <code>self</code> at the head 
-      of the image array. This means the previous line is the same as:
-
-<programlisting language="Python">
-result_image = image1.ibandjoin([image2, image3])
-</programlisting>
-
     </para>
 
   </refsect3>

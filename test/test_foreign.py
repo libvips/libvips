@@ -48,7 +48,7 @@ class TestForeign(unittest.TestCase):
         self.colour = Vips.Image.jpegload(self.jpeg_file)
         self.mono = self.colour.extract_band(1)
         self.rad = self.colour.float2rad()
-        self.cmyk = self.colour.ibandjoin(self.mono)
+        self.cmyk = self.colour.bandjoin(self.mono)
         self.cmyk = self.cmyk.copy(interpretation = Vips.Interpretation.CMYK)
 
         im = Vips.Image.new_from_file(self.gif_file)

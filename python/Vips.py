@@ -906,9 +906,7 @@ class Image(Vips.Image):
         """Split an n-band image into n separate images."""
         return [x for x in self]
 
-    # bandjoin as an instance method ... it needs a different name,
-    # unfortunately
-    def ibandjoin(self, other):
+    def bandjoin(self, other):
         """Append a set of images or constants bandwise."""
         if not isinstance(other, list):
             other = [other]
@@ -921,7 +919,7 @@ class Image(Vips.Image):
         if non_number == None:
             return self.bandjoin_const(other)
         else:
-            return Vips.Image.bandjoin([self] + other)
+            return _call_base("bandjoin", [[self] + other], {})
 
     def maxpos(self):
         """Return the coordinates of the image maximum."""
@@ -1048,10 +1046,12 @@ class Image(Vips.Image):
 
 # use find_class_methods.py to generate this list
 
+# don't include "bandjoin", this needs to be wrapped by hand, see
+# above
+
 class_methods = [
                     "system",
                     "sum",
-                    "bandjoin",
                     "arrayjoin",
                     "bandrank",
                     "black",

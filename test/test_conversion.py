@@ -173,18 +173,18 @@ class TestConversion(unittest.TestCase):
     def test_bandjoin(self):
         def bandjoin(x, y):
             if isinstance(x, Vips.Image) and isinstance(y, Vips.Image):
-                return x.ibandjoin(y)
+                return x.bandjoin(y)
             else:
                 return x + y
 
         self.run_binary(self.all_images, bandjoin)
 
     def test_bandjoin_const(self):
-        x = self.colour.ibandjoin(1)
+        x = self.colour.bandjoin(1)
         self.assertEqual(x.bands, 4)
         self.assertEqual(x[3].avg(), 1)
 
-        x = self.colour.ibandjoin([1,2])
+        x = self.colour.bandjoin([1,2])
         self.assertEqual(x.bands, 5)
         self.assertEqual(x[3].avg(), 1)
         self.assertEqual(x[4].avg(), 2)
@@ -382,7 +382,7 @@ class TestConversion(unittest.TestCase):
             mx = 255
             alpha = mx / 2.0
             nalpha = mx - alpha
-            test = self.colour.ibandjoin(alpha).cast(fmt)
+            test = self.colour.bandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
 
             predict = [int(x) * alpha / mx for x in pixel[:-1]]
@@ -413,7 +413,7 @@ class TestConversion(unittest.TestCase):
             mx = 255
             alpha = mx / 2.0
             nalpha = mx - alpha
-            test = self.colour.ibandjoin(alpha).cast(fmt)
+            test = self.colour.bandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
 
             predict = [int(x) * alpha / mx for x in pixel[:-1]] + [alpha]
@@ -433,7 +433,7 @@ class TestConversion(unittest.TestCase):
             mx = 255
             alpha = mx / 2.0
             nalpha = mx - alpha
-            test = self.colour.ibandjoin(alpha).cast(fmt)
+            test = self.colour.bandjoin(alpha).cast(fmt)
             pixel = test(30, 30)
 
             predict = [int(x) / (alpha / mx) for x in pixel[:-1]] + [alpha]
