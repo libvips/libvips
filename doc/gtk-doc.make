@@ -25,6 +25,7 @@ TARGET_DIR=$(HTML_DIR)/$(DOC_MODULE)
 
 SETUP_FILES = \
 	$(content_files)		\
+	$(expand_content_files)		\
 	$(DOC_MAIN_SGML_FILE)		\
 	$(DOC_MODULE)-sections.txt	\
 	$(DOC_MODULE)-overrides.txt
@@ -86,7 +87,7 @@ GTK_DOC_V_SETUP_0=@echo "  DOC   Preparing build";
 
 setup-build.stamp:
 	-$(GTK_DOC_V_SETUP)if test "$(abs_srcdir)" != "$(abs_builddir)" ; then \
-	    files=`echo $(SETUP_FILES) $(expand_content_files) $(DOC_MODULE).types`; \
+	    files=`echo $(SETUP_FILES) $(DOC_MODULE).types`; \
 	    if test "x$$files" != "x" ; then \
 	        for file in $$files ; do \
 	            destdir=`dirname $(abs_builddir)/$$file`; \
@@ -118,7 +119,7 @@ scan-build.stamp: setup-build.stamp $(HFILE_GLOB) $(CFILE_GLOB)
 	$(GTK_DOC_V_INTROSPECT)if grep -l '^..*$$' $(DOC_MODULE).types > /dev/null 2>&1 ; then \
 	    scanobj_options=""; \
 	    gtkdoc-scangobj 2>&1 --help | grep  >/dev/null "\-\-verbose"; \
-	    if test "$(?)" = "0"; then \
+	    if test "$$?" = "0"; then \
 	        if test "x$(V)" = "x1"; then \
 	            scanobj_options="--verbose"; \
 	        fi; \
@@ -162,17 +163,17 @@ GTK_DOC_V_XREF=$(GTK_DOC_V_XREF_$(V))
 GTK_DOC_V_XREF_=$(GTK_DOC_V_XREF_$(AM_DEFAULT_VERBOSITY))
 GTK_DOC_V_XREF_0=@echo "  DOC   Fixing cross-references";
 
-html-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files)
+html-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files) $(expand_content_files)
 	$(GTK_DOC_V_HTML)rm -rf html && mkdir html && \
 	mkhtml_options=""; \
 	gtkdoc-mkhtml 2>&1 --help | grep  >/dev/null "\-\-verbose"; \
-	if test "$(?)" = "0"; then \
+	if test "$$?" = "0"; then \
 	  if test "x$(V)" = "x1"; then \
 	    mkhtml_options="$$mkhtml_options --verbose"; \
 	  fi; \
 	fi; \
 	gtkdoc-mkhtml 2>&1 --help | grep  >/dev/null "\-\-path"; \
-	if test "$(?)" = "0"; then \
+	if test "$$?" = "0"; then \
 	  mkhtml_options="$$mkhtml_options --path=\"$(abs_srcdir)\""; \
 	fi; \
 	cd html && gtkdoc-mkhtml $$mkhtml_options $(MKHTML_OPTIONS) $(DOC_MODULE) ../$(DOC_MAIN_SGML_FILE)
@@ -194,11 +195,11 @@ GTK_DOC_V_PDF=$(GTK_DOC_V_PDF_$(V))
 GTK_DOC_V_PDF_=$(GTK_DOC_V_PDF_$(AM_DEFAULT_VERBOSITY))
 GTK_DOC_V_PDF_0=@echo "  DOC   Building PDF";
 
-pdf-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files)
+pdf-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files) $(expand_content_files)
 	$(GTK_DOC_V_PDF)rm -f $(DOC_MODULE).pdf && \
 	mkpdf_options=""; \
 	gtkdoc-mkpdf 2>&1 --help | grep  >/dev/null "\-\-verbose"; \
-	if test "$(?)" = "0"; then \
+	if test "$$?" = "0"; then \
 	  if test "x$(V)" = "x1"; then \
 	    mkpdf_options="$$mkpdf_options --verbose"; \
 	  fi; \
@@ -223,12 +224,15 @@ clean-local:
 	@if echo $(SCAN_OPTIONS) | grep -q "\-\-rebuild-types" ; then \
 	  rm -f $(DOC_MODULE).types; \
 	fi
+	@if echo $(SCAN_OPTIONS) | grep -q "\-\-rebuild-sections" ; then \
+	  rm -f $(DOC_MODULE)-sections.txt; \
+	fi
 
 distclean-local:
 	@rm -rf xml html $(REPORT_FILES) $(DOC_MODULE).pdf \
 	    $(DOC_MODULE)-decl-list.txt $(DOC_MODULE)-decl.txt
 	@if test "$(abs_srcdir)" != "$(abs_builddir)" ; then \
-	    rm -f $(SETUP_FILES) $(expand_content_files) $(DOC_MODULE).types; \
+	    rm -f $(SETUP_FILES) $(DOC_MODULE).types; \
 	fi
 
 maintainer-clean-local:
