@@ -1,6 +1,7 @@
 1/1/16 started 8.2.1
 - add a compat stub, thanks Benjamin
 - python bandjoin is now just an instance function
+- small doc improvements
 
 7/10/15 started 8.2.0
 - added im_bufmagick2vips(), a vips7 wrapper for magick load from buffer

@@ -310,6 +310,49 @@ VImage VImage::sin( VOption *options = 0 );
     </para>
   </refsect3>
 
+  <refsect3 id="cpp-metadata">
+    <title>Image metadata</title>
+
+    <para>
+      VIPS images can have a lot of metadata attached to them, giving things
+      like ICC profiles, EXIF data, and so on. You can use the command-line
+      program <code>vipsheader</code> with the <code>-a</code> flag to list
+      all the fields.
+    </para>
+
+    <para>
+      You can read metadata items with the member functions
+      <code>get_int()</code>, <code>get_double()</code>, 
+      <code>get_string()</code> and <code>get_blob()</code>. Use
+      <code>get_typeof()</code> to call vips_image_get_typeof() and read the
+      type of an item. This will return 0 for undefined fields.
+
+<programlisting language="cpp">
+const char *VImage::get_string( const char *field ) throw( VError );
+</programlisting>
+    </para>
+
+    <para>
+      You can use the <code>set()</code> family of overloaded members to set
+      metadata, for example:
+
+<programlisting language="cpp">
+void VImage::set( const char *field, const char *value );
+</programlisting>
+    </para>
+
+    <para>
+      You can use these functions to manipulate exif metadata, for example:
+
+<programlisting language="cpp">
+VImage im = VImage::new_from_file( "x.jpg" )
+int orientation = atoi( im.get_string( "exif-ifd0-Orientation" ) );
+im.set( "exif-ifd0-Orientation", "2" );
+im.write_to_file( "y.jpg" );
+</programlisting>
+    </para>
+  </refsect3>
+
   <refsect3 id="cpp-extend">
     <title>Extending the C++ interface</title>
 
