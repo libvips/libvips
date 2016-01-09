@@ -1,5 +1,5 @@
-// headers for vips operations 
-// Sat  9 Jan 2016 14:44:40 GMT
+// headers for vips operations
+// Sat Jan  9 15:06:40 GMT 2016
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 );
@@ -112,10 +112,18 @@ static VImage rawload( char * filename , int width , int height , int bands , VO
 static VImage vipsload( char * filename , VOption *options = 0 );
 static VImage pngload( char * filename , VOption *options = 0 );
 static VImage pngload_buffer( VipsBlob * buffer , VOption *options = 0 );
+static VImage matload( char * filename , VOption *options = 0 );
 static VImage jpegload( char * filename , VOption *options = 0 );
 static VImage jpegload_buffer( VipsBlob * buffer , VOption *options = 0 );
+static VImage webpload( char * filename , VOption *options = 0 );
+static VImage webpload_buffer( VipsBlob * buffer , VOption *options = 0 );
 static VImage tiffload( char * filename , VOption *options = 0 );
 static VImage tiffload_buffer( VipsBlob * buffer , VOption *options = 0 );
+static VImage openslideload( char * filename , VOption *options = 0 );
+static VImage magickload( char * filename , VOption *options = 0 );
+static VImage magickload_buffer( VipsBlob * buffer , VOption *options = 0 );
+static VImage fitsload( char * filename , VOption *options = 0 );
+static VImage openexrload( char * filename , VOption *options = 0 );
 void radsave( char * filename , VOption *options = 0 );
 void ppmsave( char * filename , VOption *options = 0 );
 void csvsave( char * filename , VOption *options = 0 );
@@ -130,7 +138,10 @@ VipsBlob * pngsave_buffer( VOption *options = 0 );
 void jpegsave( char * filename , VOption *options = 0 );
 VipsBlob * jpegsave_buffer( VOption *options = 0 );
 void jpegsave_mime( VOption *options = 0 );
+void webpsave( char * filename , VOption *options = 0 );
+VipsBlob * webpsave_buffer( VOption *options = 0 );
 void tiffsave( char * filename , VOption *options = 0 );
+void fitssave( char * filename , VOption *options = 0 );
 VImage mapim( VImage index , VOption *options = 0 );
 VImage shrink( double xshrink , double yshrink , VOption *options = 0 );
 VImage shrinkh( int xshrink , VOption *options = 0 );

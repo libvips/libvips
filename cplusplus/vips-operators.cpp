@@ -1,5 +1,5 @@
-// bodies for vips operations 
-// Sat  9 Jan 2016 14:39:21 GMT
+// bodies for vips operations
+// Sat Jan  9 15:05:58 GMT 2016
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -1432,6 +1432,18 @@ VImage VImage::pngload_buffer( VipsBlob * buffer , VOption *options )
     return( out );
 }
 
+VImage VImage::matload( char * filename , VOption *options )
+{
+    VImage out;
+
+    call( "matload" ,
+        (options ? options : VImage::option()) ->
+            set( "filename", filename ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
 VImage VImage::jpegload( char * filename , VOption *options )
 {
     VImage out;
@@ -1449,6 +1461,30 @@ VImage VImage::jpegload_buffer( VipsBlob * buffer , VOption *options )
     VImage out;
 
     call( "jpegload_buffer" ,
+        (options ? options : VImage::option()) ->
+            set( "buffer", buffer ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::webpload( char * filename , VOption *options )
+{
+    VImage out;
+
+    call( "webpload" ,
+        (options ? options : VImage::option()) ->
+            set( "filename", filename ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::webpload_buffer( VipsBlob * buffer , VOption *options )
+{
+    VImage out;
+
+    call( "webpload_buffer" ,
         (options ? options : VImage::option()) ->
             set( "buffer", buffer ) ->
             set( "out", &out ) );
@@ -1475,6 +1511,66 @@ VImage VImage::tiffload_buffer( VipsBlob * buffer , VOption *options )
     call( "tiffload_buffer" ,
         (options ? options : VImage::option()) ->
             set( "buffer", buffer ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::openslideload( char * filename , VOption *options )
+{
+    VImage out;
+
+    call( "openslideload" ,
+        (options ? options : VImage::option()) ->
+            set( "filename", filename ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::magickload( char * filename , VOption *options )
+{
+    VImage out;
+
+    call( "magickload" ,
+        (options ? options : VImage::option()) ->
+            set( "filename", filename ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::magickload_buffer( VipsBlob * buffer , VOption *options )
+{
+    VImage out;
+
+    call( "magickload_buffer" ,
+        (options ? options : VImage::option()) ->
+            set( "buffer", buffer ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::fitsload( char * filename , VOption *options )
+{
+    VImage out;
+
+    call( "fitsload" ,
+        (options ? options : VImage::option()) ->
+            set( "filename", filename ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::openexrload( char * filename , VOption *options )
+{
+    VImage out;
+
+    call( "openexrload" ,
+        (options ? options : VImage::option()) ->
+            set( "filename", filename ) ->
             set( "out", &out ) );
 
     return( out );
@@ -1598,9 +1694,37 @@ void VImage::jpegsave_mime( VOption *options )
             set( "in", *this ) );
 }
 
+void VImage::webpsave( char * filename , VOption *options )
+{
+    call( "webpsave" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "filename", filename ) );
+}
+
+VipsBlob * VImage::webpsave_buffer( VOption *options )
+{
+    VipsBlob * buffer;
+
+    call( "webpsave_buffer" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "buffer", &buffer ) );
+
+    return( buffer );
+}
+
 void VImage::tiffsave( char * filename , VOption *options )
 {
     call( "tiffsave" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "filename", filename ) );
+}
+
+void VImage::fitssave( char * filename , VOption *options )
+{
+    call( "fitssave" ,
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "filename", filename ) );
