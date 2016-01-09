@@ -220,6 +220,13 @@ vips_arrayjoin_build( VipsObject *object )
 		int left, top;
 		int width, height;
 
+		/* Keep clang quiet about used-before-set.
+		 */
+		left = 0;
+		top = 0;
+		width = 0;
+		height = 0;
+
 		switch( join->halign ) {
 		case VIPS_ALIGN_LOW:
 			left = 0;
