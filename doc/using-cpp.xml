@@ -377,7 +377,6 @@ im.write_to_file( "y.jpg" );
 
 <programlisting language="cpp">
 VImage VImage::add(VImage right, VOption *options)
-  throw VError
 {
   VImage out;
 

@@ -46,7 +46,6 @@ VIPS_NAMESPACE_START
 
 VInterpolate 
 VInterpolate::new_from_name( const char *name, VOption *options )
-	throw( VError )
 {
 	VipsInterpolate *interp;
 

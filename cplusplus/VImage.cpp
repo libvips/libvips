@@ -452,7 +452,6 @@ VOption::get_operation( VipsOperation *operation )
 void 
 VImage::call_option_string( const char *operation_name, 
 	const char *option_string, VOption *options ) 
-	throw( VError )
 {
 	VipsOperation *operation;
 
@@ -506,14 +505,12 @@ VImage::call_option_string( const char *operation_name,
 
 void 
 VImage::call( const char *operation_name, VOption *options ) 
-	throw( VError )
 {
 	call_option_string( operation_name, NULL, options ); 
 }
 
 VImage 
 VImage::new_from_file( const char *name, VOption *options )
-	throw( VError )
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
@@ -538,7 +535,6 @@ VImage::new_from_file( const char *name, VOption *options )
 VImage 
 VImage::new_from_buffer( void *buf, size_t len, const char *option_string, 
 	VOption *options )
-	throw( VError )
 {
 	const char *operation_name;
 	VipsBlob *blob;
@@ -564,7 +560,6 @@ VImage::new_from_buffer( void *buf, size_t len, const char *option_string,
 
 VImage 
 VImage::new_from_image( std::vector<double> pixel )
-	throw( VError )
 {
 	VImage onepx = VImage::black( 1, 1, 
 		VImage::option()->set( "bands", bands() ) ); 
@@ -587,7 +582,6 @@ VImage::new_from_image( std::vector<double> pixel )
 
 VImage 
 VImage::new_from_image( double pixel )
-	throw( VError )
 {
 	return( new_from_image( to_vectorv( 1, pixel ) ) ); 
 }
@@ -618,7 +612,6 @@ VImage::new_matrixv( int width, int height, ... )
 
 void 
 VImage::write_to_file( const char *name, VOption *options )
-	throw( VError )
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
@@ -639,7 +632,6 @@ VImage::write_to_file( const char *name, VOption *options )
 void 
 VImage::write_to_buffer( const char *suffix, void **buf, size_t *size, 
 	VOption *options )
-	throw( VError )
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
@@ -673,7 +665,6 @@ VImage::write_to_buffer( const char *suffix, void **buf, size_t *size,
 
 std::vector<VImage> 
 VImage::bandsplit( VOption *options )
-	throw( VError )
 {
 	std::vector<VImage> b; 
 
@@ -685,7 +676,6 @@ VImage::bandsplit( VOption *options )
 
 VImage 
 VImage::bandjoin( VImage other, VOption *options )
-	throw( VError )
 {
     VImage v[2] = { *this, other }; 
     std::vector<VImage> vec( v, v + VIPS_NUMBER( v ) );
@@ -695,7 +685,6 @@ VImage::bandjoin( VImage other, VOption *options )
 
 std::complex<double> 
 VImage::minpos( VOption *options )
-	throw( VError )
 {
 	double x, y;
 
@@ -709,7 +698,6 @@ VImage::minpos( VOption *options )
 
 std::complex<double> 
 VImage::maxpos( VOption *options )
-	throw( VError )
 {
 	double x, y;
 

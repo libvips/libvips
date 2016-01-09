@@ -5,7 +5,6 @@
 # sample member declaration :
 
 # VImage invert( VOption *options = 0 )
-#	throw( VError );
 
 import sys
 import re
@@ -144,8 +143,7 @@ def gen_operation(cls):
 
     gen_arg_list(op, required)
 
-    print ')'
-    print '    throw( VError );'
+    print ');'
 
 # we have a few synonyms ... don't generate twice
 generated = {}
