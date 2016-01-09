@@ -357,7 +357,7 @@ public:
 			free_fn, data, length ); 
 	}
 
-	int 
+	GType 
 	get_typeof( const char *field )
 	{
 		return( vips_image_get_typeof( this->get_image(), field ) ); 

@@ -4,6 +4,7 @@
 - small doc improvements
 - small vips7 C++ improvement
 - remove exception specifications from vips8 C++ interface
+- VImage::get_typeof() now returns GType
 
 7/10/15 started 8.2.0
 - added im_bufmagick2vips(), a vips7 wrapper for magick load from buffer
