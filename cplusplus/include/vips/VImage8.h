@@ -43,11 +43,11 @@ VIPS_NAMESPACE_START
 /* Small utility things.
  */
 
-std::vector<double> to_vectorv( int n, ... ); 
-std::vector<double> to_vector( double value );
-std::vector<double> to_vector( int n, double array[] );
-std::vector<double> negate( std::vector<double> value ); 
-std::vector<double> invert( std::vector<double> value ); 
+VIPS_CPLUSPLUS_API std::vector<double> to_vectorv( int n, ... );
+VIPS_CPLUSPLUS_API std::vector<double> to_vector( double value );
+VIPS_CPLUSPLUS_API std::vector<double> to_vector( int n, double array[] );
+VIPS_CPLUSPLUS_API std::vector<double> negate( std::vector<double> value );
+VIPS_CPLUSPLUS_API std::vector<double> invert( std::vector<double> value );
 
 enum VSteal {
 	NOSTEAL = 0,
@@ -162,9 +162,9 @@ public:
 
 };
 
-class VImage; 
-class VInterpolate; 
-class VOption; 
+class VIPS_CPLUSPLUS_API VImage;
+class VIPS_CPLUSPLUS_API VInterpolate;
+class VIPS_CPLUSPLUS_API VOption;
 
 class VOption
 {

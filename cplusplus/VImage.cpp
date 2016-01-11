@@ -189,7 +189,8 @@ VOption::set( const char *name, std::vector<double> value )
 	pair->input = true;
 
 	g_value_init( &pair->value, VIPS_TYPE_ARRAY_DOUBLE );
-	vips_value_set_array_double( &pair->value, NULL, value.size() ); 
+	vips_value_set_array_double( &pair->value, NULL,
+		static_cast< int >( value.size() ) );
 	array = vips_value_get_array_double( &pair->value, NULL ); 
 
 	for( i = 0; i < value.size(); i++ )  
@@ -212,7 +213,8 @@ VOption::set( const char *name, std::vector<VImage> value )
 	pair->input = true;
 
 	g_value_init( &pair->value, VIPS_TYPE_ARRAY_IMAGE );
-	vips_value_set_array_image( &pair->value, value.size() );
+	vips_value_set_array_image( &pair->value,
+		static_cast< int >( value.size() ) );
 	array = vips_value_get_array_image( &pair->value, NULL );
 
 	for( i = 0; i < value.size(); i++ ) { 
@@ -400,7 +402,7 @@ VOption::get_operation( VipsOperation *operation )
 	std::list<Pair *>::iterator i;
 
 	for( i = options.begin(); i != options.end(); ++i ) 
-		if( not (*i)->input ) {
+		if( ! (*i)->input ) {
 			const char *name = (*i)->name;
 
 			g_object_get_property( G_OBJECT( operation ),
