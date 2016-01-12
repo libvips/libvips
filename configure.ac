@@ -18,7 +18,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # user-visible library versioning
 m4_define([vips_major_version], [8])
 m4_define([vips_minor_version], [2])
-m4_define([vips_micro_version], [1])
+m4_define([vips_micro_version], [2])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -38,7 +38,7 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=45
-LIBRARY_REVISION=0
+LIBRARY_REVISION=1
 LIBRARY_AGE=3
 
 # patched into include/vips/version.h
