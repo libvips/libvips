@@ -118,6 +118,10 @@ vips_foreign_load_analyze_class_init( VipsForeignLoadAnalyzeClass *class )
 
 	foreign_class->suffs = vips_foreign_analyze_suffs;
 
+	/* is_a() is not that quick ... lower the priority.
+	 */
+	foreign_class->priority = -50;
+
 	load_class->is_a = vips__isanalyze;
 	load_class->get_flags_filename = 
 		vips_foreign_load_analyze_get_flags_filename;

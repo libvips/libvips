@@ -109,6 +109,10 @@ vips_foreign_load_fits_class_init( VipsForeignLoadFitsClass *class )
 	object_class->nickname = "fitsload";
 	object_class->description = _( "load a FITS image" );
 
+	/* is_a() is not that quick ... lower the priority.
+	 */
+	foreign_class->priority = -50;
+
 	foreign_class->suffs = vips__fits_suffs;
 
 	load_class->is_a = vips__fits_isfits;

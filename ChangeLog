@@ -1,5 +1,7 @@
 12/1/16 started 8.2.2
 - changes to ease compiling C++ binding with MSVC
+- reorder file tests to put slow loaders last
+- ifthenelse needs less C stack during eval
 
 1/1/16 started 8.2.1
 - add a compat stub, thanks Benjamin

@@ -125,6 +125,10 @@ vips_foreign_load_csv_class_init( VipsForeignLoadCsvClass *class )
 
 	foreign_class->suffs = vips__foreign_csv_suffs;
 
+	/* is_a() is not that quick ... lower the priority.
+	 */
+	foreign_class->priority = -50;
+
 	load_class->get_flags_filename = 
 		vips_foreign_load_csv_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_csv_get_flags;

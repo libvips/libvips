@@ -129,6 +129,10 @@ vips_foreign_load_openexr_class_init( VipsForeignLoadOpenexrClass *class )
 
 	foreign_class->suffs = vips_foreign_openexr_suffs;
 
+	/* We are fast at is_a(), so high priority.
+	 */
+	foreign_class->priority = 200;
+
 	load_class->is_a = vips__openexr_isexr;
 	load_class->get_flags_filename = 
 		vips_foreign_load_openexr_get_flags_filename;

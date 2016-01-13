@@ -129,6 +129,10 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 
 	foreign_class->suffs = vips__png_suffs;
 
+	/* We are fast at is_a(), so high priority.
+	 */
+	foreign_class->priority = 200;
+
 	load_class->is_a = vips__png_ispng;
 	load_class->get_flags_filename = 
 		vips_foreign_load_png_get_flags_filename;
