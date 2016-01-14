@@ -40,15 +40,14 @@
 VIPS_NAMESPACE_START
 
 class VIPS_CPLUSPLUS_API VError : public std::exception {
-	std::string _what;
+	const char *_what;
 
 public:
-	VError( std::string what ) : _what( what ) {}
-	VError() : _what( vips_error_buffer() ) {}
+	VError( std::string what ) { _what = what.c_str(); }
+	VError() { _what = vips_error_buffer(); }
 	virtual ~VError() throw() {}
 
-	// Extract string
-	virtual const char *what() const throw() { return _what.c_str(); }
+	virtual const char *what() const throw() { return _what; }
 	void ostream_print( std::ostream & ) const;
 };
 
