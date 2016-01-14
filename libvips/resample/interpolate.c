@@ -430,7 +430,8 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 
 #define BILINEAR_INT_INNER { \
 	tq[z] = (sc1 * tp1[z] + sc2 * tp2[z] + \
-		 sc3 * tp3[z] + sc4 * tp4[z]) >> VIPS_INTERPOLATE_SHIFT; \
+		 sc3 * tp3[z] + sc4 * tp4[z] + \
+		 (1 << VIPS_INTERPOLATE_SHIFT) / 2) >> VIPS_INTERPOLATE_SHIFT; \
 	z += 1; \
 }
 
