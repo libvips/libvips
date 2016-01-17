@@ -3,6 +3,7 @@
 - reorder file tests to put slow loaders last
 - ifthenelse needs less C stack during eval
 - better rounding in bilinear interpolator
+- fix to "make check" in non-C locales
 
 1/1/16 started 8.2.1
 - add a compat stub, thanks Benjamin

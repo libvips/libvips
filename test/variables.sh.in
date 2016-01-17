@@ -7,3 +7,6 @@ mkdir -p $tmp
 vips=$top_srcdir/tools/vips
 vipsthumbnail=$top_srcdir/tools/vipsthumbnail
 vipsheader=$top_srcdir/tools/vipsheader
+
+# we need bc to use '.' for a decimal separator
+export LC_NUMERIC=C
