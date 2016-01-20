@@ -273,9 +273,9 @@ vips_col_scRGB2sRGB( int range, int *lut,
 	 * Don't use isnormal(), it is false for 0.0 and for subnormal
 	 * numbers. 
 	 */
-	if( isnan( R ) || isinf( R ) ||
-		isnan( G ) || isinf( G ) ||
-		isnan( B ) || isinf( B ) ) { 
+	if( VIPS_ISNAN( R ) || VIPS_ISINF( R ) ||
+		VIPS_ISNAN( G ) || VIPS_ISINF( G ) ||
+		VIPS_ISNAN( B ) || VIPS_ISINF( B ) ) {
 		*r = 0; 
 		*g = 0; 
 		*b = 0; 
@@ -370,9 +370,9 @@ vips_col_scRGB2BW( int range, int *lut, float R, float G, float B,
 	 * Don't use isnormal(), it is false for 0.0 and for subnormal
 	 * numbers. 
 	 */
-	if( isnan( R ) || isinf( R ) ||
-		isnan( G ) || isinf( G ) ||
-		isnan( B ) || isinf( B ) ) { 
+	if( VIPS_ISNAN( R ) || VIPS_ISINF( R ) ||
+		VIPS_ISNAN( G ) || VIPS_ISINF( G ) ||
+		VIPS_ISNAN( B ) || VIPS_ISINF( B ) ) {
 		*g = 0; 
 
 		return( -1 );

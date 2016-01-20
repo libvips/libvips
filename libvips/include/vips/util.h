@@ -40,6 +40,7 @@ extern "C" {
 #endif /*__cplusplus*/
 
 #include <stdio.h>
+#include <math.h>
 
 /* Some platforms don't have M_PI :-(
  */
@@ -156,6 +157,17 @@ G_STMT_START { \
 } G_STMT_END
 
 #define VIPS_CLIP_NONE( V, SEQ ) {}
+
+/* The built-in isnan and isinf functions provided by gcc 4+ and clang are
+ * up to 7x faster than their libc equivalent included from <math.h>.
+ */
+#if defined(__clang__) || (__GNUC__ >= 4)
+#define VIPS_ISNAN( V ) __builtin_isnan( V )
+#define VIPS_ISINF( V ) __builtin_isinf( V )
+#else
+#define VIPS_ISNAN( V ) isnan( V )
+#define VIPS_ISINF( V ) isinf( V )
+#endif
 
 /* Not all platforms have PATH_MAX (eg. Hurd) and we don't need a platform one
  * anyway, just a static buffer big enough for almost any path.
