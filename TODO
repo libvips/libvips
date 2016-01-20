@@ -1,3 +1,9 @@
+- write a shrinker that does two 1D shrinks, vertical and horizontal, with
+  bicubic interpolation
+
+  should be much quicker than affine + bicubic
+
+  vips_resize() can use this, for the default path at least
 
 - get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very
   odd, the interpolation shouldn't change between bands
