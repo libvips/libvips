@@ -111,18 +111,15 @@ vips_shrinkh_start( VipsImage *out, void *a, void *b )
 	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
-		for( b = 0; b < bands; b++ ) \
+		for( b = 0; b < bands; b++ ) { \
 			sum[b] = 0; \
-		\
-		for( b = 0; b < bands; b++ ) \
 			for( x1 = b; x1 < ne; x1 += bands ) \
 				sum[b] += p[x1]; \
-		p += ne; \
-		\
-		for( b = 0; b < bands; b++ ) \
 			q[b] = (sum[b] + shrink->xshrink / 2) / \
 				shrink->xshrink; \
-		q += b; \
+		} \
+		p += ne; \
+		q += bands; \
 	} \
 }
 
@@ -134,17 +131,14 @@ vips_shrinkh_start( VipsImage *out, void *a, void *b )
 	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
-		for( b = 0; b < bands; b++ ) \
+		for( b = 0; b < bands; b++ ) { \
 			sum[b] = 0.0; \
-		\
-		for( b = 0; b < bands; b++ ) \
 			for( x1 = b; x1 < ne; x1 += bands ) \
 				sum[b] += p[x1]; \
-		p += ne; \
-		\
-		for( b = 0; b < bands; b++ ) \
 			q[b] = sum[b] / shrink->xshrink; \
-		q += b; \
+		} \
+		p += ne; \
+		q += bands; \
 	} \
 } 
 
@@ -227,7 +221,7 @@ vips_shrinkh_gen( VipsRegion *or, void *vseq,
 
 		s.left = r->left * shrink->xshrink;
 		s.top = r->top + y;
-		s.width = ceil( r->width * shrink->xshrink );
+		s.width = r->width * shrink->xshrink;
 		s.height = 1;
 #ifdef DEBUG
 		printf( "shrinkh_gen: requesting line %d\n", s.top ); 
