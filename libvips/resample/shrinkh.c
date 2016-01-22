@@ -3,7 +3,7 @@
  * 30/10/15
  * 	- from shrink.c
  * 22/1/16
- * 	- reorganise loops, 30% faster
+ * 	- reorganise loops, 30% faster, vectorisable
  */
 
 /*
@@ -63,6 +63,10 @@ typedef VipsResampleClass VipsShrinkhClass;
 
 G_DEFINE_TYPE( VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE );
 
+#define INNER( BANDS ) \
+	sum += p[x1]; \
+	x1 += BANDS; 
+
 /* Integer shrink. 
  */
 #define ISHRINK( TYPE, BANDS ) { \
@@ -74,8 +78,8 @@ G_DEFINE_TYPE( VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE );
 			int sum; \
 			\
 			sum = 0; \
-			for( x1 = b; x1 < ne; x1 += BANDS ) \
-				sum += p[x1]; \
+			x1 = b; \
+			VIPS_UNROLL( shrink->xshrink, INNER( BANDS ) ); \
 			q[b] = (sum + shrink->xshrink / 2) / \
 				shrink->xshrink; \
 		} \
@@ -95,8 +99,8 @@ G_DEFINE_TYPE( VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE );
 			double sum; \
 			\
 			sum = 0.0; \
-			for( x1 = b; x1 < ne; x1 += bands ) \
-				sum += p[x1]; \
+			x1 = b; \
+			VIPS_UNROLL( shrink->xshrink, INNER( bands ) ); \
 			q[b] = sum / shrink->xshrink; \
 		} \
 		p += ne; \
