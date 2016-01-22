@@ -888,7 +888,7 @@ write_new( VipsImage *im, const char *filename,
 	write->pyramid = pyramid;
 	write->onebit = squash;
 	write->miniswhite = miniswhite;
-	write->icc_profile = profile;
+	write->icc_profile = vips_strdup( NULL, profile );
 	write->bigtiff = bigtiff;
 	write->rgbjpeg = rgbjpeg;
 	write->properties = properties;

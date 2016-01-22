@@ -7,6 +7,7 @@
 - use builtin isnan isinf when possible [Lovell Fuller]
 - tune vips_shrinkh(), 30% faster [Lovell Fuller]
 - remove SEQ hint from vips_subsample(), fixes cli performance [erdmann]
+- fix double free on attach ICC profile from file in tiff write [erdmann]
 
 1/1/16 started 8.2.1
 - add a compat stub [Benjamin Gilbert]
