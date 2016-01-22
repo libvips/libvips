@@ -65,22 +65,22 @@ G_DEFINE_TYPE( VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE );
 
 /* Integer shrink. 
  */
-#define ISHRINK( TYPE ) { \
+#define ISHRINK( TYPE, BANDS ) { \
 	TYPE * restrict p = (TYPE *) in; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
-		for( b = 0; b < bands; b++ ) { \
+		for( b = 0; b < BANDS; b++ ) { \
 			int sum; \
 			\
 			sum = 0; \
-			for( x1 = b; x1 < ne; x1 += bands ) \
+			for( x1 = b; x1 < ne; x1 += BANDS ) \
 				sum += p[x1]; \
 			q[b] = (sum + shrink->xshrink / 2) / \
 				shrink->xshrink; \
 		} \
 		p += ne; \
-		q += bands; \
+		q += BANDS; \
 	} \
 }
 
@@ -123,17 +123,34 @@ vips_shrinkh_gen2( VipsShrinkh *shrink, VipsRegion *or, VipsRegion *ir,
 
 	switch( resample->in->BandFmt ) {
 	case VIPS_FORMAT_UCHAR: 	
-		ISHRINK( unsigned char ); break;
+		/* Generate a special path for 1, 3 and 4 band uchar data. The
+		 * compiler will be able to vectorise these.
+		 *
+		 * Vectorisation doesn't help much for 16, 32-bit or float
+		 * data, don't bother with them.
+		 */
+		switch( bands ) {
+		case 1:
+			ISHRINK( unsigned char, 1 ); break;
+		case 3:
+			ISHRINK( unsigned char, 3 ); break;
+		case 4:
+			ISHRINK( unsigned char, 4 ); break;
+		default:
+			ISHRINK( unsigned char, bands ); break;
+		}
+		break;
+
 	case VIPS_FORMAT_CHAR: 	
-		ISHRINK( char ); break; 
+		ISHRINK( char, bands ); break; 
 	case VIPS_FORMAT_USHORT: 
-		ISHRINK( unsigned short ); break;
+		ISHRINK( unsigned short, bands ); break;
 	case VIPS_FORMAT_SHORT: 	
-		ISHRINK( short ); break; 
+		ISHRINK( short, bands ); break; 
 	case VIPS_FORMAT_UINT: 	
-		ISHRINK( unsigned int ); break; 
+		ISHRINK( unsigned int, bands ); break; 
 	case VIPS_FORMAT_INT: 	
-		ISHRINK( int );  break; 
+		ISHRINK( int, bands );  break; 
 	case VIPS_FORMAT_FLOAT: 	
 		FSHRINK( float ); break; 
 	case VIPS_FORMAT_DOUBLE:	
