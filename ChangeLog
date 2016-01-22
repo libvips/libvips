@@ -6,6 +6,7 @@
 - fix to "make check" in non-C locales [felixbuenemann]
 - use builtin isnan isinf when possible [Lovell Fuller]
 - tune vips_shrinkh(), 30% faster [Lovell Fuller]
+- remove SEQ hint from vips_subsample(), fixes cli performance [erdmann]
 
 1/1/16 started 8.2.1
 - add a compat stub [Benjamin Gilbert]
