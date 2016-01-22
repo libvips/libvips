@@ -1,16 +1,18 @@
 12/1/16 started 8.2.2
-- changes to ease compiling C++ binding with MSVC
+- changes to ease compiling C++ binding with MSVC [Lovell Fuller]
 - reorder file tests to put slow loaders last
 - ifthenelse needs less C stack during eval
 - better rounding in bilinear interpolator
-- fix to "make check" in non-C locales
+- fix to "make check" in non-C locales [felixbuenemann]
+- use builtin isnan isinf when possible [Lovell Fuller]
+- tune vips_shrinkh(), 30% faster [Lovell Fuller]
 
 1/1/16 started 8.2.1
-- add a compat stub, thanks Benjamin
+- add a compat stub [Benjamin Gilbert]
 - python bandjoin is now just an instance function
 - small doc improvements
 - small vips7 C++ improvement
-- remove exception specifications from vips8 C++ interface
+- remove exception specifications from vips8 C++ interface [Lovell Fuller]
 - VImage::get_typeof() now returns GType
 
 7/10/15 started 8.2.0

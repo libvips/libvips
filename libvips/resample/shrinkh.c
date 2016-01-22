@@ -2,6 +2,8 @@
  *
  * 30/10/15
  * 	- from shrink.c
+ * 22/1/16
+ * 	- reorganise loops, 30% faster
  */
 
 /*
@@ -61,61 +63,20 @@ typedef VipsResampleClass VipsShrinkhClass;
 
 G_DEFINE_TYPE( VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE );
 
-/* Our per-sequence parameter struct. Somewhere to sum band elements.
- */
-typedef struct {
-	VipsRegion *ir;
-
-	VipsPel *sum;
-} VipsShrinkhSequence;
-
-/* Free a sequence value.
- */
-static int
-vips_shrinkh_stop( void *vseq, void *a, void *b )
-{
-	VipsShrinkhSequence *seq = (VipsShrinkhSequence *) vseq;
-
-	VIPS_FREEF( g_object_unref, seq->ir );
-
-	return( 0 );
-}
-
-/* Make a sequence value.
- */
-static void *
-vips_shrinkh_start( VipsImage *out, void *a, void *b )
-{
-	VipsImage *in = (VipsImage *) a;
-	VipsShrinkhSequence *seq;
-
-	if( !(seq = VIPS_NEW( out, VipsShrinkhSequence )) )
-		return( NULL );
-
-	seq->ir = vips_region_new( in );
-
-	/* Big enough for the largest intermediate. 
-	 */
-	seq->sum = VIPS_ARRAY( out, 
-		in->Bands * vips_format_sizeof( VIPS_FORMAT_DPCOMPLEX ),
-		VipsPel );
-
-	return( (void *) seq );
-}
-
 /* Integer shrink. 
  */
 #define ISHRINK( TYPE ) { \
-	int * restrict sum = (int *) seq->sum; \
 	TYPE * restrict p = (TYPE *) in; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
 		for( b = 0; b < bands; b++ ) { \
-			sum[b] = 0; \
+			int sum; \
+			\
+			sum = 0; \
 			for( x1 = b; x1 < ne; x1 += bands ) \
-				sum[b] += p[x1]; \
-			q[b] = (sum[b] + shrink->xshrink / 2) / \
+				sum += p[x1]; \
+			q[b] = (sum + shrink->xshrink / 2) / \
 				shrink->xshrink; \
 		} \
 		p += ne; \
@@ -126,16 +87,17 @@ vips_shrinkh_start( VipsImage *out, void *a, void *b )
 /* Float shrink. 
  */
 #define FSHRINK( TYPE ) { \
-	double * restrict sum = (double *) seq->sum; \
 	TYPE * restrict p = (TYPE *) in; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
 		for( b = 0; b < bands; b++ ) { \
-			sum[b] = 0.0; \
+			double sum; \
+			\
+			sum = 0.0; \
 			for( x1 = b; x1 < ne; x1 += bands ) \
-				sum[b] += p[x1]; \
-			q[b] = sum[b] / shrink->xshrink; \
+				sum += p[x1]; \
+			q[b] = sum / shrink->xshrink; \
 		} \
 		p += ne; \
 		q += bands; \
@@ -145,8 +107,7 @@ vips_shrinkh_start( VipsImage *out, void *a, void *b )
 /* Generate an area of @or. @ir is large enough.
  */
 static void
-vips_shrinkh_gen2( VipsShrinkh *shrink, VipsShrinkhSequence *seq,
-	VipsRegion *or, VipsRegion *ir,
+vips_shrinkh_gen2( VipsShrinkh *shrink, VipsRegion *or, VipsRegion *ir,
 	int left, int top, int width )
 {
 	VipsResample *resample = VIPS_RESAMPLE( shrink );
@@ -188,12 +149,11 @@ vips_shrinkh_gen2( VipsShrinkh *shrink, VipsShrinkhSequence *seq,
 }
 
 static int
-vips_shrinkh_gen( VipsRegion *or, void *vseq, 
+vips_shrinkh_gen( VipsRegion *or, void *seq, 
 	void *a, void *b, gboolean *stop )
 {
-	VipsShrinkhSequence *seq = (VipsShrinkhSequence *) vseq;
 	VipsShrinkh *shrink = (VipsShrinkh *) b;
-	VipsRegion *ir = seq->ir;
+	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
 
 	int y;
@@ -231,8 +191,7 @@ vips_shrinkh_gen( VipsRegion *or, void *vseq,
 
 		VIPS_GATE_START( "vips_shrinkh_gen: work" ); 
 
-		vips_shrinkh_gen2( shrink, seq, 
-			or, ir, 
+		vips_shrinkh_gen2( shrink, or, ir, 
 			r->left, r->top + y, r->width );
 
 		VIPS_GATE_STOP( "vips_shrinkh_gen: work" ); 
@@ -300,7 +259,7 @@ vips_shrinkh_build( VipsObject *object )
 #endif /*DEBUG*/
 
 	if( vips_image_generate( resample->out,
-		vips_shrinkh_start, vips_shrinkh_gen, vips_shrinkh_stop, 
+		vips_start_one, vips_shrinkh_gen, vips_stop_one, 
 		in, shrink ) )
 		return( -1 );
 
