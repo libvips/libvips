@@ -153,19 +153,17 @@ bicubic_unsigned_int_tab( void *pout, const VipsPel *pin,
 		const T qua_thr = in[l3_plus_b2];
 		const T qua_fou = in[l3_plus_b3];
 
-		int bicubic = bicubic_unsigned_int<T>(
+		out[z] = bicubic_unsigned_int<T>(
 			uno_one, uno_two, uno_thr, uno_fou,
 			dos_one, dos_two, dos_thr, dos_fou,
 			tre_one, tre_two, tre_thr, tre_fou,
 			qua_one, qua_two, qua_thr, qua_fou,
 			cx, cy );
 
-		if( bicubic < 0 )
-			bicubic = 0;
-		else if( bicubic > max_value )
-			bicubic = max_value;
-
-		out[z] = bicubic;
+		if( out[z] < 0 )
+			out[z] = 0;
+		else if( out[z] > max_value )
+			out[z] = max_value;
 
 		in += 1;
 	}
@@ -219,19 +217,17 @@ bicubic_signed_int_tab( void *pout, const VipsPel *pin,
 		const T qua_thr = in[l3_plus_b2];
 		const T qua_fou = in[l3_plus_b3];
 
-		int bicubic = bicubic_signed_int<T>(
+		out[z] = bicubic_signed_int<T>(
 			uno_one, uno_two, uno_thr, uno_fou,
 			dos_one, dos_two, dos_thr, dos_fou,
 			tre_one, tre_two, tre_thr, tre_fou,
 			qua_one, qua_two, qua_thr, qua_fou,
 			cx, cy );
 
-		if( bicubic < min_value )
-			bicubic = min_value;
-		else if( bicubic > max_value )
-			bicubic = max_value;
-
-		out[z] = bicubic;
+		if( out[z] < min_value )
+			out[z] = min_value;
+		else if( out[z] > max_value )
+			out[z] = max_value;
 
 		in += 1;
 	}

@@ -155,29 +155,6 @@ typedef VipsResampleClass VipsAffineClass;
 
 G_DEFINE_TYPE( VipsAffine, vips_affine, VIPS_TYPE_RESAMPLE );
 
-/*
- * FAST_PSEUDO_FLOOR is a floor and floorf replacement which has been
- * found to be faster on several linux boxes than the library
- * version. It returns the floor of its argument unless the argument
- * is a negative integer, in which case it returns one less than the
- * floor. For example:
- *
- * FAST_PSEUDO_FLOOR(0.5) = 0
- *
- * FAST_PSEUDO_FLOOR(0.) = 0
- *
- * FAST_PSEUDO_FLOOR(-.5) = -1
- *
- * as expected, but
- *
- * FAST_PSEUDO_FLOOR(-1.) = -2
- *
- * The locations of the discontinuities of FAST_PSEUDO_FLOOR are the
- * same as floor and floorf; it is just that at negative integers the
- * function is discontinuous on the right instead of the left.
- */
-#define FAST_PSEUDO_FLOOR(x) ( (int)(x) - ( (x) < 0. ) )
-
 /* We have five (!!) coordinate systems. Working forward through them, these
  * are:
  *
@@ -374,8 +351,7 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 					(int) iy - window_offset + 
 						window_size - 1 ) );
 
-				interpolate( affine->interpolate, 
-					q, ir, ix, iy );
+				interpolate( NULL, q, ir, ix, iy );
 			}
 			else {
 				for( z = 0; z < ps; z++ ) 
