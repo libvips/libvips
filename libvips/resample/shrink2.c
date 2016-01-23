@@ -284,8 +284,8 @@ vips_shrink2_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 
 		s.left = r->left * shrink->xshrink;
 		s.top = (r->top + y) * shrink->yshrink;
-		s.width = ceil( r->width * shrink->xshrink );
-		s.height = ceil( height * shrink->yshrink );
+		s.width = VIPS_CEIL( r->width * shrink->xshrink );
+		s.height = VIPS_CEIL( height * shrink->yshrink );
 #ifdef DEBUG
 		printf( "shrink_gen: requesting %d x %d at %d x %d\n",
 			s.width, s.height, s.left, s.top ); 
@@ -319,8 +319,8 @@ vips_shrink2_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_shrink2_parent_class )->build( object ) )
 		return( -1 );
 
-	shrink->mw = ceil( shrink->xshrink );
-	shrink->mh = ceil( shrink->yshrink );
+	shrink->mw = VIPS_CEIL( shrink->xshrink );
+	shrink->mh = VIPS_CEIL( shrink->yshrink );
 	shrink->np = shrink->mw * shrink->mh;
 
 	in = resample->in; 

@@ -150,7 +150,7 @@ vips_col_Lcmc2L( float Lcmc )
 {	
 	int known;
 
-	known = floor( Lcmc * 10.0 );
+	known = VIPS_FLOOR( Lcmc * 10.0 );
 	known = VIPS_CLIP( 0, known, 999 );
 
 	return( LI[known] + 
@@ -172,7 +172,7 @@ vips_col_Ccmc2C( float Ccmc )
 {	
 	int known;
 
-	known = floor( Ccmc * 10.0 );
+	known = VIPS_FLOOR( Ccmc * 10.0 );
 	known = VIPS_CLIP( 0, known, 2999 );
 
 	return( CI[known] + 
@@ -201,7 +201,7 @@ vips_col_Chcmc2h( float C, float hcmc )
 	r = (int) ((C + 1.0) / 2.0);
 	r = VIPS_CLIP( 0, r, 99 ); 
 
-	known = floor( hcmc );
+	known = VIPS_FLOOR( hcmc );
 	known = VIPS_CLIP( 0, known, 359 ); 
 
 	return( hI[r][known] + 

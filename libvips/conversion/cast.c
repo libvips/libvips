@@ -246,7 +246,7 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
-		ITYPE v = floor( p[x] ); \
+		ITYPE v = VIPS_FLOOR( p[x] ); \
 		\
 		VIPS_CLIP( v, seq ); \
 		\
@@ -261,7 +261,7 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
-		ITYPE v = floor( p[0] ); \
+		ITYPE v = VIPS_FLOOR( p[0] ); \
 		p += 2; \
 		\
 		VIPS_CLIP( v, seq ); \

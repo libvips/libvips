@@ -330,8 +330,8 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		for( x = le; x < ri; x++ ) {
 			int fx, fy; 	
 
-			fx = FAST_PSEUDO_FLOOR( ix );
-			fy = FAST_PSEUDO_FLOOR( iy );
+			fx = VIPS_FLOOR( ix );
+			fy = VIPS_FLOOR( iy );
 
 			/* Clip against iarea.
 			 */

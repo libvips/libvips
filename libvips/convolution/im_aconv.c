@@ -316,9 +316,9 @@ boxes_break( Boxes *boxes )
 	 * fixed n-lines which includes any negative parts.
 	 */
 	depth = (max - min) / boxes->n_layers;
-	layers_above = ceil( max / depth );
+	layers_above = VIPS_CEIL( max / depth );
 	depth = max / layers_above;
-	layers_below = floor( min / depth );
+	layers_below = VIPS_FLOOR( min / depth );
 
 	boxes->n_layers = layers_above - layers_below;
 

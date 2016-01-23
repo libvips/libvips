@@ -94,9 +94,6 @@ G_STMT_START { \
 	} \
 } G_STMT_END
 
-/* Round a float to the nearest integer. Much faster than rint(). 
- */
-#define VIPS_RINT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
 
 /* Various integer range clips. Record over/under flows.
  */
@@ -164,9 +161,15 @@ G_STMT_START { \
 #if defined(__clang__) || (__GNUC__ >= 4)
 #define VIPS_ISNAN( V ) __builtin_isnan( V )
 #define VIPS_ISINF( V ) __builtin_isinf( V )
+#define VIPS_FLOOR( V ) __builtin_floor( V )
+#define VIPS_CEIL( V ) __builtin_ceil( V )
+#define VIPS_RINT( V ) __builtin_rint( V )
 #else
 #define VIPS_ISNAN( V ) isnan( V )
 #define VIPS_ISINF( V ) isinf( V )
+#define VIPS_FLOOR( V ) floor( V )
+#define VIPS_CEIL( V ) ceil( V )
+#define VIPS_RINT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
 #endif
 
 /* Not all platforms have PATH_MAX (eg. Hurd) and we don't need a platform one

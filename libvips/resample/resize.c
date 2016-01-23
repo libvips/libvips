@@ -123,8 +123,10 @@ vips_resize_build( VipsObject *object )
 	/* If the factor is > 1.0, we need to zoom rather than shrink.
 	 * Just set the int part to 1 in this case.
 	 */
-	int_hshrink = resize->scale > 1.0 ? 1 : floor( 1.0 / resize->scale );
-	int_vshrink = resize->vscale > 1.0 ? 1 : floor( 1.0 / resize->vscale );
+	int_hshrink = resize->scale > 1.0 ? 
+		1 : VIPS_FLOOR( 1.0 / resize->scale );
+	int_vshrink = resize->vscale > 1.0 ? 
+		1 : VIPS_FLOOR( 1.0 / resize->vscale );
 
 	/* We want to shrink by less for interpolators with larger windows.
 	 */

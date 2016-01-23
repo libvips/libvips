@@ -237,7 +237,7 @@ plot( IMAGE *in, IMAGE *out )
 	if( in->BandFmt == IM_BANDFMT_UCHAR )
 		tsize = 256;
 	else
-		tsize = ceil( max );
+		tsize = VIPS_CEIL( max );
 
 	/* Make sure we don't make a zero height image.
 	 */

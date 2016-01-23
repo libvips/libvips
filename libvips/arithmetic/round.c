@@ -121,8 +121,8 @@ vips_round_buffer( VipsArithmetic *arithmetic,
 
 	switch( round->round ) {
 	case VIPS_OPERATION_ROUND_RINT:		SWITCH( VIPS_RINT ); break;
-	case VIPS_OPERATION_ROUND_CEIL:		SWITCH( ceil ); break;
-	case VIPS_OPERATION_ROUND_FLOOR:	SWITCH( floor ); break;
+	case VIPS_OPERATION_ROUND_CEIL:		SWITCH( VIPS_CEIL ); break;
+	case VIPS_OPERATION_ROUND_FLOOR:	SWITCH( VIPS_FLOOR ); break;
 
 	default: 
 		g_assert( 0 ); 
