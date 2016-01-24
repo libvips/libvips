@@ -120,10 +120,11 @@ vips_compass_build( VipsObject *object )
 		break;
 
 	default:
-		/* Silence compiler warning.
+		g_assert_not_reached();
+
+		/* Stop compiler warnings.
 		 */
 		x = NULL;
-		g_assert( 0 );
 	}
 
 	if( vips_image_write( x, convolution->out ) )

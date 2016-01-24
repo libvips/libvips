@@ -239,11 +239,7 @@ vips_rot45_build( VipsObject *object )
 		break;
 
 	default:
-		g_assert( 0 );
-
-		/* Keep -Wall happy.
-		 */
-		return( 0 );
+		g_assert_not_reached();
 	}
 
 	if( vips_image_write( in, conversion->out ) )

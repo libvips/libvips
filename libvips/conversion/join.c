@@ -117,11 +117,11 @@ vips_join_build( VipsObject *object )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 
-			/* Keep -Wall happy.
+			/* Stop compiler warnings.
 			 */
-			return( 0 );
+			y = 0;
 		}
 
 		break;
@@ -143,21 +143,17 @@ vips_join_build( VipsObject *object )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 
-			/* Keep -Wall happy.
+			/* Stop compiler warnings.
 			 */
-			return( 0 );
+			x = 0;
 		}
 
 		break;
 
 	default:
-		g_assert( 0 );
-
-		/* Keep -Wall happy.
-		 */
-		return( 0 );
+		g_assert_not_reached();
 	}
 
 	if( vips_insert( join->in1, join->in2, &t, x, y,
@@ -186,11 +182,14 @@ vips_join_build( VipsObject *object )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 
-			/* Keep -Wall happy.
+			/* Stop compiler warnings.
 			 */
-			return( 0 );
+			left = 0;
+			top = 0;
+			width = 0;
+			height = 0;
 		}
 
 		if( left != 0 ||

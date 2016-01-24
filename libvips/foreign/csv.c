@@ -417,7 +417,7 @@ vips2csv( VipsImage *in, FILE *fp, const char *sep )
 				PRINT_COMPLEX( double ); break; 
 
 			default: 
-				g_assert( 0 );
+				g_assert_not_reached();
 			}
 
 			 p += es; 

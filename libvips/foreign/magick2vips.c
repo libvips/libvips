@@ -533,7 +533,7 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 			GRAY_LOOP( double, QuantumRange ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 		break;
 
@@ -551,7 +551,7 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 			GRAYA_LOOP( double, QuantumRange ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 		break;
 
@@ -569,7 +569,7 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 			RGB_LOOP( double, QuantumRange ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 		break;
 
@@ -587,12 +587,12 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 			RGBA_LOOP( double, QuantumRange ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 

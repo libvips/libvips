@@ -829,7 +829,7 @@ get_compression( VipsForeignTiffCompression compression )
 		return( COMPRESSION_LZW );
 	
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	/* Keep -Wall happy.
@@ -847,7 +847,7 @@ get_resunit( VipsForeignTiffResunit resunit )
 		return( RESUNIT_INCH );
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	/* Keep -Wall happy.
@@ -1103,7 +1103,7 @@ invert_band0( Write *write, VipsPel *q, VipsPel *p, int n )
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 

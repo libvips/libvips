@@ -674,7 +674,7 @@ greyscale_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -934,7 +934,7 @@ parse_palette( ReadTiff *rtiff, VipsImage *out )
 	else if( rtiff->bits_per_sample == 16 )
 		rtiff->sfn = palette_line16;
 	else
-		g_assert( 0 ); 
+		g_assert_not_reached(); 
 
 	return( 0 );
 }
@@ -1835,7 +1835,7 @@ my_tiff_read( thandle_t st, tdata_t buffer, tsize_t size )
 static tsize_t 
 my_tiff_write( thandle_t st, tdata_t buffer, tsize_t size )
 {
-	g_assert( 0 ); 
+	g_assert_not_reached(); 
 
 	return( 0 ); 
 }
@@ -1858,7 +1858,7 @@ my_tiff_seek( thandle_t st, toff_t pos, int whence )
 	else if( whence == SEEK_END )
 		rtiff->pos = rtiff->len + pos;
 	else
-		g_assert( 0 ); 
+		g_assert_not_reached(); 
 
 	return( rtiff->pos ); 
 }
@@ -1874,7 +1874,7 @@ my_tiff_size( thandle_t st )
 static int 
 my_tiff_map( thandle_t st, tdata_t *start, toff_t *len )
 {
-	g_assert( 0 ); 
+	g_assert_not_reached(); 
 
 	return 0;
 }
@@ -1882,7 +1882,7 @@ my_tiff_map( thandle_t st, tdata_t *start, toff_t *len )
 static void 
 my_tiff_unmap( thandle_t st, tdata_t start, toff_t len )
 {
-	g_assert( 0 ); 
+	g_assert_not_reached(); 
 
 	return;
 }

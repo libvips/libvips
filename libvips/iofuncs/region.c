@@ -967,8 +967,7 @@ vips_region_paint( VipsRegion *reg, VipsRect *r, int value )
 				break;
 
 			default:
-				g_assert( 0 );
-				break;
+				g_assert_not_reached();
 			}
 
 			q1 = q + ls;
@@ -1221,7 +1220,7 @@ vips_region_shrink_uncoded( VipsRegion *from, VipsRegion *to, VipsRect *target )
 			SHRINK_TYPE_FLOAT( double );  break; 
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 }

@@ -131,7 +131,7 @@ vips_invert_buffer( VipsArithmetic *arithmetic,
 		LOOPC( double ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 

@@ -246,7 +246,7 @@ vips_project_scan( VipsStatistic *statistic, void *seq,
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	return( 0 );
@@ -297,7 +297,7 @@ vips_project_stop( VipsStatistic *statistic, void *seq )
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	/* Blank out sub-project to make sure we can't add it again.

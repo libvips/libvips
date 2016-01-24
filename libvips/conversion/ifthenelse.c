@@ -197,7 +197,7 @@ vips_blend1_buffer( VipsPel *qp,
 	case VIPS_FORMAT_DPCOMPLEX: 	CBLEND1( double ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -225,7 +225,7 @@ vips_blendn_buffer( VipsPel *qp,
 	case VIPS_FORMAT_DPCOMPLEX: 	CBLENDN( double ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 

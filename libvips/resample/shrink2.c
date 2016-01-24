@@ -234,7 +234,7 @@ vips_shrink2_gen2( VipsShrink2 *shrink, VipsShrink2Sequence *seq,
 				FSHRINK( double ); break;
 
 			default:
-				g_assert( 0 ); 
+				g_assert_not_reached(); 
 			}
 
 			out += sizeof_pixel;

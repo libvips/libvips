@@ -116,7 +116,7 @@ vips_hist_cum_process( VipsHistogram *histogram,
 		ACCUMULATE( double, double ); break;
 
         default:
-		g_assert( 0 );
+		g_assert_not_reached();
         }
 }
 

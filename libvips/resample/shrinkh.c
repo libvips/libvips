@@ -165,7 +165,7 @@ vips_shrinkh_gen2( VipsShrinkh *shrink, VipsRegion *or, VipsRegion *ir,
 		FSHRINK( double ); break;
 
 	default:
-		g_assert( 0 ); 
+		g_assert_not_reached(); 
 	}
 }
 

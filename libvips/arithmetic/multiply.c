@@ -138,7 +138,7 @@ vips_multiply_buffer( VipsArithmetic *arithmetic,
         case VIPS_FORMAT_DPCOMPLEX: CLOOP( double ); break;
 
         default:
-		g_assert( 0 );
+		g_assert_not_reached();
         }
 }
 

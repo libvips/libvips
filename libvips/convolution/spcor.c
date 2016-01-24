@@ -263,8 +263,12 @@ vips_spcor_correlation( VipsCorrelation *correlation,
 					break;
 
 				default:
-					g_assert( 0 );
-					return; 
+					g_assert_not_reached();
+
+					/* Stop compiler warnings.
+					 */
+					sum2 = 0;
+					sum3 = 0;
 				}
 
 				c2 = spcor->c1[b] * sqrt( sum2 );

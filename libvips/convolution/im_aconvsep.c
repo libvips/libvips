@@ -590,7 +590,7 @@ aconvsep_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 
@@ -768,7 +768,7 @@ aconvsep_generate_vertical( REGION *or, void *vseq, void *a, void *b )
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	return( 0 );

@@ -180,7 +180,7 @@ vips_fastcor_correlation( VipsCorrelation *correlation,
 		break;
 
         default:
-		g_assert( 0 );
+		g_assert_not_reached();
         }
 }
 

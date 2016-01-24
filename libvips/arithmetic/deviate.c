@@ -190,7 +190,7 @@ vips_deviate_scan( VipsStatistic *statistic, void *seq,
 	case VIPS_FORMAT_DOUBLE:	LOOP( double ); break; 
 
 	default: 
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	ss2[0] = sum;

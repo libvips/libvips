@@ -140,7 +140,14 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 			MINMAX( double ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
+
+			/* Stop compiler warnings.
+			 */
+			min_x = 0;
+			max_x = 0;
+			min_y = 0;
+			max_y = 0;
 		}
 	}
 
@@ -280,7 +287,7 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 			LOOKUP( double ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 

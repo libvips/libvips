@@ -362,7 +362,7 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 		break; \
 	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} \
 }
 
@@ -462,7 +462,7 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 			break; 
 
 		default: 
-			g_assert( 0 ); 
+			g_assert_not_reached(); 
 		} 
 	}
 

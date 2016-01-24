@@ -120,7 +120,7 @@ vips_sign_buffer( VipsArithmetic *arithmetic,
 	case VIPS_FORMAT_DPCOMPLEX:	CSIGN( double ); break; 
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 

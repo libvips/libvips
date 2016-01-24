@@ -961,7 +961,7 @@ aconv_hgenerate( REGION *or, void *vseq, void *a, void *b )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 
@@ -1183,7 +1183,7 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	return( 0 );

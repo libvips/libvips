@@ -1774,7 +1774,7 @@ vips_object_no_value( VipsObject *object, const char *name )
 
 	if( vips_object_get_argument( object, name,
 		&pspec, &argument_class, &argument_instance ) )
-		g_assert( 0 );
+		g_assert_not_reached();
 
 	if( strcmp( name, g_param_spec_get_name( pspec ) ) == 0 )
 		vips_error( class->nickname,

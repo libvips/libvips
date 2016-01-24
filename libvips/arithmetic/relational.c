@@ -125,7 +125,7 @@ G_DEFINE_TYPE( VipsRelational, vips_relational, VIPS_TYPE_BINARY );
 	case VIPS_FORMAT_DPCOMPLEX: 	C( double, COP ); break;\
  	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} 
 
 #define CEQUAL( x1, y1, x2, y2 ) (x1 == x2 && y1 == y2)
@@ -180,7 +180,7 @@ vips_relational_buffer( VipsArithmetic *arithmetic,
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -534,7 +534,7 @@ vips_relational_const_buffer( VipsArithmetic *arithmetic,
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 

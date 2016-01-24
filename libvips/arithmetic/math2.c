@@ -130,7 +130,7 @@ vips_math2_build( VipsObject *object )
 		L( double, double, OP ); break;\
  	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} 
 
 #define POW( Y, X, E ) { \
@@ -159,7 +159,7 @@ vips_math2_buffer( VipsArithmetic *arithmetic,
 	case VIPS_OPERATION_MATH2_WOP: 	SWITCH( LOOP, WOP ); break;
 
         default:
-		g_assert( 0 );
+		g_assert_not_reached();
         }
 }
 
@@ -377,7 +377,7 @@ vips_math2_const_buffer( VipsArithmetic *arithmetic,
 	case VIPS_OPERATION_MATH2_WOP: 	SWITCH( LOOPC, WOP ); break;
 
         default:
-		g_assert( 0 );
+		g_assert_not_reached();
         }
 }
 

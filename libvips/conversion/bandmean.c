@@ -153,7 +153,7 @@ vips_bandmean_buffer( VipsBandary *bandary,
 		FLOOP( double ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 

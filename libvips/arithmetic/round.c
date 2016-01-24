@@ -101,7 +101,7 @@ vips_round_build( VipsObject *object )
 	case VIPS_FORMAT_DOUBLE:LOOP( double, OP ); break;\
  	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} \
 }
 
@@ -125,7 +125,7 @@ vips_round_buffer( VipsArithmetic *arithmetic,
 	case VIPS_OPERATION_ROUND_FLOOR:	SWITCH( VIPS_FLOOR ); break;
 
 	default: 
-		g_assert( 0 ); 
+		g_assert_not_reached(); 
 	} 
 }
 

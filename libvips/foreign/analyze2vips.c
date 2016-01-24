@@ -289,7 +289,7 @@ print_dsr( struct dsr *d )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 }
@@ -344,7 +344,7 @@ read_header( const char *header )
 				break;
 
 			default:
-				g_assert( 0 );
+				g_assert_not_reached();
 			}
 		}
 	}
@@ -478,7 +478,7 @@ attach_meta( VipsImage *out, struct dsr *d )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 }

@@ -137,7 +137,7 @@ make_pixel( VipsObject *obj,
 		break;
 
         default:
-                g_assert( 0 );
+                g_assert_not_reached();
         }
 
 	return( q );

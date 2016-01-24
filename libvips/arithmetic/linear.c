@@ -321,7 +321,7 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
 			LOOPCMPLXNuc( double ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	else
 		switch( vips_image_get_format( im ) ) {
@@ -347,7 +347,7 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
 			LOOPCMPLXN( double, double ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 
 }

@@ -723,9 +723,11 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 		break;
 
 	default:
-		g_assert( 0 );
-		limit = dz->tile_size;
-		break;
+		g_assert_not_reached();
+
+		/* Stop compiler warnings.
+		 */
+		limit = 1;
 	}
 
 	if( width > limit || 
@@ -1080,8 +1082,11 @@ tile_name( Layer *layer, int x, int y )
 		break;
 
 	default:
-		g_assert( 0 );
-		return( NULL );
+		g_assert_not_reached();
+
+		/* Stop compiler warnings.
+		 */
+		out = NULL;
 	}
 
 #ifdef DEBUG_VERBOSE
@@ -1804,8 +1809,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		break;
 
 	default:
-		g_assert( 0 );
-		return( -1 ); 
+		g_assert_not_reached();
 	}
 
 	if( vips_sink_disc( save->ready, pyramid_strip, dz ) )
@@ -1828,8 +1832,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		break;
 
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
 	}
 
 	if( dz->properties &&

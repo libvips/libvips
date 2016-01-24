@@ -325,11 +325,11 @@ vips_rot_build( VipsObject *object )
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 
-		/* Keep -Wall happy.
+		/* Stop compiler warnings.
 		 */
-		return( 0 );
+		generate_fn = NULL;
 	}
 
 	if( vips_image_generate( conversion->out,

@@ -184,7 +184,7 @@ vips_avg_scan( VipsStatistic *statistic, void *seq,
 	case VIPS_FORMAT_DPCOMPLEX:	CLOOP( double ); break; 
 
 	default: 
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	*sum = m;

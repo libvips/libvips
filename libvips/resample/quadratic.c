@@ -193,8 +193,7 @@ vips_quadratic_gen( VipsRegion *or, void *vseq,
 			break;
 
 		default:
-		    	g_assert( 0 );
-		    	return( -7 );
+		    	g_assert_not_reached();
 		}
 
 		printf( "dx = %g, dy = %g\n", dx, dy );

@@ -303,7 +303,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 			CONV_FLOAT( double, double ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 

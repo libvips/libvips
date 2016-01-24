@@ -3384,8 +3384,8 @@ vips_band_format_isint( VipsBandFormat format )
 		return( FALSE );
 
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
+		return( FALSE );
 	}
 }
 
@@ -3402,7 +3402,7 @@ vips_band_format_isuint( VipsBandFormat format )
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_USHORT:
 	case VIPS_FORMAT_UINT:
-		return( 1 );
+		return( TRUE );
 
 	case VIPS_FORMAT_INT:
 	case VIPS_FORMAT_SHORT:
@@ -3411,11 +3411,11 @@ vips_band_format_isuint( VipsBandFormat format )
 	case VIPS_FORMAT_DOUBLE:	
 	case VIPS_FORMAT_COMPLEX:
 	case VIPS_FORMAT_DPCOMPLEX:	
-		return( 0 );
+		return( FALSE );
 	
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
+		return( FALSE );
 	}
 }
 
@@ -3444,8 +3444,8 @@ vips_band_format_is8bit( VipsBandFormat format )
 		return( FALSE );
 
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
+		return( FALSE );
 	}
 }
 
@@ -3461,7 +3461,7 @@ vips_band_format_isfloat( VipsBandFormat format )
 	switch( format ) {
 	case VIPS_FORMAT_FLOAT:
 	case VIPS_FORMAT_DOUBLE:	
-		return( 1 );
+		return( TRUE );
 
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_CHAR:
@@ -3471,11 +3471,11 @@ vips_band_format_isfloat( VipsBandFormat format )
 	case VIPS_FORMAT_INT:
 	case VIPS_FORMAT_COMPLEX:
 	case VIPS_FORMAT_DPCOMPLEX:	
-		return( 0 );
+		return( FALSE );
 	
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
+		return( FALSE );
 	}
 }
 
@@ -3491,7 +3491,7 @@ vips_band_format_iscomplex( VipsBandFormat format )
 	switch( format ) {
 	case VIPS_FORMAT_COMPLEX:
 	case VIPS_FORMAT_DPCOMPLEX:	
-		return( 1 );
+		return( TRUE );
 
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_CHAR:
@@ -3501,10 +3501,10 @@ vips_band_format_iscomplex( VipsBandFormat format )
 	case VIPS_FORMAT_INT:
 	case VIPS_FORMAT_FLOAT:
 	case VIPS_FORMAT_DOUBLE:	
-		return( 0 );
+		return( FALSE );
 	
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
+		return( FALSE );
 	}
 }

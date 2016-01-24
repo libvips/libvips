@@ -183,7 +183,7 @@ vips_unpremultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 		case VIPS_FORMAT_COMPLEX: 
 		case VIPS_FORMAT_DPCOMPLEX: 
 		default: 
-			g_assert( 0 ); 
+			g_assert_not_reached(); 
 		} 
 	}
 

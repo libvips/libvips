@@ -104,11 +104,7 @@ vips_countlines_build( VipsObject *object )
 		break;
 
 	default:
-		g_assert( 0 );
-
-		/* Keep -Wall happy.
-		 */
-		return( 0 );
+		g_assert_not_reached();
 	}
 
 	g_object_set( object, "nolines", nolines / 255.0, NULL );

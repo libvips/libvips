@@ -208,7 +208,7 @@ vips__draw_line_direct( VipsImage *image, int x1, int y1, int x2, int y2,
 		}
 	}
 	else
-		g_assert( 0 );
+		g_assert_not_reached();
 }
 
 static void

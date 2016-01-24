@@ -110,7 +110,7 @@ vips_bandbool_build( VipsObject *object )
 	case VIPS_FORMAT_DOUBLE: 	F( double, OP ); break;\
  	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} 
 
 #define LOOPB( TYPE, OP ) { \
@@ -169,7 +169,7 @@ vips_bandbool_buffer( VipsBandary *bandary,
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 

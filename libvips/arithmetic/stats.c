@@ -392,7 +392,7 @@ vips_stats_scan( VipsStatistic *statistic, void *seq,
 	case VIPS_FORMAT_DOUBLE:	LOOP( double ); break; 
 
 	default: 
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	return( 0 );

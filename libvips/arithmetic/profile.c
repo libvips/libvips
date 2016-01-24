@@ -246,7 +246,7 @@ vips_profile_scan( VipsStatistic *statistic, void *seq,
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	return( 0 );

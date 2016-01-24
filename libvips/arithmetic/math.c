@@ -126,7 +126,7 @@ vips_math_build( VipsObject *object )
 		LOOP( double, double, OP ); break;\
  	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} 
 
 /* sin/cos/tan in degrees.
@@ -170,7 +170,7 @@ vips_math_buffer( VipsArithmetic *arithmetic,
 	case VIPS_OPERATION_MATH_EXP10:	SWITCH( EXP10 ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 

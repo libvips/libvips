@@ -249,11 +249,11 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 
-		/* Keep -Wall happy.
+		/* Stop compiler warnings.
 		 */
-		return( 0 );
+		format = VIPS_FORMAT_UCHAR;
 	}
 
 	if( bands == 1 ) {
@@ -341,7 +341,7 @@ read_ascii( FILE *fp, VipsImage *out )
 				break;
 
 			default:
-				g_assert( 0 );
+				g_assert_not_reached();
 			}
 		}
 
@@ -607,7 +607,7 @@ write_ppm_line_ascii( Write *write, VipsPel *p )
 				break;
 
 			default:
-				g_assert( 0 );
+				g_assert_not_reached();
 			}
 		}
 
@@ -731,7 +731,7 @@ write_ppm( Write *write, gboolean ascii, gboolean squash )
 	else if( in->Bands == 3 && !ascii )
 		magic = "P6";
 	else
-		g_assert( 0 );
+		g_assert_not_reached();
 
 	fprintf( write->fp, "%s\n", magic );
 	time( &timebuf );
@@ -765,7 +765,7 @@ write_ppm( Write *write, gboolean ascii, gboolean squash )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 
 	if( squash )

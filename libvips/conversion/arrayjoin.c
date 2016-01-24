@@ -241,7 +241,7 @@ vips_arrayjoin_build( VipsObject *object )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 			break;
 		}
 
@@ -259,7 +259,7 @@ vips_arrayjoin_build( VipsObject *object )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 			break;
 		}
 

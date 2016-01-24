@@ -401,7 +401,7 @@ vips_min_scan( VipsStatistic *statistic, void *seq,
 		LOOPC( double ); break; 
 
 	default:  
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	return( 0 );

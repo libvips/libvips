@@ -965,7 +965,7 @@ vips_get_tile_size( VipsImage *im,
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	/* We can't set n_lines for the current demand style: a later bit of
