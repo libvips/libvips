@@ -137,7 +137,6 @@ extern "C" {
 #define NUMBER(R) IM_NUMBER(R)
 #define ARRAY(IM,N,T) IM_ARRAY(IM,N,T)
 
-#define UNROLL( N, OPER ) IM_UNROLL( N, OPER )
 #define RINT( R ) IM_RINT( R )
 
 #define CLIP_UCHAR( V, SEQ ) IM_CLIP_UCHAR( V, SEQ )
