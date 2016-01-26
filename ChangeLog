@@ -4,15 +4,14 @@
 - ifthenelse needs less C stack during eval
 - better rounding in bilinear interpolator
 - fix to "make check" in non-C locales [felixbuenemann]
-- use builtin isnan isinf when possible [Lovell Fuller]
+- use compiler builtins isnan, isinf, fabs, fmin, fmax, ceil, floor when 
+  possible [Lovell Fuller]
 - tune vips_shrinkh(), 30% faster [Lovell Fuller]
 - remove SEQ hint from vips_subsample(), fixes cli performance [erdmann]
 - fix double free on attach ICC profile from file in tiff write [erdmann]
-- add VIPS_FLOOR()/VIPS_CEIL(), much faster [Lovell Fuller]
-- use g_assert_not_reached();
+- use g_assert_not_reached() 
 - better vips-from-C docs
-- add VIPS_FMIN() / VIPS_FMAX() / VIPS_FABS() / VIPS_FCLIP() ... use builtins 
-  when available
+- remove Duff from im_conv() / im_conv_f() for a 25% speedup [Lovell Fuller]
 
 1/1/16 started 8.2.1
 - add a compat stub [Benjamin Gilbert]

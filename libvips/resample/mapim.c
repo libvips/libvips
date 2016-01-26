@@ -112,6 +112,13 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	gboolean first;
 	int x, y;
 
+	/* Stop compiler warnings.
+	 */
+	min_x = 0;
+	max_x = 0;
+	min_y = 0;
+	max_y = 0;
+
 	first = TRUE;
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel * restrict p = 
@@ -141,13 +148,6 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 
 		default:
 			g_assert_not_reached();
-
-			/* Stop compiler warnings.
-			 */
-			min_x = 0;
-			max_x = 0;
-			min_y = 0;
-			max_y = 0;
 		}
 	}
 

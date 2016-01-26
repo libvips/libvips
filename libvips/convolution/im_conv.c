@@ -67,6 +67,8 @@
  * 	- argh typo in overflow estimation could cause errors
  * 15/10/11 Nicolas
  * 	- handle offset correctly in seperable convolutions
+ * 26/1/16 Lovell Fuller
+ * 	- remove Duff for a 25% speedup
  */
 
 /*
@@ -635,9 +637,10 @@ conv_start( IMAGE *out, void *a, void *b )
 	TYPE * restrict q = (TYPE *) IM_REGION_ADDR( or, le, y ); \
 	\
 	for( x = 0; x < sz; x++ ) {  \
+		int sum; \
 		int i; \
-		int sum = 0; \
 		\
+		sum = 0; \
 		for ( i = 0; i < nnz; i++ ) \
 			sum += t[i] * p[i][x]; \
 		\
@@ -656,9 +659,10 @@ conv_start( IMAGE *out, void *a, void *b )
 	TYPE * restrict q = (TYPE *) IM_REGION_ADDR( or, le, y ); \
 	\
 	for( x = 0; x < sz; x++ ) {  \
+		double sum; \
 		int i; \
-		double sum = 0; \
 		\
+		sum = 0; \
 		for ( i = 0; i < nnz; i++ ) \
 			sum += t[i] * p[i][x]; \
  		\

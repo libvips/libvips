@@ -99,6 +99,11 @@ vips_join_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_join_parent_class )->build( object ) )
 		return( -1 );
 
+	/* Stop compiler warnings.
+	 */
+	x = 0;
+	y = 0;
+
 	switch( join->direction ) {
 	case VIPS_DIRECTION_HORIZONTAL:
 		x = join->in1->Xsize + join->shim;
@@ -118,10 +123,6 @@ vips_join_build( VipsObject *object )
 
 		default:
 			g_assert_not_reached();
-
-			/* Stop compiler warnings.
-			 */
-			y = 0;
 		}
 
 		break;
@@ -144,10 +145,6 @@ vips_join_build( VipsObject *object )
 
 		default:
 			g_assert_not_reached();
-
-			/* Stop compiler warnings.
-			 */
-			x = 0;
 		}
 
 		break;
