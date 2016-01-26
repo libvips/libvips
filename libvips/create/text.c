@@ -288,7 +288,7 @@ vips_text_class_init( VipsTextClass *class )
 
 	VIPS_ARG_STRING( class, "font", 5, 
 		_( "Font" ), 
-		_( "Font to render width" ),
+		_( "Font to render with" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, font ),
 		NULL ); 
