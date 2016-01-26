@@ -1534,8 +1534,7 @@ tiff2vips_strip_read_interleaved( ReadTiff *rtiff, int y, tdata_t buf )
 		}
 	}
 	else { 
-		if( tiff2vips_strip_read( rtiff->tiff, 
-			y / rtiff->rows_per_strip, buf ) )
+		if( tiff2vips_strip_read( rtiff->tiff, strip, buf ) )
 			return( -1 );
 	}
 

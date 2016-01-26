@@ -223,8 +223,12 @@ vips_resize_build( VipsObject *object )
 
 	vips_info( class->nickname, "residual affine %g x %g", 
 		hresidual, vresidual );
-	vips_info( class->nickname, "%s interpolation", 
-		VIPS_OBJECT_GET_CLASS( resize->interpolate )->nickname );
+	if( resize->interpolate ) {
+		const char *nickname = 
+			VIPS_OBJECT_GET_CLASS( resize->interpolate )->nickname;
+
+		vips_info( class->nickname, "%s interpolation", nickname );
+	}
 
 	if( vips_affine( in, &t[3], hresidual, 0, 0, vresidual, 
 		"interpolate", resize->interpolate,

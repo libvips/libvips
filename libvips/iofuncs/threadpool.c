@@ -945,6 +945,11 @@ vips_get_tile_size( VipsImage *im,
 {
 	const int nthr = vips_concurrency_get();
 
+	/* Compiler warnings.
+	 */
+	*tile_width = 1;
+	*tile_height = 1;
+
 	/* Pick a render geometry.
 	 */
 	switch( im->dhint ) {

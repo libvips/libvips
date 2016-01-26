@@ -129,6 +129,15 @@ vips_mosaic_build( VipsObject *object )
 
 	default:
 		g_assert_not_reached();
+
+		/* Compiler warnings.
+		 */
+		dx0 = 0;
+		dy0 = 0;
+		scale1 = 1;
+		angle1 = 1;
+		dx1 = 0;
+		dy1 = 0;
 	}
 
 	g_object_set( mosaic, 

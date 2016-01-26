@@ -84,6 +84,10 @@ vips_countlines_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_countlines_parent_class )->build( object ) )
 		return( -1 );
 
+	/* Compiler warnings.
+	 */
+	nolines = 1;
+
 	switch( countlines->direction ) {
 	case VIPS_DIRECTION_HORIZONTAL:
 		if( !(t[0] = vips_image_new_matrixv( 1, 2, -1.0, 1.0 )) ||
