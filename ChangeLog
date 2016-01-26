@@ -11,6 +11,8 @@
 - add VIPS_FLOOR()/VIPS_CEIL(), much faster [Lovell Fuller]
 - use g_assert_not_reached();
 - better vips-from-C docs
+- add VIPS_FMIN() / VIPS_FMAX() / VIPS_FABS() / VIPS_FCLIP() ... use builtins 
+  when available
 
 1/1/16 started 8.2.1
 - add a compat stub [Benjamin Gilbert]

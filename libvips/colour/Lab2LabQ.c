@@ -88,12 +88,13 @@ vips_Lab2LabQ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 	float * restrict p = (float *) in[0];
 	VipsPel * restrict q = out; 
 
-	float fval;
-	int lsbs;
-	int intv;
 	int i;
 
-	for( i = 0; i < width; i++) {
+	for( i = 0; i < width; i++ ) {
+		float fval;
+		int lsbs;
+		int intv;
+
 		/* Scale L up to 10 bits. Add 0.5 rather than call VIPS_RINT 
 		 * for speed. This will not round negatives correctly! But 
 		 * this does not matter, since L is >0. L*=100.0 -> 1023.
@@ -101,19 +102,19 @@ vips_Lab2LabQ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		intv = 10.23 * p[0] + 0.5;	/* scale L up to 10 bits */
 		intv = VIPS_CLIP( 0, intv, 1023 );
 		lsbs = (intv & 0x3) << 6;       /* 00000011 -> 11000000 */
-		q[0] = (intv >> 2); 		/* drop bot 2 bits and store */
+		q[0] = intv >> 2; 		/* drop bot 2 bits and store */
 
 		fval = 8.0 * p[1];              /* do a */
 		intv = VIPS_RINT( fval );
 		intv = VIPS_CLIP( -1024, intv, 1023 );
 		lsbs |= (intv & 0x7) << 3;      /* 00000111 -> 00111000 */
-		q[1] = (intv >> 3);   		/* drop bot 3 bits & store */
+		q[1] = intv >> 3;   		/* drop bot 3 bits & store */
 
 		fval = 8.0 * p[2];              /* do b */
 		intv = VIPS_RINT( fval );
 		intv = VIPS_CLIP( -1024, intv, 1023 );
 		lsbs |= (intv & 0x7);
-		q[2] = (intv >> 3);
+		q[2] = intv >> 3;
 
 		q[3] = lsbs;                	/* store lsb band */
 

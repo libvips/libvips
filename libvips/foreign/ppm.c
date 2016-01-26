@@ -204,7 +204,7 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 			 */
 			*msb_first = scale > 0;
 			vips_image_set_double( out, 
-				"pfm-scale", fabs( scale ) );
+				"pfm-scale", VIPS_FABS( scale ) );
 		}
 		else {
 			int max_value;

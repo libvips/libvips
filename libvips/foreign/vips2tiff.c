@@ -573,9 +573,9 @@ write_tiff_header( Write *write, Layer *layer )
 	 */
 	TIFFSetField( tif, TIFFTAG_RESOLUTIONUNIT, write->resunit );
 	TIFFSetField( tif, TIFFTAG_XRESOLUTION, 
-		VIPS_CLIP( 0.01, write->xres, 1000000 ) );
+		VIPS_FCLIP( 0.01, write->xres, 1000000 ) );
 	TIFFSetField( tif, TIFFTAG_YRESOLUTION, 
-		VIPS_CLIP( 0.01, write->yres, 1000000 ) );
+		VIPS_FCLIP( 0.01, write->yres, 1000000 ) );
 
 	if( write_embed_profile( write, tif ) ||
 		write_embed_xmp( write, tif ) ||

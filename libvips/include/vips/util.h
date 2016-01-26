@@ -58,6 +58,31 @@ extern "C" {
 #define VIPS_CLIP( A, V, B ) VIPS_MAX( (A), VIPS_MIN( (B), (V) ) )
 #define VIPS_NUMBER( R ) ((int) (sizeof(R) / sizeof(R[0])))
 
+/* The built-in isnan and isinf functions provided by gcc 4+ and clang are
+ * up to 7x faster than their libc equivalent included from <math.h>.
+ */
+#if defined(__clang__) || (__GNUC__ >= 4)
+#define VIPS_ISNAN( V ) __builtin_isnan( V )
+#define VIPS_ISINF( V ) __builtin_isinf( V )
+#define VIPS_FLOOR( V ) __builtin_floor( V )
+#define VIPS_CEIL( V ) __builtin_ceil( V )
+#define VIPS_RINT( V ) __builtin_rint( V )
+#define VIPS_FABS( V ) __builtin_fabs( V )
+#define VIPS_FMAX( A, B ) __builtin_fmax( A, B )
+#define VIPS_FMIN( A, B ) __builtin_fmin( A, B )
+#else
+#define VIPS_ISNAN( V ) isnan( V )
+#define VIPS_ISINF( V ) isinf( V )
+#define VIPS_FLOOR( V ) floor( V )
+#define VIPS_CEIL( V ) ceil( V )
+#define VIPS_RINT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
+#define VIPS_FABS( V ) VIPS_FABS( V )
+#define VIPS_FMAX( A, B ) VIPS_MAX( A, B )
+#define VIPS_FMIN( A, B ) VIPS_MIN( A, B )
+#endif
+
+#define VIPS_FCLIP( A, V, B ) VIPS_FMAX( (A), VIPS_FMIN( (B), (V) ) )
+
 #define VIPS_SWAP( TYPE, A, B ) \
 G_STMT_START { \
 	TYPE t = (A); \
@@ -154,23 +179,6 @@ G_STMT_START { \
 } G_STMT_END
 
 #define VIPS_CLIP_NONE( V, SEQ ) {}
-
-/* The built-in isnan and isinf functions provided by gcc 4+ and clang are
- * up to 7x faster than their libc equivalent included from <math.h>.
- */
-#if defined(__clang__) || (__GNUC__ >= 4)
-#define VIPS_ISNAN( V ) __builtin_isnan( V )
-#define VIPS_ISINF( V ) __builtin_isinf( V )
-#define VIPS_FLOOR( V ) __builtin_floor( V )
-#define VIPS_CEIL( V ) __builtin_ceil( V )
-#define VIPS_RINT( V ) __builtin_rint( V )
-#else
-#define VIPS_ISNAN( V ) isnan( V )
-#define VIPS_ISINF( V ) isinf( V )
-#define VIPS_FLOOR( V ) floor( V )
-#define VIPS_CEIL( V ) ceil( V )
-#define VIPS_RINT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
-#endif
 
 /* Not all platforms have PATH_MAX (eg. Hurd) and we don't need a platform one
  * anyway, just a static buffer big enough for almost any path.

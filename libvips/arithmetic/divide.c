@@ -131,7 +131,7 @@ G_DEFINE_TYPE( VipsDivide, vips_divide, VIPS_TYPE_BINARY );
 			q[0] = 0.0; \
 			q[1] = 0.0; \
 		} \
-		else if( fabs( right[0] ) > fabs( right[1] ) ) { \
+		else if( VIPS_FABS( right[0] ) > VIPS_FABS( right[1] ) ) { \
 			double a = right[1] / right[0]; \
 			double b = right[0] + right[1] * a; \
 			\

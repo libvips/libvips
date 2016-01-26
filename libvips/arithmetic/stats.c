@@ -159,12 +159,12 @@ vips_stats_build( VipsObject *object )
 		double *row = VIPS_MATRIX( stats->out, 0, y ); 
 
 		row[COL_AVG] = row[COL_SUM] / pels;
-		row[COL_SD] = sqrt( fabs( row[COL_SUM2] - 
+		row[COL_SD] = sqrt( VIPS_FABS( row[COL_SUM2] - 
 			(row[COL_SUM] * row[COL_SUM] / pels) ) / (pels - 1) );
 	}
 
 	row0[COL_AVG] = row0[COL_SUM] / vals;
-	row0[COL_SD] = sqrt( fabs( row0[COL_SUM2] - 
+	row0[COL_SD] = sqrt( VIPS_FABS( row0[COL_SUM2] - 
 		(row0[COL_SUM] * row0[COL_SUM] / vals) ) / (vals - 1) );
 
 	return( 0 );

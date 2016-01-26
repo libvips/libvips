@@ -52,43 +52,50 @@ typedef VipsColourCodeClass VipsHSV2sRGBClass;
 
 G_DEFINE_TYPE( VipsHSV2sRGB, vips_HSV2sRGB, VIPS_TYPE_COLOUR_CODE );
 
-static void vips_HSV2sRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in,
-		int width) {
+static void 
+vips_HSV2sRGB_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width ) 
+{
 	unsigned char *p = (unsigned char *) in[0];
 	unsigned char *q = (unsigned char *) out;
+
 	int i;
 
-	float c, x, m;
-	for (i = 0; i < width; i++) {
+	for( i = 0; i < width; i++ ) {
+		float c, x, m;
 
-		c = p[2] * p[1] / 255.0f;
-		x = c * (1 - fabs(fmod(p[0] / SIXTH_OF_CHAR, 2) - 1));
+		c = p[2] * p[1] / 255.0;
+		x = c * (1 - VIPS_FABS( fmod( p[0] / SIXTH_OF_CHAR, 2 ) - 1 ));
 		m = p[2] - c;
 
-		if (p[0] < SIXTH_OF_CHAR) {
-			q[0]= (c+m);
-			q[1]= (x+m);
-			q[2]= (0+m);
-		} else if (p[0] < 2*SIXTH_OF_CHAR) {
-			q[0]= (x+m);
-			q[1]= (c+m);
-			q[2]= (0+m);
-		} else if (p[0] < 3*SIXTH_OF_CHAR) {
-			q[0]= (0+m);
-			q[1]= (c+m);
-			q[2]= (x+m);
-		} else if (p[0] < 4*SIXTH_OF_CHAR) {
-			q[0]= (0+m);
-			q[1]= (x+m);
-			q[2]= (c+m);
-		} else if (p[0] < 5*SIXTH_OF_CHAR) {
-			q[0]= (x+m);
-			q[1]= (0+m);
-			q[2]= (c+m);
-		} else {
-			q[0]= (c+m);
-			q[1]= (0+m);
-			q[2]= (x+m);
+		if( p[0] < SIXTH_OF_CHAR ) {
+			q[0] = c + m;
+			q[1] = x + m;
+			q[2] = 0 + m;
+		} 
+		else if( p[0] < 2 * SIXTH_OF_CHAR ) {
+			q[0] = x + m;
+			q[1] = c + m;
+			q[2] = 0 + m;
+		} 
+		else if( p[0] < 3 * SIXTH_OF_CHAR ) {
+			q[0] = 0 + m;
+			q[1] = c + m;
+			q[2] = x + m;
+		} 
+		else if( p[0] < 4 * SIXTH_OF_CHAR ) {
+			q[0] = 0 + m;
+			q[1] = x + m;
+			q[2] = c + m;
+		} 
+		else if( p[0] < 5 * SIXTH_OF_CHAR ) {
+			q[0] = x + m;
+			q[1] = 0 + m;
+			q[2] = c + m;
+		} 
+		else {
+			q[0] = c + m;
+			q[1] = 0 + m;
+			q[2] = x + m;
 		}
 
 		p += 3;

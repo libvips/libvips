@@ -398,7 +398,7 @@ vips_exif_set_double( ExifData *ed,
 
 		rv = exif_get_rational( entry->data + offset, bo );
 		old_value = (double) rv.numerator / rv.denominator;
-		if( fabs( old_value - value ) > 0.0001 ) {
+		if( VIPS_FABS( old_value - value ) > 0.0001 ) {
 			vips_exif_double_to_rational( value, &rv ); 
 
 			VIPS_DEBUG_MSG( "vips_exif_set_double: %u / %u\n", 
@@ -413,7 +413,7 @@ vips_exif_set_double( ExifData *ed,
 
 		srv = exif_get_srational( entry->data + offset, bo );
 		old_value = (double) srv.numerator / srv.denominator;
-		if( fabs( old_value - value ) > 0.0001 ) {
+		if( VIPS_FABS( old_value - value ) > 0.0001 ) {
 			vips_exif_double_to_srational( value, &srv ); 
 
 			VIPS_DEBUG_MSG( "vips_exif_set_double: %d / %d\n", 

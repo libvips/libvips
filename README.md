@@ -112,7 +112,7 @@ Clang dynamic analysis:
 	$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
 	$ CC=clang CXX=clang++ LD=clang \
 		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
-		./configure --prefix=/home/john/vips --disable-introspection
+		./configure --prefix=/home/john/vips 
 
 	$ FLAGS="-O1 -g -fsanitize=thread"
 	$ FLAGS="$FLAGS -fPIC -pie"
@@ -120,14 +120,14 @@ Clang dynamic analysis:
 	$ CC=clang CXX=clang++ LD=clang \
 		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
 		LDFLAGS="-fsanitize=thread -fPIC -pie" \
-		./configure --prefix=/home/john/vips --disable-introspection
+		./configure --prefix=/home/john/vips 
 
 Build with the GCC auto-vectorizer and diagnostics (or just -O3):
 
 	$ FLAGS="-O2 -msse4.2 -ffast-math"
 	$ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
 	$ CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-		./configure --prefix=/home/john/vips --disable-introspection 
+		./configure --prefix=/home/john/vips 
 
 Static analysis with:
 

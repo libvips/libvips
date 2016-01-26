@@ -1,3 +1,5 @@
+- look for FCLIP / FABS use ... VIPS_ABS() on float type
+
 - write a shrinker that does two 1D shrinks, vertical and horizontal, with
   bicubic interpolation
 
