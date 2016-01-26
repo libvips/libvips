@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [8.2.1], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.2.2], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -38,7 +38,7 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=45
-LIBRARY_REVISION=1
+LIBRARY_REVISION=2
 LIBRARY_AGE=3
 
 # patched into include/vips/version.h
