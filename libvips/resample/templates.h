@@ -195,6 +195,18 @@ bicubic_unsigned_int(
 		cy[3] * r3 ) );
 }
 
+template <typename T> static int inline
+bicubic1d_unsigned_int(
+	const T one, const T two, const T thr, const T fou,
+	const int* restrict cx )
+{
+	return( unsigned_fixed_round( 
+		cx[0] * one +
+		cx[1] * two +
+		cx[2] * thr +
+		cx[3] * fou ) ); 
+}
+
 static int inline
 signed_fixed_round( int v )
 {
@@ -245,6 +257,18 @@ bicubic_signed_int(
 		cy[3] * r3 ) );
 }
 
+template <typename T> static int inline
+bicubic1d_signed_int(
+	const T one, const T two, const T thr, const T fou,
+	const int* restrict cx )
+{
+	return( signed_fixed_round( 
+		cx[0] * one +
+		cx[1] * two +
+		cx[2] * thr +
+		cx[3] * fou ) ); 
+}
+
 /* Floating-point bicubic, used for int/float/double types.
  */
 template <typename T> static T inline
@@ -275,6 +299,17 @@ bicubic_float(
 			 cx[1] * qua_two +
 			 cx[2] * qua_thr +
 			 cx[3] * qua_fou) );
+}
+
+template <typename T> static T inline
+bicubic1d_float(
+	const T one, const T two, const T thr, const T fou,
+	const double* restrict cx )
+{
+	return( cx[0] * one +
+		 cx[1] * two +
+		 cx[2] * thr +
+		 cx[3] * fou );
 }
 
 /* Given an offset in [0,1] (we can have x == 1 when building tables),
