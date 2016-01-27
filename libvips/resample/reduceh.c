@@ -97,16 +97,15 @@ vips_reduceh_gen( VipsRegion *or, void *seq,
 
 	for( y = 0; y < r->height; y ++ ) { 
 		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y ); 
+		double X = window_offset + r->left * reduceh->xshrink; 
 		double Y = r->top + y; 
 
 		int x;
 
 		for( x = 0; x < r->width; x++ ) { 
-			double X = window_offset + 
-				(r->left + x) * reduceh->xshrink; 
-
 			interpolate( reduceh->interpolate, q, ir, X, Y );
 
+			X += reduceh->xshrink;
 			q += ps;
 		}
 	}

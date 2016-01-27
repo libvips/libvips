@@ -9,6 +9,7 @@ libresample_la_SOURCES = \
 	shrink.c \
 	shrinkh.c \
 	shrinkv.c \
+	reduce.c \
 	reduceh.c \
 	reducev.c \
 	interpolate.c \

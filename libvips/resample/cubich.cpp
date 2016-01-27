@@ -268,6 +268,12 @@ vips_interpolate_cubich_interpolate( VipsInterpolate *interpolate,
 		cubich_unsigned_int_tab<unsigned char, UCHAR_MAX>( 
 			out, p, bands, cxi );
 
+		//cubich_float_tab<unsigned char>(
+			//out, p, bands, cxf );
+
+		//cubich_notab<unsigned char>(
+			//out, p, bands, x - ix );
+
 	/*
 
 	   Handy for benchmarking

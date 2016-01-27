@@ -128,6 +128,8 @@ vips_resample_operation_init( void )
 	vips_shrinkh_get_type(); 
 	vips_shrinkv_get_type(); 
 	vips_reduceh_get_type(); 
+	vips_reducev_get_type(); 
+	vips_reduce_get_type(); 
 	vips_quadratic_get_type(); 
 	vips_affine_get_type(); 
 	vips_similarity_get_type(); 
