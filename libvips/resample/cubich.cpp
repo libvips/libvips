@@ -1,7 +1,7 @@
-/* 1D horizontal bicubich (catmull-rom) interpolator
+/* horizontal cubic (catmull-rom) interpolator
  *
  * 26/1/16
- * 	- from bicubich.cpp
+ * 	- from bicubic.cpp
  */
 
 /*
@@ -31,7 +31,7 @@
 
  */
 
-/* Bicubich (Catmull-Rom) interpolator derived from Nicolas Robidoux's
+/* Cubic (Catmull-Rom) interpolator derived from Nicolas Robidoux's
  * original YAFR resampler with permission and thanks.
  */
 
@@ -56,38 +56,38 @@
 #include <dmalloc.h>
 #endif /*WITH_DMALLOC*/
 
-#define VIPS_TYPE_INTERPOLATE_BICUBICH \
-	(vips_interpolate_bicubich_get_type())
-#define VIPS_INTERPOLATE_BICUBICH( obj ) \
+#define VIPS_TYPE_INTERPOLATE_CUBICH \
+	(vips_interpolate_cubich_get_type())
+#define VIPS_INTERPOLATE_CUBICH( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_INTERPOLATE_BICUBICH, VipsInterpolateBicubich ))
-#define VIPS_INTERPOLATE_BICUBICH_CLASS( klass ) \
+	VIPS_TYPE_INTERPOLATE_CUBICH, VipsInterpolateCubich ))
+#define VIPS_INTERPOLATE_CUBICH_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_INTERPOLATE_BICUBICH, VipsInterpolateBicubichClass))
-#define VIPS_IS_INTERPOLATE_BICUBICH( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_BICUBICH ))
-#define VIPS_IS_INTERPOLATE_BICUBICH_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_BICUBICH ))
-#define VIPS_INTERPOLATE_BICUBICH_GET_CLASS( obj ) \
+	VIPS_TYPE_INTERPOLATE_CUBICH, VipsInterpolateCubichClass))
+#define VIPS_IS_INTERPOLATE_CUBICH( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_INTERPOLATE_CUBICH ))
+#define VIPS_IS_INTERPOLATE_CUBICH_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_INTERPOLATE_CUBICH ))
+#define VIPS_INTERPOLATE_CUBICH_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_INTERPOLATE_BICUBICH, VipsInterpolateBicubichClass ))
+	VIPS_TYPE_INTERPOLATE_CUBICH, VipsInterpolateCubichClass ))
 
-typedef VipsInterpolate VipsInterpolateBicubich;
+typedef VipsInterpolate VipsInterpolateCubich;
 
-typedef VipsInterpolateClass VipsInterpolateBicubichClass;
+typedef VipsInterpolateClass VipsInterpolateCubichClass;
 
 /* Precalculated interpolation matrices. int (used for pel
  * sizes up to short), and double (for all others). We go to
  * scale + 1 so we can round-to-nearest safely.
  */
 
-static int vips_bicubich_matrixi[VIPS_TRANSFORM_SCALE + 1][4];
-static double vips_bicubich_matrixf[VIPS_TRANSFORM_SCALE + 1][4];
+static int vips_cubich_matrixi[VIPS_TRANSFORM_SCALE + 1][4];
+static double vips_cubich_matrixf[VIPS_TRANSFORM_SCALE + 1][4];
 
 /* We need C linkage for this.
  */
 extern "C" {
-G_DEFINE_TYPE( VipsInterpolateBicubich, vips_interpolate_bicubich,
+G_DEFINE_TYPE( VipsInterpolateCubich, vips_interpolate_cubich,
 	VIPS_TYPE_INTERPOLATE );
 }
 
@@ -103,7 +103,7 @@ G_DEFINE_TYPE( VipsInterpolateBicubich, vips_interpolate_bicubich,
 
 template <typename T, int max_value>
 static void inline
-bicubich_unsigned_int_tab( void *pout, const VipsPel *pin,
+cubich_unsigned_int_tab( void *pout, const VipsPel *pin,
 	const int bands, const int *cx )
 {
 	T* restrict out = (T *) pout;
@@ -119,12 +119,12 @@ bicubich_unsigned_int_tab( void *pout, const VipsPel *pin,
 		const T thr = in[b2];
 		const T fou = in[b3];
 
-		int bicubich = bicubic1d_unsigned_int<T>(
+		int cubich = cubic_unsigned_int<T>(
 			one, two, thr, fou, cx );
 
-		bicubich = VIPS_CLIP( 0, bicubich, max_value ); 
+		cubich = VIPS_CLIP( 0, cubich, max_value ); 
 
-		out[z] = bicubich;
+		out[z] = cubich;
 
 		in += 1;
 	}
@@ -132,7 +132,7 @@ bicubich_unsigned_int_tab( void *pout, const VipsPel *pin,
 
 template <typename T, int min_value, int max_value>
 static void inline
-bicubich_signed_int_tab( void *pout, const VipsPel *pin,
+cubich_signed_int_tab( void *pout, const VipsPel *pin,
 	const int bands, const int *cx )
 {
 	T* restrict out = (T *) pout;
@@ -148,12 +148,12 @@ bicubich_signed_int_tab( void *pout, const VipsPel *pin,
 		const T thr = in[b2];
 		const T fou = in[b3];
 
-		int bicubich = bicubic1d_signed_int<T>(
+		int cubich = cubic_signed_int<T>(
 			one, two, thr, fou, cx );
 
-		bicubich = VIPS_CLIP( min_value, bicubich, max_value ); 
+		cubich = VIPS_CLIP( min_value, cubich, max_value ); 
 
-		out[z] = bicubich;
+		out[z] = cubich;
 
 		in += 1;
 	}
@@ -163,7 +163,7 @@ bicubich_signed_int_tab( void *pout, const VipsPel *pin,
  */
 template <typename T>
 static void inline
-bicubich_float_tab( void *pout, const VipsPel *pin,
+cubich_float_tab( void *pout, const VipsPel *pin,
 	const int bands, const double *cx )
 {
 	T* restrict out = (T *) pout;
@@ -179,10 +179,10 @@ bicubich_float_tab( void *pout, const VipsPel *pin,
 		const T thr = in[b2];
 		const T fou = in[b3];
 
-		const T bicubich = bicubic1d_float<T>(
+		const T cubich = cubic_float<T>(
 			one, two, thr, fou, cx );
 
-		out[z] = bicubich;
+		out[z] = cubich;
 
 		in += 1;
 	}
@@ -192,7 +192,7 @@ bicubich_float_tab( void *pout, const VipsPel *pin,
  */
 template <typename T>
 static void inline
-bicubich_notab( void *pout, const VipsPel *pin,
+cubich_notab( void *pout, const VipsPel *pin,
 	const int bands, double x )
 {
 	T* restrict out = (T *) pout;
@@ -212,17 +212,17 @@ bicubich_notab( void *pout, const VipsPel *pin,
 		const T thr = in[b2];
 		const T fou = in[b3];
 
-		const T bicubich = bicubic1d_float<T>(
+		const T cubich = cubic_float<T>(
 			one, two, thr, fou, cx );
 
-		out[z] = bicubich;
+		out[z] = cubich;
 
 		in += 1;
 	}
 }
 
 static void
-vips_interpolate_bicubich_interpolate( VipsInterpolate *interpolate,
+vips_interpolate_cubich_interpolate( VipsInterpolate *interpolate,
 	void *out, VipsRegion *in, double x, double y )
 {
 	/* Find the mask index. We round-to-nearest, so we need to generate 
@@ -247,8 +247,8 @@ vips_interpolate_bicubich_interpolate( VipsInterpolate *interpolate,
 
 	/* Look up the tables we need.
 	 */
-	const int *cxi = vips_bicubich_matrixi[tx];
-	const double *cxf = vips_bicubich_matrixf[tx];
+	const int *cxi = vips_cubich_matrixi[tx];
+	const double *cxf = vips_cubich_matrixf[tx];
 
 	/* Pel size and line size.
 	 */
@@ -265,7 +265,7 @@ vips_interpolate_bicubich_interpolate( VipsInterpolate *interpolate,
 	g_assert( x >= 1.0 );
 
 #ifdef DEBUG
-	printf( "vips_interpolate_bicubich_interpolate: %g %g\n", x, y );
+	printf( "vips_interpolate_cubich_interpolate: %g %g\n", x, y );
 	printf( "\tleft=%d, top=%d, width=%d, height=%d\n",
 		ix - 1, iy, 4, 1 );
 	printf( "\tmaskx=%d\n", tx );
@@ -273,17 +273,17 @@ vips_interpolate_bicubich_interpolate( VipsInterpolate *interpolate,
 
 	switch( in->im->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
-		bicubich_unsigned_int_tab<unsigned char, UCHAR_MAX>( 
+		cubich_unsigned_int_tab<unsigned char, UCHAR_MAX>( 
 			out, p, bands, cxi );
 
 	/*
 
 	   Handy for benchmarking
 
-		bicubich_float_tab<unsigned char>(
+		cubich_float_tab<unsigned char>(
 			out, p, bands, cxf );
 
-		bicubich_notab<unsigned char>(
+		cubich_notab<unsigned char>(
 			out, p, bands, x - ix );
 
 	 */
@@ -291,47 +291,47 @@ vips_interpolate_bicubich_interpolate( VipsInterpolate *interpolate,
 		break;
 
 	case VIPS_FORMAT_CHAR:
-		bicubich_signed_int_tab<signed char, SCHAR_MIN, SCHAR_MAX>(
+		cubich_signed_int_tab<signed char, SCHAR_MIN, SCHAR_MAX>(
 			out, p, bands, cxi );
 		break;
 
 	case VIPS_FORMAT_USHORT:
-		bicubich_unsigned_int_tab<unsigned short, USHRT_MAX>(
+		cubich_unsigned_int_tab<unsigned short, USHRT_MAX>(
 			out, p, bands, cxi );
 		break;
 
 	case VIPS_FORMAT_SHORT:
-		bicubich_signed_int_tab<signed short, SHRT_MIN, SHRT_MAX>(
+		cubich_signed_int_tab<signed short, SHRT_MIN, SHRT_MAX>(
 			out, p, bands, cxi );
 		break;
 
 	case VIPS_FORMAT_UINT:
-		bicubich_float_tab<unsigned int>( 
+		cubich_float_tab<unsigned int>( 
 			out, p, bands, cxf );
 		break;
 
 	case VIPS_FORMAT_INT:
-		bicubich_float_tab<signed int>( 
+		cubich_float_tab<signed int>( 
 			out, p, bands, cxf );
 		break;
 
 	case VIPS_FORMAT_FLOAT:
-		bicubich_float_tab<float>( 
+		cubich_float_tab<float>( 
 			out, p, bands, cxf );
 		break;
 
 	case VIPS_FORMAT_DOUBLE:
-		bicubich_notab<double>( 
+		cubich_notab<double>( 
 			out, p, bands, x - ix );
 		break;
 
 	case VIPS_FORMAT_COMPLEX:
-		bicubich_float_tab<float>( 
+		cubich_float_tab<float>( 
 			out, p, bands * 2, cxf );
 		break;
 
 	case VIPS_FORMAT_DPCOMPLEX:
-		bicubich_notab<double>( 
+		cubich_notab<double>( 
 			out, p, bands * 2, x - ix );
 		break;
 
@@ -341,17 +341,17 @@ vips_interpolate_bicubich_interpolate( VipsInterpolate *interpolate,
 }
 
 static void
-vips_interpolate_bicubich_class_init( VipsInterpolateBicubichClass *iclass )
+vips_interpolate_cubich_class_init( VipsInterpolateCubichClass *iclass )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( iclass );
 	VipsInterpolateClass *interpolate_class =
 		VIPS_INTERPOLATE_CLASS( iclass );
 
-	object_class->nickname = "bicubich";
+	object_class->nickname = "cubich";
 	object_class->description = 
-		_( "horizontal bicubic interpolation (Catmull-Rom)" );
+		_( "horizontal cubic interpolation (Catmull-Rom)" );
 
-	interpolate_class->interpolate = vips_interpolate_bicubich_interpolate;
+	interpolate_class->interpolate = vips_interpolate_cubich_interpolate;
 	interpolate_class->window_size = 4;
 
 	/* Build the tables of pre-computed coefficients.
@@ -359,21 +359,21 @@ vips_interpolate_bicubich_class_init( VipsInterpolateBicubichClass *iclass )
 	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
 		calculate_coefficients_catmull(
 			(float) x / VIPS_TRANSFORM_SCALE,
-			vips_bicubich_matrixf[x] );
+			vips_cubich_matrixf[x] );
 
 		for( int i = 0; i < 4; i++ )
-			vips_bicubich_matrixi[x][i] =
-				vips_bicubich_matrixf[x][i] * 
+			vips_cubich_matrixi[x][i] =
+				vips_cubich_matrixf[x][i] * 
 				VIPS_INTERPOLATE_SCALE;
 	}
 }
 
 static void
-vips_interpolate_bicubich_init( VipsInterpolateBicubich *bicubich )
+vips_interpolate_cubich_init( VipsInterpolateCubich *cubich )
 {
 #ifdef DEBUG
-	printf( "vips_interpolate_bicubich_init: " );
-	vips_object_print( VIPS_OBJECT( bicubich ) );
+	printf( "vips_interpolate_cubich_init: " );
+	vips_object_print( VIPS_OBJECT( cubich ) );
 #endif /*DEBUG*/
 
 }

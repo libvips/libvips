@@ -62,135 +62,56 @@ typedef VipsResampleClass VipsReducehClass;
 
 G_DEFINE_TYPE( VipsReduceh, vips_reduceh, VIPS_TYPE_RESAMPLE );
 
-#define INNER( BANDS ) \
-	sum += p[x1]; \
-	x1 += BANDS; 
-
-/* Integer reduce. 
- */
-#define IREDUCE( TYPE, BANDS ) { \
-	TYPE * restrict p = (TYPE *) in; \
-	TYPE * restrict q = (TYPE *) out; \
-	\
-	for( x = 0; x < width; x++ ) { \
-		for( b = 0; b < BANDS; b++ ) { \
-			int sum; \
-			\
-			sum = 0; \
-			x1 = b; \
-			VIPS_UNROLL( reduce->xreduce, INNER( BANDS ) ); \
-			q[b] = (sum + reduce->xreduce / 2) / \
-				reduce->xreduce; \
-		} \
-		p += ne; \
-		q += BANDS; \
-	} \
-}
-
-/* Float reduce. 
- */
-#define FREDUCE( TYPE ) { \
-	TYPE * restrict p = (TYPE *) in; \
-	TYPE * restrict q = (TYPE *) out; \
-	\
-	for( x = 0; x < width; x++ ) { \
-		for( b = 0; b < bands; b++ ) { \
-			double sum; \
-			\
-			sum = 0.0; \
-			x1 = b; \
-			VIPS_UNROLL( reduce->xreduce, INNER( bands ) ); \
-			q[b] = sum / reduce->xreduce; \
-		} \
-		p += ne; \
-		q += bands; \
-	} \
-} 
-
-/* Generate an line of @or. @ir is large enough.
- */
-static void
-vips_reduceh_gen2( VipsReduceh *reduce, VipsRegion *or, VipsRegion *ir,
-	int left, int top, int width )
-{
-	VipsResample *resample = VIPS_RESAMPLE( reduce );
-	const int bands = resample->in->Bands * 
-		(vips_band_format_iscomplex( resample->in->BandFmt ) ? 
-		 	2 : 1);
-	const int ne = reduce->xreduce * bands; 
-	VipsPel *out = VIPS_REGION_ADDR( or, left, top ); 
-	VipsPel *in = VIPS_REGION_ADDR( ir, left * reduce->xreduce, top ); 
-
-	int x;
-	int x1, b;
-
-	switch( resample->in->BandFmt ) {
-		IREDUCE( unsigned char, bands ); break;
-	case VIPS_FORMAT_CHAR: 	
-		IREDUCE( char, bands ); break; 
-	case VIPS_FORMAT_USHORT: 
-		IREDUCE( unsigned short, bands ); break;
-	case VIPS_FORMAT_SHORT: 	
-		IREDUCE( short, bands ); break; 
-	case VIPS_FORMAT_UINT: 	
-		IREDUCE( unsigned int, bands ); break; 
-	case VIPS_FORMAT_INT: 	
-		IREDUCE( int, bands );  break; 
-	case VIPS_FORMAT_FLOAT: 	
-		FREDUCE( float ); break; 
-	case VIPS_FORMAT_DOUBLE:	
-		FREDUCE( double ); break;
-	case VIPS_FORMAT_COMPLEX: 	
-		FREDUCE( float ); break; 
-	case VIPS_FORMAT_DPCOMPLEX:	
-		FREDUCE( double ); break;
-
-	default:
-		g_assert_not_reached(); 
-	}
-}
-
 static int
 vips_reduceh_gen( VipsRegion *or, void *seq, 
 	void *a, void *b, gboolean *stop )
 {
-	VipsReduceh *reduce = (VipsReduceh *) b;
+	VipsImage *in = (VipsImage *) a;
+	VipsReduceh *reduceh = (VipsReduceh *) b;
+	int window_size = 
+		vips_interpolate_get_window_size( reduceh->interpolate );
+	int window_offset = 
+		vips_interpolate_get_window_offset( reduceh->interpolate );
+	const VipsInterpolateMethod interpolate = 
+		vips_interpolate_get_method( reduceh->interpolate );
+	int ps = VIPS_IMAGE_SIZEOF_PEL( in );
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
 
+	VipsRect s;
 	int y;
-
-	/* How do we chunk up the image? We don't want to prepare the whole of
-	 * the input region corresponding to *r since it could be huge. 
-	 *
-	 * Request input a line at a time. 
-	 */
 
 #ifdef DEBUG
 	printf( "vips_reduceh_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top ); 
 #endif /*DEBUG*/
 
+	s.left = r->left * reduceh->xreduce - window_offset;
+	s.top = r->top;
+	s.width = r->width * reduceh->xreduce + window_size - 1;
+	s.height = r->height;
+	if( vips_region_prepare( ir, &s ) )
+		return( -1 );
+
+	VIPS_GATE_START( "vips_reduceh_gen: work" ); 
+
 	for( y = 0; y < r->height; y ++ ) { 
-		VipsRect s;
+		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y ); 
+		double Y = r->top + y; 
 
-		s.left = r->left * reduce->xreduce;
-		s.top = r->top + y;
-		s.width = r->width * reduce->xreduce;
-		s.height = 1;
-#ifdef DEBUG
-		printf( "reduceh_gen: requesting line %d\n", s.top ); 
-#endif /*DEBUG*/
-		if( vips_region_prepare( ir, &s ) )
-			return( -1 );
+		int x;
 
-		VIPS_GATE_START( "vips_reduceh_gen: work" ); 
+		for( x = 0; x < r->width; x++ ) { 
+			double X = window_offset + 
+				(r->left + x) * reduceh->xreduce; 
 
-		vips_reduceh_gen2( reduce, or, ir, 
-			r->left, r->top + y, r->width );
+			interpolate( reduceh->interpolate, q, ir, X, Y );
 
-		VIPS_GATE_STOP( "vips_reduceh_gen: work" ); 
+			q += ps;
+		}
 	}
+
+	VIPS_GATE_STOP( "vips_reduceh_gen: work" ); 
 
 	return( 0 );
 }
@@ -200,7 +121,7 @@ vips_reduceh_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
-	VipsReduceh *reduce = (VipsReduceh *) object;
+	VipsReduceh *reduceh = (VipsReduceh *) object;
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( object, 1 );
 
@@ -236,16 +157,16 @@ vips_reduceh_build( VipsObject *object )
 	window_offset = 
 		vips_interpolate_get_window_offset( reduceh->interpolate );
 
-	if( reduce->xreduce < 1 ) { 
+	if( reduceh->xreduce < 1 ) { 
 		vips_error( class->nickname, 
 			"%s", _( "reduce factors should be >= 1" ) );
 		return( -1 );
 	}
-	if( reduce->xreduce > 2 )  
+	if( reduceh->xreduce > 2 )  
 		vips_warn( class->nickname, 
 			"%s", _( "reduce factor greater than 2" ) );
 
-	if( reduce->xreduce == 1 ) 
+	if( reduceh->xreduce == 1 ) 
 		return( vips_image_write( in, resample->out ) );
 
 	/* Unpack for processing.
@@ -278,7 +199,7 @@ vips_reduceh_build( VipsObject *object )
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Xsize = in->Xsize / reduce->xreduce;
+	resample->out->Xsize = (in->Xsize - window_size + 1) / reduceh->xreduce;
 	if( resample->out->Xsize <= 0 ) { 
 		vips_error( class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -293,7 +214,7 @@ vips_reduceh_build( VipsObject *object )
 
 	if( vips_image_generate( resample->out,
 		vips_start_one, vips_reduceh_gen, vips_stop_one, 
-		in, reduce ) )
+		in, reduceh ) )
 		return( -1 );
 
 	return( 0 );
@@ -333,7 +254,7 @@ vips_reduceh_class_init( VipsReducehClass *class )
 }
 
 static void
-vips_reduceh_init( VipsReduceh *reduce )
+vips_reduceh_init( VipsReduceh *reduceh )
 {
 }
 
@@ -345,7 +266,7 @@ vips_reduceh_init( VipsReduceh *reduce )
  * @...: %NULL-terminated list of optional named arguments
  *
  * Reduce @in horizontally by a float factor. The pixels in @out are
- * interpolated with a 1D bicubic mask. This operation will not work well for
+ * interpolated with a 1D cubic mask. This operation will not work well for
  * a reduction of more than a factor of two.
  *
  * This is a very low-level operation: see vips_resize() for a more
