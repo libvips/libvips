@@ -119,8 +119,7 @@ cubich_unsigned_int_tab( void *pout, const VipsPel *pin,
 		const T thr = in[b2];
 		const T fou = in[b3];
 
-		int cubich = cubic_unsigned_int<T>(
-			one, two, thr, fou, cx );
+		int cubich = cubic_unsigned_int<T>( one, two, thr, fou, cx );
 
 		cubich = VIPS_CLIP( 0, cubich, max_value ); 
 
@@ -148,8 +147,7 @@ cubich_signed_int_tab( void *pout, const VipsPel *pin,
 		const T thr = in[b2];
 		const T fou = in[b3];
 
-		int cubich = cubic_signed_int<T>(
-			one, two, thr, fou, cx );
+		int cubich = cubic_signed_int<T>( one, two, thr, fou, cx );
 
 		cubich = VIPS_CLIP( min_value, cubich, max_value ); 
 
@@ -179,10 +177,7 @@ cubich_float_tab( void *pout, const VipsPel *pin,
 		const T thr = in[b2];
 		const T fou = in[b3];
 
-		const T cubich = cubic_float<T>(
-			one, two, thr, fou, cx );
-
-		out[z] = cubich;
+		out[z] = cubic_float<T>( one, two, thr, fou, cx );
 
 		in += 1;
 	}
@@ -212,10 +207,7 @@ cubich_notab( void *pout, const VipsPel *pin,
 		const T thr = in[b2];
 		const T fou = in[b3];
 
-		const T cubich = cubic_float<T>(
-			one, two, thr, fou, cx );
-
-		out[z] = cubich;
+		out[z] = cubic_float<T>( one, two, thr, fou, cx );
 
 		in += 1;
 	}
@@ -306,33 +298,27 @@ vips_interpolate_cubich_interpolate( VipsInterpolate *interpolate,
 		break;
 
 	case VIPS_FORMAT_UINT:
-		cubich_float_tab<unsigned int>( 
-			out, p, bands, cxf );
+		cubich_float_tab<unsigned int>( out, p, bands, cxf );
 		break;
 
 	case VIPS_FORMAT_INT:
-		cubich_float_tab<signed int>( 
-			out, p, bands, cxf );
+		cubich_float_tab<signed int>( out, p, bands, cxf );
 		break;
 
 	case VIPS_FORMAT_FLOAT:
-		cubich_float_tab<float>( 
-			out, p, bands, cxf );
+		cubich_float_tab<float>( out, p, bands, cxf );
 		break;
 
 	case VIPS_FORMAT_DOUBLE:
-		cubich_notab<double>( 
-			out, p, bands, x - ix );
+		cubich_notab<double>( out, p, bands, x - ix );
 		break;
 
 	case VIPS_FORMAT_COMPLEX:
-		cubich_float_tab<float>( 
-			out, p, bands * 2, cxf );
+		cubich_float_tab<float>( out, p, bands * 2, cxf );
 		break;
 
 	case VIPS_FORMAT_DPCOMPLEX:
-		cubich_notab<double>( 
-			out, p, bands * 2, x - ix );
+		cubich_notab<double>( out, p, bands * 2, x - ix );
 		break;
 
 	default:

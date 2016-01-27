@@ -1,7 +1,7 @@
 /* horizontal reduce by a float factor
  *
  * 30/10/15
- * 	- from reduceh.c
+ * 	- from reducev.c
  */
 
 /*
@@ -50,30 +50,30 @@
 
 #include "presample.h"
 
-typedef struct _VipsReduceh {
+typedef struct _VipsReducev {
 	VipsResample parent_instance;
 
-	double xshrink;		/* Reduce factor */
+	double yshrink;		/* Shrink factor */
 	VipsInterpolate *interpolate;
 
-} VipsReduceh;
+} VipsReducev;
 
-typedef VipsResampleClass VipsReducehClass;
+typedef VipsResampleClass VipsReducevClass;
 
-G_DEFINE_TYPE( VipsReduceh, vips_reduceh, VIPS_TYPE_RESAMPLE );
+G_DEFINE_TYPE( VipsReducev, vips_reducev, VIPS_TYPE_RESAMPLE );
 
 static int
-vips_reduceh_gen( VipsRegion *or, void *seq, 
+vips_reducev_gen( VipsRegion *or, void *seq, 
 	void *a, void *b, gboolean *stop )
 {
 	VipsImage *in = (VipsImage *) a;
-	VipsReduceh *reduceh = (VipsReduceh *) b;
+	VipsReducev *reducev = (VipsReducev *) b;
 	int window_size = 
-		vips_interpolate_get_window_size( reduceh->interpolate );
+		vips_interpolate_get_window_size( reducev->interpolate );
 	int window_offset = 
-		vips_interpolate_get_window_offset( reduceh->interpolate );
+		vips_interpolate_get_window_offset( reducev->interpolate );
 	const VipsInterpolateMethod interpolate = 
-		vips_interpolate_get_method( reduceh->interpolate );
+		vips_interpolate_get_method( reducev->interpolate );
 	int ps = VIPS_IMAGE_SIZEOF_PEL( in );
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &or->valid;
@@ -82,46 +82,45 @@ vips_reduceh_gen( VipsRegion *or, void *seq,
 	int y;
 
 #ifdef DEBUG
-	printf( "vips_reduceh_gen: generating %d x %d at %d x %d\n",
+	printf( "vips_reducev_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top ); 
 #endif /*DEBUG*/
 
-	s.left = r->left * reduceh->xshrink - window_offset;
-	s.top = r->top;
-	s.width = r->width * reduceh->xshrink + window_size - 1;
-	s.height = r->height;
+	s.left = r->left;
+	s.top = r->top * reducev->yshrink - window_offset;
+	s.width = r->width;
+	s.height = r->height * reducev->yshrink + window_size - 1;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
-	VIPS_GATE_START( "vips_reduceh_gen: work" ); 
+	VIPS_GATE_START( "vips_reducev_gen: work" ); 
 
 	for( y = 0; y < r->height; y ++ ) { 
 		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y ); 
-		double Y = r->top + y; 
+		double Y = window_offset + (r->top + y) * reducev->yshrink; 
 
 		int x;
 
 		for( x = 0; x < r->width; x++ ) { 
-			double X = window_offset + 
-				(r->left + x) * reduceh->xshrink; 
+			double X = r->left + x; 
 
-			interpolate( reduceh->interpolate, q, ir, X, Y );
+			interpolate( reducev->interpolate, q, ir, X, Y );
 
 			q += ps;
 		}
 	}
 
-	VIPS_GATE_STOP( "vips_reduceh_gen: work" ); 
+	VIPS_GATE_STOP( "vips_reducev_gen: work" ); 
 
 	return( 0 );
 }
 
 static int
-vips_reduceh_build( VipsObject *object )
+vips_reducev_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
-	VipsReduceh *reduceh = (VipsReduceh *) object;
+	VipsReducev *reducev = (VipsReducev *) object;
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( object, 1 );
 
@@ -129,7 +128,7 @@ vips_reduceh_build( VipsObject *object )
 	int window_size;
 	int window_offset;
 
-	if( VIPS_OBJECT_CLASS( vips_reduceh_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_reducev_parent_class )->build( object ) )
 		return( -1 );
 
 	in = resample->in; 
@@ -137,7 +136,7 @@ vips_reduceh_build( VipsObject *object )
 	/* We can't use vips_object_argument_isset(), since it may have been
 	 * set to NULL, see vips_similarity().
 	 */
-	if( !reduceh->interpolate ) {
+	if( !reducev->interpolate ) {
 		VipsInterpolate *interpolate;
 
 		interpolate = vips_interpolate_new( "cubich" );
@@ -147,26 +146,26 @@ vips_reduceh_build( VipsObject *object )
 		g_object_unref( interpolate );
 
 		/* coverity gets confused by this, it thinks
-		 * reduceh->interpolate may still be null. Assign ourselves,
+		 * reducev->interpolate may still be null. Assign ourselves,
 		 * even though we don't need to.
 		 */
-		reduceh->interpolate = interpolate;
+		reducev->interpolate = interpolate;
 	}
 
-	window_size = vips_interpolate_get_window_size( reduceh->interpolate );
+	window_size = vips_interpolate_get_window_size( reducev->interpolate );
 	window_offset = 
-		vips_interpolate_get_window_offset( reduceh->interpolate );
+		vips_interpolate_get_window_offset( reducev->interpolate );
 
-	if( reduceh->xshrink < 1 ) { 
+	if( reducev->yshrink < 1 ) { 
 		vips_error( class->nickname, 
 			"%s", _( "reduce factors should be >= 1" ) );
 		return( -1 );
 	}
-	if( reduceh->xshrink > 2 )  
+	if( reducev->yshrink > 2 )  
 		vips_warn( class->nickname, 
 			"%s", _( "reduce factor greater than 2" ) );
 
-	if( reduceh->xshrink == 1 ) 
+	if( reducev->yshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );
 
 	/* Unpack for processing.
@@ -178,8 +177,8 @@ vips_reduceh_build( VipsObject *object )
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if( vips_embed( in, &t[1], 
-		window_offset, 0, 
-		in->Xsize + window_size - 1, in->Ysize,
+		0, window_offset, 
+		in->Xsize, in->Ysize + window_size - 1, 
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
@@ -199,77 +198,77 @@ vips_reduceh_build( VipsObject *object )
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Xsize = (in->Xsize - window_size + 1) / reduceh->xshrink;
-	if( resample->out->Xsize <= 0 ) { 
+	resample->out->Ysize = (in->Ysize - window_size + 1) / reducev->yshrink;
+	if( resample->out->Ysize <= 0 ) { 
 		vips_error( class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
 		return( -1 );
 	}
 
 #ifdef DEBUG
-	printf( "vips_reduceh_build: reducing %d x %d image to %d x %d\n", 
+	printf( "vips_reducev_build: reducing %d x %d image to %d x %d\n", 
 		in->Xsize, in->Ysize, 
 		resample->out->Xsize, resample->out->Ysize );  
 #endif /*DEBUG*/
 
 	if( vips_image_generate( resample->out,
-		vips_start_one, vips_reduceh_gen, vips_stop_one, 
-		in, reduceh ) )
+		vips_start_one, vips_reducev_gen, vips_stop_one, 
+		in, reducev ) )
 		return( -1 );
 
 	return( 0 );
 }
 
 static void
-vips_reduceh_class_init( VipsReducehClass *class )
+vips_reducev_class_init( VipsReducevClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
-	VIPS_DEBUG_MSG( "vips_reduceh_class_init\n" );
+	VIPS_DEBUG_MSG( "vips_reducev_class_init\n" );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "reduceh";
-	vobject_class->description = _( "shrink an image horizontally" );
-	vobject_class->build = vips_reduceh_build;
+	vobject_class->nickname = "reducev";
+	vobject_class->description = _( "shrink an image vertically" );
+	vobject_class->build = vips_reducev_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
-	VIPS_ARG_DOUBLE( class, "xshrink", 3, 
+	VIPS_ARG_DOUBLE( class, "yshrink", 3, 
 		_( "Xshrink" ), 
-		_( "Horizontal shrink factor" ),
+		_( "Vertical shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsReduceh, xshrink ),
+		G_STRUCT_OFFSET( VipsReducev, yshrink ),
 		1, 1000000, 1 );
 
 	VIPS_ARG_INTERPOLATE( class, "interpolate", 4, 
 		_( "Interpolate" ), 
 		_( "Interpolate pixels with this" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsReduceh, interpolate ) );
+		G_STRUCT_OFFSET( VipsReducev, interpolate ) );
 
 }
 
 static void
-vips_reduceh_init( VipsReduceh *reduceh )
+vips_reducev_init( VipsReducev *reducev )
 {
 }
 
 /**
- * vips_reduceh:
+ * vips_reducev:
  * @in: input image
  * @out: output image
- * @xshrink: horizontal reduce
+ * @yshrink: horizontal reduce
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
- * @interpolate: interpolate pixels with this, default cubich
+ * @interpolate: interpolate pixels with this, default cubicv
  *
- * Reduce @in horizontally by a float factor. The pixels in @out are
+ * Reduce @in vertically by a float factor. The pixels in @out are
  * interpolated with a 1D cubic mask. This operation will not work well for
  * a reduction of more than a factor of two.
  *
@@ -284,13 +283,13 @@ vips_reduceh_init( VipsReduceh *reduceh )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_reduceh( VipsImage *in, VipsImage **out, double xshrink, ... )
+vips_reducev( VipsImage *in, VipsImage **out, double yshrink, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, xshrink );
-	result = vips_call_split( "reduceh", ap, in, out, xshrink );
+	va_start( ap, yshrink );
+	result = vips_call_split( "reducev", ap, in, out, yshrink );
 	va_end( ap );
 
 	return( result );
