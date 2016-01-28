@@ -1,11 +1,34 @@
-- look for FCLIP / FABS use ... VIPS_ABS() on float type
-
 - write a shrinker that does two 1D shrinks, vertical and horizontal, with
   bicubic interpolation
 
   should be much quicker than affine + bicubic
 
   vips_resize() can use this, for the default path at least
+
+  try with affine vs. reduce in vips_resize ... on the laptop we see
+
+	affine
+	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
+	real	0m2.325s
+	user	0m8.316s
+	sys	0m0.256s
+
+	reduce
+	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
+	real	0m2.388s
+	user	0m8.544s
+	sys	0m0.244s
+
+  argh
+
+  reducev could be faster with the interpolator inlined ... we could pick a
+  set of masks and just run them along a set of input lines to make an output
+  line
+
+  reduceh ... not so clear, need to pick new masks every output pixel, might
+  not make much difference
+
+	
 
 - get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very
   odd, the interpolation shouldn't change between bands

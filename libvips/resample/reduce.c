@@ -75,6 +75,32 @@ vips_reduce_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_reduce_parent_class )->build( object ) )
 		return( -1 );
 
+	/*
+	if( vips_reduceh( resample->in, &t[0], reduce->xshrink, 
+			"interpolate", reduce->interpolateh, NULL ) ||
+		vips_linecache( t[0], &t[1], 
+			"tile_height", 4,
+			NULL ) ||
+		vips_reducev( t[1], &t[2], reduce->yshrink, 
+			"interpolate", reduce->interpolatev, NULL ) ||
+		vips_image_write( t[2], resample->out ) )
+		return( -1 );
+	*/
+
+	/*
+	if( vips_reducev( resample->in, &t[0], reduce->yshrink, 
+			"interpolate", reduce->interpolatev, 
+			NULL ) ||
+		vips_linecache( t[0], &t[1], 
+			"tile_height", 4,
+			NULL ) ||
+		vips_reduceh( t[1], &t[2], reduce->xshrink, 
+			"interpolate", reduce->interpolateh, 
+			NULL ) ||
+		vips_image_write( t[2], resample->out ) )
+		return( -1 );
+	*/
+
 	if( vips_reducev( resample->in, &t[0], reduce->yshrink, 
 			"interpolate", reduce->interpolatev, NULL ) ||
 		vips_reduceh( t[0], &t[1], reduce->xshrink, 

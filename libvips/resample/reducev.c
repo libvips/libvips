@@ -184,12 +184,8 @@ vips_reducev_build( VipsObject *object )
 		return( -1 );
 	in = t[1];
 
-	/* THINSTRIP will work, anything else will break seq mode. If you 
-	 * combine reduce with conv you'll need to use a line cache to maintain
-	 * sequentiality.
-	 */
 	if( vips_image_pipelinev( resample->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
+		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
 
 	/* Size output. Note: we round the output width down!
