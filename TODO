@@ -45,9 +45,10 @@
   more small tweaks
 
 	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
-	real	0m1.843s
-	user	0m6.040s
-	sys	0m0.252s
+	real	0m1.818s
+	user	0m5.956s
+	sys	0m0.296s
+
 
 
 - get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very

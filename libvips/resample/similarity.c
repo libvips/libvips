@@ -47,6 +47,7 @@
 #include <vips/intl.h>
 
 #include <math.h>
+#include <string.h>
 
 #include <vips/vips.h>
 
@@ -78,24 +79,43 @@ vips_similarity_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( object, 4 );
 
-	double a, b, c, d; 
-
 	if( VIPS_OBJECT_CLASS( vips_similarity_parent_class )->build( object ) )
 		return( -1 );
 
-	a = similarity->scale * cos( VIPS_RAD( similarity->angle ) ); 
-	b = similarity->scale * -sin( VIPS_RAD( similarity->angle ) );
-	c = -b;
-	d = a;
+	/* Use vips_reduce(), if we can.
+	 */
+	if( similarity->interpolate && 
+		strcmp( VIPS_OBJECT_GET_CLASS( similarity->interpolate )->
+			nickname, "bicubic" ) == 0 &&
+		similarity->angle == 0.0 &&
+		similarity->idx == 0.0 &&
+		similarity->idy == 0.0 &&
+		similarity->odx == 0.0 &&
+		similarity->ody == 0.0 ) {
+		if( vips_reduce( resample->in, &t[0], 
+			1.0 / similarity->scale, 
+			1.0 / similarity->scale, NULL ) )  
+			return( -1 );
+	}
+	else {
+		double a = similarity->scale * 
+			cos( VIPS_RAD( similarity->angle ) ); 
+		double b = similarity->scale * 
+			-sin( VIPS_RAD( similarity->angle ) );
+		double c = -b;
+		double d = a;
 
-	if( vips_affine( resample->in, &t[0], a, b, c, d, 
-		"interpolate", similarity->interpolate,
-		"odx", similarity->odx,
-		"ody", similarity->ody,
-		"idx", similarity->idx,
-		"idy", similarity->idy,
-		NULL ) ||
-		vips_image_write( t[0], resample->out ) )
+		if( vips_affine( resample->in, &t[0], a, b, c, d, 
+			"interpolate", similarity->interpolate,
+			"odx", similarity->odx,
+			"ody", similarity->ody,
+			"idx", similarity->idx,
+			"idy", similarity->idy,
+			NULL ) )
+			return( -1 );
+	}
+
+	if( vips_image_write( t[0], resample->out ) )
 		return( -1 ); 
 
 	return( 0 );
