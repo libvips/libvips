@@ -1,7 +1,7 @@
-/* horizontal reduce by a float factor
+/* vertical reduce by a float factor
  *
- * 30/10/15
- * 	- from reducev.c
+ * 29/1/16
+ * 	- from shrinkv.c
  */
 
 /*
@@ -60,6 +60,11 @@ typedef struct _VipsReducev {
 
 typedef VipsResampleClass VipsReducevClass;
 
+/* Precalculated interpolation matrices. int (used for pel
+ * sizes up to short), and double (for all others). We go to
+ * scale + 1 so we can round-to-nearest safely.
+ */
+
 static int vips_reducev_matrixi[VIPS_TRANSFORM_SCALE + 1][4];
 static double vips_reducev_matrixf[VIPS_TRANSFORM_SCALE + 1][4];
 
@@ -82,13 +87,17 @@ reducev_unsigned_int_tab( VipsPel *pout, const VipsPel *pin,
 	const int l2 = l1 + l1;
 	const int l3 = l1 + l2;
 
-	for( int z = 0; z < ne; z++ ) {
-		const T uno = in[0];
-		const T dos = in[l1];
-		const T tre = in[l2];
-		const T qua = in[l3];
+	const int c0 = cy[0];
+	const int c1 = cy[1];
+	const int c2 = cy[2];
+	const int c3 = cy[3];
 
-		int cubicv = cubic_unsigned_int<T>( uno, dos, tre, qua, cy );
+	for( int z = 0; z < ne; z++ ) {
+		int cubicv = unsigned_fixed_round( 
+			c0 * in[0] +
+			c1 * in[l1] +
+			c2 * in[l2] +
+			c3 * in[l3] ); 
 
 		cubicv = VIPS_CLIP( 0, cubicv, max_value ); 
 
@@ -111,13 +120,17 @@ reducev_signed_int_tab( VipsPel *pout, const VipsPel *pin,
 	const int l2 = l1 + l1;
 	const int l3 = l1 + l2;
 
-	for( int z = 0; z < ne; z++ ) {
-		const T uno = in[0];
-		const T dos = in[l1];
-		const T tre = in[l2];
-		const T qua = in[l3];
+	const int c0 = cy[0];
+	const int c1 = cy[1];
+	const int c2 = cy[2];
+	const int c3 = cy[3];
 
-		int cubicv = cubic_signed_int<T>( uno, dos, tre, qua, cy );
+	for( int z = 0; z < ne; z++ ) {
+		int cubicv = signed_fixed_round( 
+			c0 * in[0] +
+			c1 * in[l1] +
+			c2 * in[l2] +
+			c3 * in[l3] ); 
 
 		cubicv = VIPS_CLIP( min_value, cubicv, max_value ); 
 
@@ -142,13 +155,17 @@ reducev_float_tab( VipsPel *pout, const VipsPel *pin,
 	const int l2 = l1 + l1;
 	const int l3 = l1 + l2;
 
-	for( int z = 0; z < ne; z++ ) {
-		const T uno = in[0];
-		const T dos = in[l1];
-		const T tre = in[l2];
-		const T qua = in[l3];
+	const double c0 = cy[0];
+	const double c1 = cy[1];
+	const double c2 = cy[2];
+	const double c3 = cy[3];
 
-		out[z] = cubic_float<T>( uno, dos, tre, qua, cy );
+	for( int z = 0; z < ne; z++ ) {
+		out[z] = 
+			c0 * in[0] +
+			c1 * in[l1] +
+			c2 * in[l2] +
+			c3 * in[l3]; 
 
 		in += 1;
 	}
@@ -173,13 +190,17 @@ reducev_notab( VipsPel *pout, const VipsPel *pin,
 
 	calculate_coefficients_catmull( y, cy );
 
-	for( int z = 0; z < ne; z++ ) {
-		const T uno = in[0];
-		const T dos = in[l1];
-		const T tre = in[l2];
-		const T qua = in[l3];
+	const double c0 = cy[0];
+	const double c1 = cy[1];
+	const double c2 = cy[2];
+	const double c3 = cy[3];
 
-		out[z] = cubic_float<T>( uno, dos, tre, qua, cy );
+	for( int z = 0; z < ne; z++ ) {
+		out[z] = 
+			c0 * in[0] +
+			c1 * in[l1] +
+			c2 * in[l2] +
+			c3 * in[l3]; 
 
 		in += 1;
 	}
@@ -201,7 +222,6 @@ vips_reducev_gen( VipsRegion *out_region, void *seq,
 	int ne = r->width * bands;
 
 	VipsRect s;
-	int y;
 
 #ifdef DEBUG
 	printf( "vips_reducev_gen: generating %d x %d at %d x %d\n",
@@ -217,7 +237,7 @@ vips_reducev_gen( VipsRegion *out_region, void *seq,
 
 	VIPS_GATE_START( "vips_reducev_gen: work" ); 
 
-	for( y = 0; y < r->height; y ++ ) { 
+	for( int y = 0; y < r->height; y ++ ) { 
 		VipsPel *q = VIPS_REGION_ADDR( out_region, r->left, r->top + y );
 		const double Y = (r->top + y) * reducev->yshrink; 
 		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, (int) Y ); 

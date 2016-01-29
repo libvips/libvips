@@ -35,8 +35,20 @@
 	user	0m6.296s
 	sys	0m0.304s
 
+  with in-line reduceh as well
 
-	
+	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
+	real	0m1.838s
+	user	0m6.132s
+	sys	0m0.264s
+
+  more small tweaks
+
+	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
+	real	0m1.843s
+	user	0m6.040s
+	sys	0m0.252s
+
 
 - get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very
   odd, the interpolation shouldn't change between bands
