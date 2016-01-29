@@ -100,6 +100,19 @@ class TestResample(unittest.TestCase):
  
             self.assertEqual((x - im).abs().max(), 0)
 
+    def test_reduce(self):
+        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        bicubic = Vips.Interpolate.new("bicubic")
+        
+        for fac in [1, 1.1, 1.5, 1.999]:
+            print("fac =", fac)
+            r = im.reduce(fac, fac)
+            a = im.affine([1.0 / fac, 0, 0, 1.0 / fac], interpolate = bicubic)
+            r.write_to_file("r.v")
+            a.write_to_file("a.v")
+            d = (r - a).abs().max()
+            self.assertLess(d, 0.1)
+
     def test_resize(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")
         im2 = im.resize(0.25)

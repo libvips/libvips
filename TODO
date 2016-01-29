@@ -1,11 +1,16 @@
-- write a shrinker that does two 1D shrinks, vertical and horizontal, with
-  bicubic interpolation
+- strange, try
 
-  should be much quicker than affine + bicubic
+	$ vips affine babe.jpg x.v "0.909 0 0 0.909"
+	$ vipsheader x.v
+	x.v: 931x698 uchar, 3 bands, srgb, jpegload
 
-  vips_resize() can use this, for the default path at least
+  but 1024 * 0.909 == 930.9, shouldn't we be rounding down? I guess we are
+  rounding up
 
-  try with affine vs. reduce in vips_resize ... on the laptop we see
+  need to fix this if we want to be able to used reduce as a shortcut for
+  similarity
+
+- new vips_reduce:
 
 	affine
 	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
@@ -15,40 +20,12 @@
 
 	reduce
 	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
-	real	0m2.388s
-	user	0m8.544s
-	sys	0m0.244s
-
-  argh
-
-  reducev could be faster with the interpolator inlined ... we could pick a
-  set of masks and just run them along a set of input lines to make an output
-  line
-
-  reduceh ... not so clear, need to pick new masks every output pixel, might
-  not make much difference
-
-  with in-line reducev
-
-	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
-	real	0m1.897s
-	user	0m6.296s
-	sys	0m0.304s
-
-  with in-line reduceh as well
-
-	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
-	real	0m1.838s
-	user	0m6.132s
-	sys	0m0.264s
-
-  more small tweaks
-
-	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
 	real	0m1.818s
 	user	0m5.956s
 	sys	0m0.296s
 
+  add tests for vips_reduce(), update c++ binding, check docs and "see also"
+  lines
 
 
 - get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very
