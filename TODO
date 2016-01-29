@@ -28,6 +28,14 @@
   reduceh ... not so clear, need to pick new masks every output pixel, might
   not make much difference
 
+  with in-line reducev
+
+	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
+	real	0m1.897s
+	user	0m6.296s
+	sys	0m0.304s
+
+
 	
 
 - get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very

@@ -56,7 +56,6 @@ typedef struct _VipsReduce {
 	double xshrink;		/* Shrink factors */
 	double yshrink;
 	VipsInterpolate *interpolateh;
-	VipsInterpolate *interpolatev;
 
 } VipsReduce;
 
@@ -82,14 +81,13 @@ vips_reduce_build( VipsObject *object )
 			"tile_height", 4,
 			NULL ) ||
 		vips_reducev( t[1], &t[2], reduce->yshrink, 
-			"interpolate", reduce->interpolatev, NULL ) ||
+			NULL ) ||
 		vips_image_write( t[2], resample->out ) )
 		return( -1 );
 	*/
 
 	/*
 	if( vips_reducev( resample->in, &t[0], reduce->yshrink, 
-			"interpolate", reduce->interpolatev, 
 			NULL ) ||
 		vips_linecache( t[0], &t[1], 
 			"tile_height", 4,
@@ -101,8 +99,7 @@ vips_reduce_build( VipsObject *object )
 		return( -1 );
 	*/
 
-	if( vips_reducev( resample->in, &t[0], reduce->yshrink, 
-			"interpolate", reduce->interpolatev, NULL ) ||
+	if( vips_reducev( resample->in, &t[0], reduce->yshrink, NULL ) ||
 		vips_reduceh( t[0], &t[1], reduce->xshrink, 
 			"interpolate", reduce->interpolateh, NULL ) ||
 		vips_image_write( t[1], resample->out ) )
@@ -111,8 +108,7 @@ vips_reduce_build( VipsObject *object )
 	/*
 	if( vips_reduceh( resample->in, &t[0], reduce->xshrink, 
 			"interpolate", reduce->interpolateh, NULL ) ||
-		vips_reducev( t[0], &t[1], reduce->yshrink, 
-			"interpolate", reduce->interpolatev, NULL ) ||
+		vips_reducev( t[0], &t[1], reduce->yshrink, NULL ) ||
 		vips_image_write( t[1], resample->out ) )
 		return( -1 );
 	 */
@@ -158,12 +154,6 @@ vips_reduce_class_init( VipsReduceClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsReduce, interpolateh ) );
 
-	VIPS_ARG_INTERPOLATE( class, "interpolatev", 10, 
-		_( "Interpolatev" ), 
-		_( "Interpolate vertical pixels with this" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsReduce, interpolatev ) );
-
 }
 
 static void
@@ -182,7 +172,6 @@ vips_reduce_init( VipsReduce *reduce )
  * Optional arguments:
  *
  * @interpolateh: interpolate horizontally with this, default cubich
- * @interpolatev: interpolate vertically with this, default cubicv
  *
  * Reduce @in by a pair of factors with a pair of 1D interpolators. This iwll
  * not work well for shrink factors greater than two.

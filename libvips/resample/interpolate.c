@@ -601,7 +601,6 @@ vips__interpolate_init( void )
 {
 	extern GType vips_interpolate_bicubic_get_type( void );
 	extern GType vips_interpolate_cubich_get_type( void );
-	extern GType vips_interpolate_cubicv_get_type( void );
 	extern GType vips_interpolate_lbb_get_type( void );
 	extern GType vips_interpolate_nohalo_get_type( void );
 	extern GType vips_interpolate_vsqbs_get_type( void );
@@ -611,7 +610,6 @@ vips__interpolate_init( void )
 
 	vips_interpolate_bicubic_get_type();
 	vips_interpolate_cubich_get_type();
-	vips_interpolate_cubicv_get_type();
 	vips_interpolate_lbb_get_type();
 	vips_interpolate_nohalo_get_type();
 	vips_interpolate_vsqbs_get_type();

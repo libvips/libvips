@@ -11,12 +11,11 @@ libresample_la_SOURCES = \
 	shrinkv.c \
 	reduce.c \
 	reduceh.c \
-	reducev.c \
+	reducev.cpp \
 	interpolate.c \
 	transform.c \
 	bicubic.cpp \
 	cubich.cpp \
-	cubicv.cpp \
 	lbb.cpp \
 	nohalo.cpp \
 	vsqbs.cpp \
