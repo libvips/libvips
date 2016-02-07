@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
+	popplerload.c \
 	radiance.h \
 	radiance.c \
 	radload.c \

@@ -537,31 +537,55 @@ if test x"$with_OpenEXR" != "xno"; then
   PKG_CHECK_MODULES(OPENEXR, OpenEXR >= 1.2.2,
     [AC_DEFINE(HAVE_OPENEXR,1,[define if you have OpenEXR >=1.2.2 installed.])
      with_OpenEXR=yes
-     PACKAGES_USED="$PACKAGES_USED OpenEXR"],
+     PACKAGES_USED="$PACKAGES_USED OpenEXR"
+    ],
     [AC_MSG_WARN([OpenEXR not found; disabling OpenEXR support])
      with_OpenEXR=no
-    ])
+    ]
+  )
+fi
+
+# poppler
+AC_ARG_WITH([poppler],
+  AS_HELP_STRING([--without-poppler], [build without poppler (default: test)]))
+
+if test x"$with_poppler" != x"no"; then
+  PKG_CHECK_MODULES(POPPLER, [poppler-glib >= 0.30.0 cairo >= 1.2],
+    [AC_DEFINE(HAVE_POPPLER,1,[define if you have poppler-glib >= 0.30.0 and cairo >= 1.2 installed.])
+     with_poppler=yes
+     PACKAGES_USED="$PACKAGES_USED poppler-glib cairo"
+    ],
+    [AC_MSG_WARN([poppler-glib >= 0.40.0 or cairo >= 1.2 not found; disabling PDF load via poppler])
+     with_poppler=no
+    ]
+  )
 fi
 
 # OpenSlide
 AC_ARG_WITH([openslide],
-  AS_HELP_STRING([--without-openslide], [build without OpenSlide (default: test)]))
+  AS_HELP_STRING([--without-openslide], 
+    [build without OpenSlide (default: test)])
+)
 
 if test x"$with_openslide" != x"no"; then
   PKG_CHECK_MODULES(OPENSLIDE, [openslide >= 3.4.0],
     [AC_DEFINE(HAVE_OPENSLIDE_3_4,1,[define if you have OpenSlide >= 3.4.0 installed.])
      AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
      with_openslide=yes
-     PACKAGES_USED="$PACKAGES_USED openslide"],
+     PACKAGES_USED="$PACKAGES_USED openslide"
+    ],
     [AC_MSG_NOTICE([OpenSlide >= 3.4.0 not found; checking for >= 3.3.0])
      PKG_CHECK_MODULES(OPENSLIDE, [openslide >= 3.3.0],
-     [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
-      with_openslide=yes
-      PACKAGES_USED="$PACKAGES_USED openslide"],
-     [AC_MSG_WARN([OpenSlide >= 3.3.0 not found; disabling virtual slide support])
-      with_openslide=no
-     ])
-    ])
+       [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
+        with_openslide=yes
+        PACKAGES_USED="$PACKAGES_USED openslide"
+       ],
+       [AC_MSG_WARN([OpenSlide >= 3.3.0 not found; disabling virtual slide support])
+        with_openslide=no
+       ]
+     )
+    ]
+  )
 fi
 
 # matio
@@ -782,14 +806,14 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
 do 
 	echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES" 
-VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -875,6 +899,8 @@ file import with OpenEXR: 		$with_OpenEXR
 file import with OpenSlide:		$with_openslide
   (requires openslide-3.3.0 or later)
 file import with matio: 		$with_matio
+PDF import with poppler-glib: 		$with_poppler
+  (requires poppler-glib 0.30.0 or later)
 file import with cfitsio: 		$with_cfitsio
 file import/export with libwebp:	$with_libwebp
 text rendering with pangoft2: 		$with_pangoft2
