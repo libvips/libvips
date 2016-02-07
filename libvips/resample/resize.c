@@ -230,12 +230,26 @@ vips_resize_build( VipsObject *object )
 		vips_info( class->nickname, "%s interpolation", nickname );
 	}
 
-	if( vips_affine( in, &t[3], hresidual, 0, 0, vresidual, 
-		"interpolate", resize->interpolate,
-		"idx", resize->idx,
-		"idy", resize->idy,
-		NULL ) )  
-		return( -1 );
+	/* We have a special path for bicubic, idx/idy == 0.
+	 */
+	if( resize->interpolate &&
+		strcmp( VIPS_OBJECT_GET_CLASS( resize->interpolate )->nickname,
+			"bicubic" ) == 0 &&
+		resize->idx == 0.0 &&
+		resize->idy == 0.0 ) {
+		vips_info( class->nickname, "using fast path for residual" );
+		if( vips_reduce( in, &t[3], 
+			1.0 / hresidual, 1.0 / vresidual, NULL ) )  
+			return( -1 );
+	}
+	else {
+		if( vips_affine( in, &t[3], hresidual, 0, 0, vresidual, 
+			"interpolate", resize->interpolate,
+			"idx", resize->idx,
+			"idy", resize->idy,
+			NULL ) )  
+			return( -1 );
+	}
 	in = t[3];
 
 	/* If we are upsampling, don't sharpen. Also don't sharpen if we

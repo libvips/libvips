@@ -164,35 +164,37 @@ bicubic_unsigned_int(
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
 	const int* restrict cx, const int* restrict cy )
 {
+	const int c0 = cx[0];
+	const int c1 = cx[1];
+	const int c2 = cx[2];
+	const int c3 = cx[3];
+
 	const int r0 = unsigned_fixed_round( 
-		cx[0] * uno_one +
-		cx[1] * uno_two +
-		cx[2] * uno_thr +
-		cx[3] * uno_fou ); 
-
+		c0 * uno_one +
+		c1 * uno_two +
+		c2 * uno_thr +
+		c3 * uno_fou ); 
 	const int r1 = unsigned_fixed_round( 
-		cx[0] * dos_one +
-		cx[1] * dos_two +
-		cx[2] * dos_thr +
-		cx[3] * dos_fou );
-
+		c0 * dos_one +
+		c1 * dos_two +
+		c2 * dos_thr +
+		c3 * dos_fou ); 
 	const int r2 = unsigned_fixed_round( 
-		cx[0] * tre_one +
-		cx[1] * tre_two +
-		cx[2] * tre_thr +
-		cx[3] * tre_fou );
-
+		c0 * tre_one +
+		c1 * tre_two +
+		c2 * tre_thr +
+		c3 * tre_fou ); 
 	const int r3 = unsigned_fixed_round( 
-		cx[0] * qua_one +
-		cx[1] * qua_two +
-		cx[2] * qua_thr +
-		cx[3] * qua_fou );
+		c0 * qua_one +
+		c1 * qua_two +
+		c2 * qua_thr +
+		c3 * qua_fou ); 
 
 	return( unsigned_fixed_round( 
 		cy[0] * r0 +
 		cy[1] * r1 +
 		cy[2] * r2 +
-		cy[3] * r3 ) );
+		cy[3] * r3 ) ); 
 }
 
 static int inline
@@ -214,35 +216,48 @@ bicubic_signed_int(
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
 	const int* restrict cx, const int* restrict cy )
 {
+	const int c0 = cx[0];
+	const int c1 = cx[1];
+	const int c2 = cx[2];
+	const int c3 = cx[3];
+
 	const int r0 = signed_fixed_round( 
-		cx[0] * uno_one +
-		cx[1] * uno_two +
-		cx[2] * uno_thr +
-		cx[3] * uno_fou ); 
-
+		c0 * uno_one +
+		c1 * uno_two +
+		c2 * uno_thr +
+		c3 * uno_fou ); 
 	const int r1 = signed_fixed_round( 
-		cx[0] * dos_one +
-		cx[1] * dos_two +
-		cx[2] * dos_thr +
-		cx[3] * dos_fou );
-
+		c0 * dos_one +
+		c1 * dos_two +
+		c2 * dos_thr +
+		c3 * dos_fou ); 
 	const int r2 = signed_fixed_round( 
-		cx[0] * tre_one +
-		cx[1] * tre_two +
-		cx[2] * tre_thr +
-		cx[3] * tre_fou );
-
+		c0 * tre_one +
+		c1 * tre_two +
+		c2 * tre_thr +
+		c3 * tre_fou ); 
 	const int r3 = signed_fixed_round( 
-		cx[0] * qua_one +
-		cx[1] * qua_two +
-		cx[2] * qua_thr +
-		cx[3] * qua_fou );
+		c0 * qua_one +
+		c1 * qua_two +
+		c2 * qua_thr +
+		c3 * qua_fou ); 
 
 	return( signed_fixed_round( 
 		cy[0] * r0 +
 		cy[1] * r1 +
 		cy[2] * r2 +
-		cy[3] * r3 ) );
+		cy[3] * r3 ) ); 
+}
+
+template <typename T> static T inline
+cubic_float(
+	const T one, const T two, const T thr, const T fou,
+	const double* restrict cx )
+{
+	return( cx[0] * one +
+		 cx[1] * two +
+		 cx[2] * thr +
+		 cx[3] * fou );
 }
 
 /* Floating-point bicubic, used for int/float/double types.
@@ -255,26 +270,16 @@ bicubic_float(
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
 	const double* restrict cx, const double* restrict cy )
 {
-	return(
-		cy[0] * (cx[0] * uno_one +
-			 cx[1] * uno_two +
-			 cx[2] * uno_thr +
-			 cx[3] * uno_fou)
-                +
-		cy[1] * (cx[0] * dos_one +
-			 cx[1] * dos_two +
-			 cx[2] * dos_thr +
-			 cx[3] * dos_fou)
-                +
-		cy[2] * (cx[0] * tre_one +
-			 cx[1] * tre_two +
-			 cx[2] * tre_thr +
-			 cx[3] * tre_fou)
-                +
-		cy[3] * (cx[0] * qua_one +
-			 cx[1] * qua_two +
-			 cx[2] * qua_thr +
-			 cx[3] * qua_fou) );
+	const double r0 = cubic_float<T>( 
+		uno_one, uno_two, uno_thr, uno_fou, cx ); 
+	const double r1 = cubic_float<T>( 
+		dos_one, dos_two, dos_thr, dos_fou, cx ); 
+	const double r2 = cubic_float<T>( 
+		tre_one, tre_two, tre_thr, tre_fou, cx ); 
+	const double r3 = cubic_float<T>( 
+		qua_one, qua_two, qua_thr, qua_fou, cx ); 
+
+	return( cubic_float<T>( r0, r1, r2, r3, cy ) ); 
 }
 
 /* Given an offset in [0,1] (we can have x == 1 when building tables),

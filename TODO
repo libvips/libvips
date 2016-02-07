@@ -1,14 +1,21 @@
-- look for FCLIP / FABS use ... VIPS_ABS() on float type
+- new vips_reduce:
 
-- write a shrinker that does two 1D shrinks, vertical and horizontal, with
-  bicubic interpolation
+	affine
+	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
+	real	0m2.325s
+	user	0m8.316s
+	sys	0m0.256s
 
-  should be much quicker than affine + bicubic
-
-  vips_resize() can use this, for the default path at least
+	reduce
+	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
+	real	0m1.677s
+	user	0m5.996s
+	sys	0m0.300s
 
 - get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very
   odd, the interpolation shouldn't change between bands
+
+  probably over/underflow in interpolation ... clipping problems?
 
 - still not happy about float->int mask conversion in im_vips2mask.c
 

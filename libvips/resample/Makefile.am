@@ -9,7 +9,9 @@ libresample_la_SOURCES = \
 	shrink.c \
 	shrinkh.c \
 	shrinkv.c \
-	shrink2.c \
+	reduce.c \
+	reduceh.cpp \
+	reducev.cpp \
 	interpolate.c \
 	transform.c \
 	bicubic.cpp \
