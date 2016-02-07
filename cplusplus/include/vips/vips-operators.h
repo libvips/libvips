@@ -1,5 +1,5 @@
 // headers for vips operations
-// Sat Jan  9 15:06:40 GMT 2016
+// Sun Feb  7 16:27:14 GMT 2016
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 );
@@ -146,7 +146,9 @@ VImage mapim( VImage index , VOption *options = 0 );
 VImage shrink( double xshrink , double yshrink , VOption *options = 0 );
 VImage shrinkh( int xshrink , VOption *options = 0 );
 VImage shrinkv( int yshrink , VOption *options = 0 );
-VImage shrink2( double xshrink , double yshrink , VOption *options = 0 );
+VImage reduceh( double xshrink , VOption *options = 0 );
+VImage reducev( double yshrink , VOption *options = 0 );
+VImage reduce( double xshrink , double yshrink , VOption *options = 0 );
 VImage quadratic( VImage coeff , VOption *options = 0 );
 VImage affine( std::vector<double> matrix , VOption *options = 0 );
 VImage similarity( VOption *options = 0 );

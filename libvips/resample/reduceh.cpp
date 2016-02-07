@@ -160,9 +160,76 @@ reduceh_float_tab( VipsPel *pout, const VipsPel *pin,
 	for( int z = 0; z < bands; z++ ) {
 		out[z] = 
 			c0 * in[0] +
-			c1 * in[1] +
-			c2 * in[2] +
-			c3 * in[3];
+			c1 * in[b1] +
+			c2 * in[b2] +
+			c3 * in[b3];
+
+		in += 1;
+	}
+}
+
+/* 32-bit output needs a double intermediate.
+ */
+
+template <typename T, int max_value>
+static void inline
+reduceh_unsigned_int32_tab( VipsPel *pout, const VipsPel *pin,
+	const int bands, const double *cx )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	const int b1 = bands;
+	const int b2 = b1 + b1;
+	const int b3 = b1 + b2;
+
+	const double c0 = cx[0];
+	const double c1 = cx[1];
+	const double c2 = cx[2];
+	const double c3 = cx[3];
+
+	for( int z = 0; z < bands; z++ ) {
+		double cubich = 
+			c0 * in[0] +
+			c1 * in[b1] +
+			c2 * in[b2] +
+			c3 * in[b3]; 
+
+		cubich = VIPS_CLIP( 0, cubich, max_value ); 
+
+		out[z] = cubich;
+
+		in += 1;
+	}
+}
+
+template <typename T, int min_value, int max_value>
+static void inline
+reduceh_signed_int32_tab( VipsPel *pout, const VipsPel *pin,
+	const int bands, const double *cx )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	const int b1 = bands;
+	const int b2 = b1 + b1;
+	const int b3 = b1 + b2;
+
+	const double c0 = cx[0];
+	const double c1 = cx[1];
+	const double c2 = cx[2];
+	const double c3 = cx[3];
+
+	for( int z = 0; z < bands; z++ ) {
+		double cubich = 
+			c0 * in[0] +
+			c1 * in[b1] +
+			c2 * in[b2] +
+			c3 * in[b3]; 
+
+		cubich = VIPS_CLIP( min_value, cubich, max_value ); 
+
+		out[z] = cubich;
 
 		in += 1;
 	}
@@ -222,7 +289,7 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 
 	s.left = r->left * reduceh->xshrink;
 	s.top = r->top;
-	s.width = r->width * reduceh->xshrink + 3;
+	s.width = r->width * reduceh->xshrink + 4;
 	s.height = r->height;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
@@ -271,12 +338,14 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 				break;
 
 			case VIPS_FORMAT_UINT:
-				reduceh_float_tab<unsigned int>( 
+				reduceh_unsigned_int32_tab
+					<unsigned int, INT_MAX>(
 					q, p, bands, cxf );
 				break;
 
 			case VIPS_FORMAT_INT:
-				reduceh_float_tab<signed int>( 
+				reduceh_signed_int32_tab
+					<signed int, INT_MIN, INT_MAX>(
 					q, p, bands, cxf );
 				break;
 
@@ -326,9 +395,9 @@ vips_reduceh_build( VipsObject *object )
 			"%s", _( "reduce factors should be >= 1" ) );
 		return( -1 );
 	}
-	if( reduceh->xshrink > 2 )  
+	if( reduceh->xshrink > 3 )  
 		vips_warn( object_class->nickname, 
-			"%s", _( "reduce factor greater than 2" ) );
+			"%s", _( "reduce factor greater than 3" ) );
 
 	if( reduceh->xshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );

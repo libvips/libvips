@@ -52,6 +52,28 @@
 
 #include "presample.h"
 
+/**
+ * SECTION: resample
+ * @short_description: resample images in various ways
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * There are three types of operation in this section.
+ *
+ * First, vips_affine() applies an affine transform to an image. This is any
+ * sort of 2D transform which preserves straight lines; so any combination of 
+ * stretch, sheer, rotate and translate. You supply an interpolator for it to
+ * use to generate pixels, see vips_interpolate_new(). It will not produce
+ * good results for very large shrinks.
+ *
+ * Next, vips_resize() specialises in the common task of image reduce and 
+ * enlarge. It strings together combinations of vips_shrink(), vips_reduce(),
+ * vips_affine() and others to implement a general, high-quality image
+ * resizer.
+ *
+ * Finally, vips_mapim() can apply arbitrary 2D image transforms to an image.
+ */
+
 G_DEFINE_ABSTRACT_TYPE( VipsResample, vips_resample, VIPS_TYPE_OPERATION );
 
 static int

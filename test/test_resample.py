@@ -10,6 +10,20 @@ from gi.repository import Vips
 
 Vips.leak_set(True)
 
+unsigned_formats = [Vips.BandFormat.UCHAR, 
+                    Vips.BandFormat.USHORT, 
+                    Vips.BandFormat.UINT] 
+signed_formats = [Vips.BandFormat.CHAR, 
+                  Vips.BandFormat.SHORT, 
+                  Vips.BandFormat.INT] 
+float_formats = [Vips.BandFormat.FLOAT, 
+                 Vips.BandFormat.DOUBLE]
+complex_formats = [Vips.BandFormat.COMPLEX, 
+                   Vips.BandFormat.DPCOMPLEX] 
+int_formats = unsigned_formats + signed_formats
+noncomplex_formats = int_formats + float_formats
+all_formats = int_formats + float_formats + complex_formats
+
 # Run a function expecting a complex image on a two-band image
 def run_cmplx(fn, image):
     if image.format == Vips.BandFormat.FLOAT:
@@ -105,13 +119,14 @@ class TestResample(unittest.TestCase):
         bicubic = Vips.Interpolate.new("bicubic")
         
         for fac in [1, 1.1, 1.5, 1.999]:
-            print("fac =", fac)
-            r = im.reduce(fac, fac)
-            a = im.affine([1.0 / fac, 0, 0, 1.0 / fac], interpolate = bicubic)
-            r.write_to_file("r.v")
-            a.write_to_file("a.v")
-            d = (r - a).abs().max()
-            self.assertLess(d, 0.1)
+            for fmt in all_formats:
+                x = im.cast(fmt)
+                r = x.reduce(fac, fac)
+                a = x.affine([1.0 / fac, 0, 0, 1.0 / fac], 
+                             interpolate = bicubic,
+                             oarea = [0, 0, x.width / fac, x.height / fac])
+                d = (r - a).abs().max()
+                self.assertLess(d, 5)
 
     def test_resize(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")

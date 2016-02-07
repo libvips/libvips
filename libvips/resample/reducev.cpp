@@ -140,8 +140,9 @@ reducev_signed_int_tab( VipsPel *pout, const VipsPel *pin,
 	}
 }
 
-/* Floating-point version, for int/float types.
+/* Floating-point version.
  */
+
 template <typename T>
 static void inline
 reducev_float_tab( VipsPel *pout, const VipsPel *pin,
@@ -166,6 +167,75 @@ reducev_float_tab( VipsPel *pout, const VipsPel *pin,
 			c1 * in[l1] +
 			c2 * in[l2] +
 			c3 * in[l3]; 
+
+		in += 1;
+	}
+}
+
+/* 32-bit int version needs a double intermediate.
+ */
+
+template <typename T, int max_value>
+static void inline
+reducev_unsigned_int32_tab( VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip,
+	const double *cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	const int l1 = lskip / sizeof( T );
+	const int l2 = l1 + l1;
+	const int l3 = l1 + l2;
+
+	const double c0 = cy[0];
+	const double c1 = cy[1];
+	const double c2 = cy[2];
+	const double c3 = cy[3];
+
+	for( int z = 0; z < ne; z++ ) {
+		double cubicv = 
+			c0 * in[0] +
+			c1 * in[l1] +
+			c2 * in[l2] +
+			c3 * in[l3]; 
+
+		cubicv = VIPS_CLIP( 0, cubicv, max_value ); 
+
+		out[z] = cubicv;
+
+		in += 1;
+	}
+}
+
+template <typename T, int min_value, int max_value>
+static void inline
+reducev_signed_int32_tab( VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip,
+	const double *cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	const int l1 = lskip / sizeof( T );
+	const int l2 = l1 + l1;
+	const int l3 = l1 + l2;
+
+	const double c0 = cy[0];
+	const double c1 = cy[1];
+	const double c2 = cy[2];
+	const double c3 = cy[3];
+
+	for( int z = 0; z < ne; z++ ) {
+		double cubicv = 
+			c0 * in[0] +
+			c1 * in[l1] +
+			c2 * in[l2] +
+			c3 * in[l3]; 
+
+		cubicv = VIPS_CLIP( min_value, cubicv, max_value ); 
+
+		out[z] = cubicv;
 
 		in += 1;
 	}
@@ -231,7 +301,7 @@ vips_reducev_gen( VipsRegion *out_region, void *seq,
 	s.left = r->left;
 	s.top = r->top * reducev->yshrink;
 	s.width = r->width;
-	s.height = r->height * reducev->yshrink + 3;
+	s.height = r->height * reducev->yshrink + 4;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
@@ -274,11 +344,15 @@ vips_reducev_gen( VipsRegion *out_region, void *seq,
 			break;
 
 		case VIPS_FORMAT_UINT:
-			reducev_float_tab<unsigned int>( q, p, ne, lskip, cyf );
+			reducev_unsigned_int32_tab
+				<unsigned int, INT_MAX>(
+				q, p, ne, lskip, cyf );
 			break;
 
 		case VIPS_FORMAT_INT:
-			reducev_float_tab<signed int>( q, p, ne, lskip, cyf );
+			reducev_signed_int32_tab
+				<signed int, INT_MIN, INT_MAX>(
+				q, p, ne, lskip, cyf );
 			break;
 
 		case VIPS_FORMAT_FLOAT:
@@ -322,9 +396,9 @@ vips_reducev_build( VipsObject *object )
 			"%s", _( "reduce factors should be >= 1" ) );
 		return( -1 );
 	}
-	if( reducev->yshrink > 2 )  
+	if( reducev->yshrink > 3 )  
 		vips_warn( object_class->nickname, 
-			"%s", _( "reduce factor greater than 2" ) );
+			"%s", _( "reduce factor greater than 3" ) );
 
 	if( reducev->yshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );

@@ -8,6 +8,8 @@
  * 	  rest of vips
  * 13/8/14
  * 	- oops, missing scale from b, thanks Topochicho
+ * 7/2/16
+ * 	- use vips_reduce(), if we can
  */
 
 /*
