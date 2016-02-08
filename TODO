@@ -1,9 +1,16 @@
-- pooperload URI generation needs fixing, it currently does not support 
-  relative paths
-
 - popplerload generates ARGB? need to do our own byteswap
 
 - add tests for popplerload, check docs, update c++
+
+- add load PDF from buffer
+
+- add file type sniffing .. "%PDF" should be enough
+
+- metadata: xres/yres
+
+- trim page edges? we often have black now
+
+- does poppler support other formats? SVG / PS / EPS
 
 - new vips_reduce:
 

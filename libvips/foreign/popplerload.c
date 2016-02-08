@@ -45,6 +45,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include <vips/vips.h>
 #include <vips/buf.h>
@@ -110,14 +111,37 @@ vips_foreign_load_poppler_get_flags( VipsForeignLoad *load )
 	return( VIPS_FOREIGN_PARTIAL );
 }
 
+/* String-based metadatra fields we extract.
+ */
+typedef struct _VipsForeignLoadPopperMetadata {
+	char *(*poppler_fetch)( PopplerDocument *doc );
+	char *field;
+} VipsForeignLoadPopperMetadata;
+
+static VipsForeignLoadPopperMetadata vips_foreign_load_poppler_metadata[] = {
+	{ poppler_document_get_title, "poppler-title" },
+	{ poppler_document_get_author, "poppler-author" },
+	{ poppler_document_get_subject, "poppler-subject" },
+	{ poppler_document_get_keywords, "poppler-keywords" },
+	{ poppler_document_get_creator, "poppler-creator" },
+	{ poppler_document_get_producer, "poppler-producer" },
+	{ poppler_document_get_metadata, "poppler-metadata" },
+};
+static int n_metadata = VIPS_NUMBER( vips_foreign_load_poppler_metadata );
+
 static void
 vips_foreign_load_poppler_parse( VipsForeignLoadPoppler *poppler, 
 	VipsImage *out )
 {
+	PopplerRectangle crop_box;
 	double width;
 	double height;
+	int i;
+	char *str;
 
 	poppler_page_get_size( poppler->page, &width, &height ); 
+
+	poppler_page_get_crop_box( poppler->page, &crop_box ); 
 
 	vips_image_init_fields( out, 
 		width * poppler->scale, height * poppler->scale, 
@@ -129,6 +153,21 @@ vips_foreign_load_poppler_parse( VipsForeignLoadPoppler *poppler,
 	/* We render to a linecache, so fat strips work well.
 	 */
         vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+
+	/* Extract and attach metadata.
+	 */
+	vips_image_set_int( out, "poppler-n_pages", 
+		poppler_document_get_n_pages( poppler->doc ) );
+
+	for( i = 0; i < n_metadata; i++ ) {
+		VipsForeignLoadPopperMetadata *metadata = 
+			&vips_foreign_load_poppler_metadata[i];
+
+		if( (str = metadata->poppler_fetch( poppler->doc )) ) { 
+			vips_image_set_string( out, metadata->field, str ); 
+			g_free( str );
+		}
+	}
 }
 
 static int
@@ -137,11 +176,24 @@ vips_foreign_load_poppler_header( VipsForeignLoad *load )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadPoppler *poppler = (VipsForeignLoadPoppler *) load;
 
+	char *path;
 	GError *error = NULL;
 
 	poppler->scale = poppler->dpi / 72.0;
 
-	poppler->uri = g_strdup_printf( "file://%s", poppler->filename ); 
+	/* We need an absolute path for a URI.
+	 */
+	if( !(path = realpath( poppler->filename, NULL )) ) {
+		vips_error_system( errno, class->nickname,
+			"%s", _( "unable to form filename" ) ); 
+		return( -1 );
+	}
+	if( !(poppler->uri = g_filename_to_uri( path, NULL, &error )) ) { 
+		free( path );
+		vips_g_error( &error );
+		return( -1 ); 
+	}
+	free( path );
 
 	if( !(poppler->doc = poppler_document_new_from_file( 
 		poppler->uri, NULL, &error )) ) { 
