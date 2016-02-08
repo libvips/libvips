@@ -1654,9 +1654,9 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_webp_buffer_get_type( void ); 
 	extern GType vips_foreign_save_webp_file_get_type( void ); 
 	extern GType vips_foreign_save_webp_buffer_get_type( void ); 
-	extern GType vips_foreign_load_poppler_get_type( void ); 
-	extern GType vips_foreign_load_poppler_file_get_type( void ); 
-	extern GType vips_foreign_load_poppler_buffer_get_type( void ); 
+	extern GType vips_foreign_load_pdf_get_type( void ); 
+	extern GType vips_foreign_load_pdf_file_get_type( void ); 
+	extern GType vips_foreign_load_pdf_buffer_get_type( void ); 
 
 	vips_foreign_load_rad_get_type(); 
 	vips_foreign_save_rad_get_type(); 
@@ -1675,9 +1675,9 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_vips_get_type(); 
 
 #ifdef HAVE_POPPLER
-	vips_foreign_load_poppler_get_type(); 
-	vips_foreign_load_poppler_file_get_type(); 
-	vips_foreign_load_poppler_buffer_get_type(); 
+	vips_foreign_load_pdf_get_type(); 
+	vips_foreign_load_pdf_file_get_type(); 
+	vips_foreign_load_pdf_buffer_get_type(); 
 #endif /*HAVE_POPPLER*/
 
 #ifdef HAVE_GSF
@@ -2852,7 +2852,7 @@ vips_matload( const char *filename, VipsImage **out, ... )
 }
 
 /**
- * vips_popplerload:
+ * vips_pdfload:
  * @filename: file to load
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
@@ -2867,31 +2867,34 @@ vips_matload( const char *filename, VipsImage **out, ... )
  *
  * Use @page to select a page to render, numbering from zero.
  *
- * Use @dpi to set the rendering resolution. The default is 72. Alternatively
+ * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
  * you can scale the rendering by @scale.
  *
+ * The operation fills a number of header fields with metadata, for example
+ * "pdf-author". They may be useful. 
+ *
  * This function only reads the image header and does not render any pixel
- * data. Rendering only occurs when pixels are accessed.
+ * data. Rendering occurs when pixels are accessed.
  *
  * See also: vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_popplerload( const char *filename, VipsImage **out, ... )
+vips_pdfload( const char *filename, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "popplerload", ap, filename, out );
+	result = vips_call_split( "pdfload", ap, filename, out );
 	va_end( ap );
 
 	return( result );
 }
 
 /**
- * vips_popplerload_buffer:
+ * vips_pdfload_buffer:
  * @buf: memory area to load
  * @len: size of memory area
  * @out: image to write
@@ -2904,17 +2907,17 @@ vips_popplerload( const char *filename, VipsImage **out, ... )
  * @scale: %gdouble, scale render by this factor
  *
  * Read a PDF-formatted memory block into a VIPS image. Exactly as
- * vips_popplerload(), but read from a memory buffer. 
+ * vips_pdfload(), but read from a memory buffer. 
  *
  * You must not free the buffer while @out is active. The 
  * #VipsObject::postclose signal on @out is a good place to free. 
  *
- * See also: vips_popplerload().
+ * See also: vips_pdfload().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_popplerload_buffer( void *buf, size_t len, VipsImage **out, ... )
+vips_pdfload_buffer( void *buf, size_t len, VipsImage **out, ... )
 {
 	va_list ap;
 	VipsBlob *blob;
@@ -2925,7 +2928,7 @@ vips_popplerload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	blob = vips_blob_new( NULL, buf, len );
 
 	va_start( ap, out );
-	result = vips_call_split( "popplerload_buffer", ap, blob, out );
+	result = vips_call_split( "pdfload_buffer", ap, blob, out );
 	va_end( ap );
 
 	vips_area_unref( VIPS_AREA( blob ) );

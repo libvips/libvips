@@ -1,10 +1,8 @@
-- add tests for popplerload, check docs, update c++
+- add tests for pdfload, check docs, update c++
 
 - trim page edges? we often have black now
 
 - could load pdf thumbnails?
-
-- rename as pdfload?
 
 - new vips_reduce:
 
