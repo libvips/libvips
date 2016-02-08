@@ -1,3 +1,7 @@
+- svg loader?
+
+- gif loader?
+
 - vipsthumbnail needs to know about pdfload ... open, get size, open again
   with scale set to make a thumbnail
 
