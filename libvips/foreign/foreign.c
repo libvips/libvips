@@ -2846,3 +2846,40 @@ vips_matload( const char *filename, VipsImage **out, ... )
 
 	return( result );
 }
+
+/**
+ * vips_popplerload:
+ * @filename: file to load
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @page: %gint, load this page, numbered from zero
+ * @dpi: %gdouble, render at this DPI
+ *
+ * Render a PDF file into a VIPS image. 
+ *
+ * Use @page to select a page to render, numbering from zero.
+ *
+ * Use @dpi to set the rendering resolution. The default is 72. 
+ *
+ * This function only reads the image header and does not render any pixel
+ * data. Rendering only occurs when pixels are accessed.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_popplerload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "popplerload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
