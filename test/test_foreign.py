@@ -44,6 +44,7 @@ class TestForeign(unittest.TestCase):
         self.exr_file = "images/sample.exr"
         self.fits_file = "images/WFPC2u5780205r_c0fx.fits"
         self.openslide_file = "images/CMU-1-Small-Region.svs"
+        self.pdf_file = "images/ISO_12233-reschart.pdf"
 
         self.colour = Vips.Image.jpegload(self.jpeg_file)
         self.mono = self.colour.extract_band(1)
@@ -335,6 +336,32 @@ class TestForeign(unittest.TestCase):
             self.assertEqual(im.bands, 4)
 
         self.file_loader("openslideload", self.openslide_file, openslide_valid)
+
+    def test_pdfload(self):
+        x = Vips.type_find("VipsForeign", "pdfload")
+        if not x.is_instantiatable():
+            print("no pdf support in this vips, skipping test")
+            return
+
+        def pdf_valid(self, im):
+            a = im(10, 10)
+            self.assertAlmostEqualObjects(a, [35, 31, 32, 255])
+            self.assertEqual(im.width, 1133)
+            self.assertEqual(im.height, 680)
+            self.assertEqual(im.bands, 4)
+
+        self.file_loader("pdfload", self.pdf_file, pdf_valid)
+        self.buffer_loader("pdfload_buffer", self.pdf_file, pdf_valid)
+
+        im = Vips.Image.new_from_file(self.pdf_file)
+        x = Vips.Image.new_from_file(self.pdf_file, scale = 2)
+        self.assertLess(abs(im.width * 2 - x.width), 2)
+        self.assertLess(abs(im.height * 2 - x.height), 2)
+
+        im = Vips.Image.new_from_file(self.pdf_file)
+        x = Vips.Image.new_from_file(self.pdf_file, dpi = 144)
+        self.assertLess(abs(im.width * 2 - x.width), 2)
+        self.assertLess(abs(im.height * 2 - x.height), 2)
 
     def test_csv(self):
         self.save_load("%s.csv", self.mono)

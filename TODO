@@ -1,4 +1,4 @@
-- add tests for pdfload, check docs, update c++
+- vipsthumbnail needs to know about pdfload
 
 - trim page edges? we often have black now
 
