@@ -97,6 +97,21 @@ vips_foreign_load_poppler_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
+static int
+vips_foreign_load_poppler_build( VipsObject *object )
+{
+	VipsForeignLoadPoppler *poppler = (VipsForeignLoadPoppler *) object;
+
+	if( !vips_object_argument_isset( object, "scale" ) )
+		poppler->scale = poppler->dpi / 72.0;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_poppler_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 static VipsForeignFlags
 vips_foreign_load_poppler_get_flags_filename( const char *filename )
 {
@@ -136,17 +151,21 @@ vips_foreign_load_poppler_parse( VipsForeignLoadPoppler *poppler,
 	PopplerRectangle crop_box;
 	double width;
 	double height;
+	double res;
 	int i;
-	char *str;
 
 	poppler_page_get_size( poppler->page, &width, &height ); 
 
 	poppler_page_get_crop_box( poppler->page, &crop_box ); 
 
+	/* We need pixels/mm for vips.
+	 */
+	res = poppler->dpi / 25.4;
+
 	vips_image_init_fields( out, 
 		width * poppler->scale, height * poppler->scale, 
 		4, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res );
 
 	VIPS_SETSTR( out->filename, poppler->filename );
 
@@ -163,6 +182,8 @@ vips_foreign_load_poppler_parse( VipsForeignLoadPoppler *poppler,
 		VipsForeignLoadPopperMetadata *metadata = 
 			&vips_foreign_load_poppler_metadata[i];
 
+		char *str;
+
 		if( (str = metadata->poppler_fetch( poppler->doc )) ) { 
 			vips_image_set_string( out, metadata->field, str ); 
 			g_free( str );
@@ -178,8 +199,6 @@ vips_foreign_load_poppler_header( VipsForeignLoad *load )
 
 	char *path;
 	GError *error = NULL;
-
-	poppler->scale = poppler->dpi / 72.0;
 
 	/* We need an absolute path for a URI.
 	 */
@@ -309,6 +328,7 @@ vips_foreign_load_poppler_class_init( VipsForeignLoadPopplerClass *class )
 
 	object_class->nickname = "popplerload";
 	object_class->description = _( "load PDF with poppler" );
+	object_class->build = vips_foreign_load_poppler_build;
 
 	foreign_class->suffs = vips_foreign_poppler_suffs;
 
@@ -332,12 +352,19 @@ vips_foreign_load_poppler_class_init( VipsForeignLoadPopplerClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadPoppler, page_no ),
 		0, 100000, 0 );
 
-	VIPS_ARG_DOUBLE( class, "dpi", 10,
+	VIPS_ARG_DOUBLE( class, "dpi", 11,
 		_( "DPI" ),
 		_( "Render at this DPI" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPoppler, dpi ),
 		0.001, 100000.0, 72.0 );
+
+	VIPS_ARG_DOUBLE( class, "scale", 12,
+		_( "Scale" ),
+		_( "Scale output by this factor" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPoppler, scale ),
+		0.001, 100000.0, 1.0 );
 
 }
 
@@ -345,6 +372,7 @@ static void
 vips_foreign_load_poppler_init( VipsForeignLoadPoppler *poppler )
 {
 	poppler->dpi = 72.0;
+	poppler->scale = 1.0;
 }
 
 #endif /*HAVE_POPPLER*/

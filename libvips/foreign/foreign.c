@@ -2857,12 +2857,14 @@ vips_matload( const char *filename, VipsImage **out, ... )
  *
  * @page: %gint, load this page, numbered from zero
  * @dpi: %gdouble, render at this DPI
+ * @scale: %gdouble, scale render by this factor
  *
  * Render a PDF file into a VIPS image. 
  *
  * Use @page to select a page to render, numbering from zero.
  *
- * Use @dpi to set the rendering resolution. The default is 72. 
+ * Use @dpi to set the rendering resolution. The default is 72. Alternatively
+ * you can scale the rendering by @scale.
  *
  * This function only reads the image header and does not render any pixel
  * data. Rendering only occurs when pixels are accessed.
