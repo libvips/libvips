@@ -126,6 +126,33 @@ vips_foreign_load_poppler_get_flags( VipsForeignLoad *load )
 	return( VIPS_FOREIGN_PARTIAL );
 }
 
+static gboolean
+vips_foreign_load_poppler_is_a_buffer( const void *buf, size_t len )
+{
+	const guchar *str = (const guchar *) buf;
+
+	if( len >= 4 &&
+		str[0] == '%' && 
+		str[1] == 'P' &&
+		str[2] == 'D' &&
+		str[3] == 'F' )
+		return( 1 );
+
+	return( 0 );
+}
+
+static gboolean
+vips_foreign_load_poppler_is_a( const char *filename )
+{
+	unsigned char buf[4];
+
+	if( vips__get_bytes( filename, buf, 4 ) &&
+		vips_foreign_load_poppler_is_a_buffer( buf, 4 ) )
+		return( 1 );
+
+	return( 0 );
+}
+
 /* String-based metadatra fields we extract.
  */
 typedef struct _VipsForeignLoadPopperMetadata {
@@ -335,6 +362,7 @@ vips_foreign_load_poppler_class_init( VipsForeignLoadPopplerClass *class )
 	load_class->get_flags_filename = 
 		vips_foreign_load_poppler_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_poppler_get_flags;
+	load_class->is_a = vips_foreign_load_poppler_is_a;
 	load_class->header = vips_foreign_load_poppler_header;
 	load_class->load = vips_foreign_load_poppler_load;
 

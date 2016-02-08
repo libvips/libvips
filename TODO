@@ -2,8 +2,6 @@
 
 - add load PDF from buffer
 
-- add file type sniffing .. "%PDF" should be enough
-
 - trim page edges? we often have black now
 
 - new vips_reduce:
