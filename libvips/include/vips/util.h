@@ -293,6 +293,8 @@ char *vips__temp_name( const char *format );
 void vips__change_suffix( const char *name, char *out, int mx,
         const char *new_suff, const char **olds, int nolds );
 
+char *vips_realpath( const char *path );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

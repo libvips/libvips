@@ -1713,3 +1713,44 @@ vips__substitute( char *buf, size_t len, char *sub )
 
 	return( 0 ); 
 }
+
+/* Absoluteize a path. Free the result with g_free().
+ */
+char *
+vips_realpath( const char *path ) 
+{
+	char *real;
+
+#ifdef HAVE_REALPATH
+{
+	char *real2;
+
+	if( !(real = realpath( path, NULL )) ) {
+		vips_error_system( errno, "vips_realpath",
+			"%s", _( "unable to form filename" ) ); 
+		return( NULL );
+	}
+
+	/* We must return a path that can be freed with g_free().
+	 */
+	real2 = g_strdup( real );
+	free( real );
+	real = real2;
+}
+#else /*!HAVE_REALPATH*/
+{
+	char *real;
+
+	if( !g_path_is_absolute( path ) ) {
+		char *cwd;
+
+		cwd = g_get_current_dir();
+		real = g_build_filename( cwd, path );
+		g_free( cwd );
+	}
+	else
+		real = g_strdup( path );
+#endif
+
+	return( real );
+}

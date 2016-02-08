@@ -1,5 +1,3 @@
-- popplerload generates ARGB? need to do our own byteswap
-
 - add tests for popplerload, check docs, update c++
 
 - add load PDF from buffer
@@ -9,8 +7,6 @@
 - metadata: xres/yres
 
 - trim page edges? we often have black now
-
-- does poppler support other formats? SVG / PS / EPS
 
 - new vips_reduce:
 

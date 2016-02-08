@@ -183,11 +183,7 @@ vips_foreign_load_poppler_header( VipsForeignLoad *load )
 
 	/* We need an absolute path for a URI.
 	 */
-	if( !(path = realpath( poppler->filename, NULL )) ) {
-		vips_error_system( errno, class->nickname,
-			"%s", _( "unable to form filename" ) ); 
-		return( -1 );
-	}
+	path = vips_realpath( poppler->filename );
 	if( !(poppler->uri = g_filename_to_uri( path, NULL, &error )) ) { 
 		free( path );
 		vips_g_error( &error );
@@ -222,6 +218,7 @@ vips_foreign_load_poppler_generate( VipsRegion *or,
 
 	cairo_surface_t *surface;
 	cairo_t *cr;
+	int x, y;
 
 	/* Poppler won't always paint the background.
 	 */
@@ -245,6 +242,20 @@ vips_foreign_load_poppler_generate( VipsRegion *or,
 	poppler_page_render( poppler->page, cr );
 
 	cairo_destroy( cr );
+
+	/* Cairo makes BRGA, we must byteswap. We might not need to on SPARC,
+	 * but I have no way of testing this :( 
+	 */
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *q;
+
+		q = VIPS_REGION_ADDR( or, r->left, r->top + y );
+		for( x = 0; x < r->width; x++ ) {
+			VIPS_SWAP( VipsPel, q[0], q[2] );
+
+			q += 4;
+		}
+	}
 
 	return( 0 ); 
 }
