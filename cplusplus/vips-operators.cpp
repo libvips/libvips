@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Sun Feb  7 16:26:59 GMT 2016
+// Mon Feb  8 20:25:58 GMT 2016
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -1403,6 +1403,30 @@ VImage VImage::vipsload( char * filename , VOption *options )
     call( "vipsload" ,
         (options ? options : VImage::option()) ->
             set( "filename", filename ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::pdfload( char * filename , VOption *options )
+{
+    VImage out;
+
+    call( "pdfload" ,
+        (options ? options : VImage::option()) ->
+            set( "filename", filename ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::pdfload_buffer( VipsBlob * buffer , VOption *options )
+{
+    VImage out;
+
+    call( "pdfload_buffer" ,
+        (options ? options : VImage::option()) ->
+            set( "buffer", buffer ) ->
             set( "out", &out ) );
 
     return( out );
