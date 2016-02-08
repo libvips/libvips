@@ -1655,6 +1655,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_webp_file_get_type( void ); 
 	extern GType vips_foreign_save_webp_buffer_get_type( void ); 
 	extern GType vips_foreign_load_poppler_get_type( void ); 
+	extern GType vips_foreign_load_poppler_file_get_type( void ); 
+	extern GType vips_foreign_load_poppler_buffer_get_type( void ); 
 
 	vips_foreign_load_rad_get_type(); 
 	vips_foreign_save_rad_get_type(); 
@@ -1674,6 +1676,8 @@ vips_foreign_operation_init( void )
 
 #ifdef HAVE_POPPLER
 	vips_foreign_load_poppler_get_type(); 
+	vips_foreign_load_poppler_file_get_type(); 
+	vips_foreign_load_poppler_buffer_get_type(); 
 #endif /*HAVE_POPPLER*/
 
 #ifdef HAVE_GSF
@@ -2882,6 +2886,49 @@ vips_popplerload( const char *filename, VipsImage **out, ... )
 	va_start( ap, out );
 	result = vips_call_split( "popplerload", ap, filename, out );
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_popplerload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @page: %gint, load this page, numbered from zero
+ * @dpi: %gdouble, render at this DPI
+ * @scale: %gdouble, scale render by this factor
+ *
+ * Read a PDF-formatted memory block into a VIPS image. Exactly as
+ * vips_popplerload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_popplerload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_popplerload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "popplerload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( result );
 }

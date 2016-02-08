@@ -57,10 +57,6 @@
 typedef struct _VipsForeignLoadPoppler {
 	VipsForeignLoad parent_object;
 
-	/* Filename for load.
-	 */
-	char *filename; 
-
 	/* Load this page.
 	 */
 	int page_no;
@@ -73,7 +69,6 @@ typedef struct _VipsForeignLoadPoppler {
 	 */
 	double scale;
 
-	char *uri;
 	PopplerDocument *doc;
 	PopplerPage *page;
 
@@ -81,7 +76,7 @@ typedef struct _VipsForeignLoadPoppler {
 
 typedef VipsForeignLoadClass VipsForeignLoadPopplerClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPoppler, vips_foreign_load_poppler, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPoppler, vips_foreign_load_poppler, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -89,7 +84,6 @@ vips_foreign_load_poppler_dispose( GObject *gobject )
 {
 	VipsForeignLoadPoppler *poppler = (VipsForeignLoadPoppler *) gobject;
 
-	VIPS_FREE( poppler->uri );
 	VIPS_UNREF( poppler->page );
 	VIPS_UNREF( poppler->doc );
 
@@ -153,7 +147,7 @@ vips_foreign_load_poppler_is_a( const char *filename )
 	return( 0 );
 }
 
-/* String-based metadatra fields we extract.
+/* String-based metadata fields we extract.
  */
 typedef struct _VipsForeignLoadPopperMetadata {
 	char *(*poppler_fetch)( PopplerDocument *doc );
@@ -194,8 +188,6 @@ vips_foreign_load_poppler_parse( VipsForeignLoadPoppler *poppler,
 		4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res );
 
-	VIPS_SETSTR( out->filename, poppler->filename );
-
 	/* We render to a linecache, so fat strips work well.
 	 */
         vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
@@ -223,25 +215,6 @@ vips_foreign_load_poppler_header( VipsForeignLoad *load )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadPoppler *poppler = (VipsForeignLoadPoppler *) load;
-
-	char *path;
-	GError *error = NULL;
-
-	/* We need an absolute path for a URI.
-	 */
-	path = vips_realpath( poppler->filename );
-	if( !(poppler->uri = g_filename_to_uri( path, NULL, &error )) ) { 
-		free( path );
-		vips_g_error( &error );
-		return( -1 ); 
-	}
-	free( path );
-
-	if( !(poppler->doc = poppler_document_new_from_file( 
-		poppler->uri, NULL, &error )) ) { 
-		vips_g_error( &error );
-		return( -1 ); 
-	}
 
 	if( !(poppler->page = poppler_document_get_page( poppler->doc, 
 		poppler->page_no )) ) {
@@ -336,17 +309,11 @@ vips_foreign_load_poppler_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
-static const char *vips_foreign_poppler_suffs[] = {
-	".pdf",
-	NULL
-};
-
 static void
 vips_foreign_load_poppler_class_init( VipsForeignLoadPopplerClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_poppler_dispose;
@@ -357,21 +324,10 @@ vips_foreign_load_poppler_class_init( VipsForeignLoadPopplerClass *class )
 	object_class->description = _( "load PDF with poppler" );
 	object_class->build = vips_foreign_load_poppler_build;
 
-	foreign_class->suffs = vips_foreign_poppler_suffs;
-
 	load_class->get_flags_filename = 
 		vips_foreign_load_poppler_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_poppler_get_flags;
-	load_class->is_a = vips_foreign_load_poppler_is_a;
-	load_class->header = vips_foreign_load_poppler_header;
 	load_class->load = vips_foreign_load_poppler_load;
-
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadPoppler, filename ),
-		NULL );
 
 	VIPS_ARG_INT( class, "page", 10,
 		_( "Page" ),
@@ -403,4 +359,164 @@ vips_foreign_load_poppler_init( VipsForeignLoadPoppler *poppler )
 	poppler->scale = 1.0;
 }
 
+typedef struct _VipsForeignLoadPopplerFile {
+	VipsForeignLoadPoppler parent_object;
+
+	/* Filename for load.
+	 */
+	char *filename; 
+
+	char *uri;
+
+} VipsForeignLoadPopplerFile;
+
+typedef VipsForeignLoadPopplerClass VipsForeignLoadPopplerFileClass;
+
+G_DEFINE_TYPE( VipsForeignLoadPopplerFile, vips_foreign_load_poppler_file, 
+	vips_foreign_load_poppler_get_type() );
+
+static void
+vips_foreign_load_poppler_file_dispose( GObject *gobject )
+{
+	VipsForeignLoadPopplerFile *file = 
+		(VipsForeignLoadPopplerFile *) gobject;
+
+	VIPS_FREE( file->uri );
+
+	G_OBJECT_CLASS( vips_foreign_load_poppler_file_parent_class )->
+		dispose( gobject );
+}
+
+static int
+vips_foreign_load_poppler_file_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadPoppler *poppler = (VipsForeignLoadPoppler *) load;
+	VipsForeignLoadPopplerFile *file = (VipsForeignLoadPopplerFile *) load;
+
+	char *path;
+	GError *error = NULL;
+
+	/* We need an absolute path for a URI.
+	 */
+	path = vips_realpath( file->filename );
+	if( !(file->uri = g_filename_to_uri( path, NULL, &error )) ) { 
+		free( path );
+		vips_g_error( &error );
+		return( -1 ); 
+	}
+	free( path );
+
+	if( !(poppler->doc = poppler_document_new_from_file( 
+		file->uri, NULL, &error )) ) { 
+		vips_g_error( &error );
+		return( -1 ); 
+	}
+
+	return( vips_foreign_load_poppler_header( load ) );
+}
+
+static const char *vips_foreign_poppler_suffs[] = {
+	".pdf",
+	NULL
+};
+
+static void
+vips_foreign_load_poppler_file_class_init( 
+	VipsForeignLoadPopplerFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->dispose = vips_foreign_load_poppler_file_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "popplerload";
+	object_class->description = _( "load PDF with poppler" );
+
+	foreign_class->suffs = vips_foreign_poppler_suffs;
+
+	load_class->is_a = vips_foreign_load_poppler_is_a;
+	load_class->header = vips_foreign_load_poppler_file_header;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadPopplerFile, filename ),
+		NULL );
+
+}
+
+static void
+vips_foreign_load_poppler_file_init( VipsForeignLoadPopplerFile *file )
+{
+}
+
+typedef struct _VipsForeignLoadPopplerBuffer {
+	VipsForeignLoadPoppler parent_object;
+
+	/* Load from a buffer.
+	 */
+	VipsArea *buf;
+
+} VipsForeignLoadPopplerBuffer;
+
+typedef VipsForeignLoadPopplerClass VipsForeignLoadPopplerBufferClass;
+
+G_DEFINE_TYPE( VipsForeignLoadPopplerBuffer, vips_foreign_load_poppler_buffer, 
+	vips_foreign_load_poppler_get_type() );
+
+static int
+vips_foreign_load_poppler_buffer_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadPoppler *poppler = (VipsForeignLoadPoppler *) load;
+	VipsForeignLoadPopplerBuffer *buffer = 
+		(VipsForeignLoadPopplerBuffer *) load;
+
+	GError *error = NULL;
+
+	if( !(poppler->doc = poppler_document_new_from_data( 
+		buffer->buf->data, buffer->buf->length, NULL, &error )) ) { 
+		vips_g_error( &error );
+		return( -1 ); 
+	}
+
+	return( vips_foreign_load_poppler_header( load ) );
+}
+
+static void
+vips_foreign_load_poppler_buffer_class_init( 
+	VipsForeignLoadPopplerBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "popplerload_buffer";
+	object_class->description = _( "load PDF with poppler" );
+
+	load_class->is_a_buffer = vips_foreign_load_poppler_is_a_buffer;
+	load_class->header = vips_foreign_load_poppler_buffer_header;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadPopplerBuffer, buf ),
+		VIPS_TYPE_BLOB );
+
+}
+
+static void
+vips_foreign_load_poppler_buffer_init( VipsForeignLoadPopplerBuffer *file )
+{
+}
+
 #endif /*HAVE_POPPLER*/
+
