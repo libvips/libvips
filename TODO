@@ -1,6 +1,5 @@
-- vipsthumbnail needs to know about pdfload
-
-- trim page edges? we often have black now
+- vipsthumbnail needs to know about pdfload ... open, get size, open again
+  with scale set to make a thumbnail
 
 - could load pdf thumbnails?
 

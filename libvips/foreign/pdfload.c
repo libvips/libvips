@@ -169,15 +169,12 @@ static void
 vips_foreign_load_pdf_parse( VipsForeignLoadPdf *pdf, 
 	VipsImage *out )
 {
-	PopplerRectangle crop_box;
 	double width;
 	double height;
 	double res;
 	int i;
 
 	poppler_page_get_size( pdf->page, &width, &height ); 
-
-	poppler_page_get_crop_box( pdf->page, &crop_box ); 
 
 	/* We need pixels/mm for vips.
 	 */
