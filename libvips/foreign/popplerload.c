@@ -125,6 +125,10 @@ vips_foreign_load_poppler_parse( VipsForeignLoadPoppler *poppler,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
 
 	VIPS_SETSTR( out->filename, poppler->filename );
+
+	/* We render to a linecache, so fat strips work well.
+	 */
+        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 }
 
 static int
@@ -205,7 +209,6 @@ vips_foreign_load_poppler_load( VipsForeignLoad *load )
 	t[0] = vips_image_new(); 
 
 	vips_foreign_load_poppler_parse( poppler, t[0] ); 
-        vips_image_pipelinev( t[0], VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	if( vips_image_generate( t[0], 
 		NULL, vips_foreign_load_poppler_generate, NULL, poppler, NULL ) )
 		return( -1 );

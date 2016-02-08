@@ -1,3 +1,8 @@
+- pooperload URI generation needs fixing, it currently does not support 
+  relative paths
+
+- popplerload generates ARGB? need to do our own byteswap
+
 - add tests for popplerload, check docs, update c++
 
 - new vips_reduce:
