@@ -66,7 +66,11 @@ typedef struct _VipsForeignLoadPoppler {
 
 	/* Render at this DPI.
 	 */
-	int dpi;
+	double dpi;
+
+	/* Calculate this from DPI. At 72 DPI, we render 1:1 with cairo.
+	 */
+	double scale;
 
 	char *uri;
 	PopplerDocument *doc;
@@ -106,6 +110,23 @@ vips_foreign_load_poppler_get_flags( VipsForeignLoad *load )
 	return( VIPS_FOREIGN_PARTIAL );
 }
 
+static void
+vips_foreign_load_poppler_parse( VipsForeignLoadPoppler *poppler, 
+	VipsImage *out )
+{
+	double width;
+	double height;
+
+	poppler_page_get_size( poppler->page, &width, &height ); 
+
+	vips_image_init_fields( out, 
+		width * poppler->scale, height * poppler->scale, 
+		4, VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+
+	VIPS_SETSTR( out->filename, poppler->filename );
+}
+
 static int
 vips_foreign_load_poppler_header( VipsForeignLoad *load )
 {
@@ -113,8 +134,8 @@ vips_foreign_load_poppler_header( VipsForeignLoad *load )
 	VipsForeignLoadPoppler *poppler = (VipsForeignLoadPoppler *) load;
 
 	GError *error = NULL;
-	double width;
-	double height;
+
+	poppler->scale = poppler->dpi / 72.0;
 
 	poppler->uri = g_strdup_printf( "file://%s", poppler->filename ); 
 
@@ -131,24 +152,74 @@ vips_foreign_load_poppler_header( VipsForeignLoad *load )
 		return( -1 ); 
 	}
 
-	poppler_page_get_size( poppler->page, &width, &height ); 
-
-	vips_image_init_fields( load->out, width, height, 3, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
-
-	VIPS_SETSTR( load->out->filename, poppler->filename );
+	vips_foreign_load_poppler_parse( poppler, load->out ); 
 
 	return( 0 );
+}
+
+static int
+vips_foreign_load_poppler_generate( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+	VipsForeignLoadPoppler *poppler = (VipsForeignLoadPoppler *) a;
+	VipsRect *r = &or->valid;
+
+	cairo_surface_t *surface;
+	cairo_t *cr;
+
+	/* Poppler won't always paint the background.
+	 */
+	vips_region_black( or ); 
+
+	surface = cairo_image_surface_create_for_data( 
+		VIPS_REGION_ADDR( or, r->left, r->top ), 
+		CAIRO_FORMAT_ARGB32, 
+		r->width, r->height, 
+		VIPS_REGION_LSKIP( or ) );
+	cr = cairo_create( surface );
+	cairo_surface_destroy( surface );
+
+	cairo_scale( cr, poppler->scale, poppler->scale );
+	cairo_translate( cr, 
+		-r->left / poppler->scale, -r->top / poppler->scale );
+
+	/* Poppler is single-threaded, but we don't need to lock since we're
+	 * running inside a non-threaded tilecache.
+	 */
+	poppler_page_render( poppler->page, cr );
+
+	cairo_destroy( cr );
+
+	return( 0 ); 
 }
 
 static int
 vips_foreign_load_poppler_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPoppler *poppler = (VipsForeignLoadPoppler *) load;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( (VipsObject *) load, 2 );
 
-	cairo_t *cr;
+	/* Read to this image, then cache to out, see below.
+	 */
+	t[0] = vips_image_new(); 
 
-	poppler_page_render( poppler->page, cr );
+	vips_foreign_load_poppler_parse( poppler, t[0] ); 
+        vips_image_pipelinev( t[0], VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+	if( vips_image_generate( t[0], 
+		NULL, vips_foreign_load_poppler_generate, NULL, poppler, NULL ) )
+		return( -1 );
+
+	/* Don't use tilecache to keep the number of calls to
+	 * poppler_page_render() low. Don't thread the cache, we rely on
+	 * locking to keep poppler single-threaded.
+	 */
+	if( vips_linecache( t[0], &t[1],
+		"tile_height", 128,
+		NULL ) ) 
+		return( -1 );
+	if( vips_image_write( t[1], load->real ) ) 
+		return( -1 );
 
 	return( 0 );
 }
@@ -195,18 +266,19 @@ vips_foreign_load_poppler_class_init( VipsForeignLoadPopplerClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadPoppler, page_no ),
 		0, 100000, 0 );
 
-	VIPS_ARG_INT( class, "dpi", 10,
+	VIPS_ARG_DOUBLE( class, "dpi", 10,
 		_( "DPI" ),
 		_( "Render at this DPI" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPoppler, dpi ),
-		1, 100000, 72 );
+		0.001, 100000.0, 72.0 );
 
 }
 
 static void
 vips_foreign_load_poppler_init( VipsForeignLoadPoppler *poppler )
 {
+	poppler->dpi = 72.0;
 }
 
 #endif /*HAVE_POPPLER*/

@@ -1,5 +1,4 @@
-- vips_foreign_load_poppler_load needs to use generate to link
-  poppler_page_render() to vips_region_prepare()
+- add tests for popplerload, check docs, update c++
 
 - new vips_reduce:
 
