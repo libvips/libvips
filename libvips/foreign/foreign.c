@@ -2863,12 +2863,13 @@ vips_matload( const char *filename, VipsImage **out, ... )
  * @dpi: %gdouble, render at this DPI
  * @scale: %gdouble, scale render by this factor
  *
- * Render a PDF file into a VIPS image. 
+ * Render a PDF file into a VIPS image.  Rendering uses the libpoppler library
+ * and should be fast.
  *
  * Use @page to select a page to render, numbering from zero.
  *
  * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
- * you can scale the rendering by @scale.
+ * you can scale the rendering from the default 1 point == 1 pixel by @scale.
  *
  * The operation fills a number of header fields with metadata, for example
  * "pdf-author". They may be useful. 
