@@ -356,6 +356,21 @@ typedef VipsForeignLoadSvgClass VipsForeignLoadSvgBufferClass;
 G_DEFINE_TYPE( VipsForeignLoadSvgBuffer, vips_foreign_load_svg_buffer, 
 	vips_foreign_load_svg_get_type() );
 
+static gboolean
+vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
+{
+	char *str = (char *) buf;
+
+	/* Ouch! So slow!! This can easily end up parsing the entire document.
+	 */
+	if( (page = rsvg_handle_new_from_data( buf, len, NULL )) ) { 
+		g_object_unref( page );
+		return( 1 ); 
+	}
+
+	return( 0 );
+}
+
 static int
 vips_foreign_load_svg_buffer_header( VipsForeignLoad *load )
 {
@@ -380,6 +395,7 @@ vips_foreign_load_svg_buffer_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -388,6 +404,12 @@ vips_foreign_load_svg_buffer_class_init(
 	object_class->nickname = "svgload_buffer";
 	object_class->description = _( "load SVG with rsvg" );
 
+	/* is_a() is not quick, it must parse the whole document ... 
+	 * lower the priority.
+	 */
+	foreign_class->priority = -50;
+
+	load_class->is_a_buffer = vips_foreign_load_svg_is_a_buffer;
 	load_class->header = vips_foreign_load_svg_buffer_header;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 

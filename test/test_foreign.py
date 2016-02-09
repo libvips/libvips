@@ -371,7 +371,6 @@ class TestForeign(unittest.TestCase):
             return
 
         def svg_valid(self, im):
-            im.write_to_file("x.v")
             a = im(10, 10)
             self.assertAlmostEqualObjects(a, [0, 0, 77, 255])
             self.assertEqual(im.width, 360)

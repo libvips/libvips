@@ -1,4 +1,10 @@
-- test suite is failing for svg load from buffer, strange
+- make vips_foreign_load_svg_is_a_buffer() much faster
+
+	test for first line starts "<?xml"
+	and second line starts "<svg"
+
+  will this be too fragile? what about extra whitespace, case, DOS files etc
+  etc.
 
 - gif loader?
 
