@@ -385,7 +385,7 @@ vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 		if( !isascii( str[i] ) )
 		return( 0 );
 
-	for( i = 0; i < 200 && i < len; i++ ) {
+	for( i = 0; i < 200 && i < len - 5; i++ ) {
 		char txt[5];
 
 		/* 5, since we include the \0 at the end.
