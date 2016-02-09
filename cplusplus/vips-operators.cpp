@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Sat Jan  9 15:05:58 GMT 2016
+// Sun Feb  7 16:26:59 GMT 2016
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -1783,11 +1783,37 @@ VImage VImage::shrinkv( int yshrink , VOption *options )
     return( out );
 }
 
-VImage VImage::shrink2( double xshrink , double yshrink , VOption *options )
+VImage VImage::reduceh( double xshrink , VOption *options )
 {
     VImage out;
 
-    call( "shrink2" ,
+    call( "reduceh" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) ->
+            set( "xshrink", xshrink ) );
+
+    return( out );
+}
+
+VImage VImage::reducev( double yshrink , VOption *options )
+{
+    VImage out;
+
+    call( "reducev" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) ->
+            set( "yshrink", yshrink ) );
+
+    return( out );
+}
+
+VImage VImage::reduce( double xshrink , double yshrink , VOption *options )
+{
+    VImage out;
+
+    call( "reduce" ,
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) ->

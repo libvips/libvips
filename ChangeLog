@@ -1,3 +1,11 @@
+29/1/16 started 8.3
+- add vips_reduce*() ... a fast path for bicubic downsize
+- vips_resize() and vips_similarity use it when they can
+- bicubic is better on 32-bit int images
+
+27/1/16 started 8.2.3
+- fix a crash with SPARC byte-order labq vips images
+
 12/1/16 started 8.2.2
 - changes to ease compiling C++ binding with MSVC [Lovell Fuller]
 - reorder file tests to put slow loaders last

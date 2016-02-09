@@ -2,6 +2,8 @@
  *
  * 5/6/15
  * 	- from copy.c
+ * 27/1/16
+ * 	- don't swap coded images
  */
 
 /*
@@ -137,6 +139,8 @@ vips_byteswap_gen( VipsRegion *or,
 
 	int y;
 
+	g_assert( swap ); 
+
 	if( vips_region_prepare( ir, r ) )
 		return( -1 );
 
@@ -158,6 +162,12 @@ vips_byteswap_build( VipsObject *object )
 
 	if( VIPS_OBJECT_CLASS( vips_byteswap_parent_class )->build( object ) )
 		return( -1 );
+
+	/* Lots of images don't need swapping.
+	 */
+	if( byteswap->in->Coding != VIPS_CODING_NONE ||
+		!vips_byteswap_swap_fn[byteswap->in->BandFmt] )
+		return( vips_image_write( byteswap->in, conversion->out ) ); 
 
 	if( vips_image_pio_input( byteswap->in ) )
 		return( -1 );
