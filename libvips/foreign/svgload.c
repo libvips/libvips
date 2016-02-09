@@ -359,7 +359,7 @@ G_DEFINE_TYPE( VipsForeignLoadSvgBuffer, vips_foreign_load_svg_buffer,
 static gboolean
 vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 {
-	char *str = (char *) buf;
+	RsvgHandle *page;
 
 	/* Ouch! So slow!! This can easily end up parsing the entire document.
 	 */
