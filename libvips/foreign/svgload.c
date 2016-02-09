@@ -431,11 +431,6 @@ vips_foreign_load_svg_buffer_class_init(
 	object_class->nickname = "svgload_buffer";
 	object_class->description = _( "load SVG with rsvg" );
 
-	/* is_a() is not quick, it must parse the whole document ... 
-	 * lower the priority.
-	 */
-	foreign_class->priority = -50;
-
 	load_class->is_a_buffer = vips_foreign_load_svg_is_a_buffer;
 	load_class->header = vips_foreign_load_svg_buffer_header;
 
