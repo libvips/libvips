@@ -1,15 +1,4 @@
-- make vips_foreign_load_svg_is_a_buffer() much faster
-
-	test for first line starts "<?xml"
-	and second line starts "<svg"
-
-  will this be too fragile? what about extra whitespace, case, DOS files etc
-  etc.
-
 - gif loader?
-
-- vipsthumbnail needs to know about pdfload ... open, get size, open again
-  with scale set to make a thumbnail
 
 - could load pdf thumbnails?
 

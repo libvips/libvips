@@ -46,6 +46,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include <vips/vips.h>
 #include <vips/buf.h>
@@ -359,13 +360,39 @@ G_DEFINE_TYPE( VipsForeignLoadSvgBuffer, vips_foreign_load_svg_buffer,
 static gboolean
 vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 {
-	RsvgHandle *page;
+	char *str = (char *) buf;
 
-	/* Ouch! So slow!! This can easily end up parsing the entire document.
+	int i;
+
+	/* SVG documents are very freeform. They normally look like:
+	 *
+	 * <?xml version="1.0" encoding="UTF-8"?>
+	 * <svg xmlns="http://www.w3.org/2000/svg" ...
+	 *
+	 * But there can be a doctype in there too. And case and whitespace can
+	 * vary a lot. And the <?xml can be missing. 
+	 *
+	 * Simple rules:
+	 * - first 24 chars are plain ascii
+	 * - first 200 chars contain "<svg", upper or lower case.
+	 *
+	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
+	 * horribly slow for large documents. 
 	 */
-	if( (page = rsvg_handle_new_from_data( buf, len, NULL )) ) { 
-		g_object_unref( page );
-		return( 1 ); 
+	if( len < 24 )
+		return( 0 );
+	for( i = 0; i < 24; i++ )
+		if( !isascii( str[i] ) )
+		return( 0 );
+
+	for( i = 0; i < 200 && i < len; i++ ) {
+		char txt[5];
+
+		/* 5, since we include the \0 at the end.
+		 */
+		vips_strncpy( txt, buf + i, 5 );
+		if( strcasecmp( txt, "<svg" ) == 0 )
+			return( 1 );
 	}
 
 	return( 0 );
