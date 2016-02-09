@@ -15,6 +15,9 @@ doc/setup-build.stamp
 doc/tmpl-build.stamp
 doc/tmpl.stamp
 doc/tmpl/
+doc/gtk-doc.make
+doc/libvips-docs.sgml
+doc/libvips-docs.xml
 libvips-scan 
 libvips-scan.c
 Makefile.in
@@ -40,9 +43,6 @@ config.*
 configure
 depcomp
 autom4te.cache/
-doc/gtk-doc.make
-doc/libvips-docs.sgml
-doc/libvips-docs.xml
 install-sh
 libtool
 libvips/include/vips/version.h
