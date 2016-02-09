@@ -2,8 +2,8 @@
 - add vips_reduce*() ... a fast path for bicubic downsize
 - vips_resize() and vips_similarity() use it when they can
 - bicubic is better on 32-bit int images
-- add pdfload for PDF rendering ... file and buffer input are supported
-- vipsthumbnail knows about pdfload
+- add pdfload and svgload for PDF and SVG rendering 
+- vipsthumbnail knows about pdfload and svgload
 
 27/1/16 started 8.2.3
 - fix a crash with SPARC byte-order labq vips images

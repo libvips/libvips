@@ -1,5 +1,5 @@
 // headers for vips operations
-// Mon Feb  8 20:26:08 GMT 2016
+// Tue Feb  9 10:43:17 GMT 2016
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 );
@@ -112,6 +112,8 @@ static VImage rawload( char * filename , int width , int height , int bands , VO
 static VImage vipsload( char * filename , VOption *options = 0 );
 static VImage pdfload( char * filename , VOption *options = 0 );
 static VImage pdfload_buffer( VipsBlob * buffer , VOption *options = 0 );
+static VImage svgload( char * filename , VOption *options = 0 );
+static VImage svgload_buffer( VipsBlob * buffer , VOption *options = 0 );
 static VImage pngload( char * filename , VOption *options = 0 );
 static VImage pngload_buffer( VipsBlob * buffer , VOption *options = 0 );
 static VImage matload( char * filename , VOption *options = 0 );

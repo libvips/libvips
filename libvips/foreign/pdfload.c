@@ -263,7 +263,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	 * but I have no way of testing this :( 
 	 */
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *q;
+		VipsPel * restrict q;
 
 		q = VIPS_REGION_ADDR( or, r->left, r->top + y );
 		for( x = 0; x < r->width; x++ ) {
@@ -511,7 +511,7 @@ vips_foreign_load_pdf_buffer_class_init(
 }
 
 static void
-vips_foreign_load_pdf_buffer_init( VipsForeignLoadPdfBuffer *file )
+vips_foreign_load_pdf_buffer_init( VipsForeignLoadPdfBuffer *buffer )
 {
 }
 

@@ -1657,6 +1657,9 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_pdf_get_type( void ); 
 	extern GType vips_foreign_load_pdf_file_get_type( void ); 
 	extern GType vips_foreign_load_pdf_buffer_get_type( void ); 
+	extern GType vips_foreign_load_svg_get_type( void ); 
+	extern GType vips_foreign_load_svg_file_get_type( void ); 
+	extern GType vips_foreign_load_svg_buffer_get_type( void ); 
 
 	vips_foreign_load_rad_get_type(); 
 	vips_foreign_save_rad_get_type(); 
@@ -1679,6 +1682,12 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_pdf_file_get_type(); 
 	vips_foreign_load_pdf_buffer_get_type(); 
 #endif /*HAVE_POPPLER*/
+
+#ifdef HAVE_RSVG
+	vips_foreign_load_svg_get_type(); 
+	vips_foreign_load_svg_file_get_type(); 
+	vips_foreign_load_svg_buffer_get_type(); 
+#endif /*HAVE_RSVG*/
 
 #ifdef HAVE_GSF
 	vips_foreign_save_dz_get_type(); 
@@ -2930,6 +2939,85 @@ vips_pdfload_buffer( void *buf, size_t len, VipsImage **out, ... )
 
 	va_start( ap, out );
 	result = vips_call_split( "pdfload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
+ * vips_svgload:
+ * @filename: file to load
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @dpi: %gdouble, render at this DPI
+ * @scale: %gdouble, scale render by this factor
+ *
+ * Render a SVG file into a VIPS image.  Rendering uses the librsvg library
+ * and should be fast.
+ *
+ * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
+ * you can scale the rendering from the default 1 point == 1 pixel by @scale.
+ *
+ * This function only reads the image header and does not render any pixel
+ * data. Rendering occurs when pixels are accessed.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_svgload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "svgload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_svgload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @dpi: %gdouble, render at this DPI
+ * @scale: %gdouble, scale render by this factor
+ *
+ * Read a SVG-formatted memory block into a VIPS image. Exactly as
+ * vips_svgload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_svgload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "svgload_buffer", ap, blob, out );
 	va_end( ap );
 
 	vips_area_unref( VIPS_AREA( blob ) );

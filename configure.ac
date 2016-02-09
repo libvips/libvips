@@ -561,6 +561,22 @@ if test x"$with_poppler" != x"no"; then
   )
 fi
 
+# librsvg
+AC_ARG_WITH([rsvg],
+  AS_HELP_STRING([--without-rsvg], [build without rsvg (default: test)]))
+
+if test x"$with_rsvg" != x"no"; then
+  PKG_CHECK_MODULES(RSVG, [librsvg-2.0 >= 2.40 cairo >= 1.2],
+    [AC_DEFINE(HAVE_RSVG,1,[define if you have librsvg-2.0 >= 2.40.0 and cairo >= 1.2 installed.])
+     with_rsvg=yes
+     PACKAGES_USED="$PACKAGES_USED librsvg-2.0 cairo"
+    ],
+    [AC_MSG_WARN([librsvg-2.0 >= 2.40.0 or cairo >= 1.2 not found; disabling SVG load via rsvg])
+     with_rsvg=no
+    ]
+  )
+fi
+
 # OpenSlide
 AC_ARG_WITH([openslide],
   AS_HELP_STRING([--without-openslide], 
@@ -806,14 +822,14 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $RSVG_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
 do 
 	echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES" 
-VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $RSVG_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -901,6 +917,8 @@ file import with OpenSlide:		$with_openslide
 file import with matio: 		$with_matio
 PDF import with poppler-glib: 		$with_poppler
   (requires poppler-glib 0.30.0 or later)
+SVG import with librsvg-2.0: 		$with_rsvg
+  (requires librsvg-2.0 2.40.0 or later)
 file import with cfitsio: 		$with_cfitsio
 file import/export with libwebp:	$with_libwebp
 text rendering with pangoft2: 		$with_pangoft2

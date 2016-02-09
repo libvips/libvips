@@ -45,6 +45,7 @@ class TestForeign(unittest.TestCase):
         self.fits_file = "images/WFPC2u5780205r_c0fx.fits"
         self.openslide_file = "images/CMU-1-Small-Region.svs"
         self.pdf_file = "images/ISO_12233-reschart.pdf"
+        self.svg_file = "images/vips-profile.svg"
 
         self.colour = Vips.Image.jpegload(self.jpeg_file)
         self.mono = self.colour.extract_band(1)
@@ -360,6 +361,33 @@ class TestForeign(unittest.TestCase):
 
         im = Vips.Image.new_from_file(self.pdf_file)
         x = Vips.Image.new_from_file(self.pdf_file, dpi = 144)
+        self.assertLess(abs(im.width * 2 - x.width), 2)
+        self.assertLess(abs(im.height * 2 - x.height), 2)
+
+    def test_svgload(self):
+        x = Vips.type_find("VipsForeign", "svgload")
+        if not x.is_instantiatable():
+            print("no svg support in this vips, skipping test")
+            return
+
+        def svg_valid(self, im):
+            im.write_to_file("x.v")
+            a = im(10, 10)
+            self.assertAlmostEqualObjects(a, [0, 0, 77, 255])
+            self.assertEqual(im.width, 360)
+            self.assertEqual(im.height, 588)
+            self.assertEqual(im.bands, 4)
+
+        self.file_loader("svgload", self.svg_file, svg_valid)
+        self.buffer_loader("svgload_buffer", self.svg_file, svg_valid)
+
+        im = Vips.Image.new_from_file(self.svg_file)
+        x = Vips.Image.new_from_file(self.svg_file, scale = 2)
+        self.assertLess(abs(im.width * 2 - x.width), 2)
+        self.assertLess(abs(im.height * 2 - x.height), 2)
+
+        im = Vips.Image.new_from_file(self.svg_file)
+        x = Vips.Image.new_from_file(self.svg_file, dpi = 144)
         self.assertLess(abs(im.width * 2 - x.width), 2)
         self.assertLess(abs(im.height * 2 - x.height), 2)
 

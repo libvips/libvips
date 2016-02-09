@@ -72,6 +72,7 @@
  * 	- warn if you autorot and there's no exif support
  * 9/2/16
  * 	- add PDF --size support
+ * 	- add SVG --size support
  */
 
 #ifdef HAVE_CONFIG_H
@@ -290,6 +291,31 @@ thumbnail_open( VipsObject *process, const char *filename )
 
 		vips_info( "vipsthumbnail", 
 			"loading PDF with factor %g pre-shrink", 
+			shrink ); 
+
+		/* We can't use UNBUFERRED safely on very-many-core systems.
+		 */
+		if( !(im = vips_image_new_from_file( filename, 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"scale", 1.0 / shrink,
+			NULL )) )
+			return( NULL );
+
+	}
+	else if( strcmp( loader, "VipsForeignLoadSvgFile" ) == 0 ) {
+		double shrink;
+
+		/* This will just read in the header and is quick.
+		 */
+		if( !(im = vips_image_new_from_file( filename, NULL )) )
+			return( NULL );
+
+		shrink = calculate_shrink( im ); 
+
+		g_object_unref( im );
+
+		vips_info( "vipsthumbnail", 
+			"loading SVG with factor %g pre-shrink", 
 			shrink ); 
 
 		/* We can't use UNBUFERRED safely on very-many-core systems.
