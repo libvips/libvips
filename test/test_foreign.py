@@ -45,6 +45,7 @@ class TestForeign(unittest.TestCase):
         self.fits_file = "images/WFPC2u5780205r_c0fx.fits"
         self.openslide_file = "images/CMU-1-Small-Region.svs"
         self.pdf_file = "images/ISO_12233-reschart.pdf"
+        self.cmyk_pdf_file = "images/cmyktest.pdf"
         self.svg_file = "images/vips-profile.svg"
 
         self.colour = Vips.Image.jpegload(self.jpeg_file)
