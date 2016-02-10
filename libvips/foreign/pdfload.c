@@ -242,9 +242,10 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		r->left, r->top, r->width, r->height ); 
 	 */
 
-	/* Poppler won't always paint the background.
+	/* Poppler won't always paint the background. Use 255 (white) for the
+	 * bg, PDFs generally assume a paper backgrocund colour.
 	 */
-	vips_region_black( or ); 
+	vips_region_paint( or, r, 255 ); 
 
 	surface = cairo_image_surface_create_for_data( 
 		VIPS_REGION_ADDR( or, r->left, r->top ), 

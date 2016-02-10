@@ -161,6 +161,10 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	cairo_t *cr;
 	int x, y;
 
+	/* rsvg won't always paint the background.
+	 */
+	vips_region_black( or ); 
+
 	surface = cairo_image_surface_create_for_data( 
 		VIPS_REGION_ADDR( or, r->left, r->top ), 
 		CAIRO_FORMAT_ARGB32, 
@@ -431,7 +435,6 @@ vips_foreign_load_svg_buffer_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
