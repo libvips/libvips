@@ -236,7 +236,13 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	cairo_t *cr;
 	int x, y;
 
-	/* Pdf won't always paint the background.
+	/*
+	printf( "vips_foreign_load_pdf_generate: "
+		"left = %d, top = %d, width = %d, height = %d\n", 
+		r->left, r->top, r->width, r->height ); 
+	 */
+
+	/* Poppler won't always paint the background.
 	 */
 	vips_region_black( or ); 
 
@@ -283,6 +289,15 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( (VipsObject *) load, 2 );
 
+	int tile_width;
+	int tile_height;
+	int n_lines;
+
+	/* Use this to pick a tile height for our strip cache.
+	 */
+	vips_get_tile_size( load->real,
+		&tile_width, &tile_height, &n_lines );
+
 	/* Read to this image, then cache to out, see below.
 	 */
 	t[0] = vips_image_new(); 
@@ -297,7 +312,7 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	 * locking to keep pdf single-threaded.
 	 */
 	if( vips_linecache( t[0], &t[1],
-		"tile_height", 128,
+		"tile_height", tile_height,
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t[1], load->real ) ) 

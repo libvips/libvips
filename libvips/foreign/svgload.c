@@ -208,6 +208,15 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( (VipsObject *) load, 2 );
 
+	int tile_width;
+	int tile_height;
+	int n_lines;
+
+	/* Use this to pick a tile height for our strip cache.
+	 */
+	vips_get_tile_size( load->real,
+		&tile_width, &tile_height, &n_lines );
+
 	/* Read to this image, then cache to out, see below.
 	 */
 	t[0] = vips_image_new(); 
@@ -218,11 +227,11 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 		return( -1 );
 
 	/* Don't use tilecache to keep the number of calls to
-	 * svg_page_render() low. Don't thread the cache, we rely on
-	 * locking to keep svg single-threaded.
+	 * rsvg_handle_render_cairo() low. Don't thread the cache, we rely on
+	 * locking to keep rsvg single-threaded.
 	 */
 	if( vips_linecache( t[0], &t[1],
-		"tile_height", 128,
+		"tile_height", tile_height,
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t[1], load->real ) ) 
