@@ -231,6 +231,8 @@ int vips__byteswap_bool( VipsImage *in, VipsImage **out, gboolean swap );
 
 char *vips__make_xml_metadata( const char *domain, VipsImage *image );
 
+void vips__cairo2rgba( guint32 *buf, int n );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

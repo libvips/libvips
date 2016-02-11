@@ -149,6 +149,34 @@ vips_foreign_load_svg_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
+/* Convert from ARGB to RGBA and undo premultiplication. 
+ */
+void
+vips__cairo2rgba( guint32 * restrict buf, int n )
+{
+	int i;
+
+	for( i = 0; i < n; i++ ) {
+		guint32 * restrict p = buf + i;
+		guint32 x = *p;
+		guint8 a = x >> 24;
+		VipsPel * restrict out = (VipsPel *) p;
+
+		if( a == 255 ) 
+			*p = GUINT32_TO_BE( (x << 8) | 255 );
+		else if( a == 0 ) 
+			*p = GUINT32_TO_BE( x << 8 );
+		else {
+			/* Undo premultiplication.
+			 */
+			out[0] = 255 * ((x >> 16) & 255) / a;
+			out[1] = 255 * ((x >> 8) & 255) / a;
+			out[2] = 255 * (x & 255) / a;
+			out[3] = a;
+		}
+	}
+}
+
 static int
 vips_foreign_load_svg_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
@@ -159,7 +187,7 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 
 	cairo_surface_t *surface;
 	cairo_t *cr;
-	int x, y;
+	int y;
 
 	/* rsvg won't always paint the background.
 	 */
@@ -188,19 +216,12 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 
 	cairo_destroy( cr );
 
-	/* Cairo makes BRGA, we must byteswap. We might not need to on SPARC,
-	 * but I have no way of testing this :( 
+	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
 	 */
-	for( y = 0; y < r->height; y++ ) {
-		VipsPel * restrict q;
-
-		q = VIPS_REGION_ADDR( or, r->left, r->top + y );
-		for( x = 0; x < r->width; x++ ) {
-			VIPS_SWAP( VipsPel, q[0], q[2] );
-
-			q += 4;
-		}
-	}
+	for( y = 0; y < r->height; y++ ) 
+		vips__cairo2rgba( 
+			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ), 
+			r->width ); 
 
 	return( 0 ); 
 }

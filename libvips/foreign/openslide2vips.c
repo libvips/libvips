@@ -409,15 +409,15 @@ vips__openslide_read_header( const char *filename, VipsImage *out,
  * compatibility with older vipses.
  */
 static void
-argb2rgba( uint32_t *buf, int n, uint32_t bg )
+argb2rgba( uint32_t * restrict buf, int n, uint32_t bg )
 {
 	int i;
 
 	for( i = 0; i < n; i++ ) {
-		uint32_t *p = buf + i;
+		uint32_t * restrict p = buf + i;
 		uint32_t x = *p;
 		uint8_t a = x >> 24;
-		VipsPel *out = (VipsPel *) p;
+		VipsPel * restrict out = (VipsPel *) p;
 
 		if( a == 255 ) 
 			*p = GUINT32_TO_BE( (x << 8) | 255 );
