@@ -1660,6 +1660,9 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_svg_get_type( void ); 
 	extern GType vips_foreign_load_svg_file_get_type( void ); 
 	extern GType vips_foreign_load_svg_buffer_get_type( void ); 
+	extern GType vips_foreign_load_gif_get_type( void ); 
+	extern GType vips_foreign_load_gif_file_get_type( void ); 
+	extern GType vips_foreign_load_gif_buffer_get_type( void ); 
 
 	vips_foreign_load_rad_get_type(); 
 	vips_foreign_save_rad_get_type(); 
@@ -1688,6 +1691,12 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_svg_file_get_type(); 
 	vips_foreign_load_svg_buffer_get_type(); 
 #endif /*HAVE_RSVG*/
+
+#ifdef HAVE_GIFLIB
+	vips_foreign_load_gif_get_type(); 
+	vips_foreign_load_gif_file_get_type(); 
+	vips_foreign_load_gif_buffer_get_type(); 
+#endif /*HAVE_GIFLIB*/
 
 #ifdef HAVE_GSF
 	vips_foreign_save_dz_get_type(); 
