@@ -296,7 +296,7 @@ vips_unpremultiply_init( VipsUnpremultiply *unpremultiply )
  *   	out = [0, ..., 0, alpha];
  *   else
  *   	out = [in[0] / norm, ..., in[in.bands - 1] / norm, alpha];
- * |]
+ * ]|
  *
  * So for an N-band image, the first N - 1 bands are divided by the clipped 
  * and normalised final band, the final band is clipped. 
