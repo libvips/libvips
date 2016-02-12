@@ -234,7 +234,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 	cairo_surface_t *surface;
 	cairo_t *cr;
-	int x, y;
+	int y;
 
 	/*
 	printf( "vips_foreign_load_pdf_generate: "
@@ -266,19 +266,12 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 	cairo_destroy( cr );
 
-	/* Cairo makes BRGA, we must byteswap. We might not need to on SPARC,
-	 * but I have no way of testing this :( 
+	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
 	 */
-	for( y = 0; y < r->height; y++ ) {
-		VipsPel * restrict q;
-
-		q = VIPS_REGION_ADDR( or, r->left, r->top + y );
-		for( x = 0; x < r->width; x++ ) {
-			VIPS_SWAP( VipsPel, q[0], q[2] );
-
-			q += 4;
-		}
-	}
+	for( y = 0; y < r->height; y++ ) 
+		vips__cairo2rgba( 
+			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ), 
+			r->width ); 
 
 	return( 0 ); 
 }
