@@ -1,12 +1,5 @@
 - gif loader
 
-  there's an 88-byte leak? seems to be inside giflib
-
-==19236== 7,974,856 (88 direct, 7,974,768 indirect) bytes in 1 blocks are definitely lost in loss record 5,195 of 5,195
-==19236==    at 0x4C2BBCF: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==19236==    by 0x8114136: DGifOpenFileHandle (in /usr/lib/x86_64-linux-gnu/libgif.so.4.1.6)
-
-
   need tests, need to update APIs
 
 

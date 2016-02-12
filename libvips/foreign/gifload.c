@@ -140,7 +140,7 @@ vips_foreign_load_gif_dispose( GObject *gobject )
 {
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) gobject;
 
-	VIPS_FREEF( EGifCloseFile, gif->file );
+	VIPS_FREEF( DGifCloseFile, gif->file );
 
 	G_OBJECT_CLASS( vips_foreign_load_gif_parent_class )->
 		dispose( gobject );
@@ -369,7 +369,7 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	/* We've rendered to a memory image ... we can free the GIF image 
 	 * struct now.
 	 */
-	VIPS_FREEF( EGifCloseFile, gif->file );
+	VIPS_FREEF( DGifCloseFile, gif->file );
 
 	return( 0 );
 }
