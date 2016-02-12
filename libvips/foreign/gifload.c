@@ -76,24 +76,16 @@ static int
 	InterlacedOffset[] = { 0, 4, 2, 1 },
 	InterlacedJumps[] = { 8, 8, 4, 2 };
 
+/* From ungif.h ... the locations of the transparency, repeat and delay
+ * flags.
+ */
+#define GIF_GCE_DELAY_BYTE_LOW  1
+#define GIF_GCE_DELAY_BYTE_HIGH 2
+#define GIF_GCE_TRANSPARENCY_BYTE   3
+#define GIF_NETSCAPE_REPEAT_BYTE_LOW    1
+#define GIF_NETSCAPE_REPEAT_BYTE_HIGH   2
+
 /* From gif-lib.h
-
-#define D_GIF_ERR_OPEN_FAILED    101    
-#define D_GIF_ERR_READ_FAILED    102
-#define D_GIF_ERR_NOT_GIF_FILE   103
-#define D_GIF_ERR_NO_SCRN_DSCR   104
-#define D_GIF_ERR_NO_IMAG_DSCR   105
-#define D_GIF_ERR_NO_COLOR_MAP   106
-#define D_GIF_ERR_WRONG_RECORD   107
-#define D_GIF_ERR_DATA_TOO_BIG   108
-#define D_GIF_ERR_NOT_ENOUGH_MEM 109
-#define D_GIF_ERR_CLOSE_FAILED   110
-#define D_GIF_ERR_NOT_READABLE   111
-#define D_GIF_ERR_IMAGE_DEFECT   112
-#define D_GIF_ERR_EOF_TOO_SOON   113
-
-  giflib5 has a function to decode these, but we need to work with giflib4.
-
  */
 static const char *
 vips_foreign_load_gif_errstr( int error_code )
@@ -239,17 +231,19 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 
 static void
 vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
-	ColorMapObject *map, int width, 
+	ColorMapObject *map, int width, int transparent,
 	VipsPel * restrict q, VipsPel * restrict p )
 {
 	int x;
 
 	for( x = 0; x < width; x++ ) {
-		if( p[x] &&
-			p[x] < map->ColorCount ) {
-			q[0] = map->Colors[p[x]].Red;
-			q[1] = map->Colors[p[x]].Green;
-			q[2] = map->Colors[p[x]].Blue;
+		VipsPel v = p[x];
+
+		if( v != transparent &&
+			v < map->ColorCount ) {
+			q[0] = map->Colors[v].Red;
+			q[1] = map->Colors[v].Green;
+			q[2] = map->Colors[v].Blue;
 			q[3] = 255;
 		}
 		else {
@@ -272,8 +266,7 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
  */
 static void
 vips_foreign_load_gif_render_savedimage( VipsForeignLoadGif *gif,
-	VipsImage *out, SavedImage *image )
-{
+	VipsImage *out, SavedImage *image ) {
 	GifFileType *file = gif->file;
 
 	/* Use the local colormap, if defined.
@@ -282,7 +275,9 @@ vips_foreign_load_gif_render_savedimage( VipsForeignLoadGif *gif,
 		image->ImageDesc.ColorMap : file->SColorMap;
 
 	VipsRect image_rect, gif_rect, clip;
-	int y;
+	int gif_left, gif_top;
+	int i, y;
+	int transparent;
 
 	/* Clip this savedimage position against the image size. Not all
 	 * giflibs check this for us.
@@ -300,20 +295,41 @@ vips_foreign_load_gif_render_savedimage( VipsForeignLoadGif *gif,
 	gif_rect.height = image->ImageDesc.Height; 
 	vips_rect_intersectrect( &image_rect, &gif_rect, &clip ); 
 
+	/* Therefore read at this offset in the SavedImage.
+	 */
+	gif_left = clip.left - image->ImageDesc.Left;
+	gif_top = clip.top - image->ImageDesc.Top;
+
+	/* Does this SavedImage have transparency?
+	 */
+	transparent = -1;
+	for( i = 0; i < image->ExtensionBlockCount; i++ ) {
+		ExtensionBlock *block = &image->ExtensionBlocks[i];
+
+		if( block->Function != GRAPHICS_EXT_FUNC_CODE ) 
+			continue;
+
+		 if( block->Bytes[0] & 0x01 ) 
+			transparent = block->Bytes[GIF_GCE_TRANSPARENCY_BYTE];
+	}
+
 	if( image->ImageDesc.Interlace ) {
 		int i;
 		int input_y;
 
-		input_y = clip.top;
+		input_y = gif_top;
 		for( i = 0; i < 4; i++ ) {
 			for( y = InterlacedOffset[i]; 
 				y < clip.height;
 			  	y += InterlacedJumps[i] ) {
 				vips_foreign_load_gif_render_line( gif, map, 
-					clip.width,
-					VIPS_IMAGE_ADDR( out, 0, y ),
-					image->RasterBits + clip.left + 
-					   input_y * image->ImageDesc.Width );
+					clip.width, transparent,
+					VIPS_IMAGE_ADDR( out, 
+						clip.left, clip.top + y ),
+					image->RasterBits +
+				       		gif_left + 
+						input_y * 
+						   image->ImageDesc.Width );
 				input_y += 1;
 			}
 		}
@@ -321,10 +337,12 @@ vips_foreign_load_gif_render_savedimage( VipsForeignLoadGif *gif,
 	else {
 		for( y = 0; y < clip.height; y++ ) {
 			vips_foreign_load_gif_render_line( gif, map, 
-				clip.width,
-				VIPS_IMAGE_ADDR( out, 0, y ),
-				image->RasterBits + clip.left + 
-				    (clip.top + y) * image->ImageDesc.Width );
+				clip.width, transparent,
+				VIPS_IMAGE_ADDR( out, clip.left, clip.top + y ),
+				image->RasterBits + 
+					gif_left + 
+					(gif_top + y) * 
+					   image->ImageDesc.Width );
 		}
 	}
 }
@@ -347,6 +365,11 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	for( i = 0; i <= gif->page; i++ ) 
 		vips_foreign_load_gif_render_savedimage( gif, 
 			load->real, &gif->file->SavedImages[i] ); 
+
+	/* We've rendered to a memory image ... we can free the GIF image 
+	 * struct now.
+	 */
+	VIPS_FREEF( EGifCloseFile, gif->file );
 
 	return( 0 );
 }
