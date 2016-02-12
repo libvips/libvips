@@ -508,6 +508,7 @@ vips_foreign_load_gif_buffer_read( GifFileType *file,
 	size_t will_read = VIPS_MIN( len, buffer->bytes_to_go );
 
 	memcpy( buf, buffer->p, will_read );
+	buffer->p += will_read;
 	buffer->bytes_to_go -= will_read;
 
 	return( will_read ); 

@@ -1097,6 +1097,8 @@ class_methods = [
                     "pdfload_buffer",
                     "svgload",
                     "svgload_buffer",
+                    "gifload",
+                    "gifload_buffer",
                     "openslideload",
                     "magickload",
                     "magickload_buffer",

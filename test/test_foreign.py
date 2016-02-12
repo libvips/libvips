@@ -365,6 +365,22 @@ class TestForeign(unittest.TestCase):
         self.assertLess(abs(im.width * 2 - x.width), 2)
         self.assertLess(abs(im.height * 2 - x.height), 2)
 
+    def test_gifload(self):
+        x = Vips.type_find("VipsForeign", "gifload")
+        if not x.is_instantiatable():
+            print("no gif support in this vips, skipping test")
+            return
+
+        def gif_valid(self, im):
+            a = im(10, 10)
+            self.assertAlmostEqualObjects(a, [33, 33, 33, 255])
+            self.assertEqual(im.width, 159)
+            self.assertEqual(im.height, 203)
+            self.assertEqual(im.bands, 4)
+
+        self.file_loader("gifload", self.gif_file, gif_valid)
+        self.buffer_loader("gifload_buffer", self.gif_file, gif_valid)
+
     def test_svgload(self):
         x = Vips.type_find("VipsForeign", "svgload")
         if not x.is_instantiatable():
