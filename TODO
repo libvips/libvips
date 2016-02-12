@@ -1,4 +1,16 @@
-- gif loader?
+- gif loader
+
+  seeing a valgrind fail
+
+valgrind vips copy 3198.gif[page=12] x.v
+==3536== Invalid read of size 1
+==3536==    at 0x4FF144C: vips_foreign_load_gif_render_line (gifload.c:248)
+
+  there's also an 88-byte leak?
+
+  need tests, need to update APIs
+
+  
 
 - could load pdf thumbnails?
 

@@ -2,7 +2,7 @@
 - add vips_reduce*() ... a fast path for bicubic downsize
 - vips_resize() and vips_similarity() use it when they can
 - bicubic is better on 32-bit int images
-- add pdfload and svgload for PDF and SVG rendering 
+- add pdfload, svgload, gifload for PDF, SVG and GIF rendering 
 - vipsthumbnail knows about pdfload and svgload
 
 27/1/16 started 8.2.3

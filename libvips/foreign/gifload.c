@@ -57,11 +57,11 @@
 typedef struct _VipsForeignLoadGif {
 	VipsForeignLoad parent_object;
 
-	GifFileType *file;
-
-	/* The bitmap for the frame we fetch.
+	/* Load this page (frame number).
 	 */
-	unsigned char *RasterBits;
+	int page;
+
+	GifFileType *file;
 
 } VipsForeignLoadGif;
 
@@ -69,6 +69,12 @@ typedef VipsForeignLoadClass VipsForeignLoadGifClass;
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadGif, vips_foreign_load_gif, 
 	VIPS_TYPE_FOREIGN_LOAD );
+
+/* From gif2rgb.c ... offsets and jumps for interlaced GIF images.
+ */
+static int 
+	InterlacedOffset[] = { 0, 4, 2, 1 },
+	InterlacedJumps[] = { 8, 8, 4, 2 };
 
 /* From gif-lib.h
 
@@ -85,6 +91,8 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadGif, vips_foreign_load_gif,
 #define D_GIF_ERR_NOT_READABLE   111
 #define D_GIF_ERR_IMAGE_DEFECT   112
 #define D_GIF_ERR_EOF_TOO_SOON   113
+
+  giflib5 has a function to decode these, but we need to work with giflib4.
 
  */
 static const char *
@@ -200,13 +208,15 @@ vips_foreign_load_gif_parse( VipsForeignLoadGif *gif,
 	 */
         vips_image_pipelinev( out, VIPS_DEMAND_STYLE_ANY, NULL );
 
+	vips_image_set_int( out, "gif-n_pages", 
+		gif->file->ImageCount );
 }
 
 static int
 vips_foreign_load_gif_header( VipsForeignLoad *load )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 
 	if( DGifSlurp( gif->file ) != GIF_OK ) { 
 		vips_error( class->nickname, 
@@ -215,59 +225,108 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 		return( -1 ); 
 	}
 
-	if( gif->file->SavedImages &&
-		gif->file->SavedImages->RasterBits )
-		gif->RasterBits = gif->file->SavedImages->RasterBits;
+	if( gif->page < 0 ||
+		gif->page > gif->file->ImageCount ) {
+		vips_error( class->nickname, 
+			_( "unable to load page %d" ), gif->page );
+		return( -1 ); 
+	}
 
 	vips_foreign_load_gif_parse( gif, load->out ); 
 
 	return( 0 );
 }
 
-static int
-vips_foreign_load_gif_generate( VipsRegion *or, 
-	void *seq, void *a, void *b, gboolean *stop )
+static void
+vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
+	ColorMapObject *map, int width, 
+	VipsPel * restrict q, VipsPel * restrict p )
 {
-	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) a;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
-	VipsRect *r = &or->valid;
-	unsigned char *bits = gif->RasterBits;
-	ColorMapObject *map = gif->file->SColorMap;
-	int width = gif->file->Image.Width;
+	int x;
 
-	if( bits && 
-		map ) { 
-		int count = map->ColorCount;
+	for( x = 0; x < width; x++ ) {
+		if( p[x] &&
+			p[x] < map->ColorCount ) {
+			q[0] = map->Colors[p[x]].Red;
+			q[1] = map->Colors[p[x]].Green;
+			q[2] = map->Colors[p[x]].Blue;
+			q[3] = 255;
+		}
+		else {
+			q[0] = 0;
+			q[1] = 0;
+			q[2] = 0;
+			q[3] = 0;
+		}
 
-		int x, y;
+		q += 4;
+	}
+}
 
-		for( y = 0; y < r->height; y++ ) {
-			VipsPel * restrict p;
-			VipsPel * restrict q;
+/* Render a SavedImage (a frame of a GIF) into an RGBA buffer. GIFs 
+ * accumulate, so don't clear the buffer first, so that we can paint a 
+ * series of frames on top of each other. 
+ *
+ * We can't easily render just a part of the buffer since SavedImages can be
+ * interlaced, and they are annoying to paint in parts.
+ */
+static void
+vips_foreign_load_gif_render_savedimage( VipsForeignLoadGif *gif,
+	VipsImage *out, SavedImage *image )
+{
+	GifFileType *file = gif->file;
 
-			p = bits + r->left + (r->top + y) * width;
-			q = VIPS_REGION_ADDR( or, r->left, r->top + y );
-			for( x = 0; x < r->width; x++ ) {
-				if( p[x] < count &&
-				 	p[x] != gif->file->SBackGroundColor ) { 
-					q[0] = map->Colors[p[x]].Red;
-					q[1] = map->Colors[p[x]].Green;
-					q[2] = map->Colors[p[x]].Blue;
-					q[3] = 255;
-				}
-				else {
-					q[0] = 0;
-					q[1] = 0;
-					q[2] = 0;
-					q[3] = 0;
-				}
+	/* Use the local colormap, if defined.
+	 */
+	ColorMapObject *map = image->ImageDesc.ColorMap ? 
+		image->ImageDesc.ColorMap : file->SColorMap;
 
-				q += 4;
+	VipsRect image_rect, gif_rect, clip;
+	int y;
+
+	/* Clip this savedimage position against the image size. Not all
+	 * giflibs check this for us.
+	 *
+	 * If ImageDesc has been set maliciously we can still read outside 
+	 * RasterBits, but at least we won't write outside out.
+	 */
+	image_rect.left = 0;
+	image_rect.top = 0;
+	image_rect.width = out->Xsize;
+	image_rect.height = out->Ysize;
+	gif_rect.left = image->ImageDesc.Left;
+	gif_rect.top = image->ImageDesc.Top;
+	gif_rect.width = image->ImageDesc.Width; 
+	gif_rect.height = image->ImageDesc.Height; 
+	vips_rect_intersectrect( &image_rect, &gif_rect, &clip ); 
+
+	if( image->ImageDesc.Interlace ) {
+		int i;
+		int input_y;
+
+		input_y = clip.top;
+		for( i = 0; i < 4; i++ ) {
+			for( y = InterlacedOffset[i]; 
+				y < clip.height;
+			  	y += InterlacedJumps[i] ) {
+				vips_foreign_load_gif_render_line( gif, map, 
+					clip.width,
+					VIPS_IMAGE_ADDR( out, 0, y ),
+					image->RasterBits + clip.left + 
+					   input_y * image->ImageDesc.Width );
+				input_y += 1;
 			}
 		}
 	}
-
-	return( 0 ); 
+	else {
+		for( y = 0; y < clip.height; y++ ) {
+			vips_foreign_load_gif_render_line( gif, map, 
+				clip.width,
+				VIPS_IMAGE_ADDR( out, 0, y ),
+				image->RasterBits + clip.left + 
+				    (clip.top + y) * image->ImageDesc.Width );
+		}
+	}
 }
 
 static int
@@ -275,10 +334,19 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
 
+	int i;
+
 	vips_foreign_load_gif_parse( gif, load->real ); 
-	if( vips_image_generate( load->real,
-		NULL, vips_foreign_load_gif_generate, NULL, gif, NULL ) )
+
+	/* Turn out into a memory image which we then render the GIF frames
+	 * into.
+	 */
+	if( vips_image_write_prepare( load->real ) )
 		return( -1 );
+
+	for( i = 0; i <= gif->page; i++ ) 
+		vips_foreign_load_gif_render_savedimage( gif, 
+			load->real, &gif->file->SavedImages[i] ); 
 
 	return( 0 );
 }
@@ -302,6 +370,12 @@ vips_foreign_load_gif_class_init( VipsForeignLoadGifClass *class )
 	load_class->get_flags = vips_foreign_load_gif_get_flags;
 	load_class->load = vips_foreign_load_gif_load;
 
+	VIPS_ARG_INT( class, "page", 10,
+		_( "Page" ),
+		_( "Load this page from the file" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadGif, page ),
+		0, 100000, 0 );
 
 }
 
@@ -386,6 +460,11 @@ typedef struct _VipsForeignLoadGifBuffer {
 	 */
 	VipsArea *buf;
 
+	/* Current read point, bytes left in buffer.
+	 */
+	VipsPel *p;
+	size_t bytes_to_go;
+
 } VipsForeignLoadGifBuffer;
 
 typedef VipsForeignLoadGifClass VipsForeignLoadGifBufferClass;
@@ -393,20 +472,43 @@ typedef VipsForeignLoadGifClass VipsForeignLoadGifBufferClass;
 G_DEFINE_TYPE( VipsForeignLoadGifBuffer, vips_foreign_load_gif_buffer, 
 	vips_foreign_load_gif_get_type() );
 
+/* Callback from the gif loader.
+ *
+ * Read up to len bytes into buffer, return number of bytes read, 0 for EOF.
+ */
+static int
+vips_foreign_load_gif_buffer_read( GifFileType *file, 
+	GifByteType *buf, int len )
+{
+	VipsForeignLoadGifBuffer *buffer = (VipsForeignLoadGifBuffer *)
+		file->UserData;
+	size_t will_read = VIPS_MIN( len, buffer->bytes_to_go );
+
+	memcpy( buf, buffer->p, will_read );
+	buffer->bytes_to_go -= will_read;
+
+	return( will_read ); 
+}
+
 static int
 vips_foreign_load_gif_buffer_header( VipsForeignLoad *load )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
 	VipsForeignLoadGifBuffer *buffer = 
 		(VipsForeignLoadGifBuffer *) load;
 
-	/*
-	if( !(gif->page = rgif_handle_new_from_data( 
-		buffer->buf->data, buffer->buf->length, &error )) ) { 
-		vips_g_error( &error );
+	/* Init the read point.
+	 */
+	buffer->p = buffer->buf->data;
+	buffer->bytes_to_go = buffer->buf->length;
+
+	if( !(gif->file = DGifOpen( gif, 
+		vips_foreign_load_gif_buffer_read )) ) { 
+		vips_error( class->nickname, 
+			"%s", _( "unable to open GIF file" ) ); 
 		return( -1 ); 
 	}
-	 */
 
 	return( vips_foreign_load_gif_header( load ) );
 }
