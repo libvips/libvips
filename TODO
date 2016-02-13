@@ -1,3 +1,10 @@
+- seeing transparency when there is none, strange
+
+- will vips_image_write_prepare() clear to black? check
+
+
+
+
 - could load pdf thumbnails?
 
 - new vips_reduce:
