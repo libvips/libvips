@@ -231,14 +231,16 @@ class TestForeign(unittest.TestCase):
 
         def gif_valid(self, im):
             a = im(10, 10)
-            # some libMagick produce an RGB for this image, some a mono
-            if len(a) > 1:
+            # some libMagick produce an RGB for this image, some a mono, some
+            # rgba :-( 
+            if len(a) == 4:
+                self.assertAlmostEqual(a, [33, 33, 33, 255])
+            elif len(a) == 3:
                 self.assertAlmostEqual(a, [33, 33, 33])
-                self.assertEqual(im.bands, 3)
             else:
                 self.assertAlmostEqual(a, [33])
-                self.assertEqual(im.bands, 1)
 
+            self.assertEqual(im.bands, len(a))
             self.assertEqual(im.width, 159)
             self.assertEqual(im.height, 203)
 
