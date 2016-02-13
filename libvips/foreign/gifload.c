@@ -32,8 +32,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -85,15 +85,6 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadGif, vips_foreign_load_gif,
 static int 
 	InterlacedOffset[] = { 0, 4, 2, 1 },
 	InterlacedJumps[] = { 8, 8, 4, 2 };
-
-/* From ungif.h ... the locations of the transparency, repeat and delay
- * flags.
- */
-#define GIF_GCE_DELAY_BYTE_LOW  1
-#define GIF_GCE_DELAY_BYTE_HIGH 2
-#define GIF_GCE_TRANSPARENCY_BYTE   3
-#define GIF_NETSCAPE_REPEAT_BYTE_LOW    1
-#define GIF_NETSCAPE_REPEAT_BYTE_HIGH   2
 
 /* From gif-lib.h
  */
@@ -391,9 +382,15 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 				return( -1 ); 
 			}
 
-			if( ext_code == GRAPHICS_EXT_FUNC_CODE ) {
-				gif->transparency = 
-					extension[GIF_GCE_TRANSPARENCY_BYTE];
+			if( ext_code == GRAPHICS_EXT_FUNC_CODE &&
+				extension &&
+				extension[0] == 4 && 
+				extension[1] == 1 ) {
+				/* Bytes are 4, 1, delay low, delay high,
+				 * transparency.
+				 */
+				gif->transparency = extension[4];
+
 				VIPS_DEBUG_MSG( "gifload: "
 					"seen transparency %d\n", 
 					gif->transparency );
@@ -405,6 +402,12 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 					vips_foreign_load_gif_error( gif );
 					return( -1 ); 
 				}
+
+#ifdef VIPS_DEBUG
+				if( extension ) 
+					VIPS_DEBUG_MSG( "gifload: "
+						"EXTENSION_NEXT:\n" ); 
+#endif
 			}
 
 			break;
@@ -427,9 +430,11 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	} while( frame_n <= gif->page && 
 		record != TERMINATE_RECORD_TYPE );
 
-	if( frame_n <= gif->page ) 
-		vips_info( class->nickname, 
+	if( frame_n <= gif->page ) {
+		vips_error( class->nickname, 
 			"%s", _( "too few frames in GIF file" ) );
+		return( -1 );
+	}
 
 	/* We've rendered to a memory image ... we can shut down the GIF
 	 * reader now.
