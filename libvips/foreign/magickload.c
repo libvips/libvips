@@ -6,6 +6,8 @@
  * 	- remove header-only loads
  * 11/6/13
  * 	- add @all_frames option, off by default
+ * 14/2/16
+ * 	- add @page option, 0 by default
  */
 
 /*
@@ -59,8 +61,9 @@
 typedef struct _VipsForeignLoadMagick {
 	VipsForeignLoad parent_object;
 
-	gboolean all_frames;
-	char *density;
+	gboolean all_frames;		/* Load all frames */
+	char *density;			/* Load at this resolution */
+	int page;			/* Load this page (frame) */
 
 } VipsForeignLoadMagick;
 
@@ -117,6 +120,13 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick, density ),
 		NULL );
+
+	VIPS_ARG_INT( class, "page", 5,
+		_( "Page" ),
+		_( "Load this page from the file" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadMagick, page ),
+		0, 100000, 0 );
 }
 
 static void
@@ -144,7 +154,7 @@ ismagick( const char *filename )
 
 	t = vips_image_new();
 	vips_error_freeze();
-	result = vips__magick_read_header( filename, t, FALSE, NULL );
+	result = vips__magick_read_header( filename, t, FALSE, NULL, 0 );
 	g_object_unref( t );
 	vips_error_thaw();
 
@@ -166,7 +176,7 @@ vips_foreign_load_magick_file_header( VipsForeignLoad *load )
 		(VipsForeignLoadMagickFile *) load;
 
 	if( vips__magick_read( magick_file->filename, 
-		load->out, magick->all_frames, magick->density ) )
+		load->out, magick->all_frames, magick->density, magick->page ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, magick_file->filename );
@@ -226,7 +236,7 @@ vips_foreign_load_magick_buffer_is_a_buffer( const void *buf, size_t len )
 
 	t = vips_image_new();
 	vips_error_freeze();
-	result = vips__magick_read_buffer_header( buf, len, t, FALSE, NULL );
+	result = vips__magick_read_buffer_header( buf, len, t, FALSE, NULL, 0 );
 	g_object_unref( t );
 	vips_error_thaw();
 
@@ -249,7 +259,7 @@ vips_foreign_load_magick_buffer_header( VipsForeignLoad *load )
 
 	if( vips__magick_read_buffer( 
 		magick_buffer->buf->data, magick_buffer->buf->length, 
-		load->out, magick->all_frames, magick->density ) )
+		load->out, magick->all_frames, magick->density, magick->page ) )
 		return( -1 );
 
 	return( 0 );

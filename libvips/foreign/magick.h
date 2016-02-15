@@ -36,14 +36,14 @@ extern "C" {
 #endif /*__cplusplus*/
 
 int vips__magick_read( const char *filename, 
-	VipsImage *out, gboolean all_frames, const char *density );
+	VipsImage *out, gboolean all_frames, const char *density, int page );
 int vips__magick_read_header( const char *filename, 
-	VipsImage *out, gboolean all_frames, const char *density );
+	VipsImage *out, gboolean all_frames, const char *density, int page );
 
 int vips__magick_read_buffer( const void *buf, const size_t len,
-	VipsImage *out, gboolean all_frames, const char *density );
+	VipsImage *out, gboolean all_frames, const char *density, int page );
 int vips__magick_read_buffer_header( const void *buf, const size_t len,
-	VipsImage *out, gboolean all_frames, const char *density );
+	VipsImage *out, gboolean all_frames, const char *density, int page );
 
 #ifdef __cplusplus
 }

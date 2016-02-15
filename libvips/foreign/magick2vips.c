@@ -47,6 +47,8 @@
  * 26/2/15
  * 	- close the read down early for a header read ... this saves an
  * 	  fd during file read, handy for large numbers of input images 
+ * 14/2/16
+ * 	- add @page option, 0 by default
  */
 
 /*
@@ -116,6 +118,7 @@ typedef struct _Read {
 	char *filename;
 	VipsImage *im;
 	gboolean all_frames;
+	int page;
 
 	Image *image;
 	ImageInfo *image_info;
@@ -160,8 +163,8 @@ read_close( VipsImage *im, Read *read )
 }
 
 static Read *
-read_new( const char *filename, VipsImage *im, gboolean all_frames,
-	const char *density )
+read_new( const char *filename, VipsImage *im, 
+	gboolean all_frames, const char *density, int page )
 {
 	Read *read;
 	static int inited = 0;
@@ -179,6 +182,7 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames,
 		return( NULL );
 	read->filename = filename ? g_strdup( filename ) : NULL;
 	read->all_frames = all_frames;
+	read->page = page;
 	read->im = im;
 	read->image = NULL;
 	read->image_info = CloneImageInfo( NULL );
@@ -673,8 +677,8 @@ magick_fill_region( VipsRegion *out,
 }
 
 int
-vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames,
-	const char *density )
+vips__magick_read( const char *filename, VipsImage *out, 
+	gboolean all_frames, const char *density, int page )
 {
 	Read *read;
 
@@ -682,7 +686,7 @@ vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames,
 	printf( "magick2vips: vips__magick_read: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out, all_frames, density )) )
+	if( !(read = read_new( filename, out, all_frames, density, page )) )
 		return( -1 );
 
 #ifdef HAVE_SETIMAGEOPTION
@@ -695,6 +699,25 @@ vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames,
 	 */
   	SetImageOption( read->image_info, "dcm:display-range", "reset" );
 #endif /*HAVE_SETIMAGEOPTION*/
+
+	if( !all_frames ) {
+		/* Just pick a specific page.
+		 */
+
+		/* This doesn't seem to work, strange.
+		 *
+		 * read->image_info->number_scenes = 1;
+		 * read->image_info->scene = read->page;
+		 */
+
+		/* This works, but is no faster.
+		 */
+
+		char page[256];
+
+		vips_snprintf( page, 256, "%d", read->page );
+		read->image_info->scenes = strdup( page );
+	}
 
 #ifdef DEBUG
 	printf( "magick2vips: calling ReadImage() ...\n" );
@@ -724,7 +747,7 @@ vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames,
  */
 int
 vips__magick_read_header( const char *filename, VipsImage *im, 
-	gboolean all_frames, const char *density )
+	gboolean all_frames, const char *density, int page )
 {
 	Read *read;
 
@@ -732,7 +755,7 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 	printf( "vips__magick_read_header: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, im, all_frames, density )) )
+	if( !(read = read_new( filename, im, all_frames, density, page )) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -765,7 +788,7 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 
 int
 vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
-	gboolean all_frames, const char *density )
+	gboolean all_frames, const char *density, int page )
 {
 	Read *read;
 
@@ -773,7 +796,7 @@ vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
 	printf( "magick2vips: vips__magick_read_buffer: %p %zu\n", buf, len );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( NULL, out, all_frames, density )) )
+	if( !(read = read_new( NULL, out, all_frames, density, page )) )
 		return( -1 );
 
 #ifdef HAVE_SETIMAGEOPTION
@@ -810,8 +833,9 @@ vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
 }
 
 int
-vips__magick_read_buffer_header( const void *buf, const size_t len,
-	VipsImage *im, gboolean all_frames, const char *density )
+vips__magick_read_buffer_header( const void *buf, const size_t len, 
+	VipsImage *im, 
+	gboolean all_frames, const char *density, int page )
 {
 	Read *read;
 
@@ -819,7 +843,7 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 	printf( "vips__magick_read_buffer_header: %p %zu\n", buf, len );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( NULL, im, all_frames, density )) )
+	if( !(read = read_new( NULL, im, all_frames, density, page )) )
 		return( -1 );
 
 #ifdef DEBUG
