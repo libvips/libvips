@@ -4,6 +4,7 @@
 - bicubic is better on 32-bit int images
 - add pdfload, svgload, gifload for PDF, SVG and GIF rendering 
 - vipsthumbnail knows about pdfload and svgload
+- matload is more specific (thanks bithive)
 
 27/1/16 started 8.2.3
 - fix a crash with SPARC byte-order labq vips images

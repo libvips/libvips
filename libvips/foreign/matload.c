@@ -122,11 +122,6 @@ vips_foreign_load_mat_class_init( VipsForeignLoadMatClass *class )
 
 	foreign_class->suffs = vips__mat_suffs;
 
-	/* We need to be lower priority than the jpeg loader, since some jpegs
-	 * can make libmatio segv on Mat_Open(). 
-	 */
-	foreign_class->priority = -50;
-
 	load_class->is_a = vips__mat_ismat;
 	load_class->get_flags_filename = 
 		vips_foreign_load_mat_get_flags_filename;
