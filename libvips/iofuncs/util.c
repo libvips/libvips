@@ -319,21 +319,24 @@ vips_ispostfix( const char *a, const char *b )
 	return( strcmp( a + m - n, b ) == 0 );
 }
 
-/* Test for string a starts string b. 
+/* Test for string a starts string b. a is a known-good string, b may be
+ * random data. 
  */
 gboolean
 vips_isprefix( const char *a, const char *b )
 {
-	int n = strlen( a );
-	int m = strlen( b );
 	int i;
 
-	if( m < n )
-		return( FALSE );
-	for( i = 0; i < n; i++ )
+	for( i = 0; a[i] && b[i]; i++ )
 		if( a[i] != b[i] )
 			return( FALSE );
-	
+
+	/* If there's stuff left in a but b has finished, we must have a
+	 * mismatch.
+	 */
+	if( a[i] && !b[i] )
+		return( FALSE );
+
 	return( TRUE );
 }
 
