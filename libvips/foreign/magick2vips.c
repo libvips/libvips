@@ -205,6 +205,27 @@ read_new( const char *filename, VipsImage *im,
 	 */
 	VIPS_SETSTR( read->image_info->density, density );
 
+#ifdef HAVE_SETIMAGEOPTION
+	/* When reading DICOM images, we want to ignore any
+	 * window_center/_width setting, since it may put pixels outside the
+	 * 0-65535 range and lose data. 
+	 *
+	 * These window settings are attached as vips metadata, so our caller
+	 * can interpret them if it wants.
+	 */
+  	SetImageOption( read->image_info, "dcm:display-range", "reset" );
+#endif /*HAVE_SETIMAGEOPTION*/
+
+	if( !all_frames ) {
+		/* Just pick a specific page.
+		 *
+		 * I can't find docs for these fields, but this seems to work.
+		 */
+		read->image_info->scene = read->page;
+		read->image_info->number_scenes = 1;
+		read->image_info->adjoin = MagickTrue;
+	}
+
 #ifdef DEBUG
 	printf( "magick2vips: read_new: %s\n", read->filename );
 #endif /*DEBUG*/
@@ -689,37 +710,6 @@ vips__magick_read( const char *filename, VipsImage *out,
 	if( !(read = read_new( filename, out, all_frames, density, page )) )
 		return( -1 );
 
-#ifdef HAVE_SETIMAGEOPTION
-	/* When reading DICOM images, we want to ignore any
-	 * window_center/_width setting, since it may put pixels outside the
-	 * 0-65535 range and lose data. 
-	 *
-	 * These window settings are attached as vips metadata, so our caller
-	 * can interpret them if it wants.
-	 */
-  	SetImageOption( read->image_info, "dcm:display-range", "reset" );
-#endif /*HAVE_SETIMAGEOPTION*/
-
-	if( !all_frames ) {
-		/* Just pick a specific page.
-		 */
-
-		/* This doesn't seem to work, strange.
-
-		read->image_info->number_scenes = 1;
-		read->image_info->scene = read->page;
-
-		 */
-
-		/* This works, but is no faster.
-		 */
-
-		char page[256];
-
-		vips_snprintf( page, 256, "%d", read->page );
-		read->image_info->scenes = strdup( page );
-	}
-
 #ifdef DEBUG
 	printf( "magick2vips: calling ReadImage() ...\n" );
 #endif /*DEBUG*/
@@ -799,17 +789,6 @@ vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
 
 	if( !(read = read_new( NULL, out, all_frames, density, page )) )
 		return( -1 );
-
-#ifdef HAVE_SETIMAGEOPTION
-	/* When reading DICOM images, we want to ignore any
-	 * window_center/_width setting, since it may put pixels outside the
-	 * 0-65535 range and lose data. 
-	 *
-	 * These window settings are attached as vips metadata, so our caller
-	 * can interpret them if it wants.
-	 */
-  	SetImageOption( read->image_info, "dcm:display-range", "reset" );
-#endif /*HAVE_SETIMAGEOPTION*/
 
 #ifdef DEBUG
 	printf( "magick2vips: calling BlobToImage() ...\n" );
