@@ -7,6 +7,8 @@
  * 21/8/14
  * 	- swap width/height
  * 	- set interpretation to rgb16 etc. 
+ * 16/2/16
+ * 	- more specific is_a test 
  */
 
 /*
@@ -319,14 +321,13 @@ vips__mat_load( const char *filename, VipsImage *out )
 int
 vips__mat_ismat( const char *filename )
 {
-	mat_t *mat;
+	unsigned char buf[15];
 
-	vips_error_freeze();
-	mat = Mat_Open( filename, MAT_ACC_RDONLY );
-	Mat_Close( mat );
-	vips_error_thaw();
+	if( vips__get_bytes( filename, buf, 10 ) &&
+		vips_isprefix( "MATLAB 5.0", (char *) buf ) )
+		return( 1 );
 
-	return( mat != NULL );
+	return( 0 );
 }
 
 const char *vips__mat_suffs[] = { ".mat", NULL };

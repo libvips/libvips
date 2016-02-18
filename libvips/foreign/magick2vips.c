@@ -705,9 +705,10 @@ vips__magick_read( const char *filename, VipsImage *out,
 		 */
 
 		/* This doesn't seem to work, strange.
-		 *
-		 * read->image_info->number_scenes = 1;
-		 * read->image_info->scene = read->page;
+
+		read->image_info->number_scenes = 1;
+		read->image_info->scene = read->page;
+
 		 */
 
 		/* This works, but is no faster.
