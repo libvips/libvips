@@ -217,13 +217,16 @@ read_new( const char *filename, VipsImage *im,
 #endif /*HAVE_SETIMAGEOPTION*/
 
 	if( !all_frames ) {
+		char page[256];
+
 		/* Just pick a specific page.
 		 *
 		 * I can't find docs for these fields, but this seems to work.
 		 */
 		read->image_info->scene = read->page;
 		read->image_info->number_scenes = 1;
-		read->image_info->adjoin = MagickTrue;
+		vips_snprintf( page, 256, "%d", read->page );
+		read->image_info->scenes = strdup( page );
 	}
 
 #ifdef DEBUG
