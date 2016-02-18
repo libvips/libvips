@@ -928,6 +928,7 @@ static VipsOperationFlags
 vips_foreign_load_operation_get_flags( VipsOperation *operation )
 {
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( operation );
+
 	VipsOperationFlags flags;
 
 	flags = VIPS_OPERATION_CLASS( vips_foreign_load_parent_class )->
