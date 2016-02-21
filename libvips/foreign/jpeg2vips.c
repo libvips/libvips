@@ -69,6 +69,9 @@
  * 	  fd during jpg read, handy for large numbers of input images 
  * 15/7/15
  * 	- save exif tags using @name, not @title ... @title is subject to i18n
+ * 21/2/16
+ * 	- _destroy the decompress object as soon as we can, frees loads of
+ * 	  memory for progressive jpg files
  */
 
 /*
@@ -977,6 +980,12 @@ read_jpeg_generate( VipsRegion *or,
 		jpeg->y_pos += 1; 
 	}
 
+	/* Progressive images can have a lot of memory in the decompress
+	 * object, destroy as soon as we can. Safe to call many times. 
+	 */
+	if( jpeg->y_pos >= or->im->Ysize ) 
+		jpeg_destroy_decompress( &jpeg->cinfo );
+
 	VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
 	return( 0 );
@@ -1082,7 +1091,6 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 		jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + i, 0xffff );
 }
 #endif /*DEBUG*/
-
 
 	/* Convert!
 	 */

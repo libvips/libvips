@@ -4,8 +4,6 @@
  * 	- wrap a class around the jpeg writer
  * 29/11/11
  * 	- split to make load, load from buffer and load from file
- * 18/2/16
- * 	- don't cache progressive jpgs, they take too much mem
  */
 
 /*
@@ -94,25 +92,6 @@ typedef VipsForeignLoadClass VipsForeignLoadJpegClass;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadJpeg, vips_foreign_load_jpeg, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
-static VipsOperationFlags 
-vips_foreign_load_jpeg_operation_get_flags( VipsOperation *operation )
-{
-	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( operation );
-
-	VipsOperationFlags flags;
-	int multiscan;
-
-	flags = VIPS_OPERATION_CLASS( vips_foreign_load_jpeg_parent_class )->
-		get_flags( operation );
-	if( load->out &&
-		!vips_image_get_int( load->out, 
-			"jpeg-multiscan", &multiscan ) &&
-		multiscan ) 
-		flags |= VIPS_OPERATION_NOCACHE;
-
-	return( flags );
-}
-
 static VipsForeignFlags
 vips_foreign_load_jpeg_get_flags( VipsForeignLoad *load )
 {
@@ -147,7 +126,6 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -156,8 +134,6 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 	object_class->nickname = "jpegload_base";
 	object_class->description = _( "load jpeg" );
 	object_class->build = vips_foreign_load_jpeg_build;
-
-	operation_class->get_flags = vips_foreign_load_jpeg_operation_get_flags;
 
 	load_class->get_flags = vips_foreign_load_jpeg_get_flags;
 
