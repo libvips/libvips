@@ -76,7 +76,7 @@ extern "C" {
 #define VIPS_FLOOR( V ) floor( V )
 #define VIPS_CEIL( V ) ceil( V )
 #define VIPS_RINT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
-#define VIPS_FABS( V ) VIPS_FABS( V )
+#define VIPS_FABS( V ) VIPS_ABS( V )
 #define VIPS_FMAX( A, B ) VIPS_MAX( A, B )
 #define VIPS_FMIN( A, B ) VIPS_MIN( A, B )
 #endif
