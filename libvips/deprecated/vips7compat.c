@@ -2518,7 +2518,7 @@ im_sharpen( IMAGE *in, IMAGE *out,
 	 * upon this behaviour. 
 	 */
 	if( vips_call( "sharpen", in, &t[0], 
-		"radius", mask_size / 2,
+		"sigma", mask_size / 4.0,
 		"x1", x1,
 		"y2", y2,
 		"y3", y3,

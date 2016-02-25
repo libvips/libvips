@@ -7,6 +7,9 @@
 - added @page param to magickload 
 - matload is more specific (thanks bithive)
 - lower mem use for progressive jpg decode
+- sharpen has a new @sigma param, @radius is deprecated
+- sharpen allows a much greater range of parameters
+- better handling of deprecated args in python
 
 27/1/16 started 8.2.3
 - fix a crash with SPARC byte-order labq vips images

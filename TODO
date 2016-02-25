@@ -1,3 +1,17 @@
+try
+
+	$ vips cast babe.jpg x.v ushort
+	$ vips colourspace x.v x2.v labs
+	$ vips avg x2.v
+	27.403674
+
+	$ vips cast babe.jpg x.v short
+	$ vips colourspace x.v x2.v labs
+	$ vips avg x2.v
+	10356.775608
+
+  how odd! cause of break in test suite
+
 - could load pdf thumbnails?
 
 - new vips_reduce:
