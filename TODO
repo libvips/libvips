@@ -1,4 +1,8 @@
-try
+- add reduceh > 3 warning for wtc shrink to 1280x1280
+
+  or was it 1703?
+
+- try
 
 	$ vips cast babe.jpg x.v ushort
 	$ vips colourspace x.v x2.v labs
