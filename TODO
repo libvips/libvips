@@ -10,6 +10,9 @@
 
   no better, strange
 
+- we have a buffer reserve list on each image ... could we junk this on
+  "minimise"?
+
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
 
 - add reduceh > 3 warning for wtc shrink to 1280x1280

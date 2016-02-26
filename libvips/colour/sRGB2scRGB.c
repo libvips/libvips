@@ -192,8 +192,14 @@ vips_sRGB2scRGB_build( VipsObject *object )
 
 	format = in->Type == VIPS_INTERPRETATION_RGB16 ?
 		VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
-	if( vips_cast( in, &t[0], format, NULL ) )
-		return( -1 );
+	if( in->BandFmt != format ) {
+		if( vips_cast( in, &t[0], format, NULL ) )
+			return( -1 );
+	}
+	else {
+		t[0] = in;
+		g_object_ref( t[0] ); 
+	}
 	in = t[0];
 
 	out = vips_image_new();
