@@ -13,6 +13,7 @@
 
 27/1/16 started 8.2.3
 - fix a crash with SPARC byte-order labq vips images
+- fix parsing of filenames containing brackets, thanks shilpi230
 
 12/1/16 started 8.2.2
 - changes to ease compiling C++ binding with MSVC [Lovell Fuller]
