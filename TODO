@@ -1,3 +1,17 @@
+- try
+
+	$ vips sharpen babe.jpg x.v
+
+  horrible posterization, looks like too few bits
+
+	$ vips colourspace babe.jpg x.v rgb16
+	$ vips sharpen x.v x2.v
+	$ vips colourspace x2.v x3.v srgb
+
+  no better, strange
+
+- try SEQ_UNBUFFERED on jpg source, get out of order error?
+
 - add reduceh > 3 warning for wtc shrink to 1280x1280
 
   or was it 1703?

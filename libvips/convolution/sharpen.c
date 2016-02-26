@@ -224,7 +224,7 @@ vips_sharpen_build( VipsObject *object )
 		if( v < -sharpen->x1 ) 
 			/* Left of -x1.
 			 */
-			y = (v - sharpen->x1) * sharpen->m2 +
+			y = (v + sharpen->x1) * sharpen->m2 +
 				-sharpen->x1 * sharpen->m1;
 		else if( v < sharpen->x1 ) 
 			/* Centre section.
@@ -252,6 +252,7 @@ vips_sharpen_build( VipsObject *object )
 	for( i = 0; i < 65536; i++ )
 		*VIPS_MATRIX( mat, i, 0 ) = sharpen->lut[i];
 	vips_image_write_to_file( mat, "x.v", NULL ); 
+	printf( "lut written to x.v\n" ); 
 	g_object_unref( mat );
 }
 #endif /*DEBUG*/
