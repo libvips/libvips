@@ -1228,7 +1228,7 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 		 * so the next break must be bracket, equals, comma.
 		 */
 		*token = VIPS_TOKEN_STRING;
-		n = strcspn( p, "<[{()}]>=," );
+		n = strcspn( p, "[]=," );
 		i = VIPS_MIN( n, size );
 		vips_strncpy( string, p, i + 1 );
 		p += n;
