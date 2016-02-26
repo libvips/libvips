@@ -2,19 +2,9 @@
 
   or was it 1703?
 
-- try
-
-	$ vips cast babe.jpg x.v ushort
-	$ vips colourspace x.v x2.v labs
-	$ vips avg x2.v
-	27.403674
-
-	$ vips cast babe.jpg x.v short
-	$ vips colourspace x.v x2.v labs
-	$ vips avg x2.v
-	10356.775608
-
-  how odd! cause of break in test suite
+- colour ops are doing cast + extract_band before every op ... for something
+  like colourspace, which can potentially do many ops in a row, this is a LOT
+  of casting and extracting
 
 - could load pdf thumbnails?
 

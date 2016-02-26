@@ -97,7 +97,9 @@ class TestConvolution(unittest.TestCase):
     def setUp(self):
         im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
         self.colour = im * [1, 2, 3] + [2, 3, 4]
+        self.colour = self.colour.copy(interpretation = Vips.Interpretation.SRGB)
         self.mono = self.colour.extract_band(1)
+        self.mono = self.mono.copy(interpretation = Vips.Interpretation.B_W)
         self.all_images = [self.mono, self.colour]
         self.sharp = Vips.Image.new_from_array([[-1, -1,  -1], 
                                                 [-1,  16, -1], 
@@ -223,10 +225,6 @@ class TestConvolution(unittest.TestCase):
 
                 for sigma in [0.5, 1, 1.5, 2]:
                     im = im.cast(fmt)
-                    if im.bands == 3:
-                        im = im.copy(interpretation = Vips.Interpretation.SRGB)
-                    elif im.bands == 1:
-                        im = im.copy(interpretation = Vips.Interpretation.B_W)
                     sharp = im.sharpen(sigma = sigma)
 
                     # hard to test much more than this
