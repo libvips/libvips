@@ -38,6 +38,7 @@
  * 24/2/16
  * 	- swap "radius" for "sigma", allows finer control
  * 	- allow a much greater range of parameters
+ * 	- move to defaults suitable for screen output
  */
 
 /*
@@ -323,7 +324,7 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 		_( "Sigma of Gaussian" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, sigma ),
-		0.000001, 10000.0, 1.0 );
+		0.000001, 10000.0, 0.5 );
 
 	VIPS_ARG_DOUBLE( class, "x1", 5, 
 		_( "x1" ), 
@@ -337,28 +338,28 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 		_( "Maximum brightening" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, y2 ),
-		0, 1000000, 20 );
+		0, 1000000, 10 );
 
 	VIPS_ARG_DOUBLE( class, "y3", 7, 
 		_( "y3" ), 
 		_( "Maximum darkening" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, y3 ),
-		0, 1000000, 50 );
+		0, 1000000, 20 );
 
 	VIPS_ARG_DOUBLE( class, "m1", 8, 
 		_( "m1" ), 
 		_( "Slope for flat areas" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, m1 ),
-		0, 1000000, 1 );
+		0, 1000000, 0.0 );
 
 	VIPS_ARG_DOUBLE( class, "m2", 9, 
 		_( "m2" ), 
 		_( "Slope for jaggy areas" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, m2 ),
-		0, 1000000, 2 );
+		0, 1000000, 0.5 );
 
 	/* We used to have a radius control.
 	 */
@@ -374,12 +375,12 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 static void
 vips_sharpen_init( VipsSharpen *sharpen )
 {
-	sharpen->sigma = 1.0; 
+	sharpen->sigma = 0.5;
 	sharpen->x1 = 1.5; 
-	sharpen->y2 = 20; 
-	sharpen->y3 = 50; 
-	sharpen->m1 = 1; 
-	sharpen->m2 = 2; 
+	sharpen->y2 = 10.0; 
+	sharpen->y3 = 20.0; 
+	sharpen->m1 = 0.0; 
+	sharpen->m2 = 0.5; 
 }
 
 /**
@@ -427,20 +428,19 @@ vips_sharpen_init( VipsSharpen *sharpen )
  *                      |
  * ]|
  *
- * For printing, we recommend the following settings (the defaults):
+ * For screen output, we suggest the following settings (the defaults):
  *
  * |[
- *   sigma == 1.0
+ *   sigma == 0.5
  *   x1 == 1.5
- *   y2 == 20         (don't brighten by more than 20 L*)
- *   y3 == 50         (can darken by up to 50 L*)
- *
- *   m1 == 1          (some sharpening in flat areas)
- *   m2 == 2          (more sharpening in jaggy areas)
+ *   y2 == 10         (don't brighten by more than 10 L*)
+ *   y3 == 20         (can darken by up to 52 L*)
+ *   m1 == 0          (no sharpening in flat areas)
+ *   m2 == 0.5        (some sharpening in jaggy areas)
  * ]|
  *
- * If you want more or less sharpening, we suggest you just change the m1 
- * and m2 parameters. 
+ * If you want more or less sharpening, we suggest you just change the 
+ * m2 parameter. 
  *
  * The @sigma parameter changes the width of the fringe and can be 
  * adjusted according to the output printing resolution. As an approximate 
