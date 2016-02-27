@@ -1818,15 +1818,15 @@ vips_object_set_argument_from_string( VipsObject *object,
 		VipsOperationFlags flags;
 		VipsAccess access;
 
-		flags = 0;
-		if( VIPS_IS_OPERATION( object ) )
-			flags = vips_operation_get_flags( 
-				VIPS_OPERATION( object ) );
-
 		if( !value ) {
 			vips_object_no_value( object, name );
 			return( -1 );
 		}
+
+		flags = 0;
+		if( VIPS_IS_OPERATION( object ) )
+			flags = vips_operation_get_flags( 
+				VIPS_OPERATION( object ) );
 
 		/* Read the filename. 
 		 */
@@ -1849,6 +1849,44 @@ vips_object_set_argument_from_string( VipsObject *object,
 		 * go back to 1 so that gvalue has the only ref.
 		 */
 		g_object_unref( out );
+	}
+	else if( g_type_is_a( otype, VIPS_TYPE_ARRAY_IMAGE ) ) { 
+		/* We have to have a special case for this, we can't just rely
+		 * on transform_g_string_array_image(), since we need to be
+		 * able to set the access hint on the image.
+		 */
+		VipsArrayImage *array_image;
+		VipsOperationFlags flags;
+		VipsAccess access;
+
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
+
+		flags = 0;
+		if( VIPS_IS_OPERATION( object ) )
+			flags = vips_operation_get_flags( 
+				VIPS_OPERATION( object ) );
+
+		if( flags & VIPS_OPERATION_SEQUENTIAL_UNBUFFERED ) 
+			access = VIPS_ACCESS_SEQUENTIAL_UNBUFFERED;
+		else if( flags & VIPS_OPERATION_SEQUENTIAL ) 
+			access = VIPS_ACCESS_SEQUENTIAL;
+		else
+			access = VIPS_ACCESS_RANDOM; 
+
+		if( !(array_image = 
+			vips_array_image_new_from_string( value, access )) )
+			return( -1 ); 
+
+		g_value_init( &gvalue, VIPS_TYPE_ARRAY_IMAGE );
+		g_value_set_boxed( &gvalue, array_image );
+
+		/* Setting gvalue will have upped @array_image's count again,
+		 * go back to 1 so that gvalue has the only ref.
+		 */
+		vips_area_unref( (VipsArea *) array_image );
 	}
 	else if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
 		(oclass = g_type_class_ref( otype )) ) { 

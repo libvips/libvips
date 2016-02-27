@@ -134,6 +134,10 @@ vips_arrayjoin_build( VipsObject *object )
 		return( -1 );
 
 	in = vips_array_image_get( join->in, &n );
+	/* Array length zero means error.
+	 */
+	if( n == 0 )
+		return( -1 ); 
 
 	/* Move all input images to a common format and number of bands.
 	 */
@@ -291,6 +295,7 @@ vips_arrayjoin_class_init( VipsArrayjoinClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_arrayjoin_class_init\n" );
 
@@ -300,6 +305,8 @@ vips_arrayjoin_class_init( VipsArrayjoinClass *class )
 	vobject_class->nickname = "arrayjoin";
 	vobject_class->description = _( "join an array of images" );
 	vobject_class->build = vips_arrayjoin_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_BOXED( class, "in", -1, 
 		_( "Input" ), 

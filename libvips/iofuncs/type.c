@@ -1089,43 +1089,6 @@ vips_array_double_get_type( void )
 	return( type );
 }
 
-static void
-transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
-{
-	char *str;
-	int n;
-	char *p, *q;
-	int i;
-	VipsImage **array;
-
-	/* We need a copy of the string, since we insert \0 during
-	 * scan.
-	 */
-	str = g_value_dup_string( src_value );
-
-	n = 0;
-	for( p = str; (q = vips_break_token( p, " " )); p = q ) 
-		n += 1;
-
-	g_free( str );
-
-	vips_value_set_array_image( dest_value, n );
-	array = vips_value_get_array_image( dest_value, NULL );
-
-	str = g_value_dup_string( src_value );
-
-	for( i = 0, p = str; (q = vips_break_token( p, " " )); i++, p = q )
-		if( !(array[i] = vips_image_new_from_file( p, NULL )) ) {
-			/* Set the dest to length zero to indicate error.
-			 */
-			vips_value_set_array_image( dest_value, 0 );
-			g_free( str );
-			return;
-		}
-
-	g_free( str );
-}
-
 /**
  * vips_array_image_new:
  * @array: (array length=n): array of #VipsImage
@@ -1205,6 +1168,52 @@ vips_array_image_newv( int n, ... )
 	return( (VipsArrayImage *) area );
 }
 
+VipsArrayImage *
+vips_array_image_new_from_string( const char *string, VipsAccess access )
+{
+	char *str;
+	int n;
+	VipsArea *area;
+	VipsImage **array;
+	char *p, *q;
+	int i;
+
+	/* We need a copy of the string, since we insert \0 during
+	 * scan.
+	 */
+	str = g_strdup( string );
+
+	n = 0;
+	for( p = str; (q = vips_break_token( p, " \n\t\r" )); p = q ) 
+		n += 1;
+
+	g_free( str );
+
+	area = vips_area_new_array_object( n );
+	area->type = VIPS_TYPE_IMAGE;
+
+	array = vips_area_get_data( area, NULL, NULL, NULL, NULL );
+
+	str = g_strdup( string );
+
+	i = 0;
+	for( p = str; (q = vips_break_token( p, " \n\t\r" )); p = q ) {
+		if( !(array[i] = vips_image_new_from_file( p, 
+			"access", access,
+			NULL )) ) {
+			vips_area_unref( area ); 
+			g_free( str );
+			return( NULL );
+		}
+
+		i += 1;
+	}
+
+	g_free( str );
+
+	return( (VipsArrayImage *) area ); 
+}
+
 /**
  * vips_array_image_empty:
  *
@@ -1282,6 +1291,31 @@ vips_array_image_get( VipsArrayImage *array, int *n )
 		*n = area->n;
 
 	return( (VipsImage **) VIPS_ARRAY_ADDR( array, 0 ) ); 
+}
+
+static void
+transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
+{
+	char *str;
+	VipsArrayImage *array_image; 
+
+	str = g_value_dup_string( src_value );
+
+	/* We can't get access here, just assume nothing. See the special case
+	 * in vips_object_new_from_string() for how we usually get this right.
+	 */
+	if( !(array_image = vips_array_image_new_from_string( str, 0 )) ) {
+		/* Set the dest to length zero to indicate error.
+		 */
+		vips_value_set_array_image( dest_value, 0 );
+		g_free( str );
+		return;
+	}
+
+	g_free( str );
+
+	g_value_set_boxed( dest_value, array_image );
+	vips_area_unref( (VipsArea *) array_image );
 }
 
 GType

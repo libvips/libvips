@@ -10,6 +10,7 @@
 - sharpen has a new @sigma param, @radius is deprecated
 - sharpen allows a much greater range of parameters
 - better handling of deprecated args in python
+- much better handling of arrayimage command-line args
 
 27/1/16 started 8.2.3
 - fix a crash with SPARC byte-order labq vips images
