@@ -9,6 +9,7 @@
 - lower mem use for progressive jpg decode
 - sharpen has a new @sigma param, @radius is deprecated
 - sharpen allows a much greater range of parameters
+- sharpen defaults now suitable for screen output
 - better handling of deprecated args in python
 - much better handling of arrayimage command-line args
 

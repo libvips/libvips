@@ -1,3 +1,8 @@
+
+- use the incremental webp decoding api to support seq for webp images
+  
+	https://developers.google.com/speed/webp/docs/api#decodingadvancedapi
+
 - try
 
 	$ vips sharpen babe.jpg x.v
@@ -221,11 +226,6 @@
 
   use it from nip2 for zooming? only if the partial flag is set though, we
   don't want to use it on jpg files
-
-- use the webp advanced encoding api to set a write function for webp save to
-  file
-
-- use g_log() instead of vips_info()?
 
 
 

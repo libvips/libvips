@@ -128,11 +128,11 @@ vips_sharpen_generate( VipsRegion *or,
 	VIPS_GATE_START( "vips_sharpen_generate: work" ); 
 
 	for( y = 0; y < r->height; y++ ) {
-		short *p1 = (short * restrict ) 
+		short *p1 = (short * restrict) 
 			VIPS_REGION_ADDR( in[0], r->left, r->top + y );
-		short *p2 = (short * restrict ) 
+		short *p2 = (short * restrict) 
 			VIPS_REGION_ADDR( in[1], r->left, r->top + y );
-		short *q = (short * restrict ) 
+		short *q = (short * restrict) 
 			VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		for( x = 0; x < r->width; x++ ) {
@@ -143,12 +143,15 @@ vips_sharpen_generate( VipsRegion *or,
 			 * difference to be in this range, both must be 0 -
 			 * 32767.
 			 */
-			int d = (v1 & 0x8fff) - (v2 & 0x8fff);
+			int diff = ((v1 & 0x7fff) - (v2 & 0x7fff));
 
 			int out;
 
-			out = v1 + lut[d + 32768];
+			g_assert( diff + 32768 >= 0 );
+			g_assert( diff + 32768 < 65536 );
 
+			out = v1 + lut[diff + 32768];
+			
 			if( out < 0 )
 				out = 0;
 			if( out > 32767 )
@@ -331,7 +334,7 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 		_( "Flat/jaggy threshold" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, x1 ),
-		0, 1000000, 1.5 );
+		0, 1000000, 2.0 );
 
 	VIPS_ARG_DOUBLE( class, "y2", 6, 
 		_( "y2" ), 
@@ -359,7 +362,7 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 		_( "Slope for jaggy areas" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSharpen, m2 ),
-		0, 1000000, 0.5 );
+		0, 1000000, 3.0 );
 
 	/* We used to have a radius control.
 	 */
@@ -376,11 +379,11 @@ static void
 vips_sharpen_init( VipsSharpen *sharpen )
 {
 	sharpen->sigma = 0.5;
-	sharpen->x1 = 1.5; 
+	sharpen->x1 = 2.0;
 	sharpen->y2 = 10.0; 
 	sharpen->y3 = 20.0; 
 	sharpen->m1 = 0.0; 
-	sharpen->m2 = 0.5; 
+	sharpen->m2 = 3.0;
 }
 
 /**
@@ -432,11 +435,11 @@ vips_sharpen_init( VipsSharpen *sharpen )
  *
  * |[
  *   sigma == 0.5
- *   x1 == 1.5
+ *   x1 == 2
  *   y2 == 10         (don't brighten by more than 10 L*)
- *   y3 == 20         (can darken by up to 52 L*)
+ *   y3 == 20         (can darken by up to 20 L*)
  *   m1 == 0          (no sharpening in flat areas)
- *   m2 == 0.5        (some sharpening in jaggy areas)
+ *   m2 == 3          (some sharpening in jaggy areas)
  * ]|
  *
  * If you want more or less sharpening, we suggest you just change the 
@@ -444,7 +447,7 @@ vips_sharpen_init( VipsSharpen *sharpen )
  *
  * The @sigma parameter changes the width of the fringe and can be 
  * adjusted according to the output printing resolution. As an approximate 
- * guideline, use 0.5 for 4 pixels/mm (CRT display resolution), 
+ * guideline, use 0.5 for 4 pixels/mm (display resolution), 
  * 1.0 for 12 pixels/mm and 1.5 for 16 pixels/mm (300 dpi == 12 
  * pixels/mm). These figures refer to the image raster, not the half-tone 
  * resolution.
