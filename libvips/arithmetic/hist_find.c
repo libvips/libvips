@@ -24,6 +24,8 @@
  * 	- cast @in to u8/u16.
  * 12/8/13
  * 	- redo as a class
+ * 28/2/16 lovell
+ * 	- unroll common cases
  */
 
 /*
@@ -233,50 +235,62 @@ vips_hist_find_uchar_scan( VipsStatistic *statistic,
 	void *seq, int x, int y, void *in, int n )
 {
 	Histogram *hist = (Histogram *) seq;
+	unsigned int *bins = hist->bins[0];
 	int nb = statistic->ready->Bands;
 	VipsPel *p = (VipsPel *) in;
 
-	int i, j, z;
+	int j;
 
 	/* The inner loop cannot be auto-vectorized by the compiler.
-	 * Images with 1-4 bands are manually unrolled to improve
-	 * performance for the most common cases by a factor of two.
+	 * Unroll for common cases. 
 	 */
-	switch (nb) {
+	switch( nb ) {
 	case 1:
-		for( i = 0, j = 0; j < n; j++, i++ )
-			hist->bins[0][p[i]] += 1;
+		for( j = 0; j < n; j++ )
+			bins[p[j]] += 1;
 		break;
+
 	case 2:
-		for( i = 0, j = 0; j < n; j++ ) {
-			hist->bins[0][p[i]] += 1;
-			hist->bins[1][p[i + 1]] += 1;
-			i += 2;
+		for( j = 0; j < n; j++ ) {
+			hist->bins[0][p[0]] += 1;
+			hist->bins[1][p[1]] += 1;
+
+			p += 2;
 		}
 		break;
+
 	case 3:
-		for( i = 0, j = 0; j < n; j++ ) {
-			hist->bins[0][p[i]] += 1;
-			hist->bins[1][p[i + 1]] += 1;
-			hist->bins[2][p[i + 2]] += 1;
-			i += 3;
+		for( j = 0; j < n; j++ ) {
+			hist->bins[0][p[0]] += 1;
+			hist->bins[1][p[1]] += 1;
+			hist->bins[2][p[2]] += 1;
+
+			p += 3;
 		}
 		break;
+
 	case 4:
-		for( i = 0, j = 0; j < n; j++ ) {
-			hist->bins[0][p[i]] += 1;
-			hist->bins[1][p[i + 1]] += 1;
-			hist->bins[2][p[i + 2]] += 1;
-			hist->bins[3][p[i + 3]] += 1;
-			i += 4;
+		for( j = 0; j < n; j++ ) {
+			hist->bins[0][p[0]] += 1;
+			hist->bins[1][p[1]] += 1;
+			hist->bins[2][p[2]] += 1;
+			hist->bins[3][p[3]] += 1;
+
+			p += 4;
 		}
 		break;
+
 	default:
 		/* Loop when >4 bands
 		 */
-		for( i = 0, j = 0; j < n; j++ )
-			for( z = 0; z < nb; z++, i++ )
-				hist->bins[z][p[i]] += 1;
+		for( j = 0; j < n; j++ ) {
+			int z;
+
+			for( z = 0; z < nb; z++ ) 
+				hist->bins[z][p[z]] += 1;
+
+			p += nb;
+		}
 	}
 
 	/* Note the maximum.
@@ -321,11 +335,11 @@ vips_hist_find_ushort_scan( VipsStatistic *statistic,
 	int nb = statistic->ready->Bands;
 	unsigned short *p = (unsigned short *) in; 
 
-	int i, j, z; 
+	int j, z; 
 
-	for( i = 0, j = 0; j < n; j++ )
-		for( z = 0; z < nb; z++, i++ ) {
-			int v = p[i];
+	for( j = 0; j < n; j++ ) {
+		for( z = 0; z < nb; z++ ) {
+			int v = p[z];
 
 			/* Adjust maximum.
 			 */
@@ -334,6 +348,9 @@ vips_hist_find_ushort_scan( VipsStatistic *statistic,
 
 			hist->bins[z][v] += 1;
 		}
+
+		p += nb;
+	}
 
 	/* Note the maximum.
 	 */

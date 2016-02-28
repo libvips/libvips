@@ -12,6 +12,7 @@
 - sharpen defaults now suitable for screen output
 - better handling of deprecated args in python
 - much better handling of arrayimage command-line args
+- faster hist_find (Lovell Fuller)
 
 27/1/16 started 8.2.3
 - fix a crash with SPARC byte-order labq vips images
