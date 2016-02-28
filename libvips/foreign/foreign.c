@@ -2372,7 +2372,13 @@ vips_jpegsave_mime( VipsImage *in, ... )
  * @out: decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @shrink: %gint, shrink by this much on load
+ *
  * Read a WebP file into a VIPS image. 
+ *
+ * Use @shrink to specify a shrink-on-load factor.
  *
  * See also: vips_image_new_from_file().
  *
@@ -2397,6 +2403,10 @@ vips_webpload( const char *filename, VipsImage **out, ... )
  * @len: size of memory area
  * @out: image to write
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @shrink: %gint, shrink by this much on load
  *
  * Read a WebP-formatted memory block into a VIPS image. Exactly as
  * vips_webpload(), but read from a memory buffer. 

@@ -13,6 +13,8 @@
 - better handling of deprecated args in python
 - much better handling of arrayimage command-line args
 - faster hist_find (Lovell Fuller)
+- webpload has a @shrink parameter for shrink-on-load
+- vipsthumbnail knows about webp shrink-on-load
 
 27/1/16 started 8.2.3
 - fix a crash with SPARC byte-order labq vips images

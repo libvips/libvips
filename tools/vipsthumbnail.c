@@ -73,6 +73,8 @@
  * 9/2/16
  * 	- add PDF --size support
  * 	- add SVG --size support
+ * 28/2/16
+ * 	- add webp --shrink support
  */
 
 #ifdef HAVE_CONFIG_H
@@ -326,6 +328,30 @@ thumbnail_open( VipsObject *process, const char *filename )
 			NULL )) )
 			return( NULL );
 
+	}
+	else if( strcmp( loader, "VipsForeignLoadWebpFile" ) == 0 ) {
+		double shrink;
+
+		/* This will just read in the header and is quick.
+		 */
+		if( !(im = vips_image_new_from_file( filename, NULL )) )
+			return( NULL );
+
+		shrink = calculate_shrink( im ); 
+
+		g_object_unref( im );
+
+		vips_info( "vipsthumbnail", 
+			"loading webp with factor %g pre-shrink", 
+			shrink ); 
+
+		/* We can't use UNBUFERRED safely on very-many-core systems.
+		 */
+		if( !(im = vips_image_new_from_file( filename, 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"shrink", (int) shrink,
+			NULL )) )
+			return( NULL );
 	}
 	else {
 		/* All other formats. We can't use UNBUFERRED safely on 
