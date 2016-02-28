@@ -238,12 +238,46 @@ vips_hist_find_uchar_scan( VipsStatistic *statistic,
 
 	int i, j, z;
 
-	/* Tried swapping these loops, no meaningful speedup. 
+	/* The inner loop cannot be auto-vectorized by the compiler.
+	 * Images with 1-4 bands are manually unrolled to improve
+	 * performance for the most common cases by a factor of two.
 	 */
-
-	for( i = 0, j = 0; j < n; j++ )
-		for( z = 0; z < nb; z++, i++ )
-			hist->bins[z][p[i]] += 1;
+	switch (nb) {
+	case 1:
+		for( i = 0, j = 0; j < n; j++, i++ )
+			hist->bins[0][p[i]] += 1;
+		break;
+	case 2:
+		for( i = 0, j = 0; j < n; j++ ) {
+			hist->bins[0][p[i]] += 1;
+			hist->bins[1][p[i + 1]] += 1;
+			i += 2;
+		}
+		break;
+	case 3:
+		for( i = 0, j = 0; j < n; j++ ) {
+			hist->bins[0][p[i]] += 1;
+			hist->bins[1][p[i + 1]] += 1;
+			hist->bins[2][p[i + 2]] += 1;
+			i += 3;
+		}
+		break;
+	case 4:
+		for( i = 0, j = 0; j < n; j++ ) {
+			hist->bins[0][p[i]] += 1;
+			hist->bins[1][p[i + 1]] += 1;
+			hist->bins[2][p[i + 2]] += 1;
+			hist->bins[3][p[i + 3]] += 1;
+			i += 4;
+		}
+		break;
+	default:
+		/* Loop when >4 bands
+		 */
+		for( i = 0, j = 0; j < n; j++ )
+			for( z = 0; z < nb; z++, i++ )
+				hist->bins[z][p[i]] += 1;
+	}
 
 	/* Note the maximum.
 	 */
