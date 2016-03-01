@@ -17,6 +17,7 @@
 - vipsthumbnail knows about webp shrink-on-load
 - more vips_resize() tuning, a bit quicker now
 - better behaviour for vips_cast() shift of non-int types (thanks apacheark)
+- python .bandrank() now works like .bandjoin()
 
 27/1/16 started 8.2.3
 - fix a crash with SPARC byte-order labq vips images

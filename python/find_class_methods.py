@@ -49,7 +49,7 @@ print 'found class methods:'
 names = find_class_methods(vips_type_operation)
 
 # filter out things we know we should not wrap
-names -= set(["bandjoin"])
+names -= set(["bandjoin", "bandrank"])
 
 names = list(names)
 names.sort()

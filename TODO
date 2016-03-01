@@ -1,33 +1,7 @@
-better handling of cast+shift for non-int formats
-
-before, im.cast(uchar, shift = true) where im was float and tagged as 
-rgb16 would not shift the image, since it's unclear how much to shift a float 
-type by
-
-now we do two casts: first, we guess the numeric range from the
-interpretation, so rgb16 would be ushort, so we cast float->ushort;
-second, we cast to the target type and do the shift on the way
-
-
-- python bandrank should work like bandjoin
 
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
 
 - could load pdf thumbnails?
-
-- new vips_reduce:
-
-	affine
-	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
-	real	0m2.325s
-	user	0m8.316s
-	sys	0m0.256s
-
-	reduce
-	$ time vipsthumbnail wtc.tif -o x.tif -s 7000
-	real	0m1.677s
-	user	0m5.996s
-	sys	0m0.300s
 
 - get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very
   odd, the interpolation shouldn't change between bands
@@ -35,12 +9,6 @@ second, we cast to the target type and do the shift on the way
   probably over/underflow in interpolation ... clipping problems?
 
 - still not happy about float->int mask conversion in im_vips2mask.c
-
-- need to follow up on
-
-	https://github.com/jcupitt/libvips/issues/347
-
-  trying new shrinker, also try resize change, should be fixed
 
 - colour needs to split _build() into preprocess / process / postprocess
   phases

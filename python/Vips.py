@@ -930,6 +930,13 @@ class Image(Vips.Image):
         else:
             return _call_base("bandjoin", [[self] + other], {})
 
+    def bandrank(self, other, **kwargs):
+        """Band-wise rank filter a set of images."""
+        if not isinstance(other, list):
+            other = [other]
+
+        return _call_base("bandrank", [[self] + other], kwargs)
+
     def maxpos(self):
         """Return the coordinates of the image maximum."""
         v, opts = self.max(x = True, y = True)
@@ -1055,14 +1062,13 @@ class Image(Vips.Image):
 
 # use find_class_methods.py to generate this list
 
-# don't include "bandjoin", this needs to be wrapped by hand, see
-# above
+# don't include "bandjoin" or "bandrank", they need to be wrapped by hand, 
+# see above
 
 class_methods = [
                     "system",
                     "sum",
                     "arrayjoin",
-                    "bandrank",
                     "black",
                     "gaussnoise",
                     "text",

@@ -208,11 +208,16 @@ class TestConversion(unittest.TestCase):
 
         def bandrank(x, y):
             if isinstance(x, Vips.Image) and isinstance(y, Vips.Image):
-                return Vips.Image.bandrank([x, y])
+                return x.bandrank([y])
             else:
                 return median(x, y)
 
         self.run_binary(self.all_images, bandrank, fmt = noncomplex_formats)
+
+        # we can mix images and constants, and set the index arg
+        a = self.mono.bandrank([2], index = 0)
+        b = (self.mono < 2).ifthenelse(self.mono, 2)
+        self.assertEqual((a - b).abs().min(), 0)
 
     def test_cache(self):
         def cache(x):
