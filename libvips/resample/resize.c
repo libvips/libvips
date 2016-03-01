@@ -6,6 +6,8 @@
  * 	- add the fancier algorithm from vipsthumbnail
  * 11/11/15
  * 	- smarter cache sizing
+ * 29/2/16
+ * 	- shrink more affine less, now we have better anti-alias settings
  */
 
 /*
@@ -87,8 +89,6 @@ vips_resize_build( VipsObject *object )
 	int window_size;
 	int int_hshrink;
 	int int_vshrink;
-	int int_shrink_width;
-	int int_shrink_height;
 	double hresidual;
 	double vresidual;
 	double sigma;
@@ -128,22 +128,25 @@ vips_resize_build( VipsObject *object )
 	int_vshrink = resize->vscale > 1.0 ? 
 		1 : VIPS_FLOOR( 1.0 / resize->vscale );
 
-	/* We want to shrink by less for interpolators with larger windows.
+	/* We want to shrink by less for interpolators with large windows.
 	 */
 	int_hshrink = VIPS_MAX( 1,
-		int_hshrink / VIPS_MAX( 1, window_size / 2 ) );
+		int_hshrink / VIPS_MAX( 1, window_size / 3 ) );
 	int_vshrink = VIPS_MAX( 1,
-		int_vshrink / VIPS_MAX( 1, window_size / 2 ) );
+		int_vshrink / VIPS_MAX( 1, window_size / 3 ) );
 
-	/* Size after int shrink.
+	/* Will this produce a residual scale of almost 1? shrink a bit less
+	 * if it will.
 	 */
-	int_shrink_width = in->Xsize / int_hshrink;
-	int_shrink_height = in->Ysize / int_vshrink;
+	if( (in->Xsize * resize->scale) / (in->Xsize / int_hshrink) > 0.9 )
+		int_hshrink = VIPS_MAX( 1, int_hshrink - 1 );
+	if( (in->Ysize * resize->vscale) / (in->Ysize / int_vshrink) > 0.9 )
+		int_vshrink = VIPS_MAX( 1, int_vshrink - 1 );
 
-	/* Therefore residual scale factor is.
+	/* Residual scale factor is.
 	 */
-	hresidual = (in->Xsize * resize->scale) / int_shrink_width;
-	vresidual = (in->Ysize * resize->vscale) / int_shrink_height;
+	hresidual = (in->Xsize * resize->scale) / (in->Xsize / int_hshrink);
+	vresidual = (in->Ysize * resize->vscale) / (in->Ysize / int_vshrink);
 
 	/* A copy for enlarge resize.
 	 */

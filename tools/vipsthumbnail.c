@@ -75,6 +75,8 @@
  * 	- add SVG --size support
  * 28/2/16
  * 	- add webp --shrink support
+ * 29/2/16
+ * 	- make more use of jpeg shrink-on-load now we've tuned vips_resize()
  */
 
 #ifdef HAVE_CONFIG_H
@@ -221,14 +223,11 @@ thumbnail_find_jpegshrink( VipsImage *im )
 	if( linear_processing )
 		return( 1 ); 
 
-	/* We want to leave a bit of shrinking for our interpolator, we don't
-	 * want to do all the shrinking with libjpeg.
-	 */
-	if( shrink >= 16 )
+	if( shrink >= 8 )
 		return( 8 );
-	else if( shrink >= 8 )
-		return( 4 );
 	else if( shrink >= 4 )
+		return( 4 );
+	else if( shrink >= 2 )
 		return( 2 );
 	else 
 		return( 1 );
