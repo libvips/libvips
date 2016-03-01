@@ -114,6 +114,7 @@ int vips_image_get_width( const VipsImage *image );
 int vips_image_get_height( const VipsImage *image );
 int vips_image_get_bands( const VipsImage *image );
 VipsBandFormat vips_image_get_format( const VipsImage *image );
+VipsBandFormat vips_image_guess_format( const VipsImage *image );
 VipsCoding vips_image_get_coding( const VipsImage *image );
 VipsInterpretation vips_image_get_interpretation( const VipsImage *image );
 VipsInterpretation vips_image_guess_interpretation( const VipsImage *image );

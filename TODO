@@ -1,32 +1,17 @@
+better handling of cast+shift for non-int formats
 
-- use the incremental webp decoding api to support seq for webp images
-  
-	https://developers.google.com/speed/webp/docs/api#decodingadvancedapi
+before, im.cast(uchar, shift = true) where im was float and tagged as 
+rgb16 would not shift the image, since it's unclear how much to shift a float 
+type by
 
-- try
+now we do two casts: first, we guess the numeric range from the
+interpretation, so rgb16 would be ushort, so we cast float->ushort;
+second, we cast to the target type and do the shift on the way
 
-	$ vips sharpen babe.jpg x.v
 
-  horrible posterization, looks like too few bits
-
-	$ vips colourspace babe.jpg x.v rgb16
-	$ vips sharpen x.v x2.v
-	$ vips colourspace x2.v x3.v srgb
-
-  no better, strange
-
-- we have a buffer reserve list on each image ... could we junk this on
-  "minimise"?
+- python bandrank should work like bandjoin
 
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
-
-- add reduceh > 3 warning for wtc shrink to 1280x1280
-
-  or was it 1703?
-
-- colour ops are doing cast + extract_band before every op ... for something
-  like colourspace, which can potentially do many ops in a row, this is a LOT
-  of casting and extracting
 
 - could load pdf thumbnails?
 
@@ -68,6 +53,12 @@
   solution
 
 
+
+- use the incremental webp decoding api to support seq for webp images
+
+	https://developers.google.com/speed/webp/docs/api#decodingadvancedapi
+
+  doesn't seem to be possible
 
 - does ruby need to unpack RefString as well? what about C++?
 

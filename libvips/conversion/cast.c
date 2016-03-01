@@ -49,6 +49,8 @@
  * 	- cast to uint now removes <0 values
  * 11/2/15
  * 	- add @shift option
+ * 1/3/16
+ * 	- better behaviour for shift of non-int types (thanks apacheark)
  */
 
 /*
@@ -375,10 +377,8 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	VipsCast *cast = (VipsCast *) b;
 	VipsConversion *conversion = (VipsConversion *) b;
 	VipsRect *r = &or->valid;
-	int le = r->left;
-	int to = r->top;
-	int bo = VIPS_RECT_BOTTOM( r );
 	int sz = VIPS_REGION_N_ELEMENTS( or );
+
 	int x, y;
 
 	if( vips_region_prepare( ir, r ) )
@@ -386,11 +386,11 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 	VIPS_GATE_START( "vips_cast_gen: work" );
 
-	for( y = to; y < bo; y++ ) {
-		VipsPel *in = VIPS_REGION_ADDR( ir, le, y ); 
-		VipsPel *out = VIPS_REGION_ADDR( or, le, y ); 
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *in = VIPS_REGION_ADDR( ir, r->left, r->top + y ); 
+		VipsPel *out = VIPS_REGION_ADDR( or, r->left, r->top + y ); 
 
-		switch( cast->in->BandFmt ) { 
+		switch( ir->im->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
 			BAND_SWITCH_INNER( unsigned char,
 				VIPS_INT_INT, 
@@ -494,6 +494,20 @@ vips_cast_build( VipsObject *object )
 	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
 	in = t[0]; 
+
+	/* If @shift is on but we're not in an int format and we're going to
+	 * an int format, we need to cast to int first. For example, what 
+	 * about a float image tagged as rgb16 being cast to uint8? We need 
+	 * to cast to ushort before we do the final cast to uint8.
+	 */
+	if( cast->shift && 
+		!vips_band_format_isint( in->BandFmt ) &&
+		vips_band_format_isint( cast->format ) ) {
+		if( vips_cast( in, &t[1], 
+			vips_image_guess_format( in ), NULL ) )
+			return( -1 );
+		in = t[1];
+	}
 
 	if( vips_image_pipelinev( conversion->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
