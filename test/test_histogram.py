@@ -101,7 +101,7 @@ class TestHistogram(unittest.TestCase):
 
         self.assertEqual((im - im2).abs().max(), 0.0)
 
-    def test_hist_map(self):
+    def test_percent(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg").extract_band(1)
 
         pc = im.percent(90)
@@ -111,6 +111,13 @@ class TestHistogram(unittest.TestCase):
         pc_set = 100 * n_set / (msk.width * msk.height)
 
         self.assertAlmostEqual(pc_set, 90, places = 0)
+
+    def test_hist_entropy(self):
+        im = Vips.Image.new_from_file("images/IMG_4618.jpg").extract_band(1)
+
+        ent = im.hist_find().hist_entropy()
+
+        self.assertAlmostEqual(ent, 4.367, places = 3)
 
     def test_stdif(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")
