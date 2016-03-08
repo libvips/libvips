@@ -177,6 +177,21 @@ The IJG JPEG library. Use the `-turbo` version if you can.
 
 If available, libvips adds support for EXIF metadata in JPEG files.
 
+### giflib
+
+The standard gif loader. If this is not present, vips will try to load gifs
+via imagemagick instead.
+
+### librsvg
+
+The usual SVG loader. If this is not present, vips will try to load SVGs
+via imagemagick instead.
+
+### libpoppler
+
+The usual PDF loader. If this is not present, vips will try to load PDFs
+via imagemagick instead.
+
 ### libgsf-1
 
 If available, libvips adds support for creating image pyramids with `dzsave`. 
