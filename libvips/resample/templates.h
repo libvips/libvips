@@ -312,18 +312,30 @@ calculate_coefficients_catmull( const double x, double c[4] )
 }
 
 /* Given an offset in [0,1] (we can have x == 1 when building tables),
- * calculate c0 .. c6, the lanczos3 coefficients. This is called
+ * calculate c0 .. c(a * 2 - 1), the lanczos coefficients. This is called
  * from the interpolator as well as from the table builder.
  */
 static void inline
-calculate_coefficients_lanczos3( const double x, double c[7] )
+calculate_coefficients_lanczos( int a, const double x, double *c )
 {
 	int i;
 
-	for( i = 0; i < 7; i++ ) {
-		double xp = (i - 3) + x;
+	for( i = 0; i < a * 2; i++ ) {
+		double xp = (i - a) + (1 - x);
 
-		c[i] = 3.0 * sin( VIPS_PI * xp ) * sin( VIPS_PI * xp / 3.0 ) / 
-			(VIPS_PI * VIPS_PI * xp * xp);
+		double l;
+
+		if( xp == 0.0 )
+			l = 1.0;
+		else if( xp < -a )
+			l = 0.0;
+		else if( xp > a )
+			l = 0.0;
+		else
+			l = (double) a * sin( VIPS_PI * xp ) * 
+				sin( VIPS_PI * xp / (double) a ) / 
+				(VIPS_PI * VIPS_PI * xp * xp);
+
+		c[i] = l;
 	}
 }

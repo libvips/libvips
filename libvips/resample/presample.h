@@ -65,6 +65,9 @@ typedef struct _VipsResampleClass {
 
 GType vips_resample_get_type( void );
 
+int vips_reducehl3_get_points( VipsKernel kernel );
+void vips_reducehl3_make_mask( VipsKernel kernel, double x, double *c );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

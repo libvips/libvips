@@ -56,6 +56,7 @@ EXTRA_DIST = version.h.in internal.h enumtemplate
 # we need absolute filenames here since this list appears in the src dir as
 # well
 vips_scan_headers = \
+	${top_srcdir}/libvips/include/vips/resample.h \
 	${top_srcdir}/libvips/include/vips/memory.h \
 	${top_srcdir}/libvips/include/vips/create.h \
 	${top_srcdir}/libvips/include/vips/foreign.h \
