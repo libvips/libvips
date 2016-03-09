@@ -468,6 +468,8 @@ vips_col_make_tables_LabQ2sRGB( void )
 static void
 vips_LabQ2sRGB_line( VipsColour *colour, VipsPel *q, VipsPel **in, int width )
 { 
+	vips_col_make_tables_LabQ2sRGB();
+
 	unsigned char *p = (unsigned char *) in[0];
 
         int i, t;
@@ -526,8 +528,6 @@ vips_LabQ2sRGB_class_init( VipsLabQ2sRGBClass *class )
 	object_class->description = _( "convert a LabQ image to sRGB" );
 
 	colour_class->process_line = vips_LabQ2sRGB_line;
-
-	vips_col_make_tables_LabQ2sRGB();
 }
 
 static void
