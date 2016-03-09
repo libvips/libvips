@@ -466,6 +466,7 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 	vobject_class->description = _( "shrink an image horizontally" );
 	vobject_class->build = vips_reduceh_build;
 
+	/*
 {
 	double x;
 
@@ -484,6 +485,7 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 		printf( "\n" ); 
 	}
 }
+ 	 */
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
