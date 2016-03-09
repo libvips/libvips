@@ -466,6 +466,25 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 	vobject_class->description = _( "shrink an image horizontally" );
 	vobject_class->build = vips_reduceh_build;
 
+{
+	double x;
+
+	for( x = 0.0; x <= 1.0; x += 0.05 ) {
+		double c[7];
+		int i;
+
+		calculate_coefficients_lanczos3( x, c );
+
+		printf( "%g, ", x );
+		for( i = 0; i < 7; i++ ) {
+			printf( "%5g", c[i] );
+			if( i < 6 )
+				printf( ", " ); 
+		}
+		printf( "\n" ); 
+	}
+}
+
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_DOUBLE( reduceh_class, "xshrink", 3, 

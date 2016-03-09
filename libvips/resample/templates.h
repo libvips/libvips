@@ -310,3 +310,20 @@ calculate_coefficients_catmull( const double x, double c[4] )
 	c[1] = ctwo;
 	c[2] = cthr;
 }
+
+/* Given an offset in [0,1] (we can have x == 1 when building tables),
+ * calculate c0 .. c6, the lanczos3 coefficients. This is called
+ * from the interpolator as well as from the table builder.
+ */
+static void inline
+calculate_coefficients_lanczos3( const double x, double c[7] )
+{
+	int i;
+
+	for( i = 0; i < 7; i++ ) {
+		double xp = (i - 3) + x;
+
+		c[i] = 3.0 * sin( VIPS_PI * xp ) * sin( VIPS_PI * xp / 3.0 ) / 
+			(VIPS_PI * VIPS_PI * xp * xp);
+	}
+}
