@@ -22,6 +22,8 @@
  * 	- spot NaN, Inf in XYZ2RGB, they break LUT indexing
  * 	- split sRGB <-> XYZ into sRGB <-> scRGB <-> XYZ so we can support
  * 	  scRGB as a colourspace
+ * 10/3/16 Lovell Fuller
+ * 	- move vips_col_make_tables_LabQ2sRGB() to first pixel processing
  */
 
 /*
@@ -478,6 +480,8 @@ vips_LabQ2sRGB_line( VipsColour *colour, VipsPel *q, VipsPel **in, int width )
 	int ae = 0;
 	int be = 0;
 
+	vips_col_make_tables_LabQ2sRGB();
+
         for( i = 0; i < width; i++ ) {
 		/* Get colour, add in error from previous pixel. 
 		 */
@@ -526,8 +530,6 @@ vips_LabQ2sRGB_class_init( VipsLabQ2sRGBClass *class )
 	object_class->description = _( "convert a LabQ image to sRGB" );
 
 	colour_class->process_line = vips_LabQ2sRGB_line;
-
-	vips_col_make_tables_LabQ2sRGB();
 }
 
 static void
