@@ -339,3 +339,19 @@ calculate_coefficients_lanczos( int a, const double x, double *c )
 		c[i] = l;
 	}
 }
+
+/* Our inner loop for resampling with a convolution. Operate on elements of 
+ * size T, gather results in an intermediate of type IT.
+ */
+template <typename T, typename IT>
+static IT
+reduce_sum( const T * restrict in, int stride, const IT * restrict c, int n )
+{
+	IT sum;
+
+	sum = 0; 
+	for( int i = 0; i < n; i++ )
+		sum += c[i] * in[i * stride];
+
+	return( sum ); 
+}

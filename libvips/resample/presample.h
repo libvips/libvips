@@ -65,8 +65,12 @@ typedef struct _VipsResampleClass {
 
 GType vips_resample_get_type( void );
 
-int vips_reducehl3_get_points( VipsKernel kernel );
-void vips_reducehl3_make_mask( VipsKernel kernel, double x, double *c );
+/* The max size of the vector we use.
+ */
+#define MAX_POINTS (6)
+
+int vips_reduce_get_points( VipsKernel kernel );
+void vips_reduce_make_mask( VipsKernel kernel, double x, double *c );
 
 #ifdef __cplusplus
 }

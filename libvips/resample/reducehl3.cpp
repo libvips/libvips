@@ -64,10 +64,6 @@
  * 1D resampling kernels. 
  */
 
-/* The max size of the vector we use.
- */
-#define MAX_POINTS (6)
-
 typedef struct _VipsReducehl3 {
 	VipsResample parent_instance;
 
@@ -101,7 +97,7 @@ G_DEFINE_TYPE( VipsReducehl3, vips_reducehl3, VIPS_TYPE_RESAMPLE );
 /* Get n points.
  */
 int
-vips_reducehl3_get_points( VipsKernel kernel ) 
+vips_reduce_get_points( VipsKernel kernel ) 
 {
 	switch( kernel ) {
 	case VIPS_KERNEL_NEAREST:
@@ -128,7 +124,7 @@ vips_reducehl3_get_points( VipsKernel kernel )
 /* Calculate a mask.
  */
 void
-vips_reducehl3_make_mask( VipsKernel kernel, double x, double *c )
+vips_reduce_make_mask( VipsKernel kernel, double x, double *c )
 {
 	switch( kernel ) {
 	case VIPS_KERNEL_NEAREST:
@@ -136,8 +132,8 @@ vips_reducehl3_make_mask( VipsKernel kernel, double x, double *c )
 		break;
 
 	case VIPS_KERNEL_LINEAR:
-		c[0] = x;
-		c[1] = 1.0 - x;
+		c[0] = 1.0 - x;
+		c[1] = x;
 		break;
 
 	case VIPS_KERNEL_CUBIC:
@@ -192,22 +188,6 @@ reducehl3_unsigned_uint8_4tab( VipsPel *out, const VipsPel *in,
 	}
 }
 
-/* Our inner loop. Operate on elements of size T, gather results in an
- * intermediate of type IT.
- */
-template <typename T, typename IT>
-static IT
-reducehl3_sum( const T * restrict in, int bands, const IT * restrict c, int n )
-{
-	IT sum;
-
-	sum = 0; 
-	for( int i = 0; i < n; i++ )
-		sum += c[i] * in[i * bands];
-
-	return( sum ); 
-}
-
 template <typename T, int max_value>
 static void inline
 reducehl3_unsigned_int_tab( VipsReducehl3 *reducehl3,
@@ -216,11 +196,12 @@ reducehl3_unsigned_int_tab( VipsReducehl3 *reducehl3,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
+	const int n = reducehl3->n_points;
 
 	for( int z = 0; z < bands; z++ ) {
 		int sum;
 	       
-		sum = reducehl3_sum<T, int>(in, bands, cx, reducehl3->n_points);
+		sum = reduce_sum<T, int>( in, bands, cx, n );
 		sum = unsigned_fixed_round( sum ); 
 		sum = VIPS_CLIP( 0, sum, max_value ); 
 		
@@ -238,11 +219,12 @@ reducehl3_signed_int_tab( VipsReducehl3 *reducehl3,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
+	const int n = reducehl3->n_points;
 
 	for( int z = 0; z < bands; z++ ) {
 		int sum;
 
-		sum = reducehl3_sum<T, int>(in, bands, cx, reducehl3->n_points);
+		sum = reduce_sum<T, int>( in, bands, cx, n );
 		sum = signed_fixed_round( sum ); 
 		sum = VIPS_CLIP( min_value, sum, max_value ); 
 
@@ -262,10 +244,10 @@ reducehl3_float_tab( VipsReducehl3 *reducehl3,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
+	const int n = reducehl3->n_points;
 
 	for( int z = 0; z < bands; z++ ) {
-		out[z] = reducehl3_sum<T, double>
-			(in, bands, cx, reducehl3->n_points);
+		out[z] = reduce_sum<T, double>( in, bands, cx, n );
 		in += 1;
 	}
 }
@@ -281,12 +263,12 @@ reducehl3_unsigned_int32_tab( VipsReducehl3 *reducehl3,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
+	const int n = reducehl3->n_points;
 
 	for( int z = 0; z < bands; z++ ) {
 		double sum;
 
-		sum = reducehl3_sum<T, double>
-			(in, bands, cx, reducehl3->n_points);
+		sum = reduce_sum<T, double>( in, bands, cx, n );
 		out[z] = VIPS_CLIP( 0, sum, max_value ); 
 
 		in += 1;
@@ -301,12 +283,12 @@ reducehl3_signed_int32_tab( VipsReducehl3 *reducehl3,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
+	const int n = reducehl3->n_points;
 
 	for( int z = 0; z < bands; z++ ) {
 		double sum;
 
-		sum = reducehl3_sum<T, double>
-			(in, bands, cx, reducehl3->n_points);
+		sum = reduce_sum<T, double>( in, bands, cx, n );
 		sum = VIPS_CLIP( min_value, sum, max_value ); 
 		out[z] = sum;
 
@@ -324,14 +306,14 @@ reducehl3_notab( VipsReducehl3 *reducehl3,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
+	const int n = reducehl3->n_points;
 
 	double cx[MAX_POINTS];
 
-	vips_reducehl3_make_mask( reducehl3->kernel, x, cx ); 
+	vips_reduce_make_mask( reducehl3->kernel, x, cx ); 
 
 	for( int z = 0; z < bands; z++ ) {
-		out[z] = reducehl3_sum<T, double>
-			(in, bands, cx, reducehl3->n_points);
+		out[z] = reduce_sum<T, double>( in, bands, cx, n );
 
 		in += 1;
 	}
@@ -488,9 +470,9 @@ vips_reducehl3_build( VipsObject *object )
 
 	/* Build the tables of pre-computed coefficients.
 	 */
-	reducehl3->n_points = vips_reducehl3_get_points( reducehl3->kernel ); 
+	reducehl3->n_points = vips_reduce_get_points( reducehl3->kernel ); 
 	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
-		vips_reducehl3_make_mask( reducehl3->kernel, 
+		vips_reduce_make_mask( reducehl3->kernel, 
 			(float) x / VIPS_TRANSFORM_SCALE,
 			reducehl3->matrixf[x] );
 
@@ -575,7 +557,7 @@ vips_reducehl3_class_init( VipsReducehl3Class *reducehl3_class )
 
 	VIPS_ARG_ENUM( reducehl3_class, "kernel", 3, 
 		_( "Kernel" ), 
-		_( "Resamling kernel" ),
+		_( "Resampling kernel" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsReducehl3, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_CUBIC );

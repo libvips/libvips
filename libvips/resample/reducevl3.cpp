@@ -2,6 +2,8 @@
  *
  * 29/1/16
  * 	- from shrinkv.c
+ * 10/3/16
+ * 	- add other kernels
  */
 
 /*
@@ -51,24 +53,33 @@
 #include "presample.h"
 #include "templates.h"
 
+/* The max size of the vector we use.
+ */
+#define MAX_POINTS (6)
+
 typedef struct _VipsReducevl3 {
 	VipsResample parent_instance;
 
 	double yshrink;		/* Shrink factor */
 
+	/* The thing we use to make the kernel.
+	 */
+	VipsKernel kernel;
+
+	/* Number of points in kernel.
+	 */
+	int n_points;
+
+	/* Precalculated interpolation matrices. int (used for pel
+	 * sizes up to short), and double (for all others). We go to
+	 * scale + 1 so we can round-to-nearest safely.
+	 */
+	int matrixi[VIPS_TRANSFORM_SCALE + 1][MAX_POINTS];
+	double matrixf[VIPS_TRANSFORM_SCALE + 1][MAX_POINTS];
+
 } VipsReducevl3;
 
 typedef VipsResampleClass VipsReducevl3Class;
-
-/* Precalculated interpolation matrices. int (used for pel
- * sizes up to short), and double (for all others). We go to
- * scale + 1 so we can round-to-nearest safely.
- */
-
-const int n_points = 6;
-
-static int vips_reducevl3_matrixi[VIPS_TRANSFORM_SCALE + 1][n_points];
-static double vips_reducevl3_matrixf[VIPS_TRANSFORM_SCALE + 1][n_points];
 
 /* We need C linkage for this.
  */
@@ -78,29 +89,33 @@ G_DEFINE_TYPE( VipsReducevl3, vips_reducevl3, VIPS_TYPE_RESAMPLE );
 
 template <typename T, int max_value>
 static void inline
-reducevl3_unsigned_int_tab( VipsPel *pout, const VipsPel *pin,
+reducevl3_unsigned_int_tab( VipsReducevl3 *reducevl3,
+	VipsPel *pout, const VipsPel *pin,
 	const int ne, const int lskip,
 	const int * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-
+	const int n = reducevl3->n_points;
 	const int l1 = lskip / sizeof( T );
+	const int round_by = VIPS_INTERPOLATE_SCALE >> 1;
 
 	for( int z = 0; z < ne; z++ ) {
 		int sum;
 
-		sum = 0;
-		for( int i = 0; i < n_points; i++ )
-			sum += cy[i] * in[i * l1];
+		sum = 0; 
+		for( int i = 0; i < n; i++ )
+			sum += cy[i] * in[z + i * l1];
 
-		sum = unsigned_fixed_round( sum ); 
+		sum = (sum + round_by) >> VIPS_INTERPOLATE_SHIFT;
 
-		sum = VIPS_CLIP( 0, sum, max_value ); 
+		//sum = reduce_sum<T, int>( in, l1, cy, n );
+		//sum = unsigned_fixed_round( sum ); 
+		//sum = VIPS_CLIP( 0, sum, max_value ); 
 
 		out[z] = sum;
 
-		in += 1;
+		//in += 1;
 	}
 }
 
@@ -129,7 +144,7 @@ vips_reducevl3_gen( VipsRegion *out_region, void *seq,
 	s.left = r->left;
 	s.top = r->top * reducevl3->yshrink;
 	s.width = r->width;
-	s.height = r->height * reducevl3->yshrink + n_points;
+	s.height = r->height * reducevl3->yshrink + reducevl3->n_points;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
@@ -142,14 +157,15 @@ vips_reducevl3_gen( VipsRegion *out_region, void *seq,
 		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
 		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
 		const int ty = (siy + 1) >> 1;
-		const int *cyi = vips_reducevl3_matrixi[ty];
-		const double *cyf = vips_reducevl3_matrixf[ty];
+		const int *cyi = reducevl3->matrixi[ty];
+		const double *cyf = reducevl3->matrixf[ty];
 		const int lskip = VIPS_REGION_LSKIP( ir );
 
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
 			reducevl3_unsigned_int_tab
 				<unsigned char, UCHAR_MAX>(
+				reducevl3,
 				q, p, ne, lskip, cyi );
 			break;
 
@@ -191,6 +207,19 @@ vips_reducevl3_build( VipsObject *object )
 	if( reducevl3->yshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );
 
+	/* Build the tables of pre-computed coefficients.
+	 */
+	reducevl3->n_points = vips_reduce_get_points( reducevl3->kernel ); 
+	for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
+		vips_reduce_make_mask( reducevl3->kernel, 
+			(float) y / VIPS_TRANSFORM_SCALE,
+			reducevl3->matrixf[y] );
+
+		for( int i = 0; i < reducevl3->n_points; i++ )
+			reducevl3->matrixi[y][i] = reducevl3->matrixf[y][i] * 
+				VIPS_INTERPOLATE_SCALE;
+	}
+
 	/* Unpack for processing.
 	 */
 	if( vips_image_decode( in, &t[0] ) )
@@ -200,8 +229,8 @@ vips_reducevl3_build( VipsObject *object )
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if( vips_embed( in, &t[1], 
-		0, n_points / 2, 
-		in->Xsize, in->Ysize + n_points - 1, 
+		0, reducevl3->n_points / 2, 
+		in->Xsize, in->Ysize + reducevl3->n_points - 1, 
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
@@ -217,7 +246,7 @@ vips_reducevl3_build( VipsObject *object )
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Ysize = (in->Ysize - n_points + 1) / reducevl3->yshrink;
+	resample->out->Ysize = (in->Ysize - reducevl3->n_points + 1) / reducevl3->yshrink;
 	if( resample->out->Ysize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -264,24 +293,20 @@ vips_reducevl3_class_init( VipsReducevl3Class *reducevl3_class )
 		G_STRUCT_OFFSET( VipsReducevl3, yshrink ),
 		1, 1000000, 1 );
 
-	/* Build the tables of pre-computed coefficients.
-	 */
-	for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
-		calculate_coefficients_lanczos( 3, 
-			(float) y / VIPS_TRANSFORM_SCALE,
-			vips_reducevl3_matrixf[y] );
+	VIPS_ARG_ENUM( reducevl3_class, "kernel", 3, 
+		_( "Kernel" ), 
+		_( "Resampling kernel" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsReducevl3, kernel ),
+		VIPS_TYPE_KERNEL, VIPS_KERNEL_CUBIC );
 
-		for( int i = 0; i < n_points; i++ )
-			vips_reducevl3_matrixi[y][i] =
-				vips_reducevl3_matrixf[y][i] * 
-				VIPS_INTERPOLATE_SCALE;
-	}
 
 }
 
 static void
 vips_reducevl3_init( VipsReducevl3 *reducevl3 )
 {
+	reducevl3->kernel = VIPS_KERNEL_CUBIC;
 }
 
 /**
@@ -291,8 +316,12 @@ vips_reducevl3_init( VipsReducevl3 *reducevl3 )
  * @yshrink: horizontal reduce
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @kernel: #VipsKernel to use to interpolate (default: cubic)
+ *
  * Reduce @in vertically by a float factor. The pixels in @out are
- * interpolated with a 1D cubic mask. This operation will not work well for
+ * interpolated with a 1D mask. This operation will not work well for
  * a reduction of more than a factor of two.
  *
  * This is a very low-level operation: see vips_resize() for a more
