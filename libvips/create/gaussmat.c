@@ -20,6 +20,7 @@
  * 	- use @precision, not @integer
  * 10/3/16
  * 	- allow 1x1 masks
+ * 	- better size calc
  */
 
 /*
@@ -132,7 +133,7 @@ vips_gaussmat_build( VipsObject *object )
 		vips_error( class->nickname, "%s", _( "mask too large" ) );
 		return( -1 );
 	}
-	width = x * 2 + 1;
+	width = 2 * x - 1;
 	height = gaussmat->separable ? 1 : width; 
 
 	vips_image_init_fields( create->out,

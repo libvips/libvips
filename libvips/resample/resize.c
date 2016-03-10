@@ -146,14 +146,13 @@ vips_resize_build( VipsObject *object )
 	/* If the final affine will be doing a large downsample, we can get 
 	 * nasty aliasing on hard edges. Blur before affine to smooth this out.
 	 *
-	 * Don't blur for very small shrinks, blur with radius 1 for x1.5
-	 * shrinks, blur radius 2 for x2.5 shrinks and above, etc.
+	 * Don't blur for very small shrinks, start to blur above about .5.
 	 *
 	 * Don't try to be clever for non-rectangular shrinks. We just
 	 * consider the horizontal factor.
 	 */
 	sigma = ((1.0 / hresidual) - 0.5) / 2.5;
-	anti_alias = hresidual < 0.9 && sigma > 0.1;
+	anti_alias = hresidual < 0.9 && sigma > 0.5;
 	if( anti_alias ) { 
 		vips_info( class->nickname, "anti-alias sigma %g", sigma );
 		if( vips_gaussblur( in, &t[1], sigma, NULL ) )
