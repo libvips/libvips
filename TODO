@@ -1,6 +1,15 @@
-- see
+- strange
 
-	https://en.wikipedia.org/wiki/Lanczos_resampling
+	john@kiwi:~/pics$ vips gaussblur babe.jpg x.v 0.2
+	gaussmat: mask too large
+
+- removed the cache from resize since we no longer sharpen, can we get
+  out-of-order reads?
+
+- vips_resize() needs to take a param for kernel rather than interpolate?
+  maybe just don't expose this
+
+- what demand hint are we setting for the reduce / shrink funcs?
 
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
 

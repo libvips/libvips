@@ -184,24 +184,30 @@ reducehl3_unsigned_int_tab( VipsReducehl3 *reducehl3,
  * 11-point kernel for the vector version to be worthwhile.
  */
 static void inline
-reducehl3_unsigned_uint8_4tab( VipsPel *out, const VipsPel *in,
+reducehl3_unsigned_uint8_6tab( VipsPel *out, const VipsPel *in,
 	const int bands, const int *cx )
 {
 	const int b1 = bands;
 	const int b2 = b1 + b1;
 	const int b3 = b1 + b2;
+	const int b4 = b2 + b2;
+	const int b5 = b1 + b4;
 
 	const int c0 = cx[0];
 	const int c1 = cx[1];
 	const int c2 = cx[2];
 	const int c3 = cx[3];
+	const int c4 = cx[4];
+	const int c5 = cx[5];
 
 	for( int z = 0; z < bands; z++ ) {
 		int cubich = unsigned_fixed_round( 
 			c0 * in[0] +
 			c1 * in[b1] +
 			c2 * in[b2] +
-			c3 * in[b3] ); 
+			c3 * in[b3] +
+			c4 * in[b4] +
+			c5 * in[b5] ); 
 
 		cubich = VIPS_CLIP( 0, cubich, 255 ); 
 
@@ -368,8 +374,8 @@ vips_reducehl3_gen( VipsRegion *out_region, void *seq,
 
 			switch( in->BandFmt ) {
 			case VIPS_FORMAT_UCHAR:
-				if( reducehl3->n_points == 4 )
-					reducehl3_unsigned_uint8_4tab( 
+				if( reducehl3->n_points == 6 )
+					reducehl3_unsigned_uint8_6tab( 
 						q, p, bands, cxi );
 				else
 					reducehl3_unsigned_int_tab
@@ -560,14 +566,14 @@ vips_reducehl3_class_init( VipsReducehl3Class *reducehl3_class )
 		_( "Resampling kernel" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsReducehl3, kernel ),
-		VIPS_TYPE_KERNEL, VIPS_KERNEL_CUBIC );
+		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
 }
 
 static void
 vips_reducehl3_init( VipsReducehl3 *reducehl3 )
 {
-	reducehl3->kernel = VIPS_KERNEL_CUBIC;
+	reducehl3->kernel = VIPS_KERNEL_LANCZOS3;
 }
 
 /**
@@ -579,7 +585,7 @@ vips_reducehl3_init( VipsReducehl3 *reducehl3 )
  *
  * Optional arguments:
  *
- * @kernel: #VipsKernel to use to interpolate (default: cubic)
+ * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
  *
  * Reduce @in horizontally by a float factor. The pixels in @out are
  * interpolated with a 1D mask. This operation will not work well for

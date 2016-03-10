@@ -115,24 +115,30 @@ reducevl3_unsigned_int_tab( VipsReducevl3 *reducevl3,
 /* An unrolled version of ^^ for the most common case. 
  */
 static void inline
-reducevl3_unsigned_uint8_4tab( VipsPel *out, const VipsPel *in,
+reducevl3_unsigned_uint8_6tab( VipsPel *out, const VipsPel *in,
 	const int ne, const int lskip, const int *cy )
 {
 	const int l1 = lskip;
 	const int l2 = l1 + l1;
 	const int l3 = l1 + l2;
+	const int l4 = l2 + l2;
+	const int l5 = l4 + l1;
 
 	const int c0 = cy[0];
 	const int c1 = cy[1];
 	const int c2 = cy[2];
 	const int c3 = cy[3];
+	const int c4 = cy[4];
+	const int c5 = cy[5];
 
 	for( int z = 0; z < ne; z++ ) {
 		int sum = unsigned_fixed_round( 
 			c0 * in[0] +
 			c1 * in[l1] +
 			c2 * in[l2] +
-			c3 * in[l3] ); 
+			c3 * in[l3] +
+			c4 * in[l4] +
+			c5 * in[l5] ); 
 
 		sum = VIPS_CLIP( 0, sum, 255 ); 
 
@@ -288,8 +294,8 @@ vips_reducevl3_gen( VipsRegion *out_region, void *seq,
 
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
-			if( reducevl3->n_points == 4 )
-				reducevl3_unsigned_uint8_4tab( 
+			if( reducevl3->n_points == 6 )
+				reducevl3_unsigned_uint8_6tab( 
 					q, p, ne, lskip, cyi );
 			else
 				reducevl3_unsigned_int_tab
@@ -474,14 +480,14 @@ vips_reducevl3_class_init( VipsReducevl3Class *reducevl3_class )
 		_( "Resampling kernel" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsReducevl3, kernel ),
-		VIPS_TYPE_KERNEL, VIPS_KERNEL_CUBIC );
+		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
 }
 
 static void
 vips_reducevl3_init( VipsReducevl3 *reducevl3 )
 {
-	reducevl3->kernel = VIPS_KERNEL_CUBIC;
+	reducevl3->kernel = VIPS_KERNEL_LANCZOS3;
 }
 
 /**
@@ -493,7 +499,7 @@ vips_reducevl3_init( VipsReducevl3 *reducevl3 )
  *
  * Optional arguments:
  *
- * @kernel: #VipsKernel to use to interpolate (default: cubic)
+ * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
  *
  * Reduce @in vertically by a float factor. The pixels in @out are
  * interpolated with a 1D mask. This operation will not work well for

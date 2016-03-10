@@ -8,6 +8,8 @@
  * 	- smarter cache sizing
  * 29/2/16
  * 	- shrink more affine less, now we have better anti-alias settings
+ * 10/3/16
+ * 	- revise again, using new vips_reduce() code
  */
 
 /*
@@ -65,6 +67,9 @@ typedef struct _VipsResize {
 
 	double scale;
 	double vscale;
+
+	/* Deprecated.
+	 */
 	VipsInterpolate *interpolate;
 	double idx;
 	double idy;
@@ -82,11 +87,11 @@ vips_resize_build( VipsObject *object )
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsResize *resize = (VipsResize *) object;
 
-	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 7 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
 
 	VipsImage *in;
-	int window_size;
+	int target_width;
+	int target_height;
 	int int_hshrink;
 	int int_vshrink;
 	double hresidual;
@@ -97,114 +102,44 @@ vips_resize_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_resize_parent_class )->build( object ) )
 		return( -1 );
 
-	if( !vips_object_argument_isset( object, "interpolate" ) ) {
-		VipsInterpolate *interpolate;
-		char *nick;
-
-		if( vips_type_find( "VipsInterpolate", "bicubic" ) )
-			nick = "bicubic";
-		else
-			nick = "bilinear";
-		interpolate = vips_interpolate_new( nick );
-		g_object_set( object, "interpolate", interpolate, NULL ); 
-		VIPS_UNREF( interpolate ); 
-	}
-
-	/* Unset vscale means it's equal to hscale.
-	 */
-	if( !vips_object_argument_isset( object, "vscale" ) ) 
-		resize->vscale = resize->scale;
-
 	in = resample->in;
 
-	window_size = resize->interpolate ? 
-		vips_interpolate_get_window_size( resize->interpolate ) : 2;
+	/* The image size we are aiming for.
+	 */
+	target_width = in->Xsize * resize->scale;
+	if( vips_object_argument_isset( object, "vscale" ) ) 
+		target_height = in->Ysize * resize->vscale;
+	else
+		target_height = in->Ysize * resize->scale;
 
 	/* If the factor is > 1.0, we need to zoom rather than shrink.
 	 * Just set the int part to 1 in this case.
 	 */
 	int_hshrink = resize->scale > 1.0 ? 
 		1 : VIPS_FLOOR( 1.0 / resize->scale );
-	int_vshrink = resize->vscale > 1.0 ? 
-		1 : VIPS_FLOOR( 1.0 / resize->vscale );
+	if( vips_object_argument_isset( object, "vscale" ) ) 
+		int_vshrink = resize->vscale > 1.0 ? 
+			1 : VIPS_FLOOR( 1.0 / resize->vscale );
+	else
+		int_vshrink = int_hshrink;
 
-	/* We want to shrink by less for interpolators with large windows.
-	 */
-	int_hshrink = VIPS_MAX( 1,
-		int_hshrink / VIPS_MAX( 1, window_size / 3 ) );
-	int_vshrink = VIPS_MAX( 1,
-		int_vshrink / VIPS_MAX( 1, window_size / 3 ) );
-
-	/* Will this produce a residual scale of almost 1? shrink a bit less
-	 * if it will.
-	 */
-	if( (in->Xsize * resize->scale) / (in->Xsize / int_hshrink) > 0.9 )
-		int_hshrink = VIPS_MAX( 1, int_hshrink - 1 );
-	if( (in->Ysize * resize->vscale) / (in->Ysize / int_vshrink) > 0.9 )
-		int_vshrink = VIPS_MAX( 1, int_vshrink - 1 );
-
-	/* Residual scale factor is.
-	 */
-	hresidual = (in->Xsize * resize->scale) / (in->Xsize / int_hshrink);
-	vresidual = (in->Ysize * resize->vscale) / (in->Ysize / int_vshrink);
-
-	/* A copy for enlarge resize.
-	 */
-	vips_info( class->nickname, "box shrink by %d x %d", 
-		int_hshrink, int_vshrink );
-	if( vips_shrink( in, &t[0], int_hshrink, int_vshrink, NULL ) )
-		return( -1 );
-	in = t[0];
-
-	/* We want to make sure we read the image sequentially.
-	 * However, the convolution we may be doing later will force us 
-	 * into SMALLTILE or maybe FATSTRIP mode and that will break
-	 * sequentiality.
-	 *
-	 * So ... read into a cache where tiles are scanlines, and make sure
-	 * we keep enough scanlines.
-	 *
-	 * We use a threaded tilecache to avoid a deadlock: suppose thread1,
-	 * evaluating the top block of the output, is delayed, and thread2, 
-	 * evaluating the second block, gets here first (this can happen on 
-	 * a heavily-loaded system). 
-	 *
-	 * With an unthreaded tilecache, thread2 will get
-	 * the cache lock and start evaling the second block of the shrink. 
-	 * When it reaches the png reader it will stall until the first block 
-	 * has been used ... but it never will, since thread1 will block on 
-	 * this cache lock. 
-	 *
-	 * Cache sizing: we double-buffer writes, so threads can be up to one 
-	 * line of tiles behind. For example, one thread could be allocated
-	 * tile (0,0) and then stall, the whole write system won't stall until
-	 * it tries to allocate tile (0, 2).
-	 *
-	 * We affine down after this, which can be a scale of up to @residual, 
-	 * perhaps 0.5 or down as low as 0.3 depending on the interpolator. So
-	 * the number of scanlines we need to keep for the worst case is
-	 * 2 * @tile_height / @residual, plus a little extra.
-	 */
-	if( int_vshrink > 1 ) { 
-		int tile_width;
-		int tile_height;
-		int n_lines;
-
-		int need_lines;
-
-		vips_get_tile_size( in, 
-			&tile_width, &tile_height, &n_lines );
-		need_lines = 1.2 * n_lines / vresidual;
-		if( vips_tilecache( in, &t[6], 
-			"tile_width", in->Xsize,
-			"tile_height", 10,
-			"max_tiles", 1 + need_lines / 10,
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			"threaded", TRUE, 
-			NULL ) )
+	if( int_hshrink > 1 ||
+		int_vshrink > 1 ) { 
+		vips_info( class->nickname, "box shrink by %d x %d", 
+			int_hshrink, int_vshrink );
+		if( vips_shrink( in, &t[0], int_hshrink, int_vshrink, NULL ) )
 			return( -1 );
-		in = t[6];
+		in = t[0];
 	}
+
+	/* Do we need a further size adjustment? It's the difference
+	 * between our target size and the size we have after vips_shrink().
+	 */
+	hresidual = (double) target_width / in->Xsize;
+	if( vips_object_argument_isset( object, "vscale" ) ) 
+		vresidual = (double) target_height / in->Ysize;
+	else
+		vresidual = hresidual;
 
 	/* If the final affine will be doing a large downsample, we can get 
 	 * nasty aliasing on hard edges. Blur before affine to smooth this out.
@@ -215,61 +150,34 @@ vips_resize_build( VipsObject *object )
 	 * Don't try to be clever for non-rectangular shrinks. We just
 	 * consider the horizontal factor.
 	 */
-	sigma = ((1.0 / hresidual) - 0.5) / 2.0;
-	anti_alias = hresidual < 1.0 && sigma > 0.1;
+	sigma = ((1.0 / hresidual) - 0.5) / 2.5;
+	anti_alias = hresidual < 0.9 && sigma > 0.1;
 	if( anti_alias ) { 
 		vips_info( class->nickname, "anti-alias sigma %g", sigma );
-		if( vips_gaussblur( in, &t[2], sigma, NULL ) )
+		if( vips_gaussblur( in, &t[1], sigma, NULL ) )
+			return( -1 );
+		in = t[1];
+	}
+
+	if( hresidual < 1.0 || 
+		vresidual < 1.0 ) { 
+		vips_info( class->nickname, "residual reduce by %g x %g", 
+			hresidual, vresidual );
+
+		if( vips_reducel3( in, &t[2], 
+			1.0 / hresidual, 1.0 / vresidual, NULL ) )  
 			return( -1 );
 		in = t[2];
 	}
-
-	vips_info( class->nickname, "residual affine %g x %g", 
-		hresidual, vresidual );
-	if( resize->interpolate ) {
-		const char *nickname = 
-			VIPS_OBJECT_GET_CLASS( resize->interpolate )->nickname;
-
-		vips_info( class->nickname, "%s interpolation", nickname );
-	}
-
-	/* We have a special path for bicubic, idx/idy == 0.
-	 */
-	if( resize->interpolate &&
-		strcmp( VIPS_OBJECT_GET_CLASS( resize->interpolate )->nickname,
-			"bicubic" ) == 0 &&
-		resize->idx == 0.0 &&
-		resize->idy == 0.0 ) {
-		vips_info( class->nickname, "using fast path for residual" );
-		if( vips_reduce( in, &t[3], 
-			1.0 / hresidual, 1.0 / vresidual, NULL ) )  
-			return( -1 );
-	}
-	else {
+	if( hresidual > 1.0 || 
+		vresidual > 1.0 ) { 
+		vips_info( class->nickname, "residual scale %g x %g", 
+			hresidual, vresidual );
 		if( vips_affine( in, &t[3], hresidual, 0, 0, vresidual, 
-			"interpolate", resize->interpolate,
-			"idx", resize->idx,
-			"idy", resize->idy,
+			"interpolate", vips_interpolate_nearest_static(), 
 			NULL ) )  
 			return( -1 );
-	}
-	in = t[3];
-
-	/* If we are upsampling, don't sharpen. Also don't sharpen if we
-	 * skipped the anti-alias filter. 
-	 */
-	if( int_hshrink >= 1 && 
-		anti_alias ) { 
-		vips_info( class->nickname, "final sharpen" );
-		t[5] = vips_image_new_matrixv( 3, 3,
-			-1.0, -1.0, -1.0,
-			-1.0, 32.0, -1.0,
-			-1.0, -1.0, -1.0 );
-		vips_image_set_double( t[5], "scale", 24 );
-
-		if( vips_conv( in, &t[4], t[5], NULL ) ) 
-			return( -1 );
-		in = t[4];
+		in = t[3];
 	}
 
 	if( vips_image_write( in, resample->out ) )
@@ -310,25 +218,33 @@ vips_resize_class_init( VipsResizeClass *class )
 		G_STRUCT_OFFSET( VipsResize, vscale ),
 		0, 10000000, 0 );
 
-	VIPS_ARG_INTERPOLATE( class, "interpolate", 2, 
-		_( "Interpolate" ), 
-		_( "Interpolate pixels with this" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsResize, interpolate ) );
-
+	/* We used to let people set the input offset so you could pick centre
+	 * or corner interpolation, but it's not clear this was useful. 
+	 */
 	VIPS_ARG_DOUBLE( class, "idx", 115, 
 		_( "Input offset" ), 
 		_( "Horizontal input displacement" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsResize, idx ),
 		-10000000, 10000000, 0 );
 
 	VIPS_ARG_DOUBLE( class, "idy", 116, 
 		_( "Input offset" ), 
 		_( "Vertical input displacement" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsResize, idy ),
 		-10000000, 10000000, 0 );
+
+	/* We used to let people set the interpolator, but it's not clear this
+	 * was useful. Anyway, vips_reduce() no longer has an interpolator
+	 * param.
+	 */
+	VIPS_ARG_INTERPOLATE( class, "interpolate", 2, 
+		_( "Interpolate" ), 
+		_( "Interpolate pixels with this" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED, 
+		G_STRUCT_OFFSET( VipsResize, interpolate ) );
+
 }
 
 static void
@@ -346,29 +262,21 @@ vips_resize_init( VipsResize *resize )
  * Optional arguments:
  *
  * @vscale: vertical scale factor
- * @interpolate: interpolate pixels with this
- * @idx: input horizontal offset
- * @idy: input vertical offset
  *
- * Resize an image. When upsizing (@scale > 1), the image is simply resized
- * with vips_affine() and the supplied @interpolate. When downsizing, the
- * image is block-shrunk with vips_shrink() to roughly half the interpolator
- * window size above the target size, then blurred with an anti-alias filter,
- * then resampled with vips_affine() and the supplied interpolator, then
- * sharpened. 
+ * Resize an image. When upsizing (@scale > 1), the image is simply block
+ * upsized. When downsizing, the
+ * image is block-shrunk with vips_shrink(), then an anti-alias blur is
+ * applied with vips_gaussblur(), then the image is shrunk again to the 
+ * target size with vips_reduce(). 
  *
  * vips_resize() normally maintains the image apect ratio. If you set
  * @vscale, that factor is used for the vertical scale and @scale for the
  * horizontal.
  *
- * @interpolate defaults to bicubic.
- *
- * @idx, @idy default to zero. Set them to 0.5 to get pixel-centre sampling. 
- *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 
  *
- * See also: vips_shrink(), vips_affine(), #VipsInterpolate.
+ * See also: vips_shrink(), vips_reduce(), vips_gaussblur().
  *
  * Returns: 0 on success, -1 on error
  */

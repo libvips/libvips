@@ -18,6 +18,8 @@
  * 16/12/14
  * 	- default to int output to match vips_conv()
  * 	- use @precision, not @integer
+ * 10/3/16
+ * 	- allow 1x1 masks
  */
 
 /*
@@ -84,6 +86,10 @@ typedef struct _VipsGaussmatClass {
 
 G_DEFINE_TYPE( VipsGaussmat, vips_gaussmat, VIPS_TYPE_CREATE );
 
+/* Don't allow mask radius to go over this.
+ */
+#define MASK_SANITY (5000)
+
 static int
 vips_gaussmat_build( VipsObject *object )
 {
@@ -91,7 +97,7 @@ vips_gaussmat_build( VipsObject *object )
 	VipsCreate *create = VIPS_CREATE( object );
 	VipsGaussmat *gaussmat = (VipsGaussmat *) object;
 	double sig2 =  2. * gaussmat->sigma * gaussmat->sigma;
-	int max_x =  8 * gaussmat->sigma > 5000 ? 5000 : 8 * gaussmat->sigma ;
+	int max_x = VIPS_CLIP( 0, 8 * gaussmat->sigma, MASK_SANITY ); 
 
 	int x, y;
 	int width, height; 
@@ -114,7 +120,7 @@ vips_gaussmat_build( VipsObject *object )
 		return( -1 ); 
 
 	/* Find the size of the mask. Limit the mask size to 10k x 10k for 
-	 * sanity. 
+	 * sanity. We allow x == 0, meaning a 1x1 mask.
 	 */
 	for( x = 0; x < max_x; x++ ) {
 		double v = exp( - ((double)(x * x)) / sig2 );
@@ -122,7 +128,7 @@ vips_gaussmat_build( VipsObject *object )
 		if( v < gaussmat->min_ampl ) 
 			break;
 	}
-	if( x == max_x ) {
+	if( x >= MASK_SANITY ) {
 		vips_error( class->nickname, "%s", _( "mask too large" ) );
 		return( -1 );
 	}
