@@ -134,10 +134,12 @@ vips_resize_build( VipsObject *object )
 
 	/* Do we need a further size adjustment? It's the difference
 	 * between our target size and the size we have after vips_shrink().
+	 *
+	 * Aim for a little above target so we can't round down below it.
 	 */
-	hresidual = (double) target_width / in->Xsize;
+	hresidual = ((double) target_width + 0.1) / in->Xsize;
 	if( vips_object_argument_isset( object, "vscale" ) ) 
-		vresidual = (double) target_height / in->Ysize;
+		vresidual = ((double) target_height + 0.1) / in->Ysize;
 	else
 		vresidual = hresidual;
 

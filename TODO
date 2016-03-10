@@ -1,3 +1,4 @@
+- need tests for reducel3, test every kernel plues every numeric type
 
 - removed the cache from resize since we no longer sharpen, can we get
   out-of-order reads?
@@ -5,6 +6,9 @@
   seeeeeeems ok?
 
 - what demand hint are we setting for the reduce / shrink funcs?
+
+
+
 
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
 

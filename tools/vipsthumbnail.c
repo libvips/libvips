@@ -77,6 +77,7 @@
  * 	- add webp --shrink support
  * 29/2/16
  * 	- make more use of jpeg shrink-on-load now we've tuned vips_resize()
+ * 	- deprecate sharpen and interpolate
  */
 
 #ifdef HAVE_CONFIG_H
@@ -103,10 +104,8 @@ static char *thumbnail_size = "128";
 static int thumbnail_width = 128;
 static int thumbnail_height = 128;
 static char *output_format = "tn_%s.jpg";
-static char *interpolator = "bilinear";
 static char *export_profile = NULL;
 static char *import_profile = NULL;
-static char *convolution_mask = "none";
 static gboolean delete_profile = FALSE;
 static gboolean linear_processing = FALSE;
 static gboolean crop_image = FALSE;
@@ -117,6 +116,8 @@ static gboolean rotate_image = FALSE;
 static gboolean nosharpen = FALSE;
 static gboolean nodelete_profile = FALSE;
 static gboolean verbose = FALSE;
+static char *convolution_mask = NULL;
+static char *interpolator = NULL;
 
 static GOptionEntry options[] = {
 	{ "size", 's', 0, 
@@ -131,14 +132,6 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_STRING, &output_format, 
 		N_( "set output format string to FORMAT" ), 
 		N_( "FORMAT" ) },
-	{ "interpolator", 'p', 0, 
-		G_OPTION_ARG_STRING, &interpolator, 
-		N_( "resample with INTERPOLATOR" ), 
-		N_( "INTERPOLATOR" ) },
-	{ "sharpen", 'r', 0, 
-		G_OPTION_ARG_STRING, &convolution_mask, 
-		N_( "sharpen with none|mild|MASKFILE" ), 
-		N_( "none|mild|MASKFILE" ) },
 	{ "eprofile", 'e', 0, 
 		G_OPTION_ARG_STRING, &export_profile, 
 		N_( "export with PROFILE" ), 
@@ -159,6 +152,7 @@ static GOptionEntry options[] = {
 	{ "delete", 'd', 0, 
 		G_OPTION_ARG_NONE, &delete_profile, 
 		N_( "delete profile from exported image" ), NULL },
+
 	{ "verbose", 'v', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_NONE, &verbose, 
 		N_( "(deprecated, does nothing)" ), NULL },
@@ -167,6 +161,12 @@ static GOptionEntry options[] = {
 		N_( "(deprecated, does nothing)" ), NULL },
 	{ "nosharpen", 'n', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_NONE, &nosharpen, 
+		N_( "(deprecated, does nothing)" ), NULL },
+	{ "interpolator", 'p', G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_STRING, &interpolator, 
+		N_( "(deprecated, does nothing)" ), NULL },
+	{ "sharpen", 'r', G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_STRING, &convolution_mask, 
 		N_( "(deprecated, does nothing)" ), NULL },
 	{ NULL }
 };
@@ -185,15 +185,14 @@ calculate_shrink( VipsImage *im )
 	VipsDirection direction;
 
 	/* Calculate the horizontal and vertical shrink we'd need to fit the
-	 * image to the bounding box, and pick the biggest.
+	 * image to the bounding box, and pick the biggest. Aim for a little 
+	 * above the target so we can't round down below it. 
 	 *
 	 * In crop mode we aim to fill the bounding box, so we must use the
 	 * smaller axis.
-	 *
-	 * Take off a tiny amount to stop us rounding below the target.
 	 */
-	double horizontal = (double) width / thumbnail_width - 0.0000001;
-	double vertical = (double) height / thumbnail_height - 0.0000001;
+	double horizontal = (double) width / (thumbnail_width + 0.1);
+	double vertical = (double) height / (thumbnail_height + 0.1);
 
 	if( crop_image ) {
 		if( horizontal < vertical )
@@ -369,57 +368,8 @@ thumbnail_open( VipsObject *process, const char *filename )
 	return( im ); 
 }
 
-static VipsInterpolate *
-thumbnail_interpolator( VipsObject *process, VipsImage *in )
-{
-	double shrink = calculate_shrink( in );
-
-	VipsInterpolate *interp;
-
-	/* For images smaller than the thumbnail, we upscale with nearest
-	 * neighbor. Otherwise we make thumbnails that look fuzzy and awful.
-	 */
-	if( !(interp = VIPS_INTERPOLATE( vips_object_new_from_string( 
-		g_type_class_ref( VIPS_TYPE_INTERPOLATE ), 
-		shrink <= 1.0 ? "nearest" : interpolator ) )) )
-		return( NULL );
-
-	vips_object_local( process, interp );
-
-	return( interp );
-}
-
-/* Some interpolators look a little soft, so we have an optional sharpening
- * stage.
- */
 static VipsImage *
-thumbnail_sharpen( VipsObject *process )
-{
-	VipsImage *mask;
-
-	if( strcmp( convolution_mask, "none" ) == 0 ) 
-		mask = NULL; 
-	else if( strcmp( convolution_mask, "mild" ) == 0 ) {
-		mask = vips_image_new_matrixv( 3, 3,
-			-1.0, -1.0, -1.0,
-			-1.0, 32.0, -1.0,
-			-1.0, -1.0, -1.0 );
-		vips_image_set_double( mask, "scale", 24 );
-	}
-	else
-		if( !(mask = 
-			vips_image_new_from_file( convolution_mask, NULL )) )
-			vips_error_exit( "unable to load sharpen mask" ); 
-
-	if( mask )
-		vips_object_local( process, mask );
-
-	return( mask );
-}
-
-static VipsImage *
-thumbnail_shrink( VipsObject *process, VipsImage *in, 
-	VipsInterpolate *interp, VipsImage *sharpen )
+thumbnail_shrink( VipsObject *process, VipsImage *in )
 {
 	VipsImage **t = (VipsImage **) vips_object_local_array( process, 10 );
 	VipsInterpretation interpretation = linear_processing ?
@@ -523,7 +473,6 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 	/* Add a tiny amount to stop rounding below the target.
 	 */
 	if( vips_resize( in, &t[4], 1.0 / shrink + 0.0000000001, 
-		"interpolate", interp,
 		NULL ) ) 
 		return( NULL );
 	in = t[4];
@@ -611,17 +560,6 @@ thumbnail_shrink( VipsObject *process, VipsImage *in,
 		 */
 		if( out )
 			in = out;
-	}
-
-	/* If we are upsampling, don't sharpen, since nearest looks dumb
-	 * sharpened.
-	 */
-	if( shrink > 1.0 &&
-		sharpen ) { 
-		vips_info( "vipsthumbnail", "sharpening thumbnail" );
-		if( vips_conv( in, &t[8], sharpen, NULL ) ) 
-			return( NULL );
-		in = t[8];
 	}
 
 	if( delete_profile &&
@@ -733,18 +671,13 @@ thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 static int
 thumbnail_process( VipsObject *process, const char *filename )
 {
-	VipsImage *sharpen = thumbnail_sharpen( process );
-
 	VipsImage *in;
-	VipsInterpolate *interp;
 	VipsImage *thumbnail;
 	VipsImage *crop;
 	VipsImage *rotate;
 
 	if( !(in = thumbnail_open( process, filename )) ||
-		!(interp = thumbnail_interpolator( process, in )) ||
-		!(thumbnail = 
-			thumbnail_shrink( process, in, interp, sharpen )) ||
+		!(thumbnail = thumbnail_shrink( process, in )) ||
 		!(crop = thumbnail_crop( process, thumbnail )) ||
 		!(rotate = thumbnail_rotate( process, crop )) ||
 		thumbnail_write( process, rotate, filename ) )
@@ -766,12 +699,6 @@ main( int argc, char **argv )
 	        vips_error_exit( "unable to start VIPS" );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
-
-	/* Does this vips have bicubic? Default to that if it
-	 * does.
-	 */
-	if( vips_type_find( "VipsInterpolate", "bicubic" ) ) 
-		interpolator = "bicubic";
 
         context = g_option_context_new( _( "- thumbnail generator" ) );
 

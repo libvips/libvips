@@ -30,6 +30,7 @@ for interp in nearest bilinear bicubic lbb nohalo vsqbs; do
     vipsthumbnail $tmp/t1.v -o $tmp/t2.v --size $size --interpolator $interp
     if [ $(vipsheader -f width $tmp/t2.v) -ne $size ]; then
       echo failed -- bad size
+      echo output width is $(vipsheader -f width $tmp/t2.v) 
       exit
     fi
     if [ $(vipsheader -f height $tmp/t2.v) -ne $size ]; then
