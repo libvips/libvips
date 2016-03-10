@@ -2,6 +2,8 @@
  *
  * 29/1/16
  * 	- from shrinkh.c
+ * 10/3/16
+ * 	- add other kernels
  */
 
 /*
@@ -156,6 +158,56 @@ vips_reducehl3_make_mask( VipsKernel kernel, double x, double *c )
 	}
 }
 
+/* A 4-point interpolation on uint8 is the most common case ... unroll that.
+ *
+ * The inner loop here won't vectorise, but our inner loop doesn't run for
+ * long enough for vectorisation to be useful :-( gcc says it needs about an
+ * 11-point kernel for the vector version to be worthwhile.
+ */
+static void inline
+reducehl3_unsigned_uint8_4tab( VipsPel *out, const VipsPel *in,
+	const int bands, const int *cx )
+{
+	const int b1 = bands;
+	const int b2 = b1 + b1;
+	const int b3 = b1 + b2;
+
+	const int c0 = cx[0];
+	const int c1 = cx[1];
+	const int c2 = cx[2];
+	const int c3 = cx[3];
+
+	for( int z = 0; z < bands; z++ ) {
+		int cubich = unsigned_fixed_round( 
+			c0 * in[0] +
+			c1 * in[b1] +
+			c2 * in[b2] +
+			c3 * in[b3] ); 
+
+		cubich = VIPS_CLIP( 0, cubich, 255 ); 
+
+		out[z] = cubich;
+
+		in += 1;
+	}
+}
+
+/* Our inner loop. Operate on elements of size T, gather results in an
+ * intermediate of type IT.
+ */
+template <typename T, typename IT>
+static IT
+reducehl3_sum( const T * restrict in, int bands, const IT * restrict c, int n )
+{
+	IT sum;
+
+	sum = 0; 
+	for( int i = 0; i < n; i++ )
+		sum += c[i] * in[i * bands];
+
+	return( sum ); 
+}
+
 template <typename T, int max_value>
 static void inline
 reducehl3_unsigned_int_tab( VipsReducehl3 *reducehl3,
@@ -167,16 +219,119 @@ reducehl3_unsigned_int_tab( VipsReducehl3 *reducehl3,
 
 	for( int z = 0; z < bands; z++ ) {
 		int sum;
-
-		sum = 0;
-		for( int i = 0; i < reducehl3->n_points; i++ )
-			sum += cx[i] * in[i * bands];
-
+	       
+		sum = reducehl3_sum<T, int>(in, bands, cx, reducehl3->n_points);
 		sum = unsigned_fixed_round( sum ); 
-
 		sum = VIPS_CLIP( 0, sum, max_value ); 
 		
 		out[z] = sum;
+
+		in += 1;
+	}
+}
+
+template <typename T, int min_value, int max_value>
+static void inline
+reducehl3_signed_int_tab( VipsReducehl3 *reducehl3,
+	VipsPel *pout, const VipsPel *pin,
+	const int bands, const int * restrict cx )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	for( int z = 0; z < bands; z++ ) {
+		int sum;
+
+		sum = reducehl3_sum<T, int>(in, bands, cx, reducehl3->n_points);
+		sum = signed_fixed_round( sum ); 
+		sum = VIPS_CLIP( min_value, sum, max_value ); 
+
+		out[z] = sum;
+
+		in += 1;
+	}
+}
+
+/* Floating-point version.
+ */
+template <typename T>
+static void inline
+reducehl3_float_tab( VipsReducehl3 *reducehl3,
+	VipsPel *pout, const VipsPel *pin,
+	const int bands, const double *cx )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	for( int z = 0; z < bands; z++ ) {
+		out[z] = reducehl3_sum<T, double>
+			(in, bands, cx, reducehl3->n_points);
+		in += 1;
+	}
+}
+
+/* 32-bit int output needs a double intermediate.
+ */
+
+template <typename T, int max_value>
+static void inline
+reducehl3_unsigned_int32_tab( VipsReducehl3 *reducehl3,
+	VipsPel *pout, const VipsPel *pin,
+	const int bands, const double * restrict cx )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	for( int z = 0; z < bands; z++ ) {
+		double sum;
+
+		sum = reducehl3_sum<T, double>
+			(in, bands, cx, reducehl3->n_points);
+		out[z] = VIPS_CLIP( 0, sum, max_value ); 
+
+		in += 1;
+	}
+}
+
+template <typename T, int min_value, int max_value>
+static void inline
+reducehl3_signed_int32_tab( VipsReducehl3 *reducehl3,
+	VipsPel *pout, const VipsPel *pin,
+	const int bands, const double * restrict cx )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	for( int z = 0; z < bands; z++ ) {
+		double sum;
+
+		sum = reducehl3_sum<T, double>
+			(in, bands, cx, reducehl3->n_points);
+		sum = VIPS_CLIP( min_value, sum, max_value ); 
+		out[z] = sum;
+
+		in += 1;
+	}
+}
+
+/* Ultra-high-quality version for double images.
+ */
+template <typename T>
+static void inline
+reducehl3_notab( VipsReducehl3 *reducehl3,
+	VipsPel *pout, const VipsPel *pin,
+	const int bands, double x )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	double cx[MAX_POINTS];
+
+	vips_reducehl3_make_mask( reducehl3->kernel, x, cx ); 
+
+	for( int z = 0; z < bands; z++ ) {
+		out[z] = reducehl3_sum<T, double>
+			(in, bands, cx, reducehl3->n_points);
 
 		in += 1;
 	}
@@ -231,10 +386,61 @@ vips_reducehl3_gen( VipsRegion *out_region, void *seq,
 
 			switch( in->BandFmt ) {
 			case VIPS_FORMAT_UCHAR:
-				reducehl3_unsigned_int_tab
-					<unsigned char, UCHAR_MAX>(
+				if( reducehl3->n_points == 4 )
+					reducehl3_unsigned_uint8_4tab( 
+						q, p, bands, cxi );
+				else
+					reducehl3_unsigned_int_tab
+						<unsigned char, UCHAR_MAX>(
+						reducehl3,
+						q, p, bands, cxi );
+				break;
+
+			case VIPS_FORMAT_CHAR:
+				reducehl3_signed_int_tab
+					<signed char, SCHAR_MIN, SCHAR_MAX>(
 					reducehl3,
 					q, p, bands, cxi );
+				break;
+
+			case VIPS_FORMAT_USHORT:
+				reducehl3_unsigned_int_tab
+					<unsigned short, USHRT_MAX>(
+					reducehl3,
+					q, p, bands, cxi );
+				break;
+
+			case VIPS_FORMAT_SHORT:
+				reducehl3_signed_int_tab
+					<signed short, SHRT_MIN, SHRT_MAX>(
+					reducehl3,
+					q, p, bands, cxi );
+				break;
+
+			case VIPS_FORMAT_UINT:
+				reducehl3_unsigned_int32_tab
+					<unsigned int, INT_MAX>(
+					reducehl3,
+					q, p, bands, cxf );
+				break;
+
+			case VIPS_FORMAT_INT:
+				reducehl3_signed_int32_tab
+					<signed int, INT_MIN, INT_MAX>(
+					reducehl3,
+					q, p, bands, cxf );
+				break;
+
+			case VIPS_FORMAT_FLOAT:
+			case VIPS_FORMAT_COMPLEX:
+				reducehl3_float_tab<float>( reducehl3,
+					q, p, bands, cxf );
+				break;
+
+			case VIPS_FORMAT_DOUBLE:
+			case VIPS_FORMAT_DPCOMPLEX:
+				reducehl3_notab<double>( reducehl3,
+					q, p, bands, X - ix );
 				break;
 
 			default:

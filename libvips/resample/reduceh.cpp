@@ -138,7 +138,7 @@ reduceh_signed_int_tab( VipsPel *pout, const VipsPel *pin,
 	}
 }
 
-/* Floating-point version, for int/float types.
+/* Floating-point version.
  */
 template <typename T>
 static void inline
