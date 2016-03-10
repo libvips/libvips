@@ -154,6 +154,29 @@ vips_reduce_make_mask( VipsKernel kernel, double x, double *c )
 	}
 }
 
+template <typename T, int max_value>
+static void inline
+reducehl3_unsigned_int_tab( VipsReducehl3 *reducehl3,
+	VipsPel *pout, const VipsPel *pin,
+	const int bands, const int * restrict cx )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducehl3->n_points;
+
+	for( int z = 0; z < bands; z++ ) {
+		int sum;
+	       
+		sum = reduce_sum<T, int>( in, bands, cx, n );
+		sum = unsigned_fixed_round( sum ); 
+		sum = VIPS_CLIP( 0, sum, max_value ); 
+		
+		out[z] = sum;
+
+		in += 1;
+	}
+}
+
 /* A 4-point interpolation on uint8 is the most common case ... unroll that.
  *
  * The inner loop here won't vectorise, but our inner loop doesn't run for
@@ -183,29 +206,6 @@ reducehl3_unsigned_uint8_4tab( VipsPel *out, const VipsPel *in,
 		cubich = VIPS_CLIP( 0, cubich, 255 ); 
 
 		out[z] = cubich;
-
-		in += 1;
-	}
-}
-
-template <typename T, int max_value>
-static void inline
-reducehl3_unsigned_int_tab( VipsReducehl3 *reducehl3,
-	VipsPel *pout, const VipsPel *pin,
-	const int bands, const int * restrict cx )
-{
-	T* restrict out = (T *) pout;
-	const T* restrict in = (T *) pin;
-	const int n = reducehl3->n_points;
-
-	for( int z = 0; z < bands; z++ ) {
-		int sum;
-	       
-		sum = reduce_sum<T, int>( in, bands, cx, n );
-		sum = unsigned_fixed_round( sum ); 
-		sum = VIPS_CLIP( 0, sum, max_value ); 
-		
-		out[z] = sum;
 
 		in += 1;
 	}

@@ -87,36 +87,160 @@ extern "C" {
 G_DEFINE_TYPE( VipsReducevl3, vips_reducevl3, VIPS_TYPE_RESAMPLE );
 }
 
+/* You'd think this would vectorise, but gcc hates mixed types in nested loops
+ * :-(
+ */
 template <typename T, int max_value>
 static void inline
 reducevl3_unsigned_int_tab( VipsReducevl3 *reducevl3,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip,
-	const int * restrict cy )
+	const int ne, const int lskip, const int * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
 	const int n = reducevl3->n_points;
 	const int l1 = lskip / sizeof( T );
-	const int round_by = VIPS_INTERPOLATE_SCALE >> 1;
 
 	for( int z = 0; z < ne; z++ ) {
 		int sum;
 
-		sum = 0; 
-		for( int i = 0; i < n; i++ )
-			sum += cy[i] * in[z + i * l1];
+		sum = reduce_sum<T, int>( in + z, l1, cy, n );
+		sum = unsigned_fixed_round( sum ); 
+		sum = VIPS_CLIP( 0, sum, max_value ); 
 
-		sum = (sum + round_by) >> VIPS_INTERPOLATE_SHIFT;
+		out[z] = sum;
+	}
+}
 
-		//sum = reduce_sum<T, int>( in, l1, cy, n );
-		//sum = unsigned_fixed_round( sum ); 
-		//sum = VIPS_CLIP( 0, sum, max_value ); 
+/* An unrolled version of ^^ for the most common case. 
+ */
+static void inline
+reducevl3_unsigned_uint8_4tab( VipsPel *out, const VipsPel *in,
+	const int ne, const int lskip, const int *cy )
+{
+	const int l1 = lskip;
+	const int l2 = l1 + l1;
+	const int l3 = l1 + l2;
+
+	const int c0 = cy[0];
+	const int c1 = cy[1];
+	const int c2 = cy[2];
+	const int c3 = cy[3];
+
+	for( int z = 0; z < ne; z++ ) {
+		int sum = unsigned_fixed_round( 
+			c0 * in[0] +
+			c1 * in[l1] +
+			c2 * in[l2] +
+			c3 * in[l3] ); 
+
+		sum = VIPS_CLIP( 0, sum, 255 ); 
 
 		out[z] = sum;
 
-		//in += 1;
+		in += 1;
 	}
+}
+
+template <typename T, int min_value, int max_value>
+static void inline
+reducevl3_signed_int_tab( VipsReducevl3 *reducevl3,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const int * restrict cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducevl3->n_points;
+	const int l1 = lskip / sizeof( T );
+
+	for( int z = 0; z < ne; z++ ) {
+		int sum;
+
+		sum = reduce_sum<T, int>( in + z, l1, cy, n );
+		sum = signed_fixed_round( sum ); 
+		sum = VIPS_CLIP( min_value, sum, max_value ); 
+
+		out[z] = sum;
+	}
+}
+
+/* Floating-point version.
+ */
+template <typename T>
+static void inline
+reducevl3_float_tab( VipsReducevl3 *reducevl3,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const double * restrict cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducevl3->n_points;
+	const int l1 = lskip / sizeof( T );
+
+	for( int z = 0; z < ne; z++ ) 
+		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
+}
+
+/* 32-bit int output needs a double intermediate.
+ */
+
+template <typename T, int max_value>
+static void inline
+reducevl3_unsigned_int32_tab( VipsReducevl3 *reducevl3,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const double * restrict cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducevl3->n_points;
+	const int l1 = lskip / sizeof( T );
+
+	for( int z = 0; z < ne; z++ ) {
+		double sum;
+
+		sum = reduce_sum<T, double>( in + z, l1, cy, n );
+		out[z] = VIPS_CLIP( 0, sum, max_value ); 
+	}
+}
+
+template <typename T, int min_value, int max_value>
+static void inline
+reducevl3_signed_int32_tab( VipsReducevl3 *reducevl3,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const double * restrict cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducevl3->n_points;
+	const int l1 = lskip / sizeof( T );
+
+	for( int z = 0; z < ne; z++ ) {
+		double sum;
+
+		sum = reduce_sum<T, double>( in + z, l1, cy, n );
+		out[z] = VIPS_CLIP( min_value, sum, max_value ); 
+	}
+}
+
+/* Ultra-high-quality version for double images.
+ */
+template <typename T>
+static void inline
+reducevl3_notab( VipsReducevl3 *reducevl3,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, double y )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducevl3->n_points;
+	const int l1 = lskip / sizeof( T );
+
+	double cy[MAX_POINTS];
+
+	vips_reduce_make_mask( reducevl3->kernel, y, cy ); 
+
+	for( int z = 0; z < ne; z++ ) 
+		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
 }
 
 static int
@@ -151,7 +275,8 @@ vips_reducevl3_gen( VipsRegion *out_region, void *seq,
 	VIPS_GATE_START( "vips_reducevl3_gen: work" ); 
 
 	for( int y = 0; y < r->height; y ++ ) { 
-		VipsPel *q = VIPS_REGION_ADDR( out_region, r->left, r->top + y );
+		VipsPel *q = 
+			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
 		const double Y = (r->top + y) * reducevl3->yshrink; 
 		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, (int) Y ); 
 		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
@@ -163,10 +288,61 @@ vips_reducevl3_gen( VipsRegion *out_region, void *seq,
 
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
-			reducevl3_unsigned_int_tab
-				<unsigned char, UCHAR_MAX>(
+			if( reducevl3->n_points == 4 )
+				reducevl3_unsigned_uint8_4tab( 
+					q, p, ne, lskip, cyi );
+			else
+				reducevl3_unsigned_int_tab
+					<unsigned char, UCHAR_MAX>(
+					reducevl3,
+					q, p, ne, lskip, cyi );
+			break;
+
+		case VIPS_FORMAT_CHAR:
+			reducevl3_signed_int_tab
+				<signed char, SCHAR_MIN, SCHAR_MAX>(
 				reducevl3,
 				q, p, ne, lskip, cyi );
+			break;
+
+		case VIPS_FORMAT_USHORT:
+			reducevl3_unsigned_int_tab
+				<unsigned short, USHRT_MAX>(
+				reducevl3,
+				q, p, ne, lskip, cyi );
+			break;
+
+		case VIPS_FORMAT_SHORT:
+			reducevl3_signed_int_tab
+				<signed short, SHRT_MIN, SHRT_MAX>(
+				reducevl3,
+				q, p, ne, lskip, cyi );
+			break;
+
+		case VIPS_FORMAT_UINT:
+			reducevl3_unsigned_int32_tab
+				<unsigned int, INT_MAX>(
+				reducevl3,
+				q, p, ne, lskip, cyf );
+			break;
+
+		case VIPS_FORMAT_INT:
+			reducevl3_signed_int32_tab
+				<signed int, INT_MIN, INT_MAX>(
+				reducevl3,
+				q, p, ne, lskip, cyf );
+			break;
+
+		case VIPS_FORMAT_FLOAT:
+		case VIPS_FORMAT_COMPLEX:
+			reducevl3_float_tab<float>( reducevl3,
+				q, p, ne, lskip, cyf );
+			break;
+
+		case VIPS_FORMAT_DPCOMPLEX:
+		case VIPS_FORMAT_DOUBLE:
+			reducevl3_notab<double>( reducevl3,
+				q, p, ne, lskip, Y - (int) Y );
 			break;
 
 		default:
@@ -299,7 +475,6 @@ vips_reducevl3_class_init( VipsReducevl3Class *reducevl3_class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsReducevl3, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_CUBIC );
-
 
 }
 
