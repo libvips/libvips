@@ -83,7 +83,18 @@
 
 - why can't we do
 
-	im = Vips.Image.new_from_file(sys.argv[1], access = "sequential")
+im = Vips.Image.new_from_file("/data/john/pics/k2.jpg", access = "sequential")
+
+
+
+import logging
+logging.basicConfig(level = logging.DEBUG)
+from gi.repository import Vips
+im = Vips.Image.new_from_file("/data/john/pics/k2.jpg", access = "sequential")
+
+DEBUG:gi.overrides.Vips:assigning sequential to access
+DEBUG:gi.overrides.Vips:access needs a <GType VipsAccess (20432752)>
+DEBUG:gi.overrides.Vips:assigning sequential
 
   ValueError: invalid literal for int() with base 10: 'sequential'
 
