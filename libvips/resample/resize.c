@@ -151,7 +151,7 @@ vips_resize_build( VipsObject *object )
 	 * Don't try to be clever for non-rectangular shrinks. We just
 	 * consider the horizontal factor.
 	 */
-	sigma = (1.0 / hresidual) / 2.4;
+	sigma = (1.0 / hresidual) / 2.3;
 	anti_alias = hresidual < 0.9 && sigma > 0.45;
 	if( anti_alias ) { 
 		vips_info( class->nickname, "anti-alias sigma %g", sigma );
@@ -181,6 +181,23 @@ vips_resize_build( VipsObject *object )
 			NULL ) )  
 			return( -1 );
 		in = t[3];
+	}
+
+	/* If we are upsampling, don't sharpen. Also don't sharpen if we
+	 * skipped the anti-alias filter. 
+	 */
+	if( int_hshrink >= 1 && 
+		anti_alias ) { 
+		vips_info( class->nickname, "final sharpen" );
+		t[4] = vips_image_new_matrixv( 3, 3,
+			-1.0, -1.0, -1.0,
+			-1.0, 32.0, -1.0,
+			-1.0, -1.0, -1.0 );
+		vips_image_set_double( t[4], "scale", 24 );
+
+		if( vips_conv( in, &t[5], t[4], NULL ) ) 
+			return( -1 );
+		in = t[5];
 	}
 
 	if( vips_image_write( in, resample->out ) )
