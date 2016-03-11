@@ -2,14 +2,6 @@
 
 - need tests for reducel3, test every kernel plues every numeric type
 
-- removed the cache from resize, can we get out-of-order reads?
-
-  yup, try
-
-    for i in 200 300 400 500 600; do time vipsthumbnail Chicago.png -s $i; done
-
-  bench on ws as well
-
 - try orc version of reducev?
 
 - still see rounding problems on resize, try ghibli3
