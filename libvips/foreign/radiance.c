@@ -653,15 +653,22 @@ buffer_need( Buffer *buffer, int require )
 	int remaining;
 
 	g_assert( require < BUFFER_MARGIN ); 
+	g_assert( buffer->length >= 0 ); 
+	g_assert( buffer->position >= 0 ); 
+	g_assert( buffer->position <= buffer->length ); 
 
 	remaining = buffer->length - buffer->position;
 	if( remaining < require ) {
 		size_t len;
 
-		memcpy( buffer->text, 
+		/* Areas can overlap.
+		 */
+		memmove( buffer->text, 
 			buffer->text + buffer->position, remaining ); 
 		buffer->position = 0;
 		buffer->length = remaining;
+
+		g_assert( buffer->length < BUFFER_MARGIN ); 
 
 		len = fread( buffer->text + buffer->length, 
 			1, BUFFER_SIZE, buffer->fp );
@@ -686,6 +693,10 @@ static int
 scanline_read_old( Buffer *buffer, COLR *scanline, int width )
 {
 	int rshift;
+
+	g_assert( buffer->length >= 0 ); 
+	g_assert( buffer->position >= 0 ); 
+	g_assert( buffer->position <= buffer->length ); 
 
 	rshift = 0;
 	
@@ -727,6 +738,10 @@ static int
 scanline_read( Buffer *buffer, COLR *scanline, int width )
 {
 	int i, j;
+
+	g_assert( buffer->length >= 0 ); 
+	g_assert( buffer->position >= 0 ); 
+	g_assert( buffer->position <= buffer->length ); 
 
 	/* Detect old-style scanlines.
 	 */
@@ -996,8 +1011,10 @@ static const char *colcor_name[3] = {
 static int
 rad2vips_get_header( Read *read, VipsImage *out )
 {
-	int i, j;
 	VipsInterpretation interpretation;
+	int width;
+	int height;
+	int i, j;
 
 	if( getheader( read->fin, (gethfunc *) rad2vips_process_line, read ) ||
 		!fgetsresolu( &read->rs, read->fin ) ) {
@@ -1013,9 +1030,17 @@ rad2vips_get_header( Read *read, VipsImage *out )
 	else
 		interpretation = VIPS_INTERPRETATION_MULTIBAND;
 
-	vips_image_init_fields( out,
-		scanlen( &read->rs ), numscans( &read->rs ),
-		4,
+	width = scanlen( &read->rs );
+	height = numscans( &read->rs );
+	if( width <= 0 || 
+		width > VIPS_MAX_COORD ||
+		height <= 0 || 
+		height > VIPS_MAX_COORD ) {
+		vips_error( "rad2vips", "%s", _( "image size out of bounds" ) );
+		return( -1 );
+	}
+
+	vips_image_init_fields( out, width, height, 4,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_RAD,
 		interpretation,
 		1, read->aspect );
@@ -1080,6 +1105,7 @@ rad2vips_generate( VipsRegion *or,
 		if( scanline_read( read->buffer, buf, or->im->Xsize ) ) {
 			vips_error( "rad2vips", 
 				_( "read error line %d" ), r->top + y );
+			VIPS_GATE_STOP( "rad2vips_generate: work" );
 			return( -1 );
 		}
 	}
