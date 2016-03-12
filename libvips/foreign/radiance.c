@@ -127,6 +127,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_RADIANCE
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -1303,3 +1305,5 @@ vips__rad_save( VipsImage *in, const char *filename )
 }
 
 const char *vips__rad_suffs[] = { ".hdr", NULL };
+
+#endif /*HAVE_RADIANCE*/

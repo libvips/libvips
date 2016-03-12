@@ -47,6 +47,8 @@
 
 #include <vips/vips.h>
 
+#ifdef HAVE_PPM
+
 #include "ppm.h"
 
 typedef struct _VipsForeignSavePpm {
@@ -143,6 +145,8 @@ static void
 vips_foreign_save_ppm_init( VipsForeignSavePpm *ppm )
 {
 }
+
+#endif /*HAVE_PPM*/
 
 /**
  * vips_ppmsave:

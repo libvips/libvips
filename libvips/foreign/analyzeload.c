@@ -48,6 +48,8 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#ifdef HAVE_ANALYZE
+
 #include "analyze2vips.h"
 
 typedef struct _VipsForeignLoadAnalyze {
@@ -141,6 +143,8 @@ static void
 vips_foreign_load_analyze_init( VipsForeignLoadAnalyze *analyze )
 {
 }
+
+#endif /*HAVE_ANALYZE*/
 
 /**
  * vips_analyzeload:

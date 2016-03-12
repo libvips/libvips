@@ -48,6 +48,8 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#ifdef HAVE_PPM
+
 #include "ppm.h"
 
 typedef struct _VipsForeignLoadPpm {
@@ -141,6 +143,8 @@ static void
 vips_foreign_load_ppm_init( VipsForeignLoadPpm *ppm )
 {
 }
+
+#endif /*HAVE_PPM*/
 
 /**
  * vips_ppmload:

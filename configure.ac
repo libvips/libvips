@@ -618,6 +618,33 @@ if test x"$with_matio" != "xno"; then
     ])
 fi
 
+# not external libraries, but have options to disable them, helps to
+# reduce attack surface
+
+AC_ARG_WITH([ppm], 
+  AS_HELP_STRING([--without-ppm], [build without ppm (default: with)]))
+
+if test x"$with_ppm" != "xno"; then
+  AC_DEFINE(HAVE_PPM,1,[define to build ppm support.])
+  with_ppm=yes
+fi
+
+AC_ARG_WITH([analyze], 
+  AS_HELP_STRING([--without-analyze], [build without analyze (default: with)]))
+
+if test x"$with_analyze" != "xno"; then
+  AC_DEFINE(HAVE_ANALYZE,1,[define to build analyze support.])
+  with_analyze=yes
+fi
+
+AC_ARG_WITH([radiance], 
+  AS_HELP_STRING([--without-radiance], [build without radiance (default: with)]))
+
+if test x"$with_radiance" != "xno"; then
+  AC_DEFINE(HAVE_RADIANCE,1,[define to build radiance support.])
+  with_radiance=yes
+fi
+
 # cfitsio
 AC_ARG_WITH([cfitsio], 
   AS_HELP_STRING([--without-cfitsio], [build without cfitsio (default: test)]))
@@ -911,6 +938,9 @@ gobject introspection: 			$found_introspection
 build vips7 Python binding:		$with_python
 install vips8 Python overrides:		$enable_pyvips8
   (requires pygobject-3.12.0 or later)
+build radiance support: 		$with_radiance
+build analyze support: 			$with_analyze
+build PPM support: 			$with_ppm
 
 * optional dependencies
 use fftw3 for FFT: 			$with_fftw
