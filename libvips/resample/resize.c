@@ -217,7 +217,7 @@ vips_resize_build( VipsObject *object )
 		vips_info( class->nickname, "residual reduce by %g x %g", 
 			hresidual, vresidual );
 
-		if( vips_reducel3( in, &t[2], 
+		if( vips_reduce( in, &t[2], 
 			1.0 / hresidual, 1.0 / vresidual, NULL ) )  
 			return( -1 );
 		in = t[2];

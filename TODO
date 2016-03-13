@@ -1,8 +1,17 @@
-- rename l3 on top of reduce
+- try:
 
-- need tests for reducel3, test every kernel plues every numeric type
+	$ ./test_resample.py TestResample.test_reduce
+	  File "./test_resample.py", line 129, in test_reduce
+    	self.assertLess(d, 5)
+	AssertionError: 147.0 not less than 5
 
-- try orc version of reducev?
+  affine bicubic != reduce cubic
+
+  displacement error, I guess?
+
+- need more tests for reduce, test every kernel plus every numeric type
+
+- try orc version of reducev? and shrinkv? maybe shrinkh?
 
 
 

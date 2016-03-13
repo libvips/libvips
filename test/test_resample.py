@@ -121,7 +121,7 @@ class TestResample(unittest.TestCase):
         for fac in [1, 1.1, 1.5, 1.999]:
             for fmt in all_formats:
                 x = im.cast(fmt)
-                r = x.reduce(fac, fac)
+                r = x.reduce(fac, fac, kernel = "cubic")
                 a = x.affine([1.0 / fac, 0, 0, 1.0 / fac], 
                              interpolate = bicubic,
                              oarea = [0, 0, x.width / fac, x.height / fac])

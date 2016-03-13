@@ -120,7 +120,7 @@ reducev_unsigned_uint8_6tab( VipsPel *out, const VipsPel *in,
 {
 	const int l1 = lskip;
 	const int l2 = l1 + l1;
-	const int  = l1 + l2;
+	const int l3 = l1 + l2;
 	const int l4 = l2 + l2;
 	const int l5 = l4 + l1;
 
@@ -136,7 +136,7 @@ reducev_unsigned_uint8_6tab( VipsPel *out, const VipsPel *in,
 			c0 * in[0] +
 			c1 * in[l1] +
 			c2 * in[l2] +
-			c3 * in[] +
+			c3 * in[l3] +
 			c4 * in[l4] +
 			c5 * in[l5] ); 
 
