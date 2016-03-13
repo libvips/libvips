@@ -267,6 +267,11 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.webp", self.colour)
 
     def test_analyzeload(self):
+        x = Vips.type_find("VipsForeign", "analyzeload")
+        if not x.is_instantiatable():
+            print("no analyze support in this vips, skipping test")
+            return
+
         def analyze_valid(self, im):
             a = im(10, 10)
             self.assertAlmostEqual(a[0], 3335)
@@ -416,10 +421,20 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.mat", self.mono)
 
     def test_ppm(self):
+        x = Vips.type_find("VipsForeign", "ppmload")
+        if not x.is_instantiatable():
+            print("no PPM support in this vips, skipping test")
+            return
+
         self.save_load("%s.ppm", self.mono)
         self.save_load("%s.ppm", self.colour)
 
     def test_rad(self):
+        x = Vips.type_find("VipsForeign", "radload")
+        if not x.is_instantiatable():
+            print("no Radiance support in this vips, skipping test")
+            return
+
         self.save_load("%s.hdr", self.colour)
 
     def test_dzsave(self):

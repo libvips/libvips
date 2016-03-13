@@ -58,11 +58,6 @@ int vips_reduce( VipsImage *in, VipsImage **out,
 int vips_reduceh( VipsImage *in, VipsImage **out, double xshrink, ... );
 int vips_reducev( VipsImage *in, VipsImage **out, double yshrink, ... );
 
-int vips_reducel3( VipsImage *in, VipsImage **out, 
-	double xshrink, double yshrink, ... );
-int vips_reducehl3( VipsImage *in, VipsImage **out, double xshrink, ... );
-int vips_reducevl3( VipsImage *in, VipsImage **out, double yshrink, ... );
-
 int vips_similarity( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_affine( VipsImage *in, VipsImage **out, 

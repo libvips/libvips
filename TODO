@@ -4,15 +4,6 @@
 
 - try orc version of reducev?
 
-- try
-
-	$ vipsthumbnail ghibli_orig.jpg -s 600x1085
-	$ vipsheader tn_ghibli_orig.jpg 
-	tn_ghibli_orig.jpg: 599x1083 uchar, 3 bands, srgb, jpegload
-
-
-
-
 
 
 - try SEQ_UNBUFFERED on jpg source, get out of order error?

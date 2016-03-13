@@ -42,9 +42,6 @@
 
 #include <vips/vips.h>
 
-#include "../foreign/dbh.h"
-#include "../foreign/analyze2vips.h"
-
 static VipsFormatFlags
 analyze_flags( const char *filename )
 {
@@ -61,7 +58,15 @@ isanalyze( const char *filename )
 int
 im_analyze2vips( const char *filename, IMAGE *out )
 {
-	return( vips__analyze_read( filename, out ) ); 
+	VipsImage *t;
+
+	if( vips_analyzeload( filename, &t, NULL ) )
+		return( -1 );
+	if( vips_image_write( t, out ) ) {
+		g_object_unref( t );
+		return( -1 );
+	}
+	g_object_unref( t );
 
 	return( 0 );
 }

@@ -1,7 +1,9 @@
-/* vertical reduce by a float factor
+/* horizontal reduce by a float factor with lanczos3
  *
  * 29/1/16
  * 	- from shrinkv.c
+ * 10/3/16
+ * 	- add other kernels
  */
 
 /*
@@ -51,22 +53,33 @@
 #include "presample.h"
 #include "templates.h"
 
+/* The max size of the vector we use.
+ */
+#define MAX_POINTS (6)
+
 typedef struct _VipsReducev {
 	VipsResample parent_instance;
 
 	double yshrink;		/* Shrink factor */
 
+	/* The thing we use to make the kernel.
+	 */
+	VipsKernel kernel;
+
+	/* Number of points in kernel.
+	 */
+	int n_points;
+
+	/* Precalculated interpolation matrices. int (used for pel
+	 * sizes up to short), and double (for all others). We go to
+	 * scale + 1 so we can round-to-nearest safely.
+	 */
+	int matrixi[VIPS_TRANSFORM_SCALE + 1][MAX_POINTS];
+	double matrixf[VIPS_TRANSFORM_SCALE + 1][MAX_POINTS];
+
 } VipsReducev;
 
 typedef VipsResampleClass VipsReducevClass;
-
-/* Precalculated interpolation matrices. int (used for pel
- * sizes up to short), and double (for all others). We go to
- * scale + 1 so we can round-to-nearest safely.
- */
-
-static int vips_reducev_matrixi[VIPS_TRANSFORM_SCALE + 1][4];
-static double vips_reducev_matrixf[VIPS_TRANSFORM_SCALE + 1][4];
 
 /* We need C linkage for this.
  */
@@ -74,34 +87,62 @@ extern "C" {
 G_DEFINE_TYPE( VipsReducev, vips_reducev, VIPS_TYPE_RESAMPLE );
 }
 
+/* You'd think this would vectorise, but gcc hates mixed types in nested loops
+ * :-(
+ */
 template <typename T, int max_value>
 static void inline
-reducev_unsigned_int_tab( VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip,
-	const int *cy )
+reducev_unsigned_int_tab( VipsReducev *reducev,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const int * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-
+	const int n = reducev->n_points;
 	const int l1 = lskip / sizeof( T );
+
+	for( int z = 0; z < ne; z++ ) {
+		int sum;
+
+		sum = reduce_sum<T, int>( in + z, l1, cy, n );
+		sum = unsigned_fixed_round( sum ); 
+		sum = VIPS_CLIP( 0, sum, max_value ); 
+
+		out[z] = sum;
+	}
+}
+
+/* An unrolled version of ^^ for the most common case. 
+ */
+static void inline
+reducev_unsigned_uint8_6tab( VipsPel *out, const VipsPel *in,
+	const int ne, const int lskip, const int *cy )
+{
+	const int l1 = lskip;
 	const int l2 = l1 + l1;
-	const int l3 = l1 + l2;
+	const int  = l1 + l2;
+	const int l4 = l2 + l2;
+	const int l5 = l4 + l1;
 
 	const int c0 = cy[0];
 	const int c1 = cy[1];
 	const int c2 = cy[2];
 	const int c3 = cy[3];
+	const int c4 = cy[4];
+	const int c5 = cy[5];
 
 	for( int z = 0; z < ne; z++ ) {
-		int cubicv = unsigned_fixed_round( 
+		int sum = unsigned_fixed_round( 
 			c0 * in[0] +
 			c1 * in[l1] +
 			c2 * in[l2] +
-			c3 * in[l3] ); 
+			c3 * in[] +
+			c4 * in[l4] +
+			c5 * in[l5] ); 
 
-		cubicv = VIPS_CLIP( 0, cubicv, max_value ); 
+		sum = VIPS_CLIP( 0, sum, 255 ); 
 
-		out[z] = cubicv;
+		out[z] = sum;
 
 		in += 1;
 	}
@@ -109,135 +150,81 @@ reducev_unsigned_int_tab( VipsPel *pout, const VipsPel *pin,
 
 template <typename T, int min_value, int max_value>
 static void inline
-reducev_signed_int_tab( VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip,
-	const int *cy )
+reducev_signed_int_tab( VipsReducev *reducev,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const int * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-
+	const int n = reducev->n_points;
 	const int l1 = lskip / sizeof( T );
-	const int l2 = l1 + l1;
-	const int l3 = l1 + l2;
-
-	const int c0 = cy[0];
-	const int c1 = cy[1];
-	const int c2 = cy[2];
-	const int c3 = cy[3];
 
 	for( int z = 0; z < ne; z++ ) {
-		int cubicv = signed_fixed_round( 
-			c0 * in[0] +
-			c1 * in[l1] +
-			c2 * in[l2] +
-			c3 * in[l3] ); 
+		int sum;
 
-		cubicv = VIPS_CLIP( min_value, cubicv, max_value ); 
+		sum = reduce_sum<T, int>( in + z, l1, cy, n );
+		sum = signed_fixed_round( sum ); 
+		sum = VIPS_CLIP( min_value, sum, max_value ); 
 
-		out[z] = cubicv;
-
-		in += 1;
+		out[z] = sum;
 	}
 }
 
 /* Floating-point version.
  */
-
 template <typename T>
 static void inline
-reducev_float_tab( VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip,
-	const double *cy )
+reducev_float_tab( VipsReducev *reducev,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const double * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-
+	const int n = reducev->n_points;
 	const int l1 = lskip / sizeof( T );
-	const int l2 = l1 + l1;
-	const int l3 = l1 + l2;
 
-	const double c0 = cy[0];
-	const double c1 = cy[1];
-	const double c2 = cy[2];
-	const double c3 = cy[3];
-
-	for( int z = 0; z < ne; z++ ) {
-		out[z] = 
-			c0 * in[0] +
-			c1 * in[l1] +
-			c2 * in[l2] +
-			c3 * in[l3]; 
-
-		in += 1;
-	}
+	for( int z = 0; z < ne; z++ ) 
+		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
 }
 
-/* 32-bit int version needs a double intermediate.
+/* 32-bit int output needs a double intermediate.
  */
 
 template <typename T, int max_value>
 static void inline
-reducev_unsigned_int32_tab( VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip,
-	const double *cy )
+reducev_unsigned_int32_tab( VipsReducev *reducev,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const double * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-
+	const int n = reducev->n_points;
 	const int l1 = lskip / sizeof( T );
-	const int l2 = l1 + l1;
-	const int l3 = l1 + l2;
-
-	const double c0 = cy[0];
-	const double c1 = cy[1];
-	const double c2 = cy[2];
-	const double c3 = cy[3];
 
 	for( int z = 0; z < ne; z++ ) {
-		double cubicv = 
-			c0 * in[0] +
-			c1 * in[l1] +
-			c2 * in[l2] +
-			c3 * in[l3]; 
+		double sum;
 
-		cubicv = VIPS_CLIP( 0, cubicv, max_value ); 
-
-		out[z] = cubicv;
-
-		in += 1;
+		sum = reduce_sum<T, double>( in + z, l1, cy, n );
+		out[z] = VIPS_CLIP( 0, sum, max_value ); 
 	}
 }
 
 template <typename T, int min_value, int max_value>
 static void inline
-reducev_signed_int32_tab( VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip,
-	const double *cy )
+reducev_signed_int32_tab( VipsReducev *reducev,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const double * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-
+	const int n = reducev->n_points;
 	const int l1 = lskip / sizeof( T );
-	const int l2 = l1 + l1;
-	const int l3 = l1 + l2;
-
-	const double c0 = cy[0];
-	const double c1 = cy[1];
-	const double c2 = cy[2];
-	const double c3 = cy[3];
 
 	for( int z = 0; z < ne; z++ ) {
-		double cubicv = 
-			c0 * in[0] +
-			c1 * in[l1] +
-			c2 * in[l2] +
-			c3 * in[l3]; 
+		double sum;
 
-		cubicv = VIPS_CLIP( min_value, cubicv, max_value ); 
-
-		out[z] = cubicv;
-
-		in += 1;
+		sum = reduce_sum<T, double>( in + z, l1, cy, n );
+		out[z] = VIPS_CLIP( min_value, sum, max_value ); 
 	}
 }
 
@@ -245,35 +232,21 @@ reducev_signed_int32_tab( VipsPel *pout, const VipsPel *pin,
  */
 template <typename T>
 static void inline
-reducev_notab( VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip,
-	double y )
+reducev_notab( VipsReducev *reducev,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, double y )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-
+	const int n = reducev->n_points;
 	const int l1 = lskip / sizeof( T );
-	const int l2 = l1 + l1;
-	const int l3 = l1 + l2;
 
-	double cy[4];
+	double cy[MAX_POINTS];
 
-	calculate_coefficients_catmull( y, cy );
+	vips_reduce_make_mask( reducev->kernel, y, cy ); 
 
-	const double c0 = cy[0];
-	const double c1 = cy[1];
-	const double c2 = cy[2];
-	const double c3 = cy[3];
-
-	for( int z = 0; z < ne; z++ ) {
-		out[z] = 
-			c0 * in[0] +
-			c1 * in[l1] +
-			c2 * in[l2] +
-			c3 * in[l3]; 
-
-		in += 1;
-	}
+	for( int z = 0; z < ne; z++ ) 
+		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
 }
 
 static int
@@ -301,68 +274,81 @@ vips_reducev_gen( VipsRegion *out_region, void *seq,
 	s.left = r->left;
 	s.top = r->top * reducev->yshrink;
 	s.width = r->width;
-	s.height = r->height * reducev->yshrink + 4;
+	s.height = r->height * reducev->yshrink + reducev->n_points;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
 	VIPS_GATE_START( "vips_reducev_gen: work" ); 
 
 	for( int y = 0; y < r->height; y ++ ) { 
-		VipsPel *q = VIPS_REGION_ADDR( out_region, r->left, r->top + y );
+		VipsPel *q = 
+			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
 		const double Y = (r->top + y) * reducev->yshrink; 
 		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, (int) Y ); 
 		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
 		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
 		const int ty = (siy + 1) >> 1;
-		const int *cyi = vips_reducev_matrixi[ty];
-		const double *cyf = vips_reducev_matrixf[ty];
+		const int *cyi = reducev->matrixi[ty];
+		const double *cyf = reducev->matrixf[ty];
 		const int lskip = VIPS_REGION_LSKIP( ir );
 
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
-			reducev_unsigned_int_tab
-				<unsigned char, UCHAR_MAX>(
-				q, p, ne, lskip, cyi );
+			if( reducev->n_points == 6 )
+				reducev_unsigned_uint8_6tab( 
+					q, p, ne, lskip, cyi );
+			else
+				reducev_unsigned_int_tab
+					<unsigned char, UCHAR_MAX>(
+					reducev,
+					q, p, ne, lskip, cyi );
 			break;
 
 		case VIPS_FORMAT_CHAR:
 			reducev_signed_int_tab
 				<signed char, SCHAR_MIN, SCHAR_MAX>(
+				reducev,
 				q, p, ne, lskip, cyi );
 			break;
 
 		case VIPS_FORMAT_USHORT:
 			reducev_unsigned_int_tab
 				<unsigned short, USHRT_MAX>(
+				reducev,
 				q, p, ne, lskip, cyi );
 			break;
 
 		case VIPS_FORMAT_SHORT:
 			reducev_signed_int_tab
 				<signed short, SHRT_MIN, SHRT_MAX>(
+				reducev,
 				q, p, ne, lskip, cyi );
 			break;
 
 		case VIPS_FORMAT_UINT:
 			reducev_unsigned_int32_tab
 				<unsigned int, INT_MAX>(
+				reducev,
 				q, p, ne, lskip, cyf );
 			break;
 
 		case VIPS_FORMAT_INT:
 			reducev_signed_int32_tab
 				<signed int, INT_MIN, INT_MAX>(
+				reducev,
 				q, p, ne, lskip, cyf );
 			break;
 
 		case VIPS_FORMAT_FLOAT:
 		case VIPS_FORMAT_COMPLEX:
-			reducev_float_tab<float>( q, p, ne, lskip, cyf );
+			reducev_float_tab<float>( reducev,
+				q, p, ne, lskip, cyf );
 			break;
 
 		case VIPS_FORMAT_DPCOMPLEX:
 		case VIPS_FORMAT_DOUBLE:
-			reducev_notab<double>( q, p, ne, lskip, Y - (int) Y );
+			reducev_notab<double>( reducev,
+				q, p, ne, lskip, Y - (int) Y );
 			break;
 
 		default:
@@ -403,6 +389,19 @@ vips_reducev_build( VipsObject *object )
 	if( reducev->yshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );
 
+	/* Build the tables of pre-computed coefficients.
+	 */
+	reducev->n_points = vips_reduce_get_points( reducev->kernel ); 
+	for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
+		vips_reduce_make_mask( reducev->kernel, 
+			(float) y / VIPS_TRANSFORM_SCALE,
+			reducev->matrixf[y] );
+
+		for( int i = 0; i < reducev->n_points; i++ )
+			reducev->matrixi[y][i] = reducev->matrixf[y][i] * 
+				VIPS_INTERPOLATE_SCALE;
+	}
+
 	/* Unpack for processing.
 	 */
 	if( vips_image_decode( in, &t[0] ) )
@@ -412,8 +411,8 @@ vips_reducev_build( VipsObject *object )
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if( vips_embed( in, &t[1], 
-		0, 1, 
-		in->Xsize, in->Ysize + 3, 
+		0, reducev->n_points / 2, 
+		in->Xsize, in->Ysize + reducev->n_points - 1, 
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
@@ -429,7 +428,7 @@ vips_reducev_build( VipsObject *object )
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Ysize = (in->Ysize - 3) / reducev->yshrink;
+	resample->out->Ysize = (in->Ysize - reducev->n_points + 1) / reducev->yshrink;
 	if( resample->out->Ysize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -476,24 +475,19 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 		G_STRUCT_OFFSET( VipsReducev, yshrink ),
 		1, 1000000, 1 );
 
-	/* Build the tables of pre-computed coefficients.
-	 */
-	for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
-		calculate_coefficients_catmull(
-			(float) y / VIPS_TRANSFORM_SCALE,
-			vips_reducev_matrixf[y] );
-
-		for( int i = 0; i < 4; i++ )
-			vips_reducev_matrixi[y][i] =
-				vips_reducev_matrixf[y][i] * 
-				VIPS_INTERPOLATE_SCALE;
-	}
+	VIPS_ARG_ENUM( reducev_class, "kernel", 3, 
+		_( "Kernel" ), 
+		_( "Resampling kernel" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsReducev, kernel ),
+		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
 }
 
 static void
 vips_reducev_init( VipsReducev *reducev )
 {
+	reducev->kernel = VIPS_KERNEL_LANCZOS3;
 }
 
 /**
@@ -503,8 +497,12 @@ vips_reducev_init( VipsReducev *reducev )
  * @yshrink: horizontal reduce
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
+ *
  * Reduce @in vertically by a float factor. The pixels in @out are
- * interpolated with a 1D cubic mask. This operation will not work well for
+ * interpolated with a 1D mask. This operation will not work well for
  * a reduction of more than a factor of two.
  *
  * This is a very low-level operation: see vips_resize() for a more

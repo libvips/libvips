@@ -1665,21 +1665,30 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_gif_file_get_type( void ); 
 	extern GType vips_foreign_load_gif_buffer_get_type( void ); 
 
-	vips_foreign_load_rad_get_type(); 
-	vips_foreign_save_rad_get_type(); 
-	vips_foreign_load_ppm_get_type(); 
-	vips_foreign_save_ppm_get_type(); 
 	vips_foreign_load_csv_get_type(); 
 	vips_foreign_save_csv_get_type(); 
 	vips_foreign_load_matrix_get_type(); 
 	vips_foreign_save_matrix_get_type(); 
 	vips_foreign_print_matrix_get_type(); 
-	vips_foreign_load_analyze_get_type(); 
 	vips_foreign_load_raw_get_type(); 
 	vips_foreign_save_raw_get_type(); 
 	vips_foreign_save_raw_fd_get_type(); 
 	vips_foreign_load_vips_get_type(); 
 	vips_foreign_save_vips_get_type(); 
+
+#ifdef HAVE_ANALYZE
+	vips_foreign_load_analyze_get_type(); 
+#endif /*HAVE_ANALYZE*/
+
+#ifdef HAVE_PPM
+	vips_foreign_load_ppm_get_type(); 
+	vips_foreign_save_ppm_get_type(); 
+#endif /*HAVE_PPM*/
+
+#ifdef HAVE_RADIANCE
+	vips_foreign_load_rad_get_type(); 
+	vips_foreign_save_rad_get_type(); 
+#endif /*HAVE_RADIANCE*/
 
 #ifdef HAVE_POPPLER
 	vips_foreign_load_pdf_get_type(); 

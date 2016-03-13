@@ -1,7 +1,9 @@
-/* horizontal reduce by a float factor
+/* horizontal reduce by a float factor with lanczos3
  *
  * 29/1/16
  * 	- from shrinkh.c
+ * 10/3/16
+ * 	- add other kernels
  */
 
 /*
@@ -51,22 +53,40 @@
 #include "presample.h"
 #include "templates.h"
 
+/**
+ * VipsKernel: 
+ * @VIPS_KERNEL_NEAREST: nearest-neighbour
+ * @VIPS_KERNEL_LINEAR: linear interpolation
+ * @VIPS_KERNEL_CUBIC: cubic interpolation
+ * @VIPS_KERNEL_LANCZOS2: lanczos2 interpolation
+ * @VIPS_KERNEL_LANCZOS3: lanczos3 interpolation
+ *
+ * 1D resampling kernels. 
+ */
+
 typedef struct _VipsReduceh {
 	VipsResample parent_instance;
 
 	double xshrink;		/* Reduce factor */
 
+	/* The thing we use to make the kernel.
+	 */
+	VipsKernel kernel;
+
+	/* Number of points in kernel.
+	 */
+	int n_points;
+
+	/* Precalculated interpolation matrices. int (used for pel
+	 * sizes up to short), and double (for all others). We go to
+	 * scale + 1 so we can round-to-nearest safely.
+	 */
+	int matrixi[VIPS_TRANSFORM_SCALE + 1][MAX_POINTS];
+	double matrixf[VIPS_TRANSFORM_SCALE + 1][MAX_POINTS];
+
 } VipsReduceh;
 
 typedef VipsResampleClass VipsReducehClass;
-
-/* Precalculated interpolation matrices. int (used for pel
- * sizes up to short), and double (for all others). We go to
- * scale + 1 so we can round-to-nearest safely.
- */
-
-static int vips_reduceh_matrixi[VIPS_TRANSFORM_SCALE + 1][4];
-static double vips_reduceh_matrixf[VIPS_TRANSFORM_SCALE + 1][4];
 
 /* We need C linkage for this.
  */
@@ -74,31 +94,122 @@ extern "C" {
 G_DEFINE_TYPE( VipsReduceh, vips_reduceh, VIPS_TYPE_RESAMPLE );
 }
 
+/* Get n points.
+ */
+int
+vips_reduce_get_points( VipsKernel kernel ) 
+{
+	switch( kernel ) {
+	case VIPS_KERNEL_NEAREST:
+		return( 1 ); 
+
+	case VIPS_KERNEL_LINEAR:
+		return( 2 ); 
+
+	case VIPS_KERNEL_CUBIC:
+		return( 4 ); 
+
+	case VIPS_KERNEL_LANCZOS2:
+		return( 4 ); 
+
+	case VIPS_KERNEL_LANCZOS3:
+		return( 6 ); 
+
+	default:
+		g_assert_not_reached();
+		return( 0 ); 
+	}
+}
+
+/* Calculate a mask.
+ */
+void
+vips_reduce_make_mask( VipsKernel kernel, double x, double *c )
+{
+	switch( kernel ) {
+	case VIPS_KERNEL_NEAREST:
+		c[0] = 1.0;
+		break;
+
+	case VIPS_KERNEL_LINEAR:
+		c[0] = 1.0 - x;
+		c[1] = x;
+		break;
+
+	case VIPS_KERNEL_CUBIC:
+		calculate_coefficients_catmull( x, c ); 
+		break;
+
+	case VIPS_KERNEL_LANCZOS2:
+		calculate_coefficients_lanczos( 2, x, c ); 
+		break;
+
+	case VIPS_KERNEL_LANCZOS3:
+		calculate_coefficients_lanczos( 3, x, c ); 
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
+	}
+}
+
 template <typename T, int max_value>
 static void inline
-reduceh_unsigned_int_tab( VipsPel *pout, const VipsPel *pin,
-	const int bands, const int *cx )
+reduceh_unsigned_int_tab( VipsReduceh *reduceh,
+	VipsPel *pout, const VipsPel *pin,
+	const int bands, const int * restrict cx )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
+	const int n = reduceh->n_points;
 
+	for( int z = 0; z < bands; z++ ) {
+		int sum;
+	       
+		sum = reduce_sum<T, int>( in, bands, cx, n );
+		sum = unsigned_fixed_round( sum ); 
+		sum = VIPS_CLIP( 0, sum, max_value ); 
+		
+		out[z] = sum;
+
+		in += 1;
+	}
+}
+
+/* A 4-point interpolation on uint8 is the most common case ... unroll that.
+ *
+ * The inner loop here won't vectorise, but our inner loop doesn't run for
+ * long enough for vectorisation to be useful :-( gcc says it needs about an
+ * 11-point kernel for the vector version to be worthwhile.
+ */
+static void inline
+reduceh_unsigned_uint8_6tab( VipsPel *out, const VipsPel *in,
+	const int bands, const int *cx )
+{
 	const int b1 = bands;
 	const int b2 = b1 + b1;
 	const int b3 = b1 + b2;
+	const int b4 = b2 + b2;
+	const int b5 = b1 + b4;
 
 	const int c0 = cx[0];
 	const int c1 = cx[1];
 	const int c2 = cx[2];
 	const int c3 = cx[3];
+	const int c4 = cx[4];
+	const int c5 = cx[5];
 
 	for( int z = 0; z < bands; z++ ) {
 		int cubich = unsigned_fixed_round( 
 			c0 * in[0] +
 			c1 * in[b1] +
 			c2 * in[b2] +
-			c3 * in[b3] ); 
+			c3 * in[b3] +
+			c4 * in[b4] +
+			c5 * in[b5] ); 
 
-		cubich = VIPS_CLIP( 0, cubich, max_value ); 
+		cubich = VIPS_CLIP( 0, cubich, 255 ); 
 
 		out[z] = cubich;
 
@@ -108,31 +219,22 @@ reduceh_unsigned_int_tab( VipsPel *pout, const VipsPel *pin,
 
 template <typename T, int min_value, int max_value>
 static void inline
-reduceh_signed_int_tab( VipsPel *pout, const VipsPel *pin,
-	const int bands, const int *cx )
+reduceh_signed_int_tab( VipsReduceh *reduceh,
+	VipsPel *pout, const VipsPel *pin,
+	const int bands, const int * restrict cx )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-
-	const int b1 = bands;
-	const int b2 = b1 + b1;
-	const int b3 = b1 + b2;
-
-	const int c0 = cx[0];
-	const int c1 = cx[1];
-	const int c2 = cx[2];
-	const int c3 = cx[3];
+	const int n = reduceh->n_points;
 
 	for( int z = 0; z < bands; z++ ) {
-		int cubich = signed_fixed_round( 
-			c0 * in[0] +
-			c1 * in[b1] +
-			c2 * in[b2] +
-			c3 * in[b3] ); 
+		int sum;
 
-		cubich = VIPS_CLIP( min_value, cubich, max_value ); 
+		sum = reduce_sum<T, int>( in, bands, cx, n );
+		sum = signed_fixed_round( sum ); 
+		sum = VIPS_CLIP( min_value, sum, max_value ); 
 
-		out[z] = cubich;
+		out[z] = sum;
 
 		in += 1;
 	}
@@ -142,62 +244,38 @@ reduceh_signed_int_tab( VipsPel *pout, const VipsPel *pin,
  */
 template <typename T>
 static void inline
-reduceh_float_tab( VipsPel *pout, const VipsPel *pin,
+reduceh_float_tab( VipsReduceh *reduceh,
+	VipsPel *pout, const VipsPel *pin,
 	const int bands, const double *cx )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-
-	const int b1 = bands;
-	const int b2 = b1 + b1;
-	const int b3 = b1 + b2;
-
-	const double c0 = cx[0];
-	const double c1 = cx[1];
-	const double c2 = cx[2];
-	const double c3 = cx[3];
+	const int n = reduceh->n_points;
 
 	for( int z = 0; z < bands; z++ ) {
-		out[z] = 
-			c0 * in[0] +
-			c1 * in[b1] +
-			c2 * in[b2] +
-			c3 * in[b3];
-
+		out[z] = reduce_sum<T, double>( in, bands, cx, n );
 		in += 1;
 	}
 }
 
-/* 32-bit output needs a double intermediate.
+/* 32-bit int output needs a double intermediate.
  */
 
 template <typename T, int max_value>
 static void inline
-reduceh_unsigned_int32_tab( VipsPel *pout, const VipsPel *pin,
-	const int bands, const double *cx )
+reduceh_unsigned_int32_tab( VipsReduceh *reduceh,
+	VipsPel *pout, const VipsPel *pin,
+	const int bands, const double * restrict cx )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-
-	const int b1 = bands;
-	const int b2 = b1 + b1;
-	const int b3 = b1 + b2;
-
-	const double c0 = cx[0];
-	const double c1 = cx[1];
-	const double c2 = cx[2];
-	const double c3 = cx[3];
+	const int n = reduceh->n_points;
 
 	for( int z = 0; z < bands; z++ ) {
-		double cubich = 
-			c0 * in[0] +
-			c1 * in[b1] +
-			c2 * in[b2] +
-			c3 * in[b3]; 
+		double sum;
 
-		cubich = VIPS_CLIP( 0, cubich, max_value ); 
-
-		out[z] = cubich;
+		sum = reduce_sum<T, double>( in, bands, cx, n );
+		out[z] = VIPS_CLIP( 0, sum, max_value ); 
 
 		in += 1;
 	}
@@ -205,31 +283,20 @@ reduceh_unsigned_int32_tab( VipsPel *pout, const VipsPel *pin,
 
 template <typename T, int min_value, int max_value>
 static void inline
-reduceh_signed_int32_tab( VipsPel *pout, const VipsPel *pin,
-	const int bands, const double *cx )
+reduceh_signed_int32_tab( VipsReduceh *reduceh,
+	VipsPel *pout, const VipsPel *pin,
+	const int bands, const double * restrict cx )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-
-	const int b1 = bands;
-	const int b2 = b1 + b1;
-	const int b3 = b1 + b2;
-
-	const double c0 = cx[0];
-	const double c1 = cx[1];
-	const double c2 = cx[2];
-	const double c3 = cx[3];
+	const int n = reduceh->n_points;
 
 	for( int z = 0; z < bands; z++ ) {
-		double cubich = 
-			c0 * in[0] +
-			c1 * in[b1] +
-			c2 * in[b2] +
-			c3 * in[b3]; 
+		double sum;
 
-		cubich = VIPS_CLIP( min_value, cubich, max_value ); 
-
-		out[z] = cubich;
+		sum = reduce_sum<T, double>( in, bands, cx, n );
+		sum = VIPS_CLIP( min_value, sum, max_value ); 
+		out[z] = sum;
 
 		in += 1;
 	}
@@ -239,27 +306,20 @@ reduceh_signed_int32_tab( VipsPel *pout, const VipsPel *pin,
  */
 template <typename T>
 static void inline
-reduceh_notab( VipsPel *pout, const VipsPel *pin,
+reduceh_notab( VipsReduceh *reduceh,
+	VipsPel *pout, const VipsPel *pin,
 	const int bands, double x )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
+	const int n = reduceh->n_points;
 
-	const int b1 = bands;
-	const int b2 = b1 + b1;
-	const int b3 = b1 + b2;
+	double cx[MAX_POINTS];
 
-	double cx[4];
-
-	calculate_coefficients_catmull( x, cx );
+	vips_reduce_make_mask( reduceh->kernel, x, cx ); 
 
 	for( int z = 0; z < bands; z++ ) {
-		const T one = in[0];
-		const T two = in[b1];
-		const T thr = in[b2];
-		const T fou = in[b3];
-
-		out[z] = cubic_float<T>( one, two, thr, fou, cx );
+		out[z] = reduce_sum<T, double>( in, bands, cx, n );
 
 		in += 1;
 	}
@@ -289,7 +349,7 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 
 	s.left = r->left * reduceh->xshrink;
 	s.top = r->top;
-	s.width = r->width * reduceh->xshrink + 4;
+	s.width = r->width * reduceh->xshrink + reduceh->n_points;
 	s.height = r->height;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
@@ -309,54 +369,66 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 			const int sx = X * VIPS_TRANSFORM_SCALE * 2;
 			const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
 			const int tx = (six + 1) >> 1;
-			const int *cxi = vips_reduceh_matrixi[tx];
-			const double *cxf = vips_reduceh_matrixf[tx];
+			const int *cxi = reduceh->matrixi[tx];
+			const double *cxf = reduceh->matrixf[tx];
 
 			switch( in->BandFmt ) {
 			case VIPS_FORMAT_UCHAR:
-				reduceh_unsigned_int_tab
-					<unsigned char, UCHAR_MAX>(
-					q, p, bands, cxi );
+				if( reduceh->n_points == 6 )
+					reduceh_unsigned_uint8_6tab( 
+						q, p, bands, cxi );
+				else
+					reduceh_unsigned_int_tab
+						<unsigned char, UCHAR_MAX>(
+						reduceh,
+						q, p, bands, cxi );
 				break;
 
 			case VIPS_FORMAT_CHAR:
 				reduceh_signed_int_tab
 					<signed char, SCHAR_MIN, SCHAR_MAX>(
+					reduceh,
 					q, p, bands, cxi );
 				break;
 
 			case VIPS_FORMAT_USHORT:
 				reduceh_unsigned_int_tab
 					<unsigned short, USHRT_MAX>(
+					reduceh,
 					q, p, bands, cxi );
 				break;
 
 			case VIPS_FORMAT_SHORT:
 				reduceh_signed_int_tab
 					<signed short, SHRT_MIN, SHRT_MAX>(
+					reduceh,
 					q, p, bands, cxi );
 				break;
 
 			case VIPS_FORMAT_UINT:
 				reduceh_unsigned_int32_tab
 					<unsigned int, INT_MAX>(
+					reduceh,
 					q, p, bands, cxf );
 				break;
 
 			case VIPS_FORMAT_INT:
 				reduceh_signed_int32_tab
 					<signed int, INT_MIN, INT_MAX>(
+					reduceh,
 					q, p, bands, cxf );
 				break;
 
 			case VIPS_FORMAT_FLOAT:
 			case VIPS_FORMAT_COMPLEX:
-				reduceh_float_tab<float>( q, p, bands, cxf );
+				reduceh_float_tab<float>( reduceh,
+					q, p, bands, cxf );
 				break;
 
 			case VIPS_FORMAT_DOUBLE:
 			case VIPS_FORMAT_DPCOMPLEX:
-				reduceh_notab<double>( q, p, bands, X - ix );
+				reduceh_notab<double>( reduceh,
+					q, p, bands, X - ix );
 				break;
 
 			default:
@@ -402,6 +474,19 @@ vips_reduceh_build( VipsObject *object )
 	if( reduceh->xshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );
 
+	/* Build the tables of pre-computed coefficients.
+	 */
+	reduceh->n_points = vips_reduce_get_points( reduceh->kernel ); 
+	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
+		vips_reduce_make_mask( reduceh->kernel, 
+			(float) x / VIPS_TRANSFORM_SCALE,
+			reduceh->matrixf[x] );
+
+		for( int i = 0; i < reduceh->n_points; i++ )
+			reduceh->matrixi[x][i] = reduceh->matrixf[x][i] * 
+				VIPS_INTERPOLATE_SCALE;
+	}
+
 	/* Unpack for processing.
 	 */
 	if( vips_image_decode( in, &t[0] ) )
@@ -411,8 +496,8 @@ vips_reduceh_build( VipsObject *object )
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if( vips_embed( in, &t[1], 
-		1, 0, 
-		in->Xsize + 3, in->Ysize,
+		reduceh->n_points / 2, 0, 
+		in->Xsize + reduceh->n_points - 1, in->Ysize,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
@@ -428,7 +513,8 @@ vips_reduceh_build( VipsObject *object )
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Xsize = (in->Xsize - 3) / reduceh->xshrink;
+	resample->out->Xsize = (in->Xsize - reduceh->n_points + 1) / 
+		reduceh->xshrink;
 	if( resample->out->Xsize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -466,27 +552,6 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 	vobject_class->description = _( "shrink an image horizontally" );
 	vobject_class->build = vips_reduceh_build;
 
-	/*
-{
-	double x;
-
-	for( x = 0.0; x <= 1.0; x += 0.05 ) {
-		double c[7];
-		int i;
-
-		calculate_coefficients_lanczos3( x, c );
-
-		printf( "%g, ", x );
-		for( i = 0; i < 7; i++ ) {
-			printf( "%5g", c[i] );
-			if( i < 6 )
-				printf( ", " ); 
-		}
-		printf( "\n" ); 
-	}
-}
- 	 */
-
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_DOUBLE( reduceh_class, "xshrink", 3, 
@@ -496,24 +561,19 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 		G_STRUCT_OFFSET( VipsReduceh, xshrink ),
 		1, 1000000, 1 );
 
-	/* Build the tables of pre-computed coefficients.
-	 */
-	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
-		calculate_coefficients_catmull(
-			(float) x / VIPS_TRANSFORM_SCALE,
-			vips_reduceh_matrixf[x] );
-
-		for( int i = 0; i < 4; i++ )
-			vips_reduceh_matrixi[x][i] =
-				vips_reduceh_matrixf[x][i] * 
-				VIPS_INTERPOLATE_SCALE;
-	}
+	VIPS_ARG_ENUM( reduceh_class, "kernel", 3, 
+		_( "Kernel" ), 
+		_( "Resampling kernel" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsReduceh, kernel ),
+		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
 }
 
 static void
 vips_reduceh_init( VipsReduceh *reduceh )
 {
+	reduceh->kernel = VIPS_KERNEL_LANCZOS3;
 }
 
 /**
@@ -523,8 +583,12 @@ vips_reduceh_init( VipsReduceh *reduceh )
  * @xshrink: horizontal reduce
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
+ *
  * Reduce @in horizontally by a float factor. The pixels in @out are
- * interpolated with a 1D cubic mask. This operation will not work well for
+ * interpolated with a 1D mask. This operation will not work well for
  * a reduction of more than a factor of two.
  *
  * This is a very low-level operation: see vips_resize() for a more

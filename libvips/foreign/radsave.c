@@ -47,6 +47,8 @@
 
 #include <vips/vips.h>
 
+#ifdef HAVE_RADIANCE
+
 #include "radiance.h"
 
 typedef struct _VipsForeignSaveRad {
@@ -128,6 +130,8 @@ static void
 vips_foreign_save_rad_init( VipsForeignSaveRad *rad )
 {
 }
+
+#endif /*HAVE_RADIANCE*/
 
 /**
  * vips_radsave:

@@ -48,6 +48,8 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#ifdef HAVE_RADIANCE
+
 #include "radiance.h"
 
 typedef struct _VipsForeignLoadRad {
@@ -144,6 +146,8 @@ static void
 vips_foreign_load_rad_init( VipsForeignLoadRad *rad )
 {
 }
+
+#endif /*HAVE_RADIANCE*/
 
 /**
  * vips_radload:

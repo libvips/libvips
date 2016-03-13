@@ -68,6 +68,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_PPM
+
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -825,3 +827,5 @@ vips__ppm_save( VipsImage *in, const char *filename,
 
 	return( 0 );
 }
+
+#endif /*HAVE_PPM*/
