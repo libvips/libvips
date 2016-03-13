@@ -9,6 +9,8 @@
 
   displacement error, I guess?
 
+  yes, reduceh output should move one to the right
+
 - need more tests for reduce, test every kernel plus every numeric type
 
 - try orc version of reducev? and shrinkv? maybe shrinkh?

@@ -411,7 +411,7 @@ vips_reducev_build( VipsObject *object )
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if( vips_embed( in, &t[1], 
-		0, reducev->n_points / 2, 
+		0, reducev->n_points / 2 - 1, 
 		in->Xsize, in->Ysize + reducev->n_points - 1, 
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
@@ -422,13 +422,14 @@ vips_reducev_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
 
-	/* Size output. Note: we round the output width down!
+	/* Size output. Note: we round to nearest to hide rounding errors. 
 	 *
 	 * Don't change xres/yres, leave that to the application layer. For
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Ysize = (in->Ysize - reducev->n_points + 1) / reducev->yshrink;
+	resample->out->Ysize = VIPS_RINT( 
+		(in->Ysize - reducev->n_points + 1) / reducev->yshrink );
 	if( resample->out->Ysize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );

@@ -135,13 +135,11 @@ vips_resize_build( VipsObject *object )
 	/* Do we need a further size adjustment? It's the difference
 	 * between our target size and the size we have after vips_shrink().
 	 *
-	 * Aim for a little above target so we can't round down below it.
-	 *
 	 * This can break the aspect ratio slightly :/ but hopefully no one
 	 * will notice.
 	 */
-	hresidual = ((double) target_width + 0.1) / in->Xsize;
-	vresidual = ((double) target_height + 0.1) / in->Ysize;
+	hresidual = (double) target_width / in->Xsize;
+	vresidual = (double) target_height / in->Ysize;
 
 	/* We want to make sure we read the image sequentially.
 	 * However, the convolution we may be doing later will force us 

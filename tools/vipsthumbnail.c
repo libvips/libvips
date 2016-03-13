@@ -185,14 +185,13 @@ calculate_shrink( VipsImage *im )
 	VipsDirection direction;
 
 	/* Calculate the horizontal and vertical shrink we'd need to fit the
-	 * image to the bounding box, and pick the biggest. Aim for a little 
-	 * above the target so we can't round down below it. 
+	 * image to the bounding box, and pick the biggest. 
 	 *
 	 * In crop mode we aim to fill the bounding box, so we must use the
 	 * smaller axis.
 	 */
-	double horizontal = (double) width / (thumbnail_width + 0.1);
-	double vertical = (double) height / (thumbnail_height + 0.1);
+	double horizontal = (double) width / thumbnail_width;
+	double vertical = (double) height / thumbnail_height;
 
 	if( crop_image ) {
 		if( horizontal < vertical )
@@ -470,10 +469,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in )
 
 	shrink = calculate_shrink( in );
 
-	/* Add a tiny amount to stop rounding below the target.
-	 */
-	if( vips_resize( in, &t[4], 1.0 / shrink + 0.0000000001, 
-		NULL ) ) 
+	if( vips_resize( in, &t[4], 1.0 / shrink, NULL ) ) 
 		return( NULL );
 	in = t[4];
 
