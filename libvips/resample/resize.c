@@ -115,11 +115,22 @@ vips_resize_build( VipsObject *object )
 	/* If the factor is > 1.0, we need to zoom rather than shrink.
 	 * Just set the int part to 1 in this case.
 	 */
-	int_hshrink = resize->scale > 1.0 ? 
-		1 : VIPS_FLOOR( 1.0 / resize->scale );
-	if( vips_object_argument_isset( object, "vscale" ) ) 
-		int_vshrink = resize->vscale > 1.0 ? 
-			1 : VIPS_FLOOR( 1.0 / resize->vscale );
+
+	/* We want the int part of the shrink to leave a bit to do with
+	 * blur/reduce/sharpen, or we'll see strange changes in aliasing on int
+	 * shrink boundaries as we resize.
+	 */
+
+	if( resize->scale > 1.0 )
+		int_hshrink = 1;
+	else
+		int_hshrink = VIPS_FLOOR( 1.0 / (resize->scale * 1.1) );
+	if( vips_object_argument_isset( object, "vscale" ) ) {
+		if( resize->vscale > 1.0 )
+			int_vshrink = 1;
+		else
+			int_vshrink = VIPS_FLOOR( 1.0 / (resize->vscale * 1.1) );
+	}
 	else
 		int_vshrink = int_hshrink;
 

@@ -223,11 +223,21 @@ thumbnail_find_jpegshrink( VipsImage *im )
 	if( linear_processing )
 		return( 1 ); 
 
-	if( shrink >= 8 )
+	/* Shrink-on-load is a simple block shrink and will add quite a bit of
+	 * extra sharpness to the image. We want to block shrink to a size a
+	 * bit above our target, then anti-alias/downsample/sharpen to the
+	 * target. 
+	 *
+	 * For example, consider making a 400-pixel-across image from an
+	 * 800-pixel image. If we load at 1/2 size, we could find ourselves
+	 * doing no further processing, which would make a 400-px version look
+	 * very different from a 450-px version.
+	 */
+	if( shrink >= 8.5 )
 		return( 8 );
-	else if( shrink >= 4 )
+	else if( shrink >= 4.5 )
 		return( 4 );
-	else if( shrink >= 2 )
+	else if( shrink >= 2.5 )
 		return( 2 );
 	else 
 		return( 1 );
