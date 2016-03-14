@@ -116,17 +116,41 @@ class TestResample(unittest.TestCase):
 
     def test_reduce(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        # cast down to 0-127, the smallest range, so we aren't messed up by
+        # clipping
+        im = im.cast(Vips.BandFormat.CHAR)
         bicubic = Vips.Interpolate.new("bicubic")
-        
+        bilinear = Vips.Interpolate.new("bilinear")
+        nearest = Vips.Interpolate.new("nearest")
+
         for fac in [1, 1.1, 1.5, 1.999]:
             for fmt in all_formats:
                 x = im.cast(fmt)
-                r = x.reduce(fac, fac)
+                r = x.reduce(fac, fac, kernel = "cubic")
                 a = x.affine([1.0 / fac, 0, 0, 1.0 / fac], 
                              interpolate = bicubic,
                              oarea = [0, 0, x.width / fac, x.height / fac])
                 d = (r - a).abs().max()
-                self.assertLess(d, 5)
+                self.assertLess(d, 10)
+
+        for fac in [1, 1.1, 1.5, 1.999]:
+            for fmt in all_formats:
+                x = im.cast(fmt)
+                r = x.reduce(fac, fac, kernel = "linear")
+                a = x.affine([1.0 / fac, 0, 0, 1.0 / fac], 
+                             interpolate = bilinear,
+                             oarea = [0, 0, x.width / fac, x.height / fac])
+                d = (r - a).abs().max()
+                self.assertLess(d, 10)
+
+        # for other kernels, just see if avg looks about right
+        for fac in [1, 1.1, 1.5, 1.999]:
+            for fmt in all_formats:
+                for kernel in ["nearest", "lanczos2", "lanczos3"]:
+                    x = im.cast(fmt)
+                    r = x.reduce(fac, fac, kernel = kernel)
+                    d = abs(r.avg() - im.avg())
+                    self.assertLess(d, 2)
 
     def test_resize(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")

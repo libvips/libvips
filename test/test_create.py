@@ -110,8 +110,8 @@ class TestCreate(unittest.TestCase):
 
     def test_gaussmat(self):
         im = Vips.Image.gaussmat(1, 0.1)
-        self.assertEqual(im.width, 7)
-        self.assertEqual(im.height, 7)
+        self.assertEqual(im.width, 5)
+        self.assertEqual(im.height, 5)
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.DOUBLE)
         self.assertEqual(im.max(), 20)
@@ -123,7 +123,7 @@ class TestCreate(unittest.TestCase):
 
         im = Vips.Image.gaussmat(1, 0.1, 
                                  separable = True, precision = "float")
-        self.assertEqual(im.width, 7)
+        self.assertEqual(im.width, 5)
         self.assertEqual(im.height, 1)
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.DOUBLE)

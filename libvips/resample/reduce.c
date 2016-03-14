@@ -56,6 +56,10 @@ typedef struct _VipsReduce {
 	double xshrink;		/* Shrink factors */
 	double yshrink;
 
+	/* The thing we use to make the kernel.
+	 */
+	VipsKernel kernel;
+
 } VipsReduce;
 
 typedef VipsResampleClass VipsReduceClass;
@@ -73,8 +77,12 @@ vips_reduce_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_reduce_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_reducev( resample->in, &t[0], reduce->yshrink, NULL ) ||
-		vips_reduceh( t[0], &t[1], reduce->xshrink, NULL ) ||
+	if( vips_reducev( resample->in, &t[0], reduce->yshrink, 
+		"kernel", reduce->kernel, 
+		NULL ) ||
+		vips_reduceh( t[0], &t[1], reduce->xshrink, 
+			"kernel", reduce->kernel, 
+			NULL ) ||
 		vips_image_write( t[1], resample->out ) )
 		return( -1 );
 
@@ -113,11 +121,19 @@ vips_reduce_class_init( VipsReduceClass *class )
 		G_STRUCT_OFFSET( VipsReduce, yshrink ),
 		1.0, 1000000.0, 1.0 );
 
+	VIPS_ARG_ENUM( class, "kernel", 3, 
+		_( "Kernel" ), 
+		_( "Resampling kernel" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsReduce, kernel ),
+		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
+
 }
 
 static void
 vips_reduce_init( VipsReduce *reduce )
 {
+	reduce->kernel = VIPS_KERNEL_LANCZOS3;
 }
 
 /**
@@ -128,7 +144,11 @@ vips_reduce_init( VipsReduce *reduce )
  * @shrinke: vertical shrink
  * @...: %NULL-terminated list of optional named arguments
  *
- * Reduce @in by a pair of factors with a pair of 1D cubic interpolators. This 
+ * Optional arguments:
+ *
+ * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
+ *
+ * Reduce @in by a pair of factors with a pair of 1D interpolators. This 
  * will not work well for shrink factors greater than two.
  *
  * This is a very low-level operation: see vips_resize() for a more

@@ -50,6 +50,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_ANALYZE
+
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -594,3 +596,4 @@ vips__analyze_read( const char *filename, VipsImage *out )
 	return( 0 );
 }
 
+#endif /*HAVE_ANALYZE*/

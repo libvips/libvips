@@ -310,3 +310,48 @@ calculate_coefficients_catmull( const double x, double c[4] )
 	c[1] = ctwo;
 	c[2] = cthr;
 }
+
+/* Given an offset in [0,1] (we can have x == 1 when building tables),
+ * calculate c0 .. c(a * 2 - 1), the lanczos coefficients. This is called
+ * from the interpolator as well as from the table builder.
+ */
+static void inline
+calculate_coefficients_lanczos( int a, const double x, double *c )
+{
+	int i;
+
+	for( i = 0; i < a * 2; i++ ) {
+		double xp = (i - a) + (1 - x);
+
+		double l;
+
+		if( xp == 0.0 )
+			l = 1.0;
+		else if( xp < -a )
+			l = 0.0;
+		else if( xp > a )
+			l = 0.0;
+		else
+			l = (double) a * sin( VIPS_PI * xp ) * 
+				sin( VIPS_PI * xp / (double) a ) / 
+				(VIPS_PI * VIPS_PI * xp * xp);
+
+		c[i] = l;
+	}
+}
+
+/* Our inner loop for resampling with a convolution. Operate on elements of 
+ * size T, gather results in an intermediate of type IT.
+ */
+template <typename T, typename IT>
+static IT
+reduce_sum( const T * restrict in, int stride, const IT * restrict c, int n )
+{
+	IT sum;
+
+	sum = 0; 
+	for( int i = 0; i < n; i++ )
+		sum += c[i] * in[i * stride];
+
+	return( sum ); 
+}

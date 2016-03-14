@@ -1,6 +1,6 @@
 29/1/16 started 8.3
-- add vips_reduce*() ... a fast path for bicubic downsize
-- vips_resize() and vips_similarity() use it when they can
+- add vips_reduce*() ... a fast path for affine downsize
+- vips_resize() uses vips_reduce() with lanczos3 and better anti-alias
 - bicubic is better on 32-bit int images
 - add pdfload, svgload, gifload for PDF, SVG and GIF rendering 
 - vipsthumbnail knows about pdfload and svgload
@@ -15,14 +15,16 @@
 - faster hist_find (Lovell Fuller)
 - webpload has a @shrink parameter for shrink-on-load
 - vipsthumbnail knows about webp shrink-on-load
-- more vips_resize() tuning, a bit quicker now
 - better behaviour for vips_cast() shift of non-int types (thanks apacheark)
 - python .bandrank() now works like .bandjoin()
+- vipsthumbnail --interpolator and --sharpen are deprecated
+- switches to disable PPM, Rad and Analyze support
 
 27/1/16 started 8.2.3
 - fix a crash with SPARC byte-order labq vips images
 - fix parsing of filenames containing brackets, thanks shilpi230
 - fix hist_entropy (lovell)
+- small fixes to radiance load
 
 12/1/16 started 8.2.2
 - changes to ease compiling C++ binding with MSVC [Lovell Fuller]

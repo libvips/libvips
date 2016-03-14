@@ -4,6 +4,28 @@
 /* auto-generated enums for vips introspection */
 
 #include <vips/vips.h>
+/* enumerations from "../../libvips/include/vips/resample.h" */
+GType
+vips_kernel_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_KERNEL_NEAREST, "VIPS_KERNEL_NEAREST", "nearest"},
+			{VIPS_KERNEL_LINEAR, "VIPS_KERNEL_LINEAR", "linear"},
+			{VIPS_KERNEL_CUBIC, "VIPS_KERNEL_CUBIC", "cubic"},
+			{VIPS_KERNEL_LANCZOS2, "VIPS_KERNEL_LANCZOS2", "lanczos2"},
+			{VIPS_KERNEL_LANCZOS3, "VIPS_KERNEL_LANCZOS3", "lanczos3"},
+			{VIPS_KERNEL_LAST, "VIPS_KERNEL_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsKernel", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/foreign.h" */
 GType
 vips_foreign_flags_get_type( void )
