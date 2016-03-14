@@ -508,6 +508,8 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	case VIPS_FORMAT_INT: 	FLOAT( int );  break;  \
 	case VIPS_FORMAT_FLOAT: FLOAT( float ); break;  \
 	case VIPS_FORMAT_DOUBLE:FLOAT( double ); break;  \
+	case VIPS_FORMAT_COMPLEX: FLOAT( float ); break;  \
+	case VIPS_FORMAT_DPCOMPLEX:FLOAT( double ); break;  \
 	default: \
 		g_assert( FALSE ); \
 	} \
@@ -521,7 +523,8 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	 */
 	const int ps = VIPS_IMAGE_SIZEOF_PEL( in->im );
 	const int ls = VIPS_REGION_LSKIP( in );
-	const int b = in->im->Bands;
+	const int b = in->im->Bands *
+		(vips_band_format_iscomplex( in->im->BandFmt ) ?  2 : 1);
 
 	const int ix = (int) x;
 	const int iy = (int) y;

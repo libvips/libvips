@@ -1,17 +1,3 @@
-- try:
-
-	$ ./test_resample.py TestResample.test_reduce
-	  File "./test_resample.py", line 129, in test_reduce
-    	self.assertLess(d, 5)
-	AssertionError: 147.0 not less than 5
-
-  affine bicubic != reduce cubic
-
-  displacement error, I guess?
-
-  yes, reduceh output should move one to the right
-
-- need more tests for reduce, test every kernel plus every numeric type
 
 - try orc version of reducev? and shrinkv? maybe shrinkh?
 
