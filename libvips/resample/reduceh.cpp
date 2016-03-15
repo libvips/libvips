@@ -469,9 +469,6 @@ vips_reduceh_build( VipsObject *object )
 			"%s", _( "reduce factors should be >= 1" ) );
 		return( -1 );
 	}
-	if( reduceh->xshrink > 3 )  
-		vips_warn( object_class->nickname, 
-			"%s", _( "reduce factor greater than 3" ) );
 
 	if( reduceh->xshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );
@@ -480,6 +477,7 @@ vips_reduceh_build( VipsObject *object )
 	 */
 	reduceh->n_points = 
 		vips_reduce_get_points( reduceh->kernel, reduceh->xshrink ); 
+	vips_info( object_class->nickname, "%d point mask", reduceh->n_points );
 	if( reduceh->n_points > MAX_POINTS ) {
 		vips_error( object_class->nickname, 
 			"%s", _( "reduce factor too large" ) );

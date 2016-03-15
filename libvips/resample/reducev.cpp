@@ -378,9 +378,6 @@ vips_reducev_build( VipsObject *object )
 			"%s", _( "reduce factor should be >= 1" ) );
 		return( -1 );
 	}
-	if( reducev->yshrink > 3 )  
-		vips_warn( object_class->nickname, 
-			"%s", _( "reduce factor greater than 3" ) );
 
 	if( reducev->yshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );
@@ -394,6 +391,7 @@ vips_reducev_build( VipsObject *object )
 			"%s", _( "reduce factor too large" ) );
 		return( -1 );
 	}
+	vips_info( object_class->nickname, "%d point mask", reducev->n_points );
 	for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
 		reducev->matrixf[y] = 
 			VIPS_ARRAY( object, reducev->n_points, double ); 
