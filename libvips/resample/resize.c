@@ -124,12 +124,12 @@ vips_resize_build( VipsObject *object )
 	if( resize->scale > 1.0 )
 		int_hshrink = 1;
 	else
-		int_hshrink = VIPS_FLOOR( 1.0 / (resize->scale * 1.1) );
+		int_hshrink = VIPS_FLOOR( 1.0 / (resize->scale * 1.4) );
 	if( vips_object_argument_isset( object, "vscale" ) ) {
 		if( resize->vscale > 1.0 )
 			int_vshrink = 1;
 		else
-			int_vshrink = VIPS_FLOOR( 1.0 / (resize->vscale * 1.1) );
+			int_vshrink = VIPS_FLOOR( 1.0 / (resize->vscale * 1.4) );
 	}
 	else
 		int_vshrink = int_hshrink;
@@ -210,7 +210,7 @@ vips_resize_build( VipsObject *object )
 	 * Don't try to be clever for non-rectangular shrinks. We just
 	 * consider the horizontal factor.
 	 */
-	sigma = (1.0 / hresidual) / 2.3;
+	sigma = (1.0 / hresidual) / 2.7; 
 	anti_alias = hresidual < 0.9 && sigma > 0.45;
 	if( anti_alias ) { 
 		vips_info( class->nickname, "anti-alias sigma %g", sigma );
@@ -250,9 +250,9 @@ vips_resize_build( VipsObject *object )
 		vips_info( class->nickname, "final sharpen" );
 		t[4] = vips_image_new_matrixv( 3, 3,
 			-1.0, -1.0, -1.0,
-			-1.0, 32.0, -1.0,
+			-1.0, 24.0, -1.0,
 			-1.0, -1.0, -1.0 );
-		vips_image_set_double( t[4], "scale", 24 );
+		vips_image_set_double( t[4], "scale", 16 );
 
 		if( vips_conv( in, &t[5], t[4], NULL ) ) 
 			return( -1 );
