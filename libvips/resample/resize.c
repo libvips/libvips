@@ -96,8 +96,6 @@ vips_resize_build( VipsObject *object )
 	int int_vshrink;
 	double hresidual;
 	double vresidual;
-	double sigma;
-	gboolean anti_alias;
 
 	if( VIPS_OBJECT_CLASS( vips_resize_parent_class )->build( object ) )
 		return( -1 );
@@ -124,12 +122,12 @@ vips_resize_build( VipsObject *object )
 	if( resize->scale > 1.0 )
 		int_hshrink = 1;
 	else
-		int_hshrink = VIPS_FLOOR( 1.0 / (resize->scale * 1.4) );
+		int_hshrink = VIPS_FLOOR( 1.0 / (resize->scale * 2) );
 	if( vips_object_argument_isset( object, "vscale" ) ) {
 		if( resize->vscale > 1.0 )
 			int_vshrink = 1;
 		else
-			int_vshrink = VIPS_FLOOR( 1.0 / (resize->vscale * 1.4) );
+			int_vshrink = VIPS_FLOOR( 1.0 / (resize->vscale * 2) );
 	}
 	else
 		int_vshrink = int_hshrink;
@@ -202,25 +200,8 @@ vips_resize_build( VipsObject *object )
 		in = t[6];
 	}
 
-	/* If the final affine will be doing a large downsample, we can get 
-	 * nasty aliasing on hard edges. Blur before affine to smooth this out.
-	 *
-	 * Don't blur for very small shrinks, or very small sigma. 
-	 *
-	 * Don't try to be clever for non-rectangular shrinks. We just
-	 * consider the horizontal factor.
+	/* Any downsizing.
 	 */
-	sigma = (1.0 / hresidual) / 2.7; 
-	anti_alias = hresidual < 0.9 && sigma > 0.45;
-	if( anti_alias ) { 
-		vips_info( class->nickname, "anti-alias sigma %g", sigma );
-		if( vips_gaussblur( in, &t[1], sigma, 
-			"min_ampl", 0.1, 
-			NULL ) )
-			return( -1 );
-		in = t[1];
-	}
-
 	if( hresidual < 1.0 || 
 		vresidual < 1.0 ) { 
 		vips_info( class->nickname, "residual reduce by %g x %g", 
@@ -231,6 +212,9 @@ vips_resize_build( VipsObject *object )
 			return( -1 );
 		in = t[2];
 	}
+
+	/* Any upsizing.
+	 */
 	if( hresidual > 1.0 || 
 		vresidual > 1.0 ) { 
 		vips_info( class->nickname, "residual scale %g x %g", 
@@ -242,17 +226,15 @@ vips_resize_build( VipsObject *object )
 		in = t[3];
 	}
 
-	/* If we are upsampling, don't sharpen. Also don't sharpen if we
-	 * skipped the anti-alias filter. 
+	/* If we are upsizing, don't sharpen. 
 	 */
-	if( int_hshrink >= 1 && 
-		anti_alias ) { 
+	if( int_hshrink >= 1 ) { 
 		vips_info( class->nickname, "final sharpen" );
 		t[4] = vips_image_new_matrixv( 3, 3,
 			-1.0, -1.0, -1.0,
-			-1.0, 24.0, -1.0,
+			-1.0, 32.0, -1.0,
 			-1.0, -1.0, -1.0 );
-		vips_image_set_double( t[4], "scale", 16 );
+		vips_image_set_double( t[4], "scale", 24 );
 
 		if( vips_conv( in, &t[5], t[4], NULL ) ) 
 			return( -1 );

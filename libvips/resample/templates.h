@@ -311,17 +311,28 @@ calculate_coefficients_catmull( const double x, double c[4] )
 	c[2] = cthr;
 }
 
-/* Given an offset in [0,1] (we can have x == 1 when building tables),
- * calculate c0 .. c(a * 2 - 1), the lanczos coefficients. This is called
+/* Given an x in [0,1] (we can have x == 1 when building tables),
+ * calculate c0 .. c(@a * @shrink + 1), the lanczos coefficients. This is called
  * from the interpolator as well as from the table builder.
+ *
+ * @a is the number of lobes, so usually 2 or 3. @shrink is the reduction
+ * factor, so 1 for interpolation, 2 for a x2 reduction, etc. We need more
+ * points for large decimations to avoid aliasing. 
  */
 static void inline
-calculate_coefficients_lanczos( int a, const double x, double *c )
+calculate_coefficients_lanczos( const int a, const double shrink, 
+	const double x, double *c )
 {
-	int i;
+	/* Needs to be in sync with vips_reduce_get_points().
+	 */
+	const int n_points = 2 * a * ceil( shrink ) + 2; 
 
-	for( i = 0; i < a * 2; i++ ) {
-		double xp = (i - a) + (1 - x);
+	int i;
+	double sum; 
+
+	sum = 0;
+	for( i = 0; i < n_points; i++ ) {
+		double xp = (i - (n_points - 2) / 2 - x) / shrink;
 
 		double l;
 
@@ -337,7 +348,11 @@ calculate_coefficients_lanczos( int a, const double x, double *c )
 				(VIPS_PI * VIPS_PI * xp * xp);
 
 		c[i] = l;
+		sum += l;
 	}
+
+	for( i = 0; i < n_points; i++ ) 
+		c[i] /= sum;
 }
 
 /* Our inner loop for resampling with a convolution. Operate on elements of 

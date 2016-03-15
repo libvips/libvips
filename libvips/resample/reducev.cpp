@@ -53,10 +53,6 @@
 #include "presample.h"
 #include "templates.h"
 
-/* The max size of the vector we use.
- */
-#define MAX_POINTS (6)
-
 typedef struct _VipsReducev {
 	VipsResample parent_instance;
 
@@ -74,8 +70,8 @@ typedef struct _VipsReducev {
 	 * sizes up to short), and double (for all others). We go to
 	 * scale + 1 so we can round-to-nearest safely.
 	 */
-	int matrixi[VIPS_TRANSFORM_SCALE + 1][MAX_POINTS];
-	double matrixf[VIPS_TRANSFORM_SCALE + 1][MAX_POINTS];
+	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
+	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
 
 } VipsReducev;
 
@@ -243,7 +239,7 @@ reducev_notab( VipsReducev *reducev,
 
 	double cy[MAX_POINTS];
 
-	vips_reduce_make_mask( reducev->kernel, y, cy ); 
+	vips_reduce_make_mask( reducev->kernel, reducev->yshrink, y, cy ); 
 
 	for( int z = 0; z < ne; z++ ) 
 		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
@@ -379,7 +375,7 @@ vips_reducev_build( VipsObject *object )
 
 	if( reducev->yshrink < 1 ) { 
 		vips_error( object_class->nickname, 
-			"%s", _( "reduce factors should be >= 1" ) );
+			"%s", _( "reduce factor should be >= 1" ) );
 		return( -1 );
 	}
 	if( reducev->yshrink > 3 )  
@@ -391,11 +387,33 @@ vips_reducev_build( VipsObject *object )
 
 	/* Build the tables of pre-computed coefficients.
 	 */
-	reducev->n_points = vips_reduce_get_points( reducev->kernel ); 
+	reducev->n_points = 
+		vips_reduce_get_points( reducev->kernel, reducev->yshrink ); 
+	if( reducev->n_points > MAX_POINTS ) {
+		vips_error( object_class->nickname, 
+			"%s", _( "reduce factor too large" ) );
+		return( -1 );
+	}
 	for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
-		vips_reduce_make_mask( reducev->kernel, 
+		reducev->matrixf[y] = 
+			VIPS_ARRAY( object, reducev->n_points, double ); 
+		reducev->matrixi[y] = 
+			VIPS_ARRAY( object, reducev->n_points, int ); 
+		if( !reducev->matrixf[y] ||
+			!reducev->matrixi[y] )
+			return( -1 ); 
+
+		vips_reduce_make_mask( reducev->kernel, reducev->yshrink, 
 			(float) y / VIPS_TRANSFORM_SCALE,
 			reducev->matrixf[y] );
+
+#ifdef DEBUG
+		printf( "vips_reducev_build: masks:\n" ); 
+		printf( "%4g ", (double) y / VIPS_TRANSFORM_SCALE ); 
+		for( int i = 0; i < reducev->n_points; i++ ) 
+			printf( " %4g", reducev->matrixf[y][i] );
+		printf( "\n" ); 
+#endif /*DEBUG*/
 
 		for( int i = 0; i < reducev->n_points; i++ )
 			reducev->matrixi[y][i] = reducev->matrixf[y][i] * 

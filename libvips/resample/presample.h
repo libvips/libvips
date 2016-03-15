@@ -67,10 +67,11 @@ GType vips_resample_get_type( void );
 
 /* The max size of the vector we use.
  */
-#define MAX_POINTS (6)
+#define MAX_POINTS (50)
 
-int vips_reduce_get_points( VipsKernel kernel );
-void vips_reduce_make_mask( VipsKernel kernel, double x, double *c );
+int vips_reduce_get_points( VipsKernel kernel, double shrink );
+void vips_reduce_make_mask( VipsKernel kernel, double shrink, 
+	double x, double *c );
 
 #ifdef __cplusplus
 }

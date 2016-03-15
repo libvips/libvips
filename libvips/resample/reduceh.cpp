@@ -81,8 +81,8 @@ typedef struct _VipsReduceh {
 	 * sizes up to short), and double (for all others). We go to
 	 * scale + 1 so we can round-to-nearest safely.
 	 */
-	int matrixi[VIPS_TRANSFORM_SCALE + 1][MAX_POINTS];
-	double matrixf[VIPS_TRANSFORM_SCALE + 1][MAX_POINTS];
+	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
+	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
 
 } VipsReduceh;
 
@@ -94,10 +94,10 @@ extern "C" {
 G_DEFINE_TYPE( VipsReduceh, vips_reduceh, VIPS_TYPE_RESAMPLE );
 }
 
-/* Get n points.
+/* Get n points. @shrink is the shrink factor, so 2 for a 50% reduction. 
  */
 int
-vips_reduce_get_points( VipsKernel kernel ) 
+vips_reduce_get_points( VipsKernel kernel, double shrink ) 
 {
 	switch( kernel ) {
 	case VIPS_KERNEL_NEAREST:
@@ -110,10 +110,12 @@ vips_reduce_get_points( VipsKernel kernel )
 		return( 4 ); 
 
 	case VIPS_KERNEL_LANCZOS2:
-		return( 4 ); 
+		/* Needs to be in sync with calculate_coefficients_lanczos().
+		 */
+		return( 2 * 2 * ceil( shrink ) + 2 ); 
 
 	case VIPS_KERNEL_LANCZOS3:
-		return( 6 ); 
+		return( 2 * 3 * ceil( shrink ) + 2 ); 
 
 	default:
 		g_assert_not_reached();
@@ -121,10 +123,10 @@ vips_reduce_get_points( VipsKernel kernel )
 	}
 }
 
-/* Calculate a mask.
+/* Calculate a mask element. 
  */
 void
-vips_reduce_make_mask( VipsKernel kernel, double x, double *c )
+vips_reduce_make_mask( VipsKernel kernel, double shrink, double x, double *c )
 {
 	switch( kernel ) {
 	case VIPS_KERNEL_NEAREST:
@@ -141,11 +143,11 @@ vips_reduce_make_mask( VipsKernel kernel, double x, double *c )
 		break;
 
 	case VIPS_KERNEL_LANCZOS2:
-		calculate_coefficients_lanczos( 2, x, c ); 
+		calculate_coefficients_lanczos( 2, shrink, x, c ); 
 		break;
 
 	case VIPS_KERNEL_LANCZOS3:
-		calculate_coefficients_lanczos( 3, x, c ); 
+		calculate_coefficients_lanczos( 3, shrink, x, c ); 
 		break;
 
 	default:
@@ -177,7 +179,7 @@ reduceh_unsigned_int_tab( VipsReduceh *reduceh,
 	}
 }
 
-/* A 4-point interpolation on uint8 is the most common case ... unroll that.
+/* A 6-point interpolation on uint8 is the most common case ... unroll that.
  *
  * The inner loop here won't vectorise, but our inner loop doesn't run for
  * long enough for vectorisation to be useful :-( gcc says it needs about an
@@ -316,7 +318,7 @@ reduceh_notab( VipsReduceh *reduceh,
 
 	double cx[MAX_POINTS];
 
-	vips_reduce_make_mask( reduceh->kernel, x, cx ); 
+	vips_reduce_make_mask( reduceh->kernel, reduceh->xshrink, x, cx ); 
 
 	for( int z = 0; z < bands; z++ ) {
 		out[z] = reduce_sum<T, double>( in, bands, cx, n );
@@ -476,9 +478,23 @@ vips_reduceh_build( VipsObject *object )
 
 	/* Build the tables of pre-computed coefficients.
 	 */
-	reduceh->n_points = vips_reduce_get_points( reduceh->kernel ); 
+	reduceh->n_points = 
+		vips_reduce_get_points( reduceh->kernel, reduceh->xshrink ); 
+	if( reduceh->n_points > MAX_POINTS ) {
+		vips_error( object_class->nickname, 
+			"%s", _( "reduce factor too large" ) );
+		return( -1 );
+	}
 	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
-		vips_reduce_make_mask( reduceh->kernel, 
+		reduceh->matrixf[x] = 
+			VIPS_ARRAY( object, reduceh->n_points, double ); 
+		reduceh->matrixi[x] = 
+			VIPS_ARRAY( object, reduceh->n_points, int ); 
+		if( !reduceh->matrixf[x] ||
+			!reduceh->matrixi[x] )
+			return( -1 ); 
+
+		vips_reduce_make_mask( reduceh->kernel, reduceh->xshrink,
 			(float) x / VIPS_TRANSFORM_SCALE,
 			reduceh->matrixf[x] );
 

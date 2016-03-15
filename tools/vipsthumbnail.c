@@ -233,11 +233,11 @@ thumbnail_find_jpegshrink( VipsImage *im )
 	 * doing no further processing, which would make a 400-px version look
 	 * very different from a 450-px version.
 	 */
-	if( shrink >= 9 )
+	if( shrink >= 10 )
 		return( 8 );
-	else if( shrink >= 5 )
+	else if( shrink >= 6 )
 		return( 4 );
-	else if( shrink >= 3 )
+	else if( shrink >= 4 )
 		return( 2 );
 	else 
 		return( 1 );
