@@ -179,46 +179,6 @@ reduceh_unsigned_int_tab( VipsReduceh *reduceh,
 	}
 }
 
-/* A 6-point interpolation on uint8 is the most common case ... unroll that.
- *
- * The inner loop here won't vectorise, but our inner loop doesn't run for
- * long enough for vectorisation to be useful :-( gcc says it needs about an
- * 11-point kernel for the vector version to be worthwhile.
- */
-static void inline
-reduceh_unsigned_uint8_6tab( VipsPel *out, const VipsPel *in,
-	const int bands, const int *cx )
-{
-	const int b1 = bands;
-	const int b2 = b1 + b1;
-	const int b3 = b1 + b2;
-	const int b4 = b2 + b2;
-	const int b5 = b1 + b4;
-
-	const int c0 = cx[0];
-	const int c1 = cx[1];
-	const int c2 = cx[2];
-	const int c3 = cx[3];
-	const int c4 = cx[4];
-	const int c5 = cx[5];
-
-	for( int z = 0; z < bands; z++ ) {
-		int cubich = unsigned_fixed_round( 
-			c0 * in[0] +
-			c1 * in[b1] +
-			c2 * in[b2] +
-			c3 * in[b3] +
-			c4 * in[b4] +
-			c5 * in[b5] ); 
-
-		cubich = VIPS_CLIP( 0, cubich, 255 ); 
-
-		out[z] = cubich;
-
-		in += 1;
-	}
-}
-
 template <typename T, int min_value, int max_value>
 static void inline
 reduceh_signed_int_tab( VipsReduceh *reduceh,
@@ -376,14 +336,10 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 
 			switch( in->BandFmt ) {
 			case VIPS_FORMAT_UCHAR:
-				if( reduceh->n_points == 6 )
-					reduceh_unsigned_uint8_6tab( 
-						q, p, bands, cxi );
-				else
-					reduceh_unsigned_int_tab
-						<unsigned char, UCHAR_MAX>(
-						reduceh,
-						q, p, bands, cxi );
+				reduceh_unsigned_int_tab
+					<unsigned char, UCHAR_MAX>(
+					reduceh,
+					q, p, bands, cxi );
 				break;
 
 			case VIPS_FORMAT_CHAR:

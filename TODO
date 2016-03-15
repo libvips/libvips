@@ -1,7 +1,11 @@
-
 - try orc version of reducev? and shrinkv? maybe shrinkh?
 
+	valgrind --tool=callgrind vipsthumbnail wtc.jpg -s 2000 --vips-info
 
+	self	called
+	54%	256	reducev_gen
+	25%	256	reduceh_gen
+	18%	loads	various jpeg decode
 
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
 
