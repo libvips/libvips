@@ -7,6 +7,28 @@
 	25%	256	reduceh_gen
 	18%	loads	various jpeg decode
 
+- orc reducev could squeeze out zeros
+
+- could we read and write the same place in orc? could save having two temp
+  buffers and swapping
+
+	nope! disallowed
+
+- could instrument vips_region_prepare() and track number of pixels calculated
+  for each image ... on image close (or evelend?) print %computed, values over
+  100% would indicate overcomputation
+
+- if we do 
+
+	vips_region_prepare( VipsRect { 0, 0, 100, 10 } )
+	vips_region_prepare( VipsRect { 0, 1, 100, 10 } )
+
+  do we recalculate the whole region, or shift the calculated bits down and
+  just fetch another line?
+
+
+
+
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
 
 - could load pdf thumbnails?

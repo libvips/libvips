@@ -338,6 +338,30 @@ vips_vector_temporary( VipsVector *vector, char *name, int size )
 #endif /*HAVE_ORC*/
 }
 
+int
+vips_vector_parameter( VipsVector *vector, char *name, int size )
+{
+	int var;
+
+#ifdef HAVE_ORC
+	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
+
+	var = orc_program_add_parameter( vector->program, size, name );
+	if( !var )
+		vips_vector_error( vector ); 
+
+#ifdef DEBUG_TRACE
+	printf( "orc_program_add_parameter( %s, %d, \"%s\" );\n",
+		vector->unique_name, size, name );
+#endif /*DEBUG_TRACE*/
+	vector->n_parameter += 1;
+#else /*!HAVE_ORC*/
+	var = -1;
+#endif /*HAVE_ORC*/
+
+	return ( var ); 
+}
+
 gboolean
 vips_vector_full( VipsVector *vector )
 {
@@ -351,10 +375,15 @@ vips_vector_full( VipsVector *vector )
 	if( vector->n_constant + 2 > 8 )
 		return( TRUE );
 
-	/* You can have 8 parameters, and d1 counts as one of them, so +1
+	/* You can have 8 source, and d1 counts as one of them, so +1
 	 * there.
 	 */
 	if( vector->n_source + vector->n_scanline + 1 > 7 )
+		return( TRUE );
+
+	/* Need to leave some space, so 1 spare. 
+	 */
+	if( vector->n_parameter > 7 )
 		return( TRUE );
 
 	/* After signalling full, some operations will add up to 4 more 
@@ -440,6 +469,15 @@ vips_executor_set_array( VipsExecutor *executor, int var, void *value )
 }
 
 void
+vips_executor_set_parameter( VipsExecutor *executor, int var, int value )
+{
+#ifdef HAVE_ORC
+	if( var != -1 )  
+		orc_executor_set_param( &executor->executor, var, value );
+#endif /*HAVE_ORC*/
+}
+
+void
 vips_executor_set_scanline( VipsExecutor *executor, 
 	VipsRegion *ir, int x, int y )
 {
@@ -449,10 +487,9 @@ vips_executor_set_scanline( VipsExecutor *executor,
 
 	int i;
 
-	for( i = 0; i < vector->n_scanline; i++ ) {
+	for( i = 0; i < vector->n_scanline; i++ ) 
 		vips_executor_set_array( executor, 
 			vector->sl[i], base + vector->line[i] * lsk );
-	}
 }
 
 void

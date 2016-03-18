@@ -325,7 +325,7 @@ calculate_coefficients_lanczos( const int a, const double shrink,
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
-	const int n_points = 2 * a * ceil( shrink ) + 2; 
+	const int n_points = ceil( 2 * a * shrink ) + 2; 
 
 	int i;
 	double sum; 

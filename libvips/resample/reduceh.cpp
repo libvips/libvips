@@ -75,7 +75,7 @@ typedef struct _VipsReduceh {
 
 	/* Number of points in kernel.
 	 */
-	int n_points;
+	int n_point;
 
 	/* Precalculated interpolation matrices. int (used for pel
 	 * sizes up to short), and double (for all others). We go to
@@ -112,10 +112,10 @@ vips_reduce_get_points( VipsKernel kernel, double shrink )
 	case VIPS_KERNEL_LANCZOS2:
 		/* Needs to be in sync with calculate_coefficients_lanczos().
 		 */
-		return( 2 * 2 * ceil( shrink ) + 2 ); 
+		return( ceil( 2 * 2 * shrink ) + 2 ); 
 
 	case VIPS_KERNEL_LANCZOS3:
-		return( 2 * 3 * ceil( shrink ) + 2 ); 
+		return( ceil( 2 * 3 * shrink ) + 2 ); 
 
 	default:
 		g_assert_not_reached();
@@ -164,7 +164,7 @@ reduceh_unsigned_int_tab( VipsReduceh *reduceh,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-	const int n = reduceh->n_points;
+	const int n = reduceh->n_point;
 
 	for( int z = 0; z < bands; z++ ) {
 		int sum;
@@ -187,7 +187,7 @@ reduceh_signed_int_tab( VipsReduceh *reduceh,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-	const int n = reduceh->n_points;
+	const int n = reduceh->n_point;
 
 	for( int z = 0; z < bands; z++ ) {
 		int sum;
@@ -212,7 +212,7 @@ reduceh_float_tab( VipsReduceh *reduceh,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-	const int n = reduceh->n_points;
+	const int n = reduceh->n_point;
 
 	for( int z = 0; z < bands; z++ ) {
 		out[z] = reduce_sum<T, double>( in, bands, cx, n );
@@ -231,7 +231,7 @@ reduceh_unsigned_int32_tab( VipsReduceh *reduceh,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-	const int n = reduceh->n_points;
+	const int n = reduceh->n_point;
 
 	for( int z = 0; z < bands; z++ ) {
 		double sum;
@@ -251,7 +251,7 @@ reduceh_signed_int32_tab( VipsReduceh *reduceh,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-	const int n = reduceh->n_points;
+	const int n = reduceh->n_point;
 
 	for( int z = 0; z < bands; z++ ) {
 		double sum;
@@ -274,9 +274,9 @@ reduceh_notab( VipsReduceh *reduceh,
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
-	const int n = reduceh->n_points;
+	const int n = reduceh->n_point;
 
-	double cx[MAX_POINTS];
+	double cx[MAX_POINT];
 
 	vips_reduce_make_mask( reduceh->kernel, reduceh->xshrink, x, cx ); 
 
@@ -311,7 +311,7 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 
 	s.left = r->left * reduceh->xshrink;
 	s.top = r->top;
-	s.width = r->width * reduceh->xshrink + reduceh->n_points;
+	s.width = r->width * reduceh->xshrink + reduceh->n_point;
 	s.height = r->height;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
@@ -431,19 +431,19 @@ vips_reduceh_build( VipsObject *object )
 
 	/* Build the tables of pre-computed coefficients.
 	 */
-	reduceh->n_points = 
+	reduceh->n_point = 
 		vips_reduce_get_points( reduceh->kernel, reduceh->xshrink ); 
-	vips_info( object_class->nickname, "%d point mask", reduceh->n_points );
-	if( reduceh->n_points > MAX_POINTS ) {
+	vips_info( object_class->nickname, "%d point mask", reduceh->n_point );
+	if( reduceh->n_point > MAX_POINT ) {
 		vips_error( object_class->nickname, 
 			"%s", _( "reduce factor too large" ) );
 		return( -1 );
 	}
 	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
 		reduceh->matrixf[x] = 
-			VIPS_ARRAY( object, reduceh->n_points, double ); 
+			VIPS_ARRAY( object, reduceh->n_point, double ); 
 		reduceh->matrixi[x] = 
-			VIPS_ARRAY( object, reduceh->n_points, int ); 
+			VIPS_ARRAY( object, reduceh->n_point, int ); 
 		if( !reduceh->matrixf[x] ||
 			!reduceh->matrixi[x] )
 			return( -1 ); 
@@ -452,7 +452,7 @@ vips_reduceh_build( VipsObject *object )
 			(float) x / VIPS_TRANSFORM_SCALE,
 			reduceh->matrixf[x] );
 
-		for( int i = 0; i < reduceh->n_points; i++ )
+		for( int i = 0; i < reduceh->n_point; i++ )
 			reduceh->matrixi[x][i] = reduceh->matrixf[x][i] * 
 				VIPS_INTERPOLATE_SCALE;
 	}
@@ -466,8 +466,8 @@ vips_reduceh_build( VipsObject *object )
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if( vips_embed( in, &t[1], 
-		reduceh->n_points / 2 - 1, 0, 
-		in->Xsize + reduceh->n_points - 1, in->Ysize,
+		reduceh->n_point / 2 - 1, 0, 
+		in->Xsize + reduceh->n_point - 1, in->Ysize,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
@@ -484,7 +484,7 @@ vips_reduceh_build( VipsObject *object )
 	 * fractional part), we just see the integer part here.
 	 */
 	resample->out->Xsize = VIPS_RINT( 
-		(in->Xsize - reduceh->n_points + 1) / reduceh->xshrink );
+		(in->Xsize - reduceh->n_point + 1) / reduceh->xshrink );
 	if( resample->out->Xsize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );

@@ -233,6 +233,7 @@ vips_abs_class_init( VipsAbsClass *class )
 	aclass->process_line = vips_abs_buffer;
 
 	vips_arithmetic_set_format_table( aclass, vips_abs_format_table ); 
+	vips_arithmetic_set_vector( aclass ); 
 
 	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_CHAR );
 	vips_vector_asm2( v, "absb", "d1", "s1" ); 
