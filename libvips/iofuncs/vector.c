@@ -48,8 +48,8 @@
  */
 
 /* Trace all orc calls, handy for debugging.
-#define DEBUG_TRACE
  */
+#define DEBUG_TRACE
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

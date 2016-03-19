@@ -34,8 +34,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -229,7 +229,7 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	/* If this is the end of the mask, we write the 8-bit result to the
 	 * image, otherwise write the 16-bit intermediate to our temp buffer. 
 	 */
-	if( i == reducev->n_point ) {
+	if( i >= reducev->n_point - 1 ) {
 		ASM3( "shrsw", "sum", "sum", seven );
 		ASM3( "maxsw", "sum", zero, "sum" ); 
 		ASM2( "convwb", "d1", "sum" );
