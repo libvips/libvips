@@ -40,12 +40,12 @@
  */
 
 /* Verbose messages from Orc (or use ORC_DEBUG=99 on the command-line).
-#define DEBUG_ORC
  */
+#define DEBUG_ORC
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 /* Trace all orc calls, handy for debugging.
  */

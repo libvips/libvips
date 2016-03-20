@@ -154,11 +154,6 @@ static int
 vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 {
 	VipsVector *v;
-	char source[256];
-	char coeff[256];
-	char zero[256];
-	char seven[256];
-	char nine[256];
 	int i;
 
 #ifdef DEBUG
@@ -178,47 +173,42 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 
 	/* The value we fetch from the image, the accumulated sum.
 	 */
-	TEMP( "value", 2 );
-	TEMP( "high", 2 );
-	TEMP( "low", 2 );
 	TEMP( "sum", 2 );
-
-	CONST( zero, 0, 2 );
-	CONST( seven, 7, 2 );
-	CONST( nine, 9, 2 );
+	TEMP( "value", 2 );
+	TEMP( "valueb", 1 );
 
 	/* Init the sum. If this is the first pass, it's a constant. If this
 	 * is a later pass, we have to init the sum from the result 
 	 * of the previous pass. 
 	 */
-	if( first ) 
+	if( first ) {
+		char zero[256];
+
+		CONST( zero, 0, 2 );
 		ASM2( "loadpw", "sum", zero );
+	}
 	else 
 		ASM2( "loadw", "sum", "r" );
 
 	for( i = pass->first; i < reducev->n_point; i++ ) {
-		/* The source. sl0 is the first scanline we read.
-		 */
+		char one[256];
+		char source[256];
+		char coeff[256];
+
 		SCANLINE( source, i, 1 );
 
 		/* This mask coefficient.
 		 */
 		vips_snprintf( coeff, 256, "p%d", i );
-		pass->p[pass->n_param] = PARAM( coeff, 2 );
+		pass->p[pass->n_param] = PARAM( coeff, 1 );
 		pass->n_param += 1;
 		if( pass->n_param >= MAX_PARAM )
 			return( -1 );
 
-		ASM2( "convubw", "value", source );
-		ASM3( "shlw", "value", "value", seven );
-		ASM3( "mulhsw", "high", "value", coeff );
-		ASM3( "mullw", "low", "value", coeff );
-
-		ASM3( "shruw", "low", "low", seven );
-		ASM3( "shlw", "high", "high", nine );
-		ASM3( "orw", "low", "low", "high" );
-
-		ASM3( "addssw", "sum", "sum", "low" );
+		CONST( one, 1, 1 );
+		ASM3( "shrub", "valueb", source, one );
+		ASM3( "mulsbw", "value", "valueb", coeff );
+		ASM3( "addssw", "sum", "sum", "value" );
 
 		if( vips_vector_full( v ) )
 			break;
@@ -230,9 +220,14 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	 * image, otherwise write the 16-bit intermediate to our temp buffer. 
 	 */
 	if( i >= reducev->n_point - 1 ) {
-		ASM3( "shrsw", "sum", "sum", seven );
-		ASM3( "maxsw", "sum", zero, "sum" ); 
-		ASM2( "convwb", "d1", "sum" );
+		char five[256];
+		char zero[256];
+
+		CONST( five, 5, 2 );
+		ASM3( "shrsw", "value", "sum", five );
+		CONST( zero, 0, 2 );
+		ASM3( "maxsw", "value", zero, "value" ); 
+		ASM2( "convwb", "d1", "value" );
 	}
 	else 
 		ASM2( "copyw", "d2", "sum" );
@@ -636,10 +631,9 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 				pass->r, seq->t1 );
 			vips_executor_set_array( &executor[i],
 				pass->d2, seq->t2 );
-			for( int j = 0; j < pass->n_param; j++ ) {
+			for( int j = 0; j < pass->n_param; j++ ) 
 				vips_executor_set_parameter( &executor[i],
 					pass->p[j], cyo[j + pass->first] ); 
-			}
 			vips_executor_set_destination( &executor[i], q );
 			vips_executor_run( &executor[i] );
 
@@ -695,7 +689,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 						VIPS_INTERPOLATE_SCALE;
 		}
 
-	/* And we need an 9.7 version if we will use the vector path.
+	/* And we need an 2.6 version if we will use the vector path.
 	 */
 	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
 		vips_vector_isenabled() ) 
@@ -707,7 +701,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 
 			for( int i = 0; i < reducev->n_point; i++ ) 
 				reducev->matrixo[y][i] = VIPS_RINT( 
-					reducev->matrixf[y][i] * 128.0 );
+					reducev->matrixf[y][i] * 64.0 );
 		}
 
 	/* Try to build a vector version, if we can.
