@@ -1,18 +1,10 @@
-- try orc version of reducev? and shrinkv? maybe shrinkh?
+- look at reduceh_gen now
 
 	valgrind --tool=callgrind vipsthumbnail wtc.jpg -s 2000 --vips-info
 
 	self	called
-	54%	256	reducev_gen
-	25%	256	reduceh_gen
-	18%	loads	various jpeg decode
-
-- orc reducev could squeeze out zeros
-
-- could we read and write the same place in orc? could save having two temp
-  buffers and swapping
-
-	nope! disallowed
+	41%	125	reduceh_gen
+	25%	loads	various jpeg decode
 
 - could instrument vips_region_prepare() and track number of pixels calculated
   for each image ... on image close (or evelend?) print %computed, values over
