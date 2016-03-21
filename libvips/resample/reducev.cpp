@@ -102,7 +102,7 @@ typedef struct _VipsReducev {
 	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
 	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
 
-	/* And another set for orc: we want 8.8 precision.
+	/* And another set for orc: we want 2.6 precision.
 	 */
 	int *matrixo[VIPS_TRANSFORM_SCALE + 1];
 
@@ -752,10 +752,6 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 			"%s", _( "image has shrunk to nothing" ) );
 		return( -1 );
 	}
-
-	/* Output short so we can see intermediates.
-	resample->out->BandFmt = VIPS_FORMAT_SHORT;
-	 */
 
 #ifdef DEBUG
 	printf( "vips_reducev_build: reducing %d x %d image to %d x %d\n", 

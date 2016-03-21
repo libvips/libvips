@@ -1,11 +1,3 @@
-- look at reduceh_gen now
-
-	valgrind --tool=callgrind vipsthumbnail wtc.jpg -s 2000 --vips-info
-
-	self	called
-	41%	125	reduceh_gen
-	25%	loads	various jpeg decode
-
 - could instrument vips_region_prepare() and track number of pixels calculated
   for each image ... on image close (or evelend?) print %computed, values over
   100% would indicate overcomputation
