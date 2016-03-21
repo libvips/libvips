@@ -4,6 +4,8 @@
  * 	- from shrinkv.c
  * 10/3/16
  * 	- add other kernels
+ * 21/3/16
+ * 	- add vector path
  */
 
 /*
@@ -239,6 +241,11 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 
 		CONST( five, 5, 2 );
 		ASM3( "shrsw", "sum", "sum", five );
+
+		/* You'd think "convsuswb", convert signed 16-bit to unsigned
+		 * 8-bit with saturation, would be quicker, but it's a lot
+		 * slower.
+		 */
 		CONST( zero, 0, 2 );
 		ASM3( "maxsw", "sum", zero, "sum" ); 
 		CONST( twofivefive, 255, 2 );
