@@ -34,8 +34,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -205,12 +205,25 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 		if( pass->n_param >= MAX_PARAM )
 			return( -1 );
 
+		/* Mask coefficients are 2.6 bits fixed point. We need to hold
+		 * about -0.5 to 1.0, so -2 to +1.999 is as close as we can
+		 * get. The image pixel must be signed too, so we shift right
+		 * to clear the top bit.
+		 *
+		 * We accumulate the signed 16-bit result in sum.
+		 */
 		CONST( one, 1, 1 );
 		ASM3( "shrub", "valueb", source, one );
 		ASM3( "mulsbw", "value", "valueb", coeff );
 		ASM3( "addssw", "sum", "sum", "value" );
 
 		if( vips_vector_full( v ) )
+			break;
+
+		/* orc 0.4.24 and earlier hate more than about five lines at
+		 * once :( 
+		 */
+		if( i - pass->first > 3 )
 			break;
 	}
 
@@ -222,12 +235,15 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	if( i >= reducev->n_point - 1 ) {
 		char five[256];
 		char zero[256];
+		char twofivefive[256];
 
 		CONST( five, 5, 2 );
-		ASM3( "shrsw", "value", "sum", five );
+		ASM3( "shrsw", "sum", "sum", five );
 		CONST( zero, 0, 2 );
-		ASM3( "maxsw", "value", zero, "value" ); 
-		ASM2( "convwb", "d1", "value" );
+		ASM3( "maxsw", "sum", zero, "sum" ); 
+		CONST( twofivefive, 255, 2 );
+		ASM3( "minsw", "sum", twofivefive, "sum" ); 
+		ASM2( "convwb", "d1", "sum" );
 	}
 	else 
 		ASM2( "copyw", "d2", "sum" );
@@ -713,7 +729,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 		generate = vips_reducev_vector_gen;
 
 	if( vips_image_pipelinev( resample->out, 
-		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
+		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL ) )
 		return( -1 );
 
 	/* Size output. Note: we round to nearest to hide rounding errors. 

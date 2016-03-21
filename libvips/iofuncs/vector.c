@@ -40,16 +40,16 @@
  */
 
 /* Verbose messages from Orc (or use ORC_DEBUG=99 on the command-line).
- */
 #define DEBUG_ORC
+ */
 
 /*
- */
 #define DEBUG
+ */
 
 /* Trace all orc calls, handy for debugging.
- */
 #define DEBUG_TRACE
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
