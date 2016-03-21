@@ -72,34 +72,65 @@ typedef VipsResampleClass VipsSimilarityClass;
 
 G_DEFINE_TYPE( VipsSimilarity, vips_similarity, VIPS_TYPE_RESAMPLE );
 
+/* Map interpolator names to vips kernels.
+ */
+typedef struct _VipsInterpolateKernel {
+	const char *nickname;
+	VipsKernel kernel;
+} VipsInterpolateKernel;
+
+static VipsInterpolateKernel vips_similarity_kernel[] = {
+	{ "bicubic", VIPS_KERNEL_CUBIC },
+	{ "bilinear", VIPS_KERNEL_LINEAR },
+	{ "nearest", VIPS_KERNEL_NEAREST }
+}; 
+
 static int
 vips_similarity_build( VipsObject *object )
 {
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsSimilarity *similarity = (VipsSimilarity *) object;
-
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( object, 4 );
+
+	gboolean handled;
 
 	if( VIPS_OBJECT_CLASS( vips_similarity_parent_class )->build( object ) )
 		return( -1 );
 
+	handled = FALSE;
+
 	/* Use vips_reduce(), if we can.
 	 */
-	if( similarity->interpolate && 
-		strcmp( VIPS_OBJECT_GET_CLASS( similarity->interpolate )->
-			nickname, "bicubic" ) == 0 &&
+	if( similarity->interpolate &&
 		similarity->angle == 0.0 &&
 		similarity->idx == 0.0 &&
 		similarity->idy == 0.0 &&
 		similarity->odx == 0.0 &&
 		similarity->ody == 0.0 ) {
-		if( vips_reduce( resample->in, &t[0], 
-			1.0 / similarity->scale, 
-			1.0 / similarity->scale, NULL ) )  
-			return( -1 );
+		const char *nickname = VIPS_OBJECT_GET_CLASS( 
+			similarity->interpolate )->nickname;
+
+		int i; 
+
+		for( i = 0; i < VIPS_NUMBER( vips_similarity_kernel ); i++ ) {
+			VipsInterpolateKernel *ik = &vips_similarity_kernel[i];
+
+			if( strcmp( nickname, ik->nickname ) == 0 ) {
+				if( vips_reduce( resample->in, &t[0], 
+					1.0 / similarity->scale, 
+					1.0 / similarity->scale, 
+					"kernel", ik->kernel,
+					NULL ) )
+					return( -1 );
+
+				handled = TRUE;
+				break;
+			}
+		}
 	}
-	else {
+
+	if( !handled ) { 
 		double a = similarity->scale * 
 			cos( VIPS_RAD( similarity->angle ) ); 
 		double b = similarity->scale * 

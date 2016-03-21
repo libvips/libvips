@@ -169,13 +169,11 @@ reduceh_unsigned_int_tab( VipsReduceh *reduceh,
 	for( int z = 0; z < bands; z++ ) {
 		int sum;
 	       
-		sum = reduce_sum<T, int>( in, bands, cx, n );
+		sum = reduce_sum<T, int>( in + z, bands, cx, n );
 		sum = unsigned_fixed_round( sum ); 
 		sum = VIPS_CLIP( 0, sum, max_value ); 
-		
-		out[z] = sum;
 
-		in += 1;
+		out[z] = sum;
 	}
 }
 

@@ -356,7 +356,7 @@ calculate_coefficients_lanczos( const int a, const double shrink,
 }
 
 /* Our inner loop for resampling with a convolution. Operate on elements of 
- * size T, gather results in an intermediate of type IT.
+ * type T, gather results in an intermediate of type IT.
  */
 template <typename T, typename IT>
 static IT
