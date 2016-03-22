@@ -285,6 +285,10 @@ reduceh_notab( VipsReduceh *reduceh,
 	}
 }
 
+/* Tried a vector path (see reducev) but it was slower. The vectors for
+ * horizontal reduce are just too small to get a useful speedup.
+ */
+
 static int
 vips_reduceh_gen( VipsRegion *out_region, void *seq, 
 	void *a, void *b, gboolean *stop )

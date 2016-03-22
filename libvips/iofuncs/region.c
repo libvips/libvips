@@ -886,6 +886,15 @@ vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
 	g_assert( reg->im->dtype == VIPS_IMAGE_PARTIAL );
 	g_assert( reg->im->generate_fn );
 
+	/* You'd think we could check reg and see if it already has some of 
+	 * the pixels we need. If it does, we could copy them and only
+	 * generate the new ones. 
+	 *
+	 * However, we usually have neighboring regions on different threads,
+	 * so from the point of view of this thread, we will get no overlaps
+	 * on successive prepare requests. 
+	 */
+
 	/* Should have local memory.
 	 */
 	if( vips_region_buffer( reg, r ) )
