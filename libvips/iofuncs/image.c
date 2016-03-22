@@ -490,8 +490,10 @@ vips_image_dispose( GObject *gobject )
 		int compute_percent = 100.0 * pixels->npels / pixels->tpels;
 
 		if( compute_percent > 100 ) 
-			printf( "vips_image_dispose: %s computed %d%%\n", 
-				pixels->nickname, compute_percent );
+			printf( "vips_image_dispose: %s %s computed %d%%\n", 
+				image->filename, 
+				pixels->nickname, 
+				compute_percent );
 	}
 }
 #endif /*DEBUG_LEAK*/
