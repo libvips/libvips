@@ -125,6 +125,19 @@ void vips_region_invalidate( VipsRegion *reg );
 
 void vips_region_dump_all( void );
 
+#ifdef DEBUG_LEAK
+void vips__region_count_pixels( VipsRegion *region, const char *nickname );
+#endif /*DEBUG_LEAK*/
+
+/* Use this to count pixels passing through key points. Handy for spotting bad
+ * overcomputation.
+ */
+#ifdef DEBUG_LEAK
+#define VIPS_COUNT_PIXELS( R, N ) vips__region_count_pixels( R, N )
+#else /*!DEBUG_LEAK*/
+#define VIPS_COUNT_PIXELS( R, N ) 
+#endif /*DEBUG_LEAK*/
+
 /* Macros on VipsRegion.
  *	VIPS_REGION_LSKIP()		add to move down line
  *	VIPS_REGION_N_ELEMENTS()	number of elements across region

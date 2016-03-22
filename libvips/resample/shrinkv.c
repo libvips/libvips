@@ -316,6 +316,8 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 		VIPS_GATE_STOP( "vips_shrinkv_gen: work" ); 
 	}
 
+	VIPS_COUNT_PIXELS( or, "vips_shrinkv_gen" ); 
+
 	return( 0 );
 }
 

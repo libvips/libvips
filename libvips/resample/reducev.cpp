@@ -591,6 +591,8 @@ vips_reducev_gen( VipsRegion *out_region, void *vseq,
 
 	VIPS_GATE_STOP( "vips_reducev_gen: work" ); 
 
+	VIPS_COUNT_PIXELS( out_region, "vips_reducev_gen" ); 
+
 	return( 0 );
 }
 
@@ -665,6 +667,8 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 	}
 
 	VIPS_GATE_STOP( "vips_reducev_vector_gen: work" ); 
+
+	VIPS_COUNT_PIXELS( out_region, "vips_reducev_vector_gen" ); 
 
 	return( 0 );
 }

@@ -1,7 +1,3 @@
-- could instrument vips_region_prepare() and track number of pixels calculated
-  for each image ... on image close (or evelend?) print %computed, values over
-  100% would indicate overcomputation
-
 - if we do 
 
 	vips_region_prepare( VipsRect { 0, 0, 100, 10 } )
@@ -10,6 +6,23 @@
   do we recalculate the whole region, or shift the calculated bits down and
   just fetch another line?
 
+  how would we calculate a small part of a region?
+
+  vips_region_fill() would need to do this
+
+  instrument a bit and see what kinds of buffers we are seeing
+
+  if we see 
+
+	buffer.done: true
+	buffer.area: {0, 0, 100, 10 }
+
+  and we are asked for 
+
+	buffer.area: {0, 1, 100, 10 }
+
+  we can scroll, then use vips_region_prepare_to() to calculate just the 
+  new pixels ... would this fix it?
 
 
 

@@ -1631,3 +1631,21 @@ vips_region_dump_all( void )
 	g_mutex_unlock( vips__global_lock );
 }
 #endif /*VIPS_DEBUG*/
+
+#ifdef DEBUG_LEAK
+void
+vips__region_count_pixels( VipsRegion *region, const char *nickname )
+{
+	VipsImage *image = region->im;
+	VipsImagePixels *pixels = g_object_get_qdata( G_OBJECT( image ), 
+		vips__image_pixels_quark ); 
+
+	g_mutex_lock( vips__global_lock );
+	if( !pixels->tpels )
+		pixels->tpels = VIPS_IMAGE_N_PELS( image ); 
+	if( !pixels->nickname )
+		pixels->nickname = nickname; 
+	pixels->npels += region->valid.width * region->valid.height;
+	g_mutex_unlock( vips__global_lock );
+}
+#endif /*DEBUG_LEAK*/

@@ -233,6 +233,19 @@ char *vips__make_xml_metadata( const char *domain, VipsImage *image );
 
 void vips__cairo2rgba( guint32 *buf, int n );
 
+#ifdef DEBUG_LEAK
+extern GQuark vips__image_pixels_quark;
+#endif /*DEBUG_LEAK*/
+
+/* With DEBUG_LEAK, hang one of these off each image and count pixels 
+ * calculated.
+ */
+typedef struct _VipsImagePixels {
+	const char *nickname; 
+	gint64 tpels;		/* Number of pels we expect to calculate */
+	gint64 npels;		/* Number of pels calculated so far */
+} VipsImagePixels;
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

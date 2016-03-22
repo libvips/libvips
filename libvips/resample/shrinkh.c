@@ -218,6 +218,8 @@ vips_shrinkh_gen( VipsRegion *or, void *seq,
 		VIPS_GATE_STOP( "vips_shrinkh_gen: work" ); 
 	}
 
+	VIPS_COUNT_PIXELS( or, "vips_shrinkh_gen" ); 
+
 	return( 0 );
 }
 

@@ -19,6 +19,7 @@
 - python .bandrank() now works like .bandjoin()
 - vipsthumbnail --interpolator and --sharpen switches are deprecated
 - switches to disable PPM, Rad and Analyze support
+- added VIPS_COUNT_PIXELS(), overcomputation tracking
 
 27/1/16 started 8.2.3
 - fix a crash with SPARC byte-order labq vips images

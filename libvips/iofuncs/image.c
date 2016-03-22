@@ -480,6 +480,22 @@ vips_image_dispose( GObject *gobject )
 
 	VIPS_DEBUG_MSG( "vips_image_dispose: %p\n", gobject );
 
+#ifdef DEBUG_LEAK
+{
+	VipsImagePixels *pixels = g_object_get_qdata( G_OBJECT( image ), 
+		vips__image_pixels_quark ); 
+
+	if( pixels &&
+		pixels->tpels ) {
+		int compute_percent = 100.0 * pixels->npels / pixels->tpels;
+
+		if( compute_percent > 100 ) 
+			printf( "vips_image_dispose: %s computed %d%%\n", 
+				pixels->nickname, compute_percent );
+	}
+}
+#endif /*DEBUG_LEAK*/
+
 	vips_object_preclose( VIPS_OBJECT( gobject ) );
 
 	/* We have to junk the fd in dispose, since we run this for rewind and
@@ -1368,6 +1384,11 @@ vips_image_init( VipsImage *image )
 	image->sizeof_header = VIPS_SIZEOF_HEADER;
 
 	image->mode = g_strdup( "p" );
+
+#ifdef DEBUG_LEAK
+	g_object_set_qdata_full( G_OBJECT( image ), vips__image_pixels_quark, 
+		g_new0( VipsImagePixels, 1 ), (GDestroyNotify) g_free ); 
+#endif /*DEBUG_LEAK*/
 }
 
 int

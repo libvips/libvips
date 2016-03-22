@@ -367,6 +367,8 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 	VIPS_GATE_STOP( "vips_affine_gen: work" ); 
 
+	VIPS_COUNT_PIXELS( or, "vips_affine_gen" ); 
+
 	return( 0 );
 }
 

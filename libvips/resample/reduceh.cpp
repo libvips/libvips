@@ -399,6 +399,8 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 
 	VIPS_GATE_STOP( "vips_reduceh_gen: work" ); 
 
+	VIPS_COUNT_PIXELS( out_region, "vips_reduceh_gen" ); 
+
 	return( 0 );
 }
 
