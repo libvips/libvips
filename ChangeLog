@@ -1,3 +1,6 @@
+24/3/16 started 8.2.4
+- fix nohalo and vsqbs interpolators, thanks Rafael
+
 27/1/16 started 8.2.3
 - fix a crash with SPARC byte-order labq vips images
 - fix parsing of filenames containing brackets, thanks shilpi230

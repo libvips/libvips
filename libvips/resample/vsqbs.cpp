@@ -313,8 +313,8 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
    *
    * It's 1 not 0 since we ask for a window_offset of 1 at the bottom.
    */
-  const int ix = (int) absolute_x;
-  const int iy = (int) absolute_y;
+  const int ix = (int) (absolute_x + 0.5);
+  const int iy = (int) (absolute_y + 0.5);
 
   /*
    * Move the pointer to (the first band of) the top/left pixel of the
@@ -343,8 +343,8 @@ vips_interpolate_vsqbs_interpolate( VipsInterpolate* restrict interpolate,
 
   g_assert( ix - 1 >= in->valid.left );
   g_assert( iy - 1 >= in->valid.top );
-  g_assert( ix + 1 < VIPS_RECT_RIGHT( &in->valid ) );
-  g_assert( iy + 1 < VIPS_RECT_BOTTOM( &in->valid ) );
+  g_assert( ix + 1 <= VIPS_RECT_RIGHT( &in->valid ) );
+  g_assert( iy + 1 <= VIPS_RECT_BOTTOM( &in->valid ) );
 
   /* Confirm that absolute_x and absolute_y are >= 1, see above. 
    */
@@ -405,7 +405,7 @@ vips_interpolate_vsqbs_class_init( VipsInterpolateVsqbsClass *klass )
   object_class->description = _( "B-Splines with antialiasing smoothing" );
 
   interpolate_class->interpolate   = vips_interpolate_vsqbs_interpolate;
-  interpolate_class->window_size   = 3;
+  interpolate_class->window_size   = 4;
   interpolate_class->window_offset = 1;
 }
 
