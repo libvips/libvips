@@ -1,5 +1,4 @@
 /* Transform images with little cms
- *default:
  *
  * 26/4/02 JC
  * 26/8/05

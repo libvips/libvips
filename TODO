@@ -2,11 +2,6 @@
 
 - could load pdf thumbnails?
 
-- get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very
-  odd, the interpolation shouldn't change between bands
-
-  probably over/underflow in interpolation ... clipping problems?
-
 - still not happy about float->int mask conversion in im_vips2mask.c
 
 - colour needs to split _build() into preprocess / process / postprocess
