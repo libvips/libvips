@@ -2090,8 +2090,8 @@ vips_image_new_from_memory_copy( const void *data, size_t size,
  * @...: %NULL-terminated list of optional named arguments
  *
  * Loads an image from the formatted area of memory @buf, @len using the 
- * loader recommended by vips_foreign_find_load_buffer(). Only TIFF, PNG and 
- * JPEG formats are supported. To load an unformatted area of memory, use
+ * loader recommended by vips_foreign_find_load_buffer(). 
+ * To load an unformatted area of memory, use
  * vips_image_new_from_memory(). 
  *
  * VIPS does not take

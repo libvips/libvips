@@ -568,7 +568,10 @@ vips_foreign_find_load_buffer_sub( VipsForeignLoadClass *load_class,
  * memory buffer
  * @size: number of bytes in @data
  *
- * Searches for an operation you could use to load a memory buffer.
+ * Searches for an operation you could use to load a memory buffer. To see the
+ * range of buffer loaders supported by your vips, try something like:
+ * 
+ * 	vips -l | grep load_buffer
  *
  * See also: vips_image_new_from_buffer().
  *
