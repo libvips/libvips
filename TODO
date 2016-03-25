@@ -1,3 +1,8 @@
+- test_thumbnail.sh is failing ... 1000->999 makes a 998 image
+
+- move 16->8 conversion to a separate pass? with so many constants, can't we
+  get an error for some mask sizes?
+
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
 
 - could load pdf thumbnails?

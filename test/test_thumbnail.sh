@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# resize a 1000x1000 image to every size in [500,1000] with every interpolator
-# and check for black lines 
+# resize a 1000x1000 image to every size in [100,1000], check for black 
 
 # see https://github.com/jcupitt/libvips/issues/131
 
@@ -23,39 +22,39 @@ break_threshold() {
 	return $(echo "$diff > $threshold" | bc -l)
 }
 
-for interp in nearest bilinear bicubic lbb nohalo vsqbs; do
-  size=1000
-  while [ $size -gt 499 ]; do
-    printf "testing $interp, size to $size ... "
-    vipsthumbnail $tmp/t1.v -o $tmp/t2.v --size $size --interpolator $interp
-    if [ $(vipsheader -f width $tmp/t2.v) -ne $size ]; then
-      echo failed -- bad size
-      echo output width is $(vipsheader -f width $tmp/t2.v) 
-      exit
-    fi
-    if [ $(vipsheader -f height $tmp/t2.v) -ne $size ]; then
-      echo failed -- bad size
-      exit
-    fi
-    vips project $tmp/t2.v $tmp/cols.v $tmp/rows.v
+size=1000
+while [ $size -gt 99 ]; do
+	printf "testing size to $size ... "
+	vipsthumbnail $tmp/t1.v -o $tmp/t2.v --size $size 
+	if [ $(vipsheader -f width $tmp/t2.v) -ne $size ]; then
+		echo $tmp/t2.v failed -- bad size
+		echo output width is $(vipsheader -f width $tmp/t2.v) 
+		exit
+	fi
+	if [ $(vipsheader -f height $tmp/t2.v) -ne $size ]; then
+		echo $tmp/t2.v failed -- bad size
+		echo output height is $(vipsheader -f width $tmp/t2.v) 
+		exit
+	fi
 
-    min=$(vips min $tmp/cols.v)
-    if break_threshold $min 0; then
-      echo failed -- has a black column
-      exit
-    fi
-        
-    min=$(vips min $tmp/rows.v)
-    if break_threshold $min 0; then
-      echo failed -- has a black row
-      exit
-    fi
+	vips project $tmp/t2.v $tmp/cols.v $tmp/rows.v
 
-    echo ok
+	min=$(vips min $tmp/cols.v)
+	if break_threshold $min 0; then
+		echo $tmp/t2.v failed -- has a black column
+		exit
+	fi
 
-    size=$(($size-1))       
-  done
+	min=$(vips min $tmp/rows.v)
+	if break_threshold $min 0; then
+		echo $tmp/t2.v failed -- has a black row
+		exit
+	fi
+
+	echo ok
+
+	size=$(($size-1))       
 done
-        
+
 
 
