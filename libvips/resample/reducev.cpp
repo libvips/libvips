@@ -235,10 +235,13 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	 * image, otherwise write the 16-bit intermediate to our temp buffer. 
 	 */
 	if( i >= reducev->n_point - 1 ) {
+		char sixteen[256];
 		char five[256];
 		char zero[256];
 		char twofivefive[256];
 
+		CONST( sixteen, 16, 2 );
+		ASM3( "addw", "sum", "sum", sixteen );
 		CONST( five, 5, 2 );
 		ASM3( "shrsw", "sum", "sum", five );
 
@@ -250,6 +253,7 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 		ASM3( "maxsw", "sum", zero, "sum" ); 
 		CONST( twofivefive, 255, 2 );
 		ASM3( "minsw", "sum", twofivefive, "sum" ); 
+
 		ASM2( "convwb", "d1", "sum" );
 	}
 	else 
@@ -736,8 +740,10 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 	generate = vips_reducev_gen;
 	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
 		vips_vector_isenabled() &&
-		!vips_reducev_compile( reducev ) )
+		!vips_reducev_compile( reducev ) ) {
+		vips_info( object_class->nickname, "using vector path" ); 
 		generate = vips_reducev_vector_gen;
+	}
 
 	if( vips_image_pipelinev( resample->out, 
 		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL ) )
