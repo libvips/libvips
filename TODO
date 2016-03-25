@@ -1,7 +1,8 @@
-- test_thumbnail.sh is failing ... 1000->999 makes a 998 image
+- check C++ API for new operations
 
-- move 16->8 conversion to a separate pass? with so many constants, can't we
-  get an error for some mask sizes?
+- check dosc for new ops, esp function list
+
+- try make dist, check po
 
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
 
