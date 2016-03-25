@@ -58,7 +58,6 @@
 - fetch unset property now returns default value rather than warning
 - many more const declarations to help gobject-introspection
 - rewritten vips_shrink() is 2x faster, much lower memuse, now handles complex
-- old code still there as vips_shrink2() for testing
 - only allow [] for filename options
 - add memory.h to Python API .. makes tracked highwater visible
 - added bandjoin_const to add constant bands to an image

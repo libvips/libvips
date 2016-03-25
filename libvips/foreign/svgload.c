@@ -357,7 +357,6 @@ vips_foreign_load_svg_file_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "svgload";
-	object_class->description = _( "load PDF with rsvg" );
 
 	foreign_class->suffs = vips_foreign_svg_suffs;
 
@@ -462,7 +461,6 @@ vips_foreign_load_svg_buffer_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "svgload_buffer";
-	object_class->description = _( "load SVG with rsvg" );
 
 	load_class->is_a_buffer = vips_foreign_load_svg_is_a_buffer;
 	load_class->header = vips_foreign_load_svg_buffer_header;

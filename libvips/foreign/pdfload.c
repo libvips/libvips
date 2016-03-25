@@ -327,7 +327,6 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload";
-	object_class->description = _( "load PDF with pdf" );
 	object_class->build = vips_foreign_load_pdf_build;
 
 	load_class->get_flags_filename = 
@@ -440,7 +439,7 @@ vips_foreign_load_pdf_file_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload";
-	object_class->description = _( "load PDF with pdf" );
+	object_class->description = _( "load PDF with libpoppler" );
 
 	foreign_class->suffs = vips_foreign_pdf_suffs;
 
@@ -505,7 +504,6 @@ vips_foreign_load_pdf_buffer_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload_buffer";
-	object_class->description = _( "load PDF with pdf" );
 
 	load_class->is_a_buffer = vips_foreign_load_pdf_is_a_buffer;
 	load_class->header = vips_foreign_load_pdf_buffer_header;

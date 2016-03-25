@@ -1,7 +1,3 @@
-- check C++ API for new operations
-
-- check dosc for new ops, esp function list
-
 - try make dist, check po
 
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
