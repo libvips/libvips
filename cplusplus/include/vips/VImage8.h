@@ -771,422 +771,101 @@ public:
 
 	// Operator overloads
 
-	VImage operator[]( int index ) 
-	{
-		return( this->extract_band( index ) ); 
-	}
-
-	std::vector<double> operator()( int x, int y )
-	{
-		return( this->getpoint( x, y ) ); 
-	}
-
-	friend VImage operator+( VImage a, VImage b ) 
-	{
-		return( a.add( b ) );
-	}
-
-	friend VImage operator+( double a, VImage b ) 
-	{
-		return( b.linear( 1.0, a ) ); 
-	}
-
-	friend VImage operator+( VImage a, double b ) 
-	{ 
-		return( a.linear( 1.0, b ) ); 
-	}
-
-	friend VImage operator+( std::vector<double> a, VImage b ) 
-	{
-		return( b.linear( 1.0, a ) ); 
-	}
-
-	friend VImage operator+( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.linear( 1.0, b ) ); 
-	}
-
-	friend VImage operator-( VImage a, VImage b ) 
-	{
-		return( a.subtract( b ) );
-	}
-
-	friend VImage operator-( double a, VImage b ) 
-	{
-		return( b.linear( -1.0, a ) ); 
-	}
-
-	friend VImage operator-( VImage a, double b ) 
-	{ 
-		return( a.linear( 1.0, -b ) ); 
-	}
-
-	friend VImage operator-( std::vector<double> a, VImage b ) 
-	{
-		return( b.linear( -1.0, a ) ); 
-	}
-
-	friend VImage operator-( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.linear( 1.0, vips::negate( b ) ) ); 
-	}
-
-	friend VImage operator*( VImage a, VImage b ) 
-	{
-		return( a.multiply( b ) );
-	}
-
-	friend VImage operator*( double a, VImage b ) 
-	{
-		return( b.linear( a, 0.0 ) ); 
-	}
-
-	friend VImage operator*( VImage a, double b ) 
-	{ 
-		return( a.linear( b, 0.0 ) ); 
-	}
-
-	friend VImage operator*( std::vector<double> a, VImage b ) 
-	{
-		return( b.linear( a, 0.0 ) ); 
-	}
-
-	friend VImage operator*( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.linear( b, 0.0 ) ); 
-	}
-
-	friend VImage operator/( VImage a, VImage b ) 
-	{
-		return( a.divide( b ) );
-	}
-
-	friend VImage operator/( double a, VImage b ) 
-	{
-		return( b.pow( -1.0 ).linear( a, 0.0 ) ); 
-	}
-
-	friend VImage operator/( VImage a, double b ) 
-	{ 
-		return( a.linear( 1.0 / b, 0.0 ) ); 
-	}
-
-	friend VImage operator/( std::vector<double> a, VImage b ) 
-	{
-		return( b.pow( -1.0 ).linear( a, 0.0 ) ); 
-	}
-
-	friend VImage operator/( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.linear( vips::invert( b ), 0.0 ) ); 
-	}
-
-	friend VImage operator%( VImage a, VImage b ) 
-	{
-		return( a.remainder( b ) );
-	}
-
-	friend VImage operator%( VImage a, double b ) 
-	{ 
-		return( a.remainder_const( to_vector( b ) ) ); 
-	}
-
-	friend VImage operator%( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.remainder_const( b ) ); 
-	}
-
-	friend VImage operator<( VImage a, VImage b ) 
-	{
-		return( a.relational( b, VIPS_OPERATION_RELATIONAL_LESS ) );
-	}
-
-	friend VImage operator<( double a, VImage b ) 
-	{
-		return( b.relational_const( to_vector( a ), 
-			VIPS_OPERATION_RELATIONAL_MORE ) );
-	}
-
-	friend VImage operator<( VImage a, double b ) 
-	{ 
-		return( a.relational_const( to_vector( b ), 
-			VIPS_OPERATION_RELATIONAL_LESS ) );
-	}
-
-	friend VImage operator<( std::vector<double> a, VImage b ) 
-	{
-		return( b.relational_const( a, 
-			VIPS_OPERATION_RELATIONAL_MORE ) );
-	}
-
-	friend VImage operator<( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.relational_const( b, 
-			VIPS_OPERATION_RELATIONAL_LESS ) );
-	}
-
-	friend VImage operator<=( VImage a, VImage b ) 
-	{
-		return( a.relational( b, VIPS_OPERATION_RELATIONAL_LESSEQ ) );
-	}
-
-	friend VImage operator<=( double a, VImage b ) 
-	{
-		return( b.relational_const( to_vector( a ), 
-			VIPS_OPERATION_RELATIONAL_MOREEQ ) );
-	}
-
-	friend VImage operator<=( VImage a, double b ) 
-	{ 
-		return( a.relational_const( to_vector( b ), 
-			VIPS_OPERATION_RELATIONAL_LESSEQ ) );
-	}
-
-	friend VImage operator<=( std::vector<double> a, VImage b ) 
-	{
-		return( b.relational_const( a, 
-			VIPS_OPERATION_RELATIONAL_MOREEQ ) );
-	}
-
-	friend VImage operator<=( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.relational_const( b, 
-			VIPS_OPERATION_RELATIONAL_LESSEQ ) );
-	}
-
-	friend VImage operator>( VImage a, VImage b ) 
-	{
-		return( a.relational( b, VIPS_OPERATION_RELATIONAL_MORE ) );
-	}
-
-	friend VImage operator>( double a, VImage b ) 
-	{
-		return( b.relational_const( to_vector( a ), 
-			VIPS_OPERATION_RELATIONAL_LESS ) );
-	}
-
-	friend VImage operator>( VImage a, double b ) 
-	{ 
-		return( a.relational_const( to_vector( b ), 
-			VIPS_OPERATION_RELATIONAL_MORE ) );
-	}
-
-	friend VImage operator>( std::vector<double> a, VImage b ) 
-	{
-		return( b.relational_const( a, 
-			VIPS_OPERATION_RELATIONAL_LESS ) );
-	}
-
-	friend VImage operator>( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.relational_const( b, 
-			VIPS_OPERATION_RELATIONAL_MORE ) );
-	}
-
-	friend VImage operator>=( VImage a, VImage b ) 
-	{
-		return( a.relational( b, VIPS_OPERATION_RELATIONAL_MOREEQ ) );
-	}
-
-	friend VImage operator>=( double a, VImage b ) 
-	{
-		return( b.relational_const( to_vector( a ), 
-			VIPS_OPERATION_RELATIONAL_LESSEQ ) );
-	}
-
-	friend VImage operator>=( VImage a, double b ) 
-	{ 
-		return( a.relational_const( to_vector( b ), 
-			VIPS_OPERATION_RELATIONAL_MOREEQ ) );
-	}
-
-	friend VImage operator>=( std::vector<double> a, VImage b ) 
-	{
-		return( b.relational_const( a, 
-			VIPS_OPERATION_RELATIONAL_LESSEQ ) );
-	}
-
-	friend VImage operator>=( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.relational_const( b, 
-			VIPS_OPERATION_RELATIONAL_MOREEQ ) );
-	}
-
-	friend VImage operator==( VImage a, VImage b ) 
-	{
-		return( a.relational( b, VIPS_OPERATION_RELATIONAL_EQUAL ) );
-	}
-
-	friend VImage operator==( double a, VImage b ) 
-	{
-		return( b.relational_const( to_vector( a ), 
-			VIPS_OPERATION_RELATIONAL_EQUAL ) );
-	}
-
-	friend VImage operator==( VImage a, double b ) 
-	{ 
-		return( a.relational_const( to_vector( b ), 
-			VIPS_OPERATION_RELATIONAL_EQUAL ) );
-	}
-
-	friend VImage operator==( std::vector<double> a, VImage b ) 
-	{
-		return( b.relational_const( a, 
-			VIPS_OPERATION_RELATIONAL_EQUAL ) );
-	}
-
-	friend VImage operator==( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.relational_const( b, 
-			VIPS_OPERATION_RELATIONAL_EQUAL ) );
-	}
-
-	friend VImage operator!=( VImage a, VImage b ) 
-	{
-		return( a.relational( b, VIPS_OPERATION_RELATIONAL_NOTEQ ) );
-	}
-
-	friend VImage operator!=( double a, VImage b ) 
-	{
-		return( b.relational_const( to_vector( a ), 
-			VIPS_OPERATION_RELATIONAL_NOTEQ ) );
-	}
-
-	friend VImage operator!=( VImage a, double b ) 
-	{ 
-		return( a.relational_const( to_vector( b ), 
-			VIPS_OPERATION_RELATIONAL_NOTEQ ) );
-	}
-
-	friend VImage operator!=( std::vector<double> a, VImage b ) 
-	{
-		return( b.relational_const( a, 
-			VIPS_OPERATION_RELATIONAL_NOTEQ ) );
-	}
-
-	friend VImage operator!=( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.relational_const( b, 
-			VIPS_OPERATION_RELATIONAL_NOTEQ ) );
-	}
-
-	friend VImage operator&( VImage a, VImage b ) 
-	{
-		return( a.boolean( b, VIPS_OPERATION_BOOLEAN_AND ) );
-	}
-
-	friend VImage operator&( double a, VImage b ) 
-	{
-		return( b.boolean_const( to_vector( a ), 
-			VIPS_OPERATION_BOOLEAN_AND ) );
-	}
-
-	friend VImage operator&( VImage a, double b ) 
-	{ 
-		return( a.boolean_const( to_vector( b ), 
-			VIPS_OPERATION_BOOLEAN_AND ) );
-	}
-
-	friend VImage operator&( std::vector<double> a, VImage b ) 
-	{
-		return( b.boolean_const( a, VIPS_OPERATION_BOOLEAN_AND ) );
-	}
-
-	friend VImage operator&( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_AND ) );
-	}
-
-	friend VImage operator|( VImage a, VImage b ) 
-	{
-		return( a.boolean( b, VIPS_OPERATION_BOOLEAN_OR ) );
-	}
-
-	friend VImage operator|( double a, VImage b ) 
-	{
-		return( b.boolean_const( to_vector( a ), 
-			VIPS_OPERATION_BOOLEAN_OR ) );
-	}
-
-	friend VImage operator|( VImage a, double b ) 
-	{ 
-		return( a.boolean_const( to_vector( b ), 
-			VIPS_OPERATION_BOOLEAN_OR ) );
-	}
-
-	friend VImage operator|( std::vector<double> a, VImage b ) 
-	{
-		return( b.boolean_const( a, VIPS_OPERATION_BOOLEAN_OR ) );
-	}
-
-	friend VImage operator|( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_OR ) );
-	}
-
-	friend VImage operator^( VImage a, VImage b ) 
-	{
-		return( a.boolean( b, VIPS_OPERATION_BOOLEAN_EOR ) );
-	}
-
-	friend VImage operator^( double a, VImage b ) 
-	{
-		return( b.boolean_const( to_vector( a ), 
-			VIPS_OPERATION_BOOLEAN_EOR ) );
-	}
-
-	friend VImage operator^( VImage a, double b ) 
-	{ 
-		return( a.boolean_const( to_vector( b ), 
-			VIPS_OPERATION_BOOLEAN_EOR ) );
-	}
-
-	friend VImage operator^( std::vector<double> a, VImage b ) 
-	{
-		return( b.boolean_const( a, VIPS_OPERATION_BOOLEAN_EOR ) );
-	}
-
-	friend VImage operator^( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_EOR ) );
-	}
-
-	friend VImage operator<<( VImage a, VImage b ) 
-	{
-		return( a.boolean( b, VIPS_OPERATION_BOOLEAN_LSHIFT ) );
-	}
-
-	friend VImage operator<<( VImage a, double b ) 
-	{ 
-		return( a.boolean_const( to_vector( b ), 
-			VIPS_OPERATION_BOOLEAN_LSHIFT ) ); 
-	}
-
-	friend VImage operator<<( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_LSHIFT ) ); 
-	}
-
-	friend VImage operator>>( VImage a, VImage b ) 
-	{
-		return( a.boolean( b, VIPS_OPERATION_BOOLEAN_RSHIFT ) );
-	}
-
-	friend VImage operator>>( VImage a, double b ) 
-	{ 
-		return( a.boolean_const( to_vector( b ), 
-			VIPS_OPERATION_BOOLEAN_RSHIFT ) ); 
-	}
-
-	friend VImage operator>>( VImage a, std::vector<double> b ) 
-	{ 
-		return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_RSHIFT ) ); 
-	}
-
-	friend VImage operator-( VImage a ) 
-	{ 
-		return( a * -1 );
-	}
+	VImage operator[]( int index );
+
+	std::vector<double> operator()( int x, int y );
+
+	friend VImage operator+( VImage a, VImage b );
+	friend VImage operator+( double a, VImage b );
+	friend VImage operator+( VImage a, double b );
+	friend VImage operator+( std::vector<double> a, VImage b );
+	friend VImage operator+( VImage a, std::vector<double> b );
+
+	friend VImage operator-( VImage a, VImage b );
+	friend VImage operator-( double a, VImage b );
+	friend VImage operator-( VImage a, double b );
+	friend VImage operator-( std::vector<double> a, VImage b );
+	friend VImage operator-( VImage a, std::vector<double> b );
+
+	friend VImage operator-( VImage a );
+
+	friend VImage operator*( VImage a, VImage b );
+	friend VImage operator*( double a, VImage b );
+	friend VImage operator*( VImage a, double b );
+	friend VImage operator*( std::vector<double> a, VImage b );
+	friend VImage operator*( VImage a, std::vector<double> b );
+
+	friend VImage operator/( VImage a, VImage b );
+	friend VImage operator/( double a, VImage b );
+	friend VImage operator/( VImage a, double b );
+	friend VImage operator/( std::vector<double> a, VImage b );
+	friend VImage operator/( VImage a, std::vector<double> b );
+
+	friend VImage operator%( VImage a, VImage b );
+	friend VImage operator%( VImage a, double b );
+	friend VImage operator%( VImage a, std::vector<double> b );
+
+	friend VImage operator<( VImage a, VImage b );
+	friend VImage operator<( double a, VImage b );
+	friend VImage operator<( VImage a, double b );
+	friend VImage operator<( std::vector<double> a, VImage b );
+	friend VImage operator<( VImage a, std::vector<double> b );
+
+	friend VImage operator<=( VImage a, VImage b );
+	friend VImage operator<=( double a, VImage b );
+	friend VImage operator<=( VImage a, double b );
+	friend VImage operator<=( std::vector<double> a, VImage b );
+	friend VImage operator<=( VImage a, std::vector<double> b );
+
+	friend VImage operator>( VImage a, VImage b );
+	friend VImage operator>( double a, VImage b );
+	friend VImage operator>( VImage a, double b );
+	friend VImage operator>( std::vector<double> a, VImage b );
+	friend VImage operator>( VImage a, std::vector<double> b );
+
+	friend VImage operator>=( VImage a, VImage b );
+	friend VImage operator>=( double a, VImage b );
+	friend VImage operator>=( VImage a, double b );
+	friend VImage operator>=( std::vector<double> a, VImage b );
+	friend VImage operator>=( VImage a, std::vector<double> b );
+
+	friend VImage operator==( VImage a, VImage b );
+	friend VImage operator==( double a, VImage b );
+	friend VImage operator==( VImage a, double b );
+	friend VImage operator==( std::vector<double> a, VImage b );
+	friend VImage operator==( VImage a, std::vector<double> b );
+
+	friend VImage operator!=( VImage a, VImage b );
+	friend VImage operator!=( double a, VImage b );
+	friend VImage operator!=( VImage a, double b );
+	friend VImage operator!=( std::vector<double> a, VImage b );
+	friend VImage operator!=( VImage a, std::vector<double> b );
+
+	friend VImage operator&( VImage a, VImage b );
+	friend VImage operator&( double a, VImage b );
+	friend VImage operator&( VImage a, double b );
+	friend VImage operator&( std::vector<double> a, VImage b );
+	friend VImage operator&( VImage a, std::vector<double> b );
+
+	friend VImage operator|( VImage a, VImage b );
+	friend VImage operator|( double a, VImage b );
+	friend VImage operator|( VImage a, double b );
+	friend VImage operator|( std::vector<double> a, VImage b );
+	friend VImage operator|( VImage a, std::vector<double> b );
+
+	friend VImage operator^( VImage a, VImage b );
+	friend VImage operator^( double a, VImage b );
+	friend VImage operator^( VImage a, double b );
+	friend VImage operator^( std::vector<double> a, VImage b );
+	friend VImage operator^( VImage a, std::vector<double> b );
+
+	friend VImage operator<<( VImage a, VImage b );
+	friend VImage operator<<( VImage a, double b );
+	friend VImage operator<<( VImage a, std::vector<double> b );
+
+	friend VImage operator>>( VImage a, VImage b );
+	friend VImage operator>>( VImage a, double b );
+	friend VImage operator>>( VImage a, std::vector<double> b );
 
 };
 
