@@ -1037,8 +1037,12 @@ vips_existsf( const char *name, ... )
 }
 
 #ifdef OS_WIN32
+#ifndef popen
 #define popen(b,m) _popen(b,m)
+#endif
+#ifndef pclose
 #define pclose(f) _pclose(f)
+#endif
 #endif /*OS_WIN32*/
 
 /* Do popen(), with printf-style args.
@@ -1753,6 +1757,7 @@ vips_realpath( const char *path )
 	}
 	else
 		real = g_strdup( path );
+}
 #endif
 
 	return( real );
