@@ -110,11 +110,12 @@ VipsVector *vips_vector_new( const char *name, int dsize );
 
 void vips_vector_constant( VipsVector *vector, 
 	char *name, int value, int size );
-int vips_vector_source_name( VipsVector *vector, char *name, int size );
 void vips_vector_source_scanline( VipsVector *vector, 
 	char *name, int line, int size );
-void vips_vector_temporary( VipsVector *vector, char *name, int size );
-int vips_vector_parameter( VipsVector *vector, char *name, int size );
+int vips_vector_source_name( VipsVector *vector, const char *name, int size );
+void vips_vector_temporary( VipsVector *vector, const char *name, int size );
+int vips_vector_parameter( VipsVector *vector, const char *name, int size );
+int vips_vector_destination( VipsVector *vector, const char *name, int size );
 void vips_vector_asm2( VipsVector *vector, 
 	const char *op, const char *a, const char *b );
 void vips_vector_asm3( VipsVector *vector, 

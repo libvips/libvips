@@ -177,6 +177,7 @@ vips_vector_new( const char *name, int dsize )
 #ifdef DEBUG_TRACE
 	printf( "%s = orc_program_new();\n", vector->unique_name );
 #endif /*DEBUG_TRACE*/
+#endif /*HAVE_ORC*/
 
 	/* We always make d1, our callers make either a single point source, or
 	 * for area ops, a set of scanlines.
@@ -185,14 +186,7 @@ vips_vector_new( const char *name, int dsize )
 	 * var you create will have id 0 :-( The first var is unlikely to fail
 	 * anyway. 
 	 */
-	vector->d1 = orc_program_add_destination( vector->program, 
-		dsize, "d1" );
-#ifdef DEBUG_TRACE
-	printf( "orc_program_add_destination( %s, %d, \"d1\" );\n", 
-		vector->unique_name, dsize ); 
-#endif /*DEBUG_TRACE*/
-	vector->n_destination += 1;
-#endif /*HAVE_ORC*/
+	vector->d1 = vips_vector_destination( vector, "d1", dsize ); 
 
 	return( vector );
 }
@@ -274,29 +268,6 @@ vips_vector_constant( VipsVector *vector, char *name, int value, int size )
 #endif /*HAVE_ORC*/
 }
 
-int
-vips_vector_source_name( VipsVector *vector, char *name, int size )
-{
-	int var;
-
-#ifdef HAVE_ORC
-	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
-
-	if( !(var = orc_program_add_source( vector->program, size, name )) )
-		vips_vector_error( vector ); 
-	vector->s[vector->n_source] = var;
-#ifdef DEBUG_TRACE
-	printf( "orc_program_add_source( %s, %d, \"%s\" );\n", 
-		vector->unique_name, size, name );
-#endif /*DEBUG_TRACE*/
-	vector->n_source += 1;
-#else /*!HAVE_ORC*/
-	var = -1;
-#endif /*HAVE_ORC*/
-
-	return( var );
-}
-
 void
 vips_vector_source_scanline( VipsVector *vector, 
 	char *name, int line, int size )
@@ -321,8 +292,31 @@ vips_vector_source_scanline( VipsVector *vector,
 #endif /*HAVE_ORC*/
 }
 
+int
+vips_vector_source_name( VipsVector *vector, const char *name, int size )
+{
+	int var;
+
+#ifdef HAVE_ORC
+	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
+
+	if( !(var = orc_program_add_source( vector->program, size, name )) )
+		vips_vector_error( vector ); 
+	vector->s[vector->n_source] = var;
+#ifdef DEBUG_TRACE
+	printf( "orc_program_add_source( %s, %d, \"%s\" );\n", 
+		vector->unique_name, size, name );
+#endif /*DEBUG_TRACE*/
+	vector->n_source += 1;
+#else /*!HAVE_ORC*/
+	var = -1;
+#endif /*HAVE_ORC*/
+
+	return( var );
+}
+
 void
-vips_vector_temporary( VipsVector *vector, char *name, int size )
+vips_vector_temporary( VipsVector *vector, const char *name, int size )
 {
 #ifdef HAVE_ORC
 	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
@@ -339,7 +333,7 @@ vips_vector_temporary( VipsVector *vector, char *name, int size )
 }
 
 int
-vips_vector_parameter( VipsVector *vector, char *name, int size )
+vips_vector_parameter( VipsVector *vector, const char *name, int size )
 {
 	int var;
 
@@ -360,6 +354,27 @@ vips_vector_parameter( VipsVector *vector, char *name, int size )
 #endif /*HAVE_ORC*/
 
 	return ( var ); 
+}
+
+int
+vips_vector_destination( VipsVector *vector, const char *name, int size )
+{
+	int var;
+
+#ifdef HAVE_ORC
+	g_assert( orc_program_find_var_by_name( vector->program, name ) == -1 );
+
+	var = orc_program_add_destination( vector->program, size, name );
+#ifdef DEBUG_TRACE
+	printf( "orc_program_add_destination( %d, \"%s\" );\n",
+		size, name );
+#endif /*DEBUG_TRACE*/
+	vector->n_destination += 1;
+#else /*!HAVE_ORC*/
+	var = -1;
+#endif /*HAVE_ORC*/
+
+	return( var ); 
 }
 
 gboolean

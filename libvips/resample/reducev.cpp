@@ -167,11 +167,11 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	/* We have two destinations: the final output image (8-bit) and the
 	 * intermediate buffer if this is not the final pass (16-bit).
 	 */
-	pass->d2 = orc_program_add_destination( v->program, 2, "d2" );
+	pass->d2 = vips_vector_destination( v, "d2", 2 );
 
 	/* "r" is the array of sums from the previous pass (if any).
 	 */
-	pass->r = vips_vector_source_name( v, (char *) "r", 2 );
+	pass->r = vips_vector_source_name( v, "r", 2 );
 
 	/* The value we fetch from the image, the accumulated sum.
 	 */
