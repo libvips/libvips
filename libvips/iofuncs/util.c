@@ -1746,8 +1746,6 @@ vips_realpath( const char *path )
 }
 #else /*!HAVE_REALPATH*/
 {
-	char *real;
-
 	if( !g_path_is_absolute( path ) ) {
 		char *cwd;
 
