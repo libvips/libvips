@@ -20,6 +20,8 @@
  * 3/5/14
  * 	- switch to g_spawn_command_line_sync() from popen() ... helps stop
  * 	  stray command-windows on Windows
+ * 27/3/16
+ * 	- allow [options] in out_format
  */
 
 /*
@@ -81,7 +83,15 @@ typedef struct _VipsSystem {
 	 */
 	char **in_name;
 
+	/* Output name without any options, so /tmp/vips-weifh.svg, for
+	 * example.
+	 */
 	char *out_name;
+
+	/* Output name with any options, so /tmp/vips-weifh.svg[scale=2], for
+	 * example.
+	 */
+	char *out_name_options;
 
 } VipsSystem;
 
@@ -104,6 +114,7 @@ vips_system_dispose( GObject *gobject )
 	}
 
 	VIPS_FREE( system->out_name );
+	VIPS_FREE( system->out_name_options );
 
 	G_OBJECT_CLASS( vips_system_parent_class )->dispose( gobject );
 }
@@ -152,9 +163,17 @@ vips_system_build( VipsObject *object )
 
 	/* Make the output filename.
 	 */
-	if( system->out_format &&
-		!(system->out_name = vips__temp_name( system->out_format )) )
-		return( -1 ); 
+	if( system->out_format ) {
+		char filename[VIPS_PATH_MAX];
+		char option_string[VIPS_PATH_MAX];
+
+		vips__filename_split8( system->out_format, 
+			filename, option_string );
+		if( !(system->out_name = vips__temp_name( filename )) )
+			return( -1 ); 
+		system->out_name_options = 
+			g_strconcat( system->out_name, option_string, NULL ); 
+	}
 
 	vips_strncpy( cmd, system->cmd_format, VIPS_PATH_MAX );
 	if( system->in ) 
@@ -223,10 +242,10 @@ vips_system_build( VipsObject *object )
 	VIPS_FREE( std_output );
 	VIPS_FREE( std_error );
 
-	if( system->out_name ) {
+	if( system->out_name_options ) {
 		VipsImage *out; 
 
-		if( !(out = vips_image_new_from_file( system->out_name, 
+		if( !(out = vips_image_new_from_file( system->out_name_options, 
 			NULL )) )
 			return( -1 );
 		vips_image_set_delete_on_close( out, TRUE );
@@ -325,7 +344,8 @@ vips_system_init( VipsSystem *system )
  * something like &percnt;s.png, the file will be written in PNG format. By
  * default, @in_format is &percnt;s.tif. 
  *
- * If @out_format is set, an output filename is formed in the same way.
+ * If @out_format is set, an output filename is formed in the same way. Any
+ * trailing [options] are stripped from @out_format. 
  *
  * The command string to run is made by substituting the first set of &percnt;s 
  * in @cmd_format for the names of the input files, if @in is set, and then 
@@ -336,7 +356,8 @@ vips_system_init( VipsSystem *system )
  * The command is executed with popen() and the output captured in @log. 
  *
  * After the command finishes, if @out_format is set, the output image is
- * opened and returned in @out. 
+ * opened and returned in @out. You can append [options] to @out_format to
+ * control how this open happens. 
  * Closing @out image will automatically delete the output file.
  *
  * Finally the input images are deleted. 

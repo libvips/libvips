@@ -20,6 +20,7 @@
 - vipsthumbnail --interpolator and --sharpen switches are deprecated
 - switches to disable PPM, Rad and Analyze support
 - added VIPS_COUNT_PIXELS(), overcomputation tracking
+- @out_format in vips_system() can contain [options]
 
 24/3/16 started 8.2.4
 - fix nohalo and vsqbs interpolators, thanks Rafael
