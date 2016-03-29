@@ -170,6 +170,9 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 	/* We need to be ahead of the tiff sniffer since many OpenSlide
 	 * formats are tiff derivatives. If we see a tiff which would be
 	 * better handled by the vips tiff loader we are careful to say no.
+	 *
+	 * We need to be ahead of JPEG, since MRXS images are also
+	 * JPEGs.
 	 */
 	foreign_class->priority = 100;
 	foreign_class->suffs = vips_foreign_openslide_suffs;
