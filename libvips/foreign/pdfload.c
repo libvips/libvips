@@ -406,11 +406,11 @@ vips_foreign_load_pdf_file_header( VipsForeignLoad *load )
 	 */
 	path = vips_realpath( file->filename );
 	if( !(file->uri = g_filename_to_uri( path, NULL, &error )) ) { 
-		free( path );
+		g_free( path );
 		vips_g_error( &error );
 		return( -1 ); 
 	}
-	free( path );
+	g_free( path );
 
 	if( !(pdf->doc = poppler_document_new_from_file( 
 		file->uri, NULL, &error )) ) { 

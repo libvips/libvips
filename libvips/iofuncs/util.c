@@ -1750,7 +1750,7 @@ vips_realpath( const char *path )
 		char *cwd;
 
 		cwd = g_get_current_dir();
-		real = g_build_filename( cwd, path );
+		real = g_build_filename( cwd, path, NULL );
 		g_free( cwd );
 	}
 	else
