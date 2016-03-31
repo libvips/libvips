@@ -257,7 +257,7 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 }
 
 /* Render the current gif frame into an RGBA buffer. GIFs 
- * accumulate, so don't clear the buffer first, so that we can paint a 
+ * accumulate, so don't clear the buffer first, we need to paint a 
  * series of frames on top of each other. 
  */
 static int
