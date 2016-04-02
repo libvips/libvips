@@ -228,8 +228,7 @@ thumbnail_find_jpegshrink( VipsImage *im )
 
 	/* Shrink-on-load is a simple block shrink and will add quite a bit of
 	 * extra sharpness to the image. We want to block shrink to a size a
-	 * bit above our target, then anti-alias/downsample/sharpen to the
-	 * target. 
+	 * bit above our target, then vips_resize() to the target. 
 	 *
 	 * For example, consider making a 400-pixel-across image from an
 	 * 800-pixel image. If we load at 1/2 size, we could find ourselves
@@ -291,7 +290,8 @@ thumbnail_open( VipsObject *process, const char *filename )
 			NULL )) )
 			return( NULL );
 	}
-	else if( strcmp( loader, "VipsForeignLoadPdfFile" ) == 0 ) {
+	else if( strcmp( loader, "VipsForeignLoadPdfFile" ) == 0 ||
+		strcmp( loader, "VipsForeignLoadSvgFile" ) == 0 ) {
 		double shrink;
 
 		/* This will just read in the header and is quick.
@@ -304,7 +304,7 @@ thumbnail_open( VipsObject *process, const char *filename )
 		g_object_unref( im );
 
 		vips_info( "vipsthumbnail", 
-			"loading PDF with factor %g pre-shrink", 
+			"loading PDF/SVG with factor %g pre-shrink", 
 			shrink ); 
 
 		/* We can't use UNBUFERRED safely on very-many-core systems.
@@ -314,32 +314,6 @@ thumbnail_open( VipsObject *process, const char *filename )
 			"scale", 1.0 / shrink,
 			NULL )) )
 			return( NULL );
-
-	}
-	else if( strcmp( loader, "VipsForeignLoadSvgFile" ) == 0 ) {
-		double shrink;
-
-		/* This will just read in the header and is quick.
-		 */
-		if( !(im = vips_image_new_from_file( filename, NULL )) )
-			return( NULL );
-
-		shrink = calculate_shrink( im ); 
-
-		g_object_unref( im );
-
-		vips_info( "vipsthumbnail", 
-			"loading SVG with factor %g pre-shrink", 
-			shrink ); 
-
-		/* We can't use UNBUFERRED safely on very-many-core systems.
-		 */
-		if( !(im = vips_image_new_from_file( filename, 
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			"scale", 1.0 / shrink,
-			NULL )) )
-			return( NULL );
-
 	}
 	else if( strcmp( loader, "VipsForeignLoadWebpFile" ) == 0 ) {
 		double shrink;
