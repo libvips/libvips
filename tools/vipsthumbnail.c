@@ -76,7 +76,6 @@
  * 28/2/16
  * 	- add webp --shrink support
  * 29/2/16
- * 	- make more use of jpeg shrink-on-load now we've tuned vips_resize()
  * 	- deprecate sharpen and interpolate
  */
 
@@ -229,10 +228,12 @@ thumbnail_find_jpegshrink( VipsImage *im )
 	/* Shrink-on-load is a simple block shrink and will add quite a bit of
 	 * extra sharpness to the image. We want to block shrink to a
 	 * bit above our target, then vips_resize() to the final size. 
+	 *
+	 * Leave at least a factor of two for the final resize step.
 	 */
-	if( shrink >= 10 )
+	if( shrink >= 16 )
 		return( 8 );
-	else if( shrink >= 6 )
+	else if( shrink >= 8 )
 		return( 4 );
 	else if( shrink >= 4 )
 		return( 2 );
