@@ -227,13 +227,8 @@ thumbnail_find_jpegshrink( VipsImage *im )
 		return( 1 ); 
 
 	/* Shrink-on-load is a simple block shrink and will add quite a bit of
-	 * extra sharpness to the image. We want to block shrink to a size a
-	 * bit above our target, then vips_resize() to the target. 
-	 *
-	 * For example, consider making a 400-pixel-across image from an
-	 * 800-pixel image. If we load at 1/2 size, we could find ourselves
-	 * doing no further processing, which would make a 400-px version look
-	 * very different from a 450-px version.
+	 * extra sharpness to the image. We want to block shrink to a
+	 * bit above our target, then vips_resize() to the final size. 
 	 */
 	if( shrink >= 10 )
 		return( 8 );

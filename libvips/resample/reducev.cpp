@@ -6,6 +6,9 @@
  * 	- add other kernels
  * 21/3/16
  * 	- add vector path
+ * 2/4/16
+ * 	- better int mask creation ... we now adjust the scale to keep the sum
+ * 	  equal to the target scale
  */
 
 /*
@@ -219,6 +222,10 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 		ASM3( "mulsbw", "value", "valueb", coeff );
 		ASM3( "addssw", "sum", "sum", "value" );
 
+		/* We've used this coeff.
+		 */
+		pass->last = i;
+
 		if( vips_vector_full( v ) )
 			break;
 
@@ -229,12 +236,10 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 			break;
 	}
 
-	pass->last = i;
-
 	/* If this is the end of the mask, we write the 8-bit result to the
 	 * image, otherwise write the 16-bit intermediate to our temp buffer. 
 	 */
-	if( i >= reducev->n_point - 1 ) {
+	if( pass->last >= reducev->n_point - 1 ) {
 		char sixteen[256];
 		char five[256];
 		char zero[256];
@@ -286,7 +291,6 @@ vips_reducev_compile( VipsReducev *reducev )
 		reducev->n_pass += 1;
 
 		pass->first = i;
-		pass->last = i;
 		pass->r = -1;
 		pass->d2 = -1;
 		pass->n_param = 0;
@@ -677,6 +681,63 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 	return( 0 );
 }
 
+
+/* Make a fixed-point version of a mask. Each out[i] = rint(in[i] * adj_scale), 
+ * where adj_scale is selected so that sum(out) = sum(in) * scale.
+ *
+ * Because of the vagaries of rint(), we can't just calc this, we have to
+ * iterate and converge on the best value for adj_scale.
+ */
+static void
+vips_reducev_intize( double *in, int *out, int n, int scale )
+{
+	double fsum;
+	int target;
+	int sum;
+	double high;
+	double low;
+	double guess;
+
+	fsum = 0.0;
+	for( int i = 0; i < n; i++ )
+		fsum += in[i];
+	target = VIPS_RINT( fsum * scale );
+
+	/* As we rint() each scale element, we can get up to 0.5 error.
+	 * Therefore, by the end of the mask, we can be off by up to n/2. Our
+	 * high and low guesses are therefore n/2 either side of the obvious
+	 * answer.
+	 */
+	high = scale + n / 2;
+	low = scale - n / 2;
+
+	do {
+		guess = (high + low) / 2.0;
+
+		for( int i = 0; i < n; i++ ) 
+			out[i] = VIPS_RINT( in[i] * guess );
+
+		sum = 0;
+		for( int i = 0; i < n; i++ )
+			sum += out[i];
+
+		if( sum == target )
+			break;
+		if( sum < target )
+			low = guess;
+		if( sum > target )
+			high = guess;
+	} while( high - low > 0.01 );
+
+	if( sum != target ) 
+		/* We're as close as we can get ... add the remaining error to
+		 * the centre element. Hopefully we'll get slight sharpness 
+		 * changes rather than slight brightness changes and it'll
+		 * be less visible. 
+		 */
+		out[n / 2] += target - sum;
+}
+
 static int
 vips_reducev_raw( VipsReducev *reducev, VipsImage *in ) 
 {
@@ -714,10 +775,9 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 			if( !reducev->matrixi[y] )
 				return( -1 ); 
 
-			for( int i = 0; i < reducev->n_point; i++ ) 
-				reducev->matrixi[y][i] = 
-					reducev->matrixf[y][i] * 
-						VIPS_INTERPOLATE_SCALE;
+			vips_reducev_intize( 
+				reducev->matrixf[y], reducev->matrixi[y], 
+				reducev->n_point, VIPS_INTERPOLATE_SCALE );
 		}
 
 	/* And we need an 2.6 version if we will use the vector path.
@@ -730,9 +790,9 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 			if( !reducev->matrixo[y] )
 				return( -1 ); 
 
-			for( int i = 0; i < reducev->n_point; i++ ) 
-				reducev->matrixo[y][i] = VIPS_RINT( 
-					reducev->matrixf[y][i] * 64.0 );
+			vips_reducev_intize( 
+				reducev->matrixf[y], reducev->matrixo[y], 
+				reducev->n_point, 64 );
 		}
 
 	/* Try to build a vector version, if we can.
