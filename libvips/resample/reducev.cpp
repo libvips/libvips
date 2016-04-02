@@ -282,7 +282,7 @@ vips_reducev_compile( VipsReducev *reducev )
 
 	/* Generate passes until we've used up the whole mask.
 	 */
-	for( int i = 0;;) {
+	for( int i = 0;; ) {
 		/* Allocate space for another pass.
 		 */
 		if( reducev->n_pass == MAX_PASS ) 
@@ -681,7 +681,6 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 	return( 0 );
 }
 
-
 /* Make a fixed-point version of a mask. Each out[i] = rint(in[i] * adj_scale), 
  * where adj_scale is selected so that sum(out) = sum(in) * scale.
  *
@@ -721,12 +720,20 @@ vips_reducev_intize( double *in, int *out, int n, int scale )
 		for( int i = 0; i < n; i++ )
 			sum += out[i];
 
+		/* If we've picked low and high correctly, see above.
+		 */
+		g_assert( sum >= low );
+		g_assert( sum <= high );
+
 		if( sum == target )
 			break;
 		if( sum < target )
 			low = guess;
 		if( sum > target )
 			high = guess;
+
+	/* This will typically produce about 5 iterations.
+	 */
 	} while( high - low > 0.01 );
 
 	if( sum != target ) 

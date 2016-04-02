@@ -1,7 +1,6 @@
 - try
 
-	vips reducev ~/pics/babe.jpg x.png 2.666
-
+	$ vips reducev ~/pics/babe.jpg x.png 2.666
 
   get 254 for white, some rounding problem
 
