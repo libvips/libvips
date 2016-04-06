@@ -109,7 +109,7 @@
 /* And this used to be UseHDRI.
  */
 #if MAGICKCORE_HDRI_SUPPORT
-#  define UseHDRI=1
+#  define UseHDRI 1
 #endif
 
 /* What we track during a read call.
