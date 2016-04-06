@@ -200,7 +200,7 @@ im_vips2imask( IMAGE *in, const char *filename )
 	 * brightness between input and output? We want the same ratio for the
 	 * int version, if we can.
 	 *
-	 * Imaging an input image where every pixel is 1, what will the output
+	 * Imagine an input image where every pixel is 1, what will the output
 	 * be?
 	 */
 	double_result = 0;
