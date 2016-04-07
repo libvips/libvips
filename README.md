@@ -32,9 +32,13 @@ website](http://www.vips.ecs.soton.ac.uk).
 There are packages for most unix-like operating systems and binaries for
 Windows and OS X.
 
-# Building libvips from source
+# Building libvips from a source tarball
 
-In the libvips directory you should just be able to do:
+We keep pre-baked tarballs of releases on the vips website:
+
+	http://www.vips.ecs.soton.ac.uk/supported/current/
+
+Untar, then in the libvips directory you should just be able to do:
 
 	$ ./configure
 
@@ -47,7 +51,7 @@ For the vips8 Python binding, you must have
 
 You'll need the dev packages for the file format support you
 want. For basic jpeg and tiff support, you'll need `libtiff5-dev`,
-`libjpeg-turbo8-dev`, and `libgsf-1-dev`.  See the Dependencies section
+`libjpeg-turbo8-dev`, and `libgsf-1-dev`.  See the **Dependencies** section
 below for a full list of the things that libvips can be configured to use.
 
 Once `configure` is looking OK, compile and install with the usual:
