@@ -68,8 +68,9 @@
  * need to draw 1,000 straight lines, a 1,000 operation-deep pipeline is going
  * to be a slow way to do it. This is where the draw operations come in.
  *
- * To use these operations, take a copy of the image you want to modify, to
- * ensure that no one else is using it, then call a series of draw operations.
+ * To use these operations, use vips_copy() to make a copy of the image you 
+ * want to modify, to ensure that no one else is using it, then call a 
+ * series of draw operations.
  * Once you are done drawing, return to normal use of vips operations. Any time
  * you want to start drawing again, you'll need to copy again. 
  */
