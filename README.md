@@ -37,7 +37,7 @@ Windows and OS X.
 
 We keep pre-baked tarballs of releases on the vips website:
 
-	http://www.vips.ecs.soton.ac.uk/supported/current/
+`http://www.vips.ecs.soton.ac.uk/supported/current/`
 
 Untar, then in the libvips directory you should just be able to do:
 
