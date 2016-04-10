@@ -240,13 +240,17 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	 * image, otherwise write the 16-bit intermediate to our temp buffer. 
 	 */
 	if( pass->last >= reducev->n_point - 1 ) {
-		char sixteen[256];
+		char thirtytwo[256];
 		char five[256];
 		char zero[256];
 		char twofivefive[256];
 
-		CONST( sixteen, 16, 2 );
-		ASM3( "addw", "sum", "sum", sixteen );
+		/* You'd think we might add 16 before dividing by 32, but we
+		 * are really dividing by 64, since we right-shifted the pixel
+		 * values on load above. So we add 32.
+		 */
+		CONST( thirtytwo, 32, 2 );
+		ASM3( "addw", "sum", "sum", thirtytwo );
 		CONST( five, 5, 2 );
 		ASM3( "shrsw", "sum", "sum", five );
 
@@ -707,8 +711,8 @@ vips_reducev_intize( double *in, int *out, int n, int scale )
 	 * high and low guesses are therefore n/2 either side of the obvious
 	 * answer.
 	 */
-	high = scale + n / 2;
-	low = scale - n / 2;
+	high = scale + (n + 1) / 2;
+	low = scale - (n + 1) / 2;
 
 	do {
 		guess = (high + low) / 2.0;
@@ -719,11 +723,6 @@ vips_reducev_intize( double *in, int *out, int n, int scale )
 		sum = 0;
 		for( int i = 0; i < n; i++ )
 			sum += out[i];
-
-		/* If we've picked low and high correctly, see above.
-		 */
-		g_assert( sum >= low );
-		g_assert( sum <= high );
 
 		if( sum == target )
 			break;

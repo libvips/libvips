@@ -1,8 +1,12 @@
-- try
+- have some zero elements in lanczos3 masks, can we improve mask sizing?
 
-	$ vips reducev ~/pics/babe.jpg x.png 2.666
+  eg. 
 
-  get 254 for white, some rounding problem
+	$ vips reducev ~/pics/babe.jpg x.png 1.1
+
+  has an extra 0 at the end
+
+- compare lanczos2 vs. 3, any differences?
 
 - I like the new int mask creator in reducev, can we use it in im_vips2imask()
   as well?
