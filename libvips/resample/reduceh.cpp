@@ -139,7 +139,7 @@ vips_reduce_make_mask( double *c, VipsKernel kernel, double shrink, double x )
 		break;
 
 	case VIPS_KERNEL_CUBIC:
-		calculate_coefficients_catmull( x, c ); 
+		calculate_coefficients_catmull( c, x ); 
 		break;
 
 	case VIPS_KERNEL_LANCZOS2:

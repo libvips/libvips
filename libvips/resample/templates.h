@@ -287,7 +287,7 @@ bicubic_float(
  * from the interpolator as well as from the table builder.
  */
 static void inline
-calculate_coefficients_catmull( const double x, double c[4] )
+calculate_coefficients_catmull( double c[4], const double x )
 {
 	/* Nicolas believes that the following is an hitherto unknown
 	 * hyper-efficient method of computing Catmull-Rom coefficients. It

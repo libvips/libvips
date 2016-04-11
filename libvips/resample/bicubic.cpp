@@ -457,8 +457,8 @@ bicubic_notab( void *pout, const VipsPel *pin,
 	double cx[4];
 	double cy[4];
 
-	calculate_coefficients_catmull( x, cx );
-	calculate_coefficients_catmull( y, cy );
+	calculate_coefficients_catmull( cx, x );
+	calculate_coefficients_catmull( cy, y );
 
 	for( int z = 0; z < bands; z++ ) {
 		const T uno_one = in[0];
@@ -644,9 +644,8 @@ vips_interpolate_bicubic_class_init( VipsInterpolateBicubicClass *iclass )
 	/* Build the tables of pre-computed coefficients.
 	 */
 	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
-		calculate_coefficients_catmull(
-			(float) x / VIPS_TRANSFORM_SCALE,
-			vips_bicubic_matrixf[x] );
+		calculate_coefficients_catmull( vips_bicubic_matrixf[x], 
+			(float) x / VIPS_TRANSFORM_SCALE ); 
 
 		for( int i = 0; i < 4; i++ )
 			vips_bicubic_matrixi[x][i] =
