@@ -320,12 +320,12 @@ calculate_coefficients_catmull( const double x, double c[4] )
  * points for large decimations to avoid aliasing. 
  */
 static void inline
-calculate_coefficients_lanczos( const int a, const double shrink, 
-	const double x, double *c )
+calculate_coefficients_lanczos( double *c, 
+	const int a, const double shrink, const double x )
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
-	const int n_points = ceil( 2 * a * shrink ) + 2; 
+	const int n_points = rint( 2 * a * shrink ) + 1; 
 
 	int i;
 	double sum; 

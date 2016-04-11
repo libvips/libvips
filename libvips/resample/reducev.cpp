@@ -490,7 +490,7 @@ reducev_notab( VipsReducev *reducev,
 
 	double cy[MAX_POINT];
 
-	vips_reduce_make_mask( reducev->kernel, reducev->yshrink, y, cy ); 
+	vips_reduce_make_mask( cy, reducev->kernel, reducev->yshrink, y ); 
 
 	for( int z = 0; z < ne; z++ ) 
 		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
@@ -760,14 +760,14 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 		if( !reducev->matrixf[y] )
 			return( -1 ); 
 
-		vips_reduce_make_mask( reducev->kernel, reducev->yshrink, 
-			(float) y / VIPS_TRANSFORM_SCALE,
-			reducev->matrixf[y] );
+		vips_reduce_make_mask( reducev->matrixf[y],
+			reducev->kernel, reducev->yshrink, 
+			(float) y / VIPS_TRANSFORM_SCALE ); 
 
 #ifdef DEBUG
-		printf( "%4g ", (double) y / VIPS_TRANSFORM_SCALE ); 
+		printf( "%6.2g", (double) y / VIPS_TRANSFORM_SCALE ); 
 		for( int i = 0; i < reducev->n_point; i++ ) 
-			printf( " %4g", reducev->matrixf[y][i] );
+			printf( ", %6.2g", reducev->matrixf[y][i] );
 		printf( "\n" ); 
 #endif /*DEBUG*/
 	}

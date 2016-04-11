@@ -112,10 +112,10 @@ vips_reduce_get_points( VipsKernel kernel, double shrink )
 	case VIPS_KERNEL_LANCZOS2:
 		/* Needs to be in sync with calculate_coefficients_lanczos().
 		 */
-		return( ceil( 2 * 2 * shrink ) + 2 ); 
+		return( rint( 2 * 2 * shrink ) + 1 ); 
 
 	case VIPS_KERNEL_LANCZOS3:
-		return( ceil( 2 * 3 * shrink ) + 2 ); 
+		return( rint( 2 * 3 * shrink ) + 1 ); 
 
 	default:
 		g_assert_not_reached();
@@ -126,7 +126,7 @@ vips_reduce_get_points( VipsKernel kernel, double shrink )
 /* Calculate a mask element. 
  */
 void
-vips_reduce_make_mask( VipsKernel kernel, double shrink, double x, double *c )
+vips_reduce_make_mask( double *c, VipsKernel kernel, double shrink, double x )
 {
 	switch( kernel ) {
 	case VIPS_KERNEL_NEAREST:
@@ -143,11 +143,11 @@ vips_reduce_make_mask( VipsKernel kernel, double shrink, double x, double *c )
 		break;
 
 	case VIPS_KERNEL_LANCZOS2:
-		calculate_coefficients_lanczos( 2, shrink, x, c ); 
+		calculate_coefficients_lanczos( c, 2, shrink, x ); 
 		break;
 
 	case VIPS_KERNEL_LANCZOS3:
-		calculate_coefficients_lanczos( 3, shrink, x, c ); 
+		calculate_coefficients_lanczos( c, 3, shrink, x ); 
 		break;
 
 	default:
@@ -276,7 +276,7 @@ reduceh_notab( VipsReduceh *reduceh,
 
 	double cx[MAX_POINT];
 
-	vips_reduce_make_mask( reduceh->kernel, reduceh->xshrink, x, cx ); 
+	vips_reduce_make_mask( cx, reduceh->kernel, reduceh->xshrink, x ); 
 
 	for( int z = 0; z < bands; z++ ) {
 		out[z] = reduce_sum<T, double>( in, bands, cx, n );
@@ -452,9 +452,9 @@ vips_reduceh_build( VipsObject *object )
 			!reduceh->matrixi[x] )
 			return( -1 ); 
 
-		vips_reduce_make_mask( reduceh->kernel, reduceh->xshrink,
-			(float) x / VIPS_TRANSFORM_SCALE,
-			reduceh->matrixf[x] );
+		vips_reduce_make_mask( reduceh->matrixf[x], 
+			reduceh->kernel, reduceh->xshrink,
+			(float) x / VIPS_TRANSFORM_SCALE ); 
 
 		for( int i = 0; i < reduceh->n_point; i++ )
 			reduceh->matrixi[x][i] = reduceh->matrixf[x][i] * 
