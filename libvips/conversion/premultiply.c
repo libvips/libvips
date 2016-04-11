@@ -3,6 +3,8 @@
  * Author: John Cupitt
  * Written on: 7/5/15
  *
+ * 11/4/16 Lovell
+ * 	- fix RGBA path
  */
 
 /*
