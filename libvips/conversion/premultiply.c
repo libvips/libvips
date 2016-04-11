@@ -87,7 +87,7 @@ G_DEFINE_TYPE( VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION );
 
 /* Special case for RGBA, it's very common.
  */
-#define PRE_RGB( IN, OUT ) { \
+#define PRE_RGBA( IN, OUT ) { \
 	IN * restrict p = (IN *) in; \
 	OUT * restrict q = (OUT *) out; \
 	\
@@ -107,8 +107,8 @@ G_DEFINE_TYPE( VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION );
 }
 
 #define PRE( IN, OUT ) { \
-	if( bands == 3 ) { \
-		PRE_RGB( IN, OUT ); \
+	if( bands == 4 ) { \
+		PRE_RGBA( IN, OUT ); \
 	} \
 	else { \
 		PRE_MANY( IN, OUT ); \
