@@ -1,6 +1,3 @@
-
-- compare lanczos2 vs. 3, any differences?
-
 - I like the new int mask creator in reducev, can we use it in im_vips2imask()
   as well?
 
