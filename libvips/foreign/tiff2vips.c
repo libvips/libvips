@@ -162,6 +162,9 @@
  * 	- load photoshop metadata
  * 21/12/15
  * 	- load TIFFTAG_IMAGEDESCRIPTION
+ * 11/4/16
+ * 	- non-int RGB images are tagged as scRGB ... matches photoshop
+ * 	  convention
  */
 
 /*
@@ -688,7 +691,8 @@ parse_greyscale( ReadTiff *rtiff, VipsImage *out )
 		return( -1 );
 
 	out->Bands = rtiff->samples_per_pixel; 
-	if( (out->BandFmt = guess_format( rtiff )) == VIPS_FORMAT_NOTSET )
+	out->BandFmt = guess_format( rtiff );
+	if( out->BandFmt == VIPS_FORMAT_NOTSET )
 		return( -1 ); 
 	out->Coding = VIPS_CODING_NONE; 
 
@@ -957,15 +961,21 @@ static int
 parse_copy( ReadTiff *rtiff, VipsImage *out )
 {
 	out->Bands = rtiff->samples_per_pixel; 
-	if( (out->BandFmt = guess_format( rtiff )) == VIPS_FORMAT_NOTSET )
+	out->BandFmt = guess_format( rtiff );
+	if( out->BandFmt == VIPS_FORMAT_NOTSET )
 		return( -1 ); 
 	out->Coding = VIPS_CODING_NONE; 
 
 	if( rtiff->samples_per_pixel >= 3 &&
 		(rtiff->photometric_interpretation == PHOTOMETRIC_RGB ||
 		 rtiff->photometric_interpretation == PHOTOMETRIC_YCBCR) ) {
-		if( rtiff->bits_per_sample == 16 )
+		if( out->BandFmt == VIPS_FORMAT_USHORT )
 			out->Type = VIPS_INTERPRETATION_RGB16; 
+		else if( !vips_band_format_isint( out->BandFmt ) )
+			/* Most float images use 0 - 1 for black - white.
+			 * Photoshop uses 0 - 1 and no gamma. 
+			 */
+			out->Type = VIPS_INTERPRETATION_scRGB; 
 		else
 			out->Type = VIPS_INTERPRETATION_sRGB; 
 	}

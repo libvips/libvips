@@ -22,6 +22,7 @@
 - added VIPS_COUNT_PIXELS(), overcomputation tracking
 - @out_format in vips_system() can contain [options]
 - webpsave_buffer no longer ignores @lossless, thanks aaron42net
+- float tiff tagged as scRGB to match photoshop convention, thanks Murat
 
 24/3/16 started 8.2.4
 - fix nohalo and vsqbs interpolators, thanks Rafael
