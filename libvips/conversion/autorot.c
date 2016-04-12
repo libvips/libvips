@@ -2,6 +2,8 @@
  *
  * 19/10/14
  * 	- from jpegload
+ * 12/4/16
+ * 	- test and remove orientation from every ifd
  */
 
 /*
@@ -53,34 +55,26 @@ typedef VipsConversionClass VipsAutorotClass;
 
 G_DEFINE_TYPE( VipsAutorot, vips_autorot, VIPS_TYPE_CONVERSION );
 
-#define ORIENTATION ("exif-ifd0-Orientation")
-
-/**
- * vips_autorot_get_angle:
- * @im: image to fetch orientation from
- *
- * Examine the metadata on @im and return the #VipsAngle to rotate by to turn
- * the image upright. 
- *
- * See also: vips_autorot(). 
- *
- * Returns: the #VipsAngle to rotate by to make the image upright.
- */
-VipsAngle
-vips_autorot_get_angle( VipsImage *im )
+static void *
+vips_autorot_get_angle_sub( VipsImage *image, 
+	const char *field, GValue *value, void *my_data )
 {
-	VipsAngle angle;
+	VipsAngle *angle = (VipsAngle *) my_data;
+
 	const char *orientation;
 
-	angle = VIPS_ANGLE_D0;
-	if( vips_image_get_typeof( im, ORIENTATION ) &&
-		!vips_image_get_string( im, ORIENTATION, &orientation ) ) {
+	if( vips_isprefix( "exif-", field ) &&
+		vips_ispostfix( "-Orientation", field ) &&
+		!vips_image_get_string( image, field, &orientation ) ) {
 		if( vips_isprefix( "6", orientation ) )
-			angle = VIPS_ANGLE_D90;
+			*angle = VIPS_ANGLE_D90;
 		else if( vips_isprefix( "8", orientation ) )
-			angle = VIPS_ANGLE_D270;
+			*angle = VIPS_ANGLE_D270;
 		else if( vips_isprefix( "3", orientation ) )
-			angle = VIPS_ANGLE_D180;
+			*angle = VIPS_ANGLE_D180;
+		else
+			*angle = VIPS_ANGLE_D0;
+
 		/* Other values do rotate + mirror, don't bother handling them
 		 * though, how common can mirroring be.
 		 *
@@ -90,7 +84,54 @@ vips_autorot_get_angle( VipsImage *im )
 		 */
 	}
 
+	return( NULL );
+}
+
+/**
+ * vips_autorot_get_angle:
+ * @image: image to fetch orientation from
+ *
+ * Examine the metadata on @im and return the #VipsAngle to rotate by to turn
+ * the image upright. 
+ *
+ * See also: vips_autorot(). 
+ *
+ * Returns: the #VipsAngle to rotate by to make the image upright.
+ */
+VipsAngle
+vips_autorot_get_angle( VipsImage *image )
+{
+	VipsAngle angle;
+
+	angle = VIPS_ANGLE_D0;
+	(void) vips_image_map( image, vips_autorot_get_angle_sub, &angle );
+
 	return( angle );
+}
+
+static void *
+vips_autorot_remove_angle_sub( VipsImage *image, 
+	const char *field, GValue *value, void *my_data )
+{
+	if( vips_isprefix( "exif-", field ) &&
+		vips_ispostfix( "-Orientation", field ) )
+		(void) vips_image_remove( image, field );
+
+	return( NULL );
+}
+
+/**
+ * vips_autorot_remove_angle:
+ * @im: image to remove orientation from
+ *
+ * Remove any EXIF tag on @im which looks like orientation.
+ *
+ * See also: vips_autorot_get_angle(). 
+ */
+static void
+vips_autorot_remove_angle( VipsImage *image )
+{
+	(void) vips_image_map( image, vips_autorot_remove_angle_sub, NULL );
 }
 
 static int
@@ -106,11 +147,11 @@ vips_autorot_build( VipsObject *object )
 	g_object_set( object, 
 		"angle", vips_autorot_get_angle( autorot->in ),
 		NULL ); 
-	autorot->angle = vips_autorot_get_angle( autorot->in );
-	if( vips_rot( autorot->in, &t[0], autorot->angle, NULL ) ||
-		vips_image_write( t[0], conversion->out ) )
+	if( vips_rot( autorot->in, &t[0], autorot->angle, NULL ) )
 		return( -1 );
-	(void) vips_image_remove( conversion->out, ORIENTATION );
+	vips_autorot_remove_angle( t[0] ); 
+	if( vips_image_write( t[0], conversion->out ) )
+		return( -1 );
 
 	return( 0 );
 }
