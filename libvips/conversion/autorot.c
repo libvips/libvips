@@ -33,6 +33,10 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -64,7 +68,7 @@ vips_autorot_get_angle_sub( VipsImage *image,
 	const char *orientation;
 
 	if( vips_isprefix( "exif-", field ) &&
-		vips_ispostfix( "-Orientation", field ) &&
+		vips_ispostfix( field, "-Orientation" ) &&
 		!vips_image_get_string( image, field, &orientation ) ) {
 		if( vips_isprefix( "6", orientation ) )
 			*angle = VIPS_ANGLE_D90;
@@ -82,6 +86,10 @@ vips_autorot_get_angle_sub( VipsImage *image,
 		 *
 		 * http://www.80sidea.com/archives/2316
 		 */
+
+		/* Stop searching.
+		 */
+		return( image ); 
 	}
 
 	return( NULL );
@@ -106,6 +114,10 @@ vips_autorot_get_angle( VipsImage *image )
 	angle = VIPS_ANGLE_D0;
 	(void) vips_image_map( image, vips_autorot_get_angle_sub, &angle );
 
+#ifdef DEBUG
+	printf( "vips_autorot_get_angle: %d\n", angle ); 
+#endif /*DEBUG*/
+
 	return( angle );
 }
 
@@ -114,8 +126,13 @@ vips_autorot_remove_angle_sub( VipsImage *image,
 	const char *field, GValue *value, void *my_data )
 {
 	if( vips_isprefix( "exif-", field ) &&
-		vips_ispostfix( "-Orientation", field ) )
+		vips_ispostfix( field, "-Orientation" ) ) {
+#ifdef DEBUG
+		printf( "vips_autorot_remove_angle: %s\n", field ); 
+#endif /*DEBUG*/
+
 		(void) vips_image_remove( image, field );
+	}
 
 	return( NULL );
 }
@@ -128,7 +145,7 @@ vips_autorot_remove_angle_sub( VipsImage *image,
  *
  * See also: vips_autorot_get_angle(). 
  */
-static void
+void
 vips_autorot_remove_angle( VipsImage *image )
 {
 	(void) vips_image_map( image, vips_autorot_remove_angle_sub, NULL );

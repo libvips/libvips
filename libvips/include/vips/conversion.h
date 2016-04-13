@@ -127,6 +127,7 @@ int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 int vips_rot45( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 VipsAngle vips_autorot_get_angle( VipsImage *image );
+void vips_autorot_remove_angle( VipsImage *image );
 int vips_autorot( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_zoom( VipsImage *in, VipsImage **out, int xfac, int yfac, ... )

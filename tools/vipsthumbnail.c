@@ -93,8 +93,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#define ORIENTATION ("exif-ifd0-Orientation")
-
 /* Default settings. We change the default to bicubic in main() if
  * this vips has been compiled with bicubic support.
  */
@@ -582,6 +580,9 @@ thumbnail_rotate( VipsObject *process, VipsImage *im )
 
 	if( rotate_image &&
 		angle != VIPS_ANGLE_D0 ) {
+		vips_info( "vipsthumbnail", "rotating by %s", 
+			vips_enum_nick( VIPS_TYPE_ANGLE, angle ) ); 
+
 		/* Need to copy to memory, we have to stay seq.
 		 */
 		t[0] = vips_image_new_memory();
@@ -590,7 +591,7 @@ thumbnail_rotate( VipsObject *process, VipsImage *im )
 			return( NULL ); 
 		im = t[1];
 
-		(void) vips_image_remove( im, ORIENTATION );
+		vips_autorot_remove_angle( im );
 	}
 
 	return( im );

@@ -49,7 +49,7 @@
  * 24/11/11
  * 	- turn into a set of write fns ready to be called from a class
  * 7/8/12
- * 	- use VIPS_META_RESOLUTION_UNIT to select resoltuion unit
+ * 	- use VIPS_META_RESOLUTION_UNIT to select resolution unit
  * 16/11/12
  * 	- read ifds from exif fields 
  * 	- optionally parse rationals as a/b
@@ -72,6 +72,8 @@
  * 	- set arbitrary exif tags from metadata
  * 25/11/15	
  * 	- don't write JFIF headers if we are stripping, thanks Benjamin
+ * 13/4/16
+ * 	- remove deleted exif fields more carefully
  */
 
 /*
@@ -626,12 +628,87 @@ vips_exif_image_field( VipsImage *image,
 	return( NULL ); 
 }
 
+typedef struct _VipsExif {
+	VipsImage *image;
+	ExifData *ed;
+	ExifContent *content;
+	GSList *to_remove;
+} VipsExif;
+
+static void
+vips_exif_exif_entry( ExifEntry *entry, VipsExif *ve )
+{
+	const char *tag_name;
+	char vips_name_txt[256];
+	VipsBuf vips_name = VIPS_BUF_STATIC( vips_name_txt );
+
+	if( !(tag_name = exif_tag_get_name( entry->tag )) )
+		return;
+
+	vips_buf_appendf( &vips_name, "exif-ifd%d-%s", 
+		exif_entry_get_ifd( entry ), tag_name );
+
+	/* Does this field exist on the image? If not, schedule it for
+	 * removal.
+	 */
+	if( !vips_image_get_typeof( ve->image, vips_buf_all( &vips_name ) ) ) 
+		ve->to_remove = g_slist_prepend( ve->to_remove, entry );
+}
+
+static void *
+vips_exif_exif_remove( ExifEntry *entry, VipsExif *ve )
+{
+#ifdef DEBUG
+{
+	const char *tag_name;
+	char vips_name_txt[256];
+	VipsBuf vips_name = VIPS_BUF_STATIC( vips_name_txt );
+
+	tag_name = exif_tag_get_name( entry->tag );
+	vips_buf_appendf( &vips_name, "exif-ifd%d-%s", 
+		exif_entry_get_ifd( entry ), tag_name );
+
+	printf( "vips_exif_exif_remove: %s\n", vips_buf_all( &vips_name ) );
+}
+#endif /*DEBUG*/
+
+	exif_content_remove_entry( ve->content, entry );
+
+	return( NULL );
+}
+
+static void
+vips_exif_exif_content( ExifContent *content, VipsExif *ve )
+{
+	ve->content = content;
+	ve->to_remove = NULL;
+        exif_content_foreach_entry( content, 
+		(ExifContentForeachEntryFunc) vips_exif_exif_entry, ve );
+	vips_slist_map2( ve->to_remove,
+		(VipsSListMap2Fn) vips_exif_exif_remove, ve, NULL );
+	VIPS_FREEF( g_slist_free, ve->to_remove );
+}
+
 static void
 vips_exif_update( ExifData *ed, VipsImage *image )
 {
+	VipsExif ve;
+
 	VIPS_DEBUG_MSG( "vips_exif_update: \n" );
 
+	/* Walk the image and update any stuff that's been changed in image
+	 * metadata.
+	 */
 	vips_image_map( image, vips_exif_image_field, ed );
+
+	/* Walk the exif and look for any fields which are NOT in image
+	 * metadata. They must have been removed ... remove them from exif as
+	 * well.
+	 */
+	ve.image = image;
+	ve.ed = ed;
+	exif_data_foreach_content( ed, 
+		(ExifDataForeachContentFunc) vips_exif_exif_content, &ve );
 }
 
 #endif /*HAVE_EXIF*/
@@ -667,9 +744,7 @@ write_blob( Write *write, const char *field, int app )
 #endif /*DEBUG*/
 
 			jpeg_write_marker( &write->cinfo, app, 
-				data, data_length );
-		}
-	}
+				data, data_length ); } }
 
 	return( 0 );
 }
