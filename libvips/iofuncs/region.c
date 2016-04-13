@@ -246,7 +246,7 @@ vips__region_start( VipsRegion *region )
 void
 vips__region_stop( VipsRegion *region )
 {
-	IMAGE *image = region->im;
+	VipsImage *image = region->im;
 
         if( region->seq && image->stop_fn ) {
 		int result;
@@ -1390,7 +1390,7 @@ static int
 vips_region_prepare_to_generate( VipsRegion *reg, 
 	VipsRegion *dest, VipsRect *r, int x, int y )
 {
-	IMAGE *im = reg->im;
+	VipsImage *im = reg->im;
 	VipsPel *p;
 
 	if( !im->generate_fn ) {

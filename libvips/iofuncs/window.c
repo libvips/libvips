@@ -131,7 +131,7 @@ vips_window_free( VipsWindow *window )
 int
 vips_window_unref( VipsWindow *window )
 {
-	IMAGE *im = window->im;
+	VipsImage *im = window->im;
 
 	g_mutex_lock( im->sslock );
 
@@ -269,7 +269,7 @@ vips_window_set( VipsWindow *window, int top, int height )
 /* Make a new window.
  */
 static VipsWindow *
-vips_window_new( IMAGE *im, int top, int height )
+vips_window_new( VipsImage *im, int top, int height )
 {
 	VipsWindow *window;
 
@@ -320,7 +320,7 @@ vips_window_fits( VipsWindow *window, request_t *req )
 /* Find an existing window that fits within top/height and return a ref.
  */
 static VipsWindow *
-vips_window_find( IMAGE *im, int top, int height )
+vips_window_find( VipsImage *im, int top, int height )
 {
 	request_t req;
 	VipsWindow *window;
@@ -346,7 +346,7 @@ vips_window_find( IMAGE *im, int top, int height )
 /* Return a ref to a window that encloses top/height.
  */
 VipsWindow *
-vips_window_ref( IMAGE *im, int top, int height )
+vips_window_ref( VipsImage *im, int top, int height )
 {
 	VipsWindow *window;
 
