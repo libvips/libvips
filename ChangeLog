@@ -1,3 +1,6 @@
+15/4/16 started 8.3.1
+- rename vips wrapper script, it was still vips-8.2, thanks Benjamin
+
 29/1/16 started 8.3
 - add vips_reduce*() ... a fast path for affine downsize
 - vips_resize() uses vips_reduce() with lanczos3 
