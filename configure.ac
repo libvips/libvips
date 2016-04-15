@@ -555,7 +555,7 @@ if test x"$with_poppler" != x"no"; then
      with_poppler=yes
      PACKAGES_USED="$PACKAGES_USED poppler-glib cairo"
     ],
-    [AC_MSG_WARN([poppler-glib >= 0.40.0 or cairo >= 1.2 not found; disabling PDF load via poppler])
+    [AC_MSG_WARN([poppler-glib >= 0.30.0 or cairo >= 1.2 not found; disabling PDF load via poppler])
      with_poppler=no
     ]
   )
