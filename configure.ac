@@ -488,6 +488,19 @@ if test x"$with_magick" != "xno"; then
   LIBS=$save_LIBS
 fi
 
+if test x"$with_magick" != "xno"; then
+  # do we have number_scenes in image_info ... imagemagick uses this, gm
+  # still uses subrange
+  save_CFLAGS=$CFLAGS
+  CFLAGS="$CFLAGS $MAGICK_CFLAGS"
+  AC_CHECK_MEMBER([struct _ImageInfo.number_scenes],
+    AC_DEFINE(HAVE_NUMBER_SCENES,1,
+	      [define if your magick has ImageInfo.number_scenes.]),
+    [],
+    [#include <magick/api.h>])
+  CFLAGS=$save_CFLAGS
+fi
+
 # orc
 AC_ARG_WITH([orc], 
   AS_HELP_STRING([--without-orc], [build without orc (default: test)]))

@@ -49,6 +49,8 @@
  * 	  fd during file read, handy for large numbers of input images 
  * 14/2/16
  * 	- add @page option, 0 by default
+ * 18/4/16
+ * 	- fix @page with graphicsmagick
  */
 
 /*
@@ -217,16 +219,24 @@ read_new( const char *filename, VipsImage *im,
 #endif /*HAVE_SETIMAGEOPTION*/
 
 	if( !all_frames ) {
+#ifdef HAVE_NUMBER_SCENES 
+		 /* I can't find docs for these fields, but this seems to work.
+		  */
 		char page[256];
 
-		/* Just pick a specific page.
-		 *
-		 * I can't find docs for these fields, but this seems to work.
-		 */
 		read->image_info->scene = read->page;
 		read->image_info->number_scenes = 1;
+
+		/* Some IMs must have the string version set as well.
+		 */
 		vips_snprintf( page, 256, "%d", read->page );
 		read->image_info->scenes = strdup( page );
+#else /*!HAVE_NUMBER_SCENES*/
+		/* This works with GM 1.2.31 and probably others.
+		 */
+		read->image_info->subimage = read->page;
+		read->image_info->subrange = 1;
+#endif
 	}
 
 #ifdef DEBUG
