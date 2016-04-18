@@ -964,6 +964,7 @@ file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
 file import/export with libtiff:	$with_tiff
 file import/export with giflib:		$with_giflib
+  (requires libgif-4.x)
 file import/export with libjpeg:	$with_jpeg
 image pyramid export:			$with_gsf
   (requires libgsf-1 1.14.27 or later)

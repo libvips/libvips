@@ -187,6 +187,8 @@ If available, libvips adds support for EXIF metadata in JPEG files.
 The standard gif loader. If this is not present, vips will try to load gifs
 via imagemagick instead.
 
+vips will only work with giflib 4. 
+
 ### librsvg
 
 The usual SVG loader. If this is not present, vips will try to load SVGs
