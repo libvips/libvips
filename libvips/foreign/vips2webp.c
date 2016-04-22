@@ -53,77 +53,102 @@
 
 #include "webp.h"
 
-typedef size_t (*webp_encoder)( const uint8_t *rgb, 
-	int width, int height, int stride, 
-	float quality_factor, uint8_t **output );
+typedef int (*webp_import)( WebPPicture *picture,
+	const uint8_t *rgb, int stride );
 
-typedef size_t (*webp_encoder_lossless)( const uint8_t *rgb, 
-	int width, int height, int stride, uint8_t **output );
+static int
+write_webp( WebPPicture *pic, VipsImage *in,
+	int Q, gboolean lossless )
+{
+	VipsImage *memory;
+	WebPConfig config;
+	webp_import import;
+
+	if ( !WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, Q) ) {
+		vips_error( "vips2webp",
+			"%s", _( "config version error" ) );
+		return( -1 );
+	}
+
+	config.lossless = lossless;
+
+	if( !WebPValidateConfig(&config) ) {
+		vips_error( "vips2webp",
+			"%s", _( "invalid configuration" ) );
+		return( -1 );
+	}
+
+	if( !(memory = vips_image_copy_memory( in )) )
+		return( -1 );
+
+	pic->use_argb = lossless;
+	pic->width = memory->Xsize;
+	pic->height = memory->Ysize;
+
+	if( in->Bands == 4 )
+		import = WebPPictureImportRGBA;
+	else
+		import = WebPPictureImportRGB;
+
+	if( !import( pic, VIPS_IMAGE_ADDR( memory, 0, 0 ),
+		VIPS_IMAGE_SIZEOF_LINE( memory ) ) ) {
+		VIPS_UNREF( memory );
+		vips_error( "vips2webp",
+			"%s", _( "picture memory error" ) );
+		return( -1 );
+	}
+
+	if( !WebPEncode( &config, pic ) ) {
+		VIPS_UNREF( memory );
+		vips_error( "vips2webp",
+			"%s", _( "unable to encode" ) );
+		return( -1 );
+	}
+
+	VIPS_UNREF( memory );
+
+	return( 0 );
+}
 
 int
 vips__webp_write_file( VipsImage *in, const char *filename, 
 	int Q, gboolean lossless )
 {
-	VipsImage *memory;
-	size_t len;
-	uint8_t *buffer;
+	WebPPicture pic;
+	WebPMemoryWriter writer;
 	FILE *fp;
 
-	if( !(memory = vips_image_copy_memory( in )) )
+	if( !WebPPictureInit( &pic ) ) {
+		vips_error( "vips2webp",
+			"%s", _( "picture version error" ) );
 		return( -1 );
-
-	if( lossless ) {
-		webp_encoder_lossless encoder;
-
-		if( in->Bands == 4 )
-			encoder = WebPEncodeLosslessRGBA;
-		else
-			encoder = WebPEncodeLosslessRGB;
-
-		if( !(len = encoder( VIPS_IMAGE_ADDR( memory, 0, 0 ), 
-			memory->Xsize, memory->Ysize, 
-			VIPS_IMAGE_SIZEOF_LINE( memory ),
-			&buffer )) ) {
-			VIPS_UNREF( memory ); 
-			vips_error( "vips2webp", 
-				"%s", _( "unable to encode" ) ); 
-			return( -1 );
-		}
-	}
-	else {
-		webp_encoder encoder;
-
-		if( in->Bands == 4 )
-			encoder = WebPEncodeRGBA;
-		else
-			encoder = WebPEncodeRGB;
-
-		if( !(len = encoder( VIPS_IMAGE_ADDR( memory, 0, 0 ), 
-			memory->Xsize, memory->Ysize, 
-			VIPS_IMAGE_SIZEOF_LINE( memory ),
-			Q, &buffer )) ) {
-			VIPS_UNREF( memory ); 
-			vips_error( "vips2webp", 
-				"%s", _( "unable to encode" ) ); 
-			return( -1 );
-		}
 	}
 
-	VIPS_UNREF( memory ); 
+	WebPMemoryWriterInit( &writer );
+	pic.writer = WebPMemoryWrite;
+	pic.custom_ptr = &writer;
+
+	if( write_webp( &pic, in, Q, lossless ) ) {
+		WebPPictureFree( &pic );
+		WebPMemoryWriterClear( &writer );
+		return -1;
+	}
+
+	WebPPictureFree( &pic );
 
 	if( !(fp = vips__file_open_write( filename, FALSE )) ) {
-		free( buffer );
+		WebPMemoryWriterClear( &writer );
 		return( -1 );
 	}
 
-	if( vips__file_write( buffer, len, 1, fp ) ) {
+	if( vips__file_write( writer.mem, writer.size, 1, fp ) ) {
 		fclose( fp );
-		free( buffer );
+		WebPMemoryWriterClear( &writer );
 		return( -1 );
 	}
 
 	fclose( fp );
-	free( buffer );
+	WebPMemoryWriterClear( &writer );
 
 	return( 0 );
 }
@@ -132,49 +157,30 @@ int
 vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen, 
 	int Q, gboolean lossless )
 {
-	VipsImage *memory;
+	WebPPicture pic;
+	WebPMemoryWriter writer;
+	FILE *fp;
 
-	if( !(memory = vips_image_copy_memory( in )) )
+	if( !WebPPictureInit( &pic ) ) {
+		vips_error( "vips2webp", 
+			"%s", _( "picture version error" ) );
 		return( -1 );
-
-	if( lossless ) {
-		webp_encoder_lossless encoder;
-
-		if( in->Bands == 4 )
-			encoder = WebPEncodeLosslessRGBA;
-		else
-			encoder = WebPEncodeLosslessRGB;
-
-		if( !(*olen = encoder( VIPS_IMAGE_ADDR( memory, 0, 0 ), 
-			memory->Xsize, memory->Ysize, 
-			VIPS_IMAGE_SIZEOF_LINE( memory ),
-			(uint8_t **) obuf )) ) {
-			VIPS_UNREF( memory ); 
-			vips_error( "vips2webp", 
-				"%s", _( "unable to encode" ) ); 
-			return( -1 );
-		}
-	}
-	else {
-		webp_encoder encoder;
-
-		if( in->Bands == 4 )
-			encoder = WebPEncodeRGBA;
-		else
-			encoder = WebPEncodeRGB;
-
-		if( !(*olen = encoder( VIPS_IMAGE_ADDR( memory, 0, 0 ), 
-			memory->Xsize, memory->Ysize, 
-			VIPS_IMAGE_SIZEOF_LINE( memory ),
-			Q, (uint8_t **) obuf )) ) {
-			VIPS_UNREF( memory ); 
-			vips_error( "vips2webp", 
-				"%s", _( "unable to encode" ) ); 
-			return( -1 );
-		}
 	}
 
-	VIPS_UNREF( memory );
+	WebPMemoryWriterInit( &writer );
+	pic.writer = WebPMemoryWrite;
+	pic.custom_ptr = &writer;
+
+	if( write_webp( &pic, in, Q, lossless ) ) {
+		WebPPictureFree( &pic );
+		WebPMemoryWriterClear( &writer );
+		return -1;
+	}
+
+	WebPPictureFree( &pic );
+
+	*obuf = writer.mem;
+	*olen = writer.size;
 
 	return( 0 );
 }
