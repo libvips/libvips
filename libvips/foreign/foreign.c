@@ -2458,6 +2458,8 @@ vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Optional arguments:
  *
  * @Q: quality factor
+ * @lossless: enables lossless compression
+ * @preset: #VipsForeignWebpPreset choose lossy compression preset
  *
  * See also: vips_webpload(), vips_image_write_to_file().
  *
@@ -2486,6 +2488,8 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  * Optional arguments:
  *
  * @Q: JPEG quality factor
+ * @lossless: enables lossless compression
+ * @preset: #VipsForeignWebpPreset choose lossy compression preset
  *
  * See also: vips_webpsave().
  *

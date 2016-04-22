@@ -60,6 +60,10 @@ typedef struct _VipsForeignSaveWebp {
 	 */
 	gboolean lossless;
 
+	/* Lossy compression preset.
+	 */
+	VipsForeignWebpPreset preset;
+
 } VipsForeignSaveWebp;
 
 typedef VipsForeignSaveClass VipsForeignSaveWebpClass;
@@ -109,6 +113,14 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, lossless ),
 		FALSE ); 
 
+	VIPS_ARG_ENUM( class, "preset", 12,
+		_( "preset" ),
+		_( "Preset for lossy compression" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, preset ),
+		VIPS_TYPE_FOREIGN_WEBP_PRESET,
+		VIPS_FOREIGN_WEBP_PRESET_DEFAULT );
+
 }
 
 static void
@@ -143,7 +155,7 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__webp_write_file( save->ready, file->filename, 
-		webp->Q, webp->lossless ) )
+		webp->Q, webp->lossless, webp->preset ) )
 		return( -1 );
 
 	return( 0 );
@@ -205,7 +217,7 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
-		webp->Q, webp->lossless ) )
+		webp->Q, webp->lossless, webp->preset ) )
 		return( -1 );
 
 	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );
@@ -266,7 +278,7 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
-		webp->Q, webp->lossless ) )
+		webp->Q, webp->lossless, webp->preset ) )
 		return( -1 );
 
 	printf( "Content-length: %zu\r\n", olen );

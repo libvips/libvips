@@ -56,15 +56,41 @@
 typedef int (*webp_import)( WebPPicture *picture,
 	const uint8_t *rgb, int stride );
 
+static WebPPreset
+get_preset( VipsForeignWebpPreset preset )
+{
+	switch( preset ) {
+	case VIPS_FOREIGN_WEBP_PRESET_DEFAULT:
+		return( WEBP_PRESET_DEFAULT );
+	case VIPS_FOREIGN_WEBP_PRESET_PICTURE:
+		return( WEBP_PRESET_PICTURE );
+	case VIPS_FOREIGN_WEBP_PRESET_PHOTO:
+		return( WEBP_PRESET_PHOTO );
+	case VIPS_FOREIGN_WEBP_PRESET_DRAWING:
+		return( WEBP_PRESET_DRAWING );
+	case VIPS_FOREIGN_WEBP_PRESET_ICON:
+		return( WEBP_PRESET_ICON );
+	case VIPS_FOREIGN_WEBP_PRESET_TEXT:
+		return( WEBP_PRESET_TEXT );
+
+	default:
+		g_assert_not_reached();
+	}
+
+	/* Keep -Wall happy.
+	 */
+	return( -1 );
+}
+
 static int
 write_webp( WebPPicture *pic, VipsImage *in,
-	int Q, gboolean lossless )
+	int Q, gboolean lossless, VipsForeignWebpPreset preset )
 {
 	VipsImage *memory;
 	WebPConfig config;
 	webp_import import;
 
-	if ( !WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, Q) ) {
+	if ( !WebPConfigPreset(&config, get_preset( preset ), Q) ) {
 		vips_error( "vips2webp",
 			"%s", _( "config version error" ) );
 		return( -1 );
@@ -112,7 +138,7 @@ write_webp( WebPPicture *pic, VipsImage *in,
 
 int
 vips__webp_write_file( VipsImage *in, const char *filename, 
-	int Q, gboolean lossless )
+	int Q, gboolean lossless, VipsForeignWebpPreset preset )
 {
 	WebPPicture pic;
 	WebPMemoryWriter writer;
@@ -128,7 +154,7 @@ vips__webp_write_file( VipsImage *in, const char *filename,
 	pic.writer = WebPMemoryWrite;
 	pic.custom_ptr = &writer;
 
-	if( write_webp( &pic, in, Q, lossless ) ) {
+	if( write_webp( &pic, in, Q, lossless, preset ) ) {
 		WebPPictureFree( &pic );
 		WebPMemoryWriterClear( &writer );
 		return -1;
@@ -155,7 +181,7 @@ vips__webp_write_file( VipsImage *in, const char *filename,
 
 int
 vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen, 
-	int Q, gboolean lossless )
+	int Q, gboolean lossless, VipsForeignWebpPreset preset )
 {
 	WebPPicture pic;
 	WebPMemoryWriter writer;
@@ -171,7 +197,7 @@ vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen,
 	pic.writer = WebPMemoryWrite;
 	pic.custom_ptr = &writer;
 
-	if( write_webp( &pic, in, Q, lossless ) ) {
+	if( write_webp( &pic, in, Q, lossless, preset ) ) {
 		WebPPictureFree( &pic );
 		WebPMemoryWriterClear( &writer );
 		return -1;

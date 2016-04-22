@@ -338,6 +338,29 @@ int vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 int vips_jpegsave_mime( VipsImage *in, ... )
 	__attribute__((sentinel));
 
+/**
+ * VipsForeignWebpPreset:
+ * @VIPS_FOREIGN_WEBP_PRESET_DEFAULT: default preset
+ * @VIPS_FOREIGN_WEBP_PRESET_PICTURE: digital picture, like portrait,
+ * inner shot
+ * @VIPS_FOREIGN_WEBP_PRESET_PHOTO: outdoor photograph, with natural lighting
+ * @VIPS_FOREIGN_WEBP_PRESET_DRAWING: hand or line drawing, with high-contrast
+ * details
+ * @VIPS_FOREIGN_WEBP_PRESET_ICON: small-sized colorful images
+ * @VIPS_FOREIGN_WEBP_PRESET_TEXT: text-like
+ *
+ * Tune lossy encoder settings for different image types.
+ */
+typedef enum {
+	VIPS_FOREIGN_WEBP_PRESET_DEFAULT,
+	VIPS_FOREIGN_WEBP_PRESET_PICTURE,
+	VIPS_FOREIGN_WEBP_PRESET_PHOTO,
+	VIPS_FOREIGN_WEBP_PRESET_DRAWING,
+	VIPS_FOREIGN_WEBP_PRESET_ICON,
+	VIPS_FOREIGN_WEBP_PRESET_TEXT,
+	VIPS_FOREIGN_WEBP_PRESET_LAST
+} VipsForeignWebpPreset;
+
 int vips_webpload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
