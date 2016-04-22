@@ -64,6 +64,10 @@ typedef struct _VipsForeignSaveWebp {
 	 */
 	VipsForeignWebpPreset preset;
 
+	/* Enable smart chroma subsampling.
+	 */
+	gboolean smart_subsample;
+
 } VipsForeignSaveWebp;
 
 typedef VipsForeignSaveClass VipsForeignSaveWebpClass;
@@ -121,6 +125,13 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		VIPS_TYPE_FOREIGN_WEBP_PRESET,
 		VIPS_FOREIGN_WEBP_PRESET_DEFAULT );
 
+	VIPS_ARG_BOOL( class, "smart_subsample", 13,
+		_( "Smart subsampling" ),
+		_( "Enable high quality chroma subsampling" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, smart_subsample ),
+		FALSE );
+
 }
 
 static void
@@ -155,7 +166,8 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__webp_write_file( save->ready, file->filename, 
-		webp->Q, webp->lossless, webp->preset ) )
+		webp->Q, webp->lossless, webp->preset,
+		webp->smart_subsample ) )
 		return( -1 );
 
 	return( 0 );
@@ -217,7 +229,8 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
-		webp->Q, webp->lossless, webp->preset ) )
+		webp->Q, webp->lossless, webp->preset,
+		webp->smart_subsample ) )
 		return( -1 );
 
 	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );
@@ -278,7 +291,8 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
-		webp->Q, webp->lossless, webp->preset ) )
+		webp->Q, webp->lossless, webp->preset,
+		webp->smart_subsample ) )
 		return( -1 );
 
 	printf( "Content-length: %zu\r\n", olen );

@@ -2460,6 +2460,7 @@ vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * @Q: quality factor
  * @lossless: enables lossless compression
  * @preset: #VipsForeignWebpPreset choose lossy compression preset
+ * @smart_subsample: enables high quality chroma subsampling
  *
  * See also: vips_webpload(), vips_image_write_to_file().
  *
@@ -2490,6 +2491,7 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  * @Q: JPEG quality factor
  * @lossless: enables lossless compression
  * @preset: #VipsForeignWebpPreset choose lossy compression preset
+ * @smart_subsample: enables high quality chroma subsampling
  *
  * See also: vips_webpsave().
  *

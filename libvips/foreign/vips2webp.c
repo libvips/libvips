@@ -84,7 +84,8 @@ get_preset( VipsForeignWebpPreset preset )
 
 static int
 write_webp( WebPPicture *pic, VipsImage *in,
-	int Q, gboolean lossless, VipsForeignWebpPreset preset )
+	int Q, gboolean lossless, VipsForeignWebpPreset preset,
+	gboolean smart_subsample )
 {
 	VipsImage *memory;
 	WebPConfig config;
@@ -97,6 +98,8 @@ write_webp( WebPPicture *pic, VipsImage *in,
 	}
 
 	config.lossless = lossless;
+	if( smart_subsample )
+		config.preprocessing |= 4;
 
 	if( !WebPValidateConfig(&config) ) {
 		vips_error( "vips2webp",
@@ -107,7 +110,10 @@ write_webp( WebPPicture *pic, VipsImage *in,
 	if( !(memory = vips_image_copy_memory( in )) )
 		return( -1 );
 
-	pic->use_argb = lossless;
+	/* Smart subsampling requires use_argb because
+	 * it is applied during RGB to YUV conversion.
+	 */
+	pic->use_argb = lossless || smart_subsample;
 	pic->width = memory->Xsize;
 	pic->height = memory->Ysize;
 
@@ -138,7 +144,8 @@ write_webp( WebPPicture *pic, VipsImage *in,
 
 int
 vips__webp_write_file( VipsImage *in, const char *filename, 
-	int Q, gboolean lossless, VipsForeignWebpPreset preset )
+	int Q, gboolean lossless, VipsForeignWebpPreset preset,
+	gboolean smart_subsample )
 {
 	WebPPicture pic;
 	WebPMemoryWriter writer;
@@ -154,7 +161,7 @@ vips__webp_write_file( VipsImage *in, const char *filename,
 	pic.writer = WebPMemoryWrite;
 	pic.custom_ptr = &writer;
 
-	if( write_webp( &pic, in, Q, lossless, preset ) ) {
+	if( write_webp( &pic, in, Q, lossless, preset, smart_subsample ) ) {
 		WebPPictureFree( &pic );
 		WebPMemoryWriterClear( &writer );
 		return -1;
@@ -181,7 +188,8 @@ vips__webp_write_file( VipsImage *in, const char *filename,
 
 int
 vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen, 
-	int Q, gboolean lossless, VipsForeignWebpPreset preset )
+	int Q, gboolean lossless, VipsForeignWebpPreset preset,
+	gboolean smart_subsample )
 {
 	WebPPicture pic;
 	WebPMemoryWriter writer;
@@ -197,7 +205,7 @@ vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen,
 	pic.writer = WebPMemoryWrite;
 	pic.custom_ptr = &writer;
 
-	if( write_webp( &pic, in, Q, lossless, preset ) ) {
+	if( write_webp( &pic, in, Q, lossless, preset, smart_subsample ) ) {
 		WebPPictureFree( &pic );
 		WebPMemoryWriterClear( &writer );
 		return -1;
