@@ -2497,6 +2497,12 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  * @near_lossless: use preprocessing in lossless mode (controlled by Q)
  * @alpha_q: set alpha quality in lossless mode
  *
+ * As vips_webpsave(), but save to a memory buffer.
+ *
+ * The address of the buffer is returned in @obuf, the length of the buffer in
+ * @olen. You are responsible for freeing the buffer with g_free() when you
+ * are done with it. The buffer is freed for you on error.
+ *
  * See also: vips_webpsave().
  *
  * Returns: 0 on success, -1 on error.
