@@ -85,7 +85,8 @@ get_preset( VipsForeignWebpPreset preset )
 static int
 write_webp( WebPPicture *pic, VipsImage *in,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
-	gboolean smart_subsample, gboolean near_lossless )
+	gboolean smart_subsample, gboolean near_lossless,
+	int alpha_q )
 {
 	VipsImage *memory;
 	WebPConfig config;
@@ -102,6 +103,7 @@ write_webp( WebPPicture *pic, VipsImage *in,
 		config.preprocessing |= 4;
 	if( near_lossless )
 		config.near_lossless = Q;
+	config.alpha_quality = alpha_q;
 
 	if( !WebPValidateConfig(&config) ) {
 		vips_error( "vips2webp",
@@ -147,7 +149,8 @@ write_webp( WebPPicture *pic, VipsImage *in,
 int
 vips__webp_write_file( VipsImage *in, const char *filename, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
-	gboolean smart_subsample, gboolean near_lossless )
+	gboolean smart_subsample, gboolean near_lossless,
+	int alpha_q )
 {
 	WebPPicture pic;
 	WebPMemoryWriter writer;
@@ -164,7 +167,7 @@ vips__webp_write_file( VipsImage *in, const char *filename,
 	pic.custom_ptr = &writer;
 
 	if( write_webp( &pic, in, Q, lossless, preset, smart_subsample,
-		near_lossless ) ) {
+		near_lossless, alpha_q ) ) {
 		WebPPictureFree( &pic );
 		WebPMemoryWriterClear( &writer );
 		return -1;
@@ -192,7 +195,8 @@ vips__webp_write_file( VipsImage *in, const char *filename,
 int
 vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
-	gboolean smart_subsample, gboolean near_lossless )
+	gboolean smart_subsample, gboolean near_lossless,
+	int alpha_q )
 {
 	WebPPicture pic;
 	WebPMemoryWriter writer;
@@ -209,7 +213,7 @@ vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen,
 	pic.custom_ptr = &writer;
 
 	if( write_webp( &pic, in, Q, lossless, preset, smart_subsample,
-		near_lossless) ) {
+		near_lossless, alpha_q ) ) {
 		WebPPictureFree( &pic );
 		WebPMemoryWriterClear( &writer );
 		return -1;
