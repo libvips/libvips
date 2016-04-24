@@ -6,6 +6,8 @@
  * 	- vips_image_write() didn't ref non-partial sources
  * 18/4/15
  * 	- add vips_image_copy_memory()
+ * 25/11/15
+ * 	- add vips_image_new_from_memory_copy()
  */
 
 /*
@@ -477,6 +479,24 @@ vips_image_dispose( GObject *gobject )
 	VipsImage *image = VIPS_IMAGE( gobject );
 
 	VIPS_DEBUG_MSG( "vips_image_dispose: %p\n", gobject );
+
+#ifdef DEBUG_LEAK
+{
+	VipsImagePixels *pixels = g_object_get_qdata( G_OBJECT( image ), 
+		vips__image_pixels_quark ); 
+
+	if( pixels &&
+		pixels->tpels ) {
+		int compute_percent = 100.0 * pixels->npels / pixels->tpels;
+
+		if( compute_percent > 100 ) 
+			printf( "vips_image_dispose: %s %s computed %d%%\n", 
+				image->filename, 
+				pixels->nickname, 
+				compute_percent );
+	}
+}
+#endif /*DEBUG_LEAK*/
 
 	vips_object_preclose( VIPS_OBJECT( gobject ) );
 
@@ -1117,21 +1137,21 @@ vips_image_class_init( VipsImageClass *class )
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Xsize ),
-		1, 1000000000, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "height", 3, 
 		_( "Height" ), 
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Ysize ),
-		1, 1000000000, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "bands", 4, 
 		_( "Bands" ), 
 		_( "Number of bands in image" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Bands ),
-		1, 1000000000, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_ENUM( class, "format", 5, 
 		_( "Format" ), 
@@ -1173,14 +1193,14 @@ vips_image_class_init( VipsImageClass *class )
 		_( "Horizontal offset of origin" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Xoffset ),
-		-1000000, 1000000, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "yoffset", 11, 
 		_( "Yoffset" ), 
 		_( "Vertical offset of origin" ),
 		VIPS_ARGUMENT_SET_ALWAYS,
 		G_STRUCT_OFFSET( VipsImage, Yoffset ),
-		-1000000, 1000000, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_STRING( class, "filename", 12, 
 		_( "Filename" ),
@@ -1366,6 +1386,11 @@ vips_image_init( VipsImage *image )
 	image->sizeof_header = VIPS_SIZEOF_HEADER;
 
 	image->mode = g_strdup( "p" );
+
+#ifdef DEBUG_LEAK
+	g_object_set_qdata_full( G_OBJECT( image ), vips__image_pixels_quark, 
+		g_new0( VipsImagePixels, 1 ), (GDestroyNotify) g_free ); 
+#endif /*DEBUG_LEAK*/
 }
 
 int
@@ -1415,6 +1440,8 @@ vips_image_invalidate_all_cb( VipsImage *image )
 void
 vips_image_invalidate_all( VipsImage *image )
 {
+	VIPS_DEBUG_MSG( "vips_image_invalidate_all: %p\n", image );
+
 	(void) vips__link_map( image, FALSE,
 		(VipsSListMap2Fn) vips_image_invalidate_all_cb, NULL, NULL );
 }
@@ -1979,9 +2006,15 @@ vips_image_new_from_file_raw( const char *filename,
  * responsibility for the area of memory, it's up to you to make sure it's
  * freed when the image is closed. See for example #VipsObject::close.
  *
+ * Because VIPS is "borrowing" @data from the caller, this function is
+ * extremely dangerous. Unless you are very careful, you will get crashes or
+ * memory corruption. Use vips_image_new_from_memory_copy() instead if you are
+ * at all unsure. 
+ *
  * Use vips_copy() to set other image properties. 
  *
- * See also: vips_image_new(), vips_image_write_to_memory().
+ * See also: vips_image_new(), vips_image_write_to_memory(),
+ * vips_image_new_from_memory_copy().
  *
  * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
@@ -2014,12 +2047,60 @@ vips_image_new_from_memory( const void *data, size_t size,
 	if( size > 0 && 
 		size < VIPS_IMAGE_SIZEOF_IMAGE( image ) ) {
 		vips_error( "VipsImage",
-			_( "buffer too small --- "
+			_( "memory area too small --- "
 				"should be %zd bytes, you passed %zd" ),
 			VIPS_IMAGE_SIZEOF_IMAGE( image ), size ); 
 		VIPS_UNREF( image );
 		return( NULL );
 	}
+
+	return( image );
+}
+
+static void
+vips_image_new_from_memory_copy_cb( VipsImage *image, void *data_copy )
+{
+	vips_tracked_free( data_copy );
+}
+
+/**
+ * vips_image_new_from_memory_copy:
+ * @data: (array length=size) (element-type guint8) (transfer none): start of memory area
+ * @size: length of memory area
+ * @width: image width
+ * @height: image height
+ * @bands: image bands (or bytes per pixel)
+ * @format: image format
+ *
+ * Like vips_image_new_from_memory(), but VIPS will make a copy of the memory 
+ * area. This
+ * means more memory use and an extra copy operation, but is much simpler and
+ * safer. 
+ *
+ * See also: vips_image_new_from_memory().
+ *
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_from_memory_copy( const void *data, size_t size,
+	int width, int height, int bands, VipsBandFormat format )
+{
+	void *data_copy;
+	VipsImage *image;
+
+	vips_check_init();
+
+	if( !(data_copy = vips_tracked_malloc( size )) )
+		return( NULL );
+	memcpy( data_copy, data, size );
+	if( !(image = vips_image_new_from_memory( data_copy, size, 
+		width, height, bands, format )) ) {
+		vips_tracked_free( data_copy );
+		return( NULL );
+	}
+
+	g_signal_connect( image, "close", 
+		G_CALLBACK( vips_image_new_from_memory_copy_cb ), data_copy );
 
 	return( image );
 }
@@ -2032,8 +2113,8 @@ vips_image_new_from_memory( const void *data, size_t size,
  * @...: %NULL-terminated list of optional named arguments
  *
  * Loads an image from the formatted area of memory @buf, @len using the 
- * loader recommended by vips_foreign_find_load_buffer(). Only TIFF, PNG and 
- * JPEG formats are supported. To load an unformatted area of memory, use
+ * loader recommended by vips_foreign_find_load_buffer(). 
+ * To load an unformatted area of memory, use
  * vips_image_new_from_memory(). 
  *
  * VIPS does not take
@@ -3326,8 +3407,8 @@ vips_band_format_isint( VipsBandFormat format )
 		return( FALSE );
 
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
+		return( FALSE );
 	}
 }
 
@@ -3344,7 +3425,7 @@ vips_band_format_isuint( VipsBandFormat format )
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_USHORT:
 	case VIPS_FORMAT_UINT:
-		return( 1 );
+		return( TRUE );
 
 	case VIPS_FORMAT_INT:
 	case VIPS_FORMAT_SHORT:
@@ -3353,11 +3434,11 @@ vips_band_format_isuint( VipsBandFormat format )
 	case VIPS_FORMAT_DOUBLE:	
 	case VIPS_FORMAT_COMPLEX:
 	case VIPS_FORMAT_DPCOMPLEX:	
-		return( 0 );
+		return( FALSE );
 	
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
+		return( FALSE );
 	}
 }
 
@@ -3386,8 +3467,8 @@ vips_band_format_is8bit( VipsBandFormat format )
 		return( FALSE );
 
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
+		return( FALSE );
 	}
 }
 
@@ -3403,7 +3484,7 @@ vips_band_format_isfloat( VipsBandFormat format )
 	switch( format ) {
 	case VIPS_FORMAT_FLOAT:
 	case VIPS_FORMAT_DOUBLE:	
-		return( 1 );
+		return( TRUE );
 
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_CHAR:
@@ -3413,11 +3494,11 @@ vips_band_format_isfloat( VipsBandFormat format )
 	case VIPS_FORMAT_INT:
 	case VIPS_FORMAT_COMPLEX:
 	case VIPS_FORMAT_DPCOMPLEX:	
-		return( 0 );
+		return( FALSE );
 	
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
+		return( FALSE );
 	}
 }
 
@@ -3433,7 +3514,7 @@ vips_band_format_iscomplex( VipsBandFormat format )
 	switch( format ) {
 	case VIPS_FORMAT_COMPLEX:
 	case VIPS_FORMAT_DPCOMPLEX:	
-		return( 1 );
+		return( TRUE );
 
 	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_CHAR:
@@ -3443,10 +3524,10 @@ vips_band_format_iscomplex( VipsBandFormat format )
 	case VIPS_FORMAT_INT:
 	case VIPS_FORMAT_FLOAT:
 	case VIPS_FORMAT_DOUBLE:	
-		return( 0 );
+		return( FALSE );
 	
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
+		return( FALSE );
 	}
 }

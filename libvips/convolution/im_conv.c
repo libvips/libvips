@@ -67,6 +67,8 @@
  * 	- argh typo in overflow estimation could cause errors
  * 15/10/11 Nicolas
  * 	- handle offset correctly in seperable convolutions
+ * 26/1/16 Lovell Fuller
+ * 	- remove Duff for a 25% speedup
  */
 
 /*
@@ -628,11 +630,6 @@ conv_start( IMAGE *out, void *a, void *b )
 	return( seq );
 }
 
-#define INNER { \
-	sum += t[i] * p[i][x]; \
-	i += 1; \
-}
-
 /* INT inner loops.
  */
 #define CONV_INT( TYPE, IM_CLIP ) { \
@@ -642,13 +639,13 @@ conv_start( IMAGE *out, void *a, void *b )
 	for( x = 0; x < sz; x++ ) {  \
 		int sum; \
 		int i; \
- 		\
+		\
 		sum = 0; \
-		i = 0; \
-		IM_UNROLL( conv->nnz, INNER ); \
- 		\
+		for ( i = 0; i < nnz; i++ ) \
+			sum += t[i] * p[i][x]; \
+		\
 		sum = ((sum + rounding) / mask->scale) + mask->offset; \
- 		\
+		\
 		IM_CLIP; \
 		\
 		q[x] = sum;  \
@@ -664,10 +661,10 @@ conv_start( IMAGE *out, void *a, void *b )
 	for( x = 0; x < sz; x++ ) {  \
 		double sum; \
 		int i; \
- 		\
+		\
 		sum = 0; \
-		i = 0; \
-		IM_UNROLL( conv->nnz, INNER ); \
+		for ( i = 0; i < nnz; i++ ) \
+			sum += t[i] * p[i][x]; \
  		\
 		sum = (sum / mask->scale) + mask->offset; \
 		\
@@ -686,6 +683,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	REGION *ir = seq->ir;
 	INTMASK *mask = conv->mask;
 	int * restrict t = conv->coeff; 
+	const int nnz = conv->nnz;
 
 	/* You might think this should be (scale + 1) / 2, but then we'd be 
 	 * adding one for scale == 1.
@@ -718,7 +716,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	if( seq->last_bpl != IM_REGION_LSKIP( ir ) ) {
 		seq->last_bpl = IM_REGION_LSKIP( ir );
 
-		for( i = 0; i < conv->nnz; i++ ) {
+		for( i = 0; i < nnz; i++ ) {
 			z = conv->coeff_pos[i];
 			x = z % conv->mask->xsize;
 			y = z / conv->mask->xsize;
@@ -732,7 +730,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	for( y = to; y < bo; y++ ) { 
 		/* Init pts for this line of PELs.
 		 */
-                for( z = 0; z < conv->nnz; z++ ) 
+                for( z = 0; z < nnz; z++ )
                         seq->pts[z] = seq->offsets[z] +  
                                 IM_REGION_ADDR( ir, le, y ); 
 
@@ -772,7 +770,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 
@@ -929,7 +927,7 @@ conv3x3_gen( REGION *or, void *vseq, void *a, void *b )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 

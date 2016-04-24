@@ -121,7 +121,7 @@ vips_deviate_build( VipsObject *object )
 	s2 = deviate->sum2;
 
 	g_object_set( object, 
-		"out", sqrt( fabs( s2 - (s * s / vals) ) / (vals - 1) ),
+		"out", sqrt( VIPS_FABS( s2 - (s * s / vals) ) / (vals - 1) ),
 		NULL );
 
 	return( 0 );
@@ -190,7 +190,7 @@ vips_deviate_scan( VipsStatistic *statistic, void *seq,
 	case VIPS_FORMAT_DOUBLE:	LOOP( double ); break; 
 
 	default: 
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	ss2[0] = sum;

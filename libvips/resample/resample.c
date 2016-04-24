@@ -52,6 +52,28 @@
 
 #include "presample.h"
 
+/**
+ * SECTION: resample
+ * @short_description: resample images in various ways
+ * @stability: Stable
+ * @include: vips/vips.h
+ *
+ * There are three types of operation in this section.
+ *
+ * First, vips_affine() applies an affine transform to an image. This is any
+ * sort of 2D transform which preserves straight lines; so any combination of 
+ * stretch, sheer, rotate and translate. You supply an interpolator for it to
+ * use to generate pixels, see vips_interpolate_new(). It will not produce
+ * good results for very large shrinks.
+ *
+ * Next, vips_resize() specialises in the common task of image reduce and 
+ * enlarge. It strings together combinations of vips_shrink(), vips_reduce(),
+ * vips_affine() and others to implement a general, high-quality image
+ * resizer.
+ *
+ * Finally, vips_mapim() can apply arbitrary 2D image transforms to an image.
+ */
+
 G_DEFINE_ABSTRACT_TYPE( VipsResample, vips_resample, VIPS_TYPE_OPERATION );
 
 static int
@@ -111,11 +133,13 @@ vips_resample_init( VipsResample *resample )
 void
 vips_resample_operation_init( void )
 {
-	extern GType vips_shrink_get_type( void ); 
 	extern GType vips_mapim_get_type( void ); 
+	extern GType vips_shrink_get_type( void ); 
 	extern GType vips_shrinkh_get_type( void ); 
 	extern GType vips_shrinkv_get_type( void ); 
-	extern GType vips_shrink2_get_type( void ); 
+	extern GType vips_reduce_get_type( void ); 
+	extern GType vips_reduceh_get_type( void ); 
+	extern GType vips_reducev_get_type( void ); 
 	extern GType vips_quadratic_get_type( void ); 
 	extern GType vips_affine_get_type( void ); 
 	extern GType vips_similarity_get_type( void ); 
@@ -125,7 +149,9 @@ vips_resample_operation_init( void )
 	vips_shrink_get_type(); 
 	vips_shrinkh_get_type(); 
 	vips_shrinkv_get_type(); 
-	vips_shrink2_get_type(); 
+	vips_reduceh_get_type(); 
+	vips_reducev_get_type(); 
+	vips_reduce_get_type(); 
 	vips_quadratic_get_type(); 
 	vips_affine_get_type(); 
 	vips_similarity_get_type(); 

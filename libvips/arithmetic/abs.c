@@ -112,7 +112,7 @@ vips_abs_build( VipsObject *object )
 	int x; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		q[x] = fabs( p[x] ); \
+		q[x] = VIPS_FABS( p[x] ); \
 }
 
 /* Complex abs operation: calculate modulus.
@@ -141,8 +141,8 @@ vips_abs_build( VipsObject *object )
 	for( x = 0; x < sz; x++ ) { \
 		double rp = p[0]; \
 		double ip = p[1]; \
-		double abs_rp = fabs( rp ); \
-		double abs_ip = fabs( ip ); \
+		double abs_rp = VIPS_FABS( rp ); \
+		double abs_ip = VIPS_FABS( ip ); \
 		\
 		if( abs_rp > abs_ip ) { \
 			double temp = ip / rp; \
@@ -193,7 +193,7 @@ vips_abs_buffer( VipsArithmetic *arithmetic,
 		case VIPS_FORMAT_DPCOMPLEX:	ABS_COMPLEX( double ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 }
@@ -233,6 +233,7 @@ vips_abs_class_init( VipsAbsClass *class )
 	aclass->process_line = vips_abs_buffer;
 
 	vips_arithmetic_set_format_table( aclass, vips_abs_format_table ); 
+	vips_arithmetic_set_vector( aclass ); 
 
 	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_CHAR );
 	vips_vector_asm2( v, "absb", "d1", "s1" ); 

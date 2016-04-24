@@ -154,7 +154,7 @@ extern "C" {
 
 /* Still in use, but can be turned off.
  */
-#if VIPS_ENABLE_DEPRECATED
+#ifdef VIPS_ENABLE_DEPRECATED
 #include <vips/vips7compat.h>
 #include <vips/dispatch.h>
 #include <vips/almostdeprecated.h>

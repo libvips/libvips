@@ -107,7 +107,8 @@ typedef struct _VipsArithmeticClass {
 GType vips_arithmetic_get_type( void );
 
 void vips_arithmetic_set_format_table( VipsArithmeticClass *klass, 
-	const VipsBandFormat *format_table );
+	const VipsBandFormat *format_table ); 
+void vips_arithmetic_set_vector( VipsArithmeticClass *klass );
 VipsVector *vips_arithmetic_get_vector( VipsArithmeticClass *klass, 
 	VipsBandFormat fmt );
 void vips_arithmetic_compile( VipsArithmeticClass *klass ); 

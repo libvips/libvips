@@ -108,7 +108,7 @@ sum_buffer( VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width )
 		LOOP( double, double ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 

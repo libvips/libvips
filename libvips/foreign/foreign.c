@@ -133,7 +133,7 @@
 /**
  * VipsForeignLoad:
  *
- * @header() must set at least the header fields of @out. @laod(), if defined,
+ * @header() must set at least the header fields of @out. @load(), if defined,
  * must load the pixels to @real.
  */
 
@@ -331,21 +331,20 @@ vips_foreign_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 
 	VIPS_OBJECT_CLASS( vips_foreign_parent_class )->
 		summary_class( object_class, buf );
-	vips_buf_appends( buf, " " );
 
 	if( class->suffs ) {
 		const char **p;
 
-		vips_buf_appends( buf, "(" );
+		vips_buf_appends( buf, " (" );
 		for( p = class->suffs; *p; p++ ) {
 			vips_buf_appendf( buf, "%s", *p );
 			if( p[1] )
 				vips_buf_appends( buf, ", " );
 		}
-		vips_buf_appends( buf, "), " );
+		vips_buf_appends( buf, ")" );
 	}
 
-	vips_buf_appendf( buf, "priority=%d", class->priority );
+	vips_buf_appendf( buf, ", priority=%d", class->priority );
 
 }
 
@@ -358,7 +357,7 @@ vips_foreign_class_init( VipsForeignClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "file";
+	object_class->nickname = "foreign";
 	object_class->description = _( "load and save image files" );
 	object_class->summary_class = vips_foreign_summary_class;
 }
@@ -568,7 +567,10 @@ vips_foreign_find_load_buffer_sub( VipsForeignLoadClass *load_class,
  * memory buffer
  * @size: number of bytes in @data
  *
- * Searches for an operation you could use to load a memory buffer.
+ * Searches for an operation you could use to load a memory buffer. To see the
+ * range of buffer loaders supported by your vips, try something like:
+ * 
+ * 	vips -l | grep load_buffer
  *
  * See also: vips_image_new_from_buffer().
  *
@@ -928,6 +930,7 @@ static VipsOperationFlags
 vips_foreign_load_operation_get_flags( VipsOperation *operation )
 {
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( operation );
+
 	VipsOperationFlags flags;
 
 	flags = VIPS_OPERATION_CLASS( vips_foreign_load_parent_class )->
@@ -1654,22 +1657,58 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_webp_buffer_get_type( void ); 
 	extern GType vips_foreign_save_webp_file_get_type( void ); 
 	extern GType vips_foreign_save_webp_buffer_get_type( void ); 
+	extern GType vips_foreign_load_pdf_get_type( void ); 
+	extern GType vips_foreign_load_pdf_file_get_type( void ); 
+	extern GType vips_foreign_load_pdf_buffer_get_type( void ); 
+	extern GType vips_foreign_load_svg_get_type( void ); 
+	extern GType vips_foreign_load_svg_file_get_type( void ); 
+	extern GType vips_foreign_load_svg_buffer_get_type( void ); 
+	extern GType vips_foreign_load_gif_get_type( void ); 
+	extern GType vips_foreign_load_gif_file_get_type( void ); 
+	extern GType vips_foreign_load_gif_buffer_get_type( void ); 
 
-	vips_foreign_load_rad_get_type(); 
-	vips_foreign_save_rad_get_type(); 
-	vips_foreign_load_ppm_get_type(); 
-	vips_foreign_save_ppm_get_type(); 
 	vips_foreign_load_csv_get_type(); 
 	vips_foreign_save_csv_get_type(); 
 	vips_foreign_load_matrix_get_type(); 
 	vips_foreign_save_matrix_get_type(); 
 	vips_foreign_print_matrix_get_type(); 
-	vips_foreign_load_analyze_get_type(); 
 	vips_foreign_load_raw_get_type(); 
 	vips_foreign_save_raw_get_type(); 
 	vips_foreign_save_raw_fd_get_type(); 
 	vips_foreign_load_vips_get_type(); 
 	vips_foreign_save_vips_get_type(); 
+
+#ifdef HAVE_ANALYZE
+	vips_foreign_load_analyze_get_type(); 
+#endif /*HAVE_ANALYZE*/
+
+#ifdef HAVE_PPM
+	vips_foreign_load_ppm_get_type(); 
+	vips_foreign_save_ppm_get_type(); 
+#endif /*HAVE_PPM*/
+
+#ifdef HAVE_RADIANCE
+	vips_foreign_load_rad_get_type(); 
+	vips_foreign_save_rad_get_type(); 
+#endif /*HAVE_RADIANCE*/
+
+#ifdef HAVE_POPPLER
+	vips_foreign_load_pdf_get_type(); 
+	vips_foreign_load_pdf_file_get_type(); 
+	vips_foreign_load_pdf_buffer_get_type(); 
+#endif /*HAVE_POPPLER*/
+
+#ifdef HAVE_RSVG
+	vips_foreign_load_svg_get_type(); 
+	vips_foreign_load_svg_file_get_type(); 
+	vips_foreign_load_svg_buffer_get_type(); 
+#endif /*HAVE_RSVG*/
+
+#ifdef HAVE_GIFLIB
+	vips_foreign_load_gif_get_type(); 
+	vips_foreign_load_gif_file_get_type(); 
+	vips_foreign_load_gif_buffer_get_type(); 
+#endif /*HAVE_GIFLIB*/
 
 #ifdef HAVE_GSF
 	vips_foreign_save_dz_get_type(); 
@@ -2344,7 +2383,13 @@ vips_jpegsave_mime( VipsImage *in, ... )
  * @out: decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * @shrink: %gint, shrink by this much on load
+ *
  * Read a WebP file into a VIPS image. 
+ *
+ * Use @shrink to specify a shrink-on-load factor.
  *
  * See also: vips_image_new_from_file().
  *
@@ -2369,6 +2414,10 @@ vips_webpload( const char *filename, VipsImage **out, ... )
  * @len: size of memory area
  * @out: image to write
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @shrink: %gint, shrink by this much on load
  *
  * Read a WebP-formatted memory block into a VIPS image. Exactly as
  * vips_webpload(), but read from a memory buffer. 
@@ -2838,6 +2887,263 @@ vips_matload( const char *filename, VipsImage **out, ... )
 	va_start( ap, out );
 	result = vips_call_split( "matload", ap, filename, out ); 
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_pdfload:
+ * @filename: file to load
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @page: %gint, load this page, numbered from zero
+ * @dpi: %gdouble, render at this DPI
+ * @scale: %gdouble, scale render by this factor
+ *
+ * Render a PDF file into a VIPS image. Rendering uses the libpoppler library
+ * and should be fast. 
+ *
+ * The output image is always RGBA --- CMYK PDFs will be
+ * converted. If you need CMYK bitmaps, you should use vips_magickload()
+ * instead.
+ *
+ * Rendering is progressive, that is, the image is rendered in strips equal in 
+ * height to the tile height. If your PDF contains large image files and 
+ * they span several strips in the output image, they will be decoded multiple 
+ * times. To fix this, increase the the tile height, for example:
+ *
+ * |[
+ * vips copy huge.pdf x.png --vips-tile-height=1024
+ * ]|
+ *
+ * Will process images in 1024-pixel high strips, potentially much faster,
+ * though of course also using a lot more memory.
+ *
+ * Use @page to select a page to render, numbering from zero.
+ *
+ * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
+ * you can scale the rendering from the default 1 point == 1 pixel by 
+ * setting @scale.
+ *
+ * The operation fills a number of header fields with metadata, for example
+ * "pdf-author". They may be useful. 
+ *
+ * This function only reads the image header and does not render any pixel
+ * data. Rendering occurs when pixels are accessed.
+ *
+ * See also: vips_image_new_from_file(), vips_magickload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pdfload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "pdfload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_pdfload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @page: %gint, load this page, numbered from zero
+ * @dpi: %gdouble, render at this DPI
+ * @scale: %gdouble, scale render by this factor
+ *
+ * Read a PDF-formatted memory block into a VIPS image. Exactly as
+ * vips_pdfload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_pdfload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pdfload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "pdfload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
+ * vips_svgload:
+ * @filename: file to load
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @dpi: %gdouble, render at this DPI
+ * @scale: %gdouble, scale render by this factor
+ *
+ * Render a SVG file into a VIPS image.  Rendering uses the librsvg library
+ * and should be fast.
+ *
+ * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
+ * you can scale the rendering from the default 1 point == 1 pixel by @scale.
+ *
+ * This function only reads the image header and does not render any pixel
+ * data. Rendering occurs when pixels are accessed.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_svgload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "svgload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_svgload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @dpi: %gdouble, render at this DPI
+ * @scale: %gdouble, scale render by this factor
+ *
+ * Read a SVG-formatted memory block into a VIPS image. Exactly as
+ * vips_svgload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_svgload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "svgload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
+ * vips_gifload:
+ * @filename: file to load
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @page: %ginit, page (frame) to read
+ *
+ * Read a GIF file into a VIPS image.  Rendering uses the giflib library.
+ *
+ * Use @page to set page number (frame number) to read.
+ *
+ * The whole GIF is parsed and read into memory on header access, the whole 
+ * GIF is rendered on first pixel access.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_gifload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "gifload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_gifload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * @page: %ginit, page (frame) to read
+ *
+ * Read a GIF-formatted memory block into a VIPS image. Exactly as
+ * vips_gifload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_gifload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_gifload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "gifload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( result );
 }

@@ -174,7 +174,7 @@ vips_draw_smudge_build( VipsObject *object )
 	case VIPS_FORMAT_DPCOMPLEX: 	SMUDGE( double ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	return( 0 );

@@ -325,7 +325,7 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 	TYPE m; \
 	\
 	for( i = 0; i < sz && values->n < values->size; i++ ) \
-		if( !isnan( p[i] ) ) \
+		if( !VIPS_ISNAN( p[i] ) ) \
 			vips_values_add( values, p[i], x + i / bands, y ); \
 	m = values->value[0]; \
 	\
@@ -345,7 +345,7 @@ vips_min_stop( VipsStatistic *statistic, void *seq )
 	for( i = 0; i < sz && values->n < values->size; i++ ) { \
 		TYPE mod2 = p[0] * p[0] + p[1] * p[1]; \
 		\
-		if( !isnan( mod2 ) ) \
+		if( !VIPS_ISNAN( mod2 ) ) \
 			vips_values_add( values, p[i], x + i / bands, y ); \
 		\
 		p += 2; \
@@ -401,7 +401,7 @@ vips_min_scan( VipsStatistic *statistic, void *seq,
 		LOOPC( double ); break; 
 
 	default:  
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	return( 0 );
@@ -437,14 +437,14 @@ vips_min_class_init( VipsMinClass *class )
 		_( "Horizontal position of minimum" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsMin, x ),
-		0, 1000000, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "y", 3, 
 		_( "y" ), 
 		_( "Vertical position of minimum" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsMin, y ),
-		0, 1000000, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "size", 4, 
 		_( "Size" ), 

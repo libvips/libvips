@@ -652,15 +652,21 @@ void
 vips_arithmetic_set_format_table( VipsArithmeticClass *class, 
 	const VipsBandFormat *format_table )
 {
-	int i;
-
 	g_assert( !class->format_table );
 
 	class->format_table = format_table;
+}
+
+void 
+vips_arithmetic_set_vector( VipsArithmeticClass *class ) 
+{
+	int i;
+
+	g_assert( class->format_table );
 
 	for( i = 0; i < VIPS_FORMAT_LAST; i++ ) {
 		int isize = vips_format_sizeof( i );
-		int osize = vips_format_sizeof( (int) format_table[i] );
+		int osize = vips_format_sizeof( (int) class->format_table[i] );
 
 		VipsVector *v;
 

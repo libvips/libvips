@@ -141,7 +141,7 @@ G_DEFINE_TYPE( VipsBandrank, vips_bandrank, VIPS_TYPE_BANDARY );
 	case VIPS_FORMAT_DOUBLE: 	OPERATION( double ); break; \
  	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} 
 
 /* Sort input band elements in the stack. Needs to be big enough for

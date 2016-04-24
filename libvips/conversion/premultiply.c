@@ -3,6 +3,8 @@
  * Author: John Cupitt
  * Written on: 7/5/15
  *
+ * 11/4/16 Lovell
+ * 	- fix RGBA path
  */
 
 /*
@@ -87,7 +89,7 @@ G_DEFINE_TYPE( VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION );
 
 /* Special case for RGBA, it's very common.
  */
-#define PRE_RGB( IN, OUT ) { \
+#define PRE_RGBA( IN, OUT ) { \
 	IN * restrict p = (IN *) in; \
 	OUT * restrict q = (OUT *) out; \
 	\
@@ -107,8 +109,8 @@ G_DEFINE_TYPE( VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION );
 }
 
 #define PRE( IN, OUT ) { \
-	if( bands == 3 ) { \
-		PRE_RGB( IN, OUT ); \
+	if( bands == 4 ) { \
+		PRE_RGBA( IN, OUT ); \
 	} \
 	else { \
 		PRE_MANY( IN, OUT ); \
@@ -172,7 +174,7 @@ vips_premultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 		case VIPS_FORMAT_COMPLEX: 
 		case VIPS_FORMAT_DPCOMPLEX: 
 		default: 
-			g_assert( 0 ); 
+			g_assert_not_reached(); 
 		} 
 	}
 
@@ -281,7 +283,7 @@ vips_premultiply_init( VipsPremultiply *premultiply )
  *   alpha = clip( 0, in[in.bands - 1], @max_alpha ); 
  *   norm = alpha / @max_alpha; 
  *   out = [in[0] * norm, ..., in[in.bands - 1] * norm, alpha];
- * |]
+ * ]|
  *
  * So for an N-band image, the first N - 1 bands are multiplied by the clipped 
  * and normalised final band, the final band is clipped. 

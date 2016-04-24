@@ -2,6 +2,8 @@
  *
  * 19/10/14
  * 	- from jpegload
+ * 12/4/16
+ * 	- test and remove orientation from every ifd
  */
 
 /*
@@ -31,6 +33,10 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -53,11 +59,45 @@ typedef VipsConversionClass VipsAutorotClass;
 
 G_DEFINE_TYPE( VipsAutorot, vips_autorot, VIPS_TYPE_CONVERSION );
 
-#define ORIENTATION ("exif-ifd0-Orientation")
+static void *
+vips_autorot_get_angle_sub( VipsImage *image, 
+	const char *field, GValue *value, void *my_data )
+{
+	VipsAngle *angle = (VipsAngle *) my_data;
+
+	const char *orientation;
+
+	if( vips_isprefix( "exif-", field ) &&
+		vips_ispostfix( field, "-Orientation" ) &&
+		!vips_image_get_string( image, field, &orientation ) ) {
+		if( vips_isprefix( "6", orientation ) )
+			*angle = VIPS_ANGLE_D90;
+		else if( vips_isprefix( "8", orientation ) )
+			*angle = VIPS_ANGLE_D270;
+		else if( vips_isprefix( "3", orientation ) )
+			*angle = VIPS_ANGLE_D180;
+		else
+			*angle = VIPS_ANGLE_D0;
+
+		/* Other values do rotate + mirror, don't bother handling them
+		 * though, how common can mirroring be.
+		 *
+		 * See:
+		 *
+		 * http://www.80sidea.com/archives/2316
+		 */
+
+		/* Stop searching.
+		 */
+		return( image ); 
+	}
+
+	return( NULL );
+}
 
 /**
  * vips_autorot_get_angle:
- * @im: image to fetch orientation from
+ * @image: image to fetch orientation from
  *
  * Examine the metadata on @im and return the #VipsAngle to rotate by to turn
  * the image upright. 
@@ -67,30 +107,48 @@ G_DEFINE_TYPE( VipsAutorot, vips_autorot, VIPS_TYPE_CONVERSION );
  * Returns: the #VipsAngle to rotate by to make the image upright.
  */
 VipsAngle
-vips_autorot_get_angle( VipsImage *im )
+vips_autorot_get_angle( VipsImage *image )
 {
 	VipsAngle angle;
-	const char *orientation;
 
 	angle = VIPS_ANGLE_D0;
-	if( vips_image_get_typeof( im, ORIENTATION ) &&
-		!vips_image_get_string( im, ORIENTATION, &orientation ) ) {
-		if( vips_isprefix( "6", orientation ) )
-			angle = VIPS_ANGLE_D90;
-		else if( vips_isprefix( "8", orientation ) )
-			angle = VIPS_ANGLE_D270;
-		else if( vips_isprefix( "3", orientation ) )
-			angle = VIPS_ANGLE_D180;
-		/* Other values do rotate + mirror, don't bother handling them
-		 * though, how common can mirroring be.
-		 *
-		 * See:
-		 *
-		 * http://www.80sidea.com/archives/2316
-		 */
-	}
+	(void) vips_image_map( image, vips_autorot_get_angle_sub, &angle );
+
+#ifdef DEBUG
+	printf( "vips_autorot_get_angle: %d\n", angle ); 
+#endif /*DEBUG*/
 
 	return( angle );
+}
+
+static void *
+vips_autorot_remove_angle_sub( VipsImage *image, 
+	const char *field, GValue *value, void *my_data )
+{
+	if( vips_isprefix( "exif-", field ) &&
+		vips_ispostfix( field, "-Orientation" ) ) {
+#ifdef DEBUG
+		printf( "vips_autorot_remove_angle: %s\n", field ); 
+#endif /*DEBUG*/
+
+		(void) vips_image_remove( image, field );
+	}
+
+	return( NULL );
+}
+
+/**
+ * vips_autorot_remove_angle:
+ * @im: image to remove orientation from
+ *
+ * Remove any EXIF tag on @im which looks like orientation.
+ *
+ * See also: vips_autorot_get_angle(). 
+ */
+void
+vips_autorot_remove_angle( VipsImage *image )
+{
+	(void) vips_image_map( image, vips_autorot_remove_angle_sub, NULL );
 }
 
 static int
@@ -106,11 +164,11 @@ vips_autorot_build( VipsObject *object )
 	g_object_set( object, 
 		"angle", vips_autorot_get_angle( autorot->in ),
 		NULL ); 
-	autorot->angle = vips_autorot_get_angle( autorot->in );
-	if( vips_rot( autorot->in, &t[0], autorot->angle, NULL ) ||
-		vips_image_write( t[0], conversion->out ) )
+	if( vips_rot( autorot->in, &t[0], autorot->angle, NULL ) )
 		return( -1 );
-	(void) vips_image_remove( conversion->out, ORIENTATION );
+	vips_autorot_remove_angle( t[0] ); 
+	if( vips_image_write( t[0], conversion->out ) )
+		return( -1 );
 
 	return( 0 );
 }

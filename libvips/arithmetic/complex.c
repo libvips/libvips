@@ -128,7 +128,7 @@ G_DEFINE_TYPE( VipsComplex, vips_complex, VIPS_TYPE_UNARY );
 		CLOOP( double, double, OP ); break;\
  	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} 
 
 static double
@@ -211,7 +211,7 @@ vips_complex_buffer( VipsArithmetic *arithmetic,
 	case VIPS_OPERATION_COMPLEX_CONJ: 	SWITCH( CONJ ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -428,7 +428,7 @@ G_DEFINE_TYPE( VipsComplex2, vips_complex2, VIPS_TYPE_BINARY );
 		CLOOP2( double, double, OP ); break;\
  	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} 
 
 /* There doesn't seem to be much difference in speed between these two methods 
@@ -504,7 +504,7 @@ vips_complex2_buffer( VipsArithmetic *arithmetic,
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -692,7 +692,7 @@ vips_complexget_build( VipsObject *object )
 		CGETLOOP( double, OP ); break;\
  	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} 
 
 #define REAL( Q, X, Y ) { \
@@ -718,7 +718,7 @@ vips_complexget_buffer( VipsArithmetic *arithmetic,
 	case VIPS_OPERATION_COMPLEXGET_IMAG:	GETSWITCH( IMAG ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -926,7 +926,7 @@ vips_complexform_buffer( VipsArithmetic *arithmetic,
 		CFORM( double, double ); break;
 
         default:
-		g_assert( 0 );
+		g_assert_not_reached();
         }
 }
 

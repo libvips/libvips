@@ -117,7 +117,7 @@ vips_morph_build( VipsObject *object )
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	return( 0 );

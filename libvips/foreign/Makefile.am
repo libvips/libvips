@@ -1,6 +1,9 @@
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
+	gifload.c \
+	pdfload.c \
+	svgload.c \
 	radiance.h \
 	radiance.c \
 	radload.c \

@@ -49,8 +49,7 @@ public:
 	}
 
 	static 
-	VInterpolate new_from_name( const char *name, VOption *options = 0 )
-		throw( VError );
+	VInterpolate new_from_name( const char *name, VOption *options = 0 );
 
 	VipsInterpolate *
 	get_interpolate()

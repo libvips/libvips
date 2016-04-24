@@ -15,6 +15,8 @@
  * 	- cut about to make sRGB2scRGB.c
  * 12/2/15
  * 	- add 16-bit alpha handling
+ * 26/2/16
+ * 	- look for RGB16 tag, not just ushort, for the 16-bit path
  */
 
 /*
@@ -188,10 +190,16 @@ vips_sRGB2scRGB_build( VipsObject *object )
 	if( vips_check_bands_atleast( class->nickname, in, 3 ) )
 		return( -1 ); 
 
-	format = in->BandFmt == VIPS_FORMAT_USHORT ?
+	format = in->Type == VIPS_INTERPRETATION_RGB16 ?
 		VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
-	if( vips_cast( in, &t[0], format, NULL ) )
-		return( -1 );
+	if( in->BandFmt != format ) {
+		if( vips_cast( in, &t[0], format, NULL ) )
+			return( -1 );
+	}
+	else {
+		t[0] = in;
+		g_object_ref( t[0] ); 
+	}
 	in = t[0];
 
 	out = vips_image_new();
@@ -256,11 +264,11 @@ vips_sRGB2scRGB_init( VipssRGB2scRGB *sRGB2scRGB )
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert an sRGB image to scRGB. The input image can be 8 or 16-bit 
- * unsigned int.
+ * Convert an sRGB image to scRGB. The input image can be 8 or 16-bit.
  *
- * If the input image is unsigned 16-bit, any extra channels after RGB are 
- * divided by 256. Thus, scRGB alpha is always 0 - 255.99.
+ * If the input image is tagged as #VIPS_INTERPRETATION_RGB16, any extra 
+ * channels after RGB are divided by 256. Thus, scRGB alpha is 
+ * always 0 - 255.99.
  *
  * See also: vips_scRGB2XYZ(), vips_scRGB2sRGB(), vips_rad2float().
  *

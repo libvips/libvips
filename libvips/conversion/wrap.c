@@ -126,14 +126,14 @@ vips_wrap_class_init( VipsWrapClass *class )
 		_( "Left edge of input in output" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsWrap, x ),
-		-1000000, 1000000, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "y", 4, 
 		_( "y" ), 
 		_( "Top edge of input in output" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsWrap, y ),
-		-1000000, 1000000, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 }
 

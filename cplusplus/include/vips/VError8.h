@@ -39,7 +39,7 @@
 
 VIPS_NAMESPACE_START
 
-class VError : public std::exception {
+class VIPS_CPLUSPLUS_API VError : public std::exception {
 	std::string _what;
 
 public:

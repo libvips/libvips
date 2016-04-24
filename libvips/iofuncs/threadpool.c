@@ -945,6 +945,11 @@ vips_get_tile_size( VipsImage *im,
 {
 	const int nthr = vips_concurrency_get();
 
+	/* Compiler warnings.
+	 */
+	*tile_width = 1;
+	*tile_height = 1;
+
 	/* Pick a render geometry.
 	 */
 	switch( im->dhint ) {
@@ -965,7 +970,7 @@ vips_get_tile_size( VipsImage *im,
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	/* We can't set n_lines for the current demand style: a later bit of

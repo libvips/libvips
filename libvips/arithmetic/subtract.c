@@ -127,7 +127,7 @@ vips_subtract_buffer( VipsArithmetic *arithmetic,
 		break;
 
         default:
-		g_assert( 0 );
+		g_assert_not_reached();
         }
 }
 

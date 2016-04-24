@@ -90,7 +90,7 @@
  * uses this information to decide when to trim caches.
  */
 
-/* g_assert( 0 ) on memory errors.
+/* g_assert_not_reached() on memory errors.
 #define DEBUG
  */
 
@@ -288,7 +288,7 @@ vips_tracked_malloc( size_t size )
 
         if( !(buf = g_try_malloc( size )) ) {
 #ifdef DEBUG
-		g_assert( 0 );
+		g_assert_not_reached();
 #endif /*DEBUG*/
 
 		vips_error( "vips_tracked", 

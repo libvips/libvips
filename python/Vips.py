@@ -247,11 +247,12 @@ Vips.Argument = Argument
 class Operation(Vips.Operation):
 
     # find all the args for this op, sort into priority order
-    # remember to ignore deprecated ones
+    # we leave deprecated args in this list: for compatibility, we want users
+    # to be able to set them
+    # if you are (for example) generating docs, you'll need to filter out the
+    # deprecated args yourself
     def get_args(self):
         args = [Argument(self, x) for x in self.props]
-        args = [y for y in args 
-                if not y.flags & Vips.ArgumentFlags.DEPRECATED]
         args.sort(key = lambda x: x.priority)
 
         return args
@@ -295,9 +296,10 @@ def _call_base(name, required, optional, self = None, option_string = None):
 
     enm = Vips.ArgumentFlags
 
-    # find all required, unassigned input args
+    # find all required, unassigned, undeprecated input args 
     required_input = [x for x in args if x.flags & enm.INPUT and 
                       x.flags & enm.REQUIRED and 
+                      not x.flags & enm.DEPRECATED and
                       not x.isset]
 
     # do we have a non-None self pointer? this is used to set the first
@@ -342,6 +344,8 @@ def _call_base(name, required, optional, self = None, option_string = None):
 
     # find all optional, unassigned input args ... make a hash from name to
     # Argument
+    # we let deprecated ones through, we want to allow assigment to them for
+    # compat
     optional_input = {x.name: x for x in args if x.flags & enm.INPUT and 
                       not x.flags & enm.REQUIRED and 
                       not x.isset}
@@ -383,8 +387,8 @@ def _call_base(name, required, optional, self = None, option_string = None):
     out = []
 
     for x in args:
-        # required output arg
-        if x.flags & enm.OUTPUT and x.flags & enm.REQUIRED:
+        # required non-deprecated output arg
+        if x.flags & enm.OUTPUT and x.flags & enm.REQUIRED and not x.flags & enm.DEPRECATED:
             out.append(x.get_value())
 
         # modified input arg ... this will get the memory image we made above
@@ -505,6 +509,10 @@ def generate_docstring(name):
     # find all the args for this op, sort into priority order
     args = op.get_args()
 
+    # we are only interested in non-deprecated args
+    args = [y for y in args 
+            if not y.flags & Vips.ArgumentFlags.DEPRECATED]
+
     enm = Vips.ArgumentFlags
 
     # find all required, unassigned input args
@@ -540,9 +548,10 @@ def generate_docstring(name):
         result += member_x.name + "." + name + "("
     else:
         result += "Vips.Image." + name + "("
-    result += ", ".join([x.name for x in required_input
-                         if x != member_x])
-    if len(optional_input) > 0:
+
+    required_input_args = [x.name for x in required_input if x != member_x]
+    result += ", ".join(required_input_args)
+    if len(optional_input) > 0 and len(required_input_args) > 0:
         result += ", "
     result += ", ".join([x.name + " = " + x.prop.value_type.name 
                          for x in optional_input])
@@ -919,7 +928,14 @@ class Image(Vips.Image):
         if non_number == None:
             return self.bandjoin_const(other)
         else:
-            return Vips.Image.bandjoin([self] + other)
+            return _call_base("bandjoin", [[self] + other], {})
+
+    def bandrank(self, other, **kwargs):
+        """Band-wise rank filter a set of images."""
+        if not isinstance(other, list):
+            other = [other]
+
+        return _call_base("bandrank", [[self] + other], kwargs)
 
     def maxpos(self):
         """Return the coordinates of the image maximum."""
@@ -1046,11 +1062,13 @@ class Image(Vips.Image):
 
 # use find_class_methods.py to generate this list
 
+# don't include "bandjoin" or "bandrank", they need to be wrapped by hand, 
+# see above
+
 class_methods = [
                     "system",
                     "sum",
-                    "bandjoin",
-                    "bandrank",
+                    "arrayjoin",
                     "black",
                     "gaussnoise",
                     "text",
@@ -1090,6 +1108,12 @@ class_methods = [
                     "webpload_buffer",
                     "tiffload",
                     "tiffload_buffer",
+                    "pdfload",
+                    "pdfload_buffer",
+                    "svgload",
+                    "svgload_buffer",
+                    "gifload",
+                    "gifload_buffer",
                     "openslideload",
                     "magickload",
                     "magickload_buffer",

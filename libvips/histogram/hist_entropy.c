@@ -3,6 +3,8 @@
  * Author: John Cupitt
  * 11/8/15	
  * 	- from hist_ismonotonic.c
+ * 6/3/16
+ * 	- vips_log() call was mangled, thanks Lovell
  */
 
 /*
@@ -80,7 +82,7 @@ vips_hist_entropy_build( VipsObject *object )
 		return( -1 );
 	sum = avg * VIPS_IMAGE_N_PELS( entropy->in ) * entropy->in->Bands;
 	if( vips_linear1( entropy->in, &t[0], 1.0 / sum, 0, NULL ) ||
-		vips_log( t[0], &t[1], 1.0 / sum, 0, NULL ) ||
+		vips_log( t[0], &t[1], NULL ) ||
 		vips_linear1( t[1], &t[2], 1.0 / log( 2.0 ), 0, NULL ) ||
 		vips_multiply( t[0], t[2], &t[3], NULL ) ||
 		vips_avg( t[3], &avg, NULL ) )

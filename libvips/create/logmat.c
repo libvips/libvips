@@ -138,7 +138,7 @@ vips_logmat_build( VipsObject *object )
 		 * is less than the min.
 		 */
 		if( val - last >= 0 &&
-			fabs( val ) < logmat->min_ampl )
+			VIPS_FABS( val ) < logmat->min_ampl )
 			break;
 
 		last = val;

@@ -216,12 +216,9 @@ VImage::VImage() throw( VError )
 
 	_ref = new refblock;
 
-	/* This is not 100% safe if VIPS threading is not implemented on this
-	 * platform ... but it doesn't really matter.
+	/* This is not safe with threading ... but it doesn't really matter.
 	 */
-	g_mutex_lock( im__global_lock );
 	im_snprintf( filename, 256, "intermediate image #%d", id++ );
-	g_mutex_unlock( im__global_lock );
 
 	if( !(_ref->im = im_open( filename, "p" )) )
 		verror();

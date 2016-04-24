@@ -2,6 +2,8 @@
  *
  * 6/8/13
  * 	- from pngload.c
+ * 28/2/16
+ * 	- add @shrink
  */
 
 /*
@@ -52,6 +54,9 @@
 typedef struct _VipsForeignLoadWebp {
 	VipsForeignLoad parent_object;
 
+	/* Shrink by this much during load.
+	 */
+	int shrink; 
 } VipsForeignLoadWebp;
 
 typedef VipsForeignLoadClass VipsForeignLoadWebpClass;
@@ -91,11 +96,19 @@ vips_foreign_load_webp_class_init( VipsForeignLoadWebpClass *class )
 
 	load_class->get_flags = vips_foreign_load_webp_get_flags;
 
+	VIPS_ARG_INT( class, "shrink", 10, 
+		_( "Shrink" ), 
+		_( "Shrink factor on load" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadWebp, shrink ),
+		1, 1024, 1 );
+
 }
 
 static void
 vips_foreign_load_webp_init( VipsForeignLoadWebp *webp )
 {
+	webp->shrink = 1;
 }
 
 typedef struct _VipsForeignLoadWebpFile {
@@ -127,9 +140,11 @@ vips_foreign_load_webp_file_is_a( const char *filename )
 static int
 vips_foreign_load_webp_file_header( VipsForeignLoad *load )
 {
+	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) load;
 
-	if( vips__webp_read_file_header( file->filename, load->out ) )
+	if( vips__webp_read_file_header( file->filename, load->out, 
+		webp->shrink ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
@@ -140,9 +155,10 @@ vips_foreign_load_webp_file_header( VipsForeignLoad *load )
 static int
 vips_foreign_load_webp_file_load( VipsForeignLoad *load )
 {
+	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) load;
 
-	if( vips__webp_read_file( file->filename, load->real ) )
+	if( vips__webp_read_file( file->filename, load->real, webp->shrink ) )
 		return( -1 );
 
 	return( 0 );
@@ -202,10 +218,11 @@ G_DEFINE_TYPE( VipsForeignLoadWebpBuffer, vips_foreign_load_webp_buffer,
 static int
 vips_foreign_load_webp_buffer_header( VipsForeignLoad *load )
 {
+	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpBuffer *buffer = (VipsForeignLoadWebpBuffer *) load;
 
 	if( vips__webp_read_buffer_header( buffer->buf->data, 
-		buffer->buf->length, load->out ) )
+		buffer->buf->length, load->out, webp->shrink ) )
 		return( -1 );
 
 	return( 0 );
@@ -214,10 +231,11 @@ vips_foreign_load_webp_buffer_header( VipsForeignLoad *load )
 static int
 vips_foreign_load_webp_buffer_load( VipsForeignLoad *load )
 {
+	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpBuffer *buffer = (VipsForeignLoadWebpBuffer *) load;
 
 	if( vips__webp_read_buffer( buffer->buf->data, buffer->buf->length, 
-		load->real ) )
+		load->real, webp->shrink ) )
 		return( -1 );
 
 	return( 0 );
@@ -229,6 +247,7 @@ vips_foreign_load_webp_buffer_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -236,6 +255,10 @@ vips_foreign_load_webp_buffer_class_init(
 
 	object_class->nickname = "webpload_buffer";
 	object_class->description = _( "load webp from buffer" );
+
+	/* is_a() is not that quick ... lower the priority.
+	 */
+	foreign_class->priority = -50;
 
 	load_class->is_a_buffer = vips__iswebp_buffer; 
 	load_class->header = vips_foreign_load_webp_buffer_header;

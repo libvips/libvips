@@ -69,10 +69,11 @@ vips_LabS2LabQ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 	unsigned char *q = (unsigned char *) out;
 
 	int i;
-	int l, a, b;
-	unsigned char ext;
 
 	for( i = 0; i < width; i++ ) {
+		int l, a, b;
+		unsigned char ext;
+
 		/* Get LAB, rounding to 10, 11, 11. 
 		 */
 		l = p[0] + 16;

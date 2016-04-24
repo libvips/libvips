@@ -50,6 +50,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#ifdef HAVE_ANALYZE
+
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -289,7 +291,7 @@ print_dsr( struct dsr *d )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 }
@@ -344,7 +346,7 @@ read_header( const char *header )
 				break;
 
 			default:
-				g_assert( 0 );
+				g_assert_not_reached();
 			}
 		}
 	}
@@ -478,7 +480,7 @@ attach_meta( VipsImage *out, struct dsr *d )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 }
@@ -594,3 +596,4 @@ vips__analyze_read( const char *filename, VipsImage *out )
 	return( 0 );
 }
 
+#endif /*HAVE_ANALYZE*/

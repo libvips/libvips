@@ -137,7 +137,7 @@ vips_boolean_build( VipsObject *object )
 	case VIPS_FORMAT_DOUBLE: 	F( double, OP ); break;\
  	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} 
 
 static void
@@ -172,7 +172,7 @@ vips_boolean_buffer( VipsArithmetic *arithmetic,
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -494,7 +494,7 @@ vips_boolean_const_buffer( VipsArithmetic *arithmetic,
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 

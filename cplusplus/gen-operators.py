@@ -5,7 +5,6 @@
 # sample member definition:
 
 # VImage VImage::invert( VOption *options )
-#	throw( VError )
 # {
 # 	VImage out;
 # 
@@ -151,7 +150,6 @@ def gen_operation(cls):
     gen_arg_list(op, required)
 
     print ')'
-    print '    throw( VError )'
     print '{'
     if result != None:
         print '    %s %s;' % (get_ctype(result), cppize(result.name))

@@ -70,29 +70,6 @@ typedef VipsResampleClass VipsMapimClass;
 
 G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 
-/*
- * FAST_PSEUDO_FLOOR is a floor and floorf replacement which has been
- * found to be faster on several linux boxes than the library
- * version. It returns the floor of its argument unless the argument
- * is a negative integer, in which case it returns one less than the
- * floor. For example:
- *
- * FAST_PSEUDO_FLOOR(0.5) = 0
- *
- * FAST_PSEUDO_FLOOR(0.) = 0
- *
- * FAST_PSEUDO_FLOOR(-.5) = -1
- *
- * as expected, but
- *
- * FAST_PSEUDO_FLOOR(-1.) = -2
- *
- * The locations of the discontinuities of FAST_PSEUDO_FLOOR are the
- * same as floor and floorf; it is just that at negative integers the
- * function is discontinuous on the right instead of the left.
- */
-#define FAST_PSEUDO_FLOOR(x) ( (int)(x) - ( (x) < 0. ) )
-
 #define MINMAX( TYPE ) { \
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
@@ -135,6 +112,13 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	gboolean first;
 	int x, y;
 
+	/* Stop compiler warnings.
+	 */
+	min_x = 0;
+	max_x = 0;
+	min_y = 0;
+	max_y = 0;
+
 	first = TRUE;
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel * restrict p = 
@@ -163,7 +147,7 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 			MINMAX( double ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 
@@ -183,9 +167,9 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 		TYPE py = p1[1]; \
 		\
 		if( px < 0 || \
-			px > resample->in->Xsize || \
+			px >= resample->in->Xsize || \
 			py < 0 || \
-			py > resample->in->Ysize ) { \
+			py >= resample->in->Ysize ) { \
 			for( z = 0; z < ps; z++ )  \
 				q[z] = 0; \
 		} \
@@ -303,7 +287,7 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 			LOOKUP( double ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 

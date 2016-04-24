@@ -282,7 +282,7 @@ vips_rank_start( IMAGE *out, void *a, void *b )
 	case VIPS_FORMAT_DOUBLE: 	OPERATION( double ); break; \
  	\
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	} 
 
 static int

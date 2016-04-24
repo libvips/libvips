@@ -128,7 +128,7 @@ vips_recomb_gen( VipsRegion *or,
 		case VIPS_FORMAT_DOUBLE:LOOP( double, double ); break; 
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 

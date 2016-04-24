@@ -99,6 +99,11 @@ vips_join_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_join_parent_class )->build( object ) )
 		return( -1 );
 
+	/* Stop compiler warnings.
+	 */
+	x = 0;
+	y = 0;
+
 	switch( join->direction ) {
 	case VIPS_DIRECTION_HORIZONTAL:
 		x = join->in1->Xsize + join->shim;
@@ -117,11 +122,7 @@ vips_join_build( VipsObject *object )
 			break;
 
 		default:
-			g_assert( 0 );
-
-			/* Keep -Wall happy.
-			 */
-			return( 0 );
+			g_assert_not_reached();
 		}
 
 		break;
@@ -143,21 +144,13 @@ vips_join_build( VipsObject *object )
 			break;
 
 		default:
-			g_assert( 0 );
-
-			/* Keep -Wall happy.
-			 */
-			return( 0 );
+			g_assert_not_reached();
 		}
 
 		break;
 
 	default:
-		g_assert( 0 );
-
-		/* Keep -Wall happy.
-		 */
-		return( 0 );
+		g_assert_not_reached();
 	}
 
 	if( vips_insert( join->in1, join->in2, &t, x, y,
@@ -186,21 +179,29 @@ vips_join_build( VipsObject *object )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 
-			/* Keep -Wall happy.
+			/* Stop compiler warnings.
 			 */
-			return( 0 );
+			left = 0;
+			top = 0;
+			width = 0;
+			height = 0;
 		}
 
-		if( vips_extract_area( t, &t2, 
-			left, top, width, height, NULL ) ) {
+		if( left != 0 ||
+			top != 0 ||
+			width != t->Xsize ||
+			height != t->Ysize ) {
+			if( vips_extract_area( t, &t2, 
+				left, top, width, height, NULL ) ) {
+				g_object_unref( t );
+				return( -1 );
+			}
 			g_object_unref( t );
-			return( -1 );
-		}
-		g_object_unref( t );
 
-		t = t2;
+			t = t2;
+		}
 	}
 
 	if( vips_image_write( t, conversion->out ) ) {
@@ -324,7 +325,10 @@ vips_join_init( VipsJoin *join )
  * Smallest common format in 
  * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
- * See also: vips_insert().
+ * If you are going to be joining many thousands of images in a regular
+ * grid, vips_arrayjoin() is a better choice.
+ *
+ * See also: vips_arrayjoin(), vips_insert().
  *
  * Returns: 0 on success, -1 on error
  */

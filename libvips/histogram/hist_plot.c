@@ -158,7 +158,7 @@ make_vert_gen( REGION *or, void *seq, void *a, void *b )
 		case IM_BANDFMT_DOUBLE:	VERT( double ); break; 
 
 		default:
-			g_assert( 0 ); 
+			g_assert_not_reached(); 
 		}
 	}
 
@@ -208,7 +208,7 @@ make_horz_gen( REGION *or, void *seq, void *a, void *b )
 		case IM_BANDFMT_DOUBLE:	HORZ( double ); break; 
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 
@@ -237,7 +237,7 @@ plot( IMAGE *in, IMAGE *out )
 	if( in->BandFmt == IM_BANDFMT_UCHAR )
 		tsize = 256;
 	else
-		tsize = ceil( max );
+		tsize = VIPS_CEIL( max );
 
 	/* Make sure we don't make a zero height image.
 	 */

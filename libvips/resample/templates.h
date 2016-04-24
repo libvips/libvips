@@ -29,29 +29,6 @@
  */
 
 /*
- * FAST_PSEUDO_FLOOR is a floor and floorf replacement which has been
- * found to be faster on several linux boxes than the library
- * version. It returns the floor of its argument unless the argument
- * is a negative integer, in which case it returns one less than the
- * floor. For example:
- *
- * FAST_PSEUDO_FLOOR(0.5) = 0
- *
- * FAST_PSEUDO_FLOOR(0.) = 0
- *
- * FAST_PSEUDO_FLOOR(-.5) = -1
- *
- * as expected, but
- *
- * FAST_PSEUDO_FLOOR(-1.) = -2
- *
- * The locations of the discontinuities of FAST_PSEUDO_FLOOR are the
- * same as floor and floorf; it is just that at negative integers the
- * function is discontinuous on the right instead of the left.
- */
-#define FAST_PSEUDO_FLOOR(x) ( (int)(x) - ( (x) < 0. ) )
-
-/*
  * Various casts which assume that the data is already in range. (That
  * is, they are to be used with monotone samplers.)
  */
@@ -187,35 +164,37 @@ bicubic_unsigned_int(
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
 	const int* restrict cx, const int* restrict cy )
 {
+	const int c0 = cx[0];
+	const int c1 = cx[1];
+	const int c2 = cx[2];
+	const int c3 = cx[3];
+
 	const int r0 = unsigned_fixed_round( 
-		cx[0] * uno_one +
-		cx[1] * uno_two +
-		cx[2] * uno_thr +
-		cx[3] * uno_fou ); 
-
+		c0 * uno_one +
+		c1 * uno_two +
+		c2 * uno_thr +
+		c3 * uno_fou ); 
 	const int r1 = unsigned_fixed_round( 
-		cx[0] * dos_one +
-		cx[1] * dos_two +
-		cx[2] * dos_thr +
-		cx[3] * dos_fou );
-
+		c0 * dos_one +
+		c1 * dos_two +
+		c2 * dos_thr +
+		c3 * dos_fou ); 
 	const int r2 = unsigned_fixed_round( 
-		cx[0] * tre_one +
-		cx[1] * tre_two +
-		cx[2] * tre_thr +
-		cx[3] * tre_fou );
-
+		c0 * tre_one +
+		c1 * tre_two +
+		c2 * tre_thr +
+		c3 * tre_fou ); 
 	const int r3 = unsigned_fixed_round( 
-		cx[0] * qua_one +
-		cx[1] * qua_two +
-		cx[2] * qua_thr +
-		cx[3] * qua_fou );
+		c0 * qua_one +
+		c1 * qua_two +
+		c2 * qua_thr +
+		c3 * qua_fou ); 
 
 	return( unsigned_fixed_round( 
 		cy[0] * r0 +
 		cy[1] * r1 +
 		cy[2] * r2 +
-		cy[3] * r3 ) );
+		cy[3] * r3 ) ); 
 }
 
 static int inline
@@ -237,35 +216,48 @@ bicubic_signed_int(
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
 	const int* restrict cx, const int* restrict cy )
 {
+	const int c0 = cx[0];
+	const int c1 = cx[1];
+	const int c2 = cx[2];
+	const int c3 = cx[3];
+
 	const int r0 = signed_fixed_round( 
-		cx[0] * uno_one +
-		cx[1] * uno_two +
-		cx[2] * uno_thr +
-		cx[3] * uno_fou ); 
-
+		c0 * uno_one +
+		c1 * uno_two +
+		c2 * uno_thr +
+		c3 * uno_fou ); 
 	const int r1 = signed_fixed_round( 
-		cx[0] * dos_one +
-		cx[1] * dos_two +
-		cx[2] * dos_thr +
-		cx[3] * dos_fou );
-
+		c0 * dos_one +
+		c1 * dos_two +
+		c2 * dos_thr +
+		c3 * dos_fou ); 
 	const int r2 = signed_fixed_round( 
-		cx[0] * tre_one +
-		cx[1] * tre_two +
-		cx[2] * tre_thr +
-		cx[3] * tre_fou );
-
+		c0 * tre_one +
+		c1 * tre_two +
+		c2 * tre_thr +
+		c3 * tre_fou ); 
 	const int r3 = signed_fixed_round( 
-		cx[0] * qua_one +
-		cx[1] * qua_two +
-		cx[2] * qua_thr +
-		cx[3] * qua_fou );
+		c0 * qua_one +
+		c1 * qua_two +
+		c2 * qua_thr +
+		c3 * qua_fou ); 
 
 	return( signed_fixed_round( 
 		cy[0] * r0 +
 		cy[1] * r1 +
 		cy[2] * r2 +
-		cy[3] * r3 ) );
+		cy[3] * r3 ) ); 
+}
+
+template <typename T> static T inline
+cubic_float(
+	const T one, const T two, const T thr, const T fou,
+	const double* restrict cx )
+{
+	return( cx[0] * one +
+		 cx[1] * two +
+		 cx[2] * thr +
+		 cx[3] * fou );
 }
 
 /* Floating-point bicubic, used for int/float/double types.
@@ -278,26 +270,16 @@ bicubic_float(
 	const T qua_one, const T qua_two, const T qua_thr, const T qua_fou,
 	const double* restrict cx, const double* restrict cy )
 {
-	return(
-		cy[0] * (cx[0] * uno_one +
-			 cx[1] * uno_two +
-			 cx[2] * uno_thr +
-			 cx[3] * uno_fou)
-                +
-		cy[1] * (cx[0] * dos_one +
-			 cx[1] * dos_two +
-			 cx[2] * dos_thr +
-			 cx[3] * dos_fou)
-                +
-		cy[2] * (cx[0] * tre_one +
-			 cx[1] * tre_two +
-			 cx[2] * tre_thr +
-			 cx[3] * tre_fou)
-                +
-		cy[3] * (cx[0] * qua_one +
-			 cx[1] * qua_two +
-			 cx[2] * qua_thr +
-			 cx[3] * qua_fou) );
+	const double r0 = cubic_float<T>( 
+		uno_one, uno_two, uno_thr, uno_fou, cx ); 
+	const double r1 = cubic_float<T>( 
+		dos_one, dos_two, dos_thr, dos_fou, cx ); 
+	const double r2 = cubic_float<T>( 
+		tre_one, tre_two, tre_thr, tre_fou, cx ); 
+	const double r3 = cubic_float<T>( 
+		qua_one, qua_two, qua_thr, qua_fou, cx ); 
+
+	return( cubic_float<T>( r0, r1, r2, r3, cy ) ); 
 }
 
 /* Given an offset in [0,1] (we can have x == 1 when building tables),
@@ -305,7 +287,7 @@ bicubic_float(
  * from the interpolator as well as from the table builder.
  */
 static void inline
-calculate_coefficients_catmull( const double x, double c[4] )
+calculate_coefficients_catmull( double c[4], const double x )
 {
 	/* Nicolas believes that the following is an hitherto unknown
 	 * hyper-efficient method of computing Catmull-Rom coefficients. It
@@ -327,4 +309,64 @@ calculate_coefficients_catmull( const double x, double c[4] )
 	c[3] = cfou;
 	c[1] = ctwo;
 	c[2] = cthr;
+}
+
+/* Given an x in [0,1] (we can have x == 1 when building tables),
+ * calculate c0 .. c(@a * @shrink + 1), the lanczos coefficients. This is called
+ * from the interpolator as well as from the table builder.
+ *
+ * @a is the number of lobes, so usually 2 or 3. @shrink is the reduction
+ * factor, so 1 for interpolation, 2 for a x2 reduction, etc. We need more
+ * points for large decimations to avoid aliasing. 
+ */
+static void inline
+calculate_coefficients_lanczos( double *c, 
+	const int a, const double shrink, const double x )
+{
+	/* Needs to be in sync with vips_reduce_get_points().
+	 */
+	const int n_points = rint( 2 * a * shrink ) + 1; 
+
+	int i;
+	double sum; 
+
+	sum = 0;
+	for( i = 0; i < n_points; i++ ) {
+		double xp = (i - (n_points - 2) / 2 - x) / shrink;
+
+		double l;
+
+		if( xp == 0.0 )
+			l = 1.0;
+		else if( xp < -a )
+			l = 0.0;
+		else if( xp > a )
+			l = 0.0;
+		else
+			l = (double) a * sin( VIPS_PI * xp ) * 
+				sin( VIPS_PI * xp / (double) a ) / 
+				(VIPS_PI * VIPS_PI * xp * xp);
+
+		c[i] = l;
+		sum += l;
+	}
+
+	for( i = 0; i < n_points; i++ ) 
+		c[i] /= sum;
+}
+
+/* Our inner loop for resampling with a convolution. Operate on elements of 
+ * type T, gather results in an intermediate of type IT.
+ */
+template <typename T, typename IT>
+static IT
+reduce_sum( const T * restrict in, int stride, const IT * restrict c, int n )
+{
+	IT sum;
+
+	sum = 0; 
+	for( int i = 0; i < n; i++ )
+		sum += c[i] * in[i * stride];
+
+	return( sum ); 
 }

@@ -57,6 +57,10 @@
  * 	- better overlap handling, thanks robclouth 
  * 24/11/15
  * 	- don't write empty tiles in google mode
+ * 25/11/15
+ * 	- always strip tile metadata 
+ * 16/12/15
+ * 	- fix overlap handling again, thanks erdmann
  */
 
 /*
@@ -112,6 +116,15 @@
 
    various combinations of odd and even tile-size and overlap need testing too.
 
+	Overlap handling
+
+   For deepzoom, tile-size == 254 and overlap == 1 means that edge tiles are 
+   255 x 255 (though less at the bottom right) and non-edge tiles are 256 x 
+   256. Tiles are positioned across the image in tile-size steps. This means 
+   (confusingly) that two adjoining tiles will have two pixels in common.
+
+   This has caused bugs in the past. 
+
  */
 
 /*
@@ -129,8 +142,142 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <libxml/parser.h>
+
 #include <vips/vips.h>
 #include <vips/internal.h>
+
+/* Track this during property save.
+ */
+typedef struct _WriteInfo { 
+	const char *domain;
+	VipsImage *image;
+	xmlNode *node;
+} WriteInfo; 
+
+static int
+set_prop( WriteInfo *info, 
+	xmlNode *node, const char *name, const char *fmt, ... )
+{
+        va_list ap;
+        char value[1024];
+
+        va_start( ap, fmt );
+        (void) vips_vsnprintf( value, 1024, fmt, ap );
+        va_end( ap );
+
+        if( !xmlSetProp( node, (xmlChar *) name, (xmlChar *) value ) ) {
+                vips_error( info->domain, 
+			_( "unable to set property \"%s\" to value \"%s\"." ),
+                        name, value );
+                return( -1 );
+        }       
+        
+        return( 0 );
+}
+
+static xmlNode *
+new_child( WriteInfo *info, xmlNode *parent, const char *name )
+{
+	xmlNode *child;
+
+	if( !(child = xmlNewChild( parent, NULL, (xmlChar *) name, NULL )) ) {
+                vips_error( info->domain, 
+			_( "unable to set create node \"%s\"" ), name );
+                return( NULL );
+        } 
+
+	return( child );
+}
+
+static void *
+write_vips_property( VipsImage *image, 
+	const char *field, GValue *value, void *a )
+{
+	WriteInfo *info = (WriteInfo *) a;
+	GType type = G_VALUE_TYPE( value );
+
+	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) ) {
+		GValue save_value = { 0 };
+		xmlNode *property;
+		xmlNode *child;
+
+		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+		g_value_transform( value, &save_value );
+
+		if( !(property = new_child( info, info->node, "property" )) )
+			return( image ); 
+
+		if( !(child = new_child( info, property, "name" )) )
+			return( image ); 
+		xmlNodeSetContent( child, (xmlChar *) field );
+
+		if( !(child = new_child( info, property, "value" )) ||
+			set_prop( info, child, "type", g_type_name( type ) ) ) 
+			return( image ); 
+		xmlNodeSetContent( child, 
+			(xmlChar *) vips_value_get_save_string( &save_value ) );
+	}
+
+	return( NULL ); 
+}
+
+/* Pack up all the metadata from an image as XML. This called from vips2tiff
+ * as well.
+ *
+ * Free the result with xmlFree().
+ */
+char *
+vips__make_xml_metadata( const char *domain, VipsImage *image )
+{
+	xmlDoc *doc;
+	GTimeVal now;
+	char *date;
+	WriteInfo info;
+	char *dump;
+	int dump_size;
+
+	if( !(doc = xmlNewDoc( (xmlChar *) "1.0" )) ) { 
+		vips_error( domain, "%s", _( "xml save error" ) );
+		return( NULL );
+	}
+	if( !(doc->children = xmlNewDocNode( doc, NULL, 
+		(xmlChar *) "image", NULL )) ) {
+		vips_error( domain, "%s", _( "xml save error" ) );
+                xmlFreeDoc( doc );
+		return( NULL );
+	}
+
+	info.domain = domain;
+	info.image = image;
+	g_get_current_time( &now );
+	date = g_time_val_to_iso8601( &now ); 
+	if( set_prop( &info, doc->children, "xmlns", 
+			"http://www.vips.ecs.soton.ac.uk/dzsave" ) ||  
+		set_prop( &info, doc->children, "date", date ) ||
+		set_prop( &info, doc->children, "version", VIPS_VERSION ) ) {
+		g_free( date );
+                xmlFreeDoc( doc );
+                return( NULL );
+        }
+	g_free( date );
+
+	if( !(info.node = new_child( &info, doc->children, "properties" )) ||
+		vips_image_map( image, write_vips_property, &info ) ) {
+                xmlFreeDoc( doc );
+                return( NULL );
+        }
+
+	xmlDocDumpFormatMemory( doc, (xmlChar **) &dump, &dump_size, 1 );
+	if( !dump ) {
+		vips_error( domain, "%s", _( "xml save error" ) );
+                xmlFreeDoc( doc );
+                return( NULL );
+	}
+        xmlFreeDoc( doc );
+
+	return( dump );
+}
 
 #ifdef HAVE_GSF
 
@@ -416,11 +563,6 @@ struct _VipsForeignSaveDz {
 
 	Layer *layer;			/* x2 shrink pyr layer */
 
-	/* We step by tile_size - overlap as we move across the image ...
-	 * make a note of it.
-	 */
-	int tile_step;
-
 	/* Count zoomify tiles we write.
 	 */
 	int tile_count;
@@ -517,8 +659,8 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	layer->width = width;
 	layer->height = height;
 
-	layer->tiles_across = ROUND_UP( width, dz->tile_step ) / dz->tile_step;
-	layer->tiles_down = ROUND_UP( height, dz->tile_step ) / dz->tile_step;
+	layer->tiles_across = ROUND_UP( width, dz->tile_size ) / dz->tile_size;
+	layer->tiles_down = ROUND_UP( height, dz->tile_size ) / dz->tile_size;
 
 	layer->real_pixels = *real_pixels; 
 
@@ -567,7 +709,7 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	strip.left = 0;
 	strip.top = 0;
 	strip.width = layer->image->Xsize;
-	strip.height = dz->tile_size;
+	strip.height = dz->tile_size + dz->overlap;
 	if( (strip.height & 1) == 1 )
 		strip.height += 1;
 	if( vips_region_buffer( layer->strip, &strip ) ) {
@@ -589,9 +731,11 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 		break;
 
 	default:
-		g_assert( 0 );
-		limit = dz->tile_size;
-		break;
+		g_assert_not_reached();
+
+		/* Stop compiler warnings.
+		 */
+		limit = 1;
 	}
 
 	if( width > limit || 
@@ -748,151 +892,20 @@ write_blank( VipsForeignSaveDz *dz )
 }
 
 static int
-set_prop( VipsForeignSaveDz *dz,
-	xmlNode *node, const char *name, const char *fmt, ... )
-{
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
-
-        va_list ap;
-        char value[1024];
-
-        va_start( ap, fmt );
-        (void) vips_vsnprintf( value, 1024, fmt, ap );
-        va_end( ap );
-
-        if( !xmlSetProp( node, (xmlChar *) name, (xmlChar *) value ) ) {
-                vips_error( class->nickname, 
-			_( "unable to set property \"%s\" to value \"%s\"." ),
-                        name, value );
-                return( -1 );
-        }       
-        
-        return( 0 );
-}
-
-static xmlNode *
-new_child( VipsForeignSaveDz *dz, xmlNode *parent, const char *name )
-{
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
-
-	xmlNode *child;
-
-	if( !(child = xmlNewChild( parent, NULL, 
-		(xmlChar *) name, NULL )) ) {
-                vips_error( class->nickname, 
-			_( "unable to set create node \"%s\"" ),
-                        name );
-                return( NULL );
-        } 
-
-	return( child );
-}
-
-/* Track this during a property save.
- */
-typedef struct _WriteInfo { 
-	VipsForeignSaveDz *dz;
-	xmlNode *node;
-} WriteInfo; 
-
-static void *
-write_vips_property( VipsImage *image, 
-	const char *field, GValue *value, void *a )
-{
-	WriteInfo *info = (WriteInfo *) a;
-	VipsForeignSaveDz *dz = info->dz;
-	GType type = G_VALUE_TYPE( value );
-
-	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) ) {
-		GValue save_value = { 0 };
-		xmlNode *property;
-		xmlNode *child;
-
-		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
-		g_value_transform( value, &save_value );
-
-		if( !(property = new_child( dz, info->node, "property" )) )
-			return( image ); 
-
-		if( !(child = new_child( dz, property, "name" )) )
-			return( image ); 
-		xmlNodeSetContent( child, (xmlChar *) field );
-
-		if( !(child = new_child( dz, property, "value" )) ||
-			set_prop( dz, child, "type", g_type_name( type ) ) ) 
-			return( image ); 
-		xmlNodeSetContent( child, 
-			(xmlChar *) vips_value_get_save_string( &save_value ) );
-	}
-
-	return( NULL ); 
-}
-
-static int
-write_vips_properties( VipsForeignSaveDz *dz, xmlNode *node )
-{
-	VipsForeignSave *save = (VipsForeignSave *) dz;
-
-	xmlNode *this;
-	WriteInfo info;
-
-	if( !(this = new_child( dz, node, "properties" )) )
-		return( -1 );
-	info.dz = dz;
-	info.node = this;
-	if( vips_image_map( save->ready, write_vips_property, &info ) )
-		return( -1 );
-
-	return( 0 );
-}
-
-static int
 write_vips_meta( VipsForeignSaveDz *dz )
 {
+	VipsForeignSave *save = (VipsForeignSave *) dz;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
 
-	xmlDoc *doc;
-	GTimeVal now;
-	char *date;
 	char *dump;
-	int dump_size;
 	GsfOutput *out;
 
-	if( !(doc = xmlNewDoc( (xmlChar *) "1.0" )) ) { 
-		vips_error( class->nickname, "%s", _( "xml save error" ) );
-		return( -1 );
-	}
-	if( !(doc->children = xmlNewDocNode( doc, NULL, 
-		(xmlChar *) "image", NULL )) ) {
-		vips_error( class->nickname, "%s", _( "xml save error" ) );
-                xmlFreeDoc( doc );
-		return( -1 );
-	}
-
-	g_get_current_time( &now );
-	date = g_time_val_to_iso8601( &now ); 
-	if( set_prop( dz, doc->children, "xmlns", 
-			"http://www.vips.ecs.soton.ac.uk/dzsave" ) ||  
-		set_prop( dz, doc->children, "date", date ) ||
-		set_prop( dz, doc->children, "version", VIPS_VERSION ) ||
-		write_vips_properties( dz, doc->children ) ) {
-		g_free( date );
-                xmlFreeDoc( doc );
+	if( !(dump = vips__make_xml_metadata( class->nickname, save->ready )) )
                 return( -1 );
-        }
-	g_free( date );
-
-	xmlDocDumpFormatMemory( doc, (xmlChar **) &dump, &dump_size, 1 );
-	if( !dump ) {
-		vips_error( class->nickname, "%s", _( "xml save error" ) );
-                xmlFreeDoc( doc );
-                return( -1 );
-	}
-        xmlFreeDoc( doc );
 
 	out = vips_gsf_path( dz->tree, 
 		"vips-properties.xml", dz->root_name, NULL ); 
-	gsf_output_write( out, dump_size, (guchar *) dump ); 
+	gsf_output_write( out, strlen( dump ), (guchar *) dump ); 
 	(void) gsf_output_close( out );
 	g_object_unref( out );
 
@@ -946,6 +959,7 @@ strip_init( Strip *strip, Layer *layer )
 	line.top = layer->y;
 	line.width = image.width;
 	line.height = dz->tile_size;
+	vips_rect_marginadjust( &line, dz->overlap );
 
 	vips_rect_intersectrect( &image, &line, &line );
 
@@ -976,6 +990,19 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	printf( "strip_allocate\n" );
 #endif /*DEBUG_VERBOSE*/
 
+	/* We can't test for allocated area empty, since it might just have
+	 * bits of the left-hand overlap in and no new pixels. Safest to count
+	 * tiles across.
+	 */
+	if( strip->x / dz->tile_size >= layer->tiles_across ) {
+		*stop = TRUE;
+#ifdef DEBUG_VERBOSE
+		printf( "strip_allocate: done\n" );
+#endif /*DEBUG_VERBOSE*/
+
+		return( 0 );
+	}
+
 	image.left = 0;
 	image.top = 0;
 	image.width = layer->width;
@@ -987,21 +1014,13 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	state->pos.top = layer->y;
 	state->pos.width = dz->tile_size;
 	state->pos.height = dz->tile_size;
+	vips_rect_marginadjust( &state->pos, dz->overlap );
 
 	vips_rect_intersectrect( &image, &state->pos, &state->pos );
 	state->x = strip->x;
 	state->y = layer->y;
 
-	strip->x += dz->tile_step;
-
-	if( vips_rect_isempty( &state->pos ) ) {
-		*stop = TRUE;
-#ifdef DEBUG_VERBOSE
-		printf( "strip_allocate: done\n" );
-#endif /*DEBUG_VERBOSE*/
-
-		return( 0 );
-	}
+	strip->x += dz->tile_size;
 
 	return( 0 );
 }
@@ -1071,8 +1090,11 @@ tile_name( Layer *layer, int x, int y )
 		break;
 
 	default:
-		g_assert( 0 );
-		return( NULL );
+		g_assert_not_reached();
+
+		/* Stop compiler warnings.
+		 */
+		out = NULL;
 	}
 
 #ifdef DEBUG_VERBOSE
@@ -1206,8 +1228,12 @@ strip_work( VipsThreadState *state, void *a )
 		x = t;
 	}
 
+	/* Hopefully no one will want the same metadata on all the tiles.
+	 */
 	vips_image_set_int( x, "hide-progress", 1 );
-	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, NULL ) ) {
+	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, 
+		"strip", TRUE, 
+		NULL ) ) {
 		g_object_unref( x );
 		return( -1 );
 	}
@@ -1218,7 +1244,7 @@ strip_work( VipsThreadState *state, void *a )
 	g_mutex_lock( vips__global_lock );
 
 	out = tile_name( layer, 
-		state->x / dz->tile_step, state->y / dz->tile_step );
+		state->x / dz->tile_size, state->y / dz->tile_size );
 
 	status = gsf_output_write( out, len, buf );
 	dz->bytes_written += len;
@@ -1452,11 +1478,11 @@ strip_arrived( Layer *layer )
 	 * Expand the strip if necessary to make sure we have an even 
 	 * number of lines. 
 	 */
-	layer->y += dz->tile_step;
+	layer->y += dz->tile_size;
 	new_strip.left = 0;
-	new_strip.top = layer->y;
+	new_strip.top = layer->y - dz->overlap;
 	new_strip.width = layer->image->Xsize;
-	new_strip.height = dz->tile_size;
+	new_strip.height = dz->tile_size + 2 * dz->overlap;
 
 	image_area.left = 0;
 	image_area.top = 0;
@@ -1581,6 +1607,14 @@ vips_foreign_save_dz_build( VipsObject *object )
 			VIPS_SETSTR( dz->suffix, ".jpg" );
 	}
 
+	/* Google and zoomify default to 256 pixel tiles.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY ||
+		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
+		if( !vips_object_argument_isset( object, "tile_size" ) )
+			dz->tile_size = 256;
+	}
+
 	/* Default to white background. vips_foreign_save_init() defaults to
 	 * black. 
 	 */
@@ -1636,10 +1670,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 			VIPS_AREA( save->background )->n )) )
 			return( -1 );
 	}
-
-	/* How much we step by as we write tiles.
-	 */
-	dz->tile_step = dz->tile_size - dz->overlap;
 
 	/* The real pixels we have from our input. This is about to get
 	 * expanded with background. 
@@ -1854,8 +1884,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		break;
 
 	default:
-		g_assert( 0 );
-		return( -1 ); 
+		g_assert_not_reached();
 	}
 
 	if( vips_sink_disc( save->ready, pyramid_strip, dz ) )
@@ -1878,8 +1907,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		break;
 
 	default:
-		g_assert( 0 );
-		return( -1 );
+		g_assert_not_reached();
 	}
 
 	if( dz->properties &&
@@ -1992,14 +2020,14 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Tile overlap in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, overlap ),
-		0, 8192, 0 );
+		0, 8192, 1 );
 
 	VIPS_ARG_INT( class, "tile_size", 11, 
 		_( "Tile size" ), 
 		_( "Tile size in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
-		1, 8192, 256 );
+		1, 8192, 254 );
 
 	VIPS_ARG_ENUM( class, "depth", 13, 
 		_( "Depth" ), 
@@ -2060,14 +2088,14 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Tile width in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
-		1, 8192, 256 );
+		1, 8192, 254 );
 
 	VIPS_ARG_INT( class, "tile_height", 12, 
 		_( "Tile height" ), 
 		_( "Tile height in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, tile_size ),
-		1, 8192, 256 );
+		1, 8192, 254 );
 
 }
 
@@ -2077,7 +2105,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	VIPS_SETSTR( dz->suffix, ".jpeg" );
 	dz->layout = VIPS_FOREIGN_DZ_LAYOUT_DZ; 
 	dz->overlap = 1;
-	dz->tile_size = 256;
+	dz->tile_size = 254;
 	dz->tile_count = 0;
 	dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL; 
 	dz->angle = VIPS_ANGLE_D0; 
@@ -2121,7 +2149,9 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * but you can have them centred by turning on @centre. 
  *
  * You can set the size and overlap of tiles with @tile_size and @overlap.
- * They default to the correct settings for the selected @layout. 
+ * They default to the correct settings for the selected @layout. The deepzoom
+ * defaults produce 256x256 jpeg files for centre tiles, the most efficient
+ * size.
  *
  * Use @depth to control how low the pyramid goes. This defaults to the
  * correct setting for the @layout you select.

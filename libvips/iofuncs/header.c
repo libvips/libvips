@@ -387,6 +387,86 @@ vips_image_get_format( const VipsImage *image )
 }
 
 /**
+ * vips_image_guess_format:
+ * @image: image to guess for
+ *
+ * Return the #VipsBandFormat for an image, guessing a sane value if
+ * the set value looks crazy.
+ *
+ * For example, for a float image tagged as rgb16, we'd return ushort. 
+ *
+ * Returns: a sensible #VipsBandFormat for the image.
+ */
+VipsBandFormat
+vips_image_guess_format( const VipsImage *image )
+{
+	VipsBandFormat format;
+
+	switch( image->Type ) {
+	case VIPS_INTERPRETATION_B_W: 
+	case VIPS_INTERPRETATION_HISTOGRAM: 
+	case VIPS_INTERPRETATION_MULTIBAND: 
+		format = image->BandFmt;
+		break;
+
+	case VIPS_INTERPRETATION_FOURIER: 
+		if( image->BandFmt == VIPS_FORMAT_DOUBLE ||
+			image->BandFmt == VIPS_FORMAT_DPCOMPLEX )
+			format = VIPS_FORMAT_DPCOMPLEX;
+		else
+			format = VIPS_FORMAT_COMPLEX;
+		break;
+
+	case VIPS_INTERPRETATION_sRGB: 
+		format = VIPS_FORMAT_UCHAR;
+		break;
+
+	case VIPS_INTERPRETATION_XYZ: 
+	case VIPS_INTERPRETATION_LAB: 
+	case VIPS_INTERPRETATION_RGB: 
+	case VIPS_INTERPRETATION_CMC: 
+	case VIPS_INTERPRETATION_LCH: 
+	case VIPS_INTERPRETATION_HSV: 
+	case VIPS_INTERPRETATION_scRGB: 
+	case VIPS_INTERPRETATION_YXY: 
+		format = VIPS_FORMAT_FLOAT;
+		break;
+
+	case VIPS_INTERPRETATION_CMYK: 
+		if( image->BandFmt != VIPS_FORMAT_USHORT )
+			format = VIPS_FORMAT_UCHAR;
+		else
+			format = image->BandFmt;
+		break;
+
+	case  VIPS_INTERPRETATION_LABQ:
+		format = VIPS_FORMAT_UCHAR;
+		break;
+
+	case  VIPS_INTERPRETATION_LABS:
+		format = VIPS_FORMAT_SHORT;
+		break;
+
+	case  VIPS_INTERPRETATION_GREY16:
+	case  VIPS_INTERPRETATION_RGB16:
+		format = VIPS_FORMAT_USHORT;
+		break;
+
+	case  VIPS_INTERPRETATION_MATRIX:
+		if( image->BandFmt != VIPS_FORMAT_DOUBLE )
+			format = VIPS_FORMAT_FLOAT;
+		else
+			format = image->BandFmt;
+		break;
+
+	default:
+		g_assert_not_reached();
+	}
+
+	return( format );
+}
+
+/**
  * vips_image_get_coding:
  * @image: image to get from
  *
@@ -536,9 +616,7 @@ vips_image_guess_interpretation( const VipsImage *image )
 		break;
 
 	default:
-		g_assert( 0 );
-		sane = FALSE;
-		break;
+		g_assert_not_reached();
 	}
 
 	if( sane )

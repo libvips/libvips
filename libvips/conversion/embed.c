@@ -330,7 +330,7 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 		break;
 
 	default:	
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	return( 0 );
@@ -356,9 +356,6 @@ vips_embed_build( VipsObject *object )
 		embed->width == embed->in->Xsize && 
 		embed->height == embed->in->Ysize )
 		return( vips_image_write( embed->in, conversion->out ) );
-
-	if( vips_image_pio_input( embed->in ) )
-		return( -1 );
 
 	if( !(embed->ink = vips__vector_to_ink( 
 		class->nickname, embed->in,
@@ -538,7 +535,7 @@ vips_embed_build( VipsObject *object )
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	return( 0 );

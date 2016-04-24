@@ -220,7 +220,7 @@ vips_draw_mask_draw( VipsImage *image, VipsImage *mask, VipsPel *ink,
 			break;
 
 		default:
-			g_assert( 0 ); 
+			g_assert_not_reached(); 
 		}
 	}
 
@@ -283,7 +283,7 @@ vips__draw_mask_direct( VipsImage *image, VipsImage *mask,
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 
 	return( 0 );

@@ -10,6 +10,20 @@ from gi.repository import Vips
 
 Vips.leak_set(True)
 
+unsigned_formats = [Vips.BandFormat.UCHAR, 
+                    Vips.BandFormat.USHORT, 
+                    Vips.BandFormat.UINT] 
+signed_formats = [Vips.BandFormat.CHAR, 
+                  Vips.BandFormat.SHORT, 
+                  Vips.BandFormat.INT] 
+float_formats = [Vips.BandFormat.FLOAT, 
+                 Vips.BandFormat.DOUBLE]
+complex_formats = [Vips.BandFormat.COMPLEX, 
+                   Vips.BandFormat.DPCOMPLEX] 
+int_formats = unsigned_formats + signed_formats
+noncomplex_formats = int_formats + float_formats
+all_formats = int_formats + float_formats + complex_formats
+
 # Run a function expecting a complex image on a two-band image
 def run_cmplx(fn, image):
     if image.format == Vips.BandFormat.FLOAT:
@@ -99,6 +113,44 @@ class TestResample(unittest.TestCase):
                 x = x.affine([0, 1, 1, 0], interpolate = interpolate)
  
             self.assertEqual((x - im).abs().max(), 0)
+
+    def test_reduce(self):
+        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        # cast down to 0-127, the smallest range, so we aren't messed up by
+        # clipping
+        im = im.cast(Vips.BandFormat.CHAR)
+        bicubic = Vips.Interpolate.new("bicubic")
+        bilinear = Vips.Interpolate.new("bilinear")
+        nearest = Vips.Interpolate.new("nearest")
+
+        for fac in [1, 1.1, 1.5, 1.999]:
+            for fmt in all_formats:
+                x = im.cast(fmt)
+                r = x.reduce(fac, fac, kernel = "cubic")
+                a = x.affine([1.0 / fac, 0, 0, 1.0 / fac], 
+                             interpolate = bicubic,
+                             oarea = [0, 0, x.width / fac, x.height / fac])
+                d = (r - a).abs().max()
+                self.assertLess(d, 10)
+
+        for fac in [1, 1.1, 1.5, 1.999]:
+            for fmt in all_formats:
+                x = im.cast(fmt)
+                r = x.reduce(fac, fac, kernel = "linear")
+                a = x.affine([1.0 / fac, 0, 0, 1.0 / fac], 
+                             interpolate = bilinear,
+                             oarea = [0, 0, x.width / fac, x.height / fac])
+                d = (r - a).abs().max()
+                self.assertLess(d, 10)
+
+        # for other kernels, just see if avg looks about right
+        for fac in [1, 1.1, 1.5, 1.999]:
+            for fmt in all_formats:
+                for kernel in ["nearest", "lanczos2", "lanczos3"]:
+                    x = im.cast(fmt)
+                    r = x.reduce(fac, fac, kernel = kernel)
+                    d = abs(r.avg() - im.avg())
+                    self.assertLess(d, 2)
 
     def test_resize(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")

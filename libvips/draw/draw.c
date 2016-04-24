@@ -54,8 +54,25 @@
  * These operations directly modify the image. They do not thread, on 32-bit
  * machines they will be limited to 2GB images, and a little care needs to be
  * taken if you use them as part of an image pipeline. 
- *
  * They are mostly supposed to be useful for paintbox-style programs.
+ *
+ * libvips operations are all functional: they take zero or more existing input 
+ * images and generate zero or more new output images. Images are
+ * never altered, you always create new images. This means libvips can cache
+ * and thread very agressively.
+ *
+ * The downside is that creating entirely fresh images each time can be very
+ * slow. libvips has a range of tricks to avoid these problems, but there are
+ * still times when you really have to be able to modify an image. An example
+ * might be drawing a curved line from a set of straight line segments: if you
+ * need to draw 1,000 straight lines, a 1,000 operation-deep pipeline is going
+ * to be a slow way to do it. This is where the draw operations come in.
+ *
+ * To use these operations, use vips_copy() to make a copy of the image you 
+ * want to modify, to ensure that no one else is using it, then call a 
+ * series of draw operations.
+ * Once you are done drawing, return to normal use of vips operations. Any time
+ * you want to start drawing again, you'll need to copy again. 
  */
 
 /** 

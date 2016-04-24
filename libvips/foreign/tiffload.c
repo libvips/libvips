@@ -179,6 +179,10 @@ vips_foreign_load_tiff_file_class_init( VipsForeignLoadTiffFileClass *class )
 	object_class->nickname = "tiffload";
 	object_class->description = _( "load tiff from file" );
 
+	/* We are fast, but must test after openslideload.
+	 */
+	foreign_class->priority = 50;
+
 	foreign_class->suffs = vips__foreign_tiff_suffs;
 
 	load_class->is_a = vips__istiff;

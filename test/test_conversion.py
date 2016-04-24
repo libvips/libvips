@@ -208,11 +208,16 @@ class TestConversion(unittest.TestCase):
 
         def bandrank(x, y):
             if isinstance(x, Vips.Image) and isinstance(y, Vips.Image):
-                return Vips.Image.bandrank([x, y])
+                return x.bandrank([y])
             else:
                 return median(x, y)
 
         self.run_binary(self.all_images, bandrank, fmt = noncomplex_formats)
+
+        # we can mix images and constants, and set the index arg
+        a = self.mono.bandrank([2], index = 0)
+        b = (self.mono < 2).ifthenelse(self.mono, 2)
+        self.assertEqual((a - b).abs().min(), 0)
 
     def test_cache(self):
         def cache(x):
@@ -626,6 +631,34 @@ class TestConversion(unittest.TestCase):
 
                 a = r(r.width - 5, 5)
                 self.assertAlmostEqualObjects(a, [100, 100, 100])
+
+    def test_arrayjoin(self):
+        max_width = 0
+        max_height = 0
+        max_bands = 0
+        for image in self.all_images:
+            if image.width > max_width:
+                max_width = image.width
+            if image.height > max_height:
+                max_height = image.height
+            if image.bands > max_bands:
+                max_bands = image.bands
+
+        im = Vips.Image.arrayjoin(self.all_images)
+        self.assertEqual(im.width, max_width * len(self.all_images))
+        self.assertEqual(im.height, max_height)
+        self.assertEqual(im.bands, max_bands)
+
+        im = Vips.Image.arrayjoin(self.all_images, across = 1)
+        self.assertEqual(im.width, max_width)
+        self.assertEqual(im.height, max_height * len(self.all_images))
+        self.assertEqual(im.bands, max_bands)
+
+        im = Vips.Image.arrayjoin(self.all_images, shim = 10)
+        self.assertEqual(im.width, max_width * len(self.all_images) + 
+                         10 * (len(self.all_images) - 1))
+        self.assertEqual(im.height, max_height)
+        self.assertEqual(im.bands, max_bands)
 
     def test_msb(self):
         for fmt in unsigned_formats:

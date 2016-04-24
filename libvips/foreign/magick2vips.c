@@ -47,6 +47,10 @@
  * 26/2/15
  * 	- close the read down early for a header read ... this saves an
  * 	  fd during file read, handy for large numbers of input images 
+ * 14/2/16
+ * 	- add @page option, 0 by default
+ * 18/4/16
+ * 	- fix @page with graphicsmagick
  */
 
 /*
@@ -107,7 +111,7 @@
 /* And this used to be UseHDRI.
  */
 #if MAGICKCORE_HDRI_SUPPORT
-#  define UseHDRI=1
+#  define UseHDRI 1
 #endif
 
 /* What we track during a read call.
@@ -116,6 +120,7 @@ typedef struct _Read {
 	char *filename;
 	VipsImage *im;
 	gboolean all_frames;
+	int page;
 
 	Image *image;
 	ImageInfo *image_info;
@@ -160,8 +165,8 @@ read_close( VipsImage *im, Read *read )
 }
 
 static Read *
-read_new( const char *filename, VipsImage *im, gboolean all_frames,
-	const char *density )
+read_new( const char *filename, VipsImage *im, 
+	gboolean all_frames, const char *density, int page )
 {
 	Read *read;
 	static int inited = 0;
@@ -179,6 +184,7 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames,
 		return( NULL );
 	read->filename = filename ? g_strdup( filename ) : NULL;
 	read->all_frames = all_frames;
+	read->page = page;
 	read->im = im;
 	read->image = NULL;
 	read->image_info = CloneImageInfo( NULL );
@@ -200,6 +206,38 @@ read_new( const char *filename, VipsImage *im, gboolean all_frames,
 	/* Canvas resolution for rendering vector formats like SVG.
 	 */
 	VIPS_SETSTR( read->image_info->density, density );
+
+#ifdef HAVE_SETIMAGEOPTION
+	/* When reading DICOM images, we want to ignore any
+	 * window_center/_width setting, since it may put pixels outside the
+	 * 0-65535 range and lose data. 
+	 *
+	 * These window settings are attached as vips metadata, so our caller
+	 * can interpret them if it wants.
+	 */
+  	SetImageOption( read->image_info, "dcm:display-range", "reset" );
+#endif /*HAVE_SETIMAGEOPTION*/
+
+	if( !all_frames ) {
+#ifdef HAVE_NUMBER_SCENES 
+		 /* I can't find docs for these fields, but this seems to work.
+		  */
+		char page[256];
+
+		read->image_info->scene = read->page;
+		read->image_info->number_scenes = 1;
+
+		/* Some IMs must have the string version set as well.
+		 */
+		vips_snprintf( page, 256, "%d", read->page );
+		read->image_info->scenes = strdup( page );
+#else /*!HAVE_NUMBER_SCENES*/
+		/* This works with GM 1.2.31 and probably others.
+		 */
+		read->image_info->subimage = read->page;
+		read->image_info->subrange = 1;
+#endif
+	}
 
 #ifdef DEBUG
 	printf( "magick2vips: read_new: %s\n", read->filename );
@@ -533,7 +571,7 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 			GRAY_LOOP( double, QuantumRange ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 		break;
 
@@ -551,7 +589,7 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 			GRAYA_LOOP( double, QuantumRange ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 		break;
 
@@ -569,7 +607,7 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 			RGB_LOOP( double, QuantumRange ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 		break;
 
@@ -587,12 +625,12 @@ unpack_pixels( VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n )
 			RGBA_LOOP( double, QuantumRange ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -673,8 +711,8 @@ magick_fill_region( VipsRegion *out,
 }
 
 int
-vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames,
-	const char *density )
+vips__magick_read( const char *filename, VipsImage *out, 
+	gboolean all_frames, const char *density, int page )
 {
 	Read *read;
 
@@ -682,19 +720,8 @@ vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames,
 	printf( "magick2vips: vips__magick_read: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out, all_frames, density )) )
+	if( !(read = read_new( filename, out, all_frames, density, page )) )
 		return( -1 );
-
-#ifdef HAVE_SETIMAGEOPTION
-	/* When reading DICOM images, we want to ignore any
-	 * window_center/_width setting, since it may put pixels outside the
-	 * 0-65535 range and lose data. 
-	 *
-	 * These window settings are attached as vips metadata, so our caller
-	 * can interpret them if it wants.
-	 */
-  	SetImageOption( read->image_info, "dcm:display-range", "reset" );
-#endif /*HAVE_SETIMAGEOPTION*/
 
 #ifdef DEBUG
 	printf( "magick2vips: calling ReadImage() ...\n" );
@@ -724,7 +751,7 @@ vips__magick_read( const char *filename, VipsImage *out, gboolean all_frames,
  */
 int
 vips__magick_read_header( const char *filename, VipsImage *im, 
-	gboolean all_frames, const char *density )
+	gboolean all_frames, const char *density, int page )
 {
 	Read *read;
 
@@ -732,7 +759,7 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 	printf( "vips__magick_read_header: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, im, all_frames, density )) )
+	if( !(read = read_new( filename, im, all_frames, density, page )) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -765,7 +792,7 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 
 int
 vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
-	gboolean all_frames, const char *density )
+	gboolean all_frames, const char *density, int page )
 {
 	Read *read;
 
@@ -773,19 +800,8 @@ vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
 	printf( "magick2vips: vips__magick_read_buffer: %p %zu\n", buf, len );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( NULL, out, all_frames, density )) )
+	if( !(read = read_new( NULL, out, all_frames, density, page )) )
 		return( -1 );
-
-#ifdef HAVE_SETIMAGEOPTION
-	/* When reading DICOM images, we want to ignore any
-	 * window_center/_width setting, since it may put pixels outside the
-	 * 0-65535 range and lose data. 
-	 *
-	 * These window settings are attached as vips metadata, so our caller
-	 * can interpret them if it wants.
-	 */
-  	SetImageOption( read->image_info, "dcm:display-range", "reset" );
-#endif /*HAVE_SETIMAGEOPTION*/
 
 #ifdef DEBUG
 	printf( "magick2vips: calling BlobToImage() ...\n" );
@@ -810,8 +826,9 @@ vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
 }
 
 int
-vips__magick_read_buffer_header( const void *buf, const size_t len,
-	VipsImage *im, gboolean all_frames, const char *density )
+vips__magick_read_buffer_header( const void *buf, const size_t len, 
+	VipsImage *im, 
+	gboolean all_frames, const char *density, int page )
 {
 	Read *read;
 
@@ -819,7 +836,7 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 	printf( "vips__magick_read_buffer_header: %p %zu\n", buf, len );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( NULL, im, all_frames, density )) )
+	if( !(read = read_new( NULL, im, all_frames, density, page )) )
 		return( -1 );
 
 #ifdef DEBUG

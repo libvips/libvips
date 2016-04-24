@@ -38,13 +38,25 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+typedef enum {
+	VIPS_KERNEL_NEAREST,
+	VIPS_KERNEL_LINEAR,
+	VIPS_KERNEL_CUBIC,
+	VIPS_KERNEL_LANCZOS2,
+	VIPS_KERNEL_LANCZOS3,
+	VIPS_KERNEL_LAST
+} VipsKernel;
+
 int vips_shrink( VipsImage *in, VipsImage **out, 
 	double xshrink, double yshrink, ... )
 	__attribute__((sentinel));
 int vips_shrinkh( VipsImage *in, VipsImage **out, int xshrink, ... );
 int vips_shrinkv( VipsImage *in, VipsImage **out, int yshrink, ... );
-int vips_shrink2( VipsImage *in, VipsImage **out, 
+
+int vips_reduce( VipsImage *in, VipsImage **out, 
 	double xshrink, double yshrink, ... );
+int vips_reduceh( VipsImage *in, VipsImage **out, double xshrink, ... );
+int vips_reducev( VipsImage *in, VipsImage **out, double yshrink, ... );
 
 int vips_similarity( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));

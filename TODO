@@ -1,17 +1,13 @@
-- get some brightly coloured spots with nohalo / vsqbs on wobble.ws ... very
-  odd, the interpolation shouldn't change between bands
+- I like the new int mask creator in reducev, can we use it in im_vips2imask()
+  as well?
+
+  what about making the int masks for the interpolators?
+
+- try SEQ_UNBUFFERED on jpg source, get out of order error?
+
+- could load pdf thumbnails?
 
 - still not happy about float->int mask conversion in im_vips2mask.c
-
-- looks like we have a race in tiled threadcache? see 
-
-	https://github.com/jcupitt/libvips/issues/347
-
-  oh argh out of order reads ... but why would they add a few black tiles?
-
-  trying new shrinker
-
-  also try resize change
 
 - colour needs to split _build() into preprocess / process / postprocess
   phases
@@ -24,6 +20,12 @@
   solution
 
 
+
+- use the incremental webp decoding api to support seq for webp images
+
+	https://developers.google.com/speed/webp/docs/api#decodingadvancedapi
+
+  doesn't seem to be possible
 
 - does ruby need to unpack RefString as well? what about C++?
 
@@ -80,7 +82,18 @@
 
 - why can't we do
 
-	im = Vips.Image.new_from_file(sys.argv[1], access = "sequential")
+im = Vips.Image.new_from_file("/data/john/pics/k2.jpg", access = "sequential")
+
+
+
+import logging
+logging.basicConfig(level = logging.DEBUG)
+from gi.repository import Vips
+im = Vips.Image.new_from_file("/data/john/pics/k2.jpg", access = "sequential")
+
+DEBUG:gi.overrides.Vips:assigning sequential to access
+DEBUG:gi.overrides.Vips:access needs a <GType VipsAccess (20432752)>
+DEBUG:gi.overrides.Vips:assigning sequential
 
   ValueError: invalid literal for int() with base 10: 'sequential'
 
@@ -182,11 +195,6 @@
 
   use it from nip2 for zooming? only if the partial flag is set though, we
   don't want to use it on jpg files
-
-- use the webp advanced encoding api to set a write function for webp save to
-  file
-
-- use g_log() instead of vips_info()?
 
 
 

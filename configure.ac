@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [8.2.0], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.3.1], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -17,8 +17,8 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [8])
-m4_define([vips_minor_version], [2])
-m4_define([vips_micro_version], [0])
+m4_define([vips_minor_version], [3])
+m4_define([vips_micro_version], [1])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -37,9 +37,9 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=44
-LIBRARY_REVISION=0
-LIBRARY_AGE=2
+LIBRARY_CURRENT=46
+LIBRARY_REVISION=1
+LIBRARY_AGE=4
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
@@ -488,6 +488,19 @@ if test x"$with_magick" != "xno"; then
   LIBS=$save_LIBS
 fi
 
+if test x"$with_magick" != "xno"; then
+  # do we have number_scenes in image_info ... imagemagick uses this, gm
+  # still uses subrange
+  save_CFLAGS=$CFLAGS
+  CFLAGS="$CFLAGS $MAGICK_CFLAGS"
+  AC_CHECK_MEMBER([struct _ImageInfo.number_scenes],
+    AC_DEFINE(HAVE_NUMBER_SCENES,1,
+	      [define if your magick has ImageInfo.number_scenes.]),
+    [],
+    [#include <magick/api.h>])
+  CFLAGS=$save_CFLAGS
+fi
+
 # orc
 AC_ARG_WITH([orc], 
   AS_HELP_STRING([--without-orc], [build without orc (default: test)]))
@@ -497,7 +510,14 @@ if test x"$with_orc" != "xno"; then
   PKG_CHECK_MODULES(ORC, orc-0.4 >= 0.4.11,
     [AC_DEFINE(HAVE_ORC,1,[define if you have orc-0.4.11 or later installed.])
      with_orc=yes
-     PACKAGES_USED="$PACKAGES_USED orc-0.4"],
+     PACKAGES_USED="$PACKAGES_USED orc-0.4"
+     save_LIBS=$LIBS
+     LIBS="$LIBS $ORC_LIBS"
+     AC_CHECK_FUNCS(orc_program_get_error,
+       AC_DEFINE(HAVE_ORC_PROGRAM_GET_ERROR,1,
+	      [define if your orc has orc_program_get_error.]))
+     LIBS=$save_LIBS
+    ],
     [AC_MSG_WARN([orc-0.4.11 or later not found; disabling orc support])
      with_orc=no
     ])
@@ -530,31 +550,71 @@ if test x"$with_OpenEXR" != "xno"; then
   PKG_CHECK_MODULES(OPENEXR, OpenEXR >= 1.2.2,
     [AC_DEFINE(HAVE_OPENEXR,1,[define if you have OpenEXR >=1.2.2 installed.])
      with_OpenEXR=yes
-     PACKAGES_USED="$PACKAGES_USED OpenEXR"],
+     PACKAGES_USED="$PACKAGES_USED OpenEXR"
+    ],
     [AC_MSG_WARN([OpenEXR not found; disabling OpenEXR support])
      with_OpenEXR=no
-    ])
+    ]
+  )
+fi
+
+# poppler
+AC_ARG_WITH([poppler],
+  AS_HELP_STRING([--without-poppler], [build without poppler (default: test)]))
+
+if test x"$with_poppler" != x"no"; then
+  PKG_CHECK_MODULES(POPPLER, [poppler-glib >= 0.30.0 cairo >= 1.2],
+    [AC_DEFINE(HAVE_POPPLER,1,[define if you have poppler-glib >= 0.30.0 and cairo >= 1.2 installed.])
+     with_poppler=yes
+     PACKAGES_USED="$PACKAGES_USED poppler-glib cairo"
+    ],
+    [AC_MSG_WARN([poppler-glib >= 0.30.0 or cairo >= 1.2 not found; disabling PDF load via poppler])
+     with_poppler=no
+    ]
+  )
+fi
+
+# librsvg
+AC_ARG_WITH([rsvg],
+  AS_HELP_STRING([--without-rsvg], [build without rsvg (default: test)]))
+
+if test x"$with_rsvg" != x"no"; then
+  PKG_CHECK_MODULES(RSVG, [librsvg-2.0 >= 2.40 cairo >= 1.2],
+    [AC_DEFINE(HAVE_RSVG,1,[define if you have librsvg-2.0 >= 2.40.0 and cairo >= 1.2 installed.])
+     with_rsvg=yes
+     PACKAGES_USED="$PACKAGES_USED librsvg-2.0 cairo"
+    ],
+    [AC_MSG_WARN([librsvg-2.0 >= 2.40.0 or cairo >= 1.2 not found; disabling SVG load via rsvg])
+     with_rsvg=no
+    ]
+  )
 fi
 
 # OpenSlide
 AC_ARG_WITH([openslide],
-  AS_HELP_STRING([--without-openslide], [build without OpenSlide (default: test)]))
+  AS_HELP_STRING([--without-openslide], 
+    [build without OpenSlide (default: test)])
+)
 
 if test x"$with_openslide" != x"no"; then
   PKG_CHECK_MODULES(OPENSLIDE, [openslide >= 3.4.0],
     [AC_DEFINE(HAVE_OPENSLIDE_3_4,1,[define if you have OpenSlide >= 3.4.0 installed.])
      AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
      with_openslide=yes
-     PACKAGES_USED="$PACKAGES_USED openslide"],
+     PACKAGES_USED="$PACKAGES_USED openslide"
+    ],
     [AC_MSG_NOTICE([OpenSlide >= 3.4.0 not found; checking for >= 3.3.0])
      PKG_CHECK_MODULES(OPENSLIDE, [openslide >= 3.3.0],
-     [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
-      with_openslide=yes
-      PACKAGES_USED="$PACKAGES_USED openslide"],
-     [AC_MSG_WARN([OpenSlide >= 3.3.0 not found; disabling virtual slide support])
-      with_openslide=no
-     ])
-    ])
+       [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
+        with_openslide=yes
+        PACKAGES_USED="$PACKAGES_USED openslide"
+       ],
+       [AC_MSG_WARN([OpenSlide >= 3.3.0 not found; disabling virtual slide support])
+        with_openslide=no
+       ]
+     )
+    ]
+  )
 fi
 
 # matio
@@ -569,6 +629,33 @@ if test x"$with_matio" != "xno"; then
     [AC_MSG_WARN([matio not found; disabling matio support])
      with_matio=no
     ])
+fi
+
+# not external libraries, but have options to disable them, helps to
+# reduce attack surface
+
+AC_ARG_WITH([ppm], 
+  AS_HELP_STRING([--without-ppm], [build without ppm (default: with)]))
+
+if test x"$with_ppm" != "xno"; then
+  AC_DEFINE(HAVE_PPM,1,[define to build ppm support.])
+  with_ppm=yes
+fi
+
+AC_ARG_WITH([analyze], 
+  AS_HELP_STRING([--without-analyze], [build without analyze (default: with)]))
+
+if test x"$with_analyze" != "xno"; then
+  AC_DEFINE(HAVE_ANALYZE,1,[define to build analyze support.])
+  with_analyze=yes
+fi
+
+AC_ARG_WITH([radiance], 
+  AS_HELP_STRING([--without-radiance], [build without radiance (default: with)]))
+
+if test x"$with_radiance" != "xno"; then
+  AC_DEFINE(HAVE_RADIANCE,1,[define to build radiance support.])
+  with_radiance=yes
 fi
 
 # cfitsio
@@ -670,6 +757,14 @@ if test x"$with_tiff" != "xno"; then
      ])
     ])
 fi
+
+# giflib
+FIND_GIFLIB([
+  with_giflib="yes (found by search)"
+], [
+  AC_MSG_WARN([giflib not found; disabling direct GIF support])
+  with_giflib=no
+])
 
 # look for PNG with pkg-config ... fall back to our tester
 AC_ARG_WITH([png], 
@@ -775,14 +870,14 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
 do 
 	echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$PNG_INCLUDES $TIFF_INCLUDES $ZIP_INCLUDES $JPEG_INCLUDES" 
-VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $ZIP_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -856,6 +951,9 @@ gobject introspection: 			$found_introspection
 build vips7 Python binding:		$with_python
 install vips8 Python overrides:		$enable_pyvips8
   (requires pygobject-3.12.0 or later)
+build radiance support: 		$with_radiance
+build analyze support: 			$with_analyze
+build PPM support: 			$with_ppm
 
 * optional dependencies
 use fftw3 for FFT: 			$with_fftw
@@ -868,12 +966,18 @@ file import with OpenEXR: 		$with_OpenEXR
 file import with OpenSlide:		$with_openslide
   (requires openslide-3.3.0 or later)
 file import with matio: 		$with_matio
+PDF import with poppler-glib: 		$with_poppler
+  (requires poppler-glib 0.30.0 or later)
+SVG import with librsvg-2.0: 		$with_rsvg
+  (requires librsvg-2.0 2.40.0 or later)
 file import with cfitsio: 		$with_cfitsio
 file import/export with libwebp:	$with_libwebp
 text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
 file import/export with libtiff:	$with_tiff
+file import/export with giflib:		$with_giflib
+  (requires libgif-4.x)
 file import/export with libjpeg:	$with_jpeg
 image pyramid export:			$with_gsf
   (requires libgsf-1 1.14.27 or later)

@@ -2,6 +2,8 @@
  *
  * 6/8/13
  * 	- from vips2jpeg.c
+ * 31/5/16
+ * 	- buffer write ignored lossless, thanks aaron42net
  */
 
 /*
@@ -131,24 +133,47 @@ vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen,
 	int Q, gboolean lossless )
 {
 	VipsImage *memory;
-	webp_encoder encoder;
 
 	if( !(memory = vips_image_copy_memory( in )) )
 		return( -1 );
 
-	if( in->Bands == 4 )
-		encoder = WebPEncodeRGBA;
-	else
-		encoder = WebPEncodeRGB;
+	if( lossless ) {
+		webp_encoder_lossless encoder;
 
-	if( !(*olen = encoder( VIPS_IMAGE_ADDR( memory, 0, 0 ), 
-		memory->Xsize, memory->Ysize, 
-		VIPS_IMAGE_SIZEOF_LINE( memory ),
-		Q, (uint8_t **) obuf )) ) {
-		VIPS_UNREF( memory );
-		vips_error( "vips2webp", "%s", _( "unable to encode" ) ); 
-		return( -1 );
+		if( in->Bands == 4 )
+			encoder = WebPEncodeLosslessRGBA;
+		else
+			encoder = WebPEncodeLosslessRGB;
+
+		if( !(*olen = encoder( VIPS_IMAGE_ADDR( memory, 0, 0 ), 
+			memory->Xsize, memory->Ysize, 
+			VIPS_IMAGE_SIZEOF_LINE( memory ),
+			(uint8_t **) obuf )) ) {
+			VIPS_UNREF( memory ); 
+			vips_error( "vips2webp", 
+				"%s", _( "unable to encode" ) ); 
+			return( -1 );
+		}
 	}
+	else {
+		webp_encoder encoder;
+
+		if( in->Bands == 4 )
+			encoder = WebPEncodeRGBA;
+		else
+			encoder = WebPEncodeRGB;
+
+		if( !(*olen = encoder( VIPS_IMAGE_ADDR( memory, 0, 0 ), 
+			memory->Xsize, memory->Ysize, 
+			VIPS_IMAGE_SIZEOF_LINE( memory ),
+			Q, (uint8_t **) obuf )) ) {
+			VIPS_UNREF( memory ); 
+			vips_error( "vips2webp", 
+				"%s", _( "unable to encode" ) ); 
+			return( -1 );
+		}
+	}
+
 	VIPS_UNREF( memory );
 
 	return( 0 );

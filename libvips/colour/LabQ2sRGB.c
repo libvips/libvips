@@ -22,6 +22,8 @@
  * 	- spot NaN, Inf in XYZ2RGB, they break LUT indexing
  * 	- split sRGB <-> XYZ into sRGB <-> scRGB <-> XYZ so we can support
  * 	  scRGB as a colourspace
+ * 10/3/16 Lovell Fuller
+ * 	- move vips_col_make_tables_LabQ2sRGB() to first pixel processing
  */
 
 /*
@@ -273,9 +275,9 @@ vips_col_scRGB2sRGB( int range, int *lut,
 	 * Don't use isnormal(), it is false for 0.0 and for subnormal
 	 * numbers. 
 	 */
-	if( isnan( R ) || isinf( R ) ||
-		isnan( G ) || isinf( G ) ||
-		isnan( B ) || isinf( B ) ) { 
+	if( VIPS_ISNAN( R ) || VIPS_ISINF( R ) ||
+		VIPS_ISNAN( G ) || VIPS_ISINF( G ) ||
+		VIPS_ISNAN( B ) || VIPS_ISINF( B ) ) {
 		*r = 0; 
 		*g = 0; 
 		*b = 0; 
@@ -370,9 +372,9 @@ vips_col_scRGB2BW( int range, int *lut, float R, float G, float B,
 	 * Don't use isnormal(), it is false for 0.0 and for subnormal
 	 * numbers. 
 	 */
-	if( isnan( R ) || isinf( R ) ||
-		isnan( G ) || isinf( G ) ||
-		isnan( B ) || isinf( B ) ) { 
+	if( VIPS_ISNAN( R ) || VIPS_ISINF( R ) ||
+		VIPS_ISNAN( G ) || VIPS_ISINF( G ) ||
+		VIPS_ISNAN( B ) || VIPS_ISINF( B ) ) {
 		*g = 0; 
 
 		return( -1 );
@@ -478,6 +480,8 @@ vips_LabQ2sRGB_line( VipsColour *colour, VipsPel *q, VipsPel **in, int width )
 	int ae = 0;
 	int be = 0;
 
+	vips_col_make_tables_LabQ2sRGB();
+
         for( i = 0; i < width; i++ ) {
 		/* Get colour, add in error from previous pixel. 
 		 */
@@ -526,8 +530,6 @@ vips_LabQ2sRGB_class_init( VipsLabQ2sRGBClass *class )
 	object_class->description = _( "convert a LabQ image to sRGB" );
 
 	colour_class->process_line = vips_LabQ2sRGB_line;
-
-	vips_col_make_tables_LabQ2sRGB();
 }
 
 static void

@@ -97,7 +97,9 @@ class TestConvolution(unittest.TestCase):
     def setUp(self):
         im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
         self.colour = im * [1, 2, 3] + [2, 3, 4]
+        self.colour = self.colour.copy(interpretation = Vips.Interpretation.SRGB)
         self.mono = self.colour.extract_band(1)
+        self.mono = self.mono.copy(interpretation = Vips.Interpretation.B_W)
         self.all_images = [self.mono, self.colour]
         self.sharp = Vips.Image.new_from_array([[-1, -1,  -1], 
                                                 [-1,  16, -1], 
@@ -218,15 +220,24 @@ class TestConvolution(unittest.TestCase):
     def test_sharpen(self):
         for im in self.all_images:
             for fmt in noncomplex_formats:
-                for radius in range(1, 7):
+                # old vipses used "radius", check that that still works
+                sharp = im.sharpen(radius = 5)
+
+                for sigma in [0.5, 1, 1.5, 2]:
                     im = im.cast(fmt)
-                    if im.bands == 3:
-                        im = im.copy(interpretation = Vips.Interpretation.SRGB)
-                    sharp = im.sharpen(radius = radius)
+                    sharp = im.sharpen(sigma = sigma)
 
                     # hard to test much more than this
                     self.assertEqual(im.width, sharp.width)
                     self.assertEqual(im.height, sharp.height)
+
+                    # if m1 and m2 are zero, sharpen should do nothing
+                    sharp = im.sharpen(sigma = sigma, m1 = 0, m2 = 0)
+                    sharp = sharp.colourspace(im.interpretation)
+                    #print("testing sig = %g" % sigma)
+                    #print("testing fmt = %s" % fmt)
+                    #print("max diff = %g" % (im - sharp).abs().max())
+                    self.assertEqual((im - sharp).abs().max(), 0)
 
 if __name__ == '__main__':
     unittest.main()

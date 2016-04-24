@@ -158,6 +158,8 @@
  * 	- try to write photoshop metadata
  * 11/11/15
  * 	- better alpha handling, thanks sadaqatullahn
+ * 21/12/15
+ * 	- write TIFFTAG_IMAGEDESCRIPTION
  */
 
 /*
@@ -205,6 +207,7 @@
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
 #include <string.h>
+#include <libxml/parser.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -274,6 +277,7 @@ struct _Write {
 	char *icc_profile;		/* Profile to embed */
 	int bigtiff;			/* True for bigtiff write */
 	int rgbjpeg;			/* True for RGB not YCbCr */
+	int properties;			/* Set to save XML props */
 };
 
 /* Open TIFF for output.
@@ -496,13 +500,46 @@ write_embed_photoshop( Write *write, TIFF *tif )
 
 	if( !vips_image_get_typeof( write->im, VIPS_META_PHOTOSHOP_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( write->im, VIPS_META_PHOTOSHOP_NAME, 
-		&data, &data_length ) )
+	if( vips_image_get_blob( write->im, 
+		VIPS_META_PHOTOSHOP_NAME, &data, &data_length ) )
 		return( -1 );
 	TIFFSetField( tif, TIFFTAG_PHOTOSHOP, data_length, data );
 
 #ifdef DEBUG
 	printf( "vips2tiff: attached photoshop data from meta\n" );
+#endif /*DEBUG*/
+
+	return( 0 );
+}
+
+/* Set IMAGEDESCRIPTION, if it's there.  If @properties is TRUE, set from
+ * vips' metadata.
+ */
+static int
+write_embed_imagedescription( Write *write, TIFF *tif )
+{
+	if( write->properties ) {
+		char *doc;
+
+		if( !(doc = vips__make_xml_metadata( "vips2tiff", write->im )) )
+			return( -1 );
+		TIFFSetField( tif, TIFFTAG_IMAGEDESCRIPTION, doc );
+		xmlFree( doc );
+	}
+	else {
+		const char *imagedescription;
+
+		if( !vips_image_get_typeof( write->im, 
+			VIPS_META_IMAGEDESCRIPTION ) )
+			return( 0 );
+		if( vips_image_get_string( write->im, 
+			VIPS_META_IMAGEDESCRIPTION, &imagedescription ) )
+			return( -1 );
+		TIFFSetField( tif, TIFFTAG_IMAGEDESCRIPTION, imagedescription );
+	}
+
+#ifdef DEBUG
+	printf( "vips2tiff: attached imagedescription from meta\n" );
 #endif /*DEBUG*/
 
 	return( 0 );
@@ -536,14 +573,15 @@ write_tiff_header( Write *write, Layer *layer )
 	 */
 	TIFFSetField( tif, TIFFTAG_RESOLUTIONUNIT, write->resunit );
 	TIFFSetField( tif, TIFFTAG_XRESOLUTION, 
-		VIPS_CLIP( 0.01, write->xres, 1000000 ) );
+		VIPS_FCLIP( 0.01, write->xres, 1000000 ) );
 	TIFFSetField( tif, TIFFTAG_YRESOLUTION, 
-		VIPS_CLIP( 0.01, write->yres, 1000000 ) );
+		VIPS_FCLIP( 0.01, write->yres, 1000000 ) );
 
 	if( write_embed_profile( write, tif ) ||
 		write_embed_xmp( write, tif ) ||
 		write_embed_ipct( write, tif ) ||
-		write_embed_photoshop( write, tif ) )
+		write_embed_photoshop( write, tif ) ||
+		write_embed_imagedescription( write, tif ) )
 		return( -1 ); 
 
 	/* And colour fields.
@@ -791,7 +829,7 @@ get_compression( VipsForeignTiffCompression compression )
 		return( COMPRESSION_LZW );
 	
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	/* Keep -Wall happy.
@@ -809,7 +847,7 @@ get_resunit( VipsForeignTiffResunit resunit )
 		return( RESUNIT_INCH );
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	/* Keep -Wall happy.
@@ -830,7 +868,8 @@ write_new( VipsImage *im, const char *filename,
 	gboolean miniswhite,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
-	gboolean rgbjpeg )
+	gboolean rgbjpeg,
+	gboolean properties )
 {
 	Write *write;
 
@@ -849,19 +888,25 @@ write_new( VipsImage *im, const char *filename,
 	write->pyramid = pyramid;
 	write->onebit = squash;
 	write->miniswhite = miniswhite;
-	write->icc_profile = profile;
+	write->icc_profile = vips_strdup( NULL, profile );
 	write->bigtiff = bigtiff;
 	write->rgbjpeg = rgbjpeg;
+	write->properties = properties;
 
 	write->resunit = get_resunit( resunit );
 	write->xres = xres;
 	write->yres = yres;
 
-	if( (write->tilew & 0xf) != 0 || 
-		(write->tileh & 0xf) != 0 ) {
-		vips_error( "vips2tiff", 
-			"%s", _( "tile size not a multiple of 16" ) );
-		return( NULL );
+	/* In strip mode we use tileh to set rowsperstrip, and that does not
+	 * have the multiple-of-16 restriction.
+	 */
+	if( tile ) { 
+		if( (write->tilew & 0xf) != 0 || 
+			(write->tileh & 0xf) != 0 ) {
+			vips_error( "vips2tiff", 
+				"%s", _( "tile size not a multiple of 16" ) );
+			return( NULL );
+		}
 	}
 
 	/* We can only pyramid LABQ and non-complex images. 
@@ -1058,7 +1103,7 @@ invert_band0( Write *write, VipsPel *q, VipsPel *p, int n )
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -1492,7 +1537,8 @@ write_copy_tiff( Write *write, TIFF *out, TIFF *in )
 	if( write_embed_profile( write, out ) ||
 		write_embed_xmp( write, out ) ||
 		write_embed_ipct( write, out ) ||
-		write_embed_photoshop( write, out ) )
+		write_embed_photoshop( write, out ) ||
+		write_embed_imagedescription( write, out ) )
 		return( -1 );
 
 	buf = vips_malloc( NULL, TIFFTileSize( in ) );
@@ -1559,7 +1605,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean miniswhite,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
-	gboolean rgbjpeg )
+	gboolean rgbjpeg,
+	gboolean properties )
 {
 	Write *write;
 
@@ -1577,7 +1624,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	if( !(write = write_new( in, filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
-		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg )) )
+		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
+		properties )) )
 		return( -1 );
 
 	if( vips_sink_disc( write->im, write_strip, write ) ) {

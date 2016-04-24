@@ -57,7 +57,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsUnaryConst, vips_unary_const, VIPS_TYPE_UNARY );
 	for( i = 0; i < m; i++ ) { \
 		double v = p[VIPS_MIN( n - 1, i )]; \
 		\
-		tq[i] = (TYPE) VIPS_CLIP( N, v, X ); \
+		tq[i] = (TYPE) VIPS_FCLIP( N, v, X ); \
 	} \
 }
 
@@ -137,7 +137,7 @@ make_pixel( VipsObject *obj,
 		break;
 
         default:
-                g_assert( 0 );
+                g_assert_not_reached();
         }
 
 	return( q );

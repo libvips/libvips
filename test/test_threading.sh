@@ -15,7 +15,7 @@ for tile in 10 64 128 512; do
 		--vips-tile-width=$tile --vips-tile-height=$tile \
 		im_benchmarkn $tmp/t3.v $tmp/t5.v $chain
 
-	for cpus in 2 3 4 5 6 7 8 99 1024; do
+	for cpus in 2 3 4 5 6 7 8 99; do
 		echo trying cpus = $cpus, tile = $tile ...
 		vips --vips-concurrency=$cpus \
 			--vips-tile-width=$tile --vips-tile-height=$tile \

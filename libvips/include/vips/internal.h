@@ -197,6 +197,9 @@ void vips__draw_line_direct( VipsImage *image, int x1, int y1, int x2, int y2,
 void vips__draw_circle_direct( VipsImage *image, int cx, int cy, int r,
 	VipsDrawScanline draw_scanline, void *client );
 
+int vips__insert_just_one( VipsRegion *out, VipsRegion *in, int x, int y );
+int vips__insert_paste_region( VipsRegion *out, VipsRegion *in, VipsRect *pos );
+
 /* Register base vips interpolators, called during startup.
  */
 void vips__interpolate_init( void );
@@ -225,6 +228,23 @@ int vips_check_coding_rad( const char *domain, VipsImage *im );
 int vips_check_bands_3ormore( const char *domain, VipsImage *im );
 
 int vips__byteswap_bool( VipsImage *in, VipsImage **out, gboolean swap );
+
+char *vips__make_xml_metadata( const char *domain, VipsImage *image );
+
+void vips__cairo2rgba( guint32 *buf, int n );
+
+#ifdef DEBUG_LEAK
+extern GQuark vips__image_pixels_quark;
+#endif /*DEBUG_LEAK*/
+
+/* With DEBUG_LEAK, hang one of these off each image and count pixels 
+ * calculated.
+ */
+typedef struct _VipsImagePixels {
+	const char *nickname; 
+	gint64 tpels;		/* Number of pels we expect to calculate */
+	gint64 npels;		/* Number of pels calculated so far */
+} VipsImagePixels;
 
 #ifdef __cplusplus
 }

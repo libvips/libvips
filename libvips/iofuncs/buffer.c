@@ -52,8 +52,8 @@
 /*
 #define DEBUG_VERBOSE
 #define DEBUG_CREATE
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -68,7 +68,7 @@
 #include <vips/thread.h>
 
 #ifdef DEBUG
-/* Track all regions here for debugging.
+/* Track all buffers here for debugging.
  */
 static GSList *vips__buffer_all = NULL;
 #endif /*DEBUG*/
@@ -106,6 +106,7 @@ vips_buffer_dump( VipsBuffer *buffer, size_t *reserve, size_t *alive )
 
 	return( NULL );
 }
+#endif /*DEBUG*/
 
 #ifdef DEBUG_CREATE
 static void *
@@ -125,6 +126,7 @@ vips_buffer_cache_dump( VipsBufferCache *cache )
 void
 vips_buffer_dump_all( void )
 {
+#ifdef DEBUG
 	if( vips__buffer_all ) { 
 		size_t reserve;
 		size_t alive;
@@ -148,8 +150,8 @@ vips_buffer_dump_all( void )
 		printf( "g_thread_self() == %p\n", g_thread_self() ); 
 	}
 #endif /*DEBUG_CREATE*/
-}
 #endif /*DEBUG*/
+}
 
 static void
 vips_buffer_free( VipsBuffer *buffer )
@@ -608,6 +610,14 @@ vips__buffer_init( void )
 
 	if( buffer_cache_max_reserve < 1 )
 		printf( "vips__buffer_init: buffer reserve disabled\n" );
+
+#ifdef DEBUG
+	printf( "vips__buffer_init: DEBUG enabled\n" ); 
+#endif /*DEBUG*/
+
+#ifdef DEBUG_CREATE
+	printf( "vips__buffer_init: DEBUG_CREATE enabled\n" ); 
+#endif /*DEBUG_CREATE*/
 }
 
 void

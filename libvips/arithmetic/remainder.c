@@ -111,7 +111,7 @@ vips_remainder_build( VipsObject *object )
 		double a = p1[x]; \
 		double b = p2[x]; \
 		\
-		q[x] = b ? a - b * floor (a / b) : -1; \
+		q[x] = b ? a - b * VIPS_FLOOR (a / b) : -1; \
 	} \
 }
 
@@ -135,7 +135,7 @@ vips_remainder_buffer( VipsArithmetic *arithmetic,
         case VIPS_FORMAT_DOUBLE:FREMAINDER( double ); break;
 
         default:
-		g_assert( 0 );
+		g_assert_not_reached();
         }
 }
 
@@ -305,7 +305,7 @@ vips_remainder_const_buffer( VipsArithmetic *arithmetic,
         case VIPS_FORMAT_DOUBLE:FREMAINDERCONST( double ); break;
 
         default:
-		g_assert( 0 );
+		g_assert_not_reached();
         }
 }
 

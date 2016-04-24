@@ -8,6 +8,8 @@
  * 	  rest of vips
  * 13/8/14
  * 	- oops, missing scale from b, thanks Topochicho
+ * 7/2/16
+ * 	- use vips_reduce(), if we can
  */
 
 /*
@@ -47,6 +49,7 @@
 #include <vips/intl.h>
 
 #include <math.h>
+#include <string.h>
 
 #include <vips/vips.h>
 
@@ -69,33 +72,83 @@ typedef VipsResampleClass VipsSimilarityClass;
 
 G_DEFINE_TYPE( VipsSimilarity, vips_similarity, VIPS_TYPE_RESAMPLE );
 
+/* Map interpolator names to vips kernels.
+ */
+typedef struct _VipsInterpolateKernel {
+	const char *nickname;
+	VipsKernel kernel;
+} VipsInterpolateKernel;
+
+static VipsInterpolateKernel vips_similarity_kernel[] = {
+	{ "bicubic", VIPS_KERNEL_CUBIC },
+	{ "bilinear", VIPS_KERNEL_LINEAR },
+	{ "nearest", VIPS_KERNEL_NEAREST }
+}; 
+
 static int
 vips_similarity_build( VipsObject *object )
 {
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsSimilarity *similarity = (VipsSimilarity *) object;
-
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( object, 4 );
 
-	double a, b, c, d; 
+	gboolean handled;
 
 	if( VIPS_OBJECT_CLASS( vips_similarity_parent_class )->build( object ) )
 		return( -1 );
 
-	a = similarity->scale * cos( VIPS_RAD( similarity->angle ) ); 
-	b = similarity->scale * -sin( VIPS_RAD( similarity->angle ) );
-	c = -b;
-	d = a;
+	handled = FALSE;
 
-	if( vips_affine( resample->in, &t[0], a, b, c, d, 
-		"interpolate", similarity->interpolate,
-		"odx", similarity->odx,
-		"ody", similarity->ody,
-		"idx", similarity->idx,
-		"idy", similarity->idy,
-		NULL ) ||
-		vips_image_write( t[0], resample->out ) )
+	/* Use vips_reduce(), if we can.
+	 */
+	if( similarity->interpolate &&
+		similarity->angle == 0.0 &&
+		similarity->idx == 0.0 &&
+		similarity->idy == 0.0 &&
+		similarity->odx == 0.0 &&
+		similarity->ody == 0.0 ) {
+		const char *nickname = VIPS_OBJECT_GET_CLASS( 
+			similarity->interpolate )->nickname;
+
+		int i; 
+
+		for( i = 0; i < VIPS_NUMBER( vips_similarity_kernel ); i++ ) {
+			VipsInterpolateKernel *ik = &vips_similarity_kernel[i];
+
+			if( strcmp( nickname, ik->nickname ) == 0 ) {
+				if( vips_reduce( resample->in, &t[0], 
+					1.0 / similarity->scale, 
+					1.0 / similarity->scale, 
+					"kernel", ik->kernel,
+					NULL ) )
+					return( -1 );
+
+				handled = TRUE;
+				break;
+			}
+		}
+	}
+
+	if( !handled ) { 
+		double a = similarity->scale * 
+			cos( VIPS_RAD( similarity->angle ) ); 
+		double b = similarity->scale * 
+			-sin( VIPS_RAD( similarity->angle ) );
+		double c = -b;
+		double d = a;
+
+		if( vips_affine( resample->in, &t[0], a, b, c, d, 
+			"interpolate", similarity->interpolate,
+			"odx", similarity->odx,
+			"ody", similarity->ody,
+			"idx", similarity->idx,
+			"idy", similarity->idy,
+			NULL ) )
+			return( -1 );
+	}
+
+	if( vips_image_write( t[0], resample->out ) )
 		return( -1 ); 
 
 	return( 0 );

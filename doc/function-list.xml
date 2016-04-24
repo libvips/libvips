@@ -319,6 +319,11 @@
   <entry>vips_join()</entry>
 </row>
 <row>
+  <entry>arrayjoin</entry>
+  <entry>join an array of images</entry>
+  <entry>vips_arrayjoin()</entry>
+</row>
+<row>
   <entry>extract_area</entry>
   <entry>extract an area from an image</entry>
   <entry>vips_extract_area(), vips_crop()</entry>
@@ -335,7 +340,7 @@
 </row>
 <row>
   <entry>bandjoin_const</entry>
-  <entry>appendd a set of constants to an image</entry>
+  <entry>append a constant band to an image</entry>
   <entry>vips_bandjoin_const(), vips_bandjoin_const1()</entry>
 </row>
 <row>
@@ -592,6 +597,36 @@
   <entry>vips_radload()</entry>
 </row>
 <row>
+  <entry>pdfload</entry>
+  <entry>load PDF with libpoppler</entry>
+  <entry>vips_pdfload()</entry>
+</row>
+<row>
+  <entry>pdfload_buffer</entry>
+  <entry>load PDF with libpoppler</entry>
+  <entry>vips_pdfload_buffer()</entry>
+</row>
+<row>
+  <entry>svgload</entry>
+  <entry>load SVG with rsvg</entry>
+  <entry>vips_svgload()</entry>
+</row>
+<row>
+  <entry>svgload_buffer</entry>
+  <entry>load SVG with rsvg</entry>
+  <entry>vips_svgload_buffer()</entry>
+</row>
+<row>
+  <entry>gifload</entry>
+  <entry>load GIF with giflib</entry>
+  <entry>vips_gifload()</entry>
+</row>
+<row>
+  <entry>gifload_buffer</entry>
+  <entry>load GIF with giflib</entry>
+  <entry>vips_gifload_buffer()</entry>
+</row>
+<row>
   <entry>ppmload</entry>
   <entry>load ppm from file</entry>
   <entry>vips_ppmload()</entry>
@@ -777,9 +812,34 @@
   <entry>vips_shrink()</entry>
 </row>
 <row>
-  <entry>quadratic</entry>
-  <entry>resample an image with a quadratic transform</entry>
-  <entry>vips_quadratic()</entry>
+  <entry>shrinkh</entry>
+  <entry>shrink an image horizontally</entry>
+  <entry>vips_shrinkh()</entry>
+</row>
+<row>
+  <entry>shrinkv</entry>
+  <entry>shrink an image vertically</entry>
+  <entry>vips_shrinkv()</entry>
+</row>
+<row>
+  <entry>reduceh</entry>
+  <entry>shrink an image horizontally</entry>
+  <entry>vips_reduceh()</entry>
+</row>
+<row>
+  <entry>reducev</entry>
+  <entry>shrink an image vertically</entry>
+  <entry>vips_reducev()</entry>
+</row>
+<row>
+  <entry>reduce</entry>
+  <entry>reduce an image</entry>
+  <entry>vips_reduce()</entry>
+</row>
+<row>
+  <entry>mapim</entry>
+  <entry>resample an image with an arbitrary warp</entry>
+  <entry>vips_mapim()</entry>
 </row>
 <row>
   <entry>affine</entry>
@@ -995,6 +1055,11 @@
   <entry>hist_ismonotonic</entry>
   <entry>test for monotonicity</entry>
   <entry>vips_hist_ismonotonic()</entry>
+</row>
+<row>
+  <entry>hist_entropy</entry>
+  <entry>estimate image entropy</entry>
+  <entry>vips_hist_entropy()</entry>
 </row>
 <row>
   <entry>conv</entry>

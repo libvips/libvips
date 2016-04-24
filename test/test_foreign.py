@@ -44,6 +44,9 @@ class TestForeign(unittest.TestCase):
         self.exr_file = "images/sample.exr"
         self.fits_file = "images/WFPC2u5780205r_c0fx.fits"
         self.openslide_file = "images/CMU-1-Small-Region.svs"
+        self.pdf_file = "images/ISO_12233-reschart.pdf"
+        self.cmyk_pdf_file = "images/cmyktest.pdf"
+        self.svg_file = "images/vips-profile.svg"
 
         self.colour = Vips.Image.jpegload(self.jpeg_file)
         self.mono = self.colour.extract_band(1)
@@ -204,17 +207,20 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.tif", self.cmyk)
 
         self.save_load("%s.tif", self.onebit)
-        self.save_load("%s.tif[squash]", self.onebit)
-        self.save_load("%s.tif[miniswhite]", self.onebit)
-        self.save_load("%s.tif[squash,miniswhite]", self.onebit)
+        self.save_load_file("test-1.tif", "[squash]", self.onebit, 0)
+        self.save_load_file("test-2.tif", "[miniswhite]", self.onebit, 0)
+        self.save_load_file("test-3.tif", "[squash,miniswhite]", self.onebit, 0)
 
-        self.save_load_file("test.tif", "[tile]", self.colour, 0)
-        self.save_load_file("test.tif", "[tile,pyramid]", self.colour, 0)
-        self.save_load_file("test.tif", 
-                            "[tile,pyramid,compression=jpeg]", self.colour, 0)
-        self.save_load_file("test.tif", "[bigtiff]", self.colour, 0)
-        self.save_load_file("test.tif", "[compression=jpeg]", self.colour, 10)
-        self.save_load_file("test.tif", 
+        self.save_load_file("test-4.tif",
+                            "[profile=images/sRGB.icm]",
+                            self.colour, 0)
+        self.save_load_file("test-5.tif", "[tile]", self.colour, 0)
+        self.save_load_file("test-6.tif", "[tile,pyramid]", self.colour, 0)
+        self.save_load_file("test-7.tif", 
+                            "[tile,pyramid,compression=jpeg]", self.colour, 60)
+        self.save_load_file("test-8.tif", "[bigtiff]", self.colour, 0)
+        self.save_load_file("test-9.tif", "[compression=jpeg]", self.colour, 60)
+        self.save_load_file("test-10.tif", 
                             "[tile,tile-width=256]", self.colour, 10)
 
     def test_magickload(self):
@@ -225,14 +231,16 @@ class TestForeign(unittest.TestCase):
 
         def gif_valid(self, im):
             a = im(10, 10)
-            # some libMagick produce an RGB for this image, some a mono
-            if len(a) > 1:
+            # some libMagick produce an RGB for this image, some a mono, some
+            # rgba :-( 
+            if len(a) == 4:
+                self.assertAlmostEqual(a, [33, 33, 33, 255])
+            elif len(a) == 3:
                 self.assertAlmostEqual(a, [33, 33, 33])
-                self.assertEqual(im.bands, 3)
             else:
                 self.assertAlmostEqual(a, [33])
-                self.assertEqual(im.bands, 1)
 
+            self.assertEqual(im.bands, len(a))
             self.assertEqual(im.width, 159)
             self.assertEqual(im.height, 203)
 
@@ -259,6 +267,11 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.webp", self.colour)
 
     def test_analyzeload(self):
+        x = Vips.type_find("VipsForeign", "analyzeload")
+        if not x.is_instantiatable():
+            print("no analyze support in this vips, skipping test")
+            return
+
         def analyze_valid(self, im):
             a = im(10, 10)
             self.assertAlmostEqual(a[0], 3335)
@@ -333,6 +346,74 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("openslideload", self.openslide_file, openslide_valid)
 
+    def test_pdfload(self):
+        x = Vips.type_find("VipsForeign", "pdfload")
+        if not x.is_instantiatable():
+            print("no pdf support in this vips, skipping test")
+            return
+
+        def pdf_valid(self, im):
+            a = im(10, 10)
+            self.assertAlmostEqualObjects(a, [35, 31, 32, 255])
+            self.assertEqual(im.width, 1133)
+            self.assertEqual(im.height, 680)
+            self.assertEqual(im.bands, 4)
+
+        self.file_loader("pdfload", self.pdf_file, pdf_valid)
+        self.buffer_loader("pdfload_buffer", self.pdf_file, pdf_valid)
+
+        im = Vips.Image.new_from_file(self.pdf_file)
+        x = Vips.Image.new_from_file(self.pdf_file, scale = 2)
+        self.assertLess(abs(im.width * 2 - x.width), 2)
+        self.assertLess(abs(im.height * 2 - x.height), 2)
+
+        im = Vips.Image.new_from_file(self.pdf_file)
+        x = Vips.Image.new_from_file(self.pdf_file, dpi = 144)
+        self.assertLess(abs(im.width * 2 - x.width), 2)
+        self.assertLess(abs(im.height * 2 - x.height), 2)
+
+    def test_gifload(self):
+        x = Vips.type_find("VipsForeign", "gifload")
+        if not x.is_instantiatable():
+            print("no gif support in this vips, skipping test")
+            return
+
+        def gif_valid(self, im):
+            a = im(10, 10)
+            self.assertAlmostEqualObjects(a, [33, 33, 33, 255])
+            self.assertEqual(im.width, 159)
+            self.assertEqual(im.height, 203)
+            self.assertEqual(im.bands, 4)
+
+        self.file_loader("gifload", self.gif_file, gif_valid)
+        self.buffer_loader("gifload_buffer", self.gif_file, gif_valid)
+
+    def test_svgload(self):
+        x = Vips.type_find("VipsForeign", "svgload")
+        if not x.is_instantiatable():
+            print("no svg support in this vips, skipping test")
+            return
+
+        def svg_valid(self, im):
+            a = im(10, 10)
+            self.assertAlmostEqualObjects(a, [0, 0, 77, 255])
+            self.assertEqual(im.width, 360)
+            self.assertEqual(im.height, 588)
+            self.assertEqual(im.bands, 4)
+
+        self.file_loader("svgload", self.svg_file, svg_valid)
+        self.buffer_loader("svgload_buffer", self.svg_file, svg_valid)
+
+        im = Vips.Image.new_from_file(self.svg_file)
+        x = Vips.Image.new_from_file(self.svg_file, scale = 2)
+        self.assertLess(abs(im.width * 2 - x.width), 2)
+        self.assertLess(abs(im.height * 2 - x.height), 2)
+
+        im = Vips.Image.new_from_file(self.svg_file)
+        x = Vips.Image.new_from_file(self.svg_file, dpi = 144)
+        self.assertLess(abs(im.width * 2 - x.width), 2)
+        self.assertLess(abs(im.height * 2 - x.height), 2)
+
     def test_csv(self):
         self.save_load("%s.csv", self.mono)
 
@@ -340,10 +421,20 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.mat", self.mono)
 
     def test_ppm(self):
+        x = Vips.type_find("VipsForeign", "ppmload")
+        if not x.is_instantiatable():
+            print("no PPM support in this vips, skipping test")
+            return
+
         self.save_load("%s.ppm", self.mono)
         self.save_load("%s.ppm", self.colour)
 
     def test_rad(self):
+        x = Vips.type_find("VipsForeign", "radload")
+        if not x.is_instantiatable():
+            print("no Radiance support in this vips, skipping test")
+            return
+
         self.save_load("%s.hdr", self.colour)
 
     def test_dzsave(self):
@@ -356,26 +447,33 @@ class TestForeign(unittest.TestCase):
         # test each option separately and hope they all function together
         # correctly
 
-        # default deepzoom layout
-        self.colour.dzsave("test")
+        # default deepzoom layout ... we must use png here, since we want to
+        # test the overlap for equality
+        self.colour.dzsave("test", suffix = ".png")
 
-        # test right edge ... default is 256x256 tiles, overlap 1
-        x = Vips.Image.new_from_file("test_files/10/3_2.jpeg")
-        self.assertEqual(x.width, 256)
-        y = Vips.Image.new_from_file("test_files/10/4_2.jpeg")
-        self.assertEqual(y.width, 
-                         self.colour.width - 255 * int(self.colour.width / 255))
+        # tes horizontal overlap ... expect 256 step, overlap 1 
+        x = Vips.Image.new_from_file("test_files/10/0_0.png")
+        self.assertEqual(x.width, 255)
+        y = Vips.Image.new_from_file("test_files/10/1_0.png")
+        self.assertEqual(y.width, 256)
 
-        # test bottom edge 
-        x = Vips.Image.new_from_file("test_files/10/3_2.jpeg")
-        self.assertEqual(x.height, 256)
-        y = Vips.Image.new_from_file("test_files/10/3_3.jpeg")
-        self.assertEqual(y.height, 
-                         self.colour.height - 
-                         255 * int(self.colour.height / 255))
+        # the right two columns of x should equal the left two columns of y
+        left = x.crop(x.width - 2, 0, 2, x.height)
+        right = y.crop(0, 0, 2, y.height)
+        self.assertEqual((left - right).abs().max(), 0)
+
+        # test vertical overlap
+        self.assertEqual(x.height, 255)
+        y = Vips.Image.new_from_file("test_files/10/0_1.png")
+        self.assertEqual(y.height, 256)
+
+        # the bottom two rows of x should equal the top two rows of y
+        top = x.crop(0, x.height - 2, x.width, 2)
+        bottom = y.crop(0, 0, y.width, 2)
+        self.assertEqual((top - bottom).abs().max(), 0)
 
         # there should be a bottom layer
-        x = Vips.Image.new_from_file("test_files/0/0_0.jpeg")
+        x = Vips.Image.new_from_file("test_files/0/0_0.png")
         self.assertEqual(x.width, 1)
         self.assertEqual(x.height, 1)
 
@@ -420,8 +518,8 @@ class TestForeign(unittest.TestCase):
         # test suffix 
         self.colour.dzsave("test", suffix = ".png")
 
-        x = Vips.Image.new_from_file("test_files/10/3_2.png")
-        self.assertEqual(x.width, 256)
+        x = Vips.Image.new_from_file("test_files/10/0_0.png")
+        self.assertEqual(x.width, 255)
 
         shutil.rmtree("test_files")
         os.unlink("test.dzi")
@@ -429,9 +527,8 @@ class TestForeign(unittest.TestCase):
         # test overlap
         self.colour.dzsave("test", overlap = 200)
 
-        y = Vips.Image.new_from_file("test_files/10/18_6.jpeg")
-        self.assertEqual(y.width, 
-                         self.colour.width - 56 * int(self.colour.width / 56))
+        y = Vips.Image.new_from_file("test_files/10/1_1.jpeg")
+        self.assertEqual(y.width, 654)
 
         shutil.rmtree("test_files")
         os.unlink("test.dzi")
@@ -439,19 +536,9 @@ class TestForeign(unittest.TestCase):
         # test tile-size
         self.colour.dzsave("test", tile_size = 512)
 
-        y = Vips.Image.new_from_file("test_files/10/2_1.jpeg")
-        self.assertEqual(y.width, 
-                         self.colour.width - 511 * int(self.colour.width / 511))
-
-        shutil.rmtree("test_files")
-        os.unlink("test.dzi")
-
-        # test tile-size
-        self.colour.dzsave("test", tile_size = 512)
-
-        y = Vips.Image.new_from_file("test_files/10/2_1.jpeg")
-        self.assertEqual(y.width, 
-                         self.colour.width - 511 * int(self.colour.width / 511))
+        y = Vips.Image.new_from_file("test_files/10/0_0.jpeg")
+        self.assertEqual(y.width, 513)
+        self.assertEqual(y.height, 513)
 
         shutil.rmtree("test_files")
         os.unlink("test.dzi")

@@ -2,6 +2,8 @@
  *
  * 12/8/10
  * 	- revise window_size / window_offset stuff again
+ * 7/2/16
+ * 	- double intermediate for 32-bit int types
  */
 
 /*
@@ -160,10 +162,7 @@ bicubic_unsigned_int_tab( void *pout, const VipsPel *pin,
 			qua_one, qua_two, qua_thr, qua_fou,
 			cx, cy );
 
-		if( bicubic < 0 )
-			bicubic = 0;
-		else if( bicubic > max_value )
-			bicubic = max_value;
+		bicubic = VIPS_CLIP( 0, bicubic, max_value ); 
 
 		out[z] = bicubic;
 
@@ -226,10 +225,7 @@ bicubic_signed_int_tab( void *pout, const VipsPel *pin,
 			qua_one, qua_two, qua_thr, qua_fou,
 			cx, cy );
 
-		if( bicubic < min_value )
-			bicubic = min_value;
-		else if( bicubic > max_value )
-			bicubic = max_value;
+		bicubic = VIPS_CLIP( min_value, bicubic, max_value ); 
 
 		out[z] = bicubic;
 
@@ -237,7 +233,7 @@ bicubic_signed_int_tab( void *pout, const VipsPel *pin,
 	}
 }
 
-/* Floating-point version, for int/float types.
+/* Floating-point version.
  */
 template <typename T>
 static void inline
@@ -300,6 +296,135 @@ bicubic_float_tab( void *pout, const VipsPel *pin,
 	}
 }
 
+/* uint32 version needs a double intermediate.
+ */
+
+template <typename T, int max_value>
+static void inline
+bicubic_unsigned_int32_tab( void *pout, const VipsPel *pin,
+	const int bands, const int lskip,
+	const double *cx, const double *cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	const int b1 = bands;
+	const int b2 = b1 + b1;
+	const int b3 = b1 + b2;
+
+	const int l1 = lskip / sizeof( T );
+	const int l2 = l1 + l1;
+	const int l3 = l1 + l2;
+
+        const int l1_plus_b1 = l1 + b1;
+        const int l1_plus_b2 = l1 + b2;
+        const int l1_plus_b3 = l1 + b3;
+        const int l2_plus_b1 = l2 + b1;
+        const int l2_plus_b2 = l2 + b2;
+        const int l2_plus_b3 = l2 + b3;
+        const int l3_plus_b1 = l3 + b1;
+        const int l3_plus_b2 = l3 + b2;
+        const int l3_plus_b3 = l3 + b3;
+
+	for( int z = 0; z < bands; z++ ) {
+		const T uno_one = in[0];
+		const T uno_two = in[b1];
+		const T uno_thr = in[b2];
+		const T uno_fou = in[b3];
+
+		const T dos_one = in[l1];
+		const T dos_two = in[l1_plus_b1];
+		const T dos_thr = in[l1_plus_b2];
+		const T dos_fou = in[l1_plus_b3];
+
+		const T tre_one = in[l2];
+		const T tre_two = in[l2_plus_b1];
+		const T tre_thr = in[l2_plus_b2];
+		const T tre_fou = in[l2_plus_b3];
+
+		const T qua_one = in[l3];
+		const T qua_two = in[l3_plus_b1];
+		const T qua_thr = in[l3_plus_b2];
+		const T qua_fou = in[l3_plus_b3];
+
+		double bicubic = bicubic_float<double>(
+			uno_one, uno_two, uno_thr, uno_fou,
+			dos_one, dos_two, dos_thr, dos_fou,
+			tre_one, tre_two, tre_thr, tre_fou,
+			qua_one, qua_two, qua_thr, qua_fou,
+			cx, cy );
+
+		bicubic = VIPS_CLIP( 0, bicubic, max_value ); 
+
+		out[z] = bicubic;
+
+		in += 1;
+	}
+}
+
+template <typename T, int min_value, int max_value>
+static void inline
+bicubic_signed_int32_tab( void *pout, const VipsPel *pin,
+	const int bands, const int lskip,
+	const double *cx, const double *cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+
+	const int b1 = bands;
+	const int b2 = b1 + b1;
+	const int b3 = b1 + b2;
+
+	const int l1 = lskip / sizeof( T );
+	const int l2 = l1 + l1;
+	const int l3 = l1 + l2;
+
+        const int l1_plus_b1 = l1 + b1;
+        const int l1_plus_b2 = l1 + b2;
+        const int l1_plus_b3 = l1 + b3;
+        const int l2_plus_b1 = l2 + b1;
+        const int l2_plus_b2 = l2 + b2;
+        const int l2_plus_b3 = l2 + b3;
+        const int l3_plus_b1 = l3 + b1;
+        const int l3_plus_b2 = l3 + b2;
+        const int l3_plus_b3 = l3 + b3;
+
+	for( int z = 0; z < bands; z++ ) {
+		const T uno_one = in[0];
+		const T uno_two = in[b1];
+		const T uno_thr = in[b2];
+		const T uno_fou = in[b3];
+
+		const T dos_one = in[l1];
+		const T dos_two = in[l1_plus_b1];
+		const T dos_thr = in[l1_plus_b2];
+		const T dos_fou = in[l1_plus_b3];
+
+		const T tre_one = in[l2];
+		const T tre_two = in[l2_plus_b1];
+		const T tre_thr = in[l2_plus_b2];
+		const T tre_fou = in[l2_plus_b3];
+
+		const T qua_one = in[l3];
+		const T qua_two = in[l3_plus_b1];
+		const T qua_thr = in[l3_plus_b2];
+		const T qua_fou = in[l3_plus_b3];
+
+		double bicubic = bicubic_float<double>(
+			uno_one, uno_two, uno_thr, uno_fou,
+			dos_one, dos_two, dos_thr, dos_fou,
+			tre_one, tre_two, tre_thr, tre_fou,
+			qua_one, qua_two, qua_thr, qua_fou,
+			cx, cy );
+
+		bicubic = VIPS_CLIP( min_value, bicubic, max_value ); 
+
+		out[z] = bicubic;
+
+		in += 1;
+	}
+}
+
 /* Ultra-high-quality version for double images.
  */
 template <typename T>
@@ -332,8 +457,8 @@ bicubic_notab( void *pout, const VipsPel *pin,
 	double cx[4];
 	double cy[4];
 
-	calculate_coefficients_catmull( x, cx );
-	calculate_coefficients_catmull( y, cy );
+	calculate_coefficients_catmull( cx, x );
+	calculate_coefficients_catmull( cy, y );
 
 	for( int z = 0; z < bands; z++ ) {
 		const T uno_one = in[0];
@@ -467,12 +592,14 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 		break;
 
 	case VIPS_FORMAT_UINT:
-		bicubic_float_tab<unsigned int>( out, p, bands, lskip,
+		bicubic_unsigned_int32_tab<unsigned int, INT_MAX>( 
+			out, p, bands, lskip,
 			cxf, cyf );
 		break;
 
 	case VIPS_FORMAT_INT:
-		bicubic_float_tab<signed int>( out, p, bands, lskip,
+		bicubic_signed_int32_tab<signed int, INT_MIN, INT_MAX>( 
+			out, p, bands, lskip,
 			cxf, cyf );
 		break;
 
@@ -517,9 +644,8 @@ vips_interpolate_bicubic_class_init( VipsInterpolateBicubicClass *iclass )
 	/* Build the tables of pre-computed coefficients.
 	 */
 	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
-		calculate_coefficients_catmull(
-			(float) x / VIPS_TRANSFORM_SCALE,
-			vips_bicubic_matrixf[x] );
+		calculate_coefficients_catmull( vips_bicubic_matrixf[x], 
+			(float) x / VIPS_TRANSFORM_SCALE ); 
 
 		for( int i = 0; i < 4; i++ )
 			vips_bicubic_matrixi[x][i] =

@@ -228,6 +228,7 @@ vips_colour_gen( VipsRegion *or,
 {
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsColour *colour = VIPS_COLOUR( b ); 
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( colour ); 
 	VipsColourClass *class = VIPS_COLOUR_GET_CLASS( colour ); 
 	VipsRect *r = &or->valid;
 
@@ -250,6 +251,8 @@ vips_colour_gen( VipsRegion *or,
 	}
 
 	VIPS_GATE_STOP( "vips_colour_gen: work" ); 
+
+	VIPS_COUNT_PIXELS( or, object_class->nickname ); 
 
 	return( 0 );
 }
@@ -321,10 +324,16 @@ vips_colour_build( VipsObject *object )
 				in[i], colour->input_bands ) )
 				return( -1 ); 
 
-			if( vips_extract_band( in[i], &new_in[i], 0, 
-				"n", colour->input_bands, 
-				NULL ) )
-				return( -1 ); 
+			if( in[i]->Bands > colour->input_bands ) {
+				if( vips_extract_band( in[i], &new_in[i], 0, 
+					"n", colour->input_bands, 
+					NULL ) )
+					return( -1 ); 
+			}
+			else {
+				new_in[i] = in[i];
+				g_object_ref( new_in[i] ); 
+			}
 
 			if( in[i]->Bands > colour->input_bands ) 
 				if( vips_extract_band( in[i], &extra_bands[i], 
@@ -445,8 +454,15 @@ vips_colour_transform_build( VipsObject *object )
 
 	/* We only process float.
 	 */
-	if( vips_cast_float( transform->in, &t[0], NULL ) )
-		return( -1 );
+	if( transform->in &&
+		transform->in->BandFmt != VIPS_FORMAT_FLOAT ) { 
+		if( vips_cast_float( transform->in, &t[0], NULL ) )
+			return( -1 );
+	}
+	else {
+		t[0] = transform->in;
+		g_object_ref( t[0] ); 
+	}
 
 	/* We always do 3 bands -> 3 bands. 
 	 */
@@ -527,7 +543,8 @@ vips_colour_code_build( VipsObject *object )
 
 	if( in &&
 		code->input_coding == VIPS_CODING_NONE &&
-		code->input_format != VIPS_FORMAT_NOTSET ) {
+		code->input_format != VIPS_FORMAT_NOTSET &&
+		in->BandFmt != code->input_format ) { 
 		if( vips_cast( in, &t[3], code->input_format, NULL ) )
 			return( -1 );
 		in = t[3];
@@ -535,7 +552,8 @@ vips_colour_code_build( VipsObject *object )
 
 	if( in &&
 		code->input_coding == VIPS_CODING_NONE &&
-		code->input_interpretation != VIPS_INTERPRETATION_ERROR ) {
+		code->input_interpretation != VIPS_INTERPRETATION_ERROR &&
+		in->Type != code->input_interpretation ) { 
 		if( vips_colourspace( in, &t[4], 
 			code->input_interpretation, NULL ) )
 			return( -1 );
@@ -616,21 +634,37 @@ vips_colour_difference_build( VipsObject *object )
 	 */
 	colour->input_bands = 3;
 
-	if( vips_colourspace( left, &t[6], difference->interpretation, NULL ) )
-		return( -1 );
-	left = t[6];
-	if( vips_colourspace( right, &t[7], difference->interpretation, NULL ) )
-		return( -1 );
-	right = t[7];
+	if( left &&
+		left->Type != difference->interpretation ) {
+		if( vips_colourspace( left, &t[6], 
+			difference->interpretation, NULL ) )
+			return( -1 );
+		left = t[6];
+	}
+
+	if( right &&
+		right->Type != difference->interpretation ) { 
+		if( vips_colourspace( right, &t[7], 
+			difference->interpretation, NULL ) )
+			return( -1 );
+		right = t[7];
+	}
 
 	/* We only process float.
 	 */
-	if( vips_cast_float( left, &t[8], NULL ) )
-		return( -1 );
-	left = t[8];
-	if( vips_cast_float( right, &t[9], NULL ) )
-		return( -1 );
-	right = t[9];
+	if( left &&
+		left->BandFmt != VIPS_FORMAT_FLOAT ) { 
+		if( vips_cast_float( left, &t[8], NULL ) )
+			return( -1 );
+		left = t[8];
+	}
+
+	if( right &&
+		right->BandFmt != VIPS_FORMAT_FLOAT ) { 
+		if( vips_cast_float( right, &t[9], NULL ) )
+			return( -1 );
+		right = t[9];
+	}
 
 	if( vips__sizealike( left, right, &t[10], &t[11] ) )
 		return( -1 );

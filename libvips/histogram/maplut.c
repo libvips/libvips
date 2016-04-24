@@ -404,7 +404,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 	case VIPS_FORMAT_USHORT:	GEN( unsigned short, OUT ); break; \
 	case VIPS_FORMAT_UINT:		GEN( unsigned int, OUT ); break; \
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	}
 
 /* Switch for LUT types. One function for non-complex images, a
@@ -434,7 +434,7 @@ vips_maplut_start( VipsImage *out, void *a, void *b )
 	case VIPS_FORMAT_DPCOMPLEX: \
 		inner_switch( UCHAR_FC, GEN_FC, double ); break; \
 	default: \
-		g_assert( 0 ); \
+		g_assert_not_reached(); \
 	}
 
 /* Do a map.
@@ -666,7 +666,7 @@ vips_maplut_build( VipsObject *object )
 	case VIPS_FORMAT_DPCOMPLEX: 
 		PACK_TABLEC( double ); break; 
 	default: 
-		g_assert( 0 ); 
+		g_assert_not_reached(); 
 	}
 
 	if( vips_image_generate( maplut->out,

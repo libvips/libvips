@@ -266,7 +266,7 @@ vips_hist_find_indexed_uchar_scan( VipsHistFindIndexed *indexed,
 		ACCUMULATE_UCHAR( double ); break; 
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	/* Max is always 255.
@@ -327,7 +327,7 @@ vips_hist_find_indexed_ushort_scan( VipsHistFindIndexed *indexed,
 		ACCUMULATE_USHORT( double ); break; 
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 
 	/* Note the maximum.

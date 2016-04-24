@@ -48,6 +48,8 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#ifdef HAVE_PPM
+
 #include "ppm.h"
 
 typedef struct _VipsForeignLoadPpm {
@@ -118,6 +120,10 @@ vips_foreign_load_ppm_class_init( VipsForeignLoadPpmClass *class )
 
 	foreign_class->suffs = vips__ppm_suffs;
 
+	/* We are fast at is_a(), so high priority.
+	 */
+	foreign_class->priority = 200;
+
 	load_class->is_a = vips__ppm_isppm;
 	load_class->get_flags_filename = 
 		vips_foreign_load_ppm_get_flags_filename;
@@ -137,6 +143,8 @@ static void
 vips_foreign_load_ppm_init( VipsForeignLoadPpm *ppm )
 {
 }
+
+#endif /*HAVE_PPM*/
 
 /**
  * vips_ppmload:

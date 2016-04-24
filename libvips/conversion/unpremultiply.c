@@ -183,7 +183,7 @@ vips_unpremultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 		case VIPS_FORMAT_COMPLEX: 
 		case VIPS_FORMAT_DPCOMPLEX: 
 		default: 
-			g_assert( 0 ); 
+			g_assert_not_reached(); 
 		} 
 	}
 
@@ -296,7 +296,7 @@ vips_unpremultiply_init( VipsUnpremultiply *unpremultiply )
  *   	out = [0, ..., 0, alpha];
  *   else
  *   	out = [in[0] / norm, ..., in[in.bands - 1] / norm, alpha];
- * |]
+ * ]|
  *
  * So for an N-band image, the first N - 1 bands are divided by the clipped 
  * and normalised final band, the final band is clipped. 

@@ -132,9 +132,9 @@ vips_col_dE00( float L1, float a1, float b1,
 	 */
 	double Ldb = (L1d + L2d) / 2;
 	double Cdb = (C1d + C2d) / 2;
-	double hdb = fabs( h1d - h2d ) < 180 ?
+	double hdb = VIPS_FABS( h1d - h2d ) < 180 ?
 	 	(h1d + h2d) / 2 :
-	 	fabs( h1d + h2d - 360 ) / 2;
+	 	VIPS_FABS( h1d + h2d - 360 ) / 2;
 
 	/* dtheta, RC
 	 */
@@ -161,7 +161,7 @@ vips_col_dE00( float L1, float a1, float b1,
 
 	/* hue difference ... careful!
 	 */
-	double dhd = fabs( h1d - h2d ) < 180 ?
+	double dhd = VIPS_FABS( h1d - h2d ) < 180 ?
 		h1d - h2d :
 		360 - (h1d - h2d);
 

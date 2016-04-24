@@ -138,6 +138,10 @@ vips_foreign_load_matrix_class_init( VipsForeignLoadMatrixClass *class )
 
 	foreign_class->suffs = vips__foreign_matrix_suffs;
 
+	/* is_a() is not that quick ... lower the priority.
+	 */
+	foreign_class->priority = -50;
+
 	load_class->is_a = vips__matrix_ismatrix;
 	load_class->get_flags_filename = 
 		vips_foreign_load_matrix_get_flags_filename;

@@ -13,6 +13,8 @@
  * 	- redo as a class
  * 2/11/13
  * 	- add @point to force point sample mode
+ * 22/1/16
+ * 	- remove SEQUENTIAL hint, it confuses vips_sequential()
  */
 
 /*
@@ -256,7 +258,6 @@ vips_subsample_class_init( VipsSubsampleClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -265,7 +266,9 @@ vips_subsample_class_init( VipsSubsampleClass *class )
 	vobject_class->description = _( "subsample an image" );
 	vobject_class->build = vips_subsample_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	/* We don't work well as sequential: we can easily skip the first few
+	 * scanlines, and that confuses vips_sequential().
+	 */
 
 	VIPS_ARG_IMAGE( class, "input", 0, 
 		_( "Input" ), 

@@ -197,7 +197,7 @@ vips_blend1_buffer( VipsPel *qp,
 	case VIPS_FORMAT_DPCOMPLEX: 	CBLEND1( double ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -225,7 +225,7 @@ vips_blendn_buffer( VipsPel *qp,
 	case VIPS_FORMAT_DPCOMPLEX: 	CBLENDN( double ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -437,8 +437,15 @@ vips_ifthenelse_build( VipsObject *object )
 
 	/* Condition is cast to uchar, then/else to a common type.
 	 */
-	if( vips_cast( size[2], &format[2], VIPS_FORMAT_UCHAR, NULL ) )
-		return( -1 );
+	if( size[2]->BandFmt != VIPS_FORMAT_UCHAR ) { 
+		if( vips_cast( size[2], &format[2], VIPS_FORMAT_UCHAR, NULL ) )
+			return( -1 );
+	}
+	else {
+		format[2] = size[2];
+		g_object_ref( format[2] ); 
+	}
+
 	if( vips__formatalike_vec( size, format, 2 ) ) 
 		return( -1 ); 
 

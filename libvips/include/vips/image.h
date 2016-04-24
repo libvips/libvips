@@ -47,6 +47,15 @@ extern "C" {
 #define VIPS_MAGIC_INTEL (0xb6a6f208U)
 #define VIPS_MAGIC_SPARC (0x08f2a6b6U)
 
+/* We have a maximum value for a coordinate at various points for sanity
+ * checking. For example, vips_black() has a max with and height. We use int
+ * for width/height so we could go up to 2bn, but it's good to have a lower
+ * value set so we can see crazy numbers early.
+ *
+ * This was 1m for a while, but someone found a use for a 4m wide image.
+ */
+#define VIPS_MAX_COORD (10000000)
+
 typedef enum {
 	VIPS_DEMAND_STYLE_ERROR = -1,	
 	VIPS_DEMAND_STYLE_SMALLTILE,	
@@ -429,6 +438,8 @@ VipsImage *vips_image_new_from_file_raw( const char *filename,
 	int xsize, int ysize, int bands, guint64 offset );
 VipsImage *vips_image_new_from_memory( const void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format );
+VipsImage *vips_image_new_from_memory_copy( const void *data, size_t size,
+	int width, int height, int bands, VipsBandFormat format );
 VipsImage *vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 	__attribute__((sentinel));
@@ -482,6 +493,8 @@ int vips_system( const char *cmd_format, ... )
  */
 VipsArrayImage *vips_array_image_new( VipsImage **array, int n );
 VipsArrayImage *vips_array_image_newv( int n, ... );
+VipsArrayImage *vips_array_image_new_from_string( const char *string, 
+	VipsAccess flags );
 VipsArrayImage *vips_array_image_empty( void );
 VipsArrayImage *vips_array_image_append( VipsArrayImage *array, 
 	VipsImage *image );

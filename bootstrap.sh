@@ -13,47 +13,43 @@ rm -f swig/vipsCC/*.cxx
 rm -f swig/vipsCC/VImage.h
 rm -f swig/vipsCC/VImage.py python/vipsCC/VError.py python/vipsCC/VMask.py python/vipsCC/Display.py
 rm -f benchmark/temp*
-( mkdir poop ; \
-	mv doc/libvips-docs.xml.in poop ; \
-	mv doc/Makefile.am poop ; \
-	mv doc/images poop ; \
-	mv doc/*.xml poop ; \
-	mv doc/*.py poop ; \
-	rm -rf doc/* ; \
-	mv poop/* doc ; \
-	rmdir poop \
-)
+find doc -depth \( \
+      -path doc/libvips-docs.xml.in \
+   -o -path doc/Makefile.am \
+   -o -path 'doc/images/*' \
+   -o -name '*.xml' ! -name libvips-docs.xml ! -path 'doc/xml/*' \
+   -o -name '*.py' \
+\) -prune -or \( \
+      -type f \
+   -o -type d -empty \
+\) -delete
 
-# glib-gettextize asks us to copy these files to m4 if they aren't there
-# I don't have $ACDIR/isc-posix.m4, how mysterious
 ACDIR=`aclocal --print-ac-dir`
-
-# OS X with brew sets ACDIR to
-# /usr/local/Cellar/automake/1.13.1/share/aclocal, the staging area, which is
-# totally wrong argh
-if [ ! -d $ACDIR ]; then
-	ACDIR=/usr/local/share/aclocal
+# OS X with brew has a dirlist in ACDIR that points to several directories
+# dirlist supports wildcards, but that would require eval ... which is evil
+if [ -e $ACDIR/dirlist ]; then
+  ACDIR=`cat $ACDIR/dirlist`
 fi
 
 mkdir -p m4
-cp $ACDIR/codeset.m4 m4
-cp $ACDIR/gettext.m4 m4
-cp $ACDIR/glibc21.m4 m4
-cp $ACDIR/iconv.m4 m4
-cp $ACDIR/lcmessage.m4 m4
-cp $ACDIR/progtest.m4 m4
-cp $ACDIR/introspection.m4 m4
+# glib-gettextize asks us to copy these files to m4 if they aren't there:
+files="codeset gettext glibc21 iconv isc-posix lcmessage progtest introspection"
+for dir in $ACDIR; do
+  test -d $dir && for file in $files; do
+    test -e $dir/$file.m4 && cp $dir/$file.m4 m4
+  done
+done
 
 gtkdocize --copy --docdir doc --flavour no-tmpl || exit 1
 
 # some systems need libtoolize, some glibtoolize ... how annoying
 echo testing for glibtoolize ...
-if glibtoolize --version >/dev/null 2>&1; then 
+if glibtoolize --version >/dev/null 2>&1; then
   LIBTOOLIZE=glibtoolize
-  echo using glibtoolize 
+  echo using glibtoolize
 else 
   LIBTOOLIZE=libtoolize
-  echo using libtoolize 
+  echo using libtoolize
 fi
 
 test -r aclocal.m4 || touch aclocal.m4
@@ -62,7 +58,7 @@ test -r aclocal.m4 || touch aclocal.m4
 glib-gettextize --force --copy > /dev/null
 test -r aclocal.m4 && chmod u+w aclocal.m4
 # intltoolize --copy --force --automake
-aclocal 
+aclocal
 autoconf
 autoheader
 $LIBTOOLIZE --copy --force --automake

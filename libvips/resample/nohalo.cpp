@@ -1493,8 +1493,8 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate* restrict interpolate,
    *
    * It's 2 not 0 since we ask for a window_offset of 2 at the bottom.
    */
-  const int ix = (int) absolute_x;
-  const int iy = (int) absolute_y;
+  const int ix = (int) (absolute_x + 0.5);
+  const int iy = (int) (absolute_y + 0.5);
 
   /*
    * Move the pointer to (the first band of) the top/left pixel of the
@@ -1523,8 +1523,8 @@ vips_interpolate_nohalo_interpolate( VipsInterpolate* restrict interpolate,
 
   g_assert( ix - 2 >= in->valid.left );
   g_assert( iy - 2 >= in->valid.top );
-  g_assert( ix + 2 < VIPS_RECT_RIGHT( &in->valid ) );
-  g_assert( iy + 2 < VIPS_RECT_BOTTOM( &in->valid ) );
+  g_assert( ix + 2 <= VIPS_RECT_RIGHT( &in->valid ) );
+  g_assert( iy + 2 <= VIPS_RECT_BOTTOM( &in->valid ) );
 
   /* Confirm that absolute_x and absolute_y are >= 2, see above. 
    */
@@ -1586,7 +1586,7 @@ vips_interpolate_nohalo_class_init( VipsInterpolateNohaloClass *klass )
     _( "edge sharpening resampler with halo reduction" );
 
   interpolate_class->interpolate   = vips_interpolate_nohalo_interpolate;
-  interpolate_class->window_size   = 5;
+  interpolate_class->window_size   = 6;
   interpolate_class->window_offset = 2;
 }
 

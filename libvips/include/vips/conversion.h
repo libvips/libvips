@@ -105,6 +105,8 @@ int vips_insert( VipsImage *main, VipsImage *sub, VipsImage **out,
 int vips_join( VipsImage *in1, VipsImage *in2, VipsImage **out, 
 	VipsDirection direction, ... )
 	__attribute__((sentinel));
+int vips_arrayjoin( VipsImage **in, VipsImage **out, int n, ... )
+	__attribute__((sentinel));
 int vips_extract_area( VipsImage *in, VipsImage **out, 
 	int left, int top, int width, int height, ... )
 	__attribute__((sentinel));
@@ -124,7 +126,8 @@ int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 	__attribute__((sentinel));
 int vips_rot45( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-VipsAngle vips_autorot_get_angle( VipsImage *im );
+VipsAngle vips_autorot_get_angle( VipsImage *image );
+void vips_autorot_remove_angle( VipsImage *image );
 int vips_autorot( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_zoom( VipsImage *in, VipsImage **out, int xfac, int yfac, ... )
@@ -164,6 +167,10 @@ int vips_byteswap( VipsImage *in, VipsImage **out, ... )
 int vips_bandjoin( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));
 int vips_bandjoin2( VipsImage *in1, VipsImage *in2, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_bandjoin_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+	__attribute__((sentinel));
+int vips_bandjoin_const1( VipsImage *in, VipsImage **out, double c, ... )
 	__attribute__((sentinel));
 int vips_bandrank( VipsImage **in, VipsImage **out, int n, ... )
 	__attribute__((sentinel));

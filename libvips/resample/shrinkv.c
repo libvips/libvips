@@ -189,7 +189,7 @@ vips_shrinkv_add_line( VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 		ADD( double, double ); break;
 
 	default:
-		g_assert( 0 ); 
+		g_assert_not_reached(); 
 	}
 }
 
@@ -251,7 +251,7 @@ vips_shrinkv_write_line( VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 		FAVG( double ); break;
 
 	default:
-		g_assert( 0 ); 
+		g_assert_not_reached(); 
 	}
 }
 
@@ -315,6 +315,8 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 
 		VIPS_GATE_STOP( "vips_shrinkv_gen: work" ); 
 	}
+
+	VIPS_COUNT_PIXELS( or, "vips_shrinkv_gen" ); 
 
 	return( 0 );
 }

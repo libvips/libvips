@@ -288,7 +288,7 @@ vips_text_class_init( VipsTextClass *class )
 
 	VIPS_ARG_STRING( class, "font", 5, 
 		_( "Font" ), 
-		_( "Font to render width" ),
+		_( "Font to render with" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, font ),
 		NULL ); 
@@ -298,7 +298,7 @@ vips_text_class_init( VipsTextClass *class )
 		_( "Maximum image width in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, width ),
-		0, 1000000, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_ENUM( class, "align", 7, 
 		_( "Align" ), 

@@ -319,21 +319,24 @@ vips_ispostfix( const char *a, const char *b )
 	return( strcmp( a + m - n, b ) == 0 );
 }
 
-/* Test for string a starts string b. 
+/* Test for string a starts string b. a is a known-good string, b may be
+ * random data. 
  */
 gboolean
 vips_isprefix( const char *a, const char *b )
 {
-	int n = strlen( a );
-	int m = strlen( b );
 	int i;
 
-	if( m < n )
-		return( FALSE );
-	for( i = 0; i < n; i++ )
+	for( i = 0; a[i] && b[i]; i++ )
 		if( a[i] != b[i] )
 			return( FALSE );
-	
+
+	/* If there's stuff left in a but b has finished, we must have a
+	 * mismatch.
+	 */
+	if( a[i] && !b[i] )
+		return( FALSE );
+
 	return( TRUE );
 }
 
@@ -1034,8 +1037,12 @@ vips_existsf( const char *name, ... )
 }
 
 #ifdef OS_WIN32
+#ifndef popen
 #define popen(b,m) _popen(b,m)
+#endif
+#ifndef pclose
 #define pclose(f) _pclose(f)
+#endif
 #endif /*OS_WIN32*/
 
 /* Do popen(), with printf-style args.
@@ -1228,7 +1235,7 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 		 * so the next break must be bracket, equals, comma.
 		 */
 		*token = VIPS_TOKEN_STRING;
-		n = strcspn( p, "<[{()}]>=," );
+		n = strcspn( p, "[]=," );
 		i = VIPS_MIN( n, size );
 		vips_strncpy( string, p, i + 1 );
 		p += n;
@@ -1712,4 +1719,44 @@ vips__substitute( char *buf, size_t len, char *sub )
 	memmove( buf + before_len, sub, sublen ); 
 
 	return( 0 ); 
+}
+
+/* Absoluteize a path. Free the result with g_free().
+ */
+char *
+vips_realpath( const char *path ) 
+{
+	char *real;
+
+#ifdef HAVE_REALPATH
+{
+	char *real2;
+
+	if( !(real = realpath( path, NULL )) ) {
+		vips_error_system( errno, "vips_realpath",
+			"%s", _( "unable to form filename" ) ); 
+		return( NULL );
+	}
+
+	/* We must return a path that can be freed with g_free().
+	 */
+	real2 = g_strdup( real );
+	free( real );
+	real = real2;
+}
+#else /*!HAVE_REALPATH*/
+{
+	if( !g_path_is_absolute( path ) ) {
+		char *cwd;
+
+		cwd = g_get_current_dir();
+		real = g_build_filename( cwd, path, NULL );
+		g_free( cwd );
+	}
+	else
+		real = g_strdup( path );
+}
+#endif
+
+	return( real );
 }

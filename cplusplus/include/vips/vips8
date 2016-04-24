@@ -34,6 +34,18 @@
 
 #include <glib-object.h>
 
+/* Define VIPS_CPLUSPLUS_EXPORTS to build a DLL using MSVC.
+ */
+#ifdef _MSC_VER
+#  ifdef VIPS_CPLUSPLUS_EXPORTS
+#    define VIPS_CPLUSPLUS_API __declspec(dllexport)
+#  else
+#    define VIPS_CPLUSPLUS_API __declspec(dllimport)
+#  endif
+#else
+#  define VIPS_CPLUSPLUS_API
+#endif
+
 #define VIPS_NAMESPACE_START namespace vips {
 #define VIPS_NAMESPACE_END }
 

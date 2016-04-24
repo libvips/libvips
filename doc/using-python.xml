@@ -470,12 +470,12 @@ rgba = rgb.bandjoin(255)
 <programlisting language="Python">
 result_image = image1.bandjoin(image2)
 result_image = image1.bandjoin([image2, image3])
-result_image = Vips.Image.bandjoin([image1, image2, image3])
 result_image = image1.bandjoin([image2, 255])
 </programlisting>
       
       and so on. 
     </para>
+
   </refsect3>
 
   <refsect3 id="python-exceptions">

@@ -8,12 +8,13 @@ similar libraries, [libvips runs quickly and uses little
 memory](http://www.vips.ecs.soton.ac.uk/index.php?title=Speed_and_Memory_Use).
 libvips is licensed under the LGPL 2.1+.
 
-It has around 300 operations covering arithmetic, histograms, convolutions,
-morphological operations, frequency filtering, colour, resampling, statistics
-and others. It supports a large range of numeric formats, from 8-bit int to
-128-bit complex. It supports a good range of image formats, including
-JPEG, TIFF, PNG, WebP, FITS, Matlab, OpenEXR, DeepZoom, and OpenSlide. 
-It can also load images via ImageMagick or GraphicsMagick.
+It has around 300 operations covering arithmetic, histograms,
+convolutions, morphological operations, frequency filtering, colour,
+resampling, statistics and others. It supports a large range of numeric
+formats, from 8-bit int to 128-bit complex. It supports a good range of
+image formats, including JPEG, TIFF, PNG, WebP, FITS, Matlab, OpenEXR,
+PDF, SVG, HDR, PPM, CSV, GIF, Analyze, DeepZoom, and OpenSlide.  It can
+also load images via ImageMagick or GraphicsMagick.
 
 It has APIs for
 [C](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-from-c.html)
@@ -32,9 +33,13 @@ website](http://www.vips.ecs.soton.ac.uk).
 There are packages for most unix-like operating systems and binaries for
 Windows and OS X.
 
-# Building libvips from source
+# Building libvips from a source tarball
 
-In the libvips directory you should just be able to do:
+We keep pre-baked tarballs of releases on the vips website:
+
+http://www.vips.ecs.soton.ac.uk/supported/current/
+
+Untar, then in the libvips directory you should just be able to do:
 
 	$ ./configure
 
@@ -47,7 +52,7 @@ For the vips8 Python binding, you must have
 
 You'll need the dev packages for the file format support you
 want. For basic jpeg and tiff support, you'll need `libtiff5-dev`,
-`libjpeg-turbo8-dev`, and `libgsf-1-dev`.  See the Dependencies section
+`libjpeg-turbo8-dev`, and `libgsf-1-dev`.  See the **Dependencies** section
 below for a full list of the things that libvips can be configured to use.
 
 Once `configure` is looking OK, compile and install with the usual:
@@ -112,7 +117,7 @@ Clang dynamic analysis:
 	$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
 	$ CC=clang CXX=clang++ LD=clang \
 		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
-		./configure --prefix=/home/john/vips --disable-introspection
+		./configure --prefix=/home/john/vips 
 
 	$ FLAGS="-O1 -g -fsanitize=thread"
 	$ FLAGS="$FLAGS -fPIC -pie"
@@ -120,14 +125,14 @@ Clang dynamic analysis:
 	$ CC=clang CXX=clang++ LD=clang \
 		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
 		LDFLAGS="-fsanitize=thread -fPIC -pie" \
-		./configure --prefix=/home/john/vips --disable-introspection
+		./configure --prefix=/home/john/vips 
 
 Build with the GCC auto-vectorizer and diagnostics (or just -O3):
 
 	$ FLAGS="-O2 -msse4.2 -ffast-math"
 	$ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
 	$ CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-		./configure --prefix=/home/john/vips --disable-introspection 
+		./configure --prefix=/home/john/vips 
 
 Static analysis with:
 
@@ -176,6 +181,23 @@ The IJG JPEG library. Use the `-turbo` version if you can.
 ### libexif
 
 If available, libvips adds support for EXIF metadata in JPEG files.
+
+### giflib
+
+The standard gif loader. If this is not present, vips will try to load gifs
+via imagemagick instead.
+
+vips will only work with giflib 4. 
+
+### librsvg
+
+The usual SVG loader. If this is not present, vips will try to load SVGs
+via imagemagick instead.
+
+### libpoppler
+
+The usual PDF loader. If this is not present, vips will try to load PDFs
+via imagemagick instead.
 
 ### libgsf-1
 

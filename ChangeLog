@@ -1,9 +1,73 @@
+15/4/16 started 8.3.1
+- rename vips wrapper script, it was still vips-8.2, thanks Benjamin
+- export C++ operator overloads for MSVC linking [Lovell]
+- insist on giflib4
+- fix magickload @page with GraphicsMagick
+
+29/1/16 started 8.3
+- add vips_reduce*() ... a fast path for affine downsize
+- vips_resize() uses vips_reduce() with lanczos3 
+- bicubic is better on 32-bit int images
+- add pdfload, svgload, gifload for PDF, SVG and GIF rendering 
+- vipsthumbnail knows about pdfload and svgload
+- added @page param to magickload 
+- matload is more specific (thanks bithive)
+- lower mem use for progressive jpg decode
+- sharpen has a new @sigma param, @radius is deprecated
+- sharpen allows a much greater range of parameters
+- sharpen defaults now suitable for screen output
+- better handling of deprecated args in python
+- much better handling of arrayimage command-line args
+- faster hist_find (Lovell Fuller)
+- webpload has a @shrink parameter for shrink-on-load
+- vipsthumbnail knows about webp shrink-on-load
+- better behaviour for vips_cast() shift of non-int types (thanks apacheark)
+- python .bandrank() now works like .bandjoin()
+- vipsthumbnail --interpolator and --sharpen switches are deprecated
+- switches to disable PPM, Rad and Analyze support
+- added VIPS_COUNT_PIXELS(), overcomputation tracking
+- @out_format in vips_system() can contain [options]
+- webpsave_buffer no longer ignores @lossless, thanks aaron42net
+- float tiff tagged as scRGB to match photoshop convention, thanks Murat
+- better jpeg autorot, thanks otto
+
+24/3/16 started 8.2.4
+- fix nohalo and vsqbs interpolators, thanks Rafael
+
+27/1/16 started 8.2.3
+- fix a crash with SPARC byte-order labq vips images
+- fix parsing of filenames containing brackets, thanks shilpi230
+- fix hist_entropy (lovell)
+- small fixes to radiance load
+
+12/1/16 started 8.2.2
+- changes to ease compiling C++ binding with MSVC [Lovell Fuller]
+- reorder file tests to put slow loaders last
+- ifthenelse needs less C stack during eval
+- better rounding in bilinear interpolator
+- fix to "make check" in non-C locales [felixbuenemann]
+- use compiler builtins isnan, isinf, fabs, fmin, fmax, ceil, floor when 
+  possible [Lovell Fuller]
+- tune vips_shrinkh(), 30% faster [Lovell Fuller]
+- remove SEQ hint from vips_subsample(), fixes cli performance [erdmann]
+- fix double free on attach ICC profile from file in tiff write [erdmann]
+- use g_assert_not_reached() 
+- better vips-from-C docs
+- remove Duff from im_conv() / im_conv_f() for a 25% speedup [Lovell Fuller]
+
+1/1/16 started 8.2.1
+- add a compat stub [Benjamin Gilbert]
+- python bandjoin is now just an instance function
+- small doc improvements
+- small vips7 C++ improvement
+- remove exception specifications from vips8 C++ interface [Lovell Fuller]
+- VImage::get_typeof() now returns GType
+
 7/10/15 started 8.2.0
 - added im_bufmagick2vips(), a vips7 wrapper for magick load from buffer
 - fetch unset property now returns default value rather than warning
 - many more const declarations to help gobject-introspection
 - rewritten vips_shrink() is 2x faster, much lower memuse, now handles complex
-- old code still there as vips_shrink2() for testing
 - only allow [] for filename options
 - add memory.h to Python API .. makes tracked highwater visible
 - added bandjoin_const to add constant bands to an image
@@ -14,7 +78,22 @@
 - added vips_mapim() ... resample with an index image, plus test
 - try to improve vips_resize() quality a little more
 - vips_resize() can do non-square resizes
+<<<<<<< HEAD
 - dzsave won't write empty tiles in google mode
+=======
+- dzsave removes tile metadata by default, thanks Benjamin
+- jpeg strip option removes a little more, thanks Benjamin
+- added vips_image_new_from_memory_copy()
+- improve vips_sink_screen() stability under heavy load
+- added vips_arrayjoin()
+- Python x.bandjoin(y) is now x.ibandjoin(y), sorry
+- faster and lower-mem TIFF read
+- faster bilinear interpolator
+- TIFF loads and saves IMAGEDESCRIPTION
+- add --properties flag to tiffsave
+- dzsave defaults changed: now writes 256x256 jpegs for non-edge tiles, thanks
+  Daniel
+>>>>>>> master
 
 7/5/15 started 8.1.1
 - oop, vips-8.0 wrapper script should be vips-8.1, thanks Danilo

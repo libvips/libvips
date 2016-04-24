@@ -495,7 +495,7 @@ dilate_gen( REGION *or, void *vseq, void *a, void *b )
 					break;
 
 				default:
-					g_assert( 0 );
+					g_assert_not_reached();
 				}
 	}
 
@@ -607,7 +607,7 @@ erode_gen( REGION *or, void *vseq, void *a, void *b )
 					break;
 
 				default:
-					g_assert( 0 );
+					g_assert_not_reached();
 				}
 	}
 

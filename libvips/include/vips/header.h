@@ -86,6 +86,13 @@ extern "C" {
 #define VIPS_META_XML "xml-header"
 
 /**
+ * VIPS_META_IMAGEDESCRIPTION:
+ *
+ * The IMAGEDESCRIPTION tag. Often has useful metadata. 
+ */
+#define VIPS_META_IMAGEDESCRIPTION "image-description"
+
+/**
  * VIPS_META_RESOLUTION_UNIT:
  *
  * The JPEG and TIFF read and write operations use this to record the
@@ -107,6 +114,7 @@ int vips_image_get_width( const VipsImage *image );
 int vips_image_get_height( const VipsImage *image );
 int vips_image_get_bands( const VipsImage *image );
 VipsBandFormat vips_image_get_format( const VipsImage *image );
+VipsBandFormat vips_image_guess_format( const VipsImage *image );
 VipsCoding vips_image_get_coding( const VipsImage *image );
 VipsInterpretation vips_image_get_interpretation( const VipsImage *image );
 VipsInterpretation vips_image_guess_interpretation( const VipsImage *image );

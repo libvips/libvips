@@ -142,7 +142,7 @@ vips_scRGB2sRGB_line_16( unsigned short * restrict q, float * restrict p,
 		q += 3;
 
 		for( j = 0; j < extra_bands; j++ ) 
-			q[j] = VIPS_CLIP( 0, p[j] * 256.0, USHRT_MAX ); 
+			q[j] = VIPS_FCLIP( 0, p[j] * 256.0, USHRT_MAX ); 
 		p += extra_bands;
 		q += extra_bands;
 	}

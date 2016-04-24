@@ -313,14 +313,14 @@ vips_hist_local_class_init( VipsHistLocalClass *class )
 		_( "Window width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistLocal, width ),
-		1, 1000000, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "height", 5, 
 		_( "Height" ), 
 		_( "Window height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistLocal, height ),
-		1, 1000000, 1 );
+		1, VIPS_MAX_COORD, 1 );
 }
 
 static void

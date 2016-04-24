@@ -160,6 +160,11 @@
  * 29/9/15
  * 	- load IPCT metadata
  * 	- load photoshop metadata
+ * 21/12/15
+ * 	- load TIFFTAG_IMAGEDESCRIPTION
+ * 11/4/16
+ * 	- non-int RGB images are tagged as scRGB ... matches photoshop
+ * 	  convention
  */
 
 /*
@@ -672,7 +677,7 @@ greyscale_line( ReadTiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
 		break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -686,7 +691,8 @@ parse_greyscale( ReadTiff *rtiff, VipsImage *out )
 		return( -1 );
 
 	out->Bands = rtiff->samples_per_pixel; 
-	if( (out->BandFmt = guess_format( rtiff )) == VIPS_FORMAT_NOTSET )
+	out->BandFmt = guess_format( rtiff );
+	if( out->BandFmt == VIPS_FORMAT_NOTSET )
 		return( -1 ); 
 	out->Coding = VIPS_CODING_NONE; 
 
@@ -932,7 +938,7 @@ parse_palette( ReadTiff *rtiff, VipsImage *out )
 	else if( rtiff->bits_per_sample == 16 )
 		rtiff->sfn = palette_line16;
 	else
-		g_assert( 0 ); 
+		g_assert_not_reached(); 
 
 	return( 0 );
 }
@@ -955,15 +961,21 @@ static int
 parse_copy( ReadTiff *rtiff, VipsImage *out )
 {
 	out->Bands = rtiff->samples_per_pixel; 
-	if( (out->BandFmt = guess_format( rtiff )) == VIPS_FORMAT_NOTSET )
+	out->BandFmt = guess_format( rtiff );
+	if( out->BandFmt == VIPS_FORMAT_NOTSET )
 		return( -1 ); 
 	out->Coding = VIPS_CODING_NONE; 
 
 	if( rtiff->samples_per_pixel >= 3 &&
 		(rtiff->photometric_interpretation == PHOTOMETRIC_RGB ||
 		 rtiff->photometric_interpretation == PHOTOMETRIC_YCBCR) ) {
-		if( rtiff->bits_per_sample == 16 )
+		if( out->BandFmt == VIPS_FORMAT_USHORT )
 			out->Type = VIPS_INTERPRETATION_RGB16; 
+		else if( !vips_band_format_isint( out->BandFmt ) )
+			/* Most float images use 0 - 1 for black - white.
+			 * Photoshop uses 0 - 1 and no gamma. 
+			 */
+			out->Type = VIPS_INTERPRETATION_scRGB; 
 		else
 			out->Type = VIPS_INTERPRETATION_sRGB; 
 	}
@@ -1126,9 +1138,9 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	 */
 
 	if( width <= 0 || 
-		width > 10000000 || 
+		width > VIPS_MAX_COORD || 
 		height <= 0 || 
-		height > 10000000 ) {
+		height > VIPS_MAX_COORD ) {
 		vips_error( "tiff2vips", 
 			"%s", _( "width/height out of range" ) );
 		return( -1 );
@@ -1145,6 +1157,12 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 
 	out->Xsize = width;
 	out->Ysize = height;
+
+	/* Even though we could end up serving tiled data, always hint
+	 * THINSTRIP, since we're quite happy doing that too, and it could need
+	 * a lot less memory.
+	 */
+        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 #ifdef DEBUG
 	printf( "parse_header: samples_per_pixel = %d\n", 
@@ -1216,6 +1234,16 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 		memcpy( data_copy, data, data_length );
 		vips_image_set_blob( out, VIPS_META_PHOTOSHOP_NAME, 
 			(VipsCallbackFn) vips_free, data_copy, data_length );
+	}
+
+	/* IMAGEDESCRIPTION often has useful metadata.
+	 */
+	if( TIFFGetField( rtiff->tiff, TIFFTAG_IMAGEDESCRIPTION, &data ) ) {
+		/* libtiff makes sure that data is null-terminated and contains
+		 * no embedded null characters.
+		 */
+		vips_image_set_string( out, 
+			VIPS_META_IMAGEDESCRIPTION, (char *) data ); 
 	}
 
 	return( 0 );
@@ -1516,8 +1544,7 @@ tiff2vips_strip_read_interleaved( ReadTiff *rtiff, int y, tdata_t buf )
 		}
 	}
 	else { 
-		if( tiff2vips_strip_read( rtiff->tiff, 
-			y / rtiff->rows_per_strip, buf ) )
+		if( tiff2vips_strip_read( rtiff->tiff, strip, buf ) )
 			return( -1 );
 	}
 
@@ -1817,7 +1844,7 @@ my_tiff_read( thandle_t st, tdata_t buffer, tsize_t size )
 static tsize_t 
 my_tiff_write( thandle_t st, tdata_t buffer, tsize_t size )
 {
-	g_assert( 0 ); 
+	g_assert_not_reached(); 
 
 	return( 0 ); 
 }
@@ -1840,7 +1867,7 @@ my_tiff_seek( thandle_t st, toff_t pos, int whence )
 	else if( whence == SEEK_END )
 		rtiff->pos = rtiff->len + pos;
 	else
-		g_assert( 0 ); 
+		g_assert_not_reached(); 
 
 	return( rtiff->pos ); 
 }
@@ -1856,7 +1883,7 @@ my_tiff_size( thandle_t st )
 static int 
 my_tiff_map( thandle_t st, tdata_t *start, toff_t *len )
 {
-	g_assert( 0 ); 
+	g_assert_not_reached(); 
 
 	return 0;
 }
@@ -1864,7 +1891,7 @@ my_tiff_map( thandle_t st, tdata_t *start, toff_t *len )
 static void 
 my_tiff_unmap( thandle_t st, tdata_t start, toff_t len )
 {
-	g_assert( 0 ); 
+	g_assert_not_reached(); 
 
 	return;
 }
@@ -2042,7 +2069,7 @@ vips__tiff_read_buffer( const void *buf, size_t len,
 
 #ifdef DEBUG
 	printf( "tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
-	printf( "tiff2vips: libtiff starting for %s\n", filename );
+	printf( "tiff2vips: libtiff starting for buffer %p\n", buf );
 #endif /*DEBUG*/
 
 	vips__tiff_init();

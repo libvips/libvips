@@ -246,7 +246,7 @@ vips__region_start( VipsRegion *region )
 void
 vips__region_stop( VipsRegion *region )
 {
-	IMAGE *image = region->im;
+	VipsImage *image = region->im;
 
         if( region->seq && image->stop_fn ) {
 		int result;
@@ -886,6 +886,15 @@ vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
 	g_assert( reg->im->dtype == VIPS_IMAGE_PARTIAL );
 	g_assert( reg->im->generate_fn );
 
+	/* You'd think we could check reg and see if it already has some of 
+	 * the pixels we need. If it does, we could copy them and only
+	 * generate the new ones. 
+	 *
+	 * However, we usually have neighboring regions on different threads,
+	 * so from the point of view of this thread, we will get no overlaps
+	 * on successive prepare requests. 
+	 */
+
 	/* Should have local memory.
 	 */
 	if( vips_region_buffer( reg, r ) )
@@ -967,8 +976,7 @@ vips_region_paint( VipsRegion *reg, VipsRect *r, int value )
 				break;
 
 			default:
-				g_assert( 0 );
-				break;
+				g_assert_not_reached();
 			}
 
 			q1 = q + ls;
@@ -1221,7 +1229,7 @@ vips_region_shrink_uncoded( VipsRegion *from, VipsRegion *to, VipsRect *target )
 			SHRINK_TYPE_FLOAT( double );  break; 
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 }
@@ -1382,7 +1390,7 @@ static int
 vips_region_prepare_to_generate( VipsRegion *reg, 
 	VipsRegion *dest, VipsRect *r, int x, int y )
 {
-	IMAGE *im = reg->im;
+	VipsImage *im = reg->im;
 	VipsPel *p;
 
 	if( !im->generate_fn ) {
@@ -1632,3 +1640,21 @@ vips_region_dump_all( void )
 	g_mutex_unlock( vips__global_lock );
 }
 #endif /*VIPS_DEBUG*/
+
+#ifdef DEBUG_LEAK
+void
+vips__region_count_pixels( VipsRegion *region, const char *nickname )
+{
+	VipsImage *image = region->im;
+	VipsImagePixels *pixels = g_object_get_qdata( G_OBJECT( image ), 
+		vips__image_pixels_quark ); 
+
+	g_mutex_lock( vips__global_lock );
+	if( !pixels->tpels )
+		pixels->tpels = VIPS_IMAGE_N_PELS( image ); 
+	if( !pixels->nickname )
+		pixels->nickname = nickname; 
+	pixels->npels += region->valid.width * region->valid.height;
+	g_mutex_unlock( vips__global_lock );
+}
+#endif /*DEBUG_LEAK*/

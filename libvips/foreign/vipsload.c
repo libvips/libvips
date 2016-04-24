@@ -123,6 +123,10 @@ vips_foreign_load_vips_class_init( VipsForeignLoadVipsClass *class )
 
 	foreign_class->suffs = vips__suffs;
 
+	/* We are fast at is_a(), so high priority.
+	 */
+	foreign_class->priority = 200;
+
 	load_class->is_a = vips_foreign_load_vips_is_a;
 	load_class->get_flags = vips_foreign_load_vips_get_flags;
 	load_class->get_flags_filename = 

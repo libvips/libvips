@@ -102,6 +102,12 @@ static char *vips__argv0 = NULL;
  */
 int vips__leak = 0;
 
+#ifdef DEBUG_LEAK
+/* Count pixels processed per image here.
+ */
+GQuark vips__image_pixels_quark = 0; 
+#endif /*DEBUG_LEAK*/
+
 /**
  * vips_get_argv0:
  *
@@ -393,6 +399,11 @@ vips_init( const char *argv0 )
 #ifdef HAVE_ATEXIT
 	atexit( vips_shutdown );
 #endif /*HAVE_ATEXIT*/
+
+#ifdef DEBUG_LEAK
+	vips__image_pixels_quark = 
+		g_quark_from_static_string( "vips-image-pixels" ); 
+#endif /*DEBUG_LEAK*/
 
 	done = TRUE;
 

@@ -286,7 +286,7 @@ vips_tile_search_recycle( gpointer key, gpointer value, gpointer user_data )
 			break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 }

@@ -16,6 +16,8 @@ vips_type_image = GObject.GType.from_name("VipsImage")
 vips_type_operation = GObject.GType.from_name("VipsOperation")
 
 def find_class_methods(cls):
+    names = set()
+
     if not cls.is_abstract():
         op = Vips.Operation.new(cls.name)
 
@@ -32,16 +34,24 @@ def find_class_methods(cls):
 
         if not found:
             gtype = Vips.type_find("VipsOperation", cls.name)
-            nickname = Vips.nickname_find(gtype)
-            print '    "%s",' % nickname
+            names.add(Vips.nickname_find(gtype))
 
     if len(cls.children) > 0:
         for child in cls.children:
             # not easy to get at the deprecated flag in an abtract type?
             if cls.name != 'VipsWrap7':
-                find_class_methods(child)
+                names.update(find_class_methods(child))
+
+    return names
 
 print 'found class methods:'
 
-find_class_methods(vips_type_operation)
+names = find_class_methods(vips_type_operation)
 
+# filter out things we know we should not wrap
+names -= set(["bandjoin", "bandrank"])
+
+names = list(names)
+names.sort()
+for name in names:
+    print '    "%s",' % name

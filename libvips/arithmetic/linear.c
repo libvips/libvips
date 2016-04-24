@@ -241,7 +241,7 @@ vips_linear_build( VipsObject *object )
 	for( x = 0; x < sz; x++ ) { \
 		float t = a1 * p[x] + b1; \
 		\
-		q[x] = VIPS_CLIP( 0, t, 255 ); \
+		q[x] = VIPS_FCLIP( 0, t, 255 ); \
 	} \
 }
 
@@ -255,7 +255,7 @@ vips_linear_build( VipsObject *object )
 		for( k = 0; k < nb; k++, i++ ) { \
 			double t = a[k] * p[i] + b[k]; \
 			\
-			q[i] = VIPS_CLIP( 0, t, 255 ); \
+			q[i] = VIPS_FCLIP( 0, t, 255 ); \
 		} \
 }
 
@@ -278,7 +278,7 @@ vips_linear_build( VipsObject *object )
 		for( k = 0; k < nb; k++, i++ ) { \
 			double t = a[k] * p[0] + b[k]; \
 			\
-			q[i] = VIPS_CLIP( 0, t, 255 ); \
+			q[i] = VIPS_FCLIP( 0, t, 255 ); \
 			p += 2; \
 		} \
 }
@@ -321,7 +321,7 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
 			LOOPCMPLXNuc( double ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	else
 		switch( vips_image_get_format( im ) ) {
@@ -347,7 +347,7 @@ vips_linear_buffer( VipsArithmetic *arithmetic,
 			LOOPCMPLXN( double, double ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 
 }

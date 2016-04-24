@@ -146,7 +146,7 @@ vips_draw_image_mode_add( VipsDrawImage *draw_image, VipsImage *im,
 		LOOPF( double ); break;
 
 	default:
-		g_assert( 0 );
+		g_assert_not_reached();
 	}
 }
 
@@ -231,9 +231,7 @@ vips_draw_image_build( VipsObject *object )
 				break;
 
 			default:
-				g_assert( 0 );
-				break;
-
+				g_assert_not_reached();
 			}
 
 			p += VIPS_IMAGE_SIZEOF_LINE( im );

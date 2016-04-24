@@ -48,6 +48,8 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#ifdef HAVE_RADIANCE
+
 #include "radiance.h"
 
 typedef struct _VipsForeignLoadRad {
@@ -121,6 +123,10 @@ vips_foreign_load_rad_class_init( VipsForeignLoadRadClass *class )
 
 	foreign_class->suffs = vips__rad_suffs;
 
+	/* is_a() is not that quick ... lower the priority.
+	 */
+	foreign_class->priority = -50;
+
 	load_class->is_a = vips__rad_israd;
 	load_class->get_flags_filename = 
 		vips_foreign_load_rad_get_flags_filename;
@@ -140,6 +146,8 @@ static void
 vips_foreign_load_rad_init( VipsForeignLoadRad *rad )
 {
 }
+
+#endif /*HAVE_RADIANCE*/
 
 /**
  * vips_radload:

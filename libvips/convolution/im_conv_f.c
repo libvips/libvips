@@ -43,6 +43,8 @@
  * 	  keeping two versions
  * 15/10/11 Nicolas
  * 	- handle offset correctly in seperable convolutions
+ * 26/1/16 Lovell Fuller
+ * 	- remove Duff for a 25% speedup
  */
 
 /*
@@ -204,11 +206,6 @@ conv_start( IMAGE *out, void *a, void *b )
 	return( (void *) seq );
 }
 
-#define INNER { \
-	sum += t[i] * p[i][x]; \
-	i += 1; \
-}
-
 #define CONV_FLOAT( ITYPE, OTYPE ) { \
 	ITYPE ** restrict p = (ITYPE **) seq->pts; \
 	OTYPE * restrict q = (OTYPE *) IM_REGION_ADDR( or, le, y ); \
@@ -216,10 +213,10 @@ conv_start( IMAGE *out, void *a, void *b )
 	for( x = 0; x < sz; x++ ) {  \
 		double sum; \
 		int i; \
- 		\
+		\
 		sum = 0; \
-		i = 0; \
-		IM_UNROLL( conv->nnz, INNER ); \
+		for ( i = 0; i < nnz; i++ ) \
+			sum += t[i] * p[i][x]; \
  		\
 		sum = (sum / mask->scale) + mask->offset; \
 		\
@@ -238,6 +235,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	REGION *ir = seq->ir;
 	DOUBLEMASK *mask = conv->mask;
 	double * restrict t = conv->coeff; 
+	const int nnz = conv->nnz;
 
 	Rect *r = &or->valid;
 	Rect s;
@@ -264,7 +262,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	if( seq->last_bpl != IM_REGION_LSKIP( ir ) ) {
 		seq->last_bpl = IM_REGION_LSKIP( ir );
 
-		for( i = 0; i < conv->nnz; i++ ) {
+		for( i = 0; i < nnz; i++ ) {
 			z = conv->coeff_pos[i];
 			x = z % conv->mask->xsize;
 			y = z / conv->mask->xsize;
@@ -278,8 +276,8 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 	for( y = to; y < bo; y++ ) { 
 		/* Init pts for this line of PELs.
 		 */
-                for( z = 0; z < conv->nnz; z++ ) 
-                        seq->pts[z] = seq->offsets[z] + 
+		for( z = 0; z < nnz; z++ )
+			seq->pts[z] = seq->offsets[z] +
 				IM_REGION_ADDR( ir, le, y ); 
 
 		switch( in->BandFmt ) {
@@ -303,7 +301,7 @@ conv_gen( REGION *or, void *vseq, void *a, void *b )
 			CONV_FLOAT( double, double ); break;
 
 		default:
-			g_assert( 0 );
+			g_assert_not_reached();
 		}
 	}
 
