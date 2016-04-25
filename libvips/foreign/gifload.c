@@ -2,6 +2,8 @@
  *
  * 10/2/16
  * 	- from svgload.c
+ * 25/4/16
+ * 	- add giflib5 support
  */
 
 /*
@@ -55,6 +57,17 @@
 
 #include <gif_lib.h>
 
+/* giflib 5 is rather different :-( functions have error returns and there's
+ * not LastError function.
+ *
+ * GIFLIB_MAJOR was introduced in 4.1.6. Use it to test for giflib 5.x.
+ */
+#ifdef GIFLIB_MAJOR
+#  if GIFLIB_MAJOR > 4
+#    define HAVE_GIFLIB_5
+#  endif
+#endif
+
 typedef struct _VipsForeignLoadGif {
 	VipsForeignLoad parent_object;
 
@@ -86,11 +99,14 @@ static int
 	InterlacedOffset[] = { 0, 4, 2, 1 },
 	InterlacedJumps[] = { 8, 8, 4, 2 };
 
-/* From gif-lib.h
+/* giflib4 was missing this.
  */
 static const char *
 vips_foreign_load_gif_errstr( int error_code )
 {
+#ifdef HAVE_GIFLIB_5
+	return( GifErrorString( error_code ) ); 
+#else /*!HAVE_GIFLIB_5*/
 	switch( error_code ) {
 	case D_GIF_ERR_OPEN_FAILED:
 		return( _( "Failed to open given file" ) ); 
@@ -134,15 +150,86 @@ vips_foreign_load_gif_errstr( int error_code )
 	default:
 		return( _( "Unknown error" ) ); 
 	}
+#endif /*HAVE_GIFLIB_5*/
 }
 
 static void
 vips_foreign_load_gif_error( VipsForeignLoadGif *gif )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
+#ifdef HAVE_GIFLIB_5
+	if( gif->file ) 
+		vips_foreign_load_gif_errstr( gif->file->Error ); 
+#else 
+	vips_foreign_load_gif_errstr( GifLastError() ); 
+#endif
+}
 
-	vips_error( class->nickname, _( "giflib error: %s" ),
-		vips_foreign_load_gif_errstr( GifLastError() ) );
+static void
+vips_foreign_load_gif_close( VipsForeignLoadGif *gif )
+{
+#ifdef HAVE_GIFLIB_5
+	if( gif->file ) {
+		int error; 
+
+		if( DGifCloseFile( gif->file, &error ) ) 
+			vips_foreign_load_gif_errstr( error );
+		gif->file = NULL;
+	}
+#else 
+	if( gif->file ) {
+		if( DGifCloseFile( gif->file ) ) 
+			vips_foreign_load_gif_errstr( GifLastError() ); 
+		gif->file = NULL;
+	}
+#endif
+}
+
+static int
+vips_foreign_load_gif_open( VipsForeignLoadGif *gif, const char *filename )
+{
+	g_assert( !gif->file ); 
+
+#ifdef HAVE_GIFLIB_5
+{
+	int error; 
+
+	if( !(gif->file = DGifOpenFileName( filename, &error )) ) {
+		vips_foreign_load_gif_errstr( error );
+		return( -1 ); 
+	}
+}
+#else 
+	if( !(gif->file = DGifOpenFileName( filename )) ) { 
+		vips_foreign_load_gif_errstr( GifLastError() ); 
+		return( -1 ); 
+	}
+#endif
+
+	return( 0 ); 
+}
+
+static int
+vips_foreign_load_gif_open_buffer( VipsForeignLoadGif *gif, InputFunc read_fn )
+{
+	g_assert( !gif->file ); 
+
+#ifdef HAVE_GIFLIB_5
+{
+	int error;
+
+	if( !(gif->file = DGifOpen( gif, read_fn, &error )) ) {
+		vips_foreign_load_gif_errstr( error );
+		return( -1 ); 
+	}
+}
+#else 
+	if( !(gif->file = DGifOpen( gif, read_fn )) ) { 
+		vips_foreign_load_gif_errstr( GifLastError() ); 
+		return( -1 ); 
+	}
+#endif
+
+	return( 0 ); 
 }
 
 static void
@@ -150,7 +237,7 @@ vips_foreign_load_gif_dispose( GObject *gobject )
 {
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) gobject;
 
-	VIPS_FREEF( DGifCloseFile, gif->file );
+	vips_foreign_load_gif_close( gif ); 
 
 	G_OBJECT_CLASS( vips_foreign_load_gif_parent_class )->
 		dispose( gobject );
@@ -293,7 +380,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif, VipsImage *out )
 
 				if( DGifGetLine( gif->file, gif->line, 
 					file->Image.Width ) == GIF_ERROR ) {
-					vips_foreign_load_gif_error( gif );
+					vips_foreign_load_gif_error( gif ); 
 					return( -1 ); 
 				}
 
@@ -311,7 +398,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif, VipsImage *out )
 
 			if( DGifGetLine( gif->file, gif->line, 
 				file->Image.Width ) == GIF_ERROR ) {
-				vips_foreign_load_gif_error( gif );
+				vips_foreign_load_gif_error( gif ); 
 				return( -1 ); 
 			}
 
@@ -349,7 +436,7 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 		int ext_code;
 
 		if( DGifGetRecordType( gif->file, &record) == GIF_ERROR ) {
-			vips_foreign_load_gif_error( gif );
+			vips_foreign_load_gif_error( gif ); 
 			return( -1 ); 
 		}
 
@@ -358,7 +445,7 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 			VIPS_DEBUG_MSG( "gifload: IMAGE_DESC_RECORD_TYPE:\n" ); 
 
 			if( DGifGetImageDesc( gif->file ) == GIF_ERROR ) {
-				vips_foreign_load_gif_error( gif );
+				vips_foreign_load_gif_error( gif ); 
 				return( -1 ); 
 			}
 
@@ -378,7 +465,7 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 
 			if( DGifGetExtension( gif->file, 
 				&ext_code, &extension) == GIF_ERROR ) {
-				vips_foreign_load_gif_error( gif );
+				vips_foreign_load_gif_error( gif ); 
 				return( -1 ); 
 			}
 
@@ -399,7 +486,7 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 			while( extension != NULL ) {
 				if( DGifGetExtensionNext( gif->file, 
 					&extension) == GIF_ERROR ) {
-					vips_foreign_load_gif_error( gif );
+					vips_foreign_load_gif_error( gif ); 
 					return( -1 ); 
 				}
 
@@ -439,7 +526,7 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	/* We've rendered to a memory image ... we can shut down the GIF
 	 * reader now.
 	 */
-	VIPS_FREEF( DGifCloseFile, gif->file );
+	vips_foreign_load_gif_close( gif ); 
 
 	return( 0 );
 }
@@ -497,10 +584,8 @@ vips_foreign_load_gif_file_header( VipsForeignLoad *load )
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
 	VipsForeignLoadGifFile *file = (VipsForeignLoadGifFile *) load;
 
-	if( !(gif->file = DGifOpenFileName( file->filename )) ) { 
-		vips_foreign_load_gif_error( gif );
+	if( vips_foreign_load_gif_open( gif, file->filename ) ) 
 		return( -1 ); 
-	}
 
 	return( vips_foreign_load_gif_header( load ) );
 }
@@ -593,11 +678,9 @@ vips_foreign_load_gif_buffer_header( VipsForeignLoad *load )
 	buffer->p = buffer->buf->data;
 	buffer->bytes_to_go = buffer->buf->length;
 
-	if( !(gif->file = DGifOpen( gif, 
-		vips_foreign_load_gif_buffer_read )) ) { 
-		vips_foreign_load_gif_error( gif );
+	if( vips_foreign_load_gif_open_buffer( gif, 
+		vips_foreign_load_gif_buffer_read ) ) 
 		return( -1 ); 
-	}
 
 	return( vips_foreign_load_gif_header( load ) );
 }
