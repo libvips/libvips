@@ -56,7 +56,7 @@
  * 9/9/15
  * 	- better overlap handling, thanks robclouth 
  * 24/11/15
- * 	- don't write empty tiles in google mode
+ * 	- don't write almost blank tiles in google mode
  * 25/11/15
  * 	- always strip tile metadata 
  * 16/12/15
@@ -1104,6 +1104,12 @@ tile_name( Layer *layer, int x, int y )
 	return( out );
 }
 
+/* Test for tile equal to background colour. In google maps mode, we skip
+ * blank background tiles. 
+ *
+ * Don't use exactly equality, since compression artefacts or noise can upset
+ * this.
+ */
 static gboolean
 tile_equal( VipsImage *image, VipsPel * restrict ink )
 {
@@ -1131,7 +1137,7 @@ tile_equal( VipsImage *image, VipsPel * restrict ink )
 
 		for( x = 0; x < image->Xsize; x++ ) {
 			for( b = 0; b < bytes; b++ ) 
-				if( p[b] != ink[b] ) {
+				if( VIPS_ABS( p[b] - ink[b] ) > 5 ) {
 					g_object_unref( region );
 					return( FALSE ); 
 				}
@@ -1206,10 +1212,10 @@ strip_work( VipsThreadState *state, void *a )
 		g_object_unref( x );
 
 #ifdef DEBUG_VERBOSE
-#endif /*DEBUG_VERBOSE*/
 		printf( "strip_work: skipping blank tile %d x %d\n", 
 			state->x / dz->tile_size, 
 			state->y / dz->tile_size ); 
+#endif /*DEBUG_VERBOSE*/
 
 		return( 0 ); 
 	}
