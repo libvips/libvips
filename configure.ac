@@ -439,66 +439,66 @@ fi
 if test x"$with_magick" != "xno"; then
   # we SetImageOption to disable some DICOM read processing, but that's only
   # in more recent imagemagicks and not in graphicsmagick
-  save_LIBS=$LIBS
+  save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
   AC_CHECK_FUNCS(SetImageOption,
     AC_DEFINE(HAVE_SETIMAGEOPTION,1,
 	      [define if your magick has SetImageOption.]))
-  LIBS=$save_LIBS
+  LIBS="$save_LIBS"
 fi
 
 if test x"$with_magick" != "xno"; then
   # newer ImageMagicks use MagickCoreGenesis instead of InitializeMagick argh
-  save_LIBS=$LIBS
+  save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
   AC_CHECK_FUNCS(MagickCoreGenesis,
     AC_DEFINE(HAVE_MAGICKCOREGENESIS,1,
 	      [define if your magick has MagickCoreGenesis.]))
-  LIBS=$save_LIBS
+  LIBS="$save_LIBS"
 fi
 
 if test x"$with_magick" != "xno"; then
   # newer ImageMagicks use ResetImagePropertyIterator instead of
   # ResetImageAttributeIterator argh
-  save_LIBS=$LIBS
+  save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
   AC_CHECK_FUNCS(ResetImagePropertyIterator,
     AC_DEFINE(HAVE_RESETIMAGEPROPERTYITERATOR,1,
 	      [define if your magick has ResetImagePropertyIterator.]))
-  LIBS=$save_LIBS
+  LIBS="$save_LIBS"
 fi
 
 if test x"$with_magick" != "xno"; then
   # so ... do we have ResetImageAttributeIterator()? GM does not
-  save_LIBS=$LIBS
+  save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
   AC_CHECK_FUNCS(ResetImageAttributeIterator,
     AC_DEFINE(HAVE_RESETIMAGEATTRIBUTEITERATOR,1,
 	      [define if your magick has ResetImageAttributeIterator.]))
-  LIBS=$save_LIBS
+  LIBS="$save_LIBS"
 fi
 
 if test x"$with_magick" != "xno"; then
   # more recent magicks have GetVirtualPixels rather than GetImagePixels
-  save_LIBS=$LIBS
+  save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
   AC_CHECK_FUNCS(GetVirtualPixels,
     AC_DEFINE(HAVE_GETVIRTUALPIXELS,1,
 	      [define if your magick has GetVirtualPixels.]))
-  LIBS=$save_LIBS
+  LIBS="$save_LIBS"
 fi
 
 if test x"$with_magick" != "xno"; then
   # do we have number_scenes in image_info ... imagemagick uses this, gm
   # still uses subrange
-  save_CFLAGS=$CFLAGS
+  save_CFLAGS="$CFLAGS"
   CFLAGS="$CFLAGS $MAGICK_CFLAGS"
   AC_CHECK_MEMBER([struct _ImageInfo.number_scenes],
     AC_DEFINE(HAVE_NUMBER_SCENES,1,
 	      [define if your magick has ImageInfo.number_scenes.]),
     [],
     [#include <magick/api.h>])
-  CFLAGS=$save_CFLAGS
+  CFLAGS="$save_CFLAGS"
 fi
 
 # orc
@@ -511,12 +511,12 @@ if test x"$with_orc" != "xno"; then
     [AC_DEFINE(HAVE_ORC,1,[define if you have orc-0.4.11 or later installed.])
      with_orc=yes
      PACKAGES_USED="$PACKAGES_USED orc-0.4"
-     save_LIBS=$LIBS
+     save_LIBS="$LIBS"
      LIBS="$LIBS $ORC_LIBS"
      AC_CHECK_FUNCS(orc_program_get_error,
        AC_DEFINE(HAVE_ORC_PROGRAM_GET_ERROR,1,
 	      [define if your orc has orc_program_get_error.]))
-     LIBS=$save_LIBS
+     LIBS="$save_LIBS"
     ],
     [AC_MSG_WARN([orc-0.4.11 or later not found; disabling orc support])
      with_orc=no
@@ -791,19 +791,13 @@ FIND_JPEG(
   ])
 
 # JPEG extension parameters available in libjpeg-turbo >=1.5.0, mozjpeg >=3.0
-if test x"$with_jpeg" = "xyes"; then
-  AC_MSG_CHECKING([for JPEG extension parameters])
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-    #include <stdio.h>
-    #include <jpeglib.h>
-  ]], [[
-    J_BOOLEAN_PARAM test;
-  ]])], [
-    AC_MSG_RESULT([yes])
-    AC_DEFINE([HAVE_JPEG_EXT_PARAMS],1,[libjpeg has extension parameters])
-  ], [
-    AC_MSG_RESULT([no])
-  ])
+if test x"$with_jpeg" != "xno"; then
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $JPEG_LIBS"
+  AC_CHECK_FUNCS(jpeg_c_bool_param_supported,
+    AC_DEFINE(HAVE_JPEG_EXT_PARAMS,1,
+	      [define if your libjpeg has extension parameters.]))
+  LIBS="$save_LIBS"
 fi
 
 # libexif
@@ -824,11 +818,11 @@ fi
 # how annoying
 if test x"$with_libexif" != "xno"; then
   # cppflags not cflags because we want the preproc to see the -I as well
-  save_CPPFLAGS=$CPPFLAGS
+  save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$EXIF_CFLAGS $CPPFLAGS"
   AC_CHECK_HEADER(exif-data.h,
     AC_DEFINE(UNTAGGED_EXIF,1,[libexif includes don't need libexif prefix]))
-  CPPFLAGS=$save_CPPFLAGS
+  CPPFLAGS="$save_CPPFLAGS"
 fi
 
 # make python binding?
