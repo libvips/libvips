@@ -3,6 +3,7 @@
 - export C++ operator overloads for MSVC linking [Lovell]
 - fix magickload @page with GraphicsMagick
 - add giflib5 support
+- allow resize >1 on one axis, <1 on the other
 
 29/1/16 started 8.3
 - add vips_reduce*() ... a fast path for affine downsize

@@ -10,6 +10,8 @@
  * 	- shrink more affine less, now we have better anti-alias settings
  * 10/3/16
  * 	- revise again, using new vips_reduce() code
+ * 1/5/16
+ * 	- allow >1 on one axis, <1 on the other
  */
 
 /*
@@ -132,13 +134,18 @@ vips_resize_build( VipsObject *object )
 	else
 		int_vshrink = int_hshrink;
 
-	if( int_hshrink > 1 ||
-		int_vshrink > 1 ) { 
-		vips_info( class->nickname, "box shrink by %d x %d", 
-			int_hshrink, int_vshrink );
-		if( vips_shrink( in, &t[0], int_hshrink, int_vshrink, NULL ) )
+	if( int_vshrink > 1 ) { 
+		vips_info( class->nickname, "shrinkv by %d", int_vshrink );
+		if( vips_shrinkv( in, &t[0], int_vshrink, NULL ) )
 			return( -1 );
 		in = t[0];
+	}
+
+	if( int_hshrink > 1 ) { 
+		vips_info( class->nickname, "shrinkh by %d", int_hshrink );
+		if( vips_shrinkh( in, &t[1], int_hshrink, NULL ) )
+			return( -1 );
+		in = t[1];
 	}
 
 	/* Do we need a further size adjustment? It's the difference
@@ -195,30 +202,43 @@ vips_resize_build( VipsObject *object )
 		in = t[6];
 	}
 
-	/* Any downsizing.
+	/* Any residual downsizing.
 	 */
-	if( hresidual < 1.0 || 
-		vresidual < 1.0 ) { 
-		vips_info( class->nickname, "residual reduce by %g x %g", 
-			hresidual, vresidual );
-
-		if( vips_reduce( in, &t[2], 
-			1.0 / hresidual, 1.0 / vresidual, NULL ) )  
+	if( vresidual < 1.0 ) { 
+		vips_info( class->nickname, "residual reducev by %g", 
+			vresidual );
+		if( vips_reducev( in, &t[2], 1.0 / vresidual, NULL ) )  
 			return( -1 );
 		in = t[2];
 	}
 
+	if( hresidual < 1.0 ) { 
+		vips_info( class->nickname, "residual reduceh by %g", 
+			hresidual );
+		if( vips_reduceh( in, &t[3], 1.0 / hresidual, NULL ) )  
+			return( -1 );
+		in = t[3];
+	}
+
 	/* Any upsizing.
 	 */
-	if( hresidual > 1.0 || 
-		vresidual > 1.0 ) { 
-		vips_info( class->nickname, "residual scale %g x %g", 
-			hresidual, vresidual );
-		if( vips_affine( in, &t[3], hresidual, 0, 0, vresidual, 
+	if( hresidual > 1.0 ) { 
+		vips_info( class->nickname, "residual scaleh %g", 
+			hresidual );
+		if( vips_affine( in, &t[4], hresidual, 0.0, 0.0, 1.0, 
 			"interpolate", vips_interpolate_nearest_static(), 
 			NULL ) )  
 			return( -1 );
-		in = t[3];
+		in = t[4];
+	}
+
+	if( vresidual > 1.0 ) { 
+		vips_info( class->nickname, "residual scalev %g", vresidual );
+		if( vips_affine( in, &t[5], 1.0, 0.0, 0.0, vresidual, 
+			"interpolate", vips_interpolate_nearest_static(), 
+			NULL ) )  
+			return( -1 );
+		in = t[5];
 	}
 
 	if( vips_image_write( in, resample->out ) )
