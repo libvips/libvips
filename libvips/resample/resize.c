@@ -12,6 +12,7 @@
  * 	- revise again, using new vips_reduce() code
  * 1/5/16
  * 	- allow >1 on one axis, <1 on the other
+ * 	- expose @kernel setting
  */
 
 /*
@@ -69,6 +70,7 @@ typedef struct _VipsResize {
 
 	double scale;
 	double vscale;
+	VipsKernel kernel;
 
 	/* Deprecated.
 	 */
@@ -207,7 +209,9 @@ vips_resize_build( VipsObject *object )
 	if( vresidual < 1.0 ) { 
 		vips_info( class->nickname, "residual reducev by %g", 
 			vresidual );
-		if( vips_reducev( in, &t[2], 1.0 / vresidual, NULL ) )  
+		if( vips_reducev( in, &t[2], 1.0 / vresidual, 
+			"kernel", resize->kernel, 
+			NULL ) )  
 			return( -1 );
 		in = t[2];
 	}
@@ -215,7 +219,9 @@ vips_resize_build( VipsObject *object )
 	if( hresidual < 1.0 ) { 
 		vips_info( class->nickname, "residual reduceh by %g", 
 			hresidual );
-		if( vips_reduceh( in, &t[3], 1.0 / hresidual, NULL ) )  
+		if( vips_reduceh( in, &t[3], 1.0 / hresidual, 
+			"kernel", resize->kernel, 
+			NULL ) )  
 			return( -1 );
 		in = t[3];
 	}
@@ -279,6 +285,13 @@ vips_resize_class_init( VipsResizeClass *class )
 		G_STRUCT_OFFSET( VipsResize, vscale ),
 		0, 10000000, 0 );
 
+	VIPS_ARG_ENUM( class, "kernel", 3, 
+		_( "Kernel" ), 
+		_( "Resampling kernel" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsResize, kernel ),
+		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
+
 	/* We used to let people set the input offset so you could pick centre
 	 * or corner interpolation, but it's not clear this was useful. 
 	 */
@@ -311,6 +324,7 @@ vips_resize_class_init( VipsResizeClass *class )
 static void
 vips_resize_init( VipsResize *resize )
 {
+	resize->kernel = VIPS_KERNEL_LANCZOS3;
 }
 
 /**
@@ -323,21 +337,26 @@ vips_resize_init( VipsResize *resize )
  * Optional arguments:
  *
  * @vscale: vertical scale factor
+ * @kernel: #VipsKernel to reduce with 
  *
  * Resize an image. When upsizing (@scale > 1), the image is simply block
  * upsized. When downsizing, the
- * image is block-shrunk with vips_shrink(), then an anti-alias blur is
- * applied with vips_gaussblur(), then the image is shrunk again to the 
- * target size with vips_reduce(). 
+ * image is block-shrunk with vips_shrink(), 
+ * then the image is shrunk again to the 
+ * target size with vips_reduce(). The operation will leave at least the final
+ * x2 to be done with vips_reduce().
  *
  * vips_resize() normally maintains the image apect ratio. If you set
  * @vscale, that factor is used for the vertical scale and @scale for the
  * horizontal.
  *
+ * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for thre final shrink, you
+ * can change this with @kernel.
+ *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 
  *
- * See also: vips_shrink(), vips_reduce(), vips_gaussblur().
+ * See also: vips_shrink(), vips_reduce().
  *
  * Returns: 0 on success, -1 on error
  */
