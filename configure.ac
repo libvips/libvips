@@ -677,7 +677,7 @@ AC_ARG_WITH([libwebp],
   AS_HELP_STRING([--without-libwebp], [build without libwebp (default: test)]))
 
 if test x"$with_libwebp" != "xno"; then
-  PKG_CHECK_MODULES(LIBWEBP, libwebp,
+  PKG_CHECK_MODULES(LIBWEBP, libwebp >= 0.1.3,
     [AC_DEFINE(HAVE_LIBWEBP,1,[define if you have libwebp installed.])
      with_libwebp=yes
      PACKAGES_USED="$PACKAGES_USED libwebp"],
@@ -966,6 +966,7 @@ SVG import with librsvg-2.0: 		$with_rsvg
   (requires librsvg-2.0 2.40.0 or later)
 file import with cfitsio: 		$with_cfitsio
 file import/export with libwebp:	$with_libwebp
+  (requires libwebp-0.1.3 or later)
 text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)

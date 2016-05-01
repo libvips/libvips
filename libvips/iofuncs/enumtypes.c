@@ -70,6 +70,28 @@ vips_saveable_get_type( void )
 	return( etype );
 }
 GType
+vips_foreign_webp_preset_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FOREIGN_WEBP_PRESET_DEFAULT, "VIPS_FOREIGN_WEBP_PRESET_DEFAULT", "default"},
+			{VIPS_FOREIGN_WEBP_PRESET_PICTURE, "VIPS_FOREIGN_WEBP_PRESET_PICTURE", "picture"},
+			{VIPS_FOREIGN_WEBP_PRESET_PHOTO, "VIPS_FOREIGN_WEBP_PRESET_PHOTO", "photo"},
+			{VIPS_FOREIGN_WEBP_PRESET_DRAWING, "VIPS_FOREIGN_WEBP_PRESET_DRAWING", "drawing"},
+			{VIPS_FOREIGN_WEBP_PRESET_ICON, "VIPS_FOREIGN_WEBP_PRESET_ICON", "icon"},
+			{VIPS_FOREIGN_WEBP_PRESET_TEXT, "VIPS_FOREIGN_WEBP_PRESET_TEXT", "text"},
+			{VIPS_FOREIGN_WEBP_PRESET_LAST, "VIPS_FOREIGN_WEBP_PRESET_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsForeignWebpPreset", values );
+	}
+
+	return( etype );
+}
+GType
 vips_foreign_tiff_compression_get_type( void )
 {
 	static GType etype = 0;

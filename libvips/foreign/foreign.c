@@ -2458,6 +2458,11 @@ vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Optional arguments:
  *
  * @Q: quality factor
+ * @lossless: enables lossless compression
+ * @preset: #VipsForeignWebpPreset choose lossy compression preset
+ * @smart_subsample: enables high quality chroma subsampling
+ * @near_lossless: use preprocessing in lossless mode (controlled by Q)
+ * @alpha_q: set alpha quality in lossless mode
  *
  * See also: vips_webpload(), vips_image_write_to_file().
  *
@@ -2486,6 +2491,17 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  * Optional arguments:
  *
  * @Q: JPEG quality factor
+ * @lossless: enables lossless compression
+ * @preset: #VipsForeignWebpPreset choose lossy compression preset
+ * @smart_subsample: enables high quality chroma subsampling
+ * @near_lossless: use preprocessing in lossless mode (controlled by Q)
+ * @alpha_q: set alpha quality in lossless mode
+ *
+ * As vips_webpsave(), but save to a memory buffer.
+ *
+ * The address of the buffer is returned in @obuf, the length of the buffer in
+ * @olen. You are responsible for freeing the buffer with g_free() when you
+ * are done with it. The buffer is freed for you on error.
  *
  * See also: vips_webpsave().
  *

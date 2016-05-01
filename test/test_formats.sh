@@ -186,6 +186,10 @@ fi
 if test_supported jpegload; then
 	test_format $image jpg 90
 fi
+if test_supported webpload; then
+	test_format $image webp 90
+	test_format $image webp 0 [lossless]
+fi
 test_format $image ppm 0
 test_format $image pfm 0
 if test_supported fitsload; then
@@ -220,4 +224,3 @@ if test_supported dzsave; then
 	test_saver copy $image .dz
 	test_saver copy $image .dz[container=zip]
 fi
-
