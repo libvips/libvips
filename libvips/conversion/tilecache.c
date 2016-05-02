@@ -824,12 +824,12 @@ vips_tile_cache_init( VipsTileCache *cache )
  *
  * Optional arguments:
  *
- * @tile_width: width of tiles in cache
- * @tile_height: height of tiles in cache
- * @max_tiles: maximum number of tiles to cache
- * @access: hint expected access pattern #VipsAccess
- * @threaded: allow many threads
- * @persistent: don't drop cache at end of computation
+ * * @tile_width: width of tiles in cache
+ * * @tile_height: height of tiles in cache
+ * * @max_tiles: maximum number of tiles to cache
+ * * @access: hint expected access pattern #VipsAccess
+ * * @threaded: allow many threads
+ * * @persistent: don't drop cache at end of computation
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it keeps a cache of computed pixels. 
@@ -1018,9 +1018,9 @@ vips_line_cache_init( VipsLineCache *cache )
  *
  * Optional arguments:
  *
- * @access: hint expected access pattern #VipsAccess
- * @tile_height: height of tiles in cache
- * @threaded: allow many threads
+ * * @access: hint expected access pattern #VipsAccess
+ * * @tile_height: height of tiles in cache
+ * * @threaded: allow many threads
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it keeps a cache of computed scanlines. 

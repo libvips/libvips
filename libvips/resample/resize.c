@@ -336,8 +336,8 @@ vips_resize_init( VipsResize *resize )
  *
  * Optional arguments:
  *
- * @vscale: vertical scale factor
- * @kernel: #VipsKernel to reduce with 
+ * * @vscale: vertical scale factor
+ * * @kernel: #VipsKernel to reduce with 
  *
  * Resize an image. When upsizing (@scale > 1), the image is simply block
  * upsized. When downsizing, the

@@ -296,7 +296,7 @@ vips_scRGB2sRGB_init( VipsscRGB2sRGB *scRGB2sRGB )
  *
  * Optional arguments:
  *
- * @depth: depth of output image in bits
+ * * @depth: depth of output image in bits
  *
  * Convert an scRGB image to sRGB. Set @depth to 16 to get 16-bit output.
  *

@@ -127,10 +127,10 @@ vips_mask_butterworth_init( VipsMaskButterworth *butterworth )
  *
  * Optional arguments:
  *
- * @nodc: don't set the DC pixel
- * @reject: invert the filter sense
- * @optical: coordinates in optical space
- * @uchar: output a uchar image
+ * * @nodc: don't set the DC pixel
+ * * @reject: invert the filter sense
+ * * @optical: coordinates in optical space
+ * * @uchar: output a uchar image
  *
  * Make an butterworth high- or low-pass filter, that is, one with a variable,
  * smooth transition

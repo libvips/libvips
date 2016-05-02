@@ -1837,8 +1837,8 @@ vips_filename_get_options( const char *vips_filename )
  *
  * Optional arguments:
  *
- * @access: hint #VipsAccess mode to loader
- * @disc: load via a temporary disc file
+ * * @access: hint #VipsAccess mode to loader
+ * * @disc: load via a temporary disc file
  *
  * vips_image_new_from_file() opens @name for reading. It can load files
  * in many image formats, including VIPS, TIFF, PNG, JPEG, FITS, Matlab,

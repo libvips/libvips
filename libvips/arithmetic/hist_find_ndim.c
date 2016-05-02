@@ -323,7 +323,7 @@ vips_hist_find_ndim_init( VipsHistFindNDim *ndim )
  *
  * Optional arguments:
  *
- * @bins: number of bins to make on each axis
+ * * @bins: number of bins to make on each axis
  *
  * Make a one, two or three dimensional histogram of a 1, 2 or
  * 3 band image. Divide each axis into @bins bins .. ie.

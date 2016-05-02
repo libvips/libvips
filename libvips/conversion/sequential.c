@@ -364,9 +364,9 @@ vips_sequential_init( VipsSequential *sequential )
  *
  * Optional arguments:
  *
- * @trace: trace requests
- * @strip_height: height of cache strips
- * @access: access pattern
+ * * @trace: trace requests
+ * * @strip_height: height of cache strips
+ * * @access: access pattern
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it checks that pixels are only requested

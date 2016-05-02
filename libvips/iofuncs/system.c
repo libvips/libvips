@@ -329,11 +329,11 @@ vips_system_init( VipsSystem *system )
  *
  * Optional arguments:
  *
- * @in: array of input images
- * @out: output image
- * @in_format: write input files like this
- * @out_format: write output filename like this
- * @log: stdout of command is returned here
+ * * @in: array of input images
+ * * @out: output image
+ * * @in_format: write input files like this
+ * * @out_format: write output filename like this
+ * * @log: stdout of command is returned here
  *
  * vips_system() runs a command, optionally passing a set of images in and 
  * optionally getting an image back. The command's stdout is returned in @log. 

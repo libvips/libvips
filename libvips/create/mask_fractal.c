@@ -114,10 +114,10 @@ vips_mask_fractal_init( VipsMaskFractal *fractal )
  *
  * Optional arguments:
  *
- * @nodc: don't set the DC pixel
- * @reject: invert the filter sense
- * @optical: coordinates in optical space
- * @uchar: output a uchar image
+ * * @nodc: don't set the DC pixel
+ * * @reject: invert the filter sense
+ * * @optical: coordinates in optical space
+ * * @uchar: output a uchar image
  *
  * This operation should be used to create fractal images by filtering the
  * power spectrum of Gaussian white noise. See vips_gaussnoise(). 

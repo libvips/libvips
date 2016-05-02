@@ -328,10 +328,10 @@ vips_match_init( VipsMatch *match )
  * 
  * Optional arguments:
  *
- * @search: search to improve tie-points
- * @hwindow: half window size
- * @harea: half search size 
- * @interpolate: interpolate pixels with this
+ * * @search: search to improve tie-points
+ * * @hwindow: half window size
+ * * @harea: half search size 
+ * * @interpolate: interpolate pixels with this
  *
  * Scale, rotate and translate @sec so that the tie-points line up.
  *

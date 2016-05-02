@@ -171,7 +171,7 @@ vips_merge_init( VipsMerge *merge )
  * 
  * Optional arguments:
  *
- * @mblend: maximum blend size 
+ * * @mblend: maximum blend size 
  *
  * This operation joins two images left-right (with @ref on the left) or
  * up-down (with @ref above) with a smooth seam.

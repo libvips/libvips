@@ -371,7 +371,7 @@ vips_quadratic_init( VipsQuadratic *quadratic )
  *
  * Optional arguments:
  *
- * @interpolate: use this interpolator (default bilinear)
+ * * @interpolate: use this interpolator (default bilinear)
  *
  * This operation is unfinished and unusable, sorry. 
  *

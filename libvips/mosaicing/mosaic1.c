@@ -635,12 +635,12 @@ vips_mosaic1_init( VipsMosaic1 *mosaic1 )
  * 
  * Optional arguments:
  *
- * @search: search to improve tie-points
- * @hwindow: half window size
- * @harea: half search size 
- * @interpolate: interpolate pixels with this
- * @mblend: maximum blend size 
- * @bandno: band to search for features
+ * * @search: search to improve tie-points
+ * * @hwindow: half window size
+ * * @harea: half search size 
+ * * @interpolate: interpolate pixels with this
+ * * @mblend: maximum blend size 
+ * * @bandno: band to search for features
  *
  * This operation joins two images top-bottom (with @sec on the right) 
  * or left-right (with @sec at the bottom)

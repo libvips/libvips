@@ -183,8 +183,8 @@ vips_scale_init( VipsScale *scale )
  *
  * Optional arguments:
  *
- * @log: log scale pixels
- * @exp: exponent for log scale
+ * * @log: log scale pixels
+ * * @exp: exponent for log scale
  *
  * Search the image for the maximum and minimum value, then return the image
  * as unsigned 8-bit, scaled so that the maximum value is 255 and the

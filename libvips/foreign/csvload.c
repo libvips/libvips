@@ -187,10 +187,10 @@ vips_foreign_load_csv_init( VipsForeignLoadCsv *csv )
  *
  * Optional arguments:
  *
- * @skip: skip this many lines at start of file
- * @lines: read this many lines from file
- * @whitespace: set of whitespace characters
- * @separator: set of separator characters
+ * * @skip: skip this many lines at start of file
+ * * @lines: read this many lines from file
+ * * @whitespace: set of whitespace characters
+ * * @separator: set of separator characters
  *
  * Load a CSV (comma-separated values) file. The output image is always 1 
  * band (monochrome), #VIPS_FORMAT_DOUBLE. Use vips_bandfold() to turn

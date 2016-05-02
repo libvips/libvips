@@ -146,7 +146,7 @@ vips_reduce_init( VipsReduce *reduce )
  *
  * Optional arguments:
  *
- * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
+ * * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
  *
  * Reduce @in by a pair of factors with a pair of 1D interpolators. This 
  * will not work well for shrink factors greater than two.

@@ -154,9 +154,9 @@ vips_sines_init( VipsSines *sines )
  *
  * Optional arguments:
  *
- * @hfreq: horizontal frequency
- * @vreq: vertical frequency
- * @uchar: output a uchar image
+ * * @hfreq: horizontal frequency
+ * * @vreq: vertical frequency
+ * * @uchar: output a uchar image
  *
  * Creates a float one band image of the a sine waveform in two
  * dimensions.  

@@ -165,7 +165,7 @@ vips_foreign_load_raw_init( VipsForeignLoadRaw *raw )
  *
  * Optional arguments:
  *
- * @offset: offset in bytes from start of file
+ * * @offset: offset in bytes from start of file
  *
  * This operation mmaps the file, setting @out so that access to that 
  * image will read from the file. 

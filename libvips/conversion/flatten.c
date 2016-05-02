@@ -409,8 +409,8 @@ vips_flatten_init( VipsFlatten *flatten )
  *
  * Optional arguments:
  *
- * @background: #VipsArrayDouble colour for new pixels 
- * @max_alpha: %gdouble, maximum value for alpha
+ * * @background: #VipsArrayDouble colour for new pixels 
+ * * @max_alpha: %gdouble, maximum value for alpha
  *
  * Take the last band of @in as an alpha and use it to blend the
  * remaining channels with @background. 

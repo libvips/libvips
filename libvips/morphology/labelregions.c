@@ -149,7 +149,7 @@ vips_labelregions_init( VipsLabelregions *labelregions )
  *
  * Optional arguments:
  *
- * @segments: return number of regions found here
+ * * @segments: return number of regions found here
  *
  * Repeatedly scans @in for regions of 4-connected pixels
  * with the same pixel value. Every time a region is discovered, those

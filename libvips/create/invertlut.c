@@ -314,7 +314,7 @@ vips_invertlut_init( VipsInvertlut *lut )
  *
  * Optional arguments:
  *
- * @size: generate this much
+ * * @size: generate this much
  *
  * Given a mask of target values and real values, generate a LUT which
  * will map reals to targets. Handy for linearising images from

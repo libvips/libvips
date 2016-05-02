@@ -1809,8 +1809,8 @@ vips_globalbalance_init( VipsGlobalbalance *globalbalance )
  * 
  * Optional arguments:
  *
- * @gamma: gamma of source images
- * @int_output: %TRUE for integer image output
+ * * @gamma: gamma of source images
+ * * @int_output: %TRUE for integer image output
  *
  * vips_globalbalance() can be used to remove contrast differences in 
  * an assembled mosaic.

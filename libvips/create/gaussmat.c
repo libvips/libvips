@@ -234,8 +234,8 @@ vips_gaussmat_init( VipsGaussmat *gaussmat )
  *
  * Optional arguments:
  *
- * @separable: generate a separable gaussian
- * @precision: #VipsPrecision for @out
+ * * @separable: generate a separable gaussian
+ * * @precision: #VipsPrecision for @out
  *
  * Creates a circularly symmetric Gaussian image of radius 
  * @sigma.  The size of the mask is determined by the variable @min_ampl; 

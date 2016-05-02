@@ -623,12 +623,12 @@ vips_affine_init( VipsAffine *affine )
  *
  * Optional arguments:
  *
- * @interpolate: interpolate pixels with this
- * @oarea: output rectangle
- * @idx: input horizontal offset
- * @idy: input vertical offset
- * @odx: output horizontal offset
- * @ody: output vertical offset
+ * * @interpolate: interpolate pixels with this
+ * * @oarea: output rectangle
+ * * @idx: input horizontal offset
+ * * @idy: input vertical offset
+ * * @odx: output horizontal offset
+ * * @ody: output vertical offset
  *
  * This operator performs an affine transform on an image using @interpolate.
  *

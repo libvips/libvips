@@ -251,8 +251,8 @@ vips_logmat_init( VipsLogmat *logmat )
  *
  * Optional arguments:
  *
- * @separable: generate a separable mask
- * @precision: #VipsPrecision for @out
+ * * @separable: generate a separable mask
+ * * @precision: #VipsPrecision for @out
  *
  * Creates a circularly symmetric Laplacian of Gaussian mask 
  * of radius 

@@ -286,7 +286,7 @@ vips_bandrankv( VipsImage **in, VipsImage **out, int n, va_list ap )
  *
  * Optional arguments:
  *
- * @index: pick this index from list of sorted values
+ * * @index: pick this index from list of sorted values
  *
  * Sorts the images @in band-element-wise, then outputs an 
  * image in which each band element is selected from the sorted list by the 

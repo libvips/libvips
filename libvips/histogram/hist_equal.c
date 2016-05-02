@@ -138,7 +138,7 @@ vips_hist_equal_init( VipsHistEqual *equal )
  *
  * Optional arguments:
  *
- * @band: band to equalise
+ * * @band: band to equalise
  *
  * Histogram-equalise @in. Equalise using band @bandno, or if @bandno is -1,
  * equalise bands independently.

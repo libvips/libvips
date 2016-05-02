@@ -486,12 +486,12 @@ vips_max_init( VipsMax *max )
  *
  * Optional arguments:
  *
- * @x: horizontal position of maximum
- * @y: vertical position of maximum
- * @size: number of maxima to find
- * @out_array: return array of maximum values
- * @x_array: corresponding horizontal positions
- * @y_array: corresponding vertical positions
+ * * @x: horizontal position of maximum
+ * * @y: vertical position of maximum
+ * * @size: number of maxima to find
+ * * @out_array: return array of maximum values
+ * * @x_array: corresponding horizontal positions
+ * * @y_array: corresponding vertical positions
  *
  * This operation finds the maximum value in an image. 
  *

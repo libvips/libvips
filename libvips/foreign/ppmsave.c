@@ -156,8 +156,8 @@ vips_foreign_save_ppm_init( VipsForeignSavePpm *ppm )
  *
  * Optional arguments:
  *
- * @ascii: save as ASCII rather than binary
- * @squash: squash 8-bit images down to one bit
+ * * @ascii: save as ASCII rather than binary
+ * * @squash: squash 8-bit images down to one bit
  *
  * Write a VIPS image to a file as PPM. It can write 1, 8, 16 or
  * 32 bit unsigned integer images, float images, colour or monochrome, 

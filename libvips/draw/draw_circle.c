@@ -294,7 +294,7 @@ vips_draw_circlev( VipsImage *image,
  *
  * Optional arguments:
  *
- * @fill: fill the draw_circle
+ * * @fill: fill the draw_circle
  *
  * Draws a circle on @image. If @fill is %TRUE then the circle is filled,
  * otherwise a 1-pixel-wide perimeter is drawn.
@@ -330,7 +330,7 @@ vips_draw_circle( VipsImage *image,
  *
  * Optional arguments:
  *
- * @fill: fill the draw_circle
+ * * @fill: fill the draw_circle
  *
  * As vips_draw_circle(), but just takes a single double for @ink. 
  *

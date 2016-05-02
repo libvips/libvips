@@ -314,7 +314,7 @@ vips_subsample_init( VipsSubsample *subsample )
  *
  * Optional arguments:
  *
- * @point: turn on point sample mode
+ * * @point: turn on point sample mode
  *
  * Subsample an image by an integer fraction. This is fast, nearest-neighbour
  * shrink.

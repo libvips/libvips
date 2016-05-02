@@ -283,7 +283,7 @@ vips_unpremultiply_init( VipsUnpremultiply *unpremultiply )
  *
  * Optional arguments:
  *
- * @max_alpha: %gdouble, maximum value for alpha
+ * * @max_alpha: %gdouble, maximum value for alpha
  *
  * Unpremultiplies any alpha channel. 
  * The final band is taken to be the alpha

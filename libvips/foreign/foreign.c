@@ -1823,8 +1823,8 @@ vips_vipssave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * @all_frames: %gboolean, load all frames in sequence
- * @density: string, canvas resolution for rendering vector formats like SVG
+ * * @all_frames: %gboolean, load all frames in sequence
+ * * @density: string, canvas resolution for rendering vector formats like SVG
  *
  * Read in an image using libMagick, the ImageMagick library. This library can
  * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many 
@@ -1870,8 +1870,8 @@ vips_magickload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @all_frames: %gboolean, load all frames in sequence
- * @density: string, canvas resolution for rendering vector formats like SVG
+ * * @all_frames: %gboolean, load all frames in sequence
+ * * @density: string, canvas resolution for rendering vector formats like SVG
  *
  * Read an image memory block using libMagick into a VIPS image. Exactly as
  * vips_magickload(), but read from a memory source. 
@@ -1911,7 +1911,7 @@ vips_magickload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @page: int, load this page
+ * * @page: int, load this page
  *
  * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
  * with extensions for tiled images, multipage images, LAB colour space, 
@@ -1949,7 +1949,7 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @page: %gint, load this page
+ * * @page: %gint, load this page
  *
  * Read a TIFF-formatted memory block into a VIPS image. Exactly as
  * vips_tiffload(), but read from a memory source. 
@@ -1989,20 +1989,20 @@ vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @compression: use this #VipsForeignTiffCompression
- * @Q: %gint quality factor
- * @predictor: use this #VipsForeignTiffPredictor
- * @profile: filename of ICC profile to attach
- * @tile: set %TRUE to write a tiled tiff
- * @tile_width: %gint for tile size
- * @tile_height: %gint for tile size
- * @pyramid: set %TRUE to write an image pyramid
- * @squash: set %TRUE to squash 8-bit images down to 1 bit
- * @miniswhite: set %TRUE to write 1-bit images as MINISWHITE
- * @resunit: #VipsForeignTiffResunit for resolution unit
- * @xres: %gdouble horizontal resolution in pixels/mm
- * @yres: %gdouble vertical resolution in pixels/mm
- * @bigtiff: set %TRUE to write a BigTiff file
+ * * @compression: use this #VipsForeignTiffCompression
+ * * @Q: %gint quality factor
+ * * @predictor: use this #VipsForeignTiffPredictor
+ * * @profile: filename of ICC profile to attach
+ * * @tile: set %TRUE to write a tiled tiff
+ * * @tile_width: %gint for tile size
+ * * @tile_height: %gint for tile size
+ * * @pyramid: set %TRUE to write an image pyramid
+ * * @squash: set %TRUE to squash 8-bit images down to 1 bit
+ * * @miniswhite: set %TRUE to write 1-bit images as MINISWHITE
+ * * @resunit: #VipsForeignTiffResunit for resolution unit
+ * * @xres: %gdouble horizontal resolution in pixels/mm
+ * * @yres: %gdouble vertical resolution in pixels/mm
+ * * @bigtiff: set %TRUE to write a BigTiff file
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -2089,9 +2089,9 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * @shrink: %gint, shrink by this much on load
- * @fail: %gboolean, fail on warnings
- * @autorotate: %gboolean, use exif Orientation tag to rotate the image during load
+ * * @shrink: %gint, shrink by this much on load
+ * * @fail: %gboolean, fail on warnings
+ * * @autorotate: %gboolean, use exif Orientation tag to rotate the image during load
  *
  * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
  * including CMYK and YCbCr.
@@ -2167,8 +2167,8 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @shrink: %gint, shrink by this much on load
- * @fail: %gboolean, fail on warnings
+ * * @shrink: %gint, shrink by this much on load
+ * * @fail: %gboolean, fail on warnings
  *
  * Read a JPEG-formatted memory block into a VIPS image. Exactly as
  * vips_jpegload(), but read from a memory buffer. 
@@ -2208,15 +2208,15 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @Q: %gint, quality factor
- * @profile: filename of ICC profile to attach
- * @optimize_coding: %gboolean, compute optimal Huffman coding tables
- * @interlace: %gboolean, write an interlaced (progressive) jpeg
- * @strip: %gboolean, remove all metadata from image
- * @no-subsample: %gboolean, disable chroma subsampling
- * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
- * @overshoot_deringing: %gboolean, overshoot samples with extreme values
- * @optimize_scans: %gboolean, split DCT coefficients into separate scans
+ * * @Q: %gint, quality factor
+ * * @profile: filename of ICC profile to attach
+ * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
+ * * @interlace: %gboolean, write an interlaced (progressive) jpeg
+ * * @strip: %gboolean, remove all metadata from image
+ * * @no-subsample: %gboolean, disable chroma subsampling
+ * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -2294,15 +2294,15 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * @Q: JPEG quality factor
- * @profile: attach this ICC profile
- * @optimize_coding: compute optimal Huffman coding tables
- * @interlace: write an interlaced (progressive) jpeg
- * @strip: remove all metadata from image
- * @no-subsample: disable chroma subsampling
- * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
- * @overshoot_deringing: %gboolean, overshoot samples with extreme values
- * @optimize_scans: %gboolean, split DCT coefficients into separate scans
+ * * @Q: JPEG quality factor
+ * * @profile: attach this ICC profile
+ * * @optimize_coding: compute optimal Huffman coding tables
+ * * @interlace: write an interlaced (progressive) jpeg
+ * * @strip: remove all metadata from image
+ * * @no-subsample: disable chroma subsampling
+ * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
@@ -2349,14 +2349,14 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  *
  * Optional arguments:
  *
- * @Q: JPEG quality factor
- * @profile: attach this ICC profile
- * @optimize_coding: compute optimal Huffman coding tables
- * @strip: remove all metadata from image
- * @no-subsample: disable chroma subsampling
- * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
- * @overshoot_deringing: %gboolean, overshoot samples with extreme values
- * @optimize_scans: %gboolean, split DCT coefficients into separate scans
+ * * @Q: JPEG quality factor
+ * * @profile: attach this ICC profile
+ * * @optimize_coding: compute optimal Huffman coding tables
+ * * @strip: remove all metadata from image
+ * * @no-subsample: disable chroma subsampling
+ * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  *
  * As vips_jpegsave(), but save as a mime jpeg on stdout.
  *
@@ -2385,7 +2385,7 @@ vips_jpegsave_mime( VipsImage *in, ... )
  *
  * Optional arguments:
  *
- * @shrink: %gint, shrink by this much on load
+ * * @shrink: %gint, shrink by this much on load
  *
  * Read a WebP file into a VIPS image. 
  *
@@ -2417,7 +2417,7 @@ vips_webpload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @shrink: %gint, shrink by this much on load
+ * * @shrink: %gint, shrink by this much on load
  *
  * Read a WebP-formatted memory block into a VIPS image. Exactly as
  * vips_webpload(), but read from a memory buffer. 
@@ -2505,12 +2505,12 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * @Q: %gint quality factor
- * @lossless: %gboolean enables lossless compression
- * @preset: #VipsForeignWebpPreset choose lossy compression preset
- * @smart_subsample: %gboolean enables high quality chroma subsampling
- * @near_lossless: %gboolean use preprocessing in lossless mode (controlled by Q)
- * @alpha_q: %gint set alpha quality in lossless mode
+ * * @Q: %gint quality factor
+ * * @lossless: %gboolean enables lossless compression
+ * * @preset: #VipsForeignWebpPreset choose lossy compression preset
+ * * @smart_subsample: %gboolean enables high quality chroma subsampling
+ * * @near_lossless: %gboolean use preprocessing in lossless mode (controlled by Q)
+ * * @alpha_q: %gint set alpha quality in lossless mode
  *
  * As vips_webpsave(), but save to a memory buffer.
  *
@@ -2557,12 +2557,12 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  *
  * Optional arguments:
  *
- * @Q: %gint quality factor
- * @lossless: %gboolean enables lossless compression
- * @preset: #VipsForeignWebpPreset choose lossy compression preset
- * @smart_subsample: %gboolean enables high quality chroma subsampling
- * @near_lossless: %gboolean use preprocessing in lossless mode (controlled by Q)
- * @alpha_q: %gint set alpha quality in lossless mode
+ * * @Q: %gint quality factor
+ * * @lossless: %gboolean enables lossless compression
+ * * @preset: #VipsForeignWebpPreset choose lossy compression preset
+ * * @smart_subsample: %gboolean enables high quality chroma subsampling
+ * * @near_lossless: %gboolean use preprocessing in lossless mode (controlled by Q)
+ * * @alpha_q: %gint set alpha quality in lossless mode
  *
  * As vips_webpsave(), but save as a mime webp on stdout.
  *
@@ -2623,9 +2623,9 @@ vips_openexrload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @level: load this level
- * @associated: load this associated image
- * @autocrop: crop to image bounds
+ * * @level: load this level
+ * * @associated: load this associated image
+ * * @autocrop: crop to image bounds
  *
  * Read a virtual slide supported by the OpenSlide library into a VIPS image.
  * OpenSlide supports images in Aperio, Hamamatsu, MIRAX, Sakura, Trestle,
@@ -2726,8 +2726,6 @@ vips_fitssave( VipsImage *in, const char *filename, ... )
  * @out: decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
  * Read a PNG file into a VIPS image. It can read all png images, including 8-
  * and 16-bit images, 1 and 3 channel, with and without an alpha channel.
  *
@@ -2798,10 +2796,10 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @compression: compression level
- * @interlace: interlace image
- * @profile: ICC profile to embed
- * @filter: #VipsForeignPngFilter row filter flag(s)
+ * * @compression: compression level
+ * * @interlace: interlace image
+ * * @profile: ICC profile to embed
+ * * @filter: #VipsForeignPngFilter row filter flag(s)
  *
  * Write a VIPS image to a file as PNG.
  *
@@ -2854,10 +2852,10 @@ vips_pngsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * @compression: compression level
- * @interlace: interlace image
- * @profile: ICC profile to embed
- * @filter: libpng row filter flag(s)
+ * * @compression: compression level
+ * * @interlace: interlace image
+ * * @profile: ICC profile to embed
+ * * @filter: libpng row filter flag(s)
  *
  * As vips_pngsave(), but save to a memory buffer. 
  *
@@ -2935,9 +2933,9 @@ vips_matload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @page: %gint, load this page, numbered from zero
- * @dpi: %gdouble, render at this DPI
- * @scale: %gdouble, scale render by this factor
+ * * @page: %gint, load this page, numbered from zero
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
  *
  * Render a PDF file into a VIPS image. Rendering uses the libpoppler library
  * and should be fast. 
@@ -2996,9 +2994,9 @@ vips_pdfload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @page: %gint, load this page, numbered from zero
- * @dpi: %gdouble, render at this DPI
- * @scale: %gdouble, scale render by this factor
+ * * @page: %gint, load this page, numbered from zero
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
  *
  * Read a PDF-formatted memory block into a VIPS image. Exactly as
  * vips_pdfload(), but read from a memory buffer. 
@@ -3038,8 +3036,8 @@ vips_pdfload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @dpi: %gdouble, render at this DPI
- * @scale: %gdouble, scale render by this factor
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
  *
  * Render a SVG file into a VIPS image.  Rendering uses the librsvg library
  * and should be fast.
@@ -3076,8 +3074,8 @@ vips_svgload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @dpi: %gdouble, render at this DPI
- * @scale: %gdouble, scale render by this factor
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
  *
  * Read a SVG-formatted memory block into a VIPS image. Exactly as
  * vips_svgload(), but read from a memory buffer. 
@@ -3117,7 +3115,7 @@ vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @page: %ginit, page (frame) to read
+ * * @page: %ginit, page (frame) to read
  *
  * Read a GIF file into a VIPS image.  Rendering uses the giflib library.
  *
@@ -3152,7 +3150,7 @@ vips_gifload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @page: %ginit, page (frame) to read
+ * * @page: %ginit, page (frame) to read
  *
  * Read a GIF-formatted memory block into a VIPS image. Exactly as
  * vips_gifload(), but read from a memory buffer. 

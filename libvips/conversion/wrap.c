@@ -150,8 +150,8 @@ vips_wrap_init( VipsWrap *wrap )
  *
  * Optional arguments:
  *
- * @x: horizontal displacement
- * @y: vertical displacement
+ * * @x: horizontal displacement
+ * * @y: vertical displacement
  *
  * Slice an image up and move the segments about so that the pixel that was
  * at 0, 0 is now at @x, @y. If @x and @y are not set, they default to the

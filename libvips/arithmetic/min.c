@@ -489,12 +489,12 @@ vips_min_init( VipsMin *min )
  *
  * Optional arguments:
  *
- * @x: horizontal position of minimum
- * @y: vertical position of minimum
- * @size: number of minima to find
- * @out_array: return array of minimum values
- * @x_array: corresponding horizontal positions
- * @y_array: corresponding vertical positions
+ * * @x: horizontal position of minimum
+ * * @y: vertical position of minimum
+ * * @size: number of minima to find
+ * * @out_array: return array of minimum values
+ * * @x_array: corresponding horizontal positions
+ * * @y_array: corresponding vertical positions
  *
  * This operation finds the minimum value in an image. 
  *

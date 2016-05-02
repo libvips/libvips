@@ -1255,10 +1255,10 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
  *
  * Optional arguments:
  *
- * @input_profile: get the input profile from here
- * @intent: transform with this intent
- * @embedded: use profile embedded in input image
- * @pcs: use XYZ or LAB PCS
+ * * @input_profile: get the input profile from here
+ * * @intent: transform with this intent
+ * * @embedded: use profile embedded in input image
+ * * @pcs: use XYZ or LAB PCS
  *
  * Import an image from device space to D65 LAB with an ICC profile. If @pcs is
  * set to #VIPS_PCS_XYZ, use CIE XYZ PCS instead. 
@@ -1294,10 +1294,10 @@ vips_icc_import( VipsImage *in, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @intent: transform with this intent
- * @depth: depth of output image in bits
- * @output_profile: get the output profile from here
- * @pcs: use XYZ or LAB PCS
+ * * @intent: transform with this intent
+ * * @depth: depth of output image in bits
+ * * @output_profile: get the output profile from here
+ * * @pcs: use XYZ or LAB PCS
  *
  * Export an image from D65 LAB to device space with an ICC profile. 
  * If @pcs is
@@ -1330,10 +1330,10 @@ vips_icc_export( VipsImage *in, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @input_profile: get the input profile from here
- * @intent: transform with this intent
- * @depth: depth of output image in bits
- * @embedded: use profile embedded in input image
+ * * @input_profile: get the input profile from here
+ * * @intent: transform with this intent
+ * * @depth: depth of output image in bits
+ * * @embedded: use profile embedded in input image
  *
  * Transform an image with a pair of ICC profiles. The input image is moved to
  * profile-connection space with the input profile and then to the output

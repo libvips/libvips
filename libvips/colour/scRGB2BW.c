@@ -268,7 +268,7 @@ vips_scRGB2BW_init( VipsscRGB2BW *scRGB2BW )
  *
  * Optional arguments:
  *
- * @depth: depth of output image in bits
+ * * @depth: depth of output image in bits
  *
  * Convert an scRGB image to greyscale. Set @depth to 16 to get 16-bit output.
  *

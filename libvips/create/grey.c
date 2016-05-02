@@ -107,7 +107,7 @@ vips_grey_init( VipsGrey *grey )
  *
  * Optional arguments:
  *
- * @uchar: output a uchar image
+ * * @uchar: output a uchar image
  *
  * Create a one-band float image with the left-most column zero and the
  * right-most 1. Intermediate pixels are a linear ramp.

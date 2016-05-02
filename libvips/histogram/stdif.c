@@ -367,10 +367,10 @@ vips_stdif_init( VipsStdif *stdif )
  *
  * Optional arguments:
  *
- * @a: weight of new mean
- * @m0: target mean
- * @b: weight of new deviation
- * @s0: target deviation
+ * * @a: weight of new mean
+ * * @m0: target mean
+ * * @b: weight of new deviation
+ * * @s0: target deviation
  *
  * vips_stdif() preforms statistical differencing according to the formula
  * given in page 45 of the book "An Introduction to Digital Image 

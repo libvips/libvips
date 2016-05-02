@@ -276,7 +276,7 @@ vips_invfft_init( VipsInvfft *invfft )
  *
  * Optional arguments:
  *
- * @real: only output the real part
+ * * @real: only output the real part
  *
  * Transform an image from Fourier space to real space. The result is complex.
  * If you are OK with a real result, set @real, it's quicker.
