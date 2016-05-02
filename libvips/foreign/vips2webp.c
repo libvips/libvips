@@ -4,6 +4,8 @@
  * 	- from vips2jpeg.c
  * 31/5/16
  * 	- buffer write ignored lossless, thanks aaron42net
+ * 2/5/16 Felix Bünemann
+ * 	- used advanced encoding API, expose controls 
  */
 
 /*
@@ -99,34 +101,36 @@ init_memory_writer( VipsWebPMemoryWriter *writer ) {
 static int
 memory_write( const uint8_t *data, size_t data_size,
 	const WebPPicture *picture ) {
-	VipsWebPMemoryWriter* const w = (VipsWebPMemoryWriter*) picture->custom_ptr;
+	VipsWebPMemoryWriter * const writer = 
+		(VipsWebPMemoryWriter*) picture->custom_ptr;
+
 	size_t next_size;
 
-	if( w == NULL )
+	if( !writer )
 		return( 0 );
 
-	next_size = w->size + data_size;
+	next_size = writer->size + data_size;
 
-	if( next_size > w->max_size ) {
+	if( next_size > writer->max_size ) {
 		uint8_t *new_mem;
 		const size_t next_max_size =
-			VIPS_MAX( 8192, VIPS_MAX( next_size, w->max_size * 2 ) );
+			VIPS_MAX( 8192, VIPS_MAX( next_size, 
+				writer->max_size * 2 ) );
 
-		new_mem = (uint8_t*) g_try_malloc( next_max_size );
-		if( new_mem == NULL )
+		if( !(new_mem = (uint8_t*) g_try_malloc( next_max_size )) ) 
 			return( 0 );
 
-		if( w->size > 0 )
-			memcpy( new_mem, w->mem, w->size );
+		if( writer->size > 0 )
+			memcpy( new_mem, writer->mem, writer->size );
 
-		g_free( w->mem );
-		w->mem = new_mem;
-		w->max_size = next_max_size;
+		g_free( writer->mem );
+		writer->mem = new_mem;
+		writer->max_size = next_max_size;
 	}
 
 	if( data_size > 0 ) {
-		memcpy( w->mem + w->size, data, data_size );
-		w->size += data_size;
+		memcpy( writer->mem + writer->size, data, data_size );
+		writer->size += data_size;
 	}
 
 	return( 1 );
@@ -142,7 +146,7 @@ write_webp( WebPPicture *pic, VipsImage *in,
 	WebPConfig config;
 	webp_import import;
 
-	if ( !WebPConfigPreset(&config, get_preset( preset ), Q) ) {
+	if ( !WebPConfigPreset( &config, get_preset( preset ), Q ) ) {
 		vips_error( "vips2webp",
 			"%s", _( "config version error" ) );
 		return( -1 );
@@ -178,7 +182,7 @@ write_webp( WebPPicture *pic, VipsImage *in,
 			"%s", _( "smart_subsample unsupported" ) );
 #endif
 
-	if( !WebPValidateConfig(&config) ) {
+	if( !WebPValidateConfig( &config ) ) {
 		vips_error( "vips2webp",
 			"%s", _( "invalid configuration" ) );
 		return( -1 );
@@ -269,7 +273,6 @@ vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen,
 {
 	WebPPicture pic;
 	VipsWebPMemoryWriter writer;
-	FILE *fp;
 
 	if( !WebPPictureInit( &pic ) ) {
 		vips_error( "vips2webp", 

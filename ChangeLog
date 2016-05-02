@@ -1,3 +1,6 @@
+1/5/16 started 8.4
+- many more wepsave options [Felix Bünemann]
+
 15/4/16 started 8.3.1
 - rename vips wrapper script, it was still vips-8.2, thanks Benjamin
 - export C++ operator overloads for MSVC linking [Lovell]

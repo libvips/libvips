@@ -2457,12 +2457,27 @@ vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * @Q: quality factor
- * @lossless: enables lossless compression
- * @preset: #VipsForeignWebpPreset choose lossy compression preset
- * @smart_subsample: enables high quality chroma subsampling
- * @near_lossless: use preprocessing in lossless mode (controlled by Q)
- * @alpha_q: set alpha quality in lossless mode
+ * * @Q: %gint quality factor
+ * * @lossless: %gboolean enables lossless compression
+ * * @preset: #VipsForeignWebpPreset choose lossy compression preset
+ * * @smart_subsample: %gboolean enables high quality chroma subsampling
+ * * @near_lossless: %gboolean use preprocessing in lossless mode (controlled by Q)
+ * * @alpha_q: %gint set alpha quality in lossless mode
+ *
+ * Write an image to a file in WebP format. 
+ *
+ * Use @Q to set the WebP quality factor. It has the range 0 - 100, with the
+ * default 75.
+ *
+ * Use @preset to hint the image type to lossy compressor. The default is
+ * #VIPS_FOREIGN_WEBP_PRESET_DEFAULT. 
+ *
+ * Set @smart_subsample to enable high quality chroma subsampling.
+ *
+ * Use @alpha_q to set the quality for the alpha channel in lossy mode. It has
+ * the range 1 - 100, with the default 100.
+ *
+ * Set @lossless to enable lossless save. 
  *
  * See also: vips_webpload(), vips_image_write_to_file().
  *
@@ -2490,18 +2505,18 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * @Q: JPEG quality factor
- * @lossless: enables lossless compression
+ * @Q: %gint quality factor
+ * @lossless: %gboolean enables lossless compression
  * @preset: #VipsForeignWebpPreset choose lossy compression preset
- * @smart_subsample: enables high quality chroma subsampling
- * @near_lossless: use preprocessing in lossless mode (controlled by Q)
- * @alpha_q: set alpha quality in lossless mode
+ * @smart_subsample: %gboolean enables high quality chroma subsampling
+ * @near_lossless: %gboolean use preprocessing in lossless mode (controlled by Q)
+ * @alpha_q: %gint set alpha quality in lossless mode
  *
  * As vips_webpsave(), but save to a memory buffer.
  *
  * The address of the buffer is returned in @obuf, the length of the buffer in
  * @olen. You are responsible for freeing the buffer with g_free() when you
- * are done with it. The buffer is freed for you on error.
+ * are done with it. 
  *
  * See also: vips_webpsave().
  *
@@ -2542,7 +2557,12 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  *
  * Optional arguments:
  *
- * @Q: quality factor
+ * @Q: %gint quality factor
+ * @lossless: %gboolean enables lossless compression
+ * @preset: #VipsForeignWebpPreset choose lossy compression preset
+ * @smart_subsample: %gboolean enables high quality chroma subsampling
+ * @near_lossless: %gboolean use preprocessing in lossless mode (controlled by Q)
+ * @alpha_q: %gint set alpha quality in lossless mode
  *
  * As vips_webpsave(), but save as a mime webp on stdout.
  *
