@@ -2466,18 +2466,19 @@ vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Write an image to a file in WebP format. 
  *
- * Use @Q to set the WebP quality factor. It has the range 0 - 100, with the
+ * By default, images are saved in lossy format, with 
+ * @Q giving the WebP quality factor. It has the range 0 - 100, with the
  * default 75.
  *
- * Use @preset to hint the image type to lossy compressor. The default is
+ * Use @preset to hint the image type to the lossy compressor. The default is
  * #VIPS_FOREIGN_WEBP_PRESET_DEFAULT. 
- *
  * Set @smart_subsample to enable high quality chroma subsampling.
- *
  * Use @alpha_q to set the quality for the alpha channel in lossy mode. It has
  * the range 1 - 100, with the default 100.
  *
- * Set @lossless to enable lossless save. 
+ * Set @lossless to use lossless compression, or combine @near_lossless
+ * with @Q 80, 60, 40 or 20 to apply increasing amounts of preprocessing
+ * which improves the near-lossless compression ratio by up to 50%.
  *
  * See also: vips_webpload(), vips_image_write_to_file().
  *
