@@ -234,6 +234,10 @@ If available, libvips adds support for loading all libMagick-supported
 image file types. Use `--with-magickpackage=GraphicsMagick` to build against 
 graphicsmagick instead.
 
+Imagemagick 6.9+ needs to have been built with `--with-modules`. Most packaged
+IMs are, I think, but if you are rolling your own, you'll need to pass
+this flag to configure. 
+
 ### pangoft2
 
 If available, libvips adds support for text rendering. You need the
