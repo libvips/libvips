@@ -1,3 +1,11 @@
+- jpegload should put a pointer to the load operation inside the output image
+  somewhere
+
+  can we do this in the base class?
+
+  then the loaders can use this if they get a read error from the lib to
+  invalidate the load operation and knock it out of cache
+
 - I like the new int mask creator in reducev, can we use it in im_vips2imask()
   as well?
 

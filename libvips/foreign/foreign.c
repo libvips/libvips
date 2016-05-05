@@ -322,6 +322,10 @@
  * ]|
  */
 
+/* Usr this to link images to the load operations that made them. 
+ */
+static GQuark vips__foreign_load_operation = 0; 
+
 G_DEFINE_ABSTRACT_TYPE( VipsForeign, vips_foreign, VIPS_TYPE_OPERATION );
 
 static void
@@ -882,6 +886,13 @@ vips_foreign_load_build( VipsObject *object )
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
+	/* Note the load object on the output image. Loaders can use this to
+	 * signal invalidate if they hit a load error. See
+	 * vips_foreign_load_invalidate() below.
+	 */
+	g_object_set_qdata( G_OBJECT( load->out ), 
+		vips__foreign_load_operation, object ); 
+
 	vips_image_set_string( load->out, 
 		VIPS_META_LOADER, class->nickname );
 
@@ -1001,6 +1012,34 @@ vips_foreign_load_init( VipsForeignLoad *load )
 {
 	load->disc = TRUE;
 	load->access = VIPS_ACCESS_RANDOM;
+}
+
+/**
+ * Loaders can call this
+ */
+
+/**
+ * vips_foreign_load_invalidate:
+ * @image: image to invalidate
+ *
+ * Loaders can call this on the image they are making if they see a read error
+ * from the load library. It signals "invalidate" on the load operation and
+ * will cause it for be dropped from ache. 
+ *
+ * If we know a file will cause a read error, we don't want to cache the error
+ * operation, we want to make sure the image will really be opened again if our
+ * caller tries again. For example, a broken file might be replaced by a
+ * working one. 
+ */
+void
+vips_foreign_load_invalidate( VipsImage *image )
+{
+	VipsOperation *operation; 
+
+	if( (operation = g_object_get_qdata( G_OBJECT( image ), 
+		vips__foreign_load_operation )) ) {
+		vips_operation_invalidate( operation ); 
+	}
 }
 
 /* Abstract base class for image savers.
@@ -1763,6 +1802,9 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_OPENEXR
 	vips_foreign_load_openexr_get_type(); 
 #endif /*HAVE_OPENEXR*/
+
+	vips__foreign_load_operation = 
+		g_quark_from_static_string( "vips-foreign-load-operation" ); 
 }
 
 /**

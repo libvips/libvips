@@ -246,6 +246,8 @@ typedef struct _VipsImagePixels {
 	gint64 npels;		/* Number of pels calculated so far */
 } VipsImagePixels;
 
+void vips_foreign_load_invalidate( VipsImage *image );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

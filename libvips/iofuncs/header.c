@@ -402,6 +402,10 @@ vips_image_guess_format( const VipsImage *image )
 {
 	VipsBandFormat format;
 
+	/* Stop a compiler warning.
+	 */
+	format = VIPS_INTERPRETATION_MULTIBAND; 
+
 	switch( image->Type ) {
 	case VIPS_INTERPRETATION_B_W: 
 	case VIPS_INTERPRETATION_HISTOGRAM: 

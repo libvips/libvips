@@ -959,8 +959,14 @@ read_jpeg_generate( VipsRegion *or,
 
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
-	if( setjmp( jpeg->eman.jmp ) ) 
+	if( setjmp( jpeg->eman.jmp ) ) {
+		/* Signal invalidate on our load operation to force it from
+		 * cache. 
+		 */
+		vips_foreign_load_invalidate( or->im );
+
 		return( -1 );
+	}
 
 	for( y = 0; y < r->height; y++ ) {
 		JSAMPROW row_pointer[1];
