@@ -791,6 +791,13 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		 */
 		load->real->progress_signal = load->out;
 
+		/* Note the load object on the image. Loaders can use 
+		 * this to signal invalidate if they hit a load error. See
+		 * vips_foreign_load_invalidate() below.
+		 */
+		g_object_set_qdata( G_OBJECT( load->real ), 
+			vips__foreign_load_operation, load ); 
+
 		if( class->load( load ) ||
 			vips_image_pio_input( load->real ) ) 
 			return( NULL );
@@ -885,13 +892,6 @@ vips_foreign_load_build( VipsObject *object )
 	}
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
-
-	/* Note the load object on the output image. Loaders can use this to
-	 * signal invalidate if they hit a load error. See
-	 * vips_foreign_load_invalidate() below.
-	 */
-	g_object_set_qdata( G_OBJECT( load->out ), 
-		vips__foreign_load_operation, object ); 
 
 	vips_image_set_string( load->out, 
 		VIPS_META_LOADER, class->nickname );
@@ -1035,6 +1035,10 @@ void
 vips_foreign_load_invalidate( VipsImage *image )
 {
 	VipsOperation *operation; 
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_invalidate: %p\n", image ); 
+#endif /*DEBUG*/
 
 	if( (operation = g_object_get_qdata( G_OBJECT( image ), 
 		vips__foreign_load_operation )) ) {

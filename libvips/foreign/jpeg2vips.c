@@ -243,6 +243,11 @@ readjpeg_new( VipsImage *out,
 	jpeg->y_pos = 0;
 	jpeg->autorotate = autorotate;
 
+	/* This is used by the error handlers to signal invalidate on the
+	 * output image.
+	 */
+        jpeg->cinfo.client_data = out;
+
 	/* jpeg_create_decompress() can fail on some sanity checks. Don't
 	 * readjpeg_free() since we don't want to jpeg_destroy_decompress().
 	 */
@@ -959,14 +964,8 @@ read_jpeg_generate( VipsRegion *or,
 
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
-	if( setjmp( jpeg->eman.jmp ) ) {
-		/* Signal invalidate on our load operation to force it from
-		 * cache. 
-		 */
-		vips_foreign_load_invalidate( or->im );
-
+	if( setjmp( jpeg->eman.jmp ) ) 
 		return( -1 );
-	}
 
 	for( y = 0; y < r->height; y++ ) {
 		JSAMPROW row_pointer[1];

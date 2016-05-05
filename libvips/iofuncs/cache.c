@@ -46,6 +46,7 @@
 
 /*
 #define VIPS_DEBUG
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -548,6 +549,10 @@ vips_cache_remove( VipsOperation *operation )
 {
 	VipsOperationCacheEntry *entry = (VipsOperationCacheEntry *)
 		g_hash_table_lookup( vips_cache_table, operation );
+
+#ifdef DEBUG
+	printf( "vips_cache_remove: trimming %p\n", operation );
+#endif /*DEBUG*/
 
 	g_assert( entry ); 
 

@@ -104,8 +104,8 @@
  */
 
 /*
-#define DEBUG
 #define VIPS_DEBUG
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -122,9 +122,6 @@
 #include <setjmp.h>
 #include <math.h>
 
-#include <vips/vips.h>
-#include <vips/debug.h>
-
 #ifdef HAVE_EXIF
 #ifdef UNTAGGED_EXIF
 #include <exif-data.h>
@@ -138,6 +135,10 @@
 #include <libexif/exif-utils.h>
 #endif /*UNTAGGED_EXIF*/
 #endif /*HAVE_EXIF*/
+
+#include <vips/vips.h>
+#include <vips/debug.h>
+#include <vips/internal.h>
 
 #include "jpeg.h"
 #include "vipsjpeg.h"
@@ -155,6 +156,12 @@ vips__new_output_message( j_common_ptr cinfo )
 #ifdef DEBUG
 	printf( "vips__new_output_message: \"%s\"\n", buffer );
 #endif /*DEBUG*/
+
+	/* This is run for things like file truncated. Signal invalidate to
+	 * force this op out of cache. 
+	 */
+        if( cinfo->client_data )
+		vips_foreign_load_invalidate( VIPS_IMAGE( cinfo->client_data ) );
 }
 
 /* New error_exit handler.

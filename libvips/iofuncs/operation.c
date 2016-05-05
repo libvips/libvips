@@ -628,10 +628,10 @@ vips_operation_class_print_usage( VipsOperationClass *operation_class )
 void
 vips_operation_invalidate( VipsOperation *operation )
 {
-	/*
+#ifdef VIPS_DEBUG
 	printf( "vips_operation_invalidate: %p\n", operation ); 
 	vips_object_print_summary( VIPS_OBJECT( operation ) ); 
-	 */
+#endif /*VIPS_DEBUG*/
 
 	g_signal_emit( operation, vips_operation_signals[SIG_INVALIDATE], 0 );
 }
