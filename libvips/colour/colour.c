@@ -228,7 +228,6 @@ vips_colour_gen( VipsRegion *or,
 {
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsColour *colour = VIPS_COLOUR( b ); 
-	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( colour ); 
 	VipsColourClass *class = VIPS_COLOUR_GET_CLASS( colour ); 
 	VipsRect *r = &or->valid;
 
@@ -252,7 +251,7 @@ vips_colour_gen( VipsRegion *or,
 
 	VIPS_GATE_STOP( "vips_colour_gen: work" ); 
 
-	VIPS_COUNT_PIXELS( or, object_class->nickname ); 
+	VIPS_COUNT_PIXELS( or, VIPS_OBJECT_GET_CLASS( colour )->nickname ); 
 
 	return( 0 );
 }
