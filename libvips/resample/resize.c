@@ -309,9 +309,7 @@ vips_resize_class_init( VipsResizeClass *class )
 		G_STRUCT_OFFSET( VipsResize, idy ),
 		-10000000, 10000000, 0 );
 
-	/* We used to let people set the interpolator, but it's not clear this
-	 * was useful. Anyway, vips_reduce() no longer has an interpolator
-	 * param.
+	/* It's a kernel now we use vips_reduce() not vips_affine().
 	 */
 	VIPS_ARG_INTERPOLATE( class, "interpolate", 2, 
 		_( "Interpolate" ), 

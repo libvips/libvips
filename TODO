@@ -1,3 +1,5 @@
+- add more webp tests to py suite
+
 - I like the new int mask creator in reducev, can we use it in im_vips2imask()
   as well?
 
