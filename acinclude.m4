@@ -631,26 +631,14 @@ if test "$GIFLIB_LIBS" = ""; then
   INCLUDES="$GIFLIB_INCLUDES $INCLUDES"
 
   # Try the standard search path first
-  AC_TRY_LINK([#include <gif_lib.h>],[
-    #if defined(GIFLIB_MAJOR) && GIFLIB_MAJOR > 4
-    EGifSetGifVersion(0,0);
-    #else
-    GifLastError();
-    #endif
-  ], [
+  AC_TRY_LINK([#include <gif_lib.h>],[DGifSlurp(0)], [
     GIFLIB_LIBS="-lgif"
   ], [
     # giflib is not in the standard search path, try $prefix
 
     LIBS="-L${prefix}/lib $LIBS"
 
-    AC_TRY_LINK([#include <gif_lib.h>],[
-      #if defined(GIFLIB_MAJOR) && GIFLIB_MAJOR > 4
-      EGifSetGifVersion(0,0);
-      #else
-      GifLastError();
-      #endif
-    ], [
+    AC_TRY_LINK([#include <gif_lib.h>],[DGifSlurp(0)], [
       GIFLIB_LIBS="-L${prefix}/lib -lgif"
     ], [
       GIFLIB_LIBS=no
