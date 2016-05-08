@@ -1,19 +1,23 @@
 language: cpp
+sudo: required
+dist: trusty
+cache: ccache
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install automake gtk-doc-tools 
-  - sudo apt-get install gobject-introspection
-  - sudo apt-get install libfftw3-dev libjpeg-turbo8-dev 
-  - sudo apt-get install libpng12-dev libwebp-dev libtiff4-dev libxml2-dev 
-  - sudo apt-get install swig libmagick++-dev bc 
-  - sudo apt-get install libcfitsio3-dev libgsl0-dev libmatio-dev
-  - sudo apt-get install liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
-  - sudo apt-get install librsvg2-dev libgif-dev
+  - sudo apt-get install -y
+    automake gtk-doc-tools
+    gobject-introspection
+    libfftw3-dev libjpeg-turbo8-dev
+    libpng12-dev libwebp-dev libtiff4-dev libxml2-dev
+    swig libmagick++-dev bc
+    libcfitsio3-dev libgsl0-dev libmatio-dev
+    liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
+    librsvg2-dev libgif-dev
+    libpango1.0-dev libgsf-1-dev libopenslide-dev
+    python-dev python-gi-dev libgirepository1.0-dev
 before_script:
   - ./bootstrap.sh
-  - ./configure 
-  - make
-  - sudo make install
-  - sudo ldconfig
-script: 
-  - make check
+  - PYTHON=/usr/bin/python ./configure
+  - make -j`nproc`
+script:
+  - VERBOSE=1 make check
