@@ -1,6 +1,5 @@
 language: cpp
 before_install:
-  - sudo add-apt-repository ppa:lyrasis/precise-backports -y
   - sudo apt-get update -qq
   - sudo apt-get install automake gtk-doc-tools 
   - sudo apt-get install gobject-introspection

@@ -192,7 +192,6 @@ if test_supported jpegload; then
 fi
 if test_supported webpload; then
 	test_format $image webp 90
-	test_format $image webp 0 [lossless]
 fi
 test_format $image ppm 0
 test_format $image pfm 0
