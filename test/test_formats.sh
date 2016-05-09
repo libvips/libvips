@@ -7,6 +7,10 @@
 
 . ./variables.sh
 
+# poppler / pdfload reference image
+poppler=$test_images/blankpage.pdf
+poppler_ref=$test_images/blankpage.png
+
 # the matlab image and reference image
 matlab=$test_images/sample.mat
 matlab_ref=$test_images/sample.png
@@ -214,6 +218,10 @@ test_rad $rad
 
 test_raw $mono 
 test_raw $image 
+
+if test_supported pdfload; then
+	test_loader $poppler_ref $poppler pdfload
+fi
 
 if test_supported matload; then
 	test_loader $matlab_ref $matlab matlab

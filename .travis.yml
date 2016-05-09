@@ -8,7 +8,7 @@ before_install:
   - sudo apt-get install libpng12-dev libwebp-dev libtiff4-dev libxml2-dev 
   - sudo apt-get install swig libmagick++-dev bc 
   - sudo apt-get install libcfitsio3-dev libgsl0-dev libmatio-dev
-  - sudo apt-get install liborc-0.4-dev liblcms2-dev 
+  - sudo apt-get install liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
 before_script:
   - ./bootstrap.sh
   - ./configure 

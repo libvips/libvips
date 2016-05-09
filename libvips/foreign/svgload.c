@@ -149,34 +149,6 @@ vips_foreign_load_svg_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
-/* Convert from ARGB to RGBA and undo premultiplication. 
- */
-void
-vips__cairo2rgba( guint32 * restrict buf, int n )
-{
-	int i;
-
-	for( i = 0; i < n; i++ ) {
-		guint32 * restrict p = buf + i;
-		guint32 x = *p;
-		guint8 a = x >> 24;
-		VipsPel * restrict out = (VipsPel *) p;
-
-		if( a == 255 ) 
-			*p = GUINT32_TO_BE( (x << 8) | 255 );
-		else if( a == 0 ) 
-			*p = GUINT32_TO_BE( x << 8 );
-		else {
-			/* Undo premultiplication.
-			 */
-			out[0] = 255 * ((x >> 16) & 255) / a;
-			out[1] = 255 * ((x >> 8) & 255) / a;
-			out[2] = 255 * (x & 255) / a;
-			out[3] = a;
-		}
-	}
-}
-
 static int
 vips_foreign_load_svg_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )

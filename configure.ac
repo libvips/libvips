@@ -563,12 +563,12 @@ AC_ARG_WITH([poppler],
   AS_HELP_STRING([--without-poppler], [build without poppler (default: test)]))
 
 if test x"$with_poppler" != x"no"; then
-  PKG_CHECK_MODULES(POPPLER, [poppler-glib >= 0.30.0 cairo >= 1.2],
-    [AC_DEFINE(HAVE_POPPLER,1,[define if you have poppler-glib >= 0.30.0 and cairo >= 1.2 installed.])
+  PKG_CHECK_MODULES(POPPLER, [poppler-glib >= 0.16.0 cairo >= 1.2],
+    [AC_DEFINE(HAVE_POPPLER,1,[define if you have poppler-glib >= 0.16.0 and cairo >= 1.2 installed.])
      with_poppler=yes
      PACKAGES_USED="$PACKAGES_USED poppler-glib cairo"
     ],
-    [AC_MSG_WARN([poppler-glib >= 0.30.0 or cairo >= 1.2 not found; disabling PDF load via poppler])
+    [AC_MSG_WARN([poppler-glib >= 0.16.0 or cairo >= 1.2 not found; disabling PDF load via poppler])
      with_poppler=no
     ]
   )
@@ -968,7 +968,7 @@ file import with OpenSlide:		$with_openslide
   (requires openslide-3.3.0 or later)
 file import with matio: 		$with_matio
 PDF import with poppler-glib: 		$with_poppler
-  (requires poppler-glib 0.30.0 or later)
+  (requires poppler-glib 0.16.0 or later)
 SVG import with librsvg-2.0: 		$with_rsvg
   (requires librsvg-2.0 2.40.0 or later)
 file import with cfitsio: 		$with_cfitsio
