@@ -673,6 +673,8 @@ if test x"$with_cfitsio" != "xno"; then
 fi
 
 # libwebp
+# some platforms, like ubuntu 12.04, are missing the .pc files for libwebp, so
+# we fall back to FIND_LIBWEBP
 AC_ARG_WITH([libwebp], 
   AS_HELP_STRING([--without-libwebp], [build without libwebp (default: test)]))
 
@@ -681,9 +683,14 @@ if test x"$with_libwebp" != "xno"; then
     [AC_DEFINE(HAVE_LIBWEBP,1,[define if you have libwebp installed.])
      with_libwebp=yes
      PACKAGES_USED="$PACKAGES_USED libwebp"],
-    [AC_MSG_WARN([libwebp not found; disabling libwebp support])
-     with_libwebp=no
-    ])
+    [FIND_LIBWEBP([
+       with_libwebp="yes (found by search)"
+     ], [
+       AC_MSG_WARN([libwebp not found; disabling WEBP support])
+       with_libwebp=no
+     ])
+    ]
+  )
 fi
 
 # pangoft2
