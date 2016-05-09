@@ -32,12 +32,12 @@
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
 
-#if defined(HAVE_RSVG) || defined(HAVE_POPPLER)
-
 #include <vips/vips.h>
 #include <vips/internal.h>
 
 /* Convert from ARGB to RGBA and undo premultiplication. 
+ *
+ * See also openslide's argb2rgba().
  */
 void
 vips__cairo2rgba( guint32 * restrict buf, int n )
@@ -64,5 +64,3 @@ vips__cairo2rgba( guint32 * restrict buf, int n )
 		}
 	}
 }
-
-#endif
