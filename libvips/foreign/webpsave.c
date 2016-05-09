@@ -160,6 +160,7 @@ static void
 vips_foreign_save_webp_init( VipsForeignSaveWebp *webp )
 {
 	webp->Q = 75;
+	webp->alpha_q = 100;
 }
 
 typedef struct _VipsForeignSaveWebpFile {
