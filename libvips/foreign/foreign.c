@@ -2272,15 +2272,18 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * If @quant_table is set and the version of libjpeg supports it
  * (e.g. mozjpeg >= 3.0) it selects the quantization table to use:
  *
- * * 0 Tables from JPEG Annex K (vips and libjpeg default)
- * * 1 Flat table
- * * 2 Table tuned for MSSIM on Kodak image set
- * * 3 Table from ImageMagick by N. Robidoux (current mozjpeg default)
- * * 4 Table tuned for PSNR-HVS-M on Kodak image set
- * * 5 Table from Relevance of Human Vision to JPEG-DCT Compression (1992)
- * * 6 Table from DCTune Perceptual Optimization of Compressed Dental X-Rays (1997)
- * * 7 Table from A Visual Detection Model for DCT Coefficient Quantization (1993)
- * * 8 Table from An Improved Detection Model for DCT Coefficient Quantization (1993)
+ * * 0 — Tables from JPEG Annex K (vips and libjpeg default)
+ * * 1 — Flat table
+ * * 2 — Table tuned for MSSIM on Kodak image set
+ * * 3 — Table from ImageMagick by N. Robidoux (current mozjpeg default)
+ * * 4 — Table tuned for PSNR-HVS-M on Kodak image set
+ * * 5 — Table from Relevance of Human Vision to JPEG-DCT Compression (1992)
+ * * 6 — Table from DCTune Perceptual Optimization of Compressed Dental 
+ *   X-Rays (1997)
+ * * 7 — Table from A Visual Detection Model for DCT Coefficient 
+ *   Quantization (1993)
+ * * 8 — Table from An Improved Detection Model for DCT Coefficient 
+ *   Quantization (1993)
  *
  * Quantization table 0 is the default in vips and libjpeg(-turbo), but it
  * tends to favor detail over color accuracy, producting colored patches and

@@ -74,6 +74,8 @@
  * 	- don't write JFIF headers if we are stripping, thanks Benjamin
  * 13/4/16
  * 	- remove deleted exif fields more carefully
+ * 9/5/16 felixbuenemann
+ * 	- add quant_table
  */
 
 /*
