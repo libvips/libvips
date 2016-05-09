@@ -2217,6 +2217,7 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
+ * * @quant_table: %gint, quantization table index
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -2268,6 +2269,30 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * (e.g. mozjpeg >= 3.0), split the spectrum of DCT coefficients into
  * separate scans. Reduces file size but increases compression time.
  *
+ * If @quant_table is set and the version of libjpeg supports it
+ * (e.g. mozjpeg >= 3.0) it selects the quantization table to use:
+ *
+ * * 0 Tables from JPEG Annex K (vips and libjpeg default)
+ * * 1 Flat table
+ * * 2 Table tuned for MSSIM on Kodak image set
+ * * 3 Table from ImageMagick by N. Robidoux (current mozjpeg default)
+ * * 4 Table tuned for PSNR-HVS-M on Kodak image set
+ * * 5 Table from Relevance of Human Vision to JPEG-DCT Compression (1992)
+ * * 6 Table from DCTune Perceptual Optimization of Compressed Dental X-Rays (1997)
+ * * 7 Table from A Visual Detection Model for DCT Coefficient Quantization (1993)
+ * * 8 Table from An Improved Detection Model for DCT Coefficient Quantization (1993)
+ *
+ * Quantization table 0 is the default in vips and libjpeg(-turbo), but it
+ * tends to favor detail over color accuracy, producting colored patches and
+ * stripes as well as heavy banding in flat areas at high compression ratios.
+ * Quantization table 2 is a good candidate to try if the default quantization
+ * table produces banding or color shifts and is well suited for hires images.
+ * Quantization table 3 is the default in mozjpeg and has been tuned to produce
+ * good results at the default quality setting; banding at high compression.
+ * Quantization table 4 is the most accurate at the cost of compression ratio.
+ * Tables 5-7 are based on older research papers, but generally achieve worse
+ * compression ratios and/or quality than 2 or 4.
+ *
  * See also: vips_jpegsave_buffer(), vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -2303,6 +2328,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
+ * * @quant_table: %gint, quantization table index
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
@@ -2357,6 +2383,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
+ * * @quant_table: %gint, quantization table index
  *
  * As vips_jpegsave(), but save as a mime jpeg on stdout.
  *
