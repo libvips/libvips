@@ -1090,8 +1090,6 @@ write_vips( Write *write, int qfac, const char *profile,
 			vips_warn( "vips2jpeg",
 				"%s", _( "Setting quant_table unsupported" ) );
 	}
-	vips_warn( "vips2jpeg", "quant_table %d",
-		jpeg_c_get_int_param( &write->cinfo, JINT_BASE_QUANT_TBL_IDX ) );
 #else
 	/* Using jpeglib.h without extension parameters, warn of ignored 
 	 * options.
