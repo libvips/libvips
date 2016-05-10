@@ -1,4 +1,5 @@
 top_srcdir=@TOP_SRCDIR@
+PYTHON=@PYTHON@
 # we need a different tmp for each script since make can run tests in parallel
 tmp=$top_srcdir/test/tmp-$$
 test_images=$top_srcdir/test/images

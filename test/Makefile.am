@@ -1,3 +1,16 @@
+TESTS = 
+
+if ENABLE_PYVIPS8
+TESTS += \
+	test_python.sh 
+endif
+
+# don't run test_thumbnail.sh by default, it takes ages
+TESTS += \
+	test_cli.sh \
+	test_formats.sh \
+	test_seq.sh \
+	test_threading.sh 
 
 EXTRA_DIST = \
 	images \
@@ -20,14 +33,6 @@ EXTRA_DIST = \
 	test_histogram.py \
 	test_morphology.py \
 	test_resample.py 
-
-# don't run test_thumbnail.sh by default, it takes ages
-
-TESTS = \
-	test_cli.sh \
-	test_formats.sh \
-	test_seq.sh \
-	test_threading.sh 
 
 clean-local: 
 	-rm -rf tmp-*
