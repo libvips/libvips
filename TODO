@@ -3,8 +3,6 @@
 	$ vips copy k2.jpg x.dz[suffix=.jpg[Q=90]]
 	dzsave: not , or ) after parameter
 
-- add n_pages to pdfload
-
 - add more webp tests to py suite
 
 - the gif tests in the suite sometimes fail with giflib5 because of an
