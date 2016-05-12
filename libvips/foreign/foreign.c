@@ -2965,6 +2965,7 @@ vips_matload( const char *filename, VipsImage **out, ... )
  * Optional arguments:
  *
  * * @page: %gint, load this page, numbered from zero
+ * * @n: %gint, load this many pages
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
  *
@@ -2988,6 +2989,11 @@ vips_matload( const char *filename, VipsImage **out, ... )
  * though of course also using a lot more memory.
  *
  * Use @page to select a page to render, numbering from zero.
+ *
+ * Use @n to select the number of pages to render. The default is 1. Pages are
+ * rendered in a vertical column, with each individual page aligned to the
+ * left. Set to -1 to mean "until the end of the document". Use vips_grid() 
+ * to change page layout.
  *
  * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
  * you can scale the rendering from the default 1 point == 1 pixel by 
@@ -3026,6 +3032,7 @@ vips_pdfload( const char *filename, VipsImage **out, ... )
  * Optional arguments:
  *
  * * @page: %gint, load this page, numbered from zero
+ * * @n: %gint, load this many pages
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
  *

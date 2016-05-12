@@ -2,6 +2,8 @@
  *
  * 7/2/16
  * 	- from openslideload.c
+ * 12/5/16
+ * 	- add @n ... number of pages to load
  */
 
 /*
@@ -61,6 +63,10 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	int page_no;
 
+	/* Load this many pages.
+	 */
+	int n; 
+
 	/* Render at this DPI.
 	 */
 	double dpi;
@@ -69,8 +75,23 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	double scale;
 
+	/* Poppler is not thread-safe, so we run inside a single-threaded
+	 * cache. On the plus side, this means we only need one @page pointer,
+	 * even though we change this during _generate().
+	 */
 	PopplerDocument *doc;
 	PopplerPage *page;
+	int current_page;
+
+	/* Doc has this many pages. 
+	 */
+	int n_pages;
+
+	/* We need to read out the side of each page we will render, and lay
+	 * them out in the final image.
+	 */
+	VipsRect image;
+	VipsRect *pages;
 
 } VipsForeignLoadPdf;
 
@@ -165,25 +186,38 @@ static VipsForeignLoadPdfMetadata vips_foreign_load_pdf_metadata[] = {
 };
 static int n_metadata = VIPS_NUMBER( vips_foreign_load_pdf_metadata );
 
-static void
+static int
+vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
+{
+	if( pdf->current_page != page_no ) { 
+		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( pdf );
+
+		VIPS_UNREF( pdf->page );
+		pdf->current_page = -1;
+
+		if( !(pdf->page = poppler_document_get_page( pdf->doc, 
+			page_no )) ) {
+			vips_error( class->nickname, 
+				_( "unable to load page %d" ), page_no );
+			return( -1 ); 
+		}
+		pdf->current_page = page_no;
+	}
+
+	return( 0 );
+}
+
+static int
 vips_foreign_load_pdf_parse( VipsForeignLoadPdf *pdf, 
 	VipsImage *out )
 {
-	double width;
-	double height;
-	double res;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( pdf );
+
 	int i;
+	int top;
+	double res;
 
-	poppler_page_get_size( pdf->page, &width, &height ); 
-
-	/* We need pixels/mm for vips.
-	 */
-	res = pdf->dpi / 25.4;
-
-	vips_image_init_fields( out, 
-		width * pdf->scale, height * pdf->scale, 
-		4, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res );
+	g_assert( !pdf->pages );
 
 	/* We render to a linecache, so fat strips work well.
 	 */
@@ -191,8 +225,8 @@ vips_foreign_load_pdf_parse( VipsForeignLoadPdf *pdf,
 
 	/* Extract and attach metadata.
 	 */
-	vips_image_set_int( out, "pdf-n_pages", 
-		poppler_document_get_n_pages( pdf->doc ) );
+	pdf->n_pages = poppler_document_get_n_pages( pdf->doc );
+	vips_image_set_int( out, "pdf-n_pages", pdf->n_pages ); 
 
 	for( i = 0; i < n_metadata; i++ ) {
 		VipsForeignLoadPdfMetadata *metadata = 
@@ -205,20 +239,64 @@ vips_foreign_load_pdf_parse( VipsForeignLoadPdf *pdf,
 			g_free( str );
 		}
 	}
+
+	/* @n == -1 means until the end of the doc.
+	 */
+	if( pdf->n == -1 )
+		pdf->n = pdf->n_pages - pdf->page_no;
+
+	if( pdf->page_no + pdf->n > pdf->n_pages ||
+		pdf->page_no < 0 ||
+		pdf->n <= 0 ) {
+		vips_error( class->nickname, "%s", _( "pages out of range" ) );
+		return( -1 ); 
+	}
+
+	/* Lay out the pages in our output image.
+	 */
+	if( !(pdf->pages = VIPS_ARRAY( pdf, pdf->n, VipsRect )) )
+		return( -1 ); 
+
+	top = 0;
+	pdf->image.left = 0;
+	pdf->image.top = 0;
+	pdf->image.width = 0;
+	pdf->image.height = 0;
+	for( i = 0; i < pdf->n; i++ ) {
+		double width;
+		double height;
+
+		if( vips_foreign_load_pdf_get_page( pdf, pdf->page_no + i ) )
+			return( -1 );
+		poppler_page_get_size( pdf->page, &width, &height ); 
+		pdf->pages[i].left = 0;
+		pdf->pages[i].top = top;
+		pdf->pages[i].width = width * pdf->scale;
+		pdf->pages[i].height = height * pdf->scale;
+
+		if( pdf->pages[i].width > pdf->image.width )
+			pdf->image.width = pdf->pages[i].width;
+		pdf->image.height += pdf->pages[i].height;
+
+		top += pdf->pages[i].height;
+	}
+
+	/* We need pixels/mm for vips.
+	 */
+	res = pdf->dpi / 25.4;
+
+	vips_image_init_fields( out, 
+		pdf->image.width, pdf->image.height, 
+		4, VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res );
+
+	return( 0 );
 }
 
 static int
 vips_foreign_load_pdf_header( VipsForeignLoad *load )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
-
-	if( !(pdf->page = poppler_document_get_page( pdf->doc, 
-		pdf->page_no )) ) {
-		vips_error( class->nickname, 
-			_( "unable to load page %d" ), pdf->page_no );
-		return( -1 ); 
-	}
 
 	vips_foreign_load_pdf_parse( pdf, load->out ); 
 
@@ -232,8 +310,8 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) a;
 	VipsRect *r = &or->valid;
 
-	cairo_surface_t *surface;
-	cairo_t *cr;
+	int top;
+	int page_no;
 	int y;
 
 	/*
@@ -247,24 +325,46 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	 */
 	vips_region_paint( or, r, 255 ); 
 
-	surface = cairo_image_surface_create_for_data( 
-		VIPS_REGION_ADDR( or, r->left, r->top ), 
-		CAIRO_FORMAT_ARGB32, 
-		r->width, r->height, 
-		VIPS_REGION_LSKIP( or ) );
-	cr = cairo_create( surface );
-	cairo_surface_destroy( surface );
-
-	cairo_scale( cr, pdf->scale, pdf->scale );
-	cairo_translate( cr, 
-		-r->left / pdf->scale, -r->top / pdf->scale );
-
-	/* poppler is single-threaded, but we don't need to lock since we're
-	 * running inside a non-threaded tilecache.
+	/* Search for the first page we need in the doc. This could be
+	 * quicker, perhaps a binary search, but who cares.
 	 */
-	poppler_page_render( pdf->page, cr );
+	for( page_no = 0; page_no < pdf->n; page_no++ )
+		if( VIPS_RECT_BOTTOM( &pdf->pages[page_no] ) > r->top )
+			break;
 
-	cairo_destroy( cr );
+	top = r->top; 
+	while( top < VIPS_RECT_BOTTOM( r ) ) {
+		VipsRect rect;
+		cairo_surface_t *surface;
+		cairo_t *cr;
+
+		vips_rect_intersectrect( r, &pdf->pages[page_no], &rect );
+
+		surface = cairo_image_surface_create_for_data( 
+			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
+			CAIRO_FORMAT_ARGB32, 
+			rect.width, rect.height, 
+			VIPS_REGION_LSKIP( or ) );
+		cr = cairo_create( surface );
+		cairo_surface_destroy( surface );
+
+		cairo_scale( cr, pdf->scale, pdf->scale );
+		cairo_translate( cr, 
+			(pdf->pages[page_no].left - rect.left) / pdf->scale, 
+			(pdf->pages[page_no].top - rect.top) / pdf->scale );
+
+		/* poppler is single-threaded, but we don't need to lock since 
+		 * we're running inside a non-threaded tilecache.
+		 */
+		if( vips_foreign_load_pdf_get_page( pdf, page_no ) )
+			return( -1 ); 
+		poppler_page_render( pdf->page, cr );
+
+		cairo_destroy( cr );
+
+		top += rect.height;
+		page_no += 1;
+	}
 
 	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
 	 */
@@ -342,14 +442,21 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, page_no ),
 		0, 100000, 0 );
 
-	VIPS_ARG_DOUBLE( class, "dpi", 11,
+	VIPS_ARG_INT( class, "n", 11,
+		_( "n" ),
+		_( "Load this many pages" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPdf, n ),
+		-1, 100000, 1 );
+
+	VIPS_ARG_DOUBLE( class, "dpi", 12,
 		_( "DPI" ),
 		_( "Render at this DPI" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, dpi ),
 		0.001, 100000.0, 72.0 );
 
-	VIPS_ARG_DOUBLE( class, "scale", 12,
+	VIPS_ARG_DOUBLE( class, "scale", 13,
 		_( "Scale" ),
 		_( "Scale output by this factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -363,6 +470,8 @@ vips_foreign_load_pdf_init( VipsForeignLoadPdf *pdf )
 {
 	pdf->dpi = 72.0;
 	pdf->scale = 1.0;
+	pdf->n = 1;
+	pdf->current_page = -1;
 }
 
 typedef struct _VipsForeignLoadPdfFile {

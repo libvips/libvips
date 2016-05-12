@@ -1,6 +1,7 @@
 1/5/16 started 8.4
 - many more wepsave options [Felix Bünemann]
 - added quant_table option to wepsave [Felix Bünemann]
+- added @n option to pdfload 
 
 15/4/16 started 8.3.1
 - rename vips wrapper script, it was still vips-8.2, thanks Benjamin
