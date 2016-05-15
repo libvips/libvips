@@ -168,7 +168,7 @@ vips_gamma_init( VipsGamma *gamma )
  *
  * Optional arguments:
  *
- * @exponent: gamma, default 1.0 / 2.4
+ * * @exponent: gamma, default 1.0 / 2.4
  *
  * Calculate @in ** (1 / @exponent), normalising to the maximum range of the
  * input type. For float types use 1.0 as the maximum. 

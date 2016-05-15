@@ -269,7 +269,7 @@ vips_msb_init( VipsMsb *msb )
  *
  * Optional arguments:
  *
- * @band: msb just this band
+ * * @band: msb just this band
  *
  * Turn any integer image to 8-bit unsigned char by discarding all but the most
  * significant byte. Signed values are converted to unsigned by adding 128.

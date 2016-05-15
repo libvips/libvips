@@ -236,13 +236,13 @@ vips_similarity_init( VipsSimilarity *similarity )
  *
  * Optional arguments:
  *
- * @scale: scale by this factor
- * @angle: rotate by this many degrees anticlockwise
- * @interpolate: interpolate pixels with this
- * @idx: input horizontal offset
- * @idy: input vertical offset
- * @odx: output horizontal offset
- * @ody: output vertical offset
+ * * @scale: scale by this factor
+ * * @angle: rotate by this many degrees anticlockwise
+ * * @interpolate: interpolate pixels with this
+ * * @idx: input horizontal offset
+ * * @idy: input vertical offset
+ * * @odx: output horizontal offset
+ * * @ody: output vertical offset
  *
  * This operator calls vips_affine() for you, calculating the matrix for the
  * affine transform from @scale and @angle. Other parameters are passed on to

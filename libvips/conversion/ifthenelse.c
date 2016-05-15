@@ -517,7 +517,7 @@ vips_ifthenelse_init( VipsIfthenelse *ifthenelse )
  *
  * Optional arguments:
  *
- * @blend: blend smoothly between @in1 and @in2
+ * * @blend: blend smoothly between @in1 and @in2
  *
  * This operation scans the condition image @cond 
  * and uses it to select pixels from either the then image @in1 or the else

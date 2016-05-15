@@ -448,7 +448,7 @@ vips_linearv( VipsImage *in, VipsImage **out,
  *
  * Optional arguments:
  *
- * @uchar: output uchar pixels
+ * * @uchar: output uchar pixels
  *
  * Pass an image through a linear transform, ie. (@out = @in * @a + @b). Output
  * is float for integer input, double for double input, complex for
@@ -489,7 +489,7 @@ vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
  *
  * Optional arguments:
  *
- * @uchar: output uchar pixels
+ * * @uchar: output uchar pixels
  *
  * Run vips_linear() with a single constant. 
  *

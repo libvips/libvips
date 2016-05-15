@@ -587,7 +587,7 @@ vips_castv( VipsImage *in, VipsImage **out, VipsBandFormat format, va_list ap )
  *
  * Optional arguments:
  *
- * @shift: integer values are shifted
+ * * @shift: integer values are shifted
  *
  * Convert @in to @format. You can convert between any pair of formats.
  * Floats are truncated (not rounded). Out of range values are clipped.

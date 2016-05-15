@@ -273,7 +273,7 @@ vips_premultiply_init( VipsPremultiply *premultiply )
  *
  * Optional arguments:
  *
- * @max_alpha: %gdouble, maximum value for alpha
+ * * @max_alpha: %gdouble, maximum value for alpha
  *
  * Premultiplies any alpha channel. 
  * The final band is taken to be the alpha

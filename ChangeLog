@@ -1,8 +1,15 @@
+1/5/16 started 8.4
+- many more wepsave options [Felix Bünemann]
+- added quant_table option to wepsave [Felix Bünemann]
+
 15/4/16 started 8.3.1
 - rename vips wrapper script, it was still vips-8.2, thanks Benjamin
 - export C++ operator overloads for MSVC linking [Lovell]
 - fix magickload @page with GraphicsMagick
 - add giflib5 support
+- allow resize >1 on one axis, <1 on the other
+- vips_resize has an optional @kernel argument
+- fix giflib4 detection [felixbuenemann]
 
 29/1/16 started 8.3
 - add vips_reduce*() ... a fast path for affine downsize

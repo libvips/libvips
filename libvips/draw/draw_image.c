@@ -300,7 +300,7 @@ vips_draw_image_init( VipsDrawImage *draw_image )
  *
  * Optional arguments:
  *
- * @mode: how to combine pixels 
+ * * @mode: how to combine pixels 
  *
  * Draw @sub on top of @image at position @x, @y. The two images must have the 
  * same Coding. If @sub has 1 band, the bands will be duplicated to match the

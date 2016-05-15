@@ -195,8 +195,8 @@ vips_gaussnoise_init( VipsGaussnoise *gaussnoise )
  *
  * Optional arguments:
  *
- * @mean: mean of generated pixels
- * @sigma: standard deviation of generated pixels
+ * * @mean: mean of generated pixels
+ * * @sigma: standard deviation of generated pixels
  *
  * Make a one band float image of gaussian noise with the specified
  * distribution. The noise distribution is created by averaging 12 random 

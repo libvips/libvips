@@ -103,6 +103,10 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	gboolean optimize_scans;
 
+	/* Use predefined quantization table with given index.
+	 */
+	int quant_table;
+
 } VipsForeignSaveJpeg;
 
 typedef VipsForeignSaveClass VipsForeignSaveJpegClass;
@@ -194,6 +198,13 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, optimize_scans ),
 		FALSE );
 
+	VIPS_ARG_INT( class, "quant_table", 18,
+		_( "Quantization table" ),
+		_( "Use predefined quantization table with given index" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, quant_table ),
+		0, 8, 0 );
+
 }
 
 static void
@@ -230,7 +241,8 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 	if( vips__jpeg_write_file( save->ready, file->filename,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
-		jpeg->trellis_quant, jpeg->overshoot_deringing, jpeg->optimize_scans) )
+		jpeg->trellis_quant, jpeg->overshoot_deringing,
+		jpeg->optimize_scans, jpeg->quant_table ) )
 		return( -1 );
 
 	return( 0 );
@@ -294,7 +306,8 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 	if( vips__jpeg_write_buffer( save->ready, 
 		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
-		jpeg->trellis_quant, jpeg->overshoot_deringing, jpeg->optimize_scans) )
+		jpeg->trellis_quant, jpeg->overshoot_deringing,
+		jpeg->optimize_scans, jpeg->quant_table ) )
 		return( -1 );
 
 	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );
@@ -357,7 +370,8 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 	if( vips__jpeg_write_buffer( save->ready, 
 		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
-		jpeg->trellis_quant, jpeg->overshoot_deringing, jpeg->optimize_scans) )
+		jpeg->trellis_quant, jpeg->overshoot_deringing,
+		jpeg->optimize_scans, jpeg->quant_table ) )
 		return( -1 );
 
 	printf( "Content-length: %zu\r\n", olen );

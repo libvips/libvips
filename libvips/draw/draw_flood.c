@@ -685,12 +685,12 @@ vips_draw_floodv( VipsImage *image,
  *
  * Optional arguments:
  *
- * @test: test this image
- * @equal: fill while equal to edge
- * @left: output left edge of bounding box of modified area
- * @top: output top edge of bounding box of modified area
- * @width: output width of bounding box of modified area
- * @height: output height of bounding box of modified area
+ * * @test: test this image
+ * * @equal: fill while equal to edge
+ * * @left: output left edge of bounding box of modified area
+ * * @top: output top edge of bounding box of modified area
+ * * @width: output width of bounding box of modified area
+ * * @height: output height of bounding box of modified area
  *
  * Flood-fill @image with @ink, starting at position @x, @y. The filled area is
  * bounded by pixels that are equal to the ink colour, in other words, it
@@ -736,12 +736,12 @@ vips_draw_flood( VipsImage *image,
  *
  * Optional arguments:
  *
- * @test: test this image
- * @equal: fill while equal to edge
- * @left: output left edge of bounding box of modified area
- * @top: output top edge of bounding box of modified area
- * @width: output width of bounding box of modified area
- * @height: output height of bounding box of modified area
+ * * @test: test this image
+ * * @equal: fill while equal to edge
+ * * @left: output left edge of bounding box of modified area
+ * * @top: output top edge of bounding box of modified area
+ * * @width: output width of bounding box of modified area
+ * * @height: output height of bounding box of modified area
  *
  * As vips_draw_flood(), but just takes a single double for @ink. 
  *

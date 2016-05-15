@@ -175,9 +175,9 @@ vips_conv_init( VipsConv *conv )
  *
  * Optional arguments:
  *
- * @precision: calculation accuracy
- * @layers: number of layers for approximation
- * @cluster: cluster lines closer than this distance
+ * * @precision: calculation accuracy
+ * * @layers: number of layers for approximation
+ * * @cluster: cluster lines closer than this distance
  *
  * Convolution. 
  *

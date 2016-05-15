@@ -144,9 +144,9 @@ vips_cache_init( VipsCache *cache )
  *
  * Optional arguments:
  *
- * @tile_width: width of tiles in cache
- * @tile_height: height of tiles in cache
- * @max_tiles: maximum number of tiles to cache
+ * * @tile_width: width of tiles in cache
+ * * @tile_height: height of tiles in cache
+ * * @max_tiles: maximum number of tiles to cache
  *
  * This operation behaves rather like vips_copy() between images
  * @in and @out, except that it keeps a cache of computed pixels. 

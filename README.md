@@ -150,12 +150,14 @@ libraries automatically. See `./configure --help` for a set of flags to
 control library detection. Packages are generally found with `pkg-config`,
 so make sure that is working.
 
-libtiff and libjpeg do not usually use `pkg-config` so libvips looks for
+libtiff, giflib and libjpeg do not usually use `pkg-config` so libvips looks for
 them in the default path and in `$prefix`. If you have installed your own
 versions of these libraries in a different location, libvips will not see
 them. Use switches to libvips configure like:
 
 	./configure --prefix=/Users/john/vips \
+		--with-giflib-includes=/opt/local/include \
+		--with-giflib-libraries=/opt/local/lib \
 		--with-tiff-includes=/opt/local/include \
 		--with-tiff-libraries=/opt/local/lib \
 		--with-jpeg-includes=/opt/local/include \
@@ -186,8 +188,6 @@ If available, libvips adds support for EXIF metadata in JPEG files.
 
 The standard gif loader. If this is not present, vips will try to load gifs
 via imagemagick instead.
-
-vips will only work with giflib 4. 
 
 ### librsvg
 
@@ -233,6 +233,15 @@ If present, libvips can load and save png files.
 If available, libvips adds support for loading all libMagick-supported
 image file types. Use `--with-magickpackage=GraphicsMagick` to build against 
 graphicsmagick instead.
+
+Imagemagick 6.9+ needs to have been built with `--with-modules`. Most packaged
+IMs are, I think, but if you are rolling your own, you'll need to pass
+this flag to configure. 
+
+If you are going to be using libvips with untrusted images, perhaps in a
+web-server, for example, you should consider the security implications of
+using a package with such a large attack surface. You might prefer not to
+enable Magick support. 
 
 ### pangoft2
 

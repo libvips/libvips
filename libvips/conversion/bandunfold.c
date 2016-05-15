@@ -189,7 +189,7 @@ vips_bandunfold_init( VipsBandunfold *bandunfold )
  *
  * Optional arguments:
  *
- * @factor: unfold by this factor
+ * * @factor: unfold by this factor
  *
  * Unfold image bands into x axis. 
  * Use @factor to set how much to unfold by: @factor 3, for example, will make

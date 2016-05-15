@@ -171,10 +171,10 @@ vips_mask_butterworth_band_init(
  *
  * Optional arguments:
  *
- * @nodc: don't set the DC pixel
- * @reject: invert the filter sense
- * @optical: coordinates in optical space
- * @uchar: output a uchar image
+ * * @nodc: don't set the DC pixel
+ * * @reject: invert the filter sense
+ * * @optical: coordinates in optical space
+ * * @uchar: output a uchar image
  *
  * Make an butterworth band-pass or band-reject filter, that is, one with a 
  * variable, smooth transition positioned at @frequency_cutoff_x, 

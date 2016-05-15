@@ -1,3 +1,19 @@
+- this seems to not work:
+
+	$ vips copy k2.jpg x.dz[suffix=.jpg[Q=90]]
+	dzsave: not , or ) after parameter
+
+- add more webp tests to py suite
+
+- try moving some more of the CLI tests to py
+
+- the gif tests in the suite sometimes fail with giflib5 because of an
+  uninitialized struct in giflib, see
+
+	https://sourceforge.net/p/giflib/bugs/94/
+
+  sadly ubuntu 16.04 only comes with giflib5, and giflib5 is currently broken
+
 - I like the new int mask creator in reducev, can we use it in im_vips2imask()
   as well?
 

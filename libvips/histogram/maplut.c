@@ -735,7 +735,7 @@ vips_maplut_init( VipsMaplut *maplut )
  *
  * Optional arguments:
  *
- * @band: apply one-band @lut to this band of @in
+ * * @band: apply one-band @lut to this band of @in
  *
  * Map an image through another image acting as a LUT (Look Up Table). 
  * The lut may have any type and the output image will be that type.

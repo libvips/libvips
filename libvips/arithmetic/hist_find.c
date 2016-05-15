@@ -475,7 +475,7 @@ vips_hist_find_init( VipsHistFind *hist_find )
  *
  * Optional arguments:
  *
- * @band: band to equalise
+ * * @band: band to equalise
  *
  * Find the histogram of @in. Find the histogram for band @band (producing a
  * one-band histogram), or for all bands (producing an n-band histogram) if 

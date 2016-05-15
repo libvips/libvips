@@ -74,6 +74,8 @@
  * 	- don't write JFIF headers if we are stripping, thanks Benjamin
  * 13/4/16
  * 	- remove deleted exif fields more carefully
+ * 9/5/16 felixbuenemann
+ * 	- add quant_table
  */
 
 /*
@@ -966,7 +968,7 @@ static int
 write_vips( Write *write, int qfac, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
 	gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans )
+	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -1022,10 +1024,9 @@ write_vips( Write *write, int qfac, const char *profile,
 			JINT_COMPRESS_PROFILE, JCP_FASTEST );
 #endif
 
-	/* Rest to default. 
+	/* Reset to default.
 	 */
         jpeg_set_defaults( &write->cinfo );
-        jpeg_set_quality( &write->cinfo, qfac, TRUE );
 
  	/* Compute optimal Huffman coding tables.
 	 */
@@ -1077,6 +1078,18 @@ write_vips( Write *write, int qfac, const char *profile,
 			vips_warn( "vips2jpeg", "%s",
 				_( "Ignoring optimize_scans for baseline" ) );
 	}
+
+	/* Use predefined quantization table.
+	 */
+	if( quant_table > 0 ) {
+		if( jpeg_c_int_param_supported( &write->cinfo,
+			JINT_BASE_QUANT_TBL_IDX ) )
+			jpeg_c_set_int_param( &write->cinfo,
+				JINT_BASE_QUANT_TBL_IDX, quant_table );
+		else
+			vips_warn( "vips2jpeg",
+				"%s", _( "Setting quant_table unsupported" ) );
+	}
 #else
 	/* Using jpeglib.h without extension parameters, warn of ignored 
 	 * options.
@@ -1088,7 +1101,13 @@ write_vips( Write *write, int qfac, const char *profile,
 			"%s", _( "Ignoring overshoot_deringing" ) );
 	if( optimize_scans ) 
 		vips_warn( "vips2jpeg", "%s", _( "Ignoring optimize_scans" ) );
+	if( quant_table > 0 )
+		vips_warn( "vips2jpeg", "%s", _( "Ignoring quant_table" ) );
 #endif
+
+	/* Set compression quality. Must be called after setting params above.
+	 */
+        jpeg_set_quality( &write->cinfo, qfac, TRUE );
 
 	/* Enable progressive write.
 	 */
@@ -1160,7 +1179,7 @@ vips__jpeg_write_file( VipsImage *in,
 	const char *filename, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
 	gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans )
+	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
 {
 	Write *write;
 
@@ -1192,7 +1211,7 @@ vips__jpeg_write_file( VipsImage *in,
 	 */
 	if( write_vips( write, 
 		Q, profile, optimize_coding, progressive, strip, no_subsample,
-		trellis_quant, overshoot_deringing, optimize_scans ) ) {
+		trellis_quant, overshoot_deringing, optimize_scans, quant_table ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
@@ -1446,7 +1465,7 @@ vips__jpeg_write_buffer( VipsImage *in,
 	void **obuf, size_t *olen, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans )
+	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
 {
 	Write *write;
 
@@ -1477,7 +1496,7 @@ vips__jpeg_write_buffer( VipsImage *in,
 	 */
 	if( write_vips( write, 
 		Q, profile, optimize_coding, progressive, strip, no_subsample,
-		trellis_quant, overshoot_deringing, optimize_scans ) ) {
+		trellis_quant, overshoot_deringing, optimize_scans, quant_table ) ) {
 		write_destroy( write );
 
 		return( -1 );

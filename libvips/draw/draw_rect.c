@@ -240,7 +240,7 @@ vips_draw_rectv( VipsImage *image,
  *
  * Optional arguments:
  *
- * @fill: fill the rect
+ * * @fill: fill the rect
  *
  * Paint pixels within @left, @top, @width, @height in @image with @ink. If
  * @fill is zero, just paint a 1-pixel-wide outline.
@@ -276,7 +276,7 @@ vips_draw_rect( VipsImage *image,
  *
  * Optional arguments:
  *
- * @fill: fill the rect
+ * * @fill: fill the rect
  *
  * As vips_draw_rect(), but just take a single double for @ink. 
  *

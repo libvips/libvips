@@ -415,7 +415,7 @@ vips_mapim_init( VipsMapim *mapim )
  *
  * Optional arguments:
  *
- * @interpolate: interpolate pixels with this
+ * * @interpolate: interpolate pixels with this
  *
  * This operator resamples @in using @index to look up pixels. @out is
  * the same size as @index, with each pixel being fetched from that position in

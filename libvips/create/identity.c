@@ -178,9 +178,9 @@ vips_identity_init( VipsIdentity *identity )
  *
  * Optional arguments:
  *
- * @bands: number of bands to create
- * @ushort: %TRUE for an unsigned short identity
- * @size: number of LUT elements for a ushort image
+ * * @bands: number of bands to create
+ * * @ushort: %TRUE for an unsigned short identity
+ * * @size: number of LUT elements for a ushort image
  *
  * Creates an identity lookup table, ie. one which will leave an image
  * unchanged when applied with vips_maplut(). Each entry in the table has a

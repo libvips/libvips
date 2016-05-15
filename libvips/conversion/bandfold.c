@@ -186,7 +186,7 @@ vips_bandfold_init( VipsBandfold *bandfold )
  *
  * Optional arguments:
  *
- * @factor: fold by this factor
+ * * @factor: fold by this factor
  *
  * Fold up an image horizontally: width is collapsed into bands. 
  * Use @factor to set how much to fold by: @factor 3, for example, will make

@@ -120,10 +120,10 @@ vips_mask_ideal_ring_init( VipsMaskIdealRing *ideal_ring )
  *
  * Optional arguments:
  *
- * @nodc: don't set the DC pixel
- * @reject: invert the filter sense
- * @optical: coordinates in optical space
- * @uchar: output a uchar image
+ * * @nodc: don't set the DC pixel
+ * * @reject: invert the filter sense
+ * * @optical: coordinates in optical space
+ * * @uchar: output a uchar image
  *
  * Make an ideal ring-pass or ring-reject filter, that is, one with a sharp 
  * ring positioned at @frequency_cutoff of width @width, where 

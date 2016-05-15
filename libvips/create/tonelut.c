@@ -315,16 +315,16 @@ vips_tonelut_init( VipsTonelut *lut )
  *
  * Optional arguments:
  *
- * @in_max: input range 
- * @out_max: output range
- * @Lb: black-point [0-100]
- * @Lw: white-point [0-100]
- * @Ps: shadow point (eg. 0.2)
- * @Pm: mid-tone point (eg. 0.5)
- * @Ph: highlight point (eg. 0.8)
- * @S: shadow adjustment (+/- 30)
- * @M: mid-tone adjustment (+/- 30)
- * @H: highlight adjustment (+/- 30)
+ * * @in_max: input range 
+ * * @out_max: output range
+ * * @Lb: black-point [0-100]
+ * * @Lw: white-point [0-100]
+ * * @Ps: shadow point (eg. 0.2)
+ * * @Pm: mid-tone point (eg. 0.5)
+ * * @Ph: highlight point (eg. 0.8)
+ * * @S: shadow adjustment (+/- 30)
+ * * @M: mid-tone adjustment (+/- 30)
+ * * @H: highlight adjustment (+/- 30)
  *
  * vips_tonelut() generates a tone curve for the adjustment of image 
  * levels. It is mostly designed for adjusting the L* part of a LAB image in

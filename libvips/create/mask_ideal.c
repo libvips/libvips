@@ -105,10 +105,10 @@ vips_mask_ideal_init( VipsMaskIdeal *ideal )
  *
  * Optional arguments:
  *
- * @nodc: don't set the DC pixel
- * @reject: invert the filter sense
- * @optical: coordinates in optical space
- * @uchar: output a uchar image
+ * * @nodc: don't set the DC pixel
+ * * @reject: invert the filter sense
+ * * @optical: coordinates in optical space
+ * * @uchar: output a uchar image
  *
  * Make an ideal high- or low-pass filter, that is, one with a sharp cutoff
  * positioned at @frequency_cutoff, where @frequency_cutoff is in

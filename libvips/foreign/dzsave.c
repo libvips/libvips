@@ -2128,16 +2128,16 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  *
  * Optional arguments:
  *
- * @layout; directory layout convention
- * @suffix: suffix for tile tiles 
- * @overlap; set tile overlap 
- * @tile_size; set tile size 
- * @background: background colour
- * @depth: how deep to make the pyramid
- * @centre: centre the tiles 
- * @angle: rotate the image by this much
- * @container: set container type
- * @properties: write a properties file
+ * * @layout; directory layout convention
+ * * @suffix: suffix for tile tiles 
+ * * @overlap; set tile overlap 
+ * * @tile_size; set tile size 
+ * * @background: background colour
+ * * @depth: how deep to make the pyramid
+ * * @centre: centre the tiles 
+ * * @angle: rotate the image by this much
+ * * @container: set container type
+ * * @properties: write a properties file
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.

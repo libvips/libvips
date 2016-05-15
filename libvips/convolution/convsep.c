@@ -143,9 +143,9 @@ vips_convsep_init( VipsConvsep *convsep )
  *
  * Optional arguments:
  *
- * @precision: calculation accuracy
- * @layers: number of layers for approximation
- * @cluster: cluster lines closer than this distance
+ * * @precision: calculation accuracy
+ * * @layers: number of layers for approximation
+ * * @cluster: cluster lines closer than this distance
  *
  * Perform a separable convolution of @in with @mask.
  * See vips_conv() for a detailed description.

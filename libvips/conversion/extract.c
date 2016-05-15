@@ -455,7 +455,7 @@ vips_extract_band_init( VipsExtractBand *extract )
  *
  * Optional arguments:
  *
- * @n: number of bands to extract
+ * * @n: number of bands to extract
  *
  * Extract a band or bands from an image. Extracting out of range is an error.
  *

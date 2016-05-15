@@ -573,8 +573,8 @@ vips_insert_init( VipsInsert *insert )
  *
  * Optional arguments:
  *
- * @expand: expand output to hold whole of both images
- * @background: colour for new pixels
+ * * @expand: expand output to hold whole of both images
+ * * @background: colour for new pixels
  *
  * Insert @sub into @main at position @x, @y. 
  *

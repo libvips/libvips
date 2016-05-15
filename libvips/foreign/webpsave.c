@@ -60,6 +60,22 @@ typedef struct _VipsForeignSaveWebp {
 	 */
 	gboolean lossless;
 
+	/* Lossy compression preset.
+	 */
+	VipsForeignWebpPreset preset;
+
+	/* Enable smart chroma subsampling.
+	 */
+	gboolean smart_subsample;
+
+	/* Use preprocessing in lossless mode.
+	 */
+	gboolean near_lossless;
+
+	/* Alpha quality.
+	 */
+	int alpha_q;
+
 } VipsForeignSaveWebp;
 
 typedef VipsForeignSaveClass VipsForeignSaveWebpClass;
@@ -100,7 +116,7 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		_( "Q factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, Q ),
-		1, 100, 75 );
+		0, 100, 75 );
 
 	VIPS_ARG_BOOL( class, "lossless", 11, 
 		_( "lossless" ), 
@@ -109,12 +125,42 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, lossless ),
 		FALSE ); 
 
+	VIPS_ARG_ENUM( class, "preset", 12,
+		_( "preset" ),
+		_( "Preset for lossy compression" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, preset ),
+		VIPS_TYPE_FOREIGN_WEBP_PRESET,
+		VIPS_FOREIGN_WEBP_PRESET_DEFAULT );
+
+	VIPS_ARG_BOOL( class, "smart_subsample", 13,
+		_( "Smart subsampling" ),
+		_( "Enable high quality chroma subsampling" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, smart_subsample ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "near_lossless", 14,
+		_( "Near lossless" ),
+		_( "Enable preprocessing in lossless mode (uses Q)" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, near_lossless ),
+		FALSE );
+
+	VIPS_ARG_INT( class, "alpha_q", 15,
+		_( "Alpha quality" ),
+		_( "Change alpha plane fidelity for lossy compression" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, alpha_q ),
+		0, 100, 100 );
+
 }
 
 static void
 vips_foreign_save_webp_init( VipsForeignSaveWebp *webp )
 {
-	webp->Q = 80;
+	webp->Q = 75;
+	webp->alpha_q = 100;
 }
 
 typedef struct _VipsForeignSaveWebpFile {
@@ -143,7 +189,9 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__webp_write_file( save->ready, file->filename, 
-		webp->Q, webp->lossless ) )
+		webp->Q, webp->lossless, webp->preset,
+		webp->smart_subsample, webp->near_lossless,
+		webp->alpha_q ) )
 		return( -1 );
 
 	return( 0 );
@@ -205,7 +253,9 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
-		webp->Q, webp->lossless ) )
+		webp->Q, webp->lossless, webp->preset,
+		webp->smart_subsample, webp->near_lossless,
+		webp->alpha_q ) )
 		return( -1 );
 
 	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );
@@ -266,7 +316,9 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
-		webp->Q, webp->lossless ) )
+		webp->Q, webp->lossless, webp->preset,
+		webp->smart_subsample, webp->near_lossless,
+		webp->alpha_q ) )
 		return( -1 );
 
 	printf( "Content-length: %zu\r\n", olen );

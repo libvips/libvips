@@ -137,10 +137,10 @@ vips_mask_ideal_band_init( VipsMaskIdealBand *ideal_band )
  *
  * Optional arguments:
  *
- * @nodc: don't set the DC pixel
- * @reject: invert the filter sense
- * @optical: coordinates in optical space
- * @uchar: output a uchar image
+ * * @nodc: don't set the DC pixel
+ * * @reject: invert the filter sense
+ * * @optical: coordinates in optical space
+ * * @uchar: output a uchar image
  *
  * Make an ideal band-pass or band-reject filter, that is, one with a 
  * sharp cutoff around the point @frequency_cutoff_x, @frequency_cutoff_y, 

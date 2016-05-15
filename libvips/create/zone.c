@@ -106,7 +106,7 @@ vips_zone_init( VipsZone *zone )
  *
  * Optional arguments:
  *
- * @uchar: output a uchar image
+ * * @uchar: output a uchar image
  *
  * Create a one-band image of a zone plate. 
  *

@@ -246,9 +246,9 @@ vips_xyz_init( VipsXyz *xyz )
  *
  * Optional arguments:
  *
- * @csize: size for third dimension
- * @dsize: size for fourth dimension
- * @esize: size for fifth dimension
+ * * @csize: size for third dimension
+ * * @dsize: size for fourth dimension
+ * * @esize: size for fifth dimension
  *
  * Create a two-band uint32 image where the elements in the first band have the
  * value of their x coordinate and elements in the second band have their y

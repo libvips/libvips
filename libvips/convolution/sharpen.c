@@ -394,12 +394,12 @@ vips_sharpen_init( VipsSharpen *sharpen )
  *
  * Optional arguments:
  *
- * @sigma: sigma of gaussian
- * @x1: flat/jaggy threshold
- * @y2: maximum amount of brightening
- * @y3: maximum amount of darkening
- * @m1: slope for flat areas
- * @m2: slope for jaggy areas
+ * * @sigma: sigma of gaussian
+ * * @x1: flat/jaggy threshold
+ * * @y2: maximum amount of brightening
+ * * @y3: maximum amount of darkening
+ * * @m1: slope for flat areas
+ * * @m2: slope for jaggy areas
  *
  * Selectively sharpen the L channel of a LAB image. The input image is
  * transformed to #VIPS_INTERPRETATION_LABS. 

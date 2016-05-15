@@ -625,7 +625,7 @@ vips_colourspace_init( VipsColourspace *colourspace )
  *
  * Optional arguments:
  *
- * @source_space: input colour space
+ * * @source_space: input colour space
  *
  * This operation looks at the interpretation field of @in (or uses
  * @source_space, if set) and runs

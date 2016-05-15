@@ -291,7 +291,7 @@ vips_rot45_init( VipsRot45 *rot45 )
  *
  * Optional arguments:
  *
- * @angle: rotation angle
+ * * @angle: rotation angle
  *
  * Rotate @in by a multiple of 45 degrees. Odd-length sides and square images
  * only. 

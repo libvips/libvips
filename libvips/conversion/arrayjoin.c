@@ -397,13 +397,13 @@ vips_arrayjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
  *
  * Optional arguments:
  *
- * @across: number of images per row
- * @shim: space between images, in pixels
- * @background: background ink colour
- * @halign: low, centre or high alignment
- * @valign: low, centre or high alignment
- * @hspacing: horizontal distance between images
- * @vspacing: vertical distance between images
+ * * @across: number of images per row
+ * * @shim: space between images, in pixels
+ * * @background: background ink colour
+ * * @halign: low, centre or high alignment
+ * * @valign: low, centre or high alignment
+ * * @hspacing: horizontal distance between images
+ * * @vspacing: vertical distance between images
  *
  * Lay out the images in @in in a grid. The grid is @across images across and
  * however high is necessary to use up all of @in. Images are set down

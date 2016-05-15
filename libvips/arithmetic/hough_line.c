@@ -169,8 +169,8 @@ vips_hough_line_init( VipsHoughLine *hough_line )
  *
  * Optional arguments:
  *
- * @width: horizontal size of parameter space
- * @height: vertical size of parameter space
+ * * @width: horizontal size of parameter space
+ * * @height: vertical size of parameter space
  *
  * Find the line Hough transform for @in. @in must have one band. @out has one
  * band, with pixels being the number of votes for that line. The X dimension

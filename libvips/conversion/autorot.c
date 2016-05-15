@@ -214,7 +214,7 @@ vips_autorot_init( VipsAutorot *autorot )
  *
  * Optional arguments:
  *
- * @angle: output #VipsAngle the image was rotated by
+ * * @angle: output #VipsAngle the image was rotated by
  *
  * Look at the exif tags and rotate the image to make it upright. The
  * orientation tag is removed from @out to prevent accidental double rotation. 
