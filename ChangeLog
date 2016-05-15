@@ -1,6 +1,7 @@
 1/5/16 started 8.4
 - many more wepsave options [Felix Bünemann]
 - added quant_table option to wepsave [Felix Bünemann]
+- dzsave won't write empty tiles in google mode
 
 15/4/16 started 8.3.1
 - rename vips wrapper script, it was still vips-8.2, thanks Benjamin
@@ -85,9 +86,6 @@
 - added vips_mapim() ... resample with an index image, plus test
 - try to improve vips_resize() quality a little more
 - vips_resize() can do non-square resizes
-<<<<<<< HEAD
-- dzsave won't write empty tiles in google mode
-=======
 - dzsave removes tile metadata by default, thanks Benjamin
 - jpeg strip option removes a little more, thanks Benjamin
 - added vips_image_new_from_memory_copy()
@@ -100,7 +98,6 @@
 - add --properties flag to tiffsave
 - dzsave defaults changed: now writes 256x256 jpegs for non-edge tiles, thanks
   Daniel
->>>>>>> master
 
 7/5/15 started 8.1.1
 - oop, vips-8.0 wrapper script should be vips-8.1, thanks Danilo
