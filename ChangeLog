@@ -1,7 +1,7 @@
 1/5/16 started 8.4
 - many more wepsave options [Felix Bünemann]
 - added quant_table option to wepsave [Felix Bünemann]
-- added @n option to pdfload 
+- added @n option to pdfload, thanks andris
 - dzsave won't write empty tiles in google mode, thanks bverem, perog,
   felixbuenemann
 
