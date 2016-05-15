@@ -55,6 +55,8 @@
  * 	- allow zip > 4gb if we have a recent libgsf
  * 9/9/15
  * 	- better overlap handling, thanks robclouth 
+ * 24/11/15
+ * 	- don't write almost blank tiles in google mode
  * 25/11/15
  * 	- always strip tile metadata 
  * 16/12/15
@@ -596,6 +598,12 @@ struct _VipsForeignSaveDz {
 	 * Track bytes written here and try to guess when we'll go over.
 	 */
 	size_t bytes_written;
+
+	/* save->background turned into a pixel that matches the image we are
+	 * saving .. used to test for blank tiles.
+	 */
+	VipsPel *ink;
+
 };
 
 typedef VipsForeignSaveClass VipsForeignSaveDzClass;
@@ -1096,6 +1104,53 @@ tile_name( Layer *layer, int x, int y )
 	return( out );
 }
 
+/* Test for tile equal to background colour. In google maps mode, we skip
+ * blank background tiles. 
+ *
+ * Don't use exactly equality, since compression artefacts or noise can upset
+ * this.
+ */
+static gboolean
+tile_equal( VipsImage *image, VipsPel * restrict ink )
+{
+	const int bytes = VIPS_IMAGE_SIZEOF_PEL( image );
+
+	VipsRect rect;
+	VipsRegion *region;
+	int x, y, b;
+
+	region = vips_region_new( image ); 
+
+	/* We know @image is part of a memory buffer, so this will be quick.
+	 */
+	rect.left = 0;
+	rect.top = 0;
+	rect.width = image->Xsize;
+	rect.height = image->Ysize;
+	if( vips_region_prepare( region, &rect ) ) {
+		g_object_unref( region );
+		return( FALSE ); 
+	}
+
+	for( y = 0; y < image->Ysize; y++ ) {
+		VipsPel * restrict p = VIPS_REGION_ADDR( region, 0, y ); 
+
+		for( x = 0; x < image->Xsize; x++ ) {
+			for( b = 0; b < bytes; b++ ) 
+				if( VIPS_ABS( p[b] - ink[b] ) > 5 ) {
+					g_object_unref( region );
+					return( FALSE ); 
+				}
+
+			p += bytes;
+		}
+	}
+
+	g_object_unref( region );
+
+	return( TRUE );
+}
+
 static int
 strip_work( VipsThreadState *state, void *a )
 {
@@ -1116,7 +1171,7 @@ strip_work( VipsThreadState *state, void *a )
 	printf( "strip_work\n" );
 #endif /*DEBUG_VERBOSE*/
 
-	/* If we are centring we may be outside the real pixels. Skip in 
+	/* If we are centering we may be outside the real pixels. Skip in 
 	 * this case, and the viewer will display blank.png for us. 
 	 */
 	if( dz->centre ) {
@@ -1148,6 +1203,22 @@ strip_work( VipsThreadState *state, void *a )
 		state->pos.left, 0, 
 		state->pos.width, state->pos.height, NULL ) ) 
 		return( -1 );
+
+	/* If we are writing a google map pyramid and the tile is equal to the 
+	 * background, don't save. The viewer will display blank.png for us.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
+		tile_equal( x, dz->ink ) ) { 
+		g_object_unref( x );
+
+#ifdef DEBUG_VERBOSE
+		printf( "strip_work: skipping blank tile %d x %d\n", 
+			state->x / dz->tile_size, 
+			state->y / dz->tile_size ); 
+#endif /*DEBUG_VERBOSE*/
+
+		return( 0 ); 
+	}
 
 	/* Google tiles need to be padded up to tilesize.
 	 */
@@ -1595,6 +1666,16 @@ vips_foreign_save_dz_build( VipsObject *object )
 	VIPS_UNREF( save->ready );
 	save->ready = z;
 }
+
+	/* We use ink in google mode to check for blank tiles.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
+		if( !(dz->ink = vips__vector_to_ink( 
+			class->nickname, save->ready,
+			VIPS_AREA( save->background )->data, NULL, 
+			VIPS_AREA( save->background )->n )) )
+			return( -1 );
+	}
 
 	/* The real pixels we have from our input. This is about to get
 	 * expanded with background. 

@@ -433,10 +433,10 @@ vips_image_guess_format( const VipsImage *image )
 		break;
 
 	case VIPS_INTERPRETATION_CMYK: 
-		if( image->BandFmt != VIPS_FORMAT_USHORT )
-			format = VIPS_FORMAT_UCHAR;
+		if( image->BandFmt == VIPS_FORMAT_USHORT )
+			format = VIPS_FORMAT_USHORT;
 		else
-			format = image->BandFmt;
+			format = VIPS_FORMAT_UCHAR;
 		break;
 
 	case  VIPS_INTERPRETATION_LABQ:
@@ -453,14 +453,15 @@ vips_image_guess_format( const VipsImage *image )
 		break;
 
 	case  VIPS_INTERPRETATION_MATRIX:
-		if( image->BandFmt != VIPS_FORMAT_DOUBLE )
-			format = VIPS_FORMAT_FLOAT;
+		if( image->BandFmt == VIPS_FORMAT_DOUBLE )
+			format = VIPS_FORMAT_DOUBLE;
 		else
-			format = image->BandFmt;
+			format = VIPS_FORMAT_FLOAT;
 		break;
 
 	default:
-		g_assert_not_reached();
+		format = VIPS_FORMAT_NOTSET;
+		break; 
 	}
 
 	return( format );

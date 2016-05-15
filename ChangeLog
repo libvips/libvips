@@ -2,6 +2,8 @@
 - many more wepsave options [Felix Bünemann]
 - added quant_table option to wepsave [Felix Bünemann]
 - added @n option to pdfload 
+- dzsave won't write empty tiles in google mode, thanks bverem, perog,
+  felixbuenemann
 
 15/4/16 started 8.3.1
 - rename vips wrapper script, it was still vips-8.2, thanks Benjamin
