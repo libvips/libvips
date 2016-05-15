@@ -5,6 +5,8 @@
 
 - add more webp tests to py suite
 
+- try moving some more of the CLI tests to py
+
 - the gif tests in the suite sometimes fail with giflib5 because of an
   uninitialized struct in giflib, see
 
