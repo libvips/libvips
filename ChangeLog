@@ -5,6 +5,7 @@
 - dzsave won't write empty tiles in google mode, thanks bverem, perog,
   felixbuenemann
 - allow nested [] in CLI args
+- restore BandFmt on unpremultiply in vipsthumbnail
 
 15/4/16 started 8.3.1
 - rename vips wrapper script, it was still vips-8.2, thanks Benjamin

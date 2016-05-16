@@ -77,6 +77,8 @@
  * 	- add webp --shrink support
  * 29/2/16
  * 	- deprecate sharpen and interpolate
+ * 6/5/16
+ * 	- restore BandFmt after unpremultiply
  */
 
 #ifdef HAVE_CONFIG_H
@@ -363,6 +365,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in )
 	/* TRUE if we've premultiplied and need to unpremultiply.
 	 */
 	gboolean have_premultiplied;
+	VipsBandFormat unpremultiplied_format;
 
 	/* Sniff the incoming image and try to guess what the alpha max is.
 	 */
@@ -444,8 +447,14 @@ thumbnail_shrink( VipsObject *process, VipsImage *in )
 			"max_alpha", max_alpha,
 			NULL ) ) 
 			return( NULL );
-		in = t[3];
 		have_premultiplied = TRUE;
+
+		/* vips_premultiply() makes a float image. When we
+		 * vips_unpremultiply() below, we need to cast back to the
+		 * pre-premultiply format.
+		 */
+		unpremultiplied_format = in->BandFmt;
+		in = t[3];
 	}
 
 	shrink = calculate_shrink( in );
@@ -458,16 +467,17 @@ thumbnail_shrink( VipsObject *process, VipsImage *in )
 		vips_info( "vipsthumbnail", "unpremultiplying alpha" ); 
 		if( vips_unpremultiply( in, &t[5], 
 			"max_alpha", max_alpha,
-			NULL ) ) 
+			NULL ) || 
+			vips_cast( t[5], &t[6], unpremultiplied_format, NULL ) )
 			return( NULL );
-		in = t[5];
+		in = t[6];
 	}
 
 	/* Colour management.
 	 *
 	 * If we've already imported, just export. Otherwise, we're in 
-	 * device space device and we need a combined
-	 * import/export to transform to the target space.
+	 * device space and we need a combined import/export to transform to 
+	 * the target space.
 	 */
 	if( have_imported ) { 
 		if( export_profile ||
