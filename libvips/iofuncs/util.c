@@ -1232,19 +1232,20 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 	default:
 		/* It's an unquoted string: read up to the next non-string
 		 * character. We don't allow two strings next to each other,
-		 * so the next break must be bracket, equals, comma.
+		 * so the next break must be brackets, equals, comma.
 		 */
 		*token = VIPS_TOKEN_STRING;
-		n = strcspn( p, "[]=," );
-		i = VIPS_MIN( n, size );
+		q = p + strcspn( p, "[]=," );
+
+		i = VIPS_MIN( q - p, size );
 		vips_strncpy( string, p, i + 1 );
-		p += n;
+		p = q;
 
 		/* We remove leading whitespace, so we trim trailing
 		 * whitespace from unquoted strings too. Only if the string
 		 * hasn't been truncated.
 		 */
-		if( i == n ) 
+		if( i != size ) 
 			while( i > 0 && isspace( string[i - 1] ) ) {
 				string[i - 1] = '\0';
 				i--;
@@ -1280,6 +1281,76 @@ vips__token_need( const char *p, VipsToken need_token,
 	VipsToken token;
 
 	if( !(p = vips__token_must( p, &token, string, size )) ) 
+		return( NULL );
+	if( token != need_token ) {
+		vips_error( "get_token", _( "expected %s, saw %s" ), 
+			vips_enum_nick( VIPS_TYPE_TOKEN, need_token ),
+			vips_enum_nick( VIPS_TYPE_TOKEN, token ) );
+		return( NULL );
+	}
+
+	return( p );
+}
+
+/* Fetch a token. If it's a string token terminated by a '[', fetch up to the
+ * matching ']' as well, for example ".jpg[Q=90]".
+ *
+ * Return NULL for end of tokens.
+ */
+const char *
+vips__token_segment( const char *p, VipsToken *token, 
+	char *string, int size )
+{
+	const char *q;
+
+	if( !(q = vips__token_must( p, token, string, size )) )
+		return( NULL ); 
+
+	/* If we stopped on [, read up to the matching ]. 
+	 */
+	if( *token == VIPS_TOKEN_STRING &&
+		q[0] == '[' ) {
+		VipsToken sub_token;
+		char sub_string[VIPS_PATH_MAX];
+		int depth;
+		int i; 
+
+		depth = 0;
+		do {
+			if( !(q = vips__token_must( q, &sub_token, 
+				sub_string, VIPS_PATH_MAX )) )
+				return( NULL ); 
+
+			switch( sub_token ) {
+			case VIPS_TOKEN_LEFT:
+				depth += 1;
+				break;
+
+			case VIPS_TOKEN_RIGHT:
+				depth -= 1;
+				break;
+
+			default:
+				break;
+			}
+		} while( !(sub_token == VIPS_TOKEN_RIGHT && depth == 0) );
+
+		i = VIPS_MIN( q - p, size );
+		vips_strncpy( string, p, i + 1 );
+	}
+
+	return( q ); 
+}
+
+/* We expect a certain segment.
+ */
+const char *
+vips__token_segment_need( const char *p, VipsToken need_token, 
+	char *string, int size )
+{
+	VipsToken token;
+
+	if( !(p = vips__token_segment( p, &token, string, size )) ) 
 		return( NULL );
 	if( token != need_token ) {
 		vips_error( "get_token", _( "expected %s, saw %s" ), 

@@ -281,6 +281,10 @@ const char *vips__token_must( const char *buffer, VipsToken *token,
 	char *string, int size );
 const char *vips__token_need( const char *buffer, VipsToken need_token, 
 	char *string, int size );
+const char *vips__token_segment( const char *p, VipsToken *token, 
+	char *string, int size );
+const char *vips__token_segment_need( const char *p, VipsToken need_token, 
+	char *string, int size );
 const char *vips__find_rightmost_brackets( const char *p );
 void vips__filename_split8( const char *name, 
 	char *filename, char *option_string );

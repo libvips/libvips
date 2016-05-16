@@ -1,8 +1,3 @@
-- this seems to not work:
-
-	$ vips copy k2.jpg x.dz[suffix=.jpg[Q=90]]
-	dzsave: not , or ) after parameter
-
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py

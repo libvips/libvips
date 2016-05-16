@@ -2282,7 +2282,7 @@ vips_object_set_args( VipsObject *object, const char *p )
 		string, VIPS_PATH_MAX )) )
 		return( -1 );
 
-	if( !(p = vips__token_must( p, &token, string, VIPS_PATH_MAX )) )
+	if( !(p = vips__token_segment( p, &token, string, VIPS_PATH_MAX )) )
 		return( -1 );
 
 	for(;;) {
@@ -2295,19 +2295,20 @@ vips_object_set_args( VipsObject *object, const char *p )
 			return( -1 );
 		}
 
-		/* We have to look for a '=', ')' or a ',' to see if string is
+		/* We have to look for a '=', ']' or a ',' to see if string is
 		 * a param name or a value.
 		 */
-		if( !(p = vips__token_must( p, &token, 
+		if( !(p = vips__token_segment( p, &token, 
 			string2, VIPS_PATH_MAX )) )
 			return( -1 );
 		if( token == VIPS_TOKEN_EQUALS ) {
-			if( !(p = vips__token_need( p, VIPS_TOKEN_STRING,
+			if( !(p = vips__token_segment_need( p, VIPS_TOKEN_STRING,
 				string2, VIPS_PATH_MAX )) )
 				return( -1 );
 			if( vips_object_set_argument_from_string( object, 
 				string, string2 ) )
 				return( -1 );
+
 			if( !(p = vips__token_must( p, &token,
 				string2, VIPS_PATH_MAX )) )
 				return( -1 );
