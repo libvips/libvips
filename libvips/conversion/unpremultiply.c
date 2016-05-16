@@ -65,7 +65,7 @@ typedef VipsConversionClass VipsUnpremultiplyClass;
 
 G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 
-/* Unpremultiply a greyscale (two band) image.
+/* Unpremultiply an N-band image.
  */
 #define UNPRE_MANY( IN, OUT ) { \
 	IN * restrict p = (IN *) in; \
