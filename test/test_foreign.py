@@ -9,6 +9,8 @@ import shutil
 #import logging
 #logging.basicConfig(level = logging.DEBUG)
 
+import gi
+gi.require_version('Vips', '8.0')
 from gi.repository import Vips 
 
 Vips.leak_set(True)
@@ -265,6 +267,17 @@ class TestForeign(unittest.TestCase):
         self.save_load_buffer("webpsave_buffer", "webpload_buffer", self.colour,
                              50)
         self.save_load("%s.webp", self.colour)
+
+        # test lossless mode
+        im = Vips.Image.new_from_file(self.webp_file)
+        buf = im.webpsave_buffer(lossless = True)
+        im2 = Vips.Image.new_from_buffer(buf, "")
+        self.assertEqual(im.avg(), im2.avg())
+
+        # higher Q should mean a bigger buffer
+        b1 = im.webpsave_buffer(Q = 10)
+        b2 = im.webpsave_buffer(Q = 90)
+        self.assertGreater(len(b2), len(b1))
 
     def test_analyzeload(self):
         x = Vips.type_find("VipsForeign", "analyzeload")
