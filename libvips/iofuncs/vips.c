@@ -792,7 +792,7 @@ vips__write_extension_block( VipsImage *im, void *buf, int size )
 	psize = image_pixel_length( im );
 	if( (length = vips_file_length( im->fd )) == -1 )
 		return( -1 );
-	if( length - psize < 0 ) {
+	if( length < psize ) {
 		vips_error( "VipsImage", "%s", _( "file has been truncated" ) );
 		return( -1 );
 	}
@@ -894,13 +894,15 @@ vips_image_open_input( VipsImage *image )
 		return( -1 );
 	}
 
-	/* Predict and check the file size.
+	/* Predict and check the file size. Only issue a warning, we want to be
+	 * able to read all the header fields we can, even if the actual data
+	 * isn't there. 
 	 */
 	psize = image_pixel_length( image );
 	if( (rsize = vips_file_length( image->fd )) == -1 ) 
 		return( -1 );
 	image->file_length = rsize;
-	if( psize > rsize ) 
+	if( psize > rsize )
 		vips_warn( "VipsImage", 
 			_( "unable to read data for \"%s\", %s" ),
 			image->filename, _( "file has been truncated" ) );

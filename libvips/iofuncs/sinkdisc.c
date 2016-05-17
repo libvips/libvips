@@ -300,7 +300,8 @@ wbuffer_position( WriteBuffer *wbuffer, int top, int height )
 
 	/* This should be an exclusive buffer, hopefully.
 	 */
-	g_assert( !wbuffer->region->buffer->done );
+	if( !result )
+		g_assert( !wbuffer->region->buffer->done );
 
 	return( result );
 }
