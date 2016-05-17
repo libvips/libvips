@@ -986,28 +986,39 @@ use libexif to load/save JPEG metadata: $with_libexif
 ])
 
 if test x"$found_introspection" = xyes -a "$VIPS_LIBDIR/girepository-1.0" != "$INTROSPECTION_TYPELIBDIR"; then
-  AC_MSG_RESULT([dnl
+  case "$VIPS_LIBDIR" in
+    /usr/local/Cellar/vips/*)
+      ;; # ingnore for homebrew
+    *)
+      AC_MSG_RESULT([dnl
 Vips-8.0.typelib will install to $VIPS_LIBDIR/girepository-1.0, but your
 system repository seems to be $INTROSPECTION_TYPELIBDIR. 
 You may need to add this directory to your typelib path, for example:
 
 	export GI_TYPELIB_PATH="$VIPS_LIBDIR/girepository-1.0"
-  ])
+      ])
+      ;;
+  esac
 fi
 
-expand $pyexecdir
-VIPS_PYEXECDIR=$expanded_value
-
-inpath=`$PYTHON -c "import gi;print('$VIPS_PYEXECDIR/gi' in gi.__path__)"`
-syspygipath=`$PYTHON -c "import gi;print(gi.__path__@<:@-1@:>@)"`
-
-if test x"$enable_pyvips8" = xyes -a x"$inpath" != x"True"; then
-  AC_MSG_RESULT([dnl
+if test x"$enable_pyvips8" = xyes; then
+  expand $pyexecdir
+  VIPS_PYEXECDIR=$expanded_value
+  case "$VIPS_PYEXECDIR" in
+    /usr/local/Cellar/vips/*)
+      ;; # ingnore for homebrew
+    *)
+      syspygipath=`$PYTHON -c "import sys;sys.path.append('$VIPS_PYEXECDIR');import gi;print(gi._overridesdir)"`
+      if test x"$VIPS_PYEXECDIR/gi/overrides" != x"$syspygipath"; then
+        AC_MSG_RESULT([dnl
 The vips Python overrides file will install to 
-$VIPS_PYEXECDIR/overrides/Vips.py, but your
-system gi area seems to be $syspygipath.
+$VIPS_PYEXECDIR/gi/overrides/Vips.py, but your
+system gi overrides seem to be $syspygipath.
 You may need to copy this file, for example:
 
-	cp $VIPS_PYEXECDIR/overrides/Vips.* $syspygipath/overrides
-  ])
+	cp $VIPS_PYEXECDIR/gi/overrides/Vips.* $syspygipath
+        ])
+      fi
+      ;;
+  esac
 fi
