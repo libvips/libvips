@@ -692,7 +692,7 @@ vips_threadpool_new( VipsImage *im )
 	VipsThreadpool *pool;
 	int tile_width;
 	int tile_height;
-	int n_tiles;
+	gint64 n_tiles;
 	int n_lines;
 
 	/* Allocate and init new thread block.
@@ -716,7 +716,9 @@ vips_threadpool_new( VipsImage *im )
 	 * the number of threads we create.
 	 */
 	vips_get_tile_size( im, &tile_width, &tile_height, &n_lines );
-	n_tiles = (1 + im->Xsize / tile_width) * (1 + im->Ysize / tile_height);
+	n_tiles = (1 + (gint64) im->Xsize / tile_width) * 
+		(1 + (gint64) im->Ysize / tile_height);
+	n_tiles = VIPS_CLIP( 0, n_tiles, MAX_THREADS ); 
 	pool->nthr = VIPS_MIN( pool->nthr, n_tiles ); 
 
 	/* Attach tidy-up callback.
