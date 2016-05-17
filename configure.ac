@@ -989,7 +989,7 @@ if test x"$found_introspection" = xyes -a "$VIPS_LIBDIR/girepository-1.0" != "$I
   AC_MSG_RESULT([dnl
 Vips-8.0.typelib will install to $VIPS_LIBDIR/girepository-1.0, but your
 system repository seems to be $INTROSPECTION_TYPELIBDIR. 
-You will need to add this directory to your typelib path, for example:
+You may need to add this directory to your typelib path, for example:
 
 	export GI_TYPELIB_PATH="$VIPS_LIBDIR/girepository-1.0"
   ])
@@ -1006,7 +1006,7 @@ if test x"$enable_pyvips8" = xyes -a x"$inpath" != x"True"; then
 The vips Python overrides file will install to 
 $VIPS_PYEXECDIR/overrides/Vips.py, but your
 system gi area seems to be $syspygipath.
-You will need to copy this file, for example:
+You may need to copy this file, for example:
 
 	cp $VIPS_PYEXECDIR/overrides/Vips.* $syspygipath/overrides
   ])
