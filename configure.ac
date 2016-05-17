@@ -940,7 +940,7 @@ AC_OUTPUT([
 	po/Makefile.in
 ])
 
-AC_MSG_RESULT([
+AC_MSG_RESULT([dnl
 * build options
 native win32:				$vips_os_win32
 native OS X:				$vips_os_darwin
@@ -984,3 +984,30 @@ image pyramid export:			$with_gsf
   (requires libgsf-1 1.14.27 or later)
 use libexif to load/save JPEG metadata: $with_libexif
 ])
+
+if test x"$found_introspection" = xyes -a "$VIPS_LIBDIR/girepository-1.0" != "$INTROSPECTION_TYPELIBDIR"; then
+  AC_MSG_RESULT([dnl
+Vips-8.0.typelib will install to $VIPS_LIBDIR/girepository-1.0, which is 
+not your system repository. You will need to add this directory to your 
+typelib path, for example:
+
+	export GI_TYPELIB_PATH="$VIPS_LIBDIR/girepository-1.0"
+  ])
+fi
+
+expand $pyexecdir
+VIPS_PYEXECDIR=$expanded_value
+
+inpath=`$PYTHON -c "import gi;print('$VIPS_PYEXECDIR/gi' in gi.__path__)"`
+syspygipath=`$PYTHON -c "import gi;print(gi.__path__@<:@-1@:>@)"`
+
+if test x"$enable_pyvips8" = xyes -a x"$inpath" != x"True"; then
+  AC_MSG_RESULT([dnl
+The vips Python overrides file will install to 
+$VIPS_PYEXECDIR/overrides/Vips.py, 
+which is not in your package path. You will need to copy this file by hand
+before the vips8 Python interface will work, for example:
+
+	cp $VIPS_PYEXECDIR/overrides/Vips.* $syspygipath/overrides
+  ])
+fi
