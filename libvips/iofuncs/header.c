@@ -196,8 +196,7 @@ const guint64 vips__image_sizeof_bandformat[] = {
 guint64 
 vips_format_sizeof( VipsBandFormat format )
 {
-	g_assert( format >= 0 && 
-		format < VIPS_FORMAT_LAST ); 
+	format = VIPS_CLIP( 0, format, VIPS_FORMAT_DPCOMPLEX ); 
 
 	return( vips__image_sizeof_bandformat[format] );
 }

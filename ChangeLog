@@ -1,3 +1,6 @@
+18/5/16 started 8.3.2
+- more robust vips image reading
+
 15/4/16 started 8.3.1
 - rename vips wrapper script, it was still vips-8.2, thanks Benjamin
 - export C++ operator overloads for MSVC linking [Lovell]
