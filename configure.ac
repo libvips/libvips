@@ -726,7 +726,7 @@ if test "x$enable_pyvips8" = "xauto"; then
 fi
 
 if test x"$enable_pyvips8" = x"yes"; then
-  AM_PATH_PYTHON(2.7,,
+  JD_PATH_PYTHON(2.7,,
     [enable_pyvips8=no
      AC_MSG_WARN([Python not found; disabling vips8 Python binding])]
   )
@@ -846,7 +846,7 @@ if test x"$with_python" != x"no"; then
 fi
 
 if test x"$with_python" != x"no"; then
-  AM_PATH_PYTHON(2.7,,
+  JD_PATH_PYTHON(2.7,,
     [with_python=no
      AC_MSG_WARN([Python not found; disabling vips7 Python binding])]
   )
