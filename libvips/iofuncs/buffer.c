@@ -156,7 +156,7 @@ vips_buffer_dump_all( void )
 static void
 vips_buffer_free( VipsBuffer *buffer )
 {
-	vips_tracked_free( buffer->buf );
+	VIPS_FREEF( vips_tracked_free, buffer->buf );
 	buffer->bsize = 0;
 	g_free( buffer );
 
