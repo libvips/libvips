@@ -7,7 +7,7 @@ rm -f Makefile Makefile.in aclocal.m4
 rm -rf autom4te.cache
 # m4/ contains only stuff from the build system ... the m4 files we have
 # written and maintain are in m4-safe
-rm m4/* 
+rm -f m4/* 
 cp m4-safe/* m4/
 rm -f config.* configure depcomp
 rm -f install-sh intltool-* libtool ltmain.sh missing mkinstalldirs
