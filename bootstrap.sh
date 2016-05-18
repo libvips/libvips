@@ -5,7 +5,7 @@
 # a bunch of cleaning up ... make certain everything will be regenerated
 rm -f Makefile Makefile.in aclocal.m4 
 rm -rf autom4te.cache
-rm -f m4/*
+find m4 ! -name python.m4 -type f -name '*.m4' -delete
 rm -f config.* configure depcomp
 rm -f install-sh intltool-* libtool ltmain.sh missing mkinstalldirs
 rm -f stamp-* vipsCC-7.19.pc vips-7.19.spec vips-7.19.pc
@@ -31,7 +31,6 @@ if [ -e $ACDIR/dirlist ]; then
   ACDIR=`cat $ACDIR/dirlist`
 fi
 
-mkdir -p m4
 # glib-gettextize asks us to copy these files to m4 if they aren't there:
 files="codeset gettext glibc21 iconv isc-posix lcmessage progtest introspection"
 for dir in $ACDIR; do
@@ -58,7 +57,7 @@ test -r aclocal.m4 || touch aclocal.m4
 glib-gettextize --force --copy > /dev/null
 test -r aclocal.m4 && chmod u+w aclocal.m4
 # intltoolize --copy --force --automake
-aclocal
+aclocal -I m4
 autoconf
 autoheader
 $LIBTOOLIZE --copy --force --automake
