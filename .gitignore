@@ -48,8 +48,7 @@ libtool
 libvips/include/vips/version.h
 fred
 ltmain.sh
-m4/*
-!m4/python.m4
+m4
 missing
 mkinstalldirs
 po/Makefile.in.in

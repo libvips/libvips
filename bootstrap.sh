@@ -5,7 +5,10 @@
 # a bunch of cleaning up ... make certain everything will be regenerated
 rm -f Makefile Makefile.in aclocal.m4 
 rm -rf autom4te.cache
-find m4 ! -name python.m4 -type f -name '*.m4' -delete
+# m4/ contains only stuff from the build system ... the m4 files we have
+# written and maintain are in m4-safe
+rm m4/* 
+cp m4-safe/* m4/
 rm -f config.* configure depcomp
 rm -f install-sh intltool-* libtool ltmain.sh missing mkinstalldirs
 rm -f stamp-* vipsCC-7.19.pc vips-7.19.spec vips-7.19.pc

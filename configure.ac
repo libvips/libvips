@@ -349,30 +349,36 @@ PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 libxml-2.0 gobject-2.0)
 PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0 gmodule-2.0 gobject-2.0"
 
 # after 2.28 we have a monotonic timer
-PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,[
-  AC_DEFINE(HAVE_MONOTONIC_TIME,1,[define if your glib has g_get_monotonic_time().])
-  ],[:
+PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
+  [AC_DEFINE(HAVE_MONOTONIC_TIME,1,
+	    [define if your glib has g_get_monotonic_time().]
+   )
+  ],
+  [:
   ]
 )
 
 # after 2.32 there are a new set of thread functions, annoyingly
-PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,[
-  AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
-  AC_DEFINE(HAVE_COND_INIT,1,[define if your glib has g_cond_init().])
-  AC_DEFINE(HAVE_THREAD_NEW,1,[define if your glib has g_thread_new().])
-  AC_DEFINE(HAVE_PRIVATE_INIT,1,[define if your glib has G_PRIVATE_INIT().])
-  AC_DEFINE(HAVE_VALUE_GET_SCHAR,1,[define if your glib has g_value_get_schar().])
-  ],[
-    # the old threading system ... we need to link against gthread
-    PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
-    PACKAGES_USED="$PACKAGES_USED gthread-2.0"
+PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
+  [AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
+   AC_DEFINE(HAVE_COND_INIT,1,[define if your glib has g_cond_init().])
+   AC_DEFINE(HAVE_THREAD_NEW,1,[define if your glib has g_thread_new().])
+   AC_DEFINE(HAVE_PRIVATE_INIT,1,[define if your glib has G_PRIVATE_INIT().])
+   AC_DEFINE(HAVE_VALUE_GET_SCHAR,1,
+	     [define if your glib has g_value_get_schar().]
+   )
+  ],
+  [# the old threading system ... we need to link against gthread
+   PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
+   PACKAGES_USED="$PACKAGES_USED gthread-2.0"
   ]
 )
 
 # with 2.36 and after the type system inits itself
-PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,[
-  AC_DEFINE(NEED_TYPE_INIT,1,[define if your glib needs g_type_init().])
-  ],[:
+PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
+  [AC_DEFINE(NEED_TYPE_INIT,1,[define if your glib needs g_type_init().])
+  ],
+  [:
   ]
 )
 
@@ -389,9 +395,12 @@ if test x"$with_gsf" != "xno"; then
   PKG_CHECK_MODULES(GSF, libgsf-1 >= 1.14.27,
     [AC_DEFINE(HAVE_GSF,1,[define if you have libgsf-1 installed.])
      with_gsf=yes
-     PACKAGES_USED="$PACKAGES_USED libgsf-1"],
+     PACKAGES_USED="$PACKAGES_USED libgsf-1"
+    ],
     [AC_MSG_WARN([libgsf-1 not found; disabling dzsave support]) 
-     with_gsf=no])
+     with_gsf=no
+    ]
+  )
 fi
 
 AC_ARG_WITH([fftw], 
@@ -401,9 +410,12 @@ if test x"$with_fftw" != "xno"; then
   PKG_CHECK_MODULES(FFTW, fftw3,
     [AC_DEFINE(HAVE_FFTW,1,[define if you have fftw3 installed.])
      with_fftw=yes
-     PACKAGES_USED="$PACKAGES_USED fftw3"],
+     PACKAGES_USED="$PACKAGES_USED fftw3"
+    ],
     [AC_MSG_WARN([fftw not found; disabling fftw support]) 
-     with_fftw=no])
+     with_fftw=no
+    ]
+  )
 fi
 
 # ImageMagick ... detect attribute iteration too
@@ -419,36 +431,43 @@ AC_ARG_WITH([magickpackage],
 # MagickWand, so by default we test for that first
 if test x"$with_magickpackage" = "x"; then
   PKG_CHECK_MODULES(MAGICK_WAND, MagickWand,
-    [with_magickpackage=MagickWand],
+    [with_magickpackage=MagickWand
+    ],
     [PKG_CHECK_MODULES(IMAGE_MAGICK, ImageMagick,
-     [with_magickpackage=ImageMagick],
-     [AC_MSG_WARN([neither MagickWand nor ImageMagick found; disabling Magick support])
-      with_magick=no
-     ])])
+       [with_magickpackage=ImageMagick
+       ],
+       [AC_MSG_WARN([neither MagickWand nor ImageMagick found; disabling Magick support])
+        with_magick=no
+       ]
+     )
+    ]
+  )
 fi
 
-if test x"$with_magick" != "xno"; then
+if test x"$with_magick" != x"no"; then
   PKG_CHECK_MODULES(MAGICK, $with_magickpackage, 
     [AC_DEFINE(HAVE_MAGICK,1,[define if you have libMagick installed.])
      with_magick=yes
-     PACKAGES_USED="$PACKAGES_USED $with_magickpackage"],
+     PACKAGES_USED="$PACKAGES_USED $with_magickpackage"
+    ],
     [AC_MSG_WARN([$with_magickpackage not found; disabling Magick support])
      with_magick=no
-    ])
+    ]
+  )
 fi
 
-if test x"$with_magick" != "xno"; then
+if test x"$with_magick" != x"no"; then
   # we SetImageOption to disable some DICOM read processing, but that's only
   # in more recent imagemagicks and not in graphicsmagick
   save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
   AC_CHECK_FUNCS(SetImageOption,
-    AC_DEFINE(HAVE_SETIMAGEOPTION,1,
-	      [define if your magick has SetImageOption.]))
+    AC_DEFINE(HAVE_SETIMAGEOPTION,1,[define if your magick has SetImageOption.])
+  )
   LIBS="$save_LIBS"
 fi
 
-if test x"$with_magick" != "xno"; then
+if test x"$with_magick" != x"no"; then
   # newer ImageMagicks use MagickCoreGenesis instead of InitializeMagick argh
   save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
@@ -521,7 +540,8 @@ if test x"$with_orc" != "xno"; then
     ],
     [AC_MSG_WARN([orc-0.4.11 or later not found; disabling orc support])
      with_orc=no
-    ])
+    ]
+  )
 fi
 
 # lcms ... look for lcms2 first, it has better threading support
@@ -532,14 +552,19 @@ if test x"$with_lcms" != "xno"; then
   PKG_CHECK_MODULES(LCMS, lcms2,
     [AC_DEFINE(HAVE_LCMS2,1,[define if you have lcms2 installed.])
      with_lcms="yes (lcms2)"
-     PACKAGES_USED="$PACKAGES_USED lcms2"],
+     PACKAGES_USED="$PACKAGES_USED lcms2"
+    ],
     [PKG_CHECK_MODULES(LCMS, lcms,
-     [AC_DEFINE(HAVE_LCMS,1,[define if you have lcms installed.])
-      with_lcms="yes (lcms1)"
-      PACKAGES_USED="$PACKAGES_USED lcms"],
-     [AC_MSG_WARN([lcms2/lcms not found; disabling lcms support])
-      with_lcms=no])   
-    ])
+       [AC_DEFINE(HAVE_LCMS,1,[define if you have lcms installed.])
+        with_lcms="yes (lcms1)"
+        PACKAGES_USED="$PACKAGES_USED lcms"
+       ],
+       [AC_MSG_WARN([lcms2/lcms not found; disabling lcms support])
+        with_lcms=no
+       ]
+     )   
+    ]
+  )
 fi
 
 # OpenEXR
@@ -626,10 +651,12 @@ if test x"$with_matio" != "xno"; then
   PKG_CHECK_MODULES(MATIO, matio,
     [AC_DEFINE(HAVE_MATIO,1,[define if you have matio installed.])
      with_matio=yes
-     PACKAGES_USED="$PACKAGES_USED matio"],
+     PACKAGES_USED="$PACKAGES_USED matio"
+    ],
     [AC_MSG_WARN([matio not found; disabling matio support])
      with_matio=no
-    ])
+    ]
+  )
 fi
 
 # not external libraries, but have options to disable them, helps to
@@ -667,10 +694,12 @@ if test x"$with_cfitsio" != "xno"; then
   PKG_CHECK_MODULES(CFITSIO, cfitsio,
     [AC_DEFINE(HAVE_CFITSIO,1,[define if you have cfitsio installed.])
      with_cfitsio=yes
-     PACKAGES_USED="$PACKAGES_USED cfitsio"],
+     PACKAGES_USED="$PACKAGES_USED cfitsio"
+    ],
     [AC_MSG_WARN([cfitsio not found; disabling cfitsio support])
      with_cfitsio=no
-    ])
+    ]
+  )
 fi
 
 # libwebp
@@ -683,13 +712,15 @@ if test x"$with_libwebp" != "xno"; then
   PKG_CHECK_MODULES(LIBWEBP, libwebp >= 0.1.3,
     [AC_DEFINE(HAVE_LIBWEBP,1,[define if you have libwebp installed.])
      with_libwebp=yes
-     PACKAGES_USED="$PACKAGES_USED libwebp"],
-    [FIND_LIBWEBP([
-       with_libwebp="yes (found by search)"
-     ], [
-       AC_MSG_WARN([libwebp not found; disabling WEBP support])
-       with_libwebp=no
-     ])
+     PACKAGES_USED="$PACKAGES_USED libwebp"
+    ],
+    [FIND_LIBWEBP(
+       [with_libwebp="yes (found by search)"
+       ], 
+       [AC_MSG_WARN([libwebp not found; disabling WEBP support])
+        with_libwebp=no
+       ]
+     )
     ]
   )
 fi
@@ -707,19 +738,24 @@ if test x"$with_pangoft2" != "xno"; then
     ],
     [AC_MSG_WARN([pangoft2 not found; disabling pangoft2 support])
      with_pangoft2=no
-    ])
+    ]
+  )
 fi
 
 # install vips8 python
 AC_ARG_ENABLE([pyvips8],
   AS_HELP_STRING([--enable-pyvips8],
     [install vips8 Python overrides (default: test)]),
-  [enable_pyvips8=$enableval], 
-  [enable_pyvips8="auto"])
+  [enable_pyvips8=$enableval
+  ], 
+  [enable_pyvips8="auto"
+  ]
+)
 
 if test "x$enable_pyvips8" = "xauto"; then
   PKG_CHECK_EXISTS([pygobject-3.0 >= 3.12.0],
-    [enable_pyvips8=yes],
+    [enable_pyvips8=yes
+    ],
     [AC_MSG_WARN([pygobject-3.0 not found; disabling vips8 python support])
      enable_pyvips8=no
     ]
@@ -729,7 +765,8 @@ fi
 if test x"$enable_pyvips8" = x"yes"; then
   JD_PATH_PYTHON(2.7,,
     [enable_pyvips8=no
-     AC_MSG_WARN([Python not found; disabling vips8 Python binding])]
+     AC_MSG_WARN([Python not found; disabling vips8 Python binding])
+    ]
   )
 fi
 
@@ -743,10 +780,12 @@ AM_CONDITIONAL(ENABLE_PYVIPS8, test x"$enable_pyvips8" = x"yes")
 
 # hmm, these don't have .pc files on ubuntu 5.10, how odd
 FIND_ZIP(
-  [with_zip=yes],
+  [with_zip=yes
+  ],
   [AC_MSG_WARN([libz not found; disabling ZIP support])
    with_zip=no
-  ])
+  ]
+)
 
 # look for TIFF with pkg-config ... fall back to our tester
 # pkgconfig support for libtiff starts with libtiff-4
@@ -757,22 +796,26 @@ if test x"$with_tiff" != "xno"; then
   PKG_CHECK_MODULES(TIFF, libtiff-4,
     [AC_DEFINE(HAVE_TIFF,1,[define if you have libtiff installed.])
      with_tiff="yes (pkg-config libtiff-4)"
-     PACKAGES_USED="$PACKAGES_USED libtiff-4"],
+     PACKAGES_USED="$PACKAGES_USED libtiff-4"
+    ],
     [FIND_TIFF(
-     with_tiff="yes (found by search)",
-     [AC_MSG_WARN([libtiff not found; disabling TIFF support])
-      with_tiff=no
-     ])
-    ])
+       with_tiff="yes (found by search)",
+       [AC_MSG_WARN([libtiff not found; disabling TIFF support])
+        with_tiff=no
+       ]
+     )
+    ]
+  )
 fi
 
 # giflib
-FIND_GIFLIB([
-  with_giflib="yes (found by search)"
-], [
-  AC_MSG_WARN([giflib not found; disabling direct GIF support])
-  with_giflib=no
-])
+FIND_GIFLIB(
+  [with_giflib="yes (found by search)"
+  ], 
+  [AC_MSG_WARN([giflib not found; disabling direct GIF support])
+   with_giflib=no
+  ]
+)
 
 # look for PNG with pkg-config ... fall back to our tester
 AC_ARG_WITH([png], 
@@ -782,21 +825,27 @@ if test x"$with_png" != "xno"; then
   PKG_CHECK_MODULES(PNG, libpng >= 1.2.9, 
     [AC_DEFINE(HAVE_PNG,1,[define if you have libpng installed.])
      with_png="yes (pkg-config libpng >= 1.2.9)"
-     PACKAGES_USED="$PACKAGES_USED libpng"],
+     PACKAGES_USED="$PACKAGES_USED libpng"
+    ],
     [FIND_PNG(
-     with_png="yes (found by search)",
-     [AC_MSG_WARN([libpng not found; disabling PNG support])
-      with_png=no
-     ])
-    ])
+       [with_png="yes (found by search)"
+       ],
+       [AC_MSG_WARN([libpng not found; disabling PNG support])
+        with_png=no
+       ]
+     )
+    ]
+  )
 fi
 
 FIND_JPEG(
   [with_jpeg=yes
-   EXTRA_LIBS_USED="$EXTRA_LIBS_USED -ljpeg"],
+   EXTRA_LIBS_USED="$EXTRA_LIBS_USED -ljpeg"
+  ],
   [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
    with_jpeg=no
-  ])
+  ]
+)
 
 # JPEG extension parameters available in libjpeg-turbo >=1.5.0, mozjpeg >=3.0
 if test x"$with_jpeg" != "xno"; then
@@ -816,10 +865,12 @@ if test x"$with_libexif" != "xno"; then
   PKG_CHECK_MODULES(EXIF, libexif >= 0.6,
     [AC_DEFINE(HAVE_EXIF,1,[define if you have libexif >= 0.6 installed.])
      with_libexif=yes
-     PACKAGES_USED="$PACKAGES_USED libexif"],
+     PACKAGES_USED="$PACKAGES_USED libexif"
+    ],
     [AC_MSG_WARN([libexif >= 0.6 not found; disabling exif support])
      with_libexif=no
-    ])
+    ]
+  )
 fi
 
 # some libexif packages need include <libexif/poop.h>, some just <poop.h>
@@ -849,7 +900,8 @@ fi
 if test x"$with_python" != x"no"; then
   JD_PATH_PYTHON(2.7,,
     [with_python=no
-     AC_MSG_WARN([Python >= 2.7 not found; disabling vips7 Python binding])]
+     AC_MSG_WARN([Python >= 2.7 not found; disabling vips7 Python binding])
+    ]
   )
 fi
 
@@ -857,14 +909,17 @@ if test x"$with_python" != x"no"; then
   # The SWIG bindings don't compile on python3 (see issue #334).
   AM_PYTHON_CHECK_VERSION([$PYTHON], [3.0],
     [with_python=no
-     AC_MSG_WARN([Python >= 3.0 found; disabling vips7 Python binding])]
+     AC_MSG_WARN([Python >= 3.0 found; disabling vips7 Python binding])
+    ]
   )
 fi
 
 if test x"$with_python" != x"no"; then
   AM_CHECK_PYTHON_HEADERS(,
     [with_python=no
-     AC_MSG_WARN([Python headers not found; disabling vips7 Python binding])])
+     AC_MSG_WARN([Python headers not found; disabling vips7 Python binding])
+    ]
+  )
 fi
 
 # we don't check for swig: we include the generated bindings in the
@@ -997,7 +1052,7 @@ use libexif to load/save JPEG metadata: $with_libexif
 if test x"$found_introspection" = xyes -a "$VIPS_LIBDIR/girepository-1.0" != "$INTROSPECTION_TYPELIBDIR"; then
   case "$VIPS_LIBDIR" in
     /usr/local/Cellar/vips/*)
-      ;; # ingnore for homebrew
+      ;; # ignore for homebrew
     *)
       AC_MSG_RESULT([dnl
 Vips-8.0.typelib will install to $VIPS_LIBDIR/girepository-1.0, but your

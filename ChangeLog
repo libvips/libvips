@@ -6,6 +6,7 @@
   felixbuenemann
 - allow nested [] in CLI args
 - restore BandFmt on unpremultiply in vipsthumbnail
+- better python detection and build [Felix Bünemann]
 
 18/5/16 started 8.3.2
 - more robust vips image reading
