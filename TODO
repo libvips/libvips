@@ -1,5 +1,3 @@
-- why is intltool commented out in bootstrap? investigate
-
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py
