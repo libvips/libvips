@@ -56,7 +56,7 @@ test -r aclocal.m4 || touch aclocal.m4
 # it ... hopefully any errors will go to stderr and not be hidden
 glib-gettextize --force --copy > /dev/null
 test -r aclocal.m4 && chmod u+w aclocal.m4
-intltoolize --copy --force --automake
+#intltoolize --copy --force --automake
 aclocal -I m4
 autoconf
 autoheader

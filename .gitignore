@@ -55,6 +55,13 @@ m4/lt~obsolete.m4
 m4/ltoptions.m4
 m4/ltsugar.m4
 m4/ltversion.m4
+m4/codeset.m4
+m4/gettext.m4
+m4/glibc21.m4
+m4/iconv.m4
+m4/introspection.m4
+m4/lcmessage.m4
+m4/progtest.m4
 missing
 mkinstalldirs
 po/Makefile.in.in
