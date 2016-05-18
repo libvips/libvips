@@ -4,6 +4,8 @@ import sys
 
 # you might need this in your .bashrc
 # export GI_TYPELIB_PATH=$VIPSHOME/lib/girepository-1.0
+import gi
+gi.require_version('Vips', '8.0')
 from gi.repository import Vips
 
 print 'long way around:'

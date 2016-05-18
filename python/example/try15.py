@@ -2,6 +2,8 @@
 
 import sys
 
+import gi
+gi.require_version('Vips', '8.0')
 from gi.repository import GLib, Vips 
 
 context = GLib.OptionContext(" - test python stuff")
