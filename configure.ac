@@ -848,7 +848,15 @@ fi
 if test x"$with_python" != x"no"; then
   JD_PATH_PYTHON(2.7,,
     [with_python=no
-     AC_MSG_WARN([Python not found; disabling vips7 Python binding])]
+     AC_MSG_WARN([Python >= 2.7 not found; disabling vips7 Python binding])]
+  )
+fi
+
+if test x"$with_python" != x"no"; then
+  # The SWIG bindings don't compile on python3 (see issue #334).
+  AM_PYTHON_CHECK_VERSION([$PYTHON], [3.0],
+    [with_python=no
+     AC_MSG_WARN([Python >= 3.0 found; disabling vips7 Python binding])]
   )
 fi
 
