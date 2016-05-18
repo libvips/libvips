@@ -5,11 +5,15 @@
 # a bunch of cleaning up ... make certain everything will be regenerated
 rm -f Makefile Makefile.in aclocal.m4 
 rm -rf autom4te.cache
-# m4/ contains only stuff from the build system ... the m4 files we have
-# written and maintain are in m4-safe
-rm -rf m4
-mkdir m4
-cp m4-safe/* m4/
+
+# remove m4/ macros put there by libtool etc.
+rm -f m4/libtool.m4
+rm -f m4/lt~obsolete.m4
+rm -f m4/ltoptions.m4
+rm -f m4/ltsugar.m4
+rm -f m4/ltversion.m4
+rm -f m4/gtk-doc.m4
+
 rm -f config.* configure depcomp
 rm -f install-sh intltool-* libtool ltmain.sh missing mkinstalldirs
 rm -f stamp-* vipsCC-7.19.pc vips-7.19.spec vips-7.19.pc
@@ -35,18 +39,10 @@ if [ -e $ACDIR/dirlist ]; then
   ACDIR=`cat $ACDIR/dirlist`
 fi
 
-# glib-gettextize asks us to copy these files to m4 if they aren't there:
-files="codeset gettext glibc21 iconv isc-posix lcmessage progtest introspection"
-for dir in $ACDIR; do
-  test -d $dir && for file in $files; do
-    test -e $dir/$file.m4 && cp $dir/$file.m4 m4
-  done
-done
-
 gtkdocize --copy --docdir doc --flavour no-tmpl || exit 1
 
 # some systems need libtoolize, some glibtoolize ... how annoying
-echo testing for glibtoolize ...
+echo -n "testing for glibtoolize ... "
 if glibtoolize --version >/dev/null 2>&1; then
   LIBTOOLIZE=glibtoolize
   echo using glibtoolize
@@ -60,8 +56,7 @@ test -r aclocal.m4 || touch aclocal.m4
 # it ... hopefully any errors will go to stderr and not be hidden
 glib-gettextize --force --copy > /dev/null
 test -r aclocal.m4 && chmod u+w aclocal.m4
-# intltoolize --copy --force --automake
-aclocal -I m4
+intltoolize --copy --force --automake
 autoconf
 autoheader
 $LIBTOOLIZE --copy --force --automake
