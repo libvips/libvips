@@ -1016,8 +1016,21 @@ if test x"$enable_pyvips8" = xyes; then
     /usr/local/Cellar/vips/*)
       ;; # ingnore for homebrew
     *)
-      syspygipath=`$PYTHON -c "import sys;sys.path.append('$VIPS_PYEXECDIR');import gi;print(gi._overridesdir)"`
-      if test x"$VIPS_PYEXECDIR/gi/overrides" != x"$syspygipath"; then
+      syspygipath=`$PYTHON -c "
+import sys
+sys.path.append('$VIPS_PYEXECDIR')
+try: import gi; print(gi._overridesdir)
+except: pass"`
+      if test x"$syspygipath" = x; then
+        AC_MSG_RESULT([dnl
+Your python gi module could not be loaded.
+
+You should change your PYTHONPATH environment
+variable to include the pygobject3 gi module
+and re-run configure to check if the Vips.py
+overrides are installed in the correct location.
+        ])
+      elif test x"$VIPS_PYEXECDIR/gi/overrides" != x"$syspygipath"; then
         AC_MSG_RESULT([dnl
 The vips Python overrides file will install to 
 $VIPS_PYEXECDIR/gi/overrides/Vips.py, but your
