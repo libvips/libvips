@@ -260,6 +260,7 @@ AM_WITH_DMALLOC
 # without this we get something like
 #    define VIPS_LIBDIR ${exec_prefix}/lib
 # argh
+test "x$prefix" = xNONE && prefix=$ac_default_prefix
 test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
 
 # set $expanded_value to the fully-expanded value of the argument
