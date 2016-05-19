@@ -536,6 +536,8 @@ vips_arithmetic_gen( VipsRegion *or,
 
 	VIPS_GATE_STOP( "vips_arithmetic_gen: work" );
 
+	VIPS_COUNT_PIXELS( or, VIPS_OBJECT_CLASS( class )->nickname ); 
+
 	return( 0 );
 }
 
