@@ -93,7 +93,6 @@ vips_foreign_save_rad_class_init( VipsForeignSaveRadClass *class )
 
 	object_class->nickname = "radsave_base";
 	object_class->description = _( "save Radiance" );
-	object_class->build = vips_foreign_save_rad_build;
 
 	foreign_class->suffs = vips__rad_suffs;
 
