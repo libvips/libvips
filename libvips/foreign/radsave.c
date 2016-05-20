@@ -116,8 +116,8 @@ typedef struct _VipsForeignSaveRadFile {
 
 typedef VipsForeignSaveRadClass VipsForeignSaveRadFileClass;
 
-G_DEFINE_TYPE( VipsForeignSaveRadFile, vips_foreign_save_Rad_file, 
-	vips_foreign_save_Rad_get_type() );
+G_DEFINE_TYPE( VipsForeignSaveRadFile, vips_foreign_save_rad_file,
+	vips_foreign_save_rad_get_type() );
 
 static int
 vips_foreign_save_rad_file_build( VipsObject *object )
