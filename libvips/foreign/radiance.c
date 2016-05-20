@@ -1176,7 +1176,7 @@ write_destroy( Write *write )
 }
 
 static Write *
-write_new( VipsImage *in, const char *filename )
+write_new( VipsImage *in)
 {
 	Write *write;
 	int i;
@@ -1185,8 +1185,6 @@ write_new( VipsImage *in, const char *filename )
 		return( NULL );
 
 	write->in = in;
-	write->filename = vips_strdup( NULL, filename );
-        write->fout = vips__file_open_write( filename, FALSE );
 	strcpy( write->format, COLRFMT );
 	write->expos = 1.0;
 	for( i = 0; i < 3; i++ )
@@ -1200,11 +1198,6 @@ write_new( VipsImage *in, const char *filename )
 	write->prims[2][1] = CIE_y_b;
 	write->prims[3][0] = CIE_x_w;
 	write->prims[3][1] = CIE_y_w;
-
-        if( !write->filename || !write->fout ) {
-		write_destroy( write );
-		return( NULL );
-	}
 
 	return( write );
 }
@@ -1292,9 +1285,14 @@ vips__rad_save( VipsImage *in, const char *filename )
 	if( vips_image_pio_input( in ) ||
 		vips_check_coding_rad( "vips2rad", in ) )
 		return( -1 );
-	if( !(write = write_new( in, filename )) )
+	if( !(write = write_new( in )) )
 		return( -1 );
-	if( vips2rad_put_header( write ) ||
+
+	write->filename = vips_strdup( NULL, filename );
+	    write->fout = vips__file_open_write( filename, FALSE );
+
+	if( !write->filename || !write->fout ||
+		vips2rad_put_header( write ) ||
 		vips2rad_put_data( write ) ) {
 		write_destroy( write );
 		return( -1 );
