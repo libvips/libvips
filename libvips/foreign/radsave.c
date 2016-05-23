@@ -126,7 +126,7 @@ vips_foreign_save_rad_file_build( VipsObject *object )
 	VipsForeignSaveRad *rad = (VipsForeignSaveRad *) object;
 	VipsForeignSaveRadFile *rad_file = (VipsForeignSaveRadFile *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_rad_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_rad_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -187,7 +187,7 @@ vips_foreign_save_rad_buffer_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__rad_write_buf( save->ready, &obuf, &olen ) )
+	if( vips__rad_save_buf( save->ready, &obuf, &olen ) )
 		return( -1 );
 
 	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );

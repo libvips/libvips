@@ -1656,6 +1656,18 @@ void VImage::radsave( char * filename , VOption *options )
             set( "filename", filename ) );
 }
 
+VipsBlob * VImage::radsave_buffer( VOption *options )
+{
+    VipsBlob * buffer;
+
+    call( "radsave_buffer" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "buffer", &buffer ) );
+
+    return( buffer );
+}
+
 void VImage::ppmsave( char * filename , VOption *options )
 {
     call( "ppmsave" ,

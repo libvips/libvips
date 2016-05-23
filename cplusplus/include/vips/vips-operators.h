@@ -131,6 +131,7 @@ static VImage magickload_buffer( VipsBlob * buffer , VOption *options = 0 );
 static VImage fitsload( char * filename , VOption *options = 0 );
 static VImage openexrload( char * filename , VOption *options = 0 );
 void radsave( char * filename , VOption *options = 0 );
+VipsBlob * radsave_buffer( VOption *options = 0 );
 void ppmsave( char * filename , VOption *options = 0 );
 void csvsave( char * filename , VOption *options = 0 );
 void matrixsave( char * filename , VOption *options = 0 );
