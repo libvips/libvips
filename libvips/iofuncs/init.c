@@ -136,6 +136,10 @@ vips_get_argv0( void )
  * VIPS_INIT() is a macro, since it tries to check binary compatibility
  * between the caller and the library. 
  *
+ * You may call VIPS_INIT() many times and vips_shutdown() many times, but you 
+ * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
+ * stop and restart vips. 
+ *
  * VIPS_INIT() does approximately the following:
  *
  * + checks that the libvips your program is expecting is 
@@ -151,6 +155,9 @@ vips_get_argv0( void )
  *
  * + loads any plugins from $libdir/vips-x.y/, where x and y are the
  *   major and minor version numbers for this VIPS.
+ *
+ * + if your platform supports atexit(), VIPS_INIT() will ask for
+ *   vips_shutdown() to be called on program exit
  *
  * Example:
  *
@@ -494,7 +501,11 @@ vips_thread_shutdown( void )
  * vips_shutdown:
  *
  * Call this to drop caches and close plugins. Run with "--vips-leak" to do 
- * a leak check too. May be called many times.
+ * a leak check too. 
+ *
+ * You may call VIPS_INIT() many times and vips_shutdown() many times, but you 
+ * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
+ * stop and restart vips. 
  */
 void
 vips_shutdown( void )
