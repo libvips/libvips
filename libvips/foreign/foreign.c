@@ -12,6 +12,8 @@
  * 	- fix conversion to 16-bit RGB, thanks John
  * 18/6/15
  * 	- forward progress signals from load
+ * 23/5/16
+ * 	- remove max-alpha stuff, this is now automatic
  */
 
 /*
@@ -1214,9 +1216,6 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 			if( vips_flatten( in, &out, 
 				"background", save->background,
-				"max_alpha", 
-					in->BandFmt == VIPS_FORMAT_USHORT ?
-						65535.0 : 255.0, 
 				NULL ) ) {
 				g_object_unref( in );
 				return( -1 );

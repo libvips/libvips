@@ -7,6 +7,8 @@
  * 	- better rounding 
  * 9/5/15
  * 	- add max_alpha to match vips_premultiply() etc.
+ * 25/5/16
+ * 	- max_alpha defaults to 65535 for RGB16/GREY16
  */
 
 /*
@@ -320,6 +322,14 @@ vips_flatten_build( VipsObject *object )
 
 	conversion->out->Bands -= 1;
 
+	/* Is max-alpha unset? Default to the correct value for this
+	 * interpretation.
+	 */
+	if( !vips_object_argument_isset( object, "max_alpha" ) ) 
+		if( in->Type == VIPS_INTERPRETATION_GREY16 ||
+			in->Type == VIPS_INTERPRETATION_RGB16 )
+			flatten->max_alpha = 65535;
+
 	/* Is the background black? We have a special path for this.
 	 */
 	black = TRUE;
@@ -421,9 +431,9 @@ vips_flatten_init( VipsFlatten *flatten )
  * Non-complex images only.
  * @background defaults to zero (black). 
  *
- * @max_alpha has the default value 255. You will need to set this to 65535
- * for images with a 16-bit alpha, or perhaps 1.0 for images with a float
- * alpha. 
+ * @max_alpha has the default value 255, or 65535 for images tagged as
+ * #VIPS_INTERPRETATION_RGB16 or
+ * #VIPS_INTERPRETATION_GREY16. 
  *
  * Useful for flattening PNG images to RGB.
  *

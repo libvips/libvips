@@ -79,6 +79,8 @@
  * 	- deprecate sharpen and interpolate
  * 6/5/16
  * 	- restore BandFmt after unpremultiply
+ * 23/5/16
+ * 	- no need to guess max-alpha now premultiply does this for us
  */
 
 #ifdef HAVE_CONFIG_H
@@ -367,10 +369,6 @@ thumbnail_shrink( VipsObject *process, VipsImage *in )
 	gboolean have_premultiplied;
 	VipsBandFormat unpremultiplied_format;
 
-	/* Sniff the incoming image and try to guess what the alpha max is.
-	 */
-	double max_alpha;
-
 	double shrink; 
 
 	/* RAD needs special unpacking.
@@ -384,12 +382,6 @@ thumbnail_shrink( VipsObject *process, VipsImage *in )
 			return( NULL );
 		in = t[0];
 	}
-
-	/* Try to guess what the maximum alpha might be.
-	 */
-	max_alpha = 255;
-	if( in->BandFmt == VIPS_FORMAT_USHORT )
-		max_alpha = 65535;
 
 	/* In linear mode, we import right at the start. 
 	 *
@@ -443,9 +435,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in )
 		(in->Bands == 4 && in->Type != VIPS_INTERPRETATION_CMYK) ||
 		in->Bands == 5 ) {
 		vips_info( "vipsthumbnail", "premultiplying alpha" ); 
-		if( vips_premultiply( in, &t[3], 
-			"max_alpha", max_alpha,
-			NULL ) ) 
+		if( vips_premultiply( in, &t[3], NULL ) ) 
 			return( NULL );
 		have_premultiplied = TRUE;
 
@@ -465,9 +455,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in )
 
 	if( have_premultiplied ) {
 		vips_info( "vipsthumbnail", "unpremultiplying alpha" ); 
-		if( vips_unpremultiply( in, &t[5], 
-			"max_alpha", max_alpha,
-			NULL ) || 
+		if( vips_unpremultiply( in, &t[5], NULL ) || 
 			vips_cast( t[5], &t[6], unpremultiplied_format, NULL ) )
 			return( NULL );
 		in = t[6];

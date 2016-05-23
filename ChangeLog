@@ -7,6 +7,7 @@
 - allow nested [] in CLI args
 - restore BandFmt on unpremultiply in vipsthumbnail
 - better python detection and build [Felix Bünemann]
+- max-alpha defaults to 65535 for RGB16/GREY16
 
 18/5/16 started 8.3.2
 - more robust vips image reading
