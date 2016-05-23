@@ -2,6 +2,8 @@
  *
  * 2/12/11
  * 	- wrap a class around the rad writer
+ * 23/5/16
+ *  - split into file and buffer save classes
  */
 
 /*

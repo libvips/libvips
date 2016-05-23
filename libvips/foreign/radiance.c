@@ -15,6 +15,8 @@
  * 23/1/14
  * 	- put the reader globals into a struct so we can have many active
  * 	  readers
+ * 23/5/16
+ *	- Add buffer save functions   
  */
 
 /*
@@ -1458,10 +1460,10 @@ scanline_write_buf( COLR *scanline, int width, WriteBuf *wbuf )
 	}
 	/* An RLE scanline. Write magic header.
 	 */
-	PUTC_BUF( 2 ); 
-	PUTC_BUF( 2 ); 
-	PUTC_BUF( width >> 8 ); 
-	PUTC_BUF( width & 255 ); 
+	PUTC( 2 ); 
+	PUTC( 2 ); 
+	PUTC( width >> 8 ); 
+	PUTC( width & 255 ); 
 
 	for( i = 0; i < 4; i++ ) {
 		for( j = 0; j < width; ) {
@@ -1495,17 +1497,17 @@ scanline_write_buf( COLR *scanline, int width, WriteBuf *wbuf )
 
 				int k;
 
-				PUTC_BUF( len ); 
+				PUTC( len ); 
 				for( k = 0; k < len; k++ )
-					PUTC_BUF( p[k][i] );
+					PUTC( p[k][i] );
 				j += len;
 			}
 
 			/* Code the run we found, if any
 			 */
 			if( cnt >= MINRUN ) {
-				PUTC_BUF( 128 + cnt ); 
-				PUTC_BUF( scanline[j][i] ); 
+				PUTC( 128 + cnt ); 
+				PUTC( scanline[j][i] ); 
 				j += cnt; 
 			} 
 		}
