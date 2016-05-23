@@ -814,29 +814,16 @@ scanline_read( Buffer *buffer, COLR *scanline, int width )
  */
 #define MAX_LINE (2 * MAXELEN * sizeof( COLR ))
 
-/* Write a single scanline.
+/* write an RLE scanline. Write magic header.
  */
-static int
-scanline_write( COLR *scanline, int width, FILE *fp )
+static void
+rle_scanline_write( COLR *scanline, int width, unsigned char *buffer, int *buffer_pos )
 {
-	unsigned char buffer[MAX_LINE];
-	int buffer_pos = 0;
-
 #define PUTC( CH ) { \
-	buffer[buffer_pos++] = (CH); \
-	g_assert( buffer_pos <= MAX_LINE ); \
+	buffer[(*buffer_pos)++] = (CH); \
+	g_assert( *buffer_pos <= MAX_LINE ); \
 }
-
 	int i, j, beg, cnt;
-
-	if( width < MINELEN || 
-		width > MAXELEN )
-		/* Write as a flat scanline.
-		 */
-		return( fwrite( scanline, sizeof( COLR ), width, fp ) - width );
-
-	/* An RLE scanline. Write magic header.
-	 */
 	PUTC( 2 ); 
 	PUTC( 2 ); 
 	PUTC( width >> 8 ); 
@@ -889,6 +876,25 @@ scanline_write( COLR *scanline, int width, FILE *fp )
 			} 
 		}
 	}
+}
+
+/* Write a single scanline.
+ */
+static int
+scanline_write( COLR *scanline, int width, FILE *fp )
+{
+	unsigned char buffer[MAX_LINE];
+	int buffer_pos = 0;
+
+	if( width < MINELEN || 
+		width > MAXELEN )
+		/* Write as a flat scanline.
+		 */
+		return( fwrite( scanline, sizeof( COLR ), width, fp ) - width );
+
+	/* An RLE scanline.
+	 */
+	rle_scanline_write( scanline, width, buffer, &buffer_pos );
 
 	return( fwrite( buffer, 1, buffer_pos, fp ) - buffer_pos );
 }
@@ -1439,15 +1445,8 @@ scanline_write_buf( COLR *scanline, int width, WriteBuf *wbuf )
 {
 	int buffer_pos = 0;
 
-	int i, j, beg, cnt;
-
 	write_buf_grow( wbuf, MAX_LINE );
 	unsigned char *buffer = (unsigned char *) wbuf->buf + wbuf->len;
-
-#define PUTC_BUF( CH ) { \
-	buffer[buffer_pos++] = (CH); \
-	g_assert( buffer_pos <= MAX_LINE ); \
-}
 
 	if( width < MINELEN || 
 		width > MAXELEN ) {
@@ -1458,60 +1457,10 @@ scanline_write_buf( COLR *scanline, int width, WriteBuf *wbuf )
 
 		return( 0 );
 	}
-	/* An RLE scanline. Write magic header.
+
+	/* An RLE scanline.
 	 */
-	PUTC( 2 ); 
-	PUTC( 2 ); 
-	PUTC( width >> 8 ); 
-	PUTC( width & 255 ); 
-
-	for( i = 0; i < 4; i++ ) {
-		for( j = 0; j < width; ) {
-			/* Not needed, but keeps gcc used-before-set wsrning
-			 * quiet.
-			 */
-			cnt = 1;
-
-			/* Set beg / cnt to the start and length of the next 
-			 * run longer than MINRUN.
-			 */
-			for( beg = j; beg < width; beg += cnt ) {
-				for( cnt = 1; 
-					cnt < 127 && 
-					beg + cnt < width &&
-					scanline[beg + cnt][i] == 
-						scanline[beg][i]; 
-					cnt++ )
-					;
-
-				if( cnt >= MINRUN )
-					break;
-			}
-
-			/* Code pixels leading up to the run as a set of
-			 * non-runs. 
-			 */
-			while( j < beg ) {
-				int len = VIPS_MIN( 128, beg - j ); 
-				COLR *p = scanline + j; 
-
-				int k;
-
-				PUTC( len ); 
-				for( k = 0; k < len; k++ )
-					PUTC( p[k][i] );
-				j += len;
-			}
-
-			/* Code the run we found, if any
-			 */
-			if( cnt >= MINRUN ) {
-				PUTC( 128 + cnt ); 
-				PUTC( scanline[j][i] ); 
-				j += cnt; 
-			} 
-		}
-	}
+	rle_scanline_write( scanline, width, buffer, &buffer_pos );
 
 	wbuf->len += buffer_pos;
 	return( 0 );

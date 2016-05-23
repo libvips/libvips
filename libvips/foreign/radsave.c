@@ -125,7 +125,6 @@ static int
 vips_foreign_save_rad_file_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveRad *rad = (VipsForeignSaveRad *) object;
 	VipsForeignSaveRadFile *rad_file = (VipsForeignSaveRadFile *) object;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_rad_file_parent_class )->
@@ -179,7 +178,6 @@ static int
 vips_foreign_save_rad_buffer_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveRad *rad = (VipsForeignSaveRad *) object;
 
 	void *obuf;
 	size_t olen;
