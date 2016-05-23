@@ -139,6 +139,7 @@
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 #include "radiance.h"
 
@@ -1361,8 +1362,8 @@ write_buf_grow( WriteBuf *wbuf, size_t grow_len )
 		 */
 		wbuf->buf = g_realloc( wbuf->buf, wbuf->alloc );
 
-		// VIPS_DEBUG_MSG( "write_buf_grow: grown to %zd bytes\n",
-		// 	wbuf->alloc );
+		VIPS_DEBUG_MSG( "write_buf_grow: grown to %zd bytes\n",
+			wbuf->alloc );
 	}
 }
 
@@ -1385,8 +1386,6 @@ bprintf( WriteBuf *wbuf, const char *fmt, ... )
 	va_start(ap, fmt);
 	length = vsnprintf(write_start, length + 1, fmt, ap);
 	va_end(ap);
-
-	//memcpy( write_start, data, length );
 
 	wbuf->len += length;
 
@@ -1436,8 +1435,6 @@ vips2rad_put_header_buf( WriteBuf *wbuf, Write *write )
 static int
 scanline_write_buf( COLR *scanline, int width, WriteBuf *wbuf )
 {
-	printf("scanline %zu %zu \n", wbuf->len, wbuf->alloc);
-	//unsigned char buffer[MAX_LINE];
 	int buffer_pos = 0;
 
 	int i, j, beg, cnt;
@@ -1457,7 +1454,7 @@ scanline_write_buf( COLR *scanline, int width, WriteBuf *wbuf )
 		memcpy( buffer, scanline, sizeof( COLR ) * width );
 		wbuf->len += sizeof( COLR ) * width;
 
-		return( 0 ); //fwrite( scanline, sizeof( COLR ), width, fp ) - width );
+		return( 0 );
 	}
 	/* An RLE scanline. Write magic header.
 	 */
@@ -1515,7 +1512,6 @@ scanline_write_buf( COLR *scanline, int width, WriteBuf *wbuf )
 	}
 
 	wbuf->len += buffer_pos;
-	//return( fwrite( buffer, 1, buffer_pos, fp ) - buffer_pos );
 	return( 0 );
 }
 
