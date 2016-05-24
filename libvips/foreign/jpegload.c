@@ -43,12 +43,16 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_JPEG
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
+
+#include <vips/vips.h>
+#include <vips/buf.h>
+#include <vips/internal.h>
+
+#ifdef HAVE_JPEG
 
 #ifdef HAVE_EXIF
 #ifdef UNTAGGED_EXIF
@@ -63,10 +67,6 @@
 #include <libexif/exif-utils.h>
 #endif /*UNTAGGED_EXIF*/
 #endif /*HAVE_EXIF*/
-
-#include <vips/vips.h>
-#include <vips/buf.h>
-#include <vips/internal.h>
 
 #include "vipsjpeg.h"
 
@@ -343,3 +343,122 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
 }
 
 #endif /*HAVE_JPEG*/
+
+/**
+ * vips_jpegload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @shrink: %gint, shrink by this much on load
+ * * @fail: %gboolean, fail on warnings
+ * * @autorotate: %gboolean, use exif Orientation tag to rotate the image during load
+ *
+ * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
+ * including CMYK and YCbCr.
+ *
+ * @shrink means shrink by this integer factor during load.  Possible values 
+ * are 1, 2, 4 and 8. Shrinking during read is very much faster than 
+ * decompressing the whole image and then shrinking later.
+ *
+ * Setting @fail to %TRUE makes the JPEG reader fail on any warnings. 
+ * This can be useful for detecting truncated files, for example. Normally 
+ * reading these produces a warning, but no fatal error.  
+ *
+ * Setting @autorotate to %TRUE will make the loader interpret the EXIF
+ * Orientation field and automatically rotate the image appropriately during
+ * load. After rotation, the Orientation tag will be removed to prevent
+ * accidental double-rotation.  
+ *
+ * Using @autorotate can be much slower than doing the rotate later
+ * in processing. See vips_autorot().
+ *
+ * Example:
+ *
+ * |[
+ * vips_jpegload( "fred.jpg", &amp;out,
+ * 	"shrink", 8,
+ * 	"fail", TRUE,
+ * 	NULL );
+ * ]|
+ *
+ * Any embedded ICC profiles are ignored: you always just get the RGB from 
+ * the file. Instead, the embedded profile will be attached to the image as 
+ * @VIPS_META_ICC_NAME ("icc-profile-data"). You need to use something like 
+ * vips_icc_import() to get CIE values from the file. 
+ *
+ * EXIF metadata is attached as @VIPS_META_EXIF_NAME ("exif-data"), IPCT as
+ * @VIPS_META_IPCT_NAME ("ipct-data"), and XMP as VIPS_META_XMP_NAME
+ * ("xmp-data").
+ *
+ * The int metadata item "jpeg-multiscan" is set to the result of 
+ * jpeg_has_multiple_scans(). Interlaced jpeg images need a large amount of
+ * memory to load, so this field gives callers a chance to handle these
+ * images differently.
+ *
+ * The EXIF thumbnail, if present, is attached to the image as 
+ * "jpeg-thumbnail-data". See vips_image_get_blob().
+ *
+ * This function only reads the image header and does not decompress any pixel
+ * data. Decompression only occurs when pixels are accessed.
+ *
+ * See also: vips_jpegload_buffer(), vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "jpegload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_jpegload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @shrink: %gint, shrink by this much on load
+ * * @fail: %gboolean, fail on warnings
+ *
+ * Read a JPEG-formatted memory block into a VIPS image. Exactly as
+ * vips_jpegload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_jpegload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "jpegload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}

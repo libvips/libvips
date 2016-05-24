@@ -42,8 +42,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_POPPLER
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +50,8 @@
 #include <vips/vips.h>
 #include <vips/buf.h>
 #include <vips/internal.h>
+
+#ifdef HAVE_POPPLER
 
 #include <cairo.h>
 #include <poppler.h>
@@ -648,4 +648,114 @@ vips_foreign_load_pdf_buffer_init( VipsForeignLoadPdfBuffer *buffer )
 }
 
 #endif /*HAVE_POPPLER*/
+
+/**
+ * vips_pdfload:
+ * @filename: file to load
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page, numbered from zero
+ * * @n: %gint, load this many pages
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
+ *
+ * Render a PDF file into a VIPS image. Rendering uses the libpoppler library
+ * and should be fast. 
+ *
+ * The output image is always RGBA --- CMYK PDFs will be
+ * converted. If you need CMYK bitmaps, you should use vips_magickload()
+ * instead.
+ *
+ * Rendering is progressive, that is, the image is rendered in strips equal in 
+ * height to the tile height. If your PDF contains large image files and 
+ * they span several strips in the output image, they will be decoded multiple 
+ * times. To fix this, increase the the tile height, for example:
+ *
+ * |[
+ * vips copy huge.pdf x.png --vips-tile-height=1024
+ * ]|
+ *
+ * Will process images in 1024-pixel high strips, potentially much faster,
+ * though of course also using a lot more memory.
+ *
+ * Use @page to select a page to render, numbering from zero.
+ *
+ * Use @n to select the number of pages to render. The default is 1. Pages are
+ * rendered in a vertical column, with each individual page aligned to the
+ * left. Set to -1 to mean "until the end of the document". Use vips_grid() 
+ * to change page layout.
+ *
+ * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
+ * you can scale the rendering from the default 1 point == 1 pixel by 
+ * setting @scale.
+ *
+ * The operation fills a number of header fields with metadata, for example
+ * "pdf-author". They may be useful. 
+ *
+ * This function only reads the image header and does not render any pixel
+ * data. Rendering occurs when pixels are accessed.
+ *
+ * See also: vips_image_new_from_file(), vips_magickload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pdfload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "pdfload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_pdfload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page, numbered from zero
+ * * @n: %gint, load this many pages
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
+ *
+ * Read a PDF-formatted memory block into a VIPS image. Exactly as
+ * vips_pdfload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_pdfload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pdfload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "pdfload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
 

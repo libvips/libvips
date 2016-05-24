@@ -46,8 +46,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_MAGICK
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,6 +53,8 @@
 #include <vips/vips.h>
 #include <vips/buf.h>
 #include <vips/internal.h>
+
+#ifdef HAVE_MAGICK
 
 #include "magick.h"
 
@@ -298,3 +298,91 @@ vips_foreign_load_magick_buffer_init( VipsForeignLoadMagickBuffer *buffer )
 }
 
 #endif /*HAVE_MAGICK*/
+
+/**
+ * vips_magickload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @all_frames: %gboolean, load all frames in sequence
+ * * @density: string, canvas resolution for rendering vector formats like SVG
+ *
+ * Read in an image using libMagick, the ImageMagick library. This library can
+ * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many 
+ * others.
+ * The reader can handle any ImageMagick image, including the float and double
+ * formats. It will work with any quantum size, including HDR. Any metadata
+ * attached to the libMagick image is copied on to the VIPS image.
+ *
+ * The reader should also work with most versions of GraphicsMagick. See the
+ * "--with-magickpackage" configure option.
+ *
+ * Normally it will only load the first image in a many-image sequence (such
+ * as a GIF). Set @all_frames to true to read the whole image sequence. 
+ *
+ * @density is "WxH" in DPI, e.g. "600x300" or "600" (default is "72x72"). See
+ * the [density 
+ * docs](http://www.imagemagick.org/script/command-line-options.php#density) 
+ * on the imagemagick website.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_magickload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "magickload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_magickload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @all_frames: %gboolean, load all frames in sequence
+ * * @density: string, canvas resolution for rendering vector formats like SVG
+ *
+ * Read an image memory block using libMagick into a VIPS image. Exactly as
+ * vips_magickload(), but read from a memory source. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_magickload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_magickload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "magickload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}

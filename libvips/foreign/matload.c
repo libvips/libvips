@@ -42,8 +42,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_MATIO
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,6 +49,8 @@
 #include <vips/vips.h>
 #include <vips/buf.h>
 #include <vips/internal.h>
+
+#ifdef HAVE_MATIO
 
 #include "matlab.h"
 
@@ -143,3 +143,33 @@ vips_foreign_load_mat_init( VipsForeignLoadMat *mat )
 }
 
 #endif /*HAVE_MATIO*/
+
+/**
+ * vips_matload:
+ * @filename: file to load
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read a Matlab save file into a VIPS image. 
+ *
+ * This operation searches the save
+ * file for the first array variable with between 1 and 3 dimensions and loads
+ * it as an image. It will not handle complex images. It does not handle
+ * sparse matrices. 
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_matload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "matload", ap, filename, out ); 
+	va_end( ap );
+
+	return( result );
+}

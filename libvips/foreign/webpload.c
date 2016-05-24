@@ -43,11 +43,11 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_LIBWEBP
-
 #include <string.h>
 
 #include <vips/vips.h>
+
+#ifdef HAVE_LIBWEBP
 
 #include "webp.h"
 
@@ -278,3 +278,75 @@ vips_foreign_load_webp_buffer_init( VipsForeignLoadWebpBuffer *buffer )
 }
 
 #endif /*HAVE_LIBWEBP*/
+
+/**
+ * vips_webpload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @shrink: %gint, shrink by this much on load
+ *
+ * Read a WebP file into a VIPS image. 
+ *
+ * Use @shrink to specify a shrink-on-load factor.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_webpload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "webpload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_webpload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @shrink: %gint, shrink by this much on load
+ *
+ * Read a WebP-formatted memory block into a VIPS image. Exactly as
+ * vips_webpload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_webpload()
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "webpload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}

@@ -16,7 +16,7 @@
  * 	- put the reader globals into a struct so we can have many active
  * 	  readers
  * 23/5/16
- *	- Add buffer save functions   
+ *	- add buffer save functions   
  */
 
 /*
@@ -817,13 +817,18 @@ scanline_read( Buffer *buffer, COLR *scanline, int width )
 /* write an RLE scanline. Write magic header.
  */
 static void
-rle_scanline_write( COLR *scanline, int width, unsigned char *buffer, int *buffer_pos )
+rle_scanline_write( COLR *scanline, int width, 
+	unsigned char *buffer, int *length )
 {
-#define PUTC( CH ) { \
-	buffer[(*buffer_pos)++] = (CH); \
-	g_assert( *buffer_pos <= MAX_LINE ); \
-}
 	int i, j, beg, cnt;
+
+#define PUTC( CH ) { \
+	buffer[(*length)++] = (CH); \
+	g_assert( *length <= MAX_LINE ); \
+}
+
+	*length = 0;
+
 	PUTC( 2 ); 
 	PUTC( 2 ); 
 	PUTC( width >> 8 ); 
@@ -831,7 +836,7 @@ rle_scanline_write( COLR *scanline, int width, unsigned char *buffer, int *buffe
 
 	for( i = 0; i < 4; i++ ) {
 		for( j = 0; j < width; ) {
-			/* Not needed, but keeps gcc used-before-set wsrning
+			/* Not needed, but keeps gcc used-before-set warning
 			 * quiet.
 			 */
 			cnt = 1;
@@ -883,20 +888,21 @@ rle_scanline_write( COLR *scanline, int width, unsigned char *buffer, int *buffe
 static int
 scanline_write( COLR *scanline, int width, FILE *fp )
 {
-	unsigned char buffer[MAX_LINE];
-	int buffer_pos = 0;
-
 	if( width < MINELEN || 
 		width > MAXELEN )
 		/* Write as a flat scanline.
 		 */
 		return( fwrite( scanline, sizeof( COLR ), width, fp ) - width );
+	else {
+		/* An RLE scanline.
+		 */
+		unsigned char buffer[MAX_LINE];
+		int length;
 
-	/* An RLE scanline.
-	 */
-	rle_scanline_write( scanline, width, buffer, &buffer_pos );
+		rle_scanline_write( scanline, width, buffer, &length );
 
-	return( fwrite( buffer, 1, buffer_pos, fp ) - buffer_pos );
+		return( fwrite( buffer, 1, length, fp ) - length );
+	}
 }
 
 /* What we track during radiance file read.
@@ -1165,9 +1171,14 @@ vips__rad_load( const char *filename, VipsImage *out, gboolean readbehind )
  */
 typedef struct {
 	VipsImage *in;
-	char *filename;
 
+	char *filename;
 	FILE *fout;
+
+	char *buf;
+	size_t len;
+	size_t alloc;
+
 	char format[256];
 	double expos;
 	COLOR colcor;
@@ -1177,22 +1188,17 @@ typedef struct {
 } Write;
 
 static void
-write_destroy_file( Write *write )
+write_destroy( Write *write )
 {
 	VIPS_FREE( write->filename );
 	VIPS_FREEF( fclose, write->fout );
+	VIPS_FREE( write->buf );
 
-	vips_free( write );
-}
-
-static void
-write_destroy( Write *write )
-{
 	vips_free( write );
 }
 
 static Write *
-write_new( VipsImage *in)
+write_new( VipsImage *in )
 {
 	Write *write;
 	int i;
@@ -1201,6 +1207,14 @@ write_new( VipsImage *in)
 		return( NULL );
 
 	write->in = in;
+
+	write->filename = NULL;
+	write->fout = NULL;
+
+	write->buf = NULL;
+	write->len = 0;
+	write->alloc = 0;
+
 	strcpy( write->format, COLRFMT );
 	write->expos = 1.0;
 	for( i = 0; i < 3; i++ )
@@ -1254,7 +1268,7 @@ vips2rad_make_header( Write *write )
 static int
 vips2rad_put_header( Write *write )
 {
-	vips2rad_make_header(write);
+	vips2rad_make_header( write );
 
 	fprintf( write->fout, "#?RADIANCE\n" );
 
@@ -1317,124 +1331,99 @@ vips__rad_save( VipsImage *in, const char *filename )
 		!write->fout ||
 		vips2rad_put_header( write ) ||
 		vips2rad_put_data( write ) ) {
-		write_destroy_file( write );
+		write_destroy( write );
 		return( -1 );
 	}
-	write_destroy_file( write );
+	write_destroy( write );
 
 	return( 0 );
 }
 
-typedef struct _WriteBuf {
-	char *buf;
-	size_t len;
-	size_t alloc;
-} WriteBuf;
-
 static void
-write_buf_free( WriteBuf *wbuf )
+write_buf_grow( Write *write, size_t grow_len )
 {
-	VIPS_FREE( wbuf->buf );
-	VIPS_FREE( wbuf );
-}
+	size_t new_len = write->len + grow_len;
 
-static WriteBuf *
-write_buf_new( void )
-{
-	WriteBuf *wbuf;
+	if( new_len > write->alloc ) {
+		size_t proposed_alloc = (16 + write->alloc) * 3 / 2;
 
-	if( !(wbuf = VIPS_NEW( NULL, WriteBuf )) )
-		return( NULL );
+		write->alloc = VIPS_MAX( proposed_alloc, new_len );
 
-	wbuf->buf = NULL;
-	wbuf->len = 0;
-	wbuf->alloc = 0;
-
-	return( wbuf );
-}
-
-static void
-write_buf_grow( WriteBuf *wbuf, size_t grow_len )
-{
-	size_t new_len = wbuf->len + grow_len;
-
-	if( new_len > wbuf->alloc ) {
-		size_t proposed_alloc = (16 + wbuf->alloc) * 3 / 2;
-
-		wbuf->alloc = VIPS_MAX( proposed_alloc, new_len );
-
-		/* There's no vips_realloc(), so we call g_realloc() directly.
-		 * This is safe, since vips_malloc() / vips_free() are wrappers
-		 * over g_malloc() / g_free().
-		 *
-		 * FIXME: add vips_realloc().
+		/* Our caller must free with g_free(), so we must use
+		 * g_realloc(). 
 		 */
-		wbuf->buf = g_realloc( wbuf->buf, wbuf->alloc );
+		write->buf = g_realloc( write->buf, write->alloc );
 
 		VIPS_DEBUG_MSG( "write_buf_grow: grown to %zd bytes\n",
-			wbuf->alloc );
+			write->alloc );
 	}
 }
 
 static void
-bprintf( WriteBuf *wbuf, const char *fmt, ... )
+bprintf( Write *write, const char *fmt, ... )
 {
-	int length = 0;
-	char *write_start = NULL;
+	int length;
+	char *write_start;
 	va_list ap;
 
-	/* Determine required size */
-	va_start(ap, fmt);
-	length = vsnprintf(write_start, length, fmt, ap);
-	va_end(ap);
+	/* Determine required size.
+	 */
+	va_start( ap, fmt );
+	length = vsnprintf( NULL, 0, fmt, ap );
+	va_end( ap );
 
-	write_buf_grow( wbuf, length + 1 );
+	write_buf_grow( write, length + 1 );
 
-	write_start = wbuf->buf + wbuf->len;
+	write_start = write->buf + write->len;
 
-	va_start(ap, fmt);
-	length = vsnprintf(write_start, length + 1, fmt, ap);
-	va_end(ap);
+	va_start( ap, fmt );
+	length = vsnprintf( write_start, length + 1, fmt, ap );
+	va_end( ap );
 
-	wbuf->len += length;
+	write->len += length;
 
-	g_assert( wbuf->len <= wbuf->alloc );
+	g_assert( write->len <= write->alloc );
 }
 
-#define  bputformat(s,wb)	bprintf(wb, "%s%s\n", FMTSTR, s)
+#define bputformat( write, s ) \
+	bprintf( write, "%s%s\n", FMTSTR, s )
 
-#define  bputexpos(ex,wb)	bprintf(wb,"%s%e\n",EXPOSSTR,ex)
+#define bputexpos( write, ex ) \
+	bprintf( write, "%s%e\n", EXPOSSTR, ex )
 
-#define  bputcolcor(cc,wb)	bprintf(wb,"%s %f %f %f\n",COLCORSTR, \
-					(cc)[RED],(cc)[GRN],(cc)[BLU])
+#define bputcolcor( write, cc ) \
+	bprintf( write, "%s %f %f %f\n", \
+		COLCORSTR, (cc)[RED], (cc)[GRN], (cc)[BLU] )
 
-#define  bputaspect(pa,wb)	bprintf(wb,"%s%f\n",ASPECTSTR,pa)
+#define bputaspect( write, pa ) \
+	bprintf( write, "%s%f\n", ASPECTSTR, pa )
 
-#define  bputprims(p,wb)	bprintf(wb, \
-				"%s %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\n",\
-					PRIMARYSTR, \
-					(p)[RED][CIEX],(p)[RED][CIEY], \
-					(p)[GRN][CIEX],(p)[GRN][CIEY], \
-					(p)[BLU][CIEX],(p)[BLU][CIEY], \
-					(p)[WHT][CIEX],(p)[WHT][CIEY])
+#define bputprims( write, p ) \
+	bprintf( write, "%s %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\n", \
+		PRIMARYSTR, \
+		(p)[RED][CIEX], (p)[RED][CIEY], \
+		(p)[GRN][CIEX], (p)[GRN][CIEY], \
+		(p)[BLU][CIEX], (p)[BLU][CIEY], \
+		(p)[WHT][CIEX], (p)[WHT][CIEY] )
 
-#define  bputsresolu(rs,wb)	bprintf(wb,"%s",resolu2str(resolu_buf,rs))
+#define bputsresolu( write, rs ) \
+	bprintf( write, "%s", resolu2str( resolu_buf, rs ) )
 
 static int
-vips2rad_put_header_buf( WriteBuf *wbuf, Write *write )
+vips2rad_put_header_buf( Write *write )
 {
-	vips2rad_make_header(write);
+	vips2rad_make_header( write );
 
-	bprintf( wbuf, "#?RADIANCE\n" );
+	bprintf( write, "#?RADIANCE\n" );
 
-	bputformat( write->format, wbuf );
-	bputexpos( write->expos, wbuf );
-	bputcolcor( write->colcor, wbuf );
-	bprintf( wbuf, "SOFTWARE=vips %s\n", vips_version_string() );
-	bputaspect( write->aspect, wbuf );
-	bputprims( write->prims, wbuf );
-	bprintf( wbuf, "\n" );
-	bputsresolu( &write->rs, wbuf );
+	bputformat( write, write->format );
+	bputexpos( write, write->expos );
+	bputcolcor( write, write->colcor );
+	bprintf( write, "SOFTWARE=vips %s\n", vips_version_string() );
+	bputaspect( write, write->aspect );
+	bputprims( write, write->prims );
+	bprintf( write, "\n" );
+	bputsresolu( write, &write->rs );
 
 	return( 0 );
 }
@@ -1442,41 +1431,42 @@ vips2rad_put_header_buf( WriteBuf *wbuf, Write *write )
 /* Write a single scanline to buffer.
  */
 static int
-scanline_write_buf( COLR *scanline, int width, WriteBuf *wbuf )
+scanline_write_buf( Write *write, COLR *scanline, int width )
 {
-	int buffer_pos = 0;
+	unsigned char *buffer;
 
-	write_buf_grow( wbuf, MAX_LINE );
-	unsigned char *buffer = (unsigned char *) wbuf->buf + wbuf->len;
+	write_buf_grow( write, MAX_LINE );
+	buffer = (unsigned char *) write->buf + write->len;
 
 	if( width < MINELEN || 
 		width > MAXELEN ) {
 		/* Write as a flat scanline.
 		 */
 		memcpy( buffer, scanline, sizeof( COLR ) * width );
-		wbuf->len += sizeof( COLR ) * width;
+		write->len += sizeof( COLR ) * width;
+	}
+	else {
+		int length;
 
-		return( 0 );
+		/* An RLE scanline.
+		 */
+		rle_scanline_write( scanline, width, buffer, &length );
+		write->len += length;
 	}
 
-	/* An RLE scanline.
-	 */
-	rle_scanline_write( scanline, width, buffer, &buffer_pos );
-
-	wbuf->len += buffer_pos;
 	return( 0 );
 }
 
 static int
 vips2rad_put_data_block_buf( VipsRegion *region, VipsRect *area, void *a )
 {
-	WriteBuf *wbuf = (WriteBuf *) a;
+	Write *write = (Write *) a;
 	int i;
 
 	for( i = 0; i < area->height; i++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
 
-		if( scanline_write_buf( (COLR *) p, area->width, wbuf ) ) 
+		if( scanline_write_buf( write, (COLR *) p, area->width ) ) 
 			return( -1 );
 	}
 
@@ -1484,9 +1474,9 @@ vips2rad_put_data_block_buf( VipsRegion *region, VipsRect *area, void *a )
 }
 
 static int
-vips2rad_put_data_buf( WriteBuf *wbuf, Write *write )
+vips2rad_put_data_buf( Write *write )
 {
-	if( vips_sink_disc( write->in, vips2rad_put_data_block_buf, wbuf ) )
+	if( vips_sink_disc( write->in, vips2rad_put_data_block_buf, write ) )
 		return( -1 );
 
 	return( 0 );
@@ -1496,7 +1486,6 @@ int
 vips__rad_save_buf( VipsImage *in, void **obuf, size_t *olen )
 {
 	Write *write;
-	WriteBuf *wbuf;
 
 #ifdef DEBUG
 	printf( "vips2rad: writing to buffer\n" );
@@ -1505,27 +1494,22 @@ vips__rad_save_buf( VipsImage *in, void **obuf, size_t *olen )
 	if( vips_image_pio_input( in ) ||
 		vips_check_coding_rad( "vips2rad", in ) )
 		return( -1 );
-	if( !(wbuf = write_buf_new()) )
+	if( !(write = write_new( in )) ) 
 		return( -1 );
-	if( !(write = write_new( in )) ) {
-		write_buf_free( wbuf );
+
+	if( vips2rad_put_header_buf( write ) ||
+		vips2rad_put_data_buf( write ) ) {
+		write_destroy( write );
 		return( -1 );
 	}
 
-	if( vips2rad_put_header_buf( wbuf, write ) ||
-		vips2rad_put_data_buf( wbuf, write ) ) {
-		write_destroy( write );
-		write_buf_free( wbuf );
-		return( -1 );
-	}
+	*obuf = write->buf;
+	write->buf = NULL;
+	if( olen )
+		*olen = write->len;
+
 	write_destroy( write );
 
-	*obuf = wbuf->buf;
-	wbuf->buf = NULL;
-	if( olen )
-		*olen = wbuf->len;
-
-	write_buf_free( wbuf );
 	return( 0 );
 }
 

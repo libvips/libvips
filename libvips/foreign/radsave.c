@@ -3,7 +3,7 @@
  * 2/12/11
  * 	- wrap a class around the rad writer
  * 23/5/16
- *  - split into file and buffer save classes
+ *  	- split into file and buffer save classes
  */
 
 /*
@@ -190,7 +190,10 @@ vips_foreign_save_rad_buffer_build( VipsObject *object )
 	if( vips__rad_save_buf( save->ready, &obuf, &olen ) )
 		return( -1 );
 
-	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );
+	/* vips__rad_save_buf() makes a buffer that needs g_free(), not
+	 * vips_free().
+	 */
+	blob = vips_blob_new( (VipsCallbackFn) g_free, obuf, olen );
 	g_object_set( object, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
@@ -222,7 +225,6 @@ static void
 vips_foreign_save_rad_buffer_init( VipsForeignSaveRadBuffer *buffer )
 {
 }
-
 
 #endif /*HAVE_RADIANCE*/
 
@@ -262,8 +264,8 @@ vips_radsave( VipsImage *in, const char *filename, ... )
  *
  * As vips_radsave(), but save to a memory buffer. 
  *
- * The address of the buffer is returned in @obuf, the length of the buffer in
- * @olen. You are responsible for freeing the buffer with g_free() when you
+ * The address of the buffer is returned in @buf, the length of the buffer in
+ * @len. You are responsible for freeing the buffer with g_free() when you
  * are done with it.
  *
  * See also: vips_radsave(), vips_image_write_to_file().

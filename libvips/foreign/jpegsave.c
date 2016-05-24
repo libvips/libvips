@@ -41,12 +41,16 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_JPEG
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
+
+#include <vips/vips.h>
+#include <vips/buf.h>
+#include <vips/internal.h>
+
+#ifdef HAVE_JPEG
 
 #ifdef HAVE_EXIF
 #ifdef UNTAGGED_EXIF
@@ -61,10 +65,6 @@
 #include <libexif/exif-utils.h>
 #endif /*UNTAGGED_EXIF*/
 #endif /*HAVE_EXIF*/
-
-#include <vips/vips.h>
-#include <vips/buf.h>
-#include <vips/internal.h>
 
 #include "vipsjpeg.h"
 
@@ -310,7 +310,9 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 		jpeg->optimize_scans, jpeg->quant_table ) )
 		return( -1 );
 
-	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );
+	/* obuf is a g_free() buffer, not vips_free().
+	 */
+	blob = vips_blob_new( (VipsCallbackFn) g_free, obuf, olen );
 	g_object_set( file, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
@@ -405,3 +407,210 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
 }
 
 #endif /*HAVE_JPEG*/
+
+/**
+ * vips_jpegsave:
+ * @in: image to save 
+ * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: %gint, quality factor
+ * * @profile: filename of ICC profile to attach
+ * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
+ * * @interlace: %gboolean, write an interlaced (progressive) jpeg
+ * * @strip: %gboolean, remove all metadata from image
+ * * @no-subsample: %gboolean, disable chroma subsampling
+ * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
+ * * @quant_table: %gint, quantization table index
+ *
+ * Write a VIPS image to a file as JPEG.
+ *
+ * Use @Q to set the JPEG compression factor. Default 75.
+ *
+ * Use @profile to give the filename of a profile to be embedded in the JPEG.
+ * This does not affect the pixels which are written, just the way 
+ * they are tagged. You can use the special string "none" to mean 
+ * "don't attach a profile".
+ *
+ * If no profile is specified and the VIPS header 
+ * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
+ * profile from the VIPS header will be attached.
+ *
+ * The image is automatically converted to RGB, Monochrome or CMYK before 
+ * saving. 
+ *
+ * EXIF data is constructed from @VIPS_META_EXIF_NAME ("exif-data"), then
+ * modified with any other related tags on the image before being written to
+ * the file. 
+ *
+ * IPCT as @VIPS_META_IPCT_NAME ("ipct-data") and XMP as VIPS_META_XMP_NAME
+ * ("xmp-data") are coded and attached. 
+ *
+ * If @optimize_coding is set, the Huffman tables are optimised. This is
+ * sllightly slower and produces slightly smaller files. 
+ *
+ * If @interlace is set, the jpeg files will be interlaced (progressive jpeg,
+ * in jpg parlance). These files may be better for display over a slow network
+ * conection, but need much more memory to encode and decode. 
+ *
+ * If @strip is set, no EXIF data, IPCT data, ICC profile or XMP metadata is 
+ * written into the output file. 
+ *
+ * If @no-subsample is set, chrominance subsampling is disabled. This will 
+ * improve quality at the cost of larger file size. Useful for high Q factors. 
+ *
+ * If @trellis_quant is set and the version of libjpeg supports it
+ * (e.g. mozjpeg >= 3.0), apply trellis quantisation to each 8x8 block.
+ * Reduces file size but increases compression time.
+ *
+ * If @overshoot_deringing is set and the version of libjpeg supports it
+ * (e.g. mozjpeg >= 3.0), apply overshooting to samples with extreme values
+ * for example 0 and 255 for 8-bit. Overshooting may reduce ringing artifacts
+ * from compression, in particular in areas where black text appears on a
+ * white background.
+ *
+ * If @optimize_scans is set and the version of libjpeg supports it
+ * (e.g. mozjpeg >= 3.0), split the spectrum of DCT coefficients into
+ * separate scans. Reduces file size but increases compression time.
+ *
+ * If @quant_table is set and the version of libjpeg supports it
+ * (e.g. mozjpeg >= 3.0) it selects the quantization table to use:
+ *
+ * * 0 — Tables from JPEG Annex K (vips and libjpeg default)
+ * * 1 — Flat table
+ * * 2 — Table tuned for MSSIM on Kodak image set
+ * * 3 — Table from ImageMagick by N. Robidoux (current mozjpeg default)
+ * * 4 — Table tuned for PSNR-HVS-M on Kodak image set
+ * * 5 — Table from Relevance of Human Vision to JPEG-DCT Compression (1992)
+ * * 6 — Table from DCTune Perceptual Optimization of Compressed Dental 
+ *   X-Rays (1997)
+ * * 7 — Table from A Visual Detection Model for DCT Coefficient 
+ *   Quantization (1993)
+ * * 8 — Table from An Improved Detection Model for DCT Coefficient 
+ *   Quantization (1993)
+ *
+ * Quantization table 0 is the default in vips and libjpeg(-turbo), but it
+ * tends to favor detail over color accuracy, producting colored patches and
+ * stripes as well as heavy banding in flat areas at high compression ratios.
+ * Quantization table 2 is a good candidate to try if the default quantization
+ * table produces banding or color shifts and is well suited for hires images.
+ * Quantization table 3 is the default in mozjpeg and has been tuned to produce
+ * good results at the default quality setting; banding at high compression.
+ * Quantization table 4 is the most accurate at the cost of compression ratio.
+ * Tables 5-7 are based on older research papers, but generally achieve worse
+ * compression ratios and/or quality than 2 or 4.
+ *
+ * See also: vips_jpegsave_buffer(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegsave( VipsImage *in, const char *filename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, filename );
+	result = vips_call_split( "jpegsave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_jpegsave_buffer:
+ * @in: image to save 
+ * @buf: return output buffer here
+ * @len: return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: JPEG quality factor
+ * * @profile: attach this ICC profile
+ * * @optimize_coding: compute optimal Huffman coding tables
+ * * @interlace: write an interlaced (progressive) jpeg
+ * * @strip: remove all metadata from image
+ * * @no-subsample: disable chroma subsampling
+ * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
+ * * @quant_table: %gint, quantization table index
+ *
+ * As vips_jpegsave(), but save to a memory buffer. 
+ *
+ * The address of the buffer is returned in @obuf, the length of the buffer in
+ * @olen. You are responsible for freeing the buffer with g_free() when you
+ * are done with it.
+ *
+ * See also: vips_jpegsave(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	area = NULL; 
+
+	va_start( ap, len );
+	result = vips_call_split( "jpegsave_buffer", ap, in, &area );
+	va_end( ap );
+
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
+
+	return( result );
+}
+
+/**
+ * vips_jpegsave_mime:
+ * @in: image to save 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: JPEG quality factor
+ * * @profile: attach this ICC profile
+ * * @optimize_coding: compute optimal Huffman coding tables
+ * * @strip: remove all metadata from image
+ * * @no-subsample: disable chroma subsampling
+ * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
+ * * @quant_table: %gint, quantization table index
+ *
+ * As vips_jpegsave(), but save as a mime jpeg on stdout.
+ *
+ * See also: vips_jpegsave(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegsave_mime( VipsImage *in, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, in );
+	result = vips_call_split( "jpegsave_mime", ap, in );
+	va_end( ap );
+
+	return( result );
+}

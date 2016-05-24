@@ -41,11 +41,11 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_LIBWEBP
-
 #include <stdlib.h>
 
 #include <vips/vips.h>
+
+#ifdef HAVE_LIBWEBP
 
 #include "webp.h"
 
@@ -258,7 +258,9 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 		webp->alpha_q ) )
 		return( -1 );
 
-	blob = vips_blob_new( (VipsCallbackFn) vips_free, obuf, olen );
+	/* obuf is a g_free() buffer, not vips_free().
+	 */
+	blob = vips_blob_new( (VipsCallbackFn) g_free, obuf, olen );
 	g_object_set( file, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
@@ -352,3 +354,138 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
 }
 
 #endif /*HAVE_LIBWEBP*/
+
+/**
+ * vips_webpsave:
+ * @in: image to save 
+ * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: %gint quality factor
+ * * @lossless: %gboolean enables lossless compression
+ * * @preset: #VipsForeignWebpPreset choose lossy compression preset
+ * * @smart_subsample: %gboolean enables high quality chroma subsampling
+ * * @near_lossless: %gboolean preprocess in lossless mode (controlled by Q)
+ * * @alpha_q: %gint set alpha quality in lossless mode
+ *
+ * Write an image to a file in WebP format. 
+ *
+ * By default, images are saved in lossy format, with 
+ * @Q giving the WebP quality factor. It has the range 0 - 100, with the
+ * default 75.
+ *
+ * Use @preset to hint the image type to the lossy compressor. The default is
+ * #VIPS_FOREIGN_WEBP_PRESET_DEFAULT. 
+ * Set @smart_subsample to enable high quality chroma subsampling.
+ * Use @alpha_q to set the quality for the alpha channel in lossy mode. It has
+ * the range 1 - 100, with the default 100.
+ *
+ * Set @lossless to use lossless compression, or combine @near_lossless
+ * with @Q 80, 60, 40 or 20 to apply increasing amounts of preprocessing
+ * which improves the near-lossless compression ratio by up to 50%.
+ *
+ * See also: vips_webpload(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_webpsave( VipsImage *in, const char *filename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, filename );
+	result = vips_call_split( "webpsave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_webpsave_buffer:
+ * @in: image to save 
+ * @buf: return output buffer here
+ * @len: return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: %gint quality factor
+ * * @lossless: %gboolean enables lossless compression
+ * * @preset: #VipsForeignWebpPreset choose lossy compression preset
+ * * @smart_subsample: %gboolean enables high quality chroma subsampling
+ * * @near_lossless: %gboolean preprocess in lossless mode (controlled by Q)
+ * * @alpha_q: %gint set alpha quality in lossless mode
+ *
+ * As vips_webpsave(), but save to a memory buffer.
+ *
+ * The address of the buffer is returned in @buf, the length of the buffer in
+ * @len. You are responsible for freeing the buffer with g_free() when you
+ * are done with it. 
+ *
+ * See also: vips_webpsave().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	area = NULL; 
+
+	va_start( ap, len );
+	result = vips_call_split( "webpsave_buffer", ap, in, &area );
+	va_end( ap );
+
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
+
+	return( result );
+}
+
+/**
+ * vips_webpsave_mime:
+ * @in: image to save 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: %gint quality factor
+ * * @lossless: %gboolean enables lossless compression
+ * * @preset: #VipsForeignWebpPreset choose lossy compression preset
+ * * @smart_subsample: %gboolean enables high quality chroma subsampling
+ * * @near_lossless: %gboolean preprocess in lossless mode (controlled by Q)
+ * * @alpha_q: %gint set alpha quality in lossless mode
+ *
+ * As vips_webpsave(), but save as a mime webp on stdout.
+ *
+ * See also: vips_webpsave(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_webpsave_mime( VipsImage *in, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, in );
+	result = vips_call_split( "webpsave_mime", ap, in );
+	va_end( ap );
+
+	return( result );
+}

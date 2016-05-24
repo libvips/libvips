@@ -710,6 +710,11 @@ typedef struct {
 	VipsImage *memory;
 
 	FILE *fp;
+
+	char *buf;
+	size_t len;
+	size_t alloc;
+
 	png_structp pPng;
 	png_infop pInfo;
 	png_bytep *row_pointer;
@@ -720,6 +725,7 @@ write_finish( Write *write )
 {
 	VIPS_FREEF( fclose, write->fp );
 	VIPS_UNREF( write->memory );
+	VIPS_FREE( write->buf );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
 }
@@ -740,6 +746,10 @@ write_new( VipsImage *in )
 	memset( write, 0, sizeof( Write ) );
 	write->in = in;
 	write->memory = NULL;
+	write->fp = NULL;
+	write->buf = NULL;
+	write->len = 0;
+	write->alloc = 0;
 	g_signal_connect( in, "close", 
 		G_CALLBACK( write_destroy ), write ); 
 
@@ -976,72 +986,41 @@ vips__png_write( VipsImage *in, const char *filename,
 	return( 0 );
 }
 
-typedef struct _WriteBuf {
-	char *buf;
-	size_t len;
-	size_t alloc;
-} WriteBuf;
-
 static void
-write_buf_free( WriteBuf *wbuf )
+write_grow( Write *write, size_t grow_len )
 {
-	VIPS_FREE( wbuf->buf );
-	VIPS_FREE( wbuf );
-}
+	size_t new_len = write->len + grow_len;
 
-static WriteBuf *
-write_buf_new( void )
-{
-	WriteBuf *wbuf;
+	if( new_len > write->alloc ) {
+		size_t proposed_alloc = (16 + write->alloc) * 3 / 2;
 
-	if( !(wbuf = VIPS_NEW( NULL, WriteBuf )) )
-		return( NULL );
+		write->alloc = VIPS_MAX( proposed_alloc, new_len );
 
-	wbuf->buf = NULL;
-	wbuf->len = 0;
-	wbuf->alloc = 0;
-
-	return( wbuf );
-}
-
-static void
-write_buf_grow( WriteBuf *wbuf, size_t grow_len )
-{
-	size_t new_len = wbuf->len + grow_len;
-
-	if( new_len > wbuf->alloc ) {
-		size_t proposed_alloc = (16 + wbuf->alloc) * 3 / 2;
-
-		wbuf->alloc = VIPS_MAX( proposed_alloc, new_len );
-
-		/* There's no vips_realloc(), so we call g_realloc() directly.
-		 * This is safe, since vips_malloc() / vips_free() are wrappers 
-		 * over g_malloc() / g_free().
-		 *
-		 * FIXME: add vips_realloc().
+		/* Our result mujst be freedd with g_free(), so it's OK to use
+		 * g_realloc(). 
 		 */
-	 	wbuf->buf = g_realloc( wbuf->buf, wbuf->alloc );
+	 	write->buf = g_realloc( write->buf, write->alloc );
 
 		VIPS_DEBUG_MSG( "write_buf_grow: grown to %zd bytes\n",
-			wbuf->alloc );
+			write->alloc );
 	}
 }
 
 static void
 user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
 {
-	WriteBuf *wbuf = (WriteBuf *) png_get_io_ptr( png_ptr );
+	Write *write = (Write *) png_get_io_ptr( png_ptr );
 
 	char *write_start;
 
-	write_buf_grow( wbuf, length );
+	write_grow( write, length );
 
-	write_start = wbuf->buf + wbuf->len;
+	write_start = write->buf + write->len;
 	memcpy( write_start, data, length );
 
-	wbuf->len += length;
+	write->len += length;
 
-	g_assert( wbuf->len <= wbuf->alloc );
+	g_assert( write->len <= write->alloc );
 }
 
 int
@@ -1049,36 +1028,28 @@ vips__png_write_buf( VipsImage *in,
 	void **obuf, size_t *olen, int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter )
 {
-	WriteBuf *wbuf;
 	Write *write;
 
-	if( !(wbuf = write_buf_new()) )
+	if( !(write = write_new( in )) ) 
 		return( -1 );
-	if( !(write = write_new( in )) ) {
-		write_buf_free( wbuf );
-		return( -1 );
-	}
 
-	png_set_write_fn( write->pPng, wbuf, user_write_data, NULL );
+	png_set_write_fn( write->pPng, write, user_write_data, NULL );
 
 	/* Convert it!
 	 */
 	if( write_vips( write, compression, interlace, profile, filter ) ) {
-		write_buf_free( wbuf );
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );
 	      
 		return( -1 );
 	}
 
-	write_finish( write );
-
-	*obuf = wbuf->buf;
-	wbuf->buf = NULL;
+	*obuf = write->buf;
+	write->buf = NULL;
 	if( olen )
-		*olen = wbuf->len;
+		*olen = write->len;
 
-	write_buf_free( wbuf );
+	write_finish( write );
 
 	return( 0 );
 }

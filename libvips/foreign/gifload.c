@@ -42,8 +42,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_GIFLIB
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,6 +52,8 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
+
+#ifdef HAVE_GIFLIB
 
 #include <gif_lib.h>
 
@@ -734,5 +734,80 @@ vips_foreign_load_gif_buffer_init( VipsForeignLoadGifBuffer *buffer )
 {
 }
 
-#endif /*HAVE_RSVG*/
+#endif /*HAVE_GIFLIB*/
+
+/**
+ * vips_gifload:
+ * @filename: file to load
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %ginit, page (frame) to read
+ *
+ * Read a GIF file into a VIPS image.  Rendering uses the giflib library.
+ *
+ * Use @page to set page number (frame number) to read.
+ *
+ * The whole GIF is parsed and read into memory on header access, the whole 
+ * GIF is rendered on first pixel access.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_gifload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "gifload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_gifload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %ginit, page (frame) to read
+ *
+ * Read a GIF-formatted memory block into a VIPS image. Exactly as
+ * vips_gifload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_gifload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_gifload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "gifload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
 

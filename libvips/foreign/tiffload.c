@@ -40,8 +40,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_TIFF
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,6 +47,8 @@
 #include <vips/vips.h>
 #include <vips/buf.h>
 #include <vips/internal.h>
+
+#ifdef HAVE_TIFF
 
 #include "tiff.h"
 
@@ -280,3 +280,81 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
 }
 
 #endif /*HAVE_TIFF*/
+
+/**
+ * vips_tiffload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: int, load this page
+ *
+ * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
+ * with extensions for tiled images, multipage images, LAB colour space, 
+ * pyramidal images and JPEG compression. including CMYK and YCbCr.
+ *
+ * @page means load this page from the file. By default the first page (page
+ * 0) is read.
+ *
+ * Any ICC profile is read and attached to the VIPS image. Any XMP metadata is
+ * read and attached to the image. 
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_tiffload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "tiffload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_tiffload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page
+ *
+ * Read a TIFF-formatted memory block into a VIPS image. Exactly as
+ * vips_tiffload(), but read from a memory source. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_tiffload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "tiffload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
