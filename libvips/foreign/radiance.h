@@ -40,6 +40,7 @@ int vips__rad_header( const char *filename, VipsImage *out );
 int vips__rad_load( const char *filename, VipsImage *out, gboolean readbehind );
 
 int vips__rad_save( VipsImage *in, const char *filename );
+int vips__rad_save_buf( VipsImage *in, void **obuf, size_t *olen );
 
 extern const char *vips__rad_suffs[];
 

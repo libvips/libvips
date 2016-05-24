@@ -1618,7 +1618,8 @@ void
 vips_foreign_operation_init( void )
 {
 	extern GType vips_foreign_load_rad_get_type( void ); 
-	extern GType vips_foreign_save_rad_get_type( void ); 
+	extern GType vips_foreign_save_rad_file_get_type( void ); 
+	extern GType vips_foreign_save_rad_buffer_get_type( void ); 
 	extern GType vips_foreign_load_mat_get_type( void ); 
 	extern GType vips_foreign_load_ppm_get_type( void ); 
 	extern GType vips_foreign_save_ppm_get_type( void ); 
@@ -1688,7 +1689,8 @@ vips_foreign_operation_init( void )
 
 #ifdef HAVE_RADIANCE
 	vips_foreign_load_rad_get_type(); 
-	vips_foreign_save_rad_get_type(); 
+	vips_foreign_save_rad_file_get_type(); 
+	vips_foreign_save_rad_buffer_get_type(); 
 #endif /*HAVE_RADIANCE*/
 
 #ifdef HAVE_POPPLER

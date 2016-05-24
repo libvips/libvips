@@ -510,6 +510,8 @@ int vips_radload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_radsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
+int vips_radsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+	__attribute__((sentinel));
 
 int vips_pdfload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
