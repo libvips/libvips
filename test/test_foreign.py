@@ -115,6 +115,7 @@ class TestForeign(unittest.TestCase):
         buf = Vips.call(saver, im)
         f = NamedTemporaryFile(suffix=suf, delete=False)
         f.write(buf)
+        f.close()
         x = Vips.Image.new_from_file(f.name)
 
         self.assertEqual(im.width, x.width)
@@ -122,7 +123,6 @@ class TestForeign(unittest.TestCase):
         self.assertEqual(im.bands, x.bands)
         self.assertLessEqual((im - x).abs().max(), max_diff)
 
-        f.close()
         os.unlink(f.name)
 
     def test_vips(self):
