@@ -1,6 +1,3 @@
--  setting suffs on the base rad class made hdr save fail silently, why was
-   there no message?
-
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py

@@ -61,7 +61,7 @@ typedef struct _VipsForeignSaveRad {
 
 typedef VipsForeignSaveClass VipsForeignSaveRadClass;
 
-G_DEFINE_TYPE( VipsForeignSaveRad, vips_foreign_save_rad, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveRad, vips_foreign_save_rad, 
 	VIPS_TYPE_FOREIGN_SAVE );
 
 /* Save a bit of typing.
@@ -87,6 +87,7 @@ vips_foreign_save_rad_class_init( VipsForeignSaveRadClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -94,6 +95,8 @@ vips_foreign_save_rad_class_init( VipsForeignSaveRadClass *class )
 
 	object_class->nickname = "radsave_base";
 	object_class->description = _( "save Radiance" );
+
+	foreign_class->suffs = vips__rad_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGB;
 	save_class->format_table = vips_foreign_save_rad_format_table;
@@ -139,12 +142,9 @@ vips_foreign_save_rad_file_class_init( VipsForeignSaveRadFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
-
-	foreign_class->suffs = vips__rad_suffs;
 
 	object_class->nickname = "radsave";
 	object_class->description = _( "save image to Radiance file" );
