@@ -5,6 +5,7 @@ import unittest
 import math
 import os
 import shutil
+from tempfile import NamedTemporaryFile
 
 #import logging
 #logging.basicConfig(level = logging.DEBUG)
@@ -109,6 +110,20 @@ class TestForeign(unittest.TestCase):
         self.assertEqual(im.height, x.height)
         self.assertEqual(im.bands, x.bands)
         self.assertLessEqual((im - x).abs().max(), max_diff)
+
+    def save_buffer_tempfile(self, saver, format, im, max_diff = 0):
+        buf = Vips.call(saver, im)
+        f = NamedTemporaryFile(suffix=".hdr", delete=False)
+        f.write(buf)
+        x = Vips.Image.new_from_file(f.name)
+
+        self.assertEqual(im.width, x.width)
+        self.assertEqual(im.height, x.height)
+        self.assertEqual(im.bands, x.bands)
+        self.assertLessEqual((im - x).abs().max(), max_diff)
+
+        f.close()
+        os.unlink(f.name)
 
     def test_vips(self):
         self.save_load_file("test.v", "", self.colour, 0)
@@ -449,6 +464,7 @@ class TestForeign(unittest.TestCase):
             return
 
         self.save_load("%s.hdr", self.colour)
+        self.save_buffer_tempfile("radsave_buffer", "%s.hdr", self.rad, max_diff = 0)
 
     def test_dzsave(self):
         x = Vips.type_find("VipsForeign", "dzsave")
