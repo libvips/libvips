@@ -87,7 +87,6 @@ vips_foreign_save_rad_class_init( VipsForeignSaveRadClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -95,8 +94,6 @@ vips_foreign_save_rad_class_init( VipsForeignSaveRadClass *class )
 
 	object_class->nickname = "radsave_base";
 	object_class->description = _( "save Radiance" );
-
-	foreign_class->suffs = vips__rad_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGB;
 	save_class->format_table = vips_foreign_save_rad_format_table;
@@ -125,13 +122,13 @@ static int
 vips_foreign_save_rad_file_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveRadFile *rad_file = (VipsForeignSaveRadFile *) object;
+	VipsForeignSaveRadFile *file = (VipsForeignSaveRadFile *) object;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_rad_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__rad_save( save->ready, rad_file->filename ) )
+	if( vips__rad_save( save->ready, file->filename ) )
 		return( -1 );
 
 	return( 0 );
@@ -142,9 +139,12 @@ vips_foreign_save_rad_file_class_init( VipsForeignSaveRadFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
+
+	foreign_class->suffs = vips__rad_suffs;
 
 	object_class->nickname = "radsave";
 	object_class->description = _( "save image to Radiance file" );
@@ -259,7 +259,6 @@ vips_radsave( VipsImage *in, const char *filename, ... )
  * @buf: return output buffer here
  * @len: return output length here
  * @...: %NULL-terminated list of optional named arguments
- *
  *
  * As vips_radsave(), but save to a memory buffer. 
  *

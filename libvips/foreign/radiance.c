@@ -1311,9 +1311,10 @@ vips__rad_save( VipsImage *in, const char *filename )
 		return( -1 );
 
 	write->filename = vips_strdup( NULL, filename );
-	    write->fout = vips__file_open_write( filename, FALSE );
+	write->fout = vips__file_open_write( filename, FALSE );
 
-	if( !write->filename || !write->fout ||
+	if( !write->filename || 
+		!write->fout ||
 		vips2rad_put_header( write ) ||
 		vips2rad_put_data( write ) ) {
 		write_destroy_file( write );
