@@ -111,9 +111,9 @@ class TestForeign(unittest.TestCase):
         self.assertEqual(im.bands, x.bands)
         self.assertLessEqual((im - x).abs().max(), max_diff)
 
-    def save_buffer_tempfile(self, saver, format, im, max_diff = 0):
+    def save_buffer_tempfile(self, saver, suf, im, max_diff = 0):
         buf = Vips.call(saver, im)
-        f = NamedTemporaryFile(suffix=".hdr", delete=False)
+        f = NamedTemporaryFile(suffix=suf, delete=False)
         f.write(buf)
         x = Vips.Image.new_from_file(f.name)
 
@@ -464,7 +464,7 @@ class TestForeign(unittest.TestCase):
             return
 
         self.save_load("%s.hdr", self.colour)
-        self.save_buffer_tempfile("radsave_buffer", "%s.hdr", self.rad, max_diff = 0)
+        self.save_buffer_tempfile("radsave_buffer", ".hdr", self.rad, max_diff = 0)
 
     def test_dzsave(self):
         x = Vips.type_find("VipsForeign", "dzsave")
