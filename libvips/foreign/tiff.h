@@ -64,6 +64,8 @@ int vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out,
 int vips__tiff_read_buffer( const void *buf, size_t len, VipsImage *out, 
 	int page, gboolean readbehind );
 
+int vips__exiv2_load_tiff( VipsImage *out, const char *filename );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

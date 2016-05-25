@@ -1246,6 +1246,12 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 			VIPS_META_IMAGEDESCRIPTION, (char *) data ); 
 	}
 
+	/* We load exif via exiv2. This has a C++ API, so it's in a separate
+	 * file.
+	 */
+	if( vips__exiv2_load_tiff( out, rtiff->filename ) )
+		return( -1 ); 
+
 	return( 0 );
 }
 
