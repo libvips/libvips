@@ -215,6 +215,10 @@
 
 #include <tiffio.h>
 
+#ifdef HAVE_GEXIV2
+#include <gexiv2/gexiv2.h>
+#endif /*HAVE_GEXIV2*/
+
 #include "tiff.h"
 
 /* Scanline-type process function.
@@ -1245,6 +1249,26 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 		vips_image_set_string( out, 
 			VIPS_META_IMAGEDESCRIPTION, (char *) data ); 
 	}
+
+	/* If we have gexiv2, we can load exif metadata from the original file.
+	 */
+#ifdef HAVE_GEXIV2
+{
+	GExiv2Metadata *gexiv2;
+	GError *error = NULL;
+
+	gexiv2 = gexiv2_metadata_new();
+	if( !gexiv2_metadata_open_path( gexiv2, rtiff->filename, &error ) ) {
+		gexiv2_metadata_free( gexiv2 ); 
+		vips_g_error( &error );
+		return( -1 ); 
+	}
+
+	printf( "loaded metadata from tiff\n" ); 
+
+	gexiv2_metadata_free( gexiv2 ); 
+}
+#endif /*HAVE_GEXIV2*/
 
 	return( 0 );
 }
