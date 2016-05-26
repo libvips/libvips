@@ -605,12 +605,12 @@ AC_ARG_WITH([rsvg],
   AS_HELP_STRING([--without-rsvg], [build without rsvg (default: test)]))
 
 if test x"$with_rsvg" != x"no"; then
-  PKG_CHECK_MODULES(RSVG, [librsvg-2.0 >= 2.40 cairo >= 1.2],
-    [AC_DEFINE(HAVE_RSVG,1,[define if you have librsvg-2.0 >= 2.40.0 and cairo >= 1.2 installed.])
+  PKG_CHECK_MODULES(RSVG, [librsvg-2.0 >= 2.34 cairo >= 1.2],
+    [AC_DEFINE(HAVE_RSVG,1,[define if you have librsvg-2.0 >= 2.34.0 and cairo >= 1.2 installed.])
      with_rsvg=yes
      PACKAGES_USED="$PACKAGES_USED librsvg-2.0 cairo"
     ],
-    [AC_MSG_WARN([librsvg-2.0 >= 2.40.0 or cairo >= 1.2 not found; disabling SVG load via rsvg])
+    [AC_MSG_WARN([librsvg-2.0 >= 2.34.0 or cairo >= 1.2 not found; disabling SVG load via rsvg])
      with_rsvg=no
     ]
   )
@@ -1034,7 +1034,7 @@ file import with matio: 		$with_matio
 PDF import with poppler-glib: 		$with_poppler
   (requires poppler-glib 0.16.0 or later)
 SVG import with librsvg-2.0: 		$with_rsvg
-  (requires librsvg-2.0 2.40.0 or later)
+  (requires librsvg-2.0 2.34.0 or later)
 file import with cfitsio: 		$with_cfitsio
 file import/export with libwebp:	$with_libwebp
   (requires libwebp-0.1.3 or later)
