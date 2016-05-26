@@ -108,6 +108,14 @@ extern "C" {
  */
 #define VIPS_META_LOADER "vips-loader"
 
+/**
+ * VIPS_META_ORIENTATION:
+ *
+ * The orientation tag for this image. An int from 1 - 8 using the standard 
+ * exif/tiff meanings. 
+ */
+#define VIPS_META_ORIENTATION "orientation"
+
 guint64 vips_format_sizeof( VipsBandFormat format );
 
 int vips_image_get_width( const VipsImage *image );

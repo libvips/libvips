@@ -1,3 +1,44 @@
+- set tiff orientation tag on write, also copy orientation between tiff iamges
+
+- switch jpeg read/write over to new orientation tag
+
+- support orientation tag in tiff images
+
+  see
+
+  	http://www.awaresystems.be/imaging/tiff/tifftags/orientation.html
+
+  seems to be the same values used for exif
+
+  jpg uses "exif-ifd0-Orientation", see conversion/autorot.c
+
+  instead, standardize on "orientation" and give it an int value
+
+  	VIPS_META_ORIENTATION
+
+  jpg load and save need to use this in preference to the exif value
+
+  tiff load and save need to set and recover this value
+
+  tiff load needs an autorot flag 
+
+  	don't touch parse_header()
+
+	on header-only read, just swap width/height and delete the tag
+
+	on full image read, use read_jpeg_rotate(), broken out into a separate
+	func
+
+  see https://github.com/jcupitt/libvips/issues/243
+
+
+
+
+
+
+
+
+
 - tiff write does not support [strip]
 
 - add more webp tests to py suite
@@ -62,38 +103,8 @@
 
 
 
-- support orientation tag in tiff images
-
-  see
-
-  	http://www.awaresystems.be/imaging/tiff/tifftags/orientation.html
-
-  seems to be the same values used for exif
-
-  jpg uses "exif-ifd0-Orientation", see conversion/autorot.c
-
-  instead, standardize on "orientation" and give it an int value
-
-  jpg load and save need to use this in preference to the exif value
-
-  tiff load and save need to set and recover this value
-
-  tiff load needs an autorot flag 
-
-  	don't touch parse_header()
-
-	on header-only read, just swap width/height and delete the tag
-
-	on full image read, use read_jpeg_rotate(), broken out into a separate
-	func
-
-  see https://github.com/jcupitt/libvips/issues/243
-
-
-
-
-
 - why can't we do
+
 
 im = Vips.Image.new_from_file("/data/john/pics/k2.jpg", access = "sequential")
 

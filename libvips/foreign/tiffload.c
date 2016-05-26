@@ -59,6 +59,10 @@ typedef struct _VipsForeignLoadTiff {
 	 */
 	int page;
 
+	/* Autorotate using orientation tag.
+	 */
+	gboolean autorotate;
+
 } VipsForeignLoadTiff;
 
 typedef VipsForeignLoadClass VipsForeignLoadTiffClass;
@@ -91,6 +95,13 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadTiff, page ),
 		0, 100000, 0 );
+
+	VIPS_ARG_BOOL( class, "autorotate", 11, 
+		_( "Autorotate" ), 
+		_( "Rotate image using orientation tag" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadTiff, autorotate ),
+		FALSE );
 }
 
 static void
@@ -142,7 +153,8 @@ vips_foreign_load_tiff_file_header( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) load;
 
-	if( vips__tiff_read_header( file->filename, load->out, tiff->page ) )
+	if( vips__tiff_read_header( file->filename, load->out, 
+		tiff->page, tiff->autorotate ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
@@ -157,7 +169,7 @@ vips_foreign_load_tiff_file_load( VipsForeignLoad *load )
 	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) load;
 
 	if( vips__tiff_read( file->filename, load->real, tiff->page, 
-		load->access == VIPS_ACCESS_SEQUENTIAL ) )
+		tiff->autorotate, load->access == VIPS_ACCESS_SEQUENTIAL ) )
 		return( -1 );
 
 	return( 0 );
@@ -227,7 +239,7 @@ vips_foreign_load_tiff_buffer_header( VipsForeignLoad *load )
 
 	if( vips__tiff_read_header_buffer( 
 		buffer->buf->data, buffer->buf->length, load->out, 
-		tiff->page ) ) 
+		tiff->page, tiff->autorotate ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -241,7 +253,7 @@ vips_foreign_load_tiff_buffer_load( VipsForeignLoad *load )
 
 	if( vips__tiff_read_buffer( 
 		buffer->buf->data, buffer->buf->length, load->real, 
-		tiff->page,
+		tiff->page, tiff->autorotate,
 		load->access == VIPS_ACCESS_SEQUENTIAL ) )
 		return( -1 );
 
@@ -290,6 +302,8 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  * Optional arguments:
  *
  * * @page: int, load this page
+ * * @autorotate: %gboolean, use Orientation tag to rotate the image 
+ *   during load
  *
  * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
  * with extensions for tiled images, multipage images, LAB colour space, 
@@ -297,6 +311,14 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  *
  * @page means load this page from the file. By default the first page (page
  * 0) is read.
+ *
+ * Setting @autorotate to %TRUE will make the loader interpret the 
+ * Orientation field and automatically rotate the image appropriately during
+ * load. After rotation, the Orientation tag will be removed to prevent
+ * accidental double-rotation.  
+ *
+ * Using @autorotate can be much slower than doing the rotate later
+ * in processing. See vips_autorot().
  *
  * Any ICC profile is read and attached to the VIPS image. Any XMP metadata is
  * read and attached to the image. 

@@ -165,6 +165,8 @@
  * 11/4/16
  * 	- non-int RGB images are tagged as scRGB ... matches photoshop
  * 	  convention
+ * 26/5/16
+ * 	- add autorotate support
  */
 
 /*
@@ -195,8 +197,8 @@
  */
 
 /* 
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -233,6 +235,7 @@ typedef struct _ReadTiff {
 	size_t len;
 	VipsImage *out;
 	int page;
+	gboolean autorotate;
 	gboolean readbehind; 
 
 	/* The TIFF we read.
@@ -263,6 +266,7 @@ typedef struct _ReadTiff {
 	int bits_per_sample;
 	int photometric_interpretation;
 	int sample_format;
+	int orientation;
 
 	/* Turn on separate plane reading.
 	 */
@@ -1134,6 +1138,17 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	}
 }
 
+{
+	uint16 v;
+
+	rtiff->orientation = ORIENTATION_TOPLEFT;
+
+	if( TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_ORIENTATION, &v ) ) 
+		/* Can have mad values. 
+		 */
+		rtiff->orientation = VIPS_CLIP( 1, v, 8 );
+}
+
 	/* Arbitrary sanity-checking limits.
 	 */
 
@@ -1171,6 +1186,8 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 		rtiff->bits_per_sample );
 	printf( "parse_header: sample_format = %d\n", 
 		rtiff->sample_format );
+	printf( "parse_header: orientation = %d\n", 
+		rtiff->orientation );
 #endif /*DEBUG*/
 
 	/* We have a range of output paths. Look at the tiff header and try to
@@ -1245,6 +1262,11 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 		vips_image_set_string( out, 
 			VIPS_META_IMAGEDESCRIPTION, (char *) data ); 
 	}
+
+	/* Set the "orientation" tag. This is picked up later by autorot, if
+	 * requested.
+	 */
+	vips_image_set_int( out, VIPS_META_ORIENTATION, rtiff->orientation );
 
 	return( 0 );
 }
@@ -1409,14 +1431,86 @@ tiff_seq_stop( void *seq, void *a, void *b )
 	return( 0 );
 }
 
+/* Auto-rotate handling. 
+ */
+
+static VipsAngle
+vips_tiff_get_angle( VipsImage *im )
+{
+	int orientation;
+	VipsAngle angle;
+
+	if( vips_image_get_int( im, VIPS_META_ORIENTATION, &orientation ) )
+		orientation = 1;
+
+	switch( orientation ) {
+	case 6:
+		angle = VIPS_ANGLE_D90;
+		break;
+
+	case 8:
+		angle = VIPS_ANGLE_D270;
+		break;
+
+	case 3:
+		angle = VIPS_ANGLE_D180;
+		break;
+
+	default:
+		angle = VIPS_ANGLE_D0;
+		break;
+	}
+
+	return( angle ); 
+}
+
+static int
+vips_tiff_autorotate( ReadTiff *rtiff, VipsImage *in, VipsImage **out )
+{
+	VipsAngle angle = vips_tiff_get_angle( in );
+
+	if( rtiff->autorotate &&
+		angle != VIPS_ANGLE_D0 ) { 
+		/* Need to copy to memory or disc, we have to stay seq.
+		 */
+		const guint64 image_size = VIPS_IMAGE_SIZEOF_IMAGE( in );
+		const guint64 disc_threshold = vips_get_disc_threshold();
+
+		VipsImage *x;
+
+		if( image_size > disc_threshold ) 
+			x = vips_image_new_temp_file( "%s.v" );
+		else
+			x = vips_image_new_memory();
+
+		if( vips_image_write( in, x ) ||
+			vips_rot( x, out, angle, NULL ) ) {
+			g_object_unref( x );
+			return( -1 );
+		}
+		g_object_unref( x );
+
+		/* We must remove VIPS_META_ORIENTATION to prevent accidental
+		 * double rotations.
+		 */
+		(void) vips_image_remove( *out, VIPS_META_ORIENTATION );
+	}
+	else {
+		*out = in;
+		g_object_ref( in ); 
+	}
+
+	return( 0 );
+}
+
 /* Tile-type TIFF reader core - pass in a per-tile transform. Generate into
  * the im and do it all partially.
  */
 static int
 read_tilewise( ReadTiff *rtiff, VipsImage *out )
 {
-	VipsImage *raw;
-	VipsImage *t;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( out ), 3 );
 
 #ifdef DEBUG
 	printf( "tiff2vips: read_tilewise\n" );
@@ -1438,12 +1532,11 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 
 	/* Read to this image, then cache to out, see below.
 	 */
-	raw = vips_image_new(); 
-	vips_object_local( out, raw );
+	t[0] = vips_image_new(); 
 
-	/* Parse the TIFF header and set up raw.
+	/* Parse the TIFF header and set up.
 	 */
-	if( parse_header( rtiff, raw ) )
+	if( parse_header( rtiff, t[0] ) )
 		return( -1 );
 
 	/* Double check: in memcpy mode, the vips tilesize should exactly
@@ -1452,7 +1545,7 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 	if( rtiff->memcpy ) {
 		size_t vips_tile_size;
 
-		vips_tile_size = VIPS_IMAGE_SIZEOF_PEL( raw ) * 
+		vips_tile_size = VIPS_IMAGE_SIZEOF_PEL( t[0] ) * 
 			rtiff->twidth * rtiff->theight; 
 
 		if( tiff_tile_size( rtiff ) != vips_tile_size ) { 
@@ -1466,26 +1559,25 @@ read_tilewise( ReadTiff *rtiff, VipsImage *out )
 	 * the cache we are quite happy serving that if anything downstream 
 	 * would like it.
 	 */
-        vips_image_pipelinev( raw, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+        vips_image_pipelinev( t[0], VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
-	if( vips_image_generate( raw, 
+	if( vips_image_generate( t[0], 
 		tiff_seq_start, tiff_fill_region, tiff_seq_stop, 
 		rtiff, NULL ) )
 		return( -1 );
 
 	/* Copy to out, adding a cache. Enough tiles for two complete rows.
 	 */
-	if( vips_tilecache( raw, &t,
+	if( vips_tilecache( t[0], &t[1],
 		"tile_width", rtiff->twidth,
 		"tile_height", rtiff->theight,
-		"max_tiles", 2 * (1 + raw->Xsize / rtiff->twidth),
+		"max_tiles", 2 * (1 + t[0]->Xsize / rtiff->twidth),
 		NULL ) ) 
 		return( -1 );
-	if( vips_image_write( t, out ) ) {
-		g_object_unref( t );
+	if( vips_tiff_autorotate( rtiff, t[1], &t[2] ) )
 		return( -1 );
-	}
-	g_object_unref( t );
+	if( vips_image_write( t[2], out ) ) 
+		return( -1 );
 
 	return( 0 );
 }
@@ -1645,7 +1737,6 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 #endif /*DEBUG*/
 
 	t[0] = vips_image_new();
-
 	if( parse_header( rtiff, t[0] ) )
 		return( -1 );
 
@@ -1738,7 +1829,8 @@ read_stripwise( ReadTiff *rtiff, VipsImage *out )
 				VIPS_ACCESS_SEQUENTIAL : 
 				VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 			NULL ) ||
-		vips_image_write( t[1], out ) )
+		vips_tiff_autorotate( rtiff, t[1], &t[2] ) ||
+		vips_image_write( t[2], out ) )
 		return( -1 );
 
 	return( 0 );
@@ -1759,7 +1851,8 @@ readtiff_close( VipsObject *object, ReadTiff *rtiff )
 }
 
 static ReadTiff *
-readtiff_new( VipsImage *out, int page, gboolean readbehind )
+readtiff_new( VipsImage *out, 
+	int page, gboolean autorotate, gboolean readbehind )
 {
 	ReadTiff *rtiff;
 
@@ -1771,6 +1864,7 @@ readtiff_new( VipsImage *out, int page, gboolean readbehind )
 	rtiff->len = 0;
 	rtiff->out = out;
 	rtiff->page = page;
+	rtiff->autorotate = autorotate;
 	rtiff->readbehind = readbehind;
 	rtiff->tiff = NULL;
 	rtiff->sfn = NULL;
@@ -1796,13 +1890,13 @@ readtiff_new( VipsImage *out, int page, gboolean readbehind )
 }
 
 static ReadTiff *
-readtiff_new_filename( const char *filename, VipsImage *out, int page, 
-	gboolean readbehind )
+readtiff_new_filename( const char *filename, VipsImage *out, 
+	int page, gboolean autorotate, gboolean readbehind )
 {
 	ReadTiff *rtiff;
 	int i;
 
-	if( !(rtiff = readtiff_new( out, page, readbehind )) )
+	if( !(rtiff = readtiff_new( out, page, autorotate, readbehind )) )
 		return( NULL );
 
 	rtiff->filename = vips_strdup( VIPS_OBJECT( out ), filename );
@@ -1897,13 +1991,13 @@ my_tiff_unmap( thandle_t st, tdata_t start, toff_t len )
 }
 
 static ReadTiff *
-readtiff_new_buffer( const void *buf, size_t len, VipsImage *out, int page, 
-	gboolean readbehind )
+readtiff_new_buffer( const void *buf, size_t len, VipsImage *out, 
+	int page, gboolean autorotate, gboolean readbehind )
 {
 	ReadTiff *rtiff;
 	int i;
 
-	if( !(rtiff = readtiff_new( out, page, readbehind )) )
+	if( !(rtiff = readtiff_new( out, page, autorotate, readbehind )) )
 		return( NULL );
 
 	rtiff->buf = buf;
@@ -1951,8 +2045,8 @@ istiffpyramid( const char *name )
  */
 
 int
-vips__tiff_read( const char *filename, VipsImage *out, int page, 
-	gboolean readbehind )
+vips__tiff_read( const char *filename, VipsImage *out, 
+	int page, gboolean autorotate, gboolean readbehind )
 {
 	ReadTiff *rtiff;
 
@@ -1964,7 +2058,7 @@ vips__tiff_read( const char *filename, VipsImage *out, int page,
 	vips__tiff_init();
 
 	if( !(rtiff = readtiff_new_filename( filename, 
-		out, page, readbehind )) )
+		out, page, autorotate, readbehind )) )
 		return( -1 );
 
 	if( TIFFIsTiled( rtiff->tiff ) ) {
@@ -1979,18 +2073,44 @@ vips__tiff_read( const char *filename, VipsImage *out, int page,
 	return( 0 );
 }
 
+/* On a header-only read, we can just swap width/height if orientaion is 6 or
+ * 8. 
+ */
+static void
+vips__tiff_read_header_orientation( ReadTiff *rtiff, VipsImage *out )
+{
+	int orientation;
+
+	if( rtiff->autorotate &&
+		!vips_image_get_int( out, 
+			VIPS_META_ORIENTATION, &orientation ) ) {
+		if( orientation == 3 || 
+			orientation == 6 )
+			VIPS_SWAP( int, out->Xsize, out->Ysize );
+
+		/* We must remove VIPS_META_ORIENTATION to prevent accidental
+		 * double rotations.
+		 */
+		vips_image_remove( out, VIPS_META_ORIENTATION );
+	}
+}
+
 int
-vips__tiff_read_header( const char *filename, VipsImage *out, int page )
+vips__tiff_read_header( const char *filename, VipsImage *out, 
+	int page, gboolean autorotate )
 {
 	ReadTiff *rtiff;
 
 	vips__tiff_init();
 
-	if( !(rtiff = readtiff_new_filename( filename, out, page, FALSE )) )
+	if( !(rtiff = readtiff_new_filename( filename, out, 
+		page, autorotate, FALSE )) )
 		return( -1 );
 
 	if( parse_header( rtiff, out ) )
 		return( -1 );
+
+	vips__tiff_read_header_orientation( rtiff, out ); 
 
 	/* Just a header read: we can free the tiff read early and save an fd.
 	 */
@@ -2045,25 +2165,28 @@ vips__istiff( const char *filename )
 }
 
 int
-vips__tiff_read_header_buffer( const void *buf, size_t len, 
-	VipsImage *out, int page )
+vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out, 
+	int page, gboolean autorotate )
 {
 	ReadTiff *rtiff;
 
 	vips__tiff_init();
 
-	if( !(rtiff = readtiff_new_buffer( buf, len, out, page, FALSE )) )
+	if( !(rtiff = readtiff_new_buffer( buf, len, out, 
+		page, autorotate, FALSE )) )
 		return( -1 );
 
 	if( parse_header( rtiff, out ) )
 		return( -1 );
+
+	vips__tiff_read_header_orientation( rtiff, out ); 
 
 	return( 0 );
 }
 
 int
 vips__tiff_read_buffer( const void *buf, size_t len, 
-	VipsImage *out, int page, gboolean readbehind )
+	VipsImage *out, int page, gboolean autorotate, gboolean readbehind )
 {
 	ReadTiff *rtiff;
 
@@ -2074,7 +2197,8 @@ vips__tiff_read_buffer( const void *buf, size_t len,
 
 	vips__tiff_init();
 
-	if( !(rtiff = readtiff_new_buffer( buf, len, out, page, readbehind )) )
+	if( !(rtiff = readtiff_new_buffer( buf, len, out, 
+		page, autorotate, readbehind )) )
 		return( -1 );
 
 	if( TIFFIsTiled( rtiff->tiff ) ) {
