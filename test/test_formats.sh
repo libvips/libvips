@@ -11,6 +11,10 @@
 poppler=$test_images/blankpage.pdf
 poppler_ref=$test_images/blankpage.png
 
+# rsvg / svgload reference image
+rsvg=$test_images/blankpage.svg
+rsvg_ref=$test_images/blankpage.png
+
 # the matlab image and reference image
 matlab=$test_images/sample.mat
 matlab_ref=$test_images/sample.png
@@ -220,6 +224,10 @@ test_raw $image
 
 if test_supported pdfload; then
 	test_loader $poppler_ref $poppler pdfload
+fi
+
+if test_supported svgload; then
+	test_loader $rsvg_ref $rsvg svgload
 fi
 
 if test_supported matload; then
