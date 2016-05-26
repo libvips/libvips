@@ -15,6 +15,10 @@ poppler_ref=$test_images/blankpage.png
 rsvg=$test_images/blankpage.svg
 rsvg_ref=$test_images/blankpage.png
 
+# giflib / gifload reference image
+giflib=$test_images/trans-x.gif
+giflib_ref=$test_images/trans-x.png
+
 # the matlab image and reference image
 matlab=$test_images/sample.mat
 matlab_ref=$test_images/sample.png
@@ -228,6 +232,10 @@ fi
 
 if test_supported svgload; then
 	test_loader $rsvg_ref $rsvg svgload
+fi
+
+if test_supported gifload; then
+	test_loader $giflib_ref $giflib gifload
 fi
 
 if test_supported matload; then
