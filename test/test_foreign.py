@@ -167,7 +167,7 @@ class TestForeign(unittest.TestCase):
         have_exif = False
         x = Vips.Image.new_from_file(self.jpeg_file)
         try:
-            # our test image does have this field
+            # our test image has this field
             y = x.get_value("exif-ifd0-Orientation")
             have_exif = True
         except:
@@ -177,11 +177,11 @@ class TestForeign(unittest.TestCase):
             # we need a copy of the image to set the new metadata on
             # otherwise we get caching problems
             x = x.copy()
-            x.set_value("exif-ifd0-Orientation", "2")
+            x.set_value("orientation", 2)
             x.write_to_file("test.jpg")
             x = Vips.Image.new_from_file("test.jpg")
-            y = x.get_value("exif-ifd0-Orientation")
-            self.assertEqual(y[0], "2")
+            y = x.get_value("orientation")
+            self.assertEqual(y, 2)
 
             os.unlink("test.jpg")
 
@@ -239,6 +239,18 @@ class TestForeign(unittest.TestCase):
         self.save_load_file("test-9.tif", "[compression=jpeg]", self.colour, 60)
         self.save_load_file("test-10.tif", 
                             "[tile,tile-width=256]", self.colour, 10)
+
+        # we need a copy of the image to set the new metadata on
+        # otherwise we get caching problems
+        x = Vips.Image.new_from_file(self.tiff_file)
+        x = x.copy()
+        x.set_value("orientation", 2)
+        x.write_to_file("test.tif")
+        x = Vips.Image.new_from_file("test.tif")
+        y = x.get_value("orientation")
+        self.assertEqual(y, 2)
+
+        os.unlink("test.tif")
 
     def test_magickload(self):
         x = Vips.type_find("VipsForeign", "magickload")

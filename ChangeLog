@@ -9,6 +9,8 @@
 - better python detection and build [Felix Bünemann]
 - max-alpha defaults to 65535 for RGB16/GREY16
 - added radsave_buffer [Henri Chain]
+- support tiff orientation tag
+- autorotate option for tiff load
 
 18/5/16 started 8.3.2
 - more robust vips image reading

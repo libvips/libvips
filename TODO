@@ -1,14 +1,8 @@
 - save a 16-bit image to tiff with jpg compression ... should it autoconvert?
 
-- try
-
-	vips copy orientation-test.jpg x.tif
-	vips copy x.tif x.jpg
-
-  orientation tag not preserved for tif->jpg
-
 - add a set of tests for orientation
 
+  test autorotate flags on tiff and jpeg
 
   see https://github.com/jcupitt/libvips/issues/243
 
