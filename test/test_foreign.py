@@ -245,12 +245,11 @@ class TestForeign(unittest.TestCase):
         x = Vips.Image.new_from_file(self.tiff_file)
         x = x.copy()
         x.set_value("orientation", 2)
-        x.write_to_file("test.tif")
-        x = Vips.Image.new_from_file("test.tif")
+        x.write_to_file("test-11.tif")
+        x = Vips.Image.new_from_file("test-11.tif")
         y = x.get_value("orientation")
         self.assertEqual(y, 2)
-
-        os.unlink("test.tif")
+        os.unlink("test-11.tif")
 
     def test_magickload(self):
         x = Vips.type_find("VipsForeign", "magickload")
