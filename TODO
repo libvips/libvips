@@ -1,33 +1,14 @@
-- set tiff orientation tag on write, also copy orientation between tiff iamges
+- save a 16-bit image to tiff with jpg compression ... should it autoconvert?
 
-- switch jpeg read/write over to new orientation tag
+- try
 
-- support orientation tag in tiff images
+	vips copy orientation-test.jpg x.tif
+	vips copy x.tif x.jpg
 
-  see
+  orientation tag not preserved for tif->jpg
 
-  	http://www.awaresystems.be/imaging/tiff/tifftags/orientation.html
+- add a set of tests for orientation
 
-  seems to be the same values used for exif
-
-  jpg uses "exif-ifd0-Orientation", see conversion/autorot.c
-
-  instead, standardize on "orientation" and give it an int value
-
-  	VIPS_META_ORIENTATION
-
-  jpg load and save need to use this in preference to the exif value
-
-  tiff load and save need to set and recover this value
-
-  tiff load needs an autorot flag 
-
-  	don't touch parse_header()
-
-	on header-only read, just swap width/height and delete the tag
-
-	on full image read, use read_jpeg_rotate(), broken out into a separate
-	func
 
   see https://github.com/jcupitt/libvips/issues/243
 

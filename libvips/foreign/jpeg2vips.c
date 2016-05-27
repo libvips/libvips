@@ -72,6 +72,8 @@
  * 21/2/16
  * 	- _destroy the decompress object as soon as we can, frees loads of
  * 	  memory for progressive jpg files
+ * 26/5/16
+ * 	- switch to new orientation tag
  */
 
 /*
@@ -692,6 +694,27 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 	return( 0 );
 }
 
+static void *
+read_jpeg_orientation_sub( VipsImage *image, 
+	const char *field, GValue *value, void *data )
+{
+	const char *orientation_str;
+
+	if( vips_isprefix( "exif-", field ) &&
+		vips_ispostfix( field, "-Orientation" ) &&
+		!vips_image_get_string( image, field, &orientation_str ) ) {
+		int orientation;
+
+		orientation = atoi( orientation_str );
+		orientation = VIPS_CLIP( 1, orientation, 8 );
+		vips_image_set_int( image, VIPS_META_ORIENTATION, orientation );
+
+		return( image ); 
+	}
+
+	return( NULL );
+}
+
 /* Number of app2 sections we can capture. Each one can be 64k, so 6400k should
  * be enough for anyone (haha).
  */
@@ -911,6 +934,12 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			(VipsCallbackFn) vips_free, data, data_length );
 	}
 
+	/* Orientation handling. We look for the first Orientation EXIF tag
+	 * (there can be many of them) and use that to set our own
+	 * VIPS_META_ORIENTATION. 
+	 */
+	(void) vips_image_map( out, read_jpeg_orientation_sub, NULL );
+
 	return( 0 );
 }
 
@@ -991,8 +1020,6 @@ read_jpeg_generate( VipsRegion *or,
 	return( 0 );
 }
 
-#define ORIENTATION ("exif-ifd0-Orientation")
-
 /* Auto-rotate, if rotate_image is set.
  */
 static VipsImage *
@@ -1016,7 +1043,8 @@ read_jpeg_rotate( VipsObject *process, VipsImage *im )
 			vips_rot( t[0], &t[1], angle, NULL ) )
 			return( NULL );
 		im = t[1];
-		(void) vips_image_remove( im, ORIENTATION );
+
+		vips_autorot_remove_angle( im ); 
 	}
 
 	return( im );
@@ -1085,7 +1113,7 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 {
 	int i;
 
-	/* Handy for debubgging ... spot any extra  markers.
+	/* Handy for debugging ... spot any extra  markers.
 	 */
 	for( i = 0; i < 16; i++ ) 
 		jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + i, 0xffff );
@@ -1109,7 +1137,7 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 
 			/* We won't be returning an orientation tag.
 			 */
-			(void) vips_image_remove( out, ORIENTATION );
+			vips_autorot_remove_angle( out ); 
 		}
 	}
 	else {

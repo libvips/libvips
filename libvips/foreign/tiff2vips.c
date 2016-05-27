@@ -1433,41 +1433,10 @@ tiff_seq_stop( void *seq, void *a, void *b )
 
 /* Auto-rotate handling. 
  */
-
-static VipsAngle
-vips_tiff_get_angle( VipsImage *im )
-{
-	int orientation;
-	VipsAngle angle;
-
-	if( vips_image_get_int( im, VIPS_META_ORIENTATION, &orientation ) )
-		orientation = 1;
-
-	switch( orientation ) {
-	case 6:
-		angle = VIPS_ANGLE_D90;
-		break;
-
-	case 8:
-		angle = VIPS_ANGLE_D270;
-		break;
-
-	case 3:
-		angle = VIPS_ANGLE_D180;
-		break;
-
-	default:
-		angle = VIPS_ANGLE_D0;
-		break;
-	}
-
-	return( angle ); 
-}
-
 static int
 vips_tiff_autorotate( ReadTiff *rtiff, VipsImage *in, VipsImage **out )
 {
-	VipsAngle angle = vips_tiff_get_angle( in );
+	VipsAngle angle = vips_autorot_get_angle( in );
 
 	if( rtiff->autorotate &&
 		angle != VIPS_ANGLE_D0 ) { 
@@ -1490,10 +1459,10 @@ vips_tiff_autorotate( ReadTiff *rtiff, VipsImage *in, VipsImage **out )
 		}
 		g_object_unref( x );
 
-		/* We must remove VIPS_META_ORIENTATION to prevent accidental
+		/* We must remove the tag to prevent accidental
 		 * double rotations.
 		 */
-		(void) vips_image_remove( *out, VIPS_META_ORIENTATION );
+		vips_autorot_remove_angle( *out ); 
 	}
 	else {
 		*out = in;

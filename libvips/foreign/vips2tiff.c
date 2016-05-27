@@ -554,6 +554,7 @@ write_tiff_header( Write *write, Layer *layer )
 	TIFF *tif = layer->tif;
 
 	int format; 
+	int orientation; 
 
 	/* Output base header fields.
 	 */
@@ -583,6 +584,10 @@ write_tiff_header( Write *write, Layer *layer )
 		write_embed_photoshop( write, tif ) ||
 		write_embed_imagedescription( write, tif ) )
 		return( -1 ); 
+
+	if( !vips_image_get_int( write->im, 
+		VIPS_META_ORIENTATION, &orientation ) )
+		TIFFSetField( tif, TIFFTAG_ORIENTATION, orientation );
 
 	/* And colour fields.
 	 */
@@ -1497,6 +1502,7 @@ write_copy_tiff( Write *write, TIFF *out, TIFF *in )
 	CopyField( TIFFTAG_SAMPLESPERPIXEL, i16 );
 	CopyField( TIFFTAG_BITSPERSAMPLE, i16 );
 	CopyField( TIFFTAG_PHOTOMETRIC, i16 );
+	CopyField( TIFFTAG_ORIENTATION, i16 );
 	CopyField( TIFFTAG_TILEWIDTH, i32 );
 	CopyField( TIFFTAG_TILELENGTH, i32 );
 	CopyField( TIFFTAG_ROWSPERSTRIP, i32 );

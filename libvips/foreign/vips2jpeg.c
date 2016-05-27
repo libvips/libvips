@@ -76,6 +76,8 @@
  * 	- remove deleted exif fields more carefully
  * 9/5/16 felixbuenemann
  * 	- add quant_table
+ * 26/5/16
+ * 	- switch to new orientation tag
  */
 
 /*
@@ -531,6 +533,27 @@ set_exif_dimensions( ExifData *ed, VipsImage *im )
 	return( 0 );
 }
 
+/* And orientation. 
+ */
+static int
+set_exif_orientation( ExifData *ed, VipsImage *im )
+{
+	int orientation;
+
+	/* We set the tag, even if it's been deleted, since it's a required
+	 * field.
+	 */
+	if( !vips_image_get_int( im, VIPS_META_ORIENTATION, &orientation ) ) 
+		orientation = 1;
+
+	VIPS_DEBUG_MSG( "set_exif_orientation: %d\n", orientation );
+
+	write_tag( ed, 0, EXIF_TAG_ORIENTATION, 
+		vips_exif_set_int, (void *) &orientation );
+
+	return( 0 );
+}
+
 /* See also vips_exif_to_s() ... keep in sync.
  */
 static void
@@ -654,6 +677,14 @@ vips_exif_exif_entry( ExifEntry *entry, VipsExif *ve )
 	 * removal.
 	 */
 	if( !vips_image_get_typeof( ve->image, vips_buf_all( &vips_name ) ) ) 
+		ve->to_remove = g_slist_prepend( ve->to_remove, entry );
+
+	/* Orientation is really set from the vips
+	 * VIPS_META_ORIENTATION tag. If that's been deleted, we must delete
+	 * any matching EXIF tags too.
+	 */
+	if( strcmp( tag_name, "Orientation" ) == 0 &&
+		vips_image_get_typeof( ve->image, VIPS_META_ORIENTATION ) )
 		ve->to_remove = g_slist_prepend( ve->to_remove, entry );
 }
 
@@ -798,6 +829,13 @@ write_exif( Write *write )
 	/* Update EXIF image dimensions from the vips image header.
 	 */
 	if( set_exif_dimensions( ed, write->in ) ) {
+		exif_data_free( ed );
+		return( -1 );
+	}
+
+	/* Update EXIF orientation from the vips image header.
+	 */
+	if( set_exif_orientation( ed, write->in ) ) {
 		exif_data_free( ed );
 		return( -1 );
 	}
