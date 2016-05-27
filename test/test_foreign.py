@@ -176,14 +176,30 @@ class TestForeign(unittest.TestCase):
         if have_exif:
             # we need a copy of the image to set the new metadata on
             # otherwise we get caching problems
+            x = Vips.Image.new_from_file(self.jpeg_file)
             x = x.copy()
             x.set_value("orientation", 2)
             x.write_to_file("test.jpg")
             x = Vips.Image.new_from_file("test.jpg")
             y = x.get_value("orientation")
             self.assertEqual(y, 2)
-
             os.unlink("test.jpg")
+
+            x = Vips.Image.new_from_file(self.jpeg_file)
+            x = x.copy()
+            x.set_value("orientation", 2)
+            x.write_to_file("test-12.jpg")
+
+            x = Vips.Image.new_from_file("test-12.jpg")
+            y = x.get_value("orientation")
+            self.assertEqual(y, 2)
+            x.remove("orientation")
+            x.write_to_file("test-13.jpg")
+            x = Vips.Image.new_from_file("test-13.jpg")
+            y = x.get_value("orientation")
+            self.assertEqual(y, 1)
+            os.unlink("test-12.jpg")
+            os.unlink("test-13.jpg")
 
     def test_png(self):
         x = Vips.type_find("VipsForeign", "pngload")
@@ -250,6 +266,24 @@ class TestForeign(unittest.TestCase):
         y = x.get_value("orientation")
         self.assertEqual(y, 2)
         os.unlink("test-11.tif")
+
+        # we need a copy of the image to set the new metadata on
+        # otherwise we get caching problems
+        x = Vips.Image.new_from_file(self.tiff_file)
+        x = x.copy()
+        x.set_value("orientation", 2)
+        x.write_to_file("test-12.tif")
+
+        x = Vips.Image.new_from_file("test-12.tif")
+        y = x.get_value("orientation")
+        self.assertEqual(y, 2)
+        x.remove("orientation")
+        x.write_to_file("test-13.tif")
+        x = Vips.Image.new_from_file("test-13.tif")
+        y = x.get_value("orientation")
+        self.assertEqual(y, 1)
+        os.unlink("test-12.tif")
+        os.unlink("test-13.tif")
 
     def test_magickload(self):
         x = Vips.type_find("VipsForeign", "magickload")
