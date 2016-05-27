@@ -1,16 +1,15 @@
 - save a 16-bit image to tiff with jpg compression ... should it autoconvert?
 
-- test autorotate flags on tiff and jpeg
+- try:
 
-  see https://github.com/jcupitt/libvips/issues/243
+	$ vipsheader blankpage.pdf 
+	temp-0: 595x842 uchar, 4 bands, srgb, pdfload
 
+  filename is not set?
 
+  try other files in test/images
 
-
-
-
-
-
+- see https://github.com/jcupitt/libvips/issues/243
 
 - tiff write does not support [strip]
 

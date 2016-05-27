@@ -201,6 +201,17 @@ class TestForeign(unittest.TestCase):
             os.unlink("test-12.jpg")
             os.unlink("test-13.jpg")
 
+            x = Vips.Image.new_from_file(self.jpeg_file)
+            x = x.copy()
+            x.set_value("orientation", 6)
+            x.write_to_file("test-14.jpg")
+
+            x1 = Vips.Image.new_from_file("test-14.jpg")
+            x2 = Vips.Image.new_from_file("test-14.jpg", autorotate = True)
+            self.assertEqual(x1.width, x2.height)
+            self.assertEqual(x1.height, x2.width)
+            os.unlink("test-14.jpg")
+
     def test_png(self):
         x = Vips.type_find("VipsForeign", "pngload")
         if not x.is_instantiatable():
@@ -284,6 +295,17 @@ class TestForeign(unittest.TestCase):
         self.assertEqual(y, 1)
         os.unlink("test-12.tif")
         os.unlink("test-13.tif")
+
+        x = Vips.Image.new_from_file(self.tiff_file)
+        x = x.copy()
+        x.set_value("orientation", 6)
+        x.write_to_file("test-14.tif")
+
+        x1 = Vips.Image.new_from_file("test-14.tif")
+        x2 = Vips.Image.new_from_file("test-14.tif", autorotate = True)
+        self.assertEqual(x1.width, x2.height)
+        self.assertEqual(x1.height, x2.width)
+        os.unlink("test-14.tif")
 
     def test_magickload(self):
         x = Vips.type_find("VipsForeign", "magickload")
