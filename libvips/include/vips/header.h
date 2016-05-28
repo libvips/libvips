@@ -113,6 +113,23 @@ extern "C" {
  *
  * The orientation tag for this image. An int from 1 - 8 using the standard 
  * exif/tiff meanings. 
+ *
+ * * 1 - The 0th row represents the visual top of the image, and the 0th column
+ *   represents the visual left-hand side.
+ * * 2 - The 0th row represents the visual top of the image, and the 0th column
+ *   represents the visual right-hand side.
+ * * 3 - The 0th row represents the visual bottom of the image, and the 0th
+ *   column represents the visual right-hand side.
+ * * 4 - The 0th row represents the visual bottom of the image, and the 0th
+ *   column represents the visual left-hand side.
+ * * 5 - The 0th row represents the visual left-hand side of the image, and the
+ *   0th column represents the visual top.
+ * * 6 - The 0th row represents the visual right-hand side of the image, and the
+ *   0th column represents the visual top.
+ * * 7 - The 0th row represents the visual right-hand side of the image, and the
+ *   0th column represents the visual bottom.
+ * * 8 - The 0th row represents the visual left-hand side of the image, and the
+ *   0th column represents the visual bottom. 
  */
 #define VIPS_META_ORIENTATION "orientation"
 

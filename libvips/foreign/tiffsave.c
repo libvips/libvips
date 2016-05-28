@@ -319,6 +319,7 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
  * * @xres: %gdouble horizontal resolution in pixels/mm
  * * @yres: %gdouble vertical resolution in pixels/mm
  * * @bigtiff: set %TRUE to write a BigTiff file
+ * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -326,7 +327,7 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
  * fax4, lzw, none and deflate are supported. The default is no compression.
  * JPEG compression is a good lossy compressor for photographs, packbits is 
  * good for 1-bit images, and deflate is the best lossless compression TIFF 
- * can do. LZW has patent problems and is no longer recommended.
+ * can do. 
  *
  * Use @Q to set the JPEG compression factor. Default 75.
  *
@@ -346,7 +347,7 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
  * "don't attach a profile".
  *
  * If no profile is specified and the VIPS header 
- * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
+ * contains an ICC profile named #VIPS_META_ICC_NAME, the
  * profile from the VIPS header will be attached.
  *
  * Set @tile to TRUE to write a tiled tiff.  By default tiff are written in
@@ -365,8 +366,8 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
  *
  * Use @resunit to override the default resolution unit.  
  * The default 
- * resolution unit is taken from the header field "resolution-unit"
- * (#VIPS_META_RESOLUTION_UNIT in C). If this field is not set, then 
+ * resolution unit is taken from the header field 
+ * #VIPS_META_RESOLUTION_UNIT. If this field is not set, then 
  * VIPS defaults to cm.
  *
  * Use @xres and @yres to override the default horizontal and vertical
@@ -377,8 +378,16 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
  * Bigtiff is a variant of the TIFF
  * format that allows more than 4GB in a file.
  *
- * If @in has a field called VIPS_META_XMP_NAME ("xmp-data") it is written to
- * the tiff image. 
+ * Set @properties to write all vips metadata to the IMAGEDESCRIPTION tag as
+ * xml. If @properties is not set, the value of #VIPS_META_IMAGEDESCRIPTION is
+ * used instead.
+ *
+ * The value of #VIPS_META_XMP_NAME is written to
+ * the XMP tag. #VIPS_META_ORIENTATION (if set) is used to set the value of 
+ * the orientation
+ * tag. #VIPS_META_IPCT (if set) is used to set the value of the IPCT tag.  
+ * #VIPS_META_PHOTOSHOP_NAME (if set) is used to set the value of the PHOTOSHOP
+ * tag.
  *
  * See also: vips_tiffload(), vips_image_write_to_file().
  *

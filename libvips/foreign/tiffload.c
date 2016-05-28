@@ -302,7 +302,7 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  * Optional arguments:
  *
  * * @page: int, load this page
- * * @autorotate: %gboolean, use Orientation tag to rotate the image 
+ * * @autorotate: %gboolean, use orientation tag to rotate the image 
  *   during load
  *
  * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
@@ -313,17 +313,24 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  * 0) is read.
  *
  * Setting @autorotate to %TRUE will make the loader interpret the 
- * Orientation field and automatically rotate the image appropriately during
- * load. After rotation, the Orientation tag will be removed to prevent
- * accidental double-rotation.  
+ * orientation tag and automatically rotate the image appropriately during
+ * load. 
  *
- * Using @autorotate can be much slower than doing the rotate later
- * in processing. See vips_autorot().
+ * If @autorotate is %FALSE, the metadata field #VIPS_META_ORIENTATION is set 
+ * to the value of the orientation tag. Applications may read and interpret 
+ * this field
+ * as they wish later in processing. See vips_autorot(). Save
+ * operations will use #VIPS_META_ORIENTATION, if present, to set the
+ * orientation of output images. 
  *
- * Any ICC profile is read and attached to the VIPS image. Any XMP metadata is
- * read and attached to the image. 
+ * Any ICC profile is read and attached to the VIPS image as
+ * #VIPS_META_ICC_NAME. Any XMP metadata is read and attached to the image
+ * as #VIPS_META_XMP_NAME. Any IPCT is attached as #VIPS_META_IPCT_NAME. The
+ * image description is
+ * attached as #VIPS_META_IMAGEDESCRIPTION. Data in the photoshop tag is 
+ * attached as #VIPS_META_PHOTOSHOP_NAME.
  *
- * See also: vips_image_new_from_file().
+ * See also: vips_image_new_from_file(), vips_autorot().
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -350,6 +357,8 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  * Optional arguments:
  *
  * * @page: %gint, load this page
+ * * @autorotate: %gboolean, use orientation tag to rotate the image 
+ *   during load
  *
  * Read a TIFF-formatted memory block into a VIPS image. Exactly as
  * vips_tiffload(), but read from a memory source. 

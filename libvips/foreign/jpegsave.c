@@ -437,18 +437,8 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * "don't attach a profile".
  *
  * If no profile is specified and the VIPS header 
- * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
+ * contains an ICC profile named #VIPS_META_ICC_NAME, the
  * profile from the VIPS header will be attached.
- *
- * The image is automatically converted to RGB, Monochrome or CMYK before 
- * saving. 
- *
- * EXIF data is constructed from @VIPS_META_EXIF_NAME ("exif-data"), then
- * modified with any other related tags on the image before being written to
- * the file. 
- *
- * IPCT as @VIPS_META_IPCT_NAME ("ipct-data") and XMP as VIPS_META_XMP_NAME
- * ("xmp-data") are coded and attached. 
  *
  * If @optimize_coding is set, the Huffman tables are optimised. This is
  * sllightly slower and produces slightly smaller files. 
@@ -503,6 +493,17 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * Quantization table 4 is the most accurate at the cost of compression ratio.
  * Tables 5-7 are based on older research papers, but generally achieve worse
  * compression ratios and/or quality than 2 or 4.
+ *
+ * The image is automatically converted to RGB, Monochrome or CMYK before 
+ * saving. 
+ *
+ * EXIF data is constructed from #VIPS_META_EXIF_NAME, then
+ * modified with any other related tags on the image before being written to
+ * the file. #VIPS_META_RESOLUTION_UNIT is used to set the EXIF resolution
+ * unit. #VIPS_META_ORIENTATION is used to set the EXIF orientation tag. 
+ *
+ * IPCT as #VIPS_META_IPCT_NAME and XMP as #VIPS_META_XMP_NAME
+ * are coded and attached. 
  *
  * See also: vips_jpegsave_buffer(), vips_image_write_to_file().
  *

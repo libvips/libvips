@@ -203,12 +203,16 @@ vips_autorot_init( VipsAutorot *autorot )
  *
  * * @angle: output #VipsAngle the image was rotated by
  *
- * Look at the exif tags and rotate the image to make it upright. The
- * orientation tag is removed from @out to prevent accidental double rotation. 
+ * Look at the image metadata and rotate the image to make it upright. The
+ * #VIPS_META_ORIENTATION tag is removed from @out to prevent accidental 
+ * double rotation. 
  *
  * Read @angle to find the amount the image was rotated by. 
  *
- * See also: vips_rot().
+ * vips only supports the four simple rotations, it does not support the
+ * various mirror modes. 
+ *
+ * See also: vips_autorot_get_angle(), vips_autorot_remove_angle(), vips_rot().
  *
  * Returns: 0 on success, -1 on error
  */
