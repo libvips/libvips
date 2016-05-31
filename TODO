@@ -1,5 +1,3 @@
-- save a 16-bit image to tiff with jpg compression ... should it autoconvert?
-
 - try:
 
 	$ vipsheader blankpage.pdf 
@@ -8,8 +6,6 @@
   filename is not set?
 
   try other files in test/images
-
-- see https://github.com/jcupitt/libvips/issues/243
 
 - try
 
@@ -20,7 +16,31 @@
 
   hangs 50% of the time, the other 50 it fails with a 16-bit error
 
-- save a 16-bit image to tiff with jpg compression ... should it autoconvert?
+  save a 16-bit image to tiff with jpg compression ... should it autoconvert?
+
+  tiff should use convert for save in jpeg mode if jpeg compression is enabled
+
+- try
+
+	$ vipsthumbnail ~/pics/*.jpg
+	vips warning: vips_image_get: field "orientation" not found
+	vips_image_get: field "orientation" not found
+	vips_image_get: field "orientation" not found
+	vips_image_get: field "orientation" not found
+	...
+
+  ugly!
+
+- try adding a coz progress point to vipsthumbnail's main loop
+
+  see
+
+	https://github.com/plasma-umass/coz
+
+
+
+
+
 
 - tiff write does not support [strip]
 

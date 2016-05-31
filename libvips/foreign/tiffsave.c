@@ -8,6 +8,8 @@
  * 	- add rgbjpeg flag
  * 21/12/15
  * 	- add properties flag
+ * 31/5/16
+ * 	- convert for jpg if jpg compression is on
  */
 
 /*
@@ -52,6 +54,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef HAVE_TIFF
 
@@ -89,13 +92,43 @@ typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
 G_DEFINE_TYPE( VipsForeignSaveTiff, vips_foreign_save_tiff, 
 	VIPS_TYPE_FOREIGN_SAVE );
 
+#define UC VIPS_FORMAT_UCHAR
+
+/* Type promotion for save ... just always go to uchar.
+ */
+static int bandfmt_jpeg[10] = {
+/* UC  C   US  S   UI  I   F   X   D   DX */
+   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+};
+
 static int
 vips_foreign_save_tiff_build( VipsObject *object )
 {
+	VipsForeignSaveClass *class = VIPS_FOREIGN_SAVE_GET_CLASS( object );
+
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) object;
 
 	const char *p;
+
+	/* If we are saving jpeg-in-tiff, we need a different convert_saveable
+	 * path. The regular tiff one will let through things like float and
+	 * 16-bit and alpha for example, which will make the jpeg saver choke.
+	 */
+	if( save->in &&
+		tiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_JPEG ) {
+		VipsImage *x;
+
+		/* See also vips_foreign_save_jpeg_class_init().
+		 */
+		if( vips__foreign_convert_saveable( save->in, &x,
+			VIPS_SAVEABLE_RGB_CMYK, bandfmt_jpeg, class->coding,
+			save->background ) )
+			return( -1 );
+
+		g_object_set( object, "in", x, NULL );
+		g_object_unref( x );
+	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_tiff_parent_class )->
 		build( object ) )

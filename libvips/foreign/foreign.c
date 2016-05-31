@@ -1052,14 +1052,13 @@ vips_foreign_save_new_from_string( const char *string )
 	return( VIPS_OBJECT( save ) );
 }
 
-/* Generate the saveable image.
+/* Convert an image for saving. 
  */
-static int
-vips_foreign_convert_saveable( VipsForeignSave *save )
+int
+vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
+	VipsSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
+	VipsArrayDouble *background )
 {
-	VipsForeignSaveClass *class = VIPS_FOREIGN_SAVE_GET_CLASS( save );
-	VipsImage *in = save->in;
-
 	/* in holds a reference to the output of our chain as we build it.
 	 */
 	g_object_ref( in );
@@ -1068,10 +1067,8 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	 * Nothing to do.
 	 */
 	if( in->Coding != VIPS_CODING_NONE &&
-		class->coding[in->Coding] ) {
-		VIPS_UNREF( save->ready );
-		save->ready = in;
-
+		coding[in->Coding] ) {
+		*ready = in;
 		return( 0 );
 	}
 
@@ -1079,11 +1076,9 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	 * format we have nothing to do.
 	 */
 	if( in->Coding == VIPS_CODING_NONE &&
-	        class->saveable == VIPS_SAVEABLE_ANY &&
-		class->format_table[in->BandFmt] == in->BandFmt ) {
-		VIPS_UNREF( save->ready );
-		save->ready = in;
-
+	        saveable == VIPS_SAVEABLE_ANY &&
+		format[in->BandFmt] == in->BandFmt ) {
+		*ready = in;
 		return( 0 );
 	}
 
@@ -1122,7 +1117,7 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 	/* If the saver supports RAD, we need to go to scRGB or XYZ. 
 	 */
-	if( class->coding[VIPS_CODING_RAD] ) {
+	if( coding[VIPS_CODING_RAD] ) {
 		if( in->Type != VIPS_INTERPRETATION_scRGB &&
 			in->Type != VIPS_INTERPRETATION_XYZ ) {
 			VipsImage *out;
@@ -1141,22 +1136,21 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	/* If this is something other than CMYK or RAD, eg. maybe a LAB image,
 	 * we need to transform to RGB.
 	 */
-	if( !class->coding[VIPS_CODING_RAD] &&
+	if( !coding[VIPS_CODING_RAD] &&
 		in->Bands >= 3 &&
 		in->Type != VIPS_INTERPRETATION_CMYK &&
 		vips_colourspace_issupported( in ) &&
-		(class->saveable == VIPS_SAVEABLE_RGB ||
-		 class->saveable == VIPS_SAVEABLE_RGBA ||
-		 class->saveable == VIPS_SAVEABLE_RGBA_ONLY ||
-		 class->saveable == VIPS_SAVEABLE_RGB_CMYK) ) { 
+		(saveable == VIPS_SAVEABLE_RGB ||
+		 saveable == VIPS_SAVEABLE_RGBA ||
+		 saveable == VIPS_SAVEABLE_RGBA_ONLY ||
+		 saveable == VIPS_SAVEABLE_RGB_CMYK) ) { 
 		VipsImage *out;
 		VipsInterpretation interpretation;
 
 		/* Do we make RGB or RGB16? We don't want to squash a 16-bit
 		 * RGB down to 8 bits if the saver supports 16. 
 		 */
-		if( vips_band_format_is8bit( 
-			class->format_table[in->BandFmt] ) )
+		if( vips_band_format_is8bit( format[in->BandFmt] ) )
 			interpretation = VIPS_INTERPRETATION_sRGB;
 		else
 			interpretation = VIPS_INTERPRETATION_RGB16;
@@ -1173,18 +1167,17 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	/* VIPS_SAVEABLE_RGBA_ONLY does not support 1 or 2 bands ... convert 
 	 * to sRGB. 
 	 */
-	if( !class->coding[VIPS_CODING_RAD] &&
+	if( !coding[VIPS_CODING_RAD] &&
 		in->Bands < 3 &&
 		vips_colourspace_issupported( in ) &&
-		class->saveable == VIPS_SAVEABLE_RGBA_ONLY ) { 
+		saveable == VIPS_SAVEABLE_RGBA_ONLY ) { 
 		VipsImage *out;
 		VipsInterpretation interpretation;
 
 		/* Do we make RGB or RGB16? We don't want to squash a 16-bit
 		 * RGB down to 8 bits if the saver supports 16. 
 		 */
-		if( vips_band_format_is8bit( 
-			class->format_table[in->BandFmt] ) )
+		if( vips_band_format_is8bit( format[in->BandFmt] ) )
 			interpretation = VIPS_INTERPRETATION_sRGB;
 		else
 			interpretation = VIPS_INTERPRETATION_RGB16;
@@ -1209,13 +1202,13 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		if( (in->Bands == 2 ||
 			(in->Bands == 4 && 
 			 in->Type != VIPS_INTERPRETATION_CMYK)) &&
-			(class->saveable == VIPS_SAVEABLE_MONO ||
-			 class->saveable == VIPS_SAVEABLE_RGB ||
-			 class->saveable == VIPS_SAVEABLE_RGB_CMYK) ) {
+			(saveable == VIPS_SAVEABLE_MONO ||
+			 saveable == VIPS_SAVEABLE_RGB ||
+			 saveable == VIPS_SAVEABLE_RGB_CMYK) ) {
 			VipsImage *out;
 
 			if( vips_flatten( in, &out, 
-				"background", save->background,
+				"background", background,
 				NULL ) ) {
 				g_object_unref( in );
 				return( -1 );
@@ -1230,8 +1223,8 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		 */
 
 		else if( in->Bands > 3 && 
-			(class->saveable == VIPS_SAVEABLE_RGB ||
-			 (class->saveable == VIPS_SAVEABLE_RGB_CMYK &&
+			(saveable == VIPS_SAVEABLE_RGB ||
+			 (saveable == VIPS_SAVEABLE_RGB_CMYK &&
 			  in->Type != VIPS_INTERPRETATION_CMYK)) ) { 
 			VipsImage *out;
 
@@ -1253,10 +1246,10 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 			in = out;
 		}
 		else if( in->Bands > 4 && 
-			((class->saveable == VIPS_SAVEABLE_RGB_CMYK &&
+			((saveable == VIPS_SAVEABLE_RGB_CMYK &&
 			  in->Type == VIPS_INTERPRETATION_CMYK) ||
-			 class->saveable == VIPS_SAVEABLE_RGBA ||
-			 class->saveable == VIPS_SAVEABLE_RGBA_ONLY) ) {
+			 saveable == VIPS_SAVEABLE_RGBA ||
+			 saveable == VIPS_SAVEABLE_RGBA_ONLY) ) {
 			VipsImage *out;
 
 			if( vips_extract_band( in, &out, 0, 
@@ -1270,7 +1263,7 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 			in = out;
 		}
 		else if( in->Bands > 1 && 
-			class->saveable == VIPS_SAVEABLE_MONO ) {
+			saveable == VIPS_SAVEABLE_MONO ) {
 			VipsImage *out;
 
 			if( vips_extract_band( in, &out, 0, NULL ) ) {
@@ -1303,8 +1296,7 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		 * it down. This is the behaviour we want for saving an RGB16
 		 * image as JPG, for example.
 		 */
-		if( class->format_table[VIPS_FORMAT_USHORT] == 
-			VIPS_FORMAT_USHORT ) {
+		if( format[VIPS_FORMAT_USHORT] == VIPS_FORMAT_USHORT ) {
 			VipsImage *out;
 
 			if( vips_cast( in, &out, VIPS_FORMAT_USHORT, NULL ) ) {
@@ -1344,8 +1336,7 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	{
 		VipsImage *out;
 
-		if( vips_cast( in, &out, 
-			class->format_table[in->BandFmt], NULL ) ) {
+		if( vips_cast( in, &out, format[in->BandFmt], NULL ) ) {
 			g_object_unref( in );
 			return( -1 );
 		}
@@ -1357,11 +1348,11 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 	/* Does this class want a coded image? Search the coding table for the
 	 * first one.
 	 */
-	if( class->coding[VIPS_CODING_NONE] ) {
+	if( coding[VIPS_CODING_NONE] ) {
 		/* Already NONE, nothing to do.
 		 */
 	}
-	else if( class->coding[VIPS_CODING_LABQ] ) {
+	else if( coding[VIPS_CODING_LABQ] ) {
 		VipsImage *out;
 
 		if( vips_Lab2LabQ( in, &out, NULL ) ) {
@@ -1372,7 +1363,7 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 
 		in = out;
 	}
-	else if( class->coding[VIPS_CODING_RAD] ) {
+	else if( coding[VIPS_CODING_RAD] ) {
 		VipsImage *out;
 
 		if( vips_float2rad( in, &out, NULL ) ) {
@@ -1384,8 +1375,7 @@ vips_foreign_convert_saveable( VipsForeignSave *save )
 		in = out;
 	}
 
-	VIPS_UNREF( save->ready );
-	save->ready = in;
+	*ready = in;
 
 	return( 0 );
 }
@@ -1395,9 +1385,19 @@ vips_foreign_save_build( VipsObject *object )
 {
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE( object );
 
-	if( save->in &&
-		vips_foreign_convert_saveable( save ) )
-		return( -1 );
+	if( save->in ) {
+		VipsForeignSaveClass *class = 
+			VIPS_FOREIGN_SAVE_GET_CLASS( save );
+		VipsImage *ready;
+
+		if( vips__foreign_convert_saveable( save->in, &ready,
+			class->saveable, class->format_table, class->coding,
+			save->background ) )
+			return( -1 );
+
+		VIPS_UNREF( save->ready );
+		save->ready = ready;
+	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_parent_class )->
 		build( object ) )
