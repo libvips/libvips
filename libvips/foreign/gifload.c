@@ -605,6 +605,8 @@ vips_foreign_load_gif_file_header( VipsForeignLoad *load )
 	if( vips_foreign_load_gif_open( gif, file->filename ) ) 
 		return( -1 ); 
 
+	VIPS_SETSTR( load->out->filename, file->filename );
+
 	return( vips_foreign_load_gif_header( load ) );
 }
 

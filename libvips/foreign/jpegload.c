@@ -204,8 +204,6 @@ vips_foreign_load_jpeg_file_header( VipsForeignLoad *load )
 		TRUE, jpeg->shrink, jpeg->fail, FALSE, jpeg->autorotate ) ) 
 		return( -1 );
 
-	VIPS_SETSTR( load->out->filename, file->filename );
-
 	return( 0 );
 }
 

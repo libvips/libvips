@@ -308,6 +308,8 @@ vips_foreign_load_svg_file_header( VipsForeignLoad *load )
 		return( -1 ); 
 	}
 
+	VIPS_SETSTR( load->out->filename, file->filename );
+
 	return( vips_foreign_load_svg_header( load ) );
 }
 

@@ -1174,6 +1174,8 @@ vips__jpeg_read_file( const char *filename, VipsImage *out,
 	if( vips__jpeg_read( jpeg, out, header_only ) ) 
 		return( -1 );
 
+	VIPS_SETSTR( out->filename, filename );
+
 	/* We can kill off the decompress early if this is just a header read.
 	 * This saves an fd during read.
 	 */

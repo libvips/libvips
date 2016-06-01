@@ -1,22 +1,8 @@
-- try:
-
-	$ vipsheader blankpage.pdf 
-	temp-0: 595x842 uchar, 4 bands, srgb, pdfload
-
-  filename is not set?
-
-  try other files in test/images
-
 - try adding a coz progress point to vipsthumbnail's main loop
 
   see
 
 	https://github.com/plasma-umass/coz
-
-
-
-
-
 
 - tiff write does not support [strip]
 
