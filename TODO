@@ -1,9 +1,3 @@
-- try adding a coz progress point to vipsthumbnail's main loop
-
-  see
-
-	https://github.com/plasma-umass/coz
-
 - tiff write does not support [strip]
 
 - add more webp tests to py suite
