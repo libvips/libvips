@@ -543,7 +543,8 @@ set_exif_orientation( ExifData *ed, VipsImage *im )
 	/* We set the tag, even if it's been deleted, since it's a required
 	 * field.
 	 */
-	if( vips_image_get_int( im, VIPS_META_ORIENTATION, &orientation ) ) 
+	if( !vips_image_get_typeof( im, VIPS_META_ORIENTATION ) ||
+		vips_image_get_int( im, VIPS_META_ORIENTATION, &orientation ) ) 
 		orientation = 1;
 
 	VIPS_DEBUG_MSG( "set_exif_orientation: %d\n", orientation );

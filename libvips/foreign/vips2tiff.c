@@ -585,8 +585,9 @@ write_tiff_header( Write *write, Layer *layer )
 		write_embed_imagedescription( write, tif ) )
 		return( -1 ); 
 
-	if( !vips_image_get_int( write->im, 
-		VIPS_META_ORIENTATION, &orientation ) )
+	if( vips_image_get_typeof( write->im, VIPS_META_ORIENTATION ) &&
+		!vips_image_get_int( write->im, 
+			VIPS_META_ORIENTATION, &orientation ) )
 		TIFFSetField( tif, TIFFTAG_ORIENTATION, orientation );
 
 	/* And colour fields.

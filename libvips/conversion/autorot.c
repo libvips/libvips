@@ -76,7 +76,8 @@ vips_autorot_get_angle( VipsImage *im )
 	int orientation;
 	VipsAngle angle;
 
-	if( vips_image_get_int( im, VIPS_META_ORIENTATION, &orientation ) )
+	if( !vips_image_get_typeof( im, VIPS_META_ORIENTATION ) ||
+		vips_image_get_int( im, VIPS_META_ORIENTATION, &orientation ) )
 		orientation = 1;
 
 	switch( orientation ) {

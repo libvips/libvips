@@ -7,30 +7,6 @@
 
   try other files in test/images
 
-- try
-
-	http://www.camerafv5.com/files/photos/raw1/rope.dng
-	$ vips colourspace rope.dng 3.tif[compression=jpeg,Q=90,tile,tile-width=512,tile-height=512] srgb
-
-  tries to save a 16-bit image?
-
-  hangs 50% of the time, the other 50 it fails with a 16-bit error
-
-  save a 16-bit image to tiff with jpg compression ... should it autoconvert?
-
-  tiff should use convert for save in jpeg mode if jpeg compression is enabled
-
-- try
-
-	$ vipsthumbnail ~/pics/*.jpg
-	vips warning: vips_image_get: field "orientation" not found
-	vips_image_get: field "orientation" not found
-	vips_image_get: field "orientation" not found
-	vips_image_get: field "orientation" not found
-	...
-
-  ugly!
-
 - try adding a coz progress point to vipsthumbnail's main loop
 
   see

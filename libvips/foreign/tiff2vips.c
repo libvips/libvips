@@ -2051,6 +2051,7 @@ vips__tiff_read_header_orientation( ReadTiff *rtiff, VipsImage *out )
 	int orientation;
 
 	if( rtiff->autorotate &&
+		vips_image_get_typeof( out, VIPS_META_ORIENTATION ) &&
 		!vips_image_get_int( out, 
 			VIPS_META_ORIENTATION, &orientation ) ) {
 		if( orientation == 3 || 
