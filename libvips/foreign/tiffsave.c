@@ -166,7 +166,8 @@ vips_foreign_save_tiff_build( VipsObject *object )
 		tiff->resunit, tiff->xres, tiff->yres,
 		tiff->bigtiff,
 		tiff->rgbjpeg,
-		tiff->properties ) )
+		tiff->properties,
+		save->strip ) )
 		return( -1 );
 
 	return( 0 );
@@ -353,6 +354,7 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
  * * @yres: %gdouble vertical resolution in pixels/mm
  * * @bigtiff: set %TRUE to write a BigTiff file
  * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
+ * * @strip: set %TRUE to block metadata save
  *
  * Write a VIPS image to a file as TIFF.
  *

@@ -160,6 +160,8 @@
  * 	- better alpha handling, thanks sadaqatullahn
  * 21/12/15
  * 	- write TIFFTAG_IMAGEDESCRIPTION
+ * 2/6/16
+ * 	- support strip option
  */
 
 /*
@@ -278,6 +280,7 @@ struct _Write {
 	int bigtiff;			/* True for bigtiff write */
 	int rgbjpeg;			/* True for RGB not YCbCr */
 	int properties;			/* Set to save XML props */
+	int strip;			/* Don't write metadata */
 };
 
 /* Open TIFF for output.
@@ -578,12 +581,13 @@ write_tiff_header( Write *write, Layer *layer )
 	TIFFSetField( tif, TIFFTAG_YRESOLUTION, 
 		VIPS_FCLIP( 0.01, write->yres, 1000000 ) );
 
-	if( write_embed_profile( write, tif ) ||
-		write_embed_xmp( write, tif ) ||
-		write_embed_ipct( write, tif ) ||
-		write_embed_photoshop( write, tif ) ||
-		write_embed_imagedescription( write, tif ) )
-		return( -1 ); 
+	if( !write->strip ) 
+		if( write_embed_profile( write, tif ) ||
+			write_embed_xmp( write, tif ) ||
+			write_embed_ipct( write, tif ) ||
+			write_embed_photoshop( write, tif ) ||
+			write_embed_imagedescription( write, tif ) )
+			return( -1 ); 
 
 	if( vips_image_get_typeof( write->im, VIPS_META_ORIENTATION ) &&
 		!vips_image_get_int( write->im, 
@@ -875,7 +879,8 @@ write_new( VipsImage *im, const char *filename,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
-	gboolean properties )
+	gboolean properties,
+	gboolean strip )
 {
 	Write *write;
 
@@ -898,6 +903,7 @@ write_new( VipsImage *im, const char *filename,
 	write->bigtiff = bigtiff;
 	write->rgbjpeg = rgbjpeg;
 	write->properties = properties;
+	write->strip = strip;
 
 	write->resunit = get_resunit( resunit );
 	write->xres = xres;
@@ -1541,12 +1547,13 @@ write_copy_tiff( Write *write, TIFF *out, TIFF *in )
 
 	/* We can't copy profiles or xmp :( Set again from Write.
 	 */
-	if( write_embed_profile( write, out ) ||
-		write_embed_xmp( write, out ) ||
-		write_embed_ipct( write, out ) ||
-		write_embed_photoshop( write, out ) ||
-		write_embed_imagedescription( write, out ) )
-		return( -1 );
+	if( !write->strip ) 
+		if( write_embed_profile( write, out ) ||
+			write_embed_xmp( write, out ) ||
+			write_embed_ipct( write, out ) ||
+			write_embed_photoshop( write, out ) ||
+			write_embed_imagedescription( write, out ) )
+			return( -1 );
 
 	buf = vips_malloc( NULL, TIFFTileSize( in ) );
 	n = TIFFNumberOfTiles( in );
@@ -1613,7 +1620,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
-	gboolean properties )
+	gboolean properties, gboolean strip )
 {
 	Write *write;
 
@@ -1632,7 +1639,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties )) )
+		properties, strip )) )
 		return( -1 );
 
 	if( vips_sink_disc( write->im, write_strip, write ) ) {

@@ -12,6 +12,7 @@
 - support tiff orientation tag
 - autorotate option for tiff load
 - tiffsave converts for jpg if jpg compression is turned on
+- tiffsave supports --strip
 
 18/5/16 started 8.3.2
 - more robust vips image reading
