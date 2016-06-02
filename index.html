@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>vips by jcupitt</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>vips</h1>
+        <h2>A fast image processing library with low memory needs.</h2>
+        <a href="https://github.com/jcupitt/libvips" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a id="libvips--an-image-processing-library" class="anchor" href="#libvips--an-image-processing-library" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>libvips : an image processing library</h1>
+
+<p><a href="http://travis-ci.org/jcupitt/libvips"><img src="https://secure.travis-ci.org/jcupitt/libvips.png" alt="Build Status"></a>
+<a href="https://scan.coverity.com/projects/jcupitt-libvips"><img src="https://scan.coverity.com/projects/6503/badge.svg" alt="Coverity Status"></a></p>
+
+<p>libvips is a 2D image processing library. Compared to
+similar libraries, <a href="http://www.vips.ecs.soton.ac.uk/index.php?title=Speed_and_Memory_Use">libvips runs quickly and uses little
+memory</a>.
+libvips is licensed under the LGPL 2.1+.</p>
+
+<p>It has around 300 operations covering arithmetic, histograms,
+convolutions, morphological operations, frequency filtering, colour,
+resampling, statistics and others. It supports a large range of numeric
+formats, from 8-bit int to 128-bit complex. It supports a good range of
+image formats, including JPEG, TIFF, PNG, WebP, FITS, Matlab, OpenEXR,
+PDF, SVG, HDR, PPM, CSV, GIF, Analyze, DeepZoom, and OpenSlide.  It can
+also load images via ImageMagick or GraphicsMagick.</p>
+
+<p>It has APIs for
+<a href="http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-from-c.html">C</a>
+and
+<a href="http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-from-cpp.html">C++</a>
+and comes with a <a href="http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-from-python.html">Python
+binding</a>
+and a <a href="http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-cli.html">command-line
+interface</a>.
+Bindings are available for <a href="https://rubygems.org/gems/ruby-vips">Ruby</a>,
+JavaScript and others. There is full
+<a href="http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/index.html">documentation</a>.
+There are several GUIs as well, see the <a href="http://www.vips.ecs.soton.ac.uk">VIPS
+website</a>.</p>
+
+<p>There are packages for most unix-like operating systems and binaries for
+Windows and OS X.</p>
+
+<h1>
+<a id="building-libvips-from-a-source-tarball" class="anchor" href="#building-libvips-from-a-source-tarball" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building libvips from a source tarball</h1>
+
+<p>We keep pre-baked tarballs of releases on the vips website:</p>
+
+<p><a href="http://www.vips.ecs.soton.ac.uk/supported/current/">http://www.vips.ecs.soton.ac.uk/supported/current/</a></p>
+
+<p>Untar, then in the libvips directory you should just be able to do:</p>
+
+<pre><code>$ ./configure
+</code></pre>
+
+<p>Check the summary at the end of <code>configure</code> carefully. 
+libvips must have <code>build-essential</code>, <code>pkg-config</code>, <code>glib2.0-dev</code>, and 
+<code>libxml2-dev</code>. </p>
+
+<p>For the vips8 Python binding, you must have 
+<code>gobject-introspection</code>, <code>python-gi-dev</code>, and <code>libgirepository1.0-dev</code>.</p>
+
+<p>You'll need the dev packages for the file format support you
+want. For basic jpeg and tiff support, you'll need <code>libtiff5-dev</code>,
+<code>libjpeg-turbo8-dev</code>, and <code>libgsf-1-dev</code>.  See the <strong>Dependencies</strong> section
+below for a full list of the things that libvips can be configured to use.</p>
+
+<p>Once <code>configure</code> is looking OK, compile and install with the usual:</p>
+
+<pre><code>$ make
+$ sudo make install
+</code></pre>
+
+<p>By default this will install files to <code>/usr/local</code>.</p>
+
+<p>We have detailed guides on the wiki for <a href="http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_windows">building on
+Windows</a>
+and <a href="http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_OS_X">building on OS
+X</a>.</p>
+
+<h1>
+<a id="building-libvips-from-git" class="anchor" href="#building-libvips-from-git" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building libvips from git</h1>
+
+<p>Checkout the latest sources with:</p>
+
+<pre><code>$ git clone git://github.com/jcupitt/libvips.git
+</code></pre>
+
+<p>Building from git needs more packages, you'll need at least <code>swig</code>, <code>gtk-doc</code> 
+and <code>gobject-introspection</code>, see the dependencies section below. For example:</p>
+
+<pre><code>$ brew install gtk-doc swig
+</code></pre>
+
+<p>Then build the build system with:</p>
+
+<pre><code>$ ./bootstrap.sh
+</code></pre>
+
+<p>Debug build:</p>
+
+<pre><code>$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
+    ./configure --prefix=/home/john/vips --enable-debug
+$ make
+$ make install
+</code></pre>
+
+<p>Leak check:</p>
+
+<pre><code>$ export G_DEBUG=gc-friendly
+$ export G_SLICE=always-malloc
+$ valgrind --suppressions=libvips.supp \
+    --leak-check=yes \
+    vips ... &gt; vips-vg.log 2&gt;&amp;1
+</code></pre>
+
+<p>valgrind threading check:</p>
+
+<pre><code>$ valgrind --tool=helgrind vips ... &gt; vips-vg.log 2&gt;&amp;1
+</code></pre>
+
+<p>Clang build:</p>
+
+<pre><code>$ CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
+</code></pre>
+
+<p>Clang static analysis:</p>
+
+<pre><code>$ scan-build ./configure --disable-introspection
+$ scan-build -o scan -v make 
+$ scan-view scan/2013-11-22-2
+</code></pre>
+
+<p>Clang dynamic analysis:</p>
+
+<pre><code>$ FLAGS="-O1 -g -fsanitize=address"
+$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+$ CC=clang CXX=clang++ LD=clang \
+    CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
+    ./configure --prefix=/home/john/vips 
+
+$ FLAGS="-O1 -g -fsanitize=thread"
+$ FLAGS="$FLAGS -fPIC -pie"
+$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+$ CC=clang CXX=clang++ LD=clang \
+    CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
+    LDFLAGS="-fsanitize=thread -fPIC -pie" \
+    ./configure --prefix=/home/john/vips 
+</code></pre>
+
+<p>Build with the GCC auto-vectorizer and diagnostics (or just -O3):</p>
+
+<pre><code>$ FLAGS="-O2 -msse4.2 -ffast-math"
+$ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
+$ CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
+    ./configure --prefix=/home/john/vips 
+</code></pre>
+
+<p>Static analysis with:</p>
+
+<pre><code>$ cppcheck --force --enable=style . &amp;&gt; cppcheck.log
+</code></pre>
+
+<h1>
+<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Dependencies</h1>
+
+<p>libvips has to have <code>gettext</code>, <code>glib2.0-dev</code> and <code>libxml2-dev</code>. Other
+dependencies are optional, see below.</p>
+
+<h1>
+<a id="optional-dependencies" class="anchor" href="#optional-dependencies" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Optional dependencies</h1>
+
+<p>If suitable versions are found, libvips will add support for the following
+libraries automatically. See <code>./configure --help</code> for a set of flags to
+control library detection. Packages are generally found with <code>pkg-config</code>,
+so make sure that is working.</p>
+
+<p>libtiff, giflib and libjpeg do not usually use <code>pkg-config</code> so libvips looks for
+them in the default path and in <code>$prefix</code>. If you have installed your own
+versions of these libraries in a different location, libvips will not see
+them. Use switches to libvips configure like:</p>
+
+<pre><code>./configure --prefix=/Users/john/vips \
+    --with-giflib-includes=/opt/local/include \
+    --with-giflib-libraries=/opt/local/lib \
+    --with-tiff-includes=/opt/local/include \
+    --with-tiff-libraries=/opt/local/lib \
+    --with-jpeg-includes=/opt/local/include \
+    --with-jpeg-libraries=/opt/local/lib
+</code></pre>
+
+<p>or perhaps:</p>
+
+<pre><code>CFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
+    CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
+    ./configure --without-python --prefix=/Users/john/vips 
+</code></pre>
+
+<p>to get libvips to see your builds.</p>
+
+<h3>
+<a id="vips8-python-binding" class="anchor" href="#vips8-python-binding" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>vips8 Python binding</h3>
+
+<p>If <code>gobject-introspection</code>, <code>python-gi-dev</code>, and <code>libgirepository1.0-dev</code> are
+available, libvips will install the vips8 Python binding. </p>
+
+<h3>
+<a id="libjpeg" class="anchor" href="#libjpeg" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>libjpeg</h3>
+
+<p>The IJG JPEG library. Use the <code>-turbo</code> version if you can. </p>
+
+<h3>
+<a id="libexif" class="anchor" href="#libexif" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>libexif</h3>
+
+<p>If available, libvips adds support for EXIF metadata in JPEG files.</p>
+
+<h3>
+<a id="giflib" class="anchor" href="#giflib" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>giflib</h3>
+
+<p>The standard gif loader. If this is not present, vips will try to load gifs
+via imagemagick instead.</p>
+
+<h3>
+<a id="librsvg" class="anchor" href="#librsvg" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>librsvg</h3>
+
+<p>The usual SVG loader. If this is not present, vips will try to load SVGs
+via imagemagick instead.</p>
+
+<h3>
+<a id="libpoppler" class="anchor" href="#libpoppler" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>libpoppler</h3>
+
+<p>The usual PDF loader. If this is not present, vips will try to load PDFs
+via imagemagick instead.</p>
+
+<h3>
+<a id="libgsf-1" class="anchor" href="#libgsf-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>libgsf-1</h3>
+
+<p>If available, libvips adds support for creating image pyramids with <code>dzsave</code>. </p>
+
+<h3>
+<a id="libtiff" class="anchor" href="#libtiff" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>libtiff</h3>
+
+<p>The TIFF library. It needs to be built with support for JPEG and
+ZIP compression. 3.4b037 and later are known to be OK. </p>
+
+<h3>
+<a id="fftw3" class="anchor" href="#fftw3" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>fftw3</h3>
+
+<p>If libvips finds this library, it uses it for fourier transforms. </p>
+
+<h3>
+<a id="lcms2-lcms" class="anchor" href="#lcms2-lcms" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>lcms2, lcms</h3>
+
+<p>If present, <code>vips_icc_import()</code>, <code>vips_icc_export()</code> and <code>vips_icc_transform()</code>
+are available for transforming images with ICC profiles. If <code>lcms2</code> is 
+available it is used in preference to <code>lcms</code>, since it is faster.</p>
+
+<h3>
+<a id="large-files" class="anchor" href="#large-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Large files</h3>
+
+<p>libvips uses the standard autoconf tests to work out how to support
+large files (&gt;2GB) on your system. Any reasonably recent unix should
+be OK.</p>
+
+<h3>
+<a id="libpng" class="anchor" href="#libpng" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>libpng</h3>
+
+<p>If present, libvips can load and save png files. </p>
+
+<h3>
+<a id="imagemagick-or-optionally-graphicsmagick" class="anchor" href="#imagemagick-or-optionally-graphicsmagick" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ImageMagick, or optionally GraphicsMagick</h3>
+
+<p>If available, libvips adds support for loading all libMagick-supported
+image file types. Use <code>--with-magickpackage=GraphicsMagick</code> to build against 
+graphicsmagick instead.</p>
+
+<p>Imagemagick 6.9+ needs to have been built with <code>--with-modules</code>. Most packaged
+IMs are, I think, but if you are rolling your own, you'll need to pass
+this flag to configure. </p>
+
+<p>If you are going to be using libvips with untrusted images, perhaps in a
+web-server, for example, you should consider the security implications of
+using a package with such a large attack surface. You might prefer not to
+enable Magick support. </p>
+
+<h3>
+<a id="pangoft2" class="anchor" href="#pangoft2" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>pangoft2</h3>
+
+<p>If available, libvips adds support for text rendering. You need the
+package pangoft2 in <code>pkg-config --list-all</code>.</p>
+
+<h3>
+<a id="orc-04" class="anchor" href="#orc-04" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>orc-0.4</h3>
+
+<p>If available, vips will accelerate some operations with this run-time
+compiler.</p>
+
+<h3>
+<a id="matio" class="anchor" href="#matio" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>matio</h3>
+
+<p>If available, vips can load images from Matlab save files.</p>
+
+<h3>
+<a id="cfitsio" class="anchor" href="#cfitsio" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>cfitsio</h3>
+
+<p>If available, vips can load FITS images.</p>
+
+<h3>
+<a id="libwebp" class="anchor" href="#libwebp" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>libwebp</h3>
+
+<p>If available, vips can load and save WebP images.</p>
+
+<h3>
+<a id="openexr" class="anchor" href="#openexr" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>OpenEXR</h3>
+
+<p>If available, libvips will directly read (but not write, sadly)
+OpenEXR images.</p>
+
+<h3>
+<a id="openslide" class="anchor" href="#openslide" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>OpenSlide</h3>
+
+<p>If available, libvips can load OpenSlide-supported virtual slide
+files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.</p>
+
+<h3>
+<a id="swig-python-python-dev" class="anchor" href="#swig-python-python-dev" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>swig, python, python-dev</h3>
+
+<p>If available, we build the vips7 python binding.</p>
+
+<h1>
+<a id="disclaimer" class="anchor" href="#disclaimer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Disclaimer</h1>
+
+<p>No guarantees of performance accompany this software, nor is any
+responsibility assumed on the part of the authors. Please read the licence
+agreement.</p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/jcupitt/libvips/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/jcupitt/libvips/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/jcupitt/libvips"></a> is maintained by <a href="https://github.com/jcupitt">jcupitt</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
