@@ -554,7 +554,7 @@ aconvsep_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 			break;
 
 		case IM_BANDFMT_CHAR: 	
-			HCONV_INT( signed char, CLIP_UCHAR );
+			HCONV_INT( signed char, CLIP_CHAR );
 			break;
 
 		case IM_BANDFMT_USHORT: 	

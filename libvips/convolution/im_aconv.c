@@ -1139,10 +1139,10 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	case IM_BANDFMT_CHAR: 	
 		if( boxes->max_line > 256 )
 			VCONV( signed int, \
-				signed int, signed char, CLIP_UCHAR );
+				signed int, signed char, CLIP_CHAR );
 		else
 			VCONV( signed int, \
-				signed short, signed char, CLIP_UCHAR );
+				signed short, signed char, CLIP_CHAR );
 		break;
 
 	case IM_BANDFMT_USHORT: 	
