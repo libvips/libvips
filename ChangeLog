@@ -13,6 +13,7 @@
 - autorotate option for tiff load
 - tiffsave converts for jpg if jpg compression is turned on
 - tiffsave supports --strip
+- conversions to GREY16 could lock
 
 18/5/16 started 8.3.2
 - more robust vips image reading
