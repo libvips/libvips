@@ -319,7 +319,7 @@ typedef struct _VipsGsfDirectory {
 
 	/* If we need to turn off compression for this container.
 	 */
-	gboolean no_compression;
+	gboolean is_zip;
 
 	/* The root node holds the enclosing zip file or FS root ... finish
 	 * this on cleanup.
@@ -383,7 +383,7 @@ vips_gsf_tree_free( VipsGsfDirectory *tree )
 /* Make a new tree root.
  */
 static VipsGsfDirectory *
-vips_gsf_tree_new( GsfOutput *out, gboolean no_compression )
+vips_gsf_tree_new( GsfOutput *out, gboolean is_zip )
 {
 	VipsGsfDirectory *tree = g_new( VipsGsfDirectory, 1 );
 
@@ -391,7 +391,7 @@ vips_gsf_tree_new( GsfOutput *out, gboolean no_compression )
 	tree->name = NULL;
 	tree->children = NULL;
 	tree->out = out;
-	tree->no_compression = no_compression;
+	tree->is_zip = is_zip;
 	tree->container = NULL;
 
 	return( tree ); 
@@ -428,10 +428,10 @@ vips_gsf_dir_new( VipsGsfDirectory *parent, const char *name )
 	dir->parent = parent;
 	dir->name = g_strdup( name );
 	dir->children = NULL;
-	dir->no_compression = parent->no_compression;
+	dir->is_zip = parent->is_zip;
 	dir->container = NULL;
 
-	if( dir->no_compression ) 
+	if( dir->is_zip ) 
 		dir->out = gsf_outfile_new_child_full( 
 			(GsfOutfile *) parent->out, 
 			name, TRUE,
@@ -474,7 +474,7 @@ vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
 			dir = vips_gsf_dir_new( dir, dir_name );
 	va_end( ap );
 
-	if( dir->no_compression )
+	if( dir->is_zip )
 		obj = gsf_outfile_new_child_full( (GsfOutfile *) dir->out,
 			name, FALSE,
 			"compression-level", 0,
