@@ -4,6 +4,7 @@
 # as a test of the command-line interface
 
 # set -x
+set -e
 
 . ./variables.sh
 

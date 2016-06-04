@@ -772,8 +772,6 @@ fi
 
 if test x"$enable_pyvips8" = x"yes"; then
   PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.12.0])
-  pyoverridesdir="\$(pyexecdir)/gi/overrides"
-  AC_SUBST(pyoverridesdir)
 fi
 
 AM_CONDITIONAL(ENABLE_PYVIPS8, test x"$enable_pyvips8" = x"yes")
@@ -994,6 +992,9 @@ AC_OUTPUT([
 	tools/light_correct 
 	tools/shrink_width 
 	python/Makefile 
+	python/packages/Makefile
+	python/packages/gi/Makefile 
+	python/packages/gi/overrides/Makefile 
 	test/Makefile 
 	test/variables.sh
 	swig/Makefile 
