@@ -609,7 +609,13 @@ class TestForeign(unittest.TestCase):
         self.colour.dzsave("test.zip")
         self.assertFalse(os.path.exists("test_files"))
         self.assertFalse(os.path.exists("test.dzi"))
+
+        # test compressed zip output
+        self.colour.dzsave("test_compressed.zip", compression = -1)
+        self.assertLess(os.path.getsize("test_compressed.zip"),
+                        os.path.getsize("test.zip"))
         os.unlink("test.zip")
+        os.unlink("test_compressed.zip")
 
         # test suffix 
         self.colour.dzsave("test", suffix = ".png")
