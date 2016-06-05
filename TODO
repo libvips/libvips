@@ -1,3 +1,26 @@
+- we free buffers on vips__buffer_shutdown(), called from thread shutdown,
+  but this won't happen for the main thread until program exit!
+
+  therefore any buffers allocated on the main thread will never leave cache,
+  and will eventually take over, forcing all operations out
+
+  we need to free buffers on image close, not thread exit
+
+  structure:
+
+	thread private ->
+		VipsBufferThread * -> hash(im) -> 
+			VipsBufferCache * -> 
+				array of VipsBuffer
+
+  we currently free VipsBufferThread on thread exit, instead we must free
+  VipsBufferCache on image close
+
+  alternative: keep the current thing, but keep a special note of the main 
+  thread VipsBufferCache ... on image close, remove any buffers just from that 
+
+  we'd need vips__thread_main to track the thread that called VIPS_INIT
+
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py
