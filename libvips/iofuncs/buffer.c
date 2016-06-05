@@ -20,6 +20,8 @@
  * 18/12/13
  * 	- keep a few buffers in reserve per image, stops malloc/free 
  * 	  cycling when sharing is repeatedly discovered
+ * 5/6/16
+ * 	- free main thread buffers on image close
  */
 
 /*
@@ -214,6 +216,16 @@ buffer_cache_free( VipsBufferCache *cache )
 	g_free( cache );
 }
 
+static void
+buffer_cache_image_close_cb( VipsObject *object, void *data )
+{
+	VipsImage *im = VIPS_IMAGE( object ); 
+	VipsBufferCache *cache = (VipsBufferCache *) data;
+	VipsBufferThread *buffer_thread = cache->buffer_thread;
+
+	g_hash_table_remove( buffer_thread->hash, im );
+}
+
 static VipsBufferCache *
 buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 {
@@ -226,6 +238,16 @@ buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 	cache->buffer_thread = buffer_thread;
 	cache->reserve = NULL;
 	cache->n_reserve = 0;
+
+	/* The buffers on worker threads are freed on thread exit, but buffers
+	 * on the main thread won't be freed until program exit, and will
+	 * eventually fill the cache.
+	 *
+	 * If this is a main-thread buffer, junk it by hand on image close. 
+	 */
+	if( cache->thread == vips__thread_main ) 
+		g_signal_connect( im, "close", 
+			G_CALLBACK( buffer_cache_image_close_cb ), cache ); 
 
 #ifdef DEBUG_CREATE
 	g_mutex_lock( vips__global_lock );
