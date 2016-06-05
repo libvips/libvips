@@ -321,11 +321,6 @@ typedef struct _VipsGsfDirectory {
 	 */
 	gboolean no_compression;
 
-	/* The root node holds the enclosing zip file or FS root ... finish
-	 * this on cleanup.
-	 */
-        GsfOutput *container;
-
 } VipsGsfDirectory; 
 
 /* Close all dirs, non-NULL on error.
@@ -339,12 +334,6 @@ vips_gsf_tree_close( VipsGsfDirectory *tree )
 	if( tree->out &&
 		!gsf_output_is_closed( tree->out ) && 
 		!gsf_output_close( tree->out ) ) {
-		vips_error( "vips_gsf", "%s", _( "unable to close stream" ) ); 
-		return( tree );
-	}
-	if( tree->container &&
-		!gsf_output_is_closed( tree->container ) && 
-		!gsf_output_close( tree->container ) ) {
 		vips_error( "vips_gsf", "%s", _( "unable to close stream" ) ); 
 		return( tree );
 	}
@@ -369,12 +358,6 @@ vips_gsf_tree_free( VipsGsfDirectory *tree )
 		g_object_unref( tree->out );
 	}
 
-	if( tree->container ) { 
-		if( !gsf_output_is_closed( tree->container ) )
-			(void) gsf_output_close( tree->container );
-		g_object_unref( tree->container );
-	}
-
 	g_free( tree );
 
 	return( NULL ); 
@@ -392,7 +375,6 @@ vips_gsf_tree_new( GsfOutput *out, gboolean no_compression )
 	tree->children = NULL;
 	tree->out = out;
 	tree->no_compression = no_compression;
-	tree->container = NULL;
 
 	return( tree ); 
 }
@@ -429,18 +411,9 @@ vips_gsf_dir_new( VipsGsfDirectory *parent, const char *name )
 	dir->name = g_strdup( name );
 	dir->children = NULL;
 	dir->no_compression = parent->no_compression;
-	dir->container = NULL;
 
-	if( dir->no_compression ) 
-		dir->out = gsf_outfile_new_child_full( 
-			(GsfOutfile *) parent->out, 
-			name, TRUE,
-			"compression-level", 0, 
-			NULL );
-	else
-		dir->out = gsf_outfile_new_child( 
-			(GsfOutfile *) parent->out, 
-			name, TRUE ); 
+	dir->out = gsf_outfile_new_child( (GsfOutfile *) parent->out, 
+		name, TRUE ); 
 
 	parent->children = g_slist_prepend( parent->children, dir ); 
 
@@ -1778,79 +1751,43 @@ vips_foreign_save_dz_build( VipsObject *object )
 	dz->file_suffix = g_strdup( filename ); 
 }
 
-	/* If we will be renaming our temp dir to an existing directory or
-	 * file, stop now. See vips_rename() use below.
-	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ &&
-		dz->container == VIPS_FOREIGN_DZ_CONTAINER_FS &&
-		vips_existsf( "%s/%s_files", dz->dirname, dz->basename ) ) {
-		vips_error( "dzsave", 
-			_( "output directory %s/%s_files exists" ),
-			dz->dirname, dz->basename );
-		return( -1 ); 
-	}
-
 	/* Make the thing we write the tiles into.
 	 */
 	switch( dz->container ) {
 	case VIPS_FOREIGN_DZ_CONTAINER_FS:
+{
+		GsfOutput *out;
+		GError *error = NULL;
+		char name[VIPS_PATH_MAX];
+
 		if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) {
-			/* For deepzoom, we have to rearrange the output
-			 * directory after writing it, see the end of this
-			 * function. We write to a temporary directory, then
-			 * pull ${basename}_files and ${basename}.dzi out into
-			 * the current directory and remove the temp. The temp
-			 * dir must not clash with another file.
+			/* For deepzoom, we don't use a toplevel
+			 * directory, because the generated files
+			 * already are stored with unique names.
 			 */
-			char name[VIPS_PATH_MAX];
-			int fd;
-			GsfOutput *out;
-			GError *error = NULL;
 
-			vips_snprintf( name, VIPS_PATH_MAX, "%s-XXXXXX", 
-				dz->basename ); 
-			dz->tempdir = g_build_filename( dz->dirname, 
-				name, NULL );
-			if( (fd = g_mkstemp( dz->tempdir )) == -1 ) {
-				vips_error(  class->nickname,
-					_( "unable to make temporary file %s" ),
-					dz->tempdir );
-				return( -1 );
-			}
-			close( fd );
-			g_unlink( dz->tempdir );
-
-			if( !(out = (GsfOutput *) 
-				gsf_outfile_stdio_new( dz->tempdir, 
-					&error )) ) {
-				vips_g_error( &error );
-				return( -1 );
-			}
-		
-			dz->tree = vips_gsf_tree_new( out, FALSE );
+			vips_snprintf( name, VIPS_PATH_MAX, "%s", 
+				dz->dirname ); 
 		}
 		else { 
-			GsfOutput *out;
-			GError *error = NULL;
-			char name[VIPS_PATH_MAX];
-
 			vips_snprintf( name, VIPS_PATH_MAX, "%s/%s", 
 				dz->dirname, dz->basename ); 
-			if( !(out = (GsfOutput *) 
-				gsf_outfile_stdio_new( name, &error )) ) {
-				vips_g_error( &error );
-				return( -1 );
-			}
-		
-			dz->tree = vips_gsf_tree_new( out, FALSE );
 		}
+
+		if( !(out = (GsfOutput *) 
+			gsf_outfile_stdio_new( name, &error )) ) {
+			vips_g_error( &error );
+			return( -1 );
+		}
+
+		dz->tree = vips_gsf_tree_new( out, FALSE );
+}
 		break;
 
 	case VIPS_FOREIGN_DZ_CONTAINER_ZIP:
 {
 		GsfOutput *out;
 		GsfOutput *zip;
-		GsfOutput *out2;
 		GError *error = NULL;
 		char name[VIPS_PATH_MAX];
 
@@ -1873,19 +1810,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		 */
 		g_object_unref( out );
 
-		/* Make the base directory inside the zip. All stuff goes into
-		 * this. 
-		 */
-		out2 = gsf_outfile_new_child_full( (GsfOutfile *) zip, 
-			dz->basename, TRUE,
-			"compression-level", 0, 
-			NULL );
-
-		dz->tree = vips_gsf_tree_new( out2, TRUE );
-
-		/* Note the thing that will need closing up on exit.
-		 */
-		dz->tree->container = zip; 
+		dz->tree = vips_gsf_tree_new( zip, TRUE );
 }
 		break;
 
@@ -1922,37 +1847,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 	if( vips_gsf_tree_close( dz->tree ) )
 		return( -1 ); 
-
-	/* This is so ugly. In earlier versions of dzsave, we wrote x.dzi and
-	 * x_files. Now we write x/x.dzi and x/x_files to make it possible to
-	 * create zip files. 
-	 *
-	 * For compatibility, rearrange the directory tree.
-	 *
-	 * FIXME have a flag to stop this stupidity
-	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ &&
-		dz->container == VIPS_FOREIGN_DZ_CONTAINER_FS ) { 
-		char old_name[VIPS_PATH_MAX];
-		char new_name[VIPS_PATH_MAX];
-
-		vips_snprintf( old_name, VIPS_PATH_MAX, "%s/%s.dzi", 
-			dz->tempdir, dz->basename );
-		vips_snprintf( new_name, VIPS_PATH_MAX, "%s/%s.dzi", 
-			dz->dirname, dz->basename );
-		if( vips_rename( old_name, new_name ) )
-			return( -1 ); 
-
-		vips_snprintf( old_name, VIPS_PATH_MAX, "%s/%s_files", 
-			dz->tempdir, dz->basename );
-		vips_snprintf( new_name, VIPS_PATH_MAX, "%s/%s_files", 
-			dz->dirname, dz->basename );
-		if( vips_rename( old_name, new_name ) )
-			return( -1 ); 
-
-		if( vips_rmdirf( "%s", dz->tempdir ) )
-			return( -1 ); 
-	}
 
 	return( 0 );
 }
