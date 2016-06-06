@@ -94,10 +94,6 @@ int vips__fatal = 0;
  */
 GMutex *vips__global_lock = NULL;
 
-/* The thread that called vips_init().
- */
-GThread *vips__thread_main = NULL;
-
 /* Keep a copy of the argv0 here.
  */
 static char *vips__argv0 = NULL;
@@ -144,8 +140,6 @@ vips_get_argv0( void )
  * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
  * stop and restart vips. 
  *
- * vips_shutdown() must be called from the same thread that called VIPS_INIT().
- *
  * VIPS_INIT() does approximately the following:
  *
  * + checks that the libvips your program is expecting is 
@@ -160,7 +154,7 @@ vips_get_argv0( void )
  * + creates the main vips types, including #VipsImage and friends
  *
  * + loads any plugins from $libdir/vips-x.y/, where x and y are the
- *   major and minor version numbers for this VIPS
+ *   major and minor version numbers for this VIPS.
  *
  * + if your platform supports atexit(), VIPS_INIT() will ask for
  *   vips_shutdown() to be called on program exit
@@ -400,11 +394,6 @@ vips_init( const char *argv0 )
 	 */
 	vips_vector_init();
 
-	/* The main thread is never shut down, so we need to free some main
-	 * thread resources by hand. Track the maiin thread here. 
-	 */
-	vips__thread_main = g_thread_self();
-
 #ifdef HAVE_GSF
 	/* Use this for structured file write.
 	 */
@@ -517,8 +506,6 @@ vips_thread_shutdown( void )
  * You may call VIPS_INIT() many times and vips_shutdown() many times, but you 
  * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
  * stop and restart vips. 
- *
- * vips_shutdown() must be called from the same thread that called VIPS_INIT().
  */
 void
 vips_shutdown( void )
@@ -526,10 +513,6 @@ vips_shutdown( void )
 #ifdef DEBUG
 	printf( "vips_shutdown:\n" );
 #endif /*DEBUG*/
-
-	/* Must be called by the main thread.
-	 */
-	g_assert( vips__thread_main == g_thread_self() );
 
 	vips_cache_drop_all();
 
