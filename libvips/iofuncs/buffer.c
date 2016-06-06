@@ -178,9 +178,11 @@ buffer_thread_free( VipsBufferThread *buffer_thread )
 }
 
 static void
-buffer_cache_free( VipsBufferCache *cache )
+buffer_cache_image_postclose( VipsImage *im, VipsBufferCache *cache )
 {
 	GSList *p;
+
+	printf( "buffer_cache_image_postclose: im = %p\n", im ); 
 
 #ifdef DEBUG_CREATE
 	g_mutex_lock( vips__global_lock );
@@ -193,16 +195,6 @@ buffer_cache_free( VipsBufferCache *cache )
 	printf( "\t(%d caches left)\n", 
 		g_slist_length( vips__buffer_cache_all ) );
 #endif /*DEBUG_CREATE*/
-
-	/* Need to mark undone so we don't try and take them off this hash on
-	 * unref.
-	 */
-	for( p = cache->buffers; p; p = p->next ) {
-		VipsBuffer *buffer = (VipsBuffer *) p->data;
-
-		buffer->done = FALSE;
-	}
-	VIPS_FREEF( g_slist_free, cache->buffers );
 
 	for( p = cache->reserve; p; p = p->next ) {
 		VipsBuffer *buffer = (VipsBuffer *) p->data;
@@ -226,6 +218,13 @@ buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 	cache->buffer_thread = buffer_thread;
 	cache->reserve = NULL;
 	cache->n_reserve = 0;
+	
+	/* Free memory on image close. We can't do this on thread exit since
+	 * some buffers will be made from the main thread and that won't exit
+	 * until program termination.
+	 */
+	g_signal_connect( im, "postclose", 
+		G_CALLBACK( buffer_cache_image_postclose ), cache );
 
 #ifdef DEBUG_CREATE
 	g_mutex_lock( vips__global_lock );
@@ -242,6 +241,22 @@ buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 	return( cache );
 }
 
+static void
+buffer_cache_unlink( VipsBufferCache *cache )
+{
+	GSList *p;
+
+	/* Need to mark undone so we don't try and take them off this cache on
+	 * unref.
+	 */
+	for( p = cache->buffers; p; p = p->next ) {
+		VipsBuffer *buffer = (VipsBuffer *) p->data;
+
+		buffer->done = FALSE;
+	}
+	VIPS_FREEF( g_slist_free, cache->buffers );
+}
+
 static VipsBufferThread *
 buffer_thread_new( void )
 {
@@ -250,7 +265,7 @@ buffer_thread_new( void )
 	buffer_thread = g_new( VipsBufferThread, 1 );
 	buffer_thread->hash = g_hash_table_new_full( 
 		g_direct_hash, g_direct_equal, 
-		NULL, (GDestroyNotify) buffer_cache_free );
+		NULL, (GDestroyNotify) buffer_cache_unlink );
 	buffer_thread->thread = g_thread_self();
 
 	return( buffer_thread );
@@ -582,7 +597,7 @@ vips_buffer_print( VipsBuffer *buffer )
 }
 
 static void
-vips__buffer_init_cb( VipsBufferThread *buffer_thread )
+buffer_thread_destroy_notify( VipsBufferThread *buffer_thread )
 {
 	/* We only come here if vips_thread_shutdown() was not called for this
 	 * thread. Do our best to clean up.
@@ -599,13 +614,13 @@ vips__buffer_init( void )
 {
 #ifdef HAVE_PRIVATE_INIT
 	static GPrivate private = 
-		G_PRIVATE_INIT( (GDestroyNotify) vips__buffer_init_cb );
+		G_PRIVATE_INIT( (GDestroyNotify) buffer_thread_destroy_notify );
 
 	buffer_thread_key = &private;
 #else
 	if( !buffer_thread_key ) 
 		buffer_thread_key = g_private_new( 
-			(GDestroyNotify) vips__buffer_init_cb );
+			(GDestroyNotify) buffer_thread_destroy_notify );
 #endif
 
 	if( buffer_cache_max_reserve < 1 )

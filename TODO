@@ -1,3 +1,10 @@
+- freeing buffer caches on image close does not work well, since we free regions
+  after images (strangely)
+
+  can we free images earlier?
+
+  vips_region_dispose() unrefs the buffer before it unrefs the image .. odd!
+
 - below does not work for sharp .... we must free all buffers on close
 
 - we free buffers on vips__buffer_shutdown(), called from thread shutdown,
