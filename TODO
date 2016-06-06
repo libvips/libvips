@@ -1,3 +1,5 @@
+- below does not work for sharp .... we must free all buffers on close
+
 - we free buffers on vips__buffer_shutdown(), called from thread shutdown,
   but this won't happen for the main thread until program exit!
 
