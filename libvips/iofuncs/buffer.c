@@ -20,6 +20,9 @@
  * 18/12/13
  * 	- keep a few buffers in reserve per image, stops malloc/free 
  * 	  cycling when sharing is repeatedly discovered
+ * 6/6/16
+ * 	- free buffers on image close as well as thread exit, so main thread
+ * 	  buffers don't clog up the system
  */
 
 /*
@@ -177,12 +180,19 @@ buffer_thread_free( VipsBufferThread *buffer_thread )
 	VIPS_FREE( buffer_thread );
 }
 
+/* This can be called via two routes: 
+ *
+ * - on thread shutdown, the enclosing hash is destroyed, and that will 
+ *   trigger this via GDestroyNotify.
+ * - if the image is closed, buffer_cache_image_postclose() fires and will call
+ *   this
+ *
+ * These can happen in either order. 
+ */
 static void
-buffer_cache_image_postclose( VipsImage *im, VipsBufferCache *cache )
+buffer_cache_free( VipsBufferCache *cache )
 {
 	GSList *p;
-
-	printf( "buffer_cache_image_postclose: im = %p\n", im ); 
 
 #ifdef DEBUG_CREATE
 	g_mutex_lock( vips__global_lock );
@@ -196,6 +206,16 @@ buffer_cache_image_postclose( VipsImage *im, VipsBufferCache *cache )
 		g_slist_length( vips__buffer_cache_all ) );
 #endif /*DEBUG_CREATE*/
 
+	/* Need to mark undone so we don't try and take them off this cache on
+	 * unref.
+	 */
+	for( p = cache->buffers; p; p = p->next ) {
+		VipsBuffer *buffer = (VipsBuffer *) p->data;
+
+		buffer->done = FALSE;
+	}
+	VIPS_FREEF( g_slist_free, cache->buffers );
+
 	for( p = cache->reserve; p; p = p->next ) {
 		VipsBuffer *buffer = (VipsBuffer *) p->data;
 
@@ -203,13 +223,35 @@ buffer_cache_image_postclose( VipsImage *im, VipsBufferCache *cache )
 	}
 	VIPS_FREEF( g_slist_free, cache->reserve );
 
+	cache->proxy->cache = NULL;
+	cache->proxy = NULL;
+
 	g_free( cache );
+}
+
+static void
+buffer_cache_proxy_image_postclose( VipsImage *im, VipsBufferCacheProxy *proxy )
+{
+	g_assert( proxy->im == im );
+
+	if( proxy->cache ) {
+		VipsBufferCache *cache = proxy->cache;
+		VipsBufferThread *buffer_thread = cache->buffer_thread;
+		VipsImage *im = cache->im;
+
+		g_assert( cache->im == im );
+
+		g_hash_table_remove( buffer_thread->hash, im );
+	}
+
+	g_free( proxy ); 
 }
 
 static VipsBufferCache *
 buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 {
 	VipsBufferCache *cache;
+	VipsBufferCacheProxy *proxy;
 
 	cache = g_new( VipsBufferCache, 1 );
 	cache->buffers = NULL;
@@ -218,13 +260,18 @@ buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 	cache->buffer_thread = buffer_thread;
 	cache->reserve = NULL;
 	cache->n_reserve = 0;
+
+	proxy = g_new( VipsBufferCacheProxy, 1 );
+	proxy->im = im;
+	proxy->cache = cache;
+	cache->proxy = proxy;
 	
 	/* Free memory on image close. We can't do this on thread exit since
 	 * some buffers will be made from the main thread and that won't exit
 	 * until program termination.
 	 */
 	g_signal_connect( im, "postclose", 
-		G_CALLBACK( buffer_cache_image_postclose ), cache );
+		G_CALLBACK( buffer_cache_proxy_image_postclose ), proxy );
 
 #ifdef DEBUG_CREATE
 	g_mutex_lock( vips__global_lock );
@@ -241,22 +288,6 @@ buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 	return( cache );
 }
 
-static void
-buffer_cache_unlink( VipsBufferCache *cache )
-{
-	GSList *p;
-
-	/* Need to mark undone so we don't try and take them off this cache on
-	 * unref.
-	 */
-	for( p = cache->buffers; p; p = p->next ) {
-		VipsBuffer *buffer = (VipsBuffer *) p->data;
-
-		buffer->done = FALSE;
-	}
-	VIPS_FREEF( g_slist_free, cache->buffers );
-}
-
 static VipsBufferThread *
 buffer_thread_new( void )
 {
@@ -265,7 +296,7 @@ buffer_thread_new( void )
 	buffer_thread = g_new( VipsBufferThread, 1 );
 	buffer_thread->hash = g_hash_table_new_full( 
 		g_direct_hash, g_direct_equal, 
-		NULL, (GDestroyNotify) buffer_cache_unlink );
+		NULL, (GDestroyNotify) buffer_cache_free );
 	buffer_thread->thread = g_thread_self();
 
 	return( buffer_thread );

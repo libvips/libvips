@@ -101,7 +101,16 @@ typedef struct _VipsBufferCache {
 	VipsBufferThread *buffer_thread;
 	GSList *reserve;	/* VipsBuffer kept in reserve */
 	int n_reserve;		/* Number in reserve */
+	struct _VipsBufferCacheProxy *proxy;
 } VipsBufferCache;
+
+/* A proxy object between the image and the cache. This has the lifetime of the
+ * image and keeps a nullable pointer to the buffer cache. 
+ */
+typedef struct _VipsBufferCacheProxy { 
+	VipsBufferCache *cache;
+	struct _VipsImage *im;
+} VipsBufferCacheProxy;
 
 /* What we track for each pixel buffer. These can move between caches and
  * between threads, but not between images. 
