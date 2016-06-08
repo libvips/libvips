@@ -61,6 +61,8 @@
  * 	- always strip tile metadata 
  * 16/12/15
  * 	- fix overlap handling again, thanks erdmann
+ * 8/6/16 Felix Bünemann
+ * 	- add @compression option
  */
 
 /*
@@ -325,10 +327,6 @@ typedef struct _VipsGsfDirectory {
 	 */
 	GsfOutput *out;
 
-	/* If we need to turn off compression for this container.
-	 */
-	gboolean is_zip;
-
 	/* The root node holds the enclosing zip file or FS root ... finish
 	 * this on cleanup.
 	 */
@@ -395,7 +393,7 @@ vips_gsf_tree_free( VipsGsfDirectory *tree )
 /* Make a new tree root.
  */
 static VipsGsfDirectory *
-vips_gsf_tree_new( GsfOutput *out, gboolean is_zip, gint compression_level )
+vips_gsf_tree_new( GsfOutput *out, gint compression_level )
 {
 	VipsGsfDirectory *tree = g_new( VipsGsfDirectory, 1 );
 
@@ -403,7 +401,6 @@ vips_gsf_tree_new( GsfOutput *out, gboolean is_zip, gint compression_level )
 	tree->name = NULL;
 	tree->children = NULL;
 	tree->out = out;
-	tree->is_zip = is_zip;
 	tree->container = NULL;
 	tree->compression_level = compression_level;
 
@@ -441,11 +438,10 @@ vips_gsf_dir_new( VipsGsfDirectory *parent, const char *name )
 	dir->parent = parent;
 	dir->name = g_strdup( name );
 	dir->children = NULL;
-	dir->is_zip = parent->is_zip;
 	dir->container = NULL;
 	dir->compression_level = parent->compression_level;
 
-	if( dir->is_zip ) 
+	if( GSF_IS_OUTFILE_ZIP( parent->out ) )
 		dir->out = gsf_outfile_new_child_full( 
 			(GsfOutfile *) parent->out, 
 			name, TRUE,
@@ -488,7 +484,7 @@ vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
 			dir = vips_gsf_dir_new( dir, dir_name );
 	va_end( ap );
 
-	if( dir->is_zip )
+	if( GSF_IS_OUTFILE_ZIP( dir->out ) ) {
 		if( dir->compression_level == 0 )
 			obj = gsf_outfile_new_child_full(
 				(GsfOutfile *) dir->out,
@@ -508,6 +504,7 @@ vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
 				"compression-level", VIPS_ZIP_DEFLATE,
 				"deflate-level", dir->compression_level,
 				NULL );
+	}
 	else
 		obj = gsf_outfile_new_child( (GsfOutfile *) dir->out,
 			name, FALSE ); 
@@ -1857,7 +1854,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 				return( -1 );
 			}
 		
-			dz->tree = vips_gsf_tree_new( out, FALSE, 0 );
+			dz->tree = vips_gsf_tree_new( out, 0 );
 		}
 		else { 
 			GsfOutput *out;
@@ -1872,7 +1869,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 				return( -1 );
 			}
 		
-			dz->tree = vips_gsf_tree_new( out, FALSE, 0 );
+			dz->tree = vips_gsf_tree_new( out, 0 );
 		}
 		break;
 
@@ -1917,7 +1914,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 				_( "libgsf too old, using default compression" ) );
 			dz->compression = VIPS_ZIP_DEFAULT_COMPRESSION;
 		}
-		dz->tree = vips_gsf_tree_new( out2, TRUE, dz->compression );
+		dz->tree = vips_gsf_tree_new( out2, dz->compression );
 
 		/* Note the thing that will need closing up on exit.
 		 */
