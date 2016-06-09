@@ -16,6 +16,7 @@
 - conversions to GREY16 could lock
 - free pixel buffers on image close as well as thread exit ... stops main 
   thread buffers clogging up the system
+- dzsave can write compressed zips [Felix Bünemann]
 
 18/5/16 started 8.3.2
 - more robust vips image reading

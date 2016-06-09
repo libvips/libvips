@@ -61,6 +61,8 @@
  * 	- always strip tile metadata 
  * 16/12/15
  * 	- fix overlap handling again, thanks erdmann
+ * 8/6/16 Felix Bünemann
+ * 	- add @compression option
  */
 
 /*
@@ -285,11 +287,11 @@ vips__make_xml_metadata( const char *domain, VipsImage *image )
 
 /* Round N down to P boundary. 
  */
-#define ROUND_DOWN(N,P) ((N) - ((N) % P)) 
+#define ROUND_DOWN( N, P ) ((N) - ((N) % P)) 
 
 /* Round N up to P boundary. 
  */
-#define ROUND_UP(N,P) (ROUND_DOWN( (N) + (P) - 1, (P) ))
+#define ROUND_UP( N, P ) (ROUND_DOWN( (N) + (P) - 1, (P) ))
 
 /* Simple wrapper around libgsf.
  *
@@ -317,14 +319,14 @@ typedef struct _VipsGsfDirectory {
 	 */
 	GsfOutput *out;
 
-	/* If we need to turn off compression for this container.
-	 */
-	gboolean no_compression;
-
 	/* The root node holds the enclosing zip file or FS root ... finish
 	 * this on cleanup.
 	 */
         GsfOutput *container;
+
+	/* Set deflate compression level for zip container.
+	 */
+	gint deflate_level;
 
 } VipsGsfDirectory; 
 
@@ -383,7 +385,7 @@ vips_gsf_tree_free( VipsGsfDirectory *tree )
 /* Make a new tree root.
  */
 static VipsGsfDirectory *
-vips_gsf_tree_new( GsfOutput *out, gboolean no_compression )
+vips_gsf_tree_new( GsfOutput *out, gint deflate_level )
 {
 	VipsGsfDirectory *tree = g_new( VipsGsfDirectory, 1 );
 
@@ -391,8 +393,8 @@ vips_gsf_tree_new( GsfOutput *out, gboolean no_compression )
 	tree->name = NULL;
 	tree->children = NULL;
 	tree->out = out;
-	tree->no_compression = no_compression;
 	tree->container = NULL;
+	tree->deflate_level = deflate_level;
 
 	return( tree ); 
 }
@@ -428,14 +430,14 @@ vips_gsf_dir_new( VipsGsfDirectory *parent, const char *name )
 	dir->parent = parent;
 	dir->name = g_strdup( name );
 	dir->children = NULL;
-	dir->no_compression = parent->no_compression;
 	dir->container = NULL;
+	dir->deflate_level = parent->deflate_level;
 
-	if( dir->no_compression ) 
+	if( GSF_IS_OUTFILE_ZIP( parent->out ) )
 		dir->out = gsf_outfile_new_child_full( 
 			(GsfOutfile *) parent->out, 
 			name, TRUE,
-			"compression-level", 0, 
+			"compression-level", GSF_ZIP_STORED,
 			NULL );
 	else
 		dir->out = gsf_outfile_new_child( 
@@ -474,26 +476,36 @@ vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
 			dir = vips_gsf_dir_new( dir, dir_name );
 	va_end( ap );
 
-	if( dir->no_compression )
-		obj = gsf_outfile_new_child_full( (GsfOutfile *) dir->out,
-			name, FALSE,
-			"compression-level", 0,
-			NULL );
+	if( GSF_IS_OUTFILE_ZIP( dir->out ) ) {
+		/* Confusingly, libgsf compression-level really means
+		 * compression-method. They have a separate deflate-level 
+		 * property for the deflate compression level.
+		 */
+		if( dir->deflate_level == 0 )
+			obj = gsf_outfile_new_child_full(
+				(GsfOutfile *) dir->out,
+				name, FALSE,
+				"compression-level", GSF_ZIP_STORED,
+				NULL );
+		else if( dir->deflate_level == -1 )
+			obj = gsf_outfile_new_child_full(
+				(GsfOutfile *) dir->out,
+				name, FALSE,
+				"compression-level", GSF_ZIP_DEFLATED,
+				NULL );
+		else
+			obj = gsf_outfile_new_child_full(
+				(GsfOutfile *) dir->out,
+				name, FALSE,
+				"compression-level", GSF_ZIP_DEFLATED,
+				"deflate-level", dir->deflate_level,
+				NULL );
+	}
 	else
 		obj = gsf_outfile_new_child( (GsfOutfile *) dir->out,
 			name, FALSE ); 
 
 	return( obj ); 
-}
-
-/* libgsf before 1.14.31 did not support zip64.
- */
-static gboolean
-vips_gsf_has_zip64( void )
-{
-	return( libgsf_major_version > 1 ||
-		libgsf_minor_version > 14 ||
-		libgsf_micro_version >= 31 );
 }
 
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
@@ -560,6 +572,7 @@ struct _VipsForeignSaveDz {
 	gboolean properties;
 	VipsAngle angle;
 	VipsForeignDzContainer container; 
+	int compression;
 
 	Layer *layer;			/* x2 shrink pyr layer */
 
@@ -1234,7 +1247,8 @@ strip_work( VipsThreadState *state, void *a )
 		x = t;
 	}
 
-	/* Hopefully no one will want the same metadata on all the tiles.
+	/* Hopefully, no one will want the same metadata on all the tiles.
+	 * Strip them.
 	 */
 	vips_image_set_int( x, "hide-progress", 1 );
 	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, 
@@ -1268,12 +1282,12 @@ strip_work( VipsThreadState *state, void *a )
 		return( -1 ); 
 	}
 
+#ifndef HAVE_GSF_ZIP64
 	/* Allow a 100,000 byte margin. This probably isn't enough: we don't
 	 * include the space zip needs for the index nor anything we are
 	 * outputting apart from the gsf_output_write() above.
 	 */
 	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP &&
-		!vips_gsf_has_zip64() &&
 		dz->bytes_written > (size_t) UINT_MAX - 100000 ) {
 		g_mutex_unlock( vips__global_lock );
 
@@ -1281,6 +1295,7 @@ strip_work( VipsThreadState *state, void *a )
 			"%s", _( "output file too large" ) ); 
 		return( -1 ); 
 	}
+#endif /*HAVE_GSF_ZIP64*/
 
 	g_mutex_unlock( vips__global_lock );
 
@@ -1827,7 +1842,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 				return( -1 );
 			}
 		
-			dz->tree = vips_gsf_tree_new( out, FALSE );
+			dz->tree = vips_gsf_tree_new( out, 0 );
 		}
 		else { 
 			GsfOutput *out;
@@ -1842,7 +1857,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 				return( -1 );
 			}
 		
-			dz->tree = vips_gsf_tree_new( out, FALSE );
+			dz->tree = vips_gsf_tree_new( out, 0 );
 		}
 		break;
 
@@ -1878,10 +1893,19 @@ vips_foreign_save_dz_build( VipsObject *object )
 		 */
 		out2 = gsf_outfile_new_child_full( (GsfOutfile *) zip, 
 			dz->basename, TRUE,
-			"compression-level", 0, 
+			"compression-level", GSF_ZIP_STORED, 
 			NULL );
 
-		dz->tree = vips_gsf_tree_new( out2, TRUE );
+#ifndef HAVE_GSF_DEFLATE_LEVEL
+		if( dz->compression > 0 ) {
+			vips_warn( class->nickname, "%s",
+				_( "deflate-level not supported by libgsf, "
+				"using default compression" ) ); 
+			dz->compression = -1;
+		}
+#endif
+
+		dz->tree = vips_gsf_tree_new( out2, dz->compression );
 
 		/* Note the thing that will need closing up on exit.
 		 */
@@ -2072,6 +2096,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, properties ),
 		FALSE );
 
+	VIPS_ARG_INT( class, "compression", 17, 
+		_( "Compression" ), 
+		_( "ZIP deflate compression level" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, compression ),
+		-1, 9, 0 );
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
@@ -2116,6 +2147,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL; 
 	dz->angle = VIPS_ANGLE_D0; 
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_FS; 
+	dz->compression = 0;
 }
 
 #endif /*HAVE_GSF*/
@@ -2128,16 +2160,17 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  *
  * Optional arguments:
  *
- * * @layout; directory layout convention
+ * * @layout: #VipsForeignDzLayout directory layout convention
  * * @suffix: suffix for tile tiles 
- * * @overlap; set tile overlap 
- * * @tile_size; set tile size 
- * * @background: background colour
- * * @depth: how deep to make the pyramid
- * * @centre: centre the tiles 
- * * @angle: rotate the image by this much
- * * @container: set container type
- * * @properties: write a properties file
+ * * @overlap: %gint set tile overlap 
+ * * @tile_size: %gint set tile size 
+ * * @background: #VipsArrayDouble background colour
+ * * @depth: #VipsForeignDzDepth how deep to make the pyramid
+ * * @centre: %gboolean centre the tiles 
+ * * @angle: #VipsAngle rotate the image by this much
+ * * @container: #VipsForeignDzContainer set container type
+ * * @properties: %gboolean write a properties file
+ * * @compression: %gint zip deflate compression level
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -2167,6 +2200,10 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * metadata attached to @in in an obvious manner. It can be useful for viewing
  * programs which wish to use fields from source files loaded via
  * vips_openslideload(). 
+ *
+ * If @container is set to `zip`, you can set a compression level from -1
+ * (use zlib default), 0 (store, compression disabled) to 9 (max compression).
+ * If no value is given, the default is to store files without compression.
  *
  * See also: vips_tiffsave().
  *

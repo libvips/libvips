@@ -376,7 +376,7 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
 
 # with 2.36 and after the type system inits itself
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
-  [AC_DEFINE(NEED_TYPE_INIT,1,[define if your glib needs g_type_init().])
+  [AC_DEFINE(HAVE_TYPE_INIT,1,[define if your glib needs g_type_init().])
   ],
   [:
   ]
@@ -399,6 +399,16 @@ if test x"$with_gsf" != "xno"; then
     ],
     [AC_MSG_WARN([libgsf-1 not found; disabling dzsave support]) 
      with_gsf=no
+    ]
+  )
+
+  # zip64 and deflate-level came in .31
+  PKG_CHECK_MODULES(GSF_ZIP64, libgsf-1 >= 1.14.31,
+    [AC_DEFINE(HAVE_GSF_ZIP64,1,[define if your libgsf supports zip64.])
+     AC_DEFINE(HAVE_GSF_DEFLATE_LEVEL,1,
+	       [define if your libgsf supports deflate-level.])
+    ],
+    [:
     ]
   )
 fi
