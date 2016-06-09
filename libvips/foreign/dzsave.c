@@ -1899,8 +1899,9 @@ vips_foreign_save_dz_build( VipsObject *object )
 #ifndef HAVE_GSF_DEFLATE_LEVEL
 		if( dz->compression > 0 ) {
 			vips_warn( class->nickname, "%s",
-				_( "deflate-level not supported, using 0" ) ); 
-			dz->compression = 0;
+				_( "deflate-level not supported by libgsf, "
+				"using default compression" ) ); 
+			dz->compression = -1;
 		}
 #endif
 
@@ -2159,17 +2160,17 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  *
  * Optional arguments:
  *
- * * @layout; directory layout convention
+ * * @layout: #VipsForeignDzLayout directory layout convention
  * * @suffix: suffix for tile tiles 
- * * @overlap; set tile overlap 
- * * @tile_size; set tile size 
- * * @background: background colour
- * * @depth: how deep to make the pyramid
- * * @centre: centre the tiles 
- * * @angle: rotate the image by this much
- * * @container: set container type
- * * @properties: write a properties file
- * * @compression: zip deflate compression level
+ * * @overlap: %gint set tile overlap 
+ * * @tile_size: %gint set tile size 
+ * * @background: #VipsArrayDouble background colour
+ * * @depth: #VipsForeignDzDepth how deep to make the pyramid
+ * * @centre: %gboolean centre the tiles 
+ * * @angle: #VipsAngle rotate the image by this much
+ * * @container: #VipsForeignDzContainer set container type
+ * * @properties: %gboolean write a properties file
+ * * @compression: %gint zip deflate compression level
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
