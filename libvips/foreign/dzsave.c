@@ -149,14 +149,6 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#define VIPS_ZIP_STORE 0
-#define VIPS_ZIP_DEFLATE 8
-#define VIPS_ZIP_DEFAULT_COMPRESSION -1
-
-/* libgsf before 1.14.31 did not support deflate-level.
- */
-#define vips_gsf_has_zip64 vips_gsf_has_deflate_level
-
 /* Track this during property save.
  */
 typedef struct _WriteInfo { 
@@ -295,11 +287,11 @@ vips__make_xml_metadata( const char *domain, VipsImage *image )
 
 /* Round N down to P boundary. 
  */
-#define ROUND_DOWN(N,P) ((N) - ((N) % P)) 
+#define ROUND_DOWN( N, P ) ((N) - ((N) % P)) 
 
 /* Round N up to P boundary. 
  */
-#define ROUND_UP(N,P) (ROUND_DOWN( (N) + (P) - 1, (P) ))
+#define ROUND_UP( N, P ) (ROUND_DOWN( (N) + (P) - 1, (P) ))
 
 /* Simple wrapper around libgsf.
  *
@@ -334,7 +326,7 @@ typedef struct _VipsGsfDirectory {
 
 	/* Set deflate compression level for zip container.
 	 */
-	gint compression_level;
+	gint deflate_level;
 
 } VipsGsfDirectory; 
 
@@ -393,7 +385,7 @@ vips_gsf_tree_free( VipsGsfDirectory *tree )
 /* Make a new tree root.
  */
 static VipsGsfDirectory *
-vips_gsf_tree_new( GsfOutput *out, gint compression_level )
+vips_gsf_tree_new( GsfOutput *out, gint deflate_level )
 {
 	VipsGsfDirectory *tree = g_new( VipsGsfDirectory, 1 );
 
@@ -402,7 +394,7 @@ vips_gsf_tree_new( GsfOutput *out, gint compression_level )
 	tree->children = NULL;
 	tree->out = out;
 	tree->container = NULL;
-	tree->compression_level = compression_level;
+	tree->deflate_level = deflate_level;
 
 	return( tree ); 
 }
@@ -439,13 +431,13 @@ vips_gsf_dir_new( VipsGsfDirectory *parent, const char *name )
 	dir->name = g_strdup( name );
 	dir->children = NULL;
 	dir->container = NULL;
-	dir->compression_level = parent->compression_level;
+	dir->deflate_level = parent->deflate_level;
 
 	if( GSF_IS_OUTFILE_ZIP( parent->out ) )
 		dir->out = gsf_outfile_new_child_full( 
 			(GsfOutfile *) parent->out, 
 			name, TRUE,
-			"compression-level", VIPS_ZIP_STORE,
+			"compression-level", GSF_ZIP_STORED,
 			NULL );
 	else
 		dir->out = gsf_outfile_new_child( 
@@ -485,24 +477,28 @@ vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
 	va_end( ap );
 
 	if( GSF_IS_OUTFILE_ZIP( dir->out ) ) {
-		if( dir->compression_level == 0 )
+		/* Confusingly, libgsf compression-level really means
+		 * compression-method. They have a separate deflate-level 
+		 * property for the deflate compression level.
+		 */
+		if( dir->deflate_level == 0 )
 			obj = gsf_outfile_new_child_full(
 				(GsfOutfile *) dir->out,
 				name, FALSE,
-				"compression-level", VIPS_ZIP_STORE,
+				"compression-level", GSF_ZIP_STORED,
 				NULL );
-		else if( dir->compression_level == VIPS_ZIP_DEFAULT_COMPRESSION )
+		else if( dir->deflate_level == -1 )
 			obj = gsf_outfile_new_child_full(
 				(GsfOutfile *) dir->out,
 				name, FALSE,
-				"compression-level", VIPS_ZIP_DEFLATE,
+				"compression-level", GSF_ZIP_DEFLATED,
 				NULL );
 		else
 			obj = gsf_outfile_new_child_full(
 				(GsfOutfile *) dir->out,
 				name, FALSE,
-				"compression-level", VIPS_ZIP_DEFLATE,
-				"deflate-level", dir->compression_level,
+				"compression-level", GSF_ZIP_DEFLATED,
+				"deflate-level", dir->deflate_level,
 				NULL );
 	}
 	else
@@ -510,16 +506,6 @@ vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
 			name, FALSE ); 
 
 	return( obj ); 
-}
-
-/* libgsf before 1.14.31 did not support zip64.
- */
-static gboolean
-vips_gsf_has_zip64( void )
-{
-	return( libgsf_major_version > 1 ||
-		libgsf_minor_version > 14 ||
-		libgsf_micro_version >= 31 );
 }
 
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
@@ -1261,7 +1247,8 @@ strip_work( VipsThreadState *state, void *a )
 		x = t;
 	}
 
-	/* Hopefully no one will want the same metadata on all the tiles.
+	/* Hopefully, no one will want the same metadata on all the tiles.
+	 * Strip them.
 	 */
 	vips_image_set_int( x, "hide-progress", 1 );
 	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, 
@@ -1295,12 +1282,12 @@ strip_work( VipsThreadState *state, void *a )
 		return( -1 ); 
 	}
 
+#ifndef HAVE_GSF_ZIP64
 	/* Allow a 100,000 byte margin. This probably isn't enough: we don't
 	 * include the space zip needs for the index nor anything we are
 	 * outputting apart from the gsf_output_write() above.
 	 */
 	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP &&
-		!vips_gsf_has_zip64() &&
 		dz->bytes_written > (size_t) UINT_MAX - 100000 ) {
 		g_mutex_unlock( vips__global_lock );
 
@@ -1308,6 +1295,7 @@ strip_work( VipsThreadState *state, void *a )
 			"%s", _( "output file too large" ) ); 
 		return( -1 ); 
 	}
+#endif /*HAVE_GSF_ZIP64*/
 
 	g_mutex_unlock( vips__global_lock );
 
@@ -1905,15 +1893,17 @@ vips_foreign_save_dz_build( VipsObject *object )
 		 */
 		out2 = gsf_outfile_new_child_full( (GsfOutfile *) zip, 
 			dz->basename, TRUE,
-			"compression-level", VIPS_ZIP_STORE, 
+			"compression-level", GSF_ZIP_STORED, 
 			NULL );
 
-		if( dz->compression > 0 && !vips_gsf_has_deflate_level() ) {
-			vips_warn( "VipsDzSave", 
-				"%s",
-				_( "libgsf too old, using default compression" ) );
-			dz->compression = VIPS_ZIP_DEFAULT_COMPRESSION;
+#ifndef HAVE_GSF_DEFLATE_LEVEL
+		if( dz->compression > 0 ) {
+			vips_warn( class->nickname, "%s",
+				_( "deflate-level not supported, using 0" ) ); 
+			dz->compression = 0;
 		}
+#endif
+
 		dz->tree = vips_gsf_tree_new( out2, dz->compression );
 
 		/* Note the thing that will need closing up on exit.
