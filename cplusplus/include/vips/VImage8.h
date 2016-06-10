@@ -471,7 +471,7 @@ public:
 	VImage new_from_image( std::vector<double> pixel );
 	VImage new_from_image( double pixel );
 
-	void write( VImage out );
+	VImage write( VImage out );
 
 	void write_to_file( const char *name, VOption *options = 0 );
 

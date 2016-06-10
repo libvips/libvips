@@ -19,6 +19,8 @@
 - dzsave can write compressed zips [Felix Bünemann]
 - vips_image_write() only refs the input when it has to ... makes it easier to
   combine many images in bounded memory
+- VImage::write() implementation was missing
+- VImage::write() return value changed from void to VImage to help chaining
 
 18/5/16 started 8.3.2
 - more robust vips image reading

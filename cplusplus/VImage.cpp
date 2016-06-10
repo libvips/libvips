@@ -2,6 +2,8 @@
  *
  * 30/12/14
  * 	- allow set enum value from string
+ * 10/6/16
+ * 	- missing implementation of VImage::write()
  */
 
 /*
@@ -610,6 +612,15 @@ VImage::new_matrixv( int width, int height, ... )
 	va_end( ap );
 
 	return( matrix ); 
+}
+
+VImage
+VImage::write( VImage out )
+{
+	if( vips_image_write( this->get_image(), out.get_image() ) )
+		throw VError(); 
+
+	return( out ); 
 }
 
 void 
