@@ -8,6 +8,8 @@
  * 	- add vips_image_copy_memory()
  * 25/11/15
  * 	- add vips_image_new_from_memory_copy()
+ * 10/6/16
+ * 	- vips_image_write() does not ref input for non-partial images
  */
 
 /*
@@ -2448,16 +2450,21 @@ vips_image_write( VipsImage *image, VipsImage *out )
 			VIPS_DEMAND_STYLE_THINSTRIP, image, NULL ) )
 		return( -1 );
 
-	/* We generate from @image partially, so we need to keep it about as
-	 * long as @out is about. 
-	 */
-	g_object_ref( image );
-	vips_object_local( out, image );
-
 	if( vips_image_generate( out,
 		vips_start_one, vips_image_write_gen, vips_stop_one, 
 		image, NULL ) )
 		return( -1 );
+
+	/* If @out is a partial image, we need to make sure that @image stays
+	 * alive as long as @out is alive.
+	 *
+	 * If it's not partial, perhaps a file we write to, or a memory image,
+	 * it's fine for @image to go away.
+	 */
+	if( vips_image_ispartial( out ) ) { 
+		g_object_ref( image );
+		vips_object_local( out, image );
+	}
 
 	return( 0 );
 }
