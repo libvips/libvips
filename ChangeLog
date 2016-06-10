@@ -21,6 +21,7 @@
   combine many images in bounded memory
 - VImage::write() implementation was missing
 - VImage::write() return value changed from void to VImage to help chaining
+- VImage::ifthenelse() with double args was missing =0 on options
 
 18/5/16 started 8.3.2
 - more robust vips image reading
