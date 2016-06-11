@@ -751,19 +751,19 @@ public:
 	}
 
 	VImage 
-	ifthenelse( double th, VImage el, VOption *options )
+	ifthenelse( double th, VImage el, VOption *options = 0 )
 	{
 		return( ifthenelse( to_vector( th ), el, options ) ); 
 	}
 
 	VImage 
-	ifthenelse( VImage th, double el, VOption *options )
+	ifthenelse( VImage th, double el, VOption *options = 0 )
 	{
 		return( ifthenelse( th, to_vector( el ), options ) ); 
 	}
 
 	VImage 
-	ifthenelse( double th, double el, VOption *options )
+	ifthenelse( double th, double el, VOption *options = 0 )
 	{
 		return( ifthenelse( to_vector( th ), to_vector( el ), 
 			options ) );
