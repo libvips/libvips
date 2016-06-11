@@ -4,6 +4,8 @@
  * 	- allow set enum value from string
  * 10/6/16
  * 	- missing implementation of VImage::write()
+ * 11/6/16
+ * 	- added arithmetic assignment overloads, += etc. 
  */
 
 /*
@@ -766,13 +768,32 @@ operator+( VImage a, std::vector<double> b )
 	return( a.linear( 1.0, b ) ); 
 }
 
+VImage & 
+VImage::operator+=( const VImage b )
+{
+	return( *this = *this + b ); 
+}
+
+VImage & 
+VImage::operator+=( const double b )
+{
+	return( *this = *this + b ); 
+}
+
+VImage & 
+VImage::operator+=( std::vector<double> b )
+{
+	return( *this = *this + b ); 
+}
+
 VImage 
 operator-( VImage a, VImage b ) 
 {
 	return( a.subtract( b ) );
 }
 
-VImage operator-( double a, VImage b ) 
+VImage 
+operator-( double a, VImage b ) 
 {
 	return( b.linear( -1.0, a ) ); 
 }
@@ -793,6 +814,24 @@ VImage
 operator-( VImage a, std::vector<double> b ) 
 { 
 	return( a.linear( 1.0, vips::negate( b ) ) ); 
+}
+
+VImage & 
+VImage::operator-=( const VImage b )
+{
+	return( *this = *this - b ); 
+}
+
+VImage & 
+VImage::operator-=( const double b )
+{
+	return( *this = *this - b ); 
+}
+
+VImage & 
+VImage::operator-=( std::vector<double> b )
+{
+	return( *this = *this - b ); 
 }
 
 VImage 
@@ -831,6 +870,24 @@ operator*( VImage a, std::vector<double> b )
 	return( a.linear( b, 0.0 ) ); 
 }
 
+VImage & 
+VImage::operator*=( const VImage b )
+{
+	return( *this = *this * b ); 
+}
+
+VImage & 
+VImage::operator*=( const double b )
+{
+	return( *this = *this * b ); 
+}
+
+VImage & 
+VImage::operator*=( std::vector<double> b )
+{
+	return( *this = *this * b ); 
+}
+
 VImage 
 operator/( VImage a, VImage b ) 
 {
@@ -861,6 +918,24 @@ operator/( VImage a, std::vector<double> b )
 	return( a.linear( vips::invert( b ), 0.0 ) ); 
 }
 
+VImage & 
+VImage::operator/=( const VImage b )
+{
+	return( *this = *this / b ); 
+}
+
+VImage & 
+VImage::operator/=( const double b )
+{
+	return( *this = *this / b ); 
+}
+
+VImage & 
+VImage::operator/=( std::vector<double> b )
+{
+	return( *this = *this / b ); 
+}
+
 VImage 
 operator%( VImage a, VImage b ) 
 {
@@ -877,6 +952,24 @@ VImage
 operator%( VImage a, std::vector<double> b ) 
 { 
 	return( a.remainder_const( b ) ); 
+}
+
+VImage & 
+VImage::operator%=( const VImage b )
+{
+	return( *this = *this % b ); 
+}
+
+VImage & 
+VImage::operator%=( const double b )
+{
+	return( *this = *this % b ); 
+}
+
+VImage & 
+VImage::operator%=( std::vector<double> b )
+{
+	return( *this = *this % b ); 
 }
 
 VImage 
@@ -1115,6 +1208,24 @@ operator&( VImage a, std::vector<double> b )
 	return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_AND ) );
 }
 
+VImage & 
+VImage::operator&=( const VImage b )
+{
+	return( *this = *this & b ); 
+}
+
+VImage & 
+VImage::operator&=( const double b )
+{
+	return( *this = *this & b ); 
+}
+
+VImage & 
+VImage::operator&=( std::vector<double> b )
+{
+	return( *this = *this & b ); 
+}
+
 VImage 
 operator|( VImage a, VImage b ) 
 {
@@ -1145,6 +1256,24 @@ VImage
 operator|( VImage a, std::vector<double> b ) 
 { 
 	return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_OR ) );
+}
+
+VImage & 
+VImage::operator|=( const VImage b )
+{
+	return( *this = *this | b ); 
+}
+
+VImage & 
+VImage::operator|=( const double b )
+{
+	return( *this = *this | b ); 
+}
+
+VImage & 
+VImage::operator|=( std::vector<double> b )
+{
+	return( *this = *this | b ); 
 }
 
 VImage 
@@ -1179,6 +1308,24 @@ operator^( VImage a, std::vector<double> b )
 	return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_EOR ) );
 }
 
+VImage & 
+VImage::operator^=( const VImage b )
+{
+	return( *this = *this ^ b ); 
+}
+
+VImage & 
+VImage::operator^=( const double b )
+{
+	return( *this = *this ^ b ); 
+}
+
+VImage & 
+VImage::operator^=( std::vector<double> b )
+{
+	return( *this = *this ^ b ); 
+}
+
 VImage 
 operator<<( VImage a, VImage b ) 
 {
@@ -1198,6 +1345,24 @@ operator<<( VImage a, std::vector<double> b )
 	return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_LSHIFT ) ); 
 }
 
+VImage & 
+VImage::operator<<=( const VImage b )
+{
+	return( *this = *this << b ); 
+}
+
+VImage & 
+VImage::operator<<=( const double b )
+{
+	return( *this = *this << b ); 
+}
+
+VImage & 
+VImage::operator<<=( std::vector<double> b )
+{
+	return( *this = *this << b ); 
+}
+
 VImage 
 operator>>( VImage a, VImage b ) 
 {
@@ -1215,6 +1380,24 @@ VImage
 operator>>( VImage a, std::vector<double> b ) 
 { 
 	return( a.boolean_const( b, VIPS_OPERATION_BOOLEAN_RSHIFT ) ); 
+}
+
+VImage & 
+VImage::operator>>=( const VImage b )
+{
+	return( *this = *this << b ); 
+}
+
+VImage & 
+VImage::operator>>=( const double b )
+{
+	return( *this = *this << b ); 
+}
+
+VImage & 
+VImage::operator>>=( std::vector<double> b )
+{
+	return( *this = *this << b ); 
 }
 
 VIPS_NAMESPACE_END

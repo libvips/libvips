@@ -1,11 +1,4 @@
-- could add operator+= and friends to allow this
-
-	VImage im = ...;
-	VImage x = ...;
-
-	im += x;
-
-  unlike Python, C++ will not do this automatically
+- add tests for C++ += etc. 
 
 - add more webp tests to py suite
 
