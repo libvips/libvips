@@ -1,3 +1,23 @@
+- try:
+
+	$ vips black x.v 10 10
+	$ vips reducev x.v x2.v 2
+	$ vips avg x2.v
+	1.000000
+
+  argh!
+
+  reduceh seems OK
+
+	$ vips reducev x.v x2.v 2 --vips-novector
+	$ vips avg x2.v
+	0.000000
+
+  also OK ... just the vector path
+
+- add more reducev tests ... resize constant 255 and constant 0 image, with and
+  without vector
+
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py
