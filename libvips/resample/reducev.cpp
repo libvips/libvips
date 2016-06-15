@@ -9,6 +9,8 @@
  * 2/4/16
  * 	- better int mask creation ... we now adjust the scale to keep the sum
  * 	  equal to the target scale
+ * 15/6/16
+ * 	- better accuracy with smarter multiplication
  */
 
 /*
@@ -178,25 +180,23 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 
 	/* The value we fetch from the image, the accumulated sum.
 	 */
-	TEMP( "sum", 2 );
 	TEMP( "value", 2 );
-	TEMP( "valueb", 1 );
+	TEMP( "sum", 2 );
 
 	/* Init the sum. If this is the first pass, it's a constant. If this
 	 * is a later pass, we have to init the sum from the result 
 	 * of the previous pass. 
 	 */
 	if( first ) {
-		char zero[256];
+		char c0[256];
 
-		CONST( zero, 0, 2 );
-		ASM2( "loadpw", "sum", zero );
+		CONST( c0, 0, 2 );
+		ASM2( "loadpw", "sum", c0 );
 	}
 	else 
 		ASM2( "loadw", "sum", "r" );
 
 	for( i = pass->first; i < reducev->n_point; i++ ) {
-		char one[256];
 		char source[256];
 		char coeff[256];
 
@@ -205,21 +205,24 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 		/* This mask coefficient.
 		 */
 		vips_snprintf( coeff, 256, "p%d", i );
-		pass->p[pass->n_param] = PARAM( coeff, 1 );
+		pass->p[pass->n_param] = PARAM( coeff, 2 );
 		pass->n_param += 1;
 		if( pass->n_param >= MAX_PARAM )
 			return( -1 );
 
 		/* Mask coefficients are 2.6 bits fixed point. We need to hold
 		 * about -0.5 to 1.0, so -2 to +1.999 is as close as we can
-		 * get. The image pixel must be signed too, so we shift right
-		 * to clear the top bit.
+		 * get. 
+		 *
+		 * We need a signed multiply, so the image pixel needs to
+		 * become a signed 16-bit value. We know only the bottom 8 bits
+		 * of the image and coefficient are interesting, so we can take
+		 * the bottom bits of a 16x16->32 multiply. 
 		 *
 		 * We accumulate the signed 16-bit result in sum.
 		 */
-		CONST( one, 1, 1 );
-		ASM3( "shrub", "valueb", source, one );
-		ASM3( "mulsbw", "value", "valueb", coeff );
+		ASM2( "convubw", "value", source );
+		ASM3( "mullw", "value", "value", coeff );
 		ASM3( "addssw", "sum", "sum", "value" );
 
 		/* We've used this coeff.
@@ -240,28 +243,24 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	 * image, otherwise write the 16-bit intermediate to our temp buffer. 
 	 */
 	if( pass->last >= reducev->n_point - 1 ) {
-		char thirtytwo[256];
-		char five[256];
-		char zero[256];
-		char twofivefive[256];
+		char c32[256];
+		char c6[256];
+		char c0[256];
+		char c255[256];
 
-		/* You'd think we might add 16 before dividing by 32, but we
-		 * are really dividing by 64, since we right-shifted the pixel
-		 * values on load above. So we add 32.
-		 */
-		CONST( thirtytwo, 32, 2 );
-		ASM3( "addw", "sum", "sum", thirtytwo );
-		CONST( five, 5, 2 );
-		ASM3( "shrsw", "sum", "sum", five );
+		CONST( c32, 32, 2 );
+		ASM3( "addw", "sum", "sum", c32 );
+		CONST( c6, 6, 2 );
+		ASM3( "shrsw", "sum", "sum", c6 );
 
 		/* You'd think "convsuswb", convert signed 16-bit to unsigned
 		 * 8-bit with saturation, would be quicker, but it's a lot
 		 * slower.
 		 */
-		CONST( zero, 0, 2 );
-		ASM3( "maxsw", "sum", zero, "sum" ); 
-		CONST( twofivefive, 255, 2 );
-		ASM3( "minsw", "sum", twofivefive, "sum" ); 
+		CONST( c0, 0, 2 );
+		ASM3( "maxsw", "sum", c0, "sum" ); 
+		CONST( c255, 255, 2 );
+		ASM3( "minsw", "sum", c255, "sum" ); 
 
 		ASM2( "convwb", "d1", "sum" );
 	}
@@ -657,6 +656,17 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 		const int ty = (siy + 1) >> 1;
 		const int *cyo = reducev->matrixo[ty];
 
+#ifdef DEBUG
+		printf( "starting row %d\n", y + r->top ); 
+		printf( "coefficients:\n" );
+		for( int i = 0; i < reducev->n_point; i++ ) 
+			printf( "\t%d - %d\n", i, cyo[i] );
+		printf( "first column of pixel values:\n" ); 
+		for( int i = 0; i < reducev->n_point; i++ ) 
+			printf( "\t%d - %d\n", i, 
+				*VIPS_REGION_ADDR( ir, r->left, r->top + y + i ) ); 
+#endif /*DEBUG*/
+
 		/* We run our n passes to generate this scanline.
 		 */
 		for( int i = 0; i < reducev->n_pass; i++ ) {
@@ -676,6 +686,11 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 
 			VIPS_SWAP( signed short *, seq->t1, seq->t2 );
 		}
+
+#ifdef DEBUG
+		printf( "pixel result:\n" );
+		printf( "\t%d\n", *q ); 
+#endif /*DEBUG*/
 	}
 
 	VIPS_GATE_STOP( "vips_reducev_vector_gen: work" ); 

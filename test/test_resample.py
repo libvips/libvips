@@ -154,6 +154,16 @@ class TestResample(unittest.TestCase):
                     d = abs(r.avg() - im.avg())
                     self.assertLess(d, 2)
 
+        # try constant images ... should not change the constant
+        for const in [0, 1, 2, 254, 255]:
+            im = (Vips.Image.black(10, 10) + const).cast("uchar")
+            for kernel in ["nearest", "linear", "cubic", "lanczos2", "lanczos3"]:
+                # print "testing kernel =", kernel
+                # print "testing const =", const
+                shr = im.reduce(2, 2, kernel = kernel)
+                d = abs(shr.avg() - im.avg())
+                self.assertEqual(d, 0)
+
     def test_resize(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")
         im2 = im.resize(0.25)

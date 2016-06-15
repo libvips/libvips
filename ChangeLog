@@ -23,6 +23,7 @@
 - VImage::write() return value changed from void to VImage to help chaining
 - added C++ arithmetic assignment overloads, += etc. 
 - VImage::ifthenelse() with double args was missing =0 on options
+- better accuracy for reducev with smarter multiplication
 
 18/5/16 started 8.3.2
 - more robust vips image reading
