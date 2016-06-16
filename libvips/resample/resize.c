@@ -13,6 +13,9 @@
  * 1/5/16
  * 	- allow >1 on one axis, <1 on the other
  * 	- expose @kernel setting
+ * 16/6/16
+ * 	- better quality for linear/cubic kernels ... do more shrink and less
+ * 	  reduce
  */
 
 /*
@@ -84,6 +87,43 @@ typedef VipsResampleClass VipsResizeClass;
 
 G_DEFINE_TYPE( VipsResize, vips_resize, VIPS_TYPE_RESAMPLE ); 
 
+/* How much of a scale should be by an integer shrink factor?
+ *
+ * This depends on the scale and the kernel we will use for residual resizing.
+ * For upsizing and nearest-neighbour downsize, we want no shrinking. 
+ *
+ * Linear and cubic are fixed-size kernels and for a 0 offset are point
+ * samplers. We will get aliasing if we do more than a x2 shrink with them.
+ *
+ * Lanczos is adaptive: the size of the kernel changes with the shrink factor.
+ * We will get the best quality (but be the slowest) if we let reduce do all
+ * the work. Leave it the final 200 - 300% to do as a compromise for
+ * efficiency. 
+ *
+ * FIXME: this is rather ugly. Kernel should be a class and this info should be
+ * stored in there. 
+ */
+static int
+vips_resize_int_shrink( VipsResize *resize, double scale )
+{
+	if( scale > 1.0 )
+		return( 1 ); 
+
+	switch( resize->kernel ) { 
+	case VIPS_KERNEL_NEAREST:
+	     return( 1 ); 
+
+	case VIPS_KERNEL_LINEAR:
+	case VIPS_KERNEL_CUBIC:
+	default:
+		return( VIPS_FLOOR( 1.0 / scale ) );
+
+	case VIPS_KERNEL_LANCZOS2:
+	case VIPS_KERNEL_LANCZOS3:
+		return( VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (resize->scale * 2) ) ) );
+	}
+}
+
 static int
 vips_resize_build( VipsObject *object )
 {
@@ -114,25 +154,9 @@ vips_resize_build( VipsObject *object )
 	else
 		target_height = in->Ysize * resize->scale;
 
-	/* If the factor is > 1.0, we need to zoom rather than shrink.
-	 * Just set the int part to 1 in this case.
-	 */
-
-	/* We want the int part of the shrink to leave a bit to do with
-	 * blur/reduce/sharpen, or we'll see strange changes in aliasing on int
-	 * shrink boundaries as we resize.
-	 */
-
-	if( resize->scale > 1.0 )
-		int_hshrink = 1;
-	else
-		int_hshrink = VIPS_FLOOR( 1.0 / (resize->scale * 2) );
-	if( vips_object_argument_isset( object, "vscale" ) ) {
-		if( resize->vscale > 1.0 )
-			int_vshrink = 1;
-		else
-			int_vshrink = VIPS_FLOOR( 1.0 / (resize->vscale * 2) );
-	}
+	int_hshrink = vips_resize_int_shrink( resize, resize->scale );
+	if( vips_object_argument_isset( object, "vscale" ) ) 
+		int_vshrink = vips_resize_int_shrink( resize, resize->vscale );
 	else
 		int_vshrink = int_hshrink;
 
@@ -334,21 +358,21 @@ vips_resize_init( VipsResize *resize )
  *
  * Optional arguments:
  *
- * * @vscale: vertical scale factor
+ * * @vscale: %gdouble vertical scale factor
  * * @kernel: #VipsKernel to reduce with 
  *
  * Resize an image. When upsizing (@scale > 1), the image is simply block
  * upsized. When downsizing, the
  * image is block-shrunk with vips_shrink(), 
  * then the image is shrunk again to the 
- * target size with vips_reduce(). The operation will leave at least the final
- * x2 to be done with vips_reduce().
+ * target size with vips_reduce(). How much is done by vips_shrink() vs.
+ * vips_reduce() varies with the @kernel setting. 
  *
  * vips_resize() normally maintains the image apect ratio. If you set
  * @vscale, that factor is used for the vertical scale and @scale for the
  * horizontal.
  *
- * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for thre final shrink, you
+ * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for the final shrink, you
  * can change this with @kernel.
  *
  * This operation does not change xres or yres. The image resolution needs to

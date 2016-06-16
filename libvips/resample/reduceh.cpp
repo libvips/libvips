@@ -559,11 +559,10 @@ vips_reduceh_init( VipsReduceh *reduceh )
  *
  * Optional arguments:
  *
- * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
+ * * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
  *
  * Reduce @in horizontally by a float factor. The pixels in @out are
- * interpolated with a 1D mask. This operation will not work well for
- * a reduction of more than a factor of two.
+ * interpolated with a 1D mask. 
  *
  * This is a very low-level operation: see vips_resize() for a more
  * convenient way to resize images. 

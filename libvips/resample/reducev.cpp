@@ -41,6 +41,8 @@
  */
 
 /*
+#define DEBUG_PIXELS
+#define DEBUG_COMPILE
 #define DEBUG
  */
 
@@ -163,9 +165,9 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	VipsVector *v;
 	int i;
 
-#ifdef DEBUG
+#ifdef DEBUG_COMPILE
 	printf( "starting pass %d\n", pass->first ); 
-#endif /*DEBUG*/
+#endif /*DEBUG_COMPILE*/
 
 	pass->vector = v = vips_vector_new( "reducev", 1 );
 
@@ -270,10 +272,10 @@ vips_reducev_compile_section( VipsReducev *reducev, Pass *pass, gboolean first )
 	if( !vips_vector_compile( v ) ) 
 		return( -1 );
 
-#ifdef DEBUG
+#ifdef DEBUG_COMPILE
 	printf( "done coeffs %d to %d\n", pass->first, pass->last );
 	vips_vector_print( v );
-#endif /*DEBUG*/
+#endif /*DEBUG_COMPILE*/
 
 	return( 0 );
 }
@@ -623,10 +625,10 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 	VipsExecutor executor[MAX_PASS];
 	VipsRect s;
 
-#ifdef DEBUG
+#ifdef DEBUG_PIXELS
 	printf( "vips_reducev_vector_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top ); 
-#endif /*DEBUG*/
+#endif /*DEBUG_PIXELS*/
 
 	s.left = r->left;
 	s.top = r->top * reducev->yshrink;
@@ -635,10 +637,10 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
-#ifdef DEBUG
+#ifdef DEBUG_PIXELS
 	printf( "vips_reducev_vector_gen: preparing %d x %d at %d x %d\n",
 		s.width, s.height, s.left, s.top ); 
-#endif /*DEBUG*/
+#endif /*DEBUG_PIXELS*/
 
 	for( int i = 0; i < reducev->n_pass; i++ ) 
 		vips_executor_set_program( &executor[i], 
@@ -656,7 +658,7 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 		const int ty = (siy + 1) >> 1;
 		const int *cyo = reducev->matrixo[ty];
 
-#ifdef DEBUG
+#ifdef DEBUG_PIXELS
 		printf( "starting row %d\n", y + r->top ); 
 		printf( "coefficients:\n" );
 		for( int i = 0; i < reducev->n_point; i++ ) 
@@ -665,7 +667,7 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 		for( int i = 0; i < reducev->n_point; i++ ) 
 			printf( "\t%d - %d\n", i, 
 				*VIPS_REGION_ADDR( ir, r->left, r->top + y + i ) ); 
-#endif /*DEBUG*/
+#endif /*DEBUG_PIXELS*/
 
 		/* We run our n passes to generate this scanline.
 		 */
@@ -687,10 +689,10 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 			VIPS_SWAP( signed short *, seq->t1, seq->t2 );
 		}
 
-#ifdef DEBUG
+#ifdef DEBUG_PIXELS
 		printf( "pixel result:\n" );
 		printf( "\t%d\n", *q ); 
-#endif /*DEBUG*/
+#endif /*DEBUG_PIXELS*/
 	}
 
 	VIPS_GATE_STOP( "vips_reducev_vector_gen: work" ); 
@@ -964,11 +966,10 @@ vips_reducev_init( VipsReducev *reducev )
  *
  * Optional arguments:
  *
- * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
+ * * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
  *
  * Reduce @in vertically by a float factor. The pixels in @out are
- * interpolated with a 1D mask. This operation will not work well for
- * a reduction of more than a factor of two.
+ * interpolated with a 1D mask. 
  *
  * This is a very low-level operation: see vips_resize() for a more
  * convenient way to resize images. 

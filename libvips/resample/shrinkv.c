@@ -435,10 +435,8 @@ vips_shrinkv_init( VipsShrinkv *shrink )
  * Shrink @in vertically by an integer factor. Each pixel in the output is
  * the average of the corresponding column of @yshrink pixels in the input. 
  *
- * You will get aliasing for non-integer shrinks. In this case, shrink with
- * this function to the nearest integer size above the target shrink, then
- * downsample to the exact size with vips_affine() and your choice of
- * interpolator. See vips_resize() for a convenient way to do this.
+ * This is a very low-level operation: see vips_resize() for a more
+ * convenient way to resize images. 
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 
