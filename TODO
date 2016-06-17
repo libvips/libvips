@@ -1,3 +1,9 @@
+- python can't set new metadata, it can only set existing metadata
+
+	im.set_value("banana", 12)
+
+  will fail as Vips.py tries to look up the type of "banana"
+
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py

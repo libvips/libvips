@@ -869,8 +869,8 @@ class Image(Vips.Image):
         For example, bytes() can be used to set VipsBlob fields. 
         """
         gtype = self.get_typeof(field)
-        logger.debug('assigning %s to %s' % (value, self))
-        logger.debug('%s needs a %s' % (self, gtype))
+        logger.debug('%s.%s = %s' % (self, field, value))
+        logger.debug('%s.%s needs a %s' % (self, field, gtype))
 
         # blob-ize
         if GObject.type_is_a(gtype, vips_type_blob):
