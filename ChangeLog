@@ -25,6 +25,7 @@
 - VImage::ifthenelse() with double args was missing =0 on options
 - better accuracy for reducev with smarter multiplication
 - better quality for vips_resize() with linear/cubic kernels 
+- pyvips8 can create new metadata
 
 18/5/16 started 8.3.2
 - more robust vips image reading

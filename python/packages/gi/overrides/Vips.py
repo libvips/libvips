@@ -872,18 +872,20 @@ class Image(Vips.Image):
         logger.debug('%s.%s = %s' % (self, field, value))
         logger.debug('%s.%s needs a %s' % (self, field, gtype))
 
-        # blob-ize
-        if GObject.type_is_a(gtype, vips_type_blob):
-            if not isinstance(value, Vips.Blob):
-                value = Vips.Blob.new(None, value)
+        # there must be a better way to test for GType(0)
+        if gtype.name != 'invalid':
+            # blob-ize
+            if GObject.type_is_a(gtype, vips_type_blob):
+                if not isinstance(value, Vips.Blob):
+                    value = Vips.Blob.new(None, value)
 
-        # image-ize
-        if GObject.type_is_a(gtype, vips_type_image):
-            if not isinstance(value, Vips.Image):
-                value = imageize(self, value)
+            # image-ize
+            if GObject.type_is_a(gtype, vips_type_image):
+                if not isinstance(value, Vips.Image):
+                    value = imageize(self, value)
 
-        # array-ize some types, if necessary
-        value = arrayize(gtype, value)
+            # array-ize some types, if necessary
+            value = arrayize(gtype, value)
 
         self.set(field, value)
 
