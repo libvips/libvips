@@ -873,7 +873,7 @@ class Image(Vips.Image):
         logger.debug('%s.%s needs a %s' % (self, field, gtype))
 
         # there must be a better way to test for GType(0)
-        if gtype.name != 'invalid':
+        if gtype != GObject.TYPE_INVALID:
             # blob-ize
             if GObject.type_is_a(gtype, vips_type_blob):
                 if not isinstance(value, Vips.Blob):
