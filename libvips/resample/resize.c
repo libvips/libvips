@@ -16,6 +16,8 @@
  * 16/6/16
  * 	- better quality for linear/cubic kernels ... do more shrink and less
  * 	  reduce
+ * 22/6/16
+ * 	- faster and better upsizing
  */
 
 /*
@@ -121,6 +123,27 @@ vips_resize_int_shrink( VipsResize *resize, double scale )
 	case VIPS_KERNEL_LANCZOS2:
 	case VIPS_KERNEL_LANCZOS3:
 		return( VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (resize->scale * 2) ) ) );
+	}
+}
+
+/* Suggest a VipsInterpolate which corresponds to a VipsKernel. We use
+ * this to pick a thing for affine().
+ */
+static const char *
+vips_resize_interpolate( VipsKernel kernel )
+{
+	switch( kernel ) {
+	case VIPS_KERNEL_NEAREST:
+	     return( "nearest" ); 
+
+	case VIPS_KERNEL_LINEAR:
+	     return( "bilinear" ); 
+
+	/* Use cubic for everything else. There are other interpolators, like
+	 * nohalo, but they don't really correspond well to any kernel.
+	 */
+	default:
+	     return( "bicubic" ); 
 	}
 }
 
@@ -252,23 +275,44 @@ vips_resize_build( VipsObject *object )
 
 	/* Any upsizing.
 	 */
-	if( hresidual > 1.0 ) { 
-		vips_info( class->nickname, "residual scaleh %g", 
-			hresidual );
-		if( vips_affine( in, &t[4], hresidual, 0.0, 0.0, 1.0, 
-			"interpolate", vips_interpolate_nearest_static(), 
-			NULL ) )  
-			return( -1 );
-		in = t[4];
-	}
+	if( hresidual > 1.0 ||
+		vresidual > 1.0 ) { 
+		const char *nickname = vips_resize_interpolate( resize->kernel );
+		VipsInterpolate *interpolate;
 
-	if( vresidual > 1.0 ) { 
-		vips_info( class->nickname, "residual scalev %g", vresidual );
-		if( vips_affine( in, &t[5], 1.0, 0.0, 0.0, vresidual, 
-			"interpolate", vips_interpolate_nearest_static(), 
-			NULL ) )  
-			return( -1 );
-		in = t[5];
+		if( !(interpolate = vips_interpolate_new( nickname )) )
+			return( -1 ); 
+		vips_object_local( object, interpolate );
+
+		if( hresidual > 1.0 && 
+			vresidual > 1.0 ) { 
+			vips_info( class->nickname, 
+				"residual scale %g x %g", hresidual, vresidual );
+			if( vips_affine( in, &t[4], 
+				hresidual, 0.0, 0.0, vresidual, 
+				"interpolate", interpolate, 
+				NULL ) )  
+				return( -1 );
+			in = t[4];
+		}
+		else if( hresidual > 1.0 ) { 
+			vips_info( class->nickname, 
+				"residual scaleh %g", hresidual );
+			if( vips_affine( in, &t[4], hresidual, 0.0, 0.0, 1.0, 
+				"interpolate", interpolate, 
+				NULL ) )  
+				return( -1 );
+			in = t[4];
+		}
+		else { 
+			vips_info( class->nickname, 
+				"residual scalev %g", vresidual );
+			if( vips_affine( in, &t[4], 1.0, 0.0, 0.0, vresidual, 
+				"interpolate", interpolate, 
+				NULL ) )  
+				return( -1 );
+			in = t[4];
+		}
 	}
 
 	if( vips_image_write( in, resample->out ) )
@@ -361,19 +405,24 @@ vips_resize_init( VipsResize *resize )
  * * @vscale: %gdouble vertical scale factor
  * * @kernel: #VipsKernel to reduce with 
  *
- * Resize an image. When upsizing (@scale > 1), the image is simply block
- * upsized. When downsizing, the
+ * Resize an image. 
+ *
+ * When downsizing, the
  * image is block-shrunk with vips_shrink(), 
  * then the image is shrunk again to the 
  * target size with vips_reduce(). How much is done by vips_shrink() vs.
  * vips_reduce() varies with the @kernel setting. 
  *
+ * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for the final reduce, you
+ * can change this with @kernel.
+ *
+ * When upsizing (@scale > 1), the operation uses vips_affine() with
+ * a #VipsInterpolate selected depending on @kernel. It will use
+ * #VipsInterpolateBicubic for #VIPS_KERNEL_CUBIC and above.
+ *
  * vips_resize() normally maintains the image apect ratio. If you set
  * @vscale, that factor is used for the vertical scale and @scale for the
  * horizontal.
- *
- * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for the final shrink, you
- * can change this with @kernel.
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 
