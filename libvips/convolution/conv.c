@@ -73,10 +73,10 @@ vips_conv_build( VipsObject *object )
 	INTMASK *imsk;
 	DOUBLEMASK *dmsk;
 
-	g_object_set( conv, "out", vips_image_new(), NULL ); 
-
 	if( VIPS_OBJECT_CLASS( vips_conv_parent_class )->build( object ) )
 		return( -1 );
+
+	g_object_set( conv, "out", vips_image_new(), NULL ); 
 
 	in = convolution->in;
 
@@ -99,13 +99,14 @@ vips_conv_build( VipsObject *object )
 	in = t[0];
 
 	switch( conv->precision ) { 
-	case VIPS_PRECISION_INTEGER:
-		if( im_conv( in, convolution->out, imsk ) )
+	case VIPS_PRECISION_FLOAT:
+		if( vips_convf( in, &t[1], convolution->M, NULL ) ||
+			vips_image_write( t[1], convolution->out ) )
 			return( -1 ); 
 		break;
 
-	case VIPS_PRECISION_FLOAT:
-		if( im_conv_f( in, convolution->out, dmsk ) )
+	case VIPS_PRECISION_INTEGER:
+		if( im_conv( in, convolution->out, imsk ) )
 			return( -1 ); 
 		break;
 

@@ -1,4 +1,4 @@
-/* im_conv_f
+/* convf
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -276,7 +276,6 @@ vips_convf_gen( REGION *or, void *vseq, void *a, void *b, gboolean *stop )
 static int
 vips_convf_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConvolution *convolution = (VipsConvolution *) object;
 	VipsConvf *convf = (VipsConvf *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
@@ -354,11 +353,10 @@ vips_convf_build( VipsObject *object )
 static void
 vips_convf_class_init( VipsConvfClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
 	object_class->nickname = "convf";
-	object_class->description = _( "convolution operation, float" );
+	object_class->description = _( "float convolution operation" );
 	object_class->build = vips_convf_build;
 }
 

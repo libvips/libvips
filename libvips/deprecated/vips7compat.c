@@ -2404,6 +2404,36 @@ im_convsep_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	return( 0 );
 }
 
+int 
+im_conv_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_mask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_convf( in, &t2, t1, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_conv_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask )
+{
+	im_error( "im_conv_f_raw", "no compat function" );
+	return( -1 );
+}
+
 int
 im_addgnoise( IMAGE *in, IMAGE *out, double sigma )
 {
