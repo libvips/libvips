@@ -191,13 +191,13 @@ vips_conv_init( VipsConv *conv )
  * always has the same #VipsBandFormat as the input image. 
  *
  * Convolutions on unsigned 8-bit images are calculated with the 
- * processor's vector unit, if possible. Disable this with --vips-novector or 
- * IM_NOVECTOR.
+ * processor's vector unit, if possible. Disable this with `--vips-novector` or 
+ * `VIPS_NOVECTOR`.
  *
  * If @precision is #VIPS_PRECISION_FLOAT then the convolution is performed
  * with floating-point arithmetic. The output image 
- * is always %VIPS_FORMAT_FLOAT unless @in is %VIPS_FORMAT_DOUBLE, in which case
- * @out is also %VIPS_FORMAT_DOUBLE. 
+ * is always #VIPS_FORMAT_FLOAT unless @in is #VIPS_FORMAT_DOUBLE, in which case
+ * @out is also #VIPS_FORMAT_DOUBLE. 
  *
  * If @precision is #VIPS_PRECISION_APPROXIMATE then the output image 
  * always has the same #VipsBandFormat as the input image. 

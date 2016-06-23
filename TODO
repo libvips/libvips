@@ -12,6 +12,9 @@
 - I like the new int mask creator in reducev, can we use it in im_vips2imask()
   as well?
 
+  not useful, we have control over scale there, for reducev we are aiming for a
+  specific scale (a power of two)
+
   what about making the int masks for the interpolators?
 
 - try SEQ_UNBUFFERED on jpg source, get out of order error?

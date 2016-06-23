@@ -46,6 +46,8 @@ typedef enum {
 
 int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
+int vips_convf( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
 int vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
 int vips_convsep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
