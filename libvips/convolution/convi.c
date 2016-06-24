@@ -427,9 +427,10 @@ intize( VipsImage *in, VipsImage **out )
 
 	vips_image_set_double( *out, "scale", out_scale );
 	vips_image_set_double( *out, "offset", out_offset );
+
 	g_object_unref( t ); 
 
-	return( out );
+	return( 0 );
 }
 
 static int
