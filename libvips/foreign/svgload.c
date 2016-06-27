@@ -61,7 +61,7 @@
 #include <librsvg/librsvg-features.h>
 #endif
 
-#if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZIP)
+#if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZLIB)
 #include <zlib.h>
 #endif
 
@@ -377,7 +377,7 @@ typedef VipsForeignLoadSvgClass VipsForeignLoadSvgBufferClass;
 G_DEFINE_TYPE( VipsForeignLoadSvgBuffer, vips_foreign_load_svg_buffer, 
 	vips_foreign_load_svg_get_type() );
 
-#if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZIP)
+#if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZLIB)
 static void *
 vips_zalloc( void *opaque, unsigned items, unsigned size )
 {
@@ -398,7 +398,7 @@ vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 
 	int i;
 
-#if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZIP)
+#if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZLIB)
 	/* Check for SVGZ gzip signature and inflate.
 	 * Minimum gzip size is 18 bytes, starting with 1F 8B.
 	 */
