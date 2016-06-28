@@ -136,6 +136,8 @@ void vips_executor_set_array( VipsExecutor *executor, int var, void *value );
 
 void vips_executor_run( VipsExecutor *executor ); 
 
+void vips_vector_to_fixed_point( double *in, int *out, int n, int scale );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

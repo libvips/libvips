@@ -113,6 +113,31 @@
 
 #include "pconvolution.h"
 
+/* We do the 8-bit vector path with fixed-point arithmetic. We use 2.6 bits
+ * for the mask coefficients, so our range is -2 to +1.99, after using scale
+ * on the mask.
+ */
+#define FIXED_BITS (6)
+#define FIXED_SCALE (1 << FIXED_BITS)
+
+/* Larger than this and we fall back to C.
+ */
+#define MAX_PASS (20)
+
+/* A pass with a vector. 
+ */
+typedef struct {
+	int first;		/* The index of the first mask coff we use */
+	int last;		/* The index of the last mask coff we use */
+
+	int r;			/* Set previous result in this var */
+	int d2;			/* Write new temp result here */
+
+        /* The code we generate for this section of the mask. 
+	 */
+        VipsVector *vector;
+} Pass;
+
 typedef struct {
 	VipsConvolution parent_instance;
 
@@ -125,6 +150,16 @@ typedef struct {
 	int nnz;		/* Number of non-zero mask elements */
 	int *coeff;		/* Array of non-zero mask coefficients */
 	int *coeff_pos;		/* Index of each nnz element in mask->coeff */
+
+	/* And a fixed-point version for a vector path.
+	 */
+	int *fixed;
+	int n_point;		/* Number of points in fixed-point array */
+
+	/* The set of passes we need for this mask.
+	 */
+	int n_pass;	
+	Pass pass[MAX_PASS];
 } VipsConvi;
 
 typedef VipsConvolutionClass VipsConviClass;
@@ -180,6 +215,201 @@ vips_convi_start( VipsImage *out, void *a, void *b )
 	}
 
 	return( (void *) seq );
+}
+
+static void
+vips_convi_compile_free( VipsConvi *convi )
+{
+	int i;
+
+	for( i = 0; i < convi->n_pass; i++ )
+		VIPS_FREEF( vips_vector_free, convi->pass[i].vector );
+	convi->n_pass = 0;
+}
+
+#define TEMP( N, S ) vips_vector_temporary( v, (char *) N, S )
+#define PARAM( N, S ) vips_vector_parameter( v, (char *) N, S )
+#define SCANLINE( N, P, S ) vips_vector_source_scanline( v, (char *) N, P, S )
+#define CONST( N, V, S ) vips_vector_constant( v, (char *) N, V, S )
+#define ASM2( OP, A, B ) vips_vector_asm2( v, (char *) OP, A, B )
+#define ASM3( OP, A, B, C ) vips_vector_asm3( v, (char *) OP, A, B, C )
+
+/* Generate code for a section of the mask. first is the index we start
+ * at, we set last to the index of the last one we use before we run 
+ * out of intermediates / constants / parameters / sources or mask
+ * coefficients.
+ *
+ * 0 for success, -1 on error.
+ */
+static int
+vips_convi_compile_section( VipsConvi *convi, VipsImage *in, Pass *pass )
+{
+	VipsConvolution *convolution = (VipsConvolution *) convi;
+	VipsImage *M = convolution->M;
+	int offset = VIPS_RINT( vips_image_get_offset( M ) );
+
+	VipsVector *v;
+	int i;
+
+#ifdef DEBUG_COMPILE
+	printf( "starting pass %d\n", pass->first ); 
+#endif /*DEBUG_COMPILE*/
+
+	pass->vector = v = vips_vector_new( "convi", 1 );
+
+	/* We have two destinations: the final output image (8-bit) and the
+	 * intermediate buffer if this is not the final pass (16-bit).
+	 */
+	pass->d2 = vips_vector_destination( v, "d2", 2 );
+
+	/* "r" is the array of sums from the previous pass (if any).
+	 */
+	pass->r = vips_vector_source_name( v, "r", 2 );
+
+	/* The value we fetch from the image, the accumulated sum.
+	 */
+	TEMP( "value", 2 );
+	TEMP( "valueb", 1 );
+	TEMP( "sum", 2 );
+
+	/* Init the sum. If this is the first pass, it's a constant. If this
+	 * is a later pass, we have to init the sum from the result 
+	 * of the previous pass. 
+	 */
+	if( pass->first == 0 ) {
+		char c0[256];
+
+		CONST( c0, 0, 2 );
+		ASM2( "loadpw", "sum", c0 );
+	}
+	else 
+		ASM2( "loadw", "sum", "r" );
+
+	for( i = pass->first; i < convi->n_point; i++ ) {
+		int x = i % M->Xsize;
+		int y = i / M->Xsize;
+
+		char source[256];
+		char off[256];
+		char coeff[256];
+
+		/* Exclude zero elements.
+		 */
+		if( !convi->fixed[i] )
+			continue;
+
+		/* The source. sl0 is the first scanline in the mask.
+		 */
+		SCANLINE( source, y, 1 );
+
+		/* Load with an offset. Only for non-first-columns though.
+		 */
+		if( x == 0 ) 
+			ASM2( "convubw", "value", source );
+		else {
+			CONST( off, in->Bands * x, 1 );
+			ASM3( "loadoffb", "valueb", source, off );
+			ASM2( "convubw", "value", "valueb" );
+		}
+
+		/* Mask coefficients are 2.6 bits fixed point, so -2 to +1.99.
+		 *
+		 * We need a signed multiply, so the image pixel needs to
+		 * become a signed 16-bit value. We know only the bottom 8 bits
+		 * of the image and coefficient are interesting, so we can take
+		 * the bottom half of a 16x16->32 multiply. 
+		 *
+		 * We accumulate the signed 16-bit result in sum.
+		 */
+		CONST( coeff, convi->fixed[i], 2 );
+		ASM3( "mullw", "value", "value", coeff );
+		ASM3( "addssw", "sum", "sum", "value" );
+
+		if( vips_vector_full( v ) )
+			break;
+	}
+
+	pass->last = i;
+
+	/* If this is the end of the mask, we write the 8-bit result to the
+	 * image, otherwise write the 16-bit intermediate to our temp buffer. 
+	 */
+	if( pass->last >= convi->n_point - 1 ) {
+		char c32[256];
+		char c6[256];
+		char c0[256];
+		char c255[256];
+		char off[256];
+
+		CONST( c32, 32, 2 );
+		ASM3( "addw", "sum", "sum", c32 );
+		CONST( c6, 6, 2 );
+		ASM3( "shrsw", "sum", "sum", c6 );
+
+		CONST( off, offset, 2 ); 
+		ASM3( "subw", "sum", "sum", off );
+
+		/* You'd think "convsuswb", convert signed 16-bit to unsigned
+		 * 8-bit with saturation, would be quicker, but it's a lot
+		 * slower.
+		 */
+		CONST( c0, 0, 2 );
+		ASM3( "maxsw", "sum", c0, "sum" ); 
+		CONST( c255, 255, 2 );
+		ASM3( "minsw", "sum", c255, "sum" ); 
+
+		ASM2( "convwb", "d1", "sum" );
+	}
+	else 
+		ASM2( "copyw", "d2", "sum" );
+
+	if( !vips_vector_compile( v ) ) 
+		return( -1 );
+
+#ifdef DEBUG_COMPILE
+	printf( "done coeffs %d to %d\n", pass->first, pass->last );
+	vips_vector_print( v );
+#endif /*DEBUG_COMPILE*/
+
+	return( 0 );
+}
+
+static int
+vips_convi_compile( VipsConvi *convi, VipsImage *in )
+{
+	int i;
+	Pass *pass;
+
+	/* Generate passes until we've used up the whole mask.
+	 */
+	for( i = 0;; ) {
+		/* Allocate space for another pass.
+		 */
+		if( convi->n_pass == MAX_PASS ) 
+			return( -1 );
+		pass = &convi->pass[convi->n_pass];
+		convi->n_pass += 1;
+
+		pass->first = i;
+		pass->r = -1;
+		pass->d2 = -1;
+
+		if( vips_convi_compile_section( convi, in, pass ) )
+			return( -1 );
+		i = pass->last + 1;
+
+		if( i >= convi->n_point )
+			break;
+	}
+
+	return( 0 );
+}
+
+static int
+vips_convi_generate_vector( VipsRegion *or, 
+	void *vseq, void *a, void *b, gboolean *stop )
+{
+	return( 0 );
 }
 
 /* INT inner loops.
@@ -263,7 +493,8 @@ G_STMT_START { \
 /* Convolve!
  */
 static int
-vips_convi_gen( REGION *or, void *vseq, void *a, void *b, gboolean *stop )
+vips_convi_generate( VipsRegion *or, 
+	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsConviSequence *seq = (VipsConviSequence *) vseq;
 	VipsConvi *convi = (VipsConvi *) b;
@@ -433,6 +664,49 @@ intize( VipsImage *in, VipsImage **out )
 	return( 0 );
 }
 
+/* Make an int version of a mask.
+ *
+ * This makes a fixed-point version ready for the vector path: instead of an 
+ * output scale, we have x.y for each element.
+ *
+ * @out is a w x h int array.
+ */
+static int
+intize_to_fixed_point( VipsImage *in, int *out )
+{
+	VipsImage *t;
+	double scale;
+	int ne;
+	double *scaled;
+	int i;
+
+	if( vips_check_matrix( "vips2imask", in, &t ) )
+		return( -1 ); 
+
+	/* Bake the scale into the mask.
+	 */
+	scale = vips_image_get_scale( t );
+	ne = t->Xsize * t->Ysize; 
+        if( !(scaled = VIPS_ARRAY( in, ne, double )) ) {
+		g_object_unref( t ); 
+		return( -1 );
+	}
+	for( i = 0; i < ne; i++ ) 
+		scaled[i] = VIPS_MATRIX( t, 0, 0 )[i] / scale;
+	g_object_unref( t ); 
+
+	/* The scaled mask must fit in 2.6 bits, so we can handle -2 to +1.99
+	 */
+	for( i = 0; i < ne; i++ ) 
+		if( scaled[i] >= 2.0 ||
+			scaled[i] < -2 ) 
+			return( -1 ); 
+
+	vips_vector_to_fixed_point( scaled, out, ne, FIXED_SCALE );
+
+	return( 0 );
+}
+
 static int
 vips_convi_build( VipsObject *object )
 {
@@ -441,75 +715,91 @@ vips_convi_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	VipsImage *in;
-	VipsImage *iM;
+	VipsImage *M;
+	int n_point;
+	VipsGenerateFn generate;
 	double *coeff;
-	int ne;
         int i;
 
 	if( VIPS_OBJECT_CLASS( vips_convi_parent_class )->build( object ) )
 		return( -1 );
 
-	/* Make an int version of our mask.
-	 */
-	if( intize( convolution->M, &convi->iM ) )
-		return( -1 ); 
-	vips_object_local( object, convi->iM ); 
-
-	iM = convi->iM;
-	coeff = VIPS_MATRIX( iM, 0, 0 ); 
-	ne = iM->Xsize * iM->Ysize;
-        if( !(convi->coeff = VIPS_ARRAY( object, ne, int )) ||
-        	!(convi->coeff_pos = VIPS_ARRAY( object, ne, int )) )
-                return( -1 );
-
-        /* Find non-zero mask elements.
-         */
-        for( i = 0; i < ne; i++ )
-                if( coeff[i] ) {
-			convi->coeff[convi->nnz] = coeff[i];
-			convi->coeff_pos[convi->nnz] = i;
-			convi->nnz += 1;
-		}
-
-	/* Was the whole mask zero? We must have at least 1 element in there:
-	 * set it to zero.
-	 */
-	if( convi->nnz == 0 ) {
-		convi->coeff[0] = 0;
-		convi->coeff_pos[0] = 0;
-		convi->nnz = 1;
-	}
-
 	in = convolution->in;
+	M = convolution->M;
+	convi->n_point = n_point = M->Xsize * M->Ysize;
 
 	if( vips_embed( in, &t[0], 
-		iM->Xsize / 2, iM->Ysize / 2, 
-		in->Xsize + iM->Xsize - 1, in->Ysize + iM->Ysize - 1,
+		M->Xsize / 2, M->Ysize / 2, 
+		in->Xsize + M->Xsize - 1, in->Ysize + M->Ysize - 1,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
 	in = t[0]; 
+
+	/* For uchar input, try to make a vector path.
+	 */
+	if( vips_vector_isenabled() &&
+		in->BandFmt == VIPS_FORMAT_UCHAR ) {
+		if( (convi->fixed = VIPS_ARRAY( object, n_point, int )) &&
+			!intize_to_fixed_point( M, convi->fixed ) &&
+			!vips_convi_compile( convi, in ) )
+			generate = vips_convi_generate_vector;
+		else
+			vips_convi_compile_free( convi );
+	}
+
+	/* If there's no vector path, fall back to C.
+	 */
+	if( !convi->n_pass ) {
+		/* Make an int version of our mask.
+		 */
+		if( intize( M, &t[1] ) )
+			return( -1 ); 
+		convi->iM = M = t[1];
+
+		coeff = VIPS_MATRIX( M, 0, 0 ); 
+		if( !(convi->coeff = VIPS_ARRAY( object, n_point, int )) ||
+			!(convi->coeff_pos = VIPS_ARRAY( object, n_point, int )) )
+			return( -1 );
+
+		/* Squeeze out zero mask elements. 
+		 */
+		for( i = 0; i < n_point; i++ )
+			if( coeff[i] ) {
+				convi->coeff[convi->nnz] = coeff[i];
+				convi->coeff_pos[convi->nnz] = i;
+				convi->nnz += 1;
+			}
+
+		/* Was the whole mask zero? We must have at least 1 element 
+		 * in there: set it to zero.
+		 */
+		if( convi->nnz == 0 ) {
+			convi->coeff[0] = 0;
+			convi->coeff_pos[0] = 0;
+			convi->nnz = 1;
+		}
+
+		generate = vips_convi_generate;
+	}
 
 	g_object_set( convi, "out", vips_image_new(), NULL ); 
 	if( vips_image_pipelinev( convolution->out, 
 		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
 
-	convolution->out->Xoffset = 0;
-	convolution->out->Yoffset = 0;
-
 	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
 	 * would be 1x1.
 	 */
-	convolution->out->Xsize -= iM->Xsize - 1;
-	convolution->out->Ysize -= iM->Ysize - 1;
+	convolution->out->Xsize -= M->Xsize - 1;
+	convolution->out->Ysize -= M->Ysize - 1;
 
 	if( vips_image_generate( convolution->out, 
-		vips_convi_start, vips_convi_gen, vips_convi_stop, in, convi ) )
+		vips_convi_start, generate, vips_convi_stop, in, convi ) )
 		return( -1 );
 
-	convolution->out->Xoffset = -iM->Xsize / 2;
-	convolution->out->Yoffset = -iM->Ysize / 2;
+	convolution->out->Xoffset = -M->Xsize / 2;
+	convolution->out->Yoffset = -M->Ysize / 2;
 
 	return( 0 );
 }

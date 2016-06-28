@@ -522,3 +522,63 @@ vips_executor_run( VipsExecutor *executor )
 	orc_executor_run( &executor->executor );
 #endif /*HAVE_ORC*/
 }
+
+/* Make a fixed-point version of a matrix. Each 
+ * out[i] = rint(in[i] * adj_scale), where adj_scale is selected so that 
+ * sum(out) = sum(in) * scale.
+ *
+ * Because of the vagaries of rint(), we can't just calc this, we have to
+ * iterate and converge on the best value for adj_scale.
+ */
+void
+vips_vector_to_fixed_point( double *in, int *out, int n, int scale )
+{
+	double fsum;
+	int target;
+	int sum;
+	double high;
+	double low;
+	double guess;
+
+	fsum = 0.0;
+	for( int i = 0; i < n; i++ )
+		fsum += in[i];
+	target = VIPS_RINT( fsum * scale );
+
+	/* As we rint() each scale element, we can get up to 0.5 error.
+	 * Therefore, by the end of the mask, we can be off by up to n/2. Our
+	 * high and low guesses are therefore n/2 either side of the obvious
+	 * answer.
+	 */
+	high = scale + (n + 1) / 2;
+	low = scale - (n + 1) / 2;
+
+	do {
+		guess = (high + low) / 2.0;
+
+		for( int i = 0; i < n; i++ ) 
+			out[i] = VIPS_RINT( in[i] * guess );
+
+		sum = 0;
+		for( int i = 0; i < n; i++ )
+			sum += out[i];
+
+		if( sum == target )
+			break;
+		if( sum < target )
+			low = guess;
+		if( sum > target )
+			high = guess;
+
+	/* This will typically produce about 5 iterations.
+	 */
+	} while( high - low > 0.01 );
+
+	if( sum != target ) 
+		/* We're as close as we can get ... add the remaining error to
+		 * the centre element. Hopefully we'll get slight sharpness 
+		 * changes rather than slight brightness changes and it'll
+		 * be less visible. 
+		 */
+		out[n / 2] += target - sum;
+}
