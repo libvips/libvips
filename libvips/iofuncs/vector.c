@@ -534,6 +534,7 @@ void
 vips_vector_to_fixed_point( double *in, int *out, int n, int scale )
 {
 	double fsum;
+	int i;
 	int target;
 	int sum;
 	double high;
@@ -541,7 +542,7 @@ vips_vector_to_fixed_point( double *in, int *out, int n, int scale )
 	double guess;
 
 	fsum = 0.0;
-	for( int i = 0; i < n; i++ )
+	for( i = 0; i < n; i++ )
 		fsum += in[i];
 	target = VIPS_RINT( fsum * scale );
 
@@ -556,11 +557,11 @@ vips_vector_to_fixed_point( double *in, int *out, int n, int scale )
 	do {
 		guess = (high + low) / 2.0;
 
-		for( int i = 0; i < n; i++ ) 
+		for( i = 0; i < n; i++ ) 
 			out[i] = VIPS_RINT( in[i] * guess );
 
 		sum = 0;
-		for( int i = 0; i < n; i++ )
+		for( i = 0; i < n; i++ )
 			sum += out[i];
 
 		if( sum == target )
@@ -574,11 +575,31 @@ vips_vector_to_fixed_point( double *in, int *out, int n, int scale )
 	 */
 	} while( high - low > 0.01 );
 
-	if( sum != target ) 
-		/* We're as close as we can get ... add the remaining error to
-		 * the centre element. Hopefully we'll get slight sharpness 
-		 * changes rather than slight brightness changes and it'll
-		 * be less visible. 
+	if( sum != target ) {
+		/* Spread the error out thinly over the whole array. For
+		 * example, consider the matrix:
+		 *
+		 * 	3 3 9 0
+		 *	1 1 1
+		 *	1 1 1
+		 *	1 1 1
+		 *
+		 * being converted with scale = 64 (convi does this). We want
+		 * to generate a mix of 7s and 8s. 
 		 */
-		out[n / 2] += target - sum;
+		int each_error = (target - sum) / n;
+		int extra_error = (target - sum) % n;
+
+		/* To share the residual error, we add or subtract 1 from the
+		 * first abs(extra_error) elements.
+		 */
+		int direction = extra_error > 0 ? 1 : -1;
+		int n_elements = VIPS_ABS( extra_error );
+
+		for( i = 0; i < n; i++ )
+			out[i] += each_error;
+
+		for( i = 0; i < n_elements; i++ )
+			out[i] += direction;
+	}
 }

@@ -100,6 +100,12 @@
 
  */
 
+/* 
+#define DEBUG_PIXELS
+#define DEBUG
+ */
+#define DEBUG_COMPILE
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -176,6 +182,12 @@ typedef struct {
 	VipsPel **pts;		/* Per-non-zero mask element image pointers */
 
 	int last_bpl;		/* Avoid recalcing offsets, if we can */
+
+	/* We need a pair of intermediate buffers to keep the results of each
+	 * vector conv pass. 
+	 */
+	short *t1;
+	short *t2;
 } VipsConviSequence;
 
 /* Free a sequence value.
@@ -186,6 +198,10 @@ vips_convi_stop( void *vseq, void *a, void *b )
 	VipsConviSequence *seq = (VipsConviSequence *) vseq;
 
 	VIPS_UNREF( seq->ir );
+	VIPS_FREE( seq->offsets );
+	VIPS_FREE( seq->pts );
+	VIPS_FREE( seq->t1 );
+	VIPS_FREE( seq->t2 );
 
 	return( 0 );
 }
@@ -204,14 +220,38 @@ vips_convi_start( VipsImage *out, void *a, void *b )
 
 	seq->convi = convi;
 	seq->ir = NULL;
+	seq->offsets = NULL;
 	seq->pts = NULL;
 	seq->last_bpl = -1;
+	seq->t1 = NULL;
+	seq->t2 = NULL;
 
 	seq->ir = vips_region_new( in );
-	if( !(seq->offsets = VIPS_ARRAY( out, convi->nnz, int )) ||
-		!(seq->pts = VIPS_ARRAY( out, convi->nnz, VipsPel * )) ) {
-		vips_convi_stop( seq, in, convi );
-		return( NULL );
+
+	/* C mode.
+	 */
+	if( convi->nnz ) {
+		seq->offsets = VIPS_ARRAY( NULL, convi->nnz, int );
+		seq->pts = VIPS_ARRAY( NULL, convi->nnz, VipsPel * );
+
+		if( !seq->offsets ||
+			!seq->pts ) { 
+			vips_convi_stop( seq, in, convi );
+			return( NULL );
+		}
+	}
+
+	/* Vector mode.
+	 */
+	if( convi->n_pass ) {
+		seq->t1 = VIPS_ARRAY( NULL, VIPS_IMAGE_N_ELEMENTS( in ), short );
+		seq->t2 = VIPS_ARRAY( NULL, VIPS_IMAGE_N_ELEMENTS( in ), short );
+
+		if( !seq->t1 || 
+			!seq->t2 ) {
+			vips_convi_stop( seq, in, convi );
+			return( NULL );
+		}
 	}
 
 	return( (void *) seq );
@@ -409,6 +449,64 @@ static int
 vips_convi_generate_vector( VipsRegion *or, 
 	void *vseq, void *a, void *b, gboolean *stop )
 {
+	VipsConviSequence *seq = (VipsConviSequence *) vseq;
+	VipsConvi *convi = (VipsConvi *) b;
+	VipsConvolution *convolution = (VipsConvolution *) convi;
+	VipsImage *M = convolution->M;
+	VipsImage *in = (VipsImage *) a;
+	VipsRegion *ir = seq->ir;
+	VipsRect *r = &or->valid;
+	int ne = r->width * in->Bands;
+
+	VipsRect s;
+	int i, y;
+	VipsExecutor executor[MAX_PASS];
+
+#ifdef DEBUG_PIXELS
+	printf( "vips_convi_generate_vector: generating %d x %d at %d x %d\n",
+		r->width, r->height, r->left, r->top ); 
+#endif /*DEBUG_PIXELS*/
+
+	/* Prepare the section of the input image we need. A little larger
+	 * than the section of the output image we are producing.
+	 */
+	s = *r;
+	s.width += M->Xsize - 1;
+	s.height += M->Ysize - 1;
+	if( vips_region_prepare( ir, &s ) )
+		return( -1 );
+
+	for( i = 0; i < convi->n_pass; i++ ) 
+		vips_executor_set_program( &executor[i], 
+			convi->pass[i].vector, ne );
+
+	VIPS_GATE_START( "vips_convi_generate_vector: work" ); 
+
+	for( y = 0; y < r->height; y ++ ) { 
+		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+		/* We run our n passes to generate this scanline.
+		 */
+		for( i = 0; i < convi->n_pass; i++ ) {
+			Pass *pass = &convi->pass[i]; 
+
+			vips_executor_set_scanline( &executor[i], 
+				ir, r->left, r->top + y );
+			vips_executor_set_array( &executor[i],
+				pass->r, seq->t1 );
+			vips_executor_set_array( &executor[i],
+				pass->d2, seq->t2 );
+			vips_executor_set_destination( &executor[i], q );
+			vips_executor_run( &executor[i] );
+
+			VIPS_SWAP( signed short *, seq->t1, seq->t2 );
+		}
+	}
+
+	VIPS_GATE_STOP( "vips_convi_generate_vector: work" ); 
+
+	VIPS_COUNT_PIXELS( or, "vips_convi_generate_vector" ); 
+
 	return( 0 );
 }
 
@@ -699,10 +797,42 @@ intize_to_fixed_point( VipsImage *in, int *out )
 	 */
 	for( i = 0; i < ne; i++ ) 
 		if( scaled[i] >= 2.0 ||
-			scaled[i] < -2 ) 
+			scaled[i] < -2 ) {
+#ifdef DEBUG_COMPILE
+			printf( "intize_to_fixed_point: out of range\n" );
+#endif /*DEBUG_COMPILE*/
+
 			return( -1 ); 
+		}
+
+	/* The smallest coefficient we can manage is 1/64th, we'll just turn
+	 * that into zero.
+	 */
+	for( i = 0; i < ne; i++ ) 
+		if( scaled[i] != 0.0 &&
+			VIPS_FABS( scaled[i] ) < 1.0 / FIXED_SCALE ) {
+#ifdef DEBUG_COMPILE
+			printf( "intize_to_fixed_point: underflow\n" );
+#endif /*DEBUG_COMPILE*/
+
+			return( -1 ); 
+		}
 
 	vips_vector_to_fixed_point( scaled, out, ne, FIXED_SCALE );
+
+#ifdef DEBUG_COMPILE
+{
+	int x, y;
+
+	printf( "intize_to_fixed_point:\n" ); 
+	for( y = 0; y < t->Ysize; y++ ) {
+		printf( "\t" ); 
+		for( x = 0; x < t->Xsize; x++ ) 
+			printf( "%4d ", out[y * t->Xsize + x] ); 
+		printf( "\n" ); 
+	}
+}
+#endif /*DEBUG_COMPILE*/
 
 	return( 0 );
 }
@@ -710,6 +840,7 @@ intize_to_fixed_point( VipsImage *in, int *out )
 static int
 vips_convi_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConvolution *convolution = (VipsConvolution *) object;
 	VipsConvi *convi = (VipsConvi *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
@@ -742,8 +873,10 @@ vips_convi_build( VipsObject *object )
 		in->BandFmt == VIPS_FORMAT_UCHAR ) {
 		if( (convi->fixed = VIPS_ARRAY( object, n_point, int )) &&
 			!intize_to_fixed_point( M, convi->fixed ) &&
-			!vips_convi_compile( convi, in ) )
+			!vips_convi_compile( convi, in ) ) {
 			generate = vips_convi_generate_vector;
+			vips_info( class->nickname, "using vector path" ); 
+		}
 		else
 			vips_convi_compile_free( convi );
 	}
@@ -781,6 +914,7 @@ vips_convi_build( VipsObject *object )
 		}
 
 		generate = vips_convi_generate;
+		vips_info( class->nickname, "using C path" ); 
 	}
 
 	g_object_set( convi, "out", vips_image_new(), NULL ); 
