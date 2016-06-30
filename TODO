@@ -1,3 +1,33 @@
+- test new clip stuff?
+
+- test_hist_ismonotonic is failing
+
+	im = Vips.Image.identity()
+	self.assertTrue(im.hist_ismonotonic())
+
+john@mm-jcupitt5 ~/Desktop/pics $ more mono.mat 
+2 1
+-1 1
+john@mm-jcupitt5 ~/Desktop/pics $ vips identity x.v
+john@mm-jcupitt5 ~/Desktop/pics $ vips convi x.v x2.v mono.mat --vips-info
+--vips-novector
+info: convi: using C path
+john@mm-jcupitt5 ~/Desktop/pics $ vips max x2.v
+1.000000
+john@mm-jcupitt5 ~/Desktop/pics $ vips convi x.v x2.v mono.mat --vips-info
+info: convi: using vector path
+john@mm-jcupitt5 ~/Desktop/pics $ vips max x2.v
+0.000000
+
+  should be 1.0 (0 for first pixel, 1 thereafter), instead it's 0 everywhere
+
+- test_countlines is failing
+
+	im = Vips.Image.black(100, 100)
+	im = im.draw_line(255, 0, 50, 100, 50)
+	n_lines = im.countlines(Vips.Direction.HORIZONTAL)
+	self.assertEqual(n_lines, 1)
+
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py

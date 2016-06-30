@@ -31,8 +31,8 @@
 
  */
 
-#ifndef IM_CONVOLUTION_H
-#define IM_CONVOLUTION_H
+#ifndef VIPS_CONVOLUTION_H
+#define VIPS_CONVOLUTION_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,4 +69,4 @@ int vips_fastcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_CONVOLUTION_H*/
+#endif /*VIPS_CONVOLUTION_H*/

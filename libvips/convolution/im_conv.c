@@ -1057,24 +1057,15 @@ im_conv_raw( IMAGE *in, IMAGE *out, INTMASK *mask )
 
 	if( conv->n_pass ) {
 		generate = convvec_gen;
-
-#ifdef DEBUG
-		printf( "im_conv_raw: using vector path\n" );
-#endif /*DEBUG*/
+		vips_info( "im_conv_raw", "using vec path" ); 
 	}
 	else if( mask->xsize == 3 && mask->ysize == 3 ) {
 		generate = conv3x3_gen;
-
-#ifdef DEBUG
-		printf( "im_conv_raw: using 3x3 path\n" );
-#endif /*DEBUG*/
+		vips_info( "im_conv_raw", "using 3x3 path" ); 
 	}
 	else {
 		generate = conv_gen;
-
-#ifdef DEBUG
-		printf( "im_conv_raw: using general path\n" );
-#endif /*DEBUG*/
+		vips_info( "im_conv_raw", "using C path" ); 
 	}
 
 	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||

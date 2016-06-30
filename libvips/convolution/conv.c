@@ -66,12 +66,9 @@ vips_conv_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConvolution *convolution = (VipsConvolution *) object;
 	VipsConv *conv = (VipsConv *) object;
-	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 4 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	VipsImage *in;
-	INTMASK *imsk;
-	DOUBLEMASK *dmsk;
 
 	if( VIPS_OBJECT_CLASS( vips_conv_parent_class )->build( object ) )
 		return( -1 );
@@ -84,13 +81,6 @@ vips_conv_build( VipsObject *object )
 	printf( "vips_conv_build: convolving with:\n" );
 	vips_matrixprint( convolution->M, NULL ); 
  	 */
-
-	if( !(imsk = im_vips2imask( convolution->M, class->nickname )) || 
-		!im_local_imask( convolution->out, imsk ) )
-		return( -1 ); 
-	if( !(dmsk = im_vips2mask( convolution->M, class->nickname )) || 
-		!im_local_dmask( convolution->out, dmsk ) )
-		return( -1 ); 
 
 	/* Unpack for processing.
 	 */
@@ -106,14 +96,23 @@ vips_conv_build( VipsObject *object )
 		break;
 
 	case VIPS_PRECISION_INTEGER:
-		if( im_conv( in, convolution->out, imsk ) )
+		if( vips_convi( in, &t[1], convolution->M, NULL ) ||
+			vips_image_write( t[1], convolution->out ) )
 			return( -1 ); 
 		break;
 
 	case VIPS_PRECISION_APPROXIMATE:
+{
+		DOUBLEMASK *dmsk;
+
+		if( !(dmsk = im_vips2mask( convolution->M, class->nickname )) || 
+			!im_local_dmask( convolution->out, dmsk ) )
+			return( -1 ); 
+
 		if( im_aconv( in, convolution->out, dmsk, 
 			conv->layers, conv->cluster ) )
 			return( -1 ); 
+}
 		break;
 
 	default:
