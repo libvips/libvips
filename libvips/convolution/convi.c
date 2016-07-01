@@ -102,10 +102,10 @@
  */
 
 /* 
- */
-#define DEBUG_PIXELS
 #define DEBUG
+#define DEBUG_PIXELS
 #define DEBUG_COMPILE
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -422,7 +422,7 @@ vips_convi_compile_clip( VipsConvi *convi )
 	ASM3( "shrsw", "value", "value", c6 );
 
 	CONST( off, offset, 2 ); 
-	ASM3( "subw", "value", "value", off );
+	ASM3( "addw", "value", "value", off );
 
 	/* You'd think "convsuswb" (convert signed 16-bit to unsigned
 	 * 8-bit with saturation) would be quicker, but it's a lot
@@ -515,6 +515,21 @@ vips_convi_generate_vector( VipsRegion *or,
 
 	for( y = 0; y < r->height; y ++ ) { 
 		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y );
+	
+#ifdef DEBUG_PIXELS
+{
+		int h, v;
+
+		printf( "before convolve: x = %d, y = %d\n", 
+			r->left, r->top + y );
+		for( v = 0; v < M->Ysize; v++ ) {
+			for( h = 0; h < M->Xsize; h++ )
+				printf( "%3d ", *VIPS_REGION_ADDR( ir, 
+					r->left + h, r->top + y + v ) );
+			printf( "\n" );
+		}
+}
+#endif /*DEBUG_PIXELS*/
 
 		/* We run our n passes to generate this scanline.
 		 */
@@ -531,9 +546,18 @@ vips_convi_generate_vector( VipsRegion *or,
 			VIPS_SWAP( signed short *, seq->t1, seq->t2 );
 		}
 
+#ifdef DEBUG_PIXELS
+		printf( "before clip: %d\n", ((signed short *) seq->t1)[0] );
+#endif /*DEBUG_PIXELS*/
+
 		vips_executor_set_array( &clip, convi->r, seq->t1 );
 		vips_executor_set_destination( &clip, q ); 
 		vips_executor_run( &clip );
+
+#ifdef DEBUG_PIXELS
+		printf( "after clip: %d\n", 
+			*VIPS_REGION_ADDR( or, r->left, r->top + y ) );
+#endif /*DEBUG_PIXELS*/
 	}
 
 	VIPS_GATE_STOP( "vips_convi_generate_vector: work" ); 
