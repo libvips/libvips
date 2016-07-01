@@ -2405,6 +2405,36 @@ im_convsep_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 }
 
 int 
+im_conv( VipsImage *in, VipsImage *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_convi( in, &t2, t1, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_conv_raw( VipsImage *in, VipsImage *out, INTMASK *mask )
+{
+	im_error( "im_conv_raw", "no compat function" );
+	return( -1 );
+}
+
+int 
 im_conv_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask )
 {
 	VipsImage *t1, *t2;
