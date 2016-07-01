@@ -833,6 +833,7 @@ intize_to_fixed_point( VipsImage *in, int *out )
 	double scale;
 	int ne;
 	double *scaled;
+	double total_error;
 	int i;
 
 	if( vips_check_matrix( "vips2imask", in, &t ) )
@@ -864,16 +865,25 @@ intize_to_fixed_point( VipsImage *in, int *out )
 
 	/* The smallest coefficient we can manage is 1/64th, we'll just turn
 	 * that into zero.
+	 *
+	 * Find the total error we'll get by rounding down to zero and bail if
+	 * it's significant.
 	 */
+	total_error = 0.0;
 	for( i = 0; i < ne; i++ ) 
 		if( scaled[i] != 0.0 &&
-			VIPS_FABS( scaled[i] ) < 1.0 / FIXED_SCALE ) {
+			VIPS_FABS( scaled[i] ) < 1.0 / FIXED_SCALE ) 
+			total_error += VIPS_FABS( scaled[i] ); 
+
+	/* 0.1 is a 10% error.
+	 */
+	if( total_error > 0.1 ) {
 #ifdef DEBUG_COMPILE
-			printf( "intize_to_fixed_point: underflow\n" );
+		printf( "intize_to_fixed_point: too many underflows\n" );
 #endif /*DEBUG_COMPILE*/
 
-			return( -1 ); 
-		}
+		return( -1 ); 
+	}
 
 	vips_vector_to_fixed_point( scaled, out, ne, FIXED_SCALE );
 
