@@ -182,17 +182,22 @@ vips_conv_init( VipsConv *conv )
  * Convolution. 
  *
  * Perform a convolution of @in with @mask.
- * Each output pixel is
- * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
- * and offset are part of @mask. 
+ * Each output pixel is calculated as:
+ *
+ * |[
+ * sigma[i]{pixel[i] * mask[i]} / scale + offset
+ * ]|
+ *
+ * where scale and offset are part of @mask. 
  *
  * If @precision is #VIPS_PRECISION_INTEGER then the convolution is performed
  * with integer arithmetic and the output image 
  * always has the same #VipsBandFormat as the input image. 
  *
- * Convolutions on unsigned 8-bit images are calculated with the 
- * processor's vector unit, if possible. Disable this with `--vips-novector` or 
- * `VIPS_NOVECTOR`.
+ * For #VIPS_FORMAT_UCHAR images, vips_conv() uses a fast vector path based on
+ * fixed-point arithmetic. This can produce slightly different results. 
+ * Disable the vector path with `--vips-novector` or `VIPS_NOVECTOR` or
+ * vips_vector_set_enabled().
  *
  * If @precision is #VIPS_PRECISION_FLOAT then the convolution is performed
  * with floating-point arithmetic. The output image 

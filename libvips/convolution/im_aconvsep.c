@@ -56,13 +56,13 @@
  */
 
 /* Show sample pixels as they are transformed.
-#define DEBUG_PIXELS
  */
+#define DEBUG_PIXELS
 
 /*
+ */
 #define DEBUG
 #define VIPS_DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

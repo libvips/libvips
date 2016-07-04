@@ -1030,16 +1030,22 @@ vips_convi_init( VipsConvi *convi )
  * @mask: convolve with this mask
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convolution. This is a low-level operation, see vips_conv() for something
- * more convenient. 
+ * Integer convolution. This is a low-level operation, see vips_conv() for 
+ * something more convenient. 
  *
- * Perform a convolution of @in with @mask.
- * Each output pixel is
- * calculated as rint(sigma[i]{pixel[i] * mask[i]} / scale) + offset, where 
- * scale and offset are part of @mask. 
+ * @mask is converted to an integer mask with rint() of each element, rint of
+ * scale and rint of offset. Each output pixel is then calculated as 
  *
- * The convolution is performed with integer arithmetic. The output image 
- * always has the same #VipsBandFormat as the input image. 
+ * |[
+ * sigma[i]{pixel[i] * mask[i]} / scale + offset
+ * ]|
+ *
+ * The output image always has the same #VipsBandFormat as the input image. 
+ *
+ * For #VIPS_FORMAT_UCHAR images, vips_convi() uses a fast vector path based on
+ * fixed-point arithmetic. This can produce slightly different results. 
+ * Disable the vector path with `--vips-novector` or `VIPS_NOVECTOR` or
+ * vips_vector_set_enabled().
  *
  * See also: vips_conv().
  *
