@@ -1,4 +1,4 @@
-/* im_aconvsep ... separable approximate convolution
+/* convasep ... separable approximate convolution
  *
  * This operation does an approximate, seperable convolution. 
  *
@@ -7,6 +7,8 @@
  * Modified on: 
  * 31/5/11
  *      - from im_conv()
+ * 5/7/16
+ * 	- redone as a class
  */
 
 /*
@@ -56,10 +58,13 @@
  */
 
 /* Show sample pixels as they are transformed.
+ */
 #define DEBUG_PIXELS
+
+/*
+ */
 #define DEBUG
 #define VIPS_DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -90,42 +95,47 @@ gcd( int a, int b )
 		return( gcd( b, a % b ) );
 }
 
-/* A set of lines.
- */
-typedef struct _Lines {
-	/* Copy of our arguments.
-	 */
-	IMAGE *in;
-	IMAGE *out;
-	DOUBLEMASK *mask;
-	int n_layers;
+typedef struct {
+	VipsConvolution parent_instance;
+
+	VipsImage *in;
+	VipsImage *out;
+	VipsImage *mask;
+
+	int layers;
 
 	int area;
 	int rounding;
 
-	/* Start is the left-most pixel in the line, end is one beyond the
+	/* The mask broken into a set of lines.
+	 *
+	 * Start is the left-most pixel in the line, end is one beyond the
 	 * right-most pixel.
 	 */
 	int n_lines;
 	int start[MAX_LINES];
 	int end[MAX_LINES];
 	int factor[MAX_LINES];
-} Lines;
+} VipsConvasep;
+
+typedef VipsConvolutionClass VipsConvasepClass;
+
+G_DEFINE_TYPE( VipsConvasep, vips_convasep, VIPS_TYPE_CONVOLUTION );
 
 static void
-lines_start( Lines *lines, int x, int factor )
+vips_convasep_lines_start( Lines *lines, int x, int factor )
 {
 	lines->start[lines->n_lines] = x;
 	lines->factor[lines->n_lines] = factor;
 }
 
 static int
-lines_end( Lines *lines, int x )
+vips_convasep_lines_end( Lines *lines, int x )
 {
 	lines->end[lines->n_lines] = x;
 
 	if( lines->n_lines >= MAX_LINES - 1 ) {
-		vips_error( "im_aconvsep", "%s", _( "mask too complex" ) );
+		vips_error( "VipsConvasep", "%s", _( "mask too complex" ) );
 		return( -1 );
 	}
 	lines->n_lines += 1;
@@ -135,8 +145,8 @@ lines_end( Lines *lines, int x )
 
 /* Break a mask into lines.
  */
-static Lines *
-lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
+static int
+vips_convasep_decompose( VipsConvasep *convasep )
 {
 	const int width = mask->xsize * mask->ysize;
 
@@ -152,8 +162,8 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 	/* Check parameters.
 	 */
 	if( im_piocheck( in, out ) ||
-		im_check_uncoded( "im_aconvsep", in ) ||
-		vips_check_dmask_1d( "im_aconvsep", mask ) ) 
+		im_check_uncoded( "im_convasep", in ) ||
+		vips_check_dmask_1d( "im_convasep", mask ) ) 
 		return( NULL );
 
 	lines = VIPS_NEW( out, Lines );
@@ -219,14 +229,14 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 			if( (y_positive && mask->coeff[x] >= y_ph) ||
 				(!y_positive && mask->coeff[x] <= y_ph) ) {
 				if( !inside ) {
-					lines_start( lines, x, 
+					vips_convasep_lines_start( lines, x, 
 						y_positive ? 1 : -1 );
 					inside = 1;
 				}
 			}
 			else {
 				if( inside ) {
-					if( lines_end( lines, x ) )
+					if( vips_convasep_lines_end( lines, x ) )
 						return( NULL );
 					inside = 0;
 				}
@@ -234,7 +244,7 @@ lines_new( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
 		}
 
 		if( inside && 
-			lines_end( lines, width ) )
+			vips_convasep_lines_end( lines, width ) )
 			return( NULL );
 	}
 
@@ -336,7 +346,7 @@ typedef struct {
 /* Free a sequence value.
  */
 static int
-aconvsep_stop( void *vseq, void *a, void *b )
+vips_convasep_stop( void *vseq, void *a, void *b )
 {
 	AConvSep *seq = (AConvSep *) vseq;
 
@@ -348,7 +358,7 @@ aconvsep_stop( void *vseq, void *a, void *b )
 /* Convolution start function.
  */
 static void *
-aconvsep_start( IMAGE *out, void *a, void *b )
+vips_convasep_start( IMAGE *out, void *a, void *b )
 {
 	IMAGE *in = (IMAGE *) a;
 	Lines *lines = (Lines *) b;
@@ -370,8 +380,11 @@ aconvsep_start( IMAGE *out, void *a, void *b )
 		seq->sum = IM_ARRAY( out, lines->n_lines, double );
 	seq->last_stride = -1;
 
-	if( !seq->ir || !seq->start || !seq->end || !seq->sum ) {
-		aconvsep_stop( seq, in, lines );
+	if( !seq->ir || 
+		!seq->start || 
+		!seq->end || 
+		!seq->sum ) {
+		vips_convasep_stop( seq, in, lines );
 		return( NULL );
 	}
 
@@ -495,7 +508,7 @@ G_STMT_START { \
 /* Do horizontal masks ... we scan the mask along scanlines.
  */
 static int
-aconvsep_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
+vips_convasep_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
 {
 	AConvSep *seq = (AConvSep *) vseq;
 	IMAGE *in = (IMAGE *) a;
@@ -674,7 +687,7 @@ aconvsep_generate_horizontal( REGION *or, void *vseq, void *a, void *b )
  * from above with small changes.
  */
 static int
-aconvsep_generate_vertical( REGION *or, void *vseq, void *a, void *b )
+vips_convasep_generate_vertical( REGION *or, void *vseq, void *a, void *b )
 {
 	AConvSep *seq = (AConvSep *) vseq;
 	IMAGE *in = (IMAGE *) a;
@@ -772,55 +785,134 @@ aconvsep_generate_vertical( REGION *or, void *vseq, void *a, void *b )
 }
 
 static int
-aconvsep_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
+vips_convasep_pass( VipsConvasep *convasep, 
+	VipsImage *in, VipsImage **out, VipsDirection direction )
 {
-	Lines *lines;
-	im_generate_fn generate;
+	VipsGenerateFn gen;
 
-#ifdef DEBUG
-	printf( "aconvsep_raw: starting with matrix:\n" );
-	im_print_dmask( mask );
-#endif /*DEBUG*/
-
-	if( !(lines = lines_new( in, out, mask, n_layers )) )
+	*out = vips_image_new(); 
+	if( vips_image_pipelinev( *out, 
+		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
 
-	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
-	 * would be 1x1.
-	 */
-	if( im_cp_desc( out, in ) )
-		return( -1 );
-	out->Xsize -= mask->xsize - 1;
-	out->Ysize -= mask->ysize - 1;
-	if( out->Xsize <= 0 || out->Ysize <= 0 ) {
-		im_error( "im_aconvsep", "%s", _( "image too small for mask" ) );
+	if( direction == VIPS_DIRECtION_HORIZONTAL ) { 
+		(*out)->Xsize -= M->Xsize - 1;
+		(*out)->Ysize -= M->Ysize - 1;
+		gen = vips_convasep_generate_horizontal;
+	}
+	else {
+		(*out)->Xsize -= M->Ysize - 1;
+		(*out)->Ysize -= M->Xsize - 1;
+		gen = vips_convasep_generate_vertical;
+	}
+
+	if( (*out)->Xsize <= 0 || 
+		(*out)->Ysize <= 0 ) {
+		vips_error( class->nickname, 
+			"%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
 
-	if( mask->xsize == 1 )
-		generate = aconvsep_generate_vertical;
-	else 
-		generate = aconvsep_generate_horizontal;
-
-	if( im_demand_hint( out, IM_SMALLTILE, in, NULL ) ||
-		im_generate( out, 
-			aconvsep_start, generate, aconvsep_stop, in, lines ) )
+	if( vips_image_generate( *out, 
+		vips_convasep_start, gen, vips_convasep_stop, in, convasep ) )
 		return( -1 );
 
-	out->Xoffset = -mask->xsize / 2;
-	out->Yoffset = -mask->ysize / 2;
+	if( direction == VIPS_DIRECTION_HORIZONTAL ) { 
+		(*out)->Xoffset = -M->Xsize / 2;
+		(*out)->Yoffset = -M->Ysize / 2;
+	}
+	else {
+		(*out)->Xoffset = -M->Ysize / 2;
+		(*out)->Yoffset = -M->Xsize / 2;
+	}
 
 	return( 0 );
 }
 
+static int 
+vips_convasep_build( VipsObject *object )
+{
+	VipsConvolution *convolution = (VipsConvolution *) object;
+	VipsConvasep *convasep = (VipsConvasep *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
+
+	VipsImage *in;
+	VipsImage *M;
+	double *coeff;
+	int ne;
+        int i;
+
+	if( VIPS_OBJECT_CLASS( vips_convasep_parent_class )->build( object ) )
+		return( -1 );
+
+	if( vips_convasep_decompose( convasep ) )
+		return( -1 ); 
+
+	M = convolution->M;
+	coeff = (double *) VIPS_IMAGE_ADDR( M, 0, 0 );
+	ne = M->Xsize * M->Ysize;
+
+	g_object_set( convf, "out", vips_image_new(), NULL ); 
+	if( 
+		vips_embed( convolution->in, &t[0], 
+			M->Xsize / 2, M->Ysize / 2, 
+			in->Xsize + M->Xsize - 1, in->Ysize + M->Ysize - 1,
+			"extend", VIPS_EXTEND_COPY,
+			NULL ) ||
+		vips_convasep_pass( convasep, 
+			t[0], &t[1], VIPS_DIRECTION_HORIZONTAL ) ||
+		vips_convasep_pass( convasep, 
+			t[1], &t[2], VIPS_DIRECTION_VERTICAL ) ||
+		vips_image_write( t[2], convolution->out ) )
+		return( -1 );
+
+	out->Xoffset = 0;
+	out->Yoffset = 0;
+
+	return( 0 );
+}
+
+static void
+vips_convasep_class_init( VipsConvasepClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "convasep";
+	object_class->description = _( "approximate separable convolution" );
+	object_class->build = vips_convasep_build;
+
+	VIPS_ARG_INT( class, "layers", 104, 
+		_( "Layers" ), 
+		_( "Use this many layers in approximation" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsConvasep, layers ), 
+		1, 1000, 5 ); 
+
+}
+
+static void
+vips_convasep_init( VipsConvf *convasep )
+{
+        convasep->layers = 5;
+}
+
 /**
- * im_aconvsep:
+ * vips_convasep:
  * @in: input image
  * @out: output image
- * @mask: convolution mask
- * @n_layers: number of layers for approximation
+ * @mask: convolve with this mask
+ * @...: %NULL-terminated list of optional named arguments
  *
- * Perform an approximate separable convolution of @in with @mask.
+ * Optional arguments:
+ *
+ * * @layers: %gint, number of layers for approximation
+ *
+ * Approximate separable convolution. This is a low-level operation, see 
+ * vips_conv() for something more convenient. 
  *
  * The mask must be 1xn or nx1 elements. 
  * The output image 
@@ -829,48 +921,26 @@ aconvsep_raw( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
  * The image is convolved twice: once with @mask and then again with @mask 
  * rotated by 90 degrees. 
  *
- * Larger values for @n_layers give more accurate
- * results, but are slower. As @n_layers approaches the mask radius, the
+ * Larger values for @layers give more accurate
+ * results, but are slower. As @layers approaches the mask radius, the
  * accuracy will become close to exact convolution and the speed will drop to 
- * match. For many large masks, such as Gaussian, @n_layers need be only 10% of
+ * match. For many large masks, such as Gaussian, @layers need be only 10% of
  * this value and accuracy will still be good.
  *
- * See also: im_convsep_f(), im_create_dmaskv().
+ * See also: vips_conv().
  *
  * Returns: 0 on success, -1 on error
  */
 int 
-im_aconvsep( IMAGE *in, IMAGE *out, DOUBLEMASK *mask, int n_layers )
+vips_convasep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 {
-	IMAGE *t[2];
-	const int n_mask = mask->xsize * mask->ysize;
-	DOUBLEMASK *rmask;
+	va_list ap;
+	int result;
 
-	if( im_open_local_array( out, t, 2, "im_aconvsep", "p" ) ||
-		!(rmask = (DOUBLEMASK *) im_local( out, 
-		(im_construct_fn) im_dup_dmask,
-		(im_callback_fn) im_free_dmask, mask, mask->filename, NULL )) )
-		return( -1 );
+	va_start( ap, mask );
+	result = vips_call_split( "convasep", ap, in, out, mask );
+	va_end( ap );
 
-	rmask->xsize = mask->ysize;
-	rmask->ysize = mask->xsize;
-
-	/*
-	 */
-	if( im_embed( in, t[0], 1, n_mask / 2, n_mask / 2, 
-		in->Xsize + n_mask - 1, in->Ysize + n_mask - 1 ) ||
-		aconvsep_raw( t[0], t[1], mask, n_layers ) ||
-		aconvsep_raw( t[1], out, rmask, n_layers ) )
-		return( -1 );
-
-	/* For testing .. just try one direction.
-	if( aconvsep_raw( in, out, mask, n_layers ) )
-		return( -1 );
-	 */
-
-	out->Xoffset = 0;
-	out->Yoffset = 0;
-
-	return( 0 );
+	return( result );
 }
 
