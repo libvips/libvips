@@ -753,8 +753,8 @@ vips_convi_generate( VipsRegion *or,
  * We rint() everything, then adjust the scale try to match the overall
  * effect.
  */
-static int
-intize( VipsImage *in, VipsImage **out )
+int
+vips__image_intize( VipsImage *in, VipsImage **out )
 {
 	VipsImage *t;
 	int x, y;
@@ -953,7 +953,7 @@ vips_convi_build( VipsObject *object )
 	if( !convi->n_pass ) {
 		/* Make an int version of our mask.
 		 */
-		if( intize( M, &t[1] ) )
+		if( vips__image_intize( M, &t[1] ) )
 			return( -1 ); 
 		convi->iM = M = t[1];
 

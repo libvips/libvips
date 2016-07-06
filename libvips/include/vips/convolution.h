@@ -44,20 +44,22 @@ typedef enum {
 	VIPS_COMBINE_LAST
 } VipsCombine;
 
-int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
-	__attribute__((sentinel));
 int vips_convf( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
 int vips_convi( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
-int vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+int vips_convasep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
 int vips_convsep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
+int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
 
-int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 
+int vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
 int vips_gaussblur( VipsImage *in, VipsImage **out, double sigma, ... )
+	__attribute__((sentinel));
+int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 
 	__attribute__((sentinel));
 
 int vips_spcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )

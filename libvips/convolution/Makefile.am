@@ -8,6 +8,7 @@ libconvolution_la_SOURCES = \
 	conv.c \
 	convf.c \
 	convi.c \
+	convasep.c \
 	convsep.c \
 	compass.c \
 	fastcor.c \

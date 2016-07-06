@@ -63,6 +63,11 @@
 
 	  faster?
 
+	  we could then use orc to write a bit of code to implement this set 
+	  of lines
+
+	- need to intize masks?
+
  */
 
 /* Show sample pixels as they are transformed.
@@ -88,6 +93,8 @@
 #include <vips/vector.h>
 #include <vips/debug.h>
 
+#include "pconvolution.h"
+
 /* Maximum number of lines we can break the mask into.
  */
 #define MAX_LINES (1000)
@@ -106,14 +113,16 @@ gcd( int a, int b )
 typedef struct {
 	VipsConvolution parent_instance;
 
-	VipsImage *in;
-	VipsImage *out;
-	VipsImage *mask;
-
 	int layers;
 
 	int area;
 	int rounding;
+
+	/* The "width" of the mask, ie. n for our 1xn or nx1 argument, plus 
+	 * an int version of our mask. 
+	 */
+	int width;
+	VipsImage *iM;
 
 	/* The mask broken into a set of lines.
 	 *
@@ -156,7 +165,7 @@ vips_convasep_line_end( VipsConvasep *convasep, int x )
 static int
 vips_convasep_decompose( VipsConvasep *convasep )
 {
-	VipsConvolution *convolution = (VipsConvolution *) object;
+	VipsConvolution *convolution = (VipsConvolution *) convasep;
 	VipsImage *M = convolution->M;
 	double *coeff = (double *) VIPS_IMAGE_ADDR( M, 0, 0 );
 	double scale = vips_image_get_scale( M ); 
@@ -226,23 +235,21 @@ vips_convasep_decompose( VipsConvasep *convasep )
 			if( (y_positive && coeff[x] >= y_ph) ||
 				(!y_positive && coeff[x] <= y_ph) ) {
 				if( !inside ) {
-					vips_convasep_line_start( convasep, 
-						x, y_positive ? 1 : -1 );
+					vips_convasep_line_start( convasep, x, 
+						y_positive ? 1 : -1 );
 					inside = 1;
 				}
 			}
-			else {
-				if( inside ) {
-					if( vips_convasep_line_end( convasep, x ) )
-						return( NULL );
-					inside = 0;
-				}
+			else if( inside ) {
+				if( vips_convasep_line_end( convasep, x ) )
+					return( -1 );
+				inside = 0;
 			}
 		}
 
 		if( inside && 
-			vips_convasep_line_end( lines, width ) )
-			return( NULL );
+			vips_convasep_line_end( convasep, width ) )
+			return( -1 );
 	}
 
 	/* Can we common up any lines? Search for lines with identical
@@ -302,7 +309,9 @@ vips_convasep_decompose( VipsConvasep *convasep )
 	convasep->area = rint( sum * convasep->area / scale );
 	convasep->rounding = (convasep->area + 1) / 2 + offset * convasep->area;
 
+#ifdef DEBUG
 	/* ASCII-art layer drawing.
+	 */
 	printf( "lines:\n" );
 	for( z = 0; z < convasep->n_lines; z++ ) {
 		printf( "%3d - %2d x ", z, convasep->factor[z] );
@@ -318,9 +327,9 @@ vips_convasep_decompose( VipsConvasep *convasep )
 	}
 	printf( "area = %d\n", convasep->area );
 	printf( "rounding = %d\n", convasep->rounding );
-	 */
+#endif /*DEBUG*/
 
-	return( lines );
+	return( 0 );
 }
 
 /* Our sequence value.
@@ -491,7 +500,7 @@ G_STMT_START { \
 				dsum[z] += p[x]; \
 			sum += convasep->factor[z] * dsum[z]; \
 		} \
-		sum = sum / convasep->area + mask->offset; \
+		sum = sum / convasep->area + offset; \
 		*q = sum; \
 		q += ostride; \
 		\
@@ -520,7 +529,8 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 	VipsImage *in = (VipsImage *) a;
 	VipsConvasep *convasep = (VipsConvasep *) b;
 	VipsConvolution *convolution = (VipsConvolution *) convasep;
-	VipsImage *M = convolution->M;
+	VipsImage *iM = convasep->iM;
+	double offset = vips_image_get_offset( M ); 
 
 	VipsRegion *ir = seq->ir;
 	const int n_lines = convasep->n_lines;
@@ -540,8 +550,7 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 	 * than the section of the output image we are producing.
 	 */
 	s = *r;
-	s.width += M->Xsize - 1;
-	s.height += M->Ysize - 1;
+	s.width += convasep->width - 1;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
@@ -649,7 +658,7 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 
 #define VCONV_FLOAT( TYPE ) { \
 	for( x = 0; x < sz; x++ ) { \
-		double *dsum = seq->sum; \
+		double *dsum = seq->dsum; \
 		\
 		TYPE *q; \
 		TYPE *p; \
@@ -665,7 +674,7 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 				dsum[z] += p[y]; \
 			sum += convasep->factor[z] * dsum[z]; \
 		} \
-		sum = sum / convasep->area + mask->offset; \
+		sum = sum / convasep->area + offset; \
 		*q = sum; \
 		q += ostride; \
 		\
@@ -674,13 +683,13 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 			for( z = 0; z < n_lines; z++ ) { \
 				dsum[z] += p[seq->end[z]]; \
 				dsum[z] -= p[seq->start[z]]; \
-				sum += lines->factor[z] * dsum[z]; \
+				sum += convasep->factor[z] * dsum[z]; \
 			} \
 			p += istride; \
 			sum = sum / convasep->area + offset; \
 			*q = sum; \
 			q += ostride; \
-		}   \
+		} \
 	} \
 }
 
@@ -695,7 +704,8 @@ vips_convasep_generate_vertical( VipsRegion *or,
 	VipsImage *in = (VipsImage *) a;
 	VipsConvasep *convasep = (VipsConvasep *) b;
 	VipsConvolution *convolution = (VipsConvolution *) convasep;
-	VipsImage *M = convolution->M;
+	VipsImage *iM = convasep->iM;
+	double offset = vips_image_get_offset( M ); 
 
 	VipsRegion *ir = seq->ir;
 	const int n_lines = convasep->n_lines;
@@ -715,18 +725,16 @@ vips_convasep_generate_vertical( VipsRegion *or,
 	 * than the section of the output image we are producing.
 	 */
 	s = *r;
-	s.width += mask->xsize - 1;
-	s.height += mask->ysize - 1;
+	s.height += convasep->width - 1;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
 	/* Stride can be different for the vertical case, keep this here for
 	 * ease of direction change.
 	 */
-	istride = VIPS_REGION_LSKIP( ir ) / 
-		IM_IMAGE_SIZEOF_ELEMENT( convasep->in );
+	istride = VIPS_REGION_LSKIP( ir ) / VIPS_IMAGE_SIZEOF_ELEMENT( in );
 	ostride = VIPS_REGION_LSKIP( or ) / 
-		IM_IMAGE_SIZEOF_ELEMENT( convasep->out );
+		VIPS_IMAGE_SIZEOF_ELEMENT( convolution->out );
 
         /* Init offset array. 
 	 */
@@ -734,8 +742,8 @@ vips_convasep_generate_vertical( VipsRegion *or,
 		seq->last_stride = istride;
 
 		for( z = 0; z < n_lines; z++ ) {
-			seq->start[z] = lines->start[z] * istride;
-			seq->end[z] = lines->end[z] * istride;
+			seq->start[z] = convasep->start[z] * istride;
+			seq->end[z] = convasep->end[z] * istride;
 		}
 	}
 
@@ -785,6 +793,9 @@ static int
 vips_convasep_pass( VipsConvasep *convasep, 
 	VipsImage *in, VipsImage **out, VipsDirection direction )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( convasep );
+	VipsConvolution *convolution = (VipsConvolution *) convasep;
+
 	VipsGenerateFn gen;
 
 	*out = vips_image_new(); 
@@ -792,14 +803,12 @@ vips_convasep_pass( VipsConvasep *convasep,
 		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
 
-	if( direction == VIPS_DIRECtION_HORIZONTAL ) { 
-		(*out)->Xsize -= M->Xsize - 1;
-		(*out)->Ysize -= M->Ysize - 1;
+	if( direction == VIPS_DIRECTION_HORIZONTAL ) { 
+		(*out)->Xsize -= convasep->width - 1;
 		gen = vips_convasep_generate_horizontal;
 	}
 	else {
-		(*out)->Xsize -= M->Ysize - 1;
-		(*out)->Ysize -= M->Xsize - 1;
+		(*out)->Ysize -= convasep->width - 1;
 		gen = vips_convasep_generate_vertical;
 	}
 
@@ -814,15 +823,6 @@ vips_convasep_pass( VipsConvasep *convasep,
 		vips_convasep_start, gen, vips_convasep_stop, in, convasep ) )
 		return( -1 );
 
-	if( direction == VIPS_DIRECTION_HORIZONTAL ) { 
-		(*out)->Xoffset = -M->Xsize / 2;
-		(*out)->Yoffset = -M->Ysize / 2;
-	}
-	else {
-		(*out)->Xoffset = -M->Ysize / 2;
-		(*out)->Yoffset = -M->Xsize / 2;
-	}
-
 	return( 0 );
 }
 
@@ -833,11 +833,8 @@ vips_convasep_build( VipsObject *object )
 	VipsConvasep *convasep = (VipsConvasep *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
+	VipsImage *iM;
 	VipsImage *in;
-	VipsImage *M;
-	double *coeff;
-	int ne;
-        int i;
 
 	if( VIPS_OBJECT_CLASS( vips_convasep_parent_class )->build( object ) )
 		return( -1 );
@@ -845,15 +842,21 @@ vips_convasep_build( VipsObject *object )
 	if( vips_convasep_decompose( convasep ) )
 		return( -1 ); 
 
-	M = convolution->M;
-	coeff = (double *) VIPS_IMAGE_ADDR( M, 0, 0 );
-	ne = M->Xsize * M->Ysize;
+	/* An int version of our mask.
+	 */
+	if( vips__image_intize( convolution->M, &t[3] ) )
+		return( -1 );
+	iM = t[3]; 
+	convasep->width = iM->Xsize * iM->Ysize;
+	in = convolution->in;
 
-	g_object_set( convf, "out", vips_image_new(), NULL ); 
+	g_object_set( convasep, "out", vips_image_new(), NULL ); 
 	if( 
-		vips_embed( convolution->in, &t[0], 
-			M->Xsize / 2, M->Ysize / 2, 
-			in->Xsize + M->Xsize - 1, in->Ysize + M->Ysize - 1,
+		vips_embed( in, &t[0], 
+			convasep->width / 2, 
+			convasep->width / 2, 
+			in->Xsize + convasep->width - 1, 
+			in->Ysize + convasep->width - 1,
 			"extend", VIPS_EXTEND_COPY,
 			NULL ) ||
 		vips_convasep_pass( convasep, 
@@ -863,8 +866,8 @@ vips_convasep_build( VipsObject *object )
 		vips_image_write( t[2], convolution->out ) )
 		return( -1 );
 
-	out->Xoffset = 0;
-	out->Yoffset = 0;
+	convolution->out->Xoffset = 0;
+	convolution->out->Yoffset = 0;
 
 	return( 0 );
 }
@@ -892,7 +895,7 @@ vips_convasep_class_init( VipsConvasepClass *class )
 }
 
 static void
-vips_convasep_init( VipsConvf *convasep )
+vips_convasep_init( VipsConvasep *convasep )
 {
         convasep->layers = 5;
 	convasep->n_lines = 0;

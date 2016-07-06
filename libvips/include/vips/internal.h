@@ -246,10 +246,11 @@ typedef struct _VipsImagePixels {
 	gint64 npels;		/* Number of pels calculated so far */
 } VipsImagePixels;
 
-int
-vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
+int vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	VipsSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
 	VipsArrayDouble *background );
+
+int vips__image_intize( VipsImage *in, VipsImage **out );
 
 #ifdef __cplusplus
 }
