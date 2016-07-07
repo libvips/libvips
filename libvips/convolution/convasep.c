@@ -92,6 +92,7 @@
 #include <vips/vips.h>
 #include <vips/vector.h>
 #include <vips/debug.h>
+#include <vips/internal.h>
 
 #include "pconvolution.h"
 
@@ -165,12 +166,10 @@ vips_convasep_line_end( VipsConvasep *convasep, int x )
 static int
 vips_convasep_decompose( VipsConvasep *convasep )
 {
-	VipsConvolution *convolution = (VipsConvolution *) convasep;
-	VipsImage *M = convolution->M;
-	double *coeff = (double *) VIPS_IMAGE_ADDR( M, 0, 0 );
-	double scale = vips_image_get_scale( M ); 
-	double offset = vips_image_get_offset( M ); 
-	const int width = M->Xsize * M->Ysize;
+	VipsImage *iM = convasep->iM;
+	double *coeff = (double *) VIPS_IMAGE_ADDR( iM, 0, 0 );
+	double scale = vips_image_get_scale( iM ); 
+	double offset = vips_image_get_offset( iM ); 
 
 	double max;
 	double min;
@@ -188,7 +187,7 @@ vips_convasep_decompose( VipsConvasep *convasep )
 	 */
 	max = 0;
 	min = 0;
-	for( x = 0; x < width; x++ ) {
+	for( x = 0; x < convasep->width; x++ ) {
 		if( coeff[x] > max )
 			max = coeff[x];
 		if( coeff[x] < min )
@@ -228,7 +227,7 @@ vips_convasep_decompose( VipsConvasep *convasep )
 		 */
 		inside = 0;
 
-		for( x = 0; x < width; x++ ) {
+		for( x = 0; x < convasep->width; x++ ) {
 			/* The vertical line from mask[z] to 0 is inside. Is
 			 * our current square (x, y) part of that line?
 			 */
@@ -248,7 +247,7 @@ vips_convasep_decompose( VipsConvasep *convasep )
 		}
 
 		if( inside && 
-			vips_convasep_line_end( convasep, width ) )
+			vips_convasep_line_end( convasep, convasep->width ) )
 			return( -1 );
 	}
 
@@ -303,7 +302,7 @@ vips_convasep_decompose( VipsConvasep *convasep )
 	/* Find the area of the original mask.
 	 */
 	sum = 0;
-	for( z = 0; z < width; z++ ) 
+	for( z = 0; z < convasep->width; z++ ) 
 		sum += coeff[z];
 
 	convasep->area = rint( sum * convasep->area / scale );
@@ -316,7 +315,7 @@ vips_convasep_decompose( VipsConvasep *convasep )
 	for( z = 0; z < convasep->n_lines; z++ ) {
 		printf( "%3d - %2d x ", z, convasep->factor[z] );
 		for( x = 0; x < 55; x++ ) {
-			int rx = x * (width + 1) / 55;
+			int rx = x * (convasep->width + 1) / 55;
 
 			if( rx >= convasep->start[z] && rx < convasep->end[z] )
 				printf( "#" );
@@ -530,7 +529,7 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 	VipsConvasep *convasep = (VipsConvasep *) b;
 	VipsConvolution *convolution = (VipsConvolution *) convasep;
 	VipsImage *iM = convasep->iM;
-	double offset = vips_image_get_offset( M ); 
+	double offset = vips_image_get_offset( iM ); 
 
 	VipsRegion *ir = seq->ir;
 	const int n_lines = convasep->n_lines;
@@ -705,7 +704,7 @@ vips_convasep_generate_vertical( VipsRegion *or,
 	VipsConvasep *convasep = (VipsConvasep *) b;
 	VipsConvolution *convolution = (VipsConvolution *) convasep;
 	VipsImage *iM = convasep->iM;
-	double offset = vips_image_get_offset( M ); 
+	double offset = vips_image_get_offset( iM ); 
 
 	VipsRegion *ir = seq->ir;
 	const int n_lines = convasep->n_lines;
@@ -794,7 +793,6 @@ vips_convasep_pass( VipsConvasep *convasep,
 	VipsImage *in, VipsImage **out, VipsDirection direction )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( convasep );
-	VipsConvolution *convolution = (VipsConvolution *) convasep;
 
 	VipsGenerateFn gen;
 
@@ -833,22 +831,21 @@ vips_convasep_build( VipsObject *object )
 	VipsConvasep *convasep = (VipsConvasep *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
-	VipsImage *iM;
 	VipsImage *in;
 
 	if( VIPS_OBJECT_CLASS( vips_convasep_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_convasep_decompose( convasep ) )
-		return( -1 ); 
-
 	/* An int version of our mask.
 	 */
 	if( vips__image_intize( convolution->M, &t[3] ) )
 		return( -1 );
-	iM = t[3]; 
-	convasep->width = iM->Xsize * iM->Ysize;
+	convasep->iM = t[3]; 
+	convasep->width = convasep->iM->Xsize * convasep->iM->Ysize;
 	in = convolution->in;
+
+	if( vips_convasep_decompose( convasep ) )
+		return( -1 ); 
 
 	g_object_set( convasep, "out", vips_image_new(), NULL ); 
 	if( 
