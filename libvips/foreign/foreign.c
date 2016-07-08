@@ -1656,6 +1656,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_raw_fd_get_type( void ); 
 	extern GType vips_foreign_load_magick_file_get_type( void ); 
 	extern GType vips_foreign_load_magick_buffer_get_type( void ); 
+	extern GType vips_foreign_load_magick7_file_get_type( void ); 
+	extern GType vips_foreign_load_magick7_buffer_get_type( void ); 
 	extern GType vips_foreign_save_dz_get_type( void ); 
 	extern GType vips_foreign_load_webp_file_get_type( void ); 
 	extern GType vips_foreign_load_webp_buffer_get_type( void ); 

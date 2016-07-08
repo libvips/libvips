@@ -407,58 +407,11 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	return( 0 );
 }
 
-static void
-vips_foreign_load_magick7_unpack( VipsForeignLoadMagick7 *magick7,
-	VipsImage *im, VipsPel *q, Quantum *p, int n )
-{
-	const int ps = VIPS_IMAGE_SIZEOF_PEL( im ); 
-
-	int x, b;
-
-	for( x = 0; x < n; x++ ) { 
-		if( !GetPixelReadMask( magick7->image, p ) ) {
-			p += im->Bands; 
-			q += ps; 
-			continue;
-		}
-
-		for( b = 0; b < im->Bands; b++ ) {
-			PixelChannel channel = 
-				GetPixelChannelChannel( magick7->image, b );
-			PixelTrait traits = 
-				GetPixelChannelTraits( magick7->image, channel );
-
-			if( !(traits & UpdatePixelTrait) ) {
-				printf( "vips_foreign_load_magick7_unpack: "
-					"traits = %d\n", traits ); 
-				continue;
-			}
-
-			switch( im->BandFmt ) {
-			case VIPS_FORMAT_UCHAR:
-				((unsigned char *) q)[b] = p[b];
-				break;
-
-			case VIPS_FORMAT_USHORT:
-				((unsigned short *) q)[b] = p[b];
-				break;
-
-			case VIPS_FORMAT_FLOAT:
-				((float *) q)[b] = p[b];
-				break;
-
-			case VIPS_FORMAT_DOUBLE:
-				((double *) q)[b] = p[b];
-				break;
-
-			default:
-				g_assert_not_reached();
-			}
-		}
-
-		p += im->Bands;
-		q += ps; 
-	}
+#define UNPACK( TYPE ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( x = 0; x < ne; x++ ) \
+		tq[x] = p[x]; \
 }
 
 static int
@@ -468,30 +421,50 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 	VipsForeignLoadMagick7 *magick7 = (VipsForeignLoadMagick7 *) a;
 	VipsRect *r = &or->valid;
 	VipsImage *im = or->im;
+	const int ne = r->width * im->Bands;
 
-	int y;
+	int x, y;
 
 	for( y = 0; y < r->height; y++ ) {
 		int top = r->top + y;
 		int frame = top / magick7->frame_height;
 		int line = top % magick7->frame_height;
 
-		Quantum *pixels;
+		Quantum *p;
+		VipsPel *q;
 
 		g_mutex_lock( magick7->lock );
-		pixels = GetCacheViewAuthenticPixels( magick7->cache_view[frame],
+		p = GetCacheViewAuthenticPixels( magick7->cache_view[frame],
 			r->left, line, r->width, 1, 
 			magick7->exception );
 		g_mutex_unlock( magick7->lock );
+		q = VIPS_REGION_ADDR( or, r->left, top ); 
 
-		if( !pixels ) {
+		if( !p ) {
 			vips_foreign_load_magick7_error( magick7 ); 
 			return( -1 );
 		}
 
-		vips_foreign_load_magick7_unpack( magick7, im, 
-			VIPS_REGION_ADDR( or, r->left, top ), pixels, 
-			r->width ); 
+		switch( im->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:
+			UNPACK( unsigned char );
+			break;
+
+		case VIPS_FORMAT_USHORT:
+			UNPACK( unsigned short );
+			break;
+
+		case VIPS_FORMAT_FLOAT:
+			UNPACK( float );
+			break;
+
+		case VIPS_FORMAT_DOUBLE:
+			UNPACK( double );
+			break;
+
+		default:
+			g_assert_not_reached();
+		}
 	}
 
 	return( 0 );
