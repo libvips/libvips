@@ -428,25 +428,23 @@ if test x"$with_fftw" != "xno"; then
   )
 fi
 
-# ImageMagick ... detect attribute iteration too
-# Optionally look for GraphicsMagick instead ... use
-# --with-magickpackage=GraphicsMagick
+# ImageMagick 
 AC_ARG_WITH([magick], 
   AS_HELP_STRING([--without-magick], [build without libMagic (default: test)]))
 AC_ARG_WITH([magickpackage], 
   AS_HELP_STRING([--with-magickpackage], 
-    [magickpackage to use (default: MagickWand, ImageMagick; try GraphicsMagick to build against gm instead)]))
+    [magickpackage to use (default: MagickCore; try GraphicsMagick to build against gm instead)]))
 
-# recent versions of ImageMagick have split parts of the library off to
-# MagickWand, so by default we test for that first
+# set the default magick package ... very old imagemagicks called it
+# ImageMagick
 if test x"$with_magickpackage" = "x"; then
-  PKG_CHECK_MODULES(MAGICK_WAND, MagickWand,
-    [with_magickpackage=MagickWand
+  PKG_CHECK_MODULES(MAGICK_WAND, MagickCore,
+    [with_magickpackage=MagickCore
     ],
     [PKG_CHECK_MODULES(IMAGE_MAGICK, ImageMagick,
        [with_magickpackage=ImageMagick
        ],
-       [AC_MSG_WARN([neither MagickWand nor ImageMagick found; disabling Magick support])
+       [AC_MSG_WARN([neither MagickCore nor ImageMagick found; disabling Magick support])
         with_magick=no
        ]
      )
@@ -454,19 +452,31 @@ if test x"$with_magickpackage" = "x"; then
   )
 fi
 
+# we have a separate loader for magick7 with fewer ifdef
+# options; only test for features on the magick6 case
+
 if test x"$with_magick" != x"no"; then
-  PKG_CHECK_MODULES(MAGICK, $with_magickpackage, 
-    [AC_DEFINE(HAVE_MAGICK,1,[define if you have libMagick installed.])
-     with_magick=yes
+  PKG_CHECK_MODULES(MAGICK, $with_magickpackage >= 7.0,  
+    [AC_DEFINE(HAVE_MAGICK7,1,[define if you have libMagick7 installed.])
+     with_magick="yes (magick7)"
+     magick7=yes
      PACKAGES_USED="$PACKAGES_USED $with_magickpackage"
     ],
-    [AC_MSG_WARN([$with_magickpackage not found; disabling Magick support])
-     with_magick=no
-    ]
+    [PKG_CHECK_MODULES(MAGICK, $with_magickpackage,  
+       [AC_DEFINE(HAVE_MAGICK,1,[define if you have libMagick installed.])
+        with_magick="yes (magick6)"
+        magick6=yes
+        PACKAGES_USED="$PACKAGES_USED $with_magickpackage"
+       ],
+       [AC_MSG_WARN([$with_magickpackage not found; disabling Magick support])
+        with_magick=no
+       ]
+     )
+    ]  
   )
 fi
 
-if test x"$with_magick" != x"no"; then
+if test x"$magick6" = x"yes"; then
   # we SetImageOption to disable some DICOM read processing, but that's only
   # in more recent imagemagicks and not in graphicsmagick
   save_LIBS="$LIBS"
@@ -477,7 +487,7 @@ if test x"$with_magick" != x"no"; then
   LIBS="$save_LIBS"
 fi
 
-if test x"$with_magick" != x"no"; then
+if test x"$magick6" = x"yes"; then
   # newer ImageMagicks use MagickCoreGenesis instead of InitializeMagick argh
   save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
@@ -487,7 +497,7 @@ if test x"$with_magick" != x"no"; then
   LIBS="$save_LIBS"
 fi
 
-if test x"$with_magick" != "xno"; then
+if test x"$magick6" = x"yes"; then
   # newer ImageMagicks use ResetImagePropertyIterator instead of
   # ResetImageAttributeIterator argh
   save_LIBS="$LIBS"
@@ -498,7 +508,7 @@ if test x"$with_magick" != "xno"; then
   LIBS="$save_LIBS"
 fi
 
-if test x"$with_magick" != "xno"; then
+if test x"$magick6" = x"yes"; then
   # so ... do we have ResetImageAttributeIterator()? GM does not
   save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
@@ -508,7 +518,7 @@ if test x"$with_magick" != "xno"; then
   LIBS="$save_LIBS"
 fi
 
-if test x"$with_magick" != "xno"; then
+if test x"$magick6" = x"yes"; then
   # more recent magicks have GetVirtualPixels rather than GetImagePixels
   save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
@@ -518,7 +528,7 @@ if test x"$with_magick" != "xno"; then
   LIBS="$save_LIBS"
 fi
 
-if test x"$with_magick" != "xno"; then
+if test x"$magick6" = x"yes"; then
   # do we have number_scenes in image_info ... imagemagick uses this, gm
   # still uses subrange
   save_CFLAGS="$CFLAGS"

@@ -35,6 +35,7 @@ libforeign_la_SOURCES = \
 	magick.h \
 	magick2vips.c \
 	magickload.c \
+	magick7load.c \
 	pngload.c \
 	pngsave.c \
 	vipspng.h \
