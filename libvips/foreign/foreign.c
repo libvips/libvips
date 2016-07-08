@@ -1760,6 +1760,11 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_magick_buffer_get_type(); 
 #endif /*HAVE_MAGICK*/
 
+#ifdef HAVE_MAGICK7
+	vips_foreign_load_magick7_file_get_type(); 
+	vips_foreign_load_magick7_buffer_get_type(); 
+#endif /*HAVE_MAGICK7*/
+
 #ifdef HAVE_CFITSIO
 	vips_foreign_load_fits_get_type(); 
 	vips_foreign_save_fits_get_type(); 
