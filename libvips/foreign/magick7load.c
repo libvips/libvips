@@ -405,7 +405,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 }
 
 #define UNPACK( TYPE, Q, P, N ) { \
-	TYPE *tq = (TYPE *) (Q); \
+	TYPE * restrict tq = (TYPE *) (Q); \
 	int x; \
 	\
 	for( x = 0; x < (N); x++ ) \
@@ -428,8 +428,8 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 		int frame = top / magick7->frame_height;
 		int line = top % magick7->frame_height;
 
-		Quantum *p;
-		VipsPel *q;
+		Quantum * restrict p;
+		VipsPel * restrict q;
 
 		g_mutex_lock( magick7->lock );
 		p = GetCacheViewAuthenticPixels( magick7->cache_view[frame],
