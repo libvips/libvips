@@ -1,14 +1,17 @@
 - try:
 
-	$ time vips magickload IMG_0073.JPG x.tif
-	** VIPS:ERROR:image.c:1593:vips_image_posteval: assertion failed: (progress)
-	Aborted (core dumped)
+	vips magickload images/cramps.gif x.png
 
-	real	0m0.524s
-	user	0m0.608s
-	sys	0m0.120s
+  we get a four-band png with a strange alpha ... should be 0/255, but it has
+  greyscale values in
 
-  strange!
+  try with convert, get a one-band png, no alpha at all
+
+- try loading one page of a PDF with the new magickload
+
+- try loading one page of a GIF with the new magickload
+
+- try loading a DICOM
 
 - add more webp tests to py suite
 

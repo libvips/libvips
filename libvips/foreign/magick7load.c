@@ -404,11 +404,12 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	return( 0 );
 }
 
-#define UNPACK( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
+#define UNPACK( TYPE, Q, P, N ) { \
+	TYPE *tq = (TYPE *) (Q); \
+	int x; \
 	\
-	for( x = 0; x < ne; x++ ) \
-		tq[x] = p[x]; \
+	for( x = 0; x < (N); x++ ) \
+		tq[x] = (P)[x]; \
 }
 
 static int
@@ -420,7 +421,7 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 	VipsImage *im = or->im;
 	const int ne = r->width * im->Bands;
 
-	int x, y;
+	int y;
 
 	for( y = 0; y < r->height; y++ ) {
 		int top = r->top + y;
@@ -444,19 +445,19 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 
 		switch( im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
-			UNPACK( unsigned char );
+			UNPACK( unsigned char, q, p, ne );
 			break;
 
 		case VIPS_FORMAT_USHORT:
-			UNPACK( unsigned short );
+			UNPACK( unsigned short, q, p, ne );
 			break;
 
 		case VIPS_FORMAT_FLOAT:
-			UNPACK( float );
+			UNPACK( float, q, p, ne );
 			break;
 
 		case VIPS_FORMAT_DOUBLE:
-			UNPACK( double );
+			UNPACK( double, q, p, ne );
 			break;
 
 		default:
@@ -591,12 +592,12 @@ static int
 vips_foreign_load_magick7_file_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadMagick7 *magick7 = (VipsForeignLoadMagick7 *) load;
-	VipsForeignLoadMagick7File *file = (VipsForeignLoadMagick7File *) load;
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_magick7_file_load: %p\n", load ); 
 #endif /*DEBUG*/
 
+	g_assert( !magick7->image ); 
 	magick7->image = ReadImage( magick7->image_info, magick7->exception );
 	if( !magick7->image ) {
 		vips_foreign_load_magick7_error( magick7 ); 
@@ -605,8 +606,6 @@ vips_foreign_load_magick7_file_load( VipsForeignLoad *load )
 
 	if( vips_foreign_load_magick7_load( magick7 ) )
 		return( -1 );
-
-	VIPS_SETSTR( load->real->filename, file->filename );
 
 	return( 0 );
 }
