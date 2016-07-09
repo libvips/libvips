@@ -1162,7 +1162,7 @@ write_vips( Write *write, int qfac, const char *profile,
 	 * high Q. 
 	 */
 	if( no_subsample ||
-		Q > 90 ) { 
+		qfac > 90 ) { 
 		int i;
 
 		for( i = 0; i < in->Bands; i++ ) { 
