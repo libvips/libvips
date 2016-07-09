@@ -66,8 +66,6 @@
 	  we could then use orc to write a bit of code to implement this set 
 	  of lines
 
-	- need to intize masks?
-
  */
 
 /* Show sample pixels as they are transformed.
