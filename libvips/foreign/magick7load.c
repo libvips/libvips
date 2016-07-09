@@ -108,6 +108,7 @@ vips_foreign_load_magick7_dispose( GObject *gobject )
 	VIPS_FREEF( DestroyImageList, magick7->image );
 	VIPS_FREEF( DestroyImageInfo, magick7->image_info ); 
 	VIPS_FREE( magick7->frames );
+	VIPS_FREE( magick7->cache_view );
 	VIPS_FREEF( DestroyExceptionInfo, magick7->exception ); 
 	VIPS_FREEF( vips_g_mutex_free, magick7->lock );
 
@@ -255,7 +256,6 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 
 	const char *key;
 	Image *p;
-	int i;
 
 #ifdef DEBUG
 	printf( "image->depth = %zd\n", image->depth ); 
@@ -265,6 +265,8 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	printf( "image->rows = %zd\n", image->rows ); 
 #endif /*DEBUG*/
 
+	/* Ysize updated below once we have worked out how many frames to load.
+	 */
 	out->Xsize = image->columns;
 	out->Ysize = image->rows;
 	out->Bands = GetPixelChannels( image ); 
@@ -395,16 +397,9 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	if( !magick7->all_frames )
 		magick7->n_frames = 1;
 
-	/* Record frame pointers.
+	/* So we can finally set the height.
 	 */
 	out->Ysize *= magick7->n_frames;
-	if( !(magick7->frames = VIPS_ARRAY( NULL, magick7->n_frames, Image * )) )
-		return( -1 );
-	p = image;
-	for( i = 0; i < magick7->n_frames; i++ ) {
-		magick7->frames[i] = p;
-		p = GetNextImageInList( p );
-	}
 
 	return( 0 );
 }
@@ -473,10 +468,11 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 }
 
 static int
-vips_foreign_load_magick7_header( VipsForeignLoadMagick7 *magick7 )
+vips_foreign_load_magick7_load( VipsForeignLoadMagick7 *magick7 )
 {
 	VipsForeignLoad *load = (VipsForeignLoad *) magick7;
 
+	Image *p;
 	int i;
 
 #ifdef DEBUG
@@ -484,9 +480,23 @@ vips_foreign_load_magick7_header( VipsForeignLoadMagick7 *magick7 )
 #endif /*DEBUG*/
 
 	if( vips_foreign_load_magick7_parse( magick7, 
-		magick7->image, load->out ) )
+		magick7->image, load->real ) )
 		return( -1 );
 
+	/* Record frame pointers.
+	 */
+	g_assert( !magick7->frames ); 
+	if( !(magick7->frames = VIPS_ARRAY( NULL, magick7->n_frames, Image * )) )
+		return( -1 );
+	p = magick7->image;
+	for( i = 0; i < magick7->n_frames; i++ ) {
+		magick7->frames[i] = p;
+		p = GetNextImageInList( p );
+	}
+
+	/* And a cache_view for each frame.
+	 */
+	g_assert( !magick7->cache_view ); 
 	if( !(magick7->cache_view = VIPS_ARRAY( NULL, 
 		magick7->n_frames, CacheView * )) )
 		return( -1 );
@@ -495,7 +505,7 @@ vips_foreign_load_magick7_header( VipsForeignLoadMagick7 *magick7 )
 			magick7->frames[i], magick7->exception );
 	}
 
-	if( vips_image_generate( load->out, 
+	if( vips_image_generate( load->real, 
 		NULL, vips_foreign_load_magick7_fill_region, NULL, 
 		magick7, NULL ) )
 		return( -1 );
@@ -552,23 +562,51 @@ vips_foreign_load_magick7_file_header( VipsForeignLoad *load )
 	vips_strncpy( magick7->image_info->filename, file->filename, 
 		MagickPathExtent );
 
-	/* We'd love to use PingImage() here but sadly GetPixelChannels() is
-	 * always zero after Ping, so we are forced to use ReadImage().
-	 *
-	 * See:
-	 *
-	 * http://www.imagemagick.org/discourse-server/viewtopic.php?f=2&t=30043
+	magick7->image = PingImage( magick7->image_info, magick7->exception );
+	if( !magick7->image ) {
+		vips_foreign_load_magick7_error( magick7 ); 
+		return( -1 );
+	}
+
+	/* You must call InitializePixelChannelMap() after Ping or
+	 * GetPixelChannels() won't work. Later IMs may do this for you. 
 	 */
+	InitializePixelChannelMap( magick7->image );
+
+	if( vips_foreign_load_magick7_parse( magick7, 
+		magick7->image, load->out ) )
+		return( -1 );
+
+	/* No longer need the ping result, and we'll replace ->image with Read
+	 * when we do that later.
+	 */
+	VIPS_FREEF( DestroyImageList, magick7->image );
+
+	VIPS_SETSTR( load->out->filename, file->filename );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_magick7_file_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadMagick7 *magick7 = (VipsForeignLoadMagick7 *) load;
+	VipsForeignLoadMagick7File *file = (VipsForeignLoadMagick7File *) load;
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_magick7_file_load: %p\n", load ); 
+#endif /*DEBUG*/
+
 	magick7->image = ReadImage( magick7->image_info, magick7->exception );
 	if( !magick7->image ) {
 		vips_foreign_load_magick7_error( magick7 ); 
 		return( -1 );
 	}
 
-	if( vips_foreign_load_magick7_header( magick7 ) )
-		return( -1 ); 
+	if( vips_foreign_load_magick7_load( magick7 ) )
+		return( -1 );
 
-	VIPS_SETSTR( load->out->filename, file->filename );
+	VIPS_SETSTR( load->real->filename, file->filename );
 
 	return( 0 );
 }
@@ -589,7 +627,7 @@ vips_foreign_load_magick7_file_class_init(
 
 	load_class->is_a = ismagick7;
 	load_class->header = vips_foreign_load_magick7_file_header;
-	load_class->load = NULL;
+	load_class->load = vips_foreign_load_magick7_file_load;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -647,13 +685,46 @@ vips_foreign_load_magick7_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadMagick7Buffer *magick7_buffer = 
 		(VipsForeignLoadMagick7Buffer *) load;
 
-	/* We'd love to use PingBlob() here but sadly GetPixelChannels() is
-	 * always zero after Ping, so we are forced to use ReadImage().
-	 *
-	 * See:
-	 *
-	 * http://www.imagemagick.org/discourse-server/viewtopic.php?f=2&t=30043
+#ifdef DEBUG
+	printf( "vips_foreign_load_magick7_buffer_header: %p\n", load ); 
+#endif /*DEBUG*/
+
+	magick7->image = PingBlob( magick7->image_info, 
+		magick7_buffer->buf->data, magick7_buffer->buf->length,
+		magick7->exception );
+	if( !magick7->image ) {
+		vips_foreign_load_magick7_error( magick7 ); 
+		return( -1 );
+	}
+
+	/* You must call InitializePixelChannelMap() after Ping or
+	 * GetPixelChannels() won't work. Later IMs may do this for you. 
 	 */
+	InitializePixelChannelMap( magick7->image );
+
+	if( vips_foreign_load_magick7_parse( magick7, 
+		magick7->image, load->out ) )
+		return( -1 );
+
+	/* No longer need the ping result, and we'll replace ->image with Read
+	 * when we do that later.
+	 */
+	VIPS_FREEF( DestroyImageList, magick7->image );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_magick7_buffer_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadMagick7 *magick7 = (VipsForeignLoadMagick7 *) load;
+	VipsForeignLoadMagick7Buffer *magick7_buffer = 
+		(VipsForeignLoadMagick7Buffer *) load;
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_magick7_buffer_load: %p\n", load ); 
+#endif /*DEBUG*/
+
 	magick7->image = BlobToImage( magick7->image_info, 
 		magick7_buffer->buf->data, magick7_buffer->buf->length,
 		magick7->exception );
@@ -662,8 +733,8 @@ vips_foreign_load_magick7_buffer_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 
-	if( vips_foreign_load_magick7_header( magick7 ) )
-		return( -1 ); 
+	if( vips_foreign_load_magick7_load( magick7 ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -684,7 +755,7 @@ vips_foreign_load_magick7_buffer_class_init(
 
 	load_class->is_a_buffer = vips_foreign_load_magick7_buffer_is_a_buffer;
 	load_class->header = vips_foreign_load_magick7_buffer_header;
-	load_class->load = NULL;
+	load_class->load = vips_foreign_load_magick7_buffer_load;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),

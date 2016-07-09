@@ -1,3 +1,15 @@
+- try:
+
+	$ time vips magickload IMG_0073.JPG x.tif
+	** VIPS:ERROR:image.c:1593:vips_image_posteval: assertion failed: (progress)
+	Aborted (core dumped)
+
+	real	0m0.524s
+	user	0m0.608s
+	sys	0m0.120s
+
+  strange!
+
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py

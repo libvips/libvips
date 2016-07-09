@@ -95,8 +95,8 @@
  * transparently supported by vips_image_new_from_file() and friends.
  *
  * VIPS comes with VipsForeign for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
- * Matlab, Radiance, RAW, FITS, WebP and VIPS. It also includes import filters 
- * which can load with libMagick and with OpenSlide. 
+ * Matlab, Radiance, RAW, FITS, WebP, SVG, PDF, GIF and VIPS. It also includes 
+ * import filters which can load with libMagick and with OpenSlide. 
  */
 
 /**
@@ -108,17 +108,17 @@
  *
  * Some hints about the image loader.
  *
- * @VIPS_FOREIGN_PARTIAL means that the image can be read directly from the
+ * #VIPS_FOREIGN_PARTIAL means that the image can be read directly from the
  * file without needing to be unpacked to a temporary image first. 
  *
- * @VIPS_FOREIGN_SEQUENTIAL means that the loader supports lazy reading, but
+ * #VIPS_FOREIGN_SEQUENTIAL means that the loader supports lazy reading, but
  * only top-to-bottom (sequential) access. Formats like PNG can read sets of
  * scanlines, for example, but only in order. 
  *
  * If neither PARTIAL or SEQUENTIAL is set, the loader only supports whole
  * image read. Setting both PARTIAL and SEQUENTIAL is an error.
  *
- * @VIPS_FOREIGN_BIGENDIAN means that image pixels are most-significant byte
+ * #VIPS_FOREIGN_BIGENDIAN means that image pixels are most-significant byte
  * first. Depending on the native byte order of the host machine, you may
  * need to swap bytes. See vips_copy().
  */
