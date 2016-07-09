@@ -50,7 +50,7 @@
 
 #ifdef HAVE_MAGICK7
 
-#include <MagickWand/MagickWand.h>
+#include <MagickCore/MagickCore.h>
 
 typedef struct _VipsForeignLoadMagick7 {
 	VipsForeignLoad parent_object;
@@ -336,6 +336,8 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 		break;
 
 	default:
+		/* Things like GIF have no resolution info.
+		 */
 		out->Xres = 1.0;
 		out->Yres = 1.0;
 		break;
