@@ -1,3 +1,5 @@
+- convasep does not handle offset correctly
+
 - test new clip stuff?
 
 - add more webp tests to py suite
