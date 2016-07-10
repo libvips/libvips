@@ -2457,6 +2457,30 @@ im_conv_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask )
 	return( 0 );
 }
 
+int 
+im_aconvsep( VipsImage *in, VipsImage *out, DOUBLEMASK *mask, int n_layers )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_mask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_convasep( in, &t2, t1, 
+		"layers", n_layers,
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
 int
 im_conv_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask )
 {

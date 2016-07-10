@@ -69,13 +69,13 @@
  */
 
 /* Show sample pixels as they are transformed.
- */
 #define DEBUG_PIXELS
+ */
 
 /*
- */
 #define DEBUG
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -116,6 +116,7 @@ typedef struct {
 
 	int area;
 	int rounding;
+	int offset;
 
 	/* The "width" of the mask, ie. n for our 1xn or nx1 argument, plus 
 	 * an int version of our mask. 
@@ -148,10 +149,12 @@ vips_convasep_line_start( VipsConvasep *convasep, int x, int factor )
 static int
 vips_convasep_line_end( VipsConvasep *convasep, int x )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( convasep );
+
 	convasep->end[convasep->n_lines] = x;
 
 	if( convasep->n_lines >= MAX_LINES - 1 ) {
-		vips_error( "VipsConvasep", "%s", _( "mask too complex" ) );
+		vips_error( class->nickname, "%s", _( "mask too complex" ) );
 		return( -1 );
 	}
 	convasep->n_lines += 1;
@@ -304,7 +307,8 @@ vips_convasep_decompose( VipsConvasep *convasep )
 		sum += coeff[z];
 
 	convasep->area = rint( sum * convasep->area / scale );
-	convasep->rounding = (convasep->area + 1) / 2 + offset * convasep->area;
+	convasep->rounding = (convasep->area + 1) / 2;
+	convasep->offset = offset;
 
 #ifdef DEBUG
 	/* ASCII-art layer drawing.
@@ -324,6 +328,7 @@ vips_convasep_decompose( VipsConvasep *convasep )
 	}
 	printf( "area = %d\n", convasep->area );
 	printf( "rounding = %d\n", convasep->rounding );
+	printf( "offset = %d\n", convasep->offset );
 #endif /*DEBUG*/
 
 	return( 0 );
@@ -458,7 +463,8 @@ G_STMT_START { \
 				isum[z] += p[x]; \
 			sum += convasep->factor[z] * isum[z]; \
 		} \
-		sum = (sum + convasep->rounding) / convasep->area; \
+		sum = (sum + convasep->rounding) / convasep->area + \
+			convasep->offset; \
 		CLIP( sum ); \
 		*q = sum; \
 		q += ostride; \
@@ -471,7 +477,8 @@ G_STMT_START { \
 				sum += convasep->factor[z] * isum[z]; \
 			} \
 			p += istride; \
-			sum = (sum + convasep->rounding) / convasep->area; \
+			sum = (sum + convasep->rounding) / convasep->area + \
+				convasep->offset; \
 			CLIP( sum ); \
 			*q = sum; \
 			q += ostride; \
@@ -497,7 +504,7 @@ G_STMT_START { \
 				dsum[z] += p[x]; \
 			sum += convasep->factor[z] * dsum[z]; \
 		} \
-		sum = sum / convasep->area + offset; \
+		sum = sum / convasep->area + convasep->offset; \
 		*q = sum; \
 		q += ostride; \
 		\
@@ -509,7 +516,7 @@ G_STMT_START { \
 				sum += convasep->factor[z] * dsum[z]; \
 			} \
 			p += istride; \
-			sum = sum / convasep->area + offset; \
+			sum = sum / convasep->area + convasep->offset; \
 			*q = sum; \
 			q += ostride; \
 		} \
@@ -526,8 +533,6 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 	VipsImage *in = (VipsImage *) a;
 	VipsConvasep *convasep = (VipsConvasep *) b;
 	VipsConvolution *convolution = (VipsConvolution *) convasep;
-	VipsImage *iM = convasep->iM;
-	double offset = vips_image_get_offset( iM ); 
 
 	VipsRegion *ir = seq->ir;
 	const int n_lines = convasep->n_lines;
@@ -632,7 +637,8 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 				isum[z] += p[y]; \
 			sum += convasep->factor[z] * isum[z]; \
 		} \
-		sum = (sum + convasep->rounding) / convasep->area; \
+		sum = (sum + convasep->rounding) / convasep->area + \
+			convasep->offset; \
 		CLIP( sum ); \
 		*q = sum; \
 		q += ostride; \
@@ -645,7 +651,8 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 				sum += convasep->factor[z] * isum[z]; \
 			} \
 			p += istride; \
-			sum = (sum + convasep->rounding) / convasep->area; \
+			sum = (sum + convasep->rounding) / convasep->area + \
+				convasep->offset; \
 			CLIP( sum ); \
 			*q = sum; \
 			q += ostride; \
@@ -671,7 +678,7 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 				dsum[z] += p[y]; \
 			sum += convasep->factor[z] * dsum[z]; \
 		} \
-		sum = sum / convasep->area + offset; \
+		sum = sum / convasep->area + convasep->offset; \
 		*q = sum; \
 		q += ostride; \
 		\
@@ -683,7 +690,7 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 				sum += convasep->factor[z] * dsum[z]; \
 			} \
 			p += istride; \
-			sum = sum / convasep->area + offset; \
+			sum = sum / convasep->area + convasep->offset; \
 			*q = sum; \
 			q += ostride; \
 		} \
@@ -701,8 +708,6 @@ vips_convasep_generate_vertical( VipsRegion *or,
 	VipsImage *in = (VipsImage *) a;
 	VipsConvasep *convasep = (VipsConvasep *) b;
 	VipsConvolution *convolution = (VipsConvolution *) convasep;
-	VipsImage *iM = convasep->iM;
-	double offset = vips_image_get_offset( iM ); 
 
 	VipsRegion *ir = seq->ir;
 	const int n_lines = convasep->n_lines;
@@ -908,7 +913,7 @@ vips_convasep_init( VipsConvasep *convasep )
  * * @layers: %gint, number of layers for approximation
  *
  * Approximate separable convolution. This is a low-level operation, see 
- * vips_conv() for something more convenient. 
+ * vips_convsep() for something more convenient. 
  *
  * The mask must be 1xn or nx1 elements. 
  * The output image 

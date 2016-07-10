@@ -15,7 +15,6 @@ libconvolution_la_SOURCES = \
 	spcor.c \
 	sharpen.c \
 	gaussblur.c \
-	im_aconv.c \
-	im_aconvsep.c 
+	im_aconv.c 
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
