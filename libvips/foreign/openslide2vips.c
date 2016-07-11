@@ -47,6 +47,8 @@
  * 	- do argb -> rgba for associated as well 
  * 27/1/15
  * 	- unpremultiplication speedups for fully opaque/transparent pixels
+ * 11/7/16
+ * 	- just warn on tile read error
  */
 
 /*
@@ -471,13 +473,15 @@ vips__openslide_generate( VipsRegion *out,
 		rslide->level,
 		r->width, r->height ); 
 
+	/* Only warn on error: we don't want to make the whole image unreadable
+	 * because of one broken tile.
+	 *
+	 * FIXME ... add a --fail option like jpegload
+	 */
 	error = openslide_get_error( rslide->osr );
-	if( error ) {
-		vips_error( "openslide2vips", 
+	if( error ) 
+		vips_warn( "openslide2vips", 
 			_( "reading region: %s" ), error );
-
-		return( -1 );
-	}
 
 	/* Since we are inside a cache, we know buf must be continuous.
 	 */

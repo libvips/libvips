@@ -227,7 +227,6 @@ write_new( VipsImage *in )
         write->cinfo.err = jpeg_std_error( &write->eman.pub );
 	write->eman.pub.error_exit = vips__new_error_exit;
 	write->eman.pub.output_message = vips__new_output_message;
-	write->eman.pub.output_message = vips__new_output_message;
 	write->eman.fp = NULL;
 	write->profile_bytes = NULL;
 	write->profile_length = 0;
