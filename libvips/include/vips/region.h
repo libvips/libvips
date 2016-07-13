@@ -98,7 +98,9 @@ typedef struct _VipsRegionClass {
 
 } VipsRegionClass;
 
-GType vips_region_get_type( void );
+/* Don't put spaces around void here, it breaks gtk-doc.
+ */
+GType vips_region_get_type(void);
 
 VipsRegion *vips_region_new( VipsImage *image );
 

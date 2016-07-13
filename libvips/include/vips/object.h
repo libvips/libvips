@@ -406,7 +406,7 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), VIPS_TYPE_OBJECT, VipsObjectClass ))
 
 struct _VipsObject {
-	GObject parent_object;
+	GObject parent_instance;
 
 	/* Set after ->build() has run succesfully: construct is fully done
 	 * and checked.
@@ -579,7 +579,9 @@ void vips_object_print_name( VipsObject *object );
 
 gboolean vips_object_sanity( VipsObject *object );
 
-GType vips_object_get_type( void );
+/* Don't put spaces around void here, it breaks gtk-doc.
+ */
+GType vips_object_get_type(void);
 
 void vips_object_class_install_argument( VipsObjectClass *cls, 
 	GParamSpec *pspec, VipsArgumentFlags flags, 
