@@ -50,6 +50,19 @@
 
 #include "presample.h"
 
+/**
+ * VipsKernel: 
+ * @VIPS_KERNEL_NEAREST: The nearest pixel to the point.
+ * @VIPS_KERNEL_LINEAR: Calculate a pixel value using linear interpolation.
+ * @VIPS_KERNEL_CUBIC: Calculate using a 4-element cubic kernel.
+ * @VIPS_KERNEL_LANCZOS2: Calculate with a two-lobe Lanczos kernel.
+ * @VIPS_KERNEL_LANCZOS3: Calculate with a three-lobe Lanczos kernel.
+ *
+ * The resampling kernels vips supports. See vips_reduce(), for example.  
+ *
+ * The Lanczos kernels vary in size with the downsampling ratio. 
+ */
+
 typedef struct _VipsReduce {
 	VipsResample parent_instance;
 
@@ -141,15 +154,15 @@ vips_reduce_init( VipsReduce *reduce )
  * @in: input image
  * @out: output image
  * @xshrink: horizontal shrink
- * @shrinke: vertical shrink
+ * @yshrink: vertical shrink
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
  * * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
  *
- * Reduce @in by a pair of factors with a pair of 1D interpolators. This 
- * will not work well for shrink factors greater than two.
+ * Reduce @in by a pair of factors with a pair of 1D kernels. This 
+ * will not work well for shrink factors greater than three.
  *
  * This is a very low-level operation: see vips_resize() for a more
  * convenient way to resize images. 

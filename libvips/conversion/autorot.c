@@ -126,9 +126,9 @@ vips_autorot_remove_angle_sub( VipsImage *image,
 
 /**
  * vips_autorot_remove_angle:
- * @im: image to remove orientation from
+ * @image: image to remove orientation from
  *
- * Remove the orientation tag on @im. Also remove any exif orientation tags. 
+ * Remove the orientation tag on @image. Also remove any exif orientation tags. 
  *
  * See also: vips_autorot_get_angle(). 
  */
