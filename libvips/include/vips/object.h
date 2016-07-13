@@ -296,11 +296,6 @@ typedef struct _VipsArgumentInstance {
  */
 typedef GHashTable VipsArgumentTable;
 
-VipsArgumentInstance *vips__argument_get_instance( 
-	VipsArgumentClass *argument_class,
-	VipsObject *object );
-VipsArgument *vips__argument_table_lookup( VipsArgumentTable *argument_class, 
-	GParamSpec *pspec );
 void vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 	GObject **member, GObject *argument );
 typedef void *(*VipsArgumentMapFn)( VipsObject *object, GParamSpec *pspec,
@@ -622,7 +617,8 @@ GType vips_type_find( const char *basename, const char *nickname );
 const char *vips_nickname_find( GType type );
 
 void *vips_class_map_all( GType type, VipsClassMapFn fn, void *a );
-VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
+const VipsObjectClass *vips_class_find( const char *basename, 
+	const char *nickname );
 
 VipsObject **vips_object_local_array( VipsObject *parent, int n );
 
