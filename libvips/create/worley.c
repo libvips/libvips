@@ -60,7 +60,7 @@ typedef struct _VipsWorley {
 
 	/* Use this to seed this call of our rng.
 	 */
-	int seed;
+	guint32 seed;
 } VipsWorley;
 
 typedef struct _VipsWorleyClass {
@@ -112,12 +112,19 @@ typedef struct _Sequence {
 
 } Sequence;
 
-/* A very simple random number generator.
+/* A very simple random number generator. See:
+ * http://isthe.com/chongo/tech/comp/fnv/#FNV-source
  */
-static int
-vips_worley_random( int previous )
+static guint32
+vips_worley_random( guint32 seed )
 {
-	return( ((guint64) 1103515245 * previous + 12345) & 0xffffff );
+	return( 1103515245u * seed + 12345 );
+}
+
+static guint32 
+vips_worley_seed_add( guint32 seed, int value )
+{
+	return( ((2166136261u ^ seed) * 16777619u) ^ value );
 }
 
 /* Generate a 3 x 3 grid of cells around a point. 
@@ -132,7 +139,8 @@ vips_worley_create_cells( VipsWorley *worley,
 		for( x = 0; x < 3; x++ ) {
 			Cell *cell = &cells[x + y * 3];
 
-			int seed;
+			guint32 seed;
+			int value;
 			int j;
 
 			/* Can go <0 and >width for edges.
@@ -146,18 +154,20 @@ vips_worley_create_cells( VipsWorley *worley,
 			 * around so that our output will tesselate.
 			 */
 			if( cell->cell_x >= worley->cells_across )
-				seed ^= 0;
+				value = 0;
 			else if( cell->cell_x < 0 )
-				seed ^= worley->cells_across - 1;
+				value = worley->cells_across - 1;
 			else 
-				seed ^= cell->cell_x;
+				value = cell->cell_x;
+			seed = vips_worley_seed_add( seed, value );
 
 			if( cell->cell_y >= worley->cells_down )
-				seed ^= 0;
+				value = 0;
 			else if( cell->cell_y < 0 )
-				seed ^= worley->cells_down - 1;
+				value = worley->cells_down - 1;
 			else 
-				seed ^= cell->cell_y;
+				value = cell->cell_y;
+			seed = vips_worley_seed_add( seed, value );
 
 			/* [1, MAX_FEATURES)
 			 */
@@ -286,7 +296,7 @@ vips_worley_build( VipsObject *object )
 	worley->cells_down = ROUND_UP( worley->height, worley->cell_size ) / 
 		worley->cell_size;
 
-	worley->seed = g_random_double() * 0xffffff;
+	worley->seed = g_random_double() * 0xffffffffu;
 
 	vips_image_init_fields( create->out,
 		worley->width, worley->height, 1,
