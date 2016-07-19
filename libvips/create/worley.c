@@ -1,6 +1,6 @@
-/* Worley noise generator
+/* Worley noise generator.
  *
- * 13/6/13
+ * 19/7/16
  */
 
 /*
@@ -120,7 +120,7 @@ vips_worley_random( int previous )
 	return( ((guint64) 1103515245 * previous + 12345) & 0xffffff );
 }
 
-/* Generate a 3 x 3 grid of cells around a point.
+/* Generate a 3 x 3 grid of cells around a point. 
  */
 static void
 vips_worley_create_cells( VipsWorley *worley, 
@@ -135,24 +135,29 @@ vips_worley_create_cells( VipsWorley *worley,
 			int seed;
 			int j;
 
-			/* We wrap cells around, so that out output will
-			 * tesselate.
+			/* Can go <0 and >width for edges.
 			 */
 			cell->cell_x = cell_x + x - 1;
-			if( cell->cell_x >= worley->cells_across )
-				cell->cell_x = 0;
-			if( cell->cell_x < 0 )
-				cell->cell_x = worley->cells_across - 1;
 			cell->cell_y = cell_y + y - 1;
-			if( cell->cell_y >= worley->cells_down )
-				cell->cell_y = 0;
-			if( cell->cell_y < 0 )
-				cell->cell_y = worley->cells_down - 1;
 
-			/* Seed our rng.
+			seed = worley->seed;
+
+			/* When we calculate the seed for this cell, we wrap
+			 * around so that our output will tesselate.
 			 */
-			seed = worley->seed + 
-				(cell->cell_x << 16) + cell->cell_y;
+			if( cell->cell_x >= worley->cells_across )
+				seed ^= 0;
+			else if( cell->cell_x < 0 )
+				seed ^= worley->cells_across - 1;
+			else 
+				seed ^= cell->cell_x;
+
+			if( cell->cell_y >= worley->cells_down )
+				seed ^= 0;
+			else if( cell->cell_y < 0 )
+				seed ^= worley->cells_down - 1;
+			else 
+				seed ^= cell->cell_y;
 
 			/* [1, MAX_FEATURES)
 			 */
@@ -162,8 +167,9 @@ vips_worley_create_cells( VipsWorley *worley,
 			for( j = 0; j < cell->n_features; j++ ) {
 				seed = vips_worley_random( seed ); 
 				cell->feature_x[j] = 
-					cell->cell_y * worley->cell_size + 
+					cell->cell_x * worley->cell_size + 
 					seed % worley->cell_size;
+
 				seed = vips_worley_random( seed ); 
 				cell->feature_y[j] = 
 					cell->cell_y * worley->cell_size + 
@@ -202,15 +208,9 @@ vips_worley_start( VipsImage *out, void *a, void *b )
 static int
 vips_hypot( int x, int y )
 {
-	int result;
-
-#ifdef HAVE_HYPOT
-	result = hypot( x, y ); 
-#else
-	result = sqrt( x * x + y * y );
-#endif
-
-	return( result );
+	/* Faster than hypot() for int args.
+	 */
+	return( sqrt( x * x + y * y ) );
 }
 
 static int
@@ -230,7 +230,7 @@ vips_worley_distance( VipsWorley *worley, Cell cells[9], int x, int y )
 				x - cell->feature_x[j], 
 				y - cell->feature_y[j] );
 
-			distance = VIPS_MIN( d, distance );
+			distance = VIPS_MIN( distance, d );
 		}
 	}
 
@@ -251,8 +251,8 @@ vips_worley_gen( VipsRegion *or, void *vseq, void *a, void *b,
 		int *q = (int *) VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		for( x = 0; x < r->width; x++ ) {
-			int cell_x = (r->left + x) % worley->cell_size;
-			int cell_y = (r->top + y) % worley->cell_size;
+			int cell_x = (r->left + x) / worley->cell_size;
+			int cell_y = (r->top + y) / worley->cell_size;
 
 			if( cell_x != seq->cell_x ||
 				cell_y != seq->cell_y ) {
@@ -362,7 +362,7 @@ vips_worley_init( VipsWorley *worley )
  * Use @cell_size to set the size of the cells from which the image is
  * constructed. The default is 256 x 256.
  *
- * If @width and @height are mutiples of @cell_size, the image will tessellate.
+ * If @width and @height are multiples of @cell_size, the image will tessellate.
  *
  * See also: vips_gaussnoise().
  *
