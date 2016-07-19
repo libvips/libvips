@@ -139,6 +139,7 @@ vips_create_operation_init( void )
 	extern GType vips_mask_ideal_band_get_type( void ); 
 	extern GType vips_mask_fractal_get_type( void ); 
 	extern GType vips_fractsurf_get_type( void ); 
+	extern GType vips_worley_get_type( void ); 
 
 	vips_black_get_type();
 	vips_gaussmat_get_type();
@@ -167,5 +168,6 @@ vips_create_operation_init( void )
 	vips_mask_gaussian_band_get_type(); 
 	vips_mask_fractal_get_type(); 
 	vips_fractsurf_get_type(); 
+	vips_worley_get_type(); 
 }
 

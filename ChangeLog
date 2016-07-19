@@ -27,6 +27,7 @@
 - better quality for vips_resize() with linear/cubic kernels 
 - pyvips8 can create new metadata
 - better upsizing with vips_resize()
+- added vips_worley(), generate worley noise
 
 18/5/16 started 8.3.2
 - more robust vips image reading

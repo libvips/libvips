@@ -114,6 +114,9 @@ int vips_fractsurf( VipsImage **out,
 	int width, int height, double fractal_dimension, ... )
 	__attribute__((sentinel));
 
+int vips_worley( VipsImage **out, int width, int height, ... )
+	__attribute__((sentinel));
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
