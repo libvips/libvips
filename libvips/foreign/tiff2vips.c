@@ -1832,9 +1832,17 @@ my_tiff_read( thandle_t st, tdata_t buffer, tsize_t size )
 {
 	ReadTiff *rtiff = (ReadTiff *) st;
 
-	size_t available = rtiff->len - rtiff->pos;
-	size_t copy = VIPS_MIN( size, available );
+	size_t available;
+	size_t copy;
 
+	if( rtiff->pos > rtiff->len ) {
+		vips_error( "tiff2vips", 
+			"%s", _( "read beyond end of buffer" ) );
+		return( 0 );
+	}
+
+	available = rtiff->len - rtiff->pos;
+	copy = VIPS_MIN( size, available );
 	memcpy( buffer, (unsigned char *) rtiff->buf + rtiff->pos, copy );
 	rtiff->pos += copy;
 
@@ -1855,6 +1863,9 @@ my_tiff_close( thandle_t st )
 	return 0;
 }
 
+/* After calling this, ->pos is not bound by the size of the buffer, it can 
+ * have any positive value.
+ */
 static toff_t 
 my_tiff_seek( thandle_t st, toff_t pos, int whence )
 {
