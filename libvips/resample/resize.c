@@ -171,11 +171,11 @@ vips_resize_build( VipsObject *object )
 
 	/* The image size we are aiming for.
 	 */
-	target_width = in->Xsize * resize->scale;
+	target_width = round(resize->scale * in->Xsize);
 	if( vips_object_argument_isset( object, "vscale" ) ) 
-		target_height = in->Ysize * resize->vscale;
+		target_height = round(resize->vscale * in->Ysize);
 	else
-		target_height = in->Ysize * resize->scale;
+		target_height = round(resize->scale * in->Ysize);
 
 	int_hshrink = vips_resize_int_shrink( resize, resize->scale );
 	if( vips_object_argument_isset( object, "vscale" ) ) 
