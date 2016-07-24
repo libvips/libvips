@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libcreate.la
 
 libcreate_la_SOURCES = \
+	perlin.c \
 	worley.c \
 	create.c \
 	pcreate.h \
