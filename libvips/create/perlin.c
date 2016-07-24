@@ -140,16 +140,17 @@ vips_perlin_create_cells( VipsPerlin *perlin,
 			/* When we calculate the seed for this cell, we wrap
 			 * around so that our output will tesselate.
 			 */
-			if( cx >= perlin->cells_across )
-				cx = 0;
-			seed = vips_perlin_seed_add( seed, cx );
 
 			if( cy >= perlin->cells_down )
 				cy = 0;
 			seed = vips_perlin_seed_add( seed, cy );
 
+			if( cx >= perlin->cells_across )
+				cx = 0;
+			seed = vips_perlin_seed_add( seed, cx );
+
 			seed = vips_perlin_random( seed ); 
-			angle = seed & 0xff;
+			angle = (seed ^ (seed >> 8) ^ (seed >> 16)) & 0xff;
 
 			gx[ci] = vips_perlin_cos[angle];
 			gy[ci] = vips_perlin_sin[angle];

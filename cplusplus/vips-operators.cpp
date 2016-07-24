@@ -1,7 +1,3 @@
-// bodies for vips operations
-// Fri Feb 12 20:03:53 GMT 2016
-// this file is generated automatically, do not edit!
-
 void VImage::system( char * cmd_format , VOption *options )
 {
     call( "system" ,
@@ -1321,26 +1317,28 @@ VImage VImage::fractsurf( int width , int height , double fractal_dimension , VO
     return( out );
 }
 
-VImage VImage::radload( char * filename , VOption *options )
+VImage VImage::worley( int width , int height , VOption *options )
 {
     VImage out;
 
-    call( "radload" ,
+    call( "worley" ,
         (options ? options : VImage::option()) ->
-            set( "filename", filename ) ->
-            set( "out", &out ) );
+            set( "out", &out ) ->
+            set( "width", width ) ->
+            set( "height", height ) );
 
     return( out );
 }
 
-VImage VImage::ppmload( char * filename , VOption *options )
+VImage VImage::perlin( int width , int height , VOption *options )
 {
     VImage out;
 
-    call( "ppmload" ,
+    call( "perlin" ,
         (options ? options : VImage::option()) ->
-            set( "filename", filename ) ->
-            set( "out", &out ) );
+            set( "out", &out ) ->
+            set( "width", width ) ->
+            set( "height", height ) );
 
     return( out );
 }
@@ -1369,18 +1367,6 @@ VImage VImage::matrixload( char * filename , VOption *options )
     return( out );
 }
 
-VImage VImage::analyzeload( char * filename , VOption *options )
-{
-    VImage out;
-
-    call( "analyzeload" ,
-        (options ? options : VImage::option()) ->
-            set( "filename", filename ) ->
-            set( "out", &out ) );
-
-    return( out );
-}
-
 VImage VImage::rawload( char * filename , int width , int height , int bands , VOption *options )
 {
     VImage out;
@@ -1401,6 +1387,42 @@ VImage VImage::vipsload( char * filename , VOption *options )
     VImage out;
 
     call( "vipsload" ,
+        (options ? options : VImage::option()) ->
+            set( "filename", filename ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::analyzeload( char * filename , VOption *options )
+{
+    VImage out;
+
+    call( "analyzeload" ,
+        (options ? options : VImage::option()) ->
+            set( "filename", filename ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::ppmload( char * filename , VOption *options )
+{
+    VImage out;
+
+    call( "ppmload" ,
+        (options ? options : VImage::option()) ->
+            set( "filename", filename ) ->
+            set( "out", &out ) );
+
+    return( out );
+}
+
+VImage VImage::radload( char * filename , VOption *options )
+{
+    VImage out;
+
+    call( "radload" ,
         (options ? options : VImage::option()) ->
             set( "filename", filename ) ->
             set( "out", &out ) );
@@ -1648,34 +1670,6 @@ VImage VImage::openexrload( char * filename , VOption *options )
     return( out );
 }
 
-void VImage::radsave( char * filename , VOption *options )
-{
-    call( "radsave" ,
-        (options ? options : VImage::option()) ->
-            set( "in", *this ) ->
-            set( "filename", filename ) );
-}
-
-VipsBlob * VImage::radsave_buffer( VOption *options )
-{
-    VipsBlob * buffer;
-
-    call( "radsave_buffer" ,
-        (options ? options : VImage::option()) ->
-            set( "in", *this ) ->
-            set( "buffer", &buffer ) );
-
-    return( buffer );
-}
-
-void VImage::ppmsave( char * filename , VOption *options )
-{
-    call( "ppmsave" ,
-        (options ? options : VImage::option()) ->
-            set( "in", *this ) ->
-            set( "filename", filename ) );
-}
-
 void VImage::csvsave( char * filename , VOption *options )
 {
     call( "csvsave" ,
@@ -1721,6 +1715,34 @@ void VImage::vipssave( char * filename , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "filename", filename ) );
+}
+
+void VImage::ppmsave( char * filename , VOption *options )
+{
+    call( "ppmsave" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "filename", filename ) );
+}
+
+void VImage::radsave( char * filename , VOption *options )
+{
+    call( "radsave" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "filename", filename ) );
+}
+
+VipsBlob * VImage::radsave_buffer( VOption *options )
+{
+    VipsBlob * buffer;
+
+    call( "radsave_buffer" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "buffer", &buffer ) );
+
+    return( buffer );
 }
 
 void VImage::dzsave( char * filename , VOption *options )

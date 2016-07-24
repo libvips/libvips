@@ -5,6 +5,8 @@ import sys
 import logging
 #logging.basicConfig(level = logging.DEBUG)
 
+import gi
+gi.require_version('Vips', '8.0')
 from gi.repository import Vips, GObject
 
 # Search for all VipsOperation which don't have an input image object ... these

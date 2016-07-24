@@ -1,5 +1,3 @@
-- add tests for perlin and worley noise generators
-
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py
