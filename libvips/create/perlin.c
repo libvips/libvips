@@ -54,6 +54,7 @@ typedef struct _VipsPerlin {
 	int width;
 	int height;
 	int cell_size;
+	gboolean uchar;
 
 	int cells_across;
 	int cells_down;
@@ -182,6 +183,16 @@ vips_perlin_start( VipsImage *out, void *a, void *b )
 	return( seq );
 }
 
+/* Smooth linear interpolation, 0 <= x <= 1.
+ *
+ * https://en.wikipedia.org/wiki/Smoothstep
+ */
+static float 
+smootherstep( float x )
+{
+    return( x * x * x * (x * (x * 6 - 15) + 10) );
+}
+
 static int
 vips_perlin_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	gboolean *stop )
@@ -193,7 +204,9 @@ vips_perlin_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	int x, y;
 
 	for( y = 0; y < r->height; y++ ) {
-		float *q = (float *) VIPS_REGION_ADDR( or, r->left, r->top + y );
+		float *fq = (float *) 
+			VIPS_REGION_ADDR( or, r->left, r->top + y );
+		VipsPel *q = (VipsPel *) fq;
 
 		for( x = 0; x < r->width; x++ ) {
 			int cs = perlin->cell_size;
@@ -201,9 +214,12 @@ vips_perlin_gen( VipsRegion *or, void *vseq, void *a, void *b,
 			int cell_y = (r->top + y) / cs;
 			float dx = (x + r->left - cell_x * cs) / (float) cs;
 			float dy = (y + r->top - cell_y * cs) / (float) cs;
+			float sx = smootherstep( dx );
+			float sy = smootherstep( dy );
 
 			float n0, n1;
 			float ix0, ix1;
+			float p;
 
 			if( cell_x != seq->cell_x ||
 				cell_y != seq->cell_y ) {
@@ -215,13 +231,18 @@ vips_perlin_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 			n0 = -dx * seq->gx[0] + -dy * seq->gy[0];
 			n1 = (1 - dx) * seq->gx[1] + -dy * seq->gy[1];
-			ix0 = (1 - dx) * n0 + dx * n1;
+			ix0 = n0 + sx * (n1 - n0);
 
 			n0 = -dx * seq->gx[2] + (1 - dy) * seq->gy[2];
 			n1 = (1 - dx) * seq->gx[3] + (1 - dy) * seq->gy[3];
-			ix1 = (1 - dx) * n0 + dx * n1;
+			ix1 = n0 + sx * (n1 - n0);
 
-			q[x] = (1 - dy) * ix0 + dy * ix1; 
+			p = ix0 + sy * (ix1 - ix0);
+
+			if( perlin->uchar )
+				q[x] = 128 * p + 128;
+			else
+				fq[x] = p;
 		}
 	}
 
@@ -248,7 +269,8 @@ vips_perlin_build( VipsObject *object )
 
 	vips_image_init_fields( create->out,
 		perlin->width, perlin->height, 1,
-		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
+		perlin->uchar ? VIPS_FORMAT_UCHAR : VIPS_FORMAT_FLOAT, 
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
 		1.0, 1.0 );
 	vips_image_pipelinev( create->out,
 		VIPS_DEMAND_STYLE_ANY, NULL );
@@ -313,6 +335,13 @@ vips_perlin_class_init( VipsPerlinClass *class )
 		G_STRUCT_OFFSET( VipsPerlin, cell_size ),
 		1, VIPS_MAX_COORD, 256 );
 
+	VIPS_ARG_BOOL( class, "uchar", 4, 
+		_( "Uchar" ), 
+		_( "Output an unsigned char image" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsPerlin, uchar ),
+		FALSE );
+
 }
 
 static void
@@ -331,6 +360,7 @@ vips_perlin_init( VipsPerlin *perlin )
  * Optional arguments:
  *
  * * @cell_size: %gint, size of Perlin cells
+ * * @uchar: output a uchar image
  *
  * Create a one-band float image of Perlin noise. See:
  *
@@ -340,6 +370,9 @@ vips_perlin_init( VipsPerlin *perlin )
  * constructed. The default is 256 x 256.
  *
  * If @width and @height are multiples of @cell_size, the image will tessellate.
+ *
+ * Normally, output pixels are #VIPS_FORMAT_FLOAT in the range [-1, +1]. Set 
+ * @uchar to output a uchar image with pixels in [0, 255]. 
  *
  * See also: vips_worley(), vips_fractsurf(), vips_gaussnoise().
  *

@@ -1,5 +1,3 @@
-- need better interpolation in the perlin generator?
-
 - add tests for perlin and worley noise generators
 
 - add more webp tests to py suite
