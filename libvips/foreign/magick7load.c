@@ -563,7 +563,18 @@ vips_foreign_load_magick7_file_header( VipsForeignLoad *load )
 	vips_strncpy( magick7->image_info->filename, file->filename, 
 		MagickPathExtent );
 
-	magick7->image = PingImage( magick7->image_info, magick7->exception );
+	/* If we're reading all_frames, we can't just ping, we have to read the
+	 * whole thing, since ping does not set up the image list.
+	 *
+	 * Hopefully, all_frames is only used rarely. 
+	 */
+	if( magick7->all_frames ) 
+		magick7->image = 
+			ReadImage( magick7->image_info, magick7->exception );
+	else
+		magick7->image = 
+			PingImage( magick7->image_info, magick7->exception );
+
 	if( !magick7->image ) {
 		vips_foreign_load_magick7_error( magick7 ); 
 		return( -1 );
@@ -579,9 +590,11 @@ vips_foreign_load_magick7_file_header( VipsForeignLoad *load )
 		return( -1 );
 
 	/* No longer need the ping result, and we'll replace ->image with Read
-	 * when we do that later.
+	 * when we do that later. If we're reading all_frames, we will reuse
+	 * the read, so don't free. 
 	 */
-	VIPS_FREEF( DestroyImageList, magick7->image );
+	if( !magick7->all_frames ) 
+		VIPS_FREEF( DestroyImageList, magick7->image );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
 
@@ -597,11 +610,14 @@ vips_foreign_load_magick7_file_load( VipsForeignLoad *load )
 	printf( "vips_foreign_load_magick7_file_load: %p\n", load ); 
 #endif /*DEBUG*/
 
-	g_assert( !magick7->image ); 
-	magick7->image = ReadImage( magick7->image_info, magick7->exception );
-	if( !magick7->image ) {
-		vips_foreign_load_magick7_error( magick7 ); 
-		return( -1 );
+	if( !magick7->all_frames ) {
+		g_assert( !magick7->image ); 
+		magick7->image = 
+			ReadImage( magick7->image_info, magick7->exception );
+		if( !magick7->image ) {
+			vips_foreign_load_magick7_error( magick7 ); 
+			return( -1 );
+		}
 	}
 
 	if( vips_foreign_load_magick7_load( magick7 ) )
@@ -688,9 +704,18 @@ vips_foreign_load_magick7_buffer_header( VipsForeignLoad *load )
 	printf( "vips_foreign_load_magick7_buffer_header: %p\n", load ); 
 #endif /*DEBUG*/
 
-	magick7->image = PingBlob( magick7->image_info, 
-		magick7_buffer->buf->data, magick7_buffer->buf->length,
-		magick7->exception );
+	/* See comments on file load above ^^ for notes on the all_frames
+	 * handling.
+	 */
+	if( magick7->all_frames ) 
+		magick7->image = BlobToImage( magick7->image_info, 
+			magick7_buffer->buf->data, magick7_buffer->buf->length,
+			magick7->exception );
+	else 
+		magick7->image = PingBlob( magick7->image_info, 
+			magick7_buffer->buf->data, magick7_buffer->buf->length,
+			magick7->exception );
+
 	if( !magick7->image ) {
 		vips_foreign_load_magick7_error( magick7 ); 
 		return( -1 );
@@ -708,7 +733,8 @@ vips_foreign_load_magick7_buffer_header( VipsForeignLoad *load )
 	/* No longer need the ping result, and we'll replace ->image with Read
 	 * when we do that later.
 	 */
-	VIPS_FREEF( DestroyImageList, magick7->image );
+	if( !magick7->all_frames ) 
+		VIPS_FREEF( DestroyImageList, magick7->image );
 
 	return( 0 );
 }
@@ -724,12 +750,16 @@ vips_foreign_load_magick7_buffer_load( VipsForeignLoad *load )
 	printf( "vips_foreign_load_magick7_buffer_load: %p\n", load ); 
 #endif /*DEBUG*/
 
-	magick7->image = BlobToImage( magick7->image_info, 
-		magick7_buffer->buf->data, magick7_buffer->buf->length,
-		magick7->exception );
-	if( !magick7->image ) {
-		vips_foreign_load_magick7_error( magick7 ); 
-		return( -1 );
+	if( !magick7->all_frames ) {
+		g_assert( !magick7->image ); 
+
+		magick7->image = BlobToImage( magick7->image_info, 
+			magick7_buffer->buf->data, magick7_buffer->buf->length,
+			magick7->exception );
+		if( !magick7->image ) {
+			vips_foreign_load_magick7_error( magick7 ); 
+			return( -1 );
+		}
 	}
 
 	if( vips_foreign_load_magick7_load( magick7 ) )

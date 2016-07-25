@@ -7,19 +7,23 @@
 
   try with convert, get a one-band png, no alpha at all
 
-- try:
-
-	$ time vips magickload nipguide.pdf x.tif
-VipsForeignLoad: images do not match
-vips__region_start: start function failed for image nipguide.pdf
-VipsRegion: images do not match in pixel size
-
-
-- try loading one page of a PDF with the new magickload
-
 - try loading one page of a GIF with the new magickload
 
 - try loading a DICOM
+
+- add tests:
+
+	load 1 page of a pdf/gif
+	load all frames from a pdf/gif
+	svg alpha
+	density
+	png alpha
+	dicom?
+	all with file and buffer source
+
+
+
+
 
 - add more webp tests to py suite
 
