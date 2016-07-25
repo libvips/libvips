@@ -31,6 +31,8 @@
  * 	- cache minimisation is optional, see "persistent" flag
  * 26/8/14 Lovell
  * 	- free the hash table in _dispose()
+ * 11/7/16
+ * 	- terminate on tile calc error
  */
 
 /*
@@ -609,6 +611,9 @@ vips_tile_cache_gen( VipsRegion *or,
 	VipsTile *tile;
 	GSList *work;
 	GSList *p;
+	int result;
+
+	result = 0;
 
 	VIPS_GATE_START( "vips_tile_cache_gen: wait1" );
 
@@ -658,8 +663,6 @@ vips_tile_cache_gen( VipsRegion *or,
 			tile = (VipsTile *) p->data;
 
 			if( tile->state == VIPS_TILE_STATE_PEND ) {
-				int result;
-
 				tile->state = VIPS_TILE_STATE_CALC;
 
 				VIPS_DEBUG_MSG_RED( "vips_tile_cache_gen: "
@@ -688,11 +691,11 @@ vips_tile_cache_gen( VipsRegion *or,
 				}
 
 				/* If there was an error calculating this
-				 * tile, just warn and carry on.
+				 * tile, black it out and terminate
+				 * calculation. We have to stop so we can
+				 * support things like --fail on jpegload.
 				 *
-				 * This can happen with things like reading
-				 * .scn files via openslide. We don't want the
-				 * read to fail because of one broken tile.
+				 * Don't return early, we'd deadlock. 
 				 */
 				if( result ) {
 					VIPS_DEBUG_MSG_RED( 
@@ -707,6 +710,8 @@ vips_tile_cache_gen( VipsRegion *or,
 					vips_error_clear();
 
 					vips_region_black( tile->region );
+
+					*stop = TRUE;
 				}
 
 				tile->state = VIPS_TILE_STATE_DATA;
@@ -749,7 +754,7 @@ vips_tile_cache_gen( VipsRegion *or,
 
 	g_mutex_unlock( cache->lock );
 
-	return( 0 );
+	return( result );
 }
 
 static int

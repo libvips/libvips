@@ -112,6 +112,7 @@ headers="\
 	draw.h \
 	morphology.h \
 	type.h \
+	rect.h \
 	memory.h \
 	region.h"
 

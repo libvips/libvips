@@ -78,6 +78,8 @@
  * 	- add quant_table
  * 26/5/16
  * 	- switch to new orientation tag
+ * 9/7/16
+ * 	- turn off chroma subsample for Q > 90
  */
 
 /*
@@ -224,7 +226,6 @@ write_new( VipsImage *in )
 	write->row_pointer = NULL;
         write->cinfo.err = jpeg_std_error( &write->eman.pub );
 	write->eman.pub.error_exit = vips__new_error_exit;
-	write->eman.pub.output_message = vips__new_output_message;
 	write->eman.pub.output_message = vips__new_output_message;
 	write->eman.fp = NULL;
 	write->profile_bytes = NULL;
@@ -1020,7 +1021,9 @@ write_vips( Write *write, int qfac, const char *profile,
 	 */
         g_assert( in->BandFmt == VIPS_FORMAT_UCHAR );
 	g_assert( in->Coding == VIPS_CODING_NONE );
-        g_assert( in->Bands == 1 || in->Bands == 3 || in->Bands == 4 );
+        g_assert( in->Bands == 1 || 
+		in->Bands == 3 || 
+		in->Bands == 4 );
 
         /* Check input image.
          */
@@ -1032,7 +1035,8 @@ write_vips( Write *write, int qfac, const char *profile,
         write->cinfo.image_width = in->Xsize;
         write->cinfo.image_height = in->Ysize;
 	write->cinfo.input_components = in->Bands;
-	if( in->Bands == 4 && in->Type == VIPS_INTERPRETATION_CMYK ) {
+	if( in->Bands == 4 && 
+		in->Type == VIPS_INTERPRETATION_CMYK ) {
 		space = JCS_CMYK;
 		/* IJG always sets an Adobe marker, so we should invert CMYK.
 		 */
@@ -1153,9 +1157,11 @@ write_vips( Write *write, int qfac, const char *profile,
 	if( progressive ) 
 		jpeg_simple_progression( &write->cinfo ); 
 
-	/* Turn off chroma subsampling.
+	/* Turn off chroma subsampling. Follow IM and do it automatically for
+	 * high Q. 
 	 */
-	if( no_subsample ) { 
+	if( no_subsample ||
+		qfac > 90 ) { 
 		int i;
 
 		for( i = 0; i < in->Bands; i++ ) { 
@@ -1250,7 +1256,8 @@ vips__jpeg_write_file( VipsImage *in,
 	 */
 	if( write_vips( write, 
 		Q, profile, optimize_coding, progressive, strip, no_subsample,
-		trellis_quant, overshoot_deringing, optimize_scans, quant_table ) ) {
+		trellis_quant, overshoot_deringing, optimize_scans, 
+		quant_table ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
@@ -1535,7 +1542,8 @@ vips__jpeg_write_buffer( VipsImage *in,
 	 */
 	if( write_vips( write, 
 		Q, profile, optimize_coding, progressive, strip, no_subsample,
-		trellis_quant, overshoot_deringing, optimize_scans, quant_table ) ) {
+		trellis_quant, overshoot_deringing, optimize_scans, 
+		quant_table ) ) {
 		write_destroy( write );
 
 		return( -1 );

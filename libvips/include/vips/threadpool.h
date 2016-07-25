@@ -97,7 +97,10 @@ typedef struct _VipsThreadStateClass {
 } VipsThreadStateClass;
 
 void *vips_thread_state_set( VipsObject *object, void *a, void *b );
-GType vips_thread_state_get_type( void );
+
+/* Don't put spaces around void here, it breaks gtk-doc.
+ */
+GType vips_thread_state_get_type(void);
 
 VipsThreadState *vips_thread_state_new( VipsImage *im, void *a );
 

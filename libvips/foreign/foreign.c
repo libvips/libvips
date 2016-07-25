@@ -609,7 +609,7 @@ vips_foreign_find_load_buffer( const void *data, size_t size )
 gboolean 
 vips_foreign_is_a( const char *loader, const char *filename )
 {
-	VipsObjectClass *class;
+	const VipsObjectClass *class;
 	VipsForeignLoadClass *load_class;
 
 	if( !(class = vips_class_find( "VipsForeignLoad", loader )) ) 
@@ -636,7 +636,7 @@ vips_foreign_is_a( const char *loader, const char *filename )
 gboolean
 vips_foreign_is_a_buffer( const char *loader, const void *data, size_t size )
 {
-	VipsObjectClass *class;
+	const VipsObjectClass *class;
 	VipsForeignLoadClass *load_class;
 
 	if( !(class = vips_class_find( "VipsForeignLoad", loader )) )
@@ -662,7 +662,7 @@ vips_foreign_is_a_buffer( const char *loader, const void *data, size_t size )
 VipsForeignFlags 
 vips_foreign_flags( const char *loader, const char *filename )
 {
-	VipsObjectClass *class;
+	const VipsObjectClass *class;
 
 	if( (class = vips_class_find( "VipsForeignLoad", loader )) ) {
 		VipsForeignLoadClass *load_class = 

@@ -1093,6 +1093,8 @@ class_methods = [
                     "mask_fractal",
                     "tonelut",
                     "identity",
+                    "perlin",
+                    "worley",
                     "fractsurf",
                     "radload",
                     "ppmload",

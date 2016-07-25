@@ -2997,6 +2997,8 @@ vips_image_rewind_output( VipsImage *image )
  * have made it yourself), use vips_image_wio_input() instead.
  *
  * See also: vips_image_wio_input().
+ *
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_copy_memory( VipsImage *image )

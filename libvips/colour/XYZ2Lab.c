@@ -250,9 +250,9 @@ vips_XYZ2Lab_init( VipsXYZ2Lab *XYZ2Lab )
  * @out: output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * optional arguments:
+ * Optional arguments:
  *
- * @temp: colour temperature
+ * * @temp: #VipsArrayDouble, colour temperature
  *
  * Turn XYZ to Lab, optionally specifying the colour temperature. @temp
  * defaults to D65. 

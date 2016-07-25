@@ -50,7 +50,7 @@ typedef struct _VipsThing {
  * The #GType for a #VipsThing.
  */
 #define VIPS_TYPE_THING (vips_thing_get_type())
-GType vips_thing_get_type( void );
+GType vips_thing_get_type(void);
 VipsThing *vips_thing_new( int i );
 
 /* A ref-counted area of memory. Can hold arrays of things as well.
@@ -119,7 +119,7 @@ void *vips_area_get_data( VipsArea *area,
  */
 #define VIPS_TYPE_AREA (vips_area_get_type())
 #define VIPS_AREA( X ) ((VipsArea *) (X))
-GType vips_area_get_type( void );
+GType vips_area_get_type(void);
 
 /**
  * VIPS_TYPE_SAVE_STRING:
@@ -127,7 +127,7 @@ GType vips_area_get_type( void );
  * The #GType for a #VipsSaveString.
  */
 #define VIPS_TYPE_SAVE_STRING (vips_save_string_get_type())
-GType vips_save_string_get_type( void );
+GType vips_save_string_get_type(void);
 
 /**
  * VIPS_TYPE_REF_STRING:
@@ -142,7 +142,7 @@ typedef struct _VipsRefString {
 
 VipsRefString *vips_ref_string_new( const char *str );
 const char *vips_ref_string_get( VipsRefString *refstr, size_t *length );
-GType vips_ref_string_get_type( void );
+GType vips_ref_string_get_type(void);
 
 /**
  * VIPS_TYPE_BLOB:
@@ -159,7 +159,7 @@ VipsBlob *vips_blob_new( VipsCallbackFn free_fn,
 	const void *data, size_t size );
 VipsBlob *vips_blob_copy( const void *data, size_t size );
 const void *vips_blob_get( VipsBlob *blob, size_t *size );
-GType vips_blob_get_type( void );
+GType vips_blob_get_type(void);
 
 /**
  * VIPS_TYPE_ARRAY_DOUBLE:
@@ -175,7 +175,7 @@ typedef struct _VipsArrayDouble {
 VipsArrayDouble *vips_array_double_new( const double *array, int n );
 VipsArrayDouble *vips_array_double_newv( int n, ... );
 double *vips_array_double_get( VipsArrayDouble *array, int *n );
-GType vips_array_double_get_type( void );
+GType vips_array_double_get_type(void);
 
 /**
  * VIPS_TYPE_ARRAY_INT:
@@ -191,7 +191,7 @@ typedef struct _VipsArrayInt {
 VipsArrayInt *vips_array_int_new( const int *array, int n );
 VipsArrayInt *vips_array_int_newv( int n, ... );
 int *vips_array_int_get( VipsArrayInt *array, int *n );
-GType vips_array_int_get_type( void );
+GType vips_array_int_get_type(void);
 
 /**
  * VIPS_TYPE_ARRAY_IMAGE:
@@ -207,7 +207,7 @@ typedef struct _VipsArrayImage {
 /* See image.h for vips_array_image_new() etc., they need to be declared after
  * VipsImage.
  */
-GType vips_array_image_get_type( void );
+GType vips_array_image_get_type(void);
 
 void vips_value_set_area( GValue *value, VipsCallbackFn free_fn, void *data );
 void *vips_value_get_area( const GValue *value, size_t *length );

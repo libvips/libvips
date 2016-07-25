@@ -296,11 +296,6 @@ typedef struct _VipsArgumentInstance {
  */
 typedef GHashTable VipsArgumentTable;
 
-VipsArgumentInstance *vips__argument_get_instance( 
-	VipsArgumentClass *argument_class,
-	VipsObject *object );
-VipsArgument *vips__argument_table_lookup( VipsArgumentTable *argument_class, 
-	GParamSpec *pspec );
 void vips__object_set_member( VipsObject *object, GParamSpec *pspec,
 	GObject **member, GObject *argument );
 typedef void *(*VipsArgumentMapFn)( VipsObject *object, GParamSpec *pspec,
@@ -411,7 +406,7 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), VIPS_TYPE_OBJECT, VipsObjectClass ))
 
 struct _VipsObject {
-	GObject parent_object;
+	GObject parent_instance;
 
 	/* Set after ->build() has run succesfully: construct is fully done
 	 * and checked.
@@ -584,7 +579,9 @@ void vips_object_print_name( VipsObject *object );
 
 gboolean vips_object_sanity( VipsObject *object );
 
-GType vips_object_get_type( void );
+/* Don't put spaces around void here, it breaks gtk-doc.
+ */
+GType vips_object_get_type(void);
 
 void vips_object_class_install_argument( VipsObjectClass *cls, 
 	GParamSpec *pspec, VipsArgumentFlags flags, 
@@ -622,7 +619,8 @@ GType vips_type_find( const char *basename, const char *nickname );
 const char *vips_nickname_find( GType type );
 
 void *vips_class_map_all( GType type, VipsClassMapFn fn, void *a );
-VipsObjectClass *vips_class_find( const char *basename, const char *nickname );
+const VipsObjectClass *vips_class_find( const char *basename, 
+	const char *nickname );
 
 VipsObject **vips_object_local_array( VipsObject *parent, int n );
 

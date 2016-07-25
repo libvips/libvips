@@ -441,5 +441,19 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
 
+    def test_worley(self):
+        im = Vips.Image.worley(512, 512)
+        self.assertEqual(im.width, 512)
+        self.assertEqual(im.height, 512)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.INT)
+
+    def test_perlin(self):
+        im = Vips.Image.perlin(512, 512)
+        self.assertEqual(im.width, 512)
+        self.assertEqual(im.height, 512)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+
 if __name__ == '__main__':
     unittest.main()

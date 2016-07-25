@@ -12,6 +12,8 @@ import re
 import logging
 #logging.basicConfig(level = logging.DEBUG)
 
+import gi
+gi.require_version('Vips', '8.0')
 from gi.repository import Vips, GObject
 
 vips_type_image = GObject.GType.from_name("VipsImage")
