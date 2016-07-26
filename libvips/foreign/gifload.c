@@ -4,6 +4,9 @@
  * 	- from svgload.c
  * 25/4/16
  * 	- add giflib5 support
+ * 26/7/16
+ * 	- transparency was wrong if there was no EXTENSION_RECORD
+ * 	- write 1, 2, 3, or 4 bands depending on file contents
  */
 
 /*
@@ -85,6 +88,14 @@ typedef struct _VipsForeignLoadGif {
 	/* Decompress lines of the gif file to here.
 	 */
 	GifPixelType *line;
+
+	/* We decompress the whole thing to a huge RGBA memory image, and
+	 * as we render, watch for bands and transparency. At the end of
+	 * loading, we copy 1 or 3 bands, with or without transparency to
+	 * output.
+	 */
+	gboolean has_transparency;
+	gboolean has_colour;
 
 } VipsForeignLoadGif;
 
@@ -303,38 +314,10 @@ vips_foreign_load_gif_is_a( const char *filename )
 }
 
 static void
-vips_foreign_load_gif_parse( VipsForeignLoadGif *gif, 
-	VipsImage *out )
-{
-	vips_image_init_fields( out, 
-		gif->file->SWidth, gif->file->SHeight,
-		4, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
-
-	/* We will have the whole GIF frame in memory, so we can render any 
-	 * area.
-	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_ANY, NULL );
-
-	/* We need a line buffer to decompress to.
-	 */
-	gif->line = VIPS_ARRAY( gif, gif->file->SWidth, GifPixelType );
-}
-
-static int
-vips_foreign_load_gif_header( VipsForeignLoad *load )
-{
-	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
-
-	vips_foreign_load_gif_parse( gif, load->out ); 
-
-	return( 0 );
-}
-
-static void
 vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 	int width, VipsPel * restrict q, VipsPel * restrict p )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 	ColorMapObject *map = gif->file->Image.ColorMap ?
 		gif->file->Image.ColorMap : gif->file->SColorMap;
 
@@ -343,8 +326,13 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 	for( x = 0; x < width; x++ ) {
 		VipsPel v = p[x];
 
-		if( v != gif->transparency &&
-			v < map->ColorCount ) {
+		if( v >= map->ColorCount ) {
+			vips_warn( class->nickname,
+				"%s", _( "pixel value out of range" ) );
+			continue;
+		}
+
+		if( v != gif->transparency ) { 
 			q[0] = map->Colors[v].Red;
 			q[1] = map->Colors[v].Green;
 			q[2] = map->Colors[v].Blue;
@@ -370,6 +358,8 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif, VipsImage *out )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 	GifFileType *file = gif->file;
+	ColorMapObject *map = file->Image.ColorMap ?
+		file->Image.ColorMap : file->SColorMap;
 
 	/* Check that the frame lies within our image.
 	 */
@@ -382,10 +372,27 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif, VipsImage *out )
 		return( -1 ); 
 	}
 
+	/* Check if we have a non-greyscale colourmap for this frame.
+	 */
+	if( !gif->has_colour ) {
+		int i;
+
+		for( i = 0; i < map->ColorCount; i++ ) 
+			if( map->Colors[i].Red != map->Colors[i].Green ||
+				map->Colors[i].Green != map->Colors[i].Blue ) {
+				VIPS_DEBUG_MSG( "gifload: not mono\n" ); 
+				gif->has_colour = TRUE;
+				break;
+			}
+	}
+
 	if( file->Image.Interlace ) {
 		int i;
 
-		VIPS_DEBUG_MSG( "gifload: interlaced frame\n" ); 
+		VIPS_DEBUG_MSG( "gifload: interlaced frame of "
+			"%d x %d pixels at %d x %d\n",
+			file->Image.Width, file->Image.Height,
+			file->Image.Left, file->Image.Top ); 
 
 		for( i = 0; i < 4; i++ ) {
 			int y;
@@ -410,6 +417,11 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif, VipsImage *out )
 	else {
 		int y;
 
+		VIPS_DEBUG_MSG( "gifload: non-interlaced frame of "
+			"%d x %d pixels at %d x %d\n",
+			file->Image.Width, file->Image.Height,
+			file->Image.Left, file->Image.Top ); 
+
 		for( y = 0; y < file->Image.Height; y++ ) {
 			VipsPel *q = VIPS_IMAGE_ADDR( out, 
 				file->Image.Left, file->Image.Top + y );
@@ -429,20 +441,31 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif, VipsImage *out )
 }
 
 static int
-vips_foreign_load_gif_load( VipsForeignLoad *load )
+vips_foreign_load_gif_to_memory( VipsForeignLoadGif *gif, VipsImage *out )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
-	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 
 	int frame_n;
 	GifRecordType record;
 
-	vips_foreign_load_gif_parse( gif, load->real ); 
+	vips_image_init_fields( out, 
+		gif->file->SWidth, gif->file->SHeight,
+		4, VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+
+	/* We will have the whole GIF frame in memory, so we can render any 
+	 * area.
+	 */
+        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_ANY, NULL );
+
+	/* We need a line buffer to decompress to.
+	 */
+	gif->line = VIPS_ARRAY( gif, gif->file->SWidth, GifPixelType );
 
 	/* Turn out into a memory image which we then render the GIF frames
 	 * into.
 	 */
-	if( vips_image_write_prepare( load->real ) )
+	if( vips_image_write_prepare( out ) )
 		return( -1 );
 
 	/* Scan the GIF until we have enough to have completely rendered the
@@ -467,7 +490,7 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 				return( -1 ); 
 			}
 
-			if( vips_foreign_load_gif_render( gif, load->real ) )
+			if( vips_foreign_load_gif_render( gif, out ) )
 				return( -1 ); 
 
 			frame_n += 1;
@@ -495,6 +518,7 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 				 * transparency.
 				 */
 				gif->transparency = extension[4];
+				gif->has_transparency = TRUE;
 
 				VIPS_DEBUG_MSG( "gifload: "
 					"seen transparency %d\n", 
@@ -549,6 +573,62 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
+static int
+vips_foreign_load_gif_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( load ), 4 );
+
+	VipsImage *im;
+
+	/* Render to a memory image.
+	 */
+	im = t[0] = vips_image_new_memory();
+	if( vips_foreign_load_gif_to_memory( gif, im ) )
+		return( -1 );
+
+	/* Depending on what we found, transform and write to load->real.
+	 */
+	if( gif->has_colour &&
+		gif->has_transparency ) {
+		/* Nothing to do.
+		 */
+	}
+	else if( gif->has_colour ) { 
+		/* RGB.
+		 */
+		if( vips_extract_band( im, &t[1], 0,
+			"n", 3,
+			NULL ) )
+			return( -1 );
+		im = t[1];
+	}
+	else if( gif->has_transparency ) {
+		/* GA.
+		 */
+		if( vips_extract_band( im, &t[1], 0, NULL ) ||
+			vips_extract_band( im, &t[2], 3, NULL ) ||
+			vips_bandjoin2( t[1], t[2], &t[3], NULL ) )
+			return( -1 );
+		im = t[3];
+		im->Type = VIPS_INTERPRETATION_B_W;
+	}
+	else {
+		/* G.
+		 */
+		if( vips_extract_band( im, &t[1], 0, NULL ) )
+			return( -1 );
+		im = t[1];
+		im->Type = VIPS_INTERPRETATION_B_W;
+	}
+
+	if( vips_image_write( im, load->out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 static void
 vips_foreign_load_gif_class_init( VipsForeignLoadGifClass *class )
 {
@@ -566,7 +646,6 @@ vips_foreign_load_gif_class_init( VipsForeignLoadGifClass *class )
 	load_class->get_flags_filename = 
 		vips_foreign_load_gif_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_gif_get_flags;
-	load_class->load = vips_foreign_load_gif_load;
 
 	VIPS_ARG_INT( class, "page", 10,
 		_( "Page" ),
@@ -580,6 +659,7 @@ vips_foreign_load_gif_class_init( VipsForeignLoadGifClass *class )
 static void
 vips_foreign_load_gif_init( VipsForeignLoadGif *gif )
 {
+	gif->transparency = -1;
 }
 
 typedef struct _VipsForeignLoadGifFile {
@@ -607,7 +687,7 @@ vips_foreign_load_gif_file_header( VipsForeignLoad *load )
 
 	VIPS_SETSTR( load->out->filename, file->filename );
 
-	return( vips_foreign_load_gif_header( load ) );
+	return( vips_foreign_load_gif_load( load ) );
 }
 
 static const char *vips_foreign_gif_suffs[] = {
@@ -702,7 +782,7 @@ vips_foreign_load_gif_buffer_header( VipsForeignLoad *load )
 		vips_foreign_load_gif_buffer_read ) ) 
 		return( -1 ); 
 
-	return( vips_foreign_load_gif_header( load ) );
+	return( vips_foreign_load_gif_load( load ) );
 }
 
 static void
@@ -720,7 +800,7 @@ vips_foreign_load_gif_buffer_class_init(
 	object_class->description = _( "load GIF with giflib" );
 
 	load_class->is_a_buffer = vips_foreign_load_gif_is_a_buffer;
-	load_class->header = vips_foreign_load_gif_buffer_header;
+	load_class->load = vips_foreign_load_gif_buffer_header;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
@@ -752,8 +832,8 @@ vips_foreign_load_gif_buffer_init( VipsForeignLoadGifBuffer *buffer )
  *
  * Use @page to set page number (frame number) to read.
  *
- * The whole GIF is parsed and read into memory on header access, the whole 
- * GIF is rendered on first pixel access.
+ * The whole GIF is rendered into memory on header access. The output image
+ * will be 1, 2, 3 or 4 bands depending on what the reader finds in the file. 
  *
  * See also: vips_image_new_from_file().
  *
