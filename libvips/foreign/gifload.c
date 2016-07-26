@@ -800,7 +800,7 @@ vips_foreign_load_gif_buffer_class_init(
 	object_class->description = _( "load GIF with giflib" );
 
 	load_class->is_a_buffer = vips_foreign_load_gif_is_a_buffer;
-	load_class->load = vips_foreign_load_gif_buffer_header;
+	load_class->header = vips_foreign_load_gif_buffer_header;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
