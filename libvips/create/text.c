@@ -343,7 +343,7 @@ vips_text_init( VipsText *text )
  *
  * * @font: %gchararray, font to render with
  * * @width: %gint, render within this many pixels across
- * * @alignment: #VipsAlign, left/centre/right alignment
+ * * @align: #VipsAlign, left/centre/right alignment
  * * @dpi: %gint, render at this resolution
  * * @spacing: %gint, space lines by this in points
  *
@@ -359,7 +359,7 @@ vips_text_init( VipsText *text )
  *
  * @width is the maximum number of pixels across to draw within. If the
  * generated text is wider than this, it will wrap to a new line. In this
- * case, @alignment can be used to set the alignment style for multi-line
+ * case, @align can be used to set the alignment style for multi-line
  * text. 
  *
  * @dpi sets the resolution to render at. "sans 12" at 72 dpi draws characters
