@@ -404,12 +404,29 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	return( 0 );
 }
 
-#define UNPACK( TYPE, Q, P, N ) { \
+#define UNPACK( TYPE, Q, P ) { \
 	TYPE * restrict tq = (TYPE *) (Q); \
 	int x; \
+	int b; \
 	\
-	for( x = 0; x < (N); x++ ) \
-		tq[x] = (P)[x]; \
+	for( x = 0; x < r->width; x++ ) { \
+		if( GetPixelReadMask( image, p ) ) { \
+			for( b = 0; b < GetPixelChannels( image ); b++ ) { \
+				PixelChannel channel = \
+					GetPixelChannelChannel( image, b ); \
+				PixelTrait traits = \
+					GetPixelChannelTraits( image, channel );\
+				\
+				if( (traits & UpdatePixelTrait ) == 0 )\
+					continue;\
+				\
+				tq[b] = p[b]; \
+			} \
+		} \
+		\
+		p += GetPixelChannels( image ); \
+		q += GetPixelChannels( image ); \
+	} \
 }
 
 static int
@@ -419,7 +436,6 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 	VipsForeignLoadMagick7 *magick7 = (VipsForeignLoadMagick7 *) a;
 	VipsRect *r = &or->valid;
 	VipsImage *im = or->im;
-	const int ne = r->width * im->Bands;
 
 	int y;
 
@@ -427,6 +443,7 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 		int top = r->top + y;
 		int frame = top / magick7->frame_height;
 		int line = top % magick7->frame_height;
+		Image *image = magick7->frames[frame];
 
 		Quantum * restrict p;
 		VipsPel * restrict q;
@@ -445,19 +462,19 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 
 		switch( im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
-			UNPACK( unsigned char, q, p, ne );
+			UNPACK( unsigned char, q, p );
 			break;
 
 		case VIPS_FORMAT_USHORT:
-			UNPACK( unsigned short, q, p, ne );
+			UNPACK( unsigned short, q, p );
 			break;
 
 		case VIPS_FORMAT_FLOAT:
-			UNPACK( float, q, p, ne );
+			UNPACK( float, q, p );
 			break;
 
 		case VIPS_FORMAT_DOUBLE:
-			UNPACK( double, q, p, ne );
+			UNPACK( double, q, p );
 			break;
 
 		default:
