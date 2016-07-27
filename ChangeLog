@@ -29,6 +29,7 @@
 - better upsizing with vips_resize()
 - add imagemagick v7 support, thanks sachinwalia2k8 
 - added vips_worley(), vips_perlin() noise generators
+- gif loader can write 1, 2, 3, or 4 bands depending on file contents
 
 18/5/16 started 8.3.2
 - more robust vips image reading
