@@ -605,13 +605,13 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 		im = t[1];
 	}
 	else if( gif->has_transparency ) {
-		/* GA.
+		/* GA. Take BA so we have neighboring channels. 
 		 */
-		if( vips_extract_band( im, &t[1], 0, NULL ) ||
-			vips_extract_band( im, &t[2], 3, NULL ) ||
-			vips_bandjoin2( t[1], t[2], &t[3], NULL ) )
+		if( vips_extract_band( im, &t[1], 2,
+			"n", 2,
+			NULL ) )
 			return( -1 );
-		im = t[3];
+		im = t[1];
 		im->Type = VIPS_INTERPRETATION_B_W;
 	}
 	else {
