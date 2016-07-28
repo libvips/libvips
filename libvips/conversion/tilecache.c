@@ -703,11 +703,8 @@ vips_tile_cache_gen( VipsRegion *or,
 						"error on tile %p\n", tile ); 
 
 					vips_warn( class->nickname,
-						_( "error reading tile %dx%d: "
-							"%s" ),
-						tile->pos.left, tile->pos.top,
-						vips_error_buffer() ); 
-					vips_error_clear();
+						_( "error in tile %d x %d" ),
+						tile->pos.left, tile->pos.top );
 
 					vips_region_black( tile->region );
 

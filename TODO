@@ -1,3 +1,41 @@
+- try:
+
+	$ vips avg broken.jpg[fail]
+
+  about 50% of the time it'll trigger a range of out-of-order reads and lock
+  for 10s or so while seq waits
+
+- try:
+
+	#!/usr/bin/python
+
+	import sys
+
+	import gi
+	gi.require_version('Vips', '8.0')
+	from gi.repository import Vips
+
+	try:
+	    im = Vips.Image.new_from_file(sys.argv[1])
+	    im.avg()
+	except Vips.Error as e:
+	    print 'saw an error <<%s>>' % e.message
+	    print 'vips error buffer start:'
+	    print Vips.error_buffer()
+	    print 'vips error buffer stop'
+
+  see:
+
+	$ ./read.py broken.jpg[fail]
+	vips warning: linecache: error in tile 0 x 192
+	vips warning: linecache: error in tile 0 x 200
+	saw an error <<Error calling operator avg.>>
+	vips error buffer start:
+
+	vips error buffer stop
+
+  error msg is lost
+
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py
