@@ -7,7 +7,11 @@
 
   try with convert, get a one-band png, no alpha at all
 
-- try loading one page of a GIF with the new magickload
+  solution: cramps.gif is tagged as ImageType 4, palette image (not palette
+  alpha) ... the four channels are RGB + index, index is 0 - 15, the index
+  values for the gif
+
+  we'll need a separate path for each imagetype :-( 
 
 - try loading a DICOM
 

@@ -260,6 +260,53 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 #ifdef DEBUG
 	printf( "image->depth = %zd\n", image->depth ); 
 	printf( "GetImageType() = %d\n", GetImageType( image ) );
+#endif /*DEBUG*/
+
+#ifdef DEBUG
+{
+	static const int image_types[] = {
+		UndefinedType,
+		BilevelType,
+		GrayscaleType,
+		GrayscaleAlphaType, 
+		PaletteType,
+		PaletteAlphaType,
+		TrueColorType,
+		TrueColorAlphaType,
+		ColorSeparationType,
+		ColorSeparationAlphaType,
+		OptimizeType,
+		PaletteBilevelAlphaType
+	};
+
+	static const char *image_type_names[] = {
+		"UndefinedType",
+		"BilevelType",
+		"GrayscaleType",
+		"GrayscaleAlphaType", 
+		"PaletteType",
+		"PaletteAlphaType",
+		"TrueColorType",
+		"TrueColorAlphaType",
+		"ColorSeparationType",
+		"ColorSeparationAlphaType",
+		"OptimizeType",
+		"PaletteBilevelAlphaType"
+	};
+
+	int i;
+
+	for( i = 0; i < VIPS_NUMBER( image_types ); i++ ) 
+		if( GetImageType( image ) == image_types[i] ) {
+			printf( "\t%s\n", image_type_names[i] );
+			break;
+		}
+	if( i == VIPS_NUMBER( image_types ) )
+		printf( "\tunknown GetImageType()\n" ); 
+}
+#endif /*DEBUG*/
+
+#ifdef DEBUG
 	printf( "GetPixelChannels() = %zd\n", GetPixelChannels( image ) ); 
 	printf( "image->columns = %zd\n", image->columns ); 
 	printf( "image->rows = %zd\n", image->rows ); 
@@ -410,22 +457,22 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	int b; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		if( GetPixelReadMask( image, p ) ) { \
+		if( GetPixelReadMask( image, (P) ) ) { \
 			for( b = 0; b < GetPixelChannels( image ); b++ ) { \
 				PixelChannel channel = \
 					GetPixelChannelChannel( image, b ); \
 				PixelTrait traits = \
 					GetPixelChannelTraits( image, channel );\
 				\
-				if( (traits & UpdatePixelTrait ) == 0 )\
-					continue;\
+				if( (traits & UpdatePixelTrait) == 0 ) \
+					continue; \
 				\
-				tq[b] = p[b]; \
+				tq[b] = (P)[b]; \
 			} \
 		} \
 		\
-		p += GetPixelChannels( image ); \
-		q += GetPixelChannels( image ); \
+		(P) += GetPixelChannels( image ); \
+		tq += GetPixelChannels( image ); \
 	} \
 }
 
@@ -462,7 +509,33 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 
 		switch( im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
-			UNPACK( unsigned char, q, p );
+
+{
+	unsigned char * restrict tq = (unsigned char *) q; 
+	int x; 
+	int b; 
+	
+	for( x = 0; x < r->width; x++ ) { 
+		if( GetPixelReadMask( image, p ) ) { 
+			for( b = 0; b < GetPixelChannels( image ); b++ ) { 
+				PixelChannel channel = 
+					GetPixelChannelChannel( image, b ); 
+				PixelTrait traits = 
+					GetPixelChannelTraits( image, channel );
+				
+				if( (traits & UpdatePixelTrait ) == 0 ) 
+					continue; 
+				
+				tq[b] = p[b]; 
+			} 
+		} 
+		
+		p += GetPixelChannels( image ); 
+		tq += GetPixelChannels( image ); 
+	} 
+}
+
+			//UNPACK( unsigned char, q, p );
 			break;
 
 		case VIPS_FORMAT_USHORT:
@@ -494,7 +567,7 @@ vips_foreign_load_magick7_load( VipsForeignLoadMagick7 *magick7 )
 	int i;
 
 #ifdef DEBUG
-	printf( "vips_foreign_load_magick7_header: %p\n", magick7 ); 
+	printf( "vips_foreign_load_magick7_load: %p\n", magick7 ); 
 #endif /*DEBUG*/
 
 	if( vips_foreign_load_magick7_parse( magick7, 
@@ -522,6 +595,122 @@ vips_foreign_load_magick7_load( VipsForeignLoadMagick7 *magick7 )
 		magick7->cache_view[i] = AcquireAuthenticCacheView( 
 			magick7->frames[i], magick7->exception );
 	}
+
+#ifdef DEBUG
+{
+	static const int trait_bits[] = {
+		CopyPixelTrait,
+		UpdatePixelTrait,
+		BlendPixelTrait
+	};
+	static const char *trait_names[] = {
+		"CopyPixelTrait",
+		"UpdatePixelTrait",
+		"BlendPixelTrait"
+	};
+
+	/* Only display the traits from frame0, they should all be the same.
+	 */
+	Image *image = magick7->frames[0];
+
+	int b; 
+	int i; 
+
+	printf( "vips_foreign_load_magick7_load: channel traits:\n" ); 
+	for( b = 0; b < GetPixelChannels( image ); b++ ) { 
+		PixelChannel channel = 
+			GetPixelChannelChannel( image, b ); 
+		PixelTrait traits = 
+			GetPixelChannelTraits( image, channel );
+		
+		printf( "\t%d) ", b ); 
+		for( i = 0; i < VIPS_NUMBER( trait_bits ); i++ )
+			if( traits & trait_bits[i] )
+				printf( "%s ", trait_names[i] ); 
+		if( traits == 0 )
+			printf( "undefined" ); 
+		printf( "\n" ); 
+	} 
+}
+#endif /*DEBUG*/
+
+#ifdef DEBUG
+{
+	static const int pixel_channels[] = {
+		UndefinedPixelChannel, 
+		RedPixelChannel, 
+		CyanPixelChannel, 
+		GrayPixelChannel, 
+		LPixelChannel, 
+		LabelPixelChannel, 
+		YPixelChannel, 
+		aPixelChannel, 
+		GreenPixelChannel, 
+		MagentaPixelChannel, 
+		CbPixelChannel, 
+		bPixelChannel, 
+		BluePixelChannel, 
+		YellowPixelChannel, 
+		CrPixelChannel, 
+		BlackPixelChannel, 
+		AlphaPixelChannel, 
+		IndexPixelChannel, 
+		ReadMaskPixelChannel, 
+		WriteMaskPixelChannel, 
+		MetaPixelChannel, 
+		IntensityPixelChannel, 
+		CompositePixelChannel, 
+		SyncPixelChannel
+	};
+	static const char *pixel_channel_names[] = {
+		"UndefinedPixelChannel", 
+		"RedPixelChannel", 
+		"CyanPixelChannel", 
+		"GrayPixelChannel", 
+		"LPixelChannel", 
+		"LabelPixelChannel", 
+		"YPixelChannel", 
+		"aPixelChannel", 
+		"GreenPixelChannel", 
+		"MagentaPixelChannel", 
+		"CbPixelChannel", 
+		"bPixelChannel", 
+		"BluePixelChannel", 
+		"YellowPixelChannel", 
+		"CrPixelChannel", 
+		"BlackPixelChannel", 
+		"AlphaPixelChannel", 
+		"IndexPixelChannel", 
+		"ReadMaskPixelChannel", 
+		"WriteMaskPixelChannel", 
+		"MetaPixelChannel", 
+		"IntensityPixelChannel", 
+		"CompositePixelChannel", 
+		"SyncPixelChannel", 
+	};
+
+	/* Only display the names from frame0, they should all be the same.
+	 */
+	Image *image = magick7->frames[0];
+
+	int b; 
+	int i; 
+
+	printf( "vips_foreign_load_magick7_load: channel names:\n" ); 
+	for( b = 0; b < GetPixelChannels( image ); b++ ) { 
+		PixelChannel channel = 
+			GetPixelChannelChannel( image, b ); 
+		
+		printf( "\t%d) ", b ); 
+		for( i = 0; i < VIPS_NUMBER( pixel_channels ); i++ )
+			/* Don't break on found, many channel names repeat.
+			 */
+			if( channel == pixel_channels[i] ) 
+				printf( "%s ", pixel_channel_names[i] );
+		printf( "\n" ); 
+	} 
+}
+#endif /*DEBUG*/
 
 	if( vips_image_generate( load->real, 
 		NULL, vips_foreign_load_magick7_fill_region, NULL, 
@@ -588,19 +777,20 @@ vips_foreign_load_magick7_file_header( VipsForeignLoad *load )
 	if( magick7->all_frames ) 
 		magick7->image = 
 			ReadImage( magick7->image_info, magick7->exception );
-	else
+	else {
 		magick7->image = 
 			PingImage( magick7->image_info, magick7->exception );
+
+		/* You must call InitializePixelChannelMap() after Ping or
+		 * GetPixelChannels() won't work. Later IMs may do this for you. 
+		 */
+		InitializePixelChannelMap( magick7->image );
+	}
 
 	if( !magick7->image ) {
 		vips_foreign_load_magick7_error( magick7 ); 
 		return( -1 );
 	}
-
-	/* You must call InitializePixelChannelMap() after Ping or
-	 * GetPixelChannels() won't work. Later IMs may do this for you. 
-	 */
-	InitializePixelChannelMap( magick7->image );
 
 	if( vips_foreign_load_magick7_parse( magick7, 
 		magick7->image, load->out ) )
@@ -728,20 +918,21 @@ vips_foreign_load_magick7_buffer_header( VipsForeignLoad *load )
 		magick7->image = BlobToImage( magick7->image_info, 
 			magick7_buffer->buf->data, magick7_buffer->buf->length,
 			magick7->exception );
-	else 
+	else {
 		magick7->image = PingBlob( magick7->image_info, 
 			magick7_buffer->buf->data, magick7_buffer->buf->length,
 			magick7->exception );
+
+		/* You must call InitializePixelChannelMap() after Ping, or
+		 * GetPixelChannels() won't work. Later IMs may do this for you. 
+		 */
+		InitializePixelChannelMap( magick7->image );
+	}
 
 	if( !magick7->image ) {
 		vips_foreign_load_magick7_error( magick7 ); 
 		return( -1 );
 	}
-
-	/* You must call InitializePixelChannelMap() after Ping or
-	 * GetPixelChannels() won't work. Later IMs may do this for you. 
-	 */
-	InitializePixelChannelMap( magick7->image );
 
 	if( vips_foreign_load_magick7_parse( magick7, 
 		magick7->image, load->out ) )
