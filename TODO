@@ -1,8 +1,22 @@
-- try a gif with transparency
+- dicom fails
 
-- try loading a PNG
+	ping:
+		image->depth = 8
+		GetImageType() = 6
+			TrueColorType
+		GetPixelChannels() = 3
+		image->columns = 128
+		image->rows = 128
+		image has 1 frames
 
-- try loading a DICOM
+	read:
+		image->depth = 16
+		GetImageType() = 2
+			GrayscaleType
+		GetPixelChannels() = 2
+		image->columns = 128
+		image->rows = 128
+		image has 1 frames
 
 - add tests:
 

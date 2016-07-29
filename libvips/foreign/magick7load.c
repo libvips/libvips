@@ -256,6 +256,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 
 	const char *key;
 	Image *p;
+	int i;
 
 #ifdef DEBUG
 	printf( "image->depth = %zd\n", image->depth ); 
@@ -294,8 +295,6 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 		"PaletteBilevelAlphaType"
 	};
 
-	int i;
-
 	for( i = 0; i < VIPS_NUMBER( image_types ); i++ ) 
 		if( GetImageType( image ) == image_types[i] ) {
 			printf( "\t%s\n", image_type_names[i] );
@@ -317,20 +316,17 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	out->Xsize = image->columns;
 	out->Ysize = image->rows;
 	magick7->frame_height = image->rows;
-	out->Bands = GetPixelChannels( image ); 
 
-	switch( GetImageType( image ) ) {
-	case PaletteType:
-	case PaletteAlphaType:
-	case PaletteBilevelAlphaType:
-		/* Palette images include an index channel, which we drop.
-		 */
-		out->Bands -= 1;
-		break;
-
-	default:
-		break;
-	};
+	/* We skip all index channels. Lots of images can have these, it's not
+	 * just the palette ones.
+	 */
+	out->Bands = 0;
+	for( i = 0; i < GetPixelChannels( image ); i++ ) { 
+		PixelChannel channel = GetPixelChannelChannel( image, i ); 
+		
+		if( channel != IndexPixelChannel ) 
+			out->Bands += 1;
+	} 
 
 	/* Depth can be 'fractional'. You'd think we should use
 	 * GetImageDepth() but that seems to compute something very complex. 
@@ -760,10 +756,19 @@ vips_foreign_load_magick7_file_header( VipsForeignLoad *load )
 	 *
 	 * Hopefully, all_frames is only used rarely. 
 	 */
-	if( magick7->all_frames ) 
+	if( magick7->all_frames ) {
+#ifdef DEBUG
+		printf( "vips_foreign_load_magick7_file_header: ReadImage()\n" ); 
+#endif /*DEBUG*/
+
 		magick7->image = 
 			ReadImage( magick7->image_info, magick7->exception );
+	}
 	else {
+#ifdef DEBUG
+		printf( "vips_foreign_load_magick7_file_header: PingImage()\n" );
+#endif /*DEBUG*/
+
 		magick7->image = 
 			PingImage( magick7->image_info, magick7->exception );
 
@@ -804,6 +809,10 @@ vips_foreign_load_magick7_file_load( VipsForeignLoad *load )
 #endif /*DEBUG*/
 
 	if( !magick7->all_frames ) {
+#ifdef DEBUG
+		printf( "vips_foreign_load_magick7_file_load: ReadImage()\n" ); 
+#endif /*DEBUG*/
+
 		g_assert( !magick7->image ); 
 		magick7->image = 
 			ReadImage( magick7->image_info, magick7->exception );
@@ -900,11 +909,22 @@ vips_foreign_load_magick7_buffer_header( VipsForeignLoad *load )
 	/* See comments on file load above ^^ for notes on the all_frames
 	 * handling.
 	 */
-	if( magick7->all_frames ) 
+	if( magick7->all_frames ) {
+#ifdef DEBUG
+		printf( "vips_foreign_load_magick7_buffer_header: "
+			"BlobToImage()\n" ); 
+#endif /*DEBUG*/
+
 		magick7->image = BlobToImage( magick7->image_info, 
 			magick7_buffer->buf->data, magick7_buffer->buf->length,
 			magick7->exception );
+	}
 	else {
+#ifdef DEBUG
+		printf( "vips_foreign_load_magick7_buffer_header: "
+			"PingBlob()\n" ); 
+#endif /*DEBUG*/
+
 		magick7->image = PingBlob( magick7->image_info, 
 			magick7_buffer->buf->data, magick7_buffer->buf->length,
 			magick7->exception );
