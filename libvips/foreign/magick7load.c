@@ -316,8 +316,21 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	 */
 	out->Xsize = image->columns;
 	out->Ysize = image->rows;
-	out->Bands = GetPixelChannels( image ); 
 	magick7->frame_height = image->rows;
+	out->Bands = GetPixelChannels( image ); 
+
+	switch( GetImageType( image ) ) {
+	case PaletteType:
+	case PaletteAlphaType:
+	case PaletteBilevelAlphaType:
+		/* Palette images include an index channel, which we drop.
+		 */
+		out->Bands -= 1;
+		break;
+
+	default:
+		break;
+	};
 
 	/* Depth can be 'fractional'. You'd think we should use
 	 * GetImageDepth() but that seems to compute something very complex. 
@@ -451,28 +464,27 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	return( 0 );
 }
 
-#define UNPACK( TYPE, Q, P ) { \
-	TYPE * restrict tq = (TYPE *) (Q); \
+/* We don't bother with GetPixelReadMask((), assume it's everywhere. Don't
+ * bother with traits, assume taht's always update.
+ *
+ * We do skip index channels. Palette images add extra index channels
+ * containing the index value from the file before colourmap lookup.
+ */
+#define UNPACK( TYPE ) { \
+	TYPE * restrict tq = (TYPE *) q; \
 	int x; \
 	int b; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		if( GetPixelReadMask( image, (P) ) ) { \
-			for( b = 0; b < GetPixelChannels( image ); b++ ) { \
-				PixelChannel channel = \
-					GetPixelChannelChannel( image, b ); \
-				PixelTrait traits = \
-					GetPixelChannelTraits( image, channel );\
-				\
-				if( (traits & UpdatePixelTrait) == 0 ) \
-					continue; \
-				\
-				tq[b] = (P)[b]; \
-			} \
+		for( b = 0; b < GetPixelChannels( image ); b++ ) { \
+			PixelChannel channel = \
+				GetPixelChannelChannel( image, b ); \
+			\
+			if( channel != IndexPixelChannel ) \
+				*tq++ = p[b]; \
 		} \
 		\
-		(P) += GetPixelChannels( image ); \
-		tq += GetPixelChannels( image ); \
+		p += GetPixelChannels( image ); \
 	} \
 }
 
@@ -509,45 +521,19 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 
 		switch( im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
-
-{
-	unsigned char * restrict tq = (unsigned char *) q; 
-	int x; 
-	int b; 
-	
-	for( x = 0; x < r->width; x++ ) { 
-		if( GetPixelReadMask( image, p ) ) { 
-			for( b = 0; b < GetPixelChannels( image ); b++ ) { 
-				PixelChannel channel = 
-					GetPixelChannelChannel( image, b ); 
-				PixelTrait traits = 
-					GetPixelChannelTraits( image, channel );
-				
-				if( (traits & UpdatePixelTrait ) == 0 ) 
-					continue; 
-				
-				tq[b] = p[b]; 
-			} 
-		} 
-		
-		p += GetPixelChannels( image ); 
-		tq += GetPixelChannels( image ); 
-	} 
-}
-
-			//UNPACK( unsigned char, q, p );
+			UNPACK( unsigned char ); 
 			break;
 
 		case VIPS_FORMAT_USHORT:
-			UNPACK( unsigned short, q, p );
+			UNPACK( unsigned short ); 
 			break;
 
 		case VIPS_FORMAT_FLOAT:
-			UNPACK( float, q, p );
+			UNPACK( float ); 
 			break;
 
 		case VIPS_FORMAT_DOUBLE:
-			UNPACK( double, q, p );
+			UNPACK( double ); 
 			break;
 
 		default:

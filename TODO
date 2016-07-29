@@ -1,17 +1,6 @@
-- try:
+- try a gif with transparency
 
-	vips magickload images/cramps.gif x.png
-
-  we get a four-band png with a strange alpha ... should be 0/255, but it has
-  greyscale values in
-
-  try with convert, get a one-band png, no alpha at all
-
-  solution: cramps.gif is tagged as ImageType 4, palette image (not palette
-  alpha) ... the four channels are RGB + index, index is 0 - 15, the index
-  values for the gif
-
-  we'll need a separate path for each imagetype :-( 
+- try loading a PNG
 
 - try loading a DICOM
 
