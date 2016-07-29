@@ -489,6 +489,7 @@ VImage::call_option_string( const char *operation_name,
 	 */
 	if( vips_cache_operation_buildp( &operation ) ) {
 		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+		g_object_unref( operation ); 
 		delete options; 
 		throw( VError() ); 
 	}
