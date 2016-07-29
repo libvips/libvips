@@ -18,6 +18,8 @@
 		image->rows = 128
 		image has 1 frames
 
+  see http://www.imagemagick.org/discourse-server/viewtopic.php?f=2&t=30191
+
 - add tests:
 
 	load 1 page of a pdf/gif
@@ -25,7 +27,7 @@
 	svg alpha
 	density
 	png alpha
-	dicom?
+	dicom
 	all with file and buffer source
 
 
