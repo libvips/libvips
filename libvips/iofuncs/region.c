@@ -231,9 +231,12 @@ vips__region_start( VipsRegion *region )
                 g_mutex_unlock( image->sslock );
  
                 if( !region->seq ) {
-                        vips_error( "vips__region_start", 
-				_( "start function failed for image %s" ),
+#ifdef DEBUG
+                        printf( "vips__region_start: "
+				"start function failed for image %s",
                                 image->filename );
+#endif /*DEBUG*/
+
                         return( -1 );
                 }
         }
