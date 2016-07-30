@@ -1,3 +1,7 @@
+30/7/16 started 8.3.3
+- fix performance regression in 8.3.2, thanks Lovell
+- yet more robust vips file reading
+
 18/5/16 started 8.3.2
 - more robust vips image reading
 - more robust tiff read [Matt Richards]
