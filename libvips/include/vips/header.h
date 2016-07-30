@@ -134,6 +134,7 @@ extern "C" {
 #define VIPS_META_ORIENTATION "orientation"
 
 guint64 vips_format_sizeof( VipsBandFormat format );
+guint64 vips_format_sizeof_unsafe( VipsBandFormat format );
 
 int vips_image_get_width( const VipsImage *image );
 int vips_image_get_height( const VipsImage *image );

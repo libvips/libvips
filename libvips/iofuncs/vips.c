@@ -1,4 +1,4 @@
-/* Read and write a vips file 
+/* Read and write a vips file.
  * 
  * 22/5/08
  * 	- from im_open.c, im_openin.c, im_desc_hd.c, im_readhist.c,
@@ -329,6 +329,18 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	 */
 	im->Xres = im->Xres_float;
 	im->Yres = im->Yres_float;
+
+	/* Some protection against malicious files. We also check predicted
+	 * (based on these values) against real file length, see below. 
+	 */
+	im->Xsize = VIPS_CLIP( 1, im->Xsize, VIPS_MAX_COORD );
+	im->Ysize = VIPS_CLIP( 1, im->Ysize, VIPS_MAX_COORD );
+	im->Bands = VIPS_CLIP( 1, im->Bands, VIPS_MAX_COORD );
+	im->BandFmt = VIPS_CLIP( 0, im->BandFmt, VIPS_FORMAT_LAST - 1 );
+
+	/* Type, Coding, Offset, Res, etc. don't affect vips file layout, just 
+	 * pixel interpretation, don't clip them.
+	 */
 
 	return( 0 );
 }
