@@ -893,7 +893,7 @@ vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
 	 * the pixels we need. If it does, we could copy them and only
 	 * generate the new ones. 
 	 *
-	 * However, we usually have neighboring regions on different threads,
+	 * However, we usually have neighbouring regions on different threads,
 	 * so from the point of view of this thread, we will get no overlaps
 	 * on successive prepare requests. 
 	 */
