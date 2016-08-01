@@ -321,15 +321,30 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 	VIPS_GATE_START( "vips_reduceh_gen: work" ); 
 
 	for( int y = 0; y < r->height; y ++ ) { 
+		VipsPel *p0;
 		VipsPel *q;
+
 		double X;
 
 		q = VIPS_REGION_ADDR( out_region, r->left, r->top + y );
+
 		X = r->left * reduceh->xshrink;
+
+		/* We want p0 to be the start (ie. x == 0) of the input 
+		 * scanline we are reading from. We can then calculate the p we
+		 * need for each pixel with a single mul and avoid calling ADDR
+		 * for each pixel. 
+		 *
+		 * We can't get p0 directly with ADDR since it could be outside
+		 * valid, so get the leftmost pixel in valid and subtract a
+		 * bit.
+		 */
+		p0 = VIPS_REGION_ADDR( ir, ir->valid.left, r->top + y ) - 
+			ir->valid.left * ps;
 
 		for( int x = 0; x < r->width; x++ ) {
 			int ix = (int) X;
-			VipsPel *p = VIPS_REGION_ADDR( ir, ix, r->top + y );
+			VipsPel *p = p0 + ix * ps;
 			const int sx = X * VIPS_TRANSFORM_SCALE * 2;
 			const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
 			const int tx = (six + 1) >> 1;
