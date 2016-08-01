@@ -2,6 +2,8 @@
  *
  * 7/2/16
  * 	- from svgload.c
+ * 1/8/16 felixbuenemann
+ * 	- add svgz support
  */
 
 /*
@@ -54,14 +56,21 @@
 
 #include <cairo.h>
 #include <librsvg/rsvg.h>
-/* Old librsvg versions don't include librsvg-features.h by default,
- * while newer versions deprecate direct inclusion.
+
+/* Old librsvg versions don't include librsvg-features.h by default.
+ * Newer versions deprecate direct inclusion.
  */
 #ifndef LIBRSVG_FEATURES_H
 #include <librsvg/librsvg-features.h>
 #endif
 
+/* A handy #define for we-will-handle-svgz.
+ */
 #if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZLIB)
+#define HANDLE_SVGZ
+#endif
+
+#ifdef HANDLE_SVGZ
 #include <zlib.h>
 #endif
 
@@ -325,6 +334,8 @@ vips_foreign_load_svg_file_header( VipsForeignLoad *load )
 
 static const char *vips_foreign_svg_suffs[] = {
 	".svg",
+	/* librsvg supports svgz directly, no need to check for zlib here.
+	 */
 #if LIBRSVG_CHECK_FEATURE(SVGZ)
 	".svgz",
 #endif
@@ -377,65 +388,77 @@ typedef VipsForeignLoadSvgClass VipsForeignLoadSvgBufferClass;
 G_DEFINE_TYPE( VipsForeignLoadSvgBuffer, vips_foreign_load_svg_buffer, 
 	vips_foreign_load_svg_get_type() );
 
-#if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZLIB)
+#ifdef HANDLE_SVGZ
 static void *
-vips_zalloc( void *opaque, unsigned items, unsigned size )
+vips_foreign_load_svg_zalloc( void *opaque, unsigned items, unsigned size )
 {
 	return( g_malloc0_n( items, size ) );
 }
 
 static void
-vips_zfree( void *opaque, void *ptr )
+vips_foreign_load_svg_zfree( void *opaque, void *ptr )
 {
 	return( g_free( ptr ) );
 }
-#endif
+#endif /*HANDLE_SVGZ*/
 
 static gboolean
 vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 {
-	unsigned char *str = (unsigned char *) buf;
+	char *str;
+
+#ifdef HANDLE_SVGZ
+	/* If the buffer looks like a zip, deflate to here and then search
+	 * that for <svg.
+	 */
+	char obuf[224];
+#endif /*HANDLE_SVGZ*/
 
 	int i;
 
-#if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZLIB)
+	/* Start with str pointing at the argument buffer, swap to it pointing
+	 * into obuf if we see zip data.
+	 */
+	str = (char *) buf;
+
+#ifdef HANDLE_SVGZ
 	/* Check for SVGZ gzip signature and inflate.
+	 *
 	 * Minimum gzip size is 18 bytes, starting with 1F 8B.
 	 */
-	if( len >= 18 && str[0] == 0x1f && str[1] == 0x8b ) {
+	if( len >= 18 && 
+		str[0] == '\037' && 
+		str[1] == '\213' ) {
 		z_stream zs;
-		size_t opos = 0;
-		unsigned char obuf[224];
+		size_t opos;
 
-		zs.zalloc = (alloc_func) vips_zalloc;
-		zs.zfree = (free_func) vips_zfree;
+		zs.zalloc = (alloc_func) vips_foreign_load_svg_zalloc;
+		zs.zfree = (free_func) vips_foreign_load_svg_zfree;
 		zs.opaque = Z_NULL;
-		zs.next_in = str;
+		zs.next_in = (unsigned char *) str;
 		zs.avail_in = len;
 
-		if( inflateInit2(&zs, 15 | 32) != Z_OK ) {
-			vips_error( "svgload",
-				"%s", _( "Zlib init failed" ) );
-			return( -1 );
-		}
+		/* There isn't really an error return from is_a_buffer()
+		 */
+		if( inflateInit2( &zs, 15 | 32 ) != Z_OK ) 
+			return( FALSE );
 
+		opos = 0;
 		do {
-			zs.avail_out = sizeof(obuf) - opos;
-			zs.next_out = obuf + opos;
-			if( inflate(&zs, Z_NO_FLUSH) < Z_OK ) {
-				vips_error( "svgload",
-					"%s", _( "Zlib inflate failed" ) );
-				return( -1 );
-			}
-			opos = sizeof(obuf) - zs.avail_out;
-		} while( opos < sizeof(obuf) && zs.avail_out == 0 );
+			zs.avail_out = sizeof( obuf ) - opos;
+			zs.next_out = (unsigned char *) obuf + opos;
+			if( inflate( &zs, Z_NO_FLUSH ) < Z_OK ) 
+				return( FALSE );
+			opos = sizeof( obuf ) - zs.avail_out;
+		} while( opos < sizeof( obuf ) && 
+			zs.avail_in > 0 );
 
-		inflateEnd(&zs);
+		inflateEnd( &zs );
 
 		str = obuf;
 		len = opos;
 	}
-#endif
+#endif /*HANDLE_SVGZ*/
 
 	/* SVG documents are very freeform. They normally look like:
 	 *
@@ -456,14 +479,13 @@ vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 		return( 0 );
 	for( i = 0; i < 24; i++ )
 		if( !isascii( str[i] ) )
-			return( 0 );
+			return( FALSE );
 
-	for( i = 0; i < 200 && i < len - 5; i++ ) {
-		if( strncmp( (const char *) str + i, "<svg", 4 ) == 0 )
-			return( 1 );
-	}
+	for( i = 0; i < 200 && i < len - 5; i++ ) 
+		if( strncasecmp( str + i, "<svg", 4 ) == 0 )
+			return( TRUE );
 
-	return( 0 );
+	return( FALSE );
 }
 
 static int
