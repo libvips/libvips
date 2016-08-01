@@ -1,3 +1,5 @@
+- can we hjave .svg.gz as a suffix? should be possible
+
 - try:
 
 	$ vips avg broken.jpg[fail]

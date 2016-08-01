@@ -50,6 +50,7 @@ class TestForeign(unittest.TestCase):
         self.pdf_file = "images/ISO_12233-reschart.pdf"
         self.cmyk_pdf_file = "images/cmyktest.pdf"
         self.svg_file = "images/vips-profile.svg"
+        self.svgz_file = "images/vips-profile.svgz"
 
         self.colour = Vips.Image.jpegload(self.jpeg_file)
         self.mono = self.colour.extract_band(1)
@@ -496,6 +497,9 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("svgload", self.svg_file, svg_valid)
         self.buffer_loader("svgload_buffer", self.svg_file, svg_valid)
+
+        self.file_loader("svgload", self.svgz_file, svg_valid)
+        self.buffer_loader("svgload_buffer", self.svgz_file, svg_valid)
 
         im = Vips.Image.new_from_file(self.svg_file)
         x = Vips.Image.new_from_file(self.svg_file, scale = 2)
