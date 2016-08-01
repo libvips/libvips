@@ -1,7 +1,3 @@
-// headers for vips operations
-// Fri Feb 12 20:04:03 GMT 2016
-// this file is generated automatically, do not edit!
-
 static void system( char * cmd_format , VOption *options = 0 );
 VImage add( VImage right , VOption *options = 0 );
 VImage subtract( VImage right , VOption *options = 0 );
@@ -103,13 +99,15 @@ VImage invertlut( VOption *options = 0 );
 static VImage tonelut( VOption *options = 0 );
 static VImage identity( VOption *options = 0 );
 static VImage fractsurf( int width , int height , double fractal_dimension , VOption *options = 0 );
-static VImage radload( char * filename , VOption *options = 0 );
-static VImage ppmload( char * filename , VOption *options = 0 );
+static VImage worley( int width , int height , VOption *options = 0 );
+static VImage perlin( int width , int height , VOption *options = 0 );
 static VImage csvload( char * filename , VOption *options = 0 );
 static VImage matrixload( char * filename , VOption *options = 0 );
-static VImage analyzeload( char * filename , VOption *options = 0 );
 static VImage rawload( char * filename , int width , int height , int bands , VOption *options = 0 );
 static VImage vipsload( char * filename , VOption *options = 0 );
+static VImage analyzeload( char * filename , VOption *options = 0 );
+static VImage ppmload( char * filename , VOption *options = 0 );
+static VImage radload( char * filename , VOption *options = 0 );
 static VImage pdfload( char * filename , VOption *options = 0 );
 static VImage pdfload_buffer( VipsBlob * buffer , VOption *options = 0 );
 static VImage svgload( char * filename , VOption *options = 0 );
@@ -130,15 +128,15 @@ static VImage magickload( char * filename , VOption *options = 0 );
 static VImage magickload_buffer( VipsBlob * buffer , VOption *options = 0 );
 static VImage fitsload( char * filename , VOption *options = 0 );
 static VImage openexrload( char * filename , VOption *options = 0 );
-void radsave( char * filename , VOption *options = 0 );
-VipsBlob * radsave_buffer( VOption *options = 0 );
-void ppmsave( char * filename , VOption *options = 0 );
 void csvsave( char * filename , VOption *options = 0 );
 void matrixsave( char * filename , VOption *options = 0 );
 void matrixprint( VOption *options = 0 );
 void rawsave( char * filename , VOption *options = 0 );
 void rawsave_fd( int fd , VOption *options = 0 );
 void vipssave( char * filename , VOption *options = 0 );
+void ppmsave( char * filename , VOption *options = 0 );
+void radsave( char * filename , VOption *options = 0 );
+VipsBlob * radsave_buffer( VOption *options = 0 );
 void dzsave( char * filename , VOption *options = 0 );
 void pngsave( char * filename , VOption *options = 0 );
 VipsBlob * pngsave_buffer( VOption *options = 0 );

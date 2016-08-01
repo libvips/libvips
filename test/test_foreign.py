@@ -50,6 +50,8 @@ class TestForeign(unittest.TestCase):
         self.pdf_file = "images/ISO_12233-reschart.pdf"
         self.cmyk_pdf_file = "images/cmyktest.pdf"
         self.svg_file = "images/vips-profile.svg"
+        self.svgz_file = "images/vips-profile.svgz"
+        self.svg_gz_file = "images/vips-profile.svg.gz"
 
         self.colour = Vips.Image.jpegload(self.jpeg_file)
         self.mono = self.colour.extract_band(1)
@@ -58,9 +60,7 @@ class TestForeign(unittest.TestCase):
         self.cmyk = self.cmyk.copy(interpretation = Vips.Interpretation.CMYK)
 
         im = Vips.Image.new_from_file(self.gif_file)
-	# some libMagick will load this mono image as RGB, some as mono ... test
-        # band 0 to be safe
-        self.onebit = im[0] > 128
+        self.onebit = im > 128
 
     # we have test files for formats which have a clear standard
     def file_loader(self, loader, test_file, validate):
@@ -475,10 +475,10 @@ class TestForeign(unittest.TestCase):
 
         def gif_valid(self, im):
             a = im(10, 10)
-            self.assertAlmostEqualObjects(a, [33, 33, 33, 255])
+            self.assertAlmostEqualObjects(a, [33])
             self.assertEqual(im.width, 159)
             self.assertEqual(im.height, 203)
-            self.assertEqual(im.bands, 4)
+            self.assertEqual(im.bands, 1)
 
         self.file_loader("gifload", self.gif_file, gif_valid)
         self.buffer_loader("gifload_buffer", self.gif_file, gif_valid)
@@ -498,6 +498,11 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("svgload", self.svg_file, svg_valid)
         self.buffer_loader("svgload_buffer", self.svg_file, svg_valid)
+
+        self.file_loader("svgload", self.svgz_file, svg_valid)
+        self.buffer_loader("svgload_buffer", self.svgz_file, svg_valid)
+
+        self.file_loader("svgload", self.svg_gz_file, svg_valid)
 
         im = Vips.Image.new_from_file(self.svg_file)
         x = Vips.Image.new_from_file(self.svg_file, scale = 2)

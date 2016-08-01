@@ -1914,6 +1914,8 @@ vips_image_new_from_file( const char *name, ... )
 	VipsImage *out;
 	int result;
 
+	vips_check_init();
+
 	vips__filename_split8( name, filename, option_string );
 	if( !(operation_name = vips_foreign_find_load( filename )) )
 		return( NULL );
@@ -2391,6 +2393,8 @@ vips_image_new_temp_file( const char *format )
 {
 	char *name;
 	VipsImage *image;
+
+	vips_check_init();
 
 	if( !(name = vips__temp_name( format )) )
 		return( NULL );
@@ -2993,6 +2997,8 @@ vips_image_rewind_output( VipsImage *image )
  * have made it yourself), use vips_image_wio_input() instead.
  *
  * See also: vips_image_wio_input().
+ *
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_copy_memory( VipsImage *image )

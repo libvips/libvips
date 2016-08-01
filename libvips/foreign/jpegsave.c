@@ -95,7 +95,8 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	gboolean trellis_quant;
 
-	/* Apply overshooting to samples with extreme values e.g. 0 & 255 for 8-bit.
+	/* Apply overshooting to samples with extreme values e.g. 0 & 255 
+	 * for 8-bit.
 	 */
 	gboolean overshoot_deringing;
 

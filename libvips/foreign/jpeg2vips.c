@@ -74,6 +74,8 @@
  * 	  memory for progressive jpg files
  * 26/5/16
  * 	- switch to new orientation tag
+ * 11/7/16
+ * 	- new --fail handling
  */
 
 /*
@@ -186,16 +188,10 @@ readjpeg_free( ReadJpeg *jpeg )
 	result = 0;
 
 	if( jpeg->eman.pub.num_warnings != 0 ) {
-		if( jpeg->fail ) {
-			vips_error( "VipsJpeg", "%s", vips_error_buffer() );
-			result = -1;
-		}
-		else {
-			vips_warn( "VipsJpeg", 
-				_( "read gave %ld warnings" ), 
-				jpeg->eman.pub.num_warnings );
-			vips_warn( NULL, "%s", vips_error_buffer() );
-		}
+		vips_warn( "VipsJpeg", 
+			_( "read gave %ld warnings" ), 
+			jpeg->eman.pub.num_warnings );
+		vips_warn( NULL, "%s", vips_error_buffer() );
 
 		/* Make the message only appear once.
 		 */
@@ -981,15 +977,36 @@ read_jpeg_generate( VipsRegion *or,
 	 * a vips_sequential().
 	 */
 	if( r->top != jpeg->y_pos ) {
+		VIPS_GATE_STOP( "read_jpeg_generate: work" );
 		vips_error( "VipsJpeg", 
 			_( "out of order read at line %d" ), jpeg->y_pos );
+
 		return( -1 );
 	}
 
 	/* Here for longjmp() from vips__new_error_exit().
 	 */
-	if( setjmp( jpeg->eman.jmp ) ) 
+	if( setjmp( jpeg->eman.jmp ) ) {
+		VIPS_GATE_STOP( "read_jpeg_generate: work" );
+
 		return( -1 );
+	}
+
+	/* If --fail is set, we make read fail on any warnings. This will stop
+	 * on any errors from the previous jpeg_read_scanlines().
+	 */
+	if( jpeg->eman.pub.num_warnings > 0 &&
+		jpeg->fail ) {
+		VIPS_GATE_STOP( "read_jpeg_generate: work" );
+
+		/* Only fail once.
+		 */
+		jpeg->eman.pub.num_warnings = 0;
+
+		*stop = TRUE;
+
+		return( -1 );
+	}
 
 	for( y = 0; y < r->height; y++ ) {
 		JSAMPROW row_pointer[1];

@@ -2691,9 +2691,9 @@ test_name( VipsObjectClass *class, const char *nickname )
  *
  * See also: vips_type_find()
  *
- * Returns: the found class.
+ * Returns: (transfer none): the found class.
  */
-VipsObjectClass *
+const VipsObjectClass *
 vips_class_find( const char *basename, const char *nickname )
 {
 	const char *classname = basename ? basename : "VipsObject";
@@ -2802,7 +2802,7 @@ vips_type_find( const char *basename, const char *nickname )
 		g_type_is_a( hit->type, base ) ) 
 		type = hit->type;
 	else {
-		VipsObjectClass *class;
+		const VipsObjectClass *class;
 
 		if( !(class = vips_class_find( basename, nickname )) )
 			return( 0 );

@@ -31,9 +31,19 @@
   rewritten as classes
 - vips_convsep() calls vips_convasep() for the approximate case
 - new fixed-point vector path for convi is up to 2x faster
+- added vips_worley(), generate Worley noise
+- added vips_perlin(), generate Perlin noise
+- gif loader can write 1, 2, 3, or 4 bands depending on file contents
+- support --strip for pngsave
+- add svgz support [Felix Bünemann]
+
+30/7/16 started 8.3.3
+- fix performance regression in 8.3.2, thanks Lovell
+- yet more robust vips file reading
 
 18/5/16 started 8.3.2
 - more robust vips image reading
+- more robust tiff read [Matt Richards]
 
 15/4/16 started 8.3.1
 - rename vips wrapper script, it was still vips-8.2, thanks Benjamin

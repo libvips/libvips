@@ -162,6 +162,8 @@
  * 	- write TIFFTAG_IMAGEDESCRIPTION
  * 2/6/16
  * 	- support strip option
+ * 4/7/16
+ * 	- tag alpha as UNASSALPHA since it's not pre-multiplied, thanks Peter
  */
 
 /*
@@ -675,8 +677,12 @@ write_tiff_header( Write *write, Layer *layer )
 			uint16 v[MAX_ALPHA];
 			int i;
 
+			/* EXTRASAMPLE_UNASSALPHA means generic extra
+			 * alpha-like channels. ASSOCALPHA means pre-multipled
+			 * alpha only. 
+			 */
 			for( i = 0; i < alpha_bands; i++ )
-				v[i] = EXTRASAMPLE_ASSOCALPHA;
+				v[i] = EXTRASAMPLE_UNASSALPHA;
 			TIFFSetField( tif, 
 				TIFFTAG_EXTRASAMPLES, alpha_bands, v );
 		}

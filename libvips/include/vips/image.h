@@ -173,7 +173,7 @@ typedef struct _VipsProgress {
 	VIPS_TYPE_IMAGE, VipsImageClass ))
 
 typedef struct _VipsImage {
-	VipsObject parent_object;
+	VipsObject parent_instance;
 
 	/*< private >*/
 
@@ -356,15 +356,18 @@ typedef struct _VipsImageClass {
 
 } VipsImageClass;
 
-GType vips_image_get_type( void );
+/* Don't put spaces around void here, it breaks gtk-doc.
+ */
+GType vips_image_get_type(void);
 
 /* Has to be guint64 and not size_t/off_t since we have to be able to address
  * huge images on platforms with 32-bit files.
  */
+
 /* Pixel address calculation macros.
  */
 #define VIPS_IMAGE_SIZEOF_ELEMENT( I ) \
-	(vips_format_sizeof((I)->BandFmt))
+	(vips_format_sizeof_unsafe((I)->BandFmt))
 #define VIPS_IMAGE_SIZEOF_PEL( I ) \
 	(VIPS_IMAGE_SIZEOF_ELEMENT( I ) * (I)->Bands)
 #define VIPS_IMAGE_SIZEOF_LINE( I ) \

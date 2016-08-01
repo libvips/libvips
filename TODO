@@ -2,15 +2,25 @@
 
 - test new clip stuff?
 
+
+
+
+
+
 - add more webp tests to py suite
+
+- try:
+
+	$ vips avg broken.jpg[fail]
+
+  about 50% of the time it'll trigger a range of out-of-order reads and lock
+  for 10s or so while seq times out
 
 - try moving some more of the CLI tests to py
 
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
 
 - could load pdf thumbnails?
-
-- still not happy about float->int mask conversion in im_vips2mask.c
 
 - colour needs to split _build() into preprocess / process / postprocess
   phases
@@ -435,13 +445,11 @@ new operations
 
 	Article: nomis80.org/ctmf.pdf
 
-- check CMC equations against web
-
-	http://en.wikipedia.org/wiki/Color_difference#CMC_l:c_.281984.29
-
 - see
 
         http://www.dentistry.bham.ac.uk/landinig/software/cdeconv/cdeconv.html
+
+	http://www.nature.com/srep/2015/150730/srep12096/full/srep12096.html
 
   sounds useful for BM?
 
