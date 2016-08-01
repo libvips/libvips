@@ -338,6 +338,7 @@ static const char *vips_foreign_svg_suffs[] = {
 	 */
 #if LIBRSVG_CHECK_FEATURE(SVGZ)
 	".svgz",
+	".svg.gz",
 #endif
 	NULL
 };
@@ -482,7 +483,7 @@ vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 			return( FALSE );
 
 	for( i = 0; i < 200 && i < len - 5; i++ ) 
-		if( strncasecmp( str + i, "<svg", 4 ) == 0 )
+		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
 			return( TRUE );
 
 	return( FALSE );
