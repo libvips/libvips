@@ -1005,9 +1005,7 @@ aconv_horizontal( Boxes *boxes, IMAGE *in, IMAGE *out )
 
 #define CLIP_UCHAR( V ) \
 G_STMT_START { \
-	if( (V) < 0 ) \
-		(V) = 0; \
-	else if( (V) > UCHAR_MAX ) \
+	if( (V) > UCHAR_MAX ) \
 		(V) = UCHAR_MAX; \
 } G_STMT_END
 
@@ -1021,9 +1019,7 @@ G_STMT_START { \
 
 #define CLIP_USHORT( V ) \
 G_STMT_START { \
-	if( (V) < 0 ) \
-		(V) = 0; \
-	else if( (V) > USHRT_MAX ) \
+	if( (V) > USHRT_MAX ) \
 		(V) = USHRT_MAX; \
 } G_STMT_END
 
@@ -1143,10 +1139,10 @@ aconv_vgenerate( REGION *or, void *vseq, void *a, void *b )
 	case IM_BANDFMT_CHAR: 	
 		if( boxes->max_line > 256 )
 			VCONV( signed int, \
-				signed int, signed char, CLIP_UCHAR );
+				signed int, signed char, CLIP_CHAR );
 		else
 			VCONV( signed int, \
-				signed short, signed char, CLIP_UCHAR );
+				signed short, signed char, CLIP_CHAR );
 		break;
 
 	case IM_BANDFMT_USHORT: 	
