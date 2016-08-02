@@ -32,8 +32,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -124,6 +124,11 @@ vips_foreign_load_magick7_genesis_cb( void *client )
 #endif /*DEBUG*/
 
 	MagickCoreGenesis( vips_get_argv0(), MagickFalse );
+
+#ifdef DEBUG
+	printf( "MagickCoreGenesis: sizeof( Quantum ) == %zd\n", 
+		sizeof( Quantum ) ); 
+#endif /*DEBUG*/
 
 	return( NULL );
 }
@@ -460,8 +465,8 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	return( 0 );
 }
 
-/* We don't bother with GetPixelReadMask((), assume it's everywhere. Don't
- * bother with traits, assume taht's always update.
+/* We don't bother with GetPixelReadMask(), assume it's everywhere. Don't
+ * bother with traits, assume that's always update.
  *
  * We do skip index channels. Palette images add extra index channels
  * containing the index value from the file before colourmap lookup.
