@@ -83,8 +83,14 @@ vips_convsep_build( VipsObject *object )
 		in = t[0];
 	}
 	else { 
-		if( vips_rot( convolution->M, &t[0], VIPS_ANGLE_D90, NULL ) ||
-			vips_conv( convolution->in, &t[1], convolution->M, 
+		if( vips_rot( convolution->M, &t[0], VIPS_ANGLE_D90, NULL ) )
+			return( -1 ); 
+
+		/* We must only add the offset once.
+		 */
+		vips_image_set_double( t[0], "offset", 0 );
+
+		if( vips_conv( convolution->in, &t[1], convolution->M, 
 				"precision", convsep->precision,
 				"layers", convsep->layers,
 				"cluster", convsep->cluster,

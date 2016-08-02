@@ -53,11 +53,6 @@
 
   TODO
 
-  	- are we handling mask offset correctly?
-
-	  nope! we have area and rounding, but neither properly incorporates 
-	  offset
-
 	- how about making a cumulative image and then subtracting points in 
 	  that, rather than keeping a set of running totals
 
@@ -68,14 +63,10 @@
 
  */
 
-/* Show sample pixels as they are transformed.
-#define DEBUG_PIXELS
- */
-
 /*
+ */
 #define DEBUG
 #define VIPS_DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -306,7 +297,7 @@ vips_convasep_decompose( VipsConvasep *convasep )
 	for( z = 0; z < convasep->width; z++ ) 
 		sum += coeff[z];
 
-	convasep->area = rint( sum * convasep->area / scale );
+	convasep->area = VIPS_RINT( sum * convasep->area / scale );
 	convasep->rounding = (convasep->area + 1) / 2;
 	convasep->offset = offset;
 
@@ -463,8 +454,11 @@ G_STMT_START { \
 				isum[z] += p[x]; \
 			sum += convasep->factor[z] * isum[z]; \
 		} \
-		sum = (sum + convasep->rounding) / convasep->area + \
-			convasep->offset; \
+		\
+		/* Don't add offset ... we only want to do that once, do it on \
+		 * the vertical pass. \
+		 */ \
+		sum = (sum + convasep->rounding) / convasep->area; \
 		CLIP( sum ); \
 		*q = sum; \
 		q += ostride; \
@@ -477,8 +471,7 @@ G_STMT_START { \
 				sum += convasep->factor[z] * isum[z]; \
 			} \
 			p += istride; \
-			sum = (sum + convasep->rounding) / convasep->area + \
-				convasep->offset; \
+			sum = (sum + convasep->rounding) / convasep->area; \
 			CLIP( sum ); \
 			*q = sum; \
 			q += ostride; \
@@ -504,7 +497,11 @@ G_STMT_START { \
 				dsum[z] += p[x]; \
 			sum += convasep->factor[z] * dsum[z]; \
 		} \
-		sum = sum / convasep->area + convasep->offset; \
+		\
+		/* Don't add offset ... we only want to do that once, do it on \
+		 * the vertical pass. \
+		 */ \
+		sum = sum / convasep->area; \
 		*q = sum; \
 		q += ostride; \
 		\
@@ -516,7 +513,7 @@ G_STMT_START { \
 				sum += convasep->factor[z] * dsum[z]; \
 			} \
 			p += istride; \
-			sum = sum / convasep->area + convasep->offset; \
+			sum = sum / convasep->area; \
 			*q = sum; \
 			q += ostride; \
 		} \
@@ -830,6 +827,7 @@ vips_convasep_pass( VipsConvasep *convasep,
 static int 
 vips_convasep_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConvolution *convolution = (VipsConvolution *) object;
 	VipsConvasep *convasep = (VipsConvasep *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
@@ -838,6 +836,9 @@ vips_convasep_build( VipsObject *object )
 
 	if( VIPS_OBJECT_CLASS( vips_convasep_parent_class )->build( object ) )
 		return( -1 );
+
+	if( vips_check_separable( class->nickname, convolution->M ) ) 
+                return( -1 );
 
 	/* An int version of our mask.
 	 */
@@ -915,12 +916,11 @@ vips_convasep_init( VipsConvasep *convasep )
  * Approximate separable convolution. This is a low-level operation, see 
  * vips_convsep() for something more convenient. 
  *
- * The mask must be 1xn or nx1 elements. 
- * The output image 
- * always has the same #VipsBandFormat as the input image. 
- *
  * The image is convolved twice: once with @mask and then again with @mask 
  * rotated by 90 degrees. 
+ * @mask must be 1xn or nx1 elements. 
+ * Elements of @mask are converted to
+ * integers before convolution.
  *
  * Larger values for @layers give more accurate
  * results, but are slower. As @layers approaches the mask radius, the
@@ -928,7 +928,10 @@ vips_convasep_init( VipsConvasep *convasep )
  * match. For many large masks, such as Gaussian, @layers need be only 10% of
  * this value and accuracy will still be good.
  *
- * See also: vips_conv().
+ * The output image 
+ * always has the same #VipsBandFormat as the input image. 
+ *
+ * See also: vips_convsep().
  *
  * Returns: 0 on success, -1 on error
  */

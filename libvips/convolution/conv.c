@@ -175,9 +175,9 @@ vips_conv_init( VipsConv *conv )
  *
  * Optional arguments:
  *
- * * @precision: calculation accuracy
- * * @layers: number of layers for approximation
- * * @cluster: cluster lines closer than this distance
+ * * @precision: #VipsPrecision, calculation accuracy
+ * * @layers: %gint, number of layers for approximation
+ * * @cluster: %gint, cluster lines closer than this distance
  *
  * Convolution. 
  *
@@ -190,8 +190,10 @@ vips_conv_init( VipsConv *conv )
  *
  * where scale and offset are part of @mask. 
  *
- * If @precision is #VIPS_PRECISION_INTEGER then the convolution is performed
- * with integer arithmetic and the output image 
+ * If @precision is #VIPS_PRECISION_INTEGER, then 
+ * elements of @mask are converted to
+ * integers before convolution, using rint(),
+ * and the output image 
  * always has the same #VipsBandFormat as the input image. 
  *
  * For #VIPS_FORMAT_UCHAR images, vips_conv() uses a fast vector path based on
@@ -204,7 +206,9 @@ vips_conv_init( VipsConv *conv )
  * is always #VIPS_FORMAT_FLOAT unless @in is #VIPS_FORMAT_DOUBLE, in which case
  * @out is also #VIPS_FORMAT_DOUBLE. 
  *
- * If @precision is #VIPS_PRECISION_APPROXIMATE then the output image 
+ * If @precision is #VIPS_PRECISION_APPROXIMATE then, like
+ * #VIPS_PRECISION_INTEGER, @mask is converted to int before convolution, and 
+ * the output image 
  * always has the same #VipsBandFormat as the input image. 
  *
  * Larger values for @layers give more accurate
@@ -215,6 +219,8 @@ vips_conv_init( VipsConv *conv )
  *
  * Smaller values of @cluster will give more accurate results, but be slower
  * and use more memory. 10% of the mask radius is a good rule of thumb.
+ *
+ * See also: vips_convsep().
  *
  * Returns: 0 on success, -1 on error
  */

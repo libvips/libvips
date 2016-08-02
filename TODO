@@ -1,11 +1,18 @@
-- convasep does not handle offset correctly
+- tests for convasep ... just check it matches convsep +/- some small amount
+
+- try this blur.mat
+
+	6 1 3896 
+	20 22 24 27 30 32
+ 
+  ie. missing offset, though scale is there ... is not recognised
 
 - test new clip stuff?
 
 
 
 
-
+- worley could output float distance by default?
 
 - add more webp tests to py suite
 
