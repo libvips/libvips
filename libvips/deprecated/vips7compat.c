@@ -2481,6 +2481,32 @@ im_aconvsep( VipsImage *in, VipsImage *out, DOUBLEMASK *mask, int n_layers )
 	return( 0 );
 }
 
+int 
+im_aconv( VipsImage *in, VipsImage *out, 
+	DOUBLEMASK *mask, int n_layers, int cluster )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_mask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_conva( in, &t2, t1, 
+		"layers", n_layers,
+		"cluster", cluster,
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
 int
 im_conv_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask )
 {
