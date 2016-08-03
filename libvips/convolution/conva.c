@@ -103,10 +103,6 @@ $ vips im_max abs.v
  */
 #define MAX_EDGES (1000)
 
-/* Get an (x,y) value from a mask.
- */
-#define MASK( M, X, Y ) ((M)->coeff[(X) + (Y) * (M)->xsize])
-
 /* A horizontal line in the mask.
  */
 typedef struct _HLine {
@@ -195,7 +191,8 @@ typedef struct {
 	 */
 	int n_vline;
 	VLine vline[MAX_LINES];
-} Boxes;
+
+} VipsConva;
 
 typedef VipsConvolutionClass VipsConvaClass;
 
@@ -213,14 +210,14 @@ gcd( int a, int b )
 }
 
 static void
-vips_conva_box_start( VipsConva *conva, int x )
+vips_conva_hline_start( VipsConva *conva, int x )
 {
 	conva->hline[conva->n_hline].start = x;
 	conva->hline[conva->n_hline].weight = 1;
 }
 
 static int
-vips_conva_box_end( VipsConva *conva, int x, int y, int factor )
+vips_conva_hline_end( VipsConva *conva, int x, int y, int factor )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( conva );
 
@@ -299,11 +296,9 @@ vips_conva_vprint( VipsConva *conva )
 /* Break the mask into a set of lines.
  */
 static int
-vips_conva_decompose( VipsConva *conva )
+vips_conva_decompose_lines( VipsConva *conva )
 {
 	VipsImage *iM = conva->iM;
-	double *coeff = (double *) VIPS_IMAGE_ADDR( iM, 0, 0 );
-
 	const int size = iM->Xsize * iM->Ysize;
 
 	double max;
@@ -340,7 +335,7 @@ vips_conva_decompose( VipsConva *conva )
 	/* For each layer, generate a set of lines which are inside the
 	 * perimeter. Work down from the top.
 	 */
-	for( z = 0; z < boxes->layers; z++ ) {
+	for( z = 0; z < conva->layers; z++ ) {
 		/* How deep we are into the mask, as a double we can test
 		 * against. Add half the layer depth so we can easily find >50%
 		 * mask elements.
@@ -352,15 +347,15 @@ vips_conva_decompose( VipsConva *conva )
 		 */
 		int z_positive = z < layers_above;
 
-		for( y = 0; y < mask->ysize; y++ ) {
+		for( y = 0; y < iM->Ysize; y++ ) {
 			int inside;
 
 			/* Start outside the perimeter.
 			 */
 			inside = 0;
 
-			for( x = 0; x < mask->xsize; x++ ) {
-				double coeff = MASK( mask, x, y );
+			for( x = 0; x < iM->Xsize; x++ ) {
+				double coeff = *VIPS_MATRIX( iM, x, y );
 
 				/* The vertical line from mask[x, y] to 0 is 
 				 * inside. Is our current square (x, y) part 
@@ -369,13 +364,15 @@ vips_conva_decompose( VipsConva *conva )
 				if( (z_positive && coeff >= z_ph) ||
 					(!z_positive && coeff <= z_ph) ) {
 					if( !inside ) {
-						boxes_start( boxes, x );
+						vips_conva_hline_start( conva,
+							x );
 						inside = 1;
 					}
 				}
 				else {
 					if( inside ) {
-						if( boxes_end( boxes, x, y,
+						if( vips_conva_hline_end( conva,
+							x, y, 
 							z_positive ? 1 : -1 ) )
 							return( -1 );
 						inside = 0;
@@ -384,15 +381,16 @@ vips_conva_decompose( VipsConva *conva )
 			}
 
 			if( inside && 
-				boxes_end( boxes, mask->xsize, y, 
-					z_positive ? 1 : -1 ) )
+				vips_conva_hline_end( conva, 
+					mask->xsize, y, z_positive ? 1 : -1 ) )
 				return( -1 );
 		}
 	}
 
 #ifdef DEBUG
-	VIPS_DEBUG_MSG( "boxes_new: generated %d boxes\n", boxes->n_hline );
-	boxes_hprint( boxes );
+	VIPS_DEBUG_MSG( "vips_conva_decompose: generated %d boxes\n", 
+		conva->n_hline );
+	vips_conva_hprint( conva );
 #endif /*DEBUG*/
 
 	return( 0 );
@@ -401,45 +399,45 @@ vips_conva_decompose( VipsConva *conva )
 /* The 'distance' between a pair of hlines.
  */
 static int
-boxes_distance( Boxes *boxes, int a, int b )
+vips_conva_distance( VipsConva *conva, int a, int b )
 {
-	g_assert( boxes->hline[a].weight > 0 && boxes->hline[b].weight > 0 );
+	g_assert( conva->hline[a].weight > 0 && conva->hline[b].weight > 0 );
 
-	return( abs( boxes->hline[a].start - boxes->hline[b].start ) + 
-		abs( boxes->hline[a].end - boxes->hline[b].end ) ); 
+	return( abs( conva->hline[a].start - conva->hline[b].start ) + 
+		abs( conva->hline[a].end - conva->hline[b].end ) ); 
 }
 
 /* Merge two hlines. Line b is deleted, and any refs to b in vlines updated to
  * point at a.
  */
 static void
-boxes_merge( Boxes *boxes, int a, int b )
+vips_conva_merge( VipsConva *conva, int a, int b )
 {
 	int i;
 
 	/* Scale weights. 
 	 */
-	int fa = boxes->hline[a].weight;
-	int fb = boxes->hline[b].weight;
+	int fa = conva->hline[a].weight;
+	int fb = conva->hline[b].weight;
 	double w = (double) fb / (fa + fb);
 
 	/* New endpoints.
 	 */
-	boxes->hline[a].start += w * 
-		(boxes->hline[b].start - boxes->hline[a].start);
-	boxes->hline[a].end += w * 
-		(boxes->hline[b].end - boxes->hline[a].end);
-	boxes->hline[a].weight += boxes->hline[b].weight;
+	conva->hline[a].start += w * 
+		(conva->hline[b].start - conva->hline[a].start);
+	conva->hline[a].end += w * 
+		(conva->hline[b].end - conva->hline[a].end);
+	conva->hline[a].weight += conva->hline[b].weight;
 
 	/* Update velement refs to b to refer to a instead.
 	 */
-	for( i = 0; i < boxes->n_velement; i++ )
-		if( boxes->velement[i].band == b )
-			boxes->velement[i].band = a;
+	for( i = 0; i < conva->n_velement; i++ )
+		if( conva->velement[i].band == b )
+			conva->velement[i].band = a;
 
 	/* Mark b to be deleted.
 	 */
-	boxes->hline[b].weight = 0;
+	conva->hline[b].weight = 0;
 }
 
 static int
@@ -457,7 +455,7 @@ edge_sortfn( const void *p1, const void *p2 )
  * it's far faster.
  */
 static int
-boxes_cluster2( Boxes *boxes, int cluster )
+vips_conva_cluster2( VipsConva *conva )
 {
 	int i, j, k;
 	int worst;
@@ -465,34 +463,34 @@ boxes_cluster2( Boxes *boxes, int cluster )
 	int merged;
 
 	for( i = 0; i < MAX_EDGES; i++ ) {
-		boxes->edge[i].a = -1;
-		boxes->edge[i].b = -1;
-		boxes->edge[i].d = 99999;
+		conva->edge[i].a = -1;
+		conva->edge[i].b = -1;
+		conva->edge[i].d = 99999;
 	}
 	worst_i = 0;
-	worst = boxes->edge[worst_i].d;
+	worst = conva->edge[worst_i].d;
 
-	for( i = 0; i < boxes->n_hline; i++ ) {
-		if( boxes->hline[i].weight == 0 )
+	for( i = 0; i < conva->n_hline; i++ ) {
+		if( conva->hline[i].weight == 0 )
 			continue;
 
-		for( j = i + 1; j < boxes->n_hline; j++ ) {
+		for( j = i + 1; j < conva->n_hline; j++ ) {
 			int distance;
 
-			if( boxes->hline[j].weight == 0 )
+			if( conva->hline[j].weight == 0 )
 				continue;
 
-			distance = boxes_distance( boxes, i, j ); 
+			distance = vips_conva_distance( boxes, i, j ); 
 			if( distance < worst ) {
-				boxes->edge[worst_i].a = i;
-				boxes->edge[worst_i].b = j;
-				boxes->edge[worst_i].d = distance;
+				conva->edge[worst_i].a = i;
+				conva->edge[worst_i].b = j;
+				conva->edge[worst_i].d = distance;
 
 				worst_i = 0;
-				worst = boxes->edge[worst_i].d;
+				worst = conva->edge[worst_i].d;
 				for( k = 0; k < MAX_EDGES; k++ )
-					if( boxes->edge[k].d > worst ) {
-						worst = boxes->edge[k].d;
+					if( conva->edge[k].d > worst ) {
+						worst = conva->edge[k].d;
 						worst_i = k;
 					}
 			}
@@ -501,23 +499,23 @@ boxes_cluster2( Boxes *boxes, int cluster )
 
 	/* Sort to get closest first.
 	 */
-	qsort( boxes->edge, MAX_EDGES, sizeof( Edge ), edge_sortfn );
+	qsort( conva->edge, MAX_EDGES, sizeof( Edge ), edge_sortfn );
 
 	/*
 	printf( "edges:\n" );
 	printf( "  n   a   b  d:\n" );
 	for( i = 0; i < MAX_EDGES; i++ )
 		printf( "%2i) %3d %3d %3d\n", i, 
-			boxes->edge[i].a, boxes->edge[i].b, boxes->edge[i].d );
+			conva->edge[i].a, conva->edge[i].b, conva->edge[i].d );
 	 */
 
 	/* Merge from the top down.
 	 */
 	merged = 0;
 	for( k = 0; k < MAX_EDGES; k++ ) {
-		Edge *edge = &boxes->edge[k];
+		Edge *edge = &conva->edge[k];
 
-		if( edge->d > cluster )
+		if( edge->d > conva->cluster )
 			break;
 
 		/* Has been removed, see loop below.
@@ -525,14 +523,14 @@ boxes_cluster2( Boxes *boxes, int cluster )
 		if( edge->a == -1 )
 			continue;
 
-		boxes_merge( boxes, edge->a, edge->b );
+		vips_conva_merge( conva, edge->a, edge->b );
 		merged = 1;
 
 		/* Nodes a and b have vanished or been moved. Remove any edges
 		 * which refer to them from the edge list,
 		 */
 		for( i = k; i < MAX_EDGES; i++ ) {
-			Edge *edgei = &boxes->edge[i];
+			Edge *edgei = &conva->edge[i];
 
 			if( edgei->a == edge->a ||
 				edgei->b == edge->a ||
@@ -549,16 +547,16 @@ boxes_cluster2( Boxes *boxes, int cluster )
  * the rest down, adjust all the vline references.
  */
 static void
-boxes_renumber( Boxes *boxes )
+vips_conva_renumber( VipsConva *conva )
 {
 	int i, j;
 
-	VIPS_DEBUG_MSG( "boxes_renumber: renumbering ...\n" );
+	VIPS_DEBUG_MSG( "vips_conva_renumber: renumbering ...\n" );
 
 	/* Loop for all zero-weight hlines.
 	 */
-	for( i = 0; i < boxes->n_hline; ) {
-		if( boxes->hline[i].weight > 0 ) {
+	for( i = 0; i < conva->n_hline; ) {
+		if( conva->hline[i].weight > 0 ) {
 			i++;
 			continue;
 		}
@@ -566,17 +564,17 @@ boxes_renumber( Boxes *boxes )
 		/* We move hlines i + 1 down, so we need to adjust all
 		 * band[] refs to match.
 		 */
-		for( j = 0; j < boxes->n_velement; j++ )
-			if( boxes->velement[j].band > i ) 
-				boxes->velement[j].band -= 1;
+		for( j = 0; j < conva->n_velement; j++ )
+			if( conva->velement[j].band > i ) 
+				conva->velement[j].band -= 1;
 
-		memmove( boxes->hline + i, boxes->hline + i + 1, 
-			sizeof( HLine ) * (boxes->n_hline - i - 1) );
-		boxes->n_hline -= 1;
+		memmove( conva->hline + i, conva->hline + i + 1, 
+			sizeof( HLine ) * (conva->n_hline - i - 1) );
+		conva->n_hline -= 1;
 	}
 
 	VIPS_DEBUG_MSG( "boxes_renumber: ... %d hlines remain\n", 
-		boxes->n_hline );
+		conva->n_hline );
 }
 
 /* Sort by band, then factor, then row.
@@ -597,103 +595,90 @@ velement_sortfn( const void *p1, const void *p2 )
 }
 
 static void
-boxes_vline( Boxes *boxes )
+vips_conva_vline( VipsConva *conva )
 {
 	int y, z;
 
-	VIPS_DEBUG_MSG( "boxes_vline: forming vlines ...\n" );
+	VIPS_DEBUG_MSG( "vips_conva_vline: forming vlines ...\n" );
 
 	/* Sort to get elements which could form a vline together.
 	 */
-	qsort( boxes->velement, boxes->n_velement, sizeof( VElement ), 
+	qsort( conva->velement, conva->n_velement, sizeof( VElement ), 
 		velement_sortfn );
 
 #ifdef DEBUG
-	boxes_hprint( boxes );
+	vips_conva_hprint( conva );
 #endif /*DEBUG*/
 
 	/* If two lines have the same row and band, we can join them and knock
 	 * up the factor instead.
 	 */
-	for( y = 0; y < boxes->n_velement; y++ ) {
-		for( z = y + 1; z < boxes->n_velement; z++ )
-			if( boxes->velement[z].band != 
-				boxes->velement[y].band ||
-				boxes->velement[z].row != 
-					boxes->velement[y].row )
+	for( y = 0; y < conva->n_velement; y++ ) {
+		for( z = y + 1; z < conva->n_velement; z++ )
+			if( conva->velement[z].band != 
+				conva->velement[y].band ||
+				conva->velement[z].row != 
+					conva->velement[y].row )
 				break;
 
-		boxes->velement[y].factor = z - y;
-		memmove( boxes->velement + y + 1, boxes->velement + z,
-			sizeof( VElement ) * (boxes->n_velement - z) );
-		boxes->n_velement -= z - y - 1;
+		conva->velement[y].factor = z - y;
+		memmove( conva->velement + y + 1, conva->velement + z,
+			sizeof( VElement ) * (conva->n_velement - z) );
+		conva->n_velement -= z - y - 1;
 	}
 
 #ifdef DEBUG
-	printf( "after commoning up, %d velement remain\n", boxes->n_velement );
-	boxes_hprint( boxes );
+	printf( "after commoning up, %d velement remain\n", conva->n_velement );
+	vips_conva_hprint( conva );
 #endif /*DEBUG*/
 
-	boxes->n_vline = 0;
-	for( y = 0; y < boxes->n_velement; ) {
-		int n = boxes->n_vline;
+	conva->n_vline = 0;
+	for( y = 0; y < conva->n_velement; ) {
+		int n = conva->n_vline;
 
 		/* Start of a line.
 		 */
-		boxes->vline[n].band = boxes->velement[y].band;
-		boxes->vline[n].factor = boxes->velement[y].factor;
-		boxes->vline[n].start = boxes->velement[y].row;
+		conva->vline[n].band = conva->velement[y].band;
+		conva->vline[n].factor = conva->velement[y].factor;
+		conva->vline[n].start = conva->velement[y].row;
 
 		/* Search for the end of this line.
 		 */
-		for( z = y + 1; z < boxes->n_velement; z++ ) 
-			if( boxes->velement[z].band != 
-					boxes->vline[n].band ||
-				boxes->velement[z].factor != 
-					boxes->vline[n].factor ||
-				boxes->velement[z].row != 
-					boxes->vline[n].start + z - y )
+		for( z = y + 1; z < conva->n_velement; z++ ) 
+			if( conva->velement[z].band != 
+					conva->vline[n].band ||
+				conva->velement[z].factor != 
+					conva->vline[n].factor ||
+				conva->velement[z].row != 
+					conva->vline[n].start + z - y )
 				break;
 
 		/* So the line ends at the previously examined element. We
 		 * want 'end' to be one beyond that (non-inclusive).
 		 */
-		boxes->vline[n].end = boxes->velement[z - 1].row + 1;
+		conva->vline[n].end = conva->velement[z - 1].row + 1;
 
-		boxes->n_vline += 1;
+		conva->n_vline += 1;
 		y = z;
 	}
 
-	VIPS_DEBUG_MSG( "boxes_vline: found %d vlines\n", boxes->n_vline );
+	VIPS_DEBUG_MSG( "vips_conva_vline: found %d vlines\n", conva->n_vline );
 }
 
 /* Break a mask into boxes.
  */
-static Boxes *
-boxes_new( VipsImage *in, VipsImage *out, DOUBLEMASK *mask, int layers, int cluster )
+static int
+vips_conva_decompose_boxes( VipsConva *conva )
 {
-	const int size = mask->xsize * mask->ysize;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( conva );
+	VipsImage *iM = conva->iM;
+	double *coeff = VIPS_MATRIX( im, 0, 0 ); 
+	const int size = iM->Xsize * iM->Ysize;
+	double scale = vips_image_get_scale( iM ); 
+	double offset = vips_image_get_offset( iM ); 
 
-	Boxes *boxes;
 	double sum;
 	int x, y, z;
-
-	/* Check parameters.
-	 */
-	if( im_piocheck( in, out ) ||
-		im_check_uncoded( "im_aconv", in ) ||
-		vips_check_dmask( "im_aconv", mask ) ) 
-		return( NULL );
-
-	boxes = VIPS_NEW( out, Boxes );
-	boxes->in = in;
-	boxes->out = out;
-	if( !(boxes->mask = (DOUBLEMASK *) im_local( out, 
-		(im_construct_fn) im_dup_dmask,
-		(im_callback_fn) im_free_dmask, mask, mask->filename, NULL )) )
-		return( NULL );
-	boxes->layers = layers;
-	boxes->cluster = cluster;
 
 	boxes->n_hline = 0;
 	boxes->n_velement = 0;
@@ -701,76 +686,77 @@ boxes_new( VipsImage *in, VipsImage *out, DOUBLEMASK *mask, int layers, int clus
 
 	/* Break into a set of hlines.
 	 */
-	if( boxes_break( boxes ) )
-		return( NULL );
+	if( vips_conva_decompose_lines( boxes ) )
+		return( -1 );
 
 	/* Cluster to find groups of lines.
 	 */
 	VIPS_DEBUG_MSG( "boxes_new: clustering with thresh %d ...\n", cluster );
-	while( boxes_cluster2( boxes, cluster ) )
+	while( vips_conva_cluster2( conva ) )
 		;
 
 	/* Renumber to remove holes created by clustering.
 	 */
-	boxes_renumber( boxes );
+	vips_conva_renumber( conva );
 
 	/* Find a set of vlines for the remaining hlines.
 	 */
-	boxes_vline( boxes );
+	vips_conva_vline( conva );
 
 	/* Find the area of the lines and the length of the longest hline.
 	 */
-	boxes->area = 0;
-	boxes->max_line = 0;
-	for( y = 0; y < boxes->n_velement; y++ ) {
-		x = boxes->velement[y].band;
-		z = boxes->hline[x].end - boxes->hline[x].start;
+	conva->area = 0;
+	conva->max_line = 0;
+	for( y = 0; y < conva->n_velement; y++ ) {
+		x = conva->velement[y].band;
+		z = conva->hline[x].end - conva->hline[x].start;
 
-		boxes->area += boxes->velement[y].factor * z;
-		if( z > boxes->max_line )
-			boxes->max_line = z;
+		conva->area += conva->velement[y].factor * z;
+		if( z > conva->max_line )
+			conva->max_line = z;
 	}
 
 	/* Strength reduction: if all lines are divisible by n, we can move
 	 * that n out into the ->area factor. The aim is to produce as many
 	 * factor 1 lines as we can and to reduce the chance of overflow.
 	 */
-	x = boxes->velement[0].factor;
-	for( y = 1; y < boxes->n_velement; y++ ) 
-		x = gcd( x, boxes->velement[y].factor );
-	for( y = 0; y < boxes->n_velement; y++ ) 
-		boxes->velement[y].factor /= x;
-	boxes->area *= x;
+	x = conva->velement[0].factor;
+	for( y = 1; y < conva->n_velement; y++ ) 
+		x = gcd( x, conva->velement[y].factor );
+	for( y = 0; y < conva->n_velement; y++ ) 
+		conva->velement[y].factor /= x;
+	conva->area *= x;
 
 	/* Find the area of the original mask.
 	 */
 	sum = 0;
 	for( z = 0; z < size; z++ ) 
-		sum += mask->coeff[z];
+		sum += coeff[z];
 
-	boxes->area = rint( sum * boxes->area / mask->scale );
-	boxes->rounding = (boxes->area + 1) / 2 + mask->offset * boxes->area;
+	conva->area = VIPS_RINT( sum * conva->area / scale );
+	conva->rounding = (conva->area + 1) / 2 + offset * conva->area;
+	conva->offset = offset;
 
 #ifdef DEBUG
-	boxes_hprint( boxes );
-	boxes_vprint( boxes );
+	vips_conva_hprint( conva );
+	vips_conva_vprint( conva );
 #endif /*DEBUG*/
 
 	/* With 512x512 tiles, each hline requires 3mb of intermediate per
 	 * thread ... 300 lines is about a gb per thread, ouch.
 	 */
-	if( boxes->n_hline > 150 ) {
-		im_error( "im_aconv", "%s", _( "mask too complex" ) );
-		return( NULL );
+	if( conva->n_hline > 150 ) {
+		vips_error( class->nickname, "%s", _( "mask too complex" ) );
+		return( -1 );
 	}
 
-	return( boxes );
+	return( 0 );
 }
 
 /* Our sequence value.
  */
 typedef struct {
-	Boxes *boxes;
+	VipsConva *conva;
 
 	VipsRegion *ir;		/* Input region */
 
@@ -785,16 +771,16 @@ typedef struct {
 	 * types.
 	 */
 	void *sum;		
-} AConvSequence;
+} VipsConvaSeq;
 
 /* Free a sequence value.
  */
 static int
-aconv_stop( void *vseq, void *a, void *b )
+vips_conva_stop( void *vseq, void *a, void *b )
 {
-	AConvSequence *seq = (AConvSequence *) vseq;
+	VipsConvaSeq *seq = (VipsConvaSeq *) vseq;
 
-	VIPS_FREEF( im_region_free, seq->ir );
+	VIPS_UNREF( seq->ir );
 
 	return( 0 );
 }
@@ -802,37 +788,35 @@ aconv_stop( void *vseq, void *a, void *b )
 /* Convolution start function.
  */
 static void *
-aconv_start( VipsImage *out, void *a, void *b )
+vips_conva_start( VipsImage *out, void *a, void *b )
 {
 	VipsImage *in = (VipsImage *) a;
-	Boxes *boxes = (Boxes *) b;
+	VipsConva *conva = (VipsConva *) b;
 
-	AConvSequence *seq;
+	VipsConvaSeq *seq;
 
-	if( !(seq = VIPS_NEW( out, AConvSequence )) )
+	if( !(seq = VIPS_NEW( out, VipsConvaSeq )) )
 		return( NULL );
 
-	/* Init!
-	 */
-	seq->boxes = boxes;
-	seq->ir = im_region_create( in );
+	seq->conva = conva;
+	seq->ir = vips_region_new( in );
 
 	/* n_velement should be the largest possible dimension.
 	 */
-	g_assert( boxes->n_velement >= boxes->n_hline );
-	g_assert( boxes->n_velement >= boxes->n_vline );
+	g_assert( conva->n_velement >= conva->n_hline );
+	g_assert( conva->n_velement >= conva->n_vline );
 
-	seq->start = VIPS_ARRAY( out, boxes->n_velement, int );
-	seq->end = VIPS_ARRAY( out, boxes->n_velement, int );
+	seq->start = VIPS_ARRAY( out, conva->n_velement, int );
+	seq->end = VIPS_ARRAY( out, conva->n_velement, int );
 
 	if( vips_band_format_isint( out->BandFmt ) )
-		seq->sum = VIPS_ARRAY( out, boxes->n_velement, int );
+		seq->sum = VIPS_ARRAY( out, conva->n_velement, int );
 	else
-		seq->sum = VIPS_ARRAY( out, boxes->n_velement, double );
+		seq->sum = VIPS_ARRAY( out, conva->n_velement, double );
 	seq->last_stride = -1;
 
 	if( !seq->ir || !seq->start || !seq->end || !seq->sum ) {
-		aconv_stop( seq, in, boxes );
+		vips_conva_stop( seq, in, boxes );
 		return( NULL );
 	}
 
@@ -857,8 +841,8 @@ G_STMT_START { \
 		\
 		for( z = 0; z < n_hline; z++ ) { \
 			seq_sum[z] = 0; \
-			for( x = boxes->hline[z].start; \
-				x < boxes->hline[z].end; x++ ) \
+			for( x = conva->hline[z].start; \
+				x < conva->hline[z].end; x++ ) \
 				seq_sum[z] += p[x * istride]; \
 			q[z] = seq_sum[z]; \
 		} \
@@ -879,15 +863,15 @@ G_STMT_START { \
 /* Do horizontal masks ... we scan the mask along scanlines.
  */
 static int
-aconv_hgenerate( VipsRegion *or, void *vseq, void *a, void *b )
+vips_conva_hgenerate( VipsRegion *or, void *vseq, void *a, void *b )
 {
-	AConvSequence *seq = (AConvSequence *) vseq;
+	VipsConvaSeq *seq = (VipsConvaSeq *) vseq;
 	VipsImage *in = (VipsImage *) a;
-	Boxes *boxes = (Boxes *) b;
+	VipsConva *conva = (VipsConva *) b;
 
 	VipsRegion *ir = seq->ir;
-	const int n_hline = boxes->n_hline;
-	DOUBLEMASK *mask = boxes->mask;
+	const int n_hline = conva->n_hline;
+	VipsImage *iM = conva->iM;
 	VipsRect *r = &or->valid;
 
 	/* Double the bands (notionally) for complex.
@@ -919,22 +903,22 @@ aconv_hgenerate( VipsRegion *or, void *vseq, void *a, void *b )
 		seq->last_stride = istride;
 
 		for( z = 0; z < n_hline; z++ ) {
-			seq->start[z] = boxes->hline[z].start * istride;
-			seq->end[z] = boxes->hline[z].end * istride;
+			seq->start[z] = conva->hline[z].start * istride;
+			seq->end[z] = conva->hline[z].end * istride;
 		}
 	}
 
 	for( y = 0; y < r->height; y++ ) { 
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	
-			if( boxes->max_line > 256 )
+			if( conva->max_line > 256 )
 				HCONV( unsigned char, unsigned int );
 			else
 				HCONV( unsigned char, unsigned short );
 			break;
 
 		case VIPS_FORMAT_CHAR: 	
-			if( boxes->max_line > 256 )
+			if( conva->max_line > 256 )
 				HCONV( signed char, signed int );
 			else
 				HCONV( signed char, signed short );
@@ -981,36 +965,39 @@ aconv_hgenerate( VipsRegion *or, void *vseq, void *a, void *b )
 }
 
 static int
-aconv_horizontal( Boxes *boxes, VipsImage *in, VipsImage *out )
+vips_conva_horizontal( VipsConva *conva, VipsImage *in, VipsImage **out )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( convasep );
+
 	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
 	 * would be 1x1.
 	 */
-	if( im_cp_desc( out, in ) )
+	*out = vips_image_new(); 
+	if( vips_image_pipelinev( *out, 
+		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
-	out->Xsize -= boxes->mask->xsize - 1;
-	if( out->Xsize <= 0 ) { 
-		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
+
+	(*out)->Xsize -= conva->iM->Xsize - 1;
+	if( (*out)->Xsize <= 0 ) { 
+		vips_error( class->nickname, 
+			"%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
-	out->Bands *= boxes->n_hline;
+	(*out)->Bands *= conva->n_hline;
 
 	/* Short u?char lines can use u?short intermediate.
 	 */
 	if( vips_band_format_isuint( in->BandFmt ) )
-		out->BandFmt = boxes->max_line < 256 ? 
+		(*out)->BandFmt = conva->max_line < 256 ? 
 			VIPS_FORMAT_USHORT : VIPS_FORMAT_UINT;
 	else if( vips_band_format_isint( in->BandFmt ) )
-		out->BandFmt = boxes->max_line < 256 ? 
+		(*out)->BandFmt = conva->max_line < 256 ? 
 			VIPS_FORMAT_SHORT : VIPS_FORMAT_INT;
 
-	if( im_demand_hint( out, VIPS_SMALLTILE, in, NULL ) ||
-		im_generate( out, 
-			aconv_start, aconv_hgenerate, aconv_stop, in, boxes ) )
+	if( vips_image_generate( *out, 
+		vips_conva_start, vips_conva_hgenerate, vips_conva_stop, 
+		in, conva ) )
 		return( -1 );
-
-	out->Xoffset = -boxes->mask->xsize / 2;
-	out->Yoffset = -boxes->mask->ysize / 2;
 
 	return( 0 );
 }
@@ -1058,20 +1045,20 @@ G_STMT_START { \
 		OUT *q; \
 		ACC sum; \
 		\
-		p = x * boxes->n_hline + \
+		p = x * conva->n_hline + \
 			(IN *) VIPS_REGION_ADDR( ir, r->left, r->top ); \
 		q = x + (OUT *) VIPS_REGION_ADDR( or, r->left, r->top ); \
 		\
 		sum = 0; \
 		for( z = 0; z < n_vline; z++ ) { \
 			seq_sum[z] = 0; \
-			for( k = boxes->vline[z].start; \
-				k < boxes->vline[z].end; k++ ) \
+			for( k = conva->vline[z].start; \
+				k < conva->vline[z].end; k++ ) \
 				seq_sum[z] += p[k * istride + \
-					boxes->vline[z].band]; \
-			sum += boxes->vline[z].factor * seq_sum[z]; \
+					conva->vline[z].band]; \
+			sum += conva->vline[z].factor * seq_sum[z]; \
 		} \
-		sum = (sum + boxes->rounding) / boxes->area; \
+		sum = (sum + conva->rounding) / conva->area + conva->offset; \
 		CLIP( sum ); \
 		*q = sum; \
 		q += ostride; \
@@ -1081,10 +1068,11 @@ G_STMT_START { \
 			for( z = 0; z < n_vline; z++ ) { \
 				seq_sum[z] += p[seq->end[z]]; \
 				seq_sum[z] -= p[seq->start[z]]; \
-				sum += boxes->vline[z].factor * seq_sum[z]; \
+				sum += conva->vline[z].factor * seq_sum[z]; \
 			} \
 			p += istride; \
-			sum = (sum + boxes->rounding) / boxes->area; \
+			sum = (sum + conva->rounding) / conva->area + \
+				conva->offset; \
 			CLIP( sum ); \
 			*q = sum; \
 			q += ostride; \
@@ -1095,15 +1083,15 @@ G_STMT_START { \
 /* Do vertical masks ... we scan the mask down columns of pixels. 
  */
 static int
-aconv_vgenerate( VipsRegion *or, void *vseq, void *a, void *b )
+vips_conva_vgenerate( VipsRegion *or, void *vseq, void *a, void *b )
 {
-	AConvSequence *seq = (AConvSequence *) vseq;
+	VipsConvaSeq *seq = (VipsConvaSeq *) vseq;
 	VipsImage *in = (VipsImage *) a;
-	Boxes *boxes = (Boxes *) b;
+	VipsConva *conva = (VipsConva *) b;
 
 	VipsRegion *ir = seq->ir;
-	const int n_vline = boxes->n_vline;
-	DOUBLEMASK *mask = boxes->mask;
+	const int n_vline = conva->n_vline;
+	VipsImage *iM = conva->iM;
 	VipsRect *r = &or->valid;
 
 	/* Double the width (notionally) for complex.
@@ -1135,16 +1123,16 @@ aconv_vgenerate( VipsRegion *or, void *vseq, void *a, void *b )
 		seq->last_stride = istride;
 
 		for( z = 0; z < n_vline; z++ ) {
-			seq->start[z] = boxes->vline[z].band + 
-				boxes->vline[z].start * istride;
-			seq->end[z] = boxes->vline[z].band + 
-				boxes->vline[z].end * istride;
+			seq->start[z] = conva->vline[z].band + 
+				conva->vline[z].start * istride;
+			seq->end[z] = conva->vline[z].band + 
+				conva->vline[z].end * istride;
 		}
 	}
 
-	switch( boxes->in->BandFmt ) {
+	switch( conva->in->BandFmt ) {
 	case VIPS_FORMAT_UCHAR: 	
-		if( boxes->max_line > 256 )
+		if( conva->max_line > 256 )
 			VCONV( unsigned int, \
 				unsigned int, unsigned char, CLIP_UCHAR );
 		else
@@ -1153,7 +1141,7 @@ aconv_vgenerate( VipsRegion *or, void *vseq, void *a, void *b )
 		break;
 
 	case VIPS_FORMAT_CHAR: 	
-		if( boxes->max_line > 256 )
+		if( conva->max_line > 256 )
 			VCONV( signed int, \
 				signed int, signed char, CLIP_UCHAR );
 		else
@@ -1202,60 +1190,116 @@ aconv_vgenerate( VipsRegion *or, void *vseq, void *a, void *b )
 }
 
 static int
-aconv_vertical( Boxes *boxes, VipsImage *in, VipsImage *out )
+vips_conva_vertical( VipsConva *conva, VipsImage *in, VipsImage **out )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( convasep );
+
 	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
 	 * would be 1x1.
 	 */
-	if( im_cp_desc( out, in ) )
+	*out = vips_image_new(); 
+	if( vips_image_pipelinev( *out, 
+		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
 		return( -1 );
-	out->Ysize -= boxes->mask->ysize - 1;
-	if( out->Ysize <= 0 ) {
-		im_error( "im_aconv", "%s", _( "image too small for mask" ) );
+
+	(*out)->Ysize -= conva->iM->Ysize - 1;
+	if( (*out)->Ysize <= 0 ) { 
+		vips_error( class->nickname, 
+			"%s", _( "image too small for mask" ) );
 		return( -1 );
 	}
 	out->Bands = boxes->in->Bands;
 	out->BandFmt = boxes->in->BandFmt;
 
-	if( im_demand_hint( out, VIPS_SMALLTILE, in, NULL ) ||
-		im_generate( out, 
-			aconv_start, aconv_vgenerate, aconv_stop, in, boxes ) )
+	if( vips_image_generate( out, 
+		vips_conva_start, vips_conva_vgenerate, vips_conva_stop, 
+		in, boxes ) )
 		return( -1 );
-
-	out->Xoffset = -boxes->mask->xsize / 2;
-	out->Yoffset = -boxes->mask->ysize / 2;
 
 	return( 0 );
 }
-int 
-im_aconv( VipsImage *in, VipsImage *out, DOUBLEMASK *mask, int layers, int cluster )
+
+static int
+vips_conva_build( VipsObject *object )
 {
-	VipsImage *t[2];
-	Boxes *boxes;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsConvolution *convolution = (VipsConvolution *) object;
+	VipsConva *conva = (VipsConva *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
-	if( !(boxes = boxes_new( in, out, mask, layers, cluster )) ||
-		im_open_local_array( out, t, 2, "im_aconv", "p" ) )
+	VipsImage *in;
+
+	if( VIPS_OBJECT_CLASS( vips_conva_parent_class )->build( object ) )
 		return( -1 );
 
-	/*
+	/* An int version of our mask.
 	 */
-	if( im_embed( in, t[0], 1, mask->xsize / 2, mask->ysize / 2, 
-		in->Xsize + mask->xsize - 1, in->Ysize + mask->ysize - 1 ) ||
-		aconv_horizontal( boxes, t[0], t[1] ) ||
-		aconv_vertical( boxes, t[1], out ) )
+	if( vips__image_intize( convolution->M, &t[0] ) )
+		return( -1 );
+	conva->iM = t[0]; 
+	conva->width = conva->iM->Xsize;
+	conva->height = conva->iM->Ysize;
+
+	in = convolution->in;
+
+	if( vips_conva_decompose_boxes( conva ) )
+	       return( -1 ); 	
+
+	g_object_set( conva, "out", vips_image_new(), NULL ); 
+	if( 
+		vips_embed( in, &t[1], 
+			conva->width / 2, 
+			conva->height / 2, 
+			in->Xsize + convasep->width - 1, 
+			in->Ysize + convasep->height - 1,
+			"extend", VIPS_EXTEND_COPY,
+			NULL ) ||
+		vips_conva_horizontal( convasep, t[1], &t[2] ) ||
+		vips_conva_vertical( convasep, t[2], &t[3] ) ||
+		vips_image_write( t[3], convolution->out ) )
 		return( -1 );
 
-	/* For testing .. just try one direction.
-	if( aconv_horizontal( boxes, in, out ) )
-		return( -1 );
-	 */
-
-	out->Xoffset = 0;
-	out->Yoffset = 0;
+	convolution->out->Xoffset = 0;
+	convolution->out->Yoffset = 0;
 
 	return( 0 );
 }
 
+static void
+vips_conva_class_init( VipsConvaClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "conva";
+	object_class->description = _( "approximate convolution" );
+	object_class->build = vips_conva_build;
+
+	VIPS_ARG_INT( class, "layers", 104, 
+		_( "Layers" ), 
+		_( "Use this many layers in approximation" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsConva, layers ), 
+		1, 1000, 5 ); 
+
+	VIPS_ARG_INT( class, "cluster", 105, 
+		_( "Cluster" ), 
+		_( "Cluster lines closer than this in approximation" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsConv, cluster ), 
+		1, 100, 1 ); 
+
+}
+
+static void
+vips_conva_init( VipsConva *conva )
+{
+        conva->layers = 5;
+        conva->cluster = 1;
+}
 
 /**
  * vips_conva:
