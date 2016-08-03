@@ -61,12 +61,16 @@
 	  we could then use orc to write a bit of code to implement this set 
 	  of lines
 
+	  stackoverflow has an algorithm for cumulativization using SIMD and 
+	  threads, see that font rasterization with rust piece on medium by 
+	  ralph levien
+
  */
 
 /*
- */
 #define DEBUG
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -883,7 +887,8 @@ vips_convasep_class_init( VipsConvasepClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "convasep";
-	object_class->description = _( "approximate separable convolution" );
+	object_class->description = 
+		_( "approximate separable integer convolution" );
 	object_class->build = vips_convasep_build;
 
 	VIPS_ARG_INT( class, "layers", 104, 
@@ -913,7 +918,7 @@ vips_convasep_init( VipsConvasep *convasep )
  *
  * * @layers: %gint, number of layers for approximation
  *
- * Approximate separable convolution. This is a low-level operation, see 
+ * Approximate separable integer convolution. This is a low-level operation, see 
  * vips_convsep() for something more convenient. 
  *
  * The image is convolved twice: once with @mask and then again with @mask 

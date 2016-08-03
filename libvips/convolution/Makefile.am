@@ -6,6 +6,7 @@ libconvolution_la_SOURCES = \
 	correlation.c \
 	correlation.h \
 	conv.c \
+	conva.c \
 	convf.c \
 	convi.c \
 	convasep.c \

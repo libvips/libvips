@@ -1,5 +1,7 @@
 - tests for convasep ... just check it matches convsep +/- some small amount
 
+- tests for conva
+
 - try this blur.mat
 
 	6 1 3896 
