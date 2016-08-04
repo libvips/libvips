@@ -48,10 +48,10 @@ int vips__png_header_buffer( const void *buffer, size_t length,
 
 int vips__png_write( VipsImage *in, const char *filename, 
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter );
+	VipsForeignPngFilter filter, gboolean strip );
 int vips__png_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, int compression, int interlace, 
-	const char *profile, VipsForeignPngFilter filter );
+	const char *profile, VipsForeignPngFilter filter, gboolean strip );
 
 #ifdef __cplusplus
 }

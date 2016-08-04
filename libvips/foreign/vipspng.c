@@ -55,6 +55,9 @@
  * 26/2/15
  * 	- close the read down early for a header read ... this saves an
  * 	  fd during file read, handy for large numbers of input images 
+ * 31/7/16
+ * 	- support --strip option
+ *
  */
 
 /*
@@ -808,8 +811,9 @@ write_png_block( VipsRegion *region, VipsRect *area, void *a )
 /* Write a VIPS image to PNG.
  */
 static int
-write_vips( Write *write, int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter )
+write_vips( Write *write, 
+	int compress, int interlace, const char *profile,
+	VipsForeignPngFilter filter, gboolean strip )
 {
 	VipsImage *in = write->in;
 
@@ -883,7 +887,8 @@ write_vips( Write *write, int compress, int interlace, const char *profile,
 
 	/* Set ICC Profile.
 	 */
-	if( profile ) {
+	if( profile && 
+		!strip ) {
 		if( strcmp( profile, "none" ) != 0 ) { 
 			void *data;
 			size_t length;
@@ -902,7 +907,8 @@ write_vips( Write *write, int compress, int interlace, const char *profile,
 				PNG_COMPRESSION_TYPE_BASE, data, length );
 		}
 	}
-	else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+	else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) &&
+		!strip ) {
 		void *data;
 		size_t length;
 
@@ -951,7 +957,7 @@ write_vips( Write *write, int compress, int interlace, const char *profile,
 int
 vips__png_write( VipsImage *in, const char *filename, 
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter )
+	VipsForeignPngFilter filter, gboolean strip )
 {
 	Write *write;
 
@@ -970,7 +976,8 @@ vips__png_write( VipsImage *in, const char *filename,
 
 	/* Convert it!
 	 */
-	if( write_vips( write, compress, interlace, profile, filter ) ) {
+	if( write_vips( write, 
+		compress, interlace, profile, filter, strip ) ) {
 		vips_error( "vips2png", 
 			_( "unable to write \"%s\"" ), filename );
 
@@ -1026,7 +1033,7 @@ user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
 int
 vips__png_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, int compression, int interlace,
-	const char *profile, VipsForeignPngFilter filter )
+	const char *profile, VipsForeignPngFilter filter, gboolean strip )
 {
 	Write *write;
 
@@ -1037,7 +1044,8 @@ vips__png_write_buf( VipsImage *in,
 
 	/* Convert it!
 	 */
-	if( write_vips( write, compression, interlace, profile, filter ) ) {
+	if( write_vips( write, 
+		compression, interlace, profile, filter, strip ) ) {
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );
 	      

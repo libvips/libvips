@@ -207,6 +207,7 @@ void *vips_hash_table_map( GHashTable *hash,
 char *vips_strncpy( char *dest, const char *src, int n );
 char *vips_strrstr( const char *haystack, const char *needle );
 gboolean vips_ispostfix( const char *a, const char *b );
+gboolean vips_iscasepostfix( const char *a, const char *b );
 gboolean vips_isprefix( const char *a, const char *b );
 char *vips_break_token( char *str, const char *brk );
 

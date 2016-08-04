@@ -164,8 +164,9 @@ vips_foreign_save_png_file_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__png_write( save->ready, png_file->filename,
-		png->compression, png->interlace, png->profile, png->filter ) )
+	if( vips__png_write( save->ready, 
+		png_file->filename, png->compression, png->interlace, 
+		png->profile, png->filter, save->strip ) )
 		return( -1 );
 
 	return( 0 );
@@ -223,7 +224,8 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__png_write_buf( save->ready, &obuf, &olen,
-		png->compression, png->interlace, png->profile, png->filter ) )
+		png->compression, png->interlace, png->profile, png->filter,
+		save->strip ) )
 		return( -1 );
 
 	/* vips__png_write_buf() makes a buffer that needs g_free(), not
