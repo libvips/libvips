@@ -570,7 +570,7 @@ VImage::new_from_image( std::vector<double> pixel )
 	VImage onepx = VImage::black( 1, 1, 
 		VImage::option()->set( "bands", bands() ) ); 
 
-	onepx = onepx.linear( to_vectorv( 1, 1.0 ), pixel ).cast( format() );
+	onepx = (onepx + pixel).cast( format() );
 
 	VImage big = onepx.embed( 0, 0, width(), height(), 
 		VImage::option()->set( "extend", VIPS_EXTEND_COPY ) ); 
