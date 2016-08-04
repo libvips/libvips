@@ -79,6 +79,160 @@ typedef VipsForeignLoadClass VipsForeignLoadMagick7Class;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadMagick7, vips_foreign_load_magick7, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
+#ifdef DEBUG
+static void
+vips_magick7_print_traits( Image *image ) 
+{
+	static const int trait_bits[] = {
+		CopyPixelTrait,
+		UpdatePixelTrait,
+		BlendPixelTrait
+	};
+	static const char *trait_names[] = {
+		"CopyPixelTrait",
+		"UpdatePixelTrait",
+		"BlendPixelTrait"
+	};
+
+	int b; 
+	int i; 
+
+	printf( "vips_magick7_print_traits: channel traits:\n" ); 
+	for( b = 0; b < GetPixelChannels( image ); b++ ) { 
+		PixelChannel channel = 
+			GetPixelChannelChannel( image, b ); 
+		PixelTrait traits = 
+			GetPixelChannelTraits( image, channel );
+		
+		printf( "\t%d) ", b ); 
+		for( i = 0; i < VIPS_NUMBER( trait_bits ); i++ )
+			if( traits & trait_bits[i] )
+				printf( "%s ", trait_names[i] ); 
+		if( traits == 0 )
+			printf( "undefined" ); 
+		printf( "\n" ); 
+	} 
+}
+
+static void
+vips_magick7_print_channel_names( Image *image )
+{
+	static const int pixel_channels[] = {
+		UndefinedPixelChannel, 
+		RedPixelChannel, 
+		CyanPixelChannel, 
+		GrayPixelChannel, 
+		LPixelChannel, 
+		LabelPixelChannel, 
+		YPixelChannel, 
+		aPixelChannel, 
+		GreenPixelChannel, 
+		MagentaPixelChannel, 
+		CbPixelChannel, 
+		bPixelChannel, 
+		BluePixelChannel, 
+		YellowPixelChannel, 
+		CrPixelChannel, 
+		BlackPixelChannel, 
+		AlphaPixelChannel, 
+		IndexPixelChannel, 
+		ReadMaskPixelChannel, 
+		WriteMaskPixelChannel, 
+		MetaPixelChannel, 
+		IntensityPixelChannel, 
+		CompositePixelChannel, 
+		SyncPixelChannel
+	};
+	static const char *pixel_channel_names[] = {
+		"UndefinedPixelChannel", 
+		"RedPixelChannel", 
+		"CyanPixelChannel", 
+		"GrayPixelChannel", 
+		"LPixelChannel", 
+		"LabelPixelChannel", 
+		"YPixelChannel", 
+		"aPixelChannel", 
+		"GreenPixelChannel", 
+		"MagentaPixelChannel", 
+		"CbPixelChannel", 
+		"bPixelChannel", 
+		"BluePixelChannel", 
+		"YellowPixelChannel", 
+		"CrPixelChannel", 
+		"BlackPixelChannel", 
+		"AlphaPixelChannel", 
+		"IndexPixelChannel", 
+		"ReadMaskPixelChannel", 
+		"WriteMaskPixelChannel", 
+		"MetaPixelChannel", 
+		"IntensityPixelChannel", 
+		"CompositePixelChannel", 
+		"SyncPixelChannel", 
+	};
+
+	int b; 
+	int i; 
+
+	printf( "vips_magick7_print_channel_names: channel names:\n" ); 
+	for( b = 0; b < GetPixelChannels( image ); b++ ) { 
+		PixelChannel channel = 
+			GetPixelChannelChannel( image, b ); 
+		
+		printf( "\t%d) ", b ); 
+		for( i = 0; i < VIPS_NUMBER( pixel_channels ); i++ )
+			/* Don't break on found, many channel names repeat.
+			 */
+			if( channel == pixel_channels[i] ) 
+				printf( "%s ", pixel_channel_names[i] );
+		printf( "\n" ); 
+	} 
+}
+
+static void
+vips_magick7_print_image_type( Image *image )
+{
+	static const int image_types[] = {
+		UndefinedType,
+		BilevelType,
+		GrayscaleType,
+		GrayscaleAlphaType, 
+		PaletteType,
+		PaletteAlphaType,
+		TrueColorType,
+		TrueColorAlphaType,
+		ColorSeparationType,
+		ColorSeparationAlphaType,
+		OptimizeType,
+		PaletteBilevelAlphaType
+	};
+
+	static const char *image_type_names[] = {
+		"UndefinedType",
+		"BilevelType",
+		"GrayscaleType",
+		"GrayscaleAlphaType", 
+		"PaletteType",
+		"PaletteAlphaType",
+		"TrueColorType",
+		"TrueColorAlphaType",
+		"ColorSeparationType",
+		"ColorSeparationAlphaType",
+		"OptimizeType",
+		"PaletteBilevelAlphaType"
+	};
+
+	int i;
+
+	for( i = 0; i < VIPS_NUMBER( image_types ); i++ ) 
+		if( GetImageType( image ) == image_types[i] ) {
+			printf( "\t%s\n", image_type_names[i] );
+			break;
+		}
+	if( i == VIPS_NUMBER( image_types ) )
+		printf( "\tunknown GetImageType()\n" ); 
+}
+#endif /*DEBUG*/
+
 static VipsForeignFlags
 vips_foreign_load_magick7_get_flags_filename( const char *filename )
 {
@@ -124,11 +278,6 @@ vips_foreign_load_magick7_genesis_cb( void *client )
 #endif /*DEBUG*/
 
 	MagickCoreGenesis( vips_get_argv0(), MagickFalse );
-
-#ifdef DEBUG
-	printf( "MagickCoreGenesis: sizeof( Quantum ) == %zd\n", 
-		sizeof( Quantum ) ); 
-#endif /*DEBUG*/
 
 	return( NULL );
 }
@@ -266,51 +415,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 #ifdef DEBUG
 	printf( "image->depth = %zd\n", image->depth ); 
 	printf( "GetImageType() = %d\n", GetImageType( image ) );
-#endif /*DEBUG*/
-
-#ifdef DEBUG
-{
-	static const int image_types[] = {
-		UndefinedType,
-		BilevelType,
-		GrayscaleType,
-		GrayscaleAlphaType, 
-		PaletteType,
-		PaletteAlphaType,
-		TrueColorType,
-		TrueColorAlphaType,
-		ColorSeparationType,
-		ColorSeparationAlphaType,
-		OptimizeType,
-		PaletteBilevelAlphaType
-	};
-
-	static const char *image_type_names[] = {
-		"UndefinedType",
-		"BilevelType",
-		"GrayscaleType",
-		"GrayscaleAlphaType", 
-		"PaletteType",
-		"PaletteAlphaType",
-		"TrueColorType",
-		"TrueColorAlphaType",
-		"ColorSeparationType",
-		"ColorSeparationAlphaType",
-		"OptimizeType",
-		"PaletteBilevelAlphaType"
-	};
-
-	for( i = 0; i < VIPS_NUMBER( image_types ); i++ ) 
-		if( GetImageType( image ) == image_types[i] ) {
-			printf( "\t%s\n", image_type_names[i] );
-			break;
-		}
-	if( i == VIPS_NUMBER( image_types ) )
-		printf( "\tunknown GetImageType()\n" ); 
-}
-#endif /*DEBUG*/
-
-#ifdef DEBUG
+	vips_magick7_print_image_type( image ); 
 	printf( "GetPixelChannels() = %zd\n", GetPixelChannels( image ) ); 
 	printf( "image->columns = %zd\n", image->columns ); 
 	printf( "image->rows = %zd\n", image->rows ); 
@@ -465,8 +570,8 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	return( 0 );
 }
 
-/* We don't bother with GetPixelReadMask(), assume it's everywhere. Don't
- * bother with traits, assume that's always update.
+/* We don't bother with GetPixelReadMask((), assume it's everywhere. Don't
+ * bother with traits, assume taht's always update.
  *
  * We do skip index channels. Palette images add extra index channels
  * containing the index value from the file before colourmap lookup.
@@ -558,7 +663,7 @@ vips_foreign_load_magick7_load( VipsForeignLoadMagick7 *magick7 )
 #endif /*DEBUG*/
 
 	if( vips_foreign_load_magick7_parse( magick7, 
-		magick7->image, load->real ) )
+		magick7->image, load->out ) )
 		return( -1 );
 
 	/* Record frame pointers.
@@ -584,122 +689,13 @@ vips_foreign_load_magick7_load( VipsForeignLoadMagick7 *magick7 )
 	}
 
 #ifdef DEBUG
-{
-	static const int trait_bits[] = {
-		CopyPixelTrait,
-		UpdatePixelTrait,
-		BlendPixelTrait
-	};
-	static const char *trait_names[] = {
-		"CopyPixelTrait",
-		"UpdatePixelTrait",
-		"BlendPixelTrait"
-	};
-
 	/* Only display the traits from frame0, they should all be the same.
 	 */
-	Image *image = magick7->frames[0];
-
-	int b; 
-	int i; 
-
-	printf( "vips_foreign_load_magick7_load: channel traits:\n" ); 
-	for( b = 0; b < GetPixelChannels( image ); b++ ) { 
-		PixelChannel channel = 
-			GetPixelChannelChannel( image, b ); 
-		PixelTrait traits = 
-			GetPixelChannelTraits( image, channel );
-		
-		printf( "\t%d) ", b ); 
-		for( i = 0; i < VIPS_NUMBER( trait_bits ); i++ )
-			if( traits & trait_bits[i] )
-				printf( "%s ", trait_names[i] ); 
-		if( traits == 0 )
-			printf( "undefined" ); 
-		printf( "\n" ); 
-	} 
-}
+	vips_magick7_print_traits( magick7->frames[0] ); 
+	vips_magick7_print_channel_names( magick7->frames[0] );
 #endif /*DEBUG*/
 
-#ifdef DEBUG
-{
-	static const int pixel_channels[] = {
-		UndefinedPixelChannel, 
-		RedPixelChannel, 
-		CyanPixelChannel, 
-		GrayPixelChannel, 
-		LPixelChannel, 
-		LabelPixelChannel, 
-		YPixelChannel, 
-		aPixelChannel, 
-		GreenPixelChannel, 
-		MagentaPixelChannel, 
-		CbPixelChannel, 
-		bPixelChannel, 
-		BluePixelChannel, 
-		YellowPixelChannel, 
-		CrPixelChannel, 
-		BlackPixelChannel, 
-		AlphaPixelChannel, 
-		IndexPixelChannel, 
-		ReadMaskPixelChannel, 
-		WriteMaskPixelChannel, 
-		MetaPixelChannel, 
-		IntensityPixelChannel, 
-		CompositePixelChannel, 
-		SyncPixelChannel
-	};
-	static const char *pixel_channel_names[] = {
-		"UndefinedPixelChannel", 
-		"RedPixelChannel", 
-		"CyanPixelChannel", 
-		"GrayPixelChannel", 
-		"LPixelChannel", 
-		"LabelPixelChannel", 
-		"YPixelChannel", 
-		"aPixelChannel", 
-		"GreenPixelChannel", 
-		"MagentaPixelChannel", 
-		"CbPixelChannel", 
-		"bPixelChannel", 
-		"BluePixelChannel", 
-		"YellowPixelChannel", 
-		"CrPixelChannel", 
-		"BlackPixelChannel", 
-		"AlphaPixelChannel", 
-		"IndexPixelChannel", 
-		"ReadMaskPixelChannel", 
-		"WriteMaskPixelChannel", 
-		"MetaPixelChannel", 
-		"IntensityPixelChannel", 
-		"CompositePixelChannel", 
-		"SyncPixelChannel", 
-	};
-
-	/* Only display the names from frame0, they should all be the same.
-	 */
-	Image *image = magick7->frames[0];
-
-	int b; 
-	int i; 
-
-	printf( "vips_foreign_load_magick7_load: channel names:\n" ); 
-	for( b = 0; b < GetPixelChannels( image ); b++ ) { 
-		PixelChannel channel = 
-			GetPixelChannelChannel( image, b ); 
-		
-		printf( "\t%d) ", b ); 
-		for( i = 0; i < VIPS_NUMBER( pixel_channels ); i++ )
-			/* Don't break on found, many channel names repeat.
-			 */
-			if( channel == pixel_channels[i] ) 
-				printf( "%s ", pixel_channel_names[i] );
-		printf( "\n" ); 
-	} 
-}
-#endif /*DEBUG*/
-
-	if( vips_image_generate( load->real, 
+	if( vips_image_generate( load->out, 
 		NULL, vips_foreign_load_magick7_fill_region, NULL, 
 		magick7, NULL ) )
 		return( -1 );
@@ -756,79 +752,22 @@ vips_foreign_load_magick7_file_header( VipsForeignLoad *load )
 	vips_strncpy( magick7->image_info->filename, file->filename, 
 		MagickPathExtent );
 
-	/* If we're reading all_frames, we can't just ping, we have to read the
-	 * whole thing, since ping does not set up the image list.
-	 *
-	 * Hopefully, all_frames is only used rarely. 
+	/* It would be great if we could PingImage and just read the header,
+	 * but sadly many IM coders do not support ping. The critical one for
+	 * us is DICOM.
+	 * 
+	 * We have to read the whole image in _header.
 	 */
-	if( magick7->all_frames ) {
-#ifdef DEBUG
-		printf( "vips_foreign_load_magick7_file_header: ReadImage()\n" ); 
-#endif /*DEBUG*/
-
-		magick7->image = 
-			ReadImage( magick7->image_info, magick7->exception );
-	}
-	else {
-#ifdef DEBUG
-		printf( "vips_foreign_load_magick7_file_header: PingImage()\n" );
-#endif /*DEBUG*/
-
-		magick7->image = 
-			PingImage( magick7->image_info, magick7->exception );
-
-		/* You must call InitializePixelChannelMap() after Ping or
-		 * GetPixelChannels() won't work. Later IMs may do this for you. 
-		 */
-		InitializePixelChannelMap( magick7->image );
-	}
-
+	magick7->image = ReadImage( magick7->image_info, magick7->exception );
 	if( !magick7->image ) {
 		vips_foreign_load_magick7_error( magick7 ); 
 		return( -1 );
 	}
 
-	if( vips_foreign_load_magick7_parse( magick7, 
-		magick7->image, load->out ) )
-		return( -1 );
-
-	/* No longer need the ping result, and we'll replace ->image with Read
-	 * when we do that later. If we're reading all_frames, we will reuse
-	 * the read, so don't free. 
-	 */
-	if( !magick7->all_frames ) 
-		VIPS_FREEF( DestroyImageList, magick7->image );
-
-	VIPS_SETSTR( load->out->filename, file->filename );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_load_magick7_file_load( VipsForeignLoad *load )
-{
-	VipsForeignLoadMagick7 *magick7 = (VipsForeignLoadMagick7 *) load;
-
-#ifdef DEBUG
-	printf( "vips_foreign_load_magick7_file_load: %p\n", load ); 
-#endif /*DEBUG*/
-
-	if( !magick7->all_frames ) {
-#ifdef DEBUG
-		printf( "vips_foreign_load_magick7_file_load: ReadImage()\n" ); 
-#endif /*DEBUG*/
-
-		g_assert( !magick7->image ); 
-		magick7->image = 
-			ReadImage( magick7->image_info, magick7->exception );
-		if( !magick7->image ) {
-			vips_foreign_load_magick7_error( magick7 ); 
-			return( -1 );
-		}
-	}
-
 	if( vips_foreign_load_magick7_load( magick7 ) )
 		return( -1 );
+
+	VIPS_SETSTR( load->out->filename, file->filename );
 
 	return( 0 );
 }
@@ -849,7 +788,6 @@ vips_foreign_load_magick7_file_class_init(
 
 	load_class->is_a = ismagick7;
 	load_class->header = vips_foreign_load_magick7_file_header;
-	load_class->load = vips_foreign_load_magick7_file_load;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -911,74 +849,18 @@ vips_foreign_load_magick7_buffer_header( VipsForeignLoad *load )
 	printf( "vips_foreign_load_magick7_buffer_header: %p\n", load ); 
 #endif /*DEBUG*/
 
-	/* See comments on file load above ^^ for notes on the all_frames
-	 * handling.
+	/* It would be great if we could PingBlob and just read the header,
+	 * but sadly many IM coders do not support ping. The critical one for
+	 * us is DICOM.
+	 * 
+	 * We have to read the whole image in _header.
 	 */
-	if( magick7->all_frames ) {
-#ifdef DEBUG
-		printf( "vips_foreign_load_magick7_buffer_header: "
-			"BlobToImage()\n" ); 
-#endif /*DEBUG*/
-
-		magick7->image = BlobToImage( magick7->image_info, 
-			magick7_buffer->buf->data, magick7_buffer->buf->length,
-			magick7->exception );
-	}
-	else {
-#ifdef DEBUG
-		printf( "vips_foreign_load_magick7_buffer_header: "
-			"PingBlob()\n" ); 
-#endif /*DEBUG*/
-
-		magick7->image = PingBlob( magick7->image_info, 
-			magick7_buffer->buf->data, magick7_buffer->buf->length,
-			magick7->exception );
-
-		/* You must call InitializePixelChannelMap() after Ping, or
-		 * GetPixelChannels() won't work. Later IMs may do this for you. 
-		 */
-		InitializePixelChannelMap( magick7->image );
-	}
-
+	magick7->image = BlobToImage( magick7->image_info, 
+		magick7_buffer->buf->data, magick7_buffer->buf->length,
+		magick7->exception );
 	if( !magick7->image ) {
 		vips_foreign_load_magick7_error( magick7 ); 
 		return( -1 );
-	}
-
-	if( vips_foreign_load_magick7_parse( magick7, 
-		magick7->image, load->out ) )
-		return( -1 );
-
-	/* No longer need the ping result, and we'll replace ->image with Read
-	 * when we do that later.
-	 */
-	if( !magick7->all_frames ) 
-		VIPS_FREEF( DestroyImageList, magick7->image );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_load_magick7_buffer_load( VipsForeignLoad *load )
-{
-	VipsForeignLoadMagick7 *magick7 = (VipsForeignLoadMagick7 *) load;
-	VipsForeignLoadMagick7Buffer *magick7_buffer = 
-		(VipsForeignLoadMagick7Buffer *) load;
-
-#ifdef DEBUG
-	printf( "vips_foreign_load_magick7_buffer_load: %p\n", load ); 
-#endif /*DEBUG*/
-
-	if( !magick7->all_frames ) {
-		g_assert( !magick7->image ); 
-
-		magick7->image = BlobToImage( magick7->image_info, 
-			magick7_buffer->buf->data, magick7_buffer->buf->length,
-			magick7->exception );
-		if( !magick7->image ) {
-			vips_foreign_load_magick7_error( magick7 ); 
-			return( -1 );
-		}
 	}
 
 	if( vips_foreign_load_magick7_load( magick7 ) )
@@ -1003,7 +885,6 @@ vips_foreign_load_magick7_buffer_class_init(
 
 	load_class->is_a_buffer = vips_foreign_load_magick7_buffer_is_a_buffer;
 	load_class->header = vips_foreign_load_magick7_buffer_header;
-	load_class->load = vips_foreign_load_magick7_buffer_load;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
