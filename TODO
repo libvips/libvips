@@ -1,8 +1,14 @@
+- can't read all frames of a gif, we get n_frames = 1
+
+  if all_frames is set, we need to set image_info->number_scenes to something
+  big
+
+  would -1 work for all frames?
 
 - add tests:
 
 	load 1 page of a pdf/gif
-	load all frames from a pdf/gif
+	load all frames from a pdf/gif/dicom/tiff
 	svg alpha
 	density
 	png alpha

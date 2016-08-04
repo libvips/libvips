@@ -32,8 +32,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -409,7 +409,6 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( magick7 );
 
 	const char *key;
-	Image *p;
 	int i;
 
 #ifdef DEBUG
@@ -540,19 +539,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 		which says this is a volumetric image
 
 	 */
-	magick7->n_frames = 0;
-	for( p = image; p; (p = GetNextImageInList( p )) ) {
-		if( p->columns != (unsigned int) out->Xsize ||
-			p->rows != (unsigned int) out->Ysize ||
-			GetPixelChannels( p ) != out->Bands )
-			break;
-
-		magick7->n_frames += 1;
-	}
-	if( p ) 
-		/* Nope ... just do the first image in the list.
-		 */
-		magick7->n_frames = 1;
+	magick7->n_frames = GetImageListLength( GetFirstImageInList( image ) );
 
 #ifdef DEBUG
 	printf( "image has %d frames\n", magick7->n_frames );

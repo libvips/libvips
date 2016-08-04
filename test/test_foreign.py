@@ -52,6 +52,7 @@ class TestForeign(unittest.TestCase):
         self.svg_file = "images/vips-profile.svg"
         self.svgz_file = "images/vips-profile.svgz"
         self.svg_gz_file = "images/vips-profile.svg.gz"
+        self.gif_anim_file = "images/cogs.gif"
 
         self.colour = Vips.Image.jpegload(self.jpeg_file)
         self.mono = self.colour.extract_band(1)
@@ -325,6 +326,21 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("magickload", self.gif_file, gif_valid)
         self.buffer_loader("magickload_buffer", self.gif_file, gif_valid)
+
+        # we should have rgba for svg files
+        im = Vips.Image.magickload(self.svg_file)
+        self.assertEqual(im.bands(), 4)
+
+        # all-frames should load every frame of the animation
+        im = Vips.Image.magickload(self.gif_anim_file)
+        self.assertEqual(im.width(), 85)
+        self.assertEqual(im.height(), 77)
+        self.assertEqual(im.bands(), 4)
+        im = Vips.Image.magickload(self.gif_anim_file, all_frames = True)
+        self.assertEqual(im.width(), 85)
+        self.assertEqual(im.height(), 77 * 100)
+        self.assertEqual(im.bands(), 4)
+
 
     def test_webp(self):
         x = Vips.type_find("VipsForeign", "webpload")
