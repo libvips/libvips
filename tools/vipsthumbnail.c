@@ -81,6 +81,8 @@
  * 	- restore BandFmt after unpremultiply
  * 23/5/16
  * 	- no need to guess max-alpha now premultiply does this for us
+ * 1/8/16
+ * 	- use scRGB as the working space in linear mode
  */
 
 #ifdef HAVE_CONFIG_H
@@ -357,7 +359,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in )
 {
 	VipsImage **t = (VipsImage **) vips_object_local_array( process, 10 );
 	VipsInterpretation interpretation = linear_processing ?
-		VIPS_INTERPRETATION_XYZ : VIPS_INTERPRETATION_sRGB; 
+		VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB; 
 
 	/* TRUE if we've done the import of an ICC transform and still need to
 	 * export.

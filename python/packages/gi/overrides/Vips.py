@@ -176,7 +176,7 @@ class Error(Exception):
     """
     def __init__(self, message, detail = None):
         self.message = message
-        if detail == None:
+        if detail == None or detail == "":
             detail = Vips.error_buffer()
             Vips.error_clear()
         self.detail = detail

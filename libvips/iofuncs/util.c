@@ -319,6 +319,20 @@ vips_ispostfix( const char *a, const char *b )
 	return( strcmp( a + m - n, b ) == 0 );
 }
 
+/* Case-insensitive test for string b ends string a. ASCII strings only. 
+ */
+gboolean
+vips_iscasepostfix( const char *a, const char *b )
+{	
+	int m = strlen( a );
+	int n = strlen( b );
+
+	if( n > m )
+		return( FALSE );
+
+	return( strcasecmp( a + m - n, b ) == 0 );
+}
+
 /* Test for string a starts string b. a is a known-good string, b may be
  * random data. 
  */
@@ -461,30 +475,22 @@ int
 vips_filename_suffix_match( const char *path, const char *suffixes[] )
 {
 	char *basename;
-	char *suffix;
 	char *q;
-	const char **p;
 	int result;
+	const char **p;
 
-	/* Drop any directory components, we want ignore any '.' in there.
+	/* Drop any directory components.
 	 */
 	basename = g_path_get_basename( path );
 
-	/* Zap any trailing options.
+	/* Zap any trailing [] options.
 	 */
 	if( (q = (char *) vips__find_rightmost_brackets( basename )) ) 
 		*q = '\0';
 
-	/* And select just the '.' and to the right.
-	 */
-	if( (q = strrchr( basename, '.' )) )
-		suffix = q;
-	else
-		suffix = basename;
-
 	result = 0;
-	for( p = suffixes; *p; p++ )
-		if( g_ascii_strcasecmp( suffix, *p ) == 0 ) {
+	for( p = suffixes; *p; p++ ) 
+		if( vips_iscasepostfix( basename, *p ) ) {
 			result = 1;
 			break;
 		}

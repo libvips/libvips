@@ -201,6 +201,23 @@ vips_format_sizeof( VipsBandFormat format )
 	return( vips__image_sizeof_bandformat[format] );
 }
 
+/**
+ * vips_format_sizeof_unsafe: (skip)
+ * @format: format type
+ *
+ * A fast but dangerous version of vips_format_sizeof(). You must have
+ * previously range-checked @format or you'll crash.
+ *
+ * Returns: number of bytes for a band format.
+ */
+guint64 
+vips_format_sizeof_unsafe( VipsBandFormat format )
+{
+	g_assert( 0 <= format && format <= VIPS_FORMAT_DPCOMPLEX ); 
+
+	return( vips__image_sizeof_bandformat[format] );
+}
+
 #ifdef DEBUG
 /* Check that this meta is on the hash table.
  */

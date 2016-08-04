@@ -461,7 +461,7 @@ VImage::call_option_string( const char *operation_name,
 {
 	VipsOperation *operation;
 
-	VIPS_DEBUG_MSG( "vips_call_by_name: starting for %s ...\n", 
+	VIPS_DEBUG_MSG( "call_option_string: starting for %s ...\n", 
 		operation_name );
 
 	if( !(operation = vips_operation_new( operation_name )) ) {
@@ -489,6 +489,7 @@ VImage::call_option_string( const char *operation_name,
 	 */
 	if( vips_cache_operation_buildp( &operation ) ) {
 		vips_object_unref_outputs( VIPS_OBJECT( operation ) );
+		g_object_unref( operation ); 
 		delete options; 
 		throw( VError() ); 
 	}
@@ -570,7 +571,7 @@ VImage::new_from_image( std::vector<double> pixel )
 	VImage onepx = VImage::black( 1, 1, 
 		VImage::option()->set( "bands", bands() ) ); 
 
-	onepx = onepx.linear( to_vectorv( 1, 1.0 ), pixel ).cast( format() );
+	onepx = (onepx + pixel).cast( format() );
 
 	VImage big = onepx.embed( 0, 0, width(), height(), 
 		VImage::option()->set( "extend", VIPS_EXTEND_COPY ) ); 
