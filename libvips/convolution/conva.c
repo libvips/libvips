@@ -79,9 +79,9 @@ $ vips im_max abs.v
  */
 
 /*
+ */
 #define DEBUG
 #define VIPS_DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -909,17 +909,17 @@ vips_conva_hgenerate( VipsRegion *or, void *vseq,
 	for( y = 0; y < r->height; y++ ) { 
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	
-			if( conva->max_line > 256 )
-				HCONV( unsigned char, unsigned int );
-			else
+			if( conva->max_line < 256 )
 				HCONV( unsigned char, unsigned short );
+			else
+				HCONV( unsigned char, unsigned int );
 			break;
 
 		case VIPS_FORMAT_CHAR: 	
-			if( conva->max_line > 256 )
-				HCONV( signed char, signed int );
-			else
+			if( conva->max_line < 256 )
 				HCONV( signed char, signed short );
+			else
+				HCONV( signed char, signed int );
 			break;
 
 		case VIPS_FORMAT_USHORT: 	
@@ -1132,21 +1132,21 @@ vips_conva_vgenerate( VipsRegion *or, void *vseq,
 
 	switch( convolution->in->BandFmt ) {
 	case VIPS_FORMAT_UCHAR: 	
-		if( conva->max_line > 256 )
-			VCONV( unsigned int, \
-				unsigned int, unsigned char, CLIP_UCHAR );
-		else
+		if( conva->max_line < 256 )
 			VCONV( unsigned int, \
 				unsigned short, unsigned char, CLIP_UCHAR );
+		else
+			VCONV( unsigned int, \
+				unsigned int, unsigned char, CLIP_UCHAR );
 		break;
 
 	case VIPS_FORMAT_CHAR: 	
-		if( conva->max_line > 256 )
-			VCONV( signed int, \
-				signed int, signed char, CLIP_CHAR );
-		else
+		if( conva->max_line < 256 )
 			VCONV( signed int, \
 				signed short, signed char, CLIP_CHAR );
+		else
+			VCONV( signed int, \
+				signed int, signed char, CLIP_CHAR );
 		break;
 
 	case VIPS_FORMAT_USHORT: 	

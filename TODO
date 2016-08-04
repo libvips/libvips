@@ -1,6 +1,20 @@
-- tests for convasep ... just check it matches convsep +/- some small amount
+- try edge.mat:
 
-- tests for conva
+	3 3 1 0 
+	 1  1  1 
+	-2 -2 -2 
+	 1  1  1 
+
+  then 
+
+	$ vips conva k2.jpg x.v edge.mat 
+	Floating point exception (core dumped)
+
+  because area == 0, so we get /0
+
+  probably a problem for convasep too
+
+- tests for convasep ... just check it matches convsep +/- some small amount
 
 - try this blur.mat
 

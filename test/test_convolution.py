@@ -96,6 +96,12 @@ class TestConvolution(unittest.TestCase):
         for x, y in zip_expand(a, b):
             self.assertAlmostEqual(x, y, places = places, msg = msg)
 
+    # test a pair of things which can be lists for difference less than a
+    # threshold
+    def assertLessThreshold(self, a, b, diff):
+        for x, y in zip_expand(a, b):
+            self.assertLess(abs(x - y), diff)
+
     def setUp(self):
         im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
         self.colour = im * [1, 2, 3] + [2, 3, 4]
@@ -125,11 +131,31 @@ class TestConvolution(unittest.TestCase):
 
                     result = convolved(25, 50)
                     true = conv(im, msk, 24, 49)
+                    print('result = %g, true = %g\n' % (result, true))
                     self.assertAlmostEqualObjects(result, true)
 
                     result = convolved(50, 50)
                     true = conv(im, msk, 49, 49)
                     self.assertAlmostEqualObjects(result, true)
+
+    def test_conva(self):
+        for im in self.all_images:
+            for msk in self.all_masks:
+                print("msk:")
+                msk.matrixprint()
+                print("im.bands = %s" % im.bands)
+
+                convolved = im.conv(msk, precision = Vips.Precision.APPROXIMATE)
+
+                result = convolved(25, 50)
+                true = conv(im, msk, 24, 49)
+                print("result = %s, true = %s" % (result, true))
+                self.assertLessThreshold(result, true, 5)
+
+                result = convolved(50, 50)
+                true = conv(im, msk, 49, 49)
+                print("result = %s, true = %s" % (result, true))
+                self.assertLessThreshold(result, true, 5)
 
     def test_compass(self):
         for im in self.all_images:
