@@ -80,7 +80,7 @@ and `gobject-introspection`, see the dependencies section below. For example:
 
 Then build the build system with:
 
-	$ ./autogen
+	$ ./autogen.sh
 
 Debug build:
 
