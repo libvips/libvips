@@ -2,11 +2,6 @@
 
 - try moving some more of the CLI tests to py
 
-- I like the new int mask creator in reducev, can we use it in im_vips2imask()
-  as well?
-
-  what about making the int masks for the interpolators?
-
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
 
 - could load pdf thumbnails?
