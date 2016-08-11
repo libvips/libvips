@@ -172,7 +172,7 @@ typedef struct {
 	int layers;
 	int cluster;
 
-	int area;
+	int divisor;
 	int rounding;
 	int offset;
 
@@ -292,17 +292,17 @@ vips_conva_vprint( VipsConva *conva )
 			conva->vline[y].start, 
 			conva->vline[y].end );
 
-	printf( "area = %d\n", conva->area );
+	printf( "divisor = %d\n", conva->divisor );
 	printf( "rounding = %d\n", conva->rounding );
 	printf( "offset = %d\n", conva->offset );
 	printf( "max_line = %d\n", conva->max_line );
 }
 #endif /*DEBUG*/
 
-/* Break the mask into a set of lines.
+/* Break the mask into a set of hlines.
  */
 static int
-vips_conva_decompose_lines( VipsConva *conva )
+vips_conva_decompose_hlines( VipsConva *conva )
 {
 	VipsImage *iM = conva->iM;
 	const int size = iM->Xsize * iM->Ysize;
@@ -324,7 +324,8 @@ vips_conva_decompose_lines( VipsConva *conva )
 		min = VIPS_MIN( min, coeff[n] );
 	}
 
-	VIPS_DEBUG_MSG( "vips_conva_decompose: min = %g, max = %g\n", min, max );
+	VIPS_DEBUG_MSG( "vips_conva_decompose_hlines: min = %g, max = %g\n", 
+		min, max );
 
 	/* The zero axis must fall on a layer boundary. Estimate the
 	 * depth, find n-lines-above-zero, get exact depth, then calculate a
@@ -336,7 +337,7 @@ vips_conva_decompose_lines( VipsConva *conva )
 	layers_below = VIPS_FLOOR( min / depth );
 	conva->layers = layers_above - layers_below;
 
-	VIPS_DEBUG_MSG( "vips_conva_decompose: depth = %g, layers = %d\n", 
+	VIPS_DEBUG_MSG( "vips_conva_decompose_hlines: depth = %g, layers = %d\n",
 		depth, conva->layers );
 
 	/* For each layer, generate a set of lines which are inside the
@@ -395,7 +396,7 @@ vips_conva_decompose_lines( VipsConva *conva )
 	}
 
 #ifdef DEBUG
-	VIPS_DEBUG_MSG( "vips_conva_decompose: generated %d boxes\n", 
+	VIPS_DEBUG_MSG( "vips_conva_decompose_hlines: generated %d hlines\n", 
 		conva->n_hline );
 	vips_conva_hprint( conva );
 #endif /*DEBUG*/
@@ -580,7 +581,8 @@ vips_conva_renumber( VipsConva *conva )
 		conva->n_hline -= 1;
 	}
 
-	VIPS_DEBUG_MSG( "boxes_renumber: ... %d hlines remain\n", 
+
+	VIPS_DEBUG_MSG( "vips_conva_renumber: ... %d hlines remain\n", 
 		conva->n_hline );
 }
 
@@ -628,7 +630,12 @@ vips_conva_vline( VipsConva *conva )
 					conva->velement[y].row )
 				break;
 
-		conva->velement[y].factor = z - y;
+		/* We need to keep the sign of the old factor.
+		 */
+		if( conva->velement[y].factor > 0 )
+			conva->velement[y].factor = z - y;
+		else
+			conva->velement[y].factor = y - z;
 		memmove( conva->velement + y + 1, conva->velement + z,
 			sizeof( VElement ) * (conva->n_velement - z) );
 		conva->n_velement -= z - y - 1;
@@ -685,17 +692,16 @@ vips_conva_decompose_boxes( VipsConva *conva )
 	double offset = vips_image_get_offset( iM ); 
 
 	double sum;
+	double area;
 	int x, y, z;
 
-	/* Break into a set of hlines.
-	 */
-	if( vips_conva_decompose_lines( conva ) )
+	if( vips_conva_decompose_hlines( conva ) )
 		return( -1 );
 
 	/* Cluster to find groups of lines.
 	 */
 	VIPS_DEBUG_MSG( "vips_conva_decompose_boxes: "
-		"clustering with thresh %d ...\n", conva->cluster );
+		"clustering hlines with thresh %d ...\n", conva->cluster );
 	while( vips_conva_cluster2( conva ) )
 		;
 
@@ -707,21 +713,22 @@ vips_conva_decompose_boxes( VipsConva *conva )
 	 */
 	vips_conva_vline( conva );
 
-	/* Find the area of the lines and the length of the longest hline.
+	/* Find the area of the lines and the length of the longest hline. We
+	 * find the absolute area, we don't want -ves to cancel.
 	 */
-	conva->area = 0;
+	area = 0;
 	conva->max_line = 0;
 	for( y = 0; y < conva->n_velement; y++ ) {
 		x = conva->velement[y].band;
 		z = conva->hline[x].end - conva->hline[x].start;
 
-		conva->area += conva->velement[y].factor * z;
+		area += abs( conva->velement[y].factor * z );
 		if( z > conva->max_line )
 			conva->max_line = z;
 	}
 
 	/* Strength reduction: if all lines are divisible by n, we can move
-	 * that n out into the ->area factor. The aim is to produce as many
+	 * that n out into the area factor. The aim is to produce as many
 	 * factor 1 lines as we can and to reduce the chance of overflow.
 	 */
 	x = conva->velement[0].factor;
@@ -729,16 +736,16 @@ vips_conva_decompose_boxes( VipsConva *conva )
 		x = gcd( x, conva->velement[y].factor );
 	for( y = 0; y < conva->n_velement; y++ ) 
 		conva->velement[y].factor /= x;
-	conva->area *= x;
+	area *= x;
 
-	/* Find the area of the original mask.
+	/* Find the area of the original mask. Again, don't let -ves cancel.
 	 */
 	sum = 0;
 	for( z = 0; z < size; z++ ) 
-		sum += coeff[z];
+		sum += abs( coeff[z] );
 
-	conva->area = VIPS_RINT( sum * conva->area / scale );
-	conva->rounding = (conva->area + 1) / 2;
+	conva->divisor = VIPS_RINT( area * scale / sum );
+	conva->rounding = (conva->divisor + 1) / 2;
 	conva->offset = offset;
 
 #ifdef DEBUG
@@ -1056,7 +1063,7 @@ G_STMT_START { \
 					conva->vline[z].band]; \
 			sum += conva->vline[z].factor * seq_sum[z]; \
 		} \
-		sum = (sum + conva->rounding) / conva->area + conva->offset; \
+		sum = (sum + conva->rounding) / conva->divisor + conva->offset; \
 		CLIP( sum ); \
 		*q = sum; \
 		q += ostride; \
@@ -1069,7 +1076,7 @@ G_STMT_START { \
 				sum += conva->vline[z].factor * seq_sum[z]; \
 			} \
 			p += istride; \
-			sum = (sum + conva->rounding) / conva->area + \
+			sum = (sum + conva->rounding) / conva->divisor + \
 				conva->offset; \
 			CLIP( sum ); \
 			*q = sum; \
@@ -1237,6 +1244,11 @@ vips_conva_build( VipsObject *object )
 	if( vips__image_intize( convolution->M, &t[0] ) )
 		return( -1 );
 	conva->iM = t[0]; 
+
+#ifdef DEBUG
+	printf( "vips_conva_build: iM =\n" );
+	vips_matrixprint( conva->iM, NULL );
+#endif /*DEBUG*/
 
 	in = convolution->in;
 

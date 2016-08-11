@@ -109,7 +109,7 @@ typedef struct {
 
 	int layers;
 
-	int area;
+	int divisor;
 	int rounding;
 	int offset;
 
@@ -171,6 +171,7 @@ vips_convasep_decompose( VipsConvasep *convasep )
 	double min;
 	double depth;
 	double sum;
+	double area;
 	int layers;
 	int layers_above;
 	int layers_below;
@@ -279,9 +280,9 @@ vips_convasep_decompose( VipsConvasep *convasep )
 
 	/* Find the area of the lines.
 	 */
-	convasep->area = 0;
+	area = 0;
 	for( z = 0; z < convasep->n_lines; z++ ) 
-		convasep->area += convasep->factor[z] * 
+		area += convasep->factor[z] * 
 			(convasep->end[z] - convasep->start[z]);
 
 	/* Strength reduction: if all lines are divisible by n, we can move
@@ -293,7 +294,7 @@ vips_convasep_decompose( VipsConvasep *convasep )
 		x = gcd( x, convasep->factor[z] );
 	for( z = 0; z < convasep->n_lines; z++ ) 
 		convasep->factor[z] /= x;
-	convasep->area *= x;
+	area *= x;
 
 	/* Find the area of the original mask.
 	 */
@@ -301,8 +302,10 @@ vips_convasep_decompose( VipsConvasep *convasep )
 	for( z = 0; z < convasep->width; z++ ) 
 		sum += coeff[z];
 
-	convasep->area = VIPS_RINT( sum * convasep->area / scale );
-	convasep->rounding = (convasep->area + 1) / 2;
+	convasep->divisor = VIPS_RINT( sum * area / scale );
+	if( convasep->divisor == 0 )
+		convasep->divisor = 1;
+	convasep->rounding = (convasep->divisor + 1) / 2;
 	convasep->offset = offset;
 
 #ifdef DEBUG
@@ -321,7 +324,7 @@ vips_convasep_decompose( VipsConvasep *convasep )
 		}
 		printf( " %3d .. %3d\n", convasep->start[z], convasep->end[z] );
 	}
-	printf( "area = %d\n", convasep->area );
+	printf( "divisor = %d\n", convasep->divisor );
 	printf( "rounding = %d\n", convasep->rounding );
 	printf( "offset = %d\n", convasep->offset );
 #endif /*DEBUG*/
@@ -462,7 +465,7 @@ G_STMT_START { \
 		/* Don't add offset ... we only want to do that once, do it on \
 		 * the vertical pass. \
 		 */ \
-		sum = (sum + convasep->rounding) / convasep->area; \
+		sum = (sum + convasep->rounding) / convasep->divisor; \
 		CLIP( sum ); \
 		*q = sum; \
 		q += ostride; \
@@ -475,7 +478,7 @@ G_STMT_START { \
 				sum += convasep->factor[z] * isum[z]; \
 			} \
 			p += istride; \
-			sum = (sum + convasep->rounding) / convasep->area; \
+			sum = (sum + convasep->rounding) / convasep->divisor; \
 			CLIP( sum ); \
 			*q = sum; \
 			q += ostride; \
@@ -505,7 +508,7 @@ G_STMT_START { \
 		/* Don't add offset ... we only want to do that once, do it on \
 		 * the vertical pass. \
 		 */ \
-		sum = sum / convasep->area; \
+		sum = sum / convasep->divisor; \
 		*q = sum; \
 		q += ostride; \
 		\
@@ -517,7 +520,7 @@ G_STMT_START { \
 				sum += convasep->factor[z] * dsum[z]; \
 			} \
 			p += istride; \
-			sum = sum / convasep->area; \
+			sum = sum / convasep->divisor; \
 			*q = sum; \
 			q += ostride; \
 		} \
@@ -638,7 +641,7 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 				isum[z] += p[y]; \
 			sum += convasep->factor[z] * isum[z]; \
 		} \
-		sum = (sum + convasep->rounding) / convasep->area + \
+		sum = (sum + convasep->rounding) / convasep->divisor + \
 			convasep->offset; \
 		CLIP( sum ); \
 		*q = sum; \
@@ -652,7 +655,7 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 				sum += convasep->factor[z] * isum[z]; \
 			} \
 			p += istride; \
-			sum = (sum + convasep->rounding) / convasep->area + \
+			sum = (sum + convasep->rounding) / convasep->divisor + \
 				convasep->offset; \
 			CLIP( sum ); \
 			*q = sum; \
@@ -679,7 +682,7 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 				dsum[z] += p[y]; \
 			sum += convasep->factor[z] * dsum[z]; \
 		} \
-		sum = sum / convasep->area + convasep->offset; \
+		sum = sum / convasep->divisor + convasep->offset; \
 		*q = sum; \
 		q += ostride; \
 		\
@@ -691,7 +694,7 @@ vips_convasep_generate_horizontal( VipsRegion *or,
 				sum += convasep->factor[z] * dsum[z]; \
 			} \
 			p += istride; \
-			sum = sum / convasep->area + convasep->offset; \
+			sum = sum / convasep->divisor + convasep->offset; \
 			*q = sum; \
 			q += ostride; \
 		} \

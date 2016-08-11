@@ -1,21 +1,3 @@
-- try edge.mat:
-
-	3 3 1 0 
-	 1  1  1 
-	-2 -2 -2 
-	 1  1  1 
-
-  then 
-
-	$ vips conva k2.jpg x.v edge.mat 
-	Floating point exception (core dumped)
-
-  because area == 0, so we get /0
-
-  probably a problem for convasep too
-
-- tests for convasep ... just check it matches convsep +/- some small amount
-
 - try this blur.mat
 
 	6 1 3896 
@@ -23,21 +5,11 @@
  
   ie. missing offset, though scale is there ... is not recognised
 
-- test new clip stuff?
-
-
-
+- redo conva ... make a cumulative image and sub distances in that
 
 - worley could output float distance by default?
 
 - add more webp tests to py suite
-
-- try:
-
-	$ vips avg broken.jpg[fail]
-
-  about 50% of the time it'll trigger a range of out-of-order reads and lock
-  for 10s or so while seq times out
 
 - try moving some more of the CLI tests to py
 
