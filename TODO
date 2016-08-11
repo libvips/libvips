@@ -7,8 +7,6 @@
 
 - redo conva ... make a cumulative image and sub distances in that
 
-- worley could output float distance by default?
-
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py
