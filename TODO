@@ -1,3 +1,14 @@
+- try this blur.mat
+
+	6 1 3896 
+	20 22 24 27 30 32
+ 
+  ie. missing offset, though scale is there ... is not recognised
+
+- redo conva ... make a cumulative image and sub distances in that
+
+- worley could output float distance by default?
+
 - add more webp tests to py suite
 
 - try moving some more of the CLI tests to py

@@ -27,6 +27,10 @@
 - better quality for vips_resize() with linear/cubic kernels 
 - pyvips8 can create new metadata
 - better upsizing with vips_resize()
+- added vips_convf(), vips_convi(), vips_convasep(), vips_conva() ... 
+  im_conv*() functions rewritten as classes
+- vips_convsep() calls vips_convasep() for the approximate case
+- new fixed-point vector path for convi is up to about 2x faster
 - added vips_worley(), generate Worley noise
 - added vips_perlin(), generate Perlin noise
 - gif loader can write 1, 2, 3, or 4 bands depending on file contents
