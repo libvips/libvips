@@ -30,6 +30,8 @@
  * 4/6/15
  * 	- try to support DOS files under linux ... we have to look for \r\n
  * 	  linebreaks
+ * 12/8/16
+ * 	- allow missing offset in matrix header
  */
 
 /*
@@ -522,6 +524,8 @@ read_ascii_double( FILE *fp, const char whitemap[256], double *out )
 
 /* Read the header. Two numbers for width and height, and two optional
  * numbers for scale and offset. 
+ *
+ * We can have scale and no offset, in which case we assume offset = 0.
  */
 static int
 vips__matrix_header( char *whitemap, FILE *fp,
@@ -531,6 +535,11 @@ vips__matrix_header( char *whitemap, FILE *fp,
 	double d;
 	int i;
 	int ch;
+
+	/* Offset defaults to zero.
+	 */
+	header[2] = 1.0;
+	header[3] = 0.0;
 
 	for( i = 0; i < 4 && 
 		(ch = read_ascii_double( fp, whitemap, &header[i] )) == 0; 
@@ -556,22 +565,17 @@ vips__matrix_header( char *whitemap, FILE *fp,
 			"%s", _( "width / height out of range" ) );
 		return( -1 );
 	}
-	if( i == 3 ) { 
-		vips_error( "mask2vips", "%s", _( "bad scale / offset" ) );
-		return( -1 );
-	}
 	if( (ch = read_ascii_double( fp, whitemap, &d )) != '\n' ) {
 		vips_error( "mask2vips", "%s", _( "extra chars in header" ) );
 		return( -1 );
 	}
-	if( i > 2 && 
-		header[2] == 0.0 ) {
+	if( header[2] == 0.0 ) {
 		vips_error( "mask2vips", "%s", _( "zero scale" ) );
 		return( -1 );
 	}
 
-	*scale = i > 2 ?  header[2] : 1.0;
-	*offset = i > 2 ?  header[3] : 0.0;
+	*scale = header[2];
+	*offset = header[3];
 
 	skip_line( fp );
 
