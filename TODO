@@ -1,6 +1,6 @@
 - redo conva ... make a cumulative image and sub distances in that
 
-- add APPROX precision to convsep test
+- add APPROX convsep test? 
 
 - add more webp tests to py suite
 
