@@ -184,7 +184,7 @@ vips_sequential_generate( VipsRegion *or,
 		/* Exit the loop on timeout or condition passes. We have to
 		 * be wary of spurious wakeups. 
 		 */
-		while( r->top > sequential->y_pos )
+		while( r->top > sequential->y_pos ) {
 #ifdef HAVE_COND_INIT
 			if( !g_cond_wait_until( sequential->ready, 
 				sequential->lock, time ) )
@@ -194,6 +194,14 @@ vips_sequential_generate( VipsRegion *or,
 				sequential->lock, &time ) )
 				break;
 #endif
+
+			/* We may have woken up because of an eval error.
+			 */
+			if( sequential->error ) {
+				g_mutex_unlock( sequential->lock );
+				return( -1 );
+			}
+		}
 
 		VIPS_GATE_STOP( "vips_sequential_generate: wait" );
 
@@ -220,7 +228,7 @@ vips_sequential_generate( VipsRegion *or,
 		area.width = 1;
 		area.height = r->top - sequential->y_pos;
 		if( vips_region_prepare( ir, &area ) ) {
-			VIPS_DEBUG_MSG( "thread %p error, unlocking ...\n", 
+			VIPS_DEBUG_MSG( "thread %p error, unlocking #1 ...\n", 
 				g_thread_self() ); 
 			sequential->error = -1;
 			g_cond_broadcast( sequential->ready );
@@ -237,7 +245,7 @@ vips_sequential_generate( VipsRegion *or,
 	VIPS_DEBUG_MSG_GREEN( "thread %p reading ...\n", g_thread_self() ); 
 	if( vips_region_prepare( ir, r ) ||
 		vips_region_region( or, ir, r, r->left, r->top ) ) {
-		VIPS_DEBUG_MSG( "thread %p error, unlocking ...\n", 
+		VIPS_DEBUG_MSG( "thread %p error, unlocking #2 ...\n", 
 			g_thread_self() ); 
 		sequential->error = -1;
 		g_cond_broadcast( sequential->ready );

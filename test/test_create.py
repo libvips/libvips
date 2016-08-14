@@ -446,7 +446,7 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.width, 512)
         self.assertEqual(im.height, 512)
         self.assertEqual(im.bands, 1)
-        self.assertEqual(im.format, Vips.BandFormat.INT)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
 
     def test_perlin(self):
         im = Vips.Image.perlin(512, 512)

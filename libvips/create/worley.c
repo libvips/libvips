@@ -1,6 +1,9 @@
 /* Worley noise generator.
  *
  * 19/7/16
+ *
+ * 11/8/16
+ * 	- float output
  */
 
 /*
@@ -215,7 +218,7 @@ vips_worley_start( VipsImage *out, void *a, void *b )
 	return( seq );
 }
 
-static int
+static float
 vips_hypot( int x, int y )
 {
 	/* Faster than hypot() for int args.
@@ -223,10 +226,10 @@ vips_hypot( int x, int y )
 	return( sqrt( x * x + y * y ) );
 }
 
-static int
+static float
 vips_worley_distance( VipsWorley *worley, Cell cells[9], int x, int y )
 {
-	int distance;
+	float distance;
 
 	int i, j;
 
@@ -236,7 +239,7 @@ vips_worley_distance( VipsWorley *worley, Cell cells[9], int x, int y )
 		Cell *cell = &cells[i];
 
 		for( j = 0; j < cell->n_features; j++ ) {
-			int d = vips_hypot( 
+			float d = vips_hypot( 
 				x - cell->feature_x[j], 
 				y - cell->feature_y[j] );
 
@@ -258,7 +261,7 @@ vips_worley_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	int x, y;
 
 	for( y = 0; y < r->height; y++ ) {
-		int *q = (int *) VIPS_REGION_ADDR( or, r->left, r->top + y );
+		float *q = (float *) VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		for( x = 0; x < r->width; x++ ) {
 			int cell_x = (r->left + x) / worley->cell_size;
@@ -300,7 +303,7 @@ vips_worley_build( VipsObject *object )
 
 	vips_image_init_fields( create->out,
 		worley->width, worley->height, 1,
-		VIPS_FORMAT_INT, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
+		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
 		1.0, 1.0 );
 	vips_image_pipelinev( create->out,
 		VIPS_DEMAND_STYLE_ANY, NULL );
@@ -365,7 +368,7 @@ vips_worley_init( VipsWorley *worley )
  *
  * * @cell_size: %gint, size of Worley cells
  *
- * Create a one-band int image of Worley noise. See:
+ * Create a one-band float image of Worley noise. See:
  *
  * https://en.wikipedia.org/wiki/Worley_noise
  *

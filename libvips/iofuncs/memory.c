@@ -109,7 +109,15 @@ static GMutex *vips_tracked_mutex = NULL;
  * @OBJ: allocate memory local to @OBJ, or %NULL for no auto-free
  * @T: type of thing to allocate
  *
- * Returns: A pointer of type @T *, or %NULL on error.
+ * Allocate memory for a thing of type @T. The memory is not
+ * cleared. 
+ * 
+ * This macro cannot fail. See vips_tracked_malloc() if you are 
+ * allocating large amounts of memory.
+ *
+ * See also: vips_malloc().
+ *
+ * Returns: A pointer of type @T *.
  */
 
 /**
@@ -118,7 +126,15 @@ static GMutex *vips_tracked_mutex = NULL;
  * @N: number of @T 's to allocate
  * @T: type of thing to allocate
  *
- * Returns: A pointer of type @T *, or %NULL on error.
+ * Allocate memory for an array of objects of type @T. The memory is not
+ * cleared. 
+ *
+ * This macro cannot fail. See vips_tracked_malloc() if you are 
+ * allocating large amounts of memory.
+ *
+ * See also: vips_malloc().
+ *
+ * Returns: A pointer of type @T *.
  */
 
 static void
@@ -141,7 +157,7 @@ vips_malloc_cb( VipsObject *object, char *buf )
  *
  * See also: vips_tracked_malloc().
  *
- * Returns: (transfer full): a pointer to the allocated memory
+ * Returns: (transfer full): a pointer to the allocated memory.
  */
 void *
 vips_malloc( VipsObject *object, size_t size )
@@ -166,7 +182,7 @@ vips_malloc( VipsObject *object, size_t size )
  *
  * g_strdup() a string. When @object is freed, the string will be freed for
  * you.  If @object is %NULL, you need to 
- * free the memory explicitly with g_free().
+ * free the memory yourself with g_free().
  *
  * This function cannot fail. 
  *

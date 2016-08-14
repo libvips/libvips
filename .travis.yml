@@ -1,7 +1,7 @@
 language: cpp
 
 before_script:
-  - ./bootstrap.sh
+  - ./autogen.sh
   - ./configure
     --disable-dependency-tracking
     --with-jpeg-includes=$JPEG/include

@@ -6,15 +6,15 @@ libconvolution_la_SOURCES = \
 	correlation.c \
 	correlation.h \
 	conv.c \
+	conva.c \
+	convf.c \
+	convi.c \
+	convasep.c \
 	convsep.c \
 	compass.c \
 	fastcor.c \
 	spcor.c \
 	sharpen.c \
-	gaussblur.c \
-	im_aconv.c \
-	im_aconvsep.c \
-	im_conv.c \
-	im_conv_f.c 
+	gaussblur.c 
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 
