@@ -53,6 +53,7 @@ class TestForeign(unittest.TestCase):
         self.svgz_file = "images/vips-profile.svgz"
         self.svg_gz_file = "images/vips-profile.svg.gz"
         self.gif_anim_file = "images/cogs.gif"
+        self.dicom_file = "images/dicom_test_image.dcm"
 
         self.colour = Vips.Image.jpegload(self.jpeg_file)
         self.mono = self.colour.extract_band(1)
@@ -329,18 +330,29 @@ class TestForeign(unittest.TestCase):
 
         # we should have rgba for svg files
         im = Vips.Image.magickload(self.svg_file)
-        self.assertEqual(im.bands(), 4)
+        self.assertEqual(im.bands, 4)
+
+        # density should change size of generated svg
+        im = Vips.Image.magickload(self.svg_file, density = 100)
+        width = im.width
+        height = im.height
+        im = Vips.Image.magickload(self.svg_file, density = 200)
+        self.assertEqual(im.width, width * 2)
+        self.assertEqual(im.height, height * 2)
 
         # all-frames should load every frame of the animation
         im = Vips.Image.magickload(self.gif_anim_file)
-        self.assertEqual(im.width(), 85)
-        self.assertEqual(im.height(), 77)
-        self.assertEqual(im.bands(), 4)
+        width = im.width
+        height = im.height
         im = Vips.Image.magickload(self.gif_anim_file, all_frames = True)
-        self.assertEqual(im.width(), 85)
-        self.assertEqual(im.height(), 77 * 100)
-        self.assertEqual(im.bands(), 4)
+        self.assertEqual(im.width, width)
+        self.assertEqual(im.height, height * 5)
 
+        # should work for dicom
+        im = Vips.Image.magickload(self.dicom_file)
+        self.assertEqual(im.width, 128)
+        self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
 
     def test_webp(self):
         x = Vips.type_find("VipsForeign", "webpload")

@@ -33,7 +33,7 @@
   im_conv*() functions rewritten as classes
 - vips_convsep() calls vips_convasep() for the approximate case
 - new fixed-point vector path for convi is up to about 2x faster
-- gif loader can write 1, 2, 3, or 4 bands depending on file contents
+- gif loader can make 1, 2, 3, or 4 bands depending on file contents
 - support --strip for pngsave
 - add svgz support [Felix Bünemann]
 - rename boostrap.sh -> autogen.sh to help snapcraft

@@ -1,14 +1,3 @@
-- add tests:
-
-	load 1 page of a pdf/gif
-	load all frames from a pdf/gif/dicom/tiff
-	svg alpha
-	density
-	png alpha
-	dicom
-	all with file and buffer source
-
-
 - add APPROX convsep test? 
 
 - add more webp tests to py suite
