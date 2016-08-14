@@ -605,12 +605,15 @@ vips_foreign_load_magick7_fill_region( VipsRegion *or,
 			r->left, line, r->width, 1, 
 			magick7->exception );
 		g_mutex_unlock( magick7->lock );
-		q = VIPS_REGION_ADDR( or, r->left, top ); 
 
-		if( !p ) {
-			vips_foreign_load_magick7_error( magick7 ); 
-			return( -1 );
-		}
+		if( !p ) 
+			/* This can happen if, for example, some frames of a
+			 * gif are shorter than others. It's not always
+			 * an error.
+			 */
+			continue;
+
+		q = VIPS_REGION_ADDR( or, r->left, top ); 
 
 		switch( im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
