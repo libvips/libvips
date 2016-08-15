@@ -699,7 +699,11 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 
 		g_assert( argument_instance );
 
-		if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) ) {
+		/* We skip deprecated required args. There will be a new,
+		 * renamed arg in the same place.
+		 */
+		if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+			!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) {
 			VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
 
 #ifdef VIPS_DEBUG

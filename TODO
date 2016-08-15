@@ -1,3 +1,14 @@
+- strange: 
+
+	$ vips similarity --scale 0.33 k2.jpg x.v
+	$ vipsheader k2.jpg 
+	k2.jpg: 1450x2048 uchar, 3 bands, srgb, jpegload
+	$ vipsheader x.v
+	x.v: 478x676 uchar, 3 bands, srgb, jpegload
+
+	1450 * 0.33 = 478.5 ... this was rounded down
+	2048 * 0.33 = 675.84 ... this was rounded up
+
 - add APPROX convsep test? 
 
 - add more webp tests to py suite

@@ -4,6 +4,8 @@
  * 	- from shrinkh.c
  * 10/3/16
  * 	- add other kernels
+ * 15/8/16
+ * 	- rename xshrink as hshrink for consistency
  */
 
 /*
@@ -67,7 +69,7 @@
 typedef struct _VipsReduceh {
 	VipsResample parent_instance;
 
-	double xshrink;		/* Reduce factor */
+	double hshrink;		/* Reduce factor */
 
 	/* The thing we use to make the kernel.
 	 */
@@ -276,7 +278,7 @@ reduceh_notab( VipsReduceh *reduceh,
 
 	double cx[MAX_POINT];
 
-	vips_reduce_make_mask( cx, reduceh->kernel, reduceh->xshrink, x ); 
+	vips_reduce_make_mask( cx, reduceh->kernel, reduceh->hshrink, x ); 
 
 	for( int z = 0; z < bands; z++ ) {
 		out[z] = reduce_sum<T, double>( in, bands, cx, n );
@@ -311,9 +313,9 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 		r->width, r->height, r->left, r->top ); 
 #endif /*DEBUG*/
 
-	s.left = r->left * reduceh->xshrink;
+	s.left = r->left * reduceh->hshrink;
 	s.top = r->top;
-	s.width = r->width * reduceh->xshrink + reduceh->n_point;
+	s.width = r->width * reduceh->hshrink + reduceh->n_point;
 	s.height = r->height;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
@@ -328,7 +330,7 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 
 		q = VIPS_REGION_ADDR( out_region, r->left, r->top + y );
 
-		X = r->left * reduceh->xshrink;
+		X = r->left * reduceh->hshrink;
 
 		/* We want p0 to be the start (ie. x == 0) of the input 
 		 * scanline we are reading from. We can then calculate the p we
@@ -411,7 +413,7 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 				break;
 			}
 
-			X += reduceh->xshrink;
+			X += reduceh->hshrink;
 			q += ps;
 		}
 	}
@@ -439,19 +441,19 @@ vips_reduceh_build( VipsObject *object )
 
 	in = resample->in; 
 
-	if( reduceh->xshrink < 1 ) { 
+	if( reduceh->hshrink < 1 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "reduce factors should be >= 1" ) );
 		return( -1 );
 	}
 
-	if( reduceh->xshrink == 1 ) 
+	if( reduceh->hshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );
 
 	/* Build the tables of pre-computed coefficients.
 	 */
 	reduceh->n_point = 
-		vips_reduce_get_points( reduceh->kernel, reduceh->xshrink ); 
+		vips_reduce_get_points( reduceh->kernel, reduceh->hshrink ); 
 	vips_info( object_class->nickname, "%d point mask", reduceh->n_point );
 	if( reduceh->n_point > MAX_POINT ) {
 		vips_error( object_class->nickname, 
@@ -468,7 +470,7 @@ vips_reduceh_build( VipsObject *object )
 			return( -1 ); 
 
 		vips_reduce_make_mask( reduceh->matrixf[x], 
-			reduceh->kernel, reduceh->xshrink,
+			reduceh->kernel, reduceh->hshrink,
 			(float) x / VIPS_TRANSFORM_SCALE ); 
 
 		for( int i = 0; i < reduceh->n_point; i++ )
@@ -503,7 +505,7 @@ vips_reduceh_build( VipsObject *object )
 	 * fractional part), we just see the integer part here.
 	 */
 	resample->out->Xsize = VIPS_RINT( 
-		(in->Xsize - reduceh->n_point + 1) / reduceh->xshrink );
+		(in->Xsize - reduceh->n_point + 1) / reduceh->hshrink );
 	if( resample->out->Xsize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -543,11 +545,11 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
-	VIPS_ARG_DOUBLE( reduceh_class, "xshrink", 3, 
-		_( "Xshrink" ), 
+	VIPS_ARG_DOUBLE( reduceh_class, "hshrink", 3, 
+		_( "Hshrink" ), 
 		_( "Horizontal shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsReduceh, xshrink ),
+		G_STRUCT_OFFSET( VipsReduceh, hshrink ),
 		1, 1000000, 1 );
 
 	VIPS_ARG_ENUM( reduceh_class, "kernel", 3, 
@@ -556,6 +558,15 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsReduceh, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
+
+	/* Old name.
+	 */
+	VIPS_ARG_DOUBLE( reduceh_class, "xshrink", 3, 
+		_( "Xshrink" ), 
+		_( "Horizontal shrink factor" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsReduceh, hshrink ),
+		1, 1000000, 1 );
 
 }
 
@@ -569,7 +580,7 @@ vips_reduceh_init( VipsReduceh *reduceh )
  * vips_reduceh:
  * @in: input image
  * @out: output image
- * @xshrink: horizontal reduce
+ * @hshrink: horizontal reduce
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -590,13 +601,13 @@ vips_reduceh_init( VipsReduceh *reduceh )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_reduceh( VipsImage *in, VipsImage **out, double xshrink, ... )
+vips_reduceh( VipsImage *in, VipsImage **out, double hshrink, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, xshrink );
-	result = vips_call_split( "reduceh", ap, in, out, xshrink );
+	va_start( ap, hshrink );
+	result = vips_call_split( "reduceh", ap, in, out, hshrink );
 	va_end( ap );
 
 	return( result );

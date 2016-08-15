@@ -2,6 +2,8 @@
  *
  * 27/1/16
  * 	- from shrink.c 
+ * 15/8/16
+ * 	- rename xshrink -> hshrink for greater consistency 
  */
 
 /*
@@ -66,8 +68,8 @@
 typedef struct _VipsReduce {
 	VipsResample parent_instance;
 
-	double xshrink;		/* Shrink factors */
-	double yshrink;
+	double hshrink;		/* Shrink factors */
+	double vshrink;
 
 	/* The thing we use to make the kernel.
 	 */
@@ -90,10 +92,10 @@ vips_reduce_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_reduce_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_reducev( resample->in, &t[0], reduce->yshrink, 
+	if( vips_reducev( resample->in, &t[0], reduce->vshrink, 
 		"kernel", reduce->kernel, 
 		NULL ) ||
-		vips_reduceh( t[0], &t[1], reduce->xshrink, 
+		vips_reduceh( t[0], &t[1], reduce->hshrink, 
 			"kernel", reduce->kernel, 
 			NULL ) ||
 		vips_image_write( t[1], resample->out ) )
@@ -120,18 +122,18 @@ vips_reduce_class_init( VipsReduceClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_DOUBLE( class, "xshrink", 8, 
-		_( "Xshrink" ), 
+	VIPS_ARG_DOUBLE( class, "hshrink", 8, 
+		_( "Hshrink" ), 
 		_( "Horizontal shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsReduce, xshrink ),
+		G_STRUCT_OFFSET( VipsReduce, hshrink ),
 		1.0, 1000000.0, 1.0 );
 
-	VIPS_ARG_DOUBLE( class, "yshrink", 9, 
-		_( "Yshrink" ), 
+	VIPS_ARG_DOUBLE( class, "vshrink", 9, 
+		_( "Vshrink" ), 
 		_( "Vertical shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsReduce, yshrink ),
+		G_STRUCT_OFFSET( VipsReduce, vshrink ),
 		1.0, 1000000.0, 1.0 );
 
 	VIPS_ARG_ENUM( class, "kernel", 3, 
@@ -140,6 +142,22 @@ vips_reduce_class_init( VipsReduceClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsReduce, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
+
+	/* The old names .. now use h and v everywhere. 
+	 */
+	VIPS_ARG_DOUBLE( class, "xshrink", 8, 
+		_( "Xshrink" ), 
+		_( "Horizontal shrink factor" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsReduce, hshrink ),
+		1.0, 1000000.0, 1.0 );
+
+	VIPS_ARG_DOUBLE( class, "yshrink", 9, 
+		_( "Yshrink" ), 
+		_( "Vertical shrink factor" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsReduce, vshrink ),
+		1.0, 1000000.0, 1.0 );
 
 }
 
@@ -153,8 +171,8 @@ vips_reduce_init( VipsReduce *reduce )
  * vips_reduce:
  * @in: input image
  * @out: output image
- * @xshrink: horizontal shrink
- * @yshrink: vertical shrink
+ * @hshrink: horizontal shrink
+ * @vshrink: vertical shrink
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -176,13 +194,13 @@ vips_reduce_init( VipsReduce *reduce )
  */
 int
 vips_reduce( VipsImage *in, VipsImage **out, 
-	double xshrink, double yshrink, ... )
+	double hshrink, double vshrink, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, yshrink );
-	result = vips_call_split( "reduce", ap, in, out, xshrink, yshrink );
+	va_start( ap, vshrink );
+	result = vips_call_split( "reduce", ap, in, out, hshrink, vshrink );
 	va_end( ap );
 
 	return( result );

@@ -92,7 +92,6 @@ Debug build:
 Leak check:
 
 	$ export G_DEBUG=gc-friendly
-	$ export G_SLICE=always-malloc
 	$ valgrind --suppressions=libvips.supp \
 		--leak-check=yes \
 		vips ... > vips-vg.log 2>&1

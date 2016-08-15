@@ -83,6 +83,8 @@
  * 	- no need to guess max-alpha now premultiply does this for us
  * 1/8/16
  * 	- use scRGB as the working space in linear mode
+ * 15/8/16
+ * 	- can now remove 0.1 rounding adjustment
  */
 
 #ifdef HAVE_CONFIG_H
@@ -192,12 +194,9 @@ calculate_shrink( VipsImage *im )
 	 *
 	 * In crop mode, we aim to fill the bounding box, so we must use the
 	 * smaller axis.
-	 *
-	 * Add a small amount so when vips_resize() later rounds down, we
-	 * don't round below target.
 	 */
-	double horizontal = (double) width / (thumbnail_width + 0.1);
-	double vertical = (double) height / (thumbnail_height + 0.1);
+	double horizontal = (double) width / thumbnail_width;
+	double vertical = (double) height / thumbnail_height;
 
 	if( crop_image ) {
 		if( horizontal < vertical )
