@@ -558,6 +558,41 @@ filename_hasdir( const char *filename )
 	return( hasdir );
 }
 
+/* fopen() with utf8 filename and mode.
+ */
+static FILE *
+vips__fopen( const char *filename, const char *mode )
+{
+	FILE *fp;
+
+#ifdef OS_WIN32
+	GError *error = NULL;
+	wchar_t *path16, *mode16;
+	
+	if( !(path16 = (wchar_t *) 
+		g_utf8_to_utf16( filename, -1, NULL, NULL, &error )) ) { 
+		vips_g_error( error );
+		return( NULL );
+	}
+
+	if( !(mode16 = (wchar_t *) 
+		g_utf8_to_utf16( mode, -1, NULL, NULL, &error )) ) { 
+		g_free( path16 );
+		vips_g_error( error );
+		return( NULL );
+	}
+
+	fp = _wfopen( path16, mode16 );
+
+	g_free( path16 );
+	g_free( mode16 );
+#else /*!OS_WIN32*/
+	fp = fopen( filename, mode );
+#endif
+
+	return( fp );
+}
+
 /* Open a file. We take an optional fallback dir as well and will try opening
  * there if opening directly fails.
  *
@@ -581,7 +616,7 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 	mode = "r";
 #endif /*BINARY_OPEN*/
 
-	if( (fp = fopen( filename, mode )) )
+	if( (fp = vips__fopen( filename, mode )) )
 		return( fp );
 
 	if( fallback_dir && 
@@ -589,7 +624,7 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 		char *path;
 
 		path = g_build_filename( fallback_dir, filename, NULL );
-	        fp = fopen( path, mode );
+	        fp = vips__fopen( path, mode );
 		g_free( path );
 
 		if( fp )
@@ -617,7 +652,7 @@ vips__file_open_write( const char *filename, gboolean text_mode )
 	mode = "w";
 #endif /*BINARY_OPEN*/
 
-        if( !(fp = fopen( filename, mode )) ) {
+        if( !(fp = vips__fopen( filename, mode )) ) {
 		vips_error_system( errno, "vips__file_open_write", 
 			_( "unable to open file \"%s\" for writing" ), 
 			filename );

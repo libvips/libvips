@@ -680,6 +680,14 @@ main( int argc, char **argv )
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
+	/* On Windows, argv is ascii-only .. use this to get a utf-8 version of
+	 * the args.
+	 */
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	printf( "using g_win32_get_command_line()\n" ); 
+	argv = g_win32_get_command_line();
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+
         context = g_option_context_new( _( "- thumbnail generator" ) );
 
 	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
@@ -737,6 +745,12 @@ main( int argc, char **argv )
 
 		g_object_unref( process );
 	}
+
+	/* We don't free this on error exit, sadly.
+	 */
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	g_strfreev( argv ); 
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
 
 	vips_shutdown();
 

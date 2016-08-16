@@ -383,6 +383,17 @@ PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
   ]
 )
 
+# with 2.40 we have g_win32_get_command_line() on win
+PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 >= 2.40,
+  [if test x"$vips_os_win32" = x"yes"; then
+     AC_DEFINE(HAVE_G_WIN32_GET_COMMAND_LINE,1,[define if your glib has g_win32_get_command_line().])
+     have_g_win32_get_command_line=yes
+   fi
+  ],
+  [:
+  ]
+)
+
 # check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
@@ -1135,4 +1146,12 @@ You may need to copy this file, for example:
       fi
       ;;
   esac
+fi
+
+if test x"$vips_os_win32" = x"yes"; then
+  if test x"$have_g_win32_get_command_line" != x"yes"; then
+    AC_MSG_RESULT([dnl
+Your glib is too old, vips will not support unicode command-line arguments.
+    ])
+  fi
 fi
