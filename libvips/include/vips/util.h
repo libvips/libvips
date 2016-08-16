@@ -222,6 +222,9 @@ int vips_filename_suffix_match( const char *path, const char *suffixes[] );
 gint64 vips_file_length( int fd );
 int vips__write( int fd, const void *buf, size_t count );
 
+int vips__open( const char *filename, int flags, ... );
+FILE *vips__fopen( const char *filename, const char *mode );
+
 FILE *vips__file_open_read( const char *filename, 
 	const char *fallback_dir, gboolean text_mode );
 FILE *vips__file_open_write( const char *filename, 

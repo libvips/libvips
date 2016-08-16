@@ -684,7 +684,6 @@ main( int argc, char **argv )
 	 * the args.
 	 */
 #ifdef HAVE_G_WIN32_GET_COMMAND_LINE
-	printf( "using g_win32_get_command_line()\n" ); 
 	argv = g_win32_get_command_line();
 #endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
 

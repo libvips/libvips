@@ -365,7 +365,7 @@ vips_tracked_open( const char *pathname, int flags, ... )
 	mode = va_arg( ap, int );
 	va_end( ap );
 
-	if( (fd = open( pathname, flags, mode )) == -1 )
+	if( (fd = vips__open( pathname, flags, mode )) == -1 )
 		return( -1 );
 
 	vips_tracked_init(); 

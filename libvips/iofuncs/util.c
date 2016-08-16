@@ -543,6 +543,74 @@ vips__write( int fd, const void *buf, size_t count )
 	return( 0 );
 }
 
+/* open() with a utf8 filename.
+ */
+int
+vips__open( const char *filename, int flags, ... )
+{
+	int fd;
+	mode_t mode;
+	va_list ap;
+
+	va_start( ap, flags );
+	mode = va_arg( ap, int );
+	va_end( ap );
+
+#ifdef OS_WIN32
+	GError *error = NULL;
+	wchar_t *path16;
+
+	if( !(path16 = (wchar_t *) 
+		g_utf8_to_utf16( filename, -1, NULL, NULL, &error )) ) { 
+		vips_g_error( &error );
+		return( -1 );
+	}
+
+	fd = _wopen( path16, flags, mode );
+
+	g_free( path16 );
+#else /*!OS_WIN32*/
+	fd = open( filename, flags, mode );
+#endif
+
+	return( fd );
+}
+
+/* fopen() with utf8 filename and mode.
+ */
+FILE *
+vips__fopen( const char *filename, const char *mode )
+{
+	FILE *fp;
+
+#ifdef OS_WIN32
+	GError *error = NULL;
+	wchar_t *path16, *mode16;
+	
+	if( !(path16 = (wchar_t *) 
+		g_utf8_to_utf16( filename, -1, NULL, NULL, &error )) ) { 
+		vips_g_error( &error );
+		return( NULL );
+	}
+
+	if( !(mode16 = (wchar_t *) 
+		g_utf8_to_utf16( mode, -1, NULL, NULL, &error )) ) { 
+		g_free( path16 );
+		vips_g_error( &error );
+		return( NULL );
+	}
+
+	fp = _wfopen( path16, mode16 );
+
+	g_free( path16 );
+	g_free( mode16 );
+#else /*!OS_WIN32*/
+	fp = fopen( filename, mode );
+#endif
+
+	return( fp );
+}
+
 /* Does a filename contain a directory separator?
  */
 static gboolean 
@@ -556,41 +624,6 @@ filename_hasdir( const char *filename )
 	g_free( dirname );
 
 	return( hasdir );
-}
-
-/* fopen() with utf8 filename and mode.
- */
-static FILE *
-vips__fopen( const char *filename, const char *mode )
-{
-	FILE *fp;
-
-#ifdef OS_WIN32
-	GError *error = NULL;
-	wchar_t *path16, *mode16;
-	
-	if( !(path16 = (wchar_t *) 
-		g_utf8_to_utf16( filename, -1, NULL, NULL, &error )) ) { 
-		vips_g_error( error );
-		return( NULL );
-	}
-
-	if( !(mode16 = (wchar_t *) 
-		g_utf8_to_utf16( mode, -1, NULL, NULL, &error )) ) { 
-		g_free( path16 );
-		vips_g_error( error );
-		return( NULL );
-	}
-
-	fp = _wfopen( path16, mode16 );
-
-	g_free( path16 );
-	g_free( mode16 );
-#else /*!OS_WIN32*/
-	fp = fopen( filename, mode );
-#endif
-
-	return( fp );
 }
 
 /* Open a file. We take an optional fallback dir as well and will try opening
@@ -796,7 +829,7 @@ vips__get_bytes( const char *filename, unsigned char buf[], int len )
 	 * so no hasty messages. And the file might be truncated, so no error
 	 * on read either.
 	 */
-	if( (fd = open( name, MODE_READONLY )) == -1 )
+	if( (fd = vips__open( name, MODE_READONLY )) == -1 )
 		return( 0 );
 	if( read( fd, buf, len ) != len ) {
 		close( fd );
@@ -1070,7 +1103,7 @@ vips_existsf( const char *name, ... )
 	path = g_strdup_vprintf( name, ap ); 
         va_end( ap );
 
-        result = access( path, R_OK );
+        result = g_access( path, R_OK );
 
 	g_free( path ); 
 

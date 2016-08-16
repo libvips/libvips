@@ -236,7 +236,9 @@ fi
 if test x"$vips_os_darwin" = x"yes"; then
   profile_dir="/Library/ColorSync/Profiles"
 elif test x"$vips_os_win32" = x"yes"; then
-  profile_dir="C:\\Windows\\System32\\spool\\drivers\\color"
+  # need double escapes since this will get pasted into a #define in a C
+  # header
+  profile_dir="C:\\\\Windows\\\\System32\\\\spool\\\\drivers\\\\color"
 else
   profile_dir="/usr/share/color/icc"
 fi
