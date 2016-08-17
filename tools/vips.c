@@ -1027,7 +1027,12 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 		"OPER", _( "execute vips operation OPER" ) );
 	g_option_context_set_summary( context, vips_buf_all( &buf ) );
 
-	if( !g_option_context_parse( context, argc, &argv, &error ) ) {
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	if( !g_option_context_parse_strv( context, &argv, &error ) ) 
+#else /*!HAVE_G_WIN32_GET_COMMAND_LINE*/
+	if( !g_option_context_parse( context, argc, &argv, &error ) ) 
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+	{
 		if( error ) {
 			fprintf( stderr, "%s\n", error->message );
 			g_error_free( error );
@@ -1084,6 +1089,13 @@ main( int argc, char **argv )
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
+	/* On Windows, argv is ascii-only .. use this to get a utf-8 version of
+	 * the args.
+	 */
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	argv = g_win32_get_command_line();
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+
 #ifdef DEBUG_FATAL
 	/* Set masks for debugging ... stop on any problem. 
 	 */
@@ -1131,7 +1143,12 @@ main( int argc, char **argv )
 	 */
 	g_option_context_set_help_enabled( context, FALSE );
 
-	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	if( !g_option_context_parse_strv( context, &argv, &error ) ) 
+#else /*!HAVE_G_WIN32_GET_COMMAND_LINE*/
+	if( !g_option_context_parse( context, &argc, &argv, &error ) ) 
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+	{
 		if( error ) {
 			fprintf( stderr, "%s\n", error->message );
 			g_error_free( error );
@@ -1139,6 +1156,12 @@ main( int argc, char **argv )
 
 		vips_error_exit( NULL );
 	}
+
+	/* On Windows, argc will not have been updated by
+	 * g_option_context_parse_strv().
+	 */
+	for( argc = 0; argv[argc]; argc++ )
+		;
 
 	if( main_option_plugin ) {
 		if( !im_load_plugin( main_option_plugin ) )
@@ -1278,6 +1301,12 @@ main( int argc, char **argv )
 		parse_options( context, &argc, argv );
 
 	g_option_context_free( context );
+
+	/* We don't free this on error exit, sadly.
+	 */
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	g_strfreev( argv ); 
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
 
 	vips_shutdown();
 

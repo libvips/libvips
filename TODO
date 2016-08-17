@@ -1,14 +1,6 @@
-- on win see:
+- done: jpeg, tiff, csv, vips
 
-	vips2tiff:389 unknown control sequence
-	\W \S \s \d \c
-
-	if( !(buffer = vips__file_read_name( profile, VIPS_ICC_DIR, &length )) )
-
-	config.h:#define VIPS_ICC_DIR "C:\Windows\System32\spool\drivers\color"
-
-  hehe argh
-
+- add unicode filename test
 
 - add APPROX convsep test? 
 

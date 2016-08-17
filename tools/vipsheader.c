@@ -189,6 +189,13 @@ main( int argc, char *argv[] )
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
+	/* On Windows, argv is ascii-only .. use this to get a utf-8 version of
+	 * the args.
+	 */
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	argv = g_win32_get_command_line();
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+
         context = g_option_context_new( _( "- print image header" ) );
 	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
 	g_option_group_add_entries( main_group, main_option );
@@ -196,7 +203,12 @@ main( int argc, char *argv[] )
 	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
 	g_option_context_set_main_group( context, main_group );
 
-	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	if( !g_option_context_parse_strv( context, &argv, &error ) ) 
+#else /*!HAVE_G_WIN32_GET_COMMAND_LINE*/
+	if( !g_option_context_parse( context, &argc, &argv, &error ) ) 
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+	{
 		if( error ) {
 			fprintf( stderr, "%s\n", error->message );
 			g_error_free( error );
@@ -209,7 +221,7 @@ main( int argc, char *argv[] )
 
 	result = 0;
 
-	for( i = 1; i < argc; i++ ) {
+	for( i = 1; argv[i]; i++ ) {
 		VipsImage *im;
 
 		if( !(im = vips_image_new_from_file( argv[i], NULL )) ) {
@@ -218,7 +230,7 @@ main( int argc, char *argv[] )
 		}
 
 		if( im && 
-			print_header( im, argc > 2 ) ) {
+			print_header( im, argv[2] != NULL ) ) {
 			print_error();
 			result = 1;
 		}
@@ -226,6 +238,12 @@ main( int argc, char *argv[] )
 		if( im )
 			g_object_unref( im );
 	}
+
+	/* We don't free this on error exit, sadly.
+	 */
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	g_strfreev( argv ); 
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
 
 	vips_shutdown();
 

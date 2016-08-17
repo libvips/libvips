@@ -695,7 +695,12 @@ main( int argc, char **argv )
 	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
 	g_option_context_set_main_group( context, main_group );
 
-	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	if( !g_option_context_parse_strv( context, &argv, &error ) ) 
+#else /*!HAVE_G_WIN32_GET_COMMAND_LINE*/
+	if( !g_option_context_parse( context, &argc, &argv, &error ) ) 
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+	{
 		if( error ) {
 			fprintf( stderr, "%s\n", error->message );
 			g_error_free( error );
@@ -725,7 +730,7 @@ main( int argc, char **argv )
 
 	result = 0;
 
-	for( i = 1; i < argc; i++ ) {
+	for( i = 1; argv[i]; i++ ) {
 		/* Hang resources for processing this thumbnail off @process.
 		 */
 		VipsObject *process = VIPS_OBJECT( vips_image_new() ); 
