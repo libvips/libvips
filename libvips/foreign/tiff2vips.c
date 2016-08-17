@@ -1858,6 +1858,10 @@ readtiff_new( VipsImage *out,
 	return( rtiff );
 }
 
+/* Can't declare this in tiff.h, we need that to be TIFF-free.
+ */
+TIFF *vips__tiff_openin( const char *name );
+
 static ReadTiff *
 readtiff_new_filename( const char *filename, VipsImage *out, 
 	int page, gboolean autorotate, gboolean readbehind )
@@ -1873,7 +1877,7 @@ readtiff_new_filename( const char *filename, VipsImage *out,
 	/* No mmap --- no performance advantage with libtiff, and it burns up
 	 * our VM if the tiff file is large.
 	 */
-	if( !(rtiff->tiff = TIFFOpen( filename, "rm" )) ) {
+	if( !(rtiff->tiff = vips__tiff_openin( filename )) ) {
 		vips_error( "tiff2vips", _( "unable to open \"%s\" for input" ),
 			filename );
 		return( NULL );
@@ -2108,7 +2112,7 @@ vips__istifftiled( const char *filename )
 
 	vips__tiff_init();
 
-	if( !(tif = TIFFOpen( filename, "rm" )) ) {
+	if( !(tif = vips__tiff_openin( filename )) ) {
 		vips_error_clear();
 		return( FALSE );
 	}

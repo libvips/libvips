@@ -164,6 +164,8 @@
  * 	- support strip option
  * 4/7/16
  * 	- tag alpha as UNASSALPHA since it's not pre-multiplied, thanks Peter
+ * 17/8/16
+ * 	- use wchar_t TIFFOpen on Windows
  */
 
 /*
@@ -287,19 +289,40 @@ struct _Write {
 
 /* Open TIFF for output.
  */
-static TIFF *
-tiff_openout( Write *write, const char *name )
+TIFF *
+vips__tiff_openout( const char *path, gboolean bigtiff )
 {
 	TIFF *tif;
-	const char *mode = write->bigtiff ? "w8" : "w";
+	const char *mode = bigtiff ? "w8" : "w";
 
 #ifdef DEBUG
-	printf( "TIFFOpen( \"%s\", \"%s\" )\n", name, mode );
+	printf( "vips__tiff_openout( \"%s\", \"%s\" )\n", path, mode );
 #endif /*DEBUG*/
 
-	if( !(tif = TIFFOpen( name, mode )) ) {
-		vips_error( "vips2tiff", 
-			_( "unable to open \"%s\" for output" ), name );
+	/* Need the utf-16 version on Windows.
+	 */
+#ifdef OS_WIN32
+{
+	GError *error = NULL;
+	wchar_t *path16;
+
+	if( !(path16 = (wchar_t *) 
+		g_utf8_to_utf16( path, -1, NULL, NULL, &error )) ) { 
+		vips_g_error( &error );
+		return( NULL );
+	}
+
+	tif = TIFFOpenW( path16, mode );
+
+	g_free( path16 ); 
+}
+#else /*!OS_WIN32*/
+	tif = TIFFOpen( path, mode );
+#endif /*OS_WIN32*/
+
+	if( !tif ) {
+		vips_error( "tiff", 
+			_( "unable to open \"%s\" for output" ), path );
 		return( NULL );
 	}
 
@@ -308,14 +331,44 @@ tiff_openout( Write *write, const char *name )
 
 /* Open TIFF for input.
  */
-static TIFF *
-tiff_openin( const char *name )
+TIFF *
+vips__tiff_openin( const char *path )
 {
+	/* No mmap --- no performance advantage with libtiff, and it burns up
+	 * our VM if the tiff file is large.
+	 */
+	const char *mode = "rm";
+
 	TIFF *tif;
 
-	if( !(tif = TIFFOpen( name, "r" )) ) {
-		vips_error( "vips2tiff", 
-			_( "unable to open \"%s\" for input" ), name );
+#ifdef DEBUG
+	printf( "vips__tiff_openin( \"%s\" )\n", path ); 
+#endif /*DEBUG*/
+
+	/* Need the utf-16 version on Windows.
+	 */
+#ifdef OS_WIN32
+{
+	GError *error = NULL;
+	wchar_t *path16;
+
+	if( !(path16 = (wchar_t *) 
+		g_utf8_to_utf16( path, -1, NULL, NULL, &error )) ) { 
+		vips_g_error( &error );
+		return( NULL );
+	}
+
+	tif = TIFFOpenW( path16, mode );
+
+	g_free( path16 ); 
+}
+#else /*!OS_WIN32*/
+	tif = TIFFOpen( path, mode );
+#endif /*OS_WIN32*/
+
+	if( !tif ) {
+		vips_error( "tiff", 
+			_( "unable to open \"%s\" for input" ), path );
 		return( NULL );
 	}
 
@@ -760,7 +813,8 @@ pyramid_fill( Write *write )
 		if( vips_region_buffer( layer->strip, &strip_size ) ) 
 			return( -1 );
 
-		if( !(layer->tif = tiff_openout( write, layer->lname )) ||
+		if( !(layer->tif = 
+			vips__tiff_openout( layer->lname, write->bigtiff )) ||
 			write_tiff_header( write, layer ) )  
 			return( -1 );
 	}
@@ -1599,7 +1653,7 @@ write_gather( Write *write )
 			printf( "Appending layer %s ...\n", layer->lname );
 #endif /*DEBUG*/
 
-			if( !(in = tiff_openin( layer->lname )) ) 
+			if( !(in = vips__tiff_openin( layer->lname )) ) 
 				return( -1 );
 			if( write_copy_tiff( write, write->layer->tif, in ) ) {
 				TIFFClose( in );

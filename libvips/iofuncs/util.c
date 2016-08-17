@@ -557,6 +557,7 @@ vips__open( const char *filename, int flags, ... )
 	va_end( ap );
 
 #ifdef OS_WIN32
+{
 	GError *error = NULL;
 	wchar_t *path16;
 
@@ -569,6 +570,7 @@ vips__open( const char *filename, int flags, ... )
 	fd = _wopen( path16, flags, mode );
 
 	g_free( path16 );
+}
 #else /*!OS_WIN32*/
 	fd = open( filename, flags, mode );
 #endif
