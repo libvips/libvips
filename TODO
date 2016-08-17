@@ -1,5 +1,7 @@
 - done: jpeg, tiff, csv, vips
 
+  cfitsio: no unicode support on Windows, as far as I can see
+
 - add unicode filename test
 
 - add APPROX convsep test? 

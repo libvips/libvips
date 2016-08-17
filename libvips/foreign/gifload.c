@@ -7,6 +7,8 @@
  * 26/7/16
  * 	- transparency was wrong if there was no EXTENSION_RECORD
  * 	- write 1, 2, 3, or 4 bands depending on file contents
+ * 17/8/16
+ * 	- support unicode on win
  */
 
 /*
@@ -61,7 +63,7 @@
 #include <gif_lib.h>
 
 /* giflib 5 is rather different :-( functions have error returns and there's
- * not LastError function.
+ * no LastError().
  *
  * GIFLIB_MAJOR was introduced in 4.1.6. Use it to test for giflib 5.x.
  */
@@ -216,19 +218,32 @@ vips_foreign_load_gif_close( VipsForeignLoadGif *gif )
 static int
 vips_foreign_load_gif_open( VipsForeignLoadGif *gif, const char *filename )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
+	int fd;
+
 	g_assert( !gif->file ); 
+
+	if( !(fd = vips__open_read( filename )) ) {
+		vips_error_system( errno, class->nickname, 
+			_( "unable to open \"%s\"" ), filename ); 
+		return( -1 ); 
+	}
 
 #ifdef HAVE_GIFLIB_5
 {
 	int error; 
 
-	if( !(gif->file = DGifOpenFileName( filename, &error )) ) {
+	if( !(gif->file = DGifOpenFileHandle( fd, &error )) ) {
+		/* DGifOpenFileHandle() closes fd for us on error.
+		 */
 		vips_foreign_load_gif_error_vips( gif, error );
 		return( -1 ); 
 	}
 }
 #else 
-	if( !(gif->file = DGifOpenFileName( filename )) ) { 
+	if( !(gif->file = DGifOpenFileHandle( fd )) ) { 
+		/* DGifOpenFileHandle() closes fd for us on error.
+		 */
 		vips_foreign_load_gif_error_vips( gif, GifLastError() ); 
 		return( -1 ); 
 	}

@@ -55,8 +55,12 @@
 #endif /*OS_WIN32*/
 
 #include <vips/vips.h>
-#include <vips/internal.h>
 #include <vips/debug.h>
+#include <vips/internal.h>
+
+/* Temp buffer for snprintf() layer on old systems.
+ */
+#define MAX_BUF (100000)
 
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
  */
@@ -87,10 +91,6 @@
 /* Mode for read only. This is the fallback if READWRITE fails.
  */
 #define MODE_READONLY BINARYIZE (O_RDONLY)
-
-/* Temp buffer for snprintf() layer on old systems.
- */
-#define MAX_BUF (100000)
 
 /* Test two lists for eqality.
  */
@@ -543,7 +543,7 @@ vips__write( int fd, const void *buf, size_t count )
 	return( 0 );
 }
 
-/* open() with a utf8 filename.
+/* open() with a utf8 filename, setting errno.
  */
 int
 vips__open( const char *filename, int flags, ... )
@@ -558,12 +558,11 @@ vips__open( const char *filename, int flags, ... )
 
 #ifdef OS_WIN32
 {
-	GError *error = NULL;
 	wchar_t *path16;
 
 	if( !(path16 = (wchar_t *) 
-		g_utf8_to_utf16( filename, -1, NULL, NULL, &error )) ) { 
-		vips_g_error( &error );
+		g_utf8_to_utf16( filename, -1, NULL, NULL, NULL )) ) { 
+		errno = EACCES;
 		return( -1 );
 	}
 
@@ -578,7 +577,13 @@ vips__open( const char *filename, int flags, ... )
 	return( fd );
 }
 
-/* fopen() with utf8 filename and mode.
+int 
+vips__open_read( const char *filename )
+{
+	return( vips__open( filename, MODE_READONLY ) );
+}
+
+/* fopen() with utf8 filename and mode, setting errno.
  */
 FILE *
 vips__fopen( const char *filename, const char *mode )
@@ -586,19 +591,18 @@ vips__fopen( const char *filename, const char *mode )
 	FILE *fp;
 
 #ifdef OS_WIN32
-	GError *error = NULL;
 	wchar_t *path16, *mode16;
 	
 	if( !(path16 = (wchar_t *) 
-		g_utf8_to_utf16( filename, -1, NULL, NULL, &error )) ) { 
-		vips_g_error( &error );
+		g_utf8_to_utf16( filename, -1, NULL, NULL, NULL )) ) { 
+		errno = EACCES;
 		return( NULL );
 	}
 
 	if( !(mode16 = (wchar_t *) 
-		g_utf8_to_utf16( mode, -1, NULL, NULL, &error )) ) { 
+		g_utf8_to_utf16( mode, -1, NULL, NULL, NULL )) ) { 
 		g_free( path16 );
-		vips_g_error( &error );
+		errno = EACCES;
 		return( NULL );
 	}
 
@@ -831,7 +835,7 @@ vips__get_bytes( const char *filename, unsigned char buf[], int len )
 	 * so no hasty messages. And the file might be truncated, so no error
 	 * on read either.
 	 */
-	if( (fd = vips__open( name, MODE_READONLY )) == -1 )
+	if( (fd = vips__open_read( name )) == -1 )
 		return( 0 );
 	if( read( fd, buf, len ) != len ) {
 		close( fd );
