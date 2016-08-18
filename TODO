@@ -1,4 +1,15 @@
-- magick does not seem to be using wopen on win ... see
+- done: jpeg, tiff, csv, vips, gif, openslide (needs git master), ppm, png,
+  pdf, rad, svg, webp
+
+  cfitsio: no unicode support on Windows, as far as I can see
+
+  libmatio: no unicode support on Windows, as far as I can see
+
+  OpenEXR: hates mingw and will not compile
+
+  imagemagick seems to like it ought to work, but does not, need to investigate
+
+  magick does not seem to be using wopen on win ... see
   magick/utility-private.h, fopen_utf8()
 
   we use the fopen() branch, not the _wfopen() one
@@ -17,11 +28,11 @@
 
   try removing the MINGW stuff
 
-- done: jpeg, tiff, csv, vips
-
-  cfitsio: no unicode support on Windows, as far as I can see
-
 - add unicode filename test
+
+
+
+
 
 - add APPROX convsep test? 
 
