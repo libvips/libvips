@@ -1,3 +1,7 @@
+// bodies for vips operations
+// Thu 18 Aug 16:01:57 BST 2016
+// this file is generated automatically, do not edit!
+
 void VImage::system( char * cmd_format , VOption *options )
 {
     call( "system" ,
@@ -1849,7 +1853,7 @@ VImage VImage::mapim( VImage index , VOption *options )
     return( out );
 }
 
-VImage VImage::shrink( double xshrink , double yshrink , VOption *options )
+VImage VImage::shrink( double hshrink , double vshrink , VOption *options )
 {
     VImage out;
 
@@ -1857,13 +1861,13 @@ VImage VImage::shrink( double xshrink , double yshrink , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) ->
-            set( "xshrink", xshrink ) ->
-            set( "yshrink", yshrink ) );
+            set( "hshrink", hshrink ) ->
+            set( "vshrink", vshrink ) );
 
     return( out );
 }
 
-VImage VImage::shrinkh( int xshrink , VOption *options )
+VImage VImage::shrinkh( int hshrink , VOption *options )
 {
     VImage out;
 
@@ -1871,12 +1875,12 @@ VImage VImage::shrinkh( int xshrink , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) ->
-            set( "xshrink", xshrink ) );
+            set( "hshrink", hshrink ) );
 
     return( out );
 }
 
-VImage VImage::shrinkv( int yshrink , VOption *options )
+VImage VImage::shrinkv( int vshrink , VOption *options )
 {
     VImage out;
 
@@ -1884,12 +1888,12 @@ VImage VImage::shrinkv( int yshrink , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) ->
-            set( "yshrink", yshrink ) );
+            set( "vshrink", vshrink ) );
 
     return( out );
 }
 
-VImage VImage::reduceh( double xshrink , VOption *options )
+VImage VImage::reduceh( double hshrink , VOption *options )
 {
     VImage out;
 
@@ -1897,12 +1901,12 @@ VImage VImage::reduceh( double xshrink , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) ->
-            set( "xshrink", xshrink ) );
+            set( "hshrink", hshrink ) );
 
     return( out );
 }
 
-VImage VImage::reducev( double yshrink , VOption *options )
+VImage VImage::reducev( double vshrink , VOption *options )
 {
     VImage out;
 
@@ -1910,12 +1914,12 @@ VImage VImage::reducev( double yshrink , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) ->
-            set( "yshrink", yshrink ) );
+            set( "vshrink", vshrink ) );
 
     return( out );
 }
 
-VImage VImage::reduce( double xshrink , double yshrink , VOption *options )
+VImage VImage::reduce( double hshrink , double vshrink , VOption *options )
 {
     VImage out;
 
@@ -1923,8 +1927,8 @@ VImage VImage::reduce( double xshrink , double yshrink , VOption *options )
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) ->
-            set( "xshrink", xshrink ) ->
-            set( "yshrink", yshrink ) );
+            set( "hshrink", hshrink ) ->
+            set( "vshrink", vshrink ) );
 
     return( out );
 }
@@ -2509,6 +2513,45 @@ VImage VImage::conv( VImage mask , VOption *options )
     return( out );
 }
 
+VImage VImage::conva( VImage mask , VOption *options )
+{
+    VImage out;
+
+    call( "conva" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) ->
+            set( "mask", mask ) );
+
+    return( out );
+}
+
+VImage VImage::convf( VImage mask , VOption *options )
+{
+    VImage out;
+
+    call( "convf" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) ->
+            set( "mask", mask ) );
+
+    return( out );
+}
+
+VImage VImage::convi( VImage mask , VOption *options )
+{
+    VImage out;
+
+    call( "convi" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) ->
+            set( "mask", mask ) );
+
+    return( out );
+}
+
 VImage VImage::compass( VImage mask , VOption *options )
 {
     VImage out;
@@ -2527,6 +2570,19 @@ VImage VImage::convsep( VImage mask , VOption *options )
     VImage out;
 
     call( "convsep" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) ->
+            set( "mask", mask ) );
+
+    return( out );
+}
+
+VImage VImage::convasep( VImage mask , VOption *options )
+{
+    VImage out;
+
+    call( "convasep" ,
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "out", &out ) ->

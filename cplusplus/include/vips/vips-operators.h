@@ -1,3 +1,7 @@
+// headers for vips operations
+// Thu 18 Aug 16:02:54 BST 2016
+// this file is generated automatically, do not edit!
+
 static void system( char * cmd_format , VOption *options = 0 );
 VImage add( VImage right , VOption *options = 0 );
 VImage subtract( VImage right , VOption *options = 0 );
@@ -148,12 +152,12 @@ VipsBlob * webpsave_buffer( VOption *options = 0 );
 void tiffsave( char * filename , VOption *options = 0 );
 void fitssave( char * filename , VOption *options = 0 );
 VImage mapim( VImage index , VOption *options = 0 );
-VImage shrink( double xshrink , double yshrink , VOption *options = 0 );
-VImage shrinkh( int xshrink , VOption *options = 0 );
-VImage shrinkv( int yshrink , VOption *options = 0 );
-VImage reduceh( double xshrink , VOption *options = 0 );
-VImage reducev( double yshrink , VOption *options = 0 );
-VImage reduce( double xshrink , double yshrink , VOption *options = 0 );
+VImage shrink( double hshrink , double vshrink , VOption *options = 0 );
+VImage shrinkh( int hshrink , VOption *options = 0 );
+VImage shrinkv( int vshrink , VOption *options = 0 );
+VImage reduceh( double hshrink , VOption *options = 0 );
+VImage reducev( double vshrink , VOption *options = 0 );
+VImage reduce( double hshrink , double vshrink , VOption *options = 0 );
 VImage quadratic( VImage coeff , VOption *options = 0 );
 VImage affine( std::vector<double> matrix , VOption *options = 0 );
 VImage similarity( VOption *options = 0 );
@@ -201,8 +205,12 @@ VImage hist_local( int width , int height , VOption *options = 0 );
 bool hist_ismonotonic( VOption *options = 0 );
 double hist_entropy( VOption *options = 0 );
 VImage conv( VImage mask , VOption *options = 0 );
+VImage conva( VImage mask , VOption *options = 0 );
+VImage convf( VImage mask , VOption *options = 0 );
+VImage convi( VImage mask , VOption *options = 0 );
 VImage compass( VImage mask , VOption *options = 0 );
 VImage convsep( VImage mask , VOption *options = 0 );
+VImage convasep( VImage mask , VOption *options = 0 );
 VImage fastcor( VImage ref , VOption *options = 0 );
 VImage spcor( VImage ref , VOption *options = 0 );
 VImage sharpen( VOption *options = 0 );
