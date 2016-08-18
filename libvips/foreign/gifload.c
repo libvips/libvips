@@ -99,6 +99,10 @@ typedef struct _VipsForeignLoadGif {
 	gboolean has_transparency;
 	gboolean has_colour;
 
+	/* The FILE* we read from.
+	 */
+	FILE *fp;
+
 } VipsForeignLoadGif;
 
 typedef VipsForeignLoadClass VipsForeignLoadGifClass;
@@ -213,37 +217,44 @@ vips_foreign_load_gif_close( VipsForeignLoadGif *gif )
 		gif->file = NULL;
 	}
 #endif
+
+	VIPS_FREEF( fclose, gif->fp ); 
+}
+
+/* Our input function for file open. We can't use DGifOpenFileName(), since
+ * that just calls open() and won't work with unicode on win32. We can't use
+ * DGifOpenFileHandle() since that's an fd from open() and you can't pass those
+ * acoss DLL boundaries on Windows. 
+ */
+static int 
+vips_giflib_file_read( GifFileType *file, GifByteType *buffer, int n )
+{
+	FILE *fp = (FILE *) file->UserData;
+
+	return( (int) fread( (void *) buffer, 1, n, fp ) );
 }
 
 static int
 vips_foreign_load_gif_open( VipsForeignLoadGif *gif, const char *filename )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
-	int fd;
-
 	g_assert( !gif->file ); 
+	g_assert( !gif->fp ); 
 
-	if( !(fd = vips__open_read( filename )) ) {
-		vips_error_system( errno, class->nickname, 
-			_( "unable to open \"%s\"" ), filename ); 
+	if( !(gif->fp = vips__file_open_read( filename, NULL, FALSE )) ) 
 		return( -1 ); 
-	}
 
 #ifdef HAVE_GIFLIB_5
 {
 	int error; 
 
-	if( !(gif->file = DGifOpenFileHandle( fd, &error )) ) {
-		/* DGifOpenFileHandle() closes fd for us on error.
-		 */
+	if( !(gif->file = 
+		DGifOpen( gif->fp, vips_giflib_file_read, &error )) ) {
 		vips_foreign_load_gif_error_vips( gif, error );
 		return( -1 ); 
 	}
 }
 #else 
-	if( !(gif->file = DGifOpenFileHandle( fd )) ) { 
-		/* DGifOpenFileHandle() closes fd for us on error.
-		 */
+	if( !(gif->file = DGifOpen( gif->fp, vips_giflib_file_read )) ) { 
 		vips_foreign_load_gif_error_vips( gif, GifLastError() ); 
 		return( -1 ); 
 	}
@@ -768,12 +779,11 @@ G_DEFINE_TYPE( VipsForeignLoadGifBuffer, vips_foreign_load_gif_buffer,
  * Read up to len bytes into buffer, return number of bytes read, 0 for EOF.
  */
 static int
-vips_foreign_load_gif_buffer_read( GifFileType *file, 
-	GifByteType *buf, int len )
+vips_giflib_buffer_read( GifFileType *file, GifByteType *buf, int n )
 {
-	VipsForeignLoadGifBuffer *buffer = (VipsForeignLoadGifBuffer *)
-		file->UserData;
-	size_t will_read = VIPS_MIN( len, buffer->bytes_to_go );
+	VipsForeignLoadGifBuffer *buffer = 
+		(VipsForeignLoadGifBuffer *) file->UserData;
+	size_t will_read = VIPS_MIN( n, buffer->bytes_to_go );
 
 	memcpy( buf, buffer->p, will_read );
 	buffer->p += will_read;
@@ -793,8 +803,7 @@ vips_foreign_load_gif_buffer_header( VipsForeignLoad *load )
 	buffer->p = buffer->buf->data;
 	buffer->bytes_to_go = buffer->buf->length;
 
-	if( vips_foreign_load_gif_open_buffer( gif, 
-		vips_foreign_load_gif_buffer_read ) ) 
+	if( vips_foreign_load_gif_open_buffer( gif, vips_giflib_buffer_read ) ) 
 		return( -1 ); 
 
 	return( vips_foreign_load_gif_load( load ) );
