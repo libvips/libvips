@@ -1,3 +1,22 @@
+- magick does not seem to be using wopen on win ... see
+  magick/utility-private.h, fopen_utf8()
+
+  we use the fopen() branch, not the _wfopen() one
+
+  code is:
+
+	#if !defined(MAGICKCORE_WINDOWS_SUPPORT) || defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__)
+		return(fopen(..));
+	#else
+		return(_wfopen(..));
+	#endif
+
+  we have __MINGW64__ I guess, so we therefore use fopen
+
+  how can we build under mingw?
+
+  try removing the MINGW stuff
+
 - done: jpeg, tiff, csv, vips
 
   cfitsio: no unicode support on Windows, as far as I can see
