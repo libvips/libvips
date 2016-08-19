@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim: set fileencoding=utf-8 :
 
 import unittest
 import math
@@ -105,7 +106,7 @@ class TestResample(unittest.TestCase):
             self.assertAlmostEqual(x, y, places = places, msg = msg)
 
     def test_affine(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        im = Vips.Image.new_from_file("images/йцук.jpg")
 
         # vsqbs is non-interpolatory, don't test this way
         for name in ["nearest", "bicubic", "bilinear", "nohalo", "lbb"]:
@@ -117,7 +118,7 @@ class TestResample(unittest.TestCase):
             self.assertEqual((x - im).abs().max(), 0)
 
     def test_reduce(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        im = Vips.Image.new_from_file("images/йцук.jpg")
         # cast down to 0-127, the smallest range, so we aren't messed up by
         # clipping
         im = im.cast(Vips.BandFormat.CHAR)
@@ -165,13 +166,13 @@ class TestResample(unittest.TestCase):
                 self.assertEqual(d, 0)
 
     def test_resize(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        im = Vips.Image.new_from_file("images/йцук.jpg")
         im2 = im.resize(0.25)
         self.assertEqual(im2.width, im.width // 4)
         self.assertEqual(im2.height, im.height // 4)
 
     def test_shrink(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        im = Vips.Image.new_from_file("images/йцук.jpg")
         im2 = im.shrink(4, 4)
         self.assertEqual(im2.width, im.width // 4)
         self.assertEqual(im2.height, im.height // 4)
@@ -183,7 +184,7 @@ class TestResample(unittest.TestCase):
         self.assertLess(abs(im.avg() - im2.avg()), 1)
 
     def test_similarity(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        im = Vips.Image.new_from_file("images/йцук.jpg")
         im2 = im.similarity(angle = 90)
         im3 = im.affine([0, -1, 1, 0])
         # rounding in calculating the affine transform from the angle stops this
@@ -191,13 +192,13 @@ class TestResample(unittest.TestCase):
         self.assertLess((im2 - im3).abs().max(), 50)
 
     def test_similarity_scale(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        im = Vips.Image.new_from_file("images/йцук.jpg")
         im2 = im.similarity(scale = 2)
         im3 = im.affine([2, 0, 0, 2])
         self.assertEqual((im2 - im3).abs().max(), 0)
 
     def test_mapim(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        im = Vips.Image.new_from_file("images/йцук.jpg")
 
         p = to_polar(im)
         r = to_rectangular(p)

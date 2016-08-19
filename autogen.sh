@@ -66,3 +66,5 @@ swig -version > /dev/null
 if [ $? -ne 0 ]; then
   echo you need swig to build from source control
 fi
+
+./configure $*

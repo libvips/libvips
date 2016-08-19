@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim: set fileencoding=utf-8 :
 
 from __future__ import division
 import unittest
@@ -37,7 +38,7 @@ class TestForeign(unittest.TestCase):
 
     def setUp(self):
         self.matlab_file = "images/sample.mat"
-        self.jpeg_file = "images/IMG_4618.jpg"
+        self.jpeg_file = "images/йцук.jpg"
         self.png_file = "images/sample.png"
         self.tiff_file = "images/sample.tif"
         self.profile_file = "images/sRGB.icm"
