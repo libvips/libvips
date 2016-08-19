@@ -4,6 +4,11 @@
  * 	- from svgload.c
  * 25/4/16
  * 	- add giflib5 support
+ * 26/7/16
+ * 	- transparency was wrong if there was no EXTENSION_RECORD
+ * 	- write 1, 2, 3, or 4 bands depending on file contents
+ * 19/8/16
+ * 	- better transparency detection, thanks diegocsandrim
  */
 
 /*
@@ -490,9 +495,10 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 			if( ext_code == GRAPHICS_EXT_FUNC_CODE &&
 				extension &&
 				extension[0] == 4 && 
-				extension[1] == 1 ) {
+				(extension[1] & 0x1) ) {
 				/* Bytes are 4, 1, delay low, delay high,
-				 * transparency.
+				 * transparency. Bit 1 means transparency
+				 * is being set.
 				 */
 				gif->transparency = extension[4];
 
