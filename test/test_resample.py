@@ -170,6 +170,12 @@ class TestResample(unittest.TestCase):
         self.assertEqual(im2.width, round(im.width / 4.0))
         self.assertEqual(im2.height, round(im.height / 4.0))
 
+        # test geometry rounding corner case
+        im = Vips.Image.black(100, 1);
+        x = im.resize(0.5)
+        self.assertEqual(x.width, 50)
+        self.assertEqual(x.height, 1)
+
     def test_shrink(self):
         im = Vips.Image.new_from_file("images/IMG_4618.jpg")
         im2 = im.shrink(4, 4)

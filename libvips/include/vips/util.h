@@ -97,7 +97,7 @@ extern "C" {
 /* Round N down and up to the nearest multiple of P.
  */
 #define VIPS_ROUND_DOWN( N, P ) ((N) - ((N) % (P))) 
-#define VIPS_ROUND_UP( N, P ) (VIPS_ROUND_DOWN( N, P ) + (P))
+#define VIPS_ROUND_UP( N, P ) (VIPS_ROUND_DOWN( (N) + (P) - 1, (P) ))
 
 #define VIPS_SWAP( TYPE, A, B ) \
 G_STMT_START { \
