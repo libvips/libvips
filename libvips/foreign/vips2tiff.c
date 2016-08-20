@@ -322,14 +322,6 @@ tiff_openin( const char *name )
 	return( tif );
 }
 
-/* Round N down to P boundary. 
- */
-#define ROUND_DOWN(N,P) ((N) - ((N) % P)) 
-
-/* Round N up to P boundary. 
- */
-#define ROUND_UP(N,P) (ROUND_DOWN( (N) + (P) - 1, (P) ))
-
 static Layer *
 pyramid_new( Write *write, Layer *above, int width, int height )
 {
@@ -975,7 +967,7 @@ write_new( VipsImage *im, const char *filename,
 	if( im->Coding == VIPS_CODING_LABQ )
 		write->tls = write->tilew * 3;
 	else if( write->onebit )
-		write->tls = ROUND_UP( write->tilew, 8 ) / 8;
+		write->tls = VIPS_ROUND_UP( write->tilew, 8 ) / 8;
 	else
 		write->tls = VIPS_IMAGE_SIZEOF_PEL( im ) * write->tilew;
 

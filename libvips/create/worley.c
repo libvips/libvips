@@ -75,14 +75,6 @@ G_DEFINE_TYPE( VipsWorley, vips_worley, VIPS_TYPE_CREATE );
 
 #define MAX_FEATURES (10)
 
-/* Round N down to P boundary. 
- */
-#define ROUND_DOWN( N, P ) ((N) - ((N) % P)) 
-
-/* Round N up to P boundary. 
- */
-#define ROUND_UP( N, P ) (ROUND_DOWN( (N) + (P) - 1, (P) ))
-
 typedef struct _Cell {
 	/* Cell position, in number of cells. Scale by cell_size to get
 	 * absolute image cods.
@@ -294,9 +286,11 @@ vips_worley_build( VipsObject *object )
 
 	/* Be careful if width is a multiple of cell_size.
 	 */
-	worley->cells_across = ROUND_UP( worley->width, worley->cell_size ) / 
+	worley->cells_across = 
+		VIPS_ROUND_UP( worley->width, worley->cell_size ) / 
 		worley->cell_size;
-	worley->cells_down = ROUND_UP( worley->height, worley->cell_size ) / 
+	worley->cells_down = 
+		VIPS_ROUND_UP( worley->height, worley->cell_size ) / 
 		worley->cell_size;
 
 	worley->seed = g_random_double() * 0xffffffffu;

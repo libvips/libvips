@@ -498,13 +498,14 @@ vips_reduceh_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
-	/* Size output. Note: we round to nearest to hide rounding errors. 
+	/* Size output. We need to always round to nearest, so round(), not
+	 * rint().
 	 *
 	 * Don't change xres/yres, leave that to the application layer. For
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Xsize = VIPS_RINT( 
+	resample->out->Xsize = VIPS_ROUND_UINT( 
 		(in->Xsize - reduceh->n_point + 1) / reduceh->hshrink );
 	if( resample->out->Xsize <= 0 ) { 
 		vips_error( object_class->nickname, 

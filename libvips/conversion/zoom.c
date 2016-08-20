@@ -98,14 +98,6 @@ typedef VipsConversionClass VipsZoomClass;
 
 G_DEFINE_TYPE( VipsZoom, vips_zoom, VIPS_TYPE_CONVERSION );
 
-/* Round N down to P boundary. 
- */
-#define ROUND_DOWN( N, P ) ((N) - ((N) % P)) 
-
-/* Round N up to P boundary. 
- */
-#define ROUND_UP( N, P ) (ROUND_DOWN( (N) + (P) - 1, (P) ))
-
 /* Paint the part of the region containing only whole pels.
  */
 static void
@@ -265,10 +257,10 @@ vips_zoom_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	/* Area of input we need. We have to round out, as we may have
 	 * part-pixels all around the edges.
 	 */
-	left = ROUND_DOWN( r->left, zoom->xfac );
-	right = ROUND_UP( ri, zoom->xfac );
-	top = ROUND_DOWN( r->top, zoom->yfac );
-	bottom = ROUND_UP( bo, zoom->yfac );
+	left = VIPS_ROUND_DOWN( r->left, zoom->xfac );
+	right = VIPS_ROUND_UP( ri, zoom->xfac );
+	top = VIPS_ROUND_DOWN( r->top, zoom->yfac );
+	bottom = VIPS_ROUND_UP( bo, zoom->yfac );
 	width = right - left;
 	height = bottom - top;
 	s.left = left / zoom->xfac;
@@ -280,10 +272,10 @@ vips_zoom_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	
 	/* Find the part of the output (if any) which uses only whole pels.
 	 */
-	left = ROUND_UP( r->left, zoom->xfac );
-	right = ROUND_DOWN( ri, zoom->xfac );
-	top = ROUND_UP( r->top, zoom->yfac );
-	bottom = ROUND_DOWN( bo, zoom->yfac );
+	left = VIPS_ROUND_UP( r->left, zoom->xfac );
+	right = VIPS_ROUND_DOWN( ri, zoom->xfac );
+	top = VIPS_ROUND_UP( r->top, zoom->yfac );
+	bottom = VIPS_ROUND_DOWN( bo, zoom->yfac );
 	width = right - left;
 	height = bottom - top;
 

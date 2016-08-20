@@ -95,11 +95,9 @@ vips_Lab2LabQ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		int lsbs;
 		int intv;
 
-		/* Scale L up to 10 bits. Add 0.5 rather than call VIPS_RINT 
-		 * for speed. This will not round negatives correctly! But 
-		 * this does not matter, since L is >0. L*=100.0 -> 1023.
+		/* Scale L up to 10 bits. 
 		 */
-		intv = 10.23 * p[0] + 0.5;	/* scale L up to 10 bits */
+		intv = VIPS_ROUND_UINT( 10.23 * p[0] ); 
 		intv = VIPS_CLIP( 0, intv, 1023 );
 		lsbs = (intv & 0x3) << 6;       /* 00000011 -> 11000000 */
 		q[0] = intv >> 2; 		/* drop bot 2 bits and store */

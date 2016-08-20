@@ -215,10 +215,10 @@ transform_rect( const VipsTransformation *trn, transform_fn transform,
 	top = VIPS_MIN( y1, VIPS_MIN( y2, VIPS_MIN( y3, y4 ) ) );
 	bottom = VIPS_MAX( y1, VIPS_MAX( y2, VIPS_MAX( y3, y4 ) ) );
 
-	out->left = VIPS_RINT( left );
-	out->top = VIPS_RINT( top );
-	out->width = VIPS_RINT( right - left );
-	out->height = VIPS_RINT( bottom - top );
+	out->left = VIPS_ROUND_INT( left );
+	out->top = VIPS_ROUND_INT( top );
+	out->width = VIPS_ROUND_INT( right - left );
+	out->height = VIPS_ROUND_INT( bottom - top );
 }
 
 /* Given an area in the input image, calculate the bounding box for those

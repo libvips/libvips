@@ -285,14 +285,6 @@ vips__make_xml_metadata( const char *domain, VipsImage *image )
 
 #include <gsf/gsf.h>
 
-/* Round N down to P boundary. 
- */
-#define ROUND_DOWN( N, P ) ((N) - ((N) % P)) 
-
-/* Round N up to P boundary. 
- */
-#define ROUND_UP( N, P ) (ROUND_DOWN( (N) + (P) - 1, (P) ))
-
 /* Simple wrapper around libgsf.
  *
  * We need to be able to do scattered writes to structured files. So while
@@ -672,8 +664,10 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	layer->width = width;
 	layer->height = height;
 
-	layer->tiles_across = ROUND_UP( width, dz->tile_size ) / dz->tile_size;
-	layer->tiles_down = ROUND_UP( height, dz->tile_size ) / dz->tile_size;
+	layer->tiles_across = VIPS_ROUND_UP( width, dz->tile_size ) / 
+		dz->tile_size;
+	layer->tiles_down = VIPS_ROUND_UP( height, dz->tile_size ) / 
+		dz->tile_size;
 
 	layer->real_pixels = *real_pixels; 
 

@@ -775,13 +775,14 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL ) )
 		return( -1 );
 
-	/* Size output. Note: we round to nearest to hide rounding errors. 
+	/* Size output. We need to always round to nearest, so round(), not
+	 * rint().
 	 *
 	 * Don't change xres/yres, leave that to the application layer. For
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Ysize = VIPS_RINT( 
+	resample->out->Ysize = VIPS_ROUND_UINT( 
 		(in->Ysize - reducev->n_point + 1) / reducev->vshrink );
 	if( resample->out->Ysize <= 0 ) { 
 		vips_error( object_class->nickname, 
