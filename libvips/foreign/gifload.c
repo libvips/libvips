@@ -829,7 +829,7 @@ vips_foreign_load_gif_buffer_init( VipsForeignLoadGifBuffer *buffer )
  *
  * Optional arguments:
  *
- * * @page: %ginit, page (frame) to read
+ * * @page: %gint, page (frame) to read
  *
  * Read a GIF file into a VIPS image.  Rendering uses the giflib library.
  *
@@ -864,7 +864,7 @@ vips_gifload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * * @page: %ginit, page (frame) to read
+ * * @page: %gint, page (frame) to read
  *
  * Read a GIF-formatted memory block into a VIPS image. Exactly as
  * vips_gifload(), but read from a memory buffer. 
