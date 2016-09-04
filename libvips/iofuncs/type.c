@@ -670,6 +670,11 @@ transform_blob_save_string( const GValue *src_value, GValue *dest_value )
 		vips_value_set_save_string( dest_value, b64 );
 		vips_free( b64 );
 	}
+	else
+		/* No error return from transform, but we should set it to
+		 * something.
+		 */
+		vips_value_set_save_string( dest_value, "" ); 
 }
 
 static void
@@ -683,6 +688,11 @@ transform_save_string_blob( const GValue *src_value, GValue *dest_value )
 	if( (blob = vips__b64_decode( b64, &blob_length )) )
 		vips_value_set_blob( dest_value, 
 			(VipsCallbackFn) vips_free, blob, blob_length );
+	else
+		/* No error return from transform, but we should set it to
+		 * something.
+		 */
+		vips_value_set_save_string( dest_value, "" ); 
 }
 
 GType

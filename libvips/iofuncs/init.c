@@ -467,7 +467,12 @@ vips_leak( void )
 	vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
 	vips_buf_appends( &buf, "\n" );
 
+	if( strlen( vips_error_buffer() ) > 0 ) 
+		vips_buf_appendf( &buf, "error buffer: %s", 
+			vips_error_buffer() );
+
 	fprintf( stderr, "%s", vips_buf_all( &buf ) );
+
 
 #ifdef DEBUG
 	vips_buffer_dump_all();

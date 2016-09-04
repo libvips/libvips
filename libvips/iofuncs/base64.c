@@ -168,10 +168,6 @@ vips__b64_encode( const unsigned char *data, size_t data_length )
 	int i;
 	int cursor;
 
-	if( data_length == 0 ) {
-		vips_error( "vips__b64_encode", "%s", _( "too little data" ) );
-		return( NULL );
-	}
 	if( output_data_length > 1024 * 1024 ) {
 		/* We shouldn't really be used for large amounts of data, plus
 		 * we are using int offsets.
