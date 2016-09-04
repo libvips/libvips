@@ -228,9 +228,10 @@ vips__b64_decode( const char *buffer, size_t *data_length )
 {
 	const size_t buffer_length = strlen( buffer );
 
-	/* Worst case.
+	/* Worst case. Add one, since we don't want to return NULL for an empty
+	 * input string, it would look like an error return.
 	 */
-	const size_t output_data_length = buffer_length * 3 / 4;
+	const size_t output_data_length = 1 + buffer_length * 3 / 4;
 
 	unsigned char *data;
 	unsigned char *p;
