@@ -41,6 +41,9 @@
 - resize/reduce*/shrink*/affine now round output size to nearest rather than 
   rounding down, thanks ioquatix
 
+19/8/16 started 8.3.4
+- better transparency handling in gifload, thanks diegocsandrim
+
 30/7/16 started 8.3.3
 - fix performance regression in 8.3.2, thanks Lovell
 - yet more robust vips file reading

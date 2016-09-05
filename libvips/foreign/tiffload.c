@@ -301,7 +301,7 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  *
  * Optional arguments:
  *
- * * @page: int, load this page
+ * * @page: %gint, load this page
  * * @autorotate: %gboolean, use orientation tag to rotate the image 
  *   during load
  *
