@@ -1,7 +1,5 @@
 - not sure about utf8 error messages on win
 
-- add unicode filename test
-
 - strange: 
 
 	$ vips similarity --scale 0.33 k2.jpg x.v
