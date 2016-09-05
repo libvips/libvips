@@ -4,6 +4,9 @@
  * 	- from shrink.c (now renamed as shrink2.c)
  * 	- split to h and v shrinks for a large memory saving
  * 	- now handles complex
+ * 15/8/16
+ * 	- more accurate resize
+ * 	- rename xshrink -> hshrink for greater consistency 
  */
 
 /*
@@ -55,8 +58,8 @@
 typedef struct _VipsShrink {
 	VipsResample parent_instance;
 
-	double xshrink;		/* Shrink factors */
-	double yshrink;
+	double hshrink;		/* Shrink factors */
+	double vshrink;
 
 } VipsShrink;
 
@@ -72,31 +75,25 @@ vips_shrink_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( object, 3 );
 
-	int xshrink_int;
-	int yshrink_int;
+	int hshrink_int;
+	int vshrink_int;
 
 	if( VIPS_OBJECT_CLASS( vips_shrink_parent_class )->build( object ) )
 		return( -1 );
 
-	xshrink_int = (int) shrink->xshrink;
-	yshrink_int = (int) shrink->yshrink;
+	hshrink_int = (int) shrink->hshrink;
+	vshrink_int = (int) shrink->vshrink;
 
-	if( xshrink_int != shrink->xshrink || 
-		yshrink_int != shrink->yshrink ) {
+	if( hshrink_int != shrink->hshrink || 
+		vshrink_int != shrink->vshrink ) {
 		/* Shrink by int factors, affine to final size.
 		 */
-		int target_width = resample->in->Xsize / shrink->xshrink;
-		int target_height = resample->in->Ysize / shrink->yshrink;
+		double xresidual = hshrink_int / shrink->hshrink; 
+		double yresidual = vshrink_int / shrink->vshrink;
 
-		double xresidual;
-		double yresidual;
-
-		if( vips_shrinkv( resample->in, &t[0], yshrink_int, NULL ) ||
-			vips_shrinkh( t[0], &t[1], xshrink_int, NULL ) )
+		if( vips_shrinkv( resample->in, &t[0], vshrink_int, NULL ) ||
+			vips_shrinkh( t[0], &t[1], hshrink_int, NULL ) )
 			return( -1 ); 
-
-		xresidual = (double) target_width / t[1]->Xsize;
-		yresidual = (double) target_height / t[1]->Ysize;
 
 		if( vips_affine( t[1], &t[2], 
 			xresidual, 0.0, 0.0, yresidual, NULL ) ||
@@ -104,8 +101,8 @@ vips_shrink_build( VipsObject *object )
 			return( -1 );
 	}
 	else {
-		if( vips_shrinkv( resample->in, &t[0], shrink->yshrink, NULL ) ||
-			vips_shrinkh( t[0], &t[1], shrink->xshrink, NULL ) ||
+		if( vips_shrinkv( resample->in, &t[0], shrink->vshrink, NULL ) ||
+			vips_shrinkh( t[0], &t[1], shrink->hshrink, NULL ) ||
 			vips_image_write( t[1], resample->out ) )
 			return( -1 );
 	}
@@ -131,18 +128,34 @@ vips_shrink_class_init( VipsShrinkClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
+	VIPS_ARG_DOUBLE( class, "vshrink", 9, 
+		_( "Vshrink" ), 
+		_( "Vertical shrink factor" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsShrink, vshrink ),
+		1.0, 1000000.0, 1.0 );
+
+	VIPS_ARG_DOUBLE( class, "hshrink", 8, 
+		_( "Hshrink" ), 
+		_( "Horizontal shrink factor" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsShrink, hshrink ),
+		1.0, 1000000.0, 1.0 );
+
+	/* The old names .. now use h and v everywhere. 
+	 */
 	VIPS_ARG_DOUBLE( class, "xshrink", 8, 
 		_( "Xshrink" ), 
 		_( "Horizontal shrink factor" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsShrink, xshrink ),
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsShrink, hshrink ),
 		1.0, 1000000.0, 1.0 );
 
 	VIPS_ARG_DOUBLE( class, "yshrink", 9, 
 		_( "Yshrink" ), 
 		_( "Vertical shrink factor" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsShrink, yshrink ),
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsShrink, vshrink ),
 		1.0, 1000000.0, 1.0 );
 
 }
@@ -156,8 +169,8 @@ vips_shrink_init( VipsShrink *shrink )
  * vips_shrink:
  * @in: input image
  * @out: output image
- * @xshrink: horizontal shrink
- * @yshrink: vertical shrink
+ * @hshrink: horizontal shrink
+ * @vshrink: vertical shrink
  * @...: %NULL-terminated list of optional named arguments
  *
  * Shrink @in by a pair of factors with a simple box filter. For non-integer
@@ -177,13 +190,13 @@ vips_shrink_init( VipsShrink *shrink )
  */
 int
 vips_shrink( VipsImage *in, VipsImage **out, 
-	double xshrink, double yshrink, ... )
+	double hshrink, double vshrink, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, yshrink );
-	result = vips_call_split( "shrink", ap, in, out, xshrink, yshrink );
+	va_start( ap, vshrink );
+	result = vips_call_split( "shrink", ap, in, out, hshrink, vshrink );
 	va_end( ap );
 
 	return( result );

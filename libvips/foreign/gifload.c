@@ -9,6 +9,8 @@
  * 	- write 1, 2, 3, or 4 bands depending on file contents
  * 17/8/16
  * 	- support unicode on win
+ * 19/8/16
+ * 	- better transparency detection, thanks diegocsandrim
  */
 
 /*
@@ -539,9 +541,10 @@ vips_foreign_load_gif_to_memory( VipsForeignLoadGif *gif, VipsImage *out )
 			if( ext_code == GRAPHICS_EXT_FUNC_CODE &&
 				extension &&
 				extension[0] == 4 && 
-				extension[1] == 1 ) {
+				(extension[1] & 0x1) ) {
 				/* Bytes are 4, 1, delay low, delay high,
-				 * transparency.
+				 * transparency. Bit 1 means transparency
+				 * is being set.
 				 */
 				gif->transparency = extension[4];
 				gif->has_transparency = TRUE;
@@ -850,7 +853,7 @@ vips_foreign_load_gif_buffer_init( VipsForeignLoadGifBuffer *buffer )
  *
  * Optional arguments:
  *
- * * @page: %ginit, page (frame) to read
+ * * @page: %gint, page (frame) to read
  *
  * Read a GIF file into a VIPS image.  Rendering uses the giflib library.
  *
@@ -885,7 +888,7 @@ vips_gifload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * * @page: %ginit, page (frame) to read
+ * * @page: %gint, page (frame) to read
  *
  * Read a GIF-formatted memory block into a VIPS image. Exactly as
  * vips_gifload(), but read from a memory buffer. 

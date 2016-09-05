@@ -11,6 +11,8 @@
  * 	  equal to the target scale
  * 15/6/16
  * 	- better accuracy with smarter multiplication
+ * 15/8/16
+ * 	- rename yshrink as vshrink for consistency
  */
 
 /*
@@ -92,7 +94,7 @@ typedef struct {
 typedef struct _VipsReducev {
 	VipsResample parent_instance;
 
-	double yshrink;		/* Shrink factor */
+	double vshrink;		/* Shrink factor */
 
 	/* The thing we use to make the kernel.
 	 */
@@ -491,7 +493,7 @@ reducev_notab( VipsReducev *reducev,
 
 	double cy[MAX_POINT];
 
-	vips_reduce_make_mask( cy, reducev->kernel, reducev->yshrink, y ); 
+	vips_reduce_make_mask( cy, reducev->kernel, reducev->vshrink, y ); 
 
 	for( int z = 0; z < ne; z++ ) 
 		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
@@ -521,9 +523,9 @@ vips_reducev_gen( VipsRegion *out_region, void *vseq,
 #endif /*DEBUG*/
 
 	s.left = r->left;
-	s.top = r->top * reducev->yshrink;
+	s.top = r->top * reducev->vshrink;
 	s.width = r->width;
-	s.height = r->height * reducev->yshrink + reducev->n_point;
+	s.height = r->height * reducev->vshrink + reducev->n_point;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
@@ -532,7 +534,7 @@ vips_reducev_gen( VipsRegion *out_region, void *vseq,
 	for( int y = 0; y < r->height; y ++ ) { 
 		VipsPel *q = 
 			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
-		const double Y = (r->top + y) * reducev->yshrink; 
+		const double Y = (r->top + y) * reducev->vshrink; 
 		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, (int) Y ); 
 		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
 		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
@@ -631,9 +633,9 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 #endif /*DEBUG_PIXELS*/
 
 	s.left = r->left;
-	s.top = r->top * reducev->yshrink;
+	s.top = r->top * reducev->vshrink;
 	s.width = r->width;
-	s.height = r->height * reducev->yshrink + reducev->n_point;
+	s.height = r->height * reducev->vshrink + reducev->n_point;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
@@ -651,7 +653,7 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 	for( int y = 0; y < r->height; y ++ ) { 
 		VipsPel *q = 
 			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
-		const double Y = (r->top + y) * reducev->yshrink; 
+		const double Y = (r->top + y) * reducev->vshrink; 
 		const int py = (int) Y; 
 		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
 		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
@@ -719,7 +721,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 			return( -1 ); 
 
 		vips_reduce_make_mask( reducev->matrixf[y],
-			reducev->kernel, reducev->yshrink, 
+			reducev->kernel, reducev->vshrink, 
 			(float) y / VIPS_TRANSFORM_SCALE ); 
 
 #ifdef DEBUG
@@ -773,14 +775,15 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL ) )
 		return( -1 );
 
-	/* Size output. Note: we round to nearest to hide rounding errors. 
+	/* Size output. We need to always round to nearest, so round(), not
+	 * rint().
 	 *
 	 * Don't change xres/yres, leave that to the application layer. For
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Ysize = VIPS_RINT( 
-		(in->Ysize - reducev->n_point + 1) / reducev->yshrink );
+	resample->out->Ysize = VIPS_ROUND_UINT( 
+		(in->Ysize - reducev->n_point + 1) / reducev->vshrink );
 	if( resample->out->Ysize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -816,17 +819,17 @@ vips_reducev_build( VipsObject *object )
 
 	in = resample->in; 
 
-	if( reducev->yshrink < 1 ) { 
+	if( reducev->vshrink < 1 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "reduce factor should be >= 1" ) );
 		return( -1 );
 	}
 
-	if( reducev->yshrink == 1 ) 
+	if( reducev->vshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );
 
 	reducev->n_point = 
-		vips_reduce_get_points( reducev->kernel, reducev->yshrink ); 
+		vips_reduce_get_points( reducev->kernel, reducev->vshrink ); 
 	if( reducev->n_point > MAX_POINT ) {
 		vips_error( object_class->nickname, 
 			"%s", _( "reduce factor too large" ) );
@@ -876,19 +879,28 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
-	VIPS_ARG_DOUBLE( reducev_class, "yshrink", 3, 
-		_( "Xshrink" ), 
+	VIPS_ARG_DOUBLE( reducev_class, "vshrink", 3, 
+		_( "Vshrink" ), 
 		_( "Vertical shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsReducev, yshrink ),
+		G_STRUCT_OFFSET( VipsReducev, vshrink ),
 		1, 1000000, 1 );
 
-	VIPS_ARG_ENUM( reducev_class, "kernel", 3, 
+	VIPS_ARG_ENUM( reducev_class, "kernel", 4, 
 		_( "Kernel" ), 
 		_( "Resampling kernel" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsReducev, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
+
+	/* Old name.
+	 */
+	VIPS_ARG_DOUBLE( reducev_class, "yshrink", 3, 
+		_( "Yshrink" ), 
+		_( "Vertical shrink factor" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsReducev, vshrink ),
+		1, 1000000, 1 );
 
 }
 
@@ -902,7 +914,7 @@ vips_reducev_init( VipsReducev *reducev )
  * vips_reducev:
  * @in: input image
  * @out: output image
- * @yshrink: horizontal reduce
+ * @vshrink: horizontal reduce
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -923,13 +935,13 @@ vips_reducev_init( VipsReducev *reducev )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_reducev( VipsImage *in, VipsImage **out, double yshrink, ... )
+vips_reducev( VipsImage *in, VipsImage **out, double vshrink, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, yshrink );
-	result = vips_call_split( "reducev", ap, in, out, yshrink );
+	va_start( ap, vshrink );
+	result = vips_call_split( "reducev", ap, in, out, vshrink );
 	va_end( ap );
 
 	return( result );

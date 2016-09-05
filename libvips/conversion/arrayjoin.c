@@ -50,14 +50,6 @@
 
 #include "pconversion.h"
 
-/* Round N down to P boundary. 
- */
-#define ROUND_DOWN( N, P ) ((N) - ((N) % P)) 
-
-/* Round N up to P boundary. 
- */
-#define ROUND_UP( N, P ) (ROUND_DOWN( (N) + (P) - 1, (P) ))
-
 typedef struct _VipsArrayjoin {
 	VipsConversion parent_instance;
 
@@ -179,7 +171,7 @@ vips_arrayjoin_build( VipsObject *object )
 
 	/* How many images down the grid?
 	 */
-	join->down = ROUND_UP( n, join->across ) / join->across;
+	join->down = VIPS_ROUND_UP( n, join->across ) / join->across;
 
 	/* The output size.
 	 */

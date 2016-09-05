@@ -71,14 +71,6 @@ typedef struct _VipsPerlinClass {
 
 G_DEFINE_TYPE( VipsPerlin, vips_perlin, VIPS_TYPE_CREATE );
 
-/* Round N down to P boundary. 
- */
-#define ROUND_DOWN( N, P ) ((N) - ((N) % P)) 
-
-/* Round N up to P boundary. 
- */
-#define ROUND_UP( N, P ) (ROUND_DOWN( (N) + (P) - 1, (P) ))
-
 /* cos and sin from an angle in 0 - 255.
  */
 float vips_perlin_cos[256];
@@ -261,9 +253,11 @@ vips_perlin_build( VipsObject *object )
 
 	/* Be careful if width is a multiple of cell_size.
 	 */
-	perlin->cells_across = ROUND_UP( perlin->width, perlin->cell_size ) / 
+	perlin->cells_across = 
+		VIPS_ROUND_UP( perlin->width, perlin->cell_size ) / 
 		perlin->cell_size;
-	perlin->cells_down = ROUND_UP( perlin->height, perlin->cell_size ) / 
+	perlin->cells_down = 
+		VIPS_ROUND_UP( perlin->height, perlin->cell_size ) / 
 		perlin->cell_size;
 
 	perlin->seed = g_random_double() * 0xffffffffu;

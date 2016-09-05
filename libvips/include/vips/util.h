@@ -53,10 +53,13 @@ extern "C" {
 
 #define VIPS_MAX( A, B ) ((A) > (B) ? (A) : (B))
 #define VIPS_MIN( A, B ) ((A) < (B) ? (A) : (B))
-#define VIPS_ABS( X ) (((X) >= 0) ? (X) : -(X))
 
 #define VIPS_CLIP( A, V, B ) VIPS_MAX( (A), VIPS_MIN( (B), (V) ) )
+#define VIPS_FCLIP( A, V, B ) VIPS_FMAX( (A), VIPS_FMIN( (B), (V) ) )
+
 #define VIPS_NUMBER( R ) ((int) (sizeof(R) / sizeof(R[0])))
+
+#define VIPS_ABS( X ) (((X) >= 0) ? (X) : -(X))
 
 /* The built-in isnan and isinf functions provided by gcc 4+ and clang are
  * up to 7x faster than their libc equivalent included from <math.h>.
@@ -67,6 +70,7 @@ extern "C" {
 #define VIPS_FLOOR( V ) __builtin_floor( V )
 #define VIPS_CEIL( V ) __builtin_ceil( V )
 #define VIPS_RINT( V ) __builtin_rint( V )
+#define VIPS_ROUND( V ) __builtin_round( V )
 #define VIPS_FABS( V ) __builtin_fabs( V )
 #define VIPS_FMAX( A, B ) __builtin_fmax( A, B )
 #define VIPS_FMIN( A, B ) __builtin_fmin( A, B )
@@ -75,13 +79,25 @@ extern "C" {
 #define VIPS_ISINF( V ) isinf( V )
 #define VIPS_FLOOR( V ) floor( V )
 #define VIPS_CEIL( V ) ceil( V )
-#define VIPS_RINT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
+#define VIPS_RINT( R ) rint( V )
+#define VIPS_ROUND( V ) round( V )
 #define VIPS_FABS( V ) VIPS_ABS( V )
 #define VIPS_FMAX( A, B ) VIPS_MAX( A, B )
 #define VIPS_FMIN( A, B ) VIPS_MIN( A, B )
 #endif
 
-#define VIPS_FCLIP( A, V, B ) VIPS_FMAX( (A), VIPS_FMIN( (B), (V) ) )
+/* VIPS_RINT() does "bankers rounding", it rounds to the nerarest even integer.
+ * For things like image geometry, we want strict nearest int.
+ *
+ * If you know it's unsigned, _UINT is a little faster. 
+ */
+#define VIPS_ROUND_INT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
+#define VIPS_ROUND_UINT( R ) ((int) ((R) + 0.5))
+
+/* Round N down and up to the nearest multiple of P.
+ */
+#define VIPS_ROUND_DOWN( N, P ) ((N) - ((N) % (P))) 
+#define VIPS_ROUND_UP( N, P ) (VIPS_ROUND_DOWN( (N) + (P) - 1, (P) ))
 
 #define VIPS_SWAP( TYPE, A, B ) \
 G_STMT_START { \

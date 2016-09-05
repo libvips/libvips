@@ -1265,7 +1265,11 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
  *
  * If @embedded is set, the input profile is taken from the input image
  * metadata. If there is no embedded profile,
- * @input_profile_filename is used as a fall-back.
+ * @input_profile_filename is used as a fall-back. 
+ * You can test for the
+ * presence of an embedded profile with
+ * vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument. This will
+ * return %GType 0 if there is no profile. 
  *
  * If @embedded is not set, the input profile is taken from
  * @input_profile. If @input_profile is not supplied, the
@@ -1342,10 +1346,17 @@ vips_icc_export( VipsImage *in, VipsImage **out, ... )
  * If @embedded is set, the input profile is taken from the input image
  * metadata, if present. If there is no embedded profile,
  * @input_profile is used as a fall-back.
+ * You can test for the
+ * presence of an embedded profile with
+ * vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument. This will
+ * return %GType 0 if there is no profile. 
  *
  * If @embedded is not set, the input profile is taken from
  * @input_profile. If @input_profile is not supplied, the
  * metadata profile, if any, is used as a fall-back. 
+ *
+ * The output image has the output profile attached to the #VIPS_META_ICC_NAME
+ * field. 
  *
  * Use vips_icc_import() and vips_icc_export() to do either the first or 
  * second half of this operation in isolation.

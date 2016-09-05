@@ -168,19 +168,25 @@ class TestResample(unittest.TestCase):
     def test_resize(self):
         im = Vips.Image.new_from_file("images/йцук.jpg")
         im2 = im.resize(0.25)
-        self.assertEqual(im2.width, im.width // 4)
-        self.assertEqual(im2.height, im.height // 4)
+        self.assertEqual(im2.width, round(im.width / 4.0))
+        self.assertEqual(im2.height, round(im.height / 4.0))
+
+        # test geometry rounding corner case
+        im = Vips.Image.black(100, 1);
+        x = im.resize(0.5)
+        self.assertEqual(x.width, 50)
+        self.assertEqual(x.height, 1)
 
     def test_shrink(self):
         im = Vips.Image.new_from_file("images/йцук.jpg")
         im2 = im.shrink(4, 4)
-        self.assertEqual(im2.width, im.width // 4)
-        self.assertEqual(im2.height, im.height // 4)
+        self.assertEqual(im2.width, round(im.width / 4.0))
+        self.assertEqual(im2.height, round(im.height / 4.0))
         self.assertTrue(abs(im.avg() - im2.avg()) < 1)
 
         im2 = im.shrink(2.5, 2.5)
-        self.assertEqual(im2.width, im.width // 2.5)
-        self.assertEqual(im2.height, im.height // 2.5)
+        self.assertEqual(im2.width, round(im.width / 2.5))
+        self.assertEqual(im2.height, round(im.height / 2.5))
         self.assertLess(abs(im.avg() - im2.avg()), 1)
 
     def test_similarity(self):

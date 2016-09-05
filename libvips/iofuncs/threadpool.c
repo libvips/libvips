@@ -922,14 +922,6 @@ vips_threadpool_run( VipsImage *im,
 	return( result );
 }
 
-/* Round N down to P boundary. 
- */
-#define ROUND_DOWN(N,P) ((N) - ((N) % P)) 
-
-/* Round N up to P boundary. 
- */
-#define ROUND_UP(N,P) (ROUND_DOWN( (N) + (P) - 1, (P) ))
-
 /**
  * vips_get_tile_size:
  * @im: image to guess for
@@ -986,7 +978,7 @@ vips_get_tile_size( VipsImage *im,
 		(1 + nthr / VIPS_MAX( 1, im->Xsize / vips__tile_width )) * 2;
 	*n_lines = VIPS_MAX( *n_lines, vips__fatstrip_height * nthr * 2 );
 	*n_lines = VIPS_MAX( *n_lines, vips__thinstrip_height * nthr * 2 );
-	*n_lines = ROUND_UP( *n_lines, *tile_height );
+	*n_lines = VIPS_ROUND_UP( *n_lines, *tile_height );
 
 	/* We make this assumption in several places.
 	 */
