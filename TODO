@@ -1,3 +1,9 @@
+- fix test for RH edge in gm layout
+
+  use same test for bottom and right
+
+  add test for google layout
+
 - arrayjoin puts some shim down the far right edge, though not along the
   bottom
 

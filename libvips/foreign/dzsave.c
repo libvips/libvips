@@ -63,6 +63,8 @@
  * 	- fix overlap handling again, thanks erdmann
  * 8/6/16 Felix Bünemann
  * 	- add @compression option
+ * 5/9/16
+ * 	- more overlap changes to help gmaps mode
  */
 
 /*
@@ -131,9 +133,9 @@
 
 /*
 #define DEBUG_VERBOSE
-#define DEBUG
 #define VIPS_DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -566,6 +568,37 @@ struct _VipsForeignSaveDz {
 	VipsForeignDzContainer container; 
 	int compression;
 
+	/* Tile and overlap geometry. The members above are the parameters we
+	 * accept, this nest set are the derived values which are actually 
+	 * used in pyramid generation.
+	 *
+	 * Tiles have a base size. Imagine a square placed at the top left.
+	 * This is the size of that square.
+	 *
+	 * Tiles have a margin. The square from tile_size is expanded outward 
+	 * up/down/left/right by this amount. Parts going off the image are 
+	 * clipped. 
+	 *
+	 * Each time we write a new tile, we step the position by tile_step
+	 * pixels. 
+	 *
+	 * We need all three of tile_size, tile_margin and tile_step since
+	 * deepzoom and google maps have different meanings for overlap and we
+	 * want to be able to support both models.
+	 *
+	 * For deepzoom:
+	 *
+	 * 	tile_margin = overlap
+	 * 	tile_step = tile_size
+	 *
+	 * For google maps:
+	 *
+	 * 	tile_margin = 0
+	 *	tile_step = tile_size - overlap
+	 */
+	int tile_margin;
+	int tile_step;
+
 	Layer *layer;			/* x2 shrink pyr layer */
 
 	/* Count zoomify tiles we write.
@@ -664,10 +697,10 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	layer->width = width;
 	layer->height = height;
 
-	layer->tiles_across = VIPS_ROUND_UP( width, dz->tile_size ) / 
-		dz->tile_size;
-	layer->tiles_down = VIPS_ROUND_UP( height, dz->tile_size ) / 
-		dz->tile_size;
+	layer->tiles_across = VIPS_ROUND_UP( width, dz->tile_step ) / 
+		dz->tile_step;
+	layer->tiles_down = VIPS_ROUND_UP( height, dz->tile_step ) / 
+		dz->tile_step;
 
 	layer->real_pixels = *real_pixels; 
 
@@ -710,13 +743,16 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	 *
 	 * Expand the strip if necessary to make sure we have an even 
 	 * number of lines. 
+	 *
+	 * This is just the height of the first row of tiles, so only add 1*
+	 * tile_margin.
 	 */
 	layer->y = 0;
 	layer->write_y = 0;
 	strip.left = 0;
 	strip.top = 0;
 	strip.width = layer->image->Xsize;
-	strip.height = dz->tile_size + dz->overlap;
+	strip.height = dz->tile_size + dz->tile_margin;
 	if( (strip.height & 1) == 1 )
 		strip.height += 1;
 	if( vips_region_buffer( layer->strip, &strip ) ) {
@@ -779,6 +815,8 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	printf( "\twidth = %d, height = %d\n", width, height );
 	printf( "\tXsize = %d, Ysize = %d\n", 
 		layer->image->Xsize, layer->image->Ysize );
+	printf( "\ttiles_across = %d, tiles_down = %d\n", 
+		layer->tiles_across, layer->tiles_down ); 
 	printf( "\treal_pixels.left = %d, real_pixels.top = %d\n", 
 		real_pixels->left, real_pixels->top ); 
 	printf( "\treal_pixels.width = %d, real_pixels.height = %d\n", 
@@ -966,7 +1004,7 @@ strip_init( Strip *strip, Layer *layer )
 	line.top = layer->y;
 	line.width = image.width;
 	line.height = dz->tile_size;
-	vips_rect_marginadjust( &line, dz->overlap );
+	vips_rect_marginadjust( &line, dz->tile_margin );
 
 	vips_rect_intersectrect( &image, &line, &line );
 
@@ -1001,7 +1039,7 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	 * bits of the left-hand overlap in and no new pixels. Safest to count
 	 * tiles across.
 	 */
-	if( strip->x / dz->tile_size >= layer->tiles_across ) {
+	if( strip->x / dz->tile_step >= layer->tiles_across ) {
 		*stop = TRUE;
 #ifdef DEBUG_VERBOSE
 		printf( "strip_allocate: done\n" );
@@ -1021,13 +1059,13 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	state->pos.top = layer->y;
 	state->pos.width = dz->tile_size;
 	state->pos.height = dz->tile_size;
-	vips_rect_marginadjust( &state->pos, dz->overlap );
+	vips_rect_marginadjust( &state->pos, dz->tile_margin );
 
 	vips_rect_intersectrect( &image, &state->pos, &state->pos );
 	state->x = strip->x;
 	state->y = layer->y;
 
-	strip->x += dz->tile_size;
+	strip->x += dz->tile_step;
 
 	return( 0 );
 }
@@ -1258,7 +1296,7 @@ strip_work( VipsThreadState *state, void *a )
 	g_mutex_lock( vips__global_lock );
 
 	out = tile_name( layer, 
-		state->x / dz->tile_size, state->y / dz->tile_size );
+		state->x / dz->tile_step, state->y / dz->tile_step );
 
 	status = gsf_output_write( out, len, buf );
 	dz->bytes_written += len;
@@ -1493,11 +1531,11 @@ strip_arrived( Layer *layer )
 	 * Expand the strip if necessary to make sure we have an even 
 	 * number of lines. 
 	 */
-	layer->y += dz->tile_size;
+	layer->y += dz->tile_step;
 	new_strip.left = 0;
-	new_strip.top = layer->y - dz->overlap;
+	new_strip.top = layer->y - dz->tile_margin;
 	new_strip.width = layer->image->Xsize;
-	new_strip.height = dz->tile_size + 2 * dz->overlap;
+	new_strip.height = dz->tile_size + 2 * dz->tile_margin;
 
 	image_area.left = 0;
 	image_area.top = 0;
@@ -1630,6 +1668,22 @@ vips_foreign_save_dz_build( VipsObject *object )
 			dz->tile_size = 256;
 	}
 
+	/* Our tile layout.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) { 
+		dz->tile_margin = dz->overlap;
+		dz->tile_step = dz->tile_size; 
+	}
+	else {
+		dz->tile_margin = 0;
+		dz->tile_step = dz->tile_size - dz->overlap;
+	}
+
+	if( dz->tile_step <= 0 ) {
+		vips_error( "dzsave", "%s", _( "overlap too large" ) );
+		return( -1 );
+	}
+
 	/* Default to white background. vips_foreign_save_init() defaults to
 	 * black. 
 	 */
@@ -1640,13 +1694,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 		background = vips_array_double_newv( 1, 255.0 );
 		g_object_set( object, "background", background, NULL );
 		vips_area_unref( VIPS_AREA( background ) ); 
-	}
-
-	if( dz->overlap >= dz->tile_size ) {
-		vips_error( "dzsave", 
-			"%s", _( "overlap must be less than tile "
-				"width and height" ) ) ;
-		return( -1 );
 	}
 
 	/* DeepZoom stops at 1x1 pixels, others when the image fits within a
@@ -1740,6 +1787,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 		dz->tile_size );
 	printf( "vips_foreign_save_dz_build: overlap == %d\n", 
 		dz->overlap );
+	printf( "vips_foreign_save_dz_build: tile_margin == %d\n", 
+		dz->tile_margin );
+	printf( "vips_foreign_save_dz_build: tile_step == %d\n", 
+		dz->tile_step );
 #endif
 
 	/* Build the skeleton of the image pyramid.
