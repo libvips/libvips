@@ -76,6 +76,9 @@
  * 	- switch to new orientation tag
  * 11/7/16
  * 	- new --fail handling
+ * 07/09/16
+ *      - Don't use the exif resolution if x_resolution / y_resolution /
+ *        resolution_unit is missing
  */
 
 /*
@@ -347,6 +350,19 @@ show_values( ExifData *data )
 #endif /*HAVE_EXIF*/
 
 #ifdef HAVE_EXIF
+static ExifData*
+vips_exif_load_data_without_fix(const unsigned char* data, unsigned int size)
+{
+	ExifData *edata = exif_data_new();
+
+	if ( !edata )
+		return NULL;
+
+	exif_data_unset_option(edata, EXIF_DATA_OPTION_FOLLOW_SPECIFICATION);
+	exif_data_load_data (edata, data, size);
+	return edata;
+}
+
 static int
 vips_exif_get_int( ExifData *ed, 
 	ExifEntry *entry, unsigned long component, int *out )
@@ -626,7 +642,7 @@ parse_exif( VipsImage *im, void *data, int data_length )
 	ExifData *ed;
 	VipsExif ve;
 
-	if( !(ed = exif_data_new_from_data( data, data_length )) )
+	if( !(ed = vips_exif_load_data_without_fix( data, data_length )) )
 		return( -1 );
 
 #ifdef DEBUG_VERBOSE
@@ -645,16 +661,21 @@ parse_exif( VipsImage *im, void *data, int data_length )
 	 */
 	ve.image = im;
 	ve.ed = ed;
-	exif_data_foreach_content( ed, 
-		(ExifDataForeachContentFunc) attach_exif_content, &ve );
 
 	/* Look for resolution fields and use them to set the VIPS 
 	 * xres/yres fields.
 	 */
 	res_from_exif( im, ed );
 
-	attach_thumbnail( im, ed );
+	/* Let's make sure the fields are valid */
+	exif_data_fix( ed );
 
+	exif_data_foreach_content( ed, 
+		(ExifDataForeachContentFunc) attach_exif_content, &ve );
+
+
+	attach_thumbnail( im, ed );
+        printf("Resolution is %f %f\n", im->Xres, im->Yres);
 	exif_data_free( ed );
 }
 #endif /*HAVE_EXIF*/
