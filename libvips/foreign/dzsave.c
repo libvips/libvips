@@ -1758,15 +1758,15 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( (p = (char *) vips__find_rightmost_brackets( dz->basename )) )
 		*p = '\0';
 	if( (p = strrchr( dz->basename, '.' )) ) {
-		*p = '\0';
-
 		/* If we're writing to thing.zip or thing.szi, default to zip 
-		 * container.
+		 * container. Strip the file extension then.
 		 */
 		if( !vips_object_argument_isset( object, "container" ) )
 			if( strcasecmp( p + 1, "zip" ) == 0 ||
-				strcasecmp( p + 1, "szi" ) == 0 )
+				strcasecmp( p + 1, "szi" ) == 0 ) {
+				*p = '\0';
 				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
+			}
 	}
 }
 
