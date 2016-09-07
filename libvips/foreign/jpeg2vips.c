@@ -542,6 +542,34 @@ get_entry_double( ExifData *ed, int ifd, ExifTag tag, double *out )
 	return( vips_exif_get_double( ed, entry, 0, out ) );
 }
 
+static void
+set_entry_double( ExifData *ed, int ifd, ExifTag tag, double in)
+{
+	ExifEntry *entry;
+
+	if( (entry = exif_content_get_entry( ed->ifd[ifd], tag )) ) {
+		/* Let's remove the current value */
+		exif_content_remove_entry( ed->ifd[ifd], entry );
+		entry = NULL;
+	}
+
+	if ( !( entry = exif_entry_new() ) )
+		return;
+
+	entry->tag = tag;
+	exif_content_add_entry( ed->ifd[ifd], entry );
+
+	exif_entry_initialize( entry, tag );
+
+	/* This is a simple yet sufficient implementation */
+	ExifRational value;
+	value.numerator = in * 1000;
+	value.denominator = 1000;
+
+	if ( entry->data )
+		exif_set_rational( entry->data, exif_data_get_byte_order( ed ), value );
+}
+
 static int
 get_entry_int( ExifData *ed, int ifd, ExifTag tag, int *out )
 {
@@ -554,7 +582,7 @@ get_entry_int( ExifData *ed, int ifd, ExifTag tag, int *out )
 	return( vips_exif_get_int( ed, entry, 0, out ) );
 }
 
-static void
+static int
 res_from_exif( VipsImage *im, ExifData *ed )
 {
 	double xres, yres;
@@ -568,7 +596,7 @@ res_from_exif( VipsImage *im, ExifData *ed )
 		get_entry_int( ed, 0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
 		vips_warn( "VipsJpeg", 
 			"%s", _( "error reading resolution" ) );
-		return;
+		return( -1 );
 	}
 
 #ifdef DEBUG
@@ -605,7 +633,7 @@ res_from_exif( VipsImage *im, ExifData *ed )
 	default:
 		vips_warn( "VipsJpeg", 
 			"%s", _( "unknown EXIF resolution unit" ) );
-		return;
+		return( -1 );
 	}
 
 #ifdef DEBUG
@@ -615,6 +643,8 @@ res_from_exif( VipsImage *im, ExifData *ed )
 
 	im->Xres = xres;
 	im->Yres = yres;
+
+	return( 0 );
 }
 
 static int
@@ -664,18 +694,20 @@ parse_exif( VipsImage *im, void *data, int data_length )
 
 	/* Look for resolution fields and use them to set the VIPS 
 	 * xres/yres fields.
+	 * If the fields are missing, write the one from the jfif.
 	 */
-	res_from_exif( im, ed );
+	if ( res_from_exif( im, ed ) ) {
+		set_entry_double( ed, 0, EXIF_TAG_X_RESOLUTION, im->Xres );
+		set_entry_double( ed, 0, EXIF_TAG_Y_RESOLUTION, im->Yres );
+	}
 
-	/* Let's make sure the fields are valid */
+	/* Let's make sure the fields are valid. */
 	exif_data_fix( ed );
 
 	exif_data_foreach_content( ed, 
 		(ExifDataForeachContentFunc) attach_exif_content, &ve );
 
-
 	attach_thumbnail( im, ed );
-        printf("Resolution is %f %f\n", im->Xres, im->Yres);
 	exif_data_free( ed );
 }
 #endif /*HAVE_EXIF*/
