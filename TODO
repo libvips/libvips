@@ -1,8 +1,33 @@
-- fix test for RH edge in gm layout
+- radload seems to trigger a lot of missing field errors?
 
-  use same test for bottom and right
+	$ test_foreign.py
+	..... OK
+	memory: high-water mark 87.69 MB
+	error buffer: vips_image_get: field "rad-expos" not found
+	vips_image_get: field "rad-aspect" not found
+	vips_image_get: field "rad-format" not found
+	vips_image_get: field "rad-colcor-r" not found
+	vips_image_get: field "rad-colcor-g" not found
+	vips_image_get: field "rad-colcor-b" not found
+	vips_image_get: field "rad-prims-rx" not found
+	vips_image_get: field "rad-prims-ry" not found
+	vips_image_get: field "rad-prims-gx" not found
+	vips_image_get: field "rad-prims-gy" not found
+	vips_image_get: field "rad-prims-bx" not found
+	vips_image_get: field "rad-prims-by" not found
+	vips_image_get: field "rad-prims-wx" not found
+	vips_image_get: field "rad-prims-wy" not found
+	vips_image_get: field "rad-expos" not found
+	vips_image_get: field "rad-aspect" not found
+	vips_image_get: field "rad-format" not found
+	vips_image_get: field "rad-colcor-r" not found
+	vips_image_get: field "rad-colcor-g" not found
+	vips_image_get: field "rad-colcor-b" not found
+	vips_image_get: field "rad-prims-rx" not found
 
-  add test for google layout
+- add test for google layout
+
+  need to check case where width is exactly correct and we have overlaps
 
 - arrayjoin puts some shim down the far right edge, though not along the
   bottom
