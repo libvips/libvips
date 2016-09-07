@@ -350,17 +350,25 @@ show_values( ExifData *data )
 #endif /*HAVE_EXIF*/
 
 #ifdef HAVE_EXIF
-static ExifData*
-vips_exif_load_data_without_fix(const unsigned char* data, unsigned int size)
+/* Like exif_data_new_from_data(), but don't default missing fields. 
+ * 
+ * If we do exif_data_new_from_data(), then missing fields are set to 
+ * their default value and we won't know about it. 
+ */
+static ExifData *
+vips_exif_load_data_without_fix( void *data, int data_length )
 {
-	ExifData *edata = exif_data_new();
+	ExifData *ed;
 
-	if ( !edata )
-		return NULL;
+	if( !(ed = exif_data_new()) ) {
+		vips_error( "VipsJpeg", "%s", _( "unable to init exif" ) ); 
+		return( NULL );
+	}
 
-	exif_data_unset_option(edata, EXIF_DATA_OPTION_FOLLOW_SPECIFICATION);
-	exif_data_load_data (edata, data, size);
-	return edata;
+	exif_data_unset_option( ed, EXIF_DATA_OPTION_FOLLOW_SPECIFICATION );
+	exif_data_load_data( ed, data, data_length );
+
+	return( ed );
 }
 
 static int
@@ -542,34 +550,6 @@ get_entry_double( ExifData *ed, int ifd, ExifTag tag, double *out )
 	return( vips_exif_get_double( ed, entry, 0, out ) );
 }
 
-static void
-set_entry_double( ExifData *ed, int ifd, ExifTag tag, double in)
-{
-	ExifEntry *entry;
-
-	if( (entry = exif_content_get_entry( ed->ifd[ifd], tag )) ) {
-		/* Let's remove the current value */
-		exif_content_remove_entry( ed->ifd[ifd], entry );
-		entry = NULL;
-	}
-
-	if ( !( entry = exif_entry_new() ) )
-		return;
-
-	entry->tag = tag;
-	exif_content_add_entry( ed->ifd[ifd], entry );
-
-	exif_entry_initialize( entry, tag );
-
-	/* This is a simple yet sufficient implementation */
-	ExifRational value;
-	value.numerator = in * 1000;
-	value.denominator = 1000;
-
-	if ( entry->data )
-		exif_set_rational( entry->data, exif_data_get_byte_order( ed ), value );
-}
-
 static int
 get_entry_int( ExifData *ed, int ifd, ExifTag tag, int *out )
 {
@@ -680,30 +660,24 @@ parse_exif( VipsImage *im, void *data, int data_length )
 	show_values( ed );
 #endif /*DEBUG_VERBOSE*/
 
+	/* Look for resolution fields and use them to set the VIPS 
+	 * xres/yres fields.
+	 *
+	 * If the fields are missing, write the ones from jfif.
+	 */
+	if( res_from_exif( im, ed ) &&
+		vips__set_exif_resolution( ed, im ) )
+		return( -1 ); 
+
+	/* Make sure all required fields are there before we attach to vips
+	 * metadata.
+	 */
+	exif_data_fix( ed );
+
 	/* Attach informational fields for what we find.
-
-		FIXME ... better to have this in the UI layer?
-
-		Or we could attach non-human-readable tags here (int, 
-		double etc) and then move the human stuff to the UI 
-		layer?
-
 	 */
 	ve.image = im;
 	ve.ed = ed;
-
-	/* Look for resolution fields and use them to set the VIPS 
-	 * xres/yres fields.
-	 * If the fields are missing, write the one from the jfif.
-	 */
-	if ( res_from_exif( im, ed ) ) {
-		set_entry_double( ed, 0, EXIF_TAG_X_RESOLUTION, im->Xres );
-		set_entry_double( ed, 0, EXIF_TAG_Y_RESOLUTION, im->Yres );
-	}
-
-	/* Let's make sure the fields are valid. */
-	exif_data_fix( ed );
-
 	exif_data_foreach_content( ed, 
 		(ExifDataForeachContentFunc) attach_exif_content, &ve );
 
