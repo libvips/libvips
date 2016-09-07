@@ -424,7 +424,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
- * * @no-subsample: %gboolean, disable chroma subsampling
+ * * @no_subsample: %gboolean, disable chroma subsampling
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
@@ -453,7 +453,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * If @strip is set, no EXIF data, IPCT data, ICC profile or XMP metadata is 
  * written into the output file. 
  *
- * If @no-subsample is set, chrominance subsampling is disabled. This will 
+ * If @no_subsample is set, chrominance subsampling is disabled. This will 
  * improve quality at the cost of larger file size. Useful for high Q factors. 
  *
  * If @trellis_quant is set and the version of libjpeg supports it
@@ -534,12 +534,12 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * * @Q: JPEG quality factor
- * * @profile: attach this ICC profile
- * * @optimize_coding: compute optimal Huffman coding tables
- * * @interlace: write an interlaced (progressive) jpeg
- * * @strip: remove all metadata from image
- * * @no-subsample: disable chroma subsampling
+ * * @Q: %gint, quality factor
+ * * @profile: filename of ICC profile to attach
+ * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
+ * * @interlace: %gboolean, write an interlaced (progressive) jpeg
+ * * @strip: %gboolean, remove all metadata from image
+ * * @no_subsample: %gboolean, disable chroma subsampling
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
@@ -590,11 +590,12 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  *
  * Optional arguments:
  *
- * * @Q: JPEG quality factor
- * * @profile: attach this ICC profile
- * * @optimize_coding: compute optimal Huffman coding tables
- * * @strip: remove all metadata from image
- * * @no-subsample: disable chroma subsampling
+ * * @Q: %gint, quality factor
+ * * @profile: filename of ICC profile to attach
+ * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
+ * * @interlace: %gboolean, write an interlaced (progressive) jpeg
+ * * @strip: %gboolean, remove all metadata from image
+ * * @no_subsample: %gboolean, disable chroma subsampling
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
