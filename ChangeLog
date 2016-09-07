@@ -41,6 +41,7 @@
 - added VIPS_ROUND as well as VIPS_RINT
 - resize/reduce*/shrink*/affine now round output size to nearest rather than 
   rounding down, thanks ioquatix
+- better overlap support for google maps in dzsave
 
 19/8/16 started 8.3.4
 - better transparency handling in gifload, thanks diegocsandrim

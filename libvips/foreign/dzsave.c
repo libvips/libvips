@@ -690,6 +690,8 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE( dz );
 	Layer *layer = VIPS_NEW( dz, Layer );
 
+	int right;
+	int bottom;
 	VipsRect strip;
 	int limit; 
 
@@ -697,10 +699,17 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	layer->width = width;
 	layer->height = height;
 
-	layer->tiles_across = VIPS_ROUND_UP( width, dz->tile_step ) / 
-		dz->tile_step;
-	layer->tiles_down = VIPS_ROUND_UP( height, dz->tile_step ) / 
-		dz->tile_step;
+	/* The 0 position of the right-most possible tile.
+	 */
+	right = VIPS_MAX( 0, width - dz->tile_margin - dz->tile_size ); 
+
+	/* Tiles from that to the left edge will be spaced by tile step. The +1
+	 * is the tile we subtracted above. 
+	 */
+	layer->tiles_across = ceil( (double) right / dz->tile_step ) + 1; 
+
+	bottom = VIPS_MAX( 0, height - dz->tile_margin - dz->tile_size );
+	layer->tiles_down = ceil( (double) bottom / dz->tile_step ) + 1;
 
 	layer->real_pixels = *real_pixels; 
 
