@@ -76,6 +76,9 @@
  * 	- switch to new orientation tag
  * 11/7/16
  * 	- new --fail handling
+ * 07/09/16
+ *      - Don't use the exif resolution if x_resolution / y_resolution /
+ *        resolution_unit is missing
  */
 
 /*
@@ -347,6 +350,27 @@ show_values( ExifData *data )
 #endif /*HAVE_EXIF*/
 
 #ifdef HAVE_EXIF
+/* Like exif_data_new_from_data(), but don't default missing fields. 
+ * 
+ * If we do exif_data_new_from_data(), then missing fields are set to 
+ * their default value and we won't know about it. 
+ */
+static ExifData *
+vips_exif_load_data_without_fix( void *data, int data_length )
+{
+	ExifData *ed;
+
+	if( !(ed = exif_data_new()) ) {
+		vips_error( "VipsJpeg", "%s", _( "unable to init exif" ) ); 
+		return( NULL );
+	}
+
+	exif_data_unset_option( ed, EXIF_DATA_OPTION_FOLLOW_SPECIFICATION );
+	exif_data_load_data( ed, data, data_length );
+
+	return( ed );
+}
+
 static int
 vips_exif_get_int( ExifData *ed, 
 	ExifEntry *entry, unsigned long component, int *out )
@@ -538,7 +562,7 @@ get_entry_int( ExifData *ed, int ifd, ExifTag tag, int *out )
 	return( vips_exif_get_int( ed, entry, 0, out ) );
 }
 
-static void
+static int
 res_from_exif( VipsImage *im, ExifData *ed )
 {
 	double xres, yres;
@@ -552,7 +576,7 @@ res_from_exif( VipsImage *im, ExifData *ed )
 		get_entry_int( ed, 0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
 		vips_warn( "VipsJpeg", 
 			"%s", _( "error reading resolution" ) );
-		return;
+		return( -1 );
 	}
 
 #ifdef DEBUG
@@ -589,7 +613,7 @@ res_from_exif( VipsImage *im, ExifData *ed )
 	default:
 		vips_warn( "VipsJpeg", 
 			"%s", _( "unknown EXIF resolution unit" ) );
-		return;
+		return( -1 );
 	}
 
 #ifdef DEBUG
@@ -599,6 +623,8 @@ res_from_exif( VipsImage *im, ExifData *ed )
 
 	im->Xres = xres;
 	im->Yres = yres;
+
+	return( 0 );
 }
 
 static int
@@ -626,7 +652,7 @@ parse_exif( VipsImage *im, void *data, int data_length )
 	ExifData *ed;
 	VipsExif ve;
 
-	if( !(ed = exif_data_new_from_data( data, data_length )) )
+	if( !(ed = vips_exif_load_data_without_fix( data, data_length )) )
 		return( -1 );
 
 #ifdef DEBUG_VERBOSE
@@ -634,27 +660,28 @@ parse_exif( VipsImage *im, void *data, int data_length )
 	show_values( ed );
 #endif /*DEBUG_VERBOSE*/
 
+	/* Look for resolution fields and use them to set the VIPS 
+	 * xres/yres fields.
+	 *
+	 * If the fields are missing, write the ones from jfif.
+	 */
+	if( res_from_exif( im, ed ) &&
+		vips__set_exif_resolution( ed, im ) )
+		return( -1 ); 
+
+	/* Make sure all required fields are there before we attach to vips
+	 * metadata.
+	 */
+	exif_data_fix( ed );
+
 	/* Attach informational fields for what we find.
-
-		FIXME ... better to have this in the UI layer?
-
-		Or we could attach non-human-readable tags here (int, 
-		double etc) and then move the human stuff to the UI 
-		layer?
-
 	 */
 	ve.image = im;
 	ve.ed = ed;
 	exif_data_foreach_content( ed, 
 		(ExifDataForeachContentFunc) attach_exif_content, &ve );
 
-	/* Look for resolution fields and use them to set the VIPS 
-	 * xres/yres fields.
-	 */
-	res_from_exif( im, ed );
-
 	attach_thumbnail( im, ed );
-
 	exif_data_free( ed );
 }
 #endif /*HAVE_EXIF*/

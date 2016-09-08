@@ -1818,15 +1818,21 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( (p = (char *) vips__find_rightmost_brackets( dz->basename )) )
 		*p = '\0';
 	if( (p = strrchr( dz->basename, '.' )) ) {
-		*p = '\0';
-
 		/* If we're writing to thing.zip or thing.szi, default to zip 
 		 * container.
 		 */
-		if( !vips_object_argument_isset( object, "container" ) )
+		if( !vips_object_argument_isset( object, "container" ) ) 
 			if( strcasecmp( p + 1, "zip" ) == 0 ||
-				strcasecmp( p + 1, "szi" ) == 0 )
+				strcasecmp( p + 1, "szi" ) == 0 ) 
 				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
+
+		/* Always remove .szi, .zip, .dz. We don't remove all suffixes
+		 * since we might be writing to a dirname with a dot in.
+		 */
+		if( strcasecmp( p + 1, "zip" ) == 0 ||
+			strcasecmp( p + 1, "szi" ) == 0 || 
+			strcasecmp( p + 1, "dz" ) == 0 )
+			*p = '\0';
 	}
 }
 
@@ -2053,7 +2059,7 @@ static int bandfmt_dz[10] = {
    UC, C,  US, S,  UI, I,  F,  F,  D,  D
 };
 
-const char *dz_suffs[] = { ".dz", NULL };
+static const char *dz_suffs[] = { ".dz", NULL };
 
 static void
 vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )

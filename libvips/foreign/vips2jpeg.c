@@ -273,29 +273,21 @@ vips_exif_set_int( ExifData *ed,
 static void
 vips_exif_double_to_rational( double value, ExifRational *rv )
 {
-	unsigned int scale;
-
-	/* We scale up to fill uint32, then set that as the
-	 * denominator. Try to avoid generating 0.
+	/* We will usually set factors of 10, so use 1000 as the denominator
+	 * and it'll probably be OK.
 	 */
-	scale = (unsigned int) ((UINT_MAX - 1000) / value);
-	scale = scale == 0 ? 1 : scale;
-	rv->numerator = value * scale;
-	rv->denominator = scale;
+	rv->numerator = value * 1000;
+	rv->denominator = 1000;
 }
 
 static void
 vips_exif_double_to_srational( double value, ExifSRational *srv )
 {
-	int scale;
-
-	/* We scale up to fill int32, then set that as the
-	 * denominator. Try to avoid generating 0.
+	/* We will usually set factors of 10, so use 1000 as the denominator
+	 * and it'll probably be OK.
 	 */
-	scale = (int) ((INT_MAX - 1000) / value);
-	scale = scale == 0 ? 1 : scale;
-	srv->numerator = value * scale;
-	srv->denominator = scale;
+	srv->numerator = value * 1000;
+	srv->denominator = 1000;
 }
 
 /* Parse a char* into an ExifRational. We allow floats as well.
@@ -461,15 +453,17 @@ write_tag( ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data )
 
 /* This is different, we set the xres/yres from the vips header rather than
  * from the exif tags on the image metadata.
+ *
+ * This is also called from the jpg reader to fix up bad exif resoltion.
  */
-static int
-set_exif_resolution( ExifData *ed, VipsImage *im )
+int
+vips__set_exif_resolution( ExifData *ed, VipsImage *im )
 {
 	double xres, yres;
 	const char *p;
 	int unit;
 
-	VIPS_DEBUG_MSG( "set_exif_resolution: vips res of %g, %g\n",
+	VIPS_DEBUG_MSG( "vips__set_exif_resolution: vips res of %g, %g\n",
 		im->Xres, im->Yres );
 
 	/* Default to inches, more progs support it.
@@ -823,7 +817,7 @@ write_exif( Write *write )
 
 	/* Update EXIF resolution from the vips image header.
 	 */
-	if( set_exif_resolution( ed, write->in ) ) {
+	if( vips__set_exif_resolution( ed, write->in ) ) {
 		exif_data_free( ed );
 		return( -1 );
 	}
