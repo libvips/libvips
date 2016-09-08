@@ -959,8 +959,12 @@ write_vips_meta( VipsForeignSaveDz *dz )
 	if( !(dump = vips__make_xml_metadata( class->nickname, save->ready )) )
                 return( -1 );
 
-	out = vips_gsf_path( dz->tree, 
-		"vips-properties.xml", dz->root_name, NULL ); 
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ )
+		out = vips_gsf_path( dz->tree, 
+			"vips-properties.xml", dz->root_name, NULL );
+	else
+		out = vips_gsf_path( dz->tree, "vips-properties.xml", NULL );
+
 	gsf_output_write( out, strlen( dump ), (guchar *) dump ); 
 	(void) gsf_output_close( out );
 	g_object_unref( out );
