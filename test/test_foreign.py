@@ -579,7 +579,7 @@ class TestForeign(unittest.TestCase):
         # test the overlap for equality
         self.colour.dzsave("test", suffix = ".png")
 
-        # tes horizontal overlap ... expect 256 step, overlap 1 
+        # test horizontal overlap ... expect 256 step, overlap 1 
         x = Vips.Image.new_from_file("test_files/10/0_0.png")
         self.assertEqual(x.width, 255)
         y = Vips.Image.new_from_file("test_files/10/1_0.png")
@@ -625,6 +625,31 @@ class TestForeign(unittest.TestCase):
         self.assertEqual(x.height, 256)
 
         shutil.rmtree("test")
+
+        # google layout with overlap ... verify that we clip correctly
+        # with overlap 192 tile size 256, we should step by 64 pixels each time
+        # so 3x3 tiles exactly
+        self.colour.crop(0, 0, 384, 384).dzsave("test2", layout = "google", 
+                                                overlap = 192, depth = "one")
+
+        # test bottom-right tile ... default is 256x256 tiles, overlap 0
+        x = Vips.Image.new_from_file("test2/0/2/2.jpg")
+        self.assertEqual(x.width, 256)
+        self.assertEqual(x.height, 256)
+        self.assertFalse(os.path.exists("test2/0/3/3.jpg"))
+
+        shutil.rmtree("test2")
+
+        self.colour.crop(0, 0, 385, 385).dzsave("test3", layout = "google", 
+                                                overlap = 192, depth = "one")
+
+        # test bottom-right tile ... default is 256x256 tiles, overlap 0
+        x = Vips.Image.new_from_file("test3/0/3/3.jpg")
+        self.assertEqual(x.width, 256)
+        self.assertEqual(x.height, 256)
+        self.assertFalse(os.path.exists("test3/0/4/4.jpg"))
+
+        shutil.rmtree("test3")
 
         # default zoomify layout
         self.colour.dzsave("test", layout = "zoomify")

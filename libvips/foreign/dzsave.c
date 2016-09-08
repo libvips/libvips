@@ -438,6 +438,8 @@ vips_gsf_dir_new( VipsGsfDirectory *parent, const char *name )
 			(GsfOutfile *) parent->out, 
 			name, TRUE ); 
 
+	g_assert( dir->out ); 
+
 	parent->children = g_slist_prepend( parent->children, dir ); 
 
 	return( dir ); 
