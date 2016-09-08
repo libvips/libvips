@@ -65,6 +65,8 @@
  * 	- add @compression option
  * 5/9/16
  * 	- more overlap changes to help gmaps mode
+ * 8/9/16 Felix Bünemann
+ * 	- move vips-properties out of subdir for gm and zoomify layouts
  */
 
 /*
@@ -959,6 +961,9 @@ write_vips_meta( VipsForeignSaveDz *dz )
 	if( !(dump = vips__make_xml_metadata( class->nickname, save->ready )) )
                 return( -1 );
 
+	/* For deepzom the props must go inside the ${name}_files subdir, for
+	 * gm and zoomify it can sit in the main folder.
+	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ )
 		out = vips_gsf_path( dz->tree, 
 			"vips-properties.xml", dz->root_name, NULL );

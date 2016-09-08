@@ -25,15 +25,6 @@
 	vips_image_get: field "rad-colcor-b" not found
 	vips_image_get: field "rad-prims-rx" not found
 
-- add test for google layout
-
-  need to check case where width is exactly correct and we have overlaps
-
-- arrayjoin puts some shim down the far right edge, though not along the
-  bottom
-
-  see untile-google.py
-
 - not sure about utf8 error messages on win
 
 - strange: 

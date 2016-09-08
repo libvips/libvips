@@ -42,6 +42,7 @@
 - resize/reduce*/shrink*/affine now round output size to nearest rather than 
   rounding down, thanks ioquatix
 - better support for tile overlaps in google maps mode in dzsave
+- dzsave puts vips-properties.xml in the main dir for gm and zoomify layouts
 
 19/8/16 started 8.3.4
 - better transparency handling in gifload, thanks diegocsandrim
