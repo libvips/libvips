@@ -1239,24 +1239,34 @@ vips2rad_make_header( Write *write )
 	int i, j;
 	double d;
 
-	(void) vips_image_get_double( write->in, "rad-expos", &write->expos );
-	(void) vips_image_get_double( write->in, "rad-aspect", &write->aspect );
+	if( vips_image_get_typeof( write->in, "rad-expos" ) )
+		vips_image_get_double( write->in, "rad-expos", &write->expos );
 
-	if( !vips_image_get_string( write->in, "rad-format", &str ) )
+	if( vips_image_get_typeof( write->in, "rad-aspect" ) )
+		vips_image_get_double( write->in, "rad-aspect", &write->aspect );
+
+	if( vips_image_get_typeof( write->in, "rad-format" ) &&
+		!vips_image_get_string( write->in, "rad-format", &str ) )
 		vips_strncpy( write->format, str, 256 );
+
 	if( write->in->Type == VIPS_INTERPRETATION_scRGB )
 		strcpy( write->format, COLRFMT );
 	if( write->in->Type == VIPS_INTERPRETATION_XYZ )
 		strcpy( write->format, CIEFMT );
 
 	for( i = 0; i < 3; i++ )
-		if( !vips_image_get_double( write->in, colcor_name[i], &d ) )
+		if( vips_image_get_typeof( write->in, colcor_name[i] ) && 
+			!vips_image_get_double( write->in, colcor_name[i], &d ) )
 			write->colcor[i] = d;
+
 	for( i = 0; i < 4; i++ )
-		for( j = 0; j < 2; j++ )
-			if( !vips_image_get_double( write->in, 
-				prims_name[i][j], &d ) )
+		for( j = 0; j < 2; j++ ) {
+			const char *name = prims_name[i][j]; 
+
+			if( vips_image_get_typeof( write->in, name ) &&
+				!vips_image_get_double( write->in, name, &d ) )
 				write->prims[i][j] = d;
+		}
 
 	/* Make y decreasing for consistency with vips.
 	 */
