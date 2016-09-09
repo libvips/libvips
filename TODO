@@ -1,3 +1,11 @@
+- test possible centre hack
+
+  I think we're moving too far ... this is going to shift the mask by 50%, we
+  just want half a pixel
+
+  put the shift into vips_reduce_make_mask() so it gets picked up by the double
+  path too
+
 - not sure about utf8 error messages on win
 
 - strange: 
