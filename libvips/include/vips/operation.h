@@ -129,6 +129,12 @@ void vips_cache_set_max_files( int max_files );
 void vips_cache_set_dump( gboolean dump );
 void vips_cache_set_trace( gboolean trace );
 
+/* Part of threadpool, really, but we want these in a header that gets scanned
+ * for our typelib.
+ */
+void vips_concurrency_set( int concurrency );
+int vips_concurrency_get( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
