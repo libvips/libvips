@@ -6,6 +6,8 @@
  * 	- add other kernels
  * 15/8/16
  * 	- rename xshrink as hshrink for consistency
+ * 9/9/16
+ * 	- add @centre option
  */
 
 /*
@@ -321,6 +323,8 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 	s.top = r->top;
 	s.width = r->width * reduceh->hshrink + reduceh->n_point;
 	s.height = r->height;
+	if( reduceh->centre )
+		s.width += 1;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
@@ -335,6 +339,8 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 		q = VIPS_REGION_ADDR( out_region, r->left, r->top + y );
 
 		X = r->left * reduceh->hshrink;
+		if( reduceh->centre )
+			X += 0.5;
 
 		/* We want p0 to be the start (ie. x == 0) of the input 
 		 * scanline we are reading from. We can then calculate the p we
@@ -439,6 +445,7 @@ vips_reduceh_build( VipsObject *object )
 		vips_object_local_array( object, 2 );
 
 	VipsImage *in;
+	int width;
 
 	if( VIPS_OBJECT_CLASS( vips_reduceh_parent_class )->build( object ) )
 		return( -1 );
@@ -465,8 +472,6 @@ vips_reduceh_build( VipsObject *object )
 		return( -1 );
 	}
 	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
-		float fx;
-
 		reduceh->matrixf[x] = 
 			VIPS_ARRAY( object, reduceh->n_point, double ); 
 		reduceh->matrixi[x] = 
@@ -475,18 +480,9 @@ vips_reduceh_build( VipsObject *object )
 			!reduceh->matrixi[x] )
 			return( -1 ); 
 
-		/* Calculate our [0, 1] float displacement. For centre
-		 * convention we must shift by 0.5 and wrap around.
-		 */
-		fx = (float) x / VIPS_TRANSFORM_SCALE;
-		if( reduceh->centre ) {
-			fx += 0.5;
-			if( fx > 1.0 )
-				fx -= 1.0;
-		}
-
 		vips_reduce_make_mask( reduceh->matrixf[x], 
-			reduceh->kernel, reduceh->hshrink, fx ); 
+			reduceh->kernel, reduceh->hshrink, 
+			(float) x / VIPS_TRANSFORM_SCALE );
 
 		for( int i = 0; i < reduceh->n_point; i++ )
 			reduceh->matrixi[x][i] = reduceh->matrixf[x][i] * 
@@ -500,10 +496,15 @@ vips_reduceh_build( VipsObject *object )
 	in = t[0];
 
 	/* Add new pixels around the input so we can interpolate at the edges.
+	 * In centre mode, we read 0.5 pixels more to the right, so we must
+	 * enlarge a little further.
 	 */
+	width = in->Xsize + reduceh->n_point - 1;
+	if( reduceh->centre )
+		width += 1;
 	if( vips_embed( in, &t[1], 
 		reduceh->n_point / 2 - 1, 0, 
-		in->Xsize + reduceh->n_point - 1, in->Ysize,
+		width, in->Ysize,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
@@ -521,7 +522,7 @@ vips_reduceh_build( VipsObject *object )
 	 * fractional part), we just see the integer part here.
 	 */
 	resample->out->Xsize = VIPS_ROUND_UINT( 
-		(in->Xsize - reduceh->n_point + 1) / reduceh->hshrink );
+		resample->in->Xsize / reduceh->hshrink );
 	if( resample->out->Xsize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );

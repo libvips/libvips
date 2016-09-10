@@ -450,7 +450,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in )
 
 	shrink = calculate_shrink( in );
 
-	if( vips_resize( in, &t[4], 1.0 / shrink, NULL ) ) 
+	if( vips_resize( in, &t[4], 1.0 / shrink, "centre", TRUE, NULL ) ) 
 		return( NULL );
 	in = t[4];
 

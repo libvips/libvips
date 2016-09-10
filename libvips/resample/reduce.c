@@ -4,6 +4,8 @@
  * 	- from shrink.c 
  * 15/8/16
  * 	- rename xshrink -> hshrink for greater consistency 
+ * 9/9/16
+ * 	- add @centre option
  */
 
 /*
@@ -75,6 +77,10 @@ typedef struct _VipsReduce {
 	 */
 	VipsKernel kernel;
 
+	/* Use centre rather than corner sampling convention.
+	 */
+	gboolean centre;
+
 } VipsReduce;
 
 typedef VipsResampleClass VipsReduceClass;
@@ -94,9 +100,11 @@ vips_reduce_build( VipsObject *object )
 
 	if( vips_reducev( resample->in, &t[0], reduce->vshrink, 
 		"kernel", reduce->kernel, 
+		"centre", reduce->centre, 
 		NULL ) ||
 		vips_reduceh( t[0], &t[1], reduce->hshrink, 
 			"kernel", reduce->kernel, 
+			"centre", reduce->centre, 
 			NULL ) ||
 		vips_image_write( t[1], resample->out ) )
 		return( -1 );
@@ -143,6 +151,13 @@ vips_reduce_class_init( VipsReduceClass *class )
 		G_STRUCT_OFFSET( VipsReduce, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
+	VIPS_ARG_BOOL( class, "centre", 7, 
+		_( "Centre" ), 
+		_( "Use centre sampling convention" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsReduce, centre ),
+		FALSE );
+
 	/* The old names .. now use h and v everywhere. 
 	 */
 	VIPS_ARG_DOUBLE( class, "xshrink", 8, 
@@ -178,9 +193,13 @@ vips_reduce_init( VipsReduce *reduce )
  * Optional arguments:
  *
  * * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
+ * * @centre: %gboolean use centre rather than corner sampling convention
  *
  * Reduce @in by a pair of factors with a pair of 1D kernels. This 
  * will not work well for shrink factors greater than three.
+ *
+ * Set @centre to use centre rather than corner sampling convention. Centre
+ * convention can be useful to match the behaviour of other systems. 
  *
  * This is a very low-level operation: see vips_resize() for a more
  * convenient way to resize images. 
