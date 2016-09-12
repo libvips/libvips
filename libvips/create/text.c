@@ -342,7 +342,7 @@ vips_text_init( VipsText *text )
  * Optional arguments:
  *
  * * @font: %gchararray, font to render with
- * * @width: %gint, render within this many pixels across
+ * * @width: %gint, image should be no wider than this many pixels
  * * @align: #VipsAlign, left/centre/right alignment
  * * @dpi: %gint, render at this resolution
  * * @spacing: %gint, space lines by this in points
