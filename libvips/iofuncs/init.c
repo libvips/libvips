@@ -328,11 +328,13 @@ vips_init( const char *argv0 )
 	bindtextdomain( GETTEXT_PACKAGE, name );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
 
-	/* Default info setting from env.
+	/* Default various settings from env.
 	 */
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
 		vips_info_set( TRUE );
+	if( g_getenv( "VIPS_TRACE" ) )
+		vips_cache_set_trace( TRUE );
 
 	/* Register base vips types.
 	 */

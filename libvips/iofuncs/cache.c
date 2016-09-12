@@ -1010,6 +1010,9 @@ vips_cache_set_dump( gboolean dump )
  *
  * Handy for debugging. Print operation cache actions to stdout as we run.
  *
+ * You can set the environment variable `VIPS_TRACE` to turn this option on, or
+ * use the command-line flag `--vips-cache-trace`.
+ *
  * See also: vips_cache_set_dump(). 
  */
 void
