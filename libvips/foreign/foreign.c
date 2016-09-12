@@ -97,53 +97,19 @@
  * VIPS comes with VipsForeign for TIFF, JPEG, PNG, Analyze, PPM, OpenEXR, CSV,
  * Matlab, Radiance, RAW, FITS, WebP, SVG, PDF, GIF and VIPS. It also includes 
  * import filters which can load with libMagick and with OpenSlide. 
- */
-
-/**
- * VipsForeignFlags: 
- * @VIPS_FOREIGN_NONE: no flags set
- * @VIPS_FOREIGN_PARTIAL: the image may be read lazilly
- * @VIPS_FOREIGN_BIGENDIAN: image pixels are most-significant byte first
- * @VIPS_FOREIGN_SEQUENTIAL: top-to-bottom lazy reading
  *
- * Some hints about the image loader.
+ * ## Writing a new loader
  *
- * #VIPS_FOREIGN_PARTIAL means that the image can be read directly from the
- * file without needing to be unpacked to a temporary image first. 
+ * Add a new loader to VIPS by subclassing #VipsForeignLoad. Subclasses need to 
+ * implement at least @header().
  *
- * #VIPS_FOREIGN_SEQUENTIAL means that the loader supports lazy reading, but
- * only top-to-bottom (sequential) access. Formats like PNG can read sets of
- * scanlines, for example, but only in order. 
- *
- * If neither PARTIAL or SEQUENTIAL is set, the loader only supports whole
- * image read. Setting both PARTIAL and SEQUENTIAL is an error.
- *
- * #VIPS_FOREIGN_BIGENDIAN means that image pixels are most-significant byte
- * first. Depending on the native byte order of the host machine, you may
- * need to swap bytes. See vips_copy().
- */
-
-/**
- * VipsForeignClass:
+ * @header() must set at least the header fields of @out. @load(), if defined,
+ * must load the pixels to @real.
  *
  * The suffix list is used to select a format to save a file in, and to pick a
  * loader if you don't define is_a().
  *
  * You should also define @nickname and @description in #VipsObject. 
- */
-
-/**
- * VipsForeignLoad:
- *
- * @header() must set at least the header fields of @out. @load(), if defined,
- * must load the pixels to @real.
- */
-
-/**
- * VipsForeignLoadClass:
- *
- * Add a new loader to VIPS by subclassing #VipsForeignLoad. Subclasses need to 
- * implement at least @header().
  *
  * As a complete example, here's code for a PNG loader, minus the actual
  * calls to libpng.
@@ -240,10 +206,8 @@
  * {
  * }
  * ]|
- */
-
-/**
- * VipsForeignSaveClass:
+ * 
+ * ## Writing a new saver
  *
  * Call your saver in the class' @build() method after chaining up. The
  * prepared image should be ready for you to save in @ready.  
@@ -322,6 +286,30 @@
  *   csv->separator = g_strdup( "\t" );
  * }
  * ]|
+ */
+
+/**
+ * VipsForeignFlags: 
+ * @VIPS_FOREIGN_NONE: no flags set
+ * @VIPS_FOREIGN_PARTIAL: the image may be read lazilly
+ * @VIPS_FOREIGN_BIGENDIAN: image pixels are most-significant byte first
+ * @VIPS_FOREIGN_SEQUENTIAL: top-to-bottom lazy reading
+ *
+ * Some hints about the image loader.
+ *
+ * #VIPS_FOREIGN_PARTIAL means that the image can be read directly from the
+ * file without needing to be unpacked to a temporary image first. 
+ *
+ * #VIPS_FOREIGN_SEQUENTIAL means that the loader supports lazy reading, but
+ * only top-to-bottom (sequential) access. Formats like PNG can read sets of
+ * scanlines, for example, but only in order. 
+ *
+ * If neither PARTIAL or SEQUENTIAL is set, the loader only supports whole
+ * image read. Setting both PARTIAL and SEQUENTIAL is an error.
+ *
+ * #VIPS_FOREIGN_BIGENDIAN means that image pixels are most-significant byte
+ * first. Depending on the native byte order of the host machine, you may
+ * need to swap bytes. See vips_copy().
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeign, vips_foreign, VIPS_TYPE_OPERATION );
