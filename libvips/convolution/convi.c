@@ -120,11 +120,11 @@
 
 #include "pconvolution.h"
 
-/* We do the 8-bit vector path with fixed-point arithmetic. We use 2.6 bits
- * for the mask coefficients, so our range is -2 to +1.99, after using scale
+/* We do the 8-bit vector path with fixed-point arithmetic. We use 3.5 bits
+ * for the mask coefficients, so our range is -4 to +3.99, after using scale
  * on the mask.
  */
-#define FIXED_BITS (6)
+#define FIXED_BITS (5)
 #define FIXED_SCALE (1 << FIXED_BITS)
 
 /* Larger than this and we fall back to C.
@@ -352,9 +352,7 @@ vips_convi_compile_section( VipsConvi *convi, VipsImage *in, Pass *pass )
 			ASM2( "convubw", "value", "valueb" );
 		}
 
-		/* Mask coefficients are 2.6 bits fixed point, so -2 to +1.99.
-		 *
-		 * We need a signed multiply, so the image pixel needs to
+		/* We need a signed multiply, so the image pixel needs to
 		 * become a signed 16-bit value. We know only the bottom 8 bits
 		 * of the image and coefficient are interesting, so we can take
 		 * the bottom half of a 16x16->32 multiply. 
@@ -400,8 +398,8 @@ vips_convi_compile_clip( VipsConvi *convi )
 	int offset = VIPS_RINT( vips_image_get_offset( M ) );
 
 	VipsVector *v;
-	char c32[256];
-	char c6[256];
+	char c16[256];
+	char c5[256];
 	char c0[256];
 	char c255[256];
 	char off[256];
@@ -416,10 +414,10 @@ vips_convi_compile_clip( VipsConvi *convi )
 	 */
 	TEMP( "value", 2 );
 
-	CONST( c32, 32, 2 );
-	ASM3( "addw", "value", "r", c32 );
-	CONST( c6, 6, 2 );
-	ASM3( "shrsw", "value", "value", c6 );
+	CONST( c16, 16, 2 );
+	ASM3( "addw", "value", "r", c16 );
+	CONST( c5, 5, 2 );
+	ASM3( "shrsw", "value", "value", c5 );
 
 	CONST( off, offset, 2 ); 
 	ASM3( "addw", "value", "value", off );
@@ -851,19 +849,17 @@ intize_to_fixed_point( VipsImage *in, int *out )
 		scaled[i] = VIPS_MATRIX( t, 0, 0 )[i] / scale;
 	g_object_unref( t ); 
 
-	/* The scaled mask must fit in 2.6 bits, so we can handle -2 to +1.99
+	/* The scaled mask must fit in 3.5 bits, so we can handle -4 to +3.99
 	 */
 	for( i = 0; i < ne; i++ ) 
-		if( scaled[i] >= 2.0 ||
-			scaled[i] < -2 ) {
-#ifdef DEBUG_COMPILE
-			printf( "intize_to_fixed_point: out of range\n" );
-#endif /*DEBUG_COMPILE*/
-
+		if( scaled[i] >= 4.0 ||
+			scaled[i] < -4 ) {
+			vips_info( "intize_to_fixed_point",
+				"out of range for vector path" );
 			return( -1 ); 
 		}
 
-	/* The smallest coefficient we can manage is 1/64th, we'll just turn
+	/* The smallest coefficient we can manage is 1/32nd, we'll just turn
 	 * that into zero.
 	 *
 	 * Find the total error we'll get by rounding down to zero and bail if
@@ -878,10 +874,7 @@ intize_to_fixed_point( VipsImage *in, int *out )
 	/* 0.1 is a 10% error.
 	 */
 	if( total_error > 0.1 ) {
-#ifdef DEBUG_COMPILE
-		printf( "intize_to_fixed_point: too many underflows\n" );
-#endif /*DEBUG_COMPILE*/
-
+		vips_info( "intize_to_fixed_point", "too many underflows" );
 		return( -1 ); 
 	}
 
