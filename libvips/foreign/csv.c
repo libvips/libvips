@@ -31,7 +31,7 @@
  * 	- try to support DOS files under linux ... we have to look for \r\n
  * 	  linebreaks
  * 12/8/16
- * 	- allow missing offset in matrix header
+ * 	- allow missing offset and scale in matrix header
  */
 
 /*
@@ -488,7 +488,7 @@ fetch_nonwhite( FILE *fp, const char whitemap[256], char *buf, int max )
 
 /* Read a single double in ascii (not locale) encoding.
  *
- * Return the char that caused failure on fail (EOF or \n).
+ * Return the char that caused failure on fail (EOF or \n). 
  */
 static int
 read_ascii_double( FILE *fp, const char whitemap[256], double *out )
@@ -536,20 +536,19 @@ vips__matrix_header( char *whitemap, FILE *fp,
 	int i;
 	int ch;
 
-	/* Offset defaults to zero.
-	 */
-	header[2] = 1.0;
-	header[3] = 0.0;
-
 	for( i = 0; i < 4 && 
 		(ch = read_ascii_double( fp, whitemap, &header[i] )) == 0; 
 		i++ )
 		;
-
+	if( i < 4 )
+		header[3] = 0.0;
+	if( i < 3 )
+		header[2] = 1.0;
 	if( i < 2 ) {
 		vips_error( "mask2vips", "%s", _( "no width / height" ) );
 		return( -1 );
 	}
+
 	if( VIPS_FLOOR( header[0] ) != header[0] ||
 		VIPS_FLOOR( header[1] ) != header[1] ) {
 		vips_error( "mask2vips", "%s", _( "width / height not int" ) );

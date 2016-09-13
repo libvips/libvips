@@ -181,7 +181,7 @@ vips_foreign_load_matrix_init( VipsForeignLoadMatrix *matrix )
  * floating-point, and must use '.'
  * as a decimal separator.
  *
- * Subsequent lines each hold one line of matrix data, with numbers again
+ * Subsequent lines each hold one row of matrix data, with numbers again
  * separated by any mixture of spaces, commas, 
  * tabs and quotation marks ("). The numbers may be floating-point, and must
  * use '.'
