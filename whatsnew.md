@@ -38,7 +38,7 @@ def gradient(start, stop)
 end
 
 # make a turbulent stripe pattern
-stripe = (Vips::Image.xyz(size, size)[0] + turbulence(size) * 700).sin
+stripe = (Vips::Image.xyz(size, size)[0] * 360 * 4 / size + turbulence(size) * 700).sin
 
 # make a colour map ... we want a smooth gradient from white to dark brown
 # colours here in CIELAB
