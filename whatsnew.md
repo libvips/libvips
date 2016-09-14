@@ -7,6 +7,51 @@ make Perlin and Worley noise. They are useful for generating
 synthetic random textures. The implementations in vips can generate images of
 any size very quickly. 
 
+Here's an example of a marble texture simulated with a Perlin noise generator.
+
+```
+#!/usr/bin/ruby
+
+require 'vips'
+
+size = 1024
+
+# perlin's "turbulence" image
+def turbulence(size)
+    layers = []
+    iterations = Math.log(size, 2) - 2
+    (0 ... iterations).each do |i|
+        layer = Vips::Image.perlin(size, size, :cell_size => size / 2 ** i)
+        layer = layer.abs * (1.0 / (i + 1))
+        layers << layer
+    end
+
+    layers.reduce(:+) 
+end
+
+# make a gradient colour map ... a smooth fade from start to stop, with start and
+# stop as CIELAB colours, the output map as sRGB
+def gradient(start, stop)
+    lut = Vips::Image.identity / 255
+    lut = lut * start + (lut * -1 + 1) * stop
+    lut.colourspace(:srgb, :source_space => :lab)
+end
+
+# make a turbulent stripe pattern
+stripe = (Vips::Image.xyz(size, size)[0] + turbulence(size) * 700).sin
+
+# make a colour map ... we want a smooth gradient from white to dark brown
+# colours here in CIELAB
+dark_brown = [7.45, 4.3, 8]
+white = [100, 0, 0]
+lut = gradient(dark_brown, white)
+
+# rescale to 0 - 255 and colour with our lut
+stripe = ((stripe + 1) * 128).maplut(lut)
+
+stripe.write_to_file ARGV[0]
+```
+
 ## Rewritten convolution
 
 The convolution functions were the old vips7 ones with a small
