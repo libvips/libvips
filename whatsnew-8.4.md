@@ -7,7 +7,8 @@ make Perlin and Worley noise. They are useful for generating
 synthetic random textures. The implementations in vips can generate images of
 any size very quickly. 
 
-Here's an example of a marble texture simulated with a Perlin noise generator.
+Here's an example of a marble texture simulated with a Perlin noise generator
+using the Ruby libvips binding. 
 
 ```
 #!/usr/bin/ruby
@@ -29,25 +30,25 @@ def turbulence(size)
     layers.reduce(:+) 
 end
 
-# make a gradient colour map ... a smooth fade from start to stop, with start and
-# stop as CIELAB colours, the output map as sRGB
+# make a 256 element colour map: a linear fade from start to stop, with 
+# start and stop as CIELAB colours, the output map as sRGB
 def gradient(start, stop)
     lut = Vips::Image.identity / 255
     lut = lut * start + (lut * -1 + 1) * stop
     lut.colourspace(:srgb, :source_space => :lab)
 end
 
-# make a turbulent stripe pattern
-stripe = (Vips::Image.xyz(size, size)[0] * 360 * 4 / size + turbulence(size) * 700).sin
+# an image where the pixel value is 0 .. 4 * 360 across 
+angles = Vips::Image.xyz(size, size)[0] * 360 * 4 / size 
 
-# make a colour map ... we want a smooth gradient from white to dark brown
-# colours here in CIELAB
+# make a turbulent stripe pattern using 0 .. 255
+stripe = ((angles + turbulence(size) * 700).sin + 1) * 128
+
+# make a colour map (a smooth gradient from white to dark brown) then map 
+# our turbulent image through it
 dark_brown = [7.45, 4.3, 8]
 white = [100, 0, 0]
-lut = gradient(dark_brown, white)
-
-# rescale to 0 - 255 and colour with our lut
-stripe = ((stripe + 1) * 128).maplut(lut)
+stripe = stripe.maplut(gradient(dark_brown, white))
 
 stripe.write_to_file ARGV[0]
 ```
