@@ -24,6 +24,8 @@
  * 14/3/10
  * 	- init image and region before we start, we need all types to be fully
  * 	  constructed before we go parallel
+ * 18/9/16
+ * 	- call _setmaxstdio() on win32
  */
 
 /*
@@ -276,6 +278,16 @@ vips_init( const char *argv0 )
 		 */
 		return( 0 );
 	started = TRUE;
+
+#ifdef OS_WIN32
+	/* Windows has a limit of 512 files open at once for the fopen() family
+	 * of functions, and 2048 for the _open() family. This raises the limit
+	 * of fopen() to the same level as _open().
+	 *
+	 * It will not go any higher than this, unfortunately.  
+	 */
+	(void) _setmaxstdio( 2048 );
+#endif /*OS_WIN32*/
 
 #ifdef HAVE_TYPE_INIT
 	/* Before glib 2.36 you have to call this on startup.
