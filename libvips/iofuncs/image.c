@@ -775,9 +775,6 @@ vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 	int tile_height; 
 	int nlines;
 
-	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return;
-
 	*last = -1;
 
 	vips_get_tile_size( image, 
@@ -794,9 +791,6 @@ vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 static void
 vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 {
-	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return;
-
 	if( progress->percent != *last ) {
 		printf( _( "%s %s: %d%% complete" ), 
 			g_get_prgname(), image->filename, 
@@ -815,9 +809,6 @@ vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 static void
 vips_image_posteval_cb( VipsImage *image, VipsProgress *progress )
 {
-	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return;
-
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
 	printf( _( "%s %s: done in %.3gs          \n" ), 
@@ -1549,9 +1540,10 @@ vips_image_preeval( VipsImage *image )
 		 */
 		(void) vips_progress_add( image->progress_signal );
 
-		g_signal_emit( image->progress_signal, 
-			vips_image_signals[SIG_PREEVAL], 0, 
-			image->progress_signal->time );
+		if( !vips_image_get_typeof( image, "hide-progress" ) )
+			g_signal_emit( image->progress_signal, 
+				vips_image_signals[SIG_PREEVAL], 0, 
+				image->time );
 	}
 }
 
@@ -1577,8 +1569,10 @@ vips_image_eval( VipsImage *image, guint64 processed )
 			vips_progress_update( image->progress_signal->time, 
 				processed );
 
-		g_signal_emit( image->progress_signal, 
-			vips_image_signals[SIG_EVAL], 0, image->time );
+		if( !vips_image_get_typeof( image, "hide-progress" ) )
+			g_signal_emit( image->progress_signal, 
+				vips_image_signals[SIG_EVAL], 0, 
+				image->time );
 	}
 }
 
@@ -1587,15 +1581,15 @@ vips_image_posteval( VipsImage *image )
 {
 	if( image->progress_signal &&
 		image->progress_signal->time ) { 
-		VipsProgress *progress = image->progress_signal->time;
-
 		VIPS_DEBUG_MSG( "vips_image_posteval: %p\n", image );
 
 		g_assert( vips_object_sanity( 
 			VIPS_OBJECT( image->progress_signal ) ) );
 
-		g_signal_emit( image->progress_signal, 
-			vips_image_signals[SIG_POSTEVAL], 0, progress );
+		if( !vips_image_get_typeof( image, "hide-progress" ) )
+			g_signal_emit( image->progress_signal, 
+				vips_image_signals[SIG_POSTEVAL], 0, 
+				image->time );
 	}
 }
 
