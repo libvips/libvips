@@ -491,7 +491,8 @@ result_image = image1.bandjoin([image2, 255])
   <refsect3 id="python-memory">
     <title>Reading and writing areas of memory</title>
     <para>
-      You can use the C API functions vips_image_new_from_memory() and 
+      You can use the C API functions vips_image_new_from_memory(), 
+      vips_image_new_from_memory_copy() and 
       vips_image_write_to_memory() directly from Python to read and write 
       areas of memory. This can be useful if you need to get images to and 
       from other other image processing libraries, like PIL or numpy.
@@ -540,8 +541,11 @@ image2 = Vips.Image.new_from_memory(memory_area,
       collector and 
       you later try to use <code>image2</code>, you'll get a crash. 
       Make sure you keep a reference to <code>memory_area</code> around 
-      for as long as you need it.
+      for as long as you need it. A simple solution is to use 
+      <code>new_from_memory_copy</code> instead. This will take a copy of the 
+      memory area for vips. Of course this will raise memory usage. 
     </para>
+
   </refsect3>
 
   <refsect3 id="python-modify">
