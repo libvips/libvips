@@ -165,17 +165,17 @@ vips_foreign_load_raw_init( VipsForeignLoadRaw *raw )
  *
  * Optional arguments:
  *
- * * @offset: offset in bytes from start of file
+ * * @offset: %guint64, offset in bytes from start of file
  *
- * This operation mmaps the file, setting @out so that access to that 
+ * This operation mmaps the file, setting up @out so that access to that 
  * image will read from the file. 
  *
  * @out will be a 8-bit uchar image with @bands image bands, so @bands can 
  * be thought of as meaning "number of bytes per pixel". Use functions 
- * like vips_copy() to set the exact band format, number of bands, byte 
- * ordering and so on.
+ * like vips_copy() to set the exact band format, number of bands, 
+ * and so on. Use vips_byteswap() to reverse the byte ordering. 
  *
- * See also: vips_image_new_from_file().
+ * See also: vips_image_new_from_file(), vips_copy(), vips_byteswap().
  *
  * Returns: 0 on success, -1 on error.
  */

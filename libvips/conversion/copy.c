@@ -366,16 +366,16 @@ vips_copy_init( VipsCopy *copy )
  *
  * Optional arguments:
  *
- * * @width: set image width
- * * @height: set image height
- * * @bands: set image bands
- * * @format: set image format
- * * @coding: set image coding
- * * @interpretation: set image interpretation
- * * @xres: set image xres
- * * @yres: set image yres
- * * @xoffset: set image xoffset
- * * @yoffset: set image yoffset
+ * * @width: %gint, set image width
+ * * @height: %gint, set image height
+ * * @bands: %gint, set image bands
+ * * @format: #VipsBandFormat, set image format
+ * * @coding: #VipsCoding, set image coding
+ * * @interpretation: #VipsInterpretation, set image interpretation
+ * * @xres: %gdouble, set image xres
+ * * @yres: %gdouble, set image yres
+ * * @xoffset: %gint, set image xoffset
+ * * @yoffset: %gint, set image yoffset
  *
  * Copy an image, optionally modifying the header. VIPS copies images by 
  * copying pointers, so this operation is instant, even for very large images.
