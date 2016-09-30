@@ -1,5 +1,6 @@
 27/9/16 started 8.4.2
 - small doc improvements
+- fix error message for metadata fetch type mismatch
 
 1/5/16 started 8.4
 - many more wepsave options [Felix Bünemann]

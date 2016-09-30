@@ -1225,7 +1225,7 @@ meta_get_value( const VipsImage *image,
 		vips_error( "VipsImage",
 			_( "field \"%s\" is of type %s, not %s" ),
 			field,
-			g_type_name( G_VALUE_TYPE( value_copy ) ),
+			g_type_name( G_VALUE_TYPE( &value ) ),
 			g_type_name( type ) );
 		g_value_unset( &value );
 
