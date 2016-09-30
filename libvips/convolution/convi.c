@@ -473,7 +473,7 @@ vips_convi_compile( VipsConvi *convi, VipsImage *in )
 }
 
 static int
-vips_convi_generate_vector( VipsRegion *or, 
+vips_convi_gen_vector( VipsRegion *or, 
 	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsConviSequence *seq = (VipsConviSequence *) vseq;
@@ -491,7 +491,7 @@ vips_convi_generate_vector( VipsRegion *or,
 	VipsExecutor clip;
 
 #ifdef DEBUG_PIXELS
-	printf( "vips_convi_generate_vector: generating %d x %d at %d x %d\n",
+	printf( "vips_convi_gen_vector: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top ); 
 #endif /*DEBUG_PIXELS*/
 
@@ -509,7 +509,7 @@ vips_convi_generate_vector( VipsRegion *or,
 			convi->pass[i].vector, ne );
 	vips_executor_set_program( &clip, convi->vector, ne );
 
-	VIPS_GATE_START( "vips_convi_generate_vector: work" ); 
+	VIPS_GATE_START( "vips_convi_gen_vector: work" ); 
 
 	for( y = 0; y < r->height; y ++ ) { 
 		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y );
@@ -558,9 +558,9 @@ vips_convi_generate_vector( VipsRegion *or,
 #endif /*DEBUG_PIXELS*/
 	}
 
-	VIPS_GATE_STOP( "vips_convi_generate_vector: work" ); 
+	VIPS_GATE_STOP( "vips_convi_gen_vector: work" ); 
 
-	VIPS_COUNT_PIXELS( or, "vips_convi_generate_vector" ); 
+	VIPS_COUNT_PIXELS( or, "vips_convi_gen_vector" ); 
 
 	return( 0 );
 }
@@ -646,7 +646,7 @@ G_STMT_START { \
 /* Convolve!
  */
 static int
-vips_convi_generate( VipsRegion *or, 
+vips_convi_gen( VipsRegion *or, 
 	void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsConviSequence *seq = (VipsConviSequence *) vseq;
@@ -696,6 +696,8 @@ vips_convi_generate( VipsRegion *or,
 		}
 	}
 
+	VIPS_GATE_START( "vips_convi_gen: work" ); 
+
 	for( y = to; y < bo; y++ ) { 
 		/* Init pts for this line of PELs.
 		 */
@@ -742,6 +744,10 @@ vips_convi_generate( VipsRegion *or,
 			g_assert_not_reached();
 		}
 	}
+
+	VIPS_GATE_STOP( "vips_convi_gen: work" ); 
+
+	VIPS_COUNT_PIXELS( or, "vips_convi_gen" ); 
 
 	return( 0 );
 }
@@ -934,7 +940,7 @@ vips_convi_build( VipsObject *object )
 		if( (convi->fixed = VIPS_ARRAY( object, n_point, int )) &&
 			!intize_to_fixed_point( M, convi->fixed ) &&
 			!vips_convi_compile( convi, in ) ) {
-			generate = vips_convi_generate_vector;
+			generate = vips_convi_gen_vector;
 			vips_info( class->nickname, "using vector path" ); 
 		}
 		else
@@ -973,7 +979,7 @@ vips_convi_build( VipsObject *object )
 			convi->nnz = 1;
 		}
 
-		generate = vips_convi_generate;
+		generate = vips_convi_gen;
 		vips_info( class->nickname, "using C path" ); 
 	}
 

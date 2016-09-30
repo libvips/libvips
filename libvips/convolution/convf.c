@@ -223,6 +223,8 @@ vips_convf_gen( REGION *or, void *vseq, void *a, void *b, gboolean *stop )
 		}
 	}
 
+	VIPS_GATE_START( "vips_convf_gen: work" ); 
+
 	for( y = to; y < bo; y++ ) { 
 		/* Init pts for this line of PELs.
 		 */
@@ -269,6 +271,10 @@ vips_convf_gen( REGION *or, void *vseq, void *a, void *b, gboolean *stop )
 			g_assert_not_reached();
 		}
 	}
+
+	VIPS_GATE_STOP( "vips_convf_gen: work" ); 
+
+	VIPS_COUNT_PIXELS( or, "vips_convf_gen" ); 
 
 	return( 0 );
 }

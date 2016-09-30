@@ -102,17 +102,12 @@ vips_conv_build( VipsObject *object )
 		break;
 
 	case VIPS_PRECISION_APPROXIMATE:
-{
-		DOUBLEMASK *dmsk;
-
-		if( !(dmsk = im_vips2mask( convolution->M, class->nickname )) || 
-			!im_local_dmask( convolution->out, dmsk ) )
+		if( vips_conva( in, &t[1], convolution->M, 
+			"layers", conv->layers,
+			"cluster", conv->cluster,
+			NULL ) ||
+			vips_image_write( t[1], convolution->out ) )
 			return( -1 ); 
-
-		if( im_aconv( in, convolution->out, dmsk, 
-			conv->layers, conv->cluster ) )
-			return( -1 ); 
-}
 		break;
 
 	default:
