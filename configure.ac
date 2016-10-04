@@ -765,8 +765,8 @@ AC_ARG_WITH([libflif],
 
 if test x"$with_libflif" != "xno"; then
   AC_DEFINE(HAVE_LIBFLIF,1,[define if you have libflif installed.])
-  LIBFLIF_CFLAGS="-I/Users/john/GIT/FLIF/src/library"
-  LIBFLIF_LIBS="-L/Users/john/GIT/FLIF/src -lflif"
+  LIBFLIF_CFLAGS="-I/home/john/GIT/FLIF/src/library"
+  LIBFLIF_LIBS="-L/home/john/GIT/FLIF/src -lflif"
   with_libflif=yes
   PACKAGES_USED="$PACKAGES_USED libflif"
 fi
@@ -1098,6 +1098,7 @@ SVG import with librsvg-2.0: 		$with_rsvg
   (requires librsvg-2.0 2.34.0 or later)
 zlib: 					$with_zlib
 file import with cfitsio: 		$with_cfitsio
+file import with libflif: 		$with_libflif
 file import/export with libwebp:	$with_libwebp
   (requires libwebp-0.1.3 or later)
 text rendering with pangoft2: 		$with_pangoft2

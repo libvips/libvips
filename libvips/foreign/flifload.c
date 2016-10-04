@@ -1,7 +1,7 @@
 /* load FLIF with libflif
  *
  * 4/10/16
- * 	- from flifload.c
+ * 	- from gifload.c
  */
 
 /*
@@ -489,13 +489,21 @@ vips_foreign_load_flif_file_init( VipsForeignLoadFlifFile *file )
  * Optional arguments:
  *
  * * @page: %gint, page (frame) to read
+ * * @crc_check: %gboolean, if %TRUE, do a CRC check during load
+ * * @Q: %gint, load quality setting, 1-100
+ * * @shrink: %gint, shrink by this much during load, 1, 2, 4, 8 ..
+ * * @resize_width: %gint, resize to fit within this width
+ * * @resize_height: %gint, resize to fit within this height
+ * * @fit_width: %gint, resize to fit this width
+ * * @fit_height: %gint, resize to fit this height
  *
- * Read a FLIF file into a VIPS image.  Rendering uses the fliflib library.
+ * Read a FLIF file into a VIPS image. Rendering uses the libflif library.
  *
  * Use @page to set page number (frame number) to read.
  *
- * The whole FLIF is rendered into memory on header access. The output image
- * will be 1, 2, 3 or 4 bands depending on what the reader finds in the file. 
+ * The whole FLIF is loaded into memory on header access. The output image
+ * will be 1, 3 or 4 bands depending on what the reader finds in the file, and
+ * can be 8 or 16-bit.
  *
  * See also: vips_image_new_from_file().
  *
