@@ -1735,6 +1735,10 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_webp_buffer_get_type(); 
 #endif /*HAVE_LIBWEBP*/
 
+#ifdef HAVE_LIBFLIF
+	vips_foreign_load_flif_file_get_type(); 
+#endif /*HAVE_LIBFLIF*/
+
 #ifdef HAVE_TIFF
 	vips_foreign_load_tiff_file_get_type(); 
 	vips_foreign_load_tiff_buffer_get_type(); 

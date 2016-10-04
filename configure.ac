@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [8.4.2], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.5.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -17,8 +17,8 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [8])
-m4_define([vips_minor_version], [4])
-m4_define([vips_micro_version], [2])
+m4_define([vips_minor_version], [5])
+m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -37,9 +37,9 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=48
-LIBRARY_REVISION=2
-LIBRARY_AGE=6
+LIBRARY_CURRENT=49
+LIBRARY_REVISION=0
+LIBRARY_AGE=7
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
@@ -759,6 +759,18 @@ if test x"$with_cfitsio" != "xno"; then
   )
 fi
 
+# libflif has no .pc file yet ... just wire the settings in for now
+AC_ARG_WITH([libflif], 
+  AS_HELP_STRING([--without-libflif], [build without libflif (default: test)]))
+
+if test x"$with_libflif" != "xno"; then
+  AC_DEFINE(HAVE_LIBFLIF,1,[define if you have libflif installed.])
+  LIBFLIF_CFLAGS="-I/Users/john/GIT/FLIF/src/library"
+  LIBFLIF_LIBS="-L/Users/john/GIT/FLIF/src -lflif"
+  with_libflif=yes
+  PACKAGES_USED="$PACKAGES_USED libflif"
+fi
+
 # libwebp
 # some platforms, like ubuntu 12.04, are missing the .pc files for libwebp, so
 # we fall back to FIND_LIBWEBP
@@ -981,14 +993,14 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $LIBFLIF_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
 do 
 	echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES" 
-VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $LIBFLIF_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 AC_SUBST(VIPS_LIBDIR)
 

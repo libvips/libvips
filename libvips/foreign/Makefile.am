@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
+	flifload.c \
 	gifload.c \
 	cairo.c \
 	pdfload.c \
