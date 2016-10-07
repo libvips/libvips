@@ -14,6 +14,8 @@
  * 	- forward progress signals from load
  * 23/5/16
  * 	- remove max-alpha stuff, this is now automatic
+ * 7/10/16
+ * 	- add RGBA_STRICT
  */
 
 /*
@@ -1131,6 +1133,7 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 		(saveable == VIPS_SAVEABLE_RGB ||
 		 saveable == VIPS_SAVEABLE_RGBA ||
 		 saveable == VIPS_SAVEABLE_RGBA_ONLY ||
+		 saveable == VIPS_SAVEABLE_RGBA_STRICT ||
 		 saveable == VIPS_SAVEABLE_RGB_CMYK) ) { 
 		VipsImage *out;
 		VipsInterpretation interpretation;
@@ -1158,7 +1161,8 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	if( !coding[VIPS_CODING_RAD] &&
 		in->Bands < 3 &&
 		vips_colourspace_issupported( in ) &&
-		saveable == VIPS_SAVEABLE_RGBA_ONLY ) { 
+		(saveable == VIPS_SAVEABLE_RGBA_ONLY ||
+		 saveable == VIPS_SAVEABLE_RGBA_STRICT) ) { 
 		VipsImage *out;
 		VipsInterpretation interpretation;
 
@@ -1175,7 +1179,21 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 			return( -1 );
 		}
 		g_object_unref( in );
+		in = out;
+	}
 
+	/* And _STRICT does not support RGB ... add an alpha if
+	 * necessary.
+	 */
+	if( in->Bands == 3 &&
+		saveable == VIPS_SAVEABLE_RGBA_STRICT ) { 
+		VipsImage *out;
+
+		if( vips_bandjoin_const1( in, &out, 255, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
+		}
+		g_object_unref( in );
 		in = out;
 	}
 
@@ -1237,7 +1255,8 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 			((saveable == VIPS_SAVEABLE_RGB_CMYK &&
 			  in->Type == VIPS_INTERPRETATION_CMYK) ||
 			 saveable == VIPS_SAVEABLE_RGBA ||
-			 saveable == VIPS_SAVEABLE_RGBA_ONLY) ) {
+			 saveable == VIPS_SAVEABLE_RGBA_ONLY ||
+			 saveable == VIPS_SAVEABLE_RGBA_STRICT) ) {
 			VipsImage *out;
 
 			if( vips_extract_band( in, &out, 0, 

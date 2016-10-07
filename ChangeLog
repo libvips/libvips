@@ -1,5 +1,6 @@
 4/10/16 started 8.5.0
-- added flifload
+- added flifload, flifsave
+- added RGBA_STRICT save mode
 
 27/9/16 started 8.4.2
 - small doc improvements

@@ -52,17 +52,21 @@
 typedef struct _VipsForeignSaveFlif {
 	VipsForeignSave parent_object;
 
+	/* 0 - 100 "effort" rating ... if set, sets many other options.
+	 */
+	int effort;
+
 	/* 0 = -N, 1 = -I (default: -I)
 	 */
 	int interlaced;
 
 	/* default: 2 (-R)
 	 */
-	int learn_repeats;
+	int learn_repeat;
 
 	/* 0 = -B, 1 = default
 	 */
-	int acb;
+	int auto_color_buckets;
 
 	/* default: 512
 	 */
@@ -82,15 +86,19 @@ typedef struct _VipsForeignSaveFlif {
 
 	/* default: 64 (-T)
 	 */
-	int threshold;
+	int split_threshold;
 
 	/* 0 = default, 1 = -K
 	 */
-	int alpha_zero_lossless;
+	gboolean alpha_zero_lossless;
+
+	/* default: 2  (-X)
+	 */
+	int chance_cutoff;
 
 	/* default: 19 (-Z)
 	 */
-	int alpha;
+	int chance_alpha;
 
 	/* 0 = no CRC, 1 = add CRC
 	 */
@@ -98,7 +106,7 @@ typedef struct _VipsForeignSaveFlif {
 
 	/* 0 = -C, 1 = default
 	 */
-	int plc;
+	int channel_compact;
 
 	/* 0 = -Y, 1 = default
 	 */
@@ -106,7 +114,11 @@ typedef struct _VipsForeignSaveFlif {
 
 	/* 0 = -S, 1 = default
 	 */
-	int frs;
+	int frame_shape;
+
+	/* default 0 (lossless)
+	 */
+	int lossy; 
 
 	FLIF_ENCODER *encoder;
 	FLIF_IMAGE *image;
@@ -119,11 +131,18 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveFlif, vips_foreign_save_flif,
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
+vips_foreign_save_flif_close( VipsForeignSaveFlif *flif ) 
+{
+	VIPS_FREEF( flif_destroy_image, flif->image ); 
+	VIPS_FREEF( flif_destroy_encoder, flif->encoder ); 
+}
+
+static void
 vips_foreign_save_flif_dispose( GObject *gobject )
 {
 	VipsForeignSaveFlif *flif = (VipsForeignSaveFlif *) gobject;
 
-	VIPS_FREEF( flif_destroy_encoder, flif->encoder ); 
+	vips_foreign_save_flif_close( flif ); 
 
 	G_OBJECT_CLASS( vips_foreign_save_flif_parent_class )->
 		dispose( gobject );
@@ -159,14 +178,150 @@ vips_foreign_save_flif_class_init( VipsForeignSaveFlifClass *class )
 
 	foreign_class->suffs = vips_foreign_flif_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_RGBA_ONLY;
+	save_class->saveable = VIPS_SAVEABLE_RGBA_STRICT;
 	save_class->format_table = vips_foreign_flif_bandfmt;
+
+	VIPS_ARG_INT( class, "effort", 100,
+		_( "Effort" ),
+		_( "Effort" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, effort ),
+		0, 100, 60 );
+
+	VIPS_ARG_INT( class, "lossy", 101,
+		_( "Lossy" ),
+		_( "Lossy" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, lossy ),
+		-100, 100, 0 );
+
+	VIPS_ARG_INT( class, "interlaced", 102,
+		_( "Interlaced" ),
+		_( "Interlaced" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, interlaced ),
+		0, 1, 1 );
+
+	VIPS_ARG_INT( class, "learn_repeat", 103,
+		_( "Learn repeat" ),
+		_( "Learn repeat" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, learn_repeat ),
+		0, 4, 2 );
+
+	VIPS_ARG_INT( class, "auto_color_buckets", 104,
+		_( "Auto color buckets" ),
+		_( "Auto color buckets" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, auto_color_buckets ),
+		0, 3, 1 );
+
+	VIPS_ARG_INT( class, "palette_size", 105,
+		_( "Palette size" ),
+		_( "Palette size" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, palette_size ),
+		1, 10000, 512 );
+
+	VIPS_ARG_INT( class, "lookback", 106,
+		_( "Lookback" ),
+		_( "Lookback" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, lookback ),
+		1, 100, 1 );
+
+	VIPS_ARG_INT( class, "divisor", 107,
+		_( "Divisor" ),
+		_( "Divisor" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, divisor ),
+		1, 100, 30 );
+
+	VIPS_ARG_INT( class, "min_size", 108,
+		_( "Min size" ),
+		_( "Min size" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, min_size ),
+		1, 100, 50 );
+
+	VIPS_ARG_INT( class, "split_threshold", 109,
+		_( "Split threshold" ),
+		_( "Split threshold" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, split_threshold ),
+		1, 100000, 64 );
+
+	VIPS_ARG_BOOL( class, "alpha_zero_lossless", 13,
+		_( "Alpha zero lossless" ),
+		_( "Alpha zero lossless" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, alpha_zero_lossless ),
+		FALSE );
+
+	VIPS_ARG_INT( class, "chance_cutoff", 110,
+		_( "Chance cutoff" ),
+		_( "Chance cutoff" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, chance_cutoff ),
+		1, 100, 2 );
+
+	VIPS_ARG_INT( class, "chance_alpha", 111,
+		_( "Chance alpha" ),
+		_( "Chance alpha" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, chance_alpha ),
+		1, 100, 19 );
+
+	VIPS_ARG_INT( class, "crc_check", 112,
+		_( "CRC check" ),
+		_( "CRC check" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, crc_check ),
+		0, 1, 0 );
+
+	VIPS_ARG_INT( class, "channel_compact", 113,
+		_( "Channel compact" ),
+		_( "Channel compact" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, channel_compact ),
+		0, 1, 1 );
+
+	VIPS_ARG_INT( class, "ycocg", 114,
+		_( "YCOCG" ),
+		_( "YCOCG" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, ycocg ),
+		0, 1, 1 );
+
+	VIPS_ARG_INT( class, "frame_shape", 115,
+		_( "Frame shape" ),
+		_( "Frame shape" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveFlif, frame_shape ),
+		0, 1, 1 );
 
 }
 
 static void
 vips_foreign_save_flif_init( VipsForeignSaveFlif *flif )
 {
+	flif->effort = 60;
+	flif->interlaced = 1;
+	flif->learn_repeat = 2;
+	flif->auto_color_buckets = 1;
+	flif->palette_size = 512;
+	flif->lookback = 1;
+	flif->divisor = 30;
+	flif->min_size = 50;
+	flif->split_threshold = 64;
+	flif->alpha_zero_lossless = FALSE;
+	flif->chance_cutoff = 2;
+	flif->chance_alpha = 19;
+	flif->crc_check = 0;
+	flif->channel_compact = 1;
+	flif->ycocg = 1;
+	flif->frame_shape = 1;
+	flif->lossy = 0; 
 }
 
 typedef struct _VipsForeignSaveFlifFile {
@@ -183,15 +338,21 @@ typedef VipsForeignSaveFlifClass VipsForeignSaveFlifFileClass;
 G_DEFINE_TYPE( VipsForeignSaveFlifFile, vips_foreign_save_flif_file, 
 	vips_foreign_save_flif_get_type() );
 
+typedef void (*WriterFn)( FLIF_IMAGE *image, 
+	uint32_t row, const void *buffer, size_t buffer_size_bytes );
+
 static int
 vips_foreign_save_flif_file_write( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSaveFlif *flif = (VipsForeignSaveFlif *) a;
 
 	int y;
+	WriterFn write_fn = region->im->BandFmt == VIPS_FORMAT_UCHAR ? 
+		flif_image_write_row_RGBA8 : 
+		flif_image_write_row_RGBA16;
 
 	for( y = 0; y < area->height; y++ ) 
-		flif_image_write_row_RGBA8( flif->image, area->top + y,
+		write_fn( flif->image, area->top + y,
 			VIPS_REGION_ADDR( region, 0, area->top + y ),
 			VIPS_IMAGE_SIZEOF_LINE( region->im ) ); 
 
@@ -210,33 +371,82 @@ vips_foreign_save_flif_file_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	if( !(flif->encoder = flif_create_encoder()) ) {
+		vips_error( class->nickname, "unable to create encoder" );
+		return( -1 );
+	}
+
+	/* "effort" is a meta option that sets a lot of others.
+	 */
+	if( vips_object_argument_isset( object, "effort" ) ) {
+		if( flif->effort < 10 ) 
+			flif->learn_repeat = 0;
+		else if( flif->effort <= 50 ) {
+			flif->learn_repeat = 1; 
+			flif->split_threshold = 5461 * 8 * 5;
+		}
+		else if( flif->effort <= 70 ) {
+			flif->learn_repeat = 2;
+			flif->split_threshold = 5461 * 8 * 8;
+		}
+		else if( flif->effort <= 90 ) {
+			flif->learn_repeat = 3; 
+			flif->split_threshold = 5461 * 8 * 10;
+		}
+		else if( flif->effort <= 100 ) {
+			flif->learn_repeat = 4; 
+			flif->split_threshold = 5461 * 8 * 12;
+		}
+
+		if( flif->effort < 5 ) 
+			flif->auto_color_buckets = 0;
+		if( flif->effort < 8 ) 
+			flif->palette_size = 0;
+		if( flif->effort < 25 ) 
+			flif->channel_compact = 0;
+		if( flif->effort < 30 ) 
+			flif->lookback = 0;
+		if( flif->effort < 5 ) 
+			flif->frame_shape = 0;
+	}
+
+	flif_encoder_set_interlaced( flif->encoder, flif->interlaced );
+	flif_encoder_set_learn_repeat( flif->encoder, flif->learn_repeat );
+	flif_encoder_set_auto_color_buckets( flif->encoder, 
+		flif->auto_color_buckets );
+	flif_encoder_set_palette_size( flif->encoder, flif->palette_size );
+	flif_encoder_set_lookback( flif->encoder, flif->lookback );
+	flif_encoder_set_divisor( flif->encoder, flif->divisor );
+	flif_encoder_set_min_size( flif->encoder, flif->min_size );
+	flif_encoder_set_split_threshold( flif->encoder, flif->split_threshold );
+	if( flif->alpha_zero_lossless )
+		flif_encoder_set_alpha_zero_lossless( flif->encoder );  
+	flif_encoder_set_chance_cutoff( flif->encoder, flif->chance_cutoff );
+	flif_encoder_set_chance_alpha( flif->encoder, flif->chance_alpha );
+	flif_encoder_set_crc_check( flif->encoder, flif->crc_check );
+	flif_encoder_set_channel_compact( flif->encoder, flif->channel_compact );
+	flif_encoder_set_ycocg( flif->encoder, flif->ycocg );
+	flif_encoder_set_frame_shape( flif->encoder, flif->frame_shape );
+	flif_encoder_set_lossy( flif->encoder, flif->lossy );
+
 	if( !(flif->image = flif_create_image( 
 		save->ready->Xsize, save->ready->Ysize )) ) {
 		vips_error( class->nickname, "unable to create image buffer" );
 		return( -1 );
 	}
 
+	/*
 	printf( "Xsize = %d\n", save->ready->Xsize );
 	printf( "Ysize = %d\n", save->ready->Ysize );
+	printf( "Bands = %d\n", save->ready->Bands );
+	 */
 
 	if( vips_sink_disc( save->ready, 
-		vips_foreign_save_flif_file_write, flif ) ) {
-		flif_destroy_image( flif->image );
+		vips_foreign_save_flif_file_write, flif ) ) 
 		return( -1 );
-	}
 
-	if( !(flif->encoder = flif_create_encoder()) ) {
-		flif_destroy_image( flif->image );
-		vips_error( class->nickname, "unable to create encoder" );
-		return( -1 );
-	}
-
-	flif_encoder_set_interlaced( flif->encoder, 1 );
-	flif_encoder_set_learn_repeat( flif->encoder, 3 );
-	flif_encoder_set_auto_color_buckets( flif->encoder, 1 );
-	flif_encoder_set_palette_size( flif->encoder, 512 );
-	flif_encoder_set_lookback( flif->encoder, 1 );
-
+	/* You must fill the image with data before attaching it.
+	 */
 	flif_encoder_add_image( flif->encoder, flif->image );
 
 	if( !flif_encoder_encode_file( flif->encoder, file->filename ) ) {
@@ -244,10 +454,9 @@ vips_foreign_save_flif_file_build( VipsObject *object )
 		return( -1 );
 	}
 
-	flif_destroy_encoder( flif->encoder );
-	flif->encoder = NULL;
-
-	printf( "success\n" ); 
+	/* Shut down the encoder as soon as we can to save mem.
+	 */
+	vips_foreign_save_flif_close( flif ); 
 
 	return( 0 );
 }
@@ -288,28 +497,25 @@ vips_foreign_save_flif_file_init( VipsForeignSaveFlifFile *file )
  *
  * Optional arguments:
  *
- * * @Q: %gint quality factor
- * * @lossless: %gboolean enables lossless compression
- * * @preset: #VipsForeignFlifPreset choose lossy compression preset
- * * @smart_subsample: %gboolean enables high quality chroma subsampling
- * * @near_lossless: %gboolean preprocess in lossless mode (controlled by Q)
- * * @alpha_q: %gint set alpha quality in lossless mode
+ * * @effort: %gint
+ * * @interlaced: %gint
+ * * @learn_repeat: %gint
+ * * @auto_color_buckets: %gint
+ * * @palette_size: %gint
+ * * @lookback: %gint
+ * * @divisor: %gint
+ * * @min_size: %gint
+ * * @split_threshold: %gint
+ * * @alpha_zero_lossless: %gboolean
+ * * @chance_cutoff: %gint
+ * * @chance_alpha: %gint
+ * * @crc_check: %gint
+ * * @channel_compact: %gint
+ * * @ycocg: %gint
+ * * @frame_shape: %gint
+ * * @lossy: %gint
  *
- * Write an image to a file in WebP format. 
- *
- * By default, images are saved in lossy format, with 
- * @Q giving the WebP quality factor. It has the range 0 - 100, with the
- * default 75.
- *
- * Use @preset to hint the image type to the lossy compressor. The default is
- * #VIPS_FOREIGN_FLIF_PRESET_DEFAULT. 
- * Set @smart_subsample to enable high quality chroma subsampling.
- * Use @alpha_q to set the quality for the alpha channel in lossy mode. It has
- * the range 1 - 100, with the default 100.
- *
- * Set @lossless to use lossless compression, or combine @near_lossless
- * with @Q 80, 60, 40 or 20 to apply increasing amounts of preprocessing
- * which improves the near-lossless compression ratio by up to 50%.
+ * Write an image to a file in FLIF format. 
  *
  * See also: vips_flifload(), vips_image_write_to_file().
  *
