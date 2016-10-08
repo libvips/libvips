@@ -376,7 +376,8 @@ vips_foreign_save_flif_file_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* "effort" is a meta option that sets a lot of others.
+	/* "effort" is a meta option that sets a lot of others. This logic is
+	 * copy-pasted from flif.cpp, the command-line interface.
 	 */
 	if( vips_object_argument_isset( object, "effort" ) ) {
 		if( flif->effort < 10 ) 

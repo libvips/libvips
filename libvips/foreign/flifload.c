@@ -162,16 +162,43 @@ vips_foreign_load_flif_is_a( const char *filename )
 	return( 0 );
 }
 
+typedef void (*ReaderFn)( FLIF_IMAGE *image, 
+	uint32_t row, void *buffer, size_t buffer_size_bytes );
+
 static int
-vips_foreign_load_flif_to_memory16( FLIF_IMAGE *image, VipsImage *out )
+vips_foreign_load_flif_to_memory( VipsForeignLoadFlif *flif,
+	FLIF_IMAGE *image, VipsImage *out, int depth )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( flif );
+
+	ReaderFn reader_fn;
+	VipsBandFormat format;
+	VipsInterpretation interpretation;
 	int y; 
+
+	switch( depth ) {
+	case 8:
+		reader_fn = flif_image_read_row_RGBA8;
+		format = VIPS_FORMAT_UCHAR;
+		interpretation = VIPS_INTERPRETATION_sRGB;
+		break;
+
+	case 16:
+		reader_fn = flif_image_read_row_RGBA16;
+		format = VIPS_FORMAT_USHORT;
+		interpretation = VIPS_INTERPRETATION_RGB16;
+		break;
+
+	default:
+		vips_error( class->nickname, "unsupported depth %d", depth );
+		return( -1 );
+	}
 
 	vips_image_init_fields( out, 
 		flif_image_get_width( image ), 
 		flif_image_get_height( image ),
-		4, VIPS_FORMAT_USHORT,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB16, 1.0, 1.0 );
+		4, format,
+		VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
 
 	/* We will have the whole FLIF frame in memory, so we can render any 
 	 * area.
@@ -185,37 +212,7 @@ vips_foreign_load_flif_to_memory16( FLIF_IMAGE *image, VipsImage *out )
 		return( -1 );
 
 	for( y = 0; y < out->Ysize; y++ ) 
-		flif_image_read_row_RGBA16( image, y, 
-			VIPS_IMAGE_ADDR( out, 0, y ), 
-			VIPS_IMAGE_SIZEOF_LINE( out ) );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_load_flif_to_memory8( FLIF_IMAGE *image, VipsImage *out )
-{
-	int y; 
-
-	vips_image_init_fields( out, 
-		flif_image_get_width( image ), 
-		flif_image_get_height( image ),
-		4, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
-
-	/* We will have the whole FLIF frame in memory, so we can render any 
-	 * area.
-	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_ANY, NULL );
-
-	/* Turn @out into a memory image which we then render the FLIF frames
-	 * into.
-	 */
-	if( vips_image_write_prepare( out ) )
-		return( -1 );
-
-	for( y = 0; y < out->Ysize; y++ ) 
-		flif_image_read_row_RGBA8( image, y, 
+		reader_fn( image, y, 
 			VIPS_IMAGE_ADDR( out, 0, y ), 
 			VIPS_IMAGE_SIZEOF_LINE( out ) );
 
@@ -271,23 +268,9 @@ vips_foreign_load_flif_load( VipsForeignLoad *load )
 	/* Render to a memory image.
 	 */
 	im = t[0] = vips_image_new_memory();
-
-	switch( flif_image_get_depth( image ) ) {
-	case 8:
-		if( vips_foreign_load_flif_to_memory8( image, im ) )
-			return( -1 );
-		break;
-
-	case 16:
-		if( vips_foreign_load_flif_to_memory16( image, im ) )
-			return( -1 );
-		break;
-
-	default:
-		vips_error( class->nickname, 
-			"unsupported depth %d", flif_image_get_depth( image ) );
+	if( vips_foreign_load_flif_to_memory( flif,
+		image, im, flif_image_get_depth( image ) ) )
 		return( -1 );
-	}
 
 	/* We've rendered to a memory image ... we can shut down the FLIF
 	 * reader now.
