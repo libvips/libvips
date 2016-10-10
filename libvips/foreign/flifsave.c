@@ -31,6 +31,16 @@
 
  */
 
+/* 
+
+   	TODO
+
+	- always saves RGBA
+	- add metadata support
+	- test 16-bit save/load
+
+ */
+
 /*
 #define DEBUG_VERBOSE
 #define DEBUG
@@ -146,6 +156,113 @@ vips_foreign_save_flif_dispose( GObject *gobject )
 
 	G_OBJECT_CLASS( vips_foreign_save_flif_parent_class )->
 		dispose( gobject );
+}
+
+typedef void (*WriterFn)( FLIF_IMAGE *image, 
+	uint32_t row, const void *buffer, size_t buffer_size_bytes );
+
+static int
+vips_foreign_save_flif_write_flif( VipsRegion *region, VipsRect *area, void *a )
+{
+	VipsForeignSaveFlif *flif = (VipsForeignSaveFlif *) a;
+
+	int y;
+	WriterFn write_fn = region->im->BandFmt == VIPS_FORMAT_UCHAR ? 
+		flif_image_write_row_RGBA8 : 
+		flif_image_write_row_RGBA16;
+
+	for( y = 0; y < area->height; y++ ) 
+		write_fn( flif->image, area->top + y,
+			VIPS_REGION_ADDR( region, 0, area->top + y ),
+			VIPS_IMAGE_SIZEOF_LINE( region->im ) ); 
+
+	return( 0 );
+}
+
+static int
+vips_foreign_save_flif_write( VipsForeignSaveFlif *flif, VipsImage *image )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( flif );
+
+	if( !(flif->encoder = flif_create_encoder()) ) {
+		vips_error( class->nickname, "unable to create encoder" );
+		return( -1 );
+	}
+
+	/* "effort" is a meta option that sets a lot of others. This logic is
+	 * copy-pasted from flif.cpp, the command-line interface.
+	 */
+	if( vips_object_argument_isset( VIPS_OBJECT( flif ), "effort" ) ) {
+		if( flif->effort < 10 ) 
+			flif->learn_repeat = 0;
+		else if( flif->effort <= 50 ) {
+			flif->learn_repeat = 1; 
+			flif->split_threshold = 5461 * 8 * 5;
+		}
+		else if( flif->effort <= 70 ) {
+			flif->learn_repeat = 2;
+			flif->split_threshold = 5461 * 8 * 8;
+		}
+		else if( flif->effort <= 90 ) {
+			flif->learn_repeat = 3; 
+			flif->split_threshold = 5461 * 8 * 10;
+		}
+		else if( flif->effort <= 100 ) {
+			flif->learn_repeat = 4; 
+			flif->split_threshold = 5461 * 8 * 12;
+		}
+
+		if( flif->effort < 5 ) 
+			flif->auto_color_buckets = 0;
+		if( flif->effort < 8 ) 
+			flif->palette_size = 0;
+		if( flif->effort < 25 ) 
+			flif->channel_compact = 0;
+		if( flif->effort < 30 ) 
+			flif->lookback = 0;
+		if( flif->effort < 5 ) 
+			flif->frame_shape = 0;
+	}
+
+	flif_encoder_set_interlaced( flif->encoder, flif->interlaced );
+	flif_encoder_set_learn_repeat( flif->encoder, flif->learn_repeat );
+	flif_encoder_set_auto_color_buckets( flif->encoder, 
+		flif->auto_color_buckets );
+	flif_encoder_set_palette_size( flif->encoder, flif->palette_size );
+	flif_encoder_set_lookback( flif->encoder, flif->lookback );
+	flif_encoder_set_divisor( flif->encoder, flif->divisor );
+	flif_encoder_set_min_size( flif->encoder, flif->min_size );
+	flif_encoder_set_split_threshold( flif->encoder, flif->split_threshold );
+	if( flif->alpha_zero_lossless )
+		flif_encoder_set_alpha_zero_lossless( flif->encoder );  
+	flif_encoder_set_chance_cutoff( flif->encoder, flif->chance_cutoff );
+	flif_encoder_set_chance_alpha( flif->encoder, flif->chance_alpha );
+	flif_encoder_set_crc_check( flif->encoder, flif->crc_check );
+	flif_encoder_set_channel_compact( flif->encoder, flif->channel_compact );
+	flif_encoder_set_ycocg( flif->encoder, flif->ycocg );
+	flif_encoder_set_frame_shape( flif->encoder, flif->frame_shape );
+	flif_encoder_set_lossy( flif->encoder, flif->lossy );
+
+	if( !(flif->image = flif_create_image( image->Xsize, image->Ysize )) ) {
+		vips_error( class->nickname, "unable to create image buffer" );
+		return( -1 );
+	}
+
+	/*
+	printf( "Xsize = %d\n", image->Xsize );
+	printf( "Ysize = %d\n", image->Ysize );
+	printf( "Bands = %d\n", image->Bands );
+	 */
+
+	if( vips_sink_disc( image, 
+		vips_foreign_save_flif_write_flif, flif ) ) 
+		return( -1 );
+
+	/* You must fill the image with data before attaching it.
+	 */
+	flif_encoder_add_image( flif->encoder, flif->image );
+
+	return( 0 );
 }
 
 #define UC VIPS_FORMAT_UCHAR
@@ -338,27 +455,6 @@ typedef VipsForeignSaveFlifClass VipsForeignSaveFlifFileClass;
 G_DEFINE_TYPE( VipsForeignSaveFlifFile, vips_foreign_save_flif_file, 
 	vips_foreign_save_flif_get_type() );
 
-typedef void (*WriterFn)( FLIF_IMAGE *image, 
-	uint32_t row, const void *buffer, size_t buffer_size_bytes );
-
-static int
-vips_foreign_save_flif_file_write( VipsRegion *region, VipsRect *area, void *a )
-{
-	VipsForeignSaveFlif *flif = (VipsForeignSaveFlif *) a;
-
-	int y;
-	WriterFn write_fn = region->im->BandFmt == VIPS_FORMAT_UCHAR ? 
-		flif_image_write_row_RGBA8 : 
-		flif_image_write_row_RGBA16;
-
-	for( y = 0; y < area->height; y++ ) 
-		write_fn( flif->image, area->top + y,
-			VIPS_REGION_ADDR( region, 0, area->top + y ),
-			VIPS_IMAGE_SIZEOF_LINE( region->im ) ); 
-
-	return( 0 );
-}
-
 static int
 vips_foreign_save_flif_file_build( VipsObject *object )
 {
@@ -371,84 +467,8 @@ vips_foreign_save_flif_file_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(flif->encoder = flif_create_encoder()) ) {
-		vips_error( class->nickname, "unable to create encoder" );
-		return( -1 );
-	}
-
-	/* "effort" is a meta option that sets a lot of others. This logic is
-	 * copy-pasted from flif.cpp, the command-line interface.
-	 */
-	if( vips_object_argument_isset( object, "effort" ) ) {
-		if( flif->effort < 10 ) 
-			flif->learn_repeat = 0;
-		else if( flif->effort <= 50 ) {
-			flif->learn_repeat = 1; 
-			flif->split_threshold = 5461 * 8 * 5;
-		}
-		else if( flif->effort <= 70 ) {
-			flif->learn_repeat = 2;
-			flif->split_threshold = 5461 * 8 * 8;
-		}
-		else if( flif->effort <= 90 ) {
-			flif->learn_repeat = 3; 
-			flif->split_threshold = 5461 * 8 * 10;
-		}
-		else if( flif->effort <= 100 ) {
-			flif->learn_repeat = 4; 
-			flif->split_threshold = 5461 * 8 * 12;
-		}
-
-		if( flif->effort < 5 ) 
-			flif->auto_color_buckets = 0;
-		if( flif->effort < 8 ) 
-			flif->palette_size = 0;
-		if( flif->effort < 25 ) 
-			flif->channel_compact = 0;
-		if( flif->effort < 30 ) 
-			flif->lookback = 0;
-		if( flif->effort < 5 ) 
-			flif->frame_shape = 0;
-	}
-
-	flif_encoder_set_interlaced( flif->encoder, flif->interlaced );
-	flif_encoder_set_learn_repeat( flif->encoder, flif->learn_repeat );
-	flif_encoder_set_auto_color_buckets( flif->encoder, 
-		flif->auto_color_buckets );
-	flif_encoder_set_palette_size( flif->encoder, flif->palette_size );
-	flif_encoder_set_lookback( flif->encoder, flif->lookback );
-	flif_encoder_set_divisor( flif->encoder, flif->divisor );
-	flif_encoder_set_min_size( flif->encoder, flif->min_size );
-	flif_encoder_set_split_threshold( flif->encoder, flif->split_threshold );
-	if( flif->alpha_zero_lossless )
-		flif_encoder_set_alpha_zero_lossless( flif->encoder );  
-	flif_encoder_set_chance_cutoff( flif->encoder, flif->chance_cutoff );
-	flif_encoder_set_chance_alpha( flif->encoder, flif->chance_alpha );
-	flif_encoder_set_crc_check( flif->encoder, flif->crc_check );
-	flif_encoder_set_channel_compact( flif->encoder, flif->channel_compact );
-	flif_encoder_set_ycocg( flif->encoder, flif->ycocg );
-	flif_encoder_set_frame_shape( flif->encoder, flif->frame_shape );
-	flif_encoder_set_lossy( flif->encoder, flif->lossy );
-
-	if( !(flif->image = flif_create_image( 
-		save->ready->Xsize, save->ready->Ysize )) ) {
-		vips_error( class->nickname, "unable to create image buffer" );
-		return( -1 );
-	}
-
-	/*
-	printf( "Xsize = %d\n", save->ready->Xsize );
-	printf( "Ysize = %d\n", save->ready->Ysize );
-	printf( "Bands = %d\n", save->ready->Bands );
-	 */
-
-	if( vips_sink_disc( save->ready, 
-		vips_foreign_save_flif_file_write, flif ) ) 
-		return( -1 );
-
-	/* You must fill the image with data before attaching it.
-	 */
-	flif_encoder_add_image( flif->encoder, flif->image );
+	if( vips_foreign_save_flif_write( flif, save->ready ) )
+		return( -1 ); 
 
 	if( !flif_encoder_encode_file( flif->encoder, file->filename ) ) {
 		vips_error( class->nickname, "unable to encode file" );
@@ -488,12 +508,133 @@ vips_foreign_save_flif_file_init( VipsForeignSaveFlifFile *file )
 {
 }
 
+typedef struct _VipsForeignSaveFlifBuffer {
+	VipsForeignSaveFlif parent_object;
+
+	VipsArea *buf;
+} VipsForeignSaveFlifBuffer;
+
+typedef VipsForeignSaveFlifClass VipsForeignSaveFlifBufferClass;
+
+G_DEFINE_TYPE( VipsForeignSaveFlifBuffer, vips_foreign_save_flif_buffer, 
+	vips_foreign_save_flif_get_type() );
+
+static int
+vips_foreign_save_flif_buffer_build( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveFlif *flif = (VipsForeignSaveFlif *) object;
+
+	void *obuf;
+	size_t olen;
+	VipsBlob *blob;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_flif_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips_foreign_save_flif_write( flif, save->ready ) )
+		return( -1 ); 
+
+	if( !flif_encoder_encode_memory( flif->encoder, &obuf, &olen ) ) {
+		vips_error( class->nickname, "unable to encode to memory" );
+		return( -1 );
+	}
+
+	/* We need plain free() for this memory.
+	 */
+	blob = vips_blob_new( (VipsCallbackFn) free, obuf, olen );
+	g_object_set( object, "buffer", blob, NULL );
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	/* Shut down the encoder as soon as we can to save mem.
+	 */
+	vips_foreign_save_flif_close( flif ); 
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_flif_buffer_class_init( VipsForeignSaveFlifBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "flifsave_buffer";
+	object_class->description = _( "save image to flif buffer" );
+	object_class->build = vips_foreign_save_flif_buffer_build;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to save to" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveFlifBuffer, buf ),
+		VIPS_TYPE_BLOB );
+}
+
+static void
+vips_foreign_save_flif_buffer_init( VipsForeignSaveFlifBuffer *buffer )
+{
+}
+
 #endif /*HAVE_LIBFLIF*/
 
 /**
  * vips_flifsave:
  * @in: image to save 
  * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+
+ * * @effort: %gint
+ * * @interlaced: %gint
+ * * @learn_repeat: %gint
+ * * @auto_color_buckets: %gint
+ * * @palette_size: %gint
+ * * @lookback: %gint
+ * * @divisor: %gint
+ * * @min_size: %gint
+ * * @split_threshold: %gint
+ * * @alpha_zero_lossless: %gboolean
+ * * @chance_cutoff: %gint
+ * * @chance_alpha: %gint
+ * * @crc_check: %gint
+ * * @channel_compact: %gint
+ * * @ycocg: %gint
+ * * @frame_shape: %gint
+ * * @lossy: %gint
+
+ *
+ * Write an image to a file in FLIF format. 
+ *
+ * See also: vips_flifload(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_flifsave( VipsImage *in, const char *filename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, filename );
+	result = vips_call_split( "flifsave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_flifsave_buffer:
+ * @in: image to save 
+ * @buf: return output buffer here
+ * @len: return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -516,21 +657,40 @@ vips_foreign_save_flif_file_init( VipsForeignSaveFlifFile *file )
  * * @frame_shape: %gint
  * * @lossy: %gint
  *
- * Write an image to a file in FLIF format. 
+ * As vips_flifsave(), but save to a memory buffer. 
  *
- * See also: vips_flifload(), vips_image_write_to_file().
+ * The address of the buffer is returned in @buf, the length of the buffer in
+ * @len. You are responsible for freeing the buffer with g_free() when you
+ * are done with it.
+ *
+ * See also: vips_flifsave(), vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_flifsave( VipsImage *in, const char *filename, ... )
+vips_flifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 {
 	va_list ap;
+	VipsArea *area;
 	int result;
 
-	va_start( ap, filename );
-	result = vips_call_split( "flifsave", ap, in, filename );
+	area = NULL; 
+
+	va_start( ap, len );
+	result = vips_call_split( "flifsave_buffer", ap, in, &area );
 	va_end( ap );
+
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
 
 	return( result );
 }

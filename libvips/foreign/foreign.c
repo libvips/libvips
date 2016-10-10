@@ -1646,7 +1646,9 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_fits_get_type( void ); 
 	extern GType vips_foreign_save_fits_get_type( void ); 
 	extern GType vips_foreign_load_flif_file_get_type( void ); 
+	extern GType vips_foreign_load_flif_buffer_get_type( void ); 
 	extern GType vips_foreign_save_flif_file_get_type( void ); 
+	extern GType vips_foreign_save_flif_buffer_get_type( void ); 
 	extern GType vips_foreign_load_analyze_get_type( void ); 
 	extern GType vips_foreign_load_openexr_get_type( void ); 
 	extern GType vips_foreign_load_openslide_get_type( void ); 
@@ -1758,7 +1760,9 @@ vips_foreign_operation_init( void )
 
 #ifdef HAVE_LIBFLIF
 	vips_foreign_load_flif_file_get_type(); 
+	vips_foreign_load_flif_buffer_get_type(); 
 	vips_foreign_save_flif_file_get_type(); 
+	vips_foreign_save_flif_buffer_get_type(); 
 #endif /*HAVE_LIBFLIF*/
 
 #ifdef HAVE_TIFF

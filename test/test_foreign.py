@@ -55,6 +55,7 @@ class TestForeign(unittest.TestCase):
         self.svg_gz_file = "images/vips-profile.svg.gz"
         self.gif_anim_file = "images/cogs.gif"
         self.dicom_file = "images/dicom_test_image.dcm"
+        self.flif_file = "images/wagon.flif"
 
         self.colour = Vips.Image.jpegload(self.jpeg_file)
         self.mono = self.colour.extract_band(1)
@@ -233,6 +234,26 @@ class TestForeign(unittest.TestCase):
         self.save_load_buffer("pngsave_buffer", "pngload_buffer", self.colour)
         self.save_load("%s.png", self.mono)
         self.save_load("%s.png", self.colour)
+
+    def test_flif(self):
+        x = Vips.type_find("VipsForeign", "flifload")
+        if not x.is_instantiatable():
+            print("no flif support in this vips, skipping test")
+            return
+
+        def flif_valid(self, im):
+            a = im(10, 10)
+            self.assertAlmostEqualObjects(a, [42.0, 69.0, 99.0])
+            self.assertEqual(im.width, 228)
+            self.assertEqual(im.height, 159)
+            self.assertEqual(im.bands, 4)
+
+        self.file_loader("flifload", self.flif_file, flif_valid)
+        self.buffer_loader("flifload_buffer", self.flif_file, flif_valid)
+
+        # flifsave currently always saves four bands .. test with a four-band
+        # image
+        self.save_load_buffer("flifsave_buffer", "flifload_buffer", self.cmyk)
 
     def test_tiff(self):
         x = Vips.type_find("VipsForeign", "tiffload")

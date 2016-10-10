@@ -91,6 +91,10 @@ typedef struct _VipsForeignLoadFlif {
 	 */
 	char *filename;
 
+	/* Non-NULL for buffer load. 
+	 */
+	VipsArea *buf;
+
 } VipsForeignLoadFlif;
 
 typedef VipsForeignLoadClass VipsForeignLoadFlifClass;
@@ -245,10 +249,19 @@ vips_foreign_load_flif_load( VipsForeignLoad *load )
 		flif_decoder_set_resize( flif->decoder, 
 			flif->fit_width, flif->fit_height ); 
 
-	if( flif->filename &&
-		!flif_decoder_decode_file( flif->decoder, flif->filename ) ) {
-		vips_error( class->nickname, "unable to decode file" );
-		return( -1 );
+	if( flif->filename ) {
+		if( !flif_decoder_decode_file( flif->decoder, 
+			flif->filename ) ) {
+			vips_error( class->nickname, "unable to decode file" );
+			return( -1 );
+		}
+	}
+	else if( flif->buf ) { 
+		if( !flif_decoder_decode_memory( flif->decoder, 
+			flif->buf->data, flif->buf->length ) ) { 
+			vips_error( class->nickname, "unable to decode memory" );
+			return( -1 );
+		}
 	}
 
 	VIPS_DEBUG_MSG( "flif_decoder_num_images() = %zd\n", 
@@ -461,6 +474,60 @@ vips_foreign_load_flif_file_init( VipsForeignLoadFlifFile *file )
 {
 }
 
+typedef struct _VipsForeignLoadFlifBuffer {
+	VipsForeignLoadFlif parent_object;
+
+	/* Load from a buffer.
+	 */
+	VipsArea *buf;
+
+} VipsForeignLoadFlifBuffer;
+
+typedef VipsForeignLoadFlifClass VipsForeignLoadFlifBufferClass;
+
+G_DEFINE_TYPE( VipsForeignLoadFlifBuffer, vips_foreign_load_flif_buffer, 
+	vips_foreign_load_flif_get_type() );
+
+static int
+vips_foreign_load_flif_buffer_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadFlif *flif = (VipsForeignLoadFlif *) load;
+	VipsForeignLoadFlifBuffer *buffer = (VipsForeignLoadFlifBuffer *) load;
+
+	flif->buf = buffer->buf; 
+
+	return( vips_foreign_load_flif_load( load ) );
+}
+
+static void
+vips_foreign_load_flif_buffer_class_init( VipsForeignLoadFlifBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "flifload_buffer";
+	object_class->description = _( "load flif from buffer" );
+
+	load_class->is_a_buffer = vips_foreign_load_flif_is_a_buffer;
+	load_class->header = vips_foreign_load_flif_buffer_header;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadFlifBuffer, buf ),
+		VIPS_TYPE_BLOB );
+}
+
+static void
+vips_foreign_load_flif_buffer_init( VipsForeignLoadFlifBuffer *flif )
+{
+}
+
 #endif /*HAVE_FLIFLIB*/
 
 /**
@@ -471,6 +538,7 @@ vips_foreign_load_flif_file_init( VipsForeignLoadFlifFile *file )
  *
  * Optional arguments:
  *
+
  * * @page: %gint, page (frame) to read
  * * @crc_check: %gboolean, if %TRUE, do a CRC check during load
  * * @Q: %gint, load quality setting, 1-100
@@ -479,6 +547,7 @@ vips_foreign_load_flif_file_init( VipsForeignLoadFlifFile *file )
  * * @resize_height: %gint, resize to fit within this height
  * * @fit_width: %gint, resize to fit this width
  * * @fit_height: %gint, resize to fit this height
+
  *
  * Read a FLIF file into a VIPS image. Rendering uses the libflif library.
  *
@@ -504,3 +573,52 @@ vips_flifload( const char *filename, VipsImage **out, ... )
 
 	return( result );
 }
+
+/**
+ * vips_flifload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, page (frame) to read
+ * * @crc_check: %gboolean, if %TRUE, do a CRC check during load
+ * * @Q: %gint, load quality setting, 1-100
+ * * @shrink: %gint, shrink by this much during load, 1, 2, 4, 8 ..
+ * * @resize_width: %gint, resize to fit within this width
+ * * @resize_height: %gint, resize to fit within this height
+ * * @fit_width: %gint, resize to fit this width
+ * * @fit_height: %gint, resize to fit this height
+ *
+ * Read a FLIF-formatted memory block into a VIPS image. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_flifload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_flifload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "flifload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+
