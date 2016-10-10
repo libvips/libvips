@@ -99,6 +99,10 @@ int vips__thinstrip_height = VIPS__THINSTRIP_HEIGHT;
  */
 int vips__concurrency = 0;
 
+/* Set this GPrivate to indicate that this is a vips worker.
+ */
+static GPrivate vips_threadpool_is_worker_private;
+
 /* Glib 2.32 revised the thread API. We need some compat functions.
  */
 
@@ -154,6 +158,16 @@ vips_g_cond_free( GCond *cond )
 #endif
 }
 
+/* TRUE if we are a vips worker thread. We sometimes manage resource allocation
+ * differently for vips workers since we can cheaply free stuff on thread
+ * termination.
+ */
+gboolean
+vips_thread_isworker( void )
+{
+	return( g_private_get( &vips_threadpool_is_worker_private ) != NULL );
+}
+
 typedef struct {
 	const char *domain; 
 	GThreadFunc func; 
@@ -169,6 +183,10 @@ vips_thread_run( gpointer data )
 
 	if( vips__thread_profile ) 
 		vips__thread_profile_attach( info->domain );
+
+	/* Set this to something (anything) to tag this thread as a vips worker.
+	 */
+	g_private_set( &vips_threadpool_is_worker_private, data );
 
 	result = info->func( info->data );
 

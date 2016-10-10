@@ -184,8 +184,8 @@ buffer_thread_free( VipsBufferThread *buffer_thread )
  *
  * - on thread shutdown, the enclosing hash is destroyed, and that will 
  *   trigger this via GDestroyNotify.
- * - if the image is closed, buffer_cache_image_postclose() fires and will call
- *   this
+ * - if the BufferCache has been allocated by the main thread,  this will be
+ *   triggered from postclose on the image
  *
  * These can happen in either order. 
  */
@@ -223,35 +223,26 @@ buffer_cache_free( VipsBufferCache *cache )
 	}
 	VIPS_FREEF( g_slist_free, cache->reserve );
 
-	cache->proxy->cache = NULL;
-	cache->proxy = NULL;
-
 	g_free( cache );
 }
 
 static void
-buffer_cache_proxy_image_postclose( VipsImage *im, VipsBufferCacheProxy *proxy )
+buffer_cache_image_postclose( VipsImage *im, VipsBufferCache *cache )
 {
-	g_assert( proxy->im == im );
+	VipsBufferThread *buffer_thread = cache->buffer_thread;
 
-	if( proxy->cache ) {
-		VipsBufferCache *cache = proxy->cache;
-		VipsBufferThread *buffer_thread = cache->buffer_thread;
-		VipsImage *im = cache->im;
+	/* Runs to clean up main thread buffers on image close.
+	 */
+	g_assert( cache->im == im );
+	g_assert( !vips_thread_isworker() );
 
-		g_assert( cache->im == im );
-
-		g_hash_table_remove( buffer_thread->hash, im );
-	}
-
-	g_free( proxy ); 
+	g_hash_table_remove( buffer_thread->hash, im );
 }
 
 static VipsBufferCache *
 buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 {
 	VipsBufferCache *cache;
-	VipsBufferCacheProxy *proxy;
 
 	cache = g_new( VipsBufferCache, 1 );
 	cache->buffers = NULL;
@@ -261,17 +252,14 @@ buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 	cache->reserve = NULL;
 	cache->n_reserve = 0;
 
-	proxy = g_new( VipsBufferCacheProxy, 1 );
-	proxy->im = im;
-	proxy->cache = cache;
-	cache->proxy = proxy;
-	
-	/* Free memory on image close. We can't do this on thread exit since
-	 * some buffers will be made from the main thread and that won't exit
-	 * until program termination.
+	/* VipsBufferCache allocated from worker threads will be freed when
+	 * workers shut down. This won't happen for VipsBufferCache allocated 
+	 * from the main thread, since (obviously) thread shutdown will never 
+	 * happen. In this case, we need to free resources on image close.
 	 */
-	g_signal_connect( im, "postclose", 
-		G_CALLBACK( buffer_cache_proxy_image_postclose ), proxy );
+	if( !vips_thread_isworker() )  
+		g_signal_connect( im, "postclose", 
+			G_CALLBACK( buffer_cache_image_postclose ), cache );
 
 #ifdef DEBUG_CREATE
 	g_mutex_lock( vips__global_lock );
