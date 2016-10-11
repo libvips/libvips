@@ -169,17 +169,9 @@ calcul_tables_8( void *client )
 static void
 vips_col_make_tables_RGB_8( void )
 {
-	static gboolean made_tables = FALSE;
+	static GOnce once = G_ONCE_INIT;
 
-	/* We want to avoid having a mutex in this path, so use gonce and a
-	 * static var instead.
-	 */
-	if( !made_tables ) {
-		static GOnce once = G_ONCE_INIT;
-
-		(void) g_once( &once, calcul_tables_8, NULL );
-		made_tables = TRUE;
-	}
+	(void) g_once( &once, calcul_tables_8, NULL );
 }
 
 int
@@ -201,17 +193,9 @@ calcul_tables_16( void *client )
 static void
 vips_col_make_tables_RGB_16( void )
 {
-	static gboolean made_tables = FALSE;
+	static GOnce once = G_ONCE_INIT;
 
-	/* We want to avoid having a mutex in this path, so use gonce and a
-	 * static var instead.
-	 */
-	if( !made_tables ) {
-		static GOnce once = G_ONCE_INIT;
-
-		(void) g_once( &once, calcul_tables_16, NULL );
-		made_tables = TRUE;
-	}
+	(void) g_once( &once, calcul_tables_16, NULL );
 }
 
 int
