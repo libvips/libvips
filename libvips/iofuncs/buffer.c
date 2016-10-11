@@ -84,7 +84,14 @@ static GSList *vips__buffer_cache_all = NULL;
  */
 static const int buffer_cache_max_reserve = 2; 
 
+/* Workers have a buffer_thread in a GPrivate they have exclusive access to.
+ */
 static GPrivate *buffer_thread_key = NULL;
+
+/* All non-worker threads share a single global set of buffers protected by a
+ * mutex.
+ */
+static VipsBufferThread *vips_buffer_thread_global = NULL;
 
 #ifdef DEBUG
 static void *
@@ -176,6 +183,8 @@ vips_buffer_free( VipsBuffer *buffer )
 static void
 buffer_thread_free( VipsBufferThread *buffer_thread )
 {
+	/* We only come here from workers, so no need to lock.
+	 */
 	VIPS_FREEF( g_hash_table_destroy, buffer_thread->hash );
 	VIPS_FREE( buffer_thread );
 }
@@ -236,7 +245,14 @@ buffer_cache_image_postclose( VipsImage *im, VipsBufferCache *cache )
 	g_assert( cache->im == im );
 	g_assert( !vips_thread_isworker() );
 
+	/* All non-worker threads come through here, so we need to lock around
+	 * changes to the global buffer_thread.
+	 */
+	g_mutex_lock( vips__global_lock );
+
 	g_hash_table_remove( buffer_thread->hash, im );
+
+	g_mutex_unlock( vips__global_lock );
 }
 
 static VipsBufferCache *
@@ -257,7 +273,7 @@ buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 	 * from the main thread, since (obviously) thread shutdown will never 
 	 * happen. In this case, we need to free resources on image close.
 	 */
-	if( !vips_thread_isworker() )  
+	if( !vips_thread_isworker() ) 
 		g_signal_connect( im, "postclose", 
 			G_CALLBACK( buffer_cache_image_postclose ), cache );
 
@@ -295,12 +311,32 @@ buffer_thread_get( void )
 {
 	VipsBufferThread *buffer_thread;
 
-	if( !(buffer_thread = g_private_get( buffer_thread_key )) ) {
-		buffer_thread = buffer_thread_new();
-		g_private_set( buffer_thread_key, buffer_thread );
-	}
+	if( vips_thread_isworker() ) {
+		/* Workers get a private set of buffers.
+		 */
+		if( !(buffer_thread = g_private_get( buffer_thread_key )) ) {
+			buffer_thread = buffer_thread_new();
+			g_private_set( buffer_thread_key, buffer_thread );
+		}
 
-	g_assert( buffer_thread->thread == g_thread_self() ); 
+		g_assert( buffer_thread->thread == g_thread_self() ); 
+	}
+	else {
+		/* All main threads share a single set of buffers. 
+		 */
+		g_mutex_lock( vips__global_lock );
+
+		if( !vips_buffer_thread_global ) {
+			vips_buffer_thread_global = buffer_thread_new(); 
+
+			/* Shared by many threads, so no checking.
+			 */
+			vips_buffer_thread_global->thread = NULL;
+		}
+		buffer_thread = vips_buffer_thread_global;
+
+		g_mutex_unlock( vips__global_lock );
+	}
 
 	return( buffer_thread );
 }
@@ -312,13 +348,20 @@ buffer_cache_get( VipsImage *im )
 
 	VipsBufferCache *cache;
 
+	if( !vips_thread_isworker() ) 
+		g_mutex_lock( vips__global_lock );
+
 	if( !(cache = (VipsBufferCache *) 
 		g_hash_table_lookup( buffer_thread->hash, im )) ) {
 		cache = buffer_cache_new( buffer_thread, im );
 		g_hash_table_insert( buffer_thread->hash, im, cache );
 	}
 
-	g_assert( cache->thread == g_thread_self() ); 
+	if( !vips_thread_isworker() ) 
+		g_mutex_unlock( vips__global_lock );
+
+	g_assert( !cache->thread ||
+		cache->thread == g_thread_self() ); 
 
 	return( cache ); 
 }
@@ -362,8 +405,10 @@ vips_buffer_undone( VipsBuffer *buffer )
 			g_thread_self(), buffer, cache );
 #endif /*DEBUG_VERBOSE*/
 
-		g_assert( cache->thread == g_thread_self() );
-		g_assert( cache->buffer_thread->thread == cache->thread );
+		g_assert( !cache->thread ||
+			cache->thread == g_thread_self() );
+		g_assert( !cache->thread ||
+			cache->buffer_thread->thread == cache->thread );
 		g_assert( g_slist_find( cache->buffers, buffer ) );
 		g_assert( cache->buffer_thread == buffer_thread_get() );
 
@@ -621,7 +666,8 @@ buffer_thread_destroy_notify( VipsBufferThread *buffer_thread )
 	/* We only come here if vips_thread_shutdown() was not called for this
 	 * thread. Do our best to clean up.
 	 *
-	 * GPrivate has stopped working, be careful not to touch that. 
+	 * GPrivate has stopped working by this point in destruction, be 
+	 * careful not to touch that. 
 	 */
 	buffer_thread_free( buffer_thread );
 }
