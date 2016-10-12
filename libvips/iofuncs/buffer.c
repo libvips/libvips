@@ -480,8 +480,10 @@ vips_buffer_unref( VipsBuffer *buffer )
 		/* We are not always the creating thread, for example if we 
 		 * come here during vips_region_dispose(). cache may have been
 		 * NULLed out during thread exit. 
-		 */
 		VipsBufferCache *cache = buffer->cache;
+		 */
+
+	VipsBufferCache *cache = buffer_cache_get( buffer->im ); 
 
 #ifdef DEBUG_VERBOSE
 		if( !buffer->done )
