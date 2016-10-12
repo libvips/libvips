@@ -1,10 +1,12 @@
-- try valgrind sharp again on desktop
+- rework buffer.c, it's getting ugly
 
-- do we need all the locks?
+  how about getting rid of buffercache for non-worker threads, it won't be
+  very useful
 
-- benchmark again and confirm we've not slowed down
+  instead, global buffers have no buffercache and their lifetime is just
+  managed by the regions they are on
 
-
+  no reserve list, just discard them on unref
 
 - not sure about utf8 error messages on win
 
