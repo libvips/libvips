@@ -1,3 +1,14 @@
+- try valgrind sharp again on desktop
+
+- add some stuff to count main thread buffers being created and destroyed,
+  verify that we are now handling that
+
+- do we need all the locks?
+
+- benchmark again and confirm we've not slowed down
+
+
+
 - not sure about utf8 error messages on win
 
 - strange: 
