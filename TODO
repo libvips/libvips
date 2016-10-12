@@ -1,18 +1,5 @@
 - try valgrind sharp again on desktop
 
-- add some stuff to count main thread buffers being created and destroyed,
-  verify that we are now handling that
-
-- vips_sink_disc() calls wbuffer_position() which will set up the first 
-  buffer ... but that's called from the main thread and so will create a 
-  global buffer
-
-  can we call this from a worker instead and save a few locks?
-
-- vips_region_dispose() calls vips_buffer_unref() which calls 
-  buffer_cache_get(), which will create a main-thread buffercache ... can we
-  fix this?
-
 - do we need all the locks?
 
 - benchmark again and confirm we've not slowed down

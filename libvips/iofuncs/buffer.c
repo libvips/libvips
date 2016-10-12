@@ -477,8 +477,11 @@ vips_buffer_unref( VipsBuffer *buffer )
 	buffer->ref_count -= 1;
 
 	if( buffer->ref_count == 0 ) {
-		VipsImage *im = buffer->im;
-		VipsBufferCache *cache = buffer_cache_get( im ); 
+		/* We are not always the creating thread, for example if we 
+		 * come here during vips_region_dispose(). cache may have been
+		 * NULLed out during thread exit. 
+		 */
+		VipsBufferCache *cache = buffer->cache;
 
 #ifdef DEBUG_VERBOSE
 		if( !buffer->done )
@@ -489,7 +492,8 @@ vips_buffer_unref( VipsBuffer *buffer )
 
 		/* Place on this thread's reserve list for reuse.
 		 */
-		if( cache->n_reserve < buffer_cache_max_reserve ) { 
+		if( cache &&
+			cache->n_reserve < buffer_cache_max_reserve ) { 
 			g_assert( !buffer->cache ); 
 
 			cache->reserve = 
