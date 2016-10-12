@@ -56,6 +56,7 @@
 #define DEBUG_VERBOSE
 #define DEBUG_CREATE
 #define DEBUG
+#define DEBUG_GLOBAL
  */
 
 #ifdef HAVE_CONFIG_H
@@ -92,6 +93,13 @@ static GPrivate *buffer_thread_key = NULL;
  * mutex.
  */
 static VipsBufferThread *vips_buffer_thread_global = NULL;
+
+#ifdef DEBUG_GLOBAL
+/* Count main thread buffers in and out.
+ */
+static int vips_buffer_thread_global_n = 0;
+static int vips_buffer_thread_global_highwater = 0;
+#endif /*DEBUG_GLOBAL*/
 
 #ifdef DEBUG
 static void *
@@ -161,6 +169,12 @@ vips_buffer_dump_all( void )
 	}
 #endif /*DEBUG_CREATE*/
 #endif /*DEBUG*/
+
+#ifdef DEBUG_GLOBAL
+	printf( "buffers: %d global buffers\n", vips_buffer_thread_global_n );
+	printf( "buffers: %d high water global buffers\n", 
+		vips_buffer_thread_global_highwater ); 
+#endif /*DEBUG_GLOBAL*/
 }
 
 static void
@@ -252,6 +266,12 @@ buffer_cache_image_postclose( VipsImage *im, VipsBufferCache *cache )
 
 	g_hash_table_remove( buffer_thread->hash, im );
 
+#ifdef DEBUG_GLOBAL
+	vips_buffer_thread_global_n -= 1;
+	printf( "buffer_cache_image_postclose: %d global buffers\n",
+		vips_buffer_thread_global_n ); 
+#endif /*DEBUG_GLOBAL*/
+
 	g_mutex_unlock( vips__global_lock );
 }
 
@@ -273,9 +293,23 @@ buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 	 * from the main thread, since (obviously) thread shutdown will never 
 	 * happen. In this case, we need to free resources on image close.
 	 */
-	if( !vips_thread_isworker() ) 
+	if( !vips_thread_isworker() ) {
 		g_signal_connect( im, "postclose", 
 			G_CALLBACK( buffer_cache_image_postclose ), cache );
+
+#ifdef DEBUG_GLOBAL
+		/* No need to lock. Main thread buffer_cache_new() calls are
+		 * always inside a lock already.
+		 */
+		vips_buffer_thread_global_n += 1;
+		vips_buffer_thread_global_highwater = VIPS_MAX( 
+			vips_buffer_thread_global_highwater, 
+			vips_buffer_thread_global_n ); 
+
+		printf( "buffer_cache_new: %d global buffers\n",
+			vips_buffer_thread_global_n ); 
+#endif /*DEBUG_GLOBAL*/
+	}
 
 #ifdef DEBUG_CREATE
 	g_mutex_lock( vips__global_lock );
