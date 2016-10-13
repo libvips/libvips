@@ -1,3 +1,4 @@
+
 - rework buffer.c, it's getting ugly
 
   how about getting rid of buffercache for non-worker threads, it won't be
@@ -7,6 +8,60 @@
   managed by the regions they are on
 
   no reserve list, just discard them on unref
+
+  shouldwe use atomic stuff for the buffer ref count?
+
+  buffer_dump has:
+
+	if( buffer->im &&
+		buffer->buf &&
+		buffer->cache ) {  
+		printf( "buffer %p, %.3g MB\n", 
+			buffer, buffer->bsize / (1024 * 1024.0) ); 
+		*alive += buffer->bsize;
+	}
+	else if( buffer->im &&
+		buffer->buf &&
+		!buffer->cache )   	
+		*reserve += buffer->bsize;
+	else
+		printf( "buffer craziness!\n" ); 
+
+  is this right? 
+  
+  I think we now have three states:
+
+  global buffer (not on any cache, undone)
+
+	buffer->ref_count >= 1 
+  	buffer->im
+	buffer->buf
+	!buffer->cache
+	!buffer->done (since all done buffers must be on a cache buffers list)
+
+  buffer published on a cache (done)
+
+	buffer->ref_count >= 1 
+  	buffer->im
+	buffer->buf
+	buffer->cache
+	buffer->done 
+
+  buffer held in reserve on a thread, ready for reuse
+
+	buffer->ref_count == 0 
+  	buffer->im
+	buffer->buf
+	buffer->cache
+	!buffer->done 
+
+  vips_buffer_done() on a global buffer takes ownership and publishes to this 
+  thread's public list
+
+     what if ref_count > 1? is this possible?
+
+  vips_buffer_undone() relinquishes ownership and makes it global
+
 
 - not sure about utf8 error messages on win
 
