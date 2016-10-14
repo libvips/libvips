@@ -19,6 +19,10 @@
  * 	- redo as a class
  * 16/12/14
  * 	- free the input region much earlier
+ * 14/10/16
+ * 	- crop to a memory image rather than using a region ... this means we
+ * 	  use workers to calculate pixels and therefore use per-thread caching
+ * 	  in the revised buffer system
  */
 
 /*
@@ -86,9 +90,8 @@ vips_getpoint_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsGetpoint *getpoint = (VipsGetpoint *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
-	VipsRect area; 
-	VipsRegion *region;
 	double *vector;
 	int n;
 	VipsArrayDouble *out_array;
@@ -96,31 +99,15 @@ vips_getpoint_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_getpoint_parent_class )->build( object ) )
 		return( -1 );
 
-	/* <0 ruled out already.
-	 */
-	if( getpoint->x >= getpoint->in->Xsize ||
-		getpoint->y >= getpoint->in->Ysize ) { 
-		vips_error( class->nickname, 
-			"%s", _( "coordinates out of range" ) ); 
-		return( -1 );
-	}
-
-	if( vips_check_coding_known( class->nickname, getpoint->in ) ||
-		!(region = vips_region_new( getpoint->in )) )
+	t[1] = vips_image_new_memory();
+	if( vips_crop( getpoint->in, &t[0], 
+		getpoint->x, getpoint->y, 1, 1, NULL ) ||
+		vips_image_write( t[0], t[1] ) )
 		return( -1 ); 
 
-	area.left = getpoint->x;
-	area.top = getpoint->y;
-	area.width = 1;
-	area.height = 1;
-	if( vips_region_prepare( region, &area ) ||
-		!(vector = vips__ink_to_vector( class->nickname, getpoint->in, 
-			VIPS_REGION_ADDR( region, area.left, area.top ), 
-			&n )) ) {
-		VIPS_UNREF( region );
+	if( !(vector = vips__ink_to_vector( class->nickname, 
+		getpoint->in, VIPS_IMAGE_ADDR( t[1], 0, 0 ), &n )) ) 
 		return( -1 );
-	}
-	VIPS_UNREF( region );
 
 	out_array = vips_array_double_new( vector, n );
 	g_object_set( object, 

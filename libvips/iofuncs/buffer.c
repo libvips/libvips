@@ -55,10 +55,10 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define DEBUG_CREATE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -101,6 +101,7 @@ vips_buffer_print( VipsBuffer *buffer )
 	printf( "area.width = %d, ", buffer->area.width );
 	printf( "area.height = %d, ", buffer->area.height );
 	printf( "done = %d, ", buffer->done );
+	printf( "cache = %p, ", buffer->cache );
 	printf( "buf = %p, ", buffer->buf );
 	printf( "bsize = %zd\n", buffer->bsize );
 }
@@ -210,6 +211,10 @@ vips_buffer_free( VipsBuffer *buffer )
 
 	g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG*/
+
+#ifdef DEBUG_VERBOSE
+	printf( "vips_buffer_free: freeing buffer %p\n", buffer );
+#endif /*DEBUG_VERBOSE*/
 }
 
 static void
@@ -281,8 +286,8 @@ buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 		g_slist_prepend( vips__buffer_cache_all, cache );
 	g_mutex_unlock( vips__global_lock );
 
-	printf( "buffer_cache_new: new cache %p for thread %p\n",
-		cache, g_thread_self() );
+	printf( "buffer_cache_new: new cache %p for thread %p on image %p\n",
+		cache, g_thread_self(), im );
 	printf( "\t(%d caches now)\n", 
 		g_slist_length( vips__buffer_cache_all ) );
 #endif /*DEBUG_CREATE*/
@@ -362,12 +367,6 @@ vips_buffer_done( VipsBuffer *buffer )
 
 	if( !buffer->done &&
 		(cache = buffer_cache_get( im )) ) { 
-#ifdef DEBUG_VERBOSE
-		printf( "vips_buffer_done: thread %p adding to cache %p\n",
-			g_thread_self(), cache );
-		vips_buffer_print( buffer ); 
-#endif /*DEBUG_VERBOSE*/
-
 		g_assert( !g_slist_find( cache->buffers, buffer ) );
 		g_assert( !buffer->cache ); 
 
@@ -375,6 +374,13 @@ vips_buffer_done( VipsBuffer *buffer )
 		buffer->cache = cache;
 
 		cache->buffers = g_slist_prepend( cache->buffers, buffer );
+
+#ifdef DEBUG_VERBOSE
+		printf( "vips_buffer_done: "
+			"thread %p adding buffer %p to cache %p\n",
+			g_thread_self(), buffer, cache );
+		vips_buffer_print( buffer ); 
+#endif /*DEBUG_VERBOSE*/
 	}
 }
 

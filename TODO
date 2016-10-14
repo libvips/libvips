@@ -1,3 +1,7 @@
+- getpoint() doesn't use a worker, it just calls vips_region_prepare()
+  directly
+
+  we should crop to a mem buffer instead
 
 - rework buffer.c, it's getting ugly
 

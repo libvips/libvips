@@ -1,4 +1,5 @@
 13/10/16 started 8.5.0
+- rewritten buffer system is safer and frees memory earlier
 
 27/9/16 started 8.4.2
 - small doc improvements
