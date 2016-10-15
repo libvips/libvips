@@ -770,21 +770,21 @@ operator+( VImage a, std::vector<double> b )
 }
 
 VImage & 
-VImage::operator+=( const VImage b )
+operator+=( VImage a, const VImage b )
 {
-	return( *this = *this + b ); 
+	return( a = a + b ); 
 }
 
 VImage & 
-VImage::operator+=( const double b )
+operator+=( VImage a, const double b )
 {
-	return( *this = *this + b ); 
+	return( a = a + b ); 
 }
 
 VImage & 
-VImage::operator+=( std::vector<double> b )
+operator+=( VImage a, std::vector<double> b )
 {
-	return( *this = *this + b ); 
+	return( a = a + b ); 
 }
 
 VImage 
@@ -818,21 +818,21 @@ operator-( VImage a, std::vector<double> b )
 }
 
 VImage & 
-VImage::operator-=( const VImage b )
+operator-=( VImage a, const VImage b )
 {
-	return( *this = *this - b ); 
+	return( a = a - b ); 
 }
 
 VImage & 
-VImage::operator-=( const double b )
+operator-=( VImage a, const double b )
 {
-	return( *this = *this - b ); 
+	return( a = a - b ); 
 }
 
 VImage & 
-VImage::operator-=( std::vector<double> b )
+operator-=( VImage a, std::vector<double> b )
 {
-	return( *this = *this - b ); 
+	return( a = a - b ); 
 }
 
 VImage 
@@ -872,21 +872,21 @@ operator*( VImage a, std::vector<double> b )
 }
 
 VImage & 
-VImage::operator*=( const VImage b )
+operator*=( VImage a, const VImage b )
 {
-	return( *this = *this * b ); 
+	return( a = a * b ); 
 }
 
 VImage & 
-VImage::operator*=( const double b )
+operator*=( VImage a, const double b )
 {
-	return( *this = *this * b ); 
+	return( a = a * b ); 
 }
 
 VImage & 
-VImage::operator*=( std::vector<double> b )
+operator*=( VImage a, std::vector<double> b )
 {
-	return( *this = *this * b ); 
+	return( a = a * b ); 
 }
 
 VImage 
@@ -920,21 +920,21 @@ operator/( VImage a, std::vector<double> b )
 }
 
 VImage & 
-VImage::operator/=( const VImage b )
+operator/=( VImage a, const VImage b )
 {
-	return( *this = *this / b ); 
+	return( a = a / b ); 
 }
 
 VImage & 
-VImage::operator/=( const double b )
+operator/=( VImage a, const double b )
 {
-	return( *this = *this / b ); 
+	return( a = a / b ); 
 }
 
 VImage & 
-VImage::operator/=( std::vector<double> b )
+operator/=( VImage a, std::vector<double> b )
 {
-	return( *this = *this / b ); 
+	return( a = a / b ); 
 }
 
 VImage 
@@ -956,21 +956,21 @@ operator%( VImage a, std::vector<double> b )
 }
 
 VImage & 
-VImage::operator%=( const VImage b )
+operator%=( VImage a, const VImage b )
 {
-	return( *this = *this % b ); 
+	return( a = a % b ); 
 }
 
 VImage & 
-VImage::operator%=( const double b )
+operator%=( VImage a, const double b )
 {
-	return( *this = *this % b ); 
+	return( a = a % b ); 
 }
 
 VImage & 
-VImage::operator%=( std::vector<double> b )
+operator%=( VImage a, std::vector<double> b )
 {
-	return( *this = *this % b ); 
+	return( a = a % b ); 
 }
 
 VImage 
@@ -1210,21 +1210,21 @@ operator&( VImage a, std::vector<double> b )
 }
 
 VImage & 
-VImage::operator&=( const VImage b )
+operator&=( VImage a, const VImage b )
 {
-	return( *this = *this & b ); 
+	return( a = a & b ); 
 }
 
 VImage & 
-VImage::operator&=( const double b )
+operator&=( VImage a, const double b )
 {
-	return( *this = *this & b ); 
+	return( a = a & b ); 
 }
 
 VImage & 
-VImage::operator&=( std::vector<double> b )
+operator&=( VImage a, std::vector<double> b )
 {
-	return( *this = *this & b ); 
+	return( a = a & b ); 
 }
 
 VImage 
@@ -1260,21 +1260,21 @@ operator|( VImage a, std::vector<double> b )
 }
 
 VImage & 
-VImage::operator|=( const VImage b )
+operator|=( VImage a, const VImage b )
 {
-	return( *this = *this | b ); 
+	return( a = a | b ); 
 }
 
 VImage & 
-VImage::operator|=( const double b )
+operator|=( VImage a, const double b )
 {
-	return( *this = *this | b ); 
+	return( a = a | b ); 
 }
 
 VImage & 
-VImage::operator|=( std::vector<double> b )
+operator|=( VImage a, std::vector<double> b )
 {
-	return( *this = *this | b ); 
+	return( a = a | b ); 
 }
 
 VImage 
@@ -1310,21 +1310,21 @@ operator^( VImage a, std::vector<double> b )
 }
 
 VImage & 
-VImage::operator^=( const VImage b )
+operator^=( VImage a, const VImage b )
 {
-	return( *this = *this ^ b ); 
+	return( a = a ^ b ); 
 }
 
 VImage & 
-VImage::operator^=( const double b )
+operator^=( VImage a, const double b )
 {
-	return( *this = *this ^ b ); 
+	return( a = a ^ b ); 
 }
 
 VImage & 
-VImage::operator^=( std::vector<double> b )
+operator^=( VImage a, std::vector<double> b )
 {
-	return( *this = *this ^ b ); 
+	return( a = a ^ b ); 
 }
 
 VImage 
@@ -1347,21 +1347,21 @@ operator<<( VImage a, std::vector<double> b )
 }
 
 VImage & 
-VImage::operator<<=( const VImage b )
+operator<<=( VImage a, const VImage b )
 {
-	return( *this = *this << b ); 
+	return( a = a << b ); 
 }
 
 VImage & 
-VImage::operator<<=( const double b )
+operator<<=( VImage a, const double b )
 {
-	return( *this = *this << b ); 
+	return( a = a << b ); 
 }
 
 VImage & 
-VImage::operator<<=( std::vector<double> b )
+operator<<=( VImage a, std::vector<double> b )
 {
-	return( *this = *this << b ); 
+	return( a = a << b ); 
 }
 
 VImage 
@@ -1384,21 +1384,21 @@ operator>>( VImage a, std::vector<double> b )
 }
 
 VImage & 
-VImage::operator>>=( const VImage b )
+operator>>=( VImage a, const VImage b )
 {
-	return( *this = *this << b ); 
+	return( a = a << b ); 
 }
 
 VImage & 
-VImage::operator>>=( const double b )
+operator>>=( VImage a, const double b )
 {
-	return( *this = *this << b ); 
+	return( a = a << b ); 
 }
 
 VImage & 
-VImage::operator>>=( std::vector<double> b )
+operator>>=( VImage a, std::vector<double> b )
 {
-	return( *this = *this << b ); 
+	return( a = a << b ); 
 }
 
 VIPS_NAMESPACE_END
