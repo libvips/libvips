@@ -73,7 +73,7 @@
 
 #include <fitsio.h>
 
-#include "fits.h"
+#include "pforeign.h"
 
 /*
 

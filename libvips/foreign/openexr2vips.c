@@ -86,7 +86,7 @@
 
 #include <ImfCRgbaFile.h>
 
-#include "openexr2vips.h"
+#include "pforeign.h"
 
 /* What we track during a OpenEXR read.
  */

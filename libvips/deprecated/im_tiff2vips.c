@@ -49,7 +49,7 @@
 #include <vips/internal.h>
 #include <vips/thread.h>
 
-#include "../foreign/tiff.h"
+#include "../foreign/pforeign.h"
 
 static int
 tiff2vips( const char *name, IMAGE *out, gboolean header_only )

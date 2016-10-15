@@ -61,7 +61,7 @@
 #include <vips/internal.h>
 
 #include "dbh.h"
-#include "analyze2vips.h"
+#include "pforeign.h"
 
 /* The things we can have in header fields. Can't use GType, since we want a
  * static value we can use in a declaration.

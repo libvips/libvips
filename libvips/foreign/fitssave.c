@@ -51,7 +51,7 @@
 
 #ifdef HAVE_CFITSIO
 
-#include "fits.h"
+#include "pforeign.h"
 
 typedef struct _VipsForeignSaveFits {
 	VipsForeignSave parent_object;

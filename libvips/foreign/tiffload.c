@@ -48,9 +48,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_TIFF
+#include "pforeign.h"
 
-#include "tiff.h"
+#ifdef HAVE_TIFF
 
 typedef struct _VipsForeignLoadTiff {
 	VipsForeignLoad parent_object;

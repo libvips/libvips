@@ -48,9 +48,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_RADIANCE
+#include "pforeign.h"
 
-#include "radiance.h"
+#ifdef HAVE_RADIANCE
 
 typedef struct _VipsForeignLoadRad {
 	VipsForeignLoad parent_object;

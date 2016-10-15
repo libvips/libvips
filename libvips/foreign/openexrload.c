@@ -50,7 +50,7 @@
 
 #ifdef HAVE_OPENEXR
 
-#include "openexr2vips.h"
+#include "pforeign.h"
 
 typedef struct _VipsForeignLoadOpenexr {
 	VipsForeignLoad parent_object;

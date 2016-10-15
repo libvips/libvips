@@ -52,9 +52,9 @@
 
 #include <vips/vips.h>
 
-#include <webp/encode.h>
+#include "pforeign.h"
 
-#include "webp.h"
+#include <webp/encode.h>
 
 typedef int (*webp_import)( WebPPicture *picture,
 	const uint8_t *rgb, int stride );

@@ -50,7 +50,7 @@
 
 #ifdef HAVE_CFITSIO
 
-#include "fits.h"
+#include "pforeign.h"
 
 typedef struct _VipsForeignLoadFits {
 	VipsForeignLoad parent_object;

@@ -143,8 +143,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#include "pforeign.h"
+
 #include "jpeg.h"
-#include "vipsjpeg.h"
 
 /* Stuff we track during a read.
  */

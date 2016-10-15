@@ -80,7 +80,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "ppm.h"
+#include "pforeign.h"
 
 /* The largest number/field/whatever we can read.
  */

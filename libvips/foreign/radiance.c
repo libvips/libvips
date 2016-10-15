@@ -143,7 +143,7 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include "radiance.h"
+#include "pforeign.h"
 
 /* Begin copy-paste from Radiance sources.
  */

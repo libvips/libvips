@@ -166,6 +166,8 @@
  * 	- tag alpha as UNASSALPHA since it's not pre-multiplied, thanks Peter
  * 17/8/16
  * 	- use wchar_t TIFFOpen on Windows
+ * 14/10/16
+ * 	- add buffer output
  */
 
 /*
@@ -218,8 +220,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include <tiffio.h>
-
+#include "pforeign.h"
 #include "tiff.h"
 
 /* Max number of alpha channels we allow.
@@ -234,9 +235,17 @@ typedef struct _Write Write;
 struct _Layer {
 	Write *write;			/* Main write struct */
 
+	/* The filename for this layer, for file output.
+	 */
+	char *lname;			
+
+	/* The memory area for this layer, for memory output.
+	 */
+	void *buf;
+	size_t len;
+
 	int width, height;		/* Layer size */
 	int sub;			/* Subsample factor for this layer */
-	char *lname;			/* Name of this TIFF file */
 	TIFF *tif;			/* TIFF file we write this layer to */
 
 	/* The image we build. We only keep a few scanlines of this around in
@@ -263,7 +272,15 @@ struct _Layer {
  */
 struct _Write {
 	VipsImage *im;			/* Original input image */
+
+	/* File to write to, or NULL.
+	 */
 	char *filename;			/* Name we write to */
+
+	/* Memory area to output, or NULL.
+	 */
+	void **obuf;
+	size_t *olen; 
 
 	Layer *layer;			/* Top of pyramid */
 	VipsPel *tbuf;			/* TIFF output buffer */
@@ -287,94 +304,6 @@ struct _Write {
 	int strip;			/* Don't write metadata */
 };
 
-/* Open TIFF for output.
- */
-TIFF *
-vips__tiff_openout( const char *path, gboolean bigtiff )
-{
-	TIFF *tif;
-	const char *mode = bigtiff ? "w8" : "w";
-
-#ifdef DEBUG
-	printf( "vips__tiff_openout( \"%s\", \"%s\" )\n", path, mode );
-#endif /*DEBUG*/
-
-	/* Need the utf-16 version on Windows.
-	 */
-#ifdef OS_WIN32
-{
-	GError *error = NULL;
-	wchar_t *path16;
-
-	if( !(path16 = (wchar_t *) 
-		g_utf8_to_utf16( path, -1, NULL, NULL, &error )) ) { 
-		vips_g_error( &error );
-		return( NULL );
-	}
-
-	tif = TIFFOpenW( path16, mode );
-
-	g_free( path16 ); 
-}
-#else /*!OS_WIN32*/
-	tif = TIFFOpen( path, mode );
-#endif /*OS_WIN32*/
-
-	if( !tif ) {
-		vips_error( "tiff", 
-			_( "unable to open \"%s\" for output" ), path );
-		return( NULL );
-	}
-
-	return( tif );
-}
-
-/* Open TIFF for input.
- */
-TIFF *
-vips__tiff_openin( const char *path )
-{
-	/* No mmap --- no performance advantage with libtiff, and it burns up
-	 * our VM if the tiff file is large.
-	 */
-	const char *mode = "rm";
-
-	TIFF *tif;
-
-#ifdef DEBUG
-	printf( "vips__tiff_openin( \"%s\" )\n", path ); 
-#endif /*DEBUG*/
-
-	/* Need the utf-16 version on Windows.
-	 */
-#ifdef OS_WIN32
-{
-	GError *error = NULL;
-	wchar_t *path16;
-
-	if( !(path16 = (wchar_t *) 
-		g_utf8_to_utf16( path, -1, NULL, NULL, &error )) ) { 
-		vips_g_error( &error );
-		return( NULL );
-	}
-
-	tif = TIFFOpenW( path16, mode );
-
-	g_free( path16 ); 
-}
-#else /*!OS_WIN32*/
-	tif = TIFFOpen( path, mode );
-#endif /*OS_WIN32*/
-
-	if( !tif ) {
-		vips_error( "tiff", 
-			_( "unable to open \"%s\" for input" ), path );
-		return( NULL );
-	}
-
-	return( tif );
-}
-
 static Layer *
 pyramid_new( Write *write, Layer *above, int width, int height )
 {
@@ -393,6 +322,8 @@ pyramid_new( Write *write, Layer *above, int width, int height )
 		layer->sub = above->sub * 2;
 
 	layer->lname = NULL;
+	layer->buf = NULL;
+	layer->len = 0;
 	layer->tif = NULL;
 	layer->image = NULL;
 	layer->write_y = 0;
@@ -414,15 +345,18 @@ pyramid_new( Write *write, Layer *above, int width, int height )
 	 * We need lname to be freed automatically: it has to stay 
 	 * alive until after write_gather().
 	 */
-	if( !above ) 
-		layer->lname = vips_strdup( VIPS_OBJECT( write->im ), 
-			write->filename );
-	else {
-		char *lname;
+	if( write->filename ) { 
+		if( !above ) 
+			layer->lname = vips_strdup( VIPS_OBJECT( write->im ), 
+				write->filename );
+		else {
+			char *lname;
 
-		lname = vips__temp_name( "%s.tif" );
-		layer->lname = vips_strdup( VIPS_OBJECT( write->im ), lname );
-		g_free( lname );
+			lname = vips__temp_name( "%s.tif" );
+			layer->lname = 
+				vips_strdup( VIPS_OBJECT( write->im ), lname );
+			g_free( lname );
+		}
 	}
 
 	return( layer );
@@ -805,9 +739,17 @@ pyramid_fill( Write *write )
 		if( vips_region_buffer( layer->strip, &strip_size ) ) 
 			return( -1 );
 
-		if( !(layer->tif = 
-			vips__tiff_openout( layer->lname, write->bigtiff )) ||
-			write_tiff_header( write, layer ) )  
+		if( layer->lname ) 
+			layer->tif = vips__tiff_openout( 
+				layer->lname, write->bigtiff );
+		else {
+			layer->tif = vips__tiff_openout_buffer( write->im, 
+				write->bigtiff, &layer->buf, &layer->len );
+		}
+		if( !layer->tif ) 
+			return( -1 );
+
+		if( write_tiff_header( write, layer ) )  
 			return( -1 );
 	}
 
@@ -829,6 +771,7 @@ write_delete_temps( Write *write )
 			if( layer->lname ) {
 #ifndef DEBUG
 				unlink( layer->lname );
+				VIPS_FREE( layer->buf );
 #else
 				printf( "write_delete_temps: leaving %s\n", 
 					layer->lname );
@@ -846,7 +789,6 @@ layer_free( Layer *layer )
 	VIPS_UNREF( layer->strip );
 	VIPS_UNREF( layer->copy );
 	VIPS_UNREF( layer->image );
-
 	VIPS_FREEF( TIFFClose, layer->tif );
 }
 
@@ -920,9 +862,9 @@ get_resunit( VipsForeignTiffResunit resunit )
 /* Make and init a Write.
  */
 static Write *
-write_new( VipsImage *im, const char *filename,
+write_new( VipsImage *im, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 
-		VipsForeignTiffPredictor predictor,
+	VipsForeignTiffPredictor predictor,
 	char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
@@ -939,7 +881,8 @@ write_new( VipsImage *im, const char *filename,
 	if( !(write = VIPS_NEW( im, Write )) )
 		return( NULL );
 	write->im = im;
-	write->filename = vips_strdup( VIPS_OBJECT( im ), filename );
+	write->filename = filename ? 
+		vips_strdup( VIPS_OBJECT( im ), filename ) : NULL;
 	write->layer = NULL;
 	write->tbuf = NULL;
 	write->compression = get_compression( compression );
@@ -1687,7 +1630,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 
 	/* Make output image. 
 	 */
-	if( !(write = write_new( in, filename,
+	if( !(write = write_new( in, filename, 
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
@@ -1717,6 +1660,82 @@ vips__tiff_write( VipsImage *in, const char *filename,
 			return( -1 );
 		}
 	}
+
+	write_free( write );
+
+	return( 0 );
+}
+
+int 
+vips__tiff_write_buf( VipsImage *in, 
+	void **obuf, size_t *olen, 
+	VipsForeignTiffCompression compression, int Q, 
+	VipsForeignTiffPredictor predictor,
+	char *profile,
+	gboolean tile, int tile_width, int tile_height,
+	gboolean pyramid,
+	gboolean squash,
+	gboolean miniswhite,
+	VipsForeignTiffResunit resunit, double xres, double yres,
+	gboolean bigtiff,
+	gboolean rgbjpeg,
+	gboolean properties, gboolean strip )
+{
+	Write *write;
+
+	vips__tiff_init();
+
+	if( vips_check_coding_known( "vips2tiff", in ) )
+		return( -1 );
+
+	/* Make output image. 
+	 */
+	if( !(write = write_new( in, NULL, 
+		compression, Q, predictor, profile,
+		tile, tile_width, tile_height, pyramid, squash,
+		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
+		properties, strip )) )
+		return( -1 );
+
+	write->obuf = obuf;
+	write->olen = olen;
+
+	if( vips_sink_disc( write->im, write_strip, write ) ) {
+		write_free( write );
+		return( -1 );
+	}
+
+	if( !TIFFWriteDirectory( write->layer->tif ) ) 
+		return( -1 );
+
+	if( write->pyramid ) { 
+		/* Free lower pyramid resources ... this will TIFFClose() (but
+		 * not delete) the smaller layers ready for us to read from 
+		 * them again.
+		 */
+		if( write->layer->below )
+			pyramid_free( write->layer->below );
+
+		/* Append smaller layers to the main file.
+		 */
+		if( write_gather( write ) ) {
+			write_free( write );
+			return( -1 );
+		}
+	}
+
+	/* Now close the top layer, and we'll get a pointer we can return
+	 * to our caller.
+	 */
+	TIFFClose( write->layer->tif );
+	write->layer->tif = NULL; 
+
+	*obuf = write->layer->buf;
+	*olen = write->layer->len;
+
+	/* Now our caller owns it, we must not free it.
+	 */
+	write->layer->buf = NULL;
 
 	write_free( write );
 

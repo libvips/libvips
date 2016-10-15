@@ -91,9 +91,9 @@
 #include <vips/vips.h>
 #include <vips/debug.h>
 
-#include <openslide.h>
+#include "pforeign.h"
 
-#include "openslide2vips.h"
+#include <openslide.h>
 
 typedef struct {
 	openslide_t *osr;

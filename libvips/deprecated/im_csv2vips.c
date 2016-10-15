@@ -44,7 +44,7 @@
 
 #include <vips/vips.h>
 
-#include "../foreign/csv.h"
+#include "../foreign/pforeign.h"
 
 int
 im_csv2vips( const char *filename, IMAGE *out )

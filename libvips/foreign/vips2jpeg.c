@@ -131,6 +131,8 @@
 #include <vips/vips.h>
 #include <vips/debug.h>
 
+#include "pforeign.h"
+
 #ifdef HAVE_EXIF
 #ifdef UNTAGGED_EXIF
 #include <exif-data.h>
@@ -146,7 +148,6 @@
 #endif /*HAVE_EXIF*/
 
 #include "jpeg.h"
-#include "vipsjpeg.h"
 
 /* New output message method - send to VIPS.
  */

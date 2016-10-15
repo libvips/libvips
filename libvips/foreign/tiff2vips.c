@@ -215,8 +215,7 @@
 #include <vips/internal.h>
 #include <vips/thread.h>
 
-#include <tiffio.h>
-
+#include "pforeign.h"
 #include "tiff.h"
 
 /* Scanline-type process function.
@@ -231,8 +230,6 @@ typedef struct _ReadTiff {
 	/* Parameters.
 	 */
 	char *filename;
-	const void *buf;
-	size_t len;
 	VipsImage *out;
 	int page;
 	gboolean autorotate;
@@ -281,35 +278,6 @@ typedef struct _ReadTiff {
 	 */
 	tdata_t contig_buf;
 } ReadTiff;
-
-/* Handle TIFF errors here. Shared with vips2tiff.c. These can be called from
- * more than one thread, but vips_error and vips_warn have mutexes in, so that's
- * OK.
- */
-static void 
-vips__thandler_error( const char *module, const char *fmt, va_list ap )
-{
-	vips_verror( module, fmt, ap );
-}
-
-static void 
-vips__thandler_warning( const char *module, const char *fmt, va_list ap )
-{
-	char buf[256];
-
-	vips_vsnprintf( buf, 256, fmt, ap );
-	vips_warn( module, "%s", buf );
-}
-
-/* Call this during startup. Other libraries may be using libtiff and we want
- * to capture any messages they send as well.
- */
-void
-vips__tiff_init( void )
-{
-	TIFFSetErrorHandler( vips__thandler_error );
-	TIFFSetWarningHandler( vips__thandler_warning );
-}
 
 /* Test for field exists.
  */
@@ -1829,8 +1797,6 @@ readtiff_new( VipsImage *out,
 		return( NULL );
 
 	rtiff->filename = NULL;
-	rtiff->buf = NULL;
-	rtiff->len = 0;
 	rtiff->out = out;
 	rtiff->page = page;
 	rtiff->autorotate = autorotate;
@@ -1857,10 +1823,6 @@ readtiff_new( VipsImage *out,
 
 	return( rtiff );
 }
-
-/* Can't declare this in tiff.h, we need that to be TIFF-free.
- */
-TIFF *vips__tiff_openin( const char *name );
 
 static ReadTiff *
 readtiff_new_filename( const char *filename, VipsImage *out, 
@@ -1894,86 +1856,6 @@ readtiff_new_filename( const char *filename, VipsImage *out,
 	return( rtiff );
 }
 
-static tsize_t 
-my_tiff_read( thandle_t st, tdata_t buffer, tsize_t size )
-{
-	ReadTiff *rtiff = (ReadTiff *) st;
-
-	size_t available;
-	size_t copy;
-
-	if( rtiff->pos > rtiff->len ) {
-		vips_error( "tiff2vips", 
-			"%s", _( "read beyond end of buffer" ) );
-		return( 0 );
-	}
-
-	available = rtiff->len - rtiff->pos;
-	copy = VIPS_MIN( size, available );
-	memcpy( buffer, (unsigned char *) rtiff->buf + rtiff->pos, copy );
-	rtiff->pos += copy;
-
-	return( copy ); 
-}
-
-static tsize_t 
-my_tiff_write( thandle_t st, tdata_t buffer, tsize_t size )
-{
-	g_assert_not_reached(); 
-
-	return( 0 ); 
-}
-
-static int 
-my_tiff_close( thandle_t st )
-{
-	return 0;
-}
-
-/* After calling this, ->pos is not bound by the size of the buffer, it can 
- * have any positive value.
- */
-static toff_t 
-my_tiff_seek( thandle_t st, toff_t pos, int whence )
-{
-	ReadTiff *rtiff = (ReadTiff *) st;
-
-	if( whence == SEEK_SET )
-		rtiff->pos = pos;
-	else if( whence == SEEK_CUR )
-		rtiff->pos += pos;
-	else if( whence == SEEK_END )
-		rtiff->pos = rtiff->len + pos;
-	else
-		g_assert_not_reached(); 
-
-	return( rtiff->pos ); 
-}
-
-static toff_t 
-my_tiff_size( thandle_t st )
-{
-	ReadTiff *rtiff = (ReadTiff *) st;
-
-	return( rtiff->len ); 
-}
-
-static int 
-my_tiff_map( thandle_t st, tdata_t *start, toff_t *len )
-{
-	g_assert_not_reached(); 
-
-	return 0;
-}
-
-static void 
-my_tiff_unmap( thandle_t st, tdata_t start, toff_t len )
-{
-	g_assert_not_reached(); 
-
-	return;
-}
-
 static ReadTiff *
 readtiff_new_buffer( const void *buf, size_t len, VipsImage *out, 
 	int page, gboolean autorotate, gboolean readbehind )
@@ -1984,17 +1866,8 @@ readtiff_new_buffer( const void *buf, size_t len, VipsImage *out,
 	if( !(rtiff = readtiff_new( out, page, autorotate, readbehind )) )
 		return( NULL );
 
-	rtiff->buf = buf;
-	rtiff->len = len;
-
-	if( !(rtiff->tiff = TIFFClientOpen( "memory buffer", "rm",
-		(thandle_t) rtiff,
-		my_tiff_read, my_tiff_write, my_tiff_seek, my_tiff_close, 
-		my_tiff_size, my_tiff_map, my_tiff_unmap )) ) { 
-		vips_error( "tiff2vips", "%s", 
-			_( "unable to open memory buffer for input" ) );
+	if( !(rtiff->tiff = vips__tiff_openin_buffer( out, buf, len )) )
 		return( NULL );
-	}
 
 	for( i = 0; i < page; i++ ) 
 		if( !TIFFReadDirectory( rtiff->tiff ) ) {

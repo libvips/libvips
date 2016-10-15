@@ -1,19 +1,17 @@
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
+	pforeign.h \
 	gifload.c \
 	cairo.c \
 	pdfload.c \
 	svgload.c \
-	radiance.h \
 	radiance.c \
 	radload.c \
 	radsave.c \
-	ppm.h \
 	ppm.c \
 	ppmload.c \
 	ppmsave.c \
-	csv.h \
 	csv.c \
 	csvload.c \
 	csvsave.c \
@@ -27,35 +25,28 @@ libforeign_la_SOURCES = \
 	dbh.h \
 	analyzeload.c \
 	analyze2vips.c \
-	analyze2vips.h \
 	foreign.c \
-	matlab.h \
 	matlab.c \
 	matload.c \
-	magick.h \
 	magick2vips.c \
 	magickload.c \
 	magick7load.c \
 	pngload.c \
 	pngsave.c \
-	vipspng.h \
 	vipspng.c \
-	openexr2vips.h \
 	openexr2vips.c \
 	openexrload.c \
-	fits.h \
 	fits.c \
 	fitsload.c \
 	fitssave.c \
 	tiff.h \
+	tiff.c \
 	vips2tiff.c \
 	tiff2vips.c \
 	tiffload.c \
 	tiffsave.c \
-	openslide2vips.h \
 	openslide2vips.c \
 	openslideload.c \
-	webp.h \
 	webpload.c \
 	webpsave.c \
 	webp2vips.c \
@@ -63,7 +54,6 @@ libforeign_la_SOURCES = \
 	vips2jpeg.c \
 	jpeg2vips.c \
 	jpeg.h \
-	vipsjpeg.h \
 	jpegload.c \
 	jpegsave.c 
 

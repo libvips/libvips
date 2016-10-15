@@ -48,9 +48,7 @@
 
 #include <vips/vips.h>
 
-#ifdef HAVE_JPEG
-#include "../foreign/vipsjpeg.h"
-#endif /*HAVE_JPEG*/
+#include "../foreign/pforeign.h"
 
 static int
 jpeg2vips( const char *name, IMAGE *out, gboolean header_only )

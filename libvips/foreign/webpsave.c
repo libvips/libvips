@@ -45,9 +45,9 @@
 
 #include <vips/vips.h>
 
-#ifdef HAVE_LIBWEBP
+#include "pforeign.h"
 
-#include "webp.h"
+#ifdef HAVE_LIBWEBP
 
 typedef struct _VipsForeignSaveWebp {
 	VipsForeignSave parent_object;

@@ -55,7 +55,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "webp.h"
+#include "pforeign.h"
 
 /* How many bytes do we need to read from the start of the file to be able to
  * validate the header?

@@ -75,7 +75,7 @@
 
 #include <vips/vips.h>
 
-#include "csv.h"
+#include "pforeign.h"
 
 /* Skip to the start of the next line (ie. read until we see a '\n'), return
  * zero if we are at EOF. 

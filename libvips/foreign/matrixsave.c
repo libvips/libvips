@@ -47,7 +47,7 @@
 
 #include <vips/vips.h>
 
-#include "csv.h"
+#include "pforeign.h"
 
 typedef struct _VipsForeignSaveMatrix {
 	VipsForeignSave parent_object;

@@ -50,6 +50,8 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#include "pforeign.h"
+
 #ifdef HAVE_JPEG
 
 #ifdef HAVE_EXIF
@@ -65,8 +67,6 @@
 #include <libexif/exif-utils.h>
 #endif /*UNTAGGED_EXIF*/
 #endif /*HAVE_EXIF*/
-
-#include "vipsjpeg.h"
 
 typedef struct _VipsForeignSaveJpeg {
 	VipsForeignSave parent_object;

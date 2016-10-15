@@ -107,9 +107,9 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include <png.h>
+#include "pforeign.h"
 
-#include "vipspng.h"
+#include <png.h>
 
 #if PNG_LIBPNG_VER < 10003
 #error "PNG library too old."
@@ -1003,7 +1003,7 @@ write_grow( Write *write, size_t grow_len )
 
 		write->alloc = VIPS_MAX( proposed_alloc, new_len );
 
-		/* Our result mujst be freedd with g_free(), so it's OK to use
+		/* Our result must be freedd with g_free(), so it's OK to use
 		 * g_realloc(). 
 		 */
 	 	write->buf = g_realloc( write->buf, write->alloc );

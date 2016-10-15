@@ -249,6 +249,7 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("tiffload", self.tiff_file, tiff_valid)
         self.buffer_loader("tiffload_buffer", self.tiff_file, tiff_valid)
+        self.save_load_buffer("tiffsave_buffer", "tiffload_buffer", self.colour)
         self.save_load("%s.tif", self.mono)
         self.save_load("%s.tif", self.colour)
         self.save_load("%s.tif", self.cmyk)

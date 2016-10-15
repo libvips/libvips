@@ -42,7 +42,7 @@
 
 #include <vips/vips.h>
 
-#include "../foreign/magick.h"
+#include "../foreign/pforeign.h"
 
 int
 im_magick2vips( const char *filename, IMAGE *out )

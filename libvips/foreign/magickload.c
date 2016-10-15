@@ -56,7 +56,7 @@
 
 #ifdef HAVE_MAGICK
 
-#include "magick.h"
+#include "pforeign.h"
 
 typedef struct _VipsForeignLoadMagick {
 	VipsForeignLoad parent_object;
