@@ -1,6 +1,7 @@
 13/10/16 started 8.5.0
 - rewritten buffer system is safer and frees memory earlier
 - added tiff save to buffer
+- added dzsave save to buffer (zip only)
 
 27/9/16 started 8.4.2
 - small doc improvements

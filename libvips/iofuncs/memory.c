@@ -309,10 +309,10 @@ vips_tracked_malloc( size_t size )
 
 		vips_error( "vips_tracked", 
 			_( "out of memory --- size == %dMB" ), 
-			(int) (size / (1024.0*1024.0))  );
+			(int) (size / (1024.0 * 1024.0))  );
 		vips_warn( "vips_tracked", 
 			_( "out of memory --- size == %dMB" ), 
-			(int) (size / (1024.0*1024.0))  );
+			(int) (size / (1024.0 * 1024.0))  );
 
                 return( NULL );
 	}

@@ -703,6 +703,17 @@ class TestForeign(unittest.TestCase):
         shutil.rmtree("test_files")
         os.unlink("test.dzi")
 
+        # test save to memory buffer
+        self.colour.dzsave("test-10.zip")
+        with open("test-10.zip", 'rb') as f:
+            buf1 = f.read()
+        os.unlink("test-10.zip")
+        buf2 = self.colour.dzsave_buffer(basename = "test-10")
+        self.assertEqual(len(buf1), len(buf2))
+
+        # we can't test the bytes are exactly equal, the timestamps will be
+        # different
+
 if __name__ == '__main__':
     unittest.main()
 
