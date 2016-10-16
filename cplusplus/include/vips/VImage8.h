@@ -775,137 +775,137 @@ public:
 
 	std::vector<double> operator()( int x, int y );
 
-	friend VImage VIPS_CPLUSPLUS_API operator+( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator+( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator+( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator+( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator+( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator+( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator+( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator+( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator+( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator+( VImage a, std::vector<double> b );
 
-	VImage & VIPS_CPLUSPLUS_API operator+=( const VImage b );
-	VImage & VIPS_CPLUSPLUS_API operator+=( const double b );
-	VImage & VIPS_CPLUSPLUS_API operator+=( const std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage & operator+=( VImage a, const VImage b );
+	friend VIPS_CPLUSPLUS_API VImage & operator+=( VImage a, const double b );
+	friend VIPS_CPLUSPLUS_API VImage & operator+=( VImage a, const std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator-( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator-( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator-( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator-( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator-( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator-( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator-( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator-( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator-( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator-( VImage a, std::vector<double> b );
 
-	VImage & VIPS_CPLUSPLUS_API operator-=( const VImage b );
-	VImage & VIPS_CPLUSPLUS_API operator-=( const double b );
-	VImage & VIPS_CPLUSPLUS_API operator-=( const std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage & operator-=( VImage a, const VImage b );
+	friend VIPS_CPLUSPLUS_API VImage & operator-=( VImage a, const double b );
+	friend VIPS_CPLUSPLUS_API VImage & operator-=( VImage a, const std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator-( VImage a );
+	friend VIPS_CPLUSPLUS_API VImage operator-( VImage a );
 
-	friend VImage VIPS_CPLUSPLUS_API operator*( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator*( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator*( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator*( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator*( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator*( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator*( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator*( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator*( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator*( VImage a, std::vector<double> b );
 
-	VImage & VIPS_CPLUSPLUS_API operator*=( const VImage b );
-	VImage & VIPS_CPLUSPLUS_API operator*=( const double b );
-	VImage & VIPS_CPLUSPLUS_API operator*=( const std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage & operator*=( VImage a, const VImage b );
+	friend VIPS_CPLUSPLUS_API VImage & operator*=( VImage a, const double b );
+	friend VIPS_CPLUSPLUS_API VImage & operator*=( VImage a, const std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator/( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator/( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator/( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator/( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator/( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator/( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator/( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator/( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator/( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator/( VImage a, std::vector<double> b );
 
-	VImage & VIPS_CPLUSPLUS_API operator/=( const VImage b );
-	VImage & VIPS_CPLUSPLUS_API operator/=( const double b );
-	VImage & VIPS_CPLUSPLUS_API operator/=( const std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage & operator/=( VImage a, const VImage b );
+	friend VIPS_CPLUSPLUS_API VImage & operator/=( VImage a, const double b );
+	friend VIPS_CPLUSPLUS_API VImage & operator/=( VImage a, const std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator%( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator%( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator%( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator%( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator%( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator%( VImage a, std::vector<double> b );
 
-	VImage & VIPS_CPLUSPLUS_API operator%=( const VImage b );
-	VImage & VIPS_CPLUSPLUS_API operator%=( const double b );
-	VImage & VIPS_CPLUSPLUS_API operator%=( const std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage & operator%=( VImage a, const VImage b );
+	friend VIPS_CPLUSPLUS_API VImage & operator%=( VImage a, const double b );
+	friend VIPS_CPLUSPLUS_API VImage & operator%=( VImage a, const std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator<( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator<( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator<( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator<( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator<( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator<( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator<( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator<( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator<( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator<( VImage a, std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator<=( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator<=( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator<=( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator<=( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator<=( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator<=( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator<=( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator<=( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator<=( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator<=( VImage a, std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator>( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator>( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator>( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator>( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator>( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator>( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator>( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator>( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator>( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator>( VImage a, std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator>=( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator>=( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator>=( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator>=( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator>=( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator>=( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator>=( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator>=( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator>=( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator>=( VImage a, std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator==( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator==( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator==( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator==( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator==( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator==( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator==( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator==( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator==( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator==( VImage a, std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator!=( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator!=( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator!=( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator!=( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator!=( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator!=( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator!=( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator!=( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator!=( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator!=( VImage a, std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator&( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator&( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator&( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator&( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator&( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator&( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator&( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator&( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator&( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator&( VImage a, std::vector<double> b );
 
-	VImage & VIPS_CPLUSPLUS_API operator&=( const VImage b );
-	VImage & VIPS_CPLUSPLUS_API operator&=( const double b );
-	VImage & VIPS_CPLUSPLUS_API operator&=( const std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage & operator&=( VImage a, const VImage b );
+	friend VIPS_CPLUSPLUS_API VImage & operator&=( VImage a, const double b );
+	friend VIPS_CPLUSPLUS_API VImage & operator&=( VImage a, const std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator|( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator|( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator|( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator|( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator|( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator|( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator|( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator|( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator|( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator|( VImage a, std::vector<double> b );
 
-	VImage & VIPS_CPLUSPLUS_API operator|=( const VImage b );
-	VImage & VIPS_CPLUSPLUS_API operator|=( const double b );
-	VImage & VIPS_CPLUSPLUS_API operator|=( const std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage & operator|=( VImage a, const VImage b );
+	friend VIPS_CPLUSPLUS_API VImage & operator|=( VImage a, const double b );
+	friend VIPS_CPLUSPLUS_API VImage & operator|=( VImage a, const std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator^( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator^( double a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator^( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator^( std::vector<double> a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator^( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator^( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator^( double a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator^( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator^( std::vector<double> a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator^( VImage a, std::vector<double> b );
 
-	VImage & VIPS_CPLUSPLUS_API operator^=( const VImage b );
-	VImage & VIPS_CPLUSPLUS_API operator^=( const double b );
-	VImage & VIPS_CPLUSPLUS_API operator^=( const std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage & operator^=( VImage a, const VImage b );
+	friend VIPS_CPLUSPLUS_API VImage & operator^=( VImage a, const double b );
+	friend VIPS_CPLUSPLUS_API VImage & operator^=( VImage a, const std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator<<( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator<<( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator<<( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator<<( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator<<( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator<<( VImage a, std::vector<double> b );
 
-	VImage & VIPS_CPLUSPLUS_API operator<<=( const VImage b );
-	VImage & VIPS_CPLUSPLUS_API operator<<=( const double b );
-	VImage & VIPS_CPLUSPLUS_API operator<<=( const std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage & operator<<=( VImage a, const VImage b );
+	friend VIPS_CPLUSPLUS_API VImage & operator<<=( VImage a, const double b );
+	friend VIPS_CPLUSPLUS_API VImage & operator<<=( VImage a, const std::vector<double> b );
 
-	friend VImage VIPS_CPLUSPLUS_API operator>>( VImage a, VImage b );
-	friend VImage VIPS_CPLUSPLUS_API operator>>( VImage a, double b );
-	friend VImage VIPS_CPLUSPLUS_API operator>>( VImage a, std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage operator>>( VImage a, VImage b );
+	friend VIPS_CPLUSPLUS_API VImage operator>>( VImage a, double b );
+	friend VIPS_CPLUSPLUS_API VImage operator>>( VImage a, std::vector<double> b );
 
-	VImage & VIPS_CPLUSPLUS_API operator>>=( const VImage b );
-	VImage & VIPS_CPLUSPLUS_API operator>>=( const double b );
-	VImage & VIPS_CPLUSPLUS_API operator>>=( const std::vector<double> b );
+	friend VIPS_CPLUSPLUS_API VImage & operator>>=( VImage a, const VImage b );
+	friend VIPS_CPLUSPLUS_API VImage & operator>>=( VImage a, const double b );
+	friend VIPS_CPLUSPLUS_API VImage & operator>>=( VImage a, const std::vector<double> b );
 
 };
 
