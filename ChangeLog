@@ -3,6 +3,9 @@
 - added tiff save to buffer
 - added dzsave save to buffer (zip only)
 
+18/10/16 started 8.4.3
+- fix error detection in gif_close, thanks aaron42net
+
 27/9/16 started 8.4.2
 - small doc improvements
 - fix error message for metadata fetch type mismatch
