@@ -45,8 +45,9 @@
  */
 
 /* 
-#define VIPS_DEBUG_RED
 #define VIPS_DEBUG
+#define VIPS_DEBUG_RED
+#define DEBUG_OUT_OF_THREADS
  */
 
 #ifdef HAVE_CONFIG_H
@@ -181,12 +182,14 @@ vips_thread_run( gpointer data )
 
 	void *result;
 
-	if( vips__thread_profile ) 
-		vips__thread_profile_attach( info->domain );
-
 	/* Set this to something (anything) to tag this thread as a vips worker.
 	 */
 	g_private_set( &vips_threadpool_is_worker_private, data );
+
+	if( vips__thread_profile ) 
+		vips__thread_profile_attach( info->domain );
+
+	vips__buffer_init();
 
 	result = info->func( info->data );
 
@@ -200,6 +203,10 @@ vips_thread_run( gpointer data )
 GThread *
 vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 {
+#ifdef DEBUG_OUT_OF_THREADS
+	static int n_threads = 0;
+#endif /*DEBUG_OUT_OF_THREADS*/
+
 	GThread *thread;
 	VipsThreadInfo *info; 
 	GError *error = NULL;
@@ -209,11 +216,25 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 	info->func = func;
 	info->data = data;
 
+#ifdef DEBUG_OUT_OF_THREADS
+	n_threads += 1;
+	if( n_threads > 10 ) 
+		thread = NULL;
+	else {
+#endif /*DEBUG_OUT_OF_THREADS*/
+
 #ifdef HAVE_THREAD_NEW
 	thread = g_thread_try_new( domain, vips_thread_run, info, &error );
 #else
 	thread = g_thread_create( vips_thread_run, info, TRUE, &error );
 #endif
+
+	VIPS_DEBUG_MSG_RED( "vips_g_thread_new: g_thread_create() = %p\n",
+		thread );
+
+#ifdef DEBUG_OUT_OF_THREADS
+	}
+#endif /*DEBUG_OUT_OF_THREADS*/
 
 	if( !thread ) {
 		if( error ) 
@@ -516,7 +537,8 @@ vips_thread_free( VipsThread *thr )
 		/* Return value is always NULL (see thread_main_loop).
 		 */
 		(void) g_thread_join( thr->thread );
-		VIPS_DEBUG_MSG_RED( "thread_free: g_thread_join()\n" );
+		VIPS_DEBUG_MSG_RED( "thread_free: g_thread_join( %p )\n",
+			thr->thread );
 		thr->thread = NULL;
         }
 
@@ -660,8 +682,6 @@ vips_thread_new( VipsThreadpool *pool )
 		return( NULL );
 	}
 
-	VIPS_DEBUG_MSG_RED( "vips_thread_new: vips_g_thread_new()\n" );
-
 	return( thr );
 }
 
@@ -674,7 +694,11 @@ vips_threadpool_kill_threads( VipsThreadpool *pool )
 		int i;
 
 		for( i = 0; i < pool->nthr; i++ ) 
-			vips_thread_free( pool->thr[i] );
+			if( pool->thr[i] ) {
+				vips_thread_free( pool->thr[i] );
+				pool->thr[i] = NULL;
+			}
+
 		pool->thr = NULL;
 
 		VIPS_DEBUG_MSG( "vips_threadpool_kill_threads: "
