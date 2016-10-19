@@ -102,6 +102,8 @@ extern char *vips__cache_max_files;
 extern gboolean vips__cache_dump;
 extern gboolean vips__cache_trace;
 
+extern int vips__n_active_threads;
+
 void vips__cache_init( void );
 
 void vips__print_renders( void );

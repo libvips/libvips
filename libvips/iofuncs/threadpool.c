@@ -100,6 +100,10 @@ int vips__thinstrip_height = VIPS__THINSTRIP_HEIGHT;
  */
 int vips__concurrency = 0;
 
+/* Count the number of threads we have active and report on leak test.
+ */
+int vips__n_active_threads = 0; 
+
 /* Set this GPrivate to indicate that this is a vips worker.
  */
 static GPrivate vips_threadpool_is_worker_private;
@@ -244,7 +248,37 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 				"%s", _( "unable to create thread" ) );
 	}
 
+	if( thread &&
+		vips__leak ) {
+		g_mutex_lock( vips__global_lock );
+
+		vips__n_active_threads += 1;
+
+		g_mutex_unlock( vips__global_lock );
+	}
+
 	return( thread );
+}
+
+void *
+vips_g_thread_join( GThread *thread )
+{
+	void *result;
+
+	result = g_thread_join( thread );
+
+	VIPS_DEBUG_MSG_RED( "vips_g_thread_join: g_thread_join( %p )\n", 
+		thread );
+
+	if( vips__leak ) {
+		g_mutex_lock( vips__global_lock );
+
+		vips__n_active_threads -= 1;
+
+		g_mutex_unlock( vips__global_lock );
+	}
+
+	return( result ); 
 }
 
 /**
@@ -536,9 +570,7 @@ vips_thread_free( VipsThread *thr )
 
 		/* Return value is always NULL (see thread_main_loop).
 		 */
-		(void) g_thread_join( thr->thread );
-		VIPS_DEBUG_MSG_RED( "thread_free: g_thread_join( %p )\n",
-			thr->thread );
+		(void) vips_g_thread_join( thr->thread );
 		thr->thread = NULL;
         }
 

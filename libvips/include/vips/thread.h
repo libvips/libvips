@@ -50,6 +50,7 @@ void vips_g_cond_free( GCond * );
 /* ... and for GThread.
  */
 GThread *vips_g_thread_new( const char *, GThreadFunc, gpointer );
+void *vips_g_thread_join( GThread *thread );
 
 gboolean vips_thread_isworker( void );
 

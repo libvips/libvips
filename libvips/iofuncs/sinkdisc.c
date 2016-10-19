@@ -147,8 +147,8 @@ wbuffer_free( WriteBuffer *wbuffer )
 
 		/* Return value is always NULL (see wbuffer_write_thread).
 		 */
-		(void) g_thread_join( wbuffer->thread );
-		VIPS_DEBUG_MSG( "wbuffer_free: g_thread_join()\n" );
+		(void) vips_g_thread_join( wbuffer->thread );
+		VIPS_DEBUG_MSG( "wbuffer_free: vips_g_thread_join()\n" );
 
 		wbuffer->thread = NULL;
         }
