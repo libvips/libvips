@@ -652,7 +652,7 @@ buffer_thread_destroy_notify( VipsBufferThread *buffer_thread )
 	buffer_thread_free( buffer_thread );
 }
 
-/* Init the buffer cache system.
+/* Init the buffer cache system. This must only be called from worker threads.
  */
 void
 vips__buffer_init( void )
@@ -671,6 +671,9 @@ vips__buffer_init( void )
 	if( buffer_cache_max_reserve < 1 )
 		printf( "vips__buffer_init: buffer reserve disabled\n" );
 
+	if( !vips_thread_isworker() )
+		printf( "vips__buffer_init: called for non-worker\n" );
+
 #ifdef DEBUG
 	printf( "vips__buffer_init: DEBUG enabled\n" ); 
 #endif /*DEBUG*/
@@ -680,13 +683,3 @@ vips__buffer_init( void )
 #endif /*DEBUG_CREATE*/
 }
 
-void
-vips__buffer_shutdown( void )
-{
-	VipsBufferThread *buffer_thread;
-
-	if( (buffer_thread = g_private_get( buffer_thread_key )) ) {
-		buffer_thread_free( buffer_thread );
-		g_private_set( buffer_thread_key, NULL );
-	}
-}

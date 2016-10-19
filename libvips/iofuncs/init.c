@@ -400,10 +400,6 @@ vips_init( const char *argv0 )
 		vips_error_clear();
 	}
 
-	/* Start up the buffer cache.
-	 */
-	vips__buffer_init();
-
 	/* Get the run-time compiler going.
 	 */
 	vips_vector_init();
@@ -512,7 +508,6 @@ vips_leak( void )
 void
 vips_thread_shutdown( void )
 {
-	vips__buffer_shutdown();
 	vips__thread_profile_detach();
 }
 

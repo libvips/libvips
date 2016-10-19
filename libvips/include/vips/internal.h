@@ -133,7 +133,6 @@ int vips_mapfilerw( VipsImage * );
 int vips_remapfilerw( VipsImage * );
 
 void vips__buffer_init( void );
-void vips__buffer_shutdown( void );
 
 void vips__copy_4byte( int swap, unsigned char *to, unsigned char *from );
 void vips__copy_2byte( gboolean swap, unsigned char *to, unsigned char *from );
