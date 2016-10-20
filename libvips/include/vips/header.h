@@ -1,4 +1,4 @@
-/* boolean.h
+/* image header funcs
  *
  * 20/9/09
  * 	- from proto.h
@@ -160,35 +160,35 @@ void vips_image_init_fields( VipsImage *image,
 	VipsInterpretation interpretation, 
 	double xres, double yres );
 
-void vips_image_set( VipsImage *image, const char *field, GValue *value );
+void vips_image_set( VipsImage *image, const char *name, GValue *value );
 int vips_image_get( const VipsImage *image, 
-	const char *field, GValue *value_copy );
+	const char *name, GValue *value_copy );
 int vips_image_get_as_string( const VipsImage *image, 
-	const char *field, char **out );
-GType vips_image_get_typeof( const VipsImage *image, const char *field );
-gboolean vips_image_remove( VipsImage *image, const char *field );
+	const char *name, char **out );
+GType vips_image_get_typeof( const VipsImage *image, const char *name );
+gboolean vips_image_remove( VipsImage *image, const char *name );
 typedef void *(*VipsImageMapFn)( VipsImage *image, 
-	const char *field, GValue *value, void *a );
+	const char *name, GValue *value, void *a );
 void *vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a );
 
 void vips_image_set_area( VipsImage *image, 
-	const char *field, VipsCallbackFn free_fn, void *data );
+	const char *name, VipsCallbackFn free_fn, void *data );
 int vips_image_get_area( const VipsImage *image, 
-	const char *field, void **data );
-void vips_image_set_blob( VipsImage *image, const char *field, 
+	const char *name, void **data );
+void vips_image_set_blob( VipsImage *image, const char *name, 
 	VipsCallbackFn free_fn, void *data, size_t length );
-int vips_image_get_blob( const VipsImage *image, const char *field, 
+int vips_image_get_blob( const VipsImage *image, const char *name, 
 	void **data, size_t *length );
 
-int vips_image_get_int( const VipsImage *image, const char *field, int *out );
-void vips_image_set_int( VipsImage *image, const char *field, int i );
+int vips_image_get_int( const VipsImage *image, const char *name, int *out );
+void vips_image_set_int( VipsImage *image, const char *name, int i );
 int vips_image_get_double( const VipsImage *image, 
-	const char *field, double *out );
-void vips_image_set_double( VipsImage *image, const char *field, double d );
+	const char *name, double *out );
+void vips_image_set_double( VipsImage *image, const char *name, double d );
 int vips_image_get_string( const VipsImage *image, 
-	const char *field, const char **out );
+	const char *name, const char **out );
 void vips_image_set_string( VipsImage *image, 
-	const char *field, const char *str );
+	const char *name, const char *str );
 
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	__attribute__((format(printf, 2, 3)));

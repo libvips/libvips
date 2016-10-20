@@ -760,7 +760,7 @@ save_fields_meta( VipsMeta *meta, xmlNode *node )
 				_( "error transforming to save format" ) );
 			return( node );
 		}
-		if( set_field( node, meta->field, g_type_name( type ), 
+		if( set_field( node, meta->name, g_type_name( type ), 
 			vips_value_get_save_string( &save_value ) ) ) {
 			g_value_unset( &save_value );
 			return( node );

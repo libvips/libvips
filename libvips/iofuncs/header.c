@@ -22,6 +22,10 @@
  * 	- move to vips_ prefix
  * 16/7/15
  * 	- auto wrap GString as RefString
+ * 20/10/16
+ * 	- return header enums as enums, not ints
+ * 	- vips_image_get_*() all convert everything to target type if they can
+ * 	- rename "field" as "name" in docs
  */
 
 /*
@@ -117,53 +121,46 @@
  * these types, it can be copied between images efficiently.
  */
 
-/* Name, offset pair.
+/* We have to keep the gtype as a string, since we statically init this.
  */
 typedef struct _HeaderField {
-	const char *field;
+	const char *name;
+	const char *type;
 	glong offset;
 } HeaderField;
 
 /* Built in fields and struct offsets.
  */
-
-static HeaderField int_field[] = {
-	{ "width", G_STRUCT_OFFSET( VipsImage, Xsize ) },
-	{ "height", G_STRUCT_OFFSET( VipsImage, Ysize ) },
-	{ "bands", G_STRUCT_OFFSET( VipsImage, Bands ) },
-	{ "format", G_STRUCT_OFFSET( VipsImage, BandFmt ) },
-	{ "coding", G_STRUCT_OFFSET( VipsImage, Coding ) },
-	{ "interpretation", G_STRUCT_OFFSET( VipsImage, Type ) },
-	{ "xoffset", G_STRUCT_OFFSET( VipsImage, Xoffset ) },
-	{ "yoffset", G_STRUCT_OFFSET( VipsImage, Yoffset ) }
-};
-
-static HeaderField double_field[] = {
-	{ "xres", G_STRUCT_OFFSET( VipsImage, Xres ) },
-	{ "yres", G_STRUCT_OFFSET( VipsImage, Yres ) }
-};
-
-static HeaderField string_field[] = {
-	{ "filename", G_STRUCT_OFFSET( VipsImage, filename ) }
+static HeaderField vips_header_fields[] = {
+	{ "width", "gint", G_STRUCT_OFFSET( VipsImage, Xsize ) },
+	{ "height", "gint", G_STRUCT_OFFSET( VipsImage, Ysize ) },
+	{ "bands", "gint", G_STRUCT_OFFSET( VipsImage, Bands ) },
+	{ "format", "VipsBandFormat", G_STRUCT_OFFSET( VipsImage, BandFmt ) },
+	{ "coding", "VipsCoding", G_STRUCT_OFFSET( VipsImage, Coding ) },
+	{ "interpretation", "VipsInterpretation", 
+		G_STRUCT_OFFSET( VipsImage, Type ) },
+	{ "xoffset", "gint", G_STRUCT_OFFSET( VipsImage, Xoffset ) },
+	{ "yoffset", "gint", G_STRUCT_OFFSET( VipsImage, Yoffset ) },
+	{ "xres", "gdouble", G_STRUCT_OFFSET( VipsImage, Xres ) },
+	{ "yres", "gdouble", G_STRUCT_OFFSET( VipsImage, Yres ) },
+	{ "filename", "gchararray", G_STRUCT_OFFSET( VipsImage, filename ) }
 };
 
 /* Old names we keep around for back-compat. We never loop over these with
  * map, but we do check them when we look up fields by name.
  */
-static HeaderField old_int_field[] = {
-	{ "Xsize", G_STRUCT_OFFSET( VipsImage, Xsize ) },
-	{ "Ysize", G_STRUCT_OFFSET( VipsImage, Ysize ) },
-	{ "Bands", G_STRUCT_OFFSET( VipsImage, Bands ) },
-	{ "Bbits", G_STRUCT_OFFSET( VipsImage, Bbits ) },
-	{ "BandFmt", G_STRUCT_OFFSET( VipsImage, BandFmt ) },
-	{ "Coding", G_STRUCT_OFFSET( VipsImage, Coding ) },
-	{ "Type", G_STRUCT_OFFSET( VipsImage, Type ) },
-	{ "Xoffset", G_STRUCT_OFFSET( VipsImage, Xoffset ) },
-	{ "Yoffset", G_STRUCT_OFFSET( VipsImage, Yoffset ) }
-};
-static HeaderField old_double_field[] = {
-	{ "Xres", G_STRUCT_OFFSET( VipsImage, Xres ) },
-	{ "Yres", G_STRUCT_OFFSET( VipsImage, Yres ) }
+static HeaderField vips_header_fields_old[] = {
+	{ "Xsize", "gint", G_STRUCT_OFFSET( VipsImage, Xsize ) },
+	{ "Ysize", "gint", G_STRUCT_OFFSET( VipsImage, Ysize ) },
+	{ "Bands", "gint", G_STRUCT_OFFSET( VipsImage, Bands ) },
+	{ "Bbits", "gint", G_STRUCT_OFFSET( VipsImage, Bbits ) },
+	{ "BandFmt", "gint", G_STRUCT_OFFSET( VipsImage, BandFmt ) },
+	{ "Coding", "gint", G_STRUCT_OFFSET( VipsImage, Coding ) },
+	{ "Type", "gint", G_STRUCT_OFFSET( VipsImage, Type ) },
+	{ "Xoffset", "gint", G_STRUCT_OFFSET( VipsImage, Xoffset ) },
+	{ "Yoffset", "gint", G_STRUCT_OFFSET( VipsImage, Yoffset ) },
+	{ "Xres", "gdouble", G_STRUCT_OFFSET( VipsImage, Xres ) },
+	{ "Yres", "gdouble", G_STRUCT_OFFSET( VipsImage, Yres ) }
 };
 
 /* This is used by (eg.) VIPS_IMAGE_SIZEOF_ELEMENT() to calculate object
@@ -228,33 +225,33 @@ meta_sanity_on_hash( VipsMeta *meta, VipsImage *im )
 
 	if( meta->im != im )
 		printf( "*** field \"%s\" has incorrect im\n", 
-			meta->field );
+			meta->name );
 
-	if( !(found = g_hash_table_lookup( im->meta, meta->field )) )
+	if( !(found = g_hash_table_lookup( im->meta, meta->name )) )
 		printf( "*** field \"%s\" is on traverse but not in hash\n", 
-			meta->field );
+			meta->name );
 
 	if( found != meta )
 		printf(  "*** meta \"%s\" on traverse and hash do not match\n", 
-			meta->field );
+			meta->name );
 
 	return( NULL );
 }
 
 static void
-meta_sanity_on_traverse( const char *field, VipsMeta *meta, VipsImage *im )
+meta_sanity_on_traverse( const char *name, VipsMeta *meta, VipsImage *im )
 {
-	if( meta->field != field )
-		printf( "*** field \"%s\" has incorrect field\n", 
-			meta->field );
+	if( meta->name != name )
+		printf( "*** field \"%s\" has incorrect name\n", 
+			meta->name );
 
 	if( meta->im != im )
 		printf( "*** field \"%s\" has incorrect im\n", 
-			meta->field );
+			meta->name );
 
 	if( !g_slist_find( im->meta_traverse, meta ) )
 		printf( "*** field \"%s\" is in hash but not on traverse\n", 
-			meta->field );
+			meta->name );
 }
 
 static void
@@ -276,8 +273,8 @@ meta_free( VipsMeta *meta )
 	char *str_value;
 
 	str_value = g_strdup_value_contents( &meta->value );
-	printf( "meta_free: field %s, value = %s\n", 
-		meta->field, str_value );
+	printf( "meta_free: name %s, value = %s\n", 
+		meta->name, str_value );
 	g_free( str_value );
 }
 #endif /*DEBUG*/
@@ -287,20 +284,20 @@ meta_free( VipsMeta *meta )
 			g_slist_remove( meta->im->meta_traverse, meta );
 
 	g_value_unset( &meta->value );
-	g_free( meta->field );
+	g_free( meta->name );
 	g_free( meta );
 }
 
 static VipsMeta *
-meta_new( VipsImage *image, const char *field, GValue *value )
+meta_new( VipsImage *image, const char *name, GValue *value )
 {
 	VipsMeta *meta;
 
 	meta = g_new( VipsMeta, 1 );
 	meta->im = image;
-	meta->field = NULL;
+	meta->name = NULL;
 	memset( &meta->value, 0, sizeof( GValue ) );
-	meta->field = g_strdup( field );
+	meta->name = g_strdup( name );
 
 	/* Special case: we don't want to have G_STRING on meta. They will be
 	 * copied down pipelines, plus some of our API (like
@@ -319,15 +316,14 @@ meta_new( VipsImage *image, const char *field, GValue *value )
 	(void) g_value_transform( value, &meta->value );
 
 	image->meta_traverse = g_slist_append( image->meta_traverse, meta );
-	g_hash_table_replace( image->meta, meta->field, meta ); 
+	g_hash_table_replace( image->meta, meta->name, meta ); 
 
 #ifdef DEBUG
 {
 	char *str_value;
 
 	str_value = g_strdup_value_contents( value );
-	printf( "meta_new: field %s, value = %s\n", 
-		field, str_value );
+	printf( "meta_new: name %s, value = %s\n", name, str_value );
 	g_free( str_value );
 }
 #endif /*DEBUG*/
@@ -832,13 +828,13 @@ meta_cp_field( VipsMeta *meta, VipsImage *dst )
 	char *str_value;
 
 	str_value = g_strdup_value_contents( &meta->value );
-	printf( "vips__meta_cp: copying field %s, value = %s\n", 
-		meta->field, str_value );
+	printf( "vips__meta_cp: copying name %s, value = %s\n", 
+		meta->name, str_value );
 	g_free( str_value );
 }
 #endif /*DEBUG*/
 
-	(void) meta_new( dst, meta->field, &meta->value );
+	(void) meta_new( dst, meta->name, &meta->value );
 
 #ifdef DEBUG
 	meta_sanity( dst );
@@ -915,7 +911,7 @@ vips__image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 /** 
  * vips_image_set:
  * @image: image to set the metadata on
- * @field: the name to give the metadata
+ * @name: the name to give the metadata
  * @value: the %GValue to copy into the image
  *
  * Set a piece of metadata on @image. Any old metadata with that name is
@@ -930,30 +926,58 @@ vips__image_copy_fields_array( VipsImage *out, VipsImage *in[] )
  *
  * g_value_init (&amp;value, G_TYPE_INT);
  * g_value_set_int (&amp;value, 42);
- * vips_image_set (image, field, &amp;value);
+ * vips_image_set (image, name, &amp;value);
  * g_value_unset (&amp;value);
  * ]|
  *
  * See also: vips_image_get().
  */
 void
-vips_image_set( VipsImage *image, const char *field, GValue *value )
+vips_image_set( VipsImage *image, const char *name, GValue *value )
 {
-	g_assert( field );
+	g_assert( name );
 	g_assert( value );
 
 	meta_init( image );
-	(void) meta_new( image, field, value );
+	(void) meta_new( image, name, value );
 
 #ifdef DEBUG
 	meta_sanity( image );
 #endif /*DEBUG*/
 }
 
+/* Unforunately gvalue seems to have no way of doing this. Just handle the vips
+ * built-in types.
+ */
+static void
+vips_set_value_from_pointer( GValue *value, void *data )
+{
+	GType type = G_VALUE_TYPE( value );
+
+	/* The fundamental type ... eg. G_TYPE_ENUM for a VIPS_TYPE_KERNEL,
+	 * or G_TYPE_OBJECT for VIPS_TYPE_IMAGE().
+	 */
+	GType fundamental = G_TYPE_FUNDAMENTAL( type );
+
+	if( fundamental == G_TYPE_INT )
+		g_value_set_int( value, *((int *) data) ); 
+	else if( fundamental == G_TYPE_DOUBLE )
+		g_value_set_double( value, *((double *) data) ); 
+	else if( fundamental == G_TYPE_ENUM )
+		g_value_set_enum( value, *((int *) data) ); 
+	else if( fundamental == G_TYPE_STRING ) 
+		g_value_set_string( value, ((char *) data) ); 
+	else
+		g_warning( "%s: unimplemented vips_set_value_from_pointer() "
+			"type %s",
+			G_STRLOC,
+			g_type_name( type ) );
+}
+
 /**
  * vips_image_get:
  * @image: image to get the field from from
- * @field: the name to give the metadata
+ * @name: the name to fetch
  * @value_copy: (transfer full) (out caller-allocates): the %GValue is copied into this
  *
  * Fill @value_copy with a copy of the header field. @value_copy must be zeroed 
@@ -970,13 +994,13 @@ vips_image_set( VipsImage *image, const char *field, GValue *value )
  * GValue value = { 0 };
  * double d;
  *
- * if (vips_image_get (image, field, &amp;value))
+ * if (vips_image_get (image, name, &amp;value))
  *   return -1;
  *
  * if (G_VALUE_TYPE (&amp;value) != G_TYPE_DOUBLE) {
  *   vips_error( "mydomain", 
  *     _("field \"%s\" is of type %s, not double"),
- *     field, 
+ *     name, 
  *     g_type_name (G_VALUE_TYPE (&amp;value)));
  *   g_value_unset (&amp;value);
  *   return -1;
@@ -991,68 +1015,49 @@ vips_image_set( VipsImage *image, const char *field, GValue *value )
  * Returns: (skip): 0 on success, -1 otherwise.
  */
 int
-vips_image_get( const VipsImage *image, const char *field, GValue *value_copy )
+vips_image_get( const VipsImage *image, const char *name, GValue *value_copy )
 {
 	int i;
 	VipsMeta *meta;
 
-	g_assert( field );
+	g_assert( name );
 	g_assert( value_copy );
 
-	for( i = 0; i < VIPS_NUMBER( int_field ); i++ ) 
-		if( strcmp( field, int_field[i].field ) == 0 ) {
-			g_value_init( value_copy, G_TYPE_INT );
-			g_value_set_int( value_copy, 
-				G_STRUCT_MEMBER( int, image, 
-					int_field[i].offset ) );
-			return( 0 );
-		}
+	for( i = 0; i < VIPS_NUMBER( vips_header_fields ); i++ ) {
+		HeaderField *field = &vips_header_fields[i];
 
-	for( i = 0; i < VIPS_NUMBER( old_int_field ); i++ ) 
-		if( strcmp( field, old_int_field[i].field ) == 0 ) {
-			g_value_init( value_copy, G_TYPE_INT );
-			g_value_set_int( value_copy, 
-				G_STRUCT_MEMBER( int, image, 
-					old_int_field[i].offset ) );
-			return( 0 );
-		}
+		if( strcmp( field->name, name ) == 0 ) {
+			GType gtype = g_type_from_name( field->type );
 
-	for( i = 0; i < VIPS_NUMBER( double_field ); i++ ) 
-		if( strcmp( field, double_field[i].field ) == 0 ) {
-			g_value_init( value_copy, G_TYPE_DOUBLE );
-			g_value_set_double( value_copy, 
-				G_STRUCT_MEMBER( double, image, 
-					double_field[i].offset ) );
+			g_value_init( value_copy, gtype );
+			vips_set_value_from_pointer( value_copy, 
+				G_STRUCT_MEMBER_P( image, field->offset ) );
 			return( 0 );
 		}
+	}
 
-	for( i = 0; i < VIPS_NUMBER( old_double_field ); i++ ) 
-		if( strcmp( field, old_double_field[i].field ) == 0 ) {
-			g_value_init( value_copy, G_TYPE_DOUBLE );
-			g_value_set_double( value_copy, 
-				G_STRUCT_MEMBER( double, image, 
-					old_double_field[i].offset ) );
-			return( 0 );
-		}
+	for( i = 0; i < VIPS_NUMBER( vips_header_fields_old ); i++ ) {
+		HeaderField *field = &vips_header_fields_old[i];
 
-	for( i = 0; i < VIPS_NUMBER( string_field ); i++ ) 
-		if( strcmp( field, string_field[i].field ) == 0 ) {
-			g_value_init( value_copy, G_TYPE_STRING );
-			g_value_set_static_string( value_copy, 
-				G_STRUCT_MEMBER( char *, image, 
-					string_field[i].offset ) );
+		if( strcmp( field->name, name ) == 0 ) {
+			GType gtype = g_type_from_name( field->type );
+
+			g_value_init( value_copy, gtype );
+			vips_set_value_from_pointer( value_copy, 
+				G_STRUCT_MEMBER_P( image, field->offset ) );
 			return( 0 );
 		}
+	}
 
 	if( image->meta && 
-		(meta = g_hash_table_lookup( image->meta, field )) ) {
+		(meta = g_hash_table_lookup( image->meta, name )) ) {
 		g_value_init( value_copy, G_VALUE_TYPE( &meta->value ) );
 		g_value_copy( &meta->value, value_copy );
 
 		return( 0 );
 	}
 
-	vips_error( "vips_image_get", _( "field \"%s\" not found" ), field );
+	vips_error( "vips_image_get", _( "field \"%s\" not found" ), name );
 
 	return( -1 );
 }
@@ -1060,7 +1065,7 @@ vips_image_get( const VipsImage *image, const char *field, GValue *value_copy )
 /**
  * vips_image_get_typeof:
  * @image: image to test
- * @field: the name to search for
+ * @name: the name to search for
  *
  * Read the %GType for a header field. Returns zero if there is no
  * field of that name. 
@@ -1071,34 +1076,32 @@ vips_image_get( const VipsImage *image, const char *field, GValue *value_copy )
  * field of that name.
  */
 GType 
-vips_image_get_typeof( const VipsImage *image, const char *field )
+vips_image_get_typeof( const VipsImage *image, const char *name )
 {
 	int i;
 	VipsMeta *meta;
 
-	g_assert( field );
+	g_assert( name );
 
-	for( i = 0; i < VIPS_NUMBER( int_field ); i++ )
-		if( strcmp( field, int_field[i].field ) == 0 ) 
-			return( G_TYPE_INT );
-	for( i = 0; i < VIPS_NUMBER( old_int_field ); i++ )
-		if( strcmp( field, old_int_field[i].field ) == 0 ) 
-			return( G_TYPE_INT );
-	for( i = 0; i < VIPS_NUMBER( double_field ); i++ )
-		if( strcmp( field, double_field[i].field ) == 0 ) 
-			return( G_TYPE_DOUBLE );
-	for( i = 0; i < VIPS_NUMBER( old_double_field ); i++ )
-		if( strcmp( field, old_double_field[i].field ) == 0 ) 
-			return( G_TYPE_DOUBLE );
-	for( i = 0; i < VIPS_NUMBER( string_field ); i++ )
-		if( strcmp( field, string_field[i].field ) == 0 ) 
-			return( G_TYPE_STRING );
+	for( i = 0; i < VIPS_NUMBER( vips_header_fields ); i++ ) {
+		HeaderField *field = &vips_header_fields[i];
+
+		if( strcmp( field->name, name ) == 0 ) 
+			return( g_type_from_name( field->type ) ); 
+	}
+
+	for( i = 0; i < VIPS_NUMBER( vips_header_fields_old ); i++ ) {
+		HeaderField *field = &vips_header_fields_old[i];
+
+		if( strcmp( field->name, name ) == 0 ) 
+			return( g_type_from_name( field->type ) ); 
+	}
 
 	if( image->meta && 
-		(meta = g_hash_table_lookup( image->meta, field )) ) 
+		(meta = g_hash_table_lookup( image->meta, name )) ) 
 		return( G_VALUE_TYPE( &meta->value ) );
 
-	VIPS_DEBUG_MSG( "vips_image_get_typeof: unknown field %s\n", field );
+	VIPS_DEBUG_MSG( "vips_image_get_typeof: unknown field %s\n", name );
 
 	return( 0 );
 }
@@ -1106,7 +1109,7 @@ vips_image_get_typeof( const VipsImage *image, const char *field )
 /**
  * vips_image_remove:
  * @image: image to test
- * @field: the name to search for
+ * @name: the name to search for
  *
  * Find and remove an item of metadata. Return %FALSE if no metadata of that
  * name was found.
@@ -1116,10 +1119,10 @@ vips_image_get_typeof( const VipsImage *image, const char *field )
  * Returns: %TRUE if an item of metadata of that name was found and removed
  */
 gboolean
-vips_image_remove( VipsImage *image, const char *field )
+vips_image_remove( VipsImage *image, const char *name )
 {
 	if( image->meta && 
-		g_hash_table_remove( image->meta, field ) )
+		g_hash_table_remove( image->meta, name ) )
 		return( TRUE );
 
 	return( FALSE );
@@ -1128,7 +1131,7 @@ vips_image_remove( VipsImage *image, const char *field )
 static void *
 vips_image_map_fn( VipsMeta *meta, VipsImageMapFn fn, void *a )
 {
-	return( fn( meta->im, meta->field, &meta->value, a ) );
+	return( fn( meta->im, meta->name, &meta->value, a ) );
 }
 
 /**
@@ -1154,27 +1157,11 @@ vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )
 	GValue value = { 0 };
 	void *result;
 
-	for( i = 0; i < VIPS_NUMBER( int_field ); i++ ) {
-		vips_image_get( image, int_field[i].field, &value );
-		result = fn( image, int_field[i].field, &value, a );
-		g_value_unset( &value );
+	for( i = 0; i < VIPS_NUMBER( vips_header_fields ); i++ ) {
+		HeaderField *field = &vips_header_fields[i];
 
-		if( result )
-			return( result );
-	}
-
-	for( i = 0; i < VIPS_NUMBER( double_field ); i++ ) {
-		vips_image_get( image, double_field[i].field, &value );
-		result = fn( image, double_field[i].field, &value, a );
-		g_value_unset( &value );
-
-		if( result )
-			return( result );
-	}
-
-	for( i = 0; i < VIPS_NUMBER( string_field ); i++ ) {
-		vips_image_get( image, string_field[i].field, &value );
-		result = fn( image, string_field[i].field, &value, a );
+		vips_image_get( image, field->name, &value );
+		result = fn( image, field->name, &value, a );
 		g_value_unset( &value );
 
 		if( result )
@@ -1192,39 +1179,39 @@ vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )
 /**
  * vips_image_set_area:
  * @image: image to attach the metadata to
- * @field: metadata name
+ * @name: metadata name
  * @free_fn: (scope async): free function for @data
  * @data: pointer to area of memory
  *
- * Attaches @data as a metadata item on @image under the name @field. When
+ * Attaches @data as a metadata item on @image under the name @name. When
  * VIPS no longer needs the metadata, it will be freed with @free_fn.
  *
  * See also: vips_image_get_double(), vips_image_set()
  */
 void
-vips_image_set_area( VipsImage *image, const char *field,
-		VipsCallbackFn free_fn, void *data )
+vips_image_set_area( VipsImage *image, const char *name,
+	VipsCallbackFn free_fn, void *data )
 {
 	GValue value = { 0 };
 
 	vips_value_set_area( &value, free_fn, data );
-	vips_image_set( image, field, &value );
+	vips_image_set( image, name, &value );
 	g_value_unset( &value );
 }
 
 static int
 meta_get_value( const VipsImage *image,
-	const char *field, GType type, GValue *value_copy )
+	const char *name, GType type, GValue *value_copy )
 {
 	GValue value = { 0 }; 
 
-	if( vips_image_get( image, field, &value ) )
+	if( vips_image_get( image, name, &value ) )
 		return( -1 );
 	g_value_init( value_copy, type );
 	if( !g_value_transform( &value, value_copy ) ) { 
 		vips_error( "VipsImage",
 			_( "field \"%s\" is of type %s, not %s" ),
-			field,
+			name,
 			g_type_name( G_VALUE_TYPE( &value ) ),
 			g_type_name( type ) );
 		g_value_unset( &value );
@@ -1239,10 +1226,10 @@ meta_get_value( const VipsImage *image,
 /**
  * vips_image_get_area:
  * @image: image to get the metadata from
- * @field: metadata name
+ * @name: metadata name
  * @data: return metadata value
  *
- * Gets @data from @image under the name @field. A convenience
+ * Gets @data from @image under the name @name. A convenience
  * function over vips_image_get(). Use vips_image_get_typeof() to test for
  * the existance of a piece of metadata.
  *
@@ -1252,11 +1239,11 @@ meta_get_value( const VipsImage *image,
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_image_get_area( const VipsImage *image, const char *field, void **data )
+vips_image_get_area( const VipsImage *image, const char *name, void **data )
 {
 	GValue value_copy = { 0 };
 
-	if( !meta_get_value( image, field, VIPS_TYPE_AREA, &value_copy ) ) {
+	if( !meta_get_value( image, name, VIPS_TYPE_AREA, &value_copy ) ) {
 		*data = vips_value_get_area( &value_copy, NULL );
 		g_value_unset( &value_copy );
 		return( 0 );
@@ -1268,37 +1255,37 @@ vips_image_get_area( const VipsImage *image, const char *field, void **data )
 /** 
  * vips_image_set_blob:
  * @image: image to attach the metadata to
- * @field: metadata name
+ * @name: metadata name
  * @free_fn: (scope async): free function for @data
  * @data: pointer to area of memory
  * @length: length of memory area
  *
- * Attaches @blob as a metadata item on @image under the name @field. A 
+ * Attaches @blob as a metadata item on @image under the name @name. A 
  * convenience
  * function over vips_image_set() using an vips_blob.
  *
  * See also: vips_image_get_blob(), vips_image_set().
  */
 void
-vips_image_set_blob( VipsImage *image, const char *field, 
+vips_image_set_blob( VipsImage *image, const char *name, 
 	VipsCallbackFn free_fn, void *data, size_t length )
 {
 	GValue value = { 0 };
 
 	g_value_init( &value, VIPS_TYPE_BLOB );
 	vips_value_set_blob( &value, free_fn, data, length );
-	vips_image_set( image, field, &value );
+	vips_image_set( image, name, &value );
 	g_value_unset( &value );
 }
 
 /** 
  * vips_image_get_blob: 
  * @image: image to get the metadata from
- * @field: metadata name
+ * @name: metadata name
  * @data: pointer to area of memory
  * @length: return the blob length here, optionally
  *
- * Gets @blob from @image under the name @field, optionally return its length in
+ * Gets @blob from @image under the name @name, optionally returns its length in
  * @length. A convenience
  * function over vips_image_get(). Use vips_image_get_typeof() to test for the 
  * existance
@@ -1309,12 +1296,12 @@ vips_image_set_blob( VipsImage *image, const char *field,
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_image_get_blob( const VipsImage *image, const char *field, 
+vips_image_get_blob( const VipsImage *image, const char *name, 
 	void **data, size_t *length )
 {
 	GValue value_copy = { 0 };
 
-	if( !meta_get_value( image, field, VIPS_TYPE_BLOB, &value_copy ) ) {
+	if( !meta_get_value( image, name, VIPS_TYPE_BLOB, &value_copy ) ) {
 		*data = vips_value_get_blob( &value_copy, length );
 		g_value_unset( &value_copy );
 		return( 0 );
@@ -1326,43 +1313,28 @@ vips_image_get_blob( const VipsImage *image, const char *field,
 /** 
  * vips_image_get_int:
  * @image: image to get the header field from
- * @field: field name
+ * @name: field name
  * @out: return field value
  *
- * Gets @out from @im under the name @field. This function searches for
- * int-valued fields.
+ * Gets @out from @im under the name @name. 
+ * The value will be transformed into
+ * an int, if possible. 
  *
  * See also: vips_image_get(), vips_image_get_typeof()
  *
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_image_get_int( const VipsImage *image, const char *field, int *out )
+vips_image_get_int( const VipsImage *image, const char *name, int *out )
 {
-	int i;
-	GValue value_copy = { 0 };
+	GValue value = { 0 };
 
-	for( i = 0; i < VIPS_NUMBER( int_field ); i++ )
-		if( strcmp( field, int_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( int, image, 
-				int_field[i].offset );
-			return( 0 );
-		}
-	for( i = 0; i < VIPS_NUMBER( old_int_field ); i++ )
-		if( strcmp( field, old_int_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( int, image, 
-				old_int_field[i].offset );
-			return( 0 );
-		}
+	if( meta_get_value( image, name, G_TYPE_INT, &value ) ) 
+		return( -1 ); 
+	*out = g_value_get_int( &value );
+	g_value_unset( &value );
 
-	if( !meta_get_value( image, field, G_TYPE_INT, &value_copy ) ) {
-		*out = g_value_get_int( &value_copy );
-		g_value_unset( &value_copy );
-
-		return( 0 );
-	}
-
-	return( -1 );
+	return( 0 );
 }
 
 /** 
@@ -1391,45 +1363,28 @@ vips_image_set_int( VipsImage *image, const char *field, int i )
 /** 
  * vips_image_get_double:
  * @image: image to get the header field from
- * @field: field name
+ * @name: field name
  * @out: return field value
  *
- * Gets @out from @im under the name @field. 
- * This function searches for
- * double-valued fields.
+ * Gets @out from @im under the name @name. 
+ * The value will be transformed into
+ * a double, if possible. 
  *
  * See also: vips_image_get(), vips_image_get_typeof()
  *
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_image_get_double( const VipsImage *image, const char *field, double *out )
+vips_image_get_double( const VipsImage *image, const char *name, double *out )
 {
-	int i;
-	GValue value_copy = { 0 };
+	GValue value = { 0 };
 
-	for( i = 0; i < VIPS_NUMBER( double_field ); i++ )
-		if( strcmp( field, double_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( double, image, 
-				double_field[i].offset );
-			return( 0 );
-		}
-	for( i = 0; i < VIPS_NUMBER( old_double_field ); i++ )
-		if( strcmp( field, old_double_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( double, image, 
-				old_double_field[i].offset );
-			return( 0 );
-		}
+	if( meta_get_value( image, name, G_TYPE_DOUBLE, &value ) ) 
+		return( -1 ); 
+	*out = g_value_get_double( &value );
+	g_value_unset( &value );
 
-
-	if( !meta_get_value( image, field, G_TYPE_DOUBLE, &value_copy ) ) {
-		*out = g_value_get_double( &value_copy );
-		g_value_unset( &value_copy );
-
-		return( 0 );
-	}
-
-	return( -1 );
+	return( 0 );
 }
 
 /** 
@@ -1458,43 +1413,44 @@ vips_image_set_double( VipsImage *image, const char *field, double d )
 /** 
  * vips_image_get_string:
  * @image: image to get the header field from
- * @field: field name
- * @out: return field value
+ * @name: field name
+ * @out: (transfer none): return field value
  *
- * Gets @out from @im under the name @field. 
- * This function searches for string-valued fields. 
+ * Gets @out from @im under the name @name. 
+ * The field must be of type
+ * VIPS_TYPE_REFSTRING.
  *
  * Do not free @out.
+ *
+ * Use vips_image_get_as_string() to fetch any field as a string.
  *
  * See also: vips_image_get(), vips_image_get_typeof()
  *
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_image_get_string( const VipsImage *image, const char *field, 
+vips_image_get_string( const VipsImage *image, const char *name, 
 	const char **out )
 {
-	int i;
-	GValue value_copy = { 0 };
+	GValue value = { 0 };
 	VipsArea *area;
 
-	for( i = 0; i < VIPS_NUMBER( string_field ); i++ )
-		if( strcmp( field, string_field[i].field ) == 0 ) {
-			*out = G_STRUCT_MEMBER( char *, image, 
-				string_field[i].offset );
-			return( 0 );
-		}
-
-	if( !meta_get_value( image, 
-		field, VIPS_TYPE_REF_STRING, &value_copy ) ) {
-		area = g_value_get_boxed( &value_copy );
-		*out = area->data;
-		g_value_unset( &value_copy );
-
-		return( 0 );
+	if( vips_image_get( image, name, &value ) )
+		return( -1 );
+	if( G_VALUE_TYPE( &value ) != VIPS_TYPE_REF_STRING ) {
+		vips_error( "VipsImage",
+			_( "field \"%s\" is of type %s, not VipsRefString" ),
+			name,
+			g_type_name( G_VALUE_TYPE( &value ) ) );
+		g_value_unset( &value );
+		return( -1 );
 	}
 
-	return( -1 );
+	area = g_value_get_boxed( &value );
+	*out = area->data;
+	g_value_unset( &value );
+
+	return( 0 );
 }
 
 /** 

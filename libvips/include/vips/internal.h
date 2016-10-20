@@ -48,7 +48,7 @@ extern "C" {
 typedef struct _VipsMeta {
 	VipsImage *im;
 
-	char *field;			/* strdup() of field name */
+	char *name;			/* strdup() of field name */
 	GValue value;			/* copy of value */
 } VipsMeta;
 
