@@ -810,7 +810,7 @@ AC_ARG_ENABLE([pyvips8],
 )
 
 if test "x$enable_pyvips8" = "xauto"; then
-  PKG_CHECK_EXISTS([pygobject-3.0 >= 3.12.0],
+  PKG_CHECK_EXISTS([pygobject-3.0 >= 3.13.0],
     [enable_pyvips8=yes
     ],
     [AC_MSG_WARN([pygobject-3.0 not found; disabling vips8 python support])
@@ -828,7 +828,7 @@ if test x"$enable_pyvips8" = x"yes"; then
 fi
 
 if test x"$enable_pyvips8" = x"yes"; then
-  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.12.0])
+  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.13.0])
 fi
 
 AM_CONDITIONAL(ENABLE_PYVIPS8, test x"$enable_pyvips8" = x"yes")
@@ -1064,7 +1064,7 @@ build docs with gtkdoc:			$enable_gtk_doc
 gobject introspection: 			$found_introspection
 build vips7 Python binding:		$with_python
 install vips8 Python overrides:		$enable_pyvips8
-  (requires pygobject-3.12.0 or later)
+  (requires pygobject-3.13.0 or later)
 build radiance support: 		$with_radiance
 build analyze support: 			$with_analyze
 build PPM support: 			$with_ppm

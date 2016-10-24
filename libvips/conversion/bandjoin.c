@@ -142,7 +142,9 @@ vips_bandjoin_build( VipsObject *object )
 
 			bandary->out_bands = 0;
 			for( i = 0; i < bandary->n; i++ ) 
-				bandary->out_bands += bandary->in[i]->Bands;
+				if( bandary->in[i] ) 
+					bandary->out_bands += 
+						bandary->in[i]->Bands;
 		}
 	}
 
