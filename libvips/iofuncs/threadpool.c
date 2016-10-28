@@ -106,7 +106,7 @@ int vips__n_active_threads = 0;
 
 /* Set this GPrivate to indicate that this is a vips worker.
  */
-static GPrivate vips_threadpool_is_worker_private;
+static GPrivate *is_worker_key = NULL;
 
 /* Glib 2.32 revised the thread API. We need some compat functions.
  */
@@ -170,7 +170,7 @@ vips_g_cond_free( GCond *cond )
 gboolean
 vips_thread_isworker( void )
 {
-	return( g_private_get( &vips_threadpool_is_worker_private ) != NULL );
+	return( g_private_get( is_worker_key ) != NULL );
 }
 
 typedef struct {
@@ -188,7 +188,10 @@ vips_thread_run( gpointer data )
 
 	/* Set this to something (anything) to tag this thread as a vips worker.
 	 */
-	g_private_set( &vips_threadpool_is_worker_private, data );
+	g_private_set( is_worker_key, data );
+
+	if( vips__thread_profile ) 
+		vips__thread_profile_attach( info->domain );
 
 	if( vips__thread_profile ) 
 		vips__thread_profile_attach( info->domain );
@@ -994,6 +997,23 @@ vips_threadpool_run( VipsImage *im,
 	vips_image_minimise_all( im );
 
 	return( result );
+}
+
+/* Start up threadpools. This is called during vips_init.
+ */
+void
+vips__threadpool_init( void )
+{
+	/* We need to work with the pre-2.32 threading API.
+	 */
+#ifdef HAVE_PRIVATE_INIT
+	static GPrivate private = { 0 }; 
+
+	is_worker_key = &private;
+#else
+	if( !is_worker_key ) 
+		is_worker_key = g_private_new( NULL ); 
+#endif
 }
 
 /**
