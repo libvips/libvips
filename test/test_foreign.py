@@ -58,9 +58,13 @@ class TestForeign(unittest.TestCase):
 
         self.colour = Vips.Image.jpegload(self.jpeg_file)
         self.mono = self.colour.extract_band(1)
+        # we remove the ICC profile: the RGB one will no longer be appropriate
+        self.mono.remove("icc-profile-data")
         self.rad = self.colour.float2rad()
+        self.rad.remove("icc-profile-data")
         self.cmyk = self.colour.bandjoin(self.mono)
         self.cmyk = self.cmyk.copy(interpretation = Vips.Interpretation.CMYK)
+        self.cmyk.remove("icc-profile-data")
 
         im = Vips.Image.new_from_file(self.gif_file)
         self.onebit = im > 128
