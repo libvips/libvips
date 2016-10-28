@@ -545,7 +545,7 @@ vips_colourspace_build( VipsObject *object )
 			break;
 	if( i == VIPS_NUMBER( vips_colour_routes ) ) {
 		vips_error( "vips_colourspace", 
-			_( "no known route between '%s' and '%s'" ),
+			_( "no known route from '%s' to '%s'" ),
 			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
 				interpretation ),
 			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
