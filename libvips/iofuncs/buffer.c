@@ -712,7 +712,7 @@ buffer_thread_destroy_notify( VipsBufferThread *buffer_thread )
 	buffer_thread_free( buffer_thread );
 }
 
-/* Init the buffer cache system.
+/* Init the buffer cache system. This is called during vips_init.
  */
 void
 vips__buffer_init( void )
