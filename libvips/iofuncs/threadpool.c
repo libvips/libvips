@@ -186,17 +186,13 @@ vips_thread_run( gpointer data )
 
 	void *result;
 
-	/* Set this to something (anything) to tag this thread as a vips worker.
+	/* Set this to something (anything) to tag this thread as a vips 
+	 * worker.
 	 */
 	g_private_set( is_worker_key, data );
 
 	if( vips__thread_profile ) 
 		vips__thread_profile_attach( info->domain );
-
-	if( vips__thread_profile ) 
-		vips__thread_profile_attach( info->domain );
-
-	vips__buffer_init();
 
 	result = info->func( info->data );
 

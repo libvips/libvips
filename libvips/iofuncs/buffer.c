@@ -671,9 +671,6 @@ vips__buffer_init( void )
 	if( buffer_cache_max_reserve < 1 )
 		printf( "vips__buffer_init: buffer reserve disabled\n" );
 
-	if( !vips_thread_isworker() )
-		printf( "vips__buffer_init: called for non-worker\n" );
-
 #ifdef DEBUG
 	printf( "vips__buffer_init: DEBUG enabled\n" ); 
 #endif /*DEBUG*/
