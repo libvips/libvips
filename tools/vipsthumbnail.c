@@ -432,9 +432,7 @@ thumbnail_shrink( VipsObject *process, VipsImage *in )
 	 * https://github.com/jcupitt/libvips/issues/291
 	 */
 	have_premultiplied = FALSE;
-	if( in->Bands == 2 ||
-		(in->Bands == 4 && in->Type != VIPS_INTERPRETATION_CMYK) ||
-		in->Bands == 5 ) {
+	if( vips_image_hasalpha( in ) ) { 
 		vips_info( "vipsthumbnail", "premultiplying alpha" ); 
 		if( vips_premultiply( in, &t[3], NULL ) ) 
 			return( NULL );

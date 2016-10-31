@@ -10,6 +10,8 @@
  * 	- add vips_image_new_from_memory_copy()
  * 10/6/16
  * 	- vips_image_write() does not ref input for non-partial images
+ * 29/10/16
+ * 	- add vips_image_hasalpha()
  */
 
 /*
@@ -2773,6 +2775,24 @@ vips_image_ispartial( VipsImage *image )
 		return( 1 );
 	else
 		return( 0 );
+}
+
+/**
+ * vips_image_hasalpha:
+ * @image: image to check
+ *
+ * libvips assumes an image has an alpha if it has two bands (ie. it is a
+ * monochrome image with an extra band), if it has four bands (unless it's been
+ * tagged as CMYK), or if it has more than four bands. 
+ *
+ * Return %TRUE if @image has an alpha channel.
+ */
+gboolean
+vips_image_hasalpha( VipsImage *image )
+{
+	return( image->Bands == 2 ||
+		(image->Bands == 4 && image->Type != VIPS_INTERPRETATION_CMYK) ||
+		image->Bands > 4 );
 }
 
 /**

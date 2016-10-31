@@ -3,6 +3,7 @@
 - added tiff save to buffer
 - added dzsave save to buffer (zip only)
 - revise header get/set functions
+- added vips_image_hasalpha()
 
 18/10/16 started 8.4.3
 - fix error detection in gif_close, thanks aaron42net

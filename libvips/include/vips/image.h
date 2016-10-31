@@ -473,6 +473,7 @@ int vips_image_encode( VipsImage *in, VipsImage **out, VipsCoding coding );
 gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );
 gboolean vips_image_ispartial( VipsImage *image );
+gboolean vips_image_hasalpha( VipsImage *image );
 
 VipsImage *vips_image_copy_memory( VipsImage *image );
 int vips_image_wio_input( VipsImage *image );
