@@ -3,6 +3,7 @@
 - added tiff save to buffer
 - added dzsave save to buffer (zip only)
 - revise header get/set functions
+- better vipsheader behaviour with complex field types
 - added vips_image_hasalpha()
 
 18/10/16 started 8.4.3
