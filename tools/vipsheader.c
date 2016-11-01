@@ -106,33 +106,16 @@ static void *
 print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 {
 	gboolean *many = (gboolean *) a;
-	const char *extra;
-	char *str_value;
-
-	/* Look for known enums and decode them.
-	 */
-	extra = NULL;
-	if( strcmp( field, "coding" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_CODING, g_value_get_int( value ) );
-	else if( strcmp( field, "format" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_BAND_FORMAT, g_value_get_int( value ) );
-	else if( strcmp( field, "interpretation" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_INTERPRETATION, g_value_get_int( value ) );
+	char str[256];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
 
 	if( *many ) 
 		printf( "%s: ", image->filename );
 
-	str_value = g_strdup_value_contents( value );
-	printf( "%s: %s", field, str_value );
-	g_free( str_value );
+	printf( "%s: ", field ); 
 
-	if( extra )
-		printf( " - %s", extra );
-
-	printf( "\n" );
+	vips_buf_appendgv( &buf, value );
+	printf( "%s\n", vips_buf_all( &buf ) );
 
 	return( NULL );
 }
@@ -164,12 +147,14 @@ print_header( VipsImage *im, gboolean many )
 	else if( strcmp( main_option_field, "Hist" ) == 0 ) 
 		printf( "%s", vips_image_get_history( im ) );
 	else {
-		char *str;
+		GValue value = { 0 }; 
+		char str[256];
+		VipsBuf buf = VIPS_BUF_STATIC( str );
 
-		if( vips_image_get_as_string( im, main_option_field, &str ) )
-			return( -1 );
+		vips_image_get( im, main_option_field, &value );
+		vips_buf_appendgv( &buf, &value );
 		printf( "%s\n", str );
-		g_free( str );
+		g_value_unset( &value );
 	}
 
 	return( 0 );

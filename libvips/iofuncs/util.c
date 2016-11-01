@@ -1806,6 +1806,7 @@ vips_flags_from_nick( const char *domain, GType type, const char *nick )
 	return( -1 );
 }
 
+
 /* Scan @buf for the first "%ns" (eg. "%12s") and substitute the 
  * lowest-numbered one for @sub. @buf is @len bytes in size.
  *

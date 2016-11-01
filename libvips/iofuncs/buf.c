@@ -493,19 +493,151 @@ vips_buf_appendd( VipsBuf *buf, int d )
  * @buf: the buffer
  * @value: #GValue to format and append
  *
- * Format and append a #GValue with g_strdup_value_contents().
+ * Format and append a #GValue. This doesn't use g_strdup_value_contents():
+ * that doesn't do what we want for some types and can change too much between
+ * glib versions.
  * 
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
 vips_buf_appendgv( VipsBuf *buf, GValue *value )
 {
-	char *str_value;
+	GType type = G_VALUE_TYPE( value ); 
+	GType fundamental = g_type_fundamental( type ); 
+
+	gboolean handled;
 	gboolean result;
 
-	str_value = g_strdup_value_contents( value );
-	result = vips_buf_appends( buf, str_value );
-	g_free( str_value );
+	result = FALSE;
+	handled = FALSE;
+
+	switch( fundamental ) {
+	case G_TYPE_STRING:
+		/* These are GStrings, vips refstrings are handled by boxed, see 
+		 * below.
+		 */
+		result = vips_buf_appends( buf, g_value_get_string( value ) ); 
+		handled = TRUE;
+		break;
+
+	case G_TYPE_OBJECT:
+{
+		GObject *object;
+
+		object = g_value_get_object( value );
+		if( VIPS_IS_OBJECT( object ) ) {
+			vips_object_summary( VIPS_OBJECT( object ), buf );
+			result = TRUE;
+			handled = TRUE;
+		}
+}
+		break;
+
+	case G_TYPE_INT:
+		result = vips_buf_appendf( buf, 
+			"%d", g_value_get_int( value ) );
+		handled = TRUE;
+		break;
+
+	case G_TYPE_UINT64:
+		result = vips_buf_appendf( buf, 
+			"%zd", g_value_get_uint64( value ) );
+		handled = TRUE;
+		break;
+
+	case G_TYPE_DOUBLE:
+		result = vips_buf_appendf( buf, 
+			"%g", g_value_get_double( value ) );
+		handled = TRUE;
+		break;
+
+	case G_TYPE_BOOLEAN:
+		result = vips_buf_appends( buf, 
+			g_value_get_boolean( value ) ? "true" : "false" );
+		handled = TRUE;
+		break;
+
+	case G_TYPE_ENUM:
+		result = vips_buf_appends( buf, 
+			vips_enum_nick( type, g_value_get_enum( value ) ) );
+		handled = TRUE;
+		break;
+
+	case G_TYPE_FLAGS:
+{
+		GFlagsClass *flags_class = g_type_class_ref( type );
+
+		GFlagsValue *v;
+		int flags;
+
+		flags = g_value_get_flags( value );
+
+		while( flags &&
+			(v = g_flags_get_first_value( flags_class, flags )) ) {
+			result = vips_buf_appendf( buf, "%s ", v->value_nick );
+			flags &= ~v->value;
+		}
+
+		handled = TRUE;
+}
+		break;
+
+	case G_TYPE_BOXED:
+		if( type == VIPS_TYPE_REF_STRING ||
+			type == VIPS_TYPE_BLOB ) {
+			const char *str;
+			size_t str_len;
+
+			str = vips_value_get_ref_string( value, &str_len );
+			result = vips_buf_appends( buf, str ); 
+			handled = TRUE;
+		}
+		else if( type == VIPS_TYPE_ARRAY_DOUBLE ) {
+			double *arr;
+			int n;
+			int i;
+
+			arr = vips_value_get_array_double( value, &n );
+			for( i = 0; i < n; i++ ) 
+				result = vips_buf_appendf( buf, "%g ", arr[i] ); 
+			handled = TRUE;
+		}
+		else if( type == VIPS_TYPE_ARRAY_INT ) {
+			int *arr;
+			int n;
+			int i;
+
+			arr = vips_value_get_array_int( value, &n );
+			for( i = 0; i < n; i++ ) 
+				result = vips_buf_appendf( buf, "%d ", arr[i] ); 
+			handled = TRUE;
+		}
+		else if( type == VIPS_TYPE_ARRAY_IMAGE ) {
+			VipsImage **arr;
+			int n;
+			int i;
+
+			arr = vips_value_get_array_image( value, &n );
+			for( i = 0; i < n; i++ ) {
+				vips_object_summary( VIPS_OBJECT( arr[i] ), 
+					buf );
+				result = vips_buf_appends( buf, " " ); 
+			}
+			handled = TRUE;
+		}
+		break;
+
+	default:
+		break;
+	}
+
+	if( !handled ) { 
+		char *str_value;
+
+		str_value = g_strdup_value_contents( value );
+		result = vips_buf_appends( buf, str_value );
+		g_free( str_value );
+	}
 
 	return( result );
 }
