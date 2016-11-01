@@ -966,7 +966,7 @@ vips_set_value_from_pointer( GValue *value, void *data )
 	else if( fundamental == G_TYPE_ENUM )
 		g_value_set_enum( value, *((int *) data) ); 
 	else if( fundamental == G_TYPE_STRING ) 
-		g_value_set_string( value, ((char *) data) ); 
+		g_value_set_string( value, *((char **) data) ); 
 	else
 		g_warning( "%s: unimplemented vips_set_value_from_pointer() "
 			"type %s",
@@ -1486,7 +1486,10 @@ vips_image_set_string( VipsImage *image, const char *field, const char *str )
  * This function will read any field, returning it as a printable string.
  * You need to free the string with g_free() when you are done with it.
  *
- * See also: vips_image_get(), vips_image_get_typeof().
+ * This will base64-encode BLOBs, for example. Use vips_buf_appendgv() to 
+ * make a string that's for humans. 
+ *
+ * See also: vips_image_get(), vips_image_get_typeof(), vips_buf_appendgv().
  *
  * Returns: 0 on success, -1 otherwise.
  */

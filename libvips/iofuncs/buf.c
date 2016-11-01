@@ -493,10 +493,12 @@ vips_buf_appendd( VipsBuf *buf, int d )
  * @buf: the buffer
  * @value: #GValue to format and append
  *
- * Format and append a #GValue. This doesn't use g_strdup_value_contents():
- * that doesn't do what we want for some types and can change too much between
- * glib versions.
- * 
+ * Format and append a #GValue as a printable thing. We display text line "3144
+ * bytes of binary data" for BLOBs like icc-profile-data.
+ *
+ * Use vips_image_get_as_string() to make a text representation of a field.
+ * That will base64-encode blobs, for example. 
+ *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean
@@ -513,11 +515,16 @@ vips_buf_appendgv( VipsBuf *buf, GValue *value )
 
 	switch( fundamental ) {
 	case G_TYPE_STRING:
-		/* These are GStrings, vips refstrings are handled by boxed, see 
-		 * below.
+{
+		const char *str;
+
+		/* These are GStrings (gchararray). vips refstrings are 
+		 * handled by boxed, see below.
 		 */
-		result = vips_buf_appends( buf, g_value_get_string( value ) ); 
+		str = g_value_get_string( value );
+		result = vips_buf_appends( buf, str ); 
 		handled = TRUE;
+}
 		break;
 
 	case G_TYPE_OBJECT:
@@ -583,13 +590,24 @@ vips_buf_appendgv( VipsBuf *buf, GValue *value )
 		break;
 
 	case G_TYPE_BOXED:
-		if( type == VIPS_TYPE_REF_STRING ||
-			type == VIPS_TYPE_BLOB ) {
+		if( type == VIPS_TYPE_REF_STRING ) { 
 			const char *str;
 			size_t str_len;
 
+			/* These should be printable.
+			 */
 			str = vips_value_get_ref_string( value, &str_len );
 			result = vips_buf_appends( buf, str ); 
+			handled = TRUE;
+		}
+		else if( type == VIPS_TYPE_BLOB ) {
+			size_t str_len;
+
+			/* Binary data and not printable.
+			 */
+			(void) vips_value_get_ref_string( value, &str_len );
+			result = vips_buf_appendf( buf, 
+				_( "%zd bytes of binary data" ), str_len ); 
 			handled = TRUE;
 		}
 		else if( type == VIPS_TYPE_ARRAY_DOUBLE ) {

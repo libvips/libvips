@@ -1,9 +1,3 @@
-- look at vips_image_get_as_string() vs. vips_buf_appendgv()
-
-  should Hist and getext be true header fields?
-
-  vipsheader is not displaying filename correctly
-
 - not sure about utf8 error messages on win
 
 - strange: 

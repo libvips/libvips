@@ -147,14 +147,11 @@ print_header( VipsImage *im, gboolean many )
 	else if( strcmp( main_option_field, "Hist" ) == 0 ) 
 		printf( "%s", vips_image_get_history( im ) );
 	else {
-		GValue value = { 0 }; 
-		char str[256];
-		VipsBuf buf = VIPS_BUF_STATIC( str );
+		char *str;
 
-		vips_image_get( im, main_option_field, &value );
-		vips_buf_appendgv( &buf, &value );
+		vips_image_get_as_string( im, main_option_field, &str );
 		printf( "%s\n", str );
-		g_value_unset( &value );
+		g_free( str );
 	}
 
 	return( 0 );
