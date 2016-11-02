@@ -222,6 +222,12 @@ class TestResample(unittest.TestCase):
         self.assertEqual(im.width, 100)
         self.assertEqual(im.height, 300)
 
+        im1 = Vips.Image.thumbnail(self.jpeg_file, 100)
+        with open(self.jpeg_file, 'rb') as f:
+            buf = f.read()
+        im2 = Vips.Image.thumbnail_buffer(buf, 100)
+        self.assertLess(abs(im1.avg() - im2.avg()), 1)
+
     def test_similarity(self):
         im = Vips.Image.new_from_file(self.jpeg_file)
         im2 = im.similarity(angle = 90)
