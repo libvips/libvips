@@ -660,7 +660,33 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * * @import_profile: %gchararray, fallback import ICC profile
  * * @export_profile: %gchararray, export ICC profile
  *
- * Make an image thumbnail from a file. 
+ * Make a thumbnail from a file. Shrinking is done in three stages: using any
+ * shrink-on-load features available in the file import library, using a block
+ * shrink, and using a lanczos3 shrink. At least the final 200% is done with
+ * lanczos3. The output should be high quality, and the operation should be
+ * quick. 
+ *
+ * See vips_thumbnail_buffer() to thumbnail from a memory source. 
+ *
+ * The output image will fit within a square of size @width x @width. You can
+ * specify a height with the @height option. 
+ *
+ * If you set @crop, then the output image will fill the whole of the @width x
+ * @height rectangle, with any excess cropped away.
+ *
+ * Normally any orientation tags on the input image (such as EXIF tags) are
+ * interpreted to rotate the image upright. If you set @auto_rotate to %FALSE,
+ * these tags will not be interpreted.
+ *
+ * Shrinking is normally done in sRGB colourspace. Set @linear to shrink in 
+ * linear light colourspace instead --- this can give better results, but can
+ * also be far slower, since tricks like JPEG shrink-on-load cannot be used in
+ * linear space.
+ *
+ * If you set @export_profile to the filename of an ICC profile, the image will
+ * be transformed to the target colourspace before writing to the output. You
+ * can also give an @import_profile which will be used if the input image has
+ * no ICC profile, or if the profile embedded in the input image is broken.
  *
  * See also: vips_thumbnail_buffer().
  *
