@@ -133,6 +133,7 @@ vips_resample_init( VipsResample *resample )
 void
 vips_resample_operation_init( void )
 {
+	extern GType vips_thumbnail_get_type( void ); 
 	extern GType vips_mapim_get_type( void ); 
 	extern GType vips_shrink_get_type( void ); 
 	extern GType vips_shrinkh_get_type( void ); 
@@ -145,6 +146,7 @@ vips_resample_operation_init( void )
 	extern GType vips_similarity_get_type( void ); 
 	extern GType vips_resize_get_type( void ); 
 
+	vips_thumbnail_get_type(); 
 	vips_mapim_get_type(); 
 	vips_shrink_get_type(); 
 	vips_shrinkh_get_type(); 
