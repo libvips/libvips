@@ -1,3 +1,11 @@
+- add thumbnail tests
+
+  rework vipsthumbnail.c
+
+  benchmark
+
+  docs
+
 - not sure about utf8 error messages on win
 
 - strange: 

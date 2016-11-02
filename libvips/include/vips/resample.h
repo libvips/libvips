@@ -63,6 +63,11 @@ int vips_reduceh( VipsImage *in, VipsImage **out, double hshrink, ... )
 int vips_reducev( VipsImage *in, VipsImage **out, double vshrink, ... )
 	__attribute__((sentinel));
 
+int vips_thumbnail( const char *filename, VipsImage **out, int width, ... )
+	__attribute__((sentinel));
+int vips_thumbnail_buffer( void *buf, size_t len, VipsImage **out, int width, ... )
+	__attribute__((sentinel));
+
 int vips_similarity( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_affine( VipsImage *in, VipsImage **out, 

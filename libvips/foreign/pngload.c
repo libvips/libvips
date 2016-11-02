@@ -214,6 +214,7 @@ vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, buf ),
 		VIPS_TYPE_BLOB );
+
 }
 
 static void

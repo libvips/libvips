@@ -198,27 +198,27 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	vips_info( "thumbnail", "selected loader is %s", 
 		thumbnail->loader ); 
 	vips_info( "thumbnail", "input size is %d x %d", 
-		thumbnail->width, thumbnail->height ); 
+		thumbnail->input_width, thumbnail->input_height ); 
 
 	shrink = 1;
 	scale = 1.0;
 
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		shrink = vips_thumbnail_find_jpegshrink( thumbnail, 
-			thumbnail->width, thumbnail->height );
+			thumbnail->input_width, thumbnail->input_height );
 		vips_info( "thumbnail", 
 			"loading jpeg with factor %d pre-shrink", shrink ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
 		scale = 1.0 / vips_thumbnail_calculate_shrink( thumbnail, 
-			thumbnail->width, thumbnail->height ); 
+			thumbnail->input_width, thumbnail->input_height ); 
 		vips_info( "thumbnail", 
 			"loading PDF/SVG with factor %g pre-scale", scale ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		shrink = vips_thumbnail_calculate_shrink( thumbnail, 
-			thumbnail->width, thumbnail->height ); 
+			thumbnail->input_width, thumbnail->input_height ); 
 		vips_info( "thumbnail", 
 			"loading webp with factor %d pre-shrink", shrink ); 
 	}
@@ -258,6 +258,9 @@ vips_thumbnail_build( VipsObject *object )
 
 	if( VIPS_OBJECT_CLASS( vips_thumbnail_parent_class )->build( object ) )
 		return( -1 );
+
+	if( !vips_object_argument_isset( object, "height" ) )
+		thumbnail->height = thumbnail->width;
 
 	if( !(t[0] = vips_thumbnail_open( thumbnail )) )
 		return( -1 );
@@ -496,14 +499,14 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 		_( "Size to this width" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsThumbnail, width ),
-		1, VIPS_MAX_COORD, 0 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "height", 113, 
 		_( "Target height" ), 
 		_( "Size to this height" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsThumbnail, height ),
-		1, VIPS_MAX_COORD, 0 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_BOOL( class, "auto_rotate", 114, 
 		_( "Auto rotate" ), 
@@ -545,6 +548,8 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 static void
 vips_thumbnail_init( VipsThumbnail *thumbnail )
 {
+	thumbnail->width = 1;
+	thumbnail->height = 1;
 	thumbnail->auto_rotate = TRUE;
 }
 
@@ -583,8 +588,8 @@ vips_thumbnail_file_get_info( VipsThumbnail *thumbnail )
 	return( 0 );
 }
 
-/* Open an image, pre-shrinking as appropriate. Someformats use shrink, some
- * scale, it's OK to pass extra ones. 
+/* Open an image, pre-shrinking as appropriate. Some formats use shrink, some
+ * scale, never both. 
  */
 static VipsImage *
 vips_thumbnail_file_open( VipsThumbnail *thumbnail, int shrink, double scale )
@@ -593,11 +598,20 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, int shrink, double scale )
 
 	/* We can't use UNBUFERRED safely on very-many-core systems.
 	 */
-	return( vips_image_new_from_file( file->filename, 
-		"access", VIPS_ACCESS_SEQUENTIAL,
-		"shrink", shrink,
-		"scale", scale,
-		NULL ) );
+	if( shrink != 1 ) 
+		return( vips_image_new_from_file( file->filename, 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"shrink", shrink,
+			NULL ) );
+	else if( scale != 1.0 )
+		return( vips_image_new_from_file( file->filename, 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"scale", scale,
+			NULL ) );
+	else
+		return( vips_image_new_from_file( file->filename, 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			NULL ) );
 }
 
 static void
@@ -665,4 +679,142 @@ vips_thumbnail( const char *filename, VipsImage **out, int width, ... )
 	return( result );
 }
 
+typedef struct _VipsThumbnailBuffer {
+	VipsThumbnail parent_object;
 
+	VipsArea *buf;
+} VipsThumbnailBuffer;
+
+typedef VipsThumbnailClass VipsThumbnailBufferClass;
+
+G_DEFINE_TYPE( VipsThumbnailBuffer, vips_thumbnail_buffer, 
+	vips_thumbnail_get_type() );
+
+/* Get the info from a buffer.
+ */
+static int
+vips_thumbnail_buffer_get_info( VipsThumbnail *thumbnail )
+{
+	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
+
+	VipsImage *image;
+
+	vips_info( "thumbnail", "thumbnailing %zd bytes of data", 
+		buffer->buf->length ); 
+
+	if( !(thumbnail->loader = vips_foreign_find_load_buffer( 
+			buffer->buf->data, buffer->buf->length )) ||
+		!(image = vips_image_new_from_buffer( 
+			buffer->buf->data, buffer->buf->length, "", NULL )) )
+		return( -1 );
+
+	thumbnail->input_width = image->Xsize;
+	thumbnail->input_height = image->Ysize;
+	thumbnail->angle = vips_autorot_get_angle( image );
+
+	g_object_unref( image );
+
+	return( 0 );
+}
+
+/* Open an image, pre-shrinking as appropriate. Some formats use shrink, some
+ * scale, never both. 
+ */
+static VipsImage *
+vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, int shrink, double scale )
+{
+	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
+
+	/* We can't use UNBUFERRED safely on very-many-core systems.
+	 */
+	if( shrink != 1 ) 
+		return( vips_image_new_from_buffer( 
+			buffer->buf->data, buffer->buf->length, "", 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"shrink", shrink,
+			NULL ) );
+	else if( scale != 1.0 )
+		return( vips_image_new_from_buffer( 
+			buffer->buf->data, buffer->buf->length, "", 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"scale", scale,
+			NULL ) );
+	else
+		return( vips_image_new_from_buffer( 
+			buffer->buf->data, buffer->buf->length, "", 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			NULL ) );
+}
+
+static void
+vips_thumbnail_buffer_class_init( VipsThumbnailClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsThumbnailClass *thumbnail_class = VIPS_THUMBNAIL_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "thumbnail_buffer";
+	vobject_class->description = _( "generate thumbnail from buffer" );
+
+	thumbnail_class->get_info = vips_thumbnail_buffer_get_info;
+	thumbnail_class->open = vips_thumbnail_buffer_open;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsThumbnailBuffer, buf ),
+		VIPS_TYPE_BLOB );
+
+}
+
+static void
+vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
+{
+}
+
+/**
+ * vips_thumbnail_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: output image
+ * @width: target width in pixels
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @height: %gint, target height in pixels
+ * * @auto_rotate: %gboolean, rotate upright using orientation tag
+ * * @crop: %gboolean, shrink and crop to fill target
+ * * @linear: %gboolean, perform shrink in linear light
+ * * @import_probuffer: %gchararray, fallback import ICC probuffer
+ * * @export_probuffer: %gchararray, export ICC probuffer
+ *
+ * Exacty as vips_thumbnail(), but read from a memory buffer. 
+ *
+ * See also: vips_thumbnail().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_thumbnail_buffer( void *buf, size_t len, VipsImage **out, int width, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, width );
+	result = vips_call_split( "thumbnail_buffer", ap, blob, out, width );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
