@@ -683,10 +683,11 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * also be far slower, since tricks like JPEG shrink-on-load cannot be used in
  * linear space.
  *
- * If you set @export_profile to the filename of an ICC profile, the image will
- * be transformed to the target colourspace before writing to the output. You
- * can also give an @import_profile which will be used if the input image has
- * no ICC profile, or if the profile embedded in the input image is broken.
+ * If you set @export_profile to the filename of an ICC profile, the image 
+ * will be transformed to the target colourspace before writing to the 
+ * output. You can also give an @import_profile which will be used if the 
+ * input image has no ICC profile, or if the profile embedded in the 
+ * input image is broken.
  *
  * See also: vips_thumbnail_buffer().
  *
@@ -747,7 +748,8 @@ vips_thumbnail_buffer_get_info( VipsThumbnail *thumbnail )
  * scale, never both. 
  */
 static VipsImage *
-vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, int shrink, double scale )
+vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, 
+	int shrink, double scale )
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 

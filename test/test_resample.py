@@ -105,8 +105,11 @@ class TestResample(unittest.TestCase):
         for x, y in zip_expand(a, b):
             self.assertAlmostEqual(x, y, places = places, msg = msg)
 
+    def setUp(self):
+        self.jpeg_file = "images/йцук.jpg"
+
     def test_affine(self):
-        im = Vips.Image.new_from_file("images/йцук.jpg")
+        im = Vips.Image.new_from_file(self.jpeg_file)
 
         # vsqbs is non-interpolatory, don't test this way
         for name in ["nearest", "bicubic", "bilinear", "nohalo", "lbb"]:
@@ -118,7 +121,7 @@ class TestResample(unittest.TestCase):
             self.assertEqual((x - im).abs().max(), 0)
 
     def test_reduce(self):
-        im = Vips.Image.new_from_file("images/йцук.jpg")
+        im = Vips.Image.new_from_file(self.jpeg_file)
         # cast down to 0-127, the smallest range, so we aren't messed up by
         # clipping
         im = im.cast(Vips.BandFormat.CHAR)
@@ -166,7 +169,7 @@ class TestResample(unittest.TestCase):
                 self.assertEqual(d, 0)
 
     def test_resize(self):
-        im = Vips.Image.new_from_file("images/йцук.jpg")
+        im = Vips.Image.new_from_file(self.jpeg_file)
         im2 = im.resize(0.25)
         self.assertEqual(im2.width, round(im.width / 4.0))
         self.assertEqual(im2.height, round(im.height / 4.0))
@@ -178,7 +181,7 @@ class TestResample(unittest.TestCase):
         self.assertEqual(x.height, 1)
 
     def test_shrink(self):
-        im = Vips.Image.new_from_file("images/йцук.jpg")
+        im = Vips.Image.new_from_file(self.jpeg_file)
         im2 = im.shrink(4, 4)
         self.assertEqual(im2.width, round(im.width / 4.0))
         self.assertEqual(im2.height, round(im.height / 4.0))
@@ -189,22 +192,52 @@ class TestResample(unittest.TestCase):
         self.assertEqual(im2.height, round(im.height / 2.5))
         self.assertLess(abs(im.avg() - im2.avg()), 1)
 
+    def test_thumbnail(self):
+        im = Vips.Image.thumbnail(self.jpeg_file, 100)
+
+        self.assertEqual(im.width, 100)
+        self.assertEqual(im.bands, 3)
+        self.assertEqual(im.bands, 3)
+
+        # the average shouldn't move too much
+        im_orig = Vips.Image.new_from_file(self.jpeg_file)
+        self.assertLess(abs(im_orig.avg() - im.avg()), 1)
+
+        # make sure we always get the right width
+        for width in range(1000, 1, -13):
+            im = Vips.Image.thumbnail(self.jpeg_file, width)
+            self.assertEqual(im.width, width)
+
+        # should fit one of width or height
+        im = Vips.Image.thumbnail(self.jpeg_file, 100, height = 300)
+        self.assertEqual(im.width, 100)
+        self.assertNotEqual(im.height, 300)
+        im = Vips.Image.thumbnail(self.jpeg_file, 300, height = 100)
+        self.assertNotEqual(im.width, 300)
+        self.assertEqual(im.height, 100)
+
+        # with @crop, should fit both width and height
+        im = Vips.Image.thumbnail(self.jpeg_file, 100, 
+                                  height = 300, crop = True)
+        self.assertEqual(im.width, 100)
+        self.assertEqual(im.height, 300)
+
     def test_similarity(self):
-        im = Vips.Image.new_from_file("images/йцук.jpg")
+        im = Vips.Image.new_from_file(self.jpeg_file)
         im2 = im.similarity(angle = 90)
         im3 = im.affine([0, -1, 1, 0])
-        # rounding in calculating the affine transform from the angle stops this
-        # being exactly true
+        # rounding in calculating the affine transform from the angle stops 
+        # this being exactly true
         self.assertLess((im2 - im3).abs().max(), 50)
 
     def test_similarity_scale(self):
-        im = Vips.Image.new_from_file("images/йцук.jpg")
+        im = Vips.Image.new_from_file(self.jpeg_file)
         im2 = im.similarity(scale = 2)
         im3 = im.affine([2, 0, 0, 2])
         self.assertEqual((im2 - im3).abs().max(), 0)
 
     def test_mapim(self):
-        im = Vips.Image.new_from_file("images/йцук.jpg")
+        im = Vips.Image.new_from_file(self.jpeg_file)
 
         p = to_polar(im)
         r = to_rectangular(p)

@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Thu 18 Aug 16:01:57 BST 2016
+// Wed  2 Nov 13:48:04 GMT 2016
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -1757,6 +1757,18 @@ void VImage::dzsave( char * filename , VOption *options )
             set( "filename", filename ) );
 }
 
+VipsBlob * VImage::dzsave_buffer( VOption *options )
+{
+    VipsBlob * buffer;
+
+    call( "dzsave_buffer" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "buffer", &buffer ) );
+
+    return( buffer );
+}
+
 void VImage::pngsave( char * filename , VOption *options )
 {
     call( "pngsave" ,
@@ -1832,12 +1844,50 @@ void VImage::tiffsave( char * filename , VOption *options )
             set( "filename", filename ) );
 }
 
+VipsBlob * VImage::tiffsave_buffer( VOption *options )
+{
+    VipsBlob * buffer;
+
+    call( "tiffsave_buffer" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "buffer", &buffer ) );
+
+    return( buffer );
+}
+
 void VImage::fitssave( char * filename , VOption *options )
 {
     call( "fitssave" ,
         (options ? options : VImage::option()) ->
             set( "in", *this ) ->
             set( "filename", filename ) );
+}
+
+VImage VImage::thumbnail( char * filename , int width , VOption *options )
+{
+    VImage out;
+
+    call( "thumbnail" ,
+        (options ? options : VImage::option()) ->
+            set( "filename", filename ) ->
+            set( "out", &out ) ->
+            set( "width", width ) );
+
+    return( out );
+}
+
+VImage VImage::thumbnail_buffer( VipsBlob * buffer , int width , VOption *options )
+{
+    VImage out;
+
+    call( "thumbnail_buffer" ,
+        (options ? options : VImage::option()) ->
+            set( "buffer", buffer ) ->
+            set( "out", &out ) ->
+            set( "width", width ) );
+
+    return( out );
 }
 
 VImage VImage::mapim( VImage index , VOption *options )

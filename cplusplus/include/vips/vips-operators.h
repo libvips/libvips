@@ -1,5 +1,5 @@
 // headers for vips operations
-// Thu 18 Aug 16:02:54 BST 2016
+// Wed  2 Nov 13:48:15 GMT 2016
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 );
@@ -142,6 +142,7 @@ void ppmsave( char * filename , VOption *options = 0 );
 void radsave( char * filename , VOption *options = 0 );
 VipsBlob * radsave_buffer( VOption *options = 0 );
 void dzsave( char * filename , VOption *options = 0 );
+VipsBlob * dzsave_buffer( VOption *options = 0 );
 void pngsave( char * filename , VOption *options = 0 );
 VipsBlob * pngsave_buffer( VOption *options = 0 );
 void jpegsave( char * filename , VOption *options = 0 );
@@ -150,7 +151,10 @@ void jpegsave_mime( VOption *options = 0 );
 void webpsave( char * filename , VOption *options = 0 );
 VipsBlob * webpsave_buffer( VOption *options = 0 );
 void tiffsave( char * filename , VOption *options = 0 );
+VipsBlob * tiffsave_buffer( VOption *options = 0 );
 void fitssave( char * filename , VOption *options = 0 );
+static VImage thumbnail( char * filename , int width , VOption *options = 0 );
+static VImage thumbnail_buffer( VipsBlob * buffer , int width , VOption *options = 0 );
 VImage mapim( VImage index , VOption *options = 0 );
 VImage shrink( double hshrink , double vshrink , VOption *options = 0 );
 VImage shrinkh( int hshrink , VOption *options = 0 );
