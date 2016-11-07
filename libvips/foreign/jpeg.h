@@ -77,8 +77,6 @@ typedef struct {
 void vips__new_output_message( j_common_ptr cinfo );
 void vips__new_error_exit( j_common_ptr cinfo );
 
-int vips__set_exif_resolution( ExifData *ed, VipsImage *im );
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

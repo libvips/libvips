@@ -229,6 +229,9 @@ int vips__openslide_read( const char *filename, VipsImage *out,
 int vips__openslide_read_associated( const char *filename, VipsImage *out, 
 	const char *associated );
 
+int vips__exif_parse( VipsImage *image );
+int vips__exif_update( VipsImage *image );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

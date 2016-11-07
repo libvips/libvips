@@ -264,7 +264,10 @@ read_header( Read *read, VipsImage *out )
 
 	WebPMuxDelete( mux ); 
 
-
+	/* We may have read some exif ... parse into the header.
+	 */
+	if( vips__exif_parse( out ) )
+		return( -1 ); 
 }
 #endif /*HAVE_LIBWEBPMUX*/
 
