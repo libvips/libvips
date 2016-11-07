@@ -51,6 +51,9 @@
 #include <string.h>
 
 #include <webp/decode.h>
+#ifdef HAVE_LIBWEBPMUX
+#include <webp/mux.h>
+#endif /*HAVE_LIBWEBPMUX*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -215,6 +218,39 @@ read_header( Read *read, VipsImage *out )
 		1.0, 1.0 );
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
+#ifdef HAVE_LIBWEBPMUX
+{
+	WebPData bitstream;
+	WebPMux *mux;
+	WebPData icc_profile;
+	WebPData exif_data;
+	WebPData xmp_data;
+
+	/* We have to parse the whole file again to get the ICC profile out.
+	 */
+	bitstream.bytes = read->data;
+	bitstream.size = read->length;
+	if( !(mux = WebPMuxCreate( &bitstream, 0 )) ) {
+		vips_error( "webp", "%s", _( "parse error" ) ); 
+		return( -1 ); 
+	}
+
+	if( WebPMuxGetChunk( mux, "ICCP", &icc_profile ) == WEBP_MUX_OK ) {
+		printf("Size of the ICC profile data: %zd\n", icc_profile.size );
+	}
+
+	if( WebPMuxGetChunk( mux, "EXIF", &exif_data ) == WEBP_MUX_OK ) {
+		printf("Size of the EXIF data: %zd\n", exif_data.size );
+	}
+
+	if( WebPMuxGetChunk( mux, "XMP ", &xmp_data ) == WEBP_MUX_OK ) {
+		printf("Size of the XMP data: %zd\n", xmp_data.size );
+	}
+
+	WebPMuxDelete( mux ); 
+}
+#endif /*HAVE_LIBWEBPMUX*/
 
 	return( 0 );
 }

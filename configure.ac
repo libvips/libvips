@@ -766,7 +766,7 @@ AC_ARG_WITH([libwebp],
   AS_HELP_STRING([--without-libwebp], [build without libwebp (default: test)]))
 
 if test x"$with_libwebp" != "xno"; then
-  PKG_CHECK_MODULES(LIBWEBP, libwebp >= 0.1.3,
+  PKG_CHECK_MODULES(LIBWEBP, libwebp >= 0.3.1,
     [AC_DEFINE(HAVE_LIBWEBP,1,[define if you have libwebp installed.])
      with_libwebp=yes
      PACKAGES_USED="$PACKAGES_USED libwebp"
@@ -778,6 +778,19 @@ if test x"$with_libwebp" != "xno"; then
         with_libwebp=no
        ]
      )
+    ]
+  )
+fi
+
+# webp has the stuff for pulling out ICC profile etc in a separate library
+if test x"$with_libwebp" != "xno"; then
+  PKG_CHECK_MODULES(LIBWEBPMUX, libwebpmux >= 0.3.0,
+    [AC_DEFINE(HAVE_LIBWEBPMUX,1,[define if you have libwebpmux installed.])
+     with_libwebpmux=yes
+     PACKAGES_USED="$PACKAGES_USED libwebpmux"
+    ],
+    [AC_MSG_WARN([libwebpmux not found; disabling webp metadata support])
+     with_libwebpmux=no
     ]
   )
 fi
@@ -981,14 +994,14 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
 do 
 	echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES" 
-VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -1088,6 +1101,8 @@ zlib: 					$with_zlib
 file import with cfitsio: 		$with_cfitsio
 file import/export with libwebp:	$with_libwebp
   (requires libwebp-0.1.3 or later)
+support webp metadata:			$with_libwebpmux
+  (requires libwebpmux-0.5 or later)
 text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
