@@ -6,6 +6,8 @@
  * 	- oops, buffer path was broken, thanks Lovell
  * 28/2/16
  * 	- add @shrink
+ * 7/11/16
+ * 	- support XMP/ICC/EXIF metadata
  */
 
 /*
@@ -207,6 +209,14 @@ read_new( const char *filename, const void *data, size_t length, int shrink )
 	return( read );
 }
 
+/* Map vips metadata names to webp names.
+ */
+const VipsWebPNames vips__webp_names[] = {
+	{ VIPS_META_ICC_NAME, "ICCP" },
+	{ VIPS_META_XMP_NAME, "XMP " },
+	{ VIPS_META_EXIF_NAME, "EXIF" }
+};
+
 static int
 read_header( Read *read, VipsImage *out )
 {
@@ -223,9 +233,7 @@ read_header( Read *read, VipsImage *out )
 {
 	WebPData bitstream;
 	WebPMux *mux;
-	WebPData icc_profile;
-	WebPData exif_data;
-	WebPData xmp_data;
+	int i;
 
 	/* We have to parse the whole file again to get the ICC profile out.
 	 */
@@ -236,19 +244,27 @@ read_header( Read *read, VipsImage *out )
 		return( -1 ); 
 	}
 
-	if( WebPMuxGetChunk( mux, "ICCP", &icc_profile ) == WEBP_MUX_OK ) {
-		printf("Size of the ICC profile data: %zd\n", icc_profile.size );
-	}
+	for( i = 0; i < VIPS_NUMBER( vips__webp_names ); i++ ) { 
+		WebPData data;
 
-	if( WebPMuxGetChunk( mux, "EXIF", &exif_data ) == WEBP_MUX_OK ) {
-		printf("Size of the EXIF data: %zd\n", exif_data.size );
-	}
+		if( WebPMuxGetChunk( mux, vips__webp_names[i].webp, &data ) == 
+			WEBP_MUX_OK ) { 
+			void *blob;
 
-	if( WebPMuxGetChunk( mux, "XMP ", &xmp_data ) == WEBP_MUX_OK ) {
-		printf("Size of the XMP data: %zd\n", xmp_data.size );
+			if( !(blob = vips_malloc( NULL, data.size )) ) {
+				WebPMuxDelete( mux ); 
+				return( -1 ); 
+			}
+
+			memcpy( blob, data.bytes, data.size );
+			vips_image_set_blob( out, vips__webp_names[i].vips, 
+				(VipsCallbackFn) vips_free, blob, data.size );
+		}
 	}
 
 	WebPMuxDelete( mux ); 
+
+
 }
 #endif /*HAVE_LIBWEBPMUX*/
 

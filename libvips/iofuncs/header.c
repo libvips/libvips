@@ -1262,7 +1262,7 @@ vips_image_get_area( const VipsImage *image, const char *name, void **data )
  *
  * Attaches @blob as a metadata item on @image under the name @name. A 
  * convenience
- * function over vips_image_set() using an vips_blob.
+ * function over vips_image_set() using a vips_blob.
  *
  * See also: vips_image_get_blob(), vips_image_set().
  */

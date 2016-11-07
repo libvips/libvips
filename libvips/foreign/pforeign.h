@@ -191,6 +191,14 @@ int vips__png_write_buf( VipsImage *in,
 	void **obuf, size_t *olen, int compression, int interlace, 
 	const char *profile, VipsForeignPngFilter filter, gboolean strip );
 
+/* Map WEBP metadata names to vips names.
+ */
+typedef struct _VipsWebPNames {
+	const char *vips;
+	const char *webp;
+} VipsWebPNames;
+
+extern const VipsWebPNames vips__webp_names[];
 extern const char *vips__webp_suffs[];
 
 int vips__iswebp_buffer( const void *buf, size_t len );
