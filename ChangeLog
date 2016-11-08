@@ -6,7 +6,7 @@
 - better vipsheader behaviour with complex field types
 - added vips_image_hasalpha()
 - added vips_thumbnail() / vips_thumbnail_buffer()
-- webpload reads icc, xmp, exif metadata
+- webpload/webpsave read and write icc, xmp, exif metadata
 
 18/10/16 started 8.4.3
 - fix error detection in gif_close, thanks aaron42net

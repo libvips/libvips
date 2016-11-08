@@ -212,10 +212,11 @@ read_new( const char *filename, const void *data, size_t length, int shrink )
 /* Map vips metadata names to webp names.
  */
 const VipsWebPNames vips__webp_names[] = {
-	{ VIPS_META_ICC_NAME, "ICCP" },
-	{ VIPS_META_XMP_NAME, "XMP " },
-	{ VIPS_META_EXIF_NAME, "EXIF" }
+	{ VIPS_META_ICC_NAME, "ICCP", 0x20 },
+	{ VIPS_META_XMP_NAME, "XMP ", 0x04 },
+	{ VIPS_META_EXIF_NAME, "EXIF", 0x08 }
 };
+const int vips__n_webp_names = VIPS_NUMBER( vips__webp_names ); 
 
 static int
 read_header( Read *read, VipsImage *out )
@@ -245,10 +246,12 @@ read_header( Read *read, VipsImage *out )
 	}
 
 	for( i = 0; i < VIPS_NUMBER( vips__webp_names ); i++ ) { 
+		const char *vips = vips__webp_names[i].vips;
+		const char *webp = vips__webp_names[i].webp;
+
 		WebPData data;
 
-		if( WebPMuxGetChunk( mux, vips__webp_names[i].webp, &data ) == 
-			WEBP_MUX_OK ) { 
+		if( WebPMuxGetChunk( mux, webp, &data ) == WEBP_MUX_OK ) { 
 			void *blob;
 
 			if( !(blob = vips_malloc( NULL, data.size )) ) {
@@ -257,7 +260,7 @@ read_header( Read *read, VipsImage *out )
 			}
 
 			memcpy( blob, data.bytes, data.size );
-			vips_image_set_blob( out, vips__webp_names[i].vips, 
+			vips_image_set_blob( out, vips, 
 				(VipsCallbackFn) vips_free, blob, data.size );
 		}
 	}

@@ -196,9 +196,14 @@ int vips__png_write_buf( VipsImage *in,
 typedef struct _VipsWebPNames {
 	const char *vips;
 	const char *webp;
+
+	/* The webp flag bit for this chunk of metadata 
+	 */
+	int flag;
 } VipsWebPNames;
 
 extern const VipsWebPNames vips__webp_names[];
+extern const int vips__n_webp_names;
 extern const char *vips__webp_suffs[];
 
 int vips__iswebp_buffer( const void *buf, size_t len );
