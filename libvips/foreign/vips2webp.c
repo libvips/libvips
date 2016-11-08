@@ -89,8 +89,12 @@ get_preset( VipsForeignWebpPreset preset )
 
 typedef struct {
 	uint8_t *mem;
-	size_t size;
-	size_t max_size;
+
+	/* We want to be able to detect >4gb even on machines that have size_t
+	 * as uint32.
+	 */
+	guint64 size;
+	guint64 max_size;
 } VipsWebPWriter;
 
 static void
@@ -103,21 +107,33 @@ vips_webp_writer_init( VipsWebPWriter *writer )
 
 static int
 vips_webp_writer_append( VipsWebPWriter *writer, 
-	const uint8_t *data, size_t data_size )
+	const uint8_t *data, guint64 data_size )
 {
-	size_t next_size;
+	guint64 next_size;
 
 	next_size = writer->size + data_size;
 
 	if( next_size > writer->max_size ) {
 		uint8_t *new_mem;
-		const size_t next_max_size =
+		const guint64 next_max_size =
 			VIPS_MAX( 8192, VIPS_MAX( next_size, 
 				writer->max_size * 2 ) );
 
-		if( !(new_mem = (uint8_t *) 
-			g_try_realloc( writer->mem, next_max_size )) ) 
+		/* We should let it creep up to 4gb rather than just
+		 * blocking when max goes over, but no one will make a >2gb
+		 * webp image.
+		 */
+		if( next_max_size > UINT_MAX ) {
+			vips_error( "webp", 
+				"%s", _( "output webp image too large" ) );
 			return( 0 );
+		}
+
+		if( !(new_mem = (uint8_t *) 
+			g_try_realloc( writer->mem, next_max_size )) ) {
+			vips_error( "webp", "%s", _( "out of memory" ) );
+			return( 0 );
+		}
 
 		writer->mem = new_mem;
 		writer->max_size = next_max_size;
@@ -167,7 +183,7 @@ vips_webp_writer_appendcc( VipsWebPWriter *writer, const char buf[4] )
 
 static gboolean
 vips_webp_writer_appendc( VipsWebPWriter *writer, 
-	const char fourcc[4], const uint8_t *data, size_t data_size )
+	const char fourcc[4], const uint8_t *data, guint64 data_size )
 {
 	const int zero = 0;
 	gboolean need_padding = (data_size & 1) != 0;
@@ -284,7 +300,7 @@ static int
 vips_webp_add_chunk( VipsWebPWriter *writer, VipsImage *image, 
 	const char *vips, const char webp[4] )
 {
-	if( vips_image_get_typeof( image, vips) ) {
+	if( vips_image_get_typeof( image, vips ) ) {
 		void *data;
 		size_t length;
 
@@ -344,6 +360,11 @@ vips_webp_add_metadata( VipsWebPWriter *writer, VipsImage *image )
 	int i;
 	guint64 new_size;
 	VipsWebPWriter new;
+
+	/* Rebuild the EXIF block, if any, ready for writing. 
+	 */
+	if( vips__exif_update( image ) )
+		return( -1 ); 
 
 	/* We have to find the size of the block we will write before we can
 	 * start to write it.
@@ -474,7 +495,7 @@ int
 vips__webp_write_file( VipsImage *in, const char *filename, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q )
+	int alpha_q, gboolean strip )
 {
 	WebPPicture pic;
 	VipsWebPWriter writer;
@@ -499,7 +520,8 @@ vips__webp_write_file( VipsImage *in, const char *filename,
 
 	WebPPictureFree( &pic );
 
-	if( vips_webp_add_metadata( &writer, in ) ) {
+	if( !strip &&
+		vips_webp_add_metadata( &writer, in ) ) {
 		vips_webp_writer_unset( &writer );
 		return( -1 );
 	}
@@ -525,7 +547,7 @@ int
 vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q )
+	int alpha_q, gboolean strip )
 {
 	WebPPicture pic;
 	VipsWebPWriter writer;
@@ -549,7 +571,8 @@ vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen,
 
 	WebPPictureFree( &pic );
 
-	if( vips_webp_add_metadata( &writer, in ) ) {
+	if( !strip &&
+		vips_webp_add_metadata( &writer, in ) ) {
 		vips_webp_writer_unset( &writer );
 		return( -1 );
 	}

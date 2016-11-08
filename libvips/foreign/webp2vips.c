@@ -236,7 +236,7 @@ read_header( Read *read, VipsImage *out )
 	WebPMux *mux;
 	int i;
 
-	/* We have to parse the whole file again to get the ICC profile out.
+	/* We have to parse the whole file again to get the metadata out.
 	 */
 	bitstream.bytes = read->data;
 	bitstream.size = read->length;
@@ -245,7 +245,7 @@ read_header( Read *read, VipsImage *out )
 		return( -1 ); 
 	}
 
-	for( i = 0; i < VIPS_NUMBER( vips__webp_names ); i++ ) { 
+	for( i = 0; i < vips__n_webp_names; i++ ) { 
 		const char *vips = vips__webp_names[i].vips;
 		const char *webp = vips__webp_names[i].webp;
 

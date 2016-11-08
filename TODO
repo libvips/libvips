@@ -1,18 +1,5 @@
 - test with libwebp 0.3, the earliest that supports libwebpmux
 
-  test with ubuntu ... seems to have libwebpmux2
-
-  test webp metadata read and write
-
-  webpsave should support strip
-
-  update docs
-
-  need to check for >4gb overflow ... use guint64 for all size calculations
-
-  webpsave needs hooking up to exif.c
-
-
 
 - not sure about utf8 error messages on win
 

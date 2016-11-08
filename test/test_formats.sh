@@ -49,7 +49,8 @@ save_load() {
 	fi
 
 	if ! $vips copy $tmp/t1.$format $tmp/back.v ; then
-		echo "read from $out failed"
+		echo "read from $tmp/t1.format failed"
+		echo "  (was written by $vips copy $in $tmp/t1.$format$mode)"
 		exit 1
 	fi
 }
