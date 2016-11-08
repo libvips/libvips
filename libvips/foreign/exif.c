@@ -519,15 +519,13 @@ vips__exif_parse( VipsImage *image )
 	/* Orientation handling. We look for the first Orientation EXIF tag
 	 * (there can be many of them) and use that to set our own
 	 * VIPS_META_ORIENTATION. 
+	 *
+	 * ifd0 is usually the image, ifd1 the thumbnail. 
 	 */
 	(void) vips_image_map( image, vips_exif_get_orientation, NULL );
 
 	return( 0 );
 }
-
-
-
-
 
 static void
 vips_exif_set_int( ExifData *ed, 

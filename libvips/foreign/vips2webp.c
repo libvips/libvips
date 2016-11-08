@@ -147,6 +147,13 @@ vips_webp_writer_append( VipsWebPWriter *writer,
 	return( 1 );
 }
 
+/* We don't actually use libwebpmux here, but we shouldn't attach metadata we
+ * can't read back because we'll be unable to test ourselves.
+ *
+ * Only attach metadata if we have something to read it back, otherwise
+ * lots of our tests start failing.
+ */
+#ifdef HAVE_LIBWEBPMUX
 static int
 vips_webp_writer_appendle( VipsWebPWriter *writer, uint32_t val, int n )
 {
@@ -199,6 +206,7 @@ vips_webp_writer_appendc( VipsWebPWriter *writer,
 
 	return( 1 );
 }
+#endif /*HAVE_LIBWEBPMUX*/
 
 static void
 vips_webp_writer_unset( VipsWebPWriter *writer )
@@ -296,6 +304,7 @@ write_webp( WebPPicture *pic, VipsImage *in,
 	return( 0 );
 }
 
+#ifdef HAVE_LIBWEBPMUX
 static int
 vips_webp_add_chunk( VipsWebPWriter *writer, VipsImage *image, 
 	const char *vips, const char webp[4] )
@@ -490,6 +499,7 @@ vips_webp_add_metadata( VipsWebPWriter *writer, VipsImage *image )
 
 	return( 0 );
 }
+#endif /*HAVE_LIBWEBPMUX*/
 
 int
 vips__webp_write_file( VipsImage *in, const char *filename, 
@@ -520,11 +530,13 @@ vips__webp_write_file( VipsImage *in, const char *filename,
 
 	WebPPictureFree( &pic );
 
+#ifdef HAVE_LIBWEBPMUX
 	if( !strip &&
 		vips_webp_add_metadata( &writer, in ) ) {
 		vips_webp_writer_unset( &writer );
 		return( -1 );
 	}
+#endif /*HAVE_LIBWEBPMUX*/
 
 	if( !(fp = vips__file_open_write( filename, FALSE )) ) {
 		vips_webp_writer_unset( &writer );
@@ -571,11 +583,13 @@ vips__webp_write_buffer( VipsImage *in, void **obuf, size_t *olen,
 
 	WebPPictureFree( &pic );
 
+#ifdef HAVE_LIBWEBPMUX
 	if( !strip &&
 		vips_webp_add_metadata( &writer, in ) ) {
 		vips_webp_writer_unset( &writer );
 		return( -1 );
 	}
+#endif /*HAVE_LIBWEBPMUX*/
 
 	*obuf = writer.mem;
 	*olen = writer.size;
