@@ -783,8 +783,12 @@ if test x"$with_libwebp" != "xno"; then
 fi
 
 # webp has the stuff for pulling out ICC profile etc in a separate library
+# 
+# we can build with libwebpmux back to 0.3, but it's not until libwebp 0.5 that
+# we can read that metadata back successfully ... insist on 0.5 so that tests
+# can work smoothly
 if test x"$with_libwebp" != "xno"; then
-  PKG_CHECK_MODULES(LIBWEBPMUX, libwebpmux >= 0.3.0,
+  PKG_CHECK_MODULES(LIBWEBPMUX, libwebpmux >= 0.5.0,
     [AC_DEFINE(HAVE_LIBWEBPMUX,1,[define if you have libwebpmux installed.])
      with_libwebpmux=yes
      PACKAGES_USED="$PACKAGES_USED libwebpmux"

@@ -237,12 +237,15 @@ read_header( Read *read, VipsImage *out )
 	int i;
 
 	/* We have to parse the whole file again to get the metadata out.
+	 *
+	 * Don't make parse failure an error. We don't want to refuse to read
+	 * any pixels because of some malformed metadata.
 	 */
 	bitstream.bytes = read->data;
 	bitstream.size = read->length;
 	if( !(mux = WebPMuxCreate( &bitstream, 0 )) ) {
-		vips_error( "webp", "%s", _( "parse error" ) ); 
-		return( -1 ); 
+		vips_warn( "webp", "%s", _( "unable to read image metadata" ) ); 
+		return( 0 ); 
 	}
 
 	for( i = 0; i < vips__n_webp_names; i++ ) { 
@@ -288,8 +291,10 @@ vips__webp_read_file_header( const char *filename, VipsImage *out, int shrink )
 		return( -1 );
 	}
 
-	if( read_header( read, out ) )
+	if( read_header( read, out ) ) {
+		read_free( read );
 		return( -1 );
+	}
 
 	read_free( read );
 
@@ -356,8 +361,10 @@ vips__webp_read_buffer_header( const void *buf, size_t len, VipsImage *out,
 		return( -1 );
 	}
 
-	if( read_header( read, out ) )
+	if( read_header( read, out ) ) {
+		read_free( read );
 		return( -1 );
+	}
 
 	read_free( read );
 

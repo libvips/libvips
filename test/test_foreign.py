@@ -372,8 +372,8 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("webpload", self.webp_file, webp_valid)
         self.buffer_loader("webpload_buffer", self.webp_file, webp_valid)
-        self.save_load_buffer("webpsave_buffer", "webpload_buffer", self.colour,
-                             50)
+        self.save_load_buffer("webpsave_buffer", "webpload_buffer", 
+                              self.colour, 60)
         self.save_load("%s.webp", self.colour)
 
         # test lossless mode
