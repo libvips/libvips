@@ -1,6 +1,3 @@
-- test under valgrind
-
-
 - not sure about utf8 error messages on win
 
 - strange: 

@@ -366,15 +366,16 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 
 	/* The main image xres/yres are in ifd0. ifd1 has xres/yres of the
 	 * image thumbnail, if any.
+	 *
+	 * Don't warn about missing res fields, it's very common, especially for
+	 * things like webp.
 	 */
 	if( vips_exif_entry_get_double( ed, 0, EXIF_TAG_X_RESOLUTION, &xres ) ||
 		vips_exif_entry_get_double( ed, 
 			0, EXIF_TAG_Y_RESOLUTION, &yres ) ||
 		vips_exif_entry_get_int( ed, 
-			0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
-		vips_warn( "exif", "%s", _( "error reading resolution" ) );
+			0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) 
 		return( -1 );
-	}
 
 #ifdef DEBUG
 	printf( "vips_image_resolution_from_exif: seen exif tags "
@@ -1105,6 +1106,8 @@ vips__exif_update( VipsImage *image )
 
 	vips_image_set_blob( image, VIPS_META_EXIF_NAME, 
 		(VipsCallbackFn) vips_free, data, length );
+
+	exif_data_free( ed );
 
 	return( 0 );
 }
