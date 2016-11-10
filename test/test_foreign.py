@@ -15,6 +15,8 @@ import gi
 gi.require_version('Vips', '8.0')
 from gi.repository import Vips 
 
+from gi.repository import GObject
+
 Vips.leak_set(True)
 
 # an expanding zip ... if either of the args is not a list, duplicate it down
@@ -170,17 +172,9 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.jpg", self.mono)
         self.save_load("%s.jpg", self.colour)
 
-        # see if we have exif parsing
-        have_exif = False
+        # see if we have exif parsing: our test image has this field
         x = Vips.Image.new_from_file(self.jpeg_file)
-        try:
-            # our test image has this field
-            y = x.get_value("exif-ifd0-Orientation")
-            have_exif = True
-        except:
-            pass
-
-        if have_exif:
+        if x.get_typeof("exif-ifd0-Orientation") != GObject.TYPE_INVALID:
             # we need a copy of the image to set the new metadata on
             # otherwise we get caching problems
             x = Vips.Image.new_from_file(self.jpeg_file)
@@ -392,6 +386,27 @@ class TestForeign(unittest.TestCase):
         b1 = im.webpsave_buffer(Q = 10)
         b2 = im.webpsave_buffer(Q = 90)
         self.assertGreater(len(b2), len(b1))
+
+        # try saving an image with an ICC profile and reading it back ... if we
+        # can do it, our webp supports metadata load/save
+        buf = self.colour.webpsave_buffer()
+        im = Vips.Image.new_from_buffer(buf, "")
+        if im.get_typeof("icc-profile-data") != GObject.TYPE_INVALID:
+            # verify that the profile comes back unharmed
+            p1 = self.colour.get_value("icc-profile-data")
+            p2 = im.get_value("icc-profile-data")
+            self.assertEqual(p1, p2)
+
+            # add tests for exif, xmp, exif
+            # the exif test will need us to be able to walk the header, we can't
+            # just check exif-data
+
+            # we can test that exif changes change the output of webpsave
+            x = self.colour.copy()
+            x.set_value("orientation", 6)
+            buf = x.webpsave_buffer()
+            y = Vips.Image.new_from_buffer(buf, "")
+            self.assertEqual(y.get_value("orientation"), 6)
 
     def test_analyzeload(self):
         x = Vips.type_find("VipsForeign", "analyzeload")

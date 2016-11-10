@@ -1,5 +1,7 @@
 - test with libwebp 0.3, the earliest that supports libwebpmux
 
+  test under valgrind
+
 
 - not sure about utf8 error messages on win
 
