@@ -1041,12 +1041,18 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 		vips_error_exit( NULL );
 	}
 
+	/* On Windows, argc will not have been updated by
+	 * g_option_context_parse_strv().
+	 */
+	for( *argc = 0; argv[*argc]; (*argc)++ )
+		;
+
 	/* Remove any "--" argument. If one of our arguments is a negative
 	 * number, the user will need to have added the "--" flag to stop
 	 * GOption parsing. But "--" is still passed down to us and we need to
 	 * ignore it.
 	 */
-	for( i = 1; i < *argc - 1; i++ )
+	for( i = 1; i < *argc; i++ )
 		if( strcmp( argv[i], "--" ) == 0 ) {
 			for( j = i; j < *argc; j++ )
 				argv[j] = argv[j + 1];
