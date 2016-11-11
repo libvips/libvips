@@ -1,3 +1,6 @@
+11/11/16 started 8.4.4
+- fix crash in vips.exe arg parsing on Windows, thanks Yury
+
 18/10/16 started 8.4.3
 - fix error detection in gif_close, thanks aaron42net
 - fix tiny threading memleak
