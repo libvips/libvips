@@ -6,6 +6,7 @@
 - better vipsheader behaviour with complex field types
 - added vips_image_hasalpha()
 - added vips_thumbnail() / vips_thumbnail_buffer()
+- better >4gb detect for zip dzsave output [Felix Bünemann]
 
 11/11/16 started 8.4.4
 - fix crash in vips.exe arg parsing on Windows, thanks Yury

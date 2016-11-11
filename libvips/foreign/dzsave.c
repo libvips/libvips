@@ -69,6 +69,8 @@
  * 	- move vips-properties out of subdir for gm and zoomify layouts
  * 15/10/16
  * 	- add dzsave_buffer
+ * 11/11/16 Felix Bünemann
+ * 	- better >4gb detection for zip output on older libgsfs
  */
 
 /*
@@ -322,6 +324,12 @@ typedef struct _VipsGsfDirectory {
 	 */
         GsfOutput *container;
 
+	/* Track number of files in tree and total length of filenames. We use
+	 * this to estimate zip size to spot a >4gb write.
+	 */
+	size_t file_count;
+	size_t filename_lengths;
+
 	/* Set deflate compression level for zip container.
 	 */
 	gint deflate_level;
@@ -392,6 +400,8 @@ vips_gsf_tree_new( GsfOutput *out, gint deflate_level )
 	tree->children = NULL;
 	tree->out = out;
 	tree->container = NULL;
+	tree->file_count = 0;
+	tree->filename_lengths = 0;
 	tree->deflate_level = deflate_level;
 
 	return( tree ); 
@@ -429,6 +439,8 @@ vips_gsf_dir_new( VipsGsfDirectory *parent, const char *name )
 	dir->name = g_strdup( name );
 	dir->children = NULL;
 	dir->container = NULL;
+	dir->file_count = 0;
+	dir->filename_lengths = 0;
 	dir->deflate_level = parent->deflate_level;
 
 	if( GSF_IS_OUTFILE_ZIP( parent->out ) )
@@ -467,13 +479,23 @@ vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
 	char *dir_name;
 	GsfOutput *obj;
 
+	/* vips_gsf_path() always makes a new file, though it may add to an
+	 * existing directory. Note the file, and note the length of the full
+	 * path we are creating.
+	 */
+	tree->file_count += 1;
+	tree->filename_lengths += strlen( tree->out->name ) + strlen( name ) + 1;
+
 	dir = tree; 
 	va_start( ap, name );
-	while( (dir_name = va_arg( ap, char * )) ) 
+	while( (dir_name = va_arg( ap, char * )) ) {
 		if( (child = vips_gsf_child_by_name( dir, dir_name )) )
 			dir = child;
 		else 
 			dir = vips_gsf_dir_new( dir, dir_name );
+
+		tree->filename_lengths += strlen( dir_name ) + 1;
+	}
 	va_end( ap );
 
 	if( GSF_IS_OUTFILE_ZIP( dir->out ) ) {
@@ -1220,6 +1242,29 @@ tile_equal( VipsImage *image, VipsPel * restrict ink )
 	return( TRUE );
 }
 
+#define VIPS_ZIP_FIXED_LH_SIZE (30 + 29)
+#define VIPS_ZIP_FIXED_CD_SIZE (46 + 9)
+#define VIPS_ZIP_EOCD_SIZE 22
+
+#ifndef HAVE_GSF_ZIP64
+static size_t
+estimate_zip_size( VipsForeignSaveDz *dz )
+{
+	size_t estimated_zip_size = dz->bytes_written + 
+		dz->tree->file_count * VIPS_ZIP_FIXED_LH_SIZE + 
+		dz->tree->filename_lengths + 
+		dz->tree->file_count * VIPS_ZIP_FIXED_CD_SIZE + 
+		dz->tree->filename_lengths + 
+		VIPS_ZIP_EOCD_SIZE;
+
+#ifdef DEBUG_VERBOSE
+	printf( "estimate_zip_size: %zd\n", estimated_zip_size );
+#endif /*DEBUG_VERBOSE*/
+
+	return( estimated_zip_size );
+}
+#endif /*HAVE_GSF_ZIP64*/
+
 static int
 strip_work( VipsThreadState *state, void *a )
 {
@@ -1339,17 +1384,26 @@ strip_work( VipsThreadState *state, void *a )
 	}
 
 #ifndef HAVE_GSF_ZIP64
-	/* Allow a 100,000 byte margin. This probably isn't enough: we don't
-	 * include the space zip needs for the index nor anything we are
-	 * outputting apart from the gsf_output_write() above.
-	 */
-	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP &&
-		dz->bytes_written > (size_t) UINT_MAX - 100000 ) {
-		g_mutex_unlock( vips__global_lock );
+	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP ) { 
+		/* Leave 3 entry headroom for blank.png and metadata files. 
+		 */
+		if( dz->tree->file_count + 3 >= (unsigned int) USHRT_MAX ) {
+			g_mutex_unlock( vips__global_lock );
 
-		vips_error( class->nickname,
-			"%s", _( "output file too large" ) ); 
-		return( -1 ); 
+			vips_error( class->nickname,
+				"%s", _( "too many files in zip" ) ); 
+			return( -1 );
+		}
+
+		/* Leave 16k headroom for blank.png and metadata files. 
+		 */
+		if( estimate_zip_size( dz ) > (size_t) UINT_MAX - 16384) {
+			g_mutex_unlock( vips__global_lock );
+
+			vips_error( class->nickname,
+				"%s", _( "output file too large" ) ); 
+			return( -1 ); 
+		}
 	}
 #endif /*HAVE_GSF_ZIP64*/
 
