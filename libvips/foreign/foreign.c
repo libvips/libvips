@@ -986,6 +986,13 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoad, sequential ),
 		FALSE );
 
+	VIPS_ARG_BOOL( class, "fail", 11, 
+		_( "Fail" ), 
+		_( "Fail on first warning" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoad, fail ),
+		FALSE );
+
 }
 
 static void

@@ -89,7 +89,8 @@ vips_foreign_load_csv_header( VipsForeignLoad *load )
 	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) load;
 
 	if( vips__csv_read_header( csv->filename, load->out, 
-		csv->skip, csv->lines, csv->whitespace, csv->separator ) )
+		csv->skip, csv->lines, csv->whitespace, csv->separator,
+		load->fail ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, csv->filename );
@@ -103,7 +104,8 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) load;
 
 	if( vips__csv_read( csv->filename, load->real, 
-		csv->skip, csv->lines, csv->whitespace, csv->separator ) )
+		csv->skip, csv->lines, csv->whitespace, csv->separator,
+		load->fail ) )
 		return( -1 );
 
 	return( 0 );
@@ -191,6 +193,7 @@ vips_foreign_load_csv_init( VipsForeignLoadCsv *csv )
  * * @lines: read this many lines from file
  * * @whitespace: set of whitespace characters
  * * @separator: set of separator characters
+ * * @fail: %gboolean, fail on warnings
  *
  * Load a CSV (comma-separated values) file. The output image is always 1 
  * band (monochrome), #VIPS_FORMAT_DOUBLE. Use vips_bandfold() to turn
@@ -217,6 +220,8 @@ vips_foreign_load_csv_init( VipsForeignLoadCsv *csv )
  *
  * @separator sets the characters that separate fields. 
  * Default ;,<emphasis>tab</emphasis>. Separators are never run together.
+ *
+ * Setting @fail to %TRUE makes the reader fail on any warnings. 
  *
  * See also: vips_image_new_from_file(), vips_bandfold().
  *

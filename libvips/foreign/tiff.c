@@ -67,6 +67,9 @@ vips__thandler_error( const char *module, const char *fmt, va_list ap )
 	vips_verror( module, fmt, ap );
 }
 
+/* It'd be nice to be able to support the @fail option for the tiff loader, but
+ * there's no easy way to do this, since libtiff has a global warning handler.
+ */
 static void 
 vips__thandler_warning( const char *module, const char *fmt, va_list ap )
 {

@@ -7,6 +7,8 @@
 - added vips_image_hasalpha()
 - added vips_thumbnail() / vips_thumbnail_buffer()
 - better >4gb detect for zip dzsave output [Felix Bünemann]
+- all loaders have a @fail option, meaning fail on first warning, though it
+  only does anything for jpg, csv, openslide
 
 11/11/16 started 8.4.4
 - fix crash in vips.exe arg parsing on Windows, thanks Yury

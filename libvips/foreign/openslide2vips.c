@@ -115,6 +115,10 @@ typedef struct {
 	 */
 	int tile_width;
 	int tile_height;
+
+	/* Quit on warning.
+	 */
+	gboolean fail;
 } ReadSlide;
 
 int
@@ -223,7 +227,7 @@ get_bounds( openslide_t *osr, VipsRect *rect )
 
 static ReadSlide *
 readslide_new( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop, const char *associated )
+	int level, gboolean autocrop, const char *associated, gboolean fail )
 {
 	ReadSlide *rslide;
 	int64_t w, h;
@@ -391,9 +395,9 @@ readslide_new( const char *filename, VipsImage *out,
 
 int
 vips__openslide_read_header( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop, char *associated )
+	int level, gboolean autocrop, char *associated, gboolean fail )
 {
-	if( !readslide_new( filename, out, level, autocrop, associated ) )
+	if( !readslide_new( filename, out, level, autocrop, associated, fail ) )
 		return( -1 );
 
 	return( 0 );
@@ -475,13 +479,14 @@ vips__openslide_generate( VipsRegion *out,
 
 	/* Only warn on error: we don't want to make the whole image unreadable
 	 * because of one broken tile.
-	 *
-	 * FIXME ... add a --fail option like jpegload
 	 */
 	error = openslide_get_error( rslide->osr );
-	if( error ) 
+	if( error ) {
 		vips_warn( "openslide2vips", 
 			_( "reading region: %s" ), error );
+		if( rslide->fail )
+			return( -1 );
+	}
 
 	/* Since we are inside a cache, we know buf must be continuous.
 	 */
@@ -492,7 +497,7 @@ vips__openslide_generate( VipsRegion *out,
 
 int
 vips__openslide_read( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop )
+	int level, gboolean autocrop, gboolean fail )
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
@@ -505,7 +510,7 @@ vips__openslide_read( const char *filename, VipsImage *out,
 	vips_object_local( out, raw );
 
 	if( !(rslide = readslide_new( filename, raw, 
-		level, autocrop, NULL )) )
+		level, autocrop, NULL, fail )) )
 		return( -1 );
 
 	if( vips_image_generate( raw, 
@@ -534,7 +539,7 @@ vips__openslide_read( const char *filename, VipsImage *out,
 
 int
 vips__openslide_read_associated( const char *filename, VipsImage *out, 
-	const char *associated )
+	const char *associated, gboolean fail )
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
@@ -549,7 +554,8 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 	raw = vips_image_new_memory();
 	vips_object_local( out, raw );
 
-	if( !(rslide = readslide_new( filename, raw, 0, FALSE, associated )) ||
+	if( !(rslide = readslide_new( filename, raw, 
+		0, FALSE, associated, fail )) ||
 		vips_image_write_prepare( raw ) )
 		return( -1 );
 	buf = (uint32_t *) VIPS_IMAGE_ADDR( raw, 0, 0 );

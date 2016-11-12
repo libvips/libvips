@@ -76,7 +76,7 @@ im_csv2vips( const char *filename, IMAGE *out )
 	}
 
 	if( vips__csv_read( name, out, 
-		start_skip, lines, whitespace, separator ) )
+		start_skip, lines, whitespace, separator, FALSE ) )
 		return( -1 );
 
 	return( 0 );
