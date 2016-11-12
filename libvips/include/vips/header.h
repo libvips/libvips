@@ -170,6 +170,7 @@ gboolean vips_image_remove( VipsImage *image, const char *name );
 typedef void *(*VipsImageMapFn)( VipsImage *image, 
 	const char *name, GValue *value, void *a );
 void *vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a );
+gchar **vips_image_get_fields( VipsImage *image );
 
 void vips_image_set_area( VipsImage *image, 
 	const char *name, VipsCallbackFn free_fn, void *data );

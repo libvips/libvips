@@ -1176,6 +1176,55 @@ vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )
 	return( NULL );
 }
 
+static void *
+count_fields( VipsImage *image, const char *field, GValue *value, void *a )
+{
+	int *n_fields = (int *) a;
+
+	n_fields += 1;
+
+	return( NULL ); 
+}
+
+static void *
+add_fields( VipsImage *image, const char *field, GValue *value, void *a )
+{
+	gchar ***p = (gchar ***) a;
+
+	**p = g_strdup( field ); 
+	*p += 1;
+
+	return( NULL ); 
+}
+
+/**
+ * vips_image_get_fields:
+ * @image: image to get fields from
+ *
+ * Get a %NULL-terminated array listing all the metadata field names on @image. 
+ * Free the return result with g_strfreev().
+ *
+ * This is handy for language bindings. From C, it's usually more convenient to
+ * use vips_image_map().
+ *
+ * Returns: (transfer full): metadata fields in image, as a %NULL-terminated
+ * array. 
+ */
+gchar ** 
+vips_image_get_fields( VipsImage *image )
+{
+	int n_fields;
+	gchar **fields;
+	gchar **p;
+
+	(void) vips_image_map( image, count_fields, &n_fields );
+	fields = g_new0( gchar *, n_fields + 1 ); 
+	p = fields;
+	(void) vips_image_map( image, add_fields, &p );
+
+	return( fields ); 
+}
+
 /**
  * vips_image_set_area:
  * @image: image to attach the metadata to
