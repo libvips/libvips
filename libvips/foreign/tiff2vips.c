@@ -1824,34 +1824,30 @@ readtiff_new( VipsImage *out,
 	return( rtiff );
 }
 
+static int
+readtiff_set_directory( ReadTiff *rtiff, int page )
+{
+	if( !TIFFSetDirectory( rtiff->tiff, page ) ) {
+		vips_error( "tiff2vips", 
+			_( "TIFF does not contain page %d" ), rtiff->page );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
 static ReadTiff *
 readtiff_new_filename( const char *filename, VipsImage *out, 
 	int page, gboolean autorotate, gboolean readbehind )
 {
 	ReadTiff *rtiff;
-	int i;
 
-	if( !(rtiff = readtiff_new( out, page, autorotate, readbehind )) )
+	if( !(rtiff = readtiff_new( out, page, autorotate, readbehind )) ||
+		!(rtiff->tiff = vips__tiff_openin( filename )) || 
+		readtiff_set_directory( rtiff, page ) ) 
 		return( NULL );
 
 	rtiff->filename = vips_strdup( VIPS_OBJECT( out ), filename );
-
-	/* No mmap --- no performance advantage with libtiff, and it burns up
-	 * our VM if the tiff file is large.
-	 */
-	if( !(rtiff->tiff = vips__tiff_openin( filename )) ) {
-		vips_error( "tiff2vips", _( "unable to open \"%s\" for input" ),
-			filename );
-		return( NULL );
-	}
-
-	for( i = 0; i < page; i++ ) 
-		if( !TIFFReadDirectory( rtiff->tiff ) ) {
-			vips_error( "tiff2vips", 
-				_( "TIFF does not contain page %d" ), 
-				rtiff->page );
-			return( NULL );
-		}
 
 	return( rtiff );
 }
@@ -1861,21 +1857,11 @@ readtiff_new_buffer( const void *buf, size_t len, VipsImage *out,
 	int page, gboolean autorotate, gboolean readbehind )
 {
 	ReadTiff *rtiff;
-	int i;
 
-	if( !(rtiff = readtiff_new( out, page, autorotate, readbehind )) )
+	if( !(rtiff = readtiff_new( out, page, autorotate, readbehind )) ||
+		!(rtiff->tiff = vips__tiff_openin_buffer( out, buf, len )) ||
+		readtiff_set_directory( rtiff, page ) ) 
 		return( NULL );
-
-	if( !(rtiff->tiff = vips__tiff_openin_buffer( out, buf, len )) )
-		return( NULL );
-
-	for( i = 0; i < page; i++ ) 
-		if( !TIFFReadDirectory( rtiff->tiff ) ) {
-			vips_error( "tiff2vips", 
-				_( "TIFF does not contain page %d" ), 
-				rtiff->page );
-			return( NULL );
-		}
 
 	return( rtiff );
 }
