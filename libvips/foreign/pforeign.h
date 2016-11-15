@@ -66,17 +66,17 @@ int vips__tiff_write_buf( VipsImage *in,
 	gboolean properties, gboolean strip );
 
 int vips__tiff_read_header( const char *filename, VipsImage *out, 
-	int page, gboolean autorotate );
+	int page, int n, gboolean autorotate );
 int vips__tiff_read( const char *filename, VipsImage *out, 
-	int page, gboolean autorotate, gboolean readbehind );
+	int page, int n, gboolean autorotate, gboolean readbehind );
 gboolean vips__istifftiled( const char *filename );
 gboolean vips__istiff_buffer( const void *buf, size_t len );
 gboolean vips__istiff( const char *filename );
 
 int vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, gboolean autorotate );
+	int page, int n, gboolean autorotate );
 int vips__tiff_read_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, gboolean autorotate, gboolean readbehind );
+	int page, int n, gboolean autorotate, gboolean readbehind );
 
 extern const char *vips__foreign_tiff_suffs[];
 

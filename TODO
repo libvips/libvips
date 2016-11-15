@@ -1,3 +1,7 @@
+- all toilet roll loaders need to set "page-height"
+
+  magick, pdf and tiff need to use the same page/n interface
+
 - not sure about utf8 error messages on win
 
 - strange: 

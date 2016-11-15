@@ -1787,9 +1787,21 @@ readtiff_close( VipsObject *object, ReadTiff *rtiff )
 	readtiff_free( rtiff ); 
 }
 
+static int
+readtiff_set_directory( ReadTiff *rtiff, int page )
+{
+	if( !TIFFSetDirectory( rtiff->tiff, page ) ) {
+		vips_error( "tiff2vips", 
+			_( "TIFF does not contain page %d" ), rtiff->page );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
 static ReadTiff *
 readtiff_new( VipsImage *out, 
-	int page, gboolean autorotate, gboolean readbehind )
+	int page, int n, gboolean autorotate, gboolean readbehind )
 {
 	ReadTiff *rtiff;
 
@@ -1824,25 +1836,13 @@ readtiff_new( VipsImage *out,
 	return( rtiff );
 }
 
-static int
-readtiff_set_directory( ReadTiff *rtiff, int page )
-{
-	if( !TIFFSetDirectory( rtiff->tiff, page ) ) {
-		vips_error( "tiff2vips", 
-			_( "TIFF does not contain page %d" ), rtiff->page );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
 static ReadTiff *
 readtiff_new_filename( const char *filename, VipsImage *out, 
-	int page, gboolean autorotate, gboolean readbehind )
+	int page, int n, gboolean autorotate, gboolean readbehind )
 {
 	ReadTiff *rtiff;
 
-	if( !(rtiff = readtiff_new( out, page, autorotate, readbehind )) ||
+	if( !(rtiff = readtiff_new( out, page, n, autorotate, readbehind )) ||
 		!(rtiff->tiff = vips__tiff_openin( filename )) || 
 		readtiff_set_directory( rtiff, page ) ) 
 		return( NULL );
@@ -1854,11 +1854,11 @@ readtiff_new_filename( const char *filename, VipsImage *out,
 
 static ReadTiff *
 readtiff_new_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, gboolean autorotate, gboolean readbehind )
+	int page, int n, gboolean autorotate, gboolean readbehind )
 {
 	ReadTiff *rtiff;
 
-	if( !(rtiff = readtiff_new( out, page, autorotate, readbehind )) ||
+	if( !(rtiff = readtiff_new( out, page, n, autorotate, readbehind )) ||
 		!(rtiff->tiff = vips__tiff_openin_buffer( out, buf, len )) ||
 		readtiff_set_directory( rtiff, page ) ) 
 		return( NULL );
@@ -1889,7 +1889,7 @@ istiffpyramid( const char *name )
 
 int
 vips__tiff_read( const char *filename, VipsImage *out, 
-	int page, gboolean autorotate, gboolean readbehind )
+	int page, int n, gboolean autorotate, gboolean readbehind )
 {
 	ReadTiff *rtiff;
 
@@ -1901,7 +1901,7 @@ vips__tiff_read( const char *filename, VipsImage *out,
 	vips__tiff_init();
 
 	if( !(rtiff = readtiff_new_filename( filename, 
-		out, page, autorotate, readbehind )) )
+		out, page, n, autorotate, readbehind )) )
 		return( -1 );
 
 	if( TIFFIsTiled( rtiff->tiff ) ) {
@@ -1941,14 +1941,14 @@ vips__tiff_read_header_orientation( ReadTiff *rtiff, VipsImage *out )
 
 int
 vips__tiff_read_header( const char *filename, VipsImage *out, 
-	int page, gboolean autorotate )
+	int page, int n, gboolean autorotate )
 {
 	ReadTiff *rtiff;
 
 	vips__tiff_init();
 
 	if( !(rtiff = readtiff_new_filename( filename, out, 
-		page, autorotate, FALSE )) )
+		page, n, autorotate, FALSE )) )
 		return( -1 );
 
 	if( parse_header( rtiff, out ) )
@@ -2010,14 +2010,14 @@ vips__istiff( const char *filename )
 
 int
 vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, gboolean autorotate )
+	int page, int n, gboolean autorotate )
 {
 	ReadTiff *rtiff;
 
 	vips__tiff_init();
 
 	if( !(rtiff = readtiff_new_buffer( buf, len, out, 
-		page, autorotate, FALSE )) )
+		page, n, autorotate, FALSE )) )
 		return( -1 );
 
 	if( parse_header( rtiff, out ) )
@@ -2030,7 +2030,8 @@ vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out,
 
 int
 vips__tiff_read_buffer( const void *buf, size_t len, 
-	VipsImage *out, int page, gboolean autorotate, gboolean readbehind )
+	VipsImage *out, int page, int n, gboolean autorotate, 
+	gboolean readbehind )
 {
 	ReadTiff *rtiff;
 
@@ -2042,7 +2043,7 @@ vips__tiff_read_buffer( const void *buf, size_t len,
 	vips__tiff_init();
 
 	if( !(rtiff = readtiff_new_buffer( buf, len, out, 
-		page, autorotate, readbehind )) )
+		page, n, autorotate, readbehind )) )
 		return( -1 );
 
 	if( TIFFIsTiled( rtiff->tiff ) ) {
