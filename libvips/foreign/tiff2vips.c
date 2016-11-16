@@ -218,6 +218,37 @@
 #include "pforeign.h"
 #include "tiff.h"
 
+/* What we read from the tiff dir to set our read strategy. For multipage
+ * read, we need to read and compare lots of these, so it needs to be broken
+ * out as a separate thing.
+ */
+typedef struct _RtiffHeader {
+	uint32 width;
+	uint32 height;
+	int samples_per_pixel;
+	int bits_per_sample;
+	int photometric_interpretation;
+	int sample_format;
+	gboolean separate; 
+	int orientation; 
+
+	/* Result of TIFFIsTiled().
+	 */
+	gboolean tiled;
+
+	/* Fields for tiled images.
+	 */
+	uint32 tile_width;
+	uint32 tile_height;		
+
+	/* Fields for strip images.
+	 */
+	uint32 rows_per_strip;
+	tsize_t scanline_size;
+	tsize_t strip_size;
+	int number_of_strips;
+} RtiffHeader;
+
 /* Scanline-type process function.
  */
 struct _ReadTiff;
@@ -252,8 +283,12 @@ typedef struct _ReadTiff {
 	 */
 	size_t pos;
 
-	/* Geometry.
+	/* Geometry as read from the TIFF header. This is read for the first
+	 * page, and equal for all other pages. 
 	 */
+	RtiffHeader header; 
+
+	uint32 width, height;
 	uint32 twidth, theight;		/* Tile size */
 	uint32 rows_per_strip;
 	tsize_t scanline_size;
@@ -264,6 +299,10 @@ typedef struct _ReadTiff {
 	int photometric_interpretation;
 	int sample_format;
 	int orientation;
+
+	/* Result of TIFFIsTiled().
+	 */
+	gboolean tiled;
 
 	/* Turn on separate plane reading.
 	 */
@@ -1057,14 +1096,49 @@ pick_reader( ReadTiff *rtiff )
 	return( parse_copy );
 }
 
-/* Look at PhotometricInterpretation and BitsPerPixel and try to figure out 
+static int
+rtiff_get_sample_format( TIFF *tiff )
+{
+	int sample_format;
+	uint16 v;
+
+	sample_format = SAMPLEFORMAT_INT;
+
+	if( TIFFGetFieldDefaulted( tiff, TIFFTAG_SAMPLEFORMAT, &v ) ) {
+		/* Some images have this set to void, bizarre.
+		 */
+		if( v == SAMPLEFORMAT_VOID )
+			v = SAMPLEFORMAT_UINT;
+
+		sample_format = v;
+	}
+
+	return( sample_format ); 
+}
+
+static int
+rtiff_get_orientation( TIFF *tiff )
+{
+	int orientation;
+	uint16 v;
+
+	orientation = ORIENTATION_TOPLEFT;
+
+	if( TIFFGetFieldDefaulted( tiff, TIFFTAG_ORIENTATION, &v ) ) 
+		/* Can have mad values. 
+		 */
+		orientation = VIPS_CLIP( 1, v, 8 );
+
+	return( orientation );
+}
+
+/* Look at PhotometricInterpretation, BitsPerPixel, etc. and try to figure out 
  * which of the image classes this is.
  */
 static int
 parse_header( ReadTiff *rtiff, VipsImage *out )
 {
 	uint32 data_length;
-	uint32 width, height;
 	void *data;
 
 	if( tfexists( rtiff->tiff, TIFFTAG_PLANARCONFIG ) ) {
@@ -1078,8 +1152,8 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 
 	/* We always need dimensions.
 	 */
-	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &width ) ||
-		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &height ) ||
+	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &rtiff->width ) ||
+		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &rtiff->height ) ||
 		parse_resolution( rtiff->tiff, out ) ||
 		!tfget16( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 
 		&rtiff->samples_per_pixel ) ||
@@ -1091,39 +1165,17 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 
 	/* Some optional fields. 
 	 */
-{
-	uint16 v;
-
-	rtiff->sample_format = SAMPLEFORMAT_INT;
-
-	if( TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_SAMPLEFORMAT, &v ) ) {
-		/* Some images have this set to void, bizarre.
-		 */
-		if( v == SAMPLEFORMAT_VOID )
-			v = SAMPLEFORMAT_UINT;
-
-		rtiff->sample_format = v;
-	}
-}
-
-{
-	uint16 v;
-
-	rtiff->orientation = ORIENTATION_TOPLEFT;
-
-	if( TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_ORIENTATION, &v ) ) 
-		/* Can have mad values. 
-		 */
-		rtiff->orientation = VIPS_CLIP( 1, v, 8 );
-}
+	rtiff->sample_format = rtiff_get_sample_format( rtiff->tiff );
+	rtiff->orientation = rtiff_get_orientation( rtiff->tiff );
+	rtiff->tiled = TIFFIsTiled( rtiff->tiff );
 
 	/* Arbitrary sanity-checking limits.
 	 */
 
-	if( width <= 0 || 
-		width > VIPS_MAX_COORD || 
-		height <= 0 || 
-		height > VIPS_MAX_COORD ) {
+	if( rtiff->width <= 0 || 
+		rtiff->width > VIPS_MAX_COORD || 
+		rtiff->height <= 0 || 
+		rtiff->height > VIPS_MAX_COORD ) {
 		vips_error( "tiff2vips", 
 			"%s", _( "width/height out of range" ) );
 		return( -1 );
@@ -1138,8 +1190,8 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 		return( -1 );
 	}
 
-	out->Xsize = width;
-	out->Ysize = height;
+	out->Xsize = rtiff->width;
+	out->Ysize = rtiff->height;
 
 	/* Even though we could end up serving tiled data, always hint
 	 * THINSTRIP, since we're quite happy doing that too, and it could need
@@ -1237,6 +1289,122 @@ parse_header( ReadTiff *rtiff, VipsImage *out )
 	vips_image_set_int( out, VIPS_META_ORIENTATION, rtiff->orientation );
 
 	return( 0 );
+}
+
+static int
+readtiff_set_directory( ReadTiff *rtiff, int page )
+{
+	if( !TIFFSetDirectory( rtiff->tiff, page ) ) {
+		vips_error( "tiff2vips", 
+			_( "TIFF does not contain page %d" ), rtiff->page );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
+readtiff_n_directories( ReadTiff *rtiff )
+{
+	int n;
+
+	for( n = 0; TIFFSetDirectory( rtiff->tiff, n ); n++ )
+		;
+
+	return( n ); 
+}
+
+/* Compare this page to the first one we read in. Are they compatible? 
+ *
+ * Multipage tiffs need to all be readable by the same path, and need to all be
+ * the same width and height.
+ */
+static gboolean
+is_compatible( ReadTiff *rtiff, int page )
+{
+	uint32 width, height;
+	int samples_per_pixel;
+	int bits_per_sample;
+	int photometric_interpretation;
+
+	if( readtiff_set_directory( rtiff, page ) )
+		return( FALSE );
+
+	/* What a headache, don't try to support SEPARATE mutipage images.
+	 */
+	if( tfexists( rtiff->tiff, TIFFTAG_PLANARCONFIG ) ) {
+		int v; 
+
+		if( !tfget16( rtiff->tiff, TIFFTAG_PLANARCONFIG, &v ) )
+			return( -1 );
+		if( v == PLANARCONFIG_SEPARATE )
+			return( FALSE );
+	}
+	if( rtiff->separate )
+		return( FALSE ); 
+
+	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &width ) ||
+		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &height ) ||
+		!tfget16( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 
+		&samples_per_pixel ) ||
+		!tfget16( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 
+			&bits_per_sample ) ||
+		!tfget16( rtiff->tiff, TIFFTAG_PHOTOMETRIC, 
+			&photometric_interpretation ) )
+		return( FALSE );
+	if( width != rtiff->width ||
+		height != rtiff->height ||
+		samples_per_pixel != rtiff->samples_per_pixel ||
+		bits_per_sample != rtiff->bits_per_sample ||
+		photometric_interpretation != rtiff->photometric_interpretation )
+		return( FALSE ); 
+
+	if( rtiff->sample_format != rtiff_get_sample_format( rtiff->tiff ) )
+		return( FALSE ); 
+
+	if( rtiff->tiled != TIFFIsTiled( rtiff->tiff ) )
+		return( FALSE ); 
+
+	if( rtiff->tiled ) {
+		uint32 twidth, theight;
+
+		if( !tfget32( rtiff->tiff, TIFFTAG_TILEWIDTH, &twidth ) ||
+			!tfget32( rtiff->tiff, TIFFTAG_TILELENGTH, &theight ) )
+			return( FALSE );
+
+		if( width != rtiff->width ||
+			height != rtiff->height )
+			return( FALSE );
+	}
+	else {
+		tsize_t scanline_size;
+		tsize_t strip_size;
+		int number_of_strips;
+		uint32 rows_per_strip;
+
+		scanline_size = TIFFScanlineSize( rtiff->tiff );
+		strip_size = TIFFStripSize( rtiff->tiff );
+		number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
+
+		if( !tfget32( rtiff->tiff, 
+			TIFFTAG_ROWSPERSTRIP, &rows_per_strip ) )
+			return( FALSE );
+
+		/* rows_per_strip can be 2 ** 32 - 1, meaning the whole image. 
+		 * Clip this down to image height to avoid confusing vips. 
+		 *
+		 * And it musn't be zero.
+		 */
+		rows_per_strip = VIPS_CLIP( 1, rows_per_strip, rtiff->height );
+
+		if( scanline_size != rtiff->scanline_size ||
+			strip_size != rtiff->strip_size ||
+			number_of_strips != rtiff->number_of_strips ||
+			rows_per_strip != rtiff->rows_per_strip )
+			return( FALSE ); 
+	}
+
+	return( TRUE );
 }
 
 /* The size of the buffer written by TIFFReadTile(). We can't use 
@@ -1787,18 +1955,6 @@ readtiff_close( VipsObject *object, ReadTiff *rtiff )
 	readtiff_free( rtiff ); 
 }
 
-static int
-readtiff_set_directory( ReadTiff *rtiff, int page )
-{
-	if( !TIFFSetDirectory( rtiff->tiff, page ) ) {
-		vips_error( "tiff2vips", 
-			_( "TIFF does not contain page %d" ), rtiff->page );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
 static ReadTiff *
 readtiff_new( VipsImage *out, 
 	int page, int n, gboolean autorotate, gboolean readbehind )
@@ -1836,6 +1992,100 @@ readtiff_new( VipsImage *out,
 	return( rtiff );
 }
 
+/* Load from a tiff dir into one of our tiff header structs.
+ */
+static int
+rtiff_header_read( ReadTiff *rtiff, RtiffHeader *header )
+{
+	/* We always need dimensions.
+	 */
+	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &header->width ) ||
+		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &header->height ) ||
+		!tfget16( rtiff->tiff, 
+			TIFFTAG_SAMPLESPERPIXEL, &header->samples_per_pixel ) ||
+		!tfget16( rtiff->tiff, 
+			TIFFTAG_BITSPERSAMPLE, &header->bits_per_sample ) ||
+		!tfget16( rtiff->tiff, 
+			TIFFTAG_PHOTOMETRIC, 
+			&header->photometric_interpretation ) )
+		return( -1 );
+
+	/* Some optional fields. 
+	 */
+	header->sample_format = rtiff_get_sample_format( rtiff->tiff );
+	header->orientation = rtiff_get_orientation( rtiff->tiff );
+
+	if( tfexists( rtiff->tiff, TIFFTAG_PLANARCONFIG ) ) {
+		int v; 
+
+		if( !tfget16( rtiff->tiff, TIFFTAG_PLANARCONFIG, &v ) )
+			return( -1 );
+		if( v == PLANARCONFIG_SEPARATE )
+			header->separate = TRUE; 
+	}
+
+	/* Tiles and strip images have slightly different fields.
+	 */
+	header->tiled = TIFFIsTiled( rtiff->tiff );
+
+	if( header->tiled ) {
+		if( !tfget32( rtiff->tiff, 
+			TIFFTAG_TILEWIDTH, &header->tile_width ) ||
+			!tfget32( rtiff->tiff, 
+				TIFFTAG_TILELENGTH, &header->tile_height ) )
+			return( -1 );
+	}
+	else {
+		if( !tfget32( rtiff->tiff, 
+			TIFFTAG_ROWSPERSTRIP, &header->rows_per_strip ) )
+			return( -1 );
+		header->scanline_size = TIFFScanlineSize( rtiff->tiff );
+		header->strip_size = TIFFStripSize( rtiff->tiff );
+		header->number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
+
+		/* rows_per_strip can be 2 ** 32 - 1, meaning the whole image. 
+		 * Clip this down to height to avoid confusing vips. 
+		 *
+		 * And it musn't be zero.
+		 */
+		header->rows_per_strip = 
+			VIPS_CLIP( 1, header->rows_per_strip, header->height );
+	}
+
+	return( 0 );
+}
+
+static int
+rtiff_header_equal( RtiffHeader *h1, RtiffHeader *h2 )
+{
+	if( h1->width != h2->width ||
+		h1->height != h2->height ||
+		h1->samples_per_pixel != h2->samples_per_pixel ||
+		h1->bits_per_sample != h2->bits_per_sample ||
+		h1->photometric_interpretation != 
+			h2->photometric_interpretation ||
+		h1->sample_format != h2->sample_format ||
+		h1->separate != h2->separate ||
+		h1->tiled != h2->tiled ||
+		h1->orientation != h2->orientation )
+		return( 0 );
+
+	if( h1->tiled ) {
+		if( h1->tile_width != h2->tile_width ||
+			h1->tile_height != h2->tile_height )
+			return( 0 );
+	}
+	else {
+		if( h1->rows_per_strip != h2->rows_per_strip ||
+			h1->scanline_size != h2->scanline_size ||
+			h1->strip_size != h2->strip_size ||
+			h1->number_of_strips != h2->number_of_strips )
+			return( 0 );
+	}
+
+	return( 1 );
+}
+
 static ReadTiff *
 readtiff_new_filename( const char *filename, VipsImage *out, 
 	int page, int n, gboolean autorotate, gboolean readbehind )
@@ -1844,7 +2094,8 @@ readtiff_new_filename( const char *filename, VipsImage *out,
 
 	if( !(rtiff = readtiff_new( out, page, n, autorotate, readbehind )) ||
 		!(rtiff->tiff = vips__tiff_openin( filename )) || 
-		readtiff_set_directory( rtiff, page ) ) 
+		readtiff_set_directory( rtiff, page ) || 
+		rtiff_header_read( rtiff, &rtiff->header ) )
 		return( NULL );
 
 	rtiff->filename = vips_strdup( VIPS_OBJECT( out ), filename );
@@ -1860,7 +2111,8 @@ readtiff_new_buffer( const void *buf, size_t len, VipsImage *out,
 
 	if( !(rtiff = readtiff_new( out, page, n, autorotate, readbehind )) ||
 		!(rtiff->tiff = vips__tiff_openin_buffer( out, buf, len )) ||
-		readtiff_set_directory( rtiff, page ) ) 
+		readtiff_set_directory( rtiff, page ) || 
+		rtiff_header_read( rtiff, &rtiff->header ) )
 		return( NULL );
 
 	return( rtiff );
