@@ -114,7 +114,7 @@ vips_foreign_load_openslide_header( VipsForeignLoad *load )
 
 	if( vips__openslide_read_header( openslide->filename, load->out, 
 		openslide->level, openslide->autocrop, 
-		openslide->associated, load->fail ) )
+		openslide->associated ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, openslide->filename );
@@ -129,13 +129,12 @@ vips_foreign_load_openslide_load( VipsForeignLoad *load )
 
 	if( !openslide->associated ) {
 		if( vips__openslide_read( openslide->filename, load->real, 
-			openslide->level, openslide->autocrop, load->fail ) )
+			openslide->level, openslide->autocrop ) )
 			return( -1 );
 	}
 	else {
-		if( vips__openslide_read_associated( 
-			openslide->filename, load->real, 
-			openslide->associated, load->fail ) )
+		if( vips__openslide_read_associated( openslide->filename, 
+			load->real, openslide->associated ) )
 			return( -1 );
 	}
 
@@ -231,7 +230,6 @@ vips_foreign_load_openslide_init( VipsForeignLoadOpenslide *openslide )
  * * @level: load this level
  * * @associated: load this associated image
  * * @autocrop: crop to image bounds
- * * @fail: %gboolean, fail on warnings
  *
  * Read a virtual slide supported by the OpenSlide library into a VIPS image.
  * OpenSlide supports images in Aperio, Hamamatsu, MIRAX, Sakura, Trestle,
@@ -250,8 +248,6 @@ vips_foreign_load_openslide_init( VipsForeignLoadOpenslide *openslide )
  * "slide-associated-images" metadata item.
  *
  * The output of this operator is always RGBA.
- *
- * Setting @fail to %TRUE makes the reader fail on any warnings. 
  *
  * See also: vips_image_new_from_file().
  *

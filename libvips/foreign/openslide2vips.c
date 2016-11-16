@@ -47,8 +47,6 @@
  * 	- do argb -> rgba for associated as well 
  * 27/1/15
  * 	- unpremultiplication speedups for fully opaque/transparent pixels
- * 11/7/16
- * 	- just warn on tile read error
  */
 
 /*
@@ -115,10 +113,6 @@ typedef struct {
 	 */
 	int tile_width;
 	int tile_height;
-
-	/* Quit on warning.
-	 */
-	gboolean fail;
 } ReadSlide;
 
 int
@@ -227,7 +221,7 @@ get_bounds( openslide_t *osr, VipsRect *rect )
 
 static ReadSlide *
 readslide_new( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop, const char *associated, gboolean fail )
+	int level, gboolean autocrop, const char *associated )
 {
 	ReadSlide *rslide;
 	int64_t w, h;
@@ -395,9 +389,9 @@ readslide_new( const char *filename, VipsImage *out,
 
 int
 vips__openslide_read_header( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop, char *associated, gboolean fail )
+	int level, gboolean autocrop, char *associated )
 {
-	if( !readslide_new( filename, out, level, autocrop, associated, fail ) )
+	if( !readslide_new( filename, out, level, autocrop, associated ) )
 		return( -1 );
 
 	return( 0 );
@@ -477,15 +471,18 @@ vips__openslide_generate( VipsRegion *out,
 		rslide->level,
 		r->width, r->height ); 
 
-	/* Only warn on error: we don't want to make the whole image unreadable
-	 * because of one broken tile.
+	/* openslide errors are terminal. To support
+	 * @fail we'd have to close the openslide_t and reopen, perhaps 
+	 * somehow marking this tile as unreadable.
+	 *
+	 * See
+	 * https://github.com/jcupitt/libvips/commit/bb0a6643f94e69294e36d2b253f9bdd60c8c40ed#commitcomment-19838911
 	 */
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
-		vips_warn( "openslide2vips", 
+		vips_error( "openslide2vips", 
 			_( "reading region: %s" ), error );
-		if( rslide->fail )
-			return( -1 );
+		return( -1 );
 	}
 
 	/* Since we are inside a cache, we know buf must be continuous.
@@ -497,7 +494,7 @@ vips__openslide_generate( VipsRegion *out,
 
 int
 vips__openslide_read( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop, gboolean fail )
+	int level, gboolean autocrop )
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
@@ -510,7 +507,7 @@ vips__openslide_read( const char *filename, VipsImage *out,
 	vips_object_local( out, raw );
 
 	if( !(rslide = readslide_new( filename, raw, 
-		level, autocrop, NULL, fail )) )
+		level, autocrop, NULL )) )
 		return( -1 );
 
 	if( vips_image_generate( raw, 
@@ -539,7 +536,7 @@ vips__openslide_read( const char *filename, VipsImage *out,
 
 int
 vips__openslide_read_associated( const char *filename, VipsImage *out, 
-	const char *associated, gboolean fail )
+	const char *associated )
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
@@ -554,8 +551,7 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 	raw = vips_image_new_memory();
 	vips_object_local( out, raw );
 
-	if( !(rslide = readslide_new( filename, raw, 
-		0, FALSE, associated, fail )) ||
+	if( !(rslide = readslide_new( filename, raw, 0, FALSE, associated )) ||
 		vips_image_write_prepare( raw ) )
 		return( -1 );
 	buf = (uint32_t *) VIPS_IMAGE_ADDR( raw, 0, 0 );
