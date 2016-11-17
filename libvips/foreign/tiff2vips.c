@@ -1366,11 +1366,6 @@ rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop 
 	int tile_height = rtiff->header.tile_height;
 	VipsRect *r = &out->valid;
 
-	/* Find top left of tiles we need.
-	 */
-	int xs = (r->left / tile_width) * tile_width;
-	int ys = (r->top / tile_height) * tile_height;
-
 	/* Sizeof a line of bytes in the TIFF tile.
 	 */
 	int tls = rtiff_tile_size( rtiff ) / tile_height;
@@ -1387,8 +1382,12 @@ rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop 
 
 	/* Special case: we are filling a single tile exactly sized to match
 	 * the tiff tile and we have no repacking to do for this format.
+	 *
+	 * This will also only work for single-page read. If we are reading
+	 * from a many-page TIFF, all our tile alignment will break.
 	 */
 	if( rtiff->memcpy &&
+		rtiff->n == 1 &&
 		r->left % tile_width == 0 &&
 		r->top % tile_height == 0 &&
 		r->width == tile_width &&
@@ -1398,8 +1397,10 @@ rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop 
 
 	VIPS_GATE_START( "rtiff_fill_region: work" ); 
 
-	for( y = ys; y < VIPS_RECT_BOTTOM( r ); y += tile_height )
-		for( x = xs; x < VIPS_RECT_RIGHT( r ); x += tile_width ) {
+	y = 0;
+	while( y < r->height ) {
+		x = 0;
+		while( x < r->width ) { 
 			VipsRect tile;
 			VipsRect hit;
 
@@ -1434,7 +1435,12 @@ rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop 
 				rtiff->sfn( rtiff,
 					q, p, hit.width, rtiff->client );
 			}
+
+			x += tile_width;
 		}
+
+		y += tile_height;
+	}
 
 	VIPS_GATE_STOP( "rtiff_fill_region: work" ); 
 
