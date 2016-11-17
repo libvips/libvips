@@ -197,8 +197,8 @@
  */
 
 /* 
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -271,6 +271,10 @@ typedef struct _Rtiff {
 	 */
 	TIFF *tiff;
 
+	/* The current page we have set.
+	 */
+	int current_page;
+
 	/* Process for this image type.
 	 */
 	scanline_process_fn sfn;
@@ -279,10 +283,6 @@ typedef struct _Rtiff {
 	/* Set this is the processfn is just doing a memcpy.
 	 */
 	gboolean memcpy;
-
-	/* The current 'file pointer' for memory buffers.
-	 */
-	size_t pos;
 
 	/* Geometry as read from the TIFF header. This is read for the first
 	 * page, and equal for all other pages. 
@@ -436,11 +436,13 @@ get_orientation( TIFF *tiff )
 }
 
 static int
-set_directory( TIFF *tiff, int page )
+strip_read( TIFF *tiff, int strip, tdata_t buf )
 {
-	if( !TIFFSetDirectory( tiff, page ) ) {
-		vips_error( "tiff2vips", 
-			_( "TIFF does not contain page %d" ), page );
+	tsize_t length;
+
+	length = TIFFReadEncodedStrip( tiff, strip, buf, (tsize_t) -1 );
+	if( length == -1 ) {
+		vips_error( "tiff2vips", "%s", _( "read error" ) );
 		return( -1 );
 	}
 
@@ -448,17 +450,19 @@ set_directory( TIFF *tiff, int page )
 }
 
 static int
-n_directories( TIFF *tiff )
+rtiff_set_page( Rtiff *rtiff, int page )
 {
-	int n;
+	if( rtiff->current_page != page ) {
+		if( !TIFFSetDirectory( rtiff->tiff, page ) ) {
+			vips_error( "tiff2vips", 
+				_( "TIFF does not contain page %d" ), page );
+			return( -1 );
+		}
 
-	/* Faster than doing set_directory() repeatedly.
-	 */
-	set_directory( tiff, 0 );
-	for( n = 0; TIFFReadDirectory( tiff ); n++ )
-		;
+		rtiff->current_page = page;
+	}
 
-	return( n ); 
+	return( 0 );
 }
 
 static int
@@ -1174,7 +1178,10 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	void *data;
 
 	out->Xsize = rtiff->header.width;
-	out->Ysize = rtiff->header.height;
+	out->Ysize = rtiff->header.height * rtiff->n;
+
+	if( rtiff->n > 1 ) 
+		vips_image_set_int( out, "page-height", rtiff->header.height );
 
 	/* Even though we could end up serving tiled data, always hint
 	 * THINSTRIP, since we're quite happy doing that too, and it could need
@@ -1554,20 +1561,6 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
-static int
-rtiff_strip_read( TIFF *tiff, int strip, tdata_t buf )
-{
-	tsize_t length;
-
-	length = TIFFReadEncodedStrip( tiff, strip, buf, (tsize_t) -1 );
-	if( length == -1 ) {
-		vips_error( "tiff2vips", "%s", _( "read error" ) );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
 /* Read a strip. If the image is in separate planes, read each plane and
  * interleave to the output.
  */
@@ -1593,7 +1586,7 @@ rtiff_strip_read_interleaved( Rtiff *rtiff, int y, tdata_t buf )
 			VipsPel *p;
 			VipsPel *q;
 
-			if( rtiff_strip_read( rtiff->tiff,
+			if( strip_read( rtiff->tiff,
 				strips_per_plane * i + strip, 
 				rtiff->plane_buf ) )
 				return( -1 );
@@ -1610,7 +1603,7 @@ rtiff_strip_read_interleaved( Rtiff *rtiff, int y, tdata_t buf )
 		}
 	}
 	else { 
-		if( rtiff_strip_read( rtiff->tiff, strip, buf ) )
+		if( strip_read( rtiff->tiff, strip, buf ) )
 			return( -1 );
 	}
 
@@ -1639,12 +1632,12 @@ rtiff_stripwise_generate( VipsRegion *or,
 	g_assert( r->width == or->im->Xsize );
 	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
 
-	/* Tiles should always be on a strip boundary.
+	/* We can read many pages, so tiles won't always be on a strip
+	 * boundary. 
 	 */
-	g_assert( r->top % rtiff->header.rows_per_strip == 0 );
 
 	/* Tiles should always be a strip in height, unless it's the final
-	 * strip.
+	 * strip in the image.
 	 */
 	g_assert( r->height == 
 		VIPS_MIN( rows_per_strip, or->im->Ysize - r->top ) ); 
@@ -1653,6 +1646,8 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 	for( y = 0; y < r->height; y += rows_per_strip ) {
 		tdata_t dst;
+
+		what page is this y, set that page
 
 		/* Read directly into the image if we can. Otherwise, we must 
 		 * read to a temp buffer then unpack into the image.
@@ -1826,10 +1821,10 @@ rtiff_new( VipsImage *out,
 	rtiff->autorotate = autorotate;
 	rtiff->readbehind = readbehind;
 	rtiff->tiff = NULL;
+	rtiff->current_page = -1;
 	rtiff->sfn = NULL;
 	rtiff->client = NULL;
 	rtiff->memcpy = FALSE;
-	rtiff->pos = 0;
 	rtiff->plane_buf = NULL;
 	rtiff->contig_buf = NULL;
 
@@ -1839,6 +1834,12 @@ rtiff_new( VipsImage *out,
 	if( rtiff->page < 0 || rtiff->page > 1000000 ) {
 		vips_error( "tiff2vips", _( "bad page number %d" ),
 			rtiff->page );
+		return( NULL );
+	}
+
+	if( rtiff->n < 1 || rtiff->n > 1000000 ) {
+		vips_error( "tiff2vips", _( "bad number of pages %d" ),
+			rtiff->n );
 		return( NULL );
 	}
 
@@ -1959,20 +1960,28 @@ rtiff_header_equal( RtiffHeader *h1, RtiffHeader *h2 )
 static int
 rtiff_header_read_all( Rtiff *rtiff )
 {
-	if( set_directory( rtiff->tiff, rtiff->page ) ||
+#ifdef DEBUG
+	printf( "tiff2vips: reading header for page %d ...\n", rtiff->page );
+#endif /*DEBUG*/
+
+	if( rtiff_set_page( rtiff, rtiff->page ) ||
 		rtiff_header_read( rtiff, &rtiff->header ) )
 		return( -1 ); 
 
 	/* If we're to read many pages, verify that they are all identical. 
 	 */
 	if( rtiff->n > 1 ) {
-
 		int i;
 
 		for( i = 1; i < rtiff->n; i++ ) {
 			RtiffHeader header;
 
-			if( set_directory( rtiff->tiff, rtiff->page + i ) ||
+#ifdef DEBUG
+			printf( "tiff2vips: verifying header for page %d ...\n",
+				rtiff->page + i );
+#endif /*DEBUG*/
+
+			if( rtiff_set_page( rtiff, rtiff->page + i ) ||
 				rtiff_header_read( rtiff, &header ) )
 				return( -1 );
 

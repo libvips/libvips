@@ -1,3 +1,7 @@
+- test data
+
+	http://downloads.openmicroscopy.org/images/OME-TIFF/2016-06/bioformats-artificial/multi-channel-z-series.ome.tif
+
 - all toilet roll loaders need to set "page-height"
 
   magick, pdf and tiff need to use the same page/n interface
