@@ -1382,12 +1382,8 @@ rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop 
 
 	/* Special case: we are filling a single tile exactly sized to match
 	 * the tiff tile and we have no repacking to do for this format.
-	 *
-	 * This will also only work for single-page read. If we are reading
-	 * from a many-page TIFF, all our tile alignment will break.
 	 */
 	if( rtiff->memcpy &&
-		rtiff->n == 1 &&
 		r->left % tile_width == 0 &&
 		r->top % tile_height == 0 &&
 		r->width == tile_width &&
@@ -1399,26 +1395,46 @@ rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop 
 
 	y = 0;
 	while( y < r->height ) {
+		VipsRect tile, page, hit;
+
 		x = 0;
 		while( x < r->width ) { 
-			VipsRect tile;
-			VipsRect hit;
+			int page_no = rtiff->page + (r->top + y) / 
+				rtiff->header.height;
+			int page_y = (r->top + y) % rtiff->header.height;
 
-			/* Read that tile.
+			/* Coordinate of the tile on this page that xy falls in.
 			 */
-			if( TIFFReadTile( rtiff->tiff, buf, x, y, 0, 0 ) < 0 ) {
+			int xs = ((r->left + x) / tile_width) * tile_width;
+			int ys = (page_y / tile_height) * tile_height;
+
+			if( rtiff_set_page( rtiff, page_no ) ||
+				TIFFReadTile( rtiff->tiff, 
+					buf, xs, ys, 0, 0 ) < 0 ) {
 				VIPS_GATE_STOP( "rtiff_fill_region: work" ); 
 				return( -1 );
 			}
 
-			/* The tile we read.
+			/* Position of tile on the page. 
 			 */
-			tile.left = x;
-			tile.top = y;
+			tile.left = xs;
+			tile.top = ys;
 			tile.width = tile_width;
 			tile.height = tile_height;
 
-			/* The section that hits the region we are building.
+			/* It'll be clipped by this page.
+			 */
+			page.left = 0;
+			page.top = 0;
+			page.width = rtiff->header.width;
+			page.height = rtiff->header.height;
+			vips_rect_intersectrect( &tile, &page, &tile );
+
+			/* To image coordinates.
+			 */
+			tile.top += page_no * rtiff->header.height;
+
+			/* And clip again by this region.
 			 */
 			vips_rect_intersectrect( &tile, r, &hit );
 
@@ -1436,10 +1452,10 @@ rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop 
 					q, p, hit.width, rtiff->client );
 			}
 
-			x += tile_width;
+			x += tile.width;
 		}
 
-		y += tile_height;
+		y += tile.height;
 	}
 
 	VIPS_GATE_STOP( "rtiff_fill_region: work" ); 
