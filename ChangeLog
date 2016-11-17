@@ -10,6 +10,7 @@
 - all loaders have a @fail option, meaning fail on first warning, though it
   only does anything for jpg, csv, openslide
 - add vips_image_get_fields() to help bindings
+- add multi-page read to tiffload
 
 11/11/16 started 8.4.4
 - fix crash in vips.exe arg parsing on Windows, thanks Yury

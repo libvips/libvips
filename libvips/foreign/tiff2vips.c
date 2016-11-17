@@ -167,6 +167,8 @@
  * 	  convention
  * 26/5/16
  * 	- add autorotate support
+ * 17/11/16
+ * 	- add multi-page read 
  */
 
 /*
@@ -197,8 +199,8 @@
  */
 
 /* 
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1632,8 +1634,8 @@ rtiff_stripwise_generate( VipsRegion *or,
 	g_assert( r->width == or->im->Xsize );
 	g_assert( VIPS_RECT_BOTTOM( r ) <= or->im->Ysize );
 
-	/* We can read many pages, so tiles won't always be on a strip
-	 * boundary. 
+	/* If we're reading more than one page, tiles won't fall on strip
+	 * boundaries.
 	 */
 
 	/* Tiles should always be a strip in height, unless it's the final
@@ -1644,10 +1646,19 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 	VIPS_GATE_START( "rtiff_stripwise_generate: work" ); 
 
-	for( y = 0; y < r->height; y += rows_per_strip ) {
+	y = 0;
+	while( y < r->height ) { 
+		int page = rtiff->page + (r->top + y) / rtiff->header.height;
+		int page_y = (r->top + y) % rtiff->header.height;
+		int strip_height = VIPS_MIN( rows_per_strip, 
+			rtiff->header.height - page_y ); 
+
 		tdata_t dst;
 
-		what page is this y, set that page
+		if( rtiff_set_page( rtiff, page ) ) {
+			VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
+			return( -1 );
+		}
 
 		/* Read directly into the image if we can. Otherwise, we must 
 		 * read to a temp buffer then unpack into the image.
@@ -1657,8 +1668,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 		else
 			dst = rtiff->contig_buf;
 
-		if( rtiff_strip_read_interleaved( rtiff, 
-			r->top + y, dst ) ) {
+		if( rtiff_strip_read_interleaved( rtiff, page_y, dst ) ) {
 			VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
 			return( -1 ); 
 		}
@@ -1666,16 +1676,13 @@ rtiff_stripwise_generate( VipsRegion *or,
 		/* If necessary, unpack to destination.
 		 */
 		if( !rtiff->memcpy ) {
-			int height = VIPS_MIN( VIPS_MIN( rows_per_strip,
-				or->im->Ysize - (r->top + y) ), r->height );
-
 			VipsPel *p;
 			VipsPel *q;
 			int z;
 
 			p = rtiff->contig_buf;
 			q = VIPS_REGION_ADDR( or, 0, r->top + y );
-			for( z = 0; z < height; z++ ) { 
+			for( z = 0; z < strip_height; z++ ) { 
 				rtiff->sfn( rtiff, 
 					q, p, or->im->Xsize, rtiff->client );
 
@@ -1683,6 +1690,8 @@ rtiff_stripwise_generate( VipsRegion *or,
 				q += VIPS_REGION_LSKIP( or ); 
 			}
 		}
+
+		y += strip_height;
 	}
 
 	VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
