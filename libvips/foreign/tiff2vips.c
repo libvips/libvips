@@ -1587,6 +1587,10 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 
 /* Read a strip. If the image is in separate planes, read each plane and
  * interleave to the output.
+ *
+ * y may not be on a strip boundary. We might need to read the whole strip,
+ * then skip down a few lines in the decompressed data to get the start point
+ * where we 
  */
 static int
 rtiff_strip_read_interleaved( Rtiff *rtiff, int y, tdata_t buf )
@@ -1672,8 +1676,22 @@ rtiff_stripwise_generate( VipsRegion *or,
 	while( y < r->height ) { 
 		int page = rtiff->page + (r->top + y) / rtiff->header.height;
 		int page_y = (r->top + y) % rtiff->header.height;
-		int strip_height = VIPS_MIN( rows_per_strip, 
-			rtiff->header.height - page_y ); 
+
+		/* strips are normally rows_per_strip in height, but they will
+		 * be smaller for the last strip on the page.
+		 *
+		 * We may not use the whole strip. If we have 16 lines to fill
+		 * in this generate, we might take the first 10 from the end
+		 * of the first page and then just 6 from the first strip at
+		 * the top of page 2. 
+		 *
+		 * In this case, we'll end up reading the top strip of page 2
+		 * again in the next generate call, and only using the bottom
+		 * half.
+		 */
+		int strip_height = VIPS_MIN( VIPS_MIN( rows_per_strip, 
+			rtiff->header.height - page_y ),
+			r->height - y ); 
 
 		tdata_t dst;
 
@@ -1681,6 +1699,12 @@ rtiff_stripwise_generate( VipsRegion *or,
 			VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
 			return( -1 );
 		}
+
+		We must always have a strip-sized buffer to read to in case this
+		y is not aligned on a strip boundary ... we can then copy from 
+		that buffer into the dest
+
+		is contif_buffer always strip sized?
 
 		/* Read directly into the image if we can. Otherwise, we must 
 		 * read to a temp buffer then unpack into the image.

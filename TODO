@@ -2,6 +2,10 @@
 
 	http://downloads.openmicroscopy.org/images/OME-TIFF/2016-06/bioformats-artificial/multi-channel-z-series.ome.tif
 
+- tiff load needs to support n=-1, meaning all pages to end
+
+  is that what pdfload does?
+
 - all toilet roll loaders need to set "page-height"
 
   magick, pdf and tiff need to use the same page/n interface
