@@ -468,6 +468,25 @@ rtiff_set_page( Rtiff *rtiff, int page )
 }
 
 static int
+rtiff_n_pages( Rtiff *rtiff )
+{
+	int n;
+
+	(void) TIFFSetDirectory( rtiff->tiff, 0 );
+
+	for( n = 1; TIFFReadDirectory( rtiff->tiff ); n++ )
+		;
+
+	(void) TIFFSetDirectory( rtiff->tiff, rtiff->current_page );
+
+#ifdef DEBUG
+	printf( "rtiff_n_pages: found %d pages\n", n ); 
+#endif /*DEBUG*/
+
+	return( n );
+}
+
+static int
 rtiff_check_samples( Rtiff *rtiff, int samples_per_pixel )
 {
 	if( rtiff->header.samples_per_pixel != samples_per_pixel ) { 
@@ -1588,24 +1607,23 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 /* Read a strip. If the image is in separate planes, read each plane and
  * interleave to the output.
  *
- * y may not be on a strip boundary. We might need to read the whole strip,
- * then skip down a few lines in the decompressed data to get the start point
- * where we 
+ * strip is the number of this strip in this page. 
  */
 static int
-rtiff_strip_read_interleaved( Rtiff *rtiff, int y, tdata_t buf )
+rtiff_strip_read_interleaved( Rtiff *rtiff, tstrip_t strip, tdata_t buf )
 {
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
 	int rows_per_strip = rtiff->header.rows_per_strip;
 	int bits_per_sample = rtiff->header.bits_per_sample;
-	tstrip_t strip = y / rtiff->header.rows_per_strip;
+	int strip_y = strip * rows_per_strip;
 
 	if( rtiff->header.separate ) {
-		int strips_per_plane = 1 + (rtiff->out->Ysize - 1) / 
-			rows_per_strip;
-		int strip_height = VIPS_MIN( rows_per_strip,
-			rtiff->out->Ysize - y ); 
-		int pels_per_strip = rtiff->out->Xsize * strip_height;
+		int page_width = rtiff->header.width;
+		int page_height = rtiff->header.height;
+		int strips_per_plane = 1 + (page_height - 1) / rows_per_strip;
+		int strip_height = VIPS_MIN( rows_per_strip, 
+			page_height - strip_y ); 
+		int pels_per_strip = page_width * strip_height;
 		int bytes_per_sample = bits_per_sample >> 3; 
 
 		int i, j, k;
@@ -1644,6 +1662,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 {
 	Rtiff *rtiff = (Rtiff *) a;
 	int rows_per_strip = rtiff->header.rows_per_strip;
+	int page_height = rtiff->header.height;
         VipsRect *r = &or->valid;
 
 	int y;
@@ -1674,13 +1693,20 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 	y = 0;
 	while( y < r->height ) { 
-		int page = rtiff->page + (r->top + y) / rtiff->header.height;
-		int page_y = (r->top + y) % rtiff->header.height;
+		/* Page number, position within this page.
+		 */
+		int page = rtiff->page + (r->top + y) / page_height;
+		int y_page = (r->top + y) % page_height;
+
+		/* Strip number, position within this strip.
+		 */
+		tstrip_t strip = y_page / rows_per_strip;
+		int y_strip = y_page % rows_per_strip;
 
 		/* strips are normally rows_per_strip in height, but they will
 		 * be smaller for the last strip on the page.
 		 *
-		 * We may not use the whole strip. If we have 16 lines to fill
+		 * We may not be tile-aligned. If we have 16 lines to fill
 		 * in this generate, we might take the first 10 from the end
 		 * of the first page and then just 6 from the first strip at
 		 * the top of page 2. 
@@ -1690,7 +1716,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 		 * half.
 		 */
 		int strip_height = VIPS_MIN( VIPS_MIN( rows_per_strip, 
-			rtiff->header.height - page_y ),
+			page_height - y_page ),
 			r->height - y ); 
 
 		tdata_t dst;
@@ -1700,33 +1726,39 @@ rtiff_stripwise_generate( VipsRegion *or,
 			return( -1 );
 		}
 
-		We must always have a strip-sized buffer to read to in case this
-		y is not aligned on a strip boundary ... we can then copy from 
-		that buffer into the dest
-
-		is contif_buffer always strip sized?
-
 		/* Read directly into the image if we can. Otherwise, we must 
 		 * read to a temp buffer then unpack into the image.
+		 *
+		 * We need to read via a buffer if we need to reformat pixels,
+		 * or if this strip is not aligned on a tile boundary.
 		 */
-		if( rtiff->memcpy ) 
-			dst = VIPS_REGION_ADDR( or, 0, r->top + y );
-		else
-			dst = rtiff->contig_buf;
-
-		if( rtiff_strip_read_interleaved( rtiff, page_y, dst ) ) {
-			VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
-			return( -1 ); 
+		if( rtiff->memcpy ||
+			y_page % rows_per_strip != 0 ) {
+			if( rtiff_strip_read_interleaved( rtiff, strip, 
+				VIPS_REGION_ADDR( or, 0, r->top + y ) ) ) {
+				VIPS_GATE_STOP( 
+					"rtiff_stripwise_generate: work" ); 
+				return( -1 ); 
+			}
 		}
-
-		/* If necessary, unpack to destination.
-		 */
-		if( !rtiff->memcpy ) {
+		else {
 			VipsPel *p;
 			VipsPel *q;
 			int z;
 
-			p = rtiff->contig_buf;
+			/* Read and interleave the entire strip.
+			 */
+			if( rtiff_strip_read_interleaved( rtiff, strip, 
+				rtiff->contig_buf ) ) {
+				VIPS_GATE_STOP( 
+					"rtiff_stripwise_generate: work" ); 
+				return( -1 ); 
+			}
+
+			/* Do any repacking to generate pixels in vips layout.
+			 */
+			p = rtiff->contig_buf + 
+				y_strip * rtiff->header.scanline_size;
 			q = VIPS_REGION_ADDR( or, 0, r->top + y );
 			for( z = 0; z < strip_height; z++ ) { 
 				rtiff->sfn( rtiff, 
@@ -1814,10 +1846,14 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 	/* If we need to manipulate pixels, we must read to an interleaved
 	 * plane buffer before repacking to the output.
 	 *
+	 * If we are doing a multi-page read, we need a strip buffer, since
+	 * strips may not be aligned on tile boundaries.
+	 *
 	 * We don't need a separate buffer per thread since the _generate()
 	 * function runs inside the cache lock. 
 	 */
-	if( !rtiff->memcpy ) { 
+	if( !rtiff->memcpy ||
+		rtiff->n > 1 ) { 
 		tsize_t size;
 
 		size = rtiff->header.strip_size;
@@ -1827,6 +1863,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		if( !(rtiff->contig_buf = 
 			vips_malloc( VIPS_OBJECT( out ), size )) ) 
 			return( -1 );
+
 	}
 
 	if( 
@@ -2022,6 +2059,11 @@ rtiff_header_read_all( Rtiff *rtiff )
 	if( rtiff_set_page( rtiff, rtiff->page ) ||
 		rtiff_header_read( rtiff, &rtiff->header ) )
 		return( -1 ); 
+
+	/* -1 means "to the end".
+	 */
+	if( rtiff->n == -1 )
+		rtiff->n = rtiff->page - rtiff_n_pages( rtiff );
 
 	/* If we're to read many pages, verify that they are all identical. 
 	 */
