@@ -442,6 +442,10 @@ strip_read( TIFF *tiff, int strip, tdata_t buf )
 {
 	tsize_t length;
 
+#ifdef DEBUG
+	printf( "strip_read: reading strip %d\n", strip ); 
+#endif /*DEBUG*/
+
 	length = TIFFReadEncodedStrip( tiff, strip, buf, (tsize_t) -1 );
 	if( length == -1 ) {
 		vips_error( "tiff2vips", "%s", _( "read error" ) );
@@ -455,6 +459,10 @@ static int
 rtiff_set_page( Rtiff *rtiff, int page )
 {
 	if( rtiff->current_page != page ) {
+#ifdef DEBUG
+		printf( "rtiff_set_page: selecting page %d\n", page ); 
+#endif /*DEBUG*/
+
 		if( !TIFFSetDirectory( rtiff->tiff, page ) ) {
 			vips_error( "tiff2vips", 
 				_( "TIFF does not contain page %d" ), page );
@@ -1703,6 +1711,10 @@ rtiff_stripwise_generate( VipsRegion *or,
 		tstrip_t strip = y_page / rows_per_strip;
 		int y_strip = y_page % rows_per_strip;
 
+		/* Position of top of strip.
+		 */
+		int strip_y = strip * rows_per_strip;
+
 		/* strips are normally rows_per_strip in height, but they will
 		 * be smaller for the last strip on the page.
 		 *
@@ -1715,11 +1727,11 @@ rtiff_stripwise_generate( VipsRegion *or,
 		 * again in the next generate call, and only using the bottom
 		 * half.
 		 */
-		int strip_height = VIPS_MIN( VIPS_MIN( rows_per_strip, 
+		int strip_height = VIPS_MIN( VIPS_MIN( VIPS_MIN( 
+			rows_per_strip, 
 			page_height - y_page ),
+			strip_y + rows_per_strip - y_page ),
 			r->height - y ); 
-
-		tdata_t dst;
 
 		if( rtiff_set_page( rtiff, page ) ) {
 			VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
@@ -1732,8 +1744,9 @@ rtiff_stripwise_generate( VipsRegion *or,
 		 * We need to read via a buffer if we need to reformat pixels,
 		 * or if this strip is not aligned on a tile boundary.
 		 */
-		if( rtiff->memcpy ||
-			y_page % rows_per_strip != 0 ) {
+		if( rtiff->memcpy &&
+			y_page % rows_per_strip == 0 &&
+			strip_height == rows_per_strip ) {
 			if( rtiff_strip_read_interleaved( rtiff, strip, 
 				VIPS_REGION_ADDR( or, 0, r->top + y ) ) ) {
 				VIPS_GATE_STOP( 
@@ -1929,7 +1942,11 @@ rtiff_new( VipsImage *out,
 		return( NULL );
 	}
 
-	if( rtiff->n < 1 || rtiff->n > 1000000 ) {
+	/* We allow n == -1, meaning all pages. It gets swapped for a real n
+	 * value when we open the TIFF.
+	 */
+	if( rtiff->n != -1 &&
+		(rtiff->n < 1 || rtiff->n > 1000000) ) {
 		vips_error( "tiff2vips", _( "bad number of pages %d" ),
 			rtiff->n );
 		return( NULL );
@@ -2063,7 +2080,7 @@ rtiff_header_read_all( Rtiff *rtiff )
 	/* -1 means "to the end".
 	 */
 	if( rtiff->n == -1 )
-		rtiff->n = rtiff->page - rtiff_n_pages( rtiff );
+		rtiff->n = rtiff_n_pages( rtiff ) - rtiff->page;
 
 	/* If we're to read many pages, verify that they are all identical. 
 	 */
