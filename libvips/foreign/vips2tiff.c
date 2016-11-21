@@ -302,6 +302,17 @@ struct _Write {
 	int rgbjpeg;			/* True for RGB not YCbCr */
 	int properties;			/* Set to save XML props */
 	int strip;			/* Don't write metadata */
+
+	/* True if we've detected a toilet-roll image, plus the page height,
+	 * which has been checked to be a factor of im->Ysize.
+	 */
+	gboolean toilet_roll;
+	int page_height;
+
+	/* The height of the TIFF we write. Equal to page_height in toilet
+	 * roll mode.
+	 */
+	int image_height;
 };
 
 static Layer *
@@ -894,15 +905,54 @@ write_new( VipsImage *im, const char *filename,
 	write->pyramid = pyramid;
 	write->onebit = squash;
 	write->miniswhite = miniswhite;
+	write->resunit = get_resunit( resunit );
+	write->xres = xres;
+	write->yres = yres;
 	write->icc_profile = vips_strdup( NULL, profile );
 	write->bigtiff = bigtiff;
 	write->rgbjpeg = rgbjpeg;
 	write->properties = properties;
 	write->strip = strip;
+	write->toilet_roll = FALSE;
+	write->page_height = -1;
 
-	write->resunit = get_resunit( resunit );
-	write->xres = xres;
-	write->yres = yres;
+	/* Updated below if we discover toilet roll mode.
+	 */
+	write->image_height = im->Ysize;
+
+	/* Check for a toilet roll image.
+	 */
+	if( vips_image_get_typeof( im, "page-height" ) &&
+		vips_image_get_int( im, "page-height", &write->page_height ) ) {
+		write_free( write );
+		return( NULL );
+	}
+
+	/* If page_height <= Ysize, treat as a single-page image.
+	 */
+	if( write->page_height > 0 &&
+		write->page_height < im->Ysize ) { 
+		write->toilet_roll = TRUE;
+		write->image_height = write->page_height;
+
+		if( im->Ysize % write->page_height != 0 ) { 
+			vips_error( "vips2tiff",
+				_( "image height %d is not a factor of "
+					"page-height %d" ),
+				im->Ysize, write->page_height );
+			write_free( write );
+			return( NULL );
+		}
+
+		/* We can't pyramid toilet roll images.
+		 */
+		if( write->pyramid ) {
+			vips_warn( "vips2tiff",
+				"%s", _( "can't pyramid multi page images --- "
+					"disabling pyramid" ) ); 
+			write->pyramid = FALSE;
+		}
+	}
 
 	/* In strip mode we use tileh to set rowsperstrip, and that does not
 	 * have the multiple-of-16 restriction.
@@ -970,7 +1020,8 @@ write_new( VipsImage *im, const char *filename,
 
 	/* Build the pyramid framework.
 	 */
-	write->layer = pyramid_new( write, NULL, im->Xsize, im->Ysize );
+	write->layer = pyramid_new( write, NULL, 
+		im->Xsize, write->image_height );
 
 	/* Fill all the layers.
 	 */
