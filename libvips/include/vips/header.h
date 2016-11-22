@@ -190,6 +190,7 @@ int vips_image_get_string( const VipsImage *image,
 	const char *name, const char **out );
 void vips_image_set_string( VipsImage *image, 
 	const char *name, const char *str );
+void vips_image_print_field( const VipsImage *image, const char *field );
 
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	__attribute__((format(printf, 2, 3)));

@@ -8,7 +8,7 @@
 - added vips_thumbnail() / vips_thumbnail_buffer()
 - better >4gb detect for zip dzsave output [Felix Bünemann]
 - all loaders have a @fail option, meaning fail on first warning, though it
-  only does anything for jpg, csv, openslide
+  only does anything for jpg and csv
 - add vips_image_get_fields() to help bindings
 - add multi-page read to tiffload
 
