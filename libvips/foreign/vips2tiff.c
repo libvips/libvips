@@ -1665,27 +1665,34 @@ write_gather( Write *write )
 	return( 0 );
 }
 
+/* Two basic write patterns: multipage and pyramid. We do single image as a
+ * special case of pyramid.
+ */
 static int
 write_image( Write *write )
 {
-	if( vips_sink_disc( write->im, write_strip, write ) ) 
-		return( -1 );
-
-	if( !TIFFWriteDirectory( write->layer->tif ) ) 
-		return( -1 );
-
-	if( write->pyramid ) { 
-		/* Free lower pyramid resources ... this will TIFFClose() (but
-		 * not delete) the smaller layers ready for us to read from 
-		 * them again.
-		 */
-		if( write->layer->below )
-			pyramid_free( write->layer->below );
-
-		/* Append smaller layers to the main file.
-		 */
-		if( write_gather( write ) ) 
+	if( write->toilet_roll ) {
+	}
+	else {
+		if( vips_sink_disc( write->im, write_strip, write ) ) 
 			return( -1 );
+
+		if( !TIFFWriteDirectory( write->layer->tif ) ) 
+			return( -1 );
+
+		if( write->pyramid ) { 
+			/* Free lower pyramid resources ... this will 
+			 * TIFFClose() (but not delete) the smaller layers 
+			 * ready for us to read from them again.
+			 */
+			if( write->layer->below )
+				pyramid_free( write->layer->below );
+
+			/* Append smaller layers to the main file.
+			 */
+			if( write_gather( write ) ) 
+				return( -1 );
+		}
 	}
 
 	return( 0 );
@@ -1716,8 +1723,6 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	if( vips_check_coding_known( "vips2tiff", in ) )
 		return( -1 );
 
-	/* Make output image. 
-	 */
 	if( !(write = write_new( in, filename, 
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
@@ -1757,8 +1762,6 @@ vips__tiff_write_buf( VipsImage *in,
 	if( vips_check_coding_known( "vips2tiff", in ) )
 		return( -1 );
 
-	/* Make output image. 
-	 */
 	if( !(write = write_new( in, NULL, 
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
