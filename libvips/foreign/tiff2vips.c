@@ -246,7 +246,6 @@ typedef struct _RtiffHeader {
 	/* Fields for strip images.
 	 */
 	uint32 rows_per_strip;
-	tsize_t scanline_size;
 	tsize_t strip_size;
 	int number_of_strips;
 } RtiffHeader;
@@ -1197,7 +1196,7 @@ rtiff_pick_reader( Rtiff *rtiff )
 	return( rtiff_parse_copy );
 }
 
-/* Set the header on @out from our rtiff. rtiff_header_read() has alreay been
+/* Set the header on @out from our rtiff. rtiff_header_read() has already been
  * called. 
  */
 static int
@@ -1671,6 +1670,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 	Rtiff *rtiff = (Rtiff *) a;
 	int rows_per_strip = rtiff->header.rows_per_strip;
 	int page_height = rtiff->header.height;
+	tsize_t scanline_size = TIFFScanlineSize( rtiff->tiff );
         VipsRect *r = &or->valid;
 
 	int y;
@@ -1780,14 +1780,13 @@ rtiff_stripwise_generate( VipsRegion *or,
 			/* Do any repacking to generate pixels in vips layout.
 			 */
 			p = rtiff->contig_buf + 
-				(hit.top - strip.top) * 
-				rtiff->header.scanline_size;
+				(hit.top - strip.top) * scanline_size;
 			q = VIPS_REGION_ADDR( or, 0, r->top + y );
 			for( z = 0; z < hit.height; z++ ) { 
 				rtiff->sfn( rtiff, 
 					q, p, or->im->Xsize, rtiff->client );
 
-				p += rtiff->header.scanline_size;
+				p += scanline_size;
 				q += VIPS_REGION_LSKIP( or ); 
 			}
 		}
@@ -1825,8 +1824,6 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 #ifdef DEBUG
 	printf( "rtiff_read_stripwise: header.rows_per_strip = %u\n", 
 		rtiff->header.rows_per_strip );
-	printf( "rtiff_read_stripwise: header.scanline_size = %zd\n", 
-		rtiff->header.scanline_size );
 	printf( "rtiff_read_stripwise: header.strip_size = %zd\n", 
 		rtiff->header.strip_size );
 	printf( "rtiff_read_stripwise: header.number_of_strips = %d\n", 
@@ -1847,7 +1844,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		else
 			vips_line_size = VIPS_IMAGE_SIZEOF_LINE( t[0] );
 
-		if( rtiff->header.scanline_size != vips_line_size ) { 
+		if( vips_line_size != TIFFScanlineSize( rtiff->tiff ) ) { 
 			vips_error( "tiff2vips", 
 				"%s", _( "unsupported tiff image type" ) );
 			return( -1 );
@@ -2029,7 +2026,6 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		if( !tfget32( rtiff->tiff, 
 			TIFFTAG_ROWSPERSTRIP, &header->rows_per_strip ) )
 			return( -1 );
-		header->scanline_size = TIFFScanlineSize( rtiff->tiff );
 		header->strip_size = TIFFStripSize( rtiff->tiff );
 		header->number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
 
@@ -2067,7 +2063,6 @@ rtiff_header_equal( RtiffHeader *h1, RtiffHeader *h2 )
 	}
 	else {
 		if( h1->rows_per_strip != h2->rows_per_strip ||
-			h1->scanline_size != h2->scanline_size ||
 			h1->strip_size != h2->strip_size ||
 			h1->number_of_strips != h2->number_of_strips )
 			return( 0 );
