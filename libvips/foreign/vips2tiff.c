@@ -198,9 +198,9 @@
  */
 
 /* 
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -932,6 +932,12 @@ write_new( VipsImage *im, const char *filename,
 	 */
 	if( write->page_height > 0 &&
 		write->page_height < im->Ysize ) { 
+#ifdef DEBUG
+		printf( "write_new: detected toilet roll image, "
+			"page-height=%d\n", 
+			write->page_height );
+#endif/*DEBUG*/
+
 		write->toilet_roll = TRUE;
 		write->image_height = write->page_height;
 
@@ -943,6 +949,11 @@ write_new( VipsImage *im, const char *filename,
 			write_free( write );
 			return( NULL );
 		}
+
+#ifdef DEBUG
+		printf( "write_new: pages=%d\n", 
+			im->Ysize / write->page_height );
+#endif/*DEBUG*/
 
 		/* We can't pyramid toilet roll images.
 		 */
@@ -1654,6 +1665,32 @@ write_gather( Write *write )
 	return( 0 );
 }
 
+static int
+write_image( Write *write )
+{
+	if( vips_sink_disc( write->im, write_strip, write ) ) 
+		return( -1 );
+
+	if( !TIFFWriteDirectory( write->layer->tif ) ) 
+		return( -1 );
+
+	if( write->pyramid ) { 
+		/* Free lower pyramid resources ... this will TIFFClose() (but
+		 * not delete) the smaller layers ready for us to read from 
+		 * them again.
+		 */
+		if( write->layer->below )
+			pyramid_free( write->layer->below );
+
+		/* Append smaller layers to the main file.
+		 */
+		if( write_gather( write ) ) 
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
 int 
 vips__tiff_write( VipsImage *in, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 
@@ -1688,28 +1725,9 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		properties, strip )) )
 		return( -1 );
 
-	if( vips_sink_disc( write->im, write_strip, write ) ) {
+	if( write_image( write ) ) { 
 		write_free( write );
 		return( -1 );
-	}
-
-	if( !TIFFWriteDirectory( write->layer->tif ) ) 
-		return( -1 );
-
-	if( write->pyramid ) { 
-		/* Free lower pyramid resources ... this will TIFFClose() (but
-		 * not delete) the smaller layers ready for us to read from 
-		 * them again.
-		 */
-		if( write->layer->below )
-			pyramid_free( write->layer->below );
-
-		/* Append smaller layers to the main file.
-		 */
-		if( write_gather( write ) ) {
-			write_free( write );
-			return( -1 );
-		}
 	}
 
 	write_free( write );
@@ -1751,35 +1769,15 @@ vips__tiff_write_buf( VipsImage *in,
 	write->obuf = obuf;
 	write->olen = olen;
 
-	if( vips_sink_disc( write->im, write_strip, write ) ) {
+	if( write_image( write ) ) { 
 		write_free( write );
 		return( -1 );
-	}
-
-	if( !TIFFWriteDirectory( write->layer->tif ) ) 
-		return( -1 );
-
-	if( write->pyramid ) { 
-		/* Free lower pyramid resources ... this will TIFFClose() (but
-		 * not delete) the smaller layers ready for us to read from 
-		 * them again.
-		 */
-		if( write->layer->below )
-			pyramid_free( write->layer->below );
-
-		/* Append smaller layers to the main file.
-		 */
-		if( write_gather( write ) ) {
-			write_free( write );
-			return( -1 );
-		}
 	}
 
 	/* Now close the top layer, and we'll get a pointer we can return
 	 * to our caller.
 	 */
-	TIFFClose( write->layer->tif );
-	write->layer->tif = NULL; 
+	VIPS_FREEF( TIFFClose, write->layer->tif );
 
 	*obuf = write->layer->buf;
 	*olen = write->layer->len;

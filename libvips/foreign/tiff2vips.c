@@ -1703,37 +1703,40 @@ rtiff_stripwise_generate( VipsRegion *or,
 	while( y < r->height ) { 
 		/* Page number, position within this page.
 		 */
-		int page = rtiff->page + (r->top + y) / page_height;
+		int page_no = rtiff->page + (r->top + y) / page_height;
 		int y_page = (r->top + y) % page_height;
 
-		/* Strip number, position within this strip.
+		/* Strip number.
 		 */
-		tstrip_t strip = y_page / rows_per_strip;
-		int y_strip = y_page % rows_per_strip;
+		tstrip_t strip_no = y_page / rows_per_strip;
 
-		/* Position of top of strip.
+		VipsRect image, page, strip, hit;
+
+		/* Our four (including the output region) rects, all in 
+		 * output image coordinates.
 		 */
-		int strip_y = strip * rows_per_strip;
+		image.left = 0;
+		image.top = 0;
+		image.width = rtiff->out->Xsize;
+		image.height = rtiff->out->Ysize;
 
-		/* strips are normally rows_per_strip in height, but they will
-		 * be smaller for the last strip on the page.
-		 *
-		 * We may not be tile-aligned. If we have 16 lines to fill
-		 * in this generate, we might take the first 10 from the end
-		 * of the first page and then just 6 from the first strip at
-		 * the top of page 2. 
-		 *
-		 * In this case, we'll end up reading the top strip of page 2
-		 * again in the next generate call, and only using the bottom
-		 * half.
-		 */
-		int strip_height = VIPS_MIN( VIPS_MIN( VIPS_MIN( 
-			rows_per_strip, 
-			page_height - y_page ),
-			strip_y + rows_per_strip - y_page ),
-			r->height - y ); 
+		page.left = 0;
+		page.top = page_height * ((r->top + y) / page_height);
+		page.width = rtiff->out->Xsize;
+		page.height = page_height;
 
-		if( rtiff_set_page( rtiff, page ) ) {
+		strip.left = 0;
+		strip.top = page.top + strip_no * rows_per_strip;
+		strip.width = rtiff->out->Xsize;
+		strip.height = rows_per_strip;
+
+		vips_rect_intersectrect( &strip, &page, &hit );
+		vips_rect_intersectrect( &hit, &image, &hit );
+		vips_rect_intersectrect( &hit, r, &hit );
+
+		g_assert( hit.height > 0 ); 
+
+		if( rtiff_set_page( rtiff, page_no ) ) {
 			VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
 			return( -1 );
 		}
@@ -1745,9 +1748,9 @@ rtiff_stripwise_generate( VipsRegion *or,
 		 * or if this strip is not aligned on a tile boundary.
 		 */
 		if( rtiff->memcpy &&
-			y_page % rows_per_strip == 0 &&
-			strip_height == rows_per_strip ) {
-			if( rtiff_strip_read_interleaved( rtiff, strip, 
+			hit.top % rows_per_strip == 0 &&
+			hit.height == rows_per_strip ) {
+			if( rtiff_strip_read_interleaved( rtiff, strip_no, 
 				VIPS_REGION_ADDR( or, 0, r->top + y ) ) ) {
 				VIPS_GATE_STOP( 
 					"rtiff_stripwise_generate: work" ); 
@@ -1761,7 +1764,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 			/* Read and interleave the entire strip.
 			 */
-			if( rtiff_strip_read_interleaved( rtiff, strip, 
+			if( rtiff_strip_read_interleaved( rtiff, strip_no, 
 				rtiff->contig_buf ) ) {
 				VIPS_GATE_STOP( 
 					"rtiff_stripwise_generate: work" ); 
@@ -1771,9 +1774,10 @@ rtiff_stripwise_generate( VipsRegion *or,
 			/* Do any repacking to generate pixels in vips layout.
 			 */
 			p = rtiff->contig_buf + 
-				y_strip * rtiff->header.scanline_size;
+				(hit.top - strip.top) * 
+				rtiff->header.scanline_size;
 			q = VIPS_REGION_ADDR( or, 0, r->top + y );
-			for( z = 0; z < strip_height; z++ ) { 
+			for( z = 0; z < hit.height; z++ ) { 
 				rtiff->sfn( rtiff, 
 					q, p, or->im->Xsize, rtiff->client );
 
@@ -1782,7 +1786,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 			}
 		}
 
-		y += strip_height;
+		y += hit.height;
 	}
 
 	VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
