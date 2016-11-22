@@ -1730,9 +1730,15 @@ rtiff_stripwise_generate( VipsRegion *or,
 		strip.width = rtiff->out->Xsize;
 		strip.height = rows_per_strip;
 
-		vips_rect_intersectrect( &strip, &page, &hit );
-		vips_rect_intersectrect( &hit, &image, &hit );
-		vips_rect_intersectrect( &hit, r, &hit );
+		/* Clip strip against page and image ... the final strip will 
+		 * be smaller.
+		 */
+		vips_rect_intersectrect( &strip, &image, &strip );
+		vips_rect_intersectrect( &strip, &page, &strip );
+
+		/* Now the bit that overlaps with the region we are filling.
+		 */
+		vips_rect_intersectrect( &strip, r, &hit );
 
 		g_assert( hit.height > 0 ); 
 
@@ -1748,8 +1754,8 @@ rtiff_stripwise_generate( VipsRegion *or,
 		 * or if this strip is not aligned on a tile boundary.
 		 */
 		if( rtiff->memcpy &&
-			hit.top % rows_per_strip == 0 &&
-			hit.height == rows_per_strip ) {
+			hit.top == strip.top &&
+			hit.height == strip.height ) {
 			if( rtiff_strip_read_interleaved( rtiff, strip_no, 
 				VIPS_REGION_ADDR( or, 0, r->top + y ) ) ) {
 				VIPS_GATE_STOP( 
