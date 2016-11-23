@@ -4,6 +4,8 @@
  * 	- from openslideload.c
  * 12/5/16
  * 	- add @n ... number of pages to load
+ * 23/11/16
+ * 	- set page-height, if we can
  */
 
 /*
@@ -308,6 +310,17 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 
 		top += pdf->pages[i].height;
 	}
+
+	/* If all pages are the same size, we can tag this as a toilet roll
+	 * image and tiffsave will be able to save it as a multipage tiff.
+	 */
+	for( i = 1; i < pdf->n; i++ ) 
+		if( pdf->pages[i].width != pdf->pages[0].width ||
+			pdf->pages[i].height != pdf->pages[0].height )
+			break;
+	if( i == pdf->n ) 
+		vips_image_set_int( load->out, 
+			VIPS_META_PAGE_HEIGHT, pdf->pages[0].height );
 
 	vips_foreign_load_pdf_set_image( pdf, load->out ); 
 

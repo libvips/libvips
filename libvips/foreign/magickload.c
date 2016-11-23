@@ -308,6 +308,7 @@ vips_foreign_load_magick_buffer_init( VipsForeignLoadMagickBuffer *buffer )
  * Optional arguments:
  *
  * * @all_frames: %gboolean, load all frames in sequence
+ * * @page: %gint, load from this page
  * * @density: string, canvas resolution for rendering vector formats like SVG
  *
  * Read in an image using libMagick, the ImageMagick library. This library can
@@ -355,6 +356,7 @@ vips_magickload( const char *filename, VipsImage **out, ... )
  * Optional arguments:
  *
  * * @all_frames: %gboolean, load all frames in sequence
+ * * @page: %gint, load from this page
  * * @density: string, canvas resolution for rendering vector formats like SVG
  *
  * Read an image memory block using libMagick into a VIPS image. Exactly as
