@@ -41,6 +41,7 @@ class TestForeign(unittest.TestCase):
         self.jpeg_file = "images/йцук.jpg"
         self.png_file = "images/sample.png"
         self.tiff_file = "images/sample.tif"
+        self.ome_file = "images/multi-channel-z-series.ome.tif"
         self.profile_file = "images/sRGB.icm"
         self.analyze_file = "images/t00740_tr1_segm.hdr"
         self.gif_file = "images/cramps.gif"
@@ -314,6 +315,39 @@ class TestForeign(unittest.TestCase):
         self.assertEqual(x1.width, x2.height)
         self.assertEqual(x1.height, x2.width)
         os.unlink("test-14.tif")
+
+        x = Vips.Image.new_from_file(self.ome_file)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, 167)
+        page_height = x.height
+
+        x = Vips.Image.new_from_file(self.ome_file, n = -1)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 15)
+
+        x = Vips.Image.new_from_file(self.ome_file, page = 1, n = -1)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 14)
+
+        x = Vips.Image.new_from_file(self.ome_file, page = 1, n = 2)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 2)
+
+        x = Vips.Image.new_from_file(self.ome_file, n = -1)
+        self.assertEqual(x(0,166)[0], 96)
+        self.assertEqual(x(0,167)[0], 0)
+        self.assertEqual(x(0,168)[0], 1)
+
+        x.write_to_file("test-15.tif")
+
+        x = Vips.Image.new_from_file("test-15.tif", n = -1)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 15)
+        self.assertEqual(x(0,166)[0], 96)
+        self.assertEqual(x(0,167)[0], 0)
+        self.assertEqual(x(0,168)[0], 1)
+
+        os.unlink("test-15.tif")
 
     def test_magickload(self):
         x = Vips.type_find("VipsForeign", "magickload")

@@ -1209,7 +1209,8 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	out->Ysize = rtiff->header.height * rtiff->n;
 
 	if( rtiff->n > 1 ) 
-		vips_image_set_int( out, "page-height", rtiff->header.height );
+		vips_image_set_int( out, 
+			VIPS_META_PAGE_HEIGHT, rtiff->header.height );
 
 	/* Even though we could end up serving tiled data, always hint
 	 * THINSTRIP, since we're quite happy doing that too, and it could need

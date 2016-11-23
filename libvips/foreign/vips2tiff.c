@@ -198,9 +198,9 @@
  */
 
 /* 
- */
 #define DEBUG_VERBOSE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -921,8 +921,9 @@ wtiff_new( VipsImage *im, const char *filename,
 
 	/* Check for a toilet roll image.
 	 */
-	if( vips_image_get_typeof( im, "page-height" ) &&
-		vips_image_get_int( im, "page-height", &wtiff->page_height ) ) {
+	if( vips_image_get_typeof( im, VIPS_META_PAGE_HEIGHT ) &&
+		vips_image_get_int( im, 
+			VIPS_META_PAGE_HEIGHT, &wtiff->page_height ) ) {
 		wtiff_free( wtiff );
 		return( NULL );
 	}

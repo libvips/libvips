@@ -133,6 +133,15 @@ extern "C" {
  */
 #define VIPS_META_ORIENTATION "orientation"
 
+/**
+ * VIPS_META_PAGE_HEIGHT:
+ *
+ * If set, the height of each page when this image was loaded. If you save an
+ * image with "page-height" set to a format that supports multiple pages, such
+ * as tiff, the image will be saved as a series of pages. 
+ */
+#define VIPS_META_PAGE_HEIGHT "page-height"
+
 guint64 vips_format_sizeof( VipsBandFormat format );
 guint64 vips_format_sizeof_unsafe( VipsBandFormat format );
 

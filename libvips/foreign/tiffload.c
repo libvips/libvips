@@ -328,8 +328,8 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  *
  * @n means load this many pages. By default a single page is read. All the
  * pages must have the same dimensions, and they are loaded as a tall, thin
- * "toilet roll" image. The "page-height" metadata tag gives the height in
- * pixels of each page. Use -1 to load all pages. 
+ * "toilet roll" image. The #VIPS_META_PAGE_HEIGHT metadata 
+ * tag gives the height in pixels of each page. Use -1 to load all pages. 
  *
  * Setting @autorotate to %TRUE will make the loader interpret the 
  * orientation tag and automatically rotate the image appropriately during
