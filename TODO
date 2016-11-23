@@ -1,10 +1,11 @@
+- add VIPS_META_PAGE_HEIGHT and probably some others too .. "orientation"?
+
+- in wtiff_layer_rewind() we size strip height by tileh, but is this correct
+  for strip images?
+
 - test data
 
 	http://downloads.openmicroscopy.org/images/OME-TIFF/2016-06/bioformats-artificial/multi-channel-z-series.ome.tif
-
-- tiff load needs to support n=-1, meaning all pages to end
-
-  is that what pdfload does?
 
 - all toilet roll loaders need to set "page-height"
 
