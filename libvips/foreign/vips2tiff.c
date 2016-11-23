@@ -710,6 +710,31 @@ write_tiff_header( Write *write, Layer *layer )
 	return( 0 );
 }
 
+static int
+layer_rewind( Write *write, Layer *layer )
+{
+	VipsRect strip_size;
+
+	/* Build a line of tiles here. 
+	 *
+	 * Expand the strip if necessary to make sure we have an even 
+	 * number of lines. 
+	 */
+	strip_size.left = 0;
+	strip_size.top = 0;
+	strip_size.width = layer->image->Xsize;
+	strip_size.height = write->tileh;
+	if( (strip_size.height & 1) == 1 )
+		strip_size.height += 1;
+	if( vips_region_buffer( layer->strip, &strip_size ) ) 
+		return( -1 );
+
+	layer->y = 0;
+	layer->write_y = 0;
+
+	return( 0 );
+}
+
 /* Walk the pyramid allocating resources. 
  */
 static int
@@ -718,8 +743,6 @@ pyramid_fill( Write *write )
 	Layer *layer;
 
 	for( layer = write->layer; layer; layer = layer->below ) {
-		VipsRect strip_size;
-
 		layer->image = vips_image_new();
 		if( vips_image_pipelinev( layer->image, 
 			VIPS_DEMAND_STYLE_ANY, write->im, NULL ) ) 
@@ -736,19 +759,8 @@ pyramid_fill( Write *write )
 		vips__region_no_ownership( layer->strip );
 		vips__region_no_ownership( layer->copy );
 
-		/* Build a line of tiles here. 
-		 *
-		 * Expand the strip if necessary to make sure we have an even 
-		 * number of lines. 
-		 */
-		strip_size.left = 0;
-		strip_size.top = 0;
-		strip_size.width = layer->image->Xsize;
-		strip_size.height = write->tileh;
-		if( (strip_size.height & 1) == 1 )
-			strip_size.height += 1;
-		if( vips_region_buffer( layer->strip, &strip_size ) ) 
-			return( -1 );
+		if( layer_rewind( write, layer ) )
+			return( -1 ); 
 
 		if( layer->lname ) 
 			layer->tif = vips__tiff_openout( 
@@ -1665,15 +1677,52 @@ write_gather( Write *write )
 	return( 0 );
 }
 
-/* Two basic write patterns: multipage and pyramid. We do single image as a
- * special case of pyramid.
+/* Three types of write: single image, multipage and pyramid. 
  */
 static int
 write_image( Write *write )
 {
 	if( write->toilet_roll ) {
+		int n_pages = write->im->Ysize / write->page_height;
+
+		int i;
+
+#ifdef DEBUG
+		printf( "write_image: toilet-roll mode\n" ); 
+#endif /*DEBUG*/
+
+		for( i = 0; i < n_pages; i++ ) {
+			VipsImage *page;
+
+			if( vips_crop( write->im, &page, 
+				0, i * write->page_height,
+				write->im->Xsize, write->page_height,
+				NULL ) )
+				return( -1 ); 
+			if( vips_sink_disc( page, write_strip, write ) ) {
+				g_object_unref( page );
+				return( -1 );
+			}
+			g_object_unref( page );
+
+			/* If there will be another page after this one, we
+			 * need to flush this directory and set the directory
+			 * for the next write.
+			 */
+			if( i < n_pages - 1 ) {
+				if( !TIFFWriteDirectory( write->layer->tif ) || 
+					layer_rewind( write, write->layer ) ||
+					write_tiff_header( write, 
+						write->layer ) )
+					return( -1 );
+			}
+		}
 	}
-	else {
+	else if( write->pyramid ) {
+#ifdef DEBUG
+		printf( "write_image: pyramid mode\n" ); 
+#endif /*DEBUG*/
+
 		if( vips_sink_disc( write->im, write_strip, write ) ) 
 			return( -1 );
 
@@ -1693,6 +1742,14 @@ write_image( Write *write )
 			if( write_gather( write ) ) 
 				return( -1 );
 		}
+	}
+	else {
+#ifdef DEBUG
+		printf( "write_image: single-image mode\n" ); 
+#endif /*DEBUG*/
+
+		if( vips_sink_disc( write->im, write_strip, write ) ) 
+			return( -1 );
 	}
 
 	return( 0 );
