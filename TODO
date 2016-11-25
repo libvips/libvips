@@ -14,11 +14,7 @@
 
   magick6
 
-	john@kiwi:~/pics$ vips magickload nipguide.pdf x.v --all-frames
-	john@kiwi:~/pics$ vipsheader x.v
-	x.v: 595x842 ushort, 2 bands, grey16, magickload
-
-  	argh
+	deprecated all_frames, added n, added tests
 
   magick7
 

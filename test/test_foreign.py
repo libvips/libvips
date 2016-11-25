@@ -383,12 +383,23 @@ class TestForeign(unittest.TestCase):
         #self.assertEqual(im.height, height * 2)
 
         # all-frames should load every frame of the animation
+        # (though all-frames is deprecated)
         im = Vips.Image.magickload(self.gif_anim_file)
         width = im.width
         height = im.height
         im = Vips.Image.magickload(self.gif_anim_file, all_frames = True)
         self.assertEqual(im.width, width)
         self.assertEqual(im.height, height * 5)
+
+        # page/n let you pick a range of pages
+        im = Vips.Image.magickload(self.gif_anim_file)
+        width = im.width
+        height = im.height
+        im = Vips.Image.magickload(self.gif_anim_file, page = 1, n = 2)
+        self.assertEqual(im.width, width)
+        self.assertEqual(im.height, height * 2)
+        page_height = im.get_value("page-height")
+        self.assertEqual(page_height, height)
 
         # should work for dicom
         im = Vips.Image.magickload(self.dicom_file)

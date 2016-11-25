@@ -8,6 +8,8 @@
  * 	- add @all_frames option, off by default
  * 14/2/16
  * 	- add @page option, 0 by default
+ * 25/11/16
+ * 	- add @n, deprecate @all_frames (just sets n = -1)
  */
 
 /*
@@ -61,9 +63,13 @@
 typedef struct _VipsForeignLoadMagick {
 	VipsForeignLoad parent_object;
 
-	gboolean all_frames;		/* Load all frames */
+	/* Deprecated. Just sets n = -1.
+	 */
+	gboolean all_frames;
+
 	char *density;			/* Load at this resolution */
 	int page;			/* Load this page (frame) */
+	int n;				/* Load this many pages */
 
 } VipsForeignLoadMagick;
 
@@ -110,7 +116,7 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 	VIPS_ARG_BOOL( class, "all_frames", 3, 
 		_( "all_frames" ), 
 		_( "Read all frames from an image" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick, all_frames ),
 		FALSE );
 
@@ -127,11 +133,19 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick, page ),
 		0, 100000, 0 );
+
+	VIPS_ARG_INT( class, "n", 6,
+		_( "n" ),
+		_( "Load this many pages" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadMagick, n ),
+		-1, 100000, 1 );
 }
 
 static void
 vips_foreign_load_magick_init( VipsForeignLoadMagick *magick )
 {
+	magick->n = 1;
 }
 
 typedef struct _VipsForeignLoadMagickFile {
@@ -154,7 +168,7 @@ ismagick( const char *filename )
 
 	t = vips_image_new();
 	vips_error_freeze();
-	result = vips__magick_read_header( filename, t, FALSE, NULL, 0 );
+	result = vips__magick_read_header( filename, t, NULL, 0, 1 );
 	g_object_unref( t );
 	vips_error_thaw();
 
@@ -175,8 +189,11 @@ vips_foreign_load_magick_file_header( VipsForeignLoad *load )
 	VipsForeignLoadMagickFile *magick_file = 
 		(VipsForeignLoadMagickFile *) load;
 
+	if( magick->all_frames )
+		magick->n = -1;
+
 	if( vips__magick_read( magick_file->filename, 
-		load->out, magick->all_frames, magick->density, magick->page ) )
+		load->out, magick->density, magick->page, magick->n ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, magick_file->filename );
@@ -236,7 +253,7 @@ vips_foreign_load_magick_buffer_is_a_buffer( const void *buf, size_t len )
 
 	t = vips_image_new();
 	vips_error_freeze();
-	result = vips__magick_read_buffer_header( buf, len, t, FALSE, NULL, 0 );
+	result = vips__magick_read_buffer_header( buf, len, t, NULL, 0, 1 );
 	g_object_unref( t );
 	vips_error_thaw();
 
@@ -257,9 +274,12 @@ vips_foreign_load_magick_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadMagickBuffer *magick_buffer = 
 		(VipsForeignLoadMagickBuffer *) load;
 
+	if( magick->all_frames )
+		magick->n = -1;
+
 	if( vips__magick_read_buffer( 
 		magick_buffer->buf->data, magick_buffer->buf->length, 
-		load->out, magick->all_frames, magick->density, magick->page ) )
+		load->out, magick->density, magick->page, magick->n ) )
 		return( -1 );
 
 	return( 0 );
@@ -307,8 +327,8 @@ vips_foreign_load_magick_buffer_init( VipsForeignLoadMagickBuffer *buffer )
  *
  * Optional arguments:
  *
- * * @all_frames: %gboolean, load all frames in sequence
  * * @page: %gint, load from this page
+ * * @n: %gint, load this many pages
  * * @density: string, canvas resolution for rendering vector formats like SVG
  *
  * Read in an image using libMagick, the ImageMagick library. This library can
@@ -322,7 +342,8 @@ vips_foreign_load_magick_buffer_init( VipsForeignLoadMagickBuffer *buffer )
  * "--with-magickpackage" configure option.
  *
  * Normally it will only load the first image in a many-image sequence (such
- * as a GIF). Set @all_frames to true to read the whole image sequence. 
+ * as a GIF or a PDF). Use @page and @n to set the start page and number of
+ * pages to load. Set @n to -1 to load all pages from @page onwards.
  *
  * @density is "WxH" in DPI, e.g. "600x300" or "600" (default is "72x72"). See
  * the [density 
@@ -355,8 +376,8 @@ vips_magickload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * * @all_frames: %gboolean, load all frames in sequence
  * * @page: %gint, load from this page
+ * * @n: %gint, load this many pages
  * * @density: string, canvas resolution for rendering vector formats like SVG
  *
  * Read an image memory block using libMagick into a VIPS image. Exactly as

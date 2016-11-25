@@ -120,14 +120,14 @@ int vips__fits_read( const char *filename, VipsImage *out );
 int vips__fits_write( VipsImage *in, const char *filename );
 
 int vips__magick_read( const char *filename, 
-	VipsImage *out, gboolean all_frames, const char *density, int page );
+	VipsImage *out, const char *density, int page, int n );
 int vips__magick_read_header( const char *filename, 
-	VipsImage *out, gboolean all_frames, const char *density, int page );
+	VipsImage *out, const char *density, int page, int n );
 
 int vips__magick_read_buffer( const void *buf, const size_t len,
-	VipsImage *out, gboolean all_frames, const char *density, int page );
+	VipsImage *out, const char *density, int page, int n );
 int vips__magick_read_buffer_header( const void *buf, const size_t len,
-	VipsImage *out, gboolean all_frames, const char *density, int page );
+	VipsImage *out, const char *density, int page, int n );
 
 extern const char *vips__mat_suffs[];
 
