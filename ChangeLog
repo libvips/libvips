@@ -12,7 +12,7 @@
 - add vips_image_get_fields() to help bindings
 - add tiff multi-page read/write
 - add VIPS_META_PAGE_HEIGHT metadata
-- IM6 magickload supports page/n, all_frames deprecated
+- IM6/IM7 magickload supports page/n/page-height, all_frames deprecated
 
 11/11/16 started 8.4.4
 - fix crash in vips.exe arg parsing on Windows, thanks Yury

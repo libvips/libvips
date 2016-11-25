@@ -237,7 +237,8 @@ read_new( const char *filename, VipsImage *im,
 
 		/* Some IMs must have the string version set as well.
 		 */
-		vips_snprintf( page, 256, "%d-%d", read->page, read->page + n );
+		vips_snprintf( page, 256, "%d-%d", 
+			read->page, read->page + read->n );
 		read->image_info->scenes = strdup( page );
 #else /*!HAVE_NUMBER_SCENES*/
 		/* This works with GM 1.2.31 and probably others.

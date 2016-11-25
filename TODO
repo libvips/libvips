@@ -2,27 +2,13 @@
 
   magick, pdf, gif and tiff need to use the same page/n interface
 
-  magick: has page and all_frames
-
-  	deprecate all_frames, add @n, make all_frames set n == -1 
-
-	do we allow page + all_frames?
-
-	need to check magick2vips.c and magick7load.c 
-
-	add page-height
-
   magick6
 
-	deprecated all_frames, added n, added tests
+	deprecated all_frames, added n, added tests, added page-height
 
   magick7
 
-	$ vips magickload nipguide.pdf x.v --all-frames
-	$ vipsheader x.v
-	x.v: 595x48836 ushort, 4 bands, rgb16, magickload
-
-	phew
+	same
 
   gifload has page, but no n
 
