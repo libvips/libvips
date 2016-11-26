@@ -12,7 +12,7 @@
  * 19/8/16
  * 	- better transparency detection, thanks diegocsandrim
  * 25/11/16
- * 	- support @n
+ * 	- support @n, page-height
  */
 
 /*
@@ -428,6 +428,13 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif, VipsImage *out )
 			}
 	}
 
+	/* We need a line buffer to decompress to.
+	 */
+	if( !gif->line ) 
+		if( !(gif->line = VIPS_ARRAY( gif, 
+			gif->file->SWidth, GifPixelType )) )
+			return( -1 ); 
+
 	if( file->Image.Interlace ) {
 		int i;
 
@@ -482,44 +489,17 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif, VipsImage *out )
 	return( 0 );
 }
 
+/* Write the next page, if there is one, to @page. Set EOF if we hit the end of
+ * the file. @page must be a memory image of the right size. 
+ */
 static int
-vips_foreign_load_gif_to_memory( VipsForeignLoadGif *gif, 
-	VipsImage *previous, VipsImage *out )
+vips_foreign_load_gif_page( VipsForeignLoadGif *gif, VipsImage *out )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
-
 	GifRecordType record;
+	int n_pages;
 
-	vips_image_init_fields( out, 
-		gif->file->SWidth, gif->file->SHeight,
-		4, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+	n_pages = 0;
 
-	/* We will have the whole GIF frame in memory, so we can render any 
-	 * area.
-	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_ANY, NULL );
-
-	/* We need a line buffer to decompress to.
-	 */
-	gif->line = VIPS_ARRAY( gif, gif->file->SWidth, GifPixelType );
-
-	/* Turn out into a memory image which we then render the GIF frames
-	 * into.
-	 */
-	if( vips_image_write_prepare( out ) )
-		return( -1 );
-
-	/* And init with the previous frame, if any.
-	 */
-	if( previous ) 
-		memcpy( VIPS_IMAGE_ADDR( out, 0, 0 ),
-			VIPS_IMAGE_ADDR( previous, 0, 0 ),
-			VIPS_IMAGE_SIZEOF_IMAGE( out ) );
-
-	/* Scan the GIF until we have enough to have completely rendered the
-	 * next frame.
-	 */
 	do { 
 		GifByteType *extension;
 		int ext_code;
@@ -541,10 +521,10 @@ vips_foreign_load_gif_to_memory( VipsForeignLoadGif *gif,
 			if( vips_foreign_load_gif_render( gif, out ) )
 				return( -1 ); 
 
-			gif->current_page += 1;
+			n_pages += 1;
 
-			VIPS_DEBUG_MSG( "gifload: frame %d:\n", 
-				gif->current_page );
+			VIPS_DEBUG_MSG( "gifload: page %d:\n", 
+				gif->current_page + n_pages );
 
 			break;
 
@@ -607,21 +587,39 @@ vips_foreign_load_gif_to_memory( VipsForeignLoadGif *gif,
 		default:
 			break;
 		}
-	} while( gif->current_page + frame_n <= gif->page && 
+	} while( n_pages < 1 &&
 		!gif->eof );
 
-	if( frame_n <= gif->page ) {
-		vips_error( class->nickname, 
-			"%s", _( "too few frames in GIF file" ) );
-		return( -1 );
-	}
-
-	/* We've rendered to a memory image ... we can shut down the GIF
-	 * reader now.
-	 */
-	vips_foreign_load_gif_close( gif ); 
+	gif->current_page += n_pages;
 
 	return( 0 );
+}
+
+static VipsImage *
+vips_foreign_load_gif_new_page( VipsForeignLoadGif *gif )
+{
+	VipsImage *out;
+
+	out = vips_image_new_memory();
+
+	vips_image_init_fields( out, 
+		gif->file->SWidth, gif->file->SHeight, 4, VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+
+	/* We will have the whole GIF frame in memory, so we can render any 
+	 * area.
+	 */
+        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_ANY, NULL );
+
+	/* Turn out into a memory image which we then render the GIF frames
+	 * into.
+	 */
+	if( vips_image_write_prepare( out ) ) {
+		g_object_unref( out ); 
+		return( NULL );
+	}
+
+	return( out );
 }
 
 static void
@@ -635,51 +633,111 @@ unref_array( GSList *list )
  * so we can't just allocate a large area.
  */
 static int
-vips_foreign_load_gif_frames( VipsForeignLoadGif *gif, VipsImage **out )
+vips_foreign_load_gif_pages( VipsForeignLoadGif *gif, VipsImage **out )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 
 	GSList *frames;
+	VipsImage *frame;
 	VipsImage *previous;
 	VipsImage **t;
-	GifRecordType record;
 	int n_frames;
 	int i;
 
 	frames = NULL;
 	previous = NULL;
 
-	do {
-		VipsImage *frame;
+	/* Accumulate any start stuff up to the first frame we need.
+	 */
+	if( !(frame = vips_foreign_load_gif_new_page( gif )) ) 
+		return( -1 );
+	do { 
+		if( vips_foreign_load_gif_page( gif, frame ) ) {
+			g_object_unref( frame );
+			return( -1 );
+		}
+	} while( !gif->eof &&
+		gif->current_page <= gif->page );
 
-		if( vips_foreign_load_gif_to_memory( gif, previous, &frame ) ) {
+	if( gif->eof ) {
+		vips_error( class->nickname, 
+			"%s", _( "too few frames in GIF file" ) );
+		g_object_unref( frame );
+		return( -1 );
+	}
+
+	frames = g_slist_append( frames, frame );
+	previous = frame;
+
+	while( gif->n == -1 ||
+		gif->current_page < gif->page + gif->n ) {
+		/* We might need a frame for this read to render to.
+		 */
+		if( !(frame = vips_foreign_load_gif_new_page( gif )) ) {
 			unref_array( frames );
 			return( -1 );
 		}
-		frames = g_slist_append( frames, frame );
-		previous = frame;
-	} while( (gif->n == -1 && !gif->eof) ||
-		(gif->current_page < gif->page + gif->n) );
+
+		/* And init with the previous frame, if any.
+		 */
+		if( previous ) 
+			memcpy( VIPS_IMAGE_ADDR( frame, 0, 0 ),
+				VIPS_IMAGE_ADDR( previous, 0, 0 ),
+				VIPS_IMAGE_SIZEOF_IMAGE( frame ) );
+
+		if( vips_foreign_load_gif_page( gif, frame ) ) {
+			g_object_unref( frame ); 
+			unref_array( frames );
+			return( -1 );
+		}
+
+		if( gif->eof ) {
+			/* Nope, didn't need the new frame.
+			 */
+			g_object_unref( frame ); 
+			break;
+		}
+		else {
+			frames = g_slist_append( frames, frame );
+			previous = frame;
+		}
+	}
+
+	n_frames = g_slist_length( frames ); 
+
+	if( gif->eof &&
+		gif->n != -1 &&
+		n_frames < gif->n ) {
+		unref_array( frames );
+		vips_error( class->nickname, 
+			"%s", _( "too few frames in GIF file" ) );
+		return( -1 );
+	}
 
 	/* We've rendered to a set of memory images ... we can shut down the GIF
 	 * reader now.
 	 */
 	vips_foreign_load_gif_close( gif ); 
 
-	n_frames = gif->current_page - gif->page;
 	if( !(t = VIPS_ARRAY( gif, n_frames, VipsImage * )) ) { 
 		unref_array( frames );
 		return( -1 );
 	}
 
 	for( i = 0; i < n_frames; i++ )
-		t[i] = g_slist_nth( frames, i );
+		t[i] = (VipsImage *) g_slist_nth_data( frames, i );
 
-	if( vips_arrayjoin( t, out, n_frames, NULL ) ) { 
+	if( vips_arrayjoin( t, out, n_frames, 
+		"across", 1,
+		NULL ) ) { 
 		unref_array( frames );
 		return( -1 );
 	}
+
 	unref_array( frames );
+
+	if( n_frames > 1 )
+		vips_image_set_int( *out, VIPS_META_PAGE_HEIGHT, frame->Ysize );
 
 	return( 0 );
 }
@@ -693,11 +751,9 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 
 	VipsImage *im;
 
-	/* Render to a memory image.
-	 */
-	im = t[0] = vips_image_new_memory();
-	if( vips_foreign_load_gif_to_memory( gif, im ) )
+	if( vips_foreign_load_gif_pages( gif, &t[0] ) )
 		return( -1 );
+	im = t[0];
 
 	/* Depending on what we found, transform and write to load->real.
 	 */

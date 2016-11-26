@@ -560,6 +560,18 @@ class TestForeign(unittest.TestCase):
         self.file_loader("gifload", self.gif_file, gif_valid)
         self.buffer_loader("gifload_buffer", self.gif_file, gif_valid)
 
+        x1 = Vips.Image.new_from_file(self.gif_anim_file )
+        x2 = Vips.Image.new_from_file(self.gif_anim_file, n = 2 )
+        self.assertEqual(x2.height, 2 * x1.height)
+        page_height = x2.get_value("page-height")
+        self.assertEqual(page_height, x1.height)
+
+        x2 = Vips.Image.new_from_file(self.gif_anim_file, n = -1 )
+        self.assertEqual(x2.height, 5 * x1.height)
+
+        x2 = Vips.Image.new_from_file(self.gif_anim_file, page = 1, n = -1 )
+        self.assertEqual(x2.height, 4 * x1.height)
+
     def test_svgload(self):
         x = Vips.type_find("VipsForeign", "svgload")
         if not x.is_instantiatable():
