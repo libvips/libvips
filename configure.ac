@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [8.4.4], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.4.5], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -18,7 +18,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # user-visible library versioning
 m4_define([vips_major_version], [8])
 m4_define([vips_minor_version], [4])
-m4_define([vips_micro_version], [4])
+m4_define([vips_micro_version], [5])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -38,7 +38,7 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=48
-LIBRARY_REVISION=4
+LIBRARY_REVISION=5
 LIBRARY_AGE=6
 
 # patched into include/vips/version.h
@@ -404,9 +404,12 @@ GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 AC_ARG_WITH([gsf], 
   AS_HELP_STRING([--without-gsf], [build without libgsf-1 (default: test)]))
 
-# libgsf-1 1.14.21 crashes, .27 is known-good, not sure about 22-26
+# libgsf-1 1.14.21 crashes 
+# .27 is known to work well
+# .26 seems OK but has not been tested much
+# not sure about 22-25
 if test x"$with_gsf" != "xno"; then
-  PKG_CHECK_MODULES(GSF, libgsf-1 >= 1.14.27,
+  PKG_CHECK_MODULES(GSF, libgsf-1 >= 1.14.26,
     [AC_DEFINE(HAVE_GSF,1,[define if you have libgsf-1 installed.])
      with_gsf=yes
      PACKAGES_USED="$PACKAGES_USED libgsf-1"
@@ -1095,7 +1098,7 @@ file import/export with libtiff:	$with_tiff
 file import/export with giflib:		$with_giflib
 file import/export with libjpeg:	$with_jpeg
 image pyramid export:			$with_gsf
-  (requires libgsf-1 1.14.27 or later)
+  (requires libgsf-1 1.14.26 or later)
 use libexif to load/save JPEG metadata: $with_libexif
 ])
 
