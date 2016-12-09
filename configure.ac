@@ -404,9 +404,12 @@ GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 AC_ARG_WITH([gsf], 
   AS_HELP_STRING([--without-gsf], [build without libgsf-1 (default: test)]))
 
-# libgsf-1 1.14.21 crashes, .27 is known-good, not sure about 22-26
+# libgsf-1 1.14.21 crashes 
+# .27 is known to work well
+# .26 seems OK but has not been tested much
+# not sure about 22-25
 if test x"$with_gsf" != "xno"; then
-  PKG_CHECK_MODULES(GSF, libgsf-1 >= 1.14.27,
+  PKG_CHECK_MODULES(GSF, libgsf-1 >= 1.14.26,
     [AC_DEFINE(HAVE_GSF,1,[define if you have libgsf-1 installed.])
      with_gsf=yes
      PACKAGES_USED="$PACKAGES_USED libgsf-1"
@@ -1095,7 +1098,7 @@ file import/export with libtiff:	$with_tiff
 file import/export with giflib:		$with_giflib
 file import/export with libjpeg:	$with_jpeg
 image pyramid export:			$with_gsf
-  (requires libgsf-1 1.14.27 or later)
+  (requires libgsf-1 1.14.26 or later)
 use libexif to load/save JPEG metadata: $with_libexif
 ])
 

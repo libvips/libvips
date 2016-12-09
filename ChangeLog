@@ -15,6 +15,9 @@
 - IM6/IM7 magickload supports page/n/page-height, all_frames deprecated
 - gifload supports n/page-height
 
+8/12/16 started 8.4.5
+- allow libgsf-1.14.26 to help centos, thanks tdiprima
+
 11/11/16 started 8.4.4
 - fix crash in vips.exe arg parsing on Windows, thanks Yury
 
