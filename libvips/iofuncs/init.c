@@ -432,20 +432,6 @@ vips_init( const char *argv0 )
 	return( 0 );
 }
 
-/* Return the sizeof() various important data structures. These are checked
- * against the headers used to build our caller by vips_init().
- *
- * We allow direct access to members of VipsImage and VipsRegion (mostly for
- * reasons of history), so any change to a superclass of either of these
- * objects will break our ABI.
- */
-
-size_t
-vips__get_sizeof_vipsobject( void )
-{
-	return( sizeof( VipsObject ) ); 
-}
-
 /* Call this before vips stuff that uses stuff we need to have inited.
  */
 void
@@ -1029,6 +1015,9 @@ vips_version_string( void )
  * Get the major, minor or micro library version, with @flag values 0, 1 and
  * 2.
  *
+ * Get the ABI current, revision and age (as used by libtool) with @flag 
+ * values 3, 4, 5. 
+ *
  * Returns: library version number
  */
 int
@@ -1037,15 +1026,24 @@ vips_version( int flag )
 	switch( flag ) {
 	case 0:
 		return( VIPS_MAJOR_VERSION );
-	
+
 	case 1:
 		return( VIPS_MINOR_VERSION );
-	
+
 	case 2:
 		return( VIPS_MICRO_VERSION );
 
+	case 3:
+		return( VIPS_LIBRARY_CURRENT );
+
+	case 4:
+		return( VIPS_LIBRARY_REVISION );
+
+	case 5:
+		return( VIPS_LIBRARY_AGE );
+
 	default:
-		vips_error( "vips_version", "%s", _( "flag not 0, 1, 2" ) );
+		vips_error( "vips_version", "%s", _( "flag not in [0, 5]" ) );
 		return( -1 );
 	}
 }
@@ -1064,3 +1062,12 @@ vips_leak_set( gboolean leak )
 {
 	vips__leak = leak; 
 }
+
+/* Deprecated.
+ */
+size_t
+vips__get_sizeof_vipsobject( void )
+{
+	return( sizeof( VipsObject ) ); 
+}
+

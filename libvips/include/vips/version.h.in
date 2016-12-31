@@ -10,6 +10,21 @@
 #define VIPS_MINOR_VERSION	(@VIPS_MINOR_VERSION@)
 #define VIPS_MICRO_VERSION	(@VIPS_MICRO_VERSION@)
 
+/* The ABI version, as used for library versioning.
+ */
+#define VIPS_LIBRARY_CURRENT	(@LIBRARY_CURRENT@)
+#define VIPS_LIBRARY_REVISION	(@LIBRARY_REVISION@)
+#define VIPS_LIBRARY_AGE	(@LIBRARY_AGE@)
+
+/** 
+ * VIPS_SONAME:
+ *
+ * The name of the shared object containing the vips library, for example
+ * "libvips.so.42", or "libvips-42.dll".
+ */
+
+#include "soname.h"
+
 /* Not really anything to do with versions, but this is a handy place to put
  * it.
  */
