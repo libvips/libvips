@@ -860,7 +860,7 @@ intize_to_fixed_point( VipsImage *in, int *out )
 	for( i = 0; i < ne; i++ ) 
 		if( scaled[i] >= 4.0 ||
 			scaled[i] < -4 ) {
-			vips_info( "intize_to_fixed_point",
+			g_info( "intize_to_fixed_point: "
 				"out of range for vector path" );
 			return( -1 ); 
 		}
@@ -880,7 +880,7 @@ intize_to_fixed_point( VipsImage *in, int *out )
 	/* 0.1 is a 10% error.
 	 */
 	if( total_error > 0.1 ) {
-		vips_info( "intize_to_fixed_point", "too many underflows" );
+		g_info( "intize_to_fixed_point: too many underflows" );
 		return( -1 ); 
 	}
 
@@ -906,7 +906,6 @@ intize_to_fixed_point( VipsImage *in, int *out )
 static int
 vips_convi_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConvolution *convolution = (VipsConvolution *) object;
 	VipsConvi *convi = (VipsConvi *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
@@ -941,7 +940,7 @@ vips_convi_build( VipsObject *object )
 			!intize_to_fixed_point( M, convi->fixed ) &&
 			!vips_convi_compile( convi, in ) ) {
 			generate = vips_convi_gen_vector;
-			vips_info( class->nickname, "using vector path" ); 
+			g_info( "using vector path" ); 
 		}
 		else
 			vips_convi_compile_free( convi );
@@ -980,7 +979,7 @@ vips_convi_build( VipsObject *object )
 		}
 
 		generate = vips_convi_gen;
-		vips_info( class->nickname, "using C path" ); 
+		g_info( "using C path" ); 
 	}
 
 	g_object_set( convi, "out", vips_image_new(), NULL ); 

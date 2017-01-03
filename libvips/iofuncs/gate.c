@@ -143,8 +143,7 @@ vips_thread_profile_save( VipsThreadProfile *profile )
 			vips__file_open_write( "vips-profile.txt", TRUE );
 		if( !vips__thread_fp ) {
 			g_mutex_unlock( vips__global_lock );
-			vips_warn( "VipsGate", 
-				"%s", "unable to create profile log" ); 
+			g_warning( "unable to create profile log" ); 
 			return;
 		}
 
@@ -204,8 +203,7 @@ vips__thread_profile_init_cb( VipsThreadProfile *profile )
 	 * been called. 
 	 */
 	if( vips__thread_profile ) 
-		vips_warn( "VipsGate", 
-			"discarding unsaved state for thread %p --- "
+		g_warning( "discarding unsaved state for thread %p --- "
 			"call vips_thread_shutdown() for this thread",
 			profile->thread ); 
 

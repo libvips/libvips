@@ -464,8 +464,7 @@ wtiff_embed_ipct( Wtiff *wtiff, TIFF *tif )
 	 * long, not byte.
 	 */
 	if( data_length & 3 ) {
-		vips_warn( "vips2tiff", 
-			"%s", _( "rounding up IPCT data length" ) );
+		g_warning( "%s", _( "rounding up IPCT data length" ) );
 		data_length /= 4;
 		data_length += 1;
 	}
@@ -958,8 +957,8 @@ wtiff_new( VipsImage *im, const char *filename,
 		/* We can't pyramid toilet roll images.
 		 */
 		if( wtiff->pyramid ) {
-			vips_warn( "vips2tiff",
-				"%s", _( "can't pyramid multi page images --- "
+			g_warning( "%s", 
+				_( "can't pyramid multi page images --- "
 					"disabling pyramid" ) ); 
 			wtiff->pyramid = FALSE;
 		}
@@ -995,16 +994,16 @@ wtiff_new( VipsImage *im, const char *filename,
 		(im->Coding != VIPS_CODING_NONE || 
 			im->BandFmt != VIPS_FORMAT_UCHAR ||
 			im->Bands != 1) ) {
-		vips_warn( "vips2tiff", 
-			"%s", _( "can only squash 1 band uchar images -- "
+		g_warning( "%s",
+			_( "can only squash 1 band uchar images -- "
 				"disabling squash" ) );
 		wtiff->onebit = 0;
 	}
 
 	if( wtiff->onebit && 
 		wtiff->compression == COMPRESSION_JPEG ) {
-		vips_warn( "vips2tiff", 
-			"%s", _( "can't have 1-bit JPEG -- disabling JPEG" ) );
+		g_warning( "%s", 
+			_( "can't have 1-bit JPEG -- disabling JPEG" ) );
 		wtiff->compression = COMPRESSION_NONE;
 	}
  
@@ -1014,8 +1013,8 @@ wtiff_new( VipsImage *im, const char *filename,
 		(im->Coding != VIPS_CODING_NONE || 
 			vips_band_format_iscomplex( im->BandFmt ) ||
 			im->Bands > 2) ) {
-		vips_warn( "vips2tiff", 
-			"%s", _( "can only save non-complex greyscale images "
+		g_warning( "%s", 
+			_( "can only save non-complex greyscale images "
 				"as miniswhite -- disabling miniswhite" ) );
 		wtiff->miniswhite = FALSE;
 	}

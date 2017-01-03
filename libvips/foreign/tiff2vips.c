@@ -387,7 +387,7 @@ get_resolution( TIFF *tiff, VipsImage *out )
 		}
 	}
 	else {
-		vips_warn( "tiff2vips", _( "no resolution information for "
+		g_warning( _( "no resolution information for "
 			"TIFF image \"%s\" -- defaulting to 1 pixel per mm" ), 
 			TIFFFileName( tiff ) );
 		x = 1.0;
@@ -1041,7 +1041,7 @@ rtiff_parse_palette( Rtiff *rtiff, VipsImage *out )
 			read->blue8[i] = read->blue16[i] >> 8;
 		}
 	else {
-		vips_warn( "tiff2vips", "%s", _( "assuming 8-bit palette" ) );
+		g_warning( "%s", _( "assuming 8-bit palette" ) );
 
 		for( i = 0; i < len; i++ ) {
 			read->red8[i] = read->red16[i] & 0xff;

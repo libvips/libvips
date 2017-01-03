@@ -16,6 +16,8 @@
 - gifload supports n/page-height
 - added #defines for VIPS_SONAME, VIPS_LIBRARY_CURRENT, VIPS_LIBRARY_REVISION,
   VIPS_LIBRARY_AGE
+- deprecate vips_warn(), use g_warning() instead
+- deprecate vips_info(), use g_info() instead
 
 8/12/16 started 8.4.5
 - allow libgsf-1.14.26 to help centos, thanks tdiprima

@@ -155,7 +155,6 @@ vips_resize_interpolate( VipsKernel kernel )
 static int
 vips_resize_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsResize *resize = (VipsResize *) object;
 
@@ -186,7 +185,7 @@ vips_resize_build( VipsObject *object )
 	int_vshrink = vips_resize_int_shrink( resize, vscale );
 
 	if( int_vshrink > 1 ) { 
-		vips_info( class->nickname, "shrinkv by %d", int_vshrink );
+		g_info( "shrinkv by %d", int_vshrink );
 		if( vips_shrinkv( in, &t[0], int_vshrink, NULL ) )
 			return( -1 );
 		in = t[0];
@@ -195,7 +194,7 @@ vips_resize_build( VipsObject *object )
 	}
 
 	if( int_hshrink > 1 ) { 
-		vips_info( class->nickname, "shrinkh by %d", int_hshrink );
+		g_info( "shrinkh by %d", int_hshrink );
 		if( vips_shrinkh( in, &t[1], int_hshrink, NULL ) )
 			return( -1 );
 		in = t[1];
@@ -251,8 +250,7 @@ vips_resize_build( VipsObject *object )
 	/* Any residual downsizing.
 	 */
 	if( vscale < 1.0 ) { 
-		vips_info( class->nickname, "residual reducev by %g", 
-			vscale );
+		g_info( "residual reducev by %g", vscale );
 		if( vips_reducev( in, &t[2], 1.0 / vscale, 
 			"kernel", resize->kernel, 
 			"centre", resize->centre, 
@@ -262,7 +260,7 @@ vips_resize_build( VipsObject *object )
 	}
 
 	if( hscale < 1.0 ) { 
-		vips_info( class->nickname, "residual reduceh by %g", 
+		g_info( "residual reduceh by %g", 
 			hscale );
 		if( vips_reduceh( in, &t[3], 1.0 / hscale, 
 			"kernel", resize->kernel, 
@@ -285,8 +283,7 @@ vips_resize_build( VipsObject *object )
 
 		if( hscale > 1.0 && 
 			vscale > 1.0 ) { 
-			vips_info( class->nickname, 
-				"residual scale %g x %g", hscale, vscale );
+			g_info( "residual scale %g x %g", hscale, vscale );
 			if( vips_affine( in, &t[4], 
 				hscale, 0.0, 0.0, vscale, 
 				"interpolate", interpolate, 
@@ -295,8 +292,7 @@ vips_resize_build( VipsObject *object )
 			in = t[4];
 		}
 		else if( hscale > 1.0 ) { 
-			vips_info( class->nickname, 
-				"residual scale %g", hscale );
+			g_info( "residual scale %g", hscale );
 			if( vips_affine( in, &t[4], hscale, 0.0, 0.0, 1.0, 
 				"interpolate", interpolate, 
 				NULL ) )  
@@ -304,8 +300,7 @@ vips_resize_build( VipsObject *object )
 			in = t[4];
 		}
 		else { 
-			vips_info( class->nickname, 
-				"residual scale %g", vscale );
+			g_info( "residual scale %g", vscale );
 			if( vips_affine( in, &t[4], 1.0, 0.0, 0.0, vscale, 
 				"interpolate", interpolate, 
 				NULL ) )  

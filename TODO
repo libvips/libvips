@@ -1,3 +1,23 @@
+- need some simple way to turn on info output from CLI or env var
+
+- switch to glib logging
+
+	vips_error() stuff must stay
+
+	vips_info() and vips_warn() can change 
+
+	- switch to g_warning() and g_info(), have some compat stuff 
+
+	just calls 
+	
+		g_logv (G_LOG_DOMAIN, G_LOG_LEVEL_INFO, format, args);
+
+	also see
+
+	vips_info_set(), --vips-info, VIPS_INFO
+
+
+
 - not sure about utf8 error messages on win
 
 - strange: 

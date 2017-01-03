@@ -124,7 +124,6 @@ vips_sequential_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsSequential *sequential = (VipsSequential *) b;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( sequential );
         VipsRect *r = &or->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
@@ -132,8 +131,7 @@ vips_sequential_generate( VipsRegion *or,
 		g_thread_self(), r->top, r->height );
 
 	if( sequential->trace )
-		vips_info( class->nickname, 
-			"request for line %d, height %d", 
+		g_info( "request for line %d, height %d", 
 			r->top, r->height );
 
 	VIPS_GATE_START( "vips_sequential_generate: wait" );

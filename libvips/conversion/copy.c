@@ -177,7 +177,7 @@ vips_copy_build( VipsObject *object )
 		return( -1 );
 
 	if( copy->swap ) 
-		vips_warn( class->nickname, "%s", 
+		g_warning( "%s", 
 			_( "copy swap is deprecated, use byteswap instead" ) );
 
 	if( vips_image_pipelinev( conversion->out, 

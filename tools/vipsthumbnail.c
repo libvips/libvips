@@ -213,8 +213,7 @@ thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 		g_free( dir );
 	}
 
-	vips_info( "vipsthumbnail", 
-		"thumbnailing %s as %s", filename, output_name );
+	g_info( "thumbnailing %s as %s", filename, output_name );
 
 	g_free( file );
 
@@ -308,7 +307,7 @@ main( int argc, char **argv )
 
 	if( rotate_image ) {
 #ifndef HAVE_EXIF
-		vips_warn( "vipsthumbnail", "%s",
+		g_warning( "%s",
 			_( "auto-rotate disabled: "
 			      "libvips built without exif support" ) );
 #endif /*!HAVE_EXIF*/
