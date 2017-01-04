@@ -343,9 +343,6 @@ vips_init( const char *argv0 )
 
 	/* Deprecated, this is just for compat.
 	 */
-
-	/* If set by --vips-info.
-	 */
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
 		vips_info_set( TRUE );
