@@ -5,7 +5,7 @@ before_script:
     --disable-dependency-tracking
     --with-jpeg-includes=$JPEG/include
     --with-jpeg-libraries=$JPEG/lib
-  - make -j$JOBS -s V=0
+  - make 
 script:
   - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
 
