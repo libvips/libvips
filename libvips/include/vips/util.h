@@ -135,7 +135,6 @@ G_STMT_START { \
 	} \
 } G_STMT_END
 
-<<<<<<< HEAD
 /* The g_info() macro was added in 2.40.
  */
 #ifndef g_info
@@ -145,8 +144,6 @@ G_STMT_START { \
 	 g_log( G_LOG_DOMAIN, G_LOG_LEVEL_INFO, __VA_ARGS__ )
 #endif
 
-=======
->>>>>>> master
 /* Various integer range clips. Record over/under flows.
  */
 #define VIPS_CLIP_UCHAR( V, SEQ ) \
