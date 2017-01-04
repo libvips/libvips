@@ -122,7 +122,7 @@ typedef struct {
 	VipsPel *buffer;
 } VipsFits;
 
-const char *vips__fits_suffs[] = { ".fits", ".fit", NULL };
+const char *vips__fits_suffs[] = { ".fits", ".fit", ".fts", NULL };
 
 static void
 vips_fits_error( int status )
