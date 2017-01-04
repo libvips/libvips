@@ -79,6 +79,8 @@
  * 07/09/16
  *      - Don't use the exif resolution if x_resolution / y_resolution /
  *        resolution_unit is missing
+ * 4/1/17
+ * 	- Don't warn for missing exif res, since we fall back to jfif now
  */
 
 /*
@@ -574,11 +576,12 @@ res_from_exif( VipsImage *im, ExifData *ed )
 	 */
 	if( get_entry_double( ed, 0, EXIF_TAG_X_RESOLUTION, &xres ) ||
 		get_entry_double( ed, 0, EXIF_TAG_Y_RESOLUTION, &yres ) ||
-		get_entry_int( ed, 0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
-		vips_warn( "VipsJpeg", 
-			"%s", _( "error reading resolution" ) );
+		get_entry_int( ed, 0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) 
+		/* Don't warn. There should be resolution info in the exif
+		 * (according to the spec), but many images skip this and rely
+		 * on silent fallback to the jfif resolution.
+		 */
 		return( -1 );
-	}
 
 #ifdef DEBUG
 	printf( "res_from_exif: seen exif tags "
