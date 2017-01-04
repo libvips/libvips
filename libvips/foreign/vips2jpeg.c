@@ -455,7 +455,7 @@ write_tag( ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data )
 /* This is different, we set the xres/yres from the vips header rather than
  * from the exif tags on the image metadata.
  *
- * This is also called from the jpg reader to fix up bad exif resoltion.
+ * This is also called from the jpg reader to fix up bad exif resolution.
  */
 int
 vips__set_exif_resolution( ExifData *ed, VipsImage *im )
