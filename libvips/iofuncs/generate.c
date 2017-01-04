@@ -411,7 +411,7 @@ vips_image_pipelinev( VipsImage *image, VipsDemandStyle hint, ... )
 		;
 	va_end( ap );
 	if( i == MAX_IMAGES ) {
-		vips_warn( "vips_image_pipeline", "%s", _( "too many images" ) );
+		g_warning( "%s", _( "too many images" ) );
 
 		/* Make sure we have a sentinel there.
 		 */

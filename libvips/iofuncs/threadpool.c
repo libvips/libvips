@@ -407,8 +407,7 @@ vips_concurrency_get( void )
 	if( nthr < 1 || nthr > MAX_THREADS ) {
 		nthr = VIPS_CLIP( 1, nthr, MAX_THREADS );
 
-		vips_warn( "vips_concurrency_get", 
-			_( "threads clipped to %d" ), nthr );
+		g_warning( _( "threads clipped to %d" ), nthr );
 	}
 
 	/* Save for next time around.

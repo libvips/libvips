@@ -359,7 +359,6 @@ static void
 vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 	int width, VipsPel * restrict q, VipsPel * restrict p )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 	ColorMapObject *map = gif->file->Image.ColorMap ?
 		gif->file->Image.ColorMap : gif->file->SColorMap;
 
@@ -369,8 +368,7 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 		VipsPel v = p[x];
 
 		if( v >= map->ColorCount ) {
-			vips_warn( class->nickname,
-				"%s", _( "pixel value out of range" ) );
+			g_warning( "%s", _( "pixel value out of range" ) );
 			continue;
 		}
 

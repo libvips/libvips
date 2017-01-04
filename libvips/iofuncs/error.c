@@ -103,11 +103,28 @@
  *
  * The domain argument most of these functions take is not localised and is
  * supposed to indicate the component which failed.
+ *
+ * libvips uses g_warning() and g_info() to send warning and information
+ * messages to the user. You can use the usual glib mechanisms to display or
+ * divert these messages. For example, info messages are hidden by default, but
+ * you can see them with: 
+ *
+ * |[
+ * $ G_MESSAGES_DEBUG=VIPS vipsthumbnail k2.jpg 
+ * VIPS-INFO: thumbnailing k2.jpg
+ * VIPS-INFO: selected loader is VipsForeignLoadJpegFile
+ * VIPS-INFO: input size is 1450 x 2048
+ * VIPS-INFO: loading jpeg with factor 8 pre-shrink
+ * VIPS-INFO: converting to processing space srgb
+ * VIPS-INFO: residual reducev by 0.5
+ * VIPS-INFO: 13 point mask
+ * VIPS-INFO: using vector path
+ * VIPS-INFO: residual reduceh by 0.5
+ * VIPS-INFO: 13 point mask
+ * VIPS-INFO: thumbnailing k2.jpg as ./tn_k2.jpg
+ * ]|
+ *
  */
-
-/* Show info messages. Handy for debugging. 
- */
-int vips__info = 0;
 
 /* Make global array to keep the error message buffer.
  */
@@ -369,125 +386,6 @@ vips_error_clear( void )
 	g_mutex_lock( vips__global_lock );
 	vips_buf_rewind( &vips_error_buf );
 	g_mutex_unlock( vips__global_lock );
-}
-
-/**
- * vips_info_set:
- * @info: %TRUE to enable info messages
- *
- * If set, vips will output various informative messages to stderr as it works.
- *
- * See also: vips_info().
- */
-void
-vips_info_set( gboolean info )
-{
-	vips__info = info;
-}
-
-/**
- * vips_vinfo: 
- * @domain: the source of the message
- * @fmt: printf()-style format string for the message
- * @ap: arguments to the format string
- *
- * Sends a formatted informational message to stderr if the --vips-info flag
- * has been given to the program, or the environment variable VIPS_INFO has been
- * defined, or if vips_info_set() has been called. 
- *
- * Informational messages are used to report details about the operation of
- * functions.
- *
- * See also: vips_info(), vips_info_set(), vips_warn().
- */
-void 
-vips_vinfo( const char *domain, const char *fmt, va_list ap )
-{
-	if( vips__info ) { 
-		g_mutex_lock( vips__global_lock );
-		(void) fprintf( stderr, _( "%s: " ), _( "info" ) );
-		if( domain )
-			(void) fprintf( stderr, _( "%s: " ), domain );
-		(void) vfprintf( stderr, fmt, ap );
-		(void) fprintf( stderr, "\n" );
-		g_mutex_unlock( vips__global_lock );
-	}
-}
-
-/**
- * vips_info: 
- * @domain: the source of the diagnostic message
- * @fmt: printf()-style format string for the message
- * @...: arguments to the format string
- *
- * Sends a formatted informational message to stderr if the --vips-info flag
- * has been given to the program or the environment variable VIPS_INFO has been
- * defined, or if vips_info_set() has been called. 
- *
- * Informational messages are used to report details about the operation of
- * functions.
- *
- * See also: vips_info_set(), vips_vinfo(), vips_warn().
- */
-void 
-vips_info( const char *domain, const char *fmt, ... )
-{
-	va_list ap;
-
-	va_start( ap, fmt );
-	vips_vinfo( domain, fmt, ap );
-	va_end( ap );
-}
-
-/**
- * vips_vwarn: 
- * @domain: the source of the warning message
- * @fmt: printf()-style format string for the message
- * @ap: arguments to the format string
- *
- * Exactly as vips_warn(), but takes a va_list argument. 
- *
- * See also: vips_warn().
- */
-void 
-vips_vwarn( const char *domain, const char *fmt, va_list ap )
-{	
-	if( !g_getenv( "IM_WARNING" ) &&
-		!g_getenv( "VIPS_WARNING" ) ) {
-		g_mutex_lock( vips__global_lock );
-		(void) fprintf( stderr, _( "%s: " ), _( "vips warning" ) );
-		if( domain )
-			(void) fprintf( stderr, _( "%s: " ), domain );
-		(void) vfprintf( stderr, fmt, ap );
-		(void) fprintf( stderr, "\n" );
-		g_mutex_unlock( vips__global_lock );
-	}
-
-	if( vips__fatal )
-		vips_error_exit( "vips__fatal" );
-}
-
-/**
- * vips_warn: 
- * @domain: the source of the warning message
- * @fmt: printf()-style format string for the message
- * @...: arguments to the format string
- *
- * Sends a formatted warning message to stderr. If you define the
- * environment variable VIPS_WARNING, these message are supressed.
- *
- * Warning messages are used to report things like overflow counts.
- *
- * See also: vips_info(), vips_vwarn().
- */
-void 
-vips_warn( const char *domain, const char *fmt, ... )
-{	
-	va_list ap;
-
-	va_start( ap, fmt );
-	vips_vwarn( domain, fmt, ap );
-	va_end( ap );
 }
 
 /**

@@ -248,11 +248,9 @@ vips_tracked_free( void *s )
 	g_mutex_lock( vips_tracked_mutex );
 
 	if( vips_tracked_allocs <= 0 ) 
-		vips_warn( "vips_tracked", 
-			"%s", _( "vips_free: too many frees" ) );
+		g_warning( "%s", _( "vips_free: too many frees" ) );
 	if( vips_tracked_mem < size )
-		vips_warn( "vips_tracked", 
-			"%s", _( "vips_free: too much free" ) );
+		g_warning( "%s", _( "vips_free: too much free" ) );
 
 	vips_tracked_mem -= size;
 	vips_tracked_allocs -= 1;
@@ -310,8 +308,7 @@ vips_tracked_malloc( size_t size )
 		vips_error( "vips_tracked", 
 			_( "out of memory --- size == %dMB" ), 
 			(int) (size / (1024.0 * 1024.0))  );
-		vips_warn( "vips_tracked", 
-			_( "out of memory --- size == %dMB" ), 
+		g_warning( _( "out of memory --- size == %dMB" ), 
 			(int) (size / (1024.0 * 1024.0))  );
 
                 return( NULL );

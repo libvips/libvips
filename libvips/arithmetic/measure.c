@@ -165,9 +165,11 @@ vips_measure_build( VipsObject *object )
 				 */
 				if( dev * 5 > VIPS_FABS( avg ) && 
 					VIPS_FABS( avg ) > 3 )
-					vips_warn( class->nickname,
-						_( "patch %d x %d, band %d: " 
-						   "avg = %g, sdev = %g" ), 
+					g_warning( _( "%s: "
+							"patch %d x %d, "
+							"band %d: " 
+							"avg = %g, sdev = %g" ), 
+						class->nickname,
 						i, j, b, avg, dev );
 
 				*VIPS_MATRIX( measure->out, 

@@ -194,10 +194,9 @@ readjpeg_free( ReadJpeg *jpeg )
 	result = 0;
 
 	if( jpeg->eman.pub.num_warnings != 0 ) {
-		vips_warn( "VipsJpeg", 
-			_( "read gave %ld warnings" ), 
+		g_warning( _( "read gave %ld warnings" ), 
 			jpeg->eman.pub.num_warnings );
-		vips_warn( NULL, "%s", vips_error_buffer() );
+		g_warning( "%s", vips_error_buffer() );
 
 		/* Make the message only appear once.
 		 */
@@ -615,8 +614,7 @@ res_from_exif( VipsImage *im, ExifData *ed )
 		break;
 
 	default:
-		vips_warn( "VipsJpeg", 
-			"%s", _( "unknown EXIF resolution unit" ) );
+		g_warning( "%s", _( "unknown EXIF resolution unit" ) );
 		return( -1 );
 	}
 
@@ -830,8 +828,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			break;
 
 		default:
-			vips_warn( "VipsJpeg", 
-				"%s", _( "unknown JFIF resolution unit" ) );
+			g_warning( "%s", _( "unknown JFIF resolution unit" ) );
 			break;
 		}
 

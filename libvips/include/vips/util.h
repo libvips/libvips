@@ -135,6 +135,15 @@ G_STMT_START { \
 	} \
 } G_STMT_END
 
+/* The g_info() macro was added in 2.40.
+ */
+#ifndef g_info
+/* Hopefully we have varargs macros. Maybe revisit this. 
+ */
+#define g_info(...) \
+	 g_log( G_LOG_DOMAIN, G_LOG_LEVEL_INFO, __VA_ARGS__ )
+#endif
+
 /* Various integer range clips. Record over/under flows.
  */
 #define VIPS_CLIP_UCHAR( V, SEQ ) \

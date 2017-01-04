@@ -915,8 +915,7 @@ vips_image_open_input( VipsImage *image )
 		return( -1 );
 	image->file_length = rsize;
 	if( psize > rsize )
-		vips_warn( "VipsImage", 
-			_( "unable to read data for \"%s\", %s" ),
+		g_warning( _( "unable to read data for \"%s\", %s" ),
 			image->filename, _( "file has been truncated" ) );
 
 	/* Set demand style. This suits a disc file we read sequentially.
@@ -928,8 +927,7 @@ vips_image_open_input( VipsImage *image )
 	 * harmless.
 	 */
 	if( readhist( image ) ) {
-		vips_warn( "VipsImage", _( "error reading XML: %s" ),
-			vips_error_buffer() );
+		g_warning( _( "error reading XML: %s" ), vips_error_buffer() );
 		vips_error_clear();
 	}
 

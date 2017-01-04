@@ -195,9 +195,8 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 
 	if( class->get_info( thumbnail ) )
 		return( NULL );
-	vips_info( "thumbnail", "selected loader is %s", 
-		thumbnail->loader ); 
-	vips_info( "thumbnail", "input size is %d x %d", 
+	g_info( "selected loader is %s", thumbnail->loader ); 
+	g_info( "input size is %d x %d", 
 		thumbnail->input_width, thumbnail->input_height ); 
 
 	shrink = 1;
@@ -206,21 +205,18 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		shrink = vips_thumbnail_find_jpegshrink( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height );
-		vips_info( "thumbnail", 
-			"loading jpeg with factor %d pre-shrink", shrink ); 
+		g_info( "loading jpeg with factor %d pre-shrink", shrink ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
 		scale = 1.0 / vips_thumbnail_calculate_shrink( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height ); 
-		vips_info( "thumbnail", 
-			"loading PDF/SVG with factor %g pre-scale", scale ); 
+		g_info( "loading PDF/SVG with factor %g pre-scale", scale ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		shrink = vips_thumbnail_calculate_shrink( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height ); 
-		vips_info( "thumbnail", 
-			"loading webp with factor %d pre-shrink", shrink ); 
+		g_info( "loading webp with factor %d pre-shrink", shrink ); 
 	}
 
 	if( !(im = class->open( thumbnail, shrink, scale )) )
@@ -269,7 +265,7 @@ vips_thumbnail_build( VipsObject *object )
 	/* RAD needs special unpacking.
 	 */
 	if( in->Coding == VIPS_CODING_RAD ) {
-		vips_info( "thumbnail", "unpacking Rad to float" );
+		g_info( "unpacking Rad to float" );
 
 		/* rad is scrgb.
 		 */
@@ -296,11 +292,9 @@ vips_thumbnail_build( VipsObject *object )
 		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
 		 thumbnail->import_profile) ) {
 		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) )
-			vips_info( "thumbnail", 
-				"importing with embedded profile" );
+			g_info( "importing with embedded profile" );
 		else
-			vips_info( "thumbnail", 
-				"importing with profile %s", 
+			g_info( "importing with profile %s", 
 				thumbnail->import_profile );
 
 		if( vips_icc_import( in, &t[1], 
@@ -317,7 +311,7 @@ vips_thumbnail_build( VipsObject *object )
 
 	/* To the processing colourspace. This will unpack LABQ as well.
 	 */
-	vips_info( "thumbnail", "converting to processing space %s",
+	g_info( "converting to processing space %s",
 		vips_enum_nick( VIPS_TYPE_INTERPRETATION, interpretation ) ); 
 	if( vips_colourspace( in, &t[2], interpretation, NULL ) ) 
 		return( -1 ); 
@@ -328,7 +322,7 @@ vips_thumbnail_build( VipsObject *object )
 	 */
 	have_premultiplied = FALSE;
 	if( vips_image_hasalpha( in ) ) { 
-		vips_info( "thumbnail", "premultiplying alpha" ); 
+		g_info( "premultiplying alpha" ); 
 		if( vips_premultiply( in, &t[3], NULL ) ) 
 			return( -1 );
 		have_premultiplied = TRUE;
@@ -353,7 +347,7 @@ vips_thumbnail_build( VipsObject *object )
 	in = t[4];
 
 	if( have_premultiplied ) {
-		vips_info( "thumbnail", "unpremultiplying alpha" ); 
+		g_info( "unpremultiplying alpha" ); 
 		if( vips_unpremultiply( in, &t[5], NULL ) || 
 			vips_cast( t[5], &t[6], unpremultiplied_format, NULL ) )
 			return( -1 );
@@ -369,8 +363,7 @@ vips_thumbnail_build( VipsObject *object )
 	if( have_imported ) { 
 		if( thumbnail->export_profile ||
 			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-			vips_info( "thumbnail", 
-				"exporting to device space with a profile" );
+			g_info( "exporting to device space with a profile" );
 			if( vips_icc_export( in, &t[7], 
 				"output_profile", thumbnail->export_profile,
 				NULL ) )  
@@ -378,7 +371,7 @@ vips_thumbnail_build( VipsObject *object )
 			in = t[7];
 		}
 		else {
-			vips_info( "thumbnail", "converting to sRGB" );
+			g_info( "converting to sRGB" );
 			if( vips_colourspace( in, &t[7], 
 				VIPS_INTERPRETATION_sRGB, NULL ) ) 
 				return( -1 ); 
@@ -390,23 +383,20 @@ vips_thumbnail_build( VipsObject *object )
 		 thumbnail->import_profile) ) {
 		VipsImage *out;
 
-		vips_info( "thumbnail", 
-			"exporting with profile %s", thumbnail->export_profile );
+		g_info( "exporting with profile %s", thumbnail->export_profile );
 
 		/* We first try with the embedded profile, if any, then if
 		 * that fails try again with the supplied fallback profile.
 		 */
 		out = NULL; 
 		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-			vips_info( "thumbnail", 
-				"importing with embedded profile" );
+			g_info( "importing with embedded profile" );
 
 			if( vips_icc_transform( in, &t[7], 
 				thumbnail->export_profile,
 				"embedded", TRUE,
 				NULL ) ) {
-				vips_warn( "thumbnail", 
-					_( "unable to import with "
+				g_warning( _( "unable to import with "
 						"embedded profile: %s" ),
 					vips_error_buffer() );
 
@@ -418,8 +408,7 @@ vips_thumbnail_build( VipsObject *object )
 
 		if( !out &&
 			thumbnail->import_profile ) { 
-			vips_info( "thumbnail", 
-				"importing with fallback profile" );
+			g_info( "importing with fallback profile" );
 
 			if( vips_icc_transform( in, &t[7], 
 				thumbnail->export_profile,
@@ -442,7 +431,7 @@ vips_thumbnail_build( VipsObject *object )
 		int left = (in->Xsize - thumbnail->width) / 2;
 		int top = (in->Ysize - thumbnail->height) / 2;
 
-		vips_info( "thumbnail", "cropping to %dx%d",
+		g_info( "cropping to %dx%d",
 			thumbnail->width, thumbnail->height ); 
 		if( vips_extract_area( in, &t[8], left, top, 
 			thumbnail->width, thumbnail->height, NULL ) )
@@ -454,7 +443,7 @@ vips_thumbnail_build( VipsObject *object )
 		thumbnail->angle != VIPS_ANGLE_D0 ) {
 		VipsAngle angle = vips_autorot_get_angle( in );
 
-		vips_info( "thumbnail", "rotating by %s", 
+		g_info( "rotating by %s", 
 			vips_enum_nick( VIPS_TYPE_ANGLE, angle ) ); 
 
 		/* Need to copy to memory, we have to stay seq.
@@ -573,7 +562,7 @@ vips_thumbnail_file_get_info( VipsThumbnail *thumbnail )
 
 	VipsImage *image;
 
-	vips_info( "thumbnail", "thumbnailing %s", file->filename ); 
+	g_info( "thumbnailing %s", file->filename ); 
 
 	if( !(thumbnail->loader = vips_foreign_find_load( file->filename )) ||
 		!(image = vips_image_new_from_file( file->filename, NULL )) )
@@ -726,8 +715,7 @@ vips_thumbnail_buffer_get_info( VipsThumbnail *thumbnail )
 
 	VipsImage *image;
 
-	vips_info( "thumbnail", "thumbnailing %zd bytes of data", 
-		buffer->buf->length ); 
+	g_info( "thumbnailing %zd bytes of data", buffer->buf->length ); 
 
 	if( !(thumbnail->loader = vips_foreign_find_load_buffer( 
 			buffer->buf->data, buffer->buf->length )) ||

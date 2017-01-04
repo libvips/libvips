@@ -1006,8 +1006,7 @@ vips_image_build( VipsObject *object )
 		 * still be able to process it without coredumps.
 		 */
 		if( image->file_length > sizeof_image ) 
-			vips_warn( "VipsImage", 
-				_( "%s is longer than expected" ),
+			g_warning( _( "%s is longer than expected" ),
 				image->filename );
 		break;
 
@@ -2590,9 +2589,8 @@ vips_image_write_to_memory( VipsImage *in, size_t *size_out )
 		vips_error( "vips_image_write_to_memory", 
 			_( "out of memory --- size == %dMB" ), 
 			(int) (size / (1024.0 * 1024.0))  );
-		vips_warn( "vips_image_write_to_memory", 
-			_( "out of memory --- size == %dMB" ), 
-			(int) (size / (1024.0*1024.0))  );
+		g_warning( _( "out of memory --- size == %dMB" ), 
+			(int) (size / (1024.0 * 1024.0))  );
 		return( NULL );
 	}
 
@@ -3143,8 +3141,7 @@ vips_image_wio_input( VipsImage *image )
 		 * generate from this image.
 		 */
 		if( image->regions ) 
-			vips_warn( "vips_image_wio_input", "%s",
-				"rewinding image with active regions" ); 
+			g_warning( "rewinding image with active regions" ); 
 
 		break;
 

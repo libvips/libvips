@@ -226,10 +226,8 @@ vips_load_plugins( const char *fmt, ... )
 
 			module = g_module_open( path, G_MODULE_BIND_LAZY );
 			if( !module ) {
-				vips_warn( "vips_init", 
-					_( "unable to load \"%s\" -- %s" ), 
-					path, 
-					g_module_error() ); 
+				g_warning( _( "unable to load \"%s\" -- %s" ), 
+					path, g_module_error() ); 
 				result = -1;
 			}
                 }
@@ -343,11 +341,14 @@ vips_init( const char *argv0 )
 	bindtextdomain( GETTEXT_PACKAGE, name );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
 
-	/* Default various settings from env.
+	/* Deprecated, this is just for compat.
 	 */
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
 		vips_info_set( TRUE );
+
+	/* Default various settings from env.
+	 */
 	if( g_getenv( "VIPS_TRACE" ) )
 		vips_cache_set_trace( TRUE );
 
@@ -391,7 +392,7 @@ vips_init( const char *argv0 )
 	 */
 	if( im_load_plugins( "%s/vips-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION ) ) {
-		vips_warn( "vips_init", "%s", vips_error_buffer() );
+		g_warning( "%s", vips_error_buffer() );
 		vips_error_clear();
 	}
 
@@ -399,7 +400,7 @@ vips_init( const char *argv0 )
 	 * :-( kept for back compat convenience.
 	 */
 	if( im_load_plugins( "%s", libdir ) ) {
-		vips_warn( "vips_init", "%s", vips_error_buffer() );
+		g_warning( "%s", vips_error_buffer() );
 		vips_error_clear();
 	}
 
@@ -578,12 +579,12 @@ vips__ngettext( const char *msgid, const char *plural, unsigned long int n )
 }
 
 static gboolean
-vips_lib_version_cb( const gchar *option_name, const gchar *value, 
+vips_lib_info_cb( const gchar *option_name, const gchar *value, 
 	gpointer data, GError **error )
 {
-	printf( "libvips %s\n", VIPS_VERSION_STRING );
-	vips_shutdown();
-	exit( 0 );
+	vips_info_set( TRUE ); 
+
+	return( TRUE );
 }
 
 static gboolean
@@ -604,9 +605,18 @@ vips_set_fatal_cb( const gchar *option_name, const gchar *value,
 	return( TRUE );
 }
 
+static gboolean
+vips_lib_version_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	printf( "libvips %s\n", VIPS_VERSION_STRING );
+	vips_shutdown();
+	exit( 0 );
+}
+
 static GOptionEntry option_entries[] = {
-	{ "vips-info", 0, G_OPTION_FLAG_HIDDEN, 
-		G_OPTION_ARG_NONE, &vips__info, 
+	{ "vips-info", 0, G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_info_cb,
 		N_( "show informative messages" ), NULL },
 	{ "vips-fatal", 0, G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG, 
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_set_fatal_cb, 

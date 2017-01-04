@@ -195,8 +195,7 @@ read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
 		/* Only a warning, since (for example) exported spreadsheets
 		 * will often have text or date fields.
 		 */
-		vips_warn( "csv2vips", 
-			_( "error parsing number, line %d, column %d" ),
+		g_warning( _( "error parsing number, line %d, column %d" ),
 			lineno, colno );
 		if( fail )
 			return( EOF ); 

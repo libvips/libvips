@@ -166,12 +166,10 @@ extern "C" {
 #define VIPS_INIT( ARGV0 ) \
 	(vips_version( 3 ) - vips_version( 5 ) != \
 	 	VIPS_LIBRARY_CURRENT - VIPS_LIBRARY_AGE ? ( \
-		vips_info( "vips_init", "ABI mismatch" ), \
-		vips_info( "vips_init", \
-			"library has ABI version %d", \
+		g_warning( "ABI mismatch" ), \
+		g_warning( "library has ABI version %d", \
 			vips_version( 3 ) - vips_version( 5 ) ), \
-		vips_info( "vips_init", \
-			"application needs ABI version %d", \
+		g_warning( "application needs ABI version %d", \
 			VIPS_LIBRARY_CURRENT - VIPS_LIBRARY_AGE ), \
 		vips_error( "vips_init", "ABI mismatch" ), \
 		-1 ) : \

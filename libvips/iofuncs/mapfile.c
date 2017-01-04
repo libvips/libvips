@@ -177,7 +177,7 @@ vips__mmap( int fd, int writeable, size_t length, gint64 offset )
 	if( baseaddr == MAP_FAILED ) { 
 		vips_error_system( errno, "vips_mapfile", 
 			"%s", _( "unable to mmap" ) );
-		vips_warn( "vips_mapfile", _( "map failed (%s), "
+		g_warning( _( "map failed (%s), "
 			"running very low on system resources, "
 			"expect a crash soon" ), strerror( errno ) );
 		return( NULL ); 

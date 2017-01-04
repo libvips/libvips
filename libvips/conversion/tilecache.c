@@ -605,7 +605,6 @@ vips_tile_cache_gen( VipsRegion *or,
 {
 	VipsRegion *in = (VipsRegion *) seq;
 	VipsBlockCache *cache = (VipsBlockCache *) b;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( cache );
 	VipsRect *r = &or->valid;
 
 	VipsTile *tile;
@@ -702,8 +701,7 @@ vips_tile_cache_gen( VipsRegion *or,
 						"vips_tile_cache_gen: "
 						"error on tile %p\n", tile ); 
 
-					vips_warn( class->nickname,
-						_( "error in tile %d x %d" ),
+					g_warning( _( "error in tile %d x %d" ),
 						tile->pos.left, tile->pos.top );
 
 					vips_region_black( tile->region );

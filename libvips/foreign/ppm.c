@@ -799,9 +799,8 @@ vips__ppm_save( VipsImage *in, const char *filename,
 
 	if( ascii && 
 		in->BandFmt == VIPS_FORMAT_FLOAT ) {
-		vips_warn( "vips2ppm", 
-			"%s", _( "float images must be binary -- "
-				"disabling ascii" ) );
+		g_warning( "%s", 
+			_( "float images must be binary -- disabling ascii" ) );
 		ascii = FALSE;
 	}
 
@@ -810,8 +809,8 @@ vips__ppm_save( VipsImage *in, const char *filename,
 	if( squash && 
 		(in->Bands != 1 || 
 		 in->BandFmt != VIPS_FORMAT_UCHAR) ) {
-		vips_warn( "vips2ppm", 
-			"%s", _( "can only squash 1 band uchar images -- "
+		g_warning( "%s", 
+			_( "can only squash 1 band uchar images -- " 
 				"disabling squash" ) );
 		squash = FALSE; 
 	}

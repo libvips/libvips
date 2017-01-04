@@ -126,11 +126,9 @@ vips_cast_preeval( VipsImage *image, VipsProgress *progress, VipsCast *cast )
 static void
 vips_cast_posteval( VipsImage *image, VipsProgress *progress, VipsCast *cast )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( cast );
-
-	if( cast->overflow || cast->underflow ) 
-		vips_warn( class->nickname, 
-			_( "%d underflows and %d overflows detected" ),
+	if( cast->overflow || 
+		cast->underflow ) 
+		g_warning( _( "%d underflows and %d overflows detected" ),
 			cast->underflow, cast->overflow );
 }
 

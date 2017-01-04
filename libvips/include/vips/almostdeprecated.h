@@ -284,6 +284,14 @@ int im_plotpoint( IMAGE *im, int x, int y, PEL *pel );
 int im_smudge( IMAGE *image, int ix, int iy, VipsRect *r );
 int im_smear( IMAGE *im, int ix, int iy, VipsRect *r );
 
+void vips_warn( const char *domain, const char *fmt, ... )
+	__attribute__((format(printf, 2, 3)));
+void vips_vwarn( const char *domain, const char *fmt, va_list ap );
+void vips_info_set( gboolean info );
+void vips_info( const char *domain, const char *fmt, ... )
+	__attribute__((format(printf, 2, 3)));
+void vips_vinfo( const char *domain, const char *fmt, va_list ap );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

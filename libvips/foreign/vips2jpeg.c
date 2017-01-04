@@ -495,8 +495,7 @@ vips__set_exif_resolution( ExifData *ed, VipsImage *im )
 		break;
 
 	default:
-		vips_warn( "VipsJpeg", 
-			"%s", _( "unknown EXIF resolution unit" ) );
+		g_warning( "%s", _( "unknown EXIF resolution unit" ) );
 		return( 0 );
 	}
 
@@ -626,7 +625,7 @@ vips_exif_image_field( VipsImage *image,
 	/* value must be a string.
 	 */
 	if( vips_image_get_string( image, field, &string ) ) {
-		vips_warn( "VipsJpeg", _( "bad exif meta \"%s\"" ), field );
+		g_warning( _( "bad exif meta \"%s\"" ), field );
 		return( NULL ); 
 	}
 
@@ -636,12 +635,12 @@ vips_exif_image_field( VipsImage *image,
 	for( ; isdigit( *p ); p++ )
 		;
 	if( *p != '-' ) {
-		vips_warn( "VipsJpeg", _( "bad exif meta \"%s\"" ), field );
+		g_warning( _( "bad exif meta \"%s\"" ), field );
 		return( NULL ); 
 	}
 
 	if( !(tag = exif_tag_from_name( p + 1 )) ) {
-		vips_warn( "VipsJpeg", _( "bad exif meta \"%s\"" ), field );
+		g_warning( _( "bad exif meta \"%s\"" ), field );
 		return( NULL ); 
 	}
 
@@ -764,7 +763,7 @@ write_blob( Write *write, const char *field, int app )
 		 * For now, just ignore oversize objects and warn.
 		 */
 		if( data_length > 65530 ) 
-			vips_warn( "VipsJpeg", _( "field \"%s\" is too large "
+			g_warning( _( "field \"%s\" is too large "
 				"for a single JPEG marker, ignoring" ), 
 				field );
 		else {
@@ -1082,8 +1081,7 @@ write_vips( Write *write, int qfac, const char *profile,
 			write->cinfo.optimize_coding = TRUE;
 		}
 		else 
-			vips_warn( "vips2jpeg", 
-				"%s", _( "trellis_quant unsupported" ) );
+			g_warning( "%s", _( "trellis_quant unsupported" ) );
 	}
 
 	/* Apply overshooting to samples with extreme values e.g. 0 & 255 
@@ -1095,8 +1093,8 @@ write_vips( Write *write, int qfac, const char *profile,
 			jpeg_c_set_bool_param( &write->cinfo,
 				JBOOLEAN_OVERSHOOT_DERINGING, TRUE );
 		else 
-			vips_warn( "vips2jpeg", 
-				"%s", _( "overshoot_deringing unsupported" ) );
+			g_warning( "%s", 
+				_( "overshoot_deringing unsupported" ) );
 	}
 	/* Split the spectrum of DCT coefficients into separate scans.
 	 * Requires progressive output. Must be set before 
@@ -1109,12 +1107,12 @@ write_vips( Write *write, int qfac, const char *profile,
 				jpeg_c_set_bool_param( &write->cinfo, 
 					JBOOLEAN_OPTIMIZE_SCANS, TRUE );
 			else 
-				vips_warn( "vips2jpeg", 
-					"%s", _( "Ignoring optimize_scans" ) );
+				g_warning( "%s", 
+					_( "ignoring optimize_scans" ) );
 		}
 		else 
-			vips_warn( "vips2jpeg", "%s",
-				_( "Ignoring optimize_scans for baseline" ) );
+			g_warning( "%s", 
+				_( "ignoring optimize_scans for baseline" ) );
 	}
 
 	/* Use predefined quantization table.
@@ -1125,22 +1123,21 @@ write_vips( Write *write, int qfac, const char *profile,
 			jpeg_c_set_int_param( &write->cinfo,
 				JINT_BASE_QUANT_TBL_IDX, quant_table );
 		else
-			vips_warn( "vips2jpeg",
-				"%s", _( "Setting quant_table unsupported" ) );
+			g_warning( "%s", 
+				_( "setting quant_table unsupported" ) );
 	}
 #else
 	/* Using jpeglib.h without extension parameters, warn of ignored 
 	 * options.
 	 */
 	if( trellis_quant ) 
-		vips_warn( "vips2jpeg", "%s", _( "Ignoring trellis_quant" ) );
+		g_warning( "%s", _( "ignoring trellis_quant" ) );
 	if( overshoot_deringing ) 
-		vips_warn( "vips2jpeg", 
-			"%s", _( "Ignoring overshoot_deringing" ) );
+		g_warning( "%s", _( "ignoring overshoot_deringing" ) );
 	if( optimize_scans ) 
-		vips_warn( "vips2jpeg", "%s", _( "Ignoring optimize_scans" ) );
+		g_warning( "%s", _( "ignoring optimize_scans" ) );
 	if( quant_table > 0 )
-		vips_warn( "vips2jpeg", "%s", _( "Ignoring quant_table" ) );
+		g_warning( "%s", _( "ignoring quant_table" ) );
 #endif
 
 	/* Set compression quality. Must be called after setting params above.
