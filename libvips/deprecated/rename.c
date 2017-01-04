@@ -734,6 +734,18 @@ void
 vips_info_set( gboolean info )
 {
 	vips__info = info;
+
+	if( info ) { 
+		const char *old;
+		char *new;
+
+		old = g_getenv( "G_MESSAGES_DEBUG" );
+		if( !old )
+			old = "";
+		new = g_strdup_printf( "%s VIPS", old );
+		g_setenv( "G_MESSAGES_DEBUG", new, TRUE );
+		g_free( new );
+	}
 }
 
 void 

@@ -82,6 +82,10 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* Use glib structured logging,
+ */
+#define G_LOG_USE_STRUCTURED 
+
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <gmodule.h>
