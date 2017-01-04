@@ -68,6 +68,7 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/morphology.h \
 	${top_srcdir}/libvips/include/vips/draw.h \
 	${top_srcdir}/libvips/include/vips/basic.h \
+	${top_srcdir}/libvips/include/vips/version.h \
 	${top_srcdir}/libvips/include/vips/object.h
 
 enumtypes.c: $(vips_scan_headers) Makefile

@@ -269,8 +269,7 @@ vips__region_stop( VipsRegion *region )
 		 * can really do with it, sadly.
 		 */
 		if( result )
-                        vips_warn( "VipsRegion", 
-				"stop callback failed for image %s", 
+                        g_warning( "stop callback failed for image %s", 
 				image->filename );
  
                 region->seq = NULL;

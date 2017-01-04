@@ -66,17 +66,17 @@ int vips__tiff_write_buf( VipsImage *in,
 	gboolean properties, gboolean strip );
 
 int vips__tiff_read_header( const char *filename, VipsImage *out, 
-	int page, gboolean autorotate );
+	int page, int n, gboolean autorotate );
 int vips__tiff_read( const char *filename, VipsImage *out, 
-	int page, gboolean autorotate, gboolean readbehind );
+	int page, int n, gboolean autorotate, gboolean readbehind );
 gboolean vips__istifftiled( const char *filename );
 gboolean vips__istiff_buffer( const void *buf, size_t len );
 gboolean vips__istiff( const char *filename );
 
 int vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, gboolean autorotate );
+	int page, int n, gboolean autorotate );
 int vips__tiff_read_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, gboolean autorotate, gboolean readbehind );
+	int page, int n, gboolean autorotate, gboolean readbehind );
 
 extern const char *vips__foreign_tiff_suffs[];
 
@@ -87,9 +87,11 @@ int vips__analyze_read( const char *filename, VipsImage *out );
 extern const char *vips__foreign_csv_suffs[];
 
 int vips__csv_read( const char *filename, VipsImage *out,
-	int skip, int lines, const char *whitespace, const char *separator );
+	int skip, int lines, const char *whitespace, const char *separator, 
+	gboolean fail );
 int vips__csv_read_header( const char *filename, VipsImage *out,
-	int skip, int lines, const char *whitespace, const char *separator );
+	int skip, int lines, const char *whitespace, const char *separator, 
+	gboolean fail );
 
 int vips__csv_write( VipsImage *in, const char *filename, 
 	const char *separator );
@@ -118,14 +120,14 @@ int vips__fits_read( const char *filename, VipsImage *out );
 int vips__fits_write( VipsImage *in, const char *filename );
 
 int vips__magick_read( const char *filename, 
-	VipsImage *out, gboolean all_frames, const char *density, int page );
+	VipsImage *out, const char *density, int page, int n );
 int vips__magick_read_header( const char *filename, 
-	VipsImage *out, gboolean all_frames, const char *density, int page );
+	VipsImage *out, const char *density, int page, int n );
 
 int vips__magick_read_buffer( const void *buf, const size_t len,
-	VipsImage *out, gboolean all_frames, const char *density, int page );
+	VipsImage *out, const char *density, int page, int n );
 int vips__magick_read_buffer_header( const void *buf, const size_t len,
-	VipsImage *out, gboolean all_frames, const char *density, int page );
+	VipsImage *out, const char *density, int page, int n );
 
 extern const char *vips__mat_suffs[];
 

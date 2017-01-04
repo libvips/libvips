@@ -846,9 +846,9 @@ vips_foreign_load_build( VipsObject *object )
 
 	if( (flags & VIPS_FOREIGN_PARTIAL) &&
 		(flags & VIPS_FOREIGN_SEQUENTIAL) ) {
-		vips_warn( class->nickname, "%s", 
+		g_warning( "%s", 
 			_( "VIPS_FOREIGN_PARTIAL and VIPS_FOREIGN_SEQUENTIAL "
-			"both set -- using SEQUENTIAL" ) );
+				"both set -- using SEQUENTIAL" ) );
 		flags ^= VIPS_FOREIGN_PARTIAL;
 	}
 
@@ -865,12 +865,10 @@ vips_foreign_load_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( load->sequential ) {
-		vips_warn( class->nickname, "%s", 
-			_( "ignoring deprecated \"sequential\" mode" ) ); 
-		vips_warn( class->nickname, "%s", 
-			_( "please use \"access\" instead" ) ); 
-	}
+	if( load->sequential ) 
+		g_warning( "%s", 
+			_( "ignoring deprecated \"sequential\" mode -- "
+				"please use \"access\" instead" ) ); 
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
@@ -984,6 +982,13 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		_( "Sequential read only" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoad, sequential ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "fail", 11, 
+		_( "Fail" ), 
+		_( "Fail on first warning" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoad, fail ),
 		FALSE );
 
 }

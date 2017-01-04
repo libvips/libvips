@@ -252,9 +252,9 @@ write_webp( WebPPicture *pic, VipsImage *in,
 #else
 	if( lossless || 
 		near_lossless )
-		vips_warn( "vips2webp", "%s", _( "lossless unsupported" ) );
+		g_warning( "%s", _( "lossless unsupported" ) );
 	if( alpha_q != 100 )
-		vips_warn( "vips2webp", "%s", _( "alpha_q unsupported" ) );
+		g_warning( "%s", _( "alpha_q unsupported" ) );
 #endif
 
 #if WEBP_ENCODER_ABI_VERSION >= 0x0209
@@ -264,10 +264,9 @@ write_webp( WebPPicture *pic, VipsImage *in,
 		config.preprocessing |= 4;
 #else
 	if( near_lossless )
-		vips_warn( "vips2webp", "%s", _( "near_lossless unsupported" ) );
+		g_warning( "%s", _( "near_lossless unsupported" ) );
 	if( smart_subsample )
-		vips_warn( "vips2webp", 
-			"%s", _( "smart_subsample unsupported" ) );
+		g_warning( "%s", _( "smart_subsample unsupported" ) );
 #endif
 
 	if( !WebPValidateConfig( &config ) ) {

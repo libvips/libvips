@@ -96,6 +96,10 @@ Leak check:
 		--leak-check=yes \
 		vips ... > vips-vg.log 2>&1
 
+Memory error debug:
+
+	$ valgrind --vgdb=yes --vgdb-error=0 vips  ...
+
 valgrind threading check:
 
 	$ valgrind --tool=helgrind vips ... > vips-vg.log 2>&1

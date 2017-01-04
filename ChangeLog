@@ -7,6 +7,24 @@
 - added vips_image_hasalpha()
 - added vips_thumbnail() / vips_thumbnail_buffer()
 - webpload/webpsave read and write icc, xmp, exif metadata
+- better >4gb detect for zip dzsave output [Felix Bünemann]
+- all loaders have a @fail option, meaning fail on first warning, though it
+  only does anything for jpg and csv
+- add vips_image_get_fields() to help bindings
+- add tiff multi-page read/write
+- add VIPS_META_PAGE_HEIGHT metadata
+- IM6/IM7 magickload supports page/n/page-height, all_frames deprecated
+- gifload supports n/page-height
+- added #defines for VIPS_SONAME, VIPS_LIBRARY_CURRENT, VIPS_LIBRARY_REVISION,
+  VIPS_LIBRARY_AGE
+- better support for bscale / bzero in fits images
+- deprecate vips_warn() / vips_info(); use g_warning() / g_info() instead
+
+8/12/16 started 8.4.5
+- allow libgsf-1.14.26 to help centos, thanks tdiprima
+
+11/11/16 started 8.4.4
+- fix crash in vips.exe arg parsing on Windows, thanks Yury
 
 18/10/16 started 8.4.3
 - fix error detection in gif_close, thanks aaron42net

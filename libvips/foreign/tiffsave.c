@@ -475,6 +475,10 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  *
  * Write a VIPS image to a file as TIFF.
  *
+ * If @in has the #VIPS_META_PAGE_HEIGHT metadata item, this is assumed to be a
+ * "toilet roll" image. It will be
+ * written as series of pages, each #VIPS_META_PAGE_HEIGHT pixels high. 
+ *
  * Use @compression to set the tiff compression. Currently jpeg, packbits,
  * fax4, lzw, none and deflate are supported. The default is no compression.
  * JPEG compression is a good lossy compressor for photographs, packbits is 

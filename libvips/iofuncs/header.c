@@ -893,8 +893,11 @@ vips__image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 
 	/* Need to copy last-to-first so that in0 meta will override any
 	 * earlier meta.
+	 *
+	 * Don't destroy the meta on out. Things like foreign.c like setting
+	 * image properties before calling a subclass loader, and those
+	 * subclass loaders will sometimes write to an image. 
 	 */
-	vips__meta_destroy( out );
 	for( i = ni - 1; i >= 0; i-- ) 
 		if( meta_cp( out, in[i] ) )
 			return( -1 );
@@ -1174,6 +1177,55 @@ vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )
 		return( result );
 
 	return( NULL );
+}
+
+static void *
+count_fields( VipsImage *image, const char *field, GValue *value, void *a )
+{
+	int *n_fields = (int *) a;
+
+	n_fields += 1;
+
+	return( NULL ); 
+}
+
+static void *
+add_fields( VipsImage *image, const char *field, GValue *value, void *a )
+{
+	gchar ***p = (gchar ***) a;
+
+	**p = g_strdup( field ); 
+	*p += 1;
+
+	return( NULL ); 
+}
+
+/**
+ * vips_image_get_fields:
+ * @image: image to get fields from
+ *
+ * Get a %NULL-terminated array listing all the metadata field names on @image. 
+ * Free the return result with g_strfreev().
+ *
+ * This is handy for language bindings. From C, it's usually more convenient to
+ * use vips_image_map().
+ *
+ * Returns: (transfer full): metadata fields in image, as a %NULL-terminated
+ * array. 
+ */
+gchar ** 
+vips_image_get_fields( VipsImage *image )
+{
+	int n_fields;
+	gchar **fields;
+	gchar **p;
+
+	(void) vips_image_map( image, count_fields, &n_fields );
+	fields = g_new0( gchar *, n_fields + 1 ); 
+	p = fields;
+	(void) vips_image_map( image, add_fields, &p );
+
+	return( fields ); 
 }
 
 /**
@@ -1522,6 +1574,28 @@ vips_image_get_as_string( const VipsImage *image,
 	g_value_unset( &value );
 
 	return( 0 );
+}
+
+/**
+ * vips_image_print_field:
+ * @image: image to get the header field from
+ * @field: field name
+ *
+ * Prints a field to stdout as ASCII. Handy for debugging. 
+ */
+void
+vips_image_print_field( const VipsImage *image, const char *field )
+{
+	char *str;
+
+	if( vips_image_get_as_string( image, field, &str ) ) {
+		printf( "vips_image_print_field: unable to read field\n" );
+		return;
+	}
+
+	printf( ".%s: %s\n", field, str );
+
+	g_free( str ); 
 }
 
 /**

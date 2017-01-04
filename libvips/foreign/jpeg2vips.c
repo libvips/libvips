@@ -79,8 +79,13 @@
  * 07/09/16
  *      - Don't use the exif resolution if x_resolution / y_resolution /
  *        resolution_unit is missing
+<<<<<<< HEAD
  * 7/11/16
  * 	- exif handling moved out to exif.c
+=======
+ * 4/1/17
+ * 	- Don't warn for missing exif res, since we fall back to jfif now
+>>>>>>> master
  */
 
 /*
@@ -180,10 +185,9 @@ readjpeg_free( ReadJpeg *jpeg )
 	result = 0;
 
 	if( jpeg->eman.pub.num_warnings != 0 ) {
-		vips_warn( "VipsJpeg", 
-			_( "read gave %ld warnings" ), 
+		g_warning( _( "read gave %ld warnings" ), 
 			jpeg->eman.pub.num_warnings );
-		vips_warn( NULL, "%s", vips_error_buffer() );
+		g_warning( "%s", vips_error_buffer() );
 
 		/* Make the message only appear once.
 		 */
@@ -376,8 +380,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			break;
 
 		default:
-			vips_warn( "VipsJpeg", 
-				"%s", _( "unknown JFIF resolution unit" ) );
+			g_warning( "%s", _( "unknown JFIF resolution unit" ) );
 			break;
 		}
 

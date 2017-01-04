@@ -2,6 +2,8 @@
  *
  * 8/7/16
  * 	- from magickload
+ * 25/11/16
+ * 	- add @n, deprecate @all_frames (just sets n = -1)
  */
 
 /*
@@ -55,9 +57,13 @@
 typedef struct _VipsForeignLoadMagick7 {
 	VipsForeignLoad parent_object;
 
-	gboolean all_frames;		/* Load all frames */
+	/* Deprecated. Just sets n = -1.
+	 */
+	gboolean all_frames;
+
 	char *density;			/* Load at this resolution */
 	int page;			/* Load this page (frame) */
+	int n;				/* Load this many pages */
 
 	Image *image;
 	ImageInfo *image_info;
@@ -308,6 +314,9 @@ vips_foreign_load_magick7_build( VipsObject *object )
 	if( !magick7->image_info ) 
 		return( -1 );
 
+	if( magick7->all_frames )
+		magick7->n = -1;
+
 	/* Canvas resolution for rendering vector formats like SVG.
 	 */
 	VIPS_SETSTR( magick7->image_info->density, magick7->density );
@@ -321,15 +330,16 @@ vips_foreign_load_magick7_build( VipsObject *object )
 	 */
   	SetImageOption( magick7->image_info, "dcm:display-range", "reset" );
 
-	if( !magick7->all_frames ) {
+	if( magick7->page > 0 ) { 
 		 /* I can't find docs for these fields, but this seems to work.
 		  */
 		char page[256];
 
 		magick7->image_info->scene = magick7->page;
-		magick7->image_info->number_scenes = 1;
+		magick7->image_info->number_scenes = magick7->n;
 
-		vips_snprintf( page, 256, "%d", magick7->page );
+		vips_snprintf( page, 256, "%d-%d", 
+			magick7->page, magick7->page + magick7->n );
 		magick7->image_info->scenes = strdup( page );
 	}
 
@@ -368,7 +378,7 @@ vips_foreign_load_magick7_class_init( VipsForeignLoadMagick7Class *class )
 	VIPS_ARG_BOOL( class, "all_frames", 3, 
 		_( "all_frames" ), 
 		_( "Read all frames from an image" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick7, all_frames ),
 		FALSE );
 
@@ -385,11 +395,20 @@ vips_foreign_load_magick7_class_init( VipsForeignLoadMagick7Class *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick7, page ),
 		0, 100000, 0 );
+
+	VIPS_ARG_INT( class, "n", 6,
+		_( "n" ),
+		_( "Load this many pages" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadMagick7, n ),
+		-1, 100000, 1 );
+
 }
 
 static void
 vips_foreign_load_magick7_init( VipsForeignLoadMagick7 *magick7 )
 {
+	magick7->n = 1;
 }
 
 static void
@@ -545,14 +564,15 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	printf( "image has %d frames\n", magick7->n_frames );
 #endif /*DEBUG*/
 
-	/* If all_frames is off, just get the first one.
-	 */
-	if( !magick7->all_frames )
-		magick7->n_frames = 1;
+	if( magick7->n != -1 )
+		magick7->n_frames = VIPS_MIN( magick7->n_frames, magick7->n );
 
 	/* So we can finally set the height.
 	 */
-	out->Ysize *= magick7->n_frames;
+	if( magick7->n_frames > 1 ) {
+		vips_image_set_int( out, VIPS_META_PAGE_HEIGHT, out->Ysize );
+		out->Ysize *= magick7->n_frames;
+	}
 
 	return( 0 );
 }

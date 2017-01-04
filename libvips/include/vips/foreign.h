@@ -131,6 +131,10 @@ typedef struct _VipsForeignLoad {
 	 */
 	VipsForeignFlags flags;
 
+	/* Stop load on first warning.
+	 */
+	gboolean fail;
+
 	/* Deprecated and unused, just here for compat.
 	 */
 	gboolean sequential;

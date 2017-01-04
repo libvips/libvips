@@ -133,6 +133,15 @@ extern "C" {
  */
 #define VIPS_META_ORIENTATION "orientation"
 
+/**
+ * VIPS_META_PAGE_HEIGHT:
+ *
+ * If set, the height of each page when this image was loaded. If you save an
+ * image with "page-height" set to a format that supports multiple pages, such
+ * as tiff, the image will be saved as a series of pages. 
+ */
+#define VIPS_META_PAGE_HEIGHT "page-height"
+
 guint64 vips_format_sizeof( VipsBandFormat format );
 guint64 vips_format_sizeof_unsafe( VipsBandFormat format );
 
@@ -170,6 +179,7 @@ gboolean vips_image_remove( VipsImage *image, const char *name );
 typedef void *(*VipsImageMapFn)( VipsImage *image, 
 	const char *name, GValue *value, void *a );
 void *vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a );
+gchar **vips_image_get_fields( VipsImage *image );
 
 void vips_image_set_area( VipsImage *image, 
 	const char *name, VipsCallbackFn free_fn, void *data );
@@ -189,6 +199,7 @@ int vips_image_get_string( const VipsImage *image,
 	const char *name, const char **out );
 void vips_image_set_string( VipsImage *image, 
 	const char *name, const char *str );
+void vips_image_print_field( const VipsImage *image, const char *field );
 
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	__attribute__((format(printf, 2, 3)));

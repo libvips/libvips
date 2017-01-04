@@ -58,8 +58,7 @@
 #include "tiff.h"
 
 /* Handle TIFF errors here. Shared with vips2tiff.c. These can be called from
- * more than one thread, but vips_error and vips_warn have mutexes in, so that's
- * OK.
+ * more than one thread.
  */
 static void 
 vips__thandler_error( const char *module, const char *fmt, va_list ap )
@@ -67,13 +66,13 @@ vips__thandler_error( const char *module, const char *fmt, va_list ap )
 	vips_verror( module, fmt, ap );
 }
 
+/* It'd be nice to be able to support the @fail option for the tiff loader, but
+ * there's no easy way to do this, since libtiff has a global warning handler.
+ */
 static void 
 vips__thandler_warning( const char *module, const char *fmt, va_list ap )
 {
-	char buf[256];
-
-	vips_vsnprintf( buf, 256, fmt, ap );
-	vips_warn( module, "%s", buf );
+	g_logv( G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, fmt, ap );
 }
 
 /* Call this during startup. Other libraries may be using libtiff and we want

@@ -465,7 +465,7 @@ vips_reduceh_build( VipsObject *object )
 	 */
 	reduceh->n_point = 
 		vips_reduce_get_points( reduceh->kernel, reduceh->hshrink ); 
-	vips_info( object_class->nickname, "%d point mask", reduceh->n_point );
+	g_info( "%d point mask", reduceh->n_point );
 	if( reduceh->n_point > MAX_POINT ) {
 		vips_error( object_class->nickname, 
 			"%s", _( "reduce factor too large" ) );

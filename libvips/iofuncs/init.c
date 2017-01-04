@@ -226,10 +226,8 @@ vips_load_plugins( const char *fmt, ... )
 
 			module = g_module_open( path, G_MODULE_BIND_LAZY );
 			if( !module ) {
-				vips_warn( "vips_init", 
-					_( "unable to load \"%s\" -- %s" ), 
-					path, 
-					g_module_error() ); 
+				g_warning( _( "unable to load \"%s\" -- %s" ), 
+					path, g_module_error() ); 
 				result = -1;
 			}
                 }
@@ -343,11 +341,14 @@ vips_init( const char *argv0 )
 	bindtextdomain( GETTEXT_PACKAGE, name );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
 
-	/* Default various settings from env.
+	/* Deprecated, this is just for compat.
 	 */
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
 		vips_info_set( TRUE );
+
+	/* Default various settings from env.
+	 */
 	if( g_getenv( "VIPS_TRACE" ) )
 		vips_cache_set_trace( TRUE );
 
@@ -391,7 +392,7 @@ vips_init( const char *argv0 )
 	 */
 	if( im_load_plugins( "%s/vips-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION ) ) {
-		vips_warn( "vips_init", "%s", vips_error_buffer() );
+		g_warning( "%s", vips_error_buffer() );
 		vips_error_clear();
 	}
 
@@ -399,7 +400,7 @@ vips_init( const char *argv0 )
 	 * :-( kept for back compat convenience.
 	 */
 	if( im_load_plugins( "%s", libdir ) ) {
-		vips_warn( "vips_init", "%s", vips_error_buffer() );
+		g_warning( "%s", vips_error_buffer() );
 		vips_error_clear();
 	}
 
@@ -430,20 +431,6 @@ vips_init( const char *argv0 )
 	vips__thread_gate_stop( "init: startup" ); 
 
 	return( 0 );
-}
-
-/* Return the sizeof() various important data structures. These are checked
- * against the headers used to build our caller by vips_init().
- *
- * We allow direct access to members of VipsImage and VipsRegion (mostly for
- * reasons of history), so any change to a superclass of either of these
- * objects will break our ABI.
- */
-
-size_t
-vips__get_sizeof_vipsobject( void )
-{
-	return( sizeof( VipsObject ) ); 
 }
 
 /* Call this before vips stuff that uses stuff we need to have inited.
@@ -592,12 +579,12 @@ vips__ngettext( const char *msgid, const char *plural, unsigned long int n )
 }
 
 static gboolean
-vips_lib_version_cb( const gchar *option_name, const gchar *value, 
+vips_lib_info_cb( const gchar *option_name, const gchar *value, 
 	gpointer data, GError **error )
 {
-	printf( "libvips %s\n", VIPS_VERSION_STRING );
-	vips_shutdown();
-	exit( 0 );
+	vips_info_set( TRUE ); 
+
+	return( TRUE );
 }
 
 static gboolean
@@ -618,9 +605,18 @@ vips_set_fatal_cb( const gchar *option_name, const gchar *value,
 	return( TRUE );
 }
 
+static gboolean
+vips_lib_version_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	printf( "libvips %s\n", VIPS_VERSION_STRING );
+	vips_shutdown();
+	exit( 0 );
+}
+
 static GOptionEntry option_entries[] = {
-	{ "vips-info", 0, G_OPTION_FLAG_HIDDEN, 
-		G_OPTION_ARG_NONE, &vips__info, 
+	{ "vips-info", 0, G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_info_cb,
 		N_( "show informative messages" ), NULL },
 	{ "vips-fatal", 0, G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG, 
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_set_fatal_cb, 
@@ -1029,6 +1025,9 @@ vips_version_string( void )
  * Get the major, minor or micro library version, with @flag values 0, 1 and
  * 2.
  *
+ * Get the ABI current, revision and age (as used by libtool) with @flag 
+ * values 3, 4, 5. 
+ *
  * Returns: library version number
  */
 int
@@ -1037,15 +1036,24 @@ vips_version( int flag )
 	switch( flag ) {
 	case 0:
 		return( VIPS_MAJOR_VERSION );
-	
+
 	case 1:
 		return( VIPS_MINOR_VERSION );
-	
+
 	case 2:
 		return( VIPS_MICRO_VERSION );
 
+	case 3:
+		return( VIPS_LIBRARY_CURRENT );
+
+	case 4:
+		return( VIPS_LIBRARY_REVISION );
+
+	case 5:
+		return( VIPS_LIBRARY_AGE );
+
 	default:
-		vips_error( "vips_version", "%s", _( "flag not 0, 1, 2" ) );
+		vips_error( "vips_version", "%s", _( "flag not in [0, 5]" ) );
 		return( -1 );
 	}
 }
@@ -1064,3 +1072,12 @@ vips_leak_set( gboolean leak )
 {
 	vips__leak = leak; 
 }
+
+/* Deprecated.
+ */
+size_t
+vips__get_sizeof_vipsobject( void )
+{
+	return( sizeof( VipsObject ) ); 
+}
+

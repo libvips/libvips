@@ -779,7 +779,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
 		vips_vector_isenabled() &&
 		!vips_reducev_compile( reducev ) ) {
-		vips_info( object_class->nickname, "using vector path" ); 
+		g_info( "using vector path" ); 
 		generate = vips_reducev_vector_gen;
 	}
 
@@ -848,7 +848,7 @@ vips_reducev_build( VipsObject *object )
 			"%s", _( "reduce factor too large" ) );
 		return( -1 );
 	}
-	vips_info( object_class->nickname, "%d point mask", reducev->n_point );
+	g_info( "%d point mask", reducev->n_point );
 
 	/* Unpack for processing.
 	 */

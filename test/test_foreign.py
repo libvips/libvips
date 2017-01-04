@@ -43,6 +43,7 @@ class TestForeign(unittest.TestCase):
         self.jpeg_file = "images/йцук.jpg"
         self.png_file = "images/sample.png"
         self.tiff_file = "images/sample.tif"
+        self.ome_file = "images/multi-channel-z-series.ome.tif"
         self.profile_file = "images/sRGB.icm"
         self.analyze_file = "images/t00740_tr1_segm.hdr"
         self.gif_file = "images/cramps.gif"
@@ -309,6 +310,39 @@ class TestForeign(unittest.TestCase):
         self.assertEqual(x1.height, x2.width)
         os.unlink("test-14.tif")
 
+        x = Vips.Image.new_from_file(self.ome_file)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, 167)
+        page_height = x.height
+
+        x = Vips.Image.new_from_file(self.ome_file, n = -1)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 15)
+
+        x = Vips.Image.new_from_file(self.ome_file, page = 1, n = -1)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 14)
+
+        x = Vips.Image.new_from_file(self.ome_file, page = 1, n = 2)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 2)
+
+        x = Vips.Image.new_from_file(self.ome_file, n = -1)
+        self.assertEqual(x(0,166)[0], 96)
+        self.assertEqual(x(0,167)[0], 0)
+        self.assertEqual(x(0,168)[0], 1)
+
+        x.write_to_file("test-15.tif")
+
+        x = Vips.Image.new_from_file("test-15.tif", n = -1)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 15)
+        self.assertEqual(x(0,166)[0], 96)
+        self.assertEqual(x(0,167)[0], 0)
+        self.assertEqual(x(0,168)[0], 1)
+
+        os.unlink("test-15.tif")
+
     def test_magickload(self):
         x = Vips.type_find("VipsForeign", "magickload")
         if not x.is_instantiatable():
@@ -343,12 +377,23 @@ class TestForeign(unittest.TestCase):
         #self.assertEqual(im.height, height * 2)
 
         # all-frames should load every frame of the animation
+        # (though all-frames is deprecated)
         im = Vips.Image.magickload(self.gif_anim_file)
         width = im.width
         height = im.height
         im = Vips.Image.magickload(self.gif_anim_file, all_frames = True)
         self.assertEqual(im.width, width)
         self.assertEqual(im.height, height * 5)
+
+        # page/n let you pick a range of pages
+        im = Vips.Image.magickload(self.gif_anim_file)
+        width = im.width
+        height = im.height
+        im = Vips.Image.magickload(self.gif_anim_file, page = 1, n = 2)
+        self.assertEqual(im.width, width)
+        self.assertEqual(im.height, height * 2)
+        page_height = im.get_value("page-height")
+        self.assertEqual(page_height, height)
 
         # should work for dicom
         im = Vips.Image.magickload(self.dicom_file)
@@ -529,6 +574,18 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("gifload", self.gif_file, gif_valid)
         self.buffer_loader("gifload_buffer", self.gif_file, gif_valid)
+
+        x1 = Vips.Image.new_from_file(self.gif_anim_file )
+        x2 = Vips.Image.new_from_file(self.gif_anim_file, n = 2 )
+        self.assertEqual(x2.height, 2 * x1.height)
+        page_height = x2.get_value("page-height")
+        self.assertEqual(page_height, x1.height)
+
+        x2 = Vips.Image.new_from_file(self.gif_anim_file, n = -1 )
+        self.assertEqual(x2.height, 5 * x1.height)
+
+        x2 = Vips.Image.new_from_file(self.gif_anim_file, page = 1, n = -1 )
+        self.assertEqual(x2.height, 4 * x1.height)
 
     def test_svgload(self):
         x = Vips.type_find("VipsForeign", "svgload")

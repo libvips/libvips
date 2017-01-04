@@ -724,3 +724,79 @@ vips_check_bands_3ormore( const char *domain, VipsImage *im )
 {
 	return( vips_check_bands_atleast( domain, im, 3 ) ); 
 }
+
+/* The old vips_info() stuff, now replaced by g_warning() / g_info().
+ */
+
+int vips__info = 0;
+
+void
+vips_info_set( gboolean info )
+{
+	vips__info = info;
+
+	if( info ) { 
+		const char *old;
+		char *new;
+
+		old = g_getenv( "G_MESSAGES_DEBUG" );
+		if( !old )
+			old = "";
+		new = g_strdup_printf( "%s VIPS", old );
+		g_setenv( "G_MESSAGES_DEBUG", new, TRUE );
+		g_free( new );
+	}
+}
+
+void 
+vips_vinfo( const char *domain, const char *fmt, va_list ap )
+{
+	if( vips__info ) { 
+		g_mutex_lock( vips__global_lock );
+		(void) fprintf( stderr, _( "%s: " ), _( "info" ) );
+		if( domain )
+			(void) fprintf( stderr, _( "%s: " ), domain );
+		(void) vfprintf( stderr, fmt, ap );
+		(void) fprintf( stderr, "\n" );
+		g_mutex_unlock( vips__global_lock );
+	}
+}
+
+void 
+vips_info( const char *domain, const char *fmt, ... )
+{
+	va_list ap;
+
+	va_start( ap, fmt );
+	vips_vinfo( domain, fmt, ap );
+	va_end( ap );
+}
+
+void 
+vips_vwarn( const char *domain, const char *fmt, va_list ap )
+{	
+	if( !g_getenv( "IM_WARNING" ) &&
+		!g_getenv( "VIPS_WARNING" ) ) {
+		g_mutex_lock( vips__global_lock );
+		(void) fprintf( stderr, _( "%s: " ), _( "vips warning" ) );
+		if( domain )
+			(void) fprintf( stderr, _( "%s: " ), domain );
+		(void) vfprintf( stderr, fmt, ap );
+		(void) fprintf( stderr, "\n" );
+		g_mutex_unlock( vips__global_lock );
+	}
+
+	if( vips__fatal )
+		vips_error_exit( "vips__fatal" );
+}
+
+void 
+vips_warn( const char *domain, const char *fmt, ... )
+{	
+	va_list ap;
+
+	va_start( ap, fmt );
+	vips_vwarn( domain, fmt, ap );
+	va_end( ap );
+}
+
