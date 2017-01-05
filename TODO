@@ -1,3 +1,7 @@
+- vipsdisp-tiny makes stripes if the image is not tagged correctly
+
+  is one of the colourspace functions not reading format?
+
 - not sure about utf8 error messages on win
 
 - strange: 
