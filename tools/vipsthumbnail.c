@@ -251,6 +251,44 @@ thumbnail_process( VipsObject *process, const char *filename )
 	return( 0 );
 }
 
+/* Parse a geometry string and set thumbnail_width and thumbnail_height.
+ */
+static int
+thumbnail_parse_geometry( const char *geometry )
+{
+	GRegEx *regex;
+
+	regex = g_regex_new( "^(\d+)? (x)? (\d+)? ([<>])?$", 
+		G_REGEX_CASELESS | G_REGEX_EXTENDED, 0, NULL );
+	g_regex_match( regex, geometry, 0, &match_info );
+	if( 
+
+	char *p;
+
+	/* Up to 'x'
+
+
+
+	int w, h;
+	gboolean handled;
+
+	handled = FALSE;
+
+	if( sscanf( geometry, "%d x %d <", &w, &h ) == 2 ) {
+		thumbnail_width = w;
+		thumbnail_height = h;
+		crop_image = FALSE;
+	}
+
+	if( sscanf( geometry, "%d x %d >", &w, &h ) == 2 ) {
+		thumbnail_width = w;
+		thumbnail_height = h;
+		crop_image = TRUE;
+	}
+
+
+}
+
 int
 main( int argc, char **argv )
 {
@@ -296,14 +334,32 @@ main( int argc, char **argv )
 
 	g_option_context_free( context );
 
+	/*
 	if( sscanf( thumbnail_size, "%d x %d", 
-		&thumbnail_width, &thumbnail_height ) != 2 ) {
+		&thumbnail_width, &thumbnail_height ) == 2 ) {
 		if( sscanf( thumbnail_size, "%d", &thumbnail_width ) != 1 ) 
 			vips_error_exit( "unable to parse size \"%s\" -- "
 				"use eg. 128 or 200x300", thumbnail_size );
 
 		thumbnail_height = thumbnail_width;
 	}
+	 */
+
+	if( sscanf( thumbnail_size, "%d x %d", 
+		&thumbnail_width, &thumbnail_height ) == 2 ) {
+		if( sscanf( thumbnail_size, "%d", &thumbnail_width ) != 1 ) 
+			vips_error_exit( "unable to parse size \"%s\" -- "
+				"use eg. 128 or 200x300", thumbnail_size );
+
+		thumbnail_height = thumbnail_width;
+	}
+
+	if( sscanf( thumbnail_size, "%d", &thumbnail_width ) != 1 ) 
+
+		thumbnail_height = thumbnail_width;
+	}
+		vips_error_exit( "unable to parse size \"%s\" -- "
+			"use eg. 128 or 200x300", thumbnail_size );
 
 	if( rotate_image ) {
 #ifndef HAVE_EXIF
