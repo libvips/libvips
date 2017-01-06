@@ -26,7 +26,7 @@ and write thumbnails to the files
 and
 .B tn_jim.jpg.
 
- $ vipsthumbnail --size=64 -f thumbnails/%s.png fred.jpg
+ $ vipsthumbnail --size=64 -o thumbnails/%s.png fred.jpg
 
 will read image file
 .B fred.jpg
@@ -42,10 +42,12 @@ x
 .B N 
 pixels. You can use MxN to specify a rectangular bounding box.
 The image is shrunk so that it just fits within this area, images
-which are smaller than this are expanded.
+which are smaller than this are expanded. Use "xN" or "Mx" to just resize on
+one axis. Append "<" to only resize if the input image is smaller than the
+target, append ">" to only resize if the input image is larger than the target.
 
 .TP
-.B -f FORMAT, --format=FORMAT     
+.B -o FORMAT, --output=FORMAT     
 Set the output format string. The input filename has any file type suffix
 removed, then that value is substitued into 
 .B FORMAT
@@ -64,27 +66,6 @@ meaning JPEG output, with
 prepended. You can add format options too, for example
 .B tn_%s.jpg[Q=20]
 will write JPEG images with Q set to 20.
-
-.TP
-.B -p I, --interpolator=I               
-Resample with interpolator 
-.B I.
-Use 
-.B vips --list classes
-to see a list of valid interpolators. The default is 
-.B bilinear.
-
-.TP
-.B -r, --sharpen=none|mild|MASKFILE
-Images can look a little soft after shrinking.  This option lets you specify
-a sharpening mask. Use "none" to disable sharpening, or "mild" to sharpen
-lightly, or give the filename of a custom mask file to use. The default is
-"mild".  The built-in mild sharpen mask is:
-
- 3 3 24 0
- -1 -1 -1
- -1 32 -1
- -1 -1 -1
 
 .TP
 .B -e PROFILE, --eprofile=PROFILE        
@@ -114,10 +95,12 @@ Delete the output profile from the image. This can save a small amount of
 space. 
 
 .TP
-.B -v, --verbose
-.B vipsthumbnail(1)
-normally runs silently, except for warning and error messages. This option
-makes it print a list of the operations it performs on each image.
+.B -t, --rotate
+Auto-rotate images using EXIF orientation tags. 
+
+.TP
+.B -a, --linear
+Shrink images in linear light colour space. This can be much slower. 
 
 .SH RETURN VALUE
 returns 0 on success and non-zero on error. Error can mean one or more

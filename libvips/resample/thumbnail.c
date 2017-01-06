@@ -3,6 +3,8 @@
  *
  * 2/11/16
  * 	- from vipsthumbnail.c
+ * 6/1/17
+ * 	- add @size parameter
  */
 
 /*
@@ -68,6 +70,7 @@ typedef struct _VipsThumbnail {
 	VipsImage *out;
 	int width;
 	int height;
+	VipsSize size;
 
 	gboolean auto_rotate;
 	gboolean crop;
@@ -122,6 +125,7 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 		input_width : input_height;
 
 	VipsDirection direction;
+	double shrink;
 
 	/* Calculate the horizontal and vertical shrink we'd need to fit the
 	 * image to the bounding box, and pick the biggest. 
@@ -145,8 +149,17 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 			direction = VIPS_DIRECTION_HORIZONTAL;
 	}
 
-	return( direction == VIPS_DIRECTION_HORIZONTAL ?
-		horizontal : vertical );  
+	shrink = direction == VIPS_DIRECTION_HORIZONTAL ?
+		horizontal : vertical;  
+
+	/* Restrict to only upsize, only downsize, or both.
+	 */
+	if( thumbnail->size == VIPS_SIZE_UP )
+		shrink = VIPS_MIN( 1, shrink );
+	if( thumbnail->size == VIPS_SIZE_DOWN )
+		shrink = VIPS_MAX( 1, shrink );
+
+	return( shrink ); 
 }
 
 /* Find the best jpeg preload shrink.
@@ -497,35 +510,42 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 		G_STRUCT_OFFSET( VipsThumbnail, height ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_BOOL( class, "auto_rotate", 114, 
+	VIPS_ARG_ENUM( class, "size", 114, 
+		_( "size" ), 
+		_( "Only upsize, only downsize, or both" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsThumbnail, size ),
+		VIPS_TYPE_SIZE, VIPS_SIZE_BOTH ); 
+
+	VIPS_ARG_BOOL( class, "auto_rotate", 115, 
 		_( "Auto rotate" ), 
 		_( "Use orientation tags to rotate image upright" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsThumbnail, auto_rotate ),
 		TRUE ); 
 
-	VIPS_ARG_BOOL( class, "crop", 115, 
+	VIPS_ARG_BOOL( class, "crop", 116, 
 		_( "Crop" ), 
 		_( "Reduce to fill target rectangle, then crop" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsThumbnail, crop ),
 		FALSE ); 
 
-	VIPS_ARG_BOOL( class, "linear", 116, 
+	VIPS_ARG_BOOL( class, "linear", 117, 
 		_( "Linear" ), 
 		_( "Reduce in linear light" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsThumbnail, linear ),
 		FALSE ); 
 
-	VIPS_ARG_STRING( class, "import_profile", 117, 
+	VIPS_ARG_STRING( class, "import_profile", 118, 
 		_( "Import profile" ), 
 		_( "Fallback import profile" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsThumbnail, import_profile ),
 		NULL ); 
 
-	VIPS_ARG_STRING( class, "export_profile", 118, 
+	VIPS_ARG_STRING( class, "export_profile", 119, 
 		_( "Export profile" ), 
 		_( "Fallback export profile" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -643,6 +663,7 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * Optional arguments:
  *
  * * @height: %gint, target height in pixels
+ * * @size: #VipsSize, upsize, downsize or both
  * * @auto_rotate: %gboolean, rotate upright using orientation tag
  * * @crop: %gboolean, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light
@@ -658,10 +679,17 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * See vips_thumbnail_buffer() to thumbnail from a memory source. 
  *
  * The output image will fit within a square of size @width x @width. You can
- * specify a height with the @height option. 
+ * specify a separate height with the @height option. 
  *
  * If you set @crop, then the output image will fill the whole of the @width x
  * @height rectangle, with any excess cropped away.
+ *
+ * Normally the operation will upsize or downsize as required. If @size is set
+ * to #VIPS_SIZE_UP, the operation will only upsize and will just
+ * copy if asked to downsize. 
+ * If @size is set
+ * to #VIPS_SIZE_DOWN, the operation will only downsize and will just
+ * copy if asked to upsize. 
  *
  * Normally any orientation tags on the input image (such as EXIF tags) are
  * interpreted to rotate the image upright. If you set @auto_rotate to %FALSE,
@@ -803,6 +831,7 @@ vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
  * Optional arguments:
  *
  * * @height: %gint, target height in pixels
+ * * @size: #VipsSize, upsize, downsize or both
  * * @auto_rotate: %gboolean, rotate upright using orientation tag
  * * @crop: %gboolean, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light

@@ -82,6 +82,18 @@
  * Finally, vips_mapim() can apply arbitrary 2D image transforms to an image.
  */
 
+/** 
+ * VipsSize:
+ * @VIPS_SIZE_BOTH: size both up and down
+ * @VIPS_SIZE_UP: only upsize
+ * @VIPS_SIZE_DOWN: only downsize
+ *
+ * Controls whether an operation should upsize, downsize, or both up and
+ * downsize. 
+ *
+ * See also: vips_thumbnail().
+ */
+
 G_DEFINE_ABSTRACT_TYPE( VipsResample, vips_resample, VIPS_TYPE_OPERATION );
 
 static int

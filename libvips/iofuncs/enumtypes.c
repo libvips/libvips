@@ -26,6 +26,25 @@ vips_kernel_get_type( void )
 
 	return( etype );
 }
+GType
+vips_size_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_SIZE_BOTH, "VIPS_SIZE_BOTH", "both"},
+			{VIPS_SIZE_UP, "VIPS_SIZE_UP", "up"},
+			{VIPS_SIZE_DOWN, "VIPS_SIZE_DOWN", "down"},
+			{VIPS_SIZE_LAST, "VIPS_SIZE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsSize", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/foreign.h" */
 GType
 vips_foreign_flags_get_type( void )

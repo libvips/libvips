@@ -85,6 +85,11 @@
  * 	- use scRGB as the working space in linear mode
  * 15/8/16
  * 	- can now remove 0.1 rounding adjustment
+ * 2/11/16
+ * 	- use vips_thumbnail(), most code moved there
+ * 6/1/17
+ * 	- fancy geometry strings
+ * 	- support VipSize restrictions
  */
 
 #ifdef HAVE_CONFIG_H
@@ -108,6 +113,7 @@
 static char *thumbnail_size = "128";
 static int thumbnail_width = 128;
 static int thumbnail_height = 128;
+static VipsSize size_restriction = VIPS_SIZE_BOTH;
 static char *output_format = "tn_%s.jpg";
 static char *export_profile = NULL;
 static char *import_profile = NULL;
@@ -229,10 +235,11 @@ thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 static int
 thumbnail_process( VipsObject *process, const char *filename )
 {
-	VipsImage *in;
+	VipsImage *image;
 
-	if( vips_thumbnail( filename, &in, thumbnail_width, 
+	if( vips_thumbnail( filename, &image, thumbnail_width, 
 		"height", thumbnail_height, 
+		"size", size_restriction, 
 		"auto_rotate", rotate_image, 
 		"crop", crop_image, 
 		"linear", linear_processing, 
@@ -241,14 +248,24 @@ thumbnail_process( VipsObject *process, const char *filename )
 		NULL ) )
 		return( -1 );
 
-	if( thumbnail_write( process, in, filename ) ) {
-		g_object_unref( in ); 
+	if( thumbnail_write( process, image, filename ) ) {
+		g_object_unref( image ); 
 		return( -1 );
 	}
 
-	g_object_unref( in ); 
+	g_object_unref( image ); 
 
 	return( 0 );
+}
+
+/* Fetch a match_info string, NULL for "".
+ */
+static const char *
+fetch_match( GMatchInfo *match_info, int n )
+{
+	const char *str = g_match_info_fetch( match_info, n );
+
+	return( strcmp( str, "" ) == 0 ? NULL : str );
 }
 
 /* Parse a geometry string and set thumbnail_width and thumbnail_height.
@@ -256,37 +273,78 @@ thumbnail_process( VipsObject *process, const char *filename )
 static int
 thumbnail_parse_geometry( const char *geometry )
 {
-	GRegEx *regex;
-
-	regex = g_regex_new( "^(\d+)? (x)? (\d+)? ([<>])?$", 
-		G_REGEX_CASELESS | G_REGEX_EXTENDED, 0, NULL );
-	g_regex_match( regex, geometry, 0, &match_info );
-	if( 
-
-	char *p;
-
-	/* Up to 'x'
-
-
-
-	int w, h;
+	GRegex *regex;
+	GMatchInfo *match_info;
 	gboolean handled;
 
 	handled = FALSE;
 
-	if( sscanf( geometry, "%d x %d <", &w, &h ) == 2 ) {
-		thumbnail_width = w;
-		thumbnail_height = h;
-		crop_image = FALSE;
+	regex = g_regex_new( "^(\\d+)? (x)? (\\d+)? ([<>])?$", 
+		G_REGEX_CASELESS | G_REGEX_EXTENDED, 0, NULL );
+	g_regex_match( regex, geometry, 0, &match_info );
+	if( g_match_info_matches( match_info ) ) {
+		const char *w = fetch_match( match_info, 1 );
+		const char *x = fetch_match( match_info, 2 );
+		const char *h = fetch_match( match_info, 3 );
+		const char *s = fetch_match( match_info, 4 );
+
+		/* If --crop is set, both width and height must be specified,
+		 * since we'll need a complete bounding box to fill.
+		 */
+		if( crop_image && x && (!w || !h) ) {
+			vips_error( "thumbnail",
+				"both width and height must be given if "
+				"--crop is enabled" );
+			return( -1 );
+		}
+
+		if( !x ) { 
+			/* No "x" means we only allow a single number and it 
+			 * sets both width and height.
+			 */
+			if( w && !h ) {
+				thumbnail_width = thumbnail_height = atoi( w );
+				handled = TRUE;
+			}
+			if( !w && h ) {
+				thumbnail_width = thumbnail_height = atoi( h );
+				handled = TRUE;
+			}
+		}
+		else { 
+			/* w or h missing means replace with a huuuge value 
+			 * to prevent reduction or enlargement in that axis.
+			 */
+			thumbnail_width = VIPS_MAX_COORD;
+			thumbnail_height = VIPS_MAX_COORD;
+			if( w ) {
+				thumbnail_width = atoi( w );
+				handled = TRUE;
+			}
+			if( h ) {
+				thumbnail_height = atoi( h );
+				handled = TRUE;
+			}
+		}
+
+		if( s && strcmp( s, ">" ) == 0 )
+			size_restriction = VIPS_SIZE_DOWN;
+		if( s && strcmp( s, "<" ) == 0 )
+			size_restriction = VIPS_SIZE_UP;
 	}
 
-	if( sscanf( geometry, "%d x %d >", &w, &h ) == 2 ) {
-		thumbnail_width = w;
-		thumbnail_height = h;
-		crop_image = TRUE;
+	g_match_info_free( match_info );
+	g_regex_unref( regex );
+
+	if( !handled ) {
+		vips_error( "thumbnail",
+			"unable to parse size \"%s\" -- "
+			"use eg. 128 or 200x300>", geometry );
+
+		return( -1 );
 	}
 
-
+	return( 0 );
 }
 
 int
@@ -334,40 +392,15 @@ main( int argc, char **argv )
 
 	g_option_context_free( context );
 
-	/*
-	if( sscanf( thumbnail_size, "%d x %d", 
-		&thumbnail_width, &thumbnail_height ) == 2 ) {
-		if( sscanf( thumbnail_size, "%d", &thumbnail_width ) != 1 ) 
-			vips_error_exit( "unable to parse size \"%s\" -- "
-				"use eg. 128 or 200x300", thumbnail_size );
+	if( thumbnail_parse_geometry( thumbnail_size ) )
+		vips_error_exit( NULL ); 
 
-		thumbnail_height = thumbnail_width;
-	}
-	 */
-
-	if( sscanf( thumbnail_size, "%d x %d", 
-		&thumbnail_width, &thumbnail_height ) == 2 ) {
-		if( sscanf( thumbnail_size, "%d", &thumbnail_width ) != 1 ) 
-			vips_error_exit( "unable to parse size \"%s\" -- "
-				"use eg. 128 or 200x300", thumbnail_size );
-
-		thumbnail_height = thumbnail_width;
-	}
-
-	if( sscanf( thumbnail_size, "%d", &thumbnail_width ) != 1 ) 
-
-		thumbnail_height = thumbnail_width;
-	}
-		vips_error_exit( "unable to parse size \"%s\" -- "
-			"use eg. 128 or 200x300", thumbnail_size );
-
-	if( rotate_image ) {
 #ifndef HAVE_EXIF
+	if( rotate_image ) 
 		g_warning( "%s",
 			_( "auto-rotate disabled: "
 			      "libvips built without exif support" ) );
 #endif /*!HAVE_EXIF*/
-	}
 
 	result = 0;
 
