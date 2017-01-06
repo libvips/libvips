@@ -40,10 +40,16 @@ Set the output thumbnail size to
 .B N 
 x 
 .B N 
-pixels. You can use MxN to specify a rectangular bounding box.
+pixels. 
+
+You can use "MxN" to specify a rectangular bounding box.
 The image is shrunk so that it just fits within this area, images
-which are smaller than this are expanded. Use "xN" or "Mx" to just resize on
-one axis. Append "<" to only resize if the input image is smaller than the
+which are smaller than this are expanded. 
+
+Use "xN" or "Mx" to just resize on
+one axis. 
+
+Append "<" to only resize if the input image is smaller than the
 target, append ">" to only resize if the input image is larger than the target.
 
 .TP
@@ -52,7 +58,8 @@ Set the output format string. The input filename has any file type suffix
 removed, then that value is substitued into 
 .B FORMAT
 replacing
-.B %s. If 
+.B %s. 
+If 
 .B FORMAT
 is a relative path, the name of the input directory is prepended. In other
 words, any path in

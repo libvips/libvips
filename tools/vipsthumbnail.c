@@ -265,7 +265,7 @@ fetch_match( GMatchInfo *match_info, int n )
 {
 	const char *str = g_match_info_fetch( match_info, n );
 
-	return( strcmp( str, "" ) == 0 ? NULL : str );
+	return( str && strcmp( str, "" ) == 0 ? NULL : str );
 }
 
 /* Parse a geometry string and set thumbnail_width and thumbnail_height.
@@ -392,7 +392,8 @@ main( int argc, char **argv )
 
 	g_option_context_free( context );
 
-	if( thumbnail_parse_geometry( thumbnail_size ) )
+	if( thumbnail_size && 
+		thumbnail_parse_geometry( thumbnail_size ) )
 		vips_error_exit( NULL ); 
 
 #ifndef HAVE_EXIF
