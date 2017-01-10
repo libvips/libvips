@@ -1,3 +1,6 @@
+8/12/16 started 8.4.6
+- fix --without-exif, thanks mezod
+
 8/12/16 started 8.4.5
 - allow libgsf-1.14.26 to help centos, thanks tdiprima
 
