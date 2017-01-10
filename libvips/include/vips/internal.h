@@ -94,11 +94,6 @@ extern int vips__info;
  */
 extern char *vips__disc_threshold;
 
-/* Cache size settings.
- */
-extern char *vips__cache_max;
-extern char *vips__cache_max_mem;
-extern char *vips__cache_max_files;
 extern gboolean vips__cache_dump;
 extern gboolean vips__cache_trace;
 

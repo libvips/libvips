@@ -19,6 +19,7 @@
   VIPS_LIBRARY_AGE
 - better support for bscale / bzero in fits images
 - deprecate vips_warn() / vips_info(); use g_warning() / g_info() instead
+- fix --vips-cache-max etc. 
 
 8/12/16 started 8.4.5
 - allow libgsf-1.14.26 to help centos, thanks tdiprima

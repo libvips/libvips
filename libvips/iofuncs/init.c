@@ -614,6 +614,33 @@ vips_lib_version_cb( const gchar *option_name, const gchar *value,
 	exit( 0 );
 }
 
+static gboolean
+vips_cache_max_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	vips_cache_set_max( vips__parse_size( value ) );
+
+	return( TRUE ); 
+}
+
+static gboolean
+vips_cache_max_memory_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	vips_cache_set_max_mem( vips__parse_size( value ) );
+
+	return( TRUE ); 
+}
+
+static gboolean
+vips_cache_max_files_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	vips_cache_set_max_files( vips__parse_size( value ) );
+
+	return( TRUE ); 
+}
+
 static GOptionEntry option_entries[] = {
 	{ "vips-info", 0, G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG, 
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_info_cb,
@@ -652,13 +679,13 @@ static GOptionEntry option_entries[] = {
 		G_OPTION_ARG_NONE, &vips__vector_enabled, 
 		N_( "disable vectorised versions of operations" ), NULL },
 	{ "vips-cache-max", 0, 0, 
-		G_OPTION_ARG_STRING, &vips__cache_max, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_cache_max_cb,
 		N_( "cache at most N operations" ), "N" },
 	{ "vips-cache-max-memory", 0, 0, 
-		G_OPTION_ARG_STRING, &vips__cache_max_mem, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_cache_max_memory_cb,
 		N_( "cache at most N bytes in memory" ), "N" },
 	{ "vips-cache-max-files", 0, 0, 
-		G_OPTION_ARG_STRING, &vips__cache_max_files, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_cache_max_files_cb,
 		N_( "allow at most N open files" ), "N" },
 	{ "vips-cache-trace", 0, 0, 
 		G_OPTION_ARG_NONE, &vips__cache_trace, 
