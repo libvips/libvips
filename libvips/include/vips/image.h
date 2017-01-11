@@ -506,6 +506,11 @@ VipsImage **vips_array_image_get( VipsArrayImage *array, int *n );
 VipsImage **vips_value_get_array_image( const GValue *value, int *n );
 void vips_value_set_array_image( GValue *value, int n );
 
+/* Defined in recomp.c, but really a function on image.
+ */
+int vips_image_prepare_many( VipsImage *image, 
+	struct _VipsRegion **regions, VipsRect *r );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

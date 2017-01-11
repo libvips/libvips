@@ -250,6 +250,10 @@ int vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 
 int vips__image_intize( VipsImage *in, VipsImage **out );
 
+int vips__recomp_set_input( VipsImage *image, VipsImage **in );
+void vips__recomp_init( void );
+void vips__recomp_add_margin( VipsImage *image, int margin );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

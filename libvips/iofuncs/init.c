@@ -364,6 +364,10 @@ vips_init( const char *argv0 )
 	 */
 	vips__cache_init();
 
+	/* Recomp reordering system.
+	 */
+	vips__recomp_init();
+
 	/* Start up packages.
 	 */
 	(void) vips_system_get_type();
