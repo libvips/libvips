@@ -32,8 +32,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -111,6 +111,17 @@ vips_reorder_print( VipsReorder *reorder )
 }
 #endif /*DEBUG*/
 
+static void
+vips_reorder_destroy( VipsReorder *reorder )
+{
+	VIPS_FREE( reorder->input );
+	VIPS_FREE( reorder->score );
+	VIPS_FREE( reorder->recomp_order );
+	VIPS_FREE( reorder->source );
+	VIPS_FREE( reorder->cumulative_margin );
+	VIPS_FREE( reorder );
+}
+
 static VipsReorder *
 vips_reorder_get( VipsImage *image )
 {
@@ -120,7 +131,7 @@ vips_reorder_get( VipsImage *image )
 		vips__image_reorder_quark )) ) 
 		return( reorder );
 
-	reorder = VIPS_NEW( image, VipsReorder );
+	reorder = VIPS_NEW( NULL, VipsReorder );
 	reorder->image = image;
 	reorder->n_inputs = 0;
 	reorder->input = NULL;
@@ -130,8 +141,8 @@ vips_reorder_get( VipsImage *image )
 	reorder->source = NULL;
 	reorder->cumulative_margin = NULL;
 
-	g_object_set_qdata( G_OBJECT( image ), vips__image_reorder_quark, 
-		reorder );
+	g_object_set_qdata_full( G_OBJECT( image ), vips__image_reorder_quark, 
+		reorder, (GDestroyNotify) vips_reorder_destroy );
 
 	return( reorder );
 }
@@ -154,8 +165,6 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	int i;
 	int total;
 
-	printf( "vips__reorder_set_input: starting for image %p\n", image ); 
-
 	/* We have to support being called more than once on the same image.
 	 * Two cases: 
 	 * 
@@ -165,19 +174,15 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	 * 2. warn if the args were different and do nothing.
 	 */
 	if( reorder->source ) {
-		printf( "vips__reorder_set_input: run again\n" ); 
-
-		if( reorder->n_inputs == 0 ) {
-			printf( "vips__reorder_set_input: "
-				"no args to first call\n" ); 
-
+		if( reorder->n_inputs == 0 ) 
 			reorder->n_sources = 0;
-		}
 		else {
 			for( i = 0; in[i]; i++ )
 				if( i >= reorder->n_inputs ||
 					in[i] != reorder->input[i] ) {
-					printf( "vips__reorder_set_input: "
+					/* Should never happen.
+					 */
+					g_warning( "vips__reorder_set_input: "
 						"args differ\n" );
 					break;
 				}
@@ -191,9 +196,9 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	for( i = 0; in[i]; i++ )
 		;
 	reorder->n_inputs = i;
-	reorder->input = VIPS_ARRAY( image, reorder->n_inputs + 1, VipsImage * );
-	reorder->score = VIPS_ARRAY( image, reorder->n_inputs, int );
-	reorder->recomp_order = VIPS_ARRAY( image, reorder->n_inputs, int );
+	reorder->input = VIPS_ARRAY( NULL, reorder->n_inputs + 1, VipsImage * );
+	reorder->score = VIPS_ARRAY( NULL, reorder->n_inputs, int );
+	reorder->recomp_order = VIPS_ARRAY( NULL, reorder->n_inputs, int );
 	if( !reorder->input )
 		return( -1 );
 	if( reorder->n_inputs && 
@@ -220,8 +225,8 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	 */
 	total = VIPS_MAX( 1, total );
 
-	reorder->source = VIPS_ARRAY( image, total + 1, VipsImage * );
-	reorder->cumulative_margin = VIPS_ARRAY( image, total, int );
+	reorder->source = VIPS_ARRAY( NULL, total + 1, VipsImage * );
+	reorder->cumulative_margin = VIPS_ARRAY( NULL, total, int );
 	if( !reorder->source ||
 		!reorder->cumulative_margin )
 		return( -1 );
@@ -250,22 +255,13 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 				 * margin? Adjust the score to reflect the
 				 * change, note the new max.
 				 */
-
-				printf( "found a dupe\n" );
-				printf( "margin on first one %d\n", 
-					reorder->cumulative_margin[k] );
-				printf( "margin on new one %d\n", 
-					input->cumulative_margin[j] );
-					
-				printf( "setting score on %d += %d\n", 
-					i, input->cumulative_margin[j] - 
-						reorder->cumulative_margin[k] );
+				reorder->score[i] += 
+					input->cumulative_margin[j] -
+					reorder->cumulative_margin[k];
 
 				reorder->cumulative_margin[k] = VIPS_MAX(
 					reorder->cumulative_margin[k],
 					input->cumulative_margin[j] );
-				reorder->score[i] += input->cumulative_margin[j] -
-					reorder->cumulative_margin[k];
 
 			}
 			else {
@@ -276,8 +272,6 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 				reorder->cumulative_margin[reorder->n_sources] = 
 					input->cumulative_margin[j];
 				reorder->n_sources += 1;
-
-				vips_reorder_print( reorder );
 			}
 		}
 	}
@@ -306,8 +300,24 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	return( 0 );
 }
 
+/**
+ * vips_reorder_prepare_many:
+ * @image: the image that's being written
+ * @regions: the set of regions to prepare
+ * @r: the #VipsRect to prepare on each region
+ *
+ * vips_reorder_prepare_many() runs vips_region_prepare() on each region in
+ * @regions, requesting the pixels in @r.
+ *
+ * It tries to request the regions in the order which will cause least
+ * recomputation. This can give a large speedup, in some cases. 
+ *
+ * See also: vips_region_prepare(), vips_reorder_margin_hint().
+ *
+ * Returns: 0 on success, or -1 on error.
+ */
 int
-vips_image_prepare_many( VipsImage *image, VipsRegion **regions, VipsRect *r )
+vips_reorder_prepare_many( VipsImage *image, VipsRegion **regions, VipsRect *r )
 {
 	VipsReorder *reorder = vips_reorder_get( image );
 
@@ -323,8 +333,23 @@ vips_image_prepare_many( VipsImage *image, VipsRegion **regions, VipsRect *r )
 	return( 0 );
 }
 
+/**
+ * vips_reorder_margin_hint:
+ * @image: the image to hint on
+ * @margin: the size of the margin this operation has added
+ *
+ * vips_reorder_margin_hint() sets a hint that @image contains a margin, that
+ * is, that each vips_region_prepare() on @image will request a slightly larger
+ * region from it's inputs. A good value for @margin is (width * height) for
+ * the window the operation uses. 
+ *
+ * This information is used by vips_image_prepare_many() to attempt to reorder
+ * computations to minimise recomputation.
+ *
+ * See also: vips_image_prepare_many().
+ */
 void
-vips__reorder_add_margin( VipsImage *image, int margin )
+vips_reorder_margin_hint( VipsImage *image, int margin )
 {
 	VipsReorder *reorder = vips_reorder_get( image );
 

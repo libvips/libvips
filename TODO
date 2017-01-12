@@ -1,66 +1,9 @@
-- try with our Python script
+- use vips_reorder_prepare_many() elsewhere ... bandary, 
 
-- check sort is going in the right direction
-
-- use vips_image_prepare_many() elsewhere ... bandary, 
-
-- add vips__recomp_add_margin() elsewhere ... morph, local hist, 
-
-- should add_margin be in the API?
-
-- docs
+- add vips_reorder_margin_hint() elsewhere ... morph, local hist, 
 
 
 
-
-- new plan
-
-	images have extra fields:
-
-		1. an array of original source images, unique by pointer
-
-		2. an int array giving for each of 1., a cumulative margin 
-
-		3. an array of direct input images, a copy of the array 
-		   passed to vips_image_pipeline_array()
-
-		4. an array of int, the same size as 3., giving the prepare
-		   order
-
-		really, 2 x array(image, int)
-
-		have a quark and use g_object_set_qdata_full() to attach
-
-	vips_image_pipeline_array()
-
-		- if there are no input images, make a new original image with
-		  a margin of 0
-
-		- create source image array, give each one a priority of 0
-
-		- create empty original image array
-		- for each source image
-		    for each original image in this original image array
-		      if not in new original image array, add it
-		      if already there, don't add, but compare the margin
-		        if this margin is greater, 
-			  note the bigger margin
-			  increment the priority of this source image
-
-		- sort source image array by priority, highest first
-
-	vips_region_prepare_many()
-
-		- prepare regions in source image array priority
-
-		- needs another arg: the image for which these regions are
-		  being prepared
-
-		- add new func vips_image_prepare_many()
-
-	vips_conv()
-
-		- add N to the margin on all original images
 
 - not sure about utf8 error messages on win
 

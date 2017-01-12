@@ -516,7 +516,7 @@ vips_arithmetic_gen( VipsRegion *or,
 
 	/* Prepare all input regions and make buffer pointers.
 	 */
-	if( vips_image_prepare_many( or->im, ir, r ) ) 
+	if( vips_reorder_prepare_many( or->im, ir, r ) ) 
 		return( -1 );
 	for( i = 0; ir[i]; i++ ) 
 		p[i] = (VipsPel *) VIPS_REGION_ADDR( ir[i], r->left, r->top );

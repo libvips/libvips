@@ -160,7 +160,7 @@ vips_webp_writer_appendle( VipsWebPWriter *writer, uint32_t val, int n )
 	unsigned char buf[4];
 	int i; 
 
-	g_assert( n < 4 );
+	g_assert( n <= 4 );
 
 	for( i = 0; i < n; i++ ) {
 		buf[i] = (unsigned char) (val & 0xff);

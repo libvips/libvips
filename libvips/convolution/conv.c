@@ -113,7 +113,7 @@ vips_conv_build( VipsObject *object )
 		g_assert_not_reached();
 	}
 
-	vips__reorder_add_margin( convolution->out, 
+	vips_reorder_margin_hint( convolution->out, 
 		convolution->M->Xsize * convolution->M->Ysize );
 
 	return( 0 );

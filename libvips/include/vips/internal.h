@@ -250,9 +250,8 @@ int vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 
 int vips__image_intize( VipsImage *in, VipsImage **out );
 
-int vips__reorder_set_input( VipsImage *image, VipsImage **in );
 void vips__reorder_init( void );
-void vips__reorder_add_margin( VipsImage *image, int margin );
+int vips__reorder_set_input( VipsImage *image, VipsImage **in );
 
 #ifdef __cplusplus
 }
