@@ -366,7 +366,7 @@ vips_init( const char *argv0 )
 
 	/* Recomp reordering system.
 	 */
-	vips__recomp_init();
+	vips__reorder_init();
 
 	/* Start up packages.
 	 */

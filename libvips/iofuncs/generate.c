@@ -385,7 +385,7 @@ vips_image_pipeline_array( VipsImage *image,
 		vips__image_copy_fields_array( image, in ) )
 		return( -1 ); 
 
-	if( vips__recomp_set_input( image, in ) )
+	if( vips__reorder_set_input( image, in ) )
 		return( -1 ); 
 
 	return( 0 );

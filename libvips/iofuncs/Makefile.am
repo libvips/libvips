@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
-	recomp.c \
+	reorder.c \
 	vipsmarshal.h \
 	vipsmarshal.c \
 	type.c \

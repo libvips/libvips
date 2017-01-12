@@ -2,9 +2,9 @@
 
 - check sort is going in the right direction
 
-- use vips_image_prepare_many() elsewhere
+- use vips_image_prepare_many() elsewhere ... bandary, 
 
-- add vips__recomp_add_margin() elsewhere
+- add vips__recomp_add_margin() elsewhere ... morph, local hist, 
 
 - should add_margin be in the API?
 
