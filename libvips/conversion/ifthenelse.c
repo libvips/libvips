@@ -283,6 +283,9 @@ vips_blend_gen( VipsRegion *or, void *seq, void *client1, void *client2,
 	else {
 		/* Mix of set and clear ... ask for both then and else parts 
 		 * and interleave.
+		 *
+		 * We can't use vips_reorder_prepare_many() since we always
+		 * want the c image first.
 		 */
 		if( vips_region_prepare( ir[0], r ) || 
 			vips_region_prepare( ir[1], r ) ) 

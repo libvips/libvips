@@ -813,6 +813,8 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 		in, reducev ) )
 		return( -1 );
 
+	vips_reorder_margin_hint( resample->out, reducev->n_point ); 
+
 	return( 0 );
 }
 

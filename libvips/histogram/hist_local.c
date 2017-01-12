@@ -280,6 +280,8 @@ vips_hist_local_build( VipsObject *object )
 	local->out->Xoffset = 0;
 	local->out->Yoffset = 0;
 
+	vips_reorder_margin_hint( local->out, local->width * local->height ); 
+
 	return( 0 );
 }
 

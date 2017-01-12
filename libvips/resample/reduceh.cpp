@@ -540,6 +540,8 @@ vips_reduceh_build( VipsObject *object )
 		in, reduceh ) )
 		return( -1 );
 
+	vips_reorder_margin_hint( resample->out, reduceh->n_point ); 
+
 	return( 0 );
 }
 

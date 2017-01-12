@@ -125,6 +125,9 @@ vips_correlation_build( VipsObject *object )
 		correlation->in_ready, correlation ) )
 		return( -1 );
 
+	vips_reorder_margin_hint( correlation->out, 
+		correlation->ref->Xsize * correlation->ref->Ysize );
+
 	return( 0 );
 }
 

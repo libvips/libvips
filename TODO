@@ -1,9 +1,3 @@
-- use vips_reorder_prepare_many() elsewhere ... bandary, 
-
-- add vips_reorder_margin_hint() elsewhere ... morph, local hist, 
-
-
-
 
 - not sure about utf8 error messages on win
 
