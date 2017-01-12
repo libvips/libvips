@@ -877,6 +877,9 @@ vips_convasep_build( VipsObject *object )
 	convolution->out->Xoffset = 0;
 	convolution->out->Yoffset = 0;
 
+	vips_reorder_margin_hint( convolution->out,
+		convolution->M->Xsize * convolution->M->Ysize );
+
 	return( 0 );
 }
 
