@@ -32,12 +32,11 @@ SUBDIRS = \
 EXTRA_DIST = \
 	m4 \
 	benchmark \
-	bootstrap.sh \
+	autogen.sh \
 	vips.pc.in \
 	vipsCC.pc.in \
 	vips-cpp.pc.in \
 	libvips.supp \
-	acinclude.m4 \
 	depcomp \
 	README.md \
 	$(P_DIST_DIR) \

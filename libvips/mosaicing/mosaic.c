@@ -324,10 +324,10 @@ vips_mosaic_init( VipsMosaic *mosaic )
  * 
  * Optional arguments:
  *
- * * @bandno: band to search for features
- * * @hwindow: half window size
- * * @harea: half search size 
- * * @mblend: maximum blend size
+ * * @bandno: %gint, band to search for features
+ * * @hwindow: %gint, half window size
+ * * @harea: %gint, half search size 
+ * * @mblend: %gint, maximum blend size
  *
  * This operation joins two images left-right (with @ref on the left) or
  * top-bottom (with @ref above) given an approximate overlap.

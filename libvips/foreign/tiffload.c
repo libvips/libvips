@@ -40,8 +40,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_TIFF
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,7 +48,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#include "tiff.h"
+#include "pforeign.h"
+
+#ifdef HAVE_TIFF
 
 typedef struct _VipsForeignLoadTiff {
 	VipsForeignLoad parent_object;
@@ -58,6 +58,14 @@ typedef struct _VipsForeignLoadTiff {
 	/* Load this page. 
 	 */
 	int page;
+
+	/* Load this many pages. 
+	 */
+	int n;
+
+	/* Autorotate using orientation tag.
+	 */
+	gboolean autorotate;
 
 } VipsForeignLoadTiff;
 
@@ -91,12 +99,27 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadTiff, page ),
 		0, 100000, 0 );
+
+	VIPS_ARG_INT( class, "n", 11,
+		_( "n" ),
+		_( "Load this many pages" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadTiff, n ),
+		-1, 100000, 1 );
+
+	VIPS_ARG_BOOL( class, "autorotate", 12, 
+		_( "Autorotate" ), 
+		_( "Rotate image using orientation tag" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadTiff, autorotate ),
+		FALSE );
 }
 
 static void
 vips_foreign_load_tiff_init( VipsForeignLoadTiff *tiff )
 {
 	tiff->page = 0; 
+	tiff->n = 1; 
 }
 
 typedef struct _VipsForeignLoadTiffFile {
@@ -142,7 +165,8 @@ vips_foreign_load_tiff_file_header( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) load;
 
-	if( vips__tiff_read_header( file->filename, load->out, tiff->page ) )
+	if( vips__tiff_read_header( file->filename, load->out, 
+		tiff->page, tiff->n, tiff->autorotate ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
@@ -156,7 +180,8 @@ vips_foreign_load_tiff_file_load( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) load;
 
-	if( vips__tiff_read( file->filename, load->real, tiff->page, 
+	if( vips__tiff_read( file->filename, load->real, 
+		tiff->page, tiff->n,  tiff->autorotate, 
 		load->access == VIPS_ACCESS_SEQUENTIAL ) )
 		return( -1 );
 
@@ -227,7 +252,7 @@ vips_foreign_load_tiff_buffer_header( VipsForeignLoad *load )
 
 	if( vips__tiff_read_header_buffer( 
 		buffer->buf->data, buffer->buf->length, load->out, 
-		tiff->page ) ) 
+		tiff->page, tiff->n, tiff->autorotate ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -241,7 +266,7 @@ vips_foreign_load_tiff_buffer_load( VipsForeignLoad *load )
 
 	if( vips__tiff_read_buffer( 
 		buffer->buf->data, buffer->buf->length, load->real, 
-		tiff->page,
+		tiff->page, tiff->n, tiff->autorotate,
 		load->access == VIPS_ACCESS_SEQUENTIAL ) )
 		return( -1 );
 
@@ -280,3 +305,107 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
 }
 
 #endif /*HAVE_TIFF*/
+
+/**
+ * vips_tiffload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page
+ * * @n: %gint, load this many pages
+ * * @autorotate: %gboolean, use orientation tag to rotate the image 
+ *   during load
+ *
+ * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
+ * with extensions for tiled images, multipage images, LAB colour space, 
+ * pyramidal images and JPEG compression. including CMYK and YCbCr.
+ *
+ * @page means load this page from the file. By default the first page (page
+ * 0) is read. 
+ *
+ * @n means load this many pages. By default a single page is read. All the
+ * pages must have the same dimensions, and they are loaded as a tall, thin
+ * "toilet roll" image. The #VIPS_META_PAGE_HEIGHT metadata 
+ * tag gives the height in pixels of each page. Use -1 to load all pages. 
+ *
+ * Setting @autorotate to %TRUE will make the loader interpret the 
+ * orientation tag and automatically rotate the image appropriately during
+ * load. 
+ *
+ * If @autorotate is %FALSE, the metadata field #VIPS_META_ORIENTATION is set 
+ * to the value of the orientation tag. Applications may read and interpret 
+ * this field
+ * as they wish later in processing. See vips_autorot(). Save
+ * operations will use #VIPS_META_ORIENTATION, if present, to set the
+ * orientation of output images. 
+ *
+ * Any ICC profile is read and attached to the VIPS image as
+ * #VIPS_META_ICC_NAME. Any XMP metadata is read and attached to the image
+ * as #VIPS_META_XMP_NAME. Any IPCT is attached as #VIPS_META_IPCT_NAME. The
+ * image description is
+ * attached as #VIPS_META_IMAGEDESCRIPTION. Data in the photoshop tag is 
+ * attached as #VIPS_META_PHOTOSHOP_NAME.
+ *
+ * See also: vips_image_new_from_file(), vips_autorot().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_tiffload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "tiffload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_tiffload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page
+ * * @n: %gint, load this many pages
+ * * @autorotate: %gboolean, use orientation tag to rotate the image 
+ *   during load
+ *
+ * Read a TIFF-formatted memory block into a VIPS image. Exactly as
+ * vips_tiffload(), but read from a memory source. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_tiffload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "tiffload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}

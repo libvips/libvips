@@ -45,8 +45,9 @@
  */
 
 /* 
-#define VIPS_DEBUG_RED
 #define VIPS_DEBUG
+#define VIPS_DEBUG_RED
+#define DEBUG_OUT_OF_THREADS
  */
 
 #ifdef HAVE_CONFIG_H
@@ -98,6 +99,14 @@ int vips__thinstrip_height = VIPS__THINSTRIP_HEIGHT;
 /* Default n threads ... 0 means get from environment.
  */
 int vips__concurrency = 0;
+
+/* Count the number of threads we have active and report on leak test.
+ */
+int vips__n_active_threads = 0; 
+
+/* Set this GPrivate to indicate that this is a vips worker.
+ */
+static GPrivate *is_worker_key = NULL;
 
 /* Glib 2.32 revised the thread API. We need some compat functions.
  */
@@ -154,6 +163,16 @@ vips_g_cond_free( GCond *cond )
 #endif
 }
 
+/* TRUE if we are a vips worker thread. We sometimes manage resource allocation
+ * differently for vips workers since we can cheaply free stuff on thread
+ * termination.
+ */
+gboolean
+vips_thread_isworker( void )
+{
+	return( g_private_get( is_worker_key ) != NULL );
+}
+
 typedef struct {
 	const char *domain; 
 	GThreadFunc func; 
@@ -166,6 +185,11 @@ vips_thread_run( gpointer data )
 	VipsThreadInfo *info = (VipsThreadInfo *) data;
 
 	void *result;
+
+	/* Set this to something (anything) to tag this thread as a vips 
+	 * worker.
+	 */
+	g_private_set( is_worker_key, data );
 
 	if( vips__thread_profile ) 
 		vips__thread_profile_attach( info->domain );
@@ -182,6 +206,10 @@ vips_thread_run( gpointer data )
 GThread *
 vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 {
+#ifdef DEBUG_OUT_OF_THREADS
+	static int n_threads = 0;
+#endif /*DEBUG_OUT_OF_THREADS*/
+
 	GThread *thread;
 	VipsThreadInfo *info; 
 	GError *error = NULL;
@@ -191,11 +219,25 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 	info->func = func;
 	info->data = data;
 
+#ifdef DEBUG_OUT_OF_THREADS
+	n_threads += 1;
+	if( n_threads > 10 ) 
+		thread = NULL;
+	else {
+#endif /*DEBUG_OUT_OF_THREADS*/
+
 #ifdef HAVE_THREAD_NEW
 	thread = g_thread_try_new( domain, vips_thread_run, info, &error );
 #else
 	thread = g_thread_create( vips_thread_run, info, TRUE, &error );
 #endif
+
+	VIPS_DEBUG_MSG_RED( "vips_g_thread_new: g_thread_create() = %p\n",
+		thread );
+
+#ifdef DEBUG_OUT_OF_THREADS
+	}
+#endif /*DEBUG_OUT_OF_THREADS*/
 
 	if( !thread ) {
 		if( error ) 
@@ -205,7 +247,37 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 				"%s", _( "unable to create thread" ) );
 	}
 
+	if( thread &&
+		vips__leak ) {
+		g_mutex_lock( vips__global_lock );
+
+		vips__n_active_threads += 1;
+
+		g_mutex_unlock( vips__global_lock );
+	}
+
 	return( thread );
+}
+
+void *
+vips_g_thread_join( GThread *thread )
+{
+	void *result;
+
+	result = g_thread_join( thread );
+
+	VIPS_DEBUG_MSG_RED( "vips_g_thread_join: g_thread_join( %p )\n", 
+		thread );
+
+	if( vips__leak ) {
+		g_mutex_lock( vips__global_lock );
+
+		vips__n_active_threads -= 1;
+
+		g_mutex_unlock( vips__global_lock );
+	}
+
+	return( result ); 
 }
 
 /**
@@ -335,8 +407,7 @@ vips_concurrency_get( void )
 	if( nthr < 1 || nthr > MAX_THREADS ) {
 		nthr = VIPS_CLIP( 1, nthr, MAX_THREADS );
 
-		vips_warn( "vips_concurrency_get", 
-			_( "threads clipped to %d" ), nthr );
+		g_warning( _( "threads clipped to %d" ), nthr );
 	}
 
 	/* Save for next time around.
@@ -497,8 +568,7 @@ vips_thread_free( VipsThread *thr )
 
 		/* Return value is always NULL (see thread_main_loop).
 		 */
-		(void) g_thread_join( thr->thread );
-		VIPS_DEBUG_MSG_RED( "thread_free: g_thread_join()\n" );
+		(void) vips_g_thread_join( thr->thread );
 		thr->thread = NULL;
         }
 
@@ -642,8 +712,6 @@ vips_thread_new( VipsThreadpool *pool )
 		return( NULL );
 	}
 
-	VIPS_DEBUG_MSG_RED( "vips_thread_new: vips_g_thread_new()\n" );
-
 	return( thr );
 }
 
@@ -656,7 +724,11 @@ vips_threadpool_kill_threads( VipsThreadpool *pool )
 		int i;
 
 		for( i = 0; i < pool->nthr; i++ ) 
-			vips_thread_free( pool->thr[i] );
+			if( pool->thr[i] ) {
+				vips_thread_free( pool->thr[i] );
+				pool->thr[i] = NULL;
+			}
+
 		pool->thr = NULL;
 
 		VIPS_DEBUG_MSG( "vips_threadpool_kill_threads: "
@@ -692,7 +764,7 @@ vips_threadpool_new( VipsImage *im )
 	VipsThreadpool *pool;
 	int tile_width;
 	int tile_height;
-	int n_tiles;
+	gint64 n_tiles;
 	int n_lines;
 
 	/* Allocate and init new thread block.
@@ -716,7 +788,9 @@ vips_threadpool_new( VipsImage *im )
 	 * the number of threads we create.
 	 */
 	vips_get_tile_size( im, &tile_width, &tile_height, &n_lines );
-	n_tiles = (1 + im->Xsize / tile_width) * (1 + im->Ysize / tile_height);
+	n_tiles = (1 + (gint64) im->Xsize / tile_width) * 
+		(1 + (gint64) im->Ysize / tile_height);
+	n_tiles = VIPS_CLIP( 0, n_tiles, MAX_THREADS ); 
 	pool->nthr = VIPS_MIN( pool->nthr, n_tiles ); 
 
 	/* Attach tidy-up callback.
@@ -920,13 +994,22 @@ vips_threadpool_run( VipsImage *im,
 	return( result );
 }
 
-/* Round N down to P boundary. 
+/* Start up threadpools. This is called during vips_init.
  */
-#define ROUND_DOWN(N,P) ((N) - ((N) % P)) 
+void
+vips__threadpool_init( void )
+{
+	/* We need to work with the pre-2.32 threading API.
+	 */
+#ifdef HAVE_PRIVATE_INIT
+	static GPrivate private = { 0 }; 
 
-/* Round N up to P boundary. 
- */
-#define ROUND_UP(N,P) (ROUND_DOWN( (N) + (P) - 1, (P) ))
+	is_worker_key = &private;
+#else
+	if( !is_worker_key ) 
+		is_worker_key = g_private_new( NULL ); 
+#endif
+}
 
 /**
  * vips_get_tile_size:
@@ -984,7 +1067,7 @@ vips_get_tile_size( VipsImage *im,
 		(1 + nthr / VIPS_MAX( 1, im->Xsize / vips__tile_width )) * 2;
 	*n_lines = VIPS_MAX( *n_lines, vips__fatstrip_height * nthr * 2 );
 	*n_lines = VIPS_MAX( *n_lines, vips__thinstrip_height * nthr * 2 );
-	*n_lines = ROUND_UP( *n_lines, *tile_height );
+	*n_lines = VIPS_ROUND_UP( *n_lines, *tile_height );
 
 	/* We make this assumption in several places.
 	 */

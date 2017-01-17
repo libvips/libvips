@@ -146,3 +146,28 @@ static void
 vips_foreign_load_vips_init( VipsForeignLoadVips *vips )
 {
 }
+
+/**
+ * vips_vipsload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read in a vips image. 
+ *
+ * See also: vips_vipssave().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_vipsload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "vipsload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}

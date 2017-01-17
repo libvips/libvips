@@ -5,6 +5,8 @@
  *
  * 11/4/16 Lovell
  * 	- fix RGBA path
+ * 25/5/16
+ * 	- max_alpha defaults to 65535 for RGB16/GREY16
  */
 
 /*
@@ -214,6 +216,14 @@ vips_premultiply_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
+	/* Is max-alpha unset? Default to the correct value for this
+	 * interpretation.
+	 */
+	if( !vips_object_argument_isset( object, "max_alpha" ) ) 
+		if( in->Type == VIPS_INTERPRETATION_GREY16 ||
+			in->Type == VIPS_INTERPRETATION_RGB16 )
+			premultiply->max_alpha = 65535;
+
 	if( in->BandFmt == VIPS_FORMAT_DOUBLE )
 		conversion->out->BandFmt = VIPS_FORMAT_DOUBLE;
 	else
@@ -294,9 +304,9 @@ vips_premultiply_init( VipsPremultiply *premultiply )
  * #VIPS_FORMAT_FLOAT unless the input format is #VIPS_FORMAT_DOUBLE, in which
  * case the output is double as well.
  *
- * @max_alpha has the default value 255. You will need to set this to 65535
- * for images with a 16-bit alpha, or perhaps 1.0 for images with a float
- * alpha. 
+ * @max_alpha has the default value 255, or 65535 for images tagged as
+ * #VIPS_INTERPRETATION_RGB16 or
+ * #VIPS_INTERPRETATION_GREY16. 
  *
  * Non-complex images only.
  *

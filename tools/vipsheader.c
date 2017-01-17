@@ -106,33 +106,16 @@ static void *
 print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 {
 	gboolean *many = (gboolean *) a;
-	const char *extra;
-	char *str_value;
-
-	/* Look for known enums and decode them.
-	 */
-	extra = NULL;
-	if( strcmp( field, "coding" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_CODING, g_value_get_int( value ) );
-	else if( strcmp( field, "format" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_BAND_FORMAT, g_value_get_int( value ) );
-	else if( strcmp( field, "interpretation" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_INTERPRETATION, g_value_get_int( value ) );
+	char str[256];
+	VipsBuf buf = VIPS_BUF_STATIC( str );
 
 	if( *many ) 
 		printf( "%s: ", image->filename );
 
-	str_value = g_strdup_value_contents( value );
-	printf( "%s: %s", field, str_value );
-	g_free( str_value );
+	printf( "%s: ", field ); 
 
-	if( extra )
-		printf( " - %s", extra );
-
-	printf( "\n" );
+	vips_buf_appendgv( &buf, value );
+	printf( "%s\n", vips_buf_all( &buf ) );
 
 	return( NULL );
 }
@@ -166,8 +149,7 @@ print_header( VipsImage *im, gboolean many )
 	else {
 		char *str;
 
-		if( vips_image_get_as_string( im, main_option_field, &str ) )
-			return( -1 );
+		vips_image_get_as_string( im, main_option_field, &str );
 		printf( "%s\n", str );
 		g_free( str );
 	}
@@ -189,6 +171,13 @@ main( int argc, char *argv[] )
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
+	/* On Windows, argv is ascii-only .. use this to get a utf-8 version of
+	 * the args.
+	 */
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	argv = g_win32_get_command_line();
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+
         context = g_option_context_new( _( "- print image header" ) );
 	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
 	g_option_group_add_entries( main_group, main_option );
@@ -196,7 +185,12 @@ main( int argc, char *argv[] )
 	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
 	g_option_context_set_main_group( context, main_group );
 
-	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	if( !g_option_context_parse_strv( context, &argv, &error ) ) 
+#else /*!HAVE_G_WIN32_GET_COMMAND_LINE*/
+	if( !g_option_context_parse( context, &argc, &argv, &error ) ) 
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+	{
 		if( error ) {
 			fprintf( stderr, "%s\n", error->message );
 			g_error_free( error );
@@ -209,7 +203,7 @@ main( int argc, char *argv[] )
 
 	result = 0;
 
-	for( i = 1; i < argc; i++ ) {
+	for( i = 1; argv[i]; i++ ) {
 		VipsImage *im;
 
 		if( !(im = vips_image_new_from_file( argv[i], NULL )) ) {
@@ -218,7 +212,7 @@ main( int argc, char *argv[] )
 		}
 
 		if( im && 
-			print_header( im, argc > 2 ) ) {
+			print_header( im, argv[2] != NULL ) ) {
 			print_error();
 			result = 1;
 		}
@@ -226,6 +220,12 @@ main( int argc, char *argv[] )
 		if( im )
 			g_object_unref( im );
 	}
+
+	/* We don't free this on error exit, sadly.
+	 */
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	g_strfreev( argv ); 
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
 
 	vips_shutdown();
 

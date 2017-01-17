@@ -168,13 +168,11 @@ vips__b64_encode( const unsigned char *data, size_t data_length )
 	int i;
 	int cursor;
 
-	if( data_length == 0 ) {
-		vips_error( "vips__b64_encode", "%s", _( "too little data" ) );
-		return( NULL );
-	}
-	if( output_data_length > 1024 * 1024 ) {
+	if( output_data_length > 10 * 1024 * 1024 ) {
 		/* We shouldn't really be used for large amounts of data, plus
 		 * we are using int offsets.
+		 *
+		 * A large ICC profile can be 1MB, so allow 10MB of b64.
 		 */
 		vips_error( "vips__b64_encode", "%s", _( "too much data" ) );
 		return( NULL );
@@ -228,9 +226,10 @@ vips__b64_decode( const char *buffer, size_t *data_length )
 {
 	const size_t buffer_length = strlen( buffer );
 
-	/* Worst case.
+	/* Worst case. Add one, since we don't want to return NULL for an empty
+	 * input string, it would look like an error return.
 	 */
-	const size_t output_data_length = buffer_length * 3 / 4;
+	const size_t output_data_length = 1 + buffer_length * 3 / 4;
 
 	unsigned char *data;
 	unsigned char *p;

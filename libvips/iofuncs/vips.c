@@ -1,4 +1,4 @@
-/* Read and write a vips file 
+/* Read and write a vips file.
  * 
  * 22/5/08
  * 	- from im_open.c, im_openin.c, im_desc_hd.c, im_readhist.c,
@@ -329,6 +329,18 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	 */
 	im->Xres = im->Xres_float;
 	im->Yres = im->Yres_float;
+
+	/* Some protection against malicious files. We also check predicted
+	 * (based on these values) against real file length, see below. 
+	 */
+	im->Xsize = VIPS_CLIP( 1, im->Xsize, VIPS_MAX_COORD );
+	im->Ysize = VIPS_CLIP( 1, im->Ysize, VIPS_MAX_COORD );
+	im->Bands = VIPS_CLIP( 1, im->Bands, VIPS_MAX_COORD );
+	im->BandFmt = VIPS_CLIP( 0, im->BandFmt, VIPS_FORMAT_LAST - 1 );
+
+	/* Type, Coding, Offset, Res, etc. don't affect vips file layout, just 
+	 * pixel interpretation, don't clip them.
+	 */
 
 	return( 0 );
 }
@@ -748,7 +760,7 @@ save_fields_meta( VipsMeta *meta, xmlNode *node )
 				_( "error transforming to save format" ) );
 			return( node );
 		}
-		if( set_field( node, meta->field, g_type_name( type ), 
+		if( set_field( node, meta->name, g_type_name( type ), 
 			vips_value_get_save_string( &save_value ) ) ) {
 			g_value_unset( &save_value );
 			return( node );
@@ -792,7 +804,7 @@ vips__write_extension_block( VipsImage *im, void *buf, int size )
 	psize = image_pixel_length( im );
 	if( (length = vips_file_length( im->fd )) == -1 )
 		return( -1 );
-	if( length - psize < 0 ) {
+	if( length < psize ) {
 		vips_error( "VipsImage", "%s", _( "file has been truncated" ) );
 		return( -1 );
 	}
@@ -894,15 +906,16 @@ vips_image_open_input( VipsImage *image )
 		return( -1 );
 	}
 
-	/* Predict and check the file size.
+	/* Predict and check the file size. Only issue a warning, we want to be
+	 * able to read all the header fields we can, even if the actual data
+	 * isn't there. 
 	 */
 	psize = image_pixel_length( image );
 	if( (rsize = vips_file_length( image->fd )) == -1 ) 
 		return( -1 );
 	image->file_length = rsize;
-	if( psize > rsize ) 
-		vips_warn( "VipsImage", 
-			_( "unable to read data for \"%s\", %s" ),
+	if( psize > rsize )
+		g_warning( _( "unable to read data for \"%s\", %s" ),
 			image->filename, _( "file has been truncated" ) );
 
 	/* Set demand style. This suits a disc file we read sequentially.
@@ -914,8 +927,7 @@ vips_image_open_input( VipsImage *image )
 	 * harmless.
 	 */
 	if( readhist( image ) ) {
-		vips_warn( "VipsImage", _( "error reading XML: %s" ),
-			vips_error_buffer() );
+		g_warning( _( "error reading XML: %s" ), vips_error_buffer() );
 		vips_error_clear();
 	}
 

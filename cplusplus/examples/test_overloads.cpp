@@ -34,8 +34,7 @@ equal_vector( std::vector<double> a, std::vector<double> b )
 				printf( "%g", a[i] );
 			}
 			printf( "], is [" );
-			for( unsigned int i = 0; i < a.size(); i++ ) {
-				if( i > 0 )
+			for( unsigned int i = 0; i < a.size(); i++ ) { if( i > 0 )
 					printf( ", " ); 
 				printf( "%g", a[i] );
 			}
@@ -70,12 +69,12 @@ equal_double( double a, double b )
 void \
 test_binary_##OPERATOR( VImage left, VImage right ) \
 { \
-	for( int x = 10; x < 30; x += 10 ) {  \
-		std::vector<double> p_left = left.getpoint( x, x );  \
-		std::vector<double> p_right = right.getpoint( x, x );  \
-		std::vector<double> p_result =  \
-			OPERATOR<std::vector<double>,  \
-				std::vector<double>,  \
+	for( int x = 10; x < 30; x += 10 ) { \
+		std::vector<double> p_left = left.getpoint( x, x ); \
+		std::vector<double> p_right = right.getpoint( x, x ); \
+		std::vector<double> p_result = \
+			OPERATOR<std::vector<double>, \
+				std::vector<double>, \
 				std::vector<double> >(p_left, p_right ); \
  		\
 		VImage im_result; \
@@ -111,7 +110,7 @@ test_binary_##OPERATOR( VImage left, VImage right ) \
 		 */ \
 		im_result = \
 			OPERATOR<VImage, std::vector<double>, \
-				VImage>( p_left, right );  \
+				VImage>( p_left, right ); \
 		p_im_result = im_result.getpoint( x, x ); \
  		\
 		if( !equal_vector( p_result, p_im_result ) ) { \
@@ -138,7 +137,7 @@ test_binary_##OPERATOR( VImage left, VImage right ) \
 			} \
 		} \
  		\
-		/* test: image = double OP image  \
+		/* test: image = double OP image \
 		 */ \
 		for( unsigned int i = 0; i < p_left.size(); i++ ) { \
 			im_result = \
@@ -166,7 +165,7 @@ A test_add( B left, C right )
 }
 
 template <typename T>
-std::vector<T> operator+(std::vector<T> &v1, const std::vector<T> &v2) 
+std::vector<T> operator+( std::vector<T> &v1, const std::vector<T> &v2 ) 
 {
 	std::vector<T> result( v1.size() );
 
@@ -185,7 +184,7 @@ A test_subtract( B left, C right )
 }
 
 template <typename T>
-std::vector<T> operator-(std::vector<T> &v1, const std::vector<T> &v2) 
+std::vector<T> operator-( std::vector<T> &v1, const std::vector<T> &v2 ) 
 {
 	std::vector<T> result( v1.size() );
 
@@ -204,7 +203,7 @@ A test_multiply( B left, C right )
 }
 
 template <typename T>
-std::vector<T> operator*(std::vector<T> &v1, const std::vector<T> &v2) 
+std::vector<T> operator*( std::vector<T> &v1, const std::vector<T> &v2 ) 
 {
 	std::vector<T> result( v1.size() );
 
@@ -223,7 +222,7 @@ A test_divide( B left, C right )
 }
 
 template <typename T>
-std::vector<T> operator/(std::vector<T> &v1, const std::vector<T> &v2) 
+std::vector<T> operator/( std::vector<T> &v1, const std::vector<T> &v2 ) 
 {
 	std::vector<T> result( v1.size() );
 
@@ -234,6 +233,135 @@ std::vector<T> operator/(std::vector<T> &v1, const std::vector<T> &v2)
 }
 
 TEST_BINARY( test_divide );
+
+/* We can't test remainder easily, vips does not support constant % image.
+ */
+
+/* We'd need an int version to test the bool operators, C++ does not like
+ * double & double.
+ */
+
+/* Only test a few points and only test uchar: we are just testing the C++ 
+ * overloads, we rely on the python test suite for testing the underlying 
+ * vips operators.
+ */
+#define TEST_ASSIGNMENT( OPERATOR ) \
+void \
+test_assignment_##OPERATOR( VImage left, VImage right ) \
+{ \
+	for( int x = 10; x < 30; x += 10 ) {  \
+		std::vector<double> p_left = left.getpoint( x, x ); \
+		std::vector<double> p_right = right.getpoint( x, x ); \
+		std::vector<double> p_result = p_left; \
+		OPERATOR<std::vector<double>, \
+			std::vector<double> >( p_result, p_right ); \
+		\
+		/* test: image OP= image \
+		 */ \
+		VImage im_result = left; \
+		OPERATOR<VImage, VImage>( im_result, right ); \
+		std::vector<double> p_im_result = im_result.getpoint( x, x ); \
+ 		\
+		if( !equal_vector( p_result, p_im_result ) ) { \
+			printf( #OPERATOR \
+				"(VImage, VImage) failed at (%d, %d)\n", \
+				x, x ); \
+			abort(); \
+		} \
+		\
+		/* test: image OP= vec \
+		 */ \
+		im_result = left; \
+		OPERATOR<VImage, std::vector<double> >( im_result, p_right ); \
+		p_im_result = im_result.getpoint( x, x ); \
+ 		\
+		if( !equal_vector( p_result, p_im_result ) ) { \
+			printf( #OPERATOR \
+				"(VImage, vector) failed at (%d, %d)\n", \
+				x, x ); \
+			abort(); \
+		} \
+ 		\
+		\
+		/* test: image OP= double \
+		 */ \
+		for( unsigned int i = 0; i < p_left.size(); i++ ) { \
+			im_result = left; \
+			OPERATOR<VImage, double>( im_result, p_right[i] ); \
+			p_im_result = im_result.getpoint( x, x ); \
+ 			\
+			if( !equal_double( p_result[i], p_im_result[i] ) ) { \
+				printf( #OPERATOR \
+					"(VImage, double) failed at " \
+					"(%d, %d)\n", \
+					x, x ); \
+				abort(); \
+			} \
+		} \
+	} \
+}
+
+template <typename T>
+std::vector<T> & operator+=( std::vector<T> & a, std::vector<T> b )
+{
+	return( a = a + b );
+}
+
+template <typename A, typename B>
+void test_plusequals( A &left, B right )
+{
+	left += right;
+}
+
+TEST_ASSIGNMENT( test_plusequals );
+
+template <typename T>
+std::vector<T> & operator-=( std::vector<T> & a, std::vector<T> b )
+{
+	return( a = a - b );
+}
+
+template <typename A, typename B>
+void test_minusequals( A &left, B right )
+{
+	left -= right;
+}
+
+TEST_ASSIGNMENT( test_minusequals );
+
+template <typename T>
+std::vector<T> & operator*=( std::vector<T> & a, std::vector<T> b )
+{
+	return( a = a * b );
+}
+
+template <typename A, typename B>
+void test_timesequals( A &left, B right )
+{
+	left *= right;
+}
+
+TEST_ASSIGNMENT( test_timesequals );
+
+template <typename T>
+std::vector<T> & operator/=( std::vector<T> & a, std::vector<T> b )
+{
+	return( a = a / b );
+}
+
+template <typename A, typename B>
+void test_divideequals( A &left, B right )
+{
+	left /= right;
+}
+
+TEST_ASSIGNMENT( test_divideequals );
+
+/* We can't test remainder easily, vips does not support constant % image.
+ */
+
+/* We'd need an int version to test the bool operators.
+ */
 
 int
 main( int argc, char **argv )
@@ -266,14 +394,18 @@ main( int argc, char **argv )
 	VImage left = VImage::new_from_file( argv[1] ); 
 	VImage right = VImage::new_from_file( argv[2] ); 
 
+	VImage band_one = left[1];
+	std::vector<double> point = left(0, 0);
+
 	test_binary_test_add( left, right );
 	test_binary_test_subtract( left, right );
 	test_binary_test_multiply( left, right );
 	test_binary_test_divide( left, right );
 
-	VImage band_one = left[1];
-
-	std::vector<double> point = left(0, 0);
+	test_assignment_test_plusequals( left, right );
+	test_assignment_test_minusequals( left, right );
+	test_assignment_test_timesequals( left, right );
+	test_assignment_test_divideequals( left, right );
 }
 
 	vips_shutdown();

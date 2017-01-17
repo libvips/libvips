@@ -506,7 +506,7 @@ vips__render_shutdown( void )
 
 		render_reschedule = TRUE;
 		render_kill = TRUE;
-		(void) g_thread_join( thread );
+		(void) vips_g_thread_join( thread );
 	}
 	else
 		g_mutex_unlock( render_dirty_lock );

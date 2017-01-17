@@ -193,9 +193,9 @@ static int
 icc_error( int code, const char *text )
 {
 	if( code == LCMS_ERRC_WARNING )
-		vips_warn( "VipsIcc", "%s", text );
+		g_warning( "%s", text );
 	else
-		vips_error( "VipsIcc", "%s", text );
+		vips_error( "VipsIcc", text );
 
 	return( 0 );
 }
@@ -452,9 +452,9 @@ vips_check_intent( const char *domain,
 {
 	if( profile &&
 		!cmsIsIntentSupported( profile, intent, direction ) )
-		vips_warn( domain,
-			_( "intent %d (%s) not supported by "
+		g_warning( _( "%s: intent %d (%s) not supported by "
 			"%s profile; falling back to default intent" ), 
+			domain, 
 			intent, vips_enum_nick( VIPS_TYPE_INTENT, intent ),
 			direction == LCMS_USED_AS_INPUT ?
 				_( "input" ) : _( "output" ) );
@@ -542,7 +542,7 @@ vips_image_expected_bands( VipsImage *image )
 }
 
 static cmsHPROFILE
-vips_icc_load_profile_image( const char *domain, VipsImage *image )
+vips_icc_load_profile_image( VipsImage *image )
 {
 	void *data;
 	size_t data_length;
@@ -554,15 +554,15 @@ vips_icc_load_profile_image( const char *domain, VipsImage *image )
 	if( vips_image_get_blob( image, VIPS_META_ICC_NAME, 
 		&data, &data_length ) ||
 		!(profile = cmsOpenProfileFromMem( data, data_length )) ) {
-		vips_warn( domain, "%s", _( "corrupt embedded profile" ) );
+		g_warning( "%s", _( "corrupt embedded profile" ) );
 		return( NULL ); 
 	}
 
 	if( vips_image_expected_bands( image ) != 
 		vips_icc_profile_needs_bands( profile ) ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
-		vips_warn( domain, 
-			"%s", _( "embedded profile incompatible with image" ) );
+		g_warning( "%s", 
+			_( "embedded profile incompatible with image" ) );
 		return( NULL );
 	}
 
@@ -584,8 +584,7 @@ vips_icc_load_profile_file( const char *domain,
 	if( vips_image_expected_bands( image ) != 
 		vips_icc_profile_needs_bands( profile ) ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
-		vips_warn( domain, 
-			_( "profile \"%s\" incompatible with image" ),
+		g_warning( _( "profile \"%s\" incompatible with image" ),
 			filename );
 		return( NULL );
 	}
@@ -615,8 +614,7 @@ vips_icc_import_build( VipsObject *object )
 	if( code->in &&
 		(import->embedded ||
 			!import->input_profile_filename) )
-		icc->in_profile = vips_icc_load_profile_image( class->nickname,
-			code->in );
+		icc->in_profile = vips_icc_load_profile_image( code->in );
 
 	if( !icc->in_profile &&
 		code->in &&
@@ -1027,8 +1025,7 @@ vips_icc_transform_build( VipsObject *object )
 	if( code->in &&
 		(transform->embedded ||
 			!transform->input_profile_filename) )
-		icc->in_profile = vips_icc_load_profile_image( class->nickname,
-			code->in );
+		icc->in_profile = vips_icc_load_profile_image( code->in );
 
 	if( !icc->in_profile &&
 		code->in &&
@@ -1265,7 +1262,11 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
  *
  * If @embedded is set, the input profile is taken from the input image
  * metadata. If there is no embedded profile,
- * @input_profile_filename is used as a fall-back.
+ * @input_profile_filename is used as a fall-back. 
+ * You can test for the
+ * presence of an embedded profile with
+ * vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument. This will
+ * return %GType 0 if there is no profile. 
  *
  * If @embedded is not set, the input profile is taken from
  * @input_profile. If @input_profile is not supplied, the
@@ -1342,10 +1343,17 @@ vips_icc_export( VipsImage *in, VipsImage **out, ... )
  * If @embedded is set, the input profile is taken from the input image
  * metadata, if present. If there is no embedded profile,
  * @input_profile is used as a fall-back.
+ * You can test for the
+ * presence of an embedded profile with
+ * vips_image_get_typeof() with #VIPS_META_ICC_NAME as an argument. This will
+ * return %GType 0 if there is no profile. 
  *
  * If @embedded is not set, the input profile is taken from
  * @input_profile. If @input_profile is not supplied, the
  * metadata profile, if any, is used as a fall-back. 
+ *
+ * The output image has the output profile attached to the #VIPS_META_ICC_NAME
+ * field. 
  *
  * Use vips_icc_import() and vips_icc_export() to do either the first or 
  * second half of this operation in isolation.

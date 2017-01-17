@@ -92,7 +92,9 @@ typedef struct _VipsOperationClass {
 	void (*invalidate)( VipsOperation *operation );
 } VipsOperationClass;
 
-GType vips_operation_get_type( void );
+/* Don't put spaces around void here, it breaks gtk-doc.
+ */
+GType vips_operation_get_type(void);
 
 VipsOperationFlags vips_operation_get_flags( VipsOperation *operation );
 void vips_operation_class_print_usage( VipsOperationClass *operation_class );
@@ -126,6 +128,12 @@ int vips_cache_get_max_files( void );
 void vips_cache_set_max_files( int max_files );
 void vips_cache_set_dump( gboolean dump );
 void vips_cache_set_trace( gboolean trace );
+
+/* Part of threadpool, really, but we want these in a header that gets scanned
+ * for our typelib.
+ */
+void vips_concurrency_set( int concurrency );
+int vips_concurrency_get( void );
 
 #ifdef __cplusplus
 }

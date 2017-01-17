@@ -6,6 +6,8 @@
  * 	- oops, buffer path was broken, thanks Lovell
  * 28/2/16
  * 	- add @shrink
+ * 7/11/16
+ * 	- support XMP/ICC/EXIF metadata
  */
 
 /*
@@ -51,11 +53,14 @@
 #include <string.h>
 
 #include <webp/decode.h>
+#ifdef HAVE_LIBWEBPMUX
+#include <webp/mux.h>
+#endif /*HAVE_LIBWEBPMUX*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "webp.h"
+#include "pforeign.h"
 
 /* How many bytes do we need to read from the start of the file to be able to
  * validate the header?
@@ -204,6 +209,15 @@ read_new( const char *filename, const void *data, size_t length, int shrink )
 	return( read );
 }
 
+/* Map vips metadata names to webp names.
+ */
+const VipsWebPNames vips__webp_names[] = {
+	{ VIPS_META_ICC_NAME, "ICCP", 0x20 },
+	{ VIPS_META_XMP_NAME, "XMP ", 0x04 },
+	{ VIPS_META_EXIF_NAME, "EXIF", 0x08 }
+};
+const int vips__n_webp_names = VIPS_NUMBER( vips__webp_names ); 
+
 static int
 read_header( Read *read, VipsImage *out )
 {
@@ -215,6 +229,53 @@ read_header( Read *read, VipsImage *out )
 		1.0, 1.0 );
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
+#ifdef HAVE_LIBWEBPMUX
+{
+	WebPData bitstream;
+	WebPMux *mux;
+	int i;
+
+	/* We have to parse the whole file again to get the metadata out.
+	 *
+	 * Don't make parse failure an error. We don't want to refuse to read
+	 * any pixels because of some malformed metadata.
+	 */
+	bitstream.bytes = read->data;
+	bitstream.size = read->length;
+	if( !(mux = WebPMuxCreate( &bitstream, 0 )) ) {
+		vips_warn( "webp", "%s", _( "unable to read image metadata" ) ); 
+		return( 0 ); 
+	}
+
+	for( i = 0; i < vips__n_webp_names; i++ ) { 
+		const char *vips = vips__webp_names[i].vips;
+		const char *webp = vips__webp_names[i].webp;
+
+		WebPData data;
+
+		if( WebPMuxGetChunk( mux, webp, &data ) == WEBP_MUX_OK ) { 
+			void *blob;
+
+			if( !(blob = vips_malloc( NULL, data.size )) ) {
+				WebPMuxDelete( mux ); 
+				return( -1 ); 
+			}
+
+			memcpy( blob, data.bytes, data.size );
+			vips_image_set_blob( out, vips, 
+				(VipsCallbackFn) vips_free, blob, data.size );
+		}
+	}
+
+	WebPMuxDelete( mux ); 
+
+	/* We may have read some exif ... parse into the header.
+	 */
+	if( vips__exif_parse( out ) )
+		return( -1 ); 
+}
+#endif /*HAVE_LIBWEBPMUX*/
 
 	return( 0 );
 }
@@ -230,8 +291,10 @@ vips__webp_read_file_header( const char *filename, VipsImage *out, int shrink )
 		return( -1 );
 	}
 
-	if( read_header( read, out ) )
+	if( read_header( read, out ) ) {
+		read_free( read );
 		return( -1 );
+	}
 
 	read_free( read );
 
@@ -298,8 +361,10 @@ vips__webp_read_buffer_header( const void *buf, size_t len, VipsImage *out,
 		return( -1 );
 	}
 
-	if( read_header( read, out ) )
+	if( read_header( read, out ) ) {
+		read_free( read );
 		return( -1 );
+	}
 
 	read_free( read );
 

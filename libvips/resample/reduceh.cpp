@@ -4,6 +4,10 @@
  * 	- from shrinkh.c
  * 10/3/16
  * 	- add other kernels
+ * 15/8/16
+ * 	- rename xshrink as hshrink for consistency
+ * 9/9/16
+ * 	- add @centre option
  */
 
 /*
@@ -67,11 +71,15 @@
 typedef struct _VipsReduceh {
 	VipsResample parent_instance;
 
-	double xshrink;		/* Reduce factor */
+	double hshrink;		/* Reduce factor */
 
 	/* The thing we use to make the kernel.
 	 */
 	VipsKernel kernel;
+
+	/* Use centre rather than corner sampling convention.
+	 */
+	gboolean centre;
 
 	/* Number of points in kernel.
 	 */
@@ -276,7 +284,7 @@ reduceh_notab( VipsReduceh *reduceh,
 
 	double cx[MAX_POINT];
 
-	vips_reduce_make_mask( cx, reduceh->kernel, reduceh->xshrink, x ); 
+	vips_reduce_make_mask( cx, reduceh->kernel, reduceh->hshrink, x ); 
 
 	for( int z = 0; z < bands; z++ ) {
 		out[z] = reduce_sum<T, double>( in, bands, cx, n );
@@ -311,25 +319,44 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 		r->width, r->height, r->left, r->top ); 
 #endif /*DEBUG*/
 
-	s.left = r->left * reduceh->xshrink;
+	s.left = r->left * reduceh->hshrink;
 	s.top = r->top;
-	s.width = r->width * reduceh->xshrink + reduceh->n_point;
+	s.width = r->width * reduceh->hshrink + reduceh->n_point;
 	s.height = r->height;
+	if( reduceh->centre )
+		s.width += 1;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
 	VIPS_GATE_START( "vips_reduceh_gen: work" ); 
 
 	for( int y = 0; y < r->height; y ++ ) { 
+		VipsPel *p0;
 		VipsPel *q;
+
 		double X;
 
 		q = VIPS_REGION_ADDR( out_region, r->left, r->top + y );
-		X = r->left * reduceh->xshrink;
+
+		X = r->left * reduceh->hshrink;
+		if( reduceh->centre )
+			X += 0.5;
+
+		/* We want p0 to be the start (ie. x == 0) of the input 
+		 * scanline we are reading from. We can then calculate the p we
+		 * need for each pixel with a single mul and avoid calling ADDR
+		 * for each pixel. 
+		 *
+		 * We can't get p0 directly with ADDR since it could be outside
+		 * valid, so get the leftmost pixel in valid and subtract a
+		 * bit.
+		 */
+		p0 = VIPS_REGION_ADDR( ir, ir->valid.left, r->top + y ) - 
+			ir->valid.left * ps;
 
 		for( int x = 0; x < r->width; x++ ) {
 			int ix = (int) X;
-			VipsPel *p = VIPS_REGION_ADDR( ir, ix, r->top + y );
+			VipsPel *p = p0 + ix * ps;
 			const int sx = X * VIPS_TRANSFORM_SCALE * 2;
 			const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
 			const int tx = (six + 1) >> 1;
@@ -396,7 +423,7 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 				break;
 			}
 
-			X += reduceh->xshrink;
+			X += reduceh->hshrink;
 			q += ps;
 		}
 	}
@@ -418,26 +445,27 @@ vips_reduceh_build( VipsObject *object )
 		vips_object_local_array( object, 2 );
 
 	VipsImage *in;
+	int width;
 
 	if( VIPS_OBJECT_CLASS( vips_reduceh_parent_class )->build( object ) )
 		return( -1 );
 
 	in = resample->in; 
 
-	if( reduceh->xshrink < 1 ) { 
+	if( reduceh->hshrink < 1 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "reduce factors should be >= 1" ) );
 		return( -1 );
 	}
 
-	if( reduceh->xshrink == 1 ) 
+	if( reduceh->hshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );
 
 	/* Build the tables of pre-computed coefficients.
 	 */
 	reduceh->n_point = 
-		vips_reduce_get_points( reduceh->kernel, reduceh->xshrink ); 
-	vips_info( object_class->nickname, "%d point mask", reduceh->n_point );
+		vips_reduce_get_points( reduceh->kernel, reduceh->hshrink ); 
+	g_info( "%d point mask", reduceh->n_point );
 	if( reduceh->n_point > MAX_POINT ) {
 		vips_error( object_class->nickname, 
 			"%s", _( "reduce factor too large" ) );
@@ -453,8 +481,8 @@ vips_reduceh_build( VipsObject *object )
 			return( -1 ); 
 
 		vips_reduce_make_mask( reduceh->matrixf[x], 
-			reduceh->kernel, reduceh->xshrink,
-			(float) x / VIPS_TRANSFORM_SCALE ); 
+			reduceh->kernel, reduceh->hshrink, 
+			(float) x / VIPS_TRANSFORM_SCALE );
 
 		for( int i = 0; i < reduceh->n_point; i++ )
 			reduceh->matrixi[x][i] = reduceh->matrixf[x][i] * 
@@ -468,10 +496,15 @@ vips_reduceh_build( VipsObject *object )
 	in = t[0];
 
 	/* Add new pixels around the input so we can interpolate at the edges.
+	 * In centre mode, we read 0.5 pixels more to the right, so we must
+	 * enlarge a little further.
 	 */
+	width = in->Xsize + reduceh->n_point - 1;
+	if( reduceh->centre )
+		width += 1;
 	if( vips_embed( in, &t[1], 
 		reduceh->n_point / 2 - 1, 0, 
-		in->Xsize + reduceh->n_point - 1, in->Ysize,
+		width, in->Ysize,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
@@ -481,14 +514,15 @@ vips_reduceh_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
-	/* Size output. Note: we round to nearest to hide rounding errors. 
+	/* Size output. We need to always round to nearest, so round(), not
+	 * rint().
 	 *
 	 * Don't change xres/yres, leave that to the application layer. For
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Xsize = VIPS_RINT( 
-		(in->Xsize - reduceh->n_point + 1) / reduceh->xshrink );
+	resample->out->Xsize = VIPS_ROUND_UINT( 
+		resample->in->Xsize / reduceh->hshrink );
 	if( resample->out->Xsize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -505,6 +539,8 @@ vips_reduceh_build( VipsObject *object )
 		vips_start_one, vips_reduceh_gen, vips_stop_one, 
 		in, reduceh ) )
 		return( -1 );
+
+	vips_reorder_margin_hint( resample->out, reduceh->n_point ); 
 
 	return( 0 );
 }
@@ -528,11 +564,11 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
-	VIPS_ARG_DOUBLE( reduceh_class, "xshrink", 3, 
-		_( "Xshrink" ), 
+	VIPS_ARG_DOUBLE( reduceh_class, "hshrink", 3, 
+		_( "Hshrink" ), 
 		_( "Horizontal shrink factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsReduceh, xshrink ),
+		G_STRUCT_OFFSET( VipsReduceh, hshrink ),
 		1, 1000000, 1 );
 
 	VIPS_ARG_ENUM( reduceh_class, "kernel", 3, 
@@ -541,6 +577,22 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsReduceh, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
+
+	VIPS_ARG_BOOL( reduceh_class, "centre", 7, 
+		_( "Centre" ), 
+		_( "Use centre sampling convention" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsReduceh, centre ),
+		FALSE );
+
+	/* Old name.
+	 */
+	VIPS_ARG_DOUBLE( reduceh_class, "xshrink", 3, 
+		_( "Xshrink" ), 
+		_( "Horizontal shrink factor" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsReduceh, hshrink ),
+		1, 1000000, 1 );
 
 }
 
@@ -554,16 +606,19 @@ vips_reduceh_init( VipsReduceh *reduceh )
  * vips_reduceh:
  * @in: input image
  * @out: output image
- * @xshrink: horizontal reduce
+ * @hshrink: horizontal reduce
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
- * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
+ * * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
+ * * @centre: %gboolean use centre rather than corner sampling convention
  *
  * Reduce @in horizontally by a float factor. The pixels in @out are
- * interpolated with a 1D mask. This operation will not work well for
- * a reduction of more than a factor of two.
+ * interpolated with a 1D mask generated by @kernel.
+ *
+ * Set @centre to use centre rather than corner sampling convention. Centre
+ * convention can be useful to match the behaviour of other systems. 
  *
  * This is a very low-level operation: see vips_resize() for a more
  * convenient way to resize images. 
@@ -576,13 +631,13 @@ vips_reduceh_init( VipsReduceh *reduceh )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_reduceh( VipsImage *in, VipsImage **out, double xshrink, ... )
+vips_reduceh( VipsImage *in, VipsImage **out, double hshrink, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, xshrink );
-	result = vips_call_split( "reduceh", ap, in, out, xshrink );
+	va_start( ap, hshrink );
+	result = vips_call_split( "reduceh", ap, in, out, hshrink );
 	va_end( ap );
 
 	return( result );

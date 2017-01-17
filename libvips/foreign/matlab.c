@@ -73,7 +73,7 @@
 
 #include <matio.h>
 
-#include "matlab.h"
+#include "pforeign.h"
 
 /* What we track during a Mat-file read.
  */

@@ -12,6 +12,8 @@
  * 	- gtkdoc
  * 12/12/11
  * 	- redo as a set of fns ready for wrapping in a new-style class
+ * 17/9/16
+ * 	- tag output as scRGB
  */
 
 /*
@@ -22,6 +24,7 @@
 	- attributes 
 	- more of OpenEXR's pixel formats 
 	- more than just RGBA channels
+	- turn alpha to vips 0 - 255 from exr 0 - 1
 
 	the openexr C API is very limited ... it seems RGBA half pixels is 
 	all you can do
@@ -29,6 +32,8 @@
 	openexr lets you have different formats in different channels :-(
 
 	there's no API to read the "chromaticities" attribute :-(
+
+	best redo with the C++ API now we support C++ operations
 
  */
 
@@ -81,7 +86,7 @@
 
 #include <ImfCRgbaFile.h>
 
-#include "openexr2vips.h"
+#include "pforeign.h"
 
 /* What we track during a OpenEXR read.
  */
@@ -202,15 +207,14 @@ read_header( Read *read, VipsImage *out )
 {
 	/* 
 
-	   FIXME ... not really sRGB. I think EXR is actually linear (no 
-	   gamma). We ought to read the chromaticities from the header, put 
-	   through a 3x3 matrix and output as XYZ
+	   FIXME ... not really scRGB, you should get the chromaticities 
+	   from the header and transform 
 
 	 */
 	vips_image_init_fields( out,
 		 read->window.width, read->window.height, 4,
 		 VIPS_FORMAT_FLOAT,
-		 VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+		 VIPS_CODING_NONE, VIPS_INTERPRETATION_scRGB, 1.0, 1.0 );
 	if( read->tiles )
 		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	else

@@ -23,6 +23,9 @@
  * 	- redo as a set of fns ready for wrapping in a new-style class
  * 23/6/13
  * 	- fix ushort save with values >32k, thanks weaverwb
+ * 4/1/17
+ * 	- load to equivalent data type, not raw image data type ... improves
+ * 	  support for BSCALE / BZERO settings
  */
 
 /*
@@ -73,7 +76,7 @@
 
 #include <fitsio.h>
 
-#include "fits.h"
+#include "pforeign.h"
 
 /*
 
@@ -119,7 +122,7 @@ typedef struct {
 	VipsPel *buffer;
 } VipsFits;
 
-const char *vips__fits_suffs[] = { ".fits", NULL };
+const char *vips__fits_suffs[] = { ".fits", ".fit", ".fts", NULL };
 
 static void
 vips_fits_error( int status )
@@ -219,10 +222,21 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 		return( -1 );
 	}
 
+	/* cfitsio does automatic conversion from the format stored in
+	 * the file to the equivalent type after scale/offset. We need 
+	 * to allocate a vips image of the equivalent type, not the original
+	 * type.
+	 */
+	if( fits_get_img_equivtype( fits->fptr, &bitpix, &status ) ) {
+		vips_fits_error( status );
+		return( -1 );
+	}
+
 #ifdef VIPS_DEBUG
 	VIPS_DEBUG_MSG( "naxis = %d\n", fits->naxis );
 	for( i = 0; i < fits->naxis; i++ )
 		VIPS_DEBUG_MSG( "%d) %lld\n", i, fits->naxes[i] );
+	VIPS_DEBUG_MSG( "fits2vips: bitpix = %d\n", bitpix );
 #endif /*VIPS_DEBUG*/
 
 	height = 1;
@@ -266,8 +280,8 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 	if( fits->band_select != -1 )
 		bands = 1;
 
-	/* Get image format. We want the 'raw' format of the image, our caller
-	 * can convert using the meta info if they want.
+	/* Get image format. This is the equivalent format, or the format
+	 * stored in the file.
 	 */
 	for( i = 0; i < VIPS_NUMBER( fits2vips_formats ); i++ )
 		if( fits2vips_formats[i][0] == bitpix )

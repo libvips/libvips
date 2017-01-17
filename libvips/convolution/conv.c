@@ -63,20 +63,16 @@ G_DEFINE_TYPE( VipsConv, vips_conv, VIPS_TYPE_CONVOLUTION );
 static int
 vips_conv_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConvolution *convolution = (VipsConvolution *) object;
 	VipsConv *conv = (VipsConv *) object;
-	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 4 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	VipsImage *in;
-	INTMASK *imsk;
-	DOUBLEMASK *dmsk;
-
-	g_object_set( conv, "out", vips_image_new(), NULL ); 
 
 	if( VIPS_OBJECT_CLASS( vips_conv_parent_class )->build( object ) )
 		return( -1 );
+
+	g_object_set( conv, "out", vips_image_new(), NULL ); 
 
 	in = convolution->in;
 
@@ -85,13 +81,6 @@ vips_conv_build( VipsObject *object )
 	vips_matrixprint( convolution->M, NULL ); 
  	 */
 
-	if( !(imsk = im_vips2imask( convolution->M, class->nickname )) || 
-		!im_local_imask( convolution->out, imsk ) )
-		return( -1 ); 
-	if( !(dmsk = im_vips2mask( convolution->M, class->nickname )) || 
-		!im_local_dmask( convolution->out, dmsk ) )
-		return( -1 ); 
-
 	/* Unpack for processing.
 	 */
 	if( vips_image_decode( in, &t[0] ) )
@@ -99,25 +88,33 @@ vips_conv_build( VipsObject *object )
 	in = t[0];
 
 	switch( conv->precision ) { 
-	case VIPS_PRECISION_INTEGER:
-		if( im_conv( in, convolution->out, imsk ) )
+	case VIPS_PRECISION_FLOAT:
+		if( vips_convf( in, &t[1], convolution->M, NULL ) ||
+			vips_image_write( t[1], convolution->out ) )
 			return( -1 ); 
 		break;
 
-	case VIPS_PRECISION_FLOAT:
-		if( im_conv_f( in, convolution->out, dmsk ) )
+	case VIPS_PRECISION_INTEGER:
+		if( vips_convi( in, &t[1], convolution->M, NULL ) ||
+			vips_image_write( t[1], convolution->out ) )
 			return( -1 ); 
 		break;
 
 	case VIPS_PRECISION_APPROXIMATE:
-		if( im_aconv( in, convolution->out, dmsk, 
-			conv->layers, conv->cluster ) )
+		if( vips_conva( in, &t[1], convolution->M, 
+			"layers", conv->layers,
+			"cluster", conv->cluster,
+			NULL ) ||
+			vips_image_write( t[1], convolution->out ) )
 			return( -1 ); 
 		break;
 
 	default:
 		g_assert_not_reached();
 	}
+
+	vips_reorder_margin_hint( convolution->out, 
+		convolution->M->Xsize * convolution->M->Ysize );
 
 	return( 0 );
 }
@@ -175,31 +172,40 @@ vips_conv_init( VipsConv *conv )
  *
  * Optional arguments:
  *
- * * @precision: calculation accuracy
- * * @layers: number of layers for approximation
- * * @cluster: cluster lines closer than this distance
+ * * @precision: #VipsPrecision, calculation accuracy
+ * * @layers: %gint, number of layers for approximation
+ * * @cluster: %gint, cluster lines closer than this distance
  *
  * Convolution. 
  *
  * Perform a convolution of @in with @mask.
- * Each output pixel is
- * calculated as sigma[i]{pixel[i] * mask[i]} / scale + offset, where scale
- * and offset are part of @mask. 
+ * Each output pixel is calculated as:
  *
- * If @precision is #VIPS_PRECISION_INTEGER then the convolution is performed
- * with integer arithmetic and the output image 
+ * |[
+ * sigma[i]{pixel[i] * mask[i]} / scale + offset
+ * ]|
+ *
+ * where scale and offset are part of @mask. 
+ *
+ * If @precision is #VIPS_PRECISION_INTEGER, then 
+ * elements of @mask are converted to
+ * integers before convolution, using rint(),
+ * and the output image 
  * always has the same #VipsBandFormat as the input image. 
  *
- * Convolutions on unsigned 8-bit images are calculated with the 
- * processor's vector unit, if possible. Disable this with --vips-novector or 
- * IM_NOVECTOR.
+ * For #VIPS_FORMAT_UCHAR images, vips_conv() uses a fast vector path based on
+ * fixed-point arithmetic. This can produce slightly different results. 
+ * Disable the vector path with `--vips-novector` or `VIPS_NOVECTOR` or
+ * vips_vector_set_enabled().
  *
  * If @precision is #VIPS_PRECISION_FLOAT then the convolution is performed
  * with floating-point arithmetic. The output image 
- * is always %VIPS_FORMAT_FLOAT unless @in is %VIPS_FORMAT_DOUBLE, in which case
- * @out is also %VIPS_FORMAT_DOUBLE. 
+ * is always #VIPS_FORMAT_FLOAT unless @in is #VIPS_FORMAT_DOUBLE, in which case
+ * @out is also #VIPS_FORMAT_DOUBLE. 
  *
- * If @precision is #VIPS_PRECISION_APPROXIMATE then the output image 
+ * If @precision is #VIPS_PRECISION_APPROXIMATE then, like
+ * #VIPS_PRECISION_INTEGER, @mask is converted to int before convolution, and 
+ * the output image 
  * always has the same #VipsBandFormat as the input image. 
  *
  * Larger values for @layers give more accurate
@@ -210,6 +216,8 @@ vips_conv_init( VipsConv *conv )
  *
  * Smaller values of @cluster will give more accurate results, but be slower
  * and use more memory. 10% of the mask radius is a good rule of thumb.
+ *
+ * See also: vips_convsep().
  *
  * Returns: 0 on success, -1 on error
  */

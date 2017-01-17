@@ -1,4 +1,5 @@
 libresample_la_SOURCES = \
+	thumbnail.c \
 	mapim.c \
 	affine.c \
 	quadratic.c \

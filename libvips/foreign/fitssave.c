@@ -43,15 +43,15 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_CFITSIO
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <vips/vips.h>
 
-#include "fits.h"
+#ifdef HAVE_CFITSIO
+
+#include "pforeign.h"
 
 typedef struct _VipsForeignSaveFits {
 	VipsForeignSave parent_object;
@@ -148,3 +148,28 @@ vips_foreign_save_fits_init( VipsForeignSaveFits *fits )
 }
 
 #endif /*HAVE_CFITSIO*/
+
+/**
+ * vips_fitssave:
+ * @in: image to save 
+ * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Write a VIPS image to a file in FITS format.
+ *
+ * See also: vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_fitssave( VipsImage *in, const char *filename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, filename );
+	result = vips_call_split( "fitssave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}

@@ -31,38 +31,19 @@
 #ifndef VIPS_TIFF_H
 #define VIPS_TIFF_H
 
+#include <tiffio.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-extern const char *vips__foreign_tiff_suffs[];
+TIFF *vips__tiff_openout( const char *path, gboolean bigtiff );
+TIFF *vips__tiff_openin( const char *path );
 
-void vips__tiff_init( void );
-
-int vips__tiff_write( VipsImage *in, const char *filename, 
-	VipsForeignTiffCompression compression, int Q, 
-		VipsForeignTiffPredictor predictor,
-	char *profile,
-	gboolean tile, int tile_width, int tile_height,
-	gboolean pyramid,
-	gboolean squash,
-	gboolean miniswhite,
-	VipsForeignTiffResunit resunit, double xres, double yres,
-	gboolean bigtiff,
-	gboolean rgbjpeg,
-	gboolean properties );
-
-int vips__tiff_read_header( const char *filename, VipsImage *out, int page );
-int vips__tiff_read( const char *filename, VipsImage *out, 
-	int page, gboolean readbehind );
-gboolean vips__istifftiled( const char *filename );
-gboolean vips__istiff_buffer( const void *buf, size_t len );
-gboolean vips__istiff( const char *filename );
-
-int vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page );
-int vips__tiff_read_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, gboolean readbehind );
+TIFF *vips__tiff_openin_buffer( VipsImage *image, 
+	const void *data, size_t length );
+TIFF *vips__tiff_openout_buffer( VipsImage *image, 
+	gboolean bigtiff, void **out_data, size_t *out_length );
 
 #ifdef __cplusplus
 }

@@ -48,9 +48,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_PPM
+#include "pforeign.h"
 
-#include "ppm.h"
+#ifdef HAVE_PPM
 
 typedef struct _VipsForeignLoadPpm {
 	VipsForeignLoad parent_object;

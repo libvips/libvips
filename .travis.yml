@@ -1,19 +1,85 @@
 language: cpp
-before_install:
-  - sudo add-apt-repository ppa:lyrasis/precise-backports -y
-  - sudo apt-get update -qq
-  - sudo apt-get install automake gtk-doc-tools 
-  - sudo apt-get install gobject-introspection
-  - sudo apt-get install libfftw3-dev libjpeg-turbo8-dev 
-  - sudo apt-get install libpng12-dev libwebp-dev libtiff4-dev libxml2-dev 
-  - sudo apt-get install swig libmagick++-dev bc 
-  - sudo apt-get install libcfitsio3-dev libgsl0-dev libmatio-dev
-  - sudo apt-get install liborc-0.4-dev liblcms2-dev 
+
 before_script:
-  - ./bootstrap.sh
-  - ./configure 
-  - make
-  - sudo make install
-  - sudo ldconfig
-script: 
-  - make check
+  - ./autogen.sh
+    --disable-dependency-tracking
+    --with-jpeg-includes=$JPEG/include
+    --with-jpeg-libraries=$JPEG/lib
+  - make -j$JOBS -s V=0
+script:
+  - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - os: osx
+  include:
+    - os: linux
+      sudo: required
+      dist: precise
+      env:
+        - PYTHON=/usr/bin/python
+        - JPEG=/usr
+        - JOBS=`nproc`
+        - LIBTOOLFLAGS=--quiet
+      cache: ccache
+      before_install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -y
+          automake gtk-doc-tools
+          gobject-introspection
+          libfftw3-dev libjpeg-turbo8-dev
+          libpng12-dev libwebp-dev libtiff4-dev libxml2-dev
+          swig libmagick++-dev bc
+          libcfitsio3-dev libgsl0-dev libmatio-dev
+          liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
+          librsvg2-dev libgif-dev
+          libpango1.0-dev
+          python-dev
+
+    - os: linux
+      sudo: required
+      dist: trusty
+      env:
+        - PYTHON=/usr/bin/python
+        - JPEG=/usr
+        - JOBS=`nproc`
+      cache: ccache
+      before_install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -y
+          automake gtk-doc-tools
+          gobject-introspection
+          libfftw3-dev libjpeg-turbo8-dev
+          libpng12-dev libwebp-dev libtiff4-dev libxml2-dev
+          swig libmagick++-dev bc
+          libcfitsio3-dev libgsl0-dev libmatio-dev
+          liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
+          librsvg2-dev libgif-dev
+          libpango1.0-dev libgsf-1-dev libopenslide-dev
+          python-dev python-gi-dev libgirepository1.0-dev
+
+    - os: osx
+      osx_image: xcode7.3
+      env:
+        - PYTHON=/usr/local/bin/python
+        - JPEG=/usr/local/opt/mozjpeg
+        - PKG_CONFIG_PATH=/usr/local/opt/libffi/lib/pkgconfig
+        - JOBS="`sysctl -n hw.ncpu`"
+        - PATH="/usr/local/opt/ccache/libexec:$PATH"
+      cache: ccache
+      before_install:
+        - brew tap homebrew/science
+        - brew update
+        - brew install ccache pkg-config automake
+        - brew install --ignore-dependencies gtk-doc
+        - brew reinstall
+          gobject-introspection
+          fftw mozjpeg libexif
+          libpng webp libtiff
+          swig imagemagick
+          cfitsio libmatio
+          orc little-cms2 poppler
+          pango libgsf openslide
+          librsvg giflib openexr
+          python pygobject3

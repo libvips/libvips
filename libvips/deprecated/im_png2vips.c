@@ -45,7 +45,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "../foreign/vipspng.h"
+#include "../foreign/pforeign.h"
 
 static int
 png2vips( const char *name, IMAGE *out, gboolean header_only )

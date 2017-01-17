@@ -176,7 +176,7 @@ class Error(Exception):
     """
     def __init__(self, message, detail = None):
         self.message = message
-        if detail == None:
+        if detail == None or detail == "":
             detail = Vips.error_buffer()
             Vips.error_clear()
         self.detail = detail
@@ -869,21 +869,23 @@ class Image(Vips.Image):
         For example, bytes() can be used to set VipsBlob fields. 
         """
         gtype = self.get_typeof(field)
-        logger.debug('assigning %s to %s' % (value, self))
-        logger.debug('%s needs a %s' % (self, gtype))
+        logger.debug('%s.%s = %s' % (self, field, value))
+        logger.debug('%s.%s needs a %s' % (self, field, gtype))
 
-        # blob-ize
-        if GObject.type_is_a(gtype, vips_type_blob):
-            if not isinstance(value, Vips.Blob):
-                value = Vips.Blob.new(None, value)
+        # if there's a thing of this name already, convert to that type
+        if gtype != GObject.TYPE_INVALID:
+            # blob-ize
+            if GObject.type_is_a(gtype, vips_type_blob):
+                if not isinstance(value, Vips.Blob):
+                    value = Vips.Blob.new(None, value)
 
-        # image-ize
-        if GObject.type_is_a(gtype, vips_type_image):
-            if not isinstance(value, Vips.Image):
-                value = imageize(self, value)
+            # image-ize
+            if GObject.type_is_a(gtype, vips_type_image):
+                if not isinstance(value, Vips.Image):
+                    value = imageize(self, value)
 
-        # array-ize some types, if necessary
-        value = arrayize(gtype, value)
+            # array-ize some types, if necessary
+            value = arrayize(gtype, value)
 
         self.set(field, value)
 
@@ -1066,59 +1068,63 @@ class Image(Vips.Image):
 # see above
 
 class_methods = [
-                    "system",
-                    "sum",
+                    "analyzeload",
                     "arrayjoin",
                     "black",
-                    "gaussnoise",
-                    "text",
-                    "xyz",
-                    "gaussmat",
-                    "logmat",
-                    "eye",
-                    "grey",
-                    "zone",
-                    "sines",
-                    "mask_ideal",
-                    "mask_ideal_ring",
-                    "mask_ideal_band",
-                    "mask_butterworth",
-                    "mask_butterworth_ring",
-                    "mask_butterworth_band",
-                    "mask_gaussian",
-                    "mask_gaussian_ring",
-                    "mask_gaussian_band",
-                    "mask_fractal",
-                    "tonelut",
-                    "identity",
-                    "fractsurf",
-                    "radload",
-                    "ppmload",
                     "csvload",
-                    "matrixload",
-                    "analyzeload",
-                    "rawload",
-                    "vipsload",
-                    "pngload",
-                    "pngload_buffer",
-                    "matload",
-                    "jpegload",
-                    "jpegload_buffer",
-                    "webpload",
-                    "webpload_buffer",
-                    "tiffload",
-                    "tiffload_buffer",
-                    "pdfload",
-                    "pdfload_buffer",
-                    "svgload",
-                    "svgload_buffer",
+                    "eye",
+                    "fitsload",
+                    "fractsurf",
+                    "gaussmat",
+                    "gaussnoise",
                     "gifload",
                     "gifload_buffer",
-                    "openslideload",
+                    "grey",
+                    "identity",
+                    "jpegload",
+                    "jpegload_buffer",
+                    "logmat",
                     "magickload",
                     "magickload_buffer",
-                    "fitsload",
-                    "openexrload"]
+                    "mask_butterworth",
+                    "mask_butterworth_band",
+                    "mask_butterworth_ring",
+                    "mask_fractal",
+                    "mask_gaussian",
+                    "mask_gaussian_band",
+                    "mask_gaussian_ring",
+                    "mask_ideal",
+                    "mask_ideal_band",
+                    "mask_ideal_ring",
+                    "matload",
+                    "matrixload",
+                    "openexrload",
+                    "openslideload",
+                    "pdfload",
+                    "pdfload_buffer",
+                    "perlin",
+                    "pngload",
+                    "pngload_buffer",
+                    "ppmload",
+                    "radload",
+                    "rawload",
+                    "sines",
+                    "sum",
+                    "svgload",
+                    "svgload_buffer",
+                    "system",
+                    "text",
+                    "thumbnail",
+                    "thumbnail_buffer",
+                    "tiffload",
+                    "tiffload_buffer",
+                    "tonelut",
+                    "vipsload",
+                    "webpload",
+                    "webpload_buffer",
+                    "worley",
+                    "xyz",
+                    "zone"]
 
 def generate_class_method(name):
     @classmethod

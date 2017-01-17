@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim: set fileencoding=utf-8 :
 
 import unittest
 import math
@@ -6,6 +7,8 @@ import math
 #import logging
 #logging.basicConfig(level = logging.DEBUG)
 
+import gi
+gi.require_version('Vips', '8.0')
 from gi.repository import Vips 
 
 Vips.leak_set(True)
@@ -216,7 +219,7 @@ class TestColour(unittest.TestCase):
         self.assertAlmostEqual(alpha, 42.0, places = 3)
 
     def test_icc(self):
-        test = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        test = Vips.Image.new_from_file("images/йцук.jpg")
 
         im = test.icc_import().icc_export()
         self.assertLess(im.dE76(test).max(), 6)

@@ -8,6 +8,10 @@
  * 	- add vips_image_copy_memory()
  * 25/11/15
  * 	- add vips_image_new_from_memory_copy()
+ * 10/6/16
+ * 	- vips_image_write() does not ref input for non-partial images
+ * 29/10/16
+ * 	- add vips_image_hasalpha()
  */
 
 /*
@@ -773,9 +777,6 @@ vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 	int tile_height; 
 	int nlines;
 
-	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return;
-
 	*last = -1;
 
 	vips_get_tile_size( image, 
@@ -792,9 +793,6 @@ vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 static void
 vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 {
-	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return;
-
 	if( progress->percent != *last ) {
 		printf( _( "%s %s: %d%% complete" ), 
 			g_get_prgname(), image->filename, 
@@ -813,9 +811,6 @@ vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 static void
 vips_image_posteval_cb( VipsImage *image, VipsProgress *progress )
 {
-	if( vips_image_get_typeof( image, "hide-progress" ) )
-		return;
-
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
 	printf( _( "%s %s: done in %.3gs          \n" ), 
@@ -1011,8 +1006,7 @@ vips_image_build( VipsObject *object )
 		 * still be able to process it without coredumps.
 		 */
 		if( image->file_length > sizeof_image ) 
-			vips_warn( "VipsImage", 
-				_( "%s is longer than expected" ),
+			g_warning( _( "%s is longer than expected" ),
 				image->filename );
 		break;
 
@@ -1547,9 +1541,10 @@ vips_image_preeval( VipsImage *image )
 		 */
 		(void) vips_progress_add( image->progress_signal );
 
-		g_signal_emit( image->progress_signal, 
-			vips_image_signals[SIG_PREEVAL], 0, 
-			image->progress_signal->time );
+		if( !vips_image_get_typeof( image, "hide-progress" ) )
+			g_signal_emit( image->progress_signal, 
+				vips_image_signals[SIG_PREEVAL], 0, 
+				image->time );
 	}
 }
 
@@ -1575,25 +1570,27 @@ vips_image_eval( VipsImage *image, guint64 processed )
 			vips_progress_update( image->progress_signal->time, 
 				processed );
 
-		g_signal_emit( image->progress_signal, 
-			vips_image_signals[SIG_EVAL], 0, image->time );
+		if( !vips_image_get_typeof( image, "hide-progress" ) )
+			g_signal_emit( image->progress_signal, 
+				vips_image_signals[SIG_EVAL], 0, 
+				image->time );
 	}
 }
 
 void
 vips_image_posteval( VipsImage *image )
 {
-	if( image->progress_signal ) {
-		VipsProgress *progress = image->progress_signal->time;
-
+	if( image->progress_signal &&
+		image->progress_signal->time ) { 
 		VIPS_DEBUG_MSG( "vips_image_posteval: %p\n", image );
 
-		g_assert( progress );
 		g_assert( vips_object_sanity( 
 			VIPS_OBJECT( image->progress_signal ) ) );
 
-		g_signal_emit( image->progress_signal, 
-			vips_image_signals[SIG_POSTEVAL], 0, progress );
+		if( !vips_image_get_typeof( image, "hide-progress" ) )
+			g_signal_emit( image->progress_signal, 
+				vips_image_signals[SIG_POSTEVAL], 0, 
+				image->time );
 	}
 }
 
@@ -1911,6 +1908,8 @@ vips_image_new_from_file( const char *name, ... )
 	va_list ap;
 	VipsImage *out;
 	int result;
+
+	vips_check_init();
 
 	vips__filename_split8( name, filename, option_string );
 	if( !(operation_name = vips_foreign_find_load( filename )) )
@@ -2390,6 +2389,8 @@ vips_image_new_temp_file( const char *format )
 	char *name;
 	VipsImage *image;
 
+	vips_check_init();
+
 	if( !(name = vips__temp_name( format )) )
 		return( NULL );
 
@@ -2448,16 +2449,21 @@ vips_image_write( VipsImage *image, VipsImage *out )
 			VIPS_DEMAND_STYLE_THINSTRIP, image, NULL ) )
 		return( -1 );
 
-	/* We generate from @image partially, so we need to keep it about as
-	 * long as @out is about. 
-	 */
-	g_object_ref( image );
-	vips_object_local( out, image );
-
 	if( vips_image_generate( out,
 		vips_start_one, vips_image_write_gen, vips_stop_one, 
 		image, NULL ) )
 		return( -1 );
+
+	/* If @out is a partial image, we need to make sure that @image stays
+	 * alive as long as @out is alive.
+	 *
+	 * If it's not partial, perhaps a file we write to, or a memory image,
+	 * it's fine for @image to go away.
+	 */
+	if( vips_image_ispartial( out ) ) { 
+		g_object_ref( image );
+		vips_object_local( out, image );
+	}
 
 	return( 0 );
 }
@@ -2583,9 +2589,8 @@ vips_image_write_to_memory( VipsImage *in, size_t *size_out )
 		vips_error( "vips_image_write_to_memory", 
 			_( "out of memory --- size == %dMB" ), 
 			(int) (size / (1024.0 * 1024.0))  );
-		vips_warn( "vips_image_write_to_memory", 
-			_( "out of memory --- size == %dMB" ), 
-			(int) (size / (1024.0*1024.0))  );
+		g_warning( _( "out of memory --- size == %dMB" ), 
+			(int) (size / (1024.0 * 1024.0))  );
 		return( NULL );
 	}
 
@@ -2771,6 +2776,24 @@ vips_image_ispartial( VipsImage *image )
 }
 
 /**
+ * vips_image_hasalpha:
+ * @image: image to check
+ *
+ * libvips assumes an image has an alpha if it has two bands (ie. it is a
+ * monochrome image with an extra band), if it has four bands (unless it's been
+ * tagged as CMYK), or if it has more than four bands. 
+ *
+ * Return %TRUE if @image has an alpha channel.
+ */
+gboolean
+vips_image_hasalpha( VipsImage *image )
+{
+	return( image->Bands == 2 ||
+		(image->Bands == 4 && image->Type != VIPS_INTERPRETATION_CMYK) ||
+		image->Bands > 4 );
+}
+
+/**
  * vips_image_write_prepare:
  * @image: image to prepare
  *
@@ -2786,7 +2809,8 @@ vips_image_ispartial( VipsImage *image )
 int
 vips_image_write_prepare( VipsImage *image )
 {	
-	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
+	if( !vips_object_sanity( VIPS_OBJECT( image ) ) )
+		return( -1 ); 
 
 	if( image->Xsize <= 0 || 
 		image->Ysize <= 0 || 
@@ -2985,6 +3009,8 @@ vips_image_rewind_output( VipsImage *image )
  * have made it yourself), use vips_image_wio_input() instead.
  *
  * See also: vips_image_wio_input().
+ *
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
 vips_image_copy_memory( VipsImage *image )
@@ -3046,7 +3072,8 @@ vips_image_wio_input( VipsImage *image )
 {	
 	VipsImage *t1;
 
-	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
+	if( !vips_object_sanity( VIPS_OBJECT( image ) ) )
+		return( -1 ); 
 
 #ifdef DEBUG_IO
 	printf( "vips_image_wio_input: wio input for %s\n", 
@@ -3114,8 +3141,7 @@ vips_image_wio_input( VipsImage *image )
 		 * generate from this image.
 		 */
 		if( image->regions ) 
-			vips_warn( "vips_image_wio_input", "%s",
-				"rewinding image with active regions" ); 
+			g_warning( "rewinding image with active regions" ); 
 
 		break;
 
@@ -3269,8 +3295,9 @@ vips_image_inplace( VipsImage *image )
  */
 int
 vips_image_pio_input( VipsImage *image )
-{	
-	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
+{
+	if( !vips_object_sanity( VIPS_OBJECT( image ) ) )
+		return( -1 ); 
 
 #ifdef DEBUG_IO
 	printf( "vips_image_pio_input: enabling partial input for %s\n", 

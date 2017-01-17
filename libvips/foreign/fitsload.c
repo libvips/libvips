@@ -40,8 +40,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_CFITSIO
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,7 +48,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#include "fits.h"
+#ifdef HAVE_CFITSIO
+
+#include "pforeign.h"
 
 typedef struct _VipsForeignLoadFits {
 	VipsForeignLoad parent_object;
@@ -133,3 +133,36 @@ vips_foreign_load_fits_init( VipsForeignLoadFits *fits )
 }
 
 #endif /*HAVE_CFITSIO*/
+
+/**
+ * vips_fitsload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read a FITS image file into a VIPS image. 
+ *
+ * This operation can read images with up to three dimensions. Any higher
+ * dimensions must be empty. 
+ *
+ * It can read 8, 16 and 32-bit integer images, signed and unsigned, float and 
+ * double. 
+ *
+ * FITS metadata is attached with the "fits-" prefix.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_fitsload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "fitsload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}

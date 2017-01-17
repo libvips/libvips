@@ -55,8 +55,12 @@
 #endif /*OS_WIN32*/
 
 #include <vips/vips.h>
-#include <vips/internal.h>
 #include <vips/debug.h>
+#include <vips/internal.h>
+
+/* Temp buffer for snprintf() layer on old systems.
+ */
+#define MAX_BUF (100000)
 
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
  */
@@ -87,10 +91,6 @@
 /* Mode for read only. This is the fallback if READWRITE fails.
  */
 #define MODE_READONLY BINARYIZE (O_RDONLY)
-
-/* Temp buffer for snprintf() layer on old systems.
- */
-#define MAX_BUF (100000)
 
 /* Test two lists for eqality.
  */
@@ -319,6 +319,20 @@ vips_ispostfix( const char *a, const char *b )
 	return( strcmp( a + m - n, b ) == 0 );
 }
 
+/* Case-insensitive test for string b ends string a. ASCII strings only. 
+ */
+gboolean
+vips_iscasepostfix( const char *a, const char *b )
+{	
+	int m = strlen( a );
+	int n = strlen( b );
+
+	if( n > m )
+		return( FALSE );
+
+	return( strcasecmp( a + m - n, b ) == 0 );
+}
+
 /* Test for string a starts string b. a is a known-good string, b may be
  * random data. 
  */
@@ -461,30 +475,22 @@ int
 vips_filename_suffix_match( const char *path, const char *suffixes[] )
 {
 	char *basename;
-	char *suffix;
 	char *q;
-	const char **p;
 	int result;
+	const char **p;
 
-	/* Drop any directory components, we want ignore any '.' in there.
+	/* Drop any directory components.
 	 */
 	basename = g_path_get_basename( path );
 
-	/* Zap any trailing options.
+	/* Zap any trailing [] options.
 	 */
 	if( (q = (char *) vips__find_rightmost_brackets( basename )) ) 
 		*q = '\0';
 
-	/* And select just the '.' and to the right.
-	 */
-	if( (q = strrchr( basename, '.' )) )
-		suffix = q;
-	else
-		suffix = basename;
-
 	result = 0;
-	for( p = suffixes; *p; p++ )
-		if( g_ascii_strcasecmp( suffix, *p ) == 0 ) {
+	for( p = suffixes; *p; p++ ) 
+		if( vips_iscasepostfix( basename, *p ) ) {
 			result = 1;
 			break;
 		}
@@ -537,6 +543,80 @@ vips__write( int fd, const void *buf, size_t count )
 	return( 0 );
 }
 
+/* open() with a utf8 filename, setting errno.
+ */
+int
+vips__open( const char *filename, int flags, ... )
+{
+	int fd;
+	mode_t mode;
+	va_list ap;
+
+	va_start( ap, flags );
+	mode = va_arg( ap, int );
+	va_end( ap );
+
+#ifdef OS_WIN32
+{
+	wchar_t *path16;
+
+	if( !(path16 = (wchar_t *) 
+		g_utf8_to_utf16( filename, -1, NULL, NULL, NULL )) ) { 
+		errno = EACCES;
+		return( -1 );
+	}
+
+	fd = _wopen( path16, flags, mode );
+
+	g_free( path16 );
+}
+#else /*!OS_WIN32*/
+	fd = open( filename, flags, mode );
+#endif
+
+	return( fd );
+}
+
+int 
+vips__open_read( const char *filename )
+{
+	return( vips__open( filename, MODE_READONLY ) );
+}
+
+/* fopen() with utf8 filename and mode, setting errno.
+ */
+FILE *
+vips__fopen( const char *filename, const char *mode )
+{
+	FILE *fp;
+
+#ifdef OS_WIN32
+	wchar_t *path16, *mode16;
+	
+	if( !(path16 = (wchar_t *) 
+		g_utf8_to_utf16( filename, -1, NULL, NULL, NULL )) ) { 
+		errno = EACCES;
+		return( NULL );
+	}
+
+	if( !(mode16 = (wchar_t *) 
+		g_utf8_to_utf16( mode, -1, NULL, NULL, NULL )) ) { 
+		g_free( path16 );
+		errno = EACCES;
+		return( NULL );
+	}
+
+	fp = _wfopen( path16, mode16 );
+
+	g_free( path16 );
+	g_free( mode16 );
+#else /*!OS_WIN32*/
+	fp = fopen( filename, mode );
+#endif
+
+	return( fp );
+}
+
 /* Does a filename contain a directory separator?
  */
 static gboolean 
@@ -575,7 +655,7 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 	mode = "r";
 #endif /*BINARY_OPEN*/
 
-	if( (fp = fopen( filename, mode )) )
+	if( (fp = vips__fopen( filename, mode )) )
 		return( fp );
 
 	if( fallback_dir && 
@@ -583,7 +663,7 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 		char *path;
 
 		path = g_build_filename( fallback_dir, filename, NULL );
-	        fp = fopen( path, mode );
+	        fp = vips__fopen( path, mode );
 		g_free( path );
 
 		if( fp )
@@ -611,7 +691,7 @@ vips__file_open_write( const char *filename, gboolean text_mode )
 	mode = "w";
 #endif /*BINARY_OPEN*/
 
-        if( !(fp = fopen( filename, mode )) ) {
+        if( !(fp = vips__fopen( filename, mode )) ) {
 		vips_error_system( errno, "vips__file_open_write", 
 			_( "unable to open file \"%s\" for writing" ), 
 			filename );
@@ -755,7 +835,7 @@ vips__get_bytes( const char *filename, unsigned char buf[], int len )
 	 * so no hasty messages. And the file might be truncated, so no error
 	 * on read either.
 	 */
-	if( (fd = open( name, MODE_READONLY )) == -1 )
+	if( (fd = vips__open_read( name )) == -1 )
 		return( 0 );
 	if( read( fd, buf, len ) != len ) {
 		close( fd );
@@ -1029,7 +1109,7 @@ vips_existsf( const char *name, ... )
 	path = g_strdup_vprintf( name, ap ); 
         va_end( ap );
 
-        result = access( path, R_OK );
+        result = g_access( path, R_OK );
 
 	g_free( path ); 
 
@@ -1232,19 +1312,20 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 	default:
 		/* It's an unquoted string: read up to the next non-string
 		 * character. We don't allow two strings next to each other,
-		 * so the next break must be bracket, equals, comma.
+		 * so the next break must be brackets, equals, comma.
 		 */
 		*token = VIPS_TOKEN_STRING;
-		n = strcspn( p, "[]=," );
-		i = VIPS_MIN( n, size );
+		q = p + strcspn( p, "[]=," );
+
+		i = VIPS_MIN( q - p, size );
 		vips_strncpy( string, p, i + 1 );
-		p += n;
+		p = q;
 
 		/* We remove leading whitespace, so we trim trailing
 		 * whitespace from unquoted strings too. Only if the string
 		 * hasn't been truncated.
 		 */
-		if( i == n ) 
+		if( i != size ) 
 			while( i > 0 && isspace( string[i - 1] ) ) {
 				string[i - 1] = '\0';
 				i--;
@@ -1280,6 +1361,76 @@ vips__token_need( const char *p, VipsToken need_token,
 	VipsToken token;
 
 	if( !(p = vips__token_must( p, &token, string, size )) ) 
+		return( NULL );
+	if( token != need_token ) {
+		vips_error( "get_token", _( "expected %s, saw %s" ), 
+			vips_enum_nick( VIPS_TYPE_TOKEN, need_token ),
+			vips_enum_nick( VIPS_TYPE_TOKEN, token ) );
+		return( NULL );
+	}
+
+	return( p );
+}
+
+/* Fetch a token. If it's a string token terminated by a '[', fetch up to the
+ * matching ']' as well, for example ".jpg[Q=90]".
+ *
+ * Return NULL for end of tokens.
+ */
+const char *
+vips__token_segment( const char *p, VipsToken *token, 
+	char *string, int size )
+{
+	const char *q;
+
+	if( !(q = vips__token_must( p, token, string, size )) )
+		return( NULL ); 
+
+	/* If we stopped on [, read up to the matching ]. 
+	 */
+	if( *token == VIPS_TOKEN_STRING &&
+		q[0] == '[' ) {
+		VipsToken sub_token;
+		char sub_string[VIPS_PATH_MAX];
+		int depth;
+		int i; 
+
+		depth = 0;
+		do {
+			if( !(q = vips__token_must( q, &sub_token, 
+				sub_string, VIPS_PATH_MAX )) )
+				return( NULL ); 
+
+			switch( sub_token ) {
+			case VIPS_TOKEN_LEFT:
+				depth += 1;
+				break;
+
+			case VIPS_TOKEN_RIGHT:
+				depth -= 1;
+				break;
+
+			default:
+				break;
+			}
+		} while( !(sub_token == VIPS_TOKEN_RIGHT && depth == 0) );
+
+		i = VIPS_MIN( q - p, size );
+		vips_strncpy( string, p, i + 1 );
+	}
+
+	return( q ); 
+}
+
+/* We expect a certain segment.
+ */
+const char *
+vips__token_segment_need( const char *p, VipsToken need_token, 
+	char *string, int size )
+{
+	VipsToken token;
+
+	if( !(p = vips__token_segment( p, &token, string, size )) ) 
 		return( NULL );
 	if( token != need_token ) {
 		vips_error( "get_token", _( "expected %s, saw %s" ), 
@@ -1654,6 +1805,7 @@ vips_flags_from_nick( const char *domain, GType type, const char *nick )
 
 	return( -1 );
 }
+
 
 /* Scan @buf for the first "%ns" (eg. "%12s") and substitute the 
  * lowest-numbered one for @sub. @buf is @len bytes in size.

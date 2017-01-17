@@ -30,6 +30,8 @@
  * 4/6/15
  * 	- try to support DOS files under linux ... we have to look for \r\n
  * 	  linebreaks
+ * 12/8/16
+ * 	- allow missing offset and scale in matrix header
  */
 
 /*
@@ -73,7 +75,7 @@
 
 #include <vips/vips.h>
 
-#include "csv.h"
+#include "pforeign.h"
 
 /* Skip to the start of the next line (ie. read until we see a '\n'), return
  * zero if we are at EOF. 
@@ -170,7 +172,7 @@ skip_to_sep( FILE *fp, const char sepmap[256] )
  */
 static int
 read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
-	int lineno, int colno, double *out )
+	int lineno, int colno, double *out, gboolean fail )
 {
 	int ch;
 
@@ -193,9 +195,10 @@ read_double( FILE *fp, const char whitemap[256], const char sepmap[256],
 		/* Only a warning, since (for example) exported spreadsheets
 		 * will often have text or date fields.
 		 */
-		vips_warn( "csv2vips", 
-			_( "error parsing number, line %d, column %d" ),
+		g_warning( _( "error parsing number, line %d, column %d" ),
 			lineno, colno );
+		if( fail )
+			return( EOF ); 
 
 		/* Step over the bad data to the next separator.
 		 */
@@ -220,7 +223,8 @@ read_csv( FILE *fp, VipsImage *out,
 	int skip, 
 	int lines,
 	const char *whitespace, const char *separator,
-	gboolean read_image )
+	gboolean read_image,
+	gboolean fail )
 {
 	int i;
 	char whitemap[256];
@@ -263,7 +267,7 @@ read_csv( FILE *fp, VipsImage *out,
 	}
 	for( columns = 0; 
 		(ch = read_double( fp, whitemap, sepmap, 
-			skip + 1, columns + 1, &d )) == 0; 
+			skip + 1, columns + 1, &d, fail )) == 0; 
 		columns++ )
 		;
 	(void) fsetpos( fp, &pos );
@@ -306,7 +310,7 @@ read_csv( FILE *fp, VipsImage *out,
 			int colno = x + 1;
 
 			ch = read_double( fp, whitemap, sepmap,
-				lineno, colno, &d );
+				lineno, colno, &d, fail );
 			if( ch == EOF ) {
 				vips_error( "csv2vips", 
 					_( "unexpected EOF, line %d col %d" ), 
@@ -340,13 +344,15 @@ read_csv( FILE *fp, VipsImage *out,
 
 int
 vips__csv_read( const char *filename, VipsImage *out,
-	int skip, int lines, const char *whitespace, const char *separator )
+	int skip, int lines, const char *whitespace, const char *separator, 
+	gboolean fail )
 {
 	FILE *fp;
 
 	if( !(fp = vips__file_open_read( filename, NULL, TRUE )) ) 
 		return( -1 );
-	if( read_csv( fp, out, skip, lines, whitespace, separator, TRUE ) ) {
+	if( read_csv( fp, out, 
+		skip, lines, whitespace, separator, TRUE, fail ) ) {
 		fclose( fp );
 		return( -1 );
 	}
@@ -357,13 +363,15 @@ vips__csv_read( const char *filename, VipsImage *out,
 
 int
 vips__csv_read_header( const char *filename, VipsImage *out,
-	int skip, int lines, const char *whitespace, const char *separator )
+	int skip, int lines, const char *whitespace, const char *separator, 
+	gboolean fail )
 {
 	FILE *fp;
 
 	if( !(fp = vips__file_open_read( filename, NULL, TRUE )) ) 
 		return( -1 );
-	if( read_csv( fp, out, skip, lines, whitespace, separator, FALSE ) ) {
+	if( read_csv( fp, out, 
+		skip, lines, whitespace, separator, FALSE, fail ) ) {
 		fclose( fp );
 		return( -1 );
 	}
@@ -486,7 +494,7 @@ fetch_nonwhite( FILE *fp, const char whitemap[256], char *buf, int max )
 
 /* Read a single double in ascii (not locale) encoding.
  *
- * Return the char that caused failure on fail (EOF or \n).
+ * Return the char that caused failure on fail (EOF or \n). 
  */
 static int
 read_ascii_double( FILE *fp, const char whitemap[256], double *out )
@@ -522,6 +530,8 @@ read_ascii_double( FILE *fp, const char whitemap[256], double *out )
 
 /* Read the header. Two numbers for width and height, and two optional
  * numbers for scale and offset. 
+ *
+ * We can have scale and no offset, in which case we assume offset = 0.
  */
 static int
 vips__matrix_header( char *whitemap, FILE *fp,
@@ -536,11 +546,15 @@ vips__matrix_header( char *whitemap, FILE *fp,
 		(ch = read_ascii_double( fp, whitemap, &header[i] )) == 0; 
 		i++ )
 		;
-
+	if( i < 4 )
+		header[3] = 0.0;
+	if( i < 3 )
+		header[2] = 1.0;
 	if( i < 2 ) {
 		vips_error( "mask2vips", "%s", _( "no width / height" ) );
 		return( -1 );
 	}
+
 	if( VIPS_FLOOR( header[0] ) != header[0] ||
 		VIPS_FLOOR( header[1] ) != header[1] ) {
 		vips_error( "mask2vips", "%s", _( "width / height not int" ) );
@@ -556,22 +570,17 @@ vips__matrix_header( char *whitemap, FILE *fp,
 			"%s", _( "width / height out of range" ) );
 		return( -1 );
 	}
-	if( i == 3 ) { 
-		vips_error( "mask2vips", "%s", _( "bad scale / offset" ) );
-		return( -1 );
-	}
 	if( (ch = read_ascii_double( fp, whitemap, &d )) != '\n' ) {
 		vips_error( "mask2vips", "%s", _( "extra chars in header" ) );
 		return( -1 );
 	}
-	if( i > 2 && 
-		header[2] == 0.0 ) {
+	if( header[2] == 0.0 ) {
 		vips_error( "mask2vips", "%s", _( "zero scale" ) );
 		return( -1 );
 	}
 
-	*scale = i > 2 ?  header[2] : 1.0;
-	*offset = i > 2 ?  header[3] : 0.0;
+	*scale = header[2];
+	*offset = header[3];
 
 	skip_line( fp );
 

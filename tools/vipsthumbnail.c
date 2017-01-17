@@ -77,6 +77,19 @@
  * 	- add webp --shrink support
  * 29/2/16
  * 	- deprecate sharpen and interpolate
+ * 6/5/16
+ * 	- restore BandFmt after unpremultiply
+ * 23/5/16
+ * 	- no need to guess max-alpha now premultiply does this for us
+ * 1/8/16
+ * 	- use scRGB as the working space in linear mode
+ * 15/8/16
+ * 	- can now remove 0.1 rounding adjustment
+ * 2/11/16
+ * 	- use vips_thumbnail(), most code moved there
+ * 6/1/17
+ * 	- fancy geometry strings
+ * 	- support VipSize restrictions
  */
 
 #ifdef HAVE_CONFIG_H
@@ -100,6 +113,7 @@
 static char *thumbnail_size = "128";
 static int thumbnail_width = 128;
 static int thumbnail_height = 128;
+static VipsSize size_restriction = VIPS_SIZE_BOTH;
 static char *output_format = "tn_%s.jpg";
 static char *export_profile = NULL;
 static char *import_profile = NULL;
@@ -168,435 +182,6 @@ static GOptionEntry options[] = {
 	{ NULL }
 };
 
-/* Calculate the shrink factor, taking into account auto-rotate, the fit mode,
- * and so on.
- */
-static double
-calculate_shrink( VipsImage *im )
-{
-	VipsAngle angle = vips_autorot_get_angle( im ); 
-	gboolean rotate = angle == VIPS_ANGLE_D90 || angle == VIPS_ANGLE_D270;
-	int width = rotate_image && rotate ? im->Ysize : im->Xsize;
-	int height = rotate_image && rotate ? im->Xsize : im->Ysize;
-
-	VipsDirection direction;
-
-	/* Calculate the horizontal and vertical shrink we'd need to fit the
-	 * image to the bounding box, and pick the biggest. 
-	 *
-	 * In crop mode, we aim to fill the bounding box, so we must use the
-	 * smaller axis.
-	 *
-	 * Add a small amount so when vips_resize() later rounds down, we
-	 * don't round below target.
-	 */
-	double horizontal = (double) width / (thumbnail_width + 0.1);
-	double vertical = (double) height / (thumbnail_height + 0.1);
-
-	if( crop_image ) {
-		if( horizontal < vertical )
-			direction = VIPS_DIRECTION_HORIZONTAL;
-		else
-			direction = VIPS_DIRECTION_VERTICAL;
-	}
-	else {
-		if( horizontal < vertical )
-			direction = VIPS_DIRECTION_VERTICAL;
-		else
-			direction = VIPS_DIRECTION_HORIZONTAL;
-	}
-
-	return( direction == VIPS_DIRECTION_HORIZONTAL ?
-		horizontal : vertical );  
-}
-
-/* Find the best jpeg preload shrink.
- */
-static int
-thumbnail_find_jpegshrink( VipsImage *im )
-{
-	double shrink = calculate_shrink( im ); 
-
-	/* We can't use pre-shrunk images in linear mode. libjpeg shrinks in Y
-	 * (of YCbCR), not linear space.
-	 */
-	if( linear_processing )
-		return( 1 ); 
-
-	/* Shrink-on-load is a simple block shrink and will add quite a bit of
-	 * extra sharpness to the image. We want to block shrink to a
-	 * bit above our target, then vips_resize() to the final size. 
-	 *
-	 * Leave at least a factor of two for the final resize step.
-	 */
-	if( shrink >= 16 )
-		return( 8 );
-	else if( shrink >= 8 )
-		return( 4 );
-	else if( shrink >= 4 )
-		return( 2 );
-	else 
-		return( 1 );
-}
-
-/* Open an image, returning the best version of that image for thumbnailing. 
- *
- * libjpeg supports fast shrink-on-read, so if we have a JPEG, we can ask 
- * VIPS to load a lower resolution version.
- */
-static VipsImage *
-thumbnail_open( VipsObject *process, const char *filename )
-{
-	const char *loader;
-	VipsImage *im;
-
-	vips_info( "vipsthumbnail", "thumbnailing %s", filename );
-
-	if( linear_processing )
-		vips_info( "vipsthumbnail", "linear mode" ); 
-
-	if( !(loader = vips_foreign_find_load( filename )) )
-		return( NULL );
-
-	vips_info( "vipsthumbnail", "selected loader is %s", loader ); 
-
-	if( strcmp( loader, "VipsForeignLoadJpegFile" ) == 0 ) {
-		int jpegshrink;
-
-		/* This will just read in the header and is quick.
-		 */
-		if( !(im = vips_image_new_from_file( filename, NULL )) )
-			return( NULL );
-
-		jpegshrink = thumbnail_find_jpegshrink( im );
-
-		g_object_unref( im );
-
-		vips_info( "vipsthumbnail", 
-			"loading jpeg with factor %d pre-shrink", 
-			jpegshrink ); 
-
-		/* We can't use UNBUFERRED safely on very-many-core systems.
-		 */
-		if( !(im = vips_image_new_from_file( filename, 
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			"shrink", jpegshrink,
-			NULL )) )
-			return( NULL );
-	}
-	else if( strcmp( loader, "VipsForeignLoadPdfFile" ) == 0 ||
-		strcmp( loader, "VipsForeignLoadSvgFile" ) == 0 ) {
-		double shrink;
-
-		/* This will just read in the header and is quick.
-		 */
-		if( !(im = vips_image_new_from_file( filename, NULL )) )
-			return( NULL );
-
-		shrink = calculate_shrink( im ); 
-
-		g_object_unref( im );
-
-		vips_info( "vipsthumbnail", 
-			"loading PDF/SVG with factor %g pre-shrink", 
-			shrink ); 
-
-		/* We can't use UNBUFERRED safely on very-many-core systems.
-		 */
-		if( !(im = vips_image_new_from_file( filename, 
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			"scale", 1.0 / shrink,
-			NULL )) )
-			return( NULL );
-	}
-	else if( strcmp( loader, "VipsForeignLoadWebpFile" ) == 0 ) {
-		double shrink;
-
-		/* This will just read in the header and is quick.
-		 */
-		if( !(im = vips_image_new_from_file( filename, NULL )) )
-			return( NULL );
-
-		shrink = calculate_shrink( im ); 
-
-		g_object_unref( im );
-
-		vips_info( "vipsthumbnail", 
-			"loading webp with factor %g pre-shrink", 
-			shrink ); 
-
-		/* We can't use UNBUFERRED safely on very-many-core systems.
-		 */
-		if( !(im = vips_image_new_from_file( filename, 
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			"shrink", (int) shrink,
-			NULL )) )
-			return( NULL );
-	}
-	else {
-		/* All other formats. We can't use UNBUFERRED safely on 
-		 * very-many-core systems.
-		 */
-		if( !(im = vips_image_new_from_file( filename, 
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			NULL )) )
-			return( NULL );
-	}
-
-	vips_object_local( process, im );
-
-	return( im ); 
-}
-
-static VipsImage *
-thumbnail_shrink( VipsObject *process, VipsImage *in )
-{
-	VipsImage **t = (VipsImage **) vips_object_local_array( process, 10 );
-	VipsInterpretation interpretation = linear_processing ?
-		VIPS_INTERPRETATION_XYZ : VIPS_INTERPRETATION_sRGB; 
-
-	/* TRUE if we've done the import of an ICC transform and still need to
-	 * export.
-	 */
-	gboolean have_imported;
-
-	/* TRUE if we've premultiplied and need to unpremultiply.
-	 */
-	gboolean have_premultiplied;
-
-	/* Sniff the incoming image and try to guess what the alpha max is.
-	 */
-	double max_alpha;
-
-	double shrink; 
-
-	/* RAD needs special unpacking.
-	 */
-	if( in->Coding == VIPS_CODING_RAD ) {
-		vips_info( "vipsthumbnail", "unpacking Rad to float" );
-
-		/* rad is scrgb.
-		 */
-		if( vips_rad2float( in, &t[0], NULL ) )
-			return( NULL );
-		in = t[0];
-	}
-
-	/* Try to guess what the maximum alpha might be.
-	 */
-	max_alpha = 255;
-	if( in->BandFmt == VIPS_FORMAT_USHORT )
-		max_alpha = 65535;
-
-	/* In linear mode, we import right at the start. 
-	 *
-	 * We also have to import the whole image if it's CMYK, since
-	 * vips_colourspace() (see below) doesn't know about CMYK.
-	 *
-	 * This is only going to work for images in device space. If you have
-	 * an image in PCS which also has an attached profile, strange things
-	 * will happen. 
-	 */
-	have_imported = FALSE;
-	if( (linear_processing ||
-		in->Type == VIPS_INTERPRETATION_CMYK) &&
-		in->Coding == VIPS_CODING_NONE &&
-		(in->BandFmt == VIPS_FORMAT_UCHAR ||
-		 in->BandFmt == VIPS_FORMAT_USHORT) &&
-		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
-		 import_profile) ) {
-		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) )
-			vips_info( "vipsthumbnail", 
-				"importing with embedded profile" );
-		else
-			vips_info( "vipsthumbnail", 
-				"importing with profile %s", import_profile );
-
-		if( vips_icc_import( in, &t[1], 
-			"input_profile", import_profile,
-			"embedded", TRUE,
-			"pcs", VIPS_PCS_XYZ,
-			NULL ) )  
-			return( NULL );
-
-		in = t[1];
-
-		have_imported = TRUE;
-	}
-
-	/* To the processing colourspace. This will unpack LABQ as well.
-	 */
-	vips_info( "vipsthumbnail", "converting to processing space %s",
-		vips_enum_nick( VIPS_TYPE_INTERPRETATION, interpretation ) ); 
-	if( vips_colourspace( in, &t[2], interpretation, NULL ) ) 
-		return( NULL ); 
-	in = t[2];
-
-	/* If there's an alpha, we have to premultiply before shrinking. See
-	 * https://github.com/jcupitt/libvips/issues/291
-	 */
-	have_premultiplied = FALSE;
-	if( in->Bands == 2 ||
-		(in->Bands == 4 && in->Type != VIPS_INTERPRETATION_CMYK) ||
-		in->Bands == 5 ) {
-		vips_info( "vipsthumbnail", "premultiplying alpha" ); 
-		if( vips_premultiply( in, &t[3], 
-			"max_alpha", max_alpha,
-			NULL ) ) 
-			return( NULL );
-		in = t[3];
-		have_premultiplied = TRUE;
-	}
-
-	shrink = calculate_shrink( in );
-
-	if( vips_resize( in, &t[4], 1.0 / shrink, NULL ) ) 
-		return( NULL );
-	in = t[4];
-
-	if( have_premultiplied ) {
-		vips_info( "vipsthumbnail", "unpremultiplying alpha" ); 
-		if( vips_unpremultiply( in, &t[5], 
-			"max_alpha", max_alpha,
-			NULL ) ) 
-			return( NULL );
-		in = t[5];
-	}
-
-	/* Colour management.
-	 *
-	 * If we've already imported, just export. Otherwise, we're in 
-	 * device space device and we need a combined
-	 * import/export to transform to the target space.
-	 */
-	if( have_imported ) { 
-		if( export_profile ||
-			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-			vips_info( "vipsthumbnail", 
-				"exporting to device space with a profile" );
-			if( vips_icc_export( in, &t[7], 
-				"output_profile", export_profile,
-				NULL ) )  
-				return( NULL );
-			in = t[7];
-		}
-		else {
-			vips_info( "vipsthumbnail", "converting to sRGB" );
-			if( vips_colourspace( in, &t[7], 
-				VIPS_INTERPRETATION_sRGB, NULL ) ) 
-				return( NULL ); 
-			in = t[7];
-		}
-	}
-	else if( export_profile &&
-		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
-		 import_profile) ) {
-		VipsImage *out;
-
-		vips_info( "vipsthumbnail", 
-			"exporting with profile %s", export_profile );
-
-		/* We first try with the embedded profile, if any, then if
-		 * that fails try again with the supplied fallback profile.
-		 */
-		out = NULL; 
-		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-			vips_info( "vipsthumbnail", 
-				"importing with embedded profile" );
-
-			if( vips_icc_transform( in, &t[7], export_profile,
-				"embedded", TRUE,
-				NULL ) ) {
-				vips_warn( "vipsthumbnail", 
-					_( "unable to import with "
-						"embedded profile: %s" ),
-					vips_error_buffer() );
-
-				vips_error_clear();
-			}
-			else
-				out = t[7];
-		}
-
-		if( !out &&
-			import_profile ) { 
-			vips_info( "vipsthumbnail", 
-				"importing with fallback profile" );
-
-			if( vips_icc_transform( in, &t[7], export_profile,
-				"input_profile", import_profile,
-				"embedded", FALSE,
-				NULL ) )  
-				return( NULL );
-
-			out = t[7];
-		}
-
-		/* If the embedded profile failed and there's no fallback or
-		 * the fallback failed, out will still be NULL.
-		 */
-		if( out )
-			in = out;
-	}
-
-	if( delete_profile &&
-		vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-		vips_info( "vipsthumbnail", 
-			"deleting profile from output image" );
-		if( !vips_image_remove( in, VIPS_META_ICC_NAME ) ) 
-			return( NULL );
-	}
-
-	return( in );
-}
-
-/* Crop down to the final size, if crop_image is set. 
- */
-static VipsImage *
-thumbnail_crop( VipsObject *process, VipsImage *im )
-{
-	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
-
-	if( crop_image ) {
-		int left = (im->Xsize - thumbnail_width) / 2;
-		int top = (im->Ysize - thumbnail_height) / 2;
-
-		if( vips_extract_area( im, &t[0], left, top, 
-			thumbnail_width, thumbnail_height, NULL ) )
-			return( NULL ); 
-		im = t[0];
-	}
-
-	return( im );
-}
-
-/* Auto-rotate, if rotate_image is set. 
- */
-static VipsImage *
-thumbnail_rotate( VipsObject *process, VipsImage *im )
-{
-	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
-	VipsAngle angle = vips_autorot_get_angle( im );
-
-	if( rotate_image &&
-		angle != VIPS_ANGLE_D0 ) {
-		vips_info( "vipsthumbnail", "rotating by %s", 
-			vips_enum_nick( VIPS_TYPE_ANGLE, angle ) ); 
-
-		/* Need to copy to memory, we have to stay seq.
-		 */
-		t[0] = vips_image_new_memory();
-		if( vips_image_write( im, t[0] ) ||
-			vips_rot( t[0], &t[1], angle, NULL ) )
-			return( NULL ); 
-		im = t[1];
-
-		vips_autorot_remove_angle( im );
-	}
-
-	return( im );
-}
-
 /* Given (eg.) "/poop/somefile.png", write @im to the thumbnail name,
  * (eg.) "/poop/tn_somefile.jpg".
  */
@@ -634,8 +219,7 @@ thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 		g_free( dir );
 	}
 
-	vips_info( "vipsthumbnail", 
-		"thumbnailing %s as %s", filename, output_name );
+	g_info( "thumbnailing %s as %s", filename, output_name );
 
 	g_free( file );
 
@@ -651,17 +235,114 @@ thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 static int
 thumbnail_process( VipsObject *process, const char *filename )
 {
-	VipsImage *in;
-	VipsImage *thumbnail;
-	VipsImage *crop;
-	VipsImage *rotate;
+	VipsImage *image;
 
-	if( !(in = thumbnail_open( process, filename )) ||
-		!(thumbnail = thumbnail_shrink( process, in )) ||
-		!(crop = thumbnail_crop( process, thumbnail )) ||
-		!(rotate = thumbnail_rotate( process, crop )) ||
-		thumbnail_write( process, rotate, filename ) )
+	if( vips_thumbnail( filename, &image, thumbnail_width, 
+		"height", thumbnail_height, 
+		"size", size_restriction, 
+		"auto_rotate", rotate_image, 
+		"crop", crop_image, 
+		"linear", linear_processing, 
+		"import_profile", import_profile, 
+		"export_profile", export_profile, 
+		NULL ) )
 		return( -1 );
+
+	if( thumbnail_write( process, image, filename ) ) {
+		g_object_unref( image ); 
+		return( -1 );
+	}
+
+	g_object_unref( image ); 
+
+	return( 0 );
+}
+
+/* Fetch a match_info string, NULL for "".
+ */
+static const char *
+fetch_match( GMatchInfo *match_info, int n )
+{
+	const char *str = g_match_info_fetch( match_info, n );
+
+	return( str && strcmp( str, "" ) == 0 ? NULL : str );
+}
+
+/* Parse a geometry string and set thumbnail_width and thumbnail_height.
+ */
+static int
+thumbnail_parse_geometry( const char *geometry )
+{
+	GRegex *regex;
+	GMatchInfo *match_info;
+	gboolean handled;
+
+	handled = FALSE;
+
+	regex = g_regex_new( "^(\\d+)? (x)? (\\d+)? ([<>])?$", 
+		G_REGEX_CASELESS | G_REGEX_EXTENDED, 0, NULL );
+	g_regex_match( regex, geometry, 0, &match_info );
+	if( g_match_info_matches( match_info ) ) {
+		const char *w = fetch_match( match_info, 1 );
+		const char *x = fetch_match( match_info, 2 );
+		const char *h = fetch_match( match_info, 3 );
+		const char *s = fetch_match( match_info, 4 );
+
+		/* If --crop is set, both width and height must be specified,
+		 * since we'll need a complete bounding box to fill.
+		 */
+		if( crop_image && x && (!w || !h) ) {
+			vips_error( "thumbnail",
+				"both width and height must be given if "
+				"--crop is enabled" );
+			return( -1 );
+		}
+
+		if( !x ) { 
+			/* No "x" means we only allow a single number and it 
+			 * sets both width and height.
+			 */
+			if( w && !h ) {
+				thumbnail_width = thumbnail_height = atoi( w );
+				handled = TRUE;
+			}
+			if( !w && h ) {
+				thumbnail_width = thumbnail_height = atoi( h );
+				handled = TRUE;
+			}
+		}
+		else { 
+			/* w or h missing means replace with a huuuge value 
+			 * to prevent reduction or enlargement in that axis.
+			 */
+			thumbnail_width = VIPS_MAX_COORD;
+			thumbnail_height = VIPS_MAX_COORD;
+			if( w ) {
+				thumbnail_width = atoi( w );
+				handled = TRUE;
+			}
+			if( h ) {
+				thumbnail_height = atoi( h );
+				handled = TRUE;
+			}
+		}
+
+		if( s && strcmp( s, ">" ) == 0 )
+			size_restriction = VIPS_SIZE_DOWN;
+		if( s && strcmp( s, "<" ) == 0 )
+			size_restriction = VIPS_SIZE_UP;
+	}
+
+	g_match_info_free( match_info );
+	g_regex_unref( regex );
+
+	if( !handled ) {
+		vips_error( "thumbnail",
+			"unable to parse size \"%s\" -- "
+			"use eg. 128 or 200x300>", geometry );
+
+		return( -1 );
+	}
 
 	return( 0 );
 }
@@ -680,6 +361,17 @@ main( int argc, char **argv )
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
+	/* The operation cache is not useful for processing many files.
+	vips_cache_set_max( 0 );
+	 */
+
+	/* On Windows, argv is ascii-only .. use this to get a utf-8 version of
+	 * the args.
+	 */
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	argv = g_win32_get_command_line();
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+
         context = g_option_context_new( _( "- thumbnail generator" ) );
 
 	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
@@ -688,7 +380,12 @@ main( int argc, char **argv )
 	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
 	g_option_context_set_main_group( context, main_group );
 
-	if( !g_option_context_parse( context, &argc, &argv, &error ) ) {
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	if( !g_option_context_parse_strv( context, &argv, &error ) ) 
+#else /*!HAVE_G_WIN32_GET_COMMAND_LINE*/
+	if( !g_option_context_parse( context, &argc, &argv, &error ) ) 
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+	{
 		if( error ) {
 			fprintf( stderr, "%s\n", error->message );
 			g_error_free( error );
@@ -699,26 +396,20 @@ main( int argc, char **argv )
 
 	g_option_context_free( context );
 
-	if( sscanf( thumbnail_size, "%d x %d", 
-		&thumbnail_width, &thumbnail_height ) != 2 ) {
-		if( sscanf( thumbnail_size, "%d", &thumbnail_width ) != 1 ) 
-			vips_error_exit( "unable to parse size \"%s\" -- "
-				"use eg. 128 or 200x300", thumbnail_size );
+	if( thumbnail_size && 
+		thumbnail_parse_geometry( thumbnail_size ) )
+		vips_error_exit( NULL ); 
 
-		thumbnail_height = thumbnail_width;
-	}
-
-	if( rotate_image ) {
 #ifndef HAVE_EXIF
-		vips_warn( "vipsthumbnail", "%s",
+	if( rotate_image ) 
+		g_warning( "%s",
 			_( "auto-rotate disabled: "
 			      "libvips built without exif support" ) );
 #endif /*!HAVE_EXIF*/
-	}
 
 	result = 0;
 
-	for( i = 1; i < argc; i++ ) {
+	for( i = 1; argv[i]; i++ ) {
 		/* Hang resources for processing this thumbnail off @process.
 		 */
 		VipsObject *process = VIPS_OBJECT( vips_image_new() ); 
@@ -737,6 +428,12 @@ main( int argc, char **argv )
 
 		g_object_unref( process );
 	}
+
+	/* We don't free this on error exit, sadly.
+	 */
+#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+	g_strfreev( argv ); 
+#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
 
 	vips_shutdown();
 

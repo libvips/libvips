@@ -2,6 +2,8 @@
  *
  * 7/2/16
  * 	- from svgload.c
+ * 1/8/16 felixbuenemann
+ * 	- add svgz support
  */
 
 /*
@@ -40,8 +42,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_RSVG
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,8 +52,27 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#ifdef HAVE_RSVG
+
 #include <cairo.h>
 #include <librsvg/rsvg.h>
+
+/* Old librsvg versions don't include librsvg-features.h by default.
+ * Newer versions deprecate direct inclusion.
+ */
+#ifndef LIBRSVG_FEATURES_H
+#include <librsvg/librsvg-features.h>
+#endif
+
+/* A handy #define for we-will-handle-svgz.
+ */
+#if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZLIB)
+#define HANDLE_SVGZ
+#endif
+
+#ifdef HANDLE_SVGZ
+#include <zlib.h>
+#endif
 
 typedef struct _VipsForeignLoadSvg {
 	VipsForeignLoad parent_object;
@@ -147,34 +166,6 @@ vips_foreign_load_svg_header( VipsForeignLoad *load )
 	vips_foreign_load_svg_parse( svg, load->out ); 
 
 	return( 0 );
-}
-
-/* Convert from ARGB to RGBA and undo premultiplication. 
- */
-void
-vips__cairo2rgba( guint32 * restrict buf, int n )
-{
-	int i;
-
-	for( i = 0; i < n; i++ ) {
-		guint32 * restrict p = buf + i;
-		guint32 x = *p;
-		guint8 a = x >> 24;
-		VipsPel * restrict out = (VipsPel *) p;
-
-		if( a == 255 ) 
-			*p = GUINT32_TO_BE( (x << 8) | 255 );
-		else if( a == 0 ) 
-			*p = GUINT32_TO_BE( x << 8 );
-		else {
-			/* Undo premultiplication.
-			 */
-			out[0] = 255 * ((x >> 16) & 255) / a;
-			out[1] = 255 * ((x >> 8) & 255) / a;
-			out[2] = 255 * (x & 255) / a;
-			out[3] = a;
-		}
-	}
 }
 
 static int
@@ -336,11 +327,19 @@ vips_foreign_load_svg_file_header( VipsForeignLoad *load )
 		return( -1 ); 
 	}
 
+	VIPS_SETSTR( load->out->filename, file->filename );
+
 	return( vips_foreign_load_svg_header( load ) );
 }
 
 static const char *vips_foreign_svg_suffs[] = {
 	".svg",
+	/* librsvg supports svgz directly, no need to check for zlib here.
+	 */
+#if LIBRSVG_CHECK_FEATURE(SVGZ)
+	".svgz",
+	".svg.gz",
+#endif
 	NULL
 };
 
@@ -390,12 +389,77 @@ typedef VipsForeignLoadSvgClass VipsForeignLoadSvgBufferClass;
 G_DEFINE_TYPE( VipsForeignLoadSvgBuffer, vips_foreign_load_svg_buffer, 
 	vips_foreign_load_svg_get_type() );
 
+#ifdef HANDLE_SVGZ
+static void *
+vips_foreign_load_svg_zalloc( void *opaque, unsigned items, unsigned size )
+{
+	return( g_malloc0_n( items, size ) );
+}
+
+static void
+vips_foreign_load_svg_zfree( void *opaque, void *ptr )
+{
+	return( g_free( ptr ) );
+}
+#endif /*HANDLE_SVGZ*/
+
 static gboolean
 vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 {
-	char *str = (char *) buf;
+	char *str;
+
+#ifdef HANDLE_SVGZ
+	/* If the buffer looks like a zip, deflate to here and then search
+	 * that for <svg.
+	 */
+	char obuf[224];
+#endif /*HANDLE_SVGZ*/
 
 	int i;
+
+	/* Start with str pointing at the argument buffer, swap to it pointing
+	 * into obuf if we see zip data.
+	 */
+	str = (char *) buf;
+
+#ifdef HANDLE_SVGZ
+	/* Check for SVGZ gzip signature and inflate.
+	 *
+	 * Minimum gzip size is 18 bytes, starting with 1F 8B.
+	 */
+	if( len >= 18 && 
+		str[0] == '\037' && 
+		str[1] == '\213' ) {
+		z_stream zs;
+		size_t opos;
+
+		zs.zalloc = (alloc_func) vips_foreign_load_svg_zalloc;
+		zs.zfree = (free_func) vips_foreign_load_svg_zfree;
+		zs.opaque = Z_NULL;
+		zs.next_in = (unsigned char *) str;
+		zs.avail_in = len;
+
+		/* There isn't really an error return from is_a_buffer()
+		 */
+		if( inflateInit2( &zs, 15 | 32 ) != Z_OK ) 
+			return( FALSE );
+
+		opos = 0;
+		do {
+			zs.avail_out = sizeof( obuf ) - opos;
+			zs.next_out = (unsigned char *) obuf + opos;
+			if( inflate( &zs, Z_NO_FLUSH ) < Z_OK ) 
+				return( FALSE );
+			opos = sizeof( obuf ) - zs.avail_out;
+		} while( opos < sizeof( obuf ) && 
+			zs.avail_in > 0 );
+
+		inflateEnd( &zs );
+
+		str = obuf;
+		len = opos;
+	}
+#endif /*HANDLE_SVGZ*/
 
 	/* SVG documents are very freeform. They normally look like:
 	 *
@@ -403,11 +467,12 @@ vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 	 * <svg xmlns="http://www.w3.org/2000/svg" ...
 	 *
 	 * But there can be a doctype in there too. And case and whitespace can
-	 * vary a lot. And the <?xml can be missing. 
+	 * vary a lot. And the <?xml can be missing. And you can have a comment
+	 * before the <svg line.
 	 *
 	 * Simple rules:
 	 * - first 24 chars are plain ascii
-	 * - first 200 chars contain "<svg", upper or lower case.
+	 * - first 300 chars contain "<svg", upper or lower case.
 	 *
 	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
 	 * horribly slow for large documents. 
@@ -416,19 +481,13 @@ vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 		return( 0 );
 	for( i = 0; i < 24; i++ )
 		if( !isascii( str[i] ) )
-		return( 0 );
+			return( FALSE );
 
-	for( i = 0; i < 200 && i < len - 5; i++ ) {
-		char txt[5];
+	for( i = 0; i < 300 && i < len - 5; i++ )
+		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
+			return( TRUE );
 
-		/* 5, since we include the \0 at the end.
-		 */
-		vips_strncpy( txt, buf + i, 5 );
-		if( strcasecmp( txt, "<svg" ) == 0 )
-			return( 1 );
-	}
-
-	return( 0 );
+	return( FALSE );
 }
 
 static int
@@ -480,4 +539,83 @@ vips_foreign_load_svg_buffer_init( VipsForeignLoadSvgBuffer *buffer )
 }
 
 #endif /*HAVE_RSVG*/
+
+/**
+ * vips_svgload:
+ * @filename: file to load
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
+ *
+ * Render a SVG file into a VIPS image.  Rendering uses the librsvg library
+ * and should be fast.
+ *
+ * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
+ * you can scale the rendering from the default 1 point == 1 pixel by @scale.
+ *
+ * This function only reads the image header and does not render any pixel
+ * data. Rendering occurs when pixels are accessed.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_svgload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "svgload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_svgload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
+ *
+ * Read a SVG-formatted memory block into a VIPS image. Exactly as
+ * vips_svgload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_svgload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "svgload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
 

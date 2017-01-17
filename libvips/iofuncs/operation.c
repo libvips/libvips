@@ -221,12 +221,8 @@ vips_operation_finalize( GObject *gobject )
 
 	VIPS_DEBUG_MSG( "vips_operation_finalize: %p\n", gobject );
 
-	if( operation->pixels ) {
-		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gobject );
-
-		vips_info( class->nickname, 
-			_( "%d pixels calculated" ), operation->pixels ); 
-	}
+	if( operation->pixels ) 
+		g_info( _( "%d pixels calculated" ), operation->pixels ); 
 
 	G_OBJECT_CLASS( vips_operation_parent_class )->finalize( gobject );
 }
@@ -699,7 +695,11 @@ vips_operation_set_valist_required( VipsOperation *operation, va_list ap )
 
 		g_assert( argument_instance );
 
-		if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) ) {
+		/* We skip deprecated required args. There will be a new,
+		 * renamed arg in the same place.
+		 */
+		if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) &&
+			!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) ) {
 			VIPS_ARGUMENT_COLLECT_SET( pspec, argument_class, ap );
 
 #ifdef VIPS_DEBUG

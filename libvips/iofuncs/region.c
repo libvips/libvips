@@ -231,9 +231,12 @@ vips__region_start( VipsRegion *region )
                 g_mutex_unlock( image->sslock );
  
                 if( !region->seq ) {
-                        vips_error( "vips__region_start", 
-				_( "start function failed for image %s" ),
+#ifdef DEBUG
+                        printf( "vips__region_start: "
+				"start function failed for image %s",
                                 image->filename );
+#endif /*DEBUG*/
+
                         return( -1 );
                 }
         }
@@ -266,8 +269,7 @@ vips__region_stop( VipsRegion *region )
 		 * can really do with it, sadly.
 		 */
 		if( result )
-                        vips_warn( "VipsRegion", 
-				"stop callback failed for image %s", 
+                        g_warning( "stop callback failed for image %s", 
 				image->filename );
  
                 region->seq = NULL;
@@ -890,7 +892,7 @@ vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
 	 * the pixels we need. If it does, we could copy them and only
 	 * generate the new ones. 
 	 *
-	 * However, we usually have neighboring regions on different threads,
+	 * However, we usually have neighbouring regions on different threads,
 	 * so from the point of view of this thread, we will get no overlaps
 	 * on successive prepare requests. 
 	 */

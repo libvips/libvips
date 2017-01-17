@@ -79,7 +79,7 @@ vips_scRGB2RGB16( VipsImage *in, VipsImage **out, ... )
 static int
 vips_scRGB2BW16( VipsImage *in, VipsImage **out, ... )
 {
-	return( vips_scRGB2BW16( in, out, "depth", 16, NULL ) );
+	return( vips_scRGB2BW( in, out, "depth", 16, NULL ) );
 }
 
 /* Do these two with a simple cast ... since we're just cast shifting, we can
@@ -545,7 +545,7 @@ vips_colourspace_build( VipsObject *object )
 			break;
 	if( i == VIPS_NUMBER( vips_colour_routes ) ) {
 		vips_error( "vips_colourspace", 
-			_( "no known route between '%s' and '%s'" ),
+			_( "no known route from '%s' to '%s'" ),
 			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
 				interpretation ),
 			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 

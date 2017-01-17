@@ -24,6 +24,8 @@
  * 	- gtk-doc
  * 17/1/14
  * 	- redone as a class
+ * 12/11/16
+ * 	- oop, allow index == 0, thanks Rob
  */
 
 /*
@@ -389,6 +391,8 @@ vips_rank_build( VipsObject *object )
 	rank->out->Xoffset = 0;
 	rank->out->Yoffset = 0;
 
+	vips_reorder_margin_hint( rank->out, rank->width * rank->height ); 
+
 	return( 0 );
 }
 
@@ -430,7 +434,7 @@ vips_rank_class_init( VipsRankClass *class )
 		_( "Select pixel at index" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsRank, index ),
-		1, 100000000, 50 );
+		0, 100000000, 50 );
 
 }
 

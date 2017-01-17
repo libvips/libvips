@@ -1,6 +1,107 @@
+13/10/16 started 8.5.0
+- rewritten buffer system is safer and frees memory earlier
+- added tiff save to buffer
+- added dzsave save to buffer (zip only)
+- revise header get/set functions
+- better vipsheader behaviour with complex field types
+- added vips_image_hasalpha()
+- added vips_thumbnail() / vips_thumbnail_buffer()
+- webpload/webpsave read and write icc, xmp, exif metadata
+- better >4gb detect for zip dzsave output [Felix Bünemann]
+- all loaders have a @fail option, meaning fail on first warning, though it
+  only does anything for jpg and csv
+- add vips_image_get_fields() to help bindings
+- add tiff multi-page read/write
+- add VIPS_META_PAGE_HEIGHT metadata
+- IM6/IM7 magickload supports page/n/page-height, all_frames deprecated
+- gifload supports n/page-height
+- added #defines for VIPS_SONAME, VIPS_LIBRARY_CURRENT, VIPS_LIBRARY_REVISION,
+  VIPS_LIBRARY_AGE
+- better support for bscale / bzero in fits images
+- deprecate vips_warn() / vips_info(); use g_warning() / g_info() instead
+- vipsthumbnail supports much fancier geometry strings, thanks tomasc
+- vips_thumbnail() has new @size option
+- fix --vips-cache-max etc. 
+- add compute reordering, plus some new API to support it:
+  vips_reorder_margin_hint() and vips_reorder_prepare_many(), thanks
+  aferrero2707
+- kick load operations from cache on read error, thanks gaillard 
+
+8/12/16 started 8.4.5
+- allow libgsf-1.14.26 to help centos, thanks tdiprima
+
+11/11/16 started 8.4.4
+- fix crash in vips.exe arg parsing on Windows, thanks Yury
+
+18/10/16 started 8.4.3
+- fix error detection in gif_close, thanks aaron42net
+- fix tiny threading memleak
+- improve compatibility with very old glib, see #548
+
+27/9/16 started 8.4.2
+- small doc improvements
+- fix error message for metadata fetch type mismatch
+- resolve a race condition in thread shutdown, thanks Lovell
+
 1/5/16 started 8.4
 - many more wepsave options [Felix Bünemann]
-- kick load operations from cache on read error
+- added quant_table option to wepsave [Felix Bünemann]
+- added @n option to pdfload, thanks andris
+- dzsave won't write empty tiles in google mode, thanks bverem, perog,
+  felixbuenemann
+- allow nested [] in CLI args
+- restore BandFmt on unpremultiply in vipsthumbnail
+- better python detection and build [Felix Bünemann]
+- max-alpha defaults to 65535 for RGB16/GREY16
+- added radsave_buffer [Henri Chain]
+- support tiff orientation tag
+- autorotate option for tiff load
+- tiffsave converts for jpg if jpg compression is turned on
+- tiffsave supports --strip
+- conversions to GREY16 could lock
+- free pixel buffers on image close as well as thread exit ... stops main 
+  thread buffers clogging up the system
+- dzsave can write compressed zips [Felix Bünemann]
+- vips_image_write() only refs the input when it has to ... makes it easier to
+  combine many images in bounded memory
+- VImage::write() implementation was missing
+- VImage::write() return value changed from void to VImage to help chaining
+- added C++ arithmetic assignment overloads, += etc. 
+- VImage::ifthenelse() with double args was missing =0 on options
+- better accuracy for reducev with smarter multiplication
+- better quality for vips_resize() with linear/cubic kernels 
+- pyvips8 can create new metadata
+- better upsizing with vips_resize()
+- add imagemagick v7 support, thanks sachinwalia2k8 
+- added vips_worley(), vips_perlin() noise generators
+- added vips_convf(), vips_convi(), vips_convasep(), vips_conva() ... 
+  im_conv*() functions rewritten as classes
+- vips_convsep() calls vips_convasep() for the approximate case
+- new fixed-point vector path for convi is up to about 2x faster
+- gif loader can make 1, 2, 3, or 4 bands depending on file contents
+- support --strip for pngsave
+- add svgz support [Felix Bünemann]
+- rename boostrap.sh -> autogen.sh to help snapcraft
+- support unicode filenames on Windows 
+- added VIPS_ROUND as well as VIPS_RINT
+- resize/reduce*/shrink*/affine now round output size to nearest rather than 
+  rounding down, thanks ioquatix
+- better support for tile overlaps in google maps mode in dzsave
+- dzsave puts vips-properties.xml in the main dir for gm and zoomify layouts
+- resize and reduce have @centre option for centre convention downsampling
+- vipsthumbnail uses centre convention to better match imagemagick
+
+19/8/16 started 8.3.4
+- better transparency handling in gifload, thanks diegocsandrim
+
+30/7/16 started 8.3.3
+- fix performance regression in 8.3.2, thanks Lovell
+- yet more robust vips file reading
+
+18/5/16 started 8.3.2
+- more robust vips image reading
+- more robust tiff read [Matt Richards]
+>>>>>>> master
 
 15/4/16 started 8.3.1
 - rename vips wrapper script, it was still vips-8.2, thanks Benjamin
@@ -9,6 +110,7 @@
 - add giflib5 support
 - allow resize >1 on one axis, <1 on the other
 - vips_resize has an optional @kernel argument
+- fix giflib4 detection [felixbuenemann]
 
 29/1/16 started 8.3
 - add vips_reduce*() ... a fast path for affine downsize

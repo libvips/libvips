@@ -1,6 +1,6 @@
 # libvips : an image processing library
 
-[![Build Status](https://secure.travis-ci.org/jcupitt/libvips.png)](http://travis-ci.org/jcupitt/libvips)
+[![Build Status](https://travis-ci.org/jcupitt/libvips.svg?branch=master)](https://travis-ci.org/jcupitt/libvips)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
 libvips is a 2D image processing library. Compared to
@@ -25,6 +25,8 @@ binding](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/usin
 and a [command-line
 interface](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-cli.html).
 Bindings are available for [Ruby](https://rubygems.org/gems/ruby-vips),
+[PHP](https://github.com/jcupitt/php-vips),
+[Go](https://github.com/davidbyttow/govips),
 JavaScript and others. There is full
 [documentation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/index.html).
 There are several GUIs as well, see the [VIPS
@@ -80,7 +82,7 @@ and `gobject-introspection`, see the dependencies section below. For example:
 
 Then build the build system with:
 
-	$ ./bootstrap.sh
+	$ ./autogen.sh
 
 Debug build:
 
@@ -92,10 +94,13 @@ Debug build:
 Leak check:
 
 	$ export G_DEBUG=gc-friendly
-	$ export G_SLICE=always-malloc
 	$ valgrind --suppressions=libvips.supp \
 		--leak-check=yes \
 		vips ... > vips-vg.log 2>&1
+
+Memory error debug:
+
+	$ valgrind --vgdb=yes --vgdb-error=0 vips  ...
 
 valgrind threading check:
 
@@ -150,12 +155,14 @@ libraries automatically. See `./configure --help` for a set of flags to
 control library detection. Packages are generally found with `pkg-config`,
 so make sure that is working.
 
-libtiff and libjpeg do not usually use `pkg-config` so libvips looks for
+libtiff, giflib and libjpeg do not usually use `pkg-config` so libvips looks for
 them in the default path and in `$prefix`. If you have installed your own
 versions of these libraries in a different location, libvips will not see
 them. Use switches to libvips configure like:
 
 	./configure --prefix=/Users/john/vips \
+		--with-giflib-includes=/opt/local/include \
+		--with-giflib-libraries=/opt/local/lib \
 		--with-tiff-includes=/opt/local/include \
 		--with-tiff-libraries=/opt/local/lib \
 		--with-jpeg-includes=/opt/local/include \
@@ -186,8 +193,6 @@ If available, libvips adds support for EXIF metadata in JPEG files.
 
 The standard gif loader. If this is not present, vips will try to load gifs
 via imagemagick instead.
-
-vips will only work with giflib 4. 
 
 ### librsvg
 
@@ -237,6 +242,11 @@ graphicsmagick instead.
 Imagemagick 6.9+ needs to have been built with `--with-modules`. Most packaged
 IMs are, I think, but if you are rolling your own, you'll need to pass
 this flag to configure. 
+
+If you are going to be using libvips with untrusted images, perhaps in a
+web-server, for example, you should consider the security implications of
+using a package with such a large attack surface. You might prefer not to
+enable Magick support. 
 
 ### pangoft2
 

@@ -8,6 +8,8 @@
  * 	- add @all_frames option, off by default
  * 14/2/16
  * 	- add @page option, 0 by default
+ * 25/11/16
+ * 	- add @n, deprecate @all_frames (just sets n = -1)
  */
 
 /*
@@ -46,8 +48,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_MAGICK
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,14 +56,20 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#include "magick.h"
+#ifdef HAVE_MAGICK
+
+#include "pforeign.h"
 
 typedef struct _VipsForeignLoadMagick {
 	VipsForeignLoad parent_object;
 
-	gboolean all_frames;		/* Load all frames */
+	/* Deprecated. Just sets n = -1.
+	 */
+	gboolean all_frames;
+
 	char *density;			/* Load at this resolution */
 	int page;			/* Load this page (frame) */
+	int n;				/* Load this many pages */
 
 } VipsForeignLoadMagick;
 
@@ -110,7 +116,7 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 	VIPS_ARG_BOOL( class, "all_frames", 3, 
 		_( "all_frames" ), 
 		_( "Read all frames from an image" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick, all_frames ),
 		FALSE );
 
@@ -127,11 +133,19 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick, page ),
 		0, 100000, 0 );
+
+	VIPS_ARG_INT( class, "n", 6,
+		_( "n" ),
+		_( "Load this many pages" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadMagick, n ),
+		-1, 100000, 1 );
 }
 
 static void
 vips_foreign_load_magick_init( VipsForeignLoadMagick *magick )
 {
+	magick->n = 1;
 }
 
 typedef struct _VipsForeignLoadMagickFile {
@@ -154,7 +168,7 @@ ismagick( const char *filename )
 
 	t = vips_image_new();
 	vips_error_freeze();
-	result = vips__magick_read_header( filename, t, FALSE, NULL, 0 );
+	result = vips__magick_read_header( filename, t, NULL, 0, 1 );
 	g_object_unref( t );
 	vips_error_thaw();
 
@@ -175,8 +189,11 @@ vips_foreign_load_magick_file_header( VipsForeignLoad *load )
 	VipsForeignLoadMagickFile *magick_file = 
 		(VipsForeignLoadMagickFile *) load;
 
+	if( magick->all_frames )
+		magick->n = -1;
+
 	if( vips__magick_read( magick_file->filename, 
-		load->out, magick->all_frames, magick->density, magick->page ) )
+		load->out, magick->density, magick->page, magick->n ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, magick_file->filename );
@@ -236,7 +253,7 @@ vips_foreign_load_magick_buffer_is_a_buffer( const void *buf, size_t len )
 
 	t = vips_image_new();
 	vips_error_freeze();
-	result = vips__magick_read_buffer_header( buf, len, t, FALSE, NULL, 0 );
+	result = vips__magick_read_buffer_header( buf, len, t, NULL, 0, 1 );
 	g_object_unref( t );
 	vips_error_thaw();
 
@@ -257,9 +274,12 @@ vips_foreign_load_magick_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadMagickBuffer *magick_buffer = 
 		(VipsForeignLoadMagickBuffer *) load;
 
+	if( magick->all_frames )
+		magick->n = -1;
+
 	if( vips__magick_read_buffer( 
 		magick_buffer->buf->data, magick_buffer->buf->length, 
-		load->out, magick->all_frames, magick->density, magick->page ) )
+		load->out, magick->density, magick->page, magick->n ) )
 		return( -1 );
 
 	return( 0 );
@@ -298,3 +318,94 @@ vips_foreign_load_magick_buffer_init( VipsForeignLoadMagickBuffer *buffer )
 }
 
 #endif /*HAVE_MAGICK*/
+
+/**
+ * vips_magickload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load from this page
+ * * @n: %gint, load this many pages
+ * * @density: string, canvas resolution for rendering vector formats like SVG
+ *
+ * Read in an image using libMagick, the ImageMagick library. This library can
+ * read more than 80 file formats, including SVG, BMP, EPS, DICOM and many 
+ * others.
+ * The reader can handle any ImageMagick image, including the float and double
+ * formats. It will work with any quantum size, including HDR. Any metadata
+ * attached to the libMagick image is copied on to the VIPS image.
+ *
+ * The reader should also work with most versions of GraphicsMagick. See the
+ * "--with-magickpackage" configure option.
+ *
+ * Normally it will only load the first image in a many-image sequence (such
+ * as a GIF or a PDF). Use @page and @n to set the start page and number of
+ * pages to load. Set @n to -1 to load all pages from @page onwards.
+ *
+ * @density is "WxH" in DPI, e.g. "600x300" or "600" (default is "72x72"). See
+ * the [density 
+ * docs](http://www.imagemagick.org/script/command-line-options.php#density) 
+ * on the imagemagick website.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_magickload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "magickload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_magickload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load from this page
+ * * @n: %gint, load this many pages
+ * * @density: string, canvas resolution for rendering vector formats like SVG
+ *
+ * Read an image memory block using libMagick into a VIPS image. Exactly as
+ * vips_magickload(), but read from a memory source. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_magickload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_magickload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "magickload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}

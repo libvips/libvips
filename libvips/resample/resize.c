@@ -13,6 +13,15 @@
  * 1/5/16
  * 	- allow >1 on one axis, <1 on the other
  * 	- expose @kernel setting
+ * 16/6/16
+ * 	- better quality for linear/cubic kernels ... do more shrink and less
+ * 	  reduce
+ * 22/6/16
+ * 	- faster and better upsizing
+ * 15/8/16
+ * 	- more accurate resizing
+ * 9/9/16
+ * 	- add @centre option
  */
 
 /*
@@ -71,6 +80,7 @@ typedef struct _VipsResize {
 	double scale;
 	double vscale;
 	VipsKernel kernel;
+	gboolean centre;
 
 	/* Deprecated.
 	 */
@@ -84,80 +94,113 @@ typedef VipsResampleClass VipsResizeClass;
 
 G_DEFINE_TYPE( VipsResize, vips_resize, VIPS_TYPE_RESAMPLE ); 
 
+/* How much of a scale should be by an integer shrink factor?
+ *
+ * This depends on the scale and the kernel we will use for residual resizing.
+ * For upsizing and nearest-neighbour downsize, we want no shrinking. 
+ *
+ * Linear and cubic are fixed-size kernels and for a 0 offset are point
+ * samplers. We will get aliasing if we do more than a x2 shrink with them.
+ *
+ * Lanczos is adaptive: the size of the kernel changes with the shrink factor.
+ * We will get the best quality (but be the slowest) if we let reduce do all
+ * the work. Leave it the final 200 - 300% to do as a compromise for
+ * efficiency. 
+ *
+ * FIXME: this is rather ugly. Kernel should be a class and this info should be
+ * stored in there. 
+ */
+static int
+vips_resize_int_shrink( VipsResize *resize, double scale )
+{
+	if( scale > 1.0 )
+		return( 1 ); 
+
+	switch( resize->kernel ) { 
+	case VIPS_KERNEL_NEAREST:
+	     return( 1 ); 
+
+	case VIPS_KERNEL_LINEAR:
+	case VIPS_KERNEL_CUBIC:
+	default:
+		return( VIPS_FLOOR( 1.0 / scale ) );
+
+	case VIPS_KERNEL_LANCZOS2:
+	case VIPS_KERNEL_LANCZOS3:
+		return( VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (resize->scale * 2) ) ) );
+	}
+}
+
+/* Suggest a VipsInterpolate which corresponds to a VipsKernel. We use
+ * this to pick a thing for affine().
+ */
+static const char *
+vips_resize_interpolate( VipsKernel kernel )
+{
+	switch( kernel ) {
+	case VIPS_KERNEL_NEAREST:
+	     return( "nearest" ); 
+
+	case VIPS_KERNEL_LINEAR:
+	     return( "bilinear" ); 
+
+	/* Use cubic for everything else. There are other interpolators, like
+	 * nohalo, but they don't really correspond well to any kernel.
+	 */
+	default:
+	     return( "bicubic" ); 
+	}
+}
+
 static int
 vips_resize_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsResize *resize = (VipsResize *) object;
 
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
 
 	VipsImage *in;
-	int target_width;
-	int target_height;
+	double hscale;
+	double vscale;
 	int int_hshrink;
 	int int_vshrink;
-	double hresidual;
-	double vresidual;
 
 	if( VIPS_OBJECT_CLASS( vips_resize_parent_class )->build( object ) )
 		return( -1 );
 
 	in = resample->in;
 
-	/* The image size we are aiming for.
+	/* Updated below when we do the int part of our shrink.
 	 */
-	target_width = in->Xsize * resize->scale;
+	hscale = resize->scale;
 	if( vips_object_argument_isset( object, "vscale" ) ) 
-		target_height = in->Ysize * resize->vscale;
+		vscale = resize->vscale;
 	else
-		target_height = in->Ysize * resize->scale;
+		vscale = resize->scale;
 
-	/* If the factor is > 1.0, we need to zoom rather than shrink.
-	 * Just set the int part to 1 in this case.
+	/* The int part of our scale.
 	 */
-
-	/* We want the int part of the shrink to leave a bit to do with
-	 * blur/reduce/sharpen, or we'll see strange changes in aliasing on int
-	 * shrink boundaries as we resize.
-	 */
-
-	if( resize->scale > 1.0 )
-		int_hshrink = 1;
-	else
-		int_hshrink = VIPS_FLOOR( 1.0 / (resize->scale * 2) );
-	if( vips_object_argument_isset( object, "vscale" ) ) {
-		if( resize->vscale > 1.0 )
-			int_vshrink = 1;
-		else
-			int_vshrink = VIPS_FLOOR( 1.0 / (resize->vscale * 2) );
-	}
-	else
-		int_vshrink = int_hshrink;
+	int_hshrink = vips_resize_int_shrink( resize, hscale );
+	int_vshrink = vips_resize_int_shrink( resize, vscale );
 
 	if( int_vshrink > 1 ) { 
-		vips_info( class->nickname, "shrinkv by %d", int_vshrink );
+		g_info( "shrinkv by %d", int_vshrink );
 		if( vips_shrinkv( in, &t[0], int_vshrink, NULL ) )
 			return( -1 );
 		in = t[0];
+
+		vscale *= int_vshrink;
 	}
 
 	if( int_hshrink > 1 ) { 
-		vips_info( class->nickname, "shrinkh by %d", int_hshrink );
+		g_info( "shrinkh by %d", int_hshrink );
 		if( vips_shrinkh( in, &t[1], int_hshrink, NULL ) )
 			return( -1 );
 		in = t[1];
-	}
 
-	/* Do we need a further size adjustment? It's the difference
-	 * between our target size and the size we have after vips_shrink().
-	 *
-	 * This can break the aspect ratio slightly :/ but hopefully no one
-	 * will notice.
-	 */
-	hresidual = (double) target_width / in->Xsize;
-	vresidual = (double) target_height / in->Ysize;
+		hscale *= int_hshrink;
+	}
 
 	/* We will get overcomputation on vips_shrink() from the vips_reduce() 
 	 * coming later, so read into a cache where tiles are scanlines, and 
@@ -192,7 +235,7 @@ vips_resize_build( VipsObject *object )
 
 		vips_get_tile_size( in, 
 			&tile_width, &tile_height, &n_lines );
-		need_lines = 1.2 * n_lines / vresidual;
+		need_lines = 1.2 * n_lines / vscale;
 		if( vips_tilecache( in, &t[6], 
 			"tile_width", in->Xsize,
 			"tile_height", 10,
@@ -206,21 +249,22 @@ vips_resize_build( VipsObject *object )
 
 	/* Any residual downsizing.
 	 */
-	if( vresidual < 1.0 ) { 
-		vips_info( class->nickname, "residual reducev by %g", 
-			vresidual );
-		if( vips_reducev( in, &t[2], 1.0 / vresidual, 
+	if( vscale < 1.0 ) { 
+		g_info( "residual reducev by %g", vscale );
+		if( vips_reducev( in, &t[2], 1.0 / vscale, 
 			"kernel", resize->kernel, 
+			"centre", resize->centre, 
 			NULL ) )  
 			return( -1 );
 		in = t[2];
 	}
 
-	if( hresidual < 1.0 ) { 
-		vips_info( class->nickname, "residual reduceh by %g", 
-			hresidual );
-		if( vips_reduceh( in, &t[3], 1.0 / hresidual, 
+	if( hscale < 1.0 ) { 
+		g_info( "residual reduceh by %g", 
+			hscale );
+		if( vips_reduceh( in, &t[3], 1.0 / hscale, 
 			"kernel", resize->kernel, 
+			"centre", resize->centre, 
 			NULL ) )  
 			return( -1 );
 		in = t[3];
@@ -228,23 +272,41 @@ vips_resize_build( VipsObject *object )
 
 	/* Any upsizing.
 	 */
-	if( hresidual > 1.0 ) { 
-		vips_info( class->nickname, "residual scaleh %g", 
-			hresidual );
-		if( vips_affine( in, &t[4], hresidual, 0.0, 0.0, 1.0, 
-			"interpolate", vips_interpolate_nearest_static(), 
-			NULL ) )  
-			return( -1 );
-		in = t[4];
-	}
+	if( hscale > 1.0 ||
+		vscale > 1.0 ) { 
+		const char *nickname = vips_resize_interpolate( resize->kernel );
+		VipsInterpolate *interpolate;
 
-	if( vresidual > 1.0 ) { 
-		vips_info( class->nickname, "residual scalev %g", vresidual );
-		if( vips_affine( in, &t[5], 1.0, 0.0, 0.0, vresidual, 
-			"interpolate", vips_interpolate_nearest_static(), 
-			NULL ) )  
-			return( -1 );
-		in = t[5];
+		if( !(interpolate = vips_interpolate_new( nickname )) )
+			return( -1 ); 
+		vips_object_local( object, interpolate );
+
+		if( hscale > 1.0 && 
+			vscale > 1.0 ) { 
+			g_info( "residual scale %g x %g", hscale, vscale );
+			if( vips_affine( in, &t[4], 
+				hscale, 0.0, 0.0, vscale, 
+				"interpolate", interpolate, 
+				NULL ) )  
+				return( -1 );
+			in = t[4];
+		}
+		else if( hscale > 1.0 ) { 
+			g_info( "residual scale %g", hscale );
+			if( vips_affine( in, &t[4], hscale, 0.0, 0.0, 1.0, 
+				"interpolate", interpolate, 
+				NULL ) )  
+				return( -1 );
+			in = t[4];
+		}
+		else { 
+			g_info( "residual scale %g", vscale );
+			if( vips_affine( in, &t[4], 1.0, 0.0, 0.0, vscale, 
+				"interpolate", interpolate, 
+				NULL ) )  
+				return( -1 );
+			in = t[4];
+		}
 	}
 
 	if( vips_image_write( in, resample->out ) )
@@ -292,6 +354,13 @@ vips_resize_class_init( VipsResizeClass *class )
 		G_STRUCT_OFFSET( VipsResize, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
+	VIPS_ARG_BOOL( class, "centre", 7, 
+		_( "Centre" ), 
+		_( "Use centre sampling convention" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsResize, centre ),
+		FALSE );
+
 	/* We used to let people set the input offset so you could pick centre
 	 * or corner interpolation, but it's not clear this was useful. 
 	 */
@@ -309,9 +378,7 @@ vips_resize_class_init( VipsResizeClass *class )
 		G_STRUCT_OFFSET( VipsResize, idy ),
 		-10000000, 10000000, 0 );
 
-	/* We used to let people set the interpolator, but it's not clear this
-	 * was useful. Anyway, vips_reduce() no longer has an interpolator
-	 * param.
+	/* It's a kernel now we use vips_reduce() not vips_affine().
 	 */
 	VIPS_ARG_INTERPOLATE( class, "interpolate", 2, 
 		_( "Interpolate" ), 
@@ -336,22 +403,31 @@ vips_resize_init( VipsResize *resize )
  *
  * Optional arguments:
  *
- * * @vscale: vertical scale factor
+ * * @vscale: %gdouble vertical scale factor
  * * @kernel: #VipsKernel to reduce with 
+ * * @centre: %gboolean use centre rather than corner sampling convention
  *
- * Resize an image. When upsizing (@scale > 1), the image is simply block
- * upsized. When downsizing, the
+ * Resize an image. 
+ *
+ * When downsizing, the
  * image is block-shrunk with vips_shrink(), 
  * then the image is shrunk again to the 
- * target size with vips_reduce(). The operation will leave at least the final
- * x2 to be done with vips_reduce().
+ * target size with vips_reduce(). How much is done by vips_shrink() vs.
+ * vips_reduce() varies with the @kernel setting. 
+ *
+ * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for the final reduce, you
+ * can change this with @kernel.
+ *
+ * Set @centre to use centre rather than corner sampling convention. Centre
+ * convention can be useful to match the behaviour of other systems. 
+ *
+ * When upsizing (@scale > 1), the operation uses vips_affine() with
+ * a #VipsInterpolate selected depending on @kernel. It will use
+ * #VipsInterpolateBicubic for #VIPS_KERNEL_CUBIC and above.
  *
  * vips_resize() normally maintains the image apect ratio. If you set
  * @vscale, that factor is used for the vertical scale and @scale for the
  * horizontal.
- *
- * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for thre final shrink, you
- * can change this with @kernel.
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 

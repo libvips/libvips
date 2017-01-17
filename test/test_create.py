@@ -6,6 +6,8 @@ import math
 #import logging
 #logging.basicConfig(level = logging.DEBUG)
 
+import gi
+gi.require_version('Vips', '8.0')
 from gi.repository import Vips 
 
 Vips.leak_set(True)
@@ -436,6 +438,20 @@ class TestCreate(unittest.TestCase):
         im = Vips.Image.zone(128, 128)
         self.assertEqual(im.width, 128)
         self.assertEqual(im.height, 128)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+
+    def test_worley(self):
+        im = Vips.Image.worley(512, 512)
+        self.assertEqual(im.width, 512)
+        self.assertEqual(im.height, 512)
+        self.assertEqual(im.bands, 1)
+        self.assertEqual(im.format, Vips.BandFormat.FLOAT)
+
+    def test_perlin(self):
+        im = Vips.Image.perlin(512, 512)
+        self.assertEqual(im.width, 512)
+        self.assertEqual(im.height, 512)
         self.assertEqual(im.bands, 1)
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
 

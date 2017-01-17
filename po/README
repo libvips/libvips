@@ -20,7 +20,7 @@ and it would display as "Sevy imago os ...", with the "m" underlined.
 tips
 ----
 
-cd vips-7.x.x 
+cd vips-8.x
 find */* -name "*.c" > po/POTFILES.in
 find */* -name "*.cc" >> po/POTFILES.in
 find */* -name "*.h" >> po/POTFILES.in

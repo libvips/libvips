@@ -147,8 +147,8 @@ wbuffer_free( WriteBuffer *wbuffer )
 
 		/* Return value is always NULL (see wbuffer_write_thread).
 		 */
-		(void) g_thread_join( wbuffer->thread );
-		VIPS_DEBUG_MSG( "wbuffer_free: g_thread_join()\n" );
+		(void) vips_g_thread_join( wbuffer->thread );
+		VIPS_DEBUG_MSG( "wbuffer_free: vips_g_thread_join()\n" );
 
 		wbuffer->thread = NULL;
         }
@@ -300,7 +300,8 @@ wbuffer_position( WriteBuffer *wbuffer, int top, int height )
 
 	/* This should be an exclusive buffer, hopefully.
 	 */
-	g_assert( !wbuffer->region->buffer->done );
+	if( !result )
+		g_assert( !wbuffer->region->buffer->done );
 
 	return( result );
 }
@@ -333,8 +334,10 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 			/* Block until the write of the previous buffer 
 			 * is done, then set write of this buffer going.
 			 */
-			if( wbuffer_flush( write ) )
+			if( wbuffer_flush( write ) ) {
+				*stop = TRUE;
 				return( -1 );
+			}
 
 			/* End of image?
 			 */
@@ -358,8 +361,10 @@ wbuffer_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 			/* Position buf at the new y.
 			 */
 			if( wbuffer_position( write->buf, 
-				sink_base->y, sink_base->nlines ) )
+				sink_base->y, sink_base->nlines ) ) {
+				*stop = TRUE;
 				return( -1 );
+			}
 		}
 	}
 

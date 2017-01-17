@@ -186,7 +186,7 @@ vips_bandbool_buffer( VipsBandary *bandary,
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
-/* Type conversions for boolean. 
+/* Format conversions for boolean. 
  */
 static const VipsBandFormat vips_bandbool_format_table[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */

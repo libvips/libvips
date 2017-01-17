@@ -39,7 +39,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "../foreign/webp.h"
+#include "../foreign/pforeign.h"
 
 static int
 webp2vips( const char *name, IMAGE *out, gboolean header_only )

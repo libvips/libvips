@@ -120,6 +120,9 @@ vips_morph_build( VipsObject *object )
 		g_assert_not_reached();
 	}
 
+	vips_reorder_margin_hint( morph->out, 
+		morph->M->Xsize * morph->M->Ysize );
+
 	return( 0 );
 }
 

@@ -50,14 +50,6 @@
 
 #include "pconversion.h"
 
-/* Round N down to P boundary. 
- */
-#define ROUND_DOWN( N, P ) ((N) - ((N) % P)) 
-
-/* Round N up to P boundary. 
- */
-#define ROUND_UP( N, P ) (ROUND_DOWN( (N) + (P) - 1, (P) ))
-
 typedef struct _VipsArrayjoin {
 	VipsConversion parent_instance;
 
@@ -179,7 +171,7 @@ vips_arrayjoin_build( VipsObject *object )
 
 	/* How many images down the grid?
 	 */
-	join->down = ROUND_UP( n, join->across ) / join->across;
+	join->down = VIPS_ROUND_UP( n, join->across ) / join->across;
 
 	/* The output size.
 	 */
@@ -394,16 +386,17 @@ vips_arrayjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
  * @in: (array length=n) (transfer none): array of input images
  * @out: output image
  * @n: number of input images
+ * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
- * * @across: number of images per row
- * * @shim: space between images, in pixels
- * * @background: background ink colour
- * * @halign: low, centre or high alignment
- * * @valign: low, centre or high alignment
- * * @hspacing: horizontal distance between images
- * * @vspacing: vertical distance between images
+ * * @across: %gint, number of images per row
+ * * @shim: %gint, space between images, in pixels
+ * * @background: #VipsArrayDouble, background ink colour
+ * * @halign: #VipsAlign, low, centre or high alignment
+ * * @valign: #VipsAlign, low, centre or high alignment
+ * * @hspacing: %gint, horizontal distance between images
+ * * @vspacing: %gint, vertical distance between images
  *
  * Lay out the images in @in in a grid. The grid is @across images across and
  * however high is necessary to use up all of @in. Images are set down

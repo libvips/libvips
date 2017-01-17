@@ -20,6 +20,11 @@
  * 18/12/13
  * 	- keep a few buffers in reserve per image, stops malloc/free 
  * 	  cycling when sharing is repeatedly discovered
+ * 6/6/16
+ * 	- free buffers on image close as well as thread exit, so main thread
+ * 	  buffers don't clog up the system
+ * 13/10/16
+ * 	- better solution: don't keep a buffercache for non-workers
  */
 
 /*
@@ -81,7 +86,25 @@ static GSList *vips__buffer_cache_all = NULL;
  */
 static const int buffer_cache_max_reserve = 2; 
 
+/* Workers have a BufferThread (and BufferCache) in a GPrivate they have 
+ * exclusive access to.
+ */
 static GPrivate *buffer_thread_key = NULL;
+
+void
+vips_buffer_print( VipsBuffer *buffer )
+{
+	printf( "VipsBuffer: %p ref_count = %d, ", buffer, buffer->ref_count );
+	printf( "im = %p, ", buffer->im );
+	printf( "area.left = %d, ", buffer->area.left );
+	printf( "area.top = %d, ", buffer->area.top );
+	printf( "area.width = %d, ", buffer->area.width );
+	printf( "area.height = %d, ", buffer->area.height );
+	printf( "done = %d, ", buffer->done );
+	printf( "cache = %p, ", buffer->cache );
+	printf( "buf = %p, ", buffer->buf );
+	printf( "bsize = %zd\n", buffer->bsize );
+}
 
 #ifdef DEBUG
 static void *
@@ -89,18 +112,38 @@ vips_buffer_dump( VipsBuffer *buffer, size_t *reserve, size_t *alive )
 {
 	vips_buffer_print( buffer ); 
 
-	if( buffer->im &&
-		buffer->buf &&
-		buffer->cache ) {  
-		printf( "buffer %p, %.3g MB\n", 
+	g_assert( buffer->im );
+	g_assert( buffer->buf );
+
+	if( !buffer->cache &&
+		!buffer->done ) {  
+		/* Global buffer, not linked to any cache.
+		 */
+		printf( "global buffer %p, %.3g MB\n", 
 			buffer, buffer->bsize / (1024 * 1024.0) ); 
 		*alive += buffer->bsize;
 	}
-	else 
-	if( buffer->im &&
-		buffer->buf &&
-		!buffer->cache )   	
+
+	else if( buffer->cache &&
+		buffer->done &&
+		!vips_rect_isempty( &buffer->area ) &&
+		g_slist_find( buffer->cache->buffers, buffer ) ) {
+		/* Published on a thread. 
+		 */
+		printf( "thread buffer %p, %.3g MB\n", 
+			buffer, buffer->bsize / (1024 * 1024.0) ); 
+		*alive += buffer->bsize;
+	}
+
+	else if( buffer->ref_count == 0 &&
+		buffer->cache &&
+		!buffer->done &&
+		vips_rect_isempty( &buffer->area ) &&
+		g_slist_find( buffer->cache->reserve, buffer ) )
+		/* Held in reserve.
+		 */
 		*reserve += buffer->bsize;
+
 	else
 		printf( "buffer craziness!\n" ); 
 
@@ -156,7 +199,7 @@ vips_buffer_dump_all( void )
 static void
 vips_buffer_free( VipsBuffer *buffer )
 {
-	vips_tracked_free( buffer->buf );
+	VIPS_FREEF( vips_tracked_free, buffer->buf );
 	buffer->bsize = 0;
 	g_free( buffer );
 
@@ -168,6 +211,10 @@ vips_buffer_free( VipsBuffer *buffer )
 
 	g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG*/
+
+#ifdef DEBUG_VERBOSE
+	printf( "vips_buffer_free: freeing buffer %p\n", buffer );
+#endif /*DEBUG_VERBOSE*/
 }
 
 static void
@@ -177,6 +224,8 @@ buffer_thread_free( VipsBufferThread *buffer_thread )
 	VIPS_FREE( buffer_thread );
 }
 
+/* Run for GDestroyNotify on the VipsBufferThread hash. 
+ */
 static void
 buffer_cache_free( VipsBufferCache *cache )
 {
@@ -194,13 +243,17 @@ buffer_cache_free( VipsBufferCache *cache )
 		g_slist_length( vips__buffer_cache_all ) );
 #endif /*DEBUG_CREATE*/
 
-	/* Need to mark undone so we don't try and take them off this hash on
+	/* Need to mark undone so we don't try and take them off this cache on
 	 * unref.
 	 */
 	for( p = cache->buffers; p; p = p->next ) {
 		VipsBuffer *buffer = (VipsBuffer *) p->data;
 
+		g_assert( buffer->done ); 
+		g_assert( buffer->cache == cache ); 
+
 		buffer->done = FALSE;
+		buffer->cache = NULL;
 	}
 	VIPS_FREEF( g_slist_free, cache->buffers );
 
@@ -233,8 +286,8 @@ buffer_cache_new( VipsBufferThread *buffer_thread, VipsImage *im )
 		g_slist_prepend( vips__buffer_cache_all, cache );
 	g_mutex_unlock( vips__global_lock );
 
-	printf( "buffer_cache_new: new cache %p for thread %p\n",
-		cache, g_thread_self() );
+	printf( "buffer_cache_new: new cache %p for thread %p on image %p\n",
+		cache, g_thread_self(), im );
 	printf( "\t(%d caches now)\n", 
 		g_slist_length( vips__buffer_cache_all ) );
 #endif /*DEBUG_CREATE*/
@@ -256,35 +309,50 @@ buffer_thread_new( void )
 	return( buffer_thread );
 }
 
+/* Get our private VipsBufferThread. NULL for non-worker threads.
+ */
 static VipsBufferThread *
 buffer_thread_get( void )
 {
 	VipsBufferThread *buffer_thread;
 
-	if( !(buffer_thread = g_private_get( buffer_thread_key )) ) {
-		buffer_thread = buffer_thread_new();
-		g_private_set( buffer_thread_key, buffer_thread );
-	}
+	if( vips_thread_isworker() ) {
+		/* Workers get a private set of buffers.
+		 */
+		if( !(buffer_thread = g_private_get( buffer_thread_key )) ) {
+			buffer_thread = buffer_thread_new();
+			g_private_set( buffer_thread_key, buffer_thread );
+		}
 
-	g_assert( buffer_thread->thread == g_thread_self() ); 
+		g_assert( buffer_thread->thread == g_thread_self() ); 
+	}
+	else 
+		/* Non-workers don't have one. 
+		 */
+		buffer_thread = NULL; 
 
 	return( buffer_thread );
 }
 
+/* Get the VipsBufferCache for this image, or NULL for a non-worker.
+ */
 static VipsBufferCache *
 buffer_cache_get( VipsImage *im )
 {
-	VipsBufferThread *buffer_thread = buffer_thread_get();
-
+	VipsBufferThread *buffer_thread;
 	VipsBufferCache *cache;
 
-	if( !(cache = (VipsBufferCache *) 
-		g_hash_table_lookup( buffer_thread->hash, im )) ) {
-		cache = buffer_cache_new( buffer_thread, im );
-		g_hash_table_insert( buffer_thread->hash, im, cache );
-	}
+	if( (buffer_thread = buffer_thread_get()) ) { 
+		if( !(cache = (VipsBufferCache *) 
+			g_hash_table_lookup( buffer_thread->hash, im )) ) {
+			cache = buffer_cache_new( buffer_thread, im );
+			g_hash_table_insert( buffer_thread->hash, im, cache );
+		}
 
-	g_assert( cache->thread == g_thread_self() ); 
+		g_assert( cache->thread == g_thread_self() ); 
+	}
+	else
+		cache = NULL;
 
 	return( cache ); 
 }
@@ -294,16 +362,11 @@ buffer_cache_get( VipsImage *im )
 void 
 vips_buffer_done( VipsBuffer *buffer )
 {
-	if( !buffer->done ) {
-		VipsImage *im = buffer->im;
-		VipsBufferCache *cache = buffer_cache_get( im ); 
+	VipsImage *im = buffer->im;
+	VipsBufferCache *cache;
 
-#ifdef DEBUG_VERBOSE
-		printf( "vips_buffer_done: thread %p adding to cache %p\n",
-			g_thread_self(), cache );
-		vips_buffer_print( buffer ); 
-#endif /*DEBUG_VERBOSE*/
-
+	if( !buffer->done &&
+		(cache = buffer_cache_get( im )) ) { 
 		g_assert( !g_slist_find( cache->buffers, buffer ) );
 		g_assert( !buffer->cache ); 
 
@@ -311,6 +374,13 @@ vips_buffer_done( VipsBuffer *buffer )
 		buffer->cache = cache;
 
 		cache->buffers = g_slist_prepend( cache->buffers, buffer );
+
+#ifdef DEBUG_VERBOSE
+		printf( "vips_buffer_done: "
+			"thread %p adding buffer %p to cache %p\n",
+			g_thread_self(), buffer, cache );
+		vips_buffer_print( buffer ); 
+#endif /*DEBUG_VERBOSE*/
 	}
 }
 
@@ -331,15 +401,15 @@ vips_buffer_undone( VipsBuffer *buffer )
 		g_assert( cache->thread == g_thread_self() );
 		g_assert( cache->buffer_thread->thread == cache->thread );
 		g_assert( g_slist_find( cache->buffers, buffer ) );
+		g_assert( buffer_thread_get() );
 		g_assert( cache->buffer_thread == buffer_thread_get() );
 
 		cache->buffers = g_slist_remove( cache->buffers, buffer );
-
 		buffer->done = FALSE;
 
 #ifdef DEBUG_VERBOSE
 		printf( "vips_buffer_undone: %d buffers left\n",
-			g_slist_length( cache_list->buffers ) );
+			g_slist_length( cache->buffers ) );
 #endif /*DEBUG_VERBOSE*/
 	}
 
@@ -364,8 +434,7 @@ vips_buffer_unref( VipsBuffer *buffer )
 	buffer->ref_count -= 1;
 
 	if( buffer->ref_count == 0 ) {
-		VipsImage *im = buffer->im;
-		VipsBufferCache *cache = buffer_cache_get( im ); 
+		VipsBufferCache *cache;
 
 #ifdef DEBUG_VERBOSE
 		if( !buffer->done )
@@ -376,13 +445,15 @@ vips_buffer_unref( VipsBuffer *buffer )
 
 		/* Place on this thread's reserve list for reuse.
 		 */
-		if( cache->n_reserve < buffer_cache_max_reserve ) { 
+		if( (cache = buffer_cache_get( buffer->im )) && 
+			cache->n_reserve < buffer_cache_max_reserve ) { 
 			g_assert( !buffer->cache ); 
 
 			cache->reserve = 
 				g_slist_prepend( cache->reserve, buffer );
 			cache->n_reserve += 1; 
 
+			buffer->cache = cache;
 			buffer->area.width = 0;
 			buffer->area.height = 0;
 		}
@@ -422,20 +493,21 @@ buffer_move( VipsBuffer *buffer, VipsRect *area )
 VipsBuffer *
 vips_buffer_new( VipsImage *im, VipsRect *area )
 {
-	VipsBufferCache *cache = buffer_cache_get( im );
-
+	VipsBufferCache *cache;
 	VipsBuffer *buffer;
 
-	if( cache->reserve ) { 
+	if( (cache = buffer_cache_get( im )) && 
+		cache->reserve ) { 
 		buffer = (VipsBuffer *) cache->reserve->data;
 		cache->reserve = g_slist_remove( cache->reserve, buffer ); 
 		cache->n_reserve -= 1; 
 
 		g_assert( buffer->im == im );
 		g_assert( buffer->done == FALSE );
-		g_assert( !buffer->cache );
+		g_assert( buffer->cache );
 
 		buffer->ref_count = 1;
+		buffer->cache = NULL;
 	}
 	else {
 		buffer = g_new0( VipsBuffer, 1 );
@@ -462,19 +534,23 @@ vips_buffer_new( VipsImage *im, VipsRect *area )
 	return( buffer );
 }
 
-/* Find an existing buffer that encloses area and return a ref.
+/* Find an existing buffer that encloses area and return a ref. Or NULL for no
+ * existing buffer. 
  */
 static VipsBuffer *
 buffer_find( VipsImage *im, VipsRect *r )
 {
-	VipsBufferCache *cache = buffer_cache_get( im );
-
+	VipsBufferCache *cache;
 	VipsBuffer *buffer;
 	GSList *p;
 	VipsRect *area;
 
+	if( !(cache = buffer_cache_get( im )) ) 
+		return( NULL ); 
+
 	/* This needs to be quick :-( don't use
-	 * vips_slist_map2()/vips_rect_includesrect(), do the search inline.
+	 * vips_slist_map2()/vips_rect_includesrect(), do the search 
+	 * inline.
 	 *
 	 * FIXME we return the first enclosing buffer, perhaps we should
 	 * search for the largest? 
@@ -490,7 +566,7 @@ buffer_find( VipsImage *im, VipsRect *r )
 			buffer->ref_count += 1;
 
 #ifdef DEBUG_VERBOSE
-			printf( "vips_buffer_find: left = %d, top = %d, "
+			printf( "buffer_find: left = %d, top = %d, "
 				"width = %d, height = %d, count = %d (%p)\n",
 				buffer->area.left, buffer->area.top, 
 				buffer->area.width, buffer->area.height, 
@@ -513,13 +589,10 @@ vips_buffer_ref( VipsImage *im, VipsRect *area )
 {
 	VipsBuffer *buffer;
 
-	if( !(buffer = buffer_find( im, area )) ) 
-		/* No existing buffer ... make a new one.
-		 */
-		if( !(buffer = vips_buffer_new( im, area )) ) 
-			return( NULL );
-
-	return( buffer );
+	if( (buffer = buffer_find( im, area )) ) 
+		return( buffer ); 
+	else
+		return( vips_buffer_new( im, area ) );
 }
 
 /* Unref old, ref new, in a single operation. Reuse stuff if we can. The
@@ -567,45 +640,32 @@ vips_buffer_unref_ref( VipsBuffer *old_buffer, VipsImage *im, VipsRect *area )
 	return( buffer );
 }
 
-void
-vips_buffer_print( VipsBuffer *buffer )
-{
-	printf( "VipsBuffer: %p ref_count = %d, ", buffer, buffer->ref_count );
-	printf( "im = %p, ", buffer->im );
-	printf( "area.left = %d, ", buffer->area.left );
-	printf( "area.top = %d, ", buffer->area.top );
-	printf( "area.width = %d, ", buffer->area.width );
-	printf( "area.height = %d, ", buffer->area.height );
-	printf( "done = %d, ", buffer->done );
-	printf( "buf = %p, ", buffer->buf );
-	printf( "bsize = %zd\n", buffer->bsize );
-}
-
 static void
-vips__buffer_init_cb( VipsBufferThread *buffer_thread )
+buffer_thread_destroy_notify( VipsBufferThread *buffer_thread )
 {
 	/* We only come here if vips_thread_shutdown() was not called for this
 	 * thread. Do our best to clean up.
 	 *
-	 * GPrivate has stopped working, be careful not to touch that. 
+	 * GPrivate has stopped working by this point in destruction, be 
+	 * careful not to touch that. 
 	 */
 	buffer_thread_free( buffer_thread );
 }
 
-/* Init the buffer cache system.
+/* Init the buffer cache system. This is called during vips_init.
  */
 void
 vips__buffer_init( void )
 {
 #ifdef HAVE_PRIVATE_INIT
 	static GPrivate private = 
-		G_PRIVATE_INIT( (GDestroyNotify) vips__buffer_init_cb );
+		G_PRIVATE_INIT( (GDestroyNotify) buffer_thread_destroy_notify );
 
 	buffer_thread_key = &private;
 #else
 	if( !buffer_thread_key ) 
 		buffer_thread_key = g_private_new( 
-			(GDestroyNotify) vips__buffer_init_cb );
+			(GDestroyNotify) buffer_thread_destroy_notify );
 #endif
 
 	if( buffer_cache_max_reserve < 1 )
@@ -620,13 +680,3 @@ vips__buffer_init( void )
 #endif /*DEBUG_CREATE*/
 }
 
-void
-vips__buffer_shutdown( void )
-{
-	VipsBufferThread *buffer_thread;
-
-	if( (buffer_thread = g_private_get( buffer_thread_key )) ) {
-		buffer_thread_free( buffer_thread );
-		g_private_set( buffer_thread_key, NULL );
-	}
-}

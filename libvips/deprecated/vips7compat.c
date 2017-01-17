@@ -649,12 +649,11 @@ process_region( VipsRegion *or, void *seq, void *a, void *b )
 
 	/* Prepare all input regions and make buffer pointers.
 	 */
-	for( i = 0; ir[i]; i++ ) {
-		if( vips_region_prepare( ir[i], &or->valid ) ) 
-			return( -1 );
+	if( vips_reorder_prepare_many( or->im, ir, &or->valid ) ) 
+		return( -1 );
+	for( i = 0; ir[i]; i++ ) 
 		p[i] = (PEL *) VIPS_REGION_ADDR( ir[i], 
 			or->valid.left, or->valid.top );
-	}
 	p[i] = NULL;
 	q = (PEL *) VIPS_REGION_ADDR( or, or->valid.left, or->valid.top );
 
@@ -2402,6 +2401,116 @@ im_convsep_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	g_object_unref( t2 );
 
 	return( 0 );
+}
+
+int 
+im_conv( VipsImage *in, VipsImage *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_convi( in, &t2, t1, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_conv_raw( VipsImage *in, VipsImage *out, INTMASK *mask )
+{
+	im_error( "im_conv_raw", "no compat function" );
+	return( -1 );
+}
+
+int 
+im_conv_f( VipsImage *in, VipsImage *out, DOUBLEMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_mask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_convf( in, &t2, t1, 
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int 
+im_aconvsep( VipsImage *in, VipsImage *out, DOUBLEMASK *mask, int n_layers )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_mask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_convasep( in, &t2, t1, 
+		"layers", n_layers,
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int 
+im_aconv( VipsImage *in, VipsImage *out, 
+	DOUBLEMASK *mask, int n_layers, int cluster )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_mask2vips( mask, t1 ) )
+		return( -1 );
+	if( vips_conva( in, &t2, t1, 
+		"layers", n_layers,
+		"cluster", cluster,
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_conv_f_raw( VipsImage *in, VipsImage *out, DOUBLEMASK *mask )
+{
+	im_error( "im_conv_f_raw", "no compat function" );
+	return( -1 );
 }
 
 int

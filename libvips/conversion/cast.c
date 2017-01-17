@@ -126,11 +126,9 @@ vips_cast_preeval( VipsImage *image, VipsProgress *progress, VipsCast *cast )
 static void
 vips_cast_posteval( VipsImage *image, VipsProgress *progress, VipsCast *cast )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( cast );
-
-	if( cast->overflow || cast->underflow ) 
-		vips_warn( class->nickname, 
-			_( "%d underflows and %d overflows detected" ),
+	if( cast->overflow || 
+		cast->underflow ) 
+		g_warning( _( "%d underflows and %d overflows detected" ),
 			cast->underflow, cast->overflow );
 }
 
@@ -587,7 +585,7 @@ vips_castv( VipsImage *in, VipsImage **out, VipsBandFormat format, va_list ap )
  *
  * Optional arguments:
  *
- * * @shift: integer values are shifted
+ * * @shift: %gboolean, integer values are shifted
  *
  * Convert @in to @format. You can convert between any pair of formats.
  * Floats are truncated (not rounded). Out of range values are clipped.

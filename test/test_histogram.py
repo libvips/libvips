@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim: set fileencoding=utf-8 :
 
 import unittest
 import math
@@ -6,6 +7,8 @@ import math
 #import logging
 #logging.basicConfig(level = logging.DEBUG)
 
+import gi
+gi.require_version('Vips', '8.0')
 from gi.repository import Vips 
 
 Vips.leak_set(True)
@@ -46,7 +49,7 @@ class TestHistogram(unittest.TestCase):
         self.assertEqual(p[0], sum)
 
     def test_hist_equal(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        im = Vips.Image.new_from_file("images/йцук.jpg")
 
         im2 = im.hist_equal()
 
@@ -61,7 +64,7 @@ class TestHistogram(unittest.TestCase):
         self.assertTrue(im.hist_ismonotonic())
 
     def test_hist_local(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        im = Vips.Image.new_from_file("images/йцук.jpg")
 
         im2 = im.hist_local(10, 10)
 
@@ -102,7 +105,7 @@ class TestHistogram(unittest.TestCase):
         self.assertEqual((im - im2).abs().max(), 0.0)
 
     def test_percent(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg").extract_band(1)
+        im = Vips.Image.new_from_file("images/йцук.jpg").extract_band(1)
 
         pc = im.percent(90)
 
@@ -113,14 +116,14 @@ class TestHistogram(unittest.TestCase):
         self.assertAlmostEqual(pc_set, 90, places = 0)
 
     def test_hist_entropy(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg").extract_band(1)
+        im = Vips.Image.new_from_file("images/йцук.jpg").extract_band(1)
 
         ent = im.hist_find().hist_entropy()
 
         self.assertAlmostEqual(ent, 4.367, places = 3)
 
     def test_stdif(self):
-        im = Vips.Image.new_from_file("images/IMG_4618.jpg")
+        im = Vips.Image.new_from_file("images/йцук.jpg")
 
         im2 = im.stdif(10, 10)
 

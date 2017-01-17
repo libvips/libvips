@@ -53,10 +53,13 @@ extern "C" {
 
 #define VIPS_MAX( A, B ) ((A) > (B) ? (A) : (B))
 #define VIPS_MIN( A, B ) ((A) < (B) ? (A) : (B))
-#define VIPS_ABS( X ) (((X) >= 0) ? (X) : -(X))
 
 #define VIPS_CLIP( A, V, B ) VIPS_MAX( (A), VIPS_MIN( (B), (V) ) )
+#define VIPS_FCLIP( A, V, B ) VIPS_FMAX( (A), VIPS_FMIN( (B), (V) ) )
+
 #define VIPS_NUMBER( R ) ((int) (sizeof(R) / sizeof(R[0])))
+
+#define VIPS_ABS( X ) (((X) >= 0) ? (X) : -(X))
 
 /* The built-in isnan and isinf functions provided by gcc 4+ and clang are
  * up to 7x faster than their libc equivalent included from <math.h>.
@@ -67,6 +70,7 @@ extern "C" {
 #define VIPS_FLOOR( V ) __builtin_floor( V )
 #define VIPS_CEIL( V ) __builtin_ceil( V )
 #define VIPS_RINT( V ) __builtin_rint( V )
+#define VIPS_ROUND( V ) __builtin_round( V )
 #define VIPS_FABS( V ) __builtin_fabs( V )
 #define VIPS_FMAX( A, B ) __builtin_fmax( A, B )
 #define VIPS_FMIN( A, B ) __builtin_fmin( A, B )
@@ -75,13 +79,25 @@ extern "C" {
 #define VIPS_ISINF( V ) isinf( V )
 #define VIPS_FLOOR( V ) floor( V )
 #define VIPS_CEIL( V ) ceil( V )
-#define VIPS_RINT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
+#define VIPS_RINT( R ) rint( V )
+#define VIPS_ROUND( V ) round( V )
 #define VIPS_FABS( V ) VIPS_ABS( V )
 #define VIPS_FMAX( A, B ) VIPS_MAX( A, B )
 #define VIPS_FMIN( A, B ) VIPS_MIN( A, B )
 #endif
 
-#define VIPS_FCLIP( A, V, B ) VIPS_FMAX( (A), VIPS_FMIN( (B), (V) ) )
+/* VIPS_RINT() does "bankers rounding", it rounds to the nerarest even integer.
+ * For things like image geometry, we want strict nearest int.
+ *
+ * If you know it's unsigned, _UINT is a little faster. 
+ */
+#define VIPS_ROUND_INT( R ) ((int) ((R) > 0 ? ((R) + 0.5) : ((R) - 0.5)))
+#define VIPS_ROUND_UINT( R ) ((int) ((R) + 0.5))
+
+/* Round N down and up to the nearest multiple of P.
+ */
+#define VIPS_ROUND_DOWN( N, P ) ((N) - ((N) % (P))) 
+#define VIPS_ROUND_UP( N, P ) (VIPS_ROUND_DOWN( (N) + (P) - 1, (P) ))
 
 #define VIPS_SWAP( TYPE, A, B ) \
 G_STMT_START { \
@@ -119,6 +135,14 @@ G_STMT_START { \
 	} \
 } G_STMT_END
 
+/* The g_info() macro was added in 2.40.
+ */
+#ifndef g_info
+/* Hopefully we have varargs macros. Maybe revisit this. 
+ */
+#define g_info(...) \
+	 g_log( G_LOG_DOMAIN, G_LOG_LEVEL_INFO, __VA_ARGS__ )
+#endif
 
 /* Various integer range clips. Record over/under flows.
  */
@@ -207,6 +231,7 @@ void *vips_hash_table_map( GHashTable *hash,
 char *vips_strncpy( char *dest, const char *src, int n );
 char *vips_strrstr( const char *haystack, const char *needle );
 gboolean vips_ispostfix( const char *a, const char *b );
+gboolean vips_iscasepostfix( const char *a, const char *b );
 gboolean vips_isprefix( const char *a, const char *b );
 char *vips_break_token( char *str, const char *brk );
 
@@ -220,6 +245,10 @@ int vips_filename_suffix_match( const char *path, const char *suffixes[] );
 
 gint64 vips_file_length( int fd );
 int vips__write( int fd, const void *buf, size_t count );
+
+int vips__open( const char *filename, int flags, ... );
+int vips__open_read( const char *filename );
+FILE *vips__fopen( const char *filename, const char *mode );
 
 FILE *vips__file_open_read( const char *filename, 
 	const char *fallback_dir, gboolean text_mode );
@@ -280,6 +309,10 @@ const char *vips__token_get( const char *buffer,
 const char *vips__token_must( const char *buffer, VipsToken *token, 
 	char *string, int size );
 const char *vips__token_need( const char *buffer, VipsToken need_token, 
+	char *string, int size );
+const char *vips__token_segment( const char *p, VipsToken *token, 
+	char *string, int size );
+const char *vips__token_segment_need( const char *p, VipsToken need_token, 
 	char *string, int size );
 const char *vips__find_rightmost_brackets( const char *p );
 void vips__filename_split8( const char *name, 

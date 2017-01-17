@@ -392,7 +392,8 @@ vips_math2_const_class_init( VipsMath2ConstClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "math2_const";
-	object_class->description = _( "pow( @in, @c )" );
+	object_class->description = 
+		_( "binary math operations with a constant" );
 	object_class->build = vips_math2_const_build;
 
 	aclass->process_line = vips_math2_const_buffer;

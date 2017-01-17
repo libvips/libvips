@@ -234,9 +234,8 @@ vips_colour_gen( VipsRegion *or,
 	int i, y;
 	VipsPel *p[MAX_INPUT_IMAGES], *q;
 
-	for( i = 0; ir[i]; i++ ) 
-		if( vips_region_prepare( ir[i], r ) ) 
-			return( -1 );
+	if( vips_reorder_prepare_many( or->im, ir, r ) )
+		return( -1 );
 
 	VIPS_GATE_START( "vips_colour_gen: work" ); 
 

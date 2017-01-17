@@ -41,6 +41,8 @@
  * 6/6/13
  * 	- don't chunk horizontally, fixes seq problems with large shrink
  * 	  factors
+ * 15/8/16
+ * 	- rename yshrink -> vshrink for greater consistency 
  */
 
 /*
@@ -93,7 +95,7 @@
 typedef struct _VipsShrinkv {
 	VipsResample parent_instance;
 
-	int yshrink;
+	int vshrink;
 	size_t sizeof_line_buffer;
 
 } VipsShrinkv;
@@ -200,7 +202,7 @@ vips_shrinkv_add_line( VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		q[x] = (sum[x] + shrink->yshrink / 2) / shrink->yshrink; \
+		q[x] = (sum[x] + shrink->vshrink / 2) / shrink->vshrink; \
 } 
 
 /* Float average. 
@@ -210,7 +212,7 @@ vips_shrinkv_add_line( VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		q[x] = sum[x] / shrink->yshrink; \
+		q[x] = sum[x] / shrink->vshrink; \
 } 
 
 /* Average the line of sums to out. 
@@ -287,11 +289,11 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 	for( y = 0; y < r->height; y++ ) { 
 		memset( seq->sum, 0, shrink->sizeof_line_buffer ); 
 
-		for( y1 = 0; y1 < shrink->yshrink; y1++ ) { 
+		for( y1 = 0; y1 < shrink->vshrink; y1++ ) { 
 			VipsRect s;
 
 			s.left = r->left;
-			s.top = y1 + (y + r->top) * shrink->yshrink;
+			s.top = y1 + (y + r->top) * shrink->vshrink;
 			s.width = r->width;
 			s.height = 1;
 #ifdef DEBUG
@@ -328,7 +330,7 @@ vips_shrinkv_build( VipsObject *object )
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsShrinkv *shrink = (VipsShrinkv *) object;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 1 );
+		vips_object_local_array( object, 2 );
 
 	VipsImage *in;
 
@@ -337,13 +339,13 @@ vips_shrinkv_build( VipsObject *object )
 
 	in = resample->in; 
 
-	if( shrink->yshrink < 1 ) {
+	if( shrink->vshrink < 1 ) {
 		vips_error( class->nickname, 
 			"%s", _( "shrink factors should be >= 1" ) );
 		return( -1 );
 	}
 
-	if( shrink->yshrink == 1 )
+	if( shrink->vshrink == 1 )
 		return( vips_image_write( in, resample->out ) );
 
 	/* Unpack for processing.
@@ -351,6 +353,17 @@ vips_shrinkv_build( VipsObject *object )
 	if( vips_image_decode( in, &t[0] ) )
 		return( -1 );
 	in = t[0];
+
+	/* We need new pixels along the bottom so that we don't have small chunks
+	 * to average along the bottom edge.
+	 */
+	if( vips_embed( in, &t[1], 
+		0, 0, 
+		in->Xsize, in->Ysize + shrink->vshrink, 
+		"extend", VIPS_EXTEND_COPY,
+		NULL ) )
+		return( -1 );
+	in = t[1];
 
 	/* We have to keep a line buffer as we sum columns.
 	 */
@@ -366,13 +379,15 @@ vips_shrinkv_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 
-	/* Size output. Note: we round the output width down!
+	/* Size output. We need to always round to nearest, so round(), not
+	 * rint().
 	 *
 	 * Don't change xres/yres, leave that to the application layer. For
 	 * example, vipsthumbnail knows the true shrink factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Ysize = in->Ysize / shrink->yshrink;
+	resample->out->Ysize = VIPS_ROUND_UINT( 
+		resample->in->Ysize / shrink->vshrink );
 	if( resample->out->Ysize <= 0 ) {
 		vips_error( class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -411,11 +426,20 @@ vips_shrinkv_class_init( VipsShrinkvClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
+	VIPS_ARG_INT( class, "vshrink", 9, 
+		_( "Vshrink" ), 
+		_( "Vertical shrink factor" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsShrinkv, vshrink ),
+		1, 1000000, 1 );
+
+	/* The old name .. now use h and v everywhere. 
+	 */
 	VIPS_ARG_INT( class, "yshrink", 9, 
 		_( "Yshrink" ), 
 		_( "Vertical shrink factor" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsShrinkv, yshrink ),
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsShrinkv, vshrink ),
 		1, 1000000, 1 );
 
 }
@@ -429,16 +453,14 @@ vips_shrinkv_init( VipsShrinkv *shrink )
  * vips_shrinkv:
  * @in: input image
  * @out: output image
- * @yshrink: vertical shrink
+ * @vshrink: vertical shrink
  * @...: %NULL-terminated list of optional named arguments
  *
  * Shrink @in vertically by an integer factor. Each pixel in the output is
- * the average of the corresponding column of @yshrink pixels in the input. 
+ * the average of the corresponding column of @vshrink pixels in the input. 
  *
- * You will get aliasing for non-integer shrinks. In this case, shrink with
- * this function to the nearest integer size above the target shrink, then
- * downsample to the exact size with vips_affine() and your choice of
- * interpolator. See vips_resize() for a convenient way to do this.
+ * This is a very low-level operation: see vips_resize() for a more
+ * convenient way to resize images. 
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 
@@ -448,13 +470,13 @@ vips_shrinkv_init( VipsShrinkv *shrink )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_shrinkv( VipsImage *in, VipsImage **out, int yshrink, ... )
+vips_shrinkv( VipsImage *in, VipsImage **out, int vshrink, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, yshrink );
-	result = vips_call_split( "shrinkv", ap, in, out, yshrink );
+	va_start( ap, vshrink );
+	result = vips_call_split( "shrinkv", ap, in, out, vshrink );
 	va_end( ap );
 
 	return( result );

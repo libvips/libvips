@@ -24,6 +24,8 @@
  * 14/3/10
  * 	- init image and region before we start, we need all types to be fully
  * 	  constructed before we go parallel
+ * 18/9/16
+ * 	- call _setmaxstdio() on win32
  */
 
 /*
@@ -136,6 +138,10 @@ vips_get_argv0( void )
  * VIPS_INIT() is a macro, since it tries to check binary compatibility
  * between the caller and the library. 
  *
+ * You may call VIPS_INIT() many times and vips_shutdown() many times, but you 
+ * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
+ * stop and restart vips. 
+ *
  * VIPS_INIT() does approximately the following:
  *
  * + checks that the libvips your program is expecting is 
@@ -151,6 +157,9 @@ vips_get_argv0( void )
  *
  * + loads any plugins from $libdir/vips-x.y/, where x and y are the
  *   major and minor version numbers for this VIPS.
+ *
+ * + if your platform supports atexit(), VIPS_INIT() will ask for
+ *   vips_shutdown() to be called on program exit
  *
  * Example:
  *
@@ -217,10 +226,8 @@ vips_load_plugins( const char *fmt, ... )
 
 			module = g_module_open( path, G_MODULE_BIND_LAZY );
 			if( !module ) {
-				vips_warn( "vips_init", 
-					_( "unable to load \"%s\" -- %s" ), 
-					path, 
-					g_module_error() ); 
+				g_warning( _( "unable to load \"%s\" -- %s" ), 
+					path, g_module_error() ); 
 				result = -1;
 			}
                 }
@@ -270,11 +277,21 @@ vips_init( const char *argv0 )
 		return( 0 );
 	started = TRUE;
 
-#ifdef NEED_TYPE_INIT
+#ifdef OS_WIN32
+	/* Windows has a limit of 512 files open at once for the fopen() family
+	 * of functions, and 2048 for the _open() family. This raises the limit
+	 * of fopen() to the same level as _open().
+	 *
+	 * It will not go any higher than this, unfortunately.  
+	 */
+	(void) _setmaxstdio( 2048 );
+#endif /*OS_WIN32*/
+
+#ifdef HAVE_TYPE_INIT
 	/* Before glib 2.36 you have to call this on startup.
 	 */
 	g_type_init();
-#endif /*NEED_TYPE_INIT*/
+#endif /*HAVE_TYPE_INIT*/
 
 	/* Older glibs need this.
 	 */
@@ -282,6 +299,9 @@ vips_init( const char *argv0 )
 	if( !g_thread_supported() ) 
 		g_thread_init( NULL );
 #endif 
+
+	vips__threadpool_init();
+	vips__buffer_init();
 
 	/* This does an unsynchronised static hash table init on first call --
 	 * we have to make sure we do this single-threaded. See: 
@@ -321,11 +341,16 @@ vips_init( const char *argv0 )
 	bindtextdomain( GETTEXT_PACKAGE, name );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
 
-	/* Default info setting from env.
+	/* Deprecated, this is just for compat.
 	 */
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
 		vips_info_set( TRUE );
+
+	/* Default various settings from env.
+	 */
+	if( g_getenv( "VIPS_TRACE" ) )
+		vips_cache_set_trace( TRUE );
 
 	/* Register base vips types.
 	 */
@@ -338,6 +363,10 @@ vips_init( const char *argv0 )
 	/* Start up operator cache.
 	 */
 	vips__cache_init();
+
+	/* Recomp reordering system.
+	 */
+	vips__reorder_init();
 
 	/* Start up packages.
 	 */
@@ -367,7 +396,7 @@ vips_init( const char *argv0 )
 	 */
 	if( im_load_plugins( "%s/vips-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION ) ) {
-		vips_warn( "vips_init", "%s", vips_error_buffer() );
+		g_warning( "%s", vips_error_buffer() );
 		vips_error_clear();
 	}
 
@@ -375,13 +404,9 @@ vips_init( const char *argv0 )
 	 * :-( kept for back compat convenience.
 	 */
 	if( im_load_plugins( "%s", libdir ) ) {
-		vips_warn( "vips_init", "%s", vips_error_buffer() );
+		g_warning( "%s", vips_error_buffer() );
 		vips_error_clear();
 	}
-
-	/* Start up the buffer cache.
-	 */
-	vips__buffer_init();
 
 	/* Get the run-time compiler going.
 	 */
@@ -410,20 +435,6 @@ vips_init( const char *argv0 )
 	vips__thread_gate_stop( "init: startup" ); 
 
 	return( 0 );
-}
-
-/* Return the sizeof() various important data structures. These are checked
- * against the headers used to build our caller by vips_init().
- *
- * We allow direct access to members of VipsImage and VipsRegion (mostly for
- * reasons of history), so any change to a superclass of either of these
- * objects will break our ABI.
- */
-
-size_t
-vips__get_sizeof_vipsobject( void )
-{
-	return( sizeof( VipsObject ) ); 
 }
 
 /* Call this before vips stuff that uses stuff we need to have inited.
@@ -460,7 +471,16 @@ vips_leak( void )
 	vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
 	vips_buf_appends( &buf, "\n" );
 
+	if( strlen( vips_error_buffer() ) > 0 ) 
+		vips_buf_appendf( &buf, "error buffer: %s", 
+			vips_error_buffer() );
+
+	if( vips__n_active_threads != 0 )
+		vips_buf_appendf( &buf, "threads: %d still active\n", 
+			vips__n_active_threads ); 
+
 	fprintf( stderr, "%s", vips_buf_all( &buf ) );
+
 
 #ifdef DEBUG
 	vips_buffer_dump_all();
@@ -486,7 +506,6 @@ vips_leak( void )
 void
 vips_thread_shutdown( void )
 {
-	vips__buffer_shutdown();
 	vips__thread_profile_detach();
 }
 
@@ -494,7 +513,11 @@ vips_thread_shutdown( void )
  * vips_shutdown:
  *
  * Call this to drop caches and close plugins. Run with "--vips-leak" to do 
- * a leak check too. May be called many times.
+ * a leak check too. 
+ *
+ * You may call VIPS_INIT() many times and vips_shutdown() many times, but you 
+ * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
+ * stop and restart vips. 
  */
 void
 vips_shutdown( void )
@@ -560,12 +583,12 @@ vips__ngettext( const char *msgid, const char *plural, unsigned long int n )
 }
 
 static gboolean
-vips_lib_version_cb( const gchar *option_name, const gchar *value, 
+vips_lib_info_cb( const gchar *option_name, const gchar *value, 
 	gpointer data, GError **error )
 {
-	printf( "libvips %s\n", VIPS_VERSION_STRING );
-	vips_shutdown();
-	exit( 0 );
+	vips_info_set( TRUE ); 
+
+	return( TRUE );
 }
 
 static gboolean
@@ -586,9 +609,45 @@ vips_set_fatal_cb( const gchar *option_name, const gchar *value,
 	return( TRUE );
 }
 
+static gboolean
+vips_lib_version_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	printf( "libvips %s\n", VIPS_VERSION_STRING );
+	vips_shutdown();
+	exit( 0 );
+}
+
+static gboolean
+vips_cache_max_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	vips_cache_set_max( vips__parse_size( value ) );
+
+	return( TRUE ); 
+}
+
+static gboolean
+vips_cache_max_memory_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	vips_cache_set_max_mem( vips__parse_size( value ) );
+
+	return( TRUE ); 
+}
+
+static gboolean
+vips_cache_max_files_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	vips_cache_set_max_files( vips__parse_size( value ) );
+
+	return( TRUE ); 
+}
+
 static GOptionEntry option_entries[] = {
-	{ "vips-info", 0, G_OPTION_FLAG_HIDDEN, 
-		G_OPTION_ARG_NONE, &vips__info, 
+	{ "vips-info", 0, G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_info_cb,
 		N_( "show informative messages" ), NULL },
 	{ "vips-fatal", 0, G_OPTION_FLAG_HIDDEN | G_OPTION_FLAG_NO_ARG, 
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_set_fatal_cb, 
@@ -624,13 +683,13 @@ static GOptionEntry option_entries[] = {
 		G_OPTION_ARG_NONE, &vips__vector_enabled, 
 		N_( "disable vectorised versions of operations" ), NULL },
 	{ "vips-cache-max", 0, 0, 
-		G_OPTION_ARG_STRING, &vips__cache_max, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_cache_max_cb,
 		N_( "cache at most N operations" ), "N" },
 	{ "vips-cache-max-memory", 0, 0, 
-		G_OPTION_ARG_STRING, &vips__cache_max_mem, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_cache_max_memory_cb,
 		N_( "cache at most N bytes in memory" ), "N" },
 	{ "vips-cache-max-files", 0, 0, 
-		G_OPTION_ARG_STRING, &vips__cache_max_files, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_cache_max_files_cb,
 		N_( "allow at most N open files" ), "N" },
 	{ "vips-cache-trace", 0, 0, 
 		G_OPTION_ARG_NONE, &vips__cache_trace, 
@@ -997,6 +1056,9 @@ vips_version_string( void )
  * Get the major, minor or micro library version, with @flag values 0, 1 and
  * 2.
  *
+ * Get the ABI current, revision and age (as used by libtool) with @flag 
+ * values 3, 4, 5. 
+ *
  * Returns: library version number
  */
 int
@@ -1005,15 +1067,24 @@ vips_version( int flag )
 	switch( flag ) {
 	case 0:
 		return( VIPS_MAJOR_VERSION );
-	
+
 	case 1:
 		return( VIPS_MINOR_VERSION );
-	
+
 	case 2:
 		return( VIPS_MICRO_VERSION );
 
+	case 3:
+		return( VIPS_LIBRARY_CURRENT );
+
+	case 4:
+		return( VIPS_LIBRARY_REVISION );
+
+	case 5:
+		return( VIPS_LIBRARY_AGE );
+
 	default:
-		vips_error( "vips_version", "%s", _( "flag not 0, 1, 2" ) );
+		vips_error( "vips_version", "%s", _( "flag not in [0, 5]" ) );
 		return( -1 );
 	}
 }
@@ -1032,3 +1103,12 @@ vips_leak_set( gboolean leak )
 {
 	vips__leak = leak; 
 }
+
+/* Deprecated.
+ */
+size_t
+vips__get_sizeof_vipsobject( void )
+{
+	return( sizeof( VipsObject ) ); 
+}
+

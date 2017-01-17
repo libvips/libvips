@@ -77,7 +77,9 @@ typedef struct _VipsForeignClass {
 
 } VipsForeignClass;
 
-GType vips_foreign_get_type( void );
+/* Don't put spaces around void here, it breaks gtk-doc.
+ */
+GType vips_foreign_get_type(void);
 
 /* Map over and find formats. This uses type introspection to loop over
  * subclasses of VipsForeign.
@@ -128,6 +130,10 @@ typedef struct _VipsForeignLoad {
 	/* Flags for this load operation.
 	 */
 	VipsForeignFlags flags;
+
+	/* Stop load on first warning.
+	 */
+	gboolean fail;
 
 	/* Deprecated and unused, just here for compat.
 	 */
@@ -211,7 +217,9 @@ typedef struct _VipsForeignLoadClass {
 	int (*load)( VipsForeignLoad *load );
 } VipsForeignLoadClass;
 
-GType vips_foreign_load_get_type( void );
+/* Don't put spaces around void here, it breaks gtk-doc.
+ */
+GType vips_foreign_load_get_type(void);
 
 const char *vips_foreign_find_load( const char *filename );
 const char *vips_foreign_find_load_buffer( const void *data, size_t size );
@@ -313,7 +321,9 @@ typedef struct _VipsForeignSaveClass {
 	gboolean coding[VIPS_CODING_LAST];
 } VipsForeignSaveClass;
 
-GType vips_foreign_save_get_type( void );
+/* Don't put spaces around void here, it breaks gtk-doc.
+ */
+GType vips_foreign_save_get_type(void);
 
 const char *vips_foreign_find_save( const char *filename );
 const char *vips_foreign_find_save_buffer( const char *suffix );
@@ -509,6 +519,8 @@ int vips_matload( const char *filename, VipsImage **out, ... )
 int vips_radload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_radsave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+int vips_radsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 	__attribute__((sentinel));
 
 int vips_pdfload( const char *filename, VipsImage **out, ... )

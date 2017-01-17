@@ -31,8 +31,8 @@
 
  */
 
-#ifndef IM_CONVOLUTION_H
-#define IM_CONVOLUTION_H
+#ifndef VIPS_CONVOLUTION_H
+#define VIPS_CONVOLUTION_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,14 +46,22 @@ typedef enum {
 
 int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
-int vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+int vips_convf( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
+int vips_convi( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
+int vips_conva( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
 int vips_convsep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
+int vips_convasep( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
+	__attribute__((sentinel));
 
-int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 
+int vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
 int vips_gaussblur( VipsImage *in, VipsImage **out, double sigma, ... )
+	__attribute__((sentinel));
+int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 
 	__attribute__((sentinel));
 
 int vips_spcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
@@ -65,4 +73,4 @@ int vips_fastcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_CONVOLUTION_H*/
+#endif /*VIPS_CONVOLUTION_H*/

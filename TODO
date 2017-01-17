@@ -1,3 +1,4 @@
+
 - jpegload should put a pointer to the load operation inside the output image
   somewhere
 
@@ -6,16 +7,33 @@
   then the loaders can use this if they get a read error from the lib to
   invalidate the load operation and knock it out of cache
 
-- I like the new int mask creator in reducev, can we use it in im_vips2imask()
-  as well?
 
-  what about making the int masks for the interpolators?
+
+
+
+
+- not sure about utf8 error messages on win
+
+- strange: 
+
+	$ vips similarity --scale 0.33 k2.jpg x.v
+	$ vipsheader k2.jpg 
+	k2.jpg: 1450x2048 uchar, 3 bands, srgb, jpegload
+	$ vipsheader x.v
+	x.v: 478x676 uchar, 3 bands, srgb, jpegload
+
+	1450 * 0.33 = 478.5 ... this was rounded down
+	2048 * 0.33 = 675.84 ... this was rounded up
+
+- add APPROX convsep test? 
+
+- add more webp tests to py suite
+
+- try moving some more of the CLI tests to py
 
 - try SEQ_UNBUFFERED on jpg source, get out of order error?
 
 - could load pdf thumbnails?
-
-- still not happy about float->int mask conversion in im_vips2mask.c
 
 - colour needs to split _build() into preprocess / process / postprocess
   phases
@@ -57,38 +75,8 @@
 
 
 
-- support orientation tag in tiff images
-
-  see
-
-  	http://www.awaresystems.be/imaging/tiff/tifftags/orientation.html
-
-  seems to be the same values used for exif
-
-  jpg uses "exif-ifd0-Orientation", see conversion/autorot.c
-
-  instead, standardize on "orientation" and give it an int value
-
-  jpg load and save need to use this in preference to the exif value
-
-  tiff load and save need to set and recover this value
-
-  tiff load needs an autorot flag 
-
-  	don't touch parse_header()
-
-	on header-only read, just swap width/height and delete the tag
-
-	on full image read, use read_jpeg_rotate(), broken out into a separate
-	func
-
-  see https://github.com/jcupitt/libvips/issues/243
-
-
-
-
-
 - why can't we do
+
 
 im = Vips.Image.new_from_file("/data/john/pics/k2.jpg", access = "sequential")
 
@@ -470,13 +458,11 @@ new operations
 
 	Article: nomis80.org/ctmf.pdf
 
-- check CMC equations against web
-
-	http://en.wikipedia.org/wiki/Color_difference#CMC_l:c_.281984.29
-
 - see
 
         http://www.dentistry.bham.ac.uk/landinig/software/cdeconv/cdeconv.html
+
+	http://www.nature.com/srep/2015/150730/srep12096/full/srep12096.html
 
   sounds useful for BM?
 

@@ -47,8 +47,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_OPENSLIDE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,7 +55,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#include "openslide2vips.h"
+#include "pforeign.h"
+
+#ifdef HAVE_OPENSLIDE
 
 typedef struct _VipsForeignLoadOpenslide {
 	VipsForeignLoad parent_object;
@@ -133,9 +133,8 @@ vips_foreign_load_openslide_load( VipsForeignLoad *load )
 			return( -1 );
 	}
 	else {
-		if( vips__openslide_read_associated( 
-			openslide->filename, load->real, 
-			openslide->associated ) )
+		if( vips__openslide_read_associated( openslide->filename, 
+			load->real, openslide->associated ) )
 			return( -1 );
 	}
 
@@ -219,3 +218,50 @@ vips_foreign_load_openslide_init( VipsForeignLoadOpenslide *openslide )
 }
 
 #endif /*HAVE_OPENSLIDE*/
+
+/**
+ * vips_openslideload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @level: load this level
+ * * @associated: load this associated image
+ * * @autocrop: crop to image bounds
+ *
+ * Read a virtual slide supported by the OpenSlide library into a VIPS image.
+ * OpenSlide supports images in Aperio, Hamamatsu, MIRAX, Sakura, Trestle,
+ * and Ventana formats.
+ *
+ * To facilitate zooming, virtual slide formats include multiple scaled-down
+ * versions of the high-resolution image.  These are typically called
+ * "levels".  By default, vips_openslideload() reads the highest-resolution
+ * level (level 0).  Set @level to the level number you want.
+ *
+ * In addition to the slide image itself, virtual slide formats sometimes
+ * include additional images, such as a scan of the slide's barcode.
+ * OpenSlide calls these "associated images".  To read an associated image,
+ * set @associated to the image's name.
+ * A slide's associated images are listed in the
+ * "slide-associated-images" metadata item.
+ *
+ * The output of this operator is always RGBA.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_openslideload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "openslideload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}

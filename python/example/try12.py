@@ -2,6 +2,8 @@
 
 import sys
 
+import gi
+gi.require_version('Vips', '8.0')
 from gi.repository import Vips 
 
 im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)

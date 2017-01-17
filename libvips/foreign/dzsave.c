@@ -55,10 +55,22 @@
  * 	- allow zip > 4gb if we have a recent libgsf
  * 9/9/15
  * 	- better overlap handling, thanks robclouth 
+ * 24/11/15
+ * 	- don't write almost blank tiles in google mode
  * 25/11/15
  * 	- always strip tile metadata 
  * 16/12/15
  * 	- fix overlap handling again, thanks erdmann
+ * 8/6/16 Felix Bünemann
+ * 	- add @compression option
+ * 5/9/16
+ * 	- more overlap changes to help gmaps mode
+ * 8/9/16 Felix Bünemann
+ * 	- move vips-properties out of subdir for gm and zoomify layouts
+ * 15/10/16
+ * 	- add dzsave_buffer
+ * 11/11/16 Felix Bünemann
+ * 	- better >4gb detection for zip output on older libgsfs
  */
 
 /*
@@ -127,8 +139,8 @@
 
 /*
 #define DEBUG_VERBOSE
-#define DEBUG
 #define VIPS_DEBUG
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -281,14 +293,6 @@ vips__make_xml_metadata( const char *domain, VipsImage *image )
 
 #include <gsf/gsf.h>
 
-/* Round N down to P boundary. 
- */
-#define ROUND_DOWN(N,P) ((N) - ((N) % P)) 
-
-/* Round N up to P boundary. 
- */
-#define ROUND_UP(N,P) (ROUND_DOWN( (N) + (P) - 1, (P) ))
-
 /* Simple wrapper around libgsf.
  *
  * We need to be able to do scattered writes to structured files. So while
@@ -315,14 +319,20 @@ typedef struct _VipsGsfDirectory {
 	 */
 	GsfOutput *out;
 
-	/* If we need to turn off compression for this container.
-	 */
-	gboolean no_compression;
-
 	/* The root node holds the enclosing zip file or FS root ... finish
 	 * this on cleanup.
 	 */
         GsfOutput *container;
+
+	/* Track number of files in tree and total length of filenames. We use
+	 * this to estimate zip size to spot a >4gb write.
+	 */
+	size_t file_count;
+	size_t filename_lengths;
+
+	/* Set deflate compression level for zip container.
+	 */
+	gint deflate_level;
 
 } VipsGsfDirectory; 
 
@@ -381,7 +391,7 @@ vips_gsf_tree_free( VipsGsfDirectory *tree )
 /* Make a new tree root.
  */
 static VipsGsfDirectory *
-vips_gsf_tree_new( GsfOutput *out, gboolean no_compression )
+vips_gsf_tree_new( GsfOutput *out, gint deflate_level )
 {
 	VipsGsfDirectory *tree = g_new( VipsGsfDirectory, 1 );
 
@@ -389,8 +399,10 @@ vips_gsf_tree_new( GsfOutput *out, gboolean no_compression )
 	tree->name = NULL;
 	tree->children = NULL;
 	tree->out = out;
-	tree->no_compression = no_compression;
 	tree->container = NULL;
+	tree->file_count = 0;
+	tree->filename_lengths = 0;
+	tree->deflate_level = deflate_level;
 
 	return( tree ); 
 }
@@ -426,19 +438,23 @@ vips_gsf_dir_new( VipsGsfDirectory *parent, const char *name )
 	dir->parent = parent;
 	dir->name = g_strdup( name );
 	dir->children = NULL;
-	dir->no_compression = parent->no_compression;
 	dir->container = NULL;
+	dir->file_count = 0;
+	dir->filename_lengths = 0;
+	dir->deflate_level = parent->deflate_level;
 
-	if( dir->no_compression ) 
+	if( GSF_IS_OUTFILE_ZIP( parent->out ) )
 		dir->out = gsf_outfile_new_child_full( 
 			(GsfOutfile *) parent->out, 
 			name, TRUE,
-			"compression-level", 0, 
+			"compression-level", GSF_ZIP_STORED,
 			NULL );
 	else
 		dir->out = gsf_outfile_new_child( 
 			(GsfOutfile *) parent->out, 
 			name, TRUE ); 
+
+	g_assert( dir->out ); 
 
 	parent->children = g_slist_prepend( parent->children, dir ); 
 
@@ -463,35 +479,55 @@ vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
 	char *dir_name;
 	GsfOutput *obj;
 
+	/* vips_gsf_path() always makes a new file, though it may add to an
+	 * existing directory. Note the file, and note the length of the full
+	 * path we are creating.
+	 */
+	tree->file_count += 1;
+	tree->filename_lengths += strlen( tree->out->name ) + strlen( name ) + 1;
+
 	dir = tree; 
 	va_start( ap, name );
-	while( (dir_name = va_arg( ap, char * )) ) 
+	while( (dir_name = va_arg( ap, char * )) ) {
 		if( (child = vips_gsf_child_by_name( dir, dir_name )) )
 			dir = child;
 		else 
 			dir = vips_gsf_dir_new( dir, dir_name );
+
+		tree->filename_lengths += strlen( dir_name ) + 1;
+	}
 	va_end( ap );
 
-	if( dir->no_compression )
-		obj = gsf_outfile_new_child_full( (GsfOutfile *) dir->out,
-			name, FALSE,
-			"compression-level", 0,
-			NULL );
+	if( GSF_IS_OUTFILE_ZIP( dir->out ) ) {
+		/* Confusingly, libgsf compression-level really means
+		 * compression-method. They have a separate deflate-level 
+		 * property for the deflate compression level.
+		 */
+		if( dir->deflate_level == 0 )
+			obj = gsf_outfile_new_child_full(
+				(GsfOutfile *) dir->out,
+				name, FALSE,
+				"compression-level", GSF_ZIP_STORED,
+				NULL );
+		else if( dir->deflate_level == -1 )
+			obj = gsf_outfile_new_child_full(
+				(GsfOutfile *) dir->out,
+				name, FALSE,
+				"compression-level", GSF_ZIP_DEFLATED,
+				NULL );
+		else
+			obj = gsf_outfile_new_child_full(
+				(GsfOutfile *) dir->out,
+				name, FALSE,
+				"compression-level", GSF_ZIP_DEFLATED,
+				"deflate-level", dir->deflate_level,
+				NULL );
+	}
 	else
 		obj = gsf_outfile_new_child( (GsfOutfile *) dir->out,
 			name, FALSE ); 
 
 	return( obj ); 
-}
-
-/* libgsf before 1.14.31 did not support zip64.
- */
-static gboolean
-vips_gsf_has_zip64( void )
-{
-	return( libgsf_major_version > 1 ||
-		libgsf_minor_version > 14 ||
-		libgsf_micro_version >= 31 );
 }
 
 typedef struct _VipsForeignSaveDz VipsForeignSaveDz;
@@ -545,10 +581,6 @@ struct _Layer {
 struct _VipsForeignSaveDz {
 	VipsForeignSave parent_object;
 
-	/* Name to write to. 
-	 */
-	char *name; 
-
 	char *suffix;
 	int overlap;
 	int tile_size;
@@ -558,6 +590,38 @@ struct _VipsForeignSaveDz {
 	gboolean properties;
 	VipsAngle angle;
 	VipsForeignDzContainer container; 
+	int compression;
+
+	/* Tile and overlap geometry. The members above are the parameters we
+	 * accept, this nest set are the derived values which are actually 
+	 * used in pyramid generation.
+	 *
+	 * Tiles have a base size. Imagine a square placed at the top left.
+	 * This is the size of that square.
+	 *
+	 * Tiles have a margin. The square from tile_size is expanded outward 
+	 * up/down/left/right by this amount. Parts going off the image are 
+	 * clipped. 
+	 *
+	 * Each time we write a new tile, we step the position by tile_step
+	 * pixels. 
+	 *
+	 * We need all three of tile_size, tile_margin and tile_step since
+	 * deepzoom and google maps have different meanings for overlap and we
+	 * want to be able to support both models.
+	 *
+	 * For deepzoom:
+	 *
+	 * 	tile_margin = overlap
+	 * 	tile_step = tile_size
+	 *
+	 * For google maps:
+	 *
+	 * 	tile_margin = 0
+	 *	tile_step = tile_size - overlap
+	 */
+	int tile_margin;
+	int tile_step;
 
 	Layer *layer;			/* x2 shrink pyr layer */
 
@@ -570,11 +634,16 @@ struct _VipsForeignSaveDz {
 	 */
 	VipsGsfDirectory *tree;
 
-	/* @name, but without a path at the start and without a suffix.
+	/* The actual output object our zip (or whatever) is writing to.
+	 */
+	GsfOutput *out;
+
+	/* The name to save as, eg. deepzoom tiles go into ${basename}_files.
+	 * No suffix, no path at the start. 
 	 */
 	char *basename; 
 
-	/* @name, but just the path at the front. 
+	/* The directory we write the output to, or NULL for memory output. 
 	 */
 	char *dirname; 
 
@@ -596,11 +665,17 @@ struct _VipsForeignSaveDz {
 	 * Track bytes written here and try to guess when we'll go over.
 	 */
 	size_t bytes_written;
+
+	/* save->background turned into a pixel that matches the image we are
+	 * saving .. used to test for blank tiles.
+	 */
+	VipsPel *ink;
+
 };
 
 typedef VipsForeignSaveClass VipsForeignSaveDzClass;
 
-G_DEFINE_TYPE( VipsForeignSaveDz, vips_foreign_save_dz, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveDz, vips_foreign_save_dz, 
 	VIPS_TYPE_FOREIGN_SAVE );
 
 /* Free a pyramid.
@@ -622,6 +697,7 @@ vips_foreign_save_dz_dispose( GObject *gobject )
 
 	VIPS_FREEF( layer_free, dz->layer );
 	VIPS_FREEF( vips_gsf_tree_free,  dz->tree );
+	VIPS_FREEF( g_object_unref, dz->out );
 	VIPS_FREE( dz->basename );
 	VIPS_FREE( dz->dirname );
 	VIPS_FREE( dz->tempdir );
@@ -644,6 +720,8 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE( dz );
 	Layer *layer = VIPS_NEW( dz, Layer );
 
+	int right;
+	int bottom;
 	VipsRect strip;
 	int limit; 
 
@@ -651,8 +729,17 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	layer->width = width;
 	layer->height = height;
 
-	layer->tiles_across = ROUND_UP( width, dz->tile_size ) / dz->tile_size;
-	layer->tiles_down = ROUND_UP( height, dz->tile_size ) / dz->tile_size;
+	/* The 0 position of the right-most possible tile.
+	 */
+	right = VIPS_MAX( 0, width - dz->tile_margin - dz->tile_size ); 
+
+	/* Tiles from that to the left edge will be spaced by tile step. The +1
+	 * is the tile we subtracted above. 
+	 */
+	layer->tiles_across = ceil( (double) right / dz->tile_step ) + 1; 
+
+	bottom = VIPS_MAX( 0, height - dz->tile_margin - dz->tile_size );
+	layer->tiles_down = ceil( (double) bottom / dz->tile_step ) + 1;
 
 	layer->real_pixels = *real_pixels; 
 
@@ -695,13 +782,16 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	 *
 	 * Expand the strip if necessary to make sure we have an even 
 	 * number of lines. 
+	 *
+	 * This is just the height of the first row of tiles, so only add 1*
+	 * tile_margin.
 	 */
 	layer->y = 0;
 	layer->write_y = 0;
 	strip.left = 0;
 	strip.top = 0;
 	strip.width = layer->image->Xsize;
-	strip.height = dz->tile_size + dz->overlap;
+	strip.height = dz->tile_size + dz->tile_margin;
 	if( (strip.height & 1) == 1 )
 		strip.height += 1;
 	if( vips_region_buffer( layer->strip, &strip ) ) {
@@ -764,6 +854,8 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	printf( "\twidth = %d, height = %d\n", width, height );
 	printf( "\tXsize = %d, Ysize = %d\n", 
 		layer->image->Xsize, layer->image->Ysize );
+	printf( "\ttiles_across = %d, tiles_down = %d\n", 
+		layer->tiles_across, layer->tiles_down ); 
 	printf( "\treal_pixels.left = %d, real_pixels.top = %d\n", 
 		real_pixels->left, real_pixels->top ); 
 	printf( "\treal_pixels.width = %d, real_pixels.height = %d\n", 
@@ -895,8 +987,15 @@ write_vips_meta( VipsForeignSaveDz *dz )
 	if( !(dump = vips__make_xml_metadata( class->nickname, save->ready )) )
                 return( -1 );
 
-	out = vips_gsf_path( dz->tree, 
-		"vips-properties.xml", dz->root_name, NULL ); 
+	/* For deepzom the props must go inside the ${name}_files subdir, for
+	 * gm and zoomify it can sit in the main folder.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ )
+		out = vips_gsf_path( dz->tree, 
+			"vips-properties.xml", dz->root_name, NULL );
+	else
+		out = vips_gsf_path( dz->tree, "vips-properties.xml", NULL );
+
 	gsf_output_write( out, strlen( dump ), (guchar *) dump ); 
 	(void) gsf_output_close( out );
 	g_object_unref( out );
@@ -951,7 +1050,7 @@ strip_init( Strip *strip, Layer *layer )
 	line.top = layer->y;
 	line.width = image.width;
 	line.height = dz->tile_size;
-	vips_rect_marginadjust( &line, dz->overlap );
+	vips_rect_marginadjust( &line, dz->tile_margin );
 
 	vips_rect_intersectrect( &image, &line, &line );
 
@@ -986,7 +1085,7 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	 * bits of the left-hand overlap in and no new pixels. Safest to count
 	 * tiles across.
 	 */
-	if( strip->x / dz->tile_size >= layer->tiles_across ) {
+	if( strip->x / dz->tile_step >= layer->tiles_across ) {
 		*stop = TRUE;
 #ifdef DEBUG_VERBOSE
 		printf( "strip_allocate: done\n" );
@@ -1006,13 +1105,13 @@ strip_allocate( VipsThreadState *state, void *a, gboolean *stop )
 	state->pos.top = layer->y;
 	state->pos.width = dz->tile_size;
 	state->pos.height = dz->tile_size;
-	vips_rect_marginadjust( &state->pos, dz->overlap );
+	vips_rect_marginadjust( &state->pos, dz->tile_margin );
 
 	vips_rect_intersectrect( &image, &state->pos, &state->pos );
 	state->x = strip->x;
 	state->y = layer->y;
 
-	strip->x += dz->tile_size;
+	strip->x += dz->tile_step;
 
 	return( 0 );
 }
@@ -1096,6 +1195,76 @@ tile_name( Layer *layer, int x, int y )
 	return( out );
 }
 
+/* Test for tile equal to background colour. In google maps mode, we skip
+ * blank background tiles. 
+ *
+ * Don't use exactly equality, since compression artefacts or noise can upset
+ * this.
+ */
+static gboolean
+tile_equal( VipsImage *image, VipsPel * restrict ink )
+{
+	const int bytes = VIPS_IMAGE_SIZEOF_PEL( image );
+
+	VipsRect rect;
+	VipsRegion *region;
+	int x, y, b;
+
+	region = vips_region_new( image ); 
+
+	/* We know @image is part of a memory buffer, so this will be quick.
+	 */
+	rect.left = 0;
+	rect.top = 0;
+	rect.width = image->Xsize;
+	rect.height = image->Ysize;
+	if( vips_region_prepare( region, &rect ) ) {
+		g_object_unref( region );
+		return( FALSE ); 
+	}
+
+	for( y = 0; y < image->Ysize; y++ ) {
+		VipsPel * restrict p = VIPS_REGION_ADDR( region, 0, y ); 
+
+		for( x = 0; x < image->Xsize; x++ ) {
+			for( b = 0; b < bytes; b++ ) 
+				if( VIPS_ABS( p[b] - ink[b] ) > 5 ) {
+					g_object_unref( region );
+					return( FALSE ); 
+				}
+
+			p += bytes;
+		}
+	}
+
+	g_object_unref( region );
+
+	return( TRUE );
+}
+
+#define VIPS_ZIP_FIXED_LH_SIZE (30 + 29)
+#define VIPS_ZIP_FIXED_CD_SIZE (46 + 9)
+#define VIPS_ZIP_EOCD_SIZE 22
+
+#ifndef HAVE_GSF_ZIP64
+static size_t
+estimate_zip_size( VipsForeignSaveDz *dz )
+{
+	size_t estimated_zip_size = dz->bytes_written + 
+		dz->tree->file_count * VIPS_ZIP_FIXED_LH_SIZE + 
+		dz->tree->filename_lengths + 
+		dz->tree->file_count * VIPS_ZIP_FIXED_CD_SIZE + 
+		dz->tree->filename_lengths + 
+		VIPS_ZIP_EOCD_SIZE;
+
+#ifdef DEBUG_VERBOSE
+	printf( "estimate_zip_size: %zd\n", estimated_zip_size );
+#endif /*DEBUG_VERBOSE*/
+
+	return( estimated_zip_size );
+}
+#endif /*HAVE_GSF_ZIP64*/
+
 static int
 strip_work( VipsThreadState *state, void *a )
 {
@@ -1116,7 +1285,7 @@ strip_work( VipsThreadState *state, void *a )
 	printf( "strip_work\n" );
 #endif /*DEBUG_VERBOSE*/
 
-	/* If we are centring we may be outside the real pixels. Skip in 
+	/* If we are centering we may be outside the real pixels. Skip in 
 	 * this case, and the viewer will display blank.png for us. 
 	 */
 	if( dz->centre ) {
@@ -1149,6 +1318,22 @@ strip_work( VipsThreadState *state, void *a )
 		state->pos.width, state->pos.height, NULL ) ) 
 		return( -1 );
 
+	/* If we are writing a google map pyramid and the tile is equal to the 
+	 * background, don't save. The viewer will display blank.png for us.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
+		tile_equal( x, dz->ink ) ) { 
+		g_object_unref( x );
+
+#ifdef DEBUG_VERBOSE
+		printf( "strip_work: skipping blank tile %d x %d\n", 
+			state->x / dz->tile_size, 
+			state->y / dz->tile_size ); 
+#endif /*DEBUG_VERBOSE*/
+
+		return( 0 ); 
+	}
+
 	/* Google tiles need to be padded up to tilesize.
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
@@ -1163,7 +1348,8 @@ strip_work( VipsThreadState *state, void *a )
 		x = t;
 	}
 
-	/* Hopefully no one will want the same metadata on all the tiles.
+	/* Hopefully, no one will want the same metadata on all the tiles.
+	 * Strip them.
 	 */
 	vips_image_set_int( x, "hide-progress", 1 );
 	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, 
@@ -1179,7 +1365,7 @@ strip_work( VipsThreadState *state, void *a )
 	g_mutex_lock( vips__global_lock );
 
 	out = tile_name( layer, 
-		state->x / dz->tile_size, state->y / dz->tile_size );
+		state->x / dz->tile_step, state->y / dz->tile_step );
 
 	status = gsf_output_write( out, len, buf );
 	dz->bytes_written += len;
@@ -1197,19 +1383,29 @@ strip_work( VipsThreadState *state, void *a )
 		return( -1 ); 
 	}
 
-	/* Allow a 100,000 byte margin. This probably isn't enough: we don't
-	 * include the space zip needs for the index nor anything we are
-	 * outputting apart from the gsf_output_write() above.
-	 */
-	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP &&
-		!vips_gsf_has_zip64() &&
-		dz->bytes_written > (size_t) UINT_MAX - 100000 ) {
-		g_mutex_unlock( vips__global_lock );
+#ifndef HAVE_GSF_ZIP64
+	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP ) { 
+		/* Leave 3 entry headroom for blank.png and metadata files. 
+		 */
+		if( dz->tree->file_count + 3 >= (unsigned int) USHRT_MAX ) {
+			g_mutex_unlock( vips__global_lock );
 
-		vips_error( class->nickname,
-			"%s", _( "output file too large" ) ); 
-		return( -1 ); 
+			vips_error( class->nickname,
+				"%s", _( "too many files in zip" ) ); 
+			return( -1 );
+		}
+
+		/* Leave 16k headroom for blank.png and metadata files. 
+		 */
+		if( estimate_zip_size( dz ) > (size_t) UINT_MAX - 16384) {
+			g_mutex_unlock( vips__global_lock );
+
+			vips_error( class->nickname,
+				"%s", _( "output file too large" ) ); 
+			return( -1 ); 
+		}
 	}
+#endif /*HAVE_GSF_ZIP64*/
 
 	g_mutex_unlock( vips__global_lock );
 
@@ -1413,11 +1609,11 @@ strip_arrived( Layer *layer )
 	 * Expand the strip if necessary to make sure we have an even 
 	 * number of lines. 
 	 */
-	layer->y += dz->tile_size;
+	layer->y += dz->tile_step;
 	new_strip.left = 0;
-	new_strip.top = layer->y - dz->overlap;
+	new_strip.top = layer->y - dz->tile_margin;
 	new_strip.width = layer->image->Xsize;
-	new_strip.height = dz->tile_size + 2 * dz->overlap;
+	new_strip.height = dz->tile_size + 2 * dz->tile_margin;
 
 	image_area.left = 0;
 	image_area.top = 0;
@@ -1550,6 +1746,22 @@ vips_foreign_save_dz_build( VipsObject *object )
 			dz->tile_size = 256;
 	}
 
+	/* Our tile layout.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) { 
+		dz->tile_margin = dz->overlap;
+		dz->tile_step = dz->tile_size; 
+	}
+	else {
+		dz->tile_margin = 0;
+		dz->tile_step = dz->tile_size - dz->overlap;
+	}
+
+	if( dz->tile_step <= 0 ) {
+		vips_error( "dzsave", "%s", _( "overlap too large" ) );
+		return( -1 );
+	}
+
 	/* Default to white background. vips_foreign_save_init() defaults to
 	 * black. 
 	 */
@@ -1560,13 +1772,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 		background = vips_array_double_newv( 1, 255.0 );
 		g_object_set( object, "background", background, NULL );
 		vips_area_unref( VIPS_AREA( background ) ); 
-	}
-
-	if( dz->overlap >= dz->tile_size ) {
-		vips_error( "dzsave", 
-			"%s", _( "overlap must be less than tile "
-				"width and height" ) ) ;
-		return( -1 );
 	}
 
 	/* DeepZoom stops at 1x1 pixels, others when the image fits within a
@@ -1595,6 +1800,16 @@ vips_foreign_save_dz_build( VipsObject *object )
 	VIPS_UNREF( save->ready );
 	save->ready = z;
 }
+
+	/* We use ink in google mode to check for blank tiles.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
+		if( !(dz->ink = vips__vector_to_ink( 
+			class->nickname, save->ready,
+			VIPS_AREA( save->background )->data, NULL, 
+			VIPS_AREA( save->background )->n )) )
+			return( -1 );
+	}
 
 	/* The real pixels we have from our input. This is about to get
 	 * expanded with background. 
@@ -1650,6 +1865,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 		dz->tile_size );
 	printf( "vips_foreign_save_dz_build: overlap == %d\n", 
 		dz->overlap );
+	printf( "vips_foreign_save_dz_build: tile_margin == %d\n", 
+		dz->tile_margin );
+	printf( "vips_foreign_save_dz_build: tile_step == %d\n", 
+		dz->tile_step );
 #endif
 
 	/* Build the skeleton of the image pyramid.
@@ -1657,30 +1876,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 	if( !(dz->layer = pyramid_build( dz, NULL, 
 		save->ready->Xsize, save->ready->Ysize, &real_pixels )) )
 		return( -1 );
-
-	/* Drop any path stuff at the start of the output name and remove the
-	 * suffix.
-	 */
-{
-	char *p;
-
-	dz->basename = g_path_get_basename( dz->name ); 
-	if( (p = (char *) vips__find_rightmost_brackets( dz->basename )) )
-		*p = '\0';
-	if( (p = strrchr( dz->basename, '.' )) ) {
-		*p = '\0';
-
-		/* If we're writing to thing.zip or thing.szi, default to zip 
-		 * container.
-		 */
-		if( !vips_object_argument_isset( object, "container" ) )
-			if( strcasecmp( p + 1, "zip" ) == 0 ||
-				strcasecmp( p + 1, "szi" ) == 0 )
-				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
-	}
-}
-
-	dz->dirname = g_path_get_dirname( dz->name ); 
 
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ )
 		dz->root_name = g_strdup_printf( "%s_files", dz->basename );
@@ -1702,6 +1897,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ &&
 		dz->container == VIPS_FOREIGN_DZ_CONTAINER_FS &&
+		dz->dirname &&
 		vips_existsf( "%s/%s_files", dz->dirname, dz->basename ) ) {
 		vips_error( "dzsave", 
 			_( "output directory %s/%s_files exists" ),
@@ -1746,7 +1942,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 				return( -1 );
 			}
 		
-			dz->tree = vips_gsf_tree_new( out, FALSE );
+			dz->tree = vips_gsf_tree_new( out, 0 );
 		}
 		else { 
 			GsfOutput *out;
@@ -1761,46 +1957,54 @@ vips_foreign_save_dz_build( VipsObject *object )
 				return( -1 );
 			}
 		
-			dz->tree = vips_gsf_tree_new( out, FALSE );
+			dz->tree = vips_gsf_tree_new( out, 0 );
 		}
 		break;
 
 	case VIPS_FOREIGN_DZ_CONTAINER_ZIP:
 {
-		GsfOutput *out;
 		GsfOutput *zip;
 		GsfOutput *out2;
 		GError *error = NULL;
 		char name[VIPS_PATH_MAX];
 
-		/* This is the zip we are building. 
+		/* Output to a file or memory?
 		 */
-		vips_snprintf( name, VIPS_PATH_MAX, "%s/%s.zip", 
-			dz->dirname, dz->basename ); 
-		if( !(out = gsf_output_stdio_new( name, &error )) ) {
-			vips_g_error( &error );
-			return( -1 );
+		if( dz->dirname ) { 
+			vips_snprintf( name, VIPS_PATH_MAX, "%s/%s.zip", 
+				dz->dirname, dz->basename ); 
+			if( !(dz->out = gsf_output_stdio_new( name, &error )) ) {
+				vips_g_error( &error );
+				return( -1 );
+			}
 		}
+		else
+			dz->out = gsf_output_memory_new();
 
 		if( !(zip = (GsfOutput *) 
-			gsf_outfile_zip_new( out, &error )) ) {
+			gsf_outfile_zip_new( dz->out, &error )) ) {
 			vips_g_error( &error );
 			return( -1 );
 		}
-
-		/* We can unref @out since @zip has a ref to it.
-		 */
-		g_object_unref( out );
 
 		/* Make the base directory inside the zip. All stuff goes into
 		 * this. 
 		 */
 		out2 = gsf_outfile_new_child_full( (GsfOutfile *) zip, 
 			dz->basename, TRUE,
-			"compression-level", 0, 
+			"compression-level", GSF_ZIP_STORED, 
 			NULL );
 
-		dz->tree = vips_gsf_tree_new( out2, TRUE );
+#ifndef HAVE_GSF_DEFLATE_LEVEL
+		if( dz->compression > 0 ) {
+			g_warning( "%s", 
+				_( "deflate-level not supported by libgsf, "
+				"using default compression" ) ); 
+			dz->compression = -1;
+		}
+#endif
+
+		dz->tree = vips_gsf_tree_new( out2, dz->compression );
 
 		/* Note the thing that will need closing up on exit.
 		 */
@@ -1894,7 +2098,7 @@ static int bandfmt_dz[10] = {
    UC, C,  US, S,  UI, I,  F,  F,  D,  D
 };
 
-const char *dz_suffs[] = { ".dz", NULL };
+static const char *dz_suffs[] = { ".dz", NULL };
 
 static void
 vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
@@ -1908,7 +2112,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "dzsave";
+	object_class->nickname = "dzsave_base";
 	object_class->description = _( "save image to deep zoom format" );
 	object_class->build = vips_foreign_save_dz_build;
 
@@ -1918,11 +2122,11 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 	save_class->format_table = bandfmt_dz;
 	save_class->coding[VIPS_CODING_LABQ] = TRUE;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveDz, name ),
+	VIPS_ARG_STRING( class, "basename", 2, 
+		_( "Base name" ),
+		_( "Base name to save to" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, basename ),
 		NULL );
 
 	VIPS_ARG_ENUM( class, "layout", 8, 
@@ -1991,21 +2195,21 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, properties ),
 		FALSE );
 
+	VIPS_ARG_INT( class, "compression", 17, 
+		_( "Compression" ), 
+		_( "ZIP deflate compression level" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, compression ),
+		-1, 9, 0 );
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
 	VIPS_ARG_STRING( class, "dirname", 1, 
-		_( "Base name" ),
-		_( "Base name to save to" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED, 
-		G_STRUCT_OFFSET( VipsForeignSaveDz, name ),
-		NULL );
-
-	VIPS_ARG_STRING( class, "basename", 1, 
-		_( "Base name" ),
-		_( "Base name to save to" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED, 
-		G_STRUCT_OFFSET( VipsForeignSaveDz, name ),
+		_( "Directory name" ),
+		_( "Directory name to save to" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, dirname ),
 		NULL );
 
 	VIPS_ARG_INT( class, "tile_width", 12, 
@@ -2035,6 +2239,179 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->depth = VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL; 
 	dz->angle = VIPS_ANGLE_D0; 
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_FS; 
+	dz->compression = 0;
+}
+
+typedef struct _VipsForeignSaveDzFile {
+	VipsForeignSaveDz parent_object;
+
+	/* Filename for save.
+	 */
+	char *filename; 
+
+} VipsForeignSaveDzFile;
+
+typedef VipsForeignSaveDzClass VipsForeignSaveDzFileClass;
+
+G_DEFINE_TYPE( VipsForeignSaveDzFile, vips_foreign_save_dz_file, 
+	vips_foreign_save_dz_get_type() );
+
+static int
+vips_foreign_save_dz_file_build( VipsObject *object )
+{
+	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) object;
+	VipsForeignSaveDzFile *file = (VipsForeignSaveDzFile *) object;
+
+	char *p;
+
+	/* Use @filename to set the default values for dirname and basename.
+	 */
+	if( !vips_object_argument_isset( object, "basename" ) ) 
+		dz->basename = g_path_get_basename( file->filename ); 
+	if( !vips_object_argument_isset( object, "dirname" ) ) 
+		dz->dirname = g_path_get_dirname( file->filename ); 
+
+	/* Remove any [options] from basename.
+	 */
+	if( (p = (char *) vips__find_rightmost_brackets( dz->basename )) )
+		*p = '\0';
+
+	/* If we're writing thing.zip or thing.szi, default to zip 
+	 * container.
+	 */
+	if( (p = strrchr( dz->basename, '.' )) ) {
+		if( !vips_object_argument_isset( object, "container" ) ) 
+			if( strcasecmp( p + 1, "zip" ) == 0 ||
+				strcasecmp( p + 1, "szi" ) == 0 ) 
+				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
+
+		/* Remove any legal suffix. We don't remove all suffixes
+		 * since we might be writing to a dirname with a dot in.
+		 */
+		if( strcasecmp( p + 1, "zip" ) == 0 ||
+			strcasecmp( p + 1, "szi" ) == 0 || 
+			strcasecmp( p + 1, "dz" ) == 0 )
+			*p = '\0';
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_dz_file_class_init( VipsForeignSaveDzFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "dzsave";
+	object_class->description = _( "save image to deepzoom file" );
+	object_class->build = vips_foreign_save_dz_file_build;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveDzFile, filename ),
+		NULL );
+}
+
+static void
+vips_foreign_save_dz_file_init( VipsForeignSaveDzFile *file )
+{
+}
+
+typedef struct _VipsForeignSaveDzBuffer {
+	VipsForeignSaveDz parent_object;
+
+	VipsArea *buf;
+} VipsForeignSaveDzBuffer;
+
+typedef VipsForeignSaveDzClass VipsForeignSaveDzBufferClass;
+
+G_DEFINE_TYPE( VipsForeignSaveDzBuffer, vips_foreign_save_dz_buffer, 
+	vips_foreign_save_dz_get_type() );
+
+static int
+vips_foreign_save_dz_buffer_build( VipsObject *object )
+{
+	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) object;
+
+	void *obuf;
+	size_t olen;
+	VipsBlob *blob;
+
+	/* Memory output must always be zip.
+	 */
+	dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
+
+	if( !vips_object_argument_isset( object, "basename" ) ) 
+		dz->basename = g_strdup( "untitled" ); 
+
+	/* Leave dirname NULL to indicate memory output.
+	 */
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_dz_buffer_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	g_assert( GSF_IS_OUTPUT_MEMORY( dz->out ) );
+
+	/* Oh dear, we can't steal gsf's memory, and blob can't unref something
+	 * or trigger a notify. We have to copy it.
+	 *
+	 * Don't use tracked, we want something that can be freed with g_free.
+	 *
+	 * FIXME ... blob (or area?) needs to support notify or unref.
+	 */
+	olen = gsf_output_size( GSF_OUTPUT( dz->out ) ); 
+	if( !(obuf = g_try_malloc( olen )) ) {
+		vips_error( "vips_tracked", 
+			_( "out of memory --- size == %dMB" ), 
+			(int) (olen / (1024.0 * 1024.0))  );
+		return( -1 );
+	}
+	memcpy( obuf, 
+		gsf_output_memory_get_bytes( GSF_OUTPUT_MEMORY( dz->out ) ),
+		olen ); 
+
+	blob = vips_blob_new( (VipsCallbackFn) g_free, obuf, olen );
+	g_object_set( object, "buffer", blob, NULL );
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_dz_buffer_class_init( VipsForeignSaveDzBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "dzsave_buffer";
+	object_class->description = _( "save image to dz buffer" );
+	object_class->build = vips_foreign_save_dz_buffer_build;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to save to" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveDzBuffer, buf ),
+		VIPS_TYPE_BLOB );
+}
+
+static void
+vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
+{
 }
 
 #endif /*HAVE_GSF*/
@@ -2047,23 +2424,28 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  *
  * Optional arguments:
  *
- * * @layout; directory layout convention
+ * * @basename: %gchar, base part of name
+ * * @layout: #VipsForeignDzLayout directory layout convention
  * * @suffix: suffix for tile tiles 
- * * @overlap; set tile overlap 
- * * @tile_size; set tile size 
- * * @background: background colour
- * * @depth: how deep to make the pyramid
- * * @centre: centre the tiles 
- * * @angle: rotate the image by this much
- * * @container: set container type
- * * @properties: write a properties file
+ * * @overlap: %gint set tile overlap 
+ * * @tile_size: %gint set tile size 
+ * * @background: #VipsArrayDouble background colour
+ * * @depth: #VipsForeignDzDepth how deep to make the pyramid
+ * * @centre: %gboolean centre the tiles 
+ * * @angle: #VipsAngle rotate the image by this much
+ * * @container: #VipsForeignDzContainer set container type
+ * * @properties: %gboolean write a properties file
+ * * @compression: %gint zip deflate compression level
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
  *
  * vips_dzsave() creates a directory called @name to hold the tiles. If @name
  * ends `.zip`, vips_dzsave() will create a zip file called @name to hold the
- * tiles.  You can use @container to force zip file output. 
+ * tiles. You can use @container to force zip file output. 
+ *
+ * Use @basename to set the name of the directory tree we are creating. The
+ * default value is set from @name. 
  *
  * You can set @suffix to something like `".jpg[Q=85]"` to control the tile 
  * write options. 
@@ -2087,6 +2469,10 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
  * programs which wish to use fields from source files loaded via
  * vips_openslideload(). 
  *
+ * If @container is set to `zip`, you can set a compression level from -1
+ * (use zlib default), 0 (store, compression disabled) to 9 (max compression).
+ * If no value is given, the default is to store files without compression.
+ *
  * See also: vips_tiffsave().
  *
  * Returns: 0 on success, -1 on error.
@@ -2100,6 +2486,69 @@ vips_dzsave( VipsImage *in, const char *name, ... )
 	va_start( ap, name );
 	result = vips_call_split( "dzsave", ap, in, name ); 
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_dzsave_buffer:
+ * @in: image to save 
+ * @buf: return output buffer here
+ * @len: return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @basename: %gchar, base part of name
+ * * @layout: #VipsForeignDzLayout directory layout convention
+ * * @suffix: suffix for tile tiles 
+ * * @overlap: %gint set tile overlap 
+ * * @tile_size: %gint set tile size 
+ * * @background: #VipsArrayDouble background colour
+ * * @depth: #VipsForeignDzDepth how deep to make the pyramid
+ * * @centre: %gboolean centre the tiles 
+ * * @angle: #VipsAngle rotate the image by this much
+ * * @container: #VipsForeignDzContainer set container type
+ * * @properties: %gboolean write a properties file
+ * * @compression: %gint zip deflate compression level
+ *
+ * As vips_dzsave(), but save to a memory buffer. 
+ *
+ * Output is always in a zip container. Use @basename to set the name of the
+ * directory that the zip will create when unzipped. 
+ *
+ * The address of the buffer is returned in @buf, the length of the buffer in
+ * @len. You are responsible for freeing the buffer with g_free() when you
+ * are done with it.
+ *
+ * See also: vips_dzsave(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_dzsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	area = NULL; 
+
+	va_start( ap, len );
+	result = vips_call_split( "dzsave_buffer", ap, in, &area );
+	va_end( ap );
+
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
 
 	return( result );
 }

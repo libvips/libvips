@@ -109,7 +109,15 @@ static GMutex *vips_tracked_mutex = NULL;
  * @OBJ: allocate memory local to @OBJ, or %NULL for no auto-free
  * @T: type of thing to allocate
  *
- * Returns: A pointer of type @T *, or %NULL on error.
+ * Allocate memory for a thing of type @T. The memory is not
+ * cleared. 
+ * 
+ * This macro cannot fail. See vips_tracked_malloc() if you are 
+ * allocating large amounts of memory.
+ *
+ * See also: vips_malloc().
+ *
+ * Returns: A pointer of type @T *.
  */
 
 /**
@@ -118,7 +126,15 @@ static GMutex *vips_tracked_mutex = NULL;
  * @N: number of @T 's to allocate
  * @T: type of thing to allocate
  *
- * Returns: A pointer of type @T *, or %NULL on error.
+ * Allocate memory for an array of objects of type @T. The memory is not
+ * cleared. 
+ *
+ * This macro cannot fail. See vips_tracked_malloc() if you are 
+ * allocating large amounts of memory.
+ *
+ * See also: vips_malloc().
+ *
+ * Returns: A pointer of type @T *.
  */
 
 static void
@@ -141,7 +157,7 @@ vips_malloc_cb( VipsObject *object, char *buf )
  *
  * See also: vips_tracked_malloc().
  *
- * Returns: (transfer full): a pointer to the allocated memory
+ * Returns: (transfer full): a pointer to the allocated memory.
  */
 void *
 vips_malloc( VipsObject *object, size_t size )
@@ -166,7 +182,7 @@ vips_malloc( VipsObject *object, size_t size )
  *
  * g_strdup() a string. When @object is freed, the string will be freed for
  * you.  If @object is %NULL, you need to 
- * free the memory explicitly with g_free().
+ * free the memory yourself with g_free().
  *
  * This function cannot fail. 
  *
@@ -232,11 +248,9 @@ vips_tracked_free( void *s )
 	g_mutex_lock( vips_tracked_mutex );
 
 	if( vips_tracked_allocs <= 0 ) 
-		vips_warn( "vips_tracked", 
-			"%s", _( "vips_free: too many frees" ) );
+		g_warning( "%s", _( "vips_free: too many frees" ) );
 	if( vips_tracked_mem < size )
-		vips_warn( "vips_tracked", 
-			"%s", _( "vips_free: too much free" ) );
+		g_warning( "%s", _( "vips_free: too much free" ) );
 
 	vips_tracked_mem -= size;
 	vips_tracked_allocs -= 1;
@@ -293,10 +307,9 @@ vips_tracked_malloc( size_t size )
 
 		vips_error( "vips_tracked", 
 			_( "out of memory --- size == %dMB" ), 
-			(int) (size / (1024.0*1024.0))  );
-		vips_warn( "vips_tracked", 
-			_( "out of memory --- size == %dMB" ), 
-			(int) (size / (1024.0*1024.0))  );
+			(int) (size / (1024.0 * 1024.0))  );
+		g_warning( _( "out of memory --- size == %dMB" ), 
+			(int) (size / (1024.0 * 1024.0))  );
 
                 return( NULL );
 	}
@@ -349,7 +362,7 @@ vips_tracked_open( const char *pathname, int flags, ... )
 	mode = va_arg( ap, int );
 	va_end( ap );
 
-	if( (fd = open( pathname, flags, mode )) == -1 )
+	if( (fd = vips__open( pathname, flags, mode )) == -1 )
 		return( -1 );
 
 	vips_tracked_init(); 

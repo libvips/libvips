@@ -9,6 +9,8 @@ G_BEGIN_DECLS
 /* enumerations from "../../../libvips/include/vips/resample.h" */
 GType vips_kernel_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_KERNEL (vips_kernel_get_type())
+GType vips_size_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_SIZE (vips_size_get_type())
 /* enumerations from "../../../libvips/include/vips/foreign.h" */
 GType vips_foreign_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_FLAGS (vips_foreign_flags_get_type())

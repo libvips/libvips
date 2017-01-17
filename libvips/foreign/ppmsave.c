@@ -47,9 +47,9 @@
 
 #include <vips/vips.h>
 
-#ifdef HAVE_PPM
+#include "pforeign.h"
 
-#include "ppm.h"
+#ifdef HAVE_PPM
 
 typedef struct _VipsForeignSavePpm {
 	VipsForeignSave parent_object;

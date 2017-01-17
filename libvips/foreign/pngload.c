@@ -48,9 +48,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_PNG
+#include "pforeign.h"
 
-#include "vipspng.h"
+#ifdef HAVE_PNG
 
 typedef struct _VipsForeignLoadPng {
 	VipsForeignLoad parent_object;
@@ -214,6 +214,7 @@ vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, buf ),
 		VIPS_TYPE_BLOB );
+
 }
 
 static void
@@ -222,4 +223,73 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *png )
 }
 
 #endif /*HAVE_PNG*/
+
+/**
+ * vips_pngload:
+ * @filename: file to load
+ * @out: decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read a PNG file into a VIPS image. It can read all png images, including 8-
+ * and 16-bit images, 1 and 3 channel, with and without an alpha channel.
+ *
+ * Any ICC profile is read and attached to the VIPS image.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pngload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "pngload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_pngload_buffer:
+ * @buf: memory area to load
+ * @len: size of memory area
+ * @out: image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read a PNG-formatted memory block into a VIPS image. It can read all png 
+ * images, including 8- and 16-bit images, 1 and 3 channel, with and without 
+ * an alpha channel.
+ *
+ * Any ICC profile is read and attached to the VIPS image.
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_pngload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "pngload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
 

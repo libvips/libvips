@@ -5,6 +5,8 @@ import sys
 #import logging
 #logging.basicConfig(level = logging.DEBUG)
 
+import gi
+gi.require_version('Vips', '8.0')
 from gi.repository import Vips 
 
 a = Vips.Image.new_from_array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], 8, 128)

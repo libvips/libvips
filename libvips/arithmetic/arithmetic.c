@@ -516,11 +516,10 @@ vips_arithmetic_gen( VipsRegion *or,
 
 	/* Prepare all input regions and make buffer pointers.
 	 */
-	for( i = 0; ir[i]; i++ ) {
-		if( vips_region_prepare( ir[i], r ) ) 
-			return( -1 );
+	if( vips_reorder_prepare_many( or->im, ir, r ) ) 
+		return( -1 );
+	for( i = 0; ir[i]; i++ ) 
 		p[i] = (VipsPel *) VIPS_REGION_ADDR( ir[i], r->left, r->top );
-	}
 	p[i] = NULL;
 	q = (VipsPel *) VIPS_REGION_ADDR( or, r->left, r->top );
 
@@ -535,6 +534,8 @@ vips_arithmetic_gen( VipsRegion *or,
 	}
 
 	VIPS_GATE_STOP( "vips_arithmetic_gen: work" );
+
+	VIPS_COUNT_PIXELS( or, VIPS_OBJECT_CLASS( class )->nickname ); 
 
 	return( 0 );
 }

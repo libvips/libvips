@@ -73,7 +73,7 @@ vips_vector_error( VipsVector *vector )
 {
 #ifdef HAVE_ORC_PROGRAM_GET_ERROR
 	if( vector->program )
-		vips_warn( "VipsVector", "orc error: %s", 
+		g_warning( "orc error: %s", 
 			orc_program_get_error( vector->program ) ); 
 #endif /*HAVE_ORC_PROGRAM_GET_ERROR*/
 }
@@ -521,4 +521,85 @@ vips_executor_run( VipsExecutor *executor )
 #ifdef HAVE_ORC
 	orc_executor_run( &executor->executor );
 #endif /*HAVE_ORC*/
+}
+
+/* Make a fixed-point version of a matrix. Each 
+ * out[i] = rint(in[i] * adj_scale), where adj_scale is selected so that 
+ * sum(out) = sum(in) * scale.
+ *
+ * Because of the vagaries of rint(), we can't just calc this, we have to
+ * iterate and converge on the best value for adj_scale.
+ */
+void
+vips_vector_to_fixed_point( double *in, int *out, int n, int scale )
+{
+	double fsum;
+	int i;
+	int target;
+	int sum;
+	double high;
+	double low;
+	double guess;
+
+	fsum = 0.0;
+	for( i = 0; i < n; i++ )
+		fsum += in[i];
+	target = VIPS_RINT( fsum * scale );
+
+	/* As we rint() each scale element, we can get up to 0.5 error.
+	 * Therefore, by the end of the mask, we can be off by up to n/2. Our
+	 * high and low guesses are therefore n/2 either side of the obvious
+	 * answer.
+	 */
+	high = scale + (n + 1) / 2;
+	low = scale - (n + 1) / 2;
+
+	do {
+		guess = (high + low) / 2.0;
+
+		for( i = 0; i < n; i++ ) 
+			out[i] = VIPS_RINT( in[i] * guess );
+
+		sum = 0;
+		for( i = 0; i < n; i++ )
+			sum += out[i];
+
+		if( sum == target )
+			break;
+		if( sum < target )
+			low = guess;
+		if( sum > target )
+			high = guess;
+
+	/* This will typically produce about 5 iterations.
+	 */
+	} while( high - low > 0.01 );
+
+	if( sum != target ) {
+		/* Spread the error out thinly over the whole array. For
+		 * example, consider the matrix:
+		 *
+		 * 	3 3 9 0
+		 *	1 1 1
+		 *	1 1 1
+		 *	1 1 1
+		 *
+		 * being converted with scale = 64 (convi does this). We want
+		 * to generate a mix of 7s and 8s. 
+		 */
+		int each_error = (target - sum) / n;
+		int extra_error = (target - sum) % n;
+
+		/* To share the residual error, we add or subtract 1 from the
+		 * first abs(extra_error) elements.
+		 */
+		int direction = extra_error > 0 ? 1 : -1;
+		int n_elements = VIPS_ABS( extra_error );
+
+		for( i = 0; i < n; i++ )
+			out[i] += each_error;
+
+		for( i = 0; i < n_elements; i++ )
+			out[i] += direction;
+	}
 }

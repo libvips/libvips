@@ -97,7 +97,10 @@ typedef struct _VipsThreadStateClass {
 } VipsThreadStateClass;
 
 void *vips_thread_state_set( VipsObject *object, void *a, void *b );
-GType vips_thread_state_get_type( void );
+
+/* Don't put spaces around void here, it breaks gtk-doc.
+ */
+GType vips_thread_state_get_type(void);
 
 VipsThreadState *vips_thread_state_new( VipsImage *im, void *a );
 
@@ -130,9 +133,6 @@ int vips_threadpool_run( VipsImage *im,
 	void *a );
 void vips_get_tile_size( VipsImage *im, 
 	int *tile_width, int *tile_height, int *n_lines );
-
-void vips_concurrency_set( int concurrency );
-int vips_concurrency_get( void );
 
 #ifdef __cplusplus
 }

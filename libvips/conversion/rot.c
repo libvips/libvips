@@ -383,7 +383,10 @@ vips_rot_init( VipsRot *rot )
  *
  * Rotate @in by a multiple of 90 degrees.
  *
- * See also: vips_flip().
+ * Use vips_similarity() to rotate by an arbitary angle. vips_rot45() is 
+ * useful for rotating convolution masks by 45 degrees. 
+ *
+ * See also: vips_flip(), vips_similarity(), vips_rot45().
  *
  * Returns: 0 on success, -1 on error
  */

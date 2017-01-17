@@ -15,6 +15,8 @@
  * 23/1/14
  * 	- put the reader globals into a struct so we can have many active
  * 	  readers
+ * 23/5/16
+ *	- add buffer save functions   
  */
 
 /*
@@ -132,14 +134,16 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
-#include "radiance.h"
+#include "pforeign.h"
 
 /* Begin copy-paste from Radiance sources.
  */
@@ -810,29 +814,21 @@ scanline_read( Buffer *buffer, COLR *scanline, int width )
  */
 #define MAX_LINE (2 * MAXELEN * sizeof( COLR ))
 
-/* Write a single scanline.
+/* write an RLE scanline. Write magic header.
  */
-static int
-scanline_write( COLR *scanline, int width, FILE *fp )
+static void
+rle_scanline_write( COLR *scanline, int width, 
+	unsigned char *buffer, int *length )
 {
-	unsigned char buffer[MAX_LINE];
-	int buffer_pos = 0;
-
-#define PUTC( CH ) { \
-	buffer[buffer_pos++] = (CH); \
-	g_assert( buffer_pos <= MAX_LINE ); \
-}
-
 	int i, j, beg, cnt;
 
-	if( width < MINELEN || 
-		width > MAXELEN )
-		/* Write as a flat scanline.
-		 */
-		return( fwrite( scanline, sizeof( COLR ), width, fp ) - width );
+#define PUTC( CH ) { \
+	buffer[(*length)++] = (CH); \
+	g_assert( *length <= MAX_LINE ); \
+}
 
-	/* An RLE scanline. Write magic header.
-	 */
+	*length = 0;
+
 	PUTC( 2 ); 
 	PUTC( 2 ); 
 	PUTC( width >> 8 ); 
@@ -840,7 +836,7 @@ scanline_write( COLR *scanline, int width, FILE *fp )
 
 	for( i = 0; i < 4; i++ ) {
 		for( j = 0; j < width; ) {
-			/* Not needed, but keeps gcc used-before-set wsrning
+			/* Not needed, but keeps gcc used-before-set warning
 			 * quiet.
 			 */
 			cnt = 1;
@@ -885,8 +881,28 @@ scanline_write( COLR *scanline, int width, FILE *fp )
 			} 
 		}
 	}
+}
 
-	return( fwrite( buffer, 1, buffer_pos, fp ) - buffer_pos );
+/* Write a single scanline.
+ */
+static int
+scanline_write( COLR *scanline, int width, FILE *fp )
+{
+	if( width < MINELEN || 
+		width > MAXELEN )
+		/* Write as a flat scanline.
+		 */
+		return( fwrite( scanline, sizeof( COLR ), width, fp ) - width );
+	else {
+		/* An RLE scanline.
+		 */
+		unsigned char buffer[MAX_LINE];
+		int length;
+
+		rle_scanline_write( scanline, width, buffer, &length );
+
+		return( fwrite( buffer, 1, length, fp ) - length );
+	}
 }
 
 /* What we track during radiance file read.
@@ -1151,13 +1167,18 @@ vips__rad_load( const char *filename, VipsImage *out, gboolean readbehind )
 	return( 0 );
 }
 
-/* What we track during a radiance file write.
+/* What we track during a radiance write.
  */
 typedef struct {
 	VipsImage *in;
-	char *filename;
 
+	char *filename;
 	FILE *fout;
+
+	char *buf;
+	size_t len;
+	size_t alloc;
+
 	char format[256];
 	double expos;
 	COLOR colcor;
@@ -1171,12 +1192,13 @@ write_destroy( Write *write )
 {
 	VIPS_FREE( write->filename );
 	VIPS_FREEF( fclose, write->fout );
+	VIPS_FREE( write->buf );
 
 	vips_free( write );
 }
 
 static Write *
-write_new( VipsImage *in, const char *filename )
+write_new( VipsImage *in )
 {
 	Write *write;
 	int i;
@@ -1185,8 +1207,14 @@ write_new( VipsImage *in, const char *filename )
 		return( NULL );
 
 	write->in = in;
-	write->filename = vips_strdup( NULL, filename );
-        write->fout = vips__file_open_write( filename, FALSE );
+
+	write->filename = NULL;
+	write->fout = NULL;
+
+	write->buf = NULL;
+	write->len = 0;
+	write->alloc = 0;
+
 	strcpy( write->format, COLRFMT );
 	write->expos = 1.0;
 	for( i = 0; i < 3; i++ )
@@ -1201,45 +1229,56 @@ write_new( VipsImage *in, const char *filename )
 	write->prims[3][0] = CIE_x_w;
 	write->prims[3][1] = CIE_y_w;
 
-        if( !write->filename || !write->fout ) {
-		write_destroy( write );
-		return( NULL );
-	}
-
 	return( write );
 }
 
-static int
-vips2rad_put_header( Write *write )
+static void
+vips2rad_make_header( Write *write )
 {
 	const char *str;
 	int i, j;
 	double d;
 
-	(void) vips_image_get_double( write->in, "rad-expos", &write->expos );
-	(void) vips_image_get_double( write->in, "rad-aspect", &write->aspect );
+	if( vips_image_get_typeof( write->in, "rad-expos" ) )
+		vips_image_get_double( write->in, "rad-expos", &write->expos );
 
-	if( !vips_image_get_string( write->in, "rad-format", &str ) )
+	if( vips_image_get_typeof( write->in, "rad-aspect" ) )
+		vips_image_get_double( write->in, "rad-aspect", &write->aspect );
+
+	if( vips_image_get_typeof( write->in, "rad-format" ) &&
+		!vips_image_get_string( write->in, "rad-format", &str ) )
 		vips_strncpy( write->format, str, 256 );
+
 	if( write->in->Type == VIPS_INTERPRETATION_scRGB )
 		strcpy( write->format, COLRFMT );
 	if( write->in->Type == VIPS_INTERPRETATION_XYZ )
 		strcpy( write->format, CIEFMT );
 
 	for( i = 0; i < 3; i++ )
-		if( !vips_image_get_double( write->in, colcor_name[i], &d ) )
+		if( vips_image_get_typeof( write->in, colcor_name[i] ) && 
+			!vips_image_get_double( write->in, colcor_name[i], &d ) )
 			write->colcor[i] = d;
+
 	for( i = 0; i < 4; i++ )
-		for( j = 0; j < 2; j++ )
-			if( !vips_image_get_double( write->in, 
-				prims_name[i][j], &d ) )
+		for( j = 0; j < 2; j++ ) {
+			const char *name = prims_name[i][j]; 
+
+			if( vips_image_get_typeof( write->in, name ) &&
+				!vips_image_get_double( write->in, name, &d ) )
 				write->prims[i][j] = d;
+		}
 
 	/* Make y decreasing for consistency with vips.
 	 */
 	write->rs.rt = YDECR | YMAJOR;
 	write->rs.xr = write->in->Xsize;
 	write->rs.yr = write->in->Ysize;
+}
+
+static int
+vips2rad_put_header( Write *write )
+{
+	vips2rad_make_header( write );
 
 	fprintf( write->fout, "#?RADIANCE\n" );
 
@@ -1292,13 +1331,193 @@ vips__rad_save( VipsImage *in, const char *filename )
 	if( vips_image_pio_input( in ) ||
 		vips_check_coding_rad( "vips2rad", in ) )
 		return( -1 );
-	if( !(write = write_new( in, filename )) )
+	if( !(write = write_new( in )) )
 		return( -1 );
-	if( vips2rad_put_header( write ) ||
+
+	write->filename = vips_strdup( NULL, filename );
+	write->fout = vips__file_open_write( filename, FALSE );
+
+	if( !write->filename || 
+		!write->fout ||
+		vips2rad_put_header( write ) ||
 		vips2rad_put_data( write ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
+	write_destroy( write );
+
+	return( 0 );
+}
+
+static void
+write_buf_grow( Write *write, size_t grow_len )
+{
+	size_t new_len = write->len + grow_len;
+
+	if( new_len > write->alloc ) {
+		size_t proposed_alloc = (16 + write->alloc) * 3 / 2;
+
+		write->alloc = VIPS_MAX( proposed_alloc, new_len );
+
+		/* Our caller must free with g_free(), so we must use
+		 * g_realloc(). 
+		 */
+		write->buf = g_realloc( write->buf, write->alloc );
+
+		VIPS_DEBUG_MSG( "write_buf_grow: grown to %zd bytes\n",
+			write->alloc );
+	}
+}
+
+static void
+bprintf( Write *write, const char *fmt, ... )
+{
+	int length;
+	char *write_start;
+	va_list ap;
+
+	/* Determine required size.
+	 */
+	va_start( ap, fmt );
+	length = vsnprintf( NULL, 0, fmt, ap );
+	va_end( ap );
+
+	write_buf_grow( write, length + 1 );
+
+	write_start = write->buf + write->len;
+
+	va_start( ap, fmt );
+	length = vsnprintf( write_start, length + 1, fmt, ap );
+	va_end( ap );
+
+	write->len += length;
+
+	g_assert( write->len <= write->alloc );
+}
+
+#define bputformat( write, s ) \
+	bprintf( write, "%s%s\n", FMTSTR, s )
+
+#define bputexpos( write, ex ) \
+	bprintf( write, "%s%e\n", EXPOSSTR, ex )
+
+#define bputcolcor( write, cc ) \
+	bprintf( write, "%s %f %f %f\n", \
+		COLCORSTR, (cc)[RED], (cc)[GRN], (cc)[BLU] )
+
+#define bputaspect( write, pa ) \
+	bprintf( write, "%s%f\n", ASPECTSTR, pa )
+
+#define bputprims( write, p ) \
+	bprintf( write, "%s %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\n", \
+		PRIMARYSTR, \
+		(p)[RED][CIEX], (p)[RED][CIEY], \
+		(p)[GRN][CIEX], (p)[GRN][CIEY], \
+		(p)[BLU][CIEX], (p)[BLU][CIEY], \
+		(p)[WHT][CIEX], (p)[WHT][CIEY] )
+
+#define bputsresolu( write, rs ) \
+	bprintf( write, "%s", resolu2str( resolu_buf, rs ) )
+
+static int
+vips2rad_put_header_buf( Write *write )
+{
+	vips2rad_make_header( write );
+
+	bprintf( write, "#?RADIANCE\n" );
+
+	bputformat( write, write->format );
+	bputexpos( write, write->expos );
+	bputcolcor( write, write->colcor );
+	bprintf( write, "SOFTWARE=vips %s\n", vips_version_string() );
+	bputaspect( write, write->aspect );
+	bputprims( write, write->prims );
+	bprintf( write, "\n" );
+	bputsresolu( write, &write->rs );
+
+	return( 0 );
+}
+
+/* Write a single scanline to buffer.
+ */
+static int
+scanline_write_buf( Write *write, COLR *scanline, int width )
+{
+	unsigned char *buffer;
+
+	write_buf_grow( write, MAX_LINE );
+	buffer = (unsigned char *) write->buf + write->len;
+
+	if( width < MINELEN || 
+		width > MAXELEN ) {
+		/* Write as a flat scanline.
+		 */
+		memcpy( buffer, scanline, sizeof( COLR ) * width );
+		write->len += sizeof( COLR ) * width;
+	}
+	else {
+		int length;
+
+		/* An RLE scanline.
+		 */
+		rle_scanline_write( scanline, width, buffer, &length );
+		write->len += length;
+	}
+
+	return( 0 );
+}
+
+static int
+vips2rad_put_data_block_buf( VipsRegion *region, VipsRect *area, void *a )
+{
+	Write *write = (Write *) a;
+	int i;
+
+	for( i = 0; i < area->height; i++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
+
+		if( scanline_write_buf( write, (COLR *) p, area->width ) ) 
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
+vips2rad_put_data_buf( Write *write )
+{
+	if( vips_sink_disc( write->in, vips2rad_put_data_block_buf, write ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+int
+vips__rad_save_buf( VipsImage *in, void **obuf, size_t *olen )
+{
+	Write *write;
+
+#ifdef DEBUG
+	printf( "vips2rad: writing to buffer\n" );
+#endif /*DEBUG*/
+
+	if( vips_image_pio_input( in ) ||
+		vips_check_coding_rad( "vips2rad", in ) )
+		return( -1 );
+	if( !(write = write_new( in )) ) 
+		return( -1 );
+
+	if( vips2rad_put_header_buf( write ) ||
+		vips2rad_put_data_buf( write ) ) {
+		write_destroy( write );
+		return( -1 );
+	}
+
+	*obuf = write->buf;
+	write->buf = NULL;
+	if( olen )
+		*olen = write->len;
+
 	write_destroy( write );
 
 	return( 0 );

@@ -4,8 +4,21 @@
 # as a test of the command-line interface
 
 # set -x
+set -e
 
 . ./variables.sh
+
+# poppler / pdfload reference image
+poppler=$test_images/blankpage.pdf
+poppler_ref=$test_images/blankpage.png
+
+# rsvg / svgload reference image
+rsvg=$test_images/blankpage.svg
+rsvg_ref=$test_images/blankpage.png
+
+# giflib / gifload reference image
+giflib=$test_images/trans-x.gif
+giflib_ref=$test_images/trans-x.png
 
 # the matlab image and reference image
 matlab=$test_images/sample.mat
@@ -36,7 +49,8 @@ save_load() {
 	fi
 
 	if ! $vips copy $tmp/t1.$format $tmp/back.v ; then
-		echo "read from $out failed"
+		echo "read from $tmp/t1.format failed"
+		echo "  (was written by $vips copy $in $tmp/t1.$format$mode)"
 		exit 1
 	fi
 }
@@ -188,7 +202,6 @@ if test_supported jpegload; then
 fi
 if test_supported webpload; then
 	test_format $image webp 90
-	test_format $image webp 0 [lossless]
 fi
 test_format $image ppm 0
 test_format $image pfm 0
@@ -214,6 +227,18 @@ test_rad $rad
 
 test_raw $mono 
 test_raw $image 
+
+if test_supported pdfload; then
+	test_loader $poppler_ref $poppler pdfload
+fi
+
+if test_supported svgload; then
+	test_loader $rsvg_ref $rsvg svgload
+fi
+
+if test_supported gifload; then
+	test_loader $giflib_ref $giflib gifload
+fi
 
 if test_supported matload; then
 	test_loader $matlab_ref $matlab matlab

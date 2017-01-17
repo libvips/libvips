@@ -89,9 +89,9 @@
 #include <vips/vips.h>
 #include <vips/debug.h>
 
-#include <openslide.h>
+#include "pforeign.h"
 
-#include "openslide2vips.h"
+#include <openslide.h>
 
 typedef struct {
 	openslide_t *osr;
@@ -471,11 +471,17 @@ vips__openslide_generate( VipsRegion *out,
 		rslide->level,
 		r->width, r->height ); 
 
+	/* openslide errors are terminal. To support
+	 * @fail we'd have to close the openslide_t and reopen, perhaps 
+	 * somehow marking this tile as unreadable.
+	 *
+	 * See
+	 * https://github.com/jcupitt/libvips/commit/bb0a6643f94e69294e36d2b253f9bdd60c8c40ed#commitcomment-19838911
+	 */
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
 		vips_error( "openslide2vips", 
 			_( "reading region: %s" ), error );
-
 		return( -1 );
 	}
 
