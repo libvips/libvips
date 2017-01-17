@@ -364,11 +364,16 @@ vips__fits_read_header( const char *filename, VipsImage *out )
 
 static int
 vips_fits_read_subset( VipsFits *fits, 
-	long fpixel[MAX_DIMENSIONS], long lpixel[MAX_DIMENSIONS], 
-	long inc[MAX_DIMENSIONS], VipsPel *q )
+	long *fpixel, long *lpixel, long *inc, VipsPel *q )
 {
 	int status;
 
+	/* We must zero this or fits_read_subset() fails.
+	 */
+	status = 0;
+
+	/* Break on ffgsv() for this call.
+	 */
 	if( fits_read_subset( fits->fptr, fits->datatype, 
 		fpixel, lpixel, inc, 
 		NULL, q, NULL, &status ) ) {
@@ -422,8 +427,6 @@ fits2vips_generate( VipsRegion *out,
 
 		q = VIPS_REGION_ADDR( out, r->left, r->top );
 
-		/* Break on ffgsv() for this call.
-		 */
 		g_mutex_lock( fits->lock );
 		if( vips_fits_read_subset( fits, fpixel, lpixel, inc, q ) ) {
 			g_mutex_unlock( fits->lock );
@@ -452,8 +455,6 @@ fits2vips_generate( VipsRegion *out,
 
 			q = VIPS_REGION_ADDR( out, r->left, y );
 
-			/* Break on ffgsv() for this call.
-			 */
 			g_mutex_lock( fits->lock );
 			if( vips_fits_read_subset( fits, 
 				fpixel, lpixel, inc, q ) ) { 
