@@ -77,15 +77,14 @@
  * 11/7/16
  * 	- new --fail handling
  * 07/09/16
- *      - Don't use the exif resolution if x_resolution / y_resolution /
+ *      - don't use the exif resolution if x_resolution / y_resolution /
  *        resolution_unit is missing
-<<<<<<< HEAD
  * 7/11/16
  * 	- exif handling moved out to exif.c
-=======
  * 4/1/17
- * 	- Don't warn for missing exif res, since we fall back to jfif now
->>>>>>> master
+ * 	- don't warn for missing exif res, since we fall back to jfif now
+ * 17/1/17
+ * 	- invalidate operation on read error
  */
 
 /*

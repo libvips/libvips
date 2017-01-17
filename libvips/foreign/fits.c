@@ -26,6 +26,8 @@
  * 4/1/17
  * 	- load to equivalent data type, not raw image data type ... improves
  * 	  support for BSCALE / BZERO settings
+ * 17/1/17
+ * 	- invalidate operation on read error
  */
 
 /*
@@ -361,6 +363,25 @@ vips__fits_read_header( const char *filename, VipsImage *out )
 }
 
 static int
+vips_fits_read_subset( VipsFits *fits, 
+	long fpixel[MAX_DIMENSIONS], long lpixel[MAX_DIMENSIONS], 
+	long inc[MAX_DIMENSIONS], VipsPel *q )
+{
+	int status;
+
+	if( fits_read_subset( fits->fptr, fits->datatype, 
+		fpixel, lpixel, inc, 
+		NULL, q, NULL, &status ) ) {
+		vips_fits_error( status );
+		vips_foreign_load_invalidate( fits->image );
+
+		return( -1 ); 
+	}
+
+	return( 0 );
+}
+
+static int
 fits2vips_generate( VipsRegion *out, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
@@ -369,13 +390,10 @@ fits2vips_generate( VipsRegion *out,
 
 	VipsPel *q;
 	int z;
-	int status;
 
 	long fpixel[MAX_DIMENSIONS];
 	long lpixel[MAX_DIMENSIONS];
 	long inc[MAX_DIMENSIONS];
-
-	status = 0;
 
 	VIPS_DEBUG_MSG( "fits2vips_generate: "
 		"generating left = %d, top = %d, width = %d, height = %d\n", 
@@ -407,10 +425,7 @@ fits2vips_generate( VipsRegion *out,
 		/* Break on ffgsv() for this call.
 		 */
 		g_mutex_lock( fits->lock );
-		if( fits_read_subset( fits->fptr, fits->datatype, 
-			fpixel, lpixel, inc, 
-			NULL, q, NULL, &status ) ) {
-			vips_fits_error( status );
+		if( vips_fits_read_subset( fits, fpixel, lpixel, inc, q ) ) {
 			g_mutex_unlock( fits->lock );
 			return( -1 );
 		}
@@ -440,10 +455,8 @@ fits2vips_generate( VipsRegion *out,
 			/* Break on ffgsv() for this call.
 			 */
 			g_mutex_lock( fits->lock );
-			if( fits_read_subset( fits->fptr, fits->datatype, 
-				fpixel, lpixel, inc, 
-				NULL, q, NULL, &status ) ) {
-				vips_fits_error( status );
+			if( vips_fits_read_subset( fits, 
+				fpixel, lpixel, inc, q ) ) { 
 				g_mutex_unlock( fits->lock );
 				return( -1 );
 			}

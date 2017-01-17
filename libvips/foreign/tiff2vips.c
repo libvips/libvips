@@ -169,6 +169,8 @@
  * 	- add autorotate support
  * 17/11/16
  * 	- add multi-page read 
+ * 17/1/17
+ * 	- invalidate operation on read error
  */
 
 /*
@@ -437,16 +439,17 @@ get_orientation( TIFF *tiff )
 }
 
 static int
-strip_read( TIFF *tiff, int strip, tdata_t buf )
+rtiff_strip_read( Rtiff *rtiff, int strip, tdata_t buf )
 {
 	tsize_t length;
 
 #ifdef DEBUG
-	printf( "strip_read: reading strip %d\n", strip ); 
+	printf( "rtiff_strip_read: reading strip %d\n", strip ); 
 #endif /*DEBUG*/
 
-	length = TIFFReadEncodedStrip( tiff, strip, buf, (tsize_t) -1 );
+	length = TIFFReadEncodedStrip( rtiff->tiff, strip, buf, (tsize_t) -1 );
 	if( length == -1 ) {
+		vips_foreign_load_invalidate( rtiff->out );
 		vips_error( "tiff2vips", "%s", _( "read error" ) );
 		return( -1 );
 	}
@@ -1344,6 +1347,17 @@ rtiff_seq_start( VipsImage *out, void *a, void *b )
 	return( (void *) buf );
 }
 
+static int
+rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
+{
+	if( TIFFReadTile( rtiff->tiff, buf, x, y, 0, 0 ) < 0 ) { 
+		vips_foreign_load_invalidate( rtiff->out );
+		return( -1 ); 
+	}
+
+	return( 0 ); 
+}
+
 /* Paint a tile from the file. This is a
  * special-case for when a region is exactly a tiff tile, and pixels need no
  * conversion. In this case, libtiff can read tiles directly to our output
@@ -1370,9 +1384,9 @@ rtiff_fill_region_aligned( VipsRegion *out, void *seq, void *a, void *b )
 
 	/* Read that tile directly into the vips tile.
 	 */
-	if( TIFFReadTile( rtiff->tiff, 
-		VIPS_REGION_ADDR( out, r->left, r->top ), 
-		r->left, r->top, 0, 0 ) < 0 ) {
+	if( rtiff_read_tile( rtiff,
+		(tdata_t *) VIPS_REGION_ADDR( out, r->left, r->top ), 
+		r->left, r->top ) ) {
 		VIPS_GATE_STOP( "rtiff_fill_region_aligned: work" ); 
 		return( -1 );
 	}
@@ -1436,8 +1450,7 @@ rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop 
 			int ys = (page_y / tile_height) * tile_height;
 
 			if( rtiff_set_page( rtiff, page_no ) ||
-				TIFFReadTile( rtiff->tiff, 
-					buf, xs, ys, 0, 0 ) < 0 ) {
+				rtiff_read_tile( rtiff, buf, xs, ys ) ) { 
 				VIPS_GATE_STOP( "rtiff_fill_region: work" ); 
 				return( -1 );
 			}
@@ -1640,7 +1653,7 @@ rtiff_strip_read_interleaved( Rtiff *rtiff, tstrip_t strip, tdata_t buf )
 			VipsPel *p;
 			VipsPel *q;
 
-			if( strip_read( rtiff->tiff,
+			if( rtiff_strip_read( rtiff,
 				strips_per_plane * i + strip, 
 				rtiff->plane_buf ) )
 				return( -1 );
@@ -1657,7 +1670,7 @@ rtiff_strip_read_interleaved( Rtiff *rtiff, tstrip_t strip, tdata_t buf )
 		}
 	}
 	else { 
-		if( strip_read( rtiff->tiff, strip, buf ) )
+		if( rtiff_strip_read( rtiff, strip, buf ) )
 			return( -1 );
 	}
 

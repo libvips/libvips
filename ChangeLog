@@ -25,7 +25,7 @@
 - add compute reordering, plus some new API to support it:
   vips_reorder_margin_hint() and vips_reorder_prepare_many(), thanks
   aferrero2707
-- kick load operations from cache on read error, thanks gaillard 
+- kick jpg, tif, png load operations from cache on read error, thanks gaillard 
 
 8/12/16 started 8.4.5
 - allow libgsf-1.14.26 to help centos, thanks tdiprima

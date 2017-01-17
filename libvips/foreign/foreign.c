@@ -1021,12 +1021,12 @@ vips_foreign_load_init( VipsForeignLoad *load )
  *
  * Loaders can call this on the image they are making if they see a read error
  * from the load library. It signals "invalidate" on the load operation and
- * will cause it for be dropped from ache. 
+ * will cause it for be dropped from cache. 
  *
- * If we know a file will cause a read error, we don't want to cache the error
- * operation, we want to make sure the image will really be opened again if our
- * caller tries again. For example, a broken file might be replaced by a
- * working one. 
+ * If we know a file will cause a read error, we don't want to cache the
+ * failing operation, we want to make sure the image will really be opened 
+ * again if our caller tries again. For example, a broken file might be 
+ * replaced by a working one. 
  */
 void
 vips_foreign_load_invalidate( VipsImage *image )

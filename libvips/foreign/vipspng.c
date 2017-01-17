@@ -57,7 +57,8 @@
  * 	  fd during file read, handy for large numbers of input images 
  * 31/7/16
  * 	- support --strip option
- *
+ * 17/1/17
+ * 	- invalidate operation on read error
  */
 
 /*
@@ -512,6 +513,11 @@ png2vips_generate( VipsRegion *or,
 		if( !setjmp( png_jmpbuf( read->pPng ) ) ) 
 			png_read_row( read->pPng, q, NULL );
 		else { 
+			/* We've failed to read some pixels. Knock this 
+			 * operation out of cache. 
+			 */
+			vips_foreign_load_invalidate( read->out );
+
 #ifdef DEBUG
 			printf( "png2vips_generate: png_read_row() failed, "
 				"line %d\n", r->top + y ); 
