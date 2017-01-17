@@ -109,6 +109,30 @@ typedef struct _VipsThumbnailClass {
 
 G_DEFINE_ABSTRACT_TYPE( VipsThumbnail, vips_thumbnail, VIPS_TYPE_OPERATION );
 
+static void
+vips_thumbnail_dispose( GObject *gobject )
+{
+#ifdef DEBUG
+	printf( "vips_thumbnail_dispose: " );
+	vips_object_print_name( VIPS_OBJECT( gobject ) );
+	printf( "\n" );
+#endif /*DEBUG*/
+
+	G_OBJECT_CLASS( vips_thumbnail_parent_class )->dispose( gobject );
+}
+
+static void
+vips_thumbnail_finalize( GObject *gobject )
+{
+#ifdef DEBUG
+	printf( "vips_thumbnail_finalize: " );
+	vips_object_print_name( VIPS_OBJECT( gobject ) );
+	printf( "\n" );
+#endif /*DEBUG*/
+
+	G_OBJECT_CLASS( vips_thumbnail_parent_class )->finalize( gobject );
+}
+
 /* Calculate the shrink factor, taking into account auto-rotate, the fit mode,
  * and so on.
  */
@@ -483,6 +507,8 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
+	gobject_class->dispose = vips_thumbnail_dispose;
+	gobject_class->finalize = vips_thumbnail_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 

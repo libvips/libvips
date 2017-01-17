@@ -67,9 +67,6 @@
 
 /* Set by GOption from the command line, eg. "12m".
  */
-char *vips__cache_max = NULL;
-char *vips__cache_max_mem = NULL;
-char *vips__cache_max_files = NULL;
 gboolean vips__cache_dump = FALSE;
 gboolean vips__cache_trace = FALSE;
 
@@ -456,18 +453,6 @@ vips__cache_init( void )
 		vips_cache_table = g_hash_table_new( 
 			(GHashFunc) vips_operation_hash, 
 			(GEqualFunc) vips_operation_equal );
-
-		if( vips__cache_max ) 
-			vips_cache_max = 
-				vips__parse_size( vips__cache_max );
-
-		if( vips__cache_max_mem ) 
-			vips_cache_max_mem = 
-				vips__parse_size( vips__cache_max_mem );
-
-		if( vips__cache_max_files ) 
-			vips_cache_max_files = 
-				vips__parse_size( vips__cache_max_files );
 	}
 }
 

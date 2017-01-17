@@ -19,8 +19,12 @@
   VIPS_LIBRARY_AGE
 - better support for bscale / bzero in fits images
 - deprecate vips_warn() / vips_info(); use g_warning() / g_info() instead
-- vipsthumbnail supports much fancier geometry strings
+- vipsthumbnail supports much fancier geometry strings, thanks tomasc
 - vips_thumbnail() has new @size option
+- fix --vips-cache-max etc. 
+- add compute reordering, plus some new API to support it:
+  vips_reorder_margin_hint() and vips_reorder_prepare_many(), thanks
+  aferrero2707
 
 8/12/16 started 8.4.5
 - allow libgsf-1.14.26 to help centos, thanks tdiprima

@@ -506,6 +506,12 @@ VipsImage **vips_array_image_get( VipsArrayImage *array, int *n );
 VipsImage **vips_value_get_array_image( const GValue *value, int *n );
 void vips_value_set_array_image( GValue *value, int n );
 
+/* Defined in reorder.c, but really a function on image.
+ */
+int vips_reorder_prepare_many( VipsImage *image, 
+	struct _VipsRegion **regions, VipsRect *r );
+void vips_reorder_margin_hint( VipsImage *image, int margin );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

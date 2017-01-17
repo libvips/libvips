@@ -94,11 +94,6 @@ extern int vips__info;
  */
 extern char *vips__disc_threshold;
 
-/* Cache size settings.
- */
-extern char *vips__cache_max;
-extern char *vips__cache_max_mem;
-extern char *vips__cache_max_files;
 extern gboolean vips__cache_dump;
 extern gboolean vips__cache_trace;
 
@@ -254,6 +249,9 @@ int vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	VipsArrayDouble *background );
 
 int vips__image_intize( VipsImage *in, VipsImage **out );
+
+void vips__reorder_init( void );
+int vips__reorder_set_input( VipsImage *image, VipsImage **in );
 
 #ifdef __cplusplus
 }

@@ -391,6 +391,8 @@ vips_rank_build( VipsObject *object )
 	rank->out->Xoffset = 0;
 	rank->out->Yoffset = 0;
 
+	vips_reorder_margin_hint( rank->out, rank->width * rank->height ); 
+
 	return( 0 );
 }
 

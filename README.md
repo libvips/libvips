@@ -25,6 +25,8 @@ binding](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/usin
 and a [command-line
 interface](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-cli.html).
 Bindings are available for [Ruby](https://rubygems.org/gems/ruby-vips),
+[PHP](https://github.com/jcupitt/php-vips),
+[Go](https://github.com/davidbyttow/govips),
 JavaScript and others. There is full
 [documentation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/index.html).
 There are several GUIs as well, see the [VIPS

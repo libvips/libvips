@@ -649,12 +649,11 @@ process_region( VipsRegion *or, void *seq, void *a, void *b )
 
 	/* Prepare all input regions and make buffer pointers.
 	 */
-	for( i = 0; ir[i]; i++ ) {
-		if( vips_region_prepare( ir[i], &or->valid ) ) 
-			return( -1 );
+	if( vips_reorder_prepare_many( or->im, ir, &or->valid ) ) 
+		return( -1 );
+	for( i = 0; ir[i]; i++ ) 
 		p[i] = (PEL *) VIPS_REGION_ADDR( ir[i], 
 			or->valid.left, or->valid.top );
-	}
 	p[i] = NULL;
 	q = (PEL *) VIPS_REGION_ADDR( or, or->valid.left, or->valid.top );
 

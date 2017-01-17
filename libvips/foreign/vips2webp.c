@@ -160,7 +160,7 @@ vips_webp_writer_appendle( VipsWebPWriter *writer, uint32_t val, int n )
 	unsigned char buf[4];
 	int i; 
 
-	g_assert( n < 4 );
+	g_assert( n <= 4 );
 
 	for( i = 0; i < n; i++ ) {
 		buf[i] = (unsigned char) (val & 0xff);
@@ -237,7 +237,18 @@ write_webp( WebPPicture *pic, VipsImage *in,
 	WebPConfig config;
 	webp_import import;
 
-	if ( !WebPConfigPreset( &config, get_preset( preset ), Q ) ) {
+	if( !WebPConfigInit( &config ) ) {
+		vips_error( "vips2webp",
+			"%s", _( "config version error" ) );
+		return( -1 );
+	}
+
+	/* These presets are only for lossy compression. There seems to be
+	 * separate API for lossless or near-lossless, see
+	 * WebPConfigLosslessPreset().
+	 */
+	if( !(lossless || near_lossless) &&
+		!WebPConfigPreset( &config, get_preset( preset ), Q ) ) {
 		vips_error( "vips2webp", "%s", _( "config version error" ) );
 		return( -1 );
 	}

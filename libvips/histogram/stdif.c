@@ -272,6 +272,8 @@ vips_stdif_build( VipsObject *object )
 	stdif->out->Xoffset = 0;
 	stdif->out->Yoffset = 0;
 
+	vips_reorder_margin_hint( stdif->out, stdif->width * stdif->height ); 
+
 	return( 0 );
 }
 
