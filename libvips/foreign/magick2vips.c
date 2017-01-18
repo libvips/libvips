@@ -718,6 +718,7 @@ magick_fill_region( VipsRegion *out,
 		g_mutex_unlock( read->lock );
 
 		if( !pixels ) {
+			vips_foreign_load_invalidate( read->im );
 			vips_error( "magick2vips", 
 				"%s", _( "unable to read pixels" ) );
 			return( -1 );

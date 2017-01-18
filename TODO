@@ -1,17 +1,3 @@
-
-- jpegload should put a pointer to the load operation inside the output image
-  somewhere
-
-  can we do this in the base class?
-
-  then the loaders can use this if they get a read error from the lib to
-  invalidate the load operation and knock it out of cache
-
-
-
-
-
-
 - not sure about utf8 error messages on win
 
 - strange: 

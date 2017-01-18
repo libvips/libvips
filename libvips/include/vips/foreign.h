@@ -229,6 +229,8 @@ gboolean vips_foreign_is_a( const char *loader, const char *filename );
 gboolean vips_foreign_is_a_buffer( const char *loader, 
 	const void *data, size_t size );
 
+void vips_foreign_load_invalidate( VipsImage *image );
+
 #define VIPS_TYPE_FOREIGN_SAVE (vips_foreign_save_get_type())
 #define VIPS_FOREIGN_SAVE( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \

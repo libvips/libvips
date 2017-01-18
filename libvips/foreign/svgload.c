@@ -4,6 +4,8 @@
  * 	- from svgload.c
  * 1/8/16 felixbuenemann
  * 	- add svgz support
+ * 18/1/17
+ * 	- invalidate operation on read error
  */
 
 /*
@@ -200,6 +202,7 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	 * running inside a non-threaded tilecache.
 	 */
 	if( !rsvg_handle_render_cairo( svg->page, cr ) ) {
+		vips_operation_invalidate( VIPS_OPERATION( svg ) );
 		vips_error( class->nickname, 
 			"%s", _( "SVG rendering failed" ) );
 		return( -1 );

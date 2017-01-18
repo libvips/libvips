@@ -244,7 +244,6 @@ typedef struct _VipsImagePixels {
 	gint64 npels;		/* Number of pels calculated so far */
 } VipsImagePixels;
 
-void vips_foreign_load_invalidate( VipsImage *image );
 int vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	VipsSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
 	VipsArrayDouble *background );
