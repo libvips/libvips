@@ -7,7 +7,6 @@ before_script:
     --with-jpeg-libraries=$JPEG/lib
   - cat config.log
   - echo PKG_CONFIG_PATH = $PKG_CONFIG_PATH
-  - echo ls /usr/local/lib/pkgconfig ; ls /usr/local/lib/pkgconfig
   - echo which pkg-config ; which pkg-config
   - make -j$JOBS -s V=0
 script:
