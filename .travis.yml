@@ -80,11 +80,10 @@ matrix:
         - brew install
           gobject-introspection
           fftw mozjpeg libexif
-          libpng webp libtiff
+          libpng webp 
           swig imagemagick
           cfitsio libmatio
           orc little-cms2 poppler
           pango libgsf openslide
           librsvg giflib openexr
-        - brew unlink python
-        - brew install python pygobject3
+        - brew install pygobject3
