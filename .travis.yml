@@ -86,4 +86,5 @@ matrix:
           orc little-cms2 poppler
           pango libgsf openslide
           librsvg giflib openexr
-          python pygobject3
+        - brew unlink python
+        - brew install python pygobject3
