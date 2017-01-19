@@ -9,7 +9,7 @@ before_script:
   - echo PKG_CONFIG_PATH = $PKG_CONFIG_PATH
   - echo which pkg-config ; which pkg-config
   - pkg-config --list-all
-  - pkg-config --debug
+  - pkg-config --debug libpng
   - make -j$JOBS -s V=0
 script:
   - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
