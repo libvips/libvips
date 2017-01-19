@@ -77,7 +77,7 @@ matrix:
         - brew update
         - brew install ccache pkg-config automake
         - brew install --ignore-dependencies gtk-doc
-        - brew reinstall
+        - brew install
           gobject-introspection
           fftw mozjpeg libexif
           libpng webp libtiff
