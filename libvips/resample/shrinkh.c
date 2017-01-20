@@ -283,7 +283,7 @@ vips_shrinkh_build( VipsObject *object )
 	 * fractional part), we just see the integer part here.
 	 */
 	resample->out->Xsize = VIPS_ROUND_UINT( 
-		resample->in->Xsize / shrink->hshrink );
+		(double) resample->in->Xsize / shrink->hshrink );
 	if( resample->out->Xsize <= 0 ) { 
 		vips_error( class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );

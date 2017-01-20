@@ -770,19 +770,19 @@ operator+( VImage a, std::vector<double> b )
 }
 
 VImage & 
-operator+=( VImage a, const VImage b )
+operator+=( VImage &a, const VImage b )
 {
 	return( a = a + b ); 
 }
 
 VImage & 
-operator+=( VImage a, const double b )
+operator+=( VImage &a, const double b )
 {
 	return( a = a + b ); 
 }
 
 VImage & 
-operator+=( VImage a, std::vector<double> b )
+operator+=( VImage &a, std::vector<double> b )
 {
 	return( a = a + b ); 
 }
@@ -818,19 +818,19 @@ operator-( VImage a, std::vector<double> b )
 }
 
 VImage & 
-operator-=( VImage a, const VImage b )
+operator-=( VImage &a, const VImage b )
 {
 	return( a = a - b ); 
 }
 
 VImage & 
-operator-=( VImage a, const double b )
+operator-=( VImage &a, const double b )
 {
 	return( a = a - b ); 
 }
 
 VImage & 
-operator-=( VImage a, std::vector<double> b )
+operator-=( VImage &a, std::vector<double> b )
 {
 	return( a = a - b ); 
 }
@@ -872,19 +872,19 @@ operator*( VImage a, std::vector<double> b )
 }
 
 VImage & 
-operator*=( VImage a, const VImage b )
+operator*=( VImage &a, const VImage b )
 {
 	return( a = a * b ); 
 }
 
 VImage & 
-operator*=( VImage a, const double b )
+operator*=( VImage &a, const double b )
 {
 	return( a = a * b ); 
 }
 
 VImage & 
-operator*=( VImage a, std::vector<double> b )
+operator*=( VImage &a, std::vector<double> b )
 {
 	return( a = a * b ); 
 }
@@ -920,19 +920,19 @@ operator/( VImage a, std::vector<double> b )
 }
 
 VImage & 
-operator/=( VImage a, const VImage b )
+operator/=( VImage &a, const VImage b )
 {
 	return( a = a / b ); 
 }
 
 VImage & 
-operator/=( VImage a, const double b )
+operator/=( VImage &a, const double b )
 {
 	return( a = a / b ); 
 }
 
 VImage & 
-operator/=( VImage a, std::vector<double> b )
+operator/=( VImage &a, std::vector<double> b )
 {
 	return( a = a / b ); 
 }
@@ -956,19 +956,19 @@ operator%( VImage a, std::vector<double> b )
 }
 
 VImage & 
-operator%=( VImage a, const VImage b )
+operator%=( VImage &a, const VImage b )
 {
 	return( a = a % b ); 
 }
 
 VImage & 
-operator%=( VImage a, const double b )
+operator%=( VImage &a, const double b )
 {
 	return( a = a % b ); 
 }
 
 VImage & 
-operator%=( VImage a, std::vector<double> b )
+operator%=( VImage &a, std::vector<double> b )
 {
 	return( a = a % b ); 
 }
@@ -1210,19 +1210,19 @@ operator&( VImage a, std::vector<double> b )
 }
 
 VImage & 
-operator&=( VImage a, const VImage b )
+operator&=( VImage &a, const VImage b )
 {
 	return( a = a & b ); 
 }
 
 VImage & 
-operator&=( VImage a, const double b )
+operator&=( VImage &a, const double b )
 {
 	return( a = a & b ); 
 }
 
 VImage & 
-operator&=( VImage a, std::vector<double> b )
+operator&=( VImage &a, std::vector<double> b )
 {
 	return( a = a & b ); 
 }
@@ -1260,19 +1260,19 @@ operator|( VImage a, std::vector<double> b )
 }
 
 VImage & 
-operator|=( VImage a, const VImage b )
+operator|=( VImage &a, const VImage b )
 {
 	return( a = a | b ); 
 }
 
 VImage & 
-operator|=( VImage a, const double b )
+operator|=( VImage &a, const double b )
 {
 	return( a = a | b ); 
 }
 
 VImage & 
-operator|=( VImage a, std::vector<double> b )
+operator|=( VImage &a, std::vector<double> b )
 {
 	return( a = a | b ); 
 }
@@ -1310,19 +1310,19 @@ operator^( VImage a, std::vector<double> b )
 }
 
 VImage & 
-operator^=( VImage a, const VImage b )
+operator^=( VImage &a, const VImage b )
 {
 	return( a = a ^ b ); 
 }
 
 VImage & 
-operator^=( VImage a, const double b )
+operator^=( VImage &a, const double b )
 {
 	return( a = a ^ b ); 
 }
 
 VImage & 
-operator^=( VImage a, std::vector<double> b )
+operator^=( VImage &a, std::vector<double> b )
 {
 	return( a = a ^ b ); 
 }
@@ -1347,19 +1347,19 @@ operator<<( VImage a, std::vector<double> b )
 }
 
 VImage & 
-operator<<=( VImage a, const VImage b )
+operator<<=( VImage &a, const VImage b )
 {
 	return( a = a << b ); 
 }
 
 VImage & 
-operator<<=( VImage a, const double b )
+operator<<=( VImage &a, const double b )
 {
 	return( a = a << b ); 
 }
 
 VImage & 
-operator<<=( VImage a, std::vector<double> b )
+operator<<=( VImage &a, std::vector<double> b )
 {
 	return( a = a << b ); 
 }
@@ -1384,19 +1384,19 @@ operator>>( VImage a, std::vector<double> b )
 }
 
 VImage & 
-operator>>=( VImage a, const VImage b )
+operator>>=( VImage &a, const VImage b )
 {
 	return( a = a << b ); 
 }
 
 VImage & 
-operator>>=( VImage a, const double b )
+operator>>=( VImage &a, const double b )
 {
 	return( a = a << b ); 
 }
 
 VImage & 
-operator>>=( VImage a, std::vector<double> b )
+operator>>=( VImage &a, std::vector<double> b )
 {
 	return( a = a << b ); 
 }

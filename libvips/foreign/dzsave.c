@@ -213,7 +213,8 @@ write_vips_property( VipsImage *image,
 		xmlNode *child;
 
 		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
-		g_value_transform( value, &save_value );
+		if( !g_value_transform( value, &save_value ) )
+			return( image ); 
 
 		if( !(property = new_child( info, info->node, "property" )) )
 			return( image ); 

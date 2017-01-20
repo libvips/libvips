@@ -1167,7 +1167,7 @@ vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a )
 	for( i = 0; i < VIPS_NUMBER( vips_header_fields ); i++ ) {
 		HeaderField *field = &vips_header_fields[i];
 
-		vips_image_get( image, field->name, &value );
+		(void) vips_image_get( image, field->name, &value );
 		result = fn( image, field->name, &value, a );
 		g_value_unset( &value );
 
