@@ -1,5 +1,3 @@
-- seem to be leaking VipsReorder
-
 - not sure about utf8 error messages on win
 
 - strange: 
