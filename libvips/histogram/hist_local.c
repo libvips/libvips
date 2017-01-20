@@ -21,6 +21,8 @@
  * 	- redo as a class
  * 9/9/13
  * 	- any number of bands
+ * 20/1/17
+ * 	- add contrast limit
  */
 
 /*
@@ -71,6 +73,16 @@ typedef struct _VipsHistLocal {
 	int width;
 	int height;
 
+	double clip_limit;
+
+	/* width * height, ie. the area of the histogram we make.
+	 */
+	int area;
+
+	/* clip_limit * area, ie. relative to our maximum height.
+	 */
+	int clip;
+
 } VipsHistLocal;
 
 typedef VipsOperationClass VipsHistLocalClass;
@@ -82,7 +94,7 @@ G_DEFINE_TYPE( VipsHistLocal, vips_hist_local, VIPS_TYPE_OPERATION );
 typedef struct {
 	VipsRegion *ir;		/* Input region */
 
-	/* A 256-element hist for evry band.
+	/* A 256-element hist for every band.
 	 */
 	unsigned int **hist;
 } VipsHistLocalSequence;
@@ -193,14 +205,38 @@ vips_hist_local_generate( VipsRegion *or,
 				 */
 				unsigned int *hist = seq->hist[b]; 
 				int target = p[centre];
+
 				int sum;
 
 				sum = 0;
-				for( i = 0; i < target; i++ )
-					sum += hist[i];
 
-				*q++ = 256 * sum / 
-					(local->width * local->height);
+				/* For CLAHE we need to limit the height of the
+				 * hist to limit the amount we boost the
+				 * contrast by. If there's no limit, we can
+				 * take a shorter path.
+				 */
+				if( local->clip_limit < 1.0 ) { 
+					int sum_over;
+
+					sum_over = 0;
+					for( i = 0; i < 256; i++ ) {
+						if( hist[i] > local->clip ) 
+							sum_over += hist[i];
+						else 
+							sum += hist[i];
+					}
+
+					sum += sum_over / 256;
+
+				}
+				else {
+					sum = 0;
+					for( i = 0; i < target; i++ )
+						sum += hist[i];
+				
+				}
+
+				*q++ = 256 * sum / local->area;
 
 				/* Adapt histogram --- remove the pels from 
 				 * the left hand column, add in pels for a 
@@ -249,12 +285,16 @@ vips_hist_local_build( VipsObject *object )
 		return( -1 );
 	}
 
+	local->area = local->width * local->height;
+
+	local->clip = local->clip_limit * local->area;
+
 	/* Expand the input. 
 	 */
 	if( vips_embed( in, &t[1], 
 		local->width / 2, local->height / 2, 
 		in->Xsize + local->width - 1, in->Ysize + local->height - 1,
-		"extend", VIPS_EXTEND_COPY,
+		"extend", VIPS_EXTEND_MIRROR,
 		NULL ) )
 		return( -1 );
 	in = t[1];
@@ -323,11 +363,20 @@ vips_hist_local_class_init( VipsHistLocalClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistLocal, height ),
 		1, VIPS_MAX_COORD, 1 );
+
+	VIPS_ARG_DOUBLE( class, "clip_limit", 6, 
+		_( "Clip limit" ), 
+		_( "Clip the histogram at this height (CLAHE)" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsHistLocal, clip_limit ),
+		0.0, 1.0, 1.0 );
+
 }
 
 static void
 vips_hist_local_init( VipsHistLocal *local )
 {
+	local->clip_limit = 1.0;
 }
 
 /**
