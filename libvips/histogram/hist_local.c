@@ -172,10 +172,12 @@ vips_hist_local_generate( VipsRegion *or,
 	for( y = 0; y < r->height; y++ ) {
 		/* Get input and output pointers for this line.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR( seq->ir, r->left, r->top + y );
-		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y );
+		VipsPel * restrict p = 
+			VIPS_REGION_ADDR( seq->ir, r->left, r->top + y );
+		VipsPel * restrict q = 
+			VIPS_REGION_ADDR( or, r->left, r->top + y );
 
-		VipsPel *p1;
+		VipsPel * restrict p1;
 		int x, i, j, b;
 
 		/* Find histogram for start of this line.
@@ -197,8 +199,8 @@ vips_hist_local_generate( VipsRegion *or,
 			for( b = 0; b < bands; b++ ) {
 				/* Sum histogram up to current pel.
 				 */
-				unsigned int *hist = seq->hist[b]; 
-				const int target = p[centre];
+				unsigned int * restrict hist = seq->hist[b]; 
+				const int target = p[centre + b];
 				const int max_slope = local->max_slope;
 
 				int sum;
@@ -251,23 +253,24 @@ vips_hist_local_generate( VipsRegion *or,
 				 * Scale by 255, not 256, or we'll get
 				 * overflow.
 				 */
-				*q++ = 255 * sum / 
+				q[b] = 255 * sum / 
 					(local->width * local->height);
 
 				/* Adapt histogram --- remove the pels from 
 				 * the left hand column, add in pels for a 
 				 * new right-hand column.
 				 */
-				p1 = p;
+				p1 = p + b;
 				for( j = 0; j < local->height; j++ ) {
 					hist[p1[0]] -= 1;
 					hist[p1[bands * local->width]] += 1;
 
 					p1 += lsk;
 				}
-
-				p += 1;
 			}
+
+			p += bands;
+			q += bands;
 		}
 	}
 
