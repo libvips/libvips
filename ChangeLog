@@ -27,7 +27,7 @@
   aferrero2707
 - kick load operations from cache on read error, thanks gaillard 
 - fix return from C++ assignment operator overloads (+=, -= etc) 
-- add @max_slope to vips_local_hist() to implement CLAHE
+- add @max_slope to vips_local_hist() to implement CLAHE, thanks hunter-87
 
 8/12/16 started 8.4.5
 - allow libgsf-1.14.26 to help centos, thanks tdiprima
