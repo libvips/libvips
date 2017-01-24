@@ -23,6 +23,8 @@
  * 	- allow +/- INFINITY as a result
  * 4/12/12
  * 	- track and return top n values
+ * 24/1/17
+ * 	- sort equal values by y then x to make order more consistent
  */
 
 /*
@@ -143,9 +145,19 @@ vips_values_add( VipsValues *values, double v, int x, int y )
 
 	/* Find insertion point.
 	 */
-	for( i = 0; i < values->n; i++ )
-		if( v <= values->value[i] ) 
+	for( i = 0; i < values->n; i++ ) {
+		if( v < values->value[i] ) 
 			break;
+
+		if( v == values->value[i] ) {
+			if( y < values->y_pos[i] )
+				break;
+
+			if( y == values->y_pos[i] )
+				if( x <= values->x_pos[i] )
+					break;
+		}
+	}
 
 	/* Array full? 
 	 */
@@ -498,6 +510,7 @@ vips_max_init( VipsMax *max )
  * By default it finds the single largest value. If @size is set >1, it will 
  * find the @size largest values. It will stop searching early if has found 
  * enough values. 
+ * Equal values will be sorted by y then x.
  *
  * It operates on all 
  * bands of the input image: use vips_stats() if you need to find an 
@@ -511,8 +524,7 @@ vips_max_init( VipsMax *max )
  * largest to smallest.
  *
  * If there are more than @size maxima, the maxima returned will be a random
- * selection of the maxima in the image. Equal maxima will be returned in a
- * random order.
+ * selection of the maxima in the image. 
  *
  * See also: vips_min(), vips_stats().
  *

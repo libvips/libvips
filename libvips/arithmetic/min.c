@@ -145,9 +145,19 @@ vips_values_add( VipsValues *values, double v, int x, int y )
 
 	/* Find insertion point.
 	 */
-	for( i = 0; i < values->n; i++ )
-		if( v >= values->value[i] ) 
+	for( i = 0; i < values->n; i++ ) {
+		if( v > values->value[i] ) 
 			break;
+
+		if( v == values->value[i] ) {
+			if( y < values->y_pos[i] )
+				break;
+
+			if( y == values->y_pos[i] )
+				if( x <= values->x_pos[i] )
+					break;
+		}
+	}
 
 	/* Array full? 
 	 */
@@ -501,6 +511,7 @@ vips_min_init( VipsMin *min )
  * By default it finds the single smallest value. If @size is set >1, it will 
  * find the @size smallest values. It will stop searching early if has found 
  * enough values. 
+ * Equal values will be sorted by y then x.
  *
  * It operates on all 
  * bands of the input image: use vips_stats() if you need to find an 
@@ -515,8 +526,7 @@ vips_min_init( VipsMin *min )
  * smallest to largest.
  *
  * If there are more than @size minima, the minima returned will be a random
- * selection of the minima in the image. Equal minima will be returned in a
- * random order.
+ * selection of the minima in the image. 
  *
  * See also: vips_min(), vips_stats().
  *
