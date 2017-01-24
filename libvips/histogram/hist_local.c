@@ -182,7 +182,7 @@ vips_hist_local_generate( VipsRegion *or,
 		VipsPel * restrict p1;
 		int x, i, j, b;
 
-		/* Find histogram for start of this line.
+		/* Find histogram for the start of this line. 
 		 */
 		for( b = 0; b < bands; b++ )
 			memset( seq->hist[b], 0, 256 * sizeof( unsigned int ) );
