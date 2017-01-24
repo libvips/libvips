@@ -514,6 +514,10 @@ vips_min_init( VipsMin *min )
  * These values are returned sorted from 
  * smallest to largest.
  *
+ * If there are more than @size minima, the minima returned will be a random
+ * selection of the minima in the image. Equal minima will be returned in a
+ * random order.
+ *
  * See also: vips_min(), vips_stats().
  *
  * Returns: 0 on success, -1 on error

@@ -510,6 +510,10 @@ vips_max_init( VipsMax *max )
  * @out_array, @x_array and @y_array. These values are returned sorted from 
  * largest to smallest.
  *
+ * If there are more than @size maxima, the maxima returned will be a random
+ * selection of the maxima in the image. Equal maxima will be returned in a
+ * random order.
+ *
  * See also: vips_min(), vips_stats().
  *
  * Returns: 0 on success, -1 on error
