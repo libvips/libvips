@@ -328,6 +328,9 @@ void vips__change_suffix( const char *name, char *out, int mx,
 
 char *vips_realpath( const char *path );
 
+guint32 vips__random( guint32 seed );
+guint32 vips__random_add( guint32 seed, int value );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

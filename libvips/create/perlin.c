@@ -92,21 +92,6 @@ typedef struct _Sequence {
 
 } Sequence;
 
-/* A very simple random number generator. See:
- * http://isthe.com/chongo/tech/comp/fnv/#FNV-source
- */
-static guint32
-vips_perlin_random( guint32 seed )
-{
-	return( 1103515245u * seed + 12345 );
-}
-
-static guint32 
-vips_perlin_seed_add( guint32 seed, int value )
-{
-	return( ((2166136261u ^ seed) * 16777619u) ^ value );
-}
-
 /* Generate a 3 x 3 grid of cells around a point. 
  */
 static void
@@ -135,13 +120,12 @@ vips_perlin_create_cells( VipsPerlin *perlin,
 
 			if( cy >= perlin->cells_down )
 				cy = 0;
-			seed = vips_perlin_seed_add( seed, cy );
+			seed = vips__random_add( seed, cy );
 
 			if( cx >= perlin->cells_across )
 				cx = 0;
-			seed = vips_perlin_seed_add( seed, cx );
+			seed = vips__random_add( seed, cx );
 
-			seed = vips_perlin_random( seed ); 
 			angle = (seed ^ (seed >> 8) ^ (seed >> 16)) & 0xff;
 
 			gx[ci] = vips_perlin_cos[angle];

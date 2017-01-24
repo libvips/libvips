@@ -1912,3 +1912,20 @@ vips_realpath( const char *path )
 
 	return( real );
 }
+
+/* A very simple random number generator. See:
+ * http://isthe.com/chongo/tech/comp/fnv/#FNV-source
+ */
+guint32
+vips__random( guint32 seed )
+{
+	return( 1103515245u * seed + 12345 );
+}
+
+guint32 
+vips__random_add( guint32 seed, int value )
+{
+	seed = ((2166136261u ^ seed) * 16777619u) ^ value;
+
+	return( vips__random( seed ) ); 
+}
