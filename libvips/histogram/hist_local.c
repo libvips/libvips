@@ -26,6 +26,7 @@
  * 	- sum to <= target, not < target, since cumulative hists include the
  * 	  current value
  * 	- scale result by 255, not 256, to avoid overflow
+ * 	- off by 1 fix for odd window widths
  */
 
 /*
@@ -150,7 +151,8 @@ vips_hist_local_generate( VipsRegion *or,
 	VipsImage *in = (VipsImage *) a;
 	const VipsHistLocal *local = (VipsHistLocal *) b;
 	VipsRect *r = &or->valid;
-	int bands = in->Bands; 
+	const int bands = in->Bands; 
+	const int max_slope = local->max_slope;
 
 	VipsRect irect;
 	int y;
@@ -167,7 +169,7 @@ vips_hist_local_generate( VipsRegion *or,
 		return( -1 );
 
 	lsk = VIPS_REGION_LSKIP( seq->ir );
-	centre = lsk * (local->height / 2) + bands * local->width / 2;
+	centre = lsk * (local->height / 2) + bands * (local->width / 2);
 
 	for( y = 0; y < r->height; y++ ) {
 		/* Get input and output pointers for this line.
@@ -201,7 +203,6 @@ vips_hist_local_generate( VipsRegion *or,
 				 */
 				unsigned int * restrict hist = seq->hist[b]; 
 				const int target = p[centre + b];
-				const int max_slope = local->max_slope;
 
 				int sum;
 
