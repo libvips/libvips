@@ -135,8 +135,13 @@ vips_get_argv0( void )
  * therefore be unable to find its data files. It is much better to call 
  * this macro yourself.
  *
- * VIPS_INIT() is a macro, since it tries to check binary compatibility
- * between the caller and the library. 
+ * Additionally, VIPS_INIT() can be run from any thread, but it must not be
+ * called from more than one thread at the same time. This is much easier to 
+ * guarantee if you call it yourself.
+ *
+ * VIPS_INIT() is a macro, since it tries to check ABI compatibility
+ * between the caller and the library. You can also call vips_init(), the
+ * non-macro version, if macros are not available to you.
  *
  * You may call VIPS_INIT() many times and vips_shutdown() many times, but you 
  * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
@@ -249,7 +254,6 @@ vips_load_plugins( const char *fmt, ... )
  *
  * Returns: 0 on success, -1 otherwise
  */
-
 int
 vips_init( const char *argv0 )
 {
