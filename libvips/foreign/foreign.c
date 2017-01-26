@@ -44,8 +44,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -470,13 +470,27 @@ vips_foreign_find_load_sub( VipsForeignLoadClass *load_class,
 {
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( load_class );
 
+#ifdef DEBUG
+	printf( "vips_foreign_find_load_sub: %s\n", 
+		VIPS_OBJECT_CLASS( class )->nickname );
+#endif /*DEBUG*/
+
 	if( load_class->is_a ) {
 		if( load_class->is_a( filename ) ) 
 			return( load_class );
+
+#ifdef DEBUG
+		printf( "vips_foreign_find_load_sub: is_a failed\n" ); 
+#endif /*DEBUG*/
 	}
 	else if( class->suffs && 
 		vips_filename_suffix_match( filename, class->suffs ) )
 		return( load_class );
+	else {
+#ifdef DEBUG
+		printf( "vips_foreign_find_load_sub: suffix match failed\n" ); 
+#endif /*DEBUG*/
+	}
 
 	return( NULL );
 }
@@ -515,6 +529,11 @@ vips_foreign_find_load( const char *name )
 			_( "\"%s\" is not a known file format" ), name );
 		return( NULL );
 	}
+
+#ifdef DEBUG
+	printf( "vips_foreign_find_load: selected %s\n", 
+		VIPS_OBJECT_CLASS( load_class )->nickname );
+#endif /*DEBUG*/
 
 	return( G_OBJECT_CLASS_NAME( load_class ) );
 }
