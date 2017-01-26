@@ -2050,6 +2050,20 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		 */
 		header->rows_per_strip = 
 			VIPS_CLIP( 1, header->rows_per_strip, header->height );
+
+		/* libtiff has two strip-wise readers. TIFFReadEncodedStrip()
+		 * decompresses an entire strip to memory. It's fast, but it
+		 * will need a lot of ram if the strip is large.
+		 * TIFFReadScanline() reads a single scanline. It's slower, but
+		 * will save a lot of memory if strips are large.
+		 *
+		 * If this image has a strip size of over 128 lines, fall back
+		 * to TIFFReadScanline(), otherwise use TIFFReadEncodedStrip().
+		 */
+		if( header->rows_per_strip > 128 ) {
+			header->rows_per_strip = 1;
+
+		}
 	}
 
 	return( 0 );
