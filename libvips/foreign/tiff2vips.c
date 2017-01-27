@@ -171,6 +171,8 @@
  * 	- add multi-page read 
  * 17/1/17
  * 	- invalidate operation on read error
+ * 27/1/17
+ * 	- if rows_per_strip is large, read with scanline API instead
  */
 
 /*
@@ -246,10 +248,14 @@ typedef struct _RtiffHeader {
 	uint32 tile_height;		
 
 	/* Fields for strip images.
+	 *
+	 * If read_scanlinewise is TRUE, the strips are too large to read in a
+	 * single lump and we need to use the scanline API.
 	 */
 	uint32 rows_per_strip;
 	tsize_t strip_size;
 	int number_of_strips;
+	gboolean read_scanlinewise;
 } RtiffHeader;
 
 /* Scanline-type process function.
@@ -447,7 +453,13 @@ rtiff_strip_read( Rtiff *rtiff, int strip, tdata_t buf )
 	printf( "rtiff_strip_read: reading strip %d\n", strip ); 
 #endif /*DEBUG*/
 
-	length = TIFFReadEncodedStrip( rtiff->tiff, strip, buf, (tsize_t) -1 );
+	if( rtiff->header.read_scanlinewise )  
+		length = TIFFReadScanline( rtiff->tiff, 
+			buf, strip, (tsize_t) -1 );
+	else 
+		length = TIFFReadEncodedStrip( rtiff->tiff, 
+			strip, buf, (tsize_t) -1 );
+
 	if( length == -1 ) {
 		vips_foreign_load_invalidate( rtiff->out );
 		vips_error( "tiff2vips", "%s", _( "read error" ) );
@@ -2042,6 +2054,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			return( -1 );
 		header->strip_size = TIFFStripSize( rtiff->tiff );
 		header->number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
+		header->read_scanlinewise = FALSE;
 
 		/* rows_per_strip can be 2 ** 32 - 1, meaning the whole image. 
 		 * Clip this down to height to avoid confusing vips. 
@@ -2062,7 +2075,9 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		 */
 		if( header->rows_per_strip > 128 ) {
 			header->rows_per_strip = 1;
-
+			header->strip_size = TIFFScanlineSize( rtiff->tiff );
+			header->number_of_strips = header->height;
+			header->read_scanlinewise = TRUE;
 		}
 	}
 
