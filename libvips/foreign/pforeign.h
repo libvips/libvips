@@ -183,6 +183,7 @@ int vips__png_read( const char *name, VipsImage *out, gboolean readbehind );
 gboolean vips__png_ispng_buffer( const void *buf, size_t len );
 int vips__png_ispng( const char *filename );
 gboolean vips__png_isinterlaced( const char *filename );
+gboolean vips__png_isinterlaced_buffer( const void *buffer, size_t length );
 extern const char *vips__png_suffs[];
 int vips__png_read_buffer( const void *buffer, size_t length, 
 	VipsImage *out, gboolean readbehind  );
