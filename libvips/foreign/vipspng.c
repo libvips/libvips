@@ -710,6 +710,28 @@ vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out,
 	return( 0 );
 }
 
+/* Interlaced PNGs need to be entirely decompressed into memory then can be
+ * served partially from there. Non-interlaced PNGs may be read sequentially.
+ */
+gboolean
+vips__png_isinterlaced_buffer( const void *buffer, size_t length )
+{
+	VipsImage *image;
+	Read *read;
+	int interlace_type;
+
+	image = vips_image_new();
+
+	if( !(read = read_new_buffer( image, buffer, length, FALSE )) ) { 
+		g_object_unref( image );
+		return( -1 );
+	}
+	interlace_type = png_get_interlace_type( read->pPng, read->pInfo );
+	g_object_unref( image );
+
+	return( interlace_type != PNG_INTERLACE_NONE );
+}
+
 const char *vips__png_suffs[] = { ".png", NULL };
 
 /* What we track during a PNG write.

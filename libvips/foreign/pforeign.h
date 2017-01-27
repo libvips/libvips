@@ -69,9 +69,12 @@ int vips__tiff_read_header( const char *filename, VipsImage *out,
 	int page, int n, gboolean autorotate );
 int vips__tiff_read( const char *filename, VipsImage *out, 
 	int page, int n, gboolean autorotate, gboolean readbehind );
-gboolean vips__istifftiled( const char *filename );
-gboolean vips__istiff_buffer( const void *buf, size_t len );
+
 gboolean vips__istiff( const char *filename );
+gboolean vips__istifftiled( const char *filename );
+
+gboolean vips__istiff_buffer( const void *buf, size_t len );
+gboolean vips__istifftiled_buffer( const void *buf, size_t len );
 
 int vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out, 
 	int page, int n, gboolean autorotate );
@@ -180,6 +183,7 @@ int vips__png_read( const char *name, VipsImage *out, gboolean readbehind );
 gboolean vips__png_ispng_buffer( const void *buf, size_t len );
 int vips__png_ispng( const char *filename );
 gboolean vips__png_isinterlaced( const char *filename );
+gboolean vips__png_isinterlaced_buffer( const void *buffer, size_t length );
 extern const char *vips__png_suffs[];
 int vips__png_read_buffer( const void *buffer, size_t length, 
 	VipsImage *out, gboolean readbehind  );

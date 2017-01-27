@@ -2366,4 +2366,29 @@ vips__tiff_read_buffer( const void *buf, size_t len,
 	return( 0 );
 }
 
+gboolean
+vips__istifftiled_buffer( const void *buf, size_t len )
+{
+	VipsImage *im;
+	TIFF *tif;
+	gboolean tiled;
+
+	vips__tiff_init();
+
+	im = vips_image_new();
+
+	if( !(tif = vips__tiff_openin_buffer( im, buf, len )) ) {
+		g_object_unref( im );
+		vips_error_clear();
+		return( FALSE );
+	}
+
+	tiled = TIFFIsTiled( tif );
+
+	TIFFClose( tif );
+	g_object_unref( im );
+
+	return( tiled );
+}
+
 #endif /*HAVE_TIFF*/

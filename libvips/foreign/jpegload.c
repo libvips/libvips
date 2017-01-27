@@ -169,14 +169,6 @@ typedef VipsForeignLoadJpegClass VipsForeignLoadJpegFileClass;
 G_DEFINE_TYPE( VipsForeignLoadJpegFile, vips_foreign_load_jpeg_file, 
 	vips_foreign_load_jpeg_get_type() );
 
-static VipsForeignFlags
-vips_foreign_load_jpeg_file_get_flags_filename( const char *filename )
-{
-	/* The jpeg reader supports sequential read.
-	 */
-	return( VIPS_FOREIGN_SEQUENTIAL );
-}
-
 static gboolean
 vips_foreign_load_jpeg_file_is_a( const char *filename )
 {
@@ -232,8 +224,6 @@ vips_foreign_load_jpeg_file_class_init( VipsForeignLoadJpegFileClass *class )
 	 */
 	foreign_class->priority = 50;
 
-	load_class->get_flags_filename = 
-		vips_foreign_load_jpeg_file_get_flags_filename;
 	load_class->is_a = vips_foreign_load_jpeg_file_is_a;
 	load_class->header = vips_foreign_load_jpeg_file_header;
 	load_class->load = vips_foreign_load_jpeg_file_load;

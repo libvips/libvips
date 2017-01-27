@@ -28,6 +28,9 @@
  * 	  support for BSCALE / BZERO settings
  * 17/1/17
  * 	- invalidate operation on read error
+ * 26/1/17 aferrero2707 
+ * 	- use fits_open_diskfile(), not fits_open_file() ... we don't want the
+ *	  extended filename syntax 
  */
 
 /*
@@ -182,7 +185,7 @@ vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 		G_CALLBACK( vips_fits_close_cb ), fits );
 
 	status = 0;
-	if( fits_open_file( &fits->fptr, filename, READONLY, &status ) ) {
+	if( fits_open_diskfile( &fits->fptr, filename, READONLY, &status ) ) {
 		vips_error( "fits", _( "unable to open \"%s\"" ), filename );
 		vips_fits_error( status );
 		return( NULL );
@@ -556,10 +559,11 @@ vips__fits_isfits( const char *filename )
 
 	status = 0;
 
-	if( fits_open_image( &fptr, filename, READONLY, &status ) ) {
+	if( fits_open_diskfile( &fptr, filename, READONLY, &status ) ) {
 		VIPS_DEBUG_MSG( "isfits: error reading \"%s\"\n", filename );
 #ifdef VIPS_DEBUG
 		vips_fits_error( status );
+		VIPS_DEBUG_MSG( "isfits: %s\n", vips_error_buffer() );
 #endif /*VIPS_DEBUG*/
 
 		return( 0 );
