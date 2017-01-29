@@ -168,6 +168,9 @@
  * 	- use wchar_t TIFFOpen on Windows
  * 14/10/16
  * 	- add buffer output
+ * 29/1/17
+ * 	- enable bigtiff automatically for large, uncompressed writes, thanks 
+ * 	  AndreasSchmid1 
  */
 
 /*
@@ -1027,6 +1030,19 @@ wtiff_new( VipsImage *im, const char *filename,
 		wtiff->tls = VIPS_ROUND_UP( wtiff->tilew, 8 ) / 8;
 	else
 		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL( im ) * wtiff->tilew;
+
+	/* If compression is off and we're writing a >4gb image, automatically
+	 * enable bigtiff.
+	 *
+	 * This won't always work. If the image data is just under 4gb but
+	 * there's a lot of metadata, we could be pushed over the 4gb limit.
+	 */
+	if( wtiff->compression == COMPRESSION_NONE &&
+		VIPS_IMAGE_SIZEOF_IMAGE( wtiff->im ) > UINT_MAX && 
+		!wtiff->bigtiff ) { 
+		g_warning( "%s", _( "image over 4gb, enabling bigtiff" ) );
+		wtiff->bigtiff = TRUE;
+	}
 
 	/* Build the pyramid framework.
 	 */
