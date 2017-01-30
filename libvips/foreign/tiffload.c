@@ -306,7 +306,7 @@ vips_foreign_load_tiff_buffer_class_init(
 	object_class->description = _( "load tiff from buffer" );
 
 	load_class->is_a_buffer = vips__istiff_buffer;
-	load_class->get_flags = vips_foreign_load_tiff_file_get_flags;
+	load_class->get_flags = vips_foreign_load_tiff_buffer_get_flags;
 	load_class->header = vips_foreign_load_tiff_buffer_header;
 	load_class->load = vips_foreign_load_tiff_buffer_load;
 
