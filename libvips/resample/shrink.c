@@ -7,6 +7,9 @@
  * 15/8/16
  * 	- more accurate resize
  * 	- rename xshrink -> hshrink for greater consistency 
+ * 9/2/17
+ * 	- use reduce, not affine, for any residual shrink
+ * 	- expand cache hint
  */
 
 /*
@@ -86,17 +89,16 @@ vips_shrink_build( VipsObject *object )
 
 	if( hshrink_int != shrink->hshrink || 
 		vshrink_int != shrink->vshrink ) {
-		/* Shrink by int factors, affine to final size.
+		/* Shrink by int factors, reduce to final size.
 		 */
-		double xresidual = hshrink_int / shrink->hshrink; 
-		double yresidual = vshrink_int / shrink->vshrink;
+		double xresidual = shrink->hshrink / hshrink_int; 
+		double yresidual = shrink->vshrink / vshrink_int;
 
 		if( vips_shrinkv( resample->in, &t[0], vshrink_int, NULL ) ||
 			vips_shrinkh( t[0], &t[1], hshrink_int, NULL ) )
 			return( -1 ); 
 
-		if( vips_affine( t[1], &t[2], 
-			xresidual, 0.0, 0.0, yresidual, NULL ) ||
+		if( vips_reduce( t[1], &t[2], xresidual, yresidual, NULL ) ||
 			vips_image_write( t[2], resample->out ) )
 			return( -1 );
 	}
@@ -126,7 +128,10 @@ vips_shrink_class_init( VipsShrinkClass *class )
 	vobject_class->description = _( "shrink an image" );
 	vobject_class->build = vips_shrink_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	/* You'd think UNBUFFERED would work, but we will use reduce for non-int
+	 * shrinks, so it has to be straight SEQ.
+	 */
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_DOUBLE( class, "vshrink", 9, 
 		_( "Vshrink" ), 
@@ -175,7 +180,7 @@ vips_shrink_init( VipsShrink *shrink )
  *
  * Shrink @in by a pair of factors with a simple box filter. For non-integer
  * factors, vips_shrink() will first shrink by the integer part with a box
- * filter, then use vips_affine() plus bilinear interpolation to shrink by the
+ * filter, then use vips_reduce() to shrink by the
  * remaining fractional part. 
  *
  * This is a very low-level operation: see vips_resize() for a more
@@ -184,7 +189,7 @@ vips_shrink_init( VipsShrink *shrink )
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 
  *
- * See also: vips_resize(), vips_affine().
+ * See also: vips_resize(), vips_reduce().
  *
  * Returns: 0 on success, -1 on error
  */
