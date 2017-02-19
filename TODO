@@ -1,3 +1,8 @@
+- vips linecache has access there twice!
+
+	 $ vips linecache
+	 ...
+
 - make a test image with
 
 	make a huge 1 bit tiff in nip2, save 
