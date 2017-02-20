@@ -740,7 +740,13 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 		if( vips_image_pio_input( in[i] ) )
 			return( -1 );
 	}
-        vips_image_pipeline_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in );
+
+	/* Don't call vips_image_pipeline_array(), we don't want to copy
+	 * fields.
+	 */
+	vips__demand_hint_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in );
+	if( vips__reorder_set_input( out, in ) )
+		return( -1 ); 
 
 	/* Generate!
 	 */
