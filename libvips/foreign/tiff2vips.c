@@ -203,8 +203,8 @@
  */
 
 /* 
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1253,7 +1253,9 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	/* Read any ICC profile.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_ICCPROFILE, &data_length, &data ) ) {
+		TIFFTAG_ICCPROFILE, &data_length, &data ) &&
+		data &&
+		data_length ) {
 		void *data_copy;
 
 		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
@@ -1266,7 +1268,9 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	/* Read any XMP metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_XMLPACKET, &data_length, &data ) ) {
+		TIFFTAG_XMLPACKET, &data_length, &data ) &&
+		data &&
+		data_length ) {
 		void *data_copy;
 
 		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
@@ -1279,7 +1283,9 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	/* Read any IPCT metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_RICHTIFFIPTC, &data_length, &data ) ) {
+		TIFFTAG_RICHTIFFIPTC, &data_length, &data ) &&
+		data &&
+		data_length ) {
 		void *data_copy;
 
 		/* For no very good reason, libtiff stores IPCT as an array of
@@ -1297,7 +1303,9 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	/* Read any photoshop metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_PHOTOSHOP, &data_length, &data ) ) {
+		TIFFTAG_PHOTOSHOP, &data_length, &data ) &&
+		data &&
+		data_length ) {
 		void *data_copy;
 
 		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
