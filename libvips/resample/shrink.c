@@ -128,9 +128,6 @@ vips_shrink_class_init( VipsShrinkClass *class )
 	vobject_class->description = _( "shrink an image" );
 	vobject_class->build = vips_shrink_build;
 
-	/* You'd think UNBUFFERED would work, but we will use reduce for non-int
-	 * shrinks, so it has to be straight SEQ.
-	 */
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_DOUBLE( class, "vshrink", 9, 

@@ -262,7 +262,7 @@ vips_unpremultiply_class_init( VipsUnpremultiplyClass *class )
 	vobject_class->description = _( "unpremultiply image alpha" );
 	vobject_class->build = vips_unpremultiply_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

@@ -200,7 +200,7 @@ vips_byteswap_class_init( VipsByteswapClass *class )
 	vobject_class->description = _( "byteswap an image" );
 	vobject_class->build = vips_byteswap_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

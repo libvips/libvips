@@ -231,7 +231,7 @@ vips_scRGB2BW_class_init( VipsscRGB2BWClass *class )
 	object_class->description = _( "convert scRGB to BW" ); 
 	object_class->build = vips_scRGB2BW_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

@@ -557,7 +557,7 @@ vips_embed_class_init( VipsEmbedClass *class )
 	vobject_class->description = _( "embed an image in a larger image" );
 	vobject_class->build = vips_embed_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", -1, 
 		_( "Input" ), 

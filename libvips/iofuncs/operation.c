@@ -169,7 +169,6 @@
  * VipsOperationFlags:
  * @VIPS_OPERATION_NONE: no flags
  * @VIPS_OPERATION_SEQUENTIAL: can work sequentially with a small buffer
- * @VIPS_OPERATION_SEQUENTIAL_UNBUFFERED: can work sequentially with no buffer
  * @VIPS_OPERATION_NOCACHE: must not be cached
  * @VIPS_OPERATION_DEPRECATED: a compatibility thing
  *
@@ -178,20 +177,6 @@
  * @VIPS_OPERATION_SEQUENTIAL means that the operation works like vips_conv():
  * it can process images top-to-bottom with only small non-local
  * references. 
- *
- * Every scan-line must be requested, you are not allowed to skip
- * ahead, but as a special case, the very first request can be for a region
- * not at the top of the image. In this case, the first part of the image will
- * be read and discarded
- *
- * @VIPS_OPERATION_SEQUENTIAL_UNBUFFERED means that the operation works like 
- * vips_copy(): it can process images top-to-bottom and makes no 
- * non-local references. 
- *
- * Every scan-line must be requested, you are not allowed to skip
- * ahead, but as a special case, the very first request can be for a region
- * not at the top of the image. In this case, the first part of the image will
- * be read and discarded
  *
  * @VIPS_OPERATION_NOCACHE means that the operation must not be cached by
  * vips. 

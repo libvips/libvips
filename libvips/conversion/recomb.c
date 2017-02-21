@@ -201,7 +201,7 @@ vips_recomb_class_init( VipsRecombClass *class )
 	object_class->description = _( "linear recombination with matrix" );
 	object_class->build = vips_recomb_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 

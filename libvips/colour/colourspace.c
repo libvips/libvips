@@ -580,7 +580,7 @@ vips_colourspace_class_init( VipsColourspaceClass *class )
 	vobject_class->description = _( "convert to a new colorspace" );
 	vobject_class->build = vips_colourspace_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

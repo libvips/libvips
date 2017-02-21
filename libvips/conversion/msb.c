@@ -238,7 +238,7 @@ vips_msb_class_init( VipsMsbClass *class )
 		_( "pick most-significant byte from an image" );
 	vobject_class->build = vips_msb_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 
