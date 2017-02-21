@@ -138,7 +138,6 @@ user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
 typedef struct {
 	char *name;
 	VipsImage *out;
-	gboolean readbehind; 
 
 	int y_pos;
 	png_structp pPng;
@@ -175,7 +174,7 @@ read_close_cb( VipsImage *out, Read *read )
 }
 
 static Read *
-read_new( VipsImage *out, gboolean readbehind )
+read_new( VipsImage *out )
 {
 	Read *read;
 
@@ -183,7 +182,6 @@ read_new( VipsImage *out, gboolean readbehind )
 		return( NULL );
 
 	read->name = NULL;
-	read->readbehind = readbehind;
 	read->out = out;
 	read->y_pos = 0;
 	read->pPng = NULL;
@@ -221,11 +219,11 @@ read_new( VipsImage *out, gboolean readbehind )
 }
 
 static Read *
-read_new_filename( VipsImage *out, const char *name, gboolean readbehind )
+read_new_filename( VipsImage *out, const char *name )
 {
 	Read *read;
 
-	if( !(read = read_new( out, readbehind )) )
+	if( !(read = read_new( out )) )
 		return( NULL );
 
 	read->name = vips_strdup( VIPS_OBJECT( out ), name );
@@ -428,7 +426,7 @@ vips__png_header( const char *name, VipsImage *out )
 {
 	Read *read;
 
-	if( !(read = read_new_filename( out, name, FALSE )) ||
+	if( !(read = read_new_filename( out, name )) ||
 		png2vips_header( read, out ) ) 
 		return( -1 );
 
@@ -557,7 +555,7 @@ vips__png_isinterlaced( const char *filename )
 	int interlace_type;
 
 	image = vips_image_new();
-	if( !(read = read_new_filename( image, filename, FALSE )) ) {
+	if( !(read = read_new_filename( image, filename )) ) {
 		g_object_unref( image );
 		return( -1 );
 	}
@@ -601,7 +599,7 @@ png2vips_image( Read *read, VipsImage *out )
 }
 
 int
-vips__png_read( const char *filename, VipsImage *out, gboolean readbehind )
+vips__png_read( const char *filename, VipsImage *out )
 {
 	Read *read;
 
@@ -609,7 +607,7 @@ vips__png_read( const char *filename, VipsImage *out, gboolean readbehind )
 	printf( "vips__png_read: reading \"%s\"\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new_filename( out, filename, readbehind )) ||
+	if( !(read = read_new_filename( out, filename )) ||
 		png2vips_image( read, out ) )
 		return( -1 ); 
 
@@ -656,12 +654,11 @@ vips_png_read_buffer( png_structp pPng, png_bytep data, png_size_t length )
 }
 
 static Read *
-read_new_buffer( VipsImage *out, const void *buffer, size_t length, 
-	gboolean readbehind )
+read_new_buffer( VipsImage *out, const void *buffer, size_t length )
 {
 	Read *read;
 
-	if( !(read = read_new( out, readbehind )) )
+	if( !(read = read_new( out )) )
 		return( NULL );
 
 	read->length = length;
@@ -687,7 +684,7 @@ vips__png_header_buffer( const void *buffer, size_t length, VipsImage *out )
 {
 	Read *read;
 
-	if( !(read = read_new_buffer( out, buffer, length, FALSE )) ||
+	if( !(read = read_new_buffer( out, buffer, length )) ||
 		png2vips_header( read, out ) ) 
 		return( -1 );
 
@@ -695,12 +692,11 @@ vips__png_header_buffer( const void *buffer, size_t length, VipsImage *out )
 }
 
 int
-vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out, 
-	gboolean readbehind  )
+vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out )
 {
 	Read *read;
 
-	if( !(read = read_new_buffer( out, buffer, length, readbehind )) ||
+	if( !(read = read_new_buffer( out, buffer, length )) ||
 		png2vips_image( read, out ) )
 		return( -1 ); 
 
@@ -719,7 +715,7 @@ vips__png_isinterlaced_buffer( const void *buffer, size_t length )
 
 	image = vips_image_new();
 
-	if( !(read = read_new_buffer( image, buffer, length, FALSE )) ) { 
+	if( !(read = read_new_buffer( image, buffer, length )) ) { 
 		g_object_unref( image );
 		return( -1 );
 	}

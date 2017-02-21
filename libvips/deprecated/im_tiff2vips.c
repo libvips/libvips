@@ -98,7 +98,7 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 			return( -1 );
 	}
 	else {
-		if( vips__tiff_read( filename, out, page, 1, FALSE, TRUE ) )
+		if( vips__tiff_read( filename, out, page, 1, FALSE ) )
 			return( -1 );
 	}
 #else

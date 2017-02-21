@@ -1,10 +1,6 @@
 - seq no longer stalls ahead threads ... instead, we rely on sinkdisk 
   interlocks to limit how far ahead or behind threads can get
 
-  the readbehind option to many loaders is no longer needed
-
-	  check pforeign.h 
-
 
 
 - vips linecache has access there twice!
