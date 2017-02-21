@@ -562,7 +562,7 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 	vobject_class->description = _( "shrink an image horizontally" );
 	vobject_class->build = vips_reduceh_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_DOUBLE( reduceh_class, "hshrink", 3, 
 		_( "Hshrink" ), 

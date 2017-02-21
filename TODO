@@ -1,15 +1,9 @@
 - seq no longer stalls ahead threads ... instead, we rely on sinkdisk 
   interlocks to limit how far ahead or behind threads can get
 
-  deprecate UNBUFFERED? it will probably not work now
-
-  remove single-thread-first-tile thing
-
   the readbehind option to many loaders is no longer needed
 
-  do we need to restore the UNBUFFERED enum member to keep binary compat? we
-  need to make sure old code using UNBUFF now uses regular SEQ (and not RAND)
-
+	  check pforeign.h 
 
 
 

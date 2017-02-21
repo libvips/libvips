@@ -1816,6 +1816,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
 		VipsImage *out;
 		VipsOperationFlags flags;
+		VipsAccess access;
 
 		if( !value ) {
 			vips_object_no_value( object, name );
@@ -1827,12 +1828,15 @@ vips_object_set_argument_from_string( VipsObject *object,
 			flags = vips_operation_get_flags( 
 				VIPS_OPERATION( object ) );
 
-		/* Read the filename. 
-		 */
+		if( flags & 
+			(VIPS_OPERATION_SEQUENTIAL | 
+			 VIPS_OPERATION_SEQUENTIAL_UNBUFFERED) )
+			access = VIPS_ACCESS_SEQUENTIAL;
+		else
+			access = VIPS_ACCESS_RANDOM;
 
 		if( !(out = vips_image_new_from_file( value, 
-			"access", flags & VIPS_OPERATION_SEQUENTIAL ? 
-				VIPS_ACCESS_SEQUENTIAL : VIPS_ACCESS_RANDOM,
+			"access", access, 
 			NULL )) )
 			return( -1 );
 
@@ -1851,6 +1855,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 		 */
 		VipsArrayImage *array_image;
 		VipsOperationFlags flags;
+		VipsAccess access;
 
 		if( !value ) {
 			vips_object_no_value( object, name );
@@ -1862,9 +1867,15 @@ vips_object_set_argument_from_string( VipsObject *object,
 			flags = vips_operation_get_flags( 
 				VIPS_OPERATION( object ) );
 
-		if( !(array_image = vips_array_image_new_from_string( value, 
-			flags & VIPS_OPERATION_SEQUENTIAL ? 
-				VIPS_ACCESS_SEQUENTIAL : VIPS_ACCESS_RANDOM )) ) 
+		if( flags & 
+			(VIPS_OPERATION_SEQUENTIAL | 
+			 VIPS_OPERATION_SEQUENTIAL_UNBUFFERED) )
+			access = VIPS_ACCESS_SEQUENTIAL;
+		else
+			access = VIPS_ACCESS_RANDOM;
+
+		if( !(array_image = 
+			vips_array_image_new_from_string( value, access )) ) 
 			return( -1 ); 
 
 		g_value_init( &gvalue, VIPS_TYPE_ARRAY_IMAGE );
