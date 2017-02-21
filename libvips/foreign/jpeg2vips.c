@@ -552,7 +552,7 @@ read_jpeg_generate( VipsRegion *or,
 	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
 
 	/* And check that y_pos is correct. It should be, since we are inside
-	 * a vips_sequential().
+	 * a vips_linecache().
 	 */
 	if( r->top != jpeg->y_pos ) {
 		VIPS_GATE_STOP( "read_jpeg_generate: work" );
@@ -674,7 +674,7 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	if( vips_image_generate( t[0], 
 		NULL, read_jpeg_generate, NULL, 
 		jpeg, NULL ) ||
-		vips_sequential( t[0], &t[1], 
+		vips_linecache( t[0], &t[1], 
 			"tile_height", 8,
 			"access", jpeg->readbehind ? 
 				VIPS_ACCESS_SEQUENTIAL : 

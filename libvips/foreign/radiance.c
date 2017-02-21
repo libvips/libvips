@@ -1155,7 +1155,7 @@ vips__rad_load( const char *filename, VipsImage *out, gboolean readbehind )
 	if( vips_image_generate( t[0], 
 		NULL, rad2vips_generate, NULL, 
 		read, NULL ) ||
-		vips_sequential( t[0], &t[1], 
+		vips_linecache( t[0], &t[1], 
 			"tile_height", 8,
 			"access", readbehind ? 
 				VIPS_ACCESS_SEQUENTIAL : 

@@ -39,6 +39,20 @@
 
   sinkmemory will need to have something added
 
+  so ... just swap vips_sequentiial for vips_linecache, look at adding
+  interlocks to sinkmemory, test, possibly increase margins
+
+  what will do skipahead now? we have to build this into linecache ... or maybe
+  leave seq there and just strip out the stalling and sync code
+
+  make tiff2vips track and verify y_pos 
+
+  foreign operations affected
+
+	  tiff2vips.c
+	  jpeg2vips.c
+	  radiance.c
+	  vipspng.c
 
 - vips linecache has access there twice!
 
