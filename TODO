@@ -1,3 +1,45 @@
+- we currently have
+
+	* seq is on line 1000
+	* thread1 asks for line 2000 and blocks on seq->ready
+	* thread2 asks for line 2001 and also blocks
+	* thread1 times out and skips ahead to 2000
+	* thread1 wakes up thread2
+	* thread2 reads 2001
+
+  we could have 
+
+	* seq is on line 1000
+	* thread1 asks for line 2000 and blocks on seq->ready
+	* thread2 asks for line 2001 
+	* thread2 sees that another thread is blocked earlier, so there has 
+	  probably been a skip
+	* thread2 sets a "skipahead" flag, then wakes up thread1 and sleeps
+	  itself
+	* thread1 wakes, skips to 2000, wakes thread2 and returns
+	* thread2 wakes, reads 2001, and returns
+
+  we could keep a list of all the blocked threads, sorted by y request, then
+  only unblock the lowest numbered one when the whole threadpool is waiting
+
+  this sounds like the safest idea
+
+  we could get rid of the first tile is single-threaded hack as well
+
+  argh no, we may not ever get more than one thread blocked on a seq
+
+  we just have to get rid of seq and rely on a larger buffer behind the
+  processing point
+
+  use sinkdisk / sinkmemory to limit the amount that threads can get out of
+  sync ... we must stop starting new threads if an old thread is taking too
+  long to produce its tile
+
+  sinkdisk will do this automatically, since it only keeps two lines of tiles
+
+  sinkmemory will need to have something added
+
+
 - vips linecache has access there twice!
 
 	 $ vips linecache
