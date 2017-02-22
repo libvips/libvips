@@ -677,27 +677,19 @@ im__tbmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 		return( 0 );
 	}
 
-	/* Build state for this join.
-	 */
 	if( !(ovlap = build_tbstate( ref, sec, out, dx, dy, mwidth )) )
 		return( -1 );
 
-	/* Prepare the output IMAGE.
-	 */ 
 	if( im_cp_descv( out, ref, sec, NULL ) )
 		return( -1 );
 	out->Xsize = ovlap->oarea.width;
 	out->Ysize = ovlap->oarea.height;
-	out->Xoffset = ovlap->sarea.left;
-	out->Yoffset = ovlap->sarea.top;
+	out->Xoffset = -dx;
+	out->Yoffset = -dy;
 
-	/* Set demand hints. 
-	 */
 	if( im_demand_hint( out, IM_THINSTRIP, ref, sec, NULL ) )
 		return( -1 );
 
-	/* Generate!
-	 */
 	if( im_generate( out,
 		im__start_merge, im__merge_gen, im__stop_merge, ovlap, NULL ) )
 		return( -1 );
