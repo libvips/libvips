@@ -1,6 +1,12 @@
 - seq no longer stalls ahead threads ... instead, we rely on sinkdisk 
   interlocks to limit how far ahead or behind threads can get
 
+  reexamine cache sizing ... are they too large?
+
+  is thumbnail thinstrip or fatstrip? how does that affect seq cache sizing?
+
+  add something to linecache (and tilecache?) to get it to display cache size
+
 
 
 - vips linecache has access there twice!
