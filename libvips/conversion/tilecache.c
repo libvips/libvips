@@ -382,7 +382,7 @@ vips_block_cache_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	VIPS_DEBUG_MSG( "vips_block_cache_build: max size = %g MB\n",
+	g_info( "vips_block_cache_build: max size = %g MB",
 		(cache->max_tiles * cache->tile_width * cache->tile_height *
 		 	VIPS_IMAGE_SIZEOF_PEL( cache->in )) / (1024 * 1024.0) );
 
