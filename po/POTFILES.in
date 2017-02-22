@@ -154,7 +154,6 @@ libvips/draw/drawink.c
 libvips/draw/draw_circle.c
 libvips/draw/draw_flood.c
 libvips/draw/draw_rect.c
-libvips/dummy.c
 libvips/foreign/foreign.c
 libvips/foreign/ppm.c
 libvips/foreign/csvsave.c
@@ -167,6 +166,7 @@ libvips/foreign/tiff2vips.c
 libvips/foreign/fitsload.c
 libvips/foreign/matrixsave.c
 libvips/foreign/vips2webp.c
+libvips/foreign/tiff.c
 libvips/foreign/ppmsave.c
 libvips/foreign/csv.c
 libvips/foreign/csvload.c
@@ -178,6 +178,7 @@ libvips/foreign/openexr2vips.c
 libvips/foreign/gifload.c
 libvips/foreign/magick7load.c
 libvips/foreign/openslide2vips.c
+libvips/foreign/exif.c
 libvips/foreign/fitssave.c
 libvips/foreign/pdfload.c
 libvips/foreign/magick2vips.c
@@ -232,6 +233,7 @@ libvips/iofuncs/image.c
 libvips/iofuncs/threadpool.c
 libvips/iofuncs/buffer.c
 libvips/iofuncs/mapfile.c
+libvips/iofuncs/reorder.c
 libvips/iofuncs/enumtypes.c
 libvips/iofuncs/sinkdisc.c
 libvips/iofuncs/vector.c
@@ -288,6 +290,7 @@ libvips/resample/reduce.c
 libvips/resample/shrinkh.c
 libvips/resample/resample.c
 libvips/resample/quadratic.c
+libvips/resample/thumbnail.c
 libvips/resample/shrink.c
 libvips/resample/similarity.c
 libvips/resample/interpolate.c
@@ -302,7 +305,6 @@ libvipsCC/VError.cc
 libvipsCC/VImage.cc
 libvipsCC/vipsc++.cc
 libvipsCC/VMask.cc
-libvips/resample/dummy2.cc
 cplusplus/include/vips/VImage8.h
 cplusplus/include/vips/VInterpolate8.h
 cplusplus/include/vips/VError8.h
@@ -330,22 +332,10 @@ libvips/create/point.h
 libvips/create/pcreate.h
 libvips/draw/drawink.h
 libvips/draw/pdraw.h
-libvips/foreign/openslide2vips.h
 libvips/foreign/dbh.h
-libvips/foreign/webp.h
-libvips/foreign/ppm.h
-libvips/foreign/vipsjpeg.h
-libvips/foreign/csv.h
-libvips/foreign/analyze2vips.h
-libvips/foreign/fits.h
-libvips/foreign/dzsave.h
-libvips/foreign/magick.h
-libvips/foreign/matlab.h
+libvips/foreign/pforeign.h
 libvips/foreign/tiff.h
 libvips/foreign/jpeg.h
-libvips/foreign/radiance.h
-libvips/foreign/openexr2vips.h
-libvips/foreign/vipspng.h
 libvips/freqfilt/pfreqfilt.h
 libvips/histogram/hist_unary.h
 libvips/histogram/phistogram.h
@@ -361,6 +351,7 @@ libvips/include/vips/region.h
 libvips/include/vips/mask.h
 libvips/include/vips/private.h
 libvips/include/vips/interpolate.h
+libvips/include/vips/soname.h
 libvips/include/vips/vips7compat.h
 libvips/include/vips/create.h
 libvips/include/vips/rect.h
@@ -405,14 +396,6 @@ libvips/mosaicing/pmosaicing.h
 libvips/mosaicing/global_balance.h
 libvips/resample/templates.h
 libvips/resample/presample.h
-cplusplus/examples/avg.cpp
-cplusplus/examples/invert.cpp
-cplusplus/examples/profile.cpp
-cplusplus/examples/test_overloads.cpp
-cplusplus/examples/buffer.cpp
-cplusplus/examples/test.cpp
-cplusplus/examples/embed.cpp
-cplusplus/examples/resize.cpp
 cplusplus/VError.cpp
 cplusplus/VImage.cpp
 cplusplus/VInterpolate.cpp
