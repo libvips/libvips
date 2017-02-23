@@ -53,6 +53,8 @@
  * 	- fix @page with graphicsmagick
  * 25/11/16
  * 	- remove @all_frames, add @n
+ * 23/2/17
+ * 	- try using GetImageChannelDepth() instead of ->depth
  */
 
 /*
@@ -304,6 +306,7 @@ parse_header( Read *read )
 	VipsImage *im = read->im;
 	Image *image = read->image;
 
+	int depth;
 	Image *p;
 	int i;
 
@@ -332,28 +335,33 @@ parse_header( Read *read )
 	if( (im->Bands = get_bands( image )) < 0 )
 		return( -1 );
 
-	/* Depth can be 'fractional'. You'd think we should use
+	/* Depth can be 'fractional'. 
+	 *
+	 * You'd think we should use
 	 * GetImageDepth() but that seems unreliable. 16-bit mono DICOM images 
 	 * are reported as depth 1, for example.
+	 *
+	 * Try GetImageChannelDepth(), maybe that works.
 	 */
+	depth = GetImageChannelDepth( image, AllChannels, &image->exception );
 	im->BandFmt = -1;
-	if( image->depth >= 1 && image->depth <= 8 ) 
+	if( depth >= 1 && depth <= 8 ) 
 		im->BandFmt = VIPS_FORMAT_UCHAR;
-	if( image->depth >= 9 && image->depth <= 16 ) 
+	if( depth >= 9 && depth <= 16 ) 
 		im->BandFmt = VIPS_FORMAT_USHORT;
 #ifdef UseHDRI
-	if( image->depth == 32 )
+	if( depth == 32 )
 		im->BandFmt = VIPS_FORMAT_FLOAT;
-	if( image->depth == 64 )
+	if( depth == 64 )
 		im->BandFmt = VIPS_FORMAT_DOUBLE;
 #else /*!UseHDRI*/
-	if( image->depth == 32 )
+	if( depth == 32 )
 		im->BandFmt = VIPS_FORMAT_UINT;
 #endif /*UseHDRI*/
 
 	if( im->BandFmt == -1 ) {
 		vips_error( "magick2vips", _( "unsupported bit depth %d" ),
-			(int) image->depth );
+			(int) depth );
 		return( -1 );
 	}
 
