@@ -32,6 +32,8 @@
 - max/min sort values by y and x coordinate
 - tiff read uses libtiff scanline API if rows-per-strip is large
 - vips_region_shrink() knows about alpha, helps dzsave and tiffsave
+- vips_sequential() no longer stalls ahead threads, instead we constrain sinks
+  more tightly ... this makes seq more versatile and more reliable
 
 8/12/16 started 8.4.5
 - allow libgsf-1.14.26 to help centos, thanks tdiprima
