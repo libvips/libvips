@@ -41,6 +41,8 @@
  * 	- move invalid stuff to region
  * 3/3/11
  * 	- move on top of VipsObject, rename as VipsRegion
+ * 23/2/17
+ * 	- multiply transparent images through alpha in vips_region_shrink()
  */
 
 /*
@@ -1236,6 +1238,88 @@ vips_region_shrink_uncoded( VipsRegion *from, VipsRegion *to, VipsRect *target )
 	}
 }
 
+/* No point having an int path, this will always be horribly slow.
+ */
+#define SHRINK_ALPHA_TYPE( TYPE ) { \
+	TYPE *tp = (TYPE *) p; \
+	TYPE *tp1 = (TYPE *) (p + ls); \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( x = 0; x < target->width; x++ ) { \
+		/* Make the input alphas. \
+		 */ \
+		double a1 = tp[nb - 1]; \
+		double a2 = tp[nb + nb - 1]; \
+		double a3 = tp1[nb - 1]; \
+		double a4 = tp1[nb + nb - 1]; \
+		\
+		/* Output alpha. \
+		 */ \
+		double a = (a1 + a2 + a3 + a4) / 4.0; \
+		\
+		if( a == 0 ) { \
+			for( z = 0; z < nb; z++ ) \
+				tq[z] = 0; \
+		} \
+		else { \
+			for( z = 0; z < nb - 1; z++ ) \
+				tq[z] = (a1 * tp[z] + a2 * tp[z + nb] + \
+					 a3 * tp1[z] + a4 * tp1[z + nb]) / \
+					(4.0 * a); \
+			tq[z] = a; \
+		} \
+		\
+		/* Move on two pels in input. \
+		 */ \
+		tp += nb << 1; \
+		tp1 += nb << 1; \
+		tq += nb; \
+	} \
+}
+
+/* Generate area @target in @to using pixels in @from. Non-complex. Use the
+ * last band as alpha.
+ */
+static void
+vips_region_shrink_alpha( VipsRegion *from, VipsRegion *to, VipsRect *target )
+{
+	int ls = VIPS_REGION_LSKIP( from );
+	int nb = from->im->Bands;
+
+	int x, y, z;
+
+	for( y = 0; y < target->height; y++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( from, 
+			target->left * 2, (target->top + y) * 2 );
+		VipsPel *q = VIPS_REGION_ADDR( to, 
+			target->left, target->top + y );
+
+		/* Process this line of pels.
+		 */
+		switch( from->im->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:	
+			SHRINK_ALPHA_TYPE( unsigned char ); break; 
+		case VIPS_FORMAT_CHAR:	
+			SHRINK_ALPHA_TYPE( signed char ); break; 
+		case VIPS_FORMAT_USHORT:	
+			SHRINK_ALPHA_TYPE( unsigned short ); break; 
+		case VIPS_FORMAT_SHORT:	
+			SHRINK_ALPHA_TYPE( signed short ); break; 
+		case VIPS_FORMAT_UINT:	
+			SHRINK_ALPHA_TYPE( unsigned int ); break; 
+		case VIPS_FORMAT_INT:	
+			SHRINK_ALPHA_TYPE( signed int ); break; 
+		case VIPS_FORMAT_FLOAT:	
+			SHRINK_ALPHA_TYPE( float ); break; 
+		case VIPS_FORMAT_DOUBLE:	
+			SHRINK_ALPHA_TYPE( double ); break; 
+
+		default:
+			g_assert_not_reached();
+		}
+	}
+}
+
 /**
  * vips_region_shrink:
  * @from: source region 
@@ -1243,7 +1327,8 @@ vips_region_shrink_uncoded( VipsRegion *from, VipsRegion *to, VipsRect *target )
  * @target: #VipsRect of pixels you need to copy
  *
  * Write the pixels @target in @to from the x2 larger area in @from.
- * Non-complex uncoded images and LABQ only.
+ * Non-complex uncoded images and LABQ only. Images with alpha (see
+ * vips_image_hasalpha()) shrink with pixels scaled by alpha to avoid fringing.
  *
  * See also: vips_region_copy().
  */
@@ -1259,7 +1344,10 @@ vips_region_shrink( VipsRegion *from, VipsRegion *to, VipsRect *target )
 		if( vips_check_noncomplex(  "vips_region_shrink", image ) )
 			return( -1 );
 
-		vips_region_shrink_uncoded( from, to, target );
+		if( vips_image_hasalpha( image ) ) 
+			vips_region_shrink_alpha( from, to, target );
+		else
+			vips_region_shrink_uncoded( from, to, target );
 	}
 	else
 		vips_region_shrink_labpack( from, to, target );

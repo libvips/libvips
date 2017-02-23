@@ -31,6 +31,7 @@
 - vips_gaussnoise() pixels are reproducible on recalc, thanks MvGulik
 - max/min sort values by y and x coordinate
 - tiff read uses libtiff scanline API if rows-per-strip is large
+- vips_region_shrink() knows about alpha, helps dzsave and tiffsave
 
 8/12/16 started 8.4.5
 - allow libgsf-1.14.26 to help centos, thanks tdiprima
