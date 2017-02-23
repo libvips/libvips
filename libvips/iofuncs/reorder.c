@@ -112,8 +112,23 @@ vips_reorder_print( VipsReorder *reorder )
 #endif /*DEBUG*/
 
 static void
+vips_reorder_free( VipsReorder *reorder )
+{
+	/* We free explicitly, rather than using VIPS_ARRAY( image ... ), since
+	 * we need to make sure these pointers are valid to this point in the
+	 * close cycle.
+	 */
+	VIPS_FREE( reorder->input ); 
+	VIPS_FREE( reorder->score ); 
+	VIPS_FREE( reorder->recomp_order ); 
+	VIPS_FREE( reorder->source ); 
+	VIPS_FREE( reorder->cumulative_margin ); 
+}
+
+static void
 vips_reorder_destroy( VipsReorder *reorder )
 {
+	vips_reorder_free( reorder ); 
 	VIPS_FREE( reorder );
 }
 
@@ -169,8 +184,10 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	 * 2. warn if the args were different and do nothing.
 	 */
 	if( reorder->source ) {
-		if( reorder->n_inputs == 0 ) 
+		if( reorder->n_inputs == 0 ) {
 			reorder->n_sources = 0;
+			vips_reorder_free( reorder ); 
+		}
 		else {
 			for( i = 0; in[i]; i++ )
 				if( i >= reorder->n_inputs ||
@@ -191,9 +208,9 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	for( i = 0; in[i]; i++ )
 		;
 	reorder->n_inputs = i;
-	reorder->input = VIPS_ARRAY( image, reorder->n_inputs + 1, VipsImage * );
-	reorder->score = VIPS_ARRAY( image, reorder->n_inputs, int );
-	reorder->recomp_order = VIPS_ARRAY( image, reorder->n_inputs, int );
+	reorder->input = VIPS_ARRAY( NULL, reorder->n_inputs + 1, VipsImage * );
+	reorder->score = VIPS_ARRAY( NULL, reorder->n_inputs, int );
+	reorder->recomp_order = VIPS_ARRAY( NULL, reorder->n_inputs, int );
 	if( !reorder->input )
 		return( -1 );
 	if( reorder->n_inputs && 
@@ -220,8 +237,8 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 	 */
 	total = VIPS_MAX( 1, total );
 
-	reorder->source = VIPS_ARRAY( image, total + 1, VipsImage * );
-	reorder->cumulative_margin = VIPS_ARRAY( image, total, int );
+	reorder->source = VIPS_ARRAY( NULL, total + 1, VipsImage * );
+	reorder->cumulative_margin = VIPS_ARRAY( NULL, total, int );
 	if( !reorder->source ||
 		!reorder->cumulative_margin )
 		return( -1 );
