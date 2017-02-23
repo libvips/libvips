@@ -464,18 +464,6 @@ vips_thumbnail_build( VipsObject *object )
 			in = out;
 	}
 
-	if( thumbnail->crop ) {
-		int left = (in->Xsize - thumbnail->width) / 2;
-		int top = (in->Ysize - thumbnail->height) / 2;
-
-		g_info( "cropping to %dx%d",
-			thumbnail->width, thumbnail->height ); 
-		if( vips_extract_area( in, &t[8], left, top, 
-			thumbnail->width, thumbnail->height, NULL ) )
-			return( -1 ); 
-		in = t[8];
-	}
-
 	if( thumbnail->auto_rotate &&
 		thumbnail->angle != VIPS_ANGLE_D0 ) {
 		VipsAngle angle = vips_autorot_get_angle( in );
@@ -491,6 +479,21 @@ vips_thumbnail_build( VipsObject *object )
 		in = t[10];
 
 		vips_autorot_remove_angle( in );
+	}
+
+	/* Crop after rotate so we don't need to rotate the crop box.
+	 */
+	if( thumbnail->crop ) {
+		int left = (in->Xsize - thumbnail->width) / 2;
+		int top = (in->Ysize - thumbnail->height) / 2;
+
+		g_info( "cropping to %dx%d",
+			thumbnail->width, thumbnail->height ); 
+
+		if( vips_extract_area( in, &t[8], left, top, 
+			thumbnail->width, thumbnail->height, NULL ) )
+			return( -1 ); 
+		in = t[8];
 	}
 
 	g_object_set( thumbnail, "out", vips_image_new(), NULL ); 
