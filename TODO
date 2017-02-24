@@ -1,3 +1,7 @@
+- added expat to required packages in configure.ac
+
+
+
 - vips linecache has access there twice!
 
 	 $ vips linecache
