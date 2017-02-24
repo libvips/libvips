@@ -78,6 +78,7 @@
 #include <io.h>
 #endif /*HAVE_IO_H*/
 #include <libxml/parser.h>
+#include <expat.h>
 #include <errno.h>
 
 #ifdef OS_WIN32

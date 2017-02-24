@@ -1,5 +1,47 @@
 - added expat to required packages in configure.ac
 
+  try moving iofuncs/vips.c to expat
+
+  sample XML for us to parse
+
+	$ vipsheader -f getext babe.v
+	<?xml version="1.0"?>
+	<root xmlns="http://www.vips.ecs.soton.ac.uk/vips/7.39.0">
+	  <header>
+	    <field type="VipsRefString" name="Hist"/>
+	  </header>
+	  <meta>
+	    <field type="VipsRefString" name="vips-loader">jpegload</field>
+	    <field type="gint" name="jpeg-multiscan">0</field>
+	    <field type="VipsRefString" name="exif-ifd0-X-Resolution">4294966289/169093161 (25.399999998, Rational, 1 components, 8 bytes)</field>
+	    <field type="VipsRefString" name="exif-ifd0-Y-Resolution">4294966289/169093161 (25.399999998, Rational, 1 components, 8 bytes)</field>
+	    <field type="VipsRefString" name="exif-ifd0-Resolution Unit">2 (Inch, Short, 1 components, 2 bytes)</field>
+	    <field type="VipsRefString" name="exif-ifd2-Exif Version">Exif Version 2.1 (Exif Version 2.1, Undefined, 4 components, 4 bytes)</field>
+	    <field type="VipsRefString" name="exif-ifd2-FlashPixVersion">FlashPix Version 1.0 (FlashPix Version 1.0, Undefined, 4 components, 4 bytes)</field>
+	    <field type="VipsRefString" name="exif-ifd2-Colour Space">65535 (Internal error (unknown value 65535), Short, 1 components, 2 bytes)</field>
+	    <field type="VipsRefString" name="resolution-unit">in</field><field type="VipsBlob" name="exif-data">
+	      RXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQA
+	      AAABAAAATgAAAAD///wRChQoKf///BEKFCgpAAOQAAAHAAAABDAyMTCgAAAHAAAABDAxMDCgAQAD
+	      AAAAAf//AAAAAAAA
+	     </field>
+	   </meta>
+	 </root>
+
+  currently works like this
+
+  	read_xml is called on image load
+		- loads extension bytes into memory
+		- calls libxml to parse it to an xmlDoc
+		- saves xmlDoc to VIPS_META_XML in header
+
+	rebuild_header called next
+		- gets xmlDoc from header
+		- gets "header" node
+			calls rebuild_header_builtin() for every field node
+		- gets "meta" field
+			calls rebuild_header_meta() for every field node
+
+
 
 
 - vips linecache has access there twice!
