@@ -34,6 +34,8 @@
 - vips_region_shrink() knows about alpha, helps dzsave and tiffsave
 - vips_sequential() no longer stalls ahead threads, instead we constrain sinks
   more tightly ... this makes seq more versatile and more reliable
+- use expat, not libxml, for XML load ... removes a required dependency, since
+  we get expat as part of glib
 
 8/12/16 started 8.4.5
 - allow libgsf-1.14.26 to help centos, thanks tdiprima
