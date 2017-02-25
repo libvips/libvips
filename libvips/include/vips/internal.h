@@ -227,7 +227,7 @@ int vips_check_bands_3ormore( const char *domain, VipsImage *im );
 
 int vips__byteswap_bool( VipsImage *in, VipsImage **out, gboolean swap );
 
-char *vips__make_xml_metadata( const char *domain, VipsImage *image );
+char *vips__xml_properties( VipsImage *image );
 
 void vips__cairo2rgba( guint32 *buf, int n );
 

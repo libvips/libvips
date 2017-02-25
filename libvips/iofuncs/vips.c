@@ -141,7 +141,7 @@
 
 /* Our XML namespace.
  */
-#define NAMESPACE "http://www.vips.ecs.soton.ac.uk/vips" 
+#define NAMESPACE_URI "http://www.vips.ecs.soton.ac.uk/" 
 
 /* Open for read for image files. 
  */
@@ -595,7 +595,7 @@ parser_element_start_handler( void *user_data,
 	else if( strcmp( name, "root" ) == 0 ) {
 		for( p = atts; *p; p += 2 ) 
 			if( strcmp( p[0], "xmlns" ) == 0 &&
-				!vips_isprefix( NAMESPACE, p[1] ) ) {
+				!vips_isprefix( NAMESPACE_URI "/vips", p[1] ) ) {
 				vips_error( "VipsImage", "%s", 
 					_( "incorrect namespace in XML" ) );
 				vep->error = TRUE;
@@ -801,6 +801,8 @@ build_xml_meta( VipsMeta *meta, Buffer *buffer )
 	return( NULL );
 }
 
+/* Make the xml we append to vips images after the pixel data.
+ */
 static char *
 build_xml( VipsImage *image )
 {
@@ -810,8 +812,8 @@ build_xml( VipsImage *image )
 	buffer_init( &buffer ); 
 
 	buffer_appendf( &buffer, "<?xml version=\"1.0\"?>\n" ); 
-	buffer_appendf( &buffer, "<root xmlns=\"%s/%d.%d.%d\">\n", 
-		NAMESPACE, 
+	buffer_appendf( &buffer, "<root xmlns=\"%s/vips/%d.%d.%d\">\n", 
+		NAMESPACE_URI, 
 		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
 	buffer_appendf( &buffer, "  <header>\n" );  
 
@@ -836,6 +838,77 @@ build_xml( VipsImage *image )
 	return( buffer.data ); 
 }
 
+static void *
+vips__xml_properties_meta( VipsImage *image, 
+	const char *field, GValue *value, void *a )
+{
+	Buffer *buffer = (Buffer *) a;
+	GType type = G_VALUE_TYPE( value );
+
+	const char *str;
+
+	/* If we can transform to VIPS_TYPE_SAVE_STRING and back, we can save 
+	 * and restore. 
+	 */
+	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) &&
+		g_value_type_transformable( VIPS_TYPE_SAVE_STRING, type ) ) {
+		GValue save_value = { 0 };
+
+		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+		if( !g_value_transform( value, &save_value ) ) {
+			vips_error( "VipsImage", "%s", 
+				_( "error transforming to save format" ) );
+			return( buffer );
+		}
+		str = vips_value_get_save_string( &save_value );
+		g_value_unset( &save_value );
+
+		buffer_appendf( buffer, "    <property>\n" );  
+		buffer_appendf( buffer, "      <name>%s</name>\n", field ); 
+		buffer_appendf( buffer, "      <value type=\"%s\">",
+			g_type_name( type ) );  
+		buffer_append( buffer, str, strlen( str ) ); 
+		buffer_appendf( buffer, "</value>\n" ); 
+		buffer_appendf( buffer, "    </property>\n" );  
+	}
+
+	return( NULL );
+}
+
+/* Make the xml we write to vips-properties in dzsave, or to TIFF. A simple
+ * dump of all vips metadata. Free with g_free().
+ */
+char *
+vips__xml_properties( VipsImage *image )
+{
+	Buffer buffer;
+	GTimeVal now;
+	char *date;
+
+	buffer_init( &buffer ); 
+
+	g_get_current_time( &now );
+	date = g_time_val_to_iso8601( &now ); 
+	buffer_appendf( &buffer, "<?xml version=\"1.0\"?>\n" ); 
+	buffer_appendf( &buffer, "<image xmlns=\"%s/dzsave\" "
+		"date=\"%s\" version=\"%d.%d.%d\">\n", 
+		NAMESPACE_URI, 
+		date, 
+		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
+	g_free( date ); 
+	buffer_appendf( &buffer, "  <properties>\n" );  
+
+	if( vips_image_map( image, vips__xml_properties_meta, &buffer ) ) {
+		buffer_destroy( &buffer );
+		return( NULL );
+	}
+
+	buffer_appendf( &buffer, "  </properties>\n" );  
+	buffer_appendf( &buffer, "</image>\n" );  
+
+	return( buffer.data ); 
+}
+
 /* Append XML to output fd.
  */
 int 
@@ -846,7 +919,7 @@ vips__writehist( VipsImage *image )
 	assert( image->dtype == VIPS_IMAGE_OPENOUT );
 	assert( image->fd != -1 );
 
-	if( !(xml = build_xml( im )) )
+	if( !(xml = build_xml( image )) )
 		return( -1 );
 
 	if( vips__write_extension_block( image, xml, strlen( xml ) ) ) {

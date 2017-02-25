@@ -1,46 +1,123 @@
-- added expat to required packages in configure.ac
+- remove libxml from configure.ac
+ 
+  we don't escape " inside xml attr strings, or < > inside xml content
 
-  try moving iofuncs/vips.c to expat
+  break Buffer out into a separate class that does this? VipsDbuf, for dynamic
+  buffer? or can it be a mode for VipsBuf?
 
-  sample XML for us to parse
+  buffer should expand by 30% on each fill to avoid lots of tiny realloc
 
-	$ vipsheader -f getext babe.v
-	<?xml version="1.0"?>
-	<root xmlns="http://www.vips.ecs.soton.ac.uk/vips/7.39.0">
-	  <header>
-	    <field type="VipsRefString" name="Hist"/>
-	  </header>
-	  <meta>
-	    <field type="VipsRefString" name="vips-loader">jpegload</field>
-	    <field type="gint" name="jpeg-multiscan">0</field>
-	    <field type="VipsRefString" name="exif-ifd0-X-Resolution">4294966289/169093161 (25.399999998, Rational, 1 components, 8 bytes)</field>
-	    <field type="VipsRefString" name="exif-ifd0-Y-Resolution">4294966289/169093161 (25.399999998, Rational, 1 components, 8 bytes)</field>
-	    <field type="VipsRefString" name="exif-ifd0-Resolution Unit">2 (Inch, Short, 1 components, 2 bytes)</field>
-	    <field type="VipsRefString" name="exif-ifd2-Exif Version">Exif Version 2.1 (Exif Version 2.1, Undefined, 4 components, 4 bytes)</field>
-	    <field type="VipsRefString" name="exif-ifd2-FlashPixVersion">FlashPix Version 1.0 (FlashPix Version 1.0, Undefined, 4 components, 4 bytes)</field>
-	    <field type="VipsRefString" name="exif-ifd2-Colour Space">65535 (Internal error (unknown value 65535), Short, 1 components, 2 bytes)</field>
-	    <field type="VipsRefString" name="resolution-unit">in</field><field type="VipsBlob" name="exif-data">
-	      RXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQA
-	      AAABAAAATgAAAAD///wRChQoKf///BEKFCgpAAOQAAAHAAAABDAyMTCgAAAHAAAABDAxMDCgAQAD
-	      AAAAAf//AAAAAAAA
-	     </field>
-	   </meta>
-	 </root>
+  use for tiffsave_buffer etc.
 
-  currently works like this
+  have things like write-escaped-string as extra append operations
 
-  	read_xml is called on image load
-		- loads extension bytes into memory
-		- calls libxml to parse it to an xmlDoc
-		- saves xmlDoc to VIPS_META_XML in header
+  need one that escapes ", a separate one that escapes < >
 
-	rebuild_header called next
-		- gets xmlDoc from header
-		- gets "header" node
-			calls rebuild_header_builtin() for every field node
-		- gets "meta" field
-			calls rebuild_header_meta() for every field node
+- dzsave vips.properties is currently
 
+
+<?xml version="1.0"?>
+<image xmlns="http://www.vips.ecs.soton.ac.uk/dzsave" date="2017-02-25T17:32:07.565137Z" version="8.5.0">
+  <properties>
+    <property>
+      <name>width</name>
+      <value type="gint">1450</value>
+    </property>
+    <property>
+      <name>height</name>
+      <value type="gint">2048</value>
+    </property>
+    <property>
+      <name>bands</name>
+      <value type="gint">3</value>
+    </property>
+    <property>
+      <name>xoffset</name>
+      <value type="gint">0</value>
+    </property>
+    <property>
+      <name>yoffset</name>
+      <value type="gint">0</value>
+    </property>
+    <property>
+      <name>xres</name>
+      <value type="gdouble">0.99999999990686772</value>
+    </property>
+    <property>
+      <name>yres</name>
+      <value type="gdouble">0.99999999990686772</value>
+    </property>
+    <property>
+      <name>vips-loader</name>
+      <value type="VipsRefString">jpegload</value>
+    </property>
+    <property>
+      <name>jpeg-multiscan</name>
+      <value type="gint">0</value>
+    </property>
+    <property>
+      <name>exif-data</name>
+      <value type="VipsBlob">
+RXhpZgAASUkqAAgAAAAGABIBAwABAAAAAQAAABoBBQABAAAAVgAAABsBBQABAAAAXgAAACgBAwAB
+AAAAAgAAABMCAwABAAAAAQAAAGmHBAABAAAAZgAAAAAAAAAR/P//KSgUChH8//8pKBQKBgAAkAcA
+BAAAADAyMTABkQcABAAAAAECAwAAoAcABAAAADAxMDABoAMAAQAAAP//AAACoAQAAQAAAKoFAAAD
+oAQAAQAAAAAIAAAAAAAA
+</value>
+    </property>
+    <property>
+      <name>resolution-unit</name>
+      <value type="VipsRefString">in</value>
+    </property>
+    <property>
+      <name>exif-ifd0-Orientation</name>
+      <value type="VipsRefString">1 (Top-left, Short, 1 components, 2 bytes)</value>
+    </property>
+    <property>
+      <name>exif-ifd0-XResolution</name>
+      <value type="VipsRefString">4294966289/169093161 (25.399999998, Rational, 1 components, 8 bytes)</value>
+    </property>
+    <property>
+      <name>exif-ifd0-YResolution</name>
+      <value type="VipsRefString">4294966289/169093161 (25.399999998, Rational, 1 components, 8 bytes)</value>
+    </property>
+    <property>
+      <name>exif-ifd0-ResolutionUnit</name>
+      <value type="VipsRefString">2 (Inch, Short, 1 components, 2 bytes)</value>
+    </property>
+    <property>
+      <name>exif-ifd0-YCbCrPositioning</name>
+      <value type="VipsRefString">1 (Centred, Short, 1 components, 2 bytes)</value>
+    </property>
+    <property>
+      <name>exif-ifd2-ExifVersion</name>
+      <value type="VipsRefString">Exif Version 2.1 (Exif Version 2.1, Undefined, 4 components, 4 bytes)</value>
+    </property>
+    <property>
+      <name>exif-ifd2-ComponentsConfiguration</name>
+      <value type="VipsRefString">Y Cb Cr - (Y Cb Cr -, Undefined, 4 components, 4 bytes)</value>
+    </property>
+    <property>
+      <name>exif-ifd2-FlashPixVersion</name>
+      <value type="VipsRefString">FlashPix Version 1.0 (FlashPix Version 1.0, Undefined, 4 components, 4 bytes)</value>
+    </property>
+    <property>
+      <name>exif-ifd2-ColorSpace</name>
+      <value type="VipsRefString">65535 (Internal error (unknown value 65535), Short, 1 components, 2 bytes)</value>
+    </property>
+    <property>
+      <name>exif-ifd2-PixelXDimension</name>
+      <value type="VipsRefString">1450 (1450, Long, 1 components, 4 bytes)</value>
+    </property>
+    <property>
+      <name>exif-ifd2-PixelYDimension</name>
+      <value type="VipsRefString">2048 (2048, Long, 1 components, 4 bytes)</value>
+    </property>
+    <property>
+      <name>orientation</name>
+      <value type="gint">1</value>
+    </property>
+  </properties>
+</image>
 
 
 

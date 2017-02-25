@@ -48,7 +48,6 @@
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
 #include <string.h>
-#include <libxml/parser.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
