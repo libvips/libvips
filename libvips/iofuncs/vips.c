@@ -49,8 +49,8 @@
  */
 
 /*
-#define DEBUG
 #define SHOW_HEADER
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -492,56 +492,6 @@ parser_read_fd( XML_Parser parser, int fd )
 
 #define MAX_PARSE_ATTR (256)
 
-/* A memory buffer that expands as we write to it.
- */
-typedef struct _Buffer {
-	char *data;
-	size_t current_size;
-} Buffer; 
-
-static void
-buffer_init( Buffer *buffer )
-{
-	buffer->data = NULL;
-	buffer->current_size = 0;
-}
-
-static void
-buffer_append( Buffer *buffer, const char *data, int len )
-{
-	size_t new_size = buffer->current_size + len;
-
-	buffer->data = g_realloc( buffer->data, new_size );
-	memcpy( buffer->data + buffer->current_size, data, len );
-	buffer->current_size = new_size;
-}
-
-static void
-buffer_appendf( Buffer *buffer, const char *fmt, ... )
-{
-	va_list ap;
-	char line[256];
-
-        va_start( ap, fmt );
-	(void) vips_vsnprintf( line, 256, fmt, ap ); 
-        va_end( ap );
-
-	buffer_append( buffer, line, strlen( line ) ); 
-}
-
-static void
-buffer_rewind( Buffer *buffer )
-{
-	buffer->current_size = 0;
-}
-
-static void
-buffer_destroy( Buffer *buffer )
-{
-	VIPS_FREE( buffer->data ); 
-	buffer->current_size = 0;
-}
-
 /* What we track during expat parse.
  */
 typedef struct _VipsExpatParse {
@@ -562,7 +512,7 @@ typedef struct _VipsExpatParse {
 
 	/* Accumulate data here.
 	 */
-	Buffer buffer; 
+	VipsDbuf dbuf; 
 } VipsExpatParse;
 
 static void
@@ -586,7 +536,7 @@ parser_element_start_handler( void *user_data,
 				vips_strncpy( vep->type, p[1], MAX_PARSE_ATTR ); 
 		}
 
-		buffer_rewind( &vep->buffer );
+		vips_dbuf_rewind( &vep->dbuf );
 	} 
 	else if( strcmp( name, "header" ) == 0 )  
 		vep->header = TRUE;
@@ -666,16 +616,10 @@ parser_element_end_handler( void *user_data, const XML_Char *name )
 #endif /*DEBUG*/
 
 	if( strcmp( name, "field" ) == 0 ) {
-		buffer_append( &vep->buffer, "", 1 );
-
-#ifdef DEBUG
-		printf( "parser_element_end_handler: %zd bytes\n", 
-			vep->current_size ); 
-#endif /*DEBUG*/
-
 		if( vep->header ) {
 			if( strcmp( name, "Hist" ) == 0 ) 
-				set_history( vep->image, vep->buffer.data );
+				set_history( vep->image, 
+					vips_dbuf_string( &vep->dbuf, NULL ) ); 
 		}
 		else {
 			GType gtype = g_type_from_name( vep->type );
@@ -686,7 +630,8 @@ parser_element_end_handler( void *user_data, const XML_Char *name )
 				g_value_type_transformable( 
 					VIPS_TYPE_SAVE_STRING, gtype ) &&
 				set_meta( vep->image, 
-					gtype, vep->name, vep->buffer.data ) ) 
+					gtype, vep->name, 
+					vips_dbuf_string( &vep->dbuf, NULL ) ) )
 				vep->error = TRUE;
 		}
 	}
@@ -701,7 +646,7 @@ parser_data_handler( void *user_data, const XML_Char *data, int len )
 	printf( "parser_data_handler: %d bytes\n", len ); 
 #endif /*DEBUG*/
 
-	buffer_append( &vep->buffer, data, len );
+	vips_dbuf_append( &vep->dbuf, data, len );
 }
 
 /* Called at the end of vips open ... get any XML after the pixel data
@@ -719,7 +664,7 @@ readhist( VipsImage *im )
 	parser = XML_ParserCreate( "UTF-8" );
 
 	vep.image = im;
-	buffer_init( &vep.buffer ); 
+	vips_dbuf_init( &vep.dbuf ); 
 	vep.error = FALSE;
 	XML_SetUserData( parser, &vep );
 
@@ -729,12 +674,12 @@ readhist( VipsImage *im )
 
 	if( parser_read_fd( parser, im->fd ) ||
 		vep.error ) { 
-		buffer_destroy( &vep.buffer ); 
+		vips_dbuf_destroy( &vep.dbuf ); 
 		XML_ParserFree( parser );
 		return( -1 );
 	}
 
-	buffer_destroy( &vep.buffer ); 
+	vips_dbuf_destroy( &vep.dbuf ); 
 	XML_ParserFree( parser );
 
 	return( 0 ); 
@@ -768,8 +713,59 @@ vips__write_extension_block( VipsImage *im, void *buf, int size )
 	return( 0 );
 }
 
+/* Append a string to a buffer, but escape " as \".
+ */
+static void
+dbuf_append_quotes( VipsDbuf *dbuf, const char *str )
+{
+	const char *p;
+	size_t len;
+
+	for( p = str; *p; p += len ) {
+		len = strcspn( p, "\"" );
+
+		vips_dbuf_append( dbuf, p, len );
+		if( p[len] == '"' )
+			vips_dbuf_append( dbuf, "\\", 1 );
+	}
+}
+
+/* Append a string to a buffer, but escape &<>.
+ */
+static void
+dbuf_append_amp( VipsDbuf *dbuf, const char *str )
+{
+	const char *p;
+	size_t len;
+
+	for( p = str; *p; p += len ) {
+		len = strcspn( p, "&<>" );
+
+		vips_dbuf_append( dbuf, p, len );
+		switch( p[len] ) {
+		case '&': 
+			vips_dbuf_append( dbuf, "&amp;", 5 );
+			len += 1;
+			break;
+
+		case '<': 
+			vips_dbuf_append( dbuf, "&lt;", 4 );
+			len += 1;
+			break;
+
+		case '>': 
+			vips_dbuf_append( dbuf, "&gt;", 4 );
+			len += 1;
+			break;
+
+		default:
+			break;
+		}
+	}
+}
+
 static void *
-build_xml_meta( VipsMeta *meta, Buffer *buffer )
+build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
 {
 	GType type = G_VALUE_TYPE( &meta->value );
 
@@ -786,14 +782,16 @@ build_xml_meta( VipsMeta *meta, Buffer *buffer )
 		if( !g_value_transform( &meta->value, &save_value ) ) {
 			vips_error( "VipsImage", "%s", 
 				_( "error transforming to save format" ) );
-			return( buffer );
+			return( meta );
 		}
 
 		str = vips_value_get_save_string( &save_value );
-		buffer_appendf( buffer, "    <field type=\"%s\" name=\"%s\">", 
-			g_type_name( type ), meta->name ); 
-		buffer_append( buffer, str, strlen( str ) ); 
-		buffer_appendf( buffer, "</field>\n" );  
+		vips_dbuf_appendf( dbuf, "    <field type=\"%s\" name=\"", 
+			g_type_name( type ) ); 
+		dbuf_append_quotes( dbuf, meta->name );
+		vips_dbuf_appendf( dbuf, "\">" );  
+		dbuf_append_amp( dbuf, str );
+		vips_dbuf_appendf( dbuf, "</field>\n" );  
 
 		g_value_unset( &save_value );
 	}
@@ -806,43 +804,43 @@ build_xml_meta( VipsMeta *meta, Buffer *buffer )
 static char *
 build_xml( VipsImage *image )
 {
-	Buffer buffer;
+	VipsDbuf dbuf;
 	const char *str;
 
-	buffer_init( &buffer ); 
+	vips_dbuf_init( &dbuf ); 
 
-	buffer_appendf( &buffer, "<?xml version=\"1.0\"?>\n" ); 
-	buffer_appendf( &buffer, "<root xmlns=\"%s/vips/%d.%d.%d\">\n", 
+	vips_dbuf_appendf( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
+	vips_dbuf_appendf( &dbuf, "<root xmlns=\"%s/vips/%d.%d.%d\">\n", 
 		NAMESPACE_URI, 
 		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
-	buffer_appendf( &buffer, "  <header>\n" );  
+	vips_dbuf_appendf( &dbuf, "  <header>\n" );  
 
 	str = vips_image_get_history( image );
-	buffer_appendf( &buffer, "    <field type=\"%s\" name=\"Hist\">", 
+	vips_dbuf_appendf( &dbuf, "    <field type=\"%s\" name=\"Hist\">", 
 		g_type_name( VIPS_TYPE_REF_STRING ) );
-	buffer_append( &buffer, str, strlen( str ) ); 
-	buffer_appendf( &buffer, "</field>\n" ); 
+	dbuf_append_amp( &dbuf, str );
+	vips_dbuf_appendf( &dbuf, "</field>\n" ); 
 
-	buffer_appendf( &buffer, "  </header>\n" ); 
-	buffer_appendf( &buffer, "  <meta>\n" );  
+	vips_dbuf_appendf( &dbuf, "  </header>\n" ); 
+	vips_dbuf_appendf( &dbuf, "  <meta>\n" );  
 
 	if( vips_slist_map2( image->meta_traverse, 
-		(VipsSListMap2Fn) build_xml_meta, &buffer, NULL ) ) {
-		buffer_destroy( &buffer ); 
+		(VipsSListMap2Fn) build_xml_meta, &dbuf, NULL ) ) {
+		vips_dbuf_destroy( &dbuf ); 
 		return( NULL );
 	}
 
-	buffer_appendf( &buffer, "  </meta>\n" );  
-	buffer_appendf( &buffer, "</root>\n" );  
+	vips_dbuf_appendf( &dbuf, "  </meta>\n" );  
+	vips_dbuf_appendf( &dbuf, "</root>\n" );  
 
-	return( buffer.data ); 
+	return( vips_dbuf_steal( &dbuf, NULL ) ); 
 }
 
 static void *
 vips__xml_properties_meta( VipsImage *image, 
 	const char *field, GValue *value, void *a )
 {
-	Buffer *buffer = (Buffer *) a;
+	VipsDbuf *dbuf = (VipsDbuf *) a;
 	GType type = G_VALUE_TYPE( value );
 
 	const char *str;
@@ -858,18 +856,20 @@ vips__xml_properties_meta( VipsImage *image,
 		if( !g_value_transform( value, &save_value ) ) {
 			vips_error( "VipsImage", "%s", 
 				_( "error transforming to save format" ) );
-			return( buffer );
+			return( dbuf );
 		}
 		str = vips_value_get_save_string( &save_value );
 		g_value_unset( &save_value );
 
-		buffer_appendf( buffer, "    <property>\n" );  
-		buffer_appendf( buffer, "      <name>%s</name>\n", field ); 
-		buffer_appendf( buffer, "      <value type=\"%s\">",
+		vips_dbuf_appendf( dbuf, "    <property>\n" );  
+		vips_dbuf_appendf( dbuf, "      <name>" ); 
+		dbuf_append_amp( dbuf, field );
+		vips_dbuf_appendf( dbuf, "</name>\n" ); 
+		vips_dbuf_appendf( dbuf, "      <value type=\"%s\">",
 			g_type_name( type ) );  
-		buffer_append( buffer, str, strlen( str ) ); 
-		buffer_appendf( buffer, "</value>\n" ); 
-		buffer_appendf( buffer, "    </property>\n" );  
+		dbuf_append_amp( dbuf, str );
+		vips_dbuf_appendf( dbuf, "</value>\n" ); 
+		vips_dbuf_appendf( dbuf, "    </property>\n" );  
 	}
 
 	return( NULL );
@@ -881,32 +881,32 @@ vips__xml_properties_meta( VipsImage *image,
 char *
 vips__xml_properties( VipsImage *image )
 {
-	Buffer buffer;
+	VipsDbuf dbuf;
 	GTimeVal now;
 	char *date;
 
-	buffer_init( &buffer ); 
+	vips_dbuf_init( &dbuf ); 
 
 	g_get_current_time( &now );
 	date = g_time_val_to_iso8601( &now ); 
-	buffer_appendf( &buffer, "<?xml version=\"1.0\"?>\n" ); 
-	buffer_appendf( &buffer, "<image xmlns=\"%s/dzsave\" "
+	vips_dbuf_appendf( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
+	vips_dbuf_appendf( &dbuf, "<image xmlns=\"%s/dzsave\" "
 		"date=\"%s\" version=\"%d.%d.%d\">\n", 
 		NAMESPACE_URI, 
 		date, 
 		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
 	g_free( date ); 
-	buffer_appendf( &buffer, "  <properties>\n" );  
+	vips_dbuf_appendf( &dbuf, "  <properties>\n" );  
 
-	if( vips_image_map( image, vips__xml_properties_meta, &buffer ) ) {
-		buffer_destroy( &buffer );
+	if( vips_image_map( image, vips__xml_properties_meta, &dbuf ) ) {
+		vips_dbuf_destroy( &dbuf );
 		return( NULL );
 	}
 
-	buffer_appendf( &buffer, "  </properties>\n" );  
-	buffer_appendf( &buffer, "</image>\n" );  
+	vips_dbuf_appendf( &dbuf, "  </properties>\n" );  
+	vips_dbuf_appendf( &dbuf, "</image>\n" );  
 
-	return( buffer.data ); 
+	return( vips_dbuf_steal( &dbuf, NULL ) ); 
 }
 
 /* Append XML to output fd.

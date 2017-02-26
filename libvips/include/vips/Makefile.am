@@ -6,6 +6,7 @@ pkginclude_HEADERS = \
 	deprecated.h \
 	arithmetic.h \
 	buf.h \
+	dbuf.h \
 	colour.h \
 	conversion.h \
 	convolution.h \

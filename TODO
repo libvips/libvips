@@ -1,123 +1,7 @@
-- remove libxml from configure.ac
- 
-  we don't escape " inside xml attr strings, or < > inside xml content
+- use VipsDbuf for tiffsave_buffer etc.
 
-  break Buffer out into a separate class that does this? VipsDbuf, for dynamic
-  buffer? or can it be a mode for VipsBuf?
+- verify xml data against master for vips save and dzsave
 
-  buffer should expand by 30% on each fill to avoid lots of tiny realloc
-
-  use for tiffsave_buffer etc.
-
-  have things like write-escaped-string as extra append operations
-
-  need one that escapes ", a separate one that escapes < >
-
-- dzsave vips.properties is currently
-
-
-<?xml version="1.0"?>
-<image xmlns="http://www.vips.ecs.soton.ac.uk/dzsave" date="2017-02-25T17:32:07.565137Z" version="8.5.0">
-  <properties>
-    <property>
-      <name>width</name>
-      <value type="gint">1450</value>
-    </property>
-    <property>
-      <name>height</name>
-      <value type="gint">2048</value>
-    </property>
-    <property>
-      <name>bands</name>
-      <value type="gint">3</value>
-    </property>
-    <property>
-      <name>xoffset</name>
-      <value type="gint">0</value>
-    </property>
-    <property>
-      <name>yoffset</name>
-      <value type="gint">0</value>
-    </property>
-    <property>
-      <name>xres</name>
-      <value type="gdouble">0.99999999990686772</value>
-    </property>
-    <property>
-      <name>yres</name>
-      <value type="gdouble">0.99999999990686772</value>
-    </property>
-    <property>
-      <name>vips-loader</name>
-      <value type="VipsRefString">jpegload</value>
-    </property>
-    <property>
-      <name>jpeg-multiscan</name>
-      <value type="gint">0</value>
-    </property>
-    <property>
-      <name>exif-data</name>
-      <value type="VipsBlob">
-RXhpZgAASUkqAAgAAAAGABIBAwABAAAAAQAAABoBBQABAAAAVgAAABsBBQABAAAAXgAAACgBAwAB
-AAAAAgAAABMCAwABAAAAAQAAAGmHBAABAAAAZgAAAAAAAAAR/P//KSgUChH8//8pKBQKBgAAkAcA
-BAAAADAyMTABkQcABAAAAAECAwAAoAcABAAAADAxMDABoAMAAQAAAP//AAACoAQAAQAAAKoFAAAD
-oAQAAQAAAAAIAAAAAAAA
-</value>
-    </property>
-    <property>
-      <name>resolution-unit</name>
-      <value type="VipsRefString">in</value>
-    </property>
-    <property>
-      <name>exif-ifd0-Orientation</name>
-      <value type="VipsRefString">1 (Top-left, Short, 1 components, 2 bytes)</value>
-    </property>
-    <property>
-      <name>exif-ifd0-XResolution</name>
-      <value type="VipsRefString">4294966289/169093161 (25.399999998, Rational, 1 components, 8 bytes)</value>
-    </property>
-    <property>
-      <name>exif-ifd0-YResolution</name>
-      <value type="VipsRefString">4294966289/169093161 (25.399999998, Rational, 1 components, 8 bytes)</value>
-    </property>
-    <property>
-      <name>exif-ifd0-ResolutionUnit</name>
-      <value type="VipsRefString">2 (Inch, Short, 1 components, 2 bytes)</value>
-    </property>
-    <property>
-      <name>exif-ifd0-YCbCrPositioning</name>
-      <value type="VipsRefString">1 (Centred, Short, 1 components, 2 bytes)</value>
-    </property>
-    <property>
-      <name>exif-ifd2-ExifVersion</name>
-      <value type="VipsRefString">Exif Version 2.1 (Exif Version 2.1, Undefined, 4 components, 4 bytes)</value>
-    </property>
-    <property>
-      <name>exif-ifd2-ComponentsConfiguration</name>
-      <value type="VipsRefString">Y Cb Cr - (Y Cb Cr -, Undefined, 4 components, 4 bytes)</value>
-    </property>
-    <property>
-      <name>exif-ifd2-FlashPixVersion</name>
-      <value type="VipsRefString">FlashPix Version 1.0 (FlashPix Version 1.0, Undefined, 4 components, 4 bytes)</value>
-    </property>
-    <property>
-      <name>exif-ifd2-ColorSpace</name>
-      <value type="VipsRefString">65535 (Internal error (unknown value 65535), Short, 1 components, 2 bytes)</value>
-    </property>
-    <property>
-      <name>exif-ifd2-PixelXDimension</name>
-      <value type="VipsRefString">1450 (1450, Long, 1 components, 4 bytes)</value>
-    </property>
-    <property>
-      <name>exif-ifd2-PixelYDimension</name>
-      <value type="VipsRefString">2048 (2048, Long, 1 components, 4 bytes)</value>
-    </property>
-    <property>
-      <name>orientation</name>
-      <value type="gint">1</value>
-    </property>
-  </properties>
-</image>
 
 
 
@@ -245,20 +129,6 @@ DEBUG:gi.overrides.Vips:assigning sequential
 	output doublevec
 	output imagevec
 	output blob
-
-- fix up aconv
-
-- rewrite im_conv() etc. as vips_conv(), also the mosaicing functions
-
-  finally finish --disable-deprecated option
-
-
-
-- can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
-
-
-
-- test draw_mask on labq images
 
   we probably need to unpack the ink back to double before blending
 
