@@ -46,8 +46,7 @@ Untar, then in the libvips directory you should just be able to do:
 	$ ./configure
 
 Check the summary at the end of `configure` carefully. 
-libvips must have `build-essential`, `pkg-config`, `glib2.0-dev`, and 
-`libxml2-dev`. 
+libvips must have `build-essential`, `pkg-config`, `glib2.0-dev`.
 
 For the vips8 Python binding, you must have 
 `gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev`.
@@ -145,8 +144,7 @@ Static analysis with:
 
 # Dependencies 
 
-libvips has to have `gettext`, `glib2.0-dev` and `libxml2-dev`. Other
-dependencies are optional, see below.
+libvips has to have `glib2.0-dev`. Other dependencies are optional, see below.
 
 # Optional dependencies
 

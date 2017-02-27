@@ -1,5 +1,25 @@
 - use VipsDbuf for tiffsave_buffer etc.
 
+	$ grep -l save_buffer *.c
+	dzsave.c
+	jpegsave.c
+	pngsave.c
+	radsave.c
+	tiffsave.c
+	webpsave.c
+
+  done png, jpg
+
+  tiff needs seek ... perhaps add this to dbuf?
+
+  dzsave uses gsf
+
+  rad and webp left to do
+
+  vips2jpeg term_destination() needs some kind of truncate call for dbuf
+
+
+
 - verify xml data against master for vips save and dzsave
 
 

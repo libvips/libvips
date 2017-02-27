@@ -56,24 +56,23 @@ vips_dbuf_init( VipsDbuf *dbuf )
 }
 
 /**
- * vips_dbuf_append:
+ * vips_dbuf_allocate:
  * @dbuf: the buffer
- * @data: the data to append to the buffer
- * @size: the size of the len to append
+ * @size: the size to allocate
  *
- * Append len bytes from @data to the buffer. The buffer expands if necessary. 
+ * Make sure @dbuf has at least @size bytes available for writing.
  * 
  * Returns: %FALSE on out of memory, %TRUE otherwise.
  */
 gboolean
-vips_dbuf_append( VipsDbuf *dbuf, const char *data, size_t size )
+vips_dbuf_allocate( VipsDbuf *dbuf, size_t size )
 {
 	size_t new_write_point = dbuf->write_point + size;
 
 	if( new_write_point > dbuf->max_size ) { 
 		size_t new_max_size = 3 * (16 + new_write_point) / 2;
 
-		char *new_data;
+		unsigned char *new_data;
 
 		if( !(new_data = g_try_realloc( dbuf->data, new_max_size )) ) {
 			vips_error( "VipsDbuf", "%s", _( "out of memory" ) );
@@ -84,8 +83,50 @@ vips_dbuf_append( VipsDbuf *dbuf, const char *data, size_t size )
 		dbuf->max_size = new_max_size;
 	}
 
+	return( TRUE ); 
+}
+
+/**
+ * vips_dbuf_get_write:
+ * @dbuf: the buffer
+ * @size: (allow-none): optionally return length in bytes here
+ *
+ * Return a pointer to an area you can write to, return length of area in
+ * @size. Use vips_dbuf_allocate() before this call to make the space.
+ * 
+ * Returns: (transfer none): start of write area.
+ */
+unsigned char *
+vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size )
+{
+	unsigned char *data = dbuf->data + dbuf->write_point;
+
+	if( size )
+		*size = dbuf->max_size - dbuf->write_point;
+
+	dbuf->write_point = dbuf->max_size;
+
+	return( data ); 
+}
+
+/**
+ * vips_dbuf_append:
+ * @dbuf: the buffer
+ * @data: the data to append to the buffer
+ * @size: the size of the len to append
+ *
+ * Append len bytes from @data to the buffer. The buffer expands if necessary. 
+ * 
+ * Returns: %FALSE on out of memory, %TRUE otherwise.
+ */
+gboolean
+vips_dbuf_append( VipsDbuf *dbuf, const unsigned char *data, size_t size )
+{
+	if( !vips_dbuf_allocate( dbuf, size ) )
+		return( FALSE ); 
+
 	memcpy( dbuf->data + dbuf->write_point, data, size );
-	dbuf->write_point = new_write_point;
+	dbuf->write_point += size;
 
 	return( TRUE ); 
 }
@@ -110,7 +151,7 @@ vips_dbuf_appendf( VipsDbuf *dbuf, const char *fmt, ... )
 	line = g_strdup_vprintf( fmt, ap ); 
         va_end( ap );
 
-	if( vips_dbuf_append( dbuf, line, strlen( line ) ) ) {
+	if( vips_dbuf_append( dbuf, (unsigned char *) line, strlen( line ) ) ) {
 		g_free( line ); 
 		return( FALSE );
 	}
@@ -159,12 +200,12 @@ vips_dbuf_destroy( VipsDbuf *dbuf )
  *
  * Returns: (transfer full): The pointer held by @dbuf.
  */
-char *
+unsigned char *
 vips_dbuf_steal( VipsDbuf *dbuf, size_t *size )
 {
-	char *data;
+	unsigned char *data;
 
-	vips_dbuf_append( dbuf, "", 1 );
+	vips_dbuf_append( dbuf, (unsigned char *) "", 1 );
 	dbuf->write_point -= 1;
 
 	data = dbuf->data;
@@ -180,7 +221,7 @@ vips_dbuf_steal( VipsDbuf *dbuf, size_t *size )
 }
 
 /**
- * vips_dbuf_data:
+ * vips_dbuf_string:
  * @dbuf: the buffer
  * @size: (allow-none): optionally return length in bytes here
  *
@@ -191,10 +232,10 @@ vips_dbuf_steal( VipsDbuf *dbuf, size_t *size )
  *
  * Returns: (transfer none): The pointer held by @dbuf.
  */
-char *
+unsigned char *
 vips_dbuf_string( VipsDbuf *dbuf, size_t *size )
 {
-	vips_dbuf_append( dbuf, "", 1 );
+	vips_dbuf_append( dbuf, (unsigned char *) "", 1 );
 	dbuf->write_point -= 1;
 
 	if( size )

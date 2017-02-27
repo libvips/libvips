@@ -48,7 +48,7 @@ typedef struct _VipsDbuf {
 
 	/* The current base, and the size of the allocated memory area.
 	 */
-	char *data;
+	unsigned char *data;
 	size_t max_size;
 
 	/* And the write point.
@@ -58,12 +58,15 @@ typedef struct _VipsDbuf {
 
 void vips_dbuf_destroy( VipsDbuf *buf );
 void vips_dbuf_init( VipsDbuf *buf );
-gboolean vips_dbuf_append( VipsDbuf *dbuf, const char *data, size_t size );
+gboolean vips_dbuf_allocate( VipsDbuf *dbuf, size_t size );
+unsigned char *vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size );
+gboolean vips_dbuf_append( VipsDbuf *dbuf, 
+	const unsigned char *data, size_t size );
 gboolean vips_dbuf_appendf( VipsDbuf *dbuf, const char *fmt, ... );
 void vips_dbuf_rewind( VipsDbuf *dbuf );
 void vips_dbuf_destroy( VipsDbuf *dbuf );
-char *vips_dbuf_string( VipsDbuf *dbuf, size_t *size );
-char *vips_dbuf_steal( VipsDbuf *dbuf, size_t *size );
+unsigned char *vips_dbuf_string( VipsDbuf *dbuf, size_t *size );
+unsigned char *vips_dbuf_steal( VipsDbuf *dbuf, size_t *size );
 
 #endif /*VIPS_DBUF_H*/
 

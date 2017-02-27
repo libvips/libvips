@@ -619,7 +619,8 @@ parser_element_end_handler( void *user_data, const XML_Char *name )
 		if( vep->header ) {
 			if( strcmp( name, "Hist" ) == 0 ) 
 				set_history( vep->image, 
-					vips_dbuf_string( &vep->dbuf, NULL ) ); 
+					(char *) vips_dbuf_string( &vep->dbuf, 
+						NULL ) ); 
 		}
 		else {
 			GType gtype = g_type_from_name( vep->type );
@@ -631,7 +632,8 @@ parser_element_end_handler( void *user_data, const XML_Char *name )
 					VIPS_TYPE_SAVE_STRING, gtype ) &&
 				set_meta( vep->image, 
 					gtype, vep->name, 
-					vips_dbuf_string( &vep->dbuf, NULL ) ) )
+					(char *) vips_dbuf_string( &vep->dbuf, 
+						NULL ) ) )
 				vep->error = TRUE;
 		}
 	}
@@ -646,7 +648,7 @@ parser_data_handler( void *user_data, const XML_Char *data, int len )
 	printf( "parser_data_handler: %d bytes\n", len ); 
 #endif /*DEBUG*/
 
-	vips_dbuf_append( &vep->dbuf, data, len );
+	vips_dbuf_append( &vep->dbuf, (unsigned char *) data, len );
 }
 
 /* Called at the end of vips open ... get any XML after the pixel data
@@ -724,9 +726,9 @@ dbuf_append_quotes( VipsDbuf *dbuf, const char *str )
 	for( p = str; *p; p += len ) {
 		len = strcspn( p, "\"" );
 
-		vips_dbuf_append( dbuf, p, len );
+		vips_dbuf_append( dbuf, (unsigned char *) p, len );
 		if( p[len] == '"' )
-			vips_dbuf_append( dbuf, "\\", 1 );
+			vips_dbuf_appendf( dbuf, "\\" );
 	}
 }
 
@@ -741,20 +743,20 @@ dbuf_append_amp( VipsDbuf *dbuf, const char *str )
 	for( p = str; *p; p += len ) {
 		len = strcspn( p, "&<>" );
 
-		vips_dbuf_append( dbuf, p, len );
+		vips_dbuf_append( dbuf, (unsigned char *) p, len );
 		switch( p[len] ) {
 		case '&': 
-			vips_dbuf_append( dbuf, "&amp;", 5 );
+			vips_dbuf_appendf( dbuf, "&amp;" );
 			len += 1;
 			break;
 
 		case '<': 
-			vips_dbuf_append( dbuf, "&lt;", 4 );
+			vips_dbuf_appendf( dbuf, "&lt;" );
 			len += 1;
 			break;
 
 		case '>': 
-			vips_dbuf_append( dbuf, "&gt;", 4 );
+			vips_dbuf_appendf( dbuf, "&gt;" );
 			len += 1;
 			break;
 
@@ -833,7 +835,7 @@ build_xml( VipsImage *image )
 	vips_dbuf_appendf( &dbuf, "  </meta>\n" );  
 	vips_dbuf_appendf( &dbuf, "</root>\n" );  
 
-	return( vips_dbuf_steal( &dbuf, NULL ) ); 
+	return( (char *) vips_dbuf_steal( &dbuf, NULL ) ); 
 }
 
 static void *
@@ -906,7 +908,7 @@ vips__xml_properties( VipsImage *image )
 	vips_dbuf_appendf( &dbuf, "  </properties>\n" );  
 	vips_dbuf_appendf( &dbuf, "</image>\n" );  
 
-	return( vips_dbuf_steal( &dbuf, NULL ) ); 
+	return( (char *) vips_dbuf_steal( &dbuf, NULL ) ); 
 }
 
 /* Append XML to output fd.
