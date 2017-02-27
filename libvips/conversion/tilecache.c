@@ -280,7 +280,6 @@ vips_tile_search_recycle( gpointer key, gpointer value, gpointer user_data )
 			break;
 
 		case VIPS_ACCESS_SEQUENTIAL:
-		case VIPS_ACCESS_SEQUENTIAL_UNBUFFERED:
 			if( tile->pos.top < search->topmost ) {
 				search->topmost = tile->pos.top;
 				search->tile = tile;

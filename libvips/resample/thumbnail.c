@@ -634,6 +634,8 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, int shrink, double scale )
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
+	/* We can't use UNBUFERRED safely on very-many-core systems.
+	 */
 	if( shrink != 1 ) 
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
@@ -796,6 +798,8 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail,
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 
+	/* We can't use UNBUFERRED safely on very-many-core systems.
+	 */
 	if( shrink != 1 ) 
 		return( vips_image_new_from_buffer( 
 			buffer->buf->data, buffer->buf->length, "", 

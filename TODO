@@ -12,9 +12,15 @@
 
   same for fatstrip ... would it be less than tile-height? 
 
+  deprecate UNBUFFERED? it will probably not work now
+
+  remove single-thread-first-tile thing
+
   the readbehind option to many loaders is no longer needed
 
-	  check pforeign.h 
+  do we need to restore the UNBUFFERED enum member to keep binary compat? we
+  need to make sure old code using UNBUFF now uses regular SEQ (and not RAND)
+
 
 
 - vips linecache has access there twice!

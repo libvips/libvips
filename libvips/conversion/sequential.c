@@ -262,7 +262,6 @@ vips_sequential_init( VipsSequential *sequential )
 	sequential->lock = vips_g_mutex_new();
 	sequential->tile_height = 1;
 	sequential->error = 0;
-	sequential->access = VIPS_ACCESS_SEQUENTIAL;
 }
 
 /**
