@@ -306,11 +306,6 @@ typedef struct _Rtiff {
 	 * strips or tiles interleaved. 
 	 */
 	tdata_t contig_buf;
-
-	/* Track the current y read position in strip mode to make sure we're
-	 * being called correctly.
-	 */
-	int y_pos;
 } Rtiff;
 
 /* Test for field exists.
@@ -1736,16 +1731,6 @@ rtiff_stripwise_generate( VipsRegion *or,
 	g_assert( r->height == 
 		VIPS_MIN( rows_per_strip, or->im->Ysize - r->top ) ); 
 
-	/* And check that y_pos is correct. It should be, since we are inside
-	 * a vips_sequential().
-	 */
-	if( r->top != rtiff->y_pos ) {
-		vips_error( "tiff2vips", 
-			_( "out of order read at line %d" ), rtiff->y_pos );
-
-		return( -1 );
-	}
-
 	VIPS_GATE_START( "rtiff_stripwise_generate: work" ); 
 
 	y = 0;
@@ -1841,7 +1826,6 @@ rtiff_stripwise_generate( VipsRegion *or,
 		}
 
 		y += hit.height;
-		rtiff->y_pos += hit.height; 
 	}
 
 	VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
@@ -1940,8 +1924,11 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		vips_image_generate( t[0], 
 			NULL, rtiff_stripwise_generate, NULL, 
 			rtiff, NULL ) ||
-		vips_sequential( t[0], &t[1], 
+		vips_linecache( t[0], &t[1], 
 			"tile_height", rtiff->header.rows_per_strip,
+			"access", rtiff->readbehind ? 
+				VIPS_ACCESS_SEQUENTIAL : 
+				VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 			NULL ) ||
 		rtiff_autorotate( rtiff, t[1], &t[2] ) ||
 		vips_image_write( t[2], out ) )
@@ -1986,7 +1973,6 @@ rtiff_new( VipsImage *out,
 	rtiff->memcpy = FALSE;
 	rtiff->plane_buf = NULL;
 	rtiff->contig_buf = NULL;
-	rtiff->y_pos = 0;
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( rtiff_close ), rtiff ); 

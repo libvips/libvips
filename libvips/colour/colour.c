@@ -421,7 +421,7 @@ vips_colour_class_init( VipsColourClass *class )
 	vobject_class->description = _( "color operations" );
 	vobject_class->build = vips_colour_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 

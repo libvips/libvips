@@ -137,7 +137,7 @@ vips_gamma_class_init( VipsGammaClass *class )
 	vobject_class->description = _( "gamma an image" );
 	vobject_class->build = vips_gamma_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "in", -1, 
 		_( "in" ), 

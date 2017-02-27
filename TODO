@@ -1,5 +1,4 @@
-- seq no longer stalls ahead threads ... instead, we rely on sinkdisk 
-  interlocks to limit how far ahead or behind threads can get
+- we currently have
 
   reexamine cache sizing ... are they too large?
 
@@ -14,14 +13,59 @@
 
   deprecate UNBUFFERED? it will probably not work now
 
-  remove single-thread-first-tile thing
+	* seq is on line 1000
+	* thread1 asks for line 2000 and blocks on seq->ready
+	* thread2 asks for line 2001 and also blocks
+	* thread1 times out and skips ahead to 2000
+	* thread1 wakes up thread2
+	* thread2 reads 2001
 
-  the readbehind option to many loaders is no longer needed
+  we could have 
 
-  do we need to restore the UNBUFFERED enum member to keep binary compat? we
-  need to make sure old code using UNBUFF now uses regular SEQ (and not RAND)
+	* seq is on line 1000
+	* thread1 asks for line 2000 and blocks on seq->ready
+	* thread2 asks for line 2001 
+	* thread2 sees that another thread is blocked earlier, so there has 
+	  probably been a skip
+	* thread2 sets a "skipahead" flag, then wakes up thread1 and sleeps
+	  itself
+	* thread1 wakes, skips to 2000, wakes thread2 and returns
+	* thread2 wakes, reads 2001, and returns
 
+  we could keep a list of all the blocked threads, sorted by y request, then
+  only unblock the lowest numbered one when the whole threadpool is waiting
 
+  this sounds like the safest idea
+
+  we could get rid of the first tile is single-threaded hack as well
+
+  argh no, we may not ever get more than one thread blocked on a seq
+
+  we just have to get rid of seq and rely on a larger buffer behind the
+  processing point
+
+  use sinkdisk / sinkmemory to limit the amount that threads can get out of
+  sync ... we must stop starting new threads if an old thread is taking too
+  long to produce its tile
+
+  sinkdisk will do this automatically, since it only keeps two lines of tiles
+
+  sinkmemory will need to have something added
+
+  so ... just swap vips_sequentiial for vips_linecache, look at adding
+  interlocks to sinkmemory, test, possibly increase margins
+
+  what will do skipahead now? we have to build this into linecache ... or maybe
+  leave seq there and just strip out the stalling and sync code
+
+  make tiff2vips track and verify y_pos 
+
+  foreign operations affected
+
+	  tiff2vips.c
+	  jpeg2vips.c
+	  radiance.c
+	  vipspng.c
 
 - vips linecache has access there twice!
 

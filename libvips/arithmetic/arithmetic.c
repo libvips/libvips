@@ -633,7 +633,7 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 	vobject_class->description = _( "arithmetic operations" );
 	vobject_class->build = vips_arithmetic_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 

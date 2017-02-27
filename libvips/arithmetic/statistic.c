@@ -161,7 +161,7 @@ vips_statistic_class_init( VipsStatisticClass *class )
 	vobject_class->description = _( "VIPS statistic operations" );
 	vobject_class->build = vips_statistic_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "Input" ), 

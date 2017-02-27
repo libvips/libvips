@@ -509,6 +509,8 @@ vips_insert_class_init( VipsInsertClass *class )
 		_( "insert image @sub into @main at @x, @y" );
 	vobject_class->build = vips_insert_build;
 
+	/* Can't be UNBUFFERED, we are a SMALLTILE operation.
+	 */
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "main", -1, 

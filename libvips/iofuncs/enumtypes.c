@@ -669,6 +669,7 @@ vips_access_get_type( void )
 		static const GEnumValue values[] = {
 			{VIPS_ACCESS_RANDOM, "VIPS_ACCESS_RANDOM", "random"},
 			{VIPS_ACCESS_SEQUENTIAL, "VIPS_ACCESS_SEQUENTIAL", "sequential"},
+			{VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, "VIPS_ACCESS_SEQUENTIAL_UNBUFFERED", "sequential-unbuffered"},
 			{VIPS_ACCESS_LAST, "VIPS_ACCESS_LAST", "last"},
 			{0, NULL, NULL}
 		};

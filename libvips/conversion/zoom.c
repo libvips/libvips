@@ -377,7 +377,7 @@ vips_zoom_class_init( VipsZoomClass *class )
 	vobject_class->description = _( "zoom an image" );
 	vobject_class->build = vips_zoom_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "input", 0, 
 		_( "Input" ), 

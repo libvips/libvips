@@ -298,7 +298,7 @@ vips_arrayjoin_class_init( VipsArrayjoinClass *class )
 	vobject_class->description = _( "join an array of images" );
 	vobject_class->build = vips_arrayjoin_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_BOXED( class, "in", -1, 
 		_( "Input" ), 

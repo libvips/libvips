@@ -237,7 +237,7 @@ vips_sRGB2scRGB_class_init( VipssRGB2scRGBClass *class )
 	object_class->description = _( "convert an sRGB image to scRGB" );
 	object_class->build = vips_sRGB2scRGB_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

@@ -186,7 +186,7 @@ vips_bandary_class_init( VipsBandaryClass *class )
 	vobject_class->description = _( "operations on image bands" );
 	vobject_class->build = vips_bandary_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 }
 
 static void

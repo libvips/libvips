@@ -147,6 +147,7 @@
  * VipsAccess:
  * @VIPS_ACCESS_RANDOM: can read anywhere
  * @VIPS_ACCESS_SEQUENTIAL: top-to-bottom reading only, but with a small buffer
+ * @VIPS_ACCESS_SEQUENTIAL_UNBUFFERED: top-to-bottom reading only
  *
  * The type of access an operation has to supply. See vips_tilecache()
  * and #VipsForeign. 
@@ -155,6 +156,9 @@
  *
  * @VIPS_ACCESS_SEQUENTIAL means requests will be top-to-bottom, but with some
  * amount of buffering behind the read point for small non-local accesses. 
+ *
+ * @VIPS_ACCESS_SEQUENTIAL_UNBUFFERED means requests will be strictly
+ * top-to-bottom with no read-behind. This can save some memory. 
  */
 
 /** 
@@ -1852,7 +1856,9 @@ vips_filename_get_options( const char *vips_filename )
  * whole image exactly once, top-to-bottom. In this mode, vips can avoid
  * converting the whole image in one go, for a large memory saving. You are
  * allowed to make small non-local references, so area operations like 
- * convolution will work. 
+ * convolution will work. #VIPS_ACCESS_SEQUENTIAL_UNBUFFERED does not allow
+ * non-local references, so will only work for very strict top-to-bottom
+ * operations, but does have very low memory needs. 
  *
  * In #VIPS_ACCESS_RANDOM mode, small images are decompressed to memory and
  * then processed from there. Large images are decompressed to temporary

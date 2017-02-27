@@ -129,12 +129,9 @@ typedef enum {
 typedef enum {
 	VIPS_ACCESS_RANDOM,
 	VIPS_ACCESS_SEQUENTIAL,
+	VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 	VIPS_ACCESS_LAST
 } VipsAccess;
-
-/* Compat for a mode we used to support.
- */
-#define VIPS_ACCESS_SEQUENTIAL_UNBUFFERED VIPS_ACCESS_SEQUENTIAL
 
 struct _VipsImage; 
 struct _VipsRegion; 

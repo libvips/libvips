@@ -688,7 +688,7 @@ vips_maplut_class_init( VipsMaplutClass *class )
 	object_class->description = _( "map an image though a lut" );
 	object_class->build = vips_maplut_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
