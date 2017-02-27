@@ -87,7 +87,7 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 			return( -1 );
 	}
 	else {
-		if( vips__png_read( filename, out ) )
+		if( vips__png_read( filename, out, TRUE ) )
 			return( -1 );
 	}
 #else

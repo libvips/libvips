@@ -68,7 +68,7 @@ int vips__tiff_write_buf( VipsImage *in,
 int vips__tiff_read_header( const char *filename, VipsImage *out, 
 	int page, int n, gboolean autorotate );
 int vips__tiff_read( const char *filename, VipsImage *out, 
-	int page, int n, gboolean autorotate );
+	int page, int n, gboolean autorotate, gboolean readbehind );
 
 gboolean vips__istiff( const char *filename );
 gboolean vips__istifftiled( const char *filename );
@@ -79,7 +79,7 @@ gboolean vips__istifftiled_buffer( const void *buf, size_t len );
 int vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out, 
 	int page, int n, gboolean autorotate );
 int vips__tiff_read_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, int n, gboolean autorotate );
+	int page, int n, gboolean autorotate, gboolean readbehind );
 
 extern const char *vips__foreign_tiff_suffs[];
 
@@ -149,7 +149,7 @@ int vips__ppm_save( VipsImage *in, const char *filename,
 
 int vips__rad_israd( const char *filename );
 int vips__rad_header( const char *filename, VipsImage *out );
-int vips__rad_load( const char *filename, VipsImage *out );
+int vips__rad_load( const char *filename, VipsImage *out, gboolean readbehind );
 
 int vips__rad_save( VipsImage *in, const char *filename );
 int vips__rad_save_buf( VipsImage *in, void **obuf, size_t *olen );
@@ -172,18 +172,21 @@ int vips__jpeg_write_buffer( VipsImage *in,
 int vips__isjpeg_buffer( const void *buf, size_t len );
 int vips__isjpeg( const char *filename );
 int vips__jpeg_read_file( const char *name, VipsImage *out, 
-	gboolean header_only, int shrink, gboolean fail, gboolean autorotate );
+	gboolean header_only, int shrink, gboolean fail, gboolean readbehind,
+	gboolean autorotate );
 int vips__jpeg_read_buffer( const void *buf, size_t len, VipsImage *out, 
-	gboolean header_only, int shrink, int fail, gboolean autorotate );
+	gboolean header_only, int shrink, int fail, gboolean readbehind,
+	gboolean autorotate );
 
 int vips__png_header( const char *name, VipsImage *out );
-int vips__png_read( const char *name, VipsImage *out );
+int vips__png_read( const char *name, VipsImage *out, gboolean readbehind );
 gboolean vips__png_ispng_buffer( const void *buf, size_t len );
 int vips__png_ispng( const char *filename );
 gboolean vips__png_isinterlaced( const char *filename );
 gboolean vips__png_isinterlaced_buffer( const void *buffer, size_t length );
 extern const char *vips__png_suffs[];
-int vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out );
+int vips__png_read_buffer( const void *buffer, size_t length, 
+	VipsImage *out, gboolean readbehind  );
 int vips__png_header_buffer( const void *buffer, size_t length, 
 	VipsImage *out );
 

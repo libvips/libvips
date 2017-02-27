@@ -111,7 +111,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 
 #ifdef HAVE_JPEG
 	if( vips__jpeg_read_file( filename, out, 
-		header_only, shrink, fail_on_warn, FALSE ) )
+		header_only, shrink, fail_on_warn, TRUE, FALSE ) )
 		return( -1 );
 #else
 	vips_error( "im_jpeg2vips", 

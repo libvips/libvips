@@ -12,7 +12,9 @@
 
   same for fatstrip ... would it be less than tile-height? 
 
+  the readbehind option to many loaders is no longer needed
 
+	  check pforeign.h 
 
 
 - vips linecache has access there twice!

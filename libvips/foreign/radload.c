@@ -100,7 +100,8 @@ vips_foreign_load_rad_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
 
-	if( vips__rad_load( rad->filename, load->real ) )
+	if( vips__rad_load( rad->filename, load->real,
+		load->access == VIPS_ACCESS_SEQUENTIAL ) )
 		return( -1 );
 
 	return( 0 );
