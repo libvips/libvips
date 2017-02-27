@@ -1,3 +1,20 @@
+- seq no longer stalls ahead threads ... instead, we rely on sinkdisk 
+  interlocks to limit how far ahead or behind threads can get
+
+  reexamine cache sizing ... are they too large?
+
+  is thumbnail thinstrip or fatstrip? how does that affect seq cache sizing?
+
+  add something to linecache (and tilecache?) to get it to display cache size
+
+  sinkdisk could use a smaller wbuffer for thinstrip .. thinstrip * nthreads high
+  ... this would reduce the size of the input caches we need during shrink
+
+  same for fatstrip ... would it be less than tile-height? 
+
+
+
+
 - vips linecache has access there twice!
 
 	 $ vips linecache

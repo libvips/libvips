@@ -238,11 +238,6 @@ wbuffer_new( Write *write )
 		return( NULL );
 	}
 
-	g_info( "wbuffer_new: %g MB",
-		(write->sink_base.nlines * 
-		 	VIPS_IMAGE_SIZEOF_LINE( write->sink_base.im )) /
-		(1024 * 1024.0) );
-
 	return( wbuffer );
 }
 

@@ -200,9 +200,6 @@ sink_free( Sink *sink )
 void
 vips_sink_base_init( SinkBase *sink_base, VipsImage *image )
 {
-	int tiles_across;
-	int tiles_down;
-
 	/* Always clear kill before we start looping. See the 
 	 * call to vips_image_iskilled() below.
 	 */
@@ -211,42 +208,12 @@ vips_sink_base_init( SinkBase *sink_base, VipsImage *image )
 	sink_base->im = image;
 	sink_base->x = 0;
 	sink_base->y = 0;
-	sink_base->processed = 0;
 
 	vips_get_tile_size( image, 
 		&sink_base->tile_width, &sink_base->tile_height, 
 		&sink_base->nlines );
 
-	/* vips_get_tile_size() is very conservative about setting nlines. We
-	 * know that we are the final element in the pipeline, so we can be
-	 * much tighter.
-	 */
-
-	/* Number of tiles we need across to fill the image width. This will be
-	 * 1 for fat/thin strip.
-	 */
-	tiles_across = 
-		VIPS_ROUND_UP( image->Xsize, sink_base->tile_width ) / 
-		sink_base->tile_width;
-
-	/* Number of rows of tiles we need to have at least 1 tile per thread.
-	 */
-	tiles_down = 
-		VIPS_ROUND_UP( vips_concurrency_get(), tiles_across ) / 
-		tiles_across; 
-
-	/* Therefore the number of scanlines to have at least one tile per
-	 * thread in a buffer.
-	 */
-	sink_base->nlines = tiles_down * sink_base->tile_height;
-
-	g_info( _( "%s %s: %d x %d pixels, %d threads, %d x %d tiles, "
-		"%d lines in buffer" ),
-		g_get_prgname(), image->filename,
-		image->Xsize, image->Ysize,
-		vips_concurrency_get(),
-		sink_base->tile_width, sink_base->tile_height, 
-		sink_base->nlines );
+	sink_base->processed = 0;
 }
 
 static int
