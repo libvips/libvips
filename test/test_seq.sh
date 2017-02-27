@@ -35,11 +35,11 @@ if ! $vipsheader $tmp/x.png > /dev/null 2>&1 ; then
 fi
 echo "ok"
 
-printf "testing resize does not make temps ... "
+printf "testing shrink does not make temps ... "
 rm -f $tmp/x.png
-$vips resize $huge $tmp/x.png 0.0044
+$vips shrink $huge $tmp/x.png 230 230 
 if ! $vipsheader $tmp/x.png > /dev/null 2>&1 ; then
-	echo "resize made a temp"
+	echo "shrink made a temp"
 	exit 1
 fi
 echo "ok"

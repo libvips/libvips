@@ -1,18 +1,3 @@
-- try
-
-	vips replicate images/йцук.jpg huge.png 30 5
-	vipsthumbnail huge.png -s 135
-	vips resize huge.png x.png 0.0044
-
-  out of order read error >50% of the time
-
-  but 
-
-	vips resize huge.png x.png 0.001
-	vips resize huge.png x.png 0.0001
-
-  both work fine
-
 - vips linecache has access there twice!
 
 	 $ vips linecache
