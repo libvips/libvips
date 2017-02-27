@@ -1924,7 +1924,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		vips_image_generate( t[0], 
 			NULL, rtiff_stripwise_generate, NULL, 
 			rtiff, NULL ) ||
-		vips_linecache( t[0], &t[1], 
+		vips_sequential( t[0], &t[1], 
 			"tile_height", rtiff->header.rows_per_strip,
 			"access", rtiff->readbehind ? 
 				VIPS_ACCESS_SEQUENTIAL : 

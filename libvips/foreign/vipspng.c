@@ -497,7 +497,7 @@ png2vips_generate( VipsRegion *or,
 	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
 
 	/* And check that y_pos is correct. It should be, since we are inside
-	 * a vips_linecache().
+	 * a vips_sequential().
 	 */
 	if( r->top != read->y_pos ) {
 		vips_error( "vipspng", 
@@ -590,7 +590,7 @@ png2vips_image( Read *read, VipsImage *out )
 			vips_image_generate( t[0], 
 				NULL, png2vips_generate, NULL, 
 				read, NULL ) ||
-			vips_linecache( t[0], &t[1], 
+			vips_sequential( t[0], &t[1], 
 				"tile_height", 8,
 				"access", read->readbehind ? 
 					VIPS_ACCESS_SEQUENTIAL : 
