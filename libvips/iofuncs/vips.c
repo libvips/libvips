@@ -861,7 +861,6 @@ vips__xml_properties_meta( VipsImage *image,
 			return( dbuf );
 		}
 		str = vips_value_get_save_string( &save_value );
-		g_value_unset( &save_value );
 
 		vips_dbuf_writef( dbuf, "    <property>\n" );  
 		vips_dbuf_writef( dbuf, "      <name>" ); 
@@ -872,6 +871,8 @@ vips__xml_properties_meta( VipsImage *image,
 		dbuf_write_amp( dbuf, str );
 		vips_dbuf_writef( dbuf, "</value>\n" ); 
 		vips_dbuf_writef( dbuf, "    </property>\n" );  
+
+		g_value_unset( &save_value );
 	}
 
 	return( NULL );

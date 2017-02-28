@@ -1,13 +1,3 @@
-- verify xml data against master for vips save and dzsave
-
-- curious
-
-	$ vips tiffload_buffer images/sample.tif 
-	(vips:18224): GLib-GObject-WARNING **: unable to set property 'buffer' of type 'VipsBlob' from value of type 'gchararray'
-	Trace/breakpoint trap (core dumped)
-
-
-
 - vips linecache has access there twice!
 
 	 $ vips linecache
