@@ -59,6 +59,8 @@
  * 	- support --strip option
  * 17/1/17
  * 	- invalidate operation on read error
+ * 27/2/17
+ * 	- use dbuf for buffer output
  */
 
 /*
@@ -741,10 +743,7 @@ typedef struct {
 	VipsImage *memory;
 
 	FILE *fp;
-
-	char *buf;
-	size_t len;
-	size_t alloc;
+	VipsDbuf dbuf;
 
 	png_structp pPng;
 	png_infop pInfo;
@@ -756,7 +755,7 @@ write_finish( Write *write )
 {
 	VIPS_FREEF( fclose, write->fp );
 	VIPS_UNREF( write->memory );
-	VIPS_FREE( write->buf );
+	vips_dbuf_destroy( &write->dbuf );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
 }
@@ -778,9 +777,7 @@ write_new( VipsImage *in )
 	write->in = in;
 	write->memory = NULL;
 	write->fp = NULL;
-	write->buf = NULL;
-	write->len = 0;
-	write->alloc = 0;
+	vips_dbuf_init( &write->dbuf );
 	g_signal_connect( in, "close", 
 		G_CALLBACK( write_destroy ), write ); 
 
@@ -1022,40 +1019,11 @@ vips__png_write( VipsImage *in, const char *filename,
 }
 
 static void
-write_grow( Write *write, size_t grow_len )
-{
-	size_t new_len = write->len + grow_len;
-
-	if( new_len > write->alloc ) {
-		size_t proposed_alloc = (16 + write->alloc) * 3 / 2;
-
-		write->alloc = VIPS_MAX( proposed_alloc, new_len );
-
-		/* Our result must be freedd with g_free(), so it's OK to use
-		 * g_realloc(). 
-		 */
-	 	write->buf = g_realloc( write->buf, write->alloc );
-
-		VIPS_DEBUG_MSG( "write_buf_grow: grown to %zd bytes\n",
-			write->alloc );
-	}
-}
-
-static void
 user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
 {
 	Write *write = (Write *) png_get_io_ptr( png_ptr );
 
-	char *write_start;
-
-	write_grow( write, length );
-
-	write_start = write->buf + write->len;
-	memcpy( write_start, data, length );
-
-	write->len += length;
-
-	g_assert( write->len <= write->alloc );
+	vips_dbuf_write( &write->dbuf, data, length ); 
 }
 
 int
@@ -1080,10 +1048,7 @@ vips__png_write_buf( VipsImage *in,
 		return( -1 );
 	}
 
-	*obuf = write->buf;
-	write->buf = NULL;
-	if( olen )
-		*olen = write->len;
+	*obuf = vips_dbuf_steal( &write->dbuf, olen );
 
 	write_finish( write );
 

@@ -116,20 +116,6 @@ DEBUG:gi.overrides.Vips:assigning sequential
 	output imagevec
 	output blob
 
-- fix up aconv
-
-- rewrite im_conv() etc. as vips_conv(), also the mosaicing functions
-
-  finally finish --disable-deprecated option
-
-
-
-- can we use postbuild elsewhere? look at use of "preclose" / "written", etc. 
-
-
-
-- test draw_mask on labq images
-
   we probably need to unpack the ink back to double before blending
 
 

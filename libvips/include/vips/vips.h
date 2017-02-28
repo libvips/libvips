@@ -106,6 +106,7 @@ extern "C" {
 #include <vips/basic.h>
 
 #include <vips/buf.h>
+#include <vips/dbuf.h>
 #include <vips/util.h>
 #include <vips/object.h>
 #include <vips/type.h>

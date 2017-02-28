@@ -218,7 +218,6 @@
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
 #include <string.h>
-#include <libxml/parser.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -512,10 +511,10 @@ wtiff_embed_imagedescription( Wtiff *wtiff, TIFF *tif )
 	if( wtiff->properties ) {
 		char *doc;
 
-		if( !(doc = vips__make_xml_metadata( "vips2tiff", wtiff->im )) )
+		if( !(doc = vips__xml_properties( wtiff->im )) )
 			return( -1 );
 		TIFFSetField( tif, TIFFTAG_IMAGEDESCRIPTION, doc );
-		xmlFree( doc );
+		g_free( doc );
 	}
 	else {
 		const char *imagedescription;

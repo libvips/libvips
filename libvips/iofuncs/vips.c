@@ -17,6 +17,8 @@
  * 	  image.c ... this file now just does read / write to disc
  * 28/3/11
  * 	- moved to vips_ namespace
+ * 25/2/17
+ * 	- use expat for xml read, printf for xml write
  */
 
 /*
@@ -47,8 +49,8 @@
  */
 
 /*
-#define DEBUG
 #define SHOW_HEADER
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -77,7 +79,7 @@
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif /*HAVE_IO_H*/
-#include <libxml/parser.h>
+#include <expat.h>
 #include <errno.h>
 
 #ifdef OS_WIN32
@@ -139,7 +141,7 @@
 
 /* Our XML namespace.
  */
-#define NAMESPACE "http://www.vips.ecs.soton.ac.uk/vips" 
+#define NAMESPACE_URI "http://www.vips.ecs.soton.ac.uk/" 
 
 /* Open for read for image files. 
  */
@@ -434,9 +436,9 @@ vips__read_extension_block( VipsImage *im, int *size )
 
 	psize = image_pixel_length( im );
 	g_assert( im->file_length > 0 );
-	if( im->file_length - psize > 10 * 1024 * 1024 ) {
+	if( im->file_length - psize > 100 * 1024 * 1024 ) {
 		vips_error( "VipsImage",
-			"%s", _( "more than a 10 megabytes of XML? "
+			"%s", _( "more than 100 megabytes of XML? "
 			"sufferin' succotash!" ) );
 		return( NULL );
 	}
@@ -456,74 +458,99 @@ vips__read_extension_block( VipsImage *im, int *size )
 	return( buf );
 }
 
-/* Read everything after the pixels into memory.
-
-	FIXME ... why can't we use xmlParserInputBufferCreateFd and parse
-	directly from the fd rather than having to read the stupid thing into 
-	memory
-
-	the libxml API docs are impossible to decipher
-
- */
-static xmlDoc *
-read_xml( VipsImage *im )
+static int
+parser_read_fd( XML_Parser parser, int fd )
 {
-	void *buf;
-	int size;
-	xmlDoc *doc;
-	xmlNode *node;
+	const int chunk_size = 1024; 
 
-	if( !(buf = vips__read_extension_block( im, &size )) )
-		return( NULL );
-	if( !(doc = xmlParseMemory( buf, size )) ) {
-		vips_free( buf );
-		return( NULL );
-	}
-	vips_free( buf );
-	if( !(node = xmlDocGetRootElement( doc )) ||
-		!node->nsDef ||
-		!vips_isprefix( NAMESPACE, (char *) node->nsDef->href ) ) {
-		vips_error( "VipsImage", 
-			"%s", _( "incorrect namespace in XML" ) );
-		xmlFreeDoc( doc );
-		return( NULL );
-	}
+	ssize_t bytes_read;
+
+	do {
+		void *buf;
+
+		if( !(buf = XML_GetBuffer( parser, chunk_size )) ) {
+			vips_error( "VipsImage", 
+				"%s", _( "unable to allocate read buffer" ) );
+			return( -1 );
+		}
+		bytes_read = read( fd, buf, chunk_size );
+		if( bytes_read == (ssize_t) -1 ) {
+			vips_error( "VipsImage", 
+				"%s", _( "read error while fetching XML" ) );
+			return( -1 );
+		}
+
+		if( !XML_ParseBuffer( parser, bytes_read, bytes_read == 0 ) ) {
+			vips_error( "VipsImage", 
+				"%s", _( "XML parse error" ) );
+			return( -1 );
+		}
+	} while( bytes_read > 0 );
+
+	return( 0 );
+}
+
+#define MAX_PARSE_ATTR (256)
+
+/* What we track during expat parse.
+ */
+typedef struct _VipsExpatParse {
+	VipsImage *image;
+
+	/* Set on error.
+	 */
+	gboolean error;
+
+	/* TRUE for in header section.
+	 */
+	gboolean header;
+
+	/* For the current node, the type and name.
+	 */
+	XML_Char type[MAX_PARSE_ATTR];
+	XML_Char name[MAX_PARSE_ATTR];
+
+	/* Accumulate data here.
+	 */
+	VipsDbuf dbuf; 
+} VipsExpatParse;
+
+static void
+parser_element_start_handler( void *user_data, 
+	const XML_Char *name, const XML_Char **atts )
+{
+	VipsExpatParse *vep = (VipsExpatParse *) user_data;
+	const XML_Char **p;
 
 #ifdef DEBUG
-	printf( "read_xml: namespace == %s\n", node->nsDef->href );
+	printf( "parser_element_start: %s\n", name );
+	for( p = atts; *p; p += 2 ) 
+		printf( "%s = %s\n", p[0], p[1] );
 #endif /*DEBUG*/
 
-	return( doc );
-}
+	if( strcmp( name, "field" ) == 0 ) { 
+		for( p = atts; *p; p += 2 ) {
+			if( strcmp( p[0], "name" ) == 0 )
+				vips_strncpy( vep->name, p[1], MAX_PARSE_ATTR ); 
+			if( strcmp( p[0], "type" ) == 0 )
+				vips_strncpy( vep->type, p[1], MAX_PARSE_ATTR ); 
+		}
 
-/* Find the first child node with a name.
- */
-static xmlNode *
-get_node( xmlNode *base, const char *name )
-{
-	xmlNode *i;
-
-	for( i = base->children; i; i = i->next )
-		if( strcmp( (char *) i->name, name ) == 0 )
-			return( i );
-
-	return( NULL );
-}
-
-/* Read a string property to a buffer. TRUE for success.
- */
-static int
-get_sprop( xmlNode *xnode, const char *name, char *buf, int sz )
-{
-        char *value = (char *) xmlGetProp( xnode, (xmlChar *) name );
-
-        if( !value )
-                return( 0 );
-
-        vips_strncpy( buf, value, sz );
-        VIPS_FREEF( xmlFree, value );
-
-        return( 1 );
+		vips_dbuf_reset( &vep->dbuf );
+	} 
+	else if( strcmp( name, "header" ) == 0 )  
+		vep->header = TRUE;
+	else if( strcmp( name, "meta" ) == 0 )  
+		vep->header = FALSE;
+	else if( strcmp( name, "root" ) == 0 ) {
+		for( p = atts; *p; p += 2 ) 
+			if( strcmp( p[0], "xmlns" ) == 0 &&
+				!vips_isprefix( NAMESPACE_URI "vips", p[1] ) ) {
+				vips_error( "VipsImage", "%s", 
+					_( "incorrect namespace in XML" ) );
+				vep->error = TRUE;
+			}
+	}
 }
 
 /* Chop history into lines, add each one as a refstring.
@@ -555,119 +582,73 @@ set_history( VipsImage *im, char *history )
 	im->history_list = g_slist_reverse( history_list );
 }
 
-/* Load header fields.
- */
 static int
-rebuild_header_builtin( VipsImage *im, xmlNode *i )
+set_meta( VipsImage *image, GType gtype, const char *name, const char *data )
 {
-	char name[256];
+	GValue save_value = { 0 };
+	GValue value = { 0 };
 
-	if( get_sprop( i, "name", name, 256 ) ) {
-		if( strcmp( name, "Hist" ) == 0 ) {
-			char *history;
+	g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+	vips_value_set_save_string( &save_value, data );
 
-			/* Have to take (another) copy, since we need to free
-			 * with xmlFree().
+	g_value_init( &value, gtype );
+	if( !g_value_transform( &save_value, &value ) ) {
+		g_value_unset( &save_value );
+		vips_error( "VipsImage", "%s", 
+			_( "error transforming from save format" ) );
+		return( -1 ); 
+	}
+
+	vips_image_set( image, name, &value );
+	g_value_unset( &save_value );
+	g_value_unset( &value );
+
+	return( 0 );
+}
+
+static void
+parser_element_end_handler( void *user_data, const XML_Char *name )
+{
+	VipsExpatParse *vep = (VipsExpatParse *) user_data;
+
+#ifdef DEBUG
+	printf( "parser_element_end_handler: %s\n", name ); 
+#endif /*DEBUG*/
+
+	if( strcmp( name, "field" ) == 0 ) {
+		if( vep->header ) {
+			if( strcmp( name, "Hist" ) == 0 ) 
+				set_history( vep->image, 
+					(char *) vips_dbuf_string( &vep->dbuf, 
+						NULL ) ); 
+		}
+		else {
+			GType gtype = g_type_from_name( vep->type );
+
+			/* Can we convert from VIPS_SAVE_STRING to type?
 			 */
-			history = (char *) xmlNodeGetContent( i );
-			set_history( im, history );
-			xmlFree( history );
+			if( gtype && 
+				g_value_type_transformable( 
+					VIPS_TYPE_SAVE_STRING, gtype ) &&
+				set_meta( vep->image, 
+					gtype, vep->name, 
+					(char *) vips_dbuf_string( &vep->dbuf, 
+						NULL ) ) )
+				vep->error = TRUE;
 		}
 	}
-
-	return( 0 );
 }
 
-/* Load meta fields.
- */
-static int
-rebuild_header_meta( VipsImage *im, xmlNode *i )
+static void
+parser_data_handler( void *user_data, const XML_Char *data, int len )
 {
-	char name[256];
-	char type[256];
+	VipsExpatParse *vep = (VipsExpatParse *) user_data;
 
-	if( get_sprop( i, "name", name, 256 ) &&
-		get_sprop( i, "type", type, 256 ) ) {
-		GType gtype = g_type_from_name( type );
+#ifdef DEBUG
+	printf( "parser_data_handler: %d bytes\n", len ); 
+#endif /*DEBUG*/
 
-		/* Can we convert from VIPS_SAVE_STRING to type?
-		 */
-		if( gtype && 
-			g_value_type_transformable( 
-				VIPS_TYPE_SAVE_STRING, gtype ) ) {
-			char *content;
-			GValue save_value = { 0 };
-			GValue value = { 0 };
-
-			content = (char *) xmlNodeGetContent( i );
-			g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
-			vips_value_set_save_string( &save_value, content );
-			xmlFree( content );
-
-			g_value_init( &value, gtype );
-			if( !g_value_transform( &save_value, &value ) ) {
-				g_value_unset( &save_value );
-				vips_error( "VipsImage", 
-					"%s", _( "error transforming from "
-					"save format" ) );
-				return( -1 );
-			}
-			vips_image_set( im, name, &value );
-			g_value_unset( &save_value );
-			g_value_unset( &value );
-		}
-	}
-
-	return( 0 );
-}
-
-static xmlDoc *
-get_xml( VipsImage *im )
-{
-	if( vips_image_get_typeof( im, VIPS_META_XML ) ) {
-		xmlDoc *doc;
-
-		if( vips_image_get_area( im, VIPS_META_XML, (void *) &doc ) )
-			return( NULL );
-
-		return( doc );
-	}
-
-	return( NULL );
-}
-
-/* Rebuild header fields that depend on stuff saved in xml.
- */
-static int
-rebuild_header( VipsImage *im )
-{
-	xmlDoc *doc;
-
-	if( (doc = get_xml( im )) ) {
-		xmlNode *root;
-		xmlNode *block;
-
-		if( !(root = xmlDocGetRootElement( doc )) )
-			return( -1 );
-		if( (block = get_node( root, "header" )) ) {
-			xmlNode *i;
-
-			for( i = block->children; i; i = i->next )
-				if( strcmp( (char *) i->name, "field" ) == 0 ) 
-					if( rebuild_header_builtin( im, i ) )
-						return( -1 );
-		}
-		if( (block = get_node( root, "meta" )) ) {
-			xmlNode *i;
-
-			for( i = block->children; i; i = i->next )
-				if( strcmp( (char *) i->name, "field" ) == 0 ) 
-					if( rebuild_header_meta( im, i ) )
-						return( -1 );
-		}
-	}
-
-	return( 0 );
+	vips_dbuf_write( &vep->dbuf, (unsigned char *) data, len );
 }
 
 /* Called at the end of vips open ... get any XML after the pixel data
@@ -676,123 +657,34 @@ rebuild_header( VipsImage *im )
 static int 
 readhist( VipsImage *im )
 {
-	/* Junk any old xml meta.
-	 */
-	if( vips_image_get_typeof( im, VIPS_META_XML ) ) 
-		vips_image_set_area( im, VIPS_META_XML, NULL, NULL );
+	XML_Parser parser;
+	VipsExpatParse vep;
 
-	if( vips__has_extension_block( im ) ) {
-		xmlDoc *doc;
+	if( vips__seek( im->fd, image_pixel_length( im ) ) ) 
+		return( -1 );
 
-		if( !(doc = read_xml( im )) )
-			return( -1 );
-		vips_image_set_area( im, VIPS_META_XML, 
-			(VipsCallbackFn) xmlFreeDoc, doc );
+	parser = XML_ParserCreate( "UTF-8" );
+
+	vep.image = im;
+	vips_dbuf_init( &vep.dbuf ); 
+	vep.error = FALSE;
+	XML_SetUserData( parser, &vep );
+
+	XML_SetElementHandler( parser, 
+		parser_element_start_handler, parser_element_end_handler );
+	XML_SetCharacterDataHandler( parser, parser_data_handler ); 
+
+	if( parser_read_fd( parser, im->fd ) ||
+		vep.error ) { 
+		vips_dbuf_destroy( &vep.dbuf ); 
+		XML_ParserFree( parser );
+		return( -1 );
 	}
 
-	if( rebuild_header( im ) )
-		return( -1 );
+	vips_dbuf_destroy( &vep.dbuf ); 
+	XML_ParserFree( parser );
 
-	return( 0 );
-}
-
-#define MAX_STRSIZE (32768)     /* Max size of text for stack strings */
-
-static int
-set_prop( xmlNode *node, const char *name, const char *fmt, ... )
-{       
-        va_list ap;
-        char value[MAX_STRSIZE];
-
-        va_start( ap, fmt );
-        (void) vips_vsnprintf( value, MAX_STRSIZE, fmt, ap );
-        va_end( ap );
-
-        if( !xmlSetProp( node, (xmlChar *) name, (xmlChar *) value ) ) {
-                vips_error( "VipsImage", _( "unable to set property \"%s\" "
-                        "to value \"%s\"." ),
-                        name, value );
-                return( -1 );
-        }       
-        
-        return( 0 );
-}
-
-static int
-set_sprop( xmlNode *node, const char *name, const char *value )
-{
-        if( value && set_prop( node, name, "%s", value ) )
-                return( -1 );
-
-        return( 0 );
-}
-
-static int
-set_field( xmlNode *node, 
-	const char *name, const char *type, const char *content )
-{
-	xmlNode *field;
-
-	if( !(field = xmlNewChild( node, NULL, (xmlChar *) "field", NULL )) || 
-		set_sprop( field, "type", type ) ||
-		set_sprop( field, "name", name ) )
-		return( -1 );
-	xmlNodeSetContent( field, (xmlChar *) content );
-
-	return( 0 );
-}
-
-static void *
-save_fields_meta( VipsMeta *meta, xmlNode *node )
-{
-	GType type = G_VALUE_TYPE( &meta->value );
-
-	/* If we can transform to VIPS_TYPE_SAVE_STRING and back, we can save 
-	 * and restore. 
-	 */
-	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) &&
-		g_value_type_transformable( VIPS_TYPE_SAVE_STRING, type ) ) {
-		GValue save_value = { 0 };
-
-		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
-		if( !g_value_transform( &meta->value, &save_value ) ) {
-			vips_error( "VipsImage", "%s", 
-				_( "error transforming to save format" ) );
-			return( node );
-		}
-		if( set_field( node, meta->name, g_type_name( type ), 
-			vips_value_get_save_string( &save_value ) ) ) {
-			g_value_unset( &save_value );
-			return( node );
-		}
-		g_value_unset( &save_value );
-	}
-
-	return( NULL );
-}
-
-static int
-save_fields( VipsImage *im, xmlNode *node )
-{
-	xmlNode *this;
-
-	/* Save header fields.
-	 */
-	if( !(this = xmlNewChild( node, NULL, (xmlChar *) "header", NULL )) )
-		return( -1 ); 
-	if( set_field( this, "Hist", 
-		g_type_name( VIPS_TYPE_REF_STRING ), 
-			vips_image_get_history( im ) ) ) 
-		return( -1 );
-
-	if( !(this = xmlNewChild( node, NULL, (xmlChar *) "meta", NULL )) )
-		return( -1 );
-	if( im->meta_traverse && 
-		vips_slist_map2( im->meta_traverse, 
-			(VipsSListMap2Fn) save_fields_meta, this, NULL ) )
-		return( -1 );
-
-	return( 0 );
+	return( 0 ); 
 }
 
 int
@@ -823,52 +715,226 @@ vips__write_extension_block( VipsImage *im, void *buf, int size )
 	return( 0 );
 }
 
+/* Append a string to a buffer, but escape " as \".
+ */
+static void
+dbuf_write_quotes( VipsDbuf *dbuf, const char *str )
+{
+	const char *p;
+	size_t len;
+
+	for( p = str; *p; p += len ) {
+		len = strcspn( p, "\"" );
+
+		vips_dbuf_write( dbuf, (unsigned char *) p, len );
+		if( p[len] == '"' )
+			vips_dbuf_writef( dbuf, "\\" );
+	}
+}
+
+/* Append a string to a buffer, but escape &<>.
+ */
+static void
+dbuf_write_amp( VipsDbuf *dbuf, const char *str )
+{
+	const char *p;
+	size_t len;
+
+	for( p = str; *p; p += len ) {
+		len = strcspn( p, "&<>" );
+
+		vips_dbuf_write( dbuf, (unsigned char *) p, len );
+		switch( p[len] ) {
+		case '&': 
+			vips_dbuf_writef( dbuf, "&amp;" );
+			len += 1;
+			break;
+
+		case '<': 
+			vips_dbuf_writef( dbuf, "&lt;" );
+			len += 1;
+			break;
+
+		case '>': 
+			vips_dbuf_writef( dbuf, "&gt;" );
+			len += 1;
+			break;
+
+		default:
+			break;
+		}
+	}
+}
+
+static void *
+build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
+{
+	GType type = G_VALUE_TYPE( &meta->value );
+
+	const char *str;
+
+	/* If we can transform to VIPS_TYPE_SAVE_STRING and back, we can save 
+	 * and restore. 
+	 */
+	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) &&
+		g_value_type_transformable( VIPS_TYPE_SAVE_STRING, type ) ) {
+		GValue save_value = { 0 };
+
+		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+		if( !g_value_transform( &meta->value, &save_value ) ) {
+			vips_error( "VipsImage", "%s", 
+				_( "error transforming to save format" ) );
+			return( meta );
+		}
+
+		str = vips_value_get_save_string( &save_value );
+		vips_dbuf_writef( dbuf, "    <field type=\"%s\" name=\"", 
+			g_type_name( type ) ); 
+		dbuf_write_quotes( dbuf, meta->name );
+		vips_dbuf_writef( dbuf, "\">" );  
+		dbuf_write_amp( dbuf, str );
+		vips_dbuf_writef( dbuf, "</field>\n" );  
+
+		g_value_unset( &save_value );
+	}
+
+	return( NULL );
+}
+
+/* Make the xml we append to vips images after the pixel data.
+ */
+static char *
+build_xml( VipsImage *image )
+{
+	VipsDbuf dbuf;
+	const char *str;
+
+	vips_dbuf_init( &dbuf ); 
+
+	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
+	vips_dbuf_writef( &dbuf, "<root xmlns=\"%svips/%d.%d.%d\">\n", 
+		NAMESPACE_URI, 
+		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
+	vips_dbuf_writef( &dbuf, "  <header>\n" );  
+
+	str = vips_image_get_history( image );
+	vips_dbuf_writef( &dbuf, "    <field type=\"%s\" name=\"Hist\">", 
+		g_type_name( VIPS_TYPE_REF_STRING ) );
+	dbuf_write_amp( &dbuf, str );
+	vips_dbuf_writef( &dbuf, "</field>\n" ); 
+
+	vips_dbuf_writef( &dbuf, "  </header>\n" ); 
+	vips_dbuf_writef( &dbuf, "  <meta>\n" );  
+
+	if( vips_slist_map2( image->meta_traverse, 
+		(VipsSListMap2Fn) build_xml_meta, &dbuf, NULL ) ) {
+		vips_dbuf_destroy( &dbuf ); 
+		return( NULL );
+	}
+
+	vips_dbuf_writef( &dbuf, "  </meta>\n" );  
+	vips_dbuf_writef( &dbuf, "</root>\n" );  
+
+	return( (char *) vips_dbuf_steal( &dbuf, NULL ) ); 
+}
+
+static void *
+vips__xml_properties_meta( VipsImage *image, 
+	const char *field, GValue *value, void *a )
+{
+	VipsDbuf *dbuf = (VipsDbuf *) a;
+	GType type = G_VALUE_TYPE( value );
+
+	const char *str;
+
+	/* If we can transform to VIPS_TYPE_SAVE_STRING and back, we can save 
+	 * and restore. 
+	 */
+	if( g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) &&
+		g_value_type_transformable( VIPS_TYPE_SAVE_STRING, type ) ) {
+		GValue save_value = { 0 };
+
+		g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+		if( !g_value_transform( value, &save_value ) ) {
+			vips_error( "VipsImage", "%s", 
+				_( "error transforming to save format" ) );
+			return( dbuf );
+		}
+		str = vips_value_get_save_string( &save_value );
+
+		vips_dbuf_writef( dbuf, "    <property>\n" );  
+		vips_dbuf_writef( dbuf, "      <name>" ); 
+		dbuf_write_amp( dbuf, field );
+		vips_dbuf_writef( dbuf, "</name>\n" ); 
+		vips_dbuf_writef( dbuf, "      <value type=\"%s\">",
+			g_type_name( type ) );  
+		dbuf_write_amp( dbuf, str );
+		vips_dbuf_writef( dbuf, "</value>\n" ); 
+		vips_dbuf_writef( dbuf, "    </property>\n" );  
+
+		g_value_unset( &save_value );
+	}
+
+	return( NULL );
+}
+
+/* Make the xml we write to vips-properties in dzsave, or to TIFF. A simple
+ * dump of all vips metadata. Free with g_free().
+ */
+char *
+vips__xml_properties( VipsImage *image )
+{
+	VipsDbuf dbuf;
+	GTimeVal now;
+	char *date;
+
+	vips_dbuf_init( &dbuf ); 
+
+	g_get_current_time( &now );
+	date = g_time_val_to_iso8601( &now ); 
+	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
+	vips_dbuf_writef( &dbuf, "<image xmlns=\"%s/dzsave\" "
+		"date=\"%s\" version=\"%d.%d.%d\">\n", 
+		NAMESPACE_URI, 
+		date, 
+		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
+	g_free( date ); 
+	vips_dbuf_writef( &dbuf, "  <properties>\n" );  
+
+	if( vips_image_map( image, vips__xml_properties_meta, &dbuf ) ) {
+		vips_dbuf_destroy( &dbuf );
+		return( NULL );
+	}
+
+	vips_dbuf_writef( &dbuf, "  </properties>\n" );  
+	vips_dbuf_writef( &dbuf, "</image>\n" );  
+
+	return( (char *) vips_dbuf_steal( &dbuf, NULL ) ); 
+}
+
 /* Append XML to output fd.
  */
 int 
-vips__writehist( VipsImage *im )
+vips__writehist( VipsImage *image )
 {
-	xmlDoc *doc;
-	char namespace[256];
-	char *dump;
-	int dump_size;
+	char *xml;
 
-	assert( im->dtype == VIPS_IMAGE_OPENOUT );
-	assert( im->fd != -1 );
+	assert( image->dtype == VIPS_IMAGE_OPENOUT );
+	assert( image->fd != -1 );
 
-	if( !(doc = xmlNewDoc( (xmlChar *) "1.0" )) )
+	if( !(xml = build_xml( image )) )
 		return( -1 );
 
-        vips_snprintf( namespace, 256, "%s/%d.%d.%d",
-                NAMESPACE,
-		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
-	if( !(doc->children = xmlNewDocNode( doc, 
-			NULL, (xmlChar *) "root", NULL )) ||
-                set_sprop( doc->children, "xmlns", namespace ) ||
-		save_fields( im, doc->children ) ) {
-		vips_error( "VipsImage", "%s", _( "xml save error" ) );
-                xmlFreeDoc( doc );
-                return( -1 );
-        }
-
-	xmlDocDumpFormatMemory( doc, (xmlChar **) &dump, &dump_size, 1 );
-	if( !dump ) {
-		vips_error( "VipsImage", "%s", _( "xml save error" ) );
-                xmlFreeDoc( doc );
-                return( -1 );
-	}
-	xmlFreeDoc( doc );
-
-	if( vips__write_extension_block( im, dump, dump_size ) ) {
-		xmlFree( dump );
+	if( vips__write_extension_block( image, xml, strlen( xml ) ) ) {
+		g_free( xml );
                 return( -1 );
         }
 
 #ifdef DEBUG
-	printf( "vips__writehist: saved XML is: \"%s\"", dump );
+	printf( "vips__writehist: saved XML is: \"%s\"", xml );
 #endif /*DEBUG*/
 
-	xmlFree( dump );
+	g_free( xml );
 
 	return( 0 );
 }

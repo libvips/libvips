@@ -82,6 +82,8 @@
  * 	- turn off chroma subsample for Q > 90
  * 7/11/16
  * 	- move exif handling out to exif.c
+ * 27/2/17
+ * 	- use dbuf for memory output
  */
 
 /*
@@ -670,112 +672,6 @@ vips__jpeg_write_file( VipsImage *in,
 	return( 0 );
 }
 
-/* We can't predict how large the output buffer we need is, because we might
- * need space for ICC profiles and stuff. So we write to a linked list of mem
- * buffers and add a new one as they fill.
- */
-
-#define BUFFER_SIZE (10000)
-
-/* A buffer.
- */
-typedef struct _Block {
-	j_compress_ptr cinfo;
-
-	struct _Block *first;
-	struct _Block *next;
-
-	JOCTET *data;		/* Allocated area */
-	size_t size;		/* Max size */
-	size_t used;		/* How much has been used */
-} Block;
-
-static Block *
-block_new( j_compress_ptr cinfo )
-{
-	Block *block;
-
-	block = (Block *) (*cinfo->mem->alloc_large) 
-		( (j_common_ptr) cinfo, JPOOL_IMAGE, sizeof( Block ) );
-
-	block->cinfo = cinfo;
-	block->first = block;
-	block->next = NULL;
-	block->data = (JOCTET *) (*cinfo->mem->alloc_large) 
-		( (j_common_ptr) cinfo, JPOOL_IMAGE, BUFFER_SIZE );
-	block->size = BUFFER_SIZE;
-	block->used = 0;
-
-	return( block );
-}
-
-static Block *
-block_last( Block *block )
-{
-	while( block->next )
-		block = block->next;
-
-	return( block );
-}
-
-static Block *
-block_append( Block *block )
-{
-	Block *new;
-
-	g_assert( block );
-
-	new = block_new( block->cinfo );
-	new->first = block->first;
-	block_last( block )->next = new;
-
-	return( new );
-}
-
-static size_t
-block_length( Block *block )
-{
-	size_t len;
-
-	len = 0;
-	for( block = block->first; block; block = block->next )
-		len += block->used;
-
-	return( len );
-}
-
-static void
-block_copy( Block *block, void *dest )
-{
-	JOCTET *p;
-	
-	p = dest;
-	for( block = block->first; block; block = block->next ) {
-		memcpy( p, block->data, block->used );
-		p += block->used;
-	}
-}
-
-#ifdef DEBUG
-static void
-block_print( Block *block )
-{
-	int i;
-
-	printf( "total length = %zd\n", block_length( block ) );
-	printf( "set of blocks:\n" );
-
-	i = 0;
-	for( block = block->first; block; block = block->next ) {
-		printf( "%d) %p, first = %p, next = %p"
-			"\t data = %p, size = %zd, used = %zd\n", 
-			i, block, block->first, block->next,
-			block->data, block->size, block->used );
-		i += 1;
-	}
-}
-#endif /*DEBUG*/
-
 /* Just like the above, but we write to a memory buffer.
  *
  * A memory buffer for the compressed image.
@@ -788,15 +684,35 @@ typedef struct {
 	/* Private stuff during write.
 	 */
 
-	/* Build the output area here in chunks.
+	/* Build the output area here.
 	 */
-	Block *block;
+	VipsDbuf dbuf;
 
-	/* Copy the compressed area here.
+	/* Write the generated area here.
 	 */
 	void **obuf;		/* Allocated buffer, and size */
 	size_t *olen;
 } OutputBuffer;
+
+/* Buffer full method ... allocate a new output block. This is only called 
+ * when the output area is exactly full.
+ */
+METHODDEF(boolean)
+empty_output_buffer( j_compress_ptr cinfo )
+{
+	OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
+
+	size_t size;
+
+	vips_dbuf_allocate( &buf->dbuf, 10000 ); 
+	buf->pub.next_output_byte = 
+		(JOCTET *) vips_dbuf_get_write( &buf->dbuf, &size );
+	buf->pub.free_in_buffer = size;
+
+	/* TRUE means we've made some more space.
+	 */
+	return( 1 );
+}
 
 /* Init dest method.
  */
@@ -805,38 +721,8 @@ init_destination( j_compress_ptr cinfo )
 {
 	OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
 
-	/* Allocate relative to the image we are writing .. freed when we junk
-	 * this output.
-	 */
-	buf->block = block_new( cinfo );
-
-	/* Set buf pointers for library.
-	 */
-	buf->pub.next_output_byte = buf->block->data;
-	buf->pub.free_in_buffer = buf->block->size;
-}
-
-/* Buffer full method ... allocate a new output block.
- */
-METHODDEF(boolean)
-empty_output_buffer( j_compress_ptr cinfo )
-{
-	OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
-
-	/* Record how many bytes we used. empty_output_buffer() is always
-	 * called when the buffer is exactly full.
-	 */
-	buf->block->used = buf->block->size;
-
-	/* New block and reset.
-	 */
-	buf->block = block_append( buf->block );
-	buf->pub.next_output_byte = buf->block->data;
-	buf->pub.free_in_buffer = buf->block->size;
-
-	/* TRUE means we've made some more space.
-	 */
-	return( 1 );
+	vips_dbuf_init( &buf->dbuf ); 
+	empty_output_buffer( cinfo ); 
 }
 
 /* Cleanup. Copy the set of blocks out as a big lump.
@@ -846,35 +732,17 @@ term_destination( j_compress_ptr cinfo )
 {
         OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
 
-	size_t len;
-	void *obuf;
+	size_t size;
 
-	/* Record the number of bytes we wrote in the final buffer.
-	 * pub.free_in_buffer is valid here.
+	/* We probably won't have filled the area that was last allocated in 
+	 * empty_output_buffer(). Chop the data size down to the length that
+	 * was actually written.
 	 */
-	buf->block->used = buf->block->size - buf->pub.free_in_buffer;
+	vips_dbuf_seek( &buf->dbuf, -buf->pub.free_in_buffer, SEEK_END );
+	vips_dbuf_truncate( &buf->dbuf ); 
 
-#ifdef DEBUG
-	block_print( buf->block );
-#endif /*DEBUG*/
-
-	/* ... and we can count up our buffers now.
-	 */
-	len = block_length( buf->block );
-
-	/* Allocate and copy to the output area.
-	 */
-	if( !(obuf = vips_malloc( NULL, len )) )
-		ERREXIT( cinfo, JERR_FILE_WRITE );
-	else {
-		/* coverity doesn't know ERREXIT() does not return, so put
-		 * this in an else.
-		 */
-		*(buf->obuf) = obuf;
-		*(buf->olen) = len;
-
-		block_copy( buf->block, obuf );
-	}
+	*(buf->obuf) = vips_dbuf_steal( &buf->dbuf, &size );
+	*(buf->olen) = size; 
 }
 
 /* Set dest to one of our objects.

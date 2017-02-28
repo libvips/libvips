@@ -48,7 +48,6 @@
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
 #include <string.h>
-#include <libxml/parser.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -299,10 +298,7 @@ vips__tiff_openin_buffer( VipsImage *image, const void *data, size_t length )
  */
 
 typedef struct _VipsTiffOpenoutBuffer {
-	size_t position;
-	void *data;
-	size_t allocated;
-	size_t length;
+	VipsDbuf dbuf; 
 
 	/* On close, consolidate and write the output here.
 	 */
@@ -322,37 +318,12 @@ static tsize_t
 openout_buffer_write( thandle_t st, tdata_t data, tsize_t size )
 {
 	VipsTiffOpenoutBuffer *buffer = (VipsTiffOpenoutBuffer *) st;
-	size_t new_length = VIPS_MAX( buffer->position + size, buffer->length );
 
 #ifdef DEBUG
 	printf( "openout_buffer_write: %zd bytes\n", size ); 
 #endif /*DEBUG*/
 
-	/* We could make a chain of blocks, but libtiff does a lot of seeking
-	 * during writes, so we'd have to handle writes being
-	 * split over blocks, which would be annoying. 
-	 *
-	 * Instead, go for exponential realloc: the number of reallocs grows as
-	 * log(final size), and we never over allocate by more than 30%.
-	 *
-	 * realloc can be very, very slow on Windows, but maybe g_realloc() is
-	 * smarter.
-	 */
-	if( new_length > buffer->allocated ) { 
-		buffer->allocated = VIPS_MAX( (16 + buffer->allocated) * 3 / 2, 
-			new_length );
-		buffer->data = g_try_realloc( buffer->data, buffer->allocated );
-
-		if( buffer->data == NULL ) {
-			vips_error( "tiff memory write", 
-				"%s", _( "Out of memory." ) );
-			return( 0 );
-		}
-	}
-
-	memcpy( buffer->data + buffer->position, data, size );
-	buffer->position += size;
-	buffer->length = new_length;
+	vips_dbuf_write( &buffer->dbuf, data, size ); 
 
 	return( size ); 
 }
@@ -362,8 +333,8 @@ openout_buffer_close( thandle_t st )
 {
 	VipsTiffOpenoutBuffer *buffer = (VipsTiffOpenoutBuffer *) st;
 
-	*(buffer->out_data) = buffer->data;
-	*(buffer->out_length) = buffer->length;
+	*(buffer->out_data) = vips_dbuf_steal( &buffer->dbuf, 
+		buffer->out_length);
 
 	return( 0 );
 }
@@ -378,16 +349,9 @@ openout_buffer_seek( thandle_t st, toff_t position, int whence )
 		position, whence ); 
 #endif /*DEBUG*/
 
-	if( whence == SEEK_SET )
-		buffer->position = position;
-	else if( whence == SEEK_CUR )
-		buffer->position += position;
-	else if( whence == SEEK_END )
-		buffer->position = buffer->length + position;
-	else
-		g_assert_not_reached(); 
+	vips_dbuf_seek( &buffer->dbuf, position, whence ); 
 
-	return( buffer->position ); 
+	return( vips_dbuf_tell( &buffer->dbuf ) ); 
 }
 
 static toff_t 
@@ -430,10 +394,7 @@ vips__tiff_openout_buffer( VipsImage *image,
 #endif /*DEBUG*/
 
 	buffer = VIPS_NEW( image, VipsTiffOpenoutBuffer );
-	buffer->position = 0;
-	buffer->data = NULL;
-	buffer->allocated = 0;
-	buffer->length = 0;
+	vips_dbuf_init( &buffer->dbuf ); 
 	buffer->out_data = out_data;
 	buffer->out_length = out_length;
 

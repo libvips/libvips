@@ -149,7 +149,8 @@ print_header( VipsImage *im, gboolean many )
 	else {
 		char *str;
 
-		vips_image_get_as_string( im, main_option_field, &str );
+		if( vips_image_get_as_string( im, main_option_field, &str ) )
+			return( -1 );
 		printf( "%s\n", str );
 		g_free( str );
 	}
