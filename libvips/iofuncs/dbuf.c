@@ -51,8 +51,39 @@ void
 vips_dbuf_init( VipsDbuf *dbuf )
 {
 	dbuf->data = NULL;
-	dbuf->max_size = 0;
+	dbuf->allocated_size = 0;
+	dbuf->data_size = 0;
 	dbuf->write_point = 0;
+}
+
+/**
+ * vips_dbuf_minimum_size:
+ * @dbuf: the buffer
+ * @size: the minimum size 
+ *
+ * Make sure @dbuf is at least @size bytes.
+ * 
+ * Returns: %FALSE on out of memory, %TRUE otherwise.
+ */
+gboolean
+vips_dbuf_minimum_size( VipsDbuf *dbuf, size_t size )
+{
+	if( size > dbuf->allocated_size ) { 
+		size_t new_allocated_size = 3 * (16 + size) / 2;
+
+		unsigned char *new_data;
+
+		if( !(new_data = 
+			g_try_realloc( dbuf->data, new_allocated_size )) ) {
+			vips_error( "VipsDbuf", "%s", _( "out of memory" ) );
+			return( FALSE );
+		}
+
+		dbuf->data = new_data;
+		dbuf->allocated_size = new_allocated_size;
+	}
+
+	return( TRUE ); 
 }
 
 /**
@@ -60,28 +91,34 @@ vips_dbuf_init( VipsDbuf *dbuf )
  * @dbuf: the buffer
  * @size: the size to allocate
  *
- * Make sure @dbuf has at least @size bytes available for writing.
+ * Make sure @dbuf has at least @size bytes available after the write point.
  * 
  * Returns: %FALSE on out of memory, %TRUE otherwise.
  */
 gboolean
 vips_dbuf_allocate( VipsDbuf *dbuf, size_t size )
 {
-	size_t new_write_point = dbuf->write_point + size;
+	return( vips_dbuf_minimum_size( dbuf, dbuf->write_point + size ) ); 
+}
 
-	if( new_write_point > dbuf->max_size ) { 
-		size_t new_max_size = 3 * (16 + new_write_point) / 2;
+/**
+ * vips_dbuf_null_terminate:
+ * @dbuf: the buffer
+ *
+ * Make sure the byte after the last data byte is `\0`. This extra byte is not
+ * included in the data size and the write point is not moved.
+ *
+ * This makes it safe to treat the dbuf contents as a C string. 
+ * 
+ * Returns: %FALSE on out of memory, %TRUE otherwise.
+ */
+static gboolean
+vips_dbuf_null_terminate( VipsDbuf *dbuf )
+{
+	if( !vips_dbuf_minimum_size( dbuf, dbuf->data_size + 1 ) )
+		return( FALSE );
 
-		unsigned char *new_data;
-
-		if( !(new_data = g_try_realloc( dbuf->data, new_max_size )) ) {
-			vips_error( "VipsDbuf", "%s", _( "out of memory" ) );
-			return( FALSE );
-		}
-
-		dbuf->data = new_data;
-		dbuf->max_size = new_max_size;
-	}
+	dbuf->data[dbuf->data_size] = 0;
 
 	return( TRUE ); 
 }
@@ -92,21 +129,28 @@ vips_dbuf_allocate( VipsDbuf *dbuf, size_t size )
  * @size: (allow-none): optionally return length in bytes here
  *
  * Return a pointer to an area you can write to, return length of area in
- * @size. Use vips_dbuf_allocate() before this call to make the space.
+ * @size. Use vips_dbuf_allocate() before this call to set a minimum amount of
+ * space to have available. 
+ *
+ * The write point moves to just beyond the returned block. Use
+ * vips_dbuf_seek() to move it back again.
  * 
  * Returns: (transfer none): start of write area.
  */
 unsigned char *
 vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size )
 {
-	unsigned char *data = dbuf->data + dbuf->write_point;
+	unsigned char *write = dbuf->data + dbuf->write_point;
+	size_t length = dbuf->data + dbuf->allocated_size - write;
+
+	memset( write, 0, length ); 
+	dbuf->write_point = dbuf->allocated_size;
+	dbuf->data_size = dbuf->allocated_size;
 
 	if( size )
-		*size = dbuf->max_size - dbuf->write_point;
+		*size = length;
 
-	dbuf->write_point = dbuf->max_size;
-
-	return( data ); 
+	return( write ); 
 }
 
 /**
@@ -115,7 +159,7 @@ vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size )
  * @data: the data to append to the buffer
  * @size: the size of the len to append
  *
- * Append len bytes from @data to the buffer. The buffer expands if necessary. 
+ * Append @size bytes from @data. @dbuf expands if necessary. 
  * 
  * Returns: %FALSE on out of memory, %TRUE otherwise.
  */
@@ -127,6 +171,7 @@ vips_dbuf_append( VipsDbuf *dbuf, const unsigned char *data, size_t size )
 
 	memcpy( dbuf->data + dbuf->write_point, data, size );
 	dbuf->write_point += size;
+	dbuf->data_size = VIPS_MAX( dbuf->data_size, dbuf->write_point );
 
 	return( TRUE ); 
 }
@@ -161,16 +206,17 @@ vips_dbuf_appendf( VipsDbuf *dbuf, const char *fmt, ... )
 }
 
 /**
- * vips_dbuf_rewind:
+ * vips_dbuf_reset:
  * @dbuf: the buffer
  *
- * Reset the buffer to empty. No memory is freed, just the write pointer is
- * reset.
+ * Reset the buffer to empty. No memory is freed, just the data size and
+ * write point are reset.
  */
 void
-vips_dbuf_rewind( VipsDbuf *dbuf )
+vips_dbuf_reset( VipsDbuf *dbuf )
 {
 	dbuf->write_point = 0;
+	dbuf->data_size = 0;
 }
 
 /**
@@ -182,9 +228,73 @@ vips_dbuf_rewind( VipsDbuf *dbuf )
 void
 vips_dbuf_destroy( VipsDbuf *dbuf )
 {
+	vips_dbuf_reset( dbuf ); 
+
 	VIPS_FREE( dbuf->data ); 
-	dbuf->max_size = 0;
-	dbuf->write_point = 0;
+	dbuf->allocated_size = 0;
+}
+
+/**
+ * vips_dbuf_seek:
+ * @dbuf: the buffer
+ * @offset: how to move the write point
+ * @whence: from start, from end, from current
+ *
+ * Move the write point. @whence can be %SEEK_SET, %SEEK_CUR, %SEEK_END, with 
+ * the usual meaning. 
+ */
+gboolean
+vips_dbuf_seek( VipsDbuf *dbuf, off_t offset, int whence )
+{
+	off_t new_write_point;
+
+	switch( whence ) {
+	case SEEK_SET:
+		new_write_point = offset; 
+		break;
+
+	case SEEK_END:
+		new_write_point = dbuf->data_size + offset; 
+		break;
+
+	case SEEK_CUR:
+		new_write_point = dbuf->write_point + offset; 
+		break;
+
+	default:
+		g_assert( 0 ); 
+		new_write_point = dbuf->write_point; 
+		break;
+	}
+
+	if( new_write_point < 0 ) {
+		vips_error( "VipsDbuf", "%s", "negative seek" ); 
+		return( FALSE );
+	}
+
+	/* Possibly need to grow the buffer
+	 */
+	if( !vips_dbuf_minimum_size( dbuf, new_write_point ) )
+		return( FALSE ); 
+	dbuf->write_point = new_write_point; 
+	if( dbuf->data_size < dbuf->write_point ) { 
+		memset( dbuf->data, 0, dbuf->write_point - dbuf->data_size ); 
+		dbuf->data_size = dbuf->write_point;
+	}
+
+	return( TRUE ); 
+}
+
+/**
+ * vips_dbuf_truncate:
+ * @dbuf: the buffer
+ *
+ * Truncate the data so that it ends at the write point. No memory is freed. 
+ */
+void
+vips_dbuf_truncate( VipsDbuf *dbuf )
+{
+	dbuf->data_size = dbuf->write_point;
 }
 
 /**
@@ -205,17 +315,15 @@ vips_dbuf_steal( VipsDbuf *dbuf, size_t *size )
 {
 	unsigned char *data;
 
-	vips_dbuf_append( dbuf, (unsigned char *) "", 1 );
-	dbuf->write_point -= 1;
+	vips_dbuf_null_terminate( dbuf ); 
 
 	data = dbuf->data;
 
 	if( size )
-		*size = dbuf->write_point;
+		*size = dbuf->data_size;
 
 	dbuf->data = NULL;
-	dbuf->max_size = 0;
-	dbuf->write_point = 0;
+	vips_dbuf_destroy( dbuf );
 
 	return( data ); 
 }
@@ -235,11 +343,10 @@ vips_dbuf_steal( VipsDbuf *dbuf, size_t *size )
 unsigned char *
 vips_dbuf_string( VipsDbuf *dbuf, size_t *size )
 {
-	vips_dbuf_append( dbuf, (unsigned char *) "", 1 );
-	dbuf->write_point -= 1;
+	vips_dbuf_null_terminate( dbuf ); 
 
 	if( size )
-		*size = dbuf->write_point;
+		*size = dbuf->data_size;
 
 	return( dbuf->data ); 
 }

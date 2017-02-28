@@ -734,10 +734,12 @@ term_destination( j_compress_ptr cinfo )
 
 	size_t size;
 
-	/* This can be called before the output area fills. We need to chop
-	 * size down to the number of bytes actually written.
+	/* We probably won't have filled the area that was last allocated in 
+	 * empty_output_buffer(). Chop the data size down to the length that
+	 * was actually written.
 	 */
-	buf->dbuf.write_point = buf->dbuf.max_size - buf->pub.free_in_buffer;
+	vips_dbuf_seek( &buf->dbuf, -buf->pub.free_in_buffer, SEEK_END );
+	vips_dbuf_truncate( &buf->dbuf ); 
 
 	*(buf->obuf) = vips_dbuf_steal( &buf->dbuf, &size );
 	*(buf->olen) = size; 

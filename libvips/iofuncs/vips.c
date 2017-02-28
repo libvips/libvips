@@ -536,7 +536,7 @@ parser_element_start_handler( void *user_data,
 				vips_strncpy( vep->type, p[1], MAX_PARSE_ATTR ); 
 		}
 
-		vips_dbuf_rewind( &vep->dbuf );
+		vips_dbuf_reset( &vep->dbuf );
 	} 
 	else if( strcmp( name, "header" ) == 0 )  
 		vep->header = TRUE;
@@ -545,7 +545,7 @@ parser_element_start_handler( void *user_data,
 	else if( strcmp( name, "root" ) == 0 ) {
 		for( p = atts; *p; p += 2 ) 
 			if( strcmp( p[0], "xmlns" ) == 0 &&
-				!vips_isprefix( NAMESPACE_URI "/vips", p[1] ) ) {
+				!vips_isprefix( NAMESPACE_URI "vips", p[1] ) ) {
 				vips_error( "VipsImage", "%s", 
 					_( "incorrect namespace in XML" ) );
 				vep->error = TRUE;
@@ -812,7 +812,7 @@ build_xml( VipsImage *image )
 	vips_dbuf_init( &dbuf ); 
 
 	vips_dbuf_appendf( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
-	vips_dbuf_appendf( &dbuf, "<root xmlns=\"%s/vips/%d.%d.%d\">\n", 
+	vips_dbuf_appendf( &dbuf, "<root xmlns=\"%svips/%d.%d.%d\">\n", 
 		NAMESPACE_URI, 
 		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
 	vips_dbuf_appendf( &dbuf, "  <header>\n" );  
