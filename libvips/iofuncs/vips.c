@@ -648,7 +648,7 @@ parser_data_handler( void *user_data, const XML_Char *data, int len )
 	printf( "parser_data_handler: %d bytes\n", len ); 
 #endif /*DEBUG*/
 
-	vips_dbuf_append( &vep->dbuf, (unsigned char *) data, len );
+	vips_dbuf_write( &vep->dbuf, (unsigned char *) data, len );
 }
 
 /* Called at the end of vips open ... get any XML after the pixel data
@@ -718,7 +718,7 @@ vips__write_extension_block( VipsImage *im, void *buf, int size )
 /* Append a string to a buffer, but escape " as \".
  */
 static void
-dbuf_append_quotes( VipsDbuf *dbuf, const char *str )
+dbuf_write_quotes( VipsDbuf *dbuf, const char *str )
 {
 	const char *p;
 	size_t len;
@@ -726,16 +726,16 @@ dbuf_append_quotes( VipsDbuf *dbuf, const char *str )
 	for( p = str; *p; p += len ) {
 		len = strcspn( p, "\"" );
 
-		vips_dbuf_append( dbuf, (unsigned char *) p, len );
+		vips_dbuf_write( dbuf, (unsigned char *) p, len );
 		if( p[len] == '"' )
-			vips_dbuf_appendf( dbuf, "\\" );
+			vips_dbuf_writef( dbuf, "\\" );
 	}
 }
 
 /* Append a string to a buffer, but escape &<>.
  */
 static void
-dbuf_append_amp( VipsDbuf *dbuf, const char *str )
+dbuf_write_amp( VipsDbuf *dbuf, const char *str )
 {
 	const char *p;
 	size_t len;
@@ -743,20 +743,20 @@ dbuf_append_amp( VipsDbuf *dbuf, const char *str )
 	for( p = str; *p; p += len ) {
 		len = strcspn( p, "&<>" );
 
-		vips_dbuf_append( dbuf, (unsigned char *) p, len );
+		vips_dbuf_write( dbuf, (unsigned char *) p, len );
 		switch( p[len] ) {
 		case '&': 
-			vips_dbuf_appendf( dbuf, "&amp;" );
+			vips_dbuf_writef( dbuf, "&amp;" );
 			len += 1;
 			break;
 
 		case '<': 
-			vips_dbuf_appendf( dbuf, "&lt;" );
+			vips_dbuf_writef( dbuf, "&lt;" );
 			len += 1;
 			break;
 
 		case '>': 
-			vips_dbuf_appendf( dbuf, "&gt;" );
+			vips_dbuf_writef( dbuf, "&gt;" );
 			len += 1;
 			break;
 
@@ -788,12 +788,12 @@ build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
 		}
 
 		str = vips_value_get_save_string( &save_value );
-		vips_dbuf_appendf( dbuf, "    <field type=\"%s\" name=\"", 
+		vips_dbuf_writef( dbuf, "    <field type=\"%s\" name=\"", 
 			g_type_name( type ) ); 
-		dbuf_append_quotes( dbuf, meta->name );
-		vips_dbuf_appendf( dbuf, "\">" );  
-		dbuf_append_amp( dbuf, str );
-		vips_dbuf_appendf( dbuf, "</field>\n" );  
+		dbuf_write_quotes( dbuf, meta->name );
+		vips_dbuf_writef( dbuf, "\">" );  
+		dbuf_write_amp( dbuf, str );
+		vips_dbuf_writef( dbuf, "</field>\n" );  
 
 		g_value_unset( &save_value );
 	}
@@ -811,20 +811,20 @@ build_xml( VipsImage *image )
 
 	vips_dbuf_init( &dbuf ); 
 
-	vips_dbuf_appendf( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
-	vips_dbuf_appendf( &dbuf, "<root xmlns=\"%svips/%d.%d.%d\">\n", 
+	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
+	vips_dbuf_writef( &dbuf, "<root xmlns=\"%svips/%d.%d.%d\">\n", 
 		NAMESPACE_URI, 
 		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
-	vips_dbuf_appendf( &dbuf, "  <header>\n" );  
+	vips_dbuf_writef( &dbuf, "  <header>\n" );  
 
 	str = vips_image_get_history( image );
-	vips_dbuf_appendf( &dbuf, "    <field type=\"%s\" name=\"Hist\">", 
+	vips_dbuf_writef( &dbuf, "    <field type=\"%s\" name=\"Hist\">", 
 		g_type_name( VIPS_TYPE_REF_STRING ) );
-	dbuf_append_amp( &dbuf, str );
-	vips_dbuf_appendf( &dbuf, "</field>\n" ); 
+	dbuf_write_amp( &dbuf, str );
+	vips_dbuf_writef( &dbuf, "</field>\n" ); 
 
-	vips_dbuf_appendf( &dbuf, "  </header>\n" ); 
-	vips_dbuf_appendf( &dbuf, "  <meta>\n" );  
+	vips_dbuf_writef( &dbuf, "  </header>\n" ); 
+	vips_dbuf_writef( &dbuf, "  <meta>\n" );  
 
 	if( vips_slist_map2( image->meta_traverse, 
 		(VipsSListMap2Fn) build_xml_meta, &dbuf, NULL ) ) {
@@ -832,8 +832,8 @@ build_xml( VipsImage *image )
 		return( NULL );
 	}
 
-	vips_dbuf_appendf( &dbuf, "  </meta>\n" );  
-	vips_dbuf_appendf( &dbuf, "</root>\n" );  
+	vips_dbuf_writef( &dbuf, "  </meta>\n" );  
+	vips_dbuf_writef( &dbuf, "</root>\n" );  
 
 	return( (char *) vips_dbuf_steal( &dbuf, NULL ) ); 
 }
@@ -863,15 +863,15 @@ vips__xml_properties_meta( VipsImage *image,
 		str = vips_value_get_save_string( &save_value );
 		g_value_unset( &save_value );
 
-		vips_dbuf_appendf( dbuf, "    <property>\n" );  
-		vips_dbuf_appendf( dbuf, "      <name>" ); 
-		dbuf_append_amp( dbuf, field );
-		vips_dbuf_appendf( dbuf, "</name>\n" ); 
-		vips_dbuf_appendf( dbuf, "      <value type=\"%s\">",
+		vips_dbuf_writef( dbuf, "    <property>\n" );  
+		vips_dbuf_writef( dbuf, "      <name>" ); 
+		dbuf_write_amp( dbuf, field );
+		vips_dbuf_writef( dbuf, "</name>\n" ); 
+		vips_dbuf_writef( dbuf, "      <value type=\"%s\">",
 			g_type_name( type ) );  
-		dbuf_append_amp( dbuf, str );
-		vips_dbuf_appendf( dbuf, "</value>\n" ); 
-		vips_dbuf_appendf( dbuf, "    </property>\n" );  
+		dbuf_write_amp( dbuf, str );
+		vips_dbuf_writef( dbuf, "</value>\n" ); 
+		vips_dbuf_writef( dbuf, "    </property>\n" );  
 	}
 
 	return( NULL );
@@ -891,22 +891,22 @@ vips__xml_properties( VipsImage *image )
 
 	g_get_current_time( &now );
 	date = g_time_val_to_iso8601( &now ); 
-	vips_dbuf_appendf( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
-	vips_dbuf_appendf( &dbuf, "<image xmlns=\"%s/dzsave\" "
+	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
+	vips_dbuf_writef( &dbuf, "<image xmlns=\"%s/dzsave\" "
 		"date=\"%s\" version=\"%d.%d.%d\">\n", 
 		NAMESPACE_URI, 
 		date, 
 		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
 	g_free( date ); 
-	vips_dbuf_appendf( &dbuf, "  <properties>\n" );  
+	vips_dbuf_writef( &dbuf, "  <properties>\n" );  
 
 	if( vips_image_map( image, vips__xml_properties_meta, &dbuf ) ) {
 		vips_dbuf_destroy( &dbuf );
 		return( NULL );
 	}
 
-	vips_dbuf_appendf( &dbuf, "  </properties>\n" );  
-	vips_dbuf_appendf( &dbuf, "</image>\n" );  
+	vips_dbuf_writef( &dbuf, "  </properties>\n" );  
+	vips_dbuf_writef( &dbuf, "</image>\n" );  
 
 	return( (char *) vips_dbuf_steal( &dbuf, NULL ) ); 
 }

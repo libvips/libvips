@@ -1349,24 +1349,24 @@ vips2rad_put_header_buf( Write *write )
 {
 	vips2rad_make_header( write );
 
-	vips_dbuf_appendf( &write->dbuf, "#?RADIANCE\n" );
-	vips_dbuf_appendf( &write->dbuf, "%s%s\n", FMTSTR, write->format );
-	vips_dbuf_appendf( &write->dbuf, "%s%e\n", EXPOSSTR, write->expos );
-	vips_dbuf_appendf( &write->dbuf, "%s %f %f %f\n", 
+	vips_dbuf_writef( &write->dbuf, "#?RADIANCE\n" );
+	vips_dbuf_writef( &write->dbuf, "%s%s\n", FMTSTR, write->format );
+	vips_dbuf_writef( &write->dbuf, "%s%e\n", EXPOSSTR, write->expos );
+	vips_dbuf_writef( &write->dbuf, "%s %f %f %f\n", 
 		COLCORSTR, 
 		write->colcor[RED], write->colcor[GRN], write->colcor[BLU] );
-	vips_dbuf_appendf( &write->dbuf, "SOFTWARE=vips %s\n", 
+	vips_dbuf_writef( &write->dbuf, "SOFTWARE=vips %s\n", 
 		vips_version_string() );
-	vips_dbuf_appendf( &write->dbuf, "%s%f\n", ASPECTSTR, write->aspect );
-	vips_dbuf_appendf( &write->dbuf, 
+	vips_dbuf_writef( &write->dbuf, "%s%f\n", ASPECTSTR, write->aspect );
+	vips_dbuf_writef( &write->dbuf, 
 		"%s %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\n", 
 		PRIMARYSTR, 
 		write->prims[RED][CIEX], write->prims[RED][CIEY], 
 		write->prims[GRN][CIEX], write->prims[GRN][CIEY], 
 		write->prims[BLU][CIEX], write->prims[BLU][CIEY], 
 		write->prims[WHT][CIEX], write->prims[WHT][CIEY] );
-	vips_dbuf_appendf( &write->dbuf, "\n" );
-	vips_dbuf_appendf( &write->dbuf, "%s", 
+	vips_dbuf_writef( &write->dbuf, "\n" );
+	vips_dbuf_writef( &write->dbuf, "%s", 
 		resolu2str( resolu_buf, &write->rs ) );
 
 	return( 0 );

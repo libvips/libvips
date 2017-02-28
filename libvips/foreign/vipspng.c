@@ -1016,7 +1016,7 @@ user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
 {
 	Write *write = (Write *) png_get_io_ptr( png_ptr );
 
-	vips_dbuf_append( &write->dbuf, data, length ); 
+	vips_dbuf_write( &write->dbuf, data, length ); 
 }
 
 int

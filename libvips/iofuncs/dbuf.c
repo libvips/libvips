@@ -154,17 +154,17 @@ vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size )
 }
 
 /**
- * vips_dbuf_append:
+ * vips_dbuf_write:
  * @dbuf: the buffer
- * @data: the data to append to the buffer
- * @size: the size of the len to append
+ * @data: the data to write to the buffer
+ * @size: the size of the len to write
  *
  * Append @size bytes from @data. @dbuf expands if necessary. 
  * 
  * Returns: %FALSE on out of memory, %TRUE otherwise.
  */
 gboolean
-vips_dbuf_append( VipsDbuf *dbuf, const unsigned char *data, size_t size )
+vips_dbuf_write( VipsDbuf *dbuf, const unsigned char *data, size_t size )
 {
 	if( !vips_dbuf_allocate( dbuf, size ) )
 		return( FALSE ); 
@@ -177,17 +177,17 @@ vips_dbuf_append( VipsDbuf *dbuf, const unsigned char *data, size_t size )
 }
 
 /**
- * vips_dbuf_appendf:
+ * vips_dbuf_writef:
  * @dbuf: the buffer
  * @fmt: <function>printf()</function>-style format string
  * @...: arguments to format string
  *
- * Format the string and append to @dbuf. 
+ * Format the string and write to @dbuf. 
  * 
  * Returns: %FALSE on out of memory, %TRUE otherwise.
  */
 gboolean
-vips_dbuf_appendf( VipsDbuf *dbuf, const char *fmt, ... )
+vips_dbuf_writef( VipsDbuf *dbuf, const char *fmt, ... )
 {
 	va_list ap;
 	char *line;
@@ -196,7 +196,7 @@ vips_dbuf_appendf( VipsDbuf *dbuf, const char *fmt, ... )
 	line = g_strdup_vprintf( fmt, ap ); 
         va_end( ap );
 
-	if( vips_dbuf_append( dbuf, (unsigned char *) line, strlen( line ) ) ) {
+	if( vips_dbuf_write( dbuf, (unsigned char *) line, strlen( line ) ) ) {
 		g_free( line ); 
 		return( FALSE );
 	}
@@ -278,7 +278,8 @@ vips_dbuf_seek( VipsDbuf *dbuf, off_t offset, int whence )
 		return( FALSE ); 
 	dbuf->write_point = new_write_point; 
 	if( dbuf->data_size < dbuf->write_point ) { 
-		memset( dbuf->data, 0, dbuf->write_point - dbuf->data_size ); 
+		memset( dbuf->data + dbuf->data_size, 0, 
+			dbuf->write_point - dbuf->data_size ); 
 		dbuf->data_size = dbuf->write_point;
 	}
 
@@ -295,6 +296,18 @@ void
 vips_dbuf_truncate( VipsDbuf *dbuf )
 {
 	dbuf->data_size = dbuf->write_point;
+}
+
+/**
+ * vips_dbuf_truncate:
+ * @dbuf: the buffer
+ *
+ * Truncate the data so that it ends at the write point. No memory is freed. 
+ */
+off_t
+vips_dbuf_tell( VipsDbuf *dbuf )
+{
+	return( dbuf->write_point ); 
 }
 
 /**

@@ -37,8 +37,7 @@ extern "C" {
 
 #include <vips/vips.h>
 
-/* A buffer in the process of being written to ... multiple calls to 
- * vips_dbuf_append add to it. 
+/* A buffer in the process of being written to.
  */
 
 typedef struct _VipsDbuf {
@@ -66,13 +65,14 @@ void vips_dbuf_destroy( VipsDbuf *buf );
 void vips_dbuf_init( VipsDbuf *buf );
 gboolean vips_dbuf_allocate( VipsDbuf *dbuf, size_t size );
 unsigned char *vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size );
-gboolean vips_dbuf_append( VipsDbuf *dbuf, 
+gboolean vips_dbuf_write( VipsDbuf *dbuf, 
 	const unsigned char *data, size_t size );
-gboolean vips_dbuf_appendf( VipsDbuf *dbuf, const char *fmt, ... );
+gboolean vips_dbuf_writef( VipsDbuf *dbuf, const char *fmt, ... );
 void vips_dbuf_reset( VipsDbuf *dbuf );
 void vips_dbuf_destroy( VipsDbuf *dbuf );
 gboolean vips_dbuf_seek( VipsDbuf *dbuf, off_t offset, int whence );
 void vips_dbuf_truncate( VipsDbuf *dbuf );
+off_t vips_dbuf_tell( VipsDbuf *dbuf );
 unsigned char *vips_dbuf_string( VipsDbuf *dbuf, size_t *size );
 unsigned char *vips_dbuf_steal( VipsDbuf *dbuf, size_t *size );
 
