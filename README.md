@@ -46,9 +46,10 @@ Untar, then in the libvips directory you should just be able to do:
 	$ ./configure
 
 Check the summary at the end of `configure` carefully. 
-libvips must have `build-essential`, `pkg-config`, `glib2.0-dev`.
+libvips must have `build-essential`, `pkg-config`, `glib2.0-dev`,
+`libexpat1-dev`.
 
-For the vips8 Python binding, you must have 
+For the vips8 Python binding, you must also have 
 `gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev`.
 
 You'll need the dev packages for the file format support you

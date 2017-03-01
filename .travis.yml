@@ -27,7 +27,7 @@ matrix:
           automake gtk-doc-tools
           gobject-introspection
           libfftw3-dev libjpeg-turbo8-dev
-          libpng12-dev libwebp-dev libtiff4-dev libxml2-dev
+          libpng12-dev libwebp-dev libtiff4-dev libexpat1-dev
           swig libmagick++-dev bc
           libcfitsio3-dev libgsl0-dev libmatio-dev
           liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
@@ -49,7 +49,7 @@ matrix:
           automake gtk-doc-tools
           gobject-introspection
           libfftw3-dev libjpeg-turbo8-dev
-          libpng12-dev libwebp-dev libtiff4-dev libxml2-dev
+          libpng12-dev libwebp-dev libtiff4-dev libexpat1-dev
           swig libmagick++-dev bc
           libcfitsio3-dev libgsl0-dev libmatio-dev
           liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
@@ -72,7 +72,7 @@ matrix:
         - brew install --ignore-dependencies gtk-doc
         - brew install
           gobject-introspection
-          fftw mozjpeg libexif
+          expat fftw mozjpeg libexif
           libpng webp 
           swig imagemagick
           cfitsio libmatio
