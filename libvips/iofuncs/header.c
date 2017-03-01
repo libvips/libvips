@@ -416,7 +416,7 @@ vips_image_guess_format( const VipsImage *image )
 
 	/* Stop a compiler warning.
 	 */
-	format = VIPS_INTERPRETATION_MULTIBAND; 
+	format = VIPS_FORMAT_UCHAR; 
 
 	switch( image->Type ) {
 	case VIPS_INTERPRETATION_B_W: 
