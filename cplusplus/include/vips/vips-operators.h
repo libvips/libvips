@@ -1,5 +1,5 @@
 // headers for vips operations
-// Wed  2 Nov 13:48:15 GMT 2016
+// Wed  1 Mar 15:40:22 GMT 2017
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 );
@@ -51,6 +51,7 @@ VImage insert( VImage sub , int x , int y , VOption *options = 0 );
 VImage join( VImage in2 , VipsDirection direction , VOption *options = 0 );
 static VImage arrayjoin( std::vector<VImage> in , VOption *options = 0 );
 VImage extract_area( int left , int top , int width , int height , VOption *options = 0 );
+VImage smartcrop( int width , int height , VOption *options = 0 );
 VImage extract_band( int band , VOption *options = 0 );
 static VImage bandjoin( std::vector<VImage> in , VOption *options = 0 );
 VImage bandjoin_const( std::vector<double> c , VOption *options = 0 );

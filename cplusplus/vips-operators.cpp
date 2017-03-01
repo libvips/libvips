@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Wed  2 Nov 13:48:04 GMT 2016
+// Wed  1 Mar 15:40:06 GMT 2017
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -627,6 +627,20 @@ VImage VImage::extract_area( int left , int top , int width , int height , VOpti
             set( "out", &out ) ->
             set( "left", left ) ->
             set( "top", top ) ->
+            set( "width", width ) ->
+            set( "height", height ) );
+
+    return( out );
+}
+
+VImage VImage::smartcrop( int width , int height , VOption *options )
+{
+    VImage out;
+
+    call( "smartcrop" ,
+        (options ? options : VImage::option()) ->
+            set( "input", *this ) ->
+            set( "out", &out ) ->
             set( "width", width ) ->
             set( "height", height ) );
 

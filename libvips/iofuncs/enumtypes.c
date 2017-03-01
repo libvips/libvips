@@ -350,6 +350,24 @@ vips_angle45_get_type( void )
 
 	return( etype );
 }
+GType
+vips_interesting_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_INTERESTING_ENTROPY, "VIPS_INTERESTING_ENTROPY", "entropy"},
+			{VIPS_INTERESTING_ATTENTION, "VIPS_INTERESTING_ATTENTION", "attention"},
+			{VIPS_INTERESTING_LAST, "VIPS_INTERESTING_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsInteresting", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/arithmetic.h" */
 GType
 vips_operation_math_get_type( void )

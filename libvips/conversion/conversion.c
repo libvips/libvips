@@ -97,6 +97,18 @@
  * See also: vips_rot().
  */
 
+/** 
+ * VipsInteresting:
+ * @VIPS_INTERESTING_ENTROPY: use an entropy measure
+ * @VIPS_INTERESTING_ATTENTION: look for features likely to draw human attention
+ *
+ * Pick the algorithm vips uses to decide image "interestingness". This is used
+ * by vips_smartcrop(), for example, to decide what parts of the image to
+ * keep. 
+ *
+ * See also: vips_smartcrop().
+ */
+
 /**
  * VipsAngle45:
  * @VIPS_ANGLE45_D0: no rotate
@@ -226,6 +238,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_arrayjoin_get_type( void ); 
 	extern GType vips_extract_area_get_type( void ); 
 	extern GType vips_crop_get_type( void ); 
+	extern GType vips_smartcrop_get_type( void ); 
 	extern GType vips_extract_band_get_type( void ); 
 	extern GType vips_replicate_get_type( void ); 
 	extern GType vips_cast_get_type( void ); 
@@ -272,6 +285,7 @@ vips_conversion_operation_init( void )
 	vips_arrayjoin_get_type();
 	vips_extract_area_get_type();
 	vips_crop_get_type();
+	vips_smartcrop_get_type();
 	vips_extract_band_get_type();
 	vips_replicate_get_type();
 	vips_cast_get_type();

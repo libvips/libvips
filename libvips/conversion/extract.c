@@ -243,7 +243,7 @@ vips_extract_area_init( VipsExtractArea *extract )
  *
  * Extract an area from an image. The area must fit within @in.
  *
- * See also: vips_extract_bands().
+ * See also: vips_extract_bands(), vips_smartcrop().
  * 
  * Returns: 0 on success, -1 on error.
  */
@@ -302,7 +302,7 @@ vips_crop_get_type( void )
  *
  * A synonym for vips_extract_area(). 
  *
- * See also: vips_extract_bands().
+ * See also: vips_extract_bands(), vips_smartcrop().
  * 
  * Returns: 0 on success, -1 on error.
  */

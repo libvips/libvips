@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim: set fileencoding=utf-8 :
 
 from __future__ import division
 import unittest
@@ -144,6 +145,8 @@ class TestConversion(unittest.TestCase):
         self.colour = im * [1, 2, 3] + [2, 3, 4]
         self.mono = self.colour[1]
         self.all_images = [self.mono, self.colour]
+        self.jpeg_file = "images/йцук.jpg"
+        self.image = Vips.Image.jpegload(self.jpeg_file)
 
     def test_band_and(self):
         def band_and(x):
@@ -369,6 +372,11 @@ class TestConversion(unittest.TestCase):
 
             pixel = sub(5, 5)
             self.assertAlmostEqualObjects(pixel, [2, 3, 4])
+
+    def test_smartcrop(self):
+        test = self.image.smartcrop(100, 100)
+        self.assertEqual(test.width, 100)
+        self.assertEqual(test.height, 100)
 
     def test_falsecolour(self):
         for fmt in all_formats:
