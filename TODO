@@ -1,3 +1,12 @@
+- vips_object_class_install_argument() should check for duplicate priorities,
+  it's been behind a few nasty bugs
+
+- add vips_rot90() / _rot180() / _rot270(), cf. vips_sin() etc.
+
+  it's currently
+
+	vips_rot( smartcrop->sobel, &smartcrop->sobel90, VIPS_ANGLE_D90, NULL )
+
 - vips linecache has access there twice!
 
 	 $ vips linecache
