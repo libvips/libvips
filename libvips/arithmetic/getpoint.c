@@ -118,11 +118,6 @@ vips_getpoint_build( VipsObject *object )
 	return( 0 );
 }
 
-/* xy range we sanity check on ... just to stop crazy numbers from 1/0 etc.
- * causing g_assert() failures later.
- */
-#define RANGE (100000000)
-
 static void
 vips_getpoint_class_init( VipsGetpointClass *class )
 {
@@ -154,14 +149,14 @@ vips_getpoint_class_init( VipsGetpointClass *class )
 		_( "Point to read" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGetpoint, x ),
-		0, RANGE, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "y", 6, 
 		_( "y" ), 
 		_( "Point to read" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGetpoint, y ),
-		0, RANGE, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 }
 

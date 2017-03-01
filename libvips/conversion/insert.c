@@ -487,11 +487,6 @@ vips_insert_build( VipsObject *object )
 	return( 0 );
 }
 
-/* xy range we sanity check on ... just to stop crazy numbers from 1/0 etc.
- * causing g_assert() failures later.
- */
-#define RANGE (100000000)
-
 static void
 vips_insert_class_init( VipsInsertClass *class )
 {
@@ -530,14 +525,14 @@ vips_insert_class_init( VipsInsertClass *class )
 		_( "Left edge of sub in main" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsInsert, x ),
-		-RANGE, RANGE, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "y", 3, 
 		_( "Y" ), 
 		_( "Top edge of sub in main" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsInsert, y ),
-		-RANGE, RANGE, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_BOOL( class, "expand", 4, 
 		_( "Expand" ), 

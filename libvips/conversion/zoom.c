@@ -358,11 +358,6 @@ vips_zoom_build( VipsObject *object )
 	return( 0 );
 }
 
-/* xy range we sanity check on ... just to stop crazy numbers from divide by 0 
- * etc. causing g_assert() failures later.
- */
-#define RANGE (100000000)
-
 static void
 vips_zoom_class_init( VipsZoomClass *class )
 {
@@ -390,14 +385,14 @@ vips_zoom_class_init( VipsZoomClass *class )
 		_( "Horizontal zoom factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsZoom, xfac ),
-		1, RANGE, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "yfac", 3, 
 		_( "Yfac" ), 
 		_( "Vertical zoom factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsZoom, yfac ),
-		1, RANGE, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 }
 

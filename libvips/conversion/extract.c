@@ -172,11 +172,6 @@ vips_extract_area_build( VipsObject *object )
 	return( 0 );
 }
 
-/* xy range we sanity check on ... just to stop crazy numbers from divide by 0 
- * etc. causing g_assert() failures later.
- */
-#define RANGE (100000000)
-
 static void
 vips_extract_area_class_init( VipsExtractAreaClass *class )
 {
@@ -206,28 +201,28 @@ vips_extract_area_class_init( VipsExtractAreaClass *class )
 		_( "Left edge of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, left ),
-		-RANGE, RANGE, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "top", 3, 
 		_( "Top" ), 
 		_( "Top edge of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, top ),
-		-RANGE, RANGE, 0 );
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "width", 4, 
 		_( "Width" ), 
 		_( "Width of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, width ),
-		1, RANGE, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "height", 5, 
 		_( "Height" ), 
 		_( "Height of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, height ),
-		1, RANGE, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 }
 
@@ -429,14 +424,14 @@ vips_extract_band_class_init( VipsExtractBandClass *class )
 		_( "Band to extract" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractBand, band ),
-		0, RANGE, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "n", 4, 
 		_( "n" ), 
 		_( "Number of bands to extract" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsExtractBand, n ),
-		1, RANGE, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 }
 
