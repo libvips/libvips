@@ -206,17 +206,6 @@ vips_resize_build( VipsObject *object )
 	 * coming later, so read into a cache where tiles are scanlines, and 
 	 * make sure we keep enough scanlines.
 	 *
-	 * We use a threaded tilecache to avoid a deadlock: suppose thread1,
-	 * evaluating the top block of the output, is delayed, and thread2, 
-	 * evaluating the second block, gets here first (this can happen on 
-	 * a heavily-loaded system). 
-	 *
-	 * With an unthreaded tilecache, thread2 will get
-	 * the cache lock and start evaling the second block of the shrink. 
-	 * When it reaches the png reader it will stall until the first block 
-	 * has been used ... but it never will, since thread1 will block on 
-	 * this cache lock. 
-	 *
 	 * Cache sizing: we double-buffer writes, so threads can be up to one 
 	 * line of tiles behind. For example, one thread could be allocated
 	 * tile (0,0) and then stall, the whole write system won't stall until
@@ -226,6 +215,11 @@ vips_resize_build( VipsObject *object )
 	 * perhaps 0.5 or down as low as 0.3. So the number of scanlines we 
 	 * need to keep for the worst case is 2 * @tile_height / @residual, 
 	 * plus a little extra.
+	 *
+	 * Use an unthreaded tilecache to limit the range of Y values that an
+	 * image source has to span. Suppose we are shrinkv-ing by 100x and
+	 * need to span two tile rows on the output. Now the input source might
+	 * need to refer back 128 * 100 lines, argh. 
 	 */
 	if( int_vshrink > 1 ) { 
 		int tile_width;
@@ -241,7 +235,7 @@ vips_resize_build( VipsObject *object )
 			"tile_height", 10,
 			"max_tiles", 1 + need_lines / 10,
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"threaded", TRUE, 
+			"threaded", FALSE, 
 			NULL ) )
 			return( -1 );
 		in = t[6];
