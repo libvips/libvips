@@ -8,6 +8,32 @@
 	vips_rot( smartcrop->sobel, &smartcrop->sobel90, VIPS_ANGLE_D90, NULL )
 
 - vips linecache has access there twice!
+ 
+- resize.c has
+
+                need_lines = 1.2 * n_lines / vscale;
+
+  to size the line cache, and uses an unthreaded cache
+
+  	- is this formula right?
+	- instead put the cache inside shrinkv, on the output
+	- make shrinkv use threads to generate lines for input?
+
+  another alternative
+
+  	- add this caching to thumbnail.c
+	- remove the cache from resize
+	- don't use vips_resize(), expand code out
+	- put the cache just after shrinkv
+	- now there's no need to thread, since thumbnail is (mostly) just 
+	  doing image load on the input to shrink
+	- and we leave shink and resize nice and simple, though they will no
+	  longer work on seq files
+
+
+
+
+ -vips linecache has access there twice!
 
 	 $ vips linecache
 	 ...
