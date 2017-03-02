@@ -1,18 +1,14 @@
-dnl Check if --with-expat[=PREFIX] is specified and
-dnl Expat >= 1.95.0 is installed in the system.
-dnl If yes, substitute EXPAT_CFLAGS, EXPAT_LIBS with regard to
-dnl the specified PREFIX and set with_expat to PREFIX, or 'yes' if PREFIX
-dnl has not been specified. Also HAVE_LIBEXPAT, HAVE_EXPAT_H are defined.
-dnl If --with-expat has not been specified, set with_expat to 'no'.
-dnl In addition, an Automake conditional EXPAT_INSTALLED is set accordingly.
-dnl This is necessary to adapt a whole lot of packages that have expat
-dnl bundled as a static library.
+dnl Look for expat, set EXPAT_CFLAGS, EXPAT_LIBS
+dnl Use --with-expat=PREFIX to set a specific prefix
+dnl
+dnl This is modified from the usual expat.m4:
+dnl - default to with_expat=yes
+dnl - don't set a conditional
+
 AC_DEFUN([AM_WITH_EXPAT],
 [ AC_ARG_WITH(expat,
 	      [  --with-expat=PREFIX     Use system Expat library],
-	      , with_expat=no)
-
-  AM_CONDITIONAL(EXPAT_INSTALLED, test $with_expat != no)
+	      , with_expat=yes)
 
   EXPAT_CFLAGS=
   EXPAT_LIBS=
