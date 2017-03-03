@@ -11,7 +11,8 @@
   another alternative
 
   	- add this caching to thumbnail.c
-	- remove the cache from resize
+	- maybe remove the cache from resize? does sharp need it? nope, safe to
+	  remove
 	- don't use vips_resize(), expand code out
 	- put the cache just after shrinkv
 	- now there's no need to thread, since thumbnail is (mostly) just 
@@ -19,6 +20,21 @@
 	- and we leave shink and resize nice and simple, though they will no
 	  longer work on seq files
 
+	- should linecache ask for inbetween lines in unthreaded seq mode?
+	- could allow many readers, but only one writer active at once? perhaps
+	  that's what we have?
+
+	- sharp makes quite a few assumptions about cache size, it'd be easy to
+	  break
+
+	- loaders could add a "seq-mode" meta tag, shrinkv could single-thread
+	  if it sees the tag
+	- the seq tag could just be added by vips_sequential
+	- good idea! keeps compat with everything, keeps non-seq vips siomple
+	  and quick
+
+  do we need a seq cache for reducev as well? we could have up to a 3x
+  reduction there
 
 
 

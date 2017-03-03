@@ -267,10 +267,6 @@ vips_shrinkh_build( VipsObject *object )
 		return( -1 );
 	in = t[1];
 
-	/* THINSTRIP will work, anything else will break seq mode. If you 
-	 * combine shrink with conv you'll need to use a line cache to maintain
-	 * sequentiality.
-	 */
 	if( vips_image_pipelinev( resample->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );

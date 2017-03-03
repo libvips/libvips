@@ -202,7 +202,8 @@ vips_thumbnail_find_jpegshrink( VipsThumbnail *thumbnail, int width, int height 
 
 	/* Shrink-on-load is a simple block shrink and will add quite a bit of
 	 * extra sharpness to the image. We want to block shrink to a
-	 * bit above our target, then vips_resize() to the final size. 
+	 * bit above our target, then vips_shrink() / vips_reduce() to the 
+	 * final size. 
 	 *
 	 * Leave at least a factor of two for the final resize step.
 	 */
@@ -374,6 +375,10 @@ vips_thumbnail_build( VipsObject *object )
 
 	shrink = vips_thumbnail_calculate_shrink( thumbnail, 
 		in->Xsize, in->Ysize );
+
+
+
+
 
 	/* Use centre convention to better match imagemagick.
 	 */
