@@ -101,6 +101,15 @@ extern "C" {
 #define VIPS_META_LOADER "vips-loader"
 
 /**
+ * VIPS_META_SEQUENTIAL:
+ *
+ * Images loaded via vips_sequential() have this int field defined. Some
+ * operations (eg. vips_shrinkv()) add extra caches if they see it on their
+ * input. 
+ */
+#define VIPS_META_SEQUENTIAL "vips-sequential"
+
+/**
  * VIPS_META_ORIENTATION:
  *
  * The orientation tag for this image. An int from 1 - 8 using the standard 

@@ -330,7 +330,7 @@ vips_shrinkv_build( VipsObject *object )
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsShrinkv *shrink = (VipsShrinkv *) object;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 2 );
+		vips_object_local_array( object, 3 );
 
 	VipsImage *in;
 
@@ -364,6 +364,40 @@ vips_shrinkv_build( VipsObject *object )
 		NULL ) )
 		return( -1 );
 	in = t[1];
+
+	/* Large vshrinks will throw off sequential mode. Suppose thread1 is
+	 * generating tile (0, 0), but stalls. thread2 generates tile
+	 * (0, 1), 128 lines further down the output. After it has done,
+	 * thread1 tries to generate (0, 0), but by then the pixels it needs
+	 * have gone from the input image line cache if the vshrink is large.
+	 *
+	 * To fix this, cache the output of vshrink, and disable threading. Now
+	 * thread1 will make the whole of tile (0, 0) and thread2 will block
+	 * until it's done. 
+	 *
+	 * We could still get out of order if thread2 arrives here before
+	 * thread1. Most images will be wide enough that many tiles will fit
+	 * across the image for row0 and they would all have to be delayed
+	 * behind a row1 request. This seems very unlikely, but perhaps could
+	 * happen for a very tall, thin image with a very large shrink factor. 
+	 */
+	if( vips_image_get_typeof( in, VIPS_META_SEQUENTIAL ) ) { 
+		int tile_width;
+		int tile_height;
+		int n_lines;
+
+		vips_get_tile_size( in, 
+			&tile_width, &tile_height, &n_lines );
+		if( vips_tilecache( in, &t[2], 
+			"tile_width", in->Xsize,
+			"tile_height", 10,
+			"max_tiles", 1 + n_lines / 10,
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"threaded", FALSE, 
+			NULL ) )
+			return( -1 );
+		in = t[2];
+	}
 
 	/* We have to keep a line buffer as we sum columns.
 	 */
