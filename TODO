@@ -19,6 +19,14 @@
   reduction there
 
 
+- VIPS_META_SEQUENTIAL will be saved to vips files, then loaded back again argh
+
+  we need to set a value that can't be saved
+
+  do we need a seq cache for reducev as well? we could have up to a 3x
+  reduction there
+
+
 
  -vips linecache has access there twice!
 
