@@ -1,3 +1,4 @@
+
 - vips_object_class_install_argument() should check for duplicate priorities,
   it's been behind a few nasty bugs
 
@@ -7,10 +8,9 @@
 
 	vips_rot( smartcrop->sobel, &smartcrop->sobel90, VIPS_ANGLE_D90, NULL )
 
+
 - vips linecache has access there twice!
  
-- resize.c has
-
 - VIPS_META_SEQUENTIAL will be saved to vips files, then loaded back again argh
 
   we need to set a value that can't be saved
