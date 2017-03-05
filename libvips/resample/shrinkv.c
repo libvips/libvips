@@ -272,13 +272,6 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 	 * the input region corresponding to *r since it could be huge. 
 	 *
 	 * Request input a line at a time, average to a line buffer.  
-	 *
-	 * We don't chunk horizontally. We want "vips shrink x.jpg b.jpg 100
-	 * 100" to run sequentially. If we chunk horizontally, we will fetch
-	 * 100x100 lines from the top of the image, then 100x100 100 lines
-	 * down, etc. for each thread, then when they've finished, fetch
-	 * 100x100, 100 pixels across from the top of the image. This will
-	 * break sequentiality. 
 	 */
 
 #ifdef DEBUG
@@ -330,7 +323,7 @@ vips_shrinkv_build( VipsObject *object )
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsShrinkv *shrink = (VipsShrinkv *) object;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 3 );
+		vips_object_local_array( object, 4 );
 
 	VipsImage *in;
 
@@ -365,6 +358,48 @@ vips_shrinkv_build( VipsObject *object )
 		return( -1 );
 	in = t[1];
 
+	/* We have to keep a line buffer as we sum columns.
+	 */
+	shrink->sizeof_line_buffer = 
+		in->Xsize * in->Bands * 
+		vips_format_sizeof( VIPS_FORMAT_DPCOMPLEX );
+
+	/* SMALLTILE or we'll need huge input areas for our output. In seq
+	 * mode, the linecache above will keep us sequential. 
+	 */
+	t[2] = vips_image_new();
+	if( vips_image_pipelinev( t[2],
+		VIPS_DEMAND_STYLE_SMALLTILE, in, NULL ) )
+		return( -1 );
+
+	/* Size output. We need to always round to nearest, so round(), not
+	 * rint().
+	 *
+	 * Don't change xres/yres, leave that to the application layer. For
+	 * example, vipsthumbnail knows the true shrink factor (including the
+	 * fractional part), we just see the integer part here.
+	 */
+	t[2]->Ysize = VIPS_ROUND_UINT( 
+		(double) resample->in->Ysize / shrink->vshrink );
+	if( t[2]->Ysize <= 0 ) {
+		vips_error( class->nickname, 
+			"%s", _( "image has shrunk to nothing" ) );
+		return( -1 );
+	}
+
+#ifdef DEBUG
+	printf( "vips_shrinkv_build: shrinking %d x %d image to %d x %d\n", 
+		in->Xsize, in->Ysize, 
+		t[2]->Xsize, t[2]->Ysize );  
+#endif /*DEBUG*/
+
+	if( vips_image_generate( t[2],
+		vips_shrinkv_start, vips_shrinkv_gen, vips_shrinkv_stop, 
+		in, shrink ) )
+		return( -1 );
+
+	in = t[2];
+
 	/* Large vshrinks will throw off sequential mode. Suppose thread1 is
 	 * generating tile (0, 0), but stalls. thread2 generates tile
 	 * (0, 1), 128 lines further down the output. After it has done,
@@ -386,9 +421,10 @@ vips_shrinkv_build( VipsObject *object )
 		int tile_height;
 		int n_lines;
 
+		g_info( "shrinkv sequential line cache" ); 
 		vips_get_tile_size( in, 
 			&tile_width, &tile_height, &n_lines );
-		if( vips_tilecache( in, &t[2], 
+		if( vips_tilecache( in, &t[3], 
 			"tile_width", in->Xsize,
 			"tile_height", 10,
 			"max_tiles", 1 + n_lines / 10,
@@ -396,48 +432,11 @@ vips_shrinkv_build( VipsObject *object )
 			"threaded", FALSE, 
 			NULL ) )
 			return( -1 );
-		in = t[2];
+		in = t[3];
 	}
 
-	/* We have to keep a line buffer as we sum columns.
-	 */
-	shrink->sizeof_line_buffer = 
-		in->Xsize * in->Bands * 
-		vips_format_sizeof( VIPS_FORMAT_DPCOMPLEX );
-
-	/* THINSTRIP will work, anything else will break seq mode. If you 
-	 * combine shrink with conv you'll need to use a line cache to maintain
-	 * sequentiality.
-	 */
-	if( vips_image_pipelinev( resample->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
-		return( -1 );
-
-	/* Size output. We need to always round to nearest, so round(), not
-	 * rint().
-	 *
-	 * Don't change xres/yres, leave that to the application layer. For
-	 * example, vipsthumbnail knows the true shrink factor (including the
-	 * fractional part), we just see the integer part here.
-	 */
-	resample->out->Ysize = VIPS_ROUND_UINT( 
-		(double) resample->in->Ysize / shrink->vshrink );
-	if( resample->out->Ysize <= 0 ) {
-		vips_error( class->nickname, 
-			"%s", _( "image has shrunk to nothing" ) );
-		return( -1 );
-	}
-
-#ifdef DEBUG
-	printf( "vips_shrinkv_build: shrinking %d x %d image to %d x %d\n", 
-		in->Xsize, in->Ysize, 
-		resample->out->Xsize, resample->out->Ysize );  
-#endif /*DEBUG*/
-
-	if( vips_image_generate( resample->out,
-		vips_shrinkv_start, vips_shrinkv_gen, vips_shrinkv_stop, 
-		in, shrink ) )
-		return( -1 );
+	if( vips_image_write( in, resample->out ) )
+		return( -1 ); 
 
 	return( 0 );
 }
