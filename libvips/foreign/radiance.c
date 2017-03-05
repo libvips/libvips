@@ -1082,6 +1082,10 @@ rad2vips_get_header( Read *read, VipsImage *out )
 			vips_image_set_double( out, 
 				prims_name[i][j], read->prims[i][j] );
 
+	/* Tell downstream we are reading sequentially.
+	 */
+	vips_image_set_int( out, VIPS_META_SEQUENTIAL, 1 ); 
+
 	return( 0 );
 }
 

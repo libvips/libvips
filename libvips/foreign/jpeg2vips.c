@@ -514,6 +514,10 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	if( vips__exif_parse( out ) )
 		return( -1 );
 
+	/* Tell downstream we are reading sequentially.
+	 */
+	vips_image_set_int( out, VIPS_META_SEQUENTIAL, 1 ); 
+
 	return( 0 );
 }
 

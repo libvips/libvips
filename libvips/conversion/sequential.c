@@ -299,7 +299,6 @@ vips_sequential_build( VipsObject *object )
 	if( vips_image_pipelinev( conversion->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, t, NULL ) )
 		return( -1 );
-	vips_image_set_int( conversion->out, VIPS_META_SEQUENTIAL, 1 ); 
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_sequential_generate, vips_stop_one, 
 		t, sequential ) )

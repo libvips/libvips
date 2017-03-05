@@ -382,10 +382,19 @@ png2vips_header( Read *read, VipsImage *out )
 		VIPS_CODING_NONE, interpretation, 
 		Xres, Yres );
 
-	/* Sequential mode needs thinstrip to work with things like
-	 * vips_shrink().
+	/* Uninterlaced images will be read in seq mode. Interlaced images are
+	 * read via a huge memory buffer.
 	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	if( interlace_type == PNG_INTERLACE_NONE ) {
+		vips_image_set_int( out, VIPS_META_SEQUENTIAL, 1 ); 
+
+		/* Sequential mode needs thinstrip to work with things like
+		 * vips_shrink().
+		 */
+		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	}
+	else 
+		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_ANY, NULL );
 
 	/* Fetch the ICC profile. @name is useless, something like "icc" or
 	 * "ICC Profile" etc.  Ignore it.

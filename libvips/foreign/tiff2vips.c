@@ -1334,6 +1334,11 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	vips_image_set_int( out, 
 		VIPS_META_ORIENTATION, rtiff->header.orientation );
 
+	/* Tell downstream if we are reading sequentially.
+	 */
+	if( !rtiff->header.tiled ) 
+		vips_image_set_int( out, VIPS_META_SEQUENTIAL, 1 ); 
+
 	return( 0 );
 }
 
