@@ -464,6 +464,9 @@ parser_read_fd( XML_Parser parser, int fd )
 	const int chunk_size = 1024; 
 
 	ssize_t bytes_read;
+	ssize_t len;
+
+	bytes_read = 0;
 
 	do {
 		void *buf;
@@ -473,19 +476,25 @@ parser_read_fd( XML_Parser parser, int fd )
 				"%s", _( "unable to allocate read buffer" ) );
 			return( -1 );
 		}
-		bytes_read = read( fd, buf, chunk_size );
-		if( bytes_read == (ssize_t) -1 ) {
+		len = read( fd, buf, chunk_size );
+		if( len == (ssize_t) -1 ) {
 			vips_error( "VipsImage", 
 				"%s", _( "read error while fetching XML" ) );
 			return( -1 );
 		}
 
-		if( !XML_ParseBuffer( parser, bytes_read, bytes_read == 0 ) ) {
-			vips_error( "VipsImage", 
-				"%s", _( "XML parse error" ) );
+		/* Allow missing XML block.
+		 */
+		if( bytes_read == 0 &&
+			len == 0 )
+			break;
+		bytes_read += len;
+
+		if( !XML_ParseBuffer( parser, len, len == 0 ) ) {
+			vips_error( "VipsImage", "%s", _( "XML parse error" ) );
 			return( -1 );
 		}
-	} while( bytes_read > 0 );
+	} while( len > 0 );
 
 	return( 0 );
 }
@@ -993,7 +1002,8 @@ vips_image_open_input( VipsImage *image )
 	 * harmless.
 	 */
 	if( readhist( image ) ) {
-		g_warning( _( "error reading XML: %s" ), vips_error_buffer() );
+		g_warning( _( "error reading vips image metadata: %s" ), 
+			vips_error_buffer() );
 		vips_error_clear();
 	}
 
