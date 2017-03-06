@@ -357,15 +357,16 @@ vips_embed_build( VipsObject *object )
 		embed->height == embed->in->Ysize )
 		return( vips_image_write( embed->in, conversion->out ) );
 
-	if( !(embed->ink = vips__vector_to_ink( 
-		class->nickname, embed->in,
-		VIPS_AREA( embed->background )->data, NULL, 
-		VIPS_AREA( embed->background )->n )) )
-		return( -1 );
-
 	if( !vips_object_argument_isset( object, "extend" ) &&
 		vips_object_argument_isset( object, "background" ) )
 		embed->extend = VIPS_EXTEND_BACKGROUND; 
+
+	if( embed->extend == VIPS_EXTEND_BACKGROUND ) 
+		if( !(embed->ink = vips__vector_to_ink( 
+			class->nickname, embed->in,
+			VIPS_AREA( embed->background )->data, NULL, 
+			VIPS_AREA( embed->background )->n )) )
+			return( -1 );
 
 	switch( embed->extend ) {
 	case VIPS_EXTEND_REPEAT:

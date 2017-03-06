@@ -275,9 +275,9 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 	 */
 
 #ifdef DEBUG
+#endif /*DEBUG*/
 	printf( "vips_shrinkv_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top ); 
-#endif /*DEBUG*/
 
 	for( y = 0; y < r->height; y++ ) { 
 		memset( seq->sum, 0, shrink->sizeof_line_buffer ); 
@@ -417,18 +417,11 @@ vips_shrinkv_build( VipsObject *object )
 	 * happen for a very tall, thin image with a very large shrink factor. 
 	 */
 	if( vips_image_get_typeof( in, VIPS_META_SEQUENTIAL ) ) { 
-		int tile_width;
-		int tile_height;
-		int n_lines;
-
 		g_info( "shrinkv sequential line cache" ); 
-		vips_get_tile_size( in, 
-			&tile_width, &tile_height, &n_lines );
-		if( vips_tilecache( in, &t[3], 
-			"tile_width", in->Xsize,
-			"tile_height", 10,
-			"max_tiles", 1 + n_lines / 10,
+
+		if( vips_linecache( in, &t[3], 
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"tile_height", 10,
 			"threaded", FALSE, 
 			NULL ) )
 			return( -1 );

@@ -1,3 +1,48 @@
+- fails with out of order
+
+	$ vips resize blackbug.png x.jpg 0.25
+
+  where 
+  
+  	$ vipsheader blackbug.png 
+	blackbug.png: 2048x1536 uchar, 4 bands, srgb, pngload
+
+  makes two caches: 
+  	height 8 tiles for the input sequential
+	height 10 tilecache, 39 tiles, for the shrinkv
+
+  vips_shrinkv_gen sees:
+
+	vips_shrinkv_gen: generating 2048 x 10 at 0 x 250
+	vips_shrinkv_gen: generating 2048 x 10 at 0 x 500
+	vips_shrinkv_gen: generating 2048 x 10 at 0 x 510
+	vips_shrinkv_gen: generating 2048 x 10 at 0 x 260
+	vips_shrinkv_gen: generating 2048 x 10 at 0 x 10
+
+	(vips:15685): VIPS-WARNING **: error in tile 0 x 16
+
+  concurrency=4 seems to always work
+  concurrency=5 fails 50%
+  concurrency=6 almost always fails
+
+- argh
+
+#!/usr/bin/env python
+
+import sys
+
+import gi
+gi.require_version('Vips', '8.0')
+from gi.repository import Vips
+
+x = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
+x = x.resize(0.1)
+x.write_to_file(sys.argv[2])
+
+  fails with out of order ... why?
+
+
+
 - vips_object_class_install_argument() should check for duplicate priorities,
   it's been behind a few nasty bugs
 
