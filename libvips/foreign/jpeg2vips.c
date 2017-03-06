@@ -152,10 +152,6 @@ typedef struct _ReadJpeg {
 	 */
 	gboolean fail;
 
-	/* Use a read behind buffer.
-	 */
-	gboolean readbehind; 
-
 	/* Used for file input only.
 	 */
 	char *filename;
@@ -216,8 +212,7 @@ readjpeg_close( VipsObject *object, ReadJpeg *jpeg )
 }
 
 static ReadJpeg *
-readjpeg_new( VipsImage *out, 
-	int shrink, gboolean fail, gboolean readbehind, gboolean autorotate )
+readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
@@ -227,7 +222,6 @@ readjpeg_new( VipsImage *out,
 	jpeg->out = out;
 	jpeg->shrink = shrink;
 	jpeg->fail = fail;
-	jpeg->readbehind = readbehind;
 	jpeg->filename = NULL;
         jpeg->cinfo.err = jpeg_std_error( &jpeg->eman.pub );
 	jpeg->eman.pub.error_exit = vips__new_error_exit;
@@ -516,7 +510,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 
 	/* Tell downstream we are reading sequentially.
 	 */
-	vips_image_set_int( out, VIPS_META_SEQUENTIAL, 1 ); 
+	vips_image_set_area( out, VIPS_META_SEQUENTIAL, NULL, NULL ); 
 
 	return( 0 );
 }
@@ -680,9 +674,6 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 		jpeg, NULL ) ||
 		vips_sequential( t[0], &t[1], 
 			"tile_height", 8,
-			"access", jpeg->readbehind ? 
-				VIPS_ACCESS_SEQUENTIAL : 
-				VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 			NULL ) )
 		return( -1 );
 
@@ -751,13 +742,12 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
  */
 int
 vips__jpeg_read_file( const char *filename, VipsImage *out, 
-	gboolean header_only, int shrink, gboolean fail, gboolean readbehind,
+	gboolean header_only, int shrink, gboolean fail, 
 	gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
-	if( !(jpeg = readjpeg_new( out, 
-		shrink, fail, readbehind, autorotate )) )
+	if( !(jpeg = readjpeg_new( out, shrink, fail, autorotate )) )
 		return( -1 );
 
 	/* Here for longjmp() from vips__new_error_exit() during startup.
@@ -958,13 +948,11 @@ readjpeg_buffer (ReadJpeg *jpeg, const void *buf, size_t len)
 
 int
 vips__jpeg_read_buffer( const void *buf, size_t len, VipsImage *out, 
-	gboolean header_only, int shrink, int fail, gboolean readbehind, 
-	gboolean autorotate )
+	gboolean header_only, int shrink, int fail, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
-	if( !(jpeg = readjpeg_new( out, 
-		shrink, fail, readbehind, autorotate )) )
+	if( !(jpeg = readjpeg_new( out, shrink, fail, autorotate )) )
 		return( -1 );
 
 	if( setjmp( jpeg->eman.jmp ) ) 

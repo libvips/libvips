@@ -274,7 +274,6 @@ typedef struct _Rtiff {
 	int page;
 	int n;
 	gboolean autorotate;
-	gboolean readbehind; 
 
 	/* The TIFF we read.
 	 */
@@ -1337,7 +1336,7 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	/* Tell downstream if we are reading sequentially.
 	 */
 	if( !rtiff->header.tiled ) 
-		vips_image_set_int( out, VIPS_META_SEQUENTIAL, 1 ); 
+		vips_image_set_area( out, VIPS_META_SEQUENTIAL, NULL, NULL ); 
 
 	return( 0 );
 }
@@ -1931,9 +1930,6 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 			rtiff, NULL ) ||
 		vips_sequential( t[0], &t[1], 
 			"tile_height", rtiff->header.rows_per_strip,
-			"access", rtiff->readbehind ? 
-				VIPS_ACCESS_SEQUENTIAL : 
-				VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 			NULL ) ||
 		rtiff_autorotate( rtiff, t[1], &t[2] ) ||
 		vips_image_write( t[2], out ) )
@@ -1957,8 +1953,7 @@ rtiff_close( VipsObject *object, Rtiff *rtiff )
 }
 
 static Rtiff *
-rtiff_new( VipsImage *out, 
-	int page, int n, gboolean autorotate, gboolean readbehind )
+rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
 
@@ -1970,7 +1965,6 @@ rtiff_new( VipsImage *out,
 	rtiff->page = page;
 	rtiff->n = n;
 	rtiff->autorotate = autorotate;
-	rtiff->readbehind = readbehind;
 	rtiff->tiff = NULL;
 	rtiff->current_page = -1;
 	rtiff->sfn = NULL;
@@ -2174,11 +2168,11 @@ rtiff_header_read_all( Rtiff *rtiff )
 
 static Rtiff *
 rtiff_new_filename( const char *filename, VipsImage *out, 
-	int page, int n, gboolean autorotate, gboolean readbehind )
+	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
 
-	if( !(rtiff = rtiff_new( out, page, n, autorotate, readbehind )) ||
+	if( !(rtiff = rtiff_new( out, page, n, autorotate )) ||
 		!(rtiff->tiff = vips__tiff_openin( filename )) || 
 		rtiff_header_read_all( rtiff ) )
 		return( NULL );
@@ -2190,11 +2184,11 @@ rtiff_new_filename( const char *filename, VipsImage *out,
 
 static Rtiff *
 rtiff_new_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, int n, gboolean autorotate, gboolean readbehind )
+	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
 
-	if( !(rtiff = rtiff_new( out, page, n, autorotate, readbehind )) ||
+	if( !(rtiff = rtiff_new( out, page, n, autorotate )) ||
 		!(rtiff->tiff = vips__tiff_openin_buffer( out, buf, len )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( NULL );
@@ -2225,7 +2219,7 @@ istiffpyramid( const char *name )
 
 int
 vips__tiff_read( const char *filename, VipsImage *out, 
-	int page, int n, gboolean autorotate, gboolean readbehind )
+	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
 
@@ -2236,8 +2230,7 @@ vips__tiff_read( const char *filename, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new_filename( filename, 
-		out, page, n, autorotate, readbehind )) )
+	if( !(rtiff = rtiff_new_filename( filename, out, page, n, autorotate )) )
 		return( -1 );
 
 	if( rtiff->header.tiled ) {
@@ -2283,8 +2276,7 @@ vips__tiff_read_header( const char *filename, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new_filename( filename, out, 
-		page, n, autorotate, FALSE )) )
+	if( !(rtiff = rtiff_new_filename( filename, out, page, n, autorotate )) )
 		return( -1 );
 
 	if( rtiff_set_header( rtiff, out ) )
@@ -2352,8 +2344,7 @@ vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new_buffer( buf, len, out, 
-		page, n, autorotate, FALSE )) )
+	if( !(rtiff = rtiff_new_buffer( buf, len, out, page, n, autorotate )) )
 		return( -1 );
 
 	if( rtiff_set_header( rtiff, out ) )
@@ -2366,8 +2357,7 @@ vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out,
 
 int
 vips__tiff_read_buffer( const void *buf, size_t len, 
-	VipsImage *out, int page, int n, gboolean autorotate, 
-	gboolean readbehind )
+	VipsImage *out, int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
 
@@ -2378,8 +2368,7 @@ vips__tiff_read_buffer( const void *buf, size_t len,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new_buffer( buf, len, out, 
-		page, n, autorotate, readbehind )) )
+	if( !(rtiff = rtiff_new_buffer( buf, len, out, page, n, autorotate )) )
 		return( -1 );
 
 	if( rtiff->header.tiled ) {

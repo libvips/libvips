@@ -154,7 +154,7 @@ vips_bandfold_class_init( VipsBandfoldClass *class )
 	vobject_class->description = _( "fold up x axis into bands" );
 	vobject_class->build = vips_bandfold_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

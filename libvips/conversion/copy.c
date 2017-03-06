@@ -264,7 +264,7 @@ vips_copy_class_init( VipsCopyClass *class )
 	 * cache it. Plus copy is cheap.
 	 */
 	operation_class->flags = 
-		VIPS_OPERATION_SEQUENTIAL_UNBUFFERED | 
+		VIPS_OPERATION_SEQUENTIAL | 
 		VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 

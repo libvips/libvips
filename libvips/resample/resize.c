@@ -22,6 +22,8 @@
  * 	- more accurate resizing
  * 9/9/16
  * 	- add @centre option
+ * 6/3/17	
+ * 	- moved the cache to shrinkv
  */
 
 /*

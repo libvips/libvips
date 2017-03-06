@@ -316,7 +316,7 @@ vips_shrinkh_class_init( VipsShrinkhClass *class )
 	vobject_class->description = _( "shrink an image horizontally" );
 	vobject_class->build = vips_shrinkh_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_INT( class, "hshrink", 8, 
 		_( "Hshrink" ), 

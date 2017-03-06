@@ -457,7 +457,7 @@ vips_shrinkv_class_init( VipsShrinkvClass *class )
 	vobject_class->description = _( "shrink an image vertically" );
 	vobject_class->build = vips_shrinkv_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_INT( class, "vshrink", 9, 
 		_( "Vshrink" ), 

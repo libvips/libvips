@@ -1084,7 +1084,7 @@ rad2vips_get_header( Read *read, VipsImage *out )
 
 	/* Tell downstream we are reading sequentially.
 	 */
-	vips_image_set_int( out, VIPS_META_SEQUENTIAL, 1 ); 
+	vips_image_set_area( out, VIPS_META_SEQUENTIAL, NULL, NULL ); 
 
 	return( 0 );
 }
@@ -1140,7 +1140,7 @@ rad2vips_generate( VipsRegion *or,
 }
 
 int
-vips__rad_load( const char *filename, VipsImage *out, gboolean readbehind )
+vips__rad_load( const char *filename, VipsImage *out )
 {
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
@@ -1159,14 +1159,8 @@ vips__rad_load( const char *filename, VipsImage *out, gboolean readbehind )
 		return( -1 );
 
 	if( vips_image_generate( t[0], 
-		NULL, rad2vips_generate, NULL, 
-		read, NULL ) ||
-		vips_sequential( t[0], &t[1], 
-			"tile_height", 8,
-			"access", readbehind ? 
-				VIPS_ACCESS_SEQUENTIAL : 
-				VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
-			NULL ) ||
+		NULL, rad2vips_generate, NULL, read, NULL ) ||
+		vips_sequential( t[0], &t[1], "tile_height", 8, NULL ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
 

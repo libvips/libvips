@@ -842,7 +842,7 @@ vips_tile_cache_init( VipsTileCache *cache )
  *
  * When the cache fills, a tile is chosen for reuse. If @access is
  * #VIPS_ACCESS_RANDOM, then the least-recently-used tile is reused. If 
- * @access is #VIPS_ACCESS_SEQUENTIAL or #VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, 
+ * @access is #VIPS_ACCESS_SEQUENTIAL 
  * the top-most tile is reused.
  *
  * By default, @tile_width and @tile_height are 128 pixels, and the operation
@@ -917,6 +917,10 @@ vips_line_cache_build( VipsObject *object )
 	VipsBlockCache *block_cache = (VipsBlockCache *) object;
 	VipsLineCache *cache = (VipsLineCache *) object;
 
+	int tile_width;
+	int tile_height;
+	int n_lines;
+
 	VIPS_DEBUG_MSG( "vips_line_cache_build\n" );
 
 	if( VIPS_OBJECT_CLASS( vips_line_cache_parent_class )->
@@ -929,31 +933,13 @@ vips_line_cache_build( VipsObject *object )
 
 	block_cache->access = cache->access; 
 
-	if( cache->access == VIPS_ACCESS_SEQUENTIAL_UNBUFFERED )
-		/* A tile per thread. 
-		 *
-		 * Imagine scanline tiles and four threads. And add a bit for
-		 * slop. 
-		 */
-		block_cache->max_tiles = 2 * vips_concurrency_get();
-	else { 
-		/* Enough lines for two complete buffers would be exactly 
-		 * right. Make it 4 to give us some slop room. 
-		 *
-		 * This can go up with request size, see vips_line_cache_gen().
-		 */
-		int tile_width;
-		int tile_height;
-		int n_lines;
+	/* This can go up with request size, see vips_line_cache_gen().
+	 */
+	vips_get_tile_size( block_cache->in, 
+		&tile_width, &tile_height, &n_lines );
+	block_cache->max_tiles = 1 + 2 * n_lines / block_cache->tile_height;
 
-		vips_get_tile_size( block_cache->in, 
-			&tile_width, &tile_height, &n_lines );
-		block_cache->max_tiles = 4 * 
-			(1 + n_lines / block_cache->tile_height);
-
-		VIPS_DEBUG_MSG( "vips_line_cache_build: n_lines = %d\n", 
-			n_lines );
-	}
+	VIPS_DEBUG_MSG( "vips_line_cache_build: n_lines = %d\n", n_lines );
 
 	VIPS_DEBUG_MSG( "vips_line_cache_build: "
 		"max_tiles = %d, tile_height = %d\n", 
@@ -1026,15 +1012,14 @@ vips_line_cache_init( VipsLineCache *cache )
  * @in and @out, except that it keeps a cache of computed scanlines. 
  *
  * The number of lines cached is enough for a small amount of non-local
- * access. If you know you will not be making any non-local access, you can
- * save some memory and set @access to #VIPS_ACCESS_SEQUENTIAL_UNBUFFERED. 
+ * access. 
  *
  * Each cache tile is made with a single call to 
  * vips_region_prepare(). 
  *
  * When the cache fills, a tile is chosen for reuse. If @access is
  * #VIPS_ACCESS_RANDOM, then the least-recently-used tile is reused. If 
- * @access is #VIPS_ACCESS_SEQUENTIAL or #VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, 
+ * @access is #VIPS_ACCESS_SEQUENTIAL, then 
  * the top-most tile is reused. @access defaults to #VIPS_ACCESS_RANDOM.
  *
  * @tile_height can be used to set the size of the strips that
