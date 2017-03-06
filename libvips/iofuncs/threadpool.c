@@ -15,6 +15,9 @@
  * 	  errors (thanks Tim)
  * 25/7/14
  * 	- limit nthr on tiny images
+ * 6/3/17
+ * 	- remove single-thread-first-request thing, new seq system makes it
+ * 	  unnecessary
  */
 
 /*
@@ -548,12 +551,6 @@ typedef struct _VipsThreadpool {
 	/* Set by Allocate (via an arg) to indicate normal end of computation.
 	 */
 	gboolean stop;
-
-	/* Set by the first thread to hit allocate. The first work unit runs
-	 * single-threaded to give loaders a change to get to the right spot
-	 * in the input.
-	 */
-	gboolean done_first;
 } VipsThreadpool;
 
 /* Junk a thread.
@@ -635,19 +632,13 @@ vips_thread_work_unit( VipsThread *thr )
 		return;
 	}
 
-	if( pool->done_first )
-		g_mutex_unlock( pool->allocate_lock );
+	g_mutex_unlock( pool->allocate_lock );
 
 	/* Process a work unit.
 	 */
 	if( pool->work( thr->state, pool->a ) ) { 
 		thr->error = TRUE;
 		pool->error = TRUE;
-	}
-
-	if( !pool->done_first ) {
-		pool->done_first = TRUE;
-		g_mutex_unlock( pool->allocate_lock );
 	}
 }
 
@@ -781,7 +772,6 @@ vips_threadpool_new( VipsImage *im )
 	vips_semaphore_init( &pool->tick, 0, "tick" );
 	pool->error = FALSE;
 	pool->stop = FALSE;
-	pool->done_first = FALSE;
 
 	/* If this is a tiny image, we won't need all nthr threads. Guess how
 	 * many tiles we might need to cover the image and use that to limit
