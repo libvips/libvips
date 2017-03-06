@@ -275,9 +275,9 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 	 */
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 	printf( "vips_shrinkv_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top ); 
+#endif /*DEBUG*/
 
 	for( y = 0; y < r->height; y++ ) { 
 		memset( seq->sum, 0, shrink->sizeof_line_buffer ); 
@@ -406,23 +406,15 @@ vips_shrinkv_build( VipsObject *object )
 	 * thread1 tries to generate (0, 0), but by then the pixels it needs
 	 * have gone from the input image line cache if the vshrink is large.
 	 *
-	 * To fix this, cache the output of vshrink, and disable threading. Now
-	 * thread1 will make the whole of tile (0, 0) and thread2 will block
-	 * until it's done. 
-	 *
-	 * We could still get out of order if thread2 arrives here before
-	 * thread1. Most images will be wide enough that many tiles will fit
-	 * across the image for row0 and they would all have to be delayed
-	 * behind a row1 request. This seems very unlikely, but perhaps could
-	 * happen for a very tall, thin image with a very large shrink factor. 
+	 * To fix this, put another seq on the output of vshrink. Now we'll
+	 * always have the previous XX lines of the shrunk image, and we won't
+	 * fetch out of order. 
 	 */
 	if( vips_image_get_typeof( in, VIPS_META_SEQUENTIAL ) ) { 
 		g_info( "shrinkv sequential line cache" ); 
 
-		if( vips_linecache( in, &t[3], 
-			"access", VIPS_ACCESS_SEQUENTIAL,
+		if( vips_sequential( in, &t[3], 
 			"tile_height", 10,
-			"threaded", FALSE, 
 			NULL ) )
 			return( -1 );
 		in = t[3];
