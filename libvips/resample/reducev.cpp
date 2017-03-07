@@ -1,4 +1,4 @@
-/* horizontal reduce by a float factor with lanczos3
+/* vertical reduce by a float factor with a kernel
  *
  * 29/1/16
  * 	- from shrinkv.c
@@ -15,6 +15,8 @@
  * 	- rename yshrink as vshrink for consistency
  * 9/9/16
  * 	- add @centre option
+ * 7/3/17
+ * 	- add a seq line cache
  */
 
 /*
@@ -717,7 +719,7 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 }
 
 static int
-vips_reducev_raw( VipsReducev *reducev, VipsImage *in ) 
+vips_reducev_raw( VipsReducev *reducev, VipsImage *in, VipsImage **out ) 
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( reducev );
 	VipsResample *resample = VIPS_RESAMPLE( reducev );
@@ -783,7 +785,8 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 		generate = vips_reducev_vector_gen;
 	}
 
-	if( vips_image_pipelinev( resample->out, 
+	*out = vips_image_new();
+	if( vips_image_pipelinev( *out, 
 		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL ) )
 		return( -1 );
 
@@ -794,9 +797,9 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	resample->out->Ysize = VIPS_ROUND_UINT( 
+	(*out)->Ysize = VIPS_ROUND_UINT( 
 		resample->in->Ysize / reducev->vshrink );
-	if( resample->out->Ysize <= 0 ) { 
+	if( (*out)->Ysize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
 		return( -1 );
@@ -805,15 +808,15 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in )
 #ifdef DEBUG
 	printf( "vips_reducev_build: reducing %d x %d image to %d x %d\n", 
 		in->Xsize, in->Ysize, 
-		resample->out->Xsize, resample->out->Ysize );  
+		(*out)->Xsize, (*out)->Ysize );  
 #endif /*DEBUG*/
 
-	if( vips_image_generate( resample->out,
+	if( vips_image_generate( *out,
 		vips_reducev_start, generate, vips_reducev_stop, 
 		in, reducev ) )
 		return( -1 );
 
-	vips_reorder_margin_hint( resample->out, reducev->n_point ); 
+	vips_reorder_margin_hint( *out, reducev->n_point ); 
 
 	return( 0 );
 }
@@ -824,7 +827,7 @@ vips_reducev_build( VipsObject *object )
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsReducev *reducev = (VipsReducev *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	VipsImage *in;
 	int height;
@@ -871,8 +874,32 @@ vips_reducev_build( VipsObject *object )
 		return( -1 );
 	in = t[1];
 
-	if( vips_reducev_raw( reducev, in ) )
+	if( vips_reducev_raw( reducev, in, &t[2] ) )
 		return( -1 );
+	in = t[2];
+
+	/* Large reducev will throw off sequential mode. Suppose thread1 is
+	 * generating tile (0, 0), but stalls. thread2 generates tile
+	 * (0, 1), 128 lines further down the output. After it has done,
+	 * thread1 tries to generate (0, 0), but by then the pixels it needs
+	 * have gone from the input image line cache if the reducev is large.
+	 *
+	 * To fix this, put another seq on the output of reducev. Now we'll
+	 * always have the previous XX lines of the shrunk image, and we won't
+	 * fetch out of order. 
+	 */
+	if( vips_image_get_typeof( in, VIPS_META_SEQUENTIAL ) ) { 
+		g_info( "reducev sequential line cache" ); 
+
+		if( vips_sequential( in, &t[3], 
+			"tile_height", 10,
+			NULL ) )
+			return( -1 );
+		in = t[3];
+	}
+
+	if( vips_image_write( in, resample->out ) )
+		return( -1 ); 
 
 	return( 0 );
 }

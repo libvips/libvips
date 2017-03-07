@@ -1,5 +1,3 @@
-- should we put a seq on the output of reducev as well?
-
 
 - vips_object_class_install_argument() should check for duplicate priorities,
   it's been behind a few nasty bugs

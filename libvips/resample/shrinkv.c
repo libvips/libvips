@@ -1,4 +1,4 @@
-/* shrink with a box filter
+/* vertical shrink with a box filter
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -43,6 +43,8 @@
  * 	  factors
  * 15/8/16
  * 	- rename yshrink -> vshrink for greater consistency 
+ * 7/3/17
+ * 	- add a seq line cache
  */
 
 /*

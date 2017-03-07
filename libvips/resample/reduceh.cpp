@@ -1,4 +1,4 @@
-/* horizontal reduce by a float factor with lanczos3
+/* horizontal reduce by a float factor with a kernel
  *
  * 29/1/16
  * 	- from shrinkh.c
