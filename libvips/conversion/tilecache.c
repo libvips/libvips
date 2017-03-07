@@ -875,8 +875,6 @@ vips_tilecache( VipsImage *in, VipsImage **out, ... )
 typedef struct _VipsLineCache {
 	VipsBlockCache parent_instance;
 
-	VipsAccess access;
-
 } VipsLineCache;
 
 typedef VipsBlockCacheClass VipsLineCacheClass;
@@ -919,6 +917,9 @@ vips_line_cache_build( VipsObject *object )
 
 	VIPS_DEBUG_MSG( "vips_line_cache_build\n" );
 
+	if( !vips_object_argument_isset( object, "access" ) ) 
+		block_cache->access = VIPS_ACCESS_SEQUENTIAL;
+
 	if( VIPS_OBJECT_CLASS( vips_line_cache_parent_class )->
 		build( object ) )
 		return( -1 );
@@ -927,9 +928,7 @@ vips_line_cache_build( VipsObject *object )
 	 */
 	block_cache->tile_width = block_cache->in->Xsize;
 
-	block_cache->access = cache->access; 
-
-	if( cache->access == VIPS_ACCESS_SEQUENTIAL_UNBUFFERED )
+	if( block_cache->access == VIPS_ACCESS_SEQUENTIAL_UNBUFFERED )
 		/* A tile per thread. 
 		 *
 		 * Imagine scanline tiles and four threads. And add a bit for
@@ -983,31 +982,19 @@ vips_line_cache_build( VipsObject *object )
 static void
 vips_line_cache_class_init( VipsLineCacheClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_line_cache_class_init\n" );
 
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
 	vobject_class->nickname = "linecache";
 	vobject_class->description = _( "cache an image as a set of lines" );
 	vobject_class->build = vips_line_cache_build;
-
-	VIPS_ARG_ENUM( class, "access", 6, 
-		_( "Access" ), 
-		_( "Expected access pattern" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsLineCache, access ),
-		VIPS_TYPE_ACCESS, VIPS_ACCESS_SEQUENTIAL );
 
 }
 
 static void
 vips_line_cache_init( VipsLineCache *cache )
 {
-	cache->access = VIPS_ACCESS_SEQUENTIAL;
 }
 
 /**

@@ -1,9 +1,3 @@
-
-- vips linecache has access there twice!
-
-	 $ vips linecache
-	 ...
-
 - not sure about utf8 error messages on win
 
 - strange: 
