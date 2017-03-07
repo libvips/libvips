@@ -373,11 +373,17 @@ vips_math2_const_buffer( VipsArithmetic *arithmetic,
 	int i, x, b;
 
 	switch( math2->math2 ) {
-	case VIPS_OPERATION_MATH2_POW: 	SWITCH( LOOPC, POW ); break;
-	case VIPS_OPERATION_MATH2_WOP: 	SWITCH( LOOPC, WOP ); break;
+	case VIPS_OPERATION_MATH2_POW: 	
+		SWITCH( LOOPC, POW ); 
+		break;
+
+	case VIPS_OPERATION_MATH2_WOP: 	
+		SWITCH( LOOPC, WOP ); 
+		break;
 
         default:
 		g_assert_not_reached();
+		break;
         }
 }
 
@@ -415,7 +421,7 @@ vips_math2_const_init( VipsMath2Const *math2_const )
 
 static int
 vips_math2_constv( VipsImage *in, VipsImage **out, 
-	VipsOperationMath2 math2, double *c, int n, va_list ap )
+	double *c, int n, VipsOperationMath2 math2, va_list ap )
 {
 	VipsArea *area_c;
 	double *array; 
@@ -427,7 +433,7 @@ vips_math2_constv( VipsImage *in, VipsImage **out,
 	for( i = 0; i < n; i++ ) 
 		array[i] = c[i];
 
-	result = vips_call_split( "math2_const", ap, in, out, math2, area_c );
+	result = vips_call_split( "math2_const", ap, in, out, area_c, math2 );
 
 	vips_area_unref( area_c );
 
@@ -438,9 +444,9 @@ vips_math2_constv( VipsImage *in, VipsImage **out,
  * vips_math2_const:
  * @in: input image
  * @out: output image
- * @math2: math operation to perform
  * @c: array of constants 
  * @n: number of constants in @c
+ * @math2: math operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation calculates various 2-ary maths operations on an image and 
@@ -465,13 +471,13 @@ vips_math2_constv( VipsImage *in, VipsImage **out,
  */
 int
 vips_math2_const( VipsImage *in, VipsImage **out, 
-	VipsOperationMath2 math2, double *c, int n, ... )
+	double *c, int n, VipsOperationMath2 math2, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, n );
-	result = vips_math2_constv( in, out, math2, c, n, ap ); 
+	va_start( ap, math2 );
+	result = vips_math2_constv( in, out, c, n, math2, ap ); 
 	va_end( ap );
 
 	return( result );
@@ -498,7 +504,7 @@ vips_pow_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_math2_constv( in, out, 
-		VIPS_OPERATION_MATH2_POW, c, n, ap );
+		c, n, VIPS_OPERATION_MATH2_POW, ap );
 	va_end( ap );
 
 	return( result );
@@ -525,7 +531,7 @@ vips_wop_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_math2_constv( in, out, 
-		VIPS_OPERATION_MATH2_WOP, c, n, ap );
+		c, n, VIPS_OPERATION_MATH2_WOP, ap );
 	va_end( ap );
 
 	return( result );
@@ -546,13 +552,13 @@ vips_wop_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  */
 int
 vips_math2_const1( VipsImage *in, VipsImage **out, 
-	VipsOperationMath2 math2, double c, ... )
+	double c, VipsOperationMath2 math2, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, c );
-	result = vips_math2_constv( in, out, math2, &c, 1, ap ); 
+	va_start( ap, math2 );
+	result = vips_math2_constv( in, out, &c, 1, math2, ap ); 
 	va_end( ap );
 
 	return( result );
@@ -578,7 +584,7 @@ vips_pow_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_math2_constv( in, out, 
-		VIPS_OPERATION_MATH2_POW, &c, 1, ap );
+		&c, 1, VIPS_OPERATION_MATH2_POW, ap );
 	va_end( ap );
 
 	return( result );
@@ -604,7 +610,7 @@ vips_wop_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_math2_constv( in, out, 
-		VIPS_OPERATION_MATH2_WOP, &c, 1, ap );
+		&c, 1, VIPS_OPERATION_MATH2_WOP, ap );
 	va_end( ap );
 
 	return( result );

@@ -574,7 +574,7 @@ vips_relational_const_init( VipsRelationalConst *relational_const )
 
 static int
 vips_relational_constv( VipsImage *in, VipsImage **out, 
-	VipsOperationRelational relational, double *c, int n, va_list ap )
+	double *c, int n, VipsOperationRelational relational, va_list ap )
 {
 	VipsArea *area_c;
 	double *array; 
@@ -587,7 +587,7 @@ vips_relational_constv( VipsImage *in, VipsImage **out,
 		array[i] = c[i];
 
 	result = vips_call_split( "relational_const", ap, 
-		in, out, relational, area_c );
+		in, out, area_c, relational );
 
 	vips_area_unref( area_c );
 
@@ -598,9 +598,9 @@ vips_relational_constv( VipsImage *in, VipsImage **out,
  * vips_relational_const:
  * @in: input image
  * @out: output image
- * @relational: relational operation to perform
  * @c: array of constants 
  * @n: number of constants in @c
+ * @relational: relational operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform various relational operations on an image and an array of
@@ -621,13 +621,13 @@ vips_relational_constv( VipsImage *in, VipsImage **out,
  */
 int
 vips_relational_const( VipsImage *in, VipsImage **out, 
-	VipsOperationRelational relational, double *c, int n, ... )
+	double *c, int n, VipsOperationRelational relational, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, n );
-	result = vips_relational_constv( in, out, relational, c, n, ap );
+	va_start( ap, relational );
+	result = vips_relational_constv( in, out, c, n, relational, ap );
 	va_end( ap );
 
 	return( result );
@@ -654,7 +654,7 @@ vips_equal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_EQUAL, c, n, ap );
+		c, n, VIPS_OPERATION_RELATIONAL_EQUAL, ap );
 	va_end( ap );
 
 	return( result );
@@ -681,7 +681,7 @@ vips_notequal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQ, c, n, ap );
+		c, n, VIPS_OPERATION_RELATIONAL_NOTEQ, ap );
 	va_end( ap );
 
 	return( result );
@@ -708,7 +708,7 @@ vips_less_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_LESS, c, n, ap );
+		c, n, VIPS_OPERATION_RELATIONAL_LESS, ap );
 	va_end( ap );
 
 	return( result );
@@ -735,7 +735,7 @@ vips_lesseq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_LESSEQ, c, n, ap );
+		c, n, VIPS_OPERATION_RELATIONAL_LESSEQ, ap );
 	va_end( ap );
 
 	return( result );
@@ -762,7 +762,7 @@ vips_more_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_MORE, c, n, ap );
+		c, n, VIPS_OPERATION_RELATIONAL_MORE, ap );
 	va_end( ap );
 
 	return( result );
@@ -789,7 +789,7 @@ vips_moreeq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_MOREEQ, c, n, ap );
+		c, n, VIPS_OPERATION_RELATIONAL_MOREEQ, ap );
 	va_end( ap );
 
 	return( result );
@@ -799,8 +799,8 @@ vips_moreeq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * vips_relational_const1:
  * @in: input image
  * @out: output image
- * @relational: relational operation to perform
  * @c: constant 
+ * @relational: relational operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform various relational operations on an image and a constant. See
@@ -812,13 +812,13 @@ vips_moreeq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  */
 int
 vips_relational_const1( VipsImage *in, VipsImage **out, 
-	VipsOperationRelational relational, double c, ... )
+	double c, VipsOperationRelational relational, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, c );
-	result = vips_relational_constv( in, out, relational, &c, 1, ap );
+	va_start( ap, relational );
+	result = vips_relational_constv( in, out, &c, 1, relational, ap );
 	va_end( ap );
 
 	return( result );
@@ -844,7 +844,7 @@ vips_equal_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_EQUAL, &c, 1, ap );
+		&c, 1, VIPS_OPERATION_RELATIONAL_EQUAL, ap );
 	va_end( ap );
 
 	return( result );
@@ -870,7 +870,7 @@ vips_notequal_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_NOTEQ, &c, 1, ap );
+		&c, 1, VIPS_OPERATION_RELATIONAL_NOTEQ, ap );
 	va_end( ap );
 
 	return( result );
@@ -896,7 +896,7 @@ vips_less_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_LESS, &c, 1, ap );
+		&c, 1, VIPS_OPERATION_RELATIONAL_LESS, ap );
 	va_end( ap );
 
 	return( result );
@@ -922,7 +922,7 @@ vips_lesseq_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_LESSEQ, &c, 1, ap );
+		&c, 1, VIPS_OPERATION_RELATIONAL_LESSEQ, ap );
 	va_end( ap );
 
 	return( result );
@@ -948,7 +948,7 @@ vips_more_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_MORE, &c, 1, ap );
+		&c, 1, VIPS_OPERATION_RELATIONAL_MORE, ap );
 	va_end( ap );
 
 	return( result );
@@ -974,7 +974,7 @@ vips_moreeq_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_relational_constv( in, out, 
-		VIPS_OPERATION_RELATIONAL_MOREEQ, &c, 1, ap );
+		&c, 1, VIPS_OPERATION_RELATIONAL_MOREEQ, ap );
 	va_end( ap );
 
 	return( result );

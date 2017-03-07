@@ -508,40 +508,40 @@ vips_insert_class_init( VipsInsertClass *class )
 	 */
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "main", -1, 
+	VIPS_ARG_IMAGE( class, "main", 0, 
 		_( "Main" ), 
 		_( "Main input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsInsert, main ) );
 
-	VIPS_ARG_IMAGE( class, "sub", 0, 
+	VIPS_ARG_IMAGE( class, "sub", 1, 
 		_( "Sub-image" ), 
 		_( "Sub-image to insert into main image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsInsert, sub ) );
 
-	VIPS_ARG_INT( class, "x", 2, 
+	VIPS_ARG_INT( class, "x", 3, 
 		_( "X" ), 
 		_( "Left edge of sub in main" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsInsert, x ),
 		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "y", 3, 
+	VIPS_ARG_INT( class, "y", 4, 
 		_( "Y" ), 
 		_( "Top edge of sub in main" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsInsert, y ),
 		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_BOOL( class, "expand", 4, 
+	VIPS_ARG_BOOL( class, "expand", 5, 
 		_( "Expand" ), 
 		_( "Expand output to hold all of both inputs" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsInsert, expand ),
 		FALSE );
 
-	VIPS_ARG_BOXED( class, "background", 5, 
+	VIPS_ARG_BOXED( class, "background", 6, 
 		_( "Background" ), 
 		_( "Color for new pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
