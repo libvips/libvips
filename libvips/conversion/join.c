@@ -228,19 +228,19 @@ vips_join_class_init( VipsJoinClass *class )
 	vobject_class->description = _( "join a pair of images" );
 	vobject_class->build = vips_join_build;
 
-	VIPS_ARG_IMAGE( class, "in1", -1, 
+	VIPS_ARG_IMAGE( class, "in1", 0, 
 		_( "in1" ), 
 		_( "First input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsJoin, in1 ) );
 
-	VIPS_ARG_IMAGE( class, "in2", 0, 
+	VIPS_ARG_IMAGE( class, "in2", 1, 
 		_( "in2" ), 
 		_( "Second input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsJoin, in2 ) );
 
-	VIPS_ARG_ENUM( class, "direction", 2, 
+	VIPS_ARG_ENUM( class, "direction", 3, 
 		_( "direction" ), 
 		_( "Join left-right or up-down" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
@@ -268,7 +268,7 @@ vips_join_class_init( VipsJoinClass *class )
 		G_STRUCT_OFFSET( VipsJoin, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
-	VIPS_ARG_ENUM( class, "align", 2, 
+	VIPS_ARG_ENUM( class, "align", 7, 
 		_( "Align" ), 
 		_( "Align on the low, centre or high coordinate edge" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

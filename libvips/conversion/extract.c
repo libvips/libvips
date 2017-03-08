@@ -190,34 +190,34 @@ vips_extract_area_class_init( VipsExtractAreaClass *class )
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
 
-	VIPS_ARG_IMAGE( class, "input", 0, 
+	VIPS_ARG_IMAGE( class, "input", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, in ) );
 
-	VIPS_ARG_INT( class, "left", 2, 
+	VIPS_ARG_INT( class, "left", 3, 
 		_( "Left" ), 
 		_( "Left edge of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, left ),
 		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "top", 3, 
+	VIPS_ARG_INT( class, "top", 4, 
 		_( "Top" ), 
 		_( "Top edge of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, top ),
 		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "width", 4, 
+	VIPS_ARG_INT( class, "width", 5, 
 		_( "Width" ), 
 		_( "Width of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsExtractArea, width ),
 		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "height", 5, 
+	VIPS_ARG_INT( class, "height", 6, 
 		_( "Height" ), 
 		_( "Height of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
@@ -413,7 +413,7 @@ vips_extract_band_class_init( VipsExtractBandClass *class )
 
 	bandary_class->process_line = vips_extract_band_buffer;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
+	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,

@@ -210,7 +210,7 @@ vips_conversion_class_init( VipsConversionClass *class )
 	vobject_class->description = _( "conversion operations" );
 	vobject_class->build = vips_conversion_build;
 
-	VIPS_ARG_IMAGE( class, "out", 1, 
+	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Output" ), 
 		_( "Output image" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
