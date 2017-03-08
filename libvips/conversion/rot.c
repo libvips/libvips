@@ -26,6 +26,8 @@
  * 	- gtkdoc
  * 4/11/11
  * 	- rewrite as a class
+ * 7/3/17
+ * 	- added 90/180/270 convenience functions
  */
 
 /*
@@ -374,6 +376,12 @@ vips_rot_init( VipsRot *rot )
 {
 }
 
+static int
+vips_rotv( VipsImage *in, VipsImage **out, VipsAngle angle, va_list ap )
+{
+	return( vips_call_split( "rot", ap, in, out, angle ) );
+}
+
 /**
  * vips_rot:
  * @in: input image
@@ -397,7 +405,82 @@ vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 	int result;
 
 	va_start( ap, angle );
-	result = vips_call_split( "rot", ap, in, out, angle );
+	result = vips_rotv( in, out, angle, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_rot90:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Rotate @in by 90 degress clockwise. A convenience function over vips_rot().
+ *
+ * See also: vips_rot().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_rot90( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_rotv( in, out, VIPS_ANGLE_D90, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_rot180:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Rotate @in by 180 degress. A convenience function over vips_rot().
+ *
+ * See also: vips_rot().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_rot180( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_rotv( in, out, VIPS_ANGLE_D180, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_rot270:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Rotate @in by 270 degress clockwise. A convenience function over vips_rot().
+ *
+ * See also: vips_rot().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_rot270( VipsImage *in, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_rotv( in, out, VIPS_ANGLE_D270, ap );
 	va_end( ap );
 
 	return( result );

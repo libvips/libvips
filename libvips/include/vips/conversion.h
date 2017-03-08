@@ -124,6 +124,12 @@ int vips_wrap( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )
 	__attribute__((sentinel));
+int vips_rot90( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_rot180( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_rot270( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_rot45( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 VipsAngle vips_autorot_get_angle( VipsImage *image );
