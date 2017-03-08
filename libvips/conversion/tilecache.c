@@ -33,6 +33,8 @@
  * 	- free the hash table in _dispose()
  * 11/7/16
  * 	- terminate on tile calc error
+ * 7/3/17
+ * 	- remove "access" on linecache, use the base class instead
  */
 
 /*
