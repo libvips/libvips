@@ -357,6 +357,8 @@ vips_interesting_get_type( void )
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
+			{VIPS_INTERESTING_NONE, "VIPS_INTERESTING_NONE", "none"},
+			{VIPS_INTERESTING_CENTRE, "VIPS_INTERESTING_CENTRE", "centre"},
 			{VIPS_INTERESTING_ENTROPY, "VIPS_INTERESTING_ENTROPY", "entropy"},
 			{VIPS_INTERESTING_ATTENTION, "VIPS_INTERESTING_ATTENTION", "attention"},
 			{VIPS_INTERESTING_LAST, "VIPS_INTERESTING_LAST", "last"},

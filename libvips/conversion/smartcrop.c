@@ -146,6 +146,8 @@ vips_smartcrop_score( VipsSmartcrop *smartcrop, VipsImage *image, double *score 
 			return( -1 ); 
 		break;
 
+	case VIPS_INTERESTING_CENTRE:
+	case VIPS_INTERESTING_NONE:
 	default:
 		g_assert_not_reached();
 		break;
@@ -201,65 +203,86 @@ vips_smartcrop_build( VipsObject *object )
 		ceil( (width - smartcrop->width) / 8.0 ),
 		ceil( (height - smartcrop->height) / 8.0 ) );
 
-	/* Repeatedly take a slice off width and height until we 
-	 * reach the target.
-	 */
-	while( width > smartcrop->width ||
-		height > smartcrop->height ) {
-		const int slice_width = 
-			VIPS_MIN( width - smartcrop->width, max_slice_size );
-		const int slice_height = 
-			VIPS_MIN( height - smartcrop->height, max_slice_size );
+	switch( smartcrop->interesting ) {
+	case VIPS_INTERESTING_NONE:
+		break;
 
-		if( slice_width > 0 ) { 
-			VipsImage **t = (VipsImage **) 
-				vips_object_local_array( object, 4 );
+	case VIPS_INTERESTING_CENTRE:
+		width = smartcrop->width;
+		height = smartcrop->height;
+		left = (in->Xsize - width) / 2;
+		top = (in->Ysize - height) / 2;
+		break;
 
-			double left_score;
-			double right_score;
+	case VIPS_INTERESTING_ENTROPY:
+	case VIPS_INTERESTING_ATTENTION:
+		/* Repeatedly take a slice off width and height until we 
+		 * reach the target.
+		 */
+		while( width > smartcrop->width ||
+			height > smartcrop->height ) {
+			const int slice_width = 
+				VIPS_MIN( width - smartcrop->width, 
+					max_slice_size );
+			const int slice_height = 
+				VIPS_MIN( height - smartcrop->height, 
+					max_slice_size );
 
-			if( vips_extract_area( in, &t[0], 
-				left, top, slice_width, height, NULL ) ||
-				vips_smartcrop_score( smartcrop, t[0], 
-					&left_score ) )
-				return( -1 );
+			if( slice_width > 0 ) { 
+				VipsImage **t = (VipsImage **) 
+					vips_object_local_array( object, 4 );
 
-			if( vips_extract_area( in, &t[1], 
-				left + width - slice_width, top, 
-				slice_width, height, NULL ) ||
-				vips_smartcrop_score( smartcrop, t[1], 
-					&right_score ) )
-				return( -1 ); 
+				double left_score;
+				double right_score;
 
-			width -= slice_width;
-			if( left_score < right_score ) 
-				left += slice_width;
+				if( vips_extract_area( in, &t[0], 
+					left, top, slice_width, height, NULL ) ||
+					vips_smartcrop_score( smartcrop, t[0], 
+						&left_score ) )
+					return( -1 );
+
+				if( vips_extract_area( in, &t[1], 
+					left + width - slice_width, top, 
+					slice_width, height, NULL ) ||
+					vips_smartcrop_score( smartcrop, t[1], 
+						&right_score ) )
+					return( -1 ); 
+
+				width -= slice_width;
+				if( left_score < right_score ) 
+					left += slice_width;
+			}
+
+			if( slice_height > 0 ) { 
+				VipsImage **t = (VipsImage **) 
+					vips_object_local_array( object, 4 );
+
+				double top_score;
+				double bottom_score;
+
+				if( vips_extract_area( in, &t[0], 
+					left, top, width, slice_height, NULL ) ||
+					vips_smartcrop_score( smartcrop, t[0], 
+						&top_score ) )
+					return( -1 );
+
+				if( vips_extract_area( in, &t[1], 
+					left, top + height - slice_height, 
+					width, slice_height, NULL ) ||
+					vips_smartcrop_score( smartcrop, t[1], 
+						&bottom_score ) )
+					return( -1 ); 
+
+				height -= slice_height;
+				if( top_score < bottom_score ) 
+					top += slice_height;
+			}
 		}
+		break;
 
-		if( slice_height > 0 ) { 
-			VipsImage **t = (VipsImage **) 
-				vips_object_local_array( object, 4 );
-
-			double top_score;
-			double bottom_score;
-
-			if( vips_extract_area( in, &t[0], 
-				left, top, width, slice_height, NULL ) ||
-				vips_smartcrop_score( smartcrop, t[0], 
-					&top_score ) )
-				return( -1 );
-
-			if( vips_extract_area( in, &t[1], 
-				left, top + height - slice_height, 
-				width, slice_height, NULL ) ||
-				vips_smartcrop_score( smartcrop, t[1], 
-					&bottom_score ) )
-				return( -1 ); 
-
-			height -= slice_height;
-			if( top_score < bottom_score ) 
-				top += slice_height;
-		}
+	default:
+		g_assert_not_reached();
+		break;
 	}
 
 	/* And our output is the final crop.

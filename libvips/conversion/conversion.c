@@ -99,6 +99,8 @@
 
 /** 
  * VipsInteresting:
+ * @VIPS_INTERESTING_NONE: do nothing
+ * @VIPS_INTERESTING_CENTRE: just take the centre
  * @VIPS_INTERESTING_ENTROPY: use an entropy measure
  * @VIPS_INTERESTING_ATTENTION: look for features likely to draw human attention
  *

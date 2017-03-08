@@ -73,7 +73,7 @@ typedef struct _VipsThumbnail {
 	VipsSize size;
 
 	gboolean auto_rotate;
-	gboolean crop;
+	VipsInteresting crop;
 	gboolean linear;
 	char *export_profile;
 	char *import_profile;
@@ -160,7 +160,7 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 	double horizontal = (double) width / thumbnail->width;
 	double vertical = (double) height / thumbnail->height;
 
-	if( thumbnail->crop ) {
+	if( thumbnail->crop != VIPS_INTERESTING_NONE ) {
 		if( horizontal < vertical )
 			direction = VIPS_DIRECTION_HORIZONTAL;
 		else
@@ -483,17 +483,21 @@ vips_thumbnail_build( VipsObject *object )
 
 	/* Crop after rotate so we don't need to rotate the crop box.
 	 */
-	if( thumbnail->crop ) {
-		int left = (in->Xsize - thumbnail->width) / 2;
-		int top = (in->Ysize - thumbnail->height) / 2;
-
+	if( thumbnail->crop != VIPS_INTERESTING_NONE ) {
 		g_info( "cropping to %dx%d",
 			thumbnail->width, thumbnail->height ); 
 
-		if( vips_extract_area( in, &t[8], left, top, 
-			thumbnail->width, thumbnail->height, NULL ) )
+		/* Need to copy to memory, we have to stay seq.
+		 *
+		 * FIXME ... could skip the copy if we've rotated.
+		 */
+		if( !(t[8] = vips_image_copy_memory( in )) ||
+			vips_smartcrop( t[8], &t[11], 
+				thumbnail->width, thumbnail->height, 
+				"interesting", thumbnail->crop,
+				NULL ) )
 			return( -1 ); 
-		in = t[8];
+		in = t[11];
 	}
 
 	g_object_set( thumbnail, "out", vips_image_new(), NULL ); 
@@ -553,12 +557,12 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 		G_STRUCT_OFFSET( VipsThumbnail, auto_rotate ),
 		TRUE ); 
 
-	VIPS_ARG_BOOL( class, "crop", 116, 
+	VIPS_ARG_ENUM( class, "crop", 116, 
 		_( "Crop" ), 
 		_( "Reduce to fill target rectangle, then crop" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsThumbnail, crop ),
-		FALSE ); 
+		VIPS_TYPE_INTERESTING, VIPS_INTERESTING_NONE ); 
 
 	VIPS_ARG_BOOL( class, "linear", 117, 
 		_( "Linear" ), 
@@ -694,7 +698,7 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * * @height: %gint, target height in pixels
  * * @size: #VipsSize, upsize, downsize or both
  * * @auto_rotate: %gboolean, rotate upright using orientation tag
- * * @crop: %gboolean, shrink and crop to fill target
+ * * @crop: #VipsInteresting, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light
  * * @import_profile: %gchararray, fallback import ICC profile
  * * @export_profile: %gchararray, export ICC profile
@@ -711,7 +715,8 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * specify a separate height with the @height option. 
  *
  * If you set @crop, then the output image will fill the whole of the @width x
- * @height rectangle, with any excess cropped away.
+ * @height rectangle, with any excess cropped away. See vips_smartcrop() for
+ * details on the cropping strategy.
  *
  * Normally the operation will upsize or downsize as required. If @size is set
  * to #VIPS_SIZE_UP, the operation will only upsize and will just
@@ -862,7 +867,7 @@ vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
  * * @height: %gint, target height in pixels
  * * @size: #VipsSize, upsize, downsize or both
  * * @auto_rotate: %gboolean, rotate upright using orientation tag
- * * @crop: %gboolean, shrink and crop to fill target
+ * * @crop: #VipsInteresting, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light
  * * @import_probuffer: %gchararray, fallback import ICC probuffer
  * * @export_probuffer: %gchararray, export ICC probuffer

@@ -120,6 +120,7 @@ static char *import_profile = NULL;
 static gboolean delete_profile = FALSE;
 static gboolean linear_processing = FALSE;
 static gboolean crop_image = FALSE;
+static char *smartcrop_image = NULL;
 static gboolean rotate_image = FALSE;
 
 /* Deprecated and unused.
@@ -144,18 +145,18 @@ static GOptionEntry options[] = {
 		N_( "set output format string to FORMAT" ), 
 		N_( "FORMAT" ) },
 	{ "eprofile", 'e', 0, 
-		G_OPTION_ARG_STRING, &export_profile, 
+		G_OPTION_ARG_FILENAME, &export_profile, 
 		N_( "export with PROFILE" ), 
 		N_( "PROFILE" ) },
 	{ "iprofile", 'i', 0, 
-		G_OPTION_ARG_STRING, &import_profile, 
+		G_OPTION_ARG_FILENAME, &import_profile, 
 		N_( "import untagged images with PROFILE" ), 
 		N_( "PROFILE" ) },
 	{ "linear", 'a', 0, 
 		G_OPTION_ARG_NONE, &linear_processing, 
 		N_( "process in linear space" ), NULL },
-	{ "crop", 'c', 0, 
-		G_OPTION_ARG_NONE, &crop_image, 
+	{ "smartcrop", 'c', 0, 
+		G_OPTION_ARG_STRING, &smartcrop_image, 
 		N_( "crop exactly to SIZE" ), NULL },
 	{ "rotate", 't', 0, 
 		G_OPTION_ARG_NONE, &rotate_image, 
@@ -164,6 +165,9 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_NONE, &delete_profile, 
 		N_( "delete profile from exported image" ), NULL },
 
+	{ "crop", 'c', G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_NONE, &crop_image, 
+		N_( "(deprecated, crop exactly to SIZE)" ), NULL },
 	{ "verbose", 'v', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_NONE, &verbose, 
 		N_( "(deprecated, does nothing)" ), NULL },
@@ -235,13 +239,22 @@ thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 static int
 thumbnail_process( VipsObject *process, const char *filename )
 {
+	VipsInteresting interesting;
 	VipsImage *image;
+
+	interesting = VIPS_INTERESTING_NONE;
+	if( crop_image )
+		interesting = VIPS_INTERESTING_CENTRE;
+	if( smartcrop_image &&
+		(interesting = vips_enum_from_nick( "vipsthumbnail", 
+			VIPS_TYPE_INTERESTING, smartcrop_image )) < 0 ) 
+		return( -1 ); 
 
 	if( vips_thumbnail( filename, &image, thumbnail_width, 
 		"height", thumbnail_height, 
 		"size", size_restriction, 
 		"auto_rotate", rotate_image, 
-		"crop", crop_image, 
+		"crop", interesting, 
 		"linear", linear_processing, 
 		"import_profile", import_profile, 
 		"export_profile", export_profile, 
@@ -291,7 +304,9 @@ thumbnail_parse_geometry( const char *geometry )
 		/* If --crop is set, both width and height must be specified,
 		 * since we'll need a complete bounding box to fill.
 		 */
-		if( crop_image && x && (!w || !h) ) {
+		if( crop_image && 
+			x && 
+			(!w || !h) ) {
 			vips_error( "thumbnail",
 				"both width and height must be given if "
 				"--crop is enabled" );
