@@ -17,10 +17,6 @@
 
 - try moving some more of the CLI tests to py
 
-- try SEQ_UNBUFFERED on jpg source, get out of order error?
-
-- could load pdf thumbnails?
-
 - colour needs to split _build() into preprocess / process / postprocess
   phases
 
