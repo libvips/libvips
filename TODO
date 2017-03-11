@@ -59,32 +59,20 @@
 
 - why can't we do
 
-
-im = Vips.Image.new_from_file("/data/john/pics/k2.jpg", access = "sequential")
-
-
-
-import logging
-logging.basicConfig(level = logging.DEBUG)
-from gi.repository import Vips
-im = Vips.Image.new_from_file("/data/john/pics/k2.jpg", access = "sequential")
-
-DEBUG:gi.overrides.Vips:assigning sequential to access
-DEBUG:gi.overrides.Vips:access needs a <GType VipsAccess (20432752)>
-DEBUG:gi.overrides.Vips:assigning sequential
-
-  ValueError: invalid literal for int() with base 10: 'sequential'
+	im = Vips.Image.new_from_file("/data/john/pics/k2.jpg", access = "sequential")
 
   no idea ... this works fine:
 
   	im.embed(10, 10, 100, 100, extend = "copy")
 
-  what about 
+  test:
 
-	im = Vips.Image.jpegload(sys.argv[1], access = "sequential")
+	op = Vips.Operation.new("embed")
+	op.props.__setattr__("extend", "copy")
+	op = Vips.Operation.new("jpegload")
+	op.props.__setattr__("access", "sequential")
 
-  nope, fails too ... mysterious!
-
+  first setattr works fine, second fails with invalid literal
 
 
 
