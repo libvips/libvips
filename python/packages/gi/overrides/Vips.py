@@ -60,6 +60,11 @@ vips_type_image = GObject.GType.from_name("VipsImage")
 vips_type_operation = GObject.GType.from_name("VipsOperation")
 vips_type_ref_string = GObject.GType.from_name("VipsRefString")
 
+# 8.4 and earlier had a bug which swapped the order of const args to enum
+# operations
+swap_const_args = Vips.version(0) < 8 or (Vips.version(0) == 8 and 
+                                          Vips.version(1) <= 4)
+
 def is_2D(value):
     if not isinstance(value, list):
         return False
@@ -415,6 +420,27 @@ def _call_base(name, required, optional, self = None, option_string = None):
 
     return out
 
+# handy for expanding enums
+def _call_enum(self, name, enum, other):
+    if isinstance(other, Vips.Image):
+        return _call_base(name, [other, enum], {}, self)
+    elif swap_const_args:
+        return _call_base(name + "_const", [other, enum], {}, self)
+    else:
+        return _call_base(name + "_const", [enum, other], {}, self)
+
+# for equality style operations, we need to allow comparison with None
+def _call_enum_eq(self, name, enum, other):
+    if isinstance(other, Vips.Image):
+        return _call_base(name, [other, enum], {}, self)
+    elif isinstance(other, list) or isinstance(other, numbers.Number):
+        if swap_const_args:
+            return _call_base(name + "_const", [other, enum], {}, self)
+        else:
+            return _call_base(name + "_const", [enum, other], {}, self)
+    else:
+        return False
+
 # general user entrypoint 
 def call(name, *args, **kwargs):
     return _call_base(name, args, kwargs)
@@ -712,52 +738,34 @@ class Image(Vips.Image):
             return self.remainder_const(other)
 
     def __pow__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.math2(other, Vips.OperationMath2.POW)
-        else:
-            return self.math2_const(other, Vips.OperationMath2.POW)
+        return _call_enum(self, "math2", Vips.OperationMath2.POW, other)
 
     def __rpow__(self, other):
-        return self.math2_const(other, Vips.OperationMath2.WOP)
+        return _call_enum(self, "math2", Vips.OperationMath2.WOP, other)
 
     def __abs__(self):
         return self.abs()
 
     def __lshift__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.boolean(other, Vips.OperationBoolean.LSHIFT)
-        else:
-            return self.boolean_const(other, Vips.OperationBoolean.LSHIFT)
+        return _call_enum(self, "boolean", Vips.OperationBoolean.LSHIFT, other)
 
     def __rshift__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.boolean(other, Vips.OperationBoolean.RSHIFT)
-        else:
-            return self.boolean_const(other, Vips.OperationBoolean.RSHIFT)
+        return _call_enum(self, "boolean", Vips.OperationBoolean.RSHIFT, other)
 
     def __and__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.boolean(other, Vips.OperationBoolean.AND)
-        else:
-            return self.boolean_const(other, Vips.OperationBoolean.AND)
+        return _call_enum(self, "boolean", Vips.OperationBoolean.AND, other)
 
     def __rand__(self, other):
         return self.__and__(other)
 
     def __or__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.boolean(other, Vips.OperationBoolean.OR)
-        else:
-            return self.boolean_const(other, Vips.OperationBoolean.OR)
+        return _call_enum(self, "boolean", Vips.OperationBoolean.OR, other)
 
     def __ror__(self, other):
         return self.__or__(other)
 
     def __xor__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.boolean(other, Vips.OperationBoolean.EOR)
-        else:
-            return self.boolean_const(other, Vips.OperationBoolean.EOR)
+        return _call_enum(self, "boolean", Vips.OperationBoolean.EOR, other)
 
     def __rxor__(self, other):
         return self.__xor__(other)
@@ -772,49 +780,30 @@ class Image(Vips.Image):
         return self ^ -1
 
     def __gt__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.MORE)
-        else:
-            return self.relational_const(other, Vips.OperationRelational.MORE)
+        return _call_enum(self, 
+                          "relational", Vips.OperationRelational.MORE, other)
 
     def __ge__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.MOREEQ)
-        else:
-            return self.relational_const(other, Vips.OperationRelational.MOREEQ)
+        return _call_enum(self, 
+                          "relational", Vips.OperationRelational.MOREEQ, other)
 
     def __lt__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.LESS)
-        else:
-            return self.relational_const(other, Vips.OperationRelational.LESS)
+        return _call_enum(self, 
+                          "relational", Vips.OperationRelational.LESS, other)
 
     def __le__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.LESSEQ)
-        else:
-            return self.relational_const(other, Vips.OperationRelational.LESSEQ)
+        return _call_enum(self, 
+                          "relational", Vips.OperationRelational.LESSEQ, other)
 
     def __eq__(self, other):
-        # for == and != we need to allow comparison to None
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.EQUAL)
-        elif isinstance(other, list):
-            return self.relational_const(other, Vips.OperationRelational.EQUAL)
-        elif isinstance(other, numbers.Number):
-            return self.relational_const(other, Vips.OperationRelational.EQUAL)
-        else:
-            return False
+        # _eq version allows comparison to None
+        return _call_enum_eq(self, 
+                             "relational", Vips.OperationRelational.EQUAL, other)
 
     def __ne__(self, other):
-        if isinstance(other, Vips.Image):
-            return self.relational(other, Vips.OperationRelational.NOTEQ)
-        elif isinstance(other, list):
-            return self.relational_const(other, Vips.OperationRelational.NOTEQ)
-        elif isinstance(other, numbers.Number):
-            return self.relational_const(other, Vips.OperationRelational.NOTEQ)
-        else:
-            return False
+        # _eq version allows comparison to None
+        return _call_enum_eq(self, 
+                             "relational", Vips.OperationRelational.NOTEQ, other)
 
     def __getitem__(self, arg):
         if isinstance(arg, slice):

@@ -533,7 +533,7 @@ vips_boolean_const_init( VipsBooleanConst *boolean_const )
 
 static int
 vips_boolean_constv( VipsImage *in, VipsImage **out, 
-	double *c, int n, VipsOperationBoolean operation, va_list ap )
+	VipsOperationBoolean operation, double *c, int n, va_list ap )
 {
 	VipsArea *area_c;
 	double *array; 
@@ -546,7 +546,7 @@ vips_boolean_constv( VipsImage *in, VipsImage **out,
 		array[i] = c[i];
 
 	result = vips_call_split( "boolean_const", ap, 
-		in, out, area_c, operation );
+		in, out, operation, area_c );
 
 	vips_area_unref( area_c );
 
@@ -557,9 +557,9 @@ vips_boolean_constv( VipsImage *in, VipsImage **out,
  * vips_boolean_const:
  * @in: input image
  * @out: output image
+ * @boolean: boolean operation to perform
  * @c: array of constants 
  * @n: number of constants in @c
- * @boolean: boolean operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform various boolean operations on an image against an array of
@@ -580,13 +580,13 @@ vips_boolean_constv( VipsImage *in, VipsImage **out,
  */
 int
 vips_boolean_const( VipsImage *in, VipsImage **out, 
-	double *c, int n, VipsOperationBoolean boolean, ... )
+	VipsOperationBoolean boolean, double *c, int n, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, boolean );
-	result = vips_boolean_constv( in, out, c, n, boolean, ap );
+	va_start( ap, n );
+	result = vips_boolean_constv( in, out, boolean, c, n, ap );
 	va_end( ap );
 
 	return( result );
@@ -615,7 +615,7 @@ vips_andimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_boolean_constv( in, out, 
-		c, n, VIPS_OPERATION_BOOLEAN_AND, ap );
+		VIPS_OPERATION_BOOLEAN_AND, c, n, ap );
 	va_end( ap );
 
 	return( result );
@@ -644,7 +644,7 @@ vips_orimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_boolean_constv( in, out, 
-		c, n, VIPS_OPERATION_BOOLEAN_OR, ap );
+		VIPS_OPERATION_BOOLEAN_OR, c, n, ap );
 	va_end( ap );
 
 	return( result );
@@ -673,7 +673,7 @@ vips_eorimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_boolean_constv( in, out, 
-		c, n, VIPS_OPERATION_BOOLEAN_EOR, ap );
+		VIPS_OPERATION_BOOLEAN_EOR, c, n, ap );
 	va_end( ap );
 
 	return( result );
@@ -702,7 +702,7 @@ vips_lshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_boolean_constv( in, out, 
-		c, n, VIPS_OPERATION_BOOLEAN_LSHIFT, ap );
+		VIPS_OPERATION_BOOLEAN_LSHIFT, c, n, ap );
 	va_end( ap );
 
 	return( result );
@@ -731,7 +731,7 @@ vips_rshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 
 	va_start( ap, n );
 	result = vips_boolean_constv( in, out, 
-		c, n, VIPS_OPERATION_BOOLEAN_RSHIFT, ap );
+		VIPS_OPERATION_BOOLEAN_RSHIFT, c, n, ap );
 	va_end( ap );
 
 	return( result );
@@ -754,13 +754,13 @@ vips_rshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  */
 int
 vips_boolean_const1( VipsImage *in, VipsImage **out, 
-	double c, VipsOperationBoolean boolean, ... )
+	VipsOperationBoolean boolean, double c, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, boolean );
-	result = vips_boolean_constv( in, out, &c, 1, boolean, ap );
+	va_start( ap, c );
+	result = vips_boolean_constv( in, out, boolean, &c, 1, ap );
 	va_end( ap );
 
 	return( result );
@@ -788,7 +788,7 @@ vips_andimage_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_boolean_constv( in, out, 
-		&c, 1, VIPS_OPERATION_BOOLEAN_AND, ap );
+		VIPS_OPERATION_BOOLEAN_AND, &c, 1, ap );
 	va_end( ap );
 
 	return( result );
@@ -816,7 +816,7 @@ vips_orimage_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_boolean_constv( in, out, 
-		&c, 1, VIPS_OPERATION_BOOLEAN_OR, ap );
+		VIPS_OPERATION_BOOLEAN_OR, &c, 1, ap );
 	va_end( ap );
 
 	return( result );
@@ -844,7 +844,7 @@ vips_eorimage_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_boolean_constv( in, out, 
-		&c, 1, VIPS_OPERATION_BOOLEAN_EOR, ap );
+		VIPS_OPERATION_BOOLEAN_EOR, &c, 1, ap );
 	va_end( ap );
 
 	return( result );
@@ -872,7 +872,7 @@ vips_lshift_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_boolean_constv( in, out, 
-		&c, 1, VIPS_OPERATION_BOOLEAN_LSHIFT, ap );
+		VIPS_OPERATION_BOOLEAN_LSHIFT, &c, 1, ap );
 	va_end( ap );
 
 	return( result );
@@ -900,7 +900,7 @@ vips_rshift_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	va_start( ap, c );
 	result = vips_boolean_constv( in, out, 
-		&c, 1, VIPS_OPERATION_BOOLEAN_RSHIFT, ap );
+		VIPS_OPERATION_BOOLEAN_RSHIFT, &c, 1, ap );
 	va_end( ap );
 
 	return( result );

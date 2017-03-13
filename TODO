@@ -1,3 +1,50 @@
+- oh argh, need to swap _const args back
+
+  8.4 had:
+
+$ vips relational_const
+relational operations against a constant
+usage:
+   relational_const in out relational c
+where:
+   in           - Input image, input VipsImage
+   out          - Output image, output VipsImage
+   relational   - relational to perform, input VipsOperationRelational
+			default: equal
+			allowed: equal, noteq, less, lesseq, more, moreeq
+   c            - Array of constants, input VipsArrayDouble
+operation flags: sequential-unbuffered 
+
+$ vips boolean_const
+boolean operations against a constant
+usage:
+   boolean_const in out boolean c
+where:
+   in           - Input image, input VipsImage
+   out          - Output image, output VipsImage
+   boolean      - boolean to perform, input VipsOperationBoolean
+			default: and
+			allowed: and, or, eor, lshift, rshift
+   c            - Array of constants, input VipsArrayDouble
+operation flags: sequential-unbuffered 
+
+$ vips math2_const
+pow( @in, @c )
+usage:
+   math2_const in out math2 c
+where:
+   in           - Input image, input VipsImage
+   out          - Output image, output VipsImage
+   math2        - math to perform, input VipsOperationMath2
+			default: pow
+			allowed: pow, wop
+   c            - Array of constants, input VipsArrayDouble
+operation flags: sequential-unbuffered 
+
+
+
+
+
 - not sure about utf8 error messages on win
 
 - strange: 
@@ -421,4 +468,3 @@ new operations
 	http://www.nature.com/srep/2015/150730/srep12096/full/srep12096.html
 
   sounds useful for BM?
-

@@ -2749,7 +2749,7 @@ vips__relational_vec( IMAGE *in, IMAGE *out,
 {
 	VipsImage *t;
 
-	if( vips_relational_const( in, &t, c, n, relational, 
+	if( vips_relational_const( in, &t, relational, c, n, 
 		NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
@@ -2921,7 +2921,7 @@ vips__boolean_vec( IMAGE *in, IMAGE *out,
 {
 	VipsImage *t;
 
-	if( vips_boolean_const( in, &t, c, n, boolean,
+	if( vips_boolean_const( in, &t, boolean, c, n, 
 		NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
@@ -3008,7 +3008,7 @@ vips__math2_vec( IMAGE *in, IMAGE *out,
 {
 	VipsImage *t;
 
-	if( vips_math2_const( in, &t, c, n, math2, 
+	if( vips_math2_const( in, &t, math2, c, n, 
 		NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {

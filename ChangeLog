@@ -34,9 +34,6 @@
 - vips_region_shrink() knows about alpha, helps dzsave and tiffsave
 - use expat, not libxml, for XML load ... removes a required dependency, since
   we get expat as part of glib
-- the C functions vips_math2_const(), vips_boolean_const() and 
-  vips_relational_const() have changed argument order to match
-  Python/CLI/C++ ... sorry
 - added vips_rot90() etc. convenience functions
 - fix vips_resize() bug when hscale and vscale were very different
 
