@@ -805,7 +805,7 @@ vips_foreign_load_gif_class_init( VipsForeignLoadGifClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "gifload";
+	object_class->nickname = "gifload_base";
 	object_class->description = _( "load GIF with giflib" );
 
 	load_class->get_flags_filename = 

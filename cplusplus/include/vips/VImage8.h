@@ -699,15 +699,15 @@ public:
 	VImage 
 	pow( double other, VOption *options = 0 )
 	{
-		return( math2_const( to_vector( other ), 
-			VIPS_OPERATION_MATH2_POW, options ) );
+		return( math2_const( VIPS_OPERATION_MATH2_POW, 
+			to_vector( other ), options ) );
 	}
 
 	VImage 
 	pow( std::vector<double> other, VOption *options = 0 )
 	{
-		return( math2_const( other, 
-			VIPS_OPERATION_MATH2_POW, options ) );
+		return( math2_const( VIPS_OPERATION_MATH2_POW, 
+			other, options ) );
 	}
 
 	VImage 
@@ -719,15 +719,15 @@ public:
 	VImage 
 	wop( double other, VOption *options = 0 )
 	{
-		return( math2_const( to_vector( other ), 
-			VIPS_OPERATION_MATH2_WOP, options ) );
+		return( math2_const( VIPS_OPERATION_MATH2_WOP, 
+			to_vector( other ), options ) );
 	}
 
 	VImage 
 	wop( std::vector<double> other, VOption *options = 0 )
 	{
-		return( math2_const( other, 
-			VIPS_OPERATION_MATH2_WOP, options ) );
+		return( math2_const( VIPS_OPERATION_MATH2_WOP, 
+			other, options ) );
 	}
 
 	VImage 

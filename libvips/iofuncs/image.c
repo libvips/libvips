@@ -1622,12 +1622,12 @@ vips_image_set_progress( VipsImage *image, gboolean progress )
  * vips_image_iskilled:
  * @image: image to test
  *
- * If @image has been killed (see vips_image_kill()), set an error message,
+ * If @image has been killed (see vips_image_set_kill()), set an error message,
  * clear the #VipsImage.kill flag and return %FALSE. Otherwise return %TRUE.
  *
  * Handy for loops which need to run sets of threads which can fail. 
  *
- * See also: vips_image_kill().
+ * See also: vips_image_set_kill().
  *
  * Returns: %FALSE if @image has been killed. 
  */
