@@ -1,9 +1,3 @@
-- check C++ with arg order stuff
-
-  check travis php-vips
-
-
-
 - not sure about utf8 error messages on win
 
 - strange: 
