@@ -1,47 +1,6 @@
-- oh argh, need to swap _const args back
+- check C++ with arg order stuff
 
-  8.4 had:
-
-$ vips relational_const
-relational operations against a constant
-usage:
-   relational_const in out relational c
-where:
-   in           - Input image, input VipsImage
-   out          - Output image, output VipsImage
-   relational   - relational to perform, input VipsOperationRelational
-			default: equal
-			allowed: equal, noteq, less, lesseq, more, moreeq
-   c            - Array of constants, input VipsArrayDouble
-operation flags: sequential-unbuffered 
-
-$ vips boolean_const
-boolean operations against a constant
-usage:
-   boolean_const in out boolean c
-where:
-   in           - Input image, input VipsImage
-   out          - Output image, output VipsImage
-   boolean      - boolean to perform, input VipsOperationBoolean
-			default: and
-			allowed: and, or, eor, lshift, rshift
-   c            - Array of constants, input VipsArrayDouble
-operation flags: sequential-unbuffered 
-
-$ vips math2_const
-pow( @in, @c )
-usage:
-   math2_const in out math2 c
-where:
-   in           - Input image, input VipsImage
-   out          - Output image, output VipsImage
-   math2        - math to perform, input VipsOperationMath2
-			default: pow
-			allowed: pow, wop
-   c            - Array of constants, input VipsArrayDouble
-operation flags: sequential-unbuffered 
-
-
+  check travis php-vips
 
 
 

@@ -455,7 +455,7 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "pdfload";
+	object_class->nickname = "pdfload_base";
 	object_class->description = _( "load PDF with libpoppler" );
 	object_class->build = vips_foreign_load_pdf_build;
 
