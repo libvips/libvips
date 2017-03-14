@@ -1,8 +1,10 @@
-This branch has a new implementation of sequential mode:
+libvips 8.5 should be out by the end of March 2017. This page introduces the 
+main features. 
 
-https://github.com/jcupitt/libvips/tree/remove-seq-stalling
+## New operators
 
-It'd be great to get this merged to master for 8.5, but it needs some testing.
+thumbnail / thumbnail_buffer
+
 
 How seq used to work:
 
@@ -95,3 +97,38 @@ peak mem: 10gb
 ```
 
 Not bad!
+
+## Reordering
+
+from blog
+
+## Image resize
+
+smartcrop, more flexible cropping
+
+## File format support
+
+As usual, there are a lot of improvements to file format read and write. 
+
+* Thanks to work by Felix Bünemann, `webp` read and write supports many more 
+  options.
+* andris has improved `pdfload` so you can load many pages in a single 
+  operation.
+* Many people have worked on `dzsave` Google mode. It's now better at 
+  skipping blank tiles and supports tile overlaps. Felix Bünemann added 
+  support for compressed zip output. 
+* Henri Chain has added `radsave_buffer` to improve Radiance support.
+* TIFF files with an orientation tag should now autorotate, `tiffsave` 
+  has better jpeg compression support, and it knows about the `strip` 
+  metadata option.
+* The load-via-libMagick operator now supports IM7.
+* The GIF loader is much smarter about guessing the number of colour channels.
+* PNG save supports `strip`.
+* The SVG loader supports `svgz` compressed files thanks to Felix Bünemann.
+
+## Other
+
+Improvements to the build system, reductions in memory use, many small
+bug fixes, improvements to the C++ binding, improvements to the Python binding, 
+many small performance fixes. As usual, the ChanegLog has more detail if 
+you're interested.
