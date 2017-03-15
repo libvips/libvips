@@ -620,10 +620,22 @@ vips_foreign_load_gif_new_page( VipsForeignLoadGif *gif )
 	return( out );
 }
 
+static void *
+unref_object( void *data, void *a, void *b )
+{
+	g_object_unref( G_OBJECT( data ) );
+
+	return( NULL ); 
+}
+
 static void
 unref_array( GSList *list )
 {
-	g_slist_free_full( list, (GDestroyNotify) g_object_unref );
+	/* g_slist_free_full() was added in 2.28 and we have to work with 
+	 * 2.6 :( 
+	 */
+	vips_slist_map2( list, unref_object, NULL, NULL ); 
+	g_slist_free( list );
 }
 
 /* We render each frame to a separate memory image held in a linked
