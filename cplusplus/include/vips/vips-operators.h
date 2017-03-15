@@ -1,5 +1,5 @@
 // headers for vips operations
-// Wed  2 Nov 13:48:15 GMT 2016
+// Mon 13 Mar 13:22:09 GMT 2017
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 );
@@ -20,10 +20,10 @@ VImage math( VipsOperationMath math , VOption *options = 0 );
 VImage abs( VOption *options = 0 );
 VImage sign( VOption *options = 0 );
 VImage round( VipsOperationRound round , VOption *options = 0 );
-VImage relational_const( std::vector<double> c , VipsOperationRelational relational , VOption *options = 0 );
+VImage relational_const( VipsOperationRelational relational , std::vector<double> c , VOption *options = 0 );
 VImage remainder_const( std::vector<double> c , VOption *options = 0 );
-VImage boolean_const( std::vector<double> c , VipsOperationBoolean boolean , VOption *options = 0 );
-VImage math2_const( std::vector<double> c , VipsOperationMath2 math2 , VOption *options = 0 );
+VImage boolean_const( VipsOperationBoolean boolean , std::vector<double> c , VOption *options = 0 );
+VImage math2_const( VipsOperationMath2 math2 , std::vector<double> c , VOption *options = 0 );
 VImage complex( VipsOperationComplex cmplx , VOption *options = 0 );
 VImage complexget( VipsOperationComplexget get , VOption *options = 0 );
 double avg( VOption *options = 0 );
@@ -51,6 +51,7 @@ VImage insert( VImage sub , int x , int y , VOption *options = 0 );
 VImage join( VImage in2 , VipsDirection direction , VOption *options = 0 );
 static VImage arrayjoin( std::vector<VImage> in , VOption *options = 0 );
 VImage extract_area( int left , int top , int width , int height , VOption *options = 0 );
+VImage smartcrop( int width , int height , VOption *options = 0 );
 VImage extract_band( int band , VOption *options = 0 );
 static VImage bandjoin( std::vector<VImage> in , VOption *options = 0 );
 VImage bandjoin_const( std::vector<double> c , VOption *options = 0 );

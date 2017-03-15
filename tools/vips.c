@@ -1135,11 +1135,15 @@ main( int argc, char **argv )
 	/* "vips" with no arguments does "vips --help".
 	 */
 	if( argc == 1 ) { 
+#ifdef HAVE_CONTEXT_GET_HELP
 		char *help;
 
 		help = g_option_context_get_help( context, TRUE, NULL );
 		printf( "%s", help );
 		g_free( help );
+#else /* !HAVE_CONTEXT_GET_HELP */
+		printf( "help not available, your glib is too old\n" );
+#endif /* HAVE_CONTEXT_GET_HELP */
 
 		exit( 0 );
 	}

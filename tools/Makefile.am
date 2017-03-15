@@ -20,11 +20,11 @@ bin_SCRIPTS = \
 	batch_rubber_sheet \
 	batch_crop \
 	vipsprofile \
-	vips-8.4
+	vips-8.5
 
 EXTRA_DIST = \
 	vipsprofile \
-	vips-8.4 \
+	vips-8.5 \
 	light_correct.in \
 	shrink_width.in \
 	batch_image_convert.in \

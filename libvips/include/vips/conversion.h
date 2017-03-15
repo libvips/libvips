@@ -81,6 +81,14 @@ typedef enum {
 	VIPS_ANGLE45_LAST
 } VipsAngle45;
 
+typedef enum {
+	VIPS_INTERESTING_NONE,
+	VIPS_INTERESTING_CENTRE,
+	VIPS_INTERESTING_ENTROPY,
+	VIPS_INTERESTING_ATTENTION,
+	VIPS_INTERESTING_LAST
+} VipsInteresting;
+
 int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_tilecache( VipsImage *in, VipsImage **out, ... )
@@ -112,6 +120,8 @@ int vips_extract_area( VipsImage *in, VipsImage **out,
 	__attribute__((sentinel));
 int vips_crop( VipsImage *in, VipsImage **out, 
 	int left, int top, int width, int height, ... )
+	__attribute__((sentinel));
+int vips_smartcrop( VipsImage *in, VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 int vips_extract_band( VipsImage *in, VipsImage **out, int band, ... )
 	__attribute__((sentinel));

@@ -102,6 +102,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <locale.h>
+#include <ctype.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -120,6 +121,7 @@ static char *import_profile = NULL;
 static gboolean delete_profile = FALSE;
 static gboolean linear_processing = FALSE;
 static gboolean crop_image = FALSE;
+static char *smartcrop_image = NULL;
 static gboolean rotate_image = FALSE;
 
 /* Deprecated and unused.
@@ -144,18 +146,18 @@ static GOptionEntry options[] = {
 		N_( "set output format string to FORMAT" ), 
 		N_( "FORMAT" ) },
 	{ "eprofile", 'e', 0, 
-		G_OPTION_ARG_STRING, &export_profile, 
+		G_OPTION_ARG_FILENAME, &export_profile, 
 		N_( "export with PROFILE" ), 
 		N_( "PROFILE" ) },
 	{ "iprofile", 'i', 0, 
-		G_OPTION_ARG_STRING, &import_profile, 
+		G_OPTION_ARG_FILENAME, &import_profile, 
 		N_( "import untagged images with PROFILE" ), 
 		N_( "PROFILE" ) },
 	{ "linear", 'a', 0, 
 		G_OPTION_ARG_NONE, &linear_processing, 
 		N_( "process in linear space" ), NULL },
-	{ "crop", 'c', 0, 
-		G_OPTION_ARG_NONE, &crop_image, 
+	{ "smartcrop", 'c', 0, 
+		G_OPTION_ARG_STRING, &smartcrop_image, 
 		N_( "crop exactly to SIZE" ), NULL },
 	{ "rotate", 't', 0, 
 		G_OPTION_ARG_NONE, &rotate_image, 
@@ -164,6 +166,9 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_NONE, &delete_profile, 
 		N_( "delete profile from exported image" ), NULL },
 
+	{ "crop", 'c', G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_NONE, &crop_image, 
+		N_( "(deprecated, crop exactly to SIZE)" ), NULL },
 	{ "verbose", 'v', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_NONE, &verbose, 
 		N_( "(deprecated, does nothing)" ), NULL },
@@ -235,13 +240,22 @@ thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 static int
 thumbnail_process( VipsObject *process, const char *filename )
 {
+	VipsInteresting interesting;
 	VipsImage *image;
+
+	interesting = VIPS_INTERESTING_NONE;
+	if( crop_image )
+		interesting = VIPS_INTERESTING_CENTRE;
+	if( smartcrop_image &&
+		(interesting = vips_enum_from_nick( "vipsthumbnail", 
+			VIPS_TYPE_INTERESTING, smartcrop_image )) < 0 ) 
+		return( -1 ); 
 
 	if( vips_thumbnail( filename, &image, thumbnail_width, 
 		"height", thumbnail_height, 
 		"size", size_restriction, 
 		"auto_rotate", rotate_image, 
-		"crop", crop_image, 
+		"crop", interesting, 
 		"linear", linear_processing, 
 		"import_profile", import_profile, 
 		"export_profile", export_profile, 
@@ -258,89 +272,86 @@ thumbnail_process( VipsObject *process, const char *filename )
 	return( 0 );
 }
 
-/* Fetch a match_info string, NULL for "".
- */
-static const char *
-fetch_match( GMatchInfo *match_info, int n )
-{
-	const char *str = g_match_info_fetch( match_info, n );
-
-	return( str && strcmp( str, "" ) == 0 ? NULL : str );
-}
-
 /* Parse a geometry string and set thumbnail_width and thumbnail_height.
  */
 static int
 thumbnail_parse_geometry( const char *geometry )
 {
-	GRegex *regex;
-	GMatchInfo *match_info;
-	gboolean handled;
+	/* Geometry strings have a regex like:
+	 *
+	 * 	^(\\d+)? (x)? (\\d+)? ([<>])?$
+	 *
+	 * Sadly GRegex is 2.14 and later, and we need to work with 2.6.
+	 */
 
-	handled = FALSE;
+	const char *p;
 
-	regex = g_regex_new( "^(\\d+)? (x)? (\\d+)? ([<>])?$", 
-		G_REGEX_CASELESS | G_REGEX_EXTENDED, 0, NULL );
-	g_regex_match( regex, geometry, 0, &match_info );
-	if( g_match_info_matches( match_info ) ) {
-		const char *w = fetch_match( match_info, 1 );
-		const char *x = fetch_match( match_info, 2 );
-		const char *h = fetch_match( match_info, 3 );
-		const char *s = fetch_match( match_info, 4 );
+	/* w or h missing means replace with a huuuge value to prevent 
+	 * reduction or enlargement in that axis.
+	 */
+	thumbnail_width = VIPS_MAX_COORD;
+	thumbnail_height = VIPS_MAX_COORD;
 
-		/* If --crop is set, both width and height must be specified,
-		 * since we'll need a complete bounding box to fill.
+	p = geometry;
+
+	/* Get the width. 
+	 */
+	while( isspace( *p ) )
+		p++;
+	if( isdigit ( *p ) ) {
+		/* We have a number! vipsthumbnail history means that "-s 200"
+		 * means "200x200", not "200xhuge"
 		 */
-		if( crop_image && x && (!w || !h) ) {
-			vips_error( "thumbnail",
-				"both width and height must be given if "
-				"--crop is enabled" );
-			return( -1 );
-		}
+		thumbnail_width = thumbnail_height = atoi( p );
 
-		if( !x ) { 
-			/* No "x" means we only allow a single number and it 
-			 * sets both width and height.
-			 */
-			if( w && !h ) {
-				thumbnail_width = thumbnail_height = atoi( w );
-				handled = TRUE;
-			}
-			if( !w && h ) {
-				thumbnail_width = thumbnail_height = atoi( h );
-				handled = TRUE;
-			}
-		}
-		else { 
-			/* w or h missing means replace with a huuuge value 
-			 * to prevent reduction or enlargement in that axis.
-			 */
-			thumbnail_width = VIPS_MAX_COORD;
-			thumbnail_height = VIPS_MAX_COORD;
-			if( w ) {
-				thumbnail_width = atoi( w );
-				handled = TRUE;
-			}
-			if( h ) {
-				thumbnail_height = atoi( h );
-				handled = TRUE;
-			}
-		}
-
-		if( s && strcmp( s, ">" ) == 0 )
-			size_restriction = VIPS_SIZE_DOWN;
-		if( s && strcmp( s, "<" ) == 0 )
-			size_restriction = VIPS_SIZE_UP;
+		/* And skip over it.
+		 */
+		while( isdigit( *p ) )
+			p++;
 	}
 
-	g_match_info_free( match_info );
-	g_regex_unref( regex );
+	/* Get the optional 'x'. 
+	 */
+	while( isspace( *p ) )
+		p++;
+	if( *p == 'x' ) 
+		p += 1;
+	while( isspace( *p ) )
+		p++;
 
-	if( !handled ) {
+	/* Get the height. 
+	 */
+	if( isdigit( *p ) ) {
+		thumbnail_height = atoi( p );
+
+		while( isdigit( *p ) )
+			p++;
+	}
+
+	/* Get the final < or >.
+	 */
+	while( isspace( *p ) )
+		p++;
+	if( *p == '<' ) 
+		size_restriction = VIPS_SIZE_UP;
+	else if( *p == '>' ) 
+		size_restriction = VIPS_SIZE_DOWN;
+	else if( *p != '\0' ||
+		(thumbnail_width == VIPS_MAX_COORD && 
+			thumbnail_height == VIPS_MAX_COORD) ) {
+		vips_error( "thumbnail", "%s", _( "bad geometry spec" ) ); 
+		return( -1 );
+	}
+
+	/* If --crop is set, both width and height must be specified,
+	 * since we'll need a complete bounding box to fill.
+	 */
+	if( (crop_image || smartcrop_image) &&
+		(thumbnail_width == VIPS_MAX_COORD ||
+			thumbnail_height == VIPS_MAX_COORD) ) {
 		vips_error( "thumbnail",
-			"unable to parse size \"%s\" -- "
-			"use eg. 128 or 200x300>", geometry );
-
+			"both width and height must be given if "
+			"crop is enabled" );
 		return( -1 );
 	}
 

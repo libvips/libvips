@@ -351,7 +351,17 @@ AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
 PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 gobject-2.0)
 PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0"
 
-# after 2.28 we have a monotonic timer
+# from 2.14 we have g_option_context_get_help()
+PKG_CHECK_MODULES(CONTEXT_GET_HELP, glib-2.0 >= 2.14,
+  [AC_DEFINE(HAVE_CONTEXT_GET_HELP,1,
+	    [define if your glib has g_option_context_get_help().]
+   )
+  ],
+  [:
+  ]
+)
+
+# from 2.28 we have a monotonic timer
 PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
   [AC_DEFINE(HAVE_MONOTONIC_TIME,1,
 	    [define if your glib has g_get_monotonic_time().]
@@ -361,7 +371,7 @@ PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
   ]
 )
 
-# after 2.32 there are a new set of thread functions, annoyingly
+# from 2.32 there are a new set of thread functions, annoyingly
 PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
   [AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
    AC_DEFINE(HAVE_COND_INIT,1,[define if your glib has g_cond_init().])
@@ -377,7 +387,7 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
   ]
 )
 
-# with 2.36 and after the type system inits itself
+# from 2.36 the type system inits itself
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
   [AC_DEFINE(HAVE_TYPE_INIT,1,[define if your glib needs g_type_init().])
   ],
@@ -385,7 +395,7 @@ PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
   ]
 )
 
-# with 2.40 we have g_win32_get_command_line() on win
+# from 2.40 we have g_win32_get_command_line() on win
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 >= 2.40,
   [if test x"$vips_os_win32" = x"yes"; then
      AC_DEFINE(HAVE_G_WIN32_GET_COMMAND_LINE,1,[define if your glib has g_win32_get_command_line().])

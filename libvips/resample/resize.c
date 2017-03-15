@@ -129,7 +129,7 @@ vips_resize_int_shrink( VipsResize *resize, double scale )
 
 	case VIPS_KERNEL_LANCZOS2:
 	case VIPS_KERNEL_LANCZOS3:
-		return( VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (resize->scale * 2) ) ) );
+		return( VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (scale * 2) ) ) );
 	}
 }
 
