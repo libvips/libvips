@@ -218,17 +218,22 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 		vips_more_const1( t[14], &t[15], 60.0, NULL ) )
 		return( -1 );
 
-	/* Sum, shrink and find maxpos. We could blur too, but the box filter
-	 * shrink uses will do more or less the same thing. Shrink to ~ 32x32, it
-	 * should give us enough precision for positioning, while also grouping
-	 * high-value areas. 
+	/* Sum, shrink, blur and find maxpos. 
+	 *
+	 * The size we shrink to gives the precision with which we can place 
+	 * the crop, the amount of blur is related to the size of the crop
+	 * area: how large an area we want to consider for the scoring
+	 * function.
+	 *
+	 * We should probably vary these numbers with the image and crop size. 
 	 */
 	hshrink = ceil( in->Xsize / 32.0 );
 	vshrink = ceil( in->Ysize / 32.0 );
 	if( vips_add( t[7], t[19], &t[16], NULL ) ||
 		vips_add( t[16], t[15], &t[17], NULL ) ||
 		vips_shrink( t[17], &t[20], hshrink, vshrink, NULL ) ||
-		vips_max( t[20], &max, "x", &x_pos, "y", &y_pos, NULL ) )
+		vips_gaussblur( t[20], &t[21], 10.0, NULL ) ||
+		vips_max( t[21], &max, "x", &x_pos, "y", &y_pos, NULL ) )
 		return( -1 ); 
 
 	/* Centre the crop over the max.
