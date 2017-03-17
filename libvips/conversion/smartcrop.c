@@ -229,7 +229,7 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 	hshrink = in->Xsize / 32.0;
 	vshrink = in->Ysize / 32.0;
 	sigma = sqrt( pow( smartcrop->width / hshrink, 2 ) + 
-			pow( smartcrop->height / vshrink, 2 ) ) / 2; 
+			pow( smartcrop->height / vshrink, 2 ) ) / 6; 
 	if( vips_add( t[7], t[19], &t[16], NULL ) ||
 		vips_add( t[16], t[15], &t[17], NULL ) ||
 		vips_shrink( t[17], &t[20], hshrink, vshrink, NULL ) ||
