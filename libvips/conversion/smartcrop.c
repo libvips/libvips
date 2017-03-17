@@ -169,10 +169,11 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 	static double ab_high[2] = { 22.0, 31.0 }; 
 
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( smartcrop ), 23 );
+		vips_object_local_array( VIPS_OBJECT( smartcrop ), 24 );
 
-	int hshrink;
-	int vshrink;
+	double hshrink;
+	double vshrink;
+	double sigma;
 	double max;
 	int x_pos;
 	int y_pos;
@@ -224,16 +225,16 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 	 * the crop, the amount of blur is related to the size of the crop
 	 * area: how large an area we want to consider for the scoring
 	 * function.
-	 *
-	 * We should probably vary these numbers with the image and crop size. 
 	 */
-	hshrink = ceil( in->Xsize / 32.0 );
-	vshrink = ceil( in->Ysize / 32.0 );
+	hshrink = in->Xsize / 32.0;
+	vshrink = in->Ysize / 32.0;
+	sigma = sqrt( pow( smartcrop->width / hshrink, 2 ) + 
+			pow( smartcrop->height / vshrink, 2 ) ) / 2; 
 	if( vips_add( t[7], t[19], &t[16], NULL ) ||
 		vips_add( t[16], t[15], &t[17], NULL ) ||
 		vips_shrink( t[17], &t[20], hshrink, vshrink, NULL ) ||
-		vips_gaussblur( t[20], &t[21], 10.0, NULL ) ||
-		vips_max( t[21], &max, "x", &x_pos, "y", &y_pos, NULL ) )
+		vips_gaussblur( t[20], &t[23], sigma, NULL ) ||
+		vips_max( t[23], &max, "x", &x_pos, "y", &y_pos, NULL ) )
 		return( -1 ); 
 
 	/* Centre the crop over the max.
