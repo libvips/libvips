@@ -179,5 +179,5 @@ As usual, there are a range of improvements to file format read and write.
 
 ## Other
 
-Many small bug fixes, improvements to the C++ binding. 
-As usual, the ChanegLog has more detail if you're interested.
+Many small bug fixes, improvements to the C++ binding. As usual, the 
+ChangeLog has more detail, if you're interested.

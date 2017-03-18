@@ -257,6 +257,7 @@ vips_smartcrop_build( VipsObject *object )
 	VipsSmartcrop *smartcrop = (VipsSmartcrop *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
+	VipsImage *in;
 	int left;
 	int top;
 
@@ -271,6 +272,18 @@ vips_smartcrop_build( VipsObject *object )
 		return( -1 );
 	}
 
+	in = smartcrop->in;
+
+	/* If there's an alpha, we have to premultiply before searching for
+	 * content. There could be stuff in transparent areas which we don't
+	 * want to consider. 
+	 */
+	if( vips_image_hasalpha( in ) ) { 
+		if( vips_premultiply( in, &t[0], NULL ) ) 
+			return( -1 );
+		in = t[0];
+	}
+
 	switch( smartcrop->interesting ) {
 	case VIPS_INTERESTING_NONE:
 		break;
@@ -281,14 +294,12 @@ vips_smartcrop_build( VipsObject *object )
 		break;
 
 	case VIPS_INTERESTING_ENTROPY:
-		if( vips_smartcrop_entropy( smartcrop, 
-			smartcrop->in, &left, &top ) )
+		if( vips_smartcrop_entropy( smartcrop, in, &left, &top ) )
 			return( -1 );
 		break;
 
 	case VIPS_INTERESTING_ATTENTION:
-		if( vips_smartcrop_attention( smartcrop, 
-			smartcrop->in, &left, &top ) )
+		if( vips_smartcrop_attention( smartcrop, in, &left, &top ) )
 			return( -1 );
 		break;
 
@@ -297,9 +308,9 @@ vips_smartcrop_build( VipsObject *object )
 		break;
 	}
 
-	if( vips_extract_area( smartcrop->in, &t[0], 
+	if( vips_extract_area( smartcrop->in, &t[1], 
 			left, top, smartcrop->width, smartcrop->height, NULL ) ||
-		vips_image_write( t[0], conversion->out ) )
+		vips_image_write( t[1], conversion->out ) )
 		return( -1 ); 
 
 	return( 0 );
