@@ -286,6 +286,8 @@ vips_smartcrop_build( VipsObject *object )
 
 	switch( smartcrop->interesting ) {
 	case VIPS_INTERESTING_NONE:
+		left = 0;
+		top = 0;
 		break;
 
 	case VIPS_INTERESTING_CENTRE:

@@ -76,7 +76,7 @@ vips_convsep_build( VipsObject *object )
 	in = convolution->in;
 
 	if( convsep->precision == VIPS_PRECISION_APPROXIMATE ) {
-		if( vips_convasep( convolution->in, &t[0], convolution->M,
+		if( vips_convasep( in, &t[0], convolution->M,
 			"layers", convsep->layers,
 			NULL ) )
 			return( -1 ); 
@@ -90,7 +90,7 @@ vips_convsep_build( VipsObject *object )
 		 */
 		vips_image_set_double( t[0], "offset", 0 );
 
-		if( vips_conv( convolution->in, &t[1], convolution->M, 
+		if( vips_conv( in, &t[1], convolution->M, 
 				"precision", convsep->precision,
 				"layers", convsep->layers,
 				"cluster", convsep->cluster,

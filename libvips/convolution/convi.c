@@ -932,6 +932,10 @@ vips_convi_build( VipsObject *object )
 		return( -1 );
 	in = t[0]; 
 
+	/* Default to the C path.
+	 */
+	generate = vips_convi_gen;
+
 	/* For uchar input, try to make a vector path.
 	 */
 	if( vips_vector_isenabled() &&
@@ -946,9 +950,11 @@ vips_convi_build( VipsObject *object )
 			vips_convi_compile_free( convi );
 	}
 
-	/* If there's no vector path, fall back to C.
+	/* Make the data for the C path.
 	 */
-	if( !convi->n_pass ) {
+	if( generate == vips_convi_gen ) { 
+		g_info( "using C path" ); 
+
 		/* Make an int version of our mask.
 		 */
 		if( vips__image_intize( M, &t[1] ) )
@@ -977,9 +983,6 @@ vips_convi_build( VipsObject *object )
 			convi->coeff_pos[0] = 0;
 			convi->nnz = 1;
 		}
-
-		generate = vips_convi_gen;
-		g_info( "using C path" ); 
 	}
 
 	g_object_set( convi, "out", vips_image_new(), NULL ); 

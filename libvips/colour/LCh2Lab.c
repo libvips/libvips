@@ -102,6 +102,11 @@ vips_col_Ch2ab( float C, float h, float *a, float *b )
 	float out[3];
 	float *x;
 
+	/* could be anything, we don't use this value, but we must supply one
+	 * or static analyzers will complain.
+	 */
+	in[0] = 50.0;
+
 	in[1] = C;
 	in[2] = h;
 	x = &in[0];

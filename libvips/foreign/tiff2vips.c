@@ -1462,6 +1462,11 @@ rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop 
 	while( y < r->height ) {
 		VipsRect tile, page, hit;
 
+		/* Not necessary, but it stops static analyzers complaining
+		 * about a used-before-set.
+		 */
+		tile.height = 0;
+
 		x = 0;
 		while( x < r->width ) { 
 			int page_no = rtiff->page + (r->top + y) / 

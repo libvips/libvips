@@ -507,6 +507,7 @@ vips_buffer_new( VipsImage *im, VipsRect *area )
 		g_assert( buffer->cache );
 
 		buffer->ref_count = 1;
+		buffer->done = FALSE;
 		buffer->cache = NULL;
 	}
 	else {

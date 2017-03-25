@@ -112,7 +112,7 @@ Clang build:
 
 Clang static analysis:
 
-	$ scan-build ./configure --disable-introspection
+	$ scan-build ./configure --disable-introspection --disable-debug
 	$ scan-build -o scan -v make 
 	$ scan-view scan/2013-11-22-2
 
