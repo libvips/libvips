@@ -9,8 +9,11 @@ before_script:
 script:
   - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
 
+# allow osx to fail since brew so often falls over
 matrix:
   fast_finish: true
+  allow_failures:
+    - os: osx
   include:
     - os: linux
       sudo: required
