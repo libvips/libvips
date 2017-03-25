@@ -396,3 +396,34 @@
    fun:rb_enc_str_new
 }
 
+
+# helgrind stuff
+
+{
+   helgrind1
+   Helgrind:Race
+   fun:g_thread_proxy
+   ...
+   fun:start_thread
+   fun:clone
+}
+
+{
+   helgrind2
+   Helgrind:Race
+   fun:strlen
+   fun:pthread_setname_np
+   fun:g_system_thread_set_name
+   fun:g_thread_proxy
+   ...
+   fun:start_thread
+   fun:clone
+}
+
+# g_private*_() triggers a lot of warnings :( 
+{
+   helgrind3
+   Helgrind:Race
+   fun:g_private_set
+   fun:vips_thread_run
+}
