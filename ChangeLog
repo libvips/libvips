@@ -1,3 +1,6 @@
+25/3/17 started 8.5.1
+- init more classes earlier, thanks David
+
 13/10/16 started 8.5.0
 - rewritten buffer system is safer and frees memory earlier
 - added tiff save to buffer
