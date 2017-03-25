@@ -154,6 +154,22 @@
 }
 
 {
+   fontconfig5
+   Memcheck:Leak
+   fun:realloc
+   ...
+   fun:FcPatternDuplicate
+}
+
+{
+   fontconfig6
+   Memcheck:Leak
+   fun:realloc
+   ...
+   fun:FcDefaultSubstitute
+}
+
+{
    freetype_init
    Memcheck:Leak
    fun:*alloc
