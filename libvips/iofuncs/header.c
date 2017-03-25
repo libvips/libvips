@@ -1188,7 +1188,7 @@ count_fields( VipsImage *image, const char *field, GValue *value, void *a )
 {
 	int *n_fields = (int *) a;
 
-	n_fields += 1;
+	*n_fields += 1;
 
 	return( NULL ); 
 }
@@ -1224,6 +1224,7 @@ vips_image_get_fields( VipsImage *image )
 	gchar **fields;
 	gchar **p;
 
+	n_fields = 0;
 	(void) vips_image_map( image, count_fields, &n_fields );
 	fields = g_new0( gchar *, n_fields + 1 ); 
 	p = fields;
