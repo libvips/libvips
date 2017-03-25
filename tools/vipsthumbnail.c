@@ -246,10 +246,14 @@ thumbnail_process( VipsObject *process, const char *filename )
 	interesting = VIPS_INTERESTING_NONE;
 	if( crop_image )
 		interesting = VIPS_INTERESTING_CENTRE;
-	if( smartcrop_image &&
-		(interesting = vips_enum_from_nick( "vipsthumbnail", 
+	if( smartcrop_image ) {
+		int n;
+		
+		if( (n = vips_enum_from_nick( "vipsthumbnail", 
 			VIPS_TYPE_INTERESTING, smartcrop_image )) < 0 ) 
-		return( -1 ); 
+			return( -1 ); 
+		interesting = n;
+	}
 
 	if( vips_thumbnail( filename, &image, thumbnail_width, 
 		"height", thumbnail_height, 
