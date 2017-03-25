@@ -125,12 +125,15 @@ Clang dynamic analysis:
 		./configure --prefix=/home/john/vips 
 
 	$ FLAGS="-O1 -g -fsanitize=thread"
-	$ FLAGS="$FLAGS -fPIC -pie"
+	$ FLAGS="$FLAGS -fPIC"
 	$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
 	$ CC=clang CXX=clang++ LD=clang \
 		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-		LDFLAGS="-fsanitize=thread -fPIC -pie" \
-		./configure --prefix=/home/john/vips 
+		LDFLAGS="-fsanitize=thread -fPIC" \
+		./configure --prefix=/home/john/vips \
+			--without-magick \
+			--disable-introspection
+	$ G_DEBUG=gc-friendly vips copy ~/pics/k2.jpg x.jpg >& log
 
 Build with the GCC auto-vectorizer and diagnostics (or just -O3):
 
