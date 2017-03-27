@@ -2772,20 +2772,20 @@ vips_class_add_hash( VipsObjectClass *class, GHashTable *table )
 	return( NULL ); 
 }
 
-static void *
+static void 
 vips_class_build_hash( void )
 {
-	GHashTable *table;
 	GType base;
 
-	table = g_hash_table_new( g_str_hash, g_str_equal );
+	vips__object_nickname_table = 
+		g_hash_table_new( g_str_hash, g_str_equal );
 
-	if( !(base = g_type_from_name( "VipsObject" )) )
-		return( NULL );
+	base = g_type_from_name( "VipsObject" );
+	g_assert( base ); 
+
 	vips_class_map_all( base, 
-		(VipsClassMapFn) vips_class_add_hash, (void *) table );
-
-	return( table ); 
+		(VipsClassMapFn) vips_class_add_hash, 
+		(void *) vips__object_nickname_table );
 }
 
 /**
@@ -2814,8 +2814,7 @@ vips_type_find( const char *basename, const char *nickname )
 	GType base;
 	GType type;
 
-	vips__object_nickname_table = (GHashTable *) g_once( &once, 
-		(GThreadFunc) vips_class_build_hash, NULL ); 
+	g_once( &once, (GThreadFunc) vips_class_build_hash, NULL ); 
 
 	hit = (NicknameGType *) 
 		g_hash_table_lookup( vips__object_nickname_table, 

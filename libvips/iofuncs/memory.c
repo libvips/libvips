@@ -263,12 +263,18 @@ vips_tracked_free( void *s )
 }
 
 static void
+vips_tracked_init_mutex( void )
+{
+	vips_tracked_mutex = vips_g_mutex_new(); 
+}
+
+static void
 vips_tracked_init( void )
 {
 	static GOnce vips_tracked_once = G_ONCE_INIT;
 
-	vips_tracked_mutex = g_once( &vips_tracked_once, 
-		(GThreadFunc) vips_g_mutex_new, NULL );
+	g_once( &vips_tracked_once, 
+		(GThreadFunc) vips_tracked_init_mutex, NULL );
 }
 
 /**
