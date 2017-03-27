@@ -397,7 +397,8 @@
 }
 
 
-# helgrind stuff
+# helgrind stuff ... run against glib-2.40.x or earlier, later glibs have 
+# their own mutex primitive which helgrind can't see
 
 {
    helgrind1
@@ -420,10 +421,37 @@
    fun:clone
 }
 
-# g_private*_() triggers a lot of warnings :( 
+# there's an unlocked assign FALSE which is fine
 {
    helgrind3
    Helgrind:Race
-   fun:g_private_set
-   fun:vips_thread_run
+   fun:vips_region_prepare_to
 }
+
+# unlocked read of pixels-processed-so-far, which is fine
+{
+   helgrind4
+   Helgrind:Race
+   fun:vips_sink_base_progress
+}
+
+{
+   helgrind4a
+   Helgrind:Race
+   fun:wbuffer_allocate_fn
+}
+
+# helgrind can't see g_private
+{
+   helgrind5
+   Helgrind:Race
+   fun:g_private_set
+}
+
+# use of *stop from generate funcs is unlocked, but fine
+{
+   helgrind6
+   Helgrind:Race
+   fun:vips_threadpool_run
+}
+
