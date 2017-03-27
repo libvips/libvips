@@ -1,4 +1,4 @@
-theme: jekyll-theme-cayman
+theme: jekyll-theme-slate
 title: The VIPS image processing library
 description: > # this means to ignore newlines until "baseurl:"
   libvips is a 2D image processing library. Compared to
