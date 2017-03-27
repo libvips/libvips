@@ -1,1 +1,14 @@
 theme: jekyll-theme-cayman
+title: The VIPS image processing library
+description: > # this means to ignore newlines until "baseurl:"
+  libvips is a 2D image processing library. Compared to
+  similar libraries, libvips runs quickly and uses little
+  memory.  libvips is licensed under the LGPL 2.1+.
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "" # the base hostname & protocol for your site, e.g. http://example.com
+github_username:  jcupitt
+
+# Build settings
+markdown: kramdown
+gems:
+  - jekyll-feed
