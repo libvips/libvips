@@ -18,7 +18,7 @@ with just:
 ```php
 $filename = ...;
 $image = Vips\Image::thumbnail($filename, 200, ["height" => 200]);
-$image.writeToFile("my-thumbnail.jpg");
+$image->writeToFile("my-thumbnail.jpg");
 ```
 
 The new thumbnail operator has also picked up some useful features:
