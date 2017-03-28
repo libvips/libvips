@@ -2,3 +2,10 @@
 ---
 
 @import "{{ site.theme }}";
+
+#page-header {
+	a { 
+		text-decoration: none;
+		color: white;
+	}
+}
