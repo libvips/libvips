@@ -31,7 +31,7 @@ several GUIs as well.
   {% for post in site.posts %}
     <li>
       <span class="date">{{ post.date }}</span>
-      <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
+      <h3><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></h3>
       {{ post.excerpt }}
     </li>
   {% endfor %}
