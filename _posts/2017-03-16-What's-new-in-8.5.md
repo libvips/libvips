@@ -66,11 +66,11 @@ multipage image as a very tall, thin strip, process the whole thing, and write
 back to another multi-page file. The extra feature is an `n` parameter which
 gives the number of pages to load, or -1 to load all pages. 
 
-For example, (OME-
-TIFF)[https://www.openmicroscopy.org/site/support/ome-model/ome-tiff]
+For example, [OME-
+TIFF](https://www.openmicroscopy.org/site/support/ome-model/ome-tiff)
 is a standard for microscopy data that stores volumetric images as multi-page
-TIFFs. They have some (sample
-data)[https://www.openmicroscopy.org/site/support/ome-model/ome-tiff/data.html]
+TIFFs. They have some [sample
+data](https://www.openmicroscopy.org/site/support/ome-model/ome-tiff/data.html)
 including a 4D image of an embryo. 
 
 Each TIFF contains 10 slices. Normally you just see page 0:
