@@ -1,3 +1,4 @@
 theme: jekyll-theme-cayman
 show_downloads: true
+title: libvips
 description: A fast image processing library with low memory needs.
