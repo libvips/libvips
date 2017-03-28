@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: transform</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch04.html" title="Other API (no gtkdoc comments yet)">
+<link rel="prev" href="ch04.html" title="Other API (no gtkdoc comments yet)">
+<link rel="next" href="libvips-util.html" title="util">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-transform.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch04.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libvips-util.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-transform"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-transform.top_of_page"></a>transform</span></h2>
+<p>transform</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-transform.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-transform.html#vips--transform-init" title="vips__transform_init ()">vips__transform_init</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-transform.html#vips--transform-calc-inverse" title="vips__transform_calc_inverse ()">vips__transform_calc_inverse</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-transform.html#vips--transform-isidentity" title="vips__transform_isidentity ()">vips__transform_isidentity</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-transform.html#vips--transform-add" title="vips__transform_add ()">vips__transform_add</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-transform.html#vips--transform-print" title="vips__transform_print ()">vips__transform_print</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-transform.html#vips--transform-forward-point" title="vips__transform_forward_point ()">vips__transform_forward_point</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-transform.html#vips--transform-invert-point" title="vips__transform_invert_point ()">vips__transform_invert_point</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-transform.html#vips--transform-forward-rect" title="vips__transform_forward_rect ()">vips__transform_forward_rect</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-transform.html#vips--transform-invert-rect" title="vips__transform_invert_rect ()">vips__transform_invert_rect</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-transform.html#vips--transform-set-area" title="vips__transform_set_area ()">vips__transform_set_area</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-transform.html#vips--affine" title="vips__affine ()">vips__affine</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-transform.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation">VipsTransformation</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-transform.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="libvips-transform.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips--transform-init"></a><h3>vips__transform_init ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__transform_init (<em class="parameter"><code><a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *trn</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--transform-calc-inverse"></a><h3>vips__transform_calc_inverse ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__transform_calc_inverse (<em class="parameter"><code><a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *trn</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--transform-isidentity"></a><h3>vips__transform_isidentity ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__transform_isidentity (<em class="parameter"><code>const <a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *trn</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--transform-add"></a><h3>vips__transform_add ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__transform_add (<em class="parameter"><code>const <a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *in1</code></em>,
+                     <em class="parameter"><code>const <a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *in2</code></em>,
+                     <em class="parameter"><code><a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *out</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--transform-print"></a><h3>vips__transform_print ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__transform_print (<em class="parameter"><code>const <a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *trn</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--transform-forward-point"></a><h3>vips__transform_forward_point ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__transform_forward_point (<em class="parameter"><code>const <a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *trn</code></em>,
+                               <em class="parameter"><code>const <span class="type">double</span> x</code></em>,
+                               <em class="parameter"><code>const <span class="type">double</span> y</code></em>,
+                               <em class="parameter"><code><span class="type">double</span> *ox</code></em>,
+                               <em class="parameter"><code><span class="type">double</span> *oy</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--transform-invert-point"></a><h3>vips__transform_invert_point ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__transform_invert_point (<em class="parameter"><code>const <a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *trn</code></em>,
+                              <em class="parameter"><code>const <span class="type">double</span> x</code></em>,
+                              <em class="parameter"><code>const <span class="type">double</span> y</code></em>,
+                              <em class="parameter"><code><span class="type">double</span> *ox</code></em>,
+                              <em class="parameter"><code><span class="type">double</span> *oy</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--transform-forward-rect"></a><h3>vips__transform_forward_rect ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__transform_forward_rect (<em class="parameter"><code>const <a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *trn</code></em>,
+                              <em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *in</code></em>,
+                              <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *out</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--transform-invert-rect"></a><h3>vips__transform_invert_rect ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__transform_invert_rect (<em class="parameter"><code>const <a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *trn</code></em>,
+                             <em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *in</code></em>,
+                             <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *out</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--transform-set-area"></a><h3>vips__transform_set_area ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__transform_set_area (<em class="parameter"><code><a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *Param1</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--affine"></a><h3>vips__affine ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__affine (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+              <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *out</code></em>,
+              <em class="parameter"><code><a class="link" href="libvips-transform.html#VipsTransformation" title="VipsTransformation"><span class="type">VipsTransformation</span></a> *trn</code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-transform.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="VipsTransformation"></a><h3>VipsTransformation</h3>
+<pre class="programlisting">typedef struct {
+	/* Area of input we can use. This can be smaller than the real input 
+	 * image: we expand the input to add extra pixels for interpolation. 
+	 */
+	VipsRect iarea;			
+
+	/* The area of the output we've been asked to generate. left/top can
+	 * be negative.
+	 */
+	VipsRect oarea;
+
+	/* The transform.
+	 */
+	double a, b, c, d;		
+	double idx, idy;
+	double odx, ody;
+
+	double ia, ib, ic, id;		/* Inverse of matrix abcd */
+} VipsTransformation;
+</pre>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

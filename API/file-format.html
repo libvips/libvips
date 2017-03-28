@@ -1,0 +1,242 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: The VIPS file format</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch01.html" title="VIPS Overview">
+<link rel="prev" href="func-list.html" title="VIPS function list">
+<link rel="next" href="using-threads.html" title="VIPS and threads">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="func-list.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="using-threads.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="file-format"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle">The VIPS file format</span></h2>
+<p>File format — The VIPS file format</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect3">
+<a name="vips-format"></a><h4>Introduction</h4>
+<p>
+      VIPS has a simple, native file format. It's very fast, there is no image 
+      size limit, and it supports 
+      arbitrary metadata. Although few other programs can read these images 
+      (though recent versions of ImageMagick do have basic support for 
+      <code class="code">.vips</code> 
+      format), it can be useful as an intermediate format for command-line 
+      processing. For example:
+
+</p>
+<pre class="programlisting">
+$ vips invert input.tif t.v
+$ vips gamma t.v output.tif
+</pre>
+<p>
+
+      is faster than using <code class="code">.tif</code> for the temporary intermediate 
+      image. This section documents the VIPS file format. 
+    </p>
+<p>
+      VIPS comes with a command-line program called 
+      <span class="command"><strong>vipsedit</strong></span> which is useful for destructively changing 
+      fields in a vips image. The <span class="command"><strong>vipsheader</strong></span> program can be 
+      used to extract any metadata.
+    </p>
+<p>
+      VIPS files come in three parts. First, there is a 64-byte header, 
+      containing an identifying magic number and a set of very basic fields, 
+      such as image width in pixels. Next, the image data is stored as a set 
+      of band-interleaved scanlines, from the top of the image to the bottom.
+      Finally, after the pixel data comes an optional block of XML containing 
+      any extra metadata, such as an ICC profile or the EXIF data. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="vips-format-header"></a><h4>The header</h4>
+<p>
+      The fields in the VIPS header are always stored least-significant byte 
+      first (Intel ordering). Only the most basic information about the image 
+      is in the header: most metadata is stored in the XML extension block 
+      after the pixel data.
+    </p>
+<p>
+      If the first four bytes of the file are in order 08 f2 a6 b6, the image 
+      data (see the next section)
+      is stored in Intel byte order (LSB first) and will need to be swapped 
+      if read on a SPARC-style machine (MSB first). 
+      If the magic number is b6 a6 f2 08, the image data is in SPARC order
+      and will need to swapped if read on an Intel-style machine. libvips does 
+      this swapping automatically. 
+
+      </p>
+<div class="table">
+<a name="id-1.2.10.4.3.1"></a><p class="title"><b>Table 2. The VIPS header</b></p>
+<div class="table-contents"><table class="table" summary="The VIPS header" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">Bytes</th>
+<th align="left">Type</th>
+<th align="left">VIPS name</th>
+<th align="left">Meaning</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">0 -- 3</td>
+<td align="left"> </td>
+<td align="left"> </td>
+<td align="left">VIPS magic number: 08 f2 a6 b6, or b6 a6 f2 08</td>
+</tr>
+<tr>
+<td align="left">4 -- 7</td>
+<td align="left"><code class="literal">gint</code></td>
+<td align="left"><code class="code">width</code></td>
+<td align="left">Width of image, in pixels</td>
+</tr>
+<tr>
+<td align="left">8 -- 11</td>
+<td align="left"><code class="literal">gint</code></td>
+<td align="left"><code class="code">height</code></td>
+<td align="left">Height of image, in pixels</td>
+</tr>
+<tr>
+<td align="left">12 -- 15</td>
+<td align="left"><code class="literal">gint</code></td>
+<td align="left"><code class="code">bands</code></td>
+<td align="left">Number of image bands</td>
+</tr>
+<tr>
+<td align="left">16 -- 19</td>
+<td align="left"> </td>
+<td align="left"> </td>
+<td align="left">Unused</td>
+</tr>
+<tr>
+<td align="left">20 -- 23</td>
+<td align="left"><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a></td>
+<td align="left"><code class="code">format</code></td>
+<td align="left">Band format</td>
+</tr>
+<tr>
+<td align="left">24 -- 27</td>
+<td align="left"><a class="link" href="VipsImage.html#VipsCoding" title="enum VipsCoding"><span class="type">VipsCoding</span></a></td>
+<td align="left"><code class="code">coding</code></td>
+<td align="left">Image coding</td>
+</tr>
+<tr>
+<td align="left">28 -- 31</td>
+<td align="left"><a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a></td>
+<td align="left"><code class="code">interpretation</code></td>
+<td align="left">Pixel interpretation</td>
+</tr>
+<tr>
+<td align="left">32 -- 35</td>
+<td align="left"><code class="literal">gfloat</code></td>
+<td align="left"><code class="code">xres</code></td>
+<td align="left">Horizontal resolution, in pixels per millimetre</td>
+</tr>
+<tr>
+<td align="left">36 -- 39</td>
+<td align="left"><code class="literal">gfloat</code></td>
+<td align="left"><code class="code">yres</code></td>
+<td align="left">Vertical resolution, in pixels per millimetre</td>
+</tr>
+<tr>
+<td align="left">40 -- 47</td>
+<td align="left"> </td>
+<td align="left"> </td>
+<td align="left">Unused</td>
+</tr>
+<tr>
+<td align="left">48 -- 51</td>
+<td align="left"><code class="literal">gint</code></td>
+<td align="left"><code class="code">xoffset</code></td>
+<td align="left">Horizontal offset of origin, in pixels</td>
+</tr>
+<tr>
+<td align="left">52 -- 55</td>
+<td align="left"><code class="literal">gint</code></td>
+<td align="left"><code class="code">yoffset</code></td>
+<td align="left">Vertical offset of origin, in pixels</td>
+</tr>
+<tr>
+<td align="left">56 -- 63</td>
+<td align="left"> </td>
+<td align="left"> </td>
+<td align="left">Unused</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p><br class="table-break">
+    </p>
+</div>
+<div class="refsect3">
+<a name="vips-format-data"></a><h4>The image data</h4>
+<p>
+      If <code class="code">coding</code> is set to <a class="link" href="VipsImage.html#VIPS-CODING-NONE:CAPS"><span class="type">VIPS_CODING_NONE</span></a>, pixels are stored in 
+      native C format, that is, the native format of the 
+      machine that wrote the data. If you open a big-endian image on a 
+      little-endian machine, VIPS will automatically byte-swap for you.
+      VIPS has 10 band formats, see <a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a>.
+      Image data is stored as a simple list of scanlines, from the top of the 
+      image to the bottom. Pixels are band-interleaved, so RGBRGBRGBRGB, 
+      for example. There is no padding at the end of scanlines. 
+    </p>
+<p>
+      If <code class="code">coding</code> is set to <a class="link" href="VipsImage.html#VIPS-CODING-LABQ:CAPS"><span class="type">VIPS_CODING_LABQ</span></a>, each pixel is four 
+      bytes, with 10 bits for L* and 11 bits for each of a* and b*. These
+      32 bits are packed into 4 bytes, with the most significant 8 bits of each
+      value in the first 3 bytes, and the left-over bits packed into the final
+      byte as 2:3:3.
+    </p>
+<p>
+      If <code class="code">coding</code> is set to <a class="link" href="VipsImage.html#VIPS-CODING-RAD:CAPS"><span class="type">VIPS_CODING_RAD</span></a>, each pixel is 
+      RGB or XYZ float, with 8 bits of mantissa
+      and then 8 bits of exponent, shared between the three channels. This 
+      coding style is used by the Radiance family of programs (and the HDR 
+      format) commonly used for HDR imaging.
+    </p>
+<p>
+      Other values of <code class="code">coding</code> can set other coding styles. Use 
+      <code class="function">VIPS_IMAGE_SIZEOF_IMAGE()</code> to calculate the size of the image data 
+      section. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="vips-format-metadata"></a><h4>The metadata</h4>
+<p>
+      Following the image data is a chunk of XML holding a simple list of 
+      name-value pairs. Binary data is encoded with base64. Use 
+      <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a> and friends to set and get image metadata. 
+    </p>
+<p>
+      You can use <span class="command"><strong>vipsheader -f getext some_file.v</strong></span> to get 
+      the XML from a VIPS image, and 
+      <span class="command"><strong>vipsedit --setext some_file.v &lt; file.xml</strong></span> to 
+      replace the XML.  
+    </p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

@@ -1,0 +1,2232 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: header</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch02.html" title="Core VIPS API">
+<link rel="prev" href="VipsImage.html" title="VipsImage">
+<link rel="next" href="libvips-generate.html" title="generate">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-header.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="VipsImage.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libvips-generate.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-header"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-header.top_of_page"></a>header</span></h2>
+<p>header — get, set and walk image headers</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-header.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libvips-header.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint64</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-format-sizeof" title="vips_format_sizeof ()">vips_format_sizeof</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint64</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-format-sizeof-unsafe" title="vips_format_sizeof_unsafe ()">vips_format_sizeof_unsafe</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-width" title="vips_image_get_width ()">vips_image_get_width</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-height" title="vips_image_get_height ()">vips_image_get_height</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-bands" title="vips_image_get_bands ()">vips_image_get_bands</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="returnvalue">VipsBandFormat</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-format" title="vips_image_get_format ()">vips_image_get_format</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="returnvalue">VipsBandFormat</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-guess-format" title="vips_image_guess_format ()">vips_image_guess_format</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsImage.html#VipsCoding" title="enum VipsCoding"><span class="returnvalue">VipsCoding</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-coding" title="vips_image_get_coding ()">vips_image_get_coding</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="returnvalue">VipsInterpretation</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-interpretation" title="vips_image_get_interpretation ()">vips_image_get_interpretation</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="returnvalue">VipsInterpretation</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-guess-interpretation" title="vips_image_guess_interpretation ()">vips_image_guess_interpretation</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">double</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-xres" title="vips_image_get_xres ()">vips_image_get_xres</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">double</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-yres" title="vips_image_get_yres ()">vips_image_get_yres</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-xoffset" title="vips_image_get_xoffset ()">vips_image_get_xoffset</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-yoffset" title="vips_image_get_yoffset ()">vips_image_get_yoffset</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-filename" title="vips_image_get_filename ()">vips_image_get_filename</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-mode" title="vips_image_get_mode ()">vips_image_get_mode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">double</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-scale" title="vips_image_get_scale ()">vips_image_get_scale</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">double</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-offset" title="vips_image_get_offset ()">vips_image_get_offset</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-data" title="vips_image_get_data ()">vips_image_get_data</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-init-fields" title="vips_image_init_fields ()">vips_image_init_fields</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()">vips_image_set</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()">vips_image_get</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-as-string" title="vips_image_get_as_string ()">vips_image_get_as_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GType</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()">vips_image_get_typeof</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-remove" title="vips_image_remove ()">vips_image_remove</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="libvips-header.html#VipsImageMapFn" title="VipsImageMapFn ()">*VipsImageMapFn</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-map" title="vips_image_map ()">vips_image_map</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gchar</span> **
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-fields" title="vips_image_get_fields ()">vips_image_get_fields</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-set-area" title="vips_image_set_area ()">vips_image_set_area</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-area" title="vips_image_get_area ()">vips_image_get_area</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-set-blob" title="vips_image_set_blob ()">vips_image_set_blob</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-blob" title="vips_image_get_blob ()">vips_image_get_blob</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-int" title="vips_image_get_int ()">vips_image_get_int</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-set-int" title="vips_image_set_int ()">vips_image_set_int</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-double" title="vips_image_get_double ()">vips_image_get_double</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-set-double" title="vips_image_set_double ()">vips_image_set_double</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-string" title="vips_image_get_string ()">vips_image_get_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-set-string" title="vips_image_set_string ()">vips_image_set_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-print-field" title="vips_image_print_field ()">vips_image_print_field</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-history-printf" title="vips_image_history_printf ()">vips_image_history_printf</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-history-args" title="vips_image_history_args ()">vips_image_history_args</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-header.html#vips-image-get-history" title="vips_image_get_history ()">vips_image_get_history</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-header.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-header.html#VIPS-META-EXIF-NAME:CAPS" title="VIPS_META_EXIF_NAME">VIPS_META_EXIF_NAME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-header.html#VIPS-META-XMP-NAME:CAPS" title="VIPS_META_XMP_NAME">VIPS_META_XMP_NAME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-header.html#VIPS-META-IPCT-NAME:CAPS" title="VIPS_META_IPCT_NAME">VIPS_META_IPCT_NAME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-header.html#VIPS-META-PHOTOSHOP-NAME:CAPS" title="VIPS_META_PHOTOSHOP_NAME">VIPS_META_PHOTOSHOP_NAME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-header.html#VIPS-META-ICC-NAME:CAPS" title="VIPS_META_ICC_NAME">VIPS_META_ICC_NAME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-header.html#VIPS-META-IMAGEDESCRIPTION:CAPS" title="VIPS_META_IMAGEDESCRIPTION">VIPS_META_IMAGEDESCRIPTION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-header.html#VIPS-META-RESOLUTION-UNIT:CAPS" title="VIPS_META_RESOLUTION_UNIT">VIPS_META_RESOLUTION_UNIT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-header.html#VIPS-META-LOADER:CAPS" title="VIPS_META_LOADER">VIPS_META_LOADER</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-header.html#VIPS-META-SEQUENTIAL:CAPS" title="VIPS_META_SEQUENTIAL">VIPS_META_SEQUENTIAL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-header.html#VIPS-META-ORIENTATION:CAPS" title="VIPS_META_ORIENTATION">VIPS_META_ORIENTATION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-header.html#VIPS-META-PAGE-HEIGHT:CAPS" title="VIPS_META_PAGE_HEIGHT">VIPS_META_PAGE_HEIGHT</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-header.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libvips-header.description"></a><h2>Description</h2>
+<p>These functions let you get at image header data (including metadata) in a
+uniform way. </p>
+<p>Use <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a> to test for the 
+existance and <span class="type">GType</span>
+of a header field.</p>
+<p>You can attach arbitrary metadata to images. Metadata is copied as images
+are processed, so all images which used this image as input, directly or
+indirectly, will have this same bit of metadata attached to them. Copying
+is implemented with reference-counted pointers, so it is efficient, even for
+large items of data. This does however mean that metadata items need to be
+immutable. Metadata is handy for things like ICC profiles or EXIF data.</p>
+<p>Various convenience functions (eg. <a class="link" href="libvips-header.html#vips-image-set-int" title="vips_image_set_int ()"><code class="function">vips_image_set_int()</code></a>) let you easily 
+attach 
+simple types like
+numbers, strings and memory blocks to images. Use <a class="link" href="libvips-header.html#vips-image-map" title="vips_image_map ()"><code class="function">vips_image_map()</code></a> to loop
+over an image's fields, including all metadata.</p>
+<p>Items of metadata are identified by strings. Some strings are reserved, for
+example the ICC profile for an image is known by convention as
+"icc-profile-data".</p>
+<p>If you save an image in VIPS format, all metadata (with a restriction, see
+below) is automatically saved for you in a block of XML at the end of the
+file. When you load a VIPS image, the metadata is restored. You can use the
+<code class="literal">vipsedit</code> command-line tool to extract or replace this block of XML.</p>
+<p>VIPS metadata is based on <code class="literal">GValue</code>. See the docs for that system if you want
+to do fancy stuff such as defining a new metadata type.
+VIPS defines a new <code class="literal">GValue</code> called <code class="literal">vips_save_string</code>, a variety of string,
+see <a class="link" href="libvips-type.html#vips-value-set-save-string" title="vips_value_set_save_string ()"><code class="function">vips_value_set_save_string()</code></a>. 
+If your <code class="literal">GValue</code> can be transformed to <code class="literal">vips_save_string</code>, it will be 
+saved and loaded to and from VIPS files for you.</p>
+<p>VIPS provides a couple of base classes which implement
+reference-counted areas of memory. If you base your metadata on one of
+these types, it can be copied between images efficiently.</p>
+</div>
+<div class="refsect1">
+<a name="libvips-header.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips-format-sizeof"></a><h3>vips_format_sizeof ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint64</span>
+vips_format_sizeof (<em class="parameter"><code><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> format</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.4.8.2.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>format</p></td>
+<td class="parameter_description"><p>format type</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.2.5"></a><h4>Returns</h4>
+<p> number of bytes for a band format.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-format-sizeof-unsafe"></a><h3>vips_format_sizeof_unsafe ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint64</span>
+vips_format_sizeof_unsafe (<em class="parameter"><code><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> format</code></em>);</pre>
+<p>A fast but dangerous version of <a class="link" href="libvips-header.html#vips-format-sizeof" title="vips_format_sizeof ()"><code class="function">vips_format_sizeof()</code></a>. You must have
+previously range-checked <em class="parameter"><code>format</code></em>
+ or you'll crash.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.3.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>format</p></td>
+<td class="parameter_description"><p>format type</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.3.6"></a><h4>Returns</h4>
+<p> number of bytes for a band format.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-width"></a><h3>vips_image_get_width ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get_width (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.4.8.4.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.4.5"></a><h4>Returns</h4>
+<p> the number of pixels across the image.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-height"></a><h3>vips_image_get_height ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get_height (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.4.8.5.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.5.5"></a><h4>Returns</h4>
+<p> the number of pixels down the image.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-bands"></a><h3>vips_image_get_bands ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get_bands (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.4.8.6.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.6.5"></a><h4>Returns</h4>
+<p> the number of bands (channels) in the image.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-format"></a><h3>vips_image_get_format ()</h3>
+<pre class="programlisting"><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="returnvalue">VipsBandFormat</span></a>
+vips_image_get_format (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.4.8.7.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.7.5"></a><h4>Returns</h4>
+<p> the format of each band element.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-guess-format"></a><h3>vips_image_guess_format ()</h3>
+<pre class="programlisting"><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="returnvalue">VipsBandFormat</span></a>
+vips_image_guess_format (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<p>Return the <a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> for an image, guessing a sane value if
+the set value looks crazy.</p>
+<p>For example, for a float image tagged as rgb16, we'd return ushort.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.8.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to guess for</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.8.7"></a><h4>Returns</h4>
+<p> a sensible <a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> for the image.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-coding"></a><h3>vips_image_get_coding ()</h3>
+<pre class="programlisting"><a class="link" href="VipsImage.html#VipsCoding" title="enum VipsCoding"><span class="returnvalue">VipsCoding</span></a>
+vips_image_get_coding (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.4.8.9.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.9.5"></a><h4>Returns</h4>
+<p> the image coding</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-interpretation"></a><h3>vips_image_get_interpretation ()</h3>
+<pre class="programlisting"><a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="returnvalue">VipsInterpretation</span></a>
+vips_image_get_interpretation (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<p>Return the <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> set in the image header.
+Use <a class="link" href="libvips-header.html#vips-image-guess-interpretation" title="vips_image_guess_interpretation ()"><code class="function">vips_image_guess_interpretation()</code></a> if you want a sanity-checked value.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.10.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.10.6"></a><h4>Returns</h4>
+<p> the <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> from the image header.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-guess-interpretation"></a><h3>vips_image_guess_interpretation ()</h3>
+<pre class="programlisting"><a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="returnvalue">VipsInterpretation</span></a>
+vips_image_guess_interpretation (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<p>Return the <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> for an image, guessing a sane value if
+the set value looks crazy.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.11.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to guess for</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.11.6"></a><h4>Returns</h4>
+<p> a sensible <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> for the image.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-xres"></a><h3>vips_image_get_xres ()</h3>
+<pre class="programlisting"><span class="returnvalue">double</span>
+vips_image_get_xres (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.4.8.12.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.12.5"></a><h4>Returns</h4>
+<p> the horizontal image resolution in pixels per millimeter. </p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-yres"></a><h3>vips_image_get_yres ()</h3>
+<pre class="programlisting"><span class="returnvalue">double</span>
+vips_image_get_yres (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.4.8.13.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.13.5"></a><h4>Returns</h4>
+<p> the vertical image resolution in pixels per millimeter. </p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-xoffset"></a><h3>vips_image_get_xoffset ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get_xoffset (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.4.8.14.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.14.5"></a><h4>Returns</h4>
+<p> the horizontal position of the image origin, in pixels.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-yoffset"></a><h3>vips_image_get_yoffset ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get_yoffset (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.4.8.15.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.15.5"></a><h4>Returns</h4>
+<p> the vertical position of the image origin, in pixels.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-filename"></a><h3>vips_image_get_filename ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_image_get_filename (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.4.8.16.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.16.5"></a><h4>Returns</h4>
+<p> the name of the file the image was loaded from. </p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-mode"></a><h3>vips_image_get_mode ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_image_get_mode (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<p>Image modes are things like <code class="literal">"t"</code>, meaning a memory buffer, and <code class="literal">"p"</code>
+meaning a delayed computation.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.17.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.17.6"></a><h4>Returns</h4>
+<p> the image mode.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-scale"></a><h3>vips_image_get_scale ()</h3>
+<pre class="programlisting"><span class="returnvalue">double</span>
+vips_image_get_scale (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<p>Matrix images can have an optional <code class="literal">scale</code> field for use by integer 
+convolution.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.18.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.18.6"></a><h4>Returns</h4>
+<p> the scale.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-offset"></a><h3>vips_image_get_offset ()</h3>
+<pre class="programlisting"><span class="returnvalue">double</span>
+vips_image_get_offset (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<p>Matrix images can have an optional <code class="literal">offset</code> field for use by integer 
+convolution.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.19.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.19.6"></a><h4>Returns</h4>
+<p> the offset.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-data"></a><h3>vips_image_get_data ()</h3>
+<pre class="programlisting">const <span class="returnvalue">void</span> *
+vips_image_get_data (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<p>Return a pointer to the image's pixel data, if possible. This can involve
+allocating large amounts of memory and performing a long computation. Image
+pixels are laid out in band-packed rows.</p>
+<p>Since this function modifies <em class="parameter"><code>image</code></em>
+, it is not threadsafe. Only call it on
+images which you are sure have not been shared with another thread. </p>
+<p>See also: <a class="link" href="VipsImage.html#vips-image-wio-input" title="vips_image_wio_input ()"><code class="function">vips_image_wio_input()</code></a>, <a class="link" href="VipsImage.html#vips-image-copy-memory" title="vips_image_copy_memory ()"><code class="function">vips_image_copy_memory()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.20.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get data for</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.20.8"></a><h4>Returns</h4>
+<p> a pointer to pixel data, if possible. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-init-fields"></a><h3>vips_image_init_fields ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_image_init_fields (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                        <em class="parameter"><code><span class="type">int</span> xsize</code></em>,
+                        <em class="parameter"><code><span class="type">int</span> ysize</code></em>,
+                        <em class="parameter"><code><span class="type">int</span> bands</code></em>,
+                        <em class="parameter"><code><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> format</code></em>,
+                        <em class="parameter"><code><a class="link" href="VipsImage.html#VipsCoding" title="enum VipsCoding"><span class="type">VipsCoding</span></a> coding</code></em>,
+                        <em class="parameter"><code><a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> interpretation</code></em>,
+                        <em class="parameter"><code><span class="type">double</span> xres</code></em>,
+                        <em class="parameter"><code><span class="type">double</span> yres</code></em>);</pre>
+<p>A convenience function to set the header fields after creating an image.
+Normally you copy the fields from your input images with
+<a class="link" href="libvips-generate.html#vips-image-pipelinev" title="vips_image_pipelinev ()"><code class="function">vips_image_pipelinev()</code></a> and then make
+any adjustments you need, but if you are creating an image from scratch,
+for example <a class="link" href="libvips-create.html#vips-black" title="vips_black ()"><code class="function">vips_black()</code></a> or <a class="link" href="VipsForeignSave.html#vips-jpegload" title="vips_jpegload ()"><code class="function">vips_jpegload()</code></a>, you do need to set all the
+fields yourself.</p>
+<p>See also: <a class="link" href="libvips-generate.html#vips-image-pipelinev" title="vips_image_pipelinev ()"><code class="function">vips_image_pipelinev()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.21.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to init</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xsize</p></td>
+<td class="parameter_description"><p>image width</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ysize</p></td>
+<td class="parameter_description"><p>image height</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>bands</p></td>
+<td class="parameter_description"><p>image bands</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>format</p></td>
+<td class="parameter_description"><p>band format</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>coding</p></td>
+<td class="parameter_description"><p>image coding</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>interpretation</p></td>
+<td class="parameter_description"><p>image type</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xres</p></td>
+<td class="parameter_description"><p>horizontal resolution, pixels per millimetre</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>yres</p></td>
+<td class="parameter_description"><p>vertical resolution, pixels per millimetre</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-set"></a><h3>vips_image_set ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_image_set (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                <em class="parameter"><code><span class="type">GValue</span> *value</code></em>);</pre>
+<p>Set a piece of metadata on <em class="parameter"><code>image</code></em>
+. Any old metadata with that name is
+destroyed. The <code class="literal">GValue</code> is copied into the image, so you need to unset the
+value when you're done with it.</p>
+<p>For example, to set an integer on an image (though you would use the
+convenience function <a class="link" href="libvips-header.html#vips-image-set-int" title="vips_image_set_int ()"><code class="function">vips_image_set_int()</code></a> in practice), you would do:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="usertype">GValue</span><span class="normal"> value </span><span class="symbol">=</span><span class="normal"> </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">;</span>
+
+<span class="function">g_value_init</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">,</span><span class="normal"> G_TYPE_INT</span><span class="symbol">);</span>
+<span class="function">g_value_set_int</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">,</span><span class="normal"> </span><span class="number">42</span><span class="symbol">);</span>
+<span class="function"><a href="libvips-header.html#vips-image-set">vips_image_set</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">image</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">value</span><span class="symbol">);</span>
+<span class="function">g_value_unset</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">);</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.22.9"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to set the metadata on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the name to give the metadata</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>value</p></td>
+<td class="parameter_description"><p>the <code class="literal">GValue</code> to copy into the image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get"></a><h3>vips_image_get ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                <em class="parameter"><code><span class="type">GValue</span> *value_copy</code></em>);</pre>
+<p>Fill <em class="parameter"><code>value_copy</code></em>
+ with a copy of the header field. <em class="parameter"><code>value_copy</code></em>
+ must be zeroed 
+but uninitialised.</p>
+<p>This will return -1 and add a message to the error buffer if the field
+does not exist. Use <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a> to test for the 
+existence of a field first if you are not certain it will be there.</p>
+<p>For example, to read a double from an image (though of course you would use
+<a class="link" href="libvips-header.html#vips-image-get-double" title="vips_image_get_double ()"><code class="function">vips_image_get_double()</code></a> in practice):</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="usertype">GValue</span><span class="normal"> value </span><span class="symbol">=</span><span class="normal"> </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">;</span>
+<span class="type">double</span><span class="normal"> d</span><span class="symbol">;</span>
+
+<span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="libvips-header.html#vips-image-get">vips_image_get</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">image</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">value</span><span class="symbol">))</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">;</span>
+
+<span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_VALUE_TYPE</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">!=</span><span class="normal"> G_TYPE_DOUBLE</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">  </span><span class="function"><a href="libvips-error.html#vips-error">vips_error</a></span><span class="symbol">(</span><span class="normal"> </span><span class="string">"mydomain"</span><span class="symbol">,</span><span class="normal"> </span>
+<span class="normal">    </span><span class="function">_</span><span class="symbol">(</span><span class="string">"field </span><span class="specialchar">\"</span><span class="string">%s</span><span class="specialchar">\"</span><span class="string"> is of type %s, not double"</span><span class="symbol">),</span>
+<span class="normal">    name</span><span class="symbol">,</span><span class="normal"> </span>
+<span class="normal">    </span><span class="function">g_type_name</span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_VALUE_TYPE</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">)));</span>
+<span class="normal">  </span><span class="function">g_value_unset</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">;</span>
+<span class="cbracket">}</span>
+
+<span class="normal">d </span><span class="symbol">=</span><span class="normal"> </span><span class="function">g_value_get_double</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">);</span>
+<span class="function">g_value_unset</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">);</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-double" title="vips_image_get_double ()"><code class="function">vips_image_get_double()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.23.10"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get the field from from</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the name to fetch</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>value_copy</p></td>
+<td class="parameter_description"><p> the <code class="literal">GValue</code> is copied into this. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Out parameter, where caller must allocate storage."><span class="acronym">out caller-allocates</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.23.11"></a><h4>Returns</h4>
+<p> 0 on success, -1 otherwise. </p>
+<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-as-string"></a><h3>vips_image_get_as_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get_as_string (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                          <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                          <em class="parameter"><code><span class="type">char</span> **out</code></em>);</pre>
+<p>Gets <em class="parameter"><code>out</code></em>
+ from <em class="parameter"><code>im</code></em>
+ under the name <em class="parameter"><code>field</code></em>
+. 
+This function will read any field, returning it as a printable string.
+You need to free the string with <code class="function">g_free()</code> when you are done with it.</p>
+<p>This will base64-encode BLOBs, for example. Use <a class="link" href="libvips-buf.html#vips-buf-appendgv" title="vips_buf_appendgv ()"><code class="function">vips_buf_appendgv()</code></a> to 
+make a string that's for humans. </p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>, <a class="link" href="libvips-buf.html#vips-buf-appendgv" title="vips_buf_appendgv ()"><code class="function">vips_buf_appendgv()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.24.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get the header field from</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>field</p></td>
+<td class="parameter_description"><p>field name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p> return field value as string. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.24.8"></a><h4>Returns</h4>
+<p> 0 on success, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-typeof"></a><h3>vips_image_get_typeof ()</h3>
+<pre class="programlisting"><span class="returnvalue">GType</span>
+vips_image_get_typeof (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                       <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
+<p>Read the <code class="literal">GType</code> for a header field. Returns zero if there is no
+field of that name. </p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.25.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to test</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the name to search for</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.25.7"></a><h4>Returns</h4>
+<p> the <code class="literal">GType</code> of the field, or zero if there is no
+field of that name.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-remove"></a><h3>vips_image_remove ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+vips_image_remove (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                   <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
+<p>Find and remove an item of metadata. Return <code class="literal">FALSE</code> if no metadata of that
+name was found.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.26.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to test</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the name to search for</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.26.7"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if an item of metadata of that name was found and removed</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsImageMapFn"></a><h3>VipsImageMapFn ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+<span class="c_punctuation">(</span>*VipsImageMapFn<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                   <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                   <em class="parameter"><code><span class="type">GValue</span> *value</code></em>,
+                   <em class="parameter"><code><span class="type">void</span> *a</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-map"></a><h3>vips_image_map ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+vips_image_map (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                <em class="parameter"><code><a class="link" href="libvips-header.html#VipsImageMapFn" title="VipsImageMapFn ()"><span class="type">VipsImageMapFn</span></a> fn</code></em>,
+                <em class="parameter"><code><span class="type">void</span> *a</code></em>);</pre>
+<p>This function calls <em class="parameter"><code>fn</code></em>
+ for every header field, including every item of 
+metadata. </p>
+<p>Like all _map functions, the user function should return <code class="literal">NULL</code> to continue
+iteration, or a non-<code class="literal">NULL</code> pointer to indicate early termination.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>, <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.28.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to map over</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>fn</p></td>
+<td class="parameter_description"><p> function to call for each header field. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid only during the call to the method."><span class="acronym">scope call</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>a</p></td>
+<td class="parameter_description"><p>user data for function</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.28.8"></a><h4>Returns</h4>
+<p> <code class="literal">NULL</code> on success, the failing pointer otherwise. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-fields"></a><h3>vips_image_get_fields ()</h3>
+<pre class="programlisting"><span class="returnvalue">gchar</span> **
+vips_image_get_fields (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<p>Get a <code class="literal">NULL</code>-terminated array listing all the metadata field names on <em class="parameter"><code>image</code></em>
+. 
+Free the return result with <code class="function">g_strfreev()</code>.</p>
+<p>This is handy for language bindings. From C, it's usually more convenient to
+use <a class="link" href="libvips-header.html#vips-image-map" title="vips_image_map ()"><code class="function">vips_image_map()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.29.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get fields from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.29.7"></a><h4>Returns</h4>
+<p> metadata fields in image, as a <code class="literal">NULL</code>-terminated
+array. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-set-area"></a><h3>vips_image_set_area ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_image_set_area (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                     <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                     <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsCallbackFn" title="VipsCallbackFn ()"><span class="type">VipsCallbackFn</span></a> free_fn</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> *data</code></em>);</pre>
+<p>Attaches <em class="parameter"><code>data</code></em>
+ as a metadata item on <em class="parameter"><code>image</code></em>
+ under the name <em class="parameter"><code>name</code></em>
+. When
+VIPS no longer needs the metadata, it will be freed with <em class="parameter"><code>free_fn</code></em>
+.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get-double" title="vips_image_get_double ()"><code class="function">vips_image_get_double()</code></a>, <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a></p>
+<div class="refsect3">
+<a name="id-1.3.4.8.30.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to attach the metadata to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>metadata name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>free_fn</p></td>
+<td class="parameter_description"><p> free function for <em class="parameter"><code>data</code></em>
+. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>pointer to area of memory</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-area"></a><h3>vips_image_get_area ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get_area (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                     <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> **data</code></em>);</pre>
+<p>Gets <em class="parameter"><code>data</code></em>
+ from <em class="parameter"><code>image</code></em>
+ under the name <em class="parameter"><code>name</code></em>
+. A convenience
+function over <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>. Use <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a> to test for
+the existance of a piece of metadata.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-set-area" title="vips_image_set_area ()"><code class="function">vips_image_set_area()</code></a>, <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>,
+<a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a></p>
+<div class="refsect3">
+<a name="id-1.3.4.8.31.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get the metadata from</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>metadata name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>return metadata value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.31.7"></a><h4>Returns</h4>
+<p> 0 on success, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-set-blob"></a><h3>vips_image_set_blob ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_image_set_blob (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                     <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                     <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsCallbackFn" title="VipsCallbackFn ()"><span class="type">VipsCallbackFn</span></a> free_fn</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> *data</code></em>,
+                     <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>Attaches <em class="parameter"><code>blob</code></em>
+ as a metadata item on <em class="parameter"><code>image</code></em>
+ under the name <em class="parameter"><code>name</code></em>
+. A 
+convenience
+function over <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a> using a vips_blob.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get-blob" title="vips_image_get_blob ()"><code class="function">vips_image_get_blob()</code></a>, <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.32.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to attach the metadata to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>metadata name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>free_fn</p></td>
+<td class="parameter_description"><p> free function for <em class="parameter"><code>data</code></em>
+. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>pointer to area of memory</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>length of memory area</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-blob"></a><h3>vips_image_get_blob ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get_blob (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                     <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> **data</code></em>,
+                     <em class="parameter"><code><span class="type">size_t</span> *length</code></em>);</pre>
+<p>Gets <em class="parameter"><code>blob</code></em>
+ from <em class="parameter"><code>image</code></em>
+ under the name <em class="parameter"><code>name</code></em>
+, optionally returns its length in
+<em class="parameter"><code>length</code></em>
+. A convenience
+function over <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>. Use <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a> to test for the 
+existance
+of a piece of metadata.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>, <a class="link" href="libvips-type.html#vips-blob-get" title="vips_blob_get ()"><code class="function">vips_blob_get()</code></a>,</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.33.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get the metadata from</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>metadata name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>pointer to area of memory</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>return the blob length here, optionally</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.33.7"></a><h4>Returns</h4>
+<p> 0 on success, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-int"></a><h3>vips_image_get_int ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get_int (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                    <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> *out</code></em>);</pre>
+<p>Gets <em class="parameter"><code>out</code></em>
+ from <em class="parameter"><code>im</code></em>
+ under the name <em class="parameter"><code>name</code></em>
+. 
+The value will be transformed into
+an int, if possible. </p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a></p>
+<div class="refsect3">
+<a name="id-1.3.4.8.34.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get the header field from</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>field name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>return field value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.34.7"></a><h4>Returns</h4>
+<p> 0 on success, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-set-int"></a><h3>vips_image_set_int ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_image_set_int (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                    <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> i</code></em>);</pre>
+<p>Attaches <em class="parameter"><code>i</code></em>
+ as a metadata item on <em class="parameter"><code>image</code></em>
+ under the name <em class="parameter"><code>field</code></em>
+. A 
+convenience
+function over <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a>.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get-int" title="vips_image_get_int ()"><code class="function">vips_image_get_int()</code></a>, <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a></p>
+<div class="refsect3">
+<a name="id-1.3.4.8.35.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to attach the metadata to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>field</p></td>
+<td class="parameter_description"><p>metadata name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>i</p></td>
+<td class="parameter_description"><p>metadata value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-double"></a><h3>vips_image_get_double ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get_double (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                       <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                       <em class="parameter"><code><span class="type">double</span> *out</code></em>);</pre>
+<p>Gets <em class="parameter"><code>out</code></em>
+ from <em class="parameter"><code>im</code></em>
+ under the name <em class="parameter"><code>name</code></em>
+. 
+The value will be transformed into
+a double, if possible. </p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a></p>
+<div class="refsect3">
+<a name="id-1.3.4.8.36.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get the header field from</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>field name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>return field value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.36.7"></a><h4>Returns</h4>
+<p> 0 on success, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-set-double"></a><h3>vips_image_set_double ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_image_set_double (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                       <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                       <em class="parameter"><code><span class="type">double</span> d</code></em>);</pre>
+<p>Attaches <em class="parameter"><code>d</code></em>
+ as a metadata item on <em class="parameter"><code>image</code></em>
+ under the name <em class="parameter"><code>field</code></em>
+. A 
+convenience
+function over <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a>.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get-double" title="vips_image_get_double ()"><code class="function">vips_image_get_double()</code></a>, <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a></p>
+<div class="refsect3">
+<a name="id-1.3.4.8.37.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to attach the metadata to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>field</p></td>
+<td class="parameter_description"><p>metadata name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>d</p></td>
+<td class="parameter_description"><p>metadata value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-string"></a><h3>vips_image_get_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_get_string (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                       <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                       <em class="parameter"><code>const <span class="type">char</span> **out</code></em>);</pre>
+<p>Gets <em class="parameter"><code>out</code></em>
+ from <em class="parameter"><code>im</code></em>
+ under the name <em class="parameter"><code>name</code></em>
+. 
+The field must be of type
+VIPS_TYPE_REFSTRING.</p>
+<p>Do not free <em class="parameter"><code>out</code></em>
+.</p>
+<p>Use <a class="link" href="libvips-header.html#vips-image-get-as-string" title="vips_image_get_as_string ()"><code class="function">vips_image_get_as_string()</code></a> to fetch any field as a string.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a></p>
+<div class="refsect3">
+<a name="id-1.3.4.8.38.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get the header field from</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>field name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p> return field value. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.38.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-set-string"></a><h3>vips_image_set_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_image_set_string (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                       <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                       <em class="parameter"><code>const <span class="type">char</span> *str</code></em>);</pre>
+<p>Attaches <em class="parameter"><code>str</code></em>
+ as a metadata item on <em class="parameter"><code>image</code></em>
+ under the name <em class="parameter"><code>field</code></em>
+. 
+A convenience
+function over <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a> using an vips_ref_string.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get-double" title="vips_image_get_double ()"><code class="function">vips_image_get_double()</code></a>, <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a>, vips_ref_string</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.39.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to attach the metadata to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>field</p></td>
+<td class="parameter_description"><p>metadata name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>metadata value</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-print-field"></a><h3>vips_image_print_field ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_image_print_field (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                        <em class="parameter"><code>const <span class="type">char</span> *field</code></em>);</pre>
+<p>Prints a field to stdout as ASCII. Handy for debugging.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.40.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to get the header field from</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>field</p></td>
+<td class="parameter_description"><p>field name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-history-printf"></a><h3>vips_image_history_printf ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_history_printf (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                           <em class="parameter"><code>const <span class="type">char</span> *format</code></em>,
+                           <em class="parameter"><code>...</code></em>);</pre>
+<p>Add a line to the image history. The <em class="parameter"><code>format</code></em>
+ and arguments are expanded, the
+date and time is appended prefixed with a hash character, and the whole
+string is appended to the image history and terminated with a newline.</p>
+<p>For example:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="function"><a href="libvips-header.html#vips-image-history-printf">vips_image_history_printf</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">image</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"vips invert %s %s"</span><span class="symbol">,</span><span class="normal"> </span>
+<span class="normal">  in</span><span class="symbol">-&gt;</span><span class="normal">filename</span><span class="symbol">,</span><span class="normal"> out</span><span class="symbol">-&gt;</span><span class="normal">filename</span><span class="symbol">);</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>Might add the string</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="string">"vips invert /home/john/fred.v /home/john/jim.v # Fri Apr 3 23:30:35 2009</span><span class="specialchar">\n</span><span class="string">"</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>VIPS operations don't add history lines for you because a single action at 
+the application level might involve many VIPS operations. History must be
+recorded by the application.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.41.12"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>add history line to this image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>format</p></td>
+<td class="parameter_description"><p>printf() format string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>arguments to format string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.41.13"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-history-args"></a><h3>vips_image_history_args ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_image_history_args (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                         <em class="parameter"><code><span class="type">int</span> argc</code></em>,
+                         <em class="parameter"><code><span class="type">char</span> *argv[]</code></em>);</pre>
+<p>Formats the name/argv as a single string and calls
+<a class="link" href="libvips-header.html#vips-image-history-printf" title="vips_image_history_printf ()"><code class="function">vips_image_history_printf()</code></a>. A
+convenience function for command-line prorams.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-get-history" title="vips_image_get_history ()"><code class="function">vips_image_get_history()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.42.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to attach history line to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>program name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>argc</p></td>
+<td class="parameter_description"><p>number of program arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>argv</p></td>
+<td class="parameter_description"><p>program arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.42.7"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-image-get-history"></a><h3>vips_image_get_history ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_image_get_history (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<p>This function reads the image history as a C string. The string is owned
+by VIPS and must not be freed.</p>
+<p>VIPS tracks the history of each image, that is, the sequence of operations
+that generated that image. Applications built on VIPS need to call
+<a class="link" href="libvips-header.html#vips-image-history-printf" title="vips_image_history_printf ()"><code class="function">vips_image_history_printf()</code></a> for each action they perform, setting the 
+command-line equivalent for the action.</p>
+<p>See also: <a class="link" href="libvips-header.html#vips-image-history-printf" title="vips_image_history_printf ()"><code class="function">vips_image_history_printf()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.4.8.43.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>get history from here</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.4.8.43.8"></a><h4>Returns</h4>
+<p> The history of <em class="parameter"><code>image</code></em>
+as a C string. Do not free!. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-header.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="VIPS-META-EXIF-NAME:CAPS"></a><h3>VIPS_META_EXIF_NAME</h3>
+<pre class="programlisting">#define VIPS_META_EXIF_NAME "exif-data"
+</pre>
+<p>The name that JPEG read and write operations use for the image's EXIF data.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-META-XMP-NAME:CAPS"></a><h3>VIPS_META_XMP_NAME</h3>
+<pre class="programlisting">#define VIPS_META_XMP_NAME "xmp-data"
+</pre>
+<p>The name that read and write operations use for the image's XMP data.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-META-IPCT-NAME:CAPS"></a><h3>VIPS_META_IPCT_NAME</h3>
+<pre class="programlisting">#define VIPS_META_IPCT_NAME "ipct-data"
+</pre>
+<p>The name that read and write operations use for the image's IPCT data.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-META-PHOTOSHOP-NAME:CAPS"></a><h3>VIPS_META_PHOTOSHOP_NAME</h3>
+<pre class="programlisting">#define VIPS_META_PHOTOSHOP_NAME "photoshop-data"
+</pre>
+<p>The name that TIFF read and write operations use for the image's
+TIFFTAG_PHOTOSHOP data.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-META-ICC-NAME:CAPS"></a><h3>VIPS_META_ICC_NAME</h3>
+<pre class="programlisting">#define VIPS_META_ICC_NAME "icc-profile-data"
+</pre>
+<p>The name we use to attach an ICC profile. The file read and write
+operations for TIFF, JPEG, PNG and others use this item of metadata to
+attach and save ICC profiles. The profile is updated by the
+<a class="link" href="libvips-colour.html#vips-icc-transform" title="vips_icc_transform ()"><code class="function">vips_icc_transform()</code></a> operations.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-META-IMAGEDESCRIPTION:CAPS"></a><h3>VIPS_META_IMAGEDESCRIPTION</h3>
+<pre class="programlisting">#define VIPS_META_IMAGEDESCRIPTION "image-description"
+</pre>
+<p>The IMAGEDESCRIPTION tag. Often has useful metadata.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-META-RESOLUTION-UNIT:CAPS"></a><h3>VIPS_META_RESOLUTION_UNIT</h3>
+<pre class="programlisting">#define VIPS_META_RESOLUTION_UNIT "resolution-unit"
+</pre>
+<p>The JPEG and TIFF read and write operations use this to record the
+file's preferred unit for resolution.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-META-LOADER:CAPS"></a><h3>VIPS_META_LOADER</h3>
+<pre class="programlisting">#define VIPS_META_LOADER "vips-loader"
+</pre>
+<p>Record the name of the original loader here. Handy for hinting file formats
+and for debugging.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-META-SEQUENTIAL:CAPS"></a><h3>VIPS_META_SEQUENTIAL</h3>
+<pre class="programlisting">#define VIPS_META_SEQUENTIAL "vips-sequential"
+</pre>
+<p>Images loaded via <a class="link" href="libvips-conversion.html#vips-sequential" title="vips_sequential ()"><code class="function">vips_sequential()</code></a> have this int field defined. Some
+operations (eg. <a class="link" href="libvips-resample.html#vips-shrinkv" title="vips_shrinkv ()"><code class="function">vips_shrinkv()</code></a>) add extra caches if they see it on their
+input.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-META-ORIENTATION:CAPS"></a><h3>VIPS_META_ORIENTATION</h3>
+<pre class="programlisting">#define VIPS_META_ORIENTATION "orientation"
+</pre>
+<p>The orientation tag for this image. An int from 1 - 8 using the standard 
+exif/tiff meanings. </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>1 - The 0th row represents the visual top of the image, and the 0th column
+represents the visual left-hand side.</p></li>
+<li class="listitem"><p>2 - The 0th row represents the visual top of the image, and the 0th column
+represents the visual right-hand side.</p></li>
+<li class="listitem"><p>3 - The 0th row represents the visual bottom of the image, and the 0th
+column represents the visual right-hand side.</p></li>
+<li class="listitem"><p>4 - The 0th row represents the visual bottom of the image, and the 0th
+column represents the visual left-hand side.</p></li>
+<li class="listitem"><p>5 - The 0th row represents the visual left-hand side of the image, and the
+0th column represents the visual top.</p></li>
+<li class="listitem"><p>6 - The 0th row represents the visual right-hand side of the image, and the
+0th column represents the visual top.</p></li>
+<li class="listitem"><p>7 - The 0th row represents the visual right-hand side of the image, and the
+0th column represents the visual bottom.</p></li>
+<li class="listitem"><p>8 - The 0th row represents the visual left-hand side of the image, and the
+0th column represents the visual bottom.</p></li>
+</ul></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-META-PAGE-HEIGHT:CAPS"></a><h3>VIPS_META_PAGE_HEIGHT</h3>
+<pre class="programlisting">#define VIPS_META_PAGE_HEIGHT "page-height"
+</pre>
+<p>If set, the height of each page when this image was loaded. If you save an
+image with "page-height" set to a format that supports multiple pages, such
+as tiff, the image will be saved as a series of pages.</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-header.see-also"></a><h2>See Also</h2>
+<a class="link" href="libvips-type.html" title="type">type</a>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

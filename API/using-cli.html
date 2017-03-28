@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: VIPS from the command-line</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch01.html" title="VIPS Overview">
+<link rel="prev" href="ch01.html" title="VIPS Overview">
+<link rel="next" href="using-from-c.html" title="VIPS from C">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch01.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="using-from-c.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="using-cli"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle">VIPS from the command-line</span></h2>
+<p>Using VIPS — How to use the VIPS library from the command-line</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect3">
+<a name="using-command-line-intro"></a><h4>Introduction</h4>
+<p>
+      Use the <span class="command"><strong>vips</strong></span> command to execute VIPS operations from 
+      the command-line. For example:
+
+</p>
+<pre class="programlisting">
+$ vips rot k2.jpg x.jpg d90
+</pre>
+<p>
+
+      Will rotate the image <code class="literal">k2.jpg</code> by 90 degrees 
+      anticlockwise and write the result to the file <code class="literal">x.jpg</code>. 
+      If you don't give any arguments to an operation, 
+      <span class="command"><strong>vips</strong></span> will give a short description, for example:
+
+</p>
+<pre class="programlisting">
+$ vips rot 
+rotate an image
+usage:
+   rot in out angle
+where:
+   in           - Input image, input VipsImage
+   out          - Output image, output VipsImage
+   angle        - Angle to rotate image, input VipsAngle
+                        default: d90
+                        allowed: d0, d90, d180, d270
+</pre>
+<p>
+
+      There's a straightforward relationship with the C API: compare this to 
+      the API docs for <a class="link" href="libvips-conversion.html#vips-rot" title="vips_rot ()"><code class="function">vips_rot()</code></a>, for example.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-command-line-list"></a><h4>Listing all operations</h4>
+<p>
+      You can list all classes with:
+
+</p>
+<pre class="programlisting">
+$ vips -l
+... 
+VipsOperation (operation), operations
+  VipsSystem (system), run an external command
+  VipsArithmetic (arithmetic), arithmetic operations
+    VipsBinary (binary), binary operations
+      VipsAdd (add), add two images
+      ... etc.
+</pre>
+<p>
+
+      Each line shows the canonical name of the class (for example 
+      <code class="literal">VipsAdd</code>), the class nickname 
+      (<code class="literal">add</code> in this case), and a short description. 
+      Some subclasses of operation will show more: for example, subclasses of 
+      <code class="literal">VipsForeign</code> will show some of the extra flags 
+      supported by the file load/save operations. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-command-line-options"></a><h4>Optional arguments</h4>
+<p>
+      Many operations take optional arguments. You can supply these as 
+      command-line options, for example:
+
+</p>
+<pre class="programlisting">
+$ vips gamma
+gamma an image
+usage:
+   gamma in out
+where:
+   in           - Input image, input VipsImage
+   out          - Output image, output VipsImage
+optional arguments:
+   exponent     - Gamma factor, input gdouble
+                  default: 2.4
+                  min: 1e-06, max: 1000
+operation flags: sequential-unbuffered 
+</pre>
+<p>
+
+      <a class="link" href="libvips-conversion.html#vips-gamma" title="vips_gamma ()"><code class="function">vips_gamma()</code></a> applies a gamma factor to an image. By 
+      default, it uses 2.4, the sRGB gamma factor, but you can specify any 
+      gamma with the <code class="literal">exponent</code> option. 
+    </p>
+<p>
+      Use it from the command-line like this:
+
+</p>
+<pre class="programlisting">
+$ vips gamma k2.jpg x.jpg --exponent 0.42
+</pre>
+<p>
+
+      This will read file <code class="literal">k2.jpg</code>, un-gamma it, and 
+      write the result to file <code class="literal">x.jpg</code>.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-command-line-array"></a><h4>Array arguments</h4>
+<p>
+      Some operations take arrays of values as arguments, for example, 
+      <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a> needs an array of four numbers for the 
+      2x2 transform matrix. You pass arrays as space-separated lists, for 
+      example:
+
+</p>
+<pre class="programlisting">
+$ vips affine k2.jpg x.jpg "2 0 0 1"
+</pre>
+<p>
+
+      You may need the quotes to stop your shell breaking the argument at 
+      the spaces. <a class="link" href="libvips-conversion.html#vips-bandjoin" title="vips_bandjoin ()"><code class="function">vips_bandjoin()</code></a> needs an array of input images to 
+      join, run it like this:
+
+</p>
+<pre class="programlisting">
+$ vips bandjoin "k2.jpg k4.jpg" x.tif
+</pre>
+<p>
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-command-line-conversion"></a><h4>Implicit file format conversion</h4>
+<p>
+      <span class="command"><strong>vips</strong></span> will automatically convert between image file 
+      formats for you. Input images are detected by sniffing their first few 
+      bytes; output formats are set from the filename suffix. You can see a 
+      list of all the supported file formats with something like:
+
+</p>
+<pre class="programlisting">
+$ vips -l foreign
+</pre>
+<p>
+
+      Then get a list of the options a format supports with, for example:
+
+</p>
+<pre class="programlisting">
+$ vips jpegsave
+</pre>
+<p>
+    </p>
+<p>
+      You can pass options to the implicit load and save operations enclosed 
+      in square brackets after the filename. For example:
+
+</p>
+<pre class="programlisting">
+vips affine k2.jpg x.jpg[Q=90,strip] "2 0 0 1"
+</pre>
+<p>
+
+      Will write <code class="literal">x.jpg</code> at quality level 90 and will 
+      strip all metadata from the image.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-command-line-chaining"></a><h4>Chaining operations</h4>
+<p>
+      Because each operation runs in a separate process, you can't use 
+      libvips's chaining system to join operations together, you have to use 
+      intermediate files. The command-line interface is therefore quite a bit 
+      slower than Python or C. 
+    </p>
+<p>
+      The best alternative is to use vips files for intermediates. 
+      Something like:
+
+</p>
+<pre class="programlisting">
+vips invert input.jpg t1.v
+vips affine t1.v output.jpg "2 0 0 1"
+rm t1.v
+</pre>
+<p>
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-command-line-other"></a><h4>Other features</h4>
+<p>
+      Finally, <span class="command"><strong>vips</strong></span> has a couple of useful extra options. 
+
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
+            Use <code class="option">--vips-progress</code> to get 
+            <span class="command"><strong>vips</strong></span> to display a simple progress indicator. 
+          </p></li>
+<li class="listitem"><p>
+            Use <code class="option">--vips-leak</code> and <span class="command"><strong>vips</strong></span> will 
+            leak-test on exit, and also display an estimate of peak memory use.
+          </p></li>
+<li class="listitem"><p>
+            Set <code class="code">G_MESSAGES_DEBUG=VIPS</code> and GLib will display 
+            informational and debug messages from libvips. 
+          </p></li>
+</ul></div>
+<p>
+    </p>
+<p>
+      VIPS comes with a couple of other useful programs. 
+      <span class="command"><strong>vipsheader</strong></span> is a command which can print image header
+      fields. <span class="command"><strong>vipsedit</strong></span> can change fields in vips format 
+      images. <span class="command"><strong>vipsthumbnail</strong></span> can make image thumbnails 
+      quickly. 
+    </p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

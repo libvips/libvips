@@ -1,0 +1,1436 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: util</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch04.html" title="Other API (no gtkdoc comments yet)">
+<link rel="prev" href="libvips-transform.html" title="transform">
+<link rel="next" href="libvips-version.html" title="version">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-util.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-transform.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libvips-version.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-util"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-util.top_of_page"></a>util</span></h2>
+<p>util</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-util.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-util.html#VIPS-PI:CAPS" title="VIPS_PI">VIPS_PI</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-RAD:CAPS" title="VIPS_RAD()">VIPS_RAD</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-DEG:CAPS" title="VIPS_DEG()">VIPS_DEG</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-MAX:CAPS" title="VIPS_MAX()">VIPS_MAX</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-MIN:CAPS" title="VIPS_MIN()">VIPS_MIN</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-CLIP:CAPS" title="VIPS_CLIP()">VIPS_CLIP</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-FCLIP:CAPS" title="VIPS_FCLIP()">VIPS_FCLIP</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-NUMBER:CAPS" title="VIPS_NUMBER()">VIPS_NUMBER</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-ABS:CAPS" title="VIPS_ABS()">VIPS_ABS</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-ISNAN:CAPS" title="VIPS_ISNAN()">VIPS_ISNAN</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-ISINF:CAPS" title="VIPS_ISINF()">VIPS_ISINF</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-FLOOR:CAPS" title="VIPS_FLOOR()">VIPS_FLOOR</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-CEIL:CAPS" title="VIPS_CEIL()">VIPS_CEIL</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-RINT:CAPS" title="VIPS_RINT()">VIPS_RINT</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-ROUND:CAPS" title="VIPS_ROUND()">VIPS_ROUND</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-FABS:CAPS" title="VIPS_FABS()">VIPS_FABS</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-FMAX:CAPS" title="VIPS_FMAX()">VIPS_FMAX</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-FMIN:CAPS" title="VIPS_FMIN()">VIPS_FMIN</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-ROUND-INT:CAPS" title="VIPS_ROUND_INT()">VIPS_ROUND_INT</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-ROUND-UINT:CAPS" title="VIPS_ROUND_UINT()">VIPS_ROUND_UINT</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-ROUND-DOWN:CAPS" title="VIPS_ROUND_DOWN()">VIPS_ROUND_DOWN</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-ROUND-UP:CAPS" title="VIPS_ROUND_UP()">VIPS_ROUND_UP</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-SWAP:CAPS" title="VIPS_SWAP()">VIPS_SWAP</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-UNROLL:CAPS" title="VIPS_UNROLL()">VIPS_UNROLL</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#g-info" title="g_info()">g_info</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-CLIP-UCHAR:CAPS" title="VIPS_CLIP_UCHAR()">VIPS_CLIP_UCHAR</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-CLIP-CHAR:CAPS" title="VIPS_CLIP_CHAR()">VIPS_CLIP_CHAR</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-CLIP-USHORT:CAPS" title="VIPS_CLIP_USHORT()">VIPS_CLIP_USHORT</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-CLIP-SHORT:CAPS" title="VIPS_CLIP_SHORT()">VIPS_CLIP_SHORT</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-CLIP-UINT:CAPS" title="VIPS_CLIP_UINT()">VIPS_CLIP_UINT</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#VIPS-CLIP-NONE:CAPS" title="VIPS_CLIP_NONE()">VIPS_CLIP_NONE</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libvips-util.html#VIPS-PATH-MAX:CAPS" title="VIPS_PATH_MAX">VIPS_PATH_MAX</a></td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-enum-string" title="vips_enum_string ()">vips_enum_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-enum-nick" title="vips_enum_nick ()">vips_enum_nick</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-enum-from-nick" title="vips_enum_from_nick ()">vips_enum_from_nick</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-flags-from-nick" title="vips_flags_from_nick ()">vips_flags_from_nick</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-slist-equal" title="vips_slist_equal ()">vips_slist_equal</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-slist-map2" title="vips_slist_map2 ()">vips_slist_map2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-slist-map2-rev" title="vips_slist_map2_rev ()">vips_slist_map2_rev</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-slist-map4" title="vips_slist_map4 ()">vips_slist_map4</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-slist-fold2" title="vips_slist_fold2 ()">vips_slist_fold2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GSList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-slist-filter" title="vips_slist_filter ()">vips_slist_filter</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-slist-free-all" title="vips_slist_free_all ()">vips_slist_free_all</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-map-equal" title="vips_map_equal ()">vips_map_equal</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-hash-table-map" title="vips_hash_table_map ()">vips_hash_table_map</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-strncpy" title="vips_strncpy ()">vips_strncpy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-strrstr" title="vips_strrstr ()">vips_strrstr</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-ispostfix" title="vips_ispostfix ()">vips_ispostfix</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-iscasepostfix" title="vips_iscasepostfix ()">vips_iscasepostfix</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-isprefix" title="vips_isprefix ()">vips_isprefix</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-break-token" title="vips_break_token ()">vips_break_token</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--chomp" title="vips__chomp ()">vips__chomp</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-vsnprintf" title="vips_vsnprintf ()">vips_vsnprintf</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-snprintf" title="vips_snprintf ()">vips_snprintf</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-filename-suffix-match" title="vips_filename_suffix_match ()">vips_filename_suffix_match</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gint64</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-file-length" title="vips_file_length ()">vips_file_length</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--write" title="vips__write ()">vips__write</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--open" title="vips__open ()">vips__open</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--open-read" title="vips__open_read ()">vips__open_read</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">FILE</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--fopen" title="vips__fopen ()">vips__fopen</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">FILE</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--file-open-read" title="vips__file_open_read ()">vips__file_open_read</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">FILE</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--file-open-write" title="vips__file_open_write ()">vips__file_open_write</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--file-read" title="vips__file_read ()">vips__file_read</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--file-read-name" title="vips__file_read_name ()">vips__file_read_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--file-write" title="vips__file_write ()">vips__file_write</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--get-bytes" title="vips__get_bytes ()">vips__get_bytes</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--fgetc" title="vips__fgetc ()">vips__fgetc</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GValue</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--gvalue-ref-string-new" title="vips__gvalue_ref_string_new ()">vips__gvalue_ref_string_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--gslist-gvalue-free" title="vips__gslist_gvalue_free ()">vips__gslist_gvalue_free</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GSList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--gslist-gvalue-copy" title="vips__gslist_gvalue_copy ()">vips__gslist_gvalue_copy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">GSList</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--gslist-gvalue-merge" title="vips__gslist_gvalue_merge ()">vips__gslist_gvalue_merge</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--gslist-gvalue-get" title="vips__gslist_gvalue_get ()">vips__gslist_gvalue_get</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--seek" title="vips__seek ()">vips__seek</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--ftruncate" title="vips__ftruncate ()">vips__ftruncate</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-existsf" title="vips_existsf ()">vips_existsf</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-mkdirf" title="vips_mkdirf ()">vips_mkdirf</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-rmdirf" title="vips_rmdirf ()">vips_rmdirf</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-rename" title="vips_rename ()">vips_rename</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">FILE</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-popenf" title="vips_popenf ()">vips_popenf</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--token-get" title="vips__token_get ()">vips__token_get</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--token-must" title="vips__token_must ()">vips__token_must</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--token-need" title="vips__token_need ()">vips__token_need</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--token-segment" title="vips__token_segment ()">vips__token_segment</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--token-segment-need" title="vips__token_segment_need ()">vips__token_segment_need</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--find-rightmost-brackets" title="vips__find_rightmost_brackets ()">vips__find_rightmost_brackets</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--filename-split8" title="vips__filename_split8 ()">vips__filename_split8</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-ispoweroftwo" title="vips_ispoweroftwo ()">vips_ispoweroftwo</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-amiMSBfirst" title="vips_amiMSBfirst ()">vips_amiMSBfirst</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--temp-name" title="vips__temp_name ()">vips__temp_name</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--change-suffix" title="vips__change_suffix ()">vips__change_suffix</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips-realpath" title="vips_realpath ()">vips_realpath</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint32</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--random" title="vips__random ()">vips__random</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">guint32</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-util.html#vips--random-add" title="vips__random_add ()">vips__random_add</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-util.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libvips-util.html#VipsToken" title="enum VipsToken">VipsToken</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-util.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="libvips-util.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="VIPS-PI:CAPS"></a><h3>VIPS_PI</h3>
+<pre class="programlisting">#define VIPS_PI (3.14159265358979323846)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-RAD:CAPS"></a><h3>VIPS_RAD()</h3>
+<pre class="programlisting">#define VIPS_RAD( R ) (((R) / 360.0) * 2.0 * VIPS_PI)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-DEG:CAPS"></a><h3>VIPS_DEG()</h3>
+<pre class="programlisting">#define VIPS_DEG( A ) (((A) / (2.0 * VIPS_PI)) * 360.0)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-MAX:CAPS"></a><h3>VIPS_MAX()</h3>
+<pre class="programlisting">#define VIPS_MAX( A, B ) ((A) &gt; (B) ? (A) : (B))
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-MIN:CAPS"></a><h3>VIPS_MIN()</h3>
+<pre class="programlisting">#define VIPS_MIN( A, B ) ((A) &lt; (B) ? (A) : (B))
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-CLIP:CAPS"></a><h3>VIPS_CLIP()</h3>
+<pre class="programlisting">#define VIPS_CLIP( A, V, B ) VIPS_MAX( (A), VIPS_MIN( (B), (V) ) )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-FCLIP:CAPS"></a><h3>VIPS_FCLIP()</h3>
+<pre class="programlisting">#define VIPS_FCLIP( A, V, B ) VIPS_FMAX( (A), VIPS_FMIN( (B), (V) ) )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-NUMBER:CAPS"></a><h3>VIPS_NUMBER()</h3>
+<pre class="programlisting">#define VIPS_NUMBER( R ) ((int) (sizeof(R) / sizeof(R[0])))
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-ABS:CAPS"></a><h3>VIPS_ABS()</h3>
+<pre class="programlisting">#define VIPS_ABS( X ) (((X) &gt;= 0) ? (X) : -(X))
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-ISNAN:CAPS"></a><h3>VIPS_ISNAN()</h3>
+<pre class="programlisting">#define VIPS_ISNAN( V ) __builtin_isnan( V )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-ISINF:CAPS"></a><h3>VIPS_ISINF()</h3>
+<pre class="programlisting">#define VIPS_ISINF( V ) __builtin_isinf( V )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-FLOOR:CAPS"></a><h3>VIPS_FLOOR()</h3>
+<pre class="programlisting">#define VIPS_FLOOR( V ) __builtin_floor( V )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-CEIL:CAPS"></a><h3>VIPS_CEIL()</h3>
+<pre class="programlisting">#define VIPS_CEIL( V ) __builtin_ceil( V )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-RINT:CAPS"></a><h3>VIPS_RINT()</h3>
+<pre class="programlisting">#define VIPS_RINT( V ) __builtin_rint( V )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-ROUND:CAPS"></a><h3>VIPS_ROUND()</h3>
+<pre class="programlisting">#define VIPS_ROUND( V ) __builtin_round( V )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-FABS:CAPS"></a><h3>VIPS_FABS()</h3>
+<pre class="programlisting">#define VIPS_FABS( V ) __builtin_fabs( V )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-FMAX:CAPS"></a><h3>VIPS_FMAX()</h3>
+<pre class="programlisting">#define VIPS_FMAX( A, B ) __builtin_fmax( A, B )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-FMIN:CAPS"></a><h3>VIPS_FMIN()</h3>
+<pre class="programlisting">#define VIPS_FMIN( A, B ) __builtin_fmin( A, B )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-ROUND-INT:CAPS"></a><h3>VIPS_ROUND_INT()</h3>
+<pre class="programlisting">#define VIPS_ROUND_INT( R ) ((int) ((R) &gt; 0 ? ((R) + 0.5) : ((R) - 0.5)))
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-ROUND-UINT:CAPS"></a><h3>VIPS_ROUND_UINT()</h3>
+<pre class="programlisting">#define VIPS_ROUND_UINT( R ) ((int) ((R) + 0.5))
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-ROUND-DOWN:CAPS"></a><h3>VIPS_ROUND_DOWN()</h3>
+<pre class="programlisting">#define VIPS_ROUND_DOWN( N, P ) ((N) - ((N) % (P))) 
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-ROUND-UP:CAPS"></a><h3>VIPS_ROUND_UP()</h3>
+<pre class="programlisting">#define VIPS_ROUND_UP( N, P ) (VIPS_ROUND_DOWN( (N) + (P) - 1, (P) ))
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-SWAP:CAPS"></a><h3>VIPS_SWAP()</h3>
+<pre class="programlisting">#define             VIPS_SWAP( TYPE, A, B )</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-UNROLL:CAPS"></a><h3>VIPS_UNROLL()</h3>
+<pre class="programlisting">#define             VIPS_UNROLL( N, OPER )</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-info"></a><h3>g_info()</h3>
+<pre class="programlisting">#define             g_info(...)</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-CLIP-UCHAR:CAPS"></a><h3>VIPS_CLIP_UCHAR()</h3>
+<pre class="programlisting">#define             VIPS_CLIP_UCHAR( V, SEQ )</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-CLIP-CHAR:CAPS"></a><h3>VIPS_CLIP_CHAR()</h3>
+<pre class="programlisting">#define             VIPS_CLIP_CHAR( V, SEQ )</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-CLIP-USHORT:CAPS"></a><h3>VIPS_CLIP_USHORT()</h3>
+<pre class="programlisting">#define             VIPS_CLIP_USHORT( V, SEQ )</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-CLIP-SHORT:CAPS"></a><h3>VIPS_CLIP_SHORT()</h3>
+<pre class="programlisting">#define             VIPS_CLIP_SHORT( V, SEQ )</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-CLIP-UINT:CAPS"></a><h3>VIPS_CLIP_UINT()</h3>
+<pre class="programlisting">#define             VIPS_CLIP_UINT( V, SEQ )</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-CLIP-NONE:CAPS"></a><h3>VIPS_CLIP_NONE()</h3>
+<pre class="programlisting">#define VIPS_CLIP_NONE( V, SEQ ) {}
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-PATH-MAX:CAPS"></a><h3>VIPS_PATH_MAX</h3>
+<pre class="programlisting">#define VIPS_PATH_MAX (4096)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-enum-string"></a><h3>vips_enum_string ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_enum_string (<em class="parameter"><code><span class="type">GType</span> enm</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> value</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-enum-nick"></a><h3>vips_enum_nick ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_enum_nick (<em class="parameter"><code><span class="type">GType</span> enm</code></em>,
+                <em class="parameter"><code><span class="type">int</span> value</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-enum-from-nick"></a><h3>vips_enum_from_nick ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_enum_from_nick (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                     <em class="parameter"><code><span class="type">GType</span> type</code></em>,
+                     <em class="parameter"><code>const <span class="type">char</span> *str</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-flags-from-nick"></a><h3>vips_flags_from_nick ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_flags_from_nick (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                      <em class="parameter"><code><span class="type">GType</span> type</code></em>,
+                      <em class="parameter"><code>const <span class="type">char</span> *nick</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-slist-equal"></a><h3>vips_slist_equal ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+vips_slist_equal (<em class="parameter"><code><span class="type">GSList</span> *l1</code></em>,
+                  <em class="parameter"><code><span class="type">GSList</span> *l2</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-slist-map2"></a><h3>vips_slist_map2 ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+vips_slist_map2 (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>,
+                 <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsSListMap2Fn" title="VipsSListMap2Fn ()"><span class="type">VipsSListMap2Fn</span></a> fn</code></em>,
+                 <em class="parameter"><code><span class="type">void</span> *a</code></em>,
+                 <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-slist-map2-rev"></a><h3>vips_slist_map2_rev ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+vips_slist_map2_rev (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>,
+                     <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsSListMap2Fn" title="VipsSListMap2Fn ()"><span class="type">VipsSListMap2Fn</span></a> fn</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> *a</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-slist-map4"></a><h3>vips_slist_map4 ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+vips_slist_map4 (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>,
+                 <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsSListMap4Fn" title="VipsSListMap4Fn ()"><span class="type">VipsSListMap4Fn</span></a> fn</code></em>,
+                 <em class="parameter"><code><span class="type">void</span> *a</code></em>,
+                 <em class="parameter"><code><span class="type">void</span> *b</code></em>,
+                 <em class="parameter"><code><span class="type">void</span> *c</code></em>,
+                 <em class="parameter"><code><span class="type">void</span> *d</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-slist-fold2"></a><h3>vips_slist_fold2 ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+vips_slist_fold2 (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>,
+                  <em class="parameter"><code><span class="type">void</span> *start</code></em>,
+                  <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsSListFold2Fn" title="VipsSListFold2Fn ()"><span class="type">VipsSListFold2Fn</span></a> fn</code></em>,
+                  <em class="parameter"><code><span class="type">void</span> *a</code></em>,
+                  <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-slist-filter"></a><h3>vips_slist_filter ()</h3>
+<pre class="programlisting"><span class="returnvalue">GSList</span> *
+vips_slist_filter (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>,
+                   <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsSListMap2Fn" title="VipsSListMap2Fn ()"><span class="type">VipsSListMap2Fn</span></a> fn</code></em>,
+                   <em class="parameter"><code><span class="type">void</span> *a</code></em>,
+                   <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-slist-free-all"></a><h3>vips_slist_free_all ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_slist_free_all (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-map-equal"></a><h3>vips_map_equal ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+vips_map_equal (<em class="parameter"><code><span class="type">void</span> *a</code></em>,
+                <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-hash-table-map"></a><h3>vips_hash_table_map ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+vips_hash_table_map (<em class="parameter"><code><span class="type">GHashTable</span> *hash</code></em>,
+                     <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsSListMap2Fn" title="VipsSListMap2Fn ()"><span class="type">VipsSListMap2Fn</span></a> fn</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> *a</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-strncpy"></a><h3>vips_strncpy ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips_strncpy (<em class="parameter"><code><span class="type">char</span> *dest</code></em>,
+              <em class="parameter"><code>const <span class="type">char</span> *src</code></em>,
+              <em class="parameter"><code><span class="type">int</span> n</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-strrstr"></a><h3>vips_strrstr ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips_strrstr (<em class="parameter"><code>const <span class="type">char</span> *haystack</code></em>,
+              <em class="parameter"><code>const <span class="type">char</span> *needle</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-ispostfix"></a><h3>vips_ispostfix ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+vips_ispostfix (<em class="parameter"><code>const <span class="type">char</span> *a</code></em>,
+                <em class="parameter"><code>const <span class="type">char</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-iscasepostfix"></a><h3>vips_iscasepostfix ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+vips_iscasepostfix (<em class="parameter"><code>const <span class="type">char</span> *a</code></em>,
+                    <em class="parameter"><code>const <span class="type">char</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-isprefix"></a><h3>vips_isprefix ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+vips_isprefix (<em class="parameter"><code>const <span class="type">char</span> *a</code></em>,
+               <em class="parameter"><code>const <span class="type">char</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-break-token"></a><h3>vips_break_token ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips_break_token (<em class="parameter"><code><span class="type">char</span> *str</code></em>,
+                  <em class="parameter"><code>const <span class="type">char</span> *brk</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--chomp"></a><h3>vips__chomp ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__chomp (<em class="parameter"><code><span class="type">char</span> *str</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-vsnprintf"></a><h3>vips_vsnprintf ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_vsnprintf (<em class="parameter"><code><span class="type">char</span> *str</code></em>,
+                <em class="parameter"><code><span class="type">size_t</span> size</code></em>,
+                <em class="parameter"><code>const <span class="type">char</span> *format</code></em>,
+                <em class="parameter"><code><span class="type">va_list</span> ap</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-snprintf"></a><h3>vips_snprintf ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_snprintf (<em class="parameter"><code><span class="type">char</span> *str</code></em>,
+               <em class="parameter"><code><span class="type">size_t</span> size</code></em>,
+               <em class="parameter"><code>const <span class="type">char</span> *format</code></em>,
+               <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-filename-suffix-match"></a><h3>vips_filename_suffix_match ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_filename_suffix_match (<em class="parameter"><code>const <span class="type">char</span> *path</code></em>,
+                            <em class="parameter"><code>const <span class="type">char</span> *suffixes[]</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-file-length"></a><h3>vips_file_length ()</h3>
+<pre class="programlisting"><span class="returnvalue">gint64</span>
+vips_file_length (<em class="parameter"><code><span class="type">int</span> fd</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--write"></a><h3>vips__write ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__write (<em class="parameter"><code><span class="type">int</span> fd</code></em>,
+             <em class="parameter"><code>const <span class="type">void</span> *buf</code></em>,
+             <em class="parameter"><code><span class="type">size_t</span> count</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--open"></a><h3>vips__open ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__open (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>,
+            <em class="parameter"><code><span class="type">int</span> flags</code></em>,
+            <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--open-read"></a><h3>vips__open_read ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__open_read (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--fopen"></a><h3>vips__fopen ()</h3>
+<pre class="programlisting"><span class="returnvalue">FILE</span> *
+vips__fopen (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>,
+             <em class="parameter"><code>const <span class="type">char</span> *mode</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--file-open-read"></a><h3>vips__file_open_read ()</h3>
+<pre class="programlisting"><span class="returnvalue">FILE</span> *
+vips__file_open_read (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>,
+                      <em class="parameter"><code>const <span class="type">char</span> *fallback_dir</code></em>,
+                      <em class="parameter"><code><span class="type">gboolean</span> text_mode</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--file-open-write"></a><h3>vips__file_open_write ()</h3>
+<pre class="programlisting"><span class="returnvalue">FILE</span> *
+vips__file_open_write (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>,
+                       <em class="parameter"><code><span class="type">gboolean</span> text_mode</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--file-read"></a><h3>vips__file_read ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips__file_read (<em class="parameter"><code><span class="type">FILE</span> *fp</code></em>,
+                 <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                 <em class="parameter"><code><span class="type">size_t</span> *length_out</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--file-read-name"></a><h3>vips__file_read_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips__file_read_name (<em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                      <em class="parameter"><code>const <span class="type">char</span> *fallback_dir</code></em>,
+                      <em class="parameter"><code><span class="type">size_t</span> *length_out</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--file-write"></a><h3>vips__file_write ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__file_write (<em class="parameter"><code><span class="type">void</span> *data</code></em>,
+                  <em class="parameter"><code><span class="type">size_t</span> size</code></em>,
+                  <em class="parameter"><code><span class="type">size_t</span> nmemb</code></em>,
+                  <em class="parameter"><code><span class="type">FILE</span> *stream</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--get-bytes"></a><h3>vips__get_bytes ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__get_bytes (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>,
+                 <em class="parameter"><code>unsigned <span class="type">char</span> buf[]</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> len</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--fgetc"></a><h3>vips__fgetc ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__fgetc (<em class="parameter"><code><span class="type">FILE</span> *fp</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--gvalue-ref-string-new"></a><h3>vips__gvalue_ref_string_new ()</h3>
+<pre class="programlisting"><span class="returnvalue">GValue</span> *
+vips__gvalue_ref_string_new (<em class="parameter"><code>const <span class="type">char</span> *text</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--gslist-gvalue-free"></a><h3>vips__gslist_gvalue_free ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__gslist_gvalue_free (<em class="parameter"><code><span class="type">GSList</span> *list</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--gslist-gvalue-copy"></a><h3>vips__gslist_gvalue_copy ()</h3>
+<pre class="programlisting"><span class="returnvalue">GSList</span> *
+vips__gslist_gvalue_copy (<em class="parameter"><code>const <span class="type">GSList</span> *list</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--gslist-gvalue-merge"></a><h3>vips__gslist_gvalue_merge ()</h3>
+<pre class="programlisting"><span class="returnvalue">GSList</span> *
+vips__gslist_gvalue_merge (<em class="parameter"><code><span class="type">GSList</span> *a</code></em>,
+                           <em class="parameter"><code>const <span class="type">GSList</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--gslist-gvalue-get"></a><h3>vips__gslist_gvalue_get ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips__gslist_gvalue_get (<em class="parameter"><code>const <span class="type">GSList</span> *list</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--seek"></a><h3>vips__seek ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__seek (<em class="parameter"><code><span class="type">int</span> fd</code></em>,
+            <em class="parameter"><code><span class="type">gint64</span> pos</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--ftruncate"></a><h3>vips__ftruncate ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips__ftruncate (<em class="parameter"><code><span class="type">int</span> fd</code></em>,
+                 <em class="parameter"><code><span class="type">gint64</span> pos</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-existsf"></a><h3>vips_existsf ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_existsf (<em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+              <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mkdirf"></a><h3>vips_mkdirf ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mkdirf (<em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rmdirf"></a><h3>vips_rmdirf ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_rmdirf (<em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rename"></a><h3>vips_rename ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_rename (<em class="parameter"><code>const <span class="type">char</span> *old_name</code></em>,
+             <em class="parameter"><code>const <span class="type">char</span> *new_name</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-popenf"></a><h3>vips_popenf ()</h3>
+<pre class="programlisting"><span class="returnvalue">FILE</span> *
+vips_popenf (<em class="parameter"><code>const <span class="type">char</span> *fmt</code></em>,
+             <em class="parameter"><code>const <span class="type">char</span> *mode</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--token-get"></a><h3>vips__token_get ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips__token_get (<em class="parameter"><code>const <span class="type">char</span> *buffer</code></em>,
+                 <em class="parameter"><code><a class="link" href="libvips-util.html#VipsToken" title="enum VipsToken"><span class="type">VipsToken</span></a> *token</code></em>,
+                 <em class="parameter"><code><span class="type">char</span> *string</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> size</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--token-must"></a><h3>vips__token_must ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips__token_must (<em class="parameter"><code>const <span class="type">char</span> *buffer</code></em>,
+                  <em class="parameter"><code><a class="link" href="libvips-util.html#VipsToken" title="enum VipsToken"><span class="type">VipsToken</span></a> *token</code></em>,
+                  <em class="parameter"><code><span class="type">char</span> *string</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> size</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--token-need"></a><h3>vips__token_need ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips__token_need (<em class="parameter"><code>const <span class="type">char</span> *buffer</code></em>,
+                  <em class="parameter"><code><a class="link" href="libvips-util.html#VipsToken" title="enum VipsToken"><span class="type">VipsToken</span></a> need_token</code></em>,
+                  <em class="parameter"><code><span class="type">char</span> *string</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> size</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--token-segment"></a><h3>vips__token_segment ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips__token_segment (<em class="parameter"><code>const <span class="type">char</span> *p</code></em>,
+                     <em class="parameter"><code><a class="link" href="libvips-util.html#VipsToken" title="enum VipsToken"><span class="type">VipsToken</span></a> *token</code></em>,
+                     <em class="parameter"><code><span class="type">char</span> *string</code></em>,
+                     <em class="parameter"><code><span class="type">int</span> size</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--token-segment-need"></a><h3>vips__token_segment_need ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips__token_segment_need (<em class="parameter"><code>const <span class="type">char</span> *p</code></em>,
+                          <em class="parameter"><code><a class="link" href="libvips-util.html#VipsToken" title="enum VipsToken"><span class="type">VipsToken</span></a> need_token</code></em>,
+                          <em class="parameter"><code><span class="type">char</span> *string</code></em>,
+                          <em class="parameter"><code><span class="type">int</span> size</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--find-rightmost-brackets"></a><h3>vips__find_rightmost_brackets ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips__find_rightmost_brackets (<em class="parameter"><code>const <span class="type">char</span> *p</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--filename-split8"></a><h3>vips__filename_split8 ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__filename_split8 (<em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                       <em class="parameter"><code><span class="type">char</span> *filename</code></em>,
+                       <em class="parameter"><code><span class="type">char</span> *option_string</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-ispoweroftwo"></a><h3>vips_ispoweroftwo ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_ispoweroftwo (<em class="parameter"><code><span class="type">int</span> p</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-amiMSBfirst"></a><h3>vips_amiMSBfirst ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_amiMSBfirst (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--temp-name"></a><h3>vips__temp_name ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips__temp_name (<em class="parameter"><code>const <span class="type">char</span> *format</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--change-suffix"></a><h3>vips__change_suffix ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__change_suffix (<em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                     <em class="parameter"><code><span class="type">char</span> *out</code></em>,
+                     <em class="parameter"><code><span class="type">int</span> mx</code></em>,
+                     <em class="parameter"><code>const <span class="type">char</span> *new_suff</code></em>,
+                     <em class="parameter"><code>const <span class="type">char</span> **olds</code></em>,
+                     <em class="parameter"><code><span class="type">int</span> nolds</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-realpath"></a><h3>vips_realpath ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips_realpath (<em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--random"></a><h3>vips__random ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint32</span>
+vips__random (<em class="parameter"><code><span class="type">guint32</span> seed</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--random-add"></a><h3>vips__random_add ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint32</span>
+vips__random_add (<em class="parameter"><code><span class="type">guint32</span> seed</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> value</code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-util.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="VipsToken"></a><h3>enum VipsToken</h3>
+<p>Tokens returned by the vips lexical analyzer, see <a class="link" href="libvips-util.html#vips--token-get" title="vips__token_get ()"><code class="function">vips__token_get()</code></a>. This
+is used to parse option strings for arguments. </p>
+<p>Left and right brackets can be any of (, {, [, &lt;.</p>
+<p>Strings may be in double quotes, and may contain escaped quote characters,
+for example string, "string" and "str\"ing".</p>
+<div class="refsect3">
+<a name="id-1.5.3.7.2.6"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-TOKEN-LEFT:CAPS"></a>VIPS_TOKEN_LEFT</p></td>
+<td class="enum_member_description">
+<p>left bracket</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-TOKEN-RIGHT:CAPS"></a>VIPS_TOKEN_RIGHT</p></td>
+<td class="enum_member_description">
+<p>right bracket</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-TOKEN-STRING:CAPS"></a>VIPS_TOKEN_STRING</p></td>
+<td class="enum_member_description">
+<p>string constant</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-TOKEN-EQUALS:CAPS"></a>VIPS_TOKEN_EQUALS</p></td>
+<td class="enum_member_description">
+<p>equals sign</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-TOKEN-COMMA:CAPS"></a>VIPS_TOKEN_COMMA</p></td>
+<td class="enum_member_description">
+<p>comma</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

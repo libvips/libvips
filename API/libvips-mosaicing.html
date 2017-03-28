@@ -1,0 +1,766 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: mosaicing</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch03.html" title="VIPS operation API by section">
+<link rel="prev" href="libvips-morphology.html" title="morphology">
+<link rel="next" href="libvips-create.html" title="create">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-mosaicing.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-morphology.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libvips-create.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-mosaicing"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-mosaicing.top_of_page"></a>mosaicing</span></h2>
+<p>mosaicing — build image mosaics</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-mosaicing.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libvips-mosaicing.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-mosaicing.html#vips-merge" title="vips_merge ()">vips_merge</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-mosaicing.html#vips-mosaic" title="vips_mosaic ()">vips_mosaic</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-mosaicing.html#vips-mosaic1" title="vips_mosaic1 ()">vips_mosaic1</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-mosaicing.html#vips-match" title="vips_match ()">vips_match</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-mosaicing.html#vips-globalbalance" title="vips_globalbalance ()">vips_globalbalance</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-mosaicing.html#vips-remosaic" title="vips_remosaic ()">vips_remosaic</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-mosaicing.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libvips-mosaicing.description"></a><h2>Description</h2>
+<p>These functions are useful for joining many small images together to make
+one large image. They can cope with unstable contrast and arbitary sub-image
+layout, but will not do any geometric correction. Geometric errors should
+be removed before using these functions.</p>
+<p>The mosaicing functions can be grouped into layers:</p>
+<p>The lowest level functions are <code class="function">im_correl()</code> and <a class="link" href="libvips-mosaicing.html#vips-merge" title="vips_merge ()"><code class="function">vips_merge()</code></a>.
+<code class="function">im_correl()</code> 
+searches a large image for a small sub-image, returning
+the position of the best sub-image match. <a class="link" href="libvips-mosaicing.html#vips-merge" title="vips_merge ()"><code class="function">vips_merge()</code></a> 
+joins two images together
+left-right or up-down with a smooth seam.</p>
+<p>Next, <a class="link" href="libvips-mosaicing.html#vips-mosaic" title="vips_mosaic ()"><code class="function">vips_mosaic()</code></a> use the
+search function plus the two low-level merge operations to join two images 
+given just an approximate overlap as a start point. </p>
+<p>The functions <code class="function">im_lrmosaic1()</code> and <code class="function">im_tbmosaic1()</code> are
+first-order
+analogues of the basic mosaic functions: they take two approximate 
+tie-points and use
+them to rotate and scale the right-hand or bottom image before starting to
+join.</p>
+<p>Finally, <a class="link" href="libvips-mosaicing.html#vips-globalbalance" title="vips_globalbalance ()"><code class="function">vips_globalbalance()</code></a> can be used to remove contrast differences in 
+a mosaic
+which has been assembled with these functions. It takes the mosaic apart,
+measures image contrast differences along the seams, finds a set of
+correction factors which will minimise these differences, and reassembles
+the mosaic.
+<code class="function">im_remosaic()</code> uses the
+same
+techniques, but will reassemble the image from a different set of source
+images.</p>
+</div>
+<div class="refsect1">
+<a name="libvips-mosaicing.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips-merge"></a><h3>vips_merge ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_merge (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *ref</code></em>,
+            <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *sec</code></em>,
+            <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+            <em class="parameter"><code><a class="link" href="libvips-conversion.html#VipsDirection" title="enum VipsDirection"><span class="type">VipsDirection</span></a> direction</code></em>,
+            <em class="parameter"><code><span class="type">int</span> dx</code></em>,
+            <em class="parameter"><code><span class="type">int</span> dy</code></em>,
+            <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>mblend</code></em>
+: <code class="literal">gint</code>, maximum blend size </p></li></ul></div>
+<p>This operation joins two images left-right (with <em class="parameter"><code>ref</code></em>
+ on the left) or
+up-down (with <em class="parameter"><code>ref</code></em>
+ above) with a smooth seam.</p>
+<p>If the number of bands differs, one of the images 
+must have one band. In this case, an n-band image is formed from the 
+one-band image by joining n copies of the one-band image together, and then
+the two n-band images are operated upon.</p>
+<p>The two input images are cast up to the smallest common type (see table 
+Smallest common format in </p>
+<a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a>).
+<p><em class="parameter"><code>dx</code></em>
+ and <em class="parameter"><code>dy</code></em>
+ give the displacement of <em class="parameter"><code>sec</code></em>
+ relative to <em class="parameter"><code>ref</code></em>
+, in other words,
+the vector to get from the origin of <em class="parameter"><code>sec</code></em>
+ to the origin of <em class="parameter"><code>ref</code></em>
+, in other
+words, <em class="parameter"><code>dx</code></em>
+ will generally be a negative number. </p>
+<p><em class="parameter"><code>mblend</code></em>
+ limits  the  maximum width of the
+blend area.  A value of "-1" means "unlimited". The two images are blended 
+with a raised cosine. </p>
+<p>Pixels with all bands equal to zero are "transparent", that
+is, zero pixels in the overlap area do not  contribute  to  the  merge.
+This makes it possible to join non-rectangular images.</p>
+<p>See also: <a class="link" href="libvips-mosaicing.html#vips-mosaic" title="vips_mosaic ()"><code class="function">vips_mosaic()</code></a>, <a class="link" href="libvips-conversion.html#vips-insert" title="vips_insert ()"><code class="function">vips_insert()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.12.7.2.14"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ref</p></td>
+<td class="parameter_description"><p>reference image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>sec</p></td>
+<td class="parameter_description"><p>secondary image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>direction</p></td>
+<td class="parameter_description"><p>horizontal or vertical merge</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>dx</p></td>
+<td class="parameter_description"><p>displacement of ref from sec</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>dy</p></td>
+<td class="parameter_description"><p>displacement of ref from sec</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.12.7.2.15"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mosaic"></a><h3>vips_mosaic ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mosaic (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *ref</code></em>,
+             <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *sec</code></em>,
+             <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+             <em class="parameter"><code><a class="link" href="libvips-conversion.html#VipsDirection" title="enum VipsDirection"><span class="type">VipsDirection</span></a> direction</code></em>,
+             <em class="parameter"><code><span class="type">int</span> xref</code></em>,
+             <em class="parameter"><code><span class="type">int</span> yref</code></em>,
+             <em class="parameter"><code><span class="type">int</span> xsec</code></em>,
+             <em class="parameter"><code><span class="type">int</span> ysec</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>bandno</code></em>
+: <code class="literal">gint</code>, band to search for features</p></li>
+<li class="listitem"><p><em class="parameter"><code>hwindow</code></em>
+: <code class="literal">gint</code>, half window size</p></li>
+<li class="listitem"><p><em class="parameter"><code>harea</code></em>
+: <code class="literal">gint</code>, half search size </p></li>
+<li class="listitem"><p><em class="parameter"><code>mblend</code></em>
+: <code class="literal">gint</code>, maximum blend size</p></li>
+</ul></div>
+<p>This operation joins two images left-right (with <em class="parameter"><code>ref</code></em>
+ on the left) or
+top-bottom (with <em class="parameter"><code>ref</code></em>
+ above) given an approximate overlap.</p>
+<p><em class="parameter"><code>sec</code></em>
+ is positioned so that the pixel (<em class="parameter"><code>xsec</code></em>
+, <em class="parameter"><code>ysec</code></em>
+) in <em class="parameter"><code>sec</code></em>
+ lies on top of 
+the pixel (<em class="parameter"><code>xref</code></em>
+, <em class="parameter"><code>yref</code></em>
+) in <em class="parameter"><code>ref</code></em>
+. The overlap area is divided into three
+sections, 20 high-contrast points in band <em class="parameter"><code>bandno</code></em>
+ of image <em class="parameter"><code>ref</code></em>
+ are found 
+in each, and each high-contrast point is searched for in <em class="parameter"><code>sec</code></em>
+ using
+<em class="parameter"><code>hwindow</code></em>
+ and <em class="parameter"><code>harea</code></em>
+ (see <code class="function">vips_correl()</code>). </p>
+<p>A linear model is fitted to the 60 tie-points, points a long way from the
+fit are discarded, and the model refitted until either too few points
+remain or the model reaches good agreement. </p>
+<p>The detected displacement is used with <a class="link" href="libvips-mosaicing.html#vips-merge" title="vips_merge ()"><code class="function">vips_merge()</code></a> to join the two images
+together. </p>
+<p>See also: <a class="link" href="libvips-mosaicing.html#vips-merge" title="vips_merge ()"><code class="function">vips_merge()</code></a>, <a class="link" href="libvips-conversion.html#vips-insert" title="vips_insert ()"><code class="function">vips_insert()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.12.7.3.11"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ref</p></td>
+<td class="parameter_description"><p>reference image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>sec</p></td>
+<td class="parameter_description"><p>secondary image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>direction</p></td>
+<td class="parameter_description"><p>horizontal or vertical join</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xref</p></td>
+<td class="parameter_description"><p>position in reference image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>yref</p></td>
+<td class="parameter_description"><p>position in reference image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xsec</p></td>
+<td class="parameter_description"><p>position in secondary image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ysec</p></td>
+<td class="parameter_description"><p>position in secondary image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.12.7.3.12"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mosaic1"></a><h3>vips_mosaic1 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mosaic1 (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *ref</code></em>,
+              <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *sec</code></em>,
+              <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+              <em class="parameter"><code><a class="link" href="libvips-conversion.html#VipsDirection" title="enum VipsDirection"><span class="type">VipsDirection</span></a> direction</code></em>,
+              <em class="parameter"><code><span class="type">int</span> xr1</code></em>,
+              <em class="parameter"><code><span class="type">int</span> yr1</code></em>,
+              <em class="parameter"><code><span class="type">int</span> xs1</code></em>,
+              <em class="parameter"><code><span class="type">int</span> ys1</code></em>,
+              <em class="parameter"><code><span class="type">int</span> xr2</code></em>,
+              <em class="parameter"><code><span class="type">int</span> yr2</code></em>,
+              <em class="parameter"><code><span class="type">int</span> xs2</code></em>,
+              <em class="parameter"><code><span class="type">int</span> ys2</code></em>,
+              <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>search</code></em>
+: search to improve tie-points</p></li>
+<li class="listitem"><p><em class="parameter"><code>hwindow</code></em>
+: half window size</p></li>
+<li class="listitem"><p><em class="parameter"><code>harea</code></em>
+: half search size </p></li>
+<li class="listitem"><p><em class="parameter"><code>interpolate</code></em>
+: interpolate pixels with this</p></li>
+<li class="listitem"><p><em class="parameter"><code>mblend</code></em>
+: maximum blend size </p></li>
+<li class="listitem"><p><em class="parameter"><code>bandno</code></em>
+: band to search for features</p></li>
+</ul></div>
+<p>This operation joins two images top-bottom (with <em class="parameter"><code>sec</code></em>
+ on the right) 
+or left-right (with <em class="parameter"><code>sec</code></em>
+ at the bottom)
+given an approximate pair of tie-points. <em class="parameter"><code>sec</code></em>
+ is scaled and rotated as
+necessary before the join.</p>
+<p>Before performing the transformation, the tie-points are improved by 
+searching band <em class="parameter"><code>bandno</code></em>
+ in an area of <em class="parameter"><code>sec</code></em>
+ of size <em class="parameter"><code>hsearchsize</code></em>
+ for a
+match of size <em class="parameter"><code>hwindowsize</code></em>
+ to <em class="parameter"><code>ref</code></em>
+. </p>
+<p>If <em class="parameter"><code>search</code></em>
+ is <code class="literal">TRUE</code>, before performing the transformation, the tie-points 
+are improved by searching an area of <em class="parameter"><code>sec</code></em>
+ of size <em class="parameter"><code>harea</code></em>
+ for a
+mosaic1 of size <em class="parameter"><code>hwindow</code></em>
+ to <em class="parameter"><code>ref</code></em>
+. </p>
+<p><em class="parameter"><code>mblend</code></em>
+ limits  the  maximum size of the
+blend area.  A value of "-1" means "unlimited". The two images are blended 
+with a raised cosine. </p>
+<p>Pixels with all bands equal to zero are "transparent", that
+is, zero pixels in the overlap area do not  contribute  to  the  merge.
+This makes it possible to join non-rectangular images.</p>
+<p>If the number of bands differs, one of the images 
+must have one band. In this case, an n-band image is formed from the 
+one-band image by joining n copies of the one-band image together, and then
+the two n-band images are operated upon.</p>
+<p>The two input images are cast up to the smallest common type (see table 
+Smallest common format in </p>
+<a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a>).
+<p>See also: <a class="link" href="libvips-mosaicing.html#vips-merge" title="vips_merge ()"><code class="function">vips_merge()</code></a>, <a class="link" href="libvips-conversion.html#vips-insert" title="vips_insert ()"><code class="function">vips_insert()</code></a>, <a class="link" href="libvips-mosaicing.html#vips-globalbalance" title="vips_globalbalance ()"><code class="function">vips_globalbalance()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.12.7.4.15"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ref</p></td>
+<td class="parameter_description"><p>reference image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>sec</p></td>
+<td class="parameter_description"><p>secondary image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>direction</p></td>
+<td class="parameter_description"><p>horizontal or vertical join</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xr1</p></td>
+<td class="parameter_description"><p>first reference tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>yr1</p></td>
+<td class="parameter_description"><p>first reference tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xs1</p></td>
+<td class="parameter_description"><p>first secondary tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ys1</p></td>
+<td class="parameter_description"><p>first secondary tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xr2</p></td>
+<td class="parameter_description"><p>second reference tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>yr2</p></td>
+<td class="parameter_description"><p>second reference tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xs2</p></td>
+<td class="parameter_description"><p>second secondary tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ys2</p></td>
+<td class="parameter_description"><p>second secondary tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.12.7.4.16"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-match"></a><h3>vips_match ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_match (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *ref</code></em>,
+            <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *sec</code></em>,
+            <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+            <em class="parameter"><code><span class="type">int</span> xr1</code></em>,
+            <em class="parameter"><code><span class="type">int</span> yr1</code></em>,
+            <em class="parameter"><code><span class="type">int</span> xs1</code></em>,
+            <em class="parameter"><code><span class="type">int</span> ys1</code></em>,
+            <em class="parameter"><code><span class="type">int</span> xr2</code></em>,
+            <em class="parameter"><code><span class="type">int</span> yr2</code></em>,
+            <em class="parameter"><code><span class="type">int</span> xs2</code></em>,
+            <em class="parameter"><code><span class="type">int</span> ys2</code></em>,
+            <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>search</code></em>
+: search to improve tie-points</p></li>
+<li class="listitem"><p><em class="parameter"><code>hwindow</code></em>
+: half window size</p></li>
+<li class="listitem"><p><em class="parameter"><code>harea</code></em>
+: half search size </p></li>
+<li class="listitem"><p><em class="parameter"><code>interpolate</code></em>
+: interpolate pixels with this</p></li>
+</ul></div>
+<p>Scale, rotate and translate <em class="parameter"><code>sec</code></em>
+ so that the tie-points line up.</p>
+<p>If <em class="parameter"><code>search</code></em>
+ is <code class="literal">TRUE</code>, before performing the transformation, the tie-points 
+are improved by searching an area of <em class="parameter"><code>sec</code></em>
+ of size <em class="parameter"><code>harea</code></em>
+ for a
+match of size <em class="parameter"><code>hwindow</code></em>
+ to <em class="parameter"><code>ref</code></em>
+. </p>
+<p>This function will only work well for small rotates and scales.</p>
+<div class="refsect3">
+<a name="id-1.4.12.7.5.9"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ref</p></td>
+<td class="parameter_description"><p>reference image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>sec</p></td>
+<td class="parameter_description"><p>secondary image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xr1</p></td>
+<td class="parameter_description"><p>first reference tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>yr1</p></td>
+<td class="parameter_description"><p>first reference tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xs1</p></td>
+<td class="parameter_description"><p>first secondary tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ys1</p></td>
+<td class="parameter_description"><p>first secondary tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xr2</p></td>
+<td class="parameter_description"><p>second reference tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>yr2</p></td>
+<td class="parameter_description"><p>second reference tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>xs2</p></td>
+<td class="parameter_description"><p>second secondary tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ys2</p></td>
+<td class="parameter_description"><p>second secondary tie-point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.12.7.5.10"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-globalbalance"></a><h3>vips_globalbalance ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_globalbalance (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                    <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                    <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>gamma</code></em>
+: gamma of source images</p></li>
+<li class="listitem"><p><em class="parameter"><code>int_output</code></em>
+: <code class="literal">TRUE</code> for integer image output</p></li>
+</ul></div>
+<p>vips_globalbalance() can be used to remove contrast differences in 
+an assembled mosaic.</p>
+<p>It reads the History field attached to <em class="parameter"><code>in</code></em>
+ and builds a list of the source
+images that were used to make the mosaic and the position that each ended
+up at in the final image.</p>
+<p>It opens each of the source images in turn and extracts all parts which
+overlap with any of the other images. It finds the average values in the
+overlap areas and uses least-mean-square to find a set of correction
+factors which will minimise overlap differences. It uses <em class="parameter"><code>gamma</code></em>
+ to
+gamma-correct the source images before calculating the factors. A value of
+1.0 will stop this.</p>
+<p>Each of the source images is transformed with the appropriate correction 
+factor, then the mosaic is reassembled. <em class="parameter"><code>out</code></em>
+ is <a class="link" href="VipsImage.html#VIPS-FORMAT-FLOAT:CAPS"><span class="type">VIPS_FORMAT_FLOAT</span></a>, but 
+if <em class="parameter"><code>int_output</code></em>
+ is set, the output image is the same format as the input
+images.  </p>
+<p>There are some conditions that must be met before this operation can work:
+the source images must all be present under the filenames recorded in the
+history on <em class="parameter"><code>in</code></em>
+, and the mosaic must have been built using only operations in
+this package.</p>
+<p>See also: <a class="link" href="libvips-mosaicing.html#vips-remosaic" title="vips_remosaic ()"><code class="function">vips_remosaic()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.12.7.6.12"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>mosaic to rebuild</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.12.7.6.13"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-remosaic"></a><h3>vips_remosaic ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_remosaic (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+               <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+               <em class="parameter"><code>const <span class="type">char</span> *old_str</code></em>,
+               <em class="parameter"><code>const <span class="type">char</span> *new_str</code></em>,
+               <em class="parameter"><code>...</code></em>);</pre>
+<p>vips_remosaic() works rather as <a class="link" href="libvips-mosaicing.html#vips-globalbalance" title="vips_globalbalance ()"><code class="function">vips_globalbalance()</code></a>. It takes apart the
+mosaiced image <em class="parameter"><code>in</code></em>
+ and rebuilds it, substituting images.</p>
+<p>Unlike <a class="link" href="libvips-mosaicing.html#vips-globalbalance" title="vips_globalbalance ()"><code class="function">vips_globalbalance()</code></a>, images are substituted based on their file‐
+names.  The  rightmost  occurence  of the string <em class="parameter"><code>old_str</code></em>
+ is swapped
+for <em class="parameter"><code>new_str</code></em>
+, that file is opened, and that image substituted  for
+the old image.</p>
+<p>It's convenient for multispectral images. You can mosaic one band, then
+use that mosaic as a template for mosaicing the others automatically.</p>
+<p>See also: <a class="link" href="libvips-mosaicing.html#vips-globalbalance" title="vips_globalbalance ()"><code class="function">vips_globalbalance()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.12.7.7.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>mosaic to rebuild</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>old_str</p></td>
+<td class="parameter_description"><p>gamma of source images</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>new_str</p></td>
+<td class="parameter_description"><p>gamma of source images</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.12.7.7.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-mosaicing.other_details"></a><h2>Types and Values</h2>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

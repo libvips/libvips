@@ -1,0 +1,2264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: create</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch03.html" title="VIPS operation API by section">
+<link rel="prev" href="libvips-mosaicing.html" title="mosaicing">
+<link rel="next" href="libvips-resample.html" title="resample">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-create.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-mosaicing.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libvips-resample.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-create"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-create.top_of_page"></a>create</span></h2>
+<p>create — create images in various ways</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-create.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libvips-create.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-black" title="vips_black ()">vips_black</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()">vips_xyz</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-grey" title="vips_grey ()">vips_grey</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-gaussmat" title="vips_gaussmat ()">vips_gaussmat</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-logmat" title="vips_logmat ()">vips_logmat</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-text" title="vips_text ()">vips_text</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()">vips_gaussnoise</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-eye" title="vips_eye ()">vips_eye</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-sines" title="vips_sines ()">vips_sines</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-zone" title="vips_zone ()">vips_zone</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-identity" title="vips_identity ()">vips_identity</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-buildlut" title="vips_buildlut ()">vips_buildlut</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-invertlut" title="vips_invertlut ()">vips_invertlut</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-tonelut" title="vips_tonelut ()">vips_tonelut</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()">vips_mask_ideal</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-mask-ideal-ring" title="vips_mask_ideal_ring ()">vips_mask_ideal_ring</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-mask-ideal-band" title="vips_mask_ideal_band ()">vips_mask_ideal_band</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-mask-butterworth" title="vips_mask_butterworth ()">vips_mask_butterworth</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-mask-butterworth-ring" title="vips_mask_butterworth_ring ()">vips_mask_butterworth_ring</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-mask-butterworth-band" title="vips_mask_butterworth_band ()">vips_mask_butterworth_band</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-mask-gaussian" title="vips_mask_gaussian ()">vips_mask_gaussian</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-mask-gaussian-ring" title="vips_mask_gaussian_ring ()">vips_mask_gaussian_ring</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-mask-gaussian-band" title="vips_mask_gaussian_band ()">vips_mask_gaussian_band</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-mask-fractal" title="vips_mask_fractal ()">vips_mask_fractal</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-fractsurf" title="vips_fractsurf ()">vips_fractsurf</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-worley" title="vips_worley ()">vips_worley</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-create.html#vips-perlin" title="vips_perlin ()">vips_perlin</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-create.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libvips-create.description"></a><h2>Description</h2>
+<p>These functions generate various test images. You can combine them with
+the arithmetic and rotate functions to build more complicated images.</p>
+<p>The <code class="function">im_benchmark()</code> operations are for testing the VIPS SMP system.</p>
+</div>
+<div class="refsect1">
+<a name="libvips-create.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips-black"></a><h3>vips_black ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_black (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+            <em class="parameter"><code><span class="type">int</span> width</code></em>,
+            <em class="parameter"><code><span class="type">int</span> height</code></em>,
+            <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>bands</code></em>
+: output bands</p></li></ul></div>
+<p>Make a black unsigned char image of a specified size.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>, <a class="link" href="libvips-create.html#vips-text" title="vips_text ()"><code class="function">vips_text()</code></a>, <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.2.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>output width</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>output height</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.2.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-xyz"></a><h3>vips_xyz ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_xyz (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+          <em class="parameter"><code><span class="type">int</span> width</code></em>,
+          <em class="parameter"><code><span class="type">int</span> height</code></em>,
+          <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>csize</code></em>
+: size for third dimension</p></li>
+<li class="listitem"><p><em class="parameter"><code>dsize</code></em>
+: size for fourth dimension</p></li>
+<li class="listitem"><p><em class="parameter"><code>esize</code></em>
+: size for fifth dimension</p></li>
+</ul></div>
+<p>Create a two-band uint32 image where the elements in the first band have the
+value of their x coordinate and elements in the second band have their y
+coordinate. </p>
+<p>You can make any image where the value of a pixel is a function of its (x,
+y) coordinate by combining this operator with the arithmetic operators. </p>
+<p>Set <em class="parameter"><code>csize</code></em>
+, <em class="parameter"><code>dsize</code></em>
+, <em class="parameter"><code>esize</code></em>
+ to generate higher dimensions and add more
+bands. The extra dimensions are placed down the vertical axis. Use
+<a class="link" href="libvips-conversion.html#vips-grid" title="vips_grid ()"><code class="function">vips_grid()</code></a> to change the layout. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-grey" title="vips_grey ()"><code class="function">vips_grey()</code></a>, <a class="link" href="libvips-conversion.html#vips-grid" title="vips_grid ()"><code class="function">vips_grid()</code></a>, <a class="link" href="libvips-create.html#vips-identity" title="vips_identity ()"><code class="function">vips_identity()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.3.10"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>horizontal size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>vertical size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.3.11"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-grey"></a><h3>vips_grey ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_grey (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+           <em class="parameter"><code><span class="type">int</span> width</code></em>,
+           <em class="parameter"><code><span class="type">int</span> height</code></em>,
+           <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li></ul></div>
+<p>Create a one-band float image with the left-most column zero and the
+right-most 1. Intermediate pixels are a linear ramp.</p>
+<p>Set <em class="parameter"><code>uchar</code></em>
+ to output a uchar image with the leftmost pixel 0 and the
+rightmost 255. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>, <a class="link" href="libvips-create.html#vips-identity" title="vips_identity ()"><code class="function">vips_identity()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.4.9"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.4.10"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-gaussmat"></a><h3>vips_gaussmat ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_gaussmat (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+               <em class="parameter"><code><span class="type">double</span> sigma</code></em>,
+               <em class="parameter"><code><span class="type">double</span> min_ampl</code></em>,
+               <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>separable</code></em>
+: generate a separable gaussian</p></li>
+<li class="listitem"><p><em class="parameter"><code>precision</code></em>
+: <a class="link" href="libvips-basic.html#VipsPrecision" title="enum VipsPrecision"><span class="type">VipsPrecision</span></a> for <em class="parameter"><code>out</code></em>
+</p></li>
+</ul></div>
+<p>Creates a circularly symmetric Gaussian image of radius 
+<em class="parameter"><code>sigma</code></em>
+.  The size of the mask is determined by the variable <em class="parameter"><code>min_ampl</code></em>
+; 
+if for instance the value .1 is entered this means that the produced mask 
+is clipped at values less than 10 percent of the maximum amplitude.</p>
+<p>The program uses the following equation:</p>
+<p>  H(r) = exp( -(r * r) / (2 * <em class="parameter"><code>sigma</code></em>
+ * <em class="parameter"><code>sigma</code></em>
+) )</p>
+<p>The generated image has odd size and its maximum value is normalised to
+1.0, unless <em class="parameter"><code>precision</code></em>
+ is <a class="link" href="libvips-basic.html#VIPS-PRECISION-INTEGER:CAPS"><span class="type">VIPS_PRECISION_INTEGER</span></a>.</p>
+<p>If <em class="parameter"><code>separable</code></em>
+ is set, only the centre horizontal is generated. This is
+useful for separable convolutions. </p>
+<p>If <em class="parameter"><code>precision</code></em>
+ is <a class="link" href="libvips-basic.html#VIPS-PRECISION-INTEGER:CAPS"><span class="type">VIPS_PRECISION_INTEGER</span></a>, an integer gaussian is generated. 
+This is useful for integer convolutions. </p>
+<p>"scale" is set to the sum of all the mask elements.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-logmat" title="vips_logmat ()"><code class="function">vips_logmat()</code></a>, <a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.5.14"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>sigma</p></td>
+<td class="parameter_description"><p>standard deviation of mask</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>min_ampl</p></td>
+<td class="parameter_description"><p>minimum amplitude</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.5.15"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-logmat"></a><h3>vips_logmat ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_logmat (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+             <em class="parameter"><code><span class="type">double</span> sigma</code></em>,
+             <em class="parameter"><code><span class="type">double</span> min_ampl</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>separable</code></em>
+: generate a separable mask</p></li>
+<li class="listitem"><p><em class="parameter"><code>precision</code></em>
+: <a class="link" href="libvips-basic.html#VipsPrecision" title="enum VipsPrecision"><span class="type">VipsPrecision</span></a> for <em class="parameter"><code>out</code></em>
+</p></li>
+</ul></div>
+<p>Creates a circularly symmetric Laplacian of Gaussian mask 
+of radius 
+<em class="parameter"><code>sigma</code></em>
+.  The size of the mask is determined by the variable <em class="parameter"><code>min_ampl</code></em>
+; 
+if for instance the value .1 is entered this means that the produced mask 
+is clipped at values within 10 persent of zero, and where the change 
+between mask elements is less than 10%.</p>
+<p>The program uses the following equation: (from Handbook of Pattern 
+Recognition and image processing by Young and Fu, AP 1986 pages 220-221):</p>
+<p> H(r) = (1 / (2 * M_PI * s4)) *
+	(2 - (r2 / s2)) * 
+	exp(-r2 / (2 * s2))</p>
+<p>where s2 = <em class="parameter"><code>sigma</code></em>
+ * <em class="parameter"><code>sigma</code></em>
+, s4 = s2 * s2, r2 = r * r.  </p>
+<p>The generated mask has odd size and its maximum value is normalised to 
+1.0, unless <em class="parameter"><code>precision</code></em>
+ is <a class="link" href="libvips-basic.html#VIPS-PRECISION-INTEGER:CAPS"><span class="type">VIPS_PRECISION_INTEGER</span></a>.</p>
+<p>If <em class="parameter"><code>separable</code></em>
+ is set, only the centre horizontal is generated. This is
+useful for separable convolutions. </p>
+<p>If <em class="parameter"><code>precision</code></em>
+ is <a class="link" href="libvips-basic.html#VIPS-PRECISION-INTEGER:CAPS"><span class="type">VIPS_PRECISION_INTEGER</span></a>, an integer mask is generated. 
+This is useful for integer convolutions. </p>
+<p>"scale" is set to the sum of all the mask elements.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-gaussmat" title="vips_gaussmat ()"><code class="function">vips_gaussmat()</code></a>, <a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.6.15"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>sigma</p></td>
+<td class="parameter_description"><p>standard deviation of mask</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>min_ampl</p></td>
+<td class="parameter_description"><p>minimum amplitude</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.6.16"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-text"></a><h3>vips_text ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_text (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+           <em class="parameter"><code>const <span class="type">char</span> *text</code></em>,
+           <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>font</code></em>
+: <code class="literal">gchararray</code>, font to render with</p></li>
+<li class="listitem"><p><em class="parameter"><code>width</code></em>
+: <code class="literal">gint</code>, image should be no wider than this many pixels</p></li>
+<li class="listitem"><p><em class="parameter"><code>align</code></em>
+: <a class="link" href="libvips-conversion.html#VipsAlign" title="enum VipsAlign"><span class="type">VipsAlign</span></a>, left/centre/right alignment</p></li>
+<li class="listitem"><p><em class="parameter"><code>dpi</code></em>
+: <code class="literal">gint</code>, render at this resolution</p></li>
+<li class="listitem"><p><em class="parameter"><code>spacing</code></em>
+: <code class="literal">gint</code>, space lines by this in points</p></li>
+</ul></div>
+<p>Draw the string <em class="parameter"><code>text</code></em>
+ to an image. <em class="parameter"><code>out</code></em>
+ is a one-band 8-bit
+unsigned char image, with 0 for no text and 255 for text. Values inbetween
+are used for anti-aliasing.</p>
+<p><em class="parameter"><code>text</code></em>
+ is the text to render as a UTF-8 string. It can contain Pango markup,
+for example "&lt;i&gt;The&lt;/i&gt;Guardian".</p>
+<p><em class="parameter"><code>font</code></em>
+ is the font to render with, as a fontconfig name. Examples might be
+"sans 12" or perhaps "bitstream charter bold 10".</p>
+<p><em class="parameter"><code>width</code></em>
+ is the maximum number of pixels across to draw within. If the
+generated text is wider than this, it will wrap to a new line. In this
+case, <em class="parameter"><code>align</code></em>
+ can be used to set the alignment style for multi-line
+text. </p>
+<p><em class="parameter"><code>dpi</code></em>
+ sets the resolution to render at. "sans 12" at 72 dpi draws characters
+approximately 12 pixels high.</p>
+<p><em class="parameter"><code>spacing</code></em>
+ sets the line spacing, in points. It would typicallly be something
+like font size times 1.2.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>, <a class="link" href="libvips-create.html#vips-text" title="vips_text ()"><code class="function">vips_text()</code></a>, <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.7.13"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>text</p></td>
+<td class="parameter_description"><p>utf-8 text string to render</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.7.14"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-gaussnoise"></a><h3>vips_gaussnoise ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_gaussnoise (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>mean</code></em>
+: mean of generated pixels</p></li>
+<li class="listitem"><p><em class="parameter"><code>sigma</code></em>
+: standard deviation of generated pixels</p></li>
+</ul></div>
+<p>Make a one band float image of gaussian noise with the specified
+distribution. The noise distribution is created by averaging 12 random 
+numbers with the appropriate weights.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-black" title="vips_black ()"><code class="function">vips_black()</code></a>, <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>, <a class="link" href="libvips-create.html#vips-text" title="vips_text ()"><code class="function">vips_text()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.8.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>output width</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>output height</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.8.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-eye"></a><h3>vips_eye ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_eye (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+          <em class="parameter"><code><span class="type">int</span> width</code></em>,
+          <em class="parameter"><code><span class="type">int</span> height</code></em>,
+          <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>factor</code></em>
+: maximum spatial frequency</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Create a test pattern with increasing spatial frequence in X and 
+amplitude in Y. <em class="parameter"><code>factor</code></em>
+ should be between 0 and 1 and determines the 
+maximum spatial frequency.</p>
+<p>Set <em class="parameter"><code>uchar</code></em>
+ to output a uchar image. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-zone" title="vips_zone ()"><code class="function">vips_zone()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.9.9"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.9.10"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-sines"></a><h3>vips_sines ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_sines (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+            <em class="parameter"><code><span class="type">int</span> width</code></em>,
+            <em class="parameter"><code><span class="type">int</span> height</code></em>,
+            <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>hfreq</code></em>
+: horizontal frequency</p></li>
+<li class="listitem"><p><em class="parameter"><code>vreq</code></em>
+: vertical frequency</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Creates a float one band image of the a sine waveform in two
+dimensions.  </p>
+<p>The number of horizontal and vertical spatial frequencies are
+determined by the variables <em class="parameter"><code>hfreq</code></em>
+ and <em class="parameter"><code>vfreq</code></em>
+ respectively.  The
+function is useful for creating displayable sine waves and
+square waves in two dimensions.</p>
+<p>If horfreq and verfreq are integers the resultant image is periodical
+and therfore the Fourier transform does not present spikes</p>
+<p>Pixels are normally in [-1, +1], set <em class="parameter"><code>uchar</code></em>
+ to output [0, 255]. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-grey" title="vips_grey ()"><code class="function">vips_grey()</code></a>, <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.10.11"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.10.12"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-zone"></a><h3>vips_zone ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_zone (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+           <em class="parameter"><code><span class="type">int</span> width</code></em>,
+           <em class="parameter"><code><span class="type">int</span> height</code></em>,
+           <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li></ul></div>
+<p>Create a one-band image of a zone plate. </p>
+<p>Pixels are normally in [-1, +1], set <em class="parameter"><code>uchar</code></em>
+ to output [0, 255]. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-eye" title="vips_eye ()"><code class="function">vips_eye()</code></a>, <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.11.9"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.11.10"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-identity"></a><h3>vips_identity ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_identity (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+               <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>bands</code></em>
+: number of bands to create</p></li>
+<li class="listitem"><p><em class="parameter"><code>ushort</code></em>
+: <code class="literal">TRUE</code> for an unsigned short identity</p></li>
+<li class="listitem"><p><em class="parameter"><code>size</code></em>
+: number of LUT elements for a ushort image</p></li>
+</ul></div>
+<p>Creates an identity lookup table, ie. one which will leave an image
+unchanged when applied with <a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()"><code class="function">vips_maplut()</code></a>. Each entry in the table has a
+value equal to its position. </p>
+<p>Use the arithmetic operations on these tables to make LUTs representing
+arbitrary functions. </p>
+<p>Normally LUTs are 8-bit. Set <em class="parameter"><code>ushort</code></em>
+ to create a 16-bit table. </p>
+<p>Normally 16-bit tables have 65536 entries. You can set this smaller with
+<em class="parameter"><code>size</code></em>
+. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>, <a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()"><code class="function">vips_maplut()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.12.11"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.12.12"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-buildlut"></a><h3>vips_buildlut ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_buildlut (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+               <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+               <em class="parameter"><code>...</code></em>);</pre>
+<p>This operation builds a lookup table from a set of points. Intermediate
+values are generated by piecewise linear interpolation. The lookup table is
+always of type <a class="link" href="VipsImage.html#VIPS-FORMAT-DOUBLE:CAPS"><span class="type">VIPS_FORMAT_DOUBLE</span></a>, use <a class="link" href="libvips-conversion.html#vips-cast" title="vips_cast ()"><code class="function">vips_cast()</code></a> to change it to the 
+type you need.</p>
+<p>For example, consider this 2 x 2 matrix of (x, y) coordinates:</p>
+<table class="refsect2" summary="vips_buildlut ()" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td align="left">0</td>
+<td align="left">0</td>
+</tr>
+<tr>
+<td align="left">255</td>
+<td align="left">100</td>
+</tr>
+</tbody>
+</table>
+<p>We then generate:</p>
+<table class="refsect2" summary="vips_buildlut ()" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">Index</th>
+<th align="left">Value</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">0</td>
+<td align="left">0</td>
+</tr>
+<tr>
+<td align="left">1</td>
+<td align="left">0.4</td>
+</tr>
+<tr>
+<td align="left">...</td>
+<td align="left">etc. by linear interpolation</td>
+</tr>
+<tr>
+<td align="left">255</td>
+<td align="left">100</td>
+</tr>
+</tbody>
+</table>
+<p>This is then written as the output image, with the left column giving the
+index in the image to place the value.</p>
+<p>The (x, y) points don't need to be sorted: we do that. You can have 
+several Ys, each becomes a band in the output LUT. You don't need to
+start at zero, any integer will do, including negatives.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-identity" title="vips_identity ()"><code class="function">vips_identity()</code></a>, <a class="link" href="libvips-create.html#vips-invertlut" title="vips_invertlut ()"><code class="function">vips_invertlut()</code></a>, <a class="link" href="libvips-conversion.html#vips-cast" title="vips_cast ()"><code class="function">vips_cast()</code></a>, <a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()"><code class="function">vips_maplut()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.13.12"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input matrix</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.13.13"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-invertlut"></a><h3>vips_invertlut ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_invertlut (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>size</code></em>
+: generate this much</p></li></ul></div>
+<p>Given a mask of target values and real values, generate a LUT which
+will map reals to targets. Handy for linearising images from
+measurements of a colour chart. All values in [0,1]. Piecewise linear
+interpolation, extrapolate head and tail to 0 and 1.</p>
+<p>Eg. input like this:</p>
+<table class="refsect2" summary="vips_invertlut ()" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td align="left">4</td>
+<td align="left">3</td>
+<td class="auto-generated"> </td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td align="left">0.1</td>
+<td align="left">0.2</td>
+<td align="left">0.3</td>
+<td align="left">0.1</td>
+</tr>
+<tr>
+<td align="left">0.2</td>
+<td align="left">0.4</td>
+<td align="left">0.4</td>
+<td align="left">0.2</td>
+</tr>
+<tr>
+<td align="left">0.7</td>
+<td align="left">0.5</td>
+<td align="left">0.6</td>
+<td align="left">0.3</td>
+</tr>
+</tbody>
+</table>
+<p>Means a patch with 10% reflectance produces an image with 20% in
+channel 1, 30% in channel 2, and 10% in channel 3, and so on.</p>
+<p>Inputs don't need to be sorted (we do that). Generate any precision
+LUT, default to 256 elements.</p>
+<p>It won't work too well for non-monotonic camera responses 
+(we should fix this). Interpolation is simple piecewise linear; we ought to 
+do something better really.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-buildlut" title="vips_buildlut ()"><code class="function">vips_buildlut()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.14.13"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input mask</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output LUT</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.14.14"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-tonelut"></a><h3>vips_tonelut ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_tonelut (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+              <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>in_max</code></em>
+: input range </p></li>
+<li class="listitem"><p><em class="parameter"><code>out_max</code></em>
+: output range</p></li>
+<li class="listitem"><p><em class="parameter"><code>Lb</code></em>
+: black-point [0-100]</p></li>
+<li class="listitem"><p><em class="parameter"><code>Lw</code></em>
+: white-point [0-100]</p></li>
+<li class="listitem"><p><em class="parameter"><code>Ps</code></em>
+: shadow point (eg. 0.2)</p></li>
+<li class="listitem"><p><em class="parameter"><code>Pm</code></em>
+: mid-tone point (eg. 0.5)</p></li>
+<li class="listitem"><p><em class="parameter"><code>Ph</code></em>
+: highlight point (eg. 0.8)</p></li>
+<li class="listitem"><p><em class="parameter"><code>S</code></em>
+: shadow adjustment (+/- 30)</p></li>
+<li class="listitem"><p><em class="parameter"><code>M</code></em>
+: mid-tone adjustment (+/- 30)</p></li>
+<li class="listitem"><p><em class="parameter"><code>H</code></em>
+: highlight adjustment (+/- 30)</p></li>
+</ul></div>
+<p>vips_tonelut() generates a tone curve for the adjustment of image 
+levels. It is mostly designed for adjusting the L* part of a LAB image in
+a way suitable for print work, but you can use it for other things too.</p>
+<p>The curve is an unsigned 16-bit image with (<em class="parameter"><code>in_max</code></em>
+ + 1) entries, 
+each in the range [0, <em class="parameter"><code>out_max</code></em>
+].</p>
+<p><em class="parameter"><code>Lb</code></em>
+, <em class="parameter"><code>Lw</code></em>
+ are expressed as 0-100, as in LAB colour space. You 
+specify the scaling for the input and output images with the <em class="parameter"><code>in_max</code></em>
+ and 
+<em class="parameter"><code>out_max</code></em>
+ parameters.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.15.9"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.15.10"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mask-ideal"></a><h3>vips_mask_ideal ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mask_ideal (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                 <em class="parameter"><code><span class="type">double</span> frequency_cutoff</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>nodc</code></em>
+: don't set the DC pixel</p></li>
+<li class="listitem"><p><em class="parameter"><code>reject</code></em>
+: invert the filter sense</p></li>
+<li class="listitem"><p><em class="parameter"><code>optical</code></em>
+: coordinates in optical space</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Make an ideal high- or low-pass filter, that is, one with a sharp cutoff
+positioned at <em class="parameter"><code>frequency_cutoff</code></em>
+, where <em class="parameter"><code>frequency_cutoff</code></em>
+ is in
+the range 0 - 1.</p>
+<p>This operation creates a one-band float image of the specified size. 
+The image has
+values in the range [0, 1] and is typically used for multiplying against 
+frequency domain images to filter them.
+Masks are created with the DC component at (0, 0). The DC pixel always
+has the value 1.0.</p>
+<p>Set <em class="parameter"><code>nodc</code></em>
+ to not set the DC pixel. </p>
+<p>Set <em class="parameter"><code>optical</code></em>
+ to position the DC component in the centre of the image. This
+makes the mask suitable for multiplying against optical Fourier transforms. 
+See <a class="link" href="libvips-conversion.html#vips-wrap" title="vips_wrap ()"><code class="function">vips_wrap()</code></a>. </p>
+<p>Set <em class="parameter"><code>reject</code></em>
+ to invert the sense of
+the filter. For example, low-pass becomes low-reject. </p>
+<p>Set <em class="parameter"><code>uchar</code></em>
+ to output an 8-bit unsigned char image rather than a
+float image. In this case, pixels are in the range [0 - 255].</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>, <a class="link" href="libvips-create.html#vips-mask-ideal-ring" title="vips_mask_ideal_ring ()"><code class="function">vips_mask_ideal_ring()</code></a>, 
+<a class="link" href="libvips-create.html#vips-mask-ideal-band" title="vips_mask_ideal_band ()"><code class="function">vips_mask_ideal_band()</code></a>, <a class="link" href="libvips-create.html#vips-mask-butterworth" title="vips_mask_butterworth ()"><code class="function">vips_mask_butterworth()</code></a>, 
+<a class="link" href="libvips-create.html#vips-mask-butterworth-ring" title="vips_mask_butterworth_ring ()"><code class="function">vips_mask_butterworth_ring()</code></a>, <a class="link" href="libvips-create.html#vips-mask-butterworth-band" title="vips_mask_butterworth_band ()"><code class="function">vips_mask_butterworth_band()</code></a>, 
+<a class="link" href="libvips-create.html#vips-mask-gaussian" title="vips_mask_gaussian ()"><code class="function">vips_mask_gaussian()</code></a>, <a class="link" href="libvips-create.html#vips-mask-gaussian-ring" title="vips_mask_gaussian_ring ()"><code class="function">vips_mask_gaussian_ring()</code></a>, 
+<a class="link" href="libvips-create.html#vips-mask-gaussian-band" title="vips_mask_gaussian_band ()"><code class="function">vips_mask_gaussian_band()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.16.13"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff</p></td>
+<td class="parameter_description"><p>threshold at which filter ends</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.16.14"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mask-ideal-ring"></a><h3>vips_mask_ideal_ring ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mask_ideal_ring (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                      <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                      <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                      <em class="parameter"><code><span class="type">double</span> frequency_cutoff</code></em>,
+                      <em class="parameter"><code><span class="type">double</span> ringwidth</code></em>,
+                      <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>nodc</code></em>
+: don't set the DC pixel</p></li>
+<li class="listitem"><p><em class="parameter"><code>reject</code></em>
+: invert the filter sense</p></li>
+<li class="listitem"><p><em class="parameter"><code>optical</code></em>
+: coordinates in optical space</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Make an ideal ring-pass or ring-reject filter, that is, one with a sharp 
+ring positioned at <em class="parameter"><code>frequency_cutoff</code></em>
+ of width <em class="parameter"><code>width</code></em>
+, where 
+<em class="parameter"><code>frequency_cutoff</code></em>
+ and <em class="parameter"><code>width</code></em>
+ are expressed as the range 0 - 1.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.17.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff</p></td>
+<td class="parameter_description"><p>threshold at which filter ends</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ringwidth</p></td>
+<td class="parameter_description"><p>ring width</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.17.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mask-ideal-band"></a><h3>vips_mask_ideal_band ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mask_ideal_band (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                      <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                      <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                      <em class="parameter"><code><span class="type">double</span> frequency_cutoff_x</code></em>,
+                      <em class="parameter"><code><span class="type">double</span> frequency_cutoff_y</code></em>,
+                      <em class="parameter"><code><span class="type">double</span> radius</code></em>,
+                      <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>nodc</code></em>
+: don't set the DC pixel</p></li>
+<li class="listitem"><p><em class="parameter"><code>reject</code></em>
+: invert the filter sense</p></li>
+<li class="listitem"><p><em class="parameter"><code>optical</code></em>
+: coordinates in optical space</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Make an ideal band-pass or band-reject filter, that is, one with a 
+sharp cutoff around the point <em class="parameter"><code>frequency_cutoff_x</code></em>
+, <em class="parameter"><code>frequency_cutoff_y</code></em>
+, 
+of size <em class="parameter"><code>radius</code></em>
+. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.18.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff_x</p></td>
+<td class="parameter_description"><p>position of band</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff_y</p></td>
+<td class="parameter_description"><p>position of band</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>radius</p></td>
+<td class="parameter_description"><p>size of band</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.18.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mask-butterworth"></a><h3>vips_mask_butterworth ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mask_butterworth (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                       <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                       <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                       <em class="parameter"><code><span class="type">double</span> order</code></em>,
+                       <em class="parameter"><code><span class="type">double</span> frequency_cutoff</code></em>,
+                       <em class="parameter"><code><span class="type">double</span> amplitude_cutoff</code></em>,
+                       <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>nodc</code></em>
+: don't set the DC pixel</p></li>
+<li class="listitem"><p><em class="parameter"><code>reject</code></em>
+: invert the filter sense</p></li>
+<li class="listitem"><p><em class="parameter"><code>optical</code></em>
+: coordinates in optical space</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Make an butterworth high- or low-pass filter, that is, one with a variable,
+smooth transition
+positioned at <em class="parameter"><code>frequency_cutoff</code></em>
+, where <em class="parameter"><code>frequency_cutoff</code></em>
+ is in
+range 0 - 1. The shape of the curve is controlled by
+<em class="parameter"><code>order</code></em>
+ --- higher values give a sharper transition. See Gonzalez and Wintz,
+Digital Image Processing, 1987. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.19.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>order</p></td>
+<td class="parameter_description"><p>filter order</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff</p></td>
+<td class="parameter_description"><p>frequency threshold</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>amplitude_cutoff</p></td>
+<td class="parameter_description"><p>amplitude threshold</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.19.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mask-butterworth-ring"></a><h3>vips_mask_butterworth_ring ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mask_butterworth_ring (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                            <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                            <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                            <em class="parameter"><code><span class="type">double</span> order</code></em>,
+                            <em class="parameter"><code><span class="type">double</span> frequency_cutoff</code></em>,
+                            <em class="parameter"><code><span class="type">double</span> amplitude_cutoff</code></em>,
+                            <em class="parameter"><code><span class="type">double</span> ringwidth</code></em>,
+                            <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>nodc</code></em>
+: don't set the DC pixel</p></li>
+<li class="listitem"><p><em class="parameter"><code>reject</code></em>
+: invert the filter sense</p></li>
+<li class="listitem"><p><em class="parameter"><code>optical</code></em>
+: coordinates in optical space</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Make a butterworth ring-pass or ring-reject filter, that is, one with a 
+variable,
+smooth transition
+positioned at <em class="parameter"><code>frequency_cutoff</code></em>
+ of width <em class="parameter"><code>width</code></em>
+, where <em class="parameter"><code>frequency_cutoff</code></em>
+ is 
+in the range 0 - 1. The shape of the curve is controlled by
+<em class="parameter"><code>order</code></em>
+ --- higher values give a sharper transition. See Gonzalez and Wintz,
+Digital Image Processing, 1987. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.20.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>order</p></td>
+<td class="parameter_description"><p>filter order</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff</p></td>
+<td class="parameter_description"><p>frequency threshold</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>amplitude_cutoff</p></td>
+<td class="parameter_description"><p>amplitude threshold</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ringwidth</p></td>
+<td class="parameter_description"><p>ringwidth</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.20.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mask-butterworth-band"></a><h3>vips_mask_butterworth_band ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mask_butterworth_band (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                            <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                            <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                            <em class="parameter"><code><span class="type">double</span> order</code></em>,
+                            <em class="parameter"><code><span class="type">double</span> frequency_cutoff_x</code></em>,
+                            <em class="parameter"><code><span class="type">double</span> frequency_cutoff_y</code></em>,
+                            <em class="parameter"><code><span class="type">double</span> radius</code></em>,
+                            <em class="parameter"><code><span class="type">double</span> amplitude_cutoff</code></em>,
+                            <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>nodc</code></em>
+: don't set the DC pixel</p></li>
+<li class="listitem"><p><em class="parameter"><code>reject</code></em>
+: invert the filter sense</p></li>
+<li class="listitem"><p><em class="parameter"><code>optical</code></em>
+: coordinates in optical space</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Make an butterworth band-pass or band-reject filter, that is, one with a 
+variable, smooth transition positioned at <em class="parameter"><code>frequency_cutoff_x</code></em>
+, 
+<em class="parameter"><code>frequency_cutoff_y</code></em>
+, of radius <em class="parameter"><code>radius</code></em>
+.
+The shape of the curve is controlled by
+<em class="parameter"><code>order</code></em>
+ --- higher values give a sharper transition. See Gonzalez and Wintz,
+Digital Image Processing, 1987. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.21.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>order</p></td>
+<td class="parameter_description"><p>filter order</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff_x</p></td>
+<td class="parameter_description"><p>band position </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff_y</p></td>
+<td class="parameter_description"><p>band position</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>radius</p></td>
+<td class="parameter_description"><p>band radius</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>amplitude_cutoff</p></td>
+<td class="parameter_description"><p>amplitude threshold</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.21.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mask-gaussian"></a><h3>vips_mask_gaussian ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mask_gaussian (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                    <em class="parameter"><code><span class="type">double</span> frequency_cutoff</code></em>,
+                    <em class="parameter"><code><span class="type">double</span> amplitude_cutoff</code></em>,
+                    <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>nodc</code></em>
+: don't set the DC pixel</p></li>
+<li class="listitem"><p><em class="parameter"><code>reject</code></em>
+: invert the filter sense</p></li>
+<li class="listitem"><p><em class="parameter"><code>optical</code></em>
+: coordinates in optical space</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Make a gaussian high- or low-pass filter, that is, one with a variable,
+smooth transition positioned at <em class="parameter"><code>frequency_cutoff</code></em>
+.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.22.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff</p></td>
+<td class="parameter_description"><p>frequency threshold</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>amplitude_cutoff</p></td>
+<td class="parameter_description"><p>amplitude threshold</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.22.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mask-gaussian-ring"></a><h3>vips_mask_gaussian_ring ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mask_gaussian_ring (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                         <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                         <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                         <em class="parameter"><code><span class="type">double</span> frequency_cutoff</code></em>,
+                         <em class="parameter"><code><span class="type">double</span> amplitude_cutoff</code></em>,
+                         <em class="parameter"><code><span class="type">double</span> ringwidth</code></em>,
+                         <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>nodc</code></em>
+: don't set the DC pixel</p></li>
+<li class="listitem"><p><em class="parameter"><code>reject</code></em>
+: invert the filter sense</p></li>
+<li class="listitem"><p><em class="parameter"><code>optical</code></em>
+: coordinates in optical space</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Make a gaussian ring-pass or ring-reject filter, that is, one with a 
+variable, smooth transition positioned at <em class="parameter"><code>frequency_cutoff</code></em>
+ of width
+<em class="parameter"><code>ringwidth</code></em>
+. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.23.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff</p></td>
+<td class="parameter_description"><p>frequency threshold</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>amplitude_cutoff</p></td>
+<td class="parameter_description"><p>amplitude threshold</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ringwidth</p></td>
+<td class="parameter_description"><p>ringwidth</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.23.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mask-gaussian-band"></a><h3>vips_mask_gaussian_band ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mask_gaussian_band (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                         <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                         <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                         <em class="parameter"><code><span class="type">double</span> frequency_cutoff_x</code></em>,
+                         <em class="parameter"><code><span class="type">double</span> frequency_cutoff_y</code></em>,
+                         <em class="parameter"><code><span class="type">double</span> radius</code></em>,
+                         <em class="parameter"><code><span class="type">double</span> amplitude_cutoff</code></em>,
+                         <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>nodc</code></em>
+: don't set the DC pixel</p></li>
+<li class="listitem"><p><em class="parameter"><code>reject</code></em>
+: invert the filter sense</p></li>
+<li class="listitem"><p><em class="parameter"><code>optical</code></em>
+: coordinates in optical space</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Make a gaussian band-pass or band-reject filter, that is, one with a 
+variable, smooth transition positioned at <em class="parameter"><code>frequency_cutoff_x</code></em>
+, 
+<em class="parameter"><code>frequency_cutoff_y</code></em>
+, of radius <em class="parameter"><code>radius</code></em>
+.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.24.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff_x</p></td>
+<td class="parameter_description"><p>band position </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>frequency_cutoff_y</p></td>
+<td class="parameter_description"><p>band position</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>radius</p></td>
+<td class="parameter_description"><p>band radius</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>amplitude_cutoff</p></td>
+<td class="parameter_description"><p>amplitude threshold</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.24.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mask-fractal"></a><h3>vips_mask_fractal ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mask_fractal (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                   <em class="parameter"><code><span class="type">double</span> fractal_dimension</code></em>,
+                   <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>nodc</code></em>
+: don't set the DC pixel</p></li>
+<li class="listitem"><p><em class="parameter"><code>reject</code></em>
+: invert the filter sense</p></li>
+<li class="listitem"><p><em class="parameter"><code>optical</code></em>
+: coordinates in optical space</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>This operation should be used to create fractal images by filtering the
+power spectrum of Gaussian white noise. See <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.25.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>image size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>fractal_dimension</p></td>
+<td class="parameter_description"><p>fractal dimension</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.25.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-fractsurf"></a><h3>vips_fractsurf ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_fractsurf (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                <em class="parameter"><code><span class="type">double</span> fractal_dimension</code></em>,
+                <em class="parameter"><code>...</code></em>);</pre>
+<p>Generate an image of size <em class="parameter"><code>width</code></em>
+ by <em class="parameter"><code>height</code></em>
+ and fractal dimension 
+<em class="parameter"><code>fractal_dimension</code></em>
+. The dimension should be between 2 and 3.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>, <a class="link" href="libvips-create.html#vips-mask-fractal" title="vips_mask_fractal ()"><code class="function">vips_mask_fractal()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.26.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>output width</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>output height</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>fractal_dimension</p></td>
+<td class="parameter_description"><p>fractal dimension</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.26.7"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-worley"></a><h3>vips_worley ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_worley (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+             <em class="parameter"><code><span class="type">int</span> width</code></em>,
+             <em class="parameter"><code><span class="type">int</span> height</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>cell_size</code></em>
+: <code class="literal">gint</code>, size of Worley cells</p></li></ul></div>
+<p>Create a one-band float image of Worley noise. See:</p>
+<p>https://en.wikipedia.org/wiki/Worley_noise</p>
+<p>Use <em class="parameter"><code>cell_size</code></em>
+ to set the size of the cells from which the image is
+constructed. The default is 256 x 256.</p>
+<p>If <em class="parameter"><code>width</code></em>
+ and <em class="parameter"><code>height</code></em>
+ are multiples of <em class="parameter"><code>cell_size</code></em>
+, the image will tessellate.</p>
+<p>See also: <a class="link" href="libvips-create.html#vips-perlin" title="vips_perlin ()"><code class="function">vips_perlin()</code></a>, <a class="link" href="libvips-create.html#vips-fractsurf" title="vips_fractsurf ()"><code class="function">vips_fractsurf()</code></a>, <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.27.11"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>horizontal size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>vertical size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.27.12"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-perlin"></a><h3>vips_perlin ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_perlin (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+             <em class="parameter"><code><span class="type">int</span> width</code></em>,
+             <em class="parameter"><code><span class="type">int</span> height</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>cell_size</code></em>
+: <code class="literal">gint</code>, size of Perlin cells</p></li>
+<li class="listitem"><p><em class="parameter"><code>uchar</code></em>
+: output a uchar image</p></li>
+</ul></div>
+<p>Create a one-band float image of Perlin noise. See:</p>
+<p>https://en.wikipedia.org/wiki/Perlin_noise</p>
+<p>Use <em class="parameter"><code>cell_size</code></em>
+ to set the size of the cells from which the image is
+constructed. The default is 256 x 256.</p>
+<p>If <em class="parameter"><code>width</code></em>
+ and <em class="parameter"><code>height</code></em>
+ are multiples of <em class="parameter"><code>cell_size</code></em>
+, the image will tessellate.</p>
+<p>Normally, output pixels are <a class="link" href="VipsImage.html#VIPS-FORMAT-FLOAT:CAPS"><span class="type">VIPS_FORMAT_FLOAT</span></a> in the range [-1, +1]. Set 
+<em class="parameter"><code>uchar</code></em>
+ to output a uchar image with pixels in [0, 255]. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-worley" title="vips_worley ()"><code class="function">vips_worley()</code></a>, <a class="link" href="libvips-create.html#vips-fractsurf" title="vips_fractsurf ()"><code class="function">vips_fractsurf()</code></a>, <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.13.7.28.12"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>horizontal size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>vertical size</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.13.7.28.13"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-create.other_details"></a><h2>Types and Values</h2>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

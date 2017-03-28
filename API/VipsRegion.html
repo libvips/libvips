@@ -1,0 +1,1085 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: VipsRegion</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch02.html" title="Core VIPS API">
+<link rel="prev" href="libvips-memory.html" title="memory">
+<link rel="next" href="libvips-type.html" title="type">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#VipsRegion.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#VipsRegion.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-memory.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libvips-type.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="VipsRegion"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="VipsRegion.top_of_page"></a>VipsRegion</span></h2>
+<p>VipsRegion — small, rectangular parts of images</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="VipsRegion.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="VipsRegion.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsRegion.html" title="VipsRegion"><span class="returnvalue">VipsRegion</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-new" title="vips_region_new ()">vips_region_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-buffer" title="vips_region_buffer ()">vips_region_buffer</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-image" title="vips_region_image ()">vips_region_image</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-region" title="vips_region_region ()">vips_region_region</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-equalsregion" title="vips_region_equalsregion ()">vips_region_equalsregion</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-position" title="vips_region_position ()">vips_region_position</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-paint" title="vips_region_paint ()">vips_region_paint</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-paint-pel" title="vips_region_paint_pel ()">vips_region_paint_pel</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-black" title="vips_region_black ()">vips_region_black</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-copy" title="vips_region_copy ()">vips_region_copy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-shrink" title="vips_region_shrink ()">vips_region_shrink</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()">vips_region_prepare</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-prepare-to" title="vips_region_prepare_to ()">vips_region_prepare_to</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-prepare-many" title="vips_region_prepare_many ()">vips_region_prepare_many</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-invalidate" title="vips_region_invalidate ()">vips_region_invalidate</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips-region-dump-all" title="vips_region_dump_all ()">vips_region_dump_all</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#vips--region-count-pixels" title="vips__region_count_pixels ()">vips__region_count_pixels</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#VIPS-COUNT-PIXELS:CAPS" title="VIPS_COUNT_PIXELS()">VIPS_COUNT_PIXELS</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#VIPS-REGION-LSKIP:CAPS" title="VIPS_REGION_LSKIP()">VIPS_REGION_LSKIP</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#VIPS-REGION-N-ELEMENTS:CAPS" title="VIPS_REGION_N_ELEMENTS()">VIPS_REGION_N_ELEMENTS</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#VIPS-REGION-SIZEOF-LINE:CAPS" title="VIPS_REGION_SIZEOF_LINE()">VIPS_REGION_SIZEOF_LINE</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#VIPS-REGION-ADDR:CAPS" title="VIPS_REGION_ADDR()">VIPS_REGION_ADDR</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsRegion.html#VIPS-REGION-ADDR-TOPLEFT:CAPS" title="VIPS_REGION_ADDR_TOPLEFT()">VIPS_REGION_ADDR_TOPLEFT</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsRegion.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
+        <span class="lineart">╰──</span> VipsRegion
+</pre>
+</div>
+<div class="refsect1">
+<a name="VipsRegion.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="VipsRegion.description"></a><h2>Description</h2>
+<p>A <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> is a small part of an image and some pixels. You use regions to
+read pixels out of images without having to have the whole image in memory
+at once.</p>
+<p>A region can be a memory buffer, part of a memory-mapped file, part of some
+other image, or part of some other region.</p>
+<p>Regions must be created, used and freed all within the same thread, since
+they can reference private per-thread caches. VIPS sanity-checks region
+ownership in various places, so you are likely to see <code class="function">g_assert()</code> errors if
+you don't follow this rule.</p>
+<p>There
+is API to transfer ownership of regions between threads, but hopefully this
+is only needed within VIPS, so we don't expose it. Hopefully.</p>
+</div>
+<div class="refsect1">
+<a name="VipsRegion.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips-region-new"></a><h3>vips_region_new ()</h3>
+<pre class="programlisting"><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="returnvalue">VipsRegion</span></a> *
+vips_region_new (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
+<p>Create a region. <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> s start out empty, you need to call 
+<a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a> to fill them with pixels.</p>
+<p>See also: <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.2.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to create this region on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-buffer"></a><h3>vips_region_buffer ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_region_buffer (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>,
+                    <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>);</pre>
+<p>The region is transformed so that at least <em class="parameter"><code>r</code></em>
+ pixels are available as a
+memory buffer.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.3.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>reg</p></td>
+<td class="parameter_description"><p>region to operate upon</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> of pixels you need to be able to address</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.3.6"></a><h4>Returns</h4>
+<p> 0 on success, or -1 for error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-image"></a><h3>vips_region_image ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_region_image (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>,
+                   <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>);</pre>
+<p>The region is transformed so that at least <em class="parameter"><code>r</code></em>
+ pixels are available directly
+from the image. The image needs to be a memory buffer or represent a file
+on disc that has been mapped or can be mapped.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.4.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>reg</p></td>
+<td class="parameter_description"><p>region to operate upon</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> of pixels you need to be able to address</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.4.6"></a><h4>Returns</h4>
+<p> 0 on success, or -1 for error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-region"></a><h3>vips_region_region ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_region_region (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>,
+                    <em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *dest</code></em>,
+                    <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                    <em class="parameter"><code><span class="type">int</span> y</code></em>);</pre>
+<p>Make <a class="link" href="VipsRegion.html#VIPS-REGION-ADDR:CAPS" title="VIPS_REGION_ADDR()"><code class="function">VIPS_REGION_ADDR()</code></a> on <em class="parameter"><code>reg</code></em>
+ go to <em class="parameter"><code>dest</code></em>
+ instead. </p>
+<p><em class="parameter"><code>r</code></em>
+ is the part of <em class="parameter"><code>reg</code></em>
+ which you want to be able to address (this
+effectively becomes the valid field), (<em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+) is the top LH corner of the
+corresponding area in <em class="parameter"><code>dest</code></em>
+.</p>
+<p>Performs all clipping necessary to ensure that <em class="parameter"><code>reg-&gt;valid</code></em>
+ is indeed
+valid.</p>
+<p>If the region we attach to is modified, we can be left with dangling 
+pointers! If the region we attach to is on another image, the two images 
+must have 
+the same sizeof( pel ).</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.5.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>reg</p></td>
+<td class="parameter_description"><p>region to operate upon</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>dest</p></td>
+<td class="parameter_description"><p>region to connect to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> of pixels you need to be able to address</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>postion of <em class="parameter"><code>r</code></em>
+in <em class="parameter"><code>dest</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>postion of <em class="parameter"><code>r</code></em>
+in <em class="parameter"><code>dest</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.5.9"></a><h4>Returns</h4>
+<p> 0 on success, or -1 for error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-equalsregion"></a><h3>vips_region_equalsregion ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_region_equalsregion (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg1</code></em>,
+                          <em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg2</code></em>);</pre>
+<p>Do two regions point to the same piece of image? ie. </p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="symbol">(</span><span class="normal"> reg1</span><span class="symbol">,</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span><span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="symbol">(</span><span class="normal"> reg2</span><span class="symbol">,</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">&amp;&amp;</span>
+<span class="symbol">*</span><span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="symbol">(</span><span class="normal"> reg1</span><span class="symbol">,</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span>
+<span class="normal">    </span><span class="symbol">*</span><span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="symbol">(</span><span class="normal"> reg2</span><span class="symbol">,</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y </span><span class="symbol">)</span><span class="normal"> </span><span class="keyword">for</span><span class="normal"> </span><span class="usertype">all</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y</span><span class="symbol">,</span><span class="normal"> reg1</span><span class="symbol">,</span><span class="normal"> reg2</span><span class="symbol">.</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<div class="refsect3">
+<a name="id-1.3.9.8.6.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>reg1</p></td>
+<td class="parameter_description"><p>region to test</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>reg2</p></td>
+<td class="parameter_description"><p>region to test</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.6.8"></a><h4>Returns</h4>
+<p> non-zero on equality.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-position"></a><h3>vips_region_position ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_region_position (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>,
+                      <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                      <em class="parameter"><code><span class="type">int</span> y</code></em>);</pre>
+<p>Set the position of a region. This only affects reg-&gt;valid, ie. the way
+pixels are addressed, not reg-&gt;data, the pixels which are addressed. Clip
+against the size of the image. Do not allow negative positions, or
+positions outside the image.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.7.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>reg</p></td>
+<td class="parameter_description"><p>region to operate upon</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>position to move to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>position to move to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.7.6"></a><h4>Returns</h4>
+<p> 0 on success, or -1 for error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-paint"></a><h3>vips_region_paint ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_region_paint (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>,
+                   <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> value</code></em>);</pre>
+<p>Paints <em class="parameter"><code>value</code></em>
+ into <em class="parameter"><code>reg</code></em>
+ covering rectangle <em class="parameter"><code>r</code></em>
+. For int images, <em class="parameter"><code>value</code></em>
+ is 
+passed to <code class="function">memset()</code>, so it usually needs to be 0 or 255. For float images,
+value is cast to a float and copied in to each band element. </p>
+<p><em class="parameter"><code>r</code></em>
+ is clipped against
+<em class="parameter"><code>reg-&gt;valid</code></em>
+.</p>
+<p>See also: <a class="link" href="VipsRegion.html#vips-region-black" title="vips_region_black ()"><code class="function">vips_region_black()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.8.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>reg</p></td>
+<td class="parameter_description"><p>region to operate upon</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>value</p></td>
+<td class="parameter_description"><p>value to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-paint-pel"></a><h3>vips_region_paint_pel ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_region_paint_pel (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>,
+                       <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>,
+                       <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsPel" title="VipsPel"><span class="type">VipsPel</span></a> *ink</code></em>);</pre>
+<p>Paints <em class="parameter"><code>ink</code></em>
+ into <em class="parameter"><code>reg</code></em>
+ covering rectangle <em class="parameter"><code>r</code></em>
+. <em class="parameter"><code>r</code></em>
+ is clipped against 
+<em class="parameter"><code>reg-&gt;valid</code></em>
+.</p>
+<p><em class="parameter"><code>ink</code></em>
+ should be a byte array of the same size as an image pixel containing
+the binary value to write into the pixels.</p>
+<p>See also: <a class="link" href="VipsRegion.html#vips-region-paint" title="vips_region_paint ()"><code class="function">vips_region_paint()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.9.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>reg</p></td>
+<td class="parameter_description"><p>region to operate upon</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p>value to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-black"></a><h3>vips_region_black ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_region_black (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>);</pre>
+<p>Paints 0 into the valid part of <em class="parameter"><code>reg</code></em>
+.</p>
+<p>See also: <a class="link" href="VipsRegion.html#vips-region-paint" title="vips_region_paint ()"><code class="function">vips_region_paint()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.10.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>reg</p></td>
+<td class="parameter_description"><p>region to operate upon</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-copy"></a><h3>vips_region_copy ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_region_copy (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>,
+                  <em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *dest</code></em>,
+                  <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> y</code></em>);</pre>
+<p>Copy from one region to another. Copy area <em class="parameter"><code>r</code></em>
+ from inside <em class="parameter"><code>reg</code></em>
+ to <em class="parameter"><code>dest</code></em>
+,
+positioning the area of pixels at <em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+. The two regions must have pixels
+which are the same size.</p>
+<p>See also: <a class="link" href="VipsRegion.html#vips-region-paint" title="vips_region_paint ()"><code class="function">vips_region_paint()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.11.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>reg</p></td>
+<td class="parameter_description"><p>source region </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>dest</p></td>
+<td class="parameter_description"><p>destination region </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> of pixels you need to copy</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>postion of <em class="parameter"><code>r</code></em>
+in <em class="parameter"><code>dest</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>postion of <em class="parameter"><code>r</code></em>
+in <em class="parameter"><code>dest</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-shrink"></a><h3>vips_region_shrink ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_region_shrink (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *from</code></em>,
+                    <em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *to</code></em>,
+                    <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *target</code></em>);</pre>
+<p>Write the pixels <em class="parameter"><code>target</code></em>
+ in <em class="parameter"><code>to</code></em>
+ from the x2 larger area in <em class="parameter"><code>from</code></em>
+.
+Non-complex uncoded images and LABQ only. Images with alpha (see
+<a class="link" href="VipsImage.html#vips-image-hasalpha" title="vips_image_hasalpha ()"><code class="function">vips_image_hasalpha()</code></a>) shrink with pixels scaled by alpha to avoid fringing.</p>
+<p>See also: <a class="link" href="VipsRegion.html#vips-region-copy" title="vips_region_copy ()"><code class="function">vips_region_copy()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.12.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>from</p></td>
+<td class="parameter_description"><p>source region </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>to</p></td>
+<td class="parameter_description"><p>destination region </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> of pixels you need to copy</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-prepare"></a><h3>vips_region_prepare ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_region_prepare (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>,
+                     <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>);</pre>
+<p>vips_region_prepare() fills <em class="parameter"><code>reg</code></em>
+ with pixels. After calling, 
+you can address at least the area <em class="parameter"><code>r</code></em>
+ with <a class="link" href="VipsRegion.html#VIPS-REGION-ADDR:CAPS" title="VIPS_REGION_ADDR()"><code class="function">VIPS_REGION_ADDR()</code></a> and get 
+valid pixels.</p>
+<p>vips_region_prepare() runs in-line, that is, computation is done by 
+the calling thread, no new threads are involved, and computation 
+blocks until the pixels are ready.</p>
+<p>Use <a class="link" href="libvips-generate.html#vips-sink-screen" title="vips_sink_screen ()"><code class="function">vips_sink_screen()</code></a> to calculate an area of pixels in the 
+background.</p>
+<p>See also: <a class="link" href="libvips-generate.html#vips-sink-screen" title="vips_sink_screen ()"><code class="function">vips_sink_screen()</code></a>, 
+<a class="link" href="VipsRegion.html#vips-region-prepare-to" title="vips_region_prepare_to ()"><code class="function">vips_region_prepare_to()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.13.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>reg</p></td>
+<td class="parameter_description"><p>region to prepare</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> of pixels you need to be able to address</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.13.9"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-prepare-to"></a><h3>vips_region_prepare_to ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_region_prepare_to (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>,
+                        <em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *dest</code></em>,
+                        <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>,
+                        <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                        <em class="parameter"><code><span class="type">int</span> y</code></em>);</pre>
+<p>Like <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>: fill <em class="parameter"><code>reg</code></em>
+ with data, ready to be read from by 
+our caller. Unlike <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>, rather than allocating memory 
+local to <em class="parameter"><code>reg</code></em>
+ for the result, we guarantee that we will fill the pixels 
+in <em class="parameter"><code>dest</code></em>
+ at offset <em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+. In other words, we generate an extra copy 
+operation if necessary. </p>
+<p>Also unlike <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>, <em class="parameter"><code>dest</code></em>
+ is not set up for writing for 
+you with
+<a class="link" href="VipsRegion.html#vips-region-buffer" title="vips_region_buffer ()"><code class="function">vips_region_buffer()</code></a>. You can
+point <em class="parameter"><code>dest</code></em>
+ at anything, and pixels really will be written there. 
+This makes <a class="link" href="VipsRegion.html#vips-region-prepare-to" title="vips_region_prepare_to ()"><code class="function">vips_region_prepare_to()</code></a> useful for making the ends of 
+pipelines, since
+it (effectively) makes a break in the pipe.</p>
+<p>See also: <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>, <a class="link" href="libvips-generate.html#vips-sink-disc" title="vips_sink_disc ()"><code class="function">vips_sink_disc()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.14.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>reg</p></td>
+<td class="parameter_description"><p>region to prepare</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>dest</p></td>
+<td class="parameter_description"><p>region to write to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> of pixels you need to be able to address</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>postion of <em class="parameter"><code>r</code></em>
+in <em class="parameter"><code>dest</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>postion of <em class="parameter"><code>r</code></em>
+in <em class="parameter"><code>dest</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.14.8"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-prepare-many"></a><h3>vips_region_prepare_many ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_region_prepare_many (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> **reg</code></em>,
+                          <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-invalidate"></a><h3>vips_region_invalidate ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_region_invalidate (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>);</pre>
+<p>Mark a region as containing invalid pixels. Calling this function means
+that the next time <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a> is called, the region will be
+recalculated.</p>
+<p>This is faster than calling <a class="link" href="VipsImage.html#vips-image-invalidate-all" title="vips_image_invalidate_all ()"><code class="function">vips_image_invalidate_all()</code></a>, but obviously only
+affects a single region. </p>
+<p>See also: <a class="link" href="VipsImage.html#vips-image-invalidate-all" title="vips_image_invalidate_all ()"><code class="function">vips_image_invalidate_all()</code></a>, <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.16.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>reg</p></td>
+<td class="parameter_description"><p>region to invalidate</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-region-dump-all"></a><h3>vips_region_dump_all ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_region_dump_all (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips--region-count-pixels"></a><h3>vips__region_count_pixels ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips__region_count_pixels (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *region</code></em>,
+                           <em class="parameter"><code>const <span class="type">char</span> *nickname</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-COUNT-PIXELS:CAPS"></a><h3>VIPS_COUNT_PIXELS()</h3>
+<pre class="programlisting">#define VIPS_COUNT_PIXELS( R, N ) vips__region_count_pixels( R, N )
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-REGION-LSKIP:CAPS"></a><h3>VIPS_REGION_LSKIP()</h3>
+<pre class="programlisting">#define             VIPS_REGION_LSKIP( R )</pre>
+<div class="refsect3">
+<a name="id-1.3.9.8.20.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>R</p></td>
+<td class="parameter_description"><p>a <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.20.5"></a><h4>Returns</h4>
+<p> The number of bytes to add to move down a scanline.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-REGION-N-ELEMENTS:CAPS"></a><h3>VIPS_REGION_N_ELEMENTS()</h3>
+<pre class="programlisting">#define             VIPS_REGION_N_ELEMENTS( R )</pre>
+<div class="refsect3">
+<a name="id-1.3.9.8.21.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>R</p></td>
+<td class="parameter_description"><p>a <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.21.5"></a><h4>Returns</h4>
+<p> The number of band elements across a region.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-REGION-SIZEOF-LINE:CAPS"></a><h3>VIPS_REGION_SIZEOF_LINE()</h3>
+<pre class="programlisting">#define             VIPS_REGION_SIZEOF_LINE( R )</pre>
+<div class="refsect3">
+<a name="id-1.3.9.8.22.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>R</p></td>
+<td class="parameter_description"><p>a <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.22.5"></a><h4>Returns</h4>
+<p> The number of bytes across a region.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-REGION-ADDR:CAPS"></a><h3>VIPS_REGION_ADDR()</h3>
+<pre class="programlisting">#define             VIPS_REGION_ADDR( R, X, Y )</pre>
+<p>This macro returns a pointer to a pixel in a region. The (<em class="parameter"><code>X</code></em>
+, <em class="parameter"><code>Y</code></em>
+) 
+coordinates need to be within the <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> (<em class="parameter"><code>R-&gt;valid</code></em>
+).</p>
+<p>If DEBUG is defined, you get a version that checks bounds for you.</p>
+<p>See also: <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.23.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>R</p></td>
+<td class="parameter_description"><p>a <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>X</p></td>
+<td class="parameter_description"><p>x coordinate</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>Y</p></td>
+<td class="parameter_description"><p>y coordinate</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.23.8"></a><h4>Returns</h4>
+<p> The address of pixel (<em class="parameter"><code>X</code></em>
+,<em class="parameter"><code>Y</code></em>
+) in <em class="parameter"><code>R</code></em>
+.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-REGION-ADDR-TOPLEFT:CAPS"></a><h3>VIPS_REGION_ADDR_TOPLEFT()</h3>
+<pre class="programlisting">#define VIPS_REGION_ADDR_TOPLEFT( R ) ((R)-&gt;data)
+</pre>
+<p>This macro returns a pointer to the top-left pixel in the <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a>, that 
+is, the pixel at (<em class="parameter"><code>R-&gt;valid.left</code></em>
+, <em class="parameter"><code>R-&gt;valid.top</code></em>
+).</p>
+<p>See also: <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.9.8.24.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>R</p></td>
+<td class="parameter_description"><p>a <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.9.8.24.7"></a><h4>Returns</h4>
+<p> The address of the top-left pixel in the region.</p>
+<p></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsRegion.other_details"></a><h2>Types and Values</h2>
+</div>
+<div class="refsect1">
+<a name="VipsRegion.see-also"></a><h2>See Also</h2>
+<a class="link" href="VipsImage.html" title="VipsImage">image</a>, 
+<a class="link" href="libvips-generate.html" title="generate">generate</a>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

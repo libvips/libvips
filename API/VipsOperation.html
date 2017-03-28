@@ -1,0 +1,1201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: VipsOperation</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch02.html" title="Core VIPS API">
+<link rel="prev" href="libvips-generate.html" title="generate">
+<link rel="next" href="libvips-error.html" title="error">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#VipsOperation.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#VipsOperation.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#VipsOperation.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-generate.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libvips-error.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="VipsOperation"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="VipsOperation.top_of_page"></a>VipsOperation</span></h2>
+<p>VipsOperation — the VIPS operation base object class</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="VipsOperation.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="VipsOperation.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">gboolean</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="VipsOperation.html#VipsOperationBuildFn" title="VipsOperationBuildFn ()">*VipsOperationBuildFn</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsOperation.html#VipsOperationFlags" title="enum VipsOperationFlags"><span class="returnvalue">VipsOperationFlags</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-operation-get-flags" title="vips_operation_get_flags ()">vips_operation_get_flags</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-operation-class-print-usage" title="vips_operation_class_print_usage ()">vips_operation_class_print_usage</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-operation-invalidate" title="vips_operation_invalidate ()">vips_operation_invalidate</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-operation-call-valist" title="vips_operation_call_valist ()">vips_operation_call_valist</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsOperation.html" title="VipsOperation"><span class="returnvalue">VipsOperation</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-operation-new" title="vips_operation_new ()">vips_operation_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-call-required-optional" title="vips_call_required_optional ()">vips_call_required_optional</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-call" title="vips_call ()">vips_call</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-call-split" title="vips_call_split ()">vips_call_split</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-call-split-option-string" title="vips_call_split_option_string ()">vips_call_split_option_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-call-options" title="vips_call_options ()">vips_call_options</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-call-argv" title="vips_call_argv ()">vips_call_argv</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-drop-all" title="vips_cache_drop_all ()">vips_cache_drop_all</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsOperation.html" title="VipsOperation"><span class="returnvalue">VipsOperation</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-operation-lookup" title="vips_cache_operation_lookup ()">vips_cache_operation_lookup</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-operation-add" title="vips_cache_operation_add ()">vips_cache_operation_add</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-operation-buildp" title="vips_cache_operation_buildp ()">vips_cache_operation_buildp</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsOperation.html" title="VipsOperation"><span class="returnvalue">VipsOperation</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-operation-build" title="vips_cache_operation_build ()">vips_cache_operation_build</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-print" title="vips_cache_print ()">vips_cache_print</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-set-max" title="vips_cache_set_max ()">vips_cache_set_max</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-set-max-mem" title="vips_cache_set_max_mem ()">vips_cache_set_max_mem</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-get-max" title="vips_cache_get_max ()">vips_cache_get_max</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-get-size" title="vips_cache_get_size ()">vips_cache_get_size</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">size_t</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-get-max-mem" title="vips_cache_get_max_mem ()">vips_cache_get_max_mem</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-get-max-files" title="vips_cache_get_max_files ()">vips_cache_get_max_files</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-set-max-files" title="vips_cache_set_max_files ()">vips_cache_set_max_files</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-set-dump" title="vips_cache_set_dump ()">vips_cache_set_dump</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-cache-set-trace" title="vips_cache_set_trace ()">vips_cache_set_trace</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-concurrency-set" title="vips_concurrency_set ()">vips_concurrency_set</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsOperation.html#vips-concurrency-get" title="vips_concurrency_get ()">vips_concurrency_get</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsOperation.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signals_return">
+<col width="300px" class="signals_name">
+<col width="200px" class="signals_flags">
+</colgroup>
+<tbody><tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="VipsOperation.html#VipsOperation-invalidate" title="The “invalidate” signal">invalidate</a></td>
+<td class="signal_flags">Run Last</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsOperation.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="VipsOperation.html#VipsOperationFlags" title="enum VipsOperationFlags">VipsOperationFlags</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsOperation.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    GObject
+    <span class="lineart">╰──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
+        <span class="lineart">╰──</span> VipsOperation
+            <span class="lineart">╰──</span> <a class="link" href="VipsForeignSave.html#VipsForeign">VipsForeign</a>
+</pre>
+</div>
+<div class="refsect1">
+<a name="VipsOperation.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="VipsOperation.description"></a><h2>Description</h2>
+<p>The <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> class and associated types and macros.</p>
+<p><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> is the base class for all operations in libvips. It builds
+on <a class="link" href="VipsObject.html" title="VipsObject"><span class="type">VipsObject</span></a> to provide the introspection and command-line interface to
+libvips. </p>
+<p>It also maintains a cache of recent operations. See below. </p>
+<p>vips_call(), <a class="link" href="VipsOperation.html#vips-call-split" title="vips_call_split ()"><code class="function">vips_call_split()</code></a> and <a class="link" href="VipsOperation.html#vips-call-split-option-string" title="vips_call_split_option_string ()"><code class="function">vips_call_split_option_string()</code></a> are used
+by vips to implement the C API. They can execute any <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a>,
+passing in a set of required and optional arguments. Normally you would not
+use these functions directly: every operation has a tiny wrapper function
+which provides type-safety for the required arguments. For example,
+<a class="link" href="libvips-conversion.html#vips-embed" title="vips_embed ()"><code class="function">vips_embed()</code></a> is defined as:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="type">int</span>
+<span class="function"><a href="libvips-conversion.html#vips-embed">vips_embed</a></span><span class="symbol">(</span><span class="normal"> </span><span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">in</span><span class="symbol">,</span><span class="normal"> </span><span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">**</span><span class="normal">out</span><span class="symbol">,</span><span class="normal"> </span>
+<span class="normal">  </span><span class="type">int</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> </span><span class="type">int</span><span class="normal"> y</span><span class="symbol">,</span><span class="normal"> </span><span class="type">int</span><span class="normal"> width</span><span class="symbol">,</span><span class="normal"> </span><span class="type">int</span><span class="normal"> height</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">...</span><span class="normal"> </span><span class="symbol">)</span>
+<span class="cbracket">{</span>
+<span class="normal">  </span><span class="usertype">va_list</span><span class="normal"> ap</span><span class="symbol">;</span>
+<span class="normal">  </span><span class="type">int</span><span class="normal"> result</span><span class="symbol">;</span>
+
+<span class="normal">  </span><span class="function">va_start</span><span class="symbol">(</span><span class="normal"> ap</span><span class="symbol">,</span><span class="normal"> height </span><span class="symbol">);</span>
+<span class="normal">  result </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="VipsOperation.html#vips-call-split">vips_call_split</a></span><span class="symbol">(</span><span class="normal"> </span><span class="string">"embed"</span><span class="symbol">,</span><span class="normal"> ap</span><span class="symbol">,</span><span class="normal"> in</span><span class="symbol">,</span><span class="normal"> out</span><span class="symbol">,</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y</span><span class="symbol">,</span><span class="normal"> width</span><span class="symbol">,</span><span class="normal"> height </span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function">va_end</span><span class="symbol">(</span><span class="normal"> ap </span><span class="symbol">);</span>
+
+<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> result </span><span class="symbol">);</span>
+<span class="cbracket">}</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>Use <a class="link" href="VipsOperation.html#vips-call-argv" title="vips_call_argv ()"><code class="function">vips_call_argv()</code></a> to run any vips operation from a command-line style
+argc/argv array. This is the thing used by the vips main program to
+implement the vips command-line interface. </p>
+<div class="refsect3">
+<a name="id-1.3.6.9.9"></a><h4>
+<a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> and reference counting</h4>
+<p>After calling a <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> you are responsible for unreffing any output
+objects. For example, consider:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">im </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">...;</span>
+<span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">t1</span><span class="symbol">;</span><span class="normal"> </span>
+
+<span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="libvips-arithmetic.html#vips-invert">vips_invert</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">t1</span><span class="symbol">,</span><span class="normal"> NULL</span><span class="symbol">))</span><span class="normal"> </span>
+<span class="normal">  error </span><span class="symbol">..</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>This will invert <em class="parameter"><code>im</code></em>
+ and return a new <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a>, <em class="parameter"><code>t1</code></em>
+. As the caller
+of <a class="link" href="libvips-arithmetic.html#vips-invert" title="vips_invert ()"><code class="function">vips_invert()</code></a>, you are responsible for <em class="parameter"><code>t1</code></em>
+ and must unref it when you no
+longer need it. If <a class="link" href="libvips-arithmetic.html#vips-invert" title="vips_invert ()"><code class="function">vips_invert()</code></a> fails, no <em class="parameter"><code>t1</code></em>
+ is returned and you don't
+need to do anything. </p>
+<p>If you don't need to use <em class="parameter"><code>im</code></em>
+ for another operation, 
+you can unref <em class="parameter"><code>im</code></em>
+ immediately after the call. If <em class="parameter"><code>im</code></em>
+ is needed to calculate
+<em class="parameter"><code>t1</code></em>
+, <a class="link" href="libvips-arithmetic.html#vips-invert" title="vips_invert ()"><code class="function">vips_invert()</code></a> will add a ref to <em class="parameter"><code>im</code></em>
+ and automatically drop it when <em class="parameter"><code>t1</code></em>
+
+is unreffed.</p>
+<p>Consider running two operations, one after the other. You could write:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">im </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">...;</span>
+<span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">t1</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">t2</span><span class="symbol">;</span>
+
+<span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="libvips-arithmetic.html#vips-invert">vips_invert</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">t1</span><span class="symbol">,</span><span class="normal"> NULL</span><span class="symbol">))</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">  </span><span class="function">g_object_unref</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">;</span>
+<span class="cbracket">}</span>
+<span class="function">g_object_unref</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">);</span>
+
+<span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="libvips-conversion.html#vips-flip">vips_flip</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">t1</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">t2</span><span class="symbol">,</span><span class="normal"> VIPS_DIRECTION_HORIZONTAL</span><span class="symbol">,</span><span class="normal"> NULL</span><span class="symbol">))</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">  </span><span class="function">g_object_unref</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">t1</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">;</span>
+<span class="cbracket">}</span>
+<span class="function">g_object_unref</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">t1</span><span class="symbol">);</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>This is correct, but rather long-winded. libvips provides a handy thing to
+make a vector of auto-freeing object references. You can write this as:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="usertype">VipsObject</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">parent </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">...;</span>
+<span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">im </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">...;</span>
+<span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">t </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="VipsImage.html">VipsImage</a> </span><span class="symbol">**)</span><span class="normal"> </span><span class="function"><a href="VipsObject.html#vips-object-local-array">vips_object_local_array</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">parent</span><span class="symbol">,</span><span class="normal"> </span><span class="number">2</span><span class="symbol">);</span>
+
+<span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="libvips-arithmetic.html#vips-invert">vips_invert</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">t</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">],</span><span class="normal"> NULL</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">||</span>
+<span class="normal">  </span><span class="function"><a href="libvips-conversion.html#vips-flip">vips_flip</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">t</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">],</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">t</span><span class="symbol">[</span><span class="number">1</span><span class="symbol">],</span><span class="normal"> VIPS_DIRECTION_HORIZONTAL</span><span class="symbol">,</span><span class="normal"> NULL</span><span class="symbol">))</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">;</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>where <em class="parameter"><code>parent</code></em>
+ is some enclosing object which will be unreffed when this
+task is complete. <a class="link" href="VipsObject.html#vips-object-local-array" title="vips_object_local_array ()"><code class="function">vips_object_local_array()</code></a> makes an array of <a class="link" href="VipsObject.html" title="VipsObject"><span class="type">VipsObject</span></a>
+(or <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a>, in this case) where when <em class="parameter"><code>parent</code></em>
+ is freed, all non-NULL
+<a class="link" href="VipsObject.html" title="VipsObject"><span class="type">VipsObject</span></a> in the array are also unreffed.</p>
+</div>
+<div class="refsect3">
+<a name="id-1.3.6.9.10"></a><h4>The <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> cache</h4>
+<p>Because all <a class="link" href="VipsObject.html" title="VipsObject"><span class="type">VipsObject</span></a> are immutable, they can be cached. The cache is
+very simple to use: instead of calling <a class="link" href="VipsObject.html#vips-object-build" title="vips_object_build ()"><code class="function">vips_object_build()</code></a>, call 
+<a class="link" href="VipsOperation.html#vips-cache-operation-build" title="vips_cache_operation_build ()"><code class="function">vips_cache_operation_build()</code></a>. This function calculates a hash from the
+operations's input arguments and looks it up in table of all recent
+operations. If there's a hit, the new operation is unreffed, the old
+operation reffed, and the old operation returned in place of the new one.</p>
+<p>The cache size is controlled with <a class="link" href="VipsOperation.html#vips-cache-set-max" title="vips_cache_set_max ()"><code class="function">vips_cache_set_max()</code></a> and friends.</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsOperation.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="VipsOperationBuildFn"></a><h3>VipsOperationBuildFn ()</h3>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<span class="c_punctuation">(</span>*VipsOperationBuildFn<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="VipsObject.html" title="VipsObject"><span class="type">VipsObject</span></a> *object</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-operation-get-flags"></a><h3>vips_operation_get_flags ()</h3>
+<pre class="programlisting"><a class="link" href="VipsOperation.html#VipsOperationFlags" title="enum VipsOperationFlags"><span class="returnvalue">VipsOperationFlags</span></a>
+vips_operation_get_flags (<em class="parameter"><code><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> *operation</code></em>);</pre>
+<p>Returns the set of flags for this operation.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.3.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>operation</p></td>
+<td class="parameter_description"><p>operation to fetch flags from</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.6.10.3.6"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-operation-class-print-usage"></a><h3>vips_operation_class_print_usage ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_operation_class_print_usage (<em class="parameter"><code><span class="type">VipsOperationClass</span> *operation_class</code></em>);</pre>
+<p>Print a usage message for the operation to stdout.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.4.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>operation_class</p></td>
+<td class="parameter_description"><p>class to print usage for</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-operation-invalidate"></a><h3>vips_operation_invalidate ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_operation_invalidate (<em class="parameter"><code><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> *operation</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-operation-call-valist"></a><h3>vips_operation_call_valist ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_operation_call_valist (<em class="parameter"><code><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> *operation</code></em>,
+                            <em class="parameter"><code><span class="type">va_list</span> ap</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-operation-new"></a><h3>vips_operation_new ()</h3>
+<pre class="programlisting"><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="returnvalue">VipsOperation</span></a> *
+vips_operation_new (<em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
+<p>Return a new <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> with the specified nickname. Useful for
+language bindings. </p>
+<p>You'll need to set
+any arguments and build the operation before you can use it. See
+<a class="link" href="VipsOperation.html#vips-call" title="vips_call ()"><code class="function">vips_call()</code></a> for a higher-level way to make new operations.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.7.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>nickname of operation to create</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.6.10.7.7"></a><h4>Returns</h4>
+<p> the new operation. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-call-required-optional"></a><h3>vips_call_required_optional ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_call_required_optional (<em class="parameter"><code><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> **operation</code></em>,
+                             <em class="parameter"><code><span class="type">va_list</span> required</code></em>,
+                             <em class="parameter"><code><span class="type">va_list</span> optional</code></em>);</pre>
+<p>This is the main entry point for the C and C++ varargs APIs. <em class="parameter"><code>operation</code></em>
+ 
+is executed, supplying <em class="parameter"><code>required</code></em>
+ and <em class="parameter"><code>optional</code></em>
+ arguments. </p>
+<p>Beware, this can change <em class="parameter"><code>operation</code></em>
+ to point at an old, cached one.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.8.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>operation</p></td>
+<td class="parameter_description"><p>the operation to execute</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>required</p></td>
+<td class="parameter_description"><p><code class="literal">va_list</code> of required arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>optional</p></td>
+<td class="parameter_description"><p>NULL-terminated <code class="literal">va_list</code> of name / value pairs </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.6.10.8.7"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-call"></a><h3>vips_call ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_call (<em class="parameter"><code>const <span class="type">char</span> *operation_name</code></em>,
+           <em class="parameter"><code>...</code></em>);</pre>
+<p>vips_call() calls the named operation, passing in required arguments and
+then setting any optional ones from the remainder of the arguments as a set
+of name/value pairs. </p>
+<p>For example, <a class="link" href="libvips-conversion.html#vips-embed" title="vips_embed ()"><code class="function">vips_embed()</code></a> takes six required arguments, <em class="parameter"><code>in</code></em>
+, <em class="parameter"><code>out</code></em>
+, <em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+, 
+<em class="parameter"><code>width</code></em>
+, <em class="parameter"><code>height</code></em>
+, and has two optional arguments, <em class="parameter"><code>extend</code></em>
+ and <em class="parameter"><code>background</code></em>
+.
+You can run it with <a class="link" href="VipsOperation.html#vips-call" title="vips_call ()"><code class="function">vips_call()</code></a> like this: </p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">in </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">...</span>
+<span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">out</span><span class="symbol">;</span>
+
+<span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function"><a href="VipsOperation.html#vips-call">vips_call</a></span><span class="symbol">(</span><span class="normal"> </span><span class="string">"embed"</span><span class="symbol">,</span><span class="normal"> in</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">out</span><span class="symbol">,</span><span class="normal"> </span><span class="number">10</span><span class="symbol">,</span><span class="normal"> </span><span class="number">10</span><span class="symbol">,</span><span class="normal"> </span><span class="number">100</span><span class="symbol">,</span><span class="normal"> </span><span class="number">100</span><span class="symbol">,</span>
+<span class="normal">    </span><span class="string">"extend"</span><span class="symbol">,</span><span class="normal"> VIPS_EXTEND_COPY</span><span class="symbol">,</span>
+<span class="normal">    NULL </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
+<span class="normal">    </span><span class="symbol">...</span><span class="normal"> error</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>Normally of course you'd just use the <a class="link" href="libvips-conversion.html#vips-embed" title="vips_embed ()"><code class="function">vips_embed()</code></a> wrapper function and get
+type-safety for the required arguments. </p>
+<p>See also: <a class="link" href="VipsOperation.html#vips-call-split" title="vips_call_split ()"><code class="function">vips_call_split()</code></a>, <a class="link" href="VipsOperation.html#vips-call-options" title="vips_call_options ()"><code class="function">vips_call_options()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.9.10"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>operation_name</p></td>
+<td class="parameter_description"><p>name of operation to call</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>required args, then a <code class="literal">NULL</code>-terminated list of argument/value pairs</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.6.10.9.11"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-call-split"></a><h3>vips_call_split ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_call_split (<em class="parameter"><code>const <span class="type">char</span> *operation_name</code></em>,
+                 <em class="parameter"><code><span class="type">va_list</span> optional</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-call-split-option-string"></a><h3>vips_call_split_option_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_call_split_option_string (<em class="parameter"><code>const <span class="type">char</span> *operation_name</code></em>,
+                               <em class="parameter"><code>const <span class="type">char</span> *option_string</code></em>,
+                               <em class="parameter"><code><span class="type">va_list</span> optional</code></em>,
+                               <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-call-options"></a><h3>vips_call_options ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_call_options (<em class="parameter"><code><span class="type">GOptionGroup</span> *group</code></em>,
+                   <em class="parameter"><code><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> *operation</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-call-argv"></a><h3>vips_call_argv ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_call_argv (<em class="parameter"><code><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> *operation</code></em>,
+                <em class="parameter"><code><span class="type">int</span> argc</code></em>,
+                <em class="parameter"><code><span class="type">char</span> **argv</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-drop-all"></a><h3>vips_cache_drop_all ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_cache_drop_all (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Drop the whole operation cache, handy for leak tracking. Also called
+automatically on <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a>.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-operation-lookup"></a><h3>vips_cache_operation_lookup ()</h3>
+<pre class="programlisting"><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="returnvalue">VipsOperation</span></a> *
+vips_cache_operation_lookup (<em class="parameter"><code><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> *operation</code></em>);</pre>
+<p>Look up an unbuilt <em class="parameter"><code>operation</code></em>
+ in the cache. If we get a hit, ref and 
+return the old operation. If there's no hit, return NULL.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.15.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>operation</p></td>
+<td class="parameter_description"><p> pointer to operation to lookup. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.6.10.15.6"></a><h4>Returns</h4>
+<p> the cache hit, if any. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-operation-add"></a><h3>vips_cache_operation_add ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_cache_operation_add (<em class="parameter"><code><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> *operation</code></em>);</pre>
+<p>Add a built operation to the cache. The cache will ref the operation.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.16.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>operation</p></td>
+<td class="parameter_description"><p> pointer to operation to add. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-operation-buildp"></a><h3>vips_cache_operation_buildp ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_cache_operation_buildp (<em class="parameter"><code><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> **operation</code></em>);</pre>
+<p>Look up <em class="parameter"><code>operation</code></em>
+ in the cache. If we get a hit, unref <em class="parameter"><code>operation</code></em>
+, ref the
+old one and return that through the argument pointer. </p>
+<p>If we miss, build and add <em class="parameter"><code>operation</code></em>
+.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.17.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>operation</p></td>
+<td class="parameter_description"><p>pointer to operation to lookup</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.6.10.17.7"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-operation-build"></a><h3>vips_cache_operation_build ()</h3>
+<pre class="programlisting"><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="returnvalue">VipsOperation</span></a> *
+vips_cache_operation_build (<em class="parameter"><code><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> *operation</code></em>);</pre>
+<p>A binding-friendly version of <a class="link" href="VipsOperation.html#vips-cache-operation-buildp" title="vips_cache_operation_buildp ()"><code class="function">vips_cache_operation_buildp()</code></a>.</p>
+<p>After calling this, <em class="parameter"><code>operation</code></em>
+ has the same ref count as when it went in,
+and the result must be freed with <a class="link" href="VipsObject.html#vips-object-unref-outputs" title="vips_object_unref_outputs ()"><code class="function">vips_object_unref_outputs()</code></a> and
+<code class="function">g_object_unref()</code>.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.18.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>operation</p></td>
+<td class="parameter_description"><p> operation to lookup. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.6.10.18.7"></a><h4>Returns</h4>
+<p> The built operation. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-print"></a><h3>vips_cache_print ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_cache_print (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Print the whole operation cache to stdout. Handy for debugging.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-set-max"></a><h3>vips_cache_set_max ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_cache_set_max (<em class="parameter"><code><span class="type">int</span> max</code></em>);</pre>
+<p>Set the maximum number of operations we keep in cache.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.20.5"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>max</p></td>
+<td class="parameter_description"><p>maximum number of operation to cache</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-set-max-mem"></a><h3>vips_cache_set_max_mem ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_cache_set_max_mem (<em class="parameter"><code><span class="type">size_t</span> max_mem</code></em>);</pre>
+<p>Set the maximum amount of tracked memory we allow before we start dropping
+cached operations. See <a class="link" href="libvips-memory.html#vips-tracked-get-mem" title="vips_tracked_get_mem ()"><code class="function">vips_tracked_get_mem()</code></a>.</p>
+<p>See also: <a class="link" href="libvips-memory.html#vips-tracked-get-mem" title="vips_tracked_get_mem ()"><code class="function">vips_tracked_get_mem()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.21.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>max_mem</p></td>
+<td class="parameter_description"><p>maximum amount of tracked memory we use </p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-get-max"></a><h3>vips_cache_get_max ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_cache_get_max (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Get the maximum number of operations we keep in cache.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.22.5"></a><h4>Returns</h4>
+<p> the maximum number of operations we keep in cache</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-get-size"></a><h3>vips_cache_get_size ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_cache_get_size (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Get the current number of operations in cache.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.23.5"></a><h4>Returns</h4>
+<p> get the current number of operations in cache.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-get-max-mem"></a><h3>vips_cache_get_max_mem ()</h3>
+<pre class="programlisting"><span class="returnvalue">size_t</span>
+vips_cache_get_max_mem (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Get the maximum amount of tracked memory we allow before we start dropping
+cached operations. See <a class="link" href="libvips-memory.html#vips-tracked-get-mem" title="vips_tracked_get_mem ()"><code class="function">vips_tracked_get_mem()</code></a>.</p>
+<p>See also: <a class="link" href="libvips-memory.html#vips-tracked-get-mem" title="vips_tracked_get_mem ()"><code class="function">vips_tracked_get_mem()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.24.6"></a><h4>Returns</h4>
+<p> the maximum amount of tracked memory we allow</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-get-max-files"></a><h3>vips_cache_get_max_files ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_cache_get_max_files (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Get the maximum number of tracked files we allow before we start dropping
+cached operations. See <a class="link" href="libvips-memory.html#vips-tracked-get-files" title="vips_tracked_get_files ()"><code class="function">vips_tracked_get_files()</code></a>.</p>
+<p>See also: <a class="link" href="libvips-memory.html#vips-tracked-get-files" title="vips_tracked_get_files ()"><code class="function">vips_tracked_get_files()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.25.6"></a><h4>Returns</h4>
+<p> the maximum number of tracked files we allow</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-set-max-files"></a><h3>vips_cache_set_max_files ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_cache_set_max_files (<em class="parameter"><code><span class="type">int</span> max_files</code></em>);</pre>
+<p>Set the maximum number of tracked files we allow before we start dropping
+cached operations. See <a class="link" href="libvips-memory.html#vips-tracked-get-files" title="vips_tracked_get_files ()"><code class="function">vips_tracked_get_files()</code></a>.</p>
+<p>See also: <a class="link" href="libvips-memory.html#vips-tracked-get-files" title="vips_tracked_get_files ()"><code class="function">vips_tracked_get_files()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.26.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>max_files</p></td>
+<td class="parameter_description"><p>max open files we allow</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-set-dump"></a><h3>vips_cache_set_dump ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_cache_set_dump (<em class="parameter"><code><span class="type">gboolean</span> dump</code></em>);</pre>
+<p>Handy for debugging. Print the operation cache to stdout just before exit.</p>
+<p>See also: <a class="link" href="VipsOperation.html#vips-cache-set-trace" title="vips_cache_set_trace ()"><code class="function">vips_cache_set_trace()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.27.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>dump</p></td>
+<td class="parameter_description"><p>if <code class="literal">TRUE</code>, dump the operation cache on exit</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-cache-set-trace"></a><h3>vips_cache_set_trace ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_cache_set_trace (<em class="parameter"><code><span class="type">gboolean</span> trace</code></em>);</pre>
+<p>Handy for debugging. Print operation cache actions to stdout as we run.</p>
+<p>You can set the environment variable <code class="literal">VIPS_TRACE</code> to turn this option on, or
+use the command-line flag <code class="literal">--vips-cache-trace</code>.</p>
+<p>See also: <a class="link" href="VipsOperation.html#vips-cache-set-dump" title="vips_cache_set_dump ()"><code class="function">vips_cache_set_dump()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.28.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>trace</p></td>
+<td class="parameter_description"><p>if <code class="literal">TRUE</code>, trace the operation cache </p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-concurrency-set"></a><h3>vips_concurrency_set ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_concurrency_set (<em class="parameter"><code><span class="type">int</span> concurrency</code></em>);</pre>
+<p>Sets the number of worker threads that vips should use when running a
+<span class="type">VipsThreadPool</span>. </p>
+<p>The special value 0 means "default". In this case, the number of threads is
+set by the environment variable VIPS_CONCURRENCY, or if that is not set, the
+number of threads availble on the host machine. </p>
+<p>See also: <a class="link" href="VipsOperation.html#vips-concurrency-get" title="vips_concurrency_get ()"><code class="function">vips_concurrency_get()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.29.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>concurrency</p></td>
+<td class="parameter_description"><p>number of threads to run</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-concurrency-get"></a><h3>vips_concurrency_get ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_concurrency_get (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Returns the number of worker threads that vips should use when running a
+<span class="type">VipsThreadPool</span>. </p>
+<p>vips gets this values from these sources in turn:</p>
+<p>If <a class="link" href="VipsOperation.html#vips-concurrency-set" title="vips_concurrency_set ()"><code class="function">vips_concurrency_set()</code></a> has been called, this value is used. The special
+value 0 means "default". You can also use the command-line argument
+"--vips-concurrency" to set this value.</p>
+<p>If <a class="link" href="VipsOperation.html#vips-concurrency-set" title="vips_concurrency_set ()"><code class="function">vips_concurrency_set()</code></a> has not been called and no command-line argument
+was used, vips uses the value of the environment variable VIPS_CONCURRENCY,</p>
+<p>If VIPS_CONCURRENCY has not been set, vips find the number of hardware
+threads that the host machine can run in parallel and uses that value. </p>
+<p>The final value is clipped to the range 1 - 1024.</p>
+<p>See also: <a class="link" href="VipsOperation.html#vips-concurrency-get" title="vips_concurrency_get ()"><code class="function">vips_concurrency_get()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.6.10.30.11"></a><h4>Returns</h4>
+<p> number of worker threads to use.</p>
+<p></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsOperation.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="VipsOperationFlags"></a><h3>enum VipsOperationFlags</h3>
+<p>Flags we associate with an operation.</p>
+<p><em class="parameter"><code>VIPS_OPERATION_SEQUENTIAL</code></em>
+ means that the operation works like <a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a>:
+it can process images top-to-bottom with only small non-local
+references. </p>
+<p>Every scan-line must be requested, you are not allowed to skip
+ahead, but as a special case, the very first request can be for a region
+not at the top of the image. In this case, the first part of the image will
+be read and discarded</p>
+<p>Every scan-line must be requested, you are not allowed to skip
+ahead, but as a special case, the very first request can be for a region
+not at the top of the image. In this case, the first part of the image will
+be read and discarded</p>
+<p><em class="parameter"><code>VIPS_OPERATION_NOCACHE</code></em>
+ means that the operation must not be cached by
+vips. </p>
+<p><em class="parameter"><code>VIPS_OPERATION_DEPRECATED</code></em>
+ means this is an old operation kept in vips for
+compatibility only and should be hidden from users.</p>
+<div class="refsect3">
+<a name="id-1.3.6.11.2.9"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-NONE:CAPS"></a>VIPS_OPERATION_NONE</p></td>
+<td class="enum_member_description">
+<p>no flags</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-SEQUENTIAL:CAPS"></a>VIPS_OPERATION_SEQUENTIAL</p></td>
+<td class="enum_member_description">
+<p>can work sequentially with a small buffer</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-SEQUENTIAL-UNBUFFERED:CAPS"></a>VIPS_OPERATION_SEQUENTIAL_UNBUFFERED</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-NOCACHE:CAPS"></a>VIPS_OPERATION_NOCACHE</p></td>
+<td class="enum_member_description">
+<p>must not be cached</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-DEPRECATED:CAPS"></a>VIPS_OPERATION_DEPRECATED</p></td>
+<td class="enum_member_description">
+<p>a compatibility thing</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsOperation.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="VipsOperation-invalidate"></a><h3>The <code class="literal">“invalidate”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> *vipsoperation,
+               <span class="type">gpointer</span>       user_data)</pre>
+<p>Flags: Run Last</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsOperation.see-also"></a><h2>See Also</h2>
+<a class="link" href="VipsObject.html" title="VipsObject">object</a>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

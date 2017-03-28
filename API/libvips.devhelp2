@@ -1,0 +1,1099 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE book PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "">
+<book xmlns="http://www.devhelp.net/book" title="VIPS Reference Manual" link="index.html" author="" name="libvips" version="2" language="c">
+  <chapters>
+    <sub name="VIPS Overview" link="ch01.html">
+      <sub name="VIPS from the command-line" link="using-cli.html"/>
+      <sub name="VIPS from C" link="using-from-c.html"/>
+      <sub name="VIPS from Python" link="using-from-python.html"/>
+      <sub name="VIPS from C++" link="using-from-cpp.html"/>
+      <sub name="Writing bindings for libvips" link="binding.html"/>
+      <sub name="Extending VIPS" link="extending.html"/>
+      <sub name="VIPS function list" link="func-list.html"/>
+      <sub name="The VIPS file format" link="file-format.html"/>
+      <sub name="VIPS and threads" link="using-threads.html"/>
+    </sub>
+    <sub name="Core VIPS API" link="ch02.html">
+      <sub name="vips" link="libvips-vips.html"/>
+      <sub name="VipsImage" link="VipsImage.html"/>
+      <sub name="header" link="libvips-header.html"/>
+      <sub name="generate" link="libvips-generate.html"/>
+      <sub name="VipsOperation" link="VipsOperation.html"/>
+      <sub name="error" link="libvips-error.html"/>
+      <sub name="memory" link="libvips-memory.html"/>
+      <sub name="VipsRegion" link="VipsRegion.html"/>
+      <sub name="type" link="libvips-type.html"/>
+      <sub name="rect" link="libvips-rect.html"/>
+      <sub name="VipsObject" link="VipsObject.html"/>
+      <sub name="VipsThreadState" link="VipsThreadState.html"/>
+      <sub name="buf" link="libvips-buf.html"/>
+      <sub name="basic" link="libvips-basic.html"/>
+    </sub>
+    <sub name="VIPS operation API by section" link="ch03.html">
+      <sub name="arithmetic" link="libvips-arithmetic.html"/>
+      <sub name="colour" link="libvips-colour.html"/>
+      <sub name="conversion" link="libvips-conversion.html"/>
+      <sub name="convolution" link="libvips-convolution.html"/>
+      <sub name="VipsForeignSave" link="VipsForeignSave.html"/>
+      <sub name="freqfilt" link="libvips-freqfilt.html"/>
+      <sub name="histogram" link="libvips-histogram.html"/>
+      <sub name="draw" link="libvips-draw.html"/>
+      <sub name="VipsInterpolate" link="VipsInterpolate.html"/>
+      <sub name="morphology" link="libvips-morphology.html"/>
+      <sub name="mosaicing" link="libvips-mosaicing.html"/>
+      <sub name="create" link="libvips-create.html"/>
+      <sub name="resample" link="libvips-resample.html"/>
+    </sub>
+    <sub name="Other API (no gtkdoc comments yet)" link="ch04.html">
+      <sub name="transform" link="libvips-transform.html"/>
+      <sub name="util" link="libvips-util.html"/>
+      <sub name="version" link="libvips-version.html"/>
+      <sub name="semaphore" link="libvips-semaphore.html"/>
+    </sub>
+    <sub name="Object Hierarchy" link="object-tree.html"/>
+    <sub name="API Index" link="api-index-full.html"/>
+    <sub name="Annotation Glossary" link="annotation-glossary.html"/>
+  </chapters>
+  <functions>
+    <keyword type="macro" name="VIPS_INIT()" link="libvips-vips.html#VIPS-INIT:CAPS" deprecated=""/>
+    <keyword type="function" name="vips_init ()" link="libvips-vips.html#vips-init"/>
+    <keyword type="function" name="vips_get_argv0 ()" link="libvips-vips.html#vips-get-argv0"/>
+    <keyword type="function" name="vips_shutdown ()" link="libvips-vips.html#vips-shutdown"/>
+    <keyword type="function" name="vips_thread_shutdown ()" link="libvips-vips.html#vips-thread-shutdown"/>
+    <keyword type="function" name="vips_add_option_entries ()" link="libvips-vips.html#vips-add-option-entries"/>
+    <keyword type="function" name="vips_leak_set ()" link="libvips-vips.html#vips-leak-set"/>
+    <keyword type="function" name="vips_version_string ()" link="libvips-vips.html#vips-version-string"/>
+    <keyword type="function" name="vips_version ()" link="libvips-vips.html#vips-version"/>
+    <keyword type="function" name="vips_guess_prefix ()" link="libvips-vips.html#vips-guess-prefix"/>
+    <keyword type="function" name="vips_guess_libdir ()" link="libvips-vips.html#vips-guess-libdir"/>
+    <keyword type="macro" name="VIPS_MAGIC_INTEL" link="VipsImage.html#VIPS-MAGIC-INTEL:CAPS"/>
+    <keyword type="macro" name="VIPS_MAGIC_SPARC" link="VipsImage.html#VIPS-MAGIC-SPARC:CAPS"/>
+    <keyword type="macro" name="VIPS_MAX_COORD" link="VipsImage.html#VIPS-MAX-COORD:CAPS"/>
+    <keyword type="function" name="VipsStartFn ()" link="VipsImage.html#VipsStartFn"/>
+    <keyword type="function" name="VipsGenerateFn ()" link="VipsImage.html#VipsGenerateFn"/>
+    <keyword type="function" name="VipsStopFn ()" link="VipsImage.html#VipsStopFn"/>
+    <keyword type="macro" name="VIPS_IMAGE_SIZEOF_ELEMENT()" link="VipsImage.html#VIPS-IMAGE-SIZEOF-ELEMENT:CAPS"/>
+    <keyword type="macro" name="VIPS_IMAGE_SIZEOF_PEL()" link="VipsImage.html#VIPS-IMAGE-SIZEOF-PEL:CAPS"/>
+    <keyword type="macro" name="VIPS_IMAGE_SIZEOF_LINE()" link="VipsImage.html#VIPS-IMAGE-SIZEOF-LINE:CAPS"/>
+    <keyword type="macro" name="VIPS_IMAGE_N_ELEMENTS()" link="VipsImage.html#VIPS-IMAGE-N-ELEMENTS:CAPS"/>
+    <keyword type="macro" name="VIPS_IMAGE_N_PELS()" link="VipsImage.html#VIPS-IMAGE-N-PELS:CAPS"/>
+    <keyword type="macro" name="VIPS_IMAGE_ADDR()" link="VipsImage.html#VIPS-IMAGE-ADDR:CAPS"/>
+    <keyword type="macro" name="VIPS_MATRIX()" link="VipsImage.html#VIPS-MATRIX:CAPS"/>
+    <keyword type="function" name="vips_progress_set ()" link="VipsImage.html#vips-progress-set"/>
+    <keyword type="function" name="vips_image_invalidate_all ()" link="VipsImage.html#vips-image-invalidate-all"/>
+    <keyword type="function" name="vips_image_minimise_all ()" link="VipsImage.html#vips-image-minimise-all"/>
+    <keyword type="function" name="vips_image_set_progress ()" link="VipsImage.html#vips-image-set-progress"/>
+    <keyword type="function" name="vips_filename_get_filename ()" link="VipsImage.html#vips-filename-get-filename"/>
+    <keyword type="function" name="vips_filename_get_options ()" link="VipsImage.html#vips-filename-get-options"/>
+    <keyword type="function" name="vips_image_new ()" link="VipsImage.html#vips-image-new"/>
+    <keyword type="function" name="vips_image_new_memory ()" link="VipsImage.html#vips-image-new-memory"/>
+    <keyword type="function" name="vips_image_memory ()" link="VipsImage.html#vips-image-memory"/>
+    <keyword type="function" name="vips_image_new_from_file ()" link="VipsImage.html#vips-image-new-from-file"/>
+    <keyword type="function" name="vips_image_new_from_file_RW ()" link="VipsImage.html#vips-image-new-from-file-RW"/>
+    <keyword type="function" name="vips_image_new_from_file_raw ()" link="VipsImage.html#vips-image-new-from-file-raw"/>
+    <keyword type="function" name="vips_image_new_from_memory ()" link="VipsImage.html#vips-image-new-from-memory"/>
+    <keyword type="function" name="vips_image_new_from_memory_copy ()" link="VipsImage.html#vips-image-new-from-memory-copy"/>
+    <keyword type="function" name="vips_image_new_from_buffer ()" link="VipsImage.html#vips-image-new-from-buffer"/>
+    <keyword type="function" name="vips_image_new_matrix ()" link="VipsImage.html#vips-image-new-matrix"/>
+    <keyword type="function" name="vips_image_new_matrixv ()" link="VipsImage.html#vips-image-new-matrixv"/>
+    <keyword type="function" name="vips_image_new_matrix_from_array ()" link="VipsImage.html#vips-image-new-matrix-from-array"/>
+    <keyword type="function" name="vips_image_matrix_from_array ()" link="VipsImage.html#vips-image-matrix-from-array"/>
+    <keyword type="function" name="vips_image_set_delete_on_close ()" link="VipsImage.html#vips-image-set-delete-on-close"/>
+    <keyword type="function" name="vips_get_disc_threshold ()" link="VipsImage.html#vips-get-disc-threshold"/>
+    <keyword type="function" name="vips_image_new_temp_file ()" link="VipsImage.html#vips-image-new-temp-file"/>
+    <keyword type="function" name="vips_image_write ()" link="VipsImage.html#vips-image-write"/>
+    <keyword type="function" name="vips_image_write_to_file ()" link="VipsImage.html#vips-image-write-to-file"/>
+    <keyword type="function" name="vips_image_write_to_buffer ()" link="VipsImage.html#vips-image-write-to-buffer"/>
+    <keyword type="function" name="vips_image_write_to_memory ()" link="VipsImage.html#vips-image-write-to-memory"/>
+    <keyword type="function" name="vips_image_decode_predict ()" link="VipsImage.html#vips-image-decode-predict"/>
+    <keyword type="function" name="vips_image_decode ()" link="VipsImage.html#vips-image-decode"/>
+    <keyword type="function" name="vips_image_encode ()" link="VipsImage.html#vips-image-encode"/>
+    <keyword type="function" name="vips_image_isMSBfirst ()" link="VipsImage.html#vips-image-isMSBfirst"/>
+    <keyword type="function" name="vips_image_isfile ()" link="VipsImage.html#vips-image-isfile"/>
+    <keyword type="function" name="vips_image_ispartial ()" link="VipsImage.html#vips-image-ispartial"/>
+    <keyword type="function" name="vips_image_hasalpha ()" link="VipsImage.html#vips-image-hasalpha"/>
+    <keyword type="function" name="vips_image_copy_memory ()" link="VipsImage.html#vips-image-copy-memory"/>
+    <keyword type="function" name="vips_image_wio_input ()" link="VipsImage.html#vips-image-wio-input"/>
+    <keyword type="function" name="vips_image_pio_input ()" link="VipsImage.html#vips-image-pio-input"/>
+    <keyword type="function" name="vips_image_pio_output ()" link="VipsImage.html#vips-image-pio-output"/>
+    <keyword type="function" name="vips_image_inplace ()" link="VipsImage.html#vips-image-inplace"/>
+    <keyword type="function" name="vips_image_write_prepare ()" link="VipsImage.html#vips-image-write-prepare"/>
+    <keyword type="function" name="vips_image_write_line ()" link="VipsImage.html#vips-image-write-line"/>
+    <keyword type="function" name="vips_band_format_isint ()" link="VipsImage.html#vips-band-format-isint"/>
+    <keyword type="function" name="vips_band_format_isuint ()" link="VipsImage.html#vips-band-format-isuint"/>
+    <keyword type="function" name="vips_band_format_is8bit ()" link="VipsImage.html#vips-band-format-is8bit"/>
+    <keyword type="function" name="vips_band_format_isfloat ()" link="VipsImage.html#vips-band-format-isfloat"/>
+    <keyword type="function" name="vips_band_format_iscomplex ()" link="VipsImage.html#vips-band-format-iscomplex"/>
+    <keyword type="function" name="vips_system ()" link="VipsImage.html#vips-system"/>
+    <keyword type="function" name="vips_array_image_new ()" link="VipsImage.html#vips-array-image-new"/>
+    <keyword type="function" name="vips_array_image_newv ()" link="VipsImage.html#vips-array-image-newv"/>
+    <keyword type="function" name="vips_array_image_new_from_string ()" link="VipsImage.html#vips-array-image-new-from-string"/>
+    <keyword type="function" name="vips_array_image_empty ()" link="VipsImage.html#vips-array-image-empty"/>
+    <keyword type="function" name="vips_array_image_append ()" link="VipsImage.html#vips-array-image-append"/>
+    <keyword type="function" name="vips_array_image_get ()" link="VipsImage.html#vips-array-image-get"/>
+    <keyword type="function" name="vips_value_get_array_image ()" link="VipsImage.html#vips-value-get-array-image"/>
+    <keyword type="function" name="vips_value_set_array_image ()" link="VipsImage.html#vips-value-set-array-image"/>
+    <keyword type="function" name="vips_reorder_prepare_many ()" link="VipsImage.html#vips-reorder-prepare-many"/>
+    <keyword type="function" name="vips_reorder_margin_hint ()" link="VipsImage.html#vips-reorder-margin-hint"/>
+    <keyword type="enum" name="enum VipsDemandStyle" link="VipsImage.html#VipsDemandStyle"/>
+    <keyword type="enum" name="enum VipsImageType" link="VipsImage.html#VipsImageType"/>
+    <keyword type="enum" name="enum VipsInterpretation" link="VipsImage.html#VipsInterpretation"/>
+    <keyword type="enum" name="enum VipsBandFormat" link="VipsImage.html#VipsBandFormat"/>
+    <keyword type="enum" name="enum VipsCoding" link="VipsImage.html#VipsCoding"/>
+    <keyword type="enum" name="enum VipsAccess" link="VipsImage.html#VipsAccess"/>
+    <keyword type="struct" name="VipsProgress" link="VipsImage.html#VipsProgress"/>
+    <keyword type="property" name="The “bands” property" link="VipsImage.html#VipsImage--bands"/>
+    <keyword type="property" name="The “coding” property" link="VipsImage.html#VipsImage--coding"/>
+    <keyword type="property" name="The “demand” property" link="VipsImage.html#VipsImage--demand"/>
+    <keyword type="property" name="The “filename” property" link="VipsImage.html#VipsImage--filename"/>
+    <keyword type="property" name="The “foreign-buffer” property" link="VipsImage.html#VipsImage--foreign-buffer"/>
+    <keyword type="property" name="The “format” property" link="VipsImage.html#VipsImage--format"/>
+    <keyword type="property" name="The “height” property" link="VipsImage.html#VipsImage--height"/>
+    <keyword type="property" name="The “interpretation” property" link="VipsImage.html#VipsImage--interpretation"/>
+    <keyword type="property" name="The “kill” property" link="VipsImage.html#VipsImage--kill"/>
+    <keyword type="property" name="The “mode” property" link="VipsImage.html#VipsImage--mode"/>
+    <keyword type="property" name="The “sizeof-header” property" link="VipsImage.html#VipsImage--sizeof-header"/>
+    <keyword type="property" name="The “width” property" link="VipsImage.html#VipsImage--width"/>
+    <keyword type="property" name="The “xoffset” property" link="VipsImage.html#VipsImage--xoffset"/>
+    <keyword type="property" name="The “xres” property" link="VipsImage.html#VipsImage--xres"/>
+    <keyword type="property" name="The “yoffset” property" link="VipsImage.html#VipsImage--yoffset"/>
+    <keyword type="property" name="The “yres” property" link="VipsImage.html#VipsImage--yres"/>
+    <keyword type="signal" name="The “eval” signal" link="VipsImage.html#VipsImage-eval"/>
+    <keyword type="signal" name="The “invalidate” signal" link="VipsImage.html#VipsImage-invalidate"/>
+    <keyword type="signal" name="The “minimise” signal" link="VipsImage.html#VipsImage-minimise"/>
+    <keyword type="signal" name="The “posteval” signal" link="VipsImage.html#VipsImage-posteval"/>
+    <keyword type="signal" name="The “preeval” signal" link="VipsImage.html#VipsImage-preeval"/>
+    <keyword type="signal" name="The “written” signal" link="VipsImage.html#VipsImage-written"/>
+    <keyword type="function" name="vips_format_sizeof ()" link="libvips-header.html#vips-format-sizeof"/>
+    <keyword type="function" name="vips_format_sizeof_unsafe ()" link="libvips-header.html#vips-format-sizeof-unsafe"/>
+    <keyword type="function" name="vips_image_get_width ()" link="libvips-header.html#vips-image-get-width"/>
+    <keyword type="function" name="vips_image_get_height ()" link="libvips-header.html#vips-image-get-height"/>
+    <keyword type="function" name="vips_image_get_bands ()" link="libvips-header.html#vips-image-get-bands"/>
+    <keyword type="function" name="vips_image_get_format ()" link="libvips-header.html#vips-image-get-format"/>
+    <keyword type="function" name="vips_image_guess_format ()" link="libvips-header.html#vips-image-guess-format"/>
+    <keyword type="function" name="vips_image_get_coding ()" link="libvips-header.html#vips-image-get-coding"/>
+    <keyword type="function" name="vips_image_get_interpretation ()" link="libvips-header.html#vips-image-get-interpretation"/>
+    <keyword type="function" name="vips_image_guess_interpretation ()" link="libvips-header.html#vips-image-guess-interpretation"/>
+    <keyword type="function" name="vips_image_get_xres ()" link="libvips-header.html#vips-image-get-xres"/>
+    <keyword type="function" name="vips_image_get_yres ()" link="libvips-header.html#vips-image-get-yres"/>
+    <keyword type="function" name="vips_image_get_xoffset ()" link="libvips-header.html#vips-image-get-xoffset"/>
+    <keyword type="function" name="vips_image_get_yoffset ()" link="libvips-header.html#vips-image-get-yoffset"/>
+    <keyword type="function" name="vips_image_get_filename ()" link="libvips-header.html#vips-image-get-filename"/>
+    <keyword type="function" name="vips_image_get_mode ()" link="libvips-header.html#vips-image-get-mode"/>
+    <keyword type="function" name="vips_image_get_scale ()" link="libvips-header.html#vips-image-get-scale"/>
+    <keyword type="function" name="vips_image_get_offset ()" link="libvips-header.html#vips-image-get-offset"/>
+    <keyword type="function" name="vips_image_get_data ()" link="libvips-header.html#vips-image-get-data"/>
+    <keyword type="function" name="vips_image_init_fields ()" link="libvips-header.html#vips-image-init-fields"/>
+    <keyword type="function" name="vips_image_set ()" link="libvips-header.html#vips-image-set"/>
+    <keyword type="function" name="vips_image_get ()" link="libvips-header.html#vips-image-get"/>
+    <keyword type="function" name="vips_image_get_as_string ()" link="libvips-header.html#vips-image-get-as-string"/>
+    <keyword type="function" name="vips_image_get_typeof ()" link="libvips-header.html#vips-image-get-typeof"/>
+    <keyword type="function" name="vips_image_remove ()" link="libvips-header.html#vips-image-remove"/>
+    <keyword type="function" name="VipsImageMapFn ()" link="libvips-header.html#VipsImageMapFn"/>
+    <keyword type="function" name="vips_image_map ()" link="libvips-header.html#vips-image-map"/>
+    <keyword type="function" name="vips_image_get_fields ()" link="libvips-header.html#vips-image-get-fields"/>
+    <keyword type="function" name="vips_image_set_area ()" link="libvips-header.html#vips-image-set-area"/>
+    <keyword type="function" name="vips_image_get_area ()" link="libvips-header.html#vips-image-get-area"/>
+    <keyword type="function" name="vips_image_set_blob ()" link="libvips-header.html#vips-image-set-blob"/>
+    <keyword type="function" name="vips_image_get_blob ()" link="libvips-header.html#vips-image-get-blob"/>
+    <keyword type="function" name="vips_image_get_int ()" link="libvips-header.html#vips-image-get-int"/>
+    <keyword type="function" name="vips_image_set_int ()" link="libvips-header.html#vips-image-set-int"/>
+    <keyword type="function" name="vips_image_get_double ()" link="libvips-header.html#vips-image-get-double"/>
+    <keyword type="function" name="vips_image_set_double ()" link="libvips-header.html#vips-image-set-double"/>
+    <keyword type="function" name="vips_image_get_string ()" link="libvips-header.html#vips-image-get-string"/>
+    <keyword type="function" name="vips_image_set_string ()" link="libvips-header.html#vips-image-set-string"/>
+    <keyword type="function" name="vips_image_print_field ()" link="libvips-header.html#vips-image-print-field"/>
+    <keyword type="function" name="vips_image_history_printf ()" link="libvips-header.html#vips-image-history-printf"/>
+    <keyword type="function" name="vips_image_history_args ()" link="libvips-header.html#vips-image-history-args"/>
+    <keyword type="function" name="vips_image_get_history ()" link="libvips-header.html#vips-image-get-history"/>
+    <keyword type="macro" name="VIPS_META_EXIF_NAME" link="libvips-header.html#VIPS-META-EXIF-NAME:CAPS"/>
+    <keyword type="macro" name="VIPS_META_XMP_NAME" link="libvips-header.html#VIPS-META-XMP-NAME:CAPS"/>
+    <keyword type="macro" name="VIPS_META_IPCT_NAME" link="libvips-header.html#VIPS-META-IPCT-NAME:CAPS"/>
+    <keyword type="macro" name="VIPS_META_PHOTOSHOP_NAME" link="libvips-header.html#VIPS-META-PHOTOSHOP-NAME:CAPS"/>
+    <keyword type="macro" name="VIPS_META_ICC_NAME" link="libvips-header.html#VIPS-META-ICC-NAME:CAPS"/>
+    <keyword type="macro" name="VIPS_META_IMAGEDESCRIPTION" link="libvips-header.html#VIPS-META-IMAGEDESCRIPTION:CAPS"/>
+    <keyword type="macro" name="VIPS_META_RESOLUTION_UNIT" link="libvips-header.html#VIPS-META-RESOLUTION-UNIT:CAPS"/>
+    <keyword type="macro" name="VIPS_META_LOADER" link="libvips-header.html#VIPS-META-LOADER:CAPS"/>
+    <keyword type="macro" name="VIPS_META_SEQUENTIAL" link="libvips-header.html#VIPS-META-SEQUENTIAL:CAPS"/>
+    <keyword type="macro" name="VIPS_META_ORIENTATION" link="libvips-header.html#VIPS-META-ORIENTATION:CAPS"/>
+    <keyword type="macro" name="VIPS_META_PAGE_HEIGHT" link="libvips-header.html#VIPS-META-PAGE-HEIGHT:CAPS"/>
+    <keyword type="function" name="VipsRegionWrite ()" link="libvips-generate.html#VipsRegionWrite"/>
+    <keyword type="function" name="vips_sink_disc ()" link="libvips-generate.html#vips-sink-disc"/>
+    <keyword type="function" name="vips_sink ()" link="libvips-generate.html#vips-sink"/>
+    <keyword type="function" name="vips_sink_tile ()" link="libvips-generate.html#vips-sink-tile"/>
+    <keyword type="function" name="VipsSinkNotify ()" link="libvips-generate.html#VipsSinkNotify"/>
+    <keyword type="function" name="vips_sink_screen ()" link="libvips-generate.html#vips-sink-screen"/>
+    <keyword type="function" name="vips_sink_memory ()" link="libvips-generate.html#vips-sink-memory"/>
+    <keyword type="function" name="vips_start_one ()" link="libvips-generate.html#vips-start-one"/>
+    <keyword type="function" name="vips_stop_one ()" link="libvips-generate.html#vips-stop-one"/>
+    <keyword type="function" name="vips_start_many ()" link="libvips-generate.html#vips-start-many"/>
+    <keyword type="function" name="vips_stop_many ()" link="libvips-generate.html#vips-stop-many"/>
+    <keyword type="function" name="vips_allocate_input_array ()" link="libvips-generate.html#vips-allocate-input-array"/>
+    <keyword type="function" name="vips_image_generate ()" link="libvips-generate.html#vips-image-generate"/>
+    <keyword type="function" name="vips_image_pipeline_array ()" link="libvips-generate.html#vips-image-pipeline-array"/>
+    <keyword type="function" name="vips_image_pipelinev ()" link="libvips-generate.html#vips-image-pipelinev"/>
+    <keyword type="function" name="VipsOperationBuildFn ()" link="VipsOperation.html#VipsOperationBuildFn"/>
+    <keyword type="function" name="vips_operation_get_flags ()" link="VipsOperation.html#vips-operation-get-flags"/>
+    <keyword type="function" name="vips_operation_class_print_usage ()" link="VipsOperation.html#vips-operation-class-print-usage"/>
+    <keyword type="function" name="vips_operation_invalidate ()" link="VipsOperation.html#vips-operation-invalidate"/>
+    <keyword type="function" name="vips_operation_call_valist ()" link="VipsOperation.html#vips-operation-call-valist"/>
+    <keyword type="function" name="vips_operation_new ()" link="VipsOperation.html#vips-operation-new"/>
+    <keyword type="function" name="vips_call_required_optional ()" link="VipsOperation.html#vips-call-required-optional"/>
+    <keyword type="function" name="vips_call ()" link="VipsOperation.html#vips-call"/>
+    <keyword type="function" name="vips_call_split ()" link="VipsOperation.html#vips-call-split"/>
+    <keyword type="function" name="vips_call_split_option_string ()" link="VipsOperation.html#vips-call-split-option-string"/>
+    <keyword type="function" name="vips_call_options ()" link="VipsOperation.html#vips-call-options"/>
+    <keyword type="function" name="vips_call_argv ()" link="VipsOperation.html#vips-call-argv"/>
+    <keyword type="function" name="vips_cache_drop_all ()" link="VipsOperation.html#vips-cache-drop-all"/>
+    <keyword type="function" name="vips_cache_operation_lookup ()" link="VipsOperation.html#vips-cache-operation-lookup"/>
+    <keyword type="function" name="vips_cache_operation_add ()" link="VipsOperation.html#vips-cache-operation-add"/>
+    <keyword type="function" name="vips_cache_operation_buildp ()" link="VipsOperation.html#vips-cache-operation-buildp"/>
+    <keyword type="function" name="vips_cache_operation_build ()" link="VipsOperation.html#vips-cache-operation-build"/>
+    <keyword type="function" name="vips_cache_print ()" link="VipsOperation.html#vips-cache-print"/>
+    <keyword type="function" name="vips_cache_set_max ()" link="VipsOperation.html#vips-cache-set-max"/>
+    <keyword type="function" name="vips_cache_set_max_mem ()" link="VipsOperation.html#vips-cache-set-max-mem"/>
+    <keyword type="function" name="vips_cache_get_max ()" link="VipsOperation.html#vips-cache-get-max"/>
+    <keyword type="function" name="vips_cache_get_size ()" link="VipsOperation.html#vips-cache-get-size"/>
+    <keyword type="function" name="vips_cache_get_max_mem ()" link="VipsOperation.html#vips-cache-get-max-mem"/>
+    <keyword type="function" name="vips_cache_get_max_files ()" link="VipsOperation.html#vips-cache-get-max-files"/>
+    <keyword type="function" name="vips_cache_set_max_files ()" link="VipsOperation.html#vips-cache-set-max-files"/>
+    <keyword type="function" name="vips_cache_set_dump ()" link="VipsOperation.html#vips-cache-set-dump"/>
+    <keyword type="function" name="vips_cache_set_trace ()" link="VipsOperation.html#vips-cache-set-trace"/>
+    <keyword type="function" name="vips_concurrency_set ()" link="VipsOperation.html#vips-concurrency-set"/>
+    <keyword type="function" name="vips_concurrency_get ()" link="VipsOperation.html#vips-concurrency-get"/>
+    <keyword type="enum" name="enum VipsOperationFlags" link="VipsOperation.html#VipsOperationFlags"/>
+    <keyword type="signal" name="The “invalidate” signal" link="VipsOperation.html#VipsOperation-invalidate"/>
+    <keyword type="function" name="vips_error_buffer ()" link="libvips-error.html#vips-error-buffer"/>
+    <keyword type="function" name="vips_error_clear ()" link="libvips-error.html#vips-error-clear"/>
+    <keyword type="function" name="vips_error_freeze ()" link="libvips-error.html#vips-error-freeze"/>
+    <keyword type="function" name="vips_error_thaw ()" link="libvips-error.html#vips-error-thaw"/>
+    <keyword type="function" name="vips_error ()" link="libvips-error.html#vips-error"/>
+    <keyword type="function" name="vips_verror ()" link="libvips-error.html#vips-verror"/>
+    <keyword type="function" name="vips_error_system ()" link="libvips-error.html#vips-error-system"/>
+    <keyword type="function" name="vips_verror_system ()" link="libvips-error.html#vips-verror-system"/>
+    <keyword type="function" name="vips_error_g ()" link="libvips-error.html#vips-error-g"/>
+    <keyword type="function" name="vips_g_error ()" link="libvips-error.html#vips-g-error"/>
+    <keyword type="function" name="vips_error_exit ()" link="libvips-error.html#vips-error-exit"/>
+    <keyword type="function" name="vips_check_uncoded ()" link="libvips-error.html#vips-check-uncoded"/>
+    <keyword type="function" name="vips_check_coding ()" link="libvips-error.html#vips-check-coding"/>
+    <keyword type="function" name="vips_check_coding_known ()" link="libvips-error.html#vips-check-coding-known"/>
+    <keyword type="function" name="vips_check_coding_noneorlabq ()" link="libvips-error.html#vips-check-coding-noneorlabq"/>
+    <keyword type="function" name="vips_check_coding_same ()" link="libvips-error.html#vips-check-coding-same"/>
+    <keyword type="function" name="vips_check_mono ()" link="libvips-error.html#vips-check-mono"/>
+    <keyword type="function" name="vips_check_bands ()" link="libvips-error.html#vips-check-bands"/>
+    <keyword type="function" name="vips_check_bands_1or3 ()" link="libvips-error.html#vips-check-bands-1or3"/>
+    <keyword type="function" name="vips_check_bands_atleast ()" link="libvips-error.html#vips-check-bands-atleast"/>
+    <keyword type="function" name="vips_check_bands_1orn ()" link="libvips-error.html#vips-check-bands-1orn"/>
+    <keyword type="function" name="vips_check_bands_1orn_unary ()" link="libvips-error.html#vips-check-bands-1orn-unary"/>
+    <keyword type="function" name="vips_check_bands_same ()" link="libvips-error.html#vips-check-bands-same"/>
+    <keyword type="function" name="vips_check_bandno ()" link="libvips-error.html#vips-check-bandno"/>
+    <keyword type="function" name="vips_check_int ()" link="libvips-error.html#vips-check-int"/>
+    <keyword type="function" name="vips_check_uint ()" link="libvips-error.html#vips-check-uint"/>
+    <keyword type="function" name="vips_check_uintorf ()" link="libvips-error.html#vips-check-uintorf"/>
+    <keyword type="function" name="vips_check_noncomplex ()" link="libvips-error.html#vips-check-noncomplex"/>
+    <keyword type="function" name="vips_check_complex ()" link="libvips-error.html#vips-check-complex"/>
+    <keyword type="function" name="vips_check_twocomponents ()" link="libvips-error.html#vips-check-twocomponents"/>
+    <keyword type="function" name="vips_check_format ()" link="libvips-error.html#vips-check-format"/>
+    <keyword type="function" name="vips_check_u8or16 ()" link="libvips-error.html#vips-check-u8or16"/>
+    <keyword type="function" name="vips_check_8or16 ()" link="libvips-error.html#vips-check-8or16"/>
+    <keyword type="function" name="vips_check_u8or16orf ()" link="libvips-error.html#vips-check-u8or16orf"/>
+    <keyword type="function" name="vips_check_format_same ()" link="libvips-error.html#vips-check-format-same"/>
+    <keyword type="function" name="vips_check_size_same ()" link="libvips-error.html#vips-check-size-same"/>
+    <keyword type="function" name="vips_check_oddsquare ()" link="libvips-error.html#vips-check-oddsquare"/>
+    <keyword type="function" name="vips_check_vector_length ()" link="libvips-error.html#vips-check-vector-length"/>
+    <keyword type="function" name="vips_check_vector ()" link="libvips-error.html#vips-check-vector"/>
+    <keyword type="function" name="vips_check_hist ()" link="libvips-error.html#vips-check-hist"/>
+    <keyword type="function" name="vips_check_matrix ()" link="libvips-error.html#vips-check-matrix"/>
+    <keyword type="function" name="vips_check_separable ()" link="libvips-error.html#vips-check-separable"/>
+    <keyword type="function" name="vips_check_precision_intfloat ()" link="libvips-error.html#vips-check-precision-intfloat"/>
+    <keyword type="macro" name="VIPS_FREEF()" link="libvips-memory.html#VIPS-FREEF:CAPS"/>
+    <keyword type="macro" name="VIPS_FREE()" link="libvips-memory.html#VIPS-FREE:CAPS"/>
+    <keyword type="macro" name="VIPS_SETSTR()" link="libvips-memory.html#VIPS-SETSTR:CAPS"/>
+    <keyword type="macro" name="VIPS_NEW()" link="libvips-memory.html#VIPS-NEW:CAPS"/>
+    <keyword type="macro" name="VIPS_ARRAY()" link="libvips-memory.html#VIPS-ARRAY:CAPS"/>
+    <keyword type="function" name="vips_malloc ()" link="libvips-memory.html#vips-malloc"/>
+    <keyword type="function" name="vips_strdup ()" link="libvips-memory.html#vips-strdup"/>
+    <keyword type="function" name="vips_free ()" link="libvips-memory.html#vips-free"/>
+    <keyword type="function" name="vips_tracked_free ()" link="libvips-memory.html#vips-tracked-free"/>
+    <keyword type="function" name="vips_tracked_malloc ()" link="libvips-memory.html#vips-tracked-malloc"/>
+    <keyword type="function" name="vips_tracked_get_mem ()" link="libvips-memory.html#vips-tracked-get-mem"/>
+    <keyword type="function" name="vips_tracked_get_mem_highwater ()" link="libvips-memory.html#vips-tracked-get-mem-highwater"/>
+    <keyword type="function" name="vips_tracked_get_allocs ()" link="libvips-memory.html#vips-tracked-get-allocs"/>
+    <keyword type="function" name="vips_tracked_open ()" link="libvips-memory.html#vips-tracked-open"/>
+    <keyword type="function" name="vips_tracked_close ()" link="libvips-memory.html#vips-tracked-close"/>
+    <keyword type="function" name="vips_tracked_get_files ()" link="libvips-memory.html#vips-tracked-get-files"/>
+    <keyword type="function" name="vips_region_new ()" link="VipsRegion.html#vips-region-new"/>
+    <keyword type="function" name="vips_region_buffer ()" link="VipsRegion.html#vips-region-buffer"/>
+    <keyword type="function" name="vips_region_image ()" link="VipsRegion.html#vips-region-image"/>
+    <keyword type="function" name="vips_region_region ()" link="VipsRegion.html#vips-region-region"/>
+    <keyword type="function" name="vips_region_equalsregion ()" link="VipsRegion.html#vips-region-equalsregion"/>
+    <keyword type="function" name="vips_region_position ()" link="VipsRegion.html#vips-region-position"/>
+    <keyword type="function" name="vips_region_paint ()" link="VipsRegion.html#vips-region-paint"/>
+    <keyword type="function" name="vips_region_paint_pel ()" link="VipsRegion.html#vips-region-paint-pel"/>
+    <keyword type="function" name="vips_region_black ()" link="VipsRegion.html#vips-region-black"/>
+    <keyword type="function" name="vips_region_copy ()" link="VipsRegion.html#vips-region-copy"/>
+    <keyword type="function" name="vips_region_shrink ()" link="VipsRegion.html#vips-region-shrink"/>
+    <keyword type="function" name="vips_region_prepare ()" link="VipsRegion.html#vips-region-prepare"/>
+    <keyword type="function" name="vips_region_prepare_to ()" link="VipsRegion.html#vips-region-prepare-to"/>
+    <keyword type="function" name="vips_region_prepare_many ()" link="VipsRegion.html#vips-region-prepare-many"/>
+    <keyword type="function" name="vips_region_invalidate ()" link="VipsRegion.html#vips-region-invalidate"/>
+    <keyword type="function" name="vips_region_dump_all ()" link="VipsRegion.html#vips-region-dump-all"/>
+    <keyword type="function" name="vips__region_count_pixels ()" link="VipsRegion.html#vips--region-count-pixels"/>
+    <keyword type="macro" name="VIPS_COUNT_PIXELS()" link="VipsRegion.html#VIPS-COUNT-PIXELS:CAPS"/>
+    <keyword type="macro" name="VIPS_REGION_LSKIP()" link="VipsRegion.html#VIPS-REGION-LSKIP:CAPS"/>
+    <keyword type="macro" name="VIPS_REGION_N_ELEMENTS()" link="VipsRegion.html#VIPS-REGION-N-ELEMENTS:CAPS"/>
+    <keyword type="macro" name="VIPS_REGION_SIZEOF_LINE()" link="VipsRegion.html#VIPS-REGION-SIZEOF-LINE:CAPS"/>
+    <keyword type="macro" name="VIPS_REGION_ADDR()" link="VipsRegion.html#VIPS-REGION-ADDR:CAPS"/>
+    <keyword type="macro" name="VIPS_REGION_ADDR_TOPLEFT()" link="VipsRegion.html#VIPS-REGION-ADDR-TOPLEFT:CAPS"/>
+    <keyword type="function" name="vips_thing_new ()" link="libvips-type.html#vips-thing-new"/>
+    <keyword type="function" name="vips_area_copy ()" link="libvips-type.html#vips-area-copy"/>
+    <keyword type="function" name="vips_area_unref ()" link="libvips-type.html#vips-area-unref"/>
+    <keyword type="function" name="vips_area_new ()" link="libvips-type.html#vips-area-new"/>
+    <keyword type="function" name="vips_area_new_array ()" link="libvips-type.html#vips-area-new-array"/>
+    <keyword type="function" name="vips_area_new_array_object ()" link="libvips-type.html#vips-area-new-array-object"/>
+    <keyword type="function" name="vips_area_get_data ()" link="libvips-type.html#vips-area-get-data"/>
+    <keyword type="macro" name="VIPS_ARRAY_ADDR()" link="libvips-type.html#VIPS-ARRAY-ADDR:CAPS"/>
+    <keyword type="function" name="vips_ref_string_new ()" link="libvips-type.html#vips-ref-string-new"/>
+    <keyword type="function" name="vips_ref_string_get ()" link="libvips-type.html#vips-ref-string-get"/>
+    <keyword type="function" name="vips_blob_new ()" link="libvips-type.html#vips-blob-new"/>
+    <keyword type="function" name="vips_blob_copy ()" link="libvips-type.html#vips-blob-copy"/>
+    <keyword type="function" name="vips_blob_get ()" link="libvips-type.html#vips-blob-get"/>
+    <keyword type="function" name="vips_array_double_new ()" link="libvips-type.html#vips-array-double-new"/>
+    <keyword type="function" name="vips_array_double_newv ()" link="libvips-type.html#vips-array-double-newv"/>
+    <keyword type="function" name="vips_array_double_get ()" link="libvips-type.html#vips-array-double-get"/>
+    <keyword type="function" name="vips_array_int_new ()" link="libvips-type.html#vips-array-int-new"/>
+    <keyword type="function" name="vips_array_int_newv ()" link="libvips-type.html#vips-array-int-newv"/>
+    <keyword type="function" name="vips_array_int_get ()" link="libvips-type.html#vips-array-int-get"/>
+    <keyword type="function" name="vips_value_set_area ()" link="libvips-type.html#vips-value-set-area"/>
+    <keyword type="function" name="vips_value_get_area ()" link="libvips-type.html#vips-value-get-area"/>
+    <keyword type="function" name="vips_value_get_save_string ()" link="libvips-type.html#vips-value-get-save-string"/>
+    <keyword type="function" name="vips_value_set_save_string ()" link="libvips-type.html#vips-value-set-save-string"/>
+    <keyword type="function" name="vips_value_set_save_stringf ()" link="libvips-type.html#vips-value-set-save-stringf"/>
+    <keyword type="function" name="vips_value_get_ref_string ()" link="libvips-type.html#vips-value-get-ref-string"/>
+    <keyword type="function" name="vips_value_set_ref_string ()" link="libvips-type.html#vips-value-set-ref-string"/>
+    <keyword type="function" name="vips_value_get_blob ()" link="libvips-type.html#vips-value-get-blob"/>
+    <keyword type="function" name="vips_value_set_blob ()" link="libvips-type.html#vips-value-set-blob"/>
+    <keyword type="function" name="vips_value_set_array ()" link="libvips-type.html#vips-value-set-array"/>
+    <keyword type="function" name="vips_value_get_array ()" link="libvips-type.html#vips-value-get-array"/>
+    <keyword type="function" name="vips_value_get_array_double ()" link="libvips-type.html#vips-value-get-array-double"/>
+    <keyword type="function" name="vips_value_set_array_double ()" link="libvips-type.html#vips-value-set-array-double"/>
+    <keyword type="function" name="vips_value_get_array_int ()" link="libvips-type.html#vips-value-get-array-int"/>
+    <keyword type="function" name="vips_value_set_array_int ()" link="libvips-type.html#vips-value-set-array-int"/>
+    <keyword type="function" name="vips_value_get_array_object ()" link="libvips-type.html#vips-value-get-array-object"/>
+    <keyword type="function" name="vips_value_set_array_object ()" link="libvips-type.html#vips-value-set-array-object"/>
+    <keyword type="macro" name="VIPS_RECT_RIGHT()" link="libvips-rect.html#VIPS-RECT-RIGHT:CAPS"/>
+    <keyword type="macro" name="VIPS_RECT_BOTTOM()" link="libvips-rect.html#VIPS-RECT-BOTTOM:CAPS"/>
+    <keyword type="macro" name="VIPS_RECT_HCENTRE()" link="libvips-rect.html#VIPS-RECT-HCENTRE:CAPS"/>
+    <keyword type="macro" name="VIPS_RECT_VCENTRE()" link="libvips-rect.html#VIPS-RECT-VCENTRE:CAPS"/>
+    <keyword type="function" name="vips_rect_isempty ()" link="libvips-rect.html#vips-rect-isempty"/>
+    <keyword type="function" name="vips_rect_includespoint ()" link="libvips-rect.html#vips-rect-includespoint"/>
+    <keyword type="function" name="vips_rect_includesrect ()" link="libvips-rect.html#vips-rect-includesrect"/>
+    <keyword type="function" name="vips_rect_equalsrect ()" link="libvips-rect.html#vips-rect-equalsrect"/>
+    <keyword type="function" name="vips_rect_marginadjust ()" link="libvips-rect.html#vips-rect-marginadjust"/>
+    <keyword type="function" name="vips_rect_intersectrect ()" link="libvips-rect.html#vips-rect-intersectrect"/>
+    <keyword type="function" name="vips_rect_unionrect ()" link="libvips-rect.html#vips-rect-unionrect"/>
+    <keyword type="function" name="vips_rect_dup ()" link="libvips-rect.html#vips-rect-dup"/>
+    <keyword type="function" name="vips_rect_normalise ()" link="libvips-rect.html#vips-rect-normalise"/>
+    <keyword type="struct" name="VipsRect" link="libvips-rect.html#VipsRect"/>
+    <keyword type="macro" name="VIPS_UNREF()" link="VipsObject.html#VIPS-UNREF:CAPS"/>
+    <keyword type="macro" name="VIPS_ARG_IMAGE()" link="VipsObject.html#VIPS-ARG-IMAGE:CAPS"/>
+    <keyword type="macro" name="VIPS_ARG_INTERPOLATE()" link="VipsObject.html#VIPS-ARG-INTERPOLATE:CAPS"/>
+    <keyword type="macro" name="VIPS_ARG_BOOL()" link="VipsObject.html#VIPS-ARG-BOOL:CAPS"/>
+    <keyword type="macro" name="VIPS_ARG_DOUBLE()" link="VipsObject.html#VIPS-ARG-DOUBLE:CAPS"/>
+    <keyword type="macro" name="VIPS_ARG_BOXED()" link="VipsObject.html#VIPS-ARG-BOXED:CAPS"/>
+    <keyword type="macro" name="VIPS_ARG_INT()" link="VipsObject.html#VIPS-ARG-INT:CAPS"/>
+    <keyword type="macro" name="VIPS_ARG_UINT64()" link="VipsObject.html#VIPS-ARG-UINT64:CAPS"/>
+    <keyword type="macro" name="VIPS_ARG_ENUM()" link="VipsObject.html#VIPS-ARG-ENUM:CAPS"/>
+    <keyword type="macro" name="VIPS_ARG_FLAGS()" link="VipsObject.html#VIPS-ARG-FLAGS:CAPS"/>
+    <keyword type="macro" name="VIPS_ARG_STRING()" link="VipsObject.html#VIPS-ARG-STRING:CAPS"/>
+    <keyword type="macro" name="VIPS_ARG_POINTER()" link="VipsObject.html#VIPS-ARG-POINTER:CAPS"/>
+    <keyword type="function" name="vips__object_set_member ()" link="VipsObject.html#vips--object-set-member"/>
+    <keyword type="function" name="VipsArgumentMapFn ()" link="VipsObject.html#VipsArgumentMapFn"/>
+    <keyword type="function" name="vips_argument_map ()" link="VipsObject.html#vips-argument-map"/>
+    <keyword type="function" name="VipsArgumentClassMapFn ()" link="VipsObject.html#VipsArgumentClassMapFn"/>
+    <keyword type="function" name="vips_argument_class_map ()" link="VipsObject.html#vips-argument-class-map"/>
+    <keyword type="function" name="vips_argument_class_needsstring ()" link="VipsObject.html#vips-argument-class-needsstring"/>
+    <keyword type="function" name="vips_object_get_argument ()" link="VipsObject.html#vips-object-get-argument"/>
+    <keyword type="function" name="vips_object_argument_isset ()" link="VipsObject.html#vips-object-argument-isset"/>
+    <keyword type="function" name="vips_object_get_argument_flags ()" link="VipsObject.html#vips-object-get-argument-flags"/>
+    <keyword type="function" name="vips_object_get_argument_priority ()" link="VipsObject.html#vips-object-get-argument-priority"/>
+    <keyword type="macro" name="VIPS_ARGUMENT_FOR_ALL()" link="VipsObject.html#VIPS-ARGUMENT-FOR-ALL:CAPS"/>
+    <keyword type="macro" name="VIPS_ARGUMENT_COLLECT_SET()" link="VipsObject.html#VIPS-ARGUMENT-COLLECT-SET:CAPS"/>
+    <keyword type="macro" name="VIPS_ARGUMENT_COLLECT_GET()" link="VipsObject.html#VIPS-ARGUMENT-COLLECT-GET:CAPS"/>
+    <keyword type="function" name="vips_value_is_null ()" link="VipsObject.html#vips-value-is-null"/>
+    <keyword type="function" name="vips_object_set_property ()" link="VipsObject.html#vips-object-set-property"/>
+    <keyword type="function" name="vips_object_get_property ()" link="VipsObject.html#vips-object-get-property"/>
+    <keyword type="function" name="vips_object_preclose ()" link="VipsObject.html#vips-object-preclose"/>
+    <keyword type="function" name="vips_object_build ()" link="VipsObject.html#vips-object-build"/>
+    <keyword type="function" name="vips_object_summary_class ()" link="VipsObject.html#vips-object-summary-class"/>
+    <keyword type="function" name="vips_object_summary ()" link="VipsObject.html#vips-object-summary"/>
+    <keyword type="function" name="vips_object_dump ()" link="VipsObject.html#vips-object-dump"/>
+    <keyword type="function" name="vips_object_print_summary_class ()" link="VipsObject.html#vips-object-print-summary-class"/>
+    <keyword type="function" name="vips_object_print_summary ()" link="VipsObject.html#vips-object-print-summary"/>
+    <keyword type="function" name="vips_object_print_dump ()" link="VipsObject.html#vips-object-print-dump"/>
+    <keyword type="function" name="vips_object_print_name ()" link="VipsObject.html#vips-object-print-name"/>
+    <keyword type="function" name="vips_object_sanity ()" link="VipsObject.html#vips-object-sanity"/>
+    <keyword type="function" name="vips_object_class_install_argument ()" link="VipsObject.html#vips-object-class-install-argument"/>
+    <keyword type="function" name="vips_object_set_argument_from_string ()" link="VipsObject.html#vips-object-set-argument-from-string"/>
+    <keyword type="function" name="vips_object_argument_needsstring ()" link="VipsObject.html#vips-object-argument-needsstring"/>
+    <keyword type="function" name="vips_object_get_argument_to_string ()" link="VipsObject.html#vips-object-get-argument-to-string"/>
+    <keyword type="function" name="vips_object_set_required ()" link="VipsObject.html#vips-object-set-required"/>
+    <keyword type="function" name="VipsObjectSetArguments ()" link="VipsObject.html#VipsObjectSetArguments"/>
+    <keyword type="function" name="vips_object_new ()" link="VipsObject.html#vips-object-new"/>
+    <keyword type="function" name="vips_object_set_valist ()" link="VipsObject.html#vips-object-set-valist"/>
+    <keyword type="function" name="vips_object_set ()" link="VipsObject.html#vips-object-set"/>
+    <keyword type="function" name="vips_object_set_from_string ()" link="VipsObject.html#vips-object-set-from-string"/>
+    <keyword type="function" name="vips_object_new_from_string ()" link="VipsObject.html#vips-object-new-from-string"/>
+    <keyword type="function" name="vips_object_to_string ()" link="VipsObject.html#vips-object-to-string"/>
+    <keyword type="function" name="vips_object_map ()" link="VipsObject.html#vips-object-map"/>
+    <keyword type="function" name="VipsTypeMapFn ()" link="VipsObject.html#VipsTypeMapFn"/>
+    <keyword type="function" name="VipsTypeMap2Fn ()" link="VipsObject.html#VipsTypeMap2Fn"/>
+    <keyword type="function" name="VipsClassMapFn ()" link="VipsObject.html#VipsClassMapFn"/>
+    <keyword type="function" name="vips_type_map ()" link="VipsObject.html#vips-type-map"/>
+    <keyword type="function" name="vips_type_map_all ()" link="VipsObject.html#vips-type-map-all"/>
+    <keyword type="function" name="vips_type_depth ()" link="VipsObject.html#vips-type-depth"/>
+    <keyword type="function" name="vips_type_find ()" link="VipsObject.html#vips-type-find"/>
+    <keyword type="function" name="vips_nickname_find ()" link="VipsObject.html#vips-nickname-find"/>
+    <keyword type="function" name="vips_class_map_all ()" link="VipsObject.html#vips-class-map-all"/>
+    <keyword type="function" name="vips_class_find ()" link="VipsObject.html#vips-class-find"/>
+    <keyword type="function" name="vips_object_local_array ()" link="VipsObject.html#vips-object-local-array"/>
+    <keyword type="function" name="vips_object_local_cb ()" link="VipsObject.html#vips-object-local-cb"/>
+    <keyword type="macro" name="vips_object_local()" link="VipsObject.html#vips-object-local"/>
+    <keyword type="function" name="vips_object_set_static ()" link="VipsObject.html#vips-object-set-static"/>
+    <keyword type="function" name="vips_object_print_all ()" link="VipsObject.html#vips-object-print-all"/>
+    <keyword type="function" name="vips_object_sanity_all ()" link="VipsObject.html#vips-object-sanity-all"/>
+    <keyword type="function" name="vips_object_rewind ()" link="VipsObject.html#vips-object-rewind"/>
+    <keyword type="function" name="vips_object_unref_outputs ()" link="VipsObject.html#vips-object-unref-outputs"/>
+    <keyword type="function" name="vips_object_get_description ()" link="VipsObject.html#vips-object-get-description"/>
+    <keyword type="enum" name="enum VipsArgumentFlags" link="VipsObject.html#VipsArgumentFlags"/>
+    <keyword type="macro" name="VIPS_ARGUMENT_REQUIRED_INPUT" link="VipsObject.html#VIPS-ARGUMENT-REQUIRED-INPUT:CAPS"/>
+    <keyword type="macro" name="VIPS_ARGUMENT_OPTIONAL_INPUT" link="VipsObject.html#VIPS-ARGUMENT-OPTIONAL-INPUT:CAPS"/>
+    <keyword type="macro" name="VIPS_ARGUMENT_REQUIRED_OUTPUT" link="VipsObject.html#VIPS-ARGUMENT-REQUIRED-OUTPUT:CAPS"/>
+    <keyword type="macro" name="VIPS_ARGUMENT_OPTIONAL_OUTPUT" link="VipsObject.html#VIPS-ARGUMENT-OPTIONAL-OUTPUT:CAPS"/>
+    <keyword type="struct" name="VipsArgument" link="VipsObject.html#VipsArgument"/>
+    <keyword type="struct" name="VipsArgumentClass" link="VipsObject.html#VipsArgumentClass"/>
+    <keyword type="struct" name="VipsArgumentInstance" link="VipsObject.html#VipsArgumentInstance"/>
+    <keyword type="typedef" name="VipsArgumentTable" link="VipsObject.html#VipsArgumentTable"/>
+    <keyword type="macro" name="VIPS_ARGUMENT_COLLECT_END" link="VipsObject.html#VIPS-ARGUMENT-COLLECT-END:CAPS"/>
+    <keyword type="property" name="The “description” property" link="VipsObject.html#VipsObject--description"/>
+    <keyword type="property" name="The “nickname” property" link="VipsObject.html#VipsObject--nickname"/>
+    <keyword type="signal" name="The “close” signal" link="VipsObject.html#VipsObject-close"/>
+    <keyword type="signal" name="The “postbuild” signal" link="VipsObject.html#VipsObject-postbuild"/>
+    <keyword type="signal" name="The “postclose” signal" link="VipsObject.html#VipsObject-postclose"/>
+    <keyword type="signal" name="The “preclose” signal" link="VipsObject.html#VipsObject-preclose"/>
+    <keyword type="function" name="vips_thread_state_set ()" link="VipsThreadState.html#vips-thread-state-set"/>
+    <keyword type="function" name="vips_thread_state_new ()" link="VipsThreadState.html#vips-thread-state-new"/>
+    <keyword type="function" name="VipsThreadStartFn ()" link="VipsThreadState.html#VipsThreadStartFn"/>
+    <keyword type="function" name="VipsThreadpoolAllocateFn ()" link="VipsThreadState.html#VipsThreadpoolAllocateFn"/>
+    <keyword type="function" name="VipsThreadpoolWorkFn ()" link="VipsThreadState.html#VipsThreadpoolWorkFn"/>
+    <keyword type="function" name="VipsThreadpoolProgressFn ()" link="VipsThreadState.html#VipsThreadpoolProgressFn"/>
+    <keyword type="function" name="vips_threadpool_run ()" link="VipsThreadState.html#vips-threadpool-run"/>
+    <keyword type="function" name="vips_get_tile_size ()" link="VipsThreadState.html#vips-get-tile-size"/>
+    <keyword type="macro" name="VIPS_BUF_STATIC()" link="libvips-buf.html#VIPS-BUF-STATIC:CAPS"/>
+    <keyword type="function" name="vips_buf_rewind ()" link="libvips-buf.html#vips-buf-rewind"/>
+    <keyword type="function" name="vips_buf_destroy ()" link="libvips-buf.html#vips-buf-destroy"/>
+    <keyword type="function" name="vips_buf_init ()" link="libvips-buf.html#vips-buf-init"/>
+    <keyword type="function" name="vips_buf_set_static ()" link="libvips-buf.html#vips-buf-set-static"/>
+    <keyword type="function" name="vips_buf_set_dynamic ()" link="libvips-buf.html#vips-buf-set-dynamic"/>
+    <keyword type="function" name="vips_buf_init_static ()" link="libvips-buf.html#vips-buf-init-static"/>
+    <keyword type="function" name="vips_buf_init_dynamic ()" link="libvips-buf.html#vips-buf-init-dynamic"/>
+    <keyword type="function" name="vips_buf_appendns ()" link="libvips-buf.html#vips-buf-appendns"/>
+    <keyword type="function" name="vips_buf_appends ()" link="libvips-buf.html#vips-buf-appends"/>
+    <keyword type="function" name="vips_buf_appendf ()" link="libvips-buf.html#vips-buf-appendf"/>
+    <keyword type="function" name="vips_buf_vappendf ()" link="libvips-buf.html#vips-buf-vappendf"/>
+    <keyword type="function" name="vips_buf_appendc ()" link="libvips-buf.html#vips-buf-appendc"/>
+    <keyword type="function" name="vips_buf_appendsc ()" link="libvips-buf.html#vips-buf-appendsc"/>
+    <keyword type="function" name="vips_buf_appendgv ()" link="libvips-buf.html#vips-buf-appendgv"/>
+    <keyword type="function" name="vips_buf_append_size ()" link="libvips-buf.html#vips-buf-append-size"/>
+    <keyword type="function" name="vips_buf_removec ()" link="libvips-buf.html#vips-buf-removec"/>
+    <keyword type="function" name="vips_buf_change ()" link="libvips-buf.html#vips-buf-change"/>
+    <keyword type="function" name="vips_buf_is_empty ()" link="libvips-buf.html#vips-buf-is-empty"/>
+    <keyword type="function" name="vips_buf_is_full ()" link="libvips-buf.html#vips-buf-is-full"/>
+    <keyword type="function" name="vips_buf_all ()" link="libvips-buf.html#vips-buf-all"/>
+    <keyword type="function" name="vips_buf_firstline ()" link="libvips-buf.html#vips-buf-firstline"/>
+    <keyword type="function" name="vips_buf_appendg ()" link="libvips-buf.html#vips-buf-appendg"/>
+    <keyword type="function" name="vips_buf_appendd ()" link="libvips-buf.html#vips-buf-appendd"/>
+    <keyword type="function" name="vips_buf_len ()" link="libvips-buf.html#vips-buf-len"/>
+    <keyword type="struct" name="VipsBuf" link="libvips-buf.html#VipsBuf"/>
+    <keyword type="function" name="VipsCallbackFn ()" link="libvips-basic.html#VipsCallbackFn"/>
+    <keyword type="function" name="VipsSListMap2Fn ()" link="libvips-basic.html#VipsSListMap2Fn"/>
+    <keyword type="function" name="VipsSListMap4Fn ()" link="libvips-basic.html#VipsSListMap4Fn"/>
+    <keyword type="function" name="VipsSListFold2Fn ()" link="libvips-basic.html#VipsSListFold2Fn"/>
+    <keyword type="function" name="vips_path_filename7 ()" link="libvips-basic.html#vips-path-filename7"/>
+    <keyword type="function" name="vips_path_mode7 ()" link="libvips-basic.html#vips-path-mode7"/>
+    <keyword type="typedef" name="VipsPel" link="libvips-basic.html#VipsPel"/>
+    <keyword type="enum" name="enum VipsPrecision" link="libvips-basic.html#VipsPrecision"/>
+    <keyword type="function" name="vips_add ()" link="libvips-arithmetic.html#vips-add"/>
+    <keyword type="function" name="vips_sum ()" link="libvips-arithmetic.html#vips-sum"/>
+    <keyword type="function" name="vips_subtract ()" link="libvips-arithmetic.html#vips-subtract"/>
+    <keyword type="function" name="vips_multiply ()" link="libvips-arithmetic.html#vips-multiply"/>
+    <keyword type="function" name="vips_divide ()" link="libvips-arithmetic.html#vips-divide"/>
+    <keyword type="function" name="vips_linear ()" link="libvips-arithmetic.html#vips-linear"/>
+    <keyword type="function" name="vips_linear1 ()" link="libvips-arithmetic.html#vips-linear1"/>
+    <keyword type="function" name="vips_remainder ()" link="libvips-arithmetic.html#vips-remainder"/>
+    <keyword type="function" name="vips_remainder_const ()" link="libvips-arithmetic.html#vips-remainder-const"/>
+    <keyword type="function" name="vips_remainder_const1 ()" link="libvips-arithmetic.html#vips-remainder-const1"/>
+    <keyword type="function" name="vips_invert ()" link="libvips-arithmetic.html#vips-invert"/>
+    <keyword type="function" name="vips_abs ()" link="libvips-arithmetic.html#vips-abs"/>
+    <keyword type="function" name="vips_sign ()" link="libvips-arithmetic.html#vips-sign"/>
+    <keyword type="function" name="vips_round ()" link="libvips-arithmetic.html#vips-round"/>
+    <keyword type="function" name="vips_floor ()" link="libvips-arithmetic.html#vips-floor"/>
+    <keyword type="function" name="vips_ceil ()" link="libvips-arithmetic.html#vips-ceil"/>
+    <keyword type="function" name="vips_rint ()" link="libvips-arithmetic.html#vips-rint"/>
+    <keyword type="function" name="vips_math ()" link="libvips-arithmetic.html#vips-math"/>
+    <keyword type="function" name="vips_sin ()" link="libvips-arithmetic.html#vips-sin"/>
+    <keyword type="function" name="vips_cos ()" link="libvips-arithmetic.html#vips-cos"/>
+    <keyword type="function" name="vips_tan ()" link="libvips-arithmetic.html#vips-tan"/>
+    <keyword type="function" name="vips_asin ()" link="libvips-arithmetic.html#vips-asin"/>
+    <keyword type="function" name="vips_acos ()" link="libvips-arithmetic.html#vips-acos"/>
+    <keyword type="function" name="vips_atan ()" link="libvips-arithmetic.html#vips-atan"/>
+    <keyword type="function" name="vips_exp ()" link="libvips-arithmetic.html#vips-exp"/>
+    <keyword type="function" name="vips_exp10 ()" link="libvips-arithmetic.html#vips-exp10"/>
+    <keyword type="function" name="vips_log ()" link="libvips-arithmetic.html#vips-log"/>
+    <keyword type="function" name="vips_log10 ()" link="libvips-arithmetic.html#vips-log10"/>
+    <keyword type="function" name="vips_complex ()" link="libvips-arithmetic.html#vips-complex"/>
+    <keyword type="function" name="vips_polar ()" link="libvips-arithmetic.html#vips-polar"/>
+    <keyword type="function" name="vips_rect ()" link="libvips-arithmetic.html#vips-rect"/>
+    <keyword type="function" name="vips_conj ()" link="libvips-arithmetic.html#vips-conj"/>
+    <keyword type="function" name="vips_complex2 ()" link="libvips-arithmetic.html#vips-complex2"/>
+    <keyword type="function" name="vips_cross_phase ()" link="libvips-arithmetic.html#vips-cross-phase"/>
+    <keyword type="function" name="vips_complexget ()" link="libvips-arithmetic.html#vips-complexget"/>
+    <keyword type="function" name="vips_real ()" link="libvips-arithmetic.html#vips-real"/>
+    <keyword type="function" name="vips_imag ()" link="libvips-arithmetic.html#vips-imag"/>
+    <keyword type="function" name="vips_complexform ()" link="libvips-arithmetic.html#vips-complexform"/>
+    <keyword type="function" name="vips_relational ()" link="libvips-arithmetic.html#vips-relational"/>
+    <keyword type="function" name="vips_equal ()" link="libvips-arithmetic.html#vips-equal"/>
+    <keyword type="function" name="vips_notequal ()" link="libvips-arithmetic.html#vips-notequal"/>
+    <keyword type="function" name="vips_less ()" link="libvips-arithmetic.html#vips-less"/>
+    <keyword type="function" name="vips_lesseq ()" link="libvips-arithmetic.html#vips-lesseq"/>
+    <keyword type="function" name="vips_more ()" link="libvips-arithmetic.html#vips-more"/>
+    <keyword type="function" name="vips_moreeq ()" link="libvips-arithmetic.html#vips-moreeq"/>
+    <keyword type="function" name="vips_relational_const ()" link="libvips-arithmetic.html#vips-relational-const"/>
+    <keyword type="function" name="vips_equal_const ()" link="libvips-arithmetic.html#vips-equal-const"/>
+    <keyword type="function" name="vips_notequal_const ()" link="libvips-arithmetic.html#vips-notequal-const"/>
+    <keyword type="function" name="vips_less_const ()" link="libvips-arithmetic.html#vips-less-const"/>
+    <keyword type="function" name="vips_lesseq_const ()" link="libvips-arithmetic.html#vips-lesseq-const"/>
+    <keyword type="function" name="vips_more_const ()" link="libvips-arithmetic.html#vips-more-const"/>
+    <keyword type="function" name="vips_moreeq_const ()" link="libvips-arithmetic.html#vips-moreeq-const"/>
+    <keyword type="function" name="vips_relational_const1 ()" link="libvips-arithmetic.html#vips-relational-const1"/>
+    <keyword type="function" name="vips_equal_const1 ()" link="libvips-arithmetic.html#vips-equal-const1"/>
+    <keyword type="function" name="vips_notequal_const1 ()" link="libvips-arithmetic.html#vips-notequal-const1"/>
+    <keyword type="function" name="vips_less_const1 ()" link="libvips-arithmetic.html#vips-less-const1"/>
+    <keyword type="function" name="vips_lesseq_const1 ()" link="libvips-arithmetic.html#vips-lesseq-const1"/>
+    <keyword type="function" name="vips_more_const1 ()" link="libvips-arithmetic.html#vips-more-const1"/>
+    <keyword type="function" name="vips_moreeq_const1 ()" link="libvips-arithmetic.html#vips-moreeq-const1"/>
+    <keyword type="function" name="vips_boolean ()" link="libvips-arithmetic.html#vips-boolean"/>
+    <keyword type="function" name="vips_andimage ()" link="libvips-arithmetic.html#vips-andimage"/>
+    <keyword type="function" name="vips_orimage ()" link="libvips-arithmetic.html#vips-orimage"/>
+    <keyword type="function" name="vips_eorimage ()" link="libvips-arithmetic.html#vips-eorimage"/>
+    <keyword type="function" name="vips_lshift ()" link="libvips-arithmetic.html#vips-lshift"/>
+    <keyword type="function" name="vips_rshift ()" link="libvips-arithmetic.html#vips-rshift"/>
+    <keyword type="function" name="vips_boolean_const ()" link="libvips-arithmetic.html#vips-boolean-const"/>
+    <keyword type="function" name="vips_andimage_const ()" link="libvips-arithmetic.html#vips-andimage-const"/>
+    <keyword type="function" name="vips_orimage_const ()" link="libvips-arithmetic.html#vips-orimage-const"/>
+    <keyword type="function" name="vips_eorimage_const ()" link="libvips-arithmetic.html#vips-eorimage-const"/>
+    <keyword type="function" name="vips_lshift_const ()" link="libvips-arithmetic.html#vips-lshift-const"/>
+    <keyword type="function" name="vips_rshift_const ()" link="libvips-arithmetic.html#vips-rshift-const"/>
+    <keyword type="function" name="vips_boolean_const1 ()" link="libvips-arithmetic.html#vips-boolean-const1"/>
+    <keyword type="function" name="vips_andimage_const1 ()" link="libvips-arithmetic.html#vips-andimage-const1"/>
+    <keyword type="function" name="vips_orimage_const1 ()" link="libvips-arithmetic.html#vips-orimage-const1"/>
+    <keyword type="function" name="vips_eorimage_const1 ()" link="libvips-arithmetic.html#vips-eorimage-const1"/>
+    <keyword type="function" name="vips_lshift_const1 ()" link="libvips-arithmetic.html#vips-lshift-const1"/>
+    <keyword type="function" name="vips_rshift_const1 ()" link="libvips-arithmetic.html#vips-rshift-const1"/>
+    <keyword type="function" name="vips_math2 ()" link="libvips-arithmetic.html#vips-math2"/>
+    <keyword type="function" name="vips_pow ()" link="libvips-arithmetic.html#vips-pow"/>
+    <keyword type="function" name="vips_wop ()" link="libvips-arithmetic.html#vips-wop"/>
+    <keyword type="function" name="vips_math2_const ()" link="libvips-arithmetic.html#vips-math2-const"/>
+    <keyword type="function" name="vips_pow_const ()" link="libvips-arithmetic.html#vips-pow-const"/>
+    <keyword type="function" name="vips_wop_const ()" link="libvips-arithmetic.html#vips-wop-const"/>
+    <keyword type="function" name="vips_math2_const1 ()" link="libvips-arithmetic.html#vips-math2-const1"/>
+    <keyword type="function" name="vips_pow_const1 ()" link="libvips-arithmetic.html#vips-pow-const1"/>
+    <keyword type="function" name="vips_wop_const1 ()" link="libvips-arithmetic.html#vips-wop-const1"/>
+    <keyword type="function" name="vips_avg ()" link="libvips-arithmetic.html#vips-avg"/>
+    <keyword type="function" name="vips_deviate ()" link="libvips-arithmetic.html#vips-deviate"/>
+    <keyword type="function" name="vips_min ()" link="libvips-arithmetic.html#vips-min"/>
+    <keyword type="function" name="vips_max ()" link="libvips-arithmetic.html#vips-max"/>
+    <keyword type="function" name="vips_stats ()" link="libvips-arithmetic.html#vips-stats"/>
+    <keyword type="function" name="vips_measure ()" link="libvips-arithmetic.html#vips-measure"/>
+    <keyword type="function" name="vips_getpoint ()" link="libvips-arithmetic.html#vips-getpoint"/>
+    <keyword type="function" name="vips_hist_find ()" link="libvips-arithmetic.html#vips-hist-find"/>
+    <keyword type="function" name="vips_hist_find_ndim ()" link="libvips-arithmetic.html#vips-hist-find-ndim"/>
+    <keyword type="function" name="vips_hist_find_indexed ()" link="libvips-arithmetic.html#vips-hist-find-indexed"/>
+    <keyword type="function" name="vips_hough_line ()" link="libvips-arithmetic.html#vips-hough-line"/>
+    <keyword type="function" name="vips_hough_circle ()" link="libvips-arithmetic.html#vips-hough-circle"/>
+    <keyword type="function" name="vips_project ()" link="libvips-arithmetic.html#vips-project"/>
+    <keyword type="function" name="vips_profile ()" link="libvips-arithmetic.html#vips-profile"/>
+    <keyword type="enum" name="enum VipsOperationMath" link="libvips-arithmetic.html#VipsOperationMath"/>
+    <keyword type="enum" name="enum VipsOperationMath2" link="libvips-arithmetic.html#VipsOperationMath2"/>
+    <keyword type="enum" name="enum VipsOperationRound" link="libvips-arithmetic.html#VipsOperationRound"/>
+    <keyword type="enum" name="enum VipsOperationRelational" link="libvips-arithmetic.html#VipsOperationRelational"/>
+    <keyword type="enum" name="enum VipsOperationBoolean" link="libvips-arithmetic.html#VipsOperationBoolean"/>
+    <keyword type="enum" name="enum VipsOperationComplex" link="libvips-arithmetic.html#VipsOperationComplex"/>
+    <keyword type="enum" name="enum VipsOperationComplex2" link="libvips-arithmetic.html#VipsOperationComplex2"/>
+    <keyword type="enum" name="enum VipsOperationComplexget" link="libvips-arithmetic.html#VipsOperationComplexget"/>
+    <keyword type="macro" name="VIPS_D93_X0" link="libvips-colour.html#VIPS-D93-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D93_Y0" link="libvips-colour.html#VIPS-D93-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D93_Z0" link="libvips-colour.html#VIPS-D93-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_D75_X0" link="libvips-colour.html#VIPS-D75-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D75_Y0" link="libvips-colour.html#VIPS-D75-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D75_Z0" link="libvips-colour.html#VIPS-D75-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_D65_X0" link="libvips-colour.html#VIPS-D65-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D65_Y0" link="libvips-colour.html#VIPS-D65-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D65_Z0" link="libvips-colour.html#VIPS-D65-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_D55_X0" link="libvips-colour.html#VIPS-D55-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D55_Y0" link="libvips-colour.html#VIPS-D55-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D55_Z0" link="libvips-colour.html#VIPS-D55-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_D50_X0" link="libvips-colour.html#VIPS-D50-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D50_Y0" link="libvips-colour.html#VIPS-D50-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D50_Z0" link="libvips-colour.html#VIPS-D50-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_A_X0" link="libvips-colour.html#VIPS-A-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_A_Y0" link="libvips-colour.html#VIPS-A-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_A_Z0" link="libvips-colour.html#VIPS-A-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_B_X0" link="libvips-colour.html#VIPS-B-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_B_Y0" link="libvips-colour.html#VIPS-B-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_B_Z0" link="libvips-colour.html#VIPS-B-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_C_X0" link="libvips-colour.html#VIPS-C-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_C_Y0" link="libvips-colour.html#VIPS-C-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_C_Z0" link="libvips-colour.html#VIPS-C-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_E_X0" link="libvips-colour.html#VIPS-E-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_E_Y0" link="libvips-colour.html#VIPS-E-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_E_Z0" link="libvips-colour.html#VIPS-E-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_D3250_X0" link="libvips-colour.html#VIPS-D3250-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D3250_Y0" link="libvips-colour.html#VIPS-D3250-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D3250_Z0" link="libvips-colour.html#VIPS-D3250-Z0:CAPS"/>
+    <keyword type="function" name="vips_colourspace_issupported ()" link="libvips-colour.html#vips-colourspace-issupported"/>
+    <keyword type="function" name="vips_colourspace ()" link="libvips-colour.html#vips-colourspace"/>
+    <keyword type="function" name="vips_LabQ2sRGB ()" link="libvips-colour.html#vips-LabQ2sRGB"/>
+    <keyword type="function" name="vips_rad2float ()" link="libvips-colour.html#vips-rad2float"/>
+    <keyword type="function" name="vips_float2rad ()" link="libvips-colour.html#vips-float2rad"/>
+    <keyword type="function" name="vips_LabS2LabQ ()" link="libvips-colour.html#vips-LabS2LabQ"/>
+    <keyword type="function" name="vips_LabQ2LabS ()" link="libvips-colour.html#vips-LabQ2LabS"/>
+    <keyword type="function" name="vips_LabQ2Lab ()" link="libvips-colour.html#vips-LabQ2Lab"/>
+    <keyword type="function" name="vips_Lab2LabQ ()" link="libvips-colour.html#vips-Lab2LabQ"/>
+    <keyword type="function" name="vips_LCh2Lab ()" link="libvips-colour.html#vips-LCh2Lab"/>
+    <keyword type="function" name="vips_Lab2LCh ()" link="libvips-colour.html#vips-Lab2LCh"/>
+    <keyword type="function" name="vips_Yxy2Lab ()" link="libvips-colour.html#vips-Yxy2Lab"/>
+    <keyword type="function" name="vips_CMC2XYZ ()" link="libvips-colour.html#vips-CMC2XYZ"/>
+    <keyword type="function" name="vips_Lab2XYZ ()" link="libvips-colour.html#vips-Lab2XYZ"/>
+    <keyword type="function" name="vips_XYZ2Lab ()" link="libvips-colour.html#vips-XYZ2Lab"/>
+    <keyword type="function" name="vips_XYZ2scRGB ()" link="libvips-colour.html#vips-XYZ2scRGB"/>
+    <keyword type="function" name="vips_scRGB2sRGB ()" link="libvips-colour.html#vips-scRGB2sRGB"/>
+    <keyword type="function" name="vips_scRGB2BW ()" link="libvips-colour.html#vips-scRGB2BW"/>
+    <keyword type="function" name="vips_sRGB2scRGB ()" link="libvips-colour.html#vips-sRGB2scRGB"/>
+    <keyword type="function" name="vips_scRGB2XYZ ()" link="libvips-colour.html#vips-scRGB2XYZ"/>
+    <keyword type="function" name="vips_HSV2sRGB ()" link="libvips-colour.html#vips-HSV2sRGB"/>
+    <keyword type="function" name="vips_sRGB2HSV ()" link="libvips-colour.html#vips-sRGB2HSV"/>
+    <keyword type="function" name="vips_LCh2CMC ()" link="libvips-colour.html#vips-LCh2CMC"/>
+    <keyword type="function" name="vips_CMC2LCh ()" link="libvips-colour.html#vips-CMC2LCh"/>
+    <keyword type="function" name="vips_XYZ2Yxy ()" link="libvips-colour.html#vips-XYZ2Yxy"/>
+    <keyword type="function" name="vips_Yxy2XYZ ()" link="libvips-colour.html#vips-Yxy2XYZ"/>
+    <keyword type="function" name="vips_LabS2Lab ()" link="libvips-colour.html#vips-LabS2Lab"/>
+    <keyword type="function" name="vips_Lab2LabS ()" link="libvips-colour.html#vips-Lab2LabS"/>
+    <keyword type="function" name="vips_icc_present ()" link="libvips-colour.html#vips-icc-present"/>
+    <keyword type="function" name="vips_icc_transform ()" link="libvips-colour.html#vips-icc-transform"/>
+    <keyword type="function" name="vips_icc_import ()" link="libvips-colour.html#vips-icc-import"/>
+    <keyword type="function" name="vips_icc_export ()" link="libvips-colour.html#vips-icc-export"/>
+    <keyword type="function" name="vips_icc_ac2rc ()" link="libvips-colour.html#vips-icc-ac2rc"/>
+    <keyword type="function" name="vips_dE76 ()" link="libvips-colour.html#vips-dE76"/>
+    <keyword type="function" name="vips_dE00 ()" link="libvips-colour.html#vips-dE00"/>
+    <keyword type="function" name="vips_dECMC ()" link="libvips-colour.html#vips-dECMC"/>
+    <keyword type="function" name="vips_col_Lab2XYZ ()" link="libvips-colour.html#vips-col-Lab2XYZ"/>
+    <keyword type="function" name="vips_col_XYZ2Lab ()" link="libvips-colour.html#vips-col-XYZ2Lab"/>
+    <keyword type="function" name="vips_col_ab2h ()" link="libvips-colour.html#vips-col-ab2h"/>
+    <keyword type="function" name="vips_col_ab2Ch ()" link="libvips-colour.html#vips-col-ab2Ch"/>
+    <keyword type="function" name="vips_col_Ch2ab ()" link="libvips-colour.html#vips-col-Ch2ab"/>
+    <keyword type="function" name="vips_col_L2Lcmc ()" link="libvips-colour.html#vips-col-L2Lcmc"/>
+    <keyword type="function" name="vips_col_C2Ccmc ()" link="libvips-colour.html#vips-col-C2Ccmc"/>
+    <keyword type="function" name="vips_col_Ch2hcmc ()" link="libvips-colour.html#vips-col-Ch2hcmc"/>
+    <keyword type="function" name="vips_col_make_tables_CMC ()" link="libvips-colour.html#vips-col-make-tables-CMC"/>
+    <keyword type="function" name="vips_col_Lcmc2L ()" link="libvips-colour.html#vips-col-Lcmc2L"/>
+    <keyword type="function" name="vips_col_Ccmc2C ()" link="libvips-colour.html#vips-col-Ccmc2C"/>
+    <keyword type="function" name="vips_col_Chcmc2h ()" link="libvips-colour.html#vips-col-Chcmc2h"/>
+    <keyword type="function" name="vips_col_sRGB2scRGB_8 ()" link="libvips-colour.html#vips-col-sRGB2scRGB-8"/>
+    <keyword type="function" name="vips_col_sRGB2scRGB_16 ()" link="libvips-colour.html#vips-col-sRGB2scRGB-16"/>
+    <keyword type="function" name="vips_col_scRGB2XYZ ()" link="libvips-colour.html#vips-col-scRGB2XYZ"/>
+    <keyword type="function" name="vips_col_XYZ2scRGB ()" link="libvips-colour.html#vips-col-XYZ2scRGB"/>
+    <keyword type="function" name="vips_col_scRGB2sRGB_8 ()" link="libvips-colour.html#vips-col-scRGB2sRGB-8"/>
+    <keyword type="function" name="vips_col_scRGB2sRGB_16 ()" link="libvips-colour.html#vips-col-scRGB2sRGB-16"/>
+    <keyword type="function" name="vips_col_scRGB2BW_16 ()" link="libvips-colour.html#vips-col-scRGB2BW-16"/>
+    <keyword type="function" name="vips_col_scRGB2BW_8 ()" link="libvips-colour.html#vips-col-scRGB2BW-8"/>
+    <keyword type="function" name="vips_pythagoras ()" link="libvips-colour.html#vips-pythagoras"/>
+    <keyword type="function" name="vips_col_dE00 ()" link="libvips-colour.html#vips-col-dE00"/>
+    <keyword type="enum" name="enum VipsIntent" link="libvips-colour.html#VipsIntent"/>
+    <keyword type="enum" name="enum VipsPCS" link="libvips-colour.html#VipsPCS"/>
+    <keyword type="function" name="vips_copy ()" link="libvips-conversion.html#vips-copy"/>
+    <keyword type="function" name="vips_tilecache ()" link="libvips-conversion.html#vips-tilecache"/>
+    <keyword type="function" name="vips_linecache ()" link="libvips-conversion.html#vips-linecache"/>
+    <keyword type="function" name="vips_sequential ()" link="libvips-conversion.html#vips-sequential"/>
+    <keyword type="function" name="vips_cache ()" link="libvips-conversion.html#vips-cache"/>
+    <keyword type="function" name="vips_copy_file ()" link="libvips-conversion.html#vips-copy-file"/>
+    <keyword type="function" name="vips_embed ()" link="libvips-conversion.html#vips-embed"/>
+    <keyword type="function" name="vips_flip ()" link="libvips-conversion.html#vips-flip"/>
+    <keyword type="function" name="vips_insert ()" link="libvips-conversion.html#vips-insert"/>
+    <keyword type="function" name="vips_join ()" link="libvips-conversion.html#vips-join"/>
+    <keyword type="function" name="vips_arrayjoin ()" link="libvips-conversion.html#vips-arrayjoin"/>
+    <keyword type="function" name="vips_extract_area ()" link="libvips-conversion.html#vips-extract-area"/>
+    <keyword type="function" name="vips_crop ()" link="libvips-conversion.html#vips-crop"/>
+    <keyword type="function" name="vips_smartcrop ()" link="libvips-conversion.html#vips-smartcrop"/>
+    <keyword type="function" name="vips_extract_band ()" link="libvips-conversion.html#vips-extract-band"/>
+    <keyword type="function" name="vips_replicate ()" link="libvips-conversion.html#vips-replicate"/>
+    <keyword type="function" name="vips_grid ()" link="libvips-conversion.html#vips-grid"/>
+    <keyword type="function" name="vips_wrap ()" link="libvips-conversion.html#vips-wrap"/>
+    <keyword type="function" name="vips_rot ()" link="libvips-conversion.html#vips-rot"/>
+    <keyword type="function" name="vips_rot90 ()" link="libvips-conversion.html#vips-rot90"/>
+    <keyword type="function" name="vips_rot180 ()" link="libvips-conversion.html#vips-rot180"/>
+    <keyword type="function" name="vips_rot270 ()" link="libvips-conversion.html#vips-rot270"/>
+    <keyword type="function" name="vips_rot45 ()" link="libvips-conversion.html#vips-rot45"/>
+    <keyword type="function" name="vips_autorot_get_angle ()" link="libvips-conversion.html#vips-autorot-get-angle"/>
+    <keyword type="function" name="vips_autorot_remove_angle ()" link="libvips-conversion.html#vips-autorot-remove-angle"/>
+    <keyword type="function" name="vips_autorot ()" link="libvips-conversion.html#vips-autorot"/>
+    <keyword type="function" name="vips_zoom ()" link="libvips-conversion.html#vips-zoom"/>
+    <keyword type="function" name="vips_subsample ()" link="libvips-conversion.html#vips-subsample"/>
+    <keyword type="function" name="vips_cast ()" link="libvips-conversion.html#vips-cast"/>
+    <keyword type="function" name="vips_cast_uchar ()" link="libvips-conversion.html#vips-cast-uchar"/>
+    <keyword type="function" name="vips_cast_char ()" link="libvips-conversion.html#vips-cast-char"/>
+    <keyword type="function" name="vips_cast_ushort ()" link="libvips-conversion.html#vips-cast-ushort"/>
+    <keyword type="function" name="vips_cast_short ()" link="libvips-conversion.html#vips-cast-short"/>
+    <keyword type="function" name="vips_cast_uint ()" link="libvips-conversion.html#vips-cast-uint"/>
+    <keyword type="function" name="vips_cast_int ()" link="libvips-conversion.html#vips-cast-int"/>
+    <keyword type="function" name="vips_cast_float ()" link="libvips-conversion.html#vips-cast-float"/>
+    <keyword type="function" name="vips_cast_double ()" link="libvips-conversion.html#vips-cast-double"/>
+    <keyword type="function" name="vips_cast_complex ()" link="libvips-conversion.html#vips-cast-complex"/>
+    <keyword type="function" name="vips_cast_dpcomplex ()" link="libvips-conversion.html#vips-cast-dpcomplex"/>
+    <keyword type="function" name="vips_scale ()" link="libvips-conversion.html#vips-scale"/>
+    <keyword type="function" name="vips_msb ()" link="libvips-conversion.html#vips-msb"/>
+    <keyword type="function" name="vips_byteswap ()" link="libvips-conversion.html#vips-byteswap"/>
+    <keyword type="function" name="vips_bandjoin ()" link="libvips-conversion.html#vips-bandjoin"/>
+    <keyword type="function" name="vips_bandjoin2 ()" link="libvips-conversion.html#vips-bandjoin2"/>
+    <keyword type="function" name="vips_bandjoin_const ()" link="libvips-conversion.html#vips-bandjoin-const"/>
+    <keyword type="function" name="vips_bandjoin_const1 ()" link="libvips-conversion.html#vips-bandjoin-const1"/>
+    <keyword type="function" name="vips_bandrank ()" link="libvips-conversion.html#vips-bandrank"/>
+    <keyword type="function" name="vips_bandfold ()" link="libvips-conversion.html#vips-bandfold"/>
+    <keyword type="function" name="vips_bandunfold ()" link="libvips-conversion.html#vips-bandunfold"/>
+    <keyword type="function" name="vips_bandbool ()" link="libvips-conversion.html#vips-bandbool"/>
+    <keyword type="function" name="vips_bandand ()" link="libvips-conversion.html#vips-bandand"/>
+    <keyword type="function" name="vips_bandor ()" link="libvips-conversion.html#vips-bandor"/>
+    <keyword type="function" name="vips_bandeor ()" link="libvips-conversion.html#vips-bandeor"/>
+    <keyword type="function" name="vips_bandmean ()" link="libvips-conversion.html#vips-bandmean"/>
+    <keyword type="function" name="vips_recomb ()" link="libvips-conversion.html#vips-recomb"/>
+    <keyword type="function" name="vips_ifthenelse ()" link="libvips-conversion.html#vips-ifthenelse"/>
+    <keyword type="function" name="vips_flatten ()" link="libvips-conversion.html#vips-flatten"/>
+    <keyword type="function" name="vips_premultiply ()" link="libvips-conversion.html#vips-premultiply"/>
+    <keyword type="function" name="vips_unpremultiply ()" link="libvips-conversion.html#vips-unpremultiply"/>
+    <keyword type="function" name="vips_falsecolour ()" link="libvips-conversion.html#vips-falsecolour"/>
+    <keyword type="function" name="vips_gamma ()" link="libvips-conversion.html#vips-gamma"/>
+    <keyword type="enum" name="enum VipsExtend" link="libvips-conversion.html#VipsExtend"/>
+    <keyword type="enum" name="enum VipsDirection" link="libvips-conversion.html#VipsDirection"/>
+    <keyword type="enum" name="enum VipsAlign" link="libvips-conversion.html#VipsAlign"/>
+    <keyword type="enum" name="enum VipsAngle" link="libvips-conversion.html#VipsAngle"/>
+    <keyword type="enum" name="enum VipsAngle45" link="libvips-conversion.html#VipsAngle45"/>
+    <keyword type="enum" name="enum VipsInteresting" link="libvips-conversion.html#VipsInteresting"/>
+    <keyword type="function" name="vips_conv ()" link="libvips-convolution.html#vips-conv"/>
+    <keyword type="function" name="vips_convf ()" link="libvips-convolution.html#vips-convf"/>
+    <keyword type="function" name="vips_convi ()" link="libvips-convolution.html#vips-convi"/>
+    <keyword type="function" name="vips_conva ()" link="libvips-convolution.html#vips-conva"/>
+    <keyword type="function" name="vips_convsep ()" link="libvips-convolution.html#vips-convsep"/>
+    <keyword type="function" name="vips_convasep ()" link="libvips-convolution.html#vips-convasep"/>
+    <keyword type="function" name="vips_compass ()" link="libvips-convolution.html#vips-compass"/>
+    <keyword type="function" name="vips_gaussblur ()" link="libvips-convolution.html#vips-gaussblur"/>
+    <keyword type="function" name="vips_sharpen ()" link="libvips-convolution.html#vips-sharpen"/>
+    <keyword type="function" name="vips_spcor ()" link="libvips-convolution.html#vips-spcor"/>
+    <keyword type="function" name="vips_fastcor ()" link="libvips-convolution.html#vips-fastcor"/>
+    <keyword type="enum" name="enum VipsCombine" link="libvips-convolution.html#VipsCombine"/>
+    <keyword type="function" name="vips_foreign_map ()" link="VipsForeignSave.html#vips-foreign-map"/>
+    <keyword type="function" name="vips_foreign_find_load ()" link="VipsForeignSave.html#vips-foreign-find-load"/>
+    <keyword type="function" name="vips_foreign_find_load_buffer ()" link="VipsForeignSave.html#vips-foreign-find-load-buffer"/>
+    <keyword type="function" name="vips_foreign_flags ()" link="VipsForeignSave.html#vips-foreign-flags"/>
+    <keyword type="function" name="vips_foreign_is_a ()" link="VipsForeignSave.html#vips-foreign-is-a"/>
+    <keyword type="function" name="vips_foreign_is_a_buffer ()" link="VipsForeignSave.html#vips-foreign-is-a-buffer"/>
+    <keyword type="function" name="vips_foreign_load_invalidate ()" link="VipsForeignSave.html#vips-foreign-load-invalidate"/>
+    <keyword type="function" name="vips_foreign_find_save ()" link="VipsForeignSave.html#vips-foreign-find-save"/>
+    <keyword type="function" name="vips_foreign_find_save_buffer ()" link="VipsForeignSave.html#vips-foreign-find-save-buffer"/>
+    <keyword type="function" name="vips_vipsload ()" link="VipsForeignSave.html#vips-vipsload"/>
+    <keyword type="function" name="vips_vipssave ()" link="VipsForeignSave.html#vips-vipssave"/>
+    <keyword type="function" name="vips_openslideload ()" link="VipsForeignSave.html#vips-openslideload"/>
+    <keyword type="function" name="vips_jpegload ()" link="VipsForeignSave.html#vips-jpegload"/>
+    <keyword type="function" name="vips_jpegload_buffer ()" link="VipsForeignSave.html#vips-jpegload-buffer"/>
+    <keyword type="function" name="vips_jpegsave ()" link="VipsForeignSave.html#vips-jpegsave"/>
+    <keyword type="function" name="vips_jpegsave_buffer ()" link="VipsForeignSave.html#vips-jpegsave-buffer"/>
+    <keyword type="function" name="vips_jpegsave_mime ()" link="VipsForeignSave.html#vips-jpegsave-mime"/>
+    <keyword type="function" name="vips_webpload ()" link="VipsForeignSave.html#vips-webpload"/>
+    <keyword type="function" name="vips_webpload_buffer ()" link="VipsForeignSave.html#vips-webpload-buffer"/>
+    <keyword type="function" name="vips_webpsave ()" link="VipsForeignSave.html#vips-webpsave"/>
+    <keyword type="function" name="vips_webpsave_buffer ()" link="VipsForeignSave.html#vips-webpsave-buffer"/>
+    <keyword type="function" name="vips_webpsave_mime ()" link="VipsForeignSave.html#vips-webpsave-mime"/>
+    <keyword type="function" name="vips_tiffload ()" link="VipsForeignSave.html#vips-tiffload"/>
+    <keyword type="function" name="vips_tiffload_buffer ()" link="VipsForeignSave.html#vips-tiffload-buffer"/>
+    <keyword type="function" name="vips_tiffsave ()" link="VipsForeignSave.html#vips-tiffsave"/>
+    <keyword type="function" name="vips_openexrload ()" link="VipsForeignSave.html#vips-openexrload"/>
+    <keyword type="function" name="vips_fitsload ()" link="VipsForeignSave.html#vips-fitsload"/>
+    <keyword type="function" name="vips_fitssave ()" link="VipsForeignSave.html#vips-fitssave"/>
+    <keyword type="function" name="vips_analyzeload ()" link="VipsForeignSave.html#vips-analyzeload"/>
+    <keyword type="function" name="vips_rawload ()" link="VipsForeignSave.html#vips-rawload"/>
+    <keyword type="function" name="vips_rawsave ()" link="VipsForeignSave.html#vips-rawsave"/>
+    <keyword type="function" name="vips_rawsave_fd ()" link="VipsForeignSave.html#vips-rawsave-fd"/>
+    <keyword type="function" name="vips_csvload ()" link="VipsForeignSave.html#vips-csvload"/>
+    <keyword type="function" name="vips_csvsave ()" link="VipsForeignSave.html#vips-csvsave"/>
+    <keyword type="function" name="vips_matrixload ()" link="VipsForeignSave.html#vips-matrixload"/>
+    <keyword type="function" name="vips_matrixsave ()" link="VipsForeignSave.html#vips-matrixsave"/>
+    <keyword type="function" name="vips_matrixprint ()" link="VipsForeignSave.html#vips-matrixprint"/>
+    <keyword type="function" name="vips_magickload ()" link="VipsForeignSave.html#vips-magickload"/>
+    <keyword type="function" name="vips_magickload_buffer ()" link="VipsForeignSave.html#vips-magickload-buffer"/>
+    <keyword type="function" name="vips_pngload ()" link="VipsForeignSave.html#vips-pngload"/>
+    <keyword type="function" name="vips_pngload_buffer ()" link="VipsForeignSave.html#vips-pngload-buffer"/>
+    <keyword type="function" name="vips_pngsave ()" link="VipsForeignSave.html#vips-pngsave"/>
+    <keyword type="function" name="vips_pngsave_buffer ()" link="VipsForeignSave.html#vips-pngsave-buffer"/>
+    <keyword type="function" name="vips_ppmload ()" link="VipsForeignSave.html#vips-ppmload"/>
+    <keyword type="function" name="vips_ppmsave ()" link="VipsForeignSave.html#vips-ppmsave"/>
+    <keyword type="function" name="vips_matload ()" link="VipsForeignSave.html#vips-matload"/>
+    <keyword type="function" name="vips_radload ()" link="VipsForeignSave.html#vips-radload"/>
+    <keyword type="function" name="vips_radsave ()" link="VipsForeignSave.html#vips-radsave"/>
+    <keyword type="function" name="vips_radsave_buffer ()" link="VipsForeignSave.html#vips-radsave-buffer"/>
+    <keyword type="function" name="vips_pdfload ()" link="VipsForeignSave.html#vips-pdfload"/>
+    <keyword type="function" name="vips_pdfload_buffer ()" link="VipsForeignSave.html#vips-pdfload-buffer"/>
+    <keyword type="function" name="vips_svgload ()" link="VipsForeignSave.html#vips-svgload"/>
+    <keyword type="function" name="vips_svgload_buffer ()" link="VipsForeignSave.html#vips-svgload-buffer"/>
+    <keyword type="function" name="vips_gifload ()" link="VipsForeignSave.html#vips-gifload"/>
+    <keyword type="function" name="vips_gifload_buffer ()" link="VipsForeignSave.html#vips-gifload-buffer"/>
+    <keyword type="function" name="vips_dzsave ()" link="VipsForeignSave.html#vips-dzsave"/>
+    <keyword type="enum" name="enum VipsForeignFlags" link="VipsForeignSave.html#VipsForeignFlags"/>
+    <keyword type="enum" name="enum VipsSaveable" link="VipsForeignSave.html#VipsSaveable"/>
+    <keyword type="enum" name="enum VipsForeignWebpPreset" link="VipsForeignSave.html#VipsForeignWebpPreset"/>
+    <keyword type="enum" name="enum VipsForeignTiffCompression" link="VipsForeignSave.html#VipsForeignTiffCompression"/>
+    <keyword type="enum" name="enum VipsForeignTiffPredictor" link="VipsForeignSave.html#VipsForeignTiffPredictor"/>
+    <keyword type="enum" name="enum VipsForeignTiffResunit" link="VipsForeignSave.html#VipsForeignTiffResunit"/>
+    <keyword type="enum" name="enum VipsForeignPngFilter" link="VipsForeignSave.html#VipsForeignPngFilter"/>
+    <keyword type="enum" name="enum VipsForeignDzLayout" link="VipsForeignSave.html#VipsForeignDzLayout"/>
+    <keyword type="enum" name="enum VipsForeignDzDepth" link="VipsForeignSave.html#VipsForeignDzDepth"/>
+    <keyword type="enum" name="enum VipsForeignDzContainer" link="VipsForeignSave.html#VipsForeignDzContainer"/>
+    <keyword type="property" name="The “access” property" link="VipsForeignSave.html#VipsForeignLoad--access"/>
+    <keyword type="property" name="The “disc” property" link="VipsForeignSave.html#VipsForeignLoad--disc"/>
+    <keyword type="property" name="The “fail” property" link="VipsForeignSave.html#VipsForeignLoad--fail"/>
+    <keyword type="property" name="The “flags” property" link="VipsForeignSave.html#VipsForeignLoad--flags"/>
+    <keyword type="property" name="The “out” property" link="VipsForeignSave.html#VipsForeignLoad--out"/>
+    <keyword type="property" name="The “sequential” property" link="VipsForeignSave.html#VipsForeignLoad--sequential"/>
+    <keyword type="property" name="The “background” property" link="VipsForeignSave.html#VipsForeignSave--background"/>
+    <keyword type="property" name="The “in” property" link="VipsForeignSave.html#VipsForeignSave--in"/>
+    <keyword type="property" name="The “strip” property" link="VipsForeignSave.html#VipsForeignSave--strip"/>
+    <keyword type="function" name="vips_fwfft ()" link="libvips-freqfilt.html#vips-fwfft"/>
+    <keyword type="function" name="vips_invfft ()" link="libvips-freqfilt.html#vips-invfft"/>
+    <keyword type="function" name="vips_freqmult ()" link="libvips-freqfilt.html#vips-freqmult"/>
+    <keyword type="function" name="vips_spectrum ()" link="libvips-freqfilt.html#vips-spectrum"/>
+    <keyword type="function" name="vips_phasecor ()" link="libvips-freqfilt.html#vips-phasecor"/>
+    <keyword type="function" name="vips_maplut ()" link="libvips-histogram.html#vips-maplut"/>
+    <keyword type="function" name="vips_percent ()" link="libvips-histogram.html#vips-percent"/>
+    <keyword type="function" name="vips_stdif ()" link="libvips-histogram.html#vips-stdif"/>
+    <keyword type="function" name="vips_hist_cum ()" link="libvips-histogram.html#vips-hist-cum"/>
+    <keyword type="function" name="vips_hist_norm ()" link="libvips-histogram.html#vips-hist-norm"/>
+    <keyword type="function" name="vips_hist_equal ()" link="libvips-histogram.html#vips-hist-equal"/>
+    <keyword type="function" name="vips_hist_plot ()" link="libvips-histogram.html#vips-hist-plot"/>
+    <keyword type="function" name="vips_hist_match ()" link="libvips-histogram.html#vips-hist-match"/>
+    <keyword type="function" name="vips_hist_local ()" link="libvips-histogram.html#vips-hist-local"/>
+    <keyword type="function" name="vips_hist_ismonotonic ()" link="libvips-histogram.html#vips-hist-ismonotonic"/>
+    <keyword type="function" name="vips_hist_entropy ()" link="libvips-histogram.html#vips-hist-entropy"/>
+    <keyword type="function" name="vips_draw_rect ()" link="libvips-draw.html#vips-draw-rect"/>
+    <keyword type="function" name="vips_draw_rect1 ()" link="libvips-draw.html#vips-draw-rect1"/>
+    <keyword type="function" name="vips_draw_point ()" link="libvips-draw.html#vips-draw-point"/>
+    <keyword type="function" name="vips_draw_point1 ()" link="libvips-draw.html#vips-draw-point1"/>
+    <keyword type="function" name="vips_draw_image ()" link="libvips-draw.html#vips-draw-image"/>
+    <keyword type="function" name="vips_draw_mask ()" link="libvips-draw.html#vips-draw-mask"/>
+    <keyword type="function" name="vips_draw_mask1 ()" link="libvips-draw.html#vips-draw-mask1"/>
+    <keyword type="function" name="vips_draw_line ()" link="libvips-draw.html#vips-draw-line"/>
+    <keyword type="function" name="vips_draw_line1 ()" link="libvips-draw.html#vips-draw-line1"/>
+    <keyword type="function" name="vips_draw_circle ()" link="libvips-draw.html#vips-draw-circle"/>
+    <keyword type="function" name="vips_draw_circle1 ()" link="libvips-draw.html#vips-draw-circle1"/>
+    <keyword type="function" name="vips_draw_flood ()" link="libvips-draw.html#vips-draw-flood"/>
+    <keyword type="function" name="vips_draw_flood1 ()" link="libvips-draw.html#vips-draw-flood1"/>
+    <keyword type="function" name="vips_draw_smudge ()" link="libvips-draw.html#vips-draw-smudge"/>
+    <keyword type="enum" name="enum VipsCombineMode" link="libvips-draw.html#VipsCombineMode"/>
+    <keyword type="function" name="VipsInterpolateMethod ()" link="VipsInterpolate.html#VipsInterpolateMethod"/>
+    <keyword type="function" name="vips_interpolate ()" link="VipsInterpolate.html#vips-interpolate"/>
+    <keyword type="function" name="vips_interpolate_get_method ()" link="VipsInterpolate.html#vips-interpolate-get-method"/>
+    <keyword type="function" name="vips_interpolate_get_window_size ()" link="VipsInterpolate.html#vips-interpolate-get-window-size"/>
+    <keyword type="function" name="vips_interpolate_get_window_offset ()" link="VipsInterpolate.html#vips-interpolate-get-window-offset"/>
+    <keyword type="macro" name="VIPS_TRANSFORM_SHIFT" link="VipsInterpolate.html#VIPS-TRANSFORM-SHIFT:CAPS"/>
+    <keyword type="macro" name="VIPS_TRANSFORM_SCALE" link="VipsInterpolate.html#VIPS-TRANSFORM-SCALE:CAPS"/>
+    <keyword type="macro" name="VIPS_INTERPOLATE_SHIFT" link="VipsInterpolate.html#VIPS-INTERPOLATE-SHIFT:CAPS"/>
+    <keyword type="macro" name="VIPS_INTERPOLATE_SCALE" link="VipsInterpolate.html#VIPS-INTERPOLATE-SCALE:CAPS"/>
+    <keyword type="function" name="vips_interpolate_nearest_static ()" link="VipsInterpolate.html#vips-interpolate-nearest-static"/>
+    <keyword type="function" name="vips_interpolate_bilinear_static ()" link="VipsInterpolate.html#vips-interpolate-bilinear-static"/>
+    <keyword type="function" name="vips_interpolate_new ()" link="VipsInterpolate.html#vips-interpolate-new"/>
+    <keyword type="function" name="vips_morph ()" link="libvips-morphology.html#vips-morph"/>
+    <keyword type="function" name="vips_rank ()" link="libvips-morphology.html#vips-rank"/>
+    <keyword type="function" name="vips_median ()" link="libvips-morphology.html#vips-median"/>
+    <keyword type="function" name="vips_countlines ()" link="libvips-morphology.html#vips-countlines"/>
+    <keyword type="function" name="vips_labelregions ()" link="libvips-morphology.html#vips-labelregions"/>
+    <keyword type="enum" name="enum VipsOperationMorphology" link="libvips-morphology.html#VipsOperationMorphology"/>
+    <keyword type="function" name="vips_merge ()" link="libvips-mosaicing.html#vips-merge"/>
+    <keyword type="function" name="vips_mosaic ()" link="libvips-mosaicing.html#vips-mosaic"/>
+    <keyword type="function" name="vips_mosaic1 ()" link="libvips-mosaicing.html#vips-mosaic1"/>
+    <keyword type="function" name="vips_match ()" link="libvips-mosaicing.html#vips-match"/>
+    <keyword type="function" name="vips_globalbalance ()" link="libvips-mosaicing.html#vips-globalbalance"/>
+    <keyword type="function" name="vips_remosaic ()" link="libvips-mosaicing.html#vips-remosaic"/>
+    <keyword type="function" name="vips_black ()" link="libvips-create.html#vips-black"/>
+    <keyword type="function" name="vips_xyz ()" link="libvips-create.html#vips-xyz"/>
+    <keyword type="function" name="vips_grey ()" link="libvips-create.html#vips-grey"/>
+    <keyword type="function" name="vips_gaussmat ()" link="libvips-create.html#vips-gaussmat"/>
+    <keyword type="function" name="vips_logmat ()" link="libvips-create.html#vips-logmat"/>
+    <keyword type="function" name="vips_text ()" link="libvips-create.html#vips-text"/>
+    <keyword type="function" name="vips_gaussnoise ()" link="libvips-create.html#vips-gaussnoise"/>
+    <keyword type="function" name="vips_eye ()" link="libvips-create.html#vips-eye"/>
+    <keyword type="function" name="vips_sines ()" link="libvips-create.html#vips-sines"/>
+    <keyword type="function" name="vips_zone ()" link="libvips-create.html#vips-zone"/>
+    <keyword type="function" name="vips_identity ()" link="libvips-create.html#vips-identity"/>
+    <keyword type="function" name="vips_buildlut ()" link="libvips-create.html#vips-buildlut"/>
+    <keyword type="function" name="vips_invertlut ()" link="libvips-create.html#vips-invertlut"/>
+    <keyword type="function" name="vips_tonelut ()" link="libvips-create.html#vips-tonelut"/>
+    <keyword type="function" name="vips_mask_ideal ()" link="libvips-create.html#vips-mask-ideal"/>
+    <keyword type="function" name="vips_mask_ideal_ring ()" link="libvips-create.html#vips-mask-ideal-ring"/>
+    <keyword type="function" name="vips_mask_ideal_band ()" link="libvips-create.html#vips-mask-ideal-band"/>
+    <keyword type="function" name="vips_mask_butterworth ()" link="libvips-create.html#vips-mask-butterworth"/>
+    <keyword type="function" name="vips_mask_butterworth_ring ()" link="libvips-create.html#vips-mask-butterworth-ring"/>
+    <keyword type="function" name="vips_mask_butterworth_band ()" link="libvips-create.html#vips-mask-butterworth-band"/>
+    <keyword type="function" name="vips_mask_gaussian ()" link="libvips-create.html#vips-mask-gaussian"/>
+    <keyword type="function" name="vips_mask_gaussian_ring ()" link="libvips-create.html#vips-mask-gaussian-ring"/>
+    <keyword type="function" name="vips_mask_gaussian_band ()" link="libvips-create.html#vips-mask-gaussian-band"/>
+    <keyword type="function" name="vips_mask_fractal ()" link="libvips-create.html#vips-mask-fractal"/>
+    <keyword type="function" name="vips_fractsurf ()" link="libvips-create.html#vips-fractsurf"/>
+    <keyword type="function" name="vips_worley ()" link="libvips-create.html#vips-worley"/>
+    <keyword type="function" name="vips_perlin ()" link="libvips-create.html#vips-perlin"/>
+    <keyword type="function" name="vips_shrink ()" link="libvips-resample.html#vips-shrink"/>
+    <keyword type="function" name="vips_shrinkh ()" link="libvips-resample.html#vips-shrinkh"/>
+    <keyword type="function" name="vips_shrinkv ()" link="libvips-resample.html#vips-shrinkv"/>
+    <keyword type="function" name="vips_reduce ()" link="libvips-resample.html#vips-reduce"/>
+    <keyword type="function" name="vips_reduceh ()" link="libvips-resample.html#vips-reduceh"/>
+    <keyword type="function" name="vips_reducev ()" link="libvips-resample.html#vips-reducev"/>
+    <keyword type="function" name="vips_thumbnail ()" link="libvips-resample.html#vips-thumbnail"/>
+    <keyword type="function" name="vips_thumbnail_buffer ()" link="libvips-resample.html#vips-thumbnail-buffer"/>
+    <keyword type="function" name="vips_similarity ()" link="libvips-resample.html#vips-similarity"/>
+    <keyword type="function" name="vips_affine ()" link="libvips-resample.html#vips-affine"/>
+    <keyword type="function" name="vips_resize ()" link="libvips-resample.html#vips-resize"/>
+    <keyword type="function" name="vips_mapim ()" link="libvips-resample.html#vips-mapim"/>
+    <keyword type="function" name="vips_quadratic ()" link="libvips-resample.html#vips-quadratic"/>
+    <keyword type="enum" name="enum VipsKernel" link="libvips-resample.html#VipsKernel"/>
+    <keyword type="enum" name="enum VipsSize" link="libvips-resample.html#VipsSize"/>
+    <keyword type="function" name="vips__transform_init ()" link="libvips-transform.html#vips--transform-init"/>
+    <keyword type="function" name="vips__transform_calc_inverse ()" link="libvips-transform.html#vips--transform-calc-inverse"/>
+    <keyword type="function" name="vips__transform_isidentity ()" link="libvips-transform.html#vips--transform-isidentity"/>
+    <keyword type="function" name="vips__transform_add ()" link="libvips-transform.html#vips--transform-add"/>
+    <keyword type="function" name="vips__transform_print ()" link="libvips-transform.html#vips--transform-print"/>
+    <keyword type="function" name="vips__transform_forward_point ()" link="libvips-transform.html#vips--transform-forward-point"/>
+    <keyword type="function" name="vips__transform_invert_point ()" link="libvips-transform.html#vips--transform-invert-point"/>
+    <keyword type="function" name="vips__transform_forward_rect ()" link="libvips-transform.html#vips--transform-forward-rect"/>
+    <keyword type="function" name="vips__transform_invert_rect ()" link="libvips-transform.html#vips--transform-invert-rect"/>
+    <keyword type="function" name="vips__transform_set_area ()" link="libvips-transform.html#vips--transform-set-area"/>
+    <keyword type="function" name="vips__affine ()" link="libvips-transform.html#vips--affine"/>
+    <keyword type="struct" name="VipsTransformation" link="libvips-transform.html#VipsTransformation"/>
+    <keyword type="macro" name="VIPS_PI" link="libvips-util.html#VIPS-PI:CAPS"/>
+    <keyword type="macro" name="VIPS_RAD()" link="libvips-util.html#VIPS-RAD:CAPS"/>
+    <keyword type="macro" name="VIPS_DEG()" link="libvips-util.html#VIPS-DEG:CAPS"/>
+    <keyword type="macro" name="VIPS_MAX()" link="libvips-util.html#VIPS-MAX:CAPS"/>
+    <keyword type="macro" name="VIPS_MIN()" link="libvips-util.html#VIPS-MIN:CAPS"/>
+    <keyword type="macro" name="VIPS_CLIP()" link="libvips-util.html#VIPS-CLIP:CAPS"/>
+    <keyword type="macro" name="VIPS_FCLIP()" link="libvips-util.html#VIPS-FCLIP:CAPS"/>
+    <keyword type="macro" name="VIPS_NUMBER()" link="libvips-util.html#VIPS-NUMBER:CAPS"/>
+    <keyword type="macro" name="VIPS_ABS()" link="libvips-util.html#VIPS-ABS:CAPS"/>
+    <keyword type="macro" name="VIPS_ISNAN()" link="libvips-util.html#VIPS-ISNAN:CAPS"/>
+    <keyword type="macro" name="VIPS_ISINF()" link="libvips-util.html#VIPS-ISINF:CAPS"/>
+    <keyword type="macro" name="VIPS_FLOOR()" link="libvips-util.html#VIPS-FLOOR:CAPS"/>
+    <keyword type="macro" name="VIPS_CEIL()" link="libvips-util.html#VIPS-CEIL:CAPS"/>
+    <keyword type="macro" name="VIPS_RINT()" link="libvips-util.html#VIPS-RINT:CAPS"/>
+    <keyword type="macro" name="VIPS_ROUND()" link="libvips-util.html#VIPS-ROUND:CAPS"/>
+    <keyword type="macro" name="VIPS_FABS()" link="libvips-util.html#VIPS-FABS:CAPS"/>
+    <keyword type="macro" name="VIPS_FMAX()" link="libvips-util.html#VIPS-FMAX:CAPS"/>
+    <keyword type="macro" name="VIPS_FMIN()" link="libvips-util.html#VIPS-FMIN:CAPS"/>
+    <keyword type="macro" name="VIPS_ROUND_INT()" link="libvips-util.html#VIPS-ROUND-INT:CAPS"/>
+    <keyword type="macro" name="VIPS_ROUND_UINT()" link="libvips-util.html#VIPS-ROUND-UINT:CAPS"/>
+    <keyword type="macro" name="VIPS_ROUND_DOWN()" link="libvips-util.html#VIPS-ROUND-DOWN:CAPS"/>
+    <keyword type="macro" name="VIPS_ROUND_UP()" link="libvips-util.html#VIPS-ROUND-UP:CAPS"/>
+    <keyword type="macro" name="VIPS_SWAP()" link="libvips-util.html#VIPS-SWAP:CAPS"/>
+    <keyword type="macro" name="VIPS_UNROLL()" link="libvips-util.html#VIPS-UNROLL:CAPS"/>
+    <keyword type="macro" name="g_info()" link="libvips-util.html#g-info"/>
+    <keyword type="macro" name="VIPS_CLIP_UCHAR()" link="libvips-util.html#VIPS-CLIP-UCHAR:CAPS"/>
+    <keyword type="macro" name="VIPS_CLIP_CHAR()" link="libvips-util.html#VIPS-CLIP-CHAR:CAPS"/>
+    <keyword type="macro" name="VIPS_CLIP_USHORT()" link="libvips-util.html#VIPS-CLIP-USHORT:CAPS"/>
+    <keyword type="macro" name="VIPS_CLIP_SHORT()" link="libvips-util.html#VIPS-CLIP-SHORT:CAPS"/>
+    <keyword type="macro" name="VIPS_CLIP_UINT()" link="libvips-util.html#VIPS-CLIP-UINT:CAPS"/>
+    <keyword type="macro" name="VIPS_CLIP_NONE()" link="libvips-util.html#VIPS-CLIP-NONE:CAPS"/>
+    <keyword type="macro" name="VIPS_PATH_MAX" link="libvips-util.html#VIPS-PATH-MAX:CAPS"/>
+    <keyword type="function" name="vips_enum_string ()" link="libvips-util.html#vips-enum-string"/>
+    <keyword type="function" name="vips_enum_nick ()" link="libvips-util.html#vips-enum-nick"/>
+    <keyword type="function" name="vips_enum_from_nick ()" link="libvips-util.html#vips-enum-from-nick"/>
+    <keyword type="function" name="vips_flags_from_nick ()" link="libvips-util.html#vips-flags-from-nick"/>
+    <keyword type="function" name="vips_slist_equal ()" link="libvips-util.html#vips-slist-equal"/>
+    <keyword type="function" name="vips_slist_map2 ()" link="libvips-util.html#vips-slist-map2"/>
+    <keyword type="function" name="vips_slist_map2_rev ()" link="libvips-util.html#vips-slist-map2-rev"/>
+    <keyword type="function" name="vips_slist_map4 ()" link="libvips-util.html#vips-slist-map4"/>
+    <keyword type="function" name="vips_slist_fold2 ()" link="libvips-util.html#vips-slist-fold2"/>
+    <keyword type="function" name="vips_slist_filter ()" link="libvips-util.html#vips-slist-filter"/>
+    <keyword type="function" name="vips_slist_free_all ()" link="libvips-util.html#vips-slist-free-all"/>
+    <keyword type="function" name="vips_map_equal ()" link="libvips-util.html#vips-map-equal"/>
+    <keyword type="function" name="vips_hash_table_map ()" link="libvips-util.html#vips-hash-table-map"/>
+    <keyword type="function" name="vips_strncpy ()" link="libvips-util.html#vips-strncpy"/>
+    <keyword type="function" name="vips_strrstr ()" link="libvips-util.html#vips-strrstr"/>
+    <keyword type="function" name="vips_ispostfix ()" link="libvips-util.html#vips-ispostfix"/>
+    <keyword type="function" name="vips_iscasepostfix ()" link="libvips-util.html#vips-iscasepostfix"/>
+    <keyword type="function" name="vips_isprefix ()" link="libvips-util.html#vips-isprefix"/>
+    <keyword type="function" name="vips_break_token ()" link="libvips-util.html#vips-break-token"/>
+    <keyword type="function" name="vips__chomp ()" link="libvips-util.html#vips--chomp"/>
+    <keyword type="function" name="vips_vsnprintf ()" link="libvips-util.html#vips-vsnprintf"/>
+    <keyword type="function" name="vips_snprintf ()" link="libvips-util.html#vips-snprintf"/>
+    <keyword type="function" name="vips_filename_suffix_match ()" link="libvips-util.html#vips-filename-suffix-match"/>
+    <keyword type="function" name="vips_file_length ()" link="libvips-util.html#vips-file-length"/>
+    <keyword type="function" name="vips__write ()" link="libvips-util.html#vips--write"/>
+    <keyword type="function" name="vips__open ()" link="libvips-util.html#vips--open"/>
+    <keyword type="function" name="vips__open_read ()" link="libvips-util.html#vips--open-read"/>
+    <keyword type="function" name="vips__fopen ()" link="libvips-util.html#vips--fopen"/>
+    <keyword type="function" name="vips__file_open_read ()" link="libvips-util.html#vips--file-open-read"/>
+    <keyword type="function" name="vips__file_open_write ()" link="libvips-util.html#vips--file-open-write"/>
+    <keyword type="function" name="vips__file_read ()" link="libvips-util.html#vips--file-read"/>
+    <keyword type="function" name="vips__file_read_name ()" link="libvips-util.html#vips--file-read-name"/>
+    <keyword type="function" name="vips__file_write ()" link="libvips-util.html#vips--file-write"/>
+    <keyword type="function" name="vips__get_bytes ()" link="libvips-util.html#vips--get-bytes"/>
+    <keyword type="function" name="vips__fgetc ()" link="libvips-util.html#vips--fgetc"/>
+    <keyword type="function" name="vips__gvalue_ref_string_new ()" link="libvips-util.html#vips--gvalue-ref-string-new"/>
+    <keyword type="function" name="vips__gslist_gvalue_free ()" link="libvips-util.html#vips--gslist-gvalue-free"/>
+    <keyword type="function" name="vips__gslist_gvalue_copy ()" link="libvips-util.html#vips--gslist-gvalue-copy"/>
+    <keyword type="function" name="vips__gslist_gvalue_merge ()" link="libvips-util.html#vips--gslist-gvalue-merge"/>
+    <keyword type="function" name="vips__gslist_gvalue_get ()" link="libvips-util.html#vips--gslist-gvalue-get"/>
+    <keyword type="function" name="vips__seek ()" link="libvips-util.html#vips--seek"/>
+    <keyword type="function" name="vips__ftruncate ()" link="libvips-util.html#vips--ftruncate"/>
+    <keyword type="function" name="vips_existsf ()" link="libvips-util.html#vips-existsf"/>
+    <keyword type="function" name="vips_mkdirf ()" link="libvips-util.html#vips-mkdirf"/>
+    <keyword type="function" name="vips_rmdirf ()" link="libvips-util.html#vips-rmdirf"/>
+    <keyword type="function" name="vips_rename ()" link="libvips-util.html#vips-rename"/>
+    <keyword type="function" name="vips_popenf ()" link="libvips-util.html#vips-popenf"/>
+    <keyword type="function" name="vips__token_get ()" link="libvips-util.html#vips--token-get"/>
+    <keyword type="function" name="vips__token_must ()" link="libvips-util.html#vips--token-must"/>
+    <keyword type="function" name="vips__token_need ()" link="libvips-util.html#vips--token-need"/>
+    <keyword type="function" name="vips__token_segment ()" link="libvips-util.html#vips--token-segment"/>
+    <keyword type="function" name="vips__token_segment_need ()" link="libvips-util.html#vips--token-segment-need"/>
+    <keyword type="function" name="vips__find_rightmost_brackets ()" link="libvips-util.html#vips--find-rightmost-brackets"/>
+    <keyword type="function" name="vips__filename_split8 ()" link="libvips-util.html#vips--filename-split8"/>
+    <keyword type="function" name="vips_ispoweroftwo ()" link="libvips-util.html#vips-ispoweroftwo"/>
+    <keyword type="function" name="vips_amiMSBfirst ()" link="libvips-util.html#vips-amiMSBfirst"/>
+    <keyword type="function" name="vips__temp_name ()" link="libvips-util.html#vips--temp-name"/>
+    <keyword type="function" name="vips__change_suffix ()" link="libvips-util.html#vips--change-suffix"/>
+    <keyword type="function" name="vips_realpath ()" link="libvips-util.html#vips-realpath"/>
+    <keyword type="function" name="vips__random ()" link="libvips-util.html#vips--random"/>
+    <keyword type="function" name="vips__random_add ()" link="libvips-util.html#vips--random-add"/>
+    <keyword type="enum" name="enum VipsToken" link="libvips-util.html#VipsToken"/>
+    <keyword type="macro" name="VIPS_VERSION" link="libvips-version.html#VIPS-VERSION:CAPS"/>
+    <keyword type="macro" name="VIPS_VERSION_STRING" link="libvips-version.html#VIPS-VERSION-STRING:CAPS"/>
+    <keyword type="macro" name="VIPS_MAJOR_VERSION" link="libvips-version.html#VIPS-MAJOR-VERSION:CAPS"/>
+    <keyword type="macro" name="VIPS_MINOR_VERSION" link="libvips-version.html#VIPS-MINOR-VERSION:CAPS"/>
+    <keyword type="macro" name="VIPS_MICRO_VERSION" link="libvips-version.html#VIPS-MICRO-VERSION:CAPS"/>
+    <keyword type="macro" name="VIPS_LIBRARY_CURRENT" link="libvips-version.html#VIPS-LIBRARY-CURRENT:CAPS"/>
+    <keyword type="macro" name="VIPS_LIBRARY_REVISION" link="libvips-version.html#VIPS-LIBRARY-REVISION:CAPS"/>
+    <keyword type="macro" name="VIPS_LIBRARY_AGE" link="libvips-version.html#VIPS-LIBRARY-AGE:CAPS"/>
+    <keyword type="macro" name="VIPS_EXEEXT" link="libvips-version.html#VIPS-EXEEXT:CAPS"/>
+    <keyword type="macro" name="VIPS_ENABLE_DEPRECATED" link="libvips-version.html#VIPS-ENABLE-DEPRECATED:CAPS"/>
+    <keyword type="function" name="vips_semaphore_up ()" link="libvips-semaphore.html#vips-semaphore-up"/>
+    <keyword type="function" name="vips_semaphore_down ()" link="libvips-semaphore.html#vips-semaphore-down"/>
+    <keyword type="function" name="vips_semaphore_upn ()" link="libvips-semaphore.html#vips-semaphore-upn"/>
+    <keyword type="function" name="vips_semaphore_downn ()" link="libvips-semaphore.html#vips-semaphore-downn"/>
+    <keyword type="function" name="vips_semaphore_destroy ()" link="libvips-semaphore.html#vips-semaphore-destroy"/>
+    <keyword type="function" name="vips_semaphore_init ()" link="libvips-semaphore.html#vips-semaphore-init"/>
+    <keyword type="struct" name="VipsSemaphore" link="libvips-semaphore.html#VipsSemaphore"/>
+  </functions>
+</book>

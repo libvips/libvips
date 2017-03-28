@@ -1,0 +1,460 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: Extending VIPS</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch01.html" title="VIPS Overview">
+<link rel="prev" href="binding.html" title="Writing bindings for libvips">
+<link rel="next" href="func-list.html" title="VIPS function list">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="binding.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="func-list.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="extending"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle">Extending VIPS</span></h2>
+<p>Extending — How to add operations to VIPS</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect3">
+<a name="extending-intro"></a><h4>Introduction</h4>
+<p>
+			This section runs quickly through adding a simple operator to VIPS. 
+			For more information, see <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> and <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a>. A good 
+			starting point for a new operation is a similar one in the VIPS library. 
+    </p>
+<p>
+      All VIPS operations are subclasses of <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a>, which in turn
+			subclasses <a class="link" href="VipsObject.html" title="VipsObject"><span class="type">VipsObject</span></a> and then <code class="literal">GObject</code>. You add an operation to VIPS
+			by defining a new subclass of <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> and arranging for its 
+			<code class="code"><code class="function">class_init()</code></code> to be called, perhaps by calling its <code class="function">get_type()</code>
+			function.
+    </p>
+</div>
+<div class="refsect3">
+<a name="extending-classstruct"></a><h4>The class and object structures</h4>
+<p>
+      First you need to define a new
+      object struct and a new class struct.
+
+</p>
+<pre class="programlisting">
+typedef struct _Negative {
+  VipsOperation parent_instance;
+
+  VipsImage *in;
+  VipsImage *out;
+
+  int image_max;
+
+} Negative;
+
+typedef struct _NegativeClass {
+  VipsOperationClass parent_class;
+
+  /* No new class members needed for this op.
+   */
+
+} NegativeClass;
+</pre>
+<p>
+    </p>
+<p>
+      This operation will find the photographic negative of an unsigned
+      8-bit image, optionally letting you specify the value which the pixels
+      "pivot" about. It doesn't need any class members (ie. values common
+      to all operations of this type), so the second struct is empty. See
+			the source to <a class="link" href="libvips-arithmetic.html#vips-invert" title="vips_invert ()"><code class="function">vips_invert()</code></a> for a more complete version of this 
+			operation that's actually in the library.
+    </p>
+<p>
+      <code class="literal">GObject</code> has a handy macro to write some of the boilerplate for you.
+
+</p>
+<pre class="programlisting">
+G_DEFINE_TYPE( Negative, negative, VIPS_TYPE_OPERATION );
+</pre>
+<p>
+
+      <code class="function">G_DEFINE_TYPE()</code> defines a function called <code class="function">negative_get_type()</code>,
+      which registers this new class and returns its <code class="literal">GType</code> (a
+      pointer-sized integer). <code class="function">negative_get_type()</code> in turn needs two
+      functions, <code class="function">negative_init()</code>, to initialise a new instance, and
+      <code class="function">negative_class_init()</code>, to initialise a new class.
+    </p>
+</div>
+<div class="refsect3">
+<a name="extending-init"></a><h4>Class and object initialisation</h4>
+<p>
+      <code class="function">negative_init()</code> is very simple, it just sets the default value for
+      our optional parameter.
+
+</p>
+<pre class="programlisting">
+static void
+negative_init( Negative *negative )
+{
+  negative-&gt;image_max = 255;
+}
+</pre>
+<p>
+    </p>
+<p>
+      <code class="function">negative_class_init()</code> is more complicated: it has to set various
+      fields in various superclasses and define the operation's parameters. 
+
+</p>
+<pre class="programlisting">
+static void
+negative_class_init( NegativeClass *class )
+{
+  GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+  VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
+
+  gobject_class-&gt;set_property = vips_object_set_property;
+  gobject_class-&gt;get_property = vips_object_get_property;
+
+  object_class-&gt;nickname = "negative";
+  object_class-&gt;description = "photographic negative";
+  object_class-&gt;build = negative_build;
+
+  VIPS_ARG_IMAGE( class, "in", 1, 
+    "Input", 
+    "Input image",
+    VIPS_ARGUMENT_REQUIRED_INPUT,
+    G_STRUCT_OFFSET( Negative, in ) );
+
+  VIPS_ARG_IMAGE( class, "out", 2, 
+    "Output", 
+    "Output image",
+    VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+    G_STRUCT_OFFSET( Negative, out ) );
+
+  VIPS_ARG_INT( class, "image_max", 4, 
+    "Image maximum", 
+    "Maximum value in image: pivot about this",
+    VIPS_ARGUMENT_OPTIONAL_INPUT,
+    G_STRUCT_OFFSET( Negative, image_max ),
+    0, 255, 255 );
+}
+</pre>
+<p>
+    </p>
+<p>
+      In <code class="literal">GObject</code>, it needs to set the getters and setters for this class. vips
+      has a generic get/set system, so any subclass of <a class="link" href="VipsObject.html" title="VipsObject"><span class="type">VipsObject</span></a> needs to
+      use the vips ones.
+    </p>
+<p>
+      In <a class="link" href="VipsObject.html" title="VipsObject"><span class="type">VipsObject</span></a>, it needs to set the operation <em class="parameter"><code>nickname</code></em> and <em class="parameter"><code>description</code></em>,
+      and set a build function (see below). <em class="parameter"><code>nickname</code></em> is used to refer to
+      this operation in the API, <em class="parameter"><code>description</code></em> is used to explain this
+      operation to users and will be translated into their language.
+    </p>
+<p>
+      Finally, it needs to define the arguments the constructor for this class
+			takes. There are a set of handy macros for doing this, see 
+			<a class="link" href="VipsObject.html#VIPS-ARG-INT:CAPS" title="VIPS_ARG_INT()"><code class="function">VIPS_ARG_INT()</code></a> and friends.
+    </p>
+<p>
+			The first few
+      parameters are always the same and mean: class pointer for argument,
+      argument name, argument priority (bindings expect required arguments in
+      order of priority), long argument name (this one is internationalised
+      and displayed to users), description (again, users can see this),
+      some flags describing the argument, and finally the position of the
+      member in the struct.
+    </p>
+<p>
+      Integer arguments take three more values: the minimum, maximum and
+      default value for the argument.
+    </p>
+</div>
+<div class="refsect3">
+<a name="extending-build"></a><h4>The <code class="function">build()</code> function</h4>
+<p>
+			The build function is the thing <a class="link" href="VipsObject.html" title="VipsObject"><span class="type">VipsObject</span></a> calls during object 
+			construction, after all arguments have been supplied and before the 
+			object is used. It has two roles: to verify that arguments are correct, 
+			and then to construct the object.  After <code class="function">build()</code>, the object is expected
+      to be ready for use.
+
+</p>
+<pre class="programlisting">
+static int
+negative_build( VipsObject *object )
+{
+  VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+  Negative *negative = (Negative *) object;
+
+  if( VIPS_OBJECT_CLASS( negative_parent_class )-&gt;build( object ) )
+    return( -1 );
+
+  if( vips_check_uncoded( class-&gt;nickname, negative-&gt;in ) ||
+    vips_check_format( class-&gt;nickname, negative-&gt;in, VIPS_FORMAT_UCHAR ) )
+    return( -1 );
+
+  g_object_set( object, "out", vips_image_new(), NULL ); 
+
+  if( vips_image_pipelinev( negative-&gt;out, 
+    VIPS_DEMAND_STYLE_THINSTRIP, negative-&gt;in, NULL ) )
+    return( -1 );
+
+  if( vips_image_generate( negative-&gt;out, 
+    vips_start_one, 
+    negative_generate, 
+    vips_stop_one, 
+    negative-&gt;in, negative ) )
+    return( -1 );
+
+  return( 0 );
+}
+</pre>
+<p>
+    </p>
+<p>
+      <code class="function">negative_build()</code> first chains up to the superclass: this will check
+      that all input arguments have been supplied and are sane.
+    </p>
+<p>
+      Next, it adds its own checks. This is a demo operation, so we just
+			work for uncoded, unsigned 8-bit images. There are a lot of 
+			convenience functions like <a class="link" href="libvips-error.html#vips-check-format" title="vips_check_format ()"><code class="function">vips_check_format()</code></a>, see the docs. 
+    </p>
+<p>
+      Next, it creates the output image. This needs to be set with
+      <code class="function">g_object_set()</code> so that vips can see that it has been assigned. vips
+      will also handle the reference counting for you.
+    </p>
+<p>
+      <a class="link" href="libvips-generate.html#vips-image-pipelinev" title="vips_image_pipelinev ()"><code class="function">vips_image_pipelinev()</code></a> links our new image onto the input image and
+      notes that this operation prefers to work in lines. You can request 
+      other input geometries, see <a class="link" href="VipsImage.html#VipsDemandStyle" title="enum VipsDemandStyle"><span class="type">VipsDemandStyle</span></a>. 
+    </p>
+<p>
+			The geometry hint is just a hint, an operation needs to be able to 
+			supply any size 
+      <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> on request. If you must have a certain size request, you can 
+      put a cache in the pipeline after your operation, see <a class="link" href="libvips-conversion.html#vips-linecache" title="vips_linecache ()"><code class="function">vips_linecache()</code></a> 
+			and <a class="link" href="libvips-conversion.html#vips-tilecache" title="vips_tilecache ()"><code class="function">vips_tilecache()</code></a>. You can also make requests to your operation 
+			ordered, see <a class="link" href="libvips-conversion.html#vips-sequential" title="vips_sequential ()"><code class="function">vips_sequential()</code></a>. 
+    </p>
+<p>
+      Finally, <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a> attaches a set of callbacks to the
+      output image to generate chunks of it on request. <a class="link" href="libvips-generate.html#vips-start-one" title="vips_start_one ()"><code class="function">vips_start_one()</code></a>
+      and <a class="link" href="libvips-generate.html#vips-stop-one" title="vips_stop_one ()"><code class="function">vips_stop_one()</code></a> are convenience functions that make the input
+      region for you, see below. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="extending-gen"></a><h4>The <code class="function">generate()</code> function</h4>
+<p>
+			The <code class="function">generate()</code> function does the actual image processing. 
+			<code class="function">negative_generate()</code> (of type <a class="link" href="VipsImage.html#VipsGenerateFn" title="VipsGenerateFn ()"><span class="type">VipsGenerateFn</span></a>, supplied to 
+			<a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a> above) is 
+			called whenever some pixels of our output image are required. 
+
+</p>
+<pre class="programlisting">
+static int
+negative_generate( VipsRegion *or, 
+  void *vseq, void *a, void *b, gboolean *stop )
+{
+  /* The area of the output region we have been asked to make.
+   */
+  VipsRect *r = &amp;or-&gt;valid;
+
+  /* The sequence value ... the thing returned by vips_start_one().
+   */
+  VipsRegion *ir = (VipsRegion *) vseq;
+
+  VipsImage *in = (VipsImage *) a;
+  Negative *negative = (Negative *) b;
+  int line_size = r-&gt;width * negative-&gt;in-&gt;Bands; 
+
+  int x, y;
+
+  /* Request matching part of input region.
+   */
+  if( vips_region_prepare( ir, r ) )
+    return( -1 );
+
+  for( y = 0; y &lt; r-&gt;height; y++ ) {
+    unsigned char *p = (unsigned char *)
+      VIPS_REGION_ADDR( ir, r-&gt;left, r-&gt;top + y ); 
+    unsigned char *q = (unsigned char *)
+      VIPS_REGION_ADDR( or, r-&gt;left, r-&gt;top + y ); 
+
+    for( x = 0; x &lt; line_size; x++ ) 
+      q[x] = negative-&gt;image_max - p[x];
+  }
+
+  return( 0 );
+}
+</pre>
+<p>
+    </p>
+<p>
+      This has to calculate a section of the output image. The output
+      <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a>, <em class="parameter"><code>or</code></em>, contains a <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> called <em class="parameter"><code>valid</code></em> which is the
+			area needing calculation. This call to <code class="function">negative_generate()</code> must 
+			somehow make this part of <em class="parameter"><code>or</code></em> contain pixel data. 
+    </p>
+<p>
+			<em class="parameter"><code>vseq</code></em> is the sequence value. This is the 
+			per-thread state for this generate, created (in this example) by 
+			<a class="link" href="libvips-generate.html#vips-start-one" title="vips_start_one ()"><code class="function">vips_start_one()</code></a>. In this simple case it's just a <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> defined on 
+			the input image. If you need more per-thread state you can write your 
+			own start and stop functions and have a struct you create and pass as a 
+			sequence value. There are plenty of examples in the VIPS source code, 
+			see <a class="link" href="libvips-morphology.html#vips-rank" title="vips_rank ()"><code class="function">vips_rank()</code></a>. 
+    </p>
+<p>
+			<em class="parameter"><code>a</code></em> and <em class="parameter"><code>b</code></em> are the last two arguments to <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a> above. 
+			<em class="parameter"><code>stop</code></em> is a bool pointer you can set to stop computation early. <a class="link" href="libvips-arithmetic.html#vips-min" title="vips_min ()"><code class="function">vips_min()</code></a>
+			on an unsigned int image, for example, will set <em class="parameter"><code>stop</code></em> as soon as it sees 
+			a zero, and will not scan the entire image.
+    </p>
+<p>
+			The first thing <code class="function">negative_generate()</code> does is 
+			use <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a> to 
+			ask for the corresponding pixels from the input image. Operations which 
+			do coordinate transforms or which need an area of input for each output 
+			point will need to calculate a new rect before calling 
+			<a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>. 
+    </p>
+<p>
+			Finally, it can calculate some pixels. <code class="function">negative_generate()</code> loops
+			over the valid area of the output and calls <a class="link" href="VipsRegion.html#VIPS-REGION-ADDR:CAPS" title="VIPS_REGION_ADDR()"><code class="function">VIPS_REGION_ADDR()</code></a> for each 
+			line. This macro is reasonaly quick, but it's best not to call it for 
+			each pixel. Once per line is fine though. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="extending-add"></a><h4>Adding to VIPS</h4>
+<p>
+			To add the operation to vips, just call <code class="function">negative_get_type()</code>. You can 
+			include the source in your program, or use <code class="literal">GModule</code> to make a binary 
+			plugin that will be loaded by libvips at startup. There are some <a class="ulink" href="https://github.com/jcupitt/vips-gmic" target="_top">example 
+			plugins available</a>.
+    </p>
+<p>
+			You
+      can then use <em class="parameter"><code>negative</code></em> from any of the vips interfaces. For example,
+      in Python you'd use it like this:
+
+</p>
+<pre class="programlisting">
+out = in.negative(image_max = 128)
+</pre>
+<p>
+    </p>
+<p>
+      From the command-line it'd look like this:
+
+</p>
+<pre class="programlisting">
+$ vips negative in.png out.tif --image-max 128
+</pre>
+<p>
+    </p>
+<p>
+      And from C like this:
+
+</p>
+<pre class="programlisting">
+VipsImage *in;
+VipsImage *out;
+if( vips_call( "negative", in, &amp;out, "image_max", 128, NULL ) )
+  ... error
+</pre>
+<p>
+    </p>
+<p>
+      Unfortunately that will do almost no compile-time type checking,
+      so all vips operations have a tiny extra wrapper to add a bit of
+      safety. For example:
+
+</p>
+<pre class="programlisting">
+static int 
+negative( VipsImage *in, VipsImage **out, ... )
+{
+  va_list ap;
+  int result;
+
+  va_start( ap, out );
+  result = vips_call_split( "negative", ap, in, out );
+  va_end( ap );
+
+  return( result );
+}
+</pre>
+<p>
+    </p>
+<p>
+      And now you can write:
+
+</p>
+<pre class="programlisting">
+if( negative( in, &amp;out, "image_max", 128, NULL ) )
+  ... error
+</pre>
+<p>
+
+      and it's at least a bit safer.
+    </p>
+</div>
+<div class="refsect3">
+<a name="extending-othertypes"></a><h4>Other types of operation</h4>
+<p>
+      Change the <code class="function">_build()</code> function to make other types of operation. 
+    </p>
+<p>
+      Use <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a> with <a class="link" href="libvips-generate.html#vips-start-many" title="vips_start_many ()"><code class="function">vips_start_many()</code></a> to make operations 
+      which demand pixels from more than one image at once, such as image 
+      plus image. 
+    </p>
+<p>
+      Use <a class="link" href="libvips-generate.html#vips-sink" title="vips_sink ()"><code class="function">vips_sink()</code></a> instead of <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a> to loop over an image 
+      and calculate a value. vips uses this for the statistics operations, 
+      like <a class="link" href="libvips-arithmetic.html#vips-avg" title="vips_avg ()"><code class="function">vips_avg()</code></a>.
+    </p>
+<p>
+      Use <a class="link" href="VipsImage.html#vips-image-wio-input" title="vips_image_wio_input ()"><code class="function">vips_image_wio_input()</code></a> to get an entire image into memory so you
+      can read it with a pointer. This will obviously not scale well to
+      very large images, but some operations, like FFTs or flood-fill, need 
+      the whole image to be available at once.
+    </p>
+<p>
+      Make area operations, like filters, by enlarging the <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> that
+      <code class="function">_generate()</code> is given before calling <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>. You can
+      enlarge the input image, so that the output image is the same size as
+      the original input, by using <a class="link" href="libvips-conversion.html#vips-embed" title="vips_embed ()"><code class="function">vips_embed()</code></a> within the <code class="function">_build()</code> function.
+    </p>
+<p>
+      Make things like flips and rotates by making larger changes to the
+      <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> in <code class="function">_generate()</code>.
+    </p>
+<p>
+      Make zero-copy operations, like <a class="link" href="libvips-conversion.html#vips-insert" title="vips_insert ()"><code class="function">vips_insert()</code></a>, with <a class="link" href="VipsRegion.html#vips-region-region" title="vips_region_region ()"><code class="function">vips_region_region()</code></a>.
+    </p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

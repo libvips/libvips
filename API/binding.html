@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: Writing bindings for libvips</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch01.html" title="VIPS Overview">
+<link rel="prev" href="using-from-cpp.html" title="VIPS from C++">
+<link rel="next" href="extending.html" title="Extending VIPS">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="using-from-cpp.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="extending.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="binding"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle">Writing bindings for libvips</span></h2>
+<p>Binding — How to write bindings for libvips</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect3">
+<a name="binding-goi"></a><h4>Binding and gobject-introspection</h4>
+<p>
+      The C source code 
+      to libvips has been marked up with special comments describing the 
+      interface in a standard way. These comments are read by 
+      gobject-introspection
+      when libvips is compiled and used to generate a 
+      typelib, a description of how to call the library. Many languages have 
+      gobject-introspection packages: all you need to do to call libvips
+      from your favorite language is to start g-o-i, load the libvips typelib,
+      and you should have the whole library available. For example, from 
+      Python it's as simple as:
+
+</p>
+<pre class="programlisting">
+from gi.repository import Vips
+</pre>
+<p>
+    </p>
+<p>
+      libvips used in this way is likely to be rather bare-bones. For Python,
+      we wrote a set of overrides which layer a more Pythonesque interface
+      on top of the one provided for libvips by pygobject. These overrides
+      are simply a set of Python classes.
+    </p>
+<p>
+      To call a vips operation, you'll need to make a new operation with
+      <a class="link" href="VipsOperation.html#vips-operation-new" title="vips_operation_new ()"><code class="function">vips_operation_new()</code></a> (all it does is look up the operation by name
+      with <a class="link" href="VipsObject.html#vips-type-find" title="vips_type_find ()"><code class="function">vips_type_find()</code></a>, then call <code class="function">g_object_new()</code> for you), then
+      use <a class="link" href="VipsObject.html#vips-argument-map" title="vips_argument_map ()"><code class="function">vips_argument_map()</code></a> and friends to loop over the operation's
+      arguments setting them. Once you have set all arguments, use
+      <a class="link" href="VipsOperation.html#vips-cache-operation-build" title="vips_cache_operation_build ()"><code class="function">vips_cache_operation_build()</code></a> to look up the operation in the cache
+      and either build or dup it. If something goes wrong, you'll need
+      to use <a class="link" href="VipsObject.html#vips-object-unref-outputs" title="vips_object_unref_outputs ()"><code class="function">vips_object_unref_outputs()</code></a> and <code class="function">g_object_unref()</code> to free the
+      partially-built object.
+      The Python binding uses this technique to implement a function which
+      can call any vips operation, turning optional vips arguments into
+      Python keyword arguments.
+    </p>
+<p>
+      If your language does not have a gobject-introspection package, you'll 
+      need to write something in C or C++ doing approximately the same thing. 
+      The C++ API takes this route.
+    </p>
+<p>
+      You can generate searchable docs from a <code class="code">.gir</code> (the thing that 
+      is built from scanning libvips and which in turn turn the typelib is 
+      made from) with <span class="command"><strong>g-ir-doc-tool</strong></span>, for example:
+
+</p>
+<pre class="programlisting">
+$ g-ir-doc-tool --language=Python -o ~/mydocs Vips-8.0.gir
+</pre>
+<p>
+
+      Then to view them, either:
+
+</p>
+<pre class="programlisting">
+$ yelp ~/mydocs 
+</pre>
+<p>
+
+      Or perhaps
+
+</p>
+<pre class="programlisting">
+$ cd ~/mydocs 
+$ yelp-build html .
+</pre>
+<p>
+
+      To make HTML docs. This is an easy way to see what you can call in the 
+      library. 
+    </p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

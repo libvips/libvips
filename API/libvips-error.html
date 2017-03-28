@@ -1,0 +1,2099 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: error</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch02.html" title="Core VIPS API">
+<link rel="prev" href="VipsOperation.html" title="VipsOperation">
+<link rel="next" href="libvips-memory.html" title="memory">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-error.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="VipsOperation.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libvips-memory.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-error"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-error.top_of_page"></a>error</span></h2>
+<p>error — error messages and error handling</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-error.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libvips-error.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-error-buffer" title="vips_error_buffer ()">vips_error_buffer</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-error-clear" title="vips_error_clear ()">vips_error_clear</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-error-freeze" title="vips_error_freeze ()">vips_error_freeze</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-error-thaw" title="vips_error_thaw ()">vips_error_thaw</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-error" title="vips_error ()">vips_error</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-verror" title="vips_verror ()">vips_verror</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-error-system" title="vips_error_system ()">vips_error_system</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-verror-system" title="vips_verror_system ()">vips_verror_system</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-error-g" title="vips_error_g ()">vips_error_g</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()">vips_g_error</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-error-exit" title="vips_error_exit ()">vips_error_exit</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-uncoded" title="vips_check_uncoded ()">vips_check_uncoded</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-coding" title="vips_check_coding ()">vips_check_coding</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-coding-known" title="vips_check_coding_known ()">vips_check_coding_known</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-coding-noneorlabq" title="vips_check_coding_noneorlabq ()">vips_check_coding_noneorlabq</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-coding-same" title="vips_check_coding_same ()">vips_check_coding_same</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-mono" title="vips_check_mono ()">vips_check_mono</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-bands" title="vips_check_bands ()">vips_check_bands</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-bands-1or3" title="vips_check_bands_1or3 ()">vips_check_bands_1or3</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-bands-atleast" title="vips_check_bands_atleast ()">vips_check_bands_atleast</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-bands-1orn" title="vips_check_bands_1orn ()">vips_check_bands_1orn</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-bands-1orn-unary" title="vips_check_bands_1orn_unary ()">vips_check_bands_1orn_unary</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-bands-same" title="vips_check_bands_same ()">vips_check_bands_same</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-bandno" title="vips_check_bandno ()">vips_check_bandno</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-int" title="vips_check_int ()">vips_check_int</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-uint" title="vips_check_uint ()">vips_check_uint</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-uintorf" title="vips_check_uintorf ()">vips_check_uintorf</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-noncomplex" title="vips_check_noncomplex ()">vips_check_noncomplex</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-complex" title="vips_check_complex ()">vips_check_complex</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-twocomponents" title="vips_check_twocomponents ()">vips_check_twocomponents</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-format" title="vips_check_format ()">vips_check_format</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-u8or16" title="vips_check_u8or16 ()">vips_check_u8or16</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-8or16" title="vips_check_8or16 ()">vips_check_8or16</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-u8or16orf" title="vips_check_u8or16orf ()">vips_check_u8or16orf</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-format-same" title="vips_check_format_same ()">vips_check_format_same</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-size-same" title="vips_check_size_same ()">vips_check_size_same</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-oddsquare" title="vips_check_oddsquare ()">vips_check_oddsquare</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-vector-length" title="vips_check_vector_length ()">vips_check_vector_length</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-vector" title="vips_check_vector ()">vips_check_vector</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-hist" title="vips_check_hist ()">vips_check_hist</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-matrix" title="vips_check_matrix ()">vips_check_matrix</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-separable" title="vips_check_separable ()">vips_check_separable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-error.html#vips-check-precision-intfloat" title="vips_check_precision_intfloat ()">vips_check_precision_intfloat</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-error.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libvips-error.description"></a><h2>Description</h2>
+<p>VIPS maintains an error buffer (a log of localised text messages), 
+a set of functions
+for adding messages, and a way to access and clear the buffer.</p>
+<p>The error buffer is global, that is, it is shared between all threads. You
+can add to the buffer from any thread (there is a lock to prevent
+corruption), but it's sensible to only read and clear the buffer from the
+main thread of execution.</p>
+<p>The general principle is: if you detect an error, log a message for the
+user. If a function you call detects an error, just propogate it and don't
+add another message.</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="usertype">IMAGE</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">im</span><span class="symbol">;</span>
+
+<span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">!(</span><span class="normal">im </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="VipsImage.html#vips-image-new-from-file">vips_image_new_from_file</a></span><span class="symbol">(</span><span class="normal"> filename</span><span class="symbol">,</span><span class="normal"> NULL </span><span class="symbol">))</span><span class="normal"> </span><span class="symbol">)</span>
+<span class="normal">  </span><span class="comment">// vips_image_new_from_file() will set a message, we don't need to</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="normal"> </span><span class="symbol">);</span>
+
+<span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function"><a href="libvips-header.html#vips-image-get-width">vips_image_get_width</a></span><span class="symbol">(</span><span class="normal"> im </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">&lt;</span><span class="normal"> </span><span class="number">100</span><span class="normal"> </span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">  </span><span class="comment">// we have detected an error, we must set a message</span>
+<span class="normal">  </span><span class="function"><a href="libvips-error.html#vips-error">vips_error</a></span><span class="symbol">(</span><span class="normal"> </span><span class="string">"myprogram"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"%s"</span><span class="symbol">,</span><span class="normal"> </span><span class="function">_</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"width too small"</span><span class="normal"> </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">);</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="normal"> </span><span class="symbol">);</span>
+<span class="cbracket">}</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>The domain argument most of these functions take is not localised and is
+supposed to indicate the component which failed.</p>
+<p>libvips uses <code class="function">g_warning()</code> and <a class="link" href="libvips-util.html#g-info" title="g_info()"><code class="function">g_info()</code></a> to send warning and information
+messages to the user. You can use the usual glib mechanisms to display or
+divert these messages. For example, info messages are hidden by default, but
+you can see them with: </p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="normal">$ G_MESSAGES_DEBUG</span><span class="symbol">=</span><span class="normal">VIPS </span><span class="usertype">vipsthumbnail</span><span class="normal"> k2</span><span class="symbol">.</span><span class="normal">jpg </span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> </span><span class="usertype">thumbnailing</span><span class="normal"> k2</span><span class="symbol">.</span><span class="normal">jpg</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> selected loader is VipsForeignLoadJpegFile</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> input size is </span><span class="number">1450</span><span class="normal"> x </span><span class="number">2048</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> loading jpeg with factor </span><span class="number">8</span><span class="normal"> pre</span><span class="symbol">-</span><span class="normal">shrink</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> converting to processing space srgb</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> residual reducev by </span><span class="number">0.5</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> </span><span class="number">13</span><span class="normal"> point mask</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> using vector path</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> residual reduceh by </span><span class="number">0.5</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> </span><span class="number">13</span><span class="normal"> point mask</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> </span><span class="usertype">thumbnailing</span><span class="normal"> k2</span><span class="symbol">.</span><span class="usertype">jpg</span><span class="normal"> as </span><span class="symbol">./</span><span class="normal">tn_k2</span><span class="symbol">.</span><span class="normal">jpg</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+</div>
+<div class="refsect1">
+<a name="libvips-error.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips-error-buffer"></a><h3>vips_error_buffer ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_error_buffer (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Get a pointer to the start of the error buffer as a C string.
+The string is owned by the error system and must not be freed.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error-clear" title="vips_error_clear ()"><code class="function">vips_error_clear()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.2.6"></a><h4>Returns</h4>
+<p> the error buffer as a C string which must not be freed</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-error-clear"></a><h3>vips_error_clear ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_error_clear (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Clear and reset the error buffer. This is typically called after presenting
+an error to the user.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error-buffer" title="vips_error_buffer ()"><code class="function">vips_error_buffer()</code></a>.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-error-freeze"></a><h3>vips_error_freeze ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_error_freeze (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Stop errors being logged. Use <a class="link" href="libvips-error.html#vips-error-thaw" title="vips_error_thaw ()"><code class="function">vips_error_thaw()</code></a> to unfreeze. You can
+nest freeze/thaw pairs.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-error-thaw"></a><h3>vips_error_thaw ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_error_thaw (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Reenable error logging.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-error"></a><h3>vips_error ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_error (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+            <em class="parameter"><code>const <span class="type">char</span> *fmt</code></em>,
+            <em class="parameter"><code>...</code></em>);</pre>
+<p>Format the string in the style of <code class="function">printf()</code> and append to the error buffer.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error-system" title="vips_error_system ()"><code class="function">vips_error_system()</code></a>, <a class="link" href="libvips-error.html#vips-verror" title="vips_verror ()"><code class="function">vips_verror()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.6.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the source of the error</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>fmt</p></td>
+<td class="parameter_description"><p>printf()-style format string for the error</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>arguments to the format string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-verror"></a><h3>vips_verror ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_verror (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+             <em class="parameter"><code>const <span class="type">char</span> *fmt</code></em>,
+             <em class="parameter"><code><span class="type">va_list</span> ap</code></em>);</pre>
+<p>Append a message to the error buffer.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.7.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the source of the error</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>fmt</p></td>
+<td class="parameter_description"><p>printf()-style format string for the error</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ap</p></td>
+<td class="parameter_description"><p>arguments to the format string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-error-system"></a><h3>vips_error_system ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_error_system (<em class="parameter"><code><span class="type">int</span> err</code></em>,
+                   <em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                   <em class="parameter"><code>const <span class="type">char</span> *fmt</code></em>,
+                   <em class="parameter"><code>...</code></em>);</pre>
+<p>Format the string in the style of <code class="function">printf()</code> and append to the error buffer.
+Then create and append a localised message based on the system error code,
+usually the value of errno.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-verror-system" title="vips_verror_system ()"><code class="function">vips_verror_system()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.8.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>err</p></td>
+<td class="parameter_description"><p>the system error code</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the source of the error</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>fmt</p></td>
+<td class="parameter_description"><p>printf()-style format string for the error</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>arguments to the format string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-verror-system"></a><h3>vips_verror_system ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_verror_system (<em class="parameter"><code><span class="type">int</span> err</code></em>,
+                    <em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                    <em class="parameter"><code>const <span class="type">char</span> *fmt</code></em>,
+                    <em class="parameter"><code><span class="type">va_list</span> ap</code></em>);</pre>
+<p>Format the string in the style of <code class="function">printf()</code> and append to the error buffer.
+Then create and append a localised message based on the system error code,
+usually the value of errno.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error-system" title="vips_error_system ()"><code class="function">vips_error_system()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.9.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>err</p></td>
+<td class="parameter_description"><p>the system error code</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the source of the error</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>fmt</p></td>
+<td class="parameter_description"><p>printf()-style format string for the error</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ap</p></td>
+<td class="parameter_description"><p>arguments to the format string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-error-g"></a><h3>vips_error_g ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_error_g (<em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>This function sets the glib error pointer from the vips error buffer and
+clears it. It's handy for returning errors to glib functions from vips.</p>
+<p>See <a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()"><code class="function">vips_g_error()</code></a> for the inverse operation.</p>
+<p>See also: <code class="function">g_set_error()</code>, <a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()"><code class="function">vips_g_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.10.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>glib error pointer</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-g-error"></a><h3>vips_g_error ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_g_error (<em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>This function adds the <code class="literal">GError</code> to the vips error buffer and clears it. It's
+the opposite of <a class="link" href="libvips-error.html#vips-error-g" title="vips_error_g ()"><code class="function">vips_error_g()</code></a>.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error-g" title="vips_error_g ()"><code class="function">vips_error_g()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.11.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>glib error pointer</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-error-exit"></a><h3>vips_error_exit ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_error_exit (<em class="parameter"><code>const <span class="type">char</span> *fmt</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>Sends a formatted error message to stderr, then sends the contents of the
+error buffer, if any, then shuts down vips and terminates the program with 
+an error code.</p>
+<p><em class="parameter"><code>fmt</code></em>
+ may be <code class="literal">NULL</code>, in which case only the error buffer is printed before
+exiting.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.12.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>fmt</p></td>
+<td class="parameter_description"><p>printf()-style format string for the message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>arguments to the format string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-uncoded"></a><h3>vips_check_uncoded ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_uncoded (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                    <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is not coded. 
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.13.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.13.7"></a><h4>Returns</h4>
+<p> 0 on OK, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-coding"></a><h3>vips_check_coding ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_coding (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                   <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>,
+                   <em class="parameter"><code><a class="link" href="VipsImage.html#VipsCoding" title="enum VipsCoding"><span class="type">VipsCoding</span></a> coding</code></em>);</pre>
+<p>Check that the image has the required <em class="parameter"><code>coding</code></em>
+.
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.14.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>coding</p></td>
+<td class="parameter_description"><p>required coding</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.14.7"></a><h4>Returns</h4>
+<p> 0 on OK, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-coding-known"></a><h3>vips_check_coding_known ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_coding_known (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                         <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is uncoded, LABQ coded or RAD coded. 
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.15.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.15.7"></a><h4>Returns</h4>
+<p> 0 on OK, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-coding-noneorlabq"></a><h3>vips_check_coding_noneorlabq ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_coding_noneorlabq (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                              <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is uncoded or LABQ coded.
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.16.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.16.7"></a><h4>Returns</h4>
+<p> 0 on OK, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-coding-same"></a><h3>vips_check_coding_same ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_coding_same (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                        <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im1</code></em>,
+                        <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im2</code></em>);</pre>
+<p>Check that the images have the same coding.
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.17.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im1</p></td>
+<td class="parameter_description"><p>first image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im2</p></td>
+<td class="parameter_description"><p>second image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.17.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-mono"></a><h3>vips_check_mono ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_mono (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                 <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image has exactly one band.
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.18.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.18.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-bands"></a><h3>vips_check_bands ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_bands (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                  <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> bands</code></em>);</pre>
+<p>Check that the image has <em class="parameter"><code>bands</code></em>
+ bands.
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.19.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>bands</p></td>
+<td class="parameter_description"><p>must have this many bands</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.19.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-bands-1or3"></a><h3>vips_check_bands_1or3 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_bands_1or3 (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                       <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image has either one or three bands.
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.20.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.20.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-bands-atleast"></a><h3>vips_check_bands_atleast ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_bands_atleast (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                          <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>,
+                          <em class="parameter"><code><span class="type">int</span> bands</code></em>);</pre>
+<p>Check that the image has at least <em class="parameter"><code>bands</code></em>
+ bands. 
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.21.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>bands</p></td>
+<td class="parameter_description"><p>at least this many bands</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.21.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-bands-1orn"></a><h3>vips_check_bands_1orn ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_bands_1orn (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                       <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im1</code></em>,
+                       <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im2</code></em>);</pre>
+<p>Check that the images have the same number of bands, or that one of the
+images has just 1 band.
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.22.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im1</p></td>
+<td class="parameter_description"><p>first image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im2</p></td>
+<td class="parameter_description"><p>second image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.22.7"></a><h4>Returns</h4>
+<p> 0 on OK, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-bands-1orn-unary"></a><h3>vips_check_bands_1orn_unary ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_bands_1orn_unary (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                             <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>,
+                             <em class="parameter"><code><span class="type">int</span> n</code></em>);</pre>
+<p>Check that an image has 1 or <em class="parameter"><code>n</code></em>
+ bands. Handy for unary operations, cf.
+<a class="link" href="libvips-error.html#vips-check-bands-1orn" title="vips_check_bands_1orn ()"><code class="function">vips_check_bands_1orn()</code></a>.
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-check-bands-1orn" title="vips_check_bands_1orn ()"><code class="function">vips_check_bands_1orn()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.23.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n</p></td>
+<td class="parameter_description"><p>number of bands, or 1</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.23.7"></a><h4>Returns</h4>
+<p> 0 on OK, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-bands-same"></a><h3>vips_check_bands_same ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_bands_same (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                       <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im1</code></em>,
+                       <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im2</code></em>);</pre>
+<p>Check that the images have the same number of bands.
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.24.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im1</p></td>
+<td class="parameter_description"><p>first image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im2</p></td>
+<td class="parameter_description"><p>second image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.24.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-bandno"></a><h3>vips_check_bandno ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_bandno (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                   <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> bandno</code></em>);</pre>
+<p><em class="parameter"><code>bandno</code></em>
+ should be a valid band number (ie. 0 to im-&gt;Bands - 1), or can be
+-1, meaning all bands. 
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.25.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>bandno</p></td>
+<td class="parameter_description"><p>band number</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.25.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-int"></a><h3>vips_check_int ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_int (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is in one of the integer formats.
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.26.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.26.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-uint"></a><h3>vips_check_uint ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_uint (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                 <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is in one of the unsigned integer formats.
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.27.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.27.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-uintorf"></a><h3>vips_check_uintorf ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_uintorf (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                    <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is unsigned int or float.
+Otherwise set an error message and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.28.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.28.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-noncomplex"></a><h3>vips_check_noncomplex ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_noncomplex (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                       <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is not complex.
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.29.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.29.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-complex"></a><h3>vips_check_complex ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_complex (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                    <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is complex.
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.30.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.30.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-twocomponents"></a><h3>vips_check_twocomponents ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_twocomponents (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                          <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is has two "components", ie. is a one-band complex or
+a two-band non-complex. 
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.31.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.31.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-format"></a><h3>vips_check_format ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_format (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                   <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>,
+                   <em class="parameter"><code><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> fmt</code></em>);</pre>
+<p>Check that the image has the specified format.
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.32.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>fmt</p></td>
+<td class="parameter_description"><p>format to test for</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.32.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-u8or16"></a><h3>vips_check_u8or16 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_u8or16 (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                   <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is 8 or 16-bit unsigned integer.
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.33.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.33.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-8or16"></a><h3>vips_check_8or16 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_8or16 (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                  <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is 8 or 16-bit integer, signed or unsigned.
+Otherwise set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.34.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.34.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-u8or16orf"></a><h3>vips_check_u8or16orf ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_u8or16orf (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                      <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is 8 or 16-bit unsigned integer, or float.
+Otherwise set an error message and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.35.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.35.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-format-same"></a><h3>vips_check_format_same ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_format_same (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                        <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im1</code></em>,
+                        <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im2</code></em>);</pre>
+<p>Check that the images have the same format.
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.36.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im1</p></td>
+<td class="parameter_description"><p>first image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im2</p></td>
+<td class="parameter_description"><p>second image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.36.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-size-same"></a><h3>vips_check_size_same ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_size_same (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                      <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im1</code></em>,
+                      <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im2</code></em>);</pre>
+<p>Check that the images have the same size.
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.37.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im1</p></td>
+<td class="parameter_description"><p>first image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im2</p></td>
+<td class="parameter_description"><p>second image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.37.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-oddsquare"></a><h3>vips_check_oddsquare ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_oddsquare (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                      <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Check that the image is square and that the sides are odd. 
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.38.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.38.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-vector-length"></a><h3>vips_check_vector_length ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_vector_length (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                          <em class="parameter"><code><span class="type">int</span> n</code></em>,
+                          <em class="parameter"><code><span class="type">int</span> len</code></em>);</pre>
+<p>Check that <em class="parameter"><code>n</code></em>
+ == <em class="parameter"><code>len</code></em>
+. </p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.39.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n</p></td>
+<td class="parameter_description"><p>number of elements in vector</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>number of elements vector should have</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.39.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-vector"></a><h3>vips_check_vector ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_vector (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> n</code></em>,
+                   <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Operations with a vector constant need a 1-element vector, or a vector with
+the same number of elements as there are bands in the image.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.40.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n</p></td>
+<td class="parameter_description"><p>number of elements in vector</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check against</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.40.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-hist"></a><h3>vips_check_hist ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_hist (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                 <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Histogram images must have width or height 1, and must not have more than 
+65536 elements. Return 0 if the image will pass as a histogram, or -1 and
+set an error message otherwise.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.41.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.41.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-matrix"></a><h3>vips_check_matrix ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_matrix (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                   <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>,
+                   <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>);</pre>
+<p>Matrix images must have width and height less than 100000 and have 1 band.</p>
+<p>Return 0 if the image will pass as a matrix, or -1 and set an error 
+message otherwise.</p>
+<p><em class="parameter"><code>out</code></em>
+ is set to be <em class="parameter"><code>im</code></em>
+ cast to double and stored in memory. Use
+<a class="link" href="VipsImage.html#VIPS-MATRIX:CAPS" title="VIPS_MATRIX()"><code class="function">VIPS_MATRIX()</code></a> to address values in <em class="parameter"><code>out</code></em>
+. </p>
+<p>You must unref <em class="parameter"><code>out</code></em>
+ when you are done with it.</p>
+<p>See also: <a class="link" href="VipsImage.html#VIPS-MATRIX:CAPS" title="VIPS_MATRIX()"><code class="function">VIPS_MATRIX()</code></a>, <a class="link" href="VipsObject.html#vips-object-local" title="vips_object_local()"><code class="function">vips_object_local()</code></a></p>
+<div class="refsect3">
+<a name="id-1.3.7.7.42.9"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>put image as in-memory doubles here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.42.10"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-separable"></a><h3>vips_check_separable ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_separable (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                      <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>);</pre>
+<p>Separable matrix images must have width or height 1.
+Return 0 if the image will pass, or -1 and
+set an error message otherwise.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.43.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>im</p></td>
+<td class="parameter_description"><p>image to check </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.43.7"></a><h4>Returns</h4>
+<p> 0 if OK, -1 otherwise.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-check-precision-intfloat"></a><h3>vips_check_precision_intfloat ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_check_precision_intfloat (<em class="parameter"><code>const <span class="type">char</span> *domain</code></em>,
+                               <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsPrecision" title="enum VipsPrecision"><span class="type">VipsPrecision</span></a> precision</code></em>);</pre>
+<p>Check that <em class="parameter"><code>prec</code></em>
+ image is either float or int.
+If not, set an error message
+and return non-zero.</p>
+<p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.3.7.7.44.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>domain</p></td>
+<td class="parameter_description"><p>the originating domain for the error message</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>precision</p></td>
+<td class="parameter_description"><p>precision to check</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.7.7.44.7"></a><h4>Returns</h4>
+<p> 0 on OK, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-error.other_details"></a><h2>Types and Values</h2>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

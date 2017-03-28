@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: VIPS Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="next" href="ch01.html" title="VIPS Overview">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="book">
+<div class="titlepage">
+<div>
+<div><table class="navigation" id="top" width="100%" cellpadding="2" cellspacing="0"><tr><th valign="middle"><p class="title">VIPS Reference Manual</p></th></tr></table></div>
+<div><p class="releaseinfo">
+      For VIPS 8.5.1.
+      The latest version of this documentation can be found on the 
+      <a class="ulink" href="http://www.vips.ecs.soton.ac.uk/index.php?title=Documentation" target="_top">VIPS website</a>.
+    </p></div>
+</div>
+<hr>
+</div>
+<div class="toc"><dl class="toc">
+<dt><span class="chapter"><a href="ch01.html">VIPS Overview</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="using-cli.html">VIPS from the command-line</a></span><span class="refpurpose"> — How to use the VIPS library from the command-line</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="using-from-c.html">VIPS from C</a></span><span class="refpurpose"> — How to use the VIPS library from C</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="using-from-python.html">VIPS from Python</a></span><span class="refpurpose"> — How to use the VIPS library from Python</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="using-from-cpp.html">VIPS from C++</a></span><span class="refpurpose"> — How to use the VIPS library from C++</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="binding.html">Writing bindings for libvips</a></span><span class="refpurpose"> — How to write bindings for libvips</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="extending.html">Extending VIPS</a></span><span class="refpurpose"> — How to add operations to VIPS</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="func-list.html">VIPS function list</a></span><span class="refpurpose"> — List of VIPS functions and operators</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="file-format.html">The VIPS file format</a></span><span class="refpurpose"> — The VIPS file format</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="using-threads.html">VIPS and threads</a></span><span class="refpurpose"> — VIPS and threading</span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch02.html">Core VIPS API</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="libvips-vips.html">vips</a></span><span class="refpurpose"> — startup, shutdown, version</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="VipsImage.html">VipsImage</a></span><span class="refpurpose"> — the VIPS image class</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-header.html">header</a></span><span class="refpurpose"> — get, set and walk image headers</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-generate.html">generate</a></span><span class="refpurpose"> — calculate pixels and pixel buffers</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="VipsOperation.html">VipsOperation</a></span><span class="refpurpose"> — the VIPS operation base object class</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-error.html">error</a></span><span class="refpurpose"> — error messages and error handling</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-memory.html">memory</a></span><span class="refpurpose"> — memory utilities</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="VipsRegion.html">VipsRegion</a></span><span class="refpurpose"> — small, rectangular parts of images</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-type.html">type</a></span><span class="refpurpose"> — basic types</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-rect.html">rect</a></span><span class="refpurpose"> — the VIPS rectangle class</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="VipsObject.html">VipsObject</a></span><span class="refpurpose"> — the VIPS base object class</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="VipsThreadState.html">VipsThreadState</a></span><span class="refpurpose"> — pools of worker threads</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-buf.html">buf</a></span><span class="refpurpose"> — a string you can append to</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-basic.html">basic</a></span><span class="refpurpose"> — a few typedefs used everywhere</span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch03.html">VIPS operation API by section</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="libvips-arithmetic.html">arithmetic</a></span><span class="refpurpose"> — operations which perform pixel arithmetic, trig, log, statistics</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-colour.html">colour</a></span><span class="refpurpose"> — colour operators</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-conversion.html">conversion</a></span><span class="refpurpose"> — convert images in some way: change band format, change header, insert, extract, join</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-convolution.html">convolution</a></span><span class="refpurpose"> — convolve and correlate images</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="VipsForeignSave.html">VipsForeignSave</a></span><span class="refpurpose"> — load and save images in a variety of formats</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-freqfilt.html">freqfilt</a></span><span class="refpurpose"> — fourier transforms and frequency-domin filters</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-histogram.html">histogram</a></span><span class="refpurpose"> — find, manipulate and apply histograms and lookup tables</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-draw.html">draw</a></span><span class="refpurpose"> — drawing operations: flood, paste, line, circle</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="VipsInterpolate.html">VipsInterpolate</a></span><span class="refpurpose"> — various interpolators: nearest, bilinear, and
+some non-linear</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-morphology.html">morphology</a></span><span class="refpurpose"> — morphological operators, rank filters and related image 
+analysis</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-mosaicing.html">mosaicing</a></span><span class="refpurpose"> — build image mosaics</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-create.html">create</a></span><span class="refpurpose"> — create images in various ways</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-resample.html">resample</a></span><span class="refpurpose"> — resample images in various ways</span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch04.html">Other API (no gtkdoc comments yet)</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="libvips-transform.html">transform</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-util.html">util</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-version.html">version</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="libvips-semaphore.html">semaphore</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="object-tree.html">Object Hierarchy</a></span></dt>
+<dt><span class="index"><a href="api-index-full.html">API Index</a></span></dt>
+<dt><span class="glossary"><a href="annotation-glossary.html">Annotation Glossary</a></span></dt>
+</dl></div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

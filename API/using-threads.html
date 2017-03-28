@@ -1,0 +1,368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: VIPS and threads</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch01.html" title="VIPS Overview">
+<link rel="prev" href="file-format.html" title="The VIPS file format">
+<link rel="next" href="ch02.html" title="Core VIPS API">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="file-format.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch02.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="using-threads"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle">VIPS and threads</span></h2>
+<p>Using VIPS — VIPS and threading</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect3">
+<a name="using-threads-intro"></a><h4>Introduction</h4>
+<p>
+      This section tries to summarise the rules for threaded programs using 
+      libvips. Generally, libvips is threaded and thread-safe, with a few 
+      exceptions.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-threads-images"></a><h4>Images</h4>
+<p>
+      On startup, you need to call <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> single-threaded. After that,
+      you can freely create images in any thread and read them in any other 
+      thread. See the example at the end of this chapter. 
+      Note that results can also be shared between threads for you by the vips 
+      operation cache. 
+    </p>
+<p>
+      The exception is the drawing operators, such as <a class="link" href="libvips-draw.html#vips-draw-circle" title="vips_draw_circle ()"><code class="function">vips_draw_circle()</code></a>. 
+      These operations modify their image argument so you can't call them on 
+      the same image from more than one thread. Reading from an image while 
+      another thread is writing to it with one of the draw operations will 
+      obviously also fail.
+    </p>
+<p>
+      When libvips calculates an image, by default it will use as many 
+      threads as you have CPU cores. Use <a class="link" href="VipsOperation.html#vips-concurrency-set" title="vips_concurrency_set ()"><code class="function">vips_concurrency_set()</code></a> to change this.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-threads-errors"></a><h4>Error handling</h4>
+<p>
+      libvips has a single error code (-1 or <code class="literal">NULL</code>) returned by all functions 
+      on error. Error messages are not returned, instead they are logged  
+      in a single global error buffer shared by all threads, see 
+      <a class="link" href="libvips-error.html#vips-error-buffer" title="vips_error_buffer ()"><code class="function">vips_error_buffer()</code></a>. 
+    </p>
+<p>
+      This makes error handling very simple but the obvious downside is that
+      because error returns and error messages are separate when you 
+      detect an error return you can't be 
+      sure that what's in the error buffer is the message that matches your
+      error. 
+    </p>
+<p>
+      The simplest way to handle this is to present the whole error log to 
+      the user on the next interaction and leave it to them to decide what 
+      action caused the failure. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-threads-regions"></a><h4>Using <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> between threads</h4>
+<p>
+      <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> objects are immutable and can be shared between 
+      threads very simply.
+      However the lower-level <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> object used to implement <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> 
+      (see <a class="link" href="extending.html" title="Extending VIPS">Extending VIPS</a>) is mutable and you 
+      can only use a <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> from one thread at once. 
+    </p>
+<p>
+      In fact it's worse than that: to reduce locking, <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> keeps a 
+      lot of state in per-thread storage. If you want to create a region in 
+      one thread and use it in another, you have to first tag the region as 
+      unowned from the creating thread with <code class="function">vips__region_no_ownership()</code>, then 
+      in the recieving thread take ownership with 
+      <code class="function">vips__region_take_ownership()</code>. See the source for operations like 
+      <a class="link" href="libvips-conversion.html#vips-tilecache" title="vips_tilecache ()"><code class="function">vips_tilecache()</code></a> if you're curious how this works. 
+    </p>
+<p>
+      libvips includes a set of sanity checks for region ownership and will
+      fail if you don't pass ownership correctly. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-threads-example"></a><h4>Example</h4>
+<p>
+      This example runs many <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a> in parallel from many threads. 
+    </p>
+<div class="example">
+<a name="id-1.2.11.7.3"></a><p class="title"><b>Example 2. VIPS and threads example</b></p>
+<div class="example-contents">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="comment">/* Read from many threads. </span>
+<span class="comment"> *</span>
+<span class="comment"> * Compile with:</span>
+<span class="comment"> *</span>
+<span class="comment"> *  gcc -g -Wall soak.c `pkg-config vips --cflags --libs`</span>
+<span class="comment"> *</span>
+<span class="comment"> * Run with:</span>
+<span class="comment"> *</span>
+<span class="comment"> *  rm -rf x</span>
+<span class="comment"> *  mkdir x</span>
+<span class="comment"> *  for i in {0..10}; do ./a.out ~/pics/k2.jpg; done</span>
+<span class="comment"> *</span>
+<span class="comment"> */</span>
+
+<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;stdio.h&gt;</span>
+<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;glib.h&gt;</span>
+
+<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;vips/vips.h&gt;</span>
+
+<span class="comment">/* How many pings we run at once.</span>
+<span class="comment"> */</span>
+<span class="preproc">#define</span><span class="normal"> </span><span class="function">NUM_IN_PARALLEL</span><span class="normal"> </span><span class="symbol">(</span><span class="number">50</span><span class="symbol">)</span>
+
+<span class="comment">/* Number of tests we do in total.</span>
+<span class="comment"> */</span>
+<span class="preproc">#define</span><span class="normal"> </span><span class="function">TOTAL_TESTS</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">NUM_IN_PARALLEL </span><span class="symbol">*</span><span class="normal"> </span><span class="number">20</span><span class="symbol">)</span>
+
+<span class="comment">/* Workers queue up on this.</span>
+<span class="comment"> */</span>
+<span class="usertype">GMutex</span><span class="normal"> allocation_lock</span><span class="symbol">;</span>
+
+<span class="comment">/* Our set of threads.</span>
+<span class="comment"> */</span>
+<span class="usertype">GThread</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">workers</span><span class="symbol">[</span><span class="normal">NUM_IN_PARALLEL</span><span class="symbol">];</span>
+
+<span class="comment">/* Number of calls so far.</span>
+<span class="comment"> */</span>
+<span class="type">int</span><span class="normal"> n_calls </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span>
+
+<span class="comment">/* Our test function. This is called by NUM_IN_PARALLEL threads a total of</span>
+<span class="comment"> * TOTAL_TESTS times. </span>
+<span class="comment"> */</span>
+<span class="keyword">static</span><span class="normal"> </span><span class="type">int</span>
+<span class="function">test</span><span class="normal"> </span><span class="symbol">(</span><span class="keyword">const</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">filename</span><span class="symbol">)</span>
+<span class="cbracket">{</span>
+<span class="normal">  </span><span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">im</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">x</span><span class="symbol">;</span>
+<span class="normal">  </span><span class="type">char</span><span class="normal"> output_file</span><span class="symbol">[</span><span class="number">256</span><span class="symbol">];</span>
+
+<span class="normal">  </span><span class="function">snprintf</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">output_file</span><span class="symbol">,</span><span class="normal"> </span><span class="number">256</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"x/tmp-%p.jpg"</span><span class="symbol">,</span><span class="normal"> </span><span class="function">g_thread_self</span><span class="normal"> </span><span class="symbol">());</span>
+
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!(</span><span class="normal">im </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="VipsImage.html#vips-image-new-from-file">vips_image_new_from_file</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">,</span>
+<span class="normal">                       </span><span class="string">"access"</span><span class="symbol">,</span>
+<span class="normal">                       VIPS_ACCESS_SEQUENTIAL_UNBUFFERED</span><span class="symbol">,</span>
+<span class="normal">                       NULL</span><span class="symbol">)))</span>
+<span class="normal">    </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(-</span><span class="number">1</span><span class="symbol">);</span>
+
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="libvips-resample.html#vips-resize">vips_resize</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">x</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0.1</span><span class="symbol">,</span><span class="normal"> NULL</span><span class="symbol">))</span>
+<span class="normal">    </span><span class="cbracket">{</span>
+<span class="normal">      </span><span class="function">g_object_unref</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(-</span><span class="number">1</span><span class="symbol">);</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+<span class="normal">  </span><span class="function">g_object_unref</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">);</span>
+<span class="normal">  im </span><span class="symbol">=</span><span class="normal"> x</span><span class="symbol">;</span>
+
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="VipsImage.html#vips-image-write-to-file">vips_image_write_to_file</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">,</span><span class="normal"> output_file</span><span class="symbol">,</span><span class="normal"> NULL</span><span class="symbol">))</span>
+<span class="normal">    </span><span class="cbracket">{</span>
+<span class="normal">      </span><span class="function">g_object_unref</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(-</span><span class="number">1</span><span class="symbol">);</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+<span class="normal">  </span><span class="function">g_object_unref</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">);</span>
+
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(</span><span class="number">0</span><span class="symbol">);</span>
+<span class="cbracket">}</span>
+
+<span class="comment">/* What we run as a thread.</span>
+<span class="comment"> */</span>
+<span class="keyword">static</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="symbol">*</span>
+<span class="function">worker</span><span class="normal"> </span><span class="symbol">(</span><span class="type">void</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">data</span><span class="symbol">)</span>
+<span class="cbracket">{</span>
+<span class="normal">  </span><span class="keyword">const</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">filename </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="keyword">const</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*)</span><span class="normal"> data</span><span class="symbol">;</span>
+
+<span class="normal">  </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(;;)</span>
+<span class="normal">    </span><span class="cbracket">{</span>
+<span class="normal">      </span><span class="usertype">gboolean</span><span class="normal"> done</span><span class="symbol">;</span>
+
+<span class="normal">      done </span><span class="symbol">=</span><span class="normal"> FALSE</span><span class="symbol">;</span>
+<span class="normal">      </span><span class="function">g_mutex_lock</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">allocation_lock</span><span class="symbol">);</span>
+<span class="normal">      n_calls </span><span class="symbol">+=</span><span class="normal"> </span><span class="number">1</span><span class="symbol">;</span>
+<span class="normal">      </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">n_calls </span><span class="symbol">&gt;</span><span class="normal"> TOTAL_TESTS</span><span class="symbol">)</span>
+<span class="normal">    done </span><span class="symbol">=</span><span class="normal"> TRUE</span><span class="symbol">;</span>
+<span class="normal">      </span><span class="function">g_mutex_unlock</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">allocation_lock</span><span class="symbol">);</span>
+
+<span class="normal">      </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">done</span><span class="symbol">)</span>
+<span class="normal">    </span><span class="keyword">break</span><span class="symbol">;</span>
+
+<span class="normal">      </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function">test</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">))</span>
+<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">NULL</span><span class="symbol">);</span>
+<span class="normal">    </span><span class="cbracket">}</span>
+
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">NULL</span><span class="symbol">);</span>
+<span class="cbracket">}</span>
+
+<span class="type">int</span>
+<span class="function">main</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">**</span><span class="normal">argv</span><span class="symbol">)</span>
+<span class="cbracket">{</span>
+<span class="normal">  </span><span class="type">int</span><span class="normal"> i</span><span class="symbol">;</span>
+
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="libvips-vips.html#VIPS-INIT:CAPS">VIPS_INIT</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">argv</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">]))</span>
+<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">NULL</span><span class="symbol">);</span>
+
+<span class="normal">  </span><span class="function">g_mutex_init</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">allocation_lock</span><span class="symbol">);</span>
+
+<span class="normal">  </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;</span><span class="normal"> NUM_IN_PARALLEL</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span>
+<span class="normal">    workers</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="function">g_thread_new</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">NULL</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">GThreadFunc</span><span class="symbol">)</span><span class="normal"> worker</span><span class="symbol">,</span><span class="normal"> argv</span><span class="symbol">[</span><span class="number">1</span><span class="symbol">]);</span>
+
+<span class="normal">  </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;</span><span class="normal"> NUM_IN_PARALLEL</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span>
+<span class="normal">    </span><span class="function">g_thread_join</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">workers</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]);</span>
+
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(</span><span class="number">0</span><span class="symbol">);</span>
+<span class="cbracket">}</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+<br class="example-break">
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

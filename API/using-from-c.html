@@ -1,0 +1,297 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: VIPS from C</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch01.html" title="VIPS Overview">
+<link rel="prev" href="using-cli.html" title="VIPS from the command-line">
+<link rel="next" href="using-from-python.html" title="VIPS from Python">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="using-cli.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="using-from-python.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="using-from-c"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle">VIPS from C</span></h2>
+<p>Using VIPS — How to use the VIPS library from C</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect3">
+<a name="using-C-intro"></a><h4>Introduction</h4>
+<p>
+      VIPS comes with a convenient, high-level C API. You should read the API 
+      docs for full details, but this section will try to give a brief 
+      overview. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-C-startup"></a><h4>Library startup</h4>
+<p>
+      When your program starts, use <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>
+      to start up the VIPS library. You should pass it the name
+      of your program, usually <code class="code">argv[0]</code>. Use
+      <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a> when you exit. <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> is a macro to let it check 
+      that the libvips library you have linked to matches the libvips headers 
+      you included. 
+    </p>
+<p>
+      You can add the VIPS flags to your <code class="literal">GObject</code> command-line processing
+      with <a class="link" href="libvips-vips.html#vips-add-option-entries" title="vips_add_option_entries ()"><code class="function">vips_add_option_entries()</code></a>.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-C-vipsimage"></a><h4>The <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> class</h4>
+<p>
+      The basic data object is the <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a>. You can create an
+      image from a file on disc or from an area of memory, either
+      as a C-style array, or as a formatted object, like JPEG. See
+      <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a> and friends.  Loading an
+      image is fast: VIPS read just enough of the image to be able to get
+      the various properties, such as width, but no decoding occurs until 
+      pixel values are really needed.
+    </p>
+<p>
+      Once you have an image, you can get properties from it in the usual way. 
+      You can use projection functions, like <a class="link" href="libvips-header.html#vips-image-get-width" title="vips_image_get_width ()"><code class="function">vips_image_get_width()</code></a> or 
+      <code class="function">g_object_get()</code>, to get <code class="literal">GObject</code> properties. All VIPS objects are
+      immutable, meaning you can only get properties, you can't set them.
+      See <a class="link" href="libvips-header.html" title="header">VIPS Header</a> to read about 
+      image properties.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-C-ref"></a><h4>Reference counting</h4>
+<p>
+      VIPS is based on the <code class="literal">GObject</code> library and is therefore reference counted. 
+      <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a> returns an object with a count of 1. 
+      When you are done with an image, use <code class="function">g_object_unref()</code> to dispose of it. 
+      If you pass an image to an operation and that operation needs to keep a 
+      copy of the image, it will ref it. So you can unref an image as soon as 
+      you no longer need it, you don't need to hang on to it in case anyone 
+      else is still using it. 
+    </p>
+<p>
+      See <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> for more detail on VIPS 
+      reference counting conventions.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-C-operations"></a><h4>VIPS operations</h4>
+<p>
+      Use things like <a class="link" href="libvips-conversion.html#vips-embed" title="vips_embed ()"><code class="function">vips_embed()</code></a> to manipulate your images. You use it from 
+      C like this:
+
+</p>
+<pre class="programlisting">
+const char *filename;
+VipsImage *in = vips_image_new_from_file (filename, NULL); 
+const int x = 10;
+const int y = 10;
+const int width = 1000;
+const int height = 1000;
+VipsImage *out;
+
+if (vips_embed (in, &amp;out, x, y, width, height, NULL))
+  error_handling();
+</pre>
+<p>
+
+      Now <code class="code">out</code> will hold a reference to a 1000 by 1000 pixel 
+      image, with <code class="code">in</code> pasted 10 right and 10 down from the top 
+      left-hand corner. The remainder of the image will be black. If 
+      <code class="code">in</code> is too large, it will be clipped at the image edges.
+    </p>
+<p>
+      Operations can take optional arguments. You give these as a set of 
+      NULL-terminated name-value pairs at the end of the call. For example, 
+      you can write:
+
+</p>
+<pre class="programlisting">
+if (vips_embed (in, &amp;out, x, y, width, height, 
+  "extend", VIPS_EXTEND_COPY,
+  NULL))
+  error_handling();
+</pre>
+<p>
+
+      And now the new edge pixels, which were black, will be filled with a copy
+      of the edge pixels of <code class="code">in</code>. Operation options are listed 
+      at the top of each operation's entry in the docs. Alternatively, 
+      the <span class="command"><strong>vips</strong></span> program is handy for getting a 
+      summary of an operation's parameters. For example:
+
+</p>
+<pre class="programlisting">
+$ vips embed
+embed an image in a larger image
+usage:
+   embed in out x y width height
+where:
+   in           - Input image, input VipsImage
+   out          - Output image, output VipsImage
+   x            - Left edge of input in output, input gint
+			                default: 0
+			                min: -1000000000, max: 1000000000
+   y            - Top edge of input in output, input gint
+			                default: 0
+			                min: -1000000000, max: 1000000000
+   width        - Image width in pixels, input gint
+			                default: 1
+			                min: 1, max: 1000000000
+   height       - Image height in pixels, input gint
+			                default: 1
+			                min: 1, max: 1000000000
+optional arguments:
+   extend       - How to generate the extra pixels, input VipsExtend
+			                default: black
+			                allowed: black, copy, repeat, mirror, white, background
+   background   - Colour for background pixels, input VipsArrayDouble
+operation flags: sequential-unbuffered 
+</pre>
+<p>
+
+      See <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> for more information on running operations on images. 
+    </p>
+<p>
+      When you are done, you can write
+      the final image to a disc file, to a formatted memory buffer, or to
+      C-style memory array. See <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a> and friends.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-C-pixels"></a><h4>Getting pixels</h4>
+<p>
+      Use <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> to read pixels out of images. You can use 
+      <a class="link" href="VipsImage.html#VIPS-IMAGE-ADDR:CAPS" title="VIPS_IMAGE_ADDR()"><code class="function">VIPS_IMAGE_ADDR()</code></a> as well, but this can need a large amount of 
+      memory to work. See <a class="link" href="extending.html" title="Extending VIPS">extending</a> 
+      for an introduction to writing your own operations. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-C-errors"></a><h4>Error handling</h4>
+<p>
+      VIPS keeps a log of error message, see  <a class="link" href="libvips-error.html" title="error">VIPS Error</a> to find out how to get and
+      clear the error log.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-C-example"></a><h4>Example</h4>
+<div class="example">
+<a name="id-1.2.4.10.2"></a><p class="title"><b>Example 1. VIPS from C example</b></p>
+<div class="example-contents">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="comment">/* compile with:</span>
+<span class="comment"> *</span>
+<span class="comment"> *      gcc -g -Wall try211.c `pkg-config vips --cflags --libs`</span>
+<span class="comment"> */</span>
+
+<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;stdio.h&gt;</span>
+<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;vips/vips.h&gt;</span>
+
+<span class="type">int</span>
+<span class="function">main</span><span class="symbol">(</span><span class="normal"> </span><span class="type">int</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">**</span><span class="normal">argv </span><span class="symbol">)</span>
+<span class="cbracket">{</span>
+<span class="normal">  </span><span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">in</span><span class="symbol">;</span>
+<span class="normal">  </span><span class="type">double</span><span class="normal"> mean</span><span class="symbol">;</span>
+<span class="normal">  </span><span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">out</span><span class="symbol">;</span>
+
+<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function"><a href="libvips-vips.html#VIPS-INIT:CAPS">VIPS_INIT</a></span><span class="symbol">(</span><span class="normal"> argv</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
+<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> NULL </span><span class="symbol">);</span><span class="normal"> </span>
+
+<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> argc </span><span class="symbol">!=</span><span class="normal"> </span><span class="number">3</span><span class="normal"> </span><span class="symbol">)</span>
+<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> </span><span class="string">"usage: %s infile outfile"</span><span class="symbol">,</span><span class="normal"> argv</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">);</span><span class="normal"> </span>
+<span class="normal">  </span>
+<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">!(</span><span class="normal">in </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="VipsImage.html#vips-image-new-from-file">vips_image_new_from_file</a></span><span class="symbol">(</span><span class="normal"> argv</span><span class="symbol">[</span><span class="number">1</span><span class="symbol">],</span><span class="normal"> NULL </span><span class="symbol">))</span><span class="normal"> </span><span class="symbol">)</span>
+<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> NULL </span><span class="symbol">);</span>
+
+<span class="normal">  </span><span class="function">printf</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"image width = %d</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="libvips-header.html#vips-image-get-width">vips_image_get_width</a></span><span class="symbol">(</span><span class="normal"> in </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">);</span><span class="normal"> </span>
+
+<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function"><a href="libvips-arithmetic.html#vips-avg">vips_avg</a></span><span class="symbol">(</span><span class="normal"> in</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">mean</span><span class="symbol">,</span><span class="normal"> NULL </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
+<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> NULL </span><span class="symbol">);</span>
+
+<span class="normal">  </span><span class="function">printf</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"mean pixel value = %g</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> mean </span><span class="symbol">);</span><span class="normal"> </span>
+
+<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function"><a href="libvips-arithmetic.html#vips-invert">vips_invert</a></span><span class="symbol">(</span><span class="normal"> in</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">out</span><span class="symbol">,</span><span class="normal"> NULL </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
+<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> NULL </span><span class="symbol">);</span>
+
+<span class="normal">  </span><span class="function">g_object_unref</span><span class="symbol">(</span><span class="normal"> in </span><span class="symbol">);</span><span class="normal"> </span>
+
+<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function"><a href="VipsImage.html#vips-image-write-to-file">vips_image_write_to_file</a></span><span class="symbol">(</span><span class="normal"> out</span><span class="symbol">,</span><span class="normal"> argv</span><span class="symbol">[</span><span class="number">2</span><span class="symbol">],</span><span class="normal"> NULL </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
+<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> NULL </span><span class="symbol">);</span>
+
+<span class="normal">  </span><span class="function">g_object_unref</span><span class="symbol">(</span><span class="normal"> out </span><span class="symbol">);</span><span class="normal"> </span>
+
+<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="number">0</span><span class="normal"> </span><span class="symbol">);</span>
+<span class="cbracket">}</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+<br class="example-break">
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

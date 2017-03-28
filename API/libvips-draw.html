@@ -1,0 +1,1250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: draw</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch03.html" title="VIPS operation API by section">
+<link rel="prev" href="libvips-histogram.html" title="histogram">
+<link rel="next" href="VipsInterpolate.html" title="VipsInterpolate">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-draw.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-histogram.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="VipsInterpolate.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-draw"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-draw.top_of_page"></a>draw</span></h2>
+<p>draw — drawing operations: flood, paste, line, circle</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-draw.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libvips-draw.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-rect" title="vips_draw_rect ()">vips_draw_rect</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-rect1" title="vips_draw_rect1 ()">vips_draw_rect1</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-point" title="vips_draw_point ()">vips_draw_point</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-point1" title="vips_draw_point1 ()">vips_draw_point1</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-image" title="vips_draw_image ()">vips_draw_image</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-mask" title="vips_draw_mask ()">vips_draw_mask</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-mask1" title="vips_draw_mask1 ()">vips_draw_mask1</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-line" title="vips_draw_line ()">vips_draw_line</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-line1" title="vips_draw_line1 ()">vips_draw_line1</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-circle" title="vips_draw_circle ()">vips_draw_circle</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-circle1" title="vips_draw_circle1 ()">vips_draw_circle1</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-flood" title="vips_draw_flood ()">vips_draw_flood</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-flood1" title="vips_draw_flood1 ()">vips_draw_flood1</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-draw.html#vips-draw-smudge" title="vips_draw_smudge ()">vips_draw_smudge</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-draw.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libvips-draw.html#VipsCombineMode" title="enum VipsCombineMode">VipsCombineMode</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-draw.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libvips-draw.description"></a><h2>Description</h2>
+<p>These operations directly modify the image. They do not thread, on 32-bit
+machines they will be limited to 2GB images, and a little care needs to be
+taken if you use them as part of an image pipeline. 
+They are mostly supposed to be useful for paintbox-style programs.</p>
+<p>libvips operations are all functional: they take zero or more existing input 
+images and generate zero or more new output images. Images are
+never altered, you always create new images. This means libvips can cache
+and thread very agressively.</p>
+<p>The downside is that creating entirely fresh images each time can be very
+slow. libvips has a range of tricks to avoid these problems, but there are
+still times when you really have to be able to modify an image. An example
+might be drawing a curved line from a set of straight line segments: if you
+need to draw 1,000 straight lines, a 1,000 operation-deep pipeline is going
+to be a slow way to do it. This is where the draw operations come in.</p>
+<p>To use these operations, use <a class="link" href="libvips-conversion.html#vips-copy" title="vips_copy ()"><code class="function">vips_copy()</code></a> to make a copy of the image you 
+want to modify, to ensure that no one else is using it, then call a 
+series of draw operations.
+Once you are done drawing, return to normal use of vips operations. Any time
+you want to start drawing again, you'll need to copy again.</p>
+</div>
+<div class="refsect1">
+<a name="libvips-draw.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips-draw-rect"></a><h3>vips_draw_rect ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_rect (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                <em class="parameter"><code><span class="type">double</span> *ink</code></em>,
+                <em class="parameter"><code><span class="type">int</span> n</code></em>,
+                <em class="parameter"><code><span class="type">int</span> left</code></em>,
+                <em class="parameter"><code><span class="type">int</span> top</code></em>,
+                <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>fill</code></em>
+: fill the rect</p></li></ul></div>
+<p>Paint pixels within <em class="parameter"><code>left</code></em>
+, <em class="parameter"><code>top</code></em>
+, <em class="parameter"><code>width</code></em>
+, <em class="parameter"><code>height</code></em>
+ in <em class="parameter"><code>image</code></em>
+ with <em class="parameter"><code>ink</code></em>
+. If
+<em class="parameter"><code>fill</code></em>
+ is zero, just paint a 1-pixel-wide outline.</p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-circle" title="vips_draw_circle ()"><code class="function">vips_draw_circle()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.2.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p> value to draw. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n</p></td>
+<td class="parameter_description"><p>length of ink array</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>left</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>top</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.2.9"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-rect1"></a><h3>vips_draw_rect1 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_rect1 (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                 <em class="parameter"><code><span class="type">double</span> ink</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> left</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> top</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>fill</code></em>
+: fill the rect</p></li></ul></div>
+<p>As <a class="link" href="libvips-draw.html#vips-draw-rect" title="vips_draw_rect ()"><code class="function">vips_draw_rect()</code></a>, but just take a single double for <em class="parameter"><code>ink</code></em>
+. </p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-rect" title="vips_draw_rect ()"><code class="function">vips_draw_rect()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.3.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p>value to draw</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>left</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>top</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.3.9"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-point"></a><h3>vips_draw_point ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_point (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                 <em class="parameter"><code><span class="type">double</span> *ink</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> n</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> y</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>As <a class="link" href="libvips-draw.html#vips-draw-rect" title="vips_draw_rect ()"><code class="function">vips_draw_rect()</code></a>, but draw a single pixel at <em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+.</p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-rect" title="vips_draw_rect ()"><code class="function">vips_draw_rect()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.4.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p> value to draw. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n</p></td>
+<td class="parameter_description"><p>length of ink array</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>point to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>point to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.4.7"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-point1"></a><h3>vips_draw_point1 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_point1 (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                  <em class="parameter"><code><span class="type">double</span> ink</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> y</code></em>,
+                  <em class="parameter"><code>...</code></em>);</pre>
+<p>As <a class="link" href="libvips-draw.html#vips-draw-point" title="vips_draw_point ()"><code class="function">vips_draw_point()</code></a>, but just take a single double for <em class="parameter"><code>ink</code></em>
+. </p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-point" title="vips_draw_point ()"><code class="function">vips_draw_point()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.5.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p>value to draw</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>point to draw</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>point to draw</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.5.7"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-image"></a><h3>vips_draw_image ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_image (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                 <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *sub</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> y</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>mode</code></em>
+: how to combine pixels </p></li></ul></div>
+<p>Draw <em class="parameter"><code>sub</code></em>
+ on top of <em class="parameter"><code>image</code></em>
+ at position <em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+. The two images must have the 
+same Coding. If <em class="parameter"><code>sub</code></em>
+ has 1 band, the bands will be duplicated to match the
+number of bands in <em class="parameter"><code>image</code></em>
+. <em class="parameter"><code>sub</code></em>
+ will be converted to <em class="parameter"><code>image</code></em>
+'s format, see
+<a class="link" href="libvips-conversion.html#vips-cast" title="vips_cast ()"><code class="function">vips_cast()</code></a>.</p>
+<p>Use <em class="parameter"><code>mode</code></em>
+ to set how pixels are combined. If you use 
+<a class="link" href="libvips-draw.html#VIPS-COMBINE-MODE-ADD:CAPS"><span class="type">VIPS_COMBINE_MODE_ADD</span></a>, both images muct be uncoded. </p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-mask" title="vips_draw_mask ()"><code class="function">vips_draw_mask()</code></a>, <a class="link" href="libvips-conversion.html#vips-insert" title="vips_insert ()"><code class="function">vips_insert()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.6.9"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>sub</p></td>
+<td class="parameter_description"><p>image to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>draw <em class="parameter"><code>sub</code></em>
+here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>draw <em class="parameter"><code>sub</code></em>
+here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.6.10"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-mask"></a><h3>vips_draw_mask ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_mask (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                <em class="parameter"><code><span class="type">double</span> *ink</code></em>,
+                <em class="parameter"><code><span class="type">int</span> n</code></em>,
+                <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *mask</code></em>,
+                <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                <em class="parameter"><code><span class="type">int</span> y</code></em>,
+                <em class="parameter"><code>...</code></em>);</pre>
+<p>Draw <em class="parameter"><code>mask</code></em>
+ on the image. <em class="parameter"><code>mask</code></em>
+ is a monochrome 8-bit image with 0/255
+for transparent or <em class="parameter"><code>ink</code></em>
+ coloured points. Intermediate values blend the ink
+with the pixel. Use with <a class="link" href="libvips-create.html#vips-text" title="vips_text ()"><code class="function">vips_text()</code></a> to draw text on an image. Use in a 
+<a class="link" href="libvips-draw.html#vips-draw-line" title="vips_draw_line ()"><code class="function">vips_draw_line()</code></a> subclass to draw an object along a line. </p>
+<p><em class="parameter"><code>ink</code></em>
+ is an array of double containing values to draw. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-text" title="vips_text ()"><code class="function">vips_text()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-line" title="vips_draw_line ()"><code class="function">vips_draw_line()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.7.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p> value to draw. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n</p></td>
+<td class="parameter_description"><p>size of ink array</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>mask</p></td>
+<td class="parameter_description"><p>mask of 0/255 values showing where to plot</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>draw mask here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>draw mask here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.7.8"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-mask1"></a><h3>vips_draw_mask1 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_mask1 (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                 <em class="parameter"><code><span class="type">double</span> ink</code></em>,
+                 <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *mask</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> y</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>As <a class="link" href="libvips-draw.html#vips-draw-mask" title="vips_draw_mask ()"><code class="function">vips_draw_mask()</code></a>, but just takes a single double for <em class="parameter"><code>ink</code></em>
+. </p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-mask" title="vips_draw_mask ()"><code class="function">vips_draw_mask()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.8.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p>value to draw</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>mask</p></td>
+<td class="parameter_description"><p>mask of 0/255 values showing where to plot</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>draw mask here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>draw mask here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.8.7"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-line"></a><h3>vips_draw_line ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_line (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                <em class="parameter"><code><span class="type">double</span> *ink</code></em>,
+                <em class="parameter"><code><span class="type">int</span> n</code></em>,
+                <em class="parameter"><code><span class="type">int</span> x1</code></em>,
+                <em class="parameter"><code><span class="type">int</span> y1</code></em>,
+                <em class="parameter"><code><span class="type">int</span> x2</code></em>,
+                <em class="parameter"><code><span class="type">int</span> y2</code></em>,
+                <em class="parameter"><code>...</code></em>);</pre>
+<p>Draws a 1-pixel-wide line on an image. </p>
+<p><em class="parameter"><code>ink</code></em>
+ is an array of double containing values to draw. </p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-line1" title="vips_draw_line1 ()"><code class="function">vips_draw_line1()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-circle" title="vips_draw_circle ()"><code class="function">vips_draw_circle()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-mask" title="vips_draw_mask ()"><code class="function">vips_draw_mask()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.9.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p> value to draw. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n</p></td>
+<td class="parameter_description"><p>length of ink array</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x1</p></td>
+<td class="parameter_description"><p>start of draw_line</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y1</p></td>
+<td class="parameter_description"><p>start of draw_line</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x2</p></td>
+<td class="parameter_description"><p>end of draw_line</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y2</p></td>
+<td class="parameter_description"><p>end of draw_line</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.9.8"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-line1"></a><h3>vips_draw_line1 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_line1 (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                 <em class="parameter"><code><span class="type">double</span> ink</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> x1</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> y1</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> x2</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> y2</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>As <a class="link" href="libvips-draw.html#vips-draw-line" title="vips_draw_line ()"><code class="function">vips_draw_line()</code></a>, but just take a single double for <em class="parameter"><code>ink</code></em>
+. </p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-line" title="vips_draw_line ()"><code class="function">vips_draw_line()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.10.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p>value to draw</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x1</p></td>
+<td class="parameter_description"><p>start of draw_line</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y1</p></td>
+<td class="parameter_description"><p>start of draw_line</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x2</p></td>
+<td class="parameter_description"><p>end of draw_line</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y2</p></td>
+<td class="parameter_description"><p>end of draw_line</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.10.7"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-circle"></a><h3>vips_draw_circle ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_circle (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                  <em class="parameter"><code><span class="type">double</span> *ink</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> n</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> cx</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> cy</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> radius</code></em>,
+                  <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>fill</code></em>
+: fill the draw_circle</p></li></ul></div>
+<p>Draws a circle on <em class="parameter"><code>image</code></em>
+. If <em class="parameter"><code>fill</code></em>
+ is <code class="literal">TRUE</code> then the circle is filled,
+otherwise a 1-pixel-wide perimeter is drawn.</p>
+<p><em class="parameter"><code>ink</code></em>
+ is an array of double containing values to draw. </p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-circle1" title="vips_draw_circle1 ()"><code class="function">vips_draw_circle1()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-line" title="vips_draw_line ()"><code class="function">vips_draw_line()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.11.9"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p> value to draw. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n</p></td>
+<td class="parameter_description"><p>length of ink array</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cx</p></td>
+<td class="parameter_description"><p>centre of draw_circle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cy</p></td>
+<td class="parameter_description"><p>centre of draw_circle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>radius</p></td>
+<td class="parameter_description"><p>draw_circle radius</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.11.10"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-circle1"></a><h3>vips_draw_circle1 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_circle1 (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                   <em class="parameter"><code><span class="type">double</span> ink</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> cx</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> cy</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> radius</code></em>,
+                   <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>fill</code></em>
+: fill the draw_circle</p></li></ul></div>
+<p>As <a class="link" href="libvips-draw.html#vips-draw-circle" title="vips_draw_circle ()"><code class="function">vips_draw_circle()</code></a>, but just takes a single double for <em class="parameter"><code>ink</code></em>
+. </p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-circle" title="vips_draw_circle ()"><code class="function">vips_draw_circle()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.12.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p>value to draw</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cx</p></td>
+<td class="parameter_description"><p>centre of draw_circle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cy</p></td>
+<td class="parameter_description"><p>centre of draw_circle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>radius</p></td>
+<td class="parameter_description"><p>draw_circle radius</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.12.9"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-flood"></a><h3>vips_draw_flood ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_flood (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                 <em class="parameter"><code><span class="type">double</span> *ink</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> n</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> y</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>test</code></em>
+: test this image</p></li>
+<li class="listitem"><p><em class="parameter"><code>equal</code></em>
+: fill while equal to edge</p></li>
+<li class="listitem"><p><em class="parameter"><code>left</code></em>
+: output left edge of bounding box of modified area</p></li>
+<li class="listitem"><p><em class="parameter"><code>top</code></em>
+: output top edge of bounding box of modified area</p></li>
+<li class="listitem"><p><em class="parameter"><code>width</code></em>
+: output width of bounding box of modified area</p></li>
+<li class="listitem"><p><em class="parameter"><code>height</code></em>
+: output height of bounding box of modified area</p></li>
+</ul></div>
+<p>Flood-fill <em class="parameter"><code>image</code></em>
+ with <em class="parameter"><code>ink</code></em>
+, starting at position <em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+. The filled area is
+bounded by pixels that are equal to the ink colour, in other words, it
+searches for pixels enclosed by an edge of <em class="parameter"><code>ink</code></em>
+.</p>
+<p>If <em class="parameter"><code>equal</code></em>
+ is set, it instead searches for pixels which are equal to the
+start point and fills them with <em class="parameter"><code>ink</code></em>
+.</p>
+<p>Normally it will test and set pixels in <em class="parameter"><code>image</code></em>
+. If <em class="parameter"><code>test</code></em>
+ is set, it will 
+test pixels in <em class="parameter"><code>test</code></em>
+ and set pixels in <em class="parameter"><code>image</code></em>
+. This lets you search an
+image (<em class="parameter"><code>test</code></em>
+) for continuous areas of pixels without modifying it. </p>
+<p><em class="parameter"><code>left</code></em>
+, <em class="parameter"><code>top</code></em>
+, <em class="parameter"><code>width</code></em>
+, <em class="parameter"><code>height</code></em>
+ output the bounding box of the modified
+pixels. </p>
+<p><em class="parameter"><code>ink</code></em>
+ is an array of double containing values to draw. </p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-flood1" title="vips_draw_flood1 ()"><code class="function">vips_draw_flood1()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.13.12"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p> value to draw. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n</p></td>
+<td class="parameter_description"><p>length of ink array</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>centre of circle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>centre of circle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.13.13"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-flood1"></a><h3>vips_draw_flood1 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_flood1 (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                  <em class="parameter"><code><span class="type">double</span> ink</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> y</code></em>,
+                  <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>test</code></em>
+: test this image</p></li>
+<li class="listitem"><p><em class="parameter"><code>equal</code></em>
+: fill while equal to edge</p></li>
+<li class="listitem"><p><em class="parameter"><code>left</code></em>
+: output left edge of bounding box of modified area</p></li>
+<li class="listitem"><p><em class="parameter"><code>top</code></em>
+: output top edge of bounding box of modified area</p></li>
+<li class="listitem"><p><em class="parameter"><code>width</code></em>
+: output width of bounding box of modified area</p></li>
+<li class="listitem"><p><em class="parameter"><code>height</code></em>
+: output height of bounding box of modified area</p></li>
+</ul></div>
+<p>As <a class="link" href="libvips-draw.html#vips-draw-flood" title="vips_draw_flood ()"><code class="function">vips_draw_flood()</code></a>, but just takes a single double for <em class="parameter"><code>ink</code></em>
+. </p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-flood" title="vips_draw_flood ()"><code class="function">vips_draw_flood()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.14.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ink</p></td>
+<td class="parameter_description"><p>value to draw</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>centre of circle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>centre of circle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.14.9"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-draw-smudge"></a><h3>vips_draw_smudge ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_draw_smudge (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> left</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> top</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                  <em class="parameter"><code>...</code></em>);</pre>
+<p>Smudge a section of <em class="parameter"><code>image</code></em>
+. Each pixel in the area <em class="parameter"><code>left</code></em>
+, <em class="parameter"><code>top</code></em>
+, <em class="parameter"><code>width</code></em>
+,
+<em class="parameter"><code>height</code></em>
+ is replaced by the average of the surrounding 3x3 pixels. </p>
+<p>See also: <a class="link" href="libvips-draw.html#vips-draw-line" title="vips_draw_line ()"><code class="function">vips_draw_line()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.8.15.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>image</p></td>
+<td class="parameter_description"><p>image to draw on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>left</p></td>
+<td class="parameter_description"><p>point to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>top</p></td>
+<td class="parameter_description"><p>point to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>area to paint</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.9.8.15.7"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+<p></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-draw.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="VipsCombineMode"></a><h3>enum VipsCombineMode</h3>
+<p>See <a class="link" href="libvips-draw.html#vips-draw-image" title="vips_draw_image ()"><code class="function">vips_draw_image()</code></a> and so on.</p>
+<p>Operations like <a class="link" href="libvips-draw.html#vips-draw-image" title="vips_draw_image ()"><code class="function">vips_draw_image()</code></a> need to be told how to combine images
+from two sources. </p>
+<p>See also: <a class="link" href="libvips-conversion.html#vips-join" title="vips_join ()"><code class="function">vips_join()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.9.9.2.6"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-COMBINE-MODE-SET:CAPS"></a>VIPS_COMBINE_MODE_SET</p></td>
+<td class="enum_member_description">
+<p>set pixels to the new value</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-COMBINE-MODE-ADD:CAPS"></a>VIPS_COMBINE_MODE_ADD</p></td>
+<td class="enum_member_description">
+<p>add pixels</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-COMBINE-MODE-LAST:CAPS"></a>VIPS_COMBINE_MODE_LAST</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

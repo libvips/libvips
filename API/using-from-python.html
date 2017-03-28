@@ -1,0 +1,703 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: VIPS from Python</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch01.html" title="VIPS Overview">
+<link rel="prev" href="using-from-c.html" title="VIPS from C">
+<link rel="next" href="using-from-cpp.html" title="VIPS from C++">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="using-from-c.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="using-from-cpp.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="using-from-python"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle">VIPS from Python</span></h2>
+<p>Using VIPS — How to use the VIPS library from Python</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect3">
+<a name="python-intro"></a><h4>Introduction</h4>
+<p>
+      VIPS comes with a convenient, high-level Python API built on 
+      on <code class="code">gobject-introspection</code>. As long as you can get GOI 
+      for your platform, you should be able to use libvips. 
+    </p>
+<p>
+      To test the binding, start up Python and at the console enter:
+
+</p>
+<pre class="programlisting">
+&gt;&gt;&gt; from gi.repository import Vips
+&gt;&gt;&gt; x = Vips.Image.new_from_file("/path/to/some/image/file.jpg")
+&gt;&gt;&gt; x.width
+1450
+&gt;&gt;&gt;
+</pre>
+<p>
+
+      </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><p>
+            If import fails, check you have the Python
+            gobject-introspection packages installed, that you have the
+            libvips typelib installed, and that the typelib is either
+            in the system area or on your <code class="code">GI_TYPELIB_PATH</code>.
+          </p></li>
+<li class="listitem"><p>
+             If <code class="code">.new_from_file()</code> fails, the vips overrides
+             have not been found. Make sure <code class="code">Vips.py</code> is in
+             your system overrides area.
+          </p></li>
+</ol></div>
+<p>
+    </p>
+</div>
+<div class="refsect3">
+<a name="python-example"></a><h4>Example program</h4>
+<p>
+      Here's a complete example program:
+
+</p>
+<pre class="programlisting">
+#!/usr/bin/python
+
+import sys
+
+from gi.repository import Vips
+
+im = Vips.Image.new_from_file(sys.argv[1])
+
+im = im.extract_area(100, 100, im.width - 200, im.height - 200)
+im = im.similarity(scale = 0.9)
+mask = Vips.Image.new_from_array([[-1, -1,  -1], 
+                                  [-1, 16,  -1], 
+                                  [-1, -1,  -1]], scale = 8)
+im = im.conv(mask)
+
+im.write_to_file(sys.argv[2])
+</pre>
+<p>
+    </p>
+<p>
+      Reading this code, the first interesting line is:
+
+</p>
+<pre class="programlisting">
+from gi.repository import Vips
+</pre>
+<p>
+
+      When Python executes the import line it performs the following steps:
+    </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><p>
+          It searches for a file called <code class="code">Vips-x.y.typelib</code>. This 
+          is a binary file generated automatically during libvips build
+          by introspection of the libvips shared library plus scanning
+          of the C headers. It lists all the API entry points, all the
+          types the library uses, and has an extra set of hints for object
+          ownership and reference counting. The typelib is searched for
+          in <code class="code">/usr/lib/gi-repository-1.0</code> and along the path
+          in the environment variable <code class="code">GI_TYPELIB_PATH</code>.
+        </p></li>
+<li class="listitem"><p>
+          It uses the typelib to make a basic binding for libvips. It's
+          just the C API with a little very light mangling, so for
+          example the enum member <code class="code">VIPS_FORMAT_UCHAR</code>
+          of the enum <code class="code">VipsBandFormat</code> becomes
+          <code class="code">Vips.BandFormat.UCHAR</code>.
+        </p></li>
+<li class="listitem"><p>
+          The binding you get can be rather unfriendly, so it also
+          loads a set of overrides from <code class="code">Vips.py</code> in
+          <code class="code">/usr/lib/python2.7/dist-packages/gi/overrides</code>
+          (on my system at least). If you're using python3, it's
+          <code class="code">/usr/lib/python3/dist-packages/gi/overrides</code>.
+          Unfortunately, as far as I know, there is no way to extend
+          this search using environment variables. You MUST have
+          <code class="code">Vips.py</code> in exactly this directory. If you install
+          vips via a package manager this will happen automatically,
+          since vips and pygobject will have been built to the same
+          prefix, but if you are installing vips from source and the
+          prefix does not match, it will not be installed for you,
+          you will need to copy it.
+        </p></li>
+<li class="listitem"><p>
+          Finally, <code class="code">Vips.py</code> makes the rest of the binding. In
+          fact, <code class="code">Vips.py</code> makes almost all the binding: it
+          defines <code class="code">__getattr__</code> on <code class="code">Vips.Image</code>
+          and binds at runtime by searching libvips for an operation of
+          that name. 
+        </p></li>
+</ol></div>
+<p>
+      The next line is:
+
+</p>
+<pre class="programlisting">
+im = Vips.Image.new_from_file(sys.argv[1])
+</pre>
+<p>
+
+      This loads the input image. You can append
+      load options to the argument list as keyword arguments, for example:
+
+</p>
+<pre class="programlisting">
+im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
+</pre>
+<p>
+
+      See the various loaders for a list of the available options
+      for each file format. The C equivalent to this function,
+      <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>, has more extensive documentation. Try
+      <code class="code">help(Vips.Image)</code> to see a list of all the image 
+      constructors --- you can load from memory, or create from an array, 
+      for example. 
+    </p>
+<p>
+      The next line is:
+
+</p>
+<pre class="programlisting">
+im = im.extract_area(100, 100, im.width - 200, im.height - 200)
+</pre>
+<p>
+
+      The arguments are left, top, width, height, so this crops 100 pixels off
+      every edge. Try <code class="code">help(im.extract_area)</code> and the C API docs
+      for <a class="link" href="libvips-conversion.html#vips-extract-area" title="vips_extract_area ()"><code class="function">vips_extract_area()</code></a> for details. You can use <code class="code">.crop()</code>
+      as a synonym, if you like. 
+    </p>
+<p>
+      <code class="code">im.width</code> gets the image width
+      in pixels, see <code class="code">help(Vips.Image)</code> and <a class="link" href="libvips-header.html#vips-image-get-width" title="vips_image_get_width ()"><code class="function">vips_image_get_width()</code></a>
+      and friends for a list of the other getters.
+    </p>
+<p>
+      The next line:
+
+</p>
+<pre class="programlisting">
+im = im.similarity(scale = 0.9)
+</pre>
+<p>
+
+      shrinks by 10%.  By default it uses
+      bilinear interpolation, use <code class="code">interpolate</code> to pick another
+      interpolator, for example:
+
+</p>
+<pre class="programlisting">
+im = im.similarity(scale = 0.9, interpolate = Vips.Interpolate.new("bicubic"))
+</pre>
+<p>
+
+      see <a class="link" href="libvips-resample.html#vips-similarity" title="vips_similarity ()"><code class="function">vips_similarity()</code></a> for full documentation. The similarity operator
+      will not give good results for large resizes (more than a factor of 
+      two). See <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a> if you need to make a large change. 
+    </p>
+<p>
+      Next:
+
+</p>
+<pre class="programlisting">
+mask = Vips.Image.new_from_array([[-1, -1,  -1], 
+                                  [-1, 16,  -1], 
+                                  [-1, -1,  -1]], scale = 8)
+im = im.conv(mask)
+</pre>
+<p>
+
+      makes an image from a 2D array, then convolves with that. The 
+      <code class="code">scale</code> keyword argument lets you set a divisor for 
+      convolution, handy for integer convolutions. You can set 
+      <code class="code">offset</code> as well. See <a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a> for details on the vips 
+      convolution operator. 
+    </p>
+<p>
+      Finally, 
+
+</p>
+<pre class="programlisting">
+im.write_to_file(sys.argv[2])
+</pre>
+<p>
+      
+      sends the image back to the 
+      filesystem. There's also <code class="code">.write_to_buffer()</code> to make a 
+      string containing the formatted image, and <code class="code">.write()</code> to 
+      write to another image. 
+    </p>
+<p>
+      As with <code class="code">.new_from_file()</code> you can append save options as 
+      keyword arguments. For example:
+
+</p>
+<pre class="programlisting">
+im.write_to_file("test.jpg", Q = 90)
+</pre>
+<p>
+      
+      will write a JPEG image with quality set to 90. See the various save 
+      operations for a list of all the save options, for example 
+      <a class="link" href="VipsForeignSave.html#vips-jpegsave" title="vips_jpegsave ()"><code class="function">vips_jpegsave()</code></a>. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="python-doc"></a><h4>Getting help</h4>
+<p>
+      Try <code class="code">help(Vips)</code> for everything,
+      <code class="code">help(Vips.Image)</code> for something slightly more digestible, or
+      something like <code class="code">help(Vips.Image.black)</code> for help on a
+      specific class member.
+    </p>
+<p>
+      You can't get help on dynamically bound member functions like 
+      <code class="code">.add()</code> this way. Instead, make an image and get help
+      from that, for example:
+
+</p>
+<pre class="programlisting">
+image = Vips.Image.black(1, 1)
+help(image.add)
+</pre>
+<p>
+
+      And you'll get a summary of the operator's behaviour and how the
+      arguments are represented in Python. 
+    </p>
+<p>
+      The API docs have a <a class="link" href="func-list.html#function-list" title="Function list">handy table of all vips 
+      operations</a>, if you want to find out how to do something, try 
+      searching that. 
+    </p>
+<p>
+      The <span class="command"><strong>vips</strong></span> command can be useful too. For example, in a 
+      terminal you can type <span class="command"><strong>vips jpegsave</strong></span> to get a 
+      summary of an operation:
+
+</p>
+<pre class="programlisting">
+$ vips jpegsave
+save image to jpeg file
+usage:
+   jpegsave in filename
+where:
+   in           - Image to save, input VipsImage
+   filename     - Filename to save to, input gchararray
+optional arguments:
+   Q            - Q factor, input gint
+                      default: 75
+                      min: 1, max: 100
+   profile      - ICC profile to embed, input gchararray
+   optimize-coding - Compute optimal Huffman coding tables, input gboolean
+                      default: false
+   interlace    - Generate an interlaced (progressive) jpeg, input gboolean
+                      default: false
+   no-subsample - Disable chroma subsample, input gboolean
+                      default: false
+   trellis-quant - Apply trellis quantisation to each 8x8 block, input gboolean
+                      default: false
+   overshoot-deringing - Apply overshooting to samples with extreme values, input gboolean
+                      default: false
+   optimize-scans - Split the spectrum of DCT coefficients into separate scans, input gboolean
+                      default: false
+   strip        - Strip all metadata from image, input gboolean
+                      default: false
+   background   - Background value, input VipsArrayDouble
+operation flags: sequential-unbuffered nocache 
+</pre>
+<p>
+
+    </p>
+</div>
+<div class="refsect3">
+<a name="python-basics"></a><h4>
+<code class="code">pyvips8</code> basics</h4>
+<p>
+      As noted above, the Python interface comes in two main parts,
+      an automatically generated binding based on the vips typelib,
+      plus a set of extra features provided by overrides. 
+      The rest of this chapter runs through the features provided by the 
+      overrides.
+    </p>
+</div>
+<div class="refsect3">
+<a name="python-wrapping"></a><h4>Automatic wrapping</h4>
+<p>
+      The overrides intercept member lookup 
+      on the <code class="code">Vips.Image</code> class and look for vips operations
+      with that name. So the vips operation "add", which appears in the 
+      C API as <a class="link" href="libvips-arithmetic.html#vips-add" title="vips_add ()"><code class="function">vips_add()</code></a>, appears in Python as 
+      <code class="code">image.add()</code>. 
+    </p>
+<p>
+      The first input image argument becomes the <code class="code">self</code>
+      argument. If there are no input image arguments, the operation
+      appears as a class member.  Optional input arguments become
+      keyword arguments. The result is a list of all the output
+      arguments, or a single output if there is only one.
+    </p>
+<p>
+      Optional output arguments are enabled with a boolean keyword
+      argument of that name. For example, "min" (the operation which
+      appears in the C API as <a class="link" href="libvips-arithmetic.html#vips-min" title="vips_min ()"><code class="function">vips_min()</code></a>), can be called like this:
+
+</p>
+<pre class="programlisting">
+min_value = im.min()
+</pre>
+<p>
+
+      and <code class="code">min_value</code> will be a floating point value giving 
+      the minimum value in the image. "min" can also find the position 
+      of the minimum value with the <code class="code">x</code> and <code class="code">y</code>
+      optional output arguments. Call it like this:
+
+</p>
+<pre class="programlisting">
+min_value, opts = im.min(x = True, y = True)
+x = opts['x']
+y = opts['y']
+</pre>
+<p>
+
+      In other words, if optional output args are requested, an extra 
+      dictionary is returned containing those objects. 
+      Of course in this case, the <code class="code">.minpos()</code> convenience 
+      function would be simpler, see below. 
+    </p>
+<p>
+      Because operations are member functions and return the result image,
+      you can chain them. For example, you can write:
+
+</p>
+<pre class="programlisting">
+result_image = image.sin().pow(2)
+</pre>
+<p>
+
+      to calculate the square of the sine for each pixel. There is also a
+      full set of arithmetic operator overloads, see below.
+    </p>
+<p>
+      VIPS types are also automatically wrapped.  The override looks
+      at the type of argument required by the operation and converts
+      the value you supply, when it can. For example, "linear" takes a
+      <a class="link" href="libvips-type.html#VipsArrayDouble"><span class="type">VipsArrayDouble</span></a> as an argument for the set of constants to use for
+      multiplication. You can supply this value as an integer, a float,
+      or some kind of compound object and it will be converted for you.
+      You can write:
+
+</p>
+<pre class="programlisting">
+result_image = image.linear(1, 3)
+result_image = image.linear(12.4, 13.9)
+result_image = image.linear([1, 2, 3], [4, 5, 6])
+result_image = image.linear(1, [4, 5, 6])
+</pre>
+<p>
+
+      And so on. A set of overloads are defined for <code class="code">.linear()</code>, 
+      see below. 
+    </p>
+<p>
+      It does a couple of more ambitious conversions. It will 
+      automatically convert to and from the various vips types, 
+      like <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> and <a class="link" href="libvips-type.html#VipsArrayImage"><span class="type">VipsArrayImage</span></a>. For example, you can read the
+      ICC profile out of an image like this:
+
+</p>
+<pre class="programlisting">
+profile = im.get_value("icc-profile-data")
+</pre>
+<p>
+
+      and <code class="code">profile</code> will be a string. 
+    </p>
+<p>
+      You can use array constants instead of images. A 2D array is simply 
+      changed into a one-band double image. This is handy for things like 
+      <code class="code">.erode()</code>, for example:
+
+</p>
+<pre class="programlisting">
+im = im.erode([[128, 255, 128],
+               [255, 255, 255],
+               [128, 255, 128]])
+</pre>
+<p>
+
+      will erode an image with a 4-connected structuring element.
+    </p>
+<p>
+      If an operation takes several input images, you can use a 1D array 
+      constant or a number constant
+      for all but one of them and the wrapper will expand it
+      to an image for you. For example, <code class="code">.ifthenelse()</code> uses
+      a condition image to pick pixels between a then and an else image:
+
+</p>
+<pre class="programlisting">
+result_image = condition_image.ifthenelse(then_image, else_image)
+</pre>
+<p>
+
+      You can use a constant instead of either the then or the else 
+      parts, and it will be expanded to an image for you. If you use a 
+      constant for both then and else, it will be expanded to match the 
+      condition image. For example:
+
+</p>
+<pre class="programlisting">
+result_image = condition_image.ifthenelse([0, 255, 0], [255, 0, 0])
+</pre>
+<p>
+
+      Will make an image where true pixels are green and false pixels 
+      are red.
+    </p>
+<p>
+      This is also useful for <code class="code">.bandjoin()</code>, the thing to join 
+      two or more images up bandwise. You can write:
+
+</p>
+<pre class="programlisting">
+rgba = rgb.bandjoin(255)
+</pre>
+<p>
+      
+      to add a constant 255 band to an image, perhaps to add an alpha 
+      channel. Of course you can also write:
+
+</p>
+<pre class="programlisting">
+result_image = image1.bandjoin(image2)
+result_image = image1.bandjoin([image2, image3])
+result_image = image1.bandjoin([image2, 255])
+</pre>
+<p>
+      
+      and so on. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="python-exceptions"></a><h4>Exceptions</h4>
+<p>
+      The wrapper spots errors from vips operations and raises the 
+      <code class="code">Vips.Error</code> exception. You can catch it in the 
+      usual way. The <code class="code">.detail</code> member gives the detailed 
+      error message. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="python-memory"></a><h4>Reading and writing areas of memory</h4>
+<p>
+      You can use the C API functions <a class="link" href="VipsImage.html#vips-image-new-from-memory" title="vips_image_new_from_memory ()"><code class="function">vips_image_new_from_memory()</code></a>, 
+      <a class="link" href="VipsImage.html#vips-image-new-from-memory-copy" title="vips_image_new_from_memory_copy ()"><code class="function">vips_image_new_from_memory_copy()</code></a> and 
+      <a class="link" href="VipsImage.html#vips-image-write-to-memory" title="vips_image_write_to_memory ()"><code class="function">vips_image_write_to_memory()</code></a> directly from Python to read and write 
+      areas of memory. This can be useful if you need to get images to and 
+      from other other image processing libraries, like PIL or numpy.
+    </p>
+<p>
+      Use them from Python like this:
+
+</p>
+<pre class="programlisting">
+image = Vips.Image.new_from_file("/path/to/some/image/file.jpg")
+memory_area = image.write_to_memory()
+</pre>
+<p>
+
+      <code class="code">memory_area</code> is now a string containing uncompressed binary 
+      image data. For an RGB image, it will have bytes 
+      <code class="code">RGBRGBRGB...</code>, being 
+      the first three pixels of the first scanline of the image. You can pass 
+      this string to the numpy or PIL constructors and make an image there.
+    </p>
+<p>
+      Note that <code class="code">.write_to_memory()</code> will make a copy of the image. 
+      It would 
+      be better to use a Python buffer to pass the data, but sadly this isn't 
+      possible with gobject-introspection, as far as I know.
+    </p>
+<p>
+      Going the other way, you can construct a vips image from a string of 
+      binary data. For example:
+
+</p>
+<pre class="programlisting">
+image = Vips.Image.new_from_file("/path/to/some/image/file.jpg")
+memory_area = image.write_to_memory()
+image2 = Vips.Image.new_from_memory(memory_area, 
+                                    image.width, image.height, image.bands, 
+                                    Vips.BandFormat.UCHAR)
+</pre>
+<p>
+
+      Now <code class="code">image2</code> should be an identical copy of <code class="code">image</code>.
+    </p>
+<p>
+      Be careful: in this direction, vips does not make a copy of the memory 
+      area, so if <code class="code">memory_area</code> is freed by the Python garbage 
+      collector and 
+      you later try to use <code class="code">image2</code>, you'll get a crash. 
+      Make sure you keep a reference to <code class="code">memory_area</code> around 
+      for as long as you need it. A simple solution is to use 
+      <code class="code">new_from_memory_copy</code> instead. This will take a copy of the 
+      memory area for vips. Of course this will raise memory usage. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="python-modify"></a><h4>Draw operations</h4>
+<p>
+      Paint operations like <code class="code">draw_circle</code> and <code class="code">draw_line</code> 
+      modify their input image. This makes them hard to use with the rest of 
+      libvips: you need to be very careful about the order in which operations 
+      execute or you can get nasty crashes.
+    </p>
+<p>
+      The wrapper spots operations of this type and makes a private copy of 
+      the image in memory before calling the operation. This stops crashes, 
+      but it does make it inefficient. If you draw 100 lines on an image, 
+      for example, you'll copy the image 100 times. The wrapper does make sure 
+      that memory is recycled where possible, so you won't have 100 copies in 
+      memory. At least you can execute these operations. 
+    </p>
+<p>
+      If you want to avoid the copies, you'll need to call drawing 
+      operations yourself. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="python-overloads"></a><h4>Overloads</h4>
+<p>
+      The wrapper defines the usual set of arithmetic, boolean and 
+      relational overloads on 
+      <code class="code">image</code>. You can mix images, constants and lists of 
+      constants (almost) freely. For example, you can write:
+
+</p>
+<pre class="programlisting">
+result_image = ((image * [1, 2, 3]).abs() &lt; 128) | 4
+</pre>
+<p>
+    </p>
+<p>
+      The wrapper overloads <code class="code">[]</code> to be <a class="link" href="libvips-conversion.html#vips-extract-band" title="vips_extract_band ()"><code class="function">vips_extract_band()</code></a>. You 
+      can write:
+
+</p>
+<pre class="programlisting">
+result_image = image[2]
+</pre>
+<p>
+
+      to extract the third band of the image. It implements the usual 
+      slicing and negative indexes, so you can write:
+
+</p>
+<pre class="programlisting">
+result_image = image[1:]
+result_image = image[:3]
+result_image = image[-2:]
+result_image = [x.avg() for x in image]
+</pre>
+<p>
+
+      and so on.
+    </p>
+<p>
+      The wrapper overloads <code class="code">()</code> to be <a class="link" href="libvips-arithmetic.html#vips-getpoint" title="vips_getpoint ()"><code class="function">vips_getpoint()</code></a>. You can 
+      write:
+
+</p>
+<pre class="programlisting">
+r, g, b = image(10, 10)
+</pre>
+<p>
+
+      to read out the value of the pixel at coordinates (10, 10) from an RGB 
+      image. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="python-expansions"></a><h4>Expansions</h4>
+<p>
+      Some vips operators take an enum to select an action, for example
+      <code class="code">.math()</code> can be used to calculate sine of every pixel 
+      like this:
+
+</p>
+<pre class="programlisting">
+result_image = image.math(Vips.OperationMath.SIN)
+</pre>
+<p>
+
+      This is annoying, so the wrapper expands all these enums into 
+      separate members named after the enum. So you can write:
+
+</p>
+<pre class="programlisting">
+result_image = image.sin()
+</pre>
+<p>
+
+      See <code class="code">help(Vips.Image)</code> for a list. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="python-utility"></a><h4>Convenience functions</h4>
+<p>
+      The wrapper defines a few extra useful utility functions: 
+      <code class="code">.get_value()</code>, 
+      <code class="code">.set_value()</code>,
+      <code class="code">.bandsplit()</code>, 
+      <code class="code">.maxpos()</code>,
+      <code class="code">.minpos()</code>,
+      <code class="code">.median()</code>.
+      Again, see <code class="code">help(Vips.Image)</code> for a list. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="python-args"></a><h4>Command-line option parsing</h4>
+<p>
+      GLib includes a command-line option parser, and Vips defines a set of 
+      standard flags you can use with it. For example:
+
+</p>
+<pre class="programlisting">
+import sys
+from gi.repository import GLib, Vips
+
+context = GLib.OptionContext(" - test stuff")
+main_group = GLib.OptionGroup("main", 
+                              "Main options", "Main options for this program", 
+                              None)
+context.set_main_group(main_group)
+Vips.add_option_entries(main_group)
+context.parse(sys.argv)
+</pre>
+<p>
+    </p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

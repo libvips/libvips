@@ -1,0 +1,1146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: resample</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch03.html" title="VIPS operation API by section">
+<link rel="prev" href="libvips-create.html" title="create">
+<link rel="next" href="ch04.html" title="Other API (no gtkdoc comments yet)">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-resample.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-create.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch04.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-resample"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-resample.top_of_page"></a>resample</span></h2>
+<p>resample — resample images in various ways</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-resample.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libvips-resample.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-shrink" title="vips_shrink ()">vips_shrink</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-shrinkh" title="vips_shrinkh ()">vips_shrinkh</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-shrinkv" title="vips_shrinkv ()">vips_shrinkv</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-reduce" title="vips_reduce ()">vips_reduce</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-reduceh" title="vips_reduceh ()">vips_reduceh</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-reducev" title="vips_reducev ()">vips_reducev</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-thumbnail" title="vips_thumbnail ()">vips_thumbnail</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-thumbnail-buffer" title="vips_thumbnail_buffer ()">vips_thumbnail_buffer</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-similarity" title="vips_similarity ()">vips_similarity</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()">vips_affine</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()">vips_resize</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-mapim" title="vips_mapim ()">vips_mapim</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-resample.html#vips-quadratic" title="vips_quadratic ()">vips_quadratic</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-resample.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libvips-resample.html#VipsKernel" title="enum VipsKernel">VipsKernel</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libvips-resample.html#VipsSize" title="enum VipsSize">VipsSize</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-resample.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libvips-resample.description"></a><h2>Description</h2>
+<p>There are three types of operation in this section.</p>
+<p>First, <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a> applies an affine transform to an image. This is any
+sort of 2D transform which preserves straight lines; so any combination of 
+stretch, sheer, rotate and translate. You supply an interpolator for it to
+use to generate pixels, see <a class="link" href="VipsInterpolate.html#vips-interpolate-new" title="vips_interpolate_new ()"><code class="function">vips_interpolate_new()</code></a>. It will not produce
+good results for very large shrinks: you'll see aliasing.</p>
+<p>vips_reduce() is like <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a>, but it can only shrink images, it can't
+enlarge, rotate, or skew. It's very fast and uses an adaptive kernel for
+interpolation. Again, it will give poor results for large size reductions.</p>
+<p>vips_shrink() is a fast block shrinker. It can quickly reduce images by
+large integer factors. It will give poor results for small size reductions:
+again, you'll see aliasing. </p>
+<p>Next, <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a> specialises in the common task of image reduce and 
+enlarge. It strings together combinations of <a class="link" href="libvips-resample.html#vips-shrink" title="vips_shrink ()"><code class="function">vips_shrink()</code></a>, <a class="link" href="libvips-resample.html#vips-reduce" title="vips_reduce ()"><code class="function">vips_reduce()</code></a>,
+<a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a> and others to implement a general, high-quality image
+resizer.</p>
+<p>Finally, <a class="link" href="libvips-resample.html#vips-mapim" title="vips_mapim ()"><code class="function">vips_mapim()</code></a> can apply arbitrary 2D image transforms to an image.</p>
+</div>
+<div class="refsect1">
+<a name="libvips-resample.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips-shrink"></a><h3>vips_shrink ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_shrink (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+             <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+             <em class="parameter"><code><span class="type">double</span> hshrink</code></em>,
+             <em class="parameter"><code><span class="type">double</span> vshrink</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+<p>Shrink <em class="parameter"><code>in</code></em>
+ by a pair of factors with a simple box filter. For non-integer
+factors, <a class="link" href="libvips-resample.html#vips-shrink" title="vips_shrink ()"><code class="function">vips_shrink()</code></a> will first shrink by the integer part with a box
+filter, then use <a class="link" href="libvips-resample.html#vips-reduce" title="vips_reduce ()"><code class="function">vips_reduce()</code></a> to shrink by the
+remaining fractional part. </p>
+<p>This is a very low-level operation: see <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a> for a more
+convenient way to resize images. </p>
+<p>This operation does not change xres or yres. The image resolution needs to
+be updated by the application. </p>
+<p>See also: <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a>, <a class="link" href="libvips-resample.html#vips-reduce" title="vips_reduce ()"><code class="function">vips_reduce()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.8.2.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>hshrink</p></td>
+<td class="parameter_description"><p>horizontal shrink</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>vshrink</p></td>
+<td class="parameter_description"><p>vertical shrink</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.14.8.2.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-shrinkh"></a><h3>vips_shrinkh ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_shrinkh (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+              <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+              <em class="parameter"><code><span class="type">int</span> hshrink</code></em>,
+              <em class="parameter"><code>...</code></em>);</pre>
+<p>Shrink <em class="parameter"><code>in</code></em>
+ horizontally by an integer factor. Each pixel in the output is
+the average of the corresponding line of <em class="parameter"><code>hshrink</code></em>
+ pixels in the input. </p>
+<p>This is a very low-level operation: see <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a> for a more
+convenient way to resize images. </p>
+<p>This operation does not change xres or yres. The image resolution needs to
+be updated by the application. </p>
+<p>See also: <a class="link" href="libvips-resample.html#vips-shrinkv" title="vips_shrinkv ()"><code class="function">vips_shrinkv()</code></a>, <a class="link" href="libvips-resample.html#vips-shrink" title="vips_shrink ()"><code class="function">vips_shrink()</code></a>, <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a>, <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.8.3.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>hshrink</p></td>
+<td class="parameter_description"><p>horizontal shrink</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.14.8.3.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-shrinkv"></a><h3>vips_shrinkv ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_shrinkv (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+              <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+              <em class="parameter"><code><span class="type">int</span> vshrink</code></em>,
+              <em class="parameter"><code>...</code></em>);</pre>
+<p>Shrink <em class="parameter"><code>in</code></em>
+ vertically by an integer factor. Each pixel in the output is
+the average of the corresponding column of <em class="parameter"><code>vshrink</code></em>
+ pixels in the input. </p>
+<p>This is a very low-level operation: see <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a> for a more
+convenient way to resize images. </p>
+<p>This operation does not change xres or yres. The image resolution needs to
+be updated by the application. </p>
+<p>See also: <a class="link" href="libvips-resample.html#vips-shrinkh" title="vips_shrinkh ()"><code class="function">vips_shrinkh()</code></a>, <a class="link" href="libvips-resample.html#vips-shrink" title="vips_shrink ()"><code class="function">vips_shrink()</code></a>, <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a>, <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.8.4.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>vshrink</p></td>
+<td class="parameter_description"><p>vertical shrink</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.14.8.4.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-reduce"></a><h3>vips_reduce ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_reduce (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+             <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+             <em class="parameter"><code><span class="type">double</span> hshrink</code></em>,
+             <em class="parameter"><code><span class="type">double</span> vshrink</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>kernel</code></em>
+: <a class="link" href="libvips-resample.html#VipsKernel" title="enum VipsKernel"><span class="type">VipsKernel</span></a> to use to interpolate (default: lanczos3)</p></li>
+<li class="listitem"><p><em class="parameter"><code>centre</code></em>
+: <code class="literal">gboolean</code> use centre rather than corner sampling convention</p></li>
+</ul></div>
+<p>Reduce <em class="parameter"><code>in</code></em>
+ by a pair of factors with a pair of 1D kernels. This 
+will not work well for shrink factors greater than three.</p>
+<p>Set <em class="parameter"><code>centre</code></em>
+ to use centre rather than corner sampling convention. Centre
+convention can be useful to match the behaviour of other systems. </p>
+<p>This is a very low-level operation: see <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a> for a more
+convenient way to resize images. </p>
+<p>This operation does not change xres or yres. The image resolution needs to
+be updated by the application. </p>
+<p>See also: <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a>, <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.8.5.11"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>hshrink</p></td>
+<td class="parameter_description"><p>horizontal shrink</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>vshrink</p></td>
+<td class="parameter_description"><p>vertical shrink</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.14.8.5.12"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-reduceh"></a><h3>vips_reduceh ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_reduceh (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+              <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+              <em class="parameter"><code><span class="type">double</span> hshrink</code></em>,
+              <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-reducev"></a><h3>vips_reducev ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_reducev (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+              <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+              <em class="parameter"><code><span class="type">double</span> vshrink</code></em>,
+              <em class="parameter"><code>...</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-thumbnail"></a><h3>vips_thumbnail ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_thumbnail (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>,
+                <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>height</code></em>
+: <code class="literal">gint</code>, target height in pixels</p></li>
+<li class="listitem"><p><em class="parameter"><code>size</code></em>
+: <a class="link" href="libvips-resample.html#VipsSize" title="enum VipsSize"><span class="type">VipsSize</span></a>, upsize, downsize or both</p></li>
+<li class="listitem"><p><em class="parameter"><code>auto_rotate</code></em>
+: <code class="literal">gboolean</code>, rotate upright using orientation tag</p></li>
+<li class="listitem"><p><em class="parameter"><code>crop</code></em>
+: <a class="link" href="libvips-conversion.html#VipsInteresting" title="enum VipsInteresting"><span class="type">VipsInteresting</span></a>, shrink and crop to fill target</p></li>
+<li class="listitem"><p><em class="parameter"><code>linear</code></em>
+: <code class="literal">gboolean</code>, perform shrink in linear light</p></li>
+<li class="listitem"><p><em class="parameter"><code>import_profile</code></em>
+: <code class="literal">gchararray</code>, fallback import ICC profile</p></li>
+<li class="listitem"><p><em class="parameter"><code>export_profile</code></em>
+: <code class="literal">gchararray</code>, export ICC profile</p></li>
+</ul></div>
+<p>Make a thumbnail from a file. Shrinking is done in three stages: using any
+shrink-on-load features available in the file import library, using a block
+shrink, and using a lanczos3 shrink. At least the final 200% is done with
+lanczos3. The output should be high quality, and the operation should be
+quick. </p>
+<p>See <a class="link" href="libvips-resample.html#vips-thumbnail-buffer" title="vips_thumbnail_buffer ()"><code class="function">vips_thumbnail_buffer()</code></a> to thumbnail from a memory source. </p>
+<p>The output image will fit within a square of size <em class="parameter"><code>width</code></em>
+ x <em class="parameter"><code>width</code></em>
+. You can
+specify a separate height with the <em class="parameter"><code>height</code></em>
+ option. </p>
+<p>If you set <em class="parameter"><code>crop</code></em>
+, then the output image will fill the whole of the <em class="parameter"><code>width</code></em>
+ x
+<em class="parameter"><code>height</code></em>
+ rectangle, with any excess cropped away. See <a class="link" href="libvips-conversion.html#vips-smartcrop" title="vips_smartcrop ()"><code class="function">vips_smartcrop()</code></a> for
+details on the cropping strategy.</p>
+<p>Normally the operation will upsize or downsize as required. If <em class="parameter"><code>size</code></em>
+ is set
+to <a class="link" href="libvips-resample.html#VIPS-SIZE-UP:CAPS"><span class="type">VIPS_SIZE_UP</span></a>, the operation will only upsize and will just
+copy if asked to downsize. 
+If <em class="parameter"><code>size</code></em>
+ is set
+to <a class="link" href="libvips-resample.html#VIPS-SIZE-DOWN:CAPS"><span class="type">VIPS_SIZE_DOWN</span></a>, the operation will only downsize and will just
+copy if asked to upsize. </p>
+<p>Normally any orientation tags on the input image (such as EXIF tags) are
+interpreted to rotate the image upright. If you set <em class="parameter"><code>auto_rotate</code></em>
+ to <code class="literal">FALSE</code>,
+these tags will not be interpreted.</p>
+<p>Shrinking is normally done in sRGB colourspace. Set <em class="parameter"><code>linear</code></em>
+ to shrink in 
+linear light colourspace instead --- this can give better results, but can
+also be far slower, since tricks like JPEG shrink-on-load cannot be used in
+linear space.</p>
+<p>If you set <em class="parameter"><code>export_profile</code></em>
+ to the filename of an ICC profile, the image 
+will be transformed to the target colourspace before writing to the 
+output. You can also give an <em class="parameter"><code>import_profile</code></em>
+ which will be used if the 
+input image has no ICC profile, or if the profile embedded in the 
+input image is broken.</p>
+<p>See also: <a class="link" href="libvips-resample.html#vips-thumbnail-buffer" title="vips_thumbnail_buffer ()"><code class="function">vips_thumbnail_buffer()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.8.8.15"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>filename</p></td>
+<td class="parameter_description"><p>file to read from</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>target width in pixels</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.14.8.8.16"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-thumbnail-buffer"></a><h3>vips_thumbnail_buffer ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_thumbnail_buffer (<em class="parameter"><code><span class="type">void</span> *buf</code></em>,
+                       <em class="parameter"><code><span class="type">size_t</span> len</code></em>,
+                       <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                       <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                       <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>height</code></em>
+: <code class="literal">gint</code>, target height in pixels</p></li>
+<li class="listitem"><p><em class="parameter"><code>size</code></em>
+: <a class="link" href="libvips-resample.html#VipsSize" title="enum VipsSize"><span class="type">VipsSize</span></a>, upsize, downsize or both</p></li>
+<li class="listitem"><p><em class="parameter"><code>auto_rotate</code></em>
+: <code class="literal">gboolean</code>, rotate upright using orientation tag</p></li>
+<li class="listitem"><p><em class="parameter"><code>crop</code></em>
+: <a class="link" href="libvips-conversion.html#VipsInteresting" title="enum VipsInteresting"><span class="type">VipsInteresting</span></a>, shrink and crop to fill target</p></li>
+<li class="listitem"><p><em class="parameter"><code>linear</code></em>
+: <code class="literal">gboolean</code>, perform shrink in linear light</p></li>
+<li class="listitem"><p><em class="parameter"><code>import_probuffer</code></em>
+: <code class="literal">gchararray</code>, fallback import ICC probuffer</p></li>
+<li class="listitem"><p><em class="parameter"><code>export_probuffer</code></em>
+: <code class="literal">gchararray</code>, export ICC probuffer</p></li>
+</ul></div>
+<p>Exacty as <a class="link" href="libvips-resample.html#vips-thumbnail" title="vips_thumbnail ()"><code class="function">vips_thumbnail()</code></a>, but read from a memory buffer. </p>
+<p>See also: <a class="link" href="libvips-resample.html#vips-thumbnail" title="vips_thumbnail ()"><code class="function">vips_thumbnail()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.8.9.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>buf</p></td>
+<td class="parameter_description"><p>memory area to load</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>size of memory area</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>target width in pixels</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.14.8.9.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-similarity"></a><h3>vips_similarity ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_similarity (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                 <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>scale</code></em>
+: <code class="literal">gdouble</code>, scale by this factor</p></li>
+<li class="listitem"><p><em class="parameter"><code>angle</code></em>
+: <code class="literal">gdouble</code>, rotate by this many degrees clockwise</p></li>
+<li class="listitem"><p><em class="parameter"><code>interpolate</code></em>
+: <a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="type">VipsInterpolate</span></a>, interpolate pixels with this</p></li>
+<li class="listitem"><p><em class="parameter"><code>idx</code></em>
+: <code class="literal">gdouble</code>, input horizontal offset</p></li>
+<li class="listitem"><p><em class="parameter"><code>idy</code></em>
+: <code class="literal">gdouble</code>, input vertical offset</p></li>
+<li class="listitem"><p><em class="parameter"><code>odx</code></em>
+: <code class="literal">gdouble</code>, output horizontal offset</p></li>
+<li class="listitem"><p><em class="parameter"><code>ody</code></em>
+: <code class="literal">gdouble</code>, output vertical offset</p></li>
+</ul></div>
+<p>This operator calls <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a> for you, calculating the matrix for the
+affine transform from <em class="parameter"><code>scale</code></em>
+ and <em class="parameter"><code>angle</code></em>
+. Other parameters are passed on to
+<a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a> unaltered. </p>
+<p>See also: <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a>, <a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="type">VipsInterpolate</span></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.8.10.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.14.8.10.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-affine"></a><h3>vips_affine ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_affine (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+             <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+             <em class="parameter"><code><span class="type">double</span> a</code></em>,
+             <em class="parameter"><code><span class="type">double</span> b</code></em>,
+             <em class="parameter"><code><span class="type">double</span> c</code></em>,
+             <em class="parameter"><code><span class="type">double</span> d</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>interpolate</code></em>
+: <a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="type">VipsInterpolate</span></a>, interpolate pixels with this</p></li>
+<li class="listitem"><p><em class="parameter"><code>oarea</code></em>
+: <a class="link" href="libvips-type.html#VipsArrayInt"><span class="type">VipsArrayInt</span></a>, output rectangle</p></li>
+<li class="listitem"><p><em class="parameter"><code>idx</code></em>
+: <code class="literal">gdouble</code>, input horizontal offset</p></li>
+<li class="listitem"><p><em class="parameter"><code>idy</code></em>
+: <code class="literal">gdouble</code>, input vertical offset</p></li>
+<li class="listitem"><p><em class="parameter"><code>odx</code></em>
+: <code class="literal">gdouble</code>, output horizontal offset</p></li>
+<li class="listitem"><p><em class="parameter"><code>ody</code></em>
+: <code class="literal">gdouble</code>, output vertical offset</p></li>
+</ul></div>
+<p>This operator performs an affine transform on an image using <em class="parameter"><code>interpolate</code></em>
+.</p>
+<p>The transform is:</p>
+<p>  X = <em class="parameter"><code>a</code></em>
+ * (x + <em class="parameter"><code>idx</code></em>
+) + <em class="parameter"><code>b</code></em>
+ * (y + <em class="parameter"><code>idy</code></em>
+) + <em class="parameter"><code>odx</code></em>
+
+  Y = <em class="parameter"><code>c</code></em>
+ * (x + <em class="parameter"><code>idx</code></em>
+) + <em class="parameter"><code>d</code></em>
+ * (y + <em class="parameter"><code>idy</code></em>
+) + <em class="parameter"><code>doy</code></em>
+</p>
+<p>  x and y are the coordinates in input image.  
+  X and Y are the coordinates in output image.
+  (0,0) is the upper left corner.</p>
+<p>The section of the output space defined by <em class="parameter"><code>oarea</code></em>
+ is written to
+<em class="parameter"><code>out</code></em>
+. <em class="parameter"><code>oarea</code></em>
+ is a four-element int array of left, top, width, height. 
+By default <em class="parameter"><code>oarea</code></em>
+ is just large enough to cover the whole of the 
+transformed input image.</p>
+<p><em class="parameter"><code>interpolate</code></em>
+ defaults to bilinear. </p>
+<p><em class="parameter"><code>idx</code></em>
+, <em class="parameter"><code>idy</code></em>
+, <em class="parameter"><code>odx</code></em>
+, <em class="parameter"><code>ody</code></em>
+ default to zero.</p>
+<p>This operation does not change xres or yres. The image resolution needs to
+be updated by the application. </p>
+<p>See also: <a class="link" href="libvips-resample.html#vips-shrink" title="vips_shrink ()"><code class="function">vips_shrink()</code></a>, <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a>, <a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="type">VipsInterpolate</span></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.8.11.15"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>a</p></td>
+<td class="parameter_description"><p>transformation matrix coefficient</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>b</p></td>
+<td class="parameter_description"><p>transformation matrix coefficient</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>c</p></td>
+<td class="parameter_description"><p>transformation matrix coefficient</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>d</p></td>
+<td class="parameter_description"><p>transformation matrix coefficient</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.14.8.11.16"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-resize"></a><h3>vips_resize ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_resize (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+             <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+             <em class="parameter"><code><span class="type">double</span> scale</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>vscale</code></em>
+: <code class="literal">gdouble</code> vertical scale factor</p></li>
+<li class="listitem"><p><em class="parameter"><code>kernel</code></em>
+: <a class="link" href="libvips-resample.html#VipsKernel" title="enum VipsKernel"><span class="type">VipsKernel</span></a> to reduce with </p></li>
+<li class="listitem"><p><em class="parameter"><code>centre</code></em>
+: <code class="literal">gboolean</code> use centre rather than corner sampling convention</p></li>
+</ul></div>
+<p>Resize an image. </p>
+<p>When downsizing, the
+image is block-shrunk with <a class="link" href="libvips-resample.html#vips-shrink" title="vips_shrink ()"><code class="function">vips_shrink()</code></a>, 
+then the image is shrunk again to the 
+target size with <a class="link" href="libvips-resample.html#vips-reduce" title="vips_reduce ()"><code class="function">vips_reduce()</code></a>. How much is done by <a class="link" href="libvips-resample.html#vips-shrink" title="vips_shrink ()"><code class="function">vips_shrink()</code></a> vs.
+<a class="link" href="libvips-resample.html#vips-reduce" title="vips_reduce ()"><code class="function">vips_reduce()</code></a> varies with the <em class="parameter"><code>kernel</code></em>
+ setting. </p>
+<p>vips_resize() normally uses <a class="link" href="libvips-resample.html#VIPS-KERNEL-LANCZOS3:CAPS"><span class="type">VIPS_KERNEL_LANCZOS3</span></a> for the final reduce, you
+can change this with <em class="parameter"><code>kernel</code></em>
+.</p>
+<p>Set <em class="parameter"><code>centre</code></em>
+ to use centre rather than corner sampling convention. Centre
+convention can be useful to match the behaviour of other systems. </p>
+<p>When upsizing (<em class="parameter"><code>scale</code></em>
+ &gt; 1), the operation uses <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a> with
+a <a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="type">VipsInterpolate</span></a> selected depending on <em class="parameter"><code>kernel</code></em>
+. It will use
+<span class="type">VipsInterpolateBicubic</span> for <a class="link" href="libvips-resample.html#VIPS-KERNEL-CUBIC:CAPS"><span class="type">VIPS_KERNEL_CUBIC</span></a> and above.</p>
+<p>vips_resize() normally maintains the image apect ratio. If you set
+<em class="parameter"><code>vscale</code></em>
+, that factor is used for the vertical scale and <em class="parameter"><code>scale</code></em>
+ for the
+horizontal.</p>
+<p>This operation does not change xres or yres. The image resolution needs to
+be updated by the application. </p>
+<p>See also: <a class="link" href="libvips-resample.html#vips-shrink" title="vips_shrink ()"><code class="function">vips_shrink()</code></a>, <a class="link" href="libvips-resample.html#vips-reduce" title="vips_reduce ()"><code class="function">vips_reduce()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.8.12.14"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>scale</p></td>
+<td class="parameter_description"><p>scale factor</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.14.8.12.15"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-mapim"></a><h3>vips_mapim ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_mapim (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+            <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+            <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *index</code></em>,
+            <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>interpolate</code></em>
+: interpolate pixels with this</p></li></ul></div>
+<p>This operator resamples <em class="parameter"><code>in</code></em>
+ using <em class="parameter"><code>index</code></em>
+ to look up pixels. <em class="parameter"><code>out</code></em>
+ is
+the same size as <em class="parameter"><code>index</code></em>
+, with each pixel being fetched from that position in
+<em class="parameter"><code>in</code></em>
+. That is:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="normal">out</span><span class="symbol">[</span><span class="normal">x</span><span class="symbol">,</span><span class="normal"> y</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> in</span><span class="symbol">[</span><span class="normal">index</span><span class="symbol">[</span><span class="normal">x</span><span class="symbol">,</span><span class="normal"> y</span><span class="symbol">]]</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>If <em class="parameter"><code>index</code></em>
+ has one band, that band must be complex. Otherwise, <em class="parameter"><code>index</code></em>
+ must
+have two bands of any format. 
+Coordinates in <em class="parameter"><code>index</code></em>
+ are in pixels, with (0, 0) being the top-left corner 
+of <em class="parameter"><code>in</code></em>
+, and with y increasing down the image. Use <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a> to build index
+images. </p>
+<p><em class="parameter"><code>interpolate</code></em>
+ defaults to bilinear. </p>
+<p>This operation does not change xres or yres. The image resolution needs to
+be updated by the application. </p>
+<p>See <a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()"><code class="function">vips_maplut()</code></a> for a 1D equivalent of this operation. </p>
+<p>See also: <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>, <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a>, <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a>, 
+<a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()"><code class="function">vips_maplut()</code></a>, <a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="type">VipsInterpolate</span></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.8.13.14"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>index</p></td>
+<td class="parameter_description"><p>index image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.14.8.13.15"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-quadratic"></a><h3>vips_quadratic ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_quadratic (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *coeff</code></em>,
+                <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>interpolate</code></em>
+: use this interpolator (default bilinear)</p></li></ul></div>
+<p>This operation is unfinished and unusable, sorry. </p>
+<p>See also: <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.8.14.8"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>coeff</p></td>
+<td class="parameter_description"><p>horizontal quadratic</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.14.8.14.9"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+<p></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-resample.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="VipsKernel"></a><h3>enum VipsKernel</h3>
+<p>The resampling kernels vips supports. See <a class="link" href="libvips-resample.html#vips-reduce" title="vips_reduce ()"><code class="function">vips_reduce()</code></a>, for example.  </p>
+<p>The Lanczos kernels vary in size with the downsampling ratio.</p>
+<div class="refsect3">
+<a name="id-1.4.14.9.2.5"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-KERNEL-NEAREST:CAPS"></a>VIPS_KERNEL_NEAREST</p></td>
+<td class="enum_member_description">
+<p>The nearest pixel to the point.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-KERNEL-LINEAR:CAPS"></a>VIPS_KERNEL_LINEAR</p></td>
+<td class="enum_member_description">
+<p>Calculate a pixel value using linear interpolation.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-KERNEL-CUBIC:CAPS"></a>VIPS_KERNEL_CUBIC</p></td>
+<td class="enum_member_description">
+<p>Calculate using a 4-element cubic kernel.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-KERNEL-LANCZOS2:CAPS"></a>VIPS_KERNEL_LANCZOS2</p></td>
+<td class="enum_member_description">
+<p>Calculate with a two-lobe Lanczos kernel.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-KERNEL-LANCZOS3:CAPS"></a>VIPS_KERNEL_LANCZOS3</p></td>
+<td class="enum_member_description">
+<p>Calculate with a three-lobe Lanczos kernel.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-KERNEL-LAST:CAPS"></a>VIPS_KERNEL_LAST</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsSize"></a><h3>enum VipsSize</h3>
+<p>Controls whether an operation should upsize, downsize, or both up and
+downsize. </p>
+<p>See also: <a class="link" href="libvips-resample.html#vips-thumbnail" title="vips_thumbnail ()"><code class="function">vips_thumbnail()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.14.9.3.5"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-SIZE-BOTH:CAPS"></a>VIPS_SIZE_BOTH</p></td>
+<td class="enum_member_description">
+<p>size both up and down</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-SIZE-UP:CAPS"></a>VIPS_SIZE_UP</p></td>
+<td class="enum_member_description">
+<p>only upsize</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-SIZE-DOWN:CAPS"></a>VIPS_SIZE_DOWN</p></td>
+<td class="enum_member_description">
+<p>only downsize</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-SIZE-LAST:CAPS"></a>VIPS_SIZE_LAST</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>

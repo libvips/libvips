@@ -1,0 +1,408 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VIPS Reference Manual: VIPS from C++</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="VIPS Reference Manual">
+<link rel="up" href="ch01.html" title="VIPS Overview">
+<link rel="prev" href="using-from-python.html" title="VIPS from Python">
+<link rel="next" href="binding.html" title="Writing bindings for libvips">
+<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="using-from-python.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="binding.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="using-from-cpp"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle">VIPS from C++</span></h2>
+<p>Using VIPS — How to use the VIPS library from C++</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect3">
+<a name="using-cpp"></a><h4>Introduction</h4>
+<p>
+      VIPS comes with a convenient C++ API. It is a very thin wrapper over the 
+      C API and adds automatic reference counting, exceptions, operator 
+      overloads, and automatic constant expansion. You can drop down to the C 
+      API at any point, so all the C API docs also work for C++. 
+    </p>
+<pre class="programlisting">
+/* compile with:
+ *      g++ -g -Wall try.cc `pkg-config vips-cpp --cflags --libs`
+ */
+
+#include &lt;vips/vips8&gt;
+
+using namespace vips;
+
+int
+main( int argc, char **argv )
+{
+  GOptionContext *context;
+  GOptionGroup *main_group;
+  GError *error = NULL;
+
+  if( VIPS_INIT( argv[0] ) )
+    vips_error_exit( NULL ); 
+
+  context = g_option_context_new( "" ); 
+
+  main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
+  g_option_context_set_main_group( context, main_group );
+  g_option_context_add_group( context, vips_get_option_group() );
+
+  if( !g_option_context_parse( context, &amp;argc, &amp;argv, &amp;error ) ) {
+    if( error ) {
+      fprintf( stderr, "%s\n", error-&gt;message );
+      g_error_free( error );
+    }
+
+    vips_error_exit( NULL );
+  }
+
+  VImage in = VImage::new_from_file( argv[1], 
+    VImage::option()-&gt;
+      set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
+
+  double avg = in.avg(); 
+
+  printf( "avg = %g\n", avg ); 
+  printf( "width = %d\n", in.width() ); 
+
+  VImage in = VImage::new_from_file( argv[1],
+    VImage::option()-&gt;
+      set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
+
+  VImage out = in.embed( 10, 10, 1000, 1000, 
+    VImage::option()-&gt;
+      set( "extend", "background" )-&gt;
+      set( "background", 128 ) );
+
+  out.write_to_file( argv[2] );
+
+  vips_shutdown();
+
+  return( 0 );
+}
+</pre>
+<p>
+      Everything before <code class="code">VImage in = VImage::..</code> is exactly
+      as the C API. This boilerplate gives the example a set of standard
+      command-line flags.
+    </p>
+<p>
+      This line is the C++ equivalent of <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>. It works 
+      in the same way, the differences being:
+
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
+            <code class="code">VImage</code> lifetime is managed automatically, like a smart 
+            pointer. You don't need to call <code class="function">g_object_unref()</code>. 
+          </p></li>
+<li class="listitem">
+<p>
+            Instead of using varargs and a <code class="literal">NULL</code>-terminated option list, this 
+            function takes an optional <code class="code">VOption</code> pointer. This 
+            gives a list of name / value pairs for optional arguments to the 
+            function.
+          </p>
+<p>
+            In this case we request unbuffered IO for the image, meaning, we 
+            expect to do a single top-to-bottom scan of the image and do not 
+            need it to be decompressed entirely. You can use the C enum name, 
+            as is done in this case, or use a string and have the string 
+            looked up. See below.
+          </p>
+<p>
+            The function will delete the <code class="code">VOption</code> pointer for
+            us when it's finished with it.
+          </p>
+</li>
+<li class="listitem"><p>
+            Instead of returning <code class="literal">NULL</code> on error, this constructor will 
+            raise a <code class="code">VError</code> exception. 
+          </p></li>
+</ul></div>
+<p>
+
+      There are a series of similar constructors which parallel the other 
+      constructors in the C API, see VImage::<code class="function">new_from_memory()</code>,
+      VImage::<code class="function">new_from_buffer()</code>, and VImage::<code class="function">new_matrix()</code>. There's also 
+      VImage::<code class="function">new_memory()</code> and VImage::<code class="function">new_temp_file()</code>, which when written to 
+      with VImage::<code class="function">write()</code> will create whole images on memory or on disc. 
+    </p>
+<p>
+      The next line finds the average pixel value, it's the equivalent of the 
+      <a class="link" href="libvips-arithmetic.html#vips-avg" title="vips_avg ()"><code class="function">vips_avg()</code></a> function. The differences from the C API are:
+
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+<p>
+            VImage::<code class="function">avg()</code> is a member function: the <code class="code">this</code> 
+            parameter is the first (the only, in this case) input image. 
+          </p>
+<p>
+            The function returns the first output parameter, in this case the 
+            average pixel value. Other return values are via pointer arguments, 
+            as in the C API. 
+          </p>
+<p>
+            Like VImage::<code class="function">new_from_file()</code>, function raises the 
+            <code class="code">VError</code> exception on error.
+          </p>
+<p>
+            Like VImage::<code class="function">new_from_file()</code>, extra arguments are passed 
+            via an optional <code class="code">VOption</code> parameter. There are none
+            in this case, so the function brackets can be left empty.
+          </p>
+</li></ul></div>
+<p>
+
+      All other operations follow the same pattern, for example the C API call 
+      <a class="link" href="libvips-arithmetic.html#vips-add" title="vips_add ()"><code class="function">vips_add()</code></a>:
+
+</p>
+<pre class="programlisting">
+int vips_add( VipsImage *left, VipsImage *right, VipsImage **out, ... );
+</pre>
+<p>
+
+      appears in C++ as:
+
+</p>
+<pre class="programlisting">
+VImage VImage::add( VImage right, VOption *options = 0 );
+</pre>
+<p>
+    </p>
+<p>
+      The next line uses VImage::<code class="function">width()</code> to get the image width in pixels. 
+      There are similar functions paralleling <a class="link" href="libvips-header.html#vips-image-get-format" title="vips_image_get_format ()"><code class="function">vips_image_get_format()</code></a> and 
+      friends. Use VImage::<code class="function">set()</code> to set metadata fields, VImage::<code class="function">get_int()</code> and 
+      c. to fetch metadata. 
+    </p>
+<p>
+      Next we reload the image. The VImage::<code class="function">avg()</code> will have scanned the image 
+      and reached the end of the file, we need to scan again for the next 
+      operation. If we'd selected random access mode (the default) in the 
+      original VImage::<code class="function">new_from_file()</code>, we would not need to reload.
+    </p>
+<p>
+      The next line runs <a class="link" href="libvips-conversion.html#vips-embed" title="vips_embed ()"><code class="function">vips_embed()</code></a> with two optional parameters. The first 
+      sets the value to an enum (here we use a string to set the value, it'll 
+      be looked up in the list of possible enum values, or you can use the 
+      symbols from the C API), the 
+      second sets the value to an <code class="code">int</code>. The 
+      <code class="code">"background"</code> 
+      parameter is actually a <a class="link" href="libvips-type.html#VipsArrayDouble"><span class="type">VipsArrayDouble</span></a>: if you pass an 
+      <code class="code">int</code> instead, it will be automatically converted to a 
+      one-element array for you. You can pass a 
+      <code class="code">std::vector&lt;double&gt;</code> too: the utility function 
+      VImage::<code class="function">to_vectorv()</code> is a convenient way to make one. 
+    </p>
+<p>
+      Finally, VImage::<code class="function">write_to_file()</code> will write the new image to the 
+      filesystem. You can add a <span class="type">VOption</span> as a final parameter and set options 
+      for the writer if you wish. Again, the operation will throw a <span class="type">VError</span> 
+      exception on error. The other writers from the C API are also present: 
+      you can write to a memory array, to a formatted image in memory, or to 
+      another image. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="cpp-expansion"></a><h4>Automatic constant expansion</h4>
+<p>
+      The C++ API will automatically turn constants into images in some cases. 
+      For example, you can join two images together bandwise (the 
+      bandwise join of two RGB images would be a six-band image) with:
+
+</p>
+<pre class="programlisting">
+VImage rgb = ...; 
+VImage six_band = rgb.bandjoin( rgb );
+</pre>
+<p>
+
+      You can also bandjoin a constant, for example: 
+
+</p>
+<pre class="programlisting">
+VImage rgb_with_alpha = rgb.bandjoin( 255 );
+</pre>
+<p>
+
+      Will add an extra band to an image, with every element in the new band 
+      having the value 255. This is quite a general feature. You can use a 
+      constant in most places where you can use an image and it will be 
+      converted. For example:
+
+</p>
+<pre class="programlisting">
+VImage a = (a &lt; 128).ifthenelse( 128, a ); 
+</pre>
+<p>
+
+      Will set every band element of <code class="code">a</code> less than 128 to 128. 
+    </p>
+<p>
+      The C++ API includes the usual range of arithmetic operator overloads. 
+      You can mix constants, vectors and images freely.
+    </p>
+<p>
+      The API overloads <code class="code">[]</code> to be <a class="link" href="libvips-conversion.html#vips-extract-band" title="vips_extract_band ()"><code class="function">vips_extract_band()</code></a>. You can 
+      write:
+
+</p>
+<pre class="programlisting">
+VImage xyz = VImage::xyz( 256, 256 ) - VImage::to_vectorv( 2, 128.0, 128.0 ); 
+VImage mask = (xyz[0].pow( 2 ) + xyz[1].pow( 2 )).pow( 0.5 ) &lt; 100;
+</pre>
+<p>
+
+      to make a circular mask, for example.
+    </p>
+<p>
+      The API overloads <code class="code">()</code> to be <a class="link" href="libvips-arithmetic.html#vips-getpoint" title="vips_getpoint ()"><code class="function">vips_getpoint()</code></a>. You can 
+      write:
+
+</p>
+<pre class="programlisting">
+VImage xyz = VImage::xyz( 256, 256 ) - VImage::to_vectorv( 2, 128.0, 128.0 ); 
+// this will have the value [0, 0]
+std::vector&lt;double&gt; point = xyz(128, 128);
+</pre>
+<p>
+    </p>
+</div>
+<div class="refsect3">
+<a name="cpp-enum"></a><h4>Enum expansion</h4>
+<p>
+      VIPS operations which implement several functions with a controlling 
+      enum, such as <a class="link" href="libvips-arithmetic.html#vips-math" title="vips_math ()"><code class="function">vips_math()</code></a>, are expanded to a set of member functions 
+      named after the enum. For example, the C function:
+
+</p>
+<pre class="programlisting">
+int vips_math( VipsImage *in, VipsImage **out, VipsOperationMath math, ... );
+</pre>
+<p>
+
+      where <a class="link" href="libvips-arithmetic.html#VipsOperationMath" title="enum VipsOperationMath"><span class="type">VipsOperationMath</span></a> has the member <a class="link" href="libvips-arithmetic.html#VIPS-OPERATION-MATH-SIN:CAPS"><span class="type">VIPS_OPERATION_MATH_SIN</span></a>, has a 
+      C convenience function <a class="link" href="libvips-arithmetic.html#vips-sin" title="vips_sin ()"><code class="function">vips_sin()</code></a>:
+
+</p>
+<pre class="programlisting">
+int vips_sin( VipsImage *in, VipsImage **out, ... );
+</pre>
+<p>
+
+      and a C++ member function VImage::<code class="function">sin()</code>:
+
+</p>
+<pre class="programlisting">
+VImage VImage::sin( VOption *options = 0 );
+</pre>
+<p>
+
+    </p>
+</div>
+<div class="refsect3">
+<a name="cpp-metadata"></a><h4>Image metadata</h4>
+<p>
+      VIPS images can have a lot of metadata attached to them, giving things
+      like ICC profiles, EXIF data, and so on. You can use the command-line
+      program <code class="code">vipsheader</code> with the <code class="code">-a</code> flag to list
+      all the fields.
+    </p>
+<p>
+      You can read metadata items with the member functions
+      <code class="code"><code class="function">get_int()</code></code>, <code class="code"><code class="function">get_double()</code></code>, 
+      <code class="code"><code class="function">get_string()</code></code> and <code class="code"><code class="function">get_blob()</code></code>. Use
+      <code class="code"><code class="function">get_typeof()</code></code> to call <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a> and read the
+      type of an item. This will return 0 for undefined fields.
+
+</p>
+<pre class="programlisting">
+const char *VImage::get_string( const char *field ) throw( VError );
+</pre>
+<p>
+    </p>
+<p>
+      You can use the <code class="code"><code class="function">set()</code></code> family of overloaded members to set
+      metadata, for example:
+
+</p>
+<pre class="programlisting">
+void VImage::set( const char *field, const char *value );
+</pre>
+<p>
+    </p>
+<p>
+      You can use these functions to manipulate exif metadata, for example:
+
+</p>
+<pre class="programlisting">
+VImage im = VImage::new_from_file( "x.jpg" )
+int orientation = atoi( im.get_string( "exif-ifd0-Orientation" ) );
+im.set( "exif-ifd0-Orientation", "2" );
+im.write_to_file( "y.jpg" );
+</pre>
+<p>
+    </p>
+</div>
+<div class="refsect3">
+<a name="cpp-extend"></a><h4>Extending the C++ interface</h4>
+<p>
+      The C++ interface comes in two parts. First, <code class="code">VImage8.h</code>
+      defines a simple layer over <span class="type">GObject</span> for automatic reference counting,
+      then a generic way to call any vips8 operation with VImage::<code class="function">call()</code>,
+      then a few convenience functions, then a set of overloads.
+    </p>
+<p>
+      The member function for each operation, for example VImage::<code class="function">add()</code>, is 
+      generated by a small Python program called <code class="code">gen-operators.py</code>,
+      and its companion, <code class="code">gen-operators-h.py</code> to generate the 
+      headers. If you write a new VIPS operator, you'll need to rerun these 
+      programs to make the new member function. 
+    </p>
+<p>
+      You can write the wrapper yourself, of course, they are very simple. 
+      The one for VImage::<code class="function">add()</code> looks like this:
+
+</p>
+<pre class="programlisting">
+VImage VImage::add(VImage right, VOption *options)
+{
+  VImage out;
+
+  call("add" ,
+    (options ? options : VImage::option()) -&gt;
+      set("out", &amp;out) -&gt;
+      set("left", *this) -&gt;
+      set("right", right));
+
+  return out;
+}
+</pre>
+<p>
+
+      Where VImage::<code class="function">call()</code> is the generic call-a-vips8-operation function.
+    </p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</body>
+</html>
