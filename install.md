@@ -10,11 +10,8 @@ If the packaged version is too old, you might need to build from source.
 
 # Building libvips from a source tarball
 
-We keep pre-baked tarballs of releases on the vips website:
-
-http://www.vips.ecs.soton.ac.uk/supported/current/
-
-Untar, then in the libvips directory you should just be able to do:
+We keep pre-baked tarballs [in the Releases area]({{ site.github.releases_url
+}}). Untar, then in the libvips directory you should just be able to do:
 
 	$ ./configure
 
