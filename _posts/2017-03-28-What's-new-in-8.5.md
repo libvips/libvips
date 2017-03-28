@@ -47,6 +47,15 @@ all global brightness variation and can make images hard to understand.
 `max-slope` parameter you can use to limit
 how much equalisation can alter your image. A value of 3 generally works well.
 
+For example, here's the famous NASA image of Io on the left, straight
+local-histogram equalization in the centre, and CLAHE on the right.
+
+[![Io with CLAHE](/assets/images/tn_clahe.jpg)](/assets/images/clahe.jpg)
+
+The centre image looks horrible, but it does have a lot of local detail. The
+CLAHE one is a interesting compromise: it still looks like the original, but
+lots of subtle details in the clouds have been enhanced.
+
 ## Toilet roll images
 
 libvips used to let you pick single pages out of multi-page images, such
