@@ -16,10 +16,11 @@
       {% if site.github.is_project_page %}
         <a href="{{ site.github.repository_url }}" class="btn">View on GitHub</a>
       {% endif %}
-      {% if site.show_downloads %}
-        <a href="{{ site.github.zip_url }}" class="btn">Download .zip</a>
-        <a href="{{ site.github.tar_url }}" class="btn">Download .tar.gz</a>
-      {% endif %}
+      <a href="{{ site.github.releases_url }}" class="btn">Releases</a>
+      <a href="install.html" class="btn">Installing</a>
+      <a href="API" class="btn">API docs</a>
+      <a href="{{ site.github.issues_url }}" class="btn">Issues</a>
+      <a href="{{ site.github.wiki_url }}" class="btn">Wiki</a>
     </section>
 
     <section class="main-content">
