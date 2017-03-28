@@ -22,3 +22,14 @@ and comes with a [Python binding](API/using-from-python.html) and a
 [Go](https://github.com/davidbyttow/govips), JavaScript and others. There are 
 several GUIs as well.
 
+<h1>News</h1>
+
+<ul class="blog-index">
+  {% for post in site.posts %}
+    <li>
+      <span class="date">{{ post.date }}</span>
+      <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
+      {{ post.excerpt }}
+    </li>
+  {% endfor %}
+</ul>
