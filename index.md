@@ -22,8 +22,25 @@ and comes with a [Python binding](API/using-from-python.html) and a
 [command-line interface](API/using-cli.html). Bindings are available for 
 [Ruby](https://rubygems.org/gems/ruby-vips), 
 [PHP](https://github.com/jcupitt/php-vips),
-[Go](https://github.com/davidbyttow/govips), JavaScript and others. There are 
-several GUIs as well.
+[Go](https://github.com/davidbyttow/govips).
+libvips is used as an image processing engine by
+[sharp (on node.js)](https://www.npmjs.org/package/sharp),
+[bimg](https://github.com/h2non/bimg), 
+[sharp for Go](https://github.com/DAddYE/vips),
+[carrierwave-vips](https://github.com/eltiare/carrierwave-vips),
+[mediawiki](http://www.mediawiki.org/wiki/Extension:VipsScaler),
+[nip2](https://github.com/jcupitt/nip2), 
+[PhotoFlow](https://github.com/aferrero2707/PhotoFlow) and others. 
+
+<h1>Cite</h1>
+
+[Martinez, K. and Cupitt, J. (2005) VIPS --
+a highly tuned image processing software architecture. In Proceedings of IEEE
+International Conference on Image Processing 2, pp. 574-577, Genova.](http://eprints.ecs.soton.ac.uk/12371)
+
+[Cupitt, J. and Martinez,
+K. (1996) VIPS: An image processing system for large images, Proc. SPIE, vol.
+2663, pp. 19--28.](http://eprints.soton.ac.uk/252227/1/vipsspie96a.pdf)
 
 <h1>News</h1>
 
