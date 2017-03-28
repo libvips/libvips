@@ -20,5 +20,5 @@ and comes with a [Python binding](API/using-from-python.html) and a
 [Ruby](https://rubygems.org/gems/ruby-vips), 
 [PHP](https://github.com/jcupitt/php-vips),
 [Go](https://github.com/davidbyttow/govips), JavaScript and others. There are 
-several GUIs as well, see the [VIPS website](http://www.vips.ecs.soton.ac.uk).
+several GUIs as well.
 
