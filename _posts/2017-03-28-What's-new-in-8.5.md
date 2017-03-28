@@ -50,7 +50,7 @@ how much equalisation can alter your image. A value of 3 generally works well.
 For example, here's the famous NASA image of Io on the left, straight
 local-histogram equalization in the centre, and CLAHE on the right.
 
-[![Io with CLAHE]({{ site.baseurl }}/assets/images/tn_clahe.jpg)]({{ site.baseurl }}/assets/images/clahe.jpg)
+[![Io with CLAHE]({{ site.baseurl }}assets/images/tn_clahe.jpg)]({{ site.baseurl }}assets/images/clahe.jpg)
 
 The centre image looks horrible, but it does have a lot of local detail. The
 CLAHE one is a interesting compromise: it still looks like the original, but
