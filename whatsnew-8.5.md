@@ -18,7 +18,8 @@ The new thumbnail operator has also picked up some useful features:
 
 * **Smart crop** A new cropping mode called `attention` searches the image for
   edges, skin tones and areas of saturated colour, and attempts to position the
-  crop box over the most significant feature. 
+  crop box over the most significant feature. There's a `vips_smartcrop()`
+  operator as well.
 
 * **Crop constraints** Thanks to tomasc, libvips has crop constraints. You 
   can set it to only thumbnail if the image is larger or smaller than the target 
