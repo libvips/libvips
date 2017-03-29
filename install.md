@@ -3,14 +3,14 @@
 
 Most unix-like operating systems have libvips packages, check your package 
 manager. For macOS, there are packages in Homebrew, MacPorts and Fink. For
-Windows, there are pre-compiled binaries in the [Releases area]({{
+Windows, there are pre-compiled binaries in the [Download area]({{
 site.github.releases_url }}).
 
 If the packaged version is too old, you might need to build from source. 
 
 ## Building libvips from a source tarball
 
-We keep pre-baked tarballs [in the Releases area]({{ site.github.releases_url
+We keep pre-baked tarballs [in the Download area]({{ site.github.releases_url
 }}). Untar, then in the libvips directory you should just be able to do:
 
 ```
