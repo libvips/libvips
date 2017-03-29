@@ -32,17 +32,18 @@ libvips is used as an image processing engine by
 [nip2](https://github.com/jcupitt/nip2), 
 [PhotoFlow](https://github.com/aferrero2707/PhotoFlow) and others. 
 
-<h1>Cite</h1>
+## Cite
 
-[Martinez, K. and Cupitt, J. (2005) VIPS --
-a highly tuned image processing software architecture. In Proceedings of IEEE
-International Conference on Image Processing 2, pp. 574-577, Genova.](http://eprints.ecs.soton.ac.uk/12371)
+[Martinez, K. and Cupitt, J. (2005) VIPS -- a highly tuned
+image processing software architecture. In Proceedings of IEEE
+International Conference on Image Processing 2, pp. 574-577,
+Genova.](http://eprints.ecs.soton.ac.uk/12371)
 
-[Cupitt, J. and Martinez,
-K. (1996) VIPS: An image processing system for large images, Proc. SPIE, vol.
-2663, pp. 19--28.](http://eprints.soton.ac.uk/252227/1/vipsspie96a.pdf)
+[Cupitt, J. and Martinez, K. (1996) VIPS: An image
+processing system for large images, Proc. SPIE, vol.  2663,
+pp. 19--28.](http://eprints.soton.ac.uk/252227/1/vipsspie96a.pdf)
 
-<h1>News</h1>
+## News
 
 <ul class="blog-index">
   {% for post in site.posts %}

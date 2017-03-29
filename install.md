@@ -8,29 +8,32 @@ site.github.releases_url }}).
 
 If the packaged version is too old, you might need to build from source. 
 
-# Building libvips from a source tarball
+## Building libvips from a source tarball
 
 We keep pre-baked tarballs [in the Releases area]({{ site.github.releases_url
 }}). Untar, then in the libvips directory you should just be able to do:
 
-	$ ./configure
+```
+$ ./configure
+```
 
-Check the summary at the end of `configure` carefully. 
-libvips must have `build-essential`, `pkg-config`, `glib2.0-dev`,
-`libexpat1-dev`.
+Check the summary at the end of `configure` carefully.  libvips must have
+`build-essential`, `pkg-config`, `glib2.0-dev`, `libexpat1-dev`.
 
-For the vips8 Python binding, you must also have 
-`gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev`.
+For the vips8 Python binding, you must also have `gobject-introspection`,
+`python-gi-dev`, and `libgirepository1.0-dev`.
 
-You'll need the dev packages for the file format support you
-want. For basic jpeg and tiff support, you'll need `libtiff5-dev`,
-`libjpeg-turbo8-dev`, and `libgsf-1-dev`.  See the **Dependencies** section
-below for a full list of the things that libvips can be configured to use.
+You'll need the dev packages for the file format support you want. For basic
+jpeg and tiff support, you'll need `libtiff5-dev`, `libjpeg-turbo8-dev`,
+and `libgsf-1-dev`.  See the **Dependencies** section below for a full list
+of the things that libvips can be configured to use.
 
 Once `configure` is looking OK, compile and install with the usual:
 
-	$ make
-	$ sudo make install
+```
+$ make
+$ sudo make install
+```
 
 By default this will install files to `/usr/local`.
 
@@ -39,7 +42,7 @@ Windows](http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_windows)
 and [building on OS
 X](http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_OS_X).
 
-# Building libvips from git
+## Building libvips from git
 
 Checkout the latest sources with:
 
@@ -116,11 +119,11 @@ Static analysis with:
 
 	$ cppcheck --force --enable=style . &> cppcheck.log
 
-# Dependencies 
+## Dependencies 
 
 libvips has to have `glib2.0-dev`. Other dependencies are optional, see below.
 
-# Optional dependencies
+## Optional dependencies
 
 If suitable versions are found, libvips will add support for the following
 libraries automatically. See `./configure --help` for a set of flags to
@@ -256,7 +259,7 @@ files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
 
 If available, we build the vips7 python binding.
 
-# Disclaimer
+## Disclaimer
 
 No guarantees of performance accompany this software, nor is any
 responsibility assumed on the part of the authors. Please read the licence
