@@ -177,15 +177,15 @@ int vips__jpeg_read_buffer( const void *buf, size_t len, VipsImage *out,
 	gboolean header_only, int shrink, int fail, gboolean autorotate );
 
 int vips__png_header( const char *name, VipsImage *out );
-int vips__png_read( const char *name, VipsImage *out );
+int vips__png_read( const char *name, VipsImage *out, gboolean fail );
 gboolean vips__png_ispng_buffer( const void *buf, size_t len );
 int vips__png_ispng( const char *filename );
 gboolean vips__png_isinterlaced( const char *filename );
 gboolean vips__png_isinterlaced_buffer( const void *buffer, size_t length );
 extern const char *vips__png_suffs[];
-int vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out );
-int vips__png_header_buffer( const void *buffer, size_t length, 
-	VipsImage *out );
+int vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out, 
+	gboolean fail );
+int vips__png_header_buffer( const void *buffer, size_t length, VipsImage *out );
 
 int vips__png_write( VipsImage *in, const char *filename, 
 	int compress, int interlace, const char *profile,

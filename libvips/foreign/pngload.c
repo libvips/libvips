@@ -106,7 +106,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	if( vips__png_read( png->filename, load->real ) )
+	if( vips__png_read( png->filename, load->real, load->fail ) )
 		return( -1 );
 
 	return( 0 );
@@ -201,7 +201,7 @@ vips_foreign_load_png_buffer_load( VipsForeignLoad *load )
 	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
 
 	if( vips__png_read_buffer( buffer->buf->data, buffer->buf->length, 
-		load->real ) )
+		load->real, load->fail ) )
 		return( -1 );
 
 	return( 0 );

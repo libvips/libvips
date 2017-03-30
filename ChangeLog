@@ -1,3 +1,6 @@
+25/3/17 started 8.5.2
+- better behaviour for truncated PNG files, thanks Yury
+
 25/3/17 started 8.5.1
 - init more classes earlier, thanks David
 
