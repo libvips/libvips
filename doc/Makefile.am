@@ -128,6 +128,10 @@ IGNORE_HFILES = $(IGNORE_VIPS_INCLUDE) $(IGNORE_VIPS_C)
 HTML_IMAGES = \
 	$(top_srcdir)/doc/images/interconvert.png
 
+# we have some files in markdown ... convert to docbook for gtk-doc
+.md.xml:
+	pandoc -s -S --template="$(realpath pandoc-docbook-template.docbook)" -V title=hello --wrap=none -f markdown -t docbook -o $@ $<
+
 # Extra SGML files that are included by $(DOC_MAIN_SGML_FILE).
 # e.g. content_files=running.sgml building.sgml changes-2.0.sgml
 content_files = \
@@ -139,6 +143,7 @@ content_files = \
 	extending.xml \
 	function-list.xml \
 	file-format.xml \
+	whatsnew-8.5.xml \
 	binding.xml
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
@@ -153,6 +158,7 @@ expand_content_files = \
 	extending.xml \
 	function-list.xml \
 	file-format.xml \
+	whatsnew-8.5.xml \
 	binding.xml
 
 # CFLAGS and LDFLAGS for compiling gtkdoc-scangobj with your library.
