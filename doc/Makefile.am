@@ -126,12 +126,25 @@ IGNORE_HFILES = $(IGNORE_VIPS_INCLUDE) $(IGNORE_VIPS_C)
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png
 HTML_IMAGES = \
-	$(top_srcdir)/doc/images/interconvert.png
+	$(top_srcdir)/doc/images/interconvert.png \
+	$(top_srcdir)/doc/images/Combine.png \
+	$(top_srcdir)/doc/images/Memtrace.png \
+	$(top_srcdir)/doc/images/Sequence.png \
+	$(top_srcdir)/doc/images/Sink.png \
+	$(top_srcdir)/doc/images/Vips-smp.png
 
 # we have some files in markdown ... convert to docbook for gtk-doc
+# pandoc makes sect1 headers, we want refsect3 for gtk-doc
 .md.xml:
 	pandoc -s -S --template="$(realpath pandoc-docbook-template.docbook)" --wrap=none -V title="$<" -f markdown -t docbook -o $@ $<
 	sed -e s/sect1/refsect3/g < $@ > x && mv x $@
+
+# Our markdown source files
+markdown_content_files = \
+	How-it-works.md
+
+# converted to xml in this dir by pandoc
+markdown_content_files_docbook = $(markdown_content_files:.md=.xml)
 
 # Extra SGML files that are included by $(DOC_MAIN_SGML_FILE).
 # e.g. content_files=running.sgml building.sgml changes-2.0.sgml
@@ -144,7 +157,7 @@ content_files = \
 	extending.xml \
 	function-list.xml \
 	file-format.xml \
-	whatsnew-8.5.xml \
+	${markdown_content_files_docbook} \
 	binding.xml
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
@@ -159,7 +172,7 @@ expand_content_files = \
 	extending.xml \
 	function-list.xml \
 	file-format.xml \
-	whatsnew-8.5.xml \
+	${markdown_content_files_docbook} \
 	binding.xml
 
 # CFLAGS and LDFLAGS for compiling gtkdoc-scangobj with your library.
@@ -176,13 +189,14 @@ include gtk-doc.make
 # Other files to distribute
 # e.g. EXTRA_DIST += version.xml.in
 EXTRA_DIST += \
+        ${markdown_content_files} \
 	images \
 	gen-function-list.py
 
 # Files not to distribute
 # for --rebuild-types in $(SCAN_OPTIONS), e.g. $(DOC_MODULE).types
 # for --rebuild-sections in $(SCAN_OPTIONS) e.g. $(DOC_MODULE)-sections.txt
-DISTCLEANFILES = libvips.types
+DISTCLEANFILES = libvips.types 
 
 # Comment this out if you want 'make check' to test you doc status
 # and run some sanity checks

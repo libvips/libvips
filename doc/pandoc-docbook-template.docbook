@@ -11,11 +11,11 @@ $endif$
   <refmeta>
     <refentrytitle>$title$</refentrytitle>
     <manvolnum>3</manvolnum>
-    <refmiscinfo>VIPS Library</refmiscinfo>
+    <refmiscinfo>libvips</refmiscinfo>
   </refmeta>
 
   <refnamediv>
-    <refname>VIPS</refname>
+    <refname>libvips</refname>
     <refpurpose>$title$</refpurpose>
   </refnamediv>
 

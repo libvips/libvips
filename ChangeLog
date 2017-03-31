@@ -1,5 +1,6 @@
 25/3/17 started 8.5.2
 - better behaviour for truncated PNG files, thanks Yury
+- move some docs from the wiki and blog into core libvips docs
 
 25/3/17 started 8.5.1
 - init more classes earlier, thanks David

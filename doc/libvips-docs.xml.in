@@ -39,7 +39,7 @@
     <xi:include href="xml/function-list.xml"/>
     <xi:include href="xml/file-format.xml"/>
     <xi:include href="xml/using-threads.xml"/>
-    <xi:include href="xml/whatsnew-8.5.xml"/>
+    <xi:include href="xml/How-it-works.xml"/>
   </chapter>
 
   <chapter>
