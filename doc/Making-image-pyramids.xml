@@ -131,57 +131,57 @@ $ vips dzsave wtc.tif gmapdir --layout google
   <programlisting>
 $ vips dzsave wtc.tif gmapdir --layout google --background 0 --centre
 </programlisting>
-  <sect2 id="other-options">
-    <title>Other options</title>
-    <para>
-      You can use <literal>--tile-size</literal> and <literal>--overlap</literal> to control how large the tiles are and how they overlap (obviously). They default to the correct values for the selected layout.
-    </para>
-    <para>
-      You can use <literal>--depth</literal> to control how deep the pyramid should be. Possible values are <literal>onepixel</literal>, <literal>onetile</literal> and <literal>one</literal>. <literal>onepixel</literal> means the image is shrunk until it fits within a single pixel. <literal>onetile</literal> means shrink until it fits with a tile. <literal>one</literal> means only write one pyramid layer (the highest resolution one). It defaults to the correct value for the selected layout. <literal>--depth one</literal> is handy for slicing up a large image into tiles (rather than a pyramid).
-    </para>
-    <para>
-      You can use <literal>--angle</literal> to do a 90, 180 or 270 degree rotate of an image during pyramid write.
-    </para>
-    <para>
-      You can use <literal>--container</literal> to set the container type. Normally dzsave will write a tree of directories, but with <literal>--container zip</literal> you’ll get a zip file instead. Use .zip as the directory suffix to turn on zip format automatically:
-    </para>
-    <programlisting>
+</refsect3>
+<refsect3 id="other-options">
+  <title>Other options</title>
+  <para>
+    You can use <literal>--tile-size</literal> and <literal>--overlap</literal> to control how large the tiles are and how they overlap (obviously). They default to the correct values for the selected layout.
+  </para>
+  <para>
+    You can use <literal>--depth</literal> to control how deep the pyramid should be. Possible values are <literal>onepixel</literal>, <literal>onetile</literal> and <literal>one</literal>. <literal>onepixel</literal> means the image is shrunk until it fits within a single pixel. <literal>onetile</literal> means shrink until it fits with a tile. <literal>one</literal> means only write one pyramid layer (the highest resolution one). It defaults to the correct value for the selected layout. <literal>--depth one</literal> is handy for slicing up a large image into tiles (rather than a pyramid).
+  </para>
+  <para>
+    You can use <literal>--angle</literal> to do a 90, 180 or 270 degree rotate of an image during pyramid write.
+  </para>
+  <para>
+    You can use <literal>--container</literal> to set the container type. Normally dzsave will write a tree of directories, but with <literal>--container zip</literal> you’ll get a zip file instead. Use .zip as the directory suffix to turn on zip format automatically:
+  </para>
+  <programlisting>
 $ vips dzsave wtc.tif mypyr.zip
 </programlisting>
-    <para>
-      to write a zipfile containing the tiles. You can use <literal>.szi</literal> as a suffix to enable zip output as well.
-    </para>
-    <para>
-      Use <literal>--properties</literal> to output an XML file called <literal>vips-properties.xml</literal>. This contains a dump of all the metadata vips has about the image as a set of name-value pairs. It’s handy with openslide image sources.
-    </para>
-  </sect2>
-  <sect2 id="preprocessing-images">
-    <title>Preprocessing images</title>
-    <para>
-      You can use <literal>.dz</literal> as a filename suffix, meaning send the image to <literal>vips_dzsave()</literal>. This means you can write the output of any vips operation to a pyramid. For example:
-    </para>
-    <programlisting>
+  <para>
+    to write a zipfile containing the tiles. You can use <literal>.szi</literal> as a suffix to enable zip output as well.
+  </para>
+  <para>
+    Use <literal>--properties</literal> to output an XML file called <literal>vips-properties.xml</literal>. This contains a dump of all the metadata vips has about the image as a set of name-value pairs. It’s handy with openslide image sources.
+  </para>
+</refsect3>
+<refsect3 id="preprocessing-images">
+  <title>Preprocessing images</title>
+  <para>
+    You can use <literal>.dz</literal> as a filename suffix, meaning send the image to <literal>vips_dzsave()</literal>. This means you can write the output of any vips operation to a pyramid. For example:
+  </para>
+  <programlisting>
 $ vips extract_area huge.svs mypy.dz[layout=google] 100 100 10000 10000
 </programlisting>
-    <para>
-      The arguments to <literal>extract_area</literal> are image-in, image-out, left, top, width, height. So this command will cut out a 10,000 by 10,000 pixel area from near the top-left-hand corner of an Aperio slide image, then build a pyramid in Google layout using just those pixels.
-    </para>
-    <para>
-      If you are working from OpenSlide images, you can use the shrink-on-load feature of many of those formats. For example:
-    </para>
-    <programlisting>
+  <para>
+    The arguments to <literal>extract_area</literal> are image-in, image-out, left, top, width, height. So this command will cut out a 10,000 by 10,000 pixel area from near the top-left-hand corner of an Aperio slide image, then build a pyramid in Google layout using just those pixels.
+  </para>
+  <para>
+    If you are working from OpenSlide images, you can use the shrink-on-load feature of many of those formats. For example:
+  </para>
+  <programlisting>
 $ vips dzsave CMU-1.mrxs[level=1] x
 </programlisting>
-    <para>
-      Will pull out level 1 (the half-resolution level of an MRXS slide) and make a pyramid from that.
-    </para>
-  </sect2>
-  <sect2 id="troubleshooting">
-    <title>Troubleshooting</title>
-    <para>
-      If you are building vips from source you do need to check the summary at the end of configure carefully. You must have the <literal>libgsf-1-dev</literal> package for <literal>vips_dzsave()</literal> to work.
-    </para>
-  </sect2>
+  <para>
+    Will pull out level 1 (the half-resolution level of an MRXS slide) and make a pyramid from that.
+  </para>
+</refsect3>
+<refsect3 id="troubleshooting">
+  <title>Troubleshooting</title>
+  <para>
+    If you are building vips from source you do need to check the summary at the end of configure carefully. You must have the <literal>libgsf-1-dev</literal> package for <literal>vips_dzsave()</literal> to work.
+  </para>
 </refsect3>
 
 

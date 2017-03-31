@@ -55,7 +55,7 @@ operation flags: sequential nocache
 You can also call `vips_dzsave()` from any language with a libvips binding, or
 by using `.dz` or `.szi` as an output file suffix.
 
-### Writing [DeepZoom](http://en.wikipedia.org/wiki/Deep_Zoom) pyramids
+# Writing [DeepZoom](http://en.wikipedia.org/wiki/Deep_Zoom) pyramids
 
 The `--layout` option sets the basic mode of operation. With no
 `--layout`, dzsave writes DeepZoom pyramids. For example:
@@ -79,7 +79,7 @@ will write JPEG tiles with the quality factor set to 90. You can set any
 format write options you like, see the API docs for `vips_jpegsave()`
 for details.
 
-### Writing Zoomify pyramids
+# Writing Zoomify pyramids
 
 Use `--layout zoomify` to put dzsave into zoomify mode. For example:
 
@@ -93,7 +93,7 @@ directories called `TileGroupn`, each containing 256 image tiles.
 
 As with DeepZoom, you can use `--suffix` to set jpeg quality.
 
-### Writing [Google Maps](https://developers.google.com/maps/) pyramids
+# Writing [Google Maps](https://developers.google.com/maps/) pyramids
 
 Use `--layout google` to write Google maps-style pyramids. These are
 compatible with the [NYU Pathology pyramid
@@ -125,7 +125,7 @@ For example:
 $ vips dzsave wtc.tif gmapdir --layout google --background 0 --centre
 ```
 
-#### Other options
+# Other options
 
 You can use `--tile-size` and `--overlap` to control how large the tiles
 are and how they overlap (obviously). They default to the correct values
@@ -157,7 +157,7 @@ Use `--properties` to output an XML file called `vips-properties.xml`. This
 contains a dump of all the metadata vips has about the image as a set of
 name-value pairs. It's handy with openslide image sources. 
 
-#### Preprocessing images
+# Preprocessing images
 
 You can use `.dz` as a filename suffix, meaning send the image to
 `vips_dzsave()`. This means you can write the output of any vips operation to a
@@ -182,7 +182,7 @@ $ vips dzsave CMU-1.mrxs[level=1] x
 Will pull out level 1 (the half-resolution level of an MRXS slide) and
 make a pyramid from that.
 
-#### Troubleshooting
+# Troubleshooting
 
 If you are building vips from source you do need to check the summary at
 the end of configure carefully. You must have the `libgsf-1-dev` package

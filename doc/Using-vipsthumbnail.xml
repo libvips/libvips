@@ -21,7 +21,7 @@
 <para>
   The thumbnailing functionality is implemeted by <literal>vips_thumbnail()</literal> and <literal>vips_thumbnail_buffer()</literal>, see the docs for details. You can use these functions from any language with a libvips binding.
 </para>
-<refsect3 id="libvips-options">
+<refsect2 id="libvips-options">
   <title>libvips options</title>
   <para>
     <literal>vipsthumbnail</literal> supports the usual range of vips command-line options. A few of them are useful:
@@ -38,8 +38,8 @@
   <para>
     <literal>--vips-info</literal> shows a higher level view of the operations that <literal>vipsthumbnail</literal> is running. 
   </para>
-</refsect3>
-<refsect3 id="looping">
+</refsect2>
+<refsect2 id="looping">
   <title>Looping</title>
   <para>
     vipsthumbnail can process many images in one operation. For example:
@@ -56,8 +56,8 @@ $ vipsthumbnail *.jpg
   <programlisting>
 $ parallel vipsthumbnail ::: *.jpg
 </programlisting>
-</refsect3>
-<refsect3 id="thumbnail-size">
+</refsect2>
+<refsect2 id="thumbnail-size">
   <title>Thumbnail size</title>
   <para>
     You can set the bounding box of the generated thumbnail with the <literal>--size</literal> option. For example:
@@ -77,8 +77,8 @@ $ vipsthumbnail shark.jpg --size 200x
   <para>
     You can append <literal>&lt;</literal> or <literal>&gt;</literal> to mean only resize if the image is smaller or larger than the target.
   </para>
-</refsect3>
-<refsect3 id="cropping">
+</refsect2>
+<refsect2 id="cropping">
   <title>Cropping</title>
   <para>
     <literal>vipsthumbnail</literal> normally shrinks images to fit within the box set by <literal>--size</literal>. You can use the <literal>--smartcrop</literal> option to crop to fill the box instead. Excess pixels are trimmed away using the strategy you set. For example:
@@ -111,8 +111,8 @@ $ vipsthumbnail owl.jpg --smartcrop attention -s 128
   <para>
     First it shrinks the image to get the vertical axis to 128 pixels, then crops down to 128 pixels across using the <literal>attention</literal> strategy. This one searches the image for features which might catch a human eye, see <literal>vips_smartcrop()</literal> for details.
   </para>
-</refsect3>
-<refsect3 id="linear-light">
+</refsect2>
+<refsect2 id="linear-light">
   <title>Linear light</title>
   <para>
     Shrinking images involves combining many pixels into one. Arithmetic averaging really ought to be in terms of the number of photons, but (for historical reasons) the values stored in image files are usually related to the voltage that should be applied to a CRT electron gun.
@@ -126,8 +126,8 @@ $ vipsthumbnail fred.jpg --linear
   <para>
     The downside is that in linear mode, none of the very fast shrink-on-load tricks that <literal>vipsthumbnail</literal> normally uses are possible, since the shrinking done by the image libraries is done at encode time, and done in terms of CRT voltage, not light. This can make linear light thumbnailing of large images extremely slow.
   </para>
-</refsect3>
-<refsect3 id="output-directory">
+</refsect2>
+<refsect2 id="output-directory">
   <title>Output directory</title>
   <para>
     You set the thumbnail write parameters with the <literal>-o</literal> option. This is a pattern which the input filename is pasted into to produce the output filename. For example:
@@ -156,8 +156,8 @@ $ vipsthumbnail fred.jpg ../jim.tif -o mythumbs/tn_%s.jpg
   <para>
     Now both input files will have thumbnails written to a subdirectory of their current directory.
   </para>
-</refsect3>
-<refsect3 id="output-format-and-options">
+</refsect2>
+<refsect2 id="output-format-and-options">
   <title>Output format and options</title>
   <para>
     You can use <literal>-o</literal> to specify the thumbnail image format too. For example: 
@@ -231,8 +231,8 @@ $ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,strip]
 $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
 </programlisting>
-</refsect3>
-<refsect3 id="colour-management">
+</refsect2>
+<refsect2 id="colour-management">
   <title>Colour management</title>
   <para>
     <literal>vipsthumbnail</literal> will optionally put images through LittleCMS for you. You can use this to move all thumbnails to the same colour space. All web browsers assume that images without an ICC profile are in sRGB colourspace, so if you move your thumbnails to sRGB, you can strip all the embedded profiles. This can save several kb per thumbnail.
@@ -259,8 +259,8 @@ $ ls -l tn_shark.jpg
   <para>
     You can also specify a fallback input profile to use if the image has no embedded one, but this is less useful.
   </para>
-</refsect3>
-<refsect3 id="auto-rotate">
+</refsect2>
+<refsect2 id="auto-rotate">
   <title>Auto-rotate</title>
   <para>
     Many JPEG files have a hint set in the header giving the image orientation. If you strip out the metadata, this hint will be lost, and the image will appear to be rotated.
@@ -268,8 +268,8 @@ $ ls -l tn_shark.jpg
   <para>
     If you use the <literal>--rotate</literal> option, <literal>vipsthumbnail</literal> examines the image header and if there’s an orientation tag, applies and removes it.
   </para>
-</refsect3>
-<refsect3 id="final-suggestion">
+</refsect2>
+<refsect2 id="final-suggestion">
   <title>Final suggestion</title>
   <para>
     Putting all this together, I suggest this as a sensible set of options:
@@ -281,7 +281,7 @@ $ vipsthumbnail fred.jpg \
     --eprofile /usr/share/color/icc/sRGB.icc \
     --rotate
 </programlisting>
-</refsect3>
+</refsect2>
 
 
 </refentry>

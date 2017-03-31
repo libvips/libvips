@@ -4,7 +4,7 @@ improvement by only keeping the pixels currently being processed in RAM
 and by having an efficient, threaded image IO system. This page explains
 how these features are implemented.
 
-### Images 
+# Images 
 
 VIPS images have three dimensions: width, height and bands. Bands usually
 (though not always) represent colour. These three dimensions can be any
@@ -12,7 +12,7 @@ size up to 2 ** 31 elements. Every band element in an image has to have the
 same format. A format is an 8-, 16- or 32-bit int, signed or unsigned, 32-
 or 64-bit float, and 64- or 128-bit complex.
 
-### Regions 
+# Regions 
 
 An image can be very large, much larger than the available memory, so you
 can't just access pixels with a pointer \*.
@@ -54,7 +54,7 @@ for a section of the file to be read in.
 (\* there is an image access mode where you can just use a pointer, but
 it's rarely used)
 
-### Partial images 
+# Partial images 
 
 A partial image is one where, instead of storing a value for each pixel, VIPS
 stores a function which can make any rectangular area of pixels on demand.
@@ -81,7 +81,7 @@ generate / stop sequence works like a thread.
 (\* in fact VIPS keeps a cache of calculated pixel buffers and will return
 a pointer to a previously-calculated buffer if it can)
 
-### Operations 
+# Operations 
 
 VIPS operations read input images and write output images, performing some
 transformation on the pixels. When an operation writes to an image the
@@ -98,7 +98,7 @@ set of mechanisms to copy image areas by just adjusting pointers. Most of
 the time no actual copying is necessary and you can perform operations on
 large images at low cost.
 
-### Run-time code generation 
+# Run-time code generation 
 
 VIPS uses [Orc](http://code.entropywave.com/orc/), a run-time compiler, to
 generate code for some operations. For example, to compute a convolution
@@ -110,7 +110,7 @@ SSE3 on most x86 processors.
 Run-time vector code generation typically speeds operations up by a factor
 of three or four.
 
-### Joining operations together 
+# Joining operations together 
 
 The region create / prepare / prepare / free calls you use to get pixels
 from an image are an exact parallel to the start / generate / generate /
@@ -143,7 +143,7 @@ each thread runs a very cheap copy of just the writeable state of the
 entire pipeline, threads can run with few locks. VIPS needs just four lock
 operations per output tile, regardless of the pipeline length or complexity.
 
-### Data sources 
+# Data sources 
 
 VIPS has data sources which can supply pixels for processing from a variety
 of sources. VIPS can stream images from files in VIPS native format, from
@@ -171,7 +171,7 @@ are demanded by different threads VIPS will move these windows up and down
 the file. As a result, VIPS can process images much larger than RAM, even
 on 32-bit machines.
 
-### Data sinks 
+# Data sinks 
 
 In a demand-driven system, something has to do the demanding. VIPS has a
 variety of data sinks that you can use to pull image data though a pipeline
@@ -210,7 +210,7 @@ ensure that there are at least two tiles for every thread)
 (\*\* tiles can be any shape and size, VIPS has a tile hint system that
 operations use to tell sinks what tile geometry they prefer)
 
-### Operation cache 
+# Operation cache 
 
 Because VIPS operations are free of side-effects\*, you can cache them. Every
 time you call an operation, VIPS searches the cache for a previous call to
@@ -225,7 +225,7 @@ the cache size by memory use or by files opened.
 "invalidate" signal on the image they are called on and this signal makes
 all downstream operations and caches drop their contents.)
 
-### Operation database and APIs 
+# Operation database and APIs 
 
 VIPS has around 300 image processing operations written in this style. Each
 operation is a GObject class. You can use the standard GObject calls to walk
@@ -243,7 +243,7 @@ gobject-introspection. It is written in Python, so as long as you can get
 gobject-introspection working, you should be able to use vips. It supports
 python2 and python3 and works on Linux, OS X and Windows.
 
-### Snip 
+# Snip 
 
 The VIPS GUI, nip2, has its own scripting language called Snip. Snip is a
 lazy, higher-order, purely functional, object oriented language. Almost all

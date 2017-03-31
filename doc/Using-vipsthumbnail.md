@@ -6,7 +6,7 @@ The thumbnailing functionality is implemeted by
 `vips_thumbnail_buffer()`, see the docs for details. You can use these
 functions from any language with a libvips binding. 
 
-### libvips options
+# libvips options
 
 `vipsthumbnail` supports the usual range of vips command-line options. A
 few of them are useful:
@@ -23,7 +23,7 @@ useful to see where libvips is looping and how often.
 `--vips-info` shows a higher level view of the operations that `vipsthumbnail`
 is running. 
 
-### Looping
+# Looping
 
 vipsthumbnail can process many images in one operation. For example:
 
@@ -43,7 +43,7 @@ much load you want to put on your system. For example:
 $ parallel vipsthumbnail ::: *.jpg
 ```
 
-### Thumbnail size
+# Thumbnail size
 
 You can set the bounding box of the generated thumbnail with the `--size`
 option. For example:
@@ -65,7 +65,7 @@ is.
 You can append `<` or `>` to mean only resize if the image is smaller or larger
 than the target. 
 
-### Cropping
+# Cropping
 
 `vipsthumbnail` normally shrinks images to fit within the box set by `--size`.
 You can use the `--smartcrop` option to crop to fill the box instead. Excess
@@ -88,7 +88,7 @@ down to 128 pixels across using the `attention` strategy. This one searches
 the image for features which might catch a human eye, see `vips_smartcrop()`
 for details. 
 
-### Linear light
+# Linear light
 
 Shrinking images involves combining many pixels into one. Arithmetic
 averaging really ought to be in terms of the number of photons, but (for
@@ -108,7 +108,7 @@ done by the image libraries is done at encode time, and done in
 terms of CRT voltage, not light. This can make linear light thumbnailing of 
 large images extremely slow. 
 
-### Output directory
+# Output directory
 
 You set the thumbnail write parameters with the `-o`
 option. This is a pattern which the input filename is pasted into to
@@ -147,7 +147,7 @@ $ vipsthumbnail fred.jpg ../jim.tif -o mythumbs/tn_%s.jpg
 Now both input files will have thumbnails written to a subdirectory of
 their current directory.
 
-### Output format and options
+# Output format and options
 
 You can use `-o`
 to specify the thumbnail image format too. For example: 
@@ -224,7 +224,7 @@ $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
 ```
 
-### Colour management
+# Colour management
 
 `vipsthumbnail` will optionally put images through LittleCMS for you. You can
 use this to move all thumbnails to the same colour space. All web browsers
@@ -253,7 +253,7 @@ It’ll look identical to a user, but be almost half the size.
 You can also specify a fallback input profile to use if the image has no
 embedded one, but this is less useful.
 
-### Auto-rotate
+# Auto-rotate
 
 Many JPEG files have a hint set in the header giving the image orientation. If
 you strip out the metadata, this hint will be lost, and the image will appear
@@ -262,7 +262,7 @@ to be rotated.
 If you use the `--rotate` option, `vipsthumbnail` examines the image header and
 if there's an orientation tag, applies and removes it. 
 
-### Final suggestion
+# Final suggestion
 
 Putting all this together, I suggest this as a sensible set of options:
 
