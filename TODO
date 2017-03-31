@@ -1,7 +1,6 @@
-- think we need to output refsect1, not sect1
+- add note about vips_thumbnail() and vips_thumbnail_buffer()
 
-  maybe a sed could do it?
-
+  move "how libvips opens files" into docs?
 
 - not sure about utf8 error messages on win
 
