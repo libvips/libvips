@@ -1,6 +1,4 @@
-- add note about vips_thumbnail() and vips_thumbnail_buffer()
-
-  move "how libvips opens files" into docs?
+- move "how libvips opens files" into docs?
 
 - not sure about utf8 error messages on win
 
