@@ -141,7 +141,9 @@ HTML_IMAGES = \
 
 # Our markdown source files
 markdown_content_files = \
-	How-it-works.md
+	How-it-works.md \
+	Using-vipsthumbnail.md \
+	Making-image-pyramids.md
 
 # converted to xml in this dir by pandoc
 markdown_content_files_docbook = $(markdown_content_files:.md=.xml)
