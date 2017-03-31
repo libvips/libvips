@@ -130,7 +130,8 @@ HTML_IMAGES = \
 
 # we have some files in markdown ... convert to docbook for gtk-doc
 .md.xml:
-	pandoc -s -S --template="$(realpath pandoc-docbook-template.docbook)" -V title=hello --wrap=none -f markdown -t docbook -o $@ $<
+	pandoc -s -S --template="$(realpath pandoc-docbook-template.docbook)" --wrap=none -V title="$<" -f markdown -t docbook -o $@ $<
+	sed -e s/sect1/refsect3/g < $@ > x && mv x $@
 
 # Extra SGML files that are included by $(DOC_MAIN_SGML_FILE).
 # e.g. content_files=running.sgml building.sgml changes-2.0.sgml
