@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+                  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<refentry id="Using-vipsthumbnail.md">
+
+  <refmeta>
+    <refentrytitle>Using-vipsthumbnail.md</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>libvips</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>libvips</refname>
+    <refpurpose>Using-vipsthumbnail.md</refpurpose>
+  </refnamediv>
+
+
+<para>
+  libvips ships with a handy command-line image thumbnailer, <literal>vipsthumbnail</literal>. This page introduces it with examples.
+</para>
+<para>
+  The thumbnailing functionality is implemeted by <literal>vips_thumbnail()</literal> and <literal>vips_thumbnail_buffer()</literal>, see the docs for details. You can use these functions from any language with a libvips binding.
+</para>
+<refsect3 id="libvips-options">
+  <title>libvips options</title>
+  <para>
+    <literal>vipsthumbnail</literal> supports the usual range of vips command-line options. A few of them are useful:
+  </para>
+  <para>
+    <literal>--vips-cache-trace</literal> shows each operation as libvips starts it. It can be handy to see exactly what operations <literal>vipsthumbnail</literal> is running for you.
+  </para>
+  <para>
+    <literal>--vips-leak</literal> turns on the libvips memory leak checker. As well as reporting leaks (hopefully there are none) it also tracks and reports peak memory use.
+  </para>
+  <para>
+    <literal>--vips-progress</literal> runs a progress indicator during computation. It can be useful to see where libvips is looping and how often.
+  </para>
+  <para>
+    <literal>--vips-info</literal> shows a higher level view of the operations that <literal>vipsthumbnail</literal> is running. 
+  </para>
+</refsect3>
+<refsect3 id="looping">
+  <title>Looping</title>
+  <para>
+    vipsthumbnail can process many images in one operation. For example:
+  </para>
+  <programlisting>
+$ vipsthumbnail *.jpg
+</programlisting>
+  <para>
+    will make a thumbnail for every jpeg in the current directory.  See the <emphasis role="strong">Output directory</emphasis> section below to see how to change where thumbnails are written.
+  </para>
+  <para>
+    <literal>vipsthumbnail</literal> will process images one after the other. You can get a good speedup by running several <literal>vipsthumbnail</literal>s in parallel, depending on how much load you want to put on your system. For example:
+  </para>
+  <programlisting>
+$ parallel vipsthumbnail ::: *.jpg
+</programlisting>
+</refsect3>
+<refsect3 id="thumbnail-size">
+  <title>Thumbnail size</title>
+  <para>
+    You can set the bounding box of the generated thumbnail with the <literal>--size</literal> option. For example:
+  </para>
+  <programlisting>
+$ vipsthumbnail shark.jpg --size 200x100
+</programlisting>
+  <para>
+    Use a single number to set a square bounding box. You can omit either number but keep the x to mean resize just based on that axis, for example:
+  </para>
+  <programlisting>
+$ vipsthumbnail shark.jpg --size 200x
+</programlisting>
+  <para>
+    Will resize to 200 pixels across, no matter what the height of the input image is.
+  </para>
+  <para>
+    You can append <literal>&lt;</literal> or <literal>&gt;</literal> to mean only resize if the image is smaller or larger than the target.
+  </para>
+</refsect3>
+<refsect3 id="cropping">
+  <title>Cropping</title>
+  <para>
+    <literal>vipsthumbnail</literal> normally shrinks images to fit within the box set by <literal>--size</literal>. You can use the <literal>--smartcrop</literal> option to crop to fill the box instead. Excess pixels are trimmed away using the strategy you set. For example:
+  </para>
+  <programlisting>
+$ vipsthumbnail owl.jpg --smartcrop attention -s 128
+</programlisting>
+  <para>
+    Where <literal>owl.jpg</literal> is an off-centre composition:
+  </para>
+  <figure>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="owl.jpg" />
+      </imageobject>
+      <textobject><phrase></phrase></textobject>
+    </mediaobject>
+  </figure>
+  <para>
+    Gives this result:
+  </para>
+  <figure>
+    <mediaobject>
+      <imageobject>
+        <imagedata fileref="tn_owl.jpg" />
+      </imageobject>
+      <textobject><phrase></phrase></textobject>
+    </mediaobject>
+  </figure>
+  <para>
+    First it shrinks the image to get the vertical axis to 128 pixels, then crops down to 128 pixels across using the <literal>attention</literal> strategy. This one searches the image for features which might catch a human eye, see <literal>vips_smartcrop()</literal> for details.
+  </para>
+</refsect3>
+<refsect3 id="linear-light">
+  <title>Linear light</title>
+  <para>
+    Shrinking images involves combining many pixels into one. Arithmetic averaging really ought to be in terms of the number of photons, but (for historical reasons) the values stored in image files are usually related to the voltage that should be applied to a CRT electron gun.
+  </para>
+  <para>
+    <literal>vipsthumbnail</literal> has an option to perform image shrinking in linear space, that is, a colourspace where values are proportional to photon numbers. For example:
+  </para>
+  <programlisting>
+$ vipsthumbnail fred.jpg --linear
+</programlisting>
+  <para>
+    The downside is that in linear mode, none of the very fast shrink-on-load tricks that <literal>vipsthumbnail</literal> normally uses are possible, since the shrinking done by the image libraries is done at encode time, and done in terms of CRT voltage, not light. This can make linear light thumbnailing of large images extremely slow.
+  </para>
+</refsect3>
+<refsect3 id="output-directory">
+  <title>Output directory</title>
+  <para>
+    You set the thumbnail write parameters with the <literal>-o</literal> option. This is a pattern which the input filename is pasted into to produce the output filename. For example:
+  </para>
+  <programlisting>
+$ vipsthumbnail fred.jpg jim.tif -o tn_%s.jpg
+</programlisting>
+  <para>
+    For each of the files to be thumbnailed, <literal>vipsthumbnail</literal> will drop the extension (<literal>.jpg</literal> and <literal>.tif</literal> in this case) and then substitute the name into the <literal>-o</literal> option, replacing the <literal>%s</literal> So this example will write thumbnails to <literal>tn_fred.jpg</literal> and <literal>tn_jim.jpg</literal>.
+  </para>
+  <para>
+    If the pattern given to <literal>-o</literal> is an absolute path, any path components are dropped from the input filenames. This lets you write all of your thumbnails to a specific directory, if you want. For example:
+  </para>
+  <programlisting>
+$ vipsthumbnail fred.jpg ../jim.tif -o /mythumbs/tn_%s.jpg
+</programlisting>
+  <para>
+    Now both thumbnails will be written to <literal>/mythumbs</literal>, even though the source images are in different directories.
+  </para>
+  <para>
+    Conversely, if <literal>-o</literal> is set to a relative path, any path component from the input file is prepended. For example:
+  </para>
+  <programlisting>
+$ vipsthumbnail fred.jpg ../jim.tif -o mythumbs/tn_%s.jpg
+</programlisting>
+  <para>
+    Now both input files will have thumbnails written to a subdirectory of their current directory.
+  </para>
+</refsect3>
+<refsect3 id="output-format-and-options">
+  <title>Output format and options</title>
+  <para>
+    You can use <literal>-o</literal> to specify the thumbnail image format too. For example: 
+  </para>
+  <programlisting>
+$ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.png
+</programlisting>
+  <para>
+    Will write thumbnails in PNG format.
+  </para>
+  <para>
+    You can give options to the image write operation as a list of comma-separated arguments in square brackets. For example:
+  </para>
+  <programlisting>
+$ vipsthumbnail fred.jpg ../jim.tif -o &gt; tn_%s.jpg[Q=90,optimize_coding]
+</programlisting>
+  <para>
+    will write jpeg images with quality 90, and will turn on the libjpeg coding optimizer.
+  </para>
+  <para>
+    Check the image write operations to see all the possible options. For example:
+  </para>
+  <programlisting>
+$ vips jpegsave
+save image to jpeg file
+usage:
+   jpegsave in filename
+where:
+   in           - Image to save, input VipsImage
+   filename     - Filename to save to, input gchararray
+optional arguments:
+   Q            - Q factor, input gint
+            default: 75
+            min: 1, max: 100
+   profile      - ICC profile to embed, input gchararray
+   optimize-coding - Compute optimal Huffman coding tables, input gboolean
+            default: false
+   interlace    - Generate an interlaced (progressive) jpeg, input gboolean
+            default: false
+   no-subsample - Disable chroma subsample, input gboolean
+            default: false
+   trellis-quant - Apply trellis quantisation to each 8x8 block, input gboolean
+            default: false
+   overshoot-deringing - Apply overshooting to samples with extreme values, input gboolean
+            default: false
+   optimize-scans - Split the spectrum of DCT coefficients into separate scans, input gboolean
+            default: false
+   quant-table  - Use predefined quantization table with given index, input gint
+            default: 0
+            min: 0, max: 8
+   strip        - Strip all metadata from image, input gboolean
+            default: false
+   background   - Background value, input VipsArrayDouble
+</programlisting>
+  <para>
+    The <literal>strip</literal> option is especially useful. Many image have very large IPCT, ICC or XMP metadata items embedded in them, and removing these can give a large saving.
+  </para>
+  <para>
+    For example:
+  </para>
+  <programlisting>
+$ vipsthumbnail 42-32157534.jpg
+$ ls -l tn_42-32157534.jpg
+-rw-r–r– 1 john john 6682 Nov 12 21:27 tn_42-32157534.jpg
+</programlisting>
+  <para>
+    <literal>strip</literal> almost halves the size of the thumbnail:
+  </para>
+  <programlisting>
+$ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,strip]
+$ ls -l x.jpg
+-rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
+</programlisting>
+</refsect3>
+<refsect3 id="colour-management">
+  <title>Colour management</title>
+  <para>
+    <literal>vipsthumbnail</literal> will optionally put images through LittleCMS for you. You can use this to move all thumbnails to the same colour space. All web browsers assume that images without an ICC profile are in sRGB colourspace, so if you move your thumbnails to sRGB, you can strip all the embedded profiles. This can save several kb per thumbnail.
+  </para>
+  <para>
+    For example:
+  </para>
+  <programlisting>
+$ vipsthumbnail shark.jpg
+$ ls -l tn_shark.jpg 
+-rw-r–r– 1 john john 7295 Nov  9 14:33 tn_shark.jpg
+</programlisting>
+  <para>
+    Now encode with sRGB and delete any embedded profile:
+  </para>
+  <programlisting>
+$ vipsthumbnail shark.jpg --eprofile /usr/share/color/icc/sRGB.icc --delete
+$ ls -l tn_shark.jpg 
+-rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg
+</programlisting>
+  <para>
+    It’ll look identical to a user, but be almost half the size.
+  </para>
+  <para>
+    You can also specify a fallback input profile to use if the image has no embedded one, but this is less useful.
+  </para>
+</refsect3>
+<refsect3 id="auto-rotate">
+  <title>Auto-rotate</title>
+  <para>
+    Many JPEG files have a hint set in the header giving the image orientation. If you strip out the metadata, this hint will be lost, and the image will appear to be rotated.
+  </para>
+  <para>
+    If you use the <literal>--rotate</literal> option, <literal>vipsthumbnail</literal> examines the image header and if there’s an orientation tag, applies and removes it.
+  </para>
+</refsect3>
+<refsect3 id="final-suggestion">
+  <title>Final suggestion</title>
+  <para>
+    Putting all this together, I suggest this as a sensible set of options:
+  </para>
+  <programlisting>
+$ vipsthumbnail fred.jpg \
+    --size 128 \
+    -o tn_%s.jpg[optimize_coding,strip] \
+    --eprofile /usr/share/color/icc/sRGB.icc \
+    --rotate
+</programlisting>
+</refsect3>
+
+
+</refentry>

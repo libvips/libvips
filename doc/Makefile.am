@@ -126,6 +126,8 @@ IGNORE_HFILES = $(IGNORE_VIPS_INCLUDE) $(IGNORE_VIPS_C)
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png
 HTML_IMAGES = \
+	$(top_srcdir)/doc/images/owl.jpg \
+	$(top_srcdir)/doc/images/tn_owl.jpg \
 	$(top_srcdir)/doc/images/interconvert.png \
 	$(top_srcdir)/doc/images/Combine.png \
 	$(top_srcdir)/doc/images/Memtrace.png \

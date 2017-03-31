@@ -1,81 +1,10 @@
+libvips ships with a handy command-line image thumbnailer, `vipsthumbnail`.
+This page introduces it with examples. 
 
-libvips has shipped with a handy thumbnail maker for a while now. I
-thought a post of tips and tricks might be useful. Scroll all the way to
-the bottom for a summary and recommended usage.
-
-### Why use vipsthumbnail? 
-
-It’s fast and uses little memory. For example, here’s ImageMagick with
-`wtc.tif`, a 10,000 x 10,000 pixel RGB tiff image:
-
-```
-$ time convert wtc.tif -resize 128 tn_wtc.jpg
-peak RSS: 705m
-real 0m2.639s
-user 0m4.036s
-sys 0m0.516s
-```
-
-And here’s `vipsthumbnail`:
-
-```
-$ time vipsthumbnail wtc.tif
-peak RSS: 52mb
-real 0m0.239s
-user 0m0.168s
-sys 0m0.072s
-```
-
-So `vipsthumbnail` 
-is about 11 times faster and needs 1 / 13th of the memory.
-
-`vipsthumbnail` 
-and `convert`
-are using the same downsizing algorithm: a fast box filter for
-large-scale reduction, and a high-quality lanczos3 interpolator for the
-final 200%.
-
-You see similar improvements with png images, but much less with jpeg.
-This is because libjpeg includes support for shrink-during-load, so the
-image processing system has much less effect.
-
-```
-$ time convert -define jpeg:size=256x256 wtc.jpg -resize 128
-tn_wtc.jpg
-peak rss: 19mb
-real 0m0.259s
-user 0m0.284s
-sys 0m0.004s
-$ time vipsthumbnail wtc.jpg
-peak rss: 30mb
-real 0m0.268s
-user 0m0.256s
-sys 0m0.016s
-```
-
-
-The `define` argument makes `convert`
-load the image at twice the target size, then use a high-quality
-downsampler to get to the exact output dimensions. If you don’t leave
-this headroom you can get bad aliasing artifacts. `vipsthumbnail`
-does exactly this automatically.
-
-At larger output sizes you start to see a difference, since there are
-actually some pixels being processed:
-
-```
-$ time convert -define jpeg:size=4000x4000 wtc.jpg -resize 2000
-tn_wtc.jpg
-peak rss: 285mb
-real 0m1.126s
-user 0m2.508s
-sys 0m0.240s
-$ time vipsthumbnail wtc.jpg -s 2000
-peak rss: 47mb
-real 0m0.499s
-user 0m0.928s
-sys 0m0.028s
-```
+The thumbnailing functionality is implemeted by 
+`vips_thumbnail()` and
+`vips_thumbnail_buffer()`, see the docs for details. You can use these
+functions from any language with a libvips binding. 
 
 ### libvips options
 
@@ -108,7 +37,11 @@ are written.
 
 `vipsthumbnail` will process images one after the other. You can get a good
 speedup by running several `vipsthumbnail`s in parallel, depending on how
-much load you want to put on your system.
+much load you want to put on your system. For example:
+
+```
+$ parallel vipsthumbnail ::: *.jpg
+```
 
 ### Thumbnail size
 
@@ -130,7 +63,7 @@ Will resize to 200 pixels across, no matter what the height of the input image
 is. 
 
 You can append `<` or `>` to mean only resize if the image is smaller or larger
-than the target.
+than the target. 
 
 ### Cropping
 
