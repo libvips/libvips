@@ -1,22 +1,33 @@
-libvips now has at least four different ways of opening image files, each best
-for different file types, file sizes and image use cases. libvips
-tries hard to pick the best strategy in each case and mostly you don't need
-to know what it is doing behind the scenes, except unfortunately when you do.
+  <refmeta>
+    <refentrytitle>Opening files</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>libvips</refmiscinfo>
+  </refmeta>
 
-This post tries to explain what the different strategies are and when each is
+  <refnamediv>
+    <refname>Opening</refname>
+    <refpurpose>How libvips opens files</refpurpose>
+  </refnamediv>
+
+libvips now has at least four different ways of opening image files, each
+best for different file types, file sizes and image use cases. libvips tries
+hard to pick the best strategy in each case and mostly you don't need to
+know what it is doing behind the scenes, except unfortunately when you do.
+
+This page tries to explain what the different strategies are and when each is
 used. If you are running into unexpected memory, disc or CPU use, this might
-be helpful.  `vips_image_new_from_file()` has the official documentation.
+be helpful. `vips_image_new_from_file()` has the official documentation.
 
 # Direct access
 
-This is the fastest and simplest one. The file is mapped directly into
-the process's address space and can be read with ordinary pointer
-access. Small files are completely mapped; large files are mapped in a
-series of small windows that are shared and which scroll about as pixels
-are read. Files which are accessed like this can be read by many threads
-at once, making them especially quick. They also interact well with the
-computer's operating system: your OS will use spare memory to cache
-recently used chunks of the file, very handy.
+This is the fastest and simplest one. The file is mapped directly into the
+process's address space and can be read with ordinary pointer access. Small
+files are completely mapped; large files are mapped in a series of small
+windows that are shared and which scroll about as pixels are read. Files
+which are accessed like this can be read by many threads at once, making
+them especially quick. They also interact well with the computer's operating
+system: your OS will use spare memory to cache recently used chunks of the
+file.
 
 For this to be possible, the file format needs to be a simple dump of a memory
 array. libvips supports direct access for vips, 8-bit binary ppm/pbm/pnm,

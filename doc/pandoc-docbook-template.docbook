@@ -8,17 +8,6 @@ $else$
 $endif$
 <refentry id="$title$">
 
-  <refmeta>
-    <refentrytitle>$title$</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
-
-  <refnamediv>
-    <refname>libvips</refname>
-    <refpurpose>$title$</refpurpose>
-  </refnamediv>
-
 $for(include-before)$
 $include-before$
 $endfor$

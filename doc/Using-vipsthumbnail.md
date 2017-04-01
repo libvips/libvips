@@ -1,10 +1,27 @@
-libvips ships with a handy command-line image thumbnailer, `vipsthumbnail`.
-This page introduces it with examples. 
+  <refmeta>
+    <refentrytitle>Using `vipsthumbnail`</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>libvips</refmiscinfo>
+  </refmeta>
 
-The thumbnailing functionality is implemeted by 
-`vips_thumbnail()` and
-`vips_thumbnail_buffer()`, see the docs for details. You can use these
-functions from any language with a libvips binding. 
+  <refnamediv>
+    <refname>`vipsthumbnail`</refname>
+    <refpurpose>Introduction to `vipsthumbnail`, with examples</refpurpose>
+  </refnamediv>
+
+libvips ships with a handy command-line image thumbnailer, `vipsthumbnail`.
+This page introduces it, with some examples. 
+
+The thumbnailing functionality is implemented by `vips_thumbnail()` and
+`vips_thumbnail_buffer()` (which thumbnails an image held as a string),
+see the docs for details. You can use these functions from any language
+with a libvips binding. For example, from PHP you could write:
+
+```php
+$filename = ...;
+$image = Vips\Image::thumbnail($filename, 200, ["height" => 200]);
+$image.writeToFile("my-thumbnail.jpg");
+```
 
 # libvips options
 
@@ -25,15 +42,15 @@ is running. 
 
 # Looping
 
-vipsthumbnail can process many images in one operation. For example:
+`vipsthumbnail` can process many images in one command. For example:
 
 ```
 $ vipsthumbnail *.jpg
 ```
 
 will make a thumbnail for every jpeg in the current directory.  See the
-**Output directory** section below to see how to change where thumbnails
-are written.
+[Output directory](#output-directory) section below to see how to change
+where thumbnails are written.
 
 `vipsthumbnail` will process images one after the other. You can get a good
 speedup by running several `vipsthumbnail`s in parallel, depending on how
@@ -93,7 +110,7 @@ for details.
 Shrinking images involves combining many pixels into one. Arithmetic
 averaging really ought to be in terms of the number of photons, but (for
 historical reasons) the values stored in image files are usually related
-to the voltage that should be applied to a CRT electron gun.
+to the voltage that should be applied to the electron gun in a CRT display.
 
 `vipsthumbnail` has an option to perform image shrinking in linear space, that
 is, a colourspace where values are proportional to photon numbers. For example:
@@ -103,10 +120,22 @@ $ vipsthumbnail fred.jpg --linear
 ```
 
 The downside is that in linear mode, none of the very fast shrink-on-load
-tricks that `vipsthumbnail` normally uses are possible, since the shrinking
-done by the image libraries is done at encode time, and done in 
-terms of CRT voltage, not light. This can make linear light thumbnailing of 
-large images extremely slow. 
+tricks that `vipsthumbnail` normally uses are possible, since the shrinking is
+done at encode time, not decode time, and is done in terms of CRT voltage, not
+photons. This can make linear light thumbnailing of large images extremely slow.
+
+For example, for a 10,000 x 10,000 pixel JPEG I see:
+
+```
+$ time vipsthumbnail wtc.jpg 
+real	0m0.317s
+user	0m0.292s
+sys	0m0.016s
+$ time vipsthumbnail wtc.jpg --linear
+real	0m4.660s
+user	0m4.640s
+sys	0m0.016s
+```
 
 # Output directory
 
@@ -118,27 +147,24 @@ produce the output filename. For example:
 $ vipsthumbnail fred.jpg jim.tif -o tn_%s.jpg
 ```
 
-For each of the files to be thumbnailed, `vipsthumbnail`
-will drop the extension (`.jpg` and `.tif`
-in this case) and then substitute the name into the `-o`
-option, replacing the `%s`
-So this example will write thumbnails to `tn_fred.jpg` and `tn_jim.jpg`.
+For each of the files to be thumbnailed, `vipsthumbnail` will drop the
+extension (`.jpg` and `.tif` in this case) and then substitute the name into
+the `-o` option, replacing the `%s` So this example will write thumbnails to
+`tn_fred.jpg` and `tn_jim.jpg`.
 
-If the pattern given to `-o`
-is an absolute path, any path components are dropped from the input
-filenames. This lets you write all of your thumbnails to a specific
-directory, if you want. For example:
+If the pattern given to `-o` is an absolute path, any path components are
+dropped from the input filenames. This lets you write all of your thumbnails
+to a specific directory, if you want. For example:
 
 ```
 $ vipsthumbnail fred.jpg ../jim.tif -o /mythumbs/tn_%s.jpg
 ```
 
-Now both thumbnails will be written to `/mythumbs`,
-even though the source images are in different directories.
+Now both thumbnails will be written to `/mythumbs`, even though the source
+images are in different directories.
 
-Conversely, if `-o`
-is set to a relative path, any path component from the input file is
-prepended. For example:
+Conversely, if `-o` is set to a relative path, any path component from the
+input file is prepended. For example:
 
 ```
 $ vipsthumbnail fred.jpg ../jim.tif -o mythumbs/tn_%s.jpg
@@ -149,8 +175,7 @@ their current directory.
 
 # Output format and options
 
-You can use `-o`
-to specify the thumbnail image format too. For example: 
+You can use `-o` to specify the thumbnail image format too. For example: 
 
 ```
 $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.png
@@ -158,18 +183,17 @@ $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.png
 
 Will write thumbnails in PNG format.
 
-You can give options to the image write operation as a list of
-comma-separated arguments in square brackets. For example:
+You can give options to the image write operation as a list of comma-separated
+arguments in square brackets. For example:
 
 ```
 $ vipsthumbnail fred.jpg ../jim.tif -o > tn_%s.jpg[Q=90,optimize_coding]
 ```
 
-will write jpeg images with quality 90, and will turn on the libjpeg
-coding optimizer.
+will write jpeg images with quality 90, and will turn on the libjpeg coding
+optimizer.
 
-Check the image write operations to see all the possible options. For
-example:
+Check the image write operations to see all the possible options. For example:
 
 ```
 $ vips jpegsave

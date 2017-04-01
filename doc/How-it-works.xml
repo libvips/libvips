@@ -3,18 +3,13 @@
                   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <refentry id="How-it-works.md">
 
-  <refmeta>
-    <refentrytitle>How-it-works.md</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
 
-  <refnamediv>
-    <refname>libvips</refname>
-    <refpurpose>How-it-works.md</refpurpose>
-  </refnamediv>
-
-
+<para>
+  <refmeta> <refentrytitle>How libvips works</refentrytitle> <manvolnum>3</manvolnum> <refmiscinfo>libvips</refmiscinfo> </refmeta>
+</para>
+<para>
+  <refnamediv> <refname>Internals</refname> <refpurpose>A high-level technical overview of libvips’s evaluation system</refpurpose> </refnamediv>
+</para>
 <para>
   Compared to most image processing libraries, VIPS needs little RAM and runs quickly, especially on machines with more than one CPU. VIPS achieves this improvement by only keeping the pixels currently being processed in RAM and by having an efficient, threaded image IO system. This page explains how these features are implemented.
 </para>

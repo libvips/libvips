@@ -1,3 +1,14 @@
+  <refmeta>
+    <refentrytitle>Image pyramids</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>libvips</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>Pyramids</refname>
+    <refpurpose>How to use libvips to make image pyramids</refpurpose>
+  </refnamediv>
+
 libvips includes `vips_dzsave()`, an operation that can build image pyramids
 compatible with [DeepZoom](http://en.wikipedia.org/wiki/Deep_Zoom), Zoomify
 and [Google Maps](https://developers.google.com/maps/) image viewers. It's

@@ -3,18 +3,13 @@
                   "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <refentry id="Making-image-pyramids.md">
 
-  <refmeta>
-    <refentrytitle>Making-image-pyramids.md</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
 
-  <refnamediv>
-    <refname>libvips</refname>
-    <refpurpose>Making-image-pyramids.md</refpurpose>
-  </refnamediv>
-
-
+<para>
+  <refmeta> <refentrytitle>Image pyramids</refentrytitle> <manvolnum>3</manvolnum> <refmiscinfo>libvips</refmiscinfo> </refmeta>
+</para>
+<para>
+  <refnamediv> <refname>Pyramids</refname> <refpurpose>How to use libvips to make image pyramids</refpurpose> </refnamediv>
+</para>
 <para>
   libvips includes <literal>vips_dzsave()</literal>, an operation that can build image pyramids compatible with <ulink url="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</ulink>, Zoomify and <ulink url="https://developers.google.com/maps/">Google Maps</ulink> image viewers. It’s fast and can generate pyramids for large images using only a small amount of memory.
 </para>

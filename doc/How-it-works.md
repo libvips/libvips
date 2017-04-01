@@ -1,3 +1,14 @@
+  <refmeta>
+    <refentrytitle>How libvips works</refentrytitle>
+    <manvolnum>3</manvolnum>
+    <refmiscinfo>libvips</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>Internals</refname>
+    <refpurpose>A high-level technical overview of libvips's evaluation system</refpurpose>
+  </refnamediv>
+
 Compared to most image processing libraries, VIPS needs little RAM and runs
 quickly, especially on machines with more than one CPU.  VIPS achieves this
 improvement by only keeping the pixels currently being processed in RAM
@@ -152,8 +163,8 @@ from FITS images and from tiled OpenEXR images. VIPS will automatically
 unpack other formats to temporary disc files for you but this can
 obviously generate a lot of disc traffic. It also has a special
 sequential mode for streaming operations on non-random-access
-formats. A post on the libvips blog [explains how libvips opens a
-file](http://libvips.blogspot.co.uk/2012/06/how-libvips-opens-file.html). One
+formats. Another section in these docs explains [how libvips opens a
+file](How-it-opens-files.html). One
 of the sources uses the [ImageMagick](http://www.imagemagick.org) (or
 optionally [GraphicsMagick](http://www.graphicsmagick.org)) library, so
 VIPS can read any image format that these libraries can read.
