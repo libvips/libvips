@@ -43,6 +43,7 @@
     <xi:include href="xml/How-it-opens-files.xml"/>
     <xi:include href="xml/Making-image-pyramids.xml"/>
     <xi:include href="xml/Using-vipsthumbnail.xml"/>
+    <xi:include href="xml/Examples.xml"/>
   </chapter>
 
   <chapter>

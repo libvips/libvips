@@ -9,7 +9,11 @@
     <refpurpose>Introduction to `vipsthumbnail`, with examples</refpurpose>
   </refnamediv>
 
-This page shows a few examples of using VIPS from Python.
+This page shows a few libvips examples using Python. They will work with small syntax
+changes in any language with a libvips binding. 
+
+The libvips test suite is written in Python and exercises every operation in the API.
+It's also a useful source of examples. 
 
 # Average a region of interest box on an image
 
@@ -21,205 +25,237 @@ import gi
 gi.require_version('Vips', '8.0')
 from gi.repository import Vips
 
-roix = 10
-roiy = 10
-roiw = 64
-roih = 64
+left = 10
+top = 10
+width = 64
+height = 64
 
 image = Vips.Image.new_from_file(sys.argv[1])
-roi = image.crop(roix, roiy, roiw, roih)
-print 'average: ', roi.avg()
+roi = image.crop(left, top, width, height)
+print 'average:', roi.avg()
 ```
 
-# VIPS and PIL
+# libvips and numpy
 
-This script moves an image between PIL and VIPS.
+You can use `Vips.Image.new_from_memory_copy()` to make a vips image from an area of
+memory. The memory array needs to be laid out band-interleaved, as a set of scanlines,
+with no padding between lines. 
 
-``` python
+This example moves an image from numpy to vips, but it's simple to move the other way
+(use `Vips.Image.write_to_memory()`) to to move images into or out of PIL.
+
+```python
 #!/usr/bin/python
 
+import numpy 
+import scipy.ndimage
+import gi
+gi.require_version('Vips', '8.0')
+from gi.repository import Vips
+
+def np_dtype_to_vips_format(np_dtype):
+    '''
+    Map numpy data types to VIPS data formats.
+
+    Parameters
+    ----------
+    np_dtype: numpy.dtype
+
+    Returns
+    -------
+    gi.overrides.Vips.BandFormat
+    '''
+    lookup = {
+        numpy.dtype('int8'): Vips.BandFormat.CHAR,
+        numpy.dtype('uint8'): Vips.BandFormat.UCHAR,
+        numpy.dtype('int16'): Vips.BandFormat.SHORT,
+        numpy.dtype('uint16'): Vips.BandFormat.USHORT,
+        numpy.dtype('int32'): Vips.BandFormat.INT,
+        numpy.dtype('float32'): Vips.BandFormat.FLOAT,
+        numpy.dtype('float64'): Vips.BandFormat.DOUBLE
+    }
+    return lookup[np_dtype]
+
+def np_array_to_vips_image(array):
+    '''
+    Convert a `numpy` array to a `Vips` image object.
+
+    Parameters
+    ----------
+    nparray: numpy.ndarray
+
+    Returns
+    -------
+    gi.overrides.Vips.image
+    '''
+    # Look up what VIPS format corresponds to the type of this np array
+    vips_format = np_dtype_to_vips_format(array.dtype)
+    dims = array.shape
+    height = dims[0]
+    width = 1
+    bands = 1
+    if len(dims) > 1:
+        width = dims[1]
+    if len(dims) > 2:
+        bands = dims[2]
+    img = Vips.Image.new_from_memory_copy(array.data, 
+        width, height, bands, vips_format)
+
+    return img
+
+array = numpy.random.random((10,10))
+vips_image = np_array_to_vips_image(array)
+print 'avg =', vips_image.avg()
+
+array = scipy.ndimage.imread("test.jpg")
+vips_image = np_array_to_vips_image(array)
+print 'avg =', vips_image.avg()
+vips_image.write_to_file("test2.jpg")
+```
+
+# Watermarking
+
+This example renders a simple watermark on an image. Use it like this:
+
+
+```
+./watermark.py somefile.png output.jpg "hello <i>world</i>"
+```
+
+The text is rendered in transparent red pixels all over the image. It knows about
+transparency, CMYK, and 16-bit images. 
+
+```python
+#!/usr/bin/python
+ 
 import sys
+import gi
+gi.require_version('Vips', '8.0')
+from gi.repository import Vips
+ 
+im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
+ 
+text = Vips.Image.text(sys.argv[3], width = 500, dpi = 300)
+text = (text * 0.3).cast("uchar")
+text = text.embed(100, 100, text.width + 200, text.width + 200)
+text = text.replicate(1 + im.width / text.width, 1 + im.height / text.height)
+text = text.crop(0, 0, im.width, im.height)
 
-from vipsCC import *
-import Image
+# we want to blend into the visible part of the image and leave any alpha
+# channels untouched ... we need to split im into two parts
 
-# try this 1,000 times and check for leaks
-for i in range (0,1000):
-  vim = VImage.VImage (sys.argv[1])
+# 16-bit images have 65535 as white
+if im.format == Vips.BandFormat.USHORT:
+    white = 65535
+else:
+    white = 255
 
-  # do some processing in vips ... cut out a small piece of image
-  vim = vim.extract_area (500, 500, 100, 100)
+# guess how many bands from the start of im contain visible colour information
+if im.bands >= 4 and im.interpretation == Vips.Interpretation.CMYK:
+    # cmyk image ... put the white into the magenta channel
+    n_visible_bands = 4
+    text_colour = [0, white, 0, 0]
+elif im.bands >= 3:
+    # colour image ... put the white into the red channel
+    n_visible_bands = 3
+    text_colour = [white, 0, 0]
+else:
+    # mono image
+    n_visible_bands = 1
+    text_colour = white
 
-  # make a PIL image
-  # we use Image.frombuffer (), so PIL is using vim's memory
-  # you need to be very careful not to destroy vim until you're done with pim
-  # ideally you should make a proxy class that wraps this lifetime problem up
-  mode = VImage.PIL_mode_from_vips (vim)
-  size = (vim.Xsize (), vim.Ysize ())
-  data = vim.tobuffer ()
-  pim = Image.frombuffer (mode, size, data, 'raw', mode, 0, 1)
+# split into image and alpha
+if im.bands - n_visible_bands > 0:
+    alpha = im.extract_band(n_visible_bands, n = im.bands - n_visible_bands)
+    im = im.extract_band(0, n = n_visible_bands)
+else:
+    alpha = None
 
-  # rotate 12 degrees with PIL
-  pim = pim.rotate (12, Image.BILINEAR, 1)
+# blend means do a smooth fade using the 0 - 255 values in the condition channel
+# (test in this case) ... this will render the anit-aliasing
+im = text.ifthenelse(text_colour, im, blend = True)
 
-  # back to vips again
-  # PIL doesn't have a tobuffer method, so we have to use tostring to copy the
-  # data out of PIL and then fromstring to copy back into VIPS
-  str = pim.tostring ()
-  bands, format, type = VImage.vips_from_PIL_mode (pim.mode)
-  width, height = pim.size
-  vim2 = VImage.VImage.fromstring (str, width, height, bands, format)
+# reattach alpha
+if alpha:
+    im = im.bandjoin(alpha)
+ 
+im.write_to_file(sys.argv[2])
 
-  # finally write from vips
-  vim2.write (sys.argv[2])
 ```
 
-Leak testing
-------------
+# Build huge image mosaic
 
-This loads an image, does some simple processing, and saves again. Handy for leak testing.
+This makes a 100,000 x 100,000 black image, then inserts all the images you pass on the
+command-line into it at random positions. libvips is able to run this program in
+sequential mode: it'll open all the input images at the same time, and stream pixels from
+them as it needs them to generate the output. 
 
-``` python
-#!/usr/bin/python
+To test it, first make a large 1-bit image. This command will take the green channel and
+write as a 1-bit fax image. `wtc.jpg` is a test 10,000 x 10,000 jpeg:
 
-import sys
-
-# just need this for leaktesting
-import gc
-
-from vipsCC import *
-
-if len (sys.argv) != 3:
-  print 'usage:', sys.argv[0], 'inputimage outputimage'
-  sys.exit (1)
-
-try:
-  a = VImage.VImage (sys.argv[1])
-  b = a.invert ()
-  c = b.lin ([1,2,3],[4,5,6])
-  m = VMask.VIMask (3, 3, 1, 0,
-          [-1, -1, -1,
-         -1,  8, -1,
-         -1, -1, -1])
-  d = a.conv (m)
-  d.write (sys.argv[2])
-except VError.VError, e:
-  e.perror (sys.argv[0])
-
-# we can get properties of VImage too
-print 'inputimage is', a.Xsize (), 'pixels across'
-
-print 'starting shutdown ...'
-del b
-del a
-del c
-del d
-del m
-# sometimes have to do several GCs to get them all, not sure why
-for i in range(10):
-  gc.collect ()
-print 'shutdown!'
-
-print 'leaked IMAGEs:'
-VImage.im__print_all ()
-print 'done ... hopefully you saw no leaks'
+```
+$ vips extract_band wtc.jpg x.tif[squash,compression=ccittfax4,strip] 1
 ```
 
-Build image mosaic
-------------------
+Now make 1,000 copies of that image in a subdirectory:
 
-This loads a lot of images (RGB or greyscale) and pastes them at random positions in a 10,000 by 10,000 pixel output image. 8-bit only, but it'd be easy to change that.
+```
+$ mkdir test
+$ for i in {1..1000}; do cp x.tif test/$i.tif; done
+```
+
+And run this Python program on them:
+
+```
+$ time ./try255.py x.tif[squash,compression=ccittfax4,strip,bigtif] test/*
+real	1m59.924s
+user	4m5.388s
+sys	0m8.936s
+```
+
+It completes in just under two minutes on this laptop, and needs about
+7gb of RAM to run. It would need about the same amount of memory for a
+full-colour RGB image, I was just keen to keep disc usage down. 
+
+If you wanted to handle transparency, or if you wanted mixed CMYK and RGB images, you'd 
+need to do some more work to convert them all into the same colourspace before 
+inserting them.
 
 ``` python
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import sys
 import random
-from vipsCC import *
 
-# the size of the image we build
-size = 10000
+import gi
+gi.require_version('Vips', '8.0')
+from gi.repository import Vips
 
-try:
-   if len(sys.argv) < 3:
-      print 'usage:', sys.argv[0], 'outfile infile1 ...'
-      sys.exit (1)
+# turn on progress reporting
+Vips.progress_set(True)
 
-   # make the background image
-   bg = VImage.VImage.black (size, size, 3)
+# this makes a 8-bit, mono image of 100,000 x 100,000 pixels, each pixel zero
+im = Vips.Image.black(100000, 100000)
 
-   # paste each argument in
-   for file in sys.argv[2:]:
-      im = VImage.VImage (file)
+for filename in sys.argv[2:]:
+    tile = Vips.Image.new_from_file(filename, access = Vips.Access.SEQUENTIAL)
 
-      # is this a mono image? convert to RGB by joining three of them
-      # together
-      if im.Bands() == 1:
-         im = im.bandjoin (im).bandjoin (im)
+    im = im.insert(tile,
+                   random.randint(0, im.width - tile.width),
+                   random.randint(0, im.height - tile.height))
 
-      x = random.randint (0, size - im.Xsize () - 1)
-      y = random.randint (0, size - im.Ysize () - 1)
-      bg = bg.insert_noexpand (im, x, y)
+im.write_to_file(sys.argv[1])
 
-   # write result
-   bg.write (sys.argv[1])
-
-except VError.VError, e:
-   e.perror (sys.argv[0])
 ```
 
-Build image pyramid
--------------------
+# Rename DICOM images using header fields
 
-This makes a tiled image pyramid, with each tile in a separate 512x512 pixel file.
+DICOM images commonly come in an awful directory hierarchy named as something
+like `images/a/b/e/z04`. There can be thousands of files and it can be very
+hard to find the one you want.
 
-``` python
-#!/usr/bin/python
-
-import sys
-from vipsCC import *
-
-tilesize = 512
-maxlevel = 100
-
-try:
-   im = VImage.VImage (sys.argv[1])
-
-   for level in range (maxlevel, -1, -1):
-      print "Creating tiles for level", level
-
-      # loop to create the tiles
-      for y in range (0, im.Ysize(), tilesize):
-         for x in range (0, im.Xsize(), tilesize):
-            filename = '%dx%d_y%d.jpg' % (level, x / tilesize, y / tilesize)
-            # clip tilesize against image size
-            width = min (im.Xsize () - x, tilesize)
-            height = min (im.Ysize () - y, tilesize)
-
-            # expand edge tiles up to the full tilesize ... Google maps likes this
-            # im.extract_area (x, y, width, height).embed(0, 0, 0, tilesize, tilesize).write(filename)
-
-            # let edge tiles be smaller than the full tile size, tiff tiling prefers this
-            im.extract_area (x, y, width, height).write (filename)
-
-      # was there only a single tile? we are done
-      if im.Xsize() <= tilesize and im.Ysize() <= tilesize:
-         break
-
-      # create next pyramid level in RAM
-      shrink = im.rightshift_size (1, 1, im.BandFmt())
-      im = shrink.write (VImage.VImage ("temp", "t"))
-
-except VError.VError, e:
-   e.perror (sys.argv[0])
-```
-
-Rename DICOM images using header fields
----------------------------------------
-
-DICOM images commonly come in an awful directory hierarchy named as something like images/a/b/e/z04. There can be thousands of files and it can be very hard to find the one you want.
-
-This utility copies files to a single flat directory, naming them using fields from the DICOM header. You can actually find stuff! Useful.
+This utility copies files to a single flat directory, naming them using
+fields from the DICOM header. You can actually find stuff! Useful.
 
 ``` python
 #!/usr/bin/python
