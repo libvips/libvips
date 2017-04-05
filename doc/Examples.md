@@ -257,77 +257,70 @@ hard to find the one you want.
 This utility copies files to a single flat directory, naming them using
 fields from the DICOM header. You can actually find stuff! Useful.
 
-``` python
-#!/usr/bin/python
+```python
+#!/usr/bin/env python
 
 import sys
 import re
 import os
 import shutil
 
-from vipsCC import *
+import gi
+gi.require_version('Vips', '8.0')
+from gi.repository import Vips 
 
-if len (sys.argv) != 3:
-  print 'rename DICOM files using tags from the header'
-  print 'usage:'
-  print '\t%s srcdir destdir' % sys.argv[0]
-  print 'the directory tree below srcdir is searched, all files are'
-  print 'renamed and put into destdir in a flat list'
-  sys.exit (1)
+if len(sys.argv) != 3:
+    print 'rename DICOM files using tags from the header'
+    sys.exit(1)
 
 srcdir = sys.argv[1]
 destdir = sys.argv[2]
 
-if not os.access (destdir, os.F_OK | os.R_OK | os.W_OK | os.X_OK):
-  os.mkdir (destdir)
+if not os.access(destdir, os.F_OK | os.R_OK | os.W_OK | os.X_OK):
+    os.mkdir(destdir)
 
-def get_field (vim, field):
-  result = vim.meta_get_string (field)
+def get_field(vim, field):
+    result = vim.get_value(field)
 
-  # remove any \n etc.
-  result = re.sub ("\n", "", result)
+    # remove any \n etc.
+    result = re.sub("\n", "", result)
 
-  # remove any leading or trailing spaces
-  result = re.sub (" $", "", result)
-  result = re.sub ("^ ", "", result)
+    # remove any leading or trailing spaces
+    result = re.sub(" $", "", result)
+    result = re.sub("^ ", "", result)
 
-  return result
+    return result
 
-id_name = "magick-dcm:Patient'sID"
 modality_name = "magick-dcm:Modality"
 series_name = "magick-dcm:SeriesNumber"
 instance_name = "magick-dcm:Instance(formerlyImage)Number"
 date_name = "magick-dcm:ImageDate"
 
-n_processed = 0
+for(dirpath, dirnames, filenames) in os.walk(srcdir):
+    for file in filenames:
+        path = os.path.join(dirpath, file)
 
-for (dirpath, dirnames, filenames) in os.walk (srcdir):
-  for file in filenames:
-    path = os.path.join (dirpath, file)
+        try:
+            vim = Vips.Image.new_from_file(path)
+        except Vips.Error, e:
+            print 'unable to open', path
+            print e
+            continue
 
-    try:
-      vim = VImage.VImage (path)
-    except VError.VError, e:
-      print 'unable to open', path
-      continue
+        try:
+            modality = get_field(vim, modality_name)
+            series = get_field(vim, series_name)
+            instance = get_field(vim, instance_name)
+            date = get_field(vim, date_name)
+        except Vips.Error, e:
+            print 'unable to get fields from header', path
+            print e
+            continue
 
-    try:
-      id = get_field (vim, id_name)
-      modality = get_field (vim, modality_name)
-      series = get_field (vim, series_name)
-      instance = get_field (vim, instance_name)
-      date = get_field (vim, date_name)
-    except VError.VError, e:
-      print 'unable to get fields from header', path
-      continue
+        match = re.match("(\d\d\d\d)(\d\d)(\d\d)", date)
+        date = match.group(1) + "." + match.group(2) + "." + match.group(3)
 
-    match = re.match ("(\d\d\d\d)(\d\d)(\d\d)", date)
-    date = match.group (1) + "." + match.group (2) + "." + match.group (3)
-    newname = id + "." + modality + "." + series + "." + instance + "." + date + ".IMA"
+        newname = "lan." + modality + "." + instance + "." + date + ".IMA"
 
-    shutil.copyfile(path, os.path.join (destdir, newname))
-
-    n_processed += 1
-
-print '\t(%d files processed)' % n_processed
+        shutil.copyfile(path, os.path.join(destdir, newname))
 ```
