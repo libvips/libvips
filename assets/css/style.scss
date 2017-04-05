@@ -3,6 +3,11 @@
 
 @import "{{ site.theme }}";
 
+.page-header {
+	padding: 1rem 1.5rem;
+	line-height: 1.2;
+}
+
 .project-name {
 	a { 
 		text-decoration: none;
