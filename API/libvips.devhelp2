@@ -12,6 +12,11 @@
       <sub name="VIPS function list" link="func-list.html"/>
       <sub name="The VIPS file format" link="file-format.html"/>
       <sub name="VIPS and threads" link="using-threads.html"/>
+      <sub name="" link="How-it-works.md.html"/>
+      <sub name="" link="How-it-opens-files.md.html"/>
+      <sub name="" link="Making-image-pyramids.md.html"/>
+      <sub name="" link="Using-vipsthumbnail.md.html"/>
+      <sub name="" link="Examples.md.html"/>
     </sub>
     <sub name="Core VIPS API" link="ch02.html">
       <sub name="vips" link="libvips-vips.html"/>

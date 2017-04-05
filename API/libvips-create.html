@@ -1,17 +1,27 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>VIPS Reference Manual: create</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
-<link rel="home" href="index.html" title="VIPS Reference Manual">
-<link rel="up" href="ch03.html" title="VIPS operation API by section">
-<link rel="prev" href="libvips-mosaicing.html" title="mosaicing">
-<link rel="next" href="libvips-resample.html" title="resample">
-<meta name="generator" content="GTK-Doc V1.21 (XML mode)">
-<link rel="stylesheet" href="style.css" type="text/css">
-</head>
-<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/jcupitt/libvips/releases" class="btn">Download</a>
+      <a href="/install.html" class="btn">Install</a>
+      <a href="/API" class="btn">Documentation</a>
+      <a href="https://github.com/jcupitt/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/jcupitt/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
@@ -319,7 +329,7 @@ vips_black (<em class="parameter"><code><a class="link" href="VipsImage.html" ti
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -386,7 +396,7 @@ bands. The extra dimensions are placed down the vertical axis. Use
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -441,7 +451,7 @@ rightmost 255. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -516,7 +526,7 @@ This is useful for integer convolutions. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -597,7 +607,7 @@ This is useful for integer convolutions. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -619,15 +629,15 @@ vips_text (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>font</code></em>
-: <code class="literal">gchararray</code>, font to render with</p></li>
+: <a href="../gobject/gobject-Standard-Parameter-and-Value-Types.html#gchararray"><code class="literal">gchararray</code></a>, font to render with</p></li>
 <li class="listitem"><p><em class="parameter"><code>width</code></em>
-: <code class="literal">gint</code>, image should be no wider than this many pixels</p></li>
+: <a href="../glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, image should be no wider than this many pixels</p></li>
 <li class="listitem"><p><em class="parameter"><code>align</code></em>
 : <a class="link" href="libvips-conversion.html#VipsAlign" title="enum VipsAlign"><span class="type">VipsAlign</span></a>, left/centre/right alignment</p></li>
 <li class="listitem"><p><em class="parameter"><code>dpi</code></em>
-: <code class="literal">gint</code>, render at this resolution</p></li>
+: <a href="../glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, render at this resolution</p></li>
 <li class="listitem"><p><em class="parameter"><code>spacing</code></em>
-: <code class="literal">gint</code>, space lines by this in points</p></li>
+: <a href="../glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, space lines by this in points</p></li>
 </ul></div>
 <p>Draw the string <em class="parameter"><code>text</code></em>
  to an image. <em class="parameter"><code>out</code></em>
@@ -674,7 +684,7 @@ like font size times 1.2.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -731,7 +741,7 @@ numbers with the appropriate weights.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -791,7 +801,7 @@ maximum spatial frequency.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -859,7 +869,7 @@ and therfore the Fourier transform does not present spikes</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -912,7 +922,7 @@ vips_zone (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -935,7 +945,7 @@ vips_identity (<em class="parameter"><code><a class="link" href="VipsImage.html"
 <li class="listitem"><p><em class="parameter"><code>bands</code></em>
 : number of bands to create</p></li>
 <li class="listitem"><p><em class="parameter"><code>ushort</code></em>
-: <code class="literal">TRUE</code> for an unsigned short identity</p></li>
+: <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> for an unsigned short identity</p></li>
 <li class="listitem"><p><em class="parameter"><code>size</code></em>
 : number of LUT elements for a ushort image</p></li>
 </ul></div>
@@ -966,7 +976,7 @@ arbitrary functions. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1062,7 +1072,7 @@ start at zero, any integer will do, including negatives.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1152,7 +1162,7 @@ do something better really.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1223,7 +1233,7 @@ specify the scaling for the input and output images with the <em class="paramete
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1314,7 +1324,7 @@ float image. In this case, pixels are in the range [0 - 255].</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1391,7 +1401,7 @@ ring positioned at <em class="parameter"><code>frequency_cutoff</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1473,7 +1483,7 @@ of size <em class="parameter"><code>radius</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1558,7 +1568,7 @@ Digital Image Processing, 1987. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1651,7 +1661,7 @@ Digital Image Processing, 1987. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1749,7 +1759,7 @@ Digital Image Processing, 1987. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1822,7 +1832,7 @@ smooth transition positioned at <em class="parameter"><code>frequency_cutoff</co
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1903,7 +1913,7 @@ variable, smooth transition positioned at <em class="parameter"><code>frequency_
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1991,7 +2001,7 @@ variable, smooth transition positioned at <em class="parameter"><code>frequency_
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2057,7 +2067,7 @@ power spectrum of Gaussian white noise. See <a class="link" href="libvips-create
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2115,7 +2125,7 @@ vips_fractsurf (<em class="parameter"><code><a class="link" href="VipsImage.html
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2137,7 +2147,7 @@ vips_worley (<em class="parameter"><code><a class="link" href="VipsImage.html" t
              <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>cell_size</code></em>
-: <code class="literal">gint</code>, size of Worley cells</p></li></ul></div>
+: <a href="../glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, size of Worley cells</p></li></ul></div>
 <p>Create a one-band float image of Worley noise. See:</p>
 <p>https://en.wikipedia.org/wiki/Worley_noise</p>
 <p>Use <em class="parameter"><code>cell_size</code></em>
@@ -2174,7 +2184,7 @@ constructed. The default is 256 x 256.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2197,7 +2207,7 @@ vips_perlin (<em class="parameter"><code><a class="link" href="VipsImage.html" t
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>cell_size</code></em>
-: <code class="literal">gint</code>, size of Perlin cells</p></li>
+: <a href="../glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, size of Perlin cells</p></li>
 <li class="listitem"><p><em class="parameter"><code>uchar</code></em>
 : output a uchar image</p></li>
 </ul></div>
@@ -2240,7 +2250,7 @@ constructed. The default is 256 x 256.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2260,5 +2270,16 @@ constructed. The default is 256 x 256.</p>
 <div class="footer">
 <hr>
           Generated by GTK-Doc V1.21</div>
-</body>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
 </html>

@@ -8,6 +8,11 @@
 <ANCHOR id="func-list" href="libvips/func-list.html">
 <ANCHOR id="file-format" href="libvips/file-format.html">
 <ANCHOR id="using-threads" href="libvips/using-threads.html">
+<ANCHOR id="How-it-works.md" href="libvips/How-it-works.md.html">
+<ANCHOR id="How-it-opens-files.md" href="libvips/How-it-opens-files.md.html">
+<ANCHOR id="Making-image-pyramids.md" href="libvips/Making-image-pyramids.md.html">
+<ANCHOR id="Using-vipsthumbnail.md" href="libvips/Using-vipsthumbnail.md.html">
+<ANCHOR id="Examples.md" href="libvips/Examples.md.html">
 <ANCHOR id="libvips-vips" href="libvips/libvips-vips.html">
 <ANCHOR id="libvips-vips.stability-level" href="libvips/libvips-vips.html#libvips-vips.stability-level">
 <ANCHOR id="libvips-vips.functions" href="libvips/libvips-vips.html#libvips-vips.functions">

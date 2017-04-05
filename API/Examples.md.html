@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/jcupitt/libvips/releases" class="btn">Download</a>
+      <a href="/install.html" class="btn">Install</a>
+      <a href="/API" class="btn">Documentation</a>
+      <a href="https://github.com/jcupitt/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/jcupitt/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="Using-vipsthumbnail.md.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch02.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="Examples.md"></a><div class="titlepage"></div>
+<p>
+  
+</p>
+<p>
+  </p>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2>libvips examples</h2>
+<p>libvips examples — A few example Python programs using libvips</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<p>
+</p>
+<p>
+  This page shows a few libvips examples using Python. They will work with small syntax changes in any language with a libvips binding.
+</p>
+<p>
+  The libvips test suite is written in Python and exercises every operation in the API. It’s also a useful source of examples.
+</p>
+<div class="refsect3">
+<a name="average-a-region-of-interest-box-on-an-image"></a><h4>Average a region of interest box on an image</h4>
+<pre class="programlisting">
+#!/usr/bin/env python
+
+import sys
+import gi
+gi.require_version('Vips', '8.0')
+from gi.repository import Vips
+
+left = 10
+top = 10
+width = 64
+height = 64
+
+image = Vips.Image.new_from_file(sys.argv[1])
+roi = image.crop(left, top, width, height)
+print 'average:', roi.avg()
+</pre>
+</div>
+<div class="refsect3">
+<a name="libvips-and-numpy"></a><h4>libvips and numpy</h4>
+<p>
+    You can use <code class="literal">Vips.Image.new_from_memory_copy()</code> to make a vips image from an area of memory. The memory array needs to be laid out band-interleaved, as a set of scanlines, with no padding between lines.
+  </p>
+<p>
+    This example moves an image from numpy to vips, but it’s simple to move the other way (use <code class="literal">Vips.Image.write_to_memory()</code>) to to move images into or out of PIL.
+  </p>
+<pre class="programlisting">
+#!/usr/bin/python
+
+import numpy 
+import scipy.ndimage
+import gi
+gi.require_version('Vips', '8.0')
+from gi.repository import Vips
+
+def np_dtype_to_vips_format(np_dtype):
+    '''
+    Map numpy data types to VIPS data formats.
+
+    Parameters
+    ----------
+    np_dtype: numpy.dtype
+
+    Returns
+    -------
+    gi.overrides.Vips.BandFormat
+    '''
+    lookup = {
+        numpy.dtype('int8'): Vips.BandFormat.CHAR,
+        numpy.dtype('uint8'): Vips.BandFormat.UCHAR,
+        numpy.dtype('int16'): Vips.BandFormat.SHORT,
+        numpy.dtype('uint16'): Vips.BandFormat.USHORT,
+        numpy.dtype('int32'): Vips.BandFormat.INT,
+        numpy.dtype('float32'): Vips.BandFormat.FLOAT,
+        numpy.dtype('float64'): Vips.BandFormat.DOUBLE
+    }
+    return lookup[np_dtype]
+
+def np_array_to_vips_image(array):
+    '''
+    Convert a `numpy` array to a `Vips` image object.
+
+    Parameters
+    ----------
+    nparray: numpy.ndarray
+
+    Returns
+    -------
+    gi.overrides.Vips.image
+    '''
+    # Look up what VIPS format corresponds to the type of this np array
+    vips_format = np_dtype_to_vips_format(array.dtype)
+    dims = array.shape
+    height = dims[0]
+    width = 1
+    bands = 1
+    if len(dims) &gt; 1:
+        width = dims[1]
+    if len(dims) &gt; 2:
+        bands = dims[2]
+    img = Vips.Image.new_from_memory_copy(array.data, 
+        width, height, bands, vips_format)
+
+    return img
+
+array = numpy.random.random((10,10))
+vips_image = np_array_to_vips_image(array)
+print 'avg =', vips_image.avg()
+
+array = scipy.ndimage.imread("test.jpg")
+vips_image = np_array_to_vips_image(array)
+print 'avg =', vips_image.avg()
+vips_image.write_to_file("test2.jpg")
+</pre>
+</div>
+<div class="refsect3">
+<a name="watermarking"></a><h4>Watermarking</h4>
+<p>
+    This example renders a simple watermark on an image. Use it like this:
+  </p>
+<pre class="programlisting">
+./watermark.py somefile.png output.jpg "hello &lt;i&gt;world&lt;/i&gt;"
+</pre>
+<p>
+    The text is rendered in transparent red pixels all over the image. It knows about transparency, CMYK, and 16-bit images.
+  </p>
+<pre class="programlisting">
+#!/usr/bin/python
+ 
+import sys
+import gi
+gi.require_version('Vips', '8.0')
+from gi.repository import Vips
+ 
+im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
+ 
+text = Vips.Image.text(sys.argv[3], width = 500, dpi = 300)
+text = (text * 0.3).cast("uchar")
+text = text.embed(100, 100, text.width + 200, text.width + 200)
+text = text.replicate(1 + im.width / text.width, 1 + im.height / text.height)
+text = text.crop(0, 0, im.width, im.height)
+
+# we want to blend into the visible part of the image and leave any alpha
+# channels untouched ... we need to split im into two parts
+
+# 16-bit images have 65535 as white
+if im.format == Vips.BandFormat.USHORT:
+    white = 65535
+else:
+    white = 255
+
+# guess how many bands from the start of im contain visible colour information
+if im.bands &gt;= 4 and im.interpretation == Vips.Interpretation.CMYK:
+    # cmyk image ... put the white into the magenta channel
+    n_visible_bands = 4
+    text_colour = [0, white, 0, 0]
+elif im.bands &gt;= 3:
+    # colour image ... put the white into the red channel
+    n_visible_bands = 3
+    text_colour = [white, 0, 0]
+else:
+    # mono image
+    n_visible_bands = 1
+    text_colour = white
+
+# split into image and alpha
+if im.bands - n_visible_bands &gt; 0:
+    alpha = im.extract_band(n_visible_bands, n = im.bands - n_visible_bands)
+    im = im.extract_band(0, n = n_visible_bands)
+else:
+    alpha = None
+
+# blend means do a smooth fade using the 0 - 255 values in the condition channel
+# (test in this case) ... this will render the anit-aliasing
+im = text.ifthenelse(text_colour, im, blend = True)
+
+# reattach alpha
+if alpha:
+    im = im.bandjoin(alpha)
+ 
+im.write_to_file(sys.argv[2])
+</pre>
+</div>
+<div class="refsect3">
+<a name="build-huge-image-mosaic"></a><h4>Build huge image mosaic</h4>
+<p>
+    This makes a 100,000 x 100,000 black image, then inserts all the images you pass on the command-line into it at random positions. libvips is able to run this program in sequential mode: it’ll open all the input images at the same time, and stream pixels from them as it needs them to generate the output.
+  </p>
+<p>
+    To test it, first make a large 1-bit image. This command will take the green channel and write as a 1-bit fax image. <code class="literal">wtc.jpg</code> is a test 10,000 x 10,000 jpeg:
+  </p>
+<pre class="programlisting">
+$ vips extract_band wtc.jpg x.tif[squash,compression=ccittfax4,strip] 1
+</pre>
+<p>
+    Now make 1,000 copies of that image in a subdirectory:
+  </p>
+<pre class="programlisting">
+$ mkdir test
+$ for i in {1..1000}; do cp x.tif test/$i.tif; done
+</pre>
+<p>
+    And run this Python program on them:
+  </p>
+<pre class="programlisting">
+$ time ./try255.py x.tif[squash,compression=ccittfax4,strip,bigtif] test/*
+real    1m59.924s
+user    4m5.388s
+sys 0m8.936s
+</pre>
+<p>
+    It completes in just under two minutes on this laptop, and needs about 7gb of RAM to run. It would need about the same amount of memory for a full-colour RGB image, I was just keen to keep disc usage down.
+  </p>
+<p>
+    If you wanted to handle transparency, or if you wanted mixed CMYK and RGB images, you’d need to do some more work to convert them all into the same colourspace before inserting them.
+  </p>
+<pre class="programlisting">
+#!/usr/bin/env python
+
+import sys
+import random
+
+import gi
+gi.require_version('Vips', '8.0')
+from gi.repository import Vips
+
+# turn on progress reporting
+Vips.progress_set(True)
+
+# this makes a 8-bit, mono image of 100,000 x 100,000 pixels, each pixel zero
+im = Vips.Image.black(100000, 100000)
+
+for filename in sys.argv[2:]:
+    tile = Vips.Image.new_from_file(filename, access = Vips.Access.SEQUENTIAL)
+
+    im = im.insert(tile,
+                   random.randint(0, im.width - tile.width),
+                   random.randint(0, im.height - tile.height))
+
+im.write_to_file(sys.argv[1])
+</pre>
+</div>
+<div class="refsect3">
+<a name="rename-dicom-images-using-header-fields"></a><h4>Rename DICOM images using header fields</h4>
+<p>
+    DICOM images commonly come in an awful directory hierarchy named as something like <code class="literal">images/a/b/e/z04</code>. There can be thousands of files and it can be very hard to find the one you want.
+  </p>
+<p>
+    This utility copies files to a single flat directory, naming them using fields from the DICOM header. You can actually find stuff! Useful.
+  </p>
+<pre class="programlisting">
+#!/usr/bin/python
+
+import sys
+import re
+import os
+import shutil
+
+from vipsCC import *
+
+if len (sys.argv) != 3:
+  print 'rename DICOM files using tags from the header'
+  print 'usage:'
+  print '\t%s srcdir destdir' % sys.argv[0]
+  print 'the directory tree below srcdir is searched, all files are'
+  print 'renamed and put into destdir in a flat list'
+  sys.exit (1)
+
+srcdir = sys.argv[1]
+destdir = sys.argv[2]
+
+if not os.access (destdir, os.F_OK | os.R_OK | os.W_OK | os.X_OK):
+  os.mkdir (destdir)
+
+def get_field (vim, field):
+  result = vim.meta_get_string (field)
+
+  # remove any \n etc.
+  result = re.sub ("\n", "", result)
+
+  # remove any leading or trailing spaces
+  result = re.sub (" $", "", result)
+  result = re.sub ("^ ", "", result)
+
+  return result
+
+id_name = "magick-dcm:Patient'sID"
+modality_name = "magick-dcm:Modality"
+series_name = "magick-dcm:SeriesNumber"
+instance_name = "magick-dcm:Instance(formerlyImage)Number"
+date_name = "magick-dcm:ImageDate"
+
+n_processed = 0
+
+for (dirpath, dirnames, filenames) in os.walk (srcdir):
+  for file in filenames:
+    path = os.path.join (dirpath, file)
+
+    try:
+      vim = VImage.VImage (path)
+    except VError.VError, e:
+      print 'unable to open', path
+      continue
+
+    try:
+      id = get_field (vim, id_name)
+      modality = get_field (vim, modality_name)
+      series = get_field (vim, series_name)
+      instance = get_field (vim, instance_name)
+      date = get_field (vim, date_name)
+    except VError.VError, e:
+      print 'unable to get fields from header', path
+      continue
+
+    match = re.match ("(\d\d\d\d)(\d\d)(\d\d)", date)
+    date = match.group (1) + "." + match.group (2) + "." + match.group (3)
+    newname = id + "." + modality + "." + series + "." + instance + "." + date + ".IMA"
+
+    shutil.copyfile(path, os.path.join (destdir, newname))
+
+    n_processed += 1
+
+print '\t(%d files processed)' % n_processed
+</pre>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.21</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>
