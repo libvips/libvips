@@ -6,16 +6,28 @@
 .page-header {
 	padding: 1rem 1.5rem;
 	line-height: 1.2;
-
-	img {
-		max-width: 16px;
-	}
 }
 
 .project-name {
 	a { 
 		text-decoration: none;
 		color: white;
+	}
+}
+
+.navigation {
+	td {
+		border: 0;
+	}
+
+	img {
+		max-width: 16px;
+	}
+}
+
+.refnamediv {
+	td {
+		border: 0;
 	}
 }
 
