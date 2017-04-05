@@ -1,12 +1,12 @@
   <refmeta>
-    <refentrytitle>Using `vipsthumbnail`</refentrytitle>
+    <refentrytitle>Examples</refentrytitle>
     <manvolnum>3</manvolnum>
     <refmiscinfo>libvips</refmiscinfo>
   </refmeta>
 
   <refnamediv>
-    <refname>`vipsthumbnail`</refname>
-    <refpurpose>Introduction to `vipsthumbnail`, with examples</refpurpose>
+    <refname>libvips examples</refname>
+    <refpurpose>A few example Python programs using libvips</refpurpose>
   </refnamediv>
 
 This page shows a few libvips examples using Python. They will work with small syntax
