@@ -121,15 +121,8 @@ int vips_region_shrink( VipsRegion *from, VipsRegion *to, VipsRect *target );
 int vips_region_prepare( VipsRegion *reg, VipsRect *r );
 int vips_region_prepare_to( VipsRegion *reg, 
 	VipsRegion *dest, VipsRect *r, int x, int y );
-int vips_region_prepare_many( VipsRegion **reg, VipsRect *r );
 
 void vips_region_invalidate( VipsRegion *reg );
-
-void vips_region_dump_all( void );
-
-#ifdef DEBUG_LEAK
-void vips__region_count_pixels( VipsRegion *region, const char *nickname );
-#endif /*DEBUG_LEAK*/
 
 /* Use this to count pixels passing through key points. Handy for spotting bad
  * overcomputation.
